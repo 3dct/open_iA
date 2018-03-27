@@ -17,7 +17,7 @@
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
-   <item row="0" column="0">
+   <item row="1" column="0">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="minimumSize">
       <size>
@@ -28,11 +28,27 @@
      <property name="title">
       <string>InputConfiguration</string>
      </property>
+     <widget class="QCheckBox" name="cb_fmtEnglish">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>290</y>
+        <width>141</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>ENGLISCH_FORMAT</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
      <widget class="QWidget" name="">
       <property name="geometry">
        <rect>
-        <x>1190</x>
-        <y>910</y>
+        <x>100</x>
+        <y>760</y>
         <width>158</width>
         <height>77</height>
        </rect>
@@ -59,10 +75,10 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>750</x>
-        <y>550</y>
+        <x>770</x>
+        <y>330</y>
         <width>381</width>
-        <height>201</height>
+        <height>421</height>
        </rect>
       </property>
       <property name="title">
@@ -77,32 +93,12 @@
          <x>10</x>
          <y>21</y>
          <width>256</width>
-         <height>181</height>
+         <height>391</height>
         </rect>
        </property>
        <property name="selectionMode">
         <enum>QAbstractItemView::MultiSelection</enum>
        </property>
-       <item>
-        <property name="text">
-         <string>ID</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Entry A</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Entry B</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>LENGHT</string>
-        </property>
-       </item>
       </widget>
       <widget class="QPushButton" name="btn_loadCols">
        <property name="geometry">
@@ -123,8 +119,8 @@
        <rect>
         <x>430</x>
         <y>0</y>
-        <width>491</width>
-        <height>421</height>
+        <width>701</width>
+        <height>241</height>
        </rect>
       </property>
       <property name="title">
@@ -257,8 +253,8 @@
       <widget class="QWidget" name="">
        <property name="geometry">
         <rect>
-         <x>360</x>
-         <y>290</y>
+         <x>540</x>
+         <y>20</y>
          <width>80</width>
          <height>83</height>
         </rect>
@@ -466,10 +462,10 @@
      <widget class="QWidget" name="verticalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>540</y>
+        <x>30</x>
+        <y>330</y>
         <width>701</width>
-        <height>501</height>
+        <height>321</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="myLayout"/>
@@ -479,7 +475,7 @@
        <rect>
         <x>10</x>
         <y>21</y>
-        <width>91</width>
+        <width>109</width>
         <height>87</height>
        </rect>
       </property>
@@ -516,16 +512,6 @@
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QCheckBox" name="cb_fmtEnglish">
-         <property name="text">
-          <string>ENGLISCH_FORMAT</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
         <widget class="QCheckBox" name="checkBox">
          <property name="enabled">
           <bool>false</bool>

@@ -10,10 +10,26 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	this->buttonBox->setDisabled(true);
 	this->m_confParams = QSharedPointer<csvConfig::configPararams>(new csvConfig::configPararams());
 	
-	connect(btn_loadCSV, SIGNAL(clicked()), this, SLOT(FileBtnClicked()));
-	connect(btn_LoadConfig, SIGNAL(clicked()), this, SLOT(LoadFormatBtnClicked())); 
-	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked())); 
+	connectSignals();
 
+}
+
+dlg_CSVInput::~dlg_CSVInput()
+{
+	if (this->m_DataTableSelected) {
+		delete this->m_DataTableSelected;
+		this->m_DataTableSelected = nullptr;
+	}
+
+
+}
+
+void dlg_CSVInput::connectSignals()
+{
+	connect(btn_loadCSV, SIGNAL(clicked()), this, SLOT(FileBtnClicked()));
+	connect(btn_LoadConfig, SIGNAL(clicked()), this, SLOT(LoadFormatBtnClicked()));
+	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked()));
+	connect(btn_loadCols, SIGNAL(clicked()), this, SLOT(LoadColsBtnClicked()));
 }
 
 //enabling for custom file format
@@ -26,16 +42,18 @@ void dlg_CSVInput::CustomFormatBtnClicked(){
 	this->ed_Spacing->setEnabled(true);
 }
 
-
-
+void dlg_CSVInput::LoadColsBtnClicked()
+{
+	this->getSelectedEntries();
+}
 
 void dlg_CSVInput::FileBtnClicked()
 {
-	this->myLayout->addWidget(this->m_entriesTable); 
+	this->myLayout->addWidget(this->m_entriesPreviewTable); 
 	this->assignFileFormat(); 
 	this->assignSeparator();
 	this->AssignFormatLanguage(); 
-
+	
 	this->loadFilePreview(10); 
 	this->showConfigParams(*this->m_confParams);
 	this->buttonBox->setEnabled(true);
@@ -68,6 +86,7 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams & params)
 
 void dlg_CSVInput::LoadFormatBtnClicked()
 {
+	
 }
 
 void dlg_CSVInput::initParameters(){
@@ -86,11 +105,20 @@ void dlg_CSVInput::initParameters(){
 	this->m_confParams->headerStartLine = 5; 
 	this->m_confParams->paramsValid = false;
 	this->m_fPath = "D:/OpenIa_TestDaten/Pores/";
-	this->m_entriesTable = new dataTable(); 
+	this->m_entriesPreviewTable = new dataTable(); 
 	
 	if (!this->m_currentHeaders) {
 		this->m_currentHeaders = QSharedPointer<QStringList>(new QStringList()); 
 	
+	}
+	if (!this->m_DataTableSelected) {
+		this->m_DataTableSelected = new dataTable();
+	
+	}
+
+
+	if (!this->m_selHeaders) {
+		this->m_selHeaders = QSharedPointer < QStringList>(new QStringList());
 	}
 
 }
@@ -161,7 +189,7 @@ void dlg_CSVInput::assignSeparator() {
 }
 
 void dlg_CSVInput::loadFilePreview(const int rowCount) {
-	m_entriesTable->setColSeparator(this->m_confParams->file_seperator);
+	m_entriesPreviewTable->setColSeparator(this->m_confParams->file_seperator);
 	
 	if (!this->checkFile())
 	{
@@ -169,7 +197,7 @@ void dlg_CSVInput::loadFilePreview(const int rowCount) {
 	}
 	else
 	{
-		this->m_entriesTable->prepareTable(rowCount, this->m_confParams->colCount, this->m_confParams->headerStartLine); 
+		this->m_entriesPreviewTable->prepareTable(rowCount, this->m_confParams->colCount, this->m_confParams->headerStartLine); 
 		this->loadEntries(this->m_confParams->fileName, rowCount);
 		this->showPreviewTable(); 
 	}
@@ -235,26 +263,64 @@ bool dlg_CSVInput::checkFile() {
 bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPreviewElements) {
 	bool dataLoaded = false; 
 	uint startElLine = (uint)  this->m_confParams->startLine;
-	dataLoaded = this->m_entriesTable->readTableEntries(fileName, nrPreviewElements, 31,this->m_confParams->headerStartLine, &startElLine,  true); 
+
+	//TODO REmOVE hard coded columns in  dgl_csvInput
+	dataLoaded = this->m_entriesPreviewTable->readTableEntries(fileName, nrPreviewElements, this->m_confParams->colCount,this->m_confParams->headerStartLine, &startElLine,  true); 
 	this->assignHeaderLine(); 
 	return dataLoaded; 
 }
 
 void dlg_CSVInput::showPreviewTable()
 {
-	this->m_entriesTable->setAutoScroll(true);
-	this->m_entriesTable->setEnabled(true);
-	this->m_entriesTable->setVisible(true);
-	this->m_entriesTable->update();
+	this->m_entriesPreviewTable->setAutoScroll(true);
+	this->m_entriesPreviewTable->setEnabled(true);
+	this->m_entriesPreviewTable->setVisible(true);
+	this->m_entriesPreviewTable->update();
 }
 
+
+//assing headers and prepare map with indexes
 void dlg_CSVInput::assignHeaderLine() {
+	int autoIdxCol = -1; //-1 is auto ID 
 	if (!this->m_currentHeaders) return; 
-	*this->m_currentHeaders = m_entriesTable->getHeaders(); 
-	for (const auto &currItem:*this->m_currentHeaders) {
+	*this->m_currentHeaders = m_entriesPreviewTable->getHeaders(); 
+
+	if (this->m_currentHeaders->isEmpty()) return;
+
+	//header assignemt to textcontrol_list
+	for (const auto &currItem:*this->m_currentHeaders){
 		this->textControl_list->addItem(currItem); 
+		this->m_hashEntries.insert(currItem, autoIdxCol);
+		autoIdxCol++;
 	}
 
 	this->textControl_list->update(); 
 
+
 }
+
+//getEntries from a selected List;
+const QVector<uint> &dlg_CSVInput::getSelectedEntries() {
+	uint currItemIdx; 
+	QString listEntry; 
+	this->m_selectedHeadersList  = this->textControl_list->selectedItems();
+				
+	//no selection use all entries
+	if (!(this->m_selectedHeadersList.length() == 0)) {
+		for (const auto &selEntry : m_selectedHeadersList) {
+			listEntry = selEntry->text(); 
+
+			currItemIdx = this->m_hashEntries.value(listEntry);
+			this->m_selColIdx.push_back(currItemIdx);
+			this->m_selHeaders->append(listEntry);
+			
+		}
+		
+		qSort(this->m_selColIdx.begin(), this->m_selColIdx.end(), qLess<uint>());
+		
+	}
+
+	return this->m_selColIdx; 
+}
+
+

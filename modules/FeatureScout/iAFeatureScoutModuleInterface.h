@@ -21,6 +21,8 @@
 #pragma once
 
 #include "io/csv_config.h"
+#include "io/iACsvIO.h"
+
 #include "iAModuleInterface.h"
 #include "iAObjectAnalysisType.h"
 #include "mdichild.h"
@@ -50,6 +52,10 @@ private:
 	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID, csvConfig::configPararams *FileParams, const bool is_csvOnly);
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
-	void initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString, iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly);
+	void initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString,
+		iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams);
 	iAFeatureScoutToolbar * tlbFeatureScout;
+
+	iACsvIO io;
+
 };

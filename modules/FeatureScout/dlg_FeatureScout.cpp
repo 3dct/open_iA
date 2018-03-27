@@ -198,7 +198,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 	setupUi( this );
 
 	this->useCsvOnly = useCsvOnly; 
-	if (!this->useCsvOnly); {
+	if (!this->useCsvOnly) {
 	
 		oTF = parent->getPiecewiseFunction(); //added
 		cTF = parent->getColorTransferFunction(); //added
@@ -216,12 +216,15 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 	blobManager = new iABlobManager();
 	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
 	double bounds[6];
-	raycaster->GetImageDataBounds( bounds );
-	blobManager->SetBounds( bounds );
-	blobManager->SetProtrusion( 1.5 );
-	int dimens[3] = { 50, 50, 50 };
-	blobManager->SetDimensions( dimens );
 
+	if (!this->useCsvOnly) {
+
+		raycaster->GetImageDataBounds(bounds);
+		blobManager->SetBounds(bounds);
+		blobManager->SetProtrusion(1.5);
+		int dimens[3] = { 50, 50, 50 };
+		blobManager->SetDimensions(dimens);
+	}
 	lut = vtkSmartPointer<vtkLookupTable>::New();
 	chartTable = vtkSmartPointer<vtkTable>::New();
 	chartTable->DeepCopy( csvTable );
@@ -5235,8 +5238,11 @@ bool dlg_FeatureScout::initParallelCoordinates( iAObjectAnalysisType fid )
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPP );
 	iovPP->colorMapSelection->hide();
 	mdiChild->HideHistogram();
-	mdiChild->getImagePropertyDlg()->hide();
-	mdiChild->logs->hide();
+	
+	if (!this->useCsvOnly) {
+		mdiChild->getImagePropertyDlg()->hide();
+		mdiChild->logs->hide();
+	}
 	mdiChild->sYZ->hide();
 	mdiChild->sXZ->hide();
 	mdiChild->sXY->hide();

@@ -36,8 +36,12 @@
 
 
 iACsvIO::iACsvIO() :
-	table(vtkSmartPointer<vtkTable>::New()) 
-	
+	table(vtkSmartPointer<vtkTable>::New()),
+	m_colSeparator(","),
+	m_decimalSeparator("."),
+	m_EN_Values(true),
+	m_autoRID(1),
+	m_FileName("")
 {
 	this->setDefaultConfigPath(); 
 }
@@ -263,141 +267,13 @@ bool iACsvIO::loadConfig(const QString configName, bool & applyEN_Formating )
 
 bool iACsvIO::loadCSVCustom(csvConfig::configPararams &cnfg_params)
 {
-	this->loadConfigurationFile(cnfg_params);
 	if (!cnfg_params.paramsValid) {
 		return false; 
 	}
-
-	return loadCsv_WithConfig(cnfg_params.fileName, cnfg_params);
+	setTableParams(cnfg_params);
+	return loadCsv_WithConfig();
 }
 
-
-//read configuration file
-bool iACsvIO::loadConfigurationFile(csvConfig::configPararams &cnf_Params) const
-{
-	QString defaultConfig = "";
-	QString confFilePath = this->configPath;
-	const int splitIdx = 1;
-
-	switch (cnf_Params.file_fmt) {
-
-	case csvConfig::csv_FileFormat::Default:
-		defaultConfig = "cnf_default.txt"; break;
-
-	case csvConfig::csv_FileFormat::open_IA_FeatureScout:
-		defaultConfig = "cnf_featureScout.txt"; break;
-
-	case csvConfig::csv_FileFormat::VolumeGraphics:
-		defaultConfig = "cnf_VG.txt"; break;
-
-	case csvConfig::csv_FileFormat::MAVI: 
-		defaultConfig = "cnf_MAVI.txt"; break;
-
-	default:
-		defaultConfig = "cnf_default.txt"; break;
-
-	}
-
-
-	confFilePath+=defaultConfig;
-	
-
-	const QString colSeparator = ":";
-	QString lineEntry = ";";
-	bool ENFormat = false;
-
-	long int startLine = 0;
-	if (confFilePath.isEmpty())
-		return 0;
-
-	QFile file(confFilePath);
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-		return 0;
-	
-	//skip first two lines
-	file.readLine();
-	file.readLine();
-	QString line = "";
-	line = file.readLine(); 
-
-	
-	//entrys start with line 3
-	
-	
-	if (line.contains ( "StartLine")) {
-		lineEntry = line.section(colSeparator, 1, 1);
-		startLine = lineEntry.toInt(); 
-		cnf_Params.startLine = startLine; 
-	}
-	else {
-		file.close(); 
-		return false; }
-
-
-	line = file.readLine();
-
-	//check for format
-	if (line.contains("Decimals")){
-		lineEntry = line.section(colSeparator, splitIdx, splitIdx);
-		if (line.contains("EN") ) { 
-			cnf_Params.csv_Inputlanguage = csvConfig::inputLang::EN;
-		}
-		else if (line.contains("GER")) { 
-			cnf_Params.csv_Inputlanguage = csvConfig::inputLang::GER;
-		}
-		else {
-			file.close();
-			cnf_Params.csv_Inputlanguage = csvConfig::inputLang::EN; 
-			return false;
-		}
-
-	}
-
-	line = file.readLine();
-	if (line.contains("Separator")) {
-		lineEntry = line.section(colSeparator, splitIdx, splitIdx);
-
-		//check if sign = , or semikolon
-		if (lineEntry.trimmed().contains(",")) {
-			cnf_Params.file_seperator = csvConfig::csvSeparator::Comma;
-
-		}
-		else {
-			if (lineEntry.trimmed().contains(";")) {
-				cnf_Params.file_seperator = csvConfig::csvSeparator::Colunm;
-			}
-			else {
-				cnf_Params.file_seperator = csvConfig::csvSeparator::Colunm;
-				
-			}
-		}
-
-
-	}
-	else {
-		file.close();
-		return false;
-	}
-
-	line = file.readLine();
-	if (line.contains("Spacing")) {
-		lineEntry = line.section(colSeparator, splitIdx, splitIdx);
-		cnf_Params.spacing = lineEntry.toFloat();
-	}
-	else {
-		file.close();
-		return false;
-	}
-
-
-
-	file.close(); 
-	return true; 
-	
-	//TOOD read out other entries
-
-
-}
 
 void iACsvIO::setDefaultConfigPath()
 {
@@ -558,34 +434,122 @@ vtkTable* iACsvIO::GetCSVTable()
 
 
 //loading csv into table
-bool iACsvIO::loadCsv_WithConfig(const QString &fileName, csvConfig::configPararams &csv_Params )/*const int rows_toSkip, bool EN_Values, const QString  &colSeparator)*/ {
+bool iACsvIO::loadCsv_WithConfig(){
 	table->Initialize();
-	QString decimal_separator = "";
-	const int rows_toSkip = csv_Params.startLine;
-	QString colSeparator;
-	bool EN_Values = true; 
-
+	
 	bool retFlag = false; 
-	if (csv_Params.file_seperator == csvConfig::csvSeparator::Colunm) {
-		colSeparator = ";";
-	}else if (csv_Params.file_seperator == csvConfig::csvSeparator::Comma) {
-		colSeparator = ",";
-		
-	}
-	
-	
-	//english decimal format
-	if (!(csv_Params.csv_Inputlanguage == (csvConfig::inputLang::EN))) {
-		decimal_separator = ".";
-		EN_Values = false;
-	}
-	
-	this->readFileEntries(fileName, rows_toSkip, colSeparator, decimal_separator, EN_Values, retFlag);
-
+	this->readFileEntries(this->m_FileName, this->m_rowsToSkip, this->m_EN_Values, retFlag);
 	return retFlag; 
 }
 
-void iACsvIO::readFileEntries(const QString &fileName, const int rows_toSkip, const QString &colSeparator, const QString decimalSeparator , bool En_Values, bool &retFlag) {
+void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
+{
+	this->m_FileName = csv_Params.fileName;
+	this->m_rowsToSkip = csv_Params.startLine;
+
+	if (csv_Params.file_seperator == csvConfig::csvSeparator::Colunm) {
+		this->m_colSeparator = ";";
+	}
+	else if (csv_Params.file_seperator == csvConfig::csvSeparator::Comma) {
+		this->m_colSeparator = ",";
+	}
+
+	//english decimal format
+	if (!(csv_Params.csv_Inputlanguage == (csvConfig::inputLang::EN))) {
+		this->m_decimalSeparator = ".";
+		this->m_EN_Values = false;
+	}
+}
+
+void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag()) {
+	int tableWidth = 0; 
+	int tableLength = 0; 
+
+	tableLength = CalcTableLength(fileName, &rows_toSkip);
+
+	/*if (m_Headers.isEmpty()) { 
+		tableWidth = eleLine.count(&m_colSeparator);;
+	}else */
+	
+	tableLength = colSelEntries.length(); 
+
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		retFlag = false;
+		return;
+	}
+
+	QTextStream in(&file);
+
+	//skip header lines, not counting the line where names start
+	for (int i = 0; i < rows_toSkip; i++) {
+		QString tmp = in.readLine();
+	}
+
+	QByteArray byteArr;
+	const char* element;
+
+	//adding headers; 
+	for (const auto &elLine : m_Headers) {
+		if (!elLine.isEmpty()) {
+			vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+			byteArr = elLine.toUtf8();
+			element = byteArr.constData();
+			table->AddColumn(arrX);
+		}
+	}
+
+
+	//read entries;
+	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
+	arr->SetName("Class_ID");
+	table->AddColumn(arr);
+	table->SetNumberOfRows(tableLength);
+	QString line = "";
+	QString tmp_section = "";
+
+	for (int i = 0; i<tableLength; ++i)
+	{
+		line = in.readLine();
+		if (!line.isEmpty())
+		{
+			//vtkVariant v = line.section(m_colSeparator, 0, 0).toInt();
+			//vtkStdString v1 = v.ToString();
+
+			////set id 
+			//table->SetValue(i, 0, v.ToString());
+			vtkVariant v = this->m_autoRID;
+			table->SetValue(i, 0, v.ToString());
+			
+			//adding entries for each col 
+			for (int col = 0; col<tableWidth; col++)
+			{
+				if (m_colIds.contains((uint)col))
+				{
+					tmp_section = line.section(m_colSeparator, col, col);
+					//replace decimal separator for german input format 
+					if (!this->m_EN_Values)
+						tmp_section = tmp_section.replace(",", m_decimalSeparator);
+					table->SetValue(i, col, tmp_section.toFloat());
+					this->m_autoRID++;
+				}
+			}
+
+			//set Class_ID 0 for each row element
+			table->SetValue(i, tableWidth, 0);
+
+		}
+	}
+
+	if(file.isOpen())
+	file.close();
+	
+
+}
+
+//reads all Entries from Table
+void iACsvIO::readFileEntries(const QString &fileName, const int rows_toSkip, bool En_Values, bool &retFlag) {
 	int tableLength = CalcTableLength(fileName, &rows_toSkip);
 	if (tableLength <= 0)
 	{
@@ -612,16 +576,16 @@ void iACsvIO::readFileEntries(const QString &fileName, const int rows_toSkip, co
 	const char* element;
 	// count elements
 
-	const char *_colSeparator = colSeparator.toStdString().c_str();
+	const char *_colSeparator = m_colSeparator.toStdString().c_str();
 	//TODO tobe tested
-	int tableWidth = eleLine.count(&colSeparator);
+	int tableWidth = eleLine.count(&m_colSeparator);
 	QString tmp_section = "";
 
 	//read out header entrys
 	for (int i = 0; i<tableWidth; i++)
 	{
 		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
-		QByteArray byteArr = eleLine.section(colSeparator, i, i, QString::SectionSkipEmpty).toUtf8();
+		QByteArray byteArr = eleLine.section(m_colSeparator, i, i, QString::SectionSkipEmpty).toUtf8();
 		element = byteArr.constData();
 		arrX->SetName(element);
 		table->AddColumn(arrX);
@@ -636,7 +600,7 @@ void iACsvIO::readFileEntries(const QString &fileName, const int rows_toSkip, co
 		line = in.readLine();
 		if (!line.isEmpty())
 		{
-			vtkVariant v = line.section(colSeparator, 0, 0).toInt();
+			vtkVariant v = line.section(m_colSeparator, 0, 0).toInt();
 			vtkStdString v1 = v.ToString();
 
 			//set id 
@@ -646,10 +610,10 @@ void iACsvIO::readFileEntries(const QString &fileName, const int rows_toSkip, co
 			for (int j = 1; j<tableWidth; j++)
 			{
 
-				tmp_section = line.section(colSeparator, j, j);
+				tmp_section = line.section(m_colSeparator, j, j);
 				//replace decimal separator for german input format 
 				if (!En_Values)
-					tmp_section = tmp_section.replace(",", decimalSeparator);
+					tmp_section = tmp_section.replace(",", m_decimalSeparator);
 				table->SetValue(i, j, tmp_section.toFloat());
 			}
 

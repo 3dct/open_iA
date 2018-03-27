@@ -64,7 +64,13 @@ namespace  DataIO{
 		uint m_currHeaderLineNr; 
 		bool isInitialized;
 		QString m_FileSeperator; 
+		QString m_FileName; 
 
+		//name of first column
+		QString m_rowID;
+
+		//row ID automatically assigned
+		uint m_autoRID; 
 	private:
 		//disable copy constructor
 		DataTable(const DataTable &other);

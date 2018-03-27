@@ -25,6 +25,7 @@
 #include <vtkSmartPointer.h>
 #include "io/csv_config.h"
 #include <QString>
+#include <qvector.h>
 
 class vtkTable;
 
@@ -35,22 +36,23 @@ public:
 	bool LoadCsvFile(iAObjectAnalysisType fid, QString const & fileName);
 	vtkTable * GetCSVTable();
 
-	bool loadCsv_WithConfig(const QString & fileName, csvConfig::configPararams &csv_Params);
-	void readFileEntries(const QString & fileName, const int rows_toSkip, const QString & colSeparator, const QString decimalSeparator, bool En_Values, bool & retFlag);
+	bool loadCsv_WithConfig();
+
+	void readCustomFileEntries(const QString & fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool & retFlag());
+	void readFileEntries(const QString & fileName, const int rows_toSkip, bool En_Values, bool & retFlag);
 
 	//input parameters from configuration file 
 	//headerlines to skip	nrOfHeaderLines: headerLinesToSkip
 	//startRowInd -> where to start from row
 	//column separator "," "\t", ";"
 
-	/*bool loadCSVData(const QString &fileName, const int nrOfHeaderLines, const int NrOFParameters, const int startRowInd, const char separator);*/
+	
 	
 	//similar to load pore csv
-	
-	//bool loadGeneralCSVFile(const QString &FName, const QString *confName );
+
 	
 	bool loadCSVCustom(csvConfig::configPararams &cnfg_params);
-	bool loadConfigurationFile(csvConfig::configPararams &cnf_Params) const;
+	/*bool setCSVConfiguration(csvConfig::configPararams &cnf_Params) const;*/
 	
 	//todo check if file path exists
 	inline void setConfigPath(const QString _configPath){
@@ -59,6 +61,16 @@ public:
 
 	const csvConfig::CTInputObjectType getInputElementType() const {
 		return this->inputElementType; 
+	}
+
+	void setTableParams(csvConfig::configPararams & csv_Params);
+
+	inline void setTableHeaders(QStringList& headers) {
+		this->m_TableHeaders = headers; 
+	}
+
+	inline void setColIDs(const QVector<uint> colIDs) {
+		this->m_colIds = colIDs;
 	}
 
 private:
@@ -72,6 +84,18 @@ private:
 	bool LoadPoreCSV(const QString &fileName);
 	
 	bool loadConfig(const QString configName, bool & applyEN_Formating);
+
+
+	bool m_EN_Values; 
+	uint m_autoRID;
+	int m_rowsToSkip;
+
+	QString m_colSeparator;
+	QString m_decimalSeparator; 
+	QString m_FileName; 
+
 	vtkSmartPointer<vtkTable> table;
-	csvConfig::CTInputObjectType inputElementType; 
+	csvConfig::CTInputObjectType inputElementType;
+	QVector<uint> m_colIds;
+	QStringList  m_TableHeaders; 
 };

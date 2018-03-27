@@ -71,25 +71,22 @@ void iAFeatureScoutModuleInterface::Initialize()
 
 void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	
-	
+	//const QString fPath = m_mdiChild->getFilePath(); 
+	//dlg.setFilePath(fPath);
+	//dlg.showConfigParams(fileConfParams);
 	
 	csvConfig::configPararams fileConfParams;
 	//TODO set file path
 	dlg_CSVInput dlg;
-	//const QString fPath = m_mdiChild->getFilePath(); 
-	//dlg.setFilePath(fPath);
-	//dlg.showConfigParams(fileConfParams);
 	
 	if (dlg.exec() != QDialog::Accepted) {
 		return;
 	}
 
-	iACsvIO io;
 
-
-	this->m_mdiChild = new MdiChild(m_mainWnd, m_mainWnd->GetDefaultPreferences(), false);
-	/*iARenderSettings FS_RenderSettings = m_mdiChild->GetRenderSettings();
-	iAVolumeSettings FS_VolumeSettings = m_mdiChild->GetVolumeSettings();*/
+	this->m_mdiChild = m_mainWnd->createMdiChild(false);
+		//new MdiChild(/*m_mainWnd*//*, m_mainWnd->GetDefaultPreferences(), false)*/);
+	
 	
 	this->m_mdiChild->show(); 
 
@@ -132,9 +129,18 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	//m_mdiChild = 
 
 	if (!m_mdiChild) return;
-
+	QVector<uint> selEntriesId;
+	QSharedPointer<QStringList> headers = QSharedPointer<QStringList>(new QStringList);
 	fileConfParams = dlg.getConfigParameters();
+	selEntriesId = dlg.getSelectedEntries();
+	headers = dlg.getHeaders(); 
+
+	//io.setTableParams(fileConfParams);
+	io.setColIDs(selEntriesId);
+	io.setTableHeaders(*headers);
 	
+	//headers = d
+	//getSelection indexes
 
 	QMap<QString, iAObjectAnalysisType> objectMap;
 	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
@@ -152,9 +158,8 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	}
 
 
-	//do not see anything
 	if (!fileConfParams.fileName.isEmpty()) {
-		initializeFeatureScoutStartUp(item, items, fileConfParams.fileName, objectMap, filterName, true);
+		initializeFeatureScoutStartUp(item, items, fileConfParams.fileName, objectMap, filterName, true, &fileConfParams);
 	}
 	else m_mdiChild->addMsg("CSV-file name error.");
 	
@@ -191,7 +196,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 				item = "Fibers";
 			file.close();
 
-			initializeFeatureScoutStartUp(item, items, fileName, objectMap, filterName, false);
+			initializeFeatureScoutStartUp(item, items, fileName, objectMap, filterName, false, nullptr);
 		}
 		else
 			m_mdiChild->addMsg( "CSV-file could not be opened." );
@@ -201,7 +206,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 }
 
 void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString, 
-	iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly)
+	iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams)
 {
 	if (item == items[0] || item == items[1])
 	{
@@ -258,7 +263,6 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 	//default action if file params is null
 	if (!FileParams) {
 
-		
 		if (!io.LoadCsvFile(objectType, fileName)) //hier wird das csv geladen;
 			return false;
 	}
