@@ -11,8 +11,7 @@ struct ClassMeasure
 	float UpperThreshold;	//!< Upper threshold to the next class
 };
 
-//! cImageHistogram
-/*! Class to create and handle image histogram, supports float32 and uint16*/
+/** Class to create and handle image histogram, supports float32 and uint16 */
 class cImageHistogram
 {
 public:
@@ -40,8 +39,8 @@ public:
 	std::vector<float> GetValleyThreshold();
 private:
 
-	typedef std::vector<HistPos> HistPosList;		//<! List of histogram positions
-	typedef std::vector<dHistPos> dHistPosList;		//<! List of histogram positions with double values
+	typedef std::vector<HistPos> HistPosList;		//!< List of histogram positions
+	typedef std::vector<dHistPos> dHistPosList;		//!< List of histogram positions with double values
 	std::vector<double> Conv1D(std::vector<unsigned long long> in, std::vector<double> knl, int mode);	//!< 1D convolution of in with knl. mode 0 returns the full convolution. mode 1 returns the central part of the convolution of the same size as u. mode 2 returns only those parts of the convolution that are computed without the zero-padded edges.
 
 	std::vector<unsigned long long> hist_y;		//!< y-axes of the histogram
@@ -55,5 +54,4 @@ private:
 	HistPosList Valleys;						//!< Histogram valleys
 
 	int bins;									//!< number of bins
-	std::string m_sComment;						//!< Contains the comments for GetComment
 };
