@@ -149,6 +149,12 @@ inline T mapValue(T const * rangeSrc, T const * rangeDst, T const val)
 	return mapValue(rangeSrc[0], rangeSrc[1], rangeDst[0], rangeDst[1], val);
 }
 
+template <typename T>
+T invertValue(T const * range, T const val)
+{
+	return range[1] + range[0] - val;
+}
+
 /**
   * round a number to the nearest integer representation (by "round half away from zero" method)
   * @param number the number to round

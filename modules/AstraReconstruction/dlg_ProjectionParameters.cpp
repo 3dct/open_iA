@@ -124,6 +124,7 @@ int dlg_ProjectionParameters::exec()
 
 void dlg_ProjectionParameters::checkCenterOfRotationCorrection(int algoIdx, bool centerOfRotCorr)
 {
+	/*
 	bool invalidState = algoIdx < 2 && centerOfRotCorr;
 	if (invalidState)
 	{
@@ -131,6 +132,7 @@ void dlg_ProjectionParameters::checkCenterOfRotationCorrection(int algoIdx, bool
 	}
 	CorrectionHint->setVisible(invalidState);
 	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!invalidState);
+	*/
 }
 
 

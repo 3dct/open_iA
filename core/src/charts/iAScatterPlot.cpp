@@ -110,6 +110,11 @@ bool iAScatterPlot::hasData() const
 	return true;
 }
 
+void iAScatterPlot::UpdatePoints()
+{
+	createAndFillVBO();
+}
+
 void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, QString const & colorArrayName )
 {
 	m_lut = lut;
@@ -344,13 +349,19 @@ int iAScatterPlot::p2binx( double p ) const
 
 double iAScatterPlot::p2tx( double pval ) const
 {
-	return mapToNorm( m_prX, pval);
+	double norm = mapToNorm( m_prX, pval);
+	if (m_splomData->isInverted(m_paramIndices[0]))
+		norm = 1.0 - norm;
+	return norm;
 }
 
 double iAScatterPlot::p2x( double pval ) const
 {
 	double rangeDst[2] = { m_locRect.left(), m_locRect.right() };
-	return applyTransformX( mapValue( m_prX, rangeDst, pval ) );
+	double pixelX = mapValue(m_prX, rangeDst, pval);
+	if (m_splomData->isInverted(m_paramIndices[0]))
+		pixelX = invertValue(rangeDst, pixelX);
+	return applyTransformX(pixelX);
 }
 
 double iAScatterPlot::x2p( double x ) const
@@ -359,6 +370,8 @@ double iAScatterPlot::x2p( double x ) const
 	//assert(rangeSrc[0] < rangeSrc[1]);
 	double revTransX = clamp(rangeSrc[0]<rangeSrc[1]?rangeSrc[0]:rangeSrc[1],
 		rangeSrc[0]<rangeSrc[1] ? rangeSrc[1] : rangeSrc[0], revertTransformX(x));
+	if (m_splomData->isInverted(m_paramIndices[0]))
+		revTransX = invertValue(rangeSrc, revTransX);
 	return mapValue( rangeSrc, m_prX, revTransX);
 }
 
@@ -371,13 +384,19 @@ int iAScatterPlot::p2biny( double p ) const
 
 double iAScatterPlot::p2ty( double pval ) const
 {
-	return 1.0 - mapToNorm( m_prY, pval );
+	double norm = mapToNorm( m_prY, pval );
+	if (!m_splomData->isInverted(m_paramIndices[1])) // y needs to be inverted normally
+		norm = 1.0 - norm;
+	return norm;
 }
 
 double iAScatterPlot::p2y( double pval ) const
 {
 	double rangeDst[2] = { m_locRect.bottom(), m_locRect.top() };
-	return applyTransformY( mapValue( m_prY, rangeDst, pval ) );
+	double pixelY = mapValue(m_prY, rangeDst, pval);
+	if (m_splomData->isInverted(m_paramIndices[1]))
+		pixelY = invertValue(rangeDst, pixelY);
+	return applyTransformY( pixelY );
 }
 
 double iAScatterPlot::y2p(double y) const
@@ -386,6 +405,8 @@ double iAScatterPlot::y2p(double y) const
 	//assert(rangeSrc[0] > rangeSrc[1]);
 	double revTransY = clamp(rangeSrc[0] < rangeSrc[1] ? rangeSrc[0] : rangeSrc[1],
 		rangeSrc[0] < rangeSrc[1] ? rangeSrc[1] : rangeSrc[0], revertTransformY(y));
+	if (m_splomData->isInverted(m_paramIndices[1]))
+		revTransY = invertValue(rangeSrc, revTransY);
 	return mapValue( rangeSrc, m_prY, revTransY);
 }
 
@@ -513,11 +534,23 @@ void iAScatterPlot::calculateNiceSteps( double * r, QList<double> * ticks )
 	ticks->clear();
 	double ip; modf( r[0] / stepSize, &ip );
 	double tick = stepSize*ip;
-	while ( tick < r[0] ) tick += stepSize;
-	while ( tick <= r[1] )
+	if (stepSize > 0)
 	{
-		ticks->push_back( tick );
-		tick += stepSize;
+		while (tick < r[0]) tick += stepSize;
+		while (tick <= r[1])
+		{
+			ticks->push_back(tick);
+			tick += stepSize;
+		}
+	}
+	else
+	{
+		while (tick > r[0]) tick += stepSize;
+		while (tick >= r[1])
+		{
+			ticks->push_back(tick);
+			tick += stepSize;
+		}
 	}
 }
 

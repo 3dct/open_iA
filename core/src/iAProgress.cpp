@@ -30,7 +30,7 @@
 class iAvtkCommand : public vtkCommand
 {
 public:
-	static iAvtkCommand * iAvtkCommand::New()
+	static iAvtkCommand * New()
 	{
 		return new iAvtkCommand();
 	}

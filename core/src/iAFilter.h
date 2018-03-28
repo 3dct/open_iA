@@ -93,9 +93,10 @@ public:
 	QString Description() const;
 	//! Retrieve a list of the filter parameters
 	QVector<pParameter> const & Parameters() const;
-	//! Used internally by the filter runner to set up the resources required in the
-	//! filter
-	void SetUp(iALogger* logger, iAProgress* progress);
+	//! Set the logger to be used for status output / error messages
+	void SetLogger(iALogger* logger);
+	//! Set the facility  for progress reporting
+	void SetProgress(iAProgress* progress);
 	//! Check whether the filter can be run with the given parameters. If
 	//! you need to perform special checks on your parameters, override this
 	//! method. The standard implementation here just checks parameters with

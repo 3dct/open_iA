@@ -79,6 +79,7 @@ public:
 	void setPreviewState( bool isPreviewPlot ) { m_isPreviewPlot = isPreviewPlot; }	//!< Set if this plot is currently previewed (displayed in maximized plot view)
 	void leave() { m_curInd = m_prevPtInd = -1; m_isPlotActive = false; }							//!< Mouse is hovering over the plot's rectangle
 	void enter() { m_isPlotActive = true; }											//!< Mouse left the plot's rectangle
+	void UpdatePoints();
 
 	/*Qt events are redirected from SPLOM to the active plot using these public event handlers*/
 	void SPLOMWheelEvent( QWheelEvent * event );

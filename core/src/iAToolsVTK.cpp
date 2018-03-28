@@ -26,6 +26,7 @@
 #include "iAVtkDraw.h"
 
 #include <vtkBMPWriter.h>
+#include <vtkImageCast.h>
 #include <vtkImageData.h>
 #include <vtkImageWriter.h>
 #include <vtkJPEGWriter.h>
@@ -78,6 +79,14 @@ vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFl
 	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType, releaseFlag);
 	con.SetImage(img);
 	return con.GetVTKImage();
+}
+
+vtkSmartPointer<vtkImageData> CastVTKImage(vtkSmartPointer<vtkImageData> img, int destType)
+{
+	auto cast = vtkSmartPointer<vtkImageCast>::New();
+	cast->SetInputData(img);
+	cast->SetOutputScalarType(destType);
+	return cast->GetOutput();
 }
 
 void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData)

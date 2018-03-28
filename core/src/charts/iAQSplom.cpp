@@ -20,6 +20,7 @@
 * ************************************************************************************/
  
 #include "pch.h"
+#include "iAColorTheme.h"
 #include "iAQSplom.h"
 #include "iAScatterPlot.h"
 #include "iALookupTable.h"
@@ -50,7 +51,8 @@ iAQSplom::Settings::Settings()
 	popupTextColor( QColor( 50, 50, 50 ) ),
 	isAnimated( true ),
 	animDuration( 100.0 ),
-	animStart( 0.0 )
+	animStart( 0.0 ),
+	separationMargin( 10 )
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
 	popupWidth = 180;
@@ -71,6 +73,25 @@ void iAQSplom::setAnimOut( double anim )
 const QList<int> & iAQSplom::getHighlightedPoints() const
 {
 	return m_highlightedPoints;
+}
+
+void iAQSplom::SetSeparation(int idx)
+{
+	m_separationIdx = idx;
+	updatePlotGridParams();
+	updateSPLOMLayout();
+	update();
+}
+
+void iAQSplom::SetBackgroundColorTheme(iAColorTheme const * theme)
+{
+	m_bgColorTheme = theme;
+	update();
+}
+
+iAColorTheme const * iAQSplom::GetBackgroundColorTheme()
+{
+	return m_bgColorTheme;
 }
 
 void iAQSplom::clearSelection()
@@ -134,7 +155,9 @@ iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 
 	m_animOut( 0.0 ),
 	m_animationOut( new QPropertyAnimation( this, "m_animOut" ) ),
 	m_animationIn( new QPropertyAnimation( this, "m_animIn" ) ),
-	m_popupHeight(0)
+	m_popupHeight(0),
+	m_separationIdx(-1),
+	m_bgColorTheme(iAColorThemeManager::GetInstance().GetTheme("White"))
 {
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
@@ -231,6 +254,23 @@ void iAQSplom::setParameterVisibility( int paramIndex, bool isVisible )
 	update();
 }
 
+void iAQSplom::setParameterInverted(int paramIndex, bool isInverted)
+{
+	m_splomData->setInverted(paramIndex, isInverted);
+	unsigned long numParams = m_splomData->numParams();
+	for (unsigned long row = 0; row < numParams; ++row)
+	{
+		if (m_paramVisibility[row])
+			m_matrix[row][paramIndex]->UpdatePoints();
+	}
+	for (unsigned long col = 0; col < numParams; ++col)
+	{  // avoid double updated of row==col plot
+		if (col != paramIndex && m_paramVisibility[col])
+			m_matrix[paramIndex][col]->UpdatePoints();
+	}
+	update();
+}
+
 QVector<unsigned int> & iAQSplom::getSelection()
 {
 	return m_selInds;
@@ -281,26 +321,19 @@ void iAQSplom::selectionUpdated()
 void iAQSplom::transformUpdated( double scale, QPointF deltaOffset )
 {
 	iAScatterPlot * sender = dynamic_cast<iAScatterPlot*>( QObject::sender() );
+	if (!sender)
+		return;
 
 	if (m_maximizedPlot != 0 && settings.maximizedLinked)
 	{
 		m_maximizedPlot->setTransform(sender->getScale(),
 									  QPointF(sender->getOffset().x() / sender->getRect().width() * m_maximizedPlot->getRect().width(),
 											  sender->getOffset().y() / sender->getRect().height() * m_maximizedPlot->getRect().height()));
-
 		if (sender == m_maximizedPlot)
 			deltaOffset = QPointF(deltaOffset.x() / m_maximizedPlot->getRect().width() * m_previewPlot->getRect().width(),
 								  deltaOffset.y() / m_maximizedPlot->getRect().height() * m_previewPlot->getRect().height());
-
-		/*if (sender == m_maximizedPlot)
-		{
-			m_previewPlot->setTransform(sender->getScale(), deltaOffset);
-			sender = m_previewPlot;
-		}*/
 	}
 
-	if( !sender )
-		return;
 	const int * ind = sender->getIndices();
 	foreach( QList<iAScatterPlot*> row, m_matrix )
 	{
@@ -308,19 +341,12 @@ void iAQSplom::transformUpdated( double scale, QPointF deltaOffset )
 		{
 			if( s != sender )
 			{
-				if (s != m_previewPlot )
-				{
-					if( s->getIndices()[0] == ind[0] )
-						s->setTransformDelta( scale, QPointF( deltaOffset.x(), 0.0f ) );
-					else if( s->getIndices()[1] == ind[1] )
-						s->setTransformDelta( scale, QPointF( 0.0f, deltaOffset.y() ) );
-					else
-						s->setTransformDelta( scale, QPointF( 0.0f, 0.0f ) );
-				}
+				if( s->getIndices()[0] == ind[0] )
+					s->setTransformDelta( scale, QPointF( deltaOffset.x(), 0.0f ) );
+				else if( s->getIndices()[1] == ind[1] )
+					s->setTransformDelta( scale, QPointF( 0.0f, deltaOffset.y() ) );
 				else
-				{
-					s->setTransformDelta( scale, deltaOffset );
-				}
+					s->setTransformDelta( scale, QPointF( 0.0f, 0.0f ) );
 			}
 		}
 	}
@@ -551,6 +577,33 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	painter.beginNativePainting();
 	glClear( GL_COLOR_BUFFER_BIT );
 	painter.endNativePainting();
+
+	if (m_separationIdx != -1)
+	{
+		QRect upperLeft = getPlotRectByIndex(0, getVisibleParametersCount()-1);
+		QRect lowerRight = getPlotRectByIndex(getVisibleParametersCount()-1, 0);
+		QRect separation = getPlotRectByIndex(m_separationIdx+1, m_separationIdx+1);
+		QRect r1(
+			QPoint(upperLeft.left(), upperLeft.top()), QPoint(separation.left() - settings.separationMargin - settings.plotsSpacing, separation.bottom())
+		);
+		QColor c1(m_bgColorTheme->GetColor(0)); c1.setAlpha(64);
+		painter.fillRect(r1, QBrush(c1));
+		if (!m_maximizedPlot)
+		{
+			QColor c2(m_bgColorTheme->GetColor(1)); c2.setAlpha(64);
+			QColor c3(m_bgColorTheme->GetColor(3)); c3.setAlpha(64);
+			QRect r2(
+				QPoint(separation.left(), separation.bottom() + settings.separationMargin + settings.plotsSpacing), QPoint(lowerRight.right(), lowerRight.bottom())
+			), r3(
+				QPoint(upperLeft.left(), separation.bottom() + settings.separationMargin + settings.plotsSpacing), QPoint(separation.left() - settings.separationMargin - settings.plotsSpacing, lowerRight.bottom())
+			), r4(
+				QPoint(separation.left(), upperLeft.top()), QPoint(lowerRight.right(), separation.bottom())
+			);
+			painter.fillRect(r2, QBrush(c1));
+			painter.fillRect(r3, QBrush(c2));
+			painter.fillRect(r4, QBrush(c3));
+		}
+	}
 	if( !getVisibleParametersCount() )
 		return;
 	drawTicks( painter, ticksX, ticksY, textX, textY );
@@ -636,17 +689,21 @@ bool iAQSplom::drawPopup( QPainter& painter )
 iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 {
 	if( m_visiblePlots.isEmpty() )
-		return 0;
+		return nullptr;
 	QPoint offsetPos = pos - settings.tickOffsets;		
 	QPoint grid( m_scatPlotSize.x() + settings.plotsSpacing, m_scatPlotSize.y() + settings.plotsSpacing );
 	if (grid.x() == 0 || grid.y() == 0)
-		return 0;	// to avoid division by 0
+		return nullptr;	// to avoid division by 0
 	int ind[2] = { offsetPos.x() / grid.x(), offsetPos.y() / grid.y() };
 	//boundary checks
-	for( int i = 0; i < 2; ++i )		
+	for( int i = 0; i < 2; ++i )
 	{
 		ind[i] = clamp(0, getVisibleParametersCount() - 1, ind[i]);
 	}
+	if (ind[0] > m_separationIdx)
+		offsetPos.setX(offsetPos.x() - settings.separationMargin);
+	if (ind[1] > m_separationIdx)
+		offsetPos.setY(offsetPos.y() - settings.separationMargin);
 	//are we between plots due to the spacing?
 	bool isBetween = false;
 	if( offsetPos.x() - ind[0] * grid.x() >= m_scatPlotSize.x() ) isBetween = true;
@@ -684,8 +741,8 @@ void iAQSplom::updatePlotGridParams()
 	long visParamCnt = getVisibleParametersCount();
 	int spc = settings.plotsSpacing;
 	int wSz[2] = {
-		static_cast<int>(( plotsRect[0] - ( visParamCnt - 1 ) * spc ) / ( (double)visParamCnt )),
-		static_cast<int>(( plotsRect[1] - ( visParamCnt - 1 ) * spc ) / ( (double)visParamCnt )),
+		static_cast<int>(( plotsRect[0] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
+		static_cast<int>(( plotsRect[1] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
 	};
 	m_scatPlotSize = QPoint( wSz[0], wSz[1] );
 }
@@ -695,8 +752,8 @@ QRect iAQSplom::getPlotRectByIndex( int x, int y )
 	if( m_isIndexingBottomToTop )
 		y = invert( y );
 	int spc = settings.plotsSpacing;
-	int xpos = settings.tickOffsets.x() + x * ( m_scatPlotSize.x() + spc );
-	int ypos = settings.tickOffsets.y() + y * ( m_scatPlotSize.y() + spc );
+	int xpos = settings.tickOffsets.x() + x * ( m_scatPlotSize.x() + spc ) + ((m_separationIdx != -1 && x > m_separationIdx) ? settings.separationMargin : 0);
+	int ypos = settings.tickOffsets.y() + y * ( m_scatPlotSize.y() + spc ) + ((m_separationIdx != -1 && y > (getVisibleParametersCount() - m_separationIdx - 2)) ? settings.separationMargin : 0);
 	QRect res( xpos, ypos, m_scatPlotSize.x(), m_scatPlotSize.y() );
 	return res;
 }

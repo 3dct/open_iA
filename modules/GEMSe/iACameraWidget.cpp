@@ -78,7 +78,7 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 	{
 		char const * caption = GetSlicerModeString(i);
 		m_sliceViews[i] = new iAImagePreviewWidget(QString("CameraView")+caption,
-			0, false, 0, static_cast<iASlicerMode>(i), labelCount, iAColorTheme::NullTheme());
+			0, false, 0, static_cast<iASlicerMode>(i), labelCount);
 		m_sliceViews[i]->SetImage(originalData, false, false);
 		m_sliceViews[i]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		/*

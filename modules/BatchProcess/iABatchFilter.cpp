@@ -68,17 +68,17 @@ iABatchFilter::iABatchFilter():
 		"If <em>Add filename</em> is enabled, then the name of the file processed for that "
 		"line will be appended before the first output value from that file.", 0, 0)
 {
-	AddParameter("Image folder", String, "");
+	AddParameter("Image folder", Folder, "");
 	AddParameter("Recursive", Boolean, false);
 	AddParameter("File mask", String, "*.mhd");
 	AddParameter("Filter", FilterName, "Image Quality");
 	AddParameter("Parameters", FilterParameters, "");
-	AddParameter("Additional Input", String, "");
-	AddParameter("Output directory", String, "");
+	AddParameter("Additional Input", FileNamesOpen, "");
+	AddParameter("Output directory", Folder, "");
 	AddParameter("Output suffix", String, "");
 	AddParameter("Overwrite output", Boolean, false);
 	AddParameter("Compress output", Boolean, true);
-	AddParameter("Output csv file", String, "");
+	AddParameter("Output csv file", FileNameSave, "");
 	AddParameter("Append to output", Boolean, true);
 	AddParameter("Add filename", Boolean, true);
 	AddParameter("Continue on error", Boolean, true);
@@ -104,7 +104,6 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	QString batchDir = parameters["Image folder"].toString();
 	iAConnector* con = new iAConnector();
 	QVector<iAConnector*> inputImages;
-	inputImages.push_back(con);
 	QStringList additionalInput = SplitPossiblyQuotedString(parameters["Additional Input"].toString());
 	for (QString fileName : additionalInput)
 	{
@@ -133,7 +132,8 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		}
 	}
 	iAProgress p;	// dummy progress swallowing progress from filter which we don't want to propagate
-	filter->SetUp(Logger(), &p);
+	filter->SetProgress(&p);
+	filter->SetLogger(Logger());
 
 	QStringList filters = parameters["File mask"].toString().split(";");
 	
@@ -188,7 +188,11 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 				if (parameters["Add filename"].toBool())
 					captions << "filename";
 				for (auto outValue : filter->OutputValues())
-					captions << outValue.first;
+				{
+					QString curCap(outValue.first);
+					curCap.replace(",", "");
+					captions << curCap;
+				}
 				if (outputBuffer.empty())
 					outputBuffer.append("");
 				outputBuffer[0] += (outputBuffer[0].isEmpty() || captions.empty() ? "" : ",") + captions.join(",");

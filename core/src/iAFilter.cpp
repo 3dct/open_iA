@@ -20,9 +20,12 @@
 * ************************************************************************************/
 #include "iAFilter.h"
 
+#include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
-#include "iAAttributeDescriptor.h"
+#include "iAStringHelper.h"
+
+#include <QFileInfo>
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
 	unsigned int requiredInputs, unsigned int outputCount) :
@@ -144,9 +147,13 @@ itk::ImageIOBase::IOComponentType iAFilter::InputPixelType() const
 	return m_input[0]->GetITKScalarPixelType();
 }
 
-void iAFilter::SetUp(iALogger* log, iAProgress* progress)
+void iAFilter::SetLogger(iALogger* log)
 {
 	m_log = log;
+}
+
+void iAFilter::SetProgress(iAProgress* progress)
+{
 	m_progress = progress;
 }
 
@@ -214,6 +221,45 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 					.arg(param->Name())
 					.arg(parameters[param->Name()].toString())
 					.arg(values.join(",")));
+				return false;
+			}
+			break;
+		}
+		case FileNameOpen:
+		{
+			QFileInfo file(parameters[param->Name()].toString());
+			if (!file.isFile() || !file.isReadable())
+			{
+				AddMsg(QString("Parameter %1: Given filename '%2' either doesn't reference a file, "
+					"the file does not exist, or it is not readable!").arg(param->Name()).arg(parameters[param->Name()].toString()));
+				return false;
+			}
+			break;
+		}
+		case FileNamesOpen:
+		{
+			QStringList files = SplitPossiblyQuotedString(parameters[param->Name()].toString());
+			for (auto fileName : files)
+			{
+				QFileInfo file(fileName);
+				if (!file.isFile() || !file.isReadable())
+				{
+					AddMsg(QString("Parameter %1: Filename '%2' out of the given list '%3' either doesn't reference a file, "
+						"the file does not exist, or it is not readable!").arg(param->Name())
+						.arg(fileName)
+						.arg(parameters[param->Name()].toString()));
+					return false;
+				}
+			}
+			break;
+		}
+		case Folder:
+		{
+			QFileInfo file(parameters[param->Name()].toString());
+			if (!file.isDir())
+			{
+				AddMsg(QString("Parameter '%1': Given value '%2' doesn't reference a folder!")
+					.arg(param->Name()).arg(parameters[param->Name()].toString()));
 				return false;
 			}
 			break;

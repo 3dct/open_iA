@@ -34,10 +34,7 @@
 #include <QFile>
 #include <QFileInfo>
 
-namespace
-{
-	const QString ValueSplitString(" ");
-}
+const QString iASingleResult::ValueSplitString(",");
 
 QSharedPointer<iASingleResult> iASingleResult::Create(
 	QString const & line,

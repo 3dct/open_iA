@@ -33,6 +33,10 @@ namespace
 	const QString StringStr("String");
 	const QString BooleanStr("Boolean");
 	const QString TextStr("Text(file)");
+	const QString FileNameOpenStr("File name (read)");
+	const QString FileNamesOpenStr("File names (read)");
+	const QString FileNameSaveStr("File name (write)");
+	const QString FolderStr("Folder");
 	const QString UnknownStr("Unknown");
 }
 
@@ -63,6 +67,22 @@ iAValueType Str2ValueType(QString const & str)
 	{
 		return iAValueType::Text;
 	}
+	else if (str == FileNameOpenStr)
+	{
+		return iAValueType::FileNameOpen;
+	}
+	else if (str == FileNamesOpenStr)
+	{
+		return iAValueType::FileNamesOpen;
+	}
+	else if (str == FileNameSaveStr)
+	{
+		return iAValueType::FileNameSave;
+	}
+	else if (str == FolderStr)
+	{
+		return iAValueType::Folder;
+	}
 	else
 	{
 		DEBUG_LOG(QString("Unknown value type '%1'\n").arg(str));
@@ -86,6 +106,14 @@ QString ValueType2Str(iAValueType type)
 		return StringStr;
 	case iAValueType::Text:
 		return TextStr;
+	case iAValueType::FileNameOpen:
+		return FileNameOpenStr;
+	case iAValueType::FileNamesOpen:
+		return FileNamesOpenStr;
+	case iAValueType::FileNameSave:
+		return FileNameSaveStr;
+	case iAValueType::Folder:
+		return FolderStr;
 	default:
 		return UnknownStr;
 	}

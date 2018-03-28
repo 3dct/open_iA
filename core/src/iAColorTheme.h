@@ -31,25 +31,42 @@
 class QString;
 class QStringList;
 
-//! A simple color theme. Holds a number of colors (which can be distinguished easily)
+//! A simple (qualitative) color theme. Holds a number of colors (which can be distinguished easily)
 class open_iA_Core_API iAColorTheme
 {
 public:
 	iAColorTheme(QString const & name);
 	//! returns the number of colors in this theme
-	size_t size() const;
+	virtual size_t size() const =0;
 	//! returns the color with the given index in this theme
-	QColor const & GetColor(int idx) const;
+	virtual QColor const & GetColor(int idx) const =0;
+	//! get the name of the color theme
+	QString const & GetName() const;
+private:
+	QString m_name;
+};
+
+class open_iA_Core_API iAVectorColorTheme: public iAColorTheme
+{
+public:
+	iAVectorColorTheme(QString const &  name);
+	size_t size() const override;
+	QColor const & GetColor(int idx) const override;
 	//! add a color to the theme (typically only necessary for theme creators)
 	void AddColor(QColor const &);
-
-	QString const & GetName() const;
-
-	static iAColorTheme const * NullTheme();
 private:
 	std::vector<QColor> m_colors;
 	static QColor ErrorColor;
-	QString m_name;
+};
+
+class open_iA_Core_API iASingleColorTheme : public iAColorTheme
+{
+public:
+	iASingleColorTheme(QString const & name, QColor const & color);
+	size_t size() const override;
+	QColor const & GetColor(int idx) const override;
+private:
+	QColor m_color;
 };
 
 //! Manager for color themes. Internally creates the qualitative color themes from
