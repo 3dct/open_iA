@@ -11,8 +11,11 @@ endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 #-------------------------
 # CTest
 #-------------------------
-INCLUDE (CTest)
-enable_testing()
+option (TESTING_ENABLED "Whether to enable testing. This allows to run CTest/ CDash builds. Default: disabled" OFF)
+IF (${TESTING_ENABLED})
+	INCLUDE (CTest)
+	enable_testing()
+ENDIF()
 
 #-------------------------
 # Output Directories
