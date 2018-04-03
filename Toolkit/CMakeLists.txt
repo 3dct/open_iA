@@ -39,8 +39,6 @@ IF(Module_GPU_DreamcasterTool)
 		Dreamcaster/raycast/include/STLLoader.h
 		Dreamcaster/raycast/include/ScreenBuffer.h
 		Dreamcaster/raycast/include/Plot3DVtk.h
-
-		Dreamcaster/ConfigFile/ConfigFile.cpp
 	 )
 	# *.ui files
 	SET( DREAMCASTER_UI
@@ -53,19 +51,15 @@ IF(Module_GPU_DreamcasterTool)
 	SET( DREAMCASTER_QRC
 		Dreamcaster/dreamcaster.qrc
 	)
-	 #.cpp sources of client app
-	SET( DREAMCASTER_CLIENT_SRCS
-		Dreamcaster/Dreamcaster_client/main.cpp
-	)
 
 	# build ui_XXX files from the XML-style .ui files
 	QT5_WRAP_UI(DREAMCASTER_SRCS ${DREAMCASTER_UI})
 	# this appends qrc qt4 resources to the project
-	QT5_ADD_RESOURCES( DREAMCASTER_CLIENT_SRCS ${DREAMCASTER_QRC} ) #resources have to be added to executables!
+	QT5_ADD_RESOURCES( DREAMCASTER_SRCS ${DREAMCASTER_QRC} ) #resources have to be added to executables!
 
 	SET(DREAMCASTER_EXECUTABLE_PATH "${EXECUTABLE_OUTPUT_PATH}")
 
-	ADD_LIBRARY (Dreamcaster ${DREAMCASTER_SRCS})
+	ADD_LIBRARY (Dreamcaster ${DREAMCASTER_SRCS} ${DREAMCASTER_QRC})
 
 	get_filename_component(CoreSrcDir "../core" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 	get_filename_component(CoreBinDir "../core" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")

@@ -31,33 +31,29 @@
 
 class RenderFromPosition;
 //VTK
-class vtkPolyDataMapper;
-class vtkDataSetMapper;
 class vtkActor;
+class vtkDataSetMapper;
+class vtkDepthSortPolyData;
+class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkSTLReader;
-struct ParamWidget;
-struct ParametersView;
+
 struct CombinedParametersView;
 class CutFigList;
-class Plot3DVtk;
 class dlg_histogram_simple;
-class vtkDepthSortPolyData;
-
-
-//class rotation_t;
-//class parameters_t;
+class Engine;
 class PaintWidget;
+struct ParamWidget;
+struct ParametersView;
+class Plot3DVtk;
+class ScreenBuffer;
 class StabilityWidget;
+
 /**	\class DreamCaster.
 	\brief Application main window class.
 
 	Contains GUI and some global classes instances.	
 */
-class ScreenBuffer;
-class Engine;
-const QString windowStateStr = "dreamcaster_wnd_state";
-
 class DreamCaster : public QMainWindow
 {
 	Q_OBJECT

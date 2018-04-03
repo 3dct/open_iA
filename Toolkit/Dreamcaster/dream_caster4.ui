@@ -530,9 +530,7 @@
                         <item>
                          <widget class="QLabel" name="l_sensRes_min_4">
                           <property name="font">
-                           <font>
-                            
-                           </font>
+                           <font/>
                           </property>
                           <property name="text">
                            <string>0°</string>
@@ -567,9 +565,7 @@
                         <item>
                          <widget class="QLabel" name="l_sensRes_min_5">
                           <property name="font">
-                           <font>
-                            
-                           </font>
+                           <font/>
                           </property>
                           <property name="text">
                            <string>360°</string>
@@ -823,9 +819,7 @@
                      <item>
                       <widget class="QCheckBox" name="cb_updateStabilityOnMouseMove">
                        <property name="font">
-                        <font>
-                         
-                        </font>
+                        <font/>
                        </property>
                        <property name="text">
                         <string>update on mouse move with pressed button</string>
@@ -889,9 +883,7 @@
                             </size>
                            </property>
                            <property name="font">
-                            <font>
-                             
-                            </font>
+                            <font/>
                            </property>
                            <property name="text">
                             <string>Sensitivity:</string>
@@ -928,9 +920,7 @@
                             </size>
                            </property>
                            <property name="font">
-                            <font>
-                             
-                            </font>
+                            <font/>
                            </property>
                            <property name="text">
                             <string>value</string>
@@ -957,9 +947,7 @@
                          <item>
                           <widget class="QLabel" name="l_sens_min">
                            <property name="font">
-                            <font>
-                             
-                            </font>
+                            <font/>
                            </property>
                            <property name="text">
                             <string>Min</string>
@@ -1000,9 +988,7 @@
                          <item>
                           <widget class="QLabel" name="l_sens_max">
                            <property name="font">
-                            <font>
-                             
-                            </font>
+                            <font/>
                            </property>
                            <property name="text">
                             <string>Max</string>
@@ -1048,9 +1034,7 @@
                             </size>
                            </property>
                            <property name="font">
-                            <font>
-                             
-                            </font>
+                            <font/>
                            </property>
                            <property name="text">
                             <string>Resolution:</string>
@@ -1081,9 +1065,7 @@
                             </size>
                            </property>
                            <property name="font">
-                            <font>
-                             
-                            </font>
+                            <font/>
                            </property>
                            <property name="text">
                             <string>value</string>
@@ -1110,9 +1092,7 @@
                          <item>
                           <widget class="QLabel" name="l_sensRes_min">
                            <property name="font">
-                            <font>
-                             
-                            </font>
+                            <font/>
                            </property>
                            <property name="text">
                             <string>4</string>
@@ -1147,9 +1127,7 @@
                          <item>
                           <widget class="QLabel" name="l_sensRes_max">
                            <property name="font">
-                            <font>
-                             
-                            </font>
+                            <font/>
                            </property>
                            <property name="text">
                             <string>20</string>
@@ -1443,9 +1421,7 @@
                              </sizepolicy>
                             </property>
                             <property name="font">
-                             <font>
-                              
-                             </font>
+                             <font/>
                             </property>
                             <property name="text">
                              <string>Low Cut:</string>
@@ -1467,9 +1443,7 @@
                              </size>
                             </property>
                             <property name="font">
-                             <font>
-                              
-                             </font>
+                             <font/>
                             </property>
                             <property name="text">
                              <string>-</string>
@@ -1496,9 +1470,7 @@
                           <item>
                            <widget class="QLabel" name="l_sensRes_min_2">
                             <property name="font">
-                             <font>
-                              
-                             </font>
+                             <font/>
                             </property>
                             <property name="text">
                              <string>0</string>
@@ -1539,9 +1511,7 @@
                           <item>
                            <widget class="QLabel" name="l_sensRes_min_3">
                             <property name="font">
-                             <font>
-                              
-                             </font>
+                             <font/>
                             </property>
                             <property name="text">
                              <string>99</string>
@@ -1891,7 +1861,6 @@
              </property>
              <property name="font">
               <font>
-               
                <weight>50</weight>
                <bold>false</bold>
               </font>
@@ -2115,9 +2084,7 @@
                      <item>
                       <widget class="QGroupBox" name="groupBox_2">
                        <property name="font">
-                        <font>
-                         
-                        </font>
+                        <font/>
                        </property>
                        <property name="title">
                         <string>Placements</string>
@@ -2334,7 +2301,6 @@
                            <widget class="QLabel" name="TextLabel1_4">
                             <property name="font">
                              <font>
-                              
                               <weight>75</weight>
                               <bold>true</bold>
                              </font>
@@ -2925,9 +2891,7 @@
                </size>
               </property>
               <property name="font">
-               <font>
-                
-               </font>
+               <font/>
               </property>
               <property name="tabPosition">
                <enum>QTabWidget::North</enum>
@@ -3050,7 +3014,6 @@
                       </property>
                       <property name="font">
                        <font>
-                        
                         <weight>50</weight>
                         <bold>false</bold>
                        </font>
@@ -3230,7 +3193,6 @@
                     </property>
                     <property name="font">
                      <font>
-                      
                       <weight>75</weight>
                       <bold>true</bold>
                      </font>
@@ -3390,7 +3352,6 @@
                     </property>
                     <property name="font">
                      <font>
-                      
                       <weight>75</weight>
                       <bold>true</bold>
                      </font>
@@ -3519,9 +3480,7 @@
                   <item>
                    <widget class="QGroupBox" name="groupBox_18">
                     <property name="font">
-                     <font>
-                      
-                     </font>
+                     <font/>
                     </property>
                     <property name="cursor">
                      <cursorShape>ArrowCursor</cursorShape>
@@ -3685,9 +3644,7 @@
                     <item>
                      <widget class="QLabel" name="label_54">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>Low Cut:  </string>
@@ -3700,9 +3657,7 @@
                     <item>
                      <widget class="QLabel" name="l_lowCut1">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>-</string>
@@ -3719,9 +3674,7 @@
                     <item>
                      <widget class="QLabel" name="l_lowCut1_min">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>0</string>
@@ -3747,9 +3700,7 @@
                     <item>
                      <widget class="QLabel" name="l_lowCut1_max">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>99</string>
@@ -3768,9 +3719,7 @@
                   <item>
                    <widget class="QGroupBox" name="groupBox_19">
                     <property name="font">
-                     <font>
-                      
-                     </font>
+                     <font/>
                     </property>
                     <property name="cursor">
                      <cursorShape>ArrowCursor</cursorShape>
@@ -3934,9 +3883,7 @@
                     <item>
                      <widget class="QLabel" name="label_60">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>Low Cut:  </string>
@@ -3949,9 +3896,7 @@
                     <item>
                      <widget class="QLabel" name="l_lowCut2">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>-</string>
@@ -3968,9 +3913,7 @@
                     <item>
                      <widget class="QLabel" name="l_lowCut2_min">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>0</string>
@@ -3996,9 +3939,7 @@
                     <item>
                      <widget class="QLabel" name="l_lowCut2_max">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>99</string>
@@ -4017,9 +3958,7 @@
                   <item>
                    <widget class="QGroupBox" name="groupBox_20">
                     <property name="font">
-                     <font>
-                      
-                     </font>
+                     <font/>
                     </property>
                     <property name="cursor">
                      <cursorShape>ArrowCursor</cursorShape>
@@ -4183,9 +4122,7 @@
                     <item>
                      <widget class="QLabel" name="label_64">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>Low Cut:  </string>
@@ -4198,9 +4135,7 @@
                     <item>
                      <widget class="QLabel" name="l_lowCut3">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>-</string>
@@ -4217,9 +4152,7 @@
                     <item>
                      <widget class="QLabel" name="l_lowCut3_min">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>0</string>
@@ -4245,9 +4178,7 @@
                     <item>
                      <widget class="QLabel" name="l_lowCut3_max">
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>99</string>
@@ -4421,9 +4352,7 @@
                          </sizepolicy>
                         </property>
                         <property name="font">
-                         <font>
-                          
-                         </font>
+                         <font/>
                         </property>
                         <property name="text">
                          <string>Low Cut:</string>
@@ -4433,9 +4362,7 @@
                       <item>
                        <widget class="QLabel" name="l_lowCutRes">
                         <property name="font">
-                         <font>
-                          
-                         </font>
+                         <font/>
                         </property>
                         <property name="text">
                          <string>-</string>
@@ -4470,9 +4397,7 @@
                        </sizepolicy>
                       </property>
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>0</string>
@@ -4501,9 +4426,7 @@
                        </sizepolicy>
                       </property>
                       <property name="font">
-                       <font>
-                        
-                       </font>
+                       <font/>
                       </property>
                       <property name="text">
                        <string>99</string>
@@ -4650,9 +4573,7 @@
                 <item>
                  <widget class="QListWidget" name="listCutFig">
                   <property name="font">
-                   <font>
-                    
-                   </font>
+                   <font/>
                   </property>
                  </widget>
                 </item>
@@ -4793,7 +4714,6 @@
                             <widget class="QLabel" name="label_73">
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -4822,7 +4742,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -4864,9 +4783,7 @@
                               </size>
                              </property>
                              <property name="font">
-                              <font>
-                               
-                              </font>
+                              <font/>
                              </property>
                              <property name="text">
                               <string>-</string>
@@ -4913,9 +4830,7 @@
                               </size>
                              </property>
                              <property name="font">
-                              <font>
-                               
-                              </font>
+                              <font/>
                              </property>
                              <property name="text">
                               <string>-</string>
@@ -4950,7 +4865,6 @@
                             <widget class="QLabel" name="label_76">
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -4979,7 +4893,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5022,7 +4935,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5073,7 +4985,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5131,7 +5042,6 @@
                             <widget class="QLabel" name="label_81">
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5160,7 +5070,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5203,7 +5112,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5254,7 +5162,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5292,7 +5199,6 @@
                             <widget class="QLabel" name="label_84">
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5321,7 +5227,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5364,7 +5269,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5415,7 +5319,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5473,7 +5376,6 @@
                             <widget class="QLabel" name="label_85">
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5502,7 +5404,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5545,7 +5446,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5596,7 +5496,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5634,7 +5533,6 @@
                             <widget class="QLabel" name="label_86">
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5662,9 +5560,7 @@
                               </size>
                              </property>
                              <property name="font">
-                              <font>
-                               
-                              </font>
+                              <font/>
                              </property>
                              <property name="text">
                               <string>-</string>
@@ -5704,7 +5600,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>
@@ -5755,7 +5650,6 @@
                              </property>
                              <property name="font">
                               <font>
-                               
                                <weight>50</weight>
                                <bold>false</bold>
                               </font>

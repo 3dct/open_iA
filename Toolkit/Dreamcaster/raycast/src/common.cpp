@@ -21,52 +21,52 @@
 #include "../include/common.h"
 
 #include <QSettings>
-//#include "../../ConfigFile/ConfigFile.h"
+
 #include <cassert>
 #include <cstdlib>
 
 inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range; }
 
 //namespace Raytracer {
-	int ParseConfigFile(char const * cfg_filename, SETTINGS * s)
+	int ParseConfigFile(SETTINGS * s)
 	{
-		QSettings settings("FHW", "DreamCaster");
-		s->THREAD_GRID_X = settings.value( "THREAD_GRID_X", s->THREAD_GRID_X).toInt();
-		s->THREAD_GRID_Y = settings.value( "THREAD_GRID_Y", s->THREAD_GRID_Y ).toInt();
-		s->SCALE_COEF = settings.value( "SCALE_COEF", s->SCALE_COEF ).value<float>();
-		s->COLORING_COEF = settings.value( "COLORING_COEF", s->COLORING_COEF ).value<float>();
+		QSettings settings;
+		s->THREAD_GRID_X   = settings.value("DreamCaster/THREAD_GRID_X", s->THREAD_GRID_X).toInt();
+		s->THREAD_GRID_Y   = settings.value("DreamCaster/THREAD_GRID_Y", s->THREAD_GRID_Y ).toInt();
+		s->SCALE_COEF      = settings.value("DreamCaster/SCALE_COEF", s->SCALE_COEF ).value<float>();
+		s->COLORING_COEF   = settings.value("DreamCaster/COLORING_COEF", s->COLORING_COEF ).value<float>();
+		s->RFRAME_W        = settings.value("DreamCaster/RFRAME_W", s->RFRAME_W).toInt();
+		s->RFRAME_H        = settings.value("DreamCaster/RFRAME_H", s->RFRAME_H).toInt();
+		s->VFRAME_W        = settings.value("DreamCaster/VFRAME_W", s->VFRAME_W).toInt();
+		s->VFRAME_H        = settings.value("DreamCaster/VFRAME_H", s->VFRAME_H).toInt();
+		s->ORIGIN_Z        = settings.value("DreamCaster/ORIGIN_Z", s->ORIGIN_Z).value<float>();
+		s->PLANE_Z         = settings.value("DreamCaster/PLANE_Z", s->PLANE_Z).value<float>();
+		s->PLANE_H_W       = settings.value("DreamCaster/PLANE_H_W", s->PLANE_H_W).value<float>();
+		s->PLANE_H_H       = settings.value("DreamCaster/PLANE_H_H", s->PLANE_H_H).value<float>();
+		s->TREE_L1         = settings.value("DreamCaster/TREE_L1", s->TREE_L1).toInt();
+		s->TREE_L2         = settings.value("DreamCaster/TREE_L2", s->TREE_L2).toInt();
+		s->TREE_L3         = settings.value("DreamCaster/TREE_L3", s->TREE_L3).toInt();
+		s->TREE_SPLIT1     = settings.value("DreamCaster/TREE_SPLIT1", s->TREE_SPLIT1).toInt();
+		s->TREE_SPLIT2     = settings.value("DreamCaster/TREE_SPLIT2", s->TREE_SPLIT2).toInt();
+		s->BG_COL_R        = settings.value("DreamCaster/BG_COL_R", s->BG_COL_R).toInt();
+		s->BG_COL_G        = settings.value("DreamCaster/BG_COL_G", s->BG_COL_G).toInt();
+		s->BG_COL_B        = settings.value("DreamCaster/BG_COL_B", s->BG_COL_B).toInt();
+		s->PLATE_COL_R     = settings.value("DreamCaster/PLATE_COL_R", s->PLATE_COL_R).toInt();
+		s->PLATE_COL_G     = settings.value("DreamCaster/PLATE_COL_G", s->PLATE_COL_G).toInt();
+		s->PLATE_COL_B     = settings.value("DreamCaster/PLATE_COL_B", s->PLATE_COL_B).toInt();
+		s->COL_RANGE_MIN_R = settings.value("DreamCaster/COL_RANGE_MIN_R", s->COL_RANGE_MIN_R).toInt();
+		s->COL_RANGE_MIN_G = settings.value("DreamCaster/COL_RANGE_MIN_G", s->COL_RANGE_MIN_G).toInt();
+		s->COL_RANGE_MIN_B = settings.value("DreamCaster/COL_RANGE_MIN_B", s->COL_RANGE_MIN_B).toInt();
+		s->COL_RANGE_MAX_R = settings.value("DreamCaster/COL_RANGE_MAX_R", s->COL_RANGE_MAX_R).toInt();
+		s->COL_RANGE_MAX_G = settings.value("DreamCaster/COL_RANGE_MAX_G", s->COL_RANGE_MAX_G).toInt();
+		s->COL_RANGE_MAX_B = settings.value("DreamCaster/COL_RANGE_MAX_B", s->COL_RANGE_MAX_B).toInt();
+		s->USE_SAH         = settings.value("DreamCaster/USE_SAH", s->USE_SAH).toInt();
+		s->BATCH_SIZE      = settings.value("DreamCaster/BATCH_SIZE", s->BATCH_SIZE).toInt();
 		s->COLORING_COEF *= s->SCALE_COEF;
-		s->RFRAME_W = settings.value( "RFRAME_W", s->RFRAME_W ).toInt();
-		s->RFRAME_H = settings.value( "RFRAME_H", s->RFRAME_H ).toInt();
-		s->VFRAME_W = settings.value( "VFRAME_W", s->VFRAME_W ).toInt();
-		s->VFRAME_H = settings.value( "VFRAME_H", s->VFRAME_H ).toInt();
-		s->ORIGIN_Z = settings.value( "ORIGIN_Z", s->ORIGIN_Z ).value<float>();
 		s->ORIGIN_Z  /= s->SCALE_COEF;
-		s->PLANE_Z = settings.value( "PLANE_Z", s->PLANE_Z ).value<float>();
 		s->PLANE_Z   /= s->SCALE_COEF;
-		s->PLANE_H_W = settings.value( "PLANE_H_W", s->PLANE_H_W ).value<float>();
 		s->PLANE_H_W /= s->SCALE_COEF;
-		s->PLANE_H_H = settings.value( "PLANE_H_H", s->PLANE_H_H ).value<float>();
 		s->PLANE_H_H /= s->SCALE_COEF;
-		s->TREE_L1 = settings.value( "TREE_L1", s->TREE_L1 ).toInt();
-		s->TREE_L2 = settings.value( "TREE_L2", s->TREE_L2 ).toInt();
-		s->TREE_L3 = settings.value( "TREE_L3", s->TREE_L3 ).toInt();
-		s->TREE_SPLIT1 = settings.value( "TREE_SPLIT1", s->TREE_SPLIT1 ).toInt();
-		s->TREE_SPLIT2 = settings.value( "TREE_SPLIT2", s->TREE_SPLIT2 ).toInt();
-		s->BG_COL_R = settings.value( "BG_COL_R", s->BG_COL_R ).toInt();
-		s->BG_COL_G = settings.value( "BG_COL_G", s->BG_COL_G ).toInt();
-		s->BG_COL_B = settings.value( "BG_COL_B", s->BG_COL_B ).toInt();
-		s->PLATE_COL_R = settings.value( "PLATE_COL_R", s->PLATE_COL_R ).toInt();
-		s->PLATE_COL_G = settings.value( "PLATE_COL_G", s->PLATE_COL_G ).toInt();
-		s->PLATE_COL_B = settings.value( "PLATE_COL_B", s->PLATE_COL_B ).toInt();
-		s->COL_RANGE_MIN_R = settings.value( "COL_RANGE_MIN_R", s->COL_RANGE_MIN_R ).toInt();
-		s->COL_RANGE_MIN_G = settings.value( "COL_RANGE_MIN_G", s->COL_RANGE_MIN_G ).toInt();
-		s->COL_RANGE_MIN_B = settings.value( "COL_RANGE_MIN_B", s->COL_RANGE_MIN_B ).toInt();
-		s->COL_RANGE_MAX_R = settings.value( "COL_RANGE_MAX_R", s->COL_RANGE_MAX_R ).toInt();
-		s->COL_RANGE_MAX_G = settings.value( "COL_RANGE_MAX_G", s->COL_RANGE_MAX_G ).toInt();
-		s->COL_RANGE_MAX_B = settings.value( "COL_RANGE_MAX_B", s->COL_RANGE_MAX_B ).toInt();
-		s->USE_SAH = settings.value( "USE_SAH", s->USE_SAH ).toInt();
-		s->BATCH_SIZE = settings.value( "BATCH_SIZE", s->BATCH_SIZE ).toInt();
 		
 		s->COL_RANGE_DR = s->COL_RANGE_MAX_R - s->COL_RANGE_MIN_R;
 		s->COL_RANGE_DG = s->COL_RANGE_MAX_G - s->COL_RANGE_MIN_G;
