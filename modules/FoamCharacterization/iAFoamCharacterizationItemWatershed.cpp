@@ -1,8 +1,8 @@
-﻿/*********************************  open_iA 2016 06  ******************************** *
+/*************************************  open_iA  ************************************ *
 * **********  A tool for scientific visualisation and 3D image processing  ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *

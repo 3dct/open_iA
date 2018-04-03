@@ -21,4 +21,4 @@ IF (BUILD_TESTING AND Module_RandomWalker)
 	# set IDE folder:
 	SET_PROPERTY(TARGET ImageGraphTest PROPERTY FOLDER "Tests")
 	SET_PROPERTY(TARGET DistanceMeasureTest PROPERTY FOLDER "Tests")
-ENDIF (BUILD_TESTING AND Module_SegmentationRandomWalker)
+ENDIF ()
