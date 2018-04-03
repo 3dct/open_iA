@@ -22,8 +22,8 @@
 
 #include <QSettings>
 //#include "../../ConfigFile/ConfigFile.h"
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 
 inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range; }
 

@@ -20,16 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vector>
-#include <iostream>
-#include <sstream>
-#include <iomanip>
-#include <assert.h>
 #include <algorithm>
-#include <set>
+#include <cassert>
 #include <cmath>
+#include <set>
+#include <vector>
 
-#include <iAFunction.h>
+#include "iAFunction.h"
 
 /**
  * Class for storing a "function band", i.e. a min-max range

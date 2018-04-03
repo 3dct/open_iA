@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_DataView4DCT.h"
-#include <iAQTtoUIConnector.h>
+#include "iAQTtoUIConnector.h"
 #include "iARendererManager.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_DataView4DCT>	dlg_dataView4DCTContainer;
 

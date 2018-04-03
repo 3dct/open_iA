@@ -28,7 +28,7 @@
 
 #include <QMap>
 
-#include <iAQTtoUIConnector.h>
+#include "iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 
 class iAImageClusterer;

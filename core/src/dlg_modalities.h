@@ -28,7 +28,7 @@
 #include <QVector>
 
 #include "ui_modalities.h"
-#include <iAQTtoUIConnector.h>
+#include "iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_modalities> dlg_modalitiesUI;
 
 class dlg_planeSlicer;

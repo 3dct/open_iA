@@ -33,8 +33,6 @@
 #include <QDir>
 #include <QFileInfo>
 
-#include <sstream>
-
 #ifdef _MSC_VER
 #define CALLCONV __stdcall
 

@@ -23,14 +23,6 @@
 #include "iAFoamCharacterizationAttachment.h"
 #include "mainwindow.h"
 
-#include <mdichild.h>
-
-iAFoamCharacterizationModuleInterface::iAFoamCharacterizationModuleInterface( )
-{ /* not implemented */ }
-
-iAFoamCharacterizationModuleInterface::~iAFoamCharacterizationModuleInterface( )
-{ /* not implemented */ }
-
 void iAFoamCharacterizationModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)

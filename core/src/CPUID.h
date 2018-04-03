@@ -21,12 +21,11 @@
 #pragma once
 
 #ifdef _WIN32
-#include <limits.h>
 #include <intrin.h>
 typedef unsigned __int32  uint32_t;
 
 #else
-#include <stdint.h>
+#include <cstdint>
 #endif
 
 namespace CPUID {

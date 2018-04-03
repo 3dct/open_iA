@@ -18,9 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#ifndef IA4DCTFILEMANAGER_H
-#define IA4DCTFILEMANAGER_H
+#pragma once
 
 #include "iA4DCTFileData.h"
 // std
@@ -31,8 +29,6 @@
 class vtkAlgorithmOutput;
 class vtkMetaImageReader;
 class vtkImageData;
-
-using namespace std;
 
 class iA4DCTFileManager
 {
@@ -54,7 +50,5 @@ private:
 	ReaderType	findOrCreateImage( iA4DCTFileData file );
 	ReaderType	findReader( iA4DCTFileData file );
 
-	map<std::string, ReaderType> m_map;
+	std::map<std::string, ReaderType> m_map;
 };
-
-#endif // IA4DCTFILEMANAGER_H

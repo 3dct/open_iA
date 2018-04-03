@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QVariant>
 #include <QThread>
 
 #include "common.h"

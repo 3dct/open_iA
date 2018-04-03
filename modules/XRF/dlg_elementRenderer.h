@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_ElementRenderer.h"
-#include <iAQTtoUIConnector.h>
+#include "iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_elementRenderer>   dlg_elemRendererContainer;
 
 #include <vtkSmartPointer.h>

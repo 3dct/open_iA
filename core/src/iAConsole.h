@@ -28,9 +28,6 @@
 #include <itkSmartPointer.h>
 
 #include <QObject>
-
-#include <string>
-#include <sstream>
 #include <QString>
 
 class dlg_console;

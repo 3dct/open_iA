@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vector>
-#include <string>
 #include "common.h"
+
+#include <vector>
 
 //using namespace Raytracer;
 /**	\class CutAAB.

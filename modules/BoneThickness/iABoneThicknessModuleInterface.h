@@ -25,16 +25,10 @@
 class iABoneThicknessModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
-
-  public:
-	explicit iABoneThicknessModuleInterface();
-	~iABoneThicknessModuleInterface();
-
+public:
 	void Initialize();
 protected:
 	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData) override;
-
-  private slots:
+private slots:
 	void slotBoneThickness();
-
 };

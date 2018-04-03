@@ -20,12 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <string>
-#include <iostream>
-#include <vector>
-#include <vtkTable.h>
-
-using namespace std;
+#include <vtkType.h>
 
 enum FeatureEvent { Creation, Continuation, Bifurcation, Amalgamation, Dissipation }; //Creation, Continuation, Dissipation, Bifurcation, Amalgamation
 

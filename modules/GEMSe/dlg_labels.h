@@ -21,10 +21,11 @@
 #pragma once
 
 #include "ui_labels.h"
-#include <iAQTtoUIConnector.h>
+#include "iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 
 #include "iALabelInfo.h"
+
 #include <vtkSmartPointer.h>
 
 #include <QList>

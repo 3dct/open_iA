@@ -21,7 +21,8 @@
 #pragma once
 
 #include <QVector>
-#include <stdint.h>
+
+#include <cstdint>
 
 struct iASpectrumFilter
 {

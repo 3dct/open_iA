@@ -151,7 +151,7 @@ void write_image_template(bool compression, QString const & fileName,
 
 
 iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *par,
-		vector<vtkSmartPointer<vtkImageData> > * volumes, vector<QString> * fileNames)
+		std::vector<vtkSmartPointer<vtkImageData> > * volumes, std::vector<QString> * fileNames)
 	: iAAlgorithm( "IO", i, p, logger, par ),
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)
@@ -160,8 +160,8 @@ iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *par,
 }
 
 
-iAIO::iAIO( iALogger* logger, QWidget *par /*= 0*/, vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/,
-		vector<QString> * fileNames /*= 0*/ )
+iAIO::iAIO( iALogger* logger, QWidget *par /*= 0*/, std::vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/,
+		std::vector<QString> * fileNames /*= 0*/ )
 	: iAAlgorithm( "IO", 0, 0, logger, par),
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)

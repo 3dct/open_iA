@@ -24,7 +24,7 @@
 #include "iAConnector.h"
 #include "charts/iAHistogramWidget.h"
 #include "iAToolsVTK.h"
-#include <iATransferFunction.h>
+#include "iATransferFunction.h"
 #include "iATypedCallHelper.h"
 
 #include <itkChangeInformationImageFilter.h>

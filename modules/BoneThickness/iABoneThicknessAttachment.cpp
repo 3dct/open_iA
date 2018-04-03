@@ -21,6 +21,12 @@
 
 #include "iABoneThicknessAttachment.h"
 
+#include "iABoneThicknessChartBar.h"
+#include "iABoneThicknessSplitter.h"
+#include "iABoneThicknessTable.h"
+
+#include "iADockWidgetWrapper.h"
+#include "iARenderer.h"
 #include "mdichild.h"
 #include "mainwindow.h"
 
@@ -33,13 +39,6 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QSplitter>
-
-#include <iADockWidgetWrapper.h>
-#include <iARenderer.h>
-
-#include "iABoneThicknessChartBar.h"
-#include "iABoneThicknessSplitter.h"
-#include "iABoneThicknessTable.h"
 
 iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData):
 	iAModuleAttachmentToChild(_pMainWnd, _iaChildData)

@@ -76,7 +76,7 @@ void GraphStat::update()
 		int rank = vertIt->second.rank;
 		if(rank > m_maxRank) m_maxRank = rank;
 	}
-	m_numVertices = vector<int>(m_maxRank+1, 0);
+	m_numVertices = std::vector<int>(m_maxRank+1, 0);
 	for (VerticesIterator vertIt = vertices->begin(); vertIt != vertices->end(); vertIt++) {
 		Graph::idType id = vertIt->first;
 		int rank = vertIt->second.rank;

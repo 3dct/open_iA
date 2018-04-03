@@ -23,8 +23,10 @@
 #include <open_iA_Core_export.h>
 
 #include <graphdrawer.h>
-#include <map>
+
 #include <vtkMutableDirectedGraph.h>
+
+#include <map>
 
 class vtkPoints;
 
@@ -36,8 +38,8 @@ private:
 	void	fillGraph(vtkMutableDirectedGraph* graph);
 	void	locatePoints(vtkPoints* points, int* windowsSize, size_t numRanks);
 
-	map<vtkIdType, Graph::idType>	m_vertMapFromVtk;
-	map<Graph::idType, vtkIdType>	m_vertMapToVtk;
+	std::map<vtkIdType, Graph::idType> m_vertMapFromVtk;
+	std::map<Graph::idType, vtkIdType> m_vertMapToVtk;
 	GraphDrawer						m_graphDrawer;
 	Graph							m_graph;
 };

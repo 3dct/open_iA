@@ -33,6 +33,7 @@
 #include "mdichild.h"
 
 #include <vtkCamera.h>
+#include <vtkImageData.h>
 #include <vtkPolyData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkRendererCollection.h>

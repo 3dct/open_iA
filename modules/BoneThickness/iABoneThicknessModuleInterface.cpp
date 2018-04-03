@@ -22,14 +22,6 @@
 #include "iABoneThicknessAttachment.h"
 #include "mainwindow.h"
 
-#include <mdichild.h>
-
-iABoneThicknessModuleInterface::iABoneThicknessModuleInterface( )
-{ /* not implemented */ }
-
-iABoneThicknessModuleInterface::~iABoneThicknessModuleInterface( )
-{ /* not implemented */ }
-
 void iABoneThicknessModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)

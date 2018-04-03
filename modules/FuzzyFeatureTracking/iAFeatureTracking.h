@@ -21,26 +21,19 @@
 #pragma once
 
 #include <string>
-#include <iostream>
 #include <vector>
-#include <iterator>
-#include <sstream>
-#include <fstream>
-#include <vtkTable.h>
+
 #include <vtkSmartPointer.h>
-#include <vtkTypeUInt32Array.h>
+#include <vtkTable.h>
 #include <vtkVariantArray.h>
 
 #include "iAFeatureTrackingCorrespondence.h"
 
-
-using namespace std;
-
 class iAFeatureTracking
 {
 private:
-	string file1;
-	string file2;
+	std::string file1;
+	std::string file2;
 	int lineOffset;
 	vtkTable *u;
 	vtkTable *v;
@@ -49,24 +42,24 @@ private:
 	float volumeThreshold;
 	float overallMatchingPercentage;
 	int maxSearchValue;
-	vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *uToV;
-	vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *vToU;
-	vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *allUtoV;
-	vector<pair<vtkIdType, vector<iAFeatureTrackingCorrespondence> > > *allVtoU;
-	string outputFilename;
-	vector<string> &split(const string &s, char delim, vector<string> &elems);
-	vector<string> split(const string &s, char delim);
-	vtkTable &readTableFromFile(const string &filename, int dataLineOffset);
-	void sortCorrespondencesByOverlap(vector<iAFeatureTrackingCorrespondence> &correspondences);
-	vector<iAFeatureTrackingCorrespondence>& getCorrespondences(const vtkVariantArray &row, vtkTable &table, int maxSearchValue, bool useZ);
+	std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > > *uToV;
+	std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > > *vToU;
+	std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > > *allUtoV;
+	std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > > *allVtoU;
+	std::string outputFilename;
+	std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems);
+	std::vector<std::string> split(const std::string &s, char delim);
+	vtkTable &readTableFromFile(const std::string &filename, int dataLineOffset);
+	void sortCorrespondencesByOverlap(std::vector<iAFeatureTrackingCorrespondence> &correspondences);
+	std::vector<iAFeatureTrackingCorrespondence>& getCorrespondences(const vtkVariantArray &row, vtkTable &table, int maxSearchValue, bool useZ);
 	void ComputeOverallMatchingPercentage();
 
 public:
-	iAFeatureTracking(string fileName1, string fileName2, int lineOffset, string outputFilename, float dissipationThreshold,
+	iAFeatureTracking(std::string fileName1, std::string fileName2, int lineOffset, std::string outputFilename, float dissipationThreshold,
 		float overlapThreshold, float volumeThreshold, int maxSearchValue);
 	void TrackFeatures();
-	vector<iAFeatureTrackingCorrespondence> FromUtoV(unsigned int uId);
-	vector<iAFeatureTrackingCorrespondence> FromVtoU(unsigned int vId);
+	std::vector<iAFeatureTrackingCorrespondence> FromUtoV(unsigned int uId);
+	std::vector<iAFeatureTrackingCorrespondence> FromVtoU(unsigned int vId);
 	float GetOverallMatchingPercentage();
 		
 	size_t getNumberOfEventsInU();

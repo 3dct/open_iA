@@ -20,13 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <open_iA_Core_export.h>
+#include "open_iA_Core_export.h"
 #include "graph.h"
 #include "graphstat.h"
 
 #include <vector>
-
-using namespace std;
 
 class open_iA_Core_API GraphDrawer
 {
@@ -40,14 +38,14 @@ public:
 	void					start();
 
 private:
-	typedef vector<vector<Graph::idType>>		OrderType;
+	typedef std::vector<std::vector<Graph::idType>> OrderType;
 
 	void					initialOrder(OrderType& order);
 	void					addVerticesToOrder(Graph::idType headerVert, OrderType& order);
 
 	void					wmedian(OrderType& order, bool forwardTraversal);
 	float					medianValue(Graph::idType vert, OrderType& order, bool forwardTraversal);
-	vector<int>				getAdjacentPositions(Graph::idType vert, OrderType& order, bool forwardTraversal);
+	std::vector<int>		getAdjacentPositions(Graph::idType vert, OrderType& order, bool forwardTraversal);
 	void					transpose(OrderType& order, bool forwardTraversal);
 	int						numberOfCrossing(OrderType& order);
 	int						numberOfCrossing(OrderType& order, int rank, int pos1, int pos2, bool forwardTraversal);

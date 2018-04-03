@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #include "../include/common.h"
 #include "../include/ScreenBuffer.h"
-//#include "../include/stdio.h"
-#include "string.h"
 
 //namespace Raytracer {
 

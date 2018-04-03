@@ -62,6 +62,7 @@
 #include "mainwindow.h"
 
 #include <vtkCamera.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkCornerAnnotation.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageExtractComponents.h>
@@ -69,6 +70,7 @@
 #include <vtkMath.h>
 #include <vtkMatrixToLinearTransform.h>
 #include <vtkOpenGLRenderer.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkPlane.h>
 #include <vtkRenderWindow.h>
 #include <vtkWindowToImageFilter.h>

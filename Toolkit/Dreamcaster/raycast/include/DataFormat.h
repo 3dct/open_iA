@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vector>
 #include <QTextStream>
 
+#include <vector>
 
 /**	\class Intersection.
 	\brief Class representing intersection between triangle and ray.	

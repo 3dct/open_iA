@@ -38,10 +38,7 @@
 #include <vtkMutableDirectedGraph.h>
 #include <vtkContextScene.h>
 // std
-#include <vector>
 #include <map>
-
-using namespace std;
 
 class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
 {
@@ -51,7 +48,7 @@ public:
 			dlg_trackingGraph(QWidget* parent);
 			~dlg_trackingGraph();
 
-	void	updateGraph(vtkMutableDirectedGraph* g, int nunRanks, map<vtkIdType, int> nodesToLayers, map<int, map<vtkIdType, int>> graphToTableId);
+	void	updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
 
 private: 
 	QVTKWidget*		graphWidget;
@@ -66,6 +63,6 @@ private:
 	vtkSmartPointer<vtkContextInteractorStyle>	m_interactorStyle;
 	vtkSmartPointer<vtkRenderWindowInteractor>	m_interactor;
 
-	map<vtkIdType, int>					m_nodesToLayers;
-	map<int, map<vtkIdType, int>>		m_graphToTableId;
+	std::map<vtkIdType, int>					m_nodesToLayers;
+	std::map<int, std::map<vtkIdType, int>>		m_graphToTableId;
 };

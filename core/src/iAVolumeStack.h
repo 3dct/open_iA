@@ -22,27 +22,15 @@
 
 #include "open_iA_Core_export.h"
 
-#include <vtkDataSet.h>
-#include <vtkImageData.h>
-#include <vtkPiecewiseFunction.h>
 #include <vtkSmartPointer.h>
-#include <vtkStructuredData.h> // Needed for inline methods
 
 #include <QString>
 
-#include <map>
-#include <string.h>
-#include <iostream>
 #include <vector>
-#include <utility>
 
-using namespace std;
-
-class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
-
-
-#include <vtkColorTransferFunction.h>
+class vtkImageData;
+class vtkPiecewiseFunction;
 
 class open_iA_Core_API iAVolumeStack
 {
@@ -61,13 +49,13 @@ class open_iA_Core_API iAVolumeStack
 		void addPiecewiseFunction(vtkPiecewiseFunction* instance);
 		vtkColorTransferFunction* getColorTransferFunction(int i);
 		vtkPiecewiseFunction* getPiecewiseFunction(int i);
-		vector<vtkSmartPointer<vtkImageData> > * GetVolumes();
-		vector<QString> * GetFileNames();
+		std::vector<vtkSmartPointer<vtkImageData> > * GetVolumes();
+		std::vector<QString> * GetFileNames();
 
 	private:
 		int id;
-		vector<vtkSmartPointer<vtkImageData> > volumes;
-		vector<vtkColorTransferFunction*> colorTransferVector;
-		vector<vtkPiecewiseFunction*> piecewiseVector;
-		vector<QString> fileNameArray;
+		std::vector<vtkSmartPointer<vtkImageData> > volumes;
+		std::vector<vtkColorTransferFunction*> colorTransferVector;
+		std::vector<vtkPiecewiseFunction*> piecewiseVector;
+		std::vector<QString> fileNameArray;
 };

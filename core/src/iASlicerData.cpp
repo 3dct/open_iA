@@ -91,9 +91,6 @@
 #include <QString>
 #include <QThread>
 
-#include <string>
-#include <sstream>
-
 namespace
 {
 	const double PickTolerance = 100.0;

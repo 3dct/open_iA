@@ -23,24 +23,12 @@
 #include "open_iA_Core_export.h"
 
 #include <QObject>
-#include <QFile>
-
-#include <string>
-#include <sstream>
 
 #include <vtkCommand.h>
-#include <vtkImageViewer2.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkPicker.h> 
-#include <vtkTextMapper.h>
-#include <vtkActor2D.h>
-#include <vtkImageReslice.h>
-#include <vtkPlane.h>
-
 #include <vtkPlaneSource.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkActor.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
 
 #include <vtkTransform.h>
 #include <vtkLineSource.h>
@@ -49,6 +37,9 @@
 #include <vtkDoubleArray.h>
 
 #include <vtkWorldPointPicker.h>
+
+class vtkPicker;
+class vtkPlane;
 
 /**
  * \brief	observes the mouse moving

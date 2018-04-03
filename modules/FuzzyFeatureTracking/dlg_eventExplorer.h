@@ -26,33 +26,22 @@
 #include "ui_EventExplorer.h"
 #include "QVTKWidget.h"
 
-#include <qpushbutton.h>
-#include <QHBoxLayout>
-
-#include "vtkFloatArray.h"
+#include <vtkChartXY.h>
+#include <vtkContextView.h>
+#include <vtkIdTypeArray.h>
 #include <vtkIntArray.h>
-#include "vtkMath.h"
-#include "vtkRenderer.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkSmartPointer.h"
-#include "vtkContextView.h"
-#include "vtkContextScene.h"
-#include "vtkChartXY.h"
-#include "vtkPlot.h"
-#include "vtkTable.h"
-#include "vtkPen.h"
-#include "vtkTimerLog.h"
-#include "vtkIdTypeArray.h"
-#include "vtkEventQtSlotConnect.h"
-
-#include "vtkMutableDirectedGraph.h"
+#include <vtkPlot.h>
+#include <vtkSmartPointer.h>
+#include <vtkTable.h>
+#include <vtkMutableDirectedGraph.h>
 
 #include <vector>
 
 class dlg_trackingGraph;
 class iAFeatureTracking;
 class iAVolumeStack;
+
+class vtkEventQtSlotConnect;
 
 class dlg_eventExplorer : public QDockWidget, private Ui_EventExplorer
 {

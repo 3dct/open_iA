@@ -21,6 +21,12 @@
 
 #include "iABoneThickness.h"
 
+#include "iABoneThicknessChartBar.h"
+#include "iABoneThicknessTable.h"
+#include "iABoneThicknessMouseInteractor.h"
+
+#include "iARenderer.h"
+
 #include <QFile>
 #include <QStandardItemModel>
 #include <QTextStream>
@@ -39,12 +45,6 @@
 #include <vtkSphereSource.h>
 #include <vtkTable.h>
 #include <vtkTubeFilter.h>
-
-#include <iARenderer.h>
-
-#include "iABoneThicknessChartBar.h"
-#include "iABoneThicknessTable.h"
-#include "iABoneThicknessMouseInteractor.h"
 
 vtkStandardNewMacro(iABoneThicknessMouseInteractor);
 

@@ -21,10 +21,16 @@
 
 #include "iAFoamCharacterizationAttachment.h"
 
+#include "iAFoamCharacterizationDialogAnalysis.h"
+#include "iAFoamCharacterizationItemBinarization.h"
+#include "iAFoamCharacterizationItemDistanceTransform.h"
+#include "iAFoamCharacterizationItemFilter.h"
+#include "iAFoamCharacterizationItemWatershed.h"
+#include "iAFoamCharacterizationTable.h"
+
+#include "iADockWidgetWrapper.h"
 #include "mdichild.h"
 #include "mainwindow.h"
-
-#include <iADockWidgetWrapper.h>
 
 #include <QApplication>
 #include <QFileDialog>
@@ -34,13 +40,6 @@
 #include <QGridLayout>
 
 #include <vtkImageData.h>
-
-#include <iAFoamCharacterizationDialogAnalysis.h>
-#include "iAFoamCharacterizationItemBinarization.h"
-#include "iAFoamCharacterizationItemDistanceTransform.h"
-#include "iAFoamCharacterizationItemFilter.h"
-#include "iAFoamCharacterizationItemWatershed.h"
-#include "iAFoamCharacterizationTable.h"
 
 iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData)
 																			  : iAModuleAttachmentToChild(_pMainWnd, _iaChildData)

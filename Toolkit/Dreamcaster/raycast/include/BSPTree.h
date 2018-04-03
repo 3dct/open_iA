@@ -21,11 +21,13 @@
 #pragma once
 
 #include "scene.h"
-#include <vector>
-#include <algorithm>
 
 #include "../../dreamcaster.h"
-#include <assert.h>
+
+#include <algorithm>
+#include <cassert>
+#include <vector>
+
 extern DreamCaster * dcast;
 //namespace Raytracer{
 

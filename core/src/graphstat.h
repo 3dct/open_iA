@@ -25,12 +25,10 @@
 #include <vector>
 #include <unordered_map>
 
-using namespace std;
-
 class GraphStat
 {
 public:
-	typedef vector<Graph::idType>	VerticesIDs;
+	typedef std::vector<Graph::idType>	VerticesIDs;
 
 						GraphStat();
 						GraphStat(Graph* g);
@@ -49,9 +47,9 @@ private:
 
 	Graph*	m_graph;
 	int		m_maxRank;
-	unordered_map<Graph::idType, VerticesIDs>	m_parentVertices;
-	unordered_map<Graph::idType, VerticesIDs>	m_childVertices;
-	unordered_map<Graph::idType, bool>			m_isHeaderVertex;
-	vector<int>									m_numVertices;
+	std::unordered_map<Graph::idType, VerticesIDs>	m_parentVertices;
+	std::unordered_map<Graph::idType, VerticesIDs>	m_childVertices;
+	std::unordered_map<Graph::idType, bool>			m_isHeaderVertex;
+	std::vector<int>								m_numVertices;
 };
 

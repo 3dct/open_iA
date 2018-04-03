@@ -42,7 +42,7 @@ vtkAlgorithmOutput* iA4DCTFileManager::getOutputPort( iA4DCTFileData file )
 
 iA4DCTFileManager::ReaderType iA4DCTFileManager::findOrCreateImage( iA4DCTFileData file )
 {
-	string key = file.Name.toStdString( );
+	std::string key = file.Name.toStdString( );
 	if( m_map.find( key ) == m_map.end( ) )
 	{	// the key does not exist
 		ReaderType reader = ReaderType::New( );

@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAVolumeSettings.h"
+
 #include <QSharedPointer>
 
 #include "ui_modalityProperties.h"
-#include "iAVolumeSettings.h"
-#include <iAQTtoUIConnector.h>
-
+#include "iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDialog, Ui_modalityProperties> dlg_modalityPropertiesUI;
 
 class iAModality;

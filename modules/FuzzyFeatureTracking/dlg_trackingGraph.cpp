@@ -88,7 +88,7 @@ dlg_trackingGraph::~dlg_trackingGraph()
 
 }
 
-void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, map<vtkIdType, int> nodesToLayers, map<int, map<vtkIdType, int>> graphToTableId)
+void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId)
 {
 	if(g->GetNumberOfVertices() < 1) return;
 

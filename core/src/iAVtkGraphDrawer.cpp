@@ -68,7 +68,7 @@ void iAVtkGraphDrawer::fillGraph(vtkMutableDirectedGraph* graph) {
 }
 
 void iAVtkGraphDrawer::locatePoints(vtkPoints* points, int* windowsSize, size_t numRanks) {
-	map<vtkIdType, Graph::idType>::iterator it;
+	std::map<vtkIdType, Graph::idType>::iterator it;
 	float maxPosY, minPosY;
 	//maxPosY = minPosY = this->getVertex(m_vertMapFromVtk.at(0))->positionY;
 	maxPosY = minPosY = m_graph.getVertices()->at(m_vertMapFromVtk.at(0)).posX;

@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_GEMSe.h"
-#include <iAQTtoUIConnector.h>
+#include "iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSe> dlg_GEMSeUI;
 
 #include "iAChartAttributeMapper.h"

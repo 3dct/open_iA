@@ -22,15 +22,13 @@
 #include "pch.h"
 #include "iARenderObserver.h"
 
-#include "iAConsole.h"
-
 #include <vtkImageData.h>
 #include <vtkActorCollection.h>
 #include <vtkCamera.h>
 #include <vtkMath.h>
+#include <vtkPlane.h>
 #include <vtkPointData.h>
 #include <vtkSmartPointer.h>
-#include <vtkVersion.h>
 
 #include <QTextStream>
 

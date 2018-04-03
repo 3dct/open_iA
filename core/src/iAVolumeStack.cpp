@@ -22,18 +22,12 @@
 #include "pch.h"
 #include "iAVolumeStack.h"
 
-#include <vtkDataSet.h>
+//#include <vtkDataSet.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkStructuredData.h> // Needed for inline methods
+//#include <vtkStructuredData.h> // Needed for inline methods
 
-#include <cstring>
-#include <iostream>
-#include <map>
-#include <utility>
-#include <vector>
-
-using namespace std;
 
 iAVolumeStack::iAVolumeStack()
 {
@@ -123,12 +117,12 @@ QString iAVolumeStack::getFileName(int i) {
 	return fileNameArray.at(i);
 }
 
-vector<vtkSmartPointer<vtkImageData> > * iAVolumeStack::GetVolumes()
+std::vector<vtkSmartPointer<vtkImageData> > * iAVolumeStack::GetVolumes()
 { 
 	return &volumes;
 }
 
-vector<QString> * iAVolumeStack::GetFileNames()
+std::vector<QString> * iAVolumeStack::GetFileNames()
 {
 	return &fileNameArray;
 }
