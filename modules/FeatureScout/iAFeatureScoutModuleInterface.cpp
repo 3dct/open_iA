@@ -85,63 +85,19 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 
 
 	this->m_mdiChild = m_mainWnd->createMdiChild(false);
-		//new MdiChild(/*m_mainWnd*//*, m_mainWnd->GetDefaultPreferences(), false)*/);
-	
-	
-	this->m_mdiChild->show(); 
-
-	/*
-	
-	MdiChild *child = new MdiChild(this, defaultPreferences, unsavedChanges);
-	QMdiSubWindow* subWin = mdiArea->addSubWindow(child);
-	subWin->setOption(QMdiSubWindow::RubberBandResize);
-	subWin->setOption(QMdiSubWindow::RubberBandMove);
-
-	child->setRenderSettings(defaultRenderSettings, defaultVolumeSettings);
-	child->setupSlicers(defaultSlicerSettings, false);
-
-	connect( child, SIGNAL( pointSelected() ), this, SLOT( pointSelected() ) );
-	connect( child, SIGNAL( noPointSelected() ), this, SLOT( noPointSelected() ) );
-	connect( child, SIGNAL( endPointSelected() ), this, SLOT( endPointSelected() ) );
-	connect( child, SIGNAL( active() ), this, SLOT( setHistogramFocus() ) );
-	connect( child, SIGNAL( autoUpdateChanged( bool ) ), actionUpdate_automatically, SLOT( setChecked( bool ) ) );
-	connect( child, SIGNAL( closed() ), this, SLOT( childClosed() ) );
-
-	SetModuleActionsEnabled( true );
-
-	m_moduleDispatcher->ChildCreated(child);
-	return child;
-	
-	
-	
-	
-	*/
-
-
-	
-
-
-	
-	//create new child
-
-
-	//PrepareActiveChild();
-	//m_mdiChild = 
+	this->m_mdiChild->show(); 	
 
 	if (!m_mdiChild) return;
 	QVector<uint> selEntriesId;
 	QSharedPointer<QStringList> headers = QSharedPointer<QStringList>(new QStringList);
 	fileConfParams = dlg.getConfigParameters();
-	selEntriesId = dlg.getSelectedEntries();
+	selEntriesId = dlg.getEntriesSelInd();
 	headers = dlg.getHeaders(); 
 
 	//io.setTableParams(fileConfParams);
 	io.setColIDs(selEntriesId);
 	io.setTableHeaders(*headers);
 	
-	//headers = d
-	//getSelection indexes
-
 	QMap<QString, iAObjectAnalysisType> objectMap;
 	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
 	objectMap["Voids"] = INDIVIDUAL_PORE_VISUALIZATION;
@@ -210,7 +166,7 @@ void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item,
 {
 	if (item == items[0] || item == items[1])
 	{
-		if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, objectMap[item], nullptr, isCsvOnly))
+		if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, objectMap[item], FileParams, isCsvOnly))
 		{
 			SetupToolbar();
 			m_mdiChild->addStatusMsg(filterName);
@@ -259,7 +215,7 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 *optional parameter FileParams for custom csv
 */
 bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType, csvConfig::configPararams *FileParams, const bool is_csvOnly)
-	{iACsvIO io;
+	{
 	//default action if file params is null
 	if (!FileParams) {
 

@@ -40,7 +40,7 @@ iACsvIO::iACsvIO() :
 	m_colSeparator(","),
 	m_decimalSeparator("."),
 	m_EN_Values(true),
-	m_autoRID(1),
+	m_EL_ID(1),
 	m_FileName("")
 {
 	this->setDefaultConfigPath(); 
@@ -438,7 +438,8 @@ bool iACsvIO::loadCsv_WithConfig(){
 	table->Initialize();
 	
 	bool retFlag = false; 
-	this->readFileEntries(this->m_FileName, this->m_rowsToSkip, this->m_EN_Values, retFlag);
+	this->readCustomFileEntries(this->m_FileName, this->m_rowsToSkip, this->m_TableHeaders, this->m_colIds, this->m_EN_Values, retFlag);
+	//this->readFileEntries(this->m_FileName, this->m_rowsToSkip, this->m_EN_Values, retFlag);
 	return retFlag; 
 }
 
@@ -461,9 +462,10 @@ void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 	}
 }
 
-void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag()) {
+void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag) {
 	int tableWidth = 0; 
 	int tableLength = 0; 
+	this->m_EL_ID = 0;  //reset to zero
 
 	tableLength = CalcTableLength(fileName, &rows_toSkip);
 
@@ -471,7 +473,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 		tableWidth = eleLine.count(&m_colSeparator);;
 	}else */
 	
-	tableLength = colSelEntries.length(); 
+	//tableWidth = colSelEntries.length();
 
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -483,7 +485,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	QTextStream in(&file);
 
 	//skip header lines, not counting the line where names start
-	for (int i = 0; i < rows_toSkip; i++) {
+	for (int i = 0; i < rows_toSkip-1; i++) {
 		QString tmp = in.readLine();
 	}
 
@@ -496,6 +498,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 			vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
 			byteArr = elLine.toUtf8();
 			element = byteArr.constData();
+			arrX->SetName(element);
 			table->AddColumn(arrX);
 		}
 	}
@@ -505,46 +508,69 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
 	arr->SetName("Class_ID");
 	table->AddColumn(arr);
-	table->SetNumberOfRows(tableLength);
+
+	vtkSmartPointer<vtkIntArray> arrAuto = vtkSmartPointer<vtkIntArray>::New();
+	arrAuto->SetName("Auto_ID");
+	table->AddColumn(arrAuto);
+
+	table->SetNumberOfRows(tableLength+1);
 	QString line = "";
 	QString tmp_section = "";
+	tableWidth = 31; //ToDO remove hard coded stuff 
+	int col_count = 0; 
+	col_count = this->m_TableHeaders.length(); 
+	/*table->colums*/
+	double tbl_value = 0.0; 
 
-	for (int i = 0; i<tableLength; ++i)
+
+	//use separate col count index 
+	int cur_Colcount = 1; 
+
+	for (int i = 0; i<tableLength+1; ++i) //TODO remove hard coded value 
 	{
 		line = in.readLine();
 		if (!line.isEmpty())
 		{
-			//vtkVariant v = line.section(m_colSeparator, 0, 0).toInt();
-			//vtkStdString v1 = v.ToString();
-
-			////set id 
-			//table->SetValue(i, 0, v.ToString());
-			vtkVariant v = this->m_autoRID;
-			table->SetValue(i, 0, v.ToString());
+			
+		/*	vtkVariant v = this->m_EL_ID;
+			table->SetValue(i, 0, v.ToString());*/
 			
 			//adding entries for each col 
-			for (int col = 0; col<tableWidth; col++)
+			for (int col = 1; col<tableWidth; col++)
 			{
-				if (m_colIds.contains((uint)col))
+
+				//skip rows
+				if (m_colIds.contains((uint)col-1))
 				{
-					tmp_section = line.section(m_colSeparator, col, col);
-					//replace decimal separator for german input format 
-					if (!this->m_EN_Values)
-						tmp_section = tmp_section.replace(",", m_decimalSeparator);
-					table->SetValue(i, col, tmp_section.toFloat());
-					this->m_autoRID++;
+						tmp_section = line.section(m_colSeparator, col-1, col-1);
+						if (!tmp_section.isEmpty()) {
+
+						//replace decimal separator for german input format 
+						if (!this->m_EN_Values)
+							tmp_section = tmp_section.replace(",", m_decimalSeparator);
+					
+						tbl_value = tmp_section.toDouble(); 
+						table->SetValue(i, cur_Colcount, tbl_value);
+					}
+
+						cur_Colcount++; 
 				}
 			}
 
+			//auto id sollte column 0 sein
 			//set Class_ID 0 for each row element
-			table->SetValue(i, tableWidth, 0);
+			table->SetValue(i, col_count, 0);
+			vtkVariant v = this->m_EL_ID;
+			table->SetValue(i, col_count+1, v.ToString());
 
+			this->m_EL_ID++;
+			cur_Colcount = 0; 
 		}
 	}
 
 	if(file.isOpen())
 	file.close();
-	
+	retFlag = true; 
 
 }
 

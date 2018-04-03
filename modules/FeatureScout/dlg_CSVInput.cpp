@@ -44,7 +44,9 @@ void dlg_CSVInput::CustomFormatBtnClicked(){
 
 void dlg_CSVInput::LoadColsBtnClicked()
 {
-	this->getSelectedEntries();
+	this->setSelectedEntries();
+	this->buttonBox->setEnabled(true);
+	this->buttonBox->setVisible(true);
 }
 
 void dlg_CSVInput::FileBtnClicked()
@@ -56,8 +58,6 @@ void dlg_CSVInput::FileBtnClicked()
 	
 	this->loadFilePreview(10); 
 	this->showConfigParams(*this->m_confParams);
-	this->buttonBox->setEnabled(true);
-	this->buttonBox->setVisible(true);
 }
 
 void dlg_CSVInput::AssignFormatLanguage() {
@@ -300,7 +300,7 @@ void dlg_CSVInput::assignHeaderLine() {
 }
 
 //getEntries from a selected List;
-const QVector<uint> &dlg_CSVInput::getSelectedEntries() {
+void dlg_CSVInput::setSelectedEntries() {
 	uint currItemIdx; 
 	QString listEntry; 
 	this->m_selectedHeadersList  = this->textControl_list->selectedItems();
@@ -308,7 +308,8 @@ const QVector<uint> &dlg_CSVInput::getSelectedEntries() {
 	//no selection use all entries
 	if (!(this->m_selectedHeadersList.length() == 0)) {
 		for (const auto &selEntry : m_selectedHeadersList) {
-			listEntry = selEntry->text(); 
+			listEntry = selEntry->text();
+			//selEntry->
 
 			currItemIdx = this->m_hashEntries.value(listEntry);
 			this->m_selColIdx.push_back(currItemIdx);
@@ -320,7 +321,11 @@ const QVector<uint> &dlg_CSVInput::getSelectedEntries() {
 		
 	}
 
-	return this->m_selColIdx; 
+}
+
+const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
+{
+	return this->m_selColIdx;
 }
 
 

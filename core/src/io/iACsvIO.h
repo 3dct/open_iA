@@ -38,7 +38,7 @@ public:
 
 	bool loadCsv_WithConfig();
 
-	void readCustomFileEntries(const QString & fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool & retFlag());
+	void readCustomFileEntries(const QString & fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag);
 	void readFileEntries(const QString & fileName, const int rows_toSkip, bool En_Values, bool & retFlag);
 
 	//input parameters from configuration file 
@@ -87,7 +87,9 @@ private:
 
 
 	bool m_EN_Values; 
-	uint m_autoRID;
+
+	//element id for each row entry
+	uint m_EL_ID;
 	int m_rowsToSkip;
 
 	QString m_colSeparator;

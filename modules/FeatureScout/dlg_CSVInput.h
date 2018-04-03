@@ -19,7 +19,6 @@ public:
 	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0); /*: QDialog(parent, f)*/
 	~dlg_CSVInput();
 
-	void connectSignals();
 	
 	void AssignFormatLanguage();
 
@@ -31,9 +30,11 @@ public:
 		}
 	}
 	
-	const QVector<uint> &getSelectedEntries();
+	void setSelectedEntries();
+	const QVector<uint>& getEntriesSelInd(); 
+
 	inline const QSharedPointer<QStringList> getHeaders() {
-		return this->m_currentHeaders; 
+		return this->m_selHeaders;
 	};
 
 	
@@ -49,6 +50,8 @@ private:
 	//pointer initialization
 	void initParameters();
 	void resetDefault(); 
+	void connectSignals();
+
 
 	bool validateParameters();
 	void setError(const QString &ParamName, const QString & Param_value);
