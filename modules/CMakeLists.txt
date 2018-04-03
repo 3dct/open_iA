@@ -98,6 +98,9 @@ FOREACH( indx RANGE ${len} )
 			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${depend_full_path} )
 		ENDFOREACH()
 
+		# set IDE folder:
+		SET_PROPERTY(TARGET ${module_name} PROPERTY FOLDER "Modules")
+
 		IF (NOT "${module_dependencies}" STREQUAL "")
 			ADD_DEPENDENCIES(${module_name} ${module_dependencies})
 		ENDIF()

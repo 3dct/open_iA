@@ -48,6 +48,7 @@ IF (BUILD_TESTING)
 	TARGET_LINK_LIBRARIES(StringHelperTest PRIVATE ${QT_LIBRARIES})
 	target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME StringHelperTest COMMAND StringHelperTest)
+	SET_PROPERTY(TARGET StringHelperTest PROPERTY FOLDER "Tests")
 ENDIF (BUILD_TESTING)
 
 # Compiler Flags

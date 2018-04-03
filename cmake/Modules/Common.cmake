@@ -8,6 +8,10 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 		"and run cmake with a newly created build directory.")
 endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
+# IDE folder configuration:
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "_CMake")
+
 #-------------------------
 # CTest
 #-------------------------
@@ -15,6 +19,10 @@ option (TESTING_ENABLED "Whether to enable testing. This allows to run CTest/ CD
 IF (${TESTING_ENABLED})
 	INCLUDE (CTest)
 	enable_testing()
+	SET_PROPERTY(TARGET Continuous PROPERTY FOLDER "_CTest")
+	SET_PROPERTY(TARGET Experimental PROPERTY FOLDER "_CTest")
+	SET_PROPERTY(TARGET Nightly PROPERTY FOLDER "_CTest")
+	SET_PROPERTY(TARGET NightlyMemoryCheck PROPERTY FOLDER "_CTest")
 ENDIF()
 
 #-------------------------
