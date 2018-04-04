@@ -148,7 +148,7 @@ DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	//hist.show();
 	initHistograms();
 	modelFileName = "No model opened";
-	setFileName = ui.l_setName->text();
+	setFileName = "";
 	formPainter = new QPainter();
 	//int s = VFRAME_W*VFRAME_H;
 	viewsBuffer = 0;//new Pixel[s];
@@ -608,7 +608,7 @@ void DreamCaster::OpenModelSlot()
 
 void DreamCaster::NewSetSlot()
 {
-	QString res = QFileDialog::getSaveFileName();
+	QString res = QFileDialog::getSaveFileName(nullptr, "Choose Set Filename", QFileInfo(setFileName).absolutePath());
 	if(res=="")
 		return;
 	setFileName = res;
@@ -619,7 +619,7 @@ void DreamCaster::NewSetSlot()
 
 void DreamCaster::OpenSetSlot()
 {
-	QString res = QFileDialog::getOpenFileName();
+	QString res = QFileDialog::getOpenFileName(nullptr, "Open existing set", QFileInfo(setFileName).absolutePath());
 	if(res=="")
 		return;
 	setFileName = res;
@@ -3738,6 +3738,11 @@ void DreamCaster::setRangeSB( float minX, float maxX, float minZ, float maxZ )
 void DreamCaster::loadFile(const QString filename)
 {
 	modelFileName = filename;
+	if (setFileName.isEmpty())
+	{
+		setFileName = filename + ".set";
+		ui.l_setName->setText(setFileName);
+	}
 	log("Opening new model:");
 	log(modelFileName.toLatin1().constData(),true);
 	initRaycast();

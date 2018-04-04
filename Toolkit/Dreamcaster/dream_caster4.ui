@@ -7,13 +7,12 @@
     <x>0</x>
     <y>0</y>
     <width>1160</width>
-    <height>796</height>
+    <height>805</height>
    </rect>
   </property>
   <property name="font">
    <font>
     <family>MS Shell Dlg 2</family>
-    
    </font>
   </property>
   <property name="windowTitle">
@@ -1681,7 +1680,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>defaultOutputFilename</string>
+                 <string/>
                 </property>
                 <property name="frame">
                  <bool>true</bool>
