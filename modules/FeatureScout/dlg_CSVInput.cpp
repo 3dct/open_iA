@@ -211,7 +211,6 @@ bool dlg_CSVInput::checkFile() {
 
 		this->m_confParams->paramsValid = false;
 		return fileOK;
-
 	}
 
 	QString fileName = QFileDialog::getOpenFileName(
@@ -265,7 +264,7 @@ bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPre
 	uint startElLine = (uint)  this->m_confParams->startLine;
 
 	//TODO REmOVE hard coded columns in  dgl_csvInput
-	dataLoaded = this->m_entriesPreviewTable->readTableEntries(fileName, nrPreviewElements, this->m_confParams->colCount,this->m_confParams->headerStartLine, &startElLine,  true); 
+	dataLoaded = this->m_entriesPreviewTable->readTableEntries(fileName, nrPreviewElements, this->m_confParams->colCount,this->m_confParams->headerStartLine, &startElLine, true, false); 
 	this->assignHeaderLine(); 
 	return dataLoaded; 
 }
@@ -281,26 +280,29 @@ void dlg_CSVInput::showPreviewTable()
 
 //assign headers and prepare map with indexes
 void dlg_CSVInput::assignHeaderLine() {
-	int autoIdxCol = -1; //-1 is auto ID 
+	int autoIdxCol = 0; //
 	if (!this->m_currentHeaders) return; 
 	*this->m_currentHeaders = m_entriesPreviewTable->getHeaders(); 
 
 	if (this->m_currentHeaders->isEmpty()) return;
 
-	//assign table width; 
-	/*this->m_confParams->tableWidth = this->m_currentHeaders->length(); */
-
-	//header assignement to textcontrol_list
+	
 	for (const auto &currItem:*this->m_currentHeaders){
-		this->textControl_list->addItem(currItem); 
-		this->m_hashEntries.insert(currItem, autoIdxCol);
-		autoIdxCol++;
+		if (!currItem.trimmed().isEmpty())
+		{
+				this->textControl_list->addItem(currItem);
+				this->m_hashEntries.insert(currItem, autoIdxCol);
+			
+		}
+			autoIdxCol++;
+		
 	}
 
+	
 	this->textControl_list->update(); 
 }
 
-//getEntries from a selected List;
+//setEntries from a selected List;
 void dlg_CSVInput::setSelectedEntries() {
 	uint currItemIdx; 
 	QString listEntry; 

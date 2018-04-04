@@ -32,7 +32,7 @@ namespace  DataIO{
 		void addLineToTable(const QSharedPointer<QStringList> &tableEntries);
 		
 		//reading rows from a file; 
-		bool readTableEntries(const QString &fName, const uint rowCount, const uint colCount, const int headerNr, const uint *StartLine, const bool readHeaders);
+		bool readTableEntries(const QString &fName, const uint rowCount, const uint colCount, const int headerNr, const uint *StartLine, const bool readHeaders, bool insertID);
 
 		void prepareTable(const int rowCount, const int colCount, const int headerLineNr);
 

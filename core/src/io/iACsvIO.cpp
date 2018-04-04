@@ -473,9 +473,9 @@ void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag) {
 	int tableWidth = 0; 
 	int tableLength = 0; 
-	this->m_EL_ID = 0;  //reset to zero
+	this->m_EL_ID = 1;  //reset to 1 -> ID starts with 1!
 
-	tableLength = CalcTableLength(fileName, &rows_toSkip);
+	tableLength = CalcTableLength(fileName, (&rows_toSkip));
 
 	
 
@@ -496,6 +496,10 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	QByteArray byteArr;
 	const char* element;
 
+	vtkSmartPointer<vtkIntArray> arrAuto = vtkSmartPointer<vtkIntArray>::New();
+	arrAuto->SetName("Auto_ID");
+	table->AddColumn(arrAuto);
+
 	//adding headers; 
 	for (const auto &elLine : m_Headers) {
 		if (!elLine.isEmpty()) {
@@ -513,10 +517,6 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	arr->SetName("Class_ID");
 	table->AddColumn(arr);
 
-	vtkSmartPointer<vtkIntArray> arrAuto = vtkSmartPointer<vtkIntArray>::New();
-	arrAuto->SetName("Auto_ID");
-	table->AddColumn(arrAuto);
-
 	table->SetNumberOfRows(tableLength+1);
 	QString line = "";
 	QString tmp_section = "";
@@ -525,6 +525,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	col_count = this->m_TableHeaders.length(); 
 	double tbl_value = 0.0; 
 
+	vtkVariant ID_val; 
 
 	//use separate col count index 
 	int cur_Colcount = 1; 
@@ -535,8 +536,10 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 		if (!line.isEmpty())
 		{
 			
-		/*	vtkVariant v = this->m_EL_ID;
-			table->SetValue(i, 0, v.ToString());*/
+			ID_val = this->m_EL_ID;
+			table->SetValue(i, 0, ID_val.ToString());
+			cur_Colcount = 1;
+			
 			
 			//adding entries for each col 
 			for (int col = 1; col<tableWidth; col++)
@@ -561,14 +564,10 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 				}
 			}
 
-			//auto id sollte column 0 sein
-			//set Class_ID 0 for each row element
+			
 			table->SetValue(i, col_count, 0);
-			vtkVariant v = this->m_EL_ID;
-			table->SetValue(i, col_count+1, v.ToString());
-
 			this->m_EL_ID++;
-			cur_Colcount = 0; 
+					
 		}
 	}
 

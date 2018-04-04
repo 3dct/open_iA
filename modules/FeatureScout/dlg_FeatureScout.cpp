@@ -229,7 +229,11 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 	chartTable = vtkSmartPointer<vtkTable>::New();
 	chartTable->DeepCopy( csvTable );
 	this->updateColumnNames();
-	tableList.clear();
+
+	if (!tableList.isEmpty())
+	{
+		tableList.clear();
+	}
 	tableList.push_back( chartTable );
 	colorList.clear();
 	selectedObjID.clear();

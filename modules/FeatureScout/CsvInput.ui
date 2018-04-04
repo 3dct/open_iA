@@ -97,7 +97,7 @@
         </rect>
        </property>
        <property name="selectionMode">
-        <enum>QAbstractItemView::MultiSelection</enum>
+        <enum>QAbstractItemView::ContiguousSelection</enum>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_loadCols">

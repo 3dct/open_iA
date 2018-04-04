@@ -101,7 +101,7 @@ namespace DataIO {
 
 	//reads table entries from csv file into qtable widget
 	//optional startLine as nullptr
-	bool  DataTable::readTableEntries(const QString &fName, const uint rowCount, const uint colCount,const int headerNr,  const uint *StartLine, const bool readHeaders)
+	bool  DataTable::readTableEntries(const QString &fName, const uint rowCount, const uint colCount,const int headerNr,  const uint *StartLine, const bool readHeaders, bool insertID = false)
 	{
 
 		//cols + 1 for AutoID
@@ -144,13 +144,14 @@ namespace DataIO {
 		if (readHeaders) {
 			if (!el_line.isEmpty()) {
 				*this->m_headerEntries = el_line.split(m_FileSeperator);
-
-				//insert autoID header; 
-				this->m_headerEntries->insert(this->m_headerEntries->begin(), this->m_rowID);
-				this->setHeader(*m_headerEntries);
+				if (insertID) {
+					//insert autoID header; 
+					this->m_headerEntries->insert(this->m_headerEntries->begin(), this->m_rowID);
+				}
 			}
 		} 
-
+		
+		this->setHeader(*m_headerEntries);
 
 
 		//read all entries; 
@@ -159,27 +160,16 @@ namespace DataIO {
 		while (!file.atEnd())
 		{
 			if (row > entriesCount) break; 
-			
 			el_line = file.readLine();
 			*this->m_currentEntry = el_line.split(m_FileSeperator);
 			this->addLineToTable(this->m_currentEntry);
 			entriesCount;
 			row++;
-			
 		}
-
-		
 
 		if (!file.isOpen()) file.close(); 
 		return true; 
 	}
-
-	//reads all with selected cols; 
-	/*bool readAllEntries() {
-
-
-		return true; 
-	}*/
 
 void DataTable::setColSeparator(const csvConfig::csvSeparator & separator) {
 		switch (separator)
