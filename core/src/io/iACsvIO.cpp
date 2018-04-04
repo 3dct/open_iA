@@ -41,7 +41,8 @@ iACsvIO::iACsvIO() :
 	m_decimalSeparator("."),
 	m_EN_Values(true),
 	m_EL_ID(1),
-	m_FileName("")
+	m_FileName(""),
+	m_tableWidth(0)
 {
 	this->setDefaultConfigPath(); 
 }
@@ -275,6 +276,13 @@ bool iACsvIO::loadCSVCustom(csvConfig::configPararams &cnfg_params)
 }
 
 
+void iACsvIO::setParams(QStringList & headers, const QVector<uint>& colIDs, uint TableWidth)
+{
+	this->setTableHeaders(headers);
+	this->setColIDs(colIDs);
+	this->setTableWidth(TableWidth);
+}
+
 void iACsvIO::setDefaultConfigPath()
 {
 	configPath = "D:/OpenIa_TestDaten/TestInput/config/";
@@ -438,8 +446,8 @@ bool iACsvIO::loadCsv_WithConfig(){
 	table->Initialize();
 	
 	bool retFlag = false; 
+	//read entries with selected headers
 	this->readCustomFileEntries(this->m_FileName, this->m_rowsToSkip, this->m_TableHeaders, this->m_colIds, this->m_EN_Values, retFlag);
-	//this->readFileEntries(this->m_FileName, this->m_rowsToSkip, this->m_EN_Values, retFlag);
 	return retFlag; 
 }
 
@@ -469,11 +477,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 
 	tableLength = CalcTableLength(fileName, &rows_toSkip);
 
-	/*if (m_Headers.isEmpty()) { 
-		tableWidth = eleLine.count(&m_colSeparator);;
-	}else */
 	
-	//tableWidth = colSelEntries.length();
 
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -516,10 +520,9 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	table->SetNumberOfRows(tableLength+1);
 	QString line = "";
 	QString tmp_section = "";
-	tableWidth = 31; //ToDO remove hard coded stuff 
+	tableWidth = this->m_tableWidth; 
 	int col_count = 0; 
 	col_count = this->m_TableHeaders.length(); 
-	/*table->colums*/
 	double tbl_value = 0.0; 
 
 
@@ -543,15 +546,16 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 				if (m_colIds.contains((uint)col-1))
 				{
 						tmp_section = line.section(m_colSeparator, col-1, col-1);
-						if (!tmp_section.isEmpty()) {
+						if (!tmp_section.isEmpty()) 
+						{
 
-						//replace decimal separator for german input format 
-						if (!this->m_EN_Values)
-							tmp_section = tmp_section.replace(",", m_decimalSeparator);
+							//replace decimal separator for german input format 
+							if (!this->m_EN_Values)
+								tmp_section = tmp_section.replace(",", m_decimalSeparator);
 					
-						tbl_value = tmp_section.toDouble(); 
-						table->SetValue(i, cur_Colcount, tbl_value);
-					}
+							tbl_value = tmp_section.toDouble(); 
+							table->SetValue(i, cur_Colcount, tbl_value);
+						}
 
 						cur_Colcount++; 
 				}

@@ -90,13 +90,12 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	if (!m_mdiChild) return;
 	QVector<uint> selEntriesId;
 	QSharedPointer<QStringList> headers = QSharedPointer<QStringList>(new QStringList);
+	uint table_width;
 	fileConfParams = dlg.getConfigParameters();
 	selEntriesId = dlg.getEntriesSelInd();
 	headers = dlg.getHeaders(); 
-
-	//io.setTableParams(fileConfParams);
-	io.setColIDs(selEntriesId);
-	io.setTableHeaders(*headers);
+	table_width = dlg.getTableWidth(); 
+	io.setParams(*headers, selEntriesId, table_width);
 	
 	QMap<QString, iAObjectAnalysisType> objectMap;
 	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;

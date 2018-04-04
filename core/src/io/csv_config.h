@@ -34,7 +34,7 @@ namespace csvConfig {
 			csv_units = "microns";
 			paramsValid = true; 
 			inputObjectType = CTInputObjectType::Voids; 
-		
+			tableWidth = 0; 
 		}
 
 		QString fileName;
@@ -45,6 +45,7 @@ namespace csvConfig {
 		unsigned long headerStartLine; 
 		unsigned long endLine; 
 		unsigned long colCount; 
+		unsigned long tableWidth;
 
 		//TODO to be applied later
 		float spacing; 

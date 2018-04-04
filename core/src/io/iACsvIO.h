@@ -46,32 +46,36 @@ public:
 	//startRowInd -> where to start from row
 	//column separator "," "\t", ";"
 
-	
-	
 	//similar to load pore csv
 
-	
 	bool loadCSVCustom(csvConfig::configPararams &cnfg_params);
 	/*bool setCSVConfiguration(csvConfig::configPararams &cnf_Params) const;*/
-	
+
 	//todo check if file path exists
-	inline void setConfigPath(const QString _configPath){
-		configPath = _configPath; 
+	inline void setConfigPath(const QString _configPath) {
+		configPath = _configPath;
 	}
 
 	const csvConfig::CTInputObjectType getInputElementType() const {
-		return this->inputElementType; 
+		return this->inputElementType;
 	}
 
 	void setTableParams(csvConfig::configPararams & csv_Params);
 
 	inline void setTableHeaders(QStringList& headers) {
-		this->m_TableHeaders = headers; 
+		this->m_TableHeaders = headers;
 	}
 
-	inline void setColIDs(const QVector<uint> colIDs) {
+	inline void setColIDs(const QVector<uint> &colIDs) {
 		this->m_colIds = colIDs;
 	}
+
+
+	inline void setTableWidth(uint TableWidth) {
+		this->m_tableWidth = TableWidth; 
+	}
+
+	void setParams(QStringList& headers, const QVector<uint> &colIDs, uint TableWidth); 
 
 private:
 
@@ -90,6 +94,8 @@ private:
 
 	//element id for each row entry
 	uint m_EL_ID;
+	uint m_tableWidth;
+
 	int m_rowsToSkip;
 
 	QString m_colSeparator;

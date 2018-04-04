@@ -279,7 +279,7 @@ void dlg_CSVInput::showPreviewTable()
 }
 
 
-//assing headers and prepare map with indexes
+//assign headers and prepare map with indexes
 void dlg_CSVInput::assignHeaderLine() {
 	int autoIdxCol = -1; //-1 is auto ID 
 	if (!this->m_currentHeaders) return; 
@@ -287,7 +287,10 @@ void dlg_CSVInput::assignHeaderLine() {
 
 	if (this->m_currentHeaders->isEmpty()) return;
 
-	//header assignemt to textcontrol_list
+	//assign table width; 
+	/*this->m_confParams->tableWidth = this->m_currentHeaders->length(); */
+
+	//header assignement to textcontrol_list
 	for (const auto &currItem:*this->m_currentHeaders){
 		this->textControl_list->addItem(currItem); 
 		this->m_hashEntries.insert(currItem, autoIdxCol);
@@ -295,8 +298,6 @@ void dlg_CSVInput::assignHeaderLine() {
 	}
 
 	this->textControl_list->update(); 
-
-
 }
 
 //getEntries from a selected List;
@@ -318,7 +319,7 @@ void dlg_CSVInput::setSelectedEntries() {
 		}
 		
 		qSort(this->m_selColIdx.begin(), this->m_selColIdx.end(), qLess<uint>());
-		
+		this->m_confParams->tableWidth = m_selectedHeadersList.length(); 
 	}
 
 }

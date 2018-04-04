@@ -37,6 +37,10 @@ public:
 		return this->m_selHeaders;
 	};
 
+	inline const uint getTableWidth() {
+		return this->m_confParams->tableWidth; 
+	}
+
 	
 private slots: 
 	void FileBtnClicked(); 
