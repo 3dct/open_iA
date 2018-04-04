@@ -2881,9 +2881,9 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 
 void MdiChild::StatisticsAvailable(int modalityIdx)
 {
-	addMsg(QString("%1  Statistics for modality %2 computed, displaying.")
+	addMsg(QString("%1  Displaying statistics for modality %2.")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(modalityIdx));
+		.arg(GetModality(modalityIdx)->GetName()));
 	InitVolumeRenderers();
 	if (modalityIdx == 0)
 	{

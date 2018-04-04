@@ -990,7 +990,7 @@ void iAIO::postImageReadActions()
 	getVtkImageData()->Initialize();
 	getVtkImageData()->DeepCopy(getConnector()->GetVTKImage());
 	getVtkImageData()->CopyInformationFromPipeline(getConnector()->GetVTKImage()->GetInformation());
-	addMsg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	addMsg(tr("%1  File loaded.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 }
 
 
@@ -1017,7 +1017,7 @@ void iAIO::readSTL( )
 	stlReader->SetOutput(getVtkPolyData());
 	stlReader->Update();
 	printSTLFileInfos();
-	addMsg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	addMsg(tr("%1  File loaded.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 }
 
 
