@@ -2852,24 +2852,26 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::HistogramDataAvailable);
 	connect(workerThread, &iAHistogramUpdater::StatisticsReady, this, &MdiChild::StatisticsAvailable);
 	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
-	addMsg(QString("%1  Computing Statistics and Histogram for modality %2...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(modalityIdx));
+	addMsg(QString("%1  Computing statistics and histogram for modality %2...")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(GetModality(modalityIdx)->GetName()));
 	workerThread->start();
 }
 
 
 void MdiChild::HistogramDataAvailable(int modalityIdx)
 {
+	QString modalityName = GetModality(modalityIdx)->GetName();
 	m_currentHistogramModality = modalityIdx;
-	addMsg(QString("%1  Histogram for modality %2 computed, displaying.")
+	addMsg(QString("%1  Displaying histogram for modality %2.")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(modalityIdx));
+		.arg(modalityName));
 	m_histogram->RemovePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iAPlot>(new
 		iABarGraphDrawer(GetModality(modalityIdx)->GetHistogramData(),
 			QColor(70, 70, 70, 255)));
 	m_histogram->AddPlot(m_histogramPlot);
-	m_histogram->SetXCaption("Histogram " + GetModality(modalityIdx)->GetName());
+	m_histogram->SetXCaption("Histogram " + modalityName);
 	m_histogram->SetTransferFunctions(GetModality(modalityIdx)->GetTransfer()->GetColorFunction(),
 		GetModality(modalityIdx)->GetTransfer()->GetOpacityFunction());
 	m_histogram->updateTrf();	// will also redraw() the histogram
