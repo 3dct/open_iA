@@ -102,7 +102,8 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_initVolumeRenderers(false),
 	preferences(prefs),
 	m_currentModality(0),
-	m_currentComponent(0)
+	m_currentComponent(0),
+	m_currentHistogramModality(-1)
 {
 	setWindowModified(unsavedChanges);
 	m_mainWnd = mainWnd;
@@ -2836,9 +2837,15 @@ void MdiChild::InitModalities()
 
 void MdiChild::SetHistogramModality(int modalityIdx)
 {
-	auto histData = GetModality(modalityIdx)->GetTransfer()->GetHistogramData();
-	if (!m_histogram ||	(histData && histData->GetNumBin() == preferences.HistogramBins))
+	if (!m_histogram)
 		return;
+	auto histData = GetModality(modalityIdx)->GetTransfer()->GetHistogramData();
+	if (histData &&	histData->GetNumBin() == preferences.HistogramBins)
+	{
+		if (modalityIdx != m_currentHistogramModality)
+			HistogramDataAvailable(modalityIdx);
+		return;
+	}
 	auto workerThread = new iAHistogramUpdater(modalityIdx,
 		GetModality(modalityIdx), preferences.HistogramBins);
 	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::HistogramDataAvailable);
@@ -2852,6 +2859,7 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 
 void MdiChild::HistogramDataAvailable(int modalityIdx)
 {
+	m_currentHistogramModality = modalityIdx;
 	addMsg(QString("%1  Histogram for modality %2 computed, displaying.")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(modalityIdx));

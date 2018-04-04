@@ -492,6 +492,7 @@ private:
 	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
 	int m_currentComponent;
+	int m_currentHistogramModality;
 	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		// modality nr being stored
 private slots:
