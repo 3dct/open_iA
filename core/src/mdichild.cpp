@@ -2832,6 +2832,7 @@ void MdiChild::InitModalities()
 		currentFile().isEmpty() ? GetModality(0)->GetFileName() : currentFile(),
 		GetModality(0)->GetImage()
 	);
+	m_dlgModalities->SelectRow(0);
 }
 
 
@@ -2868,6 +2869,7 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 		iABarGraphDrawer(GetModality(modalityIdx)->GetHistogramData(),
 			QColor(70, 70, 70, 255)));
 	m_histogram->AddPlot(m_histogramPlot);
+	m_histogram->SetXCaption("Histogram " + GetModality(modalityIdx)->GetName());
 	m_histogram->SetTransferFunctions(GetModality(modalityIdx)->GetTransfer()->GetColorFunction(),
 		GetModality(modalityIdx)->GetTransfer()->GetOpacityFunction());
 	m_histogram->updateTrf();	// will also redraw() the histogram
