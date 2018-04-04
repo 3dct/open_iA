@@ -535,14 +535,14 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 		line = in.readLine();
 		if (!line.isEmpty())
 		{
-			
+			cur_Colcount = 1;
 			ID_val = this->m_EL_ID;
 			table->SetValue(i, 0, ID_val.ToString());
-			cur_Colcount = 1;
+			
 			
 			
 			//adding entries for each col 
-			for (int col = 1; col<tableWidth; col++)
+			for (int col = 1; col<tableWidth+1; col++)
 			{
 
 				//skip rows
@@ -558,15 +558,16 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 					
 							tbl_value = tmp_section.toDouble(); 
 							table->SetValue(i, cur_Colcount, tbl_value);
-						}
+						}cur_Colcount++; 
 
-						cur_Colcount++; 
 				}
+
 			}
 
 			
-			table->SetValue(i, col_count, 0);
+			table->SetValue(i, col_count+1, 0);
 			this->m_EL_ID++;
+			
 					
 		}
 	}

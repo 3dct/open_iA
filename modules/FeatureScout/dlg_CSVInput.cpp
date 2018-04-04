@@ -285,7 +285,7 @@ void dlg_CSVInput::assignHeaderLine() {
 	*this->m_currentHeaders = m_entriesPreviewTable->getHeaders(); 
 
 	if (this->m_currentHeaders->isEmpty()) return;
-
+	this->m_confParams->tableWidth = this->m_currentHeaders->length();
 	
 	for (const auto &currItem:*this->m_currentHeaders){
 		if (!currItem.trimmed().isEmpty())
@@ -313,6 +313,7 @@ void dlg_CSVInput::setSelectedEntries() {
 		for (const auto &selEntry : m_selectedHeadersList) {
 			listEntry = selEntry->text();
 			//selEntry->
+			//selEntry->
 
 			currItemIdx = this->m_hashEntries.value(listEntry);
 			this->m_selColIdx.push_back(currItemIdx);
@@ -321,7 +322,7 @@ void dlg_CSVInput::setSelectedEntries() {
 		}
 		
 		qSort(this->m_selColIdx.begin(), this->m_selColIdx.end(), qLess<uint>());
-		this->m_confParams->tableWidth = m_selectedHeadersList.length(); 
+		 
 	}
 
 }
