@@ -495,7 +495,7 @@ private:
 	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		// modality nr being stored
 private slots:
-	void ChangeModality(int chg);
+	void ChangeMagicLensModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
 	void ShowModality(int modIdx);
 	void SaveFinished();

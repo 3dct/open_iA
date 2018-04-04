@@ -252,9 +252,9 @@ void MdiChild::connectSignalsToSlots()
 	connect(sXZ->doubleSpinBoxXZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationXZ(double)));
 	connect(sYZ->doubleSpinBoxYZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationYZ(double)));
 
-	connect(slicerXY->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(slicerXZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(slicerYZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(slicerXY->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
+	connect(slicerXZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
+	connect(slicerYZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
 	connect(slicerXY->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 	connect(slicerXZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 	connect(slicerYZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
@@ -1921,7 +1921,7 @@ void MdiChild::toggleMagicLens( bool isEnabled )
 
 	if (isEnabled)
 	{
-		ChangeModality(0);
+		ChangeMagicLensModality(0);
 	}
 	SetMagicLensEnabled(isEnabled);
 	updateSlicers();
@@ -2734,7 +2734,7 @@ bool MdiChild::IsVolumeDataLoaded() const
 }
 
 
-void MdiChild::ChangeModality(int chg)
+void MdiChild::ChangeMagicLensModality(int chg)
 {
 	//slicerXY->removeChannel(ch_SlicerMagicLens);
 	//slicerXZ->removeChannel(ch_SlicerMagicLens);
@@ -2791,7 +2791,6 @@ void MdiChild::ShowModality(int modIdx)
 	m_currentModality = modIdx;
 	m_currentComponent = 0;
 	SetHistogramModality(modIdx);
-	ChangeModality(0);
 }
 
 
@@ -2884,6 +2883,7 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 		slicerYZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
 		slicerYZ->GetSlicerData()->ResetCamera();
 	}
+	ChangeMagicLensModality(0);
 	ModalityTFChanged();
 	updateViews();
 }
