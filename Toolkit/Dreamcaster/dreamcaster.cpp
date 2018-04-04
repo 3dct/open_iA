@@ -620,12 +620,16 @@ void DreamCaster::NewSetSlot()
 void DreamCaster::OpenSetSlot()
 {
 	QString res = QFileDialog::getOpenFileName(nullptr, "Open existing set", QFileInfo(setFileName).absolutePath());
-	if(res=="")
-		return;
-	setFileName = res;
+	if (!res.isEmpty())
+		OpenSetFile(res);
+}
+
+void DreamCaster::OpenSetFile(QString const & fileName)
+{
+	setFileName = fileName;
 	ui.l_setName->setText(setFileName);
 	log("Opening new set:");
-	log(setFileName.toLatin1().constData(),true);	
+	log(setFileName.toLatin1().constData(), true);
 	UpdatePlotSlot();
 	datasetOpened = true;
 }
@@ -3738,11 +3742,6 @@ void DreamCaster::setRangeSB( float minX, float maxX, float minZ, float maxZ )
 void DreamCaster::loadFile(const QString filename)
 {
 	modelFileName = filename;
-	if (setFileName.isEmpty())
-	{
-		setFileName = filename + ".set";
-		ui.l_setName->setText(setFileName);
-	}
 	log("Opening new model:");
 	log(modelFileName.toLatin1().constData(),true);
 	initRaycast();
@@ -3766,6 +3765,14 @@ void DreamCaster::loadFile(const QString filename)
 		CutFigParametersChanged();
 	}
 	UpdateSlot();
+	if (setFileName.isEmpty())
+	{
+		setFileName = filename + ".set";
+		if (QFile(setFileName).exists())
+			OpenSetFile(setFileName);
+		else
+			ui.l_setName->setText(setFileName);
+	}
 }
 
 void DreamCaster::InitRender( iAVec3 * vp_corners, iAVec3 * vp_delta, iAVec3 * o )

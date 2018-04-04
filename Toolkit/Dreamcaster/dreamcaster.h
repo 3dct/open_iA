@@ -250,6 +250,9 @@ private:
 	* Render single frame
 	*/
 	void Render(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iAVec3 * o, bool saveData);
+
+	/** opens the result set file with the given fileName */
+	void OpenSetFile(QString const & fileName);
 protected:
 	virtual void closeEvent ( QCloseEvent * event );
 public slots:
