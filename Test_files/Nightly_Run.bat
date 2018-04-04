@@ -84,12 +84,14 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 )
 
 :: CLEANUP:
+:: move out of %TEST_BIN_DIR%
+cd ..
 
 :: remove test configurations:
 rd /s /q %TEST_CONFIG_PATH%
 
 :: wait for 10 seconds before deleting:
-ping 127.0.0.1 -n 11 -w > nul
+:: ping 127.0.0.1 -n 11 -w > nul
 :: remove binary directory to start from scratch next time:
 rd /s /q %TEST_BIN_DIR%
 
