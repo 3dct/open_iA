@@ -26,15 +26,15 @@
 #include "iA4DCTVisWin.h"	// ToDo: Scale!
 // vtk
 #include <vtkActor.h>
+#include <vtkDepthSortPolyData.h>
+#include <vtkImageData.h>
+#include <vtkMarchingCubes.h>
+#include <vtkMetaImageReader.h>
+#include <vtkMetaImageReader.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPolyDataSilhouette.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
-#include <vtkImageData.h>
-#include <vtkMarchingCubes.h>
-#include <vtkDepthSortPolyData.h>
-#include <vtkMetaImageReader.h>
-#include <vtkMetaImageReader.h>
 // itk
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkResampleImageFilter.h>

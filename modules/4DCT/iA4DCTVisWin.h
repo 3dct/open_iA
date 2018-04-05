@@ -38,7 +38,7 @@ class QString;
 class iA4DCTAllVisualizationsDockWidget;
 class iA4DCTBoundingBoxDockWidget;
 class iA4DCTDefectVisDockWidget;
-class iA4DCTFileData;
+struct iA4DCTFileData;
 class iA4DCTFractureVisDockWidget;
 class iA4DCTMainWin;
 class iA4DCTPlaneDockWidget;

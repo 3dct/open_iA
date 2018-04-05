@@ -215,8 +215,8 @@ void iAFractureVisModule::calculateMap( MapType* map, QString fileName, MapName 
 	//double previousValue = (double)(minZ + maxZ) / 2;
 	double previousValue = 0.5;
 	ImageType::IndexType ind;
-	for( ind[0] = 0; ind[0] < imgSize[0]; ind[0]++ ) {
-		for( ind[1] = 0; ind[1] < imgSize[1]; ind[1]++ ) {
+	for( ind[0] = 0u; ind[0] < imgSize[0]; ind[0]++ ) {
+		for( ind[1] = 0u; ind[1] < imgSize[1]; ind[1]++ ) {
 			QVector<unsigned int> ray;
 			//for (ind[2] = 0; ind[2] < imgSize[2]; ind[2]++) {
 			for( ind[2] = minZ; ind[2] < maxZ; ind[2]++ ) {
