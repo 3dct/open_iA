@@ -14,9 +14,14 @@ class /*open_iA_Core_API*/ dlg_CSVInput : public QDialog, public Ui_CsvInput
 	Q_OBJECT
 		typedef DataIO::DataTable dataTable; 
 		typedef dataTable* csvTable_ptr; 
+		typedef csvConfig::csvSeparator colSeparator; 
+		typedef csvConfig::inputLang csvLang; 
+		typedef csvConfig::csv_FileFormat csvFormat; 
+		
 
 public:
 	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0); /*: QDialog(parent, f)*/
+	
 	~dlg_CSVInput();
 
 	
@@ -44,8 +49,12 @@ public:
 	
 private slots: 
 	void FileBtnClicked(); 
-	void LoadFormatBtnClicked(); 
-	void CustomFormatBtnClicked(); 
+	void LoadFormatBtnClicked();
+
+	//custom file format 
+	void CustomFormatBtnClicked();
+	void showFormatComponents();
+
 	void LoadColsBtnClicked(); 
 
 
@@ -53,11 +62,16 @@ private:
 
 	//pointer initialization
 	void initParameters();
-	void resetDefault(); 
+	void initBasicFormatParameters(csvLang Language, colSeparator FileSeparator, csvFormat FileFormat);
+	void initStartEndline(unsigned long startLine, unsigned long EndLine, const bool useEndline); 
+
+	void resetDefault();
+	void assignStartEndLine();
+
 	void connectSignals();
 
 
-	bool validateParameters();
+	//bool validateParameters();
 	void setError(const QString &ParamName, const QString & Param_value);
 	void assignFileFormat();
 	void assignSeparator();
@@ -70,16 +84,21 @@ private:
 	
 	void readHeaderLine(const uint headerStartRow); 
 
-private:
+	void hideCoordinateInputs();
+	void disableFormatComponents();
 
+private:
+	bool useCustomformat; 
 
 	QSharedPointer<csvConfig::configPararams> m_confParams; 
 	QString m_fPath; 
 	QString m_Error_Parameter; 
 	csvConfig::csv_FileFormat m_csvFileFormat;
 	csvTable_ptr m_entriesPreviewTable = nullptr; 
-
 	csvTable_ptr m_DataTableSelected = nullptr; 
+
+	bool isFileNameValid = false; 
+	bool isFilledWithData = false; 
 
 
 	//current headers of the table

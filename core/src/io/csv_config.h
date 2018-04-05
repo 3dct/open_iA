@@ -22,9 +22,10 @@ namespace csvConfig {
 
 		void initDefaultParams() {
 			fileName = "";
-			startLine = 6;
+			startLine = 5;
 			headerStartLine = 5;
-			colCount = 31; 
+			colCount = 31;
+			useEndline = false; 
 			endLine = 0;
 			file_seperator = csvSeparator::Colunm;
 			csv_Inputlanguage = inputLang::EN; 
@@ -56,6 +57,9 @@ namespace csvConfig {
 		enum inputLang csv_Inputlanguage; 
 		enum decimalPoint file_decimalPoint; 
 		bool paramsValid;
+		bool useEndline; 
+
+
 		CTInputObjectType inputObjectType; 
 	};
 	

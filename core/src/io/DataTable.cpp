@@ -7,18 +7,23 @@ namespace DataIO {
 	DataTable::DataTable()
 	{
 		/*this->QTableWidget(); */
+		initToDefault();
+	}
+
+	void DataTable::initToDefault()
+	{
 		this->m_currentItem = 0;
 		this->m_currentEntry = 0;
 		//this->m_currentString = 0; 
 		this->m_variableModel = 0;
-		this->m_currHeaderLineNr = 0; 
-		this->m_colInd = 0; 
-		this->m_rowInd = 0; 
-		this->m_currHeaderLineNr = 0; 
-		this->m_headerEntries = 0; 
-		this->m_FileSeperator = ";";
-
-		this->m_autoRID = 0; 
+		this->m_currHeaderLineNr = 0;
+		this->m_colInd = 0;
+		this->m_rowInd = 0;
+		this->m_currHeaderLineNr = 0;
+		this->m_headerEntries = 0;
+		this->m_FileSeperator = ",";
+		this->isDataFilled = false; 
+		this->m_autoRID = 0;
 		this->m_rowID = "AUTO_ID";
 	}
 
@@ -54,6 +59,7 @@ namespace DataIO {
 	}
 
 	void DataTable::prepareTable(const int rowCount, const int colCount, const int headerLineNr) {
+		//this->initToDefault(); 
 		this->initTable(); 
 		this->setRowCount((int)rowCount);
 		this->setColumnCount((int)colCount);
@@ -61,6 +67,17 @@ namespace DataIO {
 		this->setShowGrid(true);
 		this->setEnabled(false); 
 		this->m_currHeaderLineNr = headerLineNr;
+	}
+
+
+	//should clear the table somehow
+	void DataTable::clearTable()
+	{
+		if (isDataFilled) {
+			this->clear();
+			this->model()->removeRows(0, this->rowCount());
+		} 
+		isDataFilled = false; 
 	}
 
 
@@ -102,9 +119,9 @@ namespace DataIO {
 	//reads table entries from csv file into qtable widget
 	//optional startLine as nullptr
 	bool  DataTable::readTableEntries(const QString &fName, const uint rowCount, const uint colCount,const int headerNr,  const uint *StartLine, const bool readHeaders, bool insertID = false)
-	{
+	{ 
 
-		//cols + 1 for AutoID
+		//cols + 1 for AutoID not necessarily
 		this->prepareTable(rowCount, colCount+1, headerNr );
 		int startRow = -1; 
 
@@ -167,7 +184,11 @@ namespace DataIO {
 			row++;
 		}
 
-		if (!file.isOpen()) file.close(); 
+		
+
+		if (file.isOpen()) file.close(); 
+
+		this->isDataFilled = true; 
 		return true; 
 	}
 

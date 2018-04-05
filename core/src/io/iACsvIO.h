@@ -45,7 +45,6 @@ public:
 	//headerlines to skip	nrOfHeaderLines: headerLinesToSkip
 	//startRowInd -> where to start from row
 	//column separator "," "\t", ";"
-
 	//similar to load pore csv
 
 	bool loadCSVCustom(csvConfig::configPararams &cnfg_params);
@@ -89,12 +88,17 @@ private:
 	
 	bool loadConfig(const QString configName, bool & applyEN_Formating);
 
+private: 
 
 	bool m_EN_Values; 
+	bool m_useEndLine; 
+
+
 
 	//element id for each row entry
 	uint m_EL_ID;
 	uint m_tableWidth;
+	uint m_endLine; 
 
 	int m_rowsToSkip;
 

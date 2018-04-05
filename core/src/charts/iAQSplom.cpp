@@ -518,12 +518,15 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot) {
 	updateMaxPlotRect();
 	//transform
 	QPointF ofst = selectedPlot->getOffset();
-	double scl[2] = {
-		((double)m_maximizedPlot->getRect().width()) / selectedPlot->getRect().width(),
-		((double)m_maximizedPlot->getRect().height()) / selectedPlot->getRect().height()
-	};
-	m_maximizedPlot->setTransform(selectedPlot->getScale(), QPointF(ofst.x() * scl[0], ofst.y() * scl[1]));
-
+	
+	//TODO height of max plot is 0 maximizeSelectedPlot; 
+	if (!selectedPlot->getRect().height() == 0) {
+		double scl[2] = {
+			((double)m_maximizedPlot->getRect().width()) / selectedPlot->getRect().width(),
+			((double)m_maximizedPlot->getRect().height()) / selectedPlot->getRect().height()
+		};
+		m_maximizedPlot->setTransform(selectedPlot->getScale(), QPointF(ofst.x() * scl[0], ofst.y() * scl[1]));
+	}
 	//final update
 	update();
 

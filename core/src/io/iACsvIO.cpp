@@ -42,7 +42,9 @@ iACsvIO::iACsvIO() :
 	m_EN_Values(true),
 	m_EL_ID(1),
 	m_FileName(""),
-	m_tableWidth(0)
+	m_tableWidth(0),
+	m_useEndLine(false),
+	m_endLine(0) 
 {
 	this->setDefaultConfigPath(); 
 }
@@ -468,6 +470,13 @@ void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 		this->m_decimalSeparator = ".";
 		this->m_EN_Values = false;
 	}
+
+	//endline to Skip
+	this->m_useEndLine = csv_Params.useEndline; 
+	if (this->m_useEndLine) {
+		this->m_endLine = csv_Params.endLine; 
+	
+	}
 }
 
 void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag) {
@@ -517,7 +526,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	arr->SetName("Class_ID");
 	table->AddColumn(arr);
 
-	table->SetNumberOfRows(tableLength+1);
+	table->SetNumberOfRows(tableLength+2);
 	QString line = "";
 	QString tmp_section = "";
 	tableWidth = this->m_tableWidth; 
@@ -530,21 +539,25 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	//use separate col count index 
 	int cur_Colcount = 1; 
 
-	for (int i = 0; i<tableLength+1; ++i) //TODO remove hard coded value 
+	for (int row = 0; row<tableLength+1; ++row) //TODO remove hard coded value 
 	{
+		if (m_useEndLine && (row > m_endLine))
+			break;
+
 		line = in.readLine();
 		if (!line.isEmpty())
 		{
 			cur_Colcount = 1;
 			ID_val = this->m_EL_ID;
-			table->SetValue(i, 0, ID_val.ToString());
+			table->SetValue(row, 0, ID_val.ToString());
 			
 			
 			
 			//adding entries for each col 
 			for (int col = 1; col<tableWidth+1; col++)
 			{
-
+				//skip endline if activated
+				
 				//skip rows
 				if (m_colIds.contains((uint)col-1))
 				{
@@ -557,7 +570,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 								tmp_section = tmp_section.replace(",", m_decimalSeparator);
 					
 							tbl_value = tmp_section.toDouble(); 
-							table->SetValue(i, cur_Colcount, tbl_value);
+							table->SetValue(row, cur_Colcount, tbl_value);
 						}cur_Colcount++; 
 
 				}
@@ -565,13 +578,14 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 			}
 
 			
-			table->SetValue(i, col_count+1, 0);
+			table->SetValue(row, col_count+1, 0);
 			this->m_EL_ID++;
 			
 					
 		}
 	}
 
+	table->RemoveRow(tableLength + 1);
 	if(file.isOpen())
 	file.close();
 	retFlag = true; 

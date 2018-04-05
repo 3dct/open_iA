@@ -367,11 +367,17 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long
 			
 			//update view
 		}
-		
-		this->RealTimeRendering( this->pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
+
+		//disable Rendering for csvOnly data
+		if (!useCsvOnly) {
+
+			this->RealTimeRendering(this->pcChart->GetPlot(0)->GetSelection(), this->enableRealTimeRendering);
+		}
 	}
 	else
-		this->RealTimeRendering( this->pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
+		if (!useCsvOnly) {
+			this->RealTimeRendering(this->pcChart->GetPlot(0)->GetSelection(), this->enableRealTimeRendering);
+		}
 }
 
 void dlg_FeatureScout::setupNewPcView( bool lookupTable )
@@ -650,7 +656,10 @@ void dlg_FeatureScout::setupViews()
 							SLOT( spBigChartMouseButtonPressed( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
 
 	//this->createSphereView();
-	this->setupPolarPlotView( chartTable );
+
+	if (!this->useCsvOnly) //TODO enable some 3d view
+	this->setupPolarPlotView(chartTable);
+	
 }
 
 void dlg_FeatureScout::calculateElementTable()
@@ -2386,8 +2395,12 @@ void dlg_FeatureScout::ClassAddButton()
 			this->setupNewPcView();
 			this->classTreeView->collapseAll();
 			this->classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
-			this->SingleRendering();
-			this->updatePolarPlotColorScalar( chartTable );
+
+			if (!this->useCsvOnly) {
+				this->SingleRendering();
+				this->updatePolarPlotColorScalar( chartTable );
+			}
+			
 
 			//Updates scatter plot matrix when a class is added.
 			if ( this->spmActivated && matrix != NULL )
@@ -3347,8 +3360,10 @@ void dlg_FeatureScout::ClassDeleteButton()
 
 	// remove the deleted row item
 	rootItem->removeRow( cID );
-	this->SingleRendering();
 
+	if (!useCsvOnly) {
+		this->SingleRendering();
+	}
 	if ( this->spmActivated )
 	{
 		bool retFlag = true; 
@@ -3559,7 +3574,7 @@ void dlg_FeatureScout::spSelInformsPCChart(QVector<unsigned int> * selInds)
 {
 	vtkSmartPointer<vtkIdTypeArray> vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
 	// If scatter plot selection changes Parallel Coordinates gets informed and updates.
-	if ( this->spmActivated )
+	if (this->spmActivated)
 	{
 		QCoreApplication::processEvents();
 		//this->iovSPM->dockWidgetContents->update();
@@ -3570,26 +3585,30 @@ void dlg_FeatureScout::spSelInformsPCChart(QVector<unsigned int> * selInds)
 		vtk_selInd->Allocate(countSelection);
 		vtk_selInd->SetNumberOfValues(countSelection);
 		int idx = 0;
-		vtkVariant var_Idx = 0; 
+		vtkVariant var_Idx = 0;
 
 		//current selection index
 		long long curr_selInd;
 		if (countSelection > 0) {
-			
 
-			for (auto ind:*selInds) {
+
+			for (auto ind : *selInds) {
 
 				var_Idx = ind;
-				curr_selInd = var_Idx.ToLongLong()  /*+1*/; 
+				curr_selInd = var_Idx.ToLongLong()  /*+1*/;
 				vtk_selInd->SetVariantValue(idx, curr_selInd);
-				idx++; 
+				idx++;
 			}
 		}
-	
-		this->pcChart->GetPlot(0)->SetSelection(vtk_selInd); 
+
+		this->pcChart->GetPlot(0)->SetSelection(vtk_selInd);
 		//this->pcChart->Update(); 
 		this->pcView->Render();
-		this->RealTimeRendering( pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
+
+		//TODO enable Rendering for csv only data
+		if (!this->useCsvOnly)  {
+			this->RealTimeRendering(pcChart->GetPlot(0)->GetSelection(), this->enableRealTimeRendering);
+		}
 	}
 }
 
@@ -3959,7 +3978,11 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		// update elementTableView
 		this->initElementTableModel( sID );
 		int oID = item->text().toInt();
-		this->SingleRendering( oID );
+
+		//disable rendering for csv only data
+		if (!useCsvOnly) {
+			this->SingleRendering(oID);
+		}
 		elementTableView->update();
 
 		if ( this->spmActivated )
@@ -5073,6 +5096,10 @@ QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 	//Names of the pore charakteristics
 	else
 	{
+		if(useCsvOnly)  //TODO ADAPT HARD CODED STUFF OF ELEMENT NAMES FOR dlg_FeatureScout::getNamesOfObjectCharakteristics
+			eleString.append("AUTO_ID");
+
+
 		eleString.append( "LabelId" );									// 0
 		eleString.append( QString( "X1%1" ).arg( micro1 ) );			// 1
 		eleString.append( QString( "Y1%1" ).arg( micro1 ) );			// 2

@@ -210,7 +210,7 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
-/*enty point für openIA FeatureScout
+/*enty point for openIA FeatureScout
 *optional parameter FileParams for custom csv
 */
 bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType, csvConfig::configPararams *FileParams, const bool is_csvOnly)
@@ -240,7 +240,7 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 		return false;
 	}
 
-	//TODO feature scout mit csv verbinden
+	
 	attach->init(objectType, io.GetCSVTable(), is_csvOnly);
 	return true;
 }

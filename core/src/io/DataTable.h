@@ -19,6 +19,7 @@ namespace  DataIO{
 	{
 	public:
 		DataTable();
+		void initToDefault();
 		~DataTable();
 
 		
@@ -35,6 +36,8 @@ namespace  DataIO{
 		bool readTableEntries(const QString &fName, const uint rowCount, const uint colCount, const int headerNr, const uint *StartLine, const bool readHeaders, bool insertID);
 
 		void prepareTable(const int rowCount, const int colCount, const int headerLineNr);
+
+		void clearTable(); 
 
 		inline void showTable() {
 			this->show();
@@ -63,6 +66,8 @@ namespace  DataIO{
 		uint m_colInd;
 		uint m_currHeaderLineNr; 
 		bool isInitialized;
+		bool isDataFilled; 
+
 		QString m_FileSeperator; 
 		QString m_FileName; 
 
