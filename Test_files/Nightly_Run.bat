@@ -8,14 +8,17 @@ set MSBUILD_OPTS=/t:clean /m
 if NOT [%5]==[] set CTEST_MODE=%5
 CALL :dequote VS_PATH
 
+set COMPILER=MSVC
+if NOT [%6]==[] set COMPILER=%6
+
 set TEST_FILES_DIR=%TEST_SRC_DIR%/Test_files
-if NOT [%6]==[] set TEST_FILES_DIR=%6
+if NOT [%7]==[] set TEST_FILES_DIR=%7
 
 set MAIN_SOLUTION=open_iA.sln
-if NOT [%7]==[] set MAIN_SOLUTION=%7
+if NOT [%8]==[] set MAIN_SOLUTION=%8
 
 set MODULE_DIRS=%TEST_SRC_DIR%/modules
-if NOT [%8]==[] set MODULE_DIRS=%8
+if NOT [%9]==[] set MODULE_DIRS=%9
 
 python --version >NUL 2>NUL
 IF %ERRORLEVEL% NEQ 0 GOTO PythonNotFound
@@ -56,7 +59,7 @@ cmake -C "%CONFIG_FILE%" %TEST_SRC_DIR% 2>&1
 
 :: Create test configurations:
 md %TEST_CONFIG_PATH%
-python %TEST_FILES_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH% %MODULE_DIRS%
+python %TEST_FILES_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH% %MODULE_DIRS% %COMPILER%
 
 rem Run with all flags enabled:
 cmake -C %TEST_CONFIG_PATH%\all_flags.cmake %TEST_SRC_DIR% 2>&1

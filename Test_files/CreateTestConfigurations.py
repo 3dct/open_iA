@@ -9,7 +9,7 @@
 
 import os, re, sys
 
-if (len(sys.argv) != 5 ):
+if (len(sys.argv) != 6 ):
 	print("Invalid number of arguments")
 	print("Expected Syntax:")
 	print("  $ CreateTestConfiguration.py <SrcDir> <BranchName> <ConfigOutFolder> <ModuleDirs (separate multiple dirs by +)>")
@@ -19,6 +19,7 @@ SrcDir = sys.argv[1]
 GitBranchName = sys.argv[2]
 ConfigOutFolder = sys.argv[3]
 ModuleDirs = sys.argv[4]
+BuildNameBase = sys.argv[5]
 
 # Constants:
 ModuleDirList = ModuleDirs.split("+")
@@ -39,13 +40,15 @@ for dir in ModuleDirList:
 
 # write cmake file for enabling all modules:
 with open(ConfigOutFolder+'/'+AllModulesOnScript, 'w') as file:
-	file.write('SET (SITE "${FIX_SITE}_'+GitBranchName+'_AllModules" CACHE STRING "" FORCE)\n')
+	file.write('SET (SITE "${FIX_SITE}" CACHE STRING "" FORCE)\n')
+	file.write('SET (BUILDNAME "'+BuildNameBase+'-'+GitBranchName+'-AllModules" CACHE STRING "" FORCE)\n')
 	for dirname in moduleNames:
 		file.write('SET (Module_'+dirname+' "ON" CACHE BOOL "" FORCE)\n')
 
 # write cmake file for disabling all modules:
 with open(ConfigOutFolder+'/'+AllModulesOffScript, 'w') as file:
-	file.write('SET (SITE "${FIX_SITE}_'+GitBranchName+'_NoModules" CACHE STRING "" FORCE)\n\n')
+	file.write('SET (SITE "${FIX_SITE}" CACHE STRING "" FORCE)\n')
+	file.write('SET (BUILDNAME "'+BuildNameBase+'-'+GitBranchName+'-NoModules" CACHE STRING "" FORCE)\n')
 	for dirname in moduleNames:
 		file.write('SET (Module_'+dirname+' "OFF" CACHE BOOL "" FORCE)\n')
 
@@ -89,7 +92,8 @@ firstDirModuleNames = moduleNamesByDir[ModuleDirList[0]]
 for module in firstDirModuleNames:
 	cmakeFileName = ConfigOutFolder+'/Module_'+module+'.cmake'
 	with open(cmakeFileName, 'w') as file:
-		file.write('SET (SITE "${FIX_SITE}_'+GitBranchName+'_'+module+'" CACHE STRING "" FORCE)\n\n')
+		file.write('SET (SITE "${FIX_SITE}" CACHE STRING "" FORCE)\n')
+		file.write('SET (BUILDNAME "'+BuildNameBase+'-'+GitBranchName+'-'+module+'" CACHE STRING "" FORCE)\n')
 		file.write('SET (Module_'+module+' "ON" CACHE BOOL "" FORCE)\n')
 		if module in recursiveDeps:
 			file.write('\n')
