@@ -49,7 +49,7 @@ public:
 	
 private slots: 
 	void FileBtnClicked(); 
-	void LoadFormatBtnClicked();
+	//void LoadFormatBtnClicked();
 
 	//custom file format 
 	void CustomFormatBtnClicked();

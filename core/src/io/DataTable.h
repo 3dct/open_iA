@@ -33,7 +33,13 @@ namespace  DataIO{
 		void addLineToTable(const QSharedPointer<QStringList> &tableEntries);
 		
 		//reading rows from a file; 
-		bool readTableEntries(const QString &fName, const uint rowCount, const uint colCount, const int headerNr, const uint *StartLine, const bool readHeaders, bool insertID);
+		bool readTableEntries(const QString &fName, const uint rowCount, uint colCount, const int headerNr, const uint *StartLine, const bool readHeaders, bool insertID);
+
+		void readTableValues(const uint &rowCount, QFile &file, QString &el_line);
+
+		void prepareHeader(int headerLine, QString &el_line, QFile &file, const bool &readHeaders, bool insertID);
+
+		bool prepareFile(const QString & fName, QFile &file, bool &retflag);
 
 		void prepareTable(const int rowCount, const int colCount, const int headerLineNr);
 
@@ -66,8 +72,10 @@ namespace  DataIO{
 		uint m_colInd;
 		uint m_currHeaderLineNr; 
 		bool isInitialized;
-		bool isDataFilled; 
+		bool isDataFilled;
 
+		//insert auto row ID
+		bool insertROW_ID;
 		QString m_FileSeperator; 
 		QString m_FileName; 
 

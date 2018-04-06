@@ -25,6 +25,7 @@ namespace DataIO {
 		this->isDataFilled = false; 
 		this->m_autoRID = 0;
 		this->m_rowID = "AUTO_ID";
+		this->insertROW_ID = false; 
 	}
 
 
@@ -70,16 +71,17 @@ namespace DataIO {
 	}
 
 
-	//should clear the table somehow
+	//to clear the table when adding new entries 
 	void DataTable::clearTable()
 	{
 		if (isDataFilled) {
 			this->clear();
 			this->model()->removeRows(0, this->rowCount());
+			this->m_rowInd = 0; 
+			isDataFilled = false; 
 		} 
-		isDataFilled = false; 
+		
 	}
-
 
 	//adding file entry to table + first column is auto id; 
 	void DataTable::addLineToTable(const QSharedPointer<QStringList>& tableEntries)
@@ -90,19 +92,19 @@ namespace DataIO {
 		this->insertRow(m_rowInd); 
 		
 		//adding autoID column for first;
-		this->m_currentItem->setText(QString("%1").arg(this->m_autoRID));
-		this->setItem(m_rowInd, 0, m_currentItem->clone());
-		this->m_autoRID++;
-		this->m_colInd = 1; 
-		
+		if (insertROW_ID) {
+			this->m_currentItem->setText(QString("%1").arg(this->m_autoRID));
+			this->setItem(m_rowInd, 0, m_currentItem->clone());
+			this->m_autoRID++; 
+			this->m_colInd = 1; 
+		}
 
+		
 		for (const auto &tableEntry : *tableEntries) {
 				this->m_currentItem->setText(tableEntry);
 				this->setItem(m_rowInd, this->m_colInd, m_currentItem->clone());
 				this->m_colInd++;
 		}
-
-		this->m_rowInd++; 
 
 		//reset colIDx for next row
 		this->m_colInd = 0; 
@@ -118,46 +120,67 @@ namespace DataIO {
 
 	//reads table entries from csv file into qtable widget
 	//optional startLine as nullptr
-	bool  DataTable::readTableEntries(const QString &fName, const uint rowCount, const uint colCount,const int headerNr,  const uint *StartLine, const bool readHeaders, bool insertID = false)
+	bool  DataTable::readTableEntries(const QString &fName, const uint rowCount, uint colCount,const int headerNr,  const uint *StartLine, const bool readHeaders, bool insertID)
 	{ 
+		if (insertID) {
+			this->insertROW_ID = insertID;
 
-		//cols + 1 for AutoID not necessarily
-		this->prepareTable(rowCount, colCount+1, headerNr );
+			//cols + 1 for AutoID 
+			colCount++; 
+		}
+	
+		this->prepareTable(rowCount, colCount, headerNr );
 		int startRow = -1; 
-
+		int headerLine = (uint) this->m_currHeaderLineNr -1;
+		QString el_line; 
+		QFile file(fName);
 		//number of rows to skip
 		if (StartLine ) {
 			//startRow Line where the header starts
 			startRow = (*StartLine)-1;
 		}
-		QFile file(fName);
-		QString el_line; 
+		
+		bool retflag;
+		bool retval = prepareFile(fName, file, retflag);
+		if (retflag) return retval;
 
+		//skip lines and add header to table;
+		prepareHeader(headerLine, el_line, file, readHeaders, insertID);
+		
+		//read all entries; 
+		readTableValues(rowCount, file, el_line);;
+		return true; 
+	}
 
-		if (fName.isEmpty()) {
-			return false;
+	void DataTable::readTableValues(const uint &rowCount, QFile &file, QString &el_line)
+	{
+		int entriesCount = rowCount - 1;
+		int row = 0;
+		while (!file.atEnd())
+		{
+			if (row > entriesCount) break;
+			el_line = file.readLine();
+			*this->m_currentEntry = el_line.split(m_FileSeperator);
+			this->addLineToTable(this->m_currentEntry);
+			this->m_rowInd++;
+			entriesCount;
+			row++;
 		}
-		
-		if (!file.open(QIODevice::ReadOnly)) {
-			QMessageBox::information
-			(this, tr("Unable to open file"),file.errorString());
-			return false; 
-		
-		}
 
-		int headerLine = (uint) this->m_currHeaderLineNr -1;
-		
+		this->isDataFilled = true;
 
+		if (file.isOpen()) file.close();
+	}
 
-
-		//skip lines;
+	void DataTable::prepareHeader(int headerLine, QString &el_line, QFile &file, const bool &readHeaders, bool insertID)
+	{
 		for (int curRow = 0; curRow < headerLine; curRow++) {
-			el_line = file.readLine(); 
+			el_line = file.readLine();
 		}
 
 
 		//nextLine is headerLine if not enabled skip is this line
-		el_line = file.readLine(); 
+		el_line = file.readLine();
 		if (readHeaders) {
 			if (!el_line.isEmpty()) {
 				*this->m_headerEntries = el_line.split(m_FileSeperator);
@@ -165,31 +188,29 @@ namespace DataIO {
 					//insert autoID header; 
 					this->m_headerEntries->insert(this->m_headerEntries->begin(), this->m_rowID);
 				}
+
+				this->setHeader(*m_headerEntries);
 			}
-		} 
-		
-		this->setHeader(*m_headerEntries);
-
-
-		//read all entries; 
-		int entriesCount = rowCount-1; 
-		int row = 0; 
-		while (!file.atEnd())
-		{
-			if (row > entriesCount) break; 
-			el_line = file.readLine();
-			*this->m_currentEntry = el_line.split(m_FileSeperator);
-			this->addLineToTable(this->m_currentEntry);
-			entriesCount;
-			row++;
 		}
 
-		
 
-		if (file.isOpen()) file.close(); 
+	}
 
-		this->isDataFilled = true; 
-		return true; 
+	bool DataTable::prepareFile(const QString & fName, QFile &file, bool &retflag)
+	{
+		retflag = true;
+		if (fName.isEmpty()) {
+			return false;
+		}
+
+		if (!file.open(QIODevice::ReadOnly)) {
+			QMessageBox::information
+			(this, tr("Unable to open file"), file.errorString());
+			return false;
+		}
+
+		retflag = false;
+		return {};
 	}
 
 void DataTable::setColSeparator(const csvConfig::csvSeparator & separator) {

@@ -130,10 +130,10 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams & params)
 	this->ed_Units->setText(QString("1").arg(params.csv_units)); 
 }
 
-void dlg_CSVInput::LoadFormatBtnClicked()
-{
-	
-}
+//void dlg_CSVInput::LoadFormatBtnClicked()
+//{
+//	
+//}
 
 void dlg_CSVInput::initParameters(){
 	
