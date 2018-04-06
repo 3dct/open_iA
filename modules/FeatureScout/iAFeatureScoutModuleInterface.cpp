@@ -90,7 +90,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	if (!m_mdiChild) return;
 	QVector<uint> selEntriesId;
 	QSharedPointer<QStringList> headers = QSharedPointer<QStringList>(new QStringList);
-	uint table_width;
+	ulong table_width;
 	fileConfParams = dlg.getConfigParameters();
 	selEntriesId = dlg.getEntriesSelInd();
 	headers = dlg.getHeaders(); 

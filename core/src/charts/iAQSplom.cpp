@@ -165,6 +165,7 @@ iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 
 	m_animationIn->setDuration( settings.animDuration );
 	m_animationOut->setDuration( settings.animDuration );
 	m_showAllPlots = false; 
+	this->setSelectionColor(QColor(255, 40, 0, 1)); 
 }
 
 void iAQSplom::initializeGL()
@@ -550,7 +551,7 @@ void iAQSplom::removeMaximizedPlot()
 		m_previewPlot->setPreviewState( false );
 		m_previewPlot = 0;
 	}
-	m_mode = ALL_PLOTS;
+	m_mode = UPPER_HALF;
 }
 
 int iAQSplom::invert( int val ) const

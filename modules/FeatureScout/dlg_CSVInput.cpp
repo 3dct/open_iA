@@ -74,9 +74,11 @@ void dlg_CSVInput::showFormatComponents()
 	this->ed_startLine->setEnabled(true);
 	this->lbl_endLine->setVisible(true);
 	this->cb_applyEndLine->setEnabled(true);
-
 	this->cmb_box_separator->setEnabled(true);
 	this->cmb_box_FileFormat->setEnabled(false);
+	this->cb_fmtEnglish->setEnabled(true); 
+	this->btn_SaveLayout->setEnabled(true);
+	this->ed_endLIne->setEnabled(true);
 }
 
 void dlg_CSVInput::LoadColsBtnClicked()
@@ -100,16 +102,14 @@ void dlg_CSVInput::FileBtnClicked()
 		this->assignStartEndLine(); 
 	}
 
-	this->loadFilePreview(10); 
+	this->loadFilePreview(15); 
 	this->showConfigParams(*this->m_confParams);
 }
 
 void dlg_CSVInput::AssignFormatLanguage() {
 	if (cb_fmtEnglish->isChecked()) {
 		this->m_confParams->csv_Inputlanguage = csvConfig::inputLang::EN;
-
-	}
-	else this->m_confParams->csv_Inputlanguage = csvConfig::inputLang::GER;
+	}else this->m_confParams->csv_Inputlanguage = csvConfig::inputLang::GER;
 }
 
 const csvConfig::configPararams& dlg_CSVInput::getConfigParameters() const {
@@ -121,9 +121,6 @@ const csvConfig::configPararams& dlg_CSVInput::getConfigParameters() const {
 void dlg_CSVInput::showConfigParams(const csvConfig::configPararams & params)
 {
 	this->ed_startLine->setText(QString("%1").arg(params.startLine));
-
-	/*if (this->useCustomformat)*/
-	
 	this->cmb_box_separator->setCurrentIndex(0);
 	//this->ed_language->setText("EN");
 	this->ed_Spacing->setText(QString("%1").arg(params.spacing));
@@ -144,11 +141,8 @@ void dlg_CSVInput::initParameters(){
 
 	initBasicFormatParameters(csvLang::EN, colSeparator::Colunm, csvFormat::Default);
 	initStartEndline(5, 0, false);
-	
-	
 	this->m_confParams->spacing = 10.5f;
 	this->m_confParams->csv_units = "microns";
-	
 	this->m_confParams->paramsValid = false;
 	this->m_fPath = "D:/OpenIa_TestDaten/Pores/";
 	this->m_entriesPreviewTable = new dataTable(); 
@@ -160,7 +154,6 @@ void dlg_CSVInput::initParameters(){
 	if (!this->m_DataTableSelected) {
 		this->m_DataTableSelected = new dataTable();
 	}
-
 
 	if (!this->m_selHeaders) {
 		this->m_selHeaders = QSharedPointer < QStringList>(new QStringList());
@@ -190,15 +183,10 @@ void dlg_CSVInput::initStartEndline(unsigned long startLine, unsigned long EndLi
 void dlg_CSVInput::assignStartEndLine() {
 	QString startLine = "";
 	QString endLine = "";
-
 	bool skipEndline = this->cb_applyEndLine->isChecked();
-
 	startLine = this->ed_startLine->text();
 	endLine = this->ed_endLIne->text();
-
-
 	this->initStartEndline(startLine.toLong(), endLine.toLong(), skipEndline);
-
 }
 
 void dlg_CSVInput::resetDefault()
@@ -209,7 +197,6 @@ void dlg_CSVInput::resetDefault()
 
 void dlg_CSVInput::setError(const QString &ParamName,const QString & Param_value )
 {
-	
 	this->m_Error_Parameter.append("Error" + ParamName + "\t" + Param_value + "\n");
 	this->m_confParams->paramsValid = false; 
 }
@@ -276,7 +263,6 @@ void dlg_CSVInput::loadFilePreview(const int rowCount) {
 	this->m_entriesPreviewTable->prepareTable(rowCount, this->m_confParams->colCount, this->m_confParams->headerStartLine); 
 	this->loadEntries(this->m_confParams->fileName, rowCount);
 	this->showPreviewTable(); 
-	
 }
 
 
@@ -359,7 +345,7 @@ void dlg_CSVInput::assignHeaderLine() {
 	int autoIdxCol = 0; 
 	if (!this->m_currentHeaders) return; 
 	*this->m_currentHeaders = m_entriesPreviewTable->getHeaders(); 
-
+	
 	if (this->m_currentHeaders->isEmpty()) return;
 	this->m_confParams->tableWidth = this->m_currentHeaders->length();
 	
@@ -368,13 +354,9 @@ void dlg_CSVInput::assignHeaderLine() {
 		{
 				this->textControl_list->addItem(currItem);
 				this->m_hashEntries.insert(currItem, autoIdxCol);
-			
 		}
 			autoIdxCol++;
-		
 	}
-
-	
 	this->textControl_list->update(); 
 }
 
@@ -395,7 +377,6 @@ void dlg_CSVInput::setSelectedEntries() {
 		}
 		
 		qSort(this->m_selColIdx.begin(), this->m_selColIdx.end(), qLess<uint>());
-		 
 	}
 
 }

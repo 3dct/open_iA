@@ -42,7 +42,7 @@ public:
 		return this->m_selHeaders;
 	};
 
-	inline const uint getTableWidth() {
+	inline const ulong getTableWidth() {
 		return this->m_confParams->tableWidth; 
 	}
 

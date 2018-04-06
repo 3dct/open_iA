@@ -9,15 +9,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1181</width>
-    <height>1078</height>
+    <width>893</width>
+    <height>1199</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
-   <item row="1" column="0">
+   <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="minimumSize">
       <size>
@@ -50,8 +50,8 @@
      <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
-        <x>870</x>
-        <y>840</y>
+        <x>690</x>
+        <y>690</y>
         <width>158</width>
         <height>77</height>
        </rect>
@@ -78,8 +78,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>770</x>
-        <y>330</y>
+        <x>30</x>
+        <y>680</y>
         <width>381</width>
         <height>421</height>
        </rect>
@@ -95,7 +95,7 @@
         <rect>
          <x>10</x>
          <y>21</y>
-         <width>256</width>
+         <width>151</width>
          <height>391</height>
         </rect>
        </property>
@@ -106,8 +106,8 @@
       <widget class="QPushButton" name="btn_loadCols">
        <property name="geometry">
         <rect>
-         <x>290</x>
-         <y>170</y>
+         <x>190</x>
+         <y>20</y>
          <width>75</width>
          <height>23</height>
         </rect>
@@ -123,47 +123,15 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>380</x>
+        <x>370</x>
         <y>0</y>
-        <width>701</width>
-        <height>241</height>
+        <width>471</width>
+        <height>221</height>
        </rect>
       </property>
       <property name="title">
        <string>Configuration settings</string>
       </property>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>540</x>
-         <y>20</y>
-         <width>80</width>
-         <height>83</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QPushButton" name="btn_LoadConfig">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>LoadFormat</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btn_CustomFormat_2">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>ExportXML</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
       <widget class="QGroupBox" name="groupBox_CoordCols">
        <property name="geometry">
         <rect>
@@ -323,8 +291,8 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>250</x>
-         <y>210</y>
+         <x>120</x>
+         <y>120</y>
          <width>101</width>
          <height>17</height>
         </rect>
@@ -1648,7 +1616,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>120</y>
+         <y>150</y>
          <width>178</width>
          <height>48</height>
         </rect>
@@ -1691,25 +1659,12 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QPushButton" name="btn_loadCSV">
-      <property name="geometry">
-       <rect>
-        <x>980</x>
-        <y>250</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>DataPreview</string>
-      </property>
-     </widget>
      <widget class="QWidget" name="verticalLayoutWidget">
       <property name="geometry">
        <rect>
         <x>30</x>
         <y>330</y>
-        <width>701</width>
+        <width>821</width>
         <height>321</height>
        </rect>
       </property>
@@ -1738,21 +1693,53 @@
        <string>LayoutName</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="btn_CustomFormat">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
+     <widget class="QWidget" name="">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>160</y>
-        <width>131</width>
-        <height>31</height>
+        <x>730</x>
+        <y>220</y>
+        <width>103</width>
+        <height>83</height>
        </rect>
       </property>
-      <property name="text">
-       <string>CustomFormat</string>
-      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QPushButton" name="btn_LoadConfig">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>LoadFormat</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_SaveLayout">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>101</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>SaveLayout</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_CustomFormat_2">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>ExportXML</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
      <widget class="QLabel" name="label_19">
       <property name="geometry">
@@ -1795,76 +1782,107 @@
        <rect>
         <x>11</x>
         <y>22</y>
-        <width>117</width>
-        <height>90</height>
+        <width>135</width>
+        <height>170</height>
        </rect>
       </property>
-      <layout class="QFormLayout" name="formLayout_5">
-       <item row="0" column="0">
-        <layout class="QFormLayout" name="formLayout_3">
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <layout class="QFormLayout" name="formLayout_5">
          <item row="0" column="0">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>CSV-Data format</string>
-           </property>
-          </widget>
+          <layout class="QFormLayout" name="formLayout_3">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>CSV-Data format</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QComboBox" name="cmb_box_FileFormat">
+             <item>
+              <property name="text">
+               <string>Default</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>VolumeGraphics</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>MAVI</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>open_iA</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item row="1" column="0">
-          <widget class="QComboBox" name="cmb_box_FileFormat">
-           <item>
-            <property name="text">
-             <string>Default</string>
-            </property>
+          <layout class="QFormLayout" name="formLayout_4">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>Data Input-Type</string>
+             </property>
+            </widget>
            </item>
-           <item>
-            <property name="text">
-             <string>VolumeGraphics</string>
-            </property>
+           <item row="1" column="0">
+            <widget class="QComboBox" name="comboBox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>101</width>
+               <height>0</height>
+              </size>
+             </property>
+             <item>
+              <property name="text">
+               <string>Fiber</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Pores</string>
+              </property>
+             </item>
+            </widget>
            </item>
-           <item>
-            <property name="text">
-             <string>MAVI</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>open_iA</string>
-            </property>
-           </item>
-          </widget>
+          </layout>
          </item>
         </layout>
        </item>
-       <item row="1" column="0">
-        <layout class="QFormLayout" name="formLayout_4">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_18">
-           <property name="text">
-            <string>Data Input-Type</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QComboBox" name="comboBox">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QPushButton" name="btn_CustomFormat">
            <property name="enabled">
             <bool>true</bool>
            </property>
+           <property name="text">
+            <string>CustomFormat</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_loadCSV">
            <property name="minimumSize">
             <size>
-             <width>101</width>
-             <height>0</height>
+             <width>131</width>
+             <height>41</height>
             </size>
            </property>
-           <item>
-            <property name="text">
-             <string>Fiber</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Pores</string>
-            </property>
-           </item>
+           <property name="text">
+            <string>DataPreview</string>
+           </property>
           </widget>
          </item>
         </layout>

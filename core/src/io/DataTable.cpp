@@ -148,7 +148,7 @@ namespace DataIO {
 		prepareHeader(headerLine, el_line, file, readHeaders, insertID);
 		
 		//read all entries; 
-		readTableValues(rowCount, file, el_line);;
+		readTableValues(rowCount, file, el_line);
 		return true; 
 	}
 

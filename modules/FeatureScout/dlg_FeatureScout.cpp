@@ -3368,6 +3368,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	{
 		bool retFlag = true; 
 		applyClassSelection(retFlag, this->chartTable, 0, false); 
+		setRedSelectionColor();
 		spUpdateSPColumnVisibilityWithVis();
 		/*matrix->clearSelection();
 		matrix->update(); */
@@ -3921,8 +3922,12 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			this->setActiveClassItem( item );
 			this->calculateElementTable();
 			this->setupNewPcView();
-			this->updatePolarPlotColorScalar( chartTable );
-			this->SingleRendering();
+		
+			//disable rendering
+			if (!useCsvOnly) {
+				this->updatePolarPlotColorScalar(chartTable);
+				this->SingleRendering();
+			}
 			this->initElementTableModel();
 
 			if ( this->spmActivated )
