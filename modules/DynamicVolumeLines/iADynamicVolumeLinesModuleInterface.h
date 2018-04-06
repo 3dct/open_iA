@@ -20,29 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
-#include "dlg_DatasetComparator.h"
+#include "iAModuleInterface.h"
+#include "dlg_DynamicVolumeLines.h"
 
-class iAIntensityMapper : public QObject
+class MdiChild;
+
+class iADynamicVolumeLinesModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 
 public:
-	iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, 
-		QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &m_imgDataList,
-		double &minEnsembleIntensity, double &maxEnsembleIntensity);
-	~iAIntensityMapper();
+	void Initialize();
 
-public slots:
-	void process();
-
-signals:
-	void finished();
-	void error(QString err);
+private slots:
+	void DynamicVolumeLines();
 
 private:
-	QDir m_datasetsDir;
-	PathID m_pathID;
-	QList<QPair<QString, QList<icData>>> &m_DatasetIntensityMap;
-	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList;
-	double &m_minEnsembleIntensity, &m_maxEnsembleIntensity;
+	dlg_DynamicVolumeLines* dc;
 };

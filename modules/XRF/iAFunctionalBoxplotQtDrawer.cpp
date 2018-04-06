@@ -69,7 +69,7 @@ QSharedPointer<QImage> drawFunctionalBoxplot(FunctionalBoxPlot const * fbp, int 
 	{
 		centralRegion.append(img(a, fbp->getCentralRegion().getMin(a) ) );
 		envelope.append(img(a, fbp->getEnvelope().getMin(a)));
-		median.append(img(a + ((a<width-1)? 0.5 : 0), fbp->getMedian().get(a)));
+		median.append(img(a + ((a<width-1)? 0.5 : 0), fbp->getMedian().at(a)));
 		if (a<width-1)
 		{
 			centralRegion.append(img(a+1, fbp->getCentralRegion().getMin(a) ) );

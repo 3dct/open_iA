@@ -373,6 +373,7 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 		m_envelope.merge(*functions[bandDepthList[f].second], f );
 	}
 
+	/*
 	for (auto it = functions[0]->begin(); it != functions[0]->end(); ++it)
 	{
 		double iqr15 = 1.5*(m_centralRegion.getMax(it->first) - m_centralRegion.getMin(it->first));
@@ -382,6 +383,7 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 			static_cast<ValType>(m_centralRegion.getMax(it->first) + iqr15 ) ) );
 		// TODO: find next data value which is still inside envelope and use that
 	}
+	*/
 
 	// determine outliers -> everything outside envelope
 	for (size_t f = centralRegionEnd; f < bandDepthList.size(); ++f)

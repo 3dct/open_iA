@@ -20,7 +20,7 @@
 * ************************************************************************************/
  
 #include "pch.h"
-#include "dlg_DatasetComparator.h"
+#include "dlg_DynamicVolumeLines.h"
 #include "iAColorTheme.h"
 #include "iAFunction.h"
 #include "iAFunctionalBoxplot.h"
@@ -55,7 +55,7 @@
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
 #include <vtkTextActor.h>
-#include <vtkTextProperty.h>
+#include <vtkTextProperty.h> 
 #include <vtkVolumeProperty.h>
 
 #include <vtkLookupTable.h>
@@ -67,8 +67,9 @@
 #include "iAConsole.h"
 #include <QDebug>
 
-const double impInitValue = 0.0025;
+const double impInitValue = 0.025;
 const double offsetY = 1000;
+const int rangeSwitchValue = 500;
 
 void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -81,9 +82,9 @@ void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	r->GetActors2D()->GetLastActor2D()->SetPosition(r_centerX, r_centerY);
 }
 
-dlg_DatasetComparator::dlg_DatasetComparator(QWidget * parent /*= 0*/,
+dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget * parent /*= 0*/,
 	QDir datasetsDir, Qt::WindowFlags f /*= 0 */)
-	: DatasetComparatorConnector(parent, f),
+	: DynamicVolumeLinesConnector(parent, f),
 	m_mdiChild(static_cast<MdiChild*>(parent)),
 	m_datasetsDir(datasetsDir),
 	m_MultiRendererView(new multi3DRendererView()),
@@ -94,7 +95,7 @@ dlg_DatasetComparator::dlg_DatasetComparator(QWidget * parent /*= 0*/,
 	m_compLvlLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_histLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_subHistBinCntChanged(false),
-	m_histRectsVisible(true)
+	m_histVisMode(true)
 {
 	setupNonlinearScaledPlot();
 	setupScalingWidget();
@@ -107,17 +108,18 @@ dlg_DatasetComparator::dlg_DatasetComparator(QWidget * parent /*= 0*/,
 	generateHilbertIdx();
 }
 
-dlg_DatasetComparator::~dlg_DatasetComparator()
+dlg_DynamicVolumeLines::~dlg_DynamicVolumeLines()
 {}
 
-void dlg_DatasetComparator::setupGUIElements()
+void dlg_DynamicVolumeLines::setupGUIElements()
 {
-	l_opacity->hide();
 	sl_fbpTransparency->hide();
-
+	
 	iALinearColorGradientBar *compLvl_colorBar = new iALinearColorGradientBar(this, 
-		"ColorBrewer single hue 5-class grays", false, true);
+		"ColorBrewer single hue 5-class grays", false);
 	m_compLvlLUT = compLvl_colorBar->getLut();
+	connect(this, SIGNAL(compLevelRangeChanged(QVector<double>)), 
+		compLvl_colorBar, SLOT(compLevelRangeChanged(QVector<double>)));
 	QVBoxLayout *compLvl_lutLayoutHB = new QVBoxLayout(this);
 	compLvl_lutLayoutHB->setMargin(0);
 	compLvl_lutLayoutHB->addWidget(compLvl_colorBar);
@@ -141,15 +143,15 @@ void dlg_DatasetComparator::setupGUIElements()
 		m_minEnsembleIntensity - offsetY, m_maxEnsembleIntensity + offsetY);
 }
 
-void dlg_DatasetComparator::updateHistColorMap(vtkSmartPointer<vtkLookupTable> lut)
+void dlg_DynamicVolumeLines::updateHistColorMap(vtkSmartPointer<vtkLookupTable> lut)
 {
 	m_histLUT = lut;
 	visualize();
 }
 
-void dlg_DatasetComparator::setupGUIConnections()
+void dlg_DynamicVolumeLines::setupGUIConnections()
 {
-	connect(pB_Update, SIGNAL(clicked()), this, SLOT(updateDatasetComparator()));
+	connect(pB_Update, SIGNAL(clicked()), this, SLOT(updateDynamicVolumeLines()));
 	connect(cb_showFbp, SIGNAL(stateChanged(int)), this, SLOT(showFBPGraphs()));
 	connect(cb_fbpView, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFBPView()));
 	connect(sl_fbpTransparency, SIGNAL(valueChanged(int)), this, SLOT(setFbpTransparency(int)));
@@ -161,17 +163,65 @@ void dlg_DatasetComparator::setupGUIConnections()
 	connect(m_linearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_orientationWidget, SLOT(update()));
 	connect(sb_histBinWidth, SIGNAL(valueChanged(int)), this, SLOT(visualize()));
 	connect(sb_subHistBinCnt, SIGNAL(valueChanged(int)), this, SLOT(setSubHistBinCntFlag()));
+	connect(sb_UpperCompLevelThr, SIGNAL(valueChanged(double)), this, SLOT(compLevelRangeChanged()));
+	connect(sb_LowerCompLevelThr, SIGNAL(valueChanged(double)), this, SLOT(compLevelRangeChanged()));
 }
 
-void dlg_DatasetComparator::setupScalingWidget()
+void dlg_DynamicVolumeLines::setupScalingWidget()
 {
 	m_scalingWidget = new iAScalingWidget(this);
-	m_scalingWidget->setNonlinearAxis(m_nonlinearScaledPlot->xAxis);
-	m_scalingWidget->setNonlinearScalingVector(m_nonlinearMappingVec, m_impFunctVec);
+	//m_scalingWidget->setAxes(m_nonlinearScaledPlot->xAxis, m_linearScaledPlot->xAxis);
+	//m_scalingWidget->setNonlinearScalingVector(m_nonlinearMappingVec, m_impFunctVec);
 	PlotsContainer_verticalLayout->addWidget(m_scalingWidget);
 }
 
-void dlg_DatasetComparator::syncLinearXAxis(QCPRange nonlinearXRange)
+void  dlg_DynamicVolumeLines::checkHistVisMode(int lowerIdx, int upperIdx)
+{
+	if ((upperIdx - lowerIdx) < rangeSwitchValue)	// TODO: remove magic number
+	{
+		m_histVisMode = false;
+		m_scalingWidget->setHistVisMode(m_histVisMode);
+		for (int i = 0; i < m_nonlinearScaledPlot->itemCount(); ++i)
+		{
+			if (m_nonlinearScaledPlot->item(i)->objectName() == "histRect")
+			{
+				m_nonlinearScaledPlot->item(i)->setVisible(false);
+				m_linearScaledPlot->item(i)->setVisible(false);
+			}
+		}
+		
+		if (cb_showFbp->isChecked() && cb_fbpView->currentText() == "Alone")
+			return;
+		
+		m_selLegendItemList;
+
+		for (int i = 0; i < m_nonlinearScaledPlot->graphCount() - 5; ++i)	// no functional boxplots
+		{
+			m_nonlinearScaledPlot->graph(i)->setVisible(true);
+			m_linearScaledPlot->graph(i)->setVisible(true);
+		}
+	}
+	else if (!m_histVisMode)
+	{
+		for (int i = 0; i < m_nonlinearScaledPlot->itemCount(); ++i)
+		{
+			if (m_nonlinearScaledPlot->item(i)->objectName() == "histRect")
+			{
+				m_nonlinearScaledPlot->item(i)->setVisible(true);
+				m_linearScaledPlot->item(i)->setVisible(true);
+			}
+		}
+		for (int i = 0; i < m_nonlinearScaledPlot->graphCount() - 5; ++i)	// no functional boxplots
+		{
+			m_nonlinearScaledPlot->graph(i)->setVisible(false);
+			m_linearScaledPlot->graph(i)->setVisible(false);
+		}
+		m_histVisMode = true;
+		m_scalingWidget->setHistVisMode(m_histVisMode);
+	}
+}
+
+void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 {
 	QCPRange boundedRange;
 	if (nonlinearXRange.lower < m_nonlinearMappingVec.first() &&
@@ -183,7 +233,7 @@ void dlg_DatasetComparator::syncLinearXAxis(QCPRange nonlinearXRange)
 		return;
 	}
 	if (nonlinearXRange.lower < m_nonlinearMappingVec.first())
-	{  
+	{
 		boundedRange.lower = m_nonlinearMappingVec.first();
 		boundedRange.upper = m_nonlinearMappingVec.first() + nonlinearXRange.size();
 		if (boundedRange.upper > m_nonlinearMappingVec.last())
@@ -205,7 +255,7 @@ void dlg_DatasetComparator::syncLinearXAxis(QCPRange nonlinearXRange)
 		m_nonlinearMappingVec.end(), nonlinearXRange.lower);
 	int lowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
 	if (lowerIdx < 0) lowerIdx = 0;
-	double lowerDistToNextPoint = m_nonlinearMappingVec[lowerIdx+1] -
+	double lowerDistToNextPoint = m_nonlinearMappingVec[lowerIdx + 1] -
 		m_nonlinearMappingVec[lowerIdx];
 	double lowerDistToCurrPoint = nonlinearXRange.lower -
 		m_nonlinearMappingVec[lowerIdx];
@@ -215,78 +265,53 @@ void dlg_DatasetComparator::syncLinearXAxis(QCPRange nonlinearXRange)
 		m_nonlinearMappingVec.end(), nonlinearXRange.upper);
 	int upperIdx = upper - m_nonlinearMappingVec.begin();
 	double upperDistToNextPoint = 0.0, upperDistToCurrPoint = 0.0;
-
-	changeHistRectVisibility(lowerIdx, upperIdx);
-	
 	if (upperIdx < m_nonlinearMappingVec.size())
 	{
-		upperDistToNextPoint = m_nonlinearMappingVec[upperIdx] - m_nonlinearMappingVec[upperIdx-1];
-		upperDistToCurrPoint = nonlinearXRange.upper - m_nonlinearMappingVec[upperIdx-1];
+		upperDistToNextPoint = m_nonlinearMappingVec[upperIdx] - m_nonlinearMappingVec[upperIdx - 1];
+		upperDistToCurrPoint = nonlinearXRange.upper - m_nonlinearMappingVec[upperIdx - 1];
 	}
 	else
 	{
-			upperIdx = m_nonlinearMappingVec.size() - 1;
-			upperDistToNextPoint = 1.0;
-			upperDistToCurrPoint = 1.0;
-			nonlinearXRange.upper = m_nonlinearMappingVec.last();
+		upperIdx = m_nonlinearMappingVec.size() - 1;
+		upperDistToNextPoint = 1.0;
+		upperDistToCurrPoint = 1.0;
+		nonlinearXRange.upper = m_nonlinearMappingVec.last();
 	}
 
-	double newLower = lowerIdx + lowerDistToCurrPoint / lowerDistToNextPoint,
-		newUpper = upperIdx - 1 + upperDistToCurrPoint / upperDistToNextPoint;
-	m_linearScaledPlot->xAxis->setRange(newLower, newUpper);
+	double linearLowerBinBoarder = lowerIdx + lowerDistToCurrPoint / lowerDistToNextPoint;
+	double linearUpperBinBoarder = upperIdx - 1 + upperDistToCurrPoint / upperDistToNextPoint;
+	m_linearScaledPlot->xAxis->setRange(linearLowerBinBoarder, linearUpperBinBoarder);
 
-	m_scalingWidget->setRange(
-		lowerIdx,
-		upperIdx,
-		nonlinearXRange.lower - m_nonlinearMappingVec[lowerIdx],
-		m_nonlinearMappingVec[upperIdx] - nonlinearXRange.upper,
-		lowerDistToCurrPoint / lowerDistToNextPoint,
-		upperDistToCurrPoint / upperDistToNextPoint);
-	m_scalingWidget->setCursorPositions(
-		m_linearIdxLine->positions()[0]->pixelPosition().x(), 
+	checkHistVisMode(lowerIdx, upperIdx);
+	
+	if (!m_histVisMode)
+	{
+		m_scalingWidget->setRange(lowerIdx, upperIdx, nonlinearXRange.lower - m_nonlinearMappingVec[lowerIdx],
+			m_nonlinearMappingVec[upperIdx] - nonlinearXRange.upper, lowerDistToCurrPoint / lowerDistToNextPoint,
+			upperDistToCurrPoint / upperDistToNextPoint);
+	}
+	else
+	{
+		double lowerBinBoarder = nonlinearXRange.lower / m_stepSize;
+		double lowerVisibleBinBoarder = ceil(lowerBinBoarder);
+		double lowerVisibleRest = lowerVisibleBinBoarder - lowerBinBoarder;
+		double upperBinBoarder = (nonlinearXRange.upper /*- nonlinearXRange.lower*/) / m_stepSize;
+		double upperVisibleBinBoarder = floor(upperBinBoarder);
+		double upperVisibleRest = upperBinBoarder - upperVisibleBinBoarder;
+		double lowerLinearVisibleRest = m_linearHistBinBoarderVec[lowerVisibleBinBoarder - 1] - linearLowerBinBoarder;
+		double upperLinearVisibleRest = linearUpperBinBoarder - m_linearHistBinBoarderVec[upperVisibleBinBoarder-1];	
+		m_scalingWidget->setOverviewRange( lowerVisibleBinBoarder, 
+			upperVisibleBinBoarder, lowerVisibleRest, upperVisibleRest, lowerLinearVisibleRest,
+			upperLinearVisibleRest, m_histBinImpFunctAvgVec, m_linearHistBinBoarderVec);
+	}
+
+	m_scalingWidget->setCursorPos(m_linearIdxLine->positions()[0]->pixelPosition().x(), 
 		m_nonlinearIdxLine->positions()[0]->pixelPosition().x());
+
 	m_scalingWidget->update();
 }
 
-void  dlg_DatasetComparator::changeHistRectVisibility(int lowerIdx, int upperIdx)
-{
-	if ((upperIdx - lowerIdx) < 100)	// TODO: remove magic number
-	{
-		m_histRectsVisible = false;
-		for (int i = 0; i < m_nonlinearScaledPlot->itemCount(); ++i)
-		{
-			if (m_nonlinearScaledPlot->item(i)->objectName() == "histRect")
-			{
-				m_nonlinearScaledPlot->item(i)->setVisible(false);
-				m_linearScaledPlot->item(i)->setVisible(false);
-			}
-		}
-		for (int i = 0; i < m_nonlinearScaledPlot->graphCount() - 5; ++i)	// no functional boxplots
-		{
-			m_nonlinearScaledPlot->graph(i)->setVisible(true);
-			m_linearScaledPlot->graph(i)->setVisible(true);
-		}
-	}
-	else if (!m_histRectsVisible)
-	{
-		for (int i = 0; i < m_nonlinearScaledPlot->itemCount(); ++i)
-		{
-			if (m_nonlinearScaledPlot->item(i)->objectName() == "histRect")
-			{
-				m_nonlinearScaledPlot->item(i)->setVisible(true);
-				m_linearScaledPlot->item(i)->setVisible(true);
-			}
-		}
-		for (int i = 0; i < m_nonlinearScaledPlot->graphCount() - 5; ++i)	// no functional boxplots
-		{
-			m_nonlinearScaledPlot->graph(i)->setVisible(false);
-			m_linearScaledPlot->graph(i)->setVisible(false);
-		}
-		m_histRectsVisible = true;
-	}
-}
-
-void dlg_DatasetComparator::syncNonlinearXAxis(QCPRange linearXRange)
+void dlg_DynamicVolumeLines::syncNonlinearXAxis(QCPRange linearXRange)
 {
 	QCPRange boundedRange = linearXRange;
 	if (linearXRange.lower < 0 &&
@@ -336,17 +361,25 @@ void dlg_DatasetComparator::syncNonlinearXAxis(QCPRange linearXRange)
 		upperDistToCurrPoint * upperDistToNextPoint;
 	m_nonlinearScaledPlot->xAxis->setRange(newLower, newUpper);
 
-	m_scalingWidget->setRange(
-		floor(linearXRange.lower), 
-		ceil(linearXRange.upper),
-		lowerDistToCurrPoint * lowerDistToNextPoint,
-		(ceil(linearXRange.upper) - linearXRange.upper) * upperDistToNextPoint,
-		lowerDistToCurrPoint,
-		upperDistToCurrPoint);
+
+	if (!m_histVisMode)
+	{
+		m_scalingWidget->setRange(
+			floor(linearXRange.lower),
+			ceil(linearXRange.upper),
+			lowerDistToCurrPoint * lowerDistToNextPoint,
+			(ceil(linearXRange.upper) - linearXRange.upper) * upperDistToNextPoint,
+			lowerDistToCurrPoint,
+			upperDistToCurrPoint);
+	}
+	else
+	{
+		// TODO: set range
+	}
 	m_scalingWidget->update();
 }
 
-void dlg_DatasetComparator::syncYAxis(QCPRange linearYRange)
+void dlg_DynamicVolumeLines::syncYAxis(QCPRange linearYRange)
 {
 	QCPAxis *axis = qobject_cast<QCPAxis *>(QObject::sender());
 	QCustomPlot *plotU = qobject_cast<QCustomPlot *>(axis->parentPlot());
@@ -384,13 +417,13 @@ void dlg_DatasetComparator::syncYAxis(QCPRange linearYRange)
 	plotP->yAxis->setRange(boundedRange);
 }
 
-void dlg_DatasetComparator::setupLinearScaledPlot()
+void dlg_DynamicVolumeLines::setupLinearScaledPlot()
 {
 	m_linearScaledPlot = new QCustomPlot(dockWidgetContents);
 	m_linearScaledPlot->axisRect()->setAutoMargins(QCP::msNone);
 	m_linearScaledPlot->axisRect()->setMargins(QMargins(58, 1, 3, 32));
 	m_linearScaledPlot->setCursor(QCursor(Qt::CrossCursor));
-	m_linearScaledPlot->installEventFilter(this);  // To catche key press event
+	m_linearScaledPlot->installEventFilter(this);  // To catch key press event
 	m_linearScaledPlot->setOpenGl(true);
 	m_linearScaledPlot->setPlottingHints(QCP::phFastPolylines);  // Graph/Curve lines are drawn with a faster method
 	m_linearScaledPlot->setInteractions(QCP::iRangeDrag | 
@@ -398,14 +431,17 @@ void dlg_DatasetComparator::setupLinearScaledPlot()
 	m_linearScaledPlot->setMultiSelectModifier(Qt::ShiftModifier);
 	m_linearScaledPlot->legend->setVisible(true);
 	m_linearScaledPlot->legend->setFont(QFont("Helvetica", 9));
+	m_linearScaledPlot->legend->setRowSpacing(0);
+	//m_linearScaledPlot->legend->setWrap(5);
+	m_linearScaledPlot->xAxis->ticker()->setTickCount(40);
 	m_linearScaledPlot->xAxis->setLabel("Hilbert index");
 	m_linearScaledPlot->xAxis->grid()->setVisible(false);
 	m_linearScaledPlot->xAxis->grid()->setSubGridVisible(false);
 	m_linearScaledPlot->xAxis->setTickLabels(true);
-	m_linearScaledPlot->xAxis->setSubTicks(false);	 
+	m_linearScaledPlot->xAxis->setSubTicks(false);	 // set to 'false if too many ticks
 	m_linearScaledPlot->xAxis->setNumberFormat("f");
 	m_linearScaledPlot->xAxis->setNumberPrecision(0);
-	m_linearScaledPlot->yAxis->setLabel("Gray Value Intensity");
+	m_linearScaledPlot->yAxis->setLabel("Gray values");
 	m_linearScaledPlot->yAxis->grid()->setSubGridVisible(false);
 	m_linearScaledPlot->yAxis->grid()->setVisible(false);
 	m_linearScaledPlot->xAxis2->setVisible(true);
@@ -431,7 +467,7 @@ void dlg_DatasetComparator::setupLinearScaledPlot()
 	PlotsContainer_verticalLayout->addWidget(m_linearScaledPlot);
 }
 
-void dlg_DatasetComparator::setupNonlinearScaledPlot()
+void dlg_DynamicVolumeLines::setupNonlinearScaledPlot()
 {
 	m_nonlinearScaledPlot = new QCustomPlot(dockWidgetContents);
 	m_nonlinearScaledPlot->axisRect()->setAutoMargins(QCP::msNone);
@@ -445,6 +481,8 @@ void dlg_DatasetComparator::setupNonlinearScaledPlot()
 	m_nonlinearScaledPlot->setMultiSelectModifier(Qt::ShiftModifier);
 	m_nonlinearScaledPlot->legend->setVisible(true);
 	m_nonlinearScaledPlot->legend->setFont(QFont("Helvetica", 9));
+	m_nonlinearScaledPlot->legend->setRowSpacing(0);
+	//m_nonlinearScaledPlot->legend->setWrap(5);
 	m_nonlinearScaledPlot->xAxis->setLabel("Hilbert index");
 	m_nonlinearScaledPlot->xAxis->grid()->setVisible(false);
 	m_nonlinearScaledPlot->xAxis->grid()->setSubGridVisible(false);
@@ -452,7 +490,7 @@ void dlg_DatasetComparator::setupNonlinearScaledPlot()
 	m_nonlinearScaledPlot->xAxis->setSubTicks(false);	  // set to 'false if too many ticks
 	m_nonlinearScaledPlot->xAxis->setNumberFormat("f"); 
 	m_nonlinearScaledPlot->xAxis->setNumberPrecision(0);
-	m_nonlinearScaledPlot->yAxis->setLabel("Gray Value Intensity");
+	m_nonlinearScaledPlot->yAxis->setLabel("Gray values");
 	m_nonlinearScaledPlot->yAxis->grid()->setSubGridVisible(false);
 	m_nonlinearScaledPlot->yAxis->grid()->setVisible(false);
 	m_nonlinearScaledPlot->xAxis2->setVisible(true);
@@ -479,7 +517,7 @@ void dlg_DatasetComparator::setupNonlinearScaledPlot()
 	PlotsContainer_verticalLayout->addWidget(m_nonlinearScaledPlot);
 }
 
-void dlg_DatasetComparator::setupDebugPlot()
+void dlg_DynamicVolumeLines::setupDebugPlot()
 {
 	m_debugPlot = new QCustomPlot(dockWidgetContents);
 	m_debugPlot->setCursor(QCursor(Qt::CrossCursor));
@@ -510,7 +548,7 @@ void dlg_DatasetComparator::setupDebugPlot()
 	PlotsContainer_verticalLayout->addWidget(m_debugPlot);
 }
 
-void dlg_DatasetComparator::setupPlotConnections()
+void dlg_DynamicVolumeLines::setupPlotConnections()
 {
 	connect(m_nonlinearScaledPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncLinearXAxis(QCPRange)));
 	connect(m_nonlinearScaledPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(syncYAxis(QCPRange)));
@@ -537,7 +575,7 @@ void dlg_DatasetComparator::setupPlotConnections()
 	connect(m_lVisibilityButton, SIGNAL(clicked()), this, SLOT(changePlotVisibility()));
 }
 
-void dlg_DatasetComparator::changePlotVisibility()
+void dlg_DynamicVolumeLines::changePlotVisibility()
 {
 	QToolButton *tb = qobject_cast<QToolButton*>(QObject::sender());
 	if (tb == m_nlVisibilityButton)
@@ -558,7 +596,7 @@ void dlg_DatasetComparator::changePlotVisibility()
 	}
 }
 
-void dlg_DatasetComparator::setupMultiRendererView()
+void dlg_DynamicVolumeLines::setupMultiRendererView()
 {
 	auto mrvWinModCallback = vtkSmartPointer<vtkCallbackCommand>::New();
 	mrvWinModCallback->SetCallback(winModCallback);
@@ -587,7 +625,7 @@ void dlg_DatasetComparator::setupMultiRendererView()
 	m_MultiRendererView->show();
 }
 
-void dlg_DatasetComparator::visualize()
+void dlg_DynamicVolumeLines::visualize()
 {
 	m_nonlinearScaledPlot->clearGraphs();
 	m_nonlinearScaledPlot->clearItems();
@@ -600,27 +638,36 @@ void dlg_DatasetComparator::visualize()
 	
 	if (m_linearScaledPlot->graphCount() < 1)
 	{
+		std::vector<iAFunction<double, double> *> lfcp_functions;
 		for (auto it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 		{
 			m_linearScaledPlot->addGraph();
 			m_linearScaledPlot->graph()->setVisible(false);
 			m_linearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 			m_linearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
-				m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
+				m_DatasetIntensityMap.size(), 2, "DVL-Metro Colors (max. 17)"));
 			m_linearScaledPlot->graph()->setName(it->first);
 			QCPScatterStyle scatter;
-			scatter.setShape(QCPScatterStyle::ssDot);	 // Check ssDisc/ssDot to show single selected points
+			scatter.setShape(QCPScatterStyle::ssNone);	 // Check ssDisc/ssDot to show single selected points
 			scatter.setSize(3.0);
 			m_linearScaledPlot->graph()->setScatterStyle(scatter);
 			QPen p = m_linearScaledPlot->graph()->selectionDecorator()->pen();
 			p.setWidth(5);
 			p.setColor(QColor(255, 0, 0));  // Selection color: red
 			m_linearScaledPlot->graph()->selectionDecorator()->setPen(p);
-			QSharedPointer<QCPGraphDataContainer> graphData(new QCPGraphDataContainer);
+			QSharedPointer<QCPGraphDataContainer> linearScaledPlotData(new QCPGraphDataContainer);
+			auto * funct = new iAFunction<double, double>();
 			for (unsigned int i = 0; i < it->second.size(); ++i)
-				graphData->add(QCPGraphData(double(i), it->second[i].intensity));
-			m_linearScaledPlot->graph()->setData(graphData);
+			{
+				linearScaledPlotData->add(QCPGraphData(double(i), it->second[i].intensity));
+				funct->insert(std::make_pair(i, it->second[i].intensity));
+			}
+			lfcp_functions.push_back(funct);
+			m_linearScaledPlot->graph()->setData(linearScaledPlotData);
 		}
+		ModifiedDepthMeasure<double, double> l_measure;
+		auto l_functionalBoxplotData = new iAFunctionalBoxplot<double, double>(lfcp_functions, &l_measure, 2);
+		setupLinearFBPGraphs(l_functionalBoxplotData);
 	}
 
 	m_linearDataPointInfo = new QCPItemText(m_linearScaledPlot);
@@ -650,17 +697,17 @@ void dlg_DatasetComparator::visualize()
 	m_linearIdxLine->point2->setCoords(0.0, 0.0);
 	m_linearIdxLine->setClipToAxisRect(true);
 
-	std::vector<iAFunction<double, double> *> functions;
+	std::vector<iAFunction<double, double> *> nlfcp_functions;
 	for (auto it = m_DatasetIntensityMap.begin(); it != m_DatasetIntensityMap.end(); ++it)
 	{
 		m_nonlinearScaledPlot->addGraph();
 		m_nonlinearScaledPlot->graph()->setVisible(false);
 		m_nonlinearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 		m_nonlinearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
-			m_DatasetIntensityMap.size(), 2, "Metro Colors (max. 20)"));
+			m_DatasetIntensityMap.size(), 2, "DVL-Metro Colors (max. 17)"));
 		m_nonlinearScaledPlot->graph()->setName(it->first);
 		QCPScatterStyle scatter;
-		scatter.setShape(QCPScatterStyle::ssDot);	 // Check ssDisc/ssDot to show single selected points
+		scatter.setShape(QCPScatterStyle::ssNone);	 // Check ssDisc/ssDot to show single selected points
 		scatter.setSize(3.0);
 		m_nonlinearScaledPlot->graph()->setScatterStyle(scatter);
 		QPen p = m_nonlinearScaledPlot->graph()->selectionDecorator()->pen();
@@ -674,13 +721,13 @@ void dlg_DatasetComparator::visualize()
 			nonlinearScaledPlotData->add(QCPGraphData(m_nonlinearMappingVec[i], it->second[i].intensity));
 			funct->insert(std::make_pair(m_nonlinearMappingVec[i], it->second[i].intensity));
 		}
-		functions.push_back(funct);
+		nlfcp_functions.push_back(funct);
 		m_nonlinearScaledPlot->graph()->setData(nonlinearScaledPlotData);
 	}
 
-	ModifiedDepthMeasure<double, double> measure;
-	auto functionalBoxplotData = new iAFunctionalBoxplot<double, double>(functions, &measure, 2);
-	setupFBPGraphs(functionalBoxplotData);
+	ModifiedDepthMeasure<double, double> nl_measure;
+	auto nl_functionalBoxplotData = new iAFunctionalBoxplot<double, double>(nlfcp_functions, &nl_measure, 2);
+	setupNonlinearFBPGraphs(nl_functionalBoxplotData);
 	
 	m_nonlinearTicker = QSharedPointer<iANonLinearAxisTicker>(new iANonLinearAxisTicker);
 	m_nonlinearTicker->setTickData(m_nonlinearMappingVec);
@@ -725,16 +772,34 @@ void dlg_DatasetComparator::visualize()
 	m_nonlinearScaledPlot->rescaleAxes();
 	m_nonlinearScaledPlot->replot();
 
-	m_scalingWidget->setRange(0, m_linearScaledPlot->xAxis->range().upper-1, 0, 0, 0 , 0);
-	m_scalingWidget->setNonlinearAxis(m_nonlinearScaledPlot->xAxis);
-	m_scalingWidget->setNonlinearScalingVector(m_nonlinearMappingVec, m_impFunctVec);
+	if (!m_histVisMode)
+	{
+		m_scalingWidget->setRange(0, m_linearScaledPlot->xAxis->range().upper - 1, 0, 0, 0, 0);
+	}
+	else
+	{
+		double lowerBinBoarder = m_nonlinearScaledPlot->xAxis->range().lower / m_stepSize;
+		double lowerVisibleBinBoarder = ceil(lowerBinBoarder);
+		double lowerVisibleRest = lowerVisibleBinBoarder - lowerBinBoarder;
+		double upperBinBoarder = (m_nonlinearScaledPlot->xAxis->range().upper - m_nonlinearScaledPlot->xAxis->range().lower) / m_stepSize;	//TODO: check
+		double upperVisibleBinBoarder = floor(upperBinBoarder);
+		double upperVisibleRest = upperBinBoarder - upperVisibleBinBoarder;
+		double lowerLinearVisibleRest = m_linearHistBinBoarderVec[lowerVisibleBinBoarder - 1] - m_linearScaledPlot->xAxis->range().lower;
+		double upperLinearVisibleRest = m_linearScaledPlot->xAxis->range().upper - m_linearHistBinBoarderVec[upperVisibleBinBoarder - 1];
+		m_scalingWidget->setOverviewRange(lowerVisibleBinBoarder,
+			upperVisibleBinBoarder, lowerVisibleRest, upperVisibleRest, lowerLinearVisibleRest,
+			upperLinearVisibleRest, m_histBinImpFunctAvgVec, m_linearHistBinBoarderVec);
+	}
+
+	m_scalingWidget->setAxes(m_nonlinearScaledPlot->xAxis, m_linearScaledPlot->xAxis);
+	m_scalingWidget->setNonlinearScalingVec(m_nonlinearMappingVec, m_impFunctVec);
 	m_scalingWidget->update();
 
 	m_orientationWidget->update(m_linearScaledPlot, 0, m_nonlinearMappingVec.size() - 1,
 		m_minEnsembleIntensity - offsetY, m_maxEnsembleIntensity + offsetY);
 }
 
-void dlg_DatasetComparator::showDebugPlot()
+void dlg_DynamicVolumeLines::showDebugPlot()
 {
 	m_impFuncPlotData = QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer);
 	m_integralImpFuncPlotData = QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer);
@@ -754,7 +819,7 @@ void dlg_DatasetComparator::showDebugPlot()
 	m_debugPlot->graph()->setData(m_integralImpFuncPlotData);
 }
 
-void dlg_DatasetComparator::calcNonLinearMapping()
+void dlg_DynamicVolumeLines::calcNonLinearMapping()
 {
 	QList<double> innerEnsembleDistList;
 	double maxInnerEnsableDist = 0.0;
@@ -816,25 +881,22 @@ void dlg_DatasetComparator::calcNonLinearMapping()
 	}
 }
 
-void dlg_DatasetComparator::generateSegmentTree()
+void dlg_DynamicVolumeLines::generateSegmentTree()
 {
 	// TODO: nach BkgdRanges zeichnen + nur die Histogramme ohne die BkgdRanes zeichnen 
 	int subhistBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535,
 		plotBinWidth = sb_histBinWidth->value(),
 		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
 		plotBinCnt = ceil(plotWidth / (double)plotBinWidth);
-
-	// TODO: check lower und upper indices -> wegen segmentree Range da diese ja so defineirt is [x, y)
-	// TODO: Problem richtige PlotBinNumber
-	double plotBinsNumber = plotWidth / (double)plotBinWidth;
-	double vecWidth = m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front();
-	double stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.front()) / (plotWidth / (double)plotBinWidth);
 	double rgb[3]; QColor c;
+	m_stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.first()) / (plotWidth / (double)plotBinWidth);
+	m_histBinImpFunctAvgVec.clear();
+	m_linearHistBinBoarderVec.clear();
 
 	if (m_segmTreeList.isEmpty() | m_subHistBinCntChanged)
 	{
 		m_segmTreeList.clear();
-		m_subHistBinCntChanged = false;
+		m_subHistBinCntChanged = false; 
 		for (int datsetNumber = 0; datsetNumber < m_DatasetIntensityMap.size(); ++datsetNumber)
 		{
 			std::vector<int> intensityVec;
@@ -847,13 +909,46 @@ void dlg_DatasetComparator::generateSegmentTree()
 
 	for (int xBinNumber = 1; xBinNumber <= plotBinCnt; ++xBinNumber)
 	{
-		auto lower = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), (xBinNumber - 1)*stepSize);
-		int nonlinearLowerIdx = lower - m_nonlinearMappingVec.begin();
-		auto upper = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), xBinNumber*stepSize);
+		//TODO: refactoring -> move to helper class (also see sync functions above)
+		auto lower = qLowerBound(m_nonlinearMappingVec.begin(),
+			m_nonlinearMappingVec.end(), (xBinNumber - 1)*m_stepSize);
+		int nonlinearLowerIdx = lower - m_nonlinearMappingVec.begin() - 1;
+		if (nonlinearLowerIdx < 0) nonlinearLowerIdx = 0.0;
+		double lowerDistToNextPoint = m_nonlinearMappingVec[nonlinearLowerIdx + 1] -
+			m_nonlinearMappingVec[nonlinearLowerIdx];
+		double lowerDistToCurrPoint = (xBinNumber - 1)*m_stepSize -
+			m_nonlinearMappingVec[nonlinearLowerIdx];
+		if (lowerDistToCurrPoint < 0) lowerDistToCurrPoint = 0.0;
+		auto upper = qLowerBound(m_nonlinearMappingVec.begin(),
+			m_nonlinearMappingVec.end(), xBinNumber*m_stepSize);
 		int nonlinearUpperIdx = upper - m_nonlinearMappingVec.begin();
-		int linearLowerIdx = ceil((xBinNumber - 1)*(m_nonlinearMappingVec.size() / (double)plotBinCnt));
-		int linearUpperIdx = ceil(xBinNumber*(m_nonlinearMappingVec.size() / (double)plotBinCnt));
-	
+		double upperDistToNextPoint = 0.0, upperDistToCurrPoint = 0.0;
+		if (nonlinearUpperIdx < m_nonlinearMappingVec.size())
+		{
+			upperDistToNextPoint = m_nonlinearMappingVec[nonlinearUpperIdx] - m_nonlinearMappingVec[nonlinearUpperIdx - 1];
+			upperDistToCurrPoint = xBinNumber*m_stepSize - m_nonlinearMappingVec[nonlinearUpperIdx - 1];
+		}
+		else
+		{
+			nonlinearUpperIdx = m_nonlinearMappingVec.size() - 1;
+			upperDistToNextPoint = 1.0;
+			upperDistToCurrPoint = 1.0;
+		}
+		//TODO: commented works but linear histogram looks weird
+		//double linearLowerDbl = nonlinearLowerIdx + lowerDistToNextPoint != 0.0 ? lowerDistToCurrPoint / lowerDistToNextPoint : 0;
+		double linearLowerDbl = nonlinearLowerIdx + lowerDistToCurrPoint / lowerDistToNextPoint;
+		double linearUpperDbl = nonlinearUpperIdx - 1 + upperDistToCurrPoint / upperDistToNextPoint;
+		int linearLowerIdx = floor(linearLowerDbl);
+		int linearUpperIdx = floor(linearUpperDbl);
+
+		double sum = 0.0, avg = 0.0;
+		for (int i = nonlinearLowerIdx; i <= nonlinearUpperIdx; ++i)
+			sum += m_impFunctVec[i];
+		avg = sum / (nonlinearUpperIdx - nonlinearLowerIdx + 1);
+		m_histBinImpFunctAvgVec.append(avg);
+
+		m_linearHistBinBoarderVec.append(linearUpperDbl);
+
 		for (int yBinNumber = 0; yBinNumber < subhistBinCnt; ++yBinNumber)
 		{
 			unsigned int nonlinear_sum = 0, linear_sum = 0;
@@ -868,54 +963,75 @@ void dlg_DatasetComparator::generateSegmentTree()
 			nonlin_histRectItem->setAntialiased(false);
 			nonlin_histRectItem->setLayer("background");
 			nonlin_histRectItem->setPen(QPen(Qt::NoPen));
+			//nonlin_histRectItem->setPen(QPen(QColor(Qt::yellow)));
 			nonlin_histRectItem->setClipToAxisRect(true);
 			// TODO: Problem bei 256 subhistBinCnt Farbverlauf schlecht sichtbar -> auf anderen 
 			// max wert (Lokales Histogrammmmaximum) skalieren  
 			m_histLUT->GetColor((double)nonlinear_sum / (nonlinearUpperIdx - nonlinearLowerIdx + 1), rgb);
 			c.setRgbF(rgb[0], rgb[1], rgb[2]);
 			nonlin_histRectItem->setBrush(QBrush(c));
-			nonlin_histRectItem->topLeft->setCoords((xBinNumber - 1)*stepSize, (((double)yBinNumber / subhistBinCnt)) * upperBnd);
-			nonlin_histRectItem->bottomRight->setCoords(xBinNumber*stepSize, (((double)(yBinNumber + 1) / subhistBinCnt))*upperBnd);
+			nonlin_histRectItem->topLeft->setCoords((xBinNumber - 1)*m_stepSize, ((double)yBinNumber / subhistBinCnt) * upperBnd);
+			nonlin_histRectItem->bottomRight->setCoords(xBinNumber*m_stepSize, ((double)(yBinNumber + 1) / subhistBinCnt)*upperBnd);
 
 			QCPItemRect *linear_histRectItem = new QCPItemRect(m_linearScaledPlot);
 			linear_histRectItem->setObjectName("histRect");
 			linear_histRectItem->setAntialiased(false);
 			linear_histRectItem->setLayer("background");
 			linear_histRectItem->setPen(QPen(Qt::NoPen));
+			//linear_histRectItem->setPen(QPen(QColor(Qt::yellow)));
 			linear_histRectItem->setClipToAxisRect(true);
 			m_histLUT->GetColor((double)linear_sum / (linearUpperIdx - linearLowerIdx + 1), rgb);
 			c.setRgbF(rgb[0], rgb[1], rgb[2]);
 			linear_histRectItem->setBrush(c);
-			linear_histRectItem->topLeft->setCoords(linearLowerIdx, (((double)yBinNumber / subhistBinCnt)) * upperBnd);
-			linear_histRectItem->bottomRight->setCoords(linearUpperIdx, (((double)(yBinNumber + 1) / subhistBinCnt))*upperBnd);
+			linear_histRectItem->topLeft->setCoords(linearLowerDbl, ((double)yBinNumber / subhistBinCnt) * upperBnd);
+			linear_histRectItem->bottomRight->setCoords(linearUpperDbl, ((double)(yBinNumber + 1) / subhistBinCnt)*upperBnd);
 		}
 	}
 }
 
-void dlg_DatasetComparator::setSubHistBinCntFlag()
+void dlg_DynamicVolumeLines::setSubHistBinCntFlag()
 {
 	m_subHistBinCntChanged = true;
 	visualize();
 }
 
-void dlg_DatasetComparator::showBkgrdThrRanges()
+void dlg_DynamicVolumeLines::showBkgrdThrRanges()
 {
-	QCPItemStraightLine *thrLine = new QCPItemStraightLine(m_nonlinearScaledPlot);
-	thrLine->setVisible(cb_BkgrdThrLine->isChecked());
-	thrLine->setAntialiased(false);
-	thrLine->setLayer("background");
-	thrLine->setPen(QPen(Qt::darkGray, 0, Qt::DotLine));
-	thrLine->point1->setTypeX(QCPItemPosition::ptAxisRectRatio);
-	thrLine->point1->setTypeY(QCPItemPosition::ptPlotCoords);
-	thrLine->point1->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
-	thrLine->point1->setAxisRect(m_nonlinearScaledPlot->axisRect());
-	thrLine->point1->setCoords(0.0, sb_BkgrdThr->value());
-	thrLine->point2->setTypeX(QCPItemPosition::ptAxisRectRatio);
-	thrLine->point2->setTypeY(QCPItemPosition::ptPlotCoords);
-	thrLine->point2->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
-	thrLine->point2->setAxisRect(m_nonlinearScaledPlot->axisRect());
-	thrLine->point2->setCoords(1.0, sb_BkgrdThr->value());
-	thrLine->setClipToAxisRect(true);
+	QCPItemStraightLine *nl_thrLine = new QCPItemStraightLine(m_nonlinearScaledPlot);
+	nl_thrLine->setObjectName("BkgrdThrLine");
+	nl_thrLine->setVisible(cb_BkgrdThrLine->isChecked());
+	nl_thrLine->setAntialiased(false);
+	nl_thrLine->setLayer("background");
+	nl_thrLine->setPen(QPen(Qt::darkGray, 0, Qt::DotLine));
+	nl_thrLine->point1->setTypeX(QCPItemPosition::ptAxisRectRatio);
+	nl_thrLine->point1->setTypeY(QCPItemPosition::ptPlotCoords);
+	nl_thrLine->point1->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
+	nl_thrLine->point1->setAxisRect(m_nonlinearScaledPlot->axisRect());
+	nl_thrLine->point1->setCoords(0.0, sb_BkgrdThr->value());
+	nl_thrLine->point2->setTypeX(QCPItemPosition::ptAxisRectRatio);
+	nl_thrLine->point2->setTypeY(QCPItemPosition::ptPlotCoords);
+	nl_thrLine->point2->setAxes(m_nonlinearScaledPlot->xAxis, m_nonlinearScaledPlot->yAxis);
+	nl_thrLine->point2->setAxisRect(m_nonlinearScaledPlot->axisRect());
+	nl_thrLine->point2->setCoords(1.0, sb_BkgrdThr->value());
+	nl_thrLine->setClipToAxisRect(true);
+
+	QCPItemStraightLine *l_thrLine = new QCPItemStraightLine(m_linearScaledPlot);
+	l_thrLine->setObjectName("BkgrdThrLine");
+	l_thrLine->setVisible(cb_BkgrdThrLine->isChecked());
+	l_thrLine->setAntialiased(false);
+	l_thrLine->setLayer("background");
+	l_thrLine->setPen(QPen(Qt::darkGray, 0, Qt::DotLine));
+	l_thrLine->point1->setTypeX(QCPItemPosition::ptAxisRectRatio);
+	l_thrLine->point1->setTypeY(QCPItemPosition::ptPlotCoords);
+	l_thrLine->point1->setAxes(m_linearScaledPlot->xAxis, m_linearScaledPlot->yAxis);
+	l_thrLine->point1->setAxisRect(m_linearScaledPlot->axisRect());
+	l_thrLine->point1->setCoords(0.0, sb_BkgrdThr->value());
+	l_thrLine->point2->setTypeX(QCPItemPosition::ptAxisRectRatio);
+	l_thrLine->point2->setTypeY(QCPItemPosition::ptPlotCoords);
+	l_thrLine->point2->setAxes(m_linearScaledPlot->xAxis, m_linearScaledPlot->yAxis);
+	l_thrLine->point2->setAxisRect(m_linearScaledPlot->axisRect());
+	l_thrLine->point2->setCoords(1.0, sb_BkgrdThr->value());
+	l_thrLine->setClipToAxisRect(true);
 
 	for (auto it = m_bkgrdThrRangeList.begin(); it != m_bkgrdThrRangeList.end(); ++it)
 	{
@@ -959,7 +1075,7 @@ void dlg_DatasetComparator::showBkgrdThrRanges()
 	}
 }
 
-void dlg_DatasetComparator::showCompressionLevel()
+void dlg_DynamicVolumeLines::showCompressionLevel()
 {
 	double rgb[3];QColor c;
 	for (int hIdx = 1; hIdx < m_nonlinearMappingVec.size(); ++hIdx)
@@ -1002,7 +1118,7 @@ void dlg_DatasetComparator::showCompressionLevel()
 	}
 }
 
-void dlg_DatasetComparator::visualizePath()
+void dlg_DynamicVolumeLines::visualizePath()
 {
 	auto pts = vtkSmartPointer<vtkPoints>::New();
 	auto pathSteps = m_DatasetIntensityMap.at(0).second.size();
@@ -1028,14 +1144,14 @@ void dlg_DatasetComparator::visualizePath()
 	m_mdiChild->getRaycaster()->update();
 }
 
-void dlg_DatasetComparator::updateDatasetComparator()
+void dlg_DynamicVolumeLines::updateDynamicVolumeLines()
 {
 	m_imgDataList.clear();
 	m_DatasetIntensityMap.clear();
 	generateHilbertIdx();
 }
 
-void dlg_DatasetComparator::generateHilbertIdx()
+void dlg_DynamicVolumeLines::generateHilbertIdx()
 {
 	QThread* thread = new QThread;
 	iAIntensityMapper * im = new iAIntensityMapper(m_datasetsDir, PathNameToId[cb_Paths->currentText()], 
@@ -1051,7 +1167,7 @@ void dlg_DatasetComparator::generateHilbertIdx()
 	thread->start();
 }
 
-bool dlg_DatasetComparator::eventFilter(QObject* o, QEvent* e)
+bool dlg_DynamicVolumeLines::eventFilter(QObject* o, QEvent* e)
 {
 	if (e->type() == QEvent::KeyPress)
 	{
@@ -1074,7 +1190,7 @@ bool dlg_DatasetComparator::eventFilter(QObject* o, QEvent* e)
 	return false;
 }
 
-void dlg_DatasetComparator::mousePress(QMouseEvent* e)
+void dlg_DynamicVolumeLines::mousePress(QMouseEvent* e)
 {
 	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
 	if (e->modifiers() == Qt::ControlModifier)
@@ -1083,14 +1199,11 @@ void dlg_DatasetComparator::mousePress(QMouseEvent* e)
 		plot->setSelectionRectMode(QCP::srmNone);
 }
 
-void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
+void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 {
 	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
 
 	if (plot->graphCount() < 1)
-		return;
-
-	if (cb_showFbp->isChecked() && cb_fbpView->currentText() == "Alone")
 		return;
 
 	if (e->pos().x() < plot->axisRect()->left() ||
@@ -1143,7 +1256,7 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 			m_linearScaledPlot->yAxis->coordToPixel(y) - 15));
 		m_linearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2").arg(hilbertIdx).arg((int)y));
 
-		m_scalingWidget->setCursorPositions(m_linearScaledPlot->xAxis->coordToPixel(
+		m_scalingWidget->setCursorPos(m_linearScaledPlot->xAxis->coordToPixel(
 			hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)), e->pos().x());
 	}
 	else
@@ -1177,14 +1290,14 @@ void dlg_DatasetComparator::mouseMove(QMouseEvent* e)
 			m_nonlinearScaledPlot->yAxis->pixelToCoord(e->pos().y() - 15));
 		m_nonlinearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2").arg(int(x)).arg((int)y));
 
-		m_scalingWidget->setCursorPositions(e->pos().x(), 
+		m_scalingWidget->setCursorPos(e->pos().x(), 
 			m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord));
 	}
 	m_nonlinearScaledPlot->layer("cursor")->replot();
 	m_linearScaledPlot->layer("cursor")->replot();
 }
 
-void dlg_DatasetComparator::mouseWheel(QWheelEvent* e)
+void dlg_DynamicVolumeLines::mouseWheel(QWheelEvent* e)
 {
 	QCustomPlot *plot = qobject_cast<QCustomPlot*>(QObject::sender());
 	switch (e->modifiers())
@@ -1201,7 +1314,68 @@ void dlg_DatasetComparator::mouseWheel(QWheelEvent* e)
 	}
 }
 
-void dlg_DatasetComparator::setupFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData)
+void dlg_DynamicVolumeLines::setupLinearFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData)
+{
+	QSharedPointer<QCPGraphDataContainer> fb_075Data(new QCPGraphDataContainer);
+	for (auto it = fbpData->getMedian().begin(); it != fbpData->getMedian().end(); ++it)
+		fb_075Data->add(QCPGraphData(it->first, fbpData->getCentralRegion().getMax(it->first)));
+	m_linearScaledPlot->addGraph();
+	m_linearScaledPlot->graph()->setVisible(false);
+	m_linearScaledPlot->graph()->removeFromLegend();
+	m_linearScaledPlot->graph()->setData(fb_075Data);
+	m_linearScaledPlot->graph()->setName("Third Quartile");
+	m_linearScaledPlot->graph()->setPen(QPen(Qt::NoPen));
+	m_linearScaledPlot->graph()->setSelectable(QCP::stNone);
+
+	QSharedPointer<QCPGraphDataContainer> fb_025Data(new QCPGraphDataContainer);
+	for (auto it = fbpData->getMedian().begin(); it != fbpData->getMedian().end(); ++it)
+		fb_025Data->add(QCPGraphData(it->first, fbpData->getCentralRegion().getMin(it->first)));
+	m_linearScaledPlot->addGraph();
+	m_linearScaledPlot->graph()->setVisible(false);
+	m_linearScaledPlot->graph()->removeFromLegend();
+	m_linearScaledPlot->graph()->setData(fb_025Data);
+	m_linearScaledPlot->graph()->setName("Interquartile Range"); 
+	m_linearScaledPlot->graph()->setPen(QPen(Qt::NoPen));
+	m_linearScaledPlot->graph()->setBrush(QColor(200, 200, 200, 255));
+	m_linearScaledPlot->graph()->setChannelFillGraph(
+		m_linearScaledPlot->graph(m_linearScaledPlot->graphCount() - 2));
+	m_linearScaledPlot->graph()->setSelectable(QCP::stNone);
+
+	QSharedPointer<QCPGraphDataContainer> fb_medianData(new QCPGraphDataContainer);
+	for (auto it = fbpData->getMedian().begin(); it != fbpData->getMedian().end(); ++it)
+		fb_medianData->add(QCPGraphData(it->first, it->second));
+	m_linearScaledPlot->addGraph();
+	m_linearScaledPlot->graph()->setVisible(false);
+	m_linearScaledPlot->graph()->removeFromLegend();
+	m_linearScaledPlot->graph()->setName("Median");
+	m_linearScaledPlot->graph()->setPen(QPen(QColor(0, 0, 0, 255), 5));
+	m_linearScaledPlot->graph()->setData(fb_medianData);
+	m_linearScaledPlot->graph()->setSelectable(QCP::stNone);
+
+	QSharedPointer<QCPGraphDataContainer> fb_MaxData(new QCPGraphDataContainer);
+	for (auto it = fbpData->getMedian().begin(); it != fbpData->getMedian().end(); ++it)
+		fb_MaxData->add(QCPGraphData(it->first, fbpData->getEnvelope().getMax(it->first)));
+	m_linearScaledPlot->addGraph();
+	m_linearScaledPlot->graph()->setVisible(false);
+	m_linearScaledPlot->graph()->removeFromLegend();
+	m_linearScaledPlot->graph()->setData(fb_MaxData);
+	m_linearScaledPlot->graph()->setName("Upper Whisker");
+	m_linearScaledPlot->graph()->setPen(QPen(QColor(255, 0, 0, 255), 3));
+	m_linearScaledPlot->graph()->setSelectable(QCP::stNone);
+
+	QSharedPointer<QCPGraphDataContainer> fb_MinData(new QCPGraphDataContainer);
+	for (auto it = fbpData->getMedian().begin(); it != fbpData->getMedian().end(); ++it)
+		fb_MinData->add(QCPGraphData(it->first, fbpData->getEnvelope().getMin(it->first)));
+	m_linearScaledPlot->addGraph();
+	m_linearScaledPlot->graph()->setVisible(false);
+	m_linearScaledPlot->graph()->removeFromLegend();
+	m_linearScaledPlot->graph()->setData(fb_MinData);
+	m_linearScaledPlot->graph()->setName("Lower Whisker");
+	m_linearScaledPlot->graph()->setPen(QPen(QColor(0, 0, 255, 255), 3));
+	m_linearScaledPlot->graph()->setSelectable(QCP::stNone);
+}
+
+void dlg_DynamicVolumeLines::setupNonlinearFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData)
 {
 	QSharedPointer<QCPGraphDataContainer> fb_075Data(new QCPGraphDataContainer);
 	for (auto it = fbpData->getMedian().begin(); it != fbpData->getMedian().end(); ++it)
@@ -1221,7 +1395,7 @@ void dlg_DatasetComparator::setupFBPGraphs(iAFunctionalBoxplot<double, double>* 
 	m_nonlinearScaledPlot->graph()->setVisible(false);
 	m_nonlinearScaledPlot->graph()->removeFromLegend();
 	m_nonlinearScaledPlot->graph()->setData(fb_025Data);
-	m_nonlinearScaledPlot->graph()->setName("Interquartile Range"); 
+	m_nonlinearScaledPlot->graph()->setName("Interquartile Range");
 	m_nonlinearScaledPlot->graph()->setPen(QPen(Qt::NoPen));
 	m_nonlinearScaledPlot->graph()->setBrush(QColor(200, 200, 200, 255));
 	m_nonlinearScaledPlot->graph()->setChannelFillGraph(
@@ -1235,7 +1409,7 @@ void dlg_DatasetComparator::setupFBPGraphs(iAFunctionalBoxplot<double, double>* 
 	m_nonlinearScaledPlot->graph()->setVisible(false);
 	m_nonlinearScaledPlot->graph()->removeFromLegend();
 	m_nonlinearScaledPlot->graph()->setName("Median");
-	m_nonlinearScaledPlot->graph()->setPen(QPen(QColor(0, 0, 0, 255), 7));
+	m_nonlinearScaledPlot->graph()->setPen(QPen(QColor(0, 0, 0, 255), 5));
 	m_nonlinearScaledPlot->graph()->setData(fb_medianData);
 	m_nonlinearScaledPlot->graph()->setSelectable(QCP::stNone);
 
@@ -1247,7 +1421,7 @@ void dlg_DatasetComparator::setupFBPGraphs(iAFunctionalBoxplot<double, double>* 
 	m_nonlinearScaledPlot->graph()->removeFromLegend();
 	m_nonlinearScaledPlot->graph()->setData(fb_MaxData);
 	m_nonlinearScaledPlot->graph()->setName("Upper Whisker");
-	m_nonlinearScaledPlot->graph()->setPen(QPen(QColor(255, 0, 0, 255), 7));
+	m_nonlinearScaledPlot->graph()->setPen(QPen(QColor(255, 0, 0, 255), 3));
 	m_nonlinearScaledPlot->graph()->setSelectable(QCP::stNone);
 
 	QSharedPointer<QCPGraphDataContainer> fb_MinData(new QCPGraphDataContainer);
@@ -1258,11 +1432,11 @@ void dlg_DatasetComparator::setupFBPGraphs(iAFunctionalBoxplot<double, double>* 
 	m_nonlinearScaledPlot->graph()->removeFromLegend();
 	m_nonlinearScaledPlot->graph()->setData(fb_MinData);
 	m_nonlinearScaledPlot->graph()->setName("Lower Whisker");
-	m_nonlinearScaledPlot->graph()->setPen(QPen(QColor(0, 0, 255, 255), 7));
+	m_nonlinearScaledPlot->graph()->setPen(QPen(QColor(0, 0, 255, 255), 3));
 	m_nonlinearScaledPlot->graph()->setSelectable(QCP::stNone);
 }
 
-void dlg_DatasetComparator::showFBPGraphs()
+void dlg_DynamicVolumeLines::showFBPGraphs()
 {
 	int graphCnt = m_nonlinearScaledPlot->graphCount();
 	for (int i = 0; i < graphCnt; ++i)
@@ -1270,70 +1444,89 @@ void dlg_DatasetComparator::showFBPGraphs()
 		if (cb_showFbp->isChecked())
 		{
 			sl_fbpTransparency->show();
-			l_opacity->show();
 			if (cb_fbpView->currentText() == "Alone")
 			{
 				if (i >= m_DatasetIntensityMap.size())
 				{
 					m_nonlinearScaledPlot->graph(i)->setVisible(true);
+					m_linearScaledPlot->graph(i)->setVisible(true);
 					if (m_nonlinearScaledPlot->graph(i)->name() != "Third Quartile")
+					{
 						m_nonlinearScaledPlot->graph(i)->addToLegend();
+						m_linearScaledPlot->graph(i)->addToLegend();
+					}
 				}
 				else
 				{
 					m_nonlinearScaledPlot->graph(i)->setVisible(false);
 					m_nonlinearScaledPlot->graph(i)->removeFromLegend();
+					m_linearScaledPlot->graph(i)->setVisible(false);
+					m_linearScaledPlot->graph(i)->removeFromLegend();
 				}
 			}
 			else
 			{
 				m_nonlinearScaledPlot->graph(i)->removeFromLegend();
+				m_linearScaledPlot->graph(i)->removeFromLegend();
 				if (i < m_DatasetIntensityMap.size())
 				{
 					m_nonlinearScaledPlot->graph(i)->setVisible(true);
 					m_nonlinearScaledPlot->graph(i)->addToLegend();
+					m_linearScaledPlot->graph(i)->setVisible(true);
+					m_linearScaledPlot->graph(i)->addToLegend();
 				}
 				else
 				{
 					m_nonlinearScaledPlot->graph(i)->setLayer("background");
 					m_nonlinearScaledPlot->graph(i)->setVisible(true);
+					m_linearScaledPlot->graph(i)->setLayer("background");
+					m_linearScaledPlot->graph(i)->setVisible(true);
 					if (m_nonlinearScaledPlot->graph(i)->name() != "Third Quartile")
+					{
 						m_nonlinearScaledPlot->graph(i)->addToLegend();
+						m_linearScaledPlot->graph(i)->addToLegend();
+					}
 				}
 			}
 		}
 		else
 		{
 			sl_fbpTransparency->hide();
-			l_opacity->hide();
 			if (i >= m_DatasetIntensityMap.size())
 			{
 				m_nonlinearScaledPlot->graph(i)->setVisible(false);
 				m_nonlinearScaledPlot->graph(i)->removeFromLegend();
+				m_linearScaledPlot->graph(i)->setVisible(false);
+				m_linearScaledPlot->graph(i)->removeFromLegend();
 			}
 			else
 			{
 				m_nonlinearScaledPlot->graph(i)->setVisible(true);
 				m_nonlinearScaledPlot->graph(i)->addToLegend();
+				m_linearScaledPlot->graph(i)->setVisible(true);
+				m_linearScaledPlot->graph(i)->addToLegend();
 			}
 		}
 	}
 	m_nonlinearScaledPlot->replot();
+	m_linearScaledPlot->replot();
 }
 
-void dlg_DatasetComparator::showBkgrdThrLine()
+void dlg_DynamicVolumeLines::showBkgrdThrLine()
 {
-	m_nonlinearScaledPlot->findChild<QCPItemStraightLine*>()->setVisible(cb_BkgrdThrLine->isChecked());
+	m_nonlinearScaledPlot->findChild<QCPItemStraightLine*>("BkgrdThrLine")->setVisible(cb_BkgrdThrLine->isChecked());
+	m_linearScaledPlot->findChild<QCPItemStraightLine*>("BkgrdThrLine")->setVisible(cb_BkgrdThrLine->isChecked());
 	m_nonlinearScaledPlot->replot();
+	m_linearScaledPlot->replot();
 }
 
-void dlg_DatasetComparator::updateFBPView()
+void dlg_DynamicVolumeLines::updateFBPView()
 {
 	if (cb_showFbp->isChecked())
 		showFBPGraphs();
 }
 
-void dlg_DatasetComparator::setFbpTransparency(int value)
+void dlg_DynamicVolumeLines::setFbpTransparency(int value)
 {
 	double alpha = round(value * 255 / 100.0);
 	QPen p; QColor c; QBrush b;
@@ -1344,6 +1537,7 @@ void dlg_DatasetComparator::setFbpTransparency(int value)
 		c.setAlpha(alpha);
 		p.setColor(c);
 		m_nonlinearScaledPlot->graph(i)->setPen(p);
+		m_linearScaledPlot->graph(i)->setPen(p);
 		if (m_nonlinearScaledPlot->graph(i)->name() == "Interquartile Range")
 		{
 			b = m_nonlinearScaledPlot->graph(i)->brush();
@@ -1351,12 +1545,14 @@ void dlg_DatasetComparator::setFbpTransparency(int value)
 			c.setAlpha(alpha);
 			b.setColor(c);
 			m_nonlinearScaledPlot->graph(i)->setBrush(b);
+			m_linearScaledPlot->graph(i)->setBrush(b);
 		}
 	}
 	m_nonlinearScaledPlot->replot();
+	m_linearScaledPlot->replot();
 }
 
-void dlg_DatasetComparator::legendClick(QCPLegend* legendU,
+void dlg_DynamicVolumeLines::legendClick(QCPLegend* legendU,
 	QCPAbstractLegendItem* legendUItem, QMouseEvent* e)
 {
 	QCustomPlot *plotU = qobject_cast<QCustomPlot *>(QObject::sender());
@@ -1385,7 +1581,7 @@ void dlg_DatasetComparator::legendClick(QCPLegend* legendU,
 			m_selLegendItemList.append(ptliU);
 			m_selLegendItemList.append(ptliP);
 		}
-		else
+		else if(m_selLegendItemList.contains(ptliU) && m_selLegendItemList.size() > 2)
 		{
 			m_selLegendItemList.removeOne(ptliU);
 			m_selLegendItemList.removeOne(ptliP);
@@ -1412,9 +1608,9 @@ void dlg_DatasetComparator::legendClick(QCPLegend* legendU,
 	m_nonlinearScaledPlot->replot();
 }
 
-void dlg_DatasetComparator::selectionChangedByUser()
+void dlg_DynamicVolumeLines::selectionChangedByUser()
 {
-	// TODO: change transfer function for "hiden" values; should be HistogramRangeMinimum-1 
+	// TODO: change transfer function for "hidden" values; should be HistogramRangeMinimum-1 
 	m_mrvRenWin->GetRenderers()->RemoveAllItems();
 	m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D());
 	m_mrvRenWin->AddRenderer(m_mrvBGRen);
@@ -1457,26 +1653,25 @@ void dlg_DatasetComparator::selectionChangedByUser()
 	}
 
 	setSelectionForRenderer(selVisibleGraphsList);
-	m_scalingWidget->setSelection(sel);
+	m_scalingWidget->setSel(sel);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
 	m_linearScaledPlot->replot();
 }
 
-void dlg_DatasetComparator::selectCompLevel()
+void dlg_DynamicVolumeLines::selectCompLevel()
 {
 	if ((sb_LowerCompLevelThr->value() > sb_UpperCompLevelThr->value()) ||
 		(sb_UpperCompLevelThr->value() < sb_LowerCompLevelThr->value()))
 	{
 		QMessageBox msgBox;
 		msgBox.setText("Lower/upper ranges are flipped.");
-		msgBox.setInformativeText("Should Dataset Comparator automatically correct "
+		msgBox.setInformativeText("Should Dynamic Volume Lines automatically correct "
 			"the ranges and proceed?");
-		msgBox.setWindowTitle("Dataset Comparator");
+		msgBox.setWindowTitle("Dynamic Volume Lines");
 		msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-		int ret = msgBox.exec();
 		double tmp;
-		switch (ret)
+		switch (msgBox.exec())
 		{
 		case QMessageBox::Ok:
 			tmp = sb_LowerCompLevelThr->value();
@@ -1492,23 +1687,23 @@ void dlg_DatasetComparator::selectCompLevel()
 	double sectionStart = -1.0;
 	for (int i = 0; i < m_impFunctVec.size(); ++i)
 	{
-		if (((1-m_impFunctVec[i]) < sb_LowerCompLevelThr->value() ||
-			(1 - m_impFunctVec[i]) > sb_UpperCompLevelThr->value()) &&
+		if (((m_impFunctVec[i]) < sb_LowerCompLevelThr->value() ||
+			(m_impFunctVec[i]) > sb_UpperCompLevelThr->value()) &&
 			sectionStart >= 0.0)
 		{
 			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i));
 			sectionStart = -1.0;
 		}
-		else if ((1 - m_impFunctVec[i]) >= sb_LowerCompLevelThr->value() &&
-			(1 - m_impFunctVec[i]) <= sb_UpperCompLevelThr->value() &&
+		else if ((m_impFunctVec[i]) >= sb_LowerCompLevelThr->value() &&
+			(m_impFunctVec[i]) <= sb_UpperCompLevelThr->value() &&
 			sectionStart == -1.0)
 		{
 			sectionStart = i-1;
 			if (sectionStart < 0)
 				sectionStart = 0;
 		}
-		else if (((1 - m_impFunctVec[i]) >= sb_LowerCompLevelThr->value() ||
-			(1 - m_impFunctVec[i]) <= sb_LowerCompLevelThr->value()) &&
+		else if (((m_impFunctVec[i]) >= sb_LowerCompLevelThr->value() ||
+			(m_impFunctVec[i]) <= sb_LowerCompLevelThr->value()) &&
 			sectionStart >= 0.0 && i == m_impFunctVec.size()-1)
 		{
 			selCompLvlRanges.addDataRange(QCPDataRange(sectionStart, i+1));
@@ -1535,7 +1730,7 @@ void dlg_DatasetComparator::selectCompLevel()
 	}
 
 	setSelectionForRenderer(visibleGraphsList);
-	m_scalingWidget->setSelection(selCompLvlRanges);
+	m_scalingWidget->setSel(selCompLvlRanges);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
 	m_linearScaledPlot->replot();
@@ -1550,7 +1745,7 @@ void setVoxelIntensity(
 	*v = intensity;
 }
 
-void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGraphList)
+void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGraphList)
 {
 	auto datasetsList = m_datasetsDir.entryList();
 	for (unsigned int i = 0; i < visSelGraphList.size(); ++i)
@@ -1577,7 +1772,8 @@ void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGrap
 				bool showVoxel = false;
 				for (int j = 0; j < selHilbertIndices.size(); ++j)
 				{
-					if (i > selHilbertIndices.at(j).begin() && i < selHilbertIndices.at(j).end())
+					if (i >= (selHilbertIndices.at(j).begin()-1) && i < selHilbertIndices.at(j).end()-1)
+					//if (i > selHilbertIndices.at(j).begin() && i < selHilbertIndices.at(j).end())
 					{
 						VTK_TYPED_CALL(setVoxelIntensity, scalarType, m_imgDataList[idx],
 							data[i].x, data[i].y, data[i].z, data[i].intensity);
@@ -1629,7 +1825,7 @@ void dlg_DatasetComparator::setSelectionForRenderer(QList<QCPGraph *> visSelGrap
 	m_mrvRenWin->Render();
 }
 
-void dlg_DatasetComparator::setSelectionForPlots(vtkPoints *selCellPoints)
+void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 {
 	auto pathSteps = m_DatasetIntensityMap.at(0).second.size();
 	auto data = m_DatasetIntensityMap.at(0).second;
@@ -1676,4 +1872,20 @@ void dlg_DatasetComparator::setSelectionForPlots(vtkPoints *selCellPoints)
 	}
 	m_nonlinearScaledPlot->graph(0)->setSelection(selection);
 	m_nonlinearScaledPlot->replot();
+}
+
+void dlg_DynamicVolumeLines::compLevelRangeChanged()
+{
+	QVector<double> range(2);
+	if (sb_UpperCompLevelThr->value() < sb_LowerCompLevelThr->value())
+	{
+		range[0] = sb_UpperCompLevelThr->value();
+		range[1] = sb_LowerCompLevelThr->value();
+	}
+	else
+	{
+		range[0] = sb_LowerCompLevelThr->value();
+		range[1] = sb_UpperCompLevelThr->value();
+	}
+	emit compLevelRangeChanged(range);
 }

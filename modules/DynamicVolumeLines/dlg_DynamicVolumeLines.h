@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_dlg_DatasetComparator.h"
+#include "ui_dlg_DynamicVolumeLines.h"
 #include "mdichild.h"
-#include "datasetComparatorHelpers.h"
+#include "DynamicVolumeLinesHelpers.h"
 #include "ui_Multi3DView.h"
 #include "iAQTtoUIConnector.h"
 
@@ -39,16 +39,16 @@ class vtkRenderer;
 class vtkLookupTable;
 class vtkScalarBarActor;
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DatasetComparator>  DatasetComparatorConnector;
+typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DynamicVolumeLines>  DynamicVolumeLinesConnector;
 typedef iAQTtoUIConnector<QDockWidget, Ui_Multi3DRendererView> multi3DRendererView;
 
-class dlg_DatasetComparator : public DatasetComparatorConnector
+class dlg_DynamicVolumeLines : public DynamicVolumeLinesConnector
 {
 	Q_OBJECT
 
 public:
-	dlg_DatasetComparator(QWidget* parent, QDir datasetsDir, Qt::WindowFlags f = 0);
-	~dlg_DatasetComparator();
+	dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir, Qt::WindowFlags f = 0);
+	~dlg_DynamicVolumeLines();
 
 	QDir m_datasetsDir;
 	QList<QPair <QString, QList<icData> >> m_DatasetIntensityMap;
@@ -60,7 +60,7 @@ public slots:
 	void setFbpTransparency(int);
 	void showFBPGraphs();
 	void visualize();
-	void updateDatasetComparator();
+	void updateDynamicVolumeLines();
 	void updateFBPView();
 	void visualizePath();
 	void selectionChangedByUser();
@@ -74,6 +74,10 @@ public slots:
 	void selectCompLevel();
 	void setSubHistBinCntFlag();
 	void updateHistColorMap(vtkSmartPointer<vtkLookupTable> LUT);
+	void compLevelRangeChanged();
+
+signals:
+	void compLevelRangeChanged(QVector<double> compRange);
 
 protected:
 	virtual bool eventFilter(QObject * obj, QEvent * event);
@@ -103,7 +107,10 @@ private:
 	double m_minEnsembleIntensity, m_maxEnsembleIntensity;
 	QList<iASegmentTree*> m_segmTreeList;
 	bool m_subHistBinCntChanged;
-	bool m_histRectsVisible;
+	bool m_histVisMode;
+	QVector<double> m_histBinImpFunctAvgVec;
+	QVector<double> m_linearHistBinBoarderVec;
+	double m_stepSize;
 
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
@@ -113,7 +120,8 @@ private:
 	QSharedPointer<iAVolumeRenderer> m_volRen;
 		
 	void generateHilbertIdx();
-	void setupFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData);
+	void setupNonlinearFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData);
+	void setupLinearFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData);
 	void setupNonlinearScaledPlot();
 	void setupLinearScaledPlot();
 	void setupDebugPlot();
@@ -129,5 +137,5 @@ private:
 	void setSelectionForRenderer(QList<QCPGraph *> visSelGraphList);
 	void generateSegmentTree();
 	
-	void changeHistRectVisibility(int lowerIdx, int upperIdx);
+	void checkHistVisMode(int lowerIdx, int upperIdx);
 };

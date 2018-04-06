@@ -270,6 +270,25 @@ iAColorThemeManager::iAColorThemeManager()
 	metroColors->AddColor(QColor(160, 82, 45));
 	m_themes.insert(metroColors->GetName(), metroColors);
 
+	iAColorTheme* DVLColors = new iAColorTheme("DVL-Metro Colors (max. 17)");
+	DVLColors->AddColor(QColor(164, 196, 0));
+	DVLColors->AddColor(QColor(96, 169, 23));
+	DVLColors->AddColor(QColor(0, 138, 0));
+	DVLColors->AddColor(QColor(0, 171, 169));
+	DVLColors->AddColor(QColor(27, 161, 226));
+	DVLColors->AddColor(QColor(0, 80, 239));
+	DVLColors->AddColor(QColor(106, 0, 255));
+	DVLColors->AddColor(QColor(170, 0, 255));
+	DVLColors->AddColor(QColor(244, 114, 208));
+	DVLColors->AddColor(QColor(162, 0, 37));
+	DVLColors->AddColor(QColor(240, 163, 10));
+	DVLColors->AddColor(QColor(227, 200, 0));
+	DVLColors->AddColor(QColor(130, 90, 44));
+	DVLColors->AddColor(QColor(109, 135, 100));
+	DVLColors->AddColor(QColor(100, 118, 135));
+	DVLColors->AddColor(QColor(118, 96, 138));
+	DVLColors->AddColor(QColor(160, 82, 45));
+	m_themes.insert(DVLColors->GetName(), DVLColors);
 
 	iAColorTheme* brewerQual1 = new iAColorTheme("Brewer Qualitaive 1 (max. 8)");
 	brewerQual1->AddColor(QColor(27, 158, 119));

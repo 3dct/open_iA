@@ -18,57 +18,57 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#include "iAOrientationWidget.h"
+#include <QOpenGLWidget>
 
-#include <QPainter>
+#include <qcustomplot.h>
 
-iAOrientationWidget::iAOrientationWidget(QWidget* parent) : QOpenGLWidget(parent)
+#include <vtkSmartPointer.h>
+
+class vtkLookupTable;
+
+class iAScalingWidget : public QOpenGLWidget
 {
-	setFixedHeight(27);
-	setBackgroundRole(QPalette::Base);
-	setAutoFillBackground(true);
+	Q_OBJECT
 
-	// For multisampling
-	QSurfaceFormat format = QSurfaceFormat();
-	format.setSamples(4);
-	this->setFormat(format);
-}
+public:
+	iAScalingWidget(QWidget* parent = 0);
 
-QSize iAOrientationWidget::sizeHint() const
-{
-	return QSize(80, 27);
-}
+	QSize minimumSizeHint() const override;
+	QSize sizeHint() const override;
 
-QSize iAOrientationWidget::minimumSizeHint() const
-{
-	return QSize(40, 10);
-}
+	void setNonlinearScalingVec(const QVector<double> &nls, const QVector<double> &impfv);
+	void setAxes(QCPAxis *nla, QCPAxis *la);
+	void setCursorPos(double lcp, double nlcp);
+	void setRange(double lowerIdx, double upperIdx, double nonlinearLowerRest, 
+		double nonlinearUpperRest, double linearLowerRest, double linearUpperRest);
+	void setBkgrdThrRanges(const QList<QCPRange> &bkgrdRangeList);
+	void setSel(QCPDataSelection sel);
+	void setHistVisMode(bool histVisMode);
 
-void iAOrientationWidget::initializeGL()
-{
-	glClearColor(0.3, 0.3, 0.3, 1.0);
-}
+	void setOverviewRange(double lowerIdx, double upperIdx, double nonlinearLowerRest,
+		double nonlinearUpperRest, double linearLowerRest, double linearUpperRest, 
+		const QVector<double> &histBinImpFunctAvgVec, const QVector<double> &linearHistBinBoarderVec);
 
-void iAOrientationWidget::update(QCustomPlot* plot, double lowerX, double upperX,
-	double lowerY, double upperY)
-{
-	m_plot = plot;
-	m_lowerLimitX = lowerX;
-	m_upperLimitX = upperX;
-	m_lowerLimitY = lowerY;
-	m_upperLimitY = upperY;
-}
+protected:
+	virtual void initializeGL();
+	virtual void paintGL();
 
-void iAOrientationWidget::paintGL()
-{
-	QPainter painter(this);
-	painter.setRenderHint(QPainter::Antialiasing, true);
-	painter.setBrush(QColor(51,153,255));
-	painter.setPen(Qt::NoPen);
-	double x = m_plot->xAxis->range().lower * width() / (m_upperLimitX - m_lowerLimitX);
-	double y = (m_upperLimitY - m_plot->yAxis->range().upper) * height() / (m_upperLimitY - m_lowerLimitY);
-	double w = m_plot->xAxis->range().size() * width() / (m_upperLimitX - m_lowerLimitX);
-	double h = m_plot->yAxis->range().size() * height() / (m_upperLimitY - m_lowerLimitY);
-	painter.drawRect(x, y, w, h);
-}
+private:
+	QCPAxis *m_nonlinearAxis;
+	QCPAxis *m_linearAxis;
+	QVector<double> m_nonlinearScalingVec;
+	QVector<double> m_impFunctVec;
+	vtkSmartPointer<vtkLookupTable> m_lut;
+	double m_linearBarCursorPos, m_nonlinearBarCursorPos, m_nonlinearLowerIdx,
+		m_nonlinearUpperIdx, m_nonlinearLowerRest, m_nonlinearUpperRest,
+		m_linearLowerRest, m_linearUpperRest, m_prevNonlinearBarStartPosX, 
+		m_prevLinearBarStartPosX;
+	QList<QCPRange> m_bkgrdRangeList;
+	QCPDataSelection m_sel;
+	bool m_histVisMode;
+
+	QVector<double> m_histBinImpFunctAvgVec;
+	QVector<double> m_linearHistBinBoarderVec;
+};

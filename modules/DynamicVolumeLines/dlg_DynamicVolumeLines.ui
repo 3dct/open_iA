@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dlg_DatasetComparator</class>
- <widget class="QDockWidget" name="dlg_DatasetComparator">
+ <class>dlg_DynamicVolumeLines</class>
+ <widget class="QDockWidget" name="dlg_DynamicVolumeLines">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>2563</width>
-    <height>377</height>
+    <height>355</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Hilbert Line Plots</string>
+   <string>Dynamic Volume Lines</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -68,15 +68,27 @@
        </property>
        <item>
         <widget class="QLabel" name="label_4">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>115</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Functional Boxplots:</string>
+          <string>Functional boxplots:</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="cb_showFbp">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -87,6 +99,12 @@
            <height>21</height>
           </size>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>50</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>Show</string>
          </property>
@@ -95,7 +113,7 @@
        <item>
         <widget class="QComboBox" name="cb_fbpView">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -104,6 +122,12 @@
           <size>
            <width>0</width>
            <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="layoutDirection">
@@ -129,17 +153,16 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="l_opacity">
-         <property name="text">
-          <string>Opacity</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QSlider" name="sl_fbpTransparency">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="maximumSize">
           <size>
-           <width>100</width>
+           <width>50</width>
            <height>16777215</height>
           </size>
          </property>
@@ -155,39 +178,47 @@
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer_5">
+        <widget class="Line" name="line">
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <property name="lineWidth">
+          <number>1</number>
+         </property>
+         <property name="midLineWidth">
+          <number>0</number>
+         </property>
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>10</width>
-           <height>10</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Background Threshold:</string>
+          <enum>Qt::Vertical</enum>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QCheckBox" name="cb_BkgrdThrLine">
+         <property name="maximumSize">
+          <size>
+           <width>110</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Show BkgrdThr Line</string>
+          <string>Show BkgrdThr line</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="sb_BkgrdThr">
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="keyboardTracking">
           <bool>false</bool>
+         </property>
+         <property name="decimals">
+          <number>0</number>
          </property>
          <property name="maximum">
           <double>65535.000000000000000</double>
@@ -201,30 +232,42 @@
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer_4">
+        <widget class="Line" name="line_2">
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>10</width>
-           <height>10</height>
-          </size>
-         </property>
-        </spacer>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_6">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>130</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Nonlinear Scaling Factor:</string>
+          <string>Nonlinear scaling factor:</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="sb_nonlinearScalingFactor">
+         <property name="maximumSize">
+          <size>
+           <width>45</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="keyboardTracking">
           <bool>false</bool>
          </property>
@@ -232,10 +275,10 @@
           <number>1</number>
          </property>
          <property name="minimum">
-          <double>1.000000000000000</double>
+          <double>0.000000000000000</double>
          </property>
          <property name="maximum">
-          <double>3.000000000000000</double>
+          <double>10.000000000000000</double>
          </property>
          <property name="singleStep">
           <double>0.100000000000000</double>
@@ -246,25 +289,34 @@
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer_3">
+        <widget class="Line" name="line_3">
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <property name="lineWidth">
+          <number>1</number>
+         </property>
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>10</width>
-           <height>10</height>
-          </size>
-         </property>
-        </spacer>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_7">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>130</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Compression Level:</string>
+          <string>Local ensemble variation:</string>
          </property>
         </widget>
        </item>
@@ -276,6 +328,12 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>43</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>Low(0)</string>
          </property>
@@ -284,7 +342,7 @@
        <item>
         <widget class="QWidget" name="scalarBarWidget" native="true">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -297,7 +355,7 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>200</width>
+           <width>100</width>
            <height>20</height>
           </size>
          </property>
@@ -311,38 +369,71 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="maximumSize">
+          <size>
+           <width>45</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>High(1)</string>
          </property>
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer_6">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+        <widget class="QLabel" name="label_5">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
+         <property name="maximumSize">
           <size>
-           <width>5</width>
-           <height>5</height>
+           <width>45</width>
+           <height>16777215</height>
           </size>
          </property>
-        </spacer>
+         <property name="text">
+          <string>Range:</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_8">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Lower Range</string>
+          <string>Lower</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="sb_LowerCompLevelThr">
+         <property name="maximumSize">
+          <size>
+           <width>65</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="decimals">
-          <number>9</number>
+          <number>5</number>
          </property>
          <property name="maximum">
           <double>1.000000000000000</double>
@@ -354,18 +445,36 @@
        </item>
        <item>
         <widget class="QLabel" name="label_9">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Upper Range</string>
+          <string>Upper</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="sb_UpperCompLevelThr">
+         <property name="maximumSize">
+          <size>
+           <width>65</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="keyboardTracking">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="decimals">
-          <number>9</number>
+          <number>5</number>
          </property>
          <property name="maximum">
           <double>1.000000000000000</double>
@@ -388,47 +497,83 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>16777215</width>
+           <width>37</width>
            <height>16777215</height>
           </size>
          </property>
          <property name="text">
           <string>select</string>
          </property>
+         <property name="default">
+          <bool>false</bool>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer_8">
+        <widget class="Line" name="line_4">
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <property name="lineWidth">
+          <number>1</number>
+         </property>
+         <property name="midLineWidth">
+          <number>0</number>
+         </property>
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>10</width>
-           <height>5</height>
-          </size>
-         </property>
-        </spacer>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_11">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>110</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Intensity Histogram:</string>
+          <string>Intensity histogram:</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_12">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>58</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Low Freq.</string>
+          <string>LowFreq.</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QWidget" name="histBarWidget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -437,7 +582,7 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>200</width>
+           <width>100</width>
            <height>20</height>
           </size>
          </property>
@@ -445,36 +590,50 @@
        </item>
        <item>
         <widget class="QLabel" name="label_13">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>58</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>High Freq.</string>
+          <string>HighFreq.</string>
          </property>
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer_10">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+        <widget class="QLabel" name="label_14">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
+         <property name="maximumSize">
           <size>
-           <width>5</width>
-           <height>5</height>
+           <width>73</width>
+           <height>16777215</height>
           </size>
          </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_14">
          <property name="text">
-          <string>HistBinWidth (px):</string>
+          <string>HistBinWidth:</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QSpinBox" name="sb_histBinWidth">
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="keyboardTracking">
           <bool>false</bool>
          </property>
@@ -482,7 +641,7 @@
           <number>1</number>
          </property>
          <property name="maximum">
-          <number>50</number>
+          <number>100</number>
          </property>
          <property name="value">
           <number>10</number>
@@ -491,6 +650,18 @@
        </item>
        <item>
         <widget class="QLabel" name="label_15">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>80</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>SubHistBinCnt:</string>
          </property>
@@ -498,6 +669,12 @@
        </item>
        <item>
         <widget class="QSpinBox" name="sb_subHistBinCnt">
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="keyboardTracking">
           <bool>false</bool>
          </property>
@@ -522,7 +699,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>200</width>
+           <width>40</width>
            <height>21</height>
           </size>
          </property>
@@ -530,8 +707,20 @@
        </item>
        <item>
         <widget class="QLabel" name="label_10">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>90</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Visible Plot Area:</string>
+          <string>Visible plot area:</string>
          </property>
         </widget>
        </item>
@@ -552,7 +741,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>200</width>
+           <width>40</width>
            <height>21</height>
           </size>
          </property>
@@ -560,15 +749,27 @@
        </item>
        <item>
         <widget class="QLabel" name="label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>70</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Curve Type: </string>
+          <string>Curve type: </string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QComboBox" name="cb_Paths">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -577,6 +778,12 @@
           <size>
            <width>0</width>
            <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>70</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="focusPolicy">
@@ -617,7 +824,7 @@
        <item>
         <widget class="QPushButton" name="pB_Update">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -630,7 +837,7 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>16777215</width>
+           <width>40</width>
            <height>16777215</height>
           </size>
          </property>

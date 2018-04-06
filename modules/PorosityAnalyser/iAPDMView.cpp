@@ -60,7 +60,7 @@ iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_selectedIndices.clear();
 	ShowDeviationControls( false );
 	ShowPorosityRangeControls( false );
-	iALUT::BuildLUT( m_lut, -2.0, 2.0, "Diverging blue - gray - red");
+	iALUT::BuildLUT( m_lut, -2.0, 2.0, "Diverging blue-gray-red");
 	m_sbRen->SetBackground( 1.0, 1.0, 1.0 );
 	m_sbRen->AddActor( m_sbActor );
 	m_sbActor->SetAnnotationTextScaling( 0 );
@@ -417,7 +417,7 @@ void iAPDMView::ShowPorosityRangeControls( bool visible )
 
 void iAPDMView::UpdateColormapSettings( double range )
 {
-	iALUT::BuildLUT( m_lut, -range, range, "Diverging blue - gray - red" );
+	iALUT::BuildLUT( m_lut, -range, range, "Diverging blue-gray-red" );
 	m_sbActor->SetLookupTable( m_lut );
 	UpdateTableDeviation();
 	m_sbWiget->update();

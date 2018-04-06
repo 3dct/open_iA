@@ -178,7 +178,7 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	scalarBarActor->SetNumberOfLabels( 4 );
 	vtkPolyDataMapper * mapper = m_renderer->GetPolyMapper();
 	double sr[2];  mapper->GetScalarRange(sr);
-	iALUT::BuildLUT( m_lut, sr, "Diverging blue - gray - red" );
+	iALUT::BuildLUT( m_lut, sr, "Diverging blue-gray-red" );
 	m_lut->SetRange( sr ); m_lut->SetTableRange( sr );
 	mapper->SetLookupTable( m_lut );
 	scalarBarActor->SetLookupTable( m_lut );

@@ -27,7 +27,7 @@ iANonLinearAxisTicker::iANonLinearAxisTicker() :
 {
 }
 
-void iANonLinearAxisTicker::setTickData(QVector<double> tickVector)
+void iANonLinearAxisTicker::setTickData(const QVector<double> &tickVector)
 {
 	m_tickVector = tickVector;
 	// TODO: check getMantissa?

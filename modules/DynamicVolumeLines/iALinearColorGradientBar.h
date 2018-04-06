@@ -31,8 +31,12 @@ class iALinearColorGradientBar : public QWidget
 	Q_OBJECT
 
 public:
-	iALinearColorGradientBar(QWidget *parent, QString colormapName, bool modifiable, bool flipColormap = false);
+	iALinearColorGradientBar(QWidget *parent, QString colormapName,
+		bool modifiable, bool flipColormap = false);
 	vtkSmartPointer<vtkLookupTable> getLut();
+
+public slots:
+	void compLevelRangeChanged(QVector<double> range);
 
 signals:
 	void colorMapChanged(vtkSmartPointer<vtkLookupTable> lut);
@@ -47,5 +51,6 @@ protected:
 private:
 	QMap<double, QColor> m_colormap;
 	vtkSmartPointer<vtkLookupTable> m_lut;
-	bool m_modifiable;
+	bool m_modifiable, m_showSelection;
+	QVector<double> m_compLevelRange;
 };

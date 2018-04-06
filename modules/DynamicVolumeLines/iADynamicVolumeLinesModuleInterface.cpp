@@ -18,29 +18,29 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "pch.h"
+#include "iADynamicVolumeLinesModuleInterface.h"
 
-#include "qcustomplot.h"
+#include "mainwindow.h"
+#include "mdichild.h"
 
-class iANonLinearAxisTicker : public QCPAxisTicker
+#include <QFileDialog>
+#include <QMessageBox>
+
+void iADynamicVolumeLinesModuleInterface::Initialize()
 {
-public:
-	iANonLinearAxisTicker();
+	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QAction * actionDynamicVolumeLines = new QAction(QApplication::translate("MainWindow", "Dynamic Volume Lines", 0), m_mainWnd);
+	AddActionToMenuAlphabeticallySorted(toolsMenu, actionDynamicVolumeLines);
+	connect(actionDynamicVolumeLines, SIGNAL(triggered()), this, SLOT(DynamicVolumeLines()));
+}
 
-	void setTickData(QVector<double> tickVector);
-	void setAxis(QCPAxis* axis);
-
-protected:
-	QVector<double> m_tickVector;
-	QCPAxis *m_xAxis;
-	int m_tickStep;
-
-	virtual QVector<double> createTickVector(double tickStep,
-		const QCPRange &range) Q_DECL_OVERRIDE;
-
-	virtual QVector<double> createSubTickVector(int subTickCount,
-		const QVector<double> &ticks) Q_DECL_OVERRIDE;
-
-	virtual QVector<QString> createLabelVector(const QVector<double> &ticks,
-		const QLocale &locale, QChar formatChar, int precision) Q_DECL_OVERRIDE;
-};
+void iADynamicVolumeLinesModuleInterface::DynamicVolumeLines()
+{
+	PrepareActiveChild();
+	QDir datasetsDir = m_mdiChild->getFilePath();
+	datasetsDir.setNameFilters(QStringList("*.mhd"));
+	dc = new dlg_DynamicVolumeLines(m_mdiChild, datasetsDir);
+	m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, dc);
+	dc->raise();
+}

@@ -196,7 +196,7 @@ void iASPMView::SetParameterToColorcode( const QString & paramName )
 void iASPMView::UpdateLookupTable()
 {
 	double lutRange[2] = { m_SPMSettings->sbMin->value(), m_SPMSettings->sbMax->value() };
-	iALUT::BuildLUT( m_lut, lutRange, "Diverging blue - gray - red" );
+	iALUT::BuildLUT( m_lut, lutRange, "Diverging blue-gray-red" );
 	UpdateLUTOpacity();
 	ApplyLookupTable();
 }

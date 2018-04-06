@@ -29,9 +29,11 @@
 #include <QEvent>
 #include <QHelpEvent>
 
-iALinearColorGradientBar::iALinearColorGradientBar(QWidget *parent, QString colormapName, bool modifiable, bool flipColormap) :
+iALinearColorGradientBar::iALinearColorGradientBar(QWidget *parent, QString colormapName,
+	bool modifiable, bool flipColormap) :
 	QWidget(parent),
-	m_modifiable(modifiable)
+	m_modifiable(modifiable),
+	m_compLevelRange(2)
 {
 	m_lut = vtkSmartPointer<vtkLookupTable>::New();
 	int colorCnt = iALUT::BuildLUT(m_lut, 0.0, 1.0, colormapName);
@@ -58,6 +60,12 @@ QSize iALinearColorGradientBar::sizeHint() const
 QSize iALinearColorGradientBar::minimumSizeHint() const
 {
 	return QSize(100, 20);
+}
+
+void iALinearColorGradientBar::compLevelRangeChanged(QVector<double> range)
+{
+	m_compLevelRange = range;
+	update();
 }
 
 bool iALinearColorGradientBar::event(QEvent *event)
@@ -106,4 +114,10 @@ void iALinearColorGradientBar::paintEvent(QPaintEvent *e)
 	for (it = m_colormap.begin(); it != m_colormap.end(); ++it)
 		grad.setColorAt(it.key(), it.value());
 	painter.fillRect(0, 0, width(), height(), grad);
+	if ((m_compLevelRange[1] - m_compLevelRange[0]) > 0)
+	{
+		painter.setPen(QColor(255, 0, 0));
+		painter.drawRect(m_compLevelRange[0] * width(), 0.0,
+			(m_compLevelRange[1] - m_compLevelRange[0]) * width() - 1.0, height() - 1.0);
+	}
 }

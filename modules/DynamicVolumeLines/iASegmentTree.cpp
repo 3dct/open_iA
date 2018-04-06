@@ -34,6 +34,7 @@
 iASegmentTree::iASegmentTree(const vector<int> &input, int binCnt, int lowerBnd, int upperBnd) :
 	m_inputElemCnt(0)
 {
+	//TODO: Currently only hist is needed, others can be disabled
 	m_inputElemCnt = input.size();
 	m_avg.resize(2 * m_inputElemCnt);
 	m_min.resize(2 * m_inputElemCnt);
