@@ -134,7 +134,6 @@ FOREACH( indx RANGE ${len} )
 
 			# Install .vcxproj.user file for module to be able to start open_iA
 			IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_${module_name}_DBG_ENV_PATH}")
-				MESSAGE(STATUS "Library paths changed, adapting ${module_name}.vcxproj.user to reference ${DebugLibraryPaths}")
 				# force cmake to copy the files:
 				FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user)
 				# create .user files:

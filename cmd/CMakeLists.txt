@@ -17,7 +17,6 @@ IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-")
 
 	IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_CMD_DBG_ENV_PATH}")
-		MESSAGE(STATUS "Library paths changed, adapting open_iA_cmd.vcxproj.user files to reference ${DebugLibraryPaths}")
 		# force cmake to copy the files:
 		file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/open_iA_cmd.vcxproj.user)
 		# create .user files:
@@ -25,6 +24,13 @@ IF (MSVC)
 		# make sure visual studio reloads the projects:
 		execute_process(COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/open_iA_cmd.vcxproj)
 		SET (CACHED_OPENIA_CMD_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
+
+		SET (ExeName "open_iA_cmd.exe")
+		foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+			set (ADDITIONAL_PATH ${${CONFIG}LibraryPaths})
+			file(REMOVE ${CMAKE_BINARY_DIR}/x64/open_iA_cmd_${CONFIG}.bat )
+			CONFIGURE_FILE(${open_iA_SOURCE_DIR}/cmake/run-tmpl.bat ${CMAKE_BINARY_DIR}/x64/open_iA_cmd_${CONFIG}.bat @ONLY)
+		endforeach()
 	ENDIF ()
 ENDIF (MSVC)
 
