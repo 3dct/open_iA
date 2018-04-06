@@ -24,8 +24,6 @@ ENDIF()
 # Subdirectories
 #-------------------------
 ADD_SUBDIRECTORY(core)
-ADD_SUBDIRECTORY(modules)
-ADD_SUBDIRECTORY(Toolkit)
 
 IF (MSVC)
 	# Set up debugging/running environments	in Visual Studio to point to the correct dll files:
@@ -114,7 +112,12 @@ IF (MSVC)
 			SET (MinSizeRelLibraryPaths "${HDF5_BASE_DIR}\\bin;${MinSizeRelLibraryPaths}")
 		ENDIF()
 	ENDIF()
+
+	SET (ExeName "open_iA.exe")
 ENDIF ()
+
+ADD_SUBDIRECTORY(modules)
+ADD_SUBDIRECTORY(Toolkit)
 ADD_SUBDIRECTORY(gui)
 ADD_SUBDIRECTORY(cmd)
 

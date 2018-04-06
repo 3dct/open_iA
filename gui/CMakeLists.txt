@@ -25,7 +25,9 @@ TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR
 # Windows-specific configuration
 IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-")
+
 	IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
+		MESSAGE(STATUS "Library paths changed, adapting (open_iA|ALL_BUILD).vcxproj.user files to reference ${DebugLibraryPaths}")
 		# force cmake to copy the files:
 		file(REMOVE ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user)
 		file(REMOVE ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user)

@@ -131,6 +131,18 @@ FOREACH( indx RANGE ${len} )
 				RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel/plugins"
 			)
 			INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)
+
+			# Install .vcxproj.user file for module to be able to start open_iA
+			IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_${module_name}_DBG_ENV_PATH}")
+				MESSAGE(STATUS "Library paths changed, adapting ${module_name}.vcxproj.user to reference ${DebugLibraryPaths}")
+				# force cmake to copy the files:
+				FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user)
+				# create .user files:
+				CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/module.vcxproj.user ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user @ONLY)
+				# make sure visual studio reloads the projects:
+				execute_process(COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj)
+				SET (CACHED_${module_name}_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
+			ENDIF ()
 		ELSE()
 			IF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 				set_target_properties(${module_name} PROPERTIES
