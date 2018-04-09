@@ -21,6 +21,7 @@ namespace FeatureScoutCSV{
 
 		void initParam() {
 			str_settingsName = "FeatureScoutCSV";
+			str_formatName = "FormatName";
 			str_reg_useEndline = "useEndLine";
 			str_reg_startLine = "StartLine";
 			str_reg_EndLine = "Endline";
@@ -40,6 +41,7 @@ namespace FeatureScoutCSV{
 		QVariant v_colSeparator;
 		QVariant v_languageFormat;
 		QString str_settingsName;
+		QString str_formatName; 
 		QString str_reg_useEndline = "useEndline";
 		QString str_reg_startLine = "StartLine";
 		QString str_reg_EndLine = "Endline";
@@ -100,6 +102,10 @@ private slots:
 	void CustomFormatBtnClicked();
 	void showFormatComponents();
 
+	//load format based on selected input format (ex. mavi/ vg, ...) 
+	bool dlg_CSVInput::CheckFeatureInRegistry(QSettings & anySetting, const QString *LayoutName);
+	void LoadFormatSettings(const QString &LayoutName);
+
 	void LoadColsBtnClicked(); 
 	void SaveLayoutBtnClicked(); 
 
@@ -107,6 +113,7 @@ private:
 
 	void saveParamsToRegistry(csvConfig::configPararams & csv_params, const QString & LayoutName);
 	void loadEntriesFromRegistry(QSettings & anySetting, const QString & LayoutName);
+	
 	void saveSettings(QSettings & anySetting, const QString & LayoutName, const QString & FeatureName, const QVariant & feat_value);
 
 	void createSettingsName(QString &fullSettingsName, const QString & LayoutName, const QString & FeatureName);

@@ -55,6 +55,9 @@ void dlg_CSVInput::connectSignals()
 	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked()));
 	connect(btn_loadCols, SIGNAL(clicked()), this, SLOT(LoadColsBtnClicked()));
 	connect(btn_SaveLayout, SIGNAL(clicked()), this, SLOT(SaveLayoutBtnClicked())); 
+	connect(cmb_box_FileFormat, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadFormatSettings);
+	
+	//connect(cmb_box_FileFormat, SIGNAL(currentTextChanged(const QString&)), this, SLOT(LoadFormatSettings(QString)));
 }
 
 //enabling for custom file format
@@ -67,8 +70,6 @@ void dlg_CSVInput::CustomFormatBtnClicked(){
 void dlg_CSVInput::showFormatComponents()
 {
 	this->groupBox_Config->setEnabled(true);
-	
-
 	this->ed_startLine->setVisible(true);
 	this->ed_startLine->setEnabled(true);
 	this->lbl_endLine->setVisible(true);
@@ -79,6 +80,21 @@ void dlg_CSVInput::showFormatComponents()
 	this->btn_SaveLayout->setEnabled(true);
 	this->ed_endLIne->setEnabled(true);
 	this->ed_CSVFormat_Name->setEnabled(true); 
+}
+
+void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
+{
+	bool layoutAvaiable = false; 
+	if (LayoutName.isEmpty()) { return;}
+	QSettings mySettings; 
+	layoutAvaiable = CheckFeatureInRegistry(mySettings, &LayoutName);
+	if (!layoutAvaiable) {
+		QMessageBox::warning(this,tr("FeatureScoutCSV"), tr("Layout option not yet defined"));
+		return; 
+	}
+
+	this->loadEntriesFromRegistry(mySettings, LayoutName);
+	
 }
 
 void dlg_CSVInput::LoadColsBtnClicked()
@@ -178,9 +194,8 @@ void dlg_CSVInput::initParameters(){
 	}
 
 	this->ed_CSVFormat_Name->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,255}"), this));
-
-	//setting default format entry
-	this->m_regEntries->str_settingsName = "FeatureScoutCSV";
+	this->m_regEntries->initParam(); 
+	
 }
 
 void dlg_CSVInput::initBasicFormatParameters(csvLang Language, csvColSeparator FileSeparator, csvFormat FileFormat)
@@ -471,10 +486,12 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 //in order to load entries from registry
 void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString &LayoutName) {
 	QString f_separator = "";
-	QString languageFormat = "";
+	bool useEN_DecimalPoint = false;
 	QString fullName = ""; 
 
-	this->m_confParams->setDefaultConfigs(); 
+	this->m_confParams->resetParams(); 
+
+	//loadEntriesList(anySetting);
 
 	this->createSettingsName(fullName, LayoutName, this->m_regEntries->str_reg_startLine); 
 	this->m_confParams->startLine = anySetting.value(fullName, this->m_regEntries->str_reg_startLine).toLongLong();
@@ -505,9 +522,9 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 
 	//inputlang - decimalPoint
 	this->createSettingsName(fullName, LayoutName, this->m_regEntries->str_reg_languageFormat);
-	languageFormat = anySetting.value(fullName, this->m_regEntries->str_reg_languageFormat).toString();
+	useEN_DecimalPoint = anySetting.value(fullName, this->m_regEntries->str_reg_languageFormat).toBool();
 
-	if (languageFormat == "EN") {
+	if (useEN_DecimalPoint) {
 		this->m_confParams->csv_Inputlanguage = csvLang::EN; 
 	}
 	else {
@@ -515,6 +532,27 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 	}
 
 	
+}
+
+
+//loads entries with layout Name or list all entries under FeaturescoutCSV
+bool dlg_CSVInput::CheckFeatureInRegistry(QSettings & anySetting, const QString *LayoutName)
+{
+	QString Layout = "";
+	if (LayoutName) {
+		Layout = *LayoutName;
+		Layout += "/";
+
+	}
+
+	QString myName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + Layout;
+	anySetting.beginGroup(/*this->m_regEntries->*/myName);
+	QStringList groups = anySetting.childGroups();
+	
+	if (groups.isEmpty()) {
+		return false; 
+	}
+	else return true; 
 }
 
 //save single setting
@@ -527,6 +565,6 @@ void dlg_CSVInput::saveSettings(QSettings &anySetting, const QString &LayoutName
 
 void dlg_CSVInput::createSettingsName(QString &fullSettingsName, const QString & LayoutName, const QString & FeatureName)
 {
-	fullSettingsName = this->m_regEntries->str_settingsName + "/" + LayoutName + "/" + FeatureName;
+	fullSettingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName + "/" + FeatureName;
 }
 
