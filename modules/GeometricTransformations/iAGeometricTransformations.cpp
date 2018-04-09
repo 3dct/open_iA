@@ -46,7 +46,33 @@ namespace
 	const QString InterpWindowedSinc("Windowed Sinc");
 }
 
-template<class T> void resampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template <typename T>
+typename itk::Image<T, DIM>::Pointer SetIndexOffsetToZero(typename itk::Image<T, DIM>::Pointer inImg)
+{
+	// change output image index offset to zero
+	typedef itk::Image<T, DIM> ImageType;
+	typename ImageType::IndexType idx; idx.Fill(0);
+	typename ImageType::PointType origin; origin.Fill(0);
+	typename ImageType::RegionType outreg;
+	auto size = inImg->GetLargestPossibleRegion().GetSize();
+	outreg.SetIndex(idx);
+	outreg.SetSize(size);
+	auto refimage = ImageType::New();
+	refimage->SetRegions(outreg);
+	refimage->SetOrigin(origin);
+	refimage->SetSpacing(inImg->GetSpacing());
+	refimage->Allocate();
+	typedef itk::ChangeInformationImageFilter<ImageType> CIIFType;
+	auto changeFilter = CIIFType::New();
+	changeFilter->SetInput(inImg);
+	changeFilter->UseReferenceImageOn();
+	changeFilter->SetReferenceImage(refimage);
+	changeFilter->SetChangeRegion(true);
+	changeFilter->Update();
+	return changeFilter->GetOutput();
+}
+
+template<typename T> void resampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
@@ -148,7 +174,7 @@ QMap<QString, QVariant> iAResampleFilterRunner::LoadParameters(QSharedPointer<iA
 }
 
 
-template<class T>
+template<typename T>
 void extractImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM > InputImageType;
@@ -167,27 +193,7 @@ void extractImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	filter->Progress()->Observe(extractFilter);
 	extractFilter->Update();
 
-	//change the output image information - offset change to zero
-	typename OutputImageType::IndexType idx; idx.Fill(0);
-	typename OutputImageType::PointType origin; origin.Fill(0);
-	typename OutputImageType::SizeType outsize;
-	typename OutputImageType::RegionType outreg;
-	outreg.SetIndex(idx);
-	outreg.SetSize(size);
-	auto refimage = OutputImageType::New();
-	refimage->SetRegions(outreg);
-	refimage->SetOrigin(origin);
-	refimage->SetSpacing(extractFilter->GetOutput()->GetSpacing());
-	refimage->Allocate();
-
-	typedef itk::ChangeInformationImageFilter<OutputImageType> CIIFType;
-	auto changefilter = CIIFType::New();
-	changefilter->SetInput(extractFilter->GetOutput());
-	changefilter->UseReferenceImageOn();
-	changefilter->SetReferenceImage(refimage);
-	changefilter->SetChangeRegion(1);
-	changefilter->Update();
-	filter->AddOutput(changefilter->GetOutput());
+	filter->AddOutput(SetIndexOffsetToZero<T>(extractFilter->GetOutput()));
 }
 
 IAFILTER_CREATE(iAExtractImageFilter)
@@ -238,7 +244,7 @@ QMap<QString, QVariant> iAExtractImageFilterRunner::LoadParameters(QSharedPointe
 
 
 
-template<class T> void padImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<typename T> void padImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM > InputImageType;
 	typedef itk::ConstantPadImageFilter<InputImageType, InputImageType> PadType;
@@ -259,7 +265,8 @@ template<class T> void padImage(iAFilter* filter, QMap<QString, QVariant> const 
 	padFilter->SetConstant(parameters["Value"].toDouble());
 	filter->Progress()->Observe(padFilter);
 	padFilter->Update();
-	filter->AddOutput(padFilter->GetOutput());
+
+	filter->AddOutput(SetIndexOffsetToZero<T>(padFilter->GetOutput()));
 }
 
 IAFILTER_CREATE(iAPadImageFilter)
