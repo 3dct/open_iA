@@ -75,7 +75,6 @@ void dlg_CSVInput::showFormatComponents()
 	this->lbl_endLine->setVisible(true);
 	this->cb_applyEndLine->setEnabled(true);
 	this->cmb_box_separator->setEnabled(true);
-	this->cmb_box_FileFormat->setEnabled(false);
 	this->cb_fmtEnglish->setEnabled(true); 
 	this->btn_SaveLayout->setEnabled(true);
 	this->ed_endLIne->setEnabled(true);
@@ -87,14 +86,16 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	bool layoutAvaiable = false; 
 	if (LayoutName.isEmpty()) { return;}
 	QSettings mySettings; 
-	layoutAvaiable = CheckFeatureInRegistry(mySettings, &LayoutName);
+	QStringList feat_Groups; 
+	layoutAvaiable = CheckFeatureInRegistry(mySettings, &LayoutName,feat_Groups, true);
+	
 	if (!layoutAvaiable) {
 		QMessageBox::warning(this,tr("FeatureScoutCSV"), tr("Layout option not yet defined"));
 		return; 
 	}
 
 	this->loadEntriesFromRegistry(mySettings, LayoutName);
-	
+	showConfigParams(*this->m_confParams);
 }
 
 void dlg_CSVInput::LoadColsBtnClicked()
@@ -195,7 +196,8 @@ void dlg_CSVInput::initParameters(){
 
 	this->ed_CSVFormat_Name->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,255}"), this));
 	this->m_regEntries->initParam(); 
-	
+	LoadFormatEntriesOnStartUp(); 
+
 }
 
 void dlg_CSVInput::initBasicFormatParameters(csvLang Language, csvColSeparator FileSeparator, csvFormat FileFormat)
@@ -423,96 +425,41 @@ const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
 }
 
 
-void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, const QString &LayoutName ) {
-	QSettings settings;
-	
-	QString colSeparator =""; 
-	bool useEN_Decimals = false; 
-
-	if (this->m_regEntries) {
-		
-		switch (csv_params.file_seperator) {
-			
-			case(csvColSeparator::Colunm): colSeparator = "Column"; break;
-			
-			case(csvColSeparator::Comma): colSeparator = "Comma"; break; 
-			
-			default: colSeparator = "Column"; break; 
-		}
 
 
-		switch(csv_params.csv_Inputlanguage) {
 
-			case(csvLang::EN): useEN_Decimals = true; break;
-			
-			case(csvLang::GER): useEN_Decimals = false; break; 
-			
-			default: useEN_Decimals = true; 
-		
-		}
-
-
-		//settingvalues to variant
-		this->m_regEntries->v_colSeparator.setValue(colSeparator);
-		this->m_regEntries->v_startLine.setValue(csv_params.startLine); 
-		this->m_regEntries->v_useEndline.setValue(csv_params.useEndline); 
-		this->m_regEntries->v_endLine.setValue(csv_params.endLine); 
-		this->m_regEntries->v_languageFormat.setValue(useEN_Decimals);
-
-		//saveValue to Registry;
-
-		//colSeparator
-		this->saveSettings(settings,LayoutName, this->m_regEntries->str_reg_colSeparator, this->m_regEntries->v_colSeparator);
-		
-		//startLine
-		this->saveSettings(settings,LayoutName, this->m_regEntries->str_reg_startLine, this->m_regEntries->v_startLine);
-		//useEndline
-		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_useEndline, this->m_regEntries->v_useEndline);
-		
-		//EndLine
-		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_EndLine, this->m_regEntries->v_endLine);
-
-		//LanguageFormat
-		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_languageFormat, this->m_regEntries->v_languageFormat);
-
-		
-		//just for testing
-		loadEntriesFromRegistry(settings, LayoutName);
-	}
-	
-}
-
-
-//in order to load entries from registry
+//load entries from registry for a configuration setting
 void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString &LayoutName) {
 	QString f_separator = "";
 	bool useEN_DecimalPoint = false;
 	QString fullName = ""; 
-
 	this->m_confParams->resetParams(); 
 
-	//loadEntriesList(anySetting);
-
-	this->createSettingsName(fullName, LayoutName, this->m_regEntries->str_reg_startLine); 
-	this->m_confParams->startLine = anySetting.value(fullName, this->m_regEntries->str_reg_startLine).toLongLong();
+	QString  cnfgSettingsName;
+	cnfgSettingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
+	
+	anySetting.beginGroup(cnfgSettingsName);
+	QStringList allEntries = anySetting.allKeys();
+	
+	if (allEntries.isEmpty()) {
+		QMessageBox::warning(this, tr("Error"),
+			tr("Format not avaiable"));
+		return; 
+	}
+			
+	this->m_confParams->startLine = anySetting.value( this->m_regEntries->str_reg_startLine).toLongLong();
 
 	//useEndline
-	this->createSettingsName(fullName, LayoutName, this->m_regEntries->str_reg_useEndline);
-	this->m_confParams->useEndline = anySetting.value(fullName, this->m_regEntries->str_reg_useEndline).toBool();
+	this->m_confParams->useEndline = anySetting.value(this->m_regEntries->str_reg_useEndline).toBool();
 	
 	//endLine
-	this->createSettingsName(fullName, LayoutName, this->m_regEntries->str_reg_EndLine);
 	this->m_confParams->endLine = anySetting.value(fullName, this->m_regEntries->str_reg_EndLine).toLongLong(); 
 	
 	//file separator
-	this->createSettingsName(fullName, LayoutName, this->m_regEntries->str_reg_colSeparator);
-	f_separator = anySetting.value(fullName, this->m_regEntries->str_reg_colSeparator).toString();
-
+	f_separator = anySetting.value(this->m_regEntries->str_reg_colSeparator).toString();
 	if (f_separator.contains("Comma")) {
 		this->m_confParams->file_seperator = csvColSeparator::Comma;
-
-	}
-	else {
+	}else {
 		if (f_separator.contains("Column")) {
 			this->m_confParams->file_seperator = csvColSeparator::Colunm; 
 		}
@@ -521,9 +468,7 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 	}
 
 	//inputlang - decimalPoint
-	this->createSettingsName(fullName, LayoutName, this->m_regEntries->str_reg_languageFormat);
-	useEN_DecimalPoint = anySetting.value(fullName, this->m_regEntries->str_reg_languageFormat).toBool();
-
+	useEN_DecimalPoint = anySetting.value(this->m_regEntries->str_reg_languageFormat).toBool();
 	if (useEN_DecimalPoint) {
 		this->m_confParams->csv_Inputlanguage = csvLang::EN; 
 	}
@@ -531,40 +476,145 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 		this->m_confParams->csv_Inputlanguage = csvLang::GER;
 	}
 
+	//end settings
+	anySetting.endGroup(); 
 	
 }
 
+void dlg_CSVInput::LoadFormatEntriesOnStartUp(){
+	QSettings settings; 
+	
+	QString MaviOption = "MAVI";
+	QString DefaultOption = "Default";
+	QString open_iA_Option = "open_iA";
+	QString VolumeGraphicsOption = "VolumeGraphics";
+	QStringList OtherFormatEntries; 
+
+	this->cmb_box_FileFormat->addItem(MaviOption);
+	this->cmb_box_FileFormat->addItem(DefaultOption);
+	this->cmb_box_FileFormat->addItem(open_iA_Option);
+	this->cmb_box_FileFormat->addItem(VolumeGraphicsOption);
+	CheckFeatureInRegistry(settings, nullptr, OtherFormatEntries,false); 
+
+	if (!OtherFormatEntries.isEmpty()) {
+		this->cmb_box_FileFormat->addItems(OtherFormatEntries); 
+	}
+
+}
 
 //loads entries with layout Name or list all entries under FeaturescoutCSV
-bool dlg_CSVInput::CheckFeatureInRegistry(QSettings & anySetting, const QString *LayoutName)
+bool dlg_CSVInput::CheckFeatureInRegistry(QSettings & anySetting, const QString *LayoutName, QStringList &groups, bool useSubGroup)
 {
 	QString Layout = "";
+	QString subEntry = ""; 
+	
+
+	bool isValidEntry = false; 
+
 	if (LayoutName) {
 		Layout = *LayoutName;
 		Layout += "/";
 
 	}
 
-	QString myName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + Layout;
-	anySetting.beginGroup(/*this->m_regEntries->*/myName);
-	QStringList groups = anySetting.childGroups();
-	
-	if (groups.isEmpty()) {
-		return false; 
+	QString regName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + Layout;
+	anySetting.beginGroup(regName);
+	groups = anySetting.childGroups();
+	subEntry = anySetting.group(); 
+
+	if (useSubGroup) {
+		if (!subEntry.isEmpty())
+		{
+			isValidEntry = true; 
+		}
 	}
-	else return true; 
+	else {
+		if(!groups.isEmpty()){
+			isValidEntry = true;
+		}
+	
+	}
+	anySetting.endGroup(); 
+
+	return isValidEntry; 
+
+}
+
+void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, const QString &LayoutName) {
+	QSettings settings;
+
+	QString colSeparator = "";
+	bool useEN_Decimals = false;
+
+	if (this->m_regEntries) {
+
+		switch (csv_params.file_seperator) {
+
+		case(csvColSeparator::Colunm): colSeparator = "Column"; break;
+
+		case(csvColSeparator::Comma): colSeparator = "Comma"; break;
+
+		default: colSeparator = "Column"; break;
+		}
+
+
+		switch (csv_params.csv_Inputlanguage) {
+
+		case(csvLang::EN): useEN_Decimals = true; break;
+
+		case(csvLang::GER): useEN_Decimals = false; break;
+
+		default: useEN_Decimals = true;
+
+		}
+
+
+		//settingvalues to variant
+		this->m_regEntries->v_colSeparator.setValue(colSeparator);
+		this->m_regEntries->v_startLine.setValue(csv_params.startLine);
+		this->m_regEntries->v_useEndline.setValue(csv_params.useEndline);
+		this->m_regEntries->v_endLine.setValue(csv_params.endLine);
+		this->m_regEntries->v_languageFormat.setValue(useEN_Decimals);
+
+		//saveValue to Registry;
+
+		//colSeparator
+		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_colSeparator, this->m_regEntries->v_colSeparator);
+
+		//startLine
+		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_startLine, this->m_regEntries->v_startLine);
+		//useEndline
+		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_useEndline, this->m_regEntries->v_useEndline);
+
+		//EndLine
+		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_EndLine, this->m_regEntries->v_endLine);
+
+		//LanguageFormat
+		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_languageFormat, this->m_regEntries->v_languageFormat);
+
+
+		//just for testing
+		//loadEntriesFromRegistry(settings, LayoutName);
+	}
+
 }
 
 //save single setting
 void dlg_CSVInput::saveSettings(QSettings &anySetting, const QString &LayoutName, const QString &FeatureName, const QVariant &feat_value)
 {
 	QString fullSettingsName = "";
-	createSettingsName(fullSettingsName, LayoutName, FeatureName);
+	createSettingsName(fullSettingsName, LayoutName, FeatureName, true);
 	anySetting.setValue(fullSettingsName, feat_value); 
 }
 
-void dlg_CSVInput::createSettingsName(QString &fullSettingsName, const QString & LayoutName, const QString & FeatureName)
+void dlg_CSVInput::createSettingsName(QString &fullSettingsName, const QString & LayoutName, const QString & FeatureName, bool useSubGroup)
 {
-	fullSettingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName + "/" + FeatureName;
+	QString myFeature = ""; 
+
+	if (useSubGroup) {
+		myFeature = FeatureName; 
+
+	}
+	fullSettingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName + "/" + myFeature;
 }
 

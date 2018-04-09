@@ -1725,28 +1725,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="cmb_box_FileFormat">
-           <item>
-            <property name="text">
-             <string>Default</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>VolumeGraphics</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>MAVI</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>open_iA</string>
-            </property>
-           </item>
-          </widget>
+          <widget class="QComboBox" name="cmb_box_FileFormat"/>
          </item>
          <item>
           <widget class="QLabel" name="label_18">

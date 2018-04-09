@@ -103,7 +103,6 @@ private slots:
 	void showFormatComponents();
 
 	//load format based on selected input format (ex. mavi/ vg, ...) 
-	bool dlg_CSVInput::CheckFeatureInRegistry(QSettings & anySetting, const QString *LayoutName);
 	void LoadFormatSettings(const QString &LayoutName);
 
 	void LoadColsBtnClicked(); 
@@ -111,12 +110,17 @@ private slots:
 
 private: 
 
+	bool CheckFeatureInRegistry(QSettings & anySetting, const QString * LayoutName, QStringList & groups, bool useSubGroup);
+
 	void saveParamsToRegistry(csvConfig::configPararams & csv_params, const QString & LayoutName);
 	void loadEntriesFromRegistry(QSettings & anySetting, const QString & LayoutName);
+
+	//load initial settings
+	void LoadFormatEntriesOnStartUp();
 	
 	void saveSettings(QSettings & anySetting, const QString & LayoutName, const QString & FeatureName, const QVariant & feat_value);
 
-	void createSettingsName(QString &fullSettingsName, const QString & LayoutName, const QString & FeatureName);
+	void createSettingsName(QString &fullSettingsName, const QString & LayoutName, const QString & FeatureName, bool useSubGroup);
 
 	//pointer initialization
 	void initParameters();
