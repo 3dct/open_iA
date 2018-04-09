@@ -12,7 +12,7 @@ import os, re, sys
 if (len(sys.argv) != 6 ):
 	print("Invalid number of arguments")
 	print("Expected Syntax:")
-	print("  $ CreateTestConfiguration.py <SrcDir> <BranchName> <ConfigOutFolder> <ModuleDirs (separate multiple dirs by +)>")
+	print("  $ CreateTestConfiguration.py <SrcDir> <BranchName> <ConfigOutFolder> <ModuleDirs (separate multiple dirs by +)> <BuildEnvironmentName>")
 	sys.exit(1)
 
 SrcDir = sys.argv[1]

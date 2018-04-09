@@ -3,8 +3,6 @@ set TEST_BIN_DIR=%2
 set CONFIG_FILE=%3
 set VS_PATH=%4
 set CTEST_MODE=Nightly
-set BUILD_TYPE=Release
-set MSBUILD_OPTS=/t:clean /m
 if NOT [%5]==[] set CTEST_MODE=%5
 CALL :dequote VS_PATH
 
@@ -19,6 +17,10 @@ if NOT [%8]==[] set MAIN_SOLUTION=%8
 
 set MODULE_DIRS=%TEST_SRC_DIR%/modules
 if NOT [%9]==[] set MODULE_DIRS=%9
+
+:: other variables not changeable via parameters
+set BUILD_TYPE=Release
+set MSBUILD_OPTS=/t:clean /m
 
 python --version >NUL 2>NUL
 IF %ERRORLEVEL% NEQ 0 GOTO PythonNotFound
@@ -37,7 +39,7 @@ rem echo %GIT_BRANCH%
 :: git pull origin master
 
 :: Set up Visual Studio Environment for cleaning build
-:: amd64 is the target architectur (see http://msdn.microsoft.com/en-us/library/x4d2c09s%28v=vs.80%29.aspx)
+:: amd64 is the target architecture (see http://msdn.microsoft.com/en-us/library/x4d2c09s%28v=vs.80%29.aspx)
 echo %VS_PATH% | findstr /c:"2017" >nul
 if %ERRORLEVEL% EQU 0 goto VS2017
 call "%VS_PATH%\VC\vcvarsall.bat" amd64
