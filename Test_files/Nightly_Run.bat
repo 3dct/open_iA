@@ -79,7 +79,10 @@ ctest -D Experimental -C %BUILD_TYPE%
 
 :: iterate over module tests, run build&tests for each:
 FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
+	@echo(
+	@echo ================================================================================
 	@echo %%~nm
+	@echo ================================================================================
 	cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR% 2>&1
 	cmake -C %%m %TEST_SRC_DIR% 2>&1
 	MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
