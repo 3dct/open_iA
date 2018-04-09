@@ -154,7 +154,15 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams & params)
 {
 	this->ed_startLine->setText(QString("%1").arg(params.startLine));
 	this->cmb_box_separator->setCurrentIndex(0);
-	//this->ed_language->setText("EN");
+	this->ed_endLIne->setText(QString("%1").arg(params.endLine));
+	this->cb_applyEndLine->setChecked(params.useEndline);
+
+	if (this->m_confParams->csv_Inputlanguage == csvLang::EN) {
+		this->cb_fmtEnglish->setChecked(true); 
+	}
+	else (this->cb_fmtEnglish->setChecked(false)); 
+
+	
 	this->ed_Spacing->setText(QString("%1").arg(params.spacing));
 	this->ed_Units->setText(QString("1").arg(params.csv_units)); 
 }
@@ -433,13 +441,13 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 	QString f_separator = "";
 	bool useEN_DecimalPoint = false;
 	QString fullName = ""; 
-	this->m_confParams->resetParams(); 
-
 	QString  cnfgSettingsName;
+	QStringList allEntries;
+
+	this->m_confParams->resetParams(); 
 	cnfgSettingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
-	
 	anySetting.beginGroup(cnfgSettingsName);
-	QStringList allEntries = anySetting.allKeys();
+	allEntries = anySetting.allKeys();
 	
 	if (allEntries.isEmpty()) {
 		QMessageBox::warning(this, tr("Error"),
@@ -447,16 +455,11 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 		return; 
 	}
 			
-	this->m_confParams->startLine = anySetting.value( this->m_regEntries->str_reg_startLine).toLongLong();
-
-	//useEndline
-	this->m_confParams->useEndline = anySetting.value(this->m_regEntries->str_reg_useEndline).toBool();
+	this->m_confParams->startLine = anySetting.value( this->m_regEntries->str_reg_startLine).toLongLong(); //startLine
+	this->m_confParams->useEndline = anySetting.value(this->m_regEntries->str_reg_useEndline).toBool() +1; //useEndline
+	this->m_confParams->endLine = anySetting.value(this->m_regEntries->str_reg_EndLine).toLongLong(); //endLine
+	f_separator = anySetting.value(this->m_regEntries->str_reg_colSeparator).toString();//file separator
 	
-	//endLine
-	this->m_confParams->endLine = anySetting.value(fullName, this->m_regEntries->str_reg_EndLine).toLongLong(); 
-	
-	//file separator
-	f_separator = anySetting.value(this->m_regEntries->str_reg_colSeparator).toString();
 	if (f_separator.contains("Comma")) {
 		this->m_confParams->file_seperator = csvColSeparator::Comma;
 	}else {
@@ -467,8 +470,7 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 		//add more if neccessary
 	}
 
-	//inputlang - decimalPoint
-	useEN_DecimalPoint = anySetting.value(this->m_regEntries->str_reg_languageFormat).toBool();
+	useEN_DecimalPoint = anySetting.value(this->m_regEntries->str_reg_languageFormat).toBool();//inputlang - decimalPoint
 	if (useEN_DecimalPoint) {
 		this->m_confParams->csv_Inputlanguage = csvLang::EN; 
 	}
@@ -542,6 +544,7 @@ bool dlg_CSVInput::CheckFeatureInRegistry(QSettings & anySetting, const QString 
 
 void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, const QString &LayoutName) {
 	QSettings settings;
+	QString settingsName="";
 
 	QString colSeparator = "";
 	bool useEN_Decimals = false;
@@ -576,25 +579,15 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		this->m_regEntries->v_endLine.setValue(csv_params.endLine);
 		this->m_regEntries->v_languageFormat.setValue(useEN_Decimals);
 
-		//saveValue to Registry;
-
-		//colSeparator
-		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_colSeparator, this->m_regEntries->v_colSeparator);
-
-		//startLine
-		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_startLine, this->m_regEntries->v_startLine);
-		//useEndline
-		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_useEndline, this->m_regEntries->v_useEndline);
-
-		//EndLine
-		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_EndLine, this->m_regEntries->v_endLine);
-
-		//LanguageFormat
-		this->saveSettings(settings, LayoutName, this->m_regEntries->str_reg_languageFormat, this->m_regEntries->v_languageFormat);
-
-
-		//just for testing
-		//loadEntriesFromRegistry(settings, LayoutName);
+		//saveValues in registry;
+		settingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
+		settings.beginGroup(settingsName);
+		settings.setValue(this->m_regEntries->str_reg_colSeparator, this->m_regEntries->v_colSeparator); // colSeparator
+		settings.setValue(this->m_regEntries->str_reg_startLine, this->m_regEntries->v_startLine); //startLine
+		settings.setValue(this->m_regEntries->str_reg_useEndline, this->m_regEntries->v_useEndline);//useEndline
+		settings.setValue(this->m_regEntries->str_reg_EndLine, this->m_regEntries->v_endLine);//EndLine
+		settings.setValue(this->m_regEntries->str_reg_languageFormat, this->m_regEntries->v_languageFormat);//LanguageFormat
+		settings.endGroup(); 
 	}
 
 }
