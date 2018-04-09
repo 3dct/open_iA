@@ -69,7 +69,7 @@
 
 const double impInitValue = 0.025;
 const double offsetY = 1000;
-const int rangeSwitchValue = 500;
+const int rangeSwitchValue = 100;
 
 void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -177,9 +177,11 @@ void dlg_DynamicVolumeLines::setupScalingWidget()
 
 void  dlg_DynamicVolumeLines::checkHistVisMode(int lowerIdx, int upperIdx)
 {
-	if ((upperIdx - lowerIdx) < rangeSwitchValue)	// TODO: remove magic number
+	if ((upperIdx - lowerIdx) <= rangeSwitchValue && m_histVisMode)	// TODO: remove magic number; better strategy
 	{
 		m_histVisMode = false;
+		m_nonlinearScaledPlot->legend->setVisible(!m_histVisMode);
+		m_linearScaledPlot->legend->setVisible(!m_histVisMode);
 		m_scalingWidget->setHistVisMode(m_histVisMode);
 		for (int i = 0; i < m_nonlinearScaledPlot->itemCount(); ++i)
 		{
@@ -193,16 +195,16 @@ void  dlg_DynamicVolumeLines::checkHistVisMode(int lowerIdx, int upperIdx)
 		if (cb_showFbp->isChecked() && cb_fbpView->currentText() == "Alone")
 			return;
 		
-		m_selLegendItemList;
-
-		for (int i = 0; i < m_nonlinearScaledPlot->graphCount() - 5; ++i)	// no functional boxplots
-		{
-			m_nonlinearScaledPlot->graph(i)->setVisible(true);
-			m_linearScaledPlot->graph(i)->setVisible(true);
-		}
+		for (int i = 0; i < m_selLegendItemList.size(); ++i)
+			m_selLegendItemList[i]->plottable()->setVisible(true);
 	}
-	else if (!m_histVisMode)
+	else if ((upperIdx - lowerIdx) > rangeSwitchValue && !m_histVisMode)
 	{
+		//TODO: check FBPs (-5 weg?)
+		m_histVisMode = true;
+		m_nonlinearScaledPlot->legend->setVisible(!m_histVisMode);
+		m_linearScaledPlot->legend->setVisible(!m_histVisMode);
+		m_scalingWidget->setHistVisMode(m_histVisMode);
 		for (int i = 0; i < m_nonlinearScaledPlot->itemCount(); ++i)
 		{
 			if (m_nonlinearScaledPlot->item(i)->objectName() == "histRect")
@@ -216,8 +218,6 @@ void  dlg_DynamicVolumeLines::checkHistVisMode(int lowerIdx, int upperIdx)
 			m_nonlinearScaledPlot->graph(i)->setVisible(false);
 			m_linearScaledPlot->graph(i)->setVisible(false);
 		}
-		m_histVisMode = true;
-		m_scalingWidget->setHistVisMode(m_histVisMode);
 	}
 }
 
@@ -280,7 +280,10 @@ void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 
 	double linearLowerBinBoarder = lowerIdx + lowerDistToCurrPoint / lowerDistToNextPoint;
 	double linearUpperBinBoarder = upperIdx - 1 + upperDistToCurrPoint / upperDistToNextPoint;
+
+	m_linearScaledPlot->xAxis->blockSignals(true);
 	m_linearScaledPlot->xAxis->setRange(linearLowerBinBoarder, linearUpperBinBoarder);
+	m_linearScaledPlot->xAxis->blockSignals(false);
 
 	checkHistVisMode(lowerIdx, upperIdx);
 	
@@ -359,8 +362,12 @@ void dlg_DynamicVolumeLines::syncNonlinearXAxis(QCPRange linearXRange)
 		lowerDistToCurrPoint * lowerDistToNextPoint;
 	double newUpper = m_nonlinearMappingVec[floor(linearXRange.upper)] + 
 		upperDistToCurrPoint * upperDistToNextPoint;
+	
+	m_nonlinearScaledPlot->xAxis->blockSignals(true);
 	m_nonlinearScaledPlot->xAxis->setRange(newLower, newUpper);
+	m_nonlinearScaledPlot->xAxis->blockSignals(false);
 
+	checkHistVisMode(linearXRange.lower, linearXRange.upper);
 
 	if (!m_histVisMode)
 	{
@@ -374,7 +381,29 @@ void dlg_DynamicVolumeLines::syncNonlinearXAxis(QCPRange linearXRange)
 	}
 	else
 	{
-		// TODO: set range
+		double lowerBinBoarder = newLower / m_stepSize;
+		double lowerVisibleBinBoarder = ceil(lowerBinBoarder);
+		double lowerVisibleRest = lowerVisibleBinBoarder - lowerBinBoarder;
+		double upperBinBoarder = (newUpper /*- nonlinearXRange.lower*/) / m_stepSize;
+		double upperVisibleBinBoarder = floor(upperBinBoarder);
+		double upperVisibleRest = upperBinBoarder - upperVisibleBinBoarder;
+		double lowerLinearVisibleRest = m_linearHistBinBoarderVec[lowerVisibleBinBoarder - 1] - linearXRange.lower;
+		double upperLinearVisibleRest = linearXRange.upper - m_linearHistBinBoarderVec[upperVisibleBinBoarder - 1];
+		m_scalingWidget->setOverviewRange(lowerVisibleBinBoarder,
+			upperVisibleBinBoarder, lowerVisibleRest, upperVisibleRest, lowerLinearVisibleRest,
+			upperLinearVisibleRest, m_histBinImpFunctAvgVec, m_linearHistBinBoarderVec);
+
+		//double lowerBinBoarder = nonlinearXRange.lower / m_stepSize;
+		//double lowerVisibleBinBoarder = ceil(lowerBinBoarder);
+		//double lowerVisibleRest = lowerVisibleBinBoarder - lowerBinBoarder;
+		//double upperBinBoarder = (nonlinearXRange.upper /*- nonlinearXRange.lower*/) / m_stepSize;
+		//double upperVisibleBinBoarder = floor(upperBinBoarder);
+		//double upperVisibleRest = upperBinBoarder - upperVisibleBinBoarder;
+		//double lowerLinearVisibleRest = m_linearHistBinBoarderVec[lowerVisibleBinBoarder - 1] - linearLowerBinBoarder;
+		//double upperLinearVisibleRest = linearUpperBinBoarder - m_linearHistBinBoarderVec[upperVisibleBinBoarder - 1];
+		//m_scalingWidget->setOverviewRange(lowerVisibleBinBoarder,
+		//	upperVisibleBinBoarder, lowerVisibleRest, upperVisibleRest, lowerLinearVisibleRest,
+		//	upperLinearVisibleRest, m_histBinImpFunctAvgVec, m_linearHistBinBoarderVec);
 	}
 	m_scalingWidget->update();
 }
@@ -429,7 +458,7 @@ void dlg_DynamicVolumeLines::setupLinearScaledPlot()
 	m_linearScaledPlot->setInteractions(QCP::iRangeDrag | 
 		QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_linearScaledPlot->setMultiSelectModifier(Qt::ShiftModifier);
-	m_linearScaledPlot->legend->setVisible(true);
+	m_linearScaledPlot->legend->setVisible(false);
 	m_linearScaledPlot->legend->setFont(QFont("Helvetica", 9));
 	m_linearScaledPlot->legend->setRowSpacing(0);
 	//m_linearScaledPlot->legend->setWrap(5);
@@ -479,7 +508,7 @@ void dlg_DynamicVolumeLines::setupNonlinearScaledPlot()
 	m_nonlinearScaledPlot->setInteractions(QCP::iRangeDrag | 
 		QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_nonlinearScaledPlot->setMultiSelectModifier(Qt::ShiftModifier);
-	m_nonlinearScaledPlot->legend->setVisible(true);
+	m_nonlinearScaledPlot->legend->setVisible(false);
 	m_nonlinearScaledPlot->legend->setFont(QFont("Helvetica", 9));
 	m_nonlinearScaledPlot->legend->setRowSpacing(0);
 	//m_nonlinearScaledPlot->legend->setWrap(5);
@@ -763,6 +792,12 @@ void dlg_DynamicVolumeLines::visualize()
 	m_nonlinearIdxLine->setClipToAxisRect(true);
 
 	showBkgrdThrRanges();
+
+	for (int i = 0; i < m_nonlinearScaledPlot->legend->itemCount(); ++i)	// no functional boxplots
+	{
+		m_selLegendItemList.append(m_nonlinearScaledPlot->legend->itemWithPlottable(m_nonlinearScaledPlot->graph(i)));
+		m_selLegendItemList.append(m_linearScaledPlot->legend->itemWithPlottable(m_linearScaledPlot->graph(i)));
+	}
 	//showCompressionLevel();
 
 	/*m_debugPlot->rescaleAxes();
@@ -1575,6 +1610,7 @@ void dlg_DynamicVolumeLines::legendClick(QCPLegend* legendU,
 			legendUItem);
 		QCPPlottableLegendItem *ptliP = qobject_cast<QCPPlottableLegendItem*>(
 			plotP->legend->item(legendPItemIdx));
+		
 		if (!m_selLegendItemList.contains(ptliU))
 		{
 			updateLegendAndGraphVisibility(ptliU, plotP, legendPItemIdx, 1.0, true);
@@ -1586,6 +1622,7 @@ void dlg_DynamicVolumeLines::legendClick(QCPLegend* legendU,
 			m_selLegendItemList.removeOne(ptliU);
 			m_selLegendItemList.removeOne(ptliP);
 		}
+		
 		for (int i = 0; i < legendU->itemCount(); ++i)
 		{
 			QCPPlottableLegendItem *ptli = qobject_cast<QCPPlottableLegendItem*>(
@@ -1598,11 +1635,16 @@ void dlg_DynamicVolumeLines::legendClick(QCPLegend* legendU,
 		!cb_showFbp->isChecked() && m_selLegendItemList.size() > 0)
 	{
 		m_selLegendItemList.clear();
+		
 		for (int i = 0; i < legendU->itemCount(); ++i)
 		{
-			QCPPlottableLegendItem *ptli = qobject_cast<QCPPlottableLegendItem*>(
+			QCPPlottableLegendItem *ptliU = qobject_cast<QCPPlottableLegendItem*>(
 				legendU->item(i));
-			updateLegendAndGraphVisibility(ptli, plotP, i, 1.0, true);
+			QCPPlottableLegendItem *ptliP = qobject_cast<QCPPlottableLegendItem*>(
+				plotP->legend->item(i));
+			updateLegendAndGraphVisibility(ptliU, plotP, i, 1.0, true);
+			m_selLegendItemList.append(ptliU);
+			m_selLegendItemList.append(ptliP);
 		}
 	}
 	m_nonlinearScaledPlot->replot();

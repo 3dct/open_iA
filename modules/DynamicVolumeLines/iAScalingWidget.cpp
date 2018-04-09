@@ -248,8 +248,8 @@ void iAScalingWidget::paintGL()
 	else
 	{
 		double linearBarStartPosX = 0, nonlinearBarStartPosX = 0, nonlinearBarWidth, linearBarWidth;
-		double test1 = m_nonlinearAxis->axisRect()->width();	//debug
-		double test2 = m_linearAxis->range().size();	//debug
+		//double test1 = m_nonlinearAxis->axisRect()->width();	//debug
+		//double test2 = m_linearAxis->range().size();	//debug
 		//int cnt = 0; //debug
 		double linearScalingFactor = m_nonlinearAxis->axisRect()->width() / m_linearAxis->range().size();
 		double nonlinearVisibleDblWidth = (m_nonlinearUpperIdx - m_nonlinearLowerIdx + m_nonlinearLowerRest + m_nonlinearUpperRest);
@@ -280,11 +280,11 @@ void iAScalingWidget::paintGL()
 				//painter.setRenderHint(QPainter::Antialiasing, false);
 				m_lut->GetColor(m_histBinImpFunctAvgVec[histBinNbr], rgb);
 				c.setRgbF(rgb[0], rgb[1], rgb[2]);
-				painter.setBrush(QBrush(c));
-				//painter.setBrush(Qt::NoBrush);
+				//painter.setBrush(QBrush(c));
+				painter.setBrush(Qt::NoBrush);
 				
-				painter.setPen(QPen(c));
-				//painter.setPen(QPen(QColor(0, 0, 0)));
+				//painter.setPen(QPen(c));
+				painter.setPen(QPen(QColor(0, 0, 0)));
 				painter.drawRect(leftOffset + nonlinearBarStartPosX, nonlinearBarStartPosY,
 					nonlinearBarWidth, nonlinearBarHeight);
 				//painter.setRenderHint(QPainter::Antialiasing, true);
@@ -299,8 +299,8 @@ void iAScalingWidget::paintGL()
 				gradient.setColorAt(0.0, c);
 				gradient.setColorAt(1.0, linearBarColor);
 				painter.setBrush(gradient);
-				painter.setPen(Qt::NoPen);
-				//painter.setPen(QPen(QColor(0, 0, 0)));
+				//painter.setPen(Qt::NoPen);
+				painter.setPen(QPen(QColor(0, 0, 0)));
 
 				QPainterPath path;
 				path.moveTo(QPoint(leftOffset + m_prevNonlinearBarStartPosX,
