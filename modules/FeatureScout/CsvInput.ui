@@ -9,15 +9,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>893</width>
+    <width>1013</width>
     <height>1199</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>FeatureScout data selection</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
-   <item row="0" column="0">
+   <item row="1" column="0">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="minimumSize">
       <size>
@@ -28,30 +28,11 @@
      <property name="title">
       <string>Format</string>
      </property>
-     <widget class="QCheckBox" name="cb_fmtEnglish">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>140</y>
-        <width>141</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>ENGLISCH_FORMAT</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
      <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>690</x>
-        <y>690</y>
+        <y>920</y>
         <width>158</width>
         <height>77</height>
        </rect>
@@ -78,14 +59,14 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>30</x>
+        <x>0</x>
         <y>680</y>
-        <width>381</width>
-        <height>421</height>
+        <width>161</width>
+        <height>451</height>
        </rect>
       </property>
       <property name="title">
-       <string>Load Columns</string>
+       <string> Column selection</string>
       </property>
       <widget class="QListWidget" name="textControl_list">
        <property name="enabled">
@@ -96,24 +77,11 @@
          <x>10</x>
          <y>21</y>
          <width>151</width>
-         <height>391</height>
+         <height>421</height>
         </rect>
        </property>
        <property name="selectionMode">
         <enum>QAbstractItemView::ContiguousSelection</enum>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="btn_loadCols">
-       <property name="geometry">
-        <rect>
-         <x>190</x>
-         <y>20</y>
-         <width>75</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Apply</string>
        </property>
       </widget>
      </widget>
@@ -138,7 +106,7 @@
          <x>240</x>
          <y>10</y>
          <width>221</width>
-         <height>191</height>
+         <height>201</height>
         </rect>
        </property>
        <property name="title">
@@ -148,7 +116,7 @@
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>10</y>
+          <y>20</y>
           <width>196</width>
           <height>175</height>
          </rect>
@@ -291,14 +259,14 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>120</x>
-         <y>120</y>
+         <x>0</x>
+         <y>110</y>
          <width>101</width>
          <height>17</height>
         </rect>
        </property>
        <property name="text">
-        <string>Apply Endline</string>
+        <string>Skip Endline</string>
        </property>
       </widget>
       <widget class="QWidget" name="">
@@ -1616,7 +1584,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>150</y>
+         <y>170</y>
          <width>178</width>
          <height>48</height>
         </rect>
@@ -1662,7 +1630,7 @@
      <widget class="QWidget" name="verticalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>30</x>
+        <x>10</x>
         <y>330</y>
         <width>821</width>
         <height>321</height>
@@ -1670,34 +1638,11 @@
       </property>
       <layout class="QVBoxLayout" name="myLayout"/>
      </widget>
-     <widget class="QLineEdit" name="ed_CSVFormat_Name">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>40</y>
-        <width>111</width>
-        <height>20</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="llb_FormatName">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>20</y>
-        <width>87</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>LayoutName</string>
-      </property>
-     </widget>
      <widget class="QWidget" name="">
       <property name="geometry">
        <rect>
-        <x>730</x>
-        <y>220</y>
+        <x>880</x>
+        <y>30</y>
         <width>103</width>
         <height>83</height>
        </rect>
@@ -1709,7 +1654,7 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>LoadFormat</string>
+          <string>ImportFormat...</string>
          </property>
         </widget>
        </item>
@@ -1735,133 +1680,127 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>ExportXML</string>
+          <string>ExportLayout</string>
          </property>
         </widget>
        </item>
       </layout>
      </widget>
-     <widget class="QLabel" name="label_19">
+     <widget class="QPushButton" name="btn_loadCols">
       <property name="geometry">
        <rect>
-        <x>240</x>
-        <y>80</y>
-        <width>87</width>
-        <height>16</height>
+        <x>210</x>
+        <y>710</y>
+        <width>121</width>
+        <height>61</height>
        </rect>
       </property>
       <property name="text">
-       <string>Column-Separator</string>
+       <string>ApplyColumnSelection</string>
       </property>
-     </widget>
-     <widget class="QComboBox" name="cmb_box_separator">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>100</y>
-        <width>111</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <item>
-       <property name="text">
-        <string>COMMA (,)</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>COLUMN (;)</string>
-       </property>
-      </item>
      </widget>
      <widget class="QWidget" name="">
       <property name="geometry">
        <rect>
-        <x>11</x>
-        <y>22</y>
+        <x>12</x>
+        <y>25</y>
         <width>135</width>
-        <height>170</height>
+        <height>178</height>
        </rect>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
+      <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <layout class="QFormLayout" name="formLayout_5">
-         <item row="0" column="0">
-          <layout class="QFormLayout" name="formLayout_3">
-           <item row="0" column="0">
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>CSV-Data format</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QComboBox" name="cmb_box_FileFormat">
-             <item>
-              <property name="text">
-               <string>Default</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>VolumeGraphics</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>MAVI</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>open_iA</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-          </layout>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="minimumSize">
+            <size>
+             <width>81</width>
+             <height>16</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>CSV-Data format</string>
+           </property>
+          </widget>
          </item>
-         <item row="1" column="0">
-          <layout class="QFormLayout" name="formLayout_4">
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_18">
-             <property name="text">
-              <string>Data Input-Type</string>
-             </property>
-            </widget>
+         <item>
+          <widget class="QComboBox" name="cmb_box_FileFormat">
+           <item>
+            <property name="text">
+             <string>Default</string>
+            </property>
            </item>
-           <item row="1" column="0">
-            <widget class="QComboBox" name="comboBox">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>101</width>
-               <height>0</height>
-              </size>
-             </property>
-             <item>
-              <property name="text">
-               <string>Fiber</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Pores</string>
-              </property>
-             </item>
-            </widget>
+           <item>
+            <property name="text">
+             <string>VolumeGraphics</string>
+            </property>
            </item>
-          </layout>
+           <item>
+            <property name="text">
+             <string>MAVI</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>open_iA</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_18">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>16</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Data Input-Type</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBox">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>131</width>
+             <height>20</height>
+            </size>
+           </property>
+           <item>
+            <property name="text">
+             <string>Fiber</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Pores</string>
+            </property>
+           </item>
+          </widget>
          </item>
         </layout>
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>70</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
          <item>
           <widget class="QPushButton" name="btn_CustomFormat">
            <property name="enabled">
@@ -1886,6 +1825,75 @@
           </widget>
          </item>
         </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>20</y>
+        <width>135</width>
+        <height>112</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QLabel" name="llb_FormatName">
+         <property name="text">
+          <string>LayoutName</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="ed_CSVFormat_Name">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_19">
+         <property name="minimumSize">
+          <size>
+           <width>87</width>
+           <height>16</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Column-Separator</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cmb_box_separator">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <item>
+          <property name="text">
+           <string>COMMA (,)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>COLUMN (;)</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cb_fmtEnglish">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>ENGLISCH_FORMAT</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

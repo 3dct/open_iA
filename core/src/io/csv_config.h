@@ -27,15 +27,30 @@ namespace csvConfig {
 			colCount = 31;
 			useEndline = false; 
 			endLine = 0;
+			setDefaultConfigs();
+		}
+
+		void setDefaultConfigs()
+		{
 			file_seperator = csvSeparator::Colunm;
-			csv_Inputlanguage = inputLang::EN; 
-			spacing = 0.0f; 
+			csv_Inputlanguage = inputLang::EN;
+			spacing = 0.0f;
 			file_fmt = csv_FileFormat::Default;
 			file_decimalPoint = decimalPoint::Dot;
 			csv_units = "microns";
-			paramsValid = true; 
-			inputObjectType = CTInputObjectType::Voids; 
-			tableWidth = 0; 
+			paramsValid = true;
+			inputObjectType = CTInputObjectType::Voids;
+			tableWidth = 0;
+		}
+
+
+		void resetParams() {
+			startLine = 0;
+			headerStartLine = 0;
+			colCount = 0;
+			useEndline = false;
+			endLine = 0;
+			setDefaultConfigs(); 
 		}
 
 		QString fileName;
