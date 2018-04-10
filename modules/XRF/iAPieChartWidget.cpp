@@ -18,13 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "pch.h"
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
 #include "iAPieChartWidget.h"
+
+#include <vtkMath.h>
 
 #include <QPainter>
 
@@ -74,7 +72,7 @@ void iAPieChartWidget::paintEvent(QPaintEvent * e)
 	for (QVector<iAPiePiece>::const_iterator it = m_pieces.begin();
 		it != m_pieces.end(); ++it)
 	{
-		double alpha = M_PI * (curStartAngle + it->percentage*1.8) / 180;
+		double alpha = vtkMath::Pi() * (curStartAngle + it->percentage*1.8) / 180;
 		int xSign = 1;
 		int ySign = -1;
 		if (alpha >= 90 && alpha < 180)

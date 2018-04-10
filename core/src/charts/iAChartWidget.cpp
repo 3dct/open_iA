@@ -20,14 +20,13 @@
 * ************************************************************************************/
 #include "pch.h"
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
 #include "iAChartWidget.h"
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
 #include "iAPlot.h"
 #include "iAStringHelper.h"
+
+#include <vtkMath.h>
 
 #include <QAction>
 #include <QFileDialog>
@@ -307,7 +306,7 @@ namespace
 
 	double deg2rad(double const & number)
 	{
-		return number * M_PI / 180;
+		return number * vtkMath::Pi() / 180;
 	}
 
 	int markerPos(int step, int stepCount, int width, int offset)

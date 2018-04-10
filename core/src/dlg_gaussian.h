@@ -27,8 +27,6 @@
 
 class open_iA_Core_API dlg_gaussian : public dlg_function
 {
-	static double PI;
-
 	QColor color;
 
 	int    selectedPoint;

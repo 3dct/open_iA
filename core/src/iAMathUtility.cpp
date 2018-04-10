@@ -20,11 +20,13 @@
 * ************************************************************************************/
 #include "iAMathUtility.h"
 
+#include <vtkMath.h>
+
 #include <algorithm>
 
 double gaussian(double x, double sigma)
 {
-	return 1 / std::sqrt(2 * Pi*std::pow(sigma, 2.0)) *
+	return 1 / std::sqrt(2 * vtkMath::Pi()*std::pow(sigma, 2.0)) *
 		std::exp(-std::pow(x, 2.0) / (2 * std::pow(sigma, 2.0)));
 }
 

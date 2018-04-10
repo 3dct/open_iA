@@ -39,10 +39,6 @@
 	#define isInf(x) isinf(x)
 #endif
 
-// define Pi, as an alternative to the not always available M_PI
-const double Pi = 3.14159265358979323846;
-const double PiHalf = Pi / 2;
-
 /**
  * make sure the given value is inside the given interval
  * @param min the minimum value which should be returned

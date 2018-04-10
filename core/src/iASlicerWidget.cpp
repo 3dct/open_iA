@@ -45,6 +45,7 @@
 #include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageResample.h>
+#include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPointPicker.h>
 #include <vtkPoints.h>
@@ -1029,8 +1030,8 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 	double fixRadiusY;
 	for (int fix = p_target->GetNumberOfPoints() - 8 - 8 - 8; fix < p_target->GetNumberOfPoints() - 8 - 8; fix++)
 	{
-			fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-			fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
+			fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
+			fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
 
 		switch (mode)
 		{
@@ -1054,8 +1055,8 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 	fixPoints = 8;
 	for (int fix = p_target->GetNumberOfPoints() - 8 - 8; fix < p_target->GetNumberOfPoints() - 8; fix++)
 	{
-			fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-			fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
+			fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
+			fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
 		
 		switch (mode)
 		{
@@ -1079,11 +1080,11 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 	int pointsCount = 8;
 	for (int i = p_target->GetNumberOfPoints() - pointsCount; i < p_target->GetNumberOfPoints(); ++i)
 	{
-		double xCoordCircle1 = (innerLensRadius) * std::cos(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
-		double yCoordCircle1 = (innerLensRadius) * std::sin(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
+		double xCoordCircle1 = (innerLensRadius) * std::cos(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
+		double yCoordCircle1 = (innerLensRadius) * std::sin(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
 
-		double xCoordCircle2 = (lensRadius) * std::cos(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
-		double yCoordCircle2 = (lensRadius) * std::sin(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
+		double xCoordCircle2 = (lensRadius) * std::cos(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
+		double yCoordCircle2 = (lensRadius) * std::sin(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
 
 		switch (mode)
 		{

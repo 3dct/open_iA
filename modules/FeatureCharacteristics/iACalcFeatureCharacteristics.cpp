@@ -21,10 +21,8 @@
 #include "pch.h"
 #include "iACalcFeatureCharacteristics.h"
 
-
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
-#include "iAMathUtility.h"    // for Pi
 #include "iATypedCallHelper.h"
 #include "iAProgress.h"
 
@@ -32,6 +30,7 @@
 #include <itkLabelGeometryImageFilter.h>
 
 #include <vtkImageData.h>
+#include <vtkMath.h>
 
 #include <QLocale>
 
@@ -177,8 +176,8 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 		a13 = cos( phi )*sin( theta )*cos( theta );
 		a23 = sin( phi )*sin( theta )*cos( theta );
 
-		phi = ( phi*180.0f ) / Pi;
-		theta = ( theta*180.0f ) / Pi;
+		phi = ( phi*180.0f ) / vtkMath::Pi();
+		theta = ( theta*180.0f ) / vtkMath::Pi();
 
 		// Locating the phi value to quadrant
 		if ( dx < 0 )
@@ -264,8 +263,6 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics( QString fn,
 	m_calculateFeretDiameter(calculateFeretDiameter),
 	m_mdiChild(parent)
 {}
-
-#include "iAProgress.h"
 
 void iACalcFeatureCharacteristics::performWork()
 {

@@ -1959,8 +1959,8 @@ void MdiChild::updateReslicer(double point[3], double normal[3], int mode)
 	rotation_matrix->DeepCopy(r_matrix);
 
 	//rotation in Z axis by 180 degree
-	double cos_theta_z = cos(3.14159);
-	double sin_theta_z = sin(3.14159);
+	double cos_theta_z = cos(vtkMath::Pi());
+	double sin_theta_z = sin(vtkMath::Pi());
 	double r_matrix_z[16] = {	cos_theta_z, -sin_theta_z, 0, 0,
 		sin_theta_z,  cos_theta_z, 0, 0,
 		0, 0, 1, 0,

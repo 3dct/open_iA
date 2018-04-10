@@ -21,7 +21,6 @@
  
 #include "pch.h"
 #include "iACalculatePoreProperties.h"
-#include "iAMathUtility.h"    // for Pi
 
 #include "iACSVToQTableWidgetConverter.h"
 #include "io/iAITKIO.h"
@@ -31,6 +30,8 @@
 #include <itkLabelGeometryImageFilter.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkConnectedComponentImageFilter.h>
+
+#include <vtkMath.h>
 #include <vtkIOStream.h>
 
 #include <QFileDialog>
@@ -274,8 +275,8 @@ void iACalculatePorePropertiesThread::run()
 				a13 = cos( phi )*sin( theta )*cos( theta );
 				a23 = sin( phi )*sin( theta )*cos( theta );
 
-				phi = ( phi*180.0f ) / Pi;
-				theta = ( theta*180.0f ) / Pi;
+				phi = ( phi*180.0f ) / vtkMath::Pi();
+				theta = ( theta*180.0f ) / vtkMath::Pi();
 
 				// Locating the phi value to quadrant
 				if ( dx < 0 )

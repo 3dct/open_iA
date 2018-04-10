@@ -22,7 +22,6 @@
 
 #include "iAMapper.h"
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 class iALinearMapper : public iAMapper

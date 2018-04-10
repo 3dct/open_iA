@@ -21,11 +21,11 @@
 #include "iACsvIO.h"
 
 #include "iAConsole.h"
-#include "iAMathUtility.h"    // for Pi
 
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
 #include <vtkIntArray.h>
+#include <vtkMath.h>
 #include <vtkTable.h>
 
 #include <QFile>
@@ -126,8 +126,8 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 			a13 = cos(phi)*sin(theta)*cos(theta);
 			a23 = sin(phi)*sin(theta)*cos(theta);
 
-			phi = (phi*180.0f) / Pi;
-			theta = (theta*180.0f) / Pi; // finish calculation
+			phi = (phi*180.0f) / vtkMath::Pi();
+			theta = (theta*180.0f) / vtkMath::Pi(); // finish calculation
 										   // locat the phi value to quadrant
 			if (dx<0)
 			{

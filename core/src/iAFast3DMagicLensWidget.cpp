@@ -22,22 +22,22 @@
 #include "pch.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAConsole.h"
-#include "iAMathUtility.h"    // for Pi
 
 // vtk
 #include <QVTKInteractor.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkRendererCollection.h>
-#include <vtkCamera.h>
-#include <vtkRenderer.h>
-#include <vtkPoints.h>
-#include <vtkPolyLine.h>
-#include <vtkCellArray.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper2D.h>
 #include <vtkActor2D.h>
 #include <vtkActor2DCollection.h>
+#include <vtkCamera.h>
+#include <vtkCellArray.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkMath.h>
+#include <vtkPoints.h>
+#include <vtkPolyLine.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper2D.h>
 #include <vtkProperty2D.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
 
 #include <QMouseEvent>
 
@@ -106,7 +106,7 @@ void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 
 inline double iAFast3DMagicLensWidget::calculateZ( double viewAngle )
 {
-	return -1. / std::tan( viewAngle * Pi / 180. );
+	return -1. / std::tan( viewAngle * vtkMath::Pi() / 180. );
 }
 
 void iAFast3DMagicLensWidget::mouseReleaseEvent( QMouseEvent * event )
