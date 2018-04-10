@@ -47,7 +47,7 @@ namespace csvConfig {
 		void resetParams() {
 			startLine = 0;
 			headerStartLine = 0;
-			colCount = 0;
+			colCount = 31;
 			useEndline = false;
 			endLine = 0;
 			setDefaultConfigs(); 

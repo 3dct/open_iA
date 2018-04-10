@@ -1791,7 +1791,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_loadCSV">
+          <widget class="QPushButton" name="btn_PreviewData">
            <property name="minimumSize">
             <size>
              <width>131</width>

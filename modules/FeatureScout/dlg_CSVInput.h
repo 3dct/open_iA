@@ -95,8 +95,7 @@ public:
 
 	
 private slots: 
-	void LoadFileBtnClicked(); 
-
+	void LoadDataPreviewClicked(); 
 
 	//TODO TBD
 	void ImportRegSettings();
@@ -160,7 +159,7 @@ private:
 	QString m_Error_Parameter; 
 	csvConfig::csv_FileFormat m_csvFileFormat;
 	csvTable_ptr m_entriesPreviewTable = nullptr; 
-	csvTable_ptr m_DataTableSelected = nullptr; 
+	//csvTable_ptr m_DataTableSelected = nullptr; 
 	cvsRegSettings_ShrdPtr m_regEntries = nullptr;
 
 	bool isFileNameValid = false; 

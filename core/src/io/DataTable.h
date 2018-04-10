@@ -43,7 +43,9 @@ namespace  DataIO{
 
 		void prepareTable(const int rowCount, const int colCount, const int headerLineNr);
 
-		void clearTable(); 
+		void clearTable();
+		void resetIndizes();
+
 
 		inline void showTable() {
 			this->show();
@@ -73,6 +75,8 @@ namespace  DataIO{
 		uint m_currHeaderLineNr; 
 		bool isInitialized;
 		bool isDataFilled;
+
+		int m_colCount;
 
 		//insert auto row ID
 		bool insertROW_ID;

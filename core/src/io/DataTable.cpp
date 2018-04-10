@@ -26,6 +26,9 @@ namespace DataIO {
 		this->m_autoRID = 0;
 		this->m_rowID = "AUTO_ID";
 		this->insertROW_ID = false; 
+
+		//minimum to values to show
+		this->m_colCount = 31; 
 	}
 
 
@@ -77,10 +80,16 @@ namespace DataIO {
 		if (isDataFilled) {
 			this->clear();
 			this->model()->removeRows(0, this->rowCount());
-			this->m_rowInd = 0; 
+			resetIndizes();
 			isDataFilled = false; 
 		} 
 		
+	}
+
+	void DataTable::resetIndizes()
+	{
+		this->m_rowInd = 0;
+		this->m_colInd = 0;
 	}
 
 	//adding file entry to table + first column is auto id; 
@@ -129,7 +138,7 @@ namespace DataIO {
 			colCount++; 
 		}
 	
-		this->prepareTable(rowCount, colCount, headerNr );
+		//this->prepareTable(rowCount, colCount, headerNr );
 		int startRow = -1; 
 		int headerLine = (uint) this->m_currHeaderLineNr -1;
 		QString el_line; 
@@ -183,7 +192,14 @@ namespace DataIO {
 		el_line = file.readLine();
 		if (readHeaders) {
 			if (!el_line.isEmpty()) {
+				
 				*this->m_headerEntries = el_line.split(m_FileSeperator);
+				
+				//resize table
+				if(this->m_headerEntries->length() > this->m_colCount){
+					this->setColumnCount(this->m_headerEntries->length()); 
+				}
+
 				if (insertID) {
 					//insert autoID header; 
 					this->m_headerEntries->insert(this->m_headerEntries->begin(), this->m_rowID);

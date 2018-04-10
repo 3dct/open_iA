@@ -12,7 +12,6 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	this->m_confParams = QSharedPointer<csvConfig::configPararams>(new csvConfig::configPararams());
 	
 	disableFormatComponents();
-	//hideCoordinateInputs();
 	connectSignals();
 
 }
@@ -42,15 +41,13 @@ void dlg_CSVInput::disableFormatComponents()
 
 dlg_CSVInput::~dlg_CSVInput()
 {
-	if (this->m_DataTableSelected) {
-		delete this->m_DataTableSelected;
-		this->m_DataTableSelected = nullptr;
-	}
+
 }
 
 void dlg_CSVInput::connectSignals()
 {
-	connect(btn_loadCSV, SIGNAL(clicked()), this, SLOT(LoadFileBtnClicked()));
+	
+	connect(btn_PreviewData, SIGNAL(clicked()), this, SLOT(LoadDataPreviewClicked()));
 	//connect(btn_LoadConfig, SIGNAL(clicked()), this, SLOT(LoadFormatBtnClicked()));
 	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked()));
 	connect(btn_loadCols, SIGNAL(clicked()), this, SLOT(LoadColsBtnClicked()));
@@ -130,19 +127,21 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 
 }
 
-void dlg_CSVInput::LoadFileBtnClicked()
+void dlg_CSVInput::LoadDataPreviewClicked()
 {
 	
 	this->assignFileFormat(); 
 	this->assignSeparator();
 	this->AssignFormatLanguage(); 
 	
-	if (this->useCustomformat) {
+	if (this->useCustomformat | m_formatSelected) {
 		this->assignStartEndLine(); 
+		this->m_entriesPreviewTable->resetIndizes(); 
 	}
 
 	this->loadFilePreview(15); 
 	this->showConfigParams(*this->m_confParams);
+	this->m_formatSelected = false; 
 }
 
 void dlg_CSVInput::AssignFormatLanguage() {
@@ -201,9 +200,6 @@ void dlg_CSVInput::initParameters(){
 		this->m_currentHeaders = QSharedPointer<QStringList>(new QStringList()); 
 	}
 
-	if (!this->m_DataTableSelected) {
-		this->m_DataTableSelected = new dataTable();
-	}
 
 	if (!this->m_selHeaders) {
 		this->m_selHeaders = QSharedPointer < QStringList>(new QStringList());
@@ -379,6 +375,7 @@ bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPre
 	if (isFilledWithData) { this->m_entriesPreviewTable->clearTable(); }
 	
 	dataLoaded = this->m_entriesPreviewTable->readTableEntries(fileName, nrPreviewElements, this->m_confParams->colCount,this->m_confParams->headerStartLine, &startElLine, true, false); 
+	this->m_entriesPreviewTable->update(); 
 	this->assignHeaderLine(); 
 	isFilledWithData = true; 
 	return dataLoaded; 
