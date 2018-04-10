@@ -30,8 +30,6 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 
-#define ASTRA_CUDA
-//#include <astra/CompositeGeometryManager.h>
 #include <astra/CudaBackProjectionAlgorithm3D.h>
 #include <astra/CudaFDKAlgorithm3D.h>
 #include <astra/CudaCglsAlgorithm3D.h>
