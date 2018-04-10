@@ -95,8 +95,11 @@ public:
 
 	
 private slots: 
-	void FileBtnClicked(); 
-	//void LoadFormatBtnClicked();
+	void LoadFileBtnClicked(); 
+
+
+	//TODO TBD
+	void ImportRegSettings();
 
 	//custom file format 
 	void CustomFormatBtnClicked();
@@ -162,6 +165,7 @@ private:
 
 	bool isFileNameValid = false; 
 	bool isFilledWithData = false; 
+	bool m_formatSelected = false; 
 
 
 	//current headers of the table

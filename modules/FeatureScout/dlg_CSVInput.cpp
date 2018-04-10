@@ -50,7 +50,7 @@ dlg_CSVInput::~dlg_CSVInput()
 
 void dlg_CSVInput::connectSignals()
 {
-	connect(btn_loadCSV, SIGNAL(clicked()), this, SLOT(FileBtnClicked()));
+	connect(btn_loadCSV, SIGNAL(clicked()), this, SLOT(LoadFileBtnClicked()));
 	//connect(btn_LoadConfig, SIGNAL(clicked()), this, SLOT(LoadFormatBtnClicked()));
 	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked()));
 	connect(btn_loadCols, SIGNAL(clicked()), this, SLOT(LoadColsBtnClicked()));
@@ -58,6 +58,10 @@ void dlg_CSVInput::connectSignals()
 	connect(cmb_box_FileFormat, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadFormatSettings);
 	
 	//connect(cmb_box_FileFormat, SIGNAL(currentTextChanged(const QString&)), this, SLOT(LoadFormatSettings(QString)));
+}
+
+void dlg_CSVInput::ImportRegSettings()
+{
 }
 
 //enabling for custom file format
@@ -88,6 +92,7 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	QSettings mySettings; 
 	QStringList feat_Groups; 
 	layoutAvaiable = CheckFeatureInRegistry(mySettings, &LayoutName,feat_Groups, true);
+	this->m_formatSelected = true; 
 	
 	if (!layoutAvaiable) {
 		QMessageBox::warning(this,tr("FeatureScoutCSV"), tr("Layout option not yet defined"));
@@ -121,9 +126,11 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 	this->AssignFormatLanguage();
 	params = *this->m_confParams; 
 	saveParamsToRegistry(params, layoutName);
+	this->cmb_box_FileFormat->addItem(layoutName); 
+
 }
 
-void dlg_CSVInput::FileBtnClicked()
+void dlg_CSVInput::LoadFileBtnClicked()
 {
 	
 	this->assignFileFormat(); 
@@ -456,7 +463,7 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 	}
 			
 	this->m_confParams->startLine = anySetting.value( this->m_regEntries->str_reg_startLine).toLongLong(); //startLine
-	this->m_confParams->useEndline = anySetting.value(this->m_regEntries->str_reg_useEndline).toBool() +1; //useEndline
+	this->m_confParams->useEndline = anySetting.value(this->m_regEntries->str_reg_useEndline).toBool() +1; //useEndline Endline +1 
 	this->m_confParams->endLine = anySetting.value(this->m_regEntries->str_reg_EndLine).toLongLong(); //endLine
 	f_separator = anySetting.value(this->m_regEntries->str_reg_colSeparator).toString();//file separator
 	
@@ -576,7 +583,7 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		this->m_regEntries->v_colSeparator.setValue(colSeparator);
 		this->m_regEntries->v_startLine.setValue(csv_params.startLine);
 		this->m_regEntries->v_useEndline.setValue(csv_params.useEndline);
-		this->m_regEntries->v_endLine.setValue(csv_params.endLine);
+		this->m_regEntries->v_endLine.setValue(csv_params.endLine +1);
 		this->m_regEntries->v_languageFormat.setValue(useEN_Decimals);
 
 		//saveValues in registry;
