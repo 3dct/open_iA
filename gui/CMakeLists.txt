@@ -22,6 +22,10 @@ ENDIF (WIN32)
 
 TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}) # for version.h
 
+IF (USE_COTIRE)
+	cotire(${EXECUTABLE_NAME})
+ENDIF()
+
 # Windows-specific configuration
 IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-")

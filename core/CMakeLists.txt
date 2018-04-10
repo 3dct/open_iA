@@ -24,6 +24,10 @@ IF (WIN32)
 	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC Opengl32)
 ENDIF (WIN32)
 
+IF (USE_COTIRE)
+	cotire(${CORE_LIBRARY_NAME})
+ENDIF()
+
 IF(APPLE)
 	INCLUDE_DIRECTORIES( /System/Library/Frameworks )
 	FIND_LIBRARY(COCOA_LIBRARY Cocoa)
@@ -49,6 +53,10 @@ IF (BUILD_TESTING)
 	target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME StringHelperTest COMMAND StringHelperTest)
 	SET_PROPERTY(TARGET StringHelperTest PROPERTY FOLDER "Tests")
+
+	IF (USE_COTIRE)
+		cotire(StringHelperTest)
+	ENDIF()
 ENDIF (BUILD_TESTING)
 
 # Compiler Flags

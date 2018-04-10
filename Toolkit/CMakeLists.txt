@@ -67,4 +67,9 @@ IF(Module_GPU_DreamcasterTool)
 	TARGET_INCLUDE_DIRECTORIES(Dreamcaster PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Dreamcaster)
 	TARGET_INCLUDE_DIRECTORIES(Dreamcaster PRIVATE ${CoreSrcDir}/src ${OPENCL_INCLUDE_DIRS} ${CoreBinDir} ${CMAKE_CURRENT_SOURCE_DIR}/OpenCL)
 	SET_PROPERTY(TARGET Dreamcaster PROPERTY FOLDER "Libraries")
+
+	IF (USE_COTIRE)
+		cotire(Dreamcaster)
+	ENDIF()
+
 ENDIF(Module_GPU_DreamcasterTool)

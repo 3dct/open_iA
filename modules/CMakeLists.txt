@@ -121,6 +121,10 @@ FOREACH( indx RANGE ${len} )
 			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${ADDITIONAL_MODULE_INCLUDE_DIRS})
 		ENDIF()
 
+		IF (USE_COTIRE)
+			cotire(${module_name})
+		ENDIF()
+
 		IF (MSVC)
 			# Apply file grouping based on regular expressions for Visual Studio IDE.
 			SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")

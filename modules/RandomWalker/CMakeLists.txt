@@ -17,6 +17,11 @@ IF (BUILD_TESTING AND Module_RandomWalker)
 	TARGET_COMPILE_DEFINITIONS(DistanceMeasureTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME ImageGraphTest COMMAND ImageGraphTest)
 	ADD_TEST(NAME DistanceMeasureTest COMMAND DistanceMeasureTest)
+	
+	IF (USE_COTIRE)
+		cotire(ImageGraphTest)
+		cotire(DistanceMeasureTest)
+	ENDIF()
 
 	# set IDE folder:
 	SET_PROPERTY(TARGET ImageGraphTest PROPERTY FOLDER "Tests")

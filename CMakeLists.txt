@@ -10,7 +10,14 @@ ELSE()
 ENDIF()
 
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
+
+option (USE_COTIRE "Whether to use cotire to speed up build." OFF)
+IF (USE_COTIRE)
+	INCLUDE(Cotire)
+ENDIF()
+
 SET (Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
+
 INCLUDE(Common)
 
 IF (CMAKE_COMPILER_IS_GNUCXX)
