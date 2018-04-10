@@ -15,8 +15,6 @@ namespace FeatureScoutCSV{
 		
 		csvRegKeys() {
 			initParam(); 
-
-
 		}
 
 		void initParam() {
@@ -27,6 +25,8 @@ namespace FeatureScoutCSV{
 			str_reg_EndLine = "Endline";
 			str_reg_colSeparator = "ColumnSeperator";
 			str_reg_languageFormat = "LanguageFormat";
+			QString str_reg_Spacing = "Spacing";
+			QString str_reg_Units = "Microns";
 		
 		}
 
@@ -40,13 +40,26 @@ namespace FeatureScoutCSV{
 		QVariant v_endLine;
 		QVariant v_colSeparator;
 		QVariant v_languageFormat;
+		QVariant v_Spacing; 
+		QVariant v_Units; 
+
+		//for fibers or pores
+		QVariant v_FiberPoreObject; 
+
+
+
 		QString str_settingsName;
 		QString str_formatName; 
-		QString str_reg_useEndline = "useEndline";
-		QString str_reg_startLine = "StartLine";
-		QString str_reg_EndLine = "Endline";
-		QString str_reg_colSeparator = "ColumnSeperator";
-		QString str_reg_languageFormat = "LanguageFormat";
+		QString str_reg_useEndline;
+		QString str_reg_startLine;
+		QString str_reg_EndLine;
+		QString str_reg_colSeparator;
+		QString str_reg_languageFormat;
+		QString str_reg_Spacing;
+		QString str_reg_Units; 
+
+		//for fibers or pores
+		QString str_reg_FiberPoreData; 
 	};
 
 };
@@ -139,6 +152,7 @@ private:
 	void setError(const QString &ParamName, const QString & Param_value);
 	void assignFileFormat();
 	void assignSeparator();
+	void assignSpacingUnits();
 	void loadFilePreview(const int rowCount);
 	bool checkFile();
 	bool loadEntries(const QString & fileName, const unsigned int nrPreviewElements);

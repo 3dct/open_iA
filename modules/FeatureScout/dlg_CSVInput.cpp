@@ -121,15 +121,14 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 	this->assignSeparator(); 
 	this->assignStartEndLine(); 
 	this->AssignFormatLanguage();
+	this->assignSpacingUnits(); 
 	params = *this->m_confParams; 
 	saveParamsToRegistry(params, layoutName);
 	this->cmb_box_FileFormat->addItem(layoutName); 
-
 }
 
 void dlg_CSVInput::LoadDataPreviewClicked()
 {
-	
 	this->assignFileFormat(); 
 	this->assignSeparator();
 	this->AssignFormatLanguage(); 
@@ -158,9 +157,16 @@ const csvConfig::configPararams& dlg_CSVInput::getConfigParameters() const {
 //shows configuration parameters to gui
 void dlg_CSVInput::showConfigParams(const csvConfig::configPararams & params)
 {
+	QString endLine = ""; 
 	this->ed_startLine->setText(QString("%1").arg(params.startLine));
 	this->cmb_box_separator->setCurrentIndex(0);
-	this->ed_endLIne->setText(QString("%1").arg(params.endLine));
+
+	if (params.useEndline) {
+		endLine = QString("%1").arg(params.endLine); 
+	}
+	else endLine = ""; 
+
+	this->ed_endLIne->setText(endLine);
 	this->cb_applyEndLine->setChecked(params.useEndline);
 
 	if (this->m_confParams->csv_Inputlanguage == csvLang::EN) {
@@ -297,6 +303,11 @@ void dlg_CSVInput::assignSeparator() {
 	this->m_confParams->paramsValid = param_seperator_ok; 
 	
 	
+}
+
+void dlg_CSVInput::assignSpacingUnits() {
+	this->m_confParams->spacing = this->ed_Spacing->text().toDouble();
+	this->m_confParams->csv_units = this->ed_Units->text();
 }
 
 void dlg_CSVInput::loadFilePreview(const int rowCount) {
@@ -459,10 +470,18 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 	}
 			
 	this->m_confParams->startLine = anySetting.value( this->m_regEntries->str_reg_startLine).toLongLong(); //startLine
-	this->m_confParams->useEndline = anySetting.value(this->m_regEntries->str_reg_useEndline).toBool() +1; //useEndline Endline +1 
-	this->m_confParams->endLine = anySetting.value(this->m_regEntries->str_reg_EndLine).toLongLong(); //endLine
-	f_separator = anySetting.value(this->m_regEntries->str_reg_colSeparator).toString();//file separator
+	this->m_confParams->useEndline = anySetting.value(this->m_regEntries->str_reg_useEndline).toBool() ; //useEndline  
+
+	if (this->m_confParams->useEndline) { 
+		this->m_confParams->endLine = anySetting.value(this->m_regEntries->str_reg_EndLine).toLongLong() + 1; //endLine Endline +1
+	}
+	else this->m_confParams->endLine = 0; 
 	
+	//this->m_confParams->spacing = anySetting.value(this->m_regEntries->str_reg_Spacing).toDouble(); //Spacing
+	//this->m_confParams->csv_units = anySetting.value(this->m_regEntries->str_reg_Units).toString(); //Units
+
+	f_separator = anySetting.value(this->m_regEntries->str_reg_colSeparator).toString();//file separator
+		
 	if (f_separator.contains("Comma")) {
 		this->m_confParams->file_seperator = csvColSeparator::Comma;
 	}else {
@@ -480,6 +499,8 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 	else {
 		this->m_confParams->csv_Inputlanguage = csvLang::GER;
 	}
+
+	
 
 	//end settings
 	anySetting.endGroup(); 
@@ -576,7 +597,7 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		}
 
 
-		//settingvalues to variant
+		//setting values to variant
 		this->m_regEntries->v_colSeparator.setValue(colSeparator);
 		this->m_regEntries->v_startLine.setValue(csv_params.startLine);
 		this->m_regEntries->v_useEndline.setValue(csv_params.useEndline);
@@ -588,6 +609,12 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		this->m_regEntries->v_endLine.setValue(endLine);
 		this->m_regEntries->v_languageFormat.setValue(useEN_Decimals);
 
+		//spacing + units
+		this->m_regEntries->v_Spacing = csv_params.spacing; 
+		this->m_regEntries->v_Units = csv_params.csv_units; 
+		//this->m_regEntries->v_FiberPoreObject = csv_params.inputObjectType TODO save fiber pores? 
+
+
 		//saveValues in registry;
 		settingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
 		settings.beginGroup(settingsName);
@@ -596,6 +623,8 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		settings.setValue(this->m_regEntries->str_reg_useEndline, this->m_regEntries->v_useEndline);//useEndline
 		settings.setValue(this->m_regEntries->str_reg_EndLine, this->m_regEntries->v_endLine);//EndLine
 		settings.setValue(this->m_regEntries->str_reg_languageFormat, this->m_regEntries->v_languageFormat);//LanguageFormat
+		settings.setValue(this->m_regEntries->str_reg_Spacing, this->m_regEntries->v_Spacing); //Spacing
+		settings.setValue(this->m_regEntries->str_reg_Units, this->m_regEntries->str_reg_Units); //Units; 
 		settings.endGroup(); 
 	}
 
