@@ -4,6 +4,8 @@
 #include "io/csv_config.h"
 #include "io/DataTable.h"
 
+#include <QMetaType>
+
 #include "vtkTable.h"
 #include <vtkSmartPointer.h>
 
@@ -20,14 +22,14 @@ namespace FeatureScoutCSV{
 		void initParam() {
 			str_settingsName = "FeatureScoutCSV";
 			str_formatName = "FormatName";
+			str_headerName = "HeaderEntries"; 
 			str_reg_useEndline = "useEndLine";
 			str_reg_startLine = "StartLine";
 			str_reg_EndLine = "Endline";
 			str_reg_colSeparator = "ColumnSeperator";
 			str_reg_languageFormat = "LanguageFormat";
-			QString str_reg_Spacing = "Spacing";
-			QString str_reg_Units = "Microns";
-		
+			str_reg_Spacing = "Spacing";
+			str_reg_Units = "Microns";
 		}
 
 		/*void reset() {
@@ -49,6 +51,8 @@ namespace FeatureScoutCSV{
 
 
 		QString str_settingsName;
+		QString str_headerName;
+
 		QString str_formatName; 
 		QString str_reg_useEndline;
 		QString str_reg_startLine;
@@ -64,6 +68,7 @@ namespace FeatureScoutCSV{
 
 };
 
+Q_DECLARE_METATYPE(QStringList);
 
 class /*open_iA_Core_API*/ dlg_CSVInput : public QDialog, public Ui_CsvInput
 {
@@ -78,9 +83,15 @@ class /*open_iA_Core_API*/ dlg_CSVInput : public QDialog, public Ui_CsvInput
 		typedef csvConfig::csv_FileFormat csvFormat; 
 		
 
+		
+		
+
 public:
 	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0); /*: QDialog(parent, f)*/
 	
+	//load Headers saved in registry
+	void LoadHeaderEntriesFromReg(const QString & LayoutName);
+
 	~dlg_CSVInput();
 
 	
@@ -138,6 +149,7 @@ private:
 	void createSettingsName(QString &fullSettingsName, const QString & LayoutName, const QString & FeatureName, bool useSubGroup);
 
 	//pointer initialization
+	//saving headers from registry entry 
 	void initParameters();
 	void initBasicFormatParameters(csvLang Language, csvColSeparator FileSeparator, csvFormat FileFormat);
 	void initStartEndline(unsigned long startLine, unsigned long EndLine, const bool useEndline); 
@@ -162,6 +174,11 @@ private:
 
 	void hideCoordinateInputs();
 	void disableFormatComponents();
+
+	void saveHeaderEntriesToReg(const QString & LayoutName);
+
+	
+	
 	
 
 private:

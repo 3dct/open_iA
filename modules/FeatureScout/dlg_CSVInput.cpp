@@ -14,6 +14,9 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	disableFormatComponents();
 	connectSignals();
 
+	////for storing stringList in Registry
+	qRegisterMetaTypeStreamOperators<QStringList>("QStringList");
+
 }
 
 void dlg_CSVInput::hideCoordinateInputs()
@@ -37,6 +40,33 @@ void dlg_CSVInput::disableFormatComponents()
 	this->lbl_decimal->setVisible(false);
 	this->buttonBox->setVisible(false);
 	this->buttonBox->setDisabled(true);
+}
+
+void dlg_CSVInput::saveHeaderEntriesToReg(const QString &LayoutName)
+{
+	QSettings settings;
+	QString settingsName = ""; 
+
+	QStringList test = { "jaööp",  "oopds",  "zz" };
+
+	settingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
+	settings.beginGroup(settingsName);
+	settings.setValue(this->m_regEntries->str_headerName, test /**m_selHeaders*/); //TODO save headers to registry
+	settings.endGroup(); 
+}
+
+
+void dlg_CSVInput::LoadHeaderEntriesFromReg(const QString &LayoutName) {
+	QSettings settings;
+	QString settingsName = "";
+	QStringList dataEntries; 
+	settingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
+	settings.beginGroup(settingsName);
+	
+	dataEntries = settings.value(this->m_regEntries->str_headerName).value<QStringList>();
+	
+	settings.endGroup();
+
 }
 
 dlg_CSVInput::~dlg_CSVInput()
@@ -371,10 +401,8 @@ bool dlg_CSVInput::checkFile() {
 			file.close(); 
 		}
 	}
-
-
+	
 	return fileOK; 
-
 }
 
 //loading entries in table widget preview
@@ -389,7 +417,6 @@ bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPre
 	this->assignHeaderLine(); 
 	isFilledWithData = true; 
 	return dataLoaded; 
-
 }
 
 void dlg_CSVInput::showPreviewTable()
@@ -433,7 +460,6 @@ void dlg_CSVInput::setSelectedEntries() {
 			currItemIdx = this->m_hashEntries.value(listEntry);
 			this->m_selColIdx.push_back(currItemIdx);
 			this->m_selHeaders->append(listEntry);
-			
 		}
 		
 		qSort(this->m_selColIdx.begin(), this->m_selColIdx.end(), qLess<uint>());
@@ -457,6 +483,10 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 	QString fullName = ""; 
 	QString  cnfgSettingsName;
 	QStringList allEntries;
+
+
+	//LoadHeaderEntriesFromReg(LayoutName); //TODO remove
+
 
 	this->m_confParams->resetParams(); 
 	cnfgSettingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
@@ -626,6 +656,8 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		settings.setValue(this->m_regEntries->str_reg_Spacing, this->m_regEntries->v_Spacing); //Spacing
 		settings.setValue(this->m_regEntries->str_reg_Units, this->m_regEntries->str_reg_Units); //Units; 
 		settings.endGroup(); 
+
+		//this->saveHeaderEntriesToReg(LayoutName); 
 	}
 
 }
