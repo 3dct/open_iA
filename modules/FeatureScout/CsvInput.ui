@@ -1670,7 +1670,7 @@
           </size>
          </property>
          <property name="text">
-          <string>SaveLayout</string>
+          <string>AddLayout</string>
          </property>
         </widget>
        </item>
@@ -1680,7 +1680,7 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>ExportLayout</string>
+          <string>ExportLayout...</string>
          </property>
         </widget>
        </item>

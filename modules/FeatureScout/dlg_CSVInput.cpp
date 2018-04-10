@@ -371,7 +371,6 @@ bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPre
  
 	bool dataLoaded = false; 
 	uint startElLine = (uint)  this->m_confParams->startLine;
-
 	if (isFilledWithData) { this->m_entriesPreviewTable->clearTable(); }
 	
 	dataLoaded = this->m_entriesPreviewTable->readTableEntries(fileName, nrPreviewElements, this->m_confParams->colCount,this->m_confParams->headerStartLine, &startElLine, true, false); 
@@ -552,6 +551,7 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 
 	QString colSeparator = "";
 	bool useEN_Decimals = false;
+	ulong endLine = 0; 
 
 	if (this->m_regEntries) {
 
@@ -580,7 +580,12 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		this->m_regEntries->v_colSeparator.setValue(colSeparator);
 		this->m_regEntries->v_startLine.setValue(csv_params.startLine);
 		this->m_regEntries->v_useEndline.setValue(csv_params.useEndline);
-		this->m_regEntries->v_endLine.setValue(csv_params.endLine +1);
+		
+		if (csv_params.useEndline) {
+			endLine = csv_params.endLine + 1;
+		}
+
+		this->m_regEntries->v_endLine.setValue(endLine);
 		this->m_regEntries->v_languageFormat.setValue(useEN_Decimals);
 
 		//saveValues in registry;
