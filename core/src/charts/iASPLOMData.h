@@ -77,7 +77,7 @@ public:
 	//! Get number of data points.
 	unsigned long numPoints() const { return m_dataPoints.size() < 1 ? 0 : m_dataPoints[0].size(); }
 
-	bool isInverted(int paramIndex) { return m_inverted[paramIndex]; }
+	bool isInverted(int paramIndex) { return paramIndex < m_inverted.size() ? m_inverted[paramIndex] : false; }
 
 	void setInverted(int paramIndex, bool isInverted) { m_inverted[paramIndex] = isInverted; }
 
