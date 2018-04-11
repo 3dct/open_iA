@@ -18,10 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iA4DCTVisWin.h"
-// iA
+
 #include "dlg_4DCTFileOpen.h"
 #include "dlg_regionView.h"
 #include "iA4DCTAllVisualizationsDockWidget.h"
@@ -45,12 +43,12 @@
 #include "iAVisModule.h"
 #include "iAVisModuleItem.h"
 #include "iA4DCTRegionMarkerModule.h"
-// Qt
+
 #include <QFileDialog>
 #include <QSettings>
 #include <QString>
 #include <QVector>
-// itk
+
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkImageFileReader.h>
@@ -58,7 +56,7 @@
 #include <itkImageToVTKImageFilter.h>
 #include <itkMinimumMaximumImageCalculator.h>
 #include <itkResampleImageFilter.h>
-// vtk
+
 #include <vtkAxesActor.h>
 #include <vtkCamera.h>
 #include <vtkGenericOpenGLRenderWindow.h>

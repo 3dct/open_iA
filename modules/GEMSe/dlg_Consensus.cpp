@@ -18,10 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_Consensus.h"
 
-// GEMSe:
 #include "dlg_GEMSe.h"
 #include "dlg_samplings.h"
 #include "iAImageTreeNode.h"
@@ -29,26 +27,21 @@
 #include "iASingleResult.h"
 
 // LabelVoting:
-#include "ParametrizableLabelVotingImageFilter.h"
-#include "UndecidedPixelClassifierImageFilter.h"
-#include "ProbabilisticVotingImageFilter.h"
-
 #include "MaskingLabelOverlapMeasuresImageFilter.h"
+#include "ParametrizableLabelVotingImageFilter.h"
+#include "ProbabilisticVotingImageFilter.h"
+#include "UndecidedPixelClassifierImageFilter.h"
 
-// Core:
 #include "dlg_commoninput.h"
 #include "iAColorTheme.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
-#include "io/iAFileUtils.h"
-#include "io/iAIOProvider.h"
 #include "iALookupTable.h"
 #include "iAToolsITK.h"
+#include "io/iAFileUtils.h"
+#include "io/iAIOProvider.h"
 #include "mdichild.h"
 
-#include <QSettings>
-
-// Libraries:
 #include <itkCastImageFilter.h>
 #include <itkMultiLabelSTAPLEImageFilter.h>
 #include <itkSTAPLEImageFilter.h>
@@ -68,6 +61,7 @@
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QSettings>
 #include <QVector>
 
 

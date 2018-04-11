@@ -18,19 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iADatasetInfo.h"
 
 #include "PorosityAnalyserHelpers.h"
 
 #include "io/iAITKIO.h"
 
-#include <itkImageFileWriter.h>
 #include <itkExtractImageFilter.h>
-#include <itkRescaleIntensityImageFilter.h>
 #include <itkImageDuplicator.h>
-#include <itkStatisticsImageFilter.h>
+#include <itkImageFileWriter.h>
 #include <itkImageToHistogramFilter.h>
+#include <itkRescaleIntensityImageFilter.h>
+#include <itkStatisticsImageFilter.h>
 
 #include <QDir>
 #include <QDebug>

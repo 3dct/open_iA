@@ -18,26 +18,21 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iASSSlicer.h"
 
 #include "iAChanData.h"
 #include "iAChannelVisualizationData.h"
 #include "iAConnector.h"
-#include "io/iAITKIO.h"
 #include "iASlicer.h"
 #include "iASlicerSettings.h"
 #include "PorosityAnalyserHelpers.h"
+#include "io/iAITKIO.h"
 
-#include <QVBoxLayout>
-#include <QLabel>
-
-#include <itkImage.h>
 #include <itkAddImageFilter.h>
-#include <itkDivideImageFilter.h>
-#include <itkImageToVTKImageFilter.h>
 #include <itkCastImageFilter.h>
+#include <itkDivideImageFilter.h>
+#include <itkImage.h>
+#include <itkImageToVTKImageFilter.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDistancePolyDataFilter.h>
@@ -52,6 +47,9 @@
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkTransform.h>
+
+#include <QVBoxLayout>
+#include <QLabel>
 
 extern const iAChannelID MasksChanID = ch_Concentration0;
 extern const iAChannelID GTChanID = ch_Concentration1;

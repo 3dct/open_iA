@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_GEMSeControl.h"
 
 #include "dlg_commoninput.h"
@@ -39,13 +38,13 @@
 #include "iAImageTreeLeaf.h" // for VisitLeafs
 #include "iAImageSampler.h"
 #include "iAToolsITK.h"
-#include "io/iAIOProvider.h"
 #include "iALabelInfo.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAImageClusterer.h"
 #include "iASamplingResults.h"
 #include "iASEAFile.h"
+#include "io/iAIOProvider.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>

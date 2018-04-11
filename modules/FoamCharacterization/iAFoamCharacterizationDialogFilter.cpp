@@ -18,8 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationDialogFilter.h"
+
+#include "iAFoamCharacterizationItemFilter.h"
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -28,8 +29,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QSpinBox>
-
-#include "iAFoamCharacterizationItemFilter.h"
 
 iAFoamCharacterizationDialogFilter::iAFoamCharacterizationDialogFilter
                                                                (iAFoamCharacterizationItemFilter* _pItemFilter, QWidget* _pParent)

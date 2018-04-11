@@ -21,17 +21,16 @@
 #include "iAHistogramView.h"
 
 #include "iAEnsemble.h"
-#include "charts/iASimpleHistogramData.h"
 
 #include "charts/iAChartWidget.h"
 #include "charts/iAPlotTypes.h"
+#include "charts/iASimpleHistogramData.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkSmartPointer.h>
 
 #include <QHBoxLayout>
-
 
 iAHistogramView::iAHistogramView()
 {

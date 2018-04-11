@@ -18,8 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationDialogAnalysis.h"
+
+#include "iAFoamCharacterizationTableAnalysis.h"
+
+#include "iAConnector.h"
+
+#include <itkLabelMap.h>
+#include <itkLabelGeometryImageFilter.h>
+#include <itkLabelImageToShapeLabelMapFilter.h>
+#include <itkShapeLabelObject.h>
+
+#include <vtkImageData.h>
 
 #include <QApplication>
 #include <QGridLayout>
@@ -27,18 +37,7 @@
 #include <QTime>
 #include <QPushButton>
 #include <QStandardItemModel>
-
 #include <QtMath>
-
-#include "iAConnector.h"
-#include "iAFoamCharacterizationTableAnalysis.h"
-
-#include "itkLabelMap.h"
-#include "itkLabelGeometryImageFilter.h"
-#include "itkLabelImageToShapeLabelMapFilter.h"
-#include "itkShapeLabelObject.h"
-
-#include "vtkImageData.h"
 
 iAFoamCharacterizationDialogAnalysis::iAFoamCharacterizationDialogAnalysis(vtkImageData* _pImageData, QWidget* _pParent)
 																									  : QDialog(_pParent)

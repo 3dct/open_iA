@@ -18,17 +18,16 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationDialogDistanceTransform.h"
+
+#include "iAFoamCharacterizationComboBoxMask.h"
+#include "iAFoamCharacterizationItemDistanceTransform.h"
 
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
-
-#include "iAFoamCharacterizationComboBoxMask.h"
-#include "iAFoamCharacterizationItemDistanceTransform.h"
 
 iAFoamCharacterizationDialogDistanceTransform::iAFoamCharacterizationDialogDistanceTransform
 									     (iAFoamCharacterizationItemDistanceTransform* _pItemDistanceTransform, QWidget* _pParent)

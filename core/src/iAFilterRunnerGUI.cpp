@@ -20,13 +20,12 @@
 * ************************************************************************************/
 #include "iAFilterRunnerGUI.h"
 
-#include "iAFilter.h"
-
 #include "dlg_commoninput.h"
 #include "dlg_modalities.h"
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAFilter.h"
 #include "iALogger.h"
 #include "iAModality.h"
 #include "iAModalityList.h"

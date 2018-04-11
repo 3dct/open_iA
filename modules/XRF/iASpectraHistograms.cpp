@@ -18,16 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iASpectraHistograms.h"
+
 #include "iATypedCallHelper.h"
 #include "iAXRFData.h"
 
 #include <vtkImageData.h>
 
 #include <cassert>
-
 
 iASpectraHistograms::iASpectraHistograms(QSharedPointer<iAXRFData> xrfData, long numBins, double minCount, double maxCount ) :
 		m_xrfData(xrfData),

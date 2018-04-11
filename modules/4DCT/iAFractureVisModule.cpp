@@ -18,17 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iAFractureVisModule.h"
-// iA
+
 #include "iA4DCTVisWin.h"
-// itk
-#include <itkImageFileReader.h>
+
 #include <itkDiscreteGaussianImageFilter.h>
-#include <itkMinimumMaximumImageCalculator.h>
+#include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
-// vtk
+#include <itkMinimumMaximumImageCalculator.h>
+
 #include <vtkActor.h>
 #include <vtkCellArray.h>
 #include <vtkDepthSortPolyData.h>
@@ -41,7 +39,7 @@
 #include <vtkUnsignedCharArray.h>
 #include <vtkTriangle.h>
 #include <vtkVersion.h>
-// Qt
+
 #include <QVector>
 
 double interpolate( double val1, double val2, double coeff )

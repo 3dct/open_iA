@@ -18,12 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iA4DCTForceWidget.h"
-// Ui
+
 #include "ui_iA4DCTForceDialog.h"
-// Qt
+
 #include <QDialog>
 
 iA4DCTForceWidget::iA4DCTForceWidget( QWidget * parent )

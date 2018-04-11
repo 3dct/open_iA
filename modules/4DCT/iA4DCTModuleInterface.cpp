@@ -18,10 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iA4DCTModuleInterface.h"
-// iA
+
 #include "iA4DCTMainWin.h"
 #include "iA4DCTSettings.h"
 #include "iAConsole.h"
@@ -33,9 +31,9 @@
 #include "iAFeatureExtractionDialog.h"
 #include "iADefectClassifier.h"
 #include "iAClassifyDefectsDialog.h"
-// vtk
+
 #include <vtkMath.h>
-// itk
+
 #include <itkConvolutionImageFilter.h>
 #include <itkEllipseSpatialObject.h>
 #include <itkImageFileWriter.h>
@@ -46,7 +44,7 @@
 #include <itkSpatialObjectToImageFilter.h>
 #include <itkSubtractImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
-// Qt
+
 #include <QColor>
 #include <QDirIterator>
 #include <QFileDialog>
@@ -56,7 +54,7 @@
 #include <QMessageBox>
 #include <QObject>
 #include <QSettings>
-// std
+
 #include <limits>
 
 #define RAD_TO_DEG 57.295779513082320876798154814105

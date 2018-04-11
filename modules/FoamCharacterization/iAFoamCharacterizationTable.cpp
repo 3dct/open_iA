@@ -18,19 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationTable.h"
-
-#include <QDropEvent>
-#include <QHeaderView>
-#include <QMessageBox>
-
-#include <vtkImageData.h>
 
 #include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationItemDistanceTransform.h"
 #include "iAFoamCharacterizationItemFilter.h"
 #include "iAFoamCharacterizationItemWatershed.h"
+
+#include <vtkImageData.h>
+
+#include <QDropEvent>
+#include <QHeaderView>
+#include <QMessageBox>
 
 iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageData, QWidget* _pParent)
 																			  : QTableWidget(_pParent), m_pImageData (_pImageData)

@@ -18,12 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iAOIFReader.h"
 
 #include "iAConnector.h"
 #include "iAConsole.h"
-
 #include "oif_reader.h"
 
 #include <vtkImageData.h>

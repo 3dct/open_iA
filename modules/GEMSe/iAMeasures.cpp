@@ -22,9 +22,8 @@
 
 #include "iAConsole.h"
 
-#include <itkLabelOverlapMeasuresImageFilter.h>
-
 #include <itkImageRegionConstIterator.h>
+#include <itkLabelOverlapMeasuresImageFilter.h>
 
 class Matrix
 {

@@ -18,13 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAModalityExplorerAttachment.h"
 
-#include "mdichild.h"
 #include "dlg_modalitySPLOM.h"
 #include "iAModality.h"
+#include "mdichild.h"
 
 iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData)

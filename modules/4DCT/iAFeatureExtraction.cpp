@@ -19,14 +19,14 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iAFeatureExtraction.h"
-// proj
+
 #include "iAFeature.h"
-// itk
-#include "itkImage.h"
-#include "itkImageRegionIterator.h"
-#include "itkImageFileReader.h"
-#include "itkLabelGeometryImageFilter2.h"
-// std
+
+#include <itkImage.h>
+#include <itkImageRegionIterator.h>
+#include <itkImageFileReader.h>
+#include <itkLabelGeometryImageFilter2.h>
+
 #include <fstream>
 #include <vector>
 

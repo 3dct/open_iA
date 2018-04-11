@@ -18,14 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationDialog.h"
 
-#include<QApplication>
-#include<QGridLayout>
-#include<QLabel>
-#include<QStyle>
-#include<QPushButton>
+#include <QApplication>
+#include <QGridLayout>
+#include <QLabel>
+#include <QStyle>
+#include <QPushButton>
 
 iAFoamCharacterizationDialog::iAFoamCharacterizationDialog(iAFoamCharacterizationItem* _pItem, QWidget* _pParent)
 																							 : QDialog(_pParent), m_pItem (_pItem)

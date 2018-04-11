@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iASegmentationModuleInterface.h"
 
 #include "iAFuzzyCMeans.h"
@@ -27,7 +26,6 @@
 #include "iAWatershedSegmentation.h"
 
 #include "iAFilterRegistry.h"
-
 
 void iASegmentationModuleInterface::Initialize()
 {

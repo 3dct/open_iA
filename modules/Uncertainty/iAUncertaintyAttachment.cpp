@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iAUncertaintyAttachment.h"
 
 #include "iAEnsembleDescriptorFile.h"
@@ -41,7 +40,6 @@
 #include "iAStringHelper.h"
 #include "mdichild.h"
 #include "mainwindow.h"
-
 
 #include <QDir>
 

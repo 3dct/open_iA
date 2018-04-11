@@ -18,10 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "dlg_TFTable.h"
-#include "dlg_transfer.h"
+
 #include "charts/iADiagramFctWidget.h"
+#include "dlg_transfer.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkPiecewiseFunction.h>

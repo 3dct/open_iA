@@ -33,12 +33,10 @@
 #include "iASlicerSettings.h"
 #include "iASlicer.h"
 
-#include <vtkTransform.h>
-
-#include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkImageData.h>
 #include <vtkLookupTable.h>
-
+#include <vtkTransform.h>
 
 iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkScalarsToColors> lut):
 	m_transform(vtkSmartPointer<vtkTransform>::New()),

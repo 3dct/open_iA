@@ -18,26 +18,25 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iACalculatePoreProperties.h"
 
 #include "iACSVToQTableWidgetConverter.h"
-#include "io/iAITKIO.h"
-#include "defines.h"
 
+#include "defines.h"
+#include "io/iAITKIO.h"
+
+#include <itkConnectedComponentImageFilter.h>
 #include <itkImageBase.h>
 #include <itkLabelGeometryImageFilter.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
-#include <itkConnectedComponentImageFilter.h>
 
-#include <vtkMath.h>
 #include <vtkIOStream.h>
+#include <vtkMath.h>
 
-#include <QFileDialog>
-#include <QTableWidget>
 #include <QDebug>
+#include <QFileDialog>
 #include <QSettings>
+#include <QTableWidget>
 
 typedef itk::ImageBase< DIM > ImageBaseType;
 typedef ImageBaseType::Pointer ImagePointer;

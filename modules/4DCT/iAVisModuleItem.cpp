@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iAVisModuleItem.h"
+
 #include "iAVisModule.h"
 
 iAVisModuleItem::iAVisModuleItem( iAVisModule * module, QString name, int id /*= 0*/ )

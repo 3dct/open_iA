@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iASelectionsView.h"
 
 iASelectionsView::iASelectionsView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )

@@ -18,12 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAPreviewWidgetPool.h"
 
-#include "iAConsole.h"
 #include "iAImagePreviewWidget.h"
+
+#include "iAConsole.h"
 
 iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASlicerMode slicerMode, int labelCount, iAColorTheme const * colorTheme)
 	: m_slicerMode(slicerMode),

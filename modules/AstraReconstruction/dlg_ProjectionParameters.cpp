@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "dlg_ProjectionParameters.h"
 
-
 dlg_ProjectionParameters::dlg_ProjectionParameters()
 {
 	setupUi(this);

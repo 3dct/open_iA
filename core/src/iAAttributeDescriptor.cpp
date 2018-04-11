@@ -20,10 +20,8 @@
 * ************************************************************************************/
 #include "iAAttributeDescriptor.h"
 
-#include "iAListNameMapper.h"
-
 #include "iAConsole.h"
-
+#include "iAListNameMapper.h"
 
 const QString iAAttributeDescriptor::ValueSplitString(" ");
 

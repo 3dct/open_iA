@@ -19,6 +19,7 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iABoneThicknessModuleInterface.h"
+
 #include "iABoneThicknessAttachment.h"
 #include "mainwindow.h"
 

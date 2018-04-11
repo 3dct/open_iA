@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #include "iAProbingWidget.h"
 
-//#include "iAFilterChart.h"
-#include "iAConsole.h"
-#include "charts/iAChartWidget.h"
-#include "charts/iAPlotTypes.h"
 #include "iAImageTreeLeaf.h"
 #include "iALabelInfo.h"
-#include "iAMathUtility.h"
 #include "iAParamHistogramData.h"
+
+#include "charts/iAChartWidget.h"
+#include "charts/iAPlotTypes.h"
+#include "iAConsole.h"
+#include "iAMathUtility.h"
 #include "iASlicerMode.h"
 
 #include <QLabel>

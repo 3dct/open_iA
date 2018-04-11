@@ -18,14 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iA4DCTListView.h"
-// iA
-#include "mainwindow.h"
+
 #include "iA4DCTSettings.h"
 #include "iAStageView.h"
-// Qt
+#include "mainwindow.h"
+
 #include <QMenu>
 #include <QAction>
 #include <QContextMenuEvent>

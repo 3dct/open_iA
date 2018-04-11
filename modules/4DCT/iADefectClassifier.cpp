@@ -29,7 +29,6 @@
 #include <map>
 #include <chrono>
 
-
 iADefectClassifier::iADefectClassifier( )
 {
 	/*m_param.Spacing = 2.5;

@@ -31,7 +31,6 @@
 #include <QTextStream>
 #include <QFileInfo>
 
-
 iASamplingResults::iASamplingResults(
 	QSharedPointer<iAAttributes> attr,
 	QString const & samplingMethod,

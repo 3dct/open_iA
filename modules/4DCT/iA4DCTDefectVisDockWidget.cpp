@@ -18,12 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iA4DCTDefectVisDockWidget.h"
-// iA
+
 #include "iADefectVisModule.h"
-// vtk
+
 #include <vtkRenderer.h>
 
 iA4DCTDefectVisDockWidget::iA4DCTDefectVisDockWidget( QWidget * parent )

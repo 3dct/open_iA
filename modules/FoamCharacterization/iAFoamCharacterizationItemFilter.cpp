@@ -18,28 +18,26 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationItemFilter.h"
 
-#include <QApplication>
-#include <QFile>
-#include <QThreadPool>
-#include <QTime>
+#include "iAFoamCharacterizationDialogFilter.h"
+#include "iAFoamCharacterizationTable.h"
 
-#include <QtMath>
+#include "iAConnector.h"
+#include "iAProgress.h"
 
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
 #include <itkMedianImageFilter.h>
 #include <itkPatchBasedDenoisingImageFilter.h>
 
-#include "iAConnector.h"
-#include "iAProgress.h"
-
-#include "iAFoamCharacterizationDialogFilter.h"
-#include "iAFoamCharacterizationTable.h"
-
 #include <vtkImageData.h>
+
+#include <QApplication>
+#include <QFile>
+#include <QThreadPool>
+#include <QTime>
+#include <QtMath>
 
 iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)

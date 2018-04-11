@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iATransformations.h"
 
 #include "defines.h"    // for DIM
@@ -28,7 +27,6 @@
 
 #include <itkResampleImageFilter.h>
 #include <itkAffineTransform.h>
-//#include <itkChangeInformationImageFilter.h>
 #include <itkPermuteAxesImageFilter.h>
 #include <itkFlipImageFilter.h>
 

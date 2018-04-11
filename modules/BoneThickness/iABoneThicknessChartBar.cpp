@@ -18,16 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iABoneThicknessChartBar.h"
+
+#include "iABoneThickness.h"
+#include "iABoneThicknessTable.h"
 
 #include <vtkDoubleArray.h>
 
 #include <QMouseEvent>
 #include <QPainter>
-
-#include "iABoneThickness.h"
-#include "iABoneThicknessTable.h"
 
 iABoneThicknessChartBar::iABoneThicknessChartBar(QWidget* _pParent) : QWidget(_pParent)
 {

@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_commoninput.h"
 
 #include "iAAttributeDescriptor.h"
@@ -29,7 +28,6 @@
 #include "iAFilterRunnerGUI.h"
 #include "iAStringHelper.h"
 #include "io/iAFileChooserWidget.h"
-
 #include "mdichild.h"
 
 #include <vtkImageData.h>

@@ -18,14 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "graphdrawer.h"
 
 #include <algorithm>
-#include <assert.h>
-#include <iostream>
-
+#include <cassert>
 #include <cmath>
+#include <iostream>
 
 bool compare(std::pair<Graph::idType, Graph::Vertex> v1, std::pair<Graph::idType, Graph::Vertex> v2) {
 	return (v1.second.rank < v2.second.rank);

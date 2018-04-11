@@ -18,10 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "dlg_2dDensityMap.h"
-// iA
+
 #include "iA4DCTVisWin.h"
 #include "iA4DCTFileData.h"
 

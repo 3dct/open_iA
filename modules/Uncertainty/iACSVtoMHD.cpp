@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iACSVtoMHD.h"
 
 #include "defines.h"          // for DIM
@@ -31,9 +30,7 @@
 
 #include <vtkImageData.h>
 
-
 #include <QTextStream>
-
 
 iACSVtoMHD::iACSVtoMHD() : iAFilter("CSV to MHD", "Uncertainty",
 	"Read a CSV file and reshape it into an image of the given dimensions", 0, 1)

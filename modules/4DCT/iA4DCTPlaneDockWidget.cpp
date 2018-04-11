@@ -18,15 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iA4DCTPlaneDockWidget.h"
-// iA
+
 #include "iAPlaneVisModule.h"
 #include "iA4DCTVisWin.h"
 #include "dlg_highlightDefects.h"
 #include "dlg_2dDensityMap.h"
-// Qt
+
 #include <QString>
 
 iA4DCTPlaneDockWidget::iA4DCTPlaneDockWidget( iA4DCTVisWin * parent )

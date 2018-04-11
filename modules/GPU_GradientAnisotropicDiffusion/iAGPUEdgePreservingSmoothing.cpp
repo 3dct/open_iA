@@ -32,7 +32,6 @@
 #include <itkGPUImageToImageFilter.h>
 #include <itkGPUGradientAnisotropicDiffusionImageFilter.h>
 
-
 template<class T>
 void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QMap<QString, QVariant> const & params)
 {

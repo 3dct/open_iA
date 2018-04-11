@@ -18,12 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iADropPipelineWidget.h"
+
 #include "PorosityAnalyserHelpers.h"
-#include "dlg_ParamSpaceSampling.h"
+
 #include "defines.h"
+#include "dlg_ParamSpaceSampling.h"
 
 #include <QDrag>
 #include <QDragEnterEvent>

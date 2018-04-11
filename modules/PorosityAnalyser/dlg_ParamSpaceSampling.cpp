@@ -18,27 +18,26 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_ParamSpaceSampling.h"
 
-#include "mdichild.h"
 #include "PorosityAnalyserHelpers.h"
+
+#include "mdichild.h"
 
 #include <itkImage.h>
 #include <itkImageRegionIterator.h>
 #include <itkMedianImageFilter.h>
 
-#include <QErrorMessage>
-#include <QLabel>
 #include <QCheckBox>
 #include <QComboBox>
-#include <QSpinBox>
+#include <QDebug>
+#include <QErrorMessage>
+#include <QGroupBox>
+#include <QLabel>
 #include <QLineEdit>
 #include <QScrollArea>
-#include <QGroupBox>
 #include <QSpacerItem>
-#include <QDebug>
+#include <QSpinBox>
 
 enum ContainerSize
 {

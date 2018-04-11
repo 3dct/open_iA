@@ -18,20 +18,17 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iAModality.h"
 
 #include "iAImageCoordinate.h"
 #include "iAModalityTransfer.h"
 #include "iASettings.h"
 #include "iAStringHelper.h" // for Str2Vec3D
+#include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
 
 #include <vtkImageData.h>
 #include <vtkVolume.h>
-
-#include "iATypedCallHelper.h"
 
 #include <cassert>
 #include <limits>

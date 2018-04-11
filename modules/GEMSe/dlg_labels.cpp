@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_labels.h"
 
 #include "dlg_commoninput.h"
@@ -27,12 +26,12 @@
 #include "iAImageCoordinate.h"
 #include "iAChannelID.h"
 #include "iAChannelVisualizationData.h"
-#include "io/iAFileUtils.h"
 #include "iALabelOverlayThread.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAToolsVTK.h"
 #include "iAVtkDraw.h"
+#include "io/iAFileUtils.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>

@@ -18,19 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_dataView4DCT.h"
 
 #include "ui_DataView4DCT.h"
+
 #include "iAQTtoUIConnector.h"
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
 #include "iATransferFunction.h"
 #include "iAVolumeRenderer.h"
 #include "iAVolumeStack.h"
-#include "QVTKWidgetMouseReleaseWorkaround.h"
 #include "mdichild.h"
+#include "QVTKWidgetMouseReleaseWorkaround.h"
 
 #include <vtkCamera.h>
 #include <vtkImageData.h>

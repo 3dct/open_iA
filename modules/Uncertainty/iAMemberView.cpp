@@ -24,9 +24,9 @@
 #include "iAEnsemble.h"
 #include "iAMember.h"
 
-#include <QHBoxLayout>
-
 #include "charts/qcustomplot.h"
+
+#include <QHBoxLayout>
 
 #include <vector>
 

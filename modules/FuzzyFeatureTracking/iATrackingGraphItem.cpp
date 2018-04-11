@@ -18,17 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iATrackingGraphItem.h"
-// vtk
-#include <vtkGraph.h>
-#include <vtkDataSetAttributes.h>
+
 #include <vtkContext2D.h>
 #include <vtkContextScene.h>
 #include <vtkContextMouseEvent.h>
-#include <vtkTextProperty.h>
+#include <vtkDataSetAttributes.h>
+#include <vtkGraph.h>
 #include <vtkObjectFactory.h>
+#include <vtkTextProperty.h>
 
 // constants
 const float			VERTEX_SIZE			= 10;

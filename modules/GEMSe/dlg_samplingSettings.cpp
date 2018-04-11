@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_samplingSettings.h"
 
 #include "iAAttributes.h"
@@ -39,7 +38,6 @@
 #include <QStandardItemModel>
 
 #include <cassert>
-
 
 dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	QSharedPointer<iAModalityList const> modalities,

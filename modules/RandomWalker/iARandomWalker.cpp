@@ -18,20 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iARandomWalker.h"
+
+#include "iAGraphWeights.h"
+#include "iAImageGraph.h"
+#include "iANormalizerImpl.h"
+#include "iAVectorArrayImpl.h"
+#include "iAVectorDistanceImpl.h"
 
 #include "defines.h"     // for DIM
 #include "iAConnector.h"
-#include "iAGraphWeights.h"
-#include "iAImageGraph.h"
 #include "iAMathUtility.h"
-#include "iANormalizerImpl.h"
 #include "iASeedType.h"
 #include "iATypedCallHelper.h"
 #include "iAToolsITK.h"
-#include "iAVectorArrayImpl.h"
-#include "iAVectorDistanceImpl.h"
 
 #include <vtkImageData.h>
 

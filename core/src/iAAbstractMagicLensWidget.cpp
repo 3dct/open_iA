@@ -18,11 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
-#include "defines.h" // for DefaultMagicLensSize
 #include "iAAbstractMagicLensWidget.h"
-// vtk
+
+#include "defines.h" // for DefaultMagicLensSize
+
 #include <QVTKInteractor.h>
 #include <vtkActor2D.h>
 #include <vtkActor2DCollection.h>

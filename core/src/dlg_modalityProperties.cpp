@@ -18,17 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_modalityProperties.h"
 
 #include "iAModality.h"
 #include "iAVolumeRenderer.h"
 #include "mainwindow.h"
+
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 #include <vtkRenderer.h>
-
 
 dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality, vtkRenderer * mainRenderer):
 	dlg_modalityPropertiesUI(parent),

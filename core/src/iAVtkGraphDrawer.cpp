@@ -18,15 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iAVtkGraphDrawer.h"
 
+#include <vtkDataSetAttributes.h>
+#include <vtkEdgeListIterator.h>
+#include <vtkPoints.h>
 #include <vtkSmartPointer.h>
 #include <vtkVertexListIterator.h>
-#include <vtkEdgeListIterator.h>
-#include <vtkDataSetAttributes.h>
-#include <vtkPoints.h>
 
 #include <cassert>
 

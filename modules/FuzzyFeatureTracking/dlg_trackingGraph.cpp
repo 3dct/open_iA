@@ -18,27 +18,21 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_trackingGraph.h"
 
 #include "iAVtkGraphDrawer.h"
-// VTK
+
 #include <vtkGraphItem.h>
 #include <vtkObjectFactory.h>
 #include <vtkPoints.h>
+
 #ifdef _MSC_VER
 #include <windows.h>
 #endif
 
-
 const int MAX_ITERATIONS		= 24;
 const double BACKGROUND[3]		= {1, 1, 1};
 
-
-/**
- * Constructor
- */
 dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 {
 	setupUi(this);
@@ -81,11 +75,6 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 	m_interactor->Start();
 
 	m_renderWindow->Render();
-}
-
-dlg_trackingGraph::~dlg_trackingGraph()
-{
-
 }
 
 void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId)

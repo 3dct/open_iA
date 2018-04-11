@@ -22,8 +22,8 @@
 
 #include "iAConnector.h"
 #include "iAConsole.h"
-#include "io/iAITKIO.h"
 #include "iAVtkDraw.h"
+#include "io/iAITKIO.h"
 
 #include <vtkBMPWriter.h>
 #include <vtkImageCast.h>

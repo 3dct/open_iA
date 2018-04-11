@@ -20,10 +20,7 @@
 * ************************************************************************************/
 #include "iAModalityList.h"
 
-#include "io/extension2id.h"
 #include "iAConsole.h"
-#include "io/iAFileUtils.h"
-#include "io/iAIO.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
@@ -31,6 +28,9 @@
 #include "iAStringHelper.h"
 #include "iAVolumeRenderer.h"
 #include "iAVolumeSettings.h"
+#include "io/extension2id.h"
+#include "io/iAFileUtils.h"
+#include "io/iAIO.h"
 
 #include <vtkCamera.h>
 #include <vtkImageData.h>

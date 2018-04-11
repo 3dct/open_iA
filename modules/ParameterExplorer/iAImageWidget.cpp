@@ -20,15 +20,13 @@
 * ************************************************************************************/
 #include "iAImageWidget.h"
 
-#include "iATransferFunction.h"
-
 #include "iASlicerSettings.h"
 #include "iASlicer.h"
+#include "iATransferFunction.h"
 
-#include <vtkTransform.h>
-
-#include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkImageData.h>
+#include <vtkTransform.h>
 
 iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 {

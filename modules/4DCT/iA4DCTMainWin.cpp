@@ -18,10 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iA4DCTMainWin.h"
-// iA
+
 #include "iA4DCTData.h"
 #include "iA4DCTDefects.h"
 #include "iA4DCTProjectReaderWriter.h"
@@ -32,11 +30,11 @@
 #include "iAPreviewMaker.h"
 #include "iAStageView.h"
 #include "mainwindow.h"
-// itk
+
 #include <itkImageFileReader.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageFileWriter.h>
-// Qt
+
 #include <QDialog>
 #include <QDir>
 #include <QFileDialog>

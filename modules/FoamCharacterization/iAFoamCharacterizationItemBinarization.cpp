@@ -18,21 +18,21 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationItemBinarization.h"
 
-#include <QApplication>
-#include <QFile>
-#include <QTime>
-
-#include <itkBinaryThresholdImageFilter.h>
-#include <itkOtsuThresholdImageFilter.h>
+#include "iAFoamCharacterizationDialogBinarization.h"
 
 #include "iAConnector.h"
 #include "iAProgress.h"
 
-#include "iAFoamCharacterizationDialogBinarization.h"
+#include <itkBinaryThresholdImageFilter.h>
+#include <itkOtsuThresholdImageFilter.h>
+
 #include <vtkImageData.h>
+
+#include <QApplication>
+#include <QFile>
+#include <QTime>
 
 iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)

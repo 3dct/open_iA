@@ -20,6 +20,8 @@
  * * ************************************************************************************/
 #include "iASVMImageFilter.h"
 
+#include "svm.h"
+
 #include "defines.h"    // for DIM
 #include "iAConnector.h"
 #include "iAConsole.h"
@@ -29,7 +31,6 @@
 #include "iAVtkDraw.h"
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
-#include "svm.h"
 
 #include <itkScalarImageKmeansImageFilter.h>
 

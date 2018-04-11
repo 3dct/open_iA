@@ -18,15 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationDialogWatershed.h"
-
-#include <QGridLayout>
-#include <QLabel>
-#include <QDoubleSpinBox>
 
 #include "iAFoamCharacterizationItemWatershed.h"
 
+#include <QDoubleSpinBox>
+#include <QGridLayout>
+#include <QLabel>
 
 iAFoamCharacterizationDialogWatershed::iAFoamCharacterizationDialogWatershed
                                                          (iAFoamCharacterizationItemWatershed* _pItemWatershed, QWidget* _pParent)

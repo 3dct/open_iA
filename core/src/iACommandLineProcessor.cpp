@@ -25,12 +25,12 @@
 #include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
-#include "io/iAITKIO.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
 #include "iAValueType.h"
+#include "io/iAITKIO.h"
 
 #include <QFileInfo>
 #include <QTextStream>

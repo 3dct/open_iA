@@ -18,16 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iARunBatchThread.h"
 
 #include "CPUID.h"
 #include "defines.h"
 #include "iACSVToQTableWidgetConverter.h"
-#include "io/iAITKIO.h"
 #include "iAPorosityAnalyserModuleInterface.h"
 #include "iATypedCallHelper.h"
+#include "io/iAITKIO.h"
 
 // from Maximum Distance Toolkit
 #include <itkMaximumDistance.h>

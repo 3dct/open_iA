@@ -18,16 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_eventExplorer.h"
 
 #include "dlg_trackingGraph.h"
-#include "iAConsole.h"
 #include "iAFeatureTracking.h"
+
+#include "iAConsole.h"
 #include "iAVolumeStack.h"
 #include "mdichild.h"
-// vtk
+
 #include <vtkAxis.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkDataSetAttributes.h>

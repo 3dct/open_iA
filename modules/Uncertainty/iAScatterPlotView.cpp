@@ -30,26 +30,25 @@
 #include "iAUncertaintyColors.h"
 #include "iAVtkDraw.h"
 
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QPainter>
-#include <QToolButton>
-#include <QVariant>
-#include <QVBoxLayout>
-
-#include <vtkImageData.h>
-
 #include <QVTKWidget.h>
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkFloatArray.h>
+#include <vtkImageData.h>
 #include <vtkPen.h>
 #include <vtkPlot.h>
 #include <vtkRenderer.h>
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
+
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPainter>
+#include <QToolButton>
+#include <QVariant>
+#include <QVBoxLayout>
 
 #define VTK_CREATE(type, name) \
 	vtkSmartPointer<type> name = vtkSmartPointer<type>::New()

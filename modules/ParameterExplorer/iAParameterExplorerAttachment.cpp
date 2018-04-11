@@ -20,14 +20,11 @@
 * ************************************************************************************/
 #include "iAParameterExplorerAttachment.h"
 
-// IMPAsSE 	  IMage PArameter Space Explorer
-
-#include "iADockWidgetWrapper.h"
-
 #include "iAParamSPLOMView.h"
 #include "iAParamSpatialView.h"
 #include "iAParamTableView.h"
 
+#include "iADockWidgetWrapper.h"
 #include "mdichild.h"
 
 #include <QFileDialog>

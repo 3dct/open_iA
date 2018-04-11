@@ -18,25 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationItemWatershed.h"
 
-#include <QApplication>
-#include <QFile>
-#include <QTime>
-
-#include <itkGradientMagnitudeImageFilter.h>
-#include <itkWatershedImageFilter.h>
-#include <itkCastImageFilter.h>
-
-#include "itkImageIOBase.h"
+#include "iAFoamCharacterizationDialogWatershed.h"
 
 #include "iAConnector.h"
 #include "iAProgress.h"
 
-#include "iAFoamCharacterizationDialogWatershed.h"
+#include <itkCastImageFilter.h>
+#include <itkGradientMagnitudeImageFilter.h>
+#include <itkImageIOBase.h>
+#include <itkWatershedImageFilter.h>
 
 #include <vtkImageData.h>
+
+#include <QApplication>
+#include <QFile>
+#include <QTime>
 
 iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)

@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationAttachment.h"
 
 #include "iAFoamCharacterizationDialogAnalysis.h"
@@ -32,14 +31,14 @@
 #include "mdichild.h"
 #include "mainwindow.h"
 
+#include <vtkImageData.h>
+
 #include <QApplication>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QGroupBox>
 #include <QGridLayout>
-
-#include <vtkImageData.h>
 
 iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData)
 																			  : iAModuleAttachmentToChild(_pMainWnd, _iaChildData)

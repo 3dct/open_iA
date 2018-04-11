@@ -18,15 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAPDMView.h"
 
-#include "defines.h"
 #include "iABPMData.h"
 #include "iAHMData.h"
-#include "iAPerceptuallyUniformLUT.h"
+
+#include "defines.h"
 #include "charts/qcustomplot.h"
+#include "iAPerceptuallyUniformLUT.h"
 
 #include <QVTKWidget.h>
 #include <vtkColorTransferFunction.h>
@@ -37,7 +36,6 @@
 #include <vtkTextProperty.h>
 
 #include <algorithm>
-
 
 void SetWidgetSelectionStyle(QWidget * w, bool isSelected)
 {

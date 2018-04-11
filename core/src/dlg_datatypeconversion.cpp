@@ -18,11 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_datatypeconversion.h"
 
-#include "iAConnector.h"
 #include "charts/iAHistogramWidget.h"
+#include "iAConnector.h"
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
 #include "iATransferFunction.h"
@@ -60,7 +59,6 @@
 #include <QList>
 #include <QStringList>
 #include <QVariant>
-
 
 template<class T> void DataTypeConversion_template(QString const & m_filename, double* b, iAPlotData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
 {

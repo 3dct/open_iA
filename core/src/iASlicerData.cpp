@@ -18,13 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iASlicerData.h"
 
 #include "dlg_commoninput.h"
 #include "iAChannelVisualizationData.h"
 #include "iAConnector.h"
-#include "io/iAIOProvider.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
@@ -39,6 +37,7 @@
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
 #include "iAWrapperText.h"
+#include "io/iAIOProvider.h"
 #include "mdichild.h"
 #include "mainwindow.h"
 

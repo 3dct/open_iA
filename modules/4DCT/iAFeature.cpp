@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAFeature.h"
 
-// std
 #include <sstream>
 
 iAFeature::iAFeature()

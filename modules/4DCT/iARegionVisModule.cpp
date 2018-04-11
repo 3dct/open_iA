@@ -18,13 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iARegionVisModule.h"
-// iA
+
 #include "iACalculateDensityMap.h"
 #include "iA4DCTVisWin.h"	// ToDo: Scale!
-// vtk
+
 #include <vtkActor.h>
 #include <vtkDepthSortPolyData.h>
 #include <vtkImageData.h>
@@ -35,7 +33,7 @@
 #include <vtkPolyDataSilhouette.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
-// itk
+
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkResampleImageFilter.h>
 #include <itkImageToVTKImageFilter.h>

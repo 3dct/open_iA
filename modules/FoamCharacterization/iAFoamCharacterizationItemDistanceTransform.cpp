@@ -18,16 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationItemDistanceTransform.h"
-
-#include <QApplication>
-#include <QFile>
-#include <QTime>
-
-#include "itkDanielssonDistanceMapImageFilter.h"
-#include "itkInvertIntensityImageFilter.h"
-#include "itkMinimumMaximumImageCalculator.h"
 
 #include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationDialogDistanceTransform.h"
@@ -35,7 +26,15 @@
 #include "iAConnector.h"
 #include "iAProgress.h"
 
+#include <itkDanielssonDistanceMapImageFilter.h>
+#include <itkInvertIntensityImageFilter.h>
+#include <itkMinimumMaximumImageCalculator.h>
+
 #include <vtkImageData.h>
+
+#include <QApplication>
+#include <QFile>
+#include <QTime>
 
 iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceTransform
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)
