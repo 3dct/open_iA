@@ -18,23 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
-#include "dlg_blobVisualization.h"
-#include "dlg_commoninput.h"
-#include "dlg_editPCClass.h"
 #include "dlg_FiberScout.h"
-#include "dlg_imageproperty.h"
-#include "dlg_modalities.h"
-#include "iAmat4.h"
+
+#include "dlg_blobVisualization.h"
+#include "dlg_editPCClass.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iAFiberScoutScatterPlotMatrix.h"
-#include "charts/iADiagramFctWidget.h"
 #include "iAMeanObjectTFView.h"
 #include "iAModalityTransfer.h"
-#include "iAMovieHelper.h"
 #include "iAObjectAnalysisType.h"
+
+#include "charts/iADiagramFctWidget.h"
+#include "dlg_commoninput.h"
+#include "dlg_imageproperty.h"
+#include "dlg_modalities.h"
+#include "iAmat4.h"
+#include "iAMovieHelper.h"
 #include "iAProgress.h"
 #include "iARenderer.h"
 #include "mdichild.h"
