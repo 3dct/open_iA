@@ -57,7 +57,7 @@ public slots:
 	void mousePress(QMouseEvent*);
 	void mouseMove(QMouseEvent*);
 	void mouseWheel(QWheelEvent*);
-	void setFbpTransparency(int);
+	void setFBPTransparency(int);
 	void showFBPGraphs();
 	void visualize();
 	void updateDynamicVolumeLines();
@@ -87,8 +87,6 @@ private:
 	QCustomPlot *m_nonlinearScaledPlot;
 	QCustomPlot *m_linearScaledPlot;
 	QCustomPlot *m_debugPlot;
-	QToolButton *m_nlVisibilityButton;
-	QToolButton *m_lVisibilityButton;
 	iAScalingWidget *m_scalingWidget;
 	iAOrientationWidget * m_orientationWidget;
 	QCPItemText *m_nonlinearDataPointInfo;
@@ -120,20 +118,18 @@ private:
 	QSharedPointer<iAVolumeRenderer> m_volRen;
 		
 	void generateHilbertIdx();
-	void setupNonlinearFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData);
-	void setupLinearFBPGraphs(iAFunctionalBoxplot<double, double>* fbpData);
-	void setupNonlinearScaledPlot();
-	void setupLinearScaledPlot();
+	void setupFBPGraphs(QCustomPlot* qcp, iAFunctionalBoxplot<double, double>* fbpData);
+	void setupScaledPlot(QCustomPlot* qcp);
 	void setupDebugPlot();
 	void setupGUIConnections();
 	void setupMultiRendererView();
 	void showDebugPlot();
 	void calcNonLinearMapping();
-	void showBkgrdThrRanges();
+	void showBkgrdThrRanges(QCustomPlot* qcp);
 	void showCompressionLevel();
 	void setupGUIElements();
 	void setupScalingWidget();
-	void setupPlotConnections();
+	void setupPlotConnections(QCustomPlot* qcp);
 	void setSelectionForRenderer(QList<QCPGraph *> visSelGraphList);
 	void generateSegmentTree();
 	void checkHistVisMode(int lowerIdx, int upperIdx);

@@ -86,7 +86,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="cb_showFbp">
+        <widget class="QCheckBox" name="cb_showFBP">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -111,7 +111,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="cb_fbpView">
+        <widget class="QComboBox" name="cb_FBPView">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -126,7 +126,7 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>60</width>
+           <width>70</width>
            <height>16777215</height>
           </size>
          </property>
@@ -153,7 +153,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QSlider" name="sl_fbpTransparency">
+        <widget class="QSlider" name="sl_FBPTransparency">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
