@@ -166,8 +166,11 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="value">
+          <number>99</number>
+         </property>
          <property name="sliderPosition">
-          <number>25</number>
+          <number>99</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>

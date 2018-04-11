@@ -95,7 +95,7 @@ private:
 	QCPItemText *m_linearDataPointInfo;
 	QCPItemStraightLine *m_nonlinearIdxLine;
 	QCPItemStraightLine *m_linearIdxLine;
-	QList<QCPPlottableLegendItem*> m_selLegendItemList;
+	QList<QCPGraph*> m_selGraphList;
 	QVector<double> m_nonlinearMappingVec;
 	QVector<double> m_impFunctVec;
 	QSharedPointer<QCPGraphDataContainer> m_impFuncPlotData;
@@ -136,6 +136,5 @@ private:
 	void setupPlotConnections();
 	void setSelectionForRenderer(QList<QCPGraph *> visSelGraphList);
 	void generateSegmentTree();
-	
 	void checkHistVisMode(int lowerIdx, int upperIdx);
 };
