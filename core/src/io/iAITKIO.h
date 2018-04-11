@@ -38,7 +38,7 @@ namespace iAITKIO
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 	
 	template<class T>
-	inline int read_image_template( QString const & f, ImagePointer & image, bool releaseFlag )
+	inline void read_image_template( QString const & f, ImagePointer & image, bool releaseFlag )
 	{
 		typedef itk::Image< T, m_DIM>   InputImageType;
 		typedef itk::ImageFileReader<InputImageType> ReaderType;
@@ -52,12 +52,10 @@ namespace iAITKIO
 		reader->Update();
 		image = reader->GetOutput();
 		image->Modified();
-
-		return EXIT_SUCCESS;
 	}
 
 	template<class T>
-	inline int write_image_template( bool comp, QString const & fileName, ImagePointer image )
+	inline void write_image_template( bool comp, QString const & fileName, ImagePointer image )
 	{
 		typedef itk::Image< T, m_DIM>   InputImageType;
 		typedef itk::ImageFileWriter<InputImageType> WriterType;
@@ -68,8 +66,6 @@ namespace iAITKIO
 		writer->SetInput( dynamic_cast<InputImageType *> (image.GetPointer()) );
 		writer->SetUseCompression( comp );
 		writer->Update();
-
-		return EXIT_SUCCESS;
 	}
 
 	// TODO: unify with mdichild::loadfile / iAIO!

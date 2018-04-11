@@ -192,7 +192,7 @@ iAITKIO::ImagePointer AllocateImage(iAITKIO::ImagePointer img)
 }
 
 template <class T>
-void alloc_image_tmpl2(int const size[3], double const spacing[3], iAITKIO::ImagePointer & result)
+void alloc_image_tmpl2(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], iAITKIO::ImagePointer & result)
 {
 	typedef itk::Image<T, iAITKIO::m_DIM > ImageType;
 	typedef typename ImageType::Pointer ImagePointer;
@@ -216,7 +216,7 @@ void alloc_image_tmpl2(int const size[3], double const spacing[3], iAITKIO::Imag
 }
 
 
-iAITKIO::ImagePointer AllocateImage(int const size[3], double const spacing[3], itk::ImageIOBase::IOComponentType type)
+iAITKIO::ImagePointer AllocateImage(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], itk::ImageIOBase::IOComponentType type)
 {
 	iAITKIO::ImagePointer result;
 	ITK_TYPED_CALL(alloc_image_tmpl2, type, size, spacing, result);
@@ -271,15 +271,15 @@ void SetITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType id
 
 
 template <typename T>
-void InternalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[3], size_t const sizeArr[3], iAITKIO::ImagePointer & outImg)
+void InternalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM], iAITKIO::ImagePointer & outImg)
 {
-	typedef itk::Image< T, 3 > ImageType;
+	typedef itk::Image< T, iAITKIO::m_DIM > ImageType;
 	auto typedImg = dynamic_cast<ImageType *>(inImg.GetPointer());
 	typedef itk::ExtractImageFilter< ImageType, ImageType > ExtractType;
 	auto extractor = ExtractType::New();
 	auto size = typedImg->GetLargestPossibleRegion().GetSize();
 	typename ExtractType::InputImageRegionType::IndexType index;
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < iAITKIO::m_DIM; ++i)
 	{
 		index[i] = clamp(static_cast<size_t>(0), size[i], indexArr[i]);
 		size[i] = clamp(static_cast<size_t>(0), size[i] - index[i], sizeArr[i]);
@@ -294,7 +294,7 @@ void InternalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[3],
 	outImg = extractor->GetOutput();
 }
 
-iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[3], size_t const sizeArr[3])
+iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM])
 {
 	iAITKIO::ImagePointer outImg;
 	ITK_TYPED_CALL(InternalExtractImage, GetITKScalarPixelType(inImg), inImg, indexArr, sizeArr, outImg);

@@ -24,6 +24,7 @@
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
+#include "iAToolsITK.h"
 #include "iATypedCallHelper.h"
 #include "mdichild.h"
 
@@ -44,32 +45,6 @@ namespace
 	const QString InterpNearestNeighbour("Nearest Neighbour");
 	const QString InterpBSpline("BSpline");
 	const QString InterpWindowedSinc("Windowed Sinc");
-}
-
-template <typename T>
-typename itk::Image<T, DIM>::Pointer SetIndexOffsetToZero(typename itk::Image<T, DIM>::Pointer inImg)
-{
-	// change output image index offset to zero
-	typedef itk::Image<T, DIM> ImageType;
-	typename ImageType::IndexType idx; idx.Fill(0);
-	typename ImageType::PointType origin; origin.Fill(0);
-	typename ImageType::RegionType outreg;
-	auto size = inImg->GetLargestPossibleRegion().GetSize();
-	outreg.SetIndex(idx);
-	outreg.SetSize(size);
-	auto refimage = ImageType::New();
-	refimage->SetRegions(outreg);
-	refimage->SetOrigin(origin);
-	refimage->SetSpacing(inImg->GetSpacing());
-	refimage->Allocate();
-	typedef itk::ChangeInformationImageFilter<ImageType> CIIFType;
-	auto changeFilter = CIIFType::New();
-	changeFilter->SetInput(inImg);
-	changeFilter->UseReferenceImageOn();
-	changeFilter->SetReferenceImage(refimage);
-	changeFilter->SetChangeRegion(true);
-	changeFilter->Update();
-	return changeFilter->GetOutput();
 }
 
 template<typename T> void resampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)

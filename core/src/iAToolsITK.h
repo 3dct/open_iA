@@ -38,7 +38,7 @@
 open_iA_Core_API itk::ImageIOBase::IOComponentType GetITKScalarPixelType(iAITKIO::ImagePointer image);
 open_iA_Core_API itk::ImageIOBase::IOPixelType GetITKPixelType( iAITKIO::ImagePointer image );
 open_iA_Core_API iAITKIO::ImagePointer AllocateImage(iAITKIO::ImagePointer img);
-open_iA_Core_API iAITKIO::ImagePointer AllocateImage(int const size[3], double const spacing[3], itk::ImageIOBase::IOComponentType type);
+open_iA_Core_API iAITKIO::ImagePointer AllocateImage(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], itk::ImageIOBase::IOComponentType type);
 open_iA_Core_API void StoreImage(iAITKIO::ImagePointer image, QString const & filename, bool useCompression);
 
 //! @{
@@ -50,7 +50,35 @@ open_iA_Core_API void SetITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseT
 //! @}
 
 //! extract part of an image as a new file
-open_iA_Core_API iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[3], size_t const sizeArr[3]);
+open_iA_Core_API iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM]);
+
+//! set index offset of an image to (0,0,0)
+//open_iA_Core_API iAITKIO::ImagePointer SetIndexOffsetToZero(iAITKIO::ImagePointer inImg);
+template <typename T>
+typename itk::Image<T, iAITKIO::m_DIM>::Pointer SetIndexOffsetToZero(typename itk::Image<T, iAITKIO::m_DIM>::Pointer inImg)
+{
+	// change output image index offset to zero
+	typedef itk::Image<T, iAITKIO::m_DIM> ImageType;
+	typename ImageType::IndexType idx; idx.Fill(0);
+	typename ImageType::PointType origin; origin.Fill(0);
+	typename ImageType::RegionType outreg;
+	auto size = inImg->GetLargestPossibleRegion().GetSize();
+	outreg.SetIndex(idx);
+	outreg.SetSize(size);
+	auto refimage = ImageType::New();
+	refimage->SetRegions(outreg);
+	refimage->SetOrigin(origin);
+	refimage->SetSpacing(inImg->GetSpacing());
+	refimage->Allocate();
+	typedef itk::ChangeInformationImageFilter<ImageType> CIIFType;
+	auto changeFilter = CIIFType::New();
+	changeFilter->SetInput(inImg);
+	changeFilter->UseReferenceImageOn();
+	changeFilter->SetReferenceImage(refimage);
+	changeFilter->SetChangeRegion(true);
+	changeFilter->Update();
+	return changeFilter->GetOutput();
+}
 
 //! Source: http://itk.org/Wiki/ITK/Examples/Utilities/DeepCopy
 template<typename TImage>

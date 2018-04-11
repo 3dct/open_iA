@@ -35,8 +35,8 @@
 #include <QDir>
 #include <QDebug>
 
-template<class T> int iADatasetInfo::generateInfo( QString datasetPath, QString datasetName, 
-												   ImagePointer & image, iAPorosityAnalyserModuleInterface * pmi, 
+template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString datasetName,
+												   ImagePointer & image, iAPorosityAnalyserModuleInterface * pmi,
 												   int totalFInfoNbToCreate, int currentFInfoNb )
 {
 	typedef itk::Image<T, DIM>  InputImageType;
@@ -159,8 +159,6 @@ template<class T> int iADatasetInfo::generateInfo( QString datasetPath, QString 
 // 	writer->SetFileName( fileName.toStdString() );
 // 	writer->SetInput( extracter->GetOutput() );
 // 	writer->Update();
-
-	return EXIT_SUCCESS;
 }
 
 void iADatasetInfo::run()

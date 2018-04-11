@@ -42,9 +42,9 @@ signals:
 	void progress( int );
 
 private:
-	template<class T> int generateInfo( QString datasetPath, QString datasetName, 
+	template<class T> void generateInfo( QString datasetPath, QString datasetName,
 										ImagePointer & image, iAPorosityAnalyserModuleInterface * pmi,
 										int filesInfoNbToCreate, int currentFInfoNb );
-	
+
 	QStringList m_newGeneratedInfoFilesList;
 };
