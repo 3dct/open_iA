@@ -23,10 +23,8 @@ void dlg_CSVInput::hideCoordinateInputs()
 {
 	this->ed_XStartCol->setVisible(false);
 	this->ed_X_EndCol->setVisible(false);
-
 	this->ed_yStart_Col->setVisible(false);
 	this->ed_X_EndCol->setVisible(false);
-	
 }
 
 void dlg_CSVInput::disableFormatComponents()
@@ -47,26 +45,20 @@ void dlg_CSVInput::saveHeaderEntriesToReg(const QString &LayoutName)
 	QSettings settings;
 	QString settingsName = ""; 
 
-	QStringList test = { "jaööp",  "oopds",  "zz" }; //TODO use real values
-
 	settingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
 	settings.beginGroup(settingsName);
-	settings.setValue(this->m_regEntries->str_headerName, test /**m_selHeaders*/); //TODO save headers to registry
+	settings.setValue(this->m_regEntries->str_headerName,*this->m_selHeaders); 
 	settings.endGroup(); 
 }
 
 
-void dlg_CSVInput::LoadHeaderEntriesFromReg(const QString &LayoutName) {
+void dlg_CSVInput::LoadHeaderEntriesFromReg(QStringList &HeaderEntries, const QString &LayoutName) {
 	QSettings settings;
 	QString settingsName = "";
-	QStringList dataEntries; 
 	settingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
 	settings.beginGroup(settingsName);
-	
-	dataEntries = settings.value(this->m_regEntries->str_headerName).value<QStringList>();
-	
+	HeaderEntries = settings.value(this->m_regEntries->str_headerName).value<QStringList>();
 	settings.endGroup();
-
 }
 
 dlg_CSVInput::~dlg_CSVInput()
@@ -77,7 +69,7 @@ dlg_CSVInput::~dlg_CSVInput()
 void dlg_CSVInput::connectSignals()
 {
 	
-	connect(btn_PreviewData, SIGNAL(clicked()), this, SLOT(LoadDataPreviewClicked()));
+	connect(btn_PreviewData, SIGNAL(clicked()), this, SLOT(LoadCSVPreviewClicked()));
 	//connect(btn_LoadConfig, SIGNAL(clicked()), this, SLOT(LoadFormatBtnClicked()));
 	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked()));
 	connect(btn_loadCols, SIGNAL(clicked()), this, SLOT(LoadColsBtnClicked()));
@@ -127,6 +119,14 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	}
 
 	this->loadEntriesFromRegistry(mySettings, LayoutName);
+	//load preview
+
+	this->loadFilePreview(15, true); 
+
+	this->LoadHeaderEntriesFromReg(*this->m_selHeaders, LayoutName); 
+
+	//load all headers
+
 	showConfigParams(*this->m_confParams);
 }
 
@@ -161,14 +161,13 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 
 	//header Entries from selection in control list
 	this->setSelectedEntries(); 
-
 	params = *this->m_confParams; 
 	saveParamsToRegistry(params, layoutName);
 	this->saveHeaderEntriesToReg(layoutName); 
 	this->cmb_box_FileFormat->addItem(layoutName); 
 }
 
-void dlg_CSVInput::LoadDataPreviewClicked()
+void dlg_CSVInput::LoadCSVPreviewClicked()
 {
 	this->assignFileFormat(); 
 	this->assignSeparator();
@@ -179,7 +178,7 @@ void dlg_CSVInput::LoadDataPreviewClicked()
 		this->m_entriesPreviewTable->resetIndizes(); 
 	}
 
-	this->loadFilePreview(15); 
+	this->loadFilePreview(15, false); 
 	this->showConfigParams(*this->m_confParams);
 	this->m_formatSelected = false; 
 }
@@ -218,6 +217,7 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams & params)
 	
 	this->ed_Spacing->setText(QString("%1").arg(params.spacing));
 	this->ed_Units->setText(QString("1").arg(params.csv_units)); 
+	this->txt_ed_fileName->setText(params.fileName);
 }
 
 //void dlg_CSVInput::LoadFormatBtnClicked()
@@ -351,11 +351,11 @@ void dlg_CSVInput::assignSpacingUnits() {
 	this->m_confParams->csv_units = this->ed_Units->text();
 }
 
-void dlg_CSVInput::loadFilePreview(const int rowCount) {
+void dlg_CSVInput::loadFilePreview(const int rowCount, const bool formatLoaded) {
 	m_entriesPreviewTable->setColSeparator(this->m_confParams->file_seperator);
 	if (!isFileNameValid) {
 		
-		isFileNameValid = this->checkFile();
+		isFileNameValid = this->checkFile(formatLoaded);
 		if (!isFileNameValid)
 		{
 			return;
@@ -364,22 +364,32 @@ void dlg_CSVInput::loadFilePreview(const int rowCount) {
 	
 	this->m_entriesPreviewTable->prepareTable(rowCount, this->m_confParams->colCount, this->m_confParams->headerStartLine); 
 	this->loadEntries(this->m_confParams->fileName, rowCount);
+	this->txt_ed_fileName->setText(this->m_confParams->fileName);
+
+	//adding text to label
 	this->showPreviewTable(); 
 }
 
 
 //checks if file exists and save it to config params
-bool dlg_CSVInput::checkFile() {
-	bool fileOK = false; 
+bool dlg_CSVInput::checkFile(bool LayoutLoaded) {
+	bool fileOK = false;
+	QString fileName = ""; 
 	if (m_fPath.isEmpty()) {
 
 		this->m_confParams->paramsValid = false;
 		return fileOK;
 	}
 
-	QString fileName = QFileDialog::getOpenFileName(
-		this, tr("Open Files"), m_fPath, tr("csv spreadsheet (*.csv),.csv")
-	);
+	if (!LayoutLoaded) {
+
+		fileName = QFileDialog::getOpenFileName(
+			this, tr("Open Files"), m_fPath, tr("csv spreadsheet (*.csv),.csv")
+		);
+	}
+	else {
+		fileName = this->m_confParams->fileName; 
+	}
 
 	if (fileName.isEmpty())
 	{
@@ -460,22 +470,29 @@ void dlg_CSVInput::assignHeaderLine() {
 
 //setEntries from a selected List;
 void dlg_CSVInput::setSelectedEntries() {
-	uint currItemIdx; 
-	QString listEntry; 
+	
 	this->m_selectedHeadersList = this->textControl_list->selectedItems();
-				
+	
+	
+	uint currItemIdx; 
+	QString listEntry; 			
 	//no selection use all entries
 	if (!(this->m_selectedHeadersList.length() == 0)) {
 		for (const auto &selEntry : m_selectedHeadersList) {
 			listEntry = selEntry->text();
-			currItemIdx = this->m_hashEntries.value(listEntry);
-			this->m_selColIdx.push_back(currItemIdx);
-			this->m_selHeaders->append(listEntry);
+			addSingleHeaderToList(currItemIdx, listEntry);
 		}
 		
 		qSort(this->m_selColIdx.begin(), this->m_selColIdx.end(), qLess<uint>());
 	}
 
+}
+
+void dlg_CSVInput::addSingleHeaderToList(uint &currItemIdx, QString &listEntry)
+{
+	currItemIdx = this->m_hashEntries.value(listEntry);
+	this->m_selColIdx.push_back(currItemIdx);
+	this->m_selHeaders->append(listEntry);
 }
 
 const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
@@ -509,7 +526,8 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 			tr("Format not avaiable"));
 		return; 
 	}
-			
+	
+	this->m_confParams->fileName = anySetting.value(this->m_regEntries->str_fileName).toString(); 
 	this->m_confParams->startLine = anySetting.value( this->m_regEntries->str_reg_startLine).toLongLong(); //startLine
 	this->m_confParams->useEndline = anySetting.value(this->m_regEntries->str_reg_useEndline).toBool() ; //useEndline  
 
@@ -654,7 +672,12 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		this->m_regEntries->v_Spacing = csv_params.spacing; 
 		this->m_regEntries->v_Units = csv_params.csv_units; 
 		//this->m_regEntries->v_FiberPoreObject = csv_params.inputObjectType TODO save fiber pores? 
-
+		this->m_regEntries->v_fileName = csv_params.fileName;
+		//this->m_regEntries->str_fileName.replace("\/", "\\");
+		//this->m_regEntries->str_fileName = QDir::fromNativeSeparators(this->m_regEntries->str_fileName);
+		
+		//std::replace(this->m_regEntries->str_fileName.begin(), this->m_regEntries->str_fileName.end(), QChar('/'),  QChar('\\'));
+		//std::replace(m_regEntries->str_fileName.begin(), m_regEntries->str_fileName.end(), '\\', '/');
 
 		//saveValues in registry;
 		settingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
@@ -665,7 +688,8 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		settings.setValue(this->m_regEntries->str_reg_EndLine, this->m_regEntries->v_endLine);//EndLine
 		settings.setValue(this->m_regEntries->str_reg_languageFormat, this->m_regEntries->v_languageFormat);//LanguageFormat
 		settings.setValue(this->m_regEntries->str_reg_Spacing, this->m_regEntries->v_Spacing); //Spacing
-		settings.setValue(this->m_regEntries->str_reg_Units, this->m_regEntries->str_reg_Units); //Units; 
+		settings.setValue(this->m_regEntries->str_reg_Units, this->m_regEntries->v_Units); //Units; 
+		settings.setValue(this->m_regEntries->str_fileName, this->m_regEntries->v_fileName); //FileName;
 		settings.endGroup(); 
 
 		//this->saveHeaderEntriesToReg(LayoutName); 

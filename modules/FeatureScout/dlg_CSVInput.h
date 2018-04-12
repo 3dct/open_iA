@@ -23,6 +23,7 @@ namespace FeatureScoutCSV{
 			str_settingsName = "FeatureScoutCSV";
 			str_formatName = "FormatName";
 			str_headerName = "HeaderEntries"; 
+			str_fileName = "FileName";
 			str_reg_useEndline = "useEndLine";
 			str_reg_startLine = "StartLine";
 			str_reg_EndLine = "Endline";
@@ -44,15 +45,13 @@ namespace FeatureScoutCSV{
 		QVariant v_languageFormat;
 		QVariant v_Spacing; 
 		QVariant v_Units; 
-
-		//for fibers or pores
-		QVariant v_FiberPoreObject; 
-
+		QVariant v_FiberPoreObject; //for fibers or pores
+		QVariant v_fileName; 
 
 
 		QString str_settingsName;
 		QString str_headerName;
-
+		QString str_fileName; 
 		QString str_formatName; 
 		QString str_reg_useEndline;
 		QString str_reg_startLine;
@@ -90,7 +89,7 @@ public:
 	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0); /*: QDialog(parent, f)*/
 	
 	//load Headers saved in registry
-	void LoadHeaderEntriesFromReg(const QString & LayoutName);
+	void LoadHeaderEntriesFromReg(QStringList &HeaderEntries, const QString &LayoutName);
 
 	~dlg_CSVInput();
 
@@ -106,6 +105,7 @@ public:
 	}
 	
 	void setSelectedEntries();
+	void addSingleHeaderToList(uint &currItemIdx, QString &listEntry);
 	const QVector<uint>& getEntriesSelInd();
 	
 	
@@ -119,7 +119,7 @@ public:
 
 	
 private slots: 
-	void LoadDataPreviewClicked(); 
+	void LoadCSVPreviewClicked();
 
 	//TODO TBD
 	void ImportRegSettings();
@@ -165,8 +165,8 @@ private:
 	void assignFileFormat();
 	void assignSeparator();
 	void assignSpacingUnits();
-	void loadFilePreview(const int rowCount);
-	bool checkFile();
+	void loadFilePreview(const int rowCount, const bool formatLoaded);
+	bool checkFile(bool Layoutloaded);
 	bool loadEntries(const QString & fileName, const unsigned int nrPreviewElements);
 	void showPreviewTable();
 	void assignHeaderLine();
@@ -176,10 +176,6 @@ private:
 	void disableFormatComponents();
 
 	void saveHeaderEntriesToReg(const QString & LayoutName);
-
-	
-	
-	
 
 private:
 
