@@ -15,7 +15,7 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	connectSignals();
 
 	////for storing stringList in Registry
-	qRegisterMetaTypeStreamOperators<QStringList>("QStringList");
+	//qRegisterMetaTypeStreamOperators<QStringList>("QStringList");
 
 }
 
@@ -47,7 +47,7 @@ void dlg_CSVInput::saveHeaderEntriesToReg(const QString &LayoutName)
 	QSettings settings;
 	QString settingsName = ""; 
 
-	QStringList test = { "jaööp",  "oopds",  "zz" };
+	QStringList test = { "jaööp",  "oopds",  "zz" }; //TODO use real values
 
 	settingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
 	settings.beginGroup(settingsName);
@@ -133,10 +133,16 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 void dlg_CSVInput::LoadColsBtnClicked()
 {
 	this->setSelectedEntries();
+	//save headers to registry
+
+
+
 	this->buttonBox->setEnabled(true);
 	this->buttonBox->setVisible(true);
 }
 
+
+//Add Layout
 void dlg_CSVInput::SaveLayoutBtnClicked()
 {
 	csvConfig::configPararams params;
@@ -152,8 +158,13 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 	this->assignStartEndLine(); 
 	this->AssignFormatLanguage();
 	this->assignSpacingUnits(); 
+
+	//header Entries from selection in control list
+	this->setSelectedEntries(); 
+
 	params = *this->m_confParams; 
 	saveParamsToRegistry(params, layoutName);
+	this->saveHeaderEntriesToReg(layoutName); 
 	this->cmb_box_FileFormat->addItem(layoutName); 
 }
 

@@ -1649,16 +1649,6 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QPushButton" name="btn_LoadConfig">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>ImportFormat...</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="btn_SaveLayout">
          <property name="enabled">
           <bool>false</bool>
@@ -1671,16 +1661,6 @@
          </property>
          <property name="text">
           <string>AddLayout</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btn_CustomFormat_2">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>ExportLayout...</string>
          </property>
         </widget>
        </item>
@@ -1799,7 +1779,7 @@
             </size>
            </property>
            <property name="text">
-            <string>DataPreview ...</string>
+            <string>LoadCSV</string>
            </property>
           </widget>
          </item>

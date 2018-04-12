@@ -3492,7 +3492,7 @@ void dlg_FeatureScout::ScatterPlotButton()
 		//matrix->showSelectedPlot(1, 0);
 		
 		//showing upper corner in the scatter plot matrix
-		matrix->showSelectedPlot(); 
+		//matrix->showSelectedPlot(); 
 
 		// Creates a popup menu
 		QMenu* popup1 = new QMenu( iovSPM );

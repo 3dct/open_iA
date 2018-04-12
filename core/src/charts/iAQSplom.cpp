@@ -565,10 +565,18 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	QFontMetrics fm = painter.fontMetrics();
 	//collect info
 	QList<double> ticksX, ticksY; QList<QString> textX, textY;
+
 	for (int i = 0; i < m_visiblePlots.size(); ++i)
-	{
-		m_visiblePlots[i][i]->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
+	{//int j; 
+		
+
+		if (m_visiblePlots[i][i]) {
+			m_visiblePlots[i][i]->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
+		}
 	}
+
+	//TODO PRINT coordinates info
+
 	int maxTickLabelWidth = GetMaxTickLabelWidth(textX, fm);
 	if (settings.tickOffsets.x() != maxTickLabelWidth || settings.tickOffsets.y() != maxTickLabelWidth)
 	{
@@ -835,7 +843,8 @@ void iAQSplom::updateVisiblePlots()
 			if( UPPER_HALF == m_mode )
 			{
 				//hide lower triangle
-				if( x > y )
+				//hide diagonal elements; 
+				if( (x > y) /*|| (x==y)*/  )
 					plot = 0;
 			}
 			row.push_back( plot );

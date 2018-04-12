@@ -68,7 +68,7 @@ namespace FeatureScoutCSV{
 
 };
 
-Q_DECLARE_METATYPE(QStringList);
+//Q_DECLARE_METATYPE(QStringList);
 
 class /*open_iA_Core_API*/ dlg_CSVInput : public QDialog, public Ui_CsvInput
 {
