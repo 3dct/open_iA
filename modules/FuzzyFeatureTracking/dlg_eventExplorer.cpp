@@ -1365,7 +1365,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer - 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer - 1][c.id], tableToGraphId[layer][id]) != -1)
 						{
 							g->AddEdge(tableToGraphId[layer][id], tableToGraphId[layer - 1][c.id]);
-							cout << "Edge [" << id << "][" << layer << "] --> [" << c.id << "][" << layer - 1 << "]" << endl;
+							std::cout << "Edge [" << id << "][" << layer << "] --> [" << c.id << "][" << layer - 1 << "]" << std::endl;
 						}*/
 					}
 				}
@@ -1436,7 +1436,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer + 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer + 1][c.id], tableToGraphId[layer][id]) != -1)
 						{
 							g->AddEdge(tableToGraphId[layer][id], tableToGraphId[layer + 1][c.id]);
-							cout << "Edge [" << id << "][" << layer << "] --> [" << c.id << "][" << layer + 1 << "]" << endl;
+							std::cout << "Edge [" << id << "][" << layer << "] --> [" << c.id << "][" << layer + 1 << "]" << std::endl;
 						}*/
 					}
 				}
