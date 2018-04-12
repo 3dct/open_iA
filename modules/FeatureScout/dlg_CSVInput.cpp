@@ -52,7 +52,7 @@ void dlg_CSVInput::saveHeaderEntriesToReg(const QStringList& HeaderEntries, cons
 }
 
 
-void dlg_CSVInput::LoadHeaderEntriesFromReg(QStringList &HeaderEntries, const QString &LayoutName) {
+void dlg_CSVInput::LoadHeaderEntriesFromReg(QStringList &HeaderEntries, const QString &HeaderNames, const QString &LayoutName) {
 	QSettings settings;
 	QString settingsName = "";
 	settingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
@@ -106,27 +106,30 @@ void dlg_CSVInput::showFormatComponents()
 
 void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 {
-	bool layoutAvaiable = false; 
-	if (LayoutName.isEmpty()) { return;}
-	QSettings mySettings; 
-	QStringList feat_Groups; 
-	layoutAvaiable = CheckFeatureInRegistry(mySettings, &LayoutName,feat_Groups, true);
-	this->m_formatSelected = true; 
-	
+	bool layoutAvaiable = false;
+	if (LayoutName.isEmpty()) { return; }
+	QSettings mySettings;
+	QStringList feat_Groups;
+	layoutAvaiable = CheckFeatureInRegistry(mySettings, &LayoutName, feat_Groups, true);
+	this->m_formatSelected = true;
+
 	if (!layoutAvaiable) {
-		QMessageBox::warning(this,tr("FeatureScoutCSV"), tr("Layout option not yet defined"));
-		return; 
+		QMessageBox::warning(this, tr("FeatureScoutCSV"), tr("Layout option not yet defined"));
+		return;
 	}
 
 	this->loadEntriesFromRegistry(mySettings, LayoutName);
 	//load preview
-	//check if file name is not emtpy
-	this->loadFilePreview(15, true); 
-	this->LoadHeaderEntriesFromReg(*this->m_selHeaders, LayoutName); 
-	setSelectedHeaderToTextControl(*this->m_selHeaders); 
 	
-	//load all headers
 
+	//if file is not good -> show empty table but selection
+	if (!this->loadFilePreview(15, true)) {
+		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, LayoutName);
+		
+	}
+	
+	this->LoadHeaderEntriesFromReg(*this->m_selHeaders,this->m_regEntries->str_headerName, LayoutName); 
+	setSelectedHeaderToTextControl(*this->m_selHeaders); //load all headers
 	showConfigParams(*this->m_confParams);
 }
 
@@ -165,6 +168,10 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 	params = *this->m_confParams; 
 	saveParamsToRegistry(params, layoutName);
 	this->saveHeaderEntriesToReg(*this->m_selHeaders, this->m_regEntries->str_headerName,layoutName); 
+
+	//save all entries in order to make sure if file is not avaible  one still can see the headerss
+	this->saveHeaderEntriesToReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, layoutName); 
+	
 	this->cmb_box_FileFormat->addItem(layoutName); 
 }
 
@@ -353,14 +360,14 @@ void dlg_CSVInput::assignSpacingUnits() {
 	this->m_confParams->csv_units = this->ed_Units->text();
 }
 
-void dlg_CSVInput::loadFilePreview(const int rowCount, const bool formatLoaded) {
+bool dlg_CSVInput::loadFilePreview(const int rowCount, const bool formatLoaded) {
 	m_entriesPreviewTable->setColSeparator(this->m_confParams->file_seperator);
 	if (!isFileNameValid) {
 		
 		isFileNameValid = this->checkFile(formatLoaded);
 		if (!isFileNameValid)
 		{
-			return;
+			return false;
 		}
 	}
 	
@@ -370,6 +377,8 @@ void dlg_CSVInput::loadFilePreview(const int rowCount, const bool formatLoaded) 
 
 	//adding text to label
 	this->showPreviewTable(); 
+
+	return true; 
 }
 
 
@@ -475,7 +484,7 @@ void dlg_CSVInput::assignHeaderLine() {
 	this->textControl_list->update(); 
 }
 
-//setEntries from a selected List;
+//setEntries from a selected List + setting column count information for selection
 void dlg_CSVInput::setSelectedEntries() {
 	
 	this->m_selectedHeadersList = this->textControl_list->selectedItems();
@@ -492,6 +501,8 @@ void dlg_CSVInput::setSelectedEntries() {
 		
 		qSort(this->m_selColIdx.begin(), this->m_selColIdx.end(), qLess<uint>());
 	}
+
+	this->m_confParams->colCount = this->m_selColIdx.length(); 
 
 }
 

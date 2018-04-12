@@ -92,7 +92,9 @@ public:
 	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0); /*: QDialog(parent, f)*/
 	
 	//load Headers saved in registry
-	void LoadHeaderEntriesFromReg(QStringList &HeaderEntries, const QString &LayoutName);
+	
+
+	void LoadHeaderEntriesFromReg(QStringList & HeaderEntries, const QString & HeaderNames, const QString & LayoutName);
 
 	~dlg_CSVInput();
 
@@ -174,7 +176,7 @@ private:
 	void assignFileFormat();
 	void assignSeparator();
 	void assignSpacingUnits();
-	void loadFilePreview(const int rowCount, const bool formatLoaded);
+	bool loadFilePreview(const int rowCount, const bool formatLoaded);
 	bool checkFile(bool Layoutloaded);
 	bool loadEntries(const QString & fileName, const unsigned int nrPreviewElements);
 	void showPreviewTable();

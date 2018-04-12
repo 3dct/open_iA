@@ -526,12 +526,17 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	arr->SetName("Class_ID");
 	table->AddColumn(arr);
 
-	table->SetNumberOfRows(tableLength+2);
+	table->SetNumberOfRows(tableLength/*+2*/);
 	QString line = "";
 	QString tmp_section = "";
 	tableWidth = this->m_tableWidth; 
 	int col_count = 0; 
-	col_count = this->m_TableHeaders.length(); 
+	if (this->m_colIds.length() >0){
+		col_count = this->m_colIds.length(); 
+	}
+	else col_count = this->m_TableHeaders.length(); 
+
+	/*col_count = colSelEntries.length(); ; */// /*this->m_TableHeaders*/m_Headers.length();
 	double tbl_value = 0.0; 
 
 	vtkVariant ID_val; 
@@ -585,7 +590,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 		}
 	}
 
-	table->RemoveRow(tableLength + 1);
+	
 	if(file.isOpen())
 	file.close();
 	retFlag = true; 
