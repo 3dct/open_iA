@@ -980,8 +980,8 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 	iASlicerMode mode = slicerData->getMode();
 	int sn = slicerData->getSliceNumber();
 
-	cout << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5] << endl;
-	cout << focalPt[0] << " " << focalPt[1] << " " << focalPt[2] << endl;
+	std::cout << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5] << std::endl;
+	std::cout << focalPt[0] << " " << focalPt[1] << " " << focalPt[2] << std::endl;
 
 	switch ( slicerData->getMode() )
 	{
