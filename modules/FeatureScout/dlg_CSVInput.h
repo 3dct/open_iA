@@ -23,6 +23,7 @@ namespace FeatureScoutCSV{
 			str_settingsName = "FeatureScoutCSV";
 			str_formatName = "FormatName";
 			str_headerName = "HeaderEntries"; 
+			str_allHeaders = "AllHeaders"; 
 			str_fileName = "FileName";
 			str_reg_useEndline = "useEndLine";
 			str_reg_startLine = "StartLine";
@@ -47,10 +48,12 @@ namespace FeatureScoutCSV{
 		QVariant v_Units; 
 		QVariant v_FiberPoreObject; //for fibers or pores
 		QVariant v_fileName; 
+		QVariant v_allHeaders; 
 
 
 		QString str_settingsName;
 		QString str_headerName;
+		QString str_allHeaders;
 		QString str_fileName; 
 		QString str_formatName; 
 		QString str_reg_useEndline;
@@ -181,7 +184,9 @@ private:
 	void hideCoordinateInputs();
 	void disableFormatComponents();
 
-	void saveHeaderEntriesToReg(const QString & LayoutName);
+	void saveHeaderEntriesToReg(const QStringList & HeaderEntries, const QString & HeaderName, const QString & LayoutName);
+
+	
 
 private:
 
@@ -198,7 +203,7 @@ private:
 	bool isFileNameValid = false; 
 	bool isFilledWithData = false; 
 	bool m_formatSelected = false; 
-
+	ulong m_headersCount; 
 
 	//current headers of the table
 	QSharedPointer<QStringList> m_currentHeaders; 

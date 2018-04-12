@@ -40,7 +40,7 @@ void dlg_CSVInput::disableFormatComponents()
 	this->buttonBox->setDisabled(true);
 }
 
-void dlg_CSVInput::saveHeaderEntriesToReg(const QString &LayoutName)
+void dlg_CSVInput::saveHeaderEntriesToReg(const QStringList& HeaderEntries, const QString &HeaderName, const QString &LayoutName)
 {
 	QSettings settings;
 	QString settingsName = ""; 
@@ -164,7 +164,7 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 	this->setSelectedEntries(); 
 	params = *this->m_confParams; 
 	saveParamsToRegistry(params, layoutName);
-	this->saveHeaderEntriesToReg(layoutName); 
+	this->saveHeaderEntriesToReg(*this->m_selHeaders, this->m_regEntries->str_headerName,layoutName); 
 	this->cmb_box_FileFormat->addItem(layoutName); 
 }
 
@@ -243,7 +243,8 @@ void dlg_CSVInput::initParameters(){
 	this->m_confParams->paramsValid = false;
 	this->m_fPath = "D:/OpenIa_TestDaten/Pores/";
 	this->m_entriesPreviewTable = new dataTable(); 
-	
+	this->m_headersCount = 0; 
+
 	if (!this->m_currentHeaders) {
 		this->m_currentHeaders = QSharedPointer<QStringList>(new QStringList()); 
 	}
@@ -427,7 +428,7 @@ bool dlg_CSVInput::checkFile(bool LayoutLoaded) {
 	return fileOK; 
 }
 
-//loading entries in table widget preview
+//loading entries into table widget preview
 bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPreviewElements) {
  
 	bool dataLoaded = false; 
@@ -441,6 +442,7 @@ bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPre
 	return dataLoaded; 
 }
 
+//shows table with entries
 void dlg_CSVInput::showPreviewTable()
 {
 	this->m_entriesPreviewTable->setAutoScroll(true);
@@ -512,7 +514,12 @@ void dlg_CSVInput::selectSingleHeader(uint &currItemIdx, QString &listEntry) {
 
 void dlg_CSVInput::setSelectedHeaderToTextControl(QStringList &sel_headers){
 	uint itemIDx = 0; 
-	//if (this->textControl_list->)
+	if (sel_headers.length() > this->m_currentHeaders->length()) {
+		QMessageBox::warning(this, tr("Data Preview"),
+			tr("Size of selected headers does not match with headers in file.\n"));
+		return; 
+	}
+	
 
 	for (auto &h_entry: sel_headers){
 		selectSingleHeader(itemIDx, h_entry);
