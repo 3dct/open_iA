@@ -34,18 +34,18 @@
 iASegmentTree::iASegmentTree(const vector<int> &input, int binCnt, int lowerBnd, int upperBnd) :
 	m_inputElemCnt(0)
 {
-	//TODO: Currently only hist is needed, others can be disabled
+	//NOTE: Currently only hist is needed, others can be disabled
 	m_inputElemCnt = input.size();
-	m_avg.resize(2 * m_inputElemCnt);
+	/*m_avg.resize(2 * m_inputElemCnt);
 	m_min.resize(2 * m_inputElemCnt);
-	m_max.resize(2 * m_inputElemCnt);
+	m_max.resize(2 * m_inputElemCnt);*/
 	m_hist.resize(2 * m_inputElemCnt);
 
 	for (int i = 0; i < m_inputElemCnt; ++i)
 	{
-		m_avg[m_inputElemCnt + i] = input[i];
+		/*m_avg[m_inputElemCnt + i] = input[i];
 		m_min[m_inputElemCnt + i] = input[i];
-		m_max[m_inputElemCnt + i] = input[i];
+		m_max[m_inputElemCnt + i] = input[i];*/
 		vector<int> v(binCnt);
 		fill(v.begin(), v.end(), 0);
 		v[clamp(0, binCnt - 1, mapValue(lowerBnd, upperBnd, 0, binCnt, input[i]))]++;
@@ -53,9 +53,9 @@ iASegmentTree::iASegmentTree(const vector<int> &input, int binCnt, int lowerBnd,
 	}
 
 	hist_build();
-	sum_build();
+	/*sum_build();
 	min_build();
-	max_build();
+	max_build();*/
 }
 
 iASegmentTree::~iASegmentTree()

@@ -202,10 +202,12 @@ void iAScalingWidget::paintGL()
 			m_prevNonlinearBarStartPosX = nonlinearBarStartPosX;
 			m_prevLinearBarStartPosX = linearBarStartPosX;
 		}
+		
 		// Linear Bar
 		painter.setBrush(QBrush(linearBarColor));
 		painter.setPen(QPen(linearBarColor));
 		painter.drawRect(leftOffset, linearBarStartPosY, linearBarStartPosX, linearBarHeight);
+		
 		// Cursor
 		painter.setPen(QPen(QColor(255, 128, 0), 1.5));
 		painter.drawLine(m_nonlinearBarCursorPos, nonlinearBarStartPosY, m_nonlinearBarCursorPos,
@@ -214,6 +216,7 @@ void iAScalingWidget::paintGL()
 			m_linearBarCursorPos, linearBarStartPosY);
 		painter.drawLine(m_linearBarCursorPos, linearBarStartPosY, m_linearBarCursorPos,
 			linearBarStartPosY + linearBarHeight);
+		
 		// Selection
 		if (!m_sel.isEmpty())
 		{

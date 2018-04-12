@@ -31,7 +31,6 @@
 #include "iATransferFunction.h"
 #include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
-#include "iAScalingWidget.h"
 #include "iALUT.h"
 #include "iALinearColorGradientBar.h"
 #include "iAOrientationWidget.h"
@@ -280,22 +279,9 @@ void dlg_DynamicVolumeLines::setupGUIConnections()
 void dlg_DynamicVolumeLines::changePlotVisibility()
 {
 	QToolButton *tb = qobject_cast<QToolButton*>(QObject::sender());
-	if (tb->objectName().contains("nonlinear"))
-	{
-		m_nonlinearScaledPlot->isVisible() ? 
-			tb->setIcon(QIcon(":/images/add.png")) :
-			tb->setIcon(QIcon(":/images/minus.png"));
-		m_nonlinearScaledPlot->setVisible(!m_nonlinearScaledPlot->isVisible());
-		m_nonlinearScaledPlot->update();
-	}
-	else
-	{
-		m_linearScaledPlot->isVisible() ?
-			tb->setIcon(QIcon(":/images/add.png")) :
-			tb->setIcon(QIcon(":/images/minus.png"));
-		m_linearScaledPlot->setVisible(!m_linearScaledPlot->isVisible());
-		m_linearScaledPlot->update();
-	}
+	tb->objectName().contains("nonlinear") ?
+		setPlotVisibility(tb, m_nonlinearScaledPlot) : 
+		setPlotVisibility(tb, m_linearScaledPlot);
 }
 
 void dlg_DynamicVolumeLines::setupMultiRendererView()
@@ -371,6 +357,7 @@ void dlg_DynamicVolumeLines::visualizePath()
 
 void dlg_DynamicVolumeLines::visualize()
 {
+	//TODO: refactor!?
 	m_nonlinearScaledPlot->clearGraphs();
 	m_nonlinearScaledPlot->clearItems();
 	m_linearScaledPlot->clearItems();
@@ -824,78 +811,15 @@ void dlg_DynamicVolumeLines::showBkgrdThrRanges(QCustomPlot* qcp)
 
 void  dlg_DynamicVolumeLines::checkHistVisMode(int lowerIdx, int upperIdx)
 {
-	//TODO: refactor (see showFBPGraphs)
 	if ((upperIdx - lowerIdx) <= rangeSwitchValue && m_histVisMode)	// TODO: remove magic number; better strategy
 	{
 		m_histVisMode = false;
-		cb_showFBP->setEnabled(true);
-		cb_FBPView->setEnabled(true);
-		sl_FBPTransparency->setEnabled(true);
-		m_nonlinearScaledPlot->legend->setVisible(!m_histVisMode);
-		m_linearScaledPlot->legend->setVisible(!m_histVisMode);
-		m_scalingWidget->setHistVisMode(m_histVisMode);
-		for (int i = 0; i < m_nonlinearScaledPlot->itemCount(); ++i)
-		{
-			if (m_nonlinearScaledPlot->item(i)->objectName() == "histRect")
-			{
-				m_nonlinearScaledPlot->item(i)->setVisible(false);
-				m_linearScaledPlot->item(i)->setVisible(false);
-			}
-		}
-
+		switchLevelOfDetail(m_histVisMode, cb_showFBP, cb_FBPView, sl_FBPTransparency,
+			m_nonlinearScaledPlot, m_linearScaledPlot, m_scalingWidget);
 		if (cb_showFBP->isChecked())
 		{
-			if (cb_FBPView->currentText() == "Alone")
-			{
-				for (int i = 0; i < m_nonlinearScaledPlot->graphCount(); ++i)
-				{
-					if (i >= m_DatasetIntensityMap.size())
-					{
-						m_nonlinearScaledPlot->graph(i)->setVisible(true);
-						m_linearScaledPlot->graph(i)->setVisible(true);
-						if (m_nonlinearScaledPlot->graph(i)->name() != "Third Quartile")
-						{
-							m_nonlinearScaledPlot->graph(i)->addToLegend();
-							m_linearScaledPlot->graph(i)->addToLegend();
-						}
-					}
-					else
-					{
-						m_nonlinearScaledPlot->graph(i)->setVisible(false);
-						m_nonlinearScaledPlot->graph(i)->removeFromLegend();
-						m_linearScaledPlot->graph(i)->setVisible(false);
-						m_linearScaledPlot->graph(i)->removeFromLegend();
-					}
-				}
-			}
-			else
-			{
-				sl_FBPTransparency->show();
-				for (int i = 0; i < m_nonlinearScaledPlot->graphCount(); ++i)
-				{
-					m_nonlinearScaledPlot->graph(i)->removeFromLegend();
-					m_linearScaledPlot->graph(i)->removeFromLegend();
-					if (i < m_DatasetIntensityMap.size())
-					{
-						m_nonlinearScaledPlot->graph(i)->setVisible(true);
-						m_nonlinearScaledPlot->graph(i)->addToLegend();
-						m_linearScaledPlot->graph(i)->setVisible(true);
-						m_linearScaledPlot->graph(i)->addToLegend();
-					}
-					else
-					{
-						m_nonlinearScaledPlot->graph(i)->setLayer("background");
-						m_nonlinearScaledPlot->graph(i)->setVisible(true);
-						m_linearScaledPlot->graph(i)->setLayer("background");
-						m_linearScaledPlot->graph(i)->setVisible(true);
-						if (m_nonlinearScaledPlot->graph(i)->name() != "Third Quartile")
-						{
-							m_nonlinearScaledPlot->graph(i)->addToLegend();
-							m_linearScaledPlot->graph(i)->addToLegend();
-						}
-					}
-				}
-			}
+			switchFBPMode(cb_FBPView->currentText(), m_nonlinearScaledPlot, m_linearScaledPlot,
+				m_DatasetIntensityMap.size(), sl_FBPTransparency);
 		}
 		else
 		{
@@ -907,20 +831,8 @@ void  dlg_DynamicVolumeLines::checkHistVisMode(int lowerIdx, int upperIdx)
 	else if ((upperIdx - lowerIdx) > rangeSwitchValue && !m_histVisMode)
 	{
 		m_histVisMode = true;
-		cb_showFBP->setEnabled(false);
-		cb_FBPView->setEnabled(false);
-		sl_FBPTransparency->setEnabled(false);
-		m_nonlinearScaledPlot->legend->setVisible(!m_histVisMode);
-		m_linearScaledPlot->legend->setVisible(!m_histVisMode);
-		m_scalingWidget->setHistVisMode(m_histVisMode);
-		for (int i = 0; i < m_nonlinearScaledPlot->itemCount(); ++i)
-		{
-			if (m_nonlinearScaledPlot->item(i)->objectName() == "histRect")
-			{
-				m_nonlinearScaledPlot->item(i)->setVisible(true);
-				m_linearScaledPlot->item(i)->setVisible(true);
-			}
-		}
+		switchLevelOfDetail(m_histVisMode, cb_showFBP, cb_FBPView, sl_FBPTransparency,
+			m_nonlinearScaledPlot, m_linearScaledPlot, m_scalingWidget);
 		for (int i = 0; i < m_nonlinearScaledPlot->graphCount(); ++i)
 		{
 			m_nonlinearScaledPlot->graph(i)->setVisible(false);
@@ -1389,73 +1301,24 @@ void dlg_DynamicVolumeLines::updateDynamicVolumeLines()
 
 void dlg_DynamicVolumeLines::showFBPGraphs()
 {
-	for (int i = 0; i < m_nonlinearScaledPlot->graphCount(); ++i)
+	if (cb_showFBP->isChecked())
 	{
-		if (cb_showFBP->isChecked())
+		switchFBPMode(cb_FBPView->currentText(), m_nonlinearScaledPlot, m_linearScaledPlot,
+			m_DatasetIntensityMap.size(), sl_FBPTransparency);
+	}
+	else
+	{
+		sl_FBPTransparency->hide();
+		for (int i = 0; i < m_nonlinearScaledPlot->graphCount(); ++i)
 		{
-			if (cb_FBPView->currentText() == "Alone")
-			{
-				sl_FBPTransparency->hide();
-				if (i >= m_DatasetIntensityMap.size())
-				{
-					m_nonlinearScaledPlot->graph(i)->setVisible(true);
-					m_linearScaledPlot->graph(i)->setVisible(true);
-					if (m_nonlinearScaledPlot->graph(i)->name() != "Third Quartile")
-					{
-						m_nonlinearScaledPlot->graph(i)->addToLegend();
-						m_linearScaledPlot->graph(i)->addToLegend();
-					}
-				}
-				else
-				{
-					m_nonlinearScaledPlot->graph(i)->setVisible(false);
-					m_nonlinearScaledPlot->graph(i)->removeFromLegend();
-					m_linearScaledPlot->graph(i)->setVisible(false);
-					m_linearScaledPlot->graph(i)->removeFromLegend();
-				}
-			}
-			else
-			{
-				sl_FBPTransparency->show();
-				m_nonlinearScaledPlot->graph(i)->removeFromLegend();
-				m_linearScaledPlot->graph(i)->removeFromLegend();
-				if (i < m_DatasetIntensityMap.size())
-				{
-					m_nonlinearScaledPlot->graph(i)->setVisible(true);
-					m_nonlinearScaledPlot->graph(i)->addToLegend();
-					m_linearScaledPlot->graph(i)->setVisible(true);
-					m_linearScaledPlot->graph(i)->addToLegend();
-				}
-				else
-				{
-					m_nonlinearScaledPlot->graph(i)->setLayer("background");
-					m_nonlinearScaledPlot->graph(i)->setVisible(true);
-					m_linearScaledPlot->graph(i)->setLayer("background");
-					m_linearScaledPlot->graph(i)->setVisible(true);
-					if (m_nonlinearScaledPlot->graph(i)->name() != "Third Quartile")
-					{
-						m_nonlinearScaledPlot->graph(i)->addToLegend();
-						m_linearScaledPlot->graph(i)->addToLegend();
-					}
-				}
-			}
-		}
-		else
-		{
-			sl_FBPTransparency->hide();
 			if (i >= m_DatasetIntensityMap.size())
 			{
-				m_nonlinearScaledPlot->graph(i)->setVisible(false);
-				m_nonlinearScaledPlot->graph(i)->removeFromLegend();
-				m_linearScaledPlot->graph(i)->setVisible(false);
-				m_linearScaledPlot->graph(i)->removeFromLegend();
+				hideGraphandRemoveFromLegend(m_nonlinearScaledPlot, m_linearScaledPlot, i);
 			}
 			else if (m_selGraphList.contains(m_nonlinearScaledPlot->graph(i)))
 			{
-				m_nonlinearScaledPlot->graph(i)->setVisible(true);
-				m_nonlinearScaledPlot->graph(i)->addToLegend();
-				m_linearScaledPlot->graph(i)->setVisible(true);
-				m_linearScaledPlot->graph(i)->addToLegend();
+				showGraphandAddToLegend(m_nonlinearScaledPlot, m_linearScaledPlot, i);
+				
 			}
 			else
 			{

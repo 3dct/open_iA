@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>2563</width>
+    <width>1859</width>
     <height>355</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1859</width>
+    <height>200</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Dynamic Volume Lines</string>
@@ -142,12 +148,12 @@
          </property>
          <item>
           <property name="text">
-           <string>Alone</string>
+           <string>only</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Combined</string>
+           <string>combined</string>
           </property>
          </item>
         </widget>

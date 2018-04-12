@@ -100,3 +100,98 @@ inline QPen getDatasetPen(int datasetIdx, int datasetCnt, int penWidth, QString 
 	datasetPen.setColor(datasetColor);
 	return datasetPen;
 }
+
+inline void showGraphandAddToLegend(QCustomPlot *nonlinearPlot, QCustomPlot *linearPlot, int graphIdx)
+{
+	nonlinearPlot->graph(graphIdx)->setVisible(true);
+	nonlinearPlot->graph(graphIdx)->addToLegend();
+	linearPlot->graph(graphIdx)->setVisible(true);
+	linearPlot->graph(graphIdx)->addToLegend();
+}
+
+inline void hideGraphandRemoveFromLegend(QCustomPlot *nonlinearPlot, QCustomPlot *linearPlot, int graphIdx)
+{
+	nonlinearPlot->graph(graphIdx)->setVisible(false);
+	nonlinearPlot->graph(graphIdx)->removeFromLegend();
+	linearPlot->graph(graphIdx)->setVisible(false);
+	linearPlot->graph(graphIdx)->removeFromLegend();
+}
+
+inline void switchFBPMode(QString FBPMode, QCustomPlot *nonlinearPlot, QCustomPlot *linearPlot, 
+	int datasetsCnt, QSlider *sl_FBPTransparency)
+{
+	if (FBPMode == "only")
+	{
+		for (int i = 0; i < nonlinearPlot->graphCount(); ++i)
+		{
+			sl_FBPTransparency->hide();
+			if (i >= datasetsCnt)
+			{
+				nonlinearPlot->graph(i)->setVisible(true);
+				linearPlot->graph(i)->setVisible(true);
+				if (nonlinearPlot->graph(i)->name() != "Third Quartile")
+				{
+					nonlinearPlot->graph(i)->addToLegend();
+					linearPlot->graph(i)->addToLegend();
+				}
+			}
+			else
+			{
+				hideGraphandRemoveFromLegend(nonlinearPlot, linearPlot, i);
+			}
+		}
+	}
+	else
+	{
+		sl_FBPTransparency->show();
+		for (int i = 0; i < nonlinearPlot->graphCount(); ++i)
+		{
+			nonlinearPlot->graph(i)->removeFromLegend();
+			linearPlot->graph(i)->removeFromLegend();
+			if (i < datasetsCnt)
+			{
+				showGraphandAddToLegend(nonlinearPlot, linearPlot, i);
+			}
+			else
+			{
+				nonlinearPlot->graph(i)->setLayer("background");
+				nonlinearPlot->graph(i)->setVisible(true);
+				linearPlot->graph(i)->setLayer("background");
+				linearPlot->graph(i)->setVisible(true);
+				if (nonlinearPlot->graph(i)->name() != "Third Quartile")
+				{
+					nonlinearPlot->graph(i)->addToLegend();
+					linearPlot->graph(i)->addToLegend();
+				}
+			}
+		}
+	}
+}
+
+inline void switchLevelOfDetail(bool histVisMode, QCheckBox *cb_showFBP, QComboBox *cb_FBPView,
+	QSlider *sl_FBPTransparency, QCustomPlot *nonlinearPlot, QCustomPlot *linearPlot, iAScalingWidget *scalingWidget)
+{
+	cb_showFBP->setEnabled(!histVisMode);
+	cb_FBPView->setEnabled(!histVisMode);
+	sl_FBPTransparency->setEnabled(!histVisMode);
+	nonlinearPlot->legend->setVisible(!histVisMode);
+	linearPlot->legend->setVisible(!histVisMode);
+	scalingWidget->setHistVisMode(histVisMode);
+	for (int i = 0; i < nonlinearPlot->itemCount(); ++i)
+	{
+		if (nonlinearPlot->item(i)->objectName() == "histRect")
+		{
+			nonlinearPlot->item(i)->setVisible(histVisMode);
+			linearPlot->item(i)->setVisible(histVisMode);
+		}
+	}
+}
+
+inline void setPlotVisibility(QToolButton *tb, QCustomPlot *qcp)
+{
+	qcp->isVisible() ? 
+		tb->setIcon(QIcon(":/images/add.png")) :
+		tb->setIcon(QIcon(":/images/minus.png"));
+	qcp->setVisible(!qcp->isVisible());
+	qcp->update();
+}

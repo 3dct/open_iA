@@ -22,13 +22,13 @@
 
 #include "ui_dlg_DynamicVolumeLines.h"
 #include "mdichild.h"
+#include "iAScalingWidget.h"
 #include "DynamicVolumeLinesHelpers.h"
 #include "ui_Multi3DView.h"
 #include "iAQTtoUIConnector.h"
 
 class iAVolumeRenderer;
 class iANonLinearAxisTicker;
-class iAScalingWidget;
 class iAOrientationWidget;
 class iASegmentTree;
 class vtkRenderWindow;
