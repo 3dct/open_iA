@@ -238,6 +238,9 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 # Library Installation
 #-------------------------
 
+# ToDo: install libraries only if required by some module!
+#       Requires doing installation only after modules, and somehow setting which library is required by a module.
+
 # ITK
 SET (ITK_VER "${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}")
 IF (WIN32)
@@ -437,9 +440,8 @@ IF (OPENCL_FOUND)
 	ENDIF()
 ENDIF()
 
-# TODO: Get rid of hard-coded "AND Module_AstraReconstruction"
 # CUDA:
-IF (CUDA_FOUND AND Module_AstraReconstruction)
+IF (CUDA_FOUND)
 	ADD_DEFINITIONS("-DASTRA_CUDA")
 	IF (WIN32)
 		INSTALL (FILES "${CUDA_TOOLKIT_ROOT_DIR}/bin/cudart64_${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}.dll" DESTINATION .)
@@ -453,7 +455,7 @@ IF (CUDA_FOUND AND Module_AstraReconstruction)
 ENDIF()
 
 # ASTRA Toolbox
-IF (ASTRA_TOOLBOX_FOUND AND Module_AstraReconstruction)
+IF (ASTRA_TOOLBOX_FOUND)
 	IF (WIN32)
 		STRING (REGEX REPLACE "AstraCuda64.lib" "AstraCuda64.dll" ASTRA_RELEASE_DLL "${ASTRA_TOOLBOX_LIBRARIES_RELEASE}")
 		INSTALL (FILES ${ASTRA_RELEASE_DLL} DESTINATION .)
