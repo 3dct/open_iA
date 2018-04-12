@@ -107,6 +107,12 @@ public:
 	void setSelectedEntries();
 	void addSingleHeaderToList(uint &currItemIdx, QString &listEntry);
 	const QVector<uint>& getEntriesSelInd();
+
+	void selectSingleHeader(uint & currItemIdx, QString & listEntry);
+
+	void setSelectedHeaderToTextControl(QStringList & sel_headers);
+
+
 	
 	
 	inline const QSharedPointer<QStringList> getHeaders() {

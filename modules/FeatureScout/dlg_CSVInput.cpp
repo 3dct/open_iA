@@ -120,15 +120,16 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 
 	this->loadEntriesFromRegistry(mySettings, LayoutName);
 	//load preview
-
+	//check if file name is not emtpy
 	this->loadFilePreview(15, true); 
-
 	this->LoadHeaderEntriesFromReg(*this->m_selHeaders, LayoutName); 
-
+	setSelectedHeaderToTextControl(*this->m_selHeaders); 
+	
 	//load all headers
 
 	showConfigParams(*this->m_confParams);
 }
+
 
 void dlg_CSVInput::LoadColsBtnClicked()
 {
@@ -451,6 +452,10 @@ void dlg_CSVInput::showPreviewTable()
 
 //assign headers and prepare map with indexes
 void dlg_CSVInput::assignHeaderLine() {
+	
+	this->textControl_list->clear(); 
+	this->textControl_list->update(); 
+
 	int autoIdxCol = 0; 
 	if (!this->m_currentHeaders) return; 
 	*this->m_currentHeaders = m_entriesPreviewTable->getHeaders(); 
@@ -500,9 +505,20 @@ const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
 	return this->m_selColIdx;
 }
 
+void dlg_CSVInput::selectSingleHeader(uint &currItemIdx, QString &listEntry) {
+	currItemIdx = this->m_hashEntries.value(listEntry);
+	this->textControl_list->item(currItemIdx)->setSelected(true);
+}
 
+void dlg_CSVInput::setSelectedHeaderToTextControl(QStringList &sel_headers){
+	uint itemIDx = 0; 
+	//if (this->textControl_list->)
 
+	for (auto &h_entry: sel_headers){
+		selectSingleHeader(itemIDx, h_entry);
+	}
 
+}
 
 //load entries from registry for a configuration setting
 void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString &LayoutName) {
@@ -529,6 +545,7 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 	
 	this->m_confParams->fileName = anySetting.value(this->m_regEntries->str_fileName).toString(); 
 	this->m_confParams->startLine = anySetting.value( this->m_regEntries->str_reg_startLine).toLongLong(); //startLine
+	this->m_confParams->headerStartLine = this->m_confParams->startLine; 
 	this->m_confParams->useEndline = anySetting.value(this->m_regEntries->str_reg_useEndline).toBool() ; //useEndline  
 
 	if (this->m_confParams->useEndline) { 
@@ -673,12 +690,7 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		this->m_regEntries->v_Units = csv_params.csv_units; 
 		//this->m_regEntries->v_FiberPoreObject = csv_params.inputObjectType TODO save fiber pores? 
 		this->m_regEntries->v_fileName = csv_params.fileName;
-		//this->m_regEntries->str_fileName.replace("\/", "\\");
-		//this->m_regEntries->str_fileName = QDir::fromNativeSeparators(this->m_regEntries->str_fileName);
 		
-		//std::replace(this->m_regEntries->str_fileName.begin(), this->m_regEntries->str_fileName.end(), QChar('/'),  QChar('\\'));
-		//std::replace(m_regEntries->str_fileName.begin(), m_regEntries->str_fileName.end(), '\\', '/');
-
 		//saveValues in registry;
 		settingsName = this->m_regEntries->str_settingsName + "/" + this->m_regEntries->str_formatName + "/" + LayoutName;
 		settings.beginGroup(settingsName);
