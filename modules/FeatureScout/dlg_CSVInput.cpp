@@ -362,14 +362,14 @@ void dlg_CSVInput::assignSpacingUnits() {
 
 bool dlg_CSVInput::loadFilePreview(const int rowCount, const bool formatLoaded) {
 	m_entriesPreviewTable->setColSeparator(this->m_confParams->file_seperator);
-	if (!isFileNameValid) {
+	
 		
-		isFileNameValid = this->checkFile(formatLoaded);
-		if (!isFileNameValid)
-		{
+	isFileNameValid = this->checkFile(formatLoaded);
+	if (!isFileNameValid)
+	{
 			return false;
-		}
 	}
+	
 	
 	this->m_entriesPreviewTable->prepareTable(rowCount, this->m_confParams->colCount, this->m_confParams->headerStartLine); 
 	this->loadEntries(this->m_confParams->fileName, rowCount);
