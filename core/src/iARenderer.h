@@ -42,6 +42,7 @@ class vtkCamera;
 class vtkCellLocator;
 class vtkCornerAnnotation;
 class vtkCubeSource;
+class vtkDataSetMapper;
 class vtkImageData;
 class vtkInteractorStyleSwitch;
 class vtkLogoRepresentation;
@@ -50,18 +51,14 @@ class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPicker;
 class vtkPlane;
+class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkQImageToImageSource;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
 class vtkTransform;
-
-//
-class vtkPoints;
 class vtkUnstructuredGrid;
-class vtkDataSetMapper;
-//
 
 class open_iA_Core_API iARenderer: public QObject
 {
@@ -103,6 +100,9 @@ public:
 	*/
 	void getCamPosition ( double * camOptions );
 	void setStatExt( int s ) { ext = s; };
+
+	void setAreaPicker();
+	void setPointPicker();
 
 	void setupCutter();
 	void setupCube();

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -19,12 +19,11 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
-#include "pch.h"
 #include "dlg_DynamicVolumeLines.h"
 #include "iAColorTheme.h"
 #include "iAFunction.h"
 #include "iAFunctionalBoxplot.h"
-#include "iAHistogramWidget.h"
+#include "charts/iAHistogramWidget.h"
 #include "iAIntensityMapper.h"
 #include "iANonLinearAxisTicker.h"
 #include "iARenderer.h"
@@ -98,6 +97,8 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget * parent /*= 0*/, QDir da
 	m_nonlinearScaledPlot(new QCustomPlot(dockWidgetContents)),
 	m_linearScaledPlot(new QCustomPlot(dockWidgetContents))
 {
+	m_mdiChild->getRenderer()->setAreaPicker();
+	
 	m_nonlinearScaledPlot->setObjectName("nonlinear");
 	m_linearScaledPlot->setObjectName("linear");
 
@@ -272,7 +273,7 @@ void dlg_DynamicVolumeLines::setupGUIConnections()
 	connect(sb_UpperCompLevelThr, SIGNAL(valueChanged(double)), this, SLOT(compLevelRangeChanged()));
 	connect(sb_LowerCompLevelThr, SIGNAL(valueChanged(double)), this, SLOT(compLevelRangeChanged()));
 
-	connect(m_mdiChild->getRaycaster(), SIGNAL(cellsSelected(vtkPoints*)),
+	connect(m_mdiChild->getRenderer(), SIGNAL(cellsSelected(vtkPoints*)),
 		this, SLOT(setSelectionForPlots(vtkPoints*)));
 }
 
@@ -309,7 +310,7 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	m_mrvRenWin->AddRenderer(m_mrvBGRen);
 	m_mrvRenWin->Render();
 
-	m_mdiChild->tabifyDockWidget(m_mdiChild->r, m_MultiRendererView);
+	m_mdiChild->tabifyDockWidget(m_mdiChild->renderer, m_MultiRendererView);
 	m_MultiRendererView->show();
 }
 
@@ -351,8 +352,8 @@ void dlg_DynamicVolumeLines::visualizePath()
 		lines->InsertNextCell(line);
 	}
 	linesPolyData->SetLines(lines);
-	m_mdiChild->getRaycaster()->setPolyData(linesPolyData);
-	m_mdiChild->getRaycaster()->update();
+	m_mdiChild->getRenderer()->setPolyData(linesPolyData);
+	m_mdiChild->getRenderer()->update();
 }
 
 void dlg_DynamicVolumeLines::visualize()
@@ -1490,8 +1491,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		}
 		else
 		{
-			double r[2];
-			m_mdiChild->getHistogram()->GetDataRange(r);
+			double const *r = m_mdiChild->getHistogram()->XBounds();
 			for (unsigned int i = 0; i < pathSteps; ++i)
 			{
 				bool showVoxel = false;
@@ -1533,7 +1533,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		iASimpleTransferFunction tf(m_mdiChild->getColorTransferFunction(), m_mdiChild->getPiecewiseFunction());
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
 		ren->SetLayer(1);
-		ren->SetActiveCamera(m_mdiChild->getRaycaster()->getCamera());
+		ren->SetActiveCamera(m_mdiChild->getRenderer()->getCamera());
 		ren->GetActiveCamera()->ParallelProjectionOn();
 		ren->SetViewport(fmod(i, viewportCols) * fieldLengthX,
 			1 - (ceil((i + 1.0) / viewportCols) / viewportRows),

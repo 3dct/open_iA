@@ -31,6 +31,8 @@ IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-")
 
 	IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
+		
+		MESSAGE(STATUS "LIBRARY paths changed new=${DebugLibraryPaths}, cached=${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
 		# force cmake to copy the files:
 		file(REMOVE ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user)
 		file(REMOVE ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user)

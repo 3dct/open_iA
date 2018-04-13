@@ -1727,6 +1727,9 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	subWin->setOption(QMdiSubWindow::RubberBandResize);
 	subWin->setOption(QMdiSubWindow::RubberBandMove);
 
+	if (mdiArea->subWindowList().size() < 2)
+		child->showMaximized();
+
 	child->setRenderSettings(defaultRenderSettings, defaultVolumeSettings);
 	child->setupSlicers(defaultSlicerSettings, false);
 

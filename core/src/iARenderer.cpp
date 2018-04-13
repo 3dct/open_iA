@@ -30,18 +30,25 @@
 
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
+#include <vtkAppendFilter.h>
+#include <vtkAreaPicker.h>
 #include <vtkAxesActor.h>
+#include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkCellLocator.h>
 #include <vtkCubeSource.h>
+#include <vtkDataSetMapper.h>
+#include <vtkExtractSelectedFrustum.h>
 #include <vtkGenericMovieWriter.h>
 #include <vtkGenericRenderWindowInteractor.h>
 #include <vtkImageData.h>
 #include <vtkImageCast.h>
+#include <vtkInteractorStyleRubberBandPick.h>
 #include <vtkInteractorStyleSwitch.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
+#include <vtkObjectFactory.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkPicker.h>
@@ -50,24 +57,14 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
+#include <vtkRendererCollection.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkTransform.h>
+#include <vtkUnstructuredGrid.h>
 #include <vtkWindowToImageFilter.h>
 
-//
-#include <vtkAreaPicker.h>
-#include <vtkInteractorStyleRubberBandPick.h>
-#include <vtkCallbackCommand.h>
-#include <vtkExtractSelectedFrustum.h>
-#include <vtkDataSetMapper.h>
-#include <vtkUnstructuredGrid.h>
-#include <qcolor.h>
-#include <vtkRendererCollection.h>
-#include <vtkObjectFactory.h>
-#include <vtkAppendFilter.h>
-//
-
 #include <QApplication>
+#include <QColor>
 #include <QDateTime>
 #include <QImage>
 #include <QLocale>
@@ -196,7 +193,8 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 }
 
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
-	interactor(0)
+	interactor(0),
+	renderObserver(0)
 {
 	renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();		// TODO: move out of here?
 	renWin->AlphaBitPlanesOn();
@@ -204,7 +202,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	renWin->PointSmoothingOn();
 
 	cam = vtkSmartPointer<vtkCamera>::New();
-	interactorStyle = vtkSmartPointer<vtkInteractorStyleSwitch>::New();
 
 	cSource = vtkSmartPointer<vtkCubeSource>::New();
 	cMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -225,41 +222,22 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	moveableAxesActor = vtkSmartPointer<vtkAxesActor>::New();
 	orientationMarkerWidget = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
 
-	pointPicker = vtkSmartPointer<vtkPicker>::New();
-	renderObserver = NULL;
-
 	plane1 = vtkSmartPointer<vtkPlane>::New();
 	plane2 = vtkSmartPointer<vtkPlane>::New();
 	plane3 = vtkSmartPointer<vtkPlane>::New();
 
 	cellLocator = vtkSmartPointer<vtkCellLocator>::New();
-
-	finalSelection = vtkSmartPointer<vtkUnstructuredGrid>::New();
-	selectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-	selectedMapper->SetScalarModeToUseCellData();
-	selectedMapper->SetInputData(finalSelection);
-	selectedActor = vtkSmartPointer<vtkActor>::New();
-	QColor c(255, 0, 0);	//  // Selection color: red
-	selectedActor->SetMapper(selectedMapper);
-	selectedActor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
-	selectedActor->GetProperty()->SetRepresentationToWireframe();
-	selectedActor->GetProperty()->EdgeVisibilityOn();
-	selectedActor->GetProperty()->SetEdgeColor(c.redF(), c.greenF(), c.blueF());
-	selectedActor->GetProperty()->SetLineWidth(3);
 }
 
 iARenderer::~iARenderer(void)
 {
 	ren->RemoveAllObservers();
 	renWin->RemoveAllObservers();
-
 	if (renderObserver) renderObserver->Delete();
 }
 
 void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 {
-	auto areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
-
 	imageData = ds;
 	polyData = pd;
 	cellLocator->SetDataSet(polyData);
@@ -275,28 +253,13 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	renWin->SetNumberOfLayers(5);
 	renWin->AddRenderer(ren);
 	renWin->AddRenderer(labelRen);
-	pointPicker->SetTolerance(0.00005);//spacing[0]/150);
 	interactor = renWin->GetInteractor();
-	
-	// TODO: implement switch between vtkInteractorStyleSwitch and MouseInteractorStyle
-	//interactor->SetPicker(pointPicker);
-	interactor->SetPicker(areaPicker);
-	auto style = vtkSmartPointer<MouseInteractorStyle>::New();
-	//interactorStyle->SetCurrentStyleToTrackballCamera();
-	//interactor->SetInteractorStyle(interactorStyle);
-	interactor->SetInteractorStyle(style);
-
-	auto pickCallback = vtkSmartPointer<vtkCallbackCommand>::New();
-	pickCallback->SetCallback(PickCallbackFunction);
-	pickCallback->SetClientData(this);
-	areaPicker->AddObserver(vtkCommand::EndPickEvent, pickCallback, 1.0);
-	
+	setPointPicker();	
 	InitObserver();
 
 	QImage img;
 	if( QDate::currentDate().dayOfYear() >= 340 )img.load(":/images/Xmas.png");
 	else img.load(":/images/fhlogo.png");
-
 	logoImage->SetQImage(&img);
 	logoImage->Update();
 	logoRep->SetImage(logoImage->GetOutput( ));
@@ -344,10 +307,44 @@ void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
 		axesTransform, ds,
 		plane1, plane2, plane3, cellLocator );
 	interactor->ReInitialize();
-
 	emit reInitialized();
-
 	update();
+}
+
+void iARenderer::setAreaPicker()
+{
+	auto areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
+	interactor->SetPicker(areaPicker);
+	auto style = vtkSmartPointer<MouseInteractorStyle>::New();
+	interactor->SetInteractorStyle(style);
+	auto pickCallback = vtkSmartPointer<vtkCallbackCommand>::New();
+	pickCallback->SetCallback(PickCallbackFunction);
+	pickCallback->SetClientData(this);
+	areaPicker->AddObserver(vtkCommand::EndPickEvent, pickCallback, 1.0);
+
+	finalSelection = vtkSmartPointer<vtkUnstructuredGrid>::New();
+	selectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+	selectedMapper->SetScalarModeToUseCellData();
+	selectedMapper->SetInputData(finalSelection);
+	selectedActor = vtkSmartPointer<vtkActor>::New();
+	QColor c(255, 0, 0);
+	selectedActor->SetMapper(selectedMapper);
+	selectedActor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
+	selectedActor->GetProperty()->SetRepresentationToWireframe();
+	selectedActor->GetProperty()->EdgeVisibilityOn();
+	selectedActor->GetProperty()->SetEdgeColor(c.redF(), c.greenF(), c.blueF());
+	selectedActor->GetProperty()->SetLineWidth(3);
+
+}
+
+void iARenderer::setPointPicker()
+{
+	pointPicker = vtkSmartPointer<vtkPicker>::New();
+	pointPicker->SetTolerance(0.00005);//spacing[0]/150);
+	interactor->SetPicker(pointPicker);
+	interactorStyle = vtkSmartPointer<vtkInteractorStyleSwitch>::New();
+	interactorStyle->SetCurrentStyleToTrackballCamera();
+	interactor->SetInteractorStyle(interactorStyle);
 }
 
 void iARenderer::setupCutter()

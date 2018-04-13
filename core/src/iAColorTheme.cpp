@@ -304,7 +304,7 @@ iAColorThemeManager::iAColorThemeManager()
 	sevenShadesOfBlue->AddColor(QColor(4, 52, 122));
 	sevenShadesOfBlue->AddColor(QColor(2, 26, 61));
 	m_themes.insert(sevenShadesOfBlue->GetName(), sevenShadesOfBlue);
-	iAColorTheme* DVLColors = new iAColorTheme("DVL-Metro Colors (max. 17)");
+	iAVectorColorTheme* DVLColors = new iAVectorColorTheme("DVL-Metro Colors (max. 17)");
 	DVLColors->AddColor(QColor(164, 196, 0));
 	DVLColors->AddColor(QColor(96, 169, 23));
 	DVLColors->AddColor(QColor(0, 138, 0));
@@ -324,7 +324,7 @@ iAColorThemeManager::iAColorThemeManager()
 	DVLColors->AddColor(QColor(160, 82, 45));
 	m_themes.insert(DVLColors->GetName(), DVLColors);
 
-	iAColorTheme* brewerQual1 = new iAColorTheme("Brewer Qualitaive 1 (max. 8)");
+	iAVectorColorTheme* brewerQual1 = new iAVectorColorTheme("Brewer Qualitaive 1 (max. 8)");
 	brewerQual1->AddColor(QColor(27, 158, 119));
 	brewerQual1->AddColor(QColor(217, 95, 2));
 	brewerQual1->AddColor(QColor(117, 112, 179));
