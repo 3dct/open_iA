@@ -510,7 +510,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	table->AddColumn(arrAuto);
 
 	//adding headers; 
-	for (const auto &elLine : m_Headers) {
+	for (const auto &elLine : this->m_TableHeaders/* m_Headers*/) {
 		if (!elLine.isEmpty()) {
 			vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
 			byteArr = elLine.toUtf8();
