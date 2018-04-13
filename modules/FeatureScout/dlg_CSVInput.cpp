@@ -501,22 +501,36 @@ void dlg_CSVInput::setSelectedEntries() {
 
 		this->m_selColIdx.capacity(); 
 		for (const auto &selEntry : m_selectedHeadersList) {
-			listEntry = selEntry->text();
+		
+			//this->textControl_list->item(currItemIdx)->setSelected(true);
+			listEntry = selEntry->text(); 
 			addSingleHeaderToList(currItemIdx, listEntry);
 		}
 		
 		qSort(this->m_selColIdx.begin(), this->m_selColIdx.end(), qLess<uint>());
+		this->addSelectedHeaders(this->m_selColIdx); 
 	}
 
 	this->m_confParams->colCount = this->m_selColIdx.length(); 
 
 }
 
+//ensure correct order of header!
+void dlg_CSVInput::addSelectedHeaders(QVector<uint> &data) {
+	QString curHeader = ""; 
+	for (const auto &HeaderIdx : data) {
+		curHeader = this->m_hashEntries.key(HeaderIdx); 
+		this->m_selHeaders->push_back(curHeader); 
+	}
+
+}
+
+
 void dlg_CSVInput::addSingleHeaderToList(uint &currItemIdx, QString &listEntry)
 {
 	currItemIdx = this->m_hashEntries.value(listEntry);
 	this->m_selColIdx.push_back(currItemIdx);
-	this->m_selHeaders->append(listEntry);
+	//this->m_selHeaders->append(listEntry);
 }
 
 const QVector<uint>& dlg_CSVInput::getEntriesSelInd()

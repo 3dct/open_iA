@@ -110,6 +110,7 @@ public:
 	}
 	
 	void setSelectedEntries();
+	void addSelectedHeaders(QVector<uint>& data);
 	void addSingleHeaderToList(uint &currItemIdx, QString &listEntry);
 	const QVector<uint>& getEntriesSelInd();
 
