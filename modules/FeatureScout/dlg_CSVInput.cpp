@@ -248,7 +248,8 @@ void dlg_CSVInput::initParameters(){
 	this->m_confParams->spacing = 10.5f;
 	this->m_confParams->csv_units = "microns";
 	this->m_confParams->paramsValid = false;
-	this->m_fPath = "D:/OpenIa_TestDaten/Pores/";
+	this->m_fPath = /*"D:/OpenIa_TestDaten/Pores/" */"C:/TestData/";
+
 	this->m_entriesPreviewTable = new dataTable(); 
 	this->m_headersCount = 0; 
 
@@ -494,6 +495,11 @@ void dlg_CSVInput::setSelectedEntries() {
 	QString listEntry; 			
 	//no selection use all entries
 	if (!(this->m_selectedHeadersList.length() == 0)) {
+		if (m_selHeaders->length() > 0) {
+			this->m_selHeaders->clear(); 
+		}
+
+		this->m_selColIdx.capacity(); 
 		for (const auto &selEntry : m_selectedHeadersList) {
 			listEntry = selEntry->text();
 			addSingleHeaderToList(currItemIdx, listEntry);
