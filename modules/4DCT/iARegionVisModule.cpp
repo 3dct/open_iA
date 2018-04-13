@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,24 +18,22 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iARegionVisModule.h"
-// iA
+
 #include "iACalculateDensityMap.h"
 #include "iA4DCTVisWin.h"	// ToDo: Scale!
-// vtk
+
 #include <vtkActor.h>
+#include <vtkDepthSortPolyData.h>
+#include <vtkImageData.h>
+#include <vtkMarchingCubes.h>
+#include <vtkMetaImageReader.h>
+#include <vtkMetaImageReader.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPolyDataSilhouette.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
-#include <vtkImageData.h>
-#include <vtkMarchingCubes.h>
-#include <vtkDepthSortPolyData.h>
-#include <vtkMetaImageReader.h>
-#include <vtkMetaImageReader.h>
-// itk
+
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkResampleImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
@@ -63,17 +61,13 @@ iARegionVisModule::iARegionVisModule( )
 	setSilhoetteLineWidth( 2.5 );
 }
 
-void iARegionVisModule::enable( )
+void iARegionVisModule::show( )
 {
-	if( !isAttached( ) ) return;
-	if( !isEnabled( ) ) {
-		m_renderer->AddActor( m_regionActor );
-		m_renderer->AddActor( m_silhouetteActor );
-	}
-	iAVisModule::enable( );
+	m_renderer->AddActor( m_regionActor );
+	m_renderer->AddActor( m_silhouetteActor );
 }
 
-void iARegionVisModule::disable( )
+void iARegionVisModule::hide( )
 {
 	if( !isAttached( ) ) return;
 	if( isEnabled( ) ) {

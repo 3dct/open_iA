@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_labels.h"
 
 #include "dlg_commoninput.h"
@@ -27,12 +26,12 @@
 #include "iAImageCoordinate.h"
 #include "iAChannelID.h"
 #include "iAChannelVisualizationData.h"
-#include "iAFileUtils.h"
 #include "iALabelOverlayThread.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAToolsVTK.h"
 #include "iAVtkDraw.h"
+#include "io/iAFileUtils.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -496,7 +495,7 @@ void dlg_labels::Store()
 		DEBUG_LOG("Selection of format aborted, aborting seed file storing");
 		return;
 	}
-	if (!Store(fileName, extendedFormatInput.getCheckValues()[0]))
+	if (!Store(fileName, extendedFormatInput.getCheckValue(0)))
 	{
 		QMessageBox::warning(this, "GEMSe", "Storing seed file '" + fileName + "' failed!");
 	}
@@ -563,8 +562,8 @@ void dlg_labels::Sample()
 	{
 		return;
 	}
-	int numOfSeeds = input.getSpinBoxValues()[0];
-	bool reduceNum = input.getCheckValues()[1];
+	int numOfSeeds = input.getIntValue(0);
+	bool reduceNum = input.getCheckValue(1);
 
 	std::vector<int> numOfSeedsPerLabel(labelCount, numOfSeeds);
 	// check that there is at least numOfSeedsPerLabel pixels per label

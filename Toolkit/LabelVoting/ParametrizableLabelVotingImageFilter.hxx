@@ -47,12 +47,13 @@
 
 #include "ParametrizableLabelVotingImageFilter.h"
 
+#include "iAConsole.h"
+#include "iAMathUtility.h"
+
 #include <itkImageRegionIterator.h>
 #include <itkMath.h>
 #include <itkProgressReporter.h>
 #include <itkStatisticsImageFilter.h>
-
-#include "iAMathUtility.h"
 
 template< typename TInputImage, typename TOutputImage >
 ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
@@ -61,7 +62,8 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	m_MinDiffPercentage(-1),
 	m_MinRatio(-1),
 	m_MaxPixelEntropy(-1),
-	m_weightType(Equal)
+	m_weightType(Equal),
+	m_undecidedPixels(0)
 {
 	this->m_HasLabelForUndecidedPixels = false;
 	this->m_LabelForUndecidedPixels = 0;
@@ -86,12 +88,8 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 ::ComputeMaximumInputValue()
 {
 	InputPixelType maxLabel = 0;
-
-	typedef itk::ImageRegionConstIterator< TInputImage > IteratorType;
-
-	// Record the number of input files.
 	const size_t numberOfInputFiles = this->GetNumberOfIndexedInputs();
-
+	typedef itk::ImageRegionConstIterator<TInputImage> IteratorType;
 	for (size_t i = 0; i < numberOfInputFiles; ++i)
 	{
 		const InputImageType *inputImage = this->GetInput(i);
@@ -101,7 +99,6 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 			maxLabel = std::max(maxLabel, it.Get());
 		}
 	}
-
 	return maxLabel;
 }
 
@@ -138,7 +135,8 @@ ParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	{
 		if (this->m_TotalLabelCount > itk::NumericTraits<OutputPixelType>::max())
 		{
-			DEBUG_LOG("No new label for undecided pixels, using zero.");
+			DEBUG_LOG("No label left for undecided pixels, using zero.");
+			this->m_LabelForUndecidedPixels = 0;
 		}
 		this->m_LabelForUndecidedPixels = static_cast<OutputPixelType>(this->m_TotalLabelCount);
 	}
@@ -292,6 +290,7 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		}
 		if (consideredFiles == 0)
 		{
+			m_undecidedPixels += 1;
 			out.Set(m_LabelForUndecidedPixels);
 			continue;
 		}
@@ -336,6 +335,10 @@ void ParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::ThreadedGe
 		if (m_MinRatio >= 0 && secondBestGuessVotes > 0 && (static_cast<double>(firstBestGuessVotes) / secondBestGuessVotes) < m_MinRatio)
 		{
 			out.Set(this->m_LabelForUndecidedPixels);
+		}
+		if (out.Get() == this->m_LabelForUndecidedPixels)
+		{
+			m_undecidedPixels += 1;
 		}
 		absOut.Set(firstBestGuessPercentage);
 		++absOut;

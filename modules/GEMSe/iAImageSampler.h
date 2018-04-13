@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,7 +29,6 @@
 #include "iADurationEstimator.h"
 #include "iAParameterGenerator.h"
 #include "iAPerformanceHelper.h"
-#include "iASpectrumType.h"
 
 class iAAttributes;
 class iAModalityList;
@@ -55,6 +54,9 @@ public:
 		QString const & computationExecutable,
 		QString const & additionalArguments,
 		QString const & pipelineName,
+		QString const & imageBaseName,
+		bool separateOutputDir,
+		bool calculateChar,
 		int samplingID);
 	QSharedPointer<iASamplingResults> GetResults();
 	void run();
@@ -82,6 +84,10 @@ private:
 	QString m_parameterRangeFile;
 	QString m_parameterSetFile;
 	QString m_derivedOutputFile;
+
+	QString m_imageBaseName;
+	bool m_separateOutputDir;
+	bool m_calculateCharacteristics;
 	//! @}
 
 	size_t m_curLoop;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -58,7 +58,7 @@ public:
 	ImageBaseType* GetITKImage() const;
 
 	// -Helper methods
-	ITKScalarPixelType GetITKScalarPixelType();
+	ITKScalarPixelType GetITKScalarPixelType() const;
 	ITKPixelType GetITKPixelType();
 	void Modified();
 
@@ -66,14 +66,14 @@ protected:
 	// -Update one modality using another
 	void UpdateImageITK();
 	void UpdateImageVTK();
-	void UpdateScalarType();	
+	void UpdateScalarType() const;
 	void UpdatePixelType();
 
 protected:
 	ImagePointer m_ITKImage; //The pointer for the ITK image
 	vtkSmartPointer<vtkImageData> m_VTKImage; //The pointer for the VTK image
-	ITKScalarPixelType m_itkScalarType;
-	bool m_isTypeInitialized;
+	mutable ITKScalarPixelType m_itkScalarType;
+	mutable bool m_isTypeInitialized;
 	ITKPixelType m_itkPixelType;
 	bool m_isPixelTypeInitialized;
 

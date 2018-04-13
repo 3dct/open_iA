@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,40 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAConsole.h"
-#include "iASCIFIOCheck.h"
 #include "mainwindow.h"
 #include "version.h"
 
-#include <QApplication>
-#include <QDate>
-
-#include <vtkSmartPointer.h>
-
 int main(int argc, char *argv[])
 {
-	MainWindow::InitResources();
-	QApplication app(argc, argv);
-	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
-
-	MainWindow mainWin("open_iA", VERSION, ":/images/splashscreen.png");
-
-	iAConsole::GetInstance();				// (workaround) for binding log instance to GUI thread
-
-	CheckSCIFIO();
-
-	mainWin.LoadArguments(argc, argv);
-	// TODO: unify with logo in slicer/renderer!
-	app.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
-	mainWin.setWindowIcon(QIcon(QPixmap(":/images/ia.png")));
-
-	if( QDate::currentDate().dayOfYear() >= 340 ) {
-		mainWin.setWindowTitle("Merry X-Mas and a happy new year!");
-		mainWin.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
-		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
-	}
-
-	mainWin.show();
-
-	return app.exec();
+	return MainWindow::RunGUI(argc, argv, "open_iA", VERSION,
+		":/images/splashscreen.png", ":/images/ia.png");
 }

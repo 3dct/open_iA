@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,26 +18,25 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iAFeatureCharacteristicsModuleInterface.h"
 
-#include "dlg_commoninput.h"
 #include "iACalcFeatureCharacteristics.h"
+
+#include "dlg_commoninput.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QSettings>
 
 void iAFeatureCharacteristicsModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
 	QMenu * menuPorosity = getMenuWithTitle( filtersMenu, QString( "Feature Characteristics" ) );
-
 	QAction * actionCalcFeatureCharacteristics = new QAction( QApplication::translate( "MainWindow", "Calculate Feature Characteristics", 0 ), m_mainWnd );
 	menuPorosity->addAction( actionCalcFeatureCharacteristics );
-
 	connect( actionCalcFeatureCharacteristics, SIGNAL( triggered() ), this, SLOT( calcFeatureCharacteristics() ) );
 }
 
@@ -64,12 +63,12 @@ void iAFeatureCharacteristicsModuleInterface::calcFeatureCharacteristics()
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 
-	bool feretDiameter = dlg.getCheckValues()[0] != 0;
+	bool feretDiameter = dlg.getCheckValue(0) != 0;
 
 	//execute
 	iACalcFeatureCharacteristics* thread = new iACalcFeatureCharacteristics( filterName,
 		 m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild, filename, feretDiameter);
-	m_mdiChild->connectThreadSignalsToChildSlots( thread );
+	m_mdiChild->connectAlgorithmSignalsToChildSlots( thread );
 	thread->start();
 	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
 }

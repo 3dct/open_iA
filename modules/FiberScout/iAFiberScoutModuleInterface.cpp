@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,17 +18,16 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAFiberScoutModuleInterface.h"
 
 #include "iAConsole.h"
-#include "iACsvIO.h"
+#include "io/iACsvIO.h"
 #include "iAFiberScoutAttachment.h"
 #include "iAFiberScoutToolbar.h"
 #include "mainwindow.h"
 
 #include <vtkTable.h>
+#include <vtkSmartVolumeMapper.h>
 
 #include <QFileDialog>
 #include <QInputDialog>
@@ -36,6 +35,8 @@
 
 void iAFiberScoutModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QAction * actionFibreScout = new QAction( m_mainWnd );
 	actionFibreScout->setText( QApplication::translate( "MainWindow", "FeatureScout", 0 ) );
@@ -78,6 +79,9 @@ void iAFiberScoutModuleInterface::FiberScout()
 				{
 					SetupToolbar();
 					m_mdiChild->addStatusMsg( filterName );
+					setFiberScoutRenderSettings();
+					m_mdiChild->addMsg("The render settings of the current mdiChild"
+						" window have been adapted to the FeatureScout!");
 				}
 			}
 			else
@@ -104,6 +108,22 @@ void iAFiberScoutModuleInterface::SetupToolbar()
 	connect( tlbFiberScout->actionOrientation_Rendering, SIGNAL( triggered() ), this, SLOT( FiberScout_Options() ) );
 	connect( tlbFiberScout->actionActivate_SPM, SIGNAL( triggered() ), this, SLOT( FiberScout_Options() ) );
 	tlbFiberScout->setVisible( true );
+}
+
+void iAFiberScoutModuleInterface::setFiberScoutRenderSettings()
+{
+	iARenderSettings FS_RenderSettings = m_mdiChild->GetRenderSettings();
+	iAVolumeSettings FS_VolumeSettings = m_mdiChild->GetVolumeSettings();
+	FS_RenderSettings.ParallelProjection = true;
+	FS_RenderSettings.ShowHelpers = true;
+	FS_RenderSettings.ShowRPosition = true;
+	FS_RenderSettings.ShowSlicers = true;
+	FS_VolumeSettings.LinearInterpolation = false;
+	FS_VolumeSettings.DiffuseLighting = 1.6;
+	FS_VolumeSettings.Shading = true;
+	FS_VolumeSettings.SpecularLighting = 0.0;
+	FS_VolumeSettings.Mode = vtkSmartVolumeMapper::RayCastRenderMode;
+	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
 bool iAFiberScoutModuleInterface::filter_FiberScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType )

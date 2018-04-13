@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -45,7 +45,7 @@ class LensData
 {
 public:
 	LensData();
-	LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled, QString const & name);
+	LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled);
 
 	iAFramedQVTKWidget2* m_qvtkWidget;
 	vtkSmartPointer<vtkImageMapToColors> m_imageToColors;
@@ -121,5 +121,5 @@ private:
 	void UpdateOffset();
 	void UpdateShowFrame();
 	void UpdateLensInput(LensData & l, vtkImageReslice * reslicer, vtkScalarsToColors* cTF,
-		vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF);
+		vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF, QString const & name);
 };

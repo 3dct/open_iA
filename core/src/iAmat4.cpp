@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAmat4.h"
 
 #include <cmath>
@@ -115,19 +113,15 @@ iAMat4&	iAMat4 :: operator *= ( float v )
 iAMat4&	iAMat4 :: operator *= ( const iAMat4& a )
 {
 	iAMat4	res ( *this );
-
 	for ( int i = 0; i < 4; i++ )
 		for ( int j = 0; j < 4; j++ )
 		{
 			float sum = 0;
-
 			for ( int k = 0; k < 4; k++ )
 				sum += res.x [i][k] * a.x [k][j];
-
 			x [i][j] = sum;
 		}
-
-		return *this;
+	return *this;
 }
 
 iAMat4	operator + ( const iAMat4& a, const iAMat4& b )
@@ -155,19 +149,15 @@ iAMat4	operator - ( const iAMat4& a, const iAMat4& b )
 iAMat4	operator * ( const iAMat4& a, const iAMat4& b )
 {
 	iAMat4	res;
-
 	for ( register int i = 0; i < 4; i++ )
 		for ( register int j = 0; j < 4; j++ )
 		{
 			float sum = 0;
-
 			for ( register int k = 0; k < 4; k++ )
 				sum += a.x [i][k] * b.x [k][j];
-
 			res.x [i][j] = sum;
 		}
-
-		return res;
+	return res;
 }
 
 iAMat4	operator * ( const iAMat4& a, float v )

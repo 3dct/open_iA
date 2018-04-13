@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>504</width>
-    <height>400</height>
+    <width>240</width>
+    <height>240</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>504</width>
-    <height>80</height>
+    <width>0</width>
+    <height>40</height>
    </size>
   </property>
   <property name="features">
@@ -52,12 +52,6 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
         <layout class="QHBoxLayout" name="horizontalLayout_8">
          <property name="spacing">
           <number>2</number>
@@ -76,18 +70,6 @@
          </property>
          <item>
           <widget class="QStackedWidget" name="stackedWidgetRC">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>20</height>
-            </size>
-           </property>
            <property name="maximumSize">
             <size>
              <width>16777215</width>
@@ -152,14 +134,8 @@
               <widget class="QSpinBox" name="spinBoxRC">
                <property name="minimumSize">
                 <size>
-                 <width>50</width>
+                 <width>20</width>
                  <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>16777215</height>
                 </size>
                </property>
                <property name="font">
@@ -210,22 +186,10 @@
          </item>
          <item>
           <widget class="QToolButton" name="pushPX">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>10</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -252,22 +216,10 @@
          </item>
          <item>
           <widget class="QToolButton" name="pushMX">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>10</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -294,22 +246,10 @@
          </item>
          <item>
           <widget class="QToolButton" name="pushPY">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>10</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -336,22 +276,10 @@
          </item>
          <item>
           <widget class="QToolButton" name="pushMY">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>10</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -378,22 +306,10 @@
          </item>
          <item>
           <widget class="QToolButton" name="pushPZ">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>10</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -420,22 +336,10 @@
          </item>
          <item>
           <widget class="QToolButton" name="pushMZ">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>10</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -462,22 +366,10 @@
          </item>
          <item>
           <widget class="QToolButton" name="pushIso">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>10</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -522,7 +414,7 @@
           <widget class="QToolButton" name="pushMovRC">
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>10</width>
              <height>0</height>
             </size>
            </property>
@@ -545,14 +437,8 @@
           <widget class="QToolButton" name="pushSaveRC">
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>10</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="text">
@@ -574,14 +460,8 @@
           <widget class="QToolButton" name="pushStopRC">
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>10</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -610,14 +490,8 @@
           <widget class="QToolButton" name="pushMaxRC">
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>10</width>
              <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
             </size>
            </property>
            <property name="font">
@@ -652,12 +526,6 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
         </property>
         <property name="font">
          <font>

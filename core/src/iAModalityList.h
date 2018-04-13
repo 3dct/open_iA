@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,6 +26,7 @@
 #include <QVector>
 
 class iAModality;
+class iAVolumeSettings; 
 
 class vtkCamera;
 
@@ -48,10 +49,16 @@ public:
 	void Remove(int idx);
 	QString const & GetFileName() const;
 	static ModalityCollection Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
+	bool HasUnsavedModality() const;
 signals:
 	void Added(QSharedPointer<iAModality> mod);
 private:
 	bool ModalityExists(QString const & filename, int channel) const;
+
+
+	void checkandSetVolumeSettings(iAVolumeSettings &volSettings, const QString &Shading, const QString &LinearInterpolation,
+		const QString &SampleDistance, const QString AmbientLighting, const QString& DiffuseLighting, const QString &SpecularLighting,
+		const QString &SpecularPower); 
 
 	ModalityCollection m_modalities;
 	QString m_fileName;

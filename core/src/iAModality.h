@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,24 +21,22 @@
 #pragma once
 
 #include "open_iA_Core_export.h"
+#include "iAVolumeSettings.h"
 
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
 #include <QString>
+#include <QThread>
 
 #include <vector>
 
+class iAHistogramData;
 class iAImageCoordConverter;
+class iAImageInfo;
 class iAModalityTransfer;
 class iAVolumeRenderer;
-
 class vtkImageData;
-class vtkVolume;
-class vtkSmartVolumeMapper;
-class vtkVolumeProperty;
-class vtkColorTransferFunction;
-class vtkPiecewiseFunction;
 
 //! class holding the data of a single image channel
 class open_iA_Core_API iAModality
@@ -78,6 +76,8 @@ public:
 	vtkSmartPointer<vtkImageData> GetImage() const;
 	//! return the name of the given component
 	QString GetImageName(int componentIdx);
+	//! return statistical information about the image
+	iAImageInfo const & Info() const;
 
 	QString GetOrientationString();
 	QString GetPositionString();
@@ -95,14 +95,34 @@ public:
 	int RenderFlags() const;
 
 	void LoadTransferFunction();
-	void SetTransfer(QSharedPointer<iAModalityTransfer> transfer);
 	QSharedPointer<iAModalityTransfer> GetTransfer();
 	void SetRenderer(QSharedPointer<iAVolumeRenderer> renderer);
 	QSharedPointer<iAVolumeRenderer> GetRenderer();
+	void UpdateRenderer();
 
 	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
 	void SetData(vtkSmartPointer<vtkImageData> imgData);
+	void ComputeImageStatistics();
+	void ComputeHistogramData(size_t numBin);
+	QSharedPointer<iAHistogramData> const GetHistogramData() const;
+
+	void setVolSettings(const iAVolumeSettings &volSettings);
+
+	const iAVolumeSettings &getVolumeSettings() const; 
+
+	inline bool getVolSettingsSavedStatus() {
+		return this->m_VolSettingsSavedStatus; 
+	}
+
+	inline void setVolSettingsSavedStatusFalse() {
+		this->m_VolSettingsSavedStatus = false; 
+	}
+
+
 private:
+	iAVolumeSettings m_volSettings;
+	bool m_VolSettingsSavedStatus; 
+
 
 	QString m_name;
 	QString m_filename;
@@ -118,4 +138,22 @@ private:
 	QString positionSettings;
 	QString orientationSettings;
 	QString tfFileName;
+
+};
+
+
+//! class for updating the histogram of a modality
+class iAHistogramUpdater : public QThread
+{
+Q_OBJECT
+	void run() override;
+signals:
+	void StatisticsReady(int modalityIdx);
+	void HistogramReady(int modalityIdx);
+private:
+	int m_modalityIdx;
+	size_t m_binCount;
+	QSharedPointer<iAModality> m_modality;
+public:
+	iAHistogramUpdater(int modalityIdx, QSharedPointer<iAModality> modality, size_t binCount);
 };

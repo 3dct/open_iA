@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iASlicer.h"
 
 #include "iAConsole.h"
@@ -30,9 +28,12 @@
 #include "mdichild.h"
 
 #include <vtkActor.h>
+#include <vtkRenderWindowInteractor.h>
 
 #include <QFileDialog>
 #include <QMessageBox>
+
+#include <cassert>
 
 iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0*/,
 	bool decorations /*= true*/, bool magicLensAvailable /*= true*/) :
@@ -127,7 +128,7 @@ void iASlicer::enableInteractor()
 	m_widget->update();
 }
 
-void iASlicer::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool sil /*= false*/, bool sp /*= false */ )
+void iASlicer::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool sil /*= false*/, bool sp /*= false */ )
 {
 	m_data->reInitialize(ds, tr, ctf, sil, sp);
 }
@@ -149,11 +150,6 @@ void iASlicer::setResliceChannelAxesOrigin(iAChannelID id, double x, double y, d
 void iASlicer::setPositionMarkerCenter(double x, double y)
 {
 	m_data->setPositionMarkerCenter(x, y);
-}
-
-void iASlicer::updateROI()
-{
-	m_data->updateROI();
 }
 
 void iASlicer::update()
@@ -235,20 +231,19 @@ vtkRenderer * iASlicer::GetRenderer() const
 	return m_data->GetRenderer();
 }
 
-void iASlicer::initializeData( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool sil /*= false*/, bool sp /*= false*/)
+void iASlicer::initializeData( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf)
 {
-	m_data->initialize(ds, tr, ctf, sil, sp);
+	m_data->initialize(ds, tr, ctf);
 }
 
-void iASlicer::setROI( int r[6] )
+void iASlicer::UpdateROI(int const roi[6])
 {
-	m_data->setROI(r);
-	m_data->updateROI();
+	m_data->UpdateROI(roi);
 }
 
-void iASlicer::setROIVisible( bool isVisible )
+void iASlicer::SetROIVisible(bool isVisible)
 {
-	m_data->SetROIVisibility(isVisible);
+	m_data->SetROIVisible(isVisible);
 }
 
 void iASlicer::changeImageData( vtkImageData *idata )

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,21 +22,15 @@
 
 #include "iAModuleInterface.h"
 
-class dlg_modalitySPLOM;
 class iAModalityExplorerAttachment;
 
 class iAModalityExplorerModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
-
 public:
-	iAModalityExplorerModuleInterface();
 	void Initialize();
 protected:
-	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData) override;
 private slots:
-	void ModalitySlicer();
 	void ModalitySPLOM();
-private:
-	dlg_modalitySPLOM* m_dlgModalitySPLOM;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,14 +21,16 @@
 #pragma once
 
 #include <QColor>
+#include "open_iA_Core_export.h"
 
 /**
  * \class iAColorable
  * \brief simple base class for anything that can be given a color
  */
-class iAColorable
+class open_iA_Core_API iAColorable
 {
 public:
+	virtual ~iAColorable();
 	static QColor const DefaultColor;
 	iAColorable();
 	iAColorable(QColor const & color);

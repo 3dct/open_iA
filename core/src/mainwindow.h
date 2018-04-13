@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,8 +31,6 @@
 #include <QMainWindow>
 #include <QSharedPointer>
 
-#include <string>
-
 QT_BEGIN_NAMESPACE
 class QAction;
 class QActionGroup;
@@ -50,13 +48,11 @@ QT_END_NAMESPACE
 
 class vtkCamera;
 class vtkImageData;
-class vtkImageViewer2;
 class vtkRenderer;
 
 class dlg_transfer;
 class iAModalityList;
 class iAModuleDispatcher;
-class iATLGICTLoader;
 class MdiChild;
 
 class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
@@ -66,6 +62,8 @@ class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
 public:
 	MainWindow(QString const & appName, QString const & version, QString const & splashImage);
 	~MainWindow();
+	static int RunGUI(int argc, char * argv[], QString const & appName, QString const & version,
+		QString const & splashPath, QString const & iconPath);
 	static void InitResources();
 	void setCurrentFile(const QString &fileName);
 	void updateRecentFileActions();
@@ -74,8 +72,8 @@ public:
 	QString getPath() { return path; };
 
 	void LoadFile(QString const & fileName);
-	void loadFile(QString fileName, bool isStack);
-	void loadFiles(QStringList fileNames);
+	void LoadFile(QString fileName, bool isStack);
+	void LoadFiles(QStringList fileNames);
 
 	QDomDocument loadSettingsFile(QString filename);
 	void saveSettingsFile(QDomDocument &doc, QString filename);
@@ -106,9 +104,8 @@ public:
 	MdiChild *GetResultChild( int childInd, QString const & title );
 	MdiChild *GetResultChild( MdiChild* oldChild, QString const & title );
 	MdiChild *activeMdiChild();
-	QList<QMdiSubWindow*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
-	int SelectInputs(QString winTitel, QStringList inList, int * out_inputIndxs, bool modal = true);
-	void addSubWindow(QWidget * child);
+	QList<MdiChild*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
+	QMdiSubWindow* addSubWindow(QWidget * child);
 	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
 	void LoadArguments(int argc, char** argv);
 	iAPreferences const & GetDefaultPreferences() const;
@@ -117,7 +114,6 @@ protected:
 
 private slots:
 	void timeout();
-	void newFile();
 	void Open();
 	void OpenRaw();
 	void OpenImageStack();
@@ -125,7 +121,6 @@ private slots:
 	void OpenTLGICTData();
 	void save();
 	void saveAs();
-	void saveScreen();
 	bool loadSettings();
 	bool saveSettings();
 	void LoadProject();
@@ -165,8 +160,7 @@ private slots:
 	void childClosed();
 	void ToggleMainWindowStatusBar();
 	void ToggleChildStatusBar();
-	void CloseAllSubWindows();
-
+	void ToggleToolbar();
 public slots:
 	void saveLayout();
 	void loadLayout();
@@ -179,56 +173,43 @@ public slots:
 	void updateMenus();
 	void updateWindowMenu();
 	MdiChild *createMdiChild(bool unsavedChanges);
-	void switchLayoutDirection();
 	void setActiveSubWindow(QWidget *window);
 	void pointSelected();
 	void noPointSelected();
 	void endPointSelected();
 	void setHistogramFocus();
-	void tabChanged(int index);
+	void CloseAllSubWindows();
 
+signals:
+	void StyleChanged();
 private:
 	void connectSignalsToSlots();
-	void setupToolBars();
-	void setupStatusBar();
 	void readSettings();
 	void writeSettings();
 	void createRecentFileActions();
-	void groupActions();
 	void applyQSS();
 	void SetModuleActionsEnabled( bool isEnabled );
-	void loadFileInternal(QString fileName, bool isStack);
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 	void LoadProject(QString const & fileName);
 	void LoadTLGICTData(QString const & baseDirectory);
 	bool KeepOpen();
-
-	QSplashScreen *splashScreen;
-		
-	QMdiSubWindow *findMdiChild(const QString &fileName);
+	MdiChild* findMdiChild(const QString &fileName);
 	QString strippedName(const QString &fullFileName);
 
-	double neighborhood(vtkImageData *imageData, int x0, int y0, int z0);
-
+	QSplashScreen *splashScreen;
 	QAction *separatorAct;
 	enum { MaxRecentFiles = 8 };
 	QAction *recentFileActs[MaxRecentFiles];
 	QActionGroup *slicerToolsGroup;
-
 	QSignalMapper *windowMapper;
-	
 	QString qssName;
-
 	iAVolumeSettings defaultVolumeSettings;	
 	iARenderSettings defaultRenderSettings;
 	iASlicerSettings defaultSlicerSettings;
 	iAPreferences defaultPreferences;
 
-	//! @{ DataType Conversion settings
-	float dtcmin, dtcmax; double dtcoutmin, dtcoutmax; int dtcdov ;//MAE grayvalue filter
-	//! @}
 	//! @{ Open with DataType Conversion settings
 	int owdtcs,
 		owdtcx, owdtcy, owdtcz,
@@ -244,18 +225,9 @@ private:
 	bool spCamera, spSliceViews, spTransferFunction, spProbabilityFunctions, spPreferences, spRenderSettings, spSlicerSettings;
 
 	QString defaultLayout;
-
-	QString movFileName; //mean object visualization parameter
-
-	int fvDiscretizationFactor;
-	QString fvFileName;
-
 	QString curFile, path;
-
 	QTimer *timer;
-
 	QComboBox * layout;
-
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
 	QStringList layoutNames;
 	QString m_gitVersion;

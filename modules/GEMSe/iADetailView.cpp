@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iADetailView.h"
 
 #include "iAAttributes.h"
@@ -358,10 +357,10 @@ void iADetailView::UpdateLikeHate(bool isLike, bool isHate)
 
 QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int id)
 {
-	switch(attributes->at(id)->GetValueType())
+	switch(attributes->at(id)->ValueType())
 	{
 		case Discrete:    return QString::number(static_cast<int>(value)); break;
-		case Categorical: return attributes->at(id)->GetNameMapper()->GetName(static_cast<int>(value)); break;
+		case Categorical: return attributes->at(id)->NameMapper()->GetName(static_cast<int>(value)); break;
 		default:          return QString::number(value); break;
 	}
 }
@@ -389,7 +388,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 			double value = node->GetAttribute(attributeID);
 			QString valueStr = attrValueStr(value, attributes, attributeID);
 
-			m_detailText->append(attributes->at(attributeID)->GetName() + " = " + valueStr);
+			m_detailText->append(attributes->at(attributeID)->Name() + " = " + valueStr);
 		}
 	}
 	else
@@ -404,7 +403,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 		{
 			for (int chartID = 0; chartID < allAttributes->size(); ++chartID)
 			{
-				if (allAttributes->at(chartID)->GetValueType() != Categorical)
+				if (allAttributes->at(chartID)->ValueType() != Categorical)
 				{
 					double min,	max;
 					GetClusterMinMax(node, chartID, min, max, mapper);
@@ -414,7 +413,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 						QString minStr = attrValueStr(min, allAttributes, chartID);
 						QString maxStr = attrValueStr(max, allAttributes, chartID);
 						QString rangeStr = (minStr == maxStr) ? minStr : "[" + minStr + ".." + maxStr + "]";
-						m_detailText->append(allAttributes->at(chartID)->GetName() + ": " + rangeStr);
+						m_detailText->append(allAttributes->at(chartID)->Name() + ": " + rangeStr);
 					}
 				}
 				// else { } // collect list of all categorical values used!
@@ -513,6 +512,11 @@ void iADetailView::SetRepresentativeType(int representativeType)
 
 void iADetailView::SetCorrectnessUncertaintyOverlay(bool enabled)
 {
+	if (!m_refImg)
+	{
+		DEBUG_LOG("Reference image must be set!");
+		return;
+	}
 	m_correctnessUncertaintyOverlayEnabled = enabled;
 	if (enabled)
 	{

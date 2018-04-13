@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,7 +35,7 @@ public:
 	static const int GAUSSIAN = 1;
 	static const int BEZIER   = 2;
 
-	dlg_function(iADiagramFctWidget* fctDiagram) : fctDiagram(fctDiagram) { }
+	dlg_function(iADiagramFctWidget* chart) : chart(chart) { }
 
 	virtual int getType() = 0;
 
@@ -62,5 +62,5 @@ public:
 	virtual void mouseReleaseEvent(QMouseEvent *event) = 0;
 	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) = 0;
 	
-	iADiagramFctWidget *fctDiagram;
+	iADiagramFctWidget *chart;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,46 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAModalityExplorerModuleInterface.h"
 
-#include "dlg_commoninput.h"
+#include "iAModalityExplorerAttachment.h"
+
 #include "iAConsole.h"
-#include "iAIO.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
-#include "dlg_modalities.h"
-#include "dlg_modalitySPLOM.h"
-#include "iAModalityExplorerAttachment.h"
-#include "iAModality.h"
-
-#include <vtkImageReader2.h>
-#include <vtkTIFFReader.h>
-#include <vtkBMPReader.h>
-#include <vtkPNGReader.h>
-#include <vtkJPEGReader.h>
-#include <vtkStringArray.h>
-
-#include <QFileDialog>
-#include <QMessageBox>
-
-#include <cassert>
-
-
-iAModalityExplorerModuleInterface::iAModalityExplorerModuleInterface()
-{}
-
-
 void iAModalityExplorerModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
-	
-	QAction * actionModalitySlicer = new QAction(QApplication::translate("MainWindow", "Modality Slicer", 0), m_mainWnd );
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySlicer, true);
-	connect(actionModalitySlicer, SIGNAL(triggered()), this, SLOT(ModalitySlicer()));
 
 	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
 	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
@@ -71,16 +45,13 @@ iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(M
 	return result;
 }
 
-void iAModalityExplorerModuleInterface::ModalitySlicer()
-{
-
-}
-
 
 void iAModalityExplorerModuleInterface::ModalitySPLOM()
 {
 	PrepareActiveChild();
-	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
-	m_dlgModalitySPLOM->SetData(m_mdiChild->GetModalities());
-	m_mdiChild->tabifyDockWidget(m_childData.logs, m_dlgModalitySPLOM);
+	UpdateChildData();
+	bool result = AttachToMdiChild(m_mdiChild);
+	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
+	if (!result || !attach)
+		DEBUG_LOG("ModalityExplorer could not be initialized!");
 }

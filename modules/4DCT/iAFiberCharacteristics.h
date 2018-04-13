@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,14 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-// std
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
 
-struct FiberCharacteristics {
+class Fiber;
+typedef std::vector<Fiber> FibersData;
+
+class Fiber {
+public:
 	unsigned int	id;
 	double			startPoint[3];
 	double			endPoint[3];
@@ -39,9 +42,9 @@ struct FiberCharacteristics {
 	bool			isSeparated;
 	bool			isCurved;
 
-	static std::vector<FiberCharacteristics> ReadFromCSV(std::string fileName, double spacing)
+	static FibersData ReadFromCSV(std::string fileName, double spacing)
 	{
-		std::vector<FiberCharacteristics> result;
+		std::vector<Fiber> result;
 
 		const int numRows = 14;
 		const int skipRows = 5;
@@ -53,9 +56,6 @@ struct FiberCharacteristics {
 			std::getline(fileStream, line);
 		}
 
-		double spacing2 = spacing * spacing;	// for surface conversion
-		double spacing3 = spacing2 * spacing;	// for volume conversion
-
 		// reading
 		while (std::getline(fileStream, line)) {
 			std::stringstream stringStream(line);
@@ -65,7 +65,7 @@ struct FiberCharacteristics {
 				if (std::getline(stringStream, cell[i], ',')) readedRows++;
 			if (readedRows != numRows) continue;
 
-			FiberCharacteristics fiber;
+			Fiber fiber;
 			fiber.id = atoi(cell[0].c_str());
 			fiber.startPoint[0] = atof(cell[1].c_str()) / spacing;
 			fiber.startPoint[1] = atof(cell[2].c_str()) / spacing;
@@ -76,8 +76,8 @@ struct FiberCharacteristics {
 			fiber.straightLength = atof(cell[7].c_str()) / spacing;
 			fiber.curvedLength = atof(cell[8].c_str()) / spacing;
 			fiber.diameter = atof(cell[9].c_str()) / spacing;
-			fiber.surfaceArea = atof(cell[10].c_str()) / spacing2;
-			fiber.volume = atof(cell[11].c_str()) / spacing3;
+			fiber.surfaceArea = atof(cell[10].c_str()) / (spacing * spacing);
+			fiber.volume = atof(cell[11].c_str()) / (spacing * spacing * spacing);
 			fiber.isSeparated = (atoi(cell[12].c_str()) == 1);
 			fiber.isCurved = (atoi(cell[13].c_str()) == 1);
 
@@ -85,5 +85,10 @@ struct FiberCharacteristics {
 		}
 
 		return result;
+	}
+
+	bool operator<(const Fiber& rhs)
+	{
+		return (this->curvedLength < rhs.curvedLength);
 	}
 };

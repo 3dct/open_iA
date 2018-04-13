@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,43 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-enum iAEigenAnalysisType
-{
-	HESSIANEIGENANALYSIS,
-	LAPLACIAN,
-};
-
-/**
- * A implementation of the computation of the hessian matrix and eigenanalysis.
- */
-class iAHessianEigenanalysis : public iAAlgorithm
-{
-public:
-	iAHessianEigenanalysis( QString fn, iAEigenAnalysisType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	/**
-	 * Sets iAHessianEigenanalysis parameters.
-	 * \param	sigma		Sigma value.
-	 * \param	hessian     Is hessian already computed.
-	 * \param	eigen		Which eigenvalue should computed.
-	 */
-	void setCParameters(double sigma, bool hessian, int eigen) { 
-		this->sigma = sigma; 
-		hessianComputed = hessian;
-		nr = eigen;
-	}
-
-	void setLapParameters(unsigned int sigma){
-		this->sigma = sigma; 
-	}
-
-protected:
-	virtual void performWork();
-private:
-	unsigned int sigma;
-	bool hessianComputed;
-	int nr;
-	iAEigenAnalysisType m_type;
-};
+IAFILTER_DEFAULT_CLASS(iAHessianEigenanalysis);
+IAFILTER_DEFAULT_CLASS(iALaplacian);

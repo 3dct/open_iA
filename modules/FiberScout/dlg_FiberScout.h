@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "dlg_imageproperty.h"
 #include "iAFiberScoutModuleInterface.h"
 #include "iAObjectAnalysisType.h"
 #include "iAQTtoUIConnector.h"
@@ -86,7 +85,7 @@ struct moData
 /**
 * \brief	implement vtkChartParallelCoordinates as dialog
 */
-class dlg_FiberScout : public QDockWidget, private Ui_FiberScoutCE
+class dlg_FiberScout : public QDockWidget, public Ui_FiberScoutCE
 {
 	Q_OBJECT
 
@@ -195,7 +194,6 @@ private:
 	vtkColorTransferFunction *cTF;
 
 	// private members
-	int	width, height;
 	int elementNr;		// Number of elements in csv inputTable
 	int objectNr;		// Number of objects in the specimen
 	iAObjectAnalysisType filterID;

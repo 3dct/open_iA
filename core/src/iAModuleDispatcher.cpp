@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,10 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAModuleDispatcher.h"
 
+#include "dlg_FilterSelection.h"
+#include "iAConsole.h"
+#include "iAFilter.h"
+#include "iAFilterRegistry.h"
+#include "iAFilterRunnerGUI.h"
 #include "iALogger.h"
 #include "iAModuleInterface.h"
 #include "mainwindow.h"
@@ -29,10 +32,24 @@
 #include <QDir>
 #include <QFileInfo>
 
-#include <sstream>
-
 #ifdef _MSC_VER
 #define CALLCONV __stdcall
+
+//Returns the last Win32 error, in string format. Returns an empty string if there is no error.
+QString GetLastErrorAsString()
+{
+	DWORD errorMessageID = ::GetLastError();
+	if (errorMessageID == 0)
+		return QString();
+	LPSTR messageBuffer = nullptr;
+	size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+	std::string message(messageBuffer, size);
+	LocalFree(messageBuffer);
+	QString result(message.c_str());
+	return result.trimmed();
+}
+
 #else
 #define CALLCONV
 #include <dlfcn.h>
@@ -53,6 +70,12 @@ iALoadedModule::iALoadedModule(QString const & n, MODULE_HANDLE h, iAModuleInter
 iAModuleDispatcher::iAModuleDispatcher(MainWindow * mainWnd)
 {
 	m_mainWnd = mainWnd;
+	m_rootPath = QCoreApplication::applicationDirPath();
+}
+
+iAModuleDispatcher::iAModuleDispatcher(QString const & rootPath): m_mainWnd(nullptr)
+{
+	m_rootPath = rootPath;
 }
 
 void CloseLibrary(iALoadedModule & module)
@@ -63,35 +86,38 @@ void CloseLibrary(iALoadedModule & module)
 	// created by modules first!
 	if (FreeLibrary(module.handle) != TRUE)
 	{
-		DEBUG_LOG(QString("Error while unloading library %1: %2").arg(module.name).arg(GetLastError()));
+		DEBUG_LOG(QString("Error while unloading library %1: %2").arg(module.name).arg(GetLastErrorAsString()));
 	}
 */
 #else
+/*
+	// for unknown reason, unloading modules causes a segmentation fault under Linux
 	if (dlclose(module.handle) != 0)
 	{
-		// log?
+		DEBUG_LOG(QString("Error while unloading library %1: %2").arg(module.name).arg(dlerror()));
 	}
+*/
 #endif
 }
 
-QFileInfoList GetLibraryList()
+QFileInfoList GetLibraryList(QString const & rootPath)
 {
-    QDir root(QCoreApplication::applicationDirPath() + "/plugins");
-    QStringList nameFilter;
+	QDir root(rootPath + "/plugins");
+	QStringList nameFilter;
 
 #ifdef _MSC_VER
 	nameFilter << "*.dll";
-#elif __GNUC__
-	nameFilter << "*.so";
+#elif defined(__APPLE__) && defined(__MACH__)
+	nameFilter << "*.dylib";
 #else
-    nameFilter << "*.dylib";
+	nameFilter << "*.so";
 #endif
-    
-    QFileInfoList list = root.entryInfoList(nameFilter, QDir::Files);
+	
+	QFileInfoList list = root.entryInfoList(nameFilter, QDir::Files);
 	return root.entryInfoList(nameFilter, QDir::Files);
 }
 
-MODULE_HANDLE LoadModule(QFileInfo fileInfo)
+MODULE_HANDLE LoadModule(QFileInfo fileInfo, iALogger* logger)
 {
 #ifdef _MSC_VER
 	QString dllWinName(fileInfo.absoluteFilePath());
@@ -102,15 +128,18 @@ MODULE_HANDLE LoadModule(QFileInfo fileInfo)
 	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);  // to suppress message box on error
 	HINSTANCE hGetProcIDDLL = LoadLibrary(dllName);
 	SetErrorMode(prevErrorMode);
+	if (!hGetProcIDDLL)
+	{
+		logger->Log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(GetLastErrorAsString()));
+	}
 	return hGetProcIDDLL;
 #else
-/*
- * 	mode:
- * 	RTLD_LAZY 1
- * 	RTLD_NOW  2
- * 	RTLD_GLOBAL 4
- */
-	return dlopen(fileInfo.absoluteFilePath().toStdString().c_str(), RTLD_NOW);
+	auto handle = dlopen(fileInfo.absoluteFilePath().toStdString().c_str(), RTLD_NOW);
+	if (!handle)
+	{
+		logger->Log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(dlerror()));
+	}
+	return handle;
 #endif
 }
 
@@ -144,15 +173,15 @@ void iAModuleDispatcher::InitializeModuleInterface(iAModuleInterface* m)
 
 iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALogger* logger)
 {
-	MODULE_HANDLE handle = LoadModule(fi);
+	MODULE_HANDLE handle = LoadModule(fi, logger);
 	if (!handle)
 	{
-		logger->log(QString("Could not load the dynamic library '%1'").arg(fi.absoluteFilePath()));
 		return NULL;
 	}
 	iAModuleInterface * m = LoadModuleInterface(handle);
-	if (!m) {
-		logger->log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
+	if (!m)
+	{
+		logger->Log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
 		return NULL;
 	}
 	InitializeModuleInterface(m);
@@ -162,10 +191,77 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 
 void iAModuleDispatcher::InitializeModules(iALogger* logger)
 {
-	QFileInfoList fList = GetLibraryList();
+	QFileInfoList fList = GetLibraryList(m_rootPath);
 	for (QFileInfo fi : fList)
 	{
 		LoadModuleAndInterface(fi, logger);
+	}
+	if (!m_mainWnd)	// all non-GUI related stuff already done
+	{
+		return;
+	}
+	auto filterFactories = iAFilterRegistry::FilterFactories();
+	for (int i=0; i<filterFactories.size(); ++i)
+	{
+		auto filterFactory = filterFactories[i];
+		auto filter = filterFactory->Create();
+		QMenu * filterMenu = m_mainWnd->getFiltersMenu();
+		QStringList categories = filter->FullCategory().split("/");
+		for (auto cat : categories)
+			if (!cat.isEmpty())
+				filterMenu = getMenuWithTitle(filterMenu, cat);
+		QAction * filterAction = new QAction(QApplication::translate("MainWindow", filter->Name().toStdString().c_str(), 0), m_mainWnd);
+		AddActionToMenuAlphabeticallySorted(filterMenu, filterAction);
+		filterAction->setData(i);
+		connect(filterAction, SIGNAL(triggered()), this, SLOT(ExecuteFilter()));
+	}
+	// enable Tools and Filters only if any modules were loaded that put something into them:
+	m_mainWnd->getToolsMenu()->menuAction()->setVisible(m_mainWnd->getToolsMenu()->actions().size() > 0);
+	m_mainWnd->getFiltersMenu()->menuAction()->setVisible(m_mainWnd->getFiltersMenu()->actions().size() > 0);
+
+	if (m_mainWnd->getFiltersMenu()->actions().size() > 0)
+	{
+		QMenu * filterMenu = m_mainWnd->getFiltersMenu();
+		QAction * selectAndRunFilterAction = new QAction(QApplication::translate("MainWindow", "Select and Run Filter...", 0), m_mainWnd);
+		AddModuleAction(selectAndRunFilterAction, true);
+		filterMenu->insertAction(filterMenu->actions()[0], selectAndRunFilterAction);
+		connect(selectAndRunFilterAction, SIGNAL(triggered()), this, SLOT(SelectAndRunFilter()));
+	}
+}
+
+void iAModuleDispatcher::ExecuteFilter()
+{
+	int filterID = qobject_cast<QAction *>(sender())->data().toInt();
+	RunFilter(filterID);
+}
+
+void iAModuleDispatcher::SelectAndRunFilter()
+{
+	dlg_FilterSelection filterSelection(m_mainWnd);
+	if (filterSelection.exec() == QDialog::Accepted)
+		RunFilter(iAFilterRegistry::FilterID(filterSelection.SelectedFilterName()));
+}
+
+void iAModuleDispatcher::RunFilter(int filterID)
+{
+	if (filterID == -1)
+		return;
+	auto runner = iAFilterRegistry::FilterRunner(filterID)->Create();
+	m_runningFilters.push_back(runner);
+	connect(runner.data(), SIGNAL(finished()), this, SLOT(RemoveFilter()));
+	runner->Run(iAFilterRegistry::FilterFactories()[filterID]->Create(), m_mainWnd);
+}
+
+void iAModuleDispatcher::RemoveFilter()
+{
+	auto filterRunner = qobject_cast<iAFilterRunnerGUI*>(sender());
+	for (int i = 0; i < m_runningFilters.size(); ++i)
+	{
+		if (m_runningFilters[i].data() == filterRunner)
+		{
+			m_runningFilters.remove(i);
+			break;
+		}
 	}
 }
 
@@ -197,10 +293,8 @@ void iAModuleDispatcher::SetModuleActionsEnabled( bool isEnabled )
 			QMenu * actMenu = m_moduleActions[i].action->menu();
 			if (actMenu)
 				actMenu->setEnabled(isEnabled);
-			
 		}
 }
-
 
 void iAModuleDispatcher::ChildCreated(MdiChild* child)
 {
@@ -209,4 +303,34 @@ void iAModuleDispatcher::ChildCreated(MdiChild* child)
 	{
 		m.moduleInterface->ChildCreated(child);
 	}
+}
+
+
+QMenu * iAModuleDispatcher::getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable)
+{
+	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
+	for (int i = 0; i < submenus.size(); ++i)
+	{
+		if (submenus.at(i)->title() == title)
+			return  submenus.at(i);
+	}
+	QMenu * result = new QMenu(parentMenu);
+	result->setTitle(title);
+	AddActionToMenuAlphabeticallySorted(parentMenu, result->menuAction(), isDisablable);
+	return result;
+}
+
+
+void  iAModuleDispatcher::AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable)
+{
+	AddModuleAction(action, isDisablable);
+	foreach(QAction * curAct, menu->actions())
+	{
+		if (curAct->text() > action->text())
+		{
+			menu->insertAction(curAct, action);
+			return;
+		}
+	}
+	menu->addAction(action);
 }

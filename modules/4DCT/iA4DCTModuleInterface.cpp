@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,22 +18,22 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iA4DCTModuleInterface.h"
-// iA
-#include "dlg_commoninput.h"
+
 #include "iA4DCTMainWin.h"
 #include "iA4DCTSettings.h"
-#include "iAConnector.h"
 #include "iAConsole.h"
 #include "iASlicer.h"
 #include "iASlicerWidget.h"
 #include "mainwindow.h"
 #include "mdichild.h"
-// vtk
+#include "iAFeatureExtraction.h"
+#include "iAFeatureExtractionDialog.h"
+#include "iADefectClassifier.h"
+#include "iAClassifyDefectsDialog.h"
+
 #include <vtkMath.h>
-// itk
+
 #include <itkConvolutionImageFilter.h>
 #include <itkEllipseSpatialObject.h>
 #include <itkImageFileWriter.h>
@@ -44,7 +44,7 @@
 #include <itkSpatialObjectToImageFilter.h>
 #include <itkSubtractImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
-// Qt
+
 #include <QColor>
 #include <QDirIterator>
 #include <QFileDialog>
@@ -54,7 +54,7 @@
 #include <QMessageBox>
 #include <QObject>
 #include <QSettings>
-// std
+
 #include <limits>
 
 #define RAD_TO_DEG 57.295779513082320876798154814105
@@ -67,6 +67,8 @@ iA4DCTModuleInterface::~iA4DCTModuleInterface( )
 
 void iA4DCTModuleInterface::Initialize( )
 {
+	if (!m_mainWnd)
+		return;
 	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
 
 	// ToFix: the menu should be added through the standard way of adding modules menus.
@@ -93,6 +95,16 @@ void iA4DCTModuleInterface::Initialize( )
 	saveProj->setShortcut( QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_S ) );
 	connect( saveProj, SIGNAL( triggered( ) ), this, SLOT( saveProj( ) ) );
 	menu4DCT->addAction( saveProj );
+
+	QAction* featureExtraction = new QAction( m_mainWnd );
+	featureExtraction->setText( QApplication::translate( "MainWindows", "Extract features to file", 0 ) );
+	connect( featureExtraction, SIGNAL( triggered( ) ), this, SLOT( extractFeaturesToFile( ) ) );
+	menu4DCT->addAction( featureExtraction );
+
+	QAction* defectClassification = new QAction( m_mainWnd );
+	defectClassification->setText( QApplication::translate( "MainWindows", "Defect classification", 0 ) );
+	connect( defectClassification, SIGNAL( triggered( ) ), this, SLOT( defectClassification( ) ) );
+	menu4DCT->addAction( defectClassification );
 }
 
 /*============
@@ -136,6 +148,47 @@ void iA4DCTModuleInterface::saveProj( )
 	if( stackView != NULL ) {
 		stackView->save( );
 	}
+}
+
+void iA4DCTModuleInterface::extractFeaturesToFile( )
+{
+	iAFeatureExtractionDialog dialog;
+	if( dialog.exec( ) == QDialog::Rejected )
+	{
+		return;
+	}
+
+	iAFeatureExtraction::run( dialog.getInputImg( ), dialog.getOutputFile( ) );
+}
+
+void iA4DCTModuleInterface::defectClassification()
+{
+	iAClassifyDefectsDialog dlg;
+	if( dlg.exec( ) == QDialog::Rejected )
+	{
+		return;
+	}
+
+	iADefectClassifier df;
+	iADefectClassifier::Parameters params;
+	params.Spacing = dlg.ui.dsbSpacing->value( );
+	params.ElongationP = dlg.ui.dsbElongationP->value( );
+	params.ElongationD = dlg.ui.dsbElongationD->value( );
+	params.LengthRangeP[0] = dlg.ui.dsbLengthRangeP_1->value( );
+	params.LengthRangeP[1] = dlg.ui.dsbLengthRangeP_2->value( );
+	params.WidthRangeP[0] = dlg.ui.dsbWidthRangeP_1->value( );
+	params.WidthRangeP[1] = dlg.ui.dsbWidthRangeP_2->value( );
+	params.AngleP = dlg.ui.dsbAngleP->value( );
+	params.AngleB = dlg.ui.dsbAngleB->value( );
+	params.AngleD = dlg.ui.dsbAngleD->value( );
+	params.NeighborhoodDistP = dlg.ui.dsbNeighborhoodDistanceP->value( );
+	params.NeighborhoodDistFF = dlg.ui.dsbNeighborhoodDistanceFF->value( );
+	params.BigVolumeThreshold = dlg.ui.dsbBigVolumeThreshold->value( );
+	params.FibersFile = dlg.ui.Fibers->ui.Path->text( ).toStdString( );
+	params.FeaturesFile = dlg.ui.Defects->ui.Path->text( ).toStdString( );
+	params.OutputDir = dlg.ui.Output->ui.Path->text( ).toStdString( );
+
+	df.run( params );
 }
 
 //void iA4DCTModuleInterface::enableDensityMap()

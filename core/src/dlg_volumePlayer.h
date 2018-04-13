@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,15 +24,12 @@
 #include <QtGui/QPalette>
 #include <QTimer>
 #include <vector>
-#include <vtkPiecewiseFunction.h>
 #include <vtkSmartPointer.h>
 
-class vtkImageData;
-class vtkImageAccumulate;
 class MdiChild;
 class iAVolumeStack;
-class dlg_commoninput;
-class MdiChild;
+
+class vtkPiecewiseFunction;
 
 const int CHANNELS_COUNT = 2;
 
@@ -41,7 +38,7 @@ class dlg_volumePlayer : public QDockWidget, public Ui_VolumePlayer
 	Q_OBJECT
 
 public:
-	dlg_volumePlayer(QWidget *parent, vtkImageData* s , vtkImageAccumulate* a, QString f, iAVolumeStack *volumeStack);
+	dlg_volumePlayer(QWidget *parent, iAVolumeStack *volumeStack);
 	~dlg_volumePlayer();
 
 private:

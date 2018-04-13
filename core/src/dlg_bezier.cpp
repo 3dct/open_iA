@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,11 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_bezier.h"
 
-#include "iAHistogramWidget.h"
+#include "charts/iADiagramFctWidget.h"
+#include "iAMapper.h"
+#include "iAMathUtility.h"
 
 #include <vtkImageData.h>
 
@@ -30,19 +30,14 @@
 #include <QPainter>
 #include <QMouseEvent>
 
-dlg_bezier::dlg_bezier(iADiagramFctWidget *fctDiagram, QColor &color, bool res)
-	: dlg_function(fctDiagram)
+dlg_bezier::dlg_bezier(iADiagramFctWidget *chart, QColor &color, bool res)
+	: dlg_function(chart)
 {
 	this->color = color;
 	active = false;
-
-	double range = fctDiagram->GetDataRange();
-
-	controlDist = range/8;
-
+	controlDist = chart->XRange() / 8;
 	if (res)
 		reset();
-
 	selectedPoint = -1;
 }
 
@@ -53,7 +48,7 @@ void dlg_bezier::draw(QPainter &painter)
 
 void dlg_bezier::draw(QPainter &painter, QColor color, int lineWidth)
 {
-	bool active = (fctDiagram->getSelectedFunction() == this);
+	bool active = (chart->getSelectedFunction() == this);
 
 	// draw line
 	QPen pen = painter.pen();
@@ -198,7 +193,7 @@ void dlg_bezier::draw(QPainter &painter, QColor color, int lineWidth)
 int dlg_bezier::selectPoint(QMouseEvent *event, int *x)
 {
 	int lx = event->x();
-	int ly = fctDiagram->geometry().height() -event->y() - fctDiagram->getBottomMargin();
+	int ly = chart->geometry().height() - event->y() - chart->BottomMargin();
 	int index = -1;
 	
 	for (unsigned int pointIndex = 0; pointIndex < viewPoints.size(); pointIndex++)
@@ -301,15 +296,11 @@ void dlg_bezier::moveSelectedPoint(int x, int y)
 {
 	if (isFunctionPoint(selectedPoint))
 	{
-		if (x < 0) x = 0;
-		if (x > fctDiagram->geometry().width()-1) x = fctDiagram->geometry().width()-1;
-		if (y < 0) y = 0;
-		if (y > (fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1)*fctDiagram->getYZoom()) y = (fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1)*fctDiagram->getYZoom();
-
+		x = clamp(0, chart->geometry().width() - 1, x);
+		y = clamp(0, static_cast<int>((chart->geometry().height() - chart->BottomMargin() - 1)*chart->YZoom()), y);
 		if (isEndPoint(selectedPoint))
 			y = 0;
 	}
-
 
 	int functionPointIndex = getFunctionPointIndex(selectedPoint);
 	double dLength = getLength(viewPoints[functionPointIndex], viewPoints[selectedPoint]);
@@ -385,11 +376,8 @@ bool dlg_bezier::isDeletable(int index)
 
 void dlg_bezier::reset()
 {
-	double dataRange[2];
-	fctDiagram->GetDataRange(dataRange);
-	
-	double start = dataRange[0];
-	double end = dataRange[1];
+	double start = chart->XBounds()[0];
+	double end = chart->XBounds()[1];
 	
 	viewPoints.clear();
 	realPoints.clear();
@@ -442,16 +430,16 @@ void dlg_bezier::insert(unsigned int index, unsigned int x, unsigned int y)
 	{
 		std::vector<QPointF>::iterator vit = viewPoints.begin();
 		std::vector<QPointF>::iterator rit = realPoints.begin();
-		viewPoints.insert(vit+index*3-1, QPointF(xf-controlDist/fctDiagram->getZoom(), yf));
-		realPoints.insert(rit+index*3-1, QPointF(xf-controlDist/fctDiagram->getZoom(), yf));
+		viewPoints.insert(vit+index*3-1, QPointF(xf-controlDist/chart->XZoom(), yf));
+		realPoints.insert(rit+index*3-1, QPointF(xf-controlDist/chart->XZoom(), yf));
 		vit = viewPoints.begin();
 		rit = realPoints.begin();
 		viewPoints.insert(vit+index*3, QPointF(xf, yf));
 		realPoints.insert(rit+index*3, QPointF(xf, yf));
 		vit = viewPoints.begin();
 		rit = realPoints.begin();
-		viewPoints.insert(vit+index*3+1, QPointF(xf+controlDist/fctDiagram->getZoom(), yf));
-		realPoints.insert(rit+index*3+1, QPointF(xf+controlDist/fctDiagram->getZoom(), yf));
+		viewPoints.insert(vit+index*3+1, QPointF(xf+controlDist/chart->XZoom(), yf));
+		realPoints.insert(rit+index*3+1, QPointF(xf+controlDist/chart->XZoom(), yf));
 	}
 }
 
@@ -460,9 +448,6 @@ void dlg_bezier::setViewPoint(int selectedPoint)
 	if (selectedPoint != -1)
 	{
 		QPointF realPoint = realPoints[selectedPoint];
-
-		double dataRange[2];
-		fctDiagram->GetDataRange(dataRange);
 
 		double pointX = realPoint.x();
 		double pointY = realPoint.y();
@@ -473,26 +458,26 @@ void dlg_bezier::setViewPoint(int selectedPoint)
 		{
 			QPointF functionPoint = realPoints[functionPointIndex];
 			
-			if (pointX < dataRange[0] || pointY < 0 || pointX > dataRange[1] || pointY > fctDiagram->GetMaxYAxisValue()/fctDiagram->getYZoom())
+			if (pointX < chart->XBounds()[0] || pointY < 0 || pointX > chart->XBounds()[1] || pointY > chart->YBounds()[1]/chart->YZoom())
 			{
 				//calculate intersection with horizontal borders
 				double dx = realPoints[selectedPoint].x() -functionPoint.x();
 				double dy = realPoints[selectedPoint].y() -functionPoint.y();
 
-				double t = ((pointY < 0 ? 0.0 : fctDiagram->GetMaxYAxisValue()/fctDiagram->getYZoom())-functionPoint.y())/dy;
+				double t = ((pointY < 0 ? 0.0 : chart->YBounds()[1]/chart->YZoom())-functionPoint.y())/dy;
 				double x = functionPoint.x() +t*dx;
 
 				//calculate intersection with vertical borders
-				double y = functionPoint.y() +((pointX < dataRange[0] ? dataRange[0] : dataRange[1])-functionPoint.x())/dx*dy;
+				double y = functionPoint.y() +((pointX < chart->XBounds()[0] ? chart->XBounds()[0] : chart->XBounds()[1])-functionPoint.x())/dx*dy;
 
-				if (x >= dataRange[0] && x <= dataRange[1] && t > 0)
+				if (x >= chart->XBounds()[0] && x <= chart->XBounds()[1] && t > 0)
 				{
 					viewPoints[selectedPoint].setX(x);
-					viewPoints[selectedPoint].setY(pointY < 0 ? 0.0: fctDiagram->GetMaxYAxisValue()/fctDiagram->getYZoom());
+					viewPoints[selectedPoint].setY(pointY < 0 ? 0.0: chart->YBounds()[1]/ chart->YZoom());
 				}
 				else
 				{
-					viewPoints[selectedPoint].setX(pointX < dataRange[0] ? dataRange[0] : dataRange[1]);
+					viewPoints[selectedPoint].setX(pointX < chart->XBounds()[0] ? chart->XBounds()[0] : chart->XBounds()[1]);
 					viewPoints[selectedPoint].setY(y);
 				}
 			}
@@ -552,35 +537,30 @@ double dlg_bezier::getLength(QPointF start, QPointF end)
 	return sqrt(pow((double)(d2vX(end.x())-d2vX(start.x())), 2)+pow((double)(d2vY(end.y())-d2vY(start.y())), 2));
 }
 
+// TODO: unify somewhere!
 double dlg_bezier::v2dX(int x)
 {
-	double dataRange[2];
-	fctDiagram->GetDataRange(dataRange);
-
-	return ((double)(x-fctDiagram->getTranslationX()) / (double)fctDiagram->geometry().width() * (dataRange[1] - dataRange[0]) ) /fctDiagram->getZoom() + dataRange[0];
+	return ((double)(x- chart->XShift()) / (double)chart->geometry().width() * chart->XRange()) / chart->XZoom() + chart->XBounds()[0];
 }
 
 double dlg_bezier::v2dY(int y)
 {
-	return fctDiagram->GetCoordinateConverter()->Diagram2ScreenY(y) *fctDiagram->GetMaxYAxisValue() /fctDiagram->getYZoom();
+	return chart->YMapper()->SrcToDest(y) *chart->YBounds()[1] / chart->YZoom();
 }
 
 int dlg_bezier::d2vX(double x)
 {
-	double dataRange[2];
-	fctDiagram->GetDataRange(dataRange);
-
-	return (int)((x -dataRange[0]) * (double)fctDiagram->geometry().width() / (dataRange[1] - dataRange[0])*fctDiagram->getZoom()) +fctDiagram->getTranslationX();
+	return (int)((x - chart->XBounds()[0]) * (double)chart->geometry().width() / chart->XRange()*chart->XZoom()) + chart->XShift();
 }
 
 int dlg_bezier::d2vY(double y)
 {
-	return (int)(y /fctDiagram->GetMaxYAxisValue() *(double)(fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1) *fctDiagram->getYZoom());
+	return (int)(y / chart->YBounds()[1] *(double)(chart->geometry().height() - chart->BottomMargin()-1) *chart->YZoom());
 }
 
 int dlg_bezier::d2iX(double x)
 {
-	return d2vX(x) -fctDiagram->getTranslationX();
+	return d2vX(x) - chart->XShift();
 }
 
 int dlg_bezier::d2iY(double y)

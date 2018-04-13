@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,16 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vector>
-#include <iostream>
-#include <sstream>
-#include <iomanip>
-#include <assert.h>
 #include <algorithm>
-#include <set>
+#include <cassert>
 #include <cmath>
+#include <set>
+#include <vector>
 
-#include <iAFunction.h>
+#include "iAFunction.h"
 
 /**
  * Class for storing a "function band", i.e. a min-max range

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,9 +29,10 @@ class vtkPiecewiseFunction;
 #include "open_iA_Core_export.h"
 
 //! base class for anything providing a full transfer function (opacity + color)
-class iATransferFunction
+class open_iA_Core_API iATransferFunction
 {
 public:
+	virtual ~iATransferFunction();
 	virtual vtkPiecewiseFunction* GetOpacityFunction() =0;
 	virtual vtkColorTransferFunction* GetColorFunction() = 0;
 };
@@ -50,5 +51,5 @@ private:
 };
 
 // double range? pass in vtk variables?
-open_iA_Core_API vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(vtkSmartPointer<vtkImageData> imageData);
-open_iA_Core_API vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(vtkSmartPointer<vtkImageData> imageData);
+open_iA_Core_API vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(double const range[2]);
+open_iA_Core_API vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(double const range[2], bool opaqueRamp);

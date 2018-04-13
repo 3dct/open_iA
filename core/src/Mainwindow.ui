@@ -66,7 +66,6 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="newAct"/>
     <addaction name="openAct"/>
     <addaction name="actionOpen_Raw"/>
     <addaction name="actionOpen_Image_Stack"/>
@@ -76,14 +75,12 @@
     <addaction name="separator"/>
     <addaction name="saveAct"/>
     <addaction name="saveAsAct"/>
-    <addaction name="saveScreenAct"/>
     <addaction name="separator"/>
     <addaction name="actionOpen_Project"/>
     <addaction name="actionSave_Project"/>
     <addaction name="separator"/>
     <addaction name="loadSettingsAct"/>
     <addaction name="saveSettingsAct"/>
-    <addaction name="switchAct"/>
     <addaction name="exitAct"/>
    </widget>
    <widget class="QMenu" name="menu_Window">
@@ -116,6 +113,7 @@
     <addaction name="separator"/>
     <addaction name="actionEnableInteraction"/>
     <addaction name="action_MainWindowStatusBar"/>
+    <addaction name="actionShowToolbar"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -179,11 +177,9 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="newAct"/>
    <addaction name="openAct"/>
    <addaction name="saveAct"/>
    <addaction name="saveAsAct"/>
-   <addaction name="saveScreenAct"/>
    <addaction name="actionPreferences"/>
    <addaction name="actionRendererSettings"/>
    <addaction name="actionSlicerSettings"/>
@@ -301,21 +297,6 @@
    <addaction name="actionDelete_Layout"/>
    <addaction name="actionResetLayout"/>
   </widget>
-  <action name="newAct">
-   <property name="icon">
-    <iconset resource="../open_iA.qrc">
-     <normaloff>:/images/new.png</normaloff>:/images/new.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;New</string>
-   </property>
-   <property name="toolTip">
-    <string>Create a new file</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N</string>
-   </property>
-  </action>
   <action name="openAct">
    <property name="icon">
     <iconset resource="../open_iA.qrc">
@@ -357,6 +338,9 @@
    <property name="toolTip">
     <string>Save the document under a new name</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
   </action>
   <action name="exitAct">
    <property name="text">
@@ -367,11 +351,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
-   </property>
-  </action>
-  <action name="switchAct">
-   <property name="text">
-    <string>Switch layout direction</string>
    </property>
   </action>
   <action name="closeAct">
@@ -978,6 +957,17 @@
   <action name="actionOpen_Raw">
    <property name="text">
     <string>Open Raw...</string>
+   </property>
+  </action>
+  <action name="actionShowToolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Toolbars</string>
    </property>
   </action>
  </widget>

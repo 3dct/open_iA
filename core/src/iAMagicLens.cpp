@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iAMagicLens.h"
 
 #include "defines.h"
@@ -48,7 +47,7 @@ const int iAMagicLens::OFFSET_MODE_X_OFFSET = 10;
 
 namespace
 {
-	const int CaptionFrameDistance = 2;
+	const int CaptionFrameDistance = 0;
 	const int CaptionFontSize = 13;
 }
 
@@ -58,7 +57,7 @@ LensData::LensData():
 {}
 
 
-LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled, QString const & name):
+LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled):
 	m_qvtkWidget(new iAFramedQVTKWidget2(parent, shareWidget, f)),
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
 	m_cam(vtkSmartPointer<vtkCamera>::New()),
@@ -76,19 +75,16 @@ LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFl
 
 	m_imageActor->SetInputData(m_imageToColors->GetOutput());
 	m_imageActor->GetMapper()->BorderOn();
-	m_imageActor->SetOpacity(1.0);
+	m_imageActor->SetOpacity(1.0); // opacity of the lens image
 	m_imageActor->SetInterpolate(interpolate);
 /*
 	// ORIENTATION / ROTATION FIX:
 	double orientation[3] = {180, 0, 0};
 	m_imageActor->SetOrientation(orientation);
 */
-	m_textActor->SetInput(name.toStdString().c_str());
 	m_textActor->GetTextProperty()->SetColor ( 0.0,0.0,0.0 );
-#if (VTK_MAJOR_VERSION > 6 || VTK_MINOR_VERSION > 1)
 	m_textActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
 	m_textActor->GetTextProperty()->SetBackgroundOpacity(0.5);
-#endif
 	m_textActor->GetTextProperty()->SetFontSize(CaptionFontSize);
 	double textMargin = m_qvtkWidget->GetFrameWidth() + CaptionFrameDistance;
 	m_textActor->SetPosition(textMargin, textMargin);
@@ -135,6 +131,7 @@ void iAMagicLens::SetFrameWidth(qreal frameWidth)
 	}
 }
 
+// width of the frame line
 qreal iAMagicLens::GetFrameWidth() const
 {
 	if (m_lenses.size() > 0)
@@ -160,6 +157,7 @@ void iAMagicLens::Render()
 		}
 }
 
+// shows or hides the magic lense on the sliced image
 void iAMagicLens::SetEnabled( bool isEnabled )
 {
 	m_isEnabled = isEnabled;
@@ -197,6 +195,7 @@ void iAMagicLens::InitWidget( QWidget * parent, const QGLWidget * shareWidget, Q
 	m_shareWidget = shareWidget;
 	m_flags = f;
 }
+
 
 void iAMagicLens::SetScaleCoefficient( double scaleCoefficient )
 {
@@ -299,6 +298,8 @@ void iAMagicLens::UpdateOffset()
 	}
 }
 
+// shows the image in the lens either next to the part of the image focused in the lens,
+// or the lens frames the part of the image it is currently hovering over
 void iAMagicLens::UpdateShowFrame()
 {
 	if (m_viewMode == SIDE_BY_SIDE)
@@ -321,6 +322,8 @@ QRect iAMagicLens::GetViewRect() const
 	return m_viewedRect;
 }
 
+// sets a frame for the lense: either framed, not framed, or framed on the left side
+// of the original image
 void iAMagicLens::SetShowFrame( iAFramedQVTKWidget2::FrameStyle frameStyle )
 {
 	for (LensData & l : m_lenses)
@@ -340,7 +343,7 @@ int iAMagicLens::GetCenterSplitOffset() const
 }
 
 void iAMagicLens::UpdateLensInput(LensData & l, vtkImageReslice * reslicer, vtkScalarsToColors* cTF,
-	vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF)
+	vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF, QString const & name)
 {
 	l.m_imageToColors->SetInputConnection(reslicer->GetOutputPort());
 	l.m_imageToColors->SetLookupTable(cTF);
@@ -348,6 +351,7 @@ void iAMagicLens::UpdateLensInput(LensData & l, vtkImageReslice * reslicer, vtkS
 	l.m_bgImageToColors->SetInputConnection(bgReslice->GetOutputPort());
 	l.m_bgImageToColors->SetLookupTable(bgCTF);
 	l.m_bgImageToColors->Update();
+	l.m_textActor->SetInput(name.toStdString().c_str());
 }
 
 void iAMagicLens::AddInput(
@@ -367,14 +371,14 @@ void iAMagicLens::AddInput(
 			delete m_lenses[0].m_qvtkWidget;
 			m_lenses.remove(0);
 		}
-		LensData l(m_parent, m_shareWidget, m_flags, m_interpolate, m_isEnabled, name);
+		LensData l(m_parent, m_shareWidget, m_flags, m_interpolate, m_isEnabled);
 		l.m_qvtkWidget->SetCrossHair(m_viewMode == OFFSET);
 		m_lenses.append(l);
-		UpdateLensInput(l, reslicer, cTF, bgReslice, bgCTF);
+		UpdateLensInput(l, reslicer, cTF, bgReslice, bgCTF, name);
 	}
 	else
 	{
-		UpdateLensInput(m_lenses[0], reslicer, cTF, bgReslice, bgCTF);
+		UpdateLensInput(m_lenses[0], reslicer, cTF, bgReslice, bgCTF, name);
 	}
 	m_isInitialized = true;
 	UpdateOffset();

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,16 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iASamplingResults.h"
 
 #include "iAAttributes.h"
 #include "iAAttributeDescriptor.h"
-#include "iAFileUtils.h"
 #include "iAGEMSeConstants.h"
 #include "iASingleResult.h"
 
 #include "iAConsole.h"
+#include "io/iAFileUtils.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -56,6 +55,19 @@ iASamplingResults::iASamplingResults(
 // TODO: replace with QSettings?
 namespace
 {
+
+	struct Output
+	{
+		static const QString NameSeparator;
+		static const QString ValueSeparator;
+		static const QString OptionalParamSeparator;
+	};
+
+
+	const QString Output::NameSeparator(": ");
+	const QString Output::ValueSeparator(",");
+	const QString Output::OptionalParamSeparator(" ");
+
 	bool GetNameValue(QString const & name, QString & value, QTextStream & in)
 	{
 		QString currentLine = in.readLine();
@@ -172,7 +184,7 @@ bool iASamplingResults::StoreAttributes(int type, QString const & fileName, bool
 	{
 		if (id)
 		{
-			outParamSet << m_results[i]->GetID() << ValueSplitString;
+			outParamSet << m_results[i]->GetID() << iASingleResult::ValueSplitString;
 		}
 		outParamSet << m_results[i]->ToString(m_attributes, type) << endl;
 	}

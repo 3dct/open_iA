@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -38,7 +38,7 @@ class QString;
 class iA4DCTAllVisualizationsDockWidget;
 class iA4DCTBoundingBoxDockWidget;
 class iA4DCTDefectVisDockWidget;
-class iA4DCTFileData;
+struct iA4DCTFileData;
 class iA4DCTFractureVisDockWidget;
 class iA4DCTMainWin;
 class iA4DCTPlaneDockWidget;
@@ -49,6 +49,7 @@ class iADefectVisModule;
 class iAVisModule;
 class vtkOrientationMarkerWidget;
 class vtkRenderer;
+class vtkRendererCollection;
 
 const float SCENE_SCALE = 0.01;
 
@@ -74,6 +75,7 @@ private:
 	void				setToolsDockWidgetsEnabled( bool enabled );
 
 	vtkSmartPointer<vtkRenderer>			m_mainRen;	// ToDo: renderer into iAFast3DMagicLensWidget?
+	vtkSmartPointer<vtkRendererCollection>	m_renList;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow>	m_renderWindow;
 	vtkSmartPointer<vtkOrientationMarkerWidget>		m_orientWidget;
 	vtkRenderer *							m_magicLensRen;
@@ -104,6 +106,7 @@ private slots:
 	void				onLastButtonClicked( );
 	void				onPlayButtonClicked( bool checked );
 	void				onIntervalValueChanged( int val );
+	void				enableSideBySideView( bool enabled );
 
 	// camera
 	void				resetCamera( );

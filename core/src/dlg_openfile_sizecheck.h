@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -39,11 +39,9 @@ public:
 	* \param	extentIndex2	Index of the line edit with  Y extent.
 	* \param	extentIndex3	Index of the line edit with  Z extent.
 	* \param	datatypeIndex	Index of the check box with  datatype stored in file.
-	* \param	modal			true to modal.
 	*/
 	dlg_openfile_sizecheck (bool isVolumeStack, QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *text, QString fileName,
-		int extentIndex1 = 0, int extentIndex2 = 1, int extentIndex3 = 2, int datatypeIndex = 10,
-		bool modal = true);
+		int extentIndex1 = 0, int extentIndex2 = 1, int extentIndex3 = 2, int datatypeIndex = 10);
 private:
 	qint64 fileSize;
 	QLabel *actualSizeLabel;

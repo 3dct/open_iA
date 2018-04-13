@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAModuleInterface.h"
 
 #include "iAModuleDispatcher.h"
@@ -30,11 +28,10 @@
 #include <itkMacro.h>  // for itk::ExceptionObject
 
 #include <QMessageBox>
-#include <QMdiSubWindow>
 
 void iAModuleInterface::PrepareResultChild( QString const & wndTitle )
 {
-	m_mdiChild = m_mainWnd->GetResultChild( wndTitle + " " + m_mainWnd->activeMdiChild()->windowTitle());
+	m_mdiChild = m_mainWnd->GetResultChild( wndTitle + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
 	if( !m_mdiChild )
 	{
 		m_mainWnd->statusBar()->showMessage( "Cannot get result child from main window!", 5000 );
@@ -64,7 +61,11 @@ void iAModuleInterface::SetDispatcher( iAModuleDispatcher * dispatcher )
 	m_dispatcher = dispatcher;
 }
 
-iAModuleInterface::iAModuleInterface() {}
+iAModuleInterface::iAModuleInterface():
+	m_dispatcher(nullptr),
+	m_mdiChild(nullptr),
+	m_mainWnd(nullptr)
+{}
 
 void iAModuleInterface::PrepareActiveChild()
 {
@@ -79,7 +80,7 @@ void iAModuleInterface::PrepareActiveChild()
 
 MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
 {
-	QList<QMdiSubWindow *> mdiwindows = m_mainWnd->MdiChildList();
+	QList<MdiChild *> mdiwindows = m_mainWnd->MdiChildList();
 	if( mdiwindows.size() > 2 )
 	{
 		QMessageBox::warning( m_mainWnd, tr( "Warning" ),
@@ -93,27 +94,13 @@ MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
 			tr( "Only one dataset available. Please load another one!" ) );
 		return 0;
 	}
-	MdiChild * activeChild = m_mainWnd->activeMdiChild();
-	MdiChild * result;
-	if( activeChild == qobject_cast<MdiChild *>(mdiwindows.at( 0 )->widget()) )
-		result = qobject_cast<MdiChild *>(mdiwindows.at( 1 )->widget());
-	else
-		result = qobject_cast<MdiChild *>(mdiwindows.at( 0 )->widget());
-	return result;
+	return m_mainWnd->activeMdiChild() == mdiwindows.at(0) ?
+		mdiwindows.at(1) : mdiwindows.at(0);
 }
 
 QMenu * iAModuleInterface::getMenuWithTitle( QMenu * parentMenu, QString const & title, bool isDisablable /*= true*/  )
 {
-	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
-	for( int i = 0; i < submenus.size(); ++i )
-	{
-		if( submenus.at( i )->title() == title )
-			return  submenus.at( i );
-	}
-	QMenu * result = new QMenu(parentMenu);
-	result->setTitle( title );
-	AddActionToMenuAlphabeticallySorted( parentMenu, result->menuAction(), isDisablable );
-	return result;
+	return m_dispatcher->getMenuWithTitle(parentMenu, title, isDisablable);
 }
 
 void iAModuleInterface::SaveSettings() const {}
@@ -180,16 +167,7 @@ bool iAModuleInterface::isAttached()
 
 void iAModuleInterface::AddActionToMenuAlphabeticallySorted( QMenu * menu, QAction * action, bool isDisablable /*= true */ )
 {
-	m_dispatcher->AddModuleAction( action, isDisablable );
-	foreach( QAction * curAct, menu->actions() )
-	{
-		if( curAct->text() > action->text() )
-		{
-			menu->insertAction( curAct, action );
-			return;
-		}
-	}
-	menu->addAction( action );
+	m_dispatcher->AddActionToMenuAlphabeticallySorted(menu, action, isDisablable);
 }
 
 iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )

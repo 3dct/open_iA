@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,10 +25,10 @@
 
 struct iA4DCTFileData
 {
-	iA4DCTFileData(QString path = 0, QString name = 0) :
-		Path(path),
-		Name(name)
-	{ /* not implemented */ }
+	iA4DCTFileData( QString path = 0, QString name = 0 ) :
+		Path( path ),
+		Name( name )
+	{ /* not implemented */	}
 	QString Path;
 	QString Name;
 };

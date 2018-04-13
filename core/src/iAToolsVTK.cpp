@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,10 +22,11 @@
 
 #include "iAConnector.h"
 #include "iAConsole.h"
-#include "iAITKIO.h"
 #include "iAVtkDraw.h"
+#include "io/iAITKIO.h"
 
 #include <vtkBMPWriter.h>
+#include <vtkImageCast.h>
 #include <vtkImageData.h>
 #include <vtkImageWriter.h>
 #include <vtkJPEGWriter.h>
@@ -40,22 +41,19 @@
 vtkStandardNewMacro(iAvtkImageData);
 
 
-void DeepCopy(vtkSmartPointer<vtkImageData> input, vtkSmartPointer<vtkImageData> output)
-{
-	output->DeepCopy(input);
-}
-
-vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3], int numComponents)
+vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents)
 {
 	vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
 	result->SetDimensions(dimensions);
 	result->AllocateScalars(vtkType, numComponents);
-	result->SetSpacing(spacing);
+	double nonConstSpc[3];
+	std::copy(spacing, spacing + 3, nonConstSpc);
+	result->SetSpacing(nonConstSpc);
 	return result;
 }
 
 
-vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int dimensions[3], double spacing[3])
+vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3])
 {
 	return AllocateImage(vtkType, dimensions, spacing, 1);
 }
@@ -81,6 +79,14 @@ vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFl
 	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType, releaseFlag);
 	con.SetImage(img);
 	return con.GetVTKImage();
+}
+
+vtkSmartPointer<vtkImageData> CastVTKImage(vtkSmartPointer<vtkImageData> img, int destType)
+{
+	auto cast = vtkSmartPointer<vtkImageCast>::New();
+	cast->SetInputData(img);
+	cast->SetOutputScalarType(destType);
+	return cast->GetOutput();
 }
 
 void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData)

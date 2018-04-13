@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,11 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_profile.h"
 
-#include "iAProfileWidget.h"
+#include "charts/iAProfileWidget.h"
 
 #include <QGridLayout>
 
@@ -32,7 +30,6 @@ dlg_profile::dlg_profile(QWidget *parent, vtkPolyData* profData, double rayLengt
 	QString yCapt = "Greyvalue";
 	QString xCapt = "Distance";
 	profileWidget = new iAProfileWidget(profileAreaWidget, profData, rayLength, yCapt, xCapt);
-	profileWidget->setMouseTracking(true);
 	layout = new QGridLayout(profileAreaWidget);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setObjectName(QString::fromUtf8("ProfileLayout"));

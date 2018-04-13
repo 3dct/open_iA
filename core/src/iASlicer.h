@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -34,7 +34,7 @@ class QFrame;
 class QGLWidget;
 
 class vtkCamera;
-class vtkColorTransferFunction;
+class vtkScalarsToColors;
 class vtkImageActor;
 class vtkImageData;
 class vtkImageReslice;
@@ -89,10 +89,10 @@ public:
 	//iASlicerData: wrapping methods--------------------------
 	void disableInteractor(); 
 	void enableInteractor(); //also updates widget
-	void initializeData( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool sil = false, bool sp = false);
+	void initializeData( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
 	void reInitialize(	vtkImageData *ds, 
 						vtkTransform *tr, 
-						vtkColorTransferFunction* ctf, 
+						vtkScalarsToColors* ctf,
 						bool sil = false, 
 						bool sp = false );
 
@@ -106,9 +106,8 @@ public:
 	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 
 	void setPositionMarkerCenter(double x, double y);
-	void setROI(int r[6]);
-	void setROIVisible(bool isVisible);
-	void updateROI();
+	void SetROIVisible(bool isVisible);
+	void UpdateROI(int const roi[6]);
 	void update();
 	void saveMovie(QString& fileName, int qual = 2);
 	void saveImageStack();

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,16 +18,19 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_modalityProperties.h"
 
 #include "iAModality.h"
 #include "iAVolumeRenderer.h"
+#include "mainwindow.h"
 
-dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality):
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
+#include <vtkRenderer.h>
+
+dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality, vtkRenderer * mainRenderer):
 	dlg_modalityPropertiesUI(parent),
-	m_modality(modality)
+	m_modality(modality), m_mainRenderer(mainRenderer)
 {
 
 	edName->setText(modality->GetName());
@@ -62,6 +65,16 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	edSpacingY    ->setText(QString::number(spacing[1]));
 	edSpacingZ    ->setText(QString::number(spacing[2]));
 
+
+	cb_LinearInterpolation->setChecked(m_modality->GetRenderer()->getVolumeSettings().LinearInterpolation);
+	cb_Shading->setChecked(m_modality->GetRenderer()->getVolumeSettings().Shading);
+	ed_SampleDistance->setText(QString::number(m_modality->GetRenderer()->getVolumeSettings().SampleDistance));
+	ed_AmbientLighting->setText(QString::number(m_modality->GetRenderer()->getVolumeSettings().AmbientLighting));
+	ed_DiffuseLighting->setText(QString::number(m_modality->GetRenderer()->getVolumeSettings().DiffuseLighting));
+	ed_SpecularLighting->setText(QString::number(m_modality->GetRenderer()->getVolumeSettings().SpecularLighting));
+	ed_SpecularPower->setText(QString::number(m_modality->GetRenderer()->getVolumeSettings().SpecularPower));
+	
+	
 	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));
 	connect(pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
 }
@@ -78,6 +91,7 @@ double getValueAndCheck(QLineEdit * le, QString const & caption, QStringList & n
 
 void dlg_modalityProperties::OKButtonClicked()
 {
+
 	m_modality->SetName(edName->text());
 	m_modality->SetRenderFlag(
 		(cbMagicLens->isChecked() ? iAModality::MagicLens : 0) |
@@ -101,6 +115,15 @@ void dlg_modalityProperties::OKButtonClicked()
 	origin[0]      = getValueAndCheck(edOriginX     , "Origin X"     , notOKValues);
 	origin[1]      = getValueAndCheck(edOriginY     , "Origin Y"     , notOKValues);
 	origin[2]      = getValueAndCheck(edOriginZ     , "Origin Z"     , notOKValues);
+
+	m_DefaultVolumeSettings.LinearInterpolation = cb_LinearInterpolation->isChecked(); 
+	m_DefaultVolumeSettings.Shading = cb_Shading->isChecked();
+	m_DefaultVolumeSettings.SampleDistance = getValueAndCheck(ed_SampleDistance, "Sample Distance", notOKValues);
+	m_DefaultVolumeSettings.AmbientLighting = getValueAndCheck(ed_AmbientLighting, "AmbientLighting", notOKValues);
+	m_DefaultVolumeSettings.DiffuseLighting = getValueAndCheck(ed_DiffuseLighting, "DiffuseLighting", notOKValues);
+	m_DefaultVolumeSettings.SpecularLighting = getValueAndCheck(ed_SpecularLighting, "SpecularLighting", notOKValues);
+	m_DefaultVolumeSettings.SpecularPower = getValueAndCheck(ed_SpecularPower, "SpecularPower", notOKValues);
+
 	if (notOKValues.size() > 0) {
 		lbError->setText(QString("One or mor values are not valid: %1").arg(notOKValues.join(",")));
 		return;
@@ -109,5 +132,9 @@ void dlg_modalityProperties::OKButtonClicked()
 	m_modality->SetSpacing(spacing);
 	m_modality->GetRenderer()->SetOrientation(orientation);
 	m_modality->GetRenderer()->SetPosition(position);
+
+	m_modality->GetRenderer()->ApplySettings(m_DefaultVolumeSettings);
+	m_mainRenderer->Render(); 
+
 	done(QDialog::Accepted);
 }

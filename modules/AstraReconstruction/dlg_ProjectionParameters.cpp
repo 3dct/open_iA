@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,19 +20,11 @@
 * ************************************************************************************/
 #include "dlg_ProjectionParameters.h"
 
-
 dlg_ProjectionParameters::dlg_ProjectionParameters()
 {
 	setupUi(this);
 	connect(AlgorithmType, SIGNAL(currentIndexChanged(int)), this, SLOT(algorithmChanged(int)));
 	connect(CorrectionCenterOfRotation, SIGNAL(stateChanged(int)), this, SLOT(centerOfRotationEnabled(int)));
-}
-
-
-void dlg_ProjectionParameters::algorithmChanged(int idx)
-{
-	AlgorithmIterations->setVisible(idx > 1); // depends on the order of algorithms!
-	AlgorithmIterationsLabel->setVisible(idx > 1);
 }
 
 
@@ -129,7 +121,30 @@ int dlg_ProjectionParameters::exec()
 }
 
 
+void dlg_ProjectionParameters::checkCenterOfRotationCorrection(int algoIdx, bool centerOfRotCorr)
+{
+	/*
+	bool invalidState = algoIdx < 2 && centerOfRotCorr;
+	if (invalidState)
+	{
+		CorrectionHint->setText("Center of Rotation correction only works with SIRT and CGLS reconstruction algorithms!");
+	}
+	CorrectionHint->setVisible(invalidState);
+	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!invalidState);
+	*/
+}
+
+
+void dlg_ProjectionParameters::algorithmChanged(int idx)
+{
+	AlgorithmIterations->setVisible(idx > 1); // depends on the order of algorithms!
+	AlgorithmIterationsLabel->setVisible(idx > 1);
+	checkCenterOfRotationCorrection(idx, CorrectionCenterOfRotation->isChecked());
+}
+
+
 void dlg_ProjectionParameters::centerOfRotationEnabled(int state)
 {
 	CorrectionCenterOfRotationOffset->setEnabled(state == Qt::Checked);
+	checkCenterOfRotationCorrection(AlgorithmType->currentIndex(), state == Qt::Checked);
 }

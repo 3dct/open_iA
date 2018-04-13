@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,19 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iARenderObserver.h"
-
-#include "iAConsole.h"
 
 #include <vtkImageData.h>
 #include <vtkActorCollection.h>
 #include <vtkCamera.h>
 #include <vtkMath.h>
+#include <vtkPlane.h>
 #include <vtkPointData.h>
 #include <vtkSmartPointer.h>
-#include <vtkVersion.h>
 
 #include <QTextStream>
 
@@ -436,11 +432,14 @@ void iARenderObserver::CheckPos(int dim)
 	m_pImageData->GetDimensions(dims);
 
 	if (dim == 0){
-		if ( pos[0] < 0 ) pos[0] = dims[0]-1;	if ( pos[0] > dims[0]-1 ) pos[0] = 0;
+		if ( pos[0] < 0 ) pos[0] = dims[0]-1;
+		if ( pos[0] > dims[0]-1 ) pos[0] = 0;
 	} else if (dim == 1) {
-		if ( pos[1] < 0 ) pos[1] = dims[1]-1; if ( pos[1] > dims[1]-1 ) pos[1] = 0;
+		if ( pos[1] < 0 ) pos[1] = dims[1]-1;
+		if ( pos[1] > dims[1]-1 ) pos[1] = 0;
 	} else {
-		if ( pos[2] < 0 ) pos[2] = dims[2]-1; if ( pos[2] > dims[2]-1 ) pos[2] = 0;
+		if ( pos[2] < 0 ) pos[2] = dims[2]-1;
+		if ( pos[2] > dims[2]-1 ) pos[2] = 0;
 	}
 }
 

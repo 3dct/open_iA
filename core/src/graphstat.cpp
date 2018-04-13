@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -76,7 +76,7 @@ void GraphStat::update()
 		int rank = vertIt->second.rank;
 		if(rank > m_maxRank) m_maxRank = rank;
 	}
-	m_numVertices = vector<int>(m_maxRank+1, 0);
+	m_numVertices = std::vector<int>(m_maxRank+1, 0);
 	for (VerticesIterator vertIt = vertices->begin(); vertIt != vertices->end(); vertIt++) {
 		Graph::idType id = vertIt->first;
 		int rank = vertIt->second.rank;

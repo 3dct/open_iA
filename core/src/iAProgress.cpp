@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,56 +18,73 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAProgress.h"
+
+#include <vtkAlgorithm.h>
+#include <vtkCommand.h>
 
 #include <itkProcessObject.h>
 
+class iAvtkCommand : public vtkCommand
+{
+public:
+	static iAvtkCommand * New()
+	{
+		return new iAvtkCommand();
+	}
+	void SetProgress(iAProgress* progress)
+	{
+		m_progress = progress;
+	}
+	void Execute(vtkObject* caller, unsigned long, void*)
+	{
+		m_progress->EmitProgress((dynamic_cast<vtkAlgorithm*>(caller))->GetProgress() * 100);
+	}
+private:
+	iAProgress* m_progress;
+};
+
 iAProgress::iAProgress( )
-{
-	m_RedrawCommand = RedrawCommandType::New();
-	m_RedrawCommand->SetCallbackFunction( this, &iAProgress::ProcessEvent );
-	m_RedrawCommand->SetCallbackFunction( this, &iAProgress::ConstProcessEvent );
-	m_ObserverTag = 0;
-}
-
-
-iAProgress::RedrawCommandType * iAProgress::GetRedrawCommand( void ) const
-{
-	return m_RedrawCommand.GetPointer();
-}
-
+{}
 
 void iAProgress::ProcessEvent( itk::Object * caller, const itk::EventObject & event )
 {
-	if( typeid( itk::ProgressEvent )   ==  typeid( event ) )
-	{
-		::itk::ProcessObject::Pointer  process = dynamic_cast< itk::ProcessObject *>( caller );
-		const int value = static_cast<int>( process->GetProgress() * 100 );
-		emit pprogress( value );
-	}
+	if (typeid(event) != typeid(itk::ProgressEvent))
+		return;
+	auto process = dynamic_cast<itk::ProcessObject *>(caller);
+	EmitProgress(static_cast<int>(process->GetProgress() * 100));
 }
 
-
-void iAProgress::ConstProcessEvent( const itk::Object * caller, const itk::EventObject & event )
+void iAProgress::ConstProcessEvent(const itk::Object * caller, const itk::EventObject & event)
 {
-	if( typeid( itk::ProgressEvent )   ==  typeid( event ) ) 
-	{
-		itk::ProcessObject::ConstPointer  process = dynamic_cast< const itk::ProcessObject *>( caller );
-		const int value = static_cast<int>( process->GetProgress() * 100 );
-		emit pprogress( value );
-	}
+	if (typeid(event) != typeid(itk::ProgressEvent))
+		return;
+	auto process = dynamic_cast<const itk::ProcessObject *>(caller);
+	EmitProgress(static_cast<int>(process->GetProgress() * 100));
 }
-
 
 void iAProgress::Observe( itk::Object *caller )
 {
-	m_ObserverTag = caller->AddObserver(  itk::ProgressEvent(), m_RedrawCommand.GetPointer() );
-	m_Caller = caller;
+	if (!m_itkCommand)
+	{
+		m_itkCommand = CommandType::New();
+		m_itkCommand->SetCallbackFunction(this, &iAProgress::ProcessEvent);
+		m_itkCommand->SetCallbackFunction(this, &iAProgress::ConstProcessEvent);
+	}
+	caller->AddObserver(  itk::ProgressEvent(), m_itkCommand.GetPointer() );
 }
 
-
-iAProgress::~iAProgress()
+void iAProgress::Observe(vtkAlgorithm* caller)
 {
+	if (!m_vtkCommand)
+	{
+		m_vtkCommand = vtkSmartPointer<iAvtkCommand>::New();
+		m_vtkCommand->SetProgress(this);
+	}
+	caller->AddObserver(vtkCommand::ProgressEvent, m_vtkCommand);
+}
+
+void iAProgress::EmitProgress(int i)
+{
+	emit progress(i);
 }

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -38,20 +38,16 @@
 #include <vtkMutableDirectedGraph.h>
 #include <vtkContextScene.h>
 // std
-#include <vector>
 #include <map>
-
-using namespace std;
 
 class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
 {
 	Q_OBJECT
 
 public:
-			dlg_trackingGraph(QWidget* parent);
-			~dlg_trackingGraph();
+	dlg_trackingGraph(QWidget* parent);
 
-	void	updateGraph(vtkMutableDirectedGraph* g, int nunRanks, map<vtkIdType, int> nodesToLayers, map<int, map<vtkIdType, int>> graphToTableId);
+	void updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
 
 private: 
 	QVTKWidget*		graphWidget;
@@ -66,6 +62,6 @@ private:
 	vtkSmartPointer<vtkContextInteractorStyle>	m_interactorStyle;
 	vtkSmartPointer<vtkRenderWindowInteractor>	m_interactor;
 
-	map<vtkIdType, int>					m_nodesToLayers;
-	map<int, map<vtkIdType, int>>		m_graphToTableId;
+	std::map<vtkIdType, int>					m_nodesToLayers;
+	std::map<int, std::map<vtkIdType, int>>		m_graphToTableId;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,15 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iA4DCTPlaneDockWidget.h"
-// iA
+
 #include "iAPlaneVisModule.h"
 #include "iA4DCTVisWin.h"
 #include "dlg_highlightDefects.h"
 #include "dlg_2dDensityMap.h"
-// Qt
+
 #include <QString>
 
 iA4DCTPlaneDockWidget::iA4DCTPlaneDockWidget( iA4DCTVisWin * parent )
@@ -52,20 +50,32 @@ iA4DCTPlaneDockWidget::iA4DCTPlaneDockWidget( iA4DCTVisWin * parent )
 void iA4DCTPlaneDockWidget::attachTo( iAPlaneVisModule * module )
 {
 	m_visModule = module;
-	sSlice->setValue( m_visModule->settings.Slice * sSlice->maximum( ) );
 	sOpacity->setValue( m_visModule->settings.Opacity * sOpacity->maximum( ) );
 	cbShading->setChecked( m_visModule->settings.Shading );
+	int size[3]; m_visModule->getImageSize( size );
 	switch( m_visModule->settings.Dir )
 	{
 	case iAPlaneVisSettings::Direction::XY:
-		rbXY->setChecked( true );
+	{
+		sSlice->setMaximum( size[0] );
+		sSlice->setValue( m_visModule->settings.Slice[0] );
+		setXYDir( );
 		break;
+	}
 	case iAPlaneVisSettings::Direction::XZ:
-		rbXZ->setChecked( true );
+	{
+		sSlice->setMaximum( size[1] );
+		sSlice->setValue( m_visModule->settings.Slice[1] );
+		setXZDir( );
 		break;
+	}
 	case iAPlaneVisSettings::Direction::YZ:
-		rbYZ->setChecked( true );
+	{
+		sSlice->setMaximum( size[2] );
+		sSlice->setValue( m_visModule->settings.Slice[2] );
+		setYZDir( );
 		break;
+	}
 	}
 }
 
@@ -101,7 +111,7 @@ void iA4DCTPlaneDockWidget::setXYDir( )
 		return;
 	m_visModule->setDirXY( );
 	int size[3]; m_visModule->getImageSize( size );
-	sSlice->setMaximum( size[2] );
+	rescaleSliceSlider( size[2], m_visModule->settings.Slice[0] );
 	emit updateRenderWindow( );
 }
 
@@ -111,7 +121,7 @@ void iA4DCTPlaneDockWidget::setXZDir( )
 		return;
 	m_visModule->setDirXZ( );
 	int size[3]; m_visModule->getImageSize( size );
-	sSlice->setMaximum( size[1] );
+	rescaleSliceSlider( size[1], m_visModule->settings.Slice[1] );
 	emit updateRenderWindow( );
 }
 
@@ -121,7 +131,7 @@ void iA4DCTPlaneDockWidget::setYZDir( )
 		return;
 	m_visModule->setDirYZ( );
 	int size[3]; m_visModule->getImageSize( size );
-	sSlice->setMaximum( size[0] );
+	rescaleSliceSlider( size[0], m_visModule->settings.Slice[2] );
 	emit updateRenderWindow( );
 }
 
@@ -194,4 +204,15 @@ void iA4DCTPlaneDockWidget::enableHighlighting( int state )
 	else
 		m_visModule->enableHighlighting( false );
 	emit updateRenderWindow( );
+}
+
+void iA4DCTPlaneDockWidget::rescaleSliceSlider( int max, int val )
+{
+	if( max > val )	{
+		sSlice->setMaximum( max );
+		sSlice->setValue( val );
+	} else {
+		sSlice->setValue( val );
+		sSlice->setMaximum( max );
+	}
 }

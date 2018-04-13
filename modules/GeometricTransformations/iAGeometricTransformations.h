@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,87 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
 
-enum iAGeometricTransformationType
-{
-	EXTRACT_IMAGE,
-	RESAMPLER,
-};
+IAFILTER_DEFAULT_CLASS(iAResampleFilter);
+IAFILTER_DEFAULT_CLASS(iAExtractImageFilter);
+IAFILTER_DEFAULT_CLASS(iAPadImageFilter);
 
-/**
- * Geometric transformation filters
- * For Resample ImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html.
- * For Extract ImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html#_details.
- */
-class iAGeometricTransformations : public iAAlgorithm
+class iAResampleFilterRunner : public iAFilterRunnerGUI
 {
 public:
-	static const QString InterpLinear;
-	static const QString InterpNearestNeighbour;
-	static const QString InterpBSpline;
-	static const QString InterpWindowedSinc;
+	static QSharedPointer<iAFilterRunnerGUI> Create();
+	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
+};
 
-	iAGeometricTransformations( QString fn, iAGeometricTransformationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	/**
-	 * Sets a r parameters. 
-	 * \param	oX	Origin x coordinate. 
-	 * \param	oY	Origin y coordinate. 
-	 * \param	oZ	Origin z coordinate. 
-	 * \param	spX	Spacing x coordinate. 
-	 * \param	spY	Spacing y coordinate. 
-	 * \param	spZ	Spacing z coordinate. 
-	 * \param	sX	Size x coordinate. 
-	 * \param	sY	Size y coordinate. 
-	 * \param	sZ	Size z coordinate. 
-	 */
-
-	void setRParameters(double oX, double oY, double oZ, 
-		double spX, double spY, double spZ, 
-		double sX, double sY, double sZ,
-		QString const & interp)
-	{
-		originX = oX;
-		originY = oY;
-		originZ = oZ;
-		spacingX = spX;
-		spacingY = spY;
-		spacingZ = spZ;
-		sizeX = sX;
-		sizeY = sY;
-		sizeZ = sZ;
-		interpolator = interp;
-	}
-
-	/**
-	 * Sets an e parameters. 
-	 * \param	oX	Origin x coordinate. 
-	 * \param	oY	Origin y coordinate. 
-	 * \param	oZ	Origin z coordinate. 
-	 * \param	sX	Size x coordinate. 
-	 * \param	sY	Size y coordinate. 
-	 * \param	sZ	Size z coordinate. 
-	 * \param	d	Dimensions. 
-	 */
-
-	void setEParameters(double oX, double oY, double oZ, 
-		double sX, double sY, double sZ, unsigned int d = 3)
-	{
-		originX = oX;
-		originY = oY;
-		originZ = oZ;
-		sizeX = sX;
-		sizeY = sY;
-		sizeZ = sZ;
-		dim = d; 
-	}
-
-protected:
-	virtual void performWork();
-private:
-	double originX, originY, originZ, spacingX, spacingY, spacingZ, sizeX, sizeY, sizeZ;
-	QString interpolator;
-	unsigned int dim;
-	iAGeometricTransformationType m_operation;
+class iAExtractImageFilterRunner : public iAFilterRunnerGUI
+{
+public:
+	static QSharedPointer<iAFilterRunnerGUI> Create();
+	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
 };

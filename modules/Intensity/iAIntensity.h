@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,67 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-enum iAIntensityFilterType
-{
-	DIFFERENCE_IMAGE,
-	INVERT_INTENSITY,
-	MASK_IMAGE,
-	INTENSITY_WINDOWING,
-	NORMALIZE_IMAGE,
-	HISTOGRAM_MATCH,
-	RESCALE_IMAGE,
-};
-
-/**
- * Implementation of DifferenceImageFilter and InvertIntensityImageFilter.
- * For DifferenceImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1DifferenceImageFilter.html
- * For InvertIntensityImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1InvertIntensityImageFilter.html
- * For Rescale Image filter refer to http://itk.org/ITKExamples/src/Filtering/ImageIntensity/RescaleAnImage/Documentation.html
- */
-class iAIntensity : public iAAlgorithm
-{
-public:
-	iAIntensity( QString fn, iAIntensityFilterType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	void setDIFParameters(double dt, double tr, vtkImageData* i2) 
-	{ 
-		DifferenceThreshold = dt; 
-		ToleranceRadius = tr;
-		image2 = i2;
-	}
-
-	void setWIIFParameters( double wmin, double wmax, double omin, double omax )
-	{
-		windowMinimum = wmin;
-		windowMaximum = wmax;
-		outputMinimum = omin;
-		outputMaximum = omax;
-	}
-
-	void setHMFParameters( int hl, int mp, bool tami, vtkImageData* i2 )
-	{
-		histogramLevels = hl;
-		matchPoints = mp;
-		thresholdAtMeanIntensity = tami;
-		image2 = i2;
-	}
-
-	void setRescaleParameters(double outMin, double outMax)
-	{
-		outputMin = outMin;
-		outputMax = outMax;
-	}
-
-protected:
-	virtual void performWork();
-
-private:
-	double DifferenceThreshold, ToleranceRadius, windowMinimum, windowMaximum, outputMinimum, outputMaximum;
-	int histogramLevels, matchPoints;	// Histogram Match Filter
-	bool thresholdAtMeanIntensity;		// Histogram Match Filter
-	vtkImageData* image2;
-	iAIntensityFilterType m_type;
-	double outputMin, outputMax;		// rescale intensity filter
-};
+// Filters requiring 1 input image:
+IAFILTER_DEFAULT_CLASS(iAAdaptiveHistogramEqualization);
+IAFILTER_DEFAULT_CLASS(iAGeneralThreshold);
+IAFILTER_DEFAULT_CLASS(iAIntensityWindowingFilter);
+IAFILTER_DEFAULT_CLASS(iAInvertIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iAMaskIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iANormalizeIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iARescaleIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iAShiftScaleIntensityFilter);
+// Filters requiring 2 input images:
+IAFILTER_DEFAULT_CLASS(iAAddFilter);
+IAFILTER_DEFAULT_CLASS(iADifferenceFilter);
+IAFILTER_DEFAULT_CLASS(iASubtractFilter);
+IAFILTER_DEFAULT_CLASS(iAHistogramMatchingFilter);

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,6 +24,10 @@
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
+
+iATransferFunction::~iATransferFunction()
+{}
+
 iASimpleTransferFunction::iASimpleTransferFunction(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf) :
 	m_ctf(ctf),
 	m_otf(otf)
@@ -39,24 +43,24 @@ vtkPiecewiseFunction * iASimpleTransferFunction::GetOpacityFunction()
 	return m_otf;
 }
 
-vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(vtkSmartPointer<vtkImageData> imageData)
+vtkSmartPointer<vtkColorTransferFunction> GetDefaultColorTransferFunction(double const range[2])
 {
 	auto cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 	cTF->RemoveAllPoints();
-	cTF->AddRGBPoint(imageData->GetScalarRange()[0], 0.0, 0.0, 0.0);
-	cTF->AddRGBPoint(imageData->GetScalarRange()[1], 1.0, 1.0, 1.0);
+	cTF->AddRGBPoint(range[0], 0.0, 0.0, 0.0);
+	cTF->AddRGBPoint(range[1], 1.0, 1.0, 1.0);
 	cTF->Build();
 	return cTF;
 }
 
-vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(vtkSmartPointer<vtkImageData> imageData)
+vtkSmartPointer<vtkPiecewiseFunction> GetDefaultPiecewiseFunction(double const range[2], bool opaqueRamp)
 {
 	auto pWF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	pWF->RemoveAllPoints();
-	if ( imageData->GetNumberOfScalarComponents() == 1 )
-		pWF->AddPoint ( imageData->GetScalarRange()[0], 0.0 );
-	else //Set range of rgb, rgba or vector pixel type images to fully opaque
-		pWF->AddPoint( imageData->GetScalarRange()[0], 1.0 );
-	pWF->AddPoint(imageData->GetScalarRange()[1], 1.0);
+	if (opaqueRamp)
+		pWF->AddPoint ( range[0], 0.0 );
+	else
+		pWF->AddPoint( range[0], 1.0 );
+	pWF->AddPoint(range[1], 1.0);
 	return pWF;
 }

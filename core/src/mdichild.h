@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -51,7 +51,6 @@ class vtkAbstractTransform;
 class vtkActor;
 class vtkColorTransferFunction;
 class vtkCornerAnnotation;
-class vtkImageAccumulate;
 class vtkImageCast;
 class vtkImageData;
 class vtkPiecewiseFunction;
@@ -69,12 +68,14 @@ class dlg_profile;
 class dlg_volumePlayer;
 class iAAlgorithm;
 class iAChannelVisualizationData;
-class iAHistogramWidget;
+class iADiagramFctWidget;
+class iADockWidgetWrapper;
 class iAIO;
 class iALogger;
 class iAModality;
 class iAModalityList;
 class iAParametricSpline;
+class iAPlot;
 struct iAProfileProbe;
 class iARenderer;
 class iASlicer;
@@ -92,14 +93,12 @@ class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild
 {
 	Q_OBJECT
 public:
-	dlg_renderer * r;
+	dlg_renderer * renderer;
 	dlg_sliceXY * sXY;
 	dlg_sliceXZ * sXZ;
 	dlg_sliceYZ * sYZ;
 	dlg_logs * logs;
 	QProgressBar * pbar;
-
-	enum ConnectionState {cs_NONE, cs_ROI};
 
 	/** waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit */
 	void waitForPreviousIO();
@@ -107,15 +106,14 @@ public:
 	MdiChild(MainWindow * mainWnd, iAPreferences const & preferences, bool unsavedChanges);
 	~MdiChild();
 
-	void newFile();
 	void showPoly();
 	bool loadFile(const QString &f, bool isStack);
 	bool loadRaw(const QString &f);
-	bool displayResult(QString const & title, vtkImageData* image = NULL, vtkPolyData* poly = NULL);
+	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr);
+	void PrepareForResult();
 	bool save();
 	bool saveAs();
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
-	void setUpdateSliceIndicator(bool updateSI) {updateSliceIndicator = updateSI;}
 	void updateLayout();
 
 	bool multiview() { changeVisibility(MULTI); return true; };
@@ -131,7 +129,6 @@ public:
 	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
 	bool loadTransferFunction();
 	bool saveTransferFunction();
-	void saveRenderWindow(vtkRenderWindow *renderWindow);
 
 	/**
 	* Provides the possibility to save a slice movie of the given slice view.
@@ -164,12 +161,10 @@ public:
 	iAVolumeSettings const & GetVolumeSettings() const;
 	iASlicerSettings const & GetSlicerSettings() const;
 	iAPreferences    const & GetPreferences()    const;
-	iARenderer* getRaycaster() { return Raycaster; }
 	iAVolumeStack * getVolumeStack();
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread);
 	void connectIOThreadSignals(iAIO* thread);
-	bool isHessianComputed() { return hessianComputed; }
-	void setHessianComputed( bool isComputed ) { hessianComputed = isComputed; }
+	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
 	vtkPiecewiseFunction * getPiecewiseFunction();
 	vtkColorTransferFunction * getColorTransferFunction();
 	void setReInitializeRenderWindows( bool reInit ) { reInitializeRenderWindows = reInit; }
@@ -192,6 +187,7 @@ public:
 	dlg_sliceXY * getSlicerDlgXY();
 	dlg_sliceXZ	* getSlicerDlgXZ();
 	dlg_sliceYZ	* getSlicerDlgYZ();
+	dlg_renderer * getRendererDlg();
 	dlg_imageproperty * getImagePropertyDlg();
 	vtkTransform* getSlicerTransform();
 	bool getResultInNewWindow() const { return preferences.ResultInNewWindow; }
@@ -200,25 +196,22 @@ public:
 	std::vector<dlg_function*> &getFunctions();
 	void redrawHistogram();
 	dlg_profile *getProfile() { return imgProfile; }
-	iAHistogramWidget * getHistogram();
-	vtkImageAccumulate * getImageAccumulate();
+	iADiagramFctWidget* getHistogram();
+	iADockWidgetWrapper* getHistogramDockWidget();
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);
 	bool isUpdateAutomatically();
 	void setHistogramFocus();
 	bool isMaximized();
-	void setROI(int indexX, int indexY, int indexZ, int sizeX, int sizeY, int sizeZ);
-	void hideROI();
-	void showROI();
-	void setCurrentFile(const QString &f);
 
+	void UpdateROI(int const roi[6]);
+	void SetROIVisible(bool visible);
+
+	void setCurrentFile(const QString &f);
 	QString userFriendlyCurrentFile();
 	QString currentFile() const { return curFile; }
 	QFileInfo getFileInfo() const { return fileInfo; }
-
-	void activate(ConnectionState state) { connectionState = state; }
-	void deactivate() { connectionState = cs_NONE; }
 
 	int getSliceXY();
 	int getSliceYZ();
@@ -266,9 +259,7 @@ public:
 	//! apply current rendering settings of this mdi child to the given iARenderer
 	void ApplyRenderSettings(iARenderer* raycaster);
 	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
-	void ApplyVolumeSettings();
-	bool HasUnsavedChanges() const;
-	void SetUnsavedChanges(bool b);
+	void ApplyVolumeSettings(const bool loadSavedVolumeSettings);
 	QString GetLayoutName() const;
 	void LoadLayout(QString const & layout);
 
@@ -283,6 +274,9 @@ public:
 	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
 	void SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
 
+	//! checks whether the main image data in this child is fully loaded
+	bool IsFullyLoaded() const;
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -290,7 +284,6 @@ Q_SIGNALS:
 	void endPointSelected();
 	void active();
 	void autoUpdateChanged(bool toogled);
-	void currentChanged(int index);
 	void magicLensToggled( bool isToggled );
 	void closed();
 	void updatedViews();
@@ -336,15 +329,13 @@ private slots:
 	void setRotationXZ(double a);
 	void updateRenderWindows(int channels);
 	void updateRenderers(int x, int y, int z, int mode);
-	void paintEvent(QPaintEvent * );
-	void updated(QString text);
-	void updated(int state);
-	void updated(int state, QString text);
 	void toggleArbitraryProfile(bool isChecked);
 	void ioFinished();
 	void updateImageProperties();
 	void clearLogs();
 	void ModalityTFChanged();
+	void HistogramDataAvailable(int modalityIdx);
+	void StatisticsAvailable(int modalityIdx);
 
 public slots:
 	void updateProgressBar(int i);
@@ -383,11 +374,11 @@ public slots:
 	void resetLayout();
 private:
 	void closeEvent(QCloseEvent *event);
-	bool addImageProperty( );
+	void addImageProperty( );
 	bool addVolumePlayer(iAVolumeStack *volumeStack);
-	bool addProfile( );
-	int profileWidgetIndex;
-
+	void addProfile();
+	void UpdateProfile();
+	bool saveAs(int modalityNr);
 	bool initView(QString const & title);
 	int EvaluatePosition(int pos, int i, bool invert = false);
 
@@ -399,8 +390,7 @@ private:
 	void hideVolumeWidgets();
 	void setVisibility(QList<QWidget*> widgets, bool show);
 	void cleanWorkingAlgorithms();
-	virtual void resizeEvent ( QResizeEvent * event );
-
+	int profileWidgetIndex;
 	QByteArray m_beforeMaximizeState;
 	bool m_isSmthMaximized;
 	QDockWidget * m_whatMaximized;
@@ -453,9 +443,6 @@ private:
 
 	unsigned char visibility;
 
-	ConnectionState connectionState;
-	int roi[6];
-
 	bool snakeSlicer;           //!< whether snake slicer is enabled
 	bool isSliceProfileEnabled; //!< slice profile, shown in slices
 	bool isArbProfileEnabled;   //!< arbitrary profile, shown in profile widget
@@ -476,7 +463,10 @@ private:
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;
 
-	QDockWidget* histogramContainer;
+	iADiagramFctWidget* m_histogram;
+	iADockWidgetWrapper* m_histogramContainer;
+	QSharedPointer<iAPlot> m_histogramPlot;
+
 	dlg_imageproperty* imgProperty;
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
@@ -485,7 +475,6 @@ private:
 
 	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> > m_channels;
 
-	bool hessianComputed;	//!< belongs to Hessian module, move there!
 	bool updateSliceIndicator;
 	int numberOfVolumes;
 	int previousIndexOfVolume;
@@ -503,14 +492,15 @@ private:
 	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
 	int m_currentComponent;
-	bool m_initVolumeRenderers; // TODO: VOLUME: try to remove / move out to "VolumeManager"?
-	bool m_unsavedChanges;
+	int m_currentHistogramModality;
+	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		// modality nr being stored
 private slots:
-	void ChangeModality(int chg);
+	void ChangeMagicLensModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
 	void ShowModality(int modIdx);
 	void SaveFinished();
+	void SetHistogramModality(int modalityIdx);
 private:
 	int GetCurrentModality() const;
 	void InitModalities();
@@ -521,6 +511,6 @@ public:
 	QSharedPointer<iAModality> GetModality(int idx);
 	dlg_modalities* GetModalitiesDlg();
 	bool LoadProject(QString const & fileName);
-	void StoreProject(QString const & fileName);
+	void StoreProject();
 	//! @}
 };

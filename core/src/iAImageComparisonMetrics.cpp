@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAImageComparisonMetrics.h"
 
 #include "iATypedCallHelper.h"
@@ -39,10 +38,10 @@ void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAI
 		return;
 	}
 	typename ImgType::RegionType reg = ref->GetLargestPossibleRegion();
-	double size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
+	long long size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
 	double sumEqual = 0.0;
 #pragma omp parallel for reduction(+:sumEqual)
-	for (int i = 0; i < size; ++i)
+	for (long long i = 0; i < size; ++i)
 	{
 		if (img->GetBufferPointer()[i] == ref->GetBufferPointer()[i])
 		{

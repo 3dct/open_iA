@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,32 +22,39 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iALogger.h"
+
 #include <vtkSmartPointer.h>
+#include <itkSmartPointer.h>
 
 #include <QObject>
-
-#include <string>
-#include <sstream>
 #include <QString>
 
 class dlg_console;
 class iARedirectVtkOutput;
+class iARedirectItkOutput;
 
-#define DEBUG_LOG(t) iAConsole::GetInstance().Log(t)
+class open_iA_Core_API iAGlobalLogger
+{
+public:
+	static void SetLogger(iALogger* logger);
+	static iALogger* Get();
+private:
+	static iALogger* m_globalLogger;
+};
+
+#define DEBUG_LOG(t) { if (iAGlobalLogger::Get()) iAGlobalLogger::Get()->Log(t); }
 
 //! Debugging helper class. Instantiates a dlg_console to
 //! log debug messages
 //! TODO: check if we can't reuse logging window here!
-class open_iA_Core_API iAConsole: public QObject
+class open_iA_Core_API iAConsole: public QObject, public iALogger
 {
 	Q_OBJECT
 public:
-	static iAConsole& GetInstance();
+	static iAConsole* GetInstance();
 	static void Close();
-
-	void Log(std::string const & text);
-	void Log(char const * text);
-	void Log(QString const & text);
+	void Log(QString const & text) override;
 	void SetLogToFile(bool value, QString const & fileName, bool verbose=false);
 	bool IsLogToFileOn() const;
 	QString GetLogFileName() const;
@@ -72,4 +79,30 @@ private:
 	bool m_closed;
 	bool m_fileLogError;
 	vtkSmartPointer<iARedirectVtkOutput> m_vtkOutputWindow;
+	itk::SmartPointer<iARedirectItkOutput> m_itkOutputWindow;
+};
+
+
+// Some default loggers:
+
+class open_iA_Core_API iAConsoleLogger : public iALogger
+{
+public:
+	void Log(QString const & msg) override;
+	static iAConsoleLogger * Get();
+private:
+	iAConsoleLogger();
+	iAConsoleLogger(iAConsoleLogger const&);
+	void operator=(iAConsoleLogger const&);
+};
+
+class open_iA_Core_API iAStdOutLogger : public iALogger
+{
+public:
+	void Log(QString const & msg) override;
+	static iAStdOutLogger * Get();
+private:
+	iAStdOutLogger();
+	iAStdOutLogger(iAStdOutLogger const&);
+	void operator=(iAStdOutLogger const&);
 };

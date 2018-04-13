@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,19 +18,17 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAEnergySpectrumDiagramData.h"
 
 #include "iAXRFData.h"
 
 #include <vtkImageData.h>
 
-iAEnergySpectrumDiagramData::iAEnergySpectrumDiagramData(iAXRFData * xrfData):
+iAEnergySpectrumDiagramData::iAEnergySpectrumDiagramData(iAXRFData * xrfData, iAPlotData* other):
 	m_energyFunction(NULL),
-	m_xrfData_ext(xrfData)
-{
-}
+	m_xrfData_ext(xrfData),
+	m_other(other)
+{}
 
 iAEnergySpectrumDiagramData::~iAEnergySpectrumDiagramData()
 {
@@ -62,7 +60,7 @@ void iAEnergySpectrumDiagramData::updateEnergyFunction(int x, int y, int z)
 	}
 }
 
-iAAbstractDiagramData::DataType const * iAEnergySpectrumDiagramData::GetData() const
+iAPlotData::DataType const * iAEnergySpectrumDiagramData::GetRawData() const
 {
 	return m_energyFunction;
 }
@@ -72,3 +70,6 @@ size_t iAEnergySpectrumDiagramData::GetNumBin() const
 	return m_xrfData_ext->size();
 }
 
+double iAEnergySpectrumDiagramData::GetSpacing() const                    { return m_other->GetSpacing(); }
+double const * iAEnergySpectrumDiagramData::XBounds() const               { return m_other->XBounds();    }
+iAPlotData::DataType const * iAEnergySpectrumDiagramData::YBounds() const { return m_other->YBounds();    }

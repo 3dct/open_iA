@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,9 +26,10 @@
 #include <QDialog>
 #include <QString>
 #include <QStringList>
-#include <QList>
+#include <QVector>
 #include <QTextDocument>
 
+class MainWindow;
 class MdiChild;
 class QWidget;
 class QErrorMessage;
@@ -38,47 +39,30 @@ class QScrollArea;
 class open_iA_Core_API dlg_commoninput : public QDialog, public Ui_CommonInput
 {
 	Q_OBJECT
-
 public:
-	//class constructor
-	dlg_commoninput ( QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = new QTextDocument( 0 ), bool modal = true);
-	
-	void setComboValues ( QList<QVariant> inCombo ){inComboValue = inCombo;}; 
-
-	QStringList getWidgetList();
-	
-	QList<double> getValues();	
-	QList<int> getCheckValues();	
-	QStringList getComboBoxValues();
-	QList<int> getComboBoxIndices();
-	QStringList getText();
-	QList<double> getSpinBoxValues();
-	QList<double> getDoubleSpinBoxValues();
-
-	double getParameterValue(QString name);	
-	void updateValues(QList<QVariant>);
-
-	void connectMdiChild(MdiChild *child);
-	
+	dlg_commoninput ( QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = new QTextDocument( 0 ));
+	int getCheckValue(int index) const;
+	QString getComboBoxValue(int index) const;
+	int getComboBoxIndex(int index) const;
+	QString getText(int index) const;
+	int getIntValue(int index) const;
+	double getDblValue(int index) const;
+	void showROI();
+	int exec() override;
+	void setSourceMdi(MdiChild* child, MainWindow* mainWnd);
 private:
-	
-	int numPara;
-	double outValue;
-	QList<double> outValueList;
-	QList<int> outCheckList;
-	QStringList outComboValues, outTextList;
-	QList<int> outComboIndices;
-	QList<QLabel*> listLabel;
-	QErrorMessage *eMessage;
-	QList<QVariant> inComboValue;
-	int NoofComboBox;
-	QString tStr;
-	QScrollArea *scrollArea;
-	QWidget *container; 
-	QGridLayout *containerLayout;
-	int selectedComboBoxPos; 
-	
+	QWidget *container;
+	int m_roi[6];
+	QVector<int> m_filterWithParameters;
+	MdiChild *m_sourceMdiChild;
+	MainWindow* m_mainWnd;
+	bool m_sourceMdiChildClosed;
+	void updateValues(QList<QVariant>);
+	void UpdateROIPart(QString const & partName, QString const & value);
+private slots:
+	void ROIUpdated(QString text);
+	void SourceChildClosed();
+	void SelectFilter();
 protected:
-	QStringList widgetList;
-
+	QVector<QWidget*> widgetList;
 };

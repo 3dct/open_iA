@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,15 +20,17 @@
 * ************************************************************************************/
 #include "iAModalityList.h"
 
-#include "extension2id.h"
 #include "iAConsole.h"
-#include "iAFileUtils.h"
-#include "iAIO.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
 #include "iASettings.h"
 #include "iAStringHelper.h"
+#include "iAVolumeRenderer.h"
+#include "iAVolumeSettings.h"
+#include "io/extension2id.h"
+#include "io/iAFileUtils.h"
+#include "io/iAIO.h"
 
 #include <vtkCamera.h>
 #include <vtkImageData.h>
@@ -42,6 +44,41 @@ namespace
 	QString GetModalityKey(int idx, QString key)
 	{
 		return QString("Modality") + QString::number(idx) + "/" + key;
+	}
+
+	//returns -1 if String is not true or false;
+	int isStringBoolean(const QString &str, bool &booleanStr) {
+		int isBoolean = 0; 
+		QString tmp_str = str.toLower();
+		if (tmp_str.compare("true") == 0) {
+			booleanStr = true; 
+			isBoolean = 1; 
+			 
+		}
+		else if (tmp_str.compare("false") == 0) {
+			booleanStr = false;
+			isBoolean = 1;
+		}
+		else isBoolean =-1;
+
+		return isBoolean; 
+
+		
+	}
+
+	int isStringDouble(const QString &str, double &stringValue) {
+		bool  ok=false; 
+		stringValue = str.toDouble(&ok);
+		
+
+		if (ok) return 1;
+		else return -1; 
+	}
+
+
+	void logParameter(const QString &para_name, const QString &str_in ) {
+		DEBUG_LOG(QString("invalid parameter" +para_name+ "default value is applied").arg(str_in));
+	
 	}
 
 	static const QString FileVersionKey("FileVersion");
@@ -101,7 +138,6 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 		QFileInfo modalityFileInfo(m_modalities[i]->GetFileName());
 		if (!modalityFileInfo.exists() || !modalityFileInfo.isFile())
 		{	// TODO: provide option to store as .mhd?
-			//DEBUG_LOG(QString("Cannot reference %1 in project. Maybe this is an image stack? Please store modality first as file.").arg(fileName));
 			QMessageBox::warning(nullptr, "Save Project",
 				QString("Cannot reference %1 in project. Maybe this is an image stack? Please store modality first as file.").arg(m_modalities[i]->GetFileName()));
 			if (fi.exists())
@@ -120,6 +156,19 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 		settings.setValue(GetModalityKey(i, "RenderFlags"), GetRenderFlagString(m_modalities[i]));
 		settings.setValue(GetModalityKey(i, "Orientation"), m_modalities[i]->GetOrientationString());
 		settings.setValue(GetModalityKey(i, "Position"), m_modalities[i]->GetPositionString());
+		
+		//save renderer volume settings for each modality
+		settings.setValue(GetModalityKey(i, "Shading"), m_modalities[i]->GetRenderer()->getVolumeSettings().Shading);
+		
+		settings.setValue(GetModalityKey(i, "LinearInterpolation"), m_modalities[i]->GetRenderer()->getVolumeSettings().LinearInterpolation);
+		settings.setValue(GetModalityKey(i, "SampleDistance"), m_modalities[i]->GetRenderer()->getVolumeSettings().SampleDistance);
+		settings.setValue(GetModalityKey(i, "AmbientLighting"), m_modalities[i]->GetRenderer()->getVolumeSettings().AmbientLighting);
+		settings.setValue(GetModalityKey(i, "DiffuseLighting"), m_modalities[i]->GetRenderer()->getVolumeSettings().DiffuseLighting);
+		settings.setValue(GetModalityKey(i, "SpecularLighting"), m_modalities[i]->GetRenderer()->getVolumeSettings().SpecularLighting);
+		settings.setValue(GetModalityKey(i, "SpecularPower"), m_modalities[i]->GetRenderer()->getVolumeSettings().SpecularPower);
+
+
+
 		QFileInfo modFileInfo(m_modalities[i]->GetFileName());
 		QString absoluteTFFileName(m_modalities[i]->GetTransferFileName());
 		if (absoluteTFFileName.isEmpty())
@@ -136,7 +185,7 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 		}
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
 		settings.setValue(GetModalityKey(i, "TransferFunction"), tfFileName);
-		Settings s;
+		iASettings s;
 		s.StoreTransferFunction(m_modalities[i]->GetTransfer().data());
 		s.Save(absoluteTFFileName);
 	}
@@ -156,6 +205,7 @@ bool iAModalityList::Load(QString const & filename)
 		return false;
 	}
 	QSettings settings(filename, QSettings::IniFormat);
+	iAVolumeSettings volSettings; 
 
 	if (!settings.contains(FileVersionKey) ||
 		settings.value(FileVersionKey).toString() != ModFileVersion)
@@ -188,6 +238,23 @@ bool iAModalityList::Load(QString const & filename)
 		QString orientationSettings = settings.value(GetModalityKey(currIdx, "Orientation")).toString();
 		QString positionSettings = settings.value(GetModalityKey(currIdx, "Position")).toString();
 		QString tfFileName = settings.value(GetModalityKey(currIdx, "TransferFunction")).toString();
+
+
+		//loading volume settings
+		QString Shading = settings.value(GetModalityKey(currIdx, "Shading")).toString();
+		QString LinearInterpolation = settings.value(GetModalityKey(currIdx, "LinearInterpolation")).toString();
+		QString SampleDistance = settings.value(GetModalityKey(currIdx, "SampleDistance")).toString();
+		QString AmbientLighting = settings.value(GetModalityKey(currIdx, "AmbientLighting")).toString();
+		QString DiffuseLighting = settings.value(GetModalityKey(currIdx, "DiffuseLighting")).toString();
+		QString SpecularLighting = settings.value(GetModalityKey(currIdx, "SpecularLighting")).toString();
+		QString SpecularPower = settings.value(GetModalityKey(currIdx, "SpecularPower")).toString();
+
+
+		//check if vol settings are ok / otherwise use default values 
+		checkandSetVolumeSettings(volSettings, Shading, LinearInterpolation, SampleDistance, AmbientLighting,
+			DiffuseLighting, SpecularLighting, SpecularPower);
+		//Werte laden
+
 		if (!tfFileName.isEmpty())
 		{
 			tfFileName = MakeAbsolute(fi.absolutePath(), tfFileName);
@@ -209,6 +276,11 @@ bool iAModalityList::Load(QString const & filename)
 				return false;
 			}
 			mod[0]->SetStringSettings(positionSettings, orientationSettings, tfFileName);
+			
+			//volume settings added to each modality
+			mod[0]->setVolSettings(volSettings);
+			
+
 			m_modalities.push_back(mod[0]);
 			emit Added(mod[0]);
 		}
@@ -356,4 +428,123 @@ ModalityCollection iAModalityList::Load(QString const & filename, QString const 
 		result.push_back(newModality);
 	}
 	return result;
+}
+
+
+bool iAModalityList::HasUnsavedModality() const
+{
+	for (int i = 0; i < m_modalities.size(); ++i)
+	{
+		if (m_modalities[i]->GetFileName().isEmpty() || !QFileInfo(m_modalities[i]->GetFileName()).exists())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, const QString & Shading, const QString & LinearInterpolation, const QString & SampleDistance, 
+	const QString AmbientLighting, const QString & DiffuseLighting, const QString & SpecularLighting, const QString & SpecularPower)
+{
+	bool volumeSettingsTrue = true; 
+	bool b_Shading = false; 
+	bool b_LinearInterPol = false; 
+	double d_sampleDistance = 0.0;
+	double d_ambientLighting = 0.0;
+	double d_diffuseLighting = 0.0; 
+	double d_SpecularLighting = 0.0; 
+	double d_SpecularPower = 0.0; 
+
+
+	//default values; 
+	const bool b_DefaultLinearInterPol = true; 
+	const bool b_DefaultShading = true; 
+	const double d_DefaultSampleDistance  = 2;
+	const double d_DefaultAmbientLight = 0.2;
+	const double d_DefaultDiffuseLight = 0.5;
+	const double d_DefaultSpecularLighting = 0.7;
+	const double d_DefaultSpecularPower = 10; 
+
+
+	//Shading
+	if(isStringBoolean(Shading, b_Shading)){
+		volSettings.Shading = b_Shading; 
+	}else {
+		logParameter("Shading", Shading); 
+		volSettings.Shading =true; 
+	}
+
+	
+
+	//LinearInterpolation
+	if (isStringBoolean(LinearInterpolation, b_LinearInterPol)){
+		volSettings.LinearInterpolation = b_LinearInterPol; 
+	}
+	else {
+		logParameter("LinearInterpolation", LinearInterpolation);
+		volSettings.LinearInterpolation = b_DefaultLinearInterPol; 
+	}
+
+	
+
+	//SampleDistance
+	if (isStringDouble(SampleDistance, d_sampleDistance)) {
+		volSettings.SampleDistance = d_sampleDistance;
+	
+	}else {
+		logParameter("SampleDistance", SampleDistance);
+		volSettings.SampleDistance = d_DefaultSampleDistance;
+	}
+
+	
+	//AmbientLighting
+	if (isStringDouble(AmbientLighting, d_ambientLighting)) {
+		volSettings.AmbientLighting = d_ambientLighting; 
+	}
+	else {
+		logParameter("AmbientLighting", AmbientLighting);
+		volSettings.AmbientLighting = d_DefaultAmbientLight; 
+	}
+
+
+	
+	//DiffuseLighting
+	if (isStringDouble(DiffuseLighting, d_diffuseLighting)) {
+		volSettings.DiffuseLighting = d_diffuseLighting;
+	}
+	else {
+		logParameter("DiffuseLighting", DiffuseLighting);
+		volSettings.DiffuseLighting = d_DefaultDiffuseLight;
+	}
+
+	
+	//SpecularLighting
+	if (isStringDouble(SpecularLighting, d_SpecularLighting)) {
+		volSettings.SpecularLighting = d_SpecularLighting;
+	}
+	else {
+		logParameter("SpecularLighting", SpecularLighting);
+		volSettings.SpecularLighting = d_DefaultSpecularLighting;
+	}
+
+
+	
+	//SpecularPower
+	if (isStringDouble(SpecularPower, d_SpecularPower)) {
+		volSettings.SpecularLighting = d_SpecularLighting;
+	}
+	else {
+		logParameter("SpecularPower", SpecularPower);
+		volSettings.SpecularLighting = d_DefaultSpecularLighting;
+	}
+
+
+
+
+
+
+
+
+
+
 }

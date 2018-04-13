@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -45,23 +45,11 @@ public:
 	typedef Container::const_iterator	Iterator;
 	Iterator begin() const;
 	Iterator end() const;
-
 	size_t size() const;
-
-	Container * GetDataPtr()
-	{
-		return &m_data;
-	}
-
-	vtkSmartPointer<vtkImageData> const & GetImage(size_t idx) const
-	{
-		return m_data[idx];
-	}
-
+	Container * GetDataPtr();
+	vtkSmartPointer<vtkImageData> const & GetImage(size_t idx) const;
 	void GetExtent(int extent[6]) const;
-
 	QObject* UpdateCombinedVolume(vtkSmartPointer<vtkColorTransferFunction> colorTransferEnergies);
-
 	vtkSmartPointer<vtkImageData> GetCombinedVolume();
 	vtkSmartPointer<vtkDiscretizableColorTransferFunction> GetColorTransferFunction();
 
@@ -77,11 +65,8 @@ public:
 	double GetMinEnergy() const;
 	double GetMaxEnergy() const;
 private:
-
 	Container m_data;
-	
 	vtkSmartPointer<vtkImageData> m_combinedVolume;
 	vtkSmartPointer<vtkDiscretizableColorTransferFunction> m_colorTransfer;
-
 	double m_minEnergy, m_maxEnergy;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAbstractDiagramData.h"
+#include "charts/iAPlotData.h"
 #include "iAEnergySpectrum.h"
 #include "iASpectrumFunction.h"
 
@@ -35,7 +35,7 @@ template <typename ArgType, typename ValType>
 class iAFunctionalBoxplot;
 typedef iAFunctionalBoxplot<size_t, unsigned int> FunctionalBoxPlot;
 
-class iAAccumulatedXRFData: public iAAbstractDiagramRangedData
+class iAAccumulatedXRFData: public iAPlotData
 {
 public:
 	enum AccumulateFct
@@ -47,12 +47,11 @@ public:
 		fctDefault = fctMax,
 	};
 	iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy);
-	virtual double GetSpacing() const;
-	virtual double * GetDataRange();
-	virtual double GetDataRange(int idx) const;
-	virtual DataType const * GetData() const;
-	virtual size_t GetNumBin() const;
-	virtual DataType GetMaxValue() const;
+	double GetSpacing() const override;
+	double const * XBounds() const override;
+	DataType const * YBounds() const override;
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
 	void SetFct(int fctIdx);
 	void RetrieveHistData(long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out);
 	CountType GetSpectraHistogramMax() const;
@@ -72,9 +71,8 @@ private:
 	CountType* m_minimum;
 	CountType* m_average;
 	AccumulateFct m_accumulateFct;
-	double m_totalMaximum;
-	double m_totalMinimum;
-	double dataRange[2];
+	double m_xBounds[2];
+	DataType m_yBounds[2];
 	FunctionalBoxPlot* m_functionalBoxplotData;
 	std::vector<iAFunction<size_t, unsigned int> *> m_spectrumFunctions;
 	QSharedPointer<iASpectraHistograms>	m_spectraHistograms;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,23 +18,24 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
-#include "dlg_blobVisualization.h"
-#include "dlg_commoninput.h"
-#include "dlg_editPCClass.h"
 #include "dlg_FiberScout.h"
-#include "dlg_modalities.h"
-#include "iAmat4.h"
+
+#include "dlg_blobVisualization.h"
+#include "dlg_editPCClass.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iAFiberScoutScatterPlotMatrix.h"
-#include "iAHistogramWidget.h"
 #include "iAMeanObjectTFView.h"
 #include "iAModalityTransfer.h"
-#include "iAMovieHelper.h"
 #include "iAObjectAnalysisType.h"
-#include "iAObserverProgress.h"
+
+#include "charts/iADiagramFctWidget.h"
+#include "dlg_commoninput.h"
+#include "dlg_imageproperty.h"
+#include "dlg_modalities.h"
+#include "iAmat4.h"
+#include "iAMovieHelper.h"
+#include "iAProgress.h"
 #include "iARenderer.h"
 #include "mdichild.h"
 
@@ -179,7 +180,7 @@ dlg_FiberScout::dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkR
 	oTF( parent->getPiecewiseFunction() ),
 	cTF( parent->getColorTransferFunction() ),
 	csvTable( csvtbl ),
-	raycaster( parent->getRaycaster() ),
+	raycaster( parent->getRenderer() ),
 	elementTableModel( 0 ),
 	iovSPM( 0 ),
 	iovPP( 0 ),
@@ -189,8 +190,6 @@ dlg_FiberScout::dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkR
 	sourcePath( parent->currentFile() )
 {
 	setupUi( this );
-	this->width = this->geometry().width();
-	this->height = this->geometry().height();
 	this->elementNr = csvTable->GetNumberOfColumns();
 	this->objectNr = csvTable->GetNumberOfRows();
 	this->activeChild = parent;
@@ -1454,7 +1453,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 			moHistName.append( " Fiber Mean Object" );
 		else
 			moHistName.append( " Void Mean Object" );
-		iAModalityTransfer* moHistogram = new iAModalityTransfer( m_MOData.moImageDataList[currClass - 1], moHistName, this, 100 );
+		iAModalityTransfer* moHistogram = new iAModalityTransfer( m_MOData.moImageDataList[currClass - 1]->GetScalarRange() );
 		m_MOData.moHistogramList.append( moHistogram );
 
 		// Create MObject default Transfer Tunctions
@@ -1654,7 +1653,7 @@ void dlg_FiberScout::modifyMeanObjectTF()
 		m_motfView->setWindowTitle( QString( iovMO->cb_Classes->itemText( iovMO->cb_Classes->currentIndex() ) + " Fiber Mean Object Transfer Function" ));
 	else
 		m_motfView->setWindowTitle( QString( iovMO->cb_Classes->itemText( iovMO->cb_Classes->currentIndex() ) + " Void Mean Object Transfer Function" ) );
-	iAHistogramWidget* histogram = m_MOData.moHistogramList[iovMO->cb_Classes->currentIndex()]->GetHistogram();
+	iADiagramFctWidget* histogram = static_cast<MdiChild*>(activeChild)->getHistogram();
 	connect( histogram, SIGNAL( updateViews() ), this, SLOT( updateMOView() ) );
 	m_motfView->horizontalLayout->addWidget( histogram );
 	histogram->show();
@@ -1690,20 +1689,20 @@ void dlg_FiberScout::saveStl()
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	mdiChild->initProgressBar();
 
-	iAObserverProgress* marCubProgress = iAObserverProgress::New();
-	iAObserverProgress* stlWriProgress = iAObserverProgress::New();
-	connect( marCubProgress, SIGNAL( oprogress( int ) ), this, SLOT( updateMarProgress( int ) ) );
-	connect( stlWriProgress, SIGNAL( oprogress( int ) ), this, SLOT( updateStlProgress( int ) ) );
+	iAProgress marCubProgress;
+	iAProgress stlWriProgress;
+	connect( &marCubProgress, SIGNAL( progress( int ) ), this, SLOT( updateMarProgress( int ) ) );
+	connect( &stlWriProgress, SIGNAL( progress( int ) ), this, SLOT( updateStlProgress( int ) ) );
 	
 	vtkSmartPointer<vtkMarchingCubes> moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
-	moSurface->AddObserver( vtkCommand::ProgressEvent, marCubProgress );
+	marCubProgress.Observe(moSurface);
 	moSurface->SetInputData( m_MOData.moImageDataList[iovMO->cb_Classes->currentIndex()] );
 	moSurface->ComputeNormalsOn();
 	moSurface->ComputeGradientsOn();
 	moSurface->SetValue( 0, iovMO->dsb_IsoValue->value() );
 
 	vtkSmartPointer<vtkSTLWriter> stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	stlWriter->AddObserver( vtkCommand::ProgressEvent, stlWriProgress );
+	stlWriProgress.Observe(stlWriter);
 	stlWriter->SetFileName( iovMO->le_StlPath->text().toStdString().c_str() );
 	stlWriter->SetInputConnection( moSurface->GetOutputPort() );
 	stlWriter->Write();
@@ -2442,11 +2441,11 @@ void dlg_FiberScout::CsvDVSaveButton()
 
 	dlg_commoninput dlg( this, "DistributionViewCSVSaveDialog", inList, inPara, NULL );
 
-	if ( dlg.exec() == QDialog::Accepted && ( dlg.getCheckValues()[0] == 2 || dlg.getCheckValues()[1] == 2 ) )
+	if ( dlg.exec() == QDialog::Accepted && ( dlg.getCheckValue(0) == 2 || dlg.getCheckValue(1) == 2 ) )
 	{
 		QString filename;
 
-		if ( dlg.getCheckValues()[0] == 2 )
+		if ( dlg.getCheckValue(0) == 2 )
 		{
 			filename = QFileDialog::getSaveFileName( this, tr( "Save fiber characteristic distributions" ), sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
 
@@ -2473,15 +2472,15 @@ void dlg_FiberScout::CsvDVSaveButton()
 			double range[2] = { 0.0, 0.0 };
 			vtkDataArray *length = vtkDataArray::SafeDownCast(
 				this->tableList[this->activeClassItem->index().row()]->GetColumn( rowList.at( row ) ) );
-			range[0] = dlg.getValues()[4 * row + 3];
-			range[1] = dlg.getValues()[4 * row + 4];
+			range[0] = dlg.getDblValue(4 * row + 3);
+			range[1] = dlg.getDblValue(4 * row + 4);
 			//length->GetRange(range);
 
 			if ( range[0] == range[1] )
 				range[1] = range[0] + 1.0;
 
-			int numberOfBins = dlg.getValues()[4 * row + 5];
-			//int numberOfBins = dlg.getValues()[row+2];
+			int numberOfBins = dlg.getDblValue(4 * row + 5);
+			//int numberOfBins = dlg.getDblValue(row+2);
 			//double inc = (range[1] - range[0]) / (numberOfBins) * 1.001; //test
 			double inc = ( range[1] - range[0] ) / ( numberOfBins );
 			double halfInc = inc / 2.0;
@@ -2548,7 +2547,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 			disTable->AddColumn( populations.GetPointer() );
 
 			//Writes csv file
-			if ( dlg.getCheckValues()[0] == 2 )
+			if ( dlg.getCheckValue(0) == 2 )
 			{
 				ofstream file( filename.toStdString().c_str(), std::ios::app );
 				if ( file.is_open() )
@@ -2586,7 +2585,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 			}
 
 			//Creates chart for each selected characteristic
-			if ( dlg.getCheckValues()[1] == 2 )
+			if ( dlg.getCheckValue(1) == 2 )
 			{
 				vtkChartXY* chart = vtkChartXY::SafeDownCast( distributionChartMatrix
 															  ->GetChart( vtkVector2i( row % ( rowList.count() < 3 ? rowList.count() % 3 : 3 ), row / 3 ) ) );
@@ -2604,7 +2603,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 		}
 
 		//Renders the distributionMatrix in a new dockWidget
-		if ( dlg.getCheckValues()[1] == 2 )
+		if ( dlg.getCheckValue(1) == 2 )
 		{
 			MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 			if ( !iovDV )
@@ -4397,23 +4396,23 @@ int dlg_FiberScout::OpenBlobVisDialog()
 	if ( dlg.exec() == QDialog::Accepted )
 	{
 		int i = 0;
-		blobManager->SetRange( dlg.getDoubleSpinBoxValues()[i++] );
-		blobManager->SetShowBlob( dlg.getCheckValues()[i++] != 0 );
-		blobManager->SetUseDepthPeeling( dlg.getCheckValues()[i++] );
-		blobManager->SetBlobOpacity( dlg.getDoubleSpinBoxValues()[i++] );
-		blobManager->SetSilhouettes( dlg.getCheckValues()[i++] != 0 );
-		blobManager->SetSilhouetteOpacity( dlg.getDoubleSpinBoxValues()[i++] );
-		blobManager->SetLabeling( dlg.getCheckValues()[i++] != 0 );
-		blobManager->SetOverlappingEnabled( dlg.getCheckValues()[i++] != 0 );
-		blobManager->SetOverlapThreshold( dlg.getDoubleSpinBoxValues()[i++] );
-		blobManager->SetSmoothing( dlg.getCheckValues()[i++] );
-		blobManager->SetGaussianBlur( dlg.getCheckValues()[i++] );
-		blobManager->SetGaussianBlurVariance( dlg.getSpinBoxValues()[i++] );
+		blobManager->SetRange               ( dlg.getDblValue(i++) );
+		blobManager->SetShowBlob            ( dlg.getCheckValue(i++) != 0 );
+		blobManager->SetUseDepthPeeling     ( dlg.getCheckValue(i++) );
+		blobManager->SetBlobOpacity         ( dlg.getDblValue(i++) );
+		blobManager->SetSilhouettes         ( dlg.getCheckValue(i++) != 0 );
+		blobManager->SetSilhouetteOpacity   ( dlg.getDblValue(i++) );
+		blobManager->SetLabeling            ( dlg.getCheckValue(i++) != 0 );
+		blobManager->SetOverlappingEnabled  ( dlg.getCheckValue(i++) != 0 );
+		blobManager->SetOverlapThreshold    ( dlg.getDblValue(i++) );
+		blobManager->SetSmoothing           ( dlg.getCheckValue(i++) );
+		blobManager->SetGaussianBlur        ( dlg.getCheckValue(i++) );
+		blobManager->SetGaussianBlurVariance( dlg.getIntValue(i++) );
 
 		int dimens[3];
-		dimens[0] = dlg.getSpinBoxValues()[i++];
-		dimens[1] = dlg.getSpinBoxValues()[i++];
-		dimens[2] = dlg.getSpinBoxValues()[i++];
+		dimens[0] = dlg.getIntValue(i++);
+		dimens[1] = dlg.getIntValue(i++);
+		dimens[2] = dlg.getIntValue(i++);
 		blobManager->SetDimensions( dimens );
 		return 1;
 	}
@@ -4553,8 +4552,8 @@ void dlg_FiberScout::SaveBlobMovie()
 		dlg_commoninput dlg( this, "Save movie options", inList, inPara, NULL );
 		if ( dlg.exec() == QDialog::Accepted )
 		{
-			mode = dlg.getComboBoxValues()[0];
-			imode = dlg.getComboBoxIndices()[0];
+			mode = dlg.getComboBoxValue(0);
+			imode = dlg.getComboBoxIndex(0);
 		}
 	}
 
@@ -4604,30 +4603,27 @@ void dlg_FiberScout::SaveBlobMovie()
 		double gaussianBlurVariance[2];
 		int dimX[2]; int dimY[2]; int dimZ[2];
 
-		size_t numFrames = dlg.getSpinBoxValues()[i++];
+		size_t numFrames = dlg.getIntValue(i++);
 		for ( int ind = 0; ind < 2; ++ind )
-			range[ind] = dlg.getDoubleSpinBoxValues()[i++];
-		blobManager->SetShowBlob( dlg.getCheckValues()[i++] != 0 );
+			range[ind] = dlg.getDblValue(i++);
+		blobManager->SetShowBlob( dlg.getCheckValue(i++) != 0 );
 		for ( int ind = 0; ind < 2; ++ind )
-			blobOpacity[ind] = dlg.getDoubleSpinBoxValues()[i++];
-		blobManager->SetSilhouettes( dlg.getCheckValues()[i++] != 0 );
+			blobOpacity[ind] = dlg.getDblValue(i++);
+		blobManager->SetSilhouettes( dlg.getCheckValue(i++) != 0 );
 		for ( int ind = 0; ind < 2; ++ind )
-			silhouetteOpacity[ind] = dlg.getDoubleSpinBoxValues()[i++];
-		blobManager->SetLabeling( dlg.getCheckValues()[i++] != 0 );
-		blobManager->SetOverlappingEnabled( dlg.getCheckValues()[i++] != 0 );
+			silhouetteOpacity[ind] = dlg.getDblValue(i++);
+		blobManager->SetLabeling( dlg.getCheckValue(i++) != 0 );
+		blobManager->SetOverlappingEnabled( dlg.getCheckValue(i++) != 0 );
 		for ( int ind = 0; ind < 2; ++ind )
-			overlapThreshold[ind] = dlg.getDoubleSpinBoxValues()[i++];
-		blobManager->SetSmoothing( dlg.getCheckValues()[i++] );
-		blobManager->SetGaussianBlur( dlg.getCheckValues()[i++] );
+			overlapThreshold[ind] = dlg.getDblValue(i++);
+		blobManager->SetSmoothing( dlg.getCheckValue(i++) );
+		blobManager->SetGaussianBlur( dlg.getCheckValue(i++) );
 		for ( int ind = 0; ind < 2; ++ind )
-			gaussianBlurVariance[ind] = dlg.getSpinBoxValues()[i++];
+			gaussianBlurVariance[ind] = dlg.getIntValue(i++);
 
-		for ( int ind = 0; ind < 2; ++ind )
-			dimX[ind] = dlg.getSpinBoxValues()[i++];
-		for ( int ind = 0; ind < 2; ++ind )
-			dimY[ind] = dlg.getSpinBoxValues()[i++];
-		for ( int ind = 0; ind < 2; ++ind )
-			dimZ[ind] = dlg.getSpinBoxValues()[i++];
+		for ( int ind = 0; ind < 2; ++ind )	dimX[ind] = dlg.getIntValue(i++);
+		for ( int ind = 0; ind < 2; ++ind )	dimY[ind] = dlg.getIntValue(i++);
+		for ( int ind = 0; ind < 2; ++ind )	dimZ[ind] = dlg.getIntValue(i++);
 
 		QFileInfo fileInfo = static_cast<MdiChild*>( activeChild )->getFileInfo();
 		

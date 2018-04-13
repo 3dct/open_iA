@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_GEMSe.h"
 
 #include "iAAttributes.h"
@@ -205,17 +204,17 @@ void dlg_GEMSe::CreateMapper()
 			
 			// check if previous datasets have an attribute with the same name
 			if (samplingIdx > 0 &&
-				attribute->GetAttribType() ==
+				attribute->AttribType() ==
 				iAAttributeDescriptor::DerivedOutput) // at the moment for derived output only
 			{
-				chartID = m_chartAttributes->Find(attribute->GetName());
+				chartID = m_chartAttributes->Find(attribute->Name());
 			}
 			if (chartID != -1)
 			{	// reuse existing chart, only add mapping:
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 				// and update min/max:
-				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->GetMin());
-				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->GetMax());
+				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->Min());
+				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->Max());
 			}
 			else
 			{	// add chart and mapping:
@@ -300,8 +299,8 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 		}
 		int attributeID = m_chartAttributeMapper.GetAttributeID(chartID, node->GetDatasetID());
 		double value = node->GetAttribute(attributeID);
-		if (m_chartAttributes->at(chartID)->GetValueType() == Discrete ||
-			m_chartAttributes->at(chartID)->GetValueType() == Categorical)
+		if (m_chartAttributes->at(chartID)->ValueType() == Discrete ||
+			m_chartAttributes->at(chartID)->ValueType() == Categorical)
 		{
 			value += 0.5;
 		}
@@ -340,8 +339,8 @@ void dlg_GEMSe::HistogramSelectionUpdated()
 	m_scatterplot->SetDataSource(
 		m_histogramContainer->GetSelectedChartID(0),
 		m_histogramContainer->GetSelectedChartID(1),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->GetName(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->GetName(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->Name(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->Name(),
 		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->IsLogScale(),
 		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->IsLogScale(),
 		m_chartAttributeMapper,
@@ -435,7 +434,7 @@ void dlg_GEMSe::ToggleHate()
 	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
-		m_logger->log("ToggleHate No node selected!");
+		DEBUG_LOG("ToggleHate No node selected!");
 		return;
 	}
 	bool isHated = m_favoriteWidget->ToggleHate(node);
@@ -451,7 +450,7 @@ void dlg_GEMSe::ToggleLike()
 	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
-		m_logger->log("ToggleHate No node selected!");
+		DEBUG_LOG("ToggleHate No node selected!");
 		return;
 	}
 	m_favoriteWidget->ToggleLike(node);
@@ -529,7 +528,7 @@ void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 {
 	if (!node)
 	{
-		m_logger->log("JumpToNode: No node selected!");
+		DEBUG_LOG("JumpToNode: No node selected!");
 		return;
 	}
 	if (dynamic_cast<iAFakeTreeNode*>(node) || !m_treeView->JumpToNode(node, stepLimit))
@@ -575,7 +574,7 @@ void dlg_GEMSe::ShowImage(vtkSmartPointer<vtkImageData> imgData)
 {
 	if (!m_cameraWidget)
 	{
-		m_logger->log("ShowImage: Camera Widget not set!");
+		DEBUG_LOG("ShowImage: Camera Widget not set!");
 		return;
 	}
 	m_cameraWidget->ShowImage(imgData);
@@ -611,6 +610,7 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 		CalculateMeasures(refImg, lblImg, labelCount, measures);
 		// {
 		// write measures and parameters to debug out:
+		/*
 		QString debugOut = QString("%1\t%2\t%3\t%4\t%5\t%6\t%7")
 			.arg(leaf->GetDatasetID())
 			.arg(leaf->GetID())
@@ -622,12 +622,13 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 		;
 		for (int i = 0; i < leaf->GetAttributes()->size(); ++i)
 		{
-			if (leaf->GetAttributes()->at(i)->GetAttribType() == iAAttributeDescriptor::Parameter)
+			if (leaf->GetAttributes()->at(i)->AttribType() == iAAttributeDescriptor::Parameter)
 			{
 				debugOut += QString("\t%1").arg(leaf->GetAttribute(i));
 			}
 		}
 		DEBUG_LOG(debugOut);
+		*/
 		// }
 		for (int i=0; i<measures.size(); ++i)
 		{
@@ -699,7 +700,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		m_chartAttributes->at(i)->ResetMinMax();
 	}
 
-	DEBUG_LOG("Measures for ENSEMBLE:");
+	//DEBUG_LOG("Measures for ENSEMBLE:");
 	CalculateRefImgComp(GetRoot(), refImg, labelCount);	// rewrite using VisitLeafs !
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
@@ -807,6 +808,8 @@ void dlg_GEMSe::SetProbabilityProbing(bool enabled)
 
 void dlg_GEMSe::DataTFChanged()
 {
+	if (!m_detailView)
+		return;
 	m_detailView->UpdateMagicLensColors();
 }
 

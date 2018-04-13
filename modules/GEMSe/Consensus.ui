@@ -6,14 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>310</width>
-    <height>364</height>
+    <width>329</width>
+    <height>382</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>310</width>
-    <height>364</height>
+    <width>150</width>
+    <height>150</height>
    </size>
   </property>
   <property name="features">
@@ -39,60 +45,6 @@
     <property name="spacing">
      <number>2</number>
     </property>
-    <item row="17" column="0" rowspan="4" colspan="2">
-     <widget class="QTableWidget" name="twSampleResults">
-      <property name="rowCount">
-       <number>0</number>
-      </property>
-      <property name="columnCount">
-       <number>2</number>
-      </property>
-      <attribute name="horizontalHeaderVisible">
-       <bool>true</bool>
-      </attribute>
-      <attribute name="horizontalHeaderDefaultSectionSize">
-       <number>50</number>
-      </attribute>
-      <attribute name="verticalHeaderVisible">
-       <bool>false</bool>
-      </attribute>
-      <column/>
-      <column/>
-     </widget>
-    </item>
-    <item row="18" column="2">
-     <widget class="QSpinBox" name="sbSampleCount">
-      <property name="minimum">
-       <number>2</number>
-      </property>
-      <property name="maximum">
-       <number>10000</number>
-      </property>
-      <property name="value">
-       <number>100</number>
-      </property>
-     </widget>
-    </item>
-    <item row="19" column="2">
-     <widget class="QPushButton" name="pbClusterUncertaintyDice">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Cluster</string>
-      </property>
-     </widget>
-    </item>
-    <item row="17" column="2">
-     <widget class="QPushButton" name="pbSample">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Sample</string>
-      </property>
-     </widget>
-    </item>
     <item row="3" column="0" colspan="3">
      <widget class="QGroupBox" name="groupBox_2">
       <property name="title">
@@ -293,16 +245,6 @@
       </layout>
      </widget>
     </item>
-    <item row="0" column="0" colspan="3">
-     <widget class="QPushButton" name="pbMajorityVoting">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Majority Voting</string>
-      </property>
-     </widget>
-    </item>
     <item row="11" column="0">
      <widget class="QGroupBox" name="groupBox_3">
       <property name="title">
@@ -435,6 +377,70 @@
       </layout>
      </widget>
     </item>
+    <item row="19" column="0" rowspan="4" colspan="2">
+     <widget class="QTableWidget" name="twSampleResults">
+      <property name="rowCount">
+       <number>0</number>
+      </property>
+      <property name="columnCount">
+       <number>2</number>
+      </property>
+      <attribute name="horizontalHeaderVisible">
+       <bool>true</bool>
+      </attribute>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>50</number>
+      </attribute>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <column/>
+      <column/>
+     </widget>
+    </item>
+    <item row="20" column="2">
+     <widget class="QSpinBox" name="sbSampleCount">
+      <property name="minimum">
+       <number>2</number>
+      </property>
+      <property name="maximum">
+       <number>10000</number>
+      </property>
+      <property name="value">
+       <number>100</number>
+      </property>
+     </widget>
+    </item>
+    <item row="21" column="2">
+     <widget class="QPushButton" name="pbClusterUncertaintyDice">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Cluster</string>
+      </property>
+     </widget>
+    </item>
+    <item row="19" column="2">
+     <widget class="QPushButton" name="pbSample">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Sample</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="3">
+     <widget class="QPushButton" name="pbMajorityVoting">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Majority Voting</string>
+      </property>
+     </widget>
+    </item>
     <item row="1" column="0" colspan="3">
      <widget class="QPushButton" name="pbSTAPLE">
       <property name="enabled">
@@ -443,6 +449,154 @@
       <property name="text">
        <string>STAPLE</string>
       </property>
+     </widget>
+    </item>
+    <item row="12" column="0" colspan="3">
+     <widget class="QWidget" name="widget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Probabilistic</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cbProbRule">
+         <item>
+          <property name="text">
+           <string>Sum Rule</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Maximum Rule</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Minimum Rule</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Median Rule</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Majority Rule</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Threshold</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="sbUndecidedThresh">
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.010000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.500000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pbProbRuleVote">
+         <property name="text">
+          <string>Vote</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="13" column="0" colspan="3">
+     <widget class="QWidget" name="widget_2" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QCheckBox" name="cbUndecidedPixels">
+         <property name="text">
+          <string>Undecided Pixel Classification</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboBox">
+         <item>
+          <property name="text">
+           <string>Al-Taie (only majority)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Al-Taie (uncertainty tie-breaker)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Majority Voting in Neighborhood</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Max. Probability in Neighborhood</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>

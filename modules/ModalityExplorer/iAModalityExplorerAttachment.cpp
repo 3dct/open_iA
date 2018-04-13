@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,46 +18,27 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAModalityExplorerAttachment.h"
 
-#include "dlg_modalities.h"
-#include "dlg_planeSlicer.h"
-#include "iAChannelVisualizationData.h"
-#include "iAChildData.h"
-#include "iAConsole.h"
-#include "iALogger.h"
+#include "dlg_modalitySPLOM.h"
 #include "iAModality.h"
-#include "iARenderSettings.h"
-#include "iASlicer.h"
-#include "iASlicerWidget.h"
-#include "iAWidgetAddHelper.h"
 #include "mdichild.h"
-#include "mainwindow.h"
-
-#include <QFileDialog>
-
-#include <fstream>
-#include <sstream>
-#include <string>
-
 
 iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData)
 {
-}
-
-iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
-{
-	MdiChild * mdiChild = childData.child;
-	iAModalityExplorerAttachment * newAttachment = new iAModalityExplorerAttachment(mainWnd, childData);
-
+	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
+	m_dlgModalitySPLOM->SetData(childData.child->GetModalities());
+	childData.child->tabifyDockWidget(m_childData.logs, m_dlgModalitySPLOM);
 	/*
 	dlg_planeSlicer* planeSlicer = new dlg_planeSlicer();
 	mdiChild->splitDockWidget(renderWidget, planeSlicer, Qt::Horizontal);
 	planeSlicer->hide();
 	*/
-		
+}
+
+iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
+{
+	iAModalityExplorerAttachment * newAttachment = new iAModalityExplorerAttachment(mainWnd, childData);
 	return newAttachment;
 }

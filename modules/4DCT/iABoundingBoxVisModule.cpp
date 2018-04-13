@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,12 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iABoundingBoxVisModule.h"
-// iA
+
 #include "iA4DCTVisWin.h"
-// vtk
+
 #include <vtkActor.h>
 #include <vtkCubeSource.h>
 #include <vtkPolyDataMapper.h>
@@ -44,22 +42,14 @@ iABoundingBoxVisModule::iABoundingBoxVisModule( )
 	m_actor->GetProperty( )->LightingOff( );
 }
 
-void iABoundingBoxVisModule::enable( )
+void iABoundingBoxVisModule::show( )
 {
-	if( !isAttached( ) ) return;
-	if( !isEnabled( ) ) {
-		m_renderer->AddActor( m_actor );
-	}
-	iAVisModule::enable( );
+	m_renderer->AddActor( m_actor );
 }
 
-void iABoundingBoxVisModule::disable( )
+void iABoundingBoxVisModule::hide( )
 {
-	if( !isAttached( ) ) return;
-	if( isEnabled( ) ) {
-		m_renderer->RemoveActor( m_actor );
-	}
-	iAVisModule::disable( );
+	m_renderer->RemoveActor( m_actor );
 }
 
 void iABoundingBoxVisModule::setSize( double * size )

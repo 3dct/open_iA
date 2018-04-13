@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -68,7 +68,7 @@ public:
 	bool isDeletable(int index);
 
 	void reset();
-	void TranslateToNewRange(double oldDataRange[2]);
+	void TranslateToNewRange(double const oldDataRange[2]);
 	
 	void mousePressEvent(QMouseEvent*)   {}
 	void mouseMoveEvent(QMouseEvent*)    {}
@@ -81,9 +81,7 @@ public:
 
 	vtkPiecewiseFunction* GetOpacityFunction() { return opacityTF; }
 	vtkColorTransferFunction* GetColorFunction() { return colorTF; }
-
-	// TODO: remove!
-	void loadTransferFunction(QDomNode &functionsNode, double range[2]);
+	void triggerOnChange();
 signals:
 	void Changed();
 private:
@@ -105,8 +103,6 @@ private:
 	//convert data to image
 	int d2iX(double x);
 	int d2iY(double y);
-
-	void triggerOnChange();
 
 	bool m_rangeSliderHandles;
 };

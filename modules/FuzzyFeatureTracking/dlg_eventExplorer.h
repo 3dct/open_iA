@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,33 +26,22 @@
 #include "ui_EventExplorer.h"
 #include "QVTKWidget.h"
 
-#include <qpushbutton.h>
-#include <QHBoxLayout>
-
-#include "vtkFloatArray.h"
+#include <vtkChartXY.h>
+#include <vtkContextView.h>
+#include <vtkIdTypeArray.h>
 #include <vtkIntArray.h>
-#include "vtkMath.h"
-#include "vtkRenderer.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkSmartPointer.h"
-#include "vtkContextView.h"
-#include "vtkContextScene.h"
-#include "vtkChartXY.h"
-#include "vtkPlot.h"
-#include "vtkTable.h"
-#include "vtkPen.h"
-#include "vtkTimerLog.h"
-#include "vtkIdTypeArray.h"
-#include "vtkEventQtSlotConnect.h"
-
-#include "vtkMutableDirectedGraph.h"
+#include <vtkPlot.h>
+#include <vtkSmartPointer.h>
+#include <vtkTable.h>
+#include <vtkMutableDirectedGraph.h>
 
 #include <vector>
 
 class dlg_trackingGraph;
 class iAFeatureTracking;
 class iAVolumeStack;
+
+class vtkEventQtSlotConnect;
 
 class dlg_eventExplorer : public QDockWidget, private Ui_EventExplorer
 {

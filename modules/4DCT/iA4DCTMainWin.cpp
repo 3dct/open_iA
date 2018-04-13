@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,10 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iA4DCTMainWin.h"
-// iA
+
 #include "iA4DCTData.h"
 #include "iA4DCTDefects.h"
 #include "iA4DCTProjectReaderWriter.h"
@@ -32,11 +30,11 @@
 #include "iAPreviewMaker.h"
 #include "iAStageView.h"
 #include "mainwindow.h"
-// itk
+
 #include <itkImageFileReader.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageFileWriter.h>
-// Qt
+
 #include <QDialog>
 #include <QDir>
 #include <QFileDialog>
@@ -71,9 +69,7 @@ iA4DCTMainWin::iA4DCTMainWin( MainWindow* parent /*= 0*/ )
 }
 
 iA4DCTMainWin::~iA4DCTMainWin( )
-{
-
-}
+{ }
 
 void iA4DCTMainWin::load( QString settingsFile )
 {

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,12 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_transfer.h"
 
+#include "charts/iADiagramFctWidget.h"
 #include "iAConsole.h"
-#include "iADiagramFctWidget.h"
 #include "iAMathUtility.h"
 #include "mdichild.h"
 
@@ -38,13 +36,13 @@
 #include <QPainter>
 #include <QPen>
 
-dlg_transfer::dlg_transfer(iADiagramFctWidget *fctDiagram, QColor color):
-	dlg_function(fctDiagram),
+dlg_transfer::dlg_transfer(iADiagramFctWidget *chart, QColor color):
+	dlg_function(chart),
 	m_rangeSliderHandles(false)
 {
 	this->color = color;
 	
-	dlg = new QColorDialog(fctDiagram);
+	dlg = new QColorDialog(chart);
 	
 	gradient.setSpread(QGradient::PadSpread);
 
@@ -61,7 +59,7 @@ dlg_transfer::~dlg_transfer()
 
 void dlg_transfer::draw(QPainter &painter, QColor color, int lineWidth)
 {
-	bool active = (fctDiagram->getSelectedFunction() == this);
+	bool active = (chart->getSelectedFunction() == this);
 
 	QPen pen = painter.pen();
 	pen.setColor(color); pen.setWidth(lineWidth);
@@ -74,7 +72,7 @@ void dlg_transfer::draw(QPainter &painter, QColor color, int lineWidth)
 	painter.setBrush(QColor(128, 128, 128, 255));
 
 	QColor c;
-	double gradientWidth = fctDiagram->getActiveWidth()*fctDiagram->getZoom();
+	double gradientWidth = chart->ActiveWidth()*chart->XZoom();
 
 	gradient = QLinearGradient();
 	gradient.setStart(0, 0);
@@ -183,16 +181,16 @@ void dlg_transfer::drawOnTop(QPainter &painter)
 {
 	if ( opacityTF->GetSize() == colorTF->GetSize())
 	{
-		double gradientWidth = fctDiagram->getActiveWidth()*fctDiagram->getZoom();
+		double gradientWidth = chart->ActiveWidth()*chart->XZoom();
 
-		painter.fillRect( 0, 0, gradientWidth, -fctDiagram->GetTFGradientHeight(), gradient );
+		painter.fillRect( 0, 0, gradientWidth, -chart->BottomMargin(), gradient );
 	}
 }
 
 int dlg_transfer::selectPoint(QMouseEvent *event, int *x)
 { 
-	int lx = event->x() - fctDiagram->getLeftMargin();
-	int ly = fctDiagram->geometry().height() - event->y() - fctDiagram->getBottomMargin() - fctDiagram->getTranslationY();
+	int lx = event->x() - chart->LeftMargin();
+	int ly = chart->geometry().height() - event->y() - chart->BottomMargin() - chart->YShift();
 	int index = -1;
 	
 	double pointValue[4];
@@ -263,7 +261,7 @@ void dlg_transfer::addColorPoint(int x, double red, double green, double blue)
 	if (red < 0 || green < 0 || blue < 0)
 	{
 		QGradientStops stops = gradient.stops();
-		double gradientWidth = fctDiagram->getActiveWidth()*fctDiagram->getZoom();
+		double gradientWidth = chart->ActiveWidth()*chart->XZoom();
 		double pos = x /gradientWidth;
 
 		// find stops before and after pos
@@ -322,9 +320,8 @@ void dlg_transfer::removePoint(int index)
 
 void dlg_transfer::moveSelectedPoint(int x, int y)
 {
-	if (x > fctDiagram->getActiveWidth()-1) x = fctDiagram->getActiveWidth() - 1;
-	if (y < 0) y = 0;
-	if (y > fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1) y = fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1;
+	if (x > chart->ActiveWidth()-1) x = chart->ActiveWidth() - 1;
+	y = clamp(0, chart->geometry().height() - chart->BottomMargin() - 1, y);
 
 	double dataX = v2dX(x);
 	if (selectedPoint != 0 && selectedPoint != opacityTF->GetSize()-1)
@@ -400,21 +397,18 @@ void dlg_transfer::reset()
 {
 	if (opacityTF != NULL && colorTF != NULL)
 	{
-		double dataRange[2];
-		fctDiagram->GetDataRange(dataRange);
-
 		opacityTF->RemoveAllPoints();
-		opacityTF->AddPoint( dataRange[0], 0.0 );
-		opacityTF->AddPoint( dataRange[1], 1.0 );
+		opacityTF->AddPoint(chart->XBounds()[0], 0.0 );
+		opacityTF->AddPoint(chart->XBounds()[1], 1.0 );
 		colorTF->RemoveAllPoints();
-		colorTF->AddRGBPoint( dataRange[0], 0.0, 0.0, 0.0 );
-		colorTF->AddRGBPoint( dataRange[1], 1.0, 1.0, 1.0 );
+		colorTF->AddRGBPoint(chart->XBounds()[0], 0.0, 0.0, 0.0 );
+		colorTF->AddRGBPoint(chart->XBounds()[1], 1.0, 1.0, 1.0 );
 		colorTF->Build();
 		triggerOnChange();
 	}
 }
 
-void dlg_transfer::TranslateToNewRange(double oldDataRange[2])
+void dlg_transfer::TranslateToNewRange(double const oldDataRange[2])
 {
 	double min, max;
 	opacityTF->GetRange(min, max);
@@ -515,44 +509,37 @@ void dlg_transfer::setPointY(int selectedPoint, int y)
 	opacityTF->SetNodeValue(selectedPoint, opacityTFValues);
 }
 
+// TODO: unify somewhere!
 double dlg_transfer::v2dX(int x)
 {
-	double dataRange[2];
-	fctDiagram->GetDataRange(dataRange);
-
-	double dX = ((double)(x-fctDiagram->getTranslationX()) /
-		(double)fctDiagram->getActiveWidth() * (dataRange[1] - dataRange[0]) ) /fctDiagram->getZoom() + dataRange[0];
-
-	return clamp(dataRange[0], dataRange[1], dX);
+	double dX = ((double)(x-chart->XShift()) / (double)chart->ActiveWidth() * chart->XRange()) /chart->XZoom() + chart->XBounds()[0];
+	return clamp(chart->XBounds()[0], chart->XBounds()[1], dX);
 }
 
 // convert from [0..maxDiagPixelHeight] to [0..1]
 double dlg_transfer::v2dY(int y)
 {
-	return mapToNorm(0, fctDiagram->getChartHeight(), y);
+	return mapToNorm(0, chart->ChartHeight(), y);
 }
 
 int dlg_transfer::d2vX(double x, double oldDataRange0, double oldDataRange1)
 {
-	double dataRange[2];
-	fctDiagram->GetDataRange(dataRange);
-
 	if (oldDataRange0 == -1 && oldDataRange1 == -1)
-		return (int)((x -dataRange[0]) * (double)fctDiagram->getActiveWidth() / (dataRange[1] - dataRange[0])*fctDiagram->getZoom()) +fctDiagram->getTranslationX();
+		return (int)((x - chart->XBounds()[0]) * (double)chart->ActiveWidth() / chart->XRange()*chart->XZoom()) +chart->XShift();
 	else
-		return (int)((x -oldDataRange0) * (double)fctDiagram->getActiveWidth() / (oldDataRange1 - oldDataRange0)*fctDiagram->getZoom()) +fctDiagram->getTranslationX();
+		return (int)((x -oldDataRange0) * (double)chart->ActiveWidth() / (oldDataRange1 - oldDataRange0)*chart->XZoom()) +chart->XShift();
 		
 }
 
 // convert from [0..1] to [0..maxDiagPixelHeight]
 int dlg_transfer::d2vY(double y)
 {
-	return mapNormTo(0, std::max(0, fctDiagram->getChartHeight()), y);;
+	return mapNormTo(0, std::max(0, chart->ChartHeight()), y);
 }
 
 int dlg_transfer::d2iX(double x)
 {
-	return d2vX(x) -fctDiagram->getTranslationX();
+	return d2vX(x) -chart->XShift();
 }
 
 int dlg_transfer::d2iY(double y)
@@ -563,38 +550,6 @@ int dlg_transfer::d2iY(double y)
 void dlg_transfer::triggerOnChange()
 {
 	emit Changed();
-}
-
-void dlg_transfer::loadTransferFunction(QDomNode &functionsNode, double range[2])
-{
-	QDomNode transferElement = functionsNode.namedItem("transfer");
-	if (!transferElement.isElement())
-		return;
-
-	// does functions node exist
-	double value, opacity, red, green, blue;
-
-	GetOpacityFunction()->RemoveAllPoints();
-	GetColorFunction()->RemoveAllPoints();
-
-	QDomNodeList list = transferElement.childNodes();
-	for (int n = 0; n < int(list.length()); n++)
-	{
-		QDomNode node = list.item(n);
-
-		QDomNamedNodeMap attributes = node.attributes();
-		value = attributes.namedItem("value").nodeValue().toDouble();
-		opacity = attributes.namedItem("opacity").nodeValue().toDouble();
-		red = attributes.namedItem("red").nodeValue().toDouble();
-		green = attributes.namedItem("green").nodeValue().toDouble();
-		blue = attributes.namedItem("blue").nodeValue().toDouble();
-
-		if (value < range[0]) value = range[0];
-		if (value > range[1]) value = range[1];
-		GetOpacityFunction()->AddPoint(value, opacity);
-		GetColorFunction()->AddRGBPoint(value, red, green, blue);
-	}
-	triggerOnChange();
 }
 
 void dlg_transfer::enableRangeSliderHandles( bool rangeSliderHandles )

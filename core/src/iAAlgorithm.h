@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -51,11 +51,10 @@ class open_iA_Core_API iAAlgorithm : public QThread
 	Q_OBJECT
 public:
 	iAAlgorithm( QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = 0 );
-	iAAlgorithm( vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = 0 );
 	virtual ~iAAlgorithm();
 
 	QDateTime Start(); //< Start counting the running time and set the start time
-	int Stop();	//Calculate and get the elapsed time
+	int Stop();        //< Calculate and get the elapsed time
 
 	void setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l );
 	void addMsg(QString txt);
@@ -65,14 +64,12 @@ public:
 	vtkImageData* getVtkImageData();
 	vtkPolyData* getVtkPolyData();
 	iAConnector* getConnector() const;
-	iAConnector* getFixedConnector() const;
-	iAConnector* getConnector(int c);
-	iAConnector *const * getConnectorArray() const;
-	iAConnector ** getConnectorArray();
+	void AddImage(vtkImageData* i);
+	QVector<iAConnector*> const & Connectors() const;
 	bool deleteConnector(iAConnector* c);
 	void allocConnectors(int size);
 
-	iAProgress* getItkProgress();
+	iAProgress* ProgressObserver();
 	void vtkPolydata_itkMesh ( vtkPolyData* polyData, MeshType::Pointer mesh );
 	void itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* polyData );
 	virtual void SafeTerminate();
@@ -106,9 +103,7 @@ private:
 	QString m_filterName;
 	vtkImageData *m_image;
 	vtkPolyData *m_polyData;
-	iAProgress *m_itkProgress;
+	iAProgress *m_progressObserver;
 	iALogger * m_logger;
-	QMutex m_mutex;
-	QWaitCondition m_condition;
 	QVector<iAConnector*> m_connectors;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,36 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-enum iAWatershedType
-{
-	WATERSHED,
-	MORPH_WATERSHED,
-};
-
-/**
- * Implementation of itkWatershedImageFilter. For itkWatershedImageFilter refer to 
- * http://www.itk.org/Doxygen/html/classitk_1_1WatershedImageFilter.html
- */
-class iAWatershedSegmentation : public iAAlgorithm
-{
-public:
-	iAWatershedSegmentation( QString fn, iAWatershedType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	void setWParameters( double l, double t ) { level = l; threshold = t; };
-	void setMWSParameters( double mwsl, bool mwsmwsl, bool mwsFC )
-	{
-		mwsLevel = mwsl; mwsMarkWSLines = mwsmwsl; mwsFullyConnected = mwsFC;
-	}
-
-	vtkImageData* getImageDataNew ( ) { return imageDataNew; }
-protected:
-	virtual void performWork();
-private:
-	double level, threshold;
-	double mwsLevel; // Morphological Watershed Segmentation Filter
-	bool mwsMarkWSLines, mwsFullyConnected;	// Morphological Watershed Segmentation Filter
-	iAWatershedType m_type;
-	vtkImageData* imageDataNew;
-};
+IAFILTER_DEFAULT_CLASS(iAWatershed);
+IAFILTER_DEFAULT_CLASS(iAMorphologicalWatershed);

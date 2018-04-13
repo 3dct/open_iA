@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,17 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <QDockWidget>
 
-class iADockWidgetWrapper: public QDockWidget
+class QString;
+
+class open_iA_Core_API iADockWidgetWrapper: public QDockWidget
 {
 public:
-	iADockWidgetWrapper(QWidget* widget, QString const & windowTitle, QString const & objectName)
-	{
-		setWindowTitle(windowTitle);
-		setFeatures(DockWidgetVerticalTitleBar | DockWidgetClosable | DockWidgetMovable | DockWidgetFloatable);
-		//if (widget)
-			setWidget(widget);
-		setObjectName(objectName);
-	}
+	iADockWidgetWrapper(QWidget* widget, QString const & windowTitle, QString const & objectName);
+	void toggleTitleBar();
+	bool isTitleBarVisible() const;
+private:
+	QWidget* m_titleBar;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,8 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <cassert>
-#include <cmath>
+#include <cmath>   // for ceil/floor
+#include <cstddef> // for size_t
+#include <vector>
 
 // consistently define isNaN/isInf:
 #if (defined(_MSC_VER) && _MSC_VER <= 1600)
@@ -141,6 +145,12 @@ inline T mapValue(T const * rangeSrc, T const * rangeDst, T const val)
 	return mapValue(rangeSrc[0], rangeSrc[1], rangeDst[0], rangeDst[1], val);
 }
 
+template <typename T>
+T invertValue(T const * range, T const val)
+{
+	return range[1] + range[0] - val;
+}
+
 /**
   * round a number to the nearest integer representation (by "round half away from zero" method)
   * @param number the number to round
@@ -163,3 +173,15 @@ inline T linterp(const T a, const T b, const T t)
 {
 	return a + (b - a)*t;
 }
+
+
+open_iA_Core_API double gaussian(double x, double sigma);
+
+open_iA_Core_API std::vector<double> gaussianKernel(double kernelSigma, size_t kernelSteps);
+
+//! convolutes the given function with a Gaussian kernel with the given sigma and steps
+//! TODO: steps could be  calculated from sigma (cut off kernel when factor gets very small
+open_iA_Core_API std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSigma, int kernelSteps);
+
+
+open_iA_Core_API std::vector<double> derivative(std::vector<double> func);

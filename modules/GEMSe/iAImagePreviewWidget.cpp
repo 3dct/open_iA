@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,14 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAImagePreviewWidget.h"
 
 #include "iAColorTheme.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
 #include "iAGEMSeConstants.h"
+#include "iASlicerSettings.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerWidget.h"
@@ -56,7 +55,7 @@ const int iAImagePreviewWidget::SliceNumberNotSet = -1;
 #include <QSizePolicy>
 
 iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* parent, bool isLabel, vtkCamera* commonCamera,
-	iASlicerMode mode, int labelCount, iAColorTheme const * colorTheme, bool magicLens):
+	iASlicerMode mode, int labelCount, bool magicLens):
 	QWidget(parent),
 	m_isLabelImage(isLabel),
 	m_conn(0),
@@ -68,7 +67,7 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_sliceNumber(SliceNumberNotSet),
 	m_mode(mode),
 	m_aspectRatio(1.0),
-	m_colorTheme(colorTheme)
+	m_colorTheme(nullptr)
 {
 	m_slicer = new iASlicer(this, mode, this, 0, 0, false, magicLens);
 }
@@ -86,7 +85,7 @@ void iAImagePreviewWidget::InitializeSlicer()
 	BuildCTF();
 	
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->initializeData(m_imageData, m_slicerTransform, m_ctf, false, false);
+	m_slicer->initializeData(m_imageData, m_slicerTransform, m_ctf);
 	m_slicer->initializeWidget(m_imageData);
 	m_slicer->SetBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
 	
@@ -250,7 +249,7 @@ void iAImagePreviewWidget::RemoveChannel()
 	m_addChannelImgActor = nullptr;
 }
 
- void iAImagePreviewWidget::BuildCTF()
+ bool iAImagePreviewWidget::BuildCTF()
 {
 	// TODO: cache/reuse ctf
 	if (m_empty || !m_isLabelImage)
@@ -263,6 +262,8 @@ void iAImagePreviewWidget::RemoveChannel()
 	}
 	else
 	{
+		if (!m_colorTheme)
+			return false;
 		vtkSmartPointer<vtkDiscretizableColorTransferFunction> ctf = vtkSmartPointer<vtkDiscretizableColorTransferFunction>::New();
 		assert(ctf);
 		ctf->RemoveAllPoints();
@@ -284,11 +285,13 @@ void iAImagePreviewWidget::RemoveChannel()
 		ctf->Build();
 		m_ctf = ctf;
 	}
+	return true;
 }
 
 void iAImagePreviewWidget::UpdateImage()
 {
-	BuildCTF();
+	if (!BuildCTF())
+		return;
 	m_slicer->reInitialize(m_imageData, m_slicerTransform, m_ctf);
 	m_slicer->changeImageData(m_imageData);
 	UpdateView();

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,9 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAToolsITK.h"
 
+#include "iAMathUtility.h"
+#include "iATypedCallHelper.h"
+
+#include <itkExtractImageFilter.h>
 
 itk::ImageIOBase::IOComponentType GetITKScalarPixelType(iAITKIO::ImagePointer image)
 {
@@ -189,7 +192,7 @@ iAITKIO::ImagePointer AllocateImage(iAITKIO::ImagePointer img)
 }
 
 template <class T>
-void alloc_image_tmpl2(int const size[3], double const spacing[3], iAITKIO::ImagePointer & result)
+void alloc_image_tmpl2(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], iAITKIO::ImagePointer & result)
 {
 	typedef itk::Image<T, iAITKIO::m_DIM > ImageType;
 	typedef typename ImageType::Pointer ImagePointer;
@@ -213,8 +216,7 @@ void alloc_image_tmpl2(int const size[3], double const spacing[3], iAITKIO::Imag
 }
 
 
-// when moving that to core, we get unresolved external! why?
-iAITKIO::ImagePointer AllocateImage(int const size[3], double const spacing[3], itk::ImageIOBase::IOComponentType type)
+iAITKIO::ImagePointer AllocateImage(int const size[iAITKIO::m_DIM], double const spacing[iAITKIO::m_DIM], itk::ImageIOBase::IOComponentType type)
 {
 	iAITKIO::ImagePointer result;
 	ITK_TYPED_CALL(alloc_image_tmpl2, type, size, spacing, result);
@@ -265,4 +267,36 @@ void SetITKPixel(double value, iAITKIO::ImagePointer img, iAITKIO::ImageBaseType
 void SetITKPixel(iAITKIO::ImagePointer img, iAITKIO::ImageBaseType::IndexType idx, double value)
 {
 	ITK_TYPED_CALL(SetITKPixel, GetITKScalarPixelType(img), value, img, idx);
+}
+
+
+template <typename T>
+void InternalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM], iAITKIO::ImagePointer & outImg)
+{
+	typedef itk::Image< T, iAITKIO::m_DIM > ImageType;
+	auto typedImg = dynamic_cast<ImageType *>(inImg.GetPointer());
+	typedef itk::ExtractImageFilter< ImageType, ImageType > ExtractType;
+	auto extractor = ExtractType::New();
+	auto size = typedImg->GetLargestPossibleRegion().GetSize();
+	typename ExtractType::InputImageRegionType::IndexType index;
+	for (int i = 0; i < iAITKIO::m_DIM; ++i)
+	{
+		index[i] = clamp(static_cast<size_t>(0), size[i], indexArr[i]);
+		size[i] = clamp(static_cast<size_t>(0), size[i] - index[i], sizeArr[i]);
+	}
+	typename ExtractType::InputImageRegionType region;
+	region.SetIndex(index);
+	region.SetSize(size);
+	extractor->InPlaceOn();
+	extractor->SetInput(typedImg);
+	extractor->SetExtractionRegion(region);
+	extractor->Update();
+	outImg = extractor->GetOutput();
+}
+
+iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM])
+{
+	iAITKIO::ImagePointer outImg;
+	ITK_TYPED_CALL(InternalExtractImage, GetITKScalarPixelType(inImg), inImg, indexArr, sizeArr, outImg);
+	return outImg;
 }

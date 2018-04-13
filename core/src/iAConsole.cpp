@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,26 +18,33 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAConsole.h"
 
 #include "dlg_console.h"
 #include "iARedirectVtkOutput.h"
+#include "iARedirectItkOutput.h"
 
 #include <QDateTime>
 
 #include <fstream>
 
-void iAConsole::Log(std::string const & text)
+
+// iAGlobalLogger
+
+iALogger* iAGlobalLogger::m_globalLogger(nullptr);
+
+
+void iAGlobalLogger::SetLogger(iALogger* logger)
 {
-	Log(QString::fromStdString(text));
+	m_globalLogger = logger;
+}
+iALogger* iAGlobalLogger::Get()
+{
+	return m_globalLogger;
 }
 
-void iAConsole::Log(char const * text)
-{
-	Log(QString(text));
-}
+
+// iAConsole
 
 void iAConsole::Log(QString const & text)
 {
@@ -58,13 +65,14 @@ void iAConsole::LogSlot(QString const & text)
 	if (m_logToFile)
 	{
 		std::ofstream logfile(m_logFileName.toStdString().c_str(), std::ofstream::out | std::ofstream::app);
-			logfile << QString("%1 %2\n")
-				.arg(QLocale().toString(
-					QDateTime::currentDateTime(),
-					QLocale::ShortFormat))
-				.arg(text)
-				.toStdString();
-			logfile.close();
+		logfile << QString("%1 %2\n")
+			.arg(QLocale().toString(
+				QDateTime::currentDateTime(),
+				QLocale::ShortFormat))
+			.arg(text)
+			.toStdString();
+		logfile.flush();
+		logfile.close();
 		if (logfile.bad())
 		{
 			m_console->Log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
@@ -111,9 +119,11 @@ iAConsole::iAConsole() :
 	m_fileLogError(false),
 	m_logFileName("debug.log")
 {
-	// redirect VTK output to console window:
+	// redirect VTK and ITK output to console window:
 	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
+	m_itkOutputWindow = iARedirectItkOutput::New();
 	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
+	itk::OutputWindow::SetInstance(m_itkOutputWindow);
 
 	connect(this, SIGNAL(LogSignal(QString const &)), this, SLOT(LogSlot(QString const &)));
 }
@@ -123,10 +133,10 @@ iAConsole::~iAConsole()
 	delete m_console;
 }
 
-iAConsole& iAConsole::GetInstance()
+iAConsole* iAConsole::GetInstance()
 {
 	static iAConsole instance;
-	return instance;
+	return &instance;
 }
 
 
@@ -139,5 +149,47 @@ void iAConsole::close()
 
 void iAConsole::Close()
 {
-	GetInstance().close();
+	GetInstance()->close();
 }
+
+
+// iALogger
+
+iALogger::~iALogger()
+{}
+
+
+
+// iAConsoleLogger
+
+void iAConsoleLogger::Log(QString const & msg)
+{
+	iAConsole::GetInstance()->Log(msg);
+}
+
+iAConsoleLogger * iAConsoleLogger::Get()
+{
+	static iAConsoleLogger GlobalConsoleLogger;
+	return &GlobalConsoleLogger;
+}
+
+iAConsoleLogger::iAConsoleLogger()
+{}
+
+
+
+// iAStdOutLogger
+
+void iAStdOutLogger::Log(QString const & msg)
+{
+	std::cout << msg.toStdString() << std::endl;
+}
+
+iAStdOutLogger * iAStdOutLogger::Get()
+{
+	static iAStdOutLogger GlobalStdOutLogger;
+	return &GlobalStdOutLogger;
+}
+
+iAStdOutLogger::iAStdOutLogger()
+{}

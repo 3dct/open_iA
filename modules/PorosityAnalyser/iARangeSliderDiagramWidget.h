@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -19,10 +19,10 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
-
-#include "iADiagramFctWidget.h"
-#include "iAFunctionDrawers.h"
 #include "iARangeSliderDiagramData.h"
+
+#include "charts/iADiagramFctWidget.h"
+#include "charts/iAPlotTypes.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
@@ -32,36 +32,46 @@
 #include <QToolTip>
 #include <QTableWidget>
 
-#include "dlg_function.h"
-#include "dlg_transfer.h"
 
-
-class iAFilteringDiagramData : public iAAbstractDiagramData
+class iAFilteringDiagramData : public iAPlotData
 {
 public:
-	iAFilteringDiagramData( QSharedPointer<iAAbstractDiagramData> other, int min, int max )
+	iAFilteringDiagramData( QSharedPointer<iAPlotData> other, int min, int max )
 		: m_data( new double[other->GetNumBin()] ),
-		m_size( other->GetNumBin() )
+		m_size( other->GetNumBin() ),
+		m_other(other)
 	{
 		for ( int i = 0; i < other->GetNumBin(); ++i )
 		{
-			m_data[i] = ( i >= min && i <= max ) ? other->GetData()[i] : 0;
+			m_data[i] = ( i >= min && i <= max ) ? other->GetRawData()[i] : 0;
 		}
 	}
 
-	virtual DataType const * GetData() const
+	DataType const * GetRawData() const override
 	{
 		return m_data;
 	}
 
-	virtual size_t GetNumBin() const
+	size_t GetNumBin() const override
 	{
 		return m_size;
 	}
-
+	double GetSpacing() const override
+	{
+		return m_other->GetSpacing();
+	}
+	double const * XBounds() const override
+	{
+		return m_other->XBounds();
+	}
+	DataType const * YBounds() const override
+	{
+		return m_other->YBounds();
+	}
 private:
 	DataType* m_data;
 	size_t m_size;
+	QSharedPointer<iAPlotData> m_other;
 };
 
 
@@ -79,14 +89,12 @@ public:
 								QString const & xlabel = "Greyvalue",
 								QString const & yLabel = "Frequency" );
 
-	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
-	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
-	virtual void drawFunctions( QPainter &painter );
-	virtual void mouseDoubleClickEvent( QMouseEvent *event );
-	virtual void mousePressEvent( QMouseEvent *event );
-	virtual void mouseReleaseEvent( QMouseEvent *event );
-	virtual void mouseMoveEvent( QMouseEvent *event );
-	virtual void contextMenuEvent( QContextMenuEvent *event );
+	void drawFunctions( QPainter &painter ) override;
+	void mouseDoubleClickEvent( QMouseEvent *event ) override;
+	void mousePressEvent( QMouseEvent *event ) override;
+	void mouseReleaseEvent( QMouseEvent *event ) override;
+	void mouseMoveEvent( QMouseEvent *event ) override;
+	void contextMenuEvent( QContextMenuEvent *event ) override;
 	void updateSelectedDiagrams();
 	QList<int> getSelectedRawTableRows();
 
@@ -101,9 +109,9 @@ public slots:
 
 private:
 	QSharedPointer<iARangeSliderDiagramData>			m_data;
-	QSharedPointer<iAAbstractDiagramData>				m_selectedData;
-	QSharedPointer<iAStepFunctionDrawer>			m_selectionDrawer;
-	QList<QSharedPointer<iAStepFunctionDrawer> >	m_histogramDrawerList;
+	QSharedPointer<iAPlotData>							m_selectedData;
+	QSharedPointer<iAStepFunctionDrawer>				m_selectionDrawer;
+	QList<QSharedPointer<iAStepFunctionDrawer> >		m_histogramDrawerList;
 	QPoint												m_selectionOrigin;
 	QRubberBand*										m_selectionRubberBand;
 	QString												m_xLabel;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iASPMView.h"
 
 #include "iAQtVTKBindings.h"
@@ -278,7 +276,7 @@ void iASPMView::setSPLOMPreviewSliceNumbers( QList<int> sliceNumberLst )
 
 void iASPMView::setSPLOMPreviewSize( int percent )
 {
-	m_splom->settings.popupSize[0] = popupWidthRange[0] + (popupWidthRange[1] - popupWidthRange[0]) * percent/100.0;
+	m_splom->settings.popupWidth = popupWidthRange[0] + (popupWidthRange[1] - popupWidthRange[0]) * percent/100.0;
 	m_splom->update();
 }
 

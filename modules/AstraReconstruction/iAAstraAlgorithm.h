@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,48 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
+#include "iAFilterRunnerGUI.h"
 
-namespace astra
+IAFILTER_DEFAULT_CLASS(iAASTRAForwardProject);
+IAFILTER_DEFAULT_CLASS(iAASTRAReconstruct);
+
+enum AstraReconstructionMethods
 {
-	struct Config;
-}
+	BP3D,
+	FDK3D,
+	SIRT3D,
+	CGLS3D
+};
 
-class iAAstraAlgorithm : public iAAlgorithm
+
+class iAASTRAFilterRunner : public iAFilterRunnerGUI
 {
 public:
-	enum AlgorithmType
-	{
-		FP3D,
-		BP3D,
-		FDK3D,
-		SIRT3D,
-		CGLS3D
-	};
-	iAAstraAlgorithm(AlgorithmType type, QString const & filterName, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent);
-	void SetFwdProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
-		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource);
-	void SetBckProjectParams(QString const & projGeomType, double detSpacingX, double detSpacingY, int detRowCnt, int detColCnt,
-		double projAngleStart, double projAngleEnd, int projAnglesCount, double distOrigDet, double distOrigSource,
-		int detRowDim, int detColDim, int projAngleDim, int volDim[3], double volSpacing[3], int numOfIterations,
-		bool correctCenterOfRotation = false, double correctCenterOfRotationOffset = 0.0);
-private:
-	virtual void performWork();
-	void ForwardProject();
-	void BackProject(AlgorithmType type);
-	
-	void CreateConeProjGeom(astra::Config & projectorConfig);
-	void CreateConeVecProjGeom(astra::Config & projectorConfig, double centerOfRotationOffset);
-
-	AlgorithmType m_type;
-	QString m_projGeomType;
-	double m_detSpacingX, m_detSpacingY, m_distOrigDet,
-		m_distOrigSource, m_projAngleStart, m_projAngleEnd;
-	int m_detRowCnt, m_detColCnt, m_projAnglesCount,
-		m_detRowDim, m_detColDim, m_projAngleDim,
-		m_numberOfIterations;
-	int m_volDim[3];
-	double m_volSpacing[3];
-	bool m_correctCenterOfRotation;
-	double m_correctCenterOfRotationOffset;
+	static QSharedPointer<iAFilterRunnerGUI> Create();
+	void Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd) override;
+	bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
+		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput) override;
 };

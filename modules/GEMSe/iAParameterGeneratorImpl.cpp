@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAParameterGeneratorImpl.h"
 
 #include "iAAttributes.h"
@@ -193,9 +191,9 @@ ParameterSetsPointer iARandomParameterGenerator::GetParameterSets(QSharedPointer
 	{
 		random.push_back(CreateRand(
 			parameter->at(p)->IsLogScale(),
-			parameter->at(p)->GetMin(),
-			parameter->at(p)->GetMax(),
-			parameter->at(p)->GetValueType()
+			parameter->at(p)->Min(),
+			parameter->at(p)->Max(),
+			parameter->at(p)->ValueType()
 		));
 	}
 
@@ -301,10 +299,10 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 	MyExtDblRandom dblRand;
 	for (int p = 0; p < parameter->size(); ++p)
 	{
-		iAValueType valueType = parameter->at(p)->GetValueType();
+		iAValueType valueType = parameter->at(p)->ValueType();
 		QSharedPointer<MyRange> range = CreateRange(parameter->at(p)->IsLogScale(),
-			parameter->at(p)->GetMin(),
-			parameter->at(p)->GetMax(),
+			parameter->at(p)->Min(),
+			parameter->at(p)->Max(),
 			sampleCount,
 			valueType);
 		
@@ -345,13 +343,10 @@ QString iACartesianGridParameterGenerator::GetName() const
 
 ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount)
 {
+	DEBUG_LOG("Cartesian grid sampling broken at the moment!");
 	ParameterSetsPointer result(new ParameterSets);
 	int samplesPerParameter = static_cast<int>(std::pow(10, std::log10(sampleCount) / parameter->size()));
-	
-	if (samplesPerParameter = 1) // make sure we use at least 2 sample values per parameter (otherwise we only have a single sample!)
-	{
-		samplesPerParameter = 2;
-	}
+	samplesPerParameter = std::max(2, samplesPerParameter); // at least 2 sample values per parameter
 
 	// calculate actual sample count (have to adhere to grid structure / powers):
 	// maybe get sample count per parameter?
@@ -368,12 +363,12 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 	QVector<QSharedPointer<MyRange>> ranges;
 	for (int p = 0; p < parameter->size(); ++p)
 	{
-		iAValueType valueType = parameter->at(p)->GetValueType();
+		iAValueType valueType = parameter->at(p)->ValueType();
 		ranges.push_back(
 			CreateRange(
 				parameter->at(p)->IsLogScale(),
-				parameter->at(p)->GetMin(),
-				parameter->at(p)->GetMax(),
+				parameter->at(p)->Min(),
+				parameter->at(p)->Max(),
 				samplesPerParameter-1, // -1 because we choose from the edges of the range
 				valueType)
 			);
@@ -387,7 +382,7 @@ ParameterSetsPointer iACartesianGridParameterGenerator::GetParameterSets(QShared
 		for (int p = 0; p < parameter->size(); ++p)
 		{
 			double value = ranges[p]->min(parameterRangeIdx[p]);
-			iAValueType valueType = parameter->at(p)->GetValueType();
+			iAValueType valueType = parameter->at(p)->ValueType();
 			if (valueType == Discrete || valueType == Categorical)
 			{
 				value = static_cast<int>(value);
@@ -416,7 +411,7 @@ QVector<QSharedPointer<iAParameterGenerator> > & GetParameterGenerators()
 	{
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iARandomParameterGenerator()));
 		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iALatinHypercubeParameterGenerator()));
-		parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iACartesianGridParameterGenerator()));
+		//parameterGenerators.push_back(QSharedPointer<iAParameterGenerator>(new iACartesianGridParameterGenerator()));
 	}
 	return parameterGenerators;
 }

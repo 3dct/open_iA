@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAXRFAttachment.h"
 
 #include "dlg_periodicTable.h"
@@ -29,13 +27,12 @@
 #include "iAElementConcentrations.h"
 #include "iAXRFData.h"
 
-#include "dlg_commoninput.h"
-#include "extension2id.h"
-#include "iAIO.h"
-#include "iAObserverProgress.h"
+#include "iAChannelVisualizationData.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iAWidgetAddHelper.h"
+#include "io/extension2id.h"
+#include "io/iAIO.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -71,9 +68,8 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, iAChildData childData ) 
 	if( !QFile::exists( f ) )
 		throw itk::ExceptionObject(__FILE__, __LINE__, "File does not exist");
 
-	mdiChild->addMsg( tr( "%1  Loading sequence started... \n"
-		"  The duration of the loading sequence depends on the size of your data set and may last several minutes. \n"
-		"  Please wait..." ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
+	mdiChild->addMsg(tr("%1  Loading file '%2', please wait...")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
 
 	dlgPeriodicTable = new dlg_periodicTable( mdiChild );
 	mdiChild->splitDockWidget( mdiChild->sXZ, dlgPeriodicTable, Qt::Horizontal );

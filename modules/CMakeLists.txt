@@ -46,13 +46,13 @@ FOREACH( indx RANGE ${len} )
 		SET(ADDITIONAL_MODULE_INCLUDE_DIRS "")
 		LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
 		# Collect source files from the module directories, except potential *Test.cpp/cxx files
-		FILE( GLOB module_srcs "${module_full_path}/*.cpp" "${module_full_path}/*.cxx" )
-		FILE( GLOB module_test_srcs "${module_full_path}/*Test.cpp" "${module_full_path}/*Test.cxx" )
+		FILE( GLOB_RECURSE module_srcs "${module_full_path}/*.cpp" "${module_full_path}/*.cxx" )
+		FILE( GLOB_RECURSE module_test_srcs "${module_full_path}/*Test.cpp" "${module_full_path}/*Test.cxx" )
 		IF ( NOT "${module_test_srcs}" STREQUAL "" )
 			LIST( REMOVE_ITEM module_srcs ${module_test_srcs} )
 		ENDIF ()
-		FILE( GLOB module_hs "${module_full_path}/*.h" )
-		FILE( GLOB module_uis "${module_full_path}/*.ui" )
+		FILE( GLOB_RECURSE module_hs "${module_full_path}/*.h" )
+		FILE( GLOB_RECURSE module_uis "${module_full_path}/*.ui" )
 		QT5_WRAP_UI( module_srcs ${module_uis})
 		# If there are dependencies do the check
 		MODULE_CHECK_DEPENDENCIES( ${module_option} ${module_full_path} module_dependencies )
@@ -62,15 +62,15 @@ FOREACH( indx RANGE ${len} )
 			IF (${depend_full_path} STREQUAL "NOTFOUND")
 				MESSAGE(STATUS "Module ${d}, required for module ${module_name}, not found in the filesystem!")
 			ELSE()
-				FILE( GLOB depend_srcs "${depend_full_path}/*.cpp" "${depend_full_path}/*.cxx" )
-				FILE( GLOB depend_test_srcs "${depend_full_path}/*Test.cpp" "${depend_full_path}/*Test.cxx" )
-				FILE( GLOB depend_hs "${depend_full_path}/*.h" )
+				FILE( GLOB_RECURSE depend_srcs "${depend_full_path}/*.cpp" "${depend_full_path}/*.cxx" )
+				FILE( GLOB_RECURSE depend_test_srcs "${depend_full_path}/*Test.cpp" "${depend_full_path}/*Test.cxx" )
+				FILE( GLOB_RECURSE depend_hs "${depend_full_path}/*.h" )
 				IF ( NOT "${depend_test_srcs}" STREQUAL "" )
 					# MESSAGE (STATUS "Removing test sources: ${depend_test_srcs}")
 					LIST( REMOVE_ITEM depend_srcs ${depend_test_srcs} )
 				ENDIF ( NOT "${depend_test_srcs}" STREQUAL "" )
 				# Collect .ui files from the  module directory and add them
-				FILE( GLOB depend_uis "${depend_full_path}/*.ui" )
+				FILE( GLOB_RECURSE depend_uis "${depend_full_path}/*.ui" )
 				QT5_WRAP_UI( depend_srcs ${depend_uis})
 
 				LIST (APPEND module_srcs ${depend_srcs})
@@ -98,6 +98,9 @@ FOREACH( indx RANGE ${len} )
 			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${depend_full_path} )
 		ENDFOREACH()
 
+		# set IDE folder:
+		SET_PROPERTY(TARGET ${module_name} PROPERTY FOLDER "Modules")
+
 		IF (NOT "${module_dependencies}" STREQUAL "")
 			ADD_DEPENDENCIES(${module_name} ${module_dependencies})
 		ENDIF()
@@ -118,6 +121,10 @@ FOREACH( indx RANGE ${len} )
 			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${ADDITIONAL_MODULE_INCLUDE_DIRS})
 		ENDIF()
 
+		IF (USE_COTIRE)
+			cotire(${module_name})
+		ENDIF()
+
 		IF (MSVC)
 			# Apply file grouping based on regular expressions for Visual Studio IDE.
 			SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
@@ -128,6 +135,17 @@ FOREACH( indx RANGE ${len} )
 				RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel/plugins"
 			)
 			INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)
+
+			# Install .vcxproj.user file for module to be able to start open_iA
+			IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_${module_name}_DBG_ENV_PATH}")
+				# force cmake to copy the files:
+				FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user)
+				# create .user files:
+				CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/module.vcxproj.user ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user @ONLY)
+				# make sure visual studio reloads the projects:
+				execute_process(COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj)
+				SET (CACHED_${module_name}_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
+			ENDIF ()
 		ELSE()
 			IF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 				set_target_properties(${module_name} PROPERTIES
@@ -148,7 +166,10 @@ ENDFOREACH()
 IF (MODULES_BUILD_ALL)
 	MESSAGE(STATUS "Enabled all modules (MODULES_BUILD_ALL is set)")
 ELSEIF (NOT "${ENABLED_MODULE_NAMES}" STREQUAL "")
-	MESSAGE( STATUS "Adding modules: ${ENABLED_MODULE_NAMES}" )
+	MESSAGE( STATUS "Enabled modules:" )
+	FOREACH (m ${ENABLED_MODULE_NAMES})
+		MESSAGE(STATUS "    ${m}")
+	ENDFOREACH()
 ENDIF ()
 
 # Compiler flags

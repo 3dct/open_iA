@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,18 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAGEMSeModuleInterface.h"
 
-#include "dlg_commoninput.h"
+#include "iAGEMSeAttachment.h"
+#include "iASEAFile.h"
+
 #include "dlg_modalities.h"
 #include "iAConsole.h"
-#include "iAFileUtils.h"
-#include "iAGEMSeAttachment.h"
 #include "iAModality.h"
 #include "iAModuleDispatcher.h"
-#include "iASEAFile.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -40,36 +37,34 @@
 
 #include <cassert>
 
-
 iAGEMSeModuleInterface::iAGEMSeModuleInterface():
 	m_toolbar(0)
 {}
 
 void iAGEMSeModuleInterface::Initialize()
 {
+	if (!m_mainWnd)
+		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuMultiChannelSegm = getMenuWithTitle( toolsMenu, QString( "GEMSe" ), false );
+	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
 	
-	QAction * actionMetricVis = new QAction( m_mainWnd );
-	actionMetricVis->setText( QApplication::translate( "MainWindow", "GEMSe", 0 ) );
-	AddActionToMenuAlphabeticallySorted(menuMultiChannelSegm, actionMetricVis, true);
-	connect(actionMetricVis, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
+	QAction * actionGEMSe = new QAction( m_mainWnd );
+	actionGEMSe->setText(QApplication::translate("MainWindow", "GEMSe", 0));
+	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
+	connect(actionGEMSe, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
 
 	QAction * actionPreCalculated = new QAction( m_mainWnd );
-	actionPreCalculated->setText( QApplication::translate( "MainWindow", "Load Pre-Calculated Results", 0 ));
-	AddActionToMenuAlphabeticallySorted(menuMultiChannelSegm, actionPreCalculated, false);
+	actionPreCalculated->setText( QApplication::translate( "MainWindow", "Load Segmentation Ensemble in GEMSe", 0 ));
+	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionPreCalculated, false);
 	connect(actionPreCalculated, SIGNAL(triggered()), this, SLOT(LoadPreCalculatedData()));
 }
 
-bool iAGEMSeModuleInterface::StartGEMSe()
+void iAGEMSeModuleInterface::StartGEMSe()
 {
 	PrepareActiveChild();
 	if (!m_mdiChild)
-	{
-		return false;
-	}
-	bool result = AttachToMdiChild(m_mdiChild);
-	return result;
+		return;
+	AttachToMdiChild(m_mdiChild);
 }
 
 iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
@@ -86,8 +81,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Load Precalculated Sampling & Clustering Data"),
-		QString() // TODO get directory of current file
-		,
+		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath() : QString(),
 		tr("GEMSe project (*.sea );;") );
 	if (fileName != "")
 	{
@@ -147,27 +141,13 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	gemseAttach->SetLabelInfo(seaFile.GetColorTheme(), seaFile.GetLabelNames());
 }
 
-#include <QToolBar>
-
-#include "ui_GEMSeToolBar.h"
-#include "iAQTtoUIConnector.h"
-
-class iAGEMSeToolbar : public QToolBar, public Ui_GEMSeToolBar
-{
-public:
-	iAGEMSeToolbar(QWidget* parent) : QToolBar("GEMSe ToolBar", parent)
-	{
-		this->setupUi(this);
-	}
-};
-
 void iAGEMSeModuleInterface::SetupToolbar()
 {
 	if (m_toolbar)
 	{
 		return;
 	}
-	m_toolbar = new iAGEMSeToolbar(m_mainWnd);
+	m_toolbar = new iAGEMSeToolbar("GEMSe ToolBar", m_mainWnd);
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 
 	connect(m_toolbar->action_ResetFilter, SIGNAL(triggered()), this, SLOT(ResetFilter()));

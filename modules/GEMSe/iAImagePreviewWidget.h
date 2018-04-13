@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAITKIO.h"
+#include "io/iAITKIO.h"
 #include "iASlicer.h"
 
 #include <vtkSmartPointer.h>
@@ -42,7 +42,7 @@ class iAImagePreviewWidget: public QWidget
 public:
 	static const int SliceNumberNotSet;
 	iAImagePreviewWidget(QString const & title, QWidget* parent, bool isLabel, vtkCamera* commonCamera, iASlicerMode,
-		int labelCount, iAColorTheme const * colorTheme, bool magicLens=false);
+		int labelCount, bool magicLens=false);
 	~iAImagePreviewWidget();
 	void SetImage(iAITKIO::ImagePointer img, bool empty, bool isLabelImg);
 	void SetImage(vtkSmartPointer<vtkImageData> img, bool empty, bool isLabelImg);
@@ -72,7 +72,7 @@ private:
 	virtual QSize sizeHint() const;
 	void InitializeSlicer();
 	void UpdateImage();
-	void BuildCTF();
+	bool BuildCTF();
 
 	bool m_isLabelImage;
 	bool m_empty;

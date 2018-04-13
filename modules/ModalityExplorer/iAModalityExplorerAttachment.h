@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,14 +22,7 @@
 
 #include "iAModuleAttachmentToChild.h"
 
-#include <QSharedPointer>
-#include <vtkSmartPointer.h>
-
-class dlg_modalities;
-class iAModalityList;
-
-class vtkColorTransferFunction;
-class vtkPiecewiseFunction;
+class dlg_modalitySPLOM;
 
 class iAModalityExplorerAttachment : public iAModuleAttachmentToChild
 {
@@ -38,4 +31,5 @@ public:
 	static iAModalityExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
 private:
 	iAModalityExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
+	dlg_modalitySPLOM* m_dlgModalitySPLOM;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAAlgorithm.h"
 
 #include "iAConnector.h"
@@ -37,31 +35,19 @@
 #include <QMessageBox>
 
 iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )
-	: QThread( parent )
+	: QThread( parent ),
+	m_isRunning(false),
+	m_elapsed(0),
+	m_filterName(fn),
+	m_image(idata),
+	m_polyData(p),
+	m_logger(logger),
+	m_progressObserver(new iAProgress)
 {
-	m_elapsed = 0;
-	m_isRunning = false;
-	m_filterName = fn;
-	m_image = idata;
-	m_polyData = p;
-	m_logger = logger;
-	for (int i = 0; i < 2; ++i)
-		m_connectors.push_back(new iAConnector());
-	m_itkProgress = new iAProgress;
-
-	connect(parent, SIGNAL( rendererDeactivated(int) ), this, SLOT( updateVtkImageData(int) ));
-	connect(m_itkProgress, SIGNAL( pprogress(int) ), this, SIGNAL( aprogress(int) ));
-}
-
-iAAlgorithm::iAAlgorithm( vtkImageData* idata, vtkPolyData* p, iALogger* logger, QObject *parent )
-: QThread( parent )
-{
-	m_image = idata;
-	m_polyData = p;
-	m_logger = logger;
-	for (int i = 0; i < 2; ++i)
-		m_connectors.push_back(new iAConnector());
-	m_itkProgress = new iAProgress;
+	m_connectors.push_back(new iAConnector());
+	if (parent)
+		connect(parent, SIGNAL( rendererDeactivated(int) ), this, SLOT( updateVtkImageData(int) ));
+	connect(m_progressObserver, SIGNAL( progress(int) ), this, SIGNAL( aprogress(int) ));
 }
 
 
@@ -70,13 +56,14 @@ iAAlgorithm::~iAAlgorithm()
 	foreach(iAConnector* c, m_connectors)
 		delete c;
 	m_connectors.clear();
-	delete m_itkProgress;
+	delete m_progressObserver;
 }
 
 
 void iAAlgorithm::run()
 {
-	addMsg(tr("%1  %2 started.").arg(QLocale().toString(Start(), QLocale::ShortFormat))
+	addMsg(tr("%1  %2 started.")
+		.arg(QLocale().toString(Start(), QLocale::ShortFormat))
 		.arg(getFilterName()));
 	getConnector()->SetImage(getVtkImageData());
 	getConnector()->Modified();
@@ -86,22 +73,26 @@ void iAAlgorithm::run()
 	}
 	catch (itk::ExceptionObject &excep)
 	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		addMsg(tr("%1  %2 terminated unexpectedly. Error: %3; in File %4, Line %5. Elapsed time: %6 ms.")
+			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 			.arg(getFilterName())
-			.arg(Stop()));
-		addMsg(tr("  %1 in File %2, Line %3").arg(excep.GetDescription())
+			.arg(excep.GetDescription())
 			.arg(excep.GetFile())
-			.arg(excep.GetLine()));
+			.arg(excep.GetLine())
+			.arg(Stop()));
 		return;
 	}
 	catch (const std::exception& e)
 	{
-		addMsg(tr("%1  %2 could not continue. %3").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		addMsg(tr("%1  %2 terminated unexpectedly. Error: %3. Elapsed time: %4 ms.")
+			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 			.arg(getFilterName())
-			.arg(e.what()));
+			.arg(e.what())
+			.arg(Stop()));
 		return;
 	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms.")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(getFilterName())
 		.arg(Stop()));
 	emit startUpdate();
@@ -151,10 +142,9 @@ void iAAlgorithm::addMsg(QString txt)
 {
 	if (m_logger)
 	{
-		m_logger->log(txt);
+		m_logger->Log(txt);
 	}
 }
-
 
 iALogger* iAAlgorithm::getLogger() const
 {
@@ -176,32 +166,22 @@ vtkPolyData* iAAlgorithm::getVtkPolyData()
 	return m_polyData;
 }
 
-iAConnector *iAAlgorithm::getConnector(int c)
-{
-	while (m_connectors.size() <= c)
-		m_connectors.push_back(new iAConnector());
-	return m_connectors[c];
-}
-
-
 iAConnector* iAAlgorithm::getConnector() const
 {
 	return m_connectors[0];
 }
 
-iAConnector *const * iAAlgorithm::getConnectorArray() const
+QVector<iAConnector*> const & iAAlgorithm::Connectors() const
 {
-	return m_connectors.data();
+	return m_connectors;
 }
 
-iAConnector ** iAAlgorithm::getConnectorArray()
+void iAAlgorithm::AddImage(vtkImageData* i)
 {
-	return m_connectors.data();
-}
-
-iAConnector* iAAlgorithm::getFixedConnector() const
-{
-	return m_connectors[1];
+	auto con = new iAConnector();
+	con->SetImage(i);
+	con->Modified();
+	m_connectors.push_back(con);
 }
 
 bool iAAlgorithm::deleteConnector(iAConnector* c)
@@ -224,15 +204,16 @@ void iAAlgorithm::allocConnectors(int size)
 }
 
 
-iAProgress* iAAlgorithm::getItkProgress()
+iAProgress* iAAlgorithm::ProgressObserver()
 {
-	return m_itkProgress;
+	return m_progressObserver;
 }
 
 void iAAlgorithm::updateVtkImageData(int ch)
-{
-	// some remainder from working with multichannel images?
-	// seems redundant to the m_image initialization in the constructor!
+{	// updates the vtk image data in the mdi child to be the one contained
+	// in the m_connectors[ch].
+	if (m_image == m_connectors[ch]->GetVTKImage().GetPointer())
+		return;
 	m_image->ReleaseData();
 	m_image->Initialize();
 	m_image->DeepCopy(m_connectors[ch]->GetVTKImage());

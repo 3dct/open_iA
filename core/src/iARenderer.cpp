@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iARenderer.h"
 
 #include "defines.h"
@@ -26,7 +25,6 @@
 #include "iAConsole.h"
 #include "iAChannelVisualizationData.h"
 #include "iAMovieHelper.h"
-#include "iAObserverProgress.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
 
@@ -36,12 +34,9 @@
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkCellLocator.h>
-#include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
 #include <vtkGenericMovieWriter.h>
 #include <vtkGenericRenderWindowInteractor.h>
-#include <vtkImageAppendComponents.h>
-#include <vtkImageBlend.h>
 #include <vtkImageData.h>
 #include <vtkImageCast.h>
 #include <vtkInteractorStyleSwitch.h>
@@ -50,7 +45,6 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkPicker.h>
-#include <vtkPiecewiseFunction.h>
 #include <vtkPlane.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -58,7 +52,6 @@
 #include <vtkQImageToImageSource.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkTransform.h>
-#include <vtkVolumeProperty.h>
 #include <vtkWindowToImageFilter.h>
 
 //
@@ -327,7 +320,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	setupCube();
 	setupAxes(spacing);
 	setupOrientationMarker();
-	setupRenderer(ds);
+	setupRenderer();
 
 	labelRen->SetActiveCamera(cam);
 	ren->SetActiveCamera(cam);
@@ -424,7 +417,7 @@ void iARenderer::setupOrientationMarker()
 	orientationMarkerWidget->InteractiveOff();
 }
 
-void iARenderer::setupRenderer(vtkImageData* ds)
+void iARenderer::setupRenderer()
 {
 	polyMapper->SetInputData(polyData);
 	polyMapper->SelectColorArray("Colors");

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_GEMSeControl.h"
 
 #include "dlg_commoninput.h"
@@ -39,13 +38,13 @@
 #include "iAImageTreeLeaf.h" // for VisitLeafs
 #include "iAImageSampler.h"
 #include "iAToolsITK.h"
-#include "iAIOProvider.h"
 #include "iALabelInfo.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAImageClusterer.h"
 #include "iASamplingResults.h"
 #include "iASEAFile.h"
+#include "io/iAIOProvider.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -65,6 +64,8 @@ public:
 	iASimpleLabelInfo() :
 		m_labelCount(-1),
 		m_theme(0)
+	{}
+	virtual ~iASimpleLabelInfo()
 	{}
 	virtual int count() const
 	{
@@ -157,7 +158,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(pbStoreDerivedOutput, SIGNAL(clicked()), this, SLOT(StoreDerivedOutput()));
 	connect(pbFreeMemory, SIGNAL(clicked()), this, SLOT(FreeMemory()));
 
-	connect(m_dlgModalities,  SIGNAL(ModalityAvailable()), this, SLOT(DataAvailable()));
+	connect(m_dlgModalities,  SIGNAL(ModalityAvailable(int)), this, SLOT(DataAvailable()));
 	connect(m_dlgModalities,  SIGNAL(ModalitySelected(int)), this, SLOT(ModalitySelected(int)));
 
 	connect(sbClusterViewPreviewSize, SIGNAL(valueChanged(int)), this, SLOT(SetIconSize(int)));
@@ -215,6 +216,9 @@ void dlg_GEMSeControl::StartSampling()
 			m_dlgSamplingSettings->GetExecutable(),
 			m_dlgSamplingSettings->GetAdditionalArguments(),
 			m_dlgSamplingSettings->GetPipelineName(),
+			m_dlgSamplingSettings->GetImageBaseName(),
+			m_dlgSamplingSettings->GetSeparateFolder(),
+			m_dlgSamplingSettings->GetCalcChar(),
 			m_dlgSamplings->GetSamplings()->size()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
@@ -255,7 +259,7 @@ void dlg_GEMSeControl::LoadSampling()
 			DEBUG_LOG("Cannot load sampling without label count input!");
 			return;
 		}
-		labelCount = lblCountInput.getSpinBoxValues()[0];
+		labelCount = lblCountInput.getIntValue(0);
 	}
 	LoadSampling(fileName, labelCount, m_dlgSamplings->GetSamplings()->size());
 }
@@ -292,7 +296,6 @@ void dlg_GEMSeControl::SamplingFinished()
 
 	if (!samplingResults || m_sampler->IsAborted())
 	{
-		DEBUG_LOG("Sampling was aborted, skipping clustering.");
 		m_sampler.clear();
 		return;
 	}

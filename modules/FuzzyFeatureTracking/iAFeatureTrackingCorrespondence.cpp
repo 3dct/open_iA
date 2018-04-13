@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,17 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAFeatureTrackingCorrespondence.h"
 
-
-	iAFeatureTrackingCorrespondence::iAFeatureTrackingCorrespondence(vtkIdType id, float overlap, float volumeRatio,
-		bool isTakenForCurrentIteration, float likelyhood, FeatureEvent featureEvent) {
-		this->id = id;
-		this->overlap = overlap;
-		this->volumeRatio = volumeRatio;
-		this->isTakenForCurrentIteration = isTakenForCurrentIteration;
-		this->likelyhood = likelyhood;
-		this->featureEvent = featureEvent;
-	}
+iAFeatureTrackingCorrespondence::iAFeatureTrackingCorrespondence(vtkIdType id, float overlap, float volumeRatio,
+	bool isTakenForCurrentIteration, float likelyhood, FeatureEvent featureEvent) {
+	this->id = id;
+	this->overlap = overlap;
+	this->volumeRatio = volumeRatio;
+	this->isTakenForCurrentIteration = isTakenForCurrentIteration;
+	this->likelyhood = likelyhood;
+	this->featureEvent = featureEvent;
+}

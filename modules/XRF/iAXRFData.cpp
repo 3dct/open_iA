@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,12 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAXRFData.h"
 
 #include "iASpectrumFilter.h"
 #include "iAMathUtility.h"
+#include "iATypedCallHelper.h"
 
 #include <vtkDiscretizableColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -48,6 +47,16 @@ size_t iAXRFData::size() const
 	return m_data.size();
 }
 
+iAXRFData::Container * iAXRFData::GetDataPtr()
+{
+	return &m_data;
+}
+
+vtkSmartPointer<vtkImageData> const & iAXRFData::GetImage(size_t idx) const
+{
+	return m_data[idx];
+}
+
 void iAXRFData::GetExtent(int extent[6]) const
 {
 	if (m_data.size() <= 0)
@@ -67,8 +76,9 @@ namespace
 }
 
 template <typename T>
-void addValues(double* result, T* energyCounts, size_t voxelCount, double energyColor[COLOR_COMPONENTS], double &componentMax)
+void addValues(double* result, void* data, size_t voxelCount, double energyColor[COLOR_COMPONENTS], double &componentMax)
 {
+	T* energyCounts = static_cast<T*>(data);
 	for (int i=0; i<voxelCount; ++i)
 	{
 		// color = value of colorTransferFunction for this energy (volume)
@@ -126,44 +136,7 @@ public:
 			colorTransferEnergies->GetColor(
 				energyIndex,
 				energyColor);
-
-			switch (type)
-			{
-			case VTK_CHAR:
-			case VTK_SIGNED_CHAR:
-				addValues<char>(colorValues, static_cast<char*>(countsForEnergy->GetScalarPointer()), voxelCount, energyColor, componentMax);
-				break;
-			case VTK_UNSIGNED_CHAR:
-				addValues<unsigned char>(colorValues, static_cast<unsigned char*>(countsForEnergy->GetScalarPointer()), voxelCount, energyColor, componentMax);
-				break;
-			case VTK_SHORT:
-				addValues<short>(colorValues, static_cast<short*>(countsForEnergy->GetScalarPointer()), voxelCount, energyColor, componentMax);
-				break;
-			case VTK_UNSIGNED_SHORT:
-				addValues<unsigned short>(colorValues, static_cast<unsigned short*>(countsForEnergy->GetScalarPointer()), voxelCount, energyColor, componentMax);
-				break;
-			case VTK_INT:
-				addValues<int>(colorValues, static_cast<int*>(countsForEnergy->GetScalarPointer()), voxelCount, energyColor, componentMax);
-				break;
-			case VTK_UNSIGNED_INT:
-				addValues<unsigned int>(colorValues, static_cast<unsigned int*>(countsForEnergy->GetScalarPointer()), voxelCount, energyColor, componentMax);
-				break;
-			case VTK_LONG:
-				addValues<long>(colorValues, static_cast<long*>(countsForEnergy->GetScalarPointer()), voxelCount, energyColor, componentMax);
-				break;
-			case VTK_UNSIGNED_LONG:
-				addValues<unsigned long>(colorValues, static_cast<unsigned long*>(countsForEnergy->GetScalarPointer()), voxelCount, energyColor, componentMax);
-				break;
-			case VTK_FLOAT:
-				addValues<float>(colorValues, static_cast<float*>(countsForEnergy->GetScalarPointer()), voxelCount, energyColor, componentMax);
-				break;
-			case VTK_DOUBLE:
-				addValues<double>(colorValues, static_cast<double*>(countsForEnergy->GetScalarPointer()), voxelCount, energyColor, componentMax);
-				break;
-			default:
-				// TODO: LOG ERROR!
-				break;
-			}
+			VTK_TYPED_CALL(addValues, type, colorValues, countsForEnergy->GetScalarPointer(), voxelCount, energyColor, componentMax);
 		}
 
 		vtkSmartPointer<vtkImageData> combinedVolume = vtkSmartPointer<vtkImageData>::New();
@@ -256,42 +229,17 @@ vtkSmartPointer<vtkDiscretizableColorTransferFunction> iAXRFData::GetColorTransf
 }
 
 template <typename T>
-bool isInRange(T value, double const & minVal, double const & maxVal)
+void isInRange(void* data, double const & minVal, double const & maxVal, bool & inRange)
 {
-	return (value >= minVal &&
-			value <= maxVal);
+	T value = *static_cast<char*>(data);
+	inRange = (value >= minVal && value <= maxVal);
 }
-
 
 bool isInRange(vtkSmartPointer<vtkImageData> const & img, int x, int y, int z, double const & minVal, double const & maxVal)
 {
-	switch (img->GetScalarType())
-	{
-	case VTK_CHAR:
-		return isInRange(*static_cast<char*>(img->GetScalarPointer(x, y, z)),           minVal, maxVal);
-	case VTK_SIGNED_CHAR:
-		return isInRange(*static_cast<char*>(img->GetScalarPointer(x, y, z)),           minVal, maxVal);
-	case VTK_UNSIGNED_CHAR:
-		return isInRange(*static_cast<unsigned char*>(img->GetScalarPointer(x, y, z)),  minVal, maxVal);
-	case VTK_SHORT:		
-		return isInRange(*static_cast<short*>(img->GetScalarPointer(x, y, z)),          minVal, maxVal);
-	case VTK_UNSIGNED_SHORT:
-		return isInRange(*static_cast<unsigned short*>(img->GetScalarPointer(x, y, z)), minVal, maxVal);
-	case VTK_INT:
-		return isInRange(*static_cast<int*>(img->GetScalarPointer(x, y, z)),            minVal, maxVal);
-	case VTK_UNSIGNED_INT: 
-		return isInRange(*static_cast<unsigned int*>(img->GetScalarPointer(x, y, z)),   minVal, maxVal);
-	case VTK_LONG:
-		return isInRange(*static_cast<long*>(img->GetScalarPointer(x, y, z)),           minVal, maxVal);
-	case VTK_UNSIGNED_LONG:
-		return isInRange(*static_cast<unsigned long*>(img->GetScalarPointer(x, y, z)),  minVal, maxVal);
-	case VTK_FLOAT:
-		return isInRange(*static_cast<float*>(img->GetScalarPointer(x, y, z)),          minVal, maxVal);
-	case VTK_DOUBLE:
-		return isInRange(*static_cast<double*>(img->GetScalarPointer(x, y, z)),         minVal, maxVal);
-	default:
-		return false;
-	}
+	bool inRange = false;
+	VTK_TYPED_CALL(isInRange, img->GetScalarType(), img->GetScalarPointer(x, y, z), minVal, maxVal, inRange);
+	return inRange;
 }
 
 bool iAXRFData::CheckFilters(int x, int y, int z, QVector<iASpectrumFilter> const & filter, iAFilterMode mode) const

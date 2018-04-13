@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,10 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iAConnectedComponentFilters.h"
 
 #include "iAConnector.h"
+#include "defines.h" // for DIM
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
@@ -29,147 +29,129 @@
 #include <itkScalarConnectedComponentImageFilter.h>
 #include <itkRelabelComponentImageFilter.h>
 
-#include <vtkImageData.h>
+#include <QFileDialog>
+#include <QMessageBox>
 
-#include <QLocale>
-
-/**
-* Simple connected component filter template initializes itk******* .
-* \param	c		Switch on fully connected. 
-* \param	p		Filter progress information. 
-* \param	image	Input image. 
-* \param	T		Template datatype. 
-* \return	int		Status code 
-*/
 template<class T> 
-int SimpleConnectedComponentFilter_template(int c, iAProgress* p, iAConnector* image )
+void SimpleConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< unsigned short, 3 >   OutputImageType;
-
+	typedef itk::Image<T, DIM>   InputImageType;
+	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::ConnectedComponentImageFilter< InputImageType, OutputImageType > CCIFType;
-	typename CCIFType::Pointer filter = CCIFType::New();
-	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-	filter->SetBackgroundValue(0);
-
-	if ( c == 2 )
-		filter->FullyConnectedOn();
-	else
-		filter->FullyConnectedOff();
-
-	p->Observe( filter );
-
-	filter->Update(); 
-
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-
-	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
+	typename CCIFType::Pointer ccFilter = CCIFType::New();
+	ccFilter->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()) );
+	ccFilter->SetBackgroundValue(0);
+	ccFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
+	filter->Progress()->Observe(ccFilter);
+	ccFilter->Update();
+	filter->AddOutput(ccFilter->GetOutput());
 }
 
-/**
-* Scalar connected component filter template initializes itk******* .
-* \param	distTreshold	Distance treshold value.
-* \param	p		Filter progress information.
-* \param	image	Input image.
-* \param	T		Template datatype.
-* \return	int		Status code
-*/
-template<class T> 
-int ScalarConnectedComponentFilter_template( double distTreshold, iAProgress* p, iAConnector* image )
+void iASimpleConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< long, 3 >   OutputImageType;
+	ITK_TYPED_CALL(SimpleConnectedComponentFilter, InputPixelType(), this, parameters);
+}
 
+IAFILTER_CREATE(iASimpleConnectedComponents)
+
+iASimpleConnectedComponents::iASimpleConnectedComponents() :
+	iAFilter("Connected Component Filter", "Connected Component Filters",
+		"Assigns each distinct object in a binary image a unique label.<br/>"
+		"Non-zero pixels are considered to be objects, zero-valued pixels are "
+		"considered to be background).<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ConnectedComponentImageFilter.html\">"
+		"Connected Component Filter</a> in the ITK documentation.")
+{
+	AddParameter("Fully Connected", Boolean, false);
+}
+
+
+template<class T> 
+void ScalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+{
+	typedef itk::Image<T, DIM>   InputImageType;
+	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::ScalarConnectedComponentImageFilter< InputImageType, OutputImageType > SCCIFType;
-	typename SCCIFType::Pointer filter = SCCIFType::New();
-	filter->SetInput( dynamic_cast<InputImageType *>(image->GetITKImage()) );
-	filter->SetDistanceThreshold( distTreshold );
-
-	p->Observe( filter );
-
-	filter->Update();
-
-	image->SetImage( filter->GetOutput() );
-	image->Modified();
-
-	filter->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
+	typename SCCIFType::Pointer sccFilter = SCCIFType::New();
+	sccFilter->SetInput( dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()) );
+	sccFilter->SetDistanceThreshold(parameters["Distance Threshold"].toDouble());
+	filter->Progress()->Observe(sccFilter);
+	sccFilter->Update();
+	filter->AddOutput(sccFilter->GetOutput());
 }
 
-/**
-* Simple relabel component image filte template initializes itk******* .
-* \param	w		The width. 
-* \param	s		minimum object size. 
-* \param	f		The format string. 
-* \param	p		Filter progress information. 
-* \param	image	Input image. 
-* \param	T		Template datatype. 
-* \return	int		Status code  
-*/
-template<class T> 
-int SimpleRelabelComponentImageFilter_template( bool w, int s, QString f, iAProgress* p, iAConnector* image )
+IAFILTER_CREATE(iAScalarConnectedComponents)
+
+void iAScalarConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< long, 3 >   OutputImageType;
+	ITK_TYPED_CALL(ScalarConnectedComponentFilter, InputPixelType(), this, parameters);
+}
 
+iAScalarConnectedComponents::iAScalarConnectedComponents() :
+	iAFilter("Scalar Connected Component Filter", "Connected Component Filters",
+		"Labels the objects in an arbitrary image.<br/>"
+		"Two pixels are similar if they are within <em>Distance Threshold</em> of each other.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ScalarConnectedComponentImageFilter.html\">"
+		"Scalar Connected Component Filter</a> in the ITK documentation.")
+{
+	AddParameter("Distance Threshold", Continuous, 1);
+}
+
+
+template<class T> 
+void SimpleRelabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+{
+	typedef itk::Image<T, DIM>   InputImageType;
+	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::RelabelComponentImageFilter< InputImageType, OutputImageType > RCIFType;
-	typename RCIFType::Pointer filter = RCIFType::New();
-	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-	filter->SetMinimumObjectSize( s );
-	filter->SetInPlace(true);
-	p->Observe( filter );
-	filter->Update(); 
-
-	if ( w )
+	typename RCIFType::Pointer rccFilter = RCIFType::New();
+	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()) );
+	rccFilter->SetMinimumObjectSize(parameters["Minimum object size"].toInt());
+	rccFilter->SetInPlace(true);
+	filter->Progress()->Observe(rccFilter);
+	rccFilter->Update();
+	if (parameters["Write labels to file"].toBool())
 	{
-		long int no_of_Objects = filter->GetNumberOfObjects();
-
-		//text file writer
+		long int no_of_Objects = rccFilter->GetNumberOfObjects();
 		ofstream myfile;
-		myfile.open(f.toStdString());
+		myfile.open(parameters["Label file"].toString().toStdString());
 		myfile << " Total Objects " << "," << no_of_Objects << endl;
 		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)" << endl;
-
 		for ( int i = 0; i < no_of_Objects; i++ )
-			myfile << i << "," << filter->GetSizeOfObjectsInPhysicalUnits()[i] << endl;
-		
+			myfile << i << "," << rccFilter->GetSizeOfObjectsInPhysicalUnits()[i] << endl;
 		myfile.close();
 	}
-
-	image->SetImage(filter->GetOutput());
-	image->Modified();
-
-	filter->ReleaseDataFlagOn();
-	return EXIT_SUCCESS;
+	filter->AddOutput(rccFilter->GetOutput());
 }
 
-iAConnectedComponentFilters::iAConnectedComponentFilters( QString fn, iAConnCompType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
-{}
+IAFILTER_CREATE(iASimpleRelabelConnectedComponents)
 
-
-void iAConnectedComponentFilters::performWork()
+void iASimpleRelabelConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	switch (m_type)
-	{
-	case SIMPLE_CONNECTED_COMPONENT_FILTER:
-		ITK_TYPED_CALL(SimpleConnectedComponentFilter_template, itkType,
-			c, getItkProgress(), getConnector());
-		break;
-	case SCALAR_CONNECTED_COMPONENT_FILTER:
-		ITK_TYPED_CALL(ScalarConnectedComponentFilter_template, itkType,
-			distTreshold, getItkProgress(), getConnector());
-		break;
-	case SIMPLE_RELABEL_COMPONENT_IMAGE_FILTER:
-		ITK_TYPED_CALL(SimpleRelabelComponentImageFilter_template, itkType,
-			w, s, f, getItkProgress(), getConnector());
-		break;
-	default:
-		addMsg(tr("unknown filter type"));
-	}
+	ITK_TYPED_CALL(SimpleRelabelComponentImageFilter, InputPixelType(), this, parameters);
+}
+
+iASimpleRelabelConnectedComponents::iASimpleRelabelConnectedComponents() :
+	iAFilter("Relabel Components", "Connected Component Filters",
+		"Remaps the labels associated with the objects in an image such that the "
+		"label numbers are consecutive with no gaps.<br/>"
+		"The input could for example be the output of the Simple Connected "
+		"Component Filter. By default, the relabeling will also sort the labels "
+		"based on the size of the object: the largest object will have label #1, "
+		"the second largest will have label #2, etc. If two labels have the same "
+		"size, their initial order is kept. Label #0 is assumed to be the "
+		"background and is left unaltered by the relabeling.<br/>"
+		"If the user sets a <em>Minimum object size</em>, all objects with fewer pixels than "
+		"the minimum will be discarded, so that the number of objects reported "
+		"will be only those remaining. Enabling the option <em>Write labels to file</em>"
+		"will save details of each object to the file specified under <em>Label file.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RelabelComponentImageFilter.html\">"
+		"Relabel Component Filter</a> in the ITK documentation.")
+{
+	AddParameter("Minimum object size", Discrete, 1, 1);
+	AddParameter("Write labels to file", Boolean, false);
+	AddParameter("Label file", String /* should be FileName choice! */, "");
 }

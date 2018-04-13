@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iARangeSliderDiagramView.h"
 
 #include "iARangeSliderDiagramData.h"
@@ -291,17 +289,17 @@ void iARangeSliderDiagramView::setupHistogram()
 	vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 	// Adds two end points to set up a propper transfer function
-	oTF->AddPoint( m_rangeSliderData->GetDataRange()[0], 0 );
-	oTF->AddPoint( m_rangeSliderData->GetDataRange()[1], 0 );
-	cTF->AddRGBPoint( m_rangeSliderData->GetDataRange()[0], 0, 0, 0 );
-	cTF->AddRGBPoint( m_rangeSliderData->GetDataRange()[1], 0, 0, 0 );
+	oTF->AddPoint( m_rangeSliderData->XBounds()[0], 0 );
+	oTF->AddPoint( m_rangeSliderData->XBounds()[1], 0 );
+	cTF->AddRGBPoint( m_rangeSliderData->XBounds()[0], 0, 0, 0 );
+	cTF->AddRGBPoint( m_rangeSliderData->XBounds()[1], 0, 0, 0 );
 	m_oTFList.append( oTF );
 	m_cTFList.append( cTF );
 
 	iARangeSliderDiagramWidget *rangeSliderDiagramWidget = new iARangeSliderDiagramWidget( dynamic_cast<QWidget*> ( parent() ), NULL, m_oTFList.at( 0 ),
 													 m_cTFList.at( 0 ), m_rangeSliderData, &m_histogramMap, m_rawTable,"Porosity", "Frequency" );
 
-	rangeSliderDiagramWidget->AddDataset( m_rangeSliderDiagramDrawer );
+	rangeSliderDiagramWidget->AddPlot( m_rangeSliderDiagramDrawer );
 	m_widgetList.append( rangeSliderDiagramWidget );
 	m_layoutVBMainContainer->addWidget( rangeSliderDiagramWidget );
 }
@@ -335,10 +333,10 @@ void iARangeSliderDiagramView::setupDiagrams()
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();;
 		// Adds two end points to set up a propper transfer function
-		oTF->AddPoint( m_rangeSliderData->GetDataRange()[0], 0 );
-		oTF->AddPoint( m_rangeSliderData->GetDataRange()[1], 0 );
-		cTF->AddRGBPoint( m_rangeSliderData->GetDataRange()[0], 0, 0, 0 );
-		cTF->AddRGBPoint( m_rangeSliderData->GetDataRange()[1], 0, 0, 0 );
+		oTF->AddPoint( m_rangeSliderData->XBounds()[0], 0 );
+		oTF->AddPoint( m_rangeSliderData->XBounds()[1], 0 );
+		cTF->AddRGBPoint( m_rangeSliderData->XBounds()[0], 0, 0, 0 );
+		cTF->AddRGBPoint( m_rangeSliderData->XBounds()[1], 0, 0, 0 );
 		m_oTFList.append( oTF );
 		m_cTFList.append( cTF );
 
@@ -350,7 +348,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 		connect( m_widgetList[0], SIGNAL( deselected() ), rangeSliderDiagramWidget, SLOT( deleteSlot() ) );
 		connect( rangeSliderDiagramWidget, SIGNAL( selectionRelesedSignal() ), this, SLOT( loadSelectionToSPMView() ) );
 
-		rangeSliderDiagramWidget->AddDataset( m_rangeSliderDiagramDrawer );
+		rangeSliderDiagramWidget->AddPlot( m_rangeSliderDiagramDrawer );
 		m_widgetList.append( rangeSliderDiagramWidget );
 		m_layoutVBMainContainer->addWidget( rangeSliderDiagramWidget );
 	}

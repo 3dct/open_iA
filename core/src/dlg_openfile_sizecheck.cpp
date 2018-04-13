@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_openfile_sizecheck.h"
+
 #include "iAToolsVTK.h"
 
 #include <QComboBox>
@@ -30,8 +29,8 @@
 #include <QObject>
 
 
-dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr, QString fileName, int extentIndex1, int extentIndex2, int extentIndex3, int datatypeIndex, bool modal) :
-	dlg_commoninput(parent, winTitle, inList, inPara, fDescr, modal)
+dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr, QString fileName, int extentIndex1, int extentIndex2, int extentIndex3, int datatypeIndex) :
+	dlg_commoninput(parent, winTitle, inList, inPara, fDescr)
 {
 	this->isVolumeStack = isVolumeStack;
 	QFileInfo info1(fileName);
@@ -48,18 +47,19 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *pare
 	gridLayout->addWidget(buttonBox, inList.size()+2, 0, 1, 1);
 		
 
-	if (!isVolumeStack) {
-		connect(this->findChild<QLineEdit*>(widgetList[0]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QLineEdit*>(widgetList[1]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QLineEdit*>(widgetList[2]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QComboBox*>(widgetList[10]), SIGNAL(currentIndexChanged (int)), this, SLOT(CheckFileSize()));
+	if (!isVolumeStack)
+	{
+		connect(qobject_cast<QLineEdit*>(widgetList[0]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QLineEdit*>(widgetList[1]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QLineEdit*>(widgetList[2]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QComboBox*>(widgetList[10]), SIGNAL(currentIndexChanged (int)), this, SLOT(CheckFileSize()));
 	}
-
-	else {
-		connect(this->findChild<QLineEdit*>(widgetList[5]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QLineEdit*>(widgetList[6]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QLineEdit*>(widgetList[7]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
-		connect(this->findChild<QComboBox*>(widgetList[14]), SIGNAL(currentIndexChanged (int)), this, SLOT(CheckFileSize()));
+	else
+	{
+		connect(qobject_cast<QLineEdit*>(widgetList[5]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QLineEdit*>(widgetList[6]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QLineEdit*>(widgetList[7]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
+		connect(qobject_cast<QComboBox*>(widgetList[14]), SIGNAL(currentIndexChanged (int)), this, SLOT(CheckFileSize()));
 	}
 	
 	CheckFileSize();
@@ -73,14 +73,14 @@ void dlg_openfile_sizecheck::CheckFileSize()
 	size_t proposedSize;
 
 	if (!isVolumeStack) {
-		extent[0] = getValues()[0]; extent[1]= getValues()[1]; extent[2] = getValues()[2];     
-		voxelSize = MapVTKTypeStringToSize(getComboBoxValues()[10]);
+		extent[0] = getDblValue(0); extent[1]= getDblValue(1); extent[2] = getDblValue(2);
+		voxelSize = MapVTKTypeStringToSize(getComboBoxValue(10));
 		proposedSize = extent[0]*extent[1]*extent[2]*voxelSize;
 	}
 	else 
 	{
-		extent[0] = getValues()[5]; extent[1]= getValues()[6]; extent[2] = getValues()[7];
-		voxelSize = MapVTKTypeStringToSize(getComboBoxValues()[14]);
+		extent[0] = getDblValue(5); extent[1]= getDblValue(6); extent[2] = getDblValue(7);
+		voxelSize = MapVTKTypeStringToSize(getComboBoxValue(14));
 		proposedSize = extent[0]*extent[1]*extent[2]*voxelSize;
 	}
 	proposedSizeLabel->setText("Predicted file size: " + QString::number(proposedSize) + " bytes");

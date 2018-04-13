@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iAImageSampler.h"
 
 #include "iAAttributes.h"
@@ -56,6 +55,9 @@ iAImageSampler::iAImageSampler(
 		QString const & computationExecutable,
 		QString const & additionalArguments,
 		QString const & pipelineName,
+		QString const & imageBaseName,
+		bool separateOutputDir,
+		bool calculateChar,
 		int samplingID) :
 	m_modalities(modalities),
 	m_parameters(parameters),
@@ -75,7 +77,10 @@ iAImageSampler::iAImageSampler(
 	m_runningOperations(0),
 	m_computationDuration(0),
 	m_derivedOutputDuration(0),
-	m_samplingID(samplingID)
+	m_samplingID(samplingID),
+	m_imageBaseName(imageBaseName),
+	m_separateOutputDir(separateOutputDir),
+	m_calculateCharacteristics(calculateChar)
 {
 }
 
@@ -91,6 +96,16 @@ void iAImageSampler::StatusMsg(QString const & msg)
 void iAImageSampler::run()
 {
 	m_overallTimer.start();
+	if (!QFile(m_executable).exists())
+	{
+		DEBUG_LOG("Executable doesn't exist!");
+		return;
+	}
+	if (m_parameters->size() == 0)
+	{
+		DEBUG_LOG("Algorithm has no parameters, nothing to sample!");
+		return;
+	}
 	StatusMsg("Generating sampling parameter sets...");
 	m_parameterSets = m_sampleGenerator->GetParameterSets(m_parameters, m_sampleCount);
 	if (!m_parameterSets)
@@ -98,7 +113,6 @@ void iAImageSampler::run()
 		DEBUG_LOG("No Parameters available!");
 		return;
 	}
-
 	m_parameterCount = m_parameters->Count(iAAttributeDescriptor::Parameter);
 
 	QStringList additionalArgumentList = SplitPossiblyQuotedString(m_additionalArguments);
@@ -137,14 +151,19 @@ void iAImageSampler::run()
 			break;
 		}
 		StatusMsg(QString("Sampling run %1.").arg(m_curLoop));
-		QString outputDirectory = m_outputBaseDir + "/sample" + QString::number(m_curLoop);
+		QString outputDirectory = m_separateOutputDir ?
+			m_outputBaseDir + "/sample" + QString::number(m_curLoop) :
+			m_outputBaseDir;
 		QDir d(QDir::root());
-		if (!d.mkpath(outputDirectory))
+		if (!QDir(outputDirectory).exists() && !d.mkpath(outputDirectory))
 		{
 			DEBUG_LOG(QString("Could not create output directory '%1'").arg(outputDirectory));
 			return;
 		}
-		QString outputFile = outputDirectory + "/label.mhd";
+		QFileInfo fi(m_imageBaseName);
+		QString outputFile = outputDirectory + "/" + (m_separateOutputDir ?
+			m_imageBaseName :
+			QString("%1%2.%3").arg(fi.baseName()).arg(m_curLoop).arg(fi.completeSuffix()));
 		QStringList argumentList;
 		argumentList << additionalArgumentList;
 		argumentList << outputFile;
@@ -157,7 +176,7 @@ void iAImageSampler::run()
 		for (int i = 0; i < m_parameterCount; ++i)
 		{
 			QString value;
-			switch (m_parameters->at(i)->GetValueType())
+			switch (m_parameters->at(i)->ValueType())
 			{
 			case Continuous:
 				value = QString::number(paramSet.at(i), 'g', 12);
@@ -166,7 +185,7 @@ void iAImageSampler::run()
 				value = QString::number(static_cast<long>(paramSet.at(i)));
 				break;
 			case Categorical:
-				value = m_parameters->at(i)->GetNameMapper()->GetName(static_cast<long>(paramSet.at(i)));
+				value = m_parameters->at(i)->NameMapper()->GetName(static_cast<long>(paramSet.at(i)));
 				break;
 			}
 			argumentList << value;
@@ -227,15 +246,31 @@ void iAImageSampler::computationFinished()
 	result->SetAttribute(m_parameterCount+2, computationTime);
 	m_results->GetAttributes()->at(m_parameterCount+2)->AdjustMinMax(computationTime);
 
-	// TODO: use external programs to calculate derived output!
-	iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator (result, m_parameterCount, m_parameterCount+1, m_labelCount);
-	m_runningDerivedOutput.insert(newCharCalc, result);
-	connect(newCharCalc, SIGNAL(finished()), this, SLOT(derivedOutputFinished()) );
-	newCharCalc->start();
-
+	if (m_calculateCharacteristics)
+	{
+		// TODO: use external programs to calculate derived output!
+		iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator(result, m_parameterCount, m_parameterCount + 1, m_labelCount);
+		m_runningDerivedOutput.insert(newCharCalc, result);
+		connect(newCharCalc, SIGNAL(finished()), this, SLOT(derivedOutputFinished()));
+		newCharCalc->start();
+	}
+	else
+	{
+		QString sampleMetaFile = m_outputBaseDir + "/" + m_parameterRangeFile;
+		QString parameterSetFile = m_outputBaseDir + "/" + m_parameterSetFile;
+		QString derivedOutputFile = m_outputBaseDir + "/" + m_derivedOutputFile;
+		m_results->AddResult(result);
+		emit Progress((100 * m_results->size()) / m_parameterSets->size());
+		if (!m_results->Store(sampleMetaFile, parameterSetFile, derivedOutputFile))
+		{
+			DEBUG_LOG("Error writing parameter file.");
+		}
+	}
 	m_runningComputation.remove(cmd);
 	delete cmd;
-
+	m_mutex.lock();
+	m_runningOperations--;
+	m_mutex.unlock();
 }
 
 

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,30 +21,20 @@
 #pragma once
 
 #include "iAChannelID.h"
-#include "iAChannelVisualizationData.h"
 #include "open_iA_Core_export.h"
-#include "iASlicer.h"
-#include "iAWrapperText.h"
+#include "iASlicerMode.h"
 
-#include <vtkRenderWindowInteractor.h>
-#include <vtkDiskSource.h>
 #include <vtkSmartPointer.h>
 
-#include <QThread>
-#include <QLocale>
-#include <QDateTime>
+#include <QCursor>
+#include <QMap>
 #include <QSharedPointer>
 
-#include <string>
-#include <QMdiSubWindow>
-#include "mainwindow.h"
-#include "ui_sliceXY.h"
-#include "ui_sliceXZ.h"
-#include "ui_sliceYZ.h"
-
 class vtkActor;
+class vtkAlgorithmOutput;
 class vtkCamera;
-class vtkColorTransferFunction;
+class vtkScalarsToColors;
+class vtkDiskSource;
 class vtkGenericOpenGLRenderWindow;
 class vtkImageActor;
 class vtkImageData;
@@ -67,10 +57,14 @@ class vtkTextProperty;
 class vtkTextActor3D;
 class vtkTransform;
 
-class iARulerWidget;
-class iAMagicLens;
-
+class iAChannelSlicerData;
+class iAChannelVisualizationData;
 class iAInteractorStyleImage;
+class iAMagicLens;
+class iARulerWidget;
+class iASingleSlicerSettings;
+class iASlicer;
+class iAWrapperText;
 
 /**
  * \brief	implements a slicer widget
@@ -84,8 +78,8 @@ public:
 	iASlicerData( iASlicer const * slicerMaster, QObject * parent = 0, bool decorations=true);
 	virtual ~iASlicerData();
 
-	void initialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool showIsoLines = false, bool showPolygon = false );
-	void reInitialize( vtkImageData *ds, vtkTransform *tr, vtkColorTransferFunction* ctf, bool showIsoLines = false, bool showPolygon = false );
+	void initialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
+	void reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool showisolines = false, bool showpolygon = false);
 	void changeImageData(vtkImageData *idata);
 	void setup(iASingleSlicerSettings const & settings);
 	
@@ -104,6 +98,7 @@ public:
 
 	void setResliceAxesOrigin(double x, double y, double z);
 	void setSliceNumber(int sliceNumber);
+	int getSliceNumber() const;
 	//! set the position of the position marker (in slicer coordinates)
 	void setPositionMarkerCenter(double x, double y);
 	void setContours(int n, double mi, double ma);
@@ -112,16 +107,15 @@ public:
 	void setShowText(bool isVisible);
 	void setMouseCursor( QString s );
 
-	void disableInteractor() { interactor->Disable(); disabled = true; }
-	void enableInteractor() { interactor->ReInitialize(); disabled = false; }
+	void disableInteractor();
+	void enableInteractor();
 	void showIsolines(bool s);
 	void showPosition(bool s);	
 	void saveMovie(QString& fileName, int qual = 2);
 	void update();
 
-	void updateROI();
-	void setROI(int r[6]) { roi = r; };
-	void SetROIVisibility(bool visible);
+	void UpdateROI(int const r[6]);
+	void SetROIVisible(bool visible);
 
 	vtkImageReslice *GetReslicer() { return reslicer; }
 	vtkRenderWindowInteractor* GetInteractor() { return interactor; };
@@ -129,6 +123,7 @@ public:
 	vtkRenderer* GetRenderer();
 	vtkCamera* GetCamera();
 	void SetCamera(vtkCamera* camera, bool camOwner=true);
+	void ResetCamera();
 	vtkImageData* GetImageData() const { return imageData; };
 
 	iASlicerMode getMode() const { return m_mode; }
@@ -155,6 +150,10 @@ public:
 	vtkScalarBarWidget * GetScalarWidget();
 	vtkImageActor* GetImageActor();
 	QCursor getMouseCursor();
+
+	vtkScalarsToColors * GetColorTransferFunction();
+
+	int getSliceNumber(); // for fisheye transformation
 
 protected:
 	void UpdateResliceAxesDirectionCosines();
@@ -208,7 +207,7 @@ private:
 
 	vtkImageReslice* reslicer;
 	vtkImageData* imageData;
-	vtkColorTransferFunction* colorTransferFunction;
+	vtkScalarsToColors* colorTransferFunction;
 	vtkImageMapToColors* colormapper;
 	vtkImageActor* imageActor;
 	vtkPointPicker* pointPicker;
@@ -245,7 +244,8 @@ private:
 	vtkSmartPointer<vtkPlaneSource> roiSource;
 	vtkSmartPointer<vtkPolyDataMapper> roiMapper;
 	vtkSmartPointer<vtkActor> roiActor;
-	int *roi;
+	bool roiActive;
+	int roiSlice[2];
 
 	vtkSmartPointer<vtkTransform> axisTransform[2];
 	vtkSmartPointer<vtkTextActor3D> axisTextActor[2];
@@ -268,6 +268,9 @@ private:
 
 	bool m_userSetBackground;
 	double rgb[3];
+
+
+	int m_sliceNumber; // for fisheye transformation
 
 	//mouse move
 	double m_ptMapped[3];

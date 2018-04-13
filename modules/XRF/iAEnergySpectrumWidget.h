@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,15 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iADiagramFctWidget.h"
+#include "charts/iADiagramFctWidget.h"
 
 #include <QRubberBand>
 #include <QMap>
 
-class iAAbstractDiagramData;
 class iAAccumulatedXRFData;
-class iASpectrumFilterListener;
 struct iACharacteristicEnergy;
+class iAPlotData;
+class iASpectrumFilterListener;
 
 class iAEnergySpectrumWidget: public iADiagramFctWidget
 {
@@ -39,21 +39,17 @@ public:
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
 		QString const & xLabel);
-	virtual QSharedPointer<iAAbstractDiagramRangedData> GetData();
-	virtual QSharedPointer<iAAbstractDiagramRangedData> const GetData() const;
 	void AddElementLines(iACharacteristicEnergy* element, QColor const & color);
 	void RemoveElementLines(iACharacteristicEnergy* element);
 protected:
-	virtual void mousePressEvent(QMouseEvent *event);
-	virtual void mouseReleaseEvent(QMouseEvent *event);
-	virtual void mouseMoveEvent(QMouseEvent *event);
-	virtual void drawDatasets(QPainter& painter);
+	void mousePressEvent(QMouseEvent *event) override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
+	void mouseMoveEvent(QMouseEvent *event) override;
+	void DrawAfterPlots(QPainter& painter) override;
 private:
 	void NotifySelectionUpdateListener();
 
 	QSharedPointer<iAAccumulatedXRFData>	m_data;
-
-	QSharedPointer<iAAbstractDrawableFunction> CreatePrimaryDrawer();
 
 	QPoint selectionOrigin;
 	QRubberBand* selectionRubberBand;

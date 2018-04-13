@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,51 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-enum iAFreeBeamCalculationType
-{
-	FREEBEAMCALCULATION,
-};
-
-/**
- * FreeBeamCalculation filter
- * refer to http://www.itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html#_details.
- */
-class iAFreeBeamCalculation : public iAAlgorithm
-{
-public:
-	iAFreeBeamCalculation(QString fn, iAFreeBeamCalculationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0);
-
-	/**
-	 * Sets an e parameters.
-	 * \param	oX	Origin x coordinate.
-	 * \param	oY	Origin y coordinate.
-	 * \param	oZ	Origin z coordinate.
-	 * \param	sX	Size x coordinate.
-	 * \param	sY	Size y coordinate.
-	 * \param	sZ	Size z coordinate.
-	 * \param	d	Dimensions.
-	 */
-
-	void setEParameters(double oX, double oY, double oZ,
-		double sX, double sY, double sZ, bool mmfbi, int mmfbiv)
-	{
-		originX = oX;
-		originY = oY;
-		originZ = oZ;
-		sizeX = sX;
-		sizeY = sY;
-		sizeZ = sZ;
-		manualMeanFreeBeamIntensity = mmfbi;
-		manualMeanFreeBeamIntensityValue = mmfbiv;
-	}
-
-protected:
-	virtual void performWork();
-private:
-	double originX, originY, originZ, spacingX, spacingY, spacingZ, sizeX, sizeY, sizeZ;
-	bool manualMeanFreeBeamIntensity;
-	int manualMeanFreeBeamIntensityValue;
-	iAFreeBeamCalculationType m_operation;
-};
+IAFILTER_DEFAULT_CLASS(iAFreeBeamCalculation);

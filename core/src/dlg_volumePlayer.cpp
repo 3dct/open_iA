@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,12 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_volumePlayer.h"
 
 #include "dlg_commoninput.h"
-#include "dlg_openfile_sizecheck.h"
 #include "iAChannelID.h"
 #include "iAChannelVisualizationData.h"
 #include "iARenderer.h"
@@ -32,7 +29,7 @@
 #include "mdichild.h"
 
 #include <vtkImageData.h>
-#include <vtkImageAccumulate.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
 
 #include <QCheckBox>
@@ -43,19 +40,15 @@ const float TIMER_MAX_SPEED = 50.0f;	// frames per second
 const int SECONDS_TO_MILISECONDS = 1000;
 const int DIVISIONS_PER_VOLUME = 200;
 
-dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, vtkImageData* src, vtkImageAccumulate* accum, QString Filename, iAVolumeStack* volumeStack) 
+dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	: QDockWidget(parent),
-	m_parent(parent),
 	m_mask(0),
 	m_volumeStack(volumeStack),
 	m_multiChannelIsInitialized(false)
 {
 	setupUi(this);
-
 	m_isBlendingOn = blending->isChecked();
-
 	m_mdiChild = dynamic_cast<MdiChild*>(parent);
-
 	m_numberOfVolumes=m_volumeStack->getNumberOfVolumes();
 	for (int i = 0; i < m_numberOfVolumes; i++) {
 		showVolume(i);
@@ -212,10 +205,10 @@ void dlg_volumePlayer::editMaxSpeed() {
 	QStringList inList		= (QStringList() << tr("#Speed (one step/msec)"));
 	QList<QVariant> inPara	= (QList<QVariant>() << tr("%1").arg(getCurrentSpeed()));
 
-	dlg_commoninput *dlg = new dlg_commoninput (m_parent, "Set speed", inList, inPara, NULL);
+	dlg_commoninput dlg(m_mdiChild, "Set speed", inList, inPara, NULL);
 	
-	if (dlg->exec() == QDialog::Accepted){
-		float speed = (float)dlg->getValues()[0];
+	if (dlg.exec() == QDialog::Accepted){
+		float speed = (float)dlg.getDblValue(0);
 		m_timer.setInterval((int)((1/speed) * SECONDS_TO_MILISECONDS));
 		this->speedValue->setText(QString::number(speed, 'f', 2));
 	}

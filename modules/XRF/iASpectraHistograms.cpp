@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,15 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iASpectraHistograms.h"
+
+#include "iATypedCallHelper.h"
 #include "iAXRFData.h"
 
 #include <vtkImageData.h>
 
 #include <cassert>
-
 
 iASpectraHistograms::iASpectraHistograms(QSharedPointer<iAXRFData> xrfData, long numBins, double minCount, double maxCount ) :
 		m_xrfData(xrfData),
@@ -49,8 +48,9 @@ iASpectraHistograms::~iASpectraHistograms()
 }
 
 template <typename T>
-void computeHistogram(T* data, long & count, double & binWidth, CountType * histData_out, double * range)
+void computeHistogram(void* scalarPtr, long & count, double & binWidth, CountType * histData_out, double * range)
 {
+	T* data = static_cast<T*>(scalarPtr);
 	for (long i=0; i<count; ++i)
 	{
 		double bin = ( (double)data[i] - range[0] ) / binWidth;
@@ -86,47 +86,8 @@ void iASpectraHistograms::computeHistograms( )
 		curImg->GetExtent(extent);
 		assert( ((extent[1]-extent[0]+1) * (extent[3]-extent[2]+1) * (extent[5]-extent[4]+1)) == count );
 		// end checks
-		void * scalarPtr = curImg->GetScalarPointer();
 		int type = curImg->GetScalarType();
-		switch (type)
-		{
-		case VTK_CHAR:
-			computeHistogram<char>(static_cast<char*>(scalarPtr), count, m_binWidth, curHistPtr, m_countRange);
-			break;
-		case VTK_SIGNED_CHAR:
-			computeHistogram<char>(static_cast<char*>(scalarPtr), count, m_binWidth, curHistPtr, m_countRange);
-			break;
-		case VTK_UNSIGNED_CHAR:
-			computeHistogram<unsigned char>(static_cast<unsigned char*>(scalarPtr), count, m_binWidth, curHistPtr, m_countRange);
-			break;
-		case VTK_SHORT:
-			computeHistogram<short>(static_cast<short*>(scalarPtr), count, m_binWidth, curHistPtr, m_countRange);
-			break;
-		case VTK_UNSIGNED_SHORT:
-			computeHistogram<unsigned short>(static_cast<unsigned short*>(scalarPtr), count, m_binWidth, curHistPtr, m_countRange);
-			break;
-		case VTK_INT:
-			computeHistogram<int>(static_cast<int*>(scalarPtr), count, m_binWidth, curHistPtr, m_countRange);
-			break;
-		case VTK_UNSIGNED_INT:
-			computeHistogram<unsigned int>(static_cast<unsigned int*>(scalarPtr), count, m_binWidth, curHistPtr, m_countRange);
-			break;
-		case VTK_LONG:
-			computeHistogram<long>(static_cast<long*>(scalarPtr), count, m_binWidth, curHistPtr, m_countRange);
-			break;
-		case VTK_UNSIGNED_LONG:
-			computeHistogram<unsigned long>(static_cast<unsigned long*>(scalarPtr), count, m_binWidth, curHistPtr, m_countRange);
-			break;
-		case VTK_FLOAT:
-			computeHistogram<float>(static_cast<float*>(scalarPtr), count, m_binWidth, curHistPtr, m_countRange);
-			break;
-		case VTK_DOUBLE:
-			computeHistogram<double>(static_cast<double*>(scalarPtr), count, m_binWidth, curHistPtr, m_countRange);
-			break;
-		default:
-			// TODO: LOG ERROR!
-			break;
-		}
+		VTK_TYPED_CALL(computeHistogram, type, curImg->GetScalarPointer(), count, m_binWidth, curHistPtr, m_countRange);
 		curHistPtr += m_numBins;
 		++it;
 		++i;	

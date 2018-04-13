@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,8 +22,11 @@
 
 //#define iALookupTable_USE_VTK //!! uncomment if you want to allow VTK lookup table input
 
+#include <QColor>
 #include <QList>
 #include <vtkLookupTable.h>
+
+#include "iAMathUtility.h"
 
 //! Class representing lookup table for color coding used in scatter plot matrix (SPLOM).
 /*!
@@ -64,25 +67,11 @@ public:
 	//!  Map a scalar value into an RGBA color.
 	void getColor( double val, double * rgba_out )
 	{
-		if( val  < m_range[0] )
-		{
-			for( unsigned long i = 0; i < 4; ++i )
-				rgba_out[i] = m_data[i];
-		}
-		else if( val > m_range[1] )
-		{
-			unsigned long offset = m_data.size() - 4;
-			for( unsigned long i = 0; i < 4; ++i )
-				rgba_out[i] = m_data[offset + i];
-		}
-		else
-		{
-			double t = ( val - m_range[0] ) / m_rangeLen;
-			unsigned long index = t * m_numColors;
-			index *= 4;
-			for( unsigned long i = 0; i < 4; ++i )
-				rgba_out[i] = m_data[index++];
-		}
+		double t = ( val - m_range[0] ) / m_rangeLen;
+		int index = clamp(0ul, m_numColors-1, static_cast<unsigned long>(t * m_numColors));
+		index *= 4;
+		for( unsigned long i = 0; i < 4; ++i )
+			rgba_out[i] = m_data[index++];
 	}
 
 	//!  Allocate place for a given number of colors and fill with zeros.

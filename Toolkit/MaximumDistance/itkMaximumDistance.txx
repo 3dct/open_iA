@@ -202,21 +202,21 @@ namespace itk
 	}
 
 	template<class TInputImage>
-	void MaximumDistance<TInputImage>::GetThreshold(int* thresh_ptr)
+	int MaximumDistance<TInputImage>::GetOutThreshold()
 	{
-		*thresh_ptr = (int) (this->m_Threshold);
+		return (int) (this->m_Threshold);
 	}
 
 	template<class TInputImage>
-	void MaximumDistance<TInputImage>::GetLowIntensity(int* li_ptr)
+	int MaximumDistance<TInputImage>::GetLowIntensity()
 	{
-		*li_ptr = (int) ((this->m_low_intensity + 0.5) * (this->m_Bins));
+		return (int) ((this->m_low_intensity + 0.5) * (this->m_Bins));
 	}
 
 	template<class TInputImage>
-	void MaximumDistance<TInputImage>::GetHighIntensity(int* hi_ptr)
+	int MaximumDistance<TInputImage>::GetHighIntensity()
 	{
-		*hi_ptr = (int) ((this->m_high_intensity + 0.5) * (this->m_Bins));
+		return (int) ((this->m_high_intensity + 0.5) * (this->m_Bins));
 	}
 
 	//  Software Guide : EndCodeSnippet

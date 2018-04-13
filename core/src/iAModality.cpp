@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,27 +18,29 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iAModality.h"
 
 #include "iAImageCoordinate.h"
 #include "iAModalityTransfer.h"
 #include "iASettings.h"
 #include "iAStringHelper.h" // for Str2Vec3D
+#include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
 
 #include <vtkImageData.h>
 #include <vtkVolume.h>
 
 #include <cassert>
+#include <limits>
 
-iAModality::iAModality(QString const & name, QString const & filename, int channel, vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
+iAModality::iAModality(QString const & name, QString const & filename, int channel,
+	vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
 	m_name(name),
 	m_filename(filename),
 	renderFlags(renderFlags),
 	m_channel(channel),
-	m_imgs(1)
+	m_imgs(1),
+	m_VolSettingsSavedStatus(false)
 {
 	SetData(imgData);
 }
@@ -49,7 +51,8 @@ iAModality::iAModality(QString const & name, QString const & filename, std::vect
 	m_filename(filename),
 	renderFlags(renderFlags),
 	m_channel(-1),
-	m_imgs(imgs)
+	m_imgs(imgs),
+	m_VolSettingsSavedStatus(false)
 {
 	SetData(imgs[0]);
 }
@@ -87,6 +90,7 @@ QString iAModality::GetTransferFileName() const
 void iAModality::SetName(QString const & name)
 {
 	m_name = name;
+	assert(m_transfer);
 }
 
 void iAModality::SetFileName(QString const & fileName)
@@ -158,6 +162,12 @@ QString iAModality::GetImageName(int componentIdx)
 	return name;
 }
 
+iAImageInfo const & iAModality::Info() const
+{
+	assert(m_transfer);
+	return m_transfer->Info();
+}
+
 bool iAModality::hasRenderFlag(RenderFlag loc) const
 {
 	return (renderFlags & loc) == loc;
@@ -169,24 +179,15 @@ int iAModality::RenderFlags() const
 	return renderFlags;
 }
 
-void iAModality::SetTransfer(QSharedPointer<iAModalityTransfer> transfer)
-{
-	// TODO: VOLUME: rewrite / move to iAModalityTransfer constructor if possible!
-	m_transfer = transfer;
-}
-
 void iAModality::LoadTransferFunction()
 {
-	if (tfFileName.isEmpty())
-	{
-		return;
-	}
-	Settings s(tfFileName);
-	s.LoadTransferFunction(GetTransfer().data(), GetImage()->GetScalarRange());
+	iASettings s(tfFileName);
+	s.LoadTransferFunction(GetTransfer().data());
 }
 
 QSharedPointer<iAModalityTransfer> iAModality::GetTransfer()
 {
+	assert(m_transfer);
 	return m_transfer;
 }
 
@@ -213,6 +214,18 @@ QSharedPointer<iAVolumeRenderer> iAModality::GetRenderer()
 	return m_renderer;
 }
 
+void iAModality::UpdateRenderer()
+{
+	GetRenderer()->SetImage(GetTransfer().data(), GetImage());
+}
+
+template <typename T>
+void getTypeMinMaxRange(double & minR, double & maxR)
+{
+	minR = std::numeric_limits<T>::lowest();
+	maxR = std::numeric_limits<T>::max();
+}
+
 void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 {
 	assert(imgData);
@@ -221,6 +234,9 @@ void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 	imgData->GetExtent(extent);
 	m_converter = QSharedPointer<iAImageCoordConverter>(new iAImageCoordConverter(
 		extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1));
+	double maxRange[2];
+	VTK_TYPED_CALL(getTypeMinMaxRange, imgData->GetScalarType(), maxRange[0], maxRange[1])
+	m_transfer = QSharedPointer<iAModalityTransfer>(new iAModalityTransfer(maxRange));
 }
 
 
@@ -242,3 +258,52 @@ QString iAModality::GetPositionString()
 {
 	return m_renderer ? Vec3D2String(m_renderer->GetPosition()) : QString();
 }
+
+void iAModality::ComputeHistogramData(size_t numBin)
+{
+	m_transfer->ComputeHistogramData(GetImage(), numBin);
+}
+
+void iAModality::ComputeImageStatistics()
+{
+	m_transfer->ComputeStatistics(GetImage());
+	if (!tfFileName.isEmpty())
+	{
+		LoadTransferFunction();
+		tfFileName = "";
+	}
+}
+
+QSharedPointer<iAHistogramData> const iAModality::GetHistogramData() const
+{
+	return m_transfer->GetHistogramData();
+}
+
+void iAModality::setVolSettings(const iAVolumeSettings &volSettings)
+{
+	this->m_volSettings = volSettings; 
+	this->m_VolSettingsSavedStatus = true; 
+}
+
+const iAVolumeSettings &iAModality::getVolumeSettings() const
+{
+	return this->m_volSettings;
+}
+
+
+
+// iAHistogramUpdater
+
+void iAHistogramUpdater::run()
+{
+	m_modality->ComputeImageStatistics();
+	emit StatisticsReady(m_modalityIdx);
+	m_modality->ComputeHistogramData(m_binCount);
+	emit HistogramReady(m_modalityIdx);
+}
+
+iAHistogramUpdater::iAHistogramUpdater(int modalityIdx, QSharedPointer<iAModality> modality, size_t binCount) :
+	m_modalityIdx(modalityIdx),
+	m_modality(modality),
+	m_binCount(binCount)
+{}

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,12 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iADropPipelineWidget.h"
+
 #include "PorosityAnalyserHelpers.h"
-#include "dlg_ParamSpaceSampling.h"
+
 #include "defines.h"
+#include "dlg_ParamSpaceSampling.h"
 
 #include <QDrag>
 #include <QDragEnterEvent>
@@ -284,7 +284,7 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 		{
 			QString nosnows_filterParam = inList[j];
 			nosnows_filterParam.remove( " " );	
-			double value = dlg.getValues()[j];
+			double value = dlg.getValue(j);
 			unionList.append( inList[j] + " " + QString::number( value ) );
 			settings.setValue( pipelinePresetsPath + filterName + "/" + nosnows_filterParam, value );
 		}
@@ -315,6 +315,10 @@ void iADropPipelineWidget::mouseMoveEvent( QMouseEvent *event )
 	{
 		QRect square = targetSquare( event->pos() );
 		int found = findPiece( square );
+		if (found == -1)
+		{
+			return;
+		}
 		int distance = ( event->pos() - startPos ).manhattanLength();
 		if ( distance >= QApplication::startDragDistance() )
 		{

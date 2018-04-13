@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,123 +18,64 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAModalityTransfer.h"
 
-#include "iAHistogramWidget.h"
-#include "iAToolsVTK.h"
+#include "charts/iAHistogramData.h"
 
 #include <vtkColorTransferFunction.h>
-#include <vtkImageAccumulate.h>
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
-#include <QLabel>
-#include <QLayout>
-#include <QLayoutItem>
-#include <QDockWidget>
+#include <cassert>
 
-iAModalityTransfer::iAModalityTransfer(vtkSmartPointer<vtkImageData> imgData, QString const & name, QWidget * parent, int binCount):
-	histogram(0)
+iAModalityTransfer::iAModalityTransfer(double range[2]):
+	m_tfInitialized(false)
 {
-	ctf = GetDefaultColorTransferFunction(imgData);
-	otf = GetDefaultPiecewiseFunction(imgData);
-	accumulate = vtkSmartPointer<vtkImageAccumulate>::New();
-	m_useAccumulate = imgData->GetNumberOfScalarComponents() == 1;
-	if (m_useAccumulate)
-	{
-		accumulate->ReleaseDataFlagOn();
-		UpdateAccumulateImageData(imgData, binCount);
-		histogram = new iAHistogramWidget(parent,
-			/* MdiChild */ 0, // todo: remove!
-			accumulate,
-			otf,
-			ctf,
-			name + QString(" Histogram"),
-			false);
-		histogram->hide();
-	}
+	m_ctf = GetDefaultColorTransferFunction(range);
+	m_otf = GetDefaultPiecewiseFunction(range, true);
 }
 
-void iAModalityTransfer::UpdateAccumulateImageData(vtkSmartPointer<vtkImageData> imgData, int binCount)
+void iAModalityTransfer::ComputeStatistics(vtkSmartPointer<vtkImageData> img)
 {
-	if (!m_useAccumulate)
+	if (m_tfInitialized)	// already calculated
 		return;
-	m_useAccumulate = imgData->GetNumberOfScalarComponents() == 1;
-	m_scalarRange[0] = imgData->GetScalarRange()[0];
-	m_scalarRange[1] = imgData->GetScalarRange()[1];
-	accumulate->SetInputData(imgData);
-	accumulate->SetComponentOrigin(imgData->GetScalarRange()[0], 0.0, 0.0);
-	SetHistogramBinCount(binCount);
+	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange()); // Set range of rgb, rgba or vector pixel type images to fully opaque
+	m_otf = GetDefaultPiecewiseFunction(img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
+	m_tfInitialized = true;
 }
 
-void iAModalityTransfer::SetHistogramBinCount(int binCount)
+void iAModalityTransfer::Reset()
 {
-	if (!m_useAccumulate)
+	m_tfInitialized = false;
+	m_histogramData.clear();
+}
+
+void iAModalityTransfer::ComputeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
+{
+	if (imgData->GetNumberOfScalarComponents() != 1 || (m_histogramData && m_histogramData->GetNumBin() == binCount))
 		return;
-	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
-	{
-		binCount = std::min(binCount, static_cast<int>(m_scalarRange[1] - m_scalarRange[0] + 1));
-	}
-	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0);
-	const double RangeEnlargeFactor = 1 + 1e-10;  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
-	accumulate->SetComponentSpacing(((m_scalarRange[1] - m_scalarRange[0]) * RangeEnlargeFactor) / binCount, 0.0, 0.0);
-	accumulate->Update();
-	if (histogram)
-	{
-		histogram->UpdateData();
-	}
+	m_histogramData = iAHistogramData::Create(imgData, binCount, &m_imageInfo);
 }
 
-iAHistogramWidget* iAModalityTransfer::ShowHistogram(QDockWidget* histogramContainer, bool enableFunctions)
+QSharedPointer<iAHistogramData> const iAModalityTransfer::GetHistogramData() const
 {
-	if (histogram)
-	{
-		histogram->SetEnableAdditionalFunctions(enableFunctions);
-		histogram->show();
-		histogramContainer->setWidget(histogram);
-	}
-	else
-	{
-		histogramContainer->setWidget(NoHistogramAvailableWidget());
-	}
-	return histogram;
-}
-
-
-iAHistogramWidget* iAModalityTransfer::GetHistogram()
-{
-	return histogram;
+	return m_histogramData;
 }
 
 vtkPiecewiseFunction* iAModalityTransfer::GetOpacityFunction()
 {
-	return otf.Get();
+	assert(m_otf);
+	return m_otf;
 }
 
 vtkColorTransferFunction* iAModalityTransfer::GetColorFunction()
 {
-	return ctf;
+	assert(m_ctf);
+	return m_ctf;
 }
 
-vtkSmartPointer<vtkImageAccumulate> iAModalityTransfer::GetAccumulate()
+iAImageInfo const & iAModalityTransfer::Info() const
 {
-	return accumulate;
-}
-
-void iAModalityTransfer::Update(vtkSmartPointer<vtkImageData> imgData, int binCount)
-{
-	if (!m_useAccumulate)
-		return;
-	UpdateAccumulateImageData(imgData, binCount);
-	histogram->initialize(accumulate, true);
-	histogram->redraw();
-}
-
-QWidget* iAModalityTransfer::NoHistogramAvailableWidget()
-{
-	static QLabel * NoHistogramLabel(new QLabel("Histogram not available for this dataset!"));
-	NoHistogramLabel->setAlignment(Qt::AlignCenter);
-	return NoHistogramLabel;
+	// TODO: make sure image info is initialzed!
+	return m_imageInfo;
 }

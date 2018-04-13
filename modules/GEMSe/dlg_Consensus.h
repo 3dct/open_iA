@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,6 +29,7 @@
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_Consensus>   dlg_ConsensusUI;
 
+struct ChartWidgetData;
 class dlg_GEMSe;
 class dlg_progress;
 class dlg_samplings;
@@ -48,7 +49,9 @@ class dlg_Consensus : public dlg_ConsensusUI
 {
 	Q_OBJECT
 public:
-	dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings);
+	dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount,
+			QString const & folder, dlg_samplings* dlgSamplings);
+	virtual ~dlg_Consensus();
 	void SetGroundTruthImage(LabelImagePointer groundTruthImage);
 	void EnableUI();
 private slots:
@@ -70,11 +73,13 @@ private slots:
 	void SamplerFinished();
 	void CalcSTAPLE();
 	void CalcMajorityVote();
+	void CalcProbRuleVote();
+	void SampledItemClicked(QTableWidgetItem *);
 private:
 	void AddResult(vtkSmartPointer<vtkTable> table, QString const & title);
 	int GetWeightType();
 	void UpdateWeightPlot();
-	void Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int weightType);
+	void Sample(QVector<QSharedPointer<iASingleResult> > const & selection, int selectedClusterID, int weightType);
 	void SelectionUncertaintyDice(
 		QVector<QSharedPointer<iASingleResult> > const & selection,
 		QString const & name);
@@ -87,9 +92,7 @@ private:
 	QVector<vtkSmartPointer<vtkTable> > m_results;
 	QMap<QCheckBox*, int> m_checkBoxResultIDMap;
 	QMap<int, QVector<vtkIdType> > m_plotMap;
-	vtkSmartPointer<vtkChartXY> m_chartDiceVsUndec;
-	vtkSmartPointer<vtkChartXY> m_chartValueVsDice;
-	vtkSmartPointer<vtkChartXY> m_chartValueVsUndec;
+	QVector<ChartWidgetData> m_consensusCharts;
 
 	iAColorTheme const * m_colorTheme;
 	iAITKIO::ImagePointer m_lastMVResult;
@@ -106,4 +109,5 @@ private:
 	QVector<QSharedPointer<iASingleResult> > m_comparisonMVSelection;
 	int m_comparisonWeightType;
 	dlg_samplings * m_dlgSamplings;
+	QString m_cachePath;
 };

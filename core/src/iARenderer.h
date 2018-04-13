@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,7 +32,6 @@
 
 class iAChannelVisualizationData;
 class iAChannelRenderData;
-class iAObserverProgress;
 class iARenderSettings;
 class iARenderObserver;
 
@@ -41,7 +40,6 @@ class vtkAnnotatedCubeActor;
 class vtkAxesActor;
 class vtkCamera;
 class vtkCellLocator;
-class vtkColorTransferFunction;
 class vtkCornerAnnotation;
 class vtkCubeSource;
 class vtkImageData;
@@ -51,7 +49,6 @@ class vtkLogoWidget;
 class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPicker;
-class vtkPiecewiseFunction;
 class vtkPlane;
 class vtkPolyData;
 class vtkPolyDataMapper;
@@ -111,7 +108,7 @@ public:
 	void setupCube();
 	void setupAxes(double spacing[3]);
 	void setupOrientationMarker();
-	void setupRenderer(vtkImageData* ds);
+	void setupRenderer();
 	void update();
 	void showHelpers(bool show);
 	void showRPosition(bool show);

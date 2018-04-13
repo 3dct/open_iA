@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,15 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iAVtkGraphDrawer.h"
 
+#include <vtkDataSetAttributes.h>
+#include <vtkEdgeListIterator.h>
+#include <vtkPoints.h>
 #include <vtkSmartPointer.h>
 #include <vtkVertexListIterator.h>
-#include <vtkEdgeListIterator.h>
-#include <vtkDataSetAttributes.h>
-#include <vtkPoints.h>
 
 #include <cassert>
 
@@ -68,7 +66,7 @@ void iAVtkGraphDrawer::fillGraph(vtkMutableDirectedGraph* graph) {
 }
 
 void iAVtkGraphDrawer::locatePoints(vtkPoints* points, int* windowsSize, size_t numRanks) {
-	map<vtkIdType, Graph::idType>::iterator it;
+	std::map<vtkIdType, Graph::idType>::iterator it;
 	float maxPosY, minPosY;
 	//maxPosY = minPosY = this->getVertex(m_vertMapFromVtk.at(0))->positionY;
 	maxPosY = minPosY = m_graph.getVertices()->at(m_vertMapFromVtk.at(0)).posX;

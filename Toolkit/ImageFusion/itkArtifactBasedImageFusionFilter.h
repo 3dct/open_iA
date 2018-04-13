@@ -12,17 +12,12 @@ namespace itk
 /** \class ArtifactBasedImageFusionFilter
  * \brief Implements pixel-wise fusion of two images.
  *
- * This class is parameterized over the types of the four input images
- * and the type of the output image.  It is also parameterized by the
- * operation to be applied. 
- * 
- *
  * \ingroup IntensityImageFilters   Multithreaded
  */
 template <class TInputImage1, class TInputImage2, class TInputImage3,
-          class TOutputImage >
+		  class TOutputImage >
 class ITK_EXPORT ArtifactBasedImageFusionFilter :
-    public InPlaceImageFilter<TInputImage1, TOutputImage> 
+	public InPlaceImageFilter<TInputImage1, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
@@ -76,13 +71,13 @@ public:
 
   /** ImageDimension constants */
   itkStaticConstMacro(
-    InputImage1Dimension, unsigned int, TInputImage1::ImageDimension);
+	InputImage1Dimension, unsigned int, TInputImage1::ImageDimension);
   itkStaticConstMacro(
-    InputImage2Dimension, unsigned int, TInputImage2::ImageDimension);
+	InputImage2Dimension, unsigned int, TInputImage2::ImageDimension);
   itkStaticConstMacro(
 	  InputImage3Dimension, unsigned int, TInputImage3::ImageDimension);
   itkStaticConstMacro(
-    OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
+	OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
 
 
@@ -90,11 +85,11 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck1,
-    (Concept::SameDimension<itkGetStaticConstMacro(InputImage1Dimension),
-                            itkGetStaticConstMacro(OutputImageDimension)>));
+	(Concept::SameDimension<itkGetStaticConstMacro(InputImage1Dimension),
+							itkGetStaticConstMacro(OutputImageDimension)>));
   itkConceptMacro(SameDimensionCheck2,
-    (Concept::SameDimension<itkGetStaticConstMacro(InputImage1Dimension),
-                            itkGetStaticConstMacro(InputImage2Dimension)>));
+	(Concept::SameDimension<itkGetStaticConstMacro(InputImage1Dimension),
+							itkGetStaticConstMacro(InputImage2Dimension)>));
   itkConceptMacro(SameDimensionCheck3,
 	  (Concept::SameDimension<itkGetStaticConstMacro(InputImage1Dimension),
 	  itkGetStaticConstMacro(InputImage3Dimension)>));
@@ -117,7 +112,7 @@ protected:
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData()  */
   void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                            itk::ThreadIdType threadId );
+							itk::ThreadIdType threadId );
 
 private:
   ArtifactBasedImageFusionFilter(const Self&); //purposely not implemented

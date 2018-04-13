@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,12 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iAPlaneVisModule.h"
-// iA
+
 #include "iA4DCTVisWin.h"
-// vtk
+
 #include <vtkImageCast.h>
 #include <vtkImageShiftScale.h>
 #include <vtkMatrix4x4.h>
@@ -54,22 +52,14 @@ iAPlaneVisModule::iAPlaneVisModule( )
 	disableShading( );
 }
 
-void iAPlaneVisModule::enable( )
+void iAPlaneVisModule::show( )
 {
-	if( !isAttached( ) ) return;
-	if( !isEnabled( ) ) {
-		m_renderer->AddActor( m_actor );
-	}
-	iAVisModule::enable( );
+	m_renderer->AddActor( m_actor );
 }
 
-void iAPlaneVisModule::disable( )
+void iAPlaneVisModule::hide( )
 {
-	if( !isAttached( ) ) return;
-	if( isEnabled( ) ) {
-		m_renderer->RemoveActor( m_actor );
-	}
-	iAVisModule::disable( );
+	m_renderer->RemoveActor( m_actor );
 }
 
 void iAPlaneVisModule::setSize( double * size )
@@ -78,18 +68,14 @@ void iAPlaneVisModule::setSize( double * size )
 	setPlanePosition( 0 );
 }
 
-void iAPlaneVisModule::setImage( QString fileName )
+void iAPlaneVisModule::setImage( iA4DCTFileData fileName )
 {
-	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
-	reader->SetFileName( fileName.toStdString( ).c_str( ) );
-	reader->Update( );
-
 	double scale = (double)0xff / 0xffff;
 	vtkSmartPointer<vtkImageShiftScale> shifter = vtkSmartPointer<vtkImageShiftScale>::New( );
 	shifter->SetShift( 0. );
 	shifter->SetScale( scale );
 	shifter->SetOutputScalarTypeToUnsignedChar( );
-	shifter->SetInputConnection( reader->GetOutputPort( ) );
+	shifter->SetInputConnection( iA4DCTFileManager::getInstance( ).getOutputPort( fileName ) );
 	shifter->ReleaseDataFlagOff( );
 	shifter->Update( );
 
@@ -111,9 +97,6 @@ void iAPlaneVisModule::setImage( QString fileName )
 
 void iAPlaneVisModule::setSlice( int slice )
 {
-	// set settings
-	settings.Slice = slice;
-
 	// update visualization
 	if( m_reslice.GetPointer( ) == nullptr )
 		return;
@@ -140,14 +123,17 @@ void iAPlaneVisModule::setSlice( int slice )
 	double sliceNum;
 	switch( settings.Dir ) {
 	case iAPlaneVisSettings::Direction::XY:
+		settings.Slice[0] = slice;
 		sliceNum = slice * m_imgSpacing[2];
 		resliceAxes->DeepCopy( axialElementsXY );
 		break;
 	case iAPlaneVisSettings::Direction::XZ:
+		settings.Slice[1] = slice;
 		sliceNum = slice * m_imgSpacing[1];
 		resliceAxes->DeepCopy( axialElementsXZ );
 		break;
 	case iAPlaneVisSettings::Direction::YZ:
+		settings.Slice[2] = slice;
 		sliceNum = slice * m_imgSpacing[0];
 		resliceAxes->DeepCopy( axialElementsYZ );
 		break;
@@ -193,19 +179,19 @@ void iAPlaneVisModule::disableShading( )
 void iAPlaneVisModule::setDirXY( )
 {
 	settings.Dir = iAPlaneVisSettings::Direction::XY;
-	setSlice( settings.Slice );
+	setSlice( settings.Slice[0] );
 }
 
 void iAPlaneVisModule::setDirXZ( )
 {
 	settings.Dir = iAPlaneVisSettings::Direction::XZ;
-	setSlice( settings.Slice );
+	setSlice( settings.Slice[1] );
 }
 
 void iAPlaneVisModule::setDirYZ( )
 {
 	settings.Dir = iAPlaneVisSettings::Direction::YZ;
-	setSlice( settings.Slice );
+	setSlice( settings.Slice[2] );
 }
 
 void iAPlaneVisModule::setPlanePosition( int slice )

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,8 +24,8 @@
 #include <QSharedPointer>
 #include <QVector>
 
-class iAAbstractDrawableFunction;
-class iAFilterChart;
+class iAPlot;
+class iAChartWidget;
 class iAImageTreeNode;
 class iALabelInfo;
 class iAParamHistogramData;
@@ -43,11 +43,11 @@ public slots:
 	void ProbeUpdate(int x, int y, int z, int mode);
 private:
 	iALabelInfo const * m_labelInfo;
-	QVector<iAFilterChart *> m_charts;
+	QVector<iAChartWidget *> m_charts;
 	QVector<QSharedPointer<iAParamHistogramData> > m_labelDistributionChartData;
 	QVector<QSharedPointer<iAParamHistogramData> > m_probabilitiesChartData;
 	QSharedPointer<iAParamHistogramData> m_entropyChartData;
-	QVector<QSharedPointer<iAAbstractDrawableFunction> > m_drawers;
+	QVector<QSharedPointer<iAPlot> > m_drawers;
 	iAImageTreeNode const * m_selectedNode;
 	QLabel* m_lbInfo;
 	int m_probChartStart;

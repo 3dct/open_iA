@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,10 +24,10 @@
 
 #include <QWidget>
 
-class iAAbstractDrawableFunction;
-class iANameMapper;
 class iAFilterChart;
+class iANameMapper;
 class iAParamHistogramData;
+class iAPlot;
 
 class QCheckBox;
 class QLabel;
@@ -64,15 +64,15 @@ signals:
 private slots:
 	void SelectionChanged();
 private:
-	void SetAdditionalDrawer(QSharedPointer<iAAbstractDrawableFunction>& drawer, QSharedPointer<iAAbstractDrawableFunction> newDrawer);
+	void SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, QSharedPointer<iAPlot> newDrawer);
 	QColor GetClusterColor(int nr) const;
 	
 	iAFilterChart*  m_charts;
 	QCheckBox*     m_checkbox;
 	int    m_ID;
-	QVector<QSharedPointer<iAAbstractDrawableFunction> > m_clusterDrawer;
-	QSharedPointer<iAAbstractDrawableFunction> m_filteredDrawer;
-	QSharedPointer<iAAbstractDrawableFunction> m_filteredClusterDrawer;
+	QVector<QSharedPointer<iAPlot> > m_clusterDrawer;
+	QSharedPointer<iAPlot> m_filteredDrawer;
+	QSharedPointer<iAPlot> m_filteredClusterDrawer;
 	int	           m_oldMin;
 	int	           m_oldMax;
 	

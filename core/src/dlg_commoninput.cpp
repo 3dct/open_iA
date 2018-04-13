@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,11 +18,19 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_commoninput.h"
 
+#include "iAAttributeDescriptor.h"
+#include "dlg_FilterSelection.h"
+#include "iAConsole.h"
+#include "iAFilter.h"
+#include "iAFilterRegistry.h"
+#include "iAFilterRunnerGUI.h"
+#include "iAStringHelper.h"
+#include "io/iAFileChooserWidget.h"
 #include "mdichild.h"
+
+#include <vtkImageData.h>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -31,208 +39,228 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QScrollArea>
-#include <QTextEdit>
+#include <QTextBrowser>
+#include <QPlainTextEdit>
 
 enum ContainerSize {
 	WIDTH=530, HEIGHT=600
 };
 
-dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr, bool modal) : QDialog (parent)
+
+dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr)
+	: QDialog(parent),
+	m_sourceMdiChild(nullptr),
+	m_sourceMdiChildClosed(false),
+	widgetList(inList.size())
 {
 	//initialize a instance of error message dialog box
-	eMessage = new QErrorMessage(this);
+	auto eMessage = new QErrorMessage(this);
 
-	this->setModal(modal);
-
-	//check whether the input parameters are correct
-	//if the input parameter are not correct show error message
-	//if the input parameters are correct, then initialize the dialog class
-	if  (winTitle.isEmpty())
-		eMessage->showMessage("No window title entered. Please give a window title");
-	else if (inList.size() != inPara.size())
-		eMessage->showMessage("Implementation Error: The number of of parameter descriptions and the number of given values does not match. Please report this to the developers!");
-	else
+	if (winTitle.isEmpty())
 	{
-		//setup the ui dialog class widget as this
-		setupUi(this);
-		
-		NoofComboBox = 0;
-		//int ComboBoxCounter = 0;
-		//initialize variables
-		numPara = inList.size();
+		eMessage->showMessage("No window title entered. Please give a window title");
+		return;
+	}
+	if (inList.size() != inPara.size())
+	{
+		eMessage->showMessage("Implementation Error: The number of of parameter descriptions and the number of given values does not match. "
+			"Please report this message to the developers, along with the action you were trying to perform when it occured!");
+		return;
+	}
+	setupUi(this);
+	this->setWindowTitle(winTitle);
 
-		//set the window title
-		this->setWindowTitle(winTitle);
+	if(fDescr)
+	{
+		auto info = new QTextBrowser();
+		QPalette p = info->palette();
+		p.setColor(QPalette::Base, QColor(240, 240, 255));
+		info->setPalette(p);
+		info->setDocument(fDescr);
+		info->setReadOnly(true);
+		info->setOpenExternalLinks(true);
+		gridLayout->addWidget(info, 0, 0);
+	}
 
-		for ( int i = 0; i < numPara; i++)
-		{
-			tStr = inList[i];
-			if (tStr.contains("+")) 
-			{
-				NoofComboBox++;
-			}
-		}
-		
-		//Generates the description in the CommonInput dialog 
-		if(fDescr){
-
-			//get line count to differ between median filter and mmRegistration 
-			//HZ, 3.12.2013
-			int lines_count = fDescr->toPlainText().count("\n");
-			
-			QTextEdit* info = new QTextEdit();
-			
-
-
-			QPalette p = info->palette();
-			p.setColor(QPalette::Base, QColor(240, 240, 255));
-			info->setPalette(p);
-			info->setDocument(fDescr);
-			info->setReadOnly(true);
-			info->setStyleSheet("QTextEdit {margin-left:10px;}");
-			gridLayout->addWidget(info, 0, 0 , 1, 2);
-		}
-
-		//Generates a scrollable container for the widgets with a grid layout
-		scrollArea = new QScrollArea(this);
-		scrollArea->setObjectName("scrollArea");
-		container = new QWidget(scrollArea);
-		container->setObjectName("container");
-		containerLayout = new QGridLayout(container);
-		containerLayout->setObjectName("containerLayout");
+	//Generates a scrollable container for the widgets with a grid layout
+	auto scrollArea = new QScrollArea(this);
+	scrollArea->setObjectName("scrollArea");
+	container = new QWidget(scrollArea);
+	container->setObjectName("container");
+	auto containerLayout = new QGridLayout(container);
+	containerLayout->setObjectName("containerLayout");
 	
-		for ( int i = 0; i < numPara; i++)
+	for ( int i = 0; i < inList.size(); i++)
+	{
+		QString tStr = inList[i];
+		tStr.remove(0, 1);
+		QLabel *label = new QLabel(container);
+		label->setText(tStr);
+		containerLayout->addWidget(label, i, 0);
+		QWidget *newWidget = nullptr;
+		switch(inList[i].at(0).toLatin1())
 		{
-			QString tStr = inList[i];
-			
-			if ( !tStr.contains(QRegExp("[$#+*^?]")) )
-				eMessage->showMessage(QString("Unknown widget prefix '").append(inList[i][0]).append("' for label \"").append(tStr.remove(0, 1)).append("\""));
-			else
-				tStr.remove(0, 1);
-				
-			QString tempStr = tStr;
-
-			QLabel *label = new QLabel(container);
-			label->setObjectName(tempStr.append("Label"));
-			widgetList.insert(i, tempStr);		
-			label->setText(tStr); 
-			containerLayout->addWidget(label, i, 0, 1, 1);
-
-			/////////////////////////////
-			// $ -> switch off line edit
-			// # -> switch off checkbox
-			/////////////////////////////
-			QWidget *newWidget;
-
-			tempStr = tStr;
-			switch(inList[i].at(0).toLatin1())
+			case '$':
+				newWidget = new QCheckBox(container);
+				break;
+			case '.':
+				if (inList[i - 1].at(0).toLatin1() == '&')	 // if this is a filter parameter string,
+					m_filterWithParameters.push_back(i - 1); // and previous was a filter name, then
+				// intentional fall-through!				 // remember this for the filter selection
+			case '#':
+				newWidget = new QLineEdit(container);
+				break;
+			case '+':
+				newWidget = new QComboBox(container);
+				break;
+			case '*':
+				newWidget = new QSpinBox(container);
+				((QSpinBox*)newWidget)->setRange(0, 65536);
+				newWidget->setObjectName(tStr);	// required for ROI (parses object name)
+				break;
+			case '^':
+				newWidget = new QDoubleSpinBox(container);
+				((QDoubleSpinBox*)newWidget)->setSingleStep (0.001);
+				((QDoubleSpinBox*)newWidget)->setDecimals(6);
+				((QDoubleSpinBox*)newWidget)->setRange(-999999, 999999);
+				break;
+			case '=':
+				newWidget = new QPlainTextEdit(container);
+				break;
+			case '&':
+				newWidget = new QPushButton(container);
+				connect(newWidget, SIGNAL(clicked()), this, SLOT(SelectFilter()));
+				break;
+			case '<':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::FileNameOpen);
+				break;
+			case '{':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::FileNamesOpen);
+				break;
+			case '>':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::FileNameSave);
+				break;
+			case ';':
+				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::Folder);
+				break;
+			case '?':
 			{
-				case '$':
-				{
-					newWidget = new QCheckBox(container);
-					newWidget->setObjectName(tempStr.append("CheckBox"));
-				}
-				break;
-				case '#':
-				{
-					newWidget = new QLineEdit(container);
-					newWidget->setObjectName(tempStr.append("LineEdit"));
-				}
-				break;
-				case '+':
-				{
-					tempStr = tStr;
-					newWidget = new QComboBox(container);
-					newWidget->setObjectName(tempStr.append("ComboBox"));
-
-				}
-				break;
-				case '*':
-				{
-					tempStr = tStr;
-					newWidget = new QSpinBox(container);
-					newWidget->setObjectName(tempStr.append("SpinBox"));
-					((QSpinBox*)newWidget)->setRange(0, 65536);
-				}
-				break;
-				case '^':	// alexander 14.10.2012
-					{
-						tempStr = tStr;
-						newWidget = new QDoubleSpinBox(container);
-						newWidget->setObjectName(tempStr.append("QDoubleSpinBox"));
-						((QDoubleSpinBox*)newWidget)->setSingleStep (0.001);
-						((QDoubleSpinBox*)newWidget)->setDecimals(6);
-						((QDoubleSpinBox*)newWidget)->setRange(-999999, 999999);
-					}
-				break;
-				case '?':	
-					{
-						label->setStyleSheet("background-color : lightGray");
-						QFont font = label->font();
-						font.setBold(true);
-						font.setPointSize(11);
-						label->setFont(font);
-						continue;
-					}
-				break;
+				label->setStyleSheet("background-color : lightGray");
+				QFont font = label->font();
+				font.setBold(true);
+				font.setPointSize(11);
+				label->setFont(font);
+				continue;
 			}
-			
-			widgetList.insert(i, tempStr);
-			containerLayout->addWidget(newWidget, i, 1, 1, 1);	
-		
+			default:
+				eMessage->showMessage(QString("Unknown widget prefix '%1' for label \"%2\"").arg(inList[i][0]).arg(tStr));
+				continue;
 		}
+		widgetList[i] = newWidget;
+		containerLayout->addWidget(newWidget, i, 1);
+	}
 		
-		//Controls the containers width and sets the correct width for the widgets
-		containerLayout->setColumnMinimumWidth(0, WIDTH/3);
-		containerLayout->setColumnMinimumWidth(1, WIDTH/3);
-		
-		container->setMaximumWidth(WIDTH);
-		container->setLayout(containerLayout);
+	//Controls the containers width and sets the correct width for the widgets
+	containerLayout->setColumnMinimumWidth(0, WIDTH/3);
+	containerLayout->setColumnMinimumWidth(1, WIDTH/3);
+	container->setLayout(containerLayout);
 
-		//Set scrollbar if needed
-		if(containerLayout->minimumSize().height() > HEIGHT){
-			scrollArea->setMinimumHeight(HEIGHT);
-		}else{
-			scrollArea->setMinimumHeight(containerLayout->minimumSize().height()+5);
+	//Set scrollbar if needed
+	if(containerLayout->minimumSize().height() > HEIGHT){
+		scrollArea->setMinimumHeight(HEIGHT);
+	}else{
+		scrollArea->setMinimumHeight(containerLayout->minimumSize().height()+5);
+	}
+	if(containerLayout->minimumSize().width() > WIDTH){
+		scrollArea->setMinimumWidth(WIDTH+20);
+	}else{
+		scrollArea->setMinimumWidth(containerLayout->minimumSize().width());
+	}
+	scrollArea->setWidget(container);
+	scrollArea->setWidgetResizable(true);
+
+	//make scrollArea widgets backround transparent
+	QPalette pal = scrollArea->palette();
+	pal.setColor(scrollArea->backgroundRole(), Qt::transparent);
+	scrollArea->setPalette(pal);
+
+	gridLayout->addWidget(scrollArea, 1, 0);
+	gridLayout->addWidget(buttonBox, 2, 0);//add the ok and cancel button to the gridlayout
+
+	updateValues(inPara);
+}
+
+
+void  dlg_commoninput::setSourceMdi(MdiChild* child, MainWindow* mainWnd)
+{
+	m_sourceMdiChild = child;
+	m_mainWnd = mainWnd;
+	connect(child, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
+}
+
+
+void dlg_commoninput::SelectFilter()
+{
+	QPushButton* sender = qobject_cast<QPushButton*>(QObject::sender());
+	dlg_FilterSelection dlg(this, sender->text());
+	if (dlg.exec())
+	{
+		QString filterName = dlg.SelectedFilterName();
+		int idx = widgetList.indexOf(sender);
+		if (idx < widgetList.size() - 1 && m_filterWithParameters.indexOf(idx) != -1 &&
+			m_sourceMdiChild)	// TODO: if possible, get rid of sourceMdi?
+		{
+			auto filter = iAFilterRegistry::Filter(filterName);
+			int filterID = iAFilterRegistry::FilterID(filterName);
+			auto runner = iAFilterRegistry::FilterRunner(filterID)->Create();
+			QMap<QString, QVariant> paramValues = runner->LoadParameters(filter, m_sourceMdiChild);
+			if (!runner->AskForParameters(filter, paramValues, m_sourceMdiChild, m_mainWnd, false))
+				return;
+			QString paramStr;
+			for (auto param: filter->Parameters())
+			{
+				paramStr += (paramStr.isEmpty() ? "" : " ");
+				switch (param->ValueType())
+				{
+				case Boolean:
+					paramStr += paramValues[param->Name()].toBool() ? "true" : "false"; break;
+				case Discrete:
+				case Continuous:
+					paramStr += paramValues[param->Name()].toString(); break;
+				default:
+					paramStr += QuoteString(paramValues[param->Name()].toString()); break;
+				}
+				
+			}
+			QLineEdit* e = qobject_cast<QLineEdit*>(widgetList[idx + 1]);
+			if (e)
+				e->setText(paramStr);
+			else
+				DEBUG_LOG(QString("Parameter string %1 could not be set!").arg(paramStr));
 		}
-		if(containerLayout->minimumSize().width() > WIDTH){
-			scrollArea->setMinimumWidth(WIDTH+20);
-		}else{
-			scrollArea->setMinimumWidth(containerLayout->minimumSize().width());
-		}
-
-		//add the container to the scrollarea 
-		scrollArea->setWidget(container);
-		
-		//make scrollArea widgets backround transparent
-		QPalette pal = scrollArea->palette();
-		pal.setColor(scrollArea->backgroundRole(), Qt::transparent);
-		scrollArea->setPalette(pal);
-		
-		//add the scrollarea to the gridlayout
-		gridLayout->addWidget(scrollArea, 1, 0, 1, 1);
-
-		updateValues(inPara);
-		//add the ok and cancel button to the gridlayout
-		gridLayout->addWidget(buttonBox, 2, 0, 1, 1);
-		
+		sender->setText(filterName);
 	}
 }
 
+
 void dlg_commoninput::updateValues(QList<QVariant> inPara)
 {
-	QObjectList children = this->container->children();
+	QObjectList children = container->children();
 
 	int paramIdx = 0;
 	for ( int i = 0; i < children.size(); i++)
 	{
-		QLineEdit *lineEdit = dynamic_cast<QLineEdit*>(children.at(i));
-		if (lineEdit != NULL)
-			lineEdit->setText(inPara[paramIdx++].toString()); 
+		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(children.at(i));
+		if (lineEdit)
+			lineEdit->setText(inPara[paramIdx++].toString());
 
-		QComboBox *comboBox = dynamic_cast<QComboBox*>(children.at(i));
-		
-		if (comboBox != NULL){
+		QPlainTextEdit *plainTextEdit = qobject_cast<QPlainTextEdit*>(children.at(i));
+		if (plainTextEdit)
+			plainTextEdit->setPlainText(inPara[paramIdx++].toString());
+
+		QComboBox *comboBox = qobject_cast<QComboBox*>(children.at(i));
+		if (comboBox)
+		{
 			for (QString s : inPara[paramIdx++].toStringList())
 			{
 				bool select = false;
@@ -248,8 +276,9 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 				}
 			}
 		}
-		QCheckBox *checkBox = dynamic_cast<QCheckBox*>(children.at(i));
-		if (checkBox != NULL)
+
+		QCheckBox *checkBox = qobject_cast<QCheckBox*>(children.at(i));
+		if (checkBox)
 		{
 			if (inPara[paramIdx] == tr("true"))
 				checkBox->setChecked(true);
@@ -261,221 +290,155 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 
 		}
 
-		QSpinBox *spinBox = dynamic_cast<QSpinBox*>(children.at(i));
-		if (spinBox != NULL)
+		QSpinBox *spinBox = qobject_cast<QSpinBox*>(children.at(i));
+		if (spinBox)
 			spinBox->setValue(inPara[paramIdx++].toDouble());
 
-		QDoubleSpinBox *doubleSpinBox = dynamic_cast<QDoubleSpinBox*>(children.at(i));
-		if (doubleSpinBox != NULL)
+		QDoubleSpinBox *doubleSpinBox = qobject_cast<QDoubleSpinBox*>(children.at(i));
+		if (doubleSpinBox)
 			doubleSpinBox->setValue(inPara[paramIdx++].toDouble());
+
+		QPushButton *button = qobject_cast<QPushButton*>(children.at(i));
+		if (button)
+			button->setText(inPara[paramIdx++].toString());
+
+		iAFileChooserWidget* fileChooser = qobject_cast<iAFileChooserWidget*>(children.at(i));
+		if (fileChooser)
+			fileChooser->setText(inPara[paramIdx++].toString());
 	}
 }
 
-void dlg_commoninput::connectMdiChild(MdiChild *child)
-{
-	QObjectList children = this->container->children();
 
+void dlg_commoninput::showROI()
+{
+	if (!m_sourceMdiChild)
+	{
+		DEBUG_LOG("You need to call setSourceMDI before show ROI!");
+		return;
+	}
+	QObjectList children = container->children();
+	for (int i = 0; i < 3; ++i)
+	{
+		m_roi[i] = 0;
+		m_roi[i + 3] = m_sourceMdiChild->getImagePointer()->GetDimensions()[i];
+	}
 	for (int i = 0; i < children.size(); i++)
 	{
-		QLineEdit *lineEdit = dynamic_cast<QLineEdit*>(children.at(i));
-		if (lineEdit != NULL)
+		QSpinBox *input = dynamic_cast<QSpinBox*>(children.at(i));
+		if (input && (input->objectName().contains("Index") || input->objectName().contains("Size")))
 		{
-			QString objectName = lineEdit->objectName();
-			connect(lineEdit, SIGNAL(textEdited(QString)), child, SLOT(updated(QString)));
-		}
-
-		QComboBox *comboBox = dynamic_cast<QComboBox*>(children.at(i));
-		
-		if (comboBox != NULL){
-			QString objectName = comboBox->objectName();
-			connect(comboBox, SIGNAL(currentIndexChanged(QString)), child, SLOT(updated(i, QString)));
-		}
-
-		QCheckBox *checkBox = dynamic_cast<QCheckBox*>(children.at(i));
-		if (checkBox != NULL)
-		{
-			QString objectName = checkBox->objectName();
-			connect(checkBox, SIGNAL(stateChanged(int)), child, SLOT(updated(i)));
-		}
-
-		QSpinBox *spinBox = dynamic_cast<QSpinBox*>(children.at(i));
-		if (spinBox != NULL)
-		{
-			QString objectName = spinBox->objectName();
-			connect(spinBox, SIGNAL(valueChanged(QString)), child, SLOT(updated(QString)));
+			connect(input, SIGNAL(valueChanged(QString)), this, SLOT(ROIUpdated(QString)));
+			UpdateROIPart(input->objectName(), input->text());
 		}
 	}
+	m_sourceMdiChild->SetROIVisible(true);
+	m_sourceMdiChild->UpdateROI(m_roi);
 }
 
-QList<double> dlg_commoninput::getValues()
+
+void dlg_commoninput::ROIUpdated(QString text)
 {
-	outValueList.clear();
-	for (int i = 0; i < numPara; i++)
-	{
-		QString test = widgetList[i];
-		// find the child widget with the name in the leList
-		QLineEdit *t = this->container->findChild<QLineEdit*>(widgetList[i]);
-		
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert(i, t->text().toDouble());
-		}
-		else
-			outValueList.insert(i, 0.0);
-	}
-	return (outValueList);
+	if (m_sourceMdiChildClosed)
+		return;
+	QString senderName = QObject::sender()->objectName();
+	UpdateROIPart(senderName, text);
+	// size may not be smaller than 1 (otherwise there's a vtk error):
+	if (m_roi[3] <= 0) m_roi[3] = 1;
+	if (m_roi[4] <= 0) m_roi[4] = 1;
+	if (m_roi[5] <= 0) m_roi[5] = 1;
+	m_sourceMdiChild->UpdateROI(m_roi);
 }
 
-QList<double> dlg_commoninput::getSpinBoxValues()
+
+void dlg_commoninput::UpdateROIPart(QString const & partName, QString const & value)
 {
-	outValueList.clear();
-	for (int i = 0; i < numPara; i++)
-	{
-		// find the child widget with the name in the leList
-		QSpinBox *t = this->container->findChild<QSpinBox*>(widgetList[i]);
-		
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert(i,t->text().toDouble());
-		}
-		else
-			outValueList.insert(i, 0.0);
-	}
-	return (outValueList);
+	if (partName.contains("Index X"))
+		m_roi[0] = value.toInt();
+	else if (partName.contains("Index Y"))
+		m_roi[1] = value.toInt();
+	else if (partName.contains("Index Z"))
+		m_roi[2] = value.toInt();
+	else if (partName.contains("Size X"))
+		m_roi[3] = value.toInt();
+	else if (partName.contains("Size Y"))
+		m_roi[4] = value.toInt();
+	else if (partName.contains("Size Z"))
+		m_roi[5] = value.toInt();
 }
 
-QList<double> dlg_commoninput::getDoubleSpinBoxValues()
+
+void dlg_commoninput::SourceChildClosed()
 {
-	outValueList.clear();
-	for (int i = 0; i < numPara; i++)
-	{
-		// find the child widget with the name in the leList
-		QDoubleSpinBox *t = this->container->findChild<QDoubleSpinBox*>(widgetList[i]);
-		
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outValueList.insert(i,t->value());
-		}
-		else
-			outValueList.insert(i, 0.0);
-	}
-	return (outValueList);
+	m_sourceMdiChildClosed = true;
 }
 
-QList<int> dlg_commoninput::getCheckValues()
-{
-	outCheckList.clear();
-	for (int i = 0; i < numPara; i++)
-	{
-		// find the child widget with the name in the leList
-		QCheckBox *t = this->container->findChild<QCheckBox*>(widgetList[i]);
 
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outCheckList.insert(i,t->checkState());
-		}
-		else
-			outCheckList.insert(i, 0);
-	}
-	return (outCheckList);
+int dlg_commoninput::getIntValue(int index) const
+{
+	QSpinBox *t = qobject_cast<QSpinBox*>(widgetList[index]);
+	if (t)
+		return t->value();
+	QLineEdit *t2 = qobject_cast<QLineEdit*>(widgetList[index]);
+	return t2 ? t2->text().toInt() : 0;
 }
 
-QStringList dlg_commoninput::getComboBoxValues()
-{
-	outComboValues.clear();
-	for (int i = 0; i < numPara; i++)
-	{
-		// find the child widget with the name in the leList
-		QComboBox *t = this->container->findChild<QComboBox*>(widgetList[i]);
 
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outComboValues.insert(i,t->currentText());
-		}
-		else
-			//needs to be there otherwise the list indices are incorrect!
-			outComboValues.insert(i, "");
-	}
-	return (outComboValues);
+double dlg_commoninput::getDblValue(int index) const
+{
+	QDoubleSpinBox *t = qobject_cast<QDoubleSpinBox*>(widgetList[index]);
+	if (t)
+		return t->value();
+	QLineEdit *t2 = qobject_cast<QLineEdit*>(widgetList[index]);
+	return t2 ? t2->text().toDouble() : 0.0;
 }
 
-QStringList dlg_commoninput::getText()
+
+int dlg_commoninput::getCheckValue(int index) const
 {
-	outTextList.clear();
-	for (int i = 0; i < numPara; i++)
-	{
-		// find the child widget with the name in the leList
-		QLineEdit *t = this->container->findChild<QLineEdit*>(widgetList[i]);
-		
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outTextList.insert(i,t->text());
-		}
-		else
-			outTextList.insert(i, "");
-	}
-	return (outTextList);
+	QCheckBox *t = qobject_cast<QCheckBox*>(widgetList[index]);
+	return t? t->checkState(): 0;
 }
 
-double dlg_commoninput::getParameterValue(QString name)
+
+QString dlg_commoninput::getComboBoxValue(int index) const
 {
-	if (name.contains(QRegExp("$#*")))
-		name.remove(0, 1);
-	
-	if ( name.contains("LineEdit", Qt::CaseSensitive) )
-	{
-		// find the child widget with name in the objectname
-		QLineEdit *l_temp = this->container->findChild<QLineEdit*>(name);
-
-		outValue = l_temp->text().toDouble();
-	}
-	else if (name.contains("ComboBox", Qt::CaseSensitive) )
-	{
-		// find the child widget with name in the objectname
-		QComboBox *t_temp = this->container->findChild<QComboBox*>(name);
-
-		outValue = t_temp->currentText().toDouble();
-	}
-	else if( name.contains("CheckBox", Qt::CaseSensitive) )
-	{
-		// find the child widget with name in the objectname
-		QCheckBox *t_temp = this->container->findChild<QCheckBox*>(name);
-
-		outValue = t_temp->checkState();
-	}
-	else if( name.contains("SpinBox", Qt::CaseSensitive) )
-	{
-		// find the child widget with name in the objectname
-		QSpinBox *t_temp = this->container->findChild<QSpinBox*>(name);
-
-		outValue = t_temp->text().toDouble();
-	}
-	else outValue = 0;
-
-	return outValue;
+	QComboBox *t = qobject_cast<QComboBox*>(widgetList[index]);
+	return t? t->currentText(): QString();
 }
 
-QList<int> dlg_commoninput::getComboBoxIndices()
-{
-	outComboIndices.clear();
-	for (int i = 0; i < numPara; i++)
-	{
-		// find the child widget with the name in the leList
-		QComboBox *t = this->container->findChild<QComboBox*>(widgetList[i]);
 
-		if (t != 0)
-		{
-			//get the text from the child widget and insert is to outValueList
-			outComboIndices.insert(i, t->currentIndex());
-		}
-		else
-			outComboIndices.insert(i, -1);
+int dlg_commoninput::getComboBoxIndex(int index) const
+{
+	QComboBox *t = qobject_cast<QComboBox*>(widgetList[index]);
+	return t ? t->currentIndex() : -1;
+}
+
+
+QString dlg_commoninput::getText(int index) const
+{
+	QLineEdit *t = qobject_cast<QLineEdit*>(widgetList[index]);
+	if (t)
+		return t->text();
+	QPlainTextEdit *t2 = qobject_cast<QPlainTextEdit*>(widgetList[index]);
+	if (t2)
+		return t2->toPlainText();
+	QPushButton * t3 = qobject_cast<QPushButton*>(widgetList[index]);
+	if (t3)
+		return t3->text();
+	iAFileChooserWidget* t4 = qobject_cast<iAFileChooserWidget*>(widgetList[index]);
+	return (t4)? t4->text() : "";
+}
+
+
+int dlg_commoninput::exec()
+{
+	int result = QDialog::exec();
+	if (m_sourceMdiChildClosed || (m_sourceMdiChild && !qobject_cast<QWidget*>(parent())->isVisible()))
+		return QDialog::Rejected;
+	if (m_sourceMdiChild)
+	{
+		disconnect(m_sourceMdiChild, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
+		m_sourceMdiChild->SetROIVisible(false);
 	}
-	return (outComboIndices);
+	return result;
 }

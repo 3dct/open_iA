@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAbstractDiagramData.h"
+#include "charts/iAPlotData.h"
 #include "iAGEMSeConstants.h"
 
 #include <QSharedPointer>
@@ -32,7 +32,7 @@ class iAChartAttributeMapper;
 class iAImageTreeNode;
 class iAImageTreeLeaf;
 
-class iAParamHistogramData: public iAAbstractDiagramRangedData
+class iAParamHistogramData: public iAPlotData
 {
 public:
 	// TODO: extract creation?
@@ -56,19 +56,18 @@ public:
 		iAValueType rangeType);
 	void Reset();
 	virtual ~iAParamHistogramData();
-	virtual DataType const * GetData() const;
-	virtual size_t GetNumBin() const;
-	virtual double GetSpacing() const;
-	virtual double * GetDataRange();
-	virtual double GetDataRange(int idx) const;
-	virtual DataType GetMaxValue() const;
-	virtual double GetBinStart(int binNr) const;
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
+	double GetSpacing() const override;
+	double const * XBounds() const override;
+	DataType const * YBounds() const override;
+	double GetBinStart(int binNr) const override;
 	double MapValueToBin(double value) const;
 	double MapBinToValue(double bin) const;
 	iAValueType GetRangeType() const;
 	bool IsLogarithmic() const;
-	virtual double GetMinX() const;
-	virtual double GetMaxX() const;
+	double GetMinX() const override;
+	double GetMaxX() const override;
 	void SetMinX(double x);
 	void SetMaxX(double x);
 	void AddValue(double value);
@@ -88,8 +87,8 @@ private:
 		iAChartAttributeMapper const & chartAttrMap);
 	DataType * m_data;
 	size_t m_numBin;
-	double m_dataRange[2];
-	DataType m_maxValue;
+	double m_xBounds[2];
+	DataType m_yBounds[2];
 	DataType m_spacing;
 	iAValueType m_rangeType;
 	bool m_log;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,10 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iAClusterAttribChart.h"
 
-#include "iAFunctionDrawers.h"
+#include "charts/iAPlotTypes.h"
 #include "iAMathUtility.h"
 #include "iAFilterChart.h"
 #include "iAParamHistogramData.h"
@@ -41,8 +40,8 @@ iAClusterAttribChart::iAClusterAttribChart(
 	m_oldMin(-1),
 	m_oldMax(-1)
 {
-	double dr0= data->GetDataRange(0);
-	double dr1= data->GetDataRange(1);
+	double dr0= data->XBounds()[0];
+	double dr1= data->XBounds()[1];
 
 	QVBoxLayout* mainLayout = new QVBoxLayout();
 	mainLayout->setMargin(0);
@@ -67,14 +66,14 @@ iAClusterAttribChart::iAClusterAttribChart(
 }
 
 
-void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAAbstractDrawableFunction>& drawer, QSharedPointer<iAAbstractDrawableFunction> newDrawer)
+void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, QSharedPointer<iAPlot> newDrawer)
 {
 	if (drawer)
 	{
-		m_charts->RemoveDataset(drawer);
+		m_charts->RemovePlot(drawer);
 	}
 	drawer = newDrawer;
-	m_charts->AddDataset(drawer);
+	m_charts->AddPlot(drawer);
 	m_charts->redraw();
 }
 
@@ -88,9 +87,9 @@ void iAClusterAttribChart::SetFilteredData(QSharedPointer<iAParamHistogramData> 
 void iAClusterAttribChart::ClearClusterData()
 {
 	m_charts->RemoveMarker();
-	foreach (QSharedPointer<iAAbstractDrawableFunction> drawer, m_clusterDrawer)
+	foreach (QSharedPointer<iAPlot> drawer, m_clusterDrawer)
 	{
-		m_charts->RemoveDataset(drawer);
+		m_charts->RemovePlot(drawer);
 	}
 	m_clusterDrawer.clear();
 }
@@ -100,12 +99,12 @@ void iAClusterAttribChart::RemoveFilterData()
 	bool redraw = (m_filteredDrawer || m_filteredClusterDrawer);
 	if (m_filteredDrawer)
 	{
-		m_charts->RemoveDataset(m_filteredDrawer);
+		m_charts->RemovePlot(m_filteredDrawer);
 		m_filteredDrawer.clear();
 	}
 	if (m_filteredClusterDrawer)
 	{
-		m_charts->RemoveDataset(m_filteredClusterDrawer);
+		m_charts->RemovePlot(m_filteredClusterDrawer);
 		m_filteredClusterDrawer.clear();
 	}
 	if (redraw)
@@ -123,7 +122,7 @@ QColor iAClusterAttribChart::GetClusterColor(int nr) const
 void iAClusterAttribChart::AddClusterData(QSharedPointer<iAParamHistogramData> data)
 {
 	m_clusterDrawer.push_back(m_charts->GetDrawer(data, GetClusterColor(m_clusterDrawer.size())));
-	m_charts->AddDataset(m_clusterDrawer[m_clusterDrawer.size()-1]);
+	m_charts->AddPlot(m_clusterDrawer[m_clusterDrawer.size()-1]);
 }
 
 
@@ -158,8 +157,6 @@ void iAClusterAttribChart::SelectionChanged()
 	}
 	if (m_oldMin != minValue || m_oldMax != maxValue)
 	{
-		double dataRange[2];
-		m_charts->GetDataRange(dataRange);
 		m_oldMin = minValue;
 		m_oldMax = maxValue;
 		emit FilterChanged(minValue, maxValue);
@@ -179,24 +176,24 @@ iAValueType iAClusterAttribChart::GetRangeType() const
 
 double iAClusterAttribChart::GetMaxYValue() const
 {
-	return m_charts->GetMaxYValue();
+	return m_charts->GetMaxYDataValue();
 }
 
 void iAClusterAttribChart::SetMaxYAxisValue(double val)
 {
-	m_charts->SetMaxYAxisValue(val);
+	m_charts->SetYBounds(0, val);
 }
 
 void iAClusterAttribChart::ResetSpan()
 {
 	double dr0= m_charts->mapBinToValue(0);
-	double dr1= m_charts->mapBinToValue(m_charts->GetData()->GetNumBin());
+	double dr1= m_charts->mapBinToValue(m_charts->Plots()[0]->GetData()->GetNumBin());
 	SetSpanValues(dr0, dr1);
 }
 
 size_t iAClusterAttribChart::GetNumBin() const
 {
-	return m_charts->GetData()->GetNumBin();
+	return m_charts->Plots()[0]->GetData()->GetNumBin();
 }
 
 
@@ -218,5 +215,5 @@ void iAClusterAttribChart::UpdateChart()
 
 void iAClusterAttribChart::ResetMaxYAxisValue()
 {
-	m_charts->ResetMaxYAxisValue();
+	m_charts->ResetYBounds();
 }

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,21 +18,19 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_gaussian.h"
 
-#include "iADiagramFctWidget.h"
+#include "charts/iADiagramFctWidget.h"
+#include "iAMapper.h"
+#include "iAMathUtility.h"
 
-//#include <vtkImageData.h>
+#include <vtkMath.h>
 
 #include <QPen>
 #include <QPainter>
 #include <QMouseEvent>
 
-double dlg_gaussian::PI = 3.14159265358979323846264338327950288;
-
-dlg_gaussian::dlg_gaussian(iADiagramFctWidget *fctDiagram, QColor &color, bool res): dlg_function(fctDiagram)
+dlg_gaussian::dlg_gaussian(iADiagramFctWidget *chart, QColor &color, bool res): dlg_function(chart)
 {
 	this->color = color;
 	active = false;
@@ -53,31 +51,28 @@ void dlg_gaussian::draw(QPainter &painter)
 
 void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 {
-	bool active = (fctDiagram->getSelectedFunction() == this);
+	bool active = (chart->getSelectedFunction() == this);
 	// draw line
 	QPen pen = painter.pen();
 	pen.setColor(color);
 	pen.setWidth(lineWidth);
 
 	painter.setPen(pen);
-	
-	double dataRange[2];
-	fctDiagram->GetDataRange(dataRange);
 
-	double range = dataRange[1]-dataRange[0];
+	double range = chart->XRange();
 	double startStep = range /100;
 	double step = startStep;
 	
-	double X1 = dataRange[0];
+	double X1 = chart->XBounds()[0];
 	double X2 = X1;
-	double Y1 = 1.0/(sigma*sqrt(2*PI))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
+	double Y1 = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
 	double Y2 = Y1;
 	
 	double smallStep = std::max(6 * sigma / 100, 0.25*i2dX(1));
-	while(X2 <= dataRange[1]+step)
+	while (X2 <= chart->XBounds()[1]+step && step > std::numeric_limits<double>::epsilon())
 	{
 		Y1 = Y2;
-		Y2 = 1.0/(sigma*sqrt(2*PI))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
+		Y2 = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
 
 		int x1, y1;
 		x1 = d2iX(X1);
@@ -115,7 +110,7 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 		painter.setPen(pen);
 		
 		int x, lx, rx, y;
-		double meanValue = 1.0/(sigma*sqrt(2*PI))*multiplier;
+		double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*multiplier;
 		
 		x = d2iX(mean);
 		lx = d2iX(mean-sigma);
@@ -147,9 +142,9 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 int dlg_gaussian::selectPoint(QMouseEvent *event, int*)
 {
 	int lx = event->x();
-	int ly = fctDiagram->geometry().height() -event->y() -fctDiagram->getBottomMargin();
+	int ly = chart->geometry().height() - event->y() - chart->BottomMargin();
 
-	double meanValue = 1.0/(sigma*sqrt(2*PI));
+	double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()));
 
 	int viewXPoint = d2vX(mean);
 	int viewYPoint = d2vY(meanValue*multiplier);
@@ -175,73 +170,63 @@ int dlg_gaussian::selectPoint(QMouseEvent *event, int*)
 
 void dlg_gaussian::moveSelectedPoint(int x, int y)
 {
-	
-	if (y < 0) y = 0;
-	if (y > fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1) y = fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1;
-
+	y = clamp(0, chart->geometry().height() - chart->BottomMargin() - 1, y);
 	if (selectedPoint != -1)
 	{
 		switch(selectedPoint)
 		{
 			case 0:
 			{
-				if (x < 0) x = 0;
-				if (x > fctDiagram->geometry().width()-1) x = fctDiagram->geometry().width()-1;
-				
+				x = clamp(0, chart->geometry().width() - 1, x);
 				mean = v2dX(x);
 			}
 			break;
 			case 1: case 2:
 			{
 				sigma = fabs(mean -v2dX(x));
+				if (sigma <= std::numeric_limits<double>::epsilon())
+					sigma = fabs(mean - v2dX(x+1));
 			}
 		}
 
-		double meanValue = 1.0/(sigma*sqrt(2*PI))*fctDiagram->getYZoom();
-		multiplier  = (double)y /(fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1)*fctDiagram->GetMaxYAxisValue() /meanValue;
+		double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->YZoom();
+		multiplier  = (double)y /(chart->geometry().height() - chart->BottomMargin()-1)*chart->YBounds()[1] /meanValue;
 	}
 }
 
 void dlg_gaussian::reset()
-{
-	
-}
+{}
 
 void dlg_gaussian::setMultiplier(int multiplier)
 {
-	double meanValue = 1.0/(sigma*sqrt(2*PI))*fctDiagram->getYZoom();
+	double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->YZoom();
 	this->multiplier = v2dY(multiplier) /meanValue;
 }
 
+// TODO: unify somewhere!
 double dlg_gaussian::v2dX(int x)
 {
-	double dataRange[2];
-	fctDiagram->GetDataRange(dataRange);
-
-	return ((double)(x-fctDiagram->getTranslationX()) / (double)fctDiagram->geometry().width() * (dataRange[1] - dataRange[0]) ) /fctDiagram->getZoom() + dataRange[0];
+	return ((double)(x-chart->XShift()) / (double)chart->geometry().width() * chart->XRange()) /chart->XZoom() + chart->XBounds()[0];
 }
 
 double dlg_gaussian::v2dY(int y)
 {
-	return fctDiagram->GetCoordinateConverter()->Diagram2ScreenY(y) *fctDiagram->GetMaxYAxisValue() /fctDiagram->getYZoom();
+	return chart->YMapper()->SrcToDest(y) *chart->YBounds()[1] /chart->YZoom();
 }
 
 int dlg_gaussian::d2vX(double x)
 {
-	double dataRange[2];
-	fctDiagram->GetDataRange(dataRange);
-
-	return (int)((x -dataRange[0]) * (double)fctDiagram->geometry().width() / (dataRange[1] - dataRange[0])*fctDiagram->getZoom()) +fctDiagram->getTranslationX();
+	return (int)((x - chart->XBounds()[0]) * (double)chart->geometry().width() / chart->XRange()*chart->XZoom()) +chart->XShift();
 }
 
 int dlg_gaussian::d2vY(double y)
 {
-	return (int)(y /fctDiagram->GetMaxYAxisValue() *(double)(fctDiagram->geometry().height() - fctDiagram->getBottomMargin()-1) *fctDiagram->getYZoom());
+	return (int)(y /chart->YBounds()[1] *(double)(chart->geometry().height() - chart->BottomMargin()-1) *chart->YZoom());
 }
 
 int dlg_gaussian::d2iX(double x)
 {
-	return d2vX(x) -fctDiagram->getTranslationX();
+	return d2vX(x) -chart->XShift();
 }
 
 int dlg_gaussian::d2iY(double y)
@@ -251,8 +236,5 @@ int dlg_gaussian::d2iY(double y)
 
 double dlg_gaussian::i2dX(int x)
 {
-	double dataRange[2];
-	fctDiagram->GetDataRange(dataRange);
-
-	return ((double)x / (double)fctDiagram->geometry().width() * (dataRange[1] - dataRange[0]) ) /fctDiagram->getZoom() + dataRange[0];
+	return ((double)x / (double)chart->geometry().width() * chart->XRange()) /chart->XZoom() + chart->XBounds()[0];
 }

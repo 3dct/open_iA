@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,35 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-struct HOAccGradientDerrivativeSettings
-{
-	unsigned int order, direction, orderOfAcc;
-};
-
-enum iAGradientType
-{
-	DERIVATIVE,
-	GRADIENT_MAGNITUDE,
-	HIGHER_ORDER_ACCURATE_DERIVATIVE,
-};
-
-/**
- * An implementation of itkDerivativeImageFilter and itkGradientMagnitudeImageFilter.
- * For itkDerivativeImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1DerivativeImageFilter.html
- * For itkGradientMagnitudeImageFilter refer to http://www.itk.org/Doxygen/html/classitk_1_1GradientMagnitudeImageFilter.html
- */
-class iAGradients : public iAAlgorithm
-{
-public:
-	iAGradients( QString fn, iAGradientType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-	void setDParameters(double o, double d) { order = o; direction = d; };
-	void setHOAGDParameters(const HOAccGradientDerrivativeSettings * settings) { m_HOAGDSettings = *settings; };
-protected:
-	virtual void performWork();
-private:
-	unsigned int order, direction;
-	HOAccGradientDerrivativeSettings m_HOAGDSettings;
-	iAGradientType m_type;
-};
+IAFILTER_DEFAULT_CLASS(iADerivative);
+IAFILTER_DEFAULT_CLASS(iAGradientMagnitude);
+IAFILTER_DEFAULT_CLASS(iAHigherOrderAccurateDerivative);

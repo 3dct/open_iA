@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,24 +22,8 @@
 
 #include "iAModuleInterface.h"
 
-class MdiChild;
-
 class iAHessianModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-
 public:
 	void Initialize();
-
-private slots:
-	void computeHessianEigenanalysis();
-	void computeHessianEigenanalysis1();
-	void computeHessianEigenanalysis2();
-	void computeHessianEigenanalysis3();
-	void computeLaplacian();
-
-protected:
-	//settings
-	unsigned int chefSigma;
-	void computeHessianEigenanalysis(int nr);
 };

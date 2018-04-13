@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,32 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-enum iAMorphologyOperationType
-{
-	DILATION_FILTER,
-	EROSION_FILTER,
-	VESSEL_ENHANCEMENT_FILTER,
-};
-
-/**
- * Implementation of erosion, dilation and binary thinning filters.
- */
-class iAMorphologyFilters : public iAAlgorithm
-{
-public:
-	iAMorphologyFilters( QString fn, iAMorphologyOperationType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	/**
-	 * Sets a parameter for the morphology filters (e.g. radius of the structuring binary ball)
-	 * \param	radius	The radius in int.
-	 */
-	void setMORPHParameters( int radius, vtkImageData* image) { r = radius; m_Image = image;};
-protected:
-	void performWork();
-private:
-	int r;
-	vtkImageData* m_Image;
-	iAMorphologyOperationType m_type;
-};
+IAFILTER_DEFAULT_CLASS(iADilation);
+IAFILTER_DEFAULT_CLASS(iAErosion);
+IAFILTER_DEFAULT_CLASS(iAVesselEnhancement);

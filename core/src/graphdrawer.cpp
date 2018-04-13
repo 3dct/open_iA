@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,24 +18,22 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "graphdrawer.h"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
+#include <cmath>
 #include <iostream>
 
-#include <cmath>
-
-bool compare(pair<Graph::idType, Graph::Vertex> v1, pair<Graph::idType, Graph::Vertex> v2) {
+bool compare(std::pair<Graph::idType, Graph::Vertex> v1, std::pair<Graph::idType, Graph::Vertex> v2) {
 	return (v1.second.rank < v2.second.rank);
 }
 
-bool compareMedians(pair<Graph::idType, float> v1, pair<Graph::idType, float> v2) {
+bool compareMedians(std::pair<Graph::idType, float> v1, std::pair<Graph::idType, float> v2) {
 	return (v1.second < v2.second);
 }
 
-void swapVertices(vector<Graph::idType>& rank, int index1, int index2) {
+void swapVertices(std::vector<Graph::idType>& rank, int index1, int index2) {
 	assert(&rank);
 	assert((size_t)index1 < rank.size());
 	assert((size_t)index2 < rank.size());
@@ -68,16 +66,16 @@ void GraphDrawer::initialOrder(OrderType& order)
 {
 	if (!order.empty()) order.clear();
 	for (int i = 0; i <= m_graphStat.getMaxRank(); i++) {
-		vector<Graph::idType> vertices(m_graphStat.getNumVerticesInRank(i), -1);
+		std::vector<Graph::idType> vertices(m_graphStat.getNumVerticesInRank(i), -1);
 		order.push_back(vertices);
 	}
 
 	// find headers vertices
 	// then sort them by their rank
-	vector<pair<Graph::idType, Graph::Vertex>> headerVerticles;
-	for (Graph::VerticesMap::const_iterator vertIt = m_graph->getVertices()->begin(); vertIt != m_graph->getVertices()->end(); vertIt++) {
+	std::vector<std::pair<Graph::idType, Graph::Vertex>> headerVerticles;
+	for (auto vertIt = m_graph->getVertices()->begin(); vertIt != m_graph->getVertices()->end(); vertIt++) {
 		if (m_graphStat.isHeaderVertix(vertIt->first)) {
-			headerVerticles.push_back(make_pair(vertIt->first, m_graph->getVertices()->at(vertIt->first)));
+			headerVerticles.push_back(std::make_pair(vertIt->first, m_graph->getVertices()->at(vertIt->first)));
 		}
 	}
 	sort(headerVerticles.begin(), headerVerticles.end(), compare);
@@ -144,10 +142,10 @@ void GraphDrawer::wmedian(OrderType& order, bool forwardTraversal)
 	if (forwardTraversal) {
 		for (int i = 0; i <= maxRank; i++) {
 			int numVertex = order[i].size();
-			vector<pair<Graph::idType, float>> median;
+			std::vector<std::pair<Graph::idType, float>> median;
 			for (int j = 0; j < numVertex; j++) {
 				float val = medianValue(order[i][j], order, forwardTraversal);
-				median.push_back(make_pair(order[i][j], val));
+				median.push_back(std::make_pair(order[i][j], val));
 			}
 			sort(median.begin(), median.end(), compareMedians);
 			for (int j = 0; j < numVertex; j++) {
@@ -158,10 +156,10 @@ void GraphDrawer::wmedian(OrderType& order, bool forwardTraversal)
 	else {
 		for (int i = maxRank; i >= 0; i--) {
 			int numVertex = order[i].size();
-			vector<pair<Graph::idType, float>> median;
+			std::vector<std::pair<Graph::idType, float>> median;
 			for (int j = 0; j < numVertex; j++) {
 				float val = medianValue(order[i][j], order, forwardTraversal);
-				median.push_back(make_pair(order[i][j], val));
+				median.push_back(std::make_pair(order[i][j], val));
 			}
 			sort(median.begin(), median.end(), compareMedians);
 			for (int j = 0; j < numVertex; j++) {
@@ -173,7 +171,7 @@ void GraphDrawer::wmedian(OrderType& order, bool forwardTraversal)
 
 float GraphDrawer::medianValue(Graph::idType vert, OrderType& order, bool forwardTraversal)
 {
-	vector<int> p = getAdjacentPositions(vert, order, forwardTraversal);
+	std::vector<int> p = getAdjacentPositions(vert, order, forwardTraversal);
 	int size = p.size();
 	int m = (int)std::floor((float)size / 2);
 	if (size == 0) {
@@ -194,14 +192,14 @@ float GraphDrawer::medianValue(Graph::idType vert, OrderType& order, bool forwar
 
 std::vector<int> GraphDrawer::getAdjacentPositions(Graph::idType vert, OrderType& order, bool forwardTraversal)
 {
-	vector<Graph::idType> adjacentVerts;
+	std::vector<Graph::idType> adjacentVerts;
 	if(forwardTraversal) {
 		adjacentVerts = m_graphStat.getParentVertices(vert);
 	}
 	else {
 		adjacentVerts = m_graphStat.getChildVertices(vert);
 	}
-	vector<int>	positions;
+	std::vector<int>	positions;
 	if (adjacentVerts.size() == 0) return positions;
 
 	int rank = m_graph->getVertices()->at(adjacentVerts[0]).rank;

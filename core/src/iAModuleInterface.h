@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -46,7 +46,9 @@ public:
 	virtual ~iAModuleInterface();
 	void SetMainWindow( MainWindow * mainWnd );
 	void SetDispatcher( iAModuleDispatcher * dispatcher );
-	virtual void Initialize() = 0;
+	//! override to add references to the module in the core code,
+	//! for example menu entries
+	virtual void Initialize() = 0;		// TODO: split up into GUI part and other?
 	virtual void SaveSettings() const;
 	iAChildData GetChildData() const;
 	//! Called whenever an MdiChild object is created. Override to react on this

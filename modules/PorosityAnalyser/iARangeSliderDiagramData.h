@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,63 +20,42 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAbstractDiagramData.h"
+#include "charts/iAPlotData.h"
 
 #include <QSharedPointer>
 
-class iARangeSliderDiagramData : public iAAbstractDiagramRangedData
+class iARangeSliderDiagramData : public iAPlotData
 {
 public:
 	iARangeSliderDiagramData( QList<double> m_rangeSliderData, double min, double max );
 	~iARangeSliderDiagramData();
 	void updateRangeSliderFunction();
 	
-	virtual DataType const * GetData() const;
-	virtual size_t GetNumBin() const;
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
 
-	virtual double GetSpacing() const
+	double GetSpacing() const override
 	{
 		if ( GetNumBin() <= 1 )
 			return 0.0;
 		
-		return ( m_range[1] - m_range[0] ) / (GetNumBin() - 1.0);
+		return ( m_xBounds[1] - m_xBounds[0] ) / (GetNumBin() - 1.0);
 	}
 
-	virtual double * GetDataRange()
+	double const * XBounds() const override
 	{
-		return m_range;
+		return m_xBounds;
 	}
 
-	virtual double GetDataRange( int idx ) const
+	DataType const * YBounds() const override
 	{
-		return m_range[idx];
-	}
-
-	virtual DataType GetMaxValue() const 
-	{
-		double max = 0;
-		for ( int i = 0; i < m_rangeSliderData.size(); ++i )
-		{
-			if ( m_rangeSliderData.at( i ) > max )
-				max = m_rangeSliderData.at( i );
-		}
-		return max;
-	}
-
-	virtual DataType GetMinValue() const
-	{
-		double min = 0;
-		for ( int i = 0; i < m_rangeSliderData.size(); ++i )
-		{
-			if ( m_rangeSliderData.at( i ) < min )
-				min = m_rangeSliderData.at( i );
-		}
-		return min;
+		return m_yBounds;
 	}
 
 private:
 	DataType* m_rangeSliderFunction;
 	QList<double> m_rangeSliderData;
 
-	double m_range[2];
+	double m_xBounds[2];
+	DataType m_yBounds[2];
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,16 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iARangeSliderDiagramData.h"
 
 iARangeSliderDiagramData::iARangeSliderDiagramData( QList<double> m_rangeSliderData, double min, double max ) :
 	m_rangeSliderFunction( NULL ),
 	m_rangeSliderData( m_rangeSliderData )
 {
-	m_range[0] = min;
-	m_range[1] = max;
+	m_xBounds[0] = min;
+	m_xBounds[1] = max;
 }
 
 iARangeSliderDiagramData::~iARangeSliderDiagramData()
@@ -41,14 +39,19 @@ void iARangeSliderDiagramData::updateRangeSliderFunction()
 	{
 		m_rangeSliderFunction = new DataType[m_rangeSliderData.size()];
 	}
-
+	m_yBounds[0] = std::numeric_limits<double>::max();
+	m_yBounds[1] = std::numeric_limits<double>::lowest();
 	for ( int i = 0; i < m_rangeSliderData.size(); ++i )
 	{
 		m_rangeSliderFunction[i] = m_rangeSliderData.at( i );
+		if (m_rangeSliderData.at(i) > m_yBounds[1])
+			m_yBounds[1] = m_rangeSliderData.at(i);
+		if (m_rangeSliderData.at(i) < m_yBounds[0])
+			m_yBounds[0] = m_rangeSliderData.at(i);
 	}
 }
 
-iAAbstractDiagramData::DataType const * iARangeSliderDiagramData::GetData() const
+iAPlotData::DataType const * iARangeSliderDiagramData::GetRawData() const
 {
 	return m_rangeSliderFunction;
 }

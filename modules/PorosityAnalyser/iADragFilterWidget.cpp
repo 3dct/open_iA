@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,10 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
-
 #include "iADragFilterWidget.h"
+
 #include "PorosityAnalyserHelpers.h"
 
 #include <QtWidgets>
@@ -144,7 +142,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 							 "value of the the pixels in a neighborhood about the corresponding input pixel. A median filter "
 							 "is one of the family of nonlinear filters.It is used to smooth an image without being biased "
 							 "by outliers or shot noise.</p>"
-							 "<p>http://www.itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html</p>" );
+							 "<p>https://itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html</p>" );
 		med->move( columnGutter * xIdx++, yIdx * rowStartOffset );
 		med->show();
 		med->setAttribute( Qt::WA_DeleteOnClose );
@@ -323,7 +321,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 								"values (OutsideValue or InsideValue), depending on whether the corresponding input image "
 								"pixels lie between the two thresholds (LowerThreshold and UpperThreshold). Values equal to "
 								"either threshold is considered to be between the thresholds.</p>"
-								"<p>http://www.itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html</p>" );
+								"<p>https://itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html</p>" );
 		binary->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		binary->show();
 		binary->setAttribute( Qt::WA_DeleteOnClose );

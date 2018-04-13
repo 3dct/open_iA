@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,36 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-enum iADistanceMapType
-{
-	SIGNED_MAURER_DISTANCE_MAP,
-	DANIELSSON_DISTANCE_MAP,
-};
-
-/**
- * An itk distance map. Basic filter itkSignedMaurerDistanceMapImageFilter.
- * Input image segmented binary image. Output image float datatype distance map.
- * Further details refer http://www.itk.org/Doxygen/html/classitk_1_1SignedMaurerDistanceMapImageFilter.html.
- * \remarks	Kana, 01/12/2010. 
- */
-class iADistanceMap : public iAAlgorithm
-{
-public:
-	iADistanceMap( QString fn, iADistanceMapType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	/**
-	 * Sets signed maurer distance map parameters. 
-	 * \param	i		The UseImageSpacingOn switch. 
-	 * \param	t		The SquaredDistanceOff switch. 
-	 * \param	c		The InsideIsPositiveOn switch. 
-	 * \param	neg		The switch to set back ground = -1. 
-	 */
-	void setSMDMParameters( int i, int t, int c, int neg) { imagespacing = i; squareddistance = t; insidepositive = c; n = neg;};
-protected:
-	virtual void performWork();
-private:
-	int imagespacing, insidepositive, squareddistance, n; 
-	iADistanceMapType m_type;
-};
+IAFILTER_DEFAULT_CLASS(iASignedMaurerDistanceMap);
+IAFILTER_DEFAULT_CLASS(iADanielssonDistanceMap);

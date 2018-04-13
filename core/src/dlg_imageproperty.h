@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,8 +23,9 @@
 #include <QDockWidget>
 #include "ui_ImageProperty.h"
 
+class iAImageInfo;
+
 class vtkImageData;
-class vtkImageAccumulate;
 
 class dlg_imageproperty : public QDockWidget, public Ui_ImageProperty
 {
@@ -32,7 +33,7 @@ class dlg_imageproperty : public QDockWidget, public Ui_ImageProperty
 
 public:
 	dlg_imageproperty(QWidget *parent);
-	void AddInfo(vtkImageData* src, vtkImageAccumulate* accum, QString const & name, int channelCount);
+	void AddInfo(vtkImageData* src, iAImageInfo const & info, QString const & name, int channelCount);
 	void Clear();
 private:
 	void EnterMsg(QString txt);

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,27 +24,6 @@
 
 class iAAstraReconstructionModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
 public:
 	void Initialize();
-private slots:
-	void ForwardProject();
-	void BackProject();
-	void FreeBeamIntensity();
-private:	
-	QString projGeomType;
-	double detSpacingX, detSpacingY, distOrigDet, 
-		distOrigSource, projAngleStart, projAngleEnd;
-	int detRowCnt, detColCnt, projAnglesCount,
-		detRowDim, detColDim, projAngleDim,
-		algorithmType, numberOfIterations;
-	int volDim[3];
-	double volSpacing[3];
-	bool correctCenterOfRotation;
-	double correctCenterOfRotationOffset;
-
-	bool m_childClosed;
-	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ;
-	bool manualMeanFreeBeamIntensity;
-	int manualMeanFreeBeamIntensityValue;
 };

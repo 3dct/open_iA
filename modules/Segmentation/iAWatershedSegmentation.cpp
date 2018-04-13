@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,12 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iAWatershedSegmentation.h"
 
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
+#include "iAToolsITK.h"
 #include "iATypedCallHelper.h"
 
 #include <itkCastImageFilter.h>
@@ -37,104 +37,81 @@
 
 #include <QLocale>
 
-/**
-* Watershed template initializes itkWatershedImageFilter .
-* \param	l		SetLevel. 
-* \param	t		SetThreshold. 
-* \param	p		Filter progress information. 
-* \param	image	Input image. 
-* \param			The. 
-* \return	int		Status code 
-*/
+
+// Watershed segmentation 
+
 template<class T> 
-int watershed_template( double l, double t, iAProgress* p, iAConnector* image, vtkImageData* imageDataNew )
+void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
-
 	typedef itk::WatershedImageFilter < InputImageType > WIFType;
-	typename WIFType::Pointer filter = WIFType::New();
-	filter->SetLevel ( l );
-	filter->SetThreshold ( t);
-	filter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-
-	p->Observe( filter );
-
-	filter->Update();
-
-	typedef itk::Image< typename WIFType::OutputImagePixelType, DIM > IntImageType;
-	typedef itk::Image<	unsigned long, DIM>  LongImageType;
-	typedef itk::CastImageFilter< IntImageType, LongImageType > CastFilterType;
-	typename CastFilterType::Pointer longcaster = CastFilterType::New();
-	longcaster->SetInput(0, filter->GetOutput() );
-	
-	image->SetImage( longcaster->GetOutput() );
-	image->Modified();
- 
-	imageDataNew->Initialize();
-	imageDataNew->DeepCopy(image->GetVTKImage());
-	imageDataNew->CopyInformationFromPipeline(image->GetVTKImage()->GetInformation());
-
-	filter->ReleaseDataFlagOn();
-	longcaster->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
+	auto wsFilter = WIFType::New();
+	wsFilter->SetLevel ( parameters["Level"].toDouble() );
+	wsFilter->SetThreshold ( parameters["Threshold"].toDouble() );
+	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
+	filter->Progress()->Observe( wsFilter );
+	wsFilter->Update();
+	filter->AddOutput( CastImageTo<unsigned long>(wsFilter->GetOutput()) );
 }
 
+IAFILTER_CREATE(iAWatershed)
+
+iAWatershed::iAWatershed() :
+	iAFilter("Watershed", "Segmentation/Based on Watershed",
+		"Computes a watershed segmentation the input image.<br/>"
+		"As input image use for example a gradient magnitude image.<br/>"
+		"Both parameters <em>Threshold</em> and <em>Level</em> are percentage "
+		"points of the maximum height value in the input (they must be in the "
+		"interval [0..1]).<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1WatershedImageFilter.html\">"
+		"Watershed filter</a> in the ITK documentation.")
+{
+	AddParameter("Level", Continuous, 0);
+	AddParameter("Threshold", Continuous, 0);
+}
+
+void iAWatershed::PerformWork(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(watershed, InputPixelType(), this, parameters);
+}
+
+
+// Morphological Watershed
+
 template<class T>
-int morph_watershed_template( double mwsLevel, bool mwsMarkWSLines, bool mwsFullyConnected, iAProgress* p,
-							  iAConnector* image, vtkImageData* imageDataNew )
+void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	typedef itk::Image< unsigned long, DIM > OutputImageType;
-	
 	typedef itk::MorphologicalWatershedImageFilter<InputImageType, OutputImageType> MWIFType;
-	typename MWIFType::Pointer mWSFilter = MWIFType::New();
-	mwsMarkWSLines ? mWSFilter->MarkWatershedLineOn() : mWSFilter->MarkWatershedLineOff();
-	mwsFullyConnected ? mWSFilter->FullyConnectedOn() : mWSFilter->FullyConnectedOff();
-	mWSFilter->SetLevel( mwsLevel );
-	mWSFilter->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
-
-	p->Observe( mWSFilter );
+	auto mWSFilter = MWIFType::New();
+	mWSFilter->SetMarkWatershedLine(parameters["Mark WS Lines"].toBool());
+	mWSFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
+	mWSFilter->SetLevel( parameters["Level"].toDouble() );
+	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
+	filter->Progress()->Observe( mWSFilter );
 	mWSFilter->Update();
-
-	typedef itk::Image< typename MWIFType::OutputImagePixelType, DIM > IntImageType;
-	typedef itk::Image<	unsigned long, DIM>  LongImageType;
-	typedef itk::CastImageFilter< IntImageType, LongImageType > CastFilterType;
-	typename CastFilterType::Pointer longcaster = CastFilterType::New();
-	longcaster->SetInput( 0, mWSFilter->GetOutput() );
-
-	image->SetImage( longcaster->GetOutput() );
-	image->Modified();
-
-	imageDataNew->Initialize();
-	imageDataNew->DeepCopy( image->GetVTKImage() );
-	imageDataNew->CopyInformationFromPipeline( image->GetVTKImage()->GetInformation() );
-
-	mWSFilter->ReleaseDataFlagOn();
-	longcaster->ReleaseDataFlagOn();
-
-	return EXIT_SUCCESS;
+	filter->AddOutput( CastImageTo<unsigned long>(mWSFilter->GetOutput()) );
 }
 
-iAWatershedSegmentation::iAWatershedSegmentation( QString fn, iAWatershedType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject* parent )
-	: iAAlgorithm( fn, i, p, logger, parent ), m_type(fid)
+IAFILTER_CREATE(iAMorphologicalWatershed)
+
+iAMorphologicalWatershed::iAMorphologicalWatershed() :
+	iAFilter("Morphological Watershed", "Segmentation/Based on Watershed",
+		"Calculates the Morphological Watershed Transformation.<br/>"
+		"As input image use for example a gradient magnitude image.<br/>"
+		"<em>Mark WS Line</em> labels watershed lines with 0, background with 1.<br/>"
+		"For further information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MorphologicalWatershedImageFilter.html\">"
+		"Morphological Watershed filter</a> in the ITK documentation.</p>")
 {
-	imageDataNew = vtkImageData::New();
+	AddParameter("Level", Continuous, 0);
+	AddParameter("Mark WS Lines", Boolean, false);
+	AddParameter("Fully Connected", Boolean, false);
 }
 
-void iAWatershedSegmentation::performWork()
+void iAMorphologicalWatershed::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	switch (m_type)
-	{
-	case WATERSHED:
-		ITK_TYPED_CALL(watershed_template, itkType, level, threshold, getItkProgress(), getConnector(), imageDataNew);
-		break;
-	case MORPH_WATERSHED:
-		ITK_TYPED_CALL(morph_watershed_template, itkType, mwsLevel, mwsMarkWSLines,
-			mwsFullyConnected, getItkProgress(), getConnector(), imageDataNew);
-		break;
-	default:
-		addMsg(tr("  unknown filter type"));
-	}
+	ITK_TYPED_CALL(morph_watershed, InputPixelType(), this, parameters);
 }

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,51 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
+#include "iAFilter.h"
 
-enum iAConnCompType
-{
-	SIMPLE_CONNECTED_COMPONENT_FILTER,
-	SCALAR_CONNECTED_COMPONENT_FILTER,
-	SIMPLE_RELABEL_COMPONENT_IMAGE_FILTER,
-};
-
-/**
- * Implementation of 2 itk filters. The basic filters are itkRelabelComponentImageFilter and itkConnectedComponentImageFilter.
- * For itkRelabelComponentImageFilter refer http://www.itk.org/Doxygen/html/classitk_1_1RelabelComponentImageFilter.html.
- * For itkConnectedComponentImageFilter refer http://www.itk.org/Doxygen/html/classitk_1_1ConnectedComponentImageFilter.html.
- */
-class iAConnectedComponentFilters : public iAAlgorithm
-{
-public:
-	iAConnectedComponentFilters( QString fn, iAConnCompType fid, vtkImageData* i, vtkPolyData* p, iALogger* logger, QObject *parent = 0 );
-
-	/**
-	 * Sets a itkConnectedComponentImageFilter parameters. 
-	 * \param	fullyconnected	The fullyconnected switch. 
-	 */
-	void setSCCFParameters( int fullyconnected ) { c = fullyconnected; };
-
-	/**
-	 * Sets a itkScalarConnectedComponentImageFilter parameters. 
-	 * \param	fullyconnected	The fullyconnected switch. 
-	 */
-	void setScalarCCFParameters( double distanceThreshold ) { distTreshold = distanceThreshold; };
-
-	/**
-	 * Sets a itkRelabelComponentImageFilter parameters. 
-	 * \param	writeroption	The switch writeroption. 
-	 * \param	objectsize		The minimum objectsize. 
-	 * \param	file			The filename. 
-	 */
-	void setSRCIFParameters( bool writeroption, int objectsize, QString file ) { w = writeroption; s = objectsize; f = file; };
-protected:
-	void performWork();
-private:
-	double distTreshold;
-	int c;
-	int s;
-	bool w;
-	QString f;
-	iAConnCompType m_type;
-};
+IAFILTER_DEFAULT_CLASS(iASimpleConnectedComponents);
+IAFILTER_DEFAULT_CLASS(iAScalarConnectedComponents);
+IAFILTER_DEFAULT_CLASS(iASimpleRelabelConnectedComponents);

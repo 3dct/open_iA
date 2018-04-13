@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAGEMSeConstants.h"
 
 #include <QBrush>
@@ -80,9 +78,3 @@ const QBrush DefaultColors::TriangleButtonSelectedBrush(Qt::black, Qt::SolidPatt
 const QBrush DefaultColors::ChartMarkerBrush(DefaultColors::ImageChartColor, Qt::SolidPattern);
 const QBrush DefaultColors::ChartSliderBrush(DefaultColors::ChartSliderColor, Qt::SolidPattern);
 const QBrush DefaultColors::CaptionBrush(DefaultColors::CaptionBGColor, Qt::SolidPattern);
-
-
-
-const QString Output::NameSeparator(": ");
-const QString Output::ValueSeparator(",");
-const QString Output::OptionalParamSeparator(" ");
