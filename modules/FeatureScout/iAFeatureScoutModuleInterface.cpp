@@ -114,7 +114,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 
 
 	if (!fileConfParams.fileName.isEmpty()) {
-		initializeFeatureScoutStartUp(item, items, fileConfParams.fileName, objectMap, filterName, true, &fileConfParams);
+		initializeFeatureScoutStartUp(item, items, fileConfParams.fileName, objectMap, filterName, true, &fileConfParams, &*headers);
 	}
 	else m_mdiChild->addMsg("CSV-file name error.");
 	
@@ -151,7 +151,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 				item = "Fibers";
 			file.close();
 
-			initializeFeatureScoutStartUp(item, items, fileName, objectMap, filterName, false, nullptr);
+			initializeFeatureScoutStartUp(item, items, fileName, objectMap, filterName, false, nullptr, nullptr);
 		}
 		else
 			m_mdiChild->addMsg( "CSV-file could not be opened." );
@@ -160,12 +160,12 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 		m_mdiChild->addMsg( "CSV-file name error." );
 }
 
-void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString, 
-	iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams)
+void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString,
+	iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams, QStringList *selHeaders)
 {
 	if (item == items[0] || item == items[1])
 	{
-		if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, objectMap[item], FileParams, isCsvOnly))
+		if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, objectMap[item], FileParams, isCsvOnly, selHeaders))
 		{
 			SetupToolbar();
 			m_mdiChild->addStatusMsg(filterName);
@@ -213,7 +213,7 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 /*enty point for openIA FeatureScout
 *optional parameter FileParams for custom csv
 */
-bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType, csvConfig::configPararams *FileParams, const bool is_csvOnly)
+bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType, csvConfig::configPararams *FileParams, const bool is_csvOnly, QStringList *selHeader)
 	{
 	//default action if file params is null
 	if (!FileParams) {
@@ -228,6 +228,9 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 
 	}
 
+	//TODO remove debug;
+	io.debugTable(); 
+
 	QString filtername = tr( "FeatureScout started" );
 	m_mdiChild->addStatusMsg( filtername );
 	m_mdiChild->addMsg( filtername );
@@ -241,7 +244,7 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 	}
 
 	
-	attach->init(objectType, io.GetCSVTable(), is_csvOnly);
+	attach->init(objectType, io.GetCSVTable(), is_csvOnly, selHeader);
 	return true;
 }
 

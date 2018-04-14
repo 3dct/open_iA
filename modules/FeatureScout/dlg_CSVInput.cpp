@@ -36,8 +36,8 @@ void dlg_CSVInput::disableFormatComponents()
 	this->lbl_endLine->setVisible(true);
 	this->ed_decimal->setVisible(false);
 	this->lbl_decimal->setVisible(false);
-	this->buttonBox->setVisible(false);
-	this->buttonBox->setDisabled(true);
+	this->buttonBox->setVisible(true);
+	this->buttonBox->setDisabled(false);
 }
 
 void dlg_CSVInput::saveHeaderEntriesToReg(const QStringList& HeaderEntries, const QString &HeaderName, const QString &LayoutName)
@@ -63,7 +63,7 @@ void dlg_CSVInput::LoadHeaderEntriesFromReg(QStringList &HeaderEntries, const QS
 
 dlg_CSVInput::~dlg_CSVInput()
 {
-
+	
 }
 
 void dlg_CSVInput::connectSignals()
@@ -72,15 +72,21 @@ void dlg_CSVInput::connectSignals()
 	connect(btn_PreviewData, SIGNAL(clicked()), this, SLOT(LoadCSVPreviewClicked()));
 	//connect(btn_LoadConfig, SIGNAL(clicked()), this, SLOT(LoadFormatBtnClicked()));
 	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked()));
-	connect(btn_loadCols, SIGNAL(clicked()), this, SLOT(LoadColsBtnClicked()));
+	/*connect(btn_loadCols, SIGNAL(clicked()), this, SLOT(LoadColsBtnClicked()));*/
 	connect(btn_SaveLayout, SIGNAL(clicked()), this, SLOT(SaveLayoutBtnClicked())); 
 	connect(cmb_box_FileFormat, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadFormatSettings);
-	
+	connect(buttonBox, SIGNAL(accepted()), this, SLOT(OKButtonClicked()));
 	//connect(cmb_box_FileFormat, SIGNAL(currentTextChanged(const QString&)), this, SLOT(LoadFormatSettings(QString)));
 }
 
 void dlg_CSVInput::ImportRegSettings()
 {
+}
+
+void dlg_CSVInput::OKButtonClicked()
+{
+	setSelectedEntries();
+	this->accept();
 }
 
 //enabling for custom file format

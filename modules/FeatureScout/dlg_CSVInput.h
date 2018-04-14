@@ -109,7 +109,7 @@ public:
 		}
 	}
 	
-	void setSelectedEntries();
+	
 	void addSelectedHeaders(QVector<uint>& data);
 	void addSingleHeaderToList(uint &currItemIdx, QString &listEntry);
 	const QVector<uint>& getEntriesSelInd();
@@ -118,7 +118,7 @@ public:
 
 	void setSelectedHeaderToTextControl(QStringList & sel_headers);
 
-
+	void setSelectedEntries();
 	
 	
 	inline const QSharedPointer<QStringList> getHeaders() {
@@ -135,7 +135,7 @@ private slots:
 
 	//TODO TBD
 	void ImportRegSettings();
-
+	void OKButtonClicked(); 
 	//custom file format 
 	void CustomFormatBtnClicked();
 	void showFormatComponents();

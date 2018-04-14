@@ -49,11 +49,11 @@ private slots:
 	void onChildClose();
 private:
 	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
-	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID, csvConfig::configPararams *FileParams, const bool is_csvOnly);
+	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID, csvConfig::configPararams *FileParams, const bool is_csvOnly, QStringList *selHeader);
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
 	void initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString,
-		iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams);
+		iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams, QStringList *selHeader);
 	iAFeatureScoutToolbar * tlbFeatureScout;
 
 	iACsvIO io;

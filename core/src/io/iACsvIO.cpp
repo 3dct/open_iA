@@ -285,6 +285,32 @@ void iACsvIO::setParams(QStringList & headers, const QVector<uint>& colIDs, uint
 	this->setTableWidth(TableWidth);
 }
 
+void iACsvIO::debugTable()
+{
+	ofstream debugfile;
+	debugfile.open("C:/Users/p41883/Desktop/inputData.txt");
+	if (debugfile.is_open()) {
+		vtkVariant spCol, spRow, spCN, spVal;
+		spCol = this->table->GetNumberOfColumns();
+		spRow = this->table->GetNumberOfRows();
+
+		for (int i = 0; i<spCol.ToInt(); i++) {
+			spCN = this->table->GetColumnName(i);
+			debugfile << spCN.ToString() << "\t";
+		}
+		debugfile << "\n";
+		for (int row = 0; row < spRow.ToInt(); row++) {
+			for (int col = 0; col < spCol.ToInt(); col++) {
+				spVal = this->table->GetValue(row, col);
+				debugfile << spVal.ToString() << "\t";
+			}
+			debugfile << "\n";
+		}
+		debugfile.close();
+	}
+
+}
+
 void iACsvIO::setDefaultConfigPath()
 {
 	configPath = "D:/OpenIa_TestDaten/TestInput/config/";
@@ -497,8 +523,8 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 
 	QTextStream in(&file);
 
-	//skip header lines, not counting the line where names start
-	for (int i = 0; i < rows_toSkip-1; i++) {
+	//skip lines including header 
+	for (int i = 0; i < rows_toSkip; i++) {
 		QString tmp = in.readLine();
 	}
 
@@ -544,7 +570,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	//use separate col count index 
 	int cur_Colcount = 1; 
 
-	for (int row = 0; row<tableLength+1; ++row) //TODO remove hard coded value 
+	for (int row = 0; row<tableLength/*+1*/; ++row) //TODO remove hard coded value 
 	{
 		if (m_useEndLine && (row > m_endLine))
 			break;
@@ -553,7 +579,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 		if (!line.isEmpty())
 		{
 			cur_Colcount = 1;
-			ID_val = this->m_EL_ID;
+			ID_val = this->m_EL_ID; //AUTO ID
 			table->SetValue(row, 0, ID_val.ToString());
 			
 			

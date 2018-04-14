@@ -76,6 +76,8 @@ public:
 
 	void setParams(QStringList& headers, const QVector<uint> &colIDs, uint TableWidth); 
 
+	void debugTable(); 
+
 private:
 
 	void setDefaultConfigPath(); 

@@ -179,7 +179,8 @@ ColormapFuncPtr colormapsIndex[] =
 	ColormapRGBHalfSphere,
 };
 
-dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly )
+//TODO APPEND m_headers selected  as pointer
+dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QStringList *selHeaders )
 	: QDockWidget( parent ),
 	/*oTF( parent->getPiecewiseFunction() ),
 	cTF( parent->getColorTransferFunction() ),*/
@@ -214,8 +215,13 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 
 	this->raycaster = raycaster;
 	blobManager = new iABlobManager();
+	
 	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
 	double bounds[6];
+	this->m_headersSelected = new QStringList(); 
+	if (this->useCsvOnly && selHeaders) {
+		this->m_headersSelected = selHeaders;
+	}
 
 	if (!this->useCsvOnly) {
 
@@ -263,6 +269,11 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 dlg_FeatureScout::~dlg_FeatureScout()
 {
 	delete blobManager;
+
+	if (this->m_headersSelected) {
+		delete this->m_headersSelected;
+		this->m_headersSelected = 0; 
+	}
 
 	if ( this->elementTableModel != 0 )
 	{
@@ -5104,7 +5115,7 @@ QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 		if(useCsvOnly)  //TODO ADAPT HARD CODED STUFF OF ELEMENT NAMES FOR dlg_FeatureScout::getNamesOfObjectCharakteristics
 			eleString.append("AUTO_ID");
 
-
+		//TODO REPLACE HARD CODED HEADERS BY SELECTED HEADERS
 		eleString.append( "LabelId" );									// 0
 		eleString.append( QString( "X1%1" ).arg( micro1 ) );			// 1
 		eleString.append( QString( "Y1%1" ).arg( micro1 ) );			// 2
