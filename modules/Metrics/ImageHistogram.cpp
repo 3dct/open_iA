@@ -24,11 +24,14 @@
 
 #include <algorithm>
 
-#define DBL_EPSILON		2.2204460492503131e-016 /* smallest such that 1.0+DBL_EPSILON != 1.0 */
-#define DBL_EQ(x,v) (((v - DBL_EPSILON) < x) && (x <( v + DBL_EPSILON)))
-
 namespace
 {
+	const double DoubleEpsilon = 2.2204460492503131e-016; /* smallest such that 1.0+DoubleEpsilon != 1.0 */
+	bool DoubleEquals(double x, double v)
+	{
+		return ((v - DoubleEpsilon) < x) && (x < (v + DoubleEpsilon));
+	}
+
 	const double LOG2M1 = 1.4426950408889634073599246810018921374266459541529860;
 	// Calculates log2=log(n)/log(2)
 	double dlog2(double n)
@@ -284,7 +287,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 					tmp_idx[0] = i;
 					tmp_idx[1] = i;
 				}
-				if( DBL_EQ(ghist_y[i],minval) )		// if maximum is equal, the mean between the idx is taken
+				if(DoubleEquals(ghist_y[i],minval) )		// if maximum is equal, the mean between the idx is taken
 					tmp_idx[1] = i;
 			}
 
@@ -419,7 +422,7 @@ float cImageHistogram::CalcEntropy()
 	for(dHistPosList::iterator iter = p.begin(); iter < p.end(); iter++)
 	{
 		double mx = (iter->y*dlog2(iter->y));
-		if(iter->y>=DBL_EPSILON)
+		if(iter->y>=DoubleEpsilon)
 			H+=(iter->y*dlog2(iter->y));
 	}
 	H/=-Hmax;
