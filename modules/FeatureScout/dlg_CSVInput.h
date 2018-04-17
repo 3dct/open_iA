@@ -202,6 +202,7 @@ private:
 	csvTable_ptr m_entriesPreviewTable = nullptr; 
 	//csvTable_ptr m_DataTableSelected = nullptr; 
 	cvsRegSettings_ShrdPtr m_regEntries = nullptr;
+	QString m_LayoutName; 
 
 	bool isFileNameValid = false; 
 	bool isFilledWithData = false; 

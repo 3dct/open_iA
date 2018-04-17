@@ -519,34 +519,40 @@ void dlg_FeatureScout::setupDefaultElement()
 {
 	if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )                      //Fibers
 	{
-		pcChart->SetColumnVisibilityAll( false );
-		pcChart->SetColumnVisibility( eleString.at( 7 ).toStdString(), true );	//a11
-		pcChart->SetColumnVisibility( eleString.at( 8 ).toStdString(), true );	//a22
-		pcChart->SetColumnVisibility( eleString.at( 9 ).toStdString(), true );	//a33
-		pcChart->SetColumnVisibility( eleString.at( 13 ).toStdString(), true );	//theta
-		pcChart->SetColumnVisibility( eleString.at( 14 ).toStdString(), true );	//phi
-		pcChart->SetColumnVisibility( eleString.at( 15 ).toStdString(), true );	//xm
-		pcChart->SetColumnVisibility( eleString.at( 16 ).toStdString(), true );	//ym
-		pcChart->SetColumnVisibility( eleString.at( 17 ).toStdString(), true );	//zm
-		pcChart->SetColumnVisibility( eleString.at( 18 ).toStdString(), true );	//straightlength
-		//pcChart->SetColumnVisibility(eleString.at(20).toStdString(), true);	//diameter
-		//pcChart->SetColumnVisibility(eleString.at(22).toStdString(), true);	//volume
+		if (!useCsvOnly) {
+			pcChart->SetColumnVisibilityAll(false);
+			pcChart->SetColumnVisibility(eleString.at(7).toStdString(), true);	//a11
+			pcChart->SetColumnVisibility(eleString.at(8).toStdString(), true);	//a22
+			pcChart->SetColumnVisibility(eleString.at(9).toStdString(), true);	//a33
+			pcChart->SetColumnVisibility(eleString.at(13).toStdString(), true);	//theta
+			pcChart->SetColumnVisibility(eleString.at(14).toStdString(), true);	//phi
+			pcChart->SetColumnVisibility(eleString.at(15).toStdString(), true);	//xm
+			pcChart->SetColumnVisibility(eleString.at(16).toStdString(), true);	//ym
+			pcChart->SetColumnVisibility(eleString.at(17).toStdString(), true);	//zm
+			pcChart->SetColumnVisibility(eleString.at(18).toStdString(), true);	//straightlength
+			//pcChart->SetColumnVisibility(eleString.at(20).toStdString(), true);	//diameter
+			//pcChart->SetColumnVisibility(eleString.at(22).toStdString(), true);	//volume
+		}
 	}
 	else                                                                         //Pores
-	{
-		pcChart->SetColumnVisibilityAll( false );
-		pcChart->SetColumnVisibility( eleString.at( 0 ).toStdString(), true );	//id
-		pcChart->SetColumnVisibility( eleString.at( 13 ).toStdString(), true );	//dimx
-		pcChart->SetColumnVisibility( eleString.at( 14 ).toStdString(), true );	//dimy
-		pcChart->SetColumnVisibility( eleString.at( 15 ).toStdString(), true );	//dimz
-		pcChart->SetColumnVisibility( eleString.at( 16 ).toStdString(), true );	//phi
-		pcChart->SetColumnVisibility( eleString.at( 17 ).toStdString(), true );	//theata
-		pcChart->SetColumnVisibility( eleString.at( 18 ).toStdString(), true );	//Xm
-		pcChart->SetColumnVisibility( eleString.at( 19 ).toStdString(), true );	//Ym
-		pcChart->SetColumnVisibility( eleString.at( 20 ).toStdString(), true );	//Zm
-		pcChart->SetColumnVisibility( eleString.at( 21 ).toStdString(), true );	//volume
-		pcChart->SetColumnVisibility( eleString.at( 22 ).toStdString(), true );	//roundness
-		pcChart->SetColumnVisibility( eleString.at( 28 ).toStdString(), true );	//MajorLength
+	{ //TODO change default visualisisaton of PC HARD CODED
+		if (!useCsvOnly) {
+
+			pcChart->SetColumnVisibilityAll(false);
+			pcChart->SetColumnVisibility(eleString.at(0).toStdString(), true);	//id
+			pcChart->SetColumnVisibility(eleString.at(13).toStdString(), true);	//dimx
+			pcChart->SetColumnVisibility(eleString.at(14).toStdString(), true);	//dimy
+			pcChart->SetColumnVisibility(eleString.at(15).toStdString(), true);	//dimz
+			pcChart->SetColumnVisibility(eleString.at(16).toStdString(), true);	//phi
+			pcChart->SetColumnVisibility(eleString.at(17).toStdString(), true);	//theata
+			pcChart->SetColumnVisibility(eleString.at(18).toStdString(), true);	//Xm
+			pcChart->SetColumnVisibility(eleString.at(19).toStdString(), true);	//Ym
+			pcChart->SetColumnVisibility(eleString.at(20).toStdString(), true);	//Zm
+			pcChart->SetColumnVisibility(eleString.at(21).toStdString(), true);	//volume
+			pcChart->SetColumnVisibility(eleString.at(22).toStdString(), true);	//roundness
+			pcChart->SetColumnVisibility(eleString.at(28).toStdString(), true);	//MajorLength
+
+		}
 	}
 }
 
@@ -5066,87 +5072,108 @@ QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 	//Names of the fiber characteristics
 	if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
 	{
-		eleString.append( "Label" );								// 0
-		eleString.append( QString( "X1%1" ).arg( micro1 ) );		// 1
-		eleString.append( QString( "Y1%1" ).arg( micro1 ) );		// 2
-		eleString.append( QString( "Z1%1" ).arg( micro1 ) );		// 3
-		eleString.append( QString( "X2%1" ).arg( micro1 ) );		// 4
-		eleString.append( QString( "Y2%1" ).arg( micro1 ) );		// 5
-		eleString.append( QString( "Z2%1" ).arg( micro1 ) );		// 6
-		eleString.append( "a11" );									// 7
-		eleString.append( "a22" );									// 8
-		eleString.append( "a33" );									// 9
-		eleString.append( "a12" );									// 10
-		eleString.append( "a13" );									// 11
-		eleString.append( "a23" );									// 12
-		eleString.append( QString( "phi%1" ).arg( udegree ) );		// 13
-		eleString.append( QString( "theta%1" ).arg( udegree ) );	// 14
-		eleString.append( QString( "Xm%1" ).arg( micro1 ) );		// 15
-		eleString.append( QString( "Ym%1" ).arg( micro1 ) );		// 16
-		eleString.append( QString( "Zm%1" ).arg( micro1 ) );		// 17
-		if ( withUnit )
-		{
-			eleString.append( QString( "StraightLength%1" ).arg( micro1 ) );	// 18
-			eleString.append( QString( "CurvedLength%1" ).arg( micro1 ) );		// 19
-		}
-		else
-		{
-			eleString.append( QString( "sL%1" ).arg( micro1 ) );				// 18
-			eleString.append( QString( "cL%1" ).arg( micro1 ) );				// 19
-		}
-		eleString.append( QString( "Diameter%1" ).arg( micro1 ) );				// 20
-		eleString.append( QString( "Surface%1" ).arg( micro2 ) );				// 21
-		eleString.append( QString( "Volume%1" ).arg( micro3 ) );				// 22
+		if (useCsvOnly) {
+			eleString.append("AUTO_ID");
+			for (auto &element : *this->m_headersSelected) {
+				eleString.append(element);
 
-		if ( withUnit )
-		{
-			eleString.append( "SperatedFiber" );								// 23
-			eleString.append( "CurvedFiber" );									// 24
+			}
+
+
 		}
-		else
-		{
-			eleString.append( "sFiber" );										// 23
-			eleString.append( "cFiber" );										// 24
+		else {
+
+			eleString.append("Label");								// 0
+			eleString.append(QString("X1%1").arg(micro1));		// 1
+			eleString.append(QString("Y1%1").arg(micro1));		// 2
+			eleString.append(QString("Z1%1").arg(micro1));		// 3
+			eleString.append(QString("X2%1").arg(micro1));		// 4
+			eleString.append(QString("Y2%1").arg(micro1));		// 5
+			eleString.append(QString("Z2%1").arg(micro1));		// 6
+			eleString.append("a11");									// 7
+			eleString.append("a22");									// 8
+			eleString.append("a33");									// 9
+			eleString.append("a12");									// 10
+			eleString.append("a13");									// 11
+			eleString.append("a23");									// 12
+			eleString.append(QString("phi%1").arg(udegree));		// 13
+			eleString.append(QString("theta%1").arg(udegree));	// 14
+			eleString.append(QString("Xm%1").arg(micro1));		// 15
+			eleString.append(QString("Ym%1").arg(micro1));		// 16
+			eleString.append(QString("Zm%1").arg(micro1));		// 17
+			if (withUnit)
+			{
+				eleString.append(QString("StraightLength%1").arg(micro1));	// 18
+				eleString.append(QString("CurvedLength%1").arg(micro1));		// 19
+			}
+			else
+			{
+				eleString.append(QString("sL%1").arg(micro1));				// 18
+				eleString.append(QString("cL%1").arg(micro1));				// 19
+			}
+			eleString.append(QString("Diameter%1").arg(micro1));				// 20
+			eleString.append(QString("Surface%1").arg(micro2));				// 21
+			eleString.append(QString("Volume%1").arg(micro3));				// 22
+
+			if (withUnit)
+			{
+				eleString.append("SperatedFiber");								// 23
+				eleString.append("CurvedFiber");									// 24
+			}
+			else
+			{
+				eleString.append("sFiber");										// 23
+				eleString.append("cFiber");										// 24
+			}
 		}
 	}
 	//Names of the pore charakteristics
 	else
 	{
-		if(useCsvOnly)  //TODO ADAPT HARD CODED STUFF OF ELEMENT NAMES FOR dlg_FeatureScout::getNamesOfObjectCharakteristics
+		if (useCsvOnly)  //TODO ADAPT Adapt units
+		{
 			eleString.append("AUTO_ID");
+			for (auto &element : *this->m_headersSelected) {
+				eleString.append(element);
 
+			}
+
+		}else
+		{
+		
 		//TODO REPLACE HARD CODED HEADERS BY SELECTED HEADERS
-		eleString.append( "LabelId" );									// 0
-		eleString.append( QString( "X1%1" ).arg( micro1 ) );			// 1
-		eleString.append( QString( "Y1%1" ).arg( micro1 ) );			// 2
-		eleString.append( QString( "Z1%1" ).arg( micro1 ) );			// 3
-		eleString.append( QString( "X2%1" ).arg( micro1 ) );			// 4
-		eleString.append( QString( "Y2%1" ).arg( micro1 ) );			// 5
-		eleString.append( QString( "Z2%1" ).arg( micro1 ) );			// 6
-		eleString.append( "a11" );										// 7
-		eleString.append( "a22" );										// 8
-		eleString.append( "a33" );										// 9
-		eleString.append( "a12" );										// 10
-		eleString.append( "a13" );										// 11
-		eleString.append( "a23" );										// 12
-		eleString.append( QString( "DimX%1" ).arg( micro1 ) );			// 13
-		eleString.append( QString( "DimY%1" ).arg( micro1 ) );			// 14
-		eleString.append( QString( "DimZ%1" ).arg( micro1 ) );			// 15
-		eleString.append( QString( "phi%1" ).arg( udegree ) );			// 16
-		eleString.append( QString( "theta%1" ).arg( udegree ) );		// 17
-		eleString.append( QString( "Xm%1" ).arg( micro1 ) );			// 18
-		eleString.append( QString( "Ym%1" ).arg( micro1 ) );			// 19
-		eleString.append( QString( "Zm%1" ).arg( micro1 ) );			// 20
+		eleString.append("LabelId");									// 0
+		eleString.append(QString("X1%1").arg(micro1));			// 1
+		eleString.append(QString("Y1%1").arg(micro1));			// 2
+		eleString.append(QString("Z1%1").arg(micro1));			// 3
+		eleString.append(QString("X2%1").arg(micro1));			// 4
+		eleString.append(QString("Y2%1").arg(micro1));			// 5
+		eleString.append(QString("Z2%1").arg(micro1));			// 6
+		eleString.append("a11");										// 7
+		eleString.append("a22");										// 8
+		eleString.append("a33");										// 9
+		eleString.append("a12");										// 10
+		eleString.append("a13");										// 11
+		eleString.append("a23");										// 12
+		eleString.append(QString("DimX%1").arg(micro1));			// 13
+		eleString.append(QString("DimY%1").arg(micro1));			// 14
+		eleString.append(QString("DimZ%1").arg(micro1));			// 15
+		eleString.append(QString("phi%1").arg(udegree));			// 16
+		eleString.append(QString("theta%1").arg(udegree));		// 17
+		eleString.append(QString("Xm%1").arg(micro1));			// 18
+		eleString.append(QString("Ym%1").arg(micro1));			// 19
+		eleString.append(QString("Zm%1").arg(micro1));			// 20
 		//eleString.append( "ShapeFactor" );
-		eleString.append( QString( "Volume%1" ).arg( micro3 ) );		// 21
-		eleString.append( "Roundness" );								// 22
-		eleString.append( QString( "FeretDiam%1" ).arg( micro1 ) );		// 23
-		eleString.append( "Flatness" );									// 24
-		eleString.append( "VoxDimX" );									// 25
-		eleString.append( "VoxDimY" );									// 26
-		eleString.append( "VoxDimZ" );									// 27
-		eleString.append( "MajorLength" );								// 28
-		eleString.append( "MinorLength" );								// 29
+		eleString.append(QString("Volume%1").arg(micro3));		// 21
+		eleString.append("Roundness");								// 22
+		eleString.append(QString("FeretDiam%1").arg(micro1));		// 23
+		eleString.append("Flatness");									// 24
+		eleString.append("VoxDimX");									// 25
+		eleString.append("VoxDimY");									// 26
+		eleString.append("VoxDimZ");									// 27
+		eleString.append("MajorLength");								// 28
+		eleString.append("MinorLength");								// 29
+		} //end else default configuration for feature scout
 	}
 	eleString.append( "Class_ID" );	// 25 / 19
 	return eleString;

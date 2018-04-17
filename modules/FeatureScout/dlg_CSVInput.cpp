@@ -124,6 +124,7 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 		return;
 	}
 
+	this->m_LayoutName = LayoutName; 
 	this->loadEntriesFromRegistry(mySettings, LayoutName);
 	//load preview
 	
@@ -187,12 +188,19 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 	this->assignSeparator();
 	this->AssignFormatLanguage(); 
 	
-	if (this->useCustomformat | m_formatSelected) {
+	if (this->useCustomformat | this->m_formatSelected) {
 		this->assignStartEndLine(); 
 		this->m_entriesPreviewTable->resetIndizes(); 
 	}
 
 	this->loadFilePreview(15, false); 
+
+	if (this->m_formatSelected) {
+		//QString layoutName = this->ed_CSVFormat_Name->text();
+		
+		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, this->m_LayoutName);
+		this->setSelectedHeaderToTextControl(*this->m_currentHeaders);
+	}
 	this->showConfigParams(*this->m_confParams);
 	this->m_formatSelected = false; 
 }
@@ -271,6 +279,7 @@ void dlg_CSVInput::initParameters(){
 	this->ed_CSVFormat_Name->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,255}"), this));
 	this->m_regEntries->initParam(); 
 	LoadFormatEntriesOnStartUp(); 
+	this->m_LayoutName = ""; 
 
 }
 
@@ -358,8 +367,6 @@ void dlg_CSVInput::assignSeparator() {
 	}
 
 	this->m_confParams->paramsValid = param_seperator_ok; 
-	
-	
 }
 
 void dlg_CSVInput::assignSpacingUnits() {

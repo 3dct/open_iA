@@ -41,6 +41,7 @@ namespace csvConfig {
 			paramsValid = true;
 			inputObjectType = CTInputObjectType::Voids;
 			tableWidth = 0;
+			LayoutName = ""; 
 		}
 
 
@@ -67,6 +68,7 @@ namespace csvConfig {
 		float spacing; 
 		
 		QString csv_units;
+		QString LayoutName; 
 		enum csvSeparator file_seperator; 
 		enum csv_FileFormat file_fmt;
 		enum inputLang csv_Inputlanguage; 
