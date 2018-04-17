@@ -60,8 +60,6 @@ public:
 	vtkSmartPointer<vtkColorTransferFunction> GetCTF(int modality);
 	vtkSmartPointer<vtkPiecewiseFunction> GetOTF(int modality);
 	void ChangeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings);
-	void Store(QString const & filename);
-	bool Load(QString const & filename);
 	void ShowSlicePlanes(bool enabled);
 	void SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
 	void AddListItem(QSharedPointer<iAModality> mod);
@@ -94,6 +92,7 @@ private slots:
 	void ShowChecked(QListWidgetItem* item);
 
 private:
+	// TODO: move modalities out of here (mdichild? common data repository?)
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;
 	iAFast3DMagicLensWidget* m_magicLensWidget;

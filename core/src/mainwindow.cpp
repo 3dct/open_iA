@@ -275,21 +275,14 @@ void MainWindow::OpenRecentFile()
 
 void MainWindow::LoadFile(QString const & fileName)
 {
-	if (fileName.endsWith(iAIOProvider::ProjectFileExtension))
+	QFileInfo fi(fileName);
+	if (fi.isDir())
 	{
-		LoadProject(fileName);
+		LoadTLGICTData(fileName);
 	}
 	else
 	{
-		QFileInfo fi(fileName);
-		if (fi.isDir())
-		{
-			LoadTLGICTData(fileName);
-		}
-		else
-		{
-			LoadFile(fileName, fileName.endsWith(".volstack"));
-		}
+		LoadFile(fileName, fileName.endsWith(".volstack"));
 	}
 }
 
@@ -2309,23 +2302,7 @@ void MainWindow::LoadProject()
 		tr("Open Input File"),
 		path,
 		iAIOProvider::ProjectFileTypeFilter);
-	LoadProject(fileName);
-}
-
-
-void MainWindow::LoadProject(QString const & fileName)
-{
-	if (fileName.isEmpty())
-		return;
-	MdiChild* child = createMdiChild(false);
-	if (child->LoadProject(fileName))
-	{
-		child->show();
-	}
-	else
-	{
-		delete child;
-	}
+	LoadFile(fileName);
 }
 
 

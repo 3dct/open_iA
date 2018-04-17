@@ -69,7 +69,9 @@ enum IOType
 #ifdef USE_HDF5
 	HDF5_READER,
 #endif
-	HDF5_WRITER
+	HDF5_WRITER,
+	PROJECT_READER,
+	PROJECT_WRITER
 };
 
 const int DefaultMagicLensSize = 120;
