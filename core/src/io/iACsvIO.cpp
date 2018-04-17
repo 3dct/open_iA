@@ -44,7 +44,9 @@ iACsvIO::iACsvIO() :
 	m_FileName(""),
 	m_tableWidth(0),
 	m_useEndLine(false),
-	m_endLine(0) 
+	m_endLine(0),
+	useCVSOnly(false),
+	enableFiberTransformation(false)
 {
 	this->setDefaultConfigPath(); 
 }
@@ -96,7 +98,7 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 	table->AddColumn(arr);
 	table->SetNumberOfRows(tableLength);
 
-	//additional entries in SPM for Fibres
+	//additional entries for Fibres
 
 	FibreTranformation(in, eleWidth, tableLength, eleString);
 	file.close();
@@ -195,7 +197,9 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 	//		table->SetValue(i, eleString.size() - 1, 0);
 	//	}
 	//}
-	
+	//
+	//file.close();
+	//return true;
 	
 }
 
@@ -266,33 +270,70 @@ void iACsvIO::FibreTranformation(QTextStream &in, int eleWidth, int tableLength,
 				a23 = 0.0;
 			}
 
+			if (!useCVSOnly) {
+				table->SetValue(i, 0, line.section(",", 0, 0).toInt());
 
-			table->SetValue(i, 0, line.section(",", 0, 0).toInt());
+				//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
+				//first entrys are those ones
+				//save in the first column with AUTO ID 2-8, //start colIdx ->2, end will be 8
+				for (int j = 1; j < 7; j++)
+				{
+					table->SetValue(i, j, line.section(",", j, j).toFloat());
+				}
+					int col_idx = 7; 
+					 
 
-			//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
-			for (int j = 1; j < 7; j++)
-			{
-				table->SetValue(i, j, line.section(",", j, j).toFloat());
-			}
+					//7
+					table->SetValue(i, col_idx, a11);  col_idx++; 
+					//8
+					table->SetValue(i, col_idx, a22); col_idx++;
+					//9
+					table->SetValue(i, col_idx, a33); col_idx++; 
+					//10
+					
+					table->SetValue(i, col_idx, a12); col_idx++; 
+					//11
+					table->SetValue(i, col_idx, a13);  col_idx++;
+					//12
+					table->SetValue(i, col_idx, a23);  col_idx++; 
 
-			table->SetValue(i, 7, a11);
-			table->SetValue(i, 8, a22);
-			table->SetValue(i, 9, a33);
-			table->SetValue(i, 10, a12);
-			table->SetValue(i, 11, a13);
-			table->SetValue(i, 12, a23);
-			table->SetValue(i, 13, phi);
-			table->SetValue(i, 14, theta);
-			table->SetValue(i, 15, xm);
-			table->SetValue(i, 16, ym);
-			table->SetValue(i, 17, zm);
+					//13	
+					table->SetValue(i, col_idx, phi);  col_idx++; 
+					//14
 
-			for (int j = 7; j < eleWidth; j++)
-			{
-				table->SetValue(i, j + 11, line.section(",", j, j).toFloat());
-			}
+					table->SetValue(i, col_idx, theta); col_idx++; 
+					//15
+					table->SetValue(i, col_idx, xm);	col_idx++; 
+					//16
 
-			table->SetValue(i, eleString.size() - 1, 0);
+					table->SetValue(i, col_idx, ym);	col_idx++; 
+					//17
+
+					table->SetValue(i, col_idx, zm);	col_idx++;
+
+					//original
+					//table->SetValue(i, 7, a11);  //7
+					//table->SetValue(i, 8, a22);	 //8
+					//table->SetValue(i, 9, a33);  //9
+					//table->SetValue(i, 10, a12);  //10
+					//table->SetValue(i, 11, a13);  //11
+					//table->SetValue(i, 12, a23);  //12
+					//table->SetValue(i, 13, phi);  //13	
+					//table->SetValue(i, 14, theta); //14
+					//table->SetValue(i, 15, xm);		//15
+					//table->SetValue(i, 16, ym);		//16
+					//table->SetValue(i, 17, zm);		//17
+
+
+					//use the other entries of columns, using auto ID will be 8
+					for (int j = 7; j < eleWidth; j++)
+					{
+						table->SetValue(i, col_idx /*j + 11*/, line.section(",", j, j).toFloat());
+						col_idx++; 
+					}
+
+					table->SetValue(i, eleString.size() - 1, 0); // with autoId +1 last column adding class information
+			}//end !use csv only
 		}
 	}
 }
@@ -574,6 +615,7 @@ vtkTable* iACsvIO::GetCSVTable()
 
 //loading csv into table 
 bool iACsvIO::loadCsv_WithConfig(){
+	this->useCVSOnly = true; 
 	table->Initialize();
 	
 	bool retFlag = false; 
@@ -639,7 +681,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	table->AddColumn(arrAuto);
 
 	//adding headers; 
-	for (const auto &elLine : this->m_TableHeaders/* m_Headers*/) {
+	for (const auto &elLine : this->m_TableHeaders) {
 		if (!elLine.isEmpty()) {
 			vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
 			byteArr = elLine.toUtf8();
@@ -666,12 +708,30 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	else col_count = this->m_TableHeaders.length(); 
 
 	/*col_count = colSelEntries.length(); ; */// /*this->m_TableHeaders*/m_Headers.length();
-	double tbl_value = 0.0; 
+	
 
-	vtkVariant ID_val; 
+	//load pores
+	if (!enableFiberTransformation) {
+		loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
+	}
+	else {
+		
+	}
+	
+	if(file.isOpen())
+	file.close();
+	retFlag = true; 
+
+}
+
+void iACsvIO::loadPoreData(int tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count)
+{
+	double tbl_value = 0.0;
+
+	vtkVariant ID_val;
 
 	//use separate col count index 
-	int cur_Colcount = 1; 
+	int cur_Colcount = 1;
 
 	for (int row = 0; row<tableLength/*+1*/; ++row) //TODO remove hard coded value 
 	{
@@ -684,46 +744,40 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 			cur_Colcount = 1;
 			ID_val = this->m_EL_ID; //AUTO ID
 			table->SetValue(row, 0, ID_val.ToString());
-			
-			
-			
+
+
+
 			//adding entries for each col 
-			for (int col = 1; col<tableWidth+1; col++)
+			for (int col = 1; col<tableWidth + 1; col++)
 			{
 				//skip endline if activated
-				
-				//skip rows
-				if (m_colIds.contains((uint)col-1))
-				{
-						tmp_section = line.section(m_colSeparator, col-1, col-1);
-						if (!tmp_section.isEmpty()) 
-						{
 
-							//replace decimal separator for german input format 
-							if (!this->m_EN_Values)
-								tmp_section = tmp_section.replace(",", m_decimalSeparator);
-					
-							tbl_value = tmp_section.toDouble(); 
-							table->SetValue(row, cur_Colcount, tbl_value);
-						}cur_Colcount++; 
+				//skip rows
+				if (m_colIds.contains((uint)col - 1))
+				{
+					tmp_section = line.section(m_colSeparator, col - 1, col - 1);
+					if (!tmp_section.isEmpty())
+					{
+
+						//replace decimal separator for german input format 
+						if (!this->m_EN_Values)
+							tmp_section = tmp_section.replace(",", m_decimalSeparator);
+
+						tbl_value = tmp_section.toDouble();
+						table->SetValue(row, cur_Colcount, tbl_value);
+					}cur_Colcount++;
 
 				}
 
 			}
 
-			
-			table->SetValue(row, col_count+1, 0);
+
+			table->SetValue(row, col_count + 1, 0);
 			this->m_EL_ID++;
-			
-					
+
+
 		}
 	}
-
-	
-	if(file.isOpen())
-	file.close();
-	retFlag = true; 
-
 }
 
 //reads all Entries from Table
@@ -772,36 +826,42 @@ void iACsvIO::readFileEntries(const QString &fileName, const int rows_toSkip, bo
 	arr->SetName("Class_ID");
 	table->AddColumn(arr);
 	table->SetNumberOfRows(tableLength);
-	QString line = "";
-	for (int i = 0; i<tableLength; ++i)
-	{
-		line = in.readLine();
-		if (!line.isEmpty())
-		{
-			vtkVariant v = line.section(m_colSeparator, 0, 0).toInt();
-			vtkStdString v1 = v.ToString();
 
-			//set id 
-			table->SetValue(i, 0, v.ToString());
-
-			//adding entries for each col 
-			for (int j = 1; j<tableWidth; j++)
-			{
-
-				tmp_section = line.section(m_colSeparator, j, j);
-				//replace decimal separator for german input format 
-				if (!En_Values)
-					tmp_section = tmp_section.replace(",", m_decimalSeparator);
-				table->SetValue(i, j, tmp_section.toFloat());
-			}
-
-			//set Class_ID 0 for each row element
-			table->SetValue(i, tableWidth, 0);
-
-		}
-	}
+	//loadPoreData(tableLength, in, tableWidth, tmp_section, En_Values);
 	file.close();
 	retFlag = true; 
 
 }
+
+//void iACsvIO::loadPoreData(int tableLength, QTextStream &in, int tableWidth, QString &tmp_section, bool En_Values)
+//{
+//	QString line = "";
+//	for (int i = 0; i<tableLength; ++i)
+//	{
+//		line = in.readLine();
+//		if (!line.isEmpty())
+//		{
+//			vtkVariant v = line.section(m_colSeparator, 0, 0).toInt();
+//			vtkStdString v1 = v.ToString();
+//
+//			//set id 
+//			table->SetValue(i, 0, v.ToString());
+//
+//			//adding entries for each col 
+//			for (int j = 1; j<tableWidth; j++)
+//			{
+//
+//				tmp_section = line.section(m_colSeparator, j, j);
+//				//replace decimal separator for german input format 
+//				if (!En_Values)
+//					tmp_section = tmp_section.replace(",", m_decimalSeparator);
+//				table->SetValue(i, j, tmp_section.toFloat());
+//			}
+//
+//			//set Class_ID 0 for each row element
+//			table->SetValue(i, tableWidth, 0);
+//
+//		}
+//	}
+//}
 

@@ -40,8 +40,10 @@ public:
 	bool loadCsv_WithConfig();
 
 	void readCustomFileEntries(const QString & fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag);
+	void loadPoreData(int tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count);
 	void readFileEntries(const QString & fileName, const int rows_toSkip, bool En_Values, bool & retFlag);
 
+	
 	//input parameters from configuration file 
 	//headerlines to skip	nrOfHeaderLines: headerLinesToSkip
 	//startRowInd -> where to start from row
@@ -97,8 +99,8 @@ private:
 
 	bool m_EN_Values; 
 	bool m_useEndLine; 
-
-
+	bool useCVSOnly;  //Mode Read Custom csv
+	bool enableFiberTransformation; 
 
 	//element id for each row entry
 	uint m_EL_ID;
