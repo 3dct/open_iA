@@ -72,7 +72,6 @@ void dlg_CSVInput::connectSignals()
 	connect(btn_PreviewData, SIGNAL(clicked()), this, SLOT(LoadCSVPreviewClicked()));
 	//connect(btn_LoadConfig, SIGNAL(clicked()), this, SLOT(LoadFormatBtnClicked()));
 	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked()));
-	/*connect(btn_loadCols, SIGNAL(clicked()), this, SLOT(LoadColsBtnClicked()));*/
 	connect(btn_SaveLayout, SIGNAL(clicked()), this, SLOT(SaveLayoutBtnClicked())); 
 	connect(cmb_box_FileFormat, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadFormatSettings);
 	connect(buttonBox, SIGNAL(accepted()), this, SLOT(OKButtonClicked()));

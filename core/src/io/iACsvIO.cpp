@@ -97,10 +97,115 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 	table->SetNumberOfRows(tableLength);
 
 	//additional entries in SPM for Fibres
+
+	FibreTranformation(in, eleWidth, tableLength, eleString);
+	file.close();
+	return true;
+
+	//double x1, x2, y1, y2, z1, z2, dx, dy, dz, xm, ym, zm, phi, theta;
+	//double a11, a22, a33, a12, a13, a23;
+
+	//for (int i = 0; i<tableLength; i++)
+	//{
+	//	QString line = in.readLine();
+	//	if (!line.isEmpty())
+	//	{
+	//		x1 = line.section(",", 1, 1).toFloat();
+	//		y1 = line.section(",", 2, 2).toFloat();
+	//		z1 = line.section(",", 3, 3).toFloat();
+	//		x2 = line.section(",", 4, 4).toFloat();
+	//		y2 = line.section(",", 5, 5).toFloat();
+	//		z2 = line.section(",", 6, 6).toFloat();
+
+	//		// preparing the tensor calculation
+	//		dx = x1 - x2;
+	//		dy = y1 - y2;
+	//		dz = z1 - z2;
+	//		xm = (x1 + x2) / 2.0f;
+	//		ym = (y1 + y2) / 2.0f;
+	//		zm = (z1 + z2) / 2.0f;
+
+	//		if (dz<0)
+	//		{
+	//			dx = x2 - x1;
+	//			dy = y2 - y1;
+	//			dz = z2 - z1;
+	//		}
+
+	//		phi = asin(dy / sqrt(dx*dx + dy*dy));
+	//		theta = acos(dz / sqrt(dx*dx + dy*dy + dz*dz));
+
+	//		a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
+	//		a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
+	//		a33 = cos(theta)*cos(theta);
+	//		a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
+	//		a13 = cos(phi)*sin(theta)*cos(theta);
+	//		a23 = sin(phi)*sin(theta)*cos(theta);
+
+	//		phi = (phi*180.0f) / Pi;
+	//		theta = (theta*180.0f) / Pi; // finish calculation
+	//									   // locat the phi value to quadrant
+	//		if (dx<0)
+	//		{
+	//			phi = 180.0 - phi;
+	//		}
+
+	//		if (phi<0.0)
+	//		{
+	//			phi = phi + 360.0;
+	//		}
+
+	//		if (dx == 0 && dy == 0)
+	//		{
+	//			phi = 0.0;
+	//			theta = 0.0;
+	//			a11 = 0.0;
+	//			a22 = 0.0;
+	//			a12 = 0.0;
+	//			a13 = 0.0;
+	//			a23 = 0.0;
+	//		}
+
+
+	//		table->SetValue(i, 0, line.section(",", 0, 0).toInt());
+
+	//		//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
+	//		for (int j = 1; j<7; j++)
+	//		{
+	//			table->SetValue(i, j, line.section(",", j, j).toFloat());
+	//		}
+
+	//		table->SetValue(i, 7, a11);
+	//		table->SetValue(i, 8, a22);
+	//		table->SetValue(i, 9, a33);
+	//		table->SetValue(i, 10, a12);
+	//		table->SetValue(i, 11, a13);
+	//		table->SetValue(i, 12, a23);
+	//		table->SetValue(i, 13, phi);
+	//		table->SetValue(i, 14, theta);
+	//		table->SetValue(i, 15, xm);
+	//		table->SetValue(i, 16, ym);
+	//		table->SetValue(i, 17, zm);
+
+	//		for (int j = 7; j<eleWidth; j++)
+	//		{
+	//			table->SetValue(i, j + 11, line.section(",", j, j).toFloat());
+	//		}
+
+	//		table->SetValue(i, eleString.size() - 1, 0);
+	//	}
+	//}
+	
+	
+}
+
+
+void iACsvIO::FibreTranformation(QTextStream &in, int eleWidth, int tableLength, QStringList &eleString) {
+
 	double x1, x2, y1, y2, z1, z2, dx, dy, dz, xm, ym, zm, phi, theta;
 	double a11, a22, a33, a12, a13, a23;
 
-	for (int i = 0; i<tableLength; i++)
+	for (int i = 0; i < tableLength; i++)
 	{
 		QString line = in.readLine();
 		if (!line.isEmpty())
@@ -120,15 +225,15 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 			ym = (y1 + y2) / 2.0f;
 			zm = (z1 + z2) / 2.0f;
 
-			if (dz<0)
+			if (dz < 0)
 			{
 				dx = x2 - x1;
 				dy = y2 - y1;
 				dz = z2 - z1;
 			}
 
-			phi = asin(dy / sqrt(dx*dx + dy*dy));
-			theta = acos(dz / sqrt(dx*dx + dy*dy + dz*dz));
+			phi = asin(dy / sqrt(dx*dx + dy * dy));
+			theta = acos(dz / sqrt(dx*dx + dy * dy + dz * dz));
 
 			a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
 			a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
@@ -139,13 +244,13 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 
 			phi = (phi*180.0f) / Pi;
 			theta = (theta*180.0f) / Pi; // finish calculation
-										   // locat the phi value to quadrant
-			if (dx<0)
+										 // locat the phi value to quadrant
+			if (dx < 0)
 			{
 				phi = 180.0 - phi;
 			}
 
-			if (phi<0.0)
+			if (phi < 0.0)
 			{
 				phi = phi + 360.0;
 			}
@@ -165,7 +270,7 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 			table->SetValue(i, 0, line.section(",", 0, 0).toInt());
 
 			//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
-			for (int j = 1; j<7; j++)
+			for (int j = 1; j < 7; j++)
 			{
 				table->SetValue(i, j, line.section(",", j, j).toFloat());
 			}
@@ -182,7 +287,7 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 			table->SetValue(i, 16, ym);
 			table->SetValue(i, 17, zm);
 
-			for (int j = 7; j<eleWidth; j++)
+			for (int j = 7; j < eleWidth; j++)
 			{
 				table->SetValue(i, j + 11, line.section(",", j, j).toFloat());
 			}
@@ -190,8 +295,6 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 			table->SetValue(i, eleString.size() - 1, 0);
 		}
 	}
-	file.close();
-	return true;
 }
 
 bool iACsvIO::LoadPoreCSV(const QString &fileName)
@@ -469,7 +572,7 @@ vtkTable* iACsvIO::GetCSVTable()
 
 
 
-//loading csv into table
+//loading csv into table 
 bool iACsvIO::loadCsv_WithConfig(){
 	table->Initialize();
 	

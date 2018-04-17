@@ -28,6 +28,7 @@
 #include <qvector.h>
 
 class vtkTable;
+class QTextStream; 
 
 class open_iA_Core_API iACsvIO
 {
@@ -86,6 +87,8 @@ private:
 	QString configPath; 
 	QStringList GetFibreElementsName(bool withUnit);
 	bool LoadFibreCSV(const QString &fileName);
+	
+	void FibreTranformation(QTextStream & in, int eleWidth, int tableLength, QStringList & eleString);
 	bool LoadPoreCSV(const QString &fileName);
 	
 	bool loadConfig(const QString configName, bool & applyEN_Formating);
