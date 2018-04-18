@@ -277,6 +277,9 @@ public:
 	//! checks whether the main image data in this child is fully loaded
 	bool IsFullyLoaded() const;
 
+	//! save all currently loaded files into a project with the given file name
+	void saveProject(QString const & fileName);
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -381,7 +384,6 @@ private:
 	void addProfile();
 	void UpdateProfile();
 	bool saveAs(int modalityNr);
-	void saveProject(QString const & fileName);
 	bool initView(QString const & title);
 	int EvaluatePosition(int pos, int i, bool invert = false);
 
