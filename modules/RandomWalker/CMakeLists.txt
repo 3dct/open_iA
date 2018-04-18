@@ -23,7 +23,8 @@ IF (BUILD_TESTING AND Module_RandomWalker)
 		cotire(DistanceMeasureTest)
 	ENDIF()
 
-	# set IDE folder:
-	SET_PROPERTY(TARGET ImageGraphTest PROPERTY FOLDER "Tests")
-	SET_PROPERTY(TARGET DistanceMeasureTest PROPERTY FOLDER "Tests")
+	IF (USE_IDE_FOLDERS)
+		SET_PROPERTY(TARGET ImageGraphTest PROPERTY FOLDER "Tests")
+		SET_PROPERTY(TARGET DistanceMeasureTest PROPERTY FOLDER "Tests")
+	ENDIF()
 ENDIF ()
