@@ -180,7 +180,7 @@ ColormapFuncPtr colormapsIndex[] =
 };
 
 //TODO APPEND m_headers selected  as pointer
-dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QStringList *selHeaders )
+dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, const QSharedPointer<QStringList>  &selHeaders)
 	: QDockWidget( parent ),
 	/*oTF( parent->getPiecewiseFunction() ),
 	cTF( parent->getColorTransferFunction() ),*/
@@ -218,7 +218,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 	
 	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
 	double bounds[6];
-	this->m_headersSelected = new QStringList(); 
+	this->m_headersSelected = QSharedPointer<QStringList>(new QStringList()); 
 	if (this->useCsvOnly && selHeaders) {
 		this->m_headersSelected = selHeaders;
 	}
@@ -270,10 +270,10 @@ dlg_FeatureScout::~dlg_FeatureScout()
 {
 	delete blobManager;
 
-	if (this->m_headersSelected) {
+	/*if (this->m_headersSelected) {
 		delete this->m_headersSelected;
 		this->m_headersSelected = 0; 
-	}
+	}*/
 
 	if ( this->elementTableModel != 0 )
 	{

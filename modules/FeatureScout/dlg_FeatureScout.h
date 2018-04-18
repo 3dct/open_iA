@@ -88,7 +88,7 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 	Q_OBJECT
 
 public:
-	dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QStringList *selHeaders);
+	dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, const QSharedPointer<QStringList>  &selHeaders);
 	~dlg_FeatureScout();
 
 	// setups
@@ -314,6 +314,6 @@ private:
 
 	vtkSmartPointer<vtkLookupTable> m_pointLUT;
 private: 
-	QStringList * m_headersSelected;
+	QSharedPointer<QStringList> m_headersSelected;
 
 };

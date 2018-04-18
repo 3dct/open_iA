@@ -214,6 +214,7 @@ void iACsvIO::FibreTranformation(QTextStream &in, int eleWidth, int tableLength,
 		QString line = in.readLine();
 		if (!line.isEmpty())
 		{
+			//getting start and EndPoints
 			x1 = line.section(",", 1, 1).toFloat();
 			y1 = line.section(",", 2, 2).toFloat();
 			z1 = line.section(",", 3, 3).toFloat();
