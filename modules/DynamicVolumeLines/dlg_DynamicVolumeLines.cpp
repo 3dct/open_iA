@@ -320,12 +320,11 @@ void dlg_DynamicVolumeLines::generateHilbertIdx()
 	iAIntensityMapper * im = new iAIntensityMapper(m_datasetsDir, PathNameToId[cb_Paths->currentText()],
 		m_DatasetIntensityMap, m_imgDataList, m_minEnsembleIntensity, m_maxEnsembleIntensity);
 	im->moveToThread(thread);
-	connect(im, SIGNAL(error(QString)), this, SLOT(errorString(QString)));		//TODO: Handle error case
 	connect(thread, SIGNAL(started()), im, SLOT(process()));
 	connect(im, SIGNAL(finished()), thread, SLOT(quit()));
 	connect(im, SIGNAL(finished()), im, SLOT(deleteLater()));
 	connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-	//connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));		// Debug
+	connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));		// Debug
 	connect(thread, SIGNAL(finished()), this, SLOT(visualize()));
 	thread->start();
 }
@@ -800,13 +799,28 @@ void dlg_DynamicVolumeLines::showBkgrdThrRanges(QCustomPlot* qcp)
 		bkgrdRect->topLeft->setTypeY(QCPItemPosition::ptAxisRectRatio);
 		bkgrdRect->topLeft->setAxes(qcp->xAxis, qcp->yAxis);
 		bkgrdRect->topLeft->setAxisRect(qcp->axisRect());
-		bkgrdRect->topLeft->setCoords(it->lower, 0.0);
 		bkgrdRect->bottomRight->setTypeX(QCPItemPosition::ptPlotCoords);
 		bkgrdRect->bottomRight->setTypeY(QCPItemPosition::ptAxisRectRatio);
 		bkgrdRect->bottomRight->setAxes(qcp->xAxis, qcp->yAxis);
 		bkgrdRect->bottomRight->setAxisRect(qcp->axisRect());
-		bkgrdRect->bottomRight->setCoords(it->upper, 1.0);
 		bkgrdRect->setClipToAxisRect(true);
+
+		double tlCoordX = 0.0, brCoordX = 1.0;
+		if (qcp->objectName().contains("nonlinear"))
+		{
+			tlCoordX = it->lower;
+			brCoordX = it->upper;
+		}
+		else
+		{
+			auto start = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), it->lower);
+			tlCoordX = start - m_nonlinearMappingVec.begin();
+			auto end = qLowerBound(m_nonlinearMappingVec.begin(), m_nonlinearMappingVec.end(), it->upper);
+			brCoordX = end - m_nonlinearMappingVec.begin();
+		}
+
+		bkgrdRect->topLeft->setCoords(tlCoordX, 0.0);
+		bkgrdRect->bottomRight->setCoords(brCoordX, 1.0);
 	}
 }
 

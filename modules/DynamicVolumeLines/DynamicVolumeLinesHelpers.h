@@ -39,6 +39,9 @@ typedef iAFunctionalBoxplot< unsigned int, double> FunctionalBoxPlot;
 
 struct icData
 {
+	icData(double i, itk::Index<DIM> coord ) : 
+		intensity(i), x(coord[0]), y(coord[1]), z(coord[2]) {}
+	
 	double intensity;
 	unsigned int x;
 	unsigned int y;

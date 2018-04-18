@@ -23,61 +23,54 @@
 #include "io/iAITKIO.h"
 #include "iATypedCallHelper.h"
 
-#include <itkHilbertPath.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageToVTKImageFilter.h>
-#include <itkMinimumMaximumImageCalculator.h>
 
-//#include "iAConsole.h"
+#include <Hilbert.hpp>
+
+//
+#include "iAConsole.h"
 
 template<class T>
 void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensityList, 
 	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList, QList<double> &minEnsembleIntensityList, 
 	QList<double> &maxEnsembleIntensityList)
 {
-	// TODO: Typecheck QList for e.g., float images + cubic region only check
 	typedef itk::Image< T, DIM >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
-
-	typedef itk::MinimumMaximumImageCalculator< InputImageType >  MinMaxCalcType;
-	auto minMaxCalc = MinMaxCalcType::New();
-	minMaxCalc->SetImage(input);
-	minMaxCalc->Compute();
-	minEnsembleIntensityList.append(minMaxCalc->GetMinimum());
-	maxEnsembleIntensityList.append(minMaxCalc->GetMaximum());
-
 	typedef itk::ImageToVTKImageFilter<InputImageType> ITKTOVTKConverterType;
 	auto itkToVTKConverter = ITKTOVTKConverterType::New();
 	itkToVTKConverter->SetInput(input);
 	itkToVTKConverter->Update();
 	auto imageData = vtkSmartPointer<vtkImageData>::New();
 	imageData->DeepCopy(itkToVTKConverter->GetOutput());
+	minEnsembleIntensityList.append(imageData->GetScalarRange()[0]);
+	maxEnsembleIntensityList.append(imageData->GetScalarRange()[1]);
 	m_imgDataList.append(imageData);
 
 	switch (m_pathID)
 	{
 		case P_HILBERT:
 		{
-			typedef itk::HilbertPath<unsigned int, DIM> PathType;
-			auto m_HPath = PathType::New();
-			typedef PathType::IndexType IndexType;
-			auto region = input->GetLargestPossibleRegion();
-			auto size = region.GetSize();
-
-			unsigned int order = log(size[0]) / log(2);
-			m_HPath->SetHilbertOrder(order);
-			m_HPath->Initialize();
-			unsigned int h = 0;
-			for (; h < m_HPath->NumberOfSteps(); h++)
+			auto size = input->GetLargestPossibleRegion().GetSize();
+			unsigned int HilbertCnt = size[0] * size[1] * size[2];
+			int precArray[DIM] = { static_cast<int>(size[0])-1,
+				static_cast<int>(size[1])-1, static_cast<int>(size[2])-1 };
+			for (unsigned int h = 0; h < HilbertCnt; ++h)
 			{
-					IndexType coord = m_HPath->Evaluate(h);
-					icData data;
-					data.intensity = input->GetPixel(coord);
-					data.x = coord[0];
-					data.y = coord[1];
-					data.z = coord[2];
-					intensityList.append(data);
-					//DEBUG_LOG(QString("Mapping %1 of %2 done").arg(h).arg(m_HPath->NumberOfSteps()));
+				CFixBitVec *coordPtr = new CFixBitVec[HilbertCnt];
+				CFixBitVec compHilbertIdx;
+				compHilbertIdx = (FBV_UINT)h;
+				Hilbert::compactIndexToCoords(coordPtr, precArray, DIM, compHilbertIdx);
+
+				InputImageType::IndexType coord;
+				for (int i = 0; i < DIM; i++)
+					coord[i] = coordPtr[i].rack();
+				delete[] coordPtr;
+
+				icData data(input->GetPixel(coord), coord);
+				intensityList.append(data);
+				//DEBUG_LOG(QString("Hidx: %1: x:%2 y:%3 z:%4 int:%5").arg(h).arg(coord[0]).arg(coord[1]).arg(coord[2]).arg(input->GetPixel(coord)));
 			}
 		}
 		break;
@@ -89,11 +82,7 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 			for (imageIterator.GoToBegin(); !imageIterator.IsAtEnd(); ++imageIterator)
 			{
 				auto coord = imageIterator.GetIndex();
-				icData data;
-				data.intensity = input->GetPixel(coord);
-				data.x = coord[0];
-				data.y = coord[1];
-				data.z = coord[2];
+				icData data(input->GetPixel(coord), coord);
 				intensityList.append(data);
 			}
 		}
@@ -103,21 +92,18 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 }
 
 iAIntensityMapper::iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString,
-	QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &imgDataList, 
-	double &minEnsembleIntensity, double &maxEnsembleIntensity):
+	QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &imgDataList,
+	double &minEnsembleIntensity, double &maxEnsembleIntensity) :
 	m_DatasetIntensityMap(datasetIntensityMap),
 	m_datasetsDir(datasetsDir),
 	m_pathID(pathID),
 	m_imgDataList(imgDataList),
 	m_minEnsembleIntensity(minEnsembleIntensity),
 	m_maxEnsembleIntensity(maxEnsembleIntensity)
-
-{
-}
+{}
 
 iAIntensityMapper::~iAIntensityMapper()
-{
-}
+{}
 
 void iAIntensityMapper::process()
 {
@@ -129,16 +115,9 @@ void iAIntensityMapper::process()
 		QList<icData> intensityList;
 		QString dataset = m_datasetsDir.filePath(datasetsList.at(i));
 		ScalarPixelType pixelType;
-		ImagePointer image = iAITKIO::readFile( dataset, pixelType, true);
-		try
-		{
-			ITK_TYPED_CALL(getIntensities, pixelType, m_pathID, image, intensityList,
-				m_imgDataList, minEnsembleIntensityList, maxEnsembleIntensityList);
-		}
-		catch (itk::ExceptionObject &excep)
-		{
-			emit error("ITK exception"); // TODO: Better description
-		}
+		ImagePointer image = iAITKIO::readFile(dataset, pixelType, true);
+		ITK_TYPED_CALL(getIntensities, pixelType, m_pathID, image, intensityList,
+			m_imgDataList, minEnsembleIntensityList, maxEnsembleIntensityList);
 		m_DatasetIntensityMap.push_back(qMakePair(datasetsList.at(i), intensityList));
 	}
 	m_minEnsembleIntensity = *std::min_element(
