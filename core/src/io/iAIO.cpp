@@ -28,6 +28,7 @@
 #include "iAConsole.h"
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAExtendedTypedCallHelper.h"
+#include "iAModalityList.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
@@ -169,6 +170,15 @@ iAIO::iAIO( iALogger* logger, QWidget *par /*= 0*/, std::vector<vtkSmartPointer<
 }
 
 
+iAIO::iAIO(QSharedPointer<iAModalityList> modalities, vtkCamera* cam, iALogger* logger):
+	iAAlgorithm( "IO", nullptr, nullptr, logger, nullptr ),
+	m_modalities(modalities),
+	m_camera(cam)
+{
+	init(nullptr);
+}
+
+
 void iAIO::init(QWidget *par)
 {
 	parent = par;
@@ -181,7 +191,7 @@ void iAIO::init(QWidget *par)
 	scalarType = 0;
 	byteOrder = 1;
 	ioID = 0;
-	iosettingsreader();
+	LoadIOSettings();
 }
 
 
@@ -301,7 +311,7 @@ void printHDF5ErrorsToConsole()
 
 #include <vtkImageImport.h>
 
-void iAIO::loadHDF5File()
+void iAIO::readHDF5File()
 {
 	if (m_hdf5Path.size() < 2)
 	{
@@ -389,6 +399,17 @@ void iAIO::loadHDF5File()
 	postImageReadActions();
 }
 #endif
+
+void iAIO::readProject()
+{
+	m_modalities = QSharedPointer<iAModalityList>(new iAModalityList());
+	m_modalities->Load(fileName);
+}
+
+void iAIO::writeProject()
+{
+	m_modalities->Store(fileName, m_camera);
+}
 
 void iAIO::run()
 {
@@ -492,10 +513,16 @@ void iAIO::run()
 				}
 				else
 				{
-					loadHDF5File();
+					readHDF5File();
 				}
 				break;
 	#endif
+			case PROJECT_READER:
+				readProject();
+				break;
+			case PROJECT_WRITER:
+				writeProject();
+				break;
 			case UNKNOWN_READER:
 			default:
 				addMsg(tr("  unknown reader type"));
@@ -714,7 +741,9 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		case VOLUME_STACK_VOLSTACK_WRITER:
 			return setupVolumeStackVolStackWriter(f);
 
-		case TIF_STACK_WRITER:  // intentional fall-throughs
+		case PROJECT_READER:  // intentional fall-throughs
+		case PROJECT_WRITER:
+		case TIF_STACK_WRITER:
 		case JPG_STACK_WRITER:
 		case PNG_STACK_WRITER:
 		case BMP_STACK_WRITER:
@@ -837,7 +866,7 @@ void iAIO::readNRRD()
 	image->SetImage(reader->GetOutput());
 	image->Modified();
 	postImageReadActions();
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -880,7 +909,7 @@ void iAIO::readDCM()
 	image->SetImage(reader->GetOutput());
 	image->Modified();
 	postImageReadActions();
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -922,7 +951,7 @@ void iAIO::readVolumeMHDStack()
 		ProgressObserver()->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -942,7 +971,7 @@ void iAIO::readVolumeStack()
 		ProgressObserver()->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -997,7 +1026,7 @@ void iAIO::readImageData()
 {
 	readRawImage();
 	postImageReadActions();
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -1605,7 +1634,7 @@ void iAIO::readImageStack()
 }
 
 
-void iAIO::iosettingswriter()
+void iAIO::StoreIOSettings()
 {
 	QSettings settings;
 	settings.setValue("IO/rawSizeX", rawSizeX);
@@ -1623,7 +1652,7 @@ void iAIO::iosettingswriter()
 }
 
 
-void iAIO::iosettingsreader()
+void iAIO::LoadIOSettings()
 {
 	QSettings settings;
 	rawOriginX = settings.value("IO/rawOriginX").toDouble();
@@ -1668,4 +1697,9 @@ void iAIO::setAdditionalInfo(QString const & additionalInfo)
 QString iAIO::getFileName()
 {
 	return fileName;
+}
+
+QSharedPointer<iAModalityList> iAIO::GetModalities()
+{
+	return m_modalities;
 }

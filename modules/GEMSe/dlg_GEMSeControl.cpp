@@ -444,7 +444,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 
 		if (m_dlgModalities->GetModalities()->GetFileName().isEmpty())
 		{
-			m_dlgModalities->Store(m_outputFolder + "/" + iASEAFile::DefaultModalityFileName);
+			mdiChild->saveProject(m_outputFolder + "/" + iASEAFile::DefaultModalityFileName);
 		}
 		StoreGEMSeProject(m_outputFolder + "/sampling.sea", "");
 	}

@@ -291,6 +291,7 @@ Q_SIGNALS:
 	void preferencesChanged();
 	void viewInitialized();
 	void TransferFunctionChanged();
+	void fileLoaded();
 
 private slots:
 	void maximizeRC();
@@ -348,8 +349,9 @@ public slots:
 	void updateViews();
 	void addMsg(QString txt);
 	void addStatusMsg(QString txt);
-	bool setupView(bool active = false);
-	bool setupStackView(bool active = false);
+	void setupView(bool active = false);
+	void setupStackView(bool active = false);
+	void setupProject(bool active = false);
 	bool updateVolumePlayerView(int updateIndex, bool isApplyForAll);
 	void removeFinishedAlgorithms();
 	void camPX();
@@ -379,6 +381,7 @@ private:
 	void addProfile();
 	void UpdateProfile();
 	bool saveAs(int modalityNr);
+	void saveProject(QString const & fileName);
 	bool initView(QString const & title);
 	int EvaluatePosition(int pos, int i, bool invert = false);
 
@@ -408,7 +411,7 @@ private:
 	
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//! \return	true if it succeeds, false if it fails.
-	bool setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img);
+	bool setupSaveIO(QString const & f);
 
 	//! sets up the IO thread for loading the correct file type according to the given filename.
 	//! \return	true if it succeeds, false if it fails.
@@ -510,7 +513,6 @@ public:
 	QSharedPointer<iAModalityList> GetModalities();
 	QSharedPointer<iAModality> GetModality(int idx);
 	dlg_modalities* GetModalitiesDlg();
-	bool LoadProject(QString const & fileName);
 	void StoreProject();
 	//! @}
 };

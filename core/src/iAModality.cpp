@@ -45,7 +45,6 @@ iAModality::iAModality(QString const & name, QString const & filename, int chann
 	SetData(imgData);
 }
 
-
 iAModality::iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags) :
 	m_name(name),
 	m_filename(filename),
@@ -239,7 +238,6 @@ void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 	m_transfer = QSharedPointer<iAModalityTransfer>(new iAModalityTransfer(maxRange));
 }
 
-
 void iAModality::SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile)
 {
 	positionSettings = pos;
@@ -247,12 +245,10 @@ void iAModality::SetStringSettings(QString const & pos, QString const & ori, QSt
 	tfFileName = tfFile;
 }
 
-
 QString iAModality::GetOrientationString()
 {
 	return m_renderer ? Vec3D2String(m_renderer->GetOrientation()) : QString();
 }
-
 
 QString iAModality::GetPositionString()
 {

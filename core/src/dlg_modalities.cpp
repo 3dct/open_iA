@@ -83,28 +83,9 @@ void dlg_modalities::SetModalities(QSharedPointer<iAModalityList> modList)
 	lwModalities->clear();
 }
 
-
-void dlg_modalities::Store(QString const & filename)
-{								// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
-	vtkCamera* cam = m_mainRenderer->GetActiveCamera();
-	modalities->Store(filename, cam);
-}
-
 void dlg_modalities::SelectRow(int idx)
 {
 	lwModalities->setCurrentRow(idx);
-}
-
-bool dlg_modalities::Load(QString const & filename)
-{
-	bool result = modalities->Load(filename);
-	if (result)
-	{
-		SelectRow(0);
-		EnableButtons();
-		emit ModalityAvailable(0);
-	}
-	return result;
 }
 
 QString GetCaption(iAModality const & mod)
