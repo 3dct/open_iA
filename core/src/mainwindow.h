@@ -170,6 +170,7 @@ public slots:
 	void childActivatedSlot(QMdiSubWindow *wnd);
 	void OpenWithDataTypeConversion();
 	void about();
+	void wiki();
 	void updateMenus();
 	void updateWindowMenu();
 	MdiChild *createMdiChild(bool unsavedChanges);

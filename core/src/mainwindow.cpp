@@ -56,6 +56,7 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
+#include <QDesktopServices>
 
 MainWindow::MainWindow(QString const & appName, QString const & version, QString const & splashImage )
 :
@@ -1597,6 +1598,22 @@ void MainWindow::about()
 }
 
 
+void MainWindow::wiki()
+{
+	QAction* act = qobject_cast<QAction*>(QObject::sender());
+	if (act->text().contains("Core"))
+		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Core"));
+	else if(act->text().contains("Filters"))
+		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Filters"));
+	else if (act->text().contains("Tools"))
+		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Tools"));	
+	else if (act->text().contains("releases"))
+		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/releases"));
+	else if (act->text().contains("bug"))
+		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/issues"));
+}
+
+
 void MainWindow::createRecentFileActions()
 {
 	separatorAct = menu_File->addSeparator();
@@ -1727,6 +1744,9 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	subWin->setOption(QMdiSubWindow::RubberBandResize);
 	subWin->setOption(QMdiSubWindow::RubberBandMove);
 
+	if (mdiArea->subWindowList().size() < 2)
+		child->showMaximized();
+
 	child->setRenderSettings(defaultRenderSettings, defaultVolumeSettings);
 	child->setupSlicers(defaultSlicerSettings, false);
 
@@ -1762,8 +1782,12 @@ void MainWindow::connectSignalsToSlots()
 	connect(cascadeAct, SIGNAL(triggered()), mdiArea, SLOT(cascadeSubWindows()));
 	connect(nextAct, SIGNAL(triggered()), mdiArea, SLOT(activateNextSubWindow()));
 	connect(previousAct, SIGNAL(triggered()), mdiArea, SLOT(activatePreviousSubWindow()));
+	connect(userGuideCoreAct, SIGNAL(triggered()), this, SLOT(wiki()));
+	connect(userGuideFiltersAct, SIGNAL(triggered()), this, SLOT(wiki()));
+	connect(userGuideToolsAct, SIGNAL(triggered()), this, SLOT(wiki()));
+	connect(releasesAct, SIGNAL(triggered()), this, SLOT(wiki()));
+	connect(bugAct, SIGNAL(triggered()), this, SLOT(wiki()));
 	connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
-	connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 	connect(xyAct, SIGNAL(triggered()), this, SLOT(maxXY()));
 	connect(xzAct, SIGNAL(triggered()), this, SLOT(maxXZ()));
 	connect(yzAct, SIGNAL(triggered()), this, SLOT(maxYZ()));

@@ -62,9 +62,18 @@
      <height>21</height>
     </rect>
    </property>
+   <property name="toolTipDuration">
+    <number>-1</number>
+   </property>
    <widget class="QMenu" name="menu_File">
+    <property name="toolTipDuration">
+     <number>-1</number>
+    </property>
     <property name="title">
      <string>&amp;File</string>
+    </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
     </property>
     <addaction name="openAct"/>
     <addaction name="actionOpen_Raw"/>
@@ -87,6 +96,9 @@
     <property name="title">
      <string>&amp;Window</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
     <addaction name="closeAct"/>
     <addaction name="closeAllAct"/>
     <addaction name="separator"/>
@@ -101,6 +113,9 @@
    <widget class="QMenu" name="menu_Views">
     <property name="title">
      <string>&amp;Views</string>
+    </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
     </property>
     <addaction name="xyAct"/>
     <addaction name="xzAct"/>
@@ -119,17 +134,30 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
+    <addaction name="userGuideCoreAct"/>
+    <addaction name="userGuideFiltersAct"/>
+    <addaction name="userGuideToolsAct"/>
+    <addaction name="releasesAct"/>
+    <addaction name="bugAct"/>
     <addaction name="aboutAct"/>
-    <addaction name="aboutQtAct"/>
    </widget>
    <widget class="QMenu" name="menu_Tools">
     <property name="title">
      <string>&amp;Tools</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QMenu" name="menu_Edit">
     <property name="title">
      <string>&amp;Edit</string>
+    </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
     </property>
     <addaction name="actionPreferences"/>
     <addaction name="actionRendererSettings"/>
@@ -150,6 +178,9 @@
    <widget class="QMenu" name="menu_Filters">
     <property name="title">
      <string>Filters</string>
+    </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
     </property>
    </widget>
    <addaction name="menu_File"/>
@@ -968,6 +999,49 @@
    </property>
    <property name="text">
     <string>Show Toolbars</string>
+   </property>
+  </action>
+  <action name="userGuideCoreAct">
+   <property name="text">
+    <string>Core user guide</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens a link to the open_iA core user guide (e.g. renderer, slicers)  in your default web browser</string>
+   </property>
+  </action>
+  <action name="userGuideFiltersAct">
+   <property name="text">
+    <string>Filters user guide</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens a link to the open_iA filters user guide in your default web browser</string>
+   </property>
+  </action>
+  <action name="userGuideToolsAct">
+   <property name="text">
+    <string>Tools user guide</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens a link to the open_iA tools user guide in your default web browser</string>
+   </property>
+  </action>
+  <action name="releasesAct">
+   <property name="text">
+    <string>Available releases</string>
+   </property>
+   <property name="iconText">
+    <string>Available releases</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens a link to the available open_iA releases in your default web browser</string>
+   </property>
+  </action>
+  <action name="bugAct">
+   <property name="text">
+    <string>Found a bug?</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens a link to the open_iA bug tracker in your default web browser</string>
    </property>
   </action>
  </widget>
