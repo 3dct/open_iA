@@ -26,6 +26,7 @@
 #include <QVector>
 
 class iAModality;
+class iAProgress;
 class iAVolumeSettings; 
 
 class vtkCamera;
@@ -39,7 +40,7 @@ class open_iA_Core_API iAModalityList : public QObject
 public:
 	iAModalityList();
 	void Store(QString const & filename, vtkCamera* cam);
-	bool Load(QString const & filename);
+	bool Load(QString const & filename, iAProgress& progress);
 	void ApplyCameraSettings(vtkCamera* cam);
 
 	int size() const;

@@ -44,9 +44,6 @@ private:
 	iAProgress* m_progress;
 };
 
-iAProgress::iAProgress( )
-{}
-
 void iAProgress::ProcessEvent( itk::Object * caller, const itk::EventObject & event )
 {
 	if (typeid(event) != typeid(itk::ProgressEvent))

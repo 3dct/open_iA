@@ -37,11 +37,17 @@ class open_iA_Core_API iAProgress : public QObject
 	Q_OBJECT
 public:
 	typedef itk::MemberCommand< iAProgress >  CommandType;
-	iAProgress( );
+	//! @{
+	//! Event handlers for ITK progress events
 	void ProcessEvent(itk::Object * caller, const itk::EventObject & event );
 	void ConstProcessEvent(const itk::Object * caller, const itk::EventObject & event );
+	//! @}
+	//! observe an ITK algorithm (and pass on its progress report)
 	void Observe( itk::Object *caller );
+	//! observe a VTK algorithm (and pass on its progress report)
 	void Observe( vtkAlgorithm* caller );
+	//! Used to trigger a progress event.
+	//! @param i the current percentage of progress (number between 0 and 100)
 	void EmitProgress(int i);
 Q_SIGNALS:
 	void progress(int i);

@@ -24,6 +24,7 @@
 #include "iAMathUtility.h"
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
+#include "iAProgress.h"
 #include "iASettings.h"
 #include "iAStringHelper.h"
 #include "iAVolumeRenderer.h"
@@ -191,7 +192,7 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 	}
 }
 
-bool iAModalityList::Load(QString const & filename)
+bool iAModalityList::Load(QString const & filename, iAProgress& progress)
 {
 	if (filename.isEmpty())
 	{
@@ -226,9 +227,14 @@ bool iAModalityList::Load(QString const & filename)
 		m_camSettingsAvailable = true;
 	}
 
-	int currIdx = 0;
+	int maxIdx = 0;
+	while (settings.contains(GetModalityKey(maxIdx, "Name")))
+	{
+		++maxIdx;
+	}
 
-	while (settings.contains(GetModalityKey(currIdx, "Name")))
+	int currIdx = 0;
+	while (currIdx < maxIdx)
 	{
 		QString modalityName = settings.value(GetModalityKey(currIdx, "Name")).toString();
 		QString modalityFile = settings.value(GetModalityKey(currIdx, "File")).toString();
@@ -284,7 +290,8 @@ bool iAModalityList::Load(QString const & filename)
 			m_modalities.push_back(mod[0]);
 			emit Added(mod[0]);
 		}
-		currIdx++;
+		++currIdx;
+		progress.EmitProgress((100 * currIdx) / maxIdx);
 	}
 	m_fileName = filename;
 	return true;
