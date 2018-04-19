@@ -12,8 +12,8 @@ ENDIF()
 
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 
-option (USE_COTIRE "Whether to use cotire to speed up build." OFF)
-IF (USE_COTIRE)
+option (openiA_USE_COTIRE "Whether to use cotire to speed up build. Default: disabled." OFF)
+IF (openiA_USE_COTIRE)
 	INCLUDE(Cotire)
 ENDIF()
 
@@ -29,8 +29,8 @@ IF (CMAKE_COMPILER_IS_GNUCXX)
 ENDIF()
 IF (MSVC)
 	# Reduce size of .pdb files:
-	OPTION (COMPRESS_PDB "Whether to compress .pdb files to conserve disk space." OFF)
-	IF (COMPRESS_PDB)
+	OPTION (openiA_COMPRESS_PDB "Whether to compress .pdb files to conserve disk space. Default: enabled." ON)
+	IF (openiA_COMPRESS_PDB)
 		# significantly reduces size of .pdb files (89 -> 28 MB):
 		SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /PDBCOMPRESS")
 		# only slightly decrease build sizes (89 -> 80 MB), and disables incremental linking:
@@ -135,7 +135,7 @@ IF (MSVC)
 	STRING(REGEX REPLACE "/" "\\\\" CMAKE_BINARY_WIN_DIR ${CMAKE_BINARY_DIR})
 ENDIF ()
 
-ADD_SUBDIRECTORY(modules) # needs to know which modules are enabled; with MODULES_BUILD_ALL flag this is only determined in modules, so needs to be after that
+ADD_SUBDIRECTORY(modules) # needs to know which modules are enabled; with openiA_BUILD_ALL_MODULES flag this is only determined in modules, so needs to be after that
 ADD_SUBDIRECTORY(Toolkit)
 ADD_SUBDIRECTORY(gui)
 ADD_SUBDIRECTORY(cmd)
@@ -146,10 +146,10 @@ ADD_SUBDIRECTORY(cmd)
 # Configure the default TESTING_DATA_ROOT for the location of Data.
 set(TESTING_DATA_OUTPUT ${PROJECT_SOURCE_DIR}/Test_files/TestITK/Output)
 #ITK testing
-option (open_iA_TEST_ITK "" OFF)
-if(open_iA_TEST_ITK)
+option (openiA_TEST_ITK "When enabled, creates a special ITK test project. Default: disabled." OFF)
+if(openiA_TEST_ITK)
 	add_subdirectory("${PROJECT_SOURCE_DIR}/Test_files/TestITK")
-endif(open_iA_TEST_ITK)
+endif()
 
 #-------------------------
 # Installation

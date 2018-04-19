@@ -8,21 +8,25 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 		"and run cmake with a newly created build directory.")
 endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
-# IDE folder configuration:
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "_CMake")
-
+option (openiA_USE_IDE_FOLDERS "Whether to group projects in subfolders in the IDE (mainly Visual Studio). Default: enabled." ON)
+IF (openiA_USE_IDE_FOLDERS)
+	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+	set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "_CMake")
+ENDIF()
+	
 #-------------------------
 # CTest
 #-------------------------
-option (TESTING_ENABLED "Whether to enable testing. This allows to run CTest/ CDash builds. Default: disabled" OFF)
-IF (${TESTING_ENABLED})
+option (openiA_TESTING_ENABLED "Whether to enable testing. This allows to run CTest/ CDash builds. Default: disabled." OFF)
+IF (openiA_TESTING_ENABLED)
 	INCLUDE (CTest)
 	enable_testing()
-	SET_PROPERTY(TARGET Continuous PROPERTY FOLDER "_CTest")
-	SET_PROPERTY(TARGET Experimental PROPERTY FOLDER "_CTest")
-	SET_PROPERTY(TARGET Nightly PROPERTY FOLDER "_CTest")
-	SET_PROPERTY(TARGET NightlyMemoryCheck PROPERTY FOLDER "_CTest")
+	IF (openiA_USE_IDE_FOLDERS)
+		SET_PROPERTY(TARGET Continuous PROPERTY FOLDER "_CTest")
+		SET_PROPERTY(TARGET Experimental PROPERTY FOLDER "_CTest")
+		SET_PROPERTY(TARGET Nightly PROPERTY FOLDER "_CTest")
+		SET_PROPERTY(TARGET NightlyMemoryCheck PROPERTY FOLDER "_CTest")
+	ENDIF()
 ENDIF()
 
 #-------------------------

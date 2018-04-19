@@ -546,17 +546,25 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	setCurrentFile(f);
 
 	waitForPreviousIO();
-
+	
 	ioThread = new iAIO(imageData, polyData, m_logger, this, volumeStack->GetVolumes(), volumeStack->GetFileNames());
-	if (!isStack || Is2DImageFile(f)) {
-		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
+	if (f.endsWith(iAIOProvider::ProjectFileExtension))
+	{
+		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupProject(bool)));
 	}
-	else {
-		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupStackView(bool)));
+	else
+	{
+		if (!isStack || Is2DImageFile(f)) {
+			connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
+		}
+		else {
+			connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupStackView(bool)));
+		}
+		connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	}
 	connectIOThreadSignals(ioThread);
-	connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	connect(m_dlgModalities, SIGNAL(ModalityAvailable(int)), this, SLOT(SetHistogramModality(int)));
+	connect(ioThread, SIGNAL(done()), this, SIGNAL(fileLoaded()));
 	
 	polyData->ReleaseData();
 
@@ -574,7 +582,7 @@ void MdiChild::setImageData(QString const & filename, vtkSmartPointer<vtkImageDa
 {
 	imageData = imgData;
 	GetModality(0)->SetData(imageData);
-	setCurrentFile(filename);
+	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
 	setupView(false);
 	enableRenderWindows();
 }
@@ -632,7 +640,7 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 }
 
 
-bool MdiChild::setupStackView(bool active)
+void MdiChild::setupStackView(bool active)
 {
 	// TODO: check!
 	previousIndexOfVolume = 0;
@@ -642,7 +650,6 @@ bool MdiChild::setupStackView(bool active)
 	if (numberOfVolumes == 0)
 	{
 		DEBUG_LOG("Invalid call to setupStackView: No Volumes loaded!");
-		return false;
 	}
 
 	int currentIndexOfVolume=0;
@@ -670,8 +677,6 @@ bool MdiChild::setupStackView(bool active)
 	updateViews();
 
 	Raycaster->update();
-
-	return true;
 }
 
 
@@ -685,7 +690,7 @@ void MdiChild::setupViewInternal(bool active)
 	if (!active)
 		initView(curFile.isEmpty() ? "Untitled":"" );
 
-	m_mainWnd->setCurrentFile(currentFile());	// TODO: VOLUME: should be done on the outside?
+	m_mainWnd->setCurrentFile(currentFile());	// TODO: VOLUME: should be done on the outside? or where setCurrentFile is done?
 
 	if ((imageData->GetExtent()[1] < 3) || (imageData->GetExtent()[3]) < 3 || (imageData->GetExtent()[5] < 3))
 		volumeSettings.Shading = false;
@@ -718,15 +723,17 @@ void MdiChild::setupViewInternal(bool active)
 }
 
 
-bool MdiChild::setupView(bool active )
+void MdiChild::setupView(bool active )
 {
 	setupViewInternal(active);
-
 	Raycaster->update();
-
 	check2DMode();
+}
 
-	return true;
+
+void MdiChild::setupProject(bool active)
+{
+	SetModalities(ioThread->GetModalities());
 }
 
 
@@ -892,7 +899,7 @@ QString GetSupportedPixelTypeString(QVector<int> const & types)
 	return result;
 }
 
-bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
+bool MdiChild::setupSaveIO(QString const & f)
 {
 	QFileInfo fileInfo(f);
 	if (QString::compare(fileInfo.suffix(), "STL", Qt::CaseInsensitive) == 0) {
@@ -975,7 +982,7 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 	connectIOThreadSignals(ioThread);
 	connect(ioThread, SIGNAL(done()), this, SLOT(SaveFinished()));
 	m_storedModalityNr = modalityNr;
-	if (!setupSaveIO(f, tmpSaveImg)) {
+	if (!setupSaveIO(f)) {
 		ioFinished();
 		return false;
 	}
@@ -2088,7 +2095,7 @@ bool MdiChild::initView( QString const & title )
 	}
 	if (GetModalities()->size() == 0 && IsVolumeDataLoaded())
 	{
-		// TODO: VOLUME: resolve duplication between here (called on loadFile) and adding modalities (e.g. via LoadProject)
+		// TODO: VOLUME: resolve duplication between here (called on loadFile) and adding modalities
 		QString name;
 		if (!curFile.isEmpty())
 		{
@@ -2920,25 +2927,21 @@ void MdiChild::InitVolumeRenderers()
 	Raycaster->GetRenderer()->ResetCamera();
 }
 
-
-bool MdiChild::LoadProject(QString const & fileName)
+void MdiChild::saveProject(QString const & fileName)
 {
-	// processEvents: workaround for the crash when loading project from recent files.
-	// apparently some work needs to be done between creating the mdi child
-	// (done in Mainwindow::LoadProject) and setting up the dataset
-	// Could probably be omitted if the data loading in dlg_modalities was
-	// asynchronous!
-	QApplication::processEvents();
-
-	if (!m_dlgModalities->Load(fileName) ||
-		GetModalities()->size() <= 0)
+	ioThread = new iAIO(m_dlgModalities->GetModalities(), Raycaster->GetRenderer()->GetActiveCamera(), m_logger);
+	connectIOThreadSignals(ioThread);
+	QFileInfo fileInfo(fileName);
+	if (!ioThread->setupIO(PROJECT_WRITER, fileInfo.absoluteFilePath()))
 	{
-		return false;
+		ioFinished();
+		return;
 	}
-	setCurrentFile(GetModalities()->GetFileName());
-	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
-	InitModalities();
-	return true;
+	addMsg(tr("%1  Saving file '%2', please wait...")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	ioThread->start();
+	// TODO: only set new project file name if saving succeeded
+	setCurrentFile(fileName);
 }
 
 void MdiChild::StoreProject()
@@ -2966,8 +2969,7 @@ void MdiChild::StoreProject()
 		iAIOProvider::ProjectFileTypeFilter);
 	if (modalitiesFileName.isEmpty())
 		return;
-	m_dlgModalities->Store(modalitiesFileName);
-	setCurrentFile(modalitiesFileName);
+	saveProject(modalitiesFileName);
 }
 
 MainWindow* MdiChild::getMainWnd()

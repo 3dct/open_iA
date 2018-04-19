@@ -98,12 +98,24 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 		DEBUG_LOG("Given precalculated data file could not be read.");
 		return;
 	}
-	if (!child->LoadProject(seaFile.GetModalityFileName()))
+	m_mdiChild = child;
+	if (m_seaFile)
 	{
-		DEBUG_LOG(QString("Failed loading project '%1'").arg(seaFile.GetModalityFileName()));
+		DEBUG_LOG("A loading procedure is currently in progress. Please let this finish first.");
 		return;
 	}
-	m_mdiChild = child;
+	m_seaFile = QSharedPointer<iASEAFile>(new iASEAFile(seaFile));
+	connect(child, SIGNAL(fileLoaded()), this, SLOT(continuePreCalculatedDataLoading()));
+	if (!child->loadFile(seaFile.GetModalityFileName(), false))
+	{
+		DEBUG_LOG(QString("Failed loading project '%1'").arg(seaFile.GetModalityFileName()));
+		m_seaFile.clear();
+		return;
+	}
+}
+
+void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
+{
 	UpdateChildData();
 
 	// load segmentation explorer:
@@ -115,30 +127,31 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 		return;
 	}
 	// load sampling data:
-	QMap<int, QString> const & samplings = seaFile.GetSamplings();
+	QMap<int, QString> const & samplings = m_seaFile->GetSamplings();
 	for (int key : samplings.keys())
 	{
-		result &= gemseAttach->LoadSampling(samplings[key], seaFile.GetLabelCount(), key);
+		result &= gemseAttach->LoadSampling(samplings[key], m_seaFile->GetLabelCount(), key);
 		if (!result)
 			break;
 	}
-	if (!result || !gemseAttach->LoadClustering(seaFile.GetClusteringFileName()))
+	if (!result || !gemseAttach->LoadClustering(m_seaFile->GetClusteringFileName()))
 	{
 		DEBUG_LOG("Precomputed Data Loading failed!");
 	}
-	if (seaFile.GetLayoutName() != "")
+	if (m_seaFile->GetLayoutName() != "")
 	{
-		child->LoadLayout(seaFile.GetLayoutName());
+		m_mdiChild->LoadLayout(m_seaFile->GetLayoutName());
 	}
-	if (seaFile.GetReferenceImage() != "")
+	if (m_seaFile->GetReferenceImage() != "")
 	{
-		gemseAttach->LoadRefImg(seaFile.GetReferenceImage());
+		gemseAttach->LoadRefImg(m_seaFile->GetReferenceImage());
 	}
-	if (seaFile.GetHiddenCharts() != "")
+	if (m_seaFile->GetHiddenCharts() != "")
 	{
-		gemseAttach->SetSerializedHiddenCharts(seaFile.GetHiddenCharts());
+		gemseAttach->SetSerializedHiddenCharts(m_seaFile->GetHiddenCharts());
 	}
-	gemseAttach->SetLabelInfo(seaFile.GetColorTheme(), seaFile.GetLabelNames());
+	gemseAttach->SetLabelInfo(m_seaFile->GetColorTheme(), m_seaFile->GetLabelNames());
+	m_seaFile.clear();
 }
 
 void iAGEMSeModuleInterface::SetupToolbar()
