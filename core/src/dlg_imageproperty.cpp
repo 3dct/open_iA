@@ -31,8 +31,7 @@ dlg_imageproperty::dlg_imageproperty(QWidget *parent) : QDockWidget(parent)
 
 void dlg_imageproperty::EnterMsg(QString txt)
 {
-	lWidget->addItem(txt); 
-	lWidget->scrollToBottom();
+	lWidget->addItem(txt);
 }
 
 void dlg_imageproperty::Clear()
@@ -97,5 +96,6 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QSt
 				.arg(info.Min()).arg(info.Max())
 				.arg(info.Mean()).arg(info.StandardDeviation()));
 	}
+	lWidget->scrollToBottom();
 	this->show();
 }
