@@ -472,19 +472,17 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 	const double d_DefaultSpecularLighting = 0.7;
 	const double d_DefaultSpecularPower = 10; 
 
-
 	//Shading
-	if(isStringBoolean(Shading, b_Shading)){
+	if(isStringBoolean(Shading, b_Shading)) {
 		volSettings.Shading = b_Shading; 
-	}else {
+	}
+	else {
 		logParameter("Shading", Shading); 
-		volSettings.Shading =true; 
+		volSettings.Shading = b_DefaultShading;
 	}
 
-	
-
 	//LinearInterpolation
-	if (isStringBoolean(LinearInterpolation, b_LinearInterPol)){
+	if (isStringBoolean(LinearInterpolation, b_LinearInterPol)) {
 		volSettings.LinearInterpolation = b_LinearInterPol; 
 	}
 	else {
@@ -492,18 +490,15 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 		volSettings.LinearInterpolation = b_DefaultLinearInterPol; 
 	}
 
-	
-
 	//SampleDistance
 	if (isStringDouble(SampleDistance, d_sampleDistance)) {
 		volSettings.SampleDistance = d_sampleDistance;
-	
-	}else {
+	}
+	else {
 		logParameter("SampleDistance", SampleDistance);
 		volSettings.SampleDistance = d_DefaultSampleDistance;
 	}
 
-	
 	//AmbientLighting
 	if (isStringDouble(AmbientLighting, d_ambientLighting)) {
 		volSettings.AmbientLighting = d_ambientLighting; 
@@ -513,8 +508,6 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 		volSettings.AmbientLighting = d_DefaultAmbientLight; 
 	}
 
-
-	
 	//DiffuseLighting
 	if (isStringDouble(DiffuseLighting, d_diffuseLighting)) {
 		volSettings.DiffuseLighting = d_diffuseLighting;
@@ -524,7 +517,6 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 		volSettings.DiffuseLighting = d_DefaultDiffuseLight;
 	}
 
-	
 	//SpecularLighting
 	if (isStringDouble(SpecularLighting, d_SpecularLighting)) {
 		volSettings.SpecularLighting = d_SpecularLighting;
@@ -534,8 +526,6 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 		volSettings.SpecularLighting = d_DefaultSpecularLighting;
 	}
 
-
-	
 	//SpecularPower
 	if (isStringDouble(SpecularPower, d_SpecularPower)) {
 		volSettings.SpecularLighting = d_SpecularLighting;
@@ -544,14 +534,4 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 		logParameter("SpecularPower", SpecularPower);
 		volSettings.SpecularLighting = d_DefaultSpecularLighting;
 	}
-
-
-
-
-
-
-
-
-
-
 }
