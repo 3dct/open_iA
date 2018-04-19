@@ -47,6 +47,16 @@
 
 vtkStandardNewMacro(iABoneThicknessMouseInteractor);
 
+
+iABoneThickness::iABoneThickness()
+{
+	m_pColorNormal  [0] = 1.0; m_pColorNormal  [1] = 0.0; m_pColorNormal  [2] = 0.0;
+	m_pColorSelected[0] = 0.0; m_pColorSelected[1] = 1.0; m_pColorSelected[2] = 0.0;
+	m_pColorMark    [0] = 0.0; m_pColorMark    [1] = 0.0; m_pColorMark    [2] = 1.0;
+	std::fill(m_pBound, m_pBound+6, 0.0);
+	std::fill(m_pRange, m_pRange+3, 0.0);
+}
+
 double iABoneThickness::axisXMax() const
 {
 	return m_pBound[1];

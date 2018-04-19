@@ -34,7 +34,7 @@ class iAFoamCharacterizationTableAnalysis : public QTableView
 		public:
 			CTableAnalysisRow()
 			{
-			
+				std::fill(m_pBoundingBox, m_pBoundingBox+6, 0.0);
 			}
 
 			void set(const long& _lLabel
@@ -102,7 +102,7 @@ class iAFoamCharacterizationTableAnalysis : public QTableView
 			double m_dVolume = 0.0;
 			double m_dDiameter = 0.0;
 
-			double m_pBoundingBox[6] = { 0.0 };
+			double m_pBoundingBox[6];
 	};
 
 	public:
