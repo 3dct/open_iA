@@ -95,7 +95,7 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	MdiChild *child = m_mainWnd->createMdiChild(false);
 	if (!seaFile.good())
 	{
-		DEBUG_LOG("Given precalculated data file could not be read.");
+		DEBUG_LOG(QString("Precalculated GEMSe data %1 file could not be read.").arg(seaFile.GetSEAFileName()));
 		return;
 	}
 	m_mdiChild = child;
@@ -108,7 +108,9 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	connect(child, SIGNAL(fileLoaded()), this, SLOT(continuePreCalculatedDataLoading()));
 	if (!child->loadFile(seaFile.GetModalityFileName(), false))
 	{
-		DEBUG_LOG(QString("Failed loading project '%1'").arg(seaFile.GetModalityFileName()));
+		DEBUG_LOG(QString("Failed to load project '%1' referenced from precalculated GEMSe data file %2.")
+			.arg(seaFile.GetModalityFileName())
+			.arg(seaFile.GetSEAFileName()));
 		m_seaFile.clear();
 		return;
 	}
@@ -136,7 +138,7 @@ void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
 	}
 	if (!result || !gemseAttach->LoadClustering(m_seaFile->GetClusteringFileName()))
 	{
-		DEBUG_LOG("Precomputed Data Loading failed!");
+		DEBUG_LOG(QString("Loading precomputed GEMSe data from file %1 failed!").arg(m_seaFile->GetSEAFileName()));
 	}
 	if (m_seaFile->GetLayoutName() != "")
 	{

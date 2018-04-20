@@ -105,9 +105,10 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 	connect(GetMdiChild(), SIGNAL(fileLoaded()), this, SLOT(ContinueEnsembleLoading()));
 	if (!GetMdiChild()->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
-		DEBUG_LOG(QString("Ensemble: Failed loading project '%1'").arg(m_ensembleFile->ModalityFileName()));
+		DEBUG_LOG(QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
 		return false;
 	}
+	return true;
 }
 
 void iAUncertaintyAttachment::ContinueEnsembleLoading()

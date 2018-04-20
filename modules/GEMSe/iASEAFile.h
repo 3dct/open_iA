@@ -58,7 +58,7 @@ public:
 	QString const & GetColorTheme() const;
 
 	bool good() const;
-	// QString const & GetSEAFileName();
+	QString const & GetSEAFileName() const;
 private:
 	QString m_ModalityFileName;
 	int m_LabelCount;

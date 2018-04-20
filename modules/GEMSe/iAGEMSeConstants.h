@@ -144,7 +144,6 @@ struct DefaultColors
 
 const QString SMPFileVersion("v8");
 const QString SMPFileFormatVersion("Sampling File " + SMPFileVersion);
-const QString ValueSplitString(" ");
 
 enum iARepresentativeType
 {

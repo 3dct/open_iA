@@ -224,7 +224,7 @@ bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QStri
 		if (charac && characIn && !characIn->atEnd())
 		{
 			QString derivedOutLine = characIn->readLine();
-			attribLine = paramLine + ValueSplitString + derivedOutLine;
+			attribLine = paramLine + iASingleResult::ValueSplitString + derivedOutLine;
 		}
 		lineNr++;
 		QSharedPointer<iASingleResult> result = iASingleResult::Create(
