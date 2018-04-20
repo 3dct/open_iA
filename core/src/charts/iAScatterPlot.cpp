@@ -229,7 +229,7 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	if ( !hasData() )
 		return;
 	painter.save();
-	painter.translate( m_globRect.x(), m_globRect.y() );
+	painter.translate( m_globRect.x(), m_globRect.y());
 	painter.setBrush( settings.backgroundColor );
 	drawTicks( painter );
 	drawParameterName( painter );

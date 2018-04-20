@@ -144,7 +144,15 @@ protected:
 	virtual void paintEvent( QPaintEvent * event );				//!< Draws SPLOM. Re-implements QGLWidget.
 	virtual bool drawPopup( QPainter& painter );				//!< Draws popup on the splom
 	iAScatterPlot * getScatterplotAt( QPoint pos );				//!< Get a scatter plot at mouse position.
-	void changeActivePlot( iAScatterPlot * s);					//!< Specify the new active scatter plot.
+	void changeActivePlot( iAScatterPlot * s);
+	void drawVisibleParameters(QPainter & painter);    //draws  lable for the whole scatter plot matrix
+	void setSPMLabels(QVector<ulong> &ind_VisX, int axisOffSet, QPainter & painter, bool switchXY);
+
+	void normPT(double norm, QPoint &pt);
+
+	void tranformPoint(qreal &res_x, qreal &res_y, const QPoint &pt , const double radians, const QPoint& center);
+
+	//!< Specify the new active scatter plot.
 	void drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX,
 		QList<QString> const & textY);							//!< Draw ticks for X and Y parameters of plots in the SPLOM.
 	void updateMaxPlotRect();									//!< Updates the rectangle of the maximized scatter plot.
@@ -157,7 +165,7 @@ protected:
 	void removeMaximizedPlot();									//!< Removes maximized plot.
 	int invert( int val ) const;								//!< Inverts parameter index. Used for inverting SPLOM Y indexing order.
 	int GetMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & fm) const;//!< Get the width of the longest tick label width
-
+	
 	
 
 	void setM_Mode(splom_mode);

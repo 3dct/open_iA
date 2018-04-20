@@ -33,6 +33,7 @@
 #include <QPropertyAnimation>
 #include <QTableWidget>
 #include <QWheelEvent>
+#include <qmath.h>
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -559,6 +560,7 @@ int iAQSplom::invert( int val ) const
 	return ( getVisibleParametersCount() - val - 1 );
 }
 
+//draws all scatter plots
 void iAQSplom::paintEvent( QPaintEvent * event )
 {
 	QPainter painter( this );
@@ -566,14 +568,22 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	//collect info
 	QList<double> ticksX, ticksY; QList<QString> textX, textY;
 
+	//here should be given the ticks info
+	int j = 0; 
 	for (int i = 0; i < m_visiblePlots.size(); ++i)
-	{//int j; 
-		
-
+	{	
+	
+						//y   //x
 		if (m_visiblePlots[i][i]) {
 			m_visiblePlots[i][i]->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
 		}
+		
+		
+		
 	}
+
+	//hier sind alle Parameter drin
+	auto x = this->m_splomData->paramNames();
 
 	//TODO PRINT coordinates info
 
@@ -618,6 +628,10 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	}
 	if( !getVisibleParametersCount() )
 		return;
+
+	//draw elements
+	drawVisibleParameters(painter);
+
 	drawTicks( painter, ticksX, ticksY, textX, textY );
 	foreach( const QList<iAScatterPlot*> & row, m_visiblePlots )
 	{
@@ -844,7 +858,7 @@ void iAQSplom::updateVisiblePlots()
 			{
 				//hide lower triangle
 				//hide diagonal elements; 
-				if( (x > y) /*|| (x==y)*/  )
+				if( (x > y) || (x==y)  )
 					plot = 0;
 			}
 			row.push_back( plot );
@@ -955,15 +969,236 @@ int iAQSplom::GetMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & 
 	{
 		maxLength = std::max(fm.width(textX[i]), maxLength);
 	}
-	return maxLength+TextPadding;
+	return maxLength+2*TextPadding + fm.height() ;
+}
+
+
+//should be performed in the paint event of qslpom
+void iAQSplom::drawVisibleParameters(QPainter &painter)
+{
+	//hier über alle visible parameters drüber geben
+	//save indezes of all visible plots
+	unsigned long numParams = m_splomData->numParams();
+	
+	QVector<ulong> ind_VisY;
+	QVector<ulong> ind_VisX;
+	
+
+	//save visibiltys of axis
+	for (unsigned long y = 0; y < numParams-1; ++y)
+	{
+		if (m_paramVisibility[y])
+			ind_VisY.push_back(y);
+	}
+
+	for (unsigned long x = 0; x < numParams-1; ++x)
+	{
+		if (m_paramVisibility[x]) {
+			ind_VisX.push_back(x);
+			
+			
+			//save value
+		}
+	}
+
+
+	//-1 excluding diagonal elements
+	//getting x positions  
+	setSPMLabels(ind_VisX, ind_VisY.length(), painter, false);
+	setSPMLabels(ind_VisY, ind_VisX.length(), painter, true);
+	//rechtecke holen fur jede spalte
+	//gleiches fur die andere seite
+
+
+
+}
+
+void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPainter & painter, bool switchTO_YRow)
+{
+	QString currentParam = "";
+	QRect currentRect;
+	ulong currIdx = 0;
+
+	int width;
+	int height = 0;
+	int top = 0;
+	int y_temp = 0;
+	int left = 0;
+	int right = 0; 
+	int loopLength = 0;
+	int axisIdx = 0;
+
+	QPoint center;
+	int x_left = 0; 
+	int y_top = 0; 
+	qreal res_x; 
+	qreal res_y;
+	
+
+
+	if (!switchTO_YRow){
+
+		 loopLength = ind_Elements.length() -1;
+	}
+	else {
+		//skip first diagonal element [0][0]
+		loopLength = ind_Elements.length();
+		axisIdx = 1; 
+	}
+
+	for (axisIdx; axisIdx < loopLength; axisIdx++)
+	{	
+			if (switchTO_YRow) {
+			
+
+			currentRect = getPlotRectByIndex( 0, axisIdx);
+			/*left = currentRect.left(); 
+			x = left; 
+			y = currentRect.top(); 
+			x =(x + currentRect.width() )/2 ;
+			y = (y +currentRect.height()) /2; 
+			center.setX(x);
+			center.setY(y);*/
+			x_left = currentRect.top();
+			y_top = currentRect.right(); //bottom
+			
+										 /*top = currentRect.bottom(); 
+			right = currentRect.right(); */
+			
+			
+			
+			//y_temp = left; 
+			//top = currentRect.top(); 
+			//right = currentRect.right(); 
+			///*left = currentRect.left();
+			//left -= 2*left; */
+			//currentRect.setLeft(left); 
+
+
+		}
+		else {
+			currentRect = getPlotRectByIndex(/*ind_VisX[*/axisIdx/*]*/, axisOffSet - 1);
+			top = 0 + TextPadding; 
+			//top = currentRect.top();
+			//height = currentRect.height();
+			////top -= top; 
+			//top = -7;
+			currentRect.setTop(top);
+		}
+
+
+	
+		//currentRect.W
+		currIdx = ind_Elements[axisIdx];
+		currentParam = m_splomData->parameterName(currIdx);
+		if (switchTO_YRow) {
+			double radians = 270 * M_PI / 180;
+			int m_with = currentRect.width();
+			int m_height = currentRect.height();
+			QTransform t = QTransform();
+			t.translate(center.x(), center.y()).rotate(-90).translate(-center.x(), -center.y());
+			
+			QPoint pt; 
+			double norm = 0.0; 
+			 
+			QRect sample = currentRect; 
+			
+
+			
+			QPoint topLeft = currentRect.topRight();//topRight(); 
+			QPoint pos_center = currentRect.center();
+			QPoint bottom_right = currentRect.bottomLeft();
+			normPT(norm, topLeft);
+			//normPT(norm, pos_center);
+			normPT(norm, bottom_right);
+			
+			t.map(topLeft);
+			t.map(bottom_right);
+
+			QPoint pt_left, pt_bottom_r; 
+			qreal rx = 0.0;
+			qreal ry = 0.0; 
+			
+			
+
+
+			painter.save();
+			
+	
+			
+			painter.translate(pos_center);
+			painter.rotate(-90);
+			painter.translate(-pos_center);
+			
+			currentRect.setCoords(topLeft.y(), topLeft.x(), bottom_right.y(), bottom_right.x());
+			painter.drawText(currentRect, Qt::AlignVCenter, currentParam);
+
+
+			painter.restore();
+		}
+		else {
+
+			
+			painter.drawText(currentRect, Qt::AlignHCenter, currentParam);
+			
+		}
+
+		
+
+	}
+}
+
+void iAQSplom::normPT(double norm, QPoint &pt)
+{
+	
+	norm = sqrt(pt.x() * pt.x() + pt.y() *pt.y());
+	pt /= norm; 			
+}
+
+void iAQSplom::tranformPoint(qreal &res_x, qreal &res_y, const QPoint &pt, const double radians, const QPoint& center)
+{
+	double tmp_x = pt.x(); 
+	double tmp_y = pt.y();
+	/*x_left /= norm;
+	y_top /= norm; */
+	tmp_x = (double) tmp_x - center.x();
+	tmp_y = (double) tmp_y - center.y();
+	res_x = tmp_x  * cos(radians) - tmp_y   * sin(radians);
+	res_y = tmp_x * sin(radians) + tmp_y * cos(radians);
+	res_x += center.x();
+	res_y += center.y(); 
+
+
 }
 
 void iAQSplom::drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX, QList<QString> const & textY)
 {
+//	unsigned long numParams = m_splomData->numParams();
+//	for (unsigned long y = 0; y < numParams; ++y)
+//	{
+//		if (!m_paramVisibility[y])
+//			continue;
+//		QList<iAScatterPlot*> row;
+//		for (unsigned long x = 0; x < numParams; ++x)
+//		{
+//			if (!m_paramVisibility[x])
+//				continue;
+//			iAScatterPlot * plot = m_matrix[y][x];
+//			if (UPPER_HALF == m_mode)
+//			{
+//				//hide lower triangle
+//				//hide diagonal elements; 
+//				if ((x > y) || (x == y))
+//					plot = 0;
+//			}
+//			row.push_back(plot);
+//		}
+//		m_visiblePlots.push_back(row);
+//
 	//prepare painter
 	painter.save();
 	//draw ticks text
-	painter.setPen( m_visiblePlots[0][0]->settings.tickLabelColor );
+	painter.setPen( m_visiblePlots[1][0]->settings.tickLabelColor );
 	QPoint * tOfs = &settings.tickOffsets;
 	long tSpc = settings.tickLabelsOffset;
 	for( long i = 0; i < ticksY.size(); ++i )
@@ -977,6 +1212,9 @@ void iAQSplom::drawTicks( QPainter & painter, QList<double> const & ticksX, QLis
 		double t = ticksX[i]; QString text = textX[i];
 		painter.drawText( QRectF( -tOfs->y() + tSpc, t - tOfs->x(), tOfs->y() - tSpc, 2 * tOfs->x() ), Qt::AlignLeft | Qt::AlignVCenter, text );
 	}
+
+	//draw text in x, y each with a for loop fur jeden visible plots
+
 	//restore painter
 	painter.restore();
 }
