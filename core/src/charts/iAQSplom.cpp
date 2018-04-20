@@ -20,6 +20,7 @@
 * ************************************************************************************/
  
 #include "pch.h"
+#include "iAChartWidget.h"
 #include "iAColorTheme.h"
 #include "iAQSplom.h"
 #include "iAScatterPlot.h"
@@ -34,6 +35,9 @@
 #include <QTableWidget>
 #include <QWheelEvent>
 #include <qmath.h>
+#include "iAHistogramData.h"
+#include "iAPlotTypes.h"
+
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -53,7 +57,8 @@ iAQSplom::Settings::Settings()
 	isAnimated( true ),
 	animDuration( 100.0 ),
 	animStart( 0.0 ),
-	separationMargin( 10 )
+	separationMargin( 10 ),
+	histogramBins(20)
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
 	popupWidth = 180;
@@ -579,13 +584,14 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 
 	//here should be given the ticks info
 	int j = 0; 
-	for (int i = 0; i < m_visiblePlots.size(); ++i)
+	//without diagonal elements
+	for (int i = 0; i < m_visiblePlots.size() -1; ++i)
 	{	
 	
 						//y   //x
-		if (m_visiblePlots[i][i]) {
-			m_visiblePlots[i][i]->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
-		}
+		
+			m_visiblePlots[i+1][i]->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
+		
 		
 		
 		
@@ -828,6 +834,7 @@ void iAQSplom::updateSPLOMLayout()
 	long visParamCnt = getVisibleParametersCount();
 	if( !visParamCnt )
 		return;
+	QRect rect;
 	
 	updatePlotGridParams();
 	for( int yind = 0; yind < visParamCnt; ++yind )
@@ -839,6 +846,9 @@ void iAQSplom::updateSPLOMLayout()
 			if( s )
 				s->setRect( getPlotRectByIndex( xind, yind ) );
 		}
+
+		rect= getPlotRectByIndex(yind, yind);
+		m_histograms[yind]->setGeometry(rect);
 	}
 	updateMaxPlotRect();
 }
@@ -847,11 +857,27 @@ void iAQSplom::updateVisiblePlots()
 {
 	removeMaxPlotIfHidden();
 	m_visiblePlots.clear();
+	for (auto histo : m_histograms)
+	{
+		delete histo;
+	}
+	m_histograms.clear(); /*m_histogramPlot = QSharedPointer<iAPlot>*/
+	
+	
 	unsigned long numParams = m_splomData->numParams();
 	for( unsigned long y = 0; y < numParams; ++y )
 	{
+		
 		if( !m_paramVisibility[y] )
 			continue;
+		m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
+		auto histogramData = iAHistogramData::Create(m_splomData->data()[y], settings.histogramBins);
+		
+		//pro param visible 1 hist
+		auto histogramPlot = QSharedPointer<iABarGraphDrawer>(new iABarGraphDrawer(histogramData,QColor(70, 70, 70, 255)));
+		m_histograms[m_histograms.size()-1]->AddPlot(histogramPlot);
+		m_histograms[m_histograms.size()-1]->show();
+
 		QList<iAScatterPlot*> row;
 		for( unsigned long x = 0; x < numParams; ++x )
 		{
@@ -980,7 +1006,7 @@ int iAQSplom::GetMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & 
 //should be performed in the paint event of qslpom
 void iAQSplom::drawVisibleParameters(QPainter &painter)
 {
-	//hier über alle visible parameters drüber geben
+	
 	//save indezes of all visible plots
 	unsigned long numParams = m_splomData->numParams();
 	
@@ -995,15 +1021,7 @@ void iAQSplom::drawVisibleParameters(QPainter &painter)
 			ind_Vis.push_back(y);
 	}
 
-	//for (unsigned long x = 0; x < numParams-1; ++x)
-	//{
-	//	if (m_paramVisibility[x]) {
-	//		ind_VisX.push_back(x);
-	//		
-	//		
-	//		//save value
-	//	}
-	//}
+	
 
 
 	//-1 excluding diagonal elements

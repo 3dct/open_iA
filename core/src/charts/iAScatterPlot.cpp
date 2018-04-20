@@ -232,7 +232,7 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	painter.translate( m_globRect.x(), m_globRect.y());
 	painter.setBrush( settings.backgroundColor );
 	drawTicks( painter );
-	drawParameterName( painter );
+	//drawParameterName( painter );
 	drawPoints( painter );
 	drawSelectionPolygon( painter );
 	/*drawMaximizeButton( painter );*/
@@ -880,19 +880,19 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 	painter.restore();
 }
 
-void iAScatterPlot::drawParameterName( QPainter &painter )
-{
-	if ( ( m_paramIndices[0] == m_paramIndices[1] ) && !m_isMaximizedPlot )
-	{
-		painter.save();
-		QFont font = painter.font(); font.setBold( true ); painter.setFont( font );
-		painter.setPen( settings.tickLabelColor );
-		QString paramName = m_splomData->parameterName( m_paramIndices[0] );
-		QRectF textRect = QRectF( settings.paramTextOffset, 0, m_locRect.width() - settings.paramTextOffset, m_locRect.height() );
-		painter.drawText( textRect, Qt::AlignLeft | Qt::AlignTop, paramName );
-		painter.restore();
-	}
-}
+//void iAScatterPlot::drawParameterName( QPainter &painter )
+//{
+//	if ( ( m_paramIndices[0] == m_paramIndices[1] ) && !m_isMaximizedPlot )
+//	{
+//		painter.save();
+//		QFont font = painter.font(); font.setBold( true ); painter.setFont( font );
+//		painter.setPen( settings.tickLabelColor );
+//		QString paramName = m_splomData->parameterName( m_paramIndices[0] );
+//		QRectF textRect = QRectF( settings.paramTextOffset, 0, m_locRect.width() - settings.paramTextOffset, m_locRect.height() );
+//		painter.drawText( textRect, Qt::AlignLeft | Qt::AlignTop, paramName );
+//		painter.restore();
+//	}
+//}
 
 //void iAScatterPlot::drawMaximizeButton( QPainter & painter )
 //{

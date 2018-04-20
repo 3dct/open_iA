@@ -116,7 +116,7 @@ protected:
 	QPoint getLocalPos( QPoint pos ) const;									//!< Local (plot) position from global (SPLOM)
 	QPoint cropLocalPos( QPoint locPos ) const;								//!< Make sure that local position is inside plot's rectangle
 	bool isMaximizedClicked( QMouseEvent * event );							//!< Check if maximized button of the plot was clicked
-	void drawParameterName( QPainter &painter );							//!< Draws parameter name (only diagonal plots)
+	//void drawParameterName( QPainter &painter );							//!< Draws parameter name (only diagonal plots)
 	void drawBorder( QPainter &painter );									//!< Draws plot's border
 	void drawTicks( QPainter &painter );									//!< Draws plot's ticks
 	void drawMaximizedLabels( QPainter &painter );							//!< Draws additional plot's labels (only maximized plot)

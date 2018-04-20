@@ -27,6 +27,7 @@
 #include <QGLWidget>
 #include <QList>
 
+class iAChartWidget;
 class iAColorTheme;
 class iALookupTable;
 class iAScatterPlot;
@@ -219,6 +220,7 @@ protected:
 		double animStart;
 
 		int separationMargin;
+		int histogramBins; 
 	};
 
 //Members
@@ -254,5 +256,6 @@ private:
 	iAQSplom_variables::plotSelectionIndex plt_selIndx; 
 	void renderPreselectedPlot();
 	bool m_showAllPlots; 
+	QVector<iAChartWidget*> m_histograms;
 
 };
