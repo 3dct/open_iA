@@ -151,7 +151,7 @@ private:
 	bool CheckFeatureInRegistry(QSettings & anySetting, const QString * LayoutName, QStringList & groups, bool useSubGroup);
 
 	void saveParamsToRegistry(csvConfig::configPararams & csv_params, const QString & LayoutName);
-	void loadEntriesFromRegistry(QSettings & anySetting, const QString & LayoutName);
+	bool loadEntriesFromRegistry(QSettings & anySetting, const QString & LayoutName);
 
 	//load initial settings
 	void LoadFormatEntriesOnStartUp();

@@ -564,6 +564,15 @@ int iAQSplom::invert( int val ) const
 void iAQSplom::paintEvent( QPaintEvent * event )
 {
 	QPainter painter( this );
+	painter.setRenderHint(QPainter::Antialiasing);
+	painter.setRenderHint(QPainter::HighQualityAntialiasing);
+	painter.beginNativePainting();
+	glClear(GL_COLOR_BUFFER_BIT);
+	painter.endNativePainting();
+	if (m_visiblePlots.size() < 2) {
+		painter.drawText(geometry(), Qt::AlignCenter | Qt::AlignVCenter, "Too few parameters selected!");
+		return;
+	}
 	QFontMetrics fm = painter.fontMetrics();
 	//collect info
 	QList<double> ticksX, ticksY; QList<QString> textX, textY;
@@ -594,11 +603,6 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 		settings.tickOffsets.setY(maxTickLabelWidth);
 		updateSPLOMLayout();
 	}
-	painter.setRenderHint( QPainter::Antialiasing );
-	painter.setRenderHint( QPainter::HighQualityAntialiasing );
-	painter.beginNativePainting();
-	glClear( GL_COLOR_BUFFER_BIT );
-	painter.endNativePainting();
 
 	if (m_separationIdx != -1)
 	{
@@ -980,32 +984,32 @@ void iAQSplom::drawVisibleParameters(QPainter &painter)
 	//save indezes of all visible plots
 	unsigned long numParams = m_splomData->numParams();
 	
-	QVector<ulong> ind_VisY;
-	QVector<ulong> ind_VisX;
+	//QVector<ulong> ind_VisY;
+	QVector<ulong> ind_Vis;
 	
 
-	//save visibiltys of axis
-	for (unsigned long y = 0; y < numParams-1; ++y)
+	//save visibilitys of axis
+	for (unsigned long y = 0; y < numParams; ++y)
 	{
 		if (m_paramVisibility[y])
-			ind_VisY.push_back(y);
+			ind_Vis.push_back(y);
 	}
 
-	for (unsigned long x = 0; x < numParams-1; ++x)
-	{
-		if (m_paramVisibility[x]) {
-			ind_VisX.push_back(x);
-			
-			
-			//save value
-		}
-	}
+	//for (unsigned long x = 0; x < numParams-1; ++x)
+	//{
+	//	if (m_paramVisibility[x]) {
+	//		ind_VisX.push_back(x);
+	//		
+	//		
+	//		//save value
+	//	}
+	//}
 
 
 	//-1 excluding diagonal elements
 	//getting x positions  
-	setSPMLabels(ind_VisX, ind_VisY.length(), painter, false);
-	setSPMLabels(ind_VisY, ind_VisX.length(), painter, true);
+	setSPMLabels(ind_Vis, ind_Vis.length(), painter, false);
+	setSPMLabels(ind_Vis, ind_Vis.length(), painter, true);
 	//rechtecke holen fur jede spalte
 	//gleiches fur die andere seite
 
@@ -1029,22 +1033,24 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 	int axisIdx = 0;
 
 	QPoint center;
-	int x_left = 0; 
-	int y_top = 0; 
-	qreal res_x; 
-	qreal res_y;
+	/*int x_left = 0; 
+	int y_top = 0; */
+	/*qreal res_x; 
+	qreal res_y;*/
 	
+	int textwidth = 0; 
+	int textHeight = 0; 
 
+	loopLength = ind_Elements.length();
+	//if (!switchTO_YRow){
 
-	if (!switchTO_YRow){
-
-		 loopLength = ind_Elements.length() -1;
-	}
-	else {
-		//skip first diagonal element [0][0]
-		loopLength = ind_Elements.length();
-		axisIdx = 1; 
-	}
+	//	 
+	//}
+	//else {
+	//	//skip first diagonal element [0][0]
+	//	loopLength = ind_Elements.length();
+	//	axisIdx = 0; 
+	//}
 
 	for (axisIdx; axisIdx < loopLength; axisIdx++)
 	{	
@@ -1052,37 +1058,13 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 			
 
 			currentRect = getPlotRectByIndex( 0, axisIdx);
-			/*left = currentRect.left(); 
-			x = left; 
-			y = currentRect.top(); 
-			x =(x + currentRect.width() )/2 ;
-			y = (y +currentRect.height()) /2; 
-			center.setX(x);
-			center.setY(y);*/
-			x_left = currentRect.top();
-			y_top = currentRect.right(); //bottom
+			//top = TextPadding; 
 			
-										 /*top = currentRect.bottom(); 
-			right = currentRect.right(); */
-			
-			
-			
-			//y_temp = left; 
-			//top = currentRect.top(); 
-			//right = currentRect.right(); 
-			///*left = currentRect.left();
-			//left -= 2*left; */
-			//currentRect.setLeft(left); 
-
 
 		}
 		else {
-			currentRect = getPlotRectByIndex(/*ind_VisX[*/axisIdx/*]*/, axisOffSet - 1);
+			currentRect = getPlotRectByIndex(/*ind_VisX[*/axisIdx/*]*/, 0/*axisOffSet - 1*/);
 			top = 0 + TextPadding; 
-			//top = currentRect.top();
-			//height = currentRect.height();
-			////top -= top; 
-			//top = -7;
 			currentRect.setTop(top);
 		}
 
@@ -1092,46 +1074,24 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 		currIdx = ind_Elements[axisIdx];
 		currentParam = m_splomData->parameterName(currIdx);
 		if (switchTO_YRow) {
-			double radians = 270 * M_PI / 180;
-			int m_with = currentRect.width();
-			int m_height = currentRect.height();
-			QTransform t = QTransform();
-			t.translate(center.x(), center.y()).rotate(-90).translate(-center.x(), -center.y());
-			
-			QPoint pt; 
-			double norm = 0.0; 
-			 
-			QRect sample = currentRect; 
-			
-
-			
-			QPoint topLeft = currentRect.topRight();//topRight(); 
-			QPoint pos_center = currentRect.center();
-			QPoint bottom_right = currentRect.bottomLeft();
-			normPT(norm, topLeft);
-			//normPT(norm, pos_center);
-			normPT(norm, bottom_right);
-			
-			t.map(topLeft);
-			t.map(bottom_right);
-
-			QPoint pt_left, pt_bottom_r; 
-			qreal rx = 0.0;
-			qreal ry = 0.0; 
+						
+			textwidth = currentRect.height(); 
+			textHeight = painter.fontMetrics().height();
 			
 			
-
-
+			QPoint pos_center;
+			pos_center.setX(currentRect.top() + textwidth / 2);
+			pos_center.setY(-(TextPadding + textHeight / 2));
 			painter.save();
 			
 	
 			
-			painter.translate(pos_center);
 			painter.rotate(-90);
 			painter.translate(-pos_center);
 			
-			currentRect.setCoords(topLeft.y(), topLeft.x(), bottom_right.y(), bottom_right.x());
-			painter.drawText(currentRect, Qt::AlignVCenter, currentParam);
+			currentRect.setTopLeft(QPoint(-textwidth / 2, -textHeight / 2));
+			currentRect.setSize(QSize(textwidth, textHeight));
+			painter.drawText(currentRect, Qt::AlignCenter | Qt::AlignTop, currentParam);
 
 
 			painter.restore();

@@ -124,7 +124,8 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	}
 
 	this->m_LayoutName = LayoutName; 
-	this->loadEntriesFromRegistry(mySettings, LayoutName);
+	layoutAvaiable = loadEntriesFromRegistry(mySettings, LayoutName);
+	if (!layoutAvaiable) return; 
 	//load preview
 	
 
@@ -571,7 +572,7 @@ void dlg_CSVInput::setSelectedHeaderToTextControl(QStringList &sel_headers){
 }
 
 //load entries from registry for a configuration setting
-void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString &LayoutName) {
+bool dlg_CSVInput::loadEntriesFromRegistry(QSettings & anySetting, const QString & LayoutName) {
 	QString f_separator = "";
 	bool useEN_DecimalPoint = false;
 	QString fullName = ""; 
@@ -590,7 +591,7 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 	if (allEntries.isEmpty()) {
 		QMessageBox::warning(this, tr("Error"),
 			tr("Format not avaiable"));
-		return; 
+		return false; 
 	}
 	
 	this->m_confParams->fileName = anySetting.value(this->m_regEntries->str_fileName).toString(); 
@@ -630,6 +631,7 @@ void dlg_CSVInput::loadEntriesFromRegistry(QSettings &anySetting, const QString 
 
 	//end settings
 	anySetting.endGroup(); 
+	return true; 
 	
 }
 
