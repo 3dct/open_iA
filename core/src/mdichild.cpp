@@ -539,7 +539,8 @@ namespace
 
 bool MdiChild::loadFile(const QString &f, bool isStack)
 {
-	if(!QFile::exists(f))	return false;
+	if(!QFile::exists(f))
+		return false;
 
 	addMsg(tr("%1  Loading file '%2', please wait...")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
