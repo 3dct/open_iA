@@ -169,8 +169,6 @@ iASlicerWidget::~iASlicerWidget()
 void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 {
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
-
-	// vtk Interactor tastenbelegung
 	if (event->key() == Qt::Key_O)
 	{
 		pickPoint( pickedData.pos, pickedData.res, pickedData.ind );
@@ -248,8 +246,6 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 					}
 
 				}
-
-				
 			}
 			if (event->key() == Qt::Key_Plus) {
 
@@ -263,7 +259,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 						innerFisheyeRadius = innerFisheyeRadius - 2.0;
 						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
 
-				}
+					}
 				}
 			}
 		}
@@ -285,8 +281,6 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 
 					}
 				}
-
-				
 			}
 			if (event->key() == Qt::Key_Minus) {
 
@@ -1017,10 +1011,10 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 			break;
 		default:
 			break;
-	} //*/
+	} 
 
 	for ( int i = 0; i < p_target->GetNumberOfPoints()- (p_target->GetNumberOfPoints()-8); ++i )
-		p_source->SetPoint( i, p_target->GetPoint( i ) ); //*/
+		p_source->SetPoint( i, p_target->GetPoint( i ) ); 
 
 	int fixPoints = 8;
 	// outer circle 1
@@ -1101,7 +1095,7 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 		default:
 			break;
 		}
-	}//*
+	}
 
 	// Set position and text for green circle1 actors
 	for ( int i = 0; i < p_target->GetNumberOfPoints(); ++i )
