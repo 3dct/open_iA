@@ -32,6 +32,7 @@ namespace FeatureScoutCSV{
 			str_reg_languageFormat = "LanguageFormat";
 			str_reg_Spacing = "Spacing";
 			str_reg_Units = "Microns";
+			str_reg_FiberPoreData = "InputObjectType"; 
 		}
 
 		/*void reset() {

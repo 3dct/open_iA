@@ -1731,7 +1731,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="cmb_Box_InputObject">
+          <widget class="QComboBox" name="cmb_box_InputObject">
            <property name="enabled">
             <bool>true</bool>
            </property>

@@ -136,7 +136,7 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	
 
 	//if file is not good -> show empty table but selection
-	if (!this->loadFilePreview(15, true)) {
+	if (this->loadFilePreview(15, true)) {
 		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, LayoutName);		
 	}
 	else {
@@ -179,6 +179,9 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 	this->AssignFormatLanguage();
 	this->assignSpacingUnits(); 
 
+	//Input Type Fiber or Pores
+	this->assignInputObjectTypes();
+
 	QString InputType;
 	
 	
@@ -201,6 +204,7 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 	this->assignFileFormat(); 
 	this->assignSeparator();
 	this->AssignFormatLanguage(); 
+	this->assignInputObjectTypes(); 
 	
 	if (this->useCustomformat | this->m_formatSelected) {
 		this->assignStartEndLine(); 
@@ -237,6 +241,9 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams &params, con
 {
 	if (paramsLoaded) {
 		QString endLine = "";
+		QString ObjInputType = "";
+		int currIdx = 0; 
+
 		this->ed_startLine->setText(QString("%1").arg(params.startLine));
 		this->cmb_box_separator->setCurrentIndex(0);
 
@@ -252,6 +259,16 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams &params, con
 			this->cb_fmtEnglish->setChecked(true);
 		}
 		else (this->cb_fmtEnglish->setChecked(false));
+
+
+		if (this->m_confParams->inputObjectType == csvConfig::CTInputObjectType::Fiber) {
+			ObjInputType = "Fiber";
+
+		}
+		else ObjInputType = "Pores";
+
+		int index = cmb_box_InputObject->findText(ObjInputType);
+		this->cmb_box_InputObject->setCurrentIndex(index);
 
 
 		this->ed_Spacing->setText(QString("%1").arg(params.spacing));
@@ -364,7 +381,7 @@ void dlg_CSVInput::assignFileFormat()
 }
 
 void dlg_CSVInput::assignInputObjectTypes(){
-	/*QString InputType = this->cmb_box_InputObject->currentText(); 
+	QString InputType = this->cmb_box_InputObject->currentText(); 
 	if (InputType == "Fiber") {
 		this->m_confParams->inputObjectType = csvConfig::CTInputObjectType::Fiber;
 	}
@@ -372,7 +389,7 @@ void dlg_CSVInput::assignInputObjectTypes(){
 		if (InputType == "Pores") {
 			this->m_confParams->inputObjectType = csvConfig::CTInputObjectType::Voids;
 		}
-	}*/
+	}
 
 }
 
@@ -607,6 +624,7 @@ void dlg_CSVInput::setSelectedHeaderToTextControl(QStringList &sel_headers){
 //load entries from registry for a configuration setting
 bool dlg_CSVInput::loadEntriesFromRegistry(QSettings & anySetting, const QString & LayoutName) {
 	QString f_separator = "";
+	QString CSV_InputType = "";
 	bool useEN_DecimalPoint = false;
 	QString fullName = ""; 
 	QString  cnfgSettingsName;
@@ -658,6 +676,20 @@ bool dlg_CSVInput::loadEntriesFromRegistry(QSettings & anySetting, const QString
 	}
 	else {
 		this->m_confParams->csv_Inputlanguage = csvLang::GER;
+	}
+
+	
+	//Fiber or Pores as Input
+	CSV_InputType = anySetting.value(this->m_regEntries->str_reg_FiberPoreData).toString();
+	if (CSV_InputType == "Pores") {
+		this->m_confParams->inputObjectType =csvConfig::CTInputObjectType::Voids;
+	}
+	else {
+		if (CSV_InputType == "Fiber")
+		{
+			this->m_confParams->inputObjectType = csvConfig::CTInputObjectType::Fiber; 
+
+		}
 	}
 
 	
@@ -732,6 +764,7 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 	QString settingsName="";
 
 	QString colSeparator = "";
+	QString CSVinputObjectType;
 	bool useEN_Decimals = false;
 	ulong endLine = 0; 
 
@@ -758,7 +791,18 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		}
 
 
+		switch (csv_params.inputObjectType)
+		{
+		case(csvConfig::CTInputObjectType::Fiber): CSVinputObjectType = "Fiber"; break; 
+		case(csvConfig::CTInputObjectType::Voids): CSVinputObjectType = "Pores"; break;
+
+		default:
+			CSVinputObjectType = "Pores";
+		}
+
+
 		//setting values to variant
+		this->m_regEntries->v_FiberPoreObject = CSVinputObjectType; 
 		this->m_regEntries->v_colSeparator.setValue(colSeparator);
 		this->m_regEntries->v_startLine.setValue(csv_params.startLine);
 		this->m_regEntries->v_useEndline.setValue(csv_params.useEndline);
@@ -787,6 +831,8 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		settings.setValue(this->m_regEntries->str_reg_Spacing, this->m_regEntries->v_Spacing); //Spacing
 		settings.setValue(this->m_regEntries->str_reg_Units, this->m_regEntries->v_Units); //Units; 
 		settings.setValue(this->m_regEntries->str_fileName, this->m_regEntries->v_fileName); //FileName;
+		settings.setValue(this->m_regEntries->str_reg_FiberPoreData, this->m_regEntries->v_FiberPoreObject); //Fiber or Pores as csv Input
+
 		settings.endGroup(); 
 
 		//this->saveHeaderEntriesToReg(LayoutName); 
