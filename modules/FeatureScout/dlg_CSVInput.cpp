@@ -14,8 +14,6 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	disableFormatComponents();
 	connectSignals();
 
-	////for storing stringList in Registry
-	//qRegisterMetaTypeStreamOperators<QStringList>("QStringList");
 
 }
 
@@ -70,7 +68,6 @@ void dlg_CSVInput::connectSignals()
 {
 	
 	connect(btn_PreviewData, SIGNAL(clicked()), this, SLOT(LoadCSVPreviewClicked()));
-	//connect(btn_LoadConfig, SIGNAL(clicked()), this, SLOT(LoadFormatBtnClicked()));
 	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked()));
 	connect(btn_SaveLayout, SIGNAL(clicked()), this, SLOT(SaveLayoutBtnClicked())); 
 	connect(cmb_box_FileFormat, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadFormatSettings);
@@ -117,22 +114,36 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	QStringList feat_Groups;
 	layoutAvaiable = CheckFeatureInRegistry(mySettings, &LayoutName, feat_Groups, true);
 	this->m_formatSelected = true;
-
+	/*this->m_entriesPreviewTable->clearTable();
+	this->m_entriesPreviewTable->update();
+*/
 	if (!layoutAvaiable) {
 		QMessageBox::warning(this, tr("FeatureScoutCSV"), tr("Layout option not yet defined"));
+	/*	this->m_entriesPreviewTable->clearTable();
+		this->m_entriesPreviewTable->update();*/
+		
 		return;
 	}
 
 	this->m_LayoutName = LayoutName; 
 	layoutAvaiable = loadEntriesFromRegistry(mySettings, LayoutName);
-	if (!layoutAvaiable) return; 
+	if (!layoutAvaiable) { 
+		/*this->m_entriesPreviewTable->clearTable();
+		this->m_entriesPreviewTable->update(); */
+		return; 
+	};
 	//load preview
 	
 
 	//if file is not good -> show empty table but selection
 	if (!this->loadFilePreview(15, true)) {
-		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, LayoutName);
+		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, LayoutName);		
+	}
+	else {
 		
+		/*this->m_entriesPreviewTable->clearTable();
+		this->m_entriesPreviewTable->update();*/
+		return; 
 	}
 	
 	this->LoadHeaderEntriesFromReg(*this->m_selHeaders,this->m_regEntries->str_headerName, LayoutName); 
@@ -145,8 +156,6 @@ void dlg_CSVInput::LoadColsBtnClicked()
 {
 	this->setSelectedEntries();
 	//save headers to registry
-
-
 
 	this->buttonBox->setEnabled(true);
 	this->buttonBox->setVisible(true);
@@ -382,6 +391,7 @@ bool dlg_CSVInput::loadFilePreview(const int rowCount, const bool formatLoaded) 
 	if (!isFileNameValid)
 	{
 			return false;
+			
 	}
 	
 	
@@ -552,13 +562,15 @@ const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
 }
 
 void dlg_CSVInput::selectSingleHeader(uint &currItemIdx, QString &listEntry) {
-	currItemIdx = this->m_hashEntries.value(listEntry);
-	this->textControl_list->item(currItemIdx)->setSelected(true);
+	if (this->m_hashEntries.contains(listEntry)){
+		currItemIdx = this->m_hashEntries.value(listEntry);
+		this->textControl_list->item(currItemIdx)->setSelected(true);
+	}
 }
 
 void dlg_CSVInput::setSelectedHeaderToTextControl(QStringList &sel_headers){
 	uint itemIDx = 0; 
-	if (sel_headers.length() > this->m_currentHeaders->length()) {
+	if ((sel_headers.length() > this->m_currentHeaders->length())|| sel_headers.length() == 0 ) {
 		QMessageBox::warning(this, tr("Data Preview"),
 			tr("Size of selected headers does not match with headers in file.\n"));
 		return; 
