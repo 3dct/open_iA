@@ -234,8 +234,6 @@
    <addaction name="actionChange_color"/>
    <addaction name="actionReset_view"/>
    <addaction name="actionReset_function"/>
-   <addaction name="actionUpdate_automatically"/>
-   <addaction name="actionUpdateViews"/>
   </widget>
   <widget class="QToolBar" name="SnakeSlicerToolbar">
    <property name="enabled">
