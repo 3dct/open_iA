@@ -151,15 +151,15 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	showConfigParams(*this->m_confParams, true);
 }
 
-
-void dlg_CSVInput::LoadColsBtnClicked()
-{
-	this->setSelectedEntries();
-	//save headers to registry
-
-	this->buttonBox->setEnabled(true);
-	this->buttonBox->setVisible(true);
-}
+//
+//void dlg_CSVInput::LoadColsBtnClicked()
+//{
+//	this->setSelectedEntries();
+//	//save headers to registry
+//
+//	this->buttonBox->setEnabled(true);
+//	this->buttonBox->setVisible(true);
+//}
 
 
 //Add Layout
@@ -179,13 +179,18 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 	this->AssignFormatLanguage();
 	this->assignSpacingUnits(); 
 
+	QString InputType;
+	
+	
+
+
 	//header Entries from selection in control list
 	this->setSelectedEntries(); 
 	params = *this->m_confParams; 
 	saveParamsToRegistry(params, layoutName);
 	this->saveHeaderEntriesToReg(*this->m_selHeaders, this->m_regEntries->str_headerName,layoutName); 
 
-	//save all entries in order to make sure if file is not avaible  one still can see the headerss
+	//save all entries in order to make sure if file is not avaiable  one still can see the headers?? TODO
 	this->saveHeaderEntriesToReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, layoutName); 
 	
 	this->cmb_box_FileFormat->addItem(layoutName); 
@@ -257,10 +262,6 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams &params, con
 	
 }
 
-//void dlg_CSVInput::LoadFormatBtnClicked()
-//{
-//	
-//}
 
 void dlg_CSVInput::initParameters(){
 	
@@ -361,6 +362,20 @@ void dlg_CSVInput::assignFileFormat()
 	}
 	
 }
+
+void dlg_CSVInput::assignInputObjectTypes(){
+	/*QString InputType = this->cmb_box_InputObject->currentText(); 
+	if (InputType == "Fiber") {
+		this->m_confParams->inputObjectType = csvConfig::CTInputObjectType::Fiber;
+	}
+	else {
+		if (InputType == "Pores") {
+			this->m_confParams->inputObjectType = csvConfig::CTInputObjectType::Voids;
+		}
+	}*/
+
+}
+
 
 void dlg_CSVInput::assignSeparator() {
 	bool param_seperator_ok = false;

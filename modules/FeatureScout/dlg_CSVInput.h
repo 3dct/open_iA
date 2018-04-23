@@ -143,7 +143,7 @@ private slots:
 	//load format based on selected input format (ex. mavi/ vg, ...) 
 	void LoadFormatSettings(const QString &LayoutName);
 
-	void LoadColsBtnClicked(); 
+	
 	void SaveLayoutBtnClicked(); 
 
 private: 
@@ -175,6 +175,7 @@ private:
 	//bool validateParameters();
 	void setError(const QString &ParamName, const QString & Param_value);
 	void assignFileFormat();
+	void assignInputObjectTypes();
 	void assignSeparator();
 	void assignSpacingUnits();
 	bool loadFilePreview(const int rowCount, const bool formatLoaded);
