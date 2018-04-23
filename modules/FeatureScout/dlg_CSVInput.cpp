@@ -3,6 +3,7 @@
 #include "qmessagebox.h"
 #include "qstandarditemmodel.h"
 #include <QSettings>
+#include <Qt>
 
 dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/) : QDialog(parent, f) {
 
@@ -211,16 +212,19 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 		this->m_entriesPreviewTable->resetIndizes(); 
 	}
 
-	this->loadFilePreview(15, false); 
-
-	if (this->m_formatSelected) {
-		//QString layoutName = this->ed_CSVFormat_Name->text();
-		
-		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, this->m_LayoutName);
-		this->setSelectedHeaderToTextControl(*this->m_currentHeaders);
+	if (!this->loadFilePreview(15, false)) {
+		return; 
 	}
 
-	//just showing fileName
+	if (this->m_formatSelected) {
+		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, this->m_LayoutName);
+		
+	}
+	
+	
+	this->setSelectedHeaderToTextControl(*this->m_currentHeaders);
+
+	// show fileName
 	this->showConfigParams(*this->m_confParams, false);
 	this->m_formatSelected = false; 
 }
@@ -236,16 +240,29 @@ const csvConfig::configPararams& dlg_CSVInput::getConfigParameters() const {
 }
 
 
-//shows configuration parameters to gui
+//shows configuration parameters to GUI
 void dlg_CSVInput::showConfigParams(const csvConfig::configPararams &params, const bool paramsLoaded)
 {
 	if (paramsLoaded) {
 		QString endLine = "";
 		QString ObjInputType = "";
+		QString FileSeparator = "";
+		
 		int currIdx = 0; 
 
 		this->ed_startLine->setText(QString("%1").arg(params.startLine));
-		this->cmb_box_separator->setCurrentIndex(0);
+		
+		if (params.file_seperator == csvColSeparator::Comma) {
+			FileSeparator = "COMMA (,)";
+		
+		}
+		else {
+			FileSeparator = "COLUMN (;)"; 
+		
+		}
+
+		currIdx = cmb_box_separator->findText(FileSeparator, Qt::MatchContains);
+		this->cmb_box_separator->setCurrentIndex(currIdx);
 
 		if (params.useEndline) {
 			endLine = QString("%1").arg(params.endLine);
@@ -267,7 +284,7 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams &params, con
 		}
 		else ObjInputType = "Pores";
 
-		int index = cmb_box_InputObject->findText(ObjInputType);
+		int index = cmb_box_InputObject->findText(ObjInputType, Qt::MatchContains);
 		this->cmb_box_InputObject->setCurrentIndex(index);
 
 
@@ -528,6 +545,7 @@ void dlg_CSVInput::assignHeaderLine() {
 	
 	this->textControl_list->clear(); 
 	this->textControl_list->update(); 
+	this->m_hashEntries.clear(); 
 
 	int autoIdxCol = 0; 
 	if (!this->m_currentHeaders) return; 
@@ -579,6 +597,7 @@ void dlg_CSVInput::setSelectedEntries() {
 //ensure correct order of header!
 void dlg_CSVInput::addSelectedHeaders(QVector<uint> &data) {
 	QString curHeader = ""; 
+	this->m_selHeaders->clear(); 
 	for (const auto &HeaderIdx : data) {
 		curHeader = this->m_hashEntries.key(HeaderIdx); 
 		this->m_selHeaders->push_back(curHeader); 
@@ -591,7 +610,7 @@ void dlg_CSVInput::addSingleHeaderToList(uint &currItemIdx, QString &listEntry)
 {
 	currItemIdx = this->m_hashEntries.value(listEntry);
 	this->m_selColIdx.push_back(currItemIdx);
-	//this->m_selHeaders->append(listEntry);
+	
 }
 
 const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
@@ -599,15 +618,22 @@ const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
 	return this->m_selColIdx;
 }
 
-void dlg_CSVInput::selectSingleHeader(uint &currItemIdx, QString &listEntry) {
+void dlg_CSVInput::selectSingleHeader(uint & currItemIdx, QString & listEntry) {
+	
 	if (this->m_hashEntries.contains(listEntry)){
 		currItemIdx = this->m_hashEntries.value(listEntry);
-		this->textControl_list->item(currItemIdx)->setSelected(true);
+		
+		//set selected if item exists
+		if (this->textControl_list->item(currItemIdx)) {
+			this->textControl_list->item(currItemIdx)->setSelected(true); 
+		}
 	}
 }
 
 void dlg_CSVInput::setSelectedHeaderToTextControl(QStringList &sel_headers){
 	uint itemIDx = 0; 
+	QSharedPointer<QListWidgetItem> myItem = QSharedPointer<QListWidgetItem>(new QListWidgetItem()); 
+
 	if ((sel_headers.length() > this->m_currentHeaders->length())|| sel_headers.length() == 0 ) {
 		QMessageBox::warning(this, tr("Data Preview"),
 			tr("Size of selected headers does not match with headers in file.\n"));
@@ -615,7 +641,7 @@ void dlg_CSVInput::setSelectedHeaderToTextControl(QStringList &sel_headers){
 	}
 	
 
-	for (auto &h_entry: sel_headers){
+	for ( auto &h_entry: sel_headers){
 		selectSingleHeader(itemIDx, h_entry);
 	}
 
