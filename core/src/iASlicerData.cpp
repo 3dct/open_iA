@@ -717,6 +717,9 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 
 	emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
 
+	double oldResliceAxesOrigin[3];
+	reslicer->GetResliceAxesOrigin(oldResliceAxesOrigin);
+
 	if (m_mode == iASlicerMode::YZ)      // YZ
 	{					
 		for ( i = extent[0]; i < extent[1]; i++ )
@@ -764,6 +767,8 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 		}
 	}
 
+	reslicer->SetResliceAxesOrigin(oldResliceAxesOrigin);
+	update();
 	movieWriter->End(); 
 	movieWriter->ReleaseDataFlagOn();
 	w2if->ReleaseDataFlagOn();
