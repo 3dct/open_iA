@@ -102,7 +102,7 @@ public:
 	void AssignFormatLanguage();
 
 	const csvConfig::configPararams & getConfigParameters() const;
-	void showConfigParams(const csvConfig::configPararams &params);
+	void showConfigParams(const csvConfig::configPararams &params, const bool paramsLoaded);
 	inline void setFilePath(const QString& FPath) {
 			if(!FPath.isEmpty()) {
 			this->m_fPath = FPath; 
@@ -216,6 +216,5 @@ private:
 
 	QHash<QString, uint> m_hashEntries;
 	QVector<uint> m_selColIdx;
-	
 
 };

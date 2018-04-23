@@ -148,7 +148,7 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	
 	this->LoadHeaderEntriesFromReg(*this->m_selHeaders,this->m_regEntries->str_headerName, LayoutName); 
 	setSelectedHeaderToTextControl(*this->m_selHeaders); //load all headers
-	showConfigParams(*this->m_confParams);
+	showConfigParams(*this->m_confParams, true);
 }
 
 
@@ -210,7 +210,9 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, this->m_LayoutName);
 		this->setSelectedHeaderToTextControl(*this->m_currentHeaders);
 	}
-	this->showConfigParams(*this->m_confParams);
+
+	//just showing fileName
+	this->showConfigParams(*this->m_confParams, false);
 	this->m_formatSelected = false; 
 }
 
@@ -226,29 +228,33 @@ const csvConfig::configPararams& dlg_CSVInput::getConfigParameters() const {
 
 
 //shows configuration parameters to gui
-void dlg_CSVInput::showConfigParams(const csvConfig::configPararams & params)
+void dlg_CSVInput::showConfigParams(const csvConfig::configPararams &params, const bool paramsLoaded)
 {
-	QString endLine = ""; 
-	this->ed_startLine->setText(QString("%1").arg(params.startLine));
-	this->cmb_box_separator->setCurrentIndex(0);
+	if (paramsLoaded) {
+		QString endLine = "";
+		this->ed_startLine->setText(QString("%1").arg(params.startLine));
+		this->cmb_box_separator->setCurrentIndex(0);
 
-	if (params.useEndline) {
-		endLine = QString("%1").arg(params.endLine); 
+		if (params.useEndline) {
+			endLine = QString("%1").arg(params.endLine);
+		}
+		else endLine = "";
+
+		this->ed_endLIne->setText(endLine);
+		this->cb_applyEndLine->setChecked(params.useEndline);
+
+		if (this->m_confParams->csv_Inputlanguage == csvLang::EN) {
+			this->cb_fmtEnglish->setChecked(true);
+		}
+		else (this->cb_fmtEnglish->setChecked(false));
+
+
+		this->ed_Spacing->setText(QString("%1").arg(params.spacing));
+		this->ed_Units->setText(QString("1").arg(params.csv_units));
 	}
-	else endLine = ""; 
-
-	this->ed_endLIne->setText(endLine);
-	this->cb_applyEndLine->setChecked(params.useEndline);
-
-	if (this->m_confParams->csv_Inputlanguage == csvLang::EN) {
-		this->cb_fmtEnglish->setChecked(true); 
-	}
-	else (this->cb_fmtEnglish->setChecked(false)); 
-
 	
-	this->ed_Spacing->setText(QString("%1").arg(params.spacing));
-	this->ed_Units->setText(QString("1").arg(params.csv_units)); 
 	this->txt_ed_fileName->setText(params.fileName);
+	
 }
 
 //void dlg_CSVInput::LoadFormatBtnClicked()
