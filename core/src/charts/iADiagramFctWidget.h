@@ -65,7 +65,6 @@ public:
 
 	int getSelectedFuncPoint() const;
 	bool isFuncEndPoint(int index) const;
-	bool isUpdateAutomatically() const;
 	int ChartHeight() const;
 
 	void SetTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
@@ -94,7 +93,6 @@ protected:
 
 	MdiChild*      activeChild;
 	std::vector<dlg_function*> functions;
-	bool updateAutomatically;
 	unsigned int selectedFunction;
 signals:
 	void updateViews();
@@ -102,7 +100,6 @@ signals:
 	void noPointSelected();
 	void endPointSelected();
 	void active();
-	void autoUpdateChanged(bool toggled);
 	void applyTFForAll();
 	void DblClicked();
 	void updateTFTable();
@@ -110,7 +107,6 @@ signals:
 public slots:
 	int deletePoint();
 	void changeColor(QMouseEvent *event = NULL);
-	void autoUpdate(bool toggled);
 	void resetTrf();
 	void updateTrf();
 	void loadTransferFunction();

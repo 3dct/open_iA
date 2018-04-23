@@ -170,9 +170,6 @@
     <addaction name="actionReset_view"/>
     <addaction name="actionReset_function"/>
     <addaction name="separator"/>
-    <addaction name="actionUpdate_automatically"/>
-    <addaction name="actionUpdateViews"/>
-    <addaction name="separator"/>
     <addaction name="actionSnake_Slicer"/>
    </widget>
    <widget class="QMenu" name="menu_Filters">

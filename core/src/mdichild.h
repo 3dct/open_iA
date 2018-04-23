@@ -145,7 +145,6 @@ public:
 	void saveMovie(iARenderer& raycaster);
 	int deletePoint();
 	void changeColor();
-	void autoUpdate(bool toggled);
 	void resetView();
 	void resetTrf();
 	void toggleSnakeSlicer(bool isEnabled);
@@ -201,7 +200,6 @@ public:
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);
-	bool isUpdateAutomatically();
 	void setHistogramFocus();
 	bool isMaximized();
 
@@ -286,7 +284,6 @@ Q_SIGNALS:
 	void noPointSelected();
 	void endPointSelected();
 	void active();
-	void autoUpdateChanged(bool toogled);
 	void magicLensToggled( bool isToggled );
 	void closed();
 	void updatedViews();

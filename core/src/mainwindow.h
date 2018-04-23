@@ -140,8 +140,6 @@ private slots:
 	void saveTransferFunction();
 	void deletePoint();
 	void changeColor();
-	void autoUpdate(bool toggled);
-	void updateViews();
 	void resetView();
 	void resetTrf();
 	void toggleSnakeSlicer(bool isChecked);

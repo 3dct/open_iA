@@ -264,7 +264,6 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, SIGNAL(noPointSelected()), this, SIGNAL(noPointSelected()));
 	connect(m_histogram, SIGNAL(endPointSelected()), this, SIGNAL(endPointSelected()));
 	connect(m_histogram, SIGNAL(active()), this, SIGNAL(active()));
-	connect(m_histogram, SIGNAL(autoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
 	connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(ModalityTFChanged()));
 
 	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
@@ -1742,12 +1741,6 @@ int MdiChild::isFuncEndPoint(int index)
 	return m_histogram->isFuncEndPoint(index);
 }
 
-bool MdiChild::isUpdateAutomatically()
-{
-	if (!m_histogram) return false;
-	return m_histogram->isUpdateAutomatically();
-}
-
 void MdiChild::setHistogramFocus()
 {
 	if (!m_histogram) return;
@@ -1835,14 +1828,6 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 		movie_file_types),
 		imode);
 }
-
-
-void MdiChild::autoUpdate(bool toggled)
-{
-	if (!m_histogram) return;
-	m_histogram->autoUpdate(toggled);
-}
-
 
 void MdiChild::toggleSnakeSlicer(bool isChecked)
 {

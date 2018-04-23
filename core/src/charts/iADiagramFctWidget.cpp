@@ -52,8 +52,7 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 	m_enableAdditionalFunctions(true),
 	m_showFunctions(false),
 	selectedFunction(0),
-	activeChild(mdiChild),
-	updateAutomatically(true)
+	activeChild(mdiChild)
 {
 	dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
 	functions.push_back(transferFunction);
@@ -81,11 +80,6 @@ bool iADiagramFctWidget::isFuncEndPoint(int index) const
 		return false;
 	dlg_function *func = *(it + selectedFunction);
 	return func->isEndPoint(index);
-}
-
-bool iADiagramFctWidget::isUpdateAutomatically() const
-{
-	return updateAutomatically;
 }
 
 void iADiagramFctWidget::DrawAfterPlots(QPainter & painter)
@@ -184,9 +178,7 @@ void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 			func->mouseReleaseEventAfterNewPoint(event);
 		redraw();
 		emit updateTFTable();
-
-		if (isUpdateAutomatically())
-			emit updateViews();
+		emit updateViews();
 	}
 	mode = NO_MODE;
 	m_contextMenuVisible = false;
@@ -280,13 +272,6 @@ void iADiagramFctWidget::AddContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, SLOT(applyTransferFunctionForAll()));
 		if (m_allowTrfReset)
 			contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, SLOT(resetTrf()));
-
-		QAction *autoUpdateAction = new QAction(tr("Update automatically"), this);
-		autoUpdateAction->setCheckable(true);
-		autoUpdateAction->setChecked(updateAutomatically);
-		connect(autoUpdateAction, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
-		contextMenu->addAction(autoUpdateAction);
-		contextMenu->addAction(QIcon(":/images/update.png"), tr("Update views"), this, SIGNAL(updateViews()));
 		contextMenu->addSeparator();
 	}
 	if (m_enableAdditionalFunctions)
@@ -356,8 +341,7 @@ int iADiagramFctWidget::deletePoint()
 	func->removePoint(selectedPoint);
 	redraw();
 	emit updateTFTable();
-	if (isUpdateAutomatically())
-		emit updateViews();
+	emit updateViews();
 
 	return selectedPoint;
 }
@@ -373,14 +357,7 @@ void iADiagramFctWidget::changeColor(QMouseEvent *event)
 
 	redraw();
 	emit updateTFTable();
-	if (isUpdateAutomatically())
-		emit updateViews();
-}
-
-void iADiagramFctWidget::autoUpdate(bool toggled)
-{
-	updateAutomatically = toggled;
-	emit autoUpdateChanged(toggled);
+	emit updateViews();
 }
 
 void iADiagramFctWidget::resetTrf()

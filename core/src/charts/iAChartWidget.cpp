@@ -861,13 +861,13 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	m_contextPos = event->pos();
 	m_contextMenu->clear();
-	m_contextMenu->addAction(QIcon(":/images/resetView.png"), tr("Reset view"), this, SLOT(resetView()));
-	QAction *showTooltipAction = new QAction(tr("Show tooltip"), this);
+	m_contextMenu->addAction(QIcon(":/images/resetView.png"), tr("Reset histogram view"), this, SLOT(resetView()));
+	QAction *showTooltipAction = new QAction(tr("Show histogram coordinates"), this);
 	showTooltipAction->setCheckable(true);
 	showTooltipAction->setChecked(m_showTooltip);
 	connect(showTooltipAction, SIGNAL(toggled(bool)), this, SLOT(showTooltip(bool)));
 	m_contextMenu->addAction(showTooltipAction);
-	m_contextMenu->addAction(QIcon(":/images/save.png"), tr("Export data"), this, SLOT(ExportData()));
+	m_contextMenu->addAction(QIcon(":/images/save.png"), tr("Export histogram data"), this, SLOT(ExportData()));
 	m_contextMenu->addSeparator();
 	AddContextMenuEntries(m_contextMenu);
 	m_contextMenuVisible = true;

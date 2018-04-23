@@ -1372,20 +1372,6 @@ void MainWindow::changeColor()
 }
 
 
-void MainWindow::autoUpdate(bool toggled)
-{
-	if (activeMdiChild() && activeMdiChild()->isUpdateAutomatically() != toggled)
-		activeMdiChild()->autoUpdate(toggled);
-}
-
-
-void MainWindow::updateViews()
-{
-	if (activeMdiChild())
-		activeMdiChild()->updateViews();
-}
-
-
 void MainWindow::resetView()
 {
 	if (activeMdiChild())
@@ -1649,8 +1635,6 @@ void MainWindow::updateMenus()
 	actionSlicerSettings->setEnabled(hasMdiChild);
 	actionLoad_transfer_function->setEnabled(hasMdiChild);
 	actionSave_transfer_function->setEnabled(hasMdiChild);
-	actionUpdate_automatically->setEnabled(hasMdiChild);
-	actionUpdateViews->setEnabled(hasMdiChild);
 	actionSnake_Slicer->setEnabled(hasMdiChild);
 	actionMagicLens->setEnabled(hasMdiChild);
 	actionView_X_direction_in_raycaster->setEnabled(hasMdiChild);
@@ -1692,9 +1676,6 @@ void MainWindow::updateMenus()
 			actionDelete_point->setEnabled(true);
 			actionChange_color->setEnabled(true);
 		}
-
-		actionUpdate_automatically->setChecked(activeMdiChild()->isUpdateAutomatically());
-
 		//??if (activeMdiChild())
 		//	histogramToolbar->setEnabled(activeMdiChild()->getTabIndex() == 1 && !activeMdiChild()->isMaximized());
 	}
@@ -1747,7 +1728,6 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	connect( child, SIGNAL( noPointSelected() ), this, SLOT( noPointSelected() ) );
 	connect( child, SIGNAL( endPointSelected() ), this, SLOT( endPointSelected() ) );
 	connect( child, SIGNAL( active() ), this, SLOT( setHistogramFocus() ) );
-	connect( child, SIGNAL( autoUpdateChanged( bool ) ), actionUpdate_automatically, SLOT( setChecked( bool ) ) );
 	connect( child, SIGNAL( closed() ), this, SLOT( childClosed() ) );
 
 	SetModuleActionsEnabled( true );
@@ -1796,9 +1776,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionSave_transfer_function, SIGNAL(triggered()), this, SLOT(saveTransferFunction()));
 	connect(actionDelete_point, SIGNAL(triggered()), this, SLOT(deletePoint()));
 	connect(actionChange_color, SIGNAL(triggered()), this, SLOT(changeColor()));
-	connect(actionUpdate_automatically, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
 	//connect(actionUpdate_3D_view, SIGNAL(triggered()), this, SLOT(update3DView()));
-	connect(actionUpdateViews, SIGNAL(triggered()), this, SLOT(updateViews()));
 	connect(actionSnake_Slicer, SIGNAL(toggled(bool)), this, SLOT(toggleSnakeSlicer(bool)));
 	connect(actionMagicLens, SIGNAL(toggled(bool)), this, SLOT(toggleMagicLens(bool)));
 	connect(actionView_X_direction_in_raycaster, SIGNAL(triggered()), this, SLOT(raycasterCamPX()));
