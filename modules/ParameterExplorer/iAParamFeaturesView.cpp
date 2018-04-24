@@ -48,16 +48,30 @@ iAParamFeaturesView::iAParamFeaturesView(QTableWidget* dataTable):
 	for (int row = 0; row < dataTable->columnCount(); ++row)
 	{
 		QCheckBox* visibleCheckbox = new QCheckBox();
+		QWidget * visibleW = new QWidget();
+		QHBoxLayout *visibleL = new QHBoxLayout();
+		visibleL->setAlignment(Qt::AlignCenter);
+		visibleL->addWidget(visibleCheckbox);
+		visibleL->setContentsMargins(0, 0, 0, 0);
+		visibleL->setSpacing(0);
+		visibleW->setLayout(visibleL);
 		visibleCheckbox->setProperty("featureID", row);
 		visibleCheckbox->setChecked(row != 0);
 		connect(visibleCheckbox, SIGNAL(stateChanged(int)), this, SLOT(VisibleCheckChanged(int)));
-		m_featureTable->setCellWidget(row, ShowColumn, visibleCheckbox);
+		m_featureTable->setCellWidget(row, ShowColumn, visibleW);
 		auto titleItem = new QTableWidgetItem(dataTable->item(0, row)->text());
 		titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);
 		m_featureTable->setItem(row, 1, titleItem);
 		QCheckBox* invertCheckbox = new QCheckBox();
+		QWidget * invertW = new QWidget();
+		QHBoxLayout *invertL = new QHBoxLayout();
+		invertL->setAlignment(Qt::AlignCenter);
+		invertL->setContentsMargins(0, 0, 0, 0);
+		invertL->setSpacing(0);
+		invertL->addWidget(invertCheckbox);
+		invertW->setLayout(invertL);
 		invertCheckbox->setProperty("featureID", row);
-		m_featureTable->setCellWidget(row, InvertColumn, invertCheckbox);
+		m_featureTable->setCellWidget(row, InvertColumn, invertW);
 		connect(invertCheckbox, SIGNAL(stateChanged(int)), this, SLOT(InvertCheckChanged(int)));
 	}
 	m_featureTable->resizeColumnsToContents();
@@ -85,8 +99,8 @@ void iAParamFeaturesView::SaveSettings(QSettings & settings)
 	QVector<bool> shownList, invertedList;
 	for (int row = 0; row < m_featureTable->rowCount(); ++row)
 	{
-		shownList << qobject_cast<QCheckBox*>(m_featureTable->cellWidget(row, ShowColumn))->isChecked();
-		invertedList << qobject_cast<QCheckBox*>(m_featureTable->cellWidget(row, InvertColumn))->isChecked();
+		shownList << m_featureTable->cellWidget(row, ShowColumn)->findChildren<QCheckBox*>()[0]->isChecked();
+		invertedList << m_featureTable->cellWidget(row, InvertColumn)->findChildren<QCheckBox*>()[0]->isChecked();
 	}
 	settings.setValue("Shown", Join(shownList, ","));
 	settings.setValue("Inverted", Join(invertedList, ","));
@@ -96,9 +110,10 @@ void iAParamFeaturesView::LoadSettings(QSettings const & settings)
 {
 	QStringList shownList = settings.value("Shown").toString().split(",");
 	QStringList invertedList = settings.value("Inverted").toString().split(",");
-	for (int row = 0; row < m_featureTable->rowCount(); ++row)
+	int rowCount = m_featureTable->rowCount();
+	for (int row = 0; row < rowCount; ++row)
 	{
-		qobject_cast<QCheckBox*>(m_featureTable->cellWidget(row, ShowColumn))->setChecked(shownList[row] == "1");
-		qobject_cast<QCheckBox*>(m_featureTable->cellWidget(row, InvertColumn))->setChecked(invertedList[row] == "1");
+		m_featureTable->cellWidget(row, ShowColumn)->findChildren<QCheckBox*>()[0]->setChecked(shownList[row] == "1");
+		m_featureTable->cellWidget(row, InvertColumn)->findChildren<QCheckBox*>()[0]->setChecked(invertedList[row] == "1");
 	}
 }
