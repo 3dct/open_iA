@@ -1166,19 +1166,12 @@ void MainWindow::renderSettings()
 	QString t = tr("true");
 	QString f = tr("false");
 
-	QMap<int, QString> renderModes;
-	renderModes.insert(vtkSmartVolumeMapper::DefaultRenderMode, tr("DefaultRenderMode"));
-	renderModes.insert(vtkSmartVolumeMapper::RayCastRenderMode, tr("RayCastRenderMode"));
-	renderModes.insert(vtkSmartVolumeMapper::GPURenderMode, tr("GPURenderMode"));
-
 	int currentRenderMode = child->GetRenderMode();
 
 	QStringList renderTypes;
-	for (int mode : renderModes.keys())
-	{
-		renderTypes << ((mode == currentRenderMode) ? QString("!") : QString()) + renderModes[mode];
-	}
-
+	for (int mode : RenderModeMap().keys())
+		renderTypes << ((mode == currentRenderMode) ? QString("!") : QString()) + RenderModeMap().value(mode);
+	
 	QStringList inList;
 	inList
 		<< tr("$Show slicers")
@@ -1233,23 +1226,7 @@ void MainWindow::renderSettings()
 		defaultVolumeSettings.SpecularPower = dlg.getDblValue(10);
 		defaultRenderSettings.BackgroundTop = dlg.getText(11);
 		defaultRenderSettings.BackgroundBottom = dlg.getText(12);
-
-		QString renderType = dlg.getComboBoxValue(13);
-
-		// TODO: use renderModes / reverse mapping ?
-		defaultVolumeSettings.Mode = vtkSmartVolumeMapper::DefaultRenderMode;
-		if (renderType == tr("DefaultRenderMode"))
-		{
-			defaultVolumeSettings.Mode = vtkSmartVolumeMapper::DefaultRenderMode;
-		}
-		else if (renderType == tr("RayCastRenderMode"))
-		{
-			defaultVolumeSettings.Mode = vtkSmartVolumeMapper::RayCastRenderMode;
-		}
-		else if (renderType == tr("GPURenderMode"))
-		{
-			defaultVolumeSettings.Mode = vtkSmartVolumeMapper::GPURenderMode;
-		}
+		defaultVolumeSettings.Mode = MapRenderModeToEnum(dlg.getComboBoxValue(13));
 
 		if (activeMdiChild() && activeMdiChild()->editRendererSettings(
 			defaultRenderSettings,

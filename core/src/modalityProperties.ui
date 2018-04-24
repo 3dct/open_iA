@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>267</width>
-    <height>509</height>
+    <height>525</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -253,6 +253,25 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cb_RenderMode">
+        <item>
+         <property name="text">
+          <string>DefaultRenderMode</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>RayCastRenderMode</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>GPURenderMode</string>
+         </property>
+        </item>
+       </widget>
       </item>
      </layout>
     </widget>

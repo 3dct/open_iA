@@ -33,6 +33,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkPNGWriter.h>
 #include <vtkTIFFWriter.h>
+#include <vtkSmartVolumeMapper.h>
 
 #include <QFileInfo>
 #include <QStringList>
@@ -166,4 +167,25 @@ QStringList const & VTKDataTypeList()
 		<< "VTK_UNSIGNED_INT"   << "VTK_INT"
 		<< "VTK_FLOAT" << "VTK_DOUBLE");
 	return datatypeList;
+}
+
+QMap<int, QString> const & RenderModeMap()
+{
+	static QMap<int, QString> renderModeMap;
+	if (renderModeMap.isEmpty())
+	{
+		renderModeMap.insert(vtkSmartVolumeMapper::DefaultRenderMode, "DefaultRenderMode");
+		renderModeMap.insert(vtkSmartVolumeMapper::RayCastRenderMode, "RayCastRenderMode");
+		renderModeMap.insert(vtkSmartVolumeMapper::GPURenderMode, "GPURenderMode");
+	}
+	return renderModeMap;
+}
+
+int MapRenderModeToEnum(QString const & modeName)
+{
+	for (int key : RenderModeMap().keys())
+		if (RenderModeMap()[key] == modeName)
+			return key;
+	
+	return vtkSmartVolumeMapper::DefaultRenderMode;
 }

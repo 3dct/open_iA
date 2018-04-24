@@ -24,6 +24,8 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QMap>
+
 class vtkImageData;
 
 class QString;
@@ -49,6 +51,10 @@ open_iA_Core_API vtkSmartPointer<vtkImageData> CastVTKImage(vtkSmartPointer<vtkI
 open_iA_Core_API bool isVtkIntegerType(int type);
 
 open_iA_Core_API QStringList const & VTKDataTypeList();
+
+open_iA_Core_API QMap<int, QString> const & RenderModeMap();
+
+open_iA_Core_API int MapRenderModeToEnum(QString const &);
 
 #define FOR_VTKIMG_PIXELS(img, x, y, z) \
 for (int z = 0; z < img->GetDimensions()[2]; ++z) \

@@ -35,12 +35,11 @@ class dlg_modalityProperties : public dlg_modalityPropertiesUI
 {
 	Q_OBJECT
 public:
-	dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality, vtkRenderer * mainRenderer);
+	dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality);
 public slots:
 	void OKButtonClicked();
 
 private:
 	QSharedPointer<iAModality> m_modality;
 	iAVolumeSettings m_DefaultVolumeSettings;
-	vtkRenderer *m_mainRenderer;
 };
