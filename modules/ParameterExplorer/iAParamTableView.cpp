@@ -67,6 +67,10 @@ void iAParamTableView::LoadCSVData(QString const & csvFileName)
 	for (int row=0; row<csvLines.size(); ++row)
 	{
 		QStringList items = csvLines[row].split(",");	// TODO: consider quoted strings?
+		if (items.size() <= 1)
+		{
+			items = csvLines[row].split(";");
+		}
 		//if (items.size() > m_table->columnCount())
 		//	m_table->setColumnCount(items.size());
 		for (int col = 0; col < items.size(); ++col)
