@@ -51,12 +51,12 @@ QString MakeRelative(QString const & baseDir,  QString const & fileName)
 }
 
 void FindFiles(QString const & directory, QStringList const & filters, bool recurse,
-	QStringList & filesOut)
+	QStringList & filesOut, QFlags<FilesFolders> filesFolders)
 {
 	QDir dir(directory);
 	dir.setSorting(QDir::NoSort);
 	QDir::Filters flags = QDir::Files;
-	if (recurse)
+	if (recurse || filesFolders.testFlag(Folders))
 		flags = QDir::Files | QDir::AllDirs;
 	QStringList entryList = dir.entryList(filters, flags);
 	QCollator collator;
@@ -68,8 +68,16 @@ void FindFiles(QString const & directory, QStringList const & filters, bool recu
 			continue;
 		QFileInfo fi(directory + "/" + fileName);
 		if (fi.isDir())
-			FindFiles(fi.absoluteFilePath(), filters, recurse, filesOut);
+		{
+			if (filesFolders.testFlag(Folders))
+				filesOut.append(fi.absoluteFilePath());
+			if (recurse)
+				FindFiles(fi.absoluteFilePath(), filters, recurse, filesOut, filesFolders);
+		}
 		else
-			filesOut.append(fi.absoluteFilePath());
+		{
+			if (filesFolders.testFlag(Files))
+				filesOut.append(fi.absoluteFilePath());
+		}
 	}
 }

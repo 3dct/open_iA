@@ -1580,18 +1580,18 @@ bool iAIO::setupStackReader( QString f )
 		}
 	}
 	extension = "." + fi.suffix();
-	QStringList inList		= (QStringList()
+	QStringList inList = (QStringList()
 		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
-		<< tr("#Minimum Index")  << tr("#Maximum Index")
-		<< tr("#Spacing X")  << tr("#Spacing Y")  << tr("#Spacing Z")
-		<< tr("#Origin X")  << tr("#Origin Y")  << tr("#Origin Z"))	<< tr("+Data Type");
-	QList<QVariant> inPara	= (QList<QVariant>()
+		<< tr("#Minimum Index") << tr("#Maximum Index")
+		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
+		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z"));
+	QList<QVariant> inPara = (QList<QVariant>()
 		<< fileNamesBase << extension
 		<< tr("%1").arg(digits)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
-		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]) << VTKDataTypeList());
+		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]));
 
 	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
 
@@ -1605,7 +1605,6 @@ bool iAIO::setupStackReader( QString f )
 	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
 	spacing[0] = dlg.getDblValue(5); spacing[1]= dlg.getDblValue(6); spacing[2] = dlg.getDblValue(7);
 	origin[0] = dlg.getDblValue(8); origin[1]= dlg.getDblValue(9); origin[2] = dlg.getDblValue(10);
-	scalarType = MapVTKTypeStringToInt(dlg.getComboBoxValue(11));
 	FillFileNameArray(indexRange, digits);
 	return true;
 }
