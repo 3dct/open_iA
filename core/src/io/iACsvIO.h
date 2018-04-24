@@ -40,6 +40,9 @@ public:
 	bool loadCsv_WithConfig();
 
 	void readCustomFileEntries(const QString & fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag);
+
+	void setColumnHeaders(QStringList & colHeaders);
+
 	void loadPoreData(long tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count);
 	//void readFileEntries(const QString & fileName, const int rows_toSkip, bool En_Values, bool & retFlag);
 

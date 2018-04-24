@@ -40,6 +40,7 @@ namespace FeatureScoutCSV{
 		}*/
 
 		
+		//Values to be written in registry
 		QVariant v_startLine;
 		QVariant v_useEndline;
 		QVariant v_endLine;
@@ -51,7 +52,7 @@ namespace FeatureScoutCSV{
 		QVariant v_fileName; 
 		QVariant v_allHeaders; 
 
-
+		//Names for registry
 		QString str_settingsName;
 		QString str_headerName;
 		QString str_allHeaders;
@@ -76,10 +77,10 @@ namespace FeatureScoutCSV{
 class /*open_iA_Core_API*/ dlg_CSVInput : public QDialog, public Ui_CsvInput
 {
 	Q_OBJECT
-		typedef DataIO::DataTable dataTable; 
+		typedef DataIO::DataTable dataTable;  
 		typedef dataTable* csvTable_ptr; 
 		typedef FeatureScoutCSV::csvRegKeys csv_reg;
-		typedef QSharedPointer<csv_reg> cvsRegSettings_ShrdPtr; 
+		typedef QSharedPointer<csv_reg> cvsRegSettings_ShrdPtr;  //QSharedPointer csv_reg
 
 		typedef csvConfig::csvSeparator csvColSeparator; 
 		typedef csvConfig::inputLang csvLang; 
@@ -92,9 +93,7 @@ class /*open_iA_Core_API*/ dlg_CSVInput : public QDialog, public Ui_CsvInput
 public:
 	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0); /*: QDialog(parent, f)*/
 	
-	//load Headers saved in registry
-	
-
+	//load Headers from registry
 	void LoadHeaderEntriesFromReg(QStringList & HeaderEntries, const QString & HeaderNames, const QString & LayoutName);
 
 	~dlg_CSVInput();
@@ -144,8 +143,8 @@ private slots:
 	//load format based on selected input format (ex. mavi/ vg, ...) 
 	void LoadFormatSettings(const QString &LayoutName);
 
-	
-	void SaveLayoutBtnClicked(); 
+	void resetTable();
+	void SaveLayoutBtnClicked();
 
 private: 
 

@@ -1,6 +1,7 @@
 #include "DataTable.h"
 #include <qfile.h>
 #include <qmessagebox.h>
+#include <QTextStream>
 
 namespace DataIO {
 
@@ -152,16 +153,17 @@ namespace DataIO {
 		bool retflag;
 		bool retval = prepareFile(fName, file, retflag);
 		if (retflag) return retval;
-
+		QTextStream in(&file);
 		//skip lines and add header to table;
-		prepareHeader(headerLine, el_line, file, readHeaders, insertID);
+		prepareHeader(headerLine, el_line, in, readHeaders, insertID);
 		
 		//read all entries; 
-		readTableValues(rowCount, file, el_line);
+		readTableValues(rowCount, in, el_line);
+		if (file.isOpen()) file.close();
 		return true; 
 	}
 
-	void DataTable::readTableValues(const uint &rowCount, QFile &file, QString &el_line)
+	void DataTable::readTableValues(const uint &rowCount, QTextStream &file, QString &el_line)
 	{
 		int entriesCount = rowCount - 1;
 		int row = 0;
@@ -177,11 +179,9 @@ namespace DataIO {
 		}
 
 		this->isDataFilled = true;
-
-		if (file.isOpen()) file.close();
 	}
 
-	void DataTable::prepareHeader(int headerLine, QString &el_line, QFile &file, const bool &readHeaders, bool insertID)
+	void DataTable::prepareHeader(int headerLine, QString &el_line, QTextStream &file, const bool &readHeaders, bool insertID)
 	{
 		for (int curRow = 0; curRow < headerLine; curRow++) {
 			el_line = file.readLine();

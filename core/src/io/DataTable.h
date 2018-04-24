@@ -35,9 +35,9 @@ namespace  DataIO{
 		//reading rows from a file; 
 		bool readTableEntries(const QString &fName, const uint rowCount, uint colCount, const int headerNr, const uint *StartLine, const bool readHeaders, bool insertID);
 
-		void readTableValues(const uint &rowCount, QFile &file, QString &el_line);
+		void readTableValues(const uint &rowCount, QTextStream &file, QString &el_line);
 
-		void prepareHeader(int headerLine, QString &el_line, QFile &file, const bool &readHeaders, bool insertID);
+		void prepareHeader(int headerLine, QString &el_line, QTextStream &file, const bool &readHeaders, bool insertID);
 
 		bool prepareFile(const QString & fName, QFile &file, bool &retflag);
 

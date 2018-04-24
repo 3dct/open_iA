@@ -115,13 +115,10 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	QStringList feat_Groups;
 	layoutAvaiable = CheckFeatureInRegistry(mySettings, &LayoutName, feat_Groups, true);
 	this->m_formatSelected = true;
-	/*this->m_entriesPreviewTable->clearTable();
-	this->m_entriesPreviewTable->update();
-*/
+	
 	if (!layoutAvaiable) {
+		this->resetTable();
 		QMessageBox::warning(this, tr("FeatureScoutCSV"), tr("Layout option not yet defined"));
-	/*	this->m_entriesPreviewTable->clearTable();
-		this->m_entriesPreviewTable->update();*/
 		
 		return;
 	}
@@ -129,8 +126,8 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	this->m_LayoutName = LayoutName; 
 	layoutAvaiable = loadEntriesFromRegistry(mySettings, LayoutName);
 	if (!layoutAvaiable) { 
-		/*this->m_entriesPreviewTable->clearTable();
-		this->m_entriesPreviewTable->update(); */
+		this->resetTable();
+
 		return; 
 	};
 	//load preview
@@ -142,8 +139,7 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	}
 	else {
 		
-		/*this->m_entriesPreviewTable->clearTable();
-		this->m_entriesPreviewTable->update();*/
+		this->resetTable(); 
 		return; 
 	}
 	
@@ -152,16 +148,13 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	showConfigParams(*this->m_confParams, true);
 }
 
-//
-//void dlg_CSVInput::LoadColsBtnClicked()
-//{
-//	this->setSelectedEntries();
-//	//save headers to registry
-//
-//	this->buttonBox->setEnabled(true);
-//	this->buttonBox->setVisible(true);
-//}
 
+void dlg_CSVInput::resetTable()
+{
+	this->m_entriesPreviewTable->clearTable();
+	this->m_entriesPreviewTable->update();
+	this->m_entriesPreviewTable->resetIndizes();
+}
 
 //Add Layout
 void dlg_CSVInput::SaveLayoutBtnClicked()
@@ -179,15 +172,8 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 	this->assignStartEndLine(); 
 	this->AssignFormatLanguage();
 	this->assignSpacingUnits(); 
-
-	//Input Type Fiber or Pores
-	this->assignInputObjectTypes();
-
-	QString InputType;
+	this->assignInputObjectTypes();//Input Type Fiber or Pores
 	
-	
-
-
 	//header Entries from selection in control list
 	this->setSelectedEntries(); 
 	params = *this->m_confParams; 

@@ -655,7 +655,6 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	int tableWidth = 0; 
 	long tableLength = 0; 
 	this->m_EL_ID = 1;  //reset to 1 -> ID starts with 1!
-
 	tableLength = CalcTableLength(fileName, (&rows_toSkip));
 	/*if (this->m_useEndLine) {
 		this->m_endLine = tableLength -1 ;
@@ -675,6 +674,35 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 		QString tmp = in.readLine();
 	}
 
+	setColumnHeaders(this->m_TableHeaders);
+
+	table->SetNumberOfRows(tableLength);
+	QString line = "";
+	QString tmp_section = "";
+	tableWidth = this->m_tableWidth; 
+	int col_count = 0; 
+	if (this->m_colIds.length() >0){
+		col_count = this->m_colIds.length(); 
+	}
+	else { 
+		col_count = this->m_TableHeaders.length(); 
+	}
+
+	//load pores
+	if (!enableFiberTransformation) {
+		loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
+	} //TODO FIberTransformation
+	else {
+		loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
+	}
+	
+	if(file.isOpen())
+	file.close();
+	retFlag = true; 
+}
+
+void iACsvIO::setColumnHeaders(QStringList &colHeaders)
+{
 	QByteArray byteArr;
 	const char* element;
 
@@ -683,7 +711,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	table->AddColumn(arrAuto);
 
 	//adding headers; 
-	for (const auto &elLine : this->m_TableHeaders) {
+	for (const auto &elLine : colHeaders) {
 		if (!elLine.isEmpty()) {
 			vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
 			byteArr = elLine.toUtf8();
@@ -698,32 +726,6 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
 	arr->SetName("Class_ID");
 	table->AddColumn(arr);
-
-	table->SetNumberOfRows(tableLength);
-	QString line = "";
-	QString tmp_section = "";
-	tableWidth = this->m_tableWidth; 
-	int col_count = 0; 
-	if (this->m_colIds.length() >0){
-		col_count = this->m_colIds.length(); 
-	}
-	else { 
-		col_count = this->m_TableHeaders.length(); 
-	}
-
-	
-	//load pores
-	if (!enableFiberTransformation) {
-		loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
-	}
-	else {
-		
-	}
-	
-	if(file.isOpen())
-	file.close();
-	retFlag = true; 
-
 }
 
 void iACsvIO::loadPoreData(long tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count)
@@ -773,8 +775,6 @@ void iACsvIO::loadPoreData(long tableLength, QString &line, QTextStream &in, int
 
 			table->SetValue(row, col_count + 1, 0);
 			this->m_EL_ID++;
-
-
 		} // exclude white spaces if row is empty
 		else table->RemoveRow(row);
 	}
