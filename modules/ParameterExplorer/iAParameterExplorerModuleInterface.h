@@ -41,9 +41,11 @@ private slots:
 	void ToggleSettings();
 	void SaveState();
 	void LoadState();
+	void ContinueStateLoading();
 private:
-	bool CreateAttachment(QString const & csvFileName);
+	bool CreateAttachment(QString const & csvFileName, MdiChild* child);
 private:
 	void SetupToolBar();
 	iAParamToolBar * m_toolBar;
+	QMap<MdiChild*, QString> m_stateFiles;
 };

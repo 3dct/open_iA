@@ -97,7 +97,7 @@ void iAParameterExplorerModuleInterface::StartParameterExplorer()
 		tr("Select CSV File"), m_mdiChild->getFilePath(), tr("CSV Files (*.csv);;"));
 	if (csvFileName.isEmpty())
 		return;
-	CreateAttachment(csvFileName);
+	CreateAttachment(csvFileName, m_mdiChild);
 }
 
 void iAParameterExplorerModuleInterface::SaveState()
@@ -115,8 +115,8 @@ void iAParameterExplorerModuleInterface::SaveState()
 		return;
 	QSettings stateFileSettings(stateFileName, QSettings::IniFormat);
 	QFileInfo stateFileInfo(stateFileName);
-	stateFileSettings.setValue("Reference", MakeRelative(stateFileInfo.absoluteFilePath(), m_mdiChild->currentFile()));
-	stateFileSettings.setValue("CSVFile", MakeRelative(stateFileInfo.absoluteFilePath(), attach->CSVFileName()));
+	stateFileSettings.setValue("Reference", MakeRelative(stateFileInfo.absolutePath(), m_mdiChild->currentFile()));
+	stateFileSettings.setValue("CSVFile", MakeRelative(stateFileInfo.absolutePath(), attach->CSVFileName()));
 	stateFileSettings.setValue("Layout", m_mdiChild->GetLayoutName());
 	attach->SaveSettings(stateFileSettings);
 }
@@ -129,31 +129,49 @@ void iAParameterExplorerModuleInterface::LoadState()
 		return;
 	QFileInfo stateFileInfo(stateFileName);
 	QSettings stateFileSettings(stateFileName, QSettings::IniFormat);
-	QString refFileName = MakeAbsolute(stateFileInfo.absoluteFilePath(), stateFileSettings.value("Reference").toString());
+	QString refFileName = MakeAbsolute(stateFileInfo.absolutePath(), stateFileSettings.value("Reference").toString());
 	MdiChild *child = m_mainWnd->createMdiChild(false);
+	m_stateFiles.insert(child, stateFileName);
+	connect(child, &MdiChild::fileLoaded, this, &iAParameterExplorerModuleInterface::ContinueStateLoading);
 	if (!child->loadFile(refFileName, false))
 	{
 		DEBUG_LOG(QString("Could not load reference file %1.").arg(refFileName));
 		return;
 	}
+}
+
+void iAParameterExplorerModuleInterface::ContinueStateLoading()
+{
+	MdiChild* child = dynamic_cast<MdiChild*>(QObject::sender());
 	m_mdiChild = child;
-	QString csvFileName = MakeAbsolute(stateFileInfo.absoluteFilePath(), stateFileSettings.value("CSVFile").toString());
-	if (!CreateAttachment(csvFileName))
-		return;
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	if (!child || attach)
+	{
+		DEBUG_LOG("ParameterExplorer: Invalid state - child null or Parameter Explorer already attached!");
+		return;
+	}
+	QString stateFileName = m_stateFiles[child];
+	QFileInfo stateFileInfo(stateFileName);
+	QSettings stateFileSettings(stateFileName, QSettings::IniFormat);
+	QString csvFileName = MakeAbsolute(stateFileInfo.absolutePath(), stateFileSettings.value("CSVFile").toString());
+	if (!CreateAttachment(csvFileName, child))
+		return;
+	attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
 		DEBUG_LOG("ParameterExplorer was not loaded properly!");
 		return;
 	}
 	attach->LoadSettings(stateFileSettings);
-	m_mdiChild->showMaximized();
-	m_mdiChild->LoadLayout(stateFileSettings.value("Layout").toString());
+	child->showMaximized();
+	child->LoadLayout(stateFileSettings.value("Layout").toString());
+	m_stateFiles.remove(child);
 }
 
-bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFileName)
+bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFileName, MdiChild* child)
 {
-	bool result = AttachToMdiChild(m_mdiChild);
+	bool result = AttachToMdiChild(child);
+	m_mdiChild = child;
 	if (!result)
 		return false;
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
