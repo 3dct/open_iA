@@ -27,6 +27,7 @@
 #include "iAMovieHelper.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
+#include "mdichild.h"
 
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
@@ -100,6 +101,13 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	plane3 = vtkSmartPointer<vtkPlane>::New();
 
 	cellLocator = vtkSmartPointer<vtkCellLocator>::New();
+
+	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
+	if (mdi_parent)
+	{
+		connect(this, SIGNAL(msg(QString)), mdi_parent, SLOT(addMsg(QString)));
+		connect(this, SIGNAL(progress(int)), mdi_parent, SLOT(updateProgressBar(int)));
+	}
 }
 
 iARenderer::~iARenderer(void)
@@ -399,6 +407,9 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 
 	interactor->Disable();
 
+	vtkSmartPointer<vtkCamera> oldCam = vtkSmartPointer<vtkCamera>::New();
+	oldCam->DeepCopy(cam);
+
 	vtkSmartPointer<vtkWindowToImageFilter> w2if = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	int* rws = renWin->GetSize();
 	if (rws[0] % 2 != 0) rws[0]++;
@@ -416,7 +427,8 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	int i;
 	int* extent = imageData->GetExtent();
 
-	emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
+	emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale()
+		.toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
 
 	int numRenderings = 360;//TODO
 	vtkSmartPointer<vtkTransform> rot = vtkSmartPointer<vtkTransform>::New();
@@ -463,10 +475,11 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode())); 
 			break;
 		}
-		emit progress( 100 * (i+1) / (extent[1]-extent[0]));
+		emit progress( 100 * (i+1) / numRenderings);
 		cam->ApplyTransform(rot);
 	}
 
+	cam->DeepCopy(oldCam);
 	movieWriter->End(); 
 	movieWriter->ReleaseDataFlagOn();
 	w2if->ReleaseDataFlagOn();

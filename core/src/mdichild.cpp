@@ -1810,14 +1810,15 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 	QStringList modes = (QStringList() <<  tr("Rotate Z") <<  tr("Rotate X") <<  tr("Rotate Y"));
 	QStringList inList = ( QStringList() << tr("+Rotation mode") );
 	QList<QVariant> inPara = ( QList<QVariant>() << modes );
+	QTextDocument * descr = new QTextDocument;
+	descr->setHtml("Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
 
-	dlg_commoninput dlg(this, "Save movie options", inList, inPara);
-	if (dlg.exec() == QDialog::Accepted)
-	{
-		mode =  dlg.getComboBoxValue(0);
-		imode = dlg.getComboBoxIndex(0);
-	}
+	dlg_commoninput dlg(this, "Save movie options", inList, inPara, descr);
+	if (dlg.exec() != QDialog::Accepted)
+		return;
 
+	mode = dlg.getComboBoxValue(0);
+	imode = dlg.getComboBoxIndex(0);
 
 	// Show standard save file dialog using available movie file types.
 	raycaster.saveMovie(
