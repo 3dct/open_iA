@@ -158,7 +158,8 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
-	renWin->PolygonSmoothingOff();	// Turned off, because of gray strokes e.g., on scalarBarActors. Only on NVIDIA graphic cards
+	// Turned off, because of gray strokes e.g., on scalarBarActors. Only on NVIDIA graphic cards
+	renWin->PolygonSmoothingOff();	
 	interactorStyle = iAInteractorStyleImage::New();
 	m_camera = vtkCamera::New();
 
@@ -466,7 +467,8 @@ void iASlicerData::RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 	ren->RemoveActor(imgActor);
 }
 
-void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range)
+void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, 
+	double opacity, double * range)
 { 
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New(); 
 	lut->SetRange( range ); 
@@ -715,7 +717,8 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	int* extent = imageData->GetExtent();
 	double* spacing = imageData->GetSpacing();
 
-	emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
+	emit msg(tr("%1  MOVIE export started. Output: %2").arg(
+		QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
 
 	double oldResliceAxesOrigin[3];
 	reslicer->GetResliceAxesOrigin(oldResliceAxesOrigin);
@@ -874,9 +877,8 @@ void iASlicerData::saveImageStack()
 	size_t dotpos = current_file.find_last_of(".");
 	assert( dotpos != std::string::npos );
 	if ( dotpos == std::string::npos )
-	{
 		return;
-	}
+
 	current_file.erase(dotpos,4);
 
 	int const * arr = imageData->GetDimensions();
@@ -888,13 +890,13 @@ void iASlicerData::saveImageStack()
 
 	//Set slice range
 	int sliceFirst = 0, sliceLast = arr[num]-1;
-
 	bool saveNative = true;
 	bool output16Bit = false;
 	QStringList inList = ( QStringList() << tr("$Save native image (intensity rescaled to output format)")
 		<< tr("#From Slice Number:")
 		<<  tr("#To Slice Number:") );
-	QList<QVariant> inPara = ( QList<QVariant>() << (saveNative ? tr("true") : tr("false"))<<tr("%1").arg(sliceFirst) <<tr("%1").arg(sliceLast)  );
+	QList<QVariant> inPara = ( QList<QVariant>() << (saveNative ? tr("true") : tr("false"))<<tr("%1")
+		.arg(sliceFirst) <<tr("%1").arg(sliceLast) );
 	QFileInfo fileInfo(file);
 	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
 		(QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
@@ -904,18 +906,16 @@ void iASlicerData::saveImageStack()
 	}
 	dlg_commoninput dlg(mdi_parent, "Save options", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
-	{
 		return;
-	}
+
 	saveNative = dlg.getCheckValue(0);
 	sliceFirst = dlg.getDblValue(1);
 	sliceLast  = dlg.getDblValue(2);
 	if (inList.size() > 3)
-	{
 		output16Bit = dlg.getCheckValue(3);
-	}
 
-	if(sliceFirst<0 || sliceFirst>sliceLast || sliceLast>arr[num]){
+	if(sliceFirst<0 || sliceFirst>sliceLast || sliceLast>arr[num])
+	{
 		QMessageBox msgBox;
 		msgBox.setText("Invalid Input.");
 		msgBox.exec();
@@ -926,13 +926,12 @@ void iASlicerData::saveImageStack()
 	for(int slice=sliceFirst; slice<=sliceLast; slice++)
 	{
 		//Determine which axis
-		if(m_mode==0){ //yz
+		if (m_mode == 0) //yz
 			setResliceAxesOrigin(slice * spacing[0], 0, 0);
-		} else if(m_mode==1){  //xy
+		else if (m_mode == 1)  //xy
 			setResliceAxesOrigin(0, 0, slice * spacing[2]);
-		} else if(m_mode==2){  //xz
+		else if (m_mode == 2)  //xz
 			setResliceAxesOrigin(0, slice * spacing[1], 0);
-		}
 		update();
 
 		vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -942,13 +941,9 @@ void iASlicerData::saveImageStack()
 			con.SetImage(reslicer->GetOutput());
 			iAITKIO::ImagePointer imgITK;
 			if (!output16Bit)
-			{
 				imgITK = RescaleImageTo<unsigned char>(con.GetITKImage(), 0, 255);
-			}
 			else
-			{
 				imgITK = RescaleImageTo<unsigned short>(con.GetITKImage(), 0, 65535);
-			}
 			con.SetImage(imgITK);
 			img = con.GetVTKImage();
 		}
@@ -959,6 +954,8 @@ void iASlicerData::saveImageStack()
 			wtif->Update();
 			img = wtif->GetOutput();
 		}
+
+		emit progress(100 * slice / sliceLast);
 
 		//append slice number to filename
 		std::stringstream ss;
@@ -971,9 +968,9 @@ void iASlicerData::saveImageStack()
 		WriteSingleSliceImage(newFileName.c_str(), img);
 	}
 	interactor->Enable();
-	QMessageBox msgBox;
-	msgBox.setText("Saving image stack completed.");
-	msgBox.exec();
+	emit msg(tr("%1  Image stack saved in folder: %2")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(fileInfo.absoluteDir().absolutePath()));
 }
 
 void iASlicerData::UpdatePositionMarkerExtent()
@@ -1317,11 +1314,10 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 
 	// if requested calculate distance and show actor
 	if (pLineActor->GetVisibility()) {
-		double distance = sqrt(
-						pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) 
-					  + pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2)
-					);
-		pLineSource->SetPoint2(m_ptMapped[0]-(0.5*slicerSpacing[0]), m_ptMapped[1] - (0.5*slicerSpacing[1]), 0.0);	// ORIENTATION / ROTATION FIX: pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1]);
+		double distance = sqrt(	pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) + 
+			pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2) );
+		// ORIENTATION / ROTATION FIX: pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1]);
+		pLineSource->SetPoint2(m_ptMapped[0]-(0.5*slicerSpacing[0]), m_ptMapped[1] - (0.5*slicerSpacing[1]), 0.0);	
 		pDiskSource->SetOuterRadius(distance);
 		pDiskSource->SetInnerRadius(distance);
 		strDetails += QString("distance [ %1 ]\n").arg(distance);
@@ -1331,7 +1327,6 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	// Update the info text with pixel coordinates/value if requested.
 	textInfo->GetActor()->SetPosition(interactor->GetEventPosition()[0]+10, interactor->GetEventPosition()[1]+10);
 	textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
-
 /*
 	// ORIENTATION / ROTATION FIX:
 	// make orientation the same as in other image viewers:
