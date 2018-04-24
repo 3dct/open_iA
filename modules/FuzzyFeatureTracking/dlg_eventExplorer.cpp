@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,20 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_eventExplorer.h"
 
 #include "dlg_trackingGraph.h"
-#include "iAConsole.h"
 #include "iAFeatureTracking.h"
+
+#include "iAConsole.h"
 #include "iAVolumeStack.h"
 #include "mdichild.h"
-// vtk
+
 #include <vtkAxis.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkDataSetAttributes.h>
 #include <vtkDoubleArray.h>
 #include <vtkEventQtSlotConnect.h>
+#include <vtkFloatArray.h>
+#include <vtkPen.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkStringArray.h>
 
 #include <sstream>
@@ -41,7 +44,7 @@
 
 QString toqstr(vtkVariant const & var)
 {
-	ostringstream oss;
+	std::ostringstream oss;
 	oss << var;
 	return QString(oss.str().c_str());
 }
@@ -403,14 +406,14 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		{
 			//cout << "i: " << i << "   " << v->GetValue(i, 4) << ", " << v->GetValue(i, 5) << ", " << v->GetValue(i, 6) << ", " << v->GetValue(i, 7) << ", " << endl;
 
-			vector<iAFeatureTrackingCorrespondence> correspondences;
+			std::vector<iAFeatureTrackingCorrespondence> correspondences;
 			if (t > 0)
 				correspondences = ftB->FromUtoV(i+1);
 			else
 				correspondences = ftB->FromVtoU(i+1);
 			//correspondences = ftF->FromUtoV(i);
 
-			for (vector<iAFeatureTrackingCorrespondence>::iterator c = correspondences.begin(); c != correspondences.end(); c++)
+			for (auto c = correspondences.begin(); c != correspondences.end(); c++)
 			{
 				DEBUG_LOG(QString("i: %1   c->id: %2, event: %3, overlap: %4, volumeRatio: %5   %6, %7, %8, %9")
 					.arg(i).arg(c->id).arg(c->featureEvent).arg(c->overlap).arg(c->volumeRatio)
@@ -1155,7 +1158,7 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * obj)
 	m_tableToGraphId.clear();
 	for (int i = 0; i < m_numberOfCharts; i++)
 	{
-		m_nodes.push_back(vector<int>());
+		m_nodes.push_back(std::vector<int>());
 	}
 
 	DEBUG_LOG("\n\nSELECTION");
@@ -1307,7 +1310,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 			iAFeatureTracking *ftF = m_trackedFeaturesForwards.at(layer - 1);
 			int newVertexId;
 
-			vector<iAFeatureTrackingCorrespondence> correspondences;
+			std::vector<iAFeatureTrackingCorrespondence> correspondences;
 			correspondences = ftB->FromUtoV(id);
 
 			for (auto c : correspondences)
@@ -1362,7 +1365,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer - 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer - 1][c.id], tableToGraphId[layer][id]) != -1)
 						{
 							g->AddEdge(tableToGraphId[layer][id], tableToGraphId[layer - 1][c.id]);
-							cout << "Edge [" << id << "][" << layer << "] --> [" << c.id << "][" << layer - 1 << "]" << endl;
+							std::cout << "Edge [" << id << "][" << layer << "] --> [" << c.id << "][" << layer - 1 << "]" << std::endl;
 						}*/
 					}
 				}
@@ -1377,7 +1380,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 			iAFeatureTracking *ftF = m_trackedFeaturesForwards.at(layer + 1);
 			int newVertexId;
 
-			vector<iAFeatureTrackingCorrespondence> correspondences;
+			std::vector<iAFeatureTrackingCorrespondence> correspondences;
 			if (layer > 0)
 				correspondences = ftF->FromVtoU(id);
 			else
@@ -1433,7 +1436,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer + 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer + 1][c.id], tableToGraphId[layer][id]) != -1)
 						{
 							g->AddEdge(tableToGraphId[layer][id], tableToGraphId[layer + 1][c.id]);
-							cout << "Edge [" << id << "][" << layer << "] --> [" << c.id << "][" << layer + 1 << "]" << endl;
+							std::cout << "Edge [" << id << "][" << layer << "] --> [" << c.id << "][" << layer + 1 << "]" << std::endl;
 						}*/
 					}
 				}

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
- * * **********  A tool for scientific visualisation and 3D image processing  ********** *
+ * * **********   A tool for visual analysis and processing of 3D CT images   ********** *
  * * *********************************************************************************** *
- * * Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+ * * Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
  * *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
  * * *********************************************************************************** *
  * * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,6 +20,8 @@
  * * ************************************************************************************/
 #include "iASVMImageFilter.h"
 
+#include "svm.h"
+
 #include "defines.h"    // for DIM
 #include "iAConnector.h"
 #include "iAConsole.h"
@@ -29,7 +31,6 @@
 #include "iAVtkDraw.h"
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
-#include "svm.h"
 
 #include <itkScalarImageKmeansImageFilter.h>
 

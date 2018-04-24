@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,12 +25,10 @@
 #include <vector>
 #include <unordered_map>
 
-using namespace std;
-
 class GraphStat
 {
 public:
-	typedef vector<Graph::idType>	VerticesIDs;
+	typedef std::vector<Graph::idType>	VerticesIDs;
 
 						GraphStat();
 						GraphStat(Graph* g);
@@ -49,9 +47,9 @@ private:
 
 	Graph*	m_graph;
 	int		m_maxRank;
-	unordered_map<Graph::idType, VerticesIDs>	m_parentVertices;
-	unordered_map<Graph::idType, VerticesIDs>	m_childVertices;
-	unordered_map<Graph::idType, bool>			m_isHeaderVertex;
-	vector<int>									m_numVertices;
+	std::unordered_map<Graph::idType, VerticesIDs>	m_parentVertices;
+	std::unordered_map<Graph::idType, VerticesIDs>	m_childVertices;
+	std::unordered_map<Graph::idType, bool>			m_isHeaderVertex;
+	std::vector<int>								m_numVertices;
 };
 

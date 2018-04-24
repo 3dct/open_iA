@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>240</width>
+    <width>494</width>
     <height>240</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>0</width>
-    <height>40</height>
+    <width>194</width>
+    <height>80</height>
    </size>
   </property>
   <property name="features">
@@ -162,17 +162,17 @@
          </item>
          <item>
           <widget class="QLabel" name="labelXZ">
-           <property name="minimumSize">
-            <size>
-             <width>20</width>
-             <height>0</height>
-            </size>
-           </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
            </property>
            <property name="font">
             <font>
@@ -198,6 +198,9 @@
              <height>0</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>Create a movie by traversing all slices</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -220,6 +223,9 @@
              <width>10</width>
              <height>0</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string>Save current slice as image</string>
            </property>
            <property name="text">
             <string/>
@@ -244,6 +250,9 @@
              <height>0</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>Save image stack</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -266,6 +275,9 @@
              <width>10</width>
              <height>0</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string>Stop interaction</string>
            </property>
            <property name="text">
             <string/>
@@ -296,6 +308,9 @@
              <italic>false</italic>
              <bold>true</bold>
             </font>
+           </property>
+           <property name="toolTip">
+            <string>Maximize view</string>
            </property>
            <property name="text">
             <string/>

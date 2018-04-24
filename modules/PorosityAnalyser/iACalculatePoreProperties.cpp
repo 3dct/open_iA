@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,25 +18,25 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iACalculatePoreProperties.h"
-#include "iAMathUtility.h"    // for Pi
 
 #include "iACSVToQTableWidgetConverter.h"
-#include "io/iAITKIO.h"
-#include "defines.h"
 
+#include "defines.h"
+#include "io/iAITKIO.h"
+
+#include <itkConnectedComponentImageFilter.h>
 #include <itkImageBase.h>
 #include <itkLabelGeometryImageFilter.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
-#include <itkConnectedComponentImageFilter.h>
-#include <vtkIOStream.h>
 
-#include <QFileDialog>
-#include <QTableWidget>
+#include <vtkIOStream.h>
+#include <vtkMath.h>
+
 #include <QDebug>
+#include <QFileDialog>
 #include <QSettings>
+#include <QTableWidget>
 
 typedef itk::ImageBase< DIM > ImageBaseType;
 typedef ImageBaseType::Pointer ImagePointer;
@@ -274,8 +274,8 @@ void iACalculatePorePropertiesThread::run()
 				a13 = cos( phi )*sin( theta )*cos( theta );
 				a23 = sin( phi )*sin( theta )*cos( theta );
 
-				phi = ( phi*180.0f ) / Pi;
-				theta = ( theta*180.0f ) / Pi;
+				phi = ( phi*180.0f ) / vtkMath::Pi();
+				theta = ( theta*180.0f ) / vtkMath::Pi();
 
 				// Locating the phi value to quadrant
 				if ( dx < 0 )

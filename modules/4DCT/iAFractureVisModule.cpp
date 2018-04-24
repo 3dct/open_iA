@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,17 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iAFractureVisModule.h"
-// iA
+
 #include "iA4DCTVisWin.h"
-// itk
-#include <itkImageFileReader.h>
+
 #include <itkDiscreteGaussianImageFilter.h>
-#include <itkMinimumMaximumImageCalculator.h>
+#include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
-// vtk
+#include <itkMinimumMaximumImageCalculator.h>
+
 #include <vtkActor.h>
 #include <vtkCellArray.h>
 #include <vtkDepthSortPolyData.h>
@@ -41,7 +39,7 @@
 #include <vtkUnsignedCharArray.h>
 #include <vtkTriangle.h>
 #include <vtkVersion.h>
-// Qt
+
 #include <QVector>
 
 double interpolate( double val1, double val2, double coeff )
@@ -215,8 +213,8 @@ void iAFractureVisModule::calculateMap( MapType* map, QString fileName, MapName 
 	//double previousValue = (double)(minZ + maxZ) / 2;
 	double previousValue = 0.5;
 	ImageType::IndexType ind;
-	for( ind[0] = 0; ind[0] < imgSize[0]; ind[0]++ ) {
-		for( ind[1] = 0; ind[1] < imgSize[1]; ind[1]++ ) {
+	for( ind[0] = 0u; ind[0] < imgSize[0]; ind[0]++ ) {
+		for( ind[1] = 0u; ind[1] < imgSize[1]; ind[1]++ ) {
 			QVector<unsigned int> ray;
 			//for (ind[2] = 0; ind[2] < imgSize[2]; ind[2]++) {
 			for( ind[2] = minZ; ind[2] < maxZ; ind[2]++ ) {

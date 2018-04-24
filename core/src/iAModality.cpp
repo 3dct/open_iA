@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,20 +18,17 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-#include "pch.h"
 #include "iAModality.h"
 
 #include "iAImageCoordinate.h"
 #include "iAModalityTransfer.h"
 #include "iASettings.h"
 #include "iAStringHelper.h" // for Str2Vec3D
+#include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
 
 #include <vtkImageData.h>
 #include <vtkVolume.h>
-
-#include "iATypedCallHelper.h"
 
 #include <cassert>
 #include <limits>
@@ -47,7 +44,6 @@ iAModality::iAModality(QString const & name, QString const & filename, int chann
 {
 	SetData(imgData);
 }
-
 
 iAModality::iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags) :
 	m_name(name),
@@ -242,7 +238,6 @@ void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 	m_transfer = QSharedPointer<iAModalityTransfer>(new iAModalityTransfer(maxRange));
 }
 
-
 void iAModality::SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile)
 {
 	positionSettings = pos;
@@ -250,12 +245,10 @@ void iAModality::SetStringSettings(QString const & pos, QString const & ori, QSt
 	tfFileName = tfFile;
 }
 
-
 QString iAModality::GetOrientationString()
 {
 	return m_renderer ? Vec3D2String(m_renderer->GetOrientation()) : QString();
 }
-
 
 QString iAModality::GetPositionString()
 {

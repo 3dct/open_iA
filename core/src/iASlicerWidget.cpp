@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iASlicerWidget.h"
 
 #include "iAArbitraryProfileOnSlicer.h"
@@ -45,6 +43,7 @@
 #include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageResample.h>
+#include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPointPicker.h>
 #include <vtkPoints.h>
@@ -170,8 +169,6 @@ iASlicerWidget::~iASlicerWidget()
 void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 {
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
-
-	// vtk Interactor tastenbelegung
 	if (event->key() == Qt::Key_O)
 	{
 		pickPoint( pickedData.pos, pickedData.res, pickedData.ind );
@@ -249,8 +246,6 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 					}
 
 				}
-
-				
 			}
 			if (event->key() == Qt::Key_Plus) {
 
@@ -264,7 +259,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 						innerFisheyeRadius = innerFisheyeRadius - 2.0;
 						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
 
-				}
+					}
 				}
 			}
 		}
@@ -286,8 +281,6 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 
 					}
 				}
-
-				
 			}
 			if (event->key() == Qt::Key_Minus) {
 
@@ -981,8 +974,8 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 	iASlicerMode mode = slicerData->getMode();
 	int sn = slicerData->getSliceNumber();
 
-	cout << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5] << endl;
-	cout << focalPt[0] << " " << focalPt[1] << " " << focalPt[2] << endl;
+	std::cout << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5] << std::endl;
+	std::cout << focalPt[0] << " " << focalPt[1] << " " << focalPt[2] << std::endl;
 
 	switch ( slicerData->getMode() )
 	{
@@ -1018,10 +1011,10 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 			break;
 		default:
 			break;
-	} //*/
+	} 
 
 	for ( int i = 0; i < p_target->GetNumberOfPoints()- (p_target->GetNumberOfPoints()-8); ++i )
-		p_source->SetPoint( i, p_target->GetPoint( i ) ); //*/
+		p_source->SetPoint( i, p_target->GetPoint( i ) ); 
 
 	int fixPoints = 8;
 	// outer circle 1
@@ -1029,8 +1022,8 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 	double fixRadiusY;
 	for (int fix = p_target->GetNumberOfPoints() - 8 - 8 - 8; fix < p_target->GetNumberOfPoints() - 8 - 8; fix++)
 	{
-			fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-			fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
+			fixRadiusX = (lensRadius + 15.0)* std::cos(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
+			fixRadiusY = (lensRadius + 15.0)* std::sin(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
 
 		switch (mode)
 		{
@@ -1054,8 +1047,8 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 	fixPoints = 8;
 	for (int fix = p_target->GetNumberOfPoints() - 8 - 8; fix < p_target->GetNumberOfPoints() - 8; fix++)
 	{
-			fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
-			fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / fixPoints) * M_PI / 180) * spacing[0];
+			fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
+			fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
 		
 		switch (mode)
 		{
@@ -1079,11 +1072,11 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 	int pointsCount = 8;
 	for (int i = p_target->GetNumberOfPoints() - pointsCount; i < p_target->GetNumberOfPoints(); ++i)
 	{
-		double xCoordCircle1 = (innerLensRadius) * std::cos(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
-		double yCoordCircle1 = (innerLensRadius) * std::sin(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
+		double xCoordCircle1 = (innerLensRadius) * std::cos(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
+		double yCoordCircle1 = (innerLensRadius) * std::sin(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
 
-		double xCoordCircle2 = (lensRadius) * std::cos(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
-		double yCoordCircle2 = (lensRadius) * std::sin(i * (360 / pointsCount) * M_PI / 180) * spacing[0];
+		double xCoordCircle2 = (lensRadius) * std::cos(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
+		double yCoordCircle2 = (lensRadius) * std::sin(i * (360 / pointsCount) * vtkMath::Pi() / 180) * spacing[0];
 
 		switch (mode)
 		{
@@ -1102,7 +1095,7 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 		default:
 			break;
 		}
-	}//*
+	}
 
 	// Set position and text for green circle1 actors
 	for ( int i = 0; i < p_target->GetNumberOfPoints(); ++i )

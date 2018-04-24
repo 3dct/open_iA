@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iAmat4.h"
+
 #include <vector>
 #include <qmath.h>
 
@@ -135,10 +136,10 @@ inline float Rand( float a_Range );
 		//#define SQRDISTANCE(A,B) ((A.x-B.x)*(A.x-B.x)+(A.y-B.y)*(A.y-B.y)+(A.z-B.z)*(A.z-B.z))
 	};
 	/**
-	* Parses config file with specified filename. Initializes some variables.
+	* Parses config (from local config store). Initializes some variables.
 	* @param a cfg_filename filename of config file.
 	*/
-	int ParseConfigFile(char const * cfg_filename, SETTINGS * settings);
+	int ParseConfigFile(SETTINGS * settings);
 	/**
 	* Converts radians in degrees.
 	* @param rad radians value.

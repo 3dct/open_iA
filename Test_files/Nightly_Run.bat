@@ -3,19 +3,24 @@ set TEST_BIN_DIR=%2
 set CONFIG_FILE=%3
 set VS_PATH=%4
 set CTEST_MODE=Nightly
-set BUILD_TYPE=Release
-set MSBUILD_OPTS=/t:clean /m
 if NOT [%5]==[] set CTEST_MODE=%5
 CALL :dequote VS_PATH
 
+set COMPILER=MSVC
+if NOT [%6]==[] set COMPILER=%6
+
 set TEST_FILES_DIR=%TEST_SRC_DIR%/Test_files
-if NOT [%6]==[] set TEST_FILES_DIR=%6
+if NOT [%7]==[] set TEST_FILES_DIR=%7
 
 set MAIN_SOLUTION=open_iA.sln
-if NOT [%7]==[] set MAIN_SOLUTION=%7
+if NOT [%8]==[] set MAIN_SOLUTION=%8
 
 set MODULE_DIRS=%TEST_SRC_DIR%/modules
-if NOT [%8]==[] set MODULE_DIRS=%8
+if NOT [%9]==[] set MODULE_DIRS=%9
+
+:: other variables not changeable via parameters
+set BUILD_TYPE=Release
+set MSBUILD_OPTS=/t:clean /m
 
 python --version >NUL 2>NUL
 IF %ERRORLEVEL% NEQ 0 GOTO PythonNotFound
@@ -34,7 +39,7 @@ rem echo %GIT_BRANCH%
 :: git pull origin master
 
 :: Set up Visual Studio Environment for cleaning build
-:: amd64 is the target architectur (see http://msdn.microsoft.com/en-us/library/x4d2c09s%28v=vs.80%29.aspx)
+:: amd64 is the target architecture (see http://msdn.microsoft.com/en-us/library/x4d2c09s%28v=vs.80%29.aspx)
 echo %VS_PATH% | findstr /c:"2017" >nul
 if %ERRORLEVEL% EQU 0 goto VS2017
 call "%VS_PATH%\VC\vcvarsall.bat" amd64
@@ -56,7 +61,7 @@ cmake -C "%CONFIG_FILE%" %TEST_SRC_DIR% 2>&1
 
 :: Create test configurations:
 md %TEST_CONFIG_PATH%
-python %TEST_FILES_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH% %MODULE_DIRS%
+python %TEST_FILES_DIR%\CreateTestConfigurations.py %TEST_SRC_DIR% %GIT_BRANCH% %TEST_CONFIG_PATH% %MODULE_DIRS% %COMPILER%
 
 rem Run with all flags enabled:
 cmake -C %TEST_CONFIG_PATH%\all_flags.cmake %TEST_SRC_DIR% 2>&1
@@ -74,7 +79,10 @@ ctest -D Experimental -C %BUILD_TYPE%
 
 :: iterate over module tests, run build&tests for each:
 FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
+	@echo(
+	@echo ================================================================================
 	@echo %%~nm
+	@echo ================================================================================
 	cmake -C %TEST_CONFIG_PATH%\no_flags.cmake %TEST_SRC_DIR% 2>&1
 	cmake -C %%m %TEST_SRC_DIR% 2>&1
 	MSBuild "%TEST_BIN_DIR%\%MAIN_SOLUTION%" %MSBUILD_OPTS%
@@ -84,6 +92,8 @@ FOR %%m IN (%TEST_CONFIG_PATH%\Module_*) DO @(
 )
 
 :: CLEANUP:
+:: move out of %TEST_BIN_DIR%
+cd ..
 
 :: remove test configurations:
 rd /s /q %TEST_CONFIG_PATH%

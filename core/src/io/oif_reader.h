@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -51,15 +51,10 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 */
 
-#include <stdio.h>
 #include <string>
 #include <vector>
-#include <fstream>
-#include <iostream>
 
 #include <itkImage.h>
-
-using namespace std;
 
 class OIFReader
 {
@@ -96,7 +91,7 @@ public:
 */
 
 protected:
-	wstring m_id_string;	//the path and file name used to read files
+	std::wstring m_id_string;	//the path and file name used to read files
 	//resizing
 	int m_resize_type;	//0: no resizing; 1: padding; 2: resampling
 	int m_resample_type;	//0: nearest neighbour; 1: linear
@@ -104,10 +99,10 @@ protected:
 
 	//3d batch
 	bool m_batch;
-	vector<wstring> m_batch_list;
+	std::vector<std::wstring> m_batch_list;
 	int m_cur_batch;
 	
-	wstring m_path_name;
+	std::wstring m_path_name;
 public:
 	typedef itk::Image<unsigned short, 2> TiffImgType;
 	typedef TiffImgType::Pointer TiffImgPtr;
@@ -116,19 +111,19 @@ public:
 
 	OIFReader();
 
-	void SetFile(string &file);
-	void SetFile(wstring &file);
+	void SetFile(std::string &file);
+	void SetFile(std::wstring &file);
 	void SetSliceSeq(bool ss);
 	bool GetSliceSeq();
-	void SetTimeId(wstring &id);
-	wstring GetTimeId();
+	void SetTimeId(std::wstring &id);
+	std::wstring GetTimeId();
 	void Preprocess();
 	void SetBatch(bool batch);
 	int LoadBatch(int index);
-	wstring GetCurName(int t, int c);
+	std::wstring GetCurName(int t, int c);
 
-	wstring GetPathName() {return m_path_name;}
-	wstring GetDataName() {return m_data_name;}
+	std::wstring GetPathName() {return m_path_name;}
+	std::wstring GetDataName() {return m_data_name;}
 	int GetTimeNum() {return m_time_num;}
 	int GetCurTime() {return m_cur_time;}
 	int GetChanNum() {return m_chan_num;}
@@ -151,22 +146,22 @@ private:
 	void Read(int t, int c, bool get_max);
 	TiffImgPtr ReadTiffImage(std::string file_name);
 
-	vector<ResultImgPtr> m_result;
+	std::vector<ResultImgPtr> m_result;
 
-	wstring m_data_name;
-	wstring m_subdir_name;
+	std::wstring m_data_name;
+	std::wstring m_subdir_name;
 
 	int m_type;	//0-time data in a single file; 1-time data in a file sequence
-	typedef vector<wstring> ChannelInfo;	//slices form a channel
-	typedef vector<ChannelInfo> DatasetInfo;//channels form dataset
+	typedef std::vector<std::wstring> ChannelInfo;	//slices form a channel
+	typedef std::vector<ChannelInfo> DatasetInfo;//channels form dataset
 	struct TimeDataInfo
 	{
 		int filenumber;		//if type is 1, file number for time data
-		wstring filename;	//if type is 1, file name for current time data
-		wstring subdirname;	//subdirectory name
+		std::wstring filename;	//if type is 1, file name for current time data
+		std::wstring subdirname;	//subdirectory name
 		DatasetInfo dataset;//a list of the channels
 	};
-	vector<TimeDataInfo> m_oif_info;		//time data form the complete oif dataset
+	std::vector<TimeDataInfo> m_oif_info;		//time data form the complete oif dataset
 	int m_oif_t;	//current time point in oib info for reading
 
 	int m_time_num;
@@ -177,7 +172,7 @@ private:
 		int chan_num;
 		double wavelength;
 	};
-	vector<WavelengthInfo> m_excitation_wavelength_list;
+	std::vector<WavelengthInfo> m_excitation_wavelength_list;
 	int m_slice_num;
 	int m_x_size;
 	int m_y_size;
@@ -192,9 +187,9 @@ private:
 	static bool oif_sort(const TimeDataInfo& info1, const TimeDataInfo& info2);
 	void ReadSingleOif();
 	void ReadSequenceOif();
-	void ReadTifSequence(wstring file_name, int t=0);
+	void ReadTifSequence(std::wstring file_name, int t=0);
 	void ReadOif();
-	void ReadOifLine(wstring oneline);
+	void ReadOifLine(std::wstring oneline);
 	void ReadTiff(char* pbyData, unsigned short *val, int z);
 
 	//axis count
@@ -204,13 +199,13 @@ private:
 	int chan_num;
 	int cur_chan;
 	//axis info
-	wstring axis_code;
-	wstring pix_unit;
-	wstring max_size;
-	wstring start_pos;
-	wstring end_pos;
-	wstring light_type;
+	std::wstring axis_code;
+	std::wstring pix_unit;
+	std::wstring max_size;
+	std::wstring start_pos;
+	std::wstring end_pos;
+	std::wstring light_type;
 
 	//time sequence id
-	wstring m_time_id;
+	std::wstring m_time_id;
 };

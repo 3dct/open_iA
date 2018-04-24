@@ -1,8 +1,8 @@
-﻿/*********************************  open_iA 2016 06  ******************************** *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,16 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAFoamCharacterizationItemDistanceTransform.h"
-
-#include <QApplication>
-#include <QFile>
-#include <QTime>
-
-#include "itkDanielssonDistanceMapImageFilter.h"
-#include "itkInvertIntensityImageFilter.h"
-#include "itkMinimumMaximumImageCalculator.h"
 
 #include "iAFoamCharacterizationItemBinarization.h"
 #include "iAFoamCharacterizationDialogDistanceTransform.h"
@@ -35,7 +26,15 @@
 #include "iAConnector.h"
 #include "iAProgress.h"
 
+#include <itkDanielssonDistanceMapImageFilter.h>
+#include <itkInvertIntensityImageFilter.h>
+#include <itkMinimumMaximumImageCalculator.h>
+
 #include <vtkImageData.h>
+
+#include <QApplication>
+#include <QFile>
+#include <QTime>
 
 iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceTransform
 																 (iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData)

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iAGEMSeModuleInterface.h"
 
 #include "iAGEMSeAttachment.h"
@@ -37,7 +36,6 @@
 #include <QTextDocument>
 
 #include <cassert>
-
 
 iAGEMSeModuleInterface::iAGEMSeModuleInterface():
 	m_toolbar(0)
@@ -97,15 +95,29 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 	MdiChild *child = m_mainWnd->createMdiChild(false);
 	if (!seaFile.good())
 	{
-		DEBUG_LOG("Given precalculated data file could not be read.");
-		return;
-	}
-	if (!child->LoadProject(seaFile.GetModalityFileName()))
-	{
-		DEBUG_LOG(QString("Failed loading project '%1'").arg(seaFile.GetModalityFileName()));
+		DEBUG_LOG(QString("Precalculated GEMSe data %1 file could not be read.").arg(seaFile.GetSEAFileName()));
 		return;
 	}
 	m_mdiChild = child;
+	if (m_seaFile)
+	{
+		DEBUG_LOG("A loading procedure is currently in progress. Please let this finish first.");
+		return;
+	}
+	m_seaFile = QSharedPointer<iASEAFile>(new iASEAFile(seaFile));
+	connect(child, SIGNAL(fileLoaded()), this, SLOT(continuePreCalculatedDataLoading()));
+	if (!child->loadFile(seaFile.GetModalityFileName(), false))
+	{
+		DEBUG_LOG(QString("Failed to load project '%1' referenced from precalculated GEMSe data file %2.")
+			.arg(seaFile.GetModalityFileName())
+			.arg(seaFile.GetSEAFileName()));
+		m_seaFile.clear();
+		return;
+	}
+}
+
+void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
+{
 	UpdateChildData();
 
 	// load segmentation explorer:
@@ -117,30 +129,31 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 		return;
 	}
 	// load sampling data:
-	QMap<int, QString> const & samplings = seaFile.GetSamplings();
+	QMap<int, QString> const & samplings = m_seaFile->GetSamplings();
 	for (int key : samplings.keys())
 	{
-		result &= gemseAttach->LoadSampling(samplings[key], seaFile.GetLabelCount(), key);
+		result &= gemseAttach->LoadSampling(samplings[key], m_seaFile->GetLabelCount(), key);
 		if (!result)
 			break;
 	}
-	if (!result || !gemseAttach->LoadClustering(seaFile.GetClusteringFileName()))
+	if (!result || !gemseAttach->LoadClustering(m_seaFile->GetClusteringFileName()))
 	{
-		DEBUG_LOG("Precomputed Data Loading failed!");
+		DEBUG_LOG(QString("Loading precomputed GEMSe data from file %1 failed!").arg(m_seaFile->GetSEAFileName()));
 	}
-	if (seaFile.GetLayoutName() != "")
+	if (m_seaFile->GetLayoutName() != "")
 	{
-		child->LoadLayout(seaFile.GetLayoutName());
+		m_mdiChild->LoadLayout(m_seaFile->GetLayoutName());
 	}
-	if (seaFile.GetReferenceImage() != "")
+	if (m_seaFile->GetReferenceImage() != "")
 	{
-		gemseAttach->LoadRefImg(seaFile.GetReferenceImage());
+		gemseAttach->LoadRefImg(m_seaFile->GetReferenceImage());
 	}
-	if (seaFile.GetHiddenCharts() != "")
+	if (m_seaFile->GetHiddenCharts() != "")
 	{
-		gemseAttach->SetSerializedHiddenCharts(seaFile.GetHiddenCharts());
+		gemseAttach->SetSerializedHiddenCharts(m_seaFile->GetHiddenCharts());
 	}
-	gemseAttach->SetLabelInfo(seaFile.GetColorTheme(), seaFile.GetLabelNames());
+	gemseAttach->SetLabelInfo(m_seaFile->GetColorTheme(), m_seaFile->GetLabelNames());
+	m_seaFile.clear();
 }
 
 void iAGEMSeModuleInterface::SetupToolbar()

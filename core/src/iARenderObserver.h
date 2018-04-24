@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,24 +23,12 @@
 #include "open_iA_Core_export.h"
 
 #include <QObject>
-#include <QFile>
-
-#include <string>
-#include <sstream>
 
 #include <vtkCommand.h>
-#include <vtkImageViewer2.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkPicker.h> 
-#include <vtkTextMapper.h>
-#include <vtkActor2D.h>
-#include <vtkImageReslice.h>
-#include <vtkPlane.h>
-
 #include <vtkPlaneSource.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkActor.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
 
 #include <vtkTransform.h>
 #include <vtkLineSource.h>
@@ -49,6 +37,9 @@
 #include <vtkDoubleArray.h>
 
 #include <vtkWorldPointPicker.h>
+
+class vtkPicker;
+class vtkPlane;
 
 /**
  * \brief	observes the mouse moving

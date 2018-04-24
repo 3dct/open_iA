@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #include "iAProbingWidget.h"
 
-//#include "iAFilterChart.h"
-#include "iAConsole.h"
-#include "charts/iAChartWidget.h"
-#include "charts/iAPlotTypes.h"
 #include "iAImageTreeLeaf.h"
 #include "iALabelInfo.h"
-#include "iAMathUtility.h"
 #include "iAParamHistogramData.h"
+
+#include "charts/iAChartWidget.h"
+#include "charts/iAPlotTypes.h"
+#include "iAConsole.h"
+#include "iAMathUtility.h"
 #include "iASlicerMode.h"
 
 #include <QLabel>

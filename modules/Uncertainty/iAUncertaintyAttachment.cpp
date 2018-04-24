@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iAUncertaintyAttachment.h"
 
 #include "iAEnsembleDescriptorFile.h"
@@ -41,7 +40,6 @@
 #include "iAStringHelper.h"
 #include "mdichild.h"
 #include "mainwindow.h"
-
 
 #include <QDir>
 
@@ -98,18 +96,24 @@ void iAUncertaintyAttachment::ToggleSettings()
 
 bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 {
-	QSharedPointer<iAEnsembleDescriptorFile> ensembleFile(new iAEnsembleDescriptorFile(fileName));
-	if (!ensembleFile->good())
+	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>(new iAEnsembleDescriptorFile(fileName));
+	if (!m_ensembleFile->good())
 	{
 		DEBUG_LOG("Ensemble: Given data file could not be read.");
 		return false;
 	}
-	if (!GetMdiChild()->LoadProject(ensembleFile->ModalityFileName()))
+	connect(GetMdiChild(), SIGNAL(fileLoaded()), this, SLOT(ContinueEnsembleLoading()));
+	if (!GetMdiChild()->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
-		DEBUG_LOG(QString("Ensemble: Failed loading project '%1'").arg(ensembleFile->ModalityFileName()));
+		DEBUG_LOG(QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
 		return false;
 	}
-	auto ensemble = iAEnsemble::Create(EntropyBinCount, ensembleFile);
+	return true;
+}
+
+void iAUncertaintyAttachment::ContinueEnsembleLoading()
+{
+	auto ensemble = iAEnsemble::Create(EntropyBinCount, m_ensembleFile);
 	if (ensemble)
 	{
 		m_ensembleView->AddEnsemble("Full Ensemble", ensemble);
@@ -132,11 +136,10 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 	m_childData.child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
 	m_childData.child->getSlicerDlgXY()->hide();
 	m_childData.child->getImagePropertyDlg()->hide();
-	if (!ensembleFile->LayoutName().isEmpty())
+	if (!m_ensembleFile->LayoutName().isEmpty())
 	{
-		m_childData.child->LoadLayout(ensembleFile->LayoutName());
+		m_childData.child->LoadLayout(m_ensembleFile->LayoutName());
 	}
-	return ensemble;
 }
 
 

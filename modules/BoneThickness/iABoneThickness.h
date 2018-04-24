@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -43,6 +43,7 @@ class iABoneThickness
 		#define FloatTolerance 0.00001
 
 	public:
+		iABoneThickness();
 		double axisXMax() const;
 		double axisXMin() const;
 		double axisYMax() const;
@@ -87,9 +88,9 @@ class iABoneThickness
 		double thicknessMaximum() const;
 
 	private:
-		double m_pColorNormal[3] = { 1.0 , 0.0 , 0.0 };
-		double m_pColorSelected[3] = { 0.0 , 1.0 , 0.0 };
-		double m_pColorMark[3] = { 0.0 , 0.0 , 1.0 };
+		double m_pColorNormal[3];
+		double m_pColorSelected[3];
+		double m_pColorMark[3];
 
 		bool m_bShowThickness = true;
 		bool m_bShowThicknessLines = true;
@@ -101,8 +102,8 @@ class iABoneThickness
 		double m_dSurfaceOpacity = 1.0;
 		double m_dThicknessMaximum = 0.0;
 
-		double m_pBound[6] = { 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 };
-		double m_pRange[3] = { 0.0 , 0.0 , 0.0 };
+		double m_pBound[6];
+		double m_pRange[3];
 
 		vtkIdType m_idSelected = -1;
 

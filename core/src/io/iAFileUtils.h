@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,11 +22,20 @@
 
 #include "open_iA_Core_export.h"
 
+#include <QFlags>
+
 class QString;
 class QStringList;
+
+enum FilesFolders
+{
+	Files,
+	Folders,
+	FilesAndFolders
+};
 
 open_iA_Core_API QString MakeAbsolute(QString const & baseDir, QString const & fileName);
 open_iA_Core_API QString MakeRelative(QString const & baseDir, QString const & fileName);
 
 open_iA_Core_API void FindFiles(QString const & directory, QStringList const & filters, bool recurse,
-	QStringList & filesOut);
+	QStringList & filesOut, QFlags<FilesFolders> filesFolders);

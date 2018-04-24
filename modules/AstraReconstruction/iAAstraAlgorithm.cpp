@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,8 +30,6 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 
-#define ASTRA_CUDA
-//#include <astra/CompositeGeometryManager.h>
 #include <astra/CudaBackProjectionAlgorithm3D.h>
 #include <astra/CudaFDKAlgorithm3D.h>
 #include <astra/CudaCglsAlgorithm3D.h>
@@ -410,7 +408,7 @@ void SwapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 	int detColDimIdx = detColDim % 3;		// only do modulus once before loop
 	int detRowDimIdx = detRowDim % 3;
 	int projAngleDimIdx = projAngleDim % 3;
-	int idx[3];
+	size_t idx[3];
 	size_t imgBufIdx = 0;
 	for (idx[2] = 0; idx[2] < dim[2]; ++idx[2])
 	{
@@ -420,10 +418,10 @@ void SwapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 			for (long long x = 0; x < dim[0]; ++x)
 			{
 				idx[0] = x;
-				int detCol    = idx[detColDimIdx];     if (detColDim >= 3)    { detCol    = dim[detColDimIdx]    - detCol    - 1; }
-				int detRow    = idx[detRowDimIdx];     if (detRowDim >= 3)    { detRow    = dim[detRowDimIdx]    - detRow    - 1; }
-				int projAngle = idx[projAngleDimIdx];  if (projAngleDim >= 3) { projAngle = dim[projAngleDimIdx] - projAngle - 1; }
-				int bufIndex = detCol + ((projAngle + detRow*dim[projAngleDimIdx])*dim[detColDimIdx]);
+				size_t detCol    = idx[detColDimIdx];     if (detColDim >= 3)    { detCol    = dim[detColDimIdx]    - detCol    - 1; }
+				size_t detRow    = idx[detRowDimIdx];     if (detRowDim >= 3)    { detRow    = dim[detRowDimIdx]    - detRow    - 1; }
+				size_t projAngle = idx[projAngleDimIdx];  if (projAngleDim >= 3) { projAngle = dim[projAngleDimIdx] - projAngle - 1; }
+				size_t bufIndex = detCol + ((projAngle + detRow*dim[projAngleDimIdx])*dim[detColDimIdx]);
 				buf[bufIndex] = static_cast<float>(imgBuf[imgBufIdx + idx[0]]);
 			}
 			imgBufIdx += dim[0];
@@ -436,6 +434,11 @@ void iAASTRAReconstruct::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	vtkSmartPointer<vtkImageData> projImg = Input()[0]->GetVTKImage();
 	int * projDim = projImg->GetDimensions();
+	if (projDim[0] == 0 || projDim[1] == 0 || projDim[2] == 0)
+	{
+		DEBUG_LOG("File not fully loaded or invalid, at least one side is reported to have size 0.");
+		return;
+	}
 	if (parameters[DetRowDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3 ||
 		parameters[DetRowDim].toUInt() % 3 == parameters[ProjAngleDim].toUInt() % 3 ||
 		parameters[ProjAngleDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3)

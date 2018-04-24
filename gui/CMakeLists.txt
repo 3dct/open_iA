@@ -22,9 +22,14 @@ ENDIF (WIN32)
 
 TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}) # for version.h
 
+IF (openiA_USE_COTIRE)
+	cotire(${EXECUTABLE_NAME})
+ENDIF()
+
 # Windows-specific configuration
 IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-")
+
 	IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
 		# force cmake to copy the files:
 		file(REMOVE ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user)
@@ -36,6 +41,12 @@ IF (MSVC)
 		execute_process(COMMAND cmake -E touch ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj)
 		execute_process(COMMAND cmake -E touch ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj)
 		SET (CACHED_OPENIA_GUI_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
+
+		foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+			set (ADDITIONAL_PATH ${${CONFIG}LibraryPaths})
+			file(REMOVE ${CMAKE_BINARY_DIR}/open_iA_gui_${CONFIG}.bat )
+			CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/cmake/run-tmpl.bat ${CMAKE_BINARY_DIR}/x64/open_iA_gui_${CONFIG}.bat @ONLY)
+		endforeach()
 	ENDIF ()
 ENDIF (MSVC)
 

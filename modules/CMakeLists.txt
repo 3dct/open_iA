@@ -12,7 +12,7 @@ LOAD_MODULES( ${CMAKE_CURRENT_SOURCE_DIR}
 LIST( LENGTH MODULE_NAMES _len )
 MATH( EXPR len "${_len} - 1" )
 
-option (MODULES_BUILD_ALL "" OFF)
+option (openiA_BUILD_ALL_MODULES "Whether to enable all modules in build. Note: To be able to disable a module, this option must be switched off. If it is enabled, always all modules will be automatically enabled! Default: disabled." OFF)
 # create options and enable if all modules should be enabled
 FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_NAMES ${indx} module_name)
@@ -20,7 +20,7 @@ FOREACH( indx RANGE ${len} )
 	LIST( GET MODULE_DEFAULT_VALS ${indx} module_def_val)
 	SET(module_option ${option_prefix}${module_name})
 	OPTION( ${module_option} ${module_description} ${module_def_val})
-	IF (MODULES_BUILD_ALL)
+	IF (openiA_BUILD_ALL_MODULES)
 		set(${module_option} "ON" CACHE BOOL "" FORCE)
 	ENDIF()
 ENDFOREACH()
@@ -98,6 +98,10 @@ FOREACH( indx RANGE ${len} )
 			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${depend_full_path} )
 		ENDFOREACH()
 
+		IF (openiA_USE_IDE_FOLDERS)
+			SET_PROPERTY(TARGET ${module_name} PROPERTY FOLDER "Modules")
+		ENDIF()
+
 		IF (NOT "${module_dependencies}" STREQUAL "")
 			ADD_DEPENDENCIES(${module_name} ${module_dependencies})
 		ENDIF()
@@ -118,6 +122,10 @@ FOREACH( indx RANGE ${len} )
 			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${ADDITIONAL_MODULE_INCLUDE_DIRS})
 		ENDIF()
 
+		IF (openiA_USE_COTIRE)
+			cotire(${module_name})
+		ENDIF()
+
 		IF (MSVC)
 			# Apply file grouping based on regular expressions for Visual Studio IDE.
 			SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
@@ -128,6 +136,17 @@ FOREACH( indx RANGE ${len} )
 				RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel/plugins"
 			)
 			INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)
+
+			# Install .vcxproj.user file for module to be able to start open_iA
+			IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_${module_name}_DBG_ENV_PATH}")
+				# force cmake to copy the files:
+				FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user)
+				# create .user files:
+				CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/module.vcxproj.user ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user @ONLY)
+				# make sure visual studio reloads the projects:
+				execute_process(COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj)
+				SET (CACHED_${module_name}_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
+			ENDIF ()
 		ELSE()
 			IF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 				set_target_properties(${module_name} PROPERTIES
@@ -145,8 +164,8 @@ FOREACH( indx RANGE ${len} )
 	ENDIF( ${module_option} )
 ENDFOREACH()
 
-IF (MODULES_BUILD_ALL)
-	MESSAGE(STATUS "Enabled all modules (MODULES_BUILD_ALL is set)")
+IF (openiA_BUILD_ALL_MODULES)
+	MESSAGE(STATUS "Enabled all modules (openiA_BUILD_ALL_MODULES is set)")
 ELSEIF (NOT "${ENABLED_MODULE_NAMES}" STREQUAL "")
 	MESSAGE( STATUS "Enabled modules:" )
 	FOREACH (m ${ENABLED_MODULE_NAMES})

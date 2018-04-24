@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -145,7 +145,6 @@ public:
 	void saveMovie(iARenderer& raycaster);
 	int deletePoint();
 	void changeColor();
-	void autoUpdate(bool toggled);
 	void resetView();
 	void resetTrf();
 	void toggleSnakeSlicer(bool isEnabled);
@@ -201,7 +200,6 @@ public:
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);
-	bool isUpdateAutomatically();
 	void setHistogramFocus();
 	bool isMaximized();
 
@@ -274,13 +272,18 @@ public:
 	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
 	void SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
 
+	//! checks whether the main image data in this child is fully loaded
+	bool IsFullyLoaded() const;
+
+	//! save all currently loaded files into a project with the given file name
+	void saveProject(QString const & fileName);
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
 	void noPointSelected();
 	void endPointSelected();
 	void active();
-	void autoUpdateChanged(bool toogled);
 	void magicLensToggled( bool isToggled );
 	void closed();
 	void updatedViews();
@@ -288,6 +291,7 @@ Q_SIGNALS:
 	void preferencesChanged();
 	void viewInitialized();
 	void TransferFunctionChanged();
+	void fileLoaded();
 
 private slots:
 	void maximizeRC();
@@ -345,8 +349,9 @@ public slots:
 	void updateViews();
 	void addMsg(QString txt);
 	void addStatusMsg(QString txt);
-	bool setupView(bool active = false);
-	bool setupStackView(bool active = false);
+	void setupView(bool active = false);
+	void setupStackView(bool active = false);
+	void setupProject(bool active = false);
 	bool updateVolumePlayerView(int updateIndex, bool isApplyForAll);
 	void removeFinishedAlgorithms();
 	void camPX();
@@ -405,7 +410,7 @@ private:
 	
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//! \return	true if it succeeds, false if it fails.
-	bool setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img);
+	bool setupSaveIO(QString const & f);
 
 	//! sets up the IO thread for loading the correct file type according to the given filename.
 	//! \return	true if it succeeds, false if it fails.
@@ -489,10 +494,11 @@ private:
 	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
 	int m_currentComponent;
+	int m_currentHistogramModality;
 	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		// modality nr being stored
 private slots:
-	void ChangeModality(int chg);
+	void ChangeMagicLensModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
 	void ShowModality(int modIdx);
 	void SaveFinished();
@@ -506,7 +512,6 @@ public:
 	QSharedPointer<iAModalityList> GetModalities();
 	QSharedPointer<iAModality> GetModality(int idx);
 	dlg_modalities* GetModalitiesDlg();
-	bool LoadProject(QString const & fileName);
 	void StoreProject();
 	//! @}
 };

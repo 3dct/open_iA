@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -37,11 +37,17 @@ class open_iA_Core_API iAProgress : public QObject
 	Q_OBJECT
 public:
 	typedef itk::MemberCommand< iAProgress >  CommandType;
-	iAProgress( );
+	//! @{
+	//! Event handlers for ITK progress events
 	void ProcessEvent(itk::Object * caller, const itk::EventObject & event );
 	void ConstProcessEvent(const itk::Object * caller, const itk::EventObject & event );
+	//! @}
+	//! observe an ITK algorithm (and pass on its progress report)
 	void Observe( itk::Object *caller );
+	//! observe a VTK algorithm (and pass on its progress report)
 	void Observe( vtkAlgorithm* caller );
+	//! Used to trigger a progress event.
+	//! @param i the current percentage of progress (number between 0 and 100)
 	void EmitProgress(int i);
 Q_SIGNALS:
 	void progress(int i);

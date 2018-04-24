@@ -1,14 +1,33 @@
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
 #include "iADefectClassifier.h"
-
-#include "iAMathUtility.h"    // for Pi
 
 #include "iAFeature.h"
 #include "iA4DCTDefects.h"
 
+#include <vtkMath.h>
+
 #include <fstream>
 #include <map>
 #include <chrono>
-
 
 iADefectClassifier::iADefectClassifier( )
 {
@@ -85,7 +104,7 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 				&& def.obbSize[1] < m_param.LengthRangeP[1]
 				&& def.obbSize[2] > m_param.WidthRangeP[0]
 				&& def.obbSize[2] < m_param.WidthRangeP[1]
-				&& defInfo.Angle < m_param.AngleP * Pi / 180
+				&& defInfo.Angle < m_param.AngleP * vtkMath::Pi() / 180
 				&& neighborFibersP.size( ) >= 1 )
 			{
 				looksLike = DefectNames::Pulloout;
@@ -101,7 +120,7 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 
 		// debondings
 		if( defInfo.Elongation > m_param.ElongationD
-			&& defInfo.Angle > m_param.AngleD * Pi / 180 )
+			&& defInfo.Angle > m_param.AngleD * vtkMath::Pi() / 180 )
 		{
 			looksLike = DefectNames::Debonding;
 		}
@@ -110,7 +129,7 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 		if( looksLike == DefectNames::Pulloout
 			&& neighborFibersFF.size( ) >= 2 )
 		{
-			double minAngle = 2 * Pi; // maximum possible angle
+			double minAngle = 2 * vtkMath::Pi(); // maximum possible angle
 			for( int i = 0; i < neighborFibersFF.size( ); ++i )
 			{				
 				for( int j = i + 1; j < neighborFibersFF.size( ); ++j )
@@ -126,12 +145,12 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 					dir[0] = Vec3d( neighborFibersFF[i].endPoint ) - Vec3d( neighborFibersFF[i].startPoint );
 					dir[1] = Vec3d( neighborFibersFF[j].endPoint ) - Vec3d( neighborFibersFF[j].startPoint );
 					double angle = Vec3d::angle( dir[0], dir[1] );
-					angle = angle > (PiHalf) ? Pi - angle : angle;
+					angle = angle > (vtkMath::Pi()/2) ? vtkMath::Pi() - angle : angle;
 					if( minAngle > angle ) minAngle = angle;
 				}
 			}
 
-			if( minAngle < m_param.AngleB * Pi / 180 ) looksLike = DefectNames::Breakage;
+			if( minAngle < m_param.AngleB * vtkMath::Pi() / 180 ) looksLike = DefectNames::Breakage;
 		}
 
 		switch( looksLike )
@@ -178,7 +197,7 @@ iADefectClassifier::ExtendedDefectInfo iADefectClassifier::calcExtendedDefectInf
 	ExtendedDefectInfo defInfo;
 	defInfo.Direction = def.eigenvectors[2].normalized( );
 	double angle = Vec3d::angle( defInfo.Direction, Vec3d( 0, 0, 1 ) );
-	if( angle > PiHalf ) angle = Pi - angle;
+	if( angle > vtkMath::Pi()/2) angle = vtkMath::Pi() - angle;
 	defInfo.Angle = angle;
 	defInfo.Elongation = def.obbSize[0] / def.obbSize[1];
 	defInfo.Endpoints[0] = def.centroid + defInfo.Direction * def.obbSize[0] / 2;

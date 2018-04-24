@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_GEMSeControl.h"
 
 #include "dlg_commoninput.h"
@@ -39,13 +38,13 @@
 #include "iAImageTreeLeaf.h" // for VisitLeafs
 #include "iAImageSampler.h"
 #include "iAToolsITK.h"
-#include "io/iAIOProvider.h"
 #include "iALabelInfo.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAImageClusterer.h"
 #include "iASamplingResults.h"
 #include "iASEAFile.h"
+#include "io/iAIOProvider.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -445,7 +444,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 
 		if (m_dlgModalities->GetModalities()->GetFileName().isEmpty())
 		{
-			m_dlgModalities->Store(m_outputFolder + "/" + iASEAFile::DefaultModalityFileName);
+			mdiChild->saveProject(m_outputFolder + "/" + iASEAFile::DefaultModalityFileName);
 		}
 		StoreGEMSeProject(m_outputFolder + "/sampling.sea", "");
 	}

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,13 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_datatypeconversion.h"
 
-#include "iAConnector.h"
 #include "charts/iAHistogramWidget.h"
+#include "iAConnector.h"
+#include "iAToolsITK.h"
 #include "iAToolsVTK.h"
-#include <iATransferFunction.h>
+#include "iATransferFunction.h"
 #include "iATypedCallHelper.h"
 
 #include <itkChangeInformationImageFilter.h>
@@ -60,8 +60,7 @@
 #include <QStringList>
 #include <QVariant>
 
-
-template<class T> int DataTypeConversion_template(QString const & m_filename, double* b, iAPlotData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
+template<class T> void DataTypeConversion_template(QString const & m_filename, double* b, iAPlotData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 
@@ -314,8 +313,6 @@ template<class T> int DataTypeConversion_template(QString const & m_filename, do
 	metaImageWriter->SetInputData(yzconvertimage->GetVTKImage());
 	metaImageWriter->SetCompression(0);
 	metaImageWriter->Write();
-
-	return EXIT_SUCCESS;
 }
 
 void dlg_datatypeconversion::DataTypeConversion(QString const & m_filename, double* b)
@@ -327,7 +324,7 @@ void dlg_datatypeconversion::DataTypeConversion(QString const & m_filename, doub
 }
 
 //roi conversion
-template<class T> int DataTypeConversionROI_template(QString const & m_filename, double* b, double* roi, float* m_min, float* m_max, float* m_dis, iAConnector* m_roiconvertimage)
+template<class T> void DataTypeConversionROI_template(QString const & m_filename, double* b, double* roi, float* m_min, float* m_max, float* m_dis, iAConnector* m_roiconvertimage)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 
@@ -409,34 +406,10 @@ template<class T> int DataTypeConversionROI_template(QString const & m_filename,
 
 	filter->SetInput( itkimage );
 	filter->SetExtractionRegion(region);
-
 	filter->Update();
 
-	//change the output image information - offset change to zero
-	typename InputImageType::IndexType idx; idx.Fill(0);
-	typename InputImageType::PointType origin; origin.Fill(0);
-	typename InputImageType::SizeType outsize; outsize[0] = roi[1];	outsize[1] = roi[3];	outsize[2] = roi[5];
-	typename InputImageType::RegionType outreg;
-	outreg.SetIndex(idx); 
-	outreg.SetSize(outsize);
-	typename InputImageType::Pointer refimage = InputImageType::New();
-	refimage->SetRegions(outreg);
-	refimage->SetOrigin(origin);
-	refimage->SetSpacing(filter->GetOutput()->GetSpacing());
-	refimage->Allocate();
-
-	typedef itk::ChangeInformationImageFilter<InputImageType> CIIFType;
-	typename CIIFType::Pointer changefilter = CIIFType::New();
-	changefilter->SetInput(filter->GetOutput());
-	changefilter->UseReferenceImageOn();
-	changefilter->SetReferenceImage(refimage);
-	changefilter->SetChangeRegion(1);
-	changefilter->Update( );
-
-	m_roiconvertimage->SetImage( changefilter->GetOutput() );
+	m_roiconvertimage->SetImage( SetIndexOffsetToZero<T>(filter->GetOutput()) );
 	m_roiconvertimage->Modified();
-
-	return EXIT_SUCCESS;
 }
 
 void dlg_datatypeconversion::DataTypeConversionROI(QString const & m_filename, double* b, double *roi)

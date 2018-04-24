@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,7 +29,7 @@ QStringList SplitPossiblyQuotedString(QString const & str)
 	// TODO : rewrite so that it can cope with multiply quoted strings
 	//     (where quotes are escaped by \" )
 	QStringList result;
-	QRegularExpression exp("\\s*([^\"]\\S*|\".+?\")\\s*");
+	QRegularExpression exp("\\s*([^\"]\\S*|\".*?\")\\s*");
 	int offset = 0;
 	QRegularExpressionMatch match = exp.match(str, offset);
 	while (match.hasMatch())

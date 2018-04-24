@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,13 +20,12 @@
 * ************************************************************************************/
 #include "iAFilterRunnerGUI.h"
 
-#include "iAFilter.h"
-
 #include "dlg_commoninput.h"
 #include "dlg_modalities.h"
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
+#include "iAFilter.h"
 #include "iALogger.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
@@ -256,8 +255,15 @@ void iAFilterRunnerGUI::FilterGUIPreparations(QSharedPointer<iAFilter> filter, M
 void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
 	MdiChild* sourceMdi = mainWnd->activeMdiChild();
+	if (filter->RequiredInputs() > 0 && (!sourceMdi || !sourceMdi->IsFullyLoaded()))
+	{
+		mainWnd->statusBar()->showMessage("Please wait until file is fully loaded!");
+		return;
+	}
+
 	filter->SetLogger(sourceMdi->getLogger());
 	QMap<QString, QVariant> paramValues = LoadParameters(filter, sourceMdi);
+
 	if (!AskForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 		return;
 	StoreParameters(filter, paramValues);

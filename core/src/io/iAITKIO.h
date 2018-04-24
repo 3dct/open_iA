@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -38,7 +38,7 @@ namespace iAITKIO
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 	
 	template<class T>
-	inline int read_image_template( QString const & f, ImagePointer & image, bool releaseFlag )
+	inline void read_image_template( QString const & f, ImagePointer & image, bool releaseFlag )
 	{
 		typedef itk::Image< T, m_DIM>   InputImageType;
 		typedef itk::ImageFileReader<InputImageType> ReaderType;
@@ -52,12 +52,10 @@ namespace iAITKIO
 		reader->Update();
 		image = reader->GetOutput();
 		image->Modified();
-
-		return EXIT_SUCCESS;
 	}
 
 	template<class T>
-	inline int write_image_template( bool comp, QString const & fileName, ImagePointer image )
+	inline void write_image_template( bool comp, QString const & fileName, ImagePointer image )
 	{
 		typedef itk::Image< T, m_DIM>   InputImageType;
 		typedef itk::ImageFileWriter<InputImageType> WriterType;
@@ -68,8 +66,6 @@ namespace iAITKIO
 		writer->SetInput( dynamic_cast<InputImageType *> (image.GetPointer()) );
 		writer->SetUseCompression( comp );
 		writer->Update();
-
-		return EXIT_SUCCESS;
 	}
 
 	// TODO: unify with mdichild::loadfile / iAIO!

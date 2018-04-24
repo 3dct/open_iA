@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,17 +20,18 @@
 * ************************************************************************************/
 #include "iAModalityList.h"
 
-#include "io/extension2id.h"
 #include "iAConsole.h"
-#include "io/iAFileUtils.h"
-#include "io/iAIO.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
+#include "iAProgress.h"
 #include "iASettings.h"
 #include "iAStringHelper.h"
 #include "iAVolumeRenderer.h"
 #include "iAVolumeSettings.h"
+#include "io/extension2id.h"
+#include "io/iAFileUtils.h"
+#include "io/iAIO.h"
 
 #include <vtkCamera.h>
 #include <vtkImageData.h>
@@ -191,7 +192,7 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 	}
 }
 
-bool iAModalityList::Load(QString const & filename)
+bool iAModalityList::Load(QString const & filename, iAProgress& progress)
 {
 	if (filename.isEmpty())
 	{
@@ -226,9 +227,14 @@ bool iAModalityList::Load(QString const & filename)
 		m_camSettingsAvailable = true;
 	}
 
-	int currIdx = 0;
+	int maxIdx = 0;
+	while (settings.contains(GetModalityKey(maxIdx, "Name")))
+	{
+		++maxIdx;
+	}
 
-	while (settings.contains(GetModalityKey(currIdx, "Name")))
+	int currIdx = 0;
+	while (currIdx < maxIdx)
 	{
 		QString modalityName = settings.value(GetModalityKey(currIdx, "Name")).toString();
 		QString modalityFile = settings.value(GetModalityKey(currIdx, "File")).toString();
@@ -284,7 +290,8 @@ bool iAModalityList::Load(QString const & filename)
 			m_modalities.push_back(mod[0]);
 			emit Added(mod[0]);
 		}
-		currIdx++;
+		++currIdx;
+		progress.EmitProgress((100 * currIdx) / maxIdx);
 	}
 	m_fileName = filename;
 	return true;
@@ -465,19 +472,17 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 	const double d_DefaultSpecularLighting = 0.7;
 	const double d_DefaultSpecularPower = 10; 
 
-
 	//Shading
-	if(isStringBoolean(Shading, b_Shading)){
+	if(isStringBoolean(Shading, b_Shading)) {
 		volSettings.Shading = b_Shading; 
-	}else {
+	}
+	else {
 		logParameter("Shading", Shading); 
-		volSettings.Shading =true; 
+		volSettings.Shading = b_DefaultShading;
 	}
 
-	
-
 	//LinearInterpolation
-	if (isStringBoolean(LinearInterpolation, b_LinearInterPol)){
+	if (isStringBoolean(LinearInterpolation, b_LinearInterPol)) {
 		volSettings.LinearInterpolation = b_LinearInterPol; 
 	}
 	else {
@@ -485,18 +490,15 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 		volSettings.LinearInterpolation = b_DefaultLinearInterPol; 
 	}
 
-	
-
 	//SampleDistance
 	if (isStringDouble(SampleDistance, d_sampleDistance)) {
 		volSettings.SampleDistance = d_sampleDistance;
-	
-	}else {
+	}
+	else {
 		logParameter("SampleDistance", SampleDistance);
 		volSettings.SampleDistance = d_DefaultSampleDistance;
 	}
 
-	
 	//AmbientLighting
 	if (isStringDouble(AmbientLighting, d_ambientLighting)) {
 		volSettings.AmbientLighting = d_ambientLighting; 
@@ -506,8 +508,6 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 		volSettings.AmbientLighting = d_DefaultAmbientLight; 
 	}
 
-
-	
 	//DiffuseLighting
 	if (isStringDouble(DiffuseLighting, d_diffuseLighting)) {
 		volSettings.DiffuseLighting = d_diffuseLighting;
@@ -517,7 +517,6 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 		volSettings.DiffuseLighting = d_DefaultDiffuseLight;
 	}
 
-	
 	//SpecularLighting
 	if (isStringDouble(SpecularLighting, d_SpecularLighting)) {
 		volSettings.SpecularLighting = d_SpecularLighting;
@@ -527,8 +526,6 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 		volSettings.SpecularLighting = d_DefaultSpecularLighting;
 	}
 
-
-	
 	//SpecularPower
 	if (isStringDouble(SpecularPower, d_SpecularPower)) {
 		volSettings.SpecularLighting = d_SpecularLighting;
@@ -537,14 +534,4 @@ void iAModalityList::checkandSetVolumeSettings(iAVolumeSettings &volSettings, co
 		logParameter("SpecularPower", SpecularPower);
 		volSettings.SpecularLighting = d_DefaultSpecularLighting;
 	}
-
-
-
-
-
-
-
-
-
-
 }

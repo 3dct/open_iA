@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -38,10 +38,6 @@
 	#define isNaN(x) isnan(x)
 	#define isInf(x) isinf(x)
 #endif
-
-// define Pi, as an alternative to the not always available M_PI
-const double Pi = 3.14159265358979323846;
-const double PiHalf = Pi / 2;
 
 /**
  * make sure the given value is inside the given interval

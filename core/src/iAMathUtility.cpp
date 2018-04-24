@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,11 +20,13 @@
 * ************************************************************************************/
 #include "iAMathUtility.h"
 
+#include <vtkMath.h>
+
 #include <algorithm>
 
 double gaussian(double x, double sigma)
 {
-	return 1 / std::sqrt(2 * Pi*std::pow(sigma, 2.0)) *
+	return 1 / std::sqrt(2 * vtkMath::Pi()*std::pow(sigma, 2.0)) *
 		std::exp(-std::pow(x, 2.0) / (2 * std::pow(sigma, 2.0)));
 }
 

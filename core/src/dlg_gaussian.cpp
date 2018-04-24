@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,19 +18,17 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_gaussian.h"
 
 #include "charts/iADiagramFctWidget.h"
 #include "iAMapper.h"
 #include "iAMathUtility.h"
 
+#include <vtkMath.h>
+
 #include <QPen>
 #include <QPainter>
 #include <QMouseEvent>
-
-double dlg_gaussian::PI = 3.14159265358979323846264338327950288;
 
 dlg_gaussian::dlg_gaussian(iADiagramFctWidget *chart, QColor &color, bool res): dlg_function(chart)
 {
@@ -67,14 +65,14 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 	
 	double X1 = chart->XBounds()[0];
 	double X2 = X1;
-	double Y1 = 1.0/(sigma*sqrt(2*PI))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
+	double Y1 = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
 	double Y2 = Y1;
 	
 	double smallStep = std::max(6 * sigma / 100, 0.25*i2dX(1));
 	while (X2 <= chart->XBounds()[1]+step && step > std::numeric_limits<double>::epsilon())
 	{
 		Y1 = Y2;
-		Y2 = 1.0/(sigma*sqrt(2*PI))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
+		Y2 = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
 
 		int x1, y1;
 		x1 = d2iX(X1);
@@ -112,7 +110,7 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 		painter.setPen(pen);
 		
 		int x, lx, rx, y;
-		double meanValue = 1.0/(sigma*sqrt(2*PI))*multiplier;
+		double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*multiplier;
 		
 		x = d2iX(mean);
 		lx = d2iX(mean-sigma);
@@ -146,7 +144,7 @@ int dlg_gaussian::selectPoint(QMouseEvent *event, int*)
 	int lx = event->x();
 	int ly = chart->geometry().height() - event->y() - chart->BottomMargin();
 
-	double meanValue = 1.0/(sigma*sqrt(2*PI));
+	double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()));
 
 	int viewXPoint = d2vX(mean);
 	int viewYPoint = d2vY(meanValue*multiplier);
@@ -191,7 +189,7 @@ void dlg_gaussian::moveSelectedPoint(int x, int y)
 			}
 		}
 
-		double meanValue = 1.0/(sigma*sqrt(2*PI))*chart->YZoom();
+		double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->YZoom();
 		multiplier  = (double)y /(chart->geometry().height() - chart->BottomMargin()-1)*chart->YBounds()[1] /meanValue;
 	}
 }
@@ -201,7 +199,7 @@ void dlg_gaussian::reset()
 
 void dlg_gaussian::setMultiplier(int multiplier)
 {
-	double meanValue = 1.0/(sigma*sqrt(2*PI))*chart->YZoom();
+	double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->YZoom();
 	this->multiplier = v2dY(multiplier) /meanValue;
 }
 

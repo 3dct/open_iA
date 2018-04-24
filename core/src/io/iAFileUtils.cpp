@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAFileUtils.h"
 
 #include <QCollator>
@@ -53,12 +51,12 @@ QString MakeRelative(QString const & baseDir,  QString const & fileName)
 }
 
 void FindFiles(QString const & directory, QStringList const & filters, bool recurse,
-	QStringList & filesOut)
+	QStringList & filesOut, QFlags<FilesFolders> filesFolders)
 {
 	QDir dir(directory);
 	dir.setSorting(QDir::NoSort);
 	QDir::Filters flags = QDir::Files;
-	if (recurse)
+	if (recurse || filesFolders.testFlag(Folders))
 		flags = QDir::Files | QDir::AllDirs;
 	QStringList entryList = dir.entryList(filters, flags);
 	QCollator collator;
@@ -70,8 +68,16 @@ void FindFiles(QString const & directory, QStringList const & filters, bool recu
 			continue;
 		QFileInfo fi(directory + "/" + fileName);
 		if (fi.isDir())
-			FindFiles(fi.absoluteFilePath(), filters, recurse, filesOut);
+		{
+			if (filesFolders.testFlag(Folders))
+				filesOut.append(fi.absoluteFilePath());
+			if (recurse)
+				FindFiles(fi.absoluteFilePath(), filters, recurse, filesOut, filesFolders);
+		}
 		else
-			filesOut.append(fi.absoluteFilePath());
+		{
+			if (filesFolders.testFlag(Files))
+				filesOut.append(fi.absoluteFilePath());
+		}
 	}
 }

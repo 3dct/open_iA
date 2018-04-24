@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,25 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "mainwindow.h"
 
+#include "charts/iADiagramFctWidget.h"
 #include "defines.h"
-
 #include "dlg_bezier.h"
 #include "dlg_commoninput.h"
 #include "dlg_datatypeconversion.h"
 #include "dlg_gaussian.h"
 #include "dlg_transfer.h"
 #include "iAConsole.h"
-#include "charts/iADiagramFctWidget.h"
-#include "io/iAIOProvider.h"
 #include "iALogger.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iARenderer.h"
 #include "iASlicerData.h"
 #include "iAToolsVTK.h"
+#include "io/iAIOProvider.h"
 #include "io/iATLGICTLoader.h"
 #include "mdichild.h"
 
@@ -58,6 +56,7 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
+#include <QDesktopServices>
 
 MainWindow::MainWindow(QString const & appName, QString const & version, QString const & splashImage )
 :
@@ -277,21 +276,14 @@ void MainWindow::OpenRecentFile()
 
 void MainWindow::LoadFile(QString const & fileName)
 {
-	if (fileName.endsWith(iAIOProvider::ProjectFileExtension))
+	QFileInfo fi(fileName);
+	if (fi.isDir())
 	{
-		LoadProject(fileName);
+		LoadTLGICTData(fileName);
 	}
 	else
 	{
-		QFileInfo fi(fileName);
-		if (fi.isDir())
-		{
-			LoadTLGICTData(fileName);
-		}
-		else
-		{
-			LoadFile(fileName, fileName.endsWith(".volstack"));
-		}
+		LoadFile(fileName, fileName.endsWith(".volstack"));
 	}
 }
 
@@ -1380,20 +1372,6 @@ void MainWindow::changeColor()
 }
 
 
-void MainWindow::autoUpdate(bool toggled)
-{
-	if (activeMdiChild() && activeMdiChild()->isUpdateAutomatically() != toggled)
-		activeMdiChild()->autoUpdate(toggled);
-}
-
-
-void MainWindow::updateViews()
-{
-	if (activeMdiChild())
-		activeMdiChild()->updateViews();
-}
-
-
 void MainWindow::resetView()
 {
 	if (activeMdiChild())
@@ -1531,7 +1509,9 @@ MdiChild* MainWindow::GetResultChild(MdiChild* oldChild, QString const & title)
 {
 	if (oldChild->getResultInNewWindow())
 	{
-		// TODO: copy all modality images, or don't copy anything here and use image from old image directly!
+		// TODO: copy all modality images, or don't copy anything here and use image from old child directly,
+		// or nothing at all until new image available!
+		// Note that filters currently get their input from this child already!
 		vtkSmartPointer<vtkImageData> imageData = oldChild->getImagePointer();
 		MdiChild* newChild = createMdiChild(true);
 		newChild->show();
@@ -1597,6 +1577,22 @@ void MainWindow::about()
 }
 
 
+void MainWindow::wiki()
+{
+	QAction* act = qobject_cast<QAction*>(QObject::sender());
+	if (act->text().contains("Core"))
+		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Core"));
+	else if(act->text().contains("Filters"))
+		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Filters"));
+	else if (act->text().contains("Tools"))
+		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Tools"));	
+	else if (act->text().contains("releases"))
+		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/releases"));
+	else if (act->text().contains("bug"))
+		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/issues"));
+}
+
+
 void MainWindow::createRecentFileActions()
 {
 	separatorAct = menu_File->addSeparator();
@@ -1639,8 +1635,6 @@ void MainWindow::updateMenus()
 	actionSlicerSettings->setEnabled(hasMdiChild);
 	actionLoad_transfer_function->setEnabled(hasMdiChild);
 	actionSave_transfer_function->setEnabled(hasMdiChild);
-	actionUpdate_automatically->setEnabled(hasMdiChild);
-	actionUpdateViews->setEnabled(hasMdiChild);
 	actionSnake_Slicer->setEnabled(hasMdiChild);
 	actionMagicLens->setEnabled(hasMdiChild);
 	actionView_X_direction_in_raycaster->setEnabled(hasMdiChild);
@@ -1682,9 +1676,6 @@ void MainWindow::updateMenus()
 			actionDelete_point->setEnabled(true);
 			actionChange_color->setEnabled(true);
 		}
-
-		actionUpdate_automatically->setChecked(activeMdiChild()->isUpdateAutomatically());
-
 		//??if (activeMdiChild())
 		//	histogramToolbar->setEnabled(activeMdiChild()->getTabIndex() == 1 && !activeMdiChild()->isMaximized());
 	}
@@ -1727,6 +1718,9 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	subWin->setOption(QMdiSubWindow::RubberBandResize);
 	subWin->setOption(QMdiSubWindow::RubberBandMove);
 
+	if (mdiArea->subWindowList().size() < 2)
+		child->showMaximized();
+
 	child->setRenderSettings(defaultRenderSettings, defaultVolumeSettings);
 	child->setupSlicers(defaultSlicerSettings, false);
 
@@ -1734,7 +1728,6 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	connect( child, SIGNAL( noPointSelected() ), this, SLOT( noPointSelected() ) );
 	connect( child, SIGNAL( endPointSelected() ), this, SLOT( endPointSelected() ) );
 	connect( child, SIGNAL( active() ), this, SLOT( setHistogramFocus() ) );
-	connect( child, SIGNAL( autoUpdateChanged( bool ) ), actionUpdate_automatically, SLOT( setChecked( bool ) ) );
 	connect( child, SIGNAL( closed() ), this, SLOT( childClosed() ) );
 
 	SetModuleActionsEnabled( true );
@@ -1762,8 +1755,12 @@ void MainWindow::connectSignalsToSlots()
 	connect(cascadeAct, SIGNAL(triggered()), mdiArea, SLOT(cascadeSubWindows()));
 	connect(nextAct, SIGNAL(triggered()), mdiArea, SLOT(activateNextSubWindow()));
 	connect(previousAct, SIGNAL(triggered()), mdiArea, SLOT(activatePreviousSubWindow()));
+	connect(userGuideCoreAct, SIGNAL(triggered()), this, SLOT(wiki()));
+	connect(userGuideFiltersAct, SIGNAL(triggered()), this, SLOT(wiki()));
+	connect(userGuideToolsAct, SIGNAL(triggered()), this, SLOT(wiki()));
+	connect(releasesAct, SIGNAL(triggered()), this, SLOT(wiki()));
+	connect(bugAct, SIGNAL(triggered()), this, SLOT(wiki()));
 	connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
-	connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 	connect(xyAct, SIGNAL(triggered()), this, SLOT(maxXY()));
 	connect(xzAct, SIGNAL(triggered()), this, SLOT(maxXZ()));
 	connect(yzAct, SIGNAL(triggered()), this, SLOT(maxYZ()));
@@ -1779,9 +1776,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionSave_transfer_function, SIGNAL(triggered()), this, SLOT(saveTransferFunction()));
 	connect(actionDelete_point, SIGNAL(triggered()), this, SLOT(deletePoint()));
 	connect(actionChange_color, SIGNAL(triggered()), this, SLOT(changeColor()));
-	connect(actionUpdate_automatically, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
 	//connect(actionUpdate_3D_view, SIGNAL(triggered()), this, SLOT(update3DView()));
-	connect(actionUpdateViews, SIGNAL(triggered()), this, SLOT(updateViews()));
 	connect(actionSnake_Slicer, SIGNAL(toggled(bool)), this, SLOT(toggleSnakeSlicer(bool)));
 	connect(actionMagicLens, SIGNAL(toggled(bool)), this, SLOT(toggleMagicLens(bool)));
 	connect(actionView_X_direction_in_raycaster, SIGNAL(triggered()), this, SLOT(raycasterCamPX()));
@@ -2309,23 +2304,7 @@ void MainWindow::LoadProject()
 		tr("Open Input File"),
 		path,
 		iAIOProvider::ProjectFileTypeFilter);
-	LoadProject(fileName);
-}
-
-
-void MainWindow::LoadProject(QString const & fileName)
-{
-	if (fileName.isEmpty())
-		return;
-	MdiChild* child = createMdiChild(false);
-	if (child->LoadProject(fileName))
-	{
-		child->show();
-	}
-	else
-	{
-		delete child;
-	}
+	LoadFile(fileName);
 }
 
 

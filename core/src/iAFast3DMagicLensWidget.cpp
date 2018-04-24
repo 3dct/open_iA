@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,26 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAConsole.h"
-#include "iAMathUtility.h"    // for Pi
 
-// vtk
 #include <QVTKInteractor.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkRendererCollection.h>
-#include <vtkCamera.h>
-#include <vtkRenderer.h>
-#include <vtkPoints.h>
-#include <vtkPolyLine.h>
-#include <vtkCellArray.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper2D.h>
 #include <vtkActor2D.h>
 #include <vtkActor2DCollection.h>
+#include <vtkCamera.h>
+#include <vtkCellArray.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkMath.h>
+#include <vtkPoints.h>
+#include <vtkPolyLine.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper2D.h>
 #include <vtkProperty2D.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
 
 #include <QMouseEvent>
 
@@ -106,7 +103,7 @@ void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 
 inline double iAFast3DMagicLensWidget::calculateZ( double viewAngle )
 {
-	return -1. / std::tan( viewAngle * Pi / 180. );
+	return -1. / std::tan( viewAngle * vtkMath::Pi() / 180. );
 }
 
 void iAFast3DMagicLensWidget::mouseReleaseEvent( QMouseEvent * event )

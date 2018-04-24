@@ -31,8 +31,6 @@
 
 #include <fstream>
 #include <map>
-#include <string>
-#include <sstream>
 
 namespace itk
 {

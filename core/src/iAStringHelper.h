@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -36,13 +36,13 @@ class QStringList;
 //! @return a list of strings split up at the whitespaces
 open_iA_Core_API QStringList SplitPossiblyQuotedString(QString const & str);
 
-QString QuoteString(QString const & str);
+open_iA_Core_API QString QuoteString(QString const & str);
 
 //! Convert a given string representation to a double vector with three elements
-bool Str2Vec3D(QString const & str, double vec[3]);
+open_iA_Core_API bool Str2Vec3D(QString const & str, double vec[3]);
 
 //! Convert a given double vector with three elements to a string representation
-QString Vec3D2String(double* vec);
+open_iA_Core_API QString Vec3D2String(double* vec);
 
 //! Pads or truncates the given string to the given size.
 //!
@@ -51,15 +51,15 @@ QString Vec3D2String(double* vec);
 //! @param str the string to be padded or truncated
 //! @param size the size that the return string should have
 //! @return a string of exactly the given size, padded or truncated from the given name
-QString PadOrTruncate(QString const & str, int size);
+open_iA_Core_API QString PadOrTruncate(QString const & str, int size);
 
 //! strip HTML tags from the given string
 //! @param html a string potentially containing HTML tags
 //! @return the input string with all HTML tags (<xyz>, </xyz>, <xyz/>) removed
-QString StripHTML(QString const & html);
+open_iA_Core_API QString StripHTML(QString const & html);
 
 //! returns the value converted to string, with units (K, M, G, T, P) applied for every 10³ factor over 1000
-QString DblToStringWithUnits(double value);
+open_iA_Core_API QString DblToStringWithUnits(double value);
 
 //! join a vector of numeric types T to string, using the given string as item separator
 //!
@@ -87,4 +87,4 @@ QString Join(QVector<T> const & vec, QString const & joinStr)
 //! find the greatest common prefix of the two given strings
 //! example: str1 ="BaseMethod", str2="BaseMember"
 //!     result: "BaseMe"
-QString GreatestCommonPrefix(QString const & str1, QString const & str2);
+open_iA_Core_API QString GreatestCommonPrefix(QString const & str1, QString const & str2);

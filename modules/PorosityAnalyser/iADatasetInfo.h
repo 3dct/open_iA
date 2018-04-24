@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -42,9 +42,9 @@ signals:
 	void progress( int );
 
 private:
-	template<class T> int generateInfo( QString datasetPath, QString datasetName, 
+	template<class T> void generateInfo( QString datasetPath, QString datasetName,
 										ImagePointer & image, iAPorosityAnalyserModuleInterface * pmi,
 										int filesInfoNbToCreate, int currentFInfoNb );
-	
+
 	QStringList m_newGeneratedInfoFilesList;
 };

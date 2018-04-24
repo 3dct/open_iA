@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -140,8 +140,6 @@ private slots:
 	void saveTransferFunction();
 	void deletePoint();
 	void changeColor();
-	void autoUpdate(bool toggled);
-	void updateViews();
 	void resetView();
 	void resetTrf();
 	void toggleSnakeSlicer(bool isChecked);
@@ -170,6 +168,7 @@ public slots:
 	void childActivatedSlot(QMdiSubWindow *wnd);
 	void OpenWithDataTypeConversion();
 	void about();
+	void wiki();
 	void updateMenus();
 	void updateWindowMenu();
 	MdiChild *createMdiChild(bool unsavedChanges);
@@ -192,7 +191,6 @@ private:
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
-	void LoadProject(QString const & fileName);
 	void LoadTLGICTData(QString const & baseDirectory);
 	bool KeepOpen();
 	MdiChild* findMdiChild(const QString &fileName);

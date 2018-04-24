@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iAIO.h"
 
 #include "defines.h"
@@ -29,6 +28,7 @@
 #include "iAConsole.h"
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAExtendedTypedCallHelper.h"
+#include "iAModalityList.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
@@ -151,7 +151,7 @@ void write_image_template(bool compression, QString const & fileName,
 
 
 iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *par,
-		vector<vtkSmartPointer<vtkImageData> > * volumes, vector<QString> * fileNames)
+		std::vector<vtkSmartPointer<vtkImageData> > * volumes, std::vector<QString> * fileNames)
 	: iAAlgorithm( "IO", i, p, logger, par ),
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)
@@ -160,13 +160,22 @@ iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *par,
 }
 
 
-iAIO::iAIO( iALogger* logger, QWidget *par /*= 0*/, vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/,
-		vector<QString> * fileNames /*= 0*/ )
+iAIO::iAIO( iALogger* logger, QWidget *par /*= 0*/, std::vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/,
+		std::vector<QString> * fileNames /*= 0*/ )
 	: iAAlgorithm( "IO", 0, 0, logger, par),
 	m_volumes(volumes),
 	m_fileNames_volstack(fileNames)
 {
 	init(par);
+}
+
+
+iAIO::iAIO(QSharedPointer<iAModalityList> modalities, vtkCamera* cam, iALogger* logger):
+	iAAlgorithm( "IO", nullptr, nullptr, logger, nullptr ),
+	m_modalities(modalities),
+	m_camera(cam)
+{
+	init(nullptr);
 }
 
 
@@ -182,7 +191,7 @@ void iAIO::init(QWidget *par)
 	scalarType = 0;
 	byteOrder = 1;
 	ioID = 0;
-	iosettingsreader();
+	LoadIOSettings();
 }
 
 
@@ -302,7 +311,7 @@ void printHDF5ErrorsToConsole()
 
 #include <vtkImageImport.h>
 
-void iAIO::loadHDF5File()
+void iAIO::readHDF5File()
 {
 	if (m_hdf5Path.size() < 2)
 	{
@@ -390,6 +399,17 @@ void iAIO::loadHDF5File()
 	postImageReadActions();
 }
 #endif
+
+void iAIO::readProject()
+{
+	m_modalities = QSharedPointer<iAModalityList>(new iAModalityList());
+	m_modalities->Load(fileName, *ProgressObserver());
+}
+
+void iAIO::writeProject()
+{
+	m_modalities->Store(fileName, m_camera);
+}
 
 void iAIO::run()
 {
@@ -493,10 +513,16 @@ void iAIO::run()
 				}
 				else
 				{
-					loadHDF5File();
+					readHDF5File();
 				}
 				break;
 	#endif
+			case PROJECT_READER:
+				readProject();
+				break;
+			case PROJECT_WRITER:
+				writeProject();
+				break;
 			case UNKNOWN_READER:
 			default:
 				addMsg(tr("  unknown reader type"));
@@ -715,7 +741,9 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		case VOLUME_STACK_VOLSTACK_WRITER:
 			return setupVolumeStackVolStackWriter(f);
 
-		case TIF_STACK_WRITER:  // intentional fall-throughs
+		case PROJECT_READER:  // intentional fall-throughs
+		case PROJECT_WRITER:
+		case TIF_STACK_WRITER:
 		case JPG_STACK_WRITER:
 		case PNG_STACK_WRITER:
 		case BMP_STACK_WRITER:
@@ -838,7 +866,7 @@ void iAIO::readNRRD()
 	image->SetImage(reader->GetOutput());
 	image->Modified();
 	postImageReadActions();
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -881,7 +909,7 @@ void iAIO::readDCM()
 	image->SetImage(reader->GetOutput());
 	image->Modified();
 	postImageReadActions();
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -923,7 +951,7 @@ void iAIO::readVolumeMHDStack()
 		ProgressObserver()->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -943,7 +971,7 @@ void iAIO::readVolumeStack()
 		ProgressObserver()->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -990,7 +1018,7 @@ void iAIO::postImageReadActions()
 	getVtkImageData()->Initialize();
 	getVtkImageData()->DeepCopy(getConnector()->GetVTKImage());
 	getVtkImageData()->CopyInformationFromPipeline(getConnector()->GetVTKImage()->GetInformation());
-	addMsg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	addMsg(tr("%1  File loaded.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 }
 
 
@@ -998,7 +1026,7 @@ void iAIO::readImageData()
 {
 	readRawImage();
 	postImageReadActions();
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -1017,7 +1045,7 @@ void iAIO::readSTL( )
 	stlReader->SetOutput(getVtkPolyData());
 	stlReader->Update();
 	printSTLFileInfos();
-	addMsg(tr("%1  Loading file %2 completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	addMsg(tr("%1  File loaded.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 }
 
 
@@ -1552,18 +1580,18 @@ bool iAIO::setupStackReader( QString f )
 		}
 	}
 	extension = "." + fi.suffix();
-	QStringList inList		= (QStringList()
+	QStringList inList = (QStringList()
 		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
-		<< tr("#Minimum Index")  << tr("#Maximum Index")
-		<< tr("#Spacing X")  << tr("#Spacing Y")  << tr("#Spacing Z")
-		<< tr("#Origin X")  << tr("#Origin Y")  << tr("#Origin Z"))	<< tr("+Data Type");
-	QList<QVariant> inPara	= (QList<QVariant>()
+		<< tr("#Minimum Index") << tr("#Maximum Index")
+		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
+		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z"));
+	QList<QVariant> inPara = (QList<QVariant>()
 		<< fileNamesBase << extension
 		<< tr("%1").arg(digits)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
-		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]) << VTKDataTypeList());
+		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]));
 
 	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
 
@@ -1577,7 +1605,6 @@ bool iAIO::setupStackReader( QString f )
 	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
 	spacing[0] = dlg.getDblValue(5); spacing[1]= dlg.getDblValue(6); spacing[2] = dlg.getDblValue(7);
 	origin[0] = dlg.getDblValue(8); origin[1]= dlg.getDblValue(9); origin[2] = dlg.getDblValue(10);
-	scalarType = MapVTKTypeStringToInt(dlg.getComboBoxValue(11));
 	FillFileNameArray(indexRange, digits);
 	return true;
 }
@@ -1606,7 +1633,7 @@ void iAIO::readImageStack()
 }
 
 
-void iAIO::iosettingswriter()
+void iAIO::StoreIOSettings()
 {
 	QSettings settings;
 	settings.setValue("IO/rawSizeX", rawSizeX);
@@ -1624,7 +1651,7 @@ void iAIO::iosettingswriter()
 }
 
 
-void iAIO::iosettingsreader()
+void iAIO::LoadIOSettings()
 {
 	QSettings settings;
 	rawOriginX = settings.value("IO/rawOriginX").toDouble();
@@ -1669,4 +1696,9 @@ void iAIO::setAdditionalInfo(QString const & additionalInfo)
 QString iAIO::getFileName()
 {
 	return fileName;
+}
+
+QSharedPointer<iAModalityList> iAIO::GetModalities()
+{
+	return m_modalities;
 }

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,16 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
-
-#define _USE_MATH_DEFINES
-#include <cmath>
-
 #include "iAChartWidget.h"
+
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
 #include "iAPlot.h"
 #include "iAStringHelper.h"
+
+#include <vtkMath.h>
 
 #include <QAction>
 #include <QFileDialog>
@@ -307,7 +305,7 @@ namespace
 
 	double deg2rad(double const & number)
 	{
-		return number * M_PI / 180;
+		return number * vtkMath::Pi() / 180;
 	}
 
 	int markerPos(int step, int stepCount, int width, int offset)
@@ -863,13 +861,13 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	m_contextPos = event->pos();
 	m_contextMenu->clear();
-	m_contextMenu->addAction(QIcon(":/images/resetView.png"), tr("Reset view"), this, SLOT(resetView()));
-	QAction *showTooltipAction = new QAction(tr("Show tooltip"), this);
+	m_contextMenu->addAction(QIcon(":/images/resetView.png"), tr("Reset histogram view"), this, SLOT(resetView()));
+	QAction *showTooltipAction = new QAction(tr("Show histogram coordinates"), this);
 	showTooltipAction->setCheckable(true);
 	showTooltipAction->setChecked(m_showTooltip);
 	connect(showTooltipAction, SIGNAL(toggled(bool)), this, SLOT(showTooltip(bool)));
 	m_contextMenu->addAction(showTooltipAction);
-	m_contextMenu->addAction(QIcon(":/images/save.png"), tr("Export data"), this, SLOT(ExportData()));
+	m_contextMenu->addAction(QIcon(":/images/save.png"), tr("Export histogram data"), this, SLOT(ExportData()));
 	m_contextMenu->addSeparator();
 	AddContextMenuEntries(m_contextMenu);
 	m_contextMenuVisible = true;

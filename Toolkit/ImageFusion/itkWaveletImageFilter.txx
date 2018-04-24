@@ -30,7 +30,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVE
 
 #include "itkImageFileWriter.h"
 
-#include <math.h>
+#include <cmath>
 
 namespace itk
 {

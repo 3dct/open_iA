@@ -1,8 +1,8 @@
-/*********************************  open_iA 2016 06  ******************************** *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -34,7 +34,7 @@ class iAFoamCharacterizationTableAnalysis : public QTableView
 		public:
 			CTableAnalysisRow()
 			{
-			
+				std::fill(m_pBoundingBox, m_pBoundingBox+6, 0.0);
 			}
 
 			void set(const long& _lLabel
@@ -102,7 +102,7 @@ class iAFoamCharacterizationTableAnalysis : public QTableView
 			double m_dVolume = 0.0;
 			double m_dDiameter = 0.0;
 
-			double m_pBoundingBox[6] = { 0.0 };
+			double m_pBoundingBox[6];
 	};
 
 	public:

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,25 +18,24 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iADatasetInfo.h"
 
 #include "PorosityAnalyserHelpers.h"
 
 #include "io/iAITKIO.h"
 
-#include <itkImageFileWriter.h>
 #include <itkExtractImageFilter.h>
-#include <itkRescaleIntensityImageFilter.h>
 #include <itkImageDuplicator.h>
-#include <itkStatisticsImageFilter.h>
+#include <itkImageFileWriter.h>
 #include <itkImageToHistogramFilter.h>
+#include <itkRescaleIntensityImageFilter.h>
+#include <itkStatisticsImageFilter.h>
 
 #include <QDir>
 #include <QDebug>
 
-template<class T> int iADatasetInfo::generateInfo( QString datasetPath, QString datasetName, 
-												   ImagePointer & image, iAPorosityAnalyserModuleInterface * pmi, 
+template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString datasetName,
+												   ImagePointer & image, iAPorosityAnalyserModuleInterface * pmi,
 												   int totalFInfoNbToCreate, int currentFInfoNb )
 {
 	typedef itk::Image<T, DIM>  InputImageType;
@@ -159,8 +158,6 @@ template<class T> int iADatasetInfo::generateInfo( QString datasetPath, QString 
 // 	writer->SetFileName( fileName.toStdString() );
 // 	writer->SetInput( extracter->GetOutput() );
 // 	writer->Update();
-
-	return EXIT_SUCCESS;
 }
 
 void iADatasetInfo::run()

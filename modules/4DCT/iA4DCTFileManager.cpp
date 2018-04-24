@@ -1,8 +1,8 @@
-﻿/*********************************  open_iA 2016 06  ******************************** *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,9 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iA4DCTFileManager.h"
-// vtk
+
 #include <vtkMetaImageReader.h>
 #include <vtkImageData.h>
 
@@ -42,7 +41,7 @@ vtkAlgorithmOutput* iA4DCTFileManager::getOutputPort( iA4DCTFileData file )
 
 iA4DCTFileManager::ReaderType iA4DCTFileManager::findOrCreateImage( iA4DCTFileData file )
 {
-	string key = file.Name.toStdString( );
+	std::string key = file.Name.toStdString( );
 	if( m_map.find( key ) == m_map.end( ) )
 	{	// the key does not exist
 		ReaderType reader = ReaderType::New( );

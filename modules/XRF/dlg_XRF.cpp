@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,37 +18,36 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "pch.h"
 #include "dlg_XRF.h"
 
 #include "dlg_periodicTable.h"
 #include "dlg_RefSpectra.h"
-#include "dlg_transfer.h"
 #include "iAAccumulatedXRFData.h"
-#include "iAChannelVisualizationData.h"
 #include "iACharacteristicEnergy.h"
-#include "iAColorTheme.h"
-#include "iAConnector.h"
 #include "iADecompositionCalculator.h"
-#include "iADockWidgetWrapper.h"
 #include "iAElementConcentrations.h"
 #include "iAElementConstants.h"
 #include "iAElementStatisticsInfo.h"
 #include "iAEnergySpectrumDiagramData.h"
 #include "iAEnergySpectrumWidget.h"
-#include "iAFunctionalBoxplot.h"
 #include "iAFunctionalBoxplotQtDrawer.h"
-#include "charts/iAPlotTypes.h"
-#include "charts/iAMappingDiagramData.h"
-#include "iAMathUtility.h"
 #include "iAPeriodicTableListener.h"
 #include "iAPieChartWidget.h"
 #include "iAReferenceSpectraLibrary.h"
-#include "iARenderer.h"
-#include "iAWidgetAddHelper.h"
 #include "iAXRFData.h"
 #include "iAXRFOverlay.h"
+
+#include "charts/iAPlotTypes.h"
+#include "charts/iAMappingDiagramData.h"
+#include "dlg_transfer.h"
+#include "iAChannelVisualizationData.h"
+#include "iAColorTheme.h"
+#include "iAConnector.h"
+#include "iADockWidgetWrapper.h"
+#include "iAFunctionalBoxplot.h"
+#include "iAMathUtility.h"
+#include "iARenderer.h"
+#include "iAWidgetAddHelper.h"
 #include "io/iAIO.h"
 #include "mdichild.h"
 

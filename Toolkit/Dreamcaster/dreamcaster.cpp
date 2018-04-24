@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "dreamcaster.h"
 #include "ComparisonAndWeighting.h"
-//#include "raycast/include/common.h"
 #include "raycast/include/CutFigList.h"
 #include "raycast/include/raytracer.h"
 #include "raycast/include/scene.h"
@@ -33,9 +32,7 @@
 #include "StabilityWidget.h"
 #include "dlg_histogram_simple.h"
 
-//#include <qwt_plot.h>
-//#include <qwt_interval_data.h>
-#include <QtGui>
+//#include <QtGui>
 #include <QTime>
 #include <QFileDialog>
 //VTK
@@ -90,9 +87,10 @@ std::vector<BSPNode> nodes;
 #endif
 #endif
 
-//config file
-#include "ConfigFile/ConfigFile.h"
-
+namespace
+{
+	const QString SettingsWindowStateKey = "DreamCaster/windowState";
+}
 
 ///#include "enable_memleak.h"
 const int CutAABSkipedSize = CutAAB::getSkipedSizeInFile();
@@ -119,10 +117,10 @@ inline void SetSliderNormalizedValue(QSlider * slider, float val)
 DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	: QMainWindow(parent, flags), modelOpened(false), datasetOpened(false)
 {
+	Q_INIT_RESOURCE(dreamcaster);
 	indices[0] = 0;
 	indices[1] = 2;
 	indices[2] = 3;
-
 	isOneWidgetMaximized = 0;
 	CutFigParametersChangedOFF = false;
 	scrBuffer = new ScreenBuffer( stngs.RFRAME_W, stngs.RFRAME_H );
@@ -132,7 +130,7 @@ DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	
 	isStopped = false;
 	
-	ParseConfigFile("config.cfg", &stngs);
+	ParseConfigFile(&stngs);
 	ui.setupUi(this);
 	connect(ui.openSTLFile,  SIGNAL(clicked()), this, SLOT(OpenModelSlot()));
 	///connect(ui.tb_openModel,  SIGNAL(clicked()), this, SLOT(OpenModelSlot()));
@@ -150,7 +148,7 @@ DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	//hist.show();
 	initHistograms();
 	modelFileName = "No model opened";
-	setFileName = ui.l_setName->text();
+	setFileName = "";
 	formPainter = new QPainter();
 	//int s = VFRAME_W*VFRAME_H;
 	viewsBuffer = 0;//new Pixel[s];
@@ -350,15 +348,12 @@ DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	connect(ui.pushStability, SIGNAL(clicked()), this, SLOT(maximizeStability()));
 	connect(ui.pushMaxTab, SIGNAL(clicked()), this, SLOT(maximizeBottom()));
 	//restore previous window state
-	QFile file(windowStateStr);
-	QByteArray state;
-	if(file.open(QIODevice::ReadOnly))
+	QSettings settingsStore;
+	if (settingsStore.contains(SettingsWindowStateKey))
 	{
-		QDataStream stream1(&file);
-		stream1>>state;
-		file.close();
+		QByteArray state = settingsStore.value(SettingsWindowStateKey).toByteArray();
+		restoreState(state, 0);
 	}
-	restoreState(state, 0);
 	//plot3d stuff
 	plot3d = new Plot3DVtk;
 	//plot3d->GetRenderer()->GetActiveCamera()->SetParallelProjection(1);
@@ -522,6 +517,11 @@ void DreamCaster::initRaycast()
 
 DreamCaster::~DreamCaster()
 {
+	//save window state
+	QSettings settingsStore;
+	QByteArray state = saveState(0);
+	settingsStore.setValue("DreamCaster/windowState", state);
+
 	ClearPrevData();//plotData,rotations,plotColumnData
 	delete scrBuffer;
 	delete cutFigList;
@@ -564,15 +564,6 @@ DreamCaster::~DreamCaster()
 	plateActor->Delete();
 	cutAABMapper->Delete();
 	cutAABActor->Delete();
-	//save window state
-	QFile file(windowStateStr);
-	QByteArray state = saveState(0);
-	if(file.open(QIODevice::WriteOnly))
-	{
-		QDataStream stream2(&file);
-		stream2<<state;
-		file.close();
-	}
 }
 void DreamCaster::log(QString text, bool appendToPrev)
 {
@@ -617,7 +608,7 @@ void DreamCaster::OpenModelSlot()
 
 void DreamCaster::NewSetSlot()
 {
-	QString res = QFileDialog::getSaveFileName();
+	QString res = QFileDialog::getSaveFileName(nullptr, "Choose Set Filename", QFileInfo(setFileName).absolutePath());
 	if(res=="")
 		return;
 	setFileName = res;
@@ -628,13 +619,17 @@ void DreamCaster::NewSetSlot()
 
 void DreamCaster::OpenSetSlot()
 {
-	QString res = QFileDialog::getOpenFileName();
-	if(res=="")
-		return;
-	setFileName = res;
+	QString res = QFileDialog::getOpenFileName(nullptr, "Open existing set", QFileInfo(setFileName).absolutePath());
+	if (!res.isEmpty())
+		OpenSetFile(res);
+}
+
+void DreamCaster::OpenSetFile(QString const & fileName)
+{
+	setFileName = fileName;
 	ui.l_setName->setText(setFileName);
 	log("Opening new set:");
-	log(setFileName.toLatin1().constData(),true);	
+	log(setFileName.toLatin1().constData(), true);
 	UpdatePlotSlot();
 	datasetOpened = true;
 }
@@ -2383,72 +2378,37 @@ void DreamCaster::ConfigureSettingsSlot()
 
 void DreamCaster::SaveSettingsSlot()
 {
-	/*ConfigFile config("config.cfg");
-	config.add<int>  ( "THREAD_GRID_X", settingsUi.tableWidget->item(0, 0)->text().toInt());
-	config.add<int>  ( "THREAD_GRID_Y", settingsUi.tableWidget->item(1, 0)->text().toInt());
-	config.add<float>( "SCALE_COEF",    settingsUi.tableWidget->item(2, 0)->text().toFloat());
-	config.add<int>  ( "RFRAME_W",      settingsUi.tableWidget->item(3, 0)->text().toInt());
-	config.add<int>  ( "RFRAME_H",      settingsUi.tableWidget->item(4, 0)->text().toInt());
-	config.add<int>  ( "VFRAME_W",      settingsUi.tableWidget->item(5, 0)->text().toInt());
-	config.add<int>  ( "VFRAME_H",      settingsUi.tableWidget->item(6, 0)->text().toInt());
-	config.add<float>( "ORIGIN_Z",      settingsUi.tableWidget->item(7, 0)->text().toFloat());
-	config.add<float>( "PLANE_Z",       settingsUi.tableWidget->item(8, 0)->text().toFloat());
-	config.add<float>( "PLANE_H_W",     settingsUi.tableWidget->item(9, 0)->text().toFloat());
-	config.add<float>( "PLANE_H_H",     settingsUi.tableWidget->item(10, 0)->text().toFloat());
-	config.add<int>  ( "TREE_L1",       settingsUi.tableWidget->item(11, 0)->text().toInt());
-	config.add<int>  ( "TREE_L2",       settingsUi.tableWidget->item(12, 0)->text().toInt());
-	config.add<int>  ( "TREE_L3",       settingsUi.tableWidget->item(13, 0)->text().toInt());
-	config.add<int>  ( "TREE_SPLIT1",   settingsUi.tableWidget->item(14, 0)->text().toInt());
-	config.add<int>  ( "TREE_SPLIT2",   settingsUi.tableWidget->item(15, 0)->text().toInt());
-	config.add<int>  ( "BG_COL_R",      settingsUi.tableWidget->item(16, 0)->text().toInt());
-	config.add<int>  ( "BG_COL_G",      settingsUi.tableWidget->item(17, 0)->text().toInt());
-	config.add<int>  ( "BG_COL_B",      settingsUi.tableWidget->item(18, 0)->text().toInt());
-	config.add<int>  ( "PLATE_COL_R",   settingsUi.tableWidget->item(19, 0)->text().toInt());
-	config.add<int>  ( "PLATE_COL_G",   settingsUi.tableWidget->item(20, 0)->text().toInt());
-	config.add<int>  ( "PLATE_COL_B",   settingsUi.tableWidget->item(21, 0)->text().toInt());
-	config.add<int>  ( "COL_RANGE_MIN_R", settingsUi.tableWidget->item(22, 0)->text().toInt());
-	config.add<int>  ( "COL_RANGE_MIN_G", settingsUi.tableWidget->item(23, 0)->text().toInt());
-	config.add<int>  ( "COL_RANGE_MIN_B", settingsUi.tableWidget->item(24, 0)->text().toInt());
-	config.add<int>  ( "COL_RANGE_MAX_R", settingsUi.tableWidget->item(25, 0)->text().toInt());
-	config.add<int>  ( "COL_RANGE_MAX_G", settingsUi.tableWidget->item(26, 0)->text().toInt());
-	config.add<int>  ( "COL_RANGE_MAX_B", settingsUi.tableWidget->item(27, 0)->text().toInt());
-	config.add<int>  ( "BATCH_SIZE",      settingsUi.tableWidget->item(28, 0)->text().toInt());
-	std::ofstream out("config.cfg");
-	out<<config;*/
-	//QSettings
-	QSettings settings("FHW", "DreamCaster");
-	settings.clear();
-
-	settings.setValue( "THREAD_GRID_X", settingsUi.tableWidget->item(0, 0)->text().toInt());
-	settings.setValue( "THREAD_GRID_Y", settingsUi.tableWidget->item(1, 0)->text().toInt());
-	settings.setValue( "SCALE_COEF",    settingsUi.tableWidget->item(2, 0)->text().toFloat());
-	settings.setValue( "COLORING_COEF", settingsUi.tableWidget->item(3, 0)->text().toFloat());
-	settings.setValue( "RFRAME_W",      settingsUi.tableWidget->item(4, 0)->text().toInt());
-	settings.setValue( "RFRAME_H",      settingsUi.tableWidget->item(5, 0)->text().toInt());
-	settings.setValue( "VFRAME_W",      settingsUi.tableWidget->item(6, 0)->text().toInt());
-	settings.setValue( "VFRAME_H",      settingsUi.tableWidget->item(7, 0)->text().toInt());
-	settings.setValue( "ORIGIN_Z",      settingsUi.tableWidget->item(8, 0)->text().toFloat());
-	settings.setValue( "PLANE_Z",       settingsUi.tableWidget->item(9, 0)->text().toFloat());
-	settings.setValue( "PLANE_H_W",     settingsUi.tableWidget->item(10, 0)->text().toFloat());
-	settings.setValue( "PLANE_H_H",     settingsUi.tableWidget->item(11, 0)->text().toFloat());
-	settings.setValue( "TREE_L1",       settingsUi.tableWidget->item(12, 0)->text().toInt());
-	settings.setValue( "TREE_L2",       settingsUi.tableWidget->item(13, 0)->text().toInt());
-	settings.setValue( "TREE_L3",       settingsUi.tableWidget->item(14, 0)->text().toInt());
-	settings.setValue( "TREE_SPLIT1",   settingsUi.tableWidget->item(15, 0)->text().toInt());
-	settings.setValue( "TREE_SPLIT2",   settingsUi.tableWidget->item(16, 0)->text().toInt());
-	settings.setValue( "BG_COL_R",      settingsUi.tableWidget->item(17, 0)->text().toInt());
-	settings.setValue( "BG_COL_G",      settingsUi.tableWidget->item(18, 0)->text().toInt());
-	settings.setValue( "BG_COL_B",      settingsUi.tableWidget->item(19, 0)->text().toInt());
-	settings.setValue( "PLATE_COL_R",   settingsUi.tableWidget->item(20, 0)->text().toInt());
-	settings.setValue( "PLATE_COL_G",   settingsUi.tableWidget->item(21, 0)->text().toInt());
-	settings.setValue( "PLATE_COL_B",   settingsUi.tableWidget->item(22, 0)->text().toInt());
-	settings.setValue( "COL_RANGE_MIN_R", settingsUi.tableWidget->item(23, 0)->text().toInt());
-	settings.setValue( "COL_RANGE_MIN_G", settingsUi.tableWidget->item(24, 0)->text().toInt());
-	settings.setValue( "COL_RANGE_MIN_B", settingsUi.tableWidget->item(25, 0)->text().toInt());
-	settings.setValue( "COL_RANGE_MAX_R", settingsUi.tableWidget->item(26, 0)->text().toInt());
-	settings.setValue( "COL_RANGE_MAX_G", settingsUi.tableWidget->item(27, 0)->text().toInt());
-	settings.setValue( "COL_RANGE_MAX_B", settingsUi.tableWidget->item(28, 0)->text().toInt());
-	settings.setValue( "BATCH_SIZE",      settingsUi.tableWidget->item(29, 0)->text().toInt());
+	QSettings settings;
+	settings.setValue( "DreamCaster/THREAD_GRID_X", settingsUi.tableWidget->item(0, 0)->text().toInt());
+	settings.setValue( "DreamCaster/THREAD_GRID_Y", settingsUi.tableWidget->item(1, 0)->text().toInt());
+	settings.setValue( "DreamCaster/SCALE_COEF",    settingsUi.tableWidget->item(2, 0)->text().toFloat());
+	settings.setValue( "DreamCaster/COLORING_COEF", settingsUi.tableWidget->item(3, 0)->text().toFloat());
+	settings.setValue( "DreamCaster/RFRAME_W",      settingsUi.tableWidget->item(4, 0)->text().toInt());
+	settings.setValue( "DreamCaster/RFRAME_H",      settingsUi.tableWidget->item(5, 0)->text().toInt());
+	settings.setValue( "DreamCaster/VFRAME_W",      settingsUi.tableWidget->item(6, 0)->text().toInt());
+	settings.setValue( "DreamCaster/VFRAME_H",      settingsUi.tableWidget->item(7, 0)->text().toInt());
+	settings.setValue( "DreamCaster/ORIGIN_Z",      settingsUi.tableWidget->item(8, 0)->text().toFloat());
+	settings.setValue( "DreamCaster/PLANE_Z",       settingsUi.tableWidget->item(9, 0)->text().toFloat());
+	settings.setValue( "DreamCaster/PLANE_H_W",     settingsUi.tableWidget->item(10, 0)->text().toFloat());
+	settings.setValue( "DreamCaster/PLANE_H_H",     settingsUi.tableWidget->item(11, 0)->text().toFloat());
+	settings.setValue( "DreamCaster/TREE_L1",       settingsUi.tableWidget->item(12, 0)->text().toInt());
+	settings.setValue( "DreamCaster/TREE_L2",       settingsUi.tableWidget->item(13, 0)->text().toInt());
+	settings.setValue( "DreamCaster/TREE_L3",       settingsUi.tableWidget->item(14, 0)->text().toInt());
+	settings.setValue( "DreamCaster/TREE_SPLIT1",   settingsUi.tableWidget->item(15, 0)->text().toInt());
+	settings.setValue( "DreamCaster/TREE_SPLIT2",   settingsUi.tableWidget->item(16, 0)->text().toInt());
+	settings.setValue( "DreamCaster/BG_COL_R",      settingsUi.tableWidget->item(17, 0)->text().toInt());
+	settings.setValue( "DreamCaster/BG_COL_G",      settingsUi.tableWidget->item(18, 0)->text().toInt());
+	settings.setValue( "DreamCaster/BG_COL_B",      settingsUi.tableWidget->item(19, 0)->text().toInt());
+	settings.setValue( "DreamCaster/PLATE_COL_R",   settingsUi.tableWidget->item(20, 0)->text().toInt());
+	settings.setValue( "DreamCaster/PLATE_COL_G",   settingsUi.tableWidget->item(21, 0)->text().toInt());
+	settings.setValue( "DreamCaster/PLATE_COL_B",   settingsUi.tableWidget->item(22, 0)->text().toInt());
+	settings.setValue( "DreamCaster/COL_RANGE_MIN_R", settingsUi.tableWidget->item(23, 0)->text().toInt());
+	settings.setValue( "DreamCaster/COL_RANGE_MIN_G", settingsUi.tableWidget->item(24, 0)->text().toInt());
+	settings.setValue( "DreamCaster/COL_RANGE_MIN_B", settingsUi.tableWidget->item(25, 0)->text().toInt());
+	settings.setValue( "DreamCaster/COL_RANGE_MAX_R", settingsUi.tableWidget->item(26, 0)->text().toInt());
+	settings.setValue( "DreamCaster/COL_RANGE_MAX_G", settingsUi.tableWidget->item(27, 0)->text().toInt());
+	settings.setValue( "DreamCaster/COL_RANGE_MAX_B", settingsUi.tableWidget->item(28, 0)->text().toInt());
+	settings.setValue( "DreamCaster/BATCH_SIZE",      settingsUi.tableWidget->item(29, 0)->text().toInt());
 }
 
 void DreamCaster::ResetSettingsSlot()
@@ -2458,37 +2418,37 @@ void DreamCaster::ResetSettingsSlot()
 
 int DreamCaster::SetupSettingsFromConfigFile()
 {
-	QSettings settings("FHW", "DreamCaster");
-	settingsUi.tableWidget->item(0, 0)->setText(QString::number(settings.value( "THREAD_GRID_X", stngs.THREAD_GRID_X).toInt()));
-	settingsUi.tableWidget->item(1, 0)->setText(QString::number(settings.value( "THREAD_GRID_Y", stngs.THREAD_GRID_Y ).toInt()));
-	settingsUi.tableWidget->item(2, 0)->setText(QString::number(settings.value( "SCALE_COEF", stngs.SCALE_COEF ).value<float>()));
-	settingsUi.tableWidget->item(3, 0)->setText(QString::number(settings.value( "COLORING_COEF", stngs.COLORING_COEF ).value<float>()));
-	settingsUi.tableWidget->item(4, 0)->setText(QString::number(settings.value( "RFRAME_W", stngs.RFRAME_W ).toInt()));
-	settingsUi.tableWidget->item(5, 0)->setText(QString::number(settings.value( "RFRAME_H", stngs.RFRAME_H ).toInt()));
-	settingsUi.tableWidget->item(6, 0)->setText(QString::number(settings.value( "VFRAME_W", stngs.VFRAME_W ).toInt()));
-	settingsUi.tableWidget->item(7, 0)->setText(QString::number(settings.value( "VFRAME_H", stngs.VFRAME_H ).toInt()));
-	settingsUi.tableWidget->item(8, 0)->setText(QString::number(settings.value( "ORIGIN_Z", stngs.ORIGIN_Z ).value<float>()));
-	settingsUi.tableWidget->item(9, 0)->setText(QString::number(settings.value( "PLANE_Z", stngs.PLANE_Z ).value<float>()));
-	settingsUi.tableWidget->item(10,0)->setText(QString::number(settings.value( "PLANE_H_W", stngs.PLANE_H_W ).value<float>()));
-	settingsUi.tableWidget->item(11,0)->setText(QString::number(settings.value( "PLANE_H_H", stngs.PLANE_H_H ).value<float>()));
-	settingsUi.tableWidget->item(12,0)->setText(QString::number(settings.value( "TREE_L1", stngs.TREE_L1 ).toInt()));
-	settingsUi.tableWidget->item(13,0)->setText(QString::number(settings.value( "TREE_L2", stngs.TREE_L2 ).toInt()));
-	settingsUi.tableWidget->item(14,0)->setText(QString::number(settings.value( "TREE_L3", stngs.TREE_L3 ).toInt()));
-	settingsUi.tableWidget->item(15,0)->setText(QString::number(settings.value( "TREE_SPLIT1", stngs.TREE_SPLIT1 ).toInt()));
-	settingsUi.tableWidget->item(16,0)->setText(QString::number(settings.value( "TREE_SPLIT2", stngs.TREE_SPLIT2 ).toInt()));
-	settingsUi.tableWidget->item(17,0)->setText(QString::number(settings.value( "BG_COL_R", stngs.BG_COL_R ).toInt()));
-	settingsUi.tableWidget->item(18,0)->setText(QString::number(settings.value( "BG_COL_G", stngs.BG_COL_G ).toInt()));
-	settingsUi.tableWidget->item(19,0)->setText(QString::number(settings.value( "BG_COL_B", stngs.BG_COL_B ).toInt()));
-	settingsUi.tableWidget->item(20,0)->setText(QString::number(settings.value( "PLATE_COL_R", stngs.PLATE_COL_R ).toInt()));
-	settingsUi.tableWidget->item(21,0)->setText(QString::number(settings.value( "PLATE_COL_G", stngs.PLATE_COL_G ).toInt()));
-	settingsUi.tableWidget->item(22,0)->setText(QString::number(settings.value( "PLATE_COL_B", stngs.PLATE_COL_B ).toInt()));
-	settingsUi.tableWidget->item(23,0)->setText(QString::number(settings.value( "COL_RANGE_MIN_R", stngs.COL_RANGE_MIN_R ).toInt()));
-	settingsUi.tableWidget->item(24,0)->setText(QString::number(settings.value( "COL_RANGE_MIN_G", stngs.COL_RANGE_MIN_G ).toInt()));
-	settingsUi.tableWidget->item(25,0)->setText(QString::number(settings.value( "COL_RANGE_MIN_B", stngs.COL_RANGE_MIN_B ).toInt()));
-	settingsUi.tableWidget->item(26,0)->setText(QString::number(settings.value( "COL_RANGE_MAX_R", stngs.COL_RANGE_MAX_R ).toInt()));
-	settingsUi.tableWidget->item(27,0)->setText(QString::number(settings.value( "COL_RANGE_MAX_G", stngs.COL_RANGE_MAX_G ).toInt()));
-	settingsUi.tableWidget->item(28,0)->setText(QString::number(settings.value( "COL_RANGE_MAX_B", stngs.COL_RANGE_MAX_B ).toInt()));
-	settingsUi.tableWidget->item(29,0)->setText(QString::number(settings.value( "BATCH_SIZE", stngs.BATCH_SIZE ).toInt()));
+	QSettings settings;
+	settingsUi.tableWidget->item(0, 0)->setText(QString::number(settings.value( "DreamCaster/THREAD_GRID_X", stngs.THREAD_GRID_X).toInt()));
+	settingsUi.tableWidget->item(1, 0)->setText(QString::number(settings.value( "DreamCaster/THREAD_GRID_Y", stngs.THREAD_GRID_Y ).toInt()));
+	settingsUi.tableWidget->item(2, 0)->setText(QString::number(settings.value( "DreamCaster/SCALE_COEF", stngs.SCALE_COEF ).value<float>()));
+	settingsUi.tableWidget->item(3, 0)->setText(QString::number(settings.value( "DreamCaster/COLORING_COEF", stngs.COLORING_COEF ).value<float>()));
+	settingsUi.tableWidget->item(4, 0)->setText(QString::number(settings.value( "DreamCaster/RFRAME_W", stngs.RFRAME_W ).toInt()));
+	settingsUi.tableWidget->item(5, 0)->setText(QString::number(settings.value( "DreamCaster/RFRAME_H", stngs.RFRAME_H ).toInt()));
+	settingsUi.tableWidget->item(6, 0)->setText(QString::number(settings.value( "DreamCaster/VFRAME_W", stngs.VFRAME_W ).toInt()));
+	settingsUi.tableWidget->item(7, 0)->setText(QString::number(settings.value( "DreamCaster/VFRAME_H", stngs.VFRAME_H ).toInt()));
+	settingsUi.tableWidget->item(8, 0)->setText(QString::number(settings.value( "DreamCaster/ORIGIN_Z", stngs.ORIGIN_Z ).value<float>()));
+	settingsUi.tableWidget->item(9, 0)->setText(QString::number(settings.value( "DreamCaster/PLANE_Z", stngs.PLANE_Z ).value<float>()));
+	settingsUi.tableWidget->item(10,0)->setText(QString::number(settings.value( "DreamCaster/PLANE_H_W", stngs.PLANE_H_W ).value<float>()));
+	settingsUi.tableWidget->item(11,0)->setText(QString::number(settings.value( "DreamCaster/PLANE_H_H", stngs.PLANE_H_H ).value<float>()));
+	settingsUi.tableWidget->item(12,0)->setText(QString::number(settings.value( "DreamCaster/TREE_L1", stngs.TREE_L1 ).toInt()));
+	settingsUi.tableWidget->item(13,0)->setText(QString::number(settings.value( "DreamCaster/TREE_L2", stngs.TREE_L2 ).toInt()));
+	settingsUi.tableWidget->item(14,0)->setText(QString::number(settings.value( "DreamCaster/TREE_L3", stngs.TREE_L3 ).toInt()));
+	settingsUi.tableWidget->item(15,0)->setText(QString::number(settings.value( "DreamCaster/TREE_SPLIT1", stngs.TREE_SPLIT1 ).toInt()));
+	settingsUi.tableWidget->item(16,0)->setText(QString::number(settings.value( "DreamCaster/TREE_SPLIT2", stngs.TREE_SPLIT2 ).toInt()));
+	settingsUi.tableWidget->item(17,0)->setText(QString::number(settings.value( "DreamCaster/BG_COL_R", stngs.BG_COL_R ).toInt()));
+	settingsUi.tableWidget->item(18,0)->setText(QString::number(settings.value( "DreamCaster/BG_COL_G", stngs.BG_COL_G ).toInt()));
+	settingsUi.tableWidget->item(19,0)->setText(QString::number(settings.value( "DreamCaster/BG_COL_B", stngs.BG_COL_B ).toInt()));
+	settingsUi.tableWidget->item(20,0)->setText(QString::number(settings.value( "DreamCaster/PLATE_COL_R", stngs.PLATE_COL_R ).toInt()));
+	settingsUi.tableWidget->item(21,0)->setText(QString::number(settings.value( "DreamCaster/PLATE_COL_G", stngs.PLATE_COL_G ).toInt()));
+	settingsUi.tableWidget->item(22,0)->setText(QString::number(settings.value( "DreamCaster/PLATE_COL_B", stngs.PLATE_COL_B ).toInt()));
+	settingsUi.tableWidget->item(23,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MIN_R", stngs.COL_RANGE_MIN_R ).toInt()));
+	settingsUi.tableWidget->item(24,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MIN_G", stngs.COL_RANGE_MIN_G ).toInt()));
+	settingsUi.tableWidget->item(25,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MIN_B", stngs.COL_RANGE_MIN_B ).toInt()));
+	settingsUi.tableWidget->item(26,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MAX_R", stngs.COL_RANGE_MAX_R ).toInt()));
+	settingsUi.tableWidget->item(27,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MAX_G", stngs.COL_RANGE_MAX_G ).toInt()));
+	settingsUi.tableWidget->item(28,0)->setText(QString::number(settings.value( "DreamCaster/COL_RANGE_MAX_B", stngs.COL_RANGE_MAX_B ).toInt()));
+	settingsUi.tableWidget->item(29,0)->setText(QString::number(settings.value( "DreamCaster/BATCH_SIZE", stngs.BATCH_SIZE ).toInt()));
 	return 1;
 }
 
@@ -3805,6 +3765,14 @@ void DreamCaster::loadFile(const QString filename)
 		CutFigParametersChanged();
 	}
 	UpdateSlot();
+	if (setFileName.isEmpty())
+	{
+		setFileName = filename + ".set";
+		if (QFile(setFileName).exists())
+			OpenSetFile(setFileName);
+		else
+			ui.l_setName->setText(setFileName);
+	}
 }
 
 void DreamCaster::InitRender( iAVec3 * vp_corners, iAVec3 * vp_delta, iAVec3 * o )

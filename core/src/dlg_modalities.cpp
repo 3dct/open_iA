@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "dlg_modalities.h"
 
 #include "dlg_commoninput.h"
@@ -38,7 +37,6 @@
 #include "io/extension2id.h"
 #include "mainwindow.h"
 
-
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -52,7 +50,6 @@
 #include <QSettings>
 
 #include <cassert>
-
 
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	vtkRenderer* mainRenderer, int numBin) :
@@ -86,28 +83,9 @@ void dlg_modalities::SetModalities(QSharedPointer<iAModalityList> modList)
 	lwModalities->clear();
 }
 
-
-void dlg_modalities::Store(QString const & filename)
-{								// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
-	vtkCamera* cam = m_mainRenderer->GetActiveCamera();
-	modalities->Store(filename, cam);
-}
-
 void dlg_modalities::SelectRow(int idx)
 {
 	lwModalities->setCurrentRow(idx);
-}
-
-bool dlg_modalities::Load(QString const & filename)
-{
-	bool result = modalities->Load(filename);
-	if (result)
-	{
-		SelectRow(0);
-		EnableButtons();
-		emit ModalityAvailable(0);
-	}
-	return result;
 }
 
 QString GetCaption(iAModality const & mod)

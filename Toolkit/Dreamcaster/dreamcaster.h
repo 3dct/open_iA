@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,33 +31,29 @@
 
 class RenderFromPosition;
 //VTK
-class vtkPolyDataMapper;
-class vtkDataSetMapper;
 class vtkActor;
+class vtkDataSetMapper;
+class vtkDepthSortPolyData;
+class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkSTLReader;
-struct ParamWidget;
-struct ParametersView;
+
 struct CombinedParametersView;
 class CutFigList;
-class Plot3DVtk;
 class dlg_histogram_simple;
-class vtkDepthSortPolyData;
-
-
-//class rotation_t;
-//class parameters_t;
+class Engine;
 class PaintWidget;
+struct ParamWidget;
+struct ParametersView;
+class Plot3DVtk;
+class ScreenBuffer;
 class StabilityWidget;
+
 /**	\class DreamCaster.
 	\brief Application main window class.
 
 	Contains GUI and some global classes instances.	
 */
-class ScreenBuffer;
-class Engine;
-const QString windowStateStr = "dreamcaster_wnd_state";
-
 class DreamCaster : public QMainWindow
 {
 	Q_OBJECT
@@ -254,6 +250,9 @@ private:
 	* Render single frame
 	*/
 	void Render(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iAVec3 * o, bool saveData);
+
+	/** opens the result set file with the given fileName */
+	void OpenSetFile(QString const & fileName);
 protected:
 	virtual void closeEvent ( QCloseEvent * event );
 public slots:

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,26 +30,25 @@
 #include "iAUncertaintyColors.h"
 #include "iAVtkDraw.h"
 
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QPainter>
-#include <QToolButton>
-#include <QVariant>
-#include <QVBoxLayout>
-
-#include <vtkImageData.h>
-
 #include <QVTKWidget.h>
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkFloatArray.h>
+#include <vtkImageData.h>
 #include <vtkPen.h>
 #include <vtkPlot.h>
 #include <vtkRenderer.h>
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
+
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPainter>
+#include <QToolButton>
+#include <QVariant>
+#include <QVBoxLayout>
 
 #define VTK_CREATE(type, name) \
 	vtkSmartPointer<type> name = vtkSmartPointer<type>::New()

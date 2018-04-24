@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,6 +26,7 @@
 #include <QVector>
 
 class iAModality;
+class iAProgress;
 class iAVolumeSettings; 
 
 class vtkCamera;
@@ -39,7 +40,7 @@ class open_iA_Core_API iAModalityList : public QObject
 public:
 	iAModalityList();
 	void Store(QString const & filename, vtkCamera* cam);
-	bool Load(QString const & filename);
+	bool Load(QString const & filename, iAProgress& progress);
 	void ApplyCameraSettings(vtkCamera* cam);
 
 	int size() const;

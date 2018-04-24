@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,13 +18,10 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "iACalcFeatureCharacteristics.h"
-
 
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
-#include "iAMathUtility.h"    // for Pi
 #include "iATypedCallHelper.h"
 #include "iAProgress.h"
 
@@ -32,6 +29,7 @@
 #include <itkLabelGeometryImageFilter.h>
 
 #include <vtkImageData.h>
+#include <vtkMath.h>
 
 #include <QLocale>
 
@@ -177,8 +175,8 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 		a13 = cos( phi )*sin( theta )*cos( theta );
 		a23 = sin( phi )*sin( theta )*cos( theta );
 
-		phi = ( phi*180.0f ) / Pi;
-		theta = ( theta*180.0f ) / Pi;
+		phi = ( phi*180.0f ) / vtkMath::Pi();
+		theta = ( theta*180.0f ) / vtkMath::Pi();
 
 		// Locating the phi value to quadrant
 		if ( dx < 0 )
@@ -264,8 +262,6 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics( QString fn,
 	m_calculateFeretDiameter(calculateFeretDiameter),
 	m_mdiChild(parent)
 {}
-
-#include "iAProgress.h"
 
 void iACalcFeatureCharacteristics::performWork()
 {

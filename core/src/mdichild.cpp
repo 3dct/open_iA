@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,7 +18,6 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "pch.h"
 #include "mdichild.h"
 
 #include "charts/iAHistogramData.h"
@@ -62,6 +61,7 @@
 #include "mainwindow.h"
 
 #include <vtkCamera.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkCornerAnnotation.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageExtractComponents.h>
@@ -69,6 +69,7 @@
 #include <vtkMath.h>
 #include <vtkMatrixToLinearTransform.h>
 #include <vtkOpenGLRenderer.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkPlane.h>
 #include <vtkRenderWindow.h>
 #include <vtkWindowToImageFilter.h>
@@ -100,7 +101,8 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_initVolumeRenderers(false),
 	preferences(prefs),
 	m_currentModality(0),
-	m_currentComponent(0)
+	m_currentComponent(0),
+	m_currentHistogramModality(-1)
 {
 	setWindowModified(unsavedChanges);
 	m_mainWnd = mainWnd;
@@ -250,9 +252,9 @@ void MdiChild::connectSignalsToSlots()
 	connect(sXZ->doubleSpinBoxXZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationXZ(double)));
 	connect(sYZ->doubleSpinBoxYZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationYZ(double)));
 
-	connect(slicerXY->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(slicerXZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(slicerYZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
+	connect(slicerXY->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
+	connect(slicerXZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
+	connect(slicerYZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
 	connect(slicerXY->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 	connect(slicerXZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
 	connect(slicerYZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
@@ -262,7 +264,6 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, SIGNAL(noPointSelected()), this, SIGNAL(noPointSelected()));
 	connect(m_histogram, SIGNAL(endPointSelected()), this, SIGNAL(endPointSelected()));
 	connect(m_histogram, SIGNAL(active()), this, SIGNAL(active()));
-	connect(m_histogram, SIGNAL(autoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
 	connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(ModalityTFChanged()));
 
 	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
@@ -537,24 +538,33 @@ namespace
 
 bool MdiChild::loadFile(const QString &f, bool isStack)
 {
-	if(!QFile::exists(f))	return false;
+	if(!QFile::exists(f))
+		return false;
 
 	addMsg(tr("%1  Loading file '%2', please wait...")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
 	setCurrentFile(f);
 
 	waitForPreviousIO();
-
+	
 	ioThread = new iAIO(imageData, polyData, m_logger, this, volumeStack->GetVolumes(), volumeStack->GetFileNames());
-	if (!isStack || Is2DImageFile(f)) {
-		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
+	if (f.endsWith(iAIOProvider::ProjectFileExtension))
+	{
+		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupProject(bool)));
 	}
-	else {
-		connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupStackView(bool)));
+	else
+	{
+		if (!isStack || Is2DImageFile(f)) {
+			connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupView(bool)));
+		}
+		else {
+			connect(ioThread, SIGNAL(done(bool)), this, SLOT(setupStackView(bool)));
+		}
+		connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	}
 	connectIOThreadSignals(ioThread);
-	connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	connect(m_dlgModalities, SIGNAL(ModalityAvailable(int)), this, SLOT(SetHistogramModality(int)));
+	connect(ioThread, SIGNAL(done()), this, SIGNAL(fileLoaded()));
 	
 	polyData->ReleaseData();
 
@@ -572,7 +582,7 @@ void MdiChild::setImageData(QString const & filename, vtkSmartPointer<vtkImageDa
 {
 	imageData = imgData;
 	GetModality(0)->SetData(imageData);
-	setCurrentFile(filename);
+	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
 	setupView(false);
 	enableRenderWindows();
 }
@@ -630,7 +640,7 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 }
 
 
-bool MdiChild::setupStackView(bool active)
+void MdiChild::setupStackView(bool active)
 {
 	// TODO: check!
 	previousIndexOfVolume = 0;
@@ -640,7 +650,6 @@ bool MdiChild::setupStackView(bool active)
 	if (numberOfVolumes == 0)
 	{
 		DEBUG_LOG("Invalid call to setupStackView: No Volumes loaded!");
-		return false;
 	}
 
 	int currentIndexOfVolume=0;
@@ -668,8 +677,6 @@ bool MdiChild::setupStackView(bool active)
 	updateViews();
 
 	Raycaster->update();
-
-	return true;
 }
 
 
@@ -683,7 +690,7 @@ void MdiChild::setupViewInternal(bool active)
 	if (!active)
 		initView(curFile.isEmpty() ? "Untitled":"" );
 
-	m_mainWnd->setCurrentFile(currentFile());	// TODO: VOLUME: should be done on the outside?
+	m_mainWnd->setCurrentFile(currentFile());	// TODO: VOLUME: should be done on the outside? or where setCurrentFile is done?
 
 	if ((imageData->GetExtent()[1] < 3) || (imageData->GetExtent()[3]) < 3 || (imageData->GetExtent()[5] < 3))
 		volumeSettings.Shading = false;
@@ -716,15 +723,17 @@ void MdiChild::setupViewInternal(bool active)
 }
 
 
-bool MdiChild::setupView(bool active )
+void MdiChild::setupView(bool active )
 {
 	setupViewInternal(active);
-
 	Raycaster->update();
-
 	check2DMode();
+}
 
-	return true;
+
+void MdiChild::setupProject(bool active)
+{
+	SetModalities(ioThread->GetModalities());
 }
 
 
@@ -890,7 +899,7 @@ QString GetSupportedPixelTypeString(QVector<int> const & types)
 	return result;
 }
 
-bool MdiChild::setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img)
+bool MdiChild::setupSaveIO(QString const & f)
 {
 	QFileInfo fileInfo(f);
 	if (QString::compare(fileInfo.suffix(), "STL", Qt::CaseInsensitive) == 0) {
@@ -973,7 +982,7 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 	connectIOThreadSignals(ioThread);
 	connect(ioThread, SIGNAL(done()), this, SLOT(SaveFinished()));
 	m_storedModalityNr = modalityNr;
-	if (!setupSaveIO(f, tmpSaveImg)) {
+	if (!setupSaveIO(f)) {
 		ioFinished();
 		return false;
 	}
@@ -1732,12 +1741,6 @@ int MdiChild::isFuncEndPoint(int index)
 	return m_histogram->isFuncEndPoint(index);
 }
 
-bool MdiChild::isUpdateAutomatically()
-{
-	if (!m_histogram) return false;
-	return m_histogram->isUpdateAutomatically();
-}
-
 void MdiChild::setHistogramFocus()
 {
 	if (!m_histogram) return;
@@ -1826,14 +1829,6 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 		imode);
 }
 
-
-void MdiChild::autoUpdate(bool toggled)
-{
-	if (!m_histogram) return;
-	m_histogram->autoUpdate(toggled);
-}
-
-
 void MdiChild::toggleSnakeSlicer(bool isChecked)
 {
 	snakeSlicer = isChecked;
@@ -1919,7 +1914,7 @@ void MdiChild::toggleMagicLens( bool isEnabled )
 
 	if (isEnabled)
 	{
-		ChangeModality(0);
+		ChangeMagicLensModality(0);
 	}
 	SetMagicLensEnabled(isEnabled);
 	updateSlicers();
@@ -1956,8 +1951,8 @@ void MdiChild::updateReslicer(double point[3], double normal[3], int mode)
 	rotation_matrix->DeepCopy(r_matrix);
 
 	//rotation in Z axis by 180 degree
-	double cos_theta_z = cos(3.14159);
-	double sin_theta_z = sin(3.14159);
+	double cos_theta_z = cos(vtkMath::Pi());
+	double sin_theta_z = sin(vtkMath::Pi());
 	double r_matrix_z[16] = {	cos_theta_z, -sin_theta_z, 0, 0,
 		sin_theta_z,  cos_theta_z, 0, 0,
 		0, 0, 1, 0,
@@ -2086,7 +2081,7 @@ bool MdiChild::initView( QString const & title )
 	}
 	if (GetModalities()->size() == 0 && IsVolumeDataLoaded())
 	{
-		// TODO: VOLUME: resolve duplication between here (called on loadFile) and adding modalities (e.g. via LoadProject)
+		// TODO: VOLUME: resolve duplication between here (called on loadFile) and adding modalities
 		QString name;
 		if (!curFile.isEmpty())
 		{
@@ -2732,7 +2727,7 @@ bool MdiChild::IsVolumeDataLoaded() const
 }
 
 
-void MdiChild::ChangeModality(int chg)
+void MdiChild::ChangeMagicLensModality(int chg)
 {
 	//slicerXY->removeChannel(ch_SlicerMagicLens);
 	//slicerXZ->removeChannel(ch_SlicerMagicLens);
@@ -2789,7 +2784,6 @@ void MdiChild::ShowModality(int modIdx)
 	m_currentModality = modIdx;
 	m_currentComponent = 0;
 	SetHistogramModality(modIdx);
-	ChangeModality(0);
 }
 
 
@@ -2830,35 +2824,46 @@ void MdiChild::InitModalities()
 		currentFile().isEmpty() ? GetModality(0)->GetFileName() : currentFile(),
 		GetModality(0)->GetImage()
 	);
+	m_dlgModalities->SelectRow(0);
 }
 
 
 void MdiChild::SetHistogramModality(int modalityIdx)
 {
-	auto histData = GetModality(modalityIdx)->GetTransfer()->GetHistogramData();
-	if (!m_histogram ||	(histData && histData->GetNumBin() == preferences.HistogramBins))
+	if (!m_histogram)
 		return;
+	auto histData = GetModality(modalityIdx)->GetTransfer()->GetHistogramData();
+	if (histData &&	histData->GetNumBin() == preferences.HistogramBins)
+	{
+		if (modalityIdx != m_currentHistogramModality)
+			HistogramDataAvailable(modalityIdx);
+		return;
+	}
 	auto workerThread = new iAHistogramUpdater(modalityIdx,
 		GetModality(modalityIdx), preferences.HistogramBins);
 	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::HistogramDataAvailable);
 	connect(workerThread, &iAHistogramUpdater::StatisticsReady, this, &MdiChild::StatisticsAvailable);
 	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
-	addMsg(QString("%1  Computing Statistics and Histogram for modality %2...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(modalityIdx));
+	addMsg(QString("%1  Computing statistics and histogram for modality %2...")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(GetModality(modalityIdx)->GetName()));
 	workerThread->start();
 }
 
 
 void MdiChild::HistogramDataAvailable(int modalityIdx)
 {
-	addMsg(QString("%1  Histogram for modality %2 computed, displaying.")
+	QString modalityName = GetModality(modalityIdx)->GetName();
+	m_currentHistogramModality = modalityIdx;
+	addMsg(QString("%1  Displaying histogram for modality %2.")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(modalityIdx));
+		.arg(modalityName));
 	m_histogram->RemovePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iAPlot>(new
 		iABarGraphDrawer(GetModality(modalityIdx)->GetHistogramData(),
 			QColor(70, 70, 70, 255)));
 	m_histogram->AddPlot(m_histogramPlot);
+	m_histogram->SetXCaption("Histogram " + modalityName);
 	m_histogram->SetTransferFunctions(GetModality(modalityIdx)->GetTransfer()->GetColorFunction(),
 		GetModality(modalityIdx)->GetTransfer()->GetOpacityFunction());
 	m_histogram->updateTrf();	// will also redraw() the histogram
@@ -2868,9 +2873,9 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 
 void MdiChild::StatisticsAvailable(int modalityIdx)
 {
-	addMsg(QString("%1  Statistics for modality %2 computed, displaying.")
+	addMsg(QString("%1  Displaying statistics for modality %2.")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(modalityIdx));
+		.arg(GetModality(modalityIdx)->GetName()));
 	InitVolumeRenderers();
 	if (modalityIdx == 0)
 	{
@@ -2882,6 +2887,7 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 		slicerYZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
 		slicerYZ->GetSlicerData()->ResetCamera();
 	}
+	ChangeMagicLensModality(0);
 	ModalityTFChanged();
 	updateViews();
 }
@@ -2907,25 +2913,21 @@ void MdiChild::InitVolumeRenderers()
 	Raycaster->GetRenderer()->ResetCamera();
 }
 
-
-bool MdiChild::LoadProject(QString const & fileName)
+void MdiChild::saveProject(QString const & fileName)
 {
-	// processEvents: workaround for the crash when loading project from recent files.
-	// apparently some work needs to be done between creating the mdi child
-	// (done in Mainwindow::LoadProject) and setting up the dataset
-	// Could probably be omitted if the data loading in dlg_modalities was
-	// asynchronous!
-	QApplication::processEvents();
-
-	if (!m_dlgModalities->Load(fileName) ||
-		GetModalities()->size() <= 0)
+	ioThread = new iAIO(m_dlgModalities->GetModalities(), Raycaster->GetRenderer()->GetActiveCamera(), m_logger);
+	connectIOThreadSignals(ioThread);
+	QFileInfo fileInfo(fileName);
+	if (!ioThread->setupIO(PROJECT_WRITER, fileInfo.absoluteFilePath()))
 	{
-		return false;
+		ioFinished();
+		return;
 	}
-	setCurrentFile(GetModalities()->GetFileName());
-	m_mainWnd->setCurrentFile(GetModalities()->GetFileName());
-	InitModalities();
-	return true;
+	addMsg(tr("%1  Saving file '%2', please wait...")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	ioThread->start();
+	// TODO: only set new project file name if saving succeeded
+	setCurrentFile(fileName);
 }
 
 void MdiChild::StoreProject()
@@ -2953,8 +2955,7 @@ void MdiChild::StoreProject()
 		iAIOProvider::ProjectFileTypeFilter);
 	if (modalitiesFileName.isEmpty())
 		return;
-	m_dlgModalities->Store(modalitiesFileName);
-	setCurrentFile(modalitiesFileName);
+	saveProject(modalitiesFileName);
 }
 
 MainWindow* MdiChild::getMainWnd()
@@ -2990,4 +2991,10 @@ void MdiChild::SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Ori
 	{
 		splitDockWidget(ref, newWidget, orientation);
 	}
+}
+
+bool MdiChild::IsFullyLoaded() const
+{
+	int const * dim = imageData->GetDimensions();
+	return dim[0] > 0 && dim[1] > 0 && dim[2] > 0;
 }

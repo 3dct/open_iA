@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2017  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
 *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,8 +23,10 @@
 #include <open_iA_Core_export.h>
 
 #include <graphdrawer.h>
-#include <map>
+
 #include <vtkMutableDirectedGraph.h>
+
+#include <map>
 
 class vtkPoints;
 
@@ -36,8 +38,8 @@ private:
 	void	fillGraph(vtkMutableDirectedGraph* graph);
 	void	locatePoints(vtkPoints* points, int* windowsSize, size_t numRanks);
 
-	map<vtkIdType, Graph::idType>	m_vertMapFromVtk;
-	map<Graph::idType, vtkIdType>	m_vertMapToVtk;
+	std::map<vtkIdType, Graph::idType> m_vertMapFromVtk;
+	std::map<Graph::idType, vtkIdType> m_vertMapToVtk;
 	GraphDrawer						m_graphDrawer;
 	Graph							m_graph;
 };
