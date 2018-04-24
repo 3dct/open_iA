@@ -118,7 +118,7 @@ public:
 
 	void setSelectedHeaderToTextControl(QStringList & sel_headers);
 
-	void setSelectedEntries();
+	bool setSelectedEntries(const bool EnableMessageBox);
 	
 	
 	inline const QSharedPointer<QStringList> getHeaders() {

@@ -186,8 +186,7 @@ namespace DataIO {
 		for (int curRow = 0; curRow < headerLine; curRow++) {
 			el_line = file.readLine();
 		}
-
-
+		
 		//nextLine is headerLine if not enabled skip is this line
 		el_line = file.readLine();
 		if (readHeaders) {

@@ -82,7 +82,10 @@ void dlg_CSVInput::ImportRegSettings()
 
 void dlg_CSVInput::OKButtonClicked()
 {
-	setSelectedEntries();
+	if (!setSelectedEntries(true)) {
+		return; 
+	}
+	
 	this->accept();
 }
 
@@ -175,14 +178,13 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 	this->assignInputObjectTypes();//Input Type Fiber or Pores
 	
 	//header Entries from selection in control list
-	this->setSelectedEntries(); 
+	this->setSelectedEntries(false); 
 	params = *this->m_confParams; 
 	saveParamsToRegistry(params, layoutName);
 	this->saveHeaderEntriesToReg(*this->m_selHeaders, this->m_regEntries->str_headerName,layoutName); 
 
 	//save all entries in order to make sure if file is not avaiable  one still can see the headers?? TODO
 	this->saveHeaderEntriesToReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, layoutName); 
-	
 	this->cmb_box_FileFormat->addItem(layoutName); 
 }
 
@@ -551,10 +553,15 @@ void dlg_CSVInput::assignHeaderLine() {
 }
 
 //setEntries from a selected List + setting column count information for selection
-void dlg_CSVInput::setSelectedEntries() {
+bool dlg_CSVInput::setSelectedEntries(const bool EnableMessageBox)
+{
 	
 	this->m_selectedHeadersList = this->textControl_list->selectedItems();
-	
+	if (EnableMessageBox && (this->m_selectedHeadersList.length() < 2)) {
+		QMessageBox::warning(this, tr("FeatureScoutCSV"), "Please select at least 2 columns to load"); 
+		return false; 
+	}
+
 	
 	uint currItemIdx; 
 	QString listEntry; 			
@@ -578,7 +585,7 @@ void dlg_CSVInput::setSelectedEntries() {
 	}
 
 	this->m_confParams->colCount = this->m_selColIdx.length(); 
-
+	return true; 
 }
 
 //ensure correct order of header!

@@ -911,166 +911,172 @@ void dlg_FeatureScout::pcChangeOptions( int idx )
 
 void dlg_FeatureScout::RenderingButton()
 {
-	//Turns off FLD scalar bar updates polar plot view
-	if ( m_scalarWidgetFLD != NULL )
-	{
-		m_scalarWidgetFLD->Off();
-		this->updatePolarPlotColorScalar( chartTable );
-	}
-
-	QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
-	int classCount = rootItem->rowCount();
-
-	if ( classCount == 1 )
-		return;
-
-	double backAlpha = 0.00005;
-	double backRGB[3];
-	backRGB[0] = colorList.at( 0 ).redF();
-	backRGB[1] = colorList.at( 0 ).greenF();
-	backRGB[2] = colorList.at( 0 ).blueF();
-
-	//double alpha = 1.0;
-	double alpha = this->calculateOpacity( rootItem );
-	double red = 0.0;
-	double green = 0.0;
-	double blue = 0.0;
-	int CID = 0;
-
-	// clear existing points
-	this->oTF->RemoveAllPoints();
-	this->cTF->RemoveAllPoints();
-
-	// set background opacity and color
-	this->oTF->ClampingOff();
-	this->cTF->ClampingOff();
-
-	// Iterate trough all classes to render, starting with 0 unclassified, 1 Class1,...
-	for ( int i = 0; i < classCount; i++ )
-	{
-		// alpha = colorList.at(i).alpha()/255.0;
-		red = colorList.at( i ).redF();
-		green = colorList.at( i ).greenF();
-		blue = colorList.at( i ).blueF();
-
-		QStandardItem *item = rootItem->child( i, 0 );
-		int itemL = item->rowCount();
-
-		// Class has no objects, proceed with next class
-		if ( !itemL )
-			continue;
-
-		int hid = 0, next_hid = 1;
-		bool starting = false;
-
-		for ( int j = 0; j < itemL; ++j )
+	if (!this->useCsvOnly) {
+		//Turns off FLD scalar bar updates polar plot view
+		if (m_scalarWidgetFLD != NULL)
 		{
-			hid = item->child( j, 0 )->text().toInt();
+			m_scalarWidgetFLD->Off();
+			this->updatePolarPlotColorScalar(chartTable);
+		}
 
-			if ( ( j + 1 ) < itemL )
+		QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
+		int classCount = rootItem->rowCount();
+
+		if (classCount == 1)
+			return;
+
+		double backAlpha = 0.00005;
+		double backRGB[3];
+		backRGB[0] = colorList.at(0).redF();
+		backRGB[1] = colorList.at(0).greenF();
+		backRGB[2] = colorList.at(0).blueF();
+
+		//double alpha = 1.0;
+		double alpha = this->calculateOpacity(rootItem);
+		double red = 0.0;
+		double green = 0.0;
+		double blue = 0.0;
+		int CID = 0;
+
+		// clear existing points
+		this->oTF->RemoveAllPoints();
+		this->cTF->RemoveAllPoints();
+
+		// set background opacity and color
+		this->oTF->ClampingOff();
+		this->cTF->ClampingOff();
+
+		// Iterate trough all classes to render, starting with 0 unclassified, 1 Class1,...
+		for (int i = 0; i < classCount; i++)
+		{
+			// alpha = colorList.at(i).alpha()/255.0;
+			red = colorList.at(i).redF();
+			green = colorList.at(i).greenF();
+			blue = colorList.at(i).blueF();
+
+			QStandardItem *item = rootItem->child(i, 0);
+			int itemL = item->rowCount();
+
+			// Class has no objects, proceed with next class
+			if (!itemL)
+				continue;
+
+			int hid = 0, next_hid = 1;
+			bool starting = false;
+
+			for (int j = 0; j < itemL; ++j)
 			{
-				next_hid = item->child( j + 1, 0 )->text().toInt();
-			}
-			else
-			{
-				if ( starting )
+				hid = item->child(j, 0)->text().toInt();
+
+				if ((j + 1) < itemL)
 				{
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					break;
+					next_hid = item->child(j + 1, 0)->text().toInt();
 				}
 				else
 				{
-					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					break;
+					if (starting)
+					{
+						oTF->AddPoint(hid, alpha, 0.5, 1.0);
+						oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+						cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+						cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+						break;
+					}
+					else
+					{
+						oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
+						oTF->AddPoint(hid, alpha, 0.5, 1.0);
+						cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+						cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+						oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+						cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+						break;
+					}
+				}
+
+				//Create one single tooth
+				if (next_hid > hid + 1 && !starting)
+				{
+					oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
+					oTF->AddPoint(hid, alpha, 0.5, 1.0);
+					oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+					cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+					cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+					cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+				}
+				else if (next_hid == hid + 1 && !starting)
+				{
+					starting = true;
+					oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
+					oTF->AddPoint(hid, alpha, 0.5, 1.0);
+					cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+					cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+				}
+				else if (next_hid == hid + 1 && starting)
+					continue;
+
+				else if (next_hid > hid + 1 && starting)
+				{
+					starting = false;
+					oTF->AddPoint(hid, alpha, 0.5, 1.0);
+					oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+					cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+					cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 				}
 			}
 
-			//Create one single tooth
-			if ( next_hid > hid + 1 && !starting )
+			if (hid < objectNr)
 			{
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-			}
-			else if ( next_hid == hid + 1 && !starting )
-			{
-				starting = true;
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-			}
-			else if ( next_hid == hid + 1 && starting )
-				continue;
-
-			else if ( next_hid > hid + 1 && starting )
-			{
-				starting = false;
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				this->oTF->AddPoint(objectNr + 0.3, backAlpha, 0.5, 1.0);
+				this->cTF->AddRGBPoint(objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 			}
 		}
 
-		if ( hid < objectNr )
+		// update lookup table in PC View
+		this->updateLookupTable(alpha);
+		this->setupNewPcView(true);
+		static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetScalarVisibility(1);
+		static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetLookupTable(lut);
+		static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray("Class_ID");
+		this->pcChart->SetSize(pcChart->GetSize());
+
+		//Updates SPM
+		if (this->spmActivated)
 		{
-			this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
-			this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			// TODO SPM
+			// matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
+			// matrix->SetClass2Plot( -1 );
+			// matrix->UpdateLayout();
+
+			/*
+			iterate over each class get ID, do copy for chartTable, set Data and Apply ColorMap
+
+			QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
+			int classCount = rootItem->rowCount();
+			// Iterate trough all classes to render, starting with 0 unclassified, 1 Class1,...
+			for ( int i = 0; i < classCount; i++ )
+			QStandardItem *item = rootItem->child( i, 0 );
+			int itemL = item->rowCount();
+
+			// Class has no objects, proceed with next class
+			if ( !itemL )
+			continue;
+			/
+			*/
+
+			//chartTable->ShallowCopy( tableList[item->index().row()] );
+
 		}
+
+		static_cast<MdiChild*>(activeChild)->updateViews();
+
+		//Cause of performance turrned off
+		//static_cast<MdiChild*>(activeChild)->redrawHistogram();
+	}else {
+		QMessageBox::warning(this, tr("MultiClassView"),
+		tr("Multi class rendering disabled - 3D data is required"));
 	}
 
-	// update lookup table in PC View
-	this->updateLookupTable( alpha );
-	this->setupNewPcView( true );
-	static_cast<vtkPlotParallelCoordinates *>( pcChart->GetPlot( 0 ) )->SetScalarVisibility( 1 );
-	static_cast<vtkPlotParallelCoordinates *>( pcChart->GetPlot( 0 ) )->SetLookupTable( lut );
-	static_cast<vtkPlotParallelCoordinates *>( pcChart->GetPlot( 0 ) )->SelectColorArray( "Class_ID" );
-	this->pcChart->SetSize( pcChart->GetSize() );
-
-	//Updates SPM
-	if ( this->spmActivated )
-	{
-		// TODO SPM
-		// matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
-		// matrix->SetClass2Plot( -1 );
-		// matrix->UpdateLayout();
-
-		/*
-		iterate over each class get ID, do copy for chartTable, set Data and Apply ColorMap
-		
-		QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
-		int classCount = rootItem->rowCount();
-		// Iterate trough all classes to render, starting with 0 unclassified, 1 Class1,...
-		for ( int i = 0; i < classCount; i++ )
-		QStandardItem *item = rootItem->child( i, 0 );
-		int itemL = item->rowCount();
-
-		// Class has no objects, proceed with next class
-		if ( !itemL )
-		continue;
-		/
-		*/
-
-		//chartTable->ShallowCopy( tableList[item->index().row()] );
-		
-	}
-
-	static_cast<MdiChild*>( activeChild )->updateViews();
-
-	//Cause of performance turrned off
-	//static_cast<MdiChild*>(activeChild)->redrawHistogram();
 }
 
 void dlg_FeatureScout::SingleRendering( int idx )
