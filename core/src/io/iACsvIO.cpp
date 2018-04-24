@@ -461,7 +461,7 @@ void iACsvIO::setDefaultConfigPath()
 	configPath = "D:/OpenIa_TestDaten/TestInput/config/";
 }
 
-int iACsvIO::CalcTableLength(const QString &fileName,const int *nrHeadersToSkip)
+long iACsvIO::CalcTableLength(const QString &fileName,const int *nrHeadersToSkip)
 {
 	// skip lines which are not headers
 	// todo: to find another efficient way to count the lines in a file
@@ -472,10 +472,10 @@ int iACsvIO::CalcTableLength(const QString &fileName,const int *nrHeadersToSkip)
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 		return 0;
 
-	int TableLength = 0;
+	long int TableLength = 0;
 
 	// read header lines, need specification each time the structure of the csv file changes
-	//TODO change reading headerlines
+	//TODO change reading header lines
 	//default for feature scout
 	if (!nrHeadersToSkip) {
 		file.readLine();
@@ -653,13 +653,14 @@ void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 
 void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag) {
 	int tableWidth = 0; 
-	int tableLength = 0; 
+	long tableLength = 0; 
 	this->m_EL_ID = 1;  //reset to 1 -> ID starts with 1!
 
 	tableLength = CalcTableLength(fileName, (&rows_toSkip));
-
+	/*if (this->m_useEndLine) {
+		this->m_endLine = tableLength -1 ;
+	}*/
 	
-
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
@@ -698,7 +699,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	arr->SetName("Class_ID");
 	table->AddColumn(arr);
 
-	table->SetNumberOfRows(tableLength/*+2*/);
+	table->SetNumberOfRows(tableLength);
 	QString line = "";
 	QString tmp_section = "";
 	tableWidth = this->m_tableWidth; 
@@ -706,11 +707,11 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	if (this->m_colIds.length() >0){
 		col_count = this->m_colIds.length(); 
 	}
-	else col_count = this->m_TableHeaders.length(); 
+	else { 
+		col_count = this->m_TableHeaders.length(); 
+	}
 
-	/*col_count = colSelEntries.length(); ; */// /*this->m_TableHeaders*/m_Headers.length();
 	
-
 	//load pores
 	if (!enableFiberTransformation) {
 		loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
@@ -725,7 +726,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 
 }
 
-void iACsvIO::loadPoreData(int tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count)
+void iACsvIO::loadPoreData(long tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count)
 {
 	double tbl_value = 0.0;
 
@@ -734,8 +735,9 @@ void iACsvIO::loadPoreData(int tableLength, QString &line, QTextStream &in, int 
 	//use separate col count index 
 	int cur_Colcount = 1;
 
-	for (int row = 0; row<tableLength/*+1*/; ++row) //TODO remove hard coded value 
-	{
+	for (long row = 0; row<tableLength; ++row) 
+	{   
+		//skip endline if activated
 		if (m_useEndLine && (row > m_endLine))
 			break;
 
@@ -743,15 +745,12 @@ void iACsvIO::loadPoreData(int tableLength, QString &line, QTextStream &in, int 
 		if (!line.isEmpty())
 		{
 			cur_Colcount = 1;
-			ID_val = this->m_EL_ID; //AUTO ID
-			table->SetValue(row, 0, ID_val.ToString());
-
-
-
+			table->SetValue(row, 0, this->m_EL_ID );
+			
 			//adding entries for each col 
 			for (int col = 1; col<tableWidth + 1; col++)
 			{
-				//skip endline if activated
+			
 
 				//skip rows
 				if (m_colIds.contains((uint)col - 1))
@@ -772,97 +771,14 @@ void iACsvIO::loadPoreData(int tableLength, QString &line, QTextStream &in, int 
 
 			}
 
-
 			table->SetValue(row, col_count + 1, 0);
 			this->m_EL_ID++;
 
 
-		}
+		} // exclude white spaces if row is empty
+		else table->RemoveRow(row);
 	}
 }
 
-//reads all Entries from Table
-void iACsvIO::readFileEntries(const QString &fileName, const int rows_toSkip, bool En_Values, bool &retFlag) {
-	int tableLength = CalcTableLength(fileName, &rows_toSkip);
-	if (tableLength <= 0)
-	{
-		retFlag = false;
-		return; 
-	}
 
-	QFile file(fileName);
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-	{
-		retFlag = false; 
-		return; 
-	}
-
-	QTextStream in(&file);
-
-	//skip header lines, not counting the line where names start
-	for (int i = 0; i < rows_toSkip - 1; i++) {
-		QString tmp = in.readLine();
-	}
-
-	//header: names of elements
-	QString eleLine = in.readLine();
-	const char* element;
-	// count elements
-
-	const char *_colSeparator = m_colSeparator.toStdString().c_str();
-	//TODO tobe tested
-	int tableWidth = eleLine.count(&m_colSeparator);
-	QString tmp_section = "";
-
-	//read out header entrys
-	for (int i = 0; i<tableWidth; i++)
-	{
-		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
-		QByteArray byteArr = eleLine.section(m_colSeparator, i, i, QString::SectionSkipEmpty).toUtf8();
-		element = byteArr.constData();
-		arrX->SetName(element);
-		table->AddColumn(arrX);
-	}
-	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
-	arr->SetName("Class_ID");
-	table->AddColumn(arr);
-	table->SetNumberOfRows(tableLength);
-
-	//loadPoreData(tableLength, in, tableWidth, tmp_section, En_Values);
-	file.close();
-	retFlag = true; 
-
-}
-
-//void iACsvIO::loadPoreData(int tableLength, QTextStream &in, int tableWidth, QString &tmp_section, bool En_Values)
-//{
-//	QString line = "";
-//	for (int i = 0; i<tableLength; ++i)
-//	{
-//		line = in.readLine();
-//		if (!line.isEmpty())
-//		{
-//			vtkVariant v = line.section(m_colSeparator, 0, 0).toInt();
-//			vtkStdString v1 = v.ToString();
-//
-//			//set id 
-//			table->SetValue(i, 0, v.ToString());
-//
-//			//adding entries for each col 
-//			for (int j = 1; j<tableWidth; j++)
-//			{
-//
-//				tmp_section = line.section(m_colSeparator, j, j);
-//				//replace decimal separator for german input format 
-//				if (!En_Values)
-//					tmp_section = tmp_section.replace(",", m_decimalSeparator);
-//				table->SetValue(i, j, tmp_section.toFloat());
-//			}
-//
-//			//set Class_ID 0 for each row element
-//			table->SetValue(i, tableWidth, 0);
-//
-//		}
-//	}
-//}
 

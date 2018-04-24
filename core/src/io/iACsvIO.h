@@ -40,8 +40,8 @@ public:
 	bool loadCsv_WithConfig();
 
 	void readCustomFileEntries(const QString & fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag);
-	void loadPoreData(int tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count);
-	void readFileEntries(const QString & fileName, const int rows_toSkip, bool En_Values, bool & retFlag);
+	void loadPoreData(long tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count);
+	//void readFileEntries(const QString & fileName, const int rows_toSkip, bool En_Values, bool & retFlag);
 
 	
 	//input parameters from configuration file 
@@ -84,7 +84,7 @@ public:
 private:
 
 	void setDefaultConfigPath(); 
-	int CalcTableLength(const QString &fileName, const int *nrHeadersToSkip);  //
+	long CalcTableLength(const QString &fileName, const int *nrHeadersToSkip);  //
 	
 	QString configPath; 
 	QStringList GetFibreElementsName(bool withUnit);
@@ -103,9 +103,9 @@ private:
 	bool enableFiberTransformation; 
 
 	//element id for each row entry
-	uint m_EL_ID;
+	ulong m_EL_ID;
 	uint m_tableWidth;
-	uint m_endLine; 
+	ulong m_endLine; 
 
 	int m_rowsToSkip;
 

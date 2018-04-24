@@ -576,6 +576,7 @@ void dlg_CSVInput::setSelectedEntries() {
 	if (!(this->m_selectedHeadersList.length() == 0)) {
 		if (m_selHeaders->length() > 0) {
 			this->m_selHeaders->clear(); 
+			this->m_selColIdx.clear(); 
 		}
 
 		this->m_selColIdx.capacity(); 
