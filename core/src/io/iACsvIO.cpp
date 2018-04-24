@@ -99,112 +99,112 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 	table->SetNumberOfRows(tableLength);
 
 	//additional entries for Fibres
-
-	/*FibreTranformation(in, eleWidth, tableLength, eleString);
-	file.close();
-	return true;*/
-
-	double x1, x2, y1, y2, z1, z2, dx, dy, dz, xm, ym, zm, phi, theta;
-	double a11, a22, a33, a12, a13, a23;
-
-	for (int i = 0; i<tableLength; i++)
-	{
-		QString line = in.readLine();
-		if (!line.isEmpty())
-		{
-			x1 = line.section(",", 1, 1).toFloat();
-			y1 = line.section(",", 2, 2).toFloat();
-			z1 = line.section(",", 3, 3).toFloat();
-			x2 = line.section(",", 4, 4).toFloat();
-			y2 = line.section(",", 5, 5).toFloat();
-			z2 = line.section(",", 6, 6).toFloat();
-
-			// preparing the tensor calculation
-			dx = x1 - x2;
-			dy = y1 - y2;
-			dz = z1 - z2;
-			xm = (x1 + x2) / 2.0f;
-			ym = (y1 + y2) / 2.0f;
-			zm = (z1 + z2) / 2.0f;
-
-			if (dz<0)
-			{
-				dx = x2 - x1;
-				dy = y2 - y1;
-				dz = z2 - z1;
-			}
-
-			phi = asin(dy / sqrt(dx*dx + dy*dy));
-			theta = acos(dz / sqrt(dx*dx + dy*dy + dz*dz));
-
-			a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
-			a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
-			a33 = cos(theta)*cos(theta);
-			a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
-			a13 = cos(phi)*sin(theta)*cos(theta);
-			a23 = sin(phi)*sin(theta)*cos(theta);
-
-			phi = (phi*180.0f) / Pi;
-			theta = (theta*180.0f) / Pi; // finish calculation
-										   // locat the phi value to quadrant
-			if (dx<0)
-			{
-				phi = 180.0 - phi;
-			}
-
-			if (phi<0.0)
-			{
-				phi = phi + 360.0;
-			}
-
-			if (dx == 0 && dy == 0)
-			{
-				phi = 0.0;
-				theta = 0.0;
-				a11 = 0.0;
-				a22 = 0.0;
-				a12 = 0.0;
-				a13 = 0.0;
-				a23 = 0.0;
-			}
-
-
-			table->SetValue(i, 0, line.section(",", 0, 0).toInt());
-
-			//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
-			for (int j = 1; j<7; j++)
-			{
-				table->SetValue(i, j, line.section(",", j, j).toFloat());
-			}
-
-			table->SetValue(i, 7, a11);
-			table->SetValue(i, 8, a22);
-			table->SetValue(i, 9, a33);
-			table->SetValue(i, 10, a12);
-			table->SetValue(i, 11, a13);
-			table->SetValue(i, 12, a23);
-			table->SetValue(i, 13, phi);
-			table->SetValue(i, 14, theta);
-			table->SetValue(i, 15, xm);
-			table->SetValue(i, 16, ym);
-			table->SetValue(i, 17, zm);
-
-			for (int j = 7; j<eleWidth; j++)
-			{
-				table->SetValue(i, j + 11, line.section(",", j, j).toFloat());
-			}
-
-			table->SetValue(i, eleString.size() - 1, 0);
-		}
-	}
-	
+	int colCount = eleString.size(); 
+	FibreTranformation(in, eleWidth, tableLength, colCount);
 	file.close();
 	return true;
+
+	//double x1, x2, y1, y2, z1, z2, dx, dy, dz, xm, ym, zm, phi, theta;
+	//double a11, a22, a33, a12, a13, a23;
+
+	//for (int i = 0; i<tableLength; i++)
+	//{
+	//	QString line = in.readLine();
+	//	if (!line.isEmpty())
+	//	{
+	//		x1 = line.section(",", 1, 1).toFloat();
+	//		y1 = line.section(",", 2, 2).toFloat();
+	//		z1 = line.section(",", 3, 3).toFloat();
+	//		x2 = line.section(",", 4, 4).toFloat();
+	//		y2 = line.section(",", 5, 5).toFloat();
+	//		z2 = line.section(",", 6, 6).toFloat();
+
+	//		// preparing the tensor calculation
+	//		dx = x1 - x2;
+	//		dy = y1 - y2;
+	//		dz = z1 - z2;
+	//		xm = (x1 + x2) / 2.0f;
+	//		ym = (y1 + y2) / 2.0f;
+	//		zm = (z1 + z2) / 2.0f;
+
+	//		if (dz<0)
+	//		{
+	//			dx = x2 - x1;
+	//			dy = y2 - y1;
+	//			dz = z2 - z1;
+	//		}
+
+	//		phi = asin(dy / sqrt(dx*dx + dy*dy));
+	//		theta = acos(dz / sqrt(dx*dx + dy*dy + dz*dz));
+
+	//		a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
+	//		a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
+	//		a33 = cos(theta)*cos(theta);
+	//		a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
+	//		a13 = cos(phi)*sin(theta)*cos(theta);
+	//		a23 = sin(phi)*sin(theta)*cos(theta);
+
+	//		phi = (phi*180.0f) / Pi;
+	//		theta = (theta*180.0f) / Pi; // finish calculation
+	//									   // locat the phi value to quadrant
+	//		if (dx<0)
+	//		{
+	//			phi = 180.0 - phi;
+	//		}
+
+	//		if (phi<0.0)
+	//		{
+	//			phi = phi + 360.0;
+	//		}
+
+	//		if (dx == 0 && dy == 0)
+	//		{
+	//			phi = 0.0;
+	//			theta = 0.0;
+	//			a11 = 0.0;
+	//			a22 = 0.0;
+	//			a12 = 0.0;
+	//			a13 = 0.0;
+	//			a23 = 0.0;
+	//		}
+
+
+	//		table->SetValue(i, 0, line.section(",", 0, 0).toInt());
+
+	//		//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
+	//		for (int j = 1; j<7; j++)
+	//		{
+	//			table->SetValue(i, j, line.section(",", j, j).toFloat());
+	//		}
+
+	//		table->SetValue(i, 7, a11);
+	//		table->SetValue(i, 8, a22);
+	//		table->SetValue(i, 9, a33);
+	//		table->SetValue(i, 10, a12);
+	//		table->SetValue(i, 11, a13);
+	//		table->SetValue(i, 12, a23);
+	//		table->SetValue(i, 13, phi);
+	//		table->SetValue(i, 14, theta);
+	//		table->SetValue(i, 15, xm);
+	//		table->SetValue(i, 16, ym);
+	//		table->SetValue(i, 17, zm);
+
+	//		for (int j = 7; j<eleWidth; j++)
+	//		{
+	//			table->SetValue(i, j + 11, line.section(",", j, j).toFloat());
+	//		}
+
+	//		table->SetValue(i, eleString.size() - 1, 0);
+	//	}
+	//}
+	//
+	//file.close();
+	//return true;
 	
 }
 
 
-void iACsvIO::FibreTranformation(QTextStream &in, int eleWidth, int tableLength, QStringList &eleString) {
+void iACsvIO::FibreTranformation(QTextStream &in, int eleWidth, int tableLength, const int colCount/* &eleString*/) {
 
 	double x1, x2, y1, y2, z1, z2, dx, dy, dz, xm, ym, zm, phi, theta;
 	double a11, a22, a33, a12, a13, a23;
@@ -271,7 +271,7 @@ void iACsvIO::FibreTranformation(QTextStream &in, int eleWidth, int tableLength,
 				a23 = 0.0;
 			}
 
-			if (!useCVSOnly) {
+			if ((!useCVSOnly) | enableFiberTransformation ) {
 				table->SetValue(i, 0, line.section(",", 0, 0).toInt());
 
 				//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
@@ -329,11 +329,11 @@ void iACsvIO::FibreTranformation(QTextStream &in, int eleWidth, int tableLength,
 					//use the other entries of columns, using auto ID will be 8
 					for (int j = 7; j < eleWidth; j++)
 					{
-						table->SetValue(i, col_idx /*j + 11*/, line.section(",", j, j).toFloat());
+						table->SetValue(i, col_idx /*j + 11*/, line.section(",", j, j).toFloat()); //TODO in dbl
 						col_idx++; 
 					}
 
-					table->SetValue(i, eleString.size() - 1, 0); // with autoId +1 last column adding class information
+					table->SetValue(i, colCount - 1, 0); // with autoId +1 last column adding class information
 			}//end !use csv only
 		}
 	}
@@ -441,13 +441,13 @@ void iACsvIO::debugTable()
 
 		for (int i = 0; i<spCol.ToInt(); i++) {
 			spCN = this->table->GetColumnName(i);
-			debugfile << spCN.ToString() << "\t";
+			debugfile << spCN.ToString() << ",";
 		}
 		debugfile << "\n";
 		for (int row = 0; row < spRow.ToInt(); row++) {
 			for (int col = 0; col < spCol.ToInt(); col++) {
 				spVal = this->table->GetValue(row, col);
-				debugfile << spVal.ToString() << "\t";
+				debugfile << spVal.ToString() << ","; //TODO cast debug to double
 			}
 			debugfile << "\n";
 		}
@@ -649,6 +649,12 @@ void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 		this->m_endLine = csv_Params.endLine; 
 	
 	}
+
+	if (csv_Params.inputObjectType == csvConfig::CTInputObjectType::Fiber) {
+		this->enableFiberTransformation = true; 
+	}
+	else this->enableFiberTransformation = false; 
+
 }
 
 void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag) {
@@ -674,26 +680,40 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 		QString tmp = in.readLine();
 	}
 
+	int col_count = 0;
+	if (enableFiberTransformation) {
+		this->m_TableHeaders = 	this->GetFibreElementsName(true);
+		this->m_tableWidth = m_colIds.length();
+		col_count = this->m_TableHeaders.length(); 
+	}
+	
+	//else use default header
+
 	setColumnHeaders(this->m_TableHeaders);
 
 	table->SetNumberOfRows(tableLength);
 	QString line = "";
 	QString tmp_section = "";
 	tableWidth = this->m_tableWidth; 
-	int col_count = 0; 
-	if (this->m_colIds.length() >0){
-		col_count = this->m_colIds.length(); 
-	}
-	else { 
-		col_count = this->m_TableHeaders.length(); 
-	}
+
+	
+	
 
 	//load pores
 	if (!enableFiberTransformation) {
+
+		if (this->m_colIds.length() > 0) {
+			col_count = this->m_colIds.length();
+		}
+		else {
+			col_count = this->m_TableHeaders.length();
+		}
+
 		loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
 	} //TODO FIberTransformation
 	else {
-		loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
+		//loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
+		this->FibreTranformation(in, tableWidth, tableLength,col_count);
 	}
 	
 	if(file.isOpen())
@@ -707,9 +727,10 @@ void iACsvIO::setColumnHeaders(QStringList &colHeaders)
 	const char* element;
 
 	vtkSmartPointer<vtkIntArray> arrAuto = vtkSmartPointer<vtkIntArray>::New();
+	if(!this->enableFiberTransformation){
 	arrAuto->SetName("Auto_ID");
 	table->AddColumn(arrAuto);
-
+	}
 	//adding headers; 
 	for (const auto &elLine : colHeaders) {
 		if (!elLine.isEmpty()) {

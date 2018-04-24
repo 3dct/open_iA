@@ -204,17 +204,54 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 		return; 
 	}
 
-	if (this->m_formatSelected) {
-		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, this->m_LayoutName);
+	
+	
+	//for fiber use all headers; 
+	if (this->m_confParams->inputObjectType == csvConfig::CTInputObjectType::Fiber) {
+		if (this->m_formatSelected) {
+			this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, this->m_LayoutName);
+		}
+		setAllHeaders(m_currentHeaders);
 		
+
+	}
+	else {
+		this->textControl_list->setEnabled(true); 
+		if (this->m_formatSelected) {
+
+			//output m_currentHeaders
+			this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, this->m_LayoutName);
+
+		}
+
+		this->setSelectedHeaderToTextControl(*this->m_currentHeaders);
+		this->textControl_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
+		
+		//table withd
 	}
 	
 	
-	this->setSelectedHeaderToTextControl(*this->m_currentHeaders);
 
 	// show fileName
 	this->showConfigParams(*this->m_confParams, false);
 	this->m_formatSelected = false; 
+}
+
+
+void dlg_CSVInput::setAllHeaders(QSharedPointer<QStringList> &allHeaders) {
+	
+	//clear data
+	/*for (int i = 0; i < this->textControl_list->model()->rowCount(); i++) {
+		this->textControl_list->takeItem(i);
+	}*/
+	this->m_confParams->tableWidth = allHeaders->size(); 
+	
+	//this->textControl_list->addItems(*allHeaders);
+	this->setSelectedHeaderToTextControl(*allHeaders); 
+	this->textControl_list->selectAll();
+	
+	this->textControl_list->setSelectionMode(QAbstractItemView::NoSelection); 
+	//this->textControl_list->setScroll(true); 
 }
 
 void dlg_CSVInput::AssignFormatLanguage() {

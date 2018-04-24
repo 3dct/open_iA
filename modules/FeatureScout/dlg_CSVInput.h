@@ -121,9 +121,13 @@ public:
 	bool setSelectedEntries(const bool EnableMessageBox);
 	
 	
-	inline const QSharedPointer<QStringList> getHeaders() {
+	inline const QSharedPointer<QStringList> getHeaderSelection() {
 		return this->m_selHeaders;
 	};
+
+	inline const QSharedPointer<QStringList> getAllHeaders() {
+		return this->m_currentHeaders; 
+	}
 
 	inline const ulong getTableWidth() {
 		return this->m_confParams->tableWidth; 
@@ -133,6 +137,7 @@ public:
 private slots: 
 	void LoadCSVPreviewClicked();
 
+	void setAllHeaders(QSharedPointer<QStringList> &allHeaders);
 	//TODO TBD
 	void ImportRegSettings();
 	void OKButtonClicked(); 
@@ -143,6 +148,7 @@ private slots:
 	//load format based on selected input format (ex. mavi/ vg, ...) 
 	void LoadFormatSettings(const QString &LayoutName);
 
+	//clear all entries in Table
 	void resetTable();
 	void SaveLayoutBtnClicked();
 

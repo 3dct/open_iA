@@ -83,6 +83,7 @@ public:
 	void setParams(QStringList& headers, const QVector<uint> &colIDs, uint TableWidth); 
 
 	void debugTable(); 
+	QStringList GetFibreElementsName(bool withUnit);
 
 private:
 
@@ -90,10 +91,10 @@ private:
 	long CalcTableLength(const QString &fileName, const int *nrHeadersToSkip);  //
 	
 	QString configPath; 
-	QStringList GetFibreElementsName(bool withUnit);
+	
 	bool LoadFibreCSV(const QString &fileName);
 	
-	void FibreTranformation(QTextStream & in, int eleWidth, int tableLength, QStringList & eleString);
+	void FibreTranformation(QTextStream & in, int eleWidth, int tableLength, const int colCount);
 	bool LoadPoreCSV(const QString &fileName);
 	
 	bool loadConfig(const QString configName, bool & applyEN_Formating);
