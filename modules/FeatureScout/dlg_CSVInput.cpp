@@ -72,6 +72,7 @@ void dlg_CSVInput::connectSignals()
 	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked()));
 	connect(btn_SaveLayout, SIGNAL(clicked()), this, SLOT(SaveLayoutBtnClicked())); 
 	connect(cmb_box_FileFormat, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadFormatSettings);
+	connect(cmb_box_InputObject, &QComboBox::currentTextChanged, this, &dlg_CSVInput::setCTInputObjectType); //Switch between fiber and pores / voids
 	connect(buttonBox, SIGNAL(accepted()), this, SLOT(OKButtonClicked()));
 	//connect(cmb_box_FileFormat, SIGNAL(currentTextChanged(const QString&)), this, SLOT(LoadFormatSettings(QString)));
 }
@@ -152,6 +153,18 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 }
 
 
+void dlg_CSVInput::setCTInputObjectType(const QString &ObjectInputType)
+{
+	this->assignInputObjectTypes();
+	if (m_confParams->inputObjectType == csvConfig::CTInputObjectType::Fiber) {
+		if (this->textControl_list->count() > 0) {
+			textControl_list->selectAll(); 
+		}
+	
+	}
+
+}
+
 void dlg_CSVInput::resetTable()
 {
 	this->m_entriesPreviewTable->clearTable();
@@ -183,7 +196,8 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 	saveParamsToRegistry(params, layoutName);
 	this->saveHeaderEntriesToReg(*this->m_selHeaders, this->m_regEntries->str_headerName,layoutName); 
 
-	//save all entries in order to make sure if file is not avaiable  one still can see the headers?? TODO
+	//save all entries in order to make sure if file is not available  one still can see the headers?? 
+	// TODO necessary this thing?  ??? 
 	this->saveHeaderEntriesToReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, layoutName); 
 	this->cmb_box_FileFormat->addItem(layoutName); 
 }
@@ -216,7 +230,7 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 
 	}
 	else {
-		this->textControl_list->setEnabled(true); 
+		
 		if (this->m_formatSelected) {
 
 			//output m_currentHeaders
@@ -225,9 +239,9 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 		}
 
 		this->setSelectedHeaderToTextControl(*this->m_currentHeaders);
-		this->textControl_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
+		//this->textControl_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
 		
-		//table withd
+		
 	}
 	
 	
@@ -248,10 +262,12 @@ void dlg_CSVInput::setAllHeaders(QSharedPointer<QStringList> &allHeaders) {
 	
 	//this->textControl_list->addItems(*allHeaders);
 	this->setSelectedHeaderToTextControl(*allHeaders); 
-	this->textControl_list->selectAll();
 	
-	this->textControl_list->setSelectionMode(QAbstractItemView::NoSelection); 
-	//this->textControl_list->setScroll(true); 
+	//ensure that there are values in textcontrol list
+	if (textControl_list->count() > 0) {
+		this->textControl_list->selectAll();
+	}
+	
 }
 
 void dlg_CSVInput::AssignFormatLanguage() {
@@ -426,10 +442,12 @@ void dlg_CSVInput::assignInputObjectTypes(){
 	QString InputType = this->cmb_box_InputObject->currentText(); 
 	if (InputType == "Fiber") {
 		this->m_confParams->inputObjectType = csvConfig::CTInputObjectType::Fiber;
+		textControl_list->setSelectionMode(QAbstractItemView::NoSelection);
 	}
 	else {
 		if (InputType == "Pores") {
 			this->m_confParams->inputObjectType = csvConfig::CTInputObjectType::Voids;
+			textControl_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
 		}
 	}
 

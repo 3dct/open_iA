@@ -147,6 +147,7 @@ private slots:
 
 	//load format based on selected input format (ex. mavi/ vg, ...) 
 	void LoadFormatSettings(const QString &LayoutName);
+	void setCTInputObjectType(const QString &ObjectInputType);
 
 	//clear all entries in Table
 	void resetTable();

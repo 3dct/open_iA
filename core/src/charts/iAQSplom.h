@@ -149,9 +149,9 @@ protected:
 	void drawVisibleParameters(QPainter & painter);    //draws  lable for the whole scatter plot matrix
 	void setSPMLabels(QVector<ulong> &ind_VisX, int axisOffSet, QPainter & painter, bool switchXY);
 
-	void normPT(double norm, QPoint &pt);
+	/*void normPT(double norm, QPoint &pt);
 
-	void tranformPoint(qreal &res_x, qreal &res_y, const QPoint &pt , const double radians, const QPoint& center);
+	void tranformPoint(qreal &res_x, qreal &res_y, const QPoint &pt , const double radians, const QPoint& center);*/
 
 	//!< Specify the new active scatter plot.
 	void drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX,
