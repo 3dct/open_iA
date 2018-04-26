@@ -336,6 +336,7 @@ void iACsvIO::FibreTranformation(QTextStream &in, int eleWidth, int tableLength,
 					table->SetValue(i, colCount - 1, 0); // with autoId +1 last column adding class information
 			}//end !use csv only
 		}
+		else table->RemoveRow(i);  //Skip empty rows
 	}
 }
 
