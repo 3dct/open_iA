@@ -1,6 +1,7 @@
 #include "dlg_CSVInput.h"
 #include "qfiledialog.h"
 #include "qmessagebox.h"
+#include "qnamespace.h"
 #include "qstandarditemmodel.h"
 #include <QSettings>
 #include <Qt>
@@ -11,11 +12,8 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	this->initParameters();
 	this->myLayout->addWidget(this->m_entriesPreviewTable);
 	this->m_confParams = QSharedPointer<csvConfig::configPararams>(new csvConfig::configPararams());
-	
 	disableFormatComponents();
 	connectSignals();
-
-
 }
 
 void dlg_CSVInput::hideCoordinateInputs()
@@ -123,7 +121,6 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	if (!layoutAvaiable) {
 		this->resetTable();
 		QMessageBox::warning(this, tr("FeatureScoutCSV"), tr("Layout option not yet defined"));
-		
 		return;
 	}
 
@@ -193,18 +190,44 @@ void dlg_CSVInput::SaveLayoutBtnClicked()
 	//header Entries from selection in control list
 	this->setSelectedEntries(false); 
 	params = *this->m_confParams; 
-	saveParamsToRegistry(params, layoutName);
-	this->saveHeaderEntriesToReg(*this->m_selHeaders, this->m_regEntries->str_headerName,layoutName); 
 
-	//save all entries in order to make sure if file is not available  one still can see the headers?? 
-	// TODO necessary this thing?  ??? 
-	this->saveHeaderEntriesToReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, layoutName); 
-	this->cmb_box_FileFormat->addItem(layoutName); 
+	QStringList OtherFormatEntries; 
+	QSettings FormatSettings; 
+
+	bool writeSettings = false;
+	CheckFeatureInRegistry(FormatSettings, nullptr, OtherFormatEntries, false);
+
+	if (OtherFormatEntries.contains(layoutName, Qt::CaseSensitivity::CaseSensitive)) {
+		QMessageBox::StandardButton reply;
+		reply = QMessageBox::warning(this, "Overwrite current format", "Sure to overwrite old format?",
+			QMessageBox::Yes | QMessageBox::No);
+		if (reply == QMessageBox::Yes) {
+			writeSettings = true; 
+		
+		}
+		else {
+			writeSettings = false; 
+		}
+	}
+	else { // not in registry add anyway
+		writeSettings = true; 
+		this->cmb_box_FileFormat->addItem(layoutName);
+	}
+	
+
+	if (writeSettings) {
+
+		saveParamsToRegistry(params, layoutName);
+		this->saveHeaderEntriesToReg(*this->m_selHeaders, this->m_regEntries->str_headerName, layoutName);
+
+		//save all entries in order to make sure if file is not available  one still can see the headers?? 
+		this->saveHeaderEntriesToReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, layoutName);
+	}
+	
 }
 
 void dlg_CSVInput::LoadCSVPreviewClicked()
 {
-	this->assignFileFormat(); 
 	this->assignSeparator();
 	this->AssignFormatLanguage(); 
 	this->assignInputObjectTypes(); 
@@ -219,7 +242,6 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 	}
 
 	
-	
 	//for fiber use all headers; 
 	if (this->m_confParams->inputObjectType == csvConfig::CTInputObjectType::Fiber) {
 		if (this->m_formatSelected) {
@@ -227,7 +249,6 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 		}
 		setAllHeaders(m_currentHeaders);
 		
-
 	}
 	else {
 		
@@ -235,17 +256,11 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 
 			//output m_currentHeaders
 			this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, this->m_LayoutName);
-
 		}
 
 		this->setSelectedHeaderToTextControl(*this->m_currentHeaders);
-		//this->textControl_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
-		
-		
 	}
 	
-	
-
 	// show fileName
 	this->showConfigParams(*this->m_confParams, false);
 	this->m_formatSelected = false; 
@@ -259,8 +274,6 @@ void dlg_CSVInput::setAllHeaders(QSharedPointer<QStringList> &allHeaders) {
 		this->textControl_list->takeItem(i);
 	}*/
 	this->m_confParams->tableWidth = allHeaders->size(); 
-	
-	//this->textControl_list->addItems(*allHeaders);
 	this->setSelectedHeaderToTextControl(*allHeaders); 
 	
 	//ensure that there are values in textcontrol list
@@ -362,7 +375,6 @@ void dlg_CSVInput::initParameters(){
 		this->m_currentHeaders = QSharedPointer<QStringList>(new QStringList()); 
 	}
 
-
 	if (!this->m_selHeaders) {
 		this->m_selHeaders = QSharedPointer < QStringList>(new QStringList());
 	}
@@ -408,35 +420,12 @@ void dlg_CSVInput::resetDefault()
 }
 
 
-void dlg_CSVInput::setError(const QString &ParamName,const QString & Param_value )
+void dlg_CSVInput::setError(const QString &ParamName,const QString &Param_value)
 {
 	this->m_Error_Parameter.append("Error" + ParamName + "\t" + Param_value + "\n");
 	this->m_confParams->paramsValid = false; 
 }
 
-
-void dlg_CSVInput::assignFileFormat() 
-{
-	//read out text of combo box
-	QString CSVFileFormat = this->cmb_box_FileFormat->currentText();
-
-	if (CSVFileFormat == "VolumeGraphics") {
-		this->m_csvFileFormat = csvConfig::csv_FileFormat::VolumeGraphics;
-
-
-	}
-	else if (CSVFileFormat == "MAVI") {
-		this->m_csvFileFormat = csvConfig::csv_FileFormat::MAVI;
-
-	}
-	else if (CSVFileFormat == "open_iA") {
-		this->m_csvFileFormat = csvConfig::csv_FileFormat::open_IA_FeatureScout;
-	}
-	else {
-		this->m_csvFileFormat = csvConfig::csv_FileFormat::Default;
-	}
-	
-}
 
 void dlg_CSVInput::assignInputObjectTypes(){
 	QString InputType = this->cmb_box_InputObject->currentText(); 
@@ -788,6 +777,8 @@ void dlg_CSVInput::LoadFormatEntriesOnStartUp(){
 	this->cmb_box_FileFormat->addItem(DefaultOption);
 	this->cmb_box_FileFormat->addItem(open_iA_Option);
 	this->cmb_box_FileFormat->addItem(VolumeGraphicsOption);
+
+	//Output values OtherformatEntries
 	CheckFeatureInRegistry(settings, nullptr, OtherFormatEntries,false); 
 
 	if (!OtherFormatEntries.isEmpty()) {
@@ -796,13 +787,12 @@ void dlg_CSVInput::LoadFormatEntriesOnStartUp(){
 
 }
 
-//loads entries with layout Name or list all entries under FeaturescoutCSV
+//loads entries with layout Name or list all entries under FeaturescoutCSV // output is groups group is empty if no features in registry
 bool dlg_CSVInput::CheckFeatureInRegistry(QSettings & anySetting, const QString *LayoutName, QStringList &groups, bool useSubGroup)
 {
 	QString Layout = "";
 	QString subEntry = ""; 
 	
-
 	bool isValidEntry = false; 
 
 	if (LayoutName) {
@@ -828,10 +818,9 @@ bool dlg_CSVInput::CheckFeatureInRegistry(QSettings & anySetting, const QString 
 		}
 	
 	}
+
 	anySetting.endGroup(); 
-
 	return isValidEntry; 
-
 }
 
 void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, const QString &LayoutName) {

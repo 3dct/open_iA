@@ -94,7 +94,7 @@ public:
 	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0); /*: QDialog(parent, f)*/
 	
 	//load Headers from registry
-	void LoadHeaderEntriesFromReg(QStringList & HeaderEntries, const QString & HeaderNames, const QString & LayoutName);
+	void LoadHeaderEntriesFromReg(QStringList &HeaderEntries, const QString &HeaderNames, const QString &LayoutName);
 
 	~dlg_CSVInput();
 
@@ -138,7 +138,7 @@ private slots:
 	void LoadCSVPreviewClicked();
 
 	void setAllHeaders(QSharedPointer<QStringList> &allHeaders);
-	//TODO TBD
+	
 	void ImportRegSettings();
 	void OKButtonClicked(); 
 	//custom file format 
@@ -147,7 +147,9 @@ private slots:
 
 	//load format based on selected input format (ex. mavi/ vg, ...) 
 	void LoadFormatSettings(const QString &LayoutName);
-	void setCTInputObjectType(const QString &ObjectInputType);
+	
+
+	void setCTInputObjectType(const QString &ObjectInputType); //Switch Object Type Fiber / Pores
 
 	//clear all entries in Table
 	void resetTable();
@@ -179,9 +181,9 @@ private:
 	void connectSignals();
 
 
-	//bool validateParameters();
+	
 	void setError(const QString &ParamName, const QString & Param_value);
-	void assignFileFormat();
+	
 	void assignInputObjectTypes();
 	void assignSeparator();
 	void assignSpacingUnits();
@@ -206,9 +208,8 @@ private:
 	QSharedPointer<csvConfig::configPararams> m_confParams; 
 	QString m_fPath; 
 	QString m_Error_Parameter; 
-	csvConfig::csv_FileFormat m_csvFileFormat;
+	//csvConfig::csv_FileFormat m_csvFileFormat;
 	csvTable_ptr m_entriesPreviewTable = nullptr; 
-	//csvTable_ptr m_DataTableSelected = nullptr; 
 	cvsRegSettings_ShrdPtr m_regEntries = nullptr;
 	QString m_LayoutName; 
 
