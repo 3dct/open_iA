@@ -146,9 +146,11 @@ private slots:
 	void showFormatComponents();
 
 	//load format based on selected input format (ex. mavi/ vg, ...) 
-	void LoadFormatSettings(const QString &LayoutName);
+	void LoadSelectedFormatSettings(const QString &LayoutName);
 	
 
+	//switch between comma and column and show file preview
+	void UpdateCSVPreview(); 
 	void setCTInputObjectType(const QString &ObjectInputType); //Switch Object Type Fiber / Pores
 
 	//clear all entries in Table
@@ -216,6 +218,7 @@ private:
 	bool isFileNameValid = false; 
 	bool isFilledWithData = false; 
 	bool m_formatSelected = false; 
+	bool m_PreviewUpdated = false; 
 	ulong m_headersCount; 
 
 	//current headers of the table

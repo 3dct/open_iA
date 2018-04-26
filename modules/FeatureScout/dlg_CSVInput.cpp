@@ -35,6 +35,7 @@ void dlg_CSVInput::disableFormatComponents()
 	this->lbl_decimal->setVisible(false);
 	this->buttonBox->setVisible(true);
 	this->buttonBox->setDisabled(false);
+	this->btn_LoadCSVData->setEnabled(false); 
 }
 
 void dlg_CSVInput::saveHeaderEntriesToReg(const QStringList& HeaderEntries, const QString &HeaderName, const QString &LayoutName)
@@ -66,10 +67,12 @@ dlg_CSVInput::~dlg_CSVInput()
 void dlg_CSVInput::connectSignals()
 {
 	
-	connect(btn_PreviewData, SIGNAL(clicked()), this, SLOT(LoadCSVPreviewClicked()));
+	connect(btn_LoadCSVData, SIGNAL(clicked()), this, SLOT(LoadCSVPreviewClicked()));
 	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked()));
 	connect(btn_SaveLayout, SIGNAL(clicked()), this, SLOT(SaveLayoutBtnClicked())); 
-	connect(cmb_box_FileFormat, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadFormatSettings);
+	connect(btn_updatePreview, SIGNAL(clicked()), this, SLOT(UpdateCSVPreview())); 
+	connect(cmb_box_FileFormat, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadSelectedFormatSettings);
+	connect(cmb_box_separator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);  //switch separator
 	connect(cmb_box_InputObject, &QComboBox::currentTextChanged, this, &dlg_CSVInput::setCTInputObjectType); //Switch between fiber and pores / voids
 	connect(buttonBox, SIGNAL(accepted()), this, SLOT(OKButtonClicked()));
 	//connect(cmb_box_FileFormat, SIGNAL(currentTextChanged(const QString&)), this, SLOT(LoadFormatSettings(QString)));
@@ -93,6 +96,7 @@ void dlg_CSVInput::CustomFormatBtnClicked(){
 	bool enabled = true; 
 	showFormatComponents();
 	this->useCustomformat = true; 
+	this->btn_LoadCSVData->setEnabled(true); 
 }
 
 void dlg_CSVInput::showFormatComponents()
@@ -109,7 +113,7 @@ void dlg_CSVInput::showFormatComponents()
 	this->ed_CSVFormat_Name->setEnabled(true); 
 }
 
-void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
+void dlg_CSVInput::LoadSelectedFormatSettings(const QString &LayoutName)
 {
 	bool layoutAvaiable = false;
 	if (LayoutName.isEmpty()) { return; }
@@ -133,7 +137,6 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	};
 	//load preview
 	
-
 	//if file is not good -> show empty table but selection
 	if (this->loadFilePreview(15, true)) {
 		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, LayoutName);		
@@ -149,6 +152,12 @@ void dlg_CSVInput::LoadFormatSettings(const QString &LayoutName)
 	showConfigParams(*this->m_confParams, true);
 }
 
+void dlg_CSVInput::UpdateCSVPreview()
+{
+	this->m_PreviewUpdated = true;
+	this->LoadCSVPreviewClicked();
+	this->m_PreviewUpdated = false ;
+}
 
 void dlg_CSVInput::setCTInputObjectType(const QString &ObjectInputType)
 {
@@ -237,7 +246,7 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 		this->m_entriesPreviewTable->resetIndizes(); 
 	}
 
-	if (!this->loadFilePreview(15, false)) {
+	if (!this->loadFilePreview(15, this->m_PreviewUpdated)) {
 		return; 
 	}
 
