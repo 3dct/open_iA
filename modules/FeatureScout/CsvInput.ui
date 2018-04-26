@@ -17,7 +17,7 @@
    <string>FeatureScout data selection</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
-   <item row="0" column="0">
+   <item row="0" column="1">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="minimumSize">
       <size>
@@ -1660,7 +1660,7 @@
           </size>
          </property>
          <property name="text">
-          <string>AddLayout</string>
+          <string>SaveLayout</string>
          </property>
         </widget>
        </item>
@@ -1695,7 +1695,7 @@
         <x>12</x>
         <y>25</y>
         <width>135</width>
-        <height>178</height>
+        <height>196</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1771,16 +1771,6 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_CustomFormat">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string>CustomFormat</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="btn_LoadCSVData">
            <property name="minimumSize">
             <size>
@@ -1790,6 +1780,22 @@
            </property>
            <property name="text">
             <string>LoadCSV ...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_updatePreview">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>131</width>
+             <height>41</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>UpdateCSVPreview</string>
            </property>
           </widget>
          </item>
@@ -1865,22 +1871,6 @@
         </widget>
        </item>
       </layout>
-     </widget>
-     <widget class="QPushButton" name="btn_updatePreview">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>190</x>
-        <y>160</y>
-        <width>131</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>UpdateCSVPreview</string>
-      </property>
      </widget>
     </widget>
    </item>

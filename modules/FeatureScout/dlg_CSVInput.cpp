@@ -14,6 +14,7 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	this->m_confParams = QSharedPointer<csvConfig::configPararams>(new csvConfig::configPararams());
 	disableFormatComponents();
 	connectSignals();
+	EnableCustomFormat();
 }
 
 void dlg_CSVInput::hideCoordinateInputs()
@@ -68,7 +69,6 @@ void dlg_CSVInput::connectSignals()
 {
 	
 	connect(btn_LoadCSVData, SIGNAL(clicked()), this, SLOT(LoadCSVPreviewClicked()));
-	connect(btn_CustomFormat, SIGNAL(clicked()), this, SLOT(CustomFormatBtnClicked()));
 	connect(btn_SaveLayout, SIGNAL(clicked()), this, SLOT(SaveLayoutBtnClicked())); 
 	connect(btn_updatePreview, SIGNAL(clicked()), this, SLOT(UpdateCSVPreview())); 
 	connect(cmb_box_FileFormat, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadSelectedFormatSettings);
@@ -92,7 +92,7 @@ void dlg_CSVInput::OKButtonClicked()
 }
 
 //enabling for custom file format
-void dlg_CSVInput::CustomFormatBtnClicked(){
+void dlg_CSVInput::EnableCustomFormat(){
 	bool enabled = true; 
 	showFormatComponents();
 	this->useCustomformat = true; 
@@ -162,9 +162,9 @@ void dlg_CSVInput::UpdateCSVPreview()
 void dlg_CSVInput::setCTInputObjectType(const QString &ObjectInputType)
 {
 	this->assignInputObjectTypes();
-	if (m_confParams->inputObjectType == csvConfig::CTInputObjectType::Fiber) {
+	if (m_confParams->inputObjectType == FiberPoreType::Fiber) {
 		if (this->textControl_list->count() > 0) {
-			textControl_list->selectAll(); 
+			this->textControl_list->selectAll(); 
 		}
 	
 	}

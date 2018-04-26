@@ -85,6 +85,7 @@ class /*open_iA_Core_API*/ dlg_CSVInput : public QDialog, public Ui_CsvInput
 		typedef csvConfig::csvSeparator csvColSeparator; 
 		typedef csvConfig::inputLang csvLang; 
 		typedef csvConfig::csv_FileFormat csvFormat; 
+		typedef csvConfig::CTInputObjectType FiberPoreType; 
 		
 
 		
@@ -142,7 +143,7 @@ private slots:
 	void ImportRegSettings();
 	void OKButtonClicked(); 
 	//custom file format 
-	void CustomFormatBtnClicked();
+	void EnableCustomFormat();
 	void showFormatComponents();
 
 	//load format based on selected input format (ex. mavi/ vg, ...) 
