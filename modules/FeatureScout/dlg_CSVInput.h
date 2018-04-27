@@ -159,7 +159,7 @@ private slots:
 
 	//switch between comma and column and show file preview
 	void UpdateCSVPreview(); 
-	void setCTInputObjectType(const QString &ObjectInputType); //Switch Object Type Fiber / Pores
+	void switchCTInputObjectType(const QString &ObjectInputType); //Switch Object Type Fiber / Pores
 
 	//clear all entries in Table
 	void resetTable();

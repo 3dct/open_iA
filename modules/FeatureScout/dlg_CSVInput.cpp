@@ -88,7 +88,7 @@ void dlg_CSVInput::connectSignals()
 	connect(btn_updatePreview, SIGNAL(clicked()), this, SLOT(UpdateCSVPreview())); 
 	connect(cmb_box_FileFormat, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadSelectedFormatSettings);
 	connect(cmb_box_separator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);  //switch separator
-	connect(cmb_box_InputObject, &QComboBox::currentTextChanged, this, &dlg_CSVInput::setCTInputObjectType); //Switch between fiber and pores / voids
+	connect(cmb_box_InputObject, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchCTInputObjectType); //Switch between fiber and pores / voids
 	connect(buttonBox, SIGNAL(accepted()), this, SLOT(OKButtonClicked()));
 	//connect(cmb_box_FileFormat, SIGNAL(currentTextChanged(const QString&)), this, SLOT(LoadFormatSettings(QString)));
 }
@@ -173,15 +173,21 @@ void dlg_CSVInput::UpdateCSVPreview()
 	this->m_PreviewUpdated = false ;
 }
 
-void dlg_CSVInput::setCTInputObjectType(const QString &ObjectInputType)
+void dlg_CSVInput::switchCTInputObjectType(const QString &ObjectInputType)
 {
 	this->assignInputObjectTypes();
 	if (m_confParams->inputObjectType == FiberPoreType::Fiber) {
 		if (this->textControl_list->count() > 0) {
 			
-			selectAllFromTextControl(); 
-			this->textControl_list->update(); 
+			this->textControl_list->selectAll(); 
+			this->textControl_list->setSelectionMode(QAbstractItemView::NoSelection);
+			//selectAllFromTextControl(); 
+			//this->textControl_list->update(); 
 		}
+	
+	}
+	else {
+		this->textControl_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	
 	}
 
@@ -284,8 +290,10 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 		if (this->m_formatSelected) {
 			this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, this->m_LayoutName);
 		}
-		setAllHeaders(m_currentHeaders);
 		
+		setAllHeaders(m_currentHeaders);
+		//this->textControl_list->update()
+		this->textControl_list->setSelectionMode(QAbstractItemView::NoSelection); 
 	}
 	else {
 		
@@ -296,6 +304,7 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 		}
 
 		this->setSelectedHeaderToTextControl(*this->m_currentHeaders);
+		textControl_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	}
 	
 	// show fileName
@@ -467,12 +476,12 @@ void dlg_CSVInput::assignInputObjectTypes(){
 	QString InputType = this->cmb_box_InputObject->currentText(); 
 	if (InputType == "Fiber") {
 		this->m_confParams->inputObjectType = csvConfig::CTInputObjectType::Fiber;
-		textControl_list->setSelectionMode(QAbstractItemView::NoSelection);
+		
 	}
 	else {
 		if (InputType == "Pores") {
 			this->m_confParams->inputObjectType = csvConfig::CTInputObjectType::Voids;
-			textControl_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
+			
 		}
 	}
 
