@@ -71,10 +71,6 @@ void iAFeatureScoutModuleInterface::Initialize()
 
 void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	
-	//const QString fPath = m_mdiChild->getFilePath(); 
-	//dlg.setFilePath(fPath);
-	//dlg.showConfigParams(fileConfParams);
-	
 	csvConfig::configPararams fileConfParams;
 	//TODO set file path
 	dlg_CSVInput dlg;
@@ -219,7 +215,7 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
-/*enty point for openIA FeatureScout
+/*entry point for openIA FeatureScout
 *optional parameter FileParams for custom csv
 */
 bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType, csvConfig::configPararams *FileParams, const bool is_csvOnly, const QSharedPointer<QStringList> &selHeader)
@@ -238,7 +234,7 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 	}
 
 	//TODO remove debug;
-	io.debugTable(); 
+	io.debugTable(false); 
 
 	QString filtername = tr( "FeatureScout started" );
 	m_mdiChild->addStatusMsg( filtername );

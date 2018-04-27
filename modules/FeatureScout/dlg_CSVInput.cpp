@@ -178,8 +178,8 @@ void dlg_CSVInput::setCTInputObjectType(const QString &ObjectInputType)
 	this->assignInputObjectTypes();
 	if (m_confParams->inputObjectType == FiberPoreType::Fiber) {
 		if (this->textControl_list->count() > 0) {
-			this->textControl_list->clearSelection();
-			this->textControl_list->selectAll(); 
+			
+			selectAllFromTextControl(); 
 			this->textControl_list->update(); 
 		}
 	
@@ -193,6 +193,17 @@ void dlg_CSVInput::resetTable()
 	this->m_entriesPreviewTable->update();
 	this->m_entriesPreviewTable->resetIndizes();
 }
+
+void dlg_CSVInput::selectAllFromTextControl() {
+	
+	for (int i = 0; i < this->textControl_list->count(); ++i)
+	{
+		 this-> textControl_list->item(i)->setSelected(true);
+		
+	}
+
+}
+
 
 //Add Layout
 void dlg_CSVInput::SaveLayoutBtnClicked()
@@ -642,7 +653,6 @@ bool dlg_CSVInput::setSelectedEntries(const bool EnableMessageBox)
 		this->m_selColIdx.capacity(); 
 		for (const auto &selEntry : m_selectedHeadersList) {
 		
-			//this->textControl_list->item(currItemIdx)->setSelected(true);
 			listEntry = selEntry->text(); 
 			addSingleHeaderToList(currItemIdx, listEntry);
 		}

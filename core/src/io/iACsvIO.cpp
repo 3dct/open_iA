@@ -100,7 +100,7 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 
 	//additional entries for Fibres
 	int colCount = eleString.size(); 
-	FibreTranformation(in, eleWidth, tableLength, colCount);
+	FibreCalculation(in, eleWidth, tableLength, colCount, true);
 	file.close();
 	return true;
 
@@ -204,7 +204,7 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 }
 
 
-void iACsvIO::FibreTranformation(QTextStream &in, int eleWidth, int tableLength, const int colCount/* &eleString*/) {
+void iACsvIO::FibreCalculation(QTextStream & in, int eleWidth, int tableLength, const int colCount /*eleString*/, const bool useOldFeatureScoutFormat) {
 
 	double x1, x2, y1, y2, z1, z2, dx, dy, dz, xm, ym, zm, phi, theta;
 	double a11, a22, a33, a12, a13, a23;
@@ -271,73 +271,119 @@ void iACsvIO::FibreTranformation(QTextStream &in, int eleWidth, int tableLength,
 				a23 = 0.0;
 			}
 
-			if ((!useCVSOnly) | enableFiberTransformation ) {
-				table->SetValue(i, 0, line.section(",", 0, 0).toInt());
+			if ((!useCVSOnly) | enableFiberTransformation )
+			{
+				
+					table->SetValue(i, 0, line.section(",", 0, 0).toInt());
 
-				//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
-				//first entrys are those ones
-				//save in the first column with AUTO ID 2-8, //start colIdx ->2, end will be 8
-				for (int j = 1; j < 7; j++)
-				{
-					table->SetValue(i, j, line.section(",", j, j).toFloat());
-				}
-					int col_idx = 7; 
-					 
-
-					//7
-					table->SetValue(i, col_idx, a11);  col_idx++; 
-					//8
-					table->SetValue(i, col_idx, a22); col_idx++;
-					//9
-					table->SetValue(i, col_idx, a33); col_idx++; 
-					//10
+					//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
+					//first entrys are those ones
 					
-					table->SetValue(i, col_idx, a12); col_idx++; 
-					//11
-					table->SetValue(i, col_idx, a13);  col_idx++;
-					//12
-					table->SetValue(i, col_idx, a23);  col_idx++; 
-
-					//13	
-					table->SetValue(i, col_idx, phi);  col_idx++; 
-					//14
-
-					table->SetValue(i, col_idx, theta); col_idx++; 
-					//15
-					table->SetValue(i, col_idx, xm);	col_idx++; 
-					//16
-
-					table->SetValue(i, col_idx, ym);	col_idx++; 
-					//17
-
-					table->SetValue(i, col_idx, zm);	col_idx++;
-
-					//original
-					//table->SetValue(i, 7, a11);  //7
-					//table->SetValue(i, 8, a22);	 //8
-					//table->SetValue(i, 9, a33);  //9
-					//table->SetValue(i, 10, a12);  //10
-					//table->SetValue(i, 11, a13);  //11
-					//table->SetValue(i, 12, a23);  //12
-					//table->SetValue(i, 13, phi);  //13	
-					//table->SetValue(i, 14, theta); //14
-					//table->SetValue(i, 15, xm);		//15
-					//table->SetValue(i, 16, ym);		//16
-					//table->SetValue(i, 17, zm);		//17
+					//TODO save in the first column with AUTO ID 2-8, //start colIdx ->2, end will be 8 
+					//
+					for (int j = 1; j < 7; j++)
+					{
+						table->SetValue(i, j, line.section(",", j, j).toFloat());
+					}
+					int col_idx = 7;
 
 
-					//use the other entries of columns, using auto ID will be 8
+					if (useOldFeatureScoutFormat) {
+
+						//7 - 12
+						col_idx = assignFiberValuesPart1(i, col_idx, a11, a22, a33, a12, a13, a23);
+						
+						//13 - 17	
+						col_idx = assingFiberValuesPart_2(i, col_idx, phi, theta, xm, ym, zm);
+
+						//original
+						//table->SetValue(i, 7, a11);  //7
+						//table->SetValue(i, 8, a22);	 //8
+						//table->SetValue(i, 9, a33);  //9
+						//table->SetValue(i, 10, a12);  //10
+						//table->SetValue(i, 11, a13);  //11
+						//table->SetValue(i, 12, a23);  //12
+						//table->SetValue(i, 13, phi);  //13	
+						//table->SetValue(i, 14, theta); //14
+						//table->SetValue(i, 15, xm);		//15
+						//table->SetValue(i, 16, ym);		//16
+						//table->SetValue(i, 17, zm);		//17
+					
+					
+					} // end useOldFeatureScout format
+
+						//use the other entries of columns, using auto ID will be 8
 					for (int j = 7; j < eleWidth; j++)
 					{
 						table->SetValue(i, col_idx /*j + 11*/, line.section(",", j, j).toFloat()); //TODO in dbl
-						col_idx++; 
+						col_idx++;
 					}
 
-					table->SetValue(i, colCount - 1, 0); // with autoId +1 last column adding class information
+					//for new FeatureScout format just append it
+					if (!useOldFeatureScoutFormat) {
+						col_idx = assignFiberValuesPart1(i, col_idx, a11, a22, a33, a12, a13, a23);
+
+						//13 - 17	
+						col_idx = assingFiberValuesPart_2(i, col_idx, phi, theta, xm, ym, zm);
+
+					}
+
+
+						table->SetValue(i, colCount - 1, 0); // with autoId +1 last column adding class information
+
+					//TODO setup to new featureScoutFormat
+				
 			}//end !use csv only
 		}
 		else table->RemoveRow(i);  //Skip empty rows
-	}
+	}//end for loop
+}
+
+int iACsvIO::assingFiberValuesPart_2(int i, int col_idx, double phi, double theta, double xm, double ym, double zm)
+{
+	//table->SetValue(i, 13, phi);  //13	
+	//table->SetValue(i, 14, theta); //14
+	//table->SetValue(i, 15, xm);		//15
+	//table->SetValue(i, 16, ym);		//16
+	//table->SetValue(i, 17, zm);		//17
+
+	table->SetValue(i, col_idx, phi);  col_idx++;
+	//14
+
+	table->SetValue(i, col_idx, theta); col_idx++;
+	//15
+	table->SetValue(i, col_idx, xm);	col_idx++;
+	//16
+
+	table->SetValue(i, col_idx, ym);	col_idx++;
+	//17
+
+	table->SetValue(i, col_idx, zm);	col_idx++;
+	return col_idx;
+}
+
+int iACsvIO::assignFiberValuesPart1(int i, int col_idx, double a11, double a22, double a33, double a12, double a13, double a23)
+{
+	//original
+	//table->SetValue(i, 7, a11);  //7
+	//table->SetValue(i, 8, a22);	 //8
+	//table->SetValue(i, 9, a33);  //9
+	//table->SetValue(i, 10, a12);  //10
+	//table->SetValue(i, 11, a13);  //11
+	//table->SetValue(i, 12, a23);  //12
+
+	table->SetValue(i, col_idx, a11);  col_idx++;
+	//8
+	table->SetValue(i, col_idx, a22); col_idx++;
+	//9
+	table->SetValue(i, col_idx, a33); col_idx++;
+	//10
+
+	table->SetValue(i, col_idx, a12); col_idx++;
+	//11
+	table->SetValue(i, col_idx, a13);  col_idx++;
+	//12
+	table->SetValue(i, col_idx, a23);  col_idx++;						return col_idx;
 }
 
 bool iACsvIO::LoadPoreCSV(const QString &fileName)
@@ -431,8 +477,14 @@ void iACsvIO::setParams(QStringList & headers, const QVector<uint>& colIDs, uint
 	this->setTableWidth(TableWidth);
 }
 
-void iACsvIO::debugTable()
+void iACsvIO::debugTable(const bool useTabSeparator)
 {
+	std::string separator = ",";
+
+	if (useTabSeparator) {
+		separator = "\t"; 
+	}
+
 	ofstream debugfile;
 	debugfile.open("C:/Users/p41883/Desktop/inputData.txt");
 	if (debugfile.is_open()) {
@@ -442,13 +494,13 @@ void iACsvIO::debugTable()
 
 		for (int i = 0; i<spCol.ToInt(); i++) {
 			spCN = this->table->GetColumnName(i);
-			debugfile << spCN.ToString() << ",";
+			debugfile << spCN.ToString() << separator;
 		}
 		debugfile << "\n";
 		for (int row = 0; row < spRow.ToInt(); row++) {
 			for (int col = 0; col < spCol.ToInt(); col++) {
 				spVal = this->table->GetValue(row, col);
-				debugfile << spVal.ToString() << ","; //TODO cast debug to double
+				debugfile << spVal.ToString() << separator; //TODO cast debug to double
 			}
 			debugfile << "\n";
 		}
@@ -714,7 +766,8 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	} //TODO FIberTransformation
 	else {
 		//loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
-		this->FibreTranformation(in, tableWidth, tableLength,col_count);
+		this->FibreCalculation(in, tableWidth, tableLength,col_count, true);
+		//TODO adapt to new Featurescout csvOnly
 	}
 	
 	if(file.isOpen())

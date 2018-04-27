@@ -163,6 +163,7 @@ private slots:
 
 	//clear all entries in Table
 	void resetTable();
+
 	void SaveLayoutBtnClicked();
 
 private: 
@@ -210,6 +211,7 @@ private:
 	void saveHeaderEntriesToReg(const QStringList & HeaderEntries, const QString & HeaderName, const QString & LayoutName);
 
 	void clearTextControl();
+	void selectAllFromTextControl();
 	
 
 private:
