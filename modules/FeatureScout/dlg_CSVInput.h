@@ -74,6 +74,13 @@ namespace FeatureScoutCSV{
 
 //Q_DECLARE_METATYPE(QStringList);
 
+
+/* dlg_CSVinput
+* Loads custom csv File with DataPreview
+* Settings can be adapted and saved for specified DataFormat
+* Enables column pre selection to be shown in FeatureScout
+*/
+
 class /*open_iA_Core_API*/ dlg_CSVInput : public QDialog, public Ui_CsvInput
 {
 	Q_OBJECT
@@ -140,7 +147,7 @@ private slots:
 
 	void setAllHeaders(QSharedPointer<QStringList> &allHeaders);
 	
-	void ImportRegSettings();
+	
 	void OKButtonClicked(); 
 	//custom file format 
 	void EnableCustomFormat();
@@ -159,7 +166,7 @@ private slots:
 	void SaveLayoutBtnClicked();
 
 private: 
-
+	void connectSignals();
 	bool CheckFeatureInRegistry(QSettings & anySetting, const QString * LayoutName, QStringList & groups, bool useSubGroup);
 
 	void saveParamsToRegistry(csvConfig::configPararams & csv_params, const QString & LayoutName);
@@ -181,7 +188,7 @@ private:
 	void resetDefault();
 	void assignStartEndLine();
 
-	void connectSignals();
+	
 
 
 	
@@ -202,6 +209,7 @@ private:
 
 	void saveHeaderEntriesToReg(const QStringList & HeaderEntries, const QString & HeaderName, const QString & LayoutName);
 
+	void clearTextControl();
 	
 
 private:
