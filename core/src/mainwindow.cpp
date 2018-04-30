@@ -222,6 +222,10 @@ void MainWindow::OpenRaw()
 		path,
 		"Raw File (*)"
 	);
+
+	if (fileName.isEmpty())
+		return;
+
 	MdiChild *child = createMdiChild(false);
 	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
 	path = t;
