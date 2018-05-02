@@ -82,9 +82,7 @@ void iABlobImplicitFunction::Reset (void)
 }
 
 
-void iABlobImplicitFunction::AddFiberInfo (double point1[3],
-										   double point2[3],
-										   double g)
+void iABlobImplicitFunction::AddObjectInfo (double point1[3], double point2[3], double g)
 {
 	if (mbCount == mbSize - 1)
 	{
@@ -111,12 +109,10 @@ void iABlobImplicitFunction::AddFiberInfo (double point1[3],
 	this->mbCount++;
 }
 
-void iABlobImplicitFunction::AddFiberInfo (double x1, double y1, double z1,
-										   double x2, double y2, double z2,
-										   double g)
+void iABlobImplicitFunction::AddObjectInfo (double x1, double y1, double z1, double x2, double y2, double z2, double g)
 {
 	double pos1[3] = {x1, y1, z1}, pos2[3] = {x2, y2, z2};
-	AddFiberInfo (pos1, pos2, g);
+	AddObjectInfo (pos1, pos2, g);
 }
 
 double iABlobImplicitFunction::JustEvaluateFunction (double x[3])

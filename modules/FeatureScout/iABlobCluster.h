@@ -41,9 +41,15 @@
 #include <QPen>
 #include <QVector>
 
-#include "iAXmlFiberParser.h"	// will be removed in feature
 #include "iALabel3D.h"
 #include "iABlobImplicitFunction.h"
+
+typedef struct {
+	double	x1, y1, z1,
+			x2, y2, z2,
+			straightLength, curvedLength, diameter, surfaceArea, volume;
+	bool	isSeperated, isCurved;
+} FeatureInfo;
 
 class vtkDepthSortPolyData;
 class vtkPolyDataSilhouette;
@@ -67,7 +73,7 @@ public:
 	void						GetBounds (double bounds[6]) const;
 
 								// Redefine fibres cluster
-	void						SetCluster (QVector<FiberInfo> fibres) const;
+	void						SetCluster (QVector<FeatureInfo> fibres) const;
 
 								// Set if to draw a silhouette
 	void						SetSilhouette (bool isOn);
@@ -111,8 +117,8 @@ public:
 								// Set name for blob
 	void						SetName (QString name);
 
-								// Set fiber count and fiber percentage
-	void						SetFiberStats (const double fiberCount, const double fiberPercentage);
+								// Set object count and percentage
+	void						SetStats (const double count, const double percentage);
 
 	void						SetBlobManager (iABlobManager* blobManager);
 
@@ -164,8 +170,8 @@ private:
 
 	iALabel3D					m_label;
 	QString						m_name;
-	double						m_fiberCount;
-	double						m_fiberPercentage;
+	double						m_count;
+	double						m_percentage;
 	QString						m_objectType;
 
 	// vtk members

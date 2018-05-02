@@ -23,13 +23,13 @@
 
 #include <QToolBar>
 
-#include "ui_FiberScoutToolBar.h"
+#include "ui_FeatureScoutToolBar.h"
 #include "iAQTtoUIConnector.h"
 
-class iAFiberScoutToolbar : public QToolBar, public Ui_FiberScoutToolBar
+class iAFeatureScoutToolbar : public QToolBar, public Ui_FeatureScoutToolBar
 {
 public:
-	iAFiberScoutToolbar(QWidget* parent) : QToolBar("FiberScout ToolBar", parent)
+	iAFeatureScoutToolbar(QWidget* parent) : QToolBar("FeatureScout ToolBar", parent)
 	{
 		this->setupUi(this);
 	}

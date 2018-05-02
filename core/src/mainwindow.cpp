@@ -213,6 +213,28 @@ void MainWindow::Open()
 	);
 }
 
+void MainWindow::OpenCSV()
+{   /* code to load CSV-data*/
+	/*IAOCSV FReader(); */
+	//typedef iAQTtoUIConnector<QDialog, Ui_CsvInput>   dlg_csvInput;
+	/*csvConfig::configPararams fileConfParams; 
+
+	dlg_CSVInput dlg;
+	if (dlg.exec() != QDialog::Accepted) {
+	
+		return; 
+	}
+
+	dlg.getConfigParameters(fileConfParams); 
+
+
+	iACsvIO io;
+	if (!io.loadCSVCustom(fileConfParams)) {
+		return; 
+	}*/
+	
+
+}
 
 void MainWindow::OpenRaw()
 {

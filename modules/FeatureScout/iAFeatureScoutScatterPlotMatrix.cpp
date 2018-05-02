@@ -18,7 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFiberScoutScatterPlotMatrix.h"
+ /*
+#include "iAFeatureScoutScatterPlotMatrix.h"
 #include "iAObjectAnalysisType.h"
 
 #include <itkDecisionRule.h>
@@ -70,7 +71,7 @@
 #include <float.h>
 #include <vector>
 
-namespace FiberScout
+namespace FeatureScout
 {
 
 #define VTK_CREATE(type, name) \
@@ -689,11 +690,7 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 				typedef itk::Statistics::DistanceToCentroidMembershipFunction< MeasurementVectorType > MembershipFunctionType;
 				typedef MembershipFunctionType::Pointer	MembershipFunctionPointer;
 
-#if ITK_VERSION_MAJOR < 4
-				typedef itk::Statistics::MinimumDecisionRule2 DecisionRuleType;
-#else
 				typedef itk::Statistics::MinimumDecisionRule DecisionRuleType;
-#endif
 				DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
 
 				typedef itk::Statistics::SampleClassifierFilter< SampleType > ClassifierType;
@@ -789,7 +786,7 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 										this->VisibleColumns->GetValue( pos.GetX() ),
 										this->VisibleColumns->GetValue( this->Size.GetX() - pos.GetY() - 1 ) );
 
-					QColor cColor;	/* http://www.w3.org/TR/SVG/types.html#ColorKeywords */
+					QColor cColor;	/* http://www.w3.org/TR/SVG/types.html#ColorKeywords *----------/
 
 					switch ( currcl )
 					{
@@ -2166,3 +2163,4 @@ void iAScatterPlotMatrix::setPolygonSelectionOn()
 
 }
 
+*/

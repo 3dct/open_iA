@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FiberScoutCE</class>
- <widget class="QDockWidget" name="FiberScoutCE">
+ <class>FeatureScoutCE</class>
+ <widget class="QDockWidget" name="FeatureScoutCE">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -350,7 +350,7 @@
               </property>
               <property name="icon">
                <iconset resource="../../core/open_iA.qrc">
-                <normaloff>:/images/FiberScout_csvDV.png</normaloff>:/images/FiberScout_csvDV.png</iconset>
+                <normaloff>:/images/FeatureScout_csvDV.png</normaloff>:/images/FeatureScout_csvDV.png</iconset>
               </property>
               <property name="iconSize">
                <size>

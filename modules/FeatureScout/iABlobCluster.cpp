@@ -33,8 +33,8 @@
 iABlobCluster::iABlobCluster( void )
 	:
 	m_objectType( "Fibers" ),
-	m_fiberCount( 0.0 ),
-	m_fiberPercentage( 0.0 ),
+	m_count( 0.0 ),
+	m_percentage( 0.0 ),
 	m_silhouetteIsOn( true ),
 	m_blobIsOn( true ),
 	m_labelIsOn( true ),
@@ -168,19 +168,19 @@ void iABlobCluster::UpdatePipeline( void )
 	}
 }
 
-void iABlobCluster::SetCluster( QVector<FiberInfo> fibres ) const
+void iABlobCluster::SetCluster( QVector<FeatureInfo> objects ) const
 {
 	m_implicitFunction->Reset();
 
-	for ( int i = 0; i < fibres.size(); i++ )
+	for ( int i = 0; i < objects.size(); i++ )
 	{
-		m_implicitFunction->AddFiberInfo( fibres[i].x1,
-										  fibres[i].y1,
-										  fibres[i].z1,
-										  fibres[i].x2,
-										  fibres[i].y2,
-										  fibres[i].z2,
-										  fibres[i].diameter );
+		m_implicitFunction->AddObjectInfo( objects[i].x1,
+			objects[i].y1,
+			objects[i].z1,
+			objects[i].x2,
+			objects[i].y2,
+			objects[i].z2,
+			objects[i].diameter );
 	}
 }
 
@@ -258,7 +258,7 @@ void iABlobCluster::DrawLabel( void )
 	QRectF rectBottom = QRectF( rectTop.left(), rectTop.bottom(), rectTop.width(), rectTop.height() );
 
 	painter.drawText( rectTop, Qt::AlignCenter, m_name );
-	QString statsStr = QString::number( m_fiberCount ) + " " + m_objectType + " (" + QString::number( m_fiberPercentage, 'f', 2 ) + "%)";
+	QString statsStr = QString::number( m_count ) + " " + m_objectType + " (" + QString::number( m_percentage, 'f', 2 ) + "%)";
 	painter.drawText( rectBottom, Qt::AlignCenter, statsStr );
 
 	painter.end();
@@ -454,10 +454,10 @@ double iABlobCluster::GetSilhouetteOpacity() const
 	return m_silhouetteOpacity;
 }
 
-void iABlobCluster::SetFiberStats( const double fiberCount, const double fiberPercentage )
+void iABlobCluster::SetStats( const double count, const double percentage )
 {
-	m_fiberCount = fiberCount;
-	m_fiberPercentage = fiberPercentage;
+	m_count = count;
+	m_percentage = percentage;
 }
 
 vtkPolyData * iABlobCluster::GetBlobPolyData() const

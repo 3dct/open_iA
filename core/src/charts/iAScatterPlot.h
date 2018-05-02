@@ -86,6 +86,7 @@ public:
 	void SPLOMMouseMoveEvent( QMouseEvent * event );
 	void SPLOMMousePressEvent( QMouseEvent * event );
 	void SPLOMMouseReleaseEvent( QMouseEvent * event );
+	void setSelectionColor(QColor selCol);
 
 protected:
 	int p2binx( double p ) const;											//!< Get grid bin index using parameter value X
@@ -115,15 +116,17 @@ protected:
 	QPoint getLocalPos( QPoint pos ) const;									//!< Local (plot) position from global (SPLOM)
 	QPoint cropLocalPos( QPoint locPos ) const;								//!< Make sure that local position is inside plot's rectangle
 	bool isMaximizedClicked( QMouseEvent * event );							//!< Check if maximized button of the plot was clicked
-	void drawParameterName( QPainter &painter );							//!< Draws parameter name (only diagonal plots)
+	//void drawParameterName( QPainter &painter );							//!< Draws parameter name (only diagonal plots)
 	void drawBorder( QPainter &painter );									//!< Draws plot's border
 	void drawTicks( QPainter &painter );									//!< Draws plot's ticks
 	void drawMaximizedLabels( QPainter &painter );							//!< Draws additional plot's labels (only maximized plot)
 	void drawSelectionPolygon( QPainter &painter );							//!< Draws selection-lasso polygon
 	void drawPoints( QPainter &painter );									//!< Draws plot's points (uses native OpenGL)
-	void drawMaximizeButton( QPainter & painter );							//!< Draws plot's maximized button (only active plot)
+	//void drawMaximizeButton( QPainter & painter );							//!< Draws plot's maximized button (only active plot)
 	void createAndFillVBO();												//!< Creates and fills VBO with plot's 2D-points.
 	void fillVBO();															//!< Fill existing VBO with plot's 2D-points.
+
+	
 
 signals:
 	void selectionModified();												//!< Emitted when selected points changed
