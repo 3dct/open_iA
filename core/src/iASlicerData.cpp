@@ -140,8 +140,6 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	m_userSetBackground(false),
 	m_decorations(decorations),
 	m_cameraOwner(true),
-	scalarWidget(0),
-	textProperty(0),
 	cFilter(0),
 	cMapper(0),
 	cActor(0),
@@ -171,8 +169,8 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 
 	if (decorations)
 	{
-		scalarWidget = vtkScalarBarWidget::New();
-		textProperty = vtkTextProperty::New();
+		scalarBarWidget = vtkSmartPointer<vtkScalarBarWidget>::New();
+		textProperty = vtkSmartPointer<vtkTextProperty>::New();
 		logoWidget = vtkSmartPointer<vtkLogoWidget>::New();
 		logoRep = vtkSmartPointer<vtkLogoRepresentation>::New();
 		logoImage = vtkSmartPointer<vtkQImageToImageSource>::New();
@@ -226,10 +224,7 @@ iASlicerData::~iASlicerData(void)
 	//scaleActor->Delete();
 	if (m_decorations)
 	{
-		scalarWidget->Delete();
 		textInfo->Delete();	
-
-		textProperty->Delete();
 
 		cFilter->Delete();
 		cMapper->Delete();
@@ -319,18 +314,18 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		textProperty->SetJustification(VTK_TEXT_CENTERED);
 		textProperty->SetVerticalJustification(VTK_TEXT_CENTERED);
 		textProperty->SetOrientation(1);
-		scalarWidget->SetInteractor(interactor);
-		scalarWidget->GetScalarBarActor()->SetLookupTable( colorTransferFunction );
-		scalarWidget->GetScalarBarActor()->SetLabelFormat("%.2f");
-		scalarWidget->GetScalarBarActor()->SetTitleTextProperty(textProperty);
-		scalarWidget->GetScalarBarActor()->SetLabelTextProperty(textProperty);
-		scalarWidget->SetEnabled( true );
-		scalarWidget->SetRepositionable( true );
-		scalarWidget->SetResizable( true );
-		scalarWidget->GetScalarBarRepresentation()->SetOrientation(1);
-		scalarWidget->GetScalarBarRepresentation()->GetPositionCoordinate()->SetValue(0.92,0.2);
-		scalarWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.06, 0.75);
-		scalarWidget->GetScalarBarActor()->SetTitle("Range");
+		scalarBarWidget->SetInteractor(interactor);
+		scalarBarWidget->GetScalarBarActor()->SetLookupTable( colorTransferFunction );
+		scalarBarWidget->GetScalarBarActor()->SetLabelFormat("%.2f");
+		scalarBarWidget->GetScalarBarActor()->SetTitleTextProperty(textProperty);
+		scalarBarWidget->GetScalarBarActor()->SetLabelTextProperty(textProperty);
+		scalarBarWidget->SetEnabled( true );
+		scalarBarWidget->SetRepositionable( true );
+		scalarBarWidget->SetResizable( true );
+		scalarBarWidget->GetScalarBarRepresentation()->SetOrientation(1);
+		scalarBarWidget->GetScalarBarRepresentation()->GetPositionCoordinate()->SetValue(0.92,0.2);
+		scalarBarWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.06, 0.75);
+		scalarBarWidget->GetScalarBarActor()->SetTitle("Range");
 
 		UpdatePositionMarkerExtent();
 		m_positionMarkerMapper->SetInputConnection( m_positionMarkerSrc->GetOutputPort() );
@@ -424,21 +419,10 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		ren->AddActor(roiActor);
 	}
 
-	if (imageData->GetNumberOfScalarComponents() == 1)
-	{
-		colormapper->SetLookupTable(colorTransferFunction);
-	}
-	else
-	{
-		colormapper->SetLookupTable( 0 );
-		if (imageData->GetNumberOfScalarComponents() == 3)
-		{
-			colormapper->SetOutputFormatToRGB();		// default is RGBA
-		}
-	}
+	
 
 	colormapper->SetInputConnection(reslicer->GetOutputPort());
-	colormapper->Update();
+	setupColorMapper();
 	imageActor->SetInputData(colormapper->GetOutput());
 	imageActor->GetMapper()->BorderOn();
 /*
@@ -515,16 +499,28 @@ void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsT
 
 	if (m_decorations)
 	{
-		scalarWidget->GetScalarBarActor()->SetLookupTable( colorTransferFunction );
+		scalarBarWidget->GetScalarBarActor()->SetLookupTable( colorTransferFunction );
 	}
 
-	colormapper->SetLookupTable(colorTransferFunction);
+	setupColorMapper();
+}
 
-	if ( imageData->GetNumberOfScalarComponents() > 1 )
+void iASlicerData::setupColorMapper()
+{
+	if (imageData->GetNumberOfScalarComponents() == 1)
 	{
-		colormapper->SetLookupTable( 0 );
+		colormapper->SetLookupTable(colorTransferFunction);
+	}
+	else
+	{
+		colormapper->SetLookupTable(0);
+		if (imageData->GetNumberOfScalarComponents() == 3)
+		{
+			colormapper->SetOutputFormatToRGB();		// default is RGBA
+		}
 	}
 
+	scalarBarWidget->GetRepresentation()->SetVisibility(imageData->GetNumberOfScalarComponents() == 1);
 	colormapper->Update();
 }
 
@@ -1893,9 +1889,9 @@ void iASlicerData::setMouseCursor( QString s )
 	emit updateSignal();
 }
 
-vtkScalarBarWidget * iASlicerData::GetScalarWidget()
+vtkScalarBarWidget * iASlicerData::GetScalarBarWidget()
 {
-	return scalarWidget;
+	return scalarBarWidget;
 }
 
 vtkImageActor* iASlicerData::GetImageActor()

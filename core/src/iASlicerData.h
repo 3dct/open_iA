@@ -147,7 +147,7 @@ public:
 
 	void SetManualBackground(double r, double g, double b);
 
-	vtkScalarBarWidget * GetScalarWidget();
+	vtkScalarBarWidget * GetScalarBarWidget();
 	vtkImageActor* GetImageActor();
 	QCursor getMouseCursor();
 
@@ -214,8 +214,8 @@ private:
 
 	QMap<iAChannelID, QSharedPointer<iAChannelSlicerData> > m_channels;
 
-	vtkScalarBarWidget *scalarWidget;
-	vtkTextProperty *textProperty;
+	vtkSmartPointer<vtkScalarBarWidget> scalarBarWidget;
+	vtkSmartPointer<vtkTextProperty> textProperty;
 
 	// TODO: extract/ unify with iARenderer
 	vtkSmartPointer<vtkLogoWidget> logoWidget;
@@ -281,4 +281,6 @@ private:
 	void UpdatePositionMarkerExtent();
 
 	QCursor m_mouseCursor;
+
+	void setupColorMapper();
 };
