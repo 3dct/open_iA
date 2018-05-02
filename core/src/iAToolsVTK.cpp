@@ -165,6 +165,7 @@ QStringList const & VTKDataTypeList()
 		<< "VTK_UNSIGNED_CHAR"  << "VTK_CHAR"
 		<< "VTK_UNSIGNED_SHORT" << "VTK_SHORT"
 		<< "VTK_UNSIGNED_INT"   << "VTK_INT"
+		<< "VTK_UNSIGNED_LONG"  << "VTK_LONG"
 		<< "VTK_FLOAT" << "VTK_DOUBLE");
 	return datatypeList;
 }
