@@ -66,9 +66,6 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, size_
 	accumulate->SetInputData(img);
 	accumulate->SetComponentOrigin(img->GetScalarRange()[0], 0.0, 0.0);
 	double * const scalarRange = img->GetScalarRange();
-	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
-		binCount = std::min(binCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
-
 	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0);
 	const double RangeEnlargeFactor = 1 + 1e-10;  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
 	accumulate->SetComponentSpacing(((scalarRange[1] - scalarRange[0]) * RangeEnlargeFactor) / binCount, 0.0, 0.0);

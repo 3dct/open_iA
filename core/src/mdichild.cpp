@@ -808,6 +808,7 @@ int MdiChild::chooseComponentNr(int modalityNr)
 	{
 		components << QString::number(i);
 	}
+	components << "All components";
 	QList<QVariant> values = (QList<QVariant>() << components);
 	dlg_commoninput componentChoice(this, "Choose Component", parameters, values, nullptr);
 	if (componentChoice.exec() != QDialog::Accepted)
@@ -983,7 +984,8 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 	waitForPreviousIO();
 
 	tmpSaveImg = GetModality(modalityNr)->GetImage();
-	if (tmpSaveImg->GetNumberOfScalarComponents() > 1)
+	if (tmpSaveImg->GetNumberOfScalarComponents() > 1 &&
+		componentNr != tmpSaveImg->GetNumberOfScalarComponents())
 	{
 		auto imgExtract = vtkSmartPointer<vtkImageExtractComponents>::New();
 		imgExtract->SetInputData(tmpSaveImg);
@@ -2129,7 +2131,7 @@ bool MdiChild::initView( QString const & title )
 		this->addImageProperty();
 		if (imageData->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
 		{
-			tabifyDockWidget(logs, m_histogramContainer);
+			//tabifyDockWidget(logs, m_histogramContainer);
 			this->addProfile();
 		}
 	}
@@ -2853,14 +2855,19 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 	if (!m_histogram)
 		return;
 	auto histData = GetModality(modalityIdx)->GetTransfer()->GetHistogramData();
-	if (histData &&	histData->GetNumBin() == preferences.HistogramBins)
+	size_t newBinCount = preferences.HistogramBins;
+	auto img = GetModality(modalityIdx)->GetImage();
+	auto scalarRange = img->GetScalarRange();
+	if (isVtkIntegerType(GetModality(modalityIdx)->GetImage()->GetScalarType()))
+		newBinCount = std::min(newBinCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
+	if (histData &&	histData->GetNumBin() == newBinCount)
 	{
 		if (modalityIdx != m_currentHistogramModality)
 			HistogramDataAvailable(modalityIdx);
 		return;
 	}
 	auto workerThread = new iAHistogramUpdater(modalityIdx,
-		GetModality(modalityIdx), preferences.HistogramBins);
+		GetModality(modalityIdx), newBinCount);
 	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::HistogramDataAvailable);
 	connect(workerThread, &iAHistogramUpdater::StatisticsReady, this, &MdiChild::StatisticsAvailable);
 	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
@@ -2902,6 +2909,11 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 		GetModality(modalityIdx)->GetTransfer()->GetOpacityFunction());
 	m_histogram->updateTrf();	// will also redraw() the histogram
 	updateImageProperties();
+	if (!findChild<iADockWidgetWrapper*>("Histogram"))
+	{
+		tabifyDockWidget(logs, m_histogramContainer);
+		this->addProfile();
+	}
 }
 
 
