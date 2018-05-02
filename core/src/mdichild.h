@@ -502,8 +502,9 @@ private slots:
 	void ChangeMagicLensOpacity(int chg);
 	void ShowModality(int modIdx);
 	void SaveFinished();
-	void SetHistogramModality(int modalityIdx);
+	void ModalityAdded(int modalityIdx);
 private:
+	void SetHistogramModality(int modalityIdx);
 	int GetCurrentModality() const;
 	void InitModalities();
 	void InitVolumeRenderers();

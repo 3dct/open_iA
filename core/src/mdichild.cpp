@@ -331,14 +331,28 @@ void MdiChild::enableRenderWindows()	// = image data available
 {
 	if (IsVolumeDataLoaded() && reInitializeRenderWindows)
 	{
-		SetHistogramModality(0);
 		Raycaster->enableInteractor();
 		slicerXZ->enableInteractor();
 		slicerXY->enableInteractor();
 		slicerYZ->enableInteractor();
 		updateViews();
 		updateImageProperties();
-		UpdateProfile();
+		if (imageData->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
+		{
+			SetHistogramModality(0);
+			UpdateProfile();
+		}
+		else
+		{
+			InitVolumeRenderers();
+			QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
+			slicerXZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+			slicerXZ->GetSlicerData()->ResetCamera();
+			slicerXY->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+			slicerXY->GetSlicerData()->ResetCamera();
+			slicerYZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+			slicerYZ->GetSlicerData()->ResetCamera();
+		}
 	}
 	// set to true for next time, in case it is false now (i.e. default to always reinitialize,
 	// unless explicitly set otherwise)
@@ -563,7 +577,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 		connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	}
 	connectIOThreadSignals(ioThread);
-	connect(m_dlgModalities, SIGNAL(ModalityAvailable(int)), this, SLOT(SetHistogramModality(int)));
+	connect(m_dlgModalities, SIGNAL(ModalityAvailable(int)), this, SLOT(ModalityAdded(int)));
 	connect(ioThread, SIGNAL(done()), this, SIGNAL(fileLoaded()));
 	
 	polyData->ReleaseData();
@@ -2473,6 +2487,8 @@ void MdiChild::toggleArbitraryProfile( bool isChecked )
 
 void MdiChild::UpdateProbe( int ptIndex, double * newPos )
 {
+	if (imageData->GetNumberOfScalarComponents() != 1) //No profile for rgb, rgba or vector pixel type images
+		return;
 	profileProbe->UpdateProbe(ptIndex, newPos);
 	UpdateProfile();
 }
@@ -2831,6 +2847,9 @@ void MdiChild::InitModalities()
 
 void MdiChild::SetHistogramModality(int modalityIdx)
 {
+	if (GetModality(modalityIdx)->GetImage()->GetNumberOfScalarComponents() != 1) //No histogram/profile for rgb, rgba or vector pixel type images
+		return;
+
 	if (!m_histogram)
 		return;
 	auto histData = GetModality(modalityIdx)->GetTransfer()->GetHistogramData();
@@ -2849,6 +2868,20 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(GetModality(modalityIdx)->GetName()));
 	workerThread->start();
+}
+
+
+void MdiChild::ModalityAdded(int modalityIdx)
+{
+	if (GetModality(modalityIdx)->GetImage()->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
+	{
+		SetHistogramModality(modalityIdx);
+	}
+	else
+	{
+		m_dlgModalities->InitDisplay(GetModality(modalityIdx));
+		ApplyVolumeSettings(false);
+	}
 }
 
 
