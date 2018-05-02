@@ -3393,8 +3393,10 @@ void dlg_FeatureScout::ClassDeleteButton()
 		applyClassSelection(retFlag, this->chartTable, 0, false); 
 		setRedSelectionColor();
 		spUpdateSPColumnVisibilityWithVis();
-		/*matrix->clearSelection();
-		matrix->update(); */
+		matrix->clearSelection(); 
+		
+		
+		matrix->update(); 
 		//Updates SPM
 		// TODO SPM
 		// matrix->UpdateColorInfo( classTreeModel, colorList );

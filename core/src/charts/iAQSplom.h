@@ -23,7 +23,7 @@
 #include "open_iA_Core_export.h"
 
 #include "iAScatterPlotSelectionHandler.h"
-
+#include "qmenu.h"
 #include <QGLWidget>
 #include <QList>
 
@@ -191,7 +191,7 @@ protected slots:
 	virtual void removeHighlightedPoint( int index );			//!< Remove a point from the highlighted list
 	void plotMaximized();										//!< When a scatter plot is maximized
 	void plotMinimized();										//!< When maximized scatter plot is removed.
-
+	void enableHistVisibility(bool setPlotVisible);				//set visibility of histograms
 signals:
 	void selectionModified( QVector<unsigned int> * selInds );		//!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified( int index );							//!< Emitted when hovered over a new point.
@@ -253,9 +253,16 @@ private:
 	//shows a maximized preview of a plot
 	void maximizeSelectedPlot(iAScatterPlot * selectedPlot);
 	void getPlotByIdx(iAScatterPlot *&selected_Plot, const iAQSplom_variables::plotSelectionIndex &plt_idx) const;
+	
+	void contextMenuEvent(QContextMenuEvent *event) override;
+
+
 	iAQSplom_variables::plotSelectionIndex plt_selIndx; 
+	QMenu* m_contextMenu;
+	QAction *showHistogramAction;
 	void renderPreselectedPlot();
 	bool m_showAllPlots; 
+	bool m_histVisibility; 
 	QVector<iAChartWidget*> m_histograms;
 
 };

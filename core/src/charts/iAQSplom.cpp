@@ -35,8 +35,10 @@
 #include <QTableWidget>
 #include <QWheelEvent>
 #include <qmath.h>
+#include <qmenu.h>
 #include "iAHistogramData.h"
 #include "iAPlotTypes.h"
+
 
 
 namespace
@@ -58,7 +60,7 @@ iAQSplom::Settings::Settings()
 	animDuration( 100.0 ),
 	animStart( 0.0 ),
 	separationMargin( 10 ),
-	histogramBins(20)
+	histogramBins(10)
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
 	popupWidth = 180;
@@ -146,23 +148,24 @@ void iAQSplom::setSelectionColor(QColor color)
 	}
 }
 
-iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	:QGLWidget( parent, shareWidget, f ),
+iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */)
+	:QGLWidget(parent, shareWidget, f),
 	settings(),
-	m_lut( new iALookupTable() ),
+	m_lut(new iALookupTable()),
 	m_colorArrayName(),
-	m_activePlot( 0 ),
+	m_activePlot(0),
 	m_mode(ALL_PLOTS),
-	m_splomData( new iASPLOMData() ),
-	m_previewPlot( 0 ),
-	m_maximizedPlot( 0 ),
-	m_isIndexingBottomToTop( true ), //always true: maximizing will not work otherwise a proper layout needs to be implemented
-	m_animIn( 1.0 ),
-	m_animOut( 0.0 ),
-	m_animationOut( new QPropertyAnimation( this, "m_animOut" ) ),
-	m_animationIn( new QPropertyAnimation( this, "m_animIn" ) ),
+	m_splomData(new iASPLOMData()),
+	m_previewPlot(0),
+	m_maximizedPlot(0),
+	m_isIndexingBottomToTop(true), //always true: maximizing will not work otherwise a proper layout needs to be implemented
+	m_animIn(1.0),
+	m_animOut(0.0),
+	m_animationOut(new QPropertyAnimation(this, "m_animOut")),
+	m_animationIn(new QPropertyAnimation(this, "m_animIn")),
 	m_popupHeight(0),
 	m_separationIdx(-1),
+	m_contextMenu(new QMenu(this)), 
 	m_bgColorTheme(iAColorThemeManager::GetInstance().GetTheme("White"))
 {
 	setMouseTracking( true );
@@ -170,8 +173,17 @@ iAQSplom::iAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 
 
 	m_animationIn->setDuration( settings.animDuration );
 	m_animationOut->setDuration( settings.animDuration );
+	showHistogramAction = new QAction(tr("Show Histograms"), this);
+	showHistogramAction->setCheckable(true);
+	setContextMenuPolicy(Qt::DefaultContextMenu);
+	m_contextMenu->addAction(showHistogramAction);
+	connect(showHistogramAction, SIGNAL(toggled(bool)), this, SLOT(enableHistVisibility(bool)));
+
 	m_showAllPlots = false; 
-	this->setSelectionColor(QColor(255, 40, 0, 1)); 
+	
+	m_histVisibility = false; 
+	this->setSelectionColor(QColor(255, 40, 0, 1));
+
 }
 
 void iAQSplom::initializeGL()
@@ -184,6 +196,7 @@ iAQSplom::~iAQSplom()
 	delete m_maximizedPlot;
 	delete m_animationIn;
 	delete m_animationOut;
+	delete m_contextMenu; 
 }
 
 void iAQSplom::setData( const QTableWidget * data )
@@ -472,6 +485,18 @@ void iAQSplom::getPlotByIdx(iAScatterPlot *&selected_Plot, const iAQSplom_variab
 		selected_Plot = (m_visiblePlots.at(plt_idx.plt_ind_y).at(plt_idx.plt_ind_x));
 }
 
+
+void iAQSplom::enableHistVisibility(bool setPlotVisible)
+{
+	this->m_histVisibility = setPlotVisible; 
+	this->updateVisiblePlots();
+}
+
+void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
+{
+	showHistogramAction->setChecked(m_histVisibility);
+	m_contextMenu->exec(event->globalPos());
+}
 
 //show preview of a selected plot
 void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot) {
@@ -847,8 +872,11 @@ void iAQSplom::updateSPLOMLayout()
 				s->setRect( getPlotRectByIndex( xind, yind ) );
 		}
 
-		rect= getPlotRectByIndex(yind, yind);
-		m_histograms[yind]->setGeometry(rect);
+		
+			rect = getPlotRectByIndex(yind, yind);
+		if (this->m_histVisibility) {
+			m_histograms[yind]->setGeometry(rect);
+		}
 	}
 	updateMaxPlotRect();
 }
@@ -870,13 +898,16 @@ void iAQSplom::updateVisiblePlots()
 		
 		if( !m_paramVisibility[y] )
 			continue;
-		m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
-		auto histogramData = iAHistogramData::Create(m_splomData->data()[y], settings.histogramBins);
-		
-		//pro param visible 1 hist
-		auto histogramPlot = QSharedPointer<iABarGraphDrawer>(new iABarGraphDrawer(histogramData,QColor(70, 70, 70, 255)));
-		m_histograms[m_histograms.size()-1]->AddPlot(histogramPlot);
-		m_histograms[m_histograms.size()-1]->show();
+
+		if (this->m_histVisibility) {
+			m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
+			auto histogramData = iAHistogramData::Create(m_splomData->data()[y], settings.histogramBins);
+			
+			//pro param visible 1 hist
+			auto histogramPlot = QSharedPointer<iABarGraphDrawer>(new iABarGraphDrawer(histogramData,QColor(70, 70, 70, 255)));
+			m_histograms[m_histograms.size()-1]->AddPlot(histogramPlot);
+			m_histograms[m_histograms.size()-1]->show();
+		}
 
 		QList<iAScatterPlot*> row;
 		for( unsigned long x = 0; x < numParams; ++x )

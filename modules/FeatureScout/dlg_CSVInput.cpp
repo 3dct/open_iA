@@ -181,8 +181,6 @@ void dlg_CSVInput::switchCTInputObjectType(const QString &ObjectInputType)
 			
 			this->textControl_list->selectAll(); 
 			this->textControl_list->setSelectionMode(QAbstractItemView::NoSelection);
-			//selectAllFromTextControl(); 
-			//this->textControl_list->update(); 
 		}
 	
 	}
@@ -285,15 +283,14 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 	}
 
 	
-	//for fiber use all headers; 
+	//for fibers use all headers; 
 	if (this->m_confParams->inputObjectType == csvConfig::CTInputObjectType::Fiber) {
 		if (this->m_formatSelected) {
 			this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, this->m_LayoutName);
 		}
 		
 		setAllHeaders(m_currentHeaders);
-		//this->textControl_list->update()
-		this->textControl_list->setSelectionMode(QAbstractItemView::NoSelection); 
+	
 	}
 	else {
 		
@@ -304,7 +301,7 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 		}
 
 		this->setSelectedHeaderToTextControl(*this->m_currentHeaders);
-		textControl_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
+		
 	}
 	
 	// show fileName

@@ -233,8 +233,8 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 
 	}
 
-	//TODO remove debug;
-	io.debugTable(false); 
+	//enables debug writing out table to desktop
+	//io.debugTable(false); 
 
 	QString filtername = tr( "FeatureScout started" );
 	m_mdiChild->addStatusMsg( filtername );
