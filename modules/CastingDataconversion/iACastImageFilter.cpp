@@ -252,7 +252,7 @@ void iACastImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	{
 		ConvertToRGB(this);
 	}
-	if (parameters["Rescale Range"].toBool())
+	else if (parameters["Rescale Range"].toBool())
 	{
 		ITK_TYPED_CALL(DataTypeConversion, InputPixelType(), this, parameters);
 	}
