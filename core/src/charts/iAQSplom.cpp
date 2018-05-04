@@ -212,7 +212,6 @@ void iAQSplom::setData( const QTableWidget * data )
 			connect( s, SIGNAL( selectionModified() ), this, SLOT( selectionUpdated() ) );
 			connect( s, SIGNAL( transformModified( double, QPointF ) ), this, SLOT( transformUpdated( double, QPointF ) ) );
 			connect( s, SIGNAL( currentPointModified( int ) ), this, SLOT( currentPointUpdated( int ) ) );
-			connect( s, SIGNAL( plotMaximized() ), this, SLOT( plotMaximized() ) );
 			s->setData( x, y, m_splomData ); //we want first plot in lower left corner of the SPLOM
 			if( m_lut->initialized() )
 				s->setLookupTable( m_lut, m_colorArrayName );
@@ -428,14 +427,6 @@ void iAQSplom::removeHighlightedPoint( int index )
 	update();
 }
 
-void iAQSplom::plotMaximized()
-{
-	iAScatterPlot * senderPlot = dynamic_cast<iAScatterPlot *>( QObject::sender() );
-	maximizeSelectedPlot(senderPlot);
-	
-}
-
-
 //shows a preselected plot based on id
 void iAQSplom::showSelectedPlot(const unsigned int plot_selInd_y, const unsigned int plot_selind_x) {
 	this->plt_selIndx.initPlotSelection(plot_selInd_y, plot_selind_x);
@@ -533,7 +524,6 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot) {
 
 	connect(m_maximizedPlot, SIGNAL(selectionModified()), this, SLOT(selectionUpdated()));
 	connect(m_maximizedPlot, SIGNAL(currentPointModified(int)), this, SLOT(currentPointUpdated(int)));
-	//connect(m_maximizedPlot, SIGNAL(plotMaximized()), this, SLOT(plotMinimized()));
 
 	if (settings.maximizedLinked)
 		connect(m_maximizedPlot, SIGNAL(transformModified(double, QPointF)), this, SLOT(transformUpdated(double, QPointF)));
@@ -560,14 +550,6 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot) {
 	//final update
 	update();
 
-}
-
-//TODO Remove minimization if not needed
-void iAQSplom::plotMinimized()
-{
-	removeMaximizedPlot();
-	updateVisiblePlots();
-	update();
 }
 
 void iAQSplom::removeMaximizedPlot()
@@ -1001,10 +983,19 @@ void iAQSplom::keyPressEvent( QKeyEvent * event )
 
 void iAQSplom::mouseDoubleClickEvent( QMouseEvent * event )
 {
-	//resetTransform();
 	iAScatterPlot * s = getScatterplotAt(event->pos());
-	maximizeSelectedPlot(s);
-
+	if (m_maximizedPlot &&
+		m_maximizedPlot->getIndices()[0] == s->getIndices()[0] &&
+		m_maximizedPlot->getIndices()[1] == s->getIndices()[1])
+	{
+		removeMaximizedPlot();
+		updateVisiblePlots();
+		update();
+	}
+	else
+	{
+		maximizeSelectedPlot(s);
+	}
 	event->accept(); 
 }
 

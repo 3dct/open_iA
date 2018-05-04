@@ -39,7 +39,6 @@ class QTableWidget;
 class QGridLayout;
 class QPropertyAnimation;
 
-
 namespace iAQSplom_variables{
 	
 	//storing current selection index of previewplot
@@ -166,8 +165,6 @@ protected:
 	void removeMaximizedPlot();									//!< Removes maximized plot.
 	int invert( int val ) const;								//!< Inverts parameter index. Used for inverting SPLOM Y indexing order.
 	int GetMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & fm) const;//!< Get the width of the longest tick label width
-	
-	
 
 	void setM_Mode(splom_mode);
 	void setSplomVisModeUpperHalf();
@@ -189,8 +186,6 @@ protected slots:
 	virtual void currentPointUpdated( int index );				//!< When hovered over a new point.
 	virtual void addHighlightedPoint(int index);				//!< Keep a point with index always highlighted
 	virtual void removeHighlightedPoint( int index );			//!< Remove a point from the highlighted list
-	void plotMaximized();										//!< When a scatter plot is maximized
-	void plotMinimized();										//!< When maximized scatter plot is removed.
 	void enableHistVisibility(bool setPlotVisible);				//set visibility of histograms
 signals:
 	void selectionModified( QVector<unsigned int> * selInds );		//!< Emitted when new data points are selected. Contains a list of selected data points.
@@ -256,7 +251,6 @@ private:
 	
 	void contextMenuEvent(QContextMenuEvent *event) override;
 
-
 	iAQSplom_variables::plotSelectionIndex plt_selIndx; 
 	QMenu* m_contextMenu;
 	QAction *showHistogramAction;
@@ -264,5 +258,4 @@ private:
 	bool m_showAllPlots; 
 	bool m_histVisibility; 
 	QVector<iAChartWidget*> m_histograms;
-
 };

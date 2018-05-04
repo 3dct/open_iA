@@ -112,10 +112,8 @@ protected:
 	QPointF getPositionFromPointIndex( int ind ) const;						//!< Get position of a data point with a given index
 	void updateSelectedPoints( bool append = false );						//!< Update a set of selected points: if append add to the previous selection.
 	void updateDrawRect();													//!< Re-calculate dimensions of the plot's rectangle
-	void updateMaxBtnRect();												//!< Re-calculate dimensions of the plot's maximize-button rectangle
 	QPoint getLocalPos( QPoint pos ) const;									//!< Local (plot) position from global (SPLOM)
 	QPoint cropLocalPos( QPoint locPos ) const;								//!< Make sure that local position is inside plot's rectangle
-	bool isMaximizedClicked( QMouseEvent * event );							//!< Check if maximized button of the plot was clicked
 	//void drawParameterName( QPainter &painter );							//!< Draws parameter name (only diagonal plots)
 	void drawBorder( QPainter &painter );									//!< Draws plot's border
 	void drawTicks( QPainter &painter );									//!< Draws plot's ticks
@@ -132,7 +130,6 @@ signals:
 	void selectionModified();												//!< Emitted when selected points changed
 	void transformModified( double scale, QPointF deltaOffset );			//!< Emitted when user transforms (scales, translates)
 	void currentPointModified( int index );									//!< Emitted when hovered over new point
-	void plotMaximized();													//!< Emitted when plot maximized button is clicked
 
 protected:
 	//! All settings of the plot in one struct
