@@ -184,7 +184,6 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	m_animationOut->setDuration( settings.animDuration );
 	showHistogramAction = new QAction(tr("Show Histograms"), this);
 	showHistogramAction->setCheckable(true);
-	setContextMenuPolicy(Qt::DefaultContextMenu);
 	m_contextMenu->addAction(showHistogramAction);
 	connect(showHistogramAction, SIGNAL(toggled(bool)), this, SLOT(enableHistVisibility(bool)));
 
@@ -958,6 +957,7 @@ void iAQSplom::wheelEvent( QWheelEvent * event )
 
 void iAQSplom::mousePressEvent( QMouseEvent * event )
 {
+	setContextMenuPolicy(Qt::DefaultContextMenu);
 	if( m_activePlot )
 		m_activePlot->SPLOMMousePressEvent( event );
 }
@@ -973,8 +973,11 @@ void iAQSplom::mouseMoveEvent( QMouseEvent * event )
 	iAScatterPlot * s = getScatterplotAt( event->pos() );
 
 	//make sure that if a button is pressed another plot will not hijack the event handling
-	if( event->buttons()&Qt::RightButton || event->buttons()&Qt::LeftButton )
+	if (event->buttons()&Qt::RightButton || event->buttons()&Qt::LeftButton)
+	{
+		setContextMenuPolicy(Qt::PreventContextMenu);
 		s = m_activePlot;
+	}
 	else
 		changeActivePlot( s );
 
