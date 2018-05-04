@@ -154,7 +154,7 @@ public slots:
 	void CsvDVSaveButton();
 
 	void RenderingButton();
-	void RealTimeRendering(vtkIdTypeArray *selection, bool enabled);
+	void RealTimeRendering(vtkIdTypeArray *selection);
 	void RenderingMeanObject();
 	void RenderingOrientation();
 	void ScatterPlotButton();
@@ -217,7 +217,6 @@ private:
 	iAObjectAnalysisType filterID;
 
 	bool draw3DPolarPlot;
-	bool enableRealTimeRendering;
 	bool classRendering;
 	bool spmActivated;
 
