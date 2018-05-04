@@ -933,3 +933,8 @@ double iAScatterPlot::getPointRadius() const
 		res *= settings.maximizedPointMagnification;
 	return res;
 }
+
+void iAScatterPlot::setPointRadius(double radius)
+{
+	settings.pointRadius = radius;
+}

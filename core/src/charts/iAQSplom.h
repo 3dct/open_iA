@@ -121,6 +121,7 @@ public:
 	iAColorTheme const * GetBackgroundColorTheme();
 
 	void setSelectionColor(QColor color);
+	void setPointRadius(double radius);
 
 	void clearSelection();  //deletes current selection
 

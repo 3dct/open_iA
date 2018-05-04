@@ -69,6 +69,8 @@ public:
 	QPointF getOffset() const { return m_offset; }									//!< Get current offset applied to the plot points
 	QPointF getPointPosition( int index ) const;									//!< Get global position of a point by its index
 	double getPointRadius() const;													//!< Get point radius (magnified if plot is maximized)
+	void setPointRadius(double radius);										//!< Set point radius (magnified if plot is maximized)
+	
 	//!  Output positions and labels of plot ticks for X and Y axes
 	void printTicksInfo( QList<double> * posX, QList<double> * posY, QList<QString> * textX, QList<QString> * textY ) const;
 	void setCurrentPoint( int index );												//!< Set the index of currently hovered point
