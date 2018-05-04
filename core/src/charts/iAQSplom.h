@@ -209,9 +209,11 @@ protected:
 		QColor popupBorderColor;
 		QColor popupFillColor;
 		QColor popupTextColor;
+		QColor selectionColor;
 
 		double popupTipDim[2];
 		double popupWidth;
+		double pointRadius;
 
 		bool isAnimated;
 		double animDuration;

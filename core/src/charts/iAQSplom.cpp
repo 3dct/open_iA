@@ -37,8 +37,6 @@
 #include "iAHistogramData.h"
 #include "iAPlotTypes.h"
 
-
-
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
 	const int TextPadding = 7;
@@ -54,14 +52,16 @@ iAQSplom::Settings::Settings()
 	popupBorderColor( QColor( 180, 180, 180, 220 )),
 	popupFillColor(QColor( 250, 250, 250, 200 )),
 	popupTextColor( QColor( 50, 50, 50 ) ),
+	selectionColor(QColor(255, 40, 0, 1)),
 	isAnimated( true ),
 	animDuration( 100.0 ),
 	animStart( 0.0 ),
 	separationMargin( 10 ),
-	histogramBins(10)
+	histogramBins(10),
+	popupWidth(180),
+	pointRadius(1.0)
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
-	popupWidth = 180;
 }
 
 void iAQSplom::setAnimIn( double anim )
@@ -106,7 +106,6 @@ void iAQSplom::clearSelection()
 
 }
 
-
 /*all plots are shown if enableAllPlotsVisible set true,
 *else other upper half is shown
 */
@@ -137,6 +136,7 @@ void iAQSplom::setM_Mode(splom_mode vis_mode)
 
 void iAQSplom::setSelectionColor(QColor color)
 {
+	settings.selectionColor = color;
 	foreach(QList<iAScatterPlot*> row, m_matrix)
 	{
 		foreach(iAScatterPlot* s, row)
@@ -144,10 +144,13 @@ void iAQSplom::setSelectionColor(QColor color)
 			s->setSelectionColor(color);
 		}
 	}
+	if (m_maximizedPlot)
+		m_maximizedPlot->setSelectionColor(color);
 }
 
 void iAQSplom::setPointRadius(double radius)
 {
+	settings.pointRadius = radius;
 	foreach(QList<iAScatterPlot*> row, m_matrix)
 	{
 		foreach(iAScatterPlot* s, row)
@@ -155,6 +158,8 @@ void iAQSplom::setPointRadius(double radius)
 			s->setPointRadius(radius);
 		}
 	}
+	if (m_maximizedPlot)
+		m_maximizedPlot->setPointRadius(radius);
 }
 
 iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */)
@@ -188,10 +193,7 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	connect(showHistogramAction, SIGNAL(toggled(bool)), this, SLOT(enableHistVisibility(bool)));
 
 	m_showAllPlots = false;
-
 	m_histVisibility = false;
-	this->setSelectionColor(QColor(255, 40, 0, 1));
-
 }
 
 void iAQSplom::initializeGL()
@@ -223,6 +225,8 @@ void iAQSplom::setData( const QTableWidget * data )
 			connect( s, SIGNAL( transformModified( double, QPointF ) ), this, SLOT( transformUpdated( double, QPointF ) ) );
 			connect( s, SIGNAL( currentPointModified( int ) ), this, SLOT( currentPointUpdated( int ) ) );
 			s->setData( x, y, m_splomData ); //we want first plot in lower left corner of the SPLOM
+			s->setSelectionColor(settings.selectionColor);
+			s->setPointRadius(settings.pointRadius);
 			if( m_lut->initialized() )
 				s->setLookupTable( m_lut, m_colorArrayName );
 			row.push_back( s );
@@ -498,17 +502,16 @@ void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 }
 
 //show preview of a selected plot
-void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot) {
-
-	if (!selectedPlot) {
+void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot) 
+{
+	if (!selectedPlot) 
 		return;
-	}
 
 	if (m_previewPlot)
 		m_previewPlot->setPreviewState(false);
+
 	selectedPlot->setPreviewState(true);
 	m_previewPlot = selectedPlot;
-
 	m_mode = UPPER_HALF;
 
 	//hide lower triangle
@@ -540,26 +543,25 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot) {
 
 	const int * plotInds = selectedPlot->getIndices();
 	m_maximizedPlot->setData(plotInds[0], plotInds[1], m_splomData); //we want first plot in lower left corner of the SPLOM
+
 	if (m_lut->initialized())
 		m_maximizedPlot->setLookupTable(m_lut, m_colorArrayName);
-	//rectangle
-	//selection color mitgeben
-	m_maximizedPlot->setSelectionColor(QColor(255, 40, 0, 1));
+
+	m_maximizedPlot->setSelectionColor(settings.selectionColor);
+	m_maximizedPlot->setPointRadius(settings.pointRadius);
 	updateMaxPlotRect();
 	//transform
 	QPointF ofst = selectedPlot->getOffset();
 
 	//TODO height of max plot is 0 maximizeSelectedPlot;
-	if (!selectedPlot->getRect().height() == 0) {
-		double scl[2] = {
-			((double)m_maximizedPlot->getRect().width()) / selectedPlot->getRect().width(),
-			((double)m_maximizedPlot->getRect().height()) / selectedPlot->getRect().height()
-		};
+	if (!selectedPlot->getRect().height() == 0)
+	{
+		double scl[2] = { ((double)m_maximizedPlot->getRect().width()) / selectedPlot->getRect().width(),
+			((double)m_maximizedPlot->getRect().height()) / selectedPlot->getRect().height() };
 		m_maximizedPlot->setTransform(selectedPlot->getScale(), QPointF(ofst.x() * scl[0], ofst.y() * scl[1]));
 	}
 	//final update
 	update();
-
 }
 
 void iAQSplom::removeMaximizedPlot()
@@ -602,14 +604,8 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	//without diagonal elements
 	for (int i = 0; i < m_visiblePlots.size() -1; ++i)
 	{
-
 						//y   //x
-
 			m_visiblePlots[i+1][i]->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
-
-
-
-
 	}
 
 	//hier sind alle Parameter drin
@@ -774,7 +770,6 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 				s = m_maximizedPlot;
 		}
 	}
-
 	return s;
 }
 
@@ -1040,13 +1035,11 @@ int iAQSplom::GetMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & 
 //should be performed in the paint event of qslpom
 void iAQSplom::drawVisibleParameters(QPainter &painter)
 {
-
 	//save indezes of all visible plots
 	unsigned long numParams = m_splomData->numParams();
 
 	//QVector<ulong> ind_VisY;
 	QVector<ulong> ind_Vis;
-
 
 	//save visibilitys of axis
 	for (unsigned long y = 0; y < numParams; ++y)
@@ -1058,7 +1051,6 @@ void iAQSplom::drawVisibleParameters(QPainter &painter)
 	//getting x positions
 	setSPMLabels(ind_Vis, ind_Vis.length(), painter, false);
 	setSPMLabels(ind_Vis, ind_Vis.length(), painter, true);
-
 }
 
 void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPainter & painter, bool switchTO_YRow)
@@ -1077,34 +1069,29 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 
 	loopLength = ind_Elements.length();
 
-
 	for (axisIdx; axisIdx < loopLength; axisIdx++)
 	{
-			if (switchTO_YRow) {
-
-
-			currentRect = getPlotRectByIndex( 0, axisIdx);
+		if (switchTO_YRow) 
+		{
+			currentRect = getPlotRectByIndex(0, axisIdx);
 			//top = TextPadding;
-
-
 		}
-		else {
+		else
+		{
 			//get rectangles of current plot
 			currentRect = getPlotRectByIndex(/*ind_VisX[*/axisIdx/*]*/, 0/*axisOffSet - 1*/);
 			top = 0 + TextPadding;
 			currentRect.setTop(top);
 		}
 
-
-
 		//currentRect.W
 		currIdx = ind_Elements[axisIdx];
 		currentParam = m_splomData->parameterName(currIdx);
-		if (switchTO_YRow) {
+		if (switchTO_YRow) 
+		{
 
 			textwidth = currentRect.height();
 			textHeight = painter.fontMetrics().height();
-
 
 			QPoint pos_center;
 			pos_center.setX(currentRect.top() + textwidth / 2);
@@ -1116,18 +1103,13 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 			currentRect.setTopLeft(QPoint(-textwidth / 2, -textHeight / 2));
 			currentRect.setSize(QSize(textwidth, textHeight));
 			painter.drawText(currentRect, Qt::AlignCenter | Qt::AlignTop, currentParam);
-
-
 			painter.restore();
 		}
-		else {
+		else
+		{
 
 			painter.drawText(currentRect, Qt::AlignHCenter, currentParam);
-
 		}
-
-
-
 	}
 }
 
