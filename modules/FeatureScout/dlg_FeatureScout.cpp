@@ -2430,7 +2430,6 @@ void dlg_FeatureScout::ClassAddButton()
 				applyClassSelection(retflag, selInd, cid, false);
 				matrix->clearSelection();
 				matrix->update();
-				this->setRedSelectionColor();
 				spUpdateSPColumnVisibilityWithVis();
 
 				if (retflag) return;
@@ -2711,7 +2710,6 @@ void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4], double rang
 
 	//is this still required?
 	this->matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
-	setRedSelectionColor();
 }
 
 
@@ -2736,22 +2734,7 @@ void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4])
 
 	//is this still required?
 	this->matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
-	setRedSelectionColor();
-
 }
-
-void dlg_FeatureScout::setRedSelectionColor()
-{
-	this->matrix->setSelectionColor(QColor(255, 40, 0, 1));
-	this->matrix->update();
-}
-
-void dlg_FeatureScout::setSelectionColor(const QColor &selColor) {
-
-	this->matrix->setSelectionColor(selColor);
-	/*this->matrix->update();*/
-}
-
 
 void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
 {
@@ -3384,11 +3367,8 @@ void dlg_FeatureScout::ClassDeleteButton()
 	{
 		bool retFlag = true;
 		applyClassSelection(retFlag, this->chartTable, 0, false);
-		setRedSelectionColor();
 		spUpdateSPColumnVisibilityWithVis();
 		matrix->clearSelection();
-
-
 		matrix->update();
 		//Updates SPM
 		// TODO SPM
@@ -3467,86 +3447,9 @@ void dlg_FeatureScout::ScatterPlotButton()
 
 		matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
 		matrix->setSelectionColor(QColor(255, 40, 0, 1));
-
-		// TODO SPM
-
-		// Updates scatter plot matrix with up to date (PC tree) information
-		// about Class_ID and RGB color. IMPORTANT: Set UpdateColorInfo after SetInput()
-		// matrix->UpdateColorInfo( classTreeModel, colorList );
-
-		// If PC-Option 'Multi Rendering' is clicked a scatter plot matrix
-		// with all (colored) plots is shown.
-		// matrix->SetClass2Plot( this->activeClassItem->index().row() );
-
-		// Scatter plot matrix settings
-
-
-
-		/*
-
-
-
-		this->activeClassItem = item;
-		// make sure when a class is added, at the same time the tableList should also be updated
-
-		// reload the class table to chartTable
-		int id = item->index().row();
-		chartTable->ShallowCopy( tableList[id] );
-
-		*/
-		if ( this->activeClassItem->rowCount() < 30 )
-		{
-			//matrix->SetPlotMarkerSize( 0, 3.0f );
-			//matrix->SetPlotMarkerSize( 2, 10.0f );
-		}
-		//matrix->SetScatterPlotSelectedActiveColor( vtkColor4ub( 175, 238, 238, 130 ) );
-		//matrix->SetScatterPlotSelectedRowColumnColor( vtkColor4ub( 0, 0, 0, 20 ) );
-		//matrix->SetBackgroundColor( 1, vtkColor4ub( 235, 235, 235, 100 ) );
-		//matrix->SetGutter( vtkVector2f( 30.0f, 30.0f ) );
-		/*matrix->setM_Mode(iAQSplom::splom_mode::UPPER_HALF);*/
-
+	
 		// Scatter plot matrix only shows features which are selected in PC-ElementTableModel.
 		spUpdateSPColumnVisibilityWithVis();
-		//matrix->showSelectedPlot(1, 0);
-
-		//showing upper corner in the scatter plot matrix
-		//matrix->showSelectedPlot();
-
-		// Creates a popup menu
-		QMenu* popup1 = new QMenu( iovSPM );
-		popup1->addAction( "Add Class" );
-		//popup1->addAction( "Suggest Classification" );
-		popup1->addSeparator();
-		popup1->addAction( "Histograms On/Off" );
-		popup1->addSeparator();
-		popup1->addAction( "Subtraction Selection Mode" );
-		popup1->addAction( "Polygon Selection Tool" );
-		popup1->setStyleSheet( "font-size: 11px; background-color: #9B9B9B; border: 1px solid black;" );
-
-		connect( popup1, SIGNAL( triggered( QAction* ) ), this, SLOT( spPopupSelection( QAction* ) ) );
-
-		/*
-		vtkEventQtSlotConnect *spConnections = vtkEventQtSlotConnect::New();
-		// Gets right button release event (on a scatter plot).
-		spConnections->Connect( iovSPM->dockWidgetContents->GetRenderWindow()->GetInteractor(),
-								vtkCommand::RightButtonReleaseEvent,
-								this,
-								SLOT( spPopup( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ),
-								popup1, 1.0 );
-
-		// Gets right button press event (on a scatter plot).
-		spConnections->Connect( iovSPM->dockWidgetContents->GetRenderWindow()->GetInteractor(),
-								vtkCommand::RightButtonPressEvent,
-								this,
-								SLOT( spBigChartMouseButtonPressed( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
-
-		//Gets selection changed event (on scatterplot).
-		spConnections->Connect( matrix,
-								vtkCommand::SelectionChangedEvent,
-								this,
-								SLOT( spSelInformsPCChart( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ), 0, 1.0 );
-		*/
-		//iovSPM->dockWidgetContents->show();
 
 		//connects signal from SPM selection to PCView
 		connect(matrix, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(spSelInformsPCChart(QVector<unsigned int> *)) );
@@ -3892,8 +3795,6 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 
 void dlg_FeatureScout::classClicked( const QModelIndex &index )
 {
-	setRedSelectionColor();
-
 	//Turns off FLD scalar bar updates polar plot view
 	if ( m_scalarWidgetFLD )
 	{
@@ -3957,7 +3858,6 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 					matrix->update();
 					bool returnFlag = false;
 					this->applyClassSelection(returnFlag, this->chartTable, index.row(), false);
-					setRedSelectionColor();
 					this->spUpdateSPColumnVisibilityWithVis();
 					if (returnFlag) return;
 				}
@@ -4021,23 +3921,13 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 				QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
 
 				//Object ID starts with 0 eg. oID -1;
-
-				/*int test = 2;*/
 				selInd->push_back(sID);
-				/*double rgba[4];
-				setClassColour(rgba, colorID);*/
-				//applySingleClassObjectSelection(retflag, chartTable, oID-1, colorID, true);
 				//set all entries
 				applyClassSelection(retflag, chartTable, colorID, false);
-
-				setRedSelectionColor();
 				matrix->setSelection(&(*selInd));
 				matrix->update();
 				spUpdateSPColumnVisibilityWithVis();
-				//setRedSelectionColor();
 				if (retflag) return;
-				//matrix->SetClass2Plot( this->activeClassItem->index().row() );
-				//matrix->UpdateLayout();
 			}
 		}
 	}

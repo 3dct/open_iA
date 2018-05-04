@@ -202,8 +202,6 @@ private:
 	void spmApplyColorMap(double  rgba[4], const int colInd);
 	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
 	void spmApplyGeneralColorMap(const double rgba[4]);
-	void setRedSelectionColor();
-	void setSelectionColor(const QColor & selColor);
 	// Qt members
 	QWidget *activeChild;
 
