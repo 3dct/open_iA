@@ -69,10 +69,10 @@ namespace csvConfig {
 		
 		QString csv_units;
 		QString LayoutName; 
-		enum csvSeparator file_seperator; 
-		enum csv_FileFormat file_fmt;
-		enum inputLang csv_Inputlanguage; 
-		enum decimalPoint file_decimalPoint; 
+		csvSeparator file_seperator; 
+		csv_FileFormat file_fmt;
+		inputLang csv_Inputlanguage; 
+		decimalPoint file_decimalPoint; 
 		bool paramsValid;
 		bool useEndline; 
 
