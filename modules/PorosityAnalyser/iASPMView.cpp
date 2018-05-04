@@ -85,6 +85,8 @@ iASPMView::iASPMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	layoutHB2->addWidget( m_splom );
 	SPLOMWidget->setLayout( layoutHB2 );
 
+	m_splom->setSelectionColor(QColor(Qt::black));
+
 	InitLUT();
 	InitScalarBar();
 
