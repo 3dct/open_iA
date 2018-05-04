@@ -2024,6 +2024,15 @@ void MainWindow::updateRecentFileActions()
 {
 	QSettings settings;
 	QStringList files = settings.value("recentFileList").toStringList();
+	QMutableStringListIterator it(files);
+	while (it.hasNext())
+	{
+		QString fileName = it.next();
+		QFileInfo fi(fileName);
+		if (!fi.exists())
+			it.remove();
+	}
+	settings.setValue("recentFileList", files);
 
 	int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
 
