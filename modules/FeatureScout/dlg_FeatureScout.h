@@ -178,8 +178,6 @@ public slots:
 	void spSelInformsPCChart(QVector<unsigned int> * selInds);
 	void spUpdateSPColumnVisibility();
 
-	void spUpdateSPColumnVisibilityWithVis();
-
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
 	bool changeFeatureScout_Options( int idx );
 
@@ -202,6 +200,7 @@ private:
 	void spmApplyColorMap(double  rgba[4], const int colInd);
 	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
 	void spmApplyGeneralColorMap(const double rgba[4]);
+	void spUpdateSPColumnVisibilityWithVis();
 	// Qt members
 	QWidget *activeChild;
 

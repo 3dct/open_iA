@@ -2521,34 +2521,22 @@ void prepareTable(const int rowCount, const int colCount, QSharedPointer<QTableW
 //set data from current class to SPM
 void dlg_FeatureScout::setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool &retflag) {
 	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
-	const int colCount = (int)classEntries->GetNumberOfColumns();//->GetNumberOfColumns();
+	const int colCount = (int)classEntries->GetNumberOfColumns();
 	const int rowCount = (int)classEntries->GetNumberOfRows();
-	prepareTable(rowCount, colCount, spInput, classEntries);
-	//QTableWind
-	/*QSharedPointer<QTableWidgetItem> currentWidget = QSharedPointer<QTableWidgetItem>(new QTableWidgetItem(""));*/
-
-	QTableWidgetItem currentWidget("");
-
+	prepareTable(rowCount, colCount, spInput, csvTable);
 
 	for (int row = 1; row < rowCount + 1; row++) {
-
-	//adds each column entry to vtktable
-			for (int col = 0; col < colCount; col++) {
-
-				vtkStdString csvValue = classEntries->GetValue(row-1, col).ToString();
-				spInput->setItem(row, col, new QTableWidgetItem(csvValue.c_str()));
-
-			}
-
+		//adds each column entry to vtktable
+		for (int col = 0; col < colCount; col++) {
+			vtkStdString csvValue = classEntries->GetValue(row-1, col).ToString();
+			spInput->setItem(row, col, new QTableWidgetItem(csvValue.c_str()));
+		}
 	}
-
 
 	if (!iovSPM)
 		return;
 
-
 	this->matrix->setData(&(*spInput));
-	/*this->matrix->selectionModified(&(*selInd));*/
 	this->spUpdateSPColumnVisibility();
 
 	retflag = false;
@@ -2607,24 +2595,14 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &r
 				rowSavingIndx++;
 				break;
 			}
-
 		}
-
-
 	}
 
-
-
-
-	//if scatterplot is active
 	if (!iovSPM)
 		return;
-	//t/*his->matrix->clear(); */
 
 	this->matrix->setData(&(*spInput));
-	/*this->matrix->selectionModified(&(*selInd));*/
 	this->spUpdateSPColumnVisibility();
-	/*this->matrix->update();*/
 	retflag = false;
 }
 
@@ -2666,13 +2644,10 @@ void dlg_FeatureScout::setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkT
 	//if scatterplot is active
 	if (!iovSPM)
 		return;
-	//t/*his->matrix->clear(); */
 
 	this->matrix->setData(&(*spInput));
 	this->matrix->update();
-	/*this->matrix->selectionModified(&(*selInd));*/
 	this->spUpdateSPColumnVisibility();
-	/*this->matrix->update();*/
 	retflag = false;
 }
 
@@ -3351,11 +3326,11 @@ void dlg_FeatureScout::ClassDeleteButton()
 
 	// update tableList and setup activeClassItem
 	this->setActiveClassItem( stammItem, 2 );
-	this->setupNewPcView();
 
 	// update element view
 	this->calculateElementTable();
 	this->initElementTableModel();
+	this->setupNewPcView();
 
 	// remove the deleted row item
 	rootItem->removeRow( cID );
@@ -3477,17 +3452,7 @@ void dlg_FeatureScout::spUpdateSPColumnVisibilityWithVis()
 	matrix->showAllPlots(false);
 	matrix->update();
 	matrix->showPreviewPlot();
-	// Updates scatter plot matrix if a feature of PC-ElementTableModel is added or removed.
-	if (this->spmActivated)
-	{
-		// TODO SPM: only update matrix after all parameters visibility set?
-		for (int j = 0; j < elementNr; ++j)
-		{
-			matrix->setParameterVisibility(elementTable->GetValue(j, 0).ToString().c_str(),
-				elementTableModel->item(j, 0)->checkState() == Qt::Checked);
-		}
-		matrix->update();
-	}
+	spUpdateSPColumnVisibility();
 }
 
 
