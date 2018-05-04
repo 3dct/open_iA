@@ -231,7 +231,8 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	drawTicks( painter );
 	//drawParameterName( painter );
 	drawPoints( painter );
-	drawSelectionPolygon( painter );
+	if (m_isMaximizedPlot)
+		drawSelectionPolygon( painter );
 	/*drawMaximizeButton( painter );*/
 	drawBorder( painter );
 	painter.restore();
@@ -275,7 +276,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		}
 	}
 
-	if ( event->buttons()&Qt::RightButton )//moving
+	if ( event->buttons()&Qt::RightButton ) // drag
 	{
 		QPointF deltaOffset = locPos - m_prevPos;
 		m_offset += locPos - m_prevPos;
@@ -285,7 +286,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		emit transformModified( m_scale, deltaOffset );
 	}
 
-	if ( event->buttons()&Qt::LeftButton )//moving
+	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton ) // selection
 	{
 		if (settings.selectionMode == Polygon)
 		{
@@ -310,7 +311,7 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 {
 	QPoint locPos = getLocalPos( event->pos() );
 	m_prevPos = locPos;
-	if ( event->buttons()&Qt::LeftButton )//selection
+	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton )//selection
 	{
 		if (settings.selectionMode == Rectangle)
 		{
@@ -325,11 +326,10 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 
 void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 {
-	if ( event->button() == Qt::LeftButton )//selection
+	if (m_isMaximizedPlot && event->button() == Qt::LeftButton )//selection
 	{
 		bool append = ( event->modifiers() & Qt::ShiftModifier ) ? true : false;
 		updateSelectedPoints( append ); //selection
-		m_selPoly.clear();
 	}
 }
 
@@ -597,11 +597,15 @@ QPointF iAScatterPlot::getPositionFromPointIndex( int ind ) const
 	return QPointF( x, y );
 }
 
-void iAScatterPlot::updateSelectedPoints( bool append )
+void iAScatterPlot::updateSelectedPoints(bool append)
 {
+	bool wasModified = false;
 	QVector<unsigned int> & selInds = m_splom->getSelection();
-	if ( !append )
+	if (!append)
+	{
+		wasModified = selInds.size() > 0;
 		selInds.clear();
+	}
 	if (m_selPoly.size() > 0)
 	{
 		QPolygonF pPoly;
@@ -628,11 +632,17 @@ void iAScatterPlot::updateSelectedPoints( bool append )
 				}
 			}
 		}
+		wasModified |= (selInds.size() > 0);
 	}
-	//add selection to pc
-	if (!append || m_selPoly.size() > 0)
+	bool needToClearPolygon = m_selPoly.size() > 0;
+	m_selPoly.clear();
+	if (wasModified)
 	{
 		emit selectionModified();
+	}
+	else if (needToClearPolygon)
+	{
+		m_parentWidget->update();
 	}
 }
 

@@ -219,7 +219,7 @@ void iAQSplom::setData( const QTableWidget * data )
 		for( unsigned long x = 0; x < numParams; ++x )
 		{
 			iAScatterPlot * s = new iAScatterPlot(this, this);
-			connect( s, SIGNAL( selectionModified() ), this, SLOT( selectionUpdated() ) );
+			//connect( s, SIGNAL( selectionModified() ), this, SLOT( selectionUpdated() ) );
 			connect( s, SIGNAL( transformModified( double, QPointF ) ), this, SLOT( transformUpdated( double, QPointF ) ) );
 			connect( s, SIGNAL( currentPointModified( int ) ), this, SLOT( currentPointUpdated( int ) ) );
 			s->setData( x, y, m_splomData ); //we want first plot in lower left corner of the SPLOM
