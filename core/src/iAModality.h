@@ -108,20 +108,20 @@ public:
 
 	void setVolSettings(const iAVolumeSettings &volSettings);
 
-	const iAVolumeSettings &getVolumeSettings() const; 
+	const iAVolumeSettings &getVolumeSettings() const;
 
 	inline bool getVolSettingsSavedStatus() {
-		return this->m_VolSettingsSavedStatus; 
+		return this->m_VolSettingsSavedStatus;
 	}
 
 	inline void setVolSettingsSavedStatusFalse() {
-		this->m_VolSettingsSavedStatus = false; 
+		this->m_VolSettingsSavedStatus = false;
 	}
 
 
 private:
 	iAVolumeSettings m_volSettings;
-	bool m_VolSettingsSavedStatus; 
+	bool m_VolSettingsSavedStatus;
 
 
 	QString m_name;

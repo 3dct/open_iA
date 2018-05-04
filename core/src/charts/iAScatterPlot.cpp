@@ -330,7 +330,7 @@ void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 		bool append = ( event->modifiers() & Qt::ShiftModifier ) ? true : false;
 		updateSelectedPoints( append ); //selection
 		m_selPoly.clear();
-	} 
+	}
 }
 
 int iAScatterPlot::p2binx( double p ) const

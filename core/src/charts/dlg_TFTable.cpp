@@ -58,7 +58,7 @@ void dlg_TFTable::Init()
 {
 	m_oTF->GetRange( m_xRange );
 	dsbNewPointX->setRange( m_xRange[0], m_xRange[1] );
-	
+
 	QPixmap pxMap( 23, 23 );
 	pxMap.fill( m_newPointColor );
 	tbChangeColor->setIcon( pxMap );
@@ -77,7 +77,7 @@ void dlg_TFTable::Init()
 	table->horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch );
 	table->verticalHeader()->setDefaultSectionSize( 25 );
 	table->setSelectionBehavior( QAbstractItemView::SelectRows );
-	
+
 	connect( tbChangeColor, SIGNAL( clicked() ), this, SLOT( changeColor() ) );
 	connect( tbAddPoint, SIGNAL( clicked() ), this, SLOT( addPoint() ) );
 	connect( addPnt, SIGNAL( triggered() ), this, SLOT( addPoint() ) );
@@ -153,7 +153,7 @@ void dlg_TFTable::removeSelectedPoint()
 	QList<QTableWidgetSelectionRange> selRangeList =  table->selectedRanges();
 	QList<int> rowsToRemove;
 	// Bug fix: first/last row selection (despite: ~Qt::ItemIsSelectable)
-	for ( int i = 0; i < selRangeList.size(); ++i )	
+	for ( int i = 0; i < selRangeList.size(); ++i )
 	{
 		for ( int j = selRangeList[i].topRow(); j <= selRangeList[i].bottomRow(); ++j )
 		{

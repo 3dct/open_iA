@@ -34,7 +34,7 @@ class open_iA_Core_API dlg_gaussian : public dlg_function
 	double mean;
 	double sigma;
 	double multiplier;
-	
+
 public:
 	dlg_gaussian(iADiagramFctWidget *chart, QColor &color, bool reset = true);
 
@@ -44,7 +44,7 @@ public:
 	void draw(QPainter &painter);
 	void draw(QPainter &painter, QColor color, int lineWidth);
 	void drawOnTop(QPainter&) {}
-	
+
 	int selectPoint(QMouseEvent *event, int *x = NULL);
 	int getSelectedPoint() { return 0; }
 	int addPoint(int, int) { return 0; }
@@ -52,13 +52,13 @@ public:
 	void removePoint(int) {}
 	void moveSelectedPoint(int x, int y);
 	void changeColor(QMouseEvent *) {}
-	
+
 	bool isColored() { return false; }
 	bool isEndPoint(int) { return true; }
 	bool isDeletable(int) { return false; }
-	
+
 	void reset();
-	
+
 	void mousePressEvent(QMouseEvent*) {}
 	void mouseMoveEvent(QMouseEvent*)  {}
 	void mouseReleaseEvent(QMouseEvent*) {}
@@ -78,7 +78,7 @@ public:
 	double getMultiplier() { return this->multiplier; }
 
 private:
-	
+
 	// convert view to data
 	double v2dX(int x);
 	double v2dY(int y);

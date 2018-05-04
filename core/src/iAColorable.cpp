@@ -26,7 +26,7 @@ iAColorable::~iAColorable()
 const QColor iAColorable::DefaultColor(0, 0, 0, 255);
 
 iAColorable::iAColorable():
-	m_color(DefaultColor)	
+	m_color(DefaultColor)
 {}
 
 iAColorable::iAColorable(QColor const & color):

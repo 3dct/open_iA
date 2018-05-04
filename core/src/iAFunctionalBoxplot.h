@@ -52,7 +52,7 @@ public:
 	void setMin(ArgType a, ValType v);
 	void setMax(ArgType a, ValType v);
 	/** @} */
-	
+
 	bool contains(ArgType idx, ValType value) const;
 	bool contains(iAFunction<ArgType, ValType> const & func, ArgType argMin, ArgType argMax) const;
 private:

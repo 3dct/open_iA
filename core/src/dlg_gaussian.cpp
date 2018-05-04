@@ -62,12 +62,12 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 	double range = chart->XRange();
 	double startStep = range /100;
 	double step = startStep;
-	
+
 	double X1 = chart->XBounds()[0];
 	double X2 = X1;
 	double Y1 = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
 	double Y2 = Y1;
-	
+
 	double smallStep = std::max(6 * sigma / 100, 0.25*i2dX(1));
 	while (X2 <= chart->XBounds()[1]+step && step > std::numeric_limits<double>::epsilon())
 	{
@@ -83,14 +83,14 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 		y2 = d2iY(Y2);
 
 		painter.drawLine(x1, y1, x2, y2);
-		
+
 		X1 = X2;
-		
+
 		if (X2+startStep > mean-3*sigma && X1 < mean+3*sigma)
 			step = smallStep;
 		else
 			step = startStep;
-		
+
 		X2 = X1 +step;
 	}
 
@@ -106,19 +106,19 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 
 		pen.setColor(penColor);
 		pen.setWidth(1);
-		
+
 		painter.setPen(pen);
-		
+
 		int x, lx, rx, y;
 		double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*multiplier;
-		
+
 		x = d2iX(mean);
 		lx = d2iX(mean-sigma);
 		rx = d2iX(mean+sigma);
 		y = d2iY(meanValue);
 
 		painter.drawLine(lx, y, rx, y);
-		
+
 		// draw points
 		QColor redColor = QColor(255, 0, 0, 255);
 		painter.setBrush(QBrush(color));
@@ -126,7 +126,7 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 
 		int radius = iADiagramFctWidget::POINT_RADIUS;
 		int size = iADiagramFctWidget::POINT_SIZE;
-		
+
 		pen.setWidth(3);
 		pen.setColor(redColor);
 		painter.setPen(pen);
@@ -161,7 +161,7 @@ int dlg_gaussian::selectPoint(QMouseEvent *event, int*)
 	else if (lx >= viewXPoint-iADiagramFctWidget::POINT_RADIUS && lx <= viewXPoint+iADiagramFctWidget::POINT_RADIUS &&
 			ly >= viewYPoint-iADiagramFctWidget::POINT_RADIUS && ly <= viewYPoint+iADiagramFctWidget::POINT_RADIUS)
 		selectedPoint = 0;
-	
+
 	else
 		selectedPoint = -1;
 

@@ -92,7 +92,7 @@ iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent,
 	m_isArbProfEnabled = false;
 	m_pieGlyphsEnabled = false;
 
-	//fisheye lens activated 
+	//fisheye lens activated
 	fisheyeLensActivated = false;
 
 	if (decorations)
@@ -107,7 +107,7 @@ iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent,
 		m_arbProfile = new iAArbitraryProfileOnSlicer();
 		m_arbProfile->SetVisibility(false);
 	}
-	
+
 	m_layout = new QGridLayout();
 	m_layout->setContentsMargins(0,0,0,0);
 	m_layout->setSpacing(0);
@@ -141,7 +141,7 @@ void iASlicerWidget::initialize( vtkImageData *imageData, vtkPoints *points )
 	this->m_worldSnakePointsExternal = points;
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 	ren->GetActiveCamera()->SetParallelProjection(true);
-	
+
 	if (m_decorations)
 	{
 		m_snakeSpline->initialize(ren, imageData->GetSpacing()[0]);
@@ -179,7 +179,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 			m_slicerDataExternal->GetReslicer()->SetAutoCropOutput
 				( !m_slicerDataExternal->GetReslicer()->GetAutoCropOutput() );
 			ren->SetWorldPoint( pickedData.res[SlicerXInd( m_slicerMode )], pickedData.res[SlicerYInd( m_slicerMode )], 0, 1 );
-			
+
 			initializeFisheyeLens( m_slicerDataExternal->GetReslicer() );
 
 			updateFisheyeTransform( ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
@@ -195,14 +195,14 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 				ren->RemoveActor( circle1ActList.at( i ) );
 			//circle1List.clear();
 			circle1ActList.clear();
-			
+
 			for ( int i = 0; i < circle2ActList.length(); ++i )
 				ren->RemoveActor( circle2ActList.at( i ) );
 			circle2List.clear();
 			circle2ActList.clear(); //*/
 
 			ren->RemoveActor( fisheyeActor );
-		
+
 			// No fisheye transform
 			double bounds[6];
 			m_slicerDataExternal->GetReslicer()->GetInformationInput()->GetBounds( bounds );
@@ -216,7 +216,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 			p_source->SetPoint( 1, bounds[0], bounds[3], 0 ); //x_min, y_max, top left
 			p_source->SetPoint( 2, bounds[1], bounds[3], 0 ); //x_max, y_max, top right
 			p_source->SetPoint( 3, bounds[1], bounds[2], 0 ); //x_max, y_min, bottom right
-			
+
 			fisheyeTransform->SetSourceLandmarks( p_source );
 			fisheyeTransform->SetTargetLandmarks( p_target );
 			m_slicerDataExternal->GetReslicer()->SetResliceTransform( fisheyeTransform );
@@ -323,7 +323,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 
 		else
 			m_viewMode = NORMAL;
-		
+
 		switchMode(m_viewMode);
 
 		// let other slice views know that slice view m_viewMode changed
@@ -368,15 +368,15 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 	// only changed mouse press behaviour if m_viewMode is in drawing m_viewMode
 	// and left mouse button is pressed
 	if (m_decorations && m_viewMode == DEFINE_SPLINE && event->button() == Qt::LeftButton)
-	{	
+	{
 		const double x = result[SlicerXInd(m_slicerMode)];
 		const double y = result[SlicerYInd(m_slicerMode)];
-		
+
 		// if no point is found at picked position add a new one
 		if (m_snakeSpline->CalculateSelectedPoint(x,y) == -1)
 		{
 			m_snakeSpline->addPoint(x, y);
-			
+
 			// add the point to the world point list only once because it is a member of MdiChild
 			m_worldSnakePointsExternal->InsertNextPoint(result[0], result[1], result[2]);
 
@@ -407,22 +407,22 @@ void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 		ren->SetWorldPoint( pickedData.res[SlicerXInd( m_slicerMode )], pickedData.res[SlicerYInd( m_slicerMode )], 0, 1 );
 		updateFisheyeTransform( ren->GetWorldPoint(), m_slicerDataExternal , fisheyeRadius, innerFisheyeRadius);
 	}
-	
+
 	if (!event->modifiers().testFlag(Qt::ShiftModifier))
 	{
 		updateMagicLens();
 	}
-	
+
 	// only do something in spline drawing m_viewMode and if a point is selected
 	if (m_decorations && m_viewMode == DEFINE_SPLINE && m_snakeSpline->selectedPointIndex() != -1)
 	{
 		// Do a pick. It will return a non-zero value if we intersected the image.
 		vtkPointPicker* pointPicker = (vtkPointPicker*)this->GetInteractor()->GetPicker();
 
-		if (!pointPicker->Pick(GetInteractor()->GetEventPosition()[0], 
-			GetInteractor()->GetEventPosition()[1], 
+		if (!pointPicker->Pick(GetInteractor()->GetEventPosition()[0],
+			GetInteractor()->GetEventPosition()[1],
 			0,  // always zero.
-			GetRenderWindow()->GetRenderers()->GetFirstRenderer())) 
+			GetRenderWindow()->GetRenderers()->GetFirstRenderer()))
 		{
 			return;
 		}
@@ -435,13 +435,13 @@ void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 
 		double pos[3];
 		int indxs[3] = {SlicerXInd(m_slicerMode), SlicerYInd(m_slicerMode), SlicerZInd(m_slicerMode)};
-		
+
 		for(int i=0; i<2; ++i)				//2d: x, y
 			pos[indxs[i]] = ptMapped[i];
 		pos[indxs[2]] = point[indxs[2]];	//z
 
 		movePoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
-		
+
 		// update world point list only once because it is a member of MdiChild
 		m_worldSnakePointsExternal->SetPoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
 
@@ -449,7 +449,7 @@ void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 		emit movedPoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
 	}
 
-	if(m_isSliceProfEnabled 
+	if(m_isSliceProfEnabled
 		&& (event->modifiers() == Qt::NoModifier) )//if profile m_viewMode is enabled do all the necessary operations
 	{
 		if( event->buttons()&Qt::LeftButton)
@@ -505,7 +505,7 @@ void iASlicerWidget::mouseReleaseEvent(QMouseEvent *event)
 		QVTKWidget2::mouseReleaseEvent(event);
 		return;
 	}
-	
+
 	if (m_decorations)
 	{
 		// deselect points
@@ -557,7 +557,7 @@ void iASlicerWidget::switchMode(int mode)
 	case DEFINE_SPLINE: // define spline
 		m_snakeSpline->SetVisibility(true);
 		break;
-	case SHOW: // show 
+	case SHOW: // show
 		m_snakeSpline->SetVisibility(false);
 		break;
 	}
@@ -586,7 +586,7 @@ void iASlicerWidget::addPoint(double xPos, double yPos, double zPos)
 
 
 void iASlicerWidget::setSliceProfile(double Pos[3])
-{		
+{
 	vtkImageData * reslicedImgData = m_slicerDataExternal->GetReslicer()->GetOutput();
 	double PosY = Pos[SlicerYInd(m_slicerMode)];
 	if(!m_sliceProfile->setup(PosY, reslicedImgData))
@@ -684,7 +684,7 @@ int iASlicerWidget::pickPoint( double *pos_out, double *result_out, int * ind_ou
 }
 
 
-int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_out, 
+int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_out,
 	double *result_out,
 	int &xInd_out, int &yInd_out, int &zInd_out)
 {
@@ -693,7 +693,7 @@ int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_o
 
 	int * eventPos = GetInteractor()->GetEventPosition();
 	if (!pointPicker->Pick(eventPos[0], eventPos[1], 0,  // Z is always zero.
-		GetRenderWindow()->GetRenderers()->GetFirstRenderer())) 
+		GetRenderWindow()->GetRenderers()->GetFirstRenderer()))
 	{
 		return 0;
 	}
@@ -796,7 +796,7 @@ void iASlicerWidget::wheelEvent(QWheelEvent* event)
 		emit altMouseWheel(event->angleDelta().x() / 120);
 	}
 	else
-	{		
+	{
 		QVTKWidget2::wheelEvent(event);
 		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 	}
@@ -965,7 +965,7 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 
 	double * spacing = reslicedImgData->GetSpacing();
 	double * origin = reslicedImgData->GetOrigin();
-	
+
 	double bounds[6];
 	m_slicerDataExternal->GetReslicer()->GetInformationInput()->GetBounds( bounds );
 
@@ -1011,10 +1011,10 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 			break;
 		default:
 			break;
-	} 
+	}
 
 	for ( int i = 0; i < p_target->GetNumberOfPoints()- (p_target->GetNumberOfPoints()-8); ++i )
-		p_source->SetPoint( i, p_target->GetPoint( i ) ); 
+		p_source->SetPoint( i, p_target->GetPoint( i ) );
 
 	int fixPoints = 8;
 	// outer circle 1
@@ -1049,7 +1049,7 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 	{
 			fixRadiusX = (lensRadius + 80.0)* std::cos(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
 			fixRadiusY = (lensRadius + 80.0)* std::sin(fix * (360 / fixPoints) * vtkMath::Pi() / 180) * spacing[0];
-		
+
 		switch (mode)
 		{
 		case iASlicerMode::YZ:
@@ -1110,7 +1110,7 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 			circle1List.at( i )->SetCenter( p_target->GetPoint( i )[0], p_target->GetPoint( i )[1], 0.0);
 			circle2List.at( i )->SetCenter( p_source->GetPoint( i )[0], p_source->GetPoint( i )[1], 0.0);
 		}
-			
+
 		if ( mode == iASlicerMode::XZ )
 		{
 			circle1List.at( i )->SetCenter( p_target->GetPoint( i )[0], p_target->GetPoint( i )[2], 0.0 );
@@ -1123,10 +1123,10 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 
 	fisheyeTransform->SetSourceLandmarks(p_source); // red
 	fisheyeTransform->SetTargetLandmarks(p_target);  // green
-	
+
 	slicerData->GetReslicer()->SetResliceTransform( fisheyeTransform );
 	slicerData->GetReslicer()->Update();
-	slicerData->update(); 
+	slicerData->update();
 }
 
 void iASlicerWidget::updateMagicLens()
@@ -1179,11 +1179,11 @@ void iASlicerWidget::updateMagicLens()
 		ren->SetDisplayPoint(dpos);
 		ren->DisplayToWorld();
 	}
-	
+
 	GetRenderWindow()->Render();
 	Frame();
 	m_magicLensExternal->UpdateCamera(ren->GetWorldPoint(), ren->GetActiveCamera());
-	
+
 	QRect rect = QRect(pos2d[0]-lensSzHalf, pos2d[1]-lensSzHalf, lensSz, lensSz);
 	m_magicLensExternal->SetGeometry(rect);
 	m_magicLensExternal->Render();
@@ -1203,19 +1203,19 @@ void iASlicerWidget::computeGlyphs()
 
 	if(!m_pieGlyphsEnabled)
 	{
-		if(hasPieGlyphs) 
+		if(hasPieGlyphs)
 			GetRenderWindow()->GetInteractor()->Render();
 		return;
 	}
-	
+
 	QVector<double> angleOffsets;
-	
+
 	for (int chan = 0; chan < m_slicerDataExternal->GetEnabledChannels(); ++chan)
 	{
 		iAChannelSlicerData * chSlicerData = m_slicerDataExternal->GetChannel(static_cast<iAChannelID>(ch_Concentration0 + chan));
 		if (!chSlicerData || !chSlicerData->isInitialized())
 			continue;
-	
+
 		vtkSmartPointer<vtkImageResample> resampler = vtkSmartPointer<vtkImageResample>::New();
 		resampler->SetInputConnection( chSlicerData->reslicer->GetOutputPort() );
 		resampler->InterpolateOn();
@@ -1223,13 +1223,13 @@ void iASlicerWidget::computeGlyphs()
 		resampler->SetAxisMagnificationFactor(1, m_pieGlyphMagFactor);
 		resampler->SetAxisMagnificationFactor(2, m_pieGlyphMagFactor);
 		resampler->Update();
-	
+
 		vtkImageData * imgData = resampler->GetOutput();
-	
+
 		int dims[3];
 		imgData->GetDimensions(dims);
 		QString scalarTypeStr( imgData->GetScalarTypeAsString() );
-	
+
 		double o[3], s[3];
 		imgData->GetOrigin(o); imgData->GetSpacing(s);
 
@@ -1272,7 +1272,7 @@ void iASlicerWidget::computeGlyphs()
 
 void iASlicerWidget::setPieGlyphParameters( double opacity, double spacing, double magFactor )
 {
-	m_pieGlyphOpacity = opacity; 
+	m_pieGlyphOpacity = opacity;
 	m_pieGlyphSpacing = spacing;
 	m_pieGlyphMagFactor	= magFactor;
 

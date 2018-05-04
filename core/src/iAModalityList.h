@@ -27,7 +27,7 @@
 
 class iAModality;
 class iAProgress;
-class iAVolumeSettings; 
+class iAVolumeSettings;
 
 class vtkCamera;
 
@@ -59,7 +59,7 @@ private:
 
 	void checkandSetVolumeSettings(iAVolumeSettings &volSettings, const QString &Shading, const QString &LinearInterpolation,
 		const QString &SampleDistance, const QString AmbientLighting, const QString& DiffuseLighting, const QString &SpecularLighting,
-		const QString &SpecularPower); 
+		const QString &SpecularPower);
 
 	ModalityCollection m_modalities;
 	QString m_fileName;

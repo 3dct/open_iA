@@ -41,7 +41,7 @@ enum iAChannelID
 
 	ch_fixed,
 	ch_moving,
-	
+
 	ch_Microscopy1,
 	ch_Microscopy2,
 	ch_Microscopy3,

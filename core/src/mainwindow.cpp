@@ -217,22 +217,22 @@ void MainWindow::OpenCSV()
 {   /* code to load CSV-data*/
 	/*IAOCSV FReader(); */
 	//typedef iAQTtoUIConnector<QDialog, Ui_CsvInput>   dlg_csvInput;
-	/*csvConfig::configPararams fileConfParams; 
+	/*csvConfig::configPararams fileConfParams;
 
 	dlg_CSVInput dlg;
 	if (dlg.exec() != QDialog::Accepted) {
-	
-		return; 
+
+		return;
 	}
 
-	dlg.getConfigParameters(fileConfParams); 
+	dlg.getConfigParameters(fileConfParams);
 
 
 	iACsvIO io;
 	if (!io.loadCSVCustom(fileConfParams)) {
-		return; 
+		return;
 	}*/
-	
+
 
 }
 
@@ -1197,7 +1197,7 @@ void MainWindow::renderSettings()
 	QStringList renderTypes;
 	for (int mode : RenderModeMap().keys())
 		renderTypes << ((mode == currentRenderMode) ? QString("!") : QString()) + RenderModeMap().value(mode);
-	
+
 	QStringList inList;
 	inList
 		<< tr("$Show slicers")
@@ -1240,7 +1240,7 @@ void MainWindow::renderSettings()
 		defaultRenderSettings.ShowSlicers = dlg.getCheckValue(0) != 0;
 		defaultRenderSettings.ShowHelpers = dlg.getCheckValue(1) != 0;
 		defaultRenderSettings.ShowRPosition = dlg.getCheckValue(2) != 0;
-		
+
 		defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(3) != 0;
 		defaultVolumeSettings.Shading = dlg.getCheckValue(4) != 0;
 		defaultRenderSettings.ParallelProjection = dlg.getCheckValue(5) != 0;
@@ -1267,7 +1267,7 @@ void MainWindow::renderSettings()
 void MainWindow::slicerSettings()
 {
 	MdiChild *child = activeMdiChild();
-	
+
 	const QStringList mouseCursorModes = QStringList()\
 		<< "Crosshair default" \
 		<< "Crosshair thick red"	<< "Crosshair thin red" \
@@ -1275,7 +1275,7 @@ void MainWindow::slicerSettings()
 		<< "Crosshair thick yellow"	<< "Crosshair thin yellow" \
 		<< "Crosshair thick blue"	<< "Crosshair thin blue" \
 		<< "Crosshair thick cyan"	<< "Crosshair thin cyan";
-	
+
 	QStringList inList = (QStringList() << tr("$Link Views")
 		<< tr("$Show Position")
 		<< tr("$Show Isolines")
@@ -1290,12 +1290,12 @@ void MainWindow::slicerSettings()
 		<< tr("#Tooltip Font Size (pt)")
 		<< tr("$Show Tooltip")
 		);
-	
+
 	iASlicerSettings const & slicerSettings = child->GetSlicerSettings();
 	QStringList mouseCursorTypes;
 	foreach( QString mode, mouseCursorModes )
 		mouseCursorTypes << ( ( mode == slicerSettings.SingleSlicer.CursorMode ) ? QString( "!" ) : QString() ) + mode;
-	
+
 	QList<QVariant> inPara; 	inPara  << (slicerSettings.LinkViews ? tr("true") : tr("false"))
 		<< (slicerSettings.SingleSlicer.ShowPosition ? tr("true") : tr("false"))
 		<< (slicerSettings.SingleSlicer.ShowIsoLines ? tr("true") : tr("false"))
@@ -1588,7 +1588,7 @@ void MainWindow::wiki()
 	else if(act->text().contains("Filters"))
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Filters"));
 	else if (act->text().contains("Tools"))
-		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Tools"));	
+		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Tools"));
 	else if (act->text().contains("releases"))
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/releases"));
 	else if (act->text().contains("bug"))
@@ -1806,7 +1806,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionShowToolbar, SIGNAL(triggered()), this, SLOT(ToggleToolbar()));
 	connect(action_MainWindowStatusBar, SIGNAL(triggered()), this, SLOT(ToggleMainWindowStatusBar()));
 	connect(action_ChildStatusBar, SIGNAL(triggered()), this, SLOT(ToggleChildStatusBar()));
-	
+
 	connect(mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(childActivatedSlot(QMdiSubWindow*)));
 	for (int i = 0; i < MaxRecentFiles; ++i) {
 		connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(OpenRecentFile()));

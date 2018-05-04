@@ -124,7 +124,7 @@ protected:
 	void createAndFillVBO();												//!< Creates and fills VBO with plot's 2D-points.
 	void fillVBO();															//!< Fill existing VBO with plot's 2D-points.
 
-	
+
 
 signals:
 	void selectionModified();												//!< Emitted when selected points changed

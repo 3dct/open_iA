@@ -23,7 +23,7 @@
 #include <QTableWidget>
 
 //! Class for storing data shown in scatter plot matrix (SPLOM).
-/*! 
+/*!
 	Stores data points, parameter names as well as number of data points and parameters.
 */
 class iASPLOMData

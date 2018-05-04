@@ -34,7 +34,7 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 {
 	edName->setText(modality->GetName());
 	edFilename->setText(modality->GetFileName());
-	
+
 	if (modality->ComponentCount() > 1)
 	{
 		lbChannel->setText("Components");
@@ -44,7 +44,7 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	{
 		edChannel->setText(QString("%1").arg(modality->GetChannel()));
 	}
-	
+
 	cbMagicLens->setChecked(modality->hasRenderFlag(iAModality::MagicLens));
 	cbBoundingBox->setChecked(modality->hasRenderFlag(iAModality::BoundingBox));
 
@@ -74,7 +74,7 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	ed_SpecularLighting->setText(QString::number(m_modality->GetRenderer()->getVolumeSettings().SpecularLighting));
 	ed_SpecularPower->setText(QString::number(m_modality->GetRenderer()->getVolumeSettings().SpecularPower));
 	cb_RenderMode->setCurrentText(RenderModeMap().value(m_modality->GetRenderer()->getVolumeSettings().Mode));
-	
+
 	connect(pbOK, SIGNAL(clicked()), this, SLOT(OKButtonClicked()));
 	connect(pbCancel, SIGNAL(clicked()), this, SLOT(reject()));
 }
@@ -83,7 +83,7 @@ double getValueAndCheck(QLineEdit * le, QString const & caption, QStringList & n
 {
 	bool isOK;
 	double returnVal = le->text().toDouble(&isOK);
-	if (!isOK) 
+	if (!isOK)
 		notOKList.append(caption);
 	return returnVal;
 }
@@ -93,7 +93,7 @@ void dlg_modalityProperties::OKButtonClicked()
 	m_modality->SetName(edName->text());
 	m_modality->SetRenderFlag(
 		(cbMagicLens->isChecked() ? iAModality::MagicLens : 0) |
-		iAModality::MainRenderer |  
+		iAModality::MainRenderer |
 		(cbBoundingBox->isChecked() ? iAModality::BoundingBox : 0)
 	);
 	double orientation[3];
@@ -114,7 +114,7 @@ void dlg_modalityProperties::OKButtonClicked()
 	origin[1]      = getValueAndCheck(edOriginY     , "Origin Y"     , notOKValues);
 	origin[2]      = getValueAndCheck(edOriginZ     , "Origin Z"     , notOKValues);
 
-	m_DefaultVolumeSettings.LinearInterpolation = cb_LinearInterpolation->isChecked(); 
+	m_DefaultVolumeSettings.LinearInterpolation = cb_LinearInterpolation->isChecked();
 	m_DefaultVolumeSettings.Shading = cb_Shading->isChecked();
 	m_DefaultVolumeSettings.SampleDistance = getValueAndCheck(ed_SampleDistance, "Sample Distance", notOKValues);
 	m_DefaultVolumeSettings.AmbientLighting = getValueAndCheck(ed_AmbientLighting, "AmbientLighting", notOKValues);
@@ -123,7 +123,7 @@ void dlg_modalityProperties::OKButtonClicked()
 	m_DefaultVolumeSettings.SpecularPower = getValueAndCheck(ed_SpecularPower, "SpecularPower", notOKValues);
 	m_DefaultVolumeSettings.Mode = MapRenderModeToEnum(cb_RenderMode->currentText());
 
-	if (notOKValues.size() > 0) 
+	if (notOKValues.size() > 0)
 	{
 		lbError->setText(QString("One or mor values are not valid: %1").arg(notOKValues.join(",")));
 		return;

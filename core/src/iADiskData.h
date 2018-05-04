@@ -26,7 +26,7 @@ class vtkActor;
 
 #include <vtkSmartPointer.h>
 
-struct iADiskData 
+struct iADiskData
 {
 	iADiskData();
 	vtkSmartPointer<vtkDiskSource> source;

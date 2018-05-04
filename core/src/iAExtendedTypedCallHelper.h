@@ -34,7 +34,7 @@
 //   }
 //
 // instead of writing (won't compile):
-//   foo<type>(arg1, arg2);                  
+//   foo<type>(arg1, arg2);
 // write this:
 //   xxx_TYPED_CALL(foo, type, arg1, arg2);
 //

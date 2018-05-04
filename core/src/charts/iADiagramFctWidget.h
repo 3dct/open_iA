@@ -48,12 +48,12 @@ class open_iA_Core_API iADiagramFctWidget : public iAChartWidget
 
 public:
 	enum AdditionalMode { MOVE_NEW_POINT_MODE=Y_ZOOM_MODE+1, MOVE_POINT_MODE};
-	
+
 	static const int SELECTED_POINT_RADIUS = 10;
 	static const int SELECTED_POINT_SIZE = 2*SELECTED_POINT_RADIUS;
 	static const int POINT_RADIUS = 4;
 	static const int POINT_SIZE = 2*POINT_RADIUS;
-	
+
 	static const int SELECTED_PIE_RADIUS = 16;
 	static const int SELECTED_PIE_SIZE = 2 * SELECTED_PIE_RADIUS;
 	static const int PIE_RADIUS = 16;
@@ -83,7 +83,7 @@ public:
 
 protected:
 	void mousePressEvent(QMouseEvent *event);
-	void mouseReleaseEvent(QMouseEvent *event); 
+	void mouseReleaseEvent(QMouseEvent *event);
 	void mouseMoveEvent(QMouseEvent *event);
 	void mouseDoubleClickEvent(QMouseEvent *event);
 	void enterEvent(QEvent *event);

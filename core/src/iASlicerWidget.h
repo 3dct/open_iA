@@ -47,13 +47,13 @@ class open_iA_Core_API iASlicerWidget : public QVTKWidget2
 {
 	Q_OBJECT
 public:
-	enum viewModeEnum{ 
+	enum viewModeEnum{
 		NORMAL = 0,
 		DEFINE_SPLINE = 1,
 		SHOW = 2
 	};
 
-protected:	
+protected:
 	iAMagicLens					* m_magicLensExternal;
 	QMenu						* m_magicLensContextMenu;
 	//QImage img;
@@ -66,11 +66,11 @@ protected:
 	bool						m_isArbProfEnabled;				//if arbitrary profile mode is enabled
 	bool						m_pieGlyphsEnabled;				//if slice pie glyphs for xrf are enabled
 	iASlicerMode				m_slicerMode;					// which slice viewer
-	int							m_xInd, m_yInd, m_zInd;		
+	int							m_xInd, m_yInd, m_zInd;
 
 	vtkImageData				* m_imageData;
 	iASnakeSpline				* m_snakeSpline;
-	vtkPoints					* m_worldSnakePointsExternal;	
+	vtkPoints					* m_worldSnakePointsExternal;
 	iASlicerProfile				* m_sliceProfile;				//necessary vtk classes for the slice profile
 	iAArbitraryProfileOnSlicer	* m_arbProfile;
 	iASlicerData				* m_slicerDataExternal;
@@ -79,10 +79,10 @@ protected:
 	double										m_pieGlyphMagFactor;
 	double										m_pieGlyphSpacing;
 	double										m_pieGlyphOpacity;
-	
+
 	static const int			RADIUS = 5;
 	QGridLayout * m_layout;
-	
+
 public:
 	iASlicerWidget(iASlicer const * slicerMaster, QWidget * parent = NULL, const QGLWidget * shareWidget=0, Qt::WindowFlags f = 0, bool decorations = true);
 	~iASlicerWidget();
@@ -101,10 +101,10 @@ public:
 protected:
 	void	updateProfile();
 	int		pickPoint( double * pos_out, double * result_out, int * ind_out);
-	int		pickPoint( double & xPos_out, double & yPos_out, double & zPos_out, 
+	int		pickPoint( double & xPos_out, double & yPos_out, double & zPos_out,
 					   double * result_out,
 					   int & xInd_out, int &yInd_out, int &zInd_out);
-	
+
 protected:			//overloaded events of QWidget
 	virtual void keyPressEvent ( QKeyEvent * event );
 	virtual void mousePressEvent ( QMouseEvent * event );
@@ -133,10 +133,10 @@ public slots:
 
 	/** Moves a point to a new position. */
 	void movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
-	
+
 	/** Function to deselect points necessary to avoid endless loops with signals and slots. */
 	void deselectPoint();
-	
+
 	/**
 	* \brief Function to switch slice view modi and to change visibility of spline snakeDisks.
 	*
@@ -149,7 +149,7 @@ public slots:
 
 	/** Adds a new spline point to the end of the spline curve. */
 	void addPoint(double x, double y, double z);
-	
+
 	/** Deletes the current spline curve. */
 	void deleteSnakeLine();
 

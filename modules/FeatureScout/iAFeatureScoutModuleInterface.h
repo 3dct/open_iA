@@ -41,9 +41,9 @@ public:
 	void Initialize();
 	void hideFeatureScoutToolbar();
 private slots:
-	
-	void FeatureScoutWithCSV(); 
-	
+
+	void FeatureScoutWithCSV();
+
 	void FeatureScout();
 	void FeatureScout_Options();
 	void onChildClose();

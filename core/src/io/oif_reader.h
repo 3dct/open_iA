@@ -101,7 +101,7 @@ protected:
 	bool m_batch;
 	std::vector<std::wstring> m_batch_list;
 	int m_cur_batch;
-	
+
 	std::wstring m_path_name;
 public:
 	typedef itk::Image<unsigned short, 2> TiffImgType;

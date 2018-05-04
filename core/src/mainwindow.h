@@ -204,7 +204,7 @@ private:
 	QActionGroup *slicerToolsGroup;
 	QSignalMapper *windowMapper;
 	QString qssName;
-	iAVolumeSettings defaultVolumeSettings;	
+	iAVolumeSettings defaultVolumeSettings;
 	iARenderSettings defaultRenderSettings;
 	iASlicerSettings defaultSlicerSettings;
 	iAPreferences defaultPreferences;

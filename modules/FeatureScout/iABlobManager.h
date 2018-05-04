@@ -56,7 +56,7 @@ public:
 
 	// Description:
 	// Add blob to manager. You need control that all blob have same data type
-	// (extent, dimension) 
+	// (extent, dimension)
 	void					AddBlob (iABlobCluster* blob);
 
 	// Description:

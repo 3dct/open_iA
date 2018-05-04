@@ -67,7 +67,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	connect(pbEdit,   SIGNAL(clicked()), this, SLOT(EditClicked()));
 	connect(cbManualRegistration, SIGNAL(clicked()), this, SLOT(ManualRegistration()));
 	connect(cbShowMagicLens, SIGNAL(clicked()), this, SLOT(MagicLens()));
-	
+
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
 		this, SLOT(ListClicked(QListWidgetItem*)));
 

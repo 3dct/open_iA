@@ -558,7 +558,7 @@ void OIFReader::ReadOifLine(std::wstring oneline)
 			   WavelengthInfo info;
 			   info.chan_num = cur_chan;
 			   info.wavelength = WSTOD(str2);
-				if (light_type == L"Transmitted Light") 
+				if (light_type == L"Transmitted Light")
 					info.wavelength = -1;
 			   m_excitation_wavelength_list.push_back(info);
 			}

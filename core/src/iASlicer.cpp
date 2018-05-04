@@ -84,7 +84,7 @@ void iASlicer::ConnectToMdiChildSlots()
 		return;//TODO: exceptions?
 	// enable linked view (similarity rendering for metadata visualization
 	connect( m_data, SIGNAL( oslicerPos(int, int, int, int) ),	mdi_parent,	SLOT( updateRenderers(int, int, int, int) ) );
-	
+
 	connect( m_data, SIGNAL(msg(QString)),  mdi_parent, SLOT(addMsg(QString)));
 	connect( m_data, SIGNAL(progress(int)), mdi_parent, SLOT(updateProgressBar(int))) ;
 }

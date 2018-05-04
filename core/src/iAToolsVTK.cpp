@@ -187,6 +187,6 @@ int MapRenderModeToEnum(QString const & modeName)
 	for (int key : RenderModeMap().keys())
 		if (RenderModeMap()[key] == modeName)
 			return key;
-	
+
 	return vtkSmartVolumeMapper::DefaultRenderMode;
 }

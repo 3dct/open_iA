@@ -62,7 +62,7 @@ Q_SIGNALS:
 
 protected:
 	void run() override;
-	
+
 private:
 	bool setupRAWReader( QString f );
 	bool setupPARSReader( QString f );
@@ -100,7 +100,7 @@ private:
 
 	QWidget *parent;
 	QString fileName;
-	QDir f_dir; 
+	QDir f_dir;
 
 	QString extension;
 	QString prefix;
@@ -113,7 +113,7 @@ private:
 	double spacing[3];
 	double origin[3];
 	bool compression;
-	
+
 	int rawSizeX,rawSizeY, rawSizeZ;
 	double rawSpaceX, rawSpaceY, rawSpaceZ;
 	double rawOriginX,rawOriginY, rawOriginZ;

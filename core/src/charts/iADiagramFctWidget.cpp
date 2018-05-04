@@ -95,7 +95,7 @@ void iADiagramFctWidget::drawFunctions(QPainter &painter)
 	while (it != functions.end())
 	{
 		dlg_function *func = (*it);
-		
+
 		if (counter == selectedFunction)
 		{
 			func->draw(painter, QColor(255,128,0,255), 2);
@@ -117,7 +117,7 @@ void iADiagramFctWidget::drawFunctions(QPainter &painter)
 	}
 }
 
-void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)  
+void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 {
 	switch(event->button())
 	{
@@ -163,7 +163,7 @@ void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 	}
 }
 
-void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)  
+void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (!m_showFunctions)
 	{
@@ -185,7 +185,7 @@ void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 	func->mouseReleaseEvent(event);
 }
 
-void iADiagramFctWidget::mouseDoubleClickEvent(QMouseEvent *event)  
+void iADiagramFctWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton)
 	{
@@ -311,7 +311,7 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 				if (y < 0) y = 0;
 				selectedPoint = func->addPoint(x, y);
 				func->addColorPoint(x);
-				
+
 				mode = MOVE_NEW_POINT_MODE;
 			}
 			else
@@ -477,7 +477,7 @@ bool iADiagramFctWidget::loadFunctions()
 		QDomNode functionsNode = root.namedItem("functions");
 		if (functionsNode.isElement())
 				mw->loadProbabilityFunctions(functionsNode);
-		
+
 		emit noPointSelected();
 		emit updateViews();
 		redraw();

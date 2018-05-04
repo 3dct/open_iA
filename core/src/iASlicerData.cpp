@@ -157,7 +157,7 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
 	// Turned off, because of gray strokes e.g., on scalarBarActors. Only on NVIDIA graphic cards
-	renWin->PolygonSmoothingOff();	
+	renWin->PolygonSmoothingOff();
 	interactorStyle = iAInteractorStyleImage::New();
 	m_camera = vtkCamera::New();
 
@@ -189,7 +189,7 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		pDiskSource = vtkSmartPointer<vtkDiskSource>::New();
 		pDiskMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		pDiskActor = vtkSmartPointer<vtkActor>::New();
-		
+
 		roiSource = vtkSmartPointer<vtkPlaneSource>::New();
 		roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		roiActor = vtkSmartPointer<vtkActor>::New();
@@ -199,9 +199,9 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 			axisTransform[i] = vtkSmartPointer<vtkTransform>::New();
 			axisTextActor[i] = vtkSmartPointer<vtkTextActor3D>::New();
 		}
-		
+
 		textInfo = iAWrapperText::New();
-		
+
 		rulerWidget = iARulerWidget::New();
 	}
 	transform = vtkTransform::New();
@@ -218,13 +218,13 @@ iASlicerData::~iASlicerData(void)
 	reslicer->ReleaseDataFlagOn();
 	reslicer->Delete();
 	interactorStyle->Delete();
-	
+
 	pointPicker->Delete();
 
 	//scaleActor->Delete();
 	if (m_decorations)
 	{
-		textInfo->Delete();	
+		textInfo->Delete();
 
 		cFilter->Delete();
 		cMapper->Delete();
@@ -280,7 +280,7 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 	interactor->AddObserver(vtkCommand::MouseWheelForwardEvent, redirect);
 
 	InitReslicerWithImageData();
-	
+
 	UpdateResliceAxesDirectionCosines();
 	UpdateBackground();
 	pointPicker->SetTolerance(imageData->GetSpacing()[0]/3);
@@ -372,7 +372,7 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		roiSource->SetCenter( 0, 0, 1 );
 		roiMapper->Update( );
 		roiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
-		
+
 		reslicer->Update();
 		double const * const imgSpc = imageData->GetSpacing();
 		double unitSpacing = std::max(std::max(imgSpc[0], imgSpc[1]), imgSpc[2]);
@@ -404,14 +404,14 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		axisTextActor[1]->SetPosition(-20.0, yHalf * 10 / unitSpacing, 0);
 		axisTextActor[1]->GetTextProperty()->SetVerticalJustificationToCentered();
 		axisTextActor[1]->GetTextProperty()->SetJustificationToRight();
-		
+
 		rulerWidget->SetInteractor(interactor);
 		rulerWidget->SetEnabled( true );
 		rulerWidget->SetRepositionable( true );
 		rulerWidget->SetResizable( true );
 		rulerWidget->GetScalarBarRepresentation()->GetPositionCoordinate()->SetValue(0.333,0.05);
 		rulerWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.333,0.051);
-		
+
 		ren->AddActor(m_positionMarkerActor);
 		ren->AddActor(cActor);
 		ren->AddActor(pLineActor);
@@ -419,7 +419,7 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		ren->AddActor(roiActor);
 	}
 
-	
+
 
 	colormapper->SetInputConnection(reslicer->GetOutputPort());
 	setupColorMapper();
@@ -451,16 +451,16 @@ void iASlicerData::RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 	ren->RemoveActor(imgActor);
 }
 
-void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, 
+void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	double opacity, double * range)
-{ 
-	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New(); 
-	lut->SetRange( range ); 
+{
+	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+	lut->SetRange( range );
 	lut->SetHueRange(0, 1);
 	lut->SetSaturationRange(0, 1);
 	lut->SetValueRange( 0, 1 );
 	lut->Build();
-	
+
 	vtkSmartPointer<vtkImageBlend> imgBlender = vtkSmartPointer<vtkImageBlend>::New();
 	imgBlender->SetOpacity( 0, opacity );
 	imgBlender->SetOpacity( 1, 1.0-opacity );
@@ -469,13 +469,13 @@ void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	imgBlender->UpdateInformation();
 	imgBlender->Update();
 
-	reslicer->SetInputConnection(imgBlender->GetOutputPort());	
+	reslicer->SetInputConnection(imgBlender->GetOutputPort());
 	pointPicker->SetTolerance(PickTolerance);
 
 	this->imageData = imgBlender->GetOutput();
 	this->imageData->Modified();
 
-	imgBlender->ReleaseDataFlagOn(); 
+	imgBlender->ReleaseDataFlagOn();
 
 	InitReslicerWithImageData();
 	update();
@@ -602,7 +602,7 @@ void iASlicerData::setResliceAxesOrigin( double x, double y, double z )
 	{
 		reslicer->SetResliceAxesOrigin( x, y, z );
 		UpdateReslicer();
-		interactor->Render(); 
+		interactor->Render();
 	}
 }
 
@@ -611,7 +611,7 @@ void iASlicerData::update()
 {
 	if( !imageData )
 		return;
-	
+
 	colormapper->Update();
 	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
 		ch->updateMapper();
@@ -654,17 +654,17 @@ void iASlicerData::enableInteractor()
 }
 
 
-void iASlicerData::showIsolines(bool s) 
+void iASlicerData::showIsolines(bool s)
 {
 	if (!m_decorations)
 	{
 		return;
 	}
-	cActor->SetVisibility(s); 
+	cActor->SetVisibility(s);
 }
 
 
-void iASlicerData::showPosition(bool s) 
+void iASlicerData::showPosition(bool s)
 {
 	if (!m_decorations)
 	{
@@ -675,7 +675,7 @@ void iASlicerData::showPosition(bool s)
 
 
 void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
-{ 
+{
 	QString movie_file_types = GetAvailableMovieFormats();
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
@@ -720,16 +720,16 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	reslicer->GetResliceAxesOrigin(oldResliceAxesOrigin);
 
 	if (m_mode == iASlicerMode::YZ)      // YZ
-	{					
+	{
 		for ( i = extent[0]; i < extent[1]; i++ )
 		{
-			reslicer->SetResliceAxesOrigin( i * spacing[0], 0, 0 ); 
+			reslicer->SetResliceAxesOrigin( i * spacing[0], 0, 0 );
 			update();
 			w2if->Modified();
 
 			movieWriter->Write();
-			if (movieWriter->GetError()) { 
-				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode())); 
+			if (movieWriter->GetError()) {
+				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 				break;
 			}
 			emit progress( 100 * (i+1) / (extent[1]-extent[0]));
@@ -739,27 +739,27 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	{
 		for ( i = extent[4]; i < extent[5]; i++ )
 		{
-			reslicer->SetResliceAxesOrigin( 0, 0, i * spacing[2] ); 
+			reslicer->SetResliceAxesOrigin( 0, 0, i * spacing[2] );
 			update();
 			w2if->Modified();
 			movieWriter->Write();
-			if (movieWriter->GetError()) { 
-				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode())); 
+			if (movieWriter->GetError()) {
+				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 				break;
 			}
 			emit progress( 100 * (i+1) / (extent[5]-extent[4]));
 		}
 	}
 	else if (m_mode == iASlicerMode::XZ)  // XZ
-	{			
+	{
 		for ( i = extent[2]; i < extent[3]; i++ )
 		{
-			reslicer->SetResliceAxesOrigin( 0, i * spacing[1], 0 ); 
+			reslicer->SetResliceAxesOrigin( 0, i * spacing[1], 0 );
 			update();
 			w2if->Modified();
 			movieWriter->Write();
-			if (movieWriter->GetError()) { 
-				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode())); 
+			if (movieWriter->GetError()) {
+				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 				break;
 			}
 			emit progress( 100 * (i+1) / (extent[3]-extent[2]));
@@ -768,7 +768,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 
 	reslicer->SetResliceAxesOrigin(oldResliceAxesOrigin);
 	update();
-	movieWriter->End(); 
+	movieWriter->End();
 	movieWriter->ReleaseDataFlagOn();
 	w2if->ReleaseDataFlagOn();
 
@@ -1010,7 +1010,7 @@ void iASlicerData::UpdateResliceAxesDirectionCosines()
 	switch(m_mode)
 	{
 	case iASlicerMode::YZ:
-		reslicer->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);  //yz 
+		reslicer->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);  //yz
 		break;
 	case iASlicerMode::XY:
 		reslicer->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);  //xy
@@ -1217,7 +1217,7 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	double const * const slicerBounds = reslicerOutput->GetBounds();
 
 	// We have to manually set the physical z-coordinate which requires us to get the volume spacing.
-	m_ptMapped[2] = 0; 
+	m_ptMapped[2] = 0;
 
 	int cX = static_cast<int>(floor((m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0]));
 	int cY = static_cast<int>(floor((m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1]));
@@ -1310,10 +1310,10 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 
 	// if requested calculate distance and show actor
 	if (pLineActor->GetVisibility()) {
-		double distance = sqrt(	pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) + 
+		double distance = sqrt(	pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) +
 			pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2) );
 		// ORIENTATION / ROTATION FIX: pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1]);
-		pLineSource->SetPoint2(m_ptMapped[0]-(0.5*slicerSpacing[0]), m_ptMapped[1] - (0.5*slicerSpacing[1]), 0.0);	
+		pLineSource->SetPoint2(m_ptMapped[0]-(0.5*slicerSpacing[0]), m_ptMapped[1] - (0.5*slicerSpacing[1]), 0.0);
 		pDiskSource->SetOuterRadius(distance);
 		pDiskSource->SetInnerRadius(distance);
 		strDetails += QString("distance [ %1 ]\n").arg(distance);
@@ -1359,7 +1359,7 @@ void iASlicerData::executeKeyPressEvent()
 		if (m_decorations && pLineActor != NULL){
 			pLineActor->SetVisibility(false);
 			pDiskActor->SetVisibility(false);
-		}		
+		}
 		break;
 	}
 }
@@ -1402,7 +1402,7 @@ void iASlicerData::snapToHighGradient(double &x, double &y)
 
 	double H_maxGradMag = 0;
 	double H_maxcoord[2];H_maxcoord[0] = 0; H_maxcoord[1] = 0;
-	double cursorposition[2]; cursorposition[0] = coord1; cursorposition[1] = coord2; 
+	double cursorposition[2]; cursorposition[0] = coord1; cursorposition[1] = coord2;
 	//move horizontally
 	for (int i = -2; i <= 2; i++)
 	{
@@ -1439,7 +1439,7 @@ void iASlicerData::snapToHighGradient(double &x, double &y)
 				//if NO take the current center position as the HMaxCoord
 				if ( gradmag == H_maxGradMag )
 				{
-					//calculate the distance 
+					//calculate the distance
 					double newdist = sqrt (pow( (cursorposition[0]-center[0]),2) + pow( (cursorposition[1]-center[1]),2));
 					double maxdist = sqrt (pow( (cursorposition[0]-H_maxcoord[0]),2) + pow( (cursorposition[1]-H_maxcoord[1]),2));
 					//if newdist is < than the maxdist (meaning the current center position is closer to the cursor position
@@ -1503,7 +1503,7 @@ void iASlicerData::snapToHighGradient(double &x, double &y)
 				//if NO take the current center position as the HMaxCoord
 				if ( gradmag == V_maxGradMag )
 				{
-					//calculate the distance 
+					//calculate the distance
 					double newdist = sqrt (pow( (cursorposition[0]-center[0]),2) + pow( (cursorposition[1]-center[1]),2));
 					double maxdist = sqrt (pow( (cursorposition[0]-V_maxcoord[0]),2) + pow( (cursorposition[1]-V_maxcoord[1]),2));
 					//if newdist is < than the maxdist (meaning the current center position is closer to the cursor position
@@ -1539,7 +1539,7 @@ void iASlicerData::snapToHighGradient(double &x, double &y)
 		pointselectionkey = 2; //new point is in horizontal direction V_maxcoord
 	else if ( v_bool == true && h_bool == true )
 	{
-		//pointselectionkey = 3; //new point is shortest distance between V_maxcoord,currentposition and H_maxcoord ,currentposition	
+		//pointselectionkey = 3; //new point is shortest distance between V_maxcoord,currentposition and H_maxcoord ,currentposition
 		double Hdist = sqrt (pow( (cursorposition[0]-H_maxcoord[0]),2) + pow( (cursorposition[1]-H_maxcoord[1]),2));
 		double Vdist = sqrt (pow( (cursorposition[0]-V_maxcoord[0]),2) + pow( (cursorposition[1]-V_maxcoord[1]),2));
 		if ( Hdist < Vdist )
@@ -1833,7 +1833,7 @@ void iASlicerData::rotateSlice( double angle )
 	transform->Concatenate(t1);
 	transform->Concatenate(t2);
 	transform->Concatenate(t3);
-	
+
 	update();
 }
 

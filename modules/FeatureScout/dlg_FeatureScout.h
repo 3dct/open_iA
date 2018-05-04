@@ -130,13 +130,13 @@ public:
 	void writeWisetex(QXmlStreamWriter *writer);
 	void autoAddClass(int NbOfClasses);
 	void initOrientationColorMap();
-	
+
 	//selection for each class and show SPM for it
 	void applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
 
 	//selection for single class and show SPM
 	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> &classEntries, const int colInd, const bool applyColorMap);
-	
+
 	//highlights singe object in class
 	void applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, const int colorIdx, const bool applyColorMap);
 
@@ -171,7 +171,7 @@ public slots:
 	void showContextMenu(const QPoint &pnt);
 	void deleteObject();
 	void addObject();
-	
+
 	void spBigChartMouseButtonPressed(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopup(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopupSelection(QAction *selection);
@@ -225,13 +225,13 @@ private:
 
 	const QString sourcePath;
 	vtkSmartPointer<vtkStringArray> nameArr;
-	
+
 	// calculate the average value of a 1D array
 	float calculateAverage(vtkDataArray* arr);
 
 	// input csv table with all objects, column names updated for vtk rendering problem
 	// by solving this rendering problem satisfacted here a pointer to the orginal table
-	vtkSmartPointer<vtkTable> csvTable; 
+	vtkSmartPointer<vtkTable> csvTable;
 	// element table with calculated elments values for every individual class
 	vtkSmartPointer<vtkTable> elementTable;
 	// table for ParallelCoordinates view, should be initialized every time when a new class is defined
@@ -266,7 +266,7 @@ private:
 	QAction *objectDelete;
 	QAction *objectAdd;
 	QAction *saveBlobMovie;
-	// the active first level item 
+	// the active first level item
 	QStandardItem *activeClassItem;
 
 	// Parallel coordinates view
@@ -291,14 +291,14 @@ private:
 	QVTKWidget *pcPolarPlot;
 	QWidget *orientationColorMapSelection;
 	QComboBox * orientColormap;
-	
+
 	vtkSmartPointer<vtkContextView> m_dvContextView;
 
 	vtkSmartPointer<vtkScalarBarActor> m_scalarBarPP;
 	vtkSmartPointer<vtkScalarBarActor> m_scalarBarFLD;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarWidgetPP;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarWidgetFLD;
-	
+
 	int mousePressedPos [2];
 
 	dlg_IOVPC * iovPC;
@@ -307,13 +307,13 @@ private:
 	dlg_IOVMO * iovMO;
 	QDockWidget* iovSPM;
 
-	//Mean Object Rendering	
-	iAMeanObjectTFView* m_motfView;	
+	//Mean Object Rendering
+	iAMeanObjectTFView* m_motfView;
 	moData m_MOData;
 	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
 
 	vtkSmartPointer<vtkLookupTable> m_pointLUT;
-private: 
+private:
 	QSharedPointer<QStringList> m_headersSelected;
 
 };

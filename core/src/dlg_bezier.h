@@ -40,7 +40,7 @@ class open_iA_Core_API dlg_bezier : public dlg_function
 	double oppositeLength;
 	std::vector<QPointF> viewPoints;
 	std::vector<QPointF> realPoints;
-	
+
 public:
 	dlg_bezier(iADiagramFctWidget *chart, QColor &color, bool reset = true);
 
@@ -50,7 +50,7 @@ public:
 	void draw(QPainter &painter);
 	void draw(QPainter &painter, QColor color, int lineWidth);
 	void drawOnTop(QPainter&) {}
-	
+
 	int selectPoint(QMouseEvent *event, int *x = NULL);
 	int getSelectedPoint() { return selectedPoint; }
 	int addPoint(int x, int y);
@@ -58,13 +58,13 @@ public:
 	void removePoint(int index);
 	void moveSelectedPoint(int x, int y);
 	void changeColor(QMouseEvent *) {}
-	
+
 	bool isColored() { return false; }
 	bool isEndPoint(int index);
 	bool isDeletable(int index);
-	
+
 	void reset();
-	
+
 	void mousePressEvent(QMouseEvent*) {}
 	void mouseMoveEvent(QMouseEvent*)  {}
 	void mouseReleaseEvent(QMouseEvent *event);
@@ -79,13 +79,13 @@ private:
 	bool isControlPoint(int point);
 
 	void insert(unsigned int index, unsigned int x, unsigned int y);
-	
+
 	void setViewPoint(int selectedPoint);
 	void setOppositeViewPoint(int selectedPoint);
-	
+
 	int getFunctionPointIndex(int index);
 	double getLength(QPointF start, QPointF end);
-	
+
 	// convert view to data
 	double v2dX(int x);
 	double v2dY(int y);

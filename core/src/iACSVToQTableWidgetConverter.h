@@ -69,7 +69,7 @@ namespace iACSVToQTableWidgetConverter
 
 		QTextStream ts( &f );
 		QList< QStringList > list;
-		
+
 		// read entire file and parse lines into list of stringlist's
 		while( !ts.atEnd() )
 			list << ts.readLine().split( "," );

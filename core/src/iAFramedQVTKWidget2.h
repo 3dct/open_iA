@@ -25,7 +25,7 @@
 class iAFramedQVTKWidget2 : public QVTKWidget2
 {
 	Q_OBJECT
-public: 
+public:
 	enum FrameStyle {
 		FRAMED,
 		NO_FRAME,

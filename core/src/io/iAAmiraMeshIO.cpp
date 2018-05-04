@@ -154,7 +154,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	int lineSize = nextLineBreakPos - latticePos;
 	QString latticeLine = header.mid(latticePos, lineSize );
 	QStringList latticeTokens = latticeLine.split(" ", QString::SkipEmptyParts);
-	
+
 	// TODO more types?
 	int dataType;
 	QString dataTypeStr = latticeTokens[2];
@@ -356,7 +356,7 @@ void iAAmiraMeshIO::Write(QString const & filename, vtkImageData* img)
 
 	QFile file(filename);
 	file.open(QIODevice::WriteOnly);
-	
+
 	QByteArray headerData;
 
 	QTextStream stream(&headerData);

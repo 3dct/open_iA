@@ -53,7 +53,7 @@ public:
 	void addPoint(double * pos)
 	{
 		// add point to the spline points
-		m_points->InsertNextPoint(pos); 
+		m_points->InsertNextPoint(pos);
 
 		// if number of point is at least 2 create, initialize and show the spline curve
 		if (m_points->GetNumberOfPoints() == 2)
@@ -110,8 +110,8 @@ public:
 
 protected:
 	vtkSmartPointer<vtkPoints>						m_points;			// container for all spline points
-	vtkSmartPointer<vtkActor>						m_splineActor;               
-	vtkSmartPointer<vtkPolyDataMapper>				m_splineMapper;              
+	vtkSmartPointer<vtkActor>						m_splineActor;
+	vtkSmartPointer<vtkPolyDataMapper>				m_splineMapper;
 	vtkSmartPointer<vtkParametricSpline>			m_spline;			// actual spline
 	vtkSmartPointer<vtkParametricFunctionSource>	m_parametricFuncSrc;// source for spline function
 };

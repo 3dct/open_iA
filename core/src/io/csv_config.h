@@ -6,7 +6,7 @@ namespace csvConfig {
 	//which file format apply - default, vg, mavi, featurescout
 	enum class csv_FileFormat { Default = 1, VolumeGraphics, MAVI, open_IA_FeatureScout };
 	//parameters for csv loading configuraton
-	//seperator in csv file 
+	//seperator in csv file
 	enum class csvSeparator{Colunm = 1, Comma };
 	enum class decimalPoint{Dot = 1, Comma  };
 	enum class inputLang{EN = 1, GER};
@@ -16,8 +16,8 @@ namespace csvConfig {
 	struct configPararams {
 
 		configPararams(){
-			initDefaultParams(); 
-		
+			initDefaultParams();
+
 		};
 
 		void initDefaultParams() {
@@ -25,7 +25,7 @@ namespace csvConfig {
 			startLine = 5;
 			headerStartLine = 5;
 			colCount = 31;
-			useEndline = false; 
+			useEndline = false;
 			endLine = 0;
 			setDefaultConfigs();
 		}
@@ -41,7 +41,7 @@ namespace csvConfig {
 			paramsValid = true;
 			inputObjectType = CTInputObjectType::Voids;
 			tableWidth = 0;
-			LayoutName = ""; 
+			LayoutName = "";
 		}
 
 
@@ -51,35 +51,35 @@ namespace csvConfig {
 			colCount = 31;
 			useEndline = false;
 			endLine = 0;
-			setDefaultConfigs(); 
+			setDefaultConfigs();
 		}
 
 		QString fileName;
-		
-		
+
+
 		unsigned long startLine;
 
-		unsigned long headerStartLine; 
-		unsigned long endLine; 
-		unsigned long colCount; 
+		unsigned long headerStartLine;
+		unsigned long endLine;
+		unsigned long colCount;
 		unsigned long tableWidth;
 
 		//TODO to be applied later
-		float spacing; 
-		
+		float spacing;
+
 		QString csv_units;
-		QString LayoutName; 
-		csvSeparator file_seperator; 
+		QString LayoutName;
+		csvSeparator file_seperator;
 		csv_FileFormat file_fmt;
-		inputLang csv_Inputlanguage; 
-		decimalPoint file_decimalPoint; 
+		inputLang csv_Inputlanguage;
+		decimalPoint file_decimalPoint;
 		bool paramsValid;
-		bool useEndline; 
+		bool useEndline;
 
 
-		CTInputObjectType inputObjectType; 
+		CTInputObjectType inputObjectType;
 	};
-	
-	
+
+
 
 }

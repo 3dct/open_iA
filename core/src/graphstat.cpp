@@ -91,7 +91,7 @@ void GraphStat::update()
 			if(edgeIt->second.vertFrom == id)
 				childs.push_back(edgeIt->second.vertTo);
 			if(edgeIt->second.vertTo == id) m_isHeaderVertex[id] = false;
-		} 
+		}
 		m_parentVertices[id] = parents;
 		m_childVertices[id] = childs;
 	}
