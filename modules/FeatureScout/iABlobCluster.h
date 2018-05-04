@@ -202,5 +202,5 @@ private:
 	double						m_labelScale;
 
 	double						m_blobOpacity;
-	double						m_silhouetteOpacity;	
+	double						m_silhouetteOpacity;
 };

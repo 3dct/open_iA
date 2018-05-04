@@ -46,15 +46,15 @@ void iAFeatureScoutModuleInterface::Initialize()
 	QMenu * FeatureScoutCsvReader = getMenuWithTitle(toolsMenu, QString("FeatureScout"), false);
 
 	//1 Menu mit mehreren untereinträgen
-	
-	//adds an entry to feature scout with name featurescout 
+
+	//adds an entry to feature scout with name featurescout
 	QAction * actionFibreScout = new QAction( m_mainWnd );
 	actionFibreScout->setText( QApplication::translate( "MainWindow", "FeatureScout", 0 ) );
 	AddActionToMenuAlphabeticallySorted(FeatureScoutCsvReader, actionFibreScout);
 
 	connect(actionFibreScout, SIGNAL(triggered()), this, SLOT(FeatureScout()));
 
-	
+
 	//new entry FeaturescoutWithCSV
 	QAction * actionOpenCSVFeatureScout = new QAction(m_mainWnd);
 	actionOpenCSVFeatureScout->setText(QApplication::translate("MainWindow", "FeatureScoutWithCSV", 0));
@@ -62,39 +62,39 @@ void iAFeatureScoutModuleInterface::Initialize()
 
 	//action mit module verbinden
 	connect(actionOpenCSVFeatureScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScoutWithCSV);
-	
-	
+
+
 	tlbFeatureScout = 0;
-	
+
 }
 
 void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
-	
+
 	csvConfig::configPararams fileConfParams;
 	//TODO set file path
 	dlg_CSVInput dlg;
-	
+
 	if (dlg.exec() != QDialog::Accepted) {
 		return;
 	}
 
 
 	this->m_mdiChild = m_mainWnd->createMdiChild(false);
-	this->m_mdiChild->show(); 	
+	this->m_mdiChild->show();
 
 	if (!m_mdiChild) return;
 	QVector<uint> selEntriesId;
 	QSharedPointer<QStringList> headers = QSharedPointer<QStringList>(new QStringList);
-	QSharedPointer<QStringList> featScout_headers = QSharedPointer<QStringList>(new QStringList); 
+	QSharedPointer<QStringList> featScout_headers = QSharedPointer<QStringList>(new QStringList);
 
 	ulong table_width;
 	fileConfParams = dlg.getConfigParameters();
 	selEntriesId = dlg.getEntriesSelInd();
 	headers = dlg.getHeaderSelection();
 
-	
-	table_width = dlg.getTableWidth(); 
-	
+
+	table_width = dlg.getTableWidth();
+
 	QMap<QString, iAObjectAnalysisType> objectMap;
 	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
 	objectMap["Voids"] = INDIVIDUAL_PORE_VISUALIZATION;
@@ -103,14 +103,14 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	items << tr("Fibers") << tr("Voids");
 	QString filterName = tr("FeatureScout"), item;
 	if (fileConfParams.inputObjectType == csvConfig::CTInputObjectType::Voids) {
-		item = "Voids"; 
+		item = "Voids";
 		featScout_headers = headers;
 	}
 	else {
 		item = "Fibers";
 		*featScout_headers = io.GetFibreElementsName(true);
-		//headers = dlg.getAllHeaders(); 
-	
+		//headers = dlg.getAllHeaders();
+
 	}
 
 	io.setParams(*headers, selEntriesId, table_width);
@@ -121,7 +121,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 		initializeFeatureScoutStartUp(item, items, fileConfParams.fileName, objectMap, filterName, true, &fileConfParams, featScout_headers /*headers*/);
 	}
 	else m_mdiChild->addMsg("CSV-file name error.");
-	
+
 
 
 };
@@ -233,7 +233,7 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 	}
 
 	//enables debug writing out table to desktop
-	//io.debugTable(false); 
+	//io.debugTable(false);
 
 	QString filtername = tr( "FeatureScout started" );
 	m_mdiChild->addStatusMsg( filtername );
@@ -247,7 +247,7 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 		return false;
 	}
 
-	
+
 	attach->init(objectType, io.GetCSVTable(), is_csvOnly, selHeader);
 	return true;
 }
