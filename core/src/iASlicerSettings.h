@@ -32,7 +32,7 @@ public:
 	int NumberOfIsoLines,
 		ToolTipFontSize;
 	QString CursorMode;
-	
+
 	iASingleSlicerSettings() :
 		LinearInterpolation(false),
 		ShowIsoLines(false),

@@ -154,7 +154,7 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> cMapper;
 	vtkSmartPointer<vtkActor> cActor;
 	//! @}
-	
+
 	vtkSmartPointer<vtkAnnotatedCubeActor> annotatedCubeActor;
 	vtkSmartPointer<vtkAxesActor> axesActor;
 	vtkSmartPointer<vtkOrientationMarkerWidget> orientationMarkerWidget;

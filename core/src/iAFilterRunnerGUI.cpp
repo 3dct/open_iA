@@ -209,7 +209,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		dlg.showROI();
 	if (dlg.exec() != QDialog::Accepted)
 		return false;
-	
+
 	int idx = 0;
 	for (auto param : params)
 	{
@@ -267,7 +267,7 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	if (!AskForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 		return;
 	StoreParameters(filter, paramValues);
-	
+
 	//! TODO: find way to check parameters already in dlg_commoninput (before closing)
 	if (!filter->CheckParameters(paramValues))
 		return;

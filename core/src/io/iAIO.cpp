@@ -875,12 +875,12 @@ void iAIO::readNRRD()
  */
 void iAIO::readDCM()
 {
-	typedef signed short PixelType; 
-	typedef itk::Image<PixelType, DIM> ImageType; 
-	typedef itk::ImageSeriesReader<ImageType> ReaderType; 
+	typedef signed short PixelType;
+	typedef itk::Image<PixelType, DIM> ImageType;
+	typedef itk::ImageSeriesReader<ImageType> ReaderType;
 	auto reader = ReaderType::New();
-	typedef itk::GDCMImageIO ImageIOType; 
-	ImageIOType::Pointer dicomIO = ImageIOType::New();	
+	typedef itk::GDCMImageIO ImageIOType;
+	ImageIOType::Pointer dicomIO = ImageIOType::New();
 	reader->SetImageIO( dicomIO );
 	typedef itk::GDCMSeriesFileNames NamesGeneratorType;
 	NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();

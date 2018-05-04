@@ -54,8 +54,8 @@ public:
 	~iALabel3D();
 
 	virtual void AttachActorsToRenderers(
-		vtkRenderer * ren, 
-		vtkRenderer * labelRen, 
+		vtkRenderer * ren,
+		vtkRenderer * labelRen,
 		vtkCamera * cam ) const;
 	virtual void DetachActorsToRenderers(vtkRenderer * ren, vtkRenderer * labelRen);
 	void SetVisible(bool isVisible);

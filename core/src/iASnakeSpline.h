@@ -27,8 +27,8 @@ typedef std::vector<iADiskData*> disc_vector;
 
 class iASnakeSpline
 {
-public:	
-	iASnakeSpline() 
+public:
+	iASnakeSpline()
 	  : m_selectedPntInd(-1), m_ren(0), m_radius(RADIUS)
 	{}
 
@@ -39,9 +39,9 @@ public:
 		m_radius = RADIUS * imageSpacing;
 	}
 
-	~iASnakeSpline()		  
+	~iASnakeSpline()
 	{
-		for(disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++) 
+		for(disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++)
 			delete m_snakeDisks[i];
 	}
 
@@ -91,11 +91,11 @@ public:
 	disc_vector::size_type CalculateSelectedPoint(double x, double y)
 	{
 		m_selectedPntInd = -1;
-		for(disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++) 
+		for(disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++)
 		{
 			double *handlePos = m_snakeDisks[i]->actor->GetPosition();
 
-			if ( x >= handlePos[0] - m_radius &&  x <= handlePos[0] + m_radius &&  
+			if ( x >= handlePos[0] - m_radius &&  x <= handlePos[0] + m_radius &&
 				 y >= handlePos[1] - m_radius &&  y <= handlePos[1] + m_radius )
 				m_selectedPntInd = i;
 
@@ -108,7 +108,7 @@ public:
 	void deleteAllPoints()
 	{
 		// remove point snakeDisks
-		for(disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++) 
+		for(disc_vector::size_type i = 0; i != m_snakeDisks.size(); i++)
 		{
 			m_ren->RemoveActor(m_snakeDisks[i]->actor);
 			delete m_snakeDisks[i];

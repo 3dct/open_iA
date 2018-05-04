@@ -112,7 +112,7 @@ LensData::LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFl
 }
 
 iAMagicLens::iAMagicLens() :
-	m_isEnabled(false), 
+	m_isEnabled(false),
 	m_splitPosition(0.65f),
 	m_isInitialized(false),
 	m_size(DEFAULT_SIZE),
@@ -200,7 +200,7 @@ void iAMagicLens::InitWidget( QWidget * parent, const QGLWidget * shareWidget, Q
 void iAMagicLens::SetScaleCoefficient( double scaleCoefficient )
 {
 	m_scaleCoefficient = scaleCoefficient;
-} 
+}
 
 void iAMagicLens::UpdateCamera( double focalPt[3], vtkCamera * cam )
 {

@@ -335,7 +335,7 @@ void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 		m_selPoly.clear();
 		if ( isMaxClicked )
 			emit plotMaximized();
-	} 
+	}
 }
 
 int iAScatterPlot::p2binx( double p ) const

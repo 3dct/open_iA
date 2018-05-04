@@ -56,7 +56,7 @@ public:
   vtkBooleanMacro(Repositionable, int);
 
   // Description:
-  // Create the default widget representation if one is not set. 
+  // Create the default widget representation if one is not set.
   virtual void CreateDefaultRepresentation();
 
 protected:

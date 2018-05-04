@@ -113,7 +113,7 @@ QString iAVolumeStack::getFileName(int i) {
 }
 
 std::vector<vtkSmartPointer<vtkImageData> > * iAVolumeStack::GetVolumes()
-{ 
+{
 	return &volumes;
 }
 

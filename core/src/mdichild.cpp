@@ -560,7 +560,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	setCurrentFile(f);
 
 	waitForPreviousIO();
-	
+
 	ioThread = new iAIO(imageData, polyData, m_logger, this, volumeStack->GetVolumes(), volumeStack->GetFileNames());
 	if (f.endsWith(iAIOProvider::ProjectFileExtension))
 	{
@@ -579,7 +579,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	connectIOThreadSignals(ioThread);
 	connect(m_dlgModalities, SIGNAL(ModalityAvailable(int)), this, SLOT(ModalityAdded(int)));
 	connect(ioThread, SIGNAL(done()), this, SIGNAL(fileLoaded()));
-	
+
 	polyData->ReleaseData();
 
 	if (!setupLoadIO(f, isStack))
@@ -842,7 +842,7 @@ bool MdiChild::save()
 		{
 			return false;
 		}
-		
+
 		return saveFile(GetModality(modalityNr)->GetFileName(), modalityNr, componentNr);
 	}
 }

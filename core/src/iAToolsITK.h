@@ -88,10 +88,10 @@ void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output)
 	output->SetRegions(input->GetLargestPossibleRegion());
 	output->SetSpacing(input->GetSpacing());
 	output->Allocate();
- 
+
 	itk::ImageRegionConstIterator<TImage> inputIterator(input, input->GetLargestPossibleRegion());
 	itk::ImageRegionIterator<TImage> outputIterator(output, output->GetLargestPossibleRegion());
- 
+
 	while(!inputIterator.IsAtEnd())
 	{
 		outputIterator.Set(inputIterator.Get());

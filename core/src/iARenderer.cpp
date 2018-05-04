@@ -299,26 +299,26 @@ void iARenderer::showHelpers(bool show)
 	cActor->SetVisibility(show);
 }
 
-void iARenderer::showRPosition(bool s) 
-{ 
-	cActor->SetVisibility(s); 
+void iARenderer::showRPosition(bool s)
+{
+	cActor->SetVisibility(s);
 }
 
-void iARenderer::setPlaneNormals( vtkTransform *tr ) 
-{ 
+void iARenderer::setPlaneNormals( vtkTransform *tr )
+{
 	double normal[4], temp[4];
 
 	normal[0] = 1; normal[1] = 0; normal[2] = 0; normal[3] = 1;
-	tr->GetMatrix()->MultiplyPoint(normal, temp); 
-	plane1->SetNormal( temp[0], temp[1], temp[2] ); 
+	tr->GetMatrix()->MultiplyPoint(normal, temp);
+	plane1->SetNormal( temp[0], temp[1], temp[2] );
 
 	normal[0] = 0; normal[1] = 1; normal[2] = 0; normal[3] = 1;
-	tr->GetMatrix()->MultiplyPoint(normal, temp); 
-	plane2->SetNormal( temp[0], temp[1], temp[2] ); 
+	tr->GetMatrix()->MultiplyPoint(normal, temp);
+	plane2->SetNormal( temp[0], temp[1], temp[2] );
 
 	normal[0] = 0; normal[1] = 0; normal[2] = 1; normal[3] = 1;
-	tr->GetMatrix()->MultiplyPoint(normal, temp); 
-	plane3->SetNormal( temp[0], temp[1], temp[2] ); 
+	tr->GetMatrix()->MultiplyPoint(normal, temp);
+	plane3->SetNormal( temp[0], temp[1], temp[2] );
 
 	renWin->Render();
 	ren->Render();
@@ -327,8 +327,8 @@ void iARenderer::setPlaneNormals( vtkTransform *tr )
 void iARenderer::setCubeCenter( int x, int y, int z )
 {
 	if (interactor->GetEnabled()) {
-		cSource->SetCenter( x * imageData->GetSpacing()[0], 
-			y * imageData->GetSpacing()[1], 
+		cSource->SetCenter( x * imageData->GetSpacing()[0],
+			y * imageData->GetSpacing()[1],
 			z * imageData->GetSpacing()[2] );
 		update();
 	}
@@ -364,7 +364,7 @@ void iARenderer::getCamPosition( double * camOptions )
 	camOptions[7] = c[1];
 	camOptions[8] = c[2];
 	camOptions[9] = pS;
-	
+
 	ren->ResetCamera();
 	update();
 }
@@ -471,8 +471,8 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 
 		w2if->Modified();
 		movieWriter->Write();
-		if (movieWriter->GetError()) { 
-			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode())); 
+		if (movieWriter->GetError()) {
+			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
 		emit progress( 100 * (i+1) / numRenderings);
@@ -480,7 +480,7 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	}
 
 	cam->DeepCopy(oldCam);
-	movieWriter->End(); 
+	movieWriter->End();
 	movieWriter->ReleaseDataFlagOn();
 	w2if->ReleaseDataFlagOn();
 

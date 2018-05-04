@@ -9,11 +9,11 @@
 #include <qstring.h>
 
 
-class QFile; 
+class QFile;
 
 
 namespace  DataIO{
-			
+
 
 	class open_iA_Core_API DataTable : public QTableWidget
 	{
@@ -22,7 +22,7 @@ namespace  DataIO{
 		void initToDefault();
 		~DataTable();
 
-		
+
 
 		void initTable();
 
@@ -31,8 +31,8 @@ namespace  DataIO{
 		}
 
 		void addLineToTable(const QSharedPointer<QStringList> &tableEntries);
-		
-		//reading rows from a file; 
+
+		//reading rows from a file;
 		bool readTableEntries(const QString &fName, const uint rowCount, uint colCount, const int headerNr, const uint *StartLine, const bool readHeaders, bool insertID);
 
 		void readTableValues(const uint &rowCount, QTextStream &file, QString &el_line);
@@ -59,20 +59,20 @@ namespace  DataIO{
 		void setColSeparator(const csvConfig::csvSeparator & separator);
 
 		inline const QStringList &getHeaders() {
-			return *this->m_headerEntries; 
+			return *this->m_headerEntries;
 		}
 
 	protected:
 		QSharedPointer<QStringList> m_currentEntry;
-		
-		QSharedPointer<QStringList> m_headerEntries; 
+
+		QSharedPointer<QStringList> m_headerEntries;
 
 		QTableWidgetItem *m_currentItem;
 		QItemSelectionModel *m_variableModel;
-		QModelIndex m_item; 
+		QModelIndex m_item;
 		uint m_rowInd;
 		uint m_colInd;
-		uint m_currHeaderLineNr; 
+		uint m_currHeaderLineNr;
 		bool isInitialized;
 		bool isDataFilled;
 
@@ -80,19 +80,19 @@ namespace  DataIO{
 
 		//insert auto row ID
 		bool insertROW_ID;
-		QString m_FileSeperator; 
-		QString m_FileName; 
+		QString m_FileSeperator;
+		QString m_FileName;
 
 		//name of first column
 		QString m_rowID;
 
 		//row ID automatically assigned
-		uint m_autoRID; 
+		uint m_autoRID;
 	private:
 		//disable copy constructor
 		DataTable(const DataTable &other);
 
 	};
 
-	
+
 }

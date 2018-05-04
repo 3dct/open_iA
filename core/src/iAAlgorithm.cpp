@@ -112,7 +112,7 @@ void iAAlgorithm::setImageData(vtkImageData* imgData)
 
 QDateTime iAAlgorithm::Start()
 {
-	m_elapsed = 0; 
+	m_elapsed = 0;
 	m_time.start();
 	m_isRunning = true;
 	return QDateTime::currentDateTime();
@@ -121,8 +121,8 @@ QDateTime iAAlgorithm::Start()
 
 int iAAlgorithm::Stop()
 {
-	if (m_isRunning) 
-	{	
+	if (m_isRunning)
+	{
 		m_isRunning = false;
 		m_elapsed = m_time.elapsed();
 	}
@@ -188,7 +188,7 @@ bool iAAlgorithm::deleteConnector(iAConnector* c)
 {
 	bool isDeleted = false;
 	int ind = m_connectors.indexOf(c);
-	if (ind >= 0)		
+	if (ind >= 0)
 	{
 		m_connectors.remove(ind);
 		isDeleted = true;
@@ -228,7 +228,7 @@ void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* poly
 
 	typedef MeshType::CellsContainerPointer	CellsContainerPointer;
 	typedef MeshType::CellsContainerIterator CellsContainerIterator;
-	typedef MeshType::CellType CellType; 
+	typedef MeshType::CellType CellType;
 	typedef MeshType::PointsContainer MeshPointsContainer;
 	typedef MeshType::PointType MeshPointType;
 	typedef MeshPointsContainer::Pointer InputPointsContainerPointer;
@@ -241,14 +241,14 @@ void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* poly
 	vtkCellArray * pvtkPolys = vtkCellArray::New();
 
 	if (numPoints == 0)
-		return; 
+		return;
 
 	pvtkPoints->SetNumberOfPoints(numPoints);
 
 	int idx=0;
 	double vpoint[3];
-	while( points != myPoints->End() ) 	
-	{   
+	while( points != myPoints->End() )
+	{
 		point = points.Value();
 		vpoint[0]= point[0];
 		vpoint[1]= point[1];
@@ -271,16 +271,16 @@ void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* poly
 		MeshPointType  p;
 		int i;
 
-		switch (nextCell->GetType()) 
+		switch (nextCell->GetType())
 		{
 		case CellType::VERTEX_CELL:
 		case CellType::LINE_CELL:
 		case CellType::POLYGON_CELL:
-			break;        
+			break;
 		case CellType::TRIANGLE_CELL:
 			i=0;
 			while (pointIt != nextCell->PointIdsEnd() ) {
-				pts[i++] = *pointIt++;  
+				pts[i++] = *pointIt++;
 			}
 			pvtkPolys->InsertNextCell(3,pts);
 			break;

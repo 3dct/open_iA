@@ -407,7 +407,7 @@ private:
 	void updateReslicer(double point[3], double normal[3], int mode);
 	void updateSliceIndicators();
 	QString strippedName(const QString &f);
-	
+
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//! \return	true if it succeeds, false if it fails.
 	bool setupSaveIO(QString const & f);
@@ -449,7 +449,7 @@ private:
 	bool isSliceProfileEnabled; //!< slice profile, shown in slices
 	bool isArbProfileEnabled;   //!< arbitrary profile, shown in profile widget
 	bool isMagicLensEnabled;    //!< magic lens exploration
-	
+
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void setupViewInternal(bool active);
 	bool IsVolumeDataLoaded() const;

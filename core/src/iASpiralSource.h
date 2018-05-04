@@ -27,7 +27,7 @@ enum CylindricityType
 	Helix,
 	Circles,
 };
-class iACylindricitySource : public iARegularPolygonSourceEx 
+class iACylindricitySource : public iARegularPolygonSourceEx
 {
 public:
 	// Standard methods for instantiation, obtaining type and printing instance values.
@@ -72,7 +72,7 @@ protected:
 
 		double x[3];
 		int i, j;
-		vtkPoints *newPoints; 
+		vtkPoints *newPoints;
 
 		// Prepare to produce the output; create the connectivity array(s)
 		newPoints = vtkPoints::New();

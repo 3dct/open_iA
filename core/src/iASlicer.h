@@ -52,15 +52,15 @@ class iASingleSlicerSettings;
 class iASlicerData;
 class iASlicerWidget;
 
-static const int MODE_TO_X_IND[3]	= { 1, 0, 0 }; 
-static const int MODE_TO_Y_IND[3]	= { 2, 1, 2 }; 
-static const int MODE_TO_Z_IND[3]	= { 0, 2, 1 }; 
+static const int MODE_TO_X_IND[3]	= { 1, 0, 0 };
+static const int MODE_TO_Y_IND[3]	= { 2, 1, 2 };
+static const int MODE_TO_Z_IND[3]	= { 0, 2, 1 };
 
 /**
  * \brief	A container which combines classes for a slicer. Combines a special widget and vtk classes.
- * 
- * This class keeps all the functionality of the slicer 
- * and is responsible for linking all the parts together 
+ *
+ * This class keeps all the functionality of the slicer
+ * and is responsible for linking all the parts together
  * and managing all the communication and dependencies.
  */
 class open_iA_Core_API iASlicer : public QObject
@@ -85,20 +85,20 @@ public:
 	void AddMagicLensInput(iAChannelID id);
 	void SetMagicLensOpacity(double opacity);
 	void UpdateMagicLensColors();
-	
+
 	//iASlicerData: wrapping methods--------------------------
-	void disableInteractor(); 
+	void disableInteractor();
 	void enableInteractor(); //also updates widget
 	void initializeData( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
-	void reInitialize(	vtkImageData *ds, 
-						vtkTransform *tr, 
+	void reInitialize(	vtkImageData *ds,
+						vtkTransform *tr,
 						vtkScalarsToColors* ctf,
-						bool sil = false, 
+						bool sil = false,
 						bool sp = false );
 
 	void initializeChannel( iAChannelID id, iAChannelVisualizationData * chData );
 	void removeChannel(iAChannelID id);
-	void reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData );	
+	void reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData );
 	void setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z);
 	iAChannelID getMagicLensInput() const;
 
@@ -151,7 +151,7 @@ public slots:
 protected:
 	iASlicerData * m_data;
 	iASlicerWidget * m_widget;
-	
+
 	iASlicerMode m_mode;
 	iAChannelID m_magicLensInput;
 

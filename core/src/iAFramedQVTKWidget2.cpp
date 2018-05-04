@@ -55,7 +55,7 @@ iAFramedQVTKWidget2::FrameStyle iAFramedQVTKWidget2::GetFrameStyle() const
 {
 	return m_frameStyle;
 }
-	
+
 void iAFramedQVTKWidget2::Frame()
 {
 	if(m_frameStyle != NO_FRAME && m_penWidth > 0)

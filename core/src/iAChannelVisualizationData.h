@@ -104,7 +104,7 @@ public:
 
 	iAChannelVisualizationData();
 	virtual ~iAChannelVisualizationData();
-	
+
 	virtual void Reset();
 
 	void SetOpacity(double opacity);

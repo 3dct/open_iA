@@ -109,7 +109,7 @@ void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
 {
 	if (m_isFlat)
 		return;
-	m_VolSettings = vs; 
+	m_VolSettings = vs;
 	volProp->SetAmbient(vs.AmbientLighting);
 	volProp->SetDiffuse(vs.DiffuseLighting);
 	volProp->SetSpecular(vs.SpecularLighting);

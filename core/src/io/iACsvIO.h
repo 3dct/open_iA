@@ -28,7 +28,7 @@
 #include <qvector.h>
 
 class vtkTable;
-class QTextStream; 
+class QTextStream;
 
 class open_iA_Core_API iACsvIO
 {
@@ -46,8 +46,8 @@ public:
 	void loadPoreData(long tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count);
 	//void readFileEntries(const QString & fileName, const int rows_toSkip, bool En_Values, bool & retFlag);
 
-	
-	//input parameters from configuration file 
+
+	//input parameters from configuration file
 	//headerlines to skip	nrOfHeaderLines: headerLinesToSkip
 	//startRowInd -> where to start from row
 	//column separator "," "\t", ";"
@@ -77,23 +77,23 @@ public:
 
 
 	inline void setTableWidth(uint TableWidth) {
-		this->m_tableWidth = TableWidth; 
+		this->m_tableWidth = TableWidth;
 	}
 
-	void setParams(QStringList& headers, const QVector<uint> &colIDs, uint TableWidth); 
+	void setParams(QStringList& headers, const QVector<uint> &colIDs, uint TableWidth);
 
-	void debugTable(const bool useTabSeparator); 
+	void debugTable(const bool useTabSeparator);
 	QStringList GetFibreElementsName(bool withUnit);
 
 private:
 
-	void setDefaultConfigPath(); 
+	void setDefaultConfigPath();
 	long CalcTableLength(const QString &fileName, const int *nrHeadersToSkip);  //
-	
-	QString configPath; 
-	
+
+	QString configPath;
+
 	bool LoadFibreCSV(const QString &fileName);
-	
+
 	void FibreCalculation(QTextStream & in, int eleWidth, int tableLength, const int colCount, const bool useOldFeatureScoutFormat);
 
 	int assingFiberValuesPart_2(int i, int col_idx, double phi, double theta, double xm, double ym, double zm);
@@ -101,29 +101,29 @@ private:
 	int assignFiberValuesPart1(int i, int col_idx, double a11, double a22, double a33, double a12, double a13, double a23);
 
 	bool LoadPoreCSV(const QString &fileName);
-	
+
 	bool loadConfig(const QString configName, bool & applyEN_Formating);
 
-private: 
+private:
 
-	bool m_EN_Values; 
-	bool m_useEndLine; 
+	bool m_EN_Values;
+	bool m_useEndLine;
 	bool useCVSOnly;  //Mode Read Custom csv
-	bool enableFiberTransformation; 
+	bool enableFiberTransformation;
 
 	//element id for each row entry
 	ulong m_EL_ID;
 	uint m_tableWidth;
-	ulong m_endLine; 
+	ulong m_endLine;
 
 	int m_rowsToSkip;
 
 	QString m_colSeparator;
-	QString m_decimalSeparator; 
-	QString m_FileName; 
+	QString m_decimalSeparator;
+	QString m_FileName;
 
 	vtkSmartPointer<vtkTable> table;
 	csvConfig::CTInputObjectType inputElementType;
 	QVector<uint> m_colIds;
-	QStringList  m_TableHeaders; 
+	QStringList  m_TableHeaders;
 };

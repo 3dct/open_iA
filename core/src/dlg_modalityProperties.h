@@ -29,7 +29,7 @@
 typedef iAQTtoUIConnector<QDialog, Ui_modalityProperties> dlg_modalityPropertiesUI;
 
 class iAModality;
-class vtkRenderer; 
+class vtkRenderer;
 
 class dlg_modalityProperties : public dlg_modalityPropertiesUI
 {
