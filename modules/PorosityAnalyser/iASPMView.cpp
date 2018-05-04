@@ -85,8 +85,6 @@ iASPMView::iASPMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	layoutHB2->addWidget( m_splom );
 	SPLOMWidget->setLayout( layoutHB2 );
 
-	m_splom->setSelectionColor(QColor(Qt::black));
-
 	InitLUT();
 	InitScalarBar();
 
@@ -142,6 +140,9 @@ void iASPMView::SetData( const QTableWidget * data )
 {
 	//Init SPLOM
 	m_splom->setData( data );
+
+	m_splom->setSelectionColor(QColor(Qt::black));
+	m_splom->setPointRadius(2.5);
 	
 	m_SPMSettings->parametersList->clear();
 	m_SPMSettings->colorCodingParameter->clear();
