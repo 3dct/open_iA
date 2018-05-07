@@ -60,6 +60,7 @@ public slots:
 protected slots:
 	virtual void currentPointUpdated( int index );
 	void fixPoint();
+	void sentToFeatureScout(); 
 
 protected:
 	QStringList m_maskNames;
@@ -74,6 +75,9 @@ protected:
 	QList<int> m_datasetIndices;
 	QMenu * m_contextMenu;
 	QAction * m_fixAction, *m_removeFixedAction;
+
+	//connecting to feature scout
+	QAction * m_detailsToFeatureScoutAction;
 	int m_fixedPointInd;
 	QPoint m_rightPressPos;
 	QString m_currPrevDatasetName;

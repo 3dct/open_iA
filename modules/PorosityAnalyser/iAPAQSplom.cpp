@@ -44,6 +44,7 @@ iAPAQSplom::iAPAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget 
 	: iAQSplom( parent, shareWidget, f ),
 	m_contextMenu( new QMenu( this ) ),
 	m_fixAction( 0 ),
+	m_detailsToFeatureScoutAction(0),
 	m_removeFixedAction( 0 ),
 	m_fixedPointInd( -1 )
 {
@@ -51,6 +52,11 @@ iAPAQSplom::iAPAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget 
 	//m_contextMenu->setStyleSheet( contextMenuStyle );
 	m_fixAction = m_contextMenu->addAction( "Fix Point", this, SLOT( fixPoint() ) );
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
+	
+	//sent to FeatureScout
+	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, SLOT(sentToFeatureScout()));
+	m_detailsToFeatureScoutAction->setVisible(true);
+	
 	m_fixAction->setVisible( false );
 	m_removeFixedAction->setVisible( false );
 }
@@ -363,6 +369,28 @@ void iAPAQSplom::fixPoint()
 	addHighlightedPoint( m_fixedPointInd );
 
 	updatePreviewPixmap();
+}
+
+
+//TODO load file pfa
+void iAPAQSplom::sentToFeatureScout()
+{
+	//get Point, get data name,
+	//start new Instance of FeatuereScout
+	//sent csv, mhd.file what ever to featureScout
+	m_fixedPointInd = m_activePlot->getCurrentPoint();
+	auto dsInd = getDatasetIndexFromPointIndex(m_fixedPointInd);
+	QString sliceFilename = getSliceFilename(m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd]);
+	/*
+	*dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
+	*	QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
+	*	if( !fixedMaskImg.load( sliceFilename, "PNG" ) )
+	*
+	*
+	*/
+
+
+	//create mdi child from featureScout
 }
 
 void iAPAQSplom::removeFixedPoint()
