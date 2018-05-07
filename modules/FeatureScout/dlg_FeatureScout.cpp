@@ -357,11 +357,6 @@ void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 	// new initialize of the pcChart
 	this->pcView = vtkContextView::New();
 	this->pcChart = vtkChartParallelCoordinates::New();
-
-	if ( this->spmActivated )
-		// TODO SPM
-		//this->pcChart->SetAnnotationLink( matrix->GetAnnotationLink() ); //annLink
-
 	// setup interactor and render window
 	this->pcView->SetInteractor( this->pcWidget->GetInteractor() );
 	this->pcWidget->SetRenderWindow( this->pcView->GetRenderWindow() );
@@ -3187,11 +3182,6 @@ void dlg_FeatureScout::ClassDeleteButton()
 		spUpdateSPColumnVisibilityWithVis();
 		matrix->clearSelection();
 		matrix->update();
-		//Updates SPM
-		// TODO SPM
-		// matrix->UpdateColorInfo( classTreeModel, colorList );
-		// matrix->SetClass2Plot( this->activeClassItem->index().row() );
-		// matrix->UpdateLayout();
 	}
 }
 
@@ -3258,7 +3248,6 @@ void dlg_FeatureScout::spUpdateSPColumnVisibility()
 	// Updates scatter plot matrix if a feature of PC-ElementTableModel is added or removed.
 	if ( this->spmActivated )
 	{
-		// TODO SPM: only update matrix after all parameters visibility set?
 		for ( int j = 0; j < elementNr; ++j )
 		{
 			matrix->setParameterVisibility( elementTable->GetValue( j, 0 ).ToString().c_str(),
@@ -3800,11 +3789,6 @@ void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 		// reload the class table to chartTable
 		int id = item->index().row();
 		chartTable->ShallowCopy( tableList[id] );
-
-		// reset selection to NULL
-		// TODO SPM
-		//if ( this->spmActivated )
-			//this->matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
 	}
 	else if ( situ == 1 )	// add class
 	{
@@ -3820,11 +3804,6 @@ void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 		// reload the class table to chartTable
 		int id = item->index().row();
 		chartTable->ShallowCopy( tableList[id] );
-
-		// reset selection to NULL
-		// TODO SPM
-		// if ( this->spmActivated )
-			// this->matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
 	}
 	else if ( situ == 2 )	// delete class
 	{
