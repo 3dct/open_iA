@@ -91,5 +91,6 @@ protected:
 private: 
 	MainWindow * m_mainWnd;
 	MdiChild* m_mdiChild;
+	QString m_csvName; 
 
 };

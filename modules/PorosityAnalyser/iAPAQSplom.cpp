@@ -52,6 +52,7 @@ iAPAQSplom::iAPAQSplom(MainWindow *mWnd, QWidget * parent /*= 0*/, const QGLWidg
 	m_mdiChild(0),
 	m_detailsToFeatureScoutAction(0),
 	m_removeFixedAction( 0 ),
+	m_csvName(""),
 	m_fixedPointInd( -1 )
 {
 	//context menu
@@ -378,22 +379,31 @@ void iAPAQSplom::fixPoint()
 }
 
 
-//TODO load file pfa
 void iAPAQSplom::sendToFeatureScout()
 {
 	//get Point, get data name,
 	//sent csv, mhd.file what ever to featureScout
 	//labelled cvs with new characteristics
+	//TODO sent correct file to FeatureScout
 	m_fixedPointInd = m_activePlot->getCurrentPoint();
 	int dsInd = getDatasetIndexFromPointIndex(m_fixedPointInd);
 	QString sliceFilename = getSliceFilename(m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd]);
 
-
+	//stub for data loading
 	//mhd of fileName
 	QString MHDDatasetName = sliceFilename.section('/', -5, -5).section('_', -1, -1).append(".mhd");
+	QString dataPath = sliceFilename.section('/', 0, -4); 
+	QString fileName = sliceFilename.section('/', -2, -2).section('_', 0,0);
+	
 
+	//Just for testing
 	QString dataName = "M://__TestDatasets//PorosityAnalyzer//PorosityAnalyzer_test_datasets//" + MHDDatasetName;
+	QString mhdName = dataPath+"/" + fileName + "_labelled" + ".mhd";
+	m_csvName = dataPath + "/" + fileName+ "_mhd.csv";
+	
 	this->m_mdiChild = m_mainWnd->createMdiChild(false);
+	
+
 	if (!this->m_mdiChild) return;
 	this->m_mdiChild->show();
 	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(StartFeatureScout()));
@@ -412,31 +422,7 @@ void iAPAQSplom::StartFeatureScout()
 		
 		return; 
 	}
-	featureScout->FeatureScout();
-
-
-
-
-	 //attachment holen: 
-	
-
-	//this->m_mainWnd
-	
-	//mhd of segmented pores
-
-
-	/*
-	*dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
-	*	QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
-	*	if( !fixedMaskImg.load( sliceFilename, "PNG" ) )
-	*
-	*
-	*/
-
-
-	//create mdi child from featureScout
-
-	
+	featureScout->LoadFeatureScoutWithParams(m_csvName, m_mdiChild);
 }
 
 void iAPAQSplom::removeFixedPoint()

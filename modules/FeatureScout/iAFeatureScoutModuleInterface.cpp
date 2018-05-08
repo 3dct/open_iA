@@ -68,7 +68,8 @@ void iAFeatureScoutModuleInterface::Initialize()
 
 }
 
-void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
+void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
+{
 
 	csvConfig::configPararams fileConfParams;
 	//TODO set file path
@@ -127,7 +128,16 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 };
 
 
+
 void iAFeatureScoutModuleInterface::FeatureScout()
+{
+	PrepareActiveChild();
+	QString fileName = QFileDialog::getOpenFileName(m_mdiChild, tr("Select CSV File"), m_mdiChild->getFilePath(), tr("CSV Files (*.csv)"));
+	LoadFeatureScoutWithParams(fileName, m_mdiChild);
+}
+
+//optional parameter csvFile name
+void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(const QString &fileName, MdiChild *mchildWnd)
 {
 	QMap<QString, iAObjectAnalysisType> objectMap;
 	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
@@ -135,11 +145,8 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 
 	QStringList items;
 	items << tr( "Fibers" ) << tr( "Voids" );
-	QString fileName, filterName = tr( "FeatureScout" ), item;
-
-	PrepareActiveChild();
-
-	fileName = QFileDialog::getOpenFileName( m_mdiChild, tr( "Select CSV File" ), m_mdiChild->getFilePath(), tr( "CSV Files (*.csv)" ) );
+	QString filterName = tr( "FeatureScout" ), item;
+	m_mdiChild = mchildWnd;
 
 	if ( !fileName.isEmpty() )
 	{
@@ -164,8 +171,8 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 		m_mdiChild->addMsg( "CSV-file name error." );
 }
 
-void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString,
-	iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams, const QSharedPointer<QStringList> &selHeaders)
+void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item, QStringList &items, QString const &fileName, QMap<QString,
+	iAObjectAnalysisType> &objectMap, QString const &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams, const QSharedPointer<QStringList> &selHeaders)
 {
 	if (item == items[0] || item == items[1])
 	{
