@@ -221,9 +221,8 @@ private:
 	QSharedPointer<csvConfig::configPararams> m_confParams;
 	QString m_fPath;
 	QString m_Error_Parameter;
-	//csvConfig::csv_FileFormat m_csvFileFormat;
 	csvTable_ptr m_entriesPreviewTable = nullptr;
-	cvsRegSettings_ShrdPtr m_regEntries = nullptr;
+	cvsRegSettings_ShrdPtr m_regEntries;
 	QString m_LayoutName;
 
 	bool isFileNameValid = false;
@@ -234,7 +233,7 @@ private:
 
 	//current headers of the table
 	QSharedPointer<QStringList> m_currentHeaders;
-	QSharedPointer<QStringList> m_selHeaders = nullptr;
+	QSharedPointer<QStringList> m_selHeaders;
 	QList<QListWidgetItem*> m_selectedHeadersList;
 
 	QHash<QString, uint> m_hashEntries;

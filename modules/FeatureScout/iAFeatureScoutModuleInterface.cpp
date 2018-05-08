@@ -20,15 +20,13 @@
 * ************************************************************************************/
 #include "iAFeatureScoutModuleInterface.h"
 
-#include "iAConsole.h"
-#include "io/iACsvIO.h"
-
-#include "ui_CsvInput.h"
 #include "dlg_CSVInput.h"
-
-
 #include "iAFeatureScoutAttachment.h"
 #include "iAFeatureScoutToolbar.h"
+#include "ui_CsvInput.h"
+
+#include "iAConsole.h"
+#include "io/iACsvIO.h"
 #include "mainwindow.h"
 
 #include <vtkTable.h>
@@ -155,7 +153,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 				item = "Fibers";
 			file.close();
 
-			initializeFeatureScoutStartUp(item, items, fileName, objectMap, filterName, false, nullptr, nullptr);
+			initializeFeatureScoutStartUp(item, items, fileName, objectMap, filterName, false, nullptr, QSharedPointer<QStringList>());
 		}
 		else
 			m_mdiChild->addMsg( "CSV-file could not be opened." );
