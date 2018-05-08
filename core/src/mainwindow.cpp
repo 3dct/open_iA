@@ -2342,6 +2342,11 @@ iAPreferences const & MainWindow::GetDefaultPreferences() const
 	return defaultPreferences;
 }
 
+iAModuleDispatcher & MainWindow::getModuleDispatcher() const
+{
+	return *this->m_moduleDispatcher.data();
+}
+
 
 // Move to other places (modules?):
 

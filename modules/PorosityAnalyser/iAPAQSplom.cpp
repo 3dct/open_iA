@@ -22,9 +22,13 @@
 
 #include "PorosityAnalyserHelpers.h"
 
-#include "iAMathUtility.h"
+#include "iAFeatureScoutModuleInterface.h"
+
 #include "charts/iASPLOMData.h"
 #include "charts/iAScatterPlot.h"
+#include "iAConsole.h"
+#include "iAMathUtility.h"
+#include "iAModuleDispatcher.h"
 
 #include <QDir>
 #include <QKeyEvent>
@@ -40,10 +44,12 @@
 
 const int maskOpacity = 127;
 
-iAPAQSplom::iAPAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: iAQSplom( parent, shareWidget, f ),
-	m_contextMenu( new QMenu( this ) ),
-	m_fixAction( 0 ),
+iAPAQSplom::iAPAQSplom(MainWindow *mWnd, QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */)
+	: iAQSplom(parent, shareWidget, f),
+	m_contextMenu(new QMenu(this)),
+	m_mainWnd(mWnd),
+	m_fixAction(0),
+	m_mdiChild(0),
 	m_detailsToFeatureScoutAction(0),
 	m_removeFixedAction( 0 ),
 	m_fixedPointInd( -1 )
@@ -54,7 +60,7 @@ iAPAQSplom::iAPAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget 
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
 	
 	//sent to FeatureScout
-	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, SLOT(sentToFeatureScout()));
+	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, SLOT(sendToFeatureScout()));
 	m_detailsToFeatureScoutAction->setVisible(true);
 	
 	m_fixAction->setVisible( false );
@@ -373,14 +379,52 @@ void iAPAQSplom::fixPoint()
 
 
 //TODO load file pfa
-void iAPAQSplom::sentToFeatureScout()
+void iAPAQSplom::sendToFeatureScout()
 {
 	//get Point, get data name,
-	//start new Instance of FeatuereScout
 	//sent csv, mhd.file what ever to featureScout
+	//labelled cvs with new characteristics
 	m_fixedPointInd = m_activePlot->getCurrentPoint();
-	auto dsInd = getDatasetIndexFromPointIndex(m_fixedPointInd);
+	int dsInd = getDatasetIndexFromPointIndex(m_fixedPointInd);
 	QString sliceFilename = getSliceFilename(m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd]);
+
+
+	//mhd of fileName
+	QString MHDDatasetName = sliceFilename.section('/', -5, -5).section('_', -1, -1).append(".mhd");
+
+	QString dataName = "M://__TestDatasets//PorosityAnalyzer//PorosityAnalyzer_test_datasets//" + MHDDatasetName;
+	this->m_mdiChild = m_mainWnd->createMdiChild(false);
+	if (!this->m_mdiChild) return;
+	this->m_mdiChild->show();
+	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(StartFeatureScout()));
+	if (!m_mdiChild->loadFile(dataName, false))
+	{
+		DEBUG_LOG("File could not be loaded!");
+		m_mdiChild->close();
+		return;
+	}
+}
+
+void iAPAQSplom::StartFeatureScout()
+{
+	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	if (!featureScout) {
+		
+		return; 
+	}
+	featureScout->FeatureScout();
+
+
+
+
+	 //attachment holen: 
+	
+
+	//this->m_mainWnd
+	
+	//mhd of segmented pores
+
+
 	/*
 	*dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 	*	QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
@@ -391,6 +435,8 @@ void iAPAQSplom::sentToFeatureScout()
 
 
 	//create mdi child from featureScout
+
+	
 }
 
 void iAPAQSplom::removeFixedPoint()

@@ -442,7 +442,7 @@ void iAPorosityAnalyserModuleInterface::launchPorosityAnalyser()
 	if( !dlg->exec() == QDialog::Accepted )
 		return;
 	
-	m_porosityAnalyser = new iAPorosityAnalyser( dlg->ResultsFolderName(), dlg->DatasetsFolderName(), m_mainWnd );
+	m_porosityAnalyser = new iAPorosityAnalyser(m_mainWnd, dlg->ResultsFolderName(), dlg->DatasetsFolderName(), m_mainWnd );
 	m_mainWnd->addSubWindow( m_porosityAnalyser );
 	m_porosityAnalyser->LoadStateAndShow(); //show();
 }

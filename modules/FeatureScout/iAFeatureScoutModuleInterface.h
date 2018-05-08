@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
+#include "FeatureScout_export.h"
+
 #include "io/csv_config.h"
 #include "io/iACsvIO.h"
-
 #include "iAModuleInterface.h"
 #include "iAObjectAnalysisType.h"
 #include "mdichild.h"
@@ -33,18 +34,20 @@ class iAFeatureScoutToolbar;
 
 
 
-class iAFeatureScoutModuleInterface : public iAModuleInterface
+class FeatureScout_API iAFeatureScoutModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 
 public:
 	void Initialize();
 	void hideFeatureScoutToolbar();
+
+public slots:
+	void FeatureScout();
+
 private slots:
 
 	void FeatureScoutWithCSV();
-
-	void FeatureScout();
 	void FeatureScout_Options();
 	void onChildClose();
 private:

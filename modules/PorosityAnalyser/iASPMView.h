@@ -50,6 +50,7 @@ class vtkSelection;
 struct iASelection;
 class iASPMSettings;
 class iAPAQSplom;
+class MainWindow; 
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView>  PorosityAnalyzerSPMConnector;
 
@@ -58,7 +59,7 @@ class iASPMView : public PorosityAnalyzerSPMConnector
 	Q_OBJECT
 
 public:
-	iASPMView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+	iASPMView(MainWindow *mWnd, QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iASPMView();
 	void setSelection( iASelection * sel );
 	void setDatasetsDir( QString datasetsDir );
