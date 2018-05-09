@@ -87,21 +87,21 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		gad->setObjectName( "Gradient Anisotropic Diffusion Smoothing" );
 		gad->setPixmap( QPixmap( ":/images/smooth_GAD.png" ) );
 		gad->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		gad->setToolTip( "<p>The <b>GradientAnisotropicDiffusion</b> smoothing filter reduce noise (or unwanted detail) "
-							 "in images while preserving specific image features. For many applications, there is an assumption "
-							 "that light-dark transitions (edges) are interesting. Standard isotropic diffusion methods move and "
-							 "blur light-dark boundaries. Anisotropic diffusion methods are formulated to specifically preserve edges.</p>"
-							 "<p><b>TimeStep: </b>appropriate time steps for solving this type of p.d.e.depend on the dimensionality of "
-							 "the image and the order of the equation.Stable values for most 2D and 3D functions are 0.125 and 0.0625, "
-							 "respectively, when the pixel spacing is unity or is turned off.In general, you should keep the time step "
-							 "below (PixelSpacing)/2^(N + 1), where N is the number of image dimensions.</p>"
-							 "<p><b>Conductance Parameter: </b>The conductance parameter controls the sensitivity of the conductance "
-							 "term in the basic anisotropic diffusion equation. It affects the conductance term in different ways "
-							 "depending on the particular variation on the basic equation. As a general rule, the lower the value, the "
-							 "more strongly the diffusion equation preserves image features (such as high gradients or curvature). A high "
-							 "value for conductance will cause the filter to diffuse image features more readily. Typical values range from "
-							 "0.5 to 2.0 for data like the Visible Human color data."
-							 "<p>https://itk.org/Doxygen/html/classitk_1_1AnisotropicDiffusionImageFilter.html</p>" );
+		gad->setToolTip("<p>The <b>GradientAnisotropicDiffusion</b> smoothing filter reduce noise (or unwanted detail) "
+			"in images while preserving specific image features. For many applications, there is an assumption "
+			"that light-dark transitions (edges) are interesting. Standard isotropic diffusion methods move and "
+			"blur light-dark boundaries. Anisotropic diffusion methods are formulated to specifically preserve edges.</p>"
+			"<p><b>TimeStep: </b>appropriate time steps for solving this type of p.d.e.depend on the dimensionality of "
+			"the image and the order of the equation.Stable values for most 2D and 3D functions are 0.125 and 0.0625, "
+			"respectively, when the pixel spacing is unity or is turned off.In general, you should keep the time step "
+			"below (PixelSpacing)/2^(N + 1), where N is the number of image dimensions.</p>"
+			"<p><b>Conductance Parameter: </b>The conductance parameter controls the sensitivity of the conductance "
+			"term in the basic anisotropic diffusion equation. It affects the conductance term in different ways "
+			"depending on the particular variation on the basic equation. As a general rule, the lower the value, the "
+			"more strongly the diffusion equation preserves image features (such as high gradients or curvature). A high "
+			"value for conductance will cause the filter to diffuse image features more readily. Typical values range from "
+			"0.5 to 2.0 for data like the Visible Human color data."
+			"<p>https://itk.org/Doxygen/html/classitk_1_1AnisotropicDiffusionImageFilter.html</p>");
 		gad->move( columnGutter * xIdx++, yIdx * rowStartOffset );
 		gad->show();
 		gad->setAttribute( Qt::WA_DeleteOnClose );
@@ -138,11 +138,11 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		med->setObjectName( "Median Smoothing" );
 		med->setPixmap( QPixmap( ":/images/smooth_Median.png" ) );
 		med->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		med->setToolTip( "<p>The <b>Median</b> smoothing filter Computes an image where a given pixel is the median "
-							 "value of the the pixels in a neighborhood about the corresponding input pixel. A median filter "
-							 "is one of the family of nonlinear filters.It is used to smooth an image without being biased "
-							 "by outliers or shot noise.</p>"
-							 "<p>https://itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html</p>" );
+		med->setToolTip("<p>The <b>Median</b> smoothing filter Computes an image where a given pixel is the median "
+			"value of the the pixels in a neighborhood about the corresponding input pixel. A median filter "
+			"is one of the family of nonlinear filters.It is used to smooth an image without being biased "
+			"by outliers or shot noise.</p>"
+			"<p>https://itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html</p>");
 		med->move( columnGutter * xIdx++, yIdx * rowStartOffset );
 		med->show();
 		med->setAttribute( Qt::WA_DeleteOnClose );
@@ -171,10 +171,10 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		otsu->setObjectName( "Otsu Threshold" );
 		otsu->setPixmap( QPixmap( ":/images/segment_Otsu.png" ) );
 		otsu->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 1px solid black; }" );
-		otsu->setToolTip( "<p>The <b>Otsu Threshold</b> filter creates a binary thresholded image that "
-							  "separates an image into foreground and background components.The filter computes the threshold "
-							  "using the OtsuThresholdCalculator and applies that theshold to the input image using the BinaryThresholdImageFilter.</p>"
-							  "<p>http ://hdl.handle.net/10380/3279 or http://www.insight-journal.org/browse/publication/811 </p>" );
+		otsu->setToolTip("<p>The <b>Otsu Threshold</b> filter creates a binary thresholded image that "
+			"separates an image into foreground and background components.The filter computes the threshold "
+			"using the OtsuThresholdCalculator and applies that theshold to the input image using the BinaryThresholdImageFilter.</p>"
+			"<p>http ://hdl.handle.net/10380/3279 or http://www.insight-journal.org/browse/publication/811 </p>");
 		otsu->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		otsu->show();
 		otsu->setAttribute( Qt::WA_DeleteOnClose );
@@ -317,26 +317,40 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		binary->setObjectName( "Binary Threshold" );
 		binary->setPixmap( QPixmap( ":/images/segment_Binary.png" ) );
 		binary->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		binary->setToolTip( "<p>The <b>Binary Threshold</b> filter produces an output image whose pixels are either one of two "
-								"values (OutsideValue or InsideValue), depending on whether the corresponding input image "
-								"pixels lie between the two thresholds (LowerThreshold and UpperThreshold). Values equal to "
-								"either threshold is considered to be between the thresholds.</p>"
-								"<p>https://itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html</p>" );
+		binary->setToolTip("<p>The <b>Binary Threshold</b> filter produces an output image whose pixels are either one of two "
+			"values (OutsideValue or InsideValue), depending on whether the corresponding input image "
+			"pixels lie between the two thresholds (0 and the user-defined threshold x). Values equal to "
+			"either threshold is considered to be between the thresholds.</p>"
+			"<p>https://itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html</p>");
 		binary->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		binary->show();
 		binary->setAttribute( Qt::WA_DeleteOnClose );
 		m_labelList.append( binary );
+
+		QLabel *general = new QLabel(this);
+		general->setObjectName("General Threshold");
+		general->setPixmap(QPixmap(":/images/segment_General.png"));
+		general->setStyleSheet("QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }");
+		general->setToolTip("<p>The <b>General Threshold</b> filter produces an output image whose pixels are either one of two "
+			"values (OutsideValue or InsideValue), depending on whether the corresponding input image "
+			"pixels lie between the two thresholds (lower threshold and upper threshold). Values equal to "
+			"either threshold is considered to be between the thresholds.</p>"
+			"<p>https://itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html</p>");
+		general->move(columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx);
+		general->show();
+		general->setAttribute(Qt::WA_DeleteOnClose);
+		m_labelList.append(general);
 
 		QLabel *rats = new QLabel( this );
 		rats->setObjectName( "Rats Threshold" );
 		rats->setPixmap( QPixmap( ":/images/segment_Rats.png" ) );
 		rats->setObjectName( "Rats Threshold" );
 		rats->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		rats->setToolTip( "<p>The <b>Robust Automatic Threshold (RATS)</b> filter takes two inputs : the image to be thresholded "
-							  "and a image of gradient magnitude of that image. The threshold is computed as the mean of the "
-							  "pixel values in the input image weighted by the pixel values in the gradient image. The threshold "
-							  "computed that way should be the mean pixel value where the intensity change the most.</p>"
-							  "<p>Lehmann G.http ://hdl.handle.net/1926/370 http://www.insight-journal.org/browse/publication/134 </p>" );
+		rats->setToolTip("<p>The <b>Robust Automatic Threshold (RATS)</b> filter takes two inputs : the image to be thresholded "
+			"and a image of gradient magnitude of that image. The threshold is computed as the mean of the "
+			"pixel values in the input image weighted by the pixel values in the gradient image. The threshold "
+			"computed that way should be the mean pixel value where the intensity change the most.</p>"
+			"<p>Lehmann G.http ://hdl.handle.net/1926/370 http://www.insight-journal.org/browse/publication/134 </p>");
 		rats->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		rats->show();
 		rats->setAttribute( Qt::WA_DeleteOnClose );
@@ -346,12 +360,12 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		multiOtsu->setObjectName( "Multiple Otsu" );
 		multiOtsu->setPixmap( QPixmap( ":/images/segment_MultipleOtsu.png" ) );
 		multiOtsu->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		multiOtsu->setToolTip( "<p>The <b>Multiple Otsu Threshol</b> filter creates a labeled image that separates the input image into various "
-							   "classes.The filter computes the thresholds using the OtsuMultipleThresholdsCalculator and applies those thesholds "
-							   "to the input image using the ThresholdLabelerImageFilter.The NumberOfHistogramBins and NumberOfThresholds can be set "
-							   "for the Calculator.</p><p>This filter also includes an option to use the valley emphasis algorithm from <i>H.F.Ng, "
-							   "Automatic thresholding for defect detection, Pattern Recognition Letters, ( 27 ) : 1644 - 1649, 2006</i>. The valley "
-							   "emphasis algorithm is particularly effective when the object to be thresholded is small.</p>" );
+		multiOtsu->setToolTip("<p>The <b>Multiple Otsu Threshol</b> filter creates a labeled image that separates the input image into various "
+			"classes.The filter computes the thresholds using the OtsuMultipleThresholdsCalculator and applies those thesholds "
+			"to the input image using the ThresholdLabelerImageFilter.The NumberOfHistogramBins and NumberOfThresholds can be set "
+			"for the Calculator.</p><p>This filter also includes an option to use the valley emphasis algorithm from <i>H.F.Ng, "
+			"Automatic thresholding for defect detection, Pattern Recognition Letters, ( 27 ) : 1644 - 1649, 2006</i>. The valley "
+			"emphasis algorithm is particularly effective when the object to be thresholded is small.</p>");
 		multiOtsu->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		multiOtsu->show();
 		multiOtsu->setAttribute( Qt::WA_DeleteOnClose );
@@ -397,9 +411,9 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		isoX->setObjectName( "IsoX Threshold" );
 		isoX->setPixmap( QPixmap( ":/images/segment_IsoX.png" ) );
 		isoX->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		isoX->setToolTip( "<p>The <b>IsoX Threshold</b> lies between the air/pore peak and the first material peak of the gray value "
-						  "histogram.</p><p>An isoX value of 50% means that from this point the distance to the air/pore peak is the same as "
-						  "the distance to the material 1 peak.</p>" );
+		isoX->setToolTip("<p>The <b>IsoX Threshold</b> lies between the air/pore peak and the first material peak of the gray value "
+			"histogram.</p><p>An isoX value of 50% means that from this point the distance to the air/pore peak is the same as "
+			"the distance to the material 1 peak.</p>");
 		isoX->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * ++yGutterIdx );
 		isoX->show();
 		isoX->setAttribute( Qt::WA_DeleteOnClose );
@@ -409,8 +423,8 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		fhw->setObjectName( "Fhw Threshold" );
 		fhw->setPixmap( QPixmap( ":/images/segment_FHW.png" ) );
 		fhw->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }" );
-		fhw->setToolTip( "<p>The <b>FHW Threshold</b> is calculated based on the Iso50 value (the threshold which lies between the air/pore "
-							 "peak and the first material peak) and the FHW weight factor." );
+		fhw->setToolTip("<p>The <b>FHW Threshold</b> is calculated based on the Iso50 value (the threshold which lies between the air/pore "
+			"peak and the first material peak) and the FHW weight factor.");
 		fhw->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter *yGutterIdx );
 		fhw->show();
 		fhw->setAttribute( Qt::WA_DeleteOnClose );
