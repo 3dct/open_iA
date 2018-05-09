@@ -67,17 +67,16 @@ IF(ITK_VERSION_MAJOR LESS 4)
 	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.x")
 ENDIF (ITK_VERSION_MAJOR LESS 4)
 SET( ITK_LIBRARIES
-	ITKBiasCorrection		ITKBioCell				ITKCommon			ITKIOImageBase
-	ITKFEM					ITKIOBioRad				ITKIOBMP			ITKIOGDCM			ITKIOGE
-	ITKIOGIPL				ITKIOHDF5				ITKIOIPL			ITKIOJPEG			ITKIOLSM
-	ITKIOMeta				ITKIONIFTI				ITKIONRRD			ITKIOPNG			ITKIOSiemens
-	ITKIOSpatialObjects		ITKIOStimulate			ITKIOTIFF			ITKIOVTK			ITKIOXML
-	ITKVtkGlue				ITKKLMRegionGrowing		ITKMesh				ITKOptimizers		ITKPath
-	ITKVNLInstantiation		ITKVTK					ITKWatersheds		ITKDICOMParser		ITKEXPAT
-	ITKLabelMap				itkjpeg					ITKMetaIO			itkNetlibSlatec
-	ITKniftiio				ITKNrrdIO				itkpng				itksys
-	itktiff					itkv3p_netlib			itkvcl				itkvnl				itkvnl_algo
+	ITKBiasCorrection    ITKBioCell      ITKCommon            ITKDICOMParser       ITKEXPAT        ITKFEM
+	ITKIOImageBase       ITKIOBioRad     ITKIOBMP             ITKIOGDCM            ITKIOGE         ITKIOGIPL
+	ITKIOHDF5            ITKIOIPL        ITKIOJPEG            ITKIOLSM             ITKIOMeta       ITKIONIFTI
+	ITKIONRRD            ITKIOPNG        ITKIOSiemens         ITKIOSpatialObjects  ITKIOStimulate  ITKIOTIFF
+	ITKIOVTK             ITKIOXML
+	ITKKLMRegionGrowing  ITKLabelMap     ITKMesh              ITKMetaIO            ITKniftiio      ITKNrrdIO
+	ITKOptimizers        ITKPath         ITKVNLInstantiation  ITKVTK               ITKVtkGlue      ITKWatersheds
 	ITKznz
+	itkjpeg              itkNetlibSlatec itkpng               itksys               itktiff         itkv3p_netlib
+	itkvcl               itkvnl          itkvnl_algo
 )
 IF ("${ITKZLIB_LIBRARIES}" STREQUAL "itkzlib")
 	SET (ITK_LIBRARIES ${ITK_LIBRARIES} itkzlib)
@@ -286,11 +285,9 @@ IF (WIN32)
 	ENDFOREACH(ITK_LIB)
 ELSEIF (UNIX)
 	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
-	SET (EXTRA_ITK_LIBS	itkdouble-conversion
-		itkgdcmcharls	itkgdcmCommon	itkgdcmDICT	itkgdcmDSED	itkgdcmIOD	itkgdcmjpeg12
-		itkgdcmjpeg16	itkgdcmjpeg8	itkgdcmMSFF	itkgdcmuuid
-		itknetlib	ITKSpatialObjects
-		ITKStatistics	ITKTransform)
+	SET (EXTRA_ITK_LIBS           ITKSpatialObjects  ITKStatistics  ITKTransform
+		itkdouble-conversion  itkgdcmcharls      itkgdcmCommon  itkgdcmDICT  itkgdcmDSED  itkgdcmIOD
+		itkgdcmjpeg12         itkgdcmjpeg16      itkgdcmjpeg8   itkgdcmMSFF  itkgdcmuuid  itknetlib)
 	# starting with ITK 4.11, itkhdf5* libraries must not be referenced anymore, before they are required:
 	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
 		SET(EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkhdf5_cpp itkhdf5)
@@ -329,22 +326,22 @@ ENDIF()
 # VTK
 SET (VTK_VER "${VTK_VERSION_MAJOR}.${VTK_VERSION_MINOR}")
 SET (VTK_EXTRA_LIBS
-	vtkalglib	vtkCommonColor	vtkCommonComputationalGeometry	vtkCommonDataModel
-	vtkCommonExecutionModel	vtkCommonMath	vtkCommonMisc	vtkCommonSystem
-	vtkCommonTransforms	vtkexoIIc	vtkexpat	vtkFiltersExtraction
-	vtkFiltersGeneral	vtkFiltersGeometry	vtkFiltersImaging	vtkFiltersSources
-	vtkFiltersStatistics	vtkFiltersTexture	vtkfreetype	vtkhdf5
-	vtkImagingColor	vtkImagingFourier	vtkImagingGeneral	vtkImagingHybrid
-	vtkImagingSources	vtkInfovisLayout	vtkInteractionStyle	vtkInteractionWidgets
-	vtkIOImage	vtkIOLegacy	vtkIOXMLParser	vtkjpeg	vtklibxml2
-	vtkmetaio	vtkoggtheora	vtkpng	vtkRenderingLabel
-	vtkRenderingVolume	vtktiff	vtkverdict	vtkViewsInfovis
-	vtkzlib)
+	vtkalglib                vtkCommonColor      vtkCommonComputationalGeometry  vtkCommonDataModel
+	vtkCommonExecutionModel  vtkCommonMath       vtkCommonMisc                   vtkCommonSystem
+	vtkCommonTransforms      vtkexoIIc           vtkexpat                        vtkFiltersExtraction
+	vtkFiltersGeneral        vtkFiltersGeometry  vtkFiltersImaging               vtkFiltersSources
+	vtkFiltersStatistics     vtkFiltersTexture   vtkfreetype                     vtkhdf5
+	vtkImagingColor          vtkImagingFourier   vtkImagingGeneral               vtkImagingHybrid
+	vtkImagingSources        vtkInfovisLayout    vtkInteractionStyle             vtkInteractionWidgets
+	vtkIOImage               vtkIOLegacy         vtkIOXMLParser                  vtkjpeg
+	vtklibxml2               vtkmetaio           vtkoggtheora                    vtkpng
+	vtkRenderingLabel        vtkRenderingVolume  vtktiff                         vtkverdict
+	vtkViewsInfovis          vtkzlib)
 IF (${VTK_MAJOR_VERSION} LESS 7 AND ${VTK_MINOR_VERSION} LESS 3)
-	SET (VTK_EXTRA_LIBS ${VTK_EXTRA_LIBS}	vtkRenderingFreeTypeOpenGL)
+	SET (VTK_EXTRA_LIBS ${VTK_EXTRA_LIBS}  vtkRenderingFreeTypeOpenGL)
 ENDIF()
 IF (${VTK_MAJOR_VERSION} GREATER 7)
-	SET (VTK_EXTRA_LIBS ${VTK_EXTRA_LIBS}	vtklz4)
+	SET (VTK_EXTRA_LIBS ${VTK_EXTRA_LIBS}  vtklz4)
 ENDIF()
 SET (VTK_ALL_LIBS ${VTK_LIBRARIES} ${VTK_EXTRA_LIBS})
 IF (WIN32)
