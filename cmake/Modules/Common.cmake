@@ -56,20 +56,6 @@ ENDIF()
 # LIBRARIES
 #-------------------------
 
-FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE)
-IF (HDF5_ROOT AND NOT "${HDF5_ROOT}" STREQUAL "${HDF5_DIR}")
-	SET(HDF5_DIR "${HDF5_ROOT}" CACHE PATH "" FORCE)
-	MESSAGE(STATUS "HDF5: Overriding found HDF5_DIR=${HDF5_DIR} with HDF5_ROOT=${HDF5_ROOT}")
-ENDIF()
-IF (HDF5_FOUND)
-	FIND_LIBRARY(HDF5_LIBRARY hdf5 PATHS ${HDF5_DIR}/../bin ${HDF5_DIR}/../../lib ${HDF5_DIR}/../lib)
-	IF (CMAKE_COMPILER_IS_GNUCXX)
-		FIND_LIBRARY(HDF5_Z z PATHS ${HDF5_DIR}/../../lib NO_CMAKE_SYSTEM_PATH)
-		FIND_LIBRARY(HDF5_SZIP szip PATHS ${HDF5_DIR}/../../lib)
-		SET (HDF5_LIBRARY ${HDF5_LIBRARY} ${HDF5_SZIP} ${HDF5_Z})
-	ENDIF()
-	INCLUDE_DIRECTORIES( ${HDF5_INCLUDE_DIR} )
-ENDIF()
 
 # ITK (>= 4)
 FIND_PACKAGE(ITK)
@@ -223,6 +209,23 @@ IF(EIGEN3_FOUND)
 	INCLUDE_DIRECTORIES( ${EIGEN3_INCLUDE_DIR} )
 ENDIF(EIGEN3_FOUND)
 
+# HDF5
+FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE)
+IF (HDF5_ROOT AND NOT "${HDF5_ROOT}" STREQUAL "${HDF5_DIR}")
+	SET(HDF5_DIR "${HDF5_ROOT}" CACHE PATH "" FORCE)
+	MESSAGE(STATUS "HDF5: Overriding found HDF5_DIR=${HDF5_DIR} with HDF5_ROOT=${HDF5_ROOT}")
+ENDIF()
+IF (HDF5_FOUND)
+	FIND_LIBRARY(HDF5_LIBRARY hdf5 PATHS ${HDF5_DIR}/../bin ${HDF5_DIR}/../../lib ${HDF5_DIR}/../lib)
+	IF (CMAKE_COMPILER_IS_GNUCXX)
+		FIND_LIBRARY(HDF5_Z z PATHS ${HDF5_DIR}/../../lib NO_CMAKE_SYSTEM_PATH)
+		FIND_LIBRARY(HDF5_SZIP szip PATHS ${HDF5_DIR}/../../lib)
+		SET (HDF5_LIBRARY ${HDF5_LIBRARY} ${HDF5_SZIP} ${HDF5_Z})
+	ENDIF()
+	MESSAGE(STATUS "${HDF5_INCLUDE_DIR}")
+# make sure HDF5 is included before itk (which brings its own hdf5 libraries in a different version)
+	INCLUDE_DIRECTORIES(BEFORE ${HDF5_INCLUDE_DIR})
+ENDIF()
 
 # Astra Toolbox
 FIND_PACKAGE(AstraToolbox)
@@ -284,7 +287,7 @@ ELSEIF (UNIX)
 	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
 	SET (EXTRA_ITK_LIBS	itkdouble-conversion
 		itkgdcmcharls	itkgdcmCommon	itkgdcmDICT	itkgdcmDSED	itkgdcmIOD	itkgdcmjpeg12
-		itkgdcmjpeg16	itkgdcmjpeg8	itkgdcmMSFF	itkgdcmopenjpeg itkgdcmuuid
+		itkgdcmjpeg16	itkgdcmjpeg8	itkgdcmMSFF	itkgdcmuuid
 		itknetlib	ITKSpatialObjects
 		ITKStatistics	ITKTransform)
 	# starting with ITK 4.11, itkhdf5* libraries must not be referenced anymore, before they are required:
@@ -305,6 +308,12 @@ ELSEIF (UNIX)
 				ENDIF()
 			ENDIF()
 		ENDFOREACH()
+	ENDIF()
+	# previous to 4.13: libitkgdcmopenjpeg, afterwards: libitkgdcmopenjp2
+	IF (ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 12)
+		SET (EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkgdcmopenjp2)
+	ELSE()
+		SET (EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkgdcmopenjpeg)
 	ENDIF()
 	SET (ALL_ITK_LIBS ${ITK_LIBRARIES} ${EXTRA_ITK_LIBS})
 	FOREACH(ITK_LIB ${ALL_ITK_LIBS})
