@@ -51,8 +51,9 @@ typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 
 const int algNameColInd = 2;
 const int datasetColInd = 3;
-const int groupColInd = 4;const int outputSPMParamNum = 2;
-const int paramsOffsetInRunsCSV = 8;
+const int groupColInd = 4;
+const int outputSPMParamNum = 2;
+const int paramsOffsetInRunsCSV = 14;
 const int porosityOffsetInRuns = 2;
 const int maskOffsetInRuns = 4;
 const int gtDatasetColInd = 0;
@@ -75,7 +76,13 @@ const QStringList runsCSVHeader = QStringList()\
 << "Mask MHD"\
 << "False Positive Error"\
 << "False Negative Error"\
-<< "Dice";
+<< "Dice"\
+<< "FeatureCnt"\
+<< "AvgFeatureVol"\
+<< "avgFeaturePhi"\
+<< "avgFeatureTheta"\
+<< "avgFeatureRoundness"\
+<< "avgFeatureLength";
 
 const QStringList filterNames = QStringList()\
 << "Binary Threshold"\
@@ -108,7 +115,8 @@ const QStringList filterNames = QStringList()\
 << "Huang Threshold"\
 << "Li Threshold"\
 << "KittlerIllingworth Threshold"\
-<< "Triangle Threshold";
+<< "Triangle Threshold"\
+<< "General Threshold";
 
 const QString contextMenuStyle(
 	"QMenu{"
@@ -152,7 +160,8 @@ enum PorosityFilterID
 	P_HUANG_THRESHOLD,
 	P_LI_THRESHOLD,
 	P_KITTLERILLINGWORTH_THRESHOLD,
-	P_TRIANGLE_THRESHOLD
+	P_TRIANGLE_THRESHOLD,
+	P_GENERAL_THRESHOLD
 };
 
 typedef QMap<QString, PorosityFilterID> MapQString2PorosityId;
@@ -190,6 +199,7 @@ static MapQString2PorosityId fill_FilterNameToId()
 	m[filterNames.at( 28 )] = P_LI_THRESHOLD;
 	m[filterNames.at( 29 )] = P_KITTLERILLINGWORTH_THRESHOLD;
 	m[filterNames.at( 30 )] = P_TRIANGLE_THRESHOLD;
+	m[filterNames.at(31)] = P_GENERAL_THRESHOLD;
 	return m;
 }
 const MapQString2PorosityId FilterNameToId = fill_FilterNameToId();
@@ -275,6 +285,9 @@ static MapId2Params fill_FilterIdToParamList()
 	m[P_LI_THRESHOLD] = QList<ParamNameType>();
 	m[P_KITTLERILLINGWORTH_THRESHOLD] = QList<ParamNameType>();
 	m[P_TRIANGLE_THRESHOLD] = QList<ParamNameType>();
+	m[P_GENERAL_THRESHOLD] = QList<ParamNameType>()\
+		<< NameTypePair("LowerThr", PT_FLOAT)\
+		<< NameTypePair("UpperThr", PT_FLOAT);
 	return m;
 }
 const MapId2Params FilterIdToParamList = fill_FilterIdToParamList();
@@ -314,6 +327,7 @@ static MapId2Params fill_FilterIdToOutputParamList()
 	m[P_LI_THRESHOLD] = m[P_RATS_THRESHOLD];
 	m[P_KITTLERILLINGWORTH_THRESHOLD] = m[P_RATS_THRESHOLD];
 	m[P_TRIANGLE_THRESHOLD] = m[P_RATS_THRESHOLD];
+	m[P_GENERAL_THRESHOLD] = QList<ParamNameType>();
 	return m;
 }
 const MapId2Params FilterIdToOutputParamList = fill_FilterIdToOutputParamList();

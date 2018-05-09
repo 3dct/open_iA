@@ -327,6 +327,20 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		binary->setAttribute( Qt::WA_DeleteOnClose );
 		m_labelList.append( binary );
 
+		QLabel *general = new QLabel(this);
+		general->setObjectName("General Threshold");
+		general->setPixmap(QPixmap(":/images/segment_Binary.png"));
+		general->setStyleSheet("QToolTip { color: black; background-color: #ffffe1; border: 0px solid white; }");
+		general->setToolTip("<p>The <b>Binary Threshold</b> filter produces an output image whose pixels are either one of two "
+			"values (OutsideValue or InsideValue), depending on whether the corresponding input image "
+			"pixels lie between the two thresholds (LowerThreshold and UpperThreshold). Values equal to "
+			"either threshold is considered to be between the thresholds.</p>"
+			"<p>https://itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html</p>");
+		general->move(columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx);
+		general->show();
+		general->setAttribute(Qt::WA_DeleteOnClose);
+		m_labelList.append(general);
+
 		QLabel *rats = new QLabel( this );
 		rats->setObjectName( "Rats Threshold" );
 		rats->setPixmap( QPixmap( ":/images/segment_Rats.png" ) );
