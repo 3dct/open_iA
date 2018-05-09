@@ -67,7 +67,9 @@ protected slots:
 	void fixPoint();
 
 	//send labeled image and csv from PA to FeatureScout
-	void sendToFeatureScout(); 
+	void sendToFeatureScout();
+	void getFilesLabeledFromPoint(QString & fileName, QString & mhdName);
+
 
 protected:
 	QStringList m_maskNames;
