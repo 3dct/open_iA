@@ -90,7 +90,7 @@ FOREACH( indx RANGE ${len} )
 
 		add_library(${module_name} ${LIB_TYPE} ${module_srcs} ${module_hs} )
 		if(MSVC)
-			set_target_properties(${module_name} PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
+			set_target_properties(${module_name} PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 		endif()
 		TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${module_full_path} )
 		# workaround for ui_xyz.h files:
