@@ -1283,13 +1283,13 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 			result[4] = GetVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount, true, undecided[4]);
 			QVector<QVector<double>>  probVoteDice;
 			QVector<QVector<double>> undecidedDice;
-			for (int i = 0; i < ProbVoteCount; ++i)
+			for (int j = 0; j < ProbVoteCount; ++j)
 			{
 				probVoteDice.push_back(QVector<double>());
 				undecidedDice.push_back(QVector<double>());
-				result[i + 5] = GetProbVotingImage(selection, value[i + 5],
-					static_cast<VotingRule>(i), m_labelCount, true, undecided[i+5],
-					probVoteDice[i], undecidedDice[i], m_groundTruthImage);
+				result[j + 5] = GetProbVotingImage(selection, value[j + 5],
+					static_cast<VotingRule>(j), m_labelCount, true, undecided[j + 5],
+					probVoteDice[j], undecidedDice[j], m_groundTruthImage);
 			}
 			for (int r = 0; r < ResultCount; ++r)
 			{
