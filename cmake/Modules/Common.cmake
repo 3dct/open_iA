@@ -56,7 +56,6 @@ ENDIF()
 # LIBRARIES
 #-------------------------
 
-
 # ITK (>= 4)
 FIND_PACKAGE(ITK)
 IF(ITK_FOUND)
@@ -217,13 +216,15 @@ IF (HDF5_ROOT AND NOT "${HDF5_ROOT}" STREQUAL "${HDF5_DIR}")
 ENDIF()
 IF (HDF5_FOUND)
 	FIND_LIBRARY(HDF5_LIBRARY hdf5 PATHS ${HDF5_DIR}/../bin ${HDF5_DIR}/../../lib ${HDF5_DIR}/../lib)
+	FIND_PATH(HDF5_INCLUDE_OVERWRITE_DIR hdf5.h PATHS ${HDF5_DIR}/../include)
+	SET(HDF5_INCLUDE_DIR "${HDF5_INCLUDE_OVERWRITE_DIR}" CACHE PATH "" FORCE)
+	UNSET(HDF5_INCLUDE_OVERWRITE_DIR CACHE)
 	IF (CMAKE_COMPILER_IS_GNUCXX)
 		FIND_LIBRARY(HDF5_Z z PATHS ${HDF5_DIR}/../../lib NO_CMAKE_SYSTEM_PATH)
 		FIND_LIBRARY(HDF5_SZIP szip PATHS ${HDF5_DIR}/../../lib)
 		SET (HDF5_LIBRARY ${HDF5_LIBRARY} ${HDF5_SZIP} ${HDF5_Z})
 	ENDIF()
-	MESSAGE(STATUS "${HDF5_INCLUDE_DIR}")
-# make sure HDF5 is included before itk (which brings its own hdf5 libraries in a different version)
+	# make sure HDF5 is included before itk (which brings its own hdf5 libraries in a different version)
 	INCLUDE_DIRECTORIES(BEFORE ${HDF5_INCLUDE_DIR})
 ENDIF()
 
