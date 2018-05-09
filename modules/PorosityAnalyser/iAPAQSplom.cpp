@@ -381,38 +381,37 @@ void iAPAQSplom::fixPoint()
 
 void iAPAQSplom::sendToFeatureScout()
 {
-	//get Point, get data name,
-	//sent csv, mhd.file what ever to featureScout
-	//labelled cvs with new characteristics
-	//TODO sent correct file to FeatureScout
-	m_fixedPointInd = m_activePlot->getCurrentPoint();
-	int dsInd = getDatasetIndexFromPointIndex(m_fixedPointInd);
-	QString sliceFilename = getSliceFilename(m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd]);
-
-	//stub for data loading
-	//mhd of fileName
-	QString MHDDatasetName = sliceFilename.section('/', -5, -5).section('_', -1, -1).append(".mhd");
-	QString dataPath = sliceFilename.section('/', 0, -4); 
-	QString fileName = sliceFilename.section('/', -2, -2).section('_', 0,0);
 	
+	QString fileName = ""; 
+	QString mhdName = ""; 
+	getFilesLabeledFromPoint(fileName, mhdName);
 
-	//Just for testing
-	QString dataName = "M://__TestDatasets//PorosityAnalyzer//PorosityAnalyzer_test_datasets//" + MHDDatasetName;
-	QString mhdName = dataPath+"/" + fileName + "_labelled" + ".mhd";
-	m_csvName = dataPath + "/" + fileName+ "_mhd.csv";
 	
 	this->m_mdiChild = m_mainWnd->createMdiChild(false);
 	
-
 	if (!this->m_mdiChild) return;
 	this->m_mdiChild->show();
 	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(StartFeatureScout()));
-	if (!m_mdiChild->loadFile(dataName, false))
+	if (!m_mdiChild->loadFile(mhdName, false))
 	{
 		DEBUG_LOG("File could not be loaded!");
 		m_mdiChild->close();
 		return;
 	}
+}
+
+void iAPAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
+{
+	QString sliceFileName = "";
+	QString dataPath = "";
+	int dsInd = 0;
+	m_fixedPointInd = m_activePlot->getCurrentPoint();
+	dsInd = getDatasetIndexFromPointIndex(m_fixedPointInd);
+	sliceFileName = getSliceFilename(m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd]);
+	dataPath = sliceFileName.section('/', 0, -3);
+	fileName = sliceFileName.section('/', -2, -2).section('_', 0, 0);
+	mhdName = dataPath + "/" + fileName + "_labeled" + ".mhd";
+	m_csvName = dataPath + "/" + fileName + ".mhd.csv";
 }
 
 void iAPAQSplom::StartFeatureScout()

@@ -65,6 +65,8 @@ public slots:
 protected slots:
 	virtual void currentPointUpdated( int index );
 	void fixPoint();
+
+	//send labeled image and csv from PA to FeatureScout
 	void sendToFeatureScout(); 
 
 protected:
