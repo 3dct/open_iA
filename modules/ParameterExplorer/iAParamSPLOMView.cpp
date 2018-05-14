@@ -148,8 +148,8 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 		double rgba[4];
 		for (vtkIdType i = 0; i < 2; i++)
 		{
-			for (int i = 0; i < 4; ++i)
-				rgba[i] = DefaultColor[i];
+			for (int j = 0; j < 4; ++j)
+				rgba[j] = DefaultColor[j];
 			m_lut->SetTableValue(i, rgba);
 		}
 		m_lut->Build();

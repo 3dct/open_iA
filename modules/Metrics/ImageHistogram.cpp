@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #include "ImageHistogram.h"
 
-#include <vtkMath.h>
+#include <vtkMath.h> // for vtkMath::Pi()
 
 #include <algorithm>
+#include <cmath>
 
 namespace
 {
@@ -187,7 +188,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 	double sum=0.0, value;
 	for(int i=-dknl_sz; i<=dknl_sz; i++)
 	{
-		double value=1/(sqrt(2*vtkMath::Pi())*gauss_sigma)*exp(-0.5*i*i/(gauss_sigma*gauss_sigma));
+		double value=1/(std::sqrt(2*vtkMath::Pi())*gauss_sigma)*std::exp(-0.5*i*i/(gauss_sigma*gauss_sigma));
 		gauss_knl.push_back(value);
 		sum+=value;
 	}
@@ -380,9 +381,9 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 
 	// Total quality measure between the lowest absorbing (air) and the peak with highest probability
 	if(Q_equation==0)
-		return abs(result[maxprobabilityClassIDX].mean-result[0].mean)/sqrt(result[maxprobabilityClassIDX].sigma*result[0].sigma);
+		return abs(result[maxprobabilityClassIDX].mean-result[0].mean)/std::sqrt(result[maxprobabilityClassIDX].sigma*result[0].sigma);
 	else
-		return abs(result[maxprobabilityClassIDX].mean-result[0].mean)/sqrt(result[maxprobabilityClassIDX].sigma*result[maxprobabilityClassIDX].sigma+result[0].sigma*result[0].sigma);
+		return abs(result[maxprobabilityClassIDX].mean-result[0].mean)/std::sqrt(result[maxprobabilityClassIDX].sigma*result[maxprobabilityClassIDX].sigma+result[0].sigma*result[0].sigma);
 }
 
  /** \fn float cImageHistogram::CalcEntropy(std::vector<int> , std::vector<ClassMeasure> &result, int Q_equation)

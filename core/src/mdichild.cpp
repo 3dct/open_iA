@@ -2131,7 +2131,7 @@ bool MdiChild::initView( QString const & title )
 		this->addImageProperty();
 		if (imageData->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
 		{
-			//tabifyDockWidget(logs, m_histogramContainer);
+			tabifyDockWidget(logs, m_histogramContainer);
 			this->addProfile();
 		}
 	}

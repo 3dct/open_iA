@@ -28,7 +28,7 @@
      <property name="title">
       <string>Format</string>
      </property>
-     <widget class="QWidget" name="layoutWidget">
+     <widget class="QWidget" name="layoutWidget1">
       <property name="geometry">
        <rect>
         <x>690</x>
@@ -112,7 +112,7 @@
        <property name="title">
         <string>Coordinates Colunm</string>
        </property>
-       <widget class="QWidget" name="layoutWidget">
+       <widget class="QWidget" name="layoutWidget2">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -269,7 +269,7 @@
         <string>Skip Endline</string>
        </property>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
+      <widget class="QWidget" name="layoutWidget3">
        <property name="geometry">
         <rect>
          <x>1</x>
@@ -1580,7 +1580,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
+      <widget class="QWidget" name="layoutWidget4">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -1638,7 +1638,7 @@
       </property>
       <layout class="QVBoxLayout" name="myLayout"/>
      </widget>
-     <widget class="QWidget" name="layoutWidget">
+     <widget class="QWidget" name="layoutWidget5">
       <property name="geometry">
        <rect>
         <x>880</x>
@@ -1689,7 +1689,7 @@
        <string>PreviewFile</string>
       </property>
      </widget>
-     <widget class="QWidget" name="layoutWidget">
+     <widget class="QWidget" name="layoutWidget6">
       <property name="geometry">
        <rect>
         <x>12</x>
@@ -1803,7 +1803,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="layoutWidget">
+     <widget class="QWidget" name="layoutWidget7">
       <property name="geometry">
        <rect>
         <x>190</x>

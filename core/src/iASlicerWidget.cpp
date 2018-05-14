@@ -169,6 +169,11 @@ iASlicerWidget::~iASlicerWidget()
 void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 {
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
+
+	if (event->key() == Qt::Key_R)
+	{
+		ren->ResetCamera();
+	}
 	if (event->key() == Qt::Key_O)
 	{
 		pickPoint( pickedData.pos, pickedData.res, pickedData.ind );
