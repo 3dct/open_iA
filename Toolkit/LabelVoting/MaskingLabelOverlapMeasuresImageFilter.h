@@ -201,28 +201,28 @@ namespace fhw {
 	protected:
 		MaskingLabelOverlapMeasuresImageFilter();
 		~MaskingLabelOverlapMeasuresImageFilter() {};
-		void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
+		void PrintSelf(std::ostream& os, itk::Indent indent) const override;
 
 		/**
 		* Pass the input through unmodified. Do this by setting the output to the
 		* source this by setting the output to the source image in the
 		* AllocateOutputs() method.
 		*/
-		void AllocateOutputs() ITK_OVERRIDE;
+		void AllocateOutputs() override;
 
-		void BeforeThreadedGenerateData() ITK_OVERRIDE;
+		void BeforeThreadedGenerateData() override;
 
-		void AfterThreadedGenerateData() ITK_OVERRIDE;
+		void AfterThreadedGenerateData() override;
 
 		/** Multi-thread version GenerateData. */
-		void ThreadedGenerateData(const RegionType&, itk::ThreadIdType) ITK_OVERRIDE;
+		void ThreadedGenerateData(const RegionType&, itk::ThreadIdType) override;
 
 		// Override since the filter produces all of its output
-		void EnlargeOutputRequestedRegion(itk::DataObject *data) ITK_OVERRIDE;
+		void EnlargeOutputRequestedRegion(itk::DataObject *data) override;
 
 	private:
-		MaskingLabelOverlapMeasuresImageFilter(const Self&) ITK_DELETE_FUNCTION;
-		void operator=(const Self&) ITK_DELETE_FUNCTION;
+		MaskingLabelOverlapMeasuresImageFilter(const Self&) =delete;
+		void operator=(const Self&) =delete;
 
 		std::vector<MapType> m_LabelSetMeasuresPerThread;
 		MapType              m_LabelSetMeasures;

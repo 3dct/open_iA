@@ -77,7 +77,7 @@ namespace iAITKIO
 		if (!imageIO)
 		{
 			throw itk::ExceptionObject( __FILE__, __LINE__, QString("iAITKIO: Could not open file %1, aborting loading.").arg(fileName).toLatin1().data() );
-			return 0;
+			return ImagePointer();
 		}
 
 		imageIO->SetFileName(fileName.toLatin1());
