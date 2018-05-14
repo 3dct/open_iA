@@ -138,7 +138,7 @@ FOREACH( indx RANGE ${len} )
 			INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)
 
 			# Install .vcxproj.user file for module to be able to start open_iA
-			IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_${module_name}_DBG_ENV_PATH}")
+			IF (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user OR NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_${module_name}_DBG_ENV_PATH}")
 				# force cmake to copy the files:
 				FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user)
 				# create .user files:
