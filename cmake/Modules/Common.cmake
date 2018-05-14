@@ -67,7 +67,7 @@ IF(ITK_VERSION_MAJOR LESS 4)
 	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.x")
 ENDIF (ITK_VERSION_MAJOR LESS 4)
 SET( ITK_LIBRARIES
-	ITKBiasCorrection    ITKBioCell      ITKCommon            ITKDICOMParser       ITKEXPAT        ITKFEM
+	ITKBiasCorrection    ITKCommon       ITKDICOMParser       ITKEXPAT
 	ITKIOImageBase       ITKIOBioRad     ITKIOBMP             ITKIOGDCM            ITKIOGE         ITKIOGIPL
 	ITKIOHDF5            ITKIOIPL        ITKIOJPEG            ITKIOLSM             ITKIOMeta       ITKIONIFTI
 	ITKIONRRD            ITKIOPNG        ITKIOSiemens         ITKIOSpatialObjects  ITKIOStimulate  ITKIOTIFF
@@ -105,6 +105,10 @@ IF (ITK_USE_SYSTEM_FFTW)
 		#INSTALL (FILES ${ITK_FFTW_LIBDIR}/libfftw3f-3.so DESTINATION .)
 	ENDIF (MSVC)
 ENDIF (ITK_USE_SYSTEM_FFTW)
+IF (ITK_VERSION_MAJOR LESS 5)
+	# some libraries were removed with ITK 5:
+	SET (ITK_LIBRARIES ${ITK_LIBRARIES} ITKBioCell  ITKFEM)
+ENDIF()
 IF (ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 12)
 	# apparently, in 4.12 the itkopenjpeg.lib isn't built anymore by default
 	SET (ITK_LIBRARIES ${ITK_LIBRARIES} itkopenjpeg)
