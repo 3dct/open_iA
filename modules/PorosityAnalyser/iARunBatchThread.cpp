@@ -93,8 +93,8 @@ struct RunInfo
 		porosity( -1 ), 
 		threshold( -1 ), 
 		surroundingVoxels( 0 ), 
-		falseNegativeError( -1 ), 
-		falsePositiveError(-1),
+		falseNegativeRate( -1 ), 
+		falsePositiveRate(-1),
 		dice(-1)
 	{}
 
@@ -105,8 +105,8 @@ struct RunInfo
 	float porosity;
 	int threshold;
 	long surroundingVoxels;
-	float falseNegativeError;
-	float falsePositiveError;
+	float falseNegativeRate;
+	float falsePositiveRate;
 	float dice;
 	QStringList parameterNames;
 	QStringList parameters;
@@ -1193,8 +1193,8 @@ void iARunBatchThread::saveResultsToRunsCSV( RunInfo & results, QString masksDir
 		maskFilename = masksDir + "/" + maskName;
 	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( maskName ) );
 	//dice metric
-	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.falsePositiveError ) ) );
-	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.falseNegativeError ) ) );
+	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.falsePositiveRate ) ) );
+	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.falseNegativeRate ) ) );
 	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.dice ) ) );
 	for ( int i = 0; i < results.parameters.size(); ++i )
 		runsCSV.setItem( lastRow, col++, new QTableWidgetItem( results.parameters[i] ) );
@@ -1290,7 +1290,6 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 		QString gtMaskFile = dsPath + "/" + m_datasetGTs[dsFN];
 		gtMask = iAITKIO::readFile( gtMaskFile, maskPixType, true);
 	}
-
 	emit batchProgress( 0 );
 
 	for( int sampleNo = 0; sampleNo < totalNumSamples; ++sampleNo ) //iterate over parameters
@@ -1305,41 +1304,39 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 			results.parameters.push_back( params[i]->asString() );
 			results.parameterNames << params[i]->name;
 		}
+
 		bool success = true;
 		results.elapsedTime = 0;	// reset elapsed time 
+
 		try
 		{
-			ITK_TYPED_CALL(runBatch, pixelType,
-				filterIds, image, results, params);
+			ITK_TYPED_CALL(runBatch, pixelType, filterIds, image, results, params);
 			//calculate porosity
 			MaskImageType * mask = dynamic_cast<MaskImageType*>(results.maskImage.GetPointer());
 			MaskImageType * gtImage = dynamic_cast<MaskImageType*>(gtMask.GetPointer());
 			results.porosity = calcPorosity( mask, results.surroundingVoxels );
-			//Dice metric, false positve error, false negative error
+
 			if ( m_datasetGTs[dsFN] != "" )
 			{
 				MaskImageType::RegionType reg = mask->GetLargestPossibleRegion();
-				int size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
-				float fpe = 0.0f, fne = 0.0f, totalGT = 0.0f, its = 0.0f, dice = 0.0f;
-#pragma omp parallel for reduction(+:fpe,fne,totalGT, its)
-				for ( int i = 0; i < size; ++i )
+				size_t size = static_cast<size_t>(reg.GetSize()[0]) * reg.GetSize()[1] * reg.GetSize()[2];
+				size_t tp = 0, fn = 0, fp = 0, tn = 0;
+				MaskImageType::PixelType gt, m;
+
+#pragma omp parallel for reduction(+:tp,fn,fp,tn)
+				for ( size_t i = 0; i < size; ++i )
 				{
-					if ( gtImage->GetBufferPointer()[i] )
-						++totalGT;
-					if ( !gtImage->GetBufferPointer()[i] && mask->GetBufferPointer()[i] )
-						++fpe;
-					if ( gtImage->GetBufferPointer()[i] && !mask->GetBufferPointer()[i] )
-						++fne;
-					if ( ( gtImage->GetBufferPointer()[i] && mask->GetBufferPointer()[i] ) ||
-						 ( !gtImage->GetBufferPointer()[i] && !mask->GetBufferPointer()[i] ) )
-						 ++its;
+					gt = gtImage->GetBufferPointer()[i];
+					m = mask->GetBufferPointer()[i];
+					if (gt == 1 && m == 1) tp = tp + 1;
+					if (gt == 1 && m == 0) fn = fn + 1;
+					if (gt == 0 && m == 1) fp = fp + 1;
+					if (gt == 0 && m == 0) tn = tn + 1;
 				}
-				fpe /= totalGT;
-				fne /= totalGT;
-				dice = 2 * its / ( size + size );
-				results.falseNegativeError = fne;
-				results.falsePositiveError = fpe;
-				results.dice = dice;
+
+				results.falseNegativeRate = static_cast<float>(fn) / (tp + fn);
+				results.falsePositiveRate = static_cast<float>(fp) / (tn + fp);
+				results.dice = 2 * static_cast<float>(tp) / (2 * tp + fp + fn);
 				emit batchProgress( ( sampleNo + 1 ) * 100 / totalNumSamples );
 			}
 		}
@@ -1368,10 +1365,15 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 				.arg( excep.GetFile() )
 				.arg( excep.GetLine() ) );
 		}
-		if( randSampling )
-			randomlySampleParameters( params );
+
+		if (randSampling)
+		{
+			randomlySampleParameters(params);
+		}
 		else
-			incrementParameterSet( params );
+		{
+			incrementParameterSet(params);
+		}
 	}
 	iACSVToQTableWidgetConverter::saveToCSVFile( m_runsCSV, batchDir + "/runs.csv" );
 }
