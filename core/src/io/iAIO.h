@@ -72,7 +72,7 @@ private:
 	bool setupVolumeStackMHDReader(QString f);
 	bool setupVolumeStackVolstackReader(QString f);
 	bool setupVolumeStackVolStackWriter(QString f);
-	void FillFileNameArray(int * indexRange, int digitsInIndex);
+	void FillFileNameArray(int * indexRange, int digitsInIndex, int stepSize = 1);
 
 	void readImageStack();
 	void readRawImage();
