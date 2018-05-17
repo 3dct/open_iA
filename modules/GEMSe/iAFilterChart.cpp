@@ -166,16 +166,13 @@ double iAFilterChart::GetMaxVisibleBin() const
 	return maxVisXBin;
 }
 
-QString iAFilterChart::GetXAxisTickMarkLabel(double value, int placesBeforeComma, int requiredPlacesAfterComma)
+QString iAFilterChart::GetXAxisTickMarkLabel(double value, double stepWidth)
 {
-	assert(Plots().size() > 0);
-	if (Plots()[0]->GetData()->GetRangeType() == Categorical)
+	if (Plots().size() > 0 && Plots()[0]->GetData()->GetRangeType() == Categorical)
 	{
-		assert(m_nameMapper);
-		return (value < m_nameMapper->size()) ? m_nameMapper->GetName(static_cast<int>(value)):
-			"";
+		return (m_nameMapper && value < m_nameMapper->size()) ? m_nameMapper->GetName(static_cast<int>(value)): "";
 	}
-	return iAChartWidget::GetXAxisTickMarkLabel(value, placesBeforeComma, requiredPlacesAfterComma);
+	return iAChartWidget::GetXAxisTickMarkLabel(value, stepWidth);
 }
 
 void iAFilterChart::contextMenuEvent(QContextMenuEvent *event)
