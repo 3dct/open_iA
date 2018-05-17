@@ -1,10 +1,5 @@
 SET (EXECUTABLE_NAME open_iA)
 
-# open_iA Version number
-include(GetGitRevisionDescription)
-git_describe(VERSION --tags)
-configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
-
 # Generate executable:
 SET (MAIN_SOURCES "${CMAKE_SOURCE_DIR}/gui/main.cpp")
 
@@ -20,7 +15,7 @@ IF (WIN32)
 	TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} PRIVATE Qt5::WinMain)
 ENDIF (WIN32)
 
-TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}) # for version.h
+TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${CMAKE_BINARY_DIR}) # for version.h
 
 IF (openiA_USE_COTIRE)
 	cotire(${EXECUTABLE_NAME})

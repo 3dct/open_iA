@@ -8,12 +8,6 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 		"and run cmake with a newly created build directory.")
 endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
-option (openiA_USE_IDE_FOLDERS "Whether to group projects in subfolders in the IDE (mainly Visual Studio). Default: enabled." ON)
-IF (openiA_USE_IDE_FOLDERS)
-	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-	set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "_CMake")
-ENDIF()
-	
 #-------------------------
 # CTest
 #-------------------------
@@ -235,6 +229,7 @@ IF (HDF5_FOUND)
 	UNSET(HDF5_CORE_LIB CACHE)
 ENDIF()
 
+
 # Astra Toolbox
 FIND_PACKAGE(AstraToolbox)
 
@@ -247,7 +242,7 @@ FIND_PACKAGE(CUDA)
 FIND_PACKAGE(OpenCL)
 
 
-#OpenMP
+# OpenMP
 INCLUDE(${CMAKE_ROOT}/Modules/FindOpenMP.cmake)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -331,6 +326,7 @@ ELSE()
 	MESSAGE(WARNING "Installation procedure for your operating system is not yet implemented!")
 ENDIF()
 
+
 # VTK
 SET (VTK_VER "${VTK_VERSION_MAJOR}.${VTK_VERSION_MINOR}")
 SET (VTK_EXTRA_LIBS
@@ -370,6 +366,7 @@ ELSEIF (UNIX)
 	ENDFOREACH(VTK_LIB)
 	INSTALL(FILES ${VTK_LIB_DIR}/libQVTKWidgetPlugin.so DESTINATION .)
 ENDIF()
+
 
 # Qt
 STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
@@ -439,6 +436,7 @@ IF(UNIX AND NOT APPLE)
 	ENDFOREACH()
 ENDIF()
 
+
 # OpenCL
 IF (OPENCL_FOUND)
 	IF (WIN32)
@@ -463,6 +461,7 @@ IF (OPENCL_FOUND)
 	ENDIF()
 ENDIF()
 
+
 # CUDA:
 IF (CUDA_FOUND)
 	ADD_DEFINITIONS(-DASTRA_CUDA)
@@ -477,6 +476,7 @@ IF (CUDA_FOUND)
 	ENDIF ()
 ENDIF()
 
+
 # ASTRA Toolbox
 IF (ASTRA_TOOLBOX_FOUND)
 	IF (WIN32)
@@ -487,6 +487,7 @@ IF (ASTRA_TOOLBOX_FOUND)
 		INSTALL (FILES "${ASTRA_SHAREDLIB}" DESTINATION . RENAME libastra.so.0)
 	ENDIF ()
 ENDIF()
+
 
 # HDF5
 IF (HDF5_FOUND)
@@ -559,6 +560,17 @@ ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 #-------------------------
 
 SET (CORE_LIBRARY_NAME open_iA_Core)
+
+option (openiA_USE_IDE_FOLDERS "Whether to group projects in subfolders in the IDE (mainly Visual Studio). Default: enabled." ON)
+IF (openiA_USE_IDE_FOLDERS)
+	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+	set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "_CMake")
+ENDIF()
+
+# open_iA Version number
+include(GetGitRevisionDescription)
+git_describe(VERSION --tags)
+configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
 
 ADD_DEFINITIONS(-DUNICODE -D_UNICODE)    # Enable Unicode
 

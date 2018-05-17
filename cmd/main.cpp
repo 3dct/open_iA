@@ -21,6 +21,7 @@
 #include "iAConsole.h"
 #include "iACommandLineProcessor.h"
 #include "iASCIFIOCheck.h"
+#include "version.h"
 
 #include <QFileInfo>
 
@@ -29,5 +30,5 @@ int main(int argc, char *argv[])
 	iAGlobalLogger::SetLogger(iAStdOutLogger::Get());
 	QFileInfo fi(argv[0]);
 	CheckSCIFIO(fi.absolutePath());
-	return ProcessCommandLine(argc, argv);
+	return ProcessCommandLine(argc, argv, VERSION);
 }
