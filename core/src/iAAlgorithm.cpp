@@ -65,10 +65,10 @@ void iAAlgorithm::run()
 	addMsg(tr("%1  %2 started.")
 		.arg(QLocale().toString(Start(), QLocale::ShortFormat))
 		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData());
-	getConnector()->Modified();
 	try
 	{
+		getConnector()->SetImage(getVtkImageData());
+		getConnector()->Modified();
 		performWork();
 	}
 	catch (itk::ExceptionObject &excep)
