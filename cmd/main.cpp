@@ -22,9 +22,12 @@
 #include "iACommandLineProcessor.h"
 #include "iASCIFIOCheck.h"
 
+#include <QFileInfo>
+
 int main(int argc, char *argv[])
 {
 	iAGlobalLogger::SetLogger(iAStdOutLogger::Get());
-	CheckSCIFIO(QString(argv[0]));
+	QFileInfo fi(argv[0]);
+	CheckSCIFIO(fi.absolutePath());
 	return ProcessCommandLine(argc, argv);
 }
