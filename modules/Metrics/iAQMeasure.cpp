@@ -160,6 +160,9 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		if (peaks.size() < 2)
 		{
 			//DEBUG_LOG(QString("Cannot continue with less than 2 peaks!"));
+			filter->AddOutputValue("Signal-to-noise ratio", 0);
+			filter->AddOutputValue("Contrast-to-noise ratio", 0);
+			filter->AddOutputValue("Q", 0);
 			return;
 		}
 		numberOfPeaks = peaks.size();
@@ -275,6 +278,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 			}
 		}
 		*/
+		/*
 		for (int i = 0; i < mean.size(); ++i)
 		{
 			QString peakName(i == minDistToZeroIdx ? "air" : "highest non-air");
@@ -286,6 +290,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 				filter->AddOutputValue(QString("Max (%1)").arg(peakName), mapValue(static_cast<size_t>(0), binCount, minVal, maxVal, thresholdIndices[i+1]));
 			}
 		}
+		*/
 		double Q = calculateQ(mean[highestNonAirPeakIdx], mean[minDistToZeroIdx], variance[highestNonAirPeakIdx], variance[minDistToZeroIdx]);
 		filter->AddOutputValue("Q", Q);
 	}
@@ -309,6 +314,12 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 
 	int const * dim = floatImage->GetDimensions();
 	double const * range = floatImage->GetScalarRange();
+	if (range[0] == range[1])
+	{
+		filter->AddOutputValue("Q (orig, equ 0)", 0);
+		filter->AddOutputValue("Q (orig, equ 1)", 0);
+		return;
+	}
 	float* fImage = static_cast<float*>(floatImage->GetScalarPointer());
 	cImageHistogram curHist;
 	curHist.CreateHist(fImage, dim[0], dim[1], dim[2],
@@ -325,6 +336,7 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 	filter->AddOutputValue("Q (orig, equ 0)", Q0);
 	filter->AddOutputValue("Q (orig, equ 1)", Q1);
 
+	/*
 	int classNr = 0;
 	for (auto c: classMeasures)
 	{
@@ -339,6 +351,7 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 		}
 		++classNr;
 	}
+	*/
 }
 
 
@@ -386,6 +399,8 @@ iAQMeasure::iAQMeasure() :
 	AddOutputValue("Signal-to-noise ratio");
 	AddOutputValue("Contrast-to-noise ratio");
 	AddOutputValue("Q");
+	AddOutputValue("Q (orig, equ 0)");
+	AddOutputValue("Q (orig, equ 1)");
 }
 
 void iAQMeasure::SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
