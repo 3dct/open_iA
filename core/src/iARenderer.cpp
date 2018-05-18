@@ -569,8 +569,8 @@ void iARenderer::ApplySettings(iARenderSettings & settings)
 		bgBottom.setRgbF(1.0, 1.0, 1.0);
 		settings.BackgroundBottom = bgTop.name();
 	}
-	ren->SetBackground(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
-	ren->SetBackground2(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
+	ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
+	ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 	showHelpers(settings.ShowHelpers);
 	showRPosition(settings.ShowRPosition);
 }
