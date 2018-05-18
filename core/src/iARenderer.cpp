@@ -503,6 +503,16 @@ void iARenderer::mouseLeftButtonReleasedSlot()
 	interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent);
 }
 
+void iARenderer::setArbitraryProfile(int, double*)
+{
+
+}
+
+void iARenderer::setArbitraryProfileOn(bool isOn)
+{
+
+}
+
 void iARenderer::InitObserver()
 {
 	renderObserver = iARenderObserver::New(ren, labelRen, interactor, pointPicker,

@@ -1640,7 +1640,9 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 		connect(slicerXZ->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicerXY->widget(), SLOT(setArbitraryProfile(int, double*)));
 		connect(slicerXZ->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicerYZ->widget(), SLOT(setArbitraryProfile(int, double*)));
 		connect(slicerXZ->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(UpdateProbe(int, double*)));
-
+		connect(slicerXY->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), Raycaster, SLOT(setArbitraryProfile(int, double*)));
+		connect(slicerYZ->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), Raycaster, SLOT(setArbitraryProfile(int, double*)));
+		connect(slicerXZ->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), Raycaster, SLOT(setArbitraryProfile(int, double*)));
 
 		connect(slicerXY->widget(), SIGNAL(switchedMode(int)), slicerYZ->widget(), SLOT(switchMode(int)));
 		connect(slicerXY->widget(), SIGNAL(switchedMode(int)), slicerXZ->widget(), SLOT(switchMode(int)));
@@ -2485,6 +2487,7 @@ void MdiChild::toggleArbitraryProfile( bool isChecked )
 	slicerXY->setArbitraryProfileOn(isArbProfileEnabled);
 	slicerXZ->setArbitraryProfileOn(isArbProfileEnabled);
 	slicerYZ->setArbitraryProfileOn(isArbProfileEnabled);
+	Raycaster->setArbitraryProfileOn(isArbProfileEnabled);
 }
 
 void MdiChild::UpdateProbe( int ptIndex, double * newPos )

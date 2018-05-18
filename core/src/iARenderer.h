@@ -44,6 +44,7 @@ class vtkCornerAnnotation;
 class vtkCubeSource;
 class vtkImageData;
 class vtkInteractorStyleSwitch;
+class vtkLineSource;
 class vtkLogoRepresentation;
 class vtkLogoWidget;
 class vtkOpenGLRenderer;
@@ -55,6 +56,7 @@ class vtkPolyDataMapper;
 class vtkQImageToImageSource;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
+class vtkSphereSource;
 class vtkTransform;
 
 
@@ -172,6 +174,8 @@ private:
 public slots:
 	void mouseRightButtonReleasedSlot();
 	void mouseLeftButtonReleasedSlot();
+	void setArbitraryProfile(int, double*);
+	void setArbitraryProfileOn(bool isOn);
 Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);
