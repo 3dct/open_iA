@@ -57,7 +57,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),
 	m_mainRenderer(mainRenderer),
-	m_showSlicePlanes(false),
+	m_showSlicers(false),
 	m_plane1(nullptr),
 	m_plane2(nullptr),
 	m_plane3(nullptr)
@@ -402,9 +402,9 @@ void dlg_modalities::RendererMouseMoved()
 	}
 }
 
-void dlg_modalities::ShowSlicePlanes(bool enabled)
+void dlg_modalities::ShowSlicers(bool enabled)
 {
-	m_showSlicePlanes = enabled;
+	m_showSlicers = enabled;
 	for (int i = 0; i < modalities->size(); ++i)
 	{
 		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();

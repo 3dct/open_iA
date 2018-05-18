@@ -922,6 +922,7 @@ void MainWindow::saveRenderSettings(QDomDocument &doc)
 	// add new camera node
 	QDomElement renderSettingsElement = doc.createElement("renderSettings");
 	renderSettingsElement.setAttribute("showSlicers", tr("%1").arg(defaultRenderSettings.ShowSlicers));
+	renderSettingsElement.setAttribute("showSlicePlanes", tr("%1").arg(defaultRenderSettings.ShowSlicePlanes));
 	renderSettingsElement.setAttribute("showHelpers", tr("%1").arg(defaultRenderSettings.ShowHelpers));
 	renderSettingsElement.setAttribute("showRPosition", tr("%1").arg(defaultRenderSettings.ShowRPosition));
 	renderSettingsElement.setAttribute("linearInterpolation", tr("%1").arg(defaultVolumeSettings.LinearInterpolation));
@@ -945,6 +946,7 @@ void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
 	QDomNamedNodeMap attributes = renderSettingsNode.attributes();
 
 	defaultRenderSettings.ShowSlicers = attributes.namedItem("showSlicers").nodeValue() == "1";
+	defaultRenderSettings.ShowSlicePlanes = attributes.namedItem("showSlicePlanes").nodeValue() == "1";
 	defaultRenderSettings.ShowHelpers = attributes.namedItem("showHelpers").nodeValue() == "1";
 	defaultRenderSettings.ShowRPosition = attributes.namedItem("showRPosition").nodeValue() == "1";
 	defaultVolumeSettings.LinearInterpolation = attributes.namedItem("linearInterpolation").nodeValue() == "1";
@@ -1201,6 +1203,7 @@ void MainWindow::renderSettings()
 	QStringList inList;
 	inList
 		<< tr("$Show slicers")
+		<< tr("$Show slice planes")
 		<< tr("$Show helpers")
 		<< tr("$Show position")
 		<< tr("$Linear interpolation")
@@ -1218,6 +1221,7 @@ void MainWindow::renderSettings()
 	iARenderSettings const & renderSettings = child->GetRenderSettings();
 	iAVolumeSettings const & volumeSettings = child->GetVolumeSettings();
 	inPara << (renderSettings.ShowSlicers ? t : f)
+		<< (renderSettings.ShowSlicePlanes ? t : f)
 		<< (renderSettings.ShowHelpers ? t : f)
 		<< (renderSettings.ShowRPosition ? t : f)
 		<< (volumeSettings.LinearInterpolation ? t : f)
@@ -1238,21 +1242,22 @@ void MainWindow::renderSettings()
 	if (dlg.exec() == QDialog::Accepted)
 	{
 		defaultRenderSettings.ShowSlicers = dlg.getCheckValue(0) != 0;
-		defaultRenderSettings.ShowHelpers = dlg.getCheckValue(1) != 0;
-		defaultRenderSettings.ShowRPosition = dlg.getCheckValue(2) != 0;
+		defaultRenderSettings.ShowSlicePlanes = dlg.getCheckValue(1) != 0;
+		defaultRenderSettings.ShowHelpers = dlg.getCheckValue(2) != 0;
+		defaultRenderSettings.ShowRPosition = dlg.getCheckValue(3) != 0;
 
-		defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(3) != 0;
-		defaultVolumeSettings.Shading = dlg.getCheckValue(4) != 0;
-		defaultRenderSettings.ParallelProjection = dlg.getCheckValue(5) != 0;
+		defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(4) != 0;
+		defaultVolumeSettings.Shading = dlg.getCheckValue(5) != 0;
+		defaultRenderSettings.ParallelProjection = dlg.getCheckValue(6) != 0;
 
-		defaultVolumeSettings.SampleDistance = dlg.getDblValue(6);
-		defaultVolumeSettings.AmbientLighting = dlg.getDblValue(7);
-		defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(8);
-		defaultVolumeSettings.SpecularLighting = dlg.getDblValue(9);
-		defaultVolumeSettings.SpecularPower = dlg.getDblValue(10);
-		defaultRenderSettings.BackgroundTop = dlg.getText(11);
-		defaultRenderSettings.BackgroundBottom = dlg.getText(12);
-		defaultVolumeSettings.Mode = MapRenderModeToEnum(dlg.getComboBoxValue(13));
+		defaultVolumeSettings.SampleDistance = dlg.getDblValue(7);
+		defaultVolumeSettings.AmbientLighting = dlg.getDblValue(8);
+		defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(9);
+		defaultVolumeSettings.SpecularLighting = dlg.getDblValue(10);
+		defaultVolumeSettings.SpecularPower = dlg.getDblValue(11);
+		defaultRenderSettings.BackgroundTop = dlg.getText(12);
+		defaultRenderSettings.BackgroundBottom = dlg.getText(13);
+		defaultVolumeSettings.Mode = MapRenderModeToEnum(dlg.getComboBoxValue(14));
 
 		if (activeMdiChild() && activeMdiChild()->editRendererSettings(
 			defaultRenderSettings,
@@ -1837,6 +1842,7 @@ void MainWindow::readSettings()
 	iAConsole::GetInstance()->SetLogToFile(prefLogToFile, logFileName);
 
 	defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", false).toBool();
+	defaultRenderSettings.ShowSlicePlanes = settings.value("Renderer/rsShowSlicePlanes", false).toBool();
 	defaultRenderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", true).toBool();
 	defaultRenderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", true).toBool();
 	defaultVolumeSettings.LinearInterpolation = settings.value("Renderer/rsLinearInterpolation", true).toBool();
@@ -1930,6 +1936,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefLogFile", iAConsole::GetInstance()->GetLogFileName());
 
 	settings.setValue("Renderer/rsShowSlicers", defaultRenderSettings.ShowSlicers);
+	settings.setValue("Renderer/rsShowSlicePlanes", defaultRenderSettings.ShowSlicePlanes);
 	settings.setValue("Renderer/rsLinearInterpolation", defaultVolumeSettings.LinearInterpolation);
 	settings.setValue("Renderer/rsShading", defaultVolumeSettings.Shading);
 	settings.setValue("Renderer/rsParallelProjection", defaultRenderSettings.ParallelProjection);

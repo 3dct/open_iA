@@ -51,6 +51,7 @@ class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPicker;
 class vtkPlane;
+class vtkPlaneSource;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkQImageToImageSource;
@@ -109,10 +110,12 @@ public:
 	void update();
 	void showHelpers(bool show);
 	void showRPosition(bool show);
+	void showSlicePlanes(bool show);
 
 	vtkPlane* getPlane1();
 	vtkPlane* getPlane2();
 	vtkPlane* getPlane3();
+	void setSlicePlane(int planeID, double originX, double originY, double originZ);
 	vtkRenderWindowInteractor* GetInteractor() { return interactor; }
 	vtkRenderWindow* GetRenderWindow() { return renWin;  }
 	vtkOpenGLRenderer * GetRenderer();
@@ -181,6 +184,12 @@ private:
 	vtkSmartPointer<vtkSphereSource>   m_profileLineEndPointSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_profileLineEndPointMapper;
 	vtkSmartPointer<vtkActor>          m_profileLineEndPointActor;
+	//! @}
+
+	//! @{ Slice plane
+	vtkSmartPointer<vtkPlaneSource>    m_slicePlaneSource[3];
+	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
+	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
 	//! @}
 
 public slots:

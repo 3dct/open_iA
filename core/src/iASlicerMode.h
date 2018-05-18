@@ -24,8 +24,8 @@
 
 enum iASlicerMode{
 	YZ,
-	XY,
-	XZ,
+	XY, // TODO: for logical reasons, XY and XZ should be swapped (then index would
+	XZ, // represent the index of the axis normal to the cutting plane)
 	SlicerModeCount
 };
 

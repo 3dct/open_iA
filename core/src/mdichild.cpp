@@ -1357,11 +1357,9 @@ void MdiChild::setSliceXY(int s)
 	{
 		this->zCoord = s;
 		slicer[iASlicerMode::XY]->setSliceNumber(s);
-		if (renderSettings.ShowSlicers)
+		if (renderSettings.ShowSlicers || renderSettings.ShowSlicePlanes)
 		{
-			Raycaster->getPlane3()->SetNormal(0.0, 0.0, 1.0);
-			Raycaster->getPlane3()->SetOrigin(0.0,0.0,s*imageData->GetSpacing()[2]);
-			Raycaster->update();
+			Raycaster->setSlicePlane(2, 0.0, 0.0, s*imageData->GetSpacing()[2]);
 		}
 	}
 }
@@ -1394,10 +1392,9 @@ void MdiChild::setSliceYZ(int s)
 	{
 		this->xCoord = s;
 		slicer[iASlicerMode::YZ]->setSliceNumber(s);
-		if (renderSettings.ShowSlicers)
+		if (renderSettings.ShowSlicers || renderSettings.ShowSlicePlanes)
 		{
-			Raycaster->getPlane1()->SetOrigin(s*imageData->GetSpacing()[0],0,0);
-			Raycaster->update();
+			Raycaster->setSlicePlane(0, s*imageData->GetSpacing()[0],0,0);
 		}
 	}
 }
@@ -1430,10 +1427,9 @@ void MdiChild::setSliceXZ(int s)
 	{
 		this->yCoord = s;
 		slicer[iASlicerMode::XZ]->setSliceNumber(s);
-		if (renderSettings.ShowSlicers)
+		if (renderSettings.ShowSlicers || renderSettings.ShowSlicePlanes)
 		{
-			Raycaster->getPlane2()->SetOrigin(0,s*imageData->GetSpacing()[1],0);
-			Raycaster->update();
+			Raycaster->setSlicePlane(1, 0,s*imageData->GetSpacing()[1],0);
 		}
 	}
 }
@@ -1528,7 +1524,7 @@ void MdiChild::ApplyRenderSettings(iARenderer* raycaster)
 
 void MdiChild::ApplyVolumeSettings(const bool loadSavedVolumeSettings)
 {
-	m_dlgModalities->ShowSlicePlanes(renderSettings.ShowSlicers);
+	m_dlgModalities->ShowSlicers(renderSettings.ShowSlicers);
 	m_dlgModalities->ChangeRenderSettings(volumeSettings, loadSavedVolumeSettings);
 }
 

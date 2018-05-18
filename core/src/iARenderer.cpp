@@ -48,6 +48,7 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkPicker.h>
 #include <vtkPlane.h>
+#include <vtkPlaneSource.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
@@ -113,6 +114,12 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_profileLineEndPointSource = vtkSmartPointer<vtkSphereSource>::New();
 	m_profileLineEndPointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_profileLineEndPointActor = vtkSmartPointer<vtkActor>::New();
+	for (int s = 0; s < 3; ++s)
+	{
+		m_slicePlaneSource[s] = vtkSmartPointer<vtkPlaneSource>::New();
+		m_slicePlaneMapper[s] = vtkSmartPointer<vtkPolyDataMapper>::New();
+		m_slicePlaneActor[s] = vtkSmartPointer<vtkActor>::New();
+	}
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if (mdi_parent)
@@ -128,6 +135,20 @@ iARenderer::~iARenderer(void)
 	renWin->RemoveAllObservers();
 
 	if (renderObserver) renderObserver->Delete();
+}
+
+namespace
+{
+	int GetSliceAxis(int axis, int index)
+	{
+		switch (axis)
+		{
+		default: // note: switch case labels are currently NOT equal to iASlicerMode numbers, see note there!
+		case 0: return index == 0 ? 1 : 2; // YZ
+		case 1: return index == 0 ? 0 : 2; // XZ
+		case 2: return index == 0 ? 0 : 1; // YZ
+		}
+	}
 }
 
 void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
@@ -203,6 +224,35 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	m_profileLineStartPointActor->GetProperty()->SetColor(1.0, 0.65, 0.0);
 	m_profileLineEndPointActor->GetProperty()->SetColor(0.0, 0.65, 1.0);
 	setArbitraryProfileOn(false);
+
+	double center[3], origin[3];
+	const int * dim = imageData->GetDimensions();
+	const double * spc = imageData->GetSpacing();
+	for (int i = 0; i < 3; ++i)
+	{
+		center[i] = dim[i] * spc[i] / 2;
+		origin[i] = 0;
+	}
+	for (int s = 0; s < 3; ++s)
+	{
+		m_slicePlaneSource[s]->SetOrigin(origin);
+		double point1[3], point2[3];
+		for (int j = 0; j < 3; ++j)
+		{
+			point1[j] = 0;
+			point2[j] = 0;
+		}
+		point1[GetSliceAxis(s, 0)] += 1.25 * dim[GetSliceAxis(s, 0)];
+		point2[GetSliceAxis(s, 1)] += 1.25 * dim[GetSliceAxis(s, 1)];
+		m_slicePlaneSource[s]->SetPoint1(point1);
+		m_slicePlaneSource[s]->SetPoint2(point2);
+		m_slicePlaneSource[s]->SetCenter(center);
+		m_slicePlaneMapper[s]->SetInputConnection(m_slicePlaneSource[s]->GetOutputPort());
+		m_slicePlaneActor[s]->SetMapper(m_slicePlaneMapper[s]);
+		m_slicePlaneActor[s]->GetProperty()->SetColor(0.8, 0.8, 0.8);
+		m_slicePlaneActor[s]->SetVisibility(false);
+		m_slicePlaneMapper[s]->Update();
+	}
 }
 
 void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
@@ -310,6 +360,8 @@ void iARenderer::setupRenderer()
 	ren->AddActor(m_profileLineActor);
 	ren->AddActor(m_profileLineStartPointActor);
 	ren->AddActor(m_profileLineEndPointActor);
+	for (int s = 0; s < 3; ++s)
+		ren->AddActor(m_slicePlaneActor[s]);
 	emit onSetupRenderer();
 }
 
@@ -334,6 +386,12 @@ void iARenderer::showHelpers(bool show)
 void iARenderer::showRPosition(bool s)
 {
 	cActor->SetVisibility(s);
+}
+
+void iARenderer::showSlicePlanes(bool show)
+{
+	for (int s = 0; s < 3; ++s)
+		m_slicePlaneActor[s]->SetVisibility(show);
 }
 
 void iARenderer::setPlaneNormals( vtkTransform *tr )
@@ -610,6 +668,23 @@ vtkActor* iARenderer::GetPolyActor() { return polyActor; };
 vtkOpenGLRenderer * iARenderer::GetLabelRenderer(void) { return labelRen; }
 vtkPolyDataMapper* iARenderer::GetPolyMapper() const { return polyMapper; }
 
+void iARenderer::setSlicePlane(int planeID, double originX, double originY, double originZ)
+{
+	switch (planeID)
+	{
+		default: // note: switch case labels are currently NOT equal to iASlicerMode numbers, see note there!
+		case 0: plane1->SetOrigin(originX, originY, originZ); break; // YZ
+		case 1: plane2->SetOrigin(originX, originY, originZ); break; // XZ
+		case 2: plane3->SetOrigin(originX, originY, originZ); break; // YZ
+	}
+	double center[3];
+	m_slicePlaneSource[planeID]->GetCenter(center);
+	center[planeID] = (planeID == 0) ? originX : ((planeID == 1) ? originY : originZ);
+	m_slicePlaneSource[planeID]->SetCenter(center);
+	m_slicePlaneMapper[planeID]->Update();
+	update();
+}
+
 void iARenderer::ApplySettings(iARenderSettings & settings)
 {
 	cam->SetParallelProjection(settings.ParallelProjection);
@@ -628,4 +703,5 @@ void iARenderer::ApplySettings(iARenderSettings & settings)
 	ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 	showHelpers(settings.ShowHelpers);
 	showRPosition(settings.ShowRPosition);
+	showSlicePlanes(settings.ShowSlicePlanes);
 }
