@@ -2705,9 +2705,6 @@ bool MdiChild::IsVolumeDataLoaded() const
 
 void MdiChild::ChangeMagicLensModality(int chg)
 {
-	//slicerXY->removeChannel(ch_SlicerMagicLens);
-	//slicerXZ->removeChannel(ch_SlicerMagicLens);
-	//slicerYZ->removeChannel(ch_SlicerMagicLens);
 	m_currentComponent = (m_currentComponent + chg);
 	if (m_currentComponent < 0 || m_currentComponent >= GetModality(m_currentModality)->ComponentCount())
 	{
