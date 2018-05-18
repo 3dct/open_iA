@@ -29,10 +29,8 @@
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerProfile.h"
-#include "iAArbitraryProfileOnSlicer.h"
 #include "iASnakeSpline.h"
 #include "iAMagicLens.h"
-#include "iAChannelVisualizationData.h"
 #include "iAPieChartGlyph.h"
 
 #include <QVTKInteractorAdapter.h>
@@ -485,7 +483,7 @@ void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 				const int zind = SlicerZInd(m_slicerMode);
 				result[zind] = ptPos[zind];
 
-				if( setArbitraryProfile(arbProfPtInd, result) )
+				if( setArbitraryProfile(arbProfPtInd, result, true) )
 					emit arbitraryProfileChanged(arbProfPtInd, result);
 			}
 		}
@@ -601,22 +599,23 @@ void iASlicerWidget::setSliceProfile(double Pos[3])
 }
 
 
-bool iASlicerWidget::setArbitraryProfile(int pointInd, double const * Pos)
+bool iASlicerWidget::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
 {
 	if (!m_decorations)
 		return false;
-	double newPos[3];
-	double * spacing = m_imageData->GetSpacing();
-	double * origin = m_imageData->GetOrigin();
-	int * dimensions = m_imageData->GetDimensions();
-	for (int i = 0; i < 3; ++i)
+	if (doClamp)
 	{
-		newPos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], Pos[i]);
+		double * spacing = m_imageData->GetSpacing();
+		double * origin = m_imageData->GetOrigin();
+		int * dimensions = m_imageData->GetDimensions();
+		for (int i = 0; i < 3; ++i)
+		{
+			Pos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], Pos[i]);
+		}
 	}
-	double profileCoord2d[2] = {newPos[ SlicerXInd(m_slicerMode) ], newPos[ SlicerYInd(m_slicerMode) ]};
-	if( !m_arbProfile->setup(pointInd, newPos, profileCoord2d, m_slicerDataExternal->GetReslicer()->GetOutput()) )
+	double profileCoord2d[2] = {Pos[ SlicerXInd(m_slicerMode) ], Pos[ SlicerYInd(m_slicerMode) ]};
+	if( !m_arbProfile->setup(pointInd, Pos, profileCoord2d, m_slicerDataExternal->GetReslicer()->GetOutput()) )
 		return false;
-	// render slice view
 	GetRenderWindow()->GetInteractor()->Render();
 	return true;
 }

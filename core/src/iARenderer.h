@@ -171,10 +171,22 @@ private:
 
 	int ext; //!< statistical extent size
 
+	//! @{ Line profile
+	vtkSmartPointer<vtkLineSource>     m_profileLineSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_profileLineMapper;
+	vtkSmartPointer<vtkActor>          m_profileLineActor;
+	vtkSmartPointer<vtkSphereSource>   m_profileLineStartPointSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_profileLineStartPointMapper;
+	vtkSmartPointer<vtkActor>          m_profileLineStartPointActor;
+	vtkSmartPointer<vtkSphereSource>   m_profileLineEndPointSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_profileLineEndPointMapper;
+	vtkSmartPointer<vtkActor>          m_profileLineEndPointActor;
+	//! @}
+
 public slots:
 	void mouseRightButtonReleasedSlot();
 	void mouseLeftButtonReleasedSlot();
-	void setArbitraryProfile(int, double*);
+	void setArbitraryProfile(int pointIndex, double * coords);
 	void setArbitraryProfileOn(bool isOn);
 Q_SIGNALS:
 	void msg(QString s);

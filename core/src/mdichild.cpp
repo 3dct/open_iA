@@ -2420,21 +2420,23 @@ void MdiChild::cleanWorkingAlgorithms()
 
 void MdiChild::addProfile()
 {
-	// unify this with iASlicerWidget::changeImageData somehow?
 	profileProbe = QSharedPointer<iAProfileProbe>(new iAProfileProbe(imageData));
-	double const * const start = imageData->GetOrigin();
+	double start[3];
+	imageData->GetOrigin(start);
 	int const * const dim = imageData->GetDimensions();
 	double const * const spacing = imageData->GetSpacing();
 	double end[3];
 	for (int i = 0; i<3; i++)
 		end[i] = start[i] + (dim[i] - 1) * spacing[i];
-	profileProbe->UpdateProbe(0, start);
-	profileProbe->UpdateProbe(1, end);
 	for (int s = 0; s < 3; ++s)
 	{
 		slicer[s]->widget()->setArbitraryProfile(0, start);
 		slicer[s]->widget()->setArbitraryProfile(1, end);
 	}
+	Raycaster->setArbitraryProfile(0, start);
+	Raycaster->setArbitraryProfile(1, end);
+	profileProbe->UpdateProbe(0, start);
+	profileProbe->UpdateProbe(1, end);
 	profileProbe->UpdateData();
 	imgProfile = new dlg_profile(this, profileProbe->profileData, profileProbe->GetRayLength());
 	tabifyDockWidget(logs, imgProfile);

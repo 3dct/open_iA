@@ -41,6 +41,7 @@
 #include <vtkImageData.h>
 #include <vtkImageCast.h>
 #include <vtkInteractorStyleSwitch.h>
+#include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
 #include <vtkOpenGLRenderer.h>
@@ -52,6 +53,7 @@
 #include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkSphereSource.h>
 #include <vtkTransform.h>
 #include <vtkWindowToImageFilter.h>
 
@@ -101,6 +103,16 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	plane3 = vtkSmartPointer<vtkPlane>::New();
 
 	cellLocator = vtkSmartPointer<vtkCellLocator>::New();
+
+	m_profileLineSource = vtkSmartPointer<vtkLineSource>::New();
+	m_profileLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_profileLineActor = vtkSmartPointer<vtkActor>::New();
+	m_profileLineStartPointSource = vtkSmartPointer<vtkSphereSource>::New();
+	m_profileLineStartPointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_profileLineStartPointActor = vtkSmartPointer<vtkActor>::New();
+	m_profileLineEndPointSource = vtkSmartPointer<vtkSphereSource>::New();
+	m_profileLineEndPointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_profileLineEndPointActor = vtkSmartPointer<vtkActor>::New();
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if (mdi_parent)
@@ -174,6 +186,23 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	labelRen->SetActiveCamera(cam);
 	ren->SetActiveCamera(cam);
 	setCamPosition( 0,0,1, 1,1,1 ); // +Z
+
+	m_profileLineMapper->SetInputConnection(m_profileLineSource->GetOutputPort());
+	m_profileLineActor->SetMapper(m_profileLineMapper);
+	m_profileLineStartPointMapper->SetInputConnection(m_profileLineStartPointSource->GetOutputPort());
+	m_profileLineStartPointActor->SetMapper(m_profileLineStartPointMapper);
+	m_profileLineEndPointMapper->SetInputConnection(m_profileLineEndPointSource->GetOutputPort());
+	m_profileLineEndPointActor->SetMapper(m_profileLineEndPointMapper);
+	m_profileLineActor->GetProperty()->SetColor(0.59, 0.73, 0.94);//ffa800//150, 186, 240
+	m_profileLineActor->GetProperty()->SetLineWidth(2.0);
+	m_profileLineActor->GetProperty()->SetLineStipplePattern(0x00ff);//0xf0f0
+	m_profileLineActor->GetProperty()->SetLineStippleRepeatFactor(1);
+	m_profileLineActor->GetProperty()->SetPointSize(2);
+	m_profileLineStartPointSource->SetRadius(2 * spacing[0]);
+	m_profileLineEndPointSource->SetRadius(2 * spacing[0]);
+	m_profileLineStartPointActor->GetProperty()->SetColor(1.0, 0.65, 0.0);
+	m_profileLineEndPointActor->GetProperty()->SetColor(0.0, 0.65, 1.0);
+	setArbitraryProfileOn(false);
 }
 
 void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
@@ -278,6 +307,9 @@ void iARenderer::setupRenderer()
 	ren->AddActor(cActor);
 	ren->AddActor(axesActor);
 	ren->AddActor(moveableAxesActor);
+	ren->AddActor(m_profileLineActor);
+	ren->AddActor(m_profileLineStartPointActor);
+	ren->AddActor(m_profileLineEndPointActor);
 	emit onSetupRenderer();
 }
 
@@ -503,14 +535,30 @@ void iARenderer::mouseLeftButtonReleasedSlot()
 	interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent);
 }
 
-void iARenderer::setArbitraryProfile(int, double*)
+void iARenderer::setArbitraryProfile(int pointIndex, double * coords)
 {
-
+	if (pointIndex == 0)
+	{
+		m_profileLineSource->SetPoint1(coords);
+		m_profileLineStartPointSource->SetCenter(coords);
+		m_profileLineMapper->Update();
+		m_profileLineStartPointMapper->Update();
+	}
+	else
+	{
+		m_profileLineSource->SetPoint2(coords);
+		m_profileLineEndPointSource->SetCenter(coords);
+		m_profileLineMapper->Update();
+		m_profileLineEndPointMapper->Update();
+	}
+	update();
 }
 
 void iARenderer::setArbitraryProfileOn(bool isOn)
 {
-
+	m_profileLineActor->SetVisibility(isOn);
+	m_profileLineStartPointActor->SetVisibility(isOn);
+	m_profileLineEndPointActor->SetVisibility(isOn);
 }
 
 void iARenderer::InitObserver()
