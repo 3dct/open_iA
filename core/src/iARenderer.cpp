@@ -424,9 +424,6 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	movieWriter->SetFileName(fileName.toLatin1().data());
 	movieWriter->Start();
 
-	int i;
-	int* extent = imageData->GetExtent();
-
 	emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale()
 		.toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
 
@@ -465,7 +462,7 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	}
 	cam->SetViewUp ( view );
 	cam->SetPosition ( point );
-	for ( i =0; i < numRenderings; i++ ) {
+	for (int i =0; i < numRenderings; i++ ) {
 		ren->ResetCamera();
 		renWin->Render();
 
