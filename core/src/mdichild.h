@@ -460,7 +460,7 @@ private:
 	vtkTransform* slicerTransform;
 	vtkAbstractTransform *SlicerYZ_Transform, *SlicerXY_Transform, *SlicerXZ_Transform;
 	iARenderer* Raycaster;
-	iASlicer * slicerYZ, * slicerXY, * slicerXZ;
+	iASlicer * slicer[3];
 	QSharedPointer<iAProfileProbe> profileProbe;
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;
