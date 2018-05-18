@@ -1892,7 +1892,7 @@ void MdiChild::toggleSliceProfile(bool isChecked)
 {
 	isSliceProfileEnabled = isChecked;
 	for (int s = 0; s<3; ++s)
-		slicer[s]->setSliceProfileOn(isSliceProfileEnabled);
+		slicer[s]->widget()->setSliceProfileOn(isSliceProfileEnabled);
 }
 
 bool MdiChild::isSliceProfileToggled(void) const
@@ -2447,7 +2447,7 @@ void MdiChild::toggleArbitraryProfile( bool isChecked )
 {
 	isArbProfileEnabled = (bool)isChecked;
 	for (int s = 0; s<3; ++s)
-		slicer[s]->setArbitraryProfileOn(isArbProfileEnabled);
+		slicer[s]->widget()->setArbitraryProfileOn(isArbProfileEnabled);
 	Raycaster->setArbitraryProfileOn(isArbProfileEnabled);
 }
 

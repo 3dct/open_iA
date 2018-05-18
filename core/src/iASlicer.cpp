@@ -278,16 +278,6 @@ void iASlicer::show()
 	m_widget->show();
 }
 
-void iASlicer::setSliceProfileOn( bool isOn )
-{
-	m_widget->setSliceProfileOn(isOn);
-}
-
-void iASlicer::setArbitraryProfileOn( bool isOn )
-{
-	m_widget->setArbitraryProfileOn(isOn);
-}
-
 void iASlicer::setStatisticalExtent( int statExt )
 {
 	m_data->setStatisticalExtent(statExt);

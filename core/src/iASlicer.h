@@ -123,8 +123,6 @@ public:
 	void setIndex( int x, int y, int z );
 	void initializeWidget(vtkImageData *imageData, vtkPoints *points = 0);//also connects to mdichild slots
 	void show();
-	void setSliceProfileOn(bool isOn);
-	void setArbitraryProfileOn(bool isOn);
 	void setPieGlyphsOn(bool isOn);
 	void setPieGlyphParameters( double opacity, double spacing, double magFactor );
 	void setChannelOpacity( iAChannelID id, double opacity );
