@@ -2430,6 +2430,11 @@ void MdiChild::addProfile()
 		end[i] = start[i] + (dim[i] - 1) * spacing[i];
 	profileProbe->UpdateProbe(0, start);
 	profileProbe->UpdateProbe(1, end);
+	for (int s = 0; s < 3; ++s)
+	{
+		slicer[s]->widget()->setArbitraryProfile(0, start);
+		slicer[s]->widget()->setArbitraryProfile(1, end);
+	}
 	profileProbe->UpdateData();
 	imgProfile = new dlg_profile(this, profileProbe->profileData, profileProbe->GetRayLength());
 	tabifyDockWidget(logs, imgProfile);

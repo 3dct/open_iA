@@ -601,21 +601,20 @@ void iASlicerWidget::setSliceProfile(double Pos[3])
 }
 
 
-bool iASlicerWidget::setArbitraryProfile(int pointInd, double * Pos)
+bool iASlicerWidget::setArbitraryProfile(int pointInd, double const * Pos)
 {
 	if (!m_decorations)
-	{
 		return false;
-	}
+	double newPos[3];
 	double * spacing = m_imageData->GetSpacing();
 	double * origin = m_imageData->GetOrigin();
 	int * dimensions = m_imageData->GetDimensions();
 	for (int i = 0; i < 3; ++i)
 	{
-		Pos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], Pos[i]);
+		newPos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], Pos[i]);
 	}
-	double profileCoord2d[2] = {Pos[ SlicerXInd(m_slicerMode) ], Pos[ SlicerYInd(m_slicerMode) ]};
-	if( !m_arbProfile->setup(pointInd, Pos, profileCoord2d, m_slicerDataExternal->GetReslicer()->GetOutput()) )
+	double profileCoord2d[2] = {newPos[ SlicerXInd(m_slicerMode) ], newPos[ SlicerYInd(m_slicerMode) ]};
+	if( !m_arbProfile->setup(pointInd, newPos, profileCoord2d, m_slicerDataExternal->GetReslicer()->GetOutput()) )
 		return false;
 	// render slice view
 	GetRenderWindow()->GetInteractor()->Render();
@@ -859,14 +858,6 @@ void iASlicerWidget::setMode( iASlicerMode slicerMode )
 void iASlicerWidget::changeImageData( vtkImageData * imageData )
 {
 	m_imageData = imageData;
-	double  * origin = m_imageData->GetOrigin();
-	int        * dim = m_imageData->GetDimensions();
-	double * spacing = m_imageData->GetSpacing();
-	double end[3];
-	// unify this with MdiChild::addProfile somehow?
-	for (int i=0; i<3; i++)
-		end[i] = origin[i] + (dim[i]-1)*spacing[i];
-	setArbitraryProfile(0, origin); setArbitraryProfile(1, end);
 	m_isInitialized = true;
 }
 
