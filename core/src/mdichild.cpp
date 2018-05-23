@@ -1562,7 +1562,7 @@ void MdiChild::resetLayout()
 
 int MdiChild::GetRenderMode()
 {
-	return volumeSettings.Mode;
+	return volumeSettings.RenderMode;
 }
 
 void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
@@ -2901,7 +2901,6 @@ void MdiChild::InitVolumeRenderers()
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{
 		m_dlgModalities->InitDisplay(GetModality(i));
-
 	}
 	ApplyVolumeSettings(true);
 	connect(GetModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),
