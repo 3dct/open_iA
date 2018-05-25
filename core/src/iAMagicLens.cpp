@@ -33,6 +33,9 @@
 #include <vtkImageMapToColors.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper2D.h>
+#include <vtkPolyLine.h>
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
@@ -87,9 +90,9 @@ private:
 	vtkSmartPointer<vtkImageMapToColors> m_imageColors;
 	vtkSmartPointer<vtkImageActor> m_imageActor;
 	vtkSmartPointer<vtkRenderer> m_imageRenderer;
-	//vtkSmartPointer<vtkPolyData> m_frameData;
-	//vtkSmartPointer<vtkPolyDataMapper2D> m_frameMapper;
-	//vtkSmartPointer<vtkActor2D> m_frameActor;
+	vtkSmartPointer<vtkPolyData> m_frameData;
+	vtkSmartPointer<vtkPolyDataMapper2D> m_frameMapper;
+	vtkSmartPointer<vtkActor2D> m_frameActor;
 	//vtkSmartPointer<vtkPolyData> m_crossHairData;
 	//vtkSmartPointer<vtkPolyDataMapper2D> m_crossHairMapper;
 	//vtkSmartPointer<vtkActor2D> m_crossHairActor;
@@ -107,9 +110,9 @@ iALensData::iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacit
 	m_imageColors(vtkSmartPointer<vtkImageMapToColors>::New()),
 	m_imageActor(vtkSmartPointer<vtkImageActor>::New()),
 	m_imageRenderer(vtkSmartPointer<vtkRenderer>::New()),
-	//m_frameData(vtkSmartPointer<vtkPolyData>::New()),
-	//m_frameMapper(vtkSmartPointer<vtkPolyDataMapper2D>::New()),
-	//m_frameActor(vtkSmartPointer<vtkActor2D>::New()),
+	m_frameData(vtkSmartPointer<vtkPolyData>::New()),
+	m_frameMapper(vtkSmartPointer<vtkPolyDataMapper2D>::New()),
+	m_frameActor(vtkSmartPointer<vtkActor2D>::New()),
 	//m_crossHairData(vtkSmartPointer<vtkPolyData>::New()),
 	//m_crossHairMapper(vtkSmartPointer<vtkPolyDataMapper2D>()),
 	//m_crossHairActor(vtkSmartPointer<vtkActor2D>::New()),
@@ -139,9 +142,14 @@ iALensData::iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacit
 	m_textActor->GetTextProperty()->SetFontSize(CaptionFontSize);
 	double textMargin = frameWidth + CaptionFrameDistance;
 	m_textActor->SetPosition(textMargin, textMargin);
+
+	m_frameMapper->SetInputData(m_frameData);
+	m_frameActor->GetProperty()->SetColor(1., 1., 0);
+	SetFrameWidth(frameWidth);
+	m_frameActor->SetMapper(m_frameMapper);
 	
 	m_guiRenderer->SetLayer(2);
-	//m_guiRenderer->AddActor2D(m_frameActor);
+	m_guiRenderer->AddActor2D(m_frameActor);
 	m_guiRenderer->AddActor2D(m_textActor);
 
 	if (enabled)
@@ -179,7 +187,7 @@ void iALensData::SetCrossHairVisible(bool enabled)
 
 void iALensData::SetFrameWidth(double frameWidth)
 {
-	//m_frameActor->GetProperty()->SetLineWidth(frameWidth);
+	m_frameActor->GetProperty()->SetLineWidth(frameWidth);
 	m_textActor->SetPosition(frameWidth + CaptionFrameDistance, frameWidth + CaptionFrameDistance);
 }
 
@@ -190,6 +198,27 @@ void iALensData::UpdateViewPort(int const mousePos[2])
 	CalculateViewPort(viewPort, windowSize, mousePos, m_size, m_offset);
 	m_imageRenderer->SetViewport(viewPort);
 	m_guiRenderer->SetViewport(viewPort);
+
+	// update border:
+	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+	vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
+	vtkSmartPointer<vtkPolyLine> line = vtkSmartPointer<vtkPolyLine>::New();
+	double p0[3] = { 0.0, 0.0, 0.0 };
+	double p1[3] = { 0.0, static_cast<double>(m_size), 0.0 };
+	double p2[3] = { static_cast<double>(m_size), static_cast<double>(m_size), 0.0 };
+	double p3[3] = { static_cast<double>(m_size), 0.0, 0.0 };
+	points->InsertNextPoint(p0);
+	points->InsertNextPoint(p1);
+	points->InsertNextPoint(p2);
+	points->InsertNextPoint(p3);
+	line->GetPointIds()->SetNumberOfIds(5);
+	for (int i = 0; i < 5; i++)
+		line->GetPointIds()->SetId(i, i % 4);
+	cells->InsertNextCell(line);
+
+	m_frameData->SetPoints(points);
+	m_frameData->SetLines(cells);
+	m_frameMapper->Update();
 }
 
 void iALensData::SetOffset(int xofs, int yofs)
@@ -257,13 +286,24 @@ iAMagicLens::iAMagicLens() :
 	m_interpolate(false),
 	m_viewMode(CENTERED),
 	m_opacity(1.0),
+	m_srcWindowData(vtkSmartPointer<vtkPolyData>::New()),
+	m_srcWindowMapper(vtkSmartPointer<vtkPolyDataMapper2D>::New()),
+	m_srcWindowActor(vtkSmartPointer<vtkActor2D>::New()),
 	m_srcWindowRenderer(vtkSmartPointer<vtkRenderer>::New()),
 	m_renderWindow(nullptr)
-{}
+{
+	m_srcWindowMapper->SetInputData(m_srcWindowData);
+	m_srcWindowActor->GetProperty()->SetColor(1., 1., 1.);
+	m_srcWindowActor->GetProperty()->SetLineWidth(m_frameWidth);
+	m_srcWindowActor->SetMapper(m_srcWindowMapper);
+	m_srcWindowRenderer->SetLayer(1);
+	m_srcWindowRenderer->AddActor(m_srcWindowActor);
+}
 
 void iAMagicLens::SetFrameWidth(qreal frameWidth)
 {
 	m_frameWidth = frameWidth;
+	m_srcWindowActor->GetProperty()->SetLineWidth(m_frameWidth);
 	for (auto l : m_lenses)
 		l->SetFrameWidth(frameWidth);
 }
@@ -293,10 +333,33 @@ void iAMagicLens::UpdatePosition(vtkCamera * cam, double const lensPos[3], int c
 	double scaleCoefficient = (windowSize[1] == 0) ? 1 : static_cast<double>(m_size) / windowSize[1];
 	for (auto l : m_lenses)
 		l->UpdatePosition(lensPos, cam->GetDirectionOfProjection(), cam->GetParallelScale()*scaleCoefficient, mousePos);
-	double viewPort[4];
-	int offset[2] = { 0, 0 };
-	CalculateViewPort(viewPort, m_renderWindow->GetSize(), mousePos, m_size, offset);
-	m_srcWindowRenderer->SetViewport(viewPort);
+
+	if (m_viewMode == OFFSET)
+	{
+		double viewPort[4];
+		int offset[2] = { 0, 0 };
+		CalculateViewPort(viewPort, m_renderWindow->GetSize(), mousePos, m_size, offset);
+		m_srcWindowRenderer->SetViewport(viewPort);
+		// update border:
+		vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+		vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
+		vtkSmartPointer<vtkPolyLine> line = vtkSmartPointer<vtkPolyLine>::New();
+		double p0[3] = { 0.0, 0.0, 0.0 };
+		double p1[3] = { 0.0, static_cast<double>(m_size), 0.0 };
+		double p2[3] = { static_cast<double>(m_size), static_cast<double>(m_size), 0.0 };
+		double p3[3] = { static_cast<double>(m_size), 0.0, 0.0 };
+		points->InsertNextPoint(p0);
+		points->InsertNextPoint(p1);
+		points->InsertNextPoint(p2);
+		points->InsertNextPoint(p3);
+		line->GetPointIds()->SetNumberOfIds(5);
+		for (int i = 0; i < 5; i++)
+			line->GetPointIds()->SetId(i, i % 4);
+		cells->InsertNextCell(line);
+		m_srcWindowData->SetPoints(points);
+		m_srcWindowData->SetLines(cells);
+		m_srcWindowMapper->Update();
+	}
 }
 
 bool iAMagicLens::IsEnabled()

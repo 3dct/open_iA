@@ -35,6 +35,7 @@ class vtkGenericOpenGLRenderWindow;
 class vtkImageActor;
 class vtkImageMapToColors;
 class vtkImageReslice;
+class vtkPolyData;
 class vtkPolyDataMapper2D;
 class vtkProp;
 class vtkRenderer;
@@ -87,9 +88,9 @@ private:
 	ViewMode m_viewMode;
 	double m_opacity;
 	vtkGenericOpenGLRenderWindow* m_renderWindow;
-	//vtkSmartPointer<vtkPolyDataMapper2D> m_srcWindowMapper;
-	//vtkSmartPointer<vtkActor2D> m_srcWindowActor;
+	vtkSmartPointer<vtkPolyData> m_srcWindowData;
+	vtkSmartPointer<vtkPolyDataMapper2D> m_srcWindowMapper;
+	vtkSmartPointer<vtkActor2D> m_srcWindowActor;
 	vtkSmartPointer<vtkRenderer> m_srcWindowRenderer;
-
 	void UpdateOffset();
 };
