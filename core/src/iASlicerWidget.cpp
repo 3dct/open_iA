@@ -539,7 +539,7 @@ void iASlicerWidget::contextMenuEvent(QContextMenuEvent *event)
 	if (m_decorations && m_viewMode == DEFINE_SPLINE)
 		m_contextMenu->exec(event->globalPos());
 
-	if(m_magicLensExternal && m_magicLensExternal->Enabled())
+	if(m_magicLensExternal && m_magicLensExternal->IsEnabled())
 		m_magicLensContextMenu->exec(event->globalPos());
 }
 
@@ -767,15 +767,14 @@ void iASlicerWidget::setPieGlyphsOn( bool isOn )
 
 void iASlicerWidget::resizeEvent( QResizeEvent * event )
 {
-	if (m_magicLensExternal)
-		m_magicLensExternal->UpdateScaleCoefficient();
+	updateMagicLens();
 	QVTKOpenGLWidget::resizeEvent(event);
 }
 
 
 void iASlicerWidget::wheelEvent(QWheelEvent* event)
 {
-	if (m_magicLensExternal && m_magicLensExternal->Enabled() &&
+	if (m_magicLensExternal && m_magicLensExternal->IsEnabled() &&
 		event->modifiers().testFlag(Qt::ControlModifier))
 	{
 		double sizeFactor = 1.1 * (std::abs(event->angleDelta().y() / 120.0));
@@ -1083,15 +1082,14 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 
 void iASlicerWidget::updateMagicLens()
 {
-	if (!m_magicLensExternal || !m_magicLensExternal->Enabled())
+	if (!m_magicLensExternal || !m_magicLensExternal->IsEnabled())
 		return;
 
 	int * mousePos = GetInteractor()->GetEventPosition();
 
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 	ren->SetWorldPoint(pickedData.res[ SlicerXInd(m_slicerMode) ], pickedData.res[ SlicerYInd(m_slicerMode) ], 0, 1);
-	ren->WorldToView();
-	ren->ViewToDisplay();
+	ren->WorldToDisplay();
 	double * dpos = ren->GetDisplayPoint();
 	int lensSz = m_magicLensExternal->GetSize();
 	// restrict size to size of smallest side

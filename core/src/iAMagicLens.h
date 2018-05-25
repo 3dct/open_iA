@@ -62,15 +62,12 @@ public:
 	void AddInput(vtkImageReslice * reslicer, vtkScalarsToColors * cTF, QString const & name);
 	//! shows or hides the magic lens
 	void SetEnabled( bool isEnabled );
-	bool Enabled();
-	void UpdateScaleCoefficient();
+	bool IsEnabled();
 	void SetViewMode(ViewMode mode);
 	ViewMode GetViewMode() const;
-	//QRect GetViewRect() const;
 	void SetLensCount(int count);
 	void SetSize(int newSize);
 	int GetSize() const;
-	//int GetOffset() const;
 	void SetInterpolate(bool on);
 	void SetFrameWidth(qreal frameWidth);
 	qreal GetFrameWidth() const;
@@ -80,7 +77,6 @@ public:
 	void Render();
 private:
 	QVector<QSharedPointer<iALensData>> m_lenses;
-	double m_scaleCoefficient;
 	bool m_isEnabled;
 	QRect m_viewedRect;	//! @< rect of the area of data actually displayed using m-lens
 	bool m_isInitialized;

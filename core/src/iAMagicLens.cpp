@@ -262,7 +262,6 @@ void iALensData::Render()
 
 iAMagicLens::iAMagicLens() :
 	m_isEnabled(false),
-	m_scaleCoefficient(1.0),
 	m_isInitialized(false),
 	m_size(DefaultSize),
 	m_frameWidth(DefaultFrameWidth),
@@ -298,28 +297,21 @@ void iAMagicLens::SetEnabled( bool isEnabled )
 void iAMagicLens::SetRenderWindow(vtkGenericOpenGLRenderWindow* renderWindow)
 {
 	m_renderWindow = renderWindow;
-	UpdateScaleCoefficient();
-}
-
-void iAMagicLens::UpdateScaleCoefficient()
-{
-	if (!m_renderWindow)
-		return;
-	int const * windowSize = m_renderWindow->GetSize();
-	m_scaleCoefficient = (windowSize[1] == 0) ? 1 : static_cast<double>(m_size) / windowSize[1];
 }
 
 void iAMagicLens::UpdatePosition(vtkCamera * cam, double const lensPos[3], int const mousePos[2])
-{	
+{
+	int const * windowSize = m_renderWindow->GetSize();
+	double scaleCoefficient = (windowSize[1] == 0) ? 1 : static_cast<double>(m_size) / windowSize[1];
 	for (auto l : m_lenses)
-		l->UpdatePosition(lensPos, cam->GetDirectionOfProjection(), cam->GetParallelScale()*m_scaleCoefficient, mousePos);
+		l->UpdatePosition(lensPos, cam->GetDirectionOfProjection(), cam->GetParallelScale()*scaleCoefficient, mousePos);
 	double viewPort[4];
 	int offset[2] = { 0, 0 };
 	CalculateViewPort(viewPort, m_renderWindow->GetSize(), mousePos, m_size, offset);
 	m_srcWindowRenderer->SetViewport(viewPort);
 }
 
-bool iAMagicLens::Enabled()
+bool iAMagicLens::IsEnabled()
 {
 	return m_isEnabled;
 }
@@ -434,7 +426,6 @@ void iAMagicLens::SetSize(int newSize)
 	if (newSize < MinimumMagicLensSize || newSize > MaximumMagicLensSize)
 		return;
 	m_size = newSize;
-	UpdateScaleCoefficient();
 	for (auto l : m_lenses)
 		l->SetSize(newSize);
 	UpdateOffset();
