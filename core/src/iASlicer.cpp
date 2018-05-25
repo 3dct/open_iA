@@ -28,6 +28,7 @@
 #include "mdichild.h"
 
 #include <vtkActor.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 
 #include <QFileDialog>
@@ -60,8 +61,7 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 
 	if (m_magicLens)
 	{
-		m_magicLens->InitWidget(m_widget, shareWidget, f);
-		m_magicLens->SetScaleCoefficient(static_cast<double>(m_magicLens->GetSize()) / m_widget->height());
+		m_magicLens->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_widget->GetRenderWindow()));
 	}
 }
 
@@ -142,9 +142,7 @@ void iASlicer::setResliceChannelAxesOrigin(iAChannelID id, double x, double y, d
 {
 	m_data->setResliceChannelAxesOrigin(id, x, y, z);
 	if (m_magicLens)
-	{
 		m_magicLens->UpdateColors();
-	}
 }
 
 void iASlicer::setPositionMarkerCenter(double x, double y)
@@ -156,9 +154,7 @@ void iASlicer::update()
 {
 	m_data->update();
 	if (m_magicLens)
-	{
 		m_magicLens->Render();
-	}
 }
 
 void iASlicer::saveAsImage() const
@@ -303,7 +299,6 @@ void iASlicer::SetMagicLensSize(int newSize)
 		return;
 	}
 	m_magicLens->SetSize(newSize);
-	m_magicLens->SetScaleCoefficient(static_cast<double>(m_magicLens->GetSize()) / widget()->height());
 	widget()->updateMagicLens();
 }
 

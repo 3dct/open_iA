@@ -22,7 +22,7 @@
 
 #include "iAArbitraryProfileOnSlicer.h"
 #include "iAChannelVisualizationData.h"
-#include "iAFramedQVTKOpenGLWidget.h"
+#include "iAConsole.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAPieChartGlyph.h"
@@ -127,9 +127,6 @@ iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent,
 		addedAction = m_magicLensContextMenu->addAction(tr("Offseted Magic Lens"), this, SLOT(menuOffsetMagicLens()));
 		addedAction->setCheckable( true );
 		actionGr->addAction( addedAction );
-		addedAction = m_magicLensContextMenu->addAction(tr("Side by Side"), this, SLOT(menuSideBySideMagicLens()));
-		addedAction->setCheckable( true );
-		actionGr->addAction( addedAction );
 	}
 
 	setAutoFillBackground(false);
@@ -139,6 +136,7 @@ iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent,
 void iASlicerWidget::initialize( vtkImageData *imageData, vtkPoints *points )
 {
 	this->m_worldSnakePointsExternal = points;
+	GetRenderWindow()->SetNumberOfLayers(3);
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 	ren->GetActiveCamera()->SetParallelProjection(true);
 
@@ -770,10 +768,7 @@ void iASlicerWidget::setPieGlyphsOn( bool isOn )
 void iASlicerWidget::resizeEvent( QResizeEvent * event )
 {
 	if (m_magicLensExternal)
-	{
-		const double lenSz = m_magicLensExternal->GetSize();
-		m_magicLensExternal->SetScaleCoefficient( lenSz / this->height() );
-	}
+		m_magicLensExternal->UpdateScaleCoefficient();
 	QVTKOpenGLWidget::resizeEvent(event);
 }
 
@@ -789,7 +784,6 @@ void iASlicerWidget::wheelEvent(QWheelEvent* event)
 			sizeFactor = 1 / sizeFactor;
 		}
 		m_magicLensExternal->SetSize(m_magicLensExternal->GetSize() * sizeFactor);
-		m_magicLensExternal->SetScaleCoefficient(static_cast<double>(m_magicLensExternal->GetSize()) / height());
 	}
 	else if (event->modifiers().testFlag(Qt::ShiftModifier) && receivers(SIGNAL(shiftMouseWheel(int))) > 0)
 	{
@@ -813,37 +807,6 @@ void iASlicerWidget::paintGL()
 	{
 		QVTKOpenGLWidget::paintGL();
 		return;
-	}
-
-	if(	m_magicLensExternal && m_magicLensExternal->Enabled() &&
-		(m_magicLensExternal->GetViewMode() == iAMagicLens::SIDE_BY_SIDE ||
-		m_magicLensExternal->GetViewMode() == iAMagicLens::OFFSET) &&
-		m_magicLensExternal->GetFrameWidth() > 0)
-	{
-		QPainter painter(this);
-		QPen pen( QColor(255, 255, 255, 255) );
-		qreal magicLensFrameWidth = m_magicLensExternal->GetFrameWidth();
-		pen.setWidthF(magicLensFrameWidth);
-		painter.setPen(pen);
-		QRect vr = m_magicLensExternal->GetViewRect();
-		qreal hw = pen.widthF() * 0.5;
-		int penWidth = static_cast<int>(pen.widthF());
-		const double UpperLeftFix = penWidth % 2;
-		const double HeightWidthFix = (penWidth == 1) ? 1 : 0;
-		QPointF points[4] = {
-			vr.topLeft()     + QPoint(UpperLeftFix + hw, UpperLeftFix + hw),
-			vr.topRight()    + QPoint(HeightWidthFix+1  -hw, UpperLeftFix + hw),
-			vr.bottomRight() + QPoint(HeightWidthFix + 1  -hw, HeightWidthFix + 1  -hw),
-			vr.bottomLeft()  + QPoint(UpperLeftFix + hw, HeightWidthFix + 1 -hw)
-		};
-		drawBorderRectangle(painter, points, magicLensFrameWidth);
-		if (m_magicLensExternal->GetViewMode() == iAMagicLens::OFFSET)
-		{
-			painter.drawLine(points[1] + QPoint(magicLensFrameWidth - hw, vr.height()*0.35),
-				points[0] + QPoint(m_magicLensExternal->GetOffset() + 10, +10));
-			painter.drawLine(points[2] - QPoint(-magicLensFrameWidth + hw, vr.height()*0.35),
-				points[3] + QPoint(m_magicLensExternal->GetOffset() + 10, -10));
-		}
 	}
 	QVTKOpenGLWidget::paintGL();
 }
@@ -877,13 +840,6 @@ void iASlicerWidget::menuOffsetMagicLens()
 	updateMagicLens();
 }
 
-
-void iASlicerWidget::menuSideBySideMagicLens()
-{
-	if (!m_magicLensExternal) return;
-	m_magicLensExternal->SetViewMode(iAMagicLens::SIDE_BY_SIDE);
-	updateMagicLens();
-}
 
 void iASlicerWidget::initializeFisheyeLens(vtkImageReslice* reslicer)
 {
@@ -1127,16 +1083,16 @@ void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* sl
 
 void iASlicerWidget::updateMagicLens()
 {
-	if(!m_magicLensExternal || !m_magicLensExternal->Enabled())
-	{
+	if (!m_magicLensExternal || !m_magicLensExternal->Enabled())
 		return;
-	}
+
+	int * mousePos = GetInteractor()->GetEventPosition();
+
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 	ren->SetWorldPoint(pickedData.res[ SlicerXInd(m_slicerMode) ], pickedData.res[ SlicerYInd(m_slicerMode) ], 0, 1);
 	ren->WorldToView();
 	ren->ViewToDisplay();
 	double * dpos = ren->GetDisplayPoint();
-
 	int lensSz = m_magicLensExternal->GetSize();
 	// restrict size to size of smallest side
 	lensSz = (std::min)(lensSz, (std::min)(geometry().width(), geometry().height()));
@@ -1164,25 +1120,15 @@ void iASlicerWidget::updateMagicLens()
 		dpos[i] = qRound(dpos[i]);
 	ren->SetDisplayPoint(dpos);
 	ren->DisplayToWorld();
-
 	double pos2d[2];
-	pos2d[0] = dpos[0]; pos2d[1] = this->geometry().height() - dpos[1];
-
-	//adjust the focus point for the split offset if in side-by-side mode
-	if( m_magicLensExternal->GetViewMode() == iAMagicLens::SIDE_BY_SIDE )
-	{
-		dpos[0] += m_magicLensExternal->GetCenterSplitOffset();
-		ren->SetDisplayPoint(dpos);
-		ren->DisplayToWorld();
-	}
-
-	GetRenderWindow()->Render();
-	paintGL();
-	m_magicLensExternal->UpdateCamera(ren->GetWorldPoint(), ren->GetActiveCamera());
-
-	QRect rect = QRect(pos2d[0]-lensSzHalf, pos2d[1]-lensSzHalf, lensSz, lensSz);
-	m_magicLensExternal->SetGeometry(rect);
-	m_magicLensExternal->Render();
+	pos2d[0] = dpos[0];
+	pos2d[1] = this->geometry().height() - dpos[1];
+	double * worldP = ren->GetWorldPoint();
+	DEBUG_LOG(QString("UPDATE. Pos: (%1, %2, %3), Pos 2D: (%4, %5), Renderer Worldpoint: (%6, %7, %8)")
+		.arg(dpos[0]).arg(dpos[1]).arg(dpos[2])
+		.arg(pos2d[0]).arg(pos2d[1])
+		.arg(worldP[0]).arg(worldP[1]).arg(worldP[2]));
+	m_magicLensExternal->UpdatePosition(GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera(), worldP, mousePos);
 }
 
 

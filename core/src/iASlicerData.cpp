@@ -621,7 +621,6 @@ void iASlicerData::update()
 	interactor->Render();
 	ren->Render();
 
-
 	emit updateSignal();
 }
 
@@ -1739,8 +1738,7 @@ void iASlicerData::setMagicLensInput(iAChannelID id)
 	}
 	if (m_magicLensExternal)
 	{
-		m_magicLensExternal->AddInput(data->reslicer, data->GetLookupTable(),
-			reslicer, colorTransferFunction, data->GetName());
+		m_magicLensExternal->AddInput(data->reslicer, data->GetLookupTable(), data->GetName());
 	}
 }
 

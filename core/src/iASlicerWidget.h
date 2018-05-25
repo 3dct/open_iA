@@ -40,7 +40,6 @@ class vtkParametricFunctionSource;
 class vtkPoints;
 class vtkPolyDataMapper;
 class vtkRegularPolygonSource;
-class vtkRenderWindow;
 class vtkThinPlateSplineTransform;
 
 class open_iA_Core_API iASlicerWidget : public QVTKOpenGLWidget
@@ -91,7 +90,6 @@ public:
 	void    changeImageData(vtkImageData * imageData);
 	void	setIndex( int x, int y, int z ) { m_xInd = x; m_yInd = y; m_zInd = z; };
 	void	setMode(iASlicerMode slicerMode);
-	void	SetSlicer(iASlicerData * slicer);
 	void	updateMagicLens();
 	void	computeGlyphs();
 	void	setPieGlyphParameters( double opacity, double spacing, double magFactor );
@@ -123,41 +121,36 @@ private:
 
 public slots:
 
-	/** Sets a profile line. */
+	//! Sets a profile line.
 	void setSliceProfile(double Pos[3]);
 
-	/** Sets profile coordinates. */
+	//! Sets coordinates for line profile
 	bool setArbitraryProfile(int pointInd, double * Pos, bool doClamp=false);
 
-	/** Moves a point to a new position. */
+	//! Moves a point of the snake slicer to a new position.
 	void movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
 
-	/** Function to deselect points necessary to avoid endless loops with signals and slots. */
+	//! Function to deselect points in snake slicer (necessary to avoid endless loops with signals and slots).
 	void deselectPoint();
 
-	/**
-	* \brief Function to switch slice view modi and to change visibility of spline snakeDisks.
-	*
-	* \param	mode	Mode which should be switched to.
-	*/
+	//! Function to switch slice view modi and to change visibility of spline snakeDisks.
+	//! @param	mode	Mode which should be switched to.
 	void switchMode(int mode);
 	void setSliceProfileOn(bool isOn);
 	void setArbitraryProfileOn(bool isOn);
 	void setPieGlyphsOn(bool isOn);
 
-	/** Adds a new spline point to the end of the spline curve. */
+	//! Adds a new spline point to the end of the spline curve.
 	void addPoint(double x, double y, double z);
-
-	/** Deletes the current spline curve. */
+	//! Deletes the current spline curve.
 	void deleteSnakeLine();
-
-	/** Called when the delete snake line menu is clicked. */
+	//! Called when the delete snake line menu is clicked.
 	void menuDeleteSnakeLine();
+
 	void clearProfileData();
 	void slicerUpdatedSlot();
 	void menuCenteredMagicLens();
 	void menuOffsetMagicLens();
-	void menuSideBySideMagicLens();
 
 signals:
 	void addedPoint(double x, double y, double z);
