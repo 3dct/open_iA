@@ -1093,15 +1093,8 @@ void iASlicerWidget::updateMagicLens()
 	dpos[2] = qRound(dpos[2]);
 	ren->SetDisplayPoint(dpos);
 	ren->DisplayToWorld();
-	double pos2d[2];
-	pos2d[0] = dpos[0];
-	pos2d[1] = dpos[1];
-	int * mousePos = GetInteractor()->GetEventPosition();
-	double * worldP = ren->GetWorldPoint();
-	DEBUG_LOG(QString("UPDATE. Pos: (%1, %2, %3), Pos 2D: (%4, %5), Renderer Worldpoint: (%6, %7, %8)")
-		.arg(dpos[0]).arg(dpos[1]).arg(dpos[2])
-		.arg(pos2d[0]).arg(pos2d[1])
-		.arg(worldP[0]).arg(worldP[1]).arg(worldP[2]));
+	int const mousePos[2] = { static_cast<int>(dpos[0]), static_cast<int>(dpos[1]) };
+	double const * worldP = ren->GetWorldPoint();
 	m_magicLensExternal->UpdatePosition(GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera(), worldP, mousePos);
 }
 

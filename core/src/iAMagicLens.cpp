@@ -188,12 +188,6 @@ void iALensData::UpdateViewPort(int const mousePos[2])
 	double viewPort[4];
 	int const * windowSize = m_renderWindow->GetSize();
 	CalculateViewPort(viewPort, windowSize, mousePos, m_size, m_offset);
-	DEBUG_LOG(QString("  Mouse position: (%1, %2), size=%3, window size=(%4, %5), offset=(%6, %7)")
-		.arg(mousePos[0]).arg(mousePos[1]).arg(m_size)
-		.arg(windowSize[0]).arg(windowSize[1])
-		.arg(m_offset[0]).arg(m_offset[1]));
-	DEBUG_LOG(QString("  Viewport borders = (%1, %2, %3, %4)")
-		.arg(viewPort[0]).arg(viewPort[1]).arg(viewPort[2]).arg(viewPort[3]));
 	m_imageRenderer->SetViewport(viewPort);
 	m_guiRenderer->SetViewport(viewPort);
 }
@@ -235,11 +229,6 @@ void iALensData::UpdatePosition(double const focalPt[3], double const * dir, dou
 	double camPos[3];
 	vtkMath::Subtract(focalPt, dir, camPos);
 	m_imageRenderer->GetActiveCamera()->SetPosition(camPos);
-	DEBUG_LOG(QString("  Camera: focal point=(%1, %2, %3), parallelScale=%4, position=(%5, %6, %7), direction=(%8, %9, %10)")
-		.arg(focalPt[0]).arg(focalPt[1]).arg(focalPt[2])
-		.arg(parallelScale)
-		.arg(camPos[0]).arg(camPos[1]).arg(camPos[2])
-		.arg(dir[0]).arg(dir[1]).arg(dir[2]));
 	UpdateViewPort(mousePos);
 }
 
