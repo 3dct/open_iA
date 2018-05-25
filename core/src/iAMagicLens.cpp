@@ -212,7 +212,6 @@ void iALensData::SetInterpolate(bool interpolate)
 void iALensData::SetOpacity(double opacity)
 {
 	m_imageActor->SetOpacity(opacity);
-	m_imageColors->Update();
 }
 
 void iALensData::SetSize(int size)

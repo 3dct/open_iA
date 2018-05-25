@@ -777,12 +777,7 @@ void iASlicerWidget::wheelEvent(QWheelEvent* event)
 	if (m_magicLensExternal && m_magicLensExternal->IsEnabled() &&
 		event->modifiers().testFlag(Qt::ControlModifier))
 	{
-		double sizeFactor = 1.1 * (std::abs(event->angleDelta().y() / 120.0));
-		if (event->angleDelta().y() < 0)
-		{
-			sizeFactor = 1 / sizeFactor;
-		}
-		m_magicLensExternal->SetSize(m_magicLensExternal->GetSize() * sizeFactor);
+		emit ctrlMouseWheel(event->angleDelta().y() / 120.0);
 	}
 	else if (event->modifiers().testFlag(Qt::ShiftModifier) && receivers(SIGNAL(shiftMouseWheel(int))) > 0)
 	{
@@ -1215,30 +1210,5 @@ void iASlicerWidget::setPieGlyphParameters( double opacity, double spacing, doub
 	m_pieGlyphOpacity = opacity;
 	m_pieGlyphSpacing = spacing;
 	m_pieGlyphMagFactor	= magFactor;
-
 	computeGlyphs();
-}
-
-
-void iASlicerWidget::SetMagicLensFrameWidth(qreal width)
-{
-	if (m_magicLensExternal)
-	{
-		m_magicLensExternal->SetFrameWidth(width);
-	}
-}
-
-
-void iASlicerWidget::SetMagicLensOpacity(double newOpac)
-{
-	if (m_magicLensExternal)
-	{
-		m_magicLensExternal->SetOpacity(newOpac);
-	}
-}
-
-
-double iASlicerWidget::GetMagicLensOpacity()
-{
-	return (m_magicLensExternal) ? m_magicLensExternal->GetOpacity() : 0;
 }

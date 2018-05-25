@@ -93,9 +93,6 @@ public:
 	void	updateMagicLens();
 	void	computeGlyphs();
 	void	setPieGlyphParameters( double opacity, double spacing, double magFactor );
-	void	SetMagicLensFrameWidth(qreal width);
-	void	SetMagicLensOpacity(double opac);
-	double  GetMagicLensOpacity();
 protected:
 	void	updateProfile();
 	int		pickPoint( double * pos_out, double * result_out, int * ind_out);
@@ -161,6 +158,7 @@ signals:
 	void deletedSnakeLine();
 	void shiftMouseWheel(int angle);
 	void altMouseWheel(int angle);
+	void ctrlMouseWheel(int angle);
 	void Clicked();
 	void DblClicked();
 

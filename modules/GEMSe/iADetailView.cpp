@@ -297,13 +297,7 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 
 void iADetailView::ChangeMagicLensOpacity(int chg)
 {
-	iASlicerWidget * sliceWidget = dynamic_cast<iASlicerWidget *>(sender());
-	if (!sliceWidget)
-	{
-		DEBUG_LOG("Invalid slice widget sender!");
-		return;
-	}
-	sliceWidget->SetMagicLensOpacity(sliceWidget->GetMagicLensOpacity() + (chg*0.05));
+	m_previewWidget->GetSlicer()->SetMagicLensOpacity(m_previewWidget->GetSlicer()->GetMagicLensOpacity() + (chg*0.05));
 }
 
 

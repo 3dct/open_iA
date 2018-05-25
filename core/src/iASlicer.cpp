@@ -326,13 +326,30 @@ void iASlicer::SetMagicLensCount(int count)
 
 void iASlicer::SetMagicLensInput(iAChannelID id)
 {
+	if (!m_magicLens)
+	{
+		DEBUG_LOG("SetMagicLensInput called on slicer which doesn't have a magic lens!");
+		return;
+	}
 	m_data->setMagicLensInput(id);
 	m_magicLensInput = id;
+	update();
 }
 
 void iASlicer::SetMagicLensOpacity(double opacity)
 {
+	if (!m_magicLens)
+	{
+		DEBUG_LOG("SetMagicLensOpacity called on slicer which doesn't have a magic lens!");
+		return;
+	}
 	m_magicLens->SetOpacity(opacity);
+	update();
+}
+
+double iASlicer::GetMagicLensOpacity() const
+{
+	return (m_magicLens) ? m_magicLens->GetOpacity() : 0;
 }
 
 vtkGenericOpenGLRenderWindow * iASlicer::GetRenderWindow() const

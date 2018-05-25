@@ -500,6 +500,7 @@ private:
 private slots:
 	void ChangeMagicLensModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
+	void ChangeMagicLensSize(int chg);
 	void ShowModality(int modIdx);
 	void SaveFinished();
 	void ModalityAdded(int modalityIdx);

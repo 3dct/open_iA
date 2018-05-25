@@ -255,6 +255,7 @@ void MdiChild::connectSignalsToSlots()
 	{
 		connect(slicer[s]->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
 		connect(slicer[s]->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+		connect(slicer[s]->widget(), SIGNAL(ctrlMouseWheel(int)), this, SLOT(ChangeMagicLensSize(int)));
 	}
 
 	connect(m_histogram, SIGNAL(updateViews()), this, SLOT(updateViews()));
@@ -2731,15 +2732,19 @@ void MdiChild::ChangeMagicLensModality(int chg)
 
 void MdiChild::ChangeMagicLensOpacity(int chg)
 {
-	iASlicerWidget * sliceWidget = dynamic_cast<iASlicerWidget *>(sender());
-	if (!sliceWidget)
-	{
-		DEBUG_LOG("Invalid slice widget sender!");
-		return;
-	}
-	sliceWidget->SetMagicLensOpacity(sliceWidget->GetMagicLensOpacity() + (chg*0.05));
+	for (int s=0; s<3; ++s)
+		slicer[s]->SetMagicLensOpacity(slicer[s]->GetMagicLensOpacity() + (chg*0.05));
 }
 
+void MdiChild::ChangeMagicLensSize(int chg)
+{
+	double sizeFactor = 1.1 * (std::abs(chg));
+	if (chg < 0)
+		sizeFactor = 1 / sizeFactor;
+	preferences.MagicLensSize = preferences.MagicLensSize * sizeFactor;
+	for (int s = 0; s < 3; ++s)
+		slicer[s]->SetMagicLensSize(preferences.MagicLensSize);
+}
 
 int MdiChild::GetCurrentModality() const
 {

@@ -83,7 +83,9 @@ public:
 	void SetMagicLensCount(int count);
 	void SetMagicLensInput( iAChannelID id );
 	void AddMagicLensInput(iAChannelID id);
+	iAChannelID getMagicLensInput() const;
 	void SetMagicLensOpacity(double opacity);
+	double GetMagicLensOpacity() const;
 	void UpdateMagicLensColors();
 
 	//iASlicerData: wrapping methods--------------------------
@@ -100,7 +102,6 @@ public:
 	void removeChannel(iAChannelID id);
 	void reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData );
 	void setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z);
-	iAChannelID getMagicLensInput() const;
 
 	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
