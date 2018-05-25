@@ -1079,43 +1079,24 @@ void iASlicerWidget::updateMagicLens()
 {
 	if (!m_magicLensExternal || !m_magicLensExternal->IsEnabled())
 		return;
-
-	int * mousePos = GetInteractor()->GetEventPosition();
-
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 	ren->SetWorldPoint(pickedData.res[ SlicerXInd(m_slicerMode) ], pickedData.res[ SlicerYInd(m_slicerMode) ], 0, 1);
 	ren->WorldToDisplay();
-	double * dpos = ren->GetDisplayPoint();
+	double dpos[3];
+	ren->GetDisplayPoint(dpos);
 	int lensSz = m_magicLensExternal->GetSize();
-	// restrict size to size of smallest side
-	lensSz = (std::min)(lensSz, (std::min)(geometry().width(), geometry().height()));
+	lensSz = (std::min)(lensSz, (std::min)(geometry().width(), geometry().height())); // restrict size to size of smallest side
 	int lensSzHalf = 0.5*lensSz;
-
-	if (dpos[0] < lensSzHalf)
-	{
-		dpos[0] = lensSzHalf;
-	}
-	else if (dpos[0] >= (geometry().width() - lensSzHalf))
-	{
-		dpos[0] = geometry().width() - lensSzHalf -1;
-	}
-	if (dpos[1] < lensSzHalf)
-	{
-		dpos[1] = lensSzHalf;
-	}
-	else if (dpos[1] >= (geometry().height() - lensSzHalf))
-	{
-		dpos[1] = geometry().height() - lensSzHalf - 1;
-	}
-
-	//because pixels are integer we need to round and adjust the world point
-	for(int i=0; i<3; ++i)
-		dpos[i] = qRound(dpos[i]);
+	// clamp to image, round to int (=pixels)
+	dpos[0] = clamp(lensSzHalf, geometry().width() - lensSzHalf - 1, qRound(dpos[0]));
+	dpos[1] = clamp(lensSzHalf, geometry().height() - lensSzHalf - 1, qRound(dpos[1]));
+	dpos[2] = qRound(dpos[2]);
 	ren->SetDisplayPoint(dpos);
 	ren->DisplayToWorld();
 	double pos2d[2];
 	pos2d[0] = dpos[0];
-	pos2d[1] = this->geometry().height() - dpos[1];
+	pos2d[1] = dpos[1];
+	int * mousePos = GetInteractor()->GetEventPosition();
 	double * worldP = ren->GetWorldPoint();
 	DEBUG_LOG(QString("UPDATE. Pos: (%1, %2, %3), Pos 2D: (%4, %5), Renderer Worldpoint: (%6, %7, %8)")
 		.arg(dpos[0]).arg(dpos[1]).arg(dpos[2])
