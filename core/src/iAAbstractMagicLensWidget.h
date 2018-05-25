@@ -38,35 +38,32 @@ public:
 		CENTERED,
 		OFFSET
 	};
-						iAAbstractMagicLensWidget( QWidget * parent = 0 );
-	virtual				~iAAbstractMagicLensWidget( );
-	void				magicLensOn( );
-	void				magicLensOff( );
-	void				setLensSize( int sizeX, int sizeY );
-	vtkRenderer*		getLensRenderer( );
-	void				setViewMode( ViewMode mode );
-
+	iAAbstractMagicLensWidget( QWidget * parent = 0 );
+	virtual ~iAAbstractMagicLensWidget( );
+	void magicLensOn( );
+	void magicLensOff( );
+	void setLensSize( int sizeX, int sizeY );
+	vtkRenderer* getLensRenderer( );
+	void setViewMode( ViewMode mode );
 	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin);
-
 
 signals:
 	void MouseMoved( );
 
-
 protected:
-	virtual void		mouseMoveEvent( QMouseEvent * event );
-	virtual void		updateLens( );
-	virtual void		updateGUI( );
-	void				getViewportPoints( double points[4] );
+	void mouseMoveEvent( QMouseEvent * event ) override;
+	virtual void updateLens( );
+	virtual void updateGUI( );
+	void getViewportPoints( double points[4] );
 
-	vtkSmartPointer<vtkRenderer>	m_lensRen;
-	vtkSmartPointer<vtkRenderer>	m_GUIRen;
-	vtkSmartPointer<vtkActor2D>		m_GUIActor;
-	int								m_pos[2];
-	int								m_size[2];
-	double							m_halfSize[2];
-	ViewMode						m_viewMode;
+	vtkSmartPointer<vtkRenderer> m_lensRen;
+	vtkSmartPointer<vtkRenderer> m_GUIRen;
+	vtkSmartPointer<vtkActor2D>  m_GUIActor;
+	int                          m_pos[2];
+	int                          m_size[2];
+	double                       m_halfSize[2];
+	ViewMode                     m_viewMode;
 
 private:
-	static const double				OFFSET_VAL;
+	static const double          OFFSET_VAL;
 };

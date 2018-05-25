@@ -24,11 +24,8 @@
 
 #include <QVTKInteractor.h>
 #include <vtkActor2D.h>
-#include <vtkActor2DCollection.h>
-#include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkInteractorStyle.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper2D.h>
