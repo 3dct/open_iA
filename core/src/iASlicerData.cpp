@@ -101,15 +101,28 @@ public:
 	static iAInteractorStyleImage *New();
 	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage);
 
-	virtual void OnLeftButtonDown()
+	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
+	void OnLeftButtonDown() override
 	{
-		// disable "window-level" and rotation interaction
 		if (!this->Interactor->GetShiftKey())
-		{
 			return;
-		}
 		vtkInteractorStyleImage::OnLeftButtonDown();
 	}
+	//! @{
+	//! shift and control + mousewheel are used differently - don't use them for zooming!
+	void OnMouseWheelForward() override
+	{
+		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+			return;
+		vtkInteractorStyleImage::OnMouseWheelForward();
+	}
+	void OnMouseWheelBackward() override
+	{
+		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+			return;
+		vtkInteractorStyleImage::OnMouseWheelBackward();
+	}
+	//! @}
 	/*
 	virtual void OnChar()
 	{
