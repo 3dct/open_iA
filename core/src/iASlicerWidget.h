@@ -87,6 +87,8 @@ public:
 	iASlicerWidget(iASlicer const * slicerMaster, QWidget * parent = NULL, const QGLWidget * shareWidget=0, Qt::WindowFlags f = 0, bool decorations = true);
 	~iASlicerWidget();
 
+	static const int BorderWidth = 3;
+	
 	void	initialize(vtkImageData * imageData, vtkPoints * points);
 	void    changeImageData(vtkImageData * imageData);
 	void	setIndex( int x, int y, int z ) { m_xInd = x; m_yInd = y; m_zInd = z; };
@@ -98,6 +100,7 @@ public:
 	void	SetMagicLensFrameWidth(qreal width);
 	void	SetMagicLensOpacity(double opac);
 	double  GetMagicLensOpacity();
+	void	showBorder(bool show);
 protected:
 	void	updateProfile();
 	int		pickPoint( double * pos_out, double * result_out, int * ind_out);
@@ -116,7 +119,7 @@ protected:			//overloaded events of QWidget
 	virtual void wheelEvent(QWheelEvent*);
 
 private:
-	void	initializeFisheyeLens(vtkImageReslice* reslicer);
+	void initializeFisheyeLens(vtkImageReslice* reslicer);
 	void updateFisheyeTransform( double focalPt[3], iASlicerData *slicerData, double lensRadius, double innerLensRadius);
 
 
