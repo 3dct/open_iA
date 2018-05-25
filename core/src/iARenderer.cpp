@@ -162,6 +162,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	ext = e;
 	double spacing[3];	ds->GetSpacing(spacing);
 	ren->SetLayer(0);
+	ren->UseDepthPeelingOn();
 	labelRen->SetLayer(1);
 	labelRen->InteractiveOff();
 	labelRen->UseDepthPeelingOn();
@@ -242,14 +243,15 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 			point1[j] = 0;
 			point2[j] = 0;
 		}
-		point1[GetSliceAxis(s, 0)] += 1.25 * dim[GetSliceAxis(s, 0)];
-		point2[GetSliceAxis(s, 1)] += 1.25 * dim[GetSliceAxis(s, 1)];
+		point1[GetSliceAxis(s, 0)] += 1.1 * dim[GetSliceAxis(s, 0)] * spc[GetSliceAxis(s, 0)];
+		point2[GetSliceAxis(s, 1)] += 1.1 * dim[GetSliceAxis(s, 1)] * spc[GetSliceAxis(s, 1)];
 		m_slicePlaneSource[s]->SetPoint1(point1);
 		m_slicePlaneSource[s]->SetPoint2(point2);
 		m_slicePlaneSource[s]->SetCenter(center);
 		m_slicePlaneMapper[s]->SetInputConnection(m_slicePlaneSource[s]->GetOutputPort());
 		m_slicePlaneActor[s]->SetMapper(m_slicePlaneMapper[s]);
-		m_slicePlaneActor[s]->GetProperty()->SetColor(0.8, 0.8, 0.8);
+		m_slicePlaneActor[s]->GetProperty()->SetColor( (s == 0) ? 1:0, (s == 1) ? 1 : 0, (s == 2) ? 1 : 0);
+		m_slicePlaneActor[s]->GetProperty()->SetOpacity(0.5);
 		m_slicePlaneActor[s]->SetVisibility(false);
 		m_slicePlaneMapper[s]->Update();
 	}
