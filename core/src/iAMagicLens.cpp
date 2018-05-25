@@ -74,7 +74,6 @@ class iALensData
 public:
 	iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacity, int size, double frameWidth, bool interpolate, bool enabled);
 	void SetLensVisible(bool visible);
-	void SetCrossHairVisible(bool enable);
 	void SetFrameWidth(double frameWidth);
 	void SetOffset(int xofs, int yofs);
 	void SetInterpolate(bool interpolate);
@@ -93,16 +92,11 @@ private:
 	vtkSmartPointer<vtkPolyData> m_frameData;
 	vtkSmartPointer<vtkPolyDataMapper2D> m_frameMapper;
 	vtkSmartPointer<vtkActor2D> m_frameActor;
-	//vtkSmartPointer<vtkPolyData> m_crossHairData;
-	//vtkSmartPointer<vtkPolyDataMapper2D> m_crossHairMapper;
-	//vtkSmartPointer<vtkActor2D> m_crossHairActor;
 	vtkSmartPointer<vtkTextActor> m_textActor;
 	vtkSmartPointer<vtkRenderer> m_guiRenderer;
 	vtkGenericOpenGLRenderWindow* m_renderWindow;
 	int m_offset[2];
 	int m_size;
-	//QRect m_viewedRect;	// rect of the area of data actually displayed using m-lens
-	bool m_showCrosshair;
 };
 
 
@@ -113,9 +107,6 @@ iALensData::iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacit
 	m_frameData(vtkSmartPointer<vtkPolyData>::New()),
 	m_frameMapper(vtkSmartPointer<vtkPolyDataMapper2D>::New()),
 	m_frameActor(vtkSmartPointer<vtkActor2D>::New()),
-	//m_crossHairData(vtkSmartPointer<vtkPolyData>::New()),
-	//m_crossHairMapper(vtkSmartPointer<vtkPolyDataMapper2D>()),
-	//m_crossHairActor(vtkSmartPointer<vtkActor2D>::New()),
 	m_textActor(vtkSmartPointer<vtkTextActor>::New()),
 	m_guiRenderer(vtkSmartPointer<vtkRenderer>::New()),
 	m_renderWindow(renderWindow),
@@ -173,16 +164,6 @@ void iALensData::SetLensVisible(bool enabled)
 		m_renderWindow->RemoveRenderer(m_imageRenderer);
 		m_renderWindow->RemoveRenderer(m_guiRenderer);
 	}
-}
-
-void iALensData::SetCrossHairVisible(bool enabled)
-{
-	/*
-	if (enabled)
-		m_guiRenderer->AddActor(m_crossHairActor);
-	else
-		m_guiRenderer->RemoveActor(m_crossHairActor);
-	*/
 }
 
 void iALensData::SetFrameWidth(double frameWidth)
@@ -372,7 +353,7 @@ void iAMagicLens::SetViewMode( ViewMode mode )
 		SetLensCount(1);
 	m_viewMode = mode;
 	for (auto l : m_lenses)
-		l->SetCrossHairVisible(m_viewMode == OFFSET);
+		l->SetOpacity(m_viewMode == OFFSET ? 1.0 : m_opacity);
 	SetSrcWindowEnabled(m_viewMode == OFFSET);
 	UpdateOffset();
 }
@@ -432,7 +413,6 @@ void iAMagicLens::AddInput(vtkImageReslice * reslicer,  vtkScalarsToColors* cTF,
 			m_lenses.remove(0);
 		}
 		QSharedPointer<iALensData> l(new iALensData(m_renderWindow, m_opacity, m_size, m_frameWidth, m_interpolate, m_isEnabled));
-		l->SetCrossHairVisible(m_viewMode == OFFSET);
 		m_lenses.append(l);
 		l->UpdateContent(reslicer, cTF, name);
 	}
@@ -499,6 +479,8 @@ void iAMagicLens::SetInterpolate(bool on)
 
 void iAMagicLens::SetOpacity(double opacity)
 {
+	if (m_viewMode == OFFSET)
+		return;
 	m_opacity = opacity;
 	for (auto l : m_lenses)
 		l->SetOpacity(opacity);
