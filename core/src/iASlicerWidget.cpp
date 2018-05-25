@@ -774,8 +774,7 @@ void iASlicerWidget::resizeEvent( QResizeEvent * event )
 
 void iASlicerWidget::wheelEvent(QWheelEvent* event)
 {
-	if (m_magicLensExternal && m_magicLensExternal->IsEnabled() &&
-		event->modifiers().testFlag(Qt::ControlModifier))
+	if (event->modifiers().testFlag(Qt::ControlModifier) && receivers(SIGNAL(ctrlMouseWheel(int))) > 0)
 	{
 		emit ctrlMouseWheel(event->angleDelta().y() / 120.0);
 	}

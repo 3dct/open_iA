@@ -2738,12 +2738,19 @@ void MdiChild::ChangeMagicLensOpacity(int chg)
 
 void MdiChild::ChangeMagicLensSize(int chg)
 {
+	if (!isMagicLensToggled())
+		return;
 	double sizeFactor = 1.1 * (std::abs(chg));
 	if (chg < 0)
 		sizeFactor = 1 / sizeFactor;
-	preferences.MagicLensSize = preferences.MagicLensSize * sizeFactor;
+	int newSize = std::max(MinimumMagicLensSize, static_cast<int>(preferences.MagicLensSize * sizeFactor));
 	for (int s = 0; s < 3; ++s)
-		slicer[s]->SetMagicLensSize(preferences.MagicLensSize);
+	{
+		slicer[s]->SetMagicLensSize(newSize);
+		newSize = std::min(slicer[s]->GetMagicLensSize(), newSize);
+	}
+	preferences.MagicLensSize = newSize;
+	updateSlicers();
 }
 
 int MdiChild::GetCurrentModality() const

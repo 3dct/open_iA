@@ -52,7 +52,6 @@ public:
 		CENTERED,
 		OFFSET,
 	};
-	static const int DefaultSize;
 	static const double DefaultFrameWidth;
 	static const int OffsetModeXOffset;
 
@@ -79,7 +78,6 @@ public:
 private:
 	QVector<QSharedPointer<iALensData>> m_lenses;
 	bool m_isEnabled;
-	QRect m_viewedRect;	//! @< rect of the area of data actually displayed using m-lens
 	bool m_isInitialized;
 	int m_maxLensCount;
 	int m_size;

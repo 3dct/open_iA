@@ -22,6 +22,7 @@
 
 #include "defines.h"
 #include "iAConsole.h"
+#include "iAMathUtility.h"
 
 #include <QVTKInteractor.h>
 #include <QVTKInteractorAdapter.h>
@@ -48,7 +49,6 @@
 
 #include <QSharedPointer>
 
-const int iAMagicLens::DefaultSize = 120;
 const double iAMagicLens::DefaultFrameWidth = 5;
 const int iAMagicLens::OffsetModeXOffset = 10;
 
@@ -240,7 +240,6 @@ void iALensData::SetOpacity(double opacity)
 void iALensData::SetSize(int size)
 {
 	m_size = size;
-	// TODO: updates?
 }
 
 void iALensData::UpdateContent(vtkImageReslice * reslicer, vtkScalarsToColors* cTF, QString const & name)
@@ -280,7 +279,7 @@ void iALensData::Render()
 iAMagicLens::iAMagicLens() :
 	m_isEnabled(false),
 	m_isInitialized(false),
-	m_size(DefaultSize),
+	m_size(DefaultMagicLensSize),
 	m_frameWidth(DefaultFrameWidth),
 	m_maxLensCount(1),
 	m_interpolate(false),
@@ -474,7 +473,16 @@ int iAMagicLens::GetSize() const
 
 void iAMagicLens::SetSize(int newSize)
 {
-	if (newSize < MinimumMagicLensSize || newSize > MaximumMagicLensSize)
+	int maxSize = MaximumMagicLensSize;
+	if (m_renderWindow)
+	{
+		int const * windowSize = m_renderWindow->GetSize();
+		int maxDim = std::min(windowSize[0], windowSize[1]);
+		if (maxDim > 0)
+			maxSize = std::min(MaximumMagicLensSize, maxDim);
+	}
+	newSize = clamp(MinimumMagicLensSize, maxSize, newSize);
+	if (m_size == newSize)
 		return;
 	m_size = newSize;
 	for (auto l : m_lenses)

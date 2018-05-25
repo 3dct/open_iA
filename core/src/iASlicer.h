@@ -79,6 +79,7 @@ public:
 	void changeImageData(vtkImageData *idata);
 	void SetMagicLensEnabled( bool isEnabled );
 	void SetMagicLensSize(int newSize);
+	int GetMagicLensSize() const;
 	void SetMagicLensFrameWidth(int newWidth);
 	void SetMagicLensCount(int count);
 	void SetMagicLensInput( iAChannelID id );

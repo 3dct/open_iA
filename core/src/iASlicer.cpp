@@ -302,6 +302,11 @@ void iASlicer::SetMagicLensSize(int newSize)
 	widget()->updateMagicLens();
 }
 
+int iASlicer::GetMagicLensSize() const
+{
+	return m_magicLens ? m_magicLens->GetSize() : 0;
+}
+
 void iASlicer::SetMagicLensFrameWidth(int newWidth)
 {
 	if (!m_magicLens)
