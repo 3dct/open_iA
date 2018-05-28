@@ -599,7 +599,7 @@ void iASlicerWidget::setSliceProfile(double Pos[3])
 {
 	vtkImageData * reslicedImgData = m_slicerDataExternal->GetReslicer()->GetOutput();
 	double PosY = Pos[SlicerYInd(m_slicerMode)];
-	if(!m_sliceProfile->setup(PosY, reslicedImgData))
+	if (!m_sliceProfile->updatePosition(PosY, reslicedImgData))
 		return;
 	// render slice view
 	GetRenderWindow()->GetInteractor()->Render();

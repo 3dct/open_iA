@@ -39,11 +39,10 @@ class vtkImageData;
 struct iASlicerProfile
 {
 	iASlicerProfile();
-
-	void	SetVisibility ( bool isVisible );
-	void	GetPoint ( vtkIdType id, double pos_out[3] );
-	void	initialize (vtkRenderer * ren);
-	int		setup ( double posY, vtkImageData * imgData );
+	void SetVisibility ( bool isVisible );
+	void GetPoint ( vtkIdType id, double pos_out[3] );
+	void initialize (vtkRenderer * ren);
+	int updatePosition( double posY, vtkImageData * imgData );
 
 public:
 	static const int Z_COORD = 0;
