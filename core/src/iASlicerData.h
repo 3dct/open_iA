@@ -153,8 +153,6 @@ public:
 
 	vtkScalarsToColors * GetColorTransferFunction();
 
-	int getSliceNumber(); // for fisheye transformation
-
 protected:
 	void UpdateResliceAxesDirectionCosines();
 	void UpdateBackground();
