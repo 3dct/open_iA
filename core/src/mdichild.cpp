@@ -2721,7 +2721,6 @@ void MdiChild::ChangeMagicLensModality(int chg)
 		m_currentModality = 0;
 		return;
 	}
-
 	iAChannelVisualizationData chData;
 	vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetComponent(m_currentComponent);
 	chData.SetImage(img);
@@ -2733,6 +2732,7 @@ void MdiChild::ChangeMagicLensModality(int chg)
 	for (int s = 0; s<3; ++s)
 		slicer[s]->initializeChannel(ch_SlicerMagicLens, &chData);
 	SetMagicLensInput(ch_SlicerMagicLens, true);
+	SetHistogramModality(m_currentModality);	// TODO: don't change histogram, just read/create min/max and transfer function?
 }
 
 void MdiChild::ChangeMagicLensOpacity(int chg)
@@ -2817,10 +2817,7 @@ void MdiChild::InitModalities()
 
 void MdiChild::SetHistogramModality(int modalityIdx)
 {
-	if (GetModality(modalityIdx)->GetImage()->GetNumberOfScalarComponents() != 1) //No histogram/profile for rgb, rgba or vector pixel type images
-		return;
-
-	if (!m_histogram)
+	if (!m_histogram || GetModality(modalityIdx)->GetImage()->GetNumberOfScalarComponents() != 1) //No histogram/profile for rgb, rgba or vector pixel type images
 		return;
 	auto histData = GetModality(modalityIdx)->GetTransfer()->GetHistogramData();
 	size_t newBinCount = preferences.HistogramBins;
