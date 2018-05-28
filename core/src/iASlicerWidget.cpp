@@ -73,9 +73,9 @@ struct PickedData
 PickedData	pickedData;
 
 
-iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f,
+iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * widget_container, const QGLWidget * shareWidget, Qt::WindowFlags f,
 	bool decorations)
-	: QVTKOpenGLWidget(parent, /*shareWidget,*/ f),
+	: QVTKOpenGLWidget(widget_container, /*shareWidget,*/ f),
 	m_magicLensExternal(slicerMaster->magicLens()),
 	m_slicerMode(slicerMaster->m_mode),
 	m_slicerDataExternal(slicerMaster->m_data),
@@ -109,10 +109,10 @@ iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent,
 	}
 
 	m_layout = new QGridLayout();
-	m_layout->setContentsMargins(0,0,0,0);
 	m_layout->setSpacing(0);
+	showBorder(false);
 	m_layout->addWidget(this);
-	parent->setLayout( m_layout );
+	widget_container->setLayout( m_layout );
 
 	//setup context menu for the magic lens view options
 	if (m_magicLensExternal)
@@ -130,6 +130,13 @@ iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * parent,
 	}
 
 	setAutoFillBackground(false);
+}
+
+
+void iASlicerWidget::showBorder(bool show)
+{
+	int borderWidth = show ? BorderWidth : 0;
+	m_layout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
 }
 
 
@@ -591,7 +598,7 @@ void iASlicerWidget::setSliceProfile(double Pos[3])
 {
 	vtkImageData * reslicedImgData = m_slicerDataExternal->GetReslicer()->GetOutput();
 	double PosY = Pos[SlicerYInd(m_slicerMode)];
-	if(!m_sliceProfile->setup(PosY, reslicedImgData))
+	if (!m_sliceProfile->updatePosition(PosY, reslicedImgData))
 		return;
 	// render slice view
 	GetRenderWindow()->GetInteractor()->Render();

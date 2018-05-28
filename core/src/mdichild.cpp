@@ -147,7 +147,11 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	slicer[iASlicerMode::YZ] = new iASlicer(this, iASlicerMode::YZ, sYZ->sliceWidget);
 	slicer[iASlicerMode::XY] = new iASlicer(this, iASlicerMode::XY, sXY->sliceWidget);
 	slicer[iASlicerMode::XZ] = new iASlicer(this, iASlicerMode::XZ, sXZ->sliceWidget);
-
+	
+	sYZ->sliceWidget->setStyleSheet(QString("border: %1px solid rgb(255, 0  , 0  )").arg(iASlicerWidget::BorderWidth));
+	sXY->sliceWidget->setStyleSheet(QString("border: %1px solid rgb(0  , 0  , 255)").arg(iASlicerWidget::BorderWidth));
+	sXZ->sliceWidget->setStyleSheet(QString("border: %1px solid rgb(0  , 255, 0  )").arg(iASlicerWidget::BorderWidth));
+	
 	Raycaster = new iARenderer(this);
 	Raycaster->setAxesTransform(axesTransform);
 
@@ -1525,6 +1529,8 @@ void MdiChild::ApplyRenderSettings(iARenderer* raycaster)
 
 void MdiChild::ApplyVolumeSettings(const bool loadSavedVolumeSettings)
 {
+	for (int i = 0; i < 3; ++i)
+		slicer[i]->widget()->showBorder(renderSettings.ShowSlicePlanes);
 	m_dlgModalities->ShowSlicers(renderSettings.ShowSlicers);
 	m_dlgModalities->ChangeRenderSettings(volumeSettings, loadSavedVolumeSettings);
 }
@@ -1643,7 +1649,6 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(deselectedPoint()),  slicer[iASlicerMode::YZ]->widget(), SLOT(deselectPoint()));
 	}
 }
-
 
 bool MdiChild::editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs)
 {

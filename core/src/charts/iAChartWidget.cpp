@@ -337,7 +337,7 @@ QString iAChartWidget::GetXAxisTickMarkLabel(double value, double stepWidth)
 		return result;
 	}
 	else
-		return QString::number(static_cast<long long>(value), 15);
+		return QString::number(static_cast<long long>(value), 'g', 15);
 }
 
 void iAChartWidget::DrawAxes(QPainter& painter)
