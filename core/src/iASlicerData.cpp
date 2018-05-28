@@ -108,8 +108,7 @@ public:
 			return;
 		vtkInteractorStyleImage::OnLeftButtonDown();
 	}
-	//! @{
-	//! shift and control + mousewheel are used differently - don't use them for zooming!
+	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
 	void OnMouseWheelForward() override
 	{
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
@@ -121,6 +120,18 @@ public:
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
 			return;
 		vtkInteractorStyleImage::OnMouseWheelBackward();
+	}
+	//! @}
+	//! @{ Conditionally disable zooming via right button dragging
+	void OnRightButtonDown() override
+	{
+		if (!m_rightButtonDragZoomEnabled)
+			return;
+		vtkInteractorStyleImage::OnRightButtonDown();
+	}
+	void SetRightButtonDragZoomEnabled(bool enabled)
+	{
+		m_rightButtonDragZoomEnabled = enabled;
 	}
 	//! @}
 	/*
@@ -137,6 +148,8 @@ public:
 		}
 	}
 	*/
+private:
+	bool m_rightButtonDragZoomEnabled = true;
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);
@@ -1919,4 +1932,10 @@ QCursor iASlicerData::getMouseCursor()
 int iASlicerData::getSliceNumber()
 {
 	return m_sliceNumber;
+}
+
+
+void iASlicerData::SetRightButtonDragZoomEnabled(bool enabled)
+{
+	interactorStyle->SetRightButtonDragZoomEnabled(enabled);
 }

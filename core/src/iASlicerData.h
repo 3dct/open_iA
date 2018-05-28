@@ -154,6 +154,7 @@ public:
 	vtkScalarsToColors * GetColorTransferFunction();
 
 	int getSliceNumber(); // for fisheye transformation
+	void SetRightButtonDragZoomEnabled(bool enabled);
 
 protected:
 	void UpdateResliceAxesDirectionCosines();

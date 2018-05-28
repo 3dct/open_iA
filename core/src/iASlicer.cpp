@@ -287,6 +287,7 @@ void iASlicer::SetMagicLensEnabled( bool isEnabled )
 		return;
 	}
 	m_magicLens->SetEnabled(isEnabled);
+	m_data->SetRightButtonDragZoomEnabled(!isEnabled);
 	m_data->setShowText(!isEnabled);
 	widget()->updateMagicLens();
 }
