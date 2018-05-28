@@ -148,9 +148,9 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	slicer[iASlicerMode::XY] = new iASlicer(this, iASlicerMode::XY, sXY->sliceWidget);
 	slicer[iASlicerMode::XZ] = new iASlicer(this, iASlicerMode::XZ, sXZ->sliceWidget);
 	
-	sYZ->sliceWidget->setStyleSheet(QString("border: %1px solid rgb(255, 0  , 0  )").arg(iASlicerWidget::BorderWidth));
-	sXY->sliceWidget->setStyleSheet(QString("border: %1px solid rgb(0  , 0  , 255)").arg(iASlicerWidget::BorderWidth));
-	sXZ->sliceWidget->setStyleSheet(QString("border: %1px solid rgb(0  , 255, 0  )").arg(iASlicerWidget::BorderWidth));
+	sYZ->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(255, 0  , 0  ) } ").arg(iASlicerWidget::BorderWidth));
+	sXY->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(0  , 0  , 255) } ").arg(iASlicerWidget::BorderWidth));
+	sXZ->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(0  , 255, 0  ) } ").arg(iASlicerWidget::BorderWidth));
 	
 	Raycaster = new iARenderer(this);
 	Raycaster->setAxesTransform(axesTransform);
