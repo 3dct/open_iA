@@ -92,21 +92,20 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData()
 
 void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 {
-	MdiChild *child = m_mainWnd->createMdiChild(false);
+	m_mdiChild = m_mainWnd->createMdiChild(false);
 	if (!seaFile.good())
 	{
 		DEBUG_LOG(QString("Precalculated GEMSe data %1 file could not be read.").arg(seaFile.GetSEAFileName()));
 		return;
 	}
-	m_mdiChild = child;
 	if (m_seaFile)
 	{
 		DEBUG_LOG("A loading procedure is currently in progress. Please let this finish first.");
 		return;
 	}
 	m_seaFile = QSharedPointer<iASEAFile>(new iASEAFile(seaFile));
-	connect(child, SIGNAL(fileLoaded()), this, SLOT(continuePreCalculatedDataLoading()));
-	if (!child->loadFile(seaFile.GetModalityFileName(), false))
+	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(continuePreCalculatedDataLoading()));
+	if (!m_mdiChild->loadFile(seaFile.GetModalityFileName(), false))
 	{
 		DEBUG_LOG(QString("Failed to load project '%1' referenced from precalculated GEMSe data file %2.")
 			.arg(seaFile.GetModalityFileName())
