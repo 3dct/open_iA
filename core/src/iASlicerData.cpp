@@ -519,8 +519,8 @@ void iASlicerData::setupColorMapper()
 			colormapper->SetOutputFormatToRGB();		// default is RGBA
 		}
 	}
-
-	scalarBarWidget->GetRepresentation()->SetVisibility(imageData->GetNumberOfScalarComponents() == 1);
+	if (m_decorations)
+		scalarBarWidget->GetRepresentation()->SetVisibility(imageData->GetNumberOfScalarComponents() == 1);
 	colormapper->Update();
 }
 
