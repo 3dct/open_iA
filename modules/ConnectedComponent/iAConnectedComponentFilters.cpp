@@ -109,7 +109,6 @@ void SimpleRelabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant>
 	typename RCIFType::Pointer rccFilter = RCIFType::New();
 	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()) );
 	rccFilter->SetMinimumObjectSize(parameters["Minimum object size"].toInt());
-	rccFilter->SetInPlace(true);
 	filter->Progress()->Observe(rccFilter);
 	rccFilter->Update();
 	if (parameters["Write labels to file"].toBool())
