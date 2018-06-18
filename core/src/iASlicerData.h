@@ -153,6 +153,8 @@ public:
 
 	vtkScalarsToColors * GetColorTransferFunction();
 
+	void setSlabThickness(int thickness);
+
 protected:
 	void UpdateResliceAxesDirectionCosines();
 	void UpdateBackground();

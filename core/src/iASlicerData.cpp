@@ -160,7 +160,7 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	renWin->PolygonSmoothingOff();
 	interactorStyle = iAInteractorStyleImage::New();
 	m_camera = vtkCamera::New();
-
+	
 	reslicer = vtkImageReslice::New();
 	colormapper = vtkImageMapToColors::New();
 	imageActor = vtkImageActor::New();
@@ -418,8 +418,6 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		ren->AddActor(pDiskActor);
 		ren->AddActor(roiActor);
 	}
-
-
 
 	colormapper->SetInputConnection(reslicer->GetOutputPort());
 	setupColorMapper();
@@ -1688,6 +1686,12 @@ void iASlicerData::setSliceNumber( int sliceNumber )
 	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
 		ch->SetResliceAxesOrigin( xyz[0] * spacing[0], xyz[1] * spacing[1], xyz[2] * spacing[2] );
 	setResliceAxesOrigin( xyz[0] * spacing[0], xyz[1] * spacing[1], xyz[2] * spacing[2] );
+}
+
+void iASlicerData::setSlabThickness(int thickness)
+{
+	reslicer->SetSlabNumberOfSlices(thickness);
+	update();
 }
 
 iAChannelSlicerData & iASlicerData::GetOrCreateChannel(iAChannelID id)
