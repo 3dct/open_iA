@@ -36,8 +36,7 @@
 
 #include <cassert>
 
-iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0*/,
-	bool decorations /*= true*/, bool magicLensAvailable /*= true*/) :
+iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations /*= true*/, bool magicLensAvailable /*= true*/) :
 
 		QObject(parent),
 		m_mode(mode),
@@ -48,7 +47,7 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
 	}
 	m_data		= new iASlicerData(this, parent, decorations);
-	m_widget	= new iASlicerWidget(this, widget_container, shareWidget, f, decorations);
+	m_widget	= new iASlicerWidget(this, widget_container, decorations);
 
 	assert(m_widget);
 	if (!m_widget)

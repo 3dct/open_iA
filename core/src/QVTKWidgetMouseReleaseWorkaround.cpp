@@ -26,11 +26,19 @@ void QVTKWidgetMouseReleaseWorkaround::mouseReleaseEvent( QMouseEvent * event )
 		emit rightButtonReleasedSignal();
 	else if ( Qt::LeftButton == event->button() )
 		emit leftButtonReleasedSignal();
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	QVTKOpenGLWidget::mouseReleaseEvent(event);
+#else
+	QVTKWidget::mouseReleaseEvent(event);
+#endif
 }
 
 void QVTKWidgetMouseReleaseWorkaround::resizeEvent( QResizeEvent * event )
 {
 	repaint();//less flickering, but resize is less responsive
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	QVTKOpenGLWidget::resizeEvent(event);
+#else
+	QVTKWidget::resizeEvent(event);
+#endif
 }

@@ -20,9 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "QVTKOpenGLWidget.h"
-
 #include "open_iA_Core_export.h"
+
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget.h>
+#endif
 
 #include <QMouseEvent>
 
@@ -32,8 +37,11 @@
  * Solution for a "non-bug" in VTK http://www.vtk.org/pipermail/vtkusers/2013-December/082291.html
  * which will not get fixed.
  */
-
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class open_iA_Core_API QVTKWidgetMouseReleaseWorkaround : public QVTKOpenGLWidget
+#else
+class open_iA_Core_API QVTKWidgetMouseReleaseWorkaround : public QVTKWidget
+#endif
 {
 	Q_OBJECT
 public:

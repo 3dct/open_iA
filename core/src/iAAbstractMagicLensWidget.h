@@ -21,8 +21,13 @@
 #pragma once
 
 #include "open_iA_Core_export.h"
-// vtk
-#include "QVTKOpenGLWidget.h"
+
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget2.h>
+#endif
 #include <vtkSmartPointer.h>
 
 class vtkActor2D;
@@ -30,7 +35,11 @@ class vtkCamera;
 class vtkInteractorStyle;
 class vtkRenderer;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class open_iA_Core_API iAAbstractMagicLensWidget : public QVTKOpenGLWidget
+#else
+class open_iA_Core_API iAAbstractMagicLensWidget : public QVTKWidget2
+#endif
 {
 	Q_OBJECT
 public:

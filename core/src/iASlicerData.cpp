@@ -295,7 +295,7 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 	interactor->SetPicker(pointPicker);
 	interactor->Initialize( );
 	interactorStyle->SetDefaultRenderer(ren);
-	
+
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
 	interactor->AddObserver(vtkCommand::LeftButtonPressEvent, redirect);
 	interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, redirect);

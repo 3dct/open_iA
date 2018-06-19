@@ -20,9 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "QVTKOpenGLWidget.h"
 #include "open_iA_Core_export.h"
 #include "iASlicer.h"
+
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget2.h>
+#endif
 
 #include <QSharedPointer>
 #include <QGridLayout>
@@ -42,7 +47,11 @@ class vtkPolyDataMapper;
 class vtkRegularPolygonSource;
 class vtkThinPlateSplineTransform;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class open_iA_Core_API iASlicerWidget : public QVTKOpenGLWidget
+#else
+class open_iA_Core_API iASlicerWidget : public QVTKWidget2
+#endif
 {
 	Q_OBJECT
 public:
@@ -83,7 +92,7 @@ protected:
 	QGridLayout * m_layout;
 
 public:
-	iASlicerWidget(iASlicer const * slicerMaster, QWidget * parent = NULL, const QGLWidget * shareWidget=0, Qt::WindowFlags f = 0, bool decorations = true);
+	iASlicerWidget(iASlicer const * slicerMaster, QWidget * parent = NULL, bool decorations = true);
 	~iASlicerWidget();
 
 	static const int BorderWidth = 3;
@@ -95,9 +104,6 @@ public:
 	void	updateMagicLens();
 	void	computeGlyphs();
 	void	setPieGlyphParameters( double opacity, double spacing, double magFactor );
-	void	SetMagicLensFrameWidth(qreal width);
-	void	SetMagicLensOpacity(double opac);
-	double  GetMagicLensOpacity();
 	void	showBorder(bool show);
 protected:
 	void	updateProfile();
@@ -119,8 +125,6 @@ protected:			//overloaded events of QWidget
 private:
 	void initializeFisheyeLens(vtkImageReslice* reslicer);
 	void updateFisheyeTransform( double focalPt[3], iASlicerData *slicerData, double lensRadius, double innerLensRadius);
-
-	void paintGL() override;
 
 public slots:
 

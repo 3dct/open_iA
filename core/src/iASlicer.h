@@ -69,8 +69,7 @@ class open_iA_Core_API iASlicer : public QObject
 	friend class iASlicerData;
 	friend class iASlicerWidget;
 public:
-	iASlicer(QWidget * parent, const iASlicerMode mode, QWidget * widget_container, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0,
-		bool decorations = true, bool magicLensAvailable = true);
+	iASlicer(QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations = true, bool magicLensAvailable = true);
 	~iASlicer();
 	bool changeInteractorState();
 	iASlicerWidget * widget() const;
