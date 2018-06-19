@@ -180,6 +180,13 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	sXY->spinBoxXY->setRange(-8192,8192);
 	sYZ->spinBoxYZ->setRange(-8192,8192);
 
+	sXY->sbinBoxSlabThicknessXY->hide();
+	sXY->labelSlabThicknessXY->hide();
+	sXZ->sbinBoxSlabThicknessXZ->hide();
+	sXZ->labelSlabThicknessXZ->hide();
+	sYZ->sbinBoxSlabThicknessYZ->hide();
+	sYZ->labelSlabThicknessYZ->hide();
+
 	worldProfilePoints = vtkPoints::New();
 	worldProfilePoints->Allocate(2);
 
@@ -254,6 +261,13 @@ void MdiChild::connectSignalsToSlots()
 	connect(sXY->doubleSpinBoxXY, SIGNAL(valueChanged(double)), this, SLOT(setRotationXY(double)));
 	connect(sXZ->doubleSpinBoxXZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationXZ(double)));
 	connect(sYZ->doubleSpinBoxYZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationYZ(double)));
+
+	connect(sXY->checkBoxSlabModeXY, SIGNAL(toggled(bool)), this, SLOT(setSlabModeXY(bool)));
+	connect(sXY->sbinBoxSlabThicknessXY, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessXY(int)));
+	connect(sXZ->checkBoxSlabModeXZ, SIGNAL(toggled(bool)), this, SLOT(setSlabModeXZ(bool)));
+	connect(sXZ->sbinBoxSlabThicknessXZ, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessXZ(int)));
+	connect(sYZ->checkBoxSlabModeYZ, SIGNAL(toggled(bool)), this, SLOT(setSlabModeYZ(bool)));
+	connect(sYZ->sbinBoxSlabThicknessYZ, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessYZ(int)));
 
 	for (int s = 0; s < 3; ++s)
 	{
@@ -1213,6 +1227,21 @@ void MdiChild::setSliceXYSpinBox(int s)
 	sXY->verticalScrollBarXY->setValue(s);
 }
 
+void MdiChild::setSlabModeXY(bool slabMode)
+{
+	sXY->labelSlabThicknessXY->setVisible(slabMode);
+	sXY->sbinBoxSlabThicknessXY->setVisible(slabMode);
+
+	slabMode == true ?
+		updateSlabThicknessXY(sXY->sbinBoxSlabThicknessXY->value()) :
+		updateSlabThicknessXY(0);
+}
+
+void MdiChild::updateSlabThicknessXY(int thickness)
+{
+	slicer[iASlicerMode::XY]->setSlabThickness(thickness);
+}
+
 void MdiChild::setSliceXYScrollBar(int s)
 {
 	sXY->spinBoxXY->repaint();
@@ -1377,6 +1406,21 @@ void MdiChild::setSliceYZSpinBox(int s)
 	sYZ->verticalScrollBarYZ->setValue(s);
 }
 
+void MdiChild::setSlabModeYZ(bool slabMode)
+{
+	sYZ->labelSlabThicknessYZ->setVisible(slabMode);
+	sYZ->sbinBoxSlabThicknessYZ->setVisible(slabMode);
+
+	slabMode == true ?
+		updateSlabThicknessYZ(sYZ->sbinBoxSlabThicknessYZ->value()) :
+		updateSlabThicknessYZ(0);
+}
+
+void MdiChild::updateSlabThicknessYZ(int thickness)
+{
+	slicer[iASlicerMode::YZ]->setSlabThickness(thickness);
+}
+
 void MdiChild::setSliceYZScrollBar(int s)
 {
 	sYZ->spinBoxYZ->repaint();
@@ -1410,6 +1454,21 @@ void MdiChild::setSliceXZSpinBox(int s)
 	setSliceXZ(s);
 	QSignalBlocker block(sXZ->verticalScrollBarXZ);
 	sXZ->verticalScrollBarXZ->setValue(s);
+}
+
+void MdiChild::setSlabModeXZ(bool slabMode)
+{
+	sXZ->labelSlabThicknessXZ->setVisible(slabMode);
+	sXZ->sbinBoxSlabThicknessXZ->setVisible(slabMode);
+
+	slabMode == true ?
+		updateSlabThicknessXZ(sXZ->sbinBoxSlabThicknessXZ->value()) :
+		updateSlabThicknessXZ(0);
+}
+
+void MdiChild::updateSlabThicknessXZ(int thickness)
+{
+	slicer[iASlicerMode::XZ]->setSlabThickness(thickness);
 }
 
 void MdiChild::setSliceXZScrollBar(int s)

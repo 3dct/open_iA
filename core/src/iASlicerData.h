@@ -154,6 +154,7 @@ public:
 	vtkScalarsToColors * GetColorTransferFunction();
 
 	void SetRightButtonDragZoomEnabled(bool enabled);
+	void setSlabThickness(int thickness);
 protected:
 	void UpdateResliceAxesDirectionCosines();
 	void UpdateBackground();

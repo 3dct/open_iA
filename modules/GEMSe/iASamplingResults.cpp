@@ -59,13 +59,11 @@ namespace
 	struct Output
 	{
 		static const QString NameSeparator;
-		static const QString ValueSeparator;
 		static const QString OptionalParamSeparator;
 	};
 
 
 	const QString Output::NameSeparator(": ");
-	const QString Output::ValueSeparator(",");
 	const QString Output::OptionalParamSeparator(" ");
 
 	bool GetNameValue(QString const & name, QString & value, QTextStream & in)

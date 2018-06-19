@@ -80,7 +80,6 @@ void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 	m_mdiChild->show();
 	if (!attach->LoadEnsemble(fileName))
 	{
-		delete m_mdiChild;
 		return;
 	}
 }

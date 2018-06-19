@@ -328,6 +328,12 @@ private slots:
 	void setRotationXY(double a);
 	void setRotationYZ(double a);
 	void setRotationXZ(double a);
+	void setSlabModeXY(bool slabMode);
+	void setSlabModeYZ(bool slabMode);
+	void setSlabModeXZ(bool slabMode);
+	void updateSlabThicknessXY(int thickness);
+	void updateSlabThicknessYZ(int thickness);
+	void updateSlabThicknessXZ(int thickness);
 	void updateRenderWindows(int channels);
 	void updateRenderers(int x, int y, int z, int mode);
 	void toggleArbitraryProfile(bool isChecked);

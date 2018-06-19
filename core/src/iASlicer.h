@@ -147,6 +147,7 @@ public slots:
 	void setSliceNumber( int sliceNumber );
 	void saveMovie();
 	void rotateSlice( double angle );
+	void setSlabThickness(int thickness);
 
 protected:
 	iASlicerData * m_data;
