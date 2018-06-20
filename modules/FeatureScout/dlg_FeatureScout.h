@@ -76,9 +76,6 @@ struct moData
 	QList<vtkSmartPointer<vtkImageData> > moImageDataList;
 };
 
-/**
-* \brief	implement vtkChartParallelCoordinates as dialog
-*/
 class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
 	Q_OBJECT
@@ -96,12 +93,10 @@ public:
 	void updateObjectOrientationID(vtkTable *table);
 	void createPolarPlotLookupTable(vtkLookupTable *lut);
 	void createFLDODLookupTable(vtkLookupTable *lut, int Num);
-	void updatePolarPlotView(vtkTable *it);
 	void drawPolarPlotMesh(vtkRenderer *renderer);
 	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
-	void updatePolarPlotForOrientationRendering(vtkLookupTable *lut);
 	void setupNewPcView(bool lookupTable=false);
 	void deletePcViewPointer();
 	void calculateElementTable();
@@ -111,7 +106,6 @@ public:
 	double calculateOpacity(QStandardItem *item);
 	void recalculateChartTable(QStandardItem *item);
 	void updateColumnNames();
-	void updateColumnOrder();
 	void setupDefaultElement();
 	void SingleRendering(int idx = -10000);
 	void updateLookupTable(double alpha= 0.7);
@@ -125,7 +119,6 @@ public:
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
 	void writeWisetex(QXmlStreamWriter *writer);
 	void autoAddClass(int NbOfClasses);
-	void initOrientationColorMap();
 
 	//selection for each class and show SPM for it
 	void applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
