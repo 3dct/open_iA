@@ -27,7 +27,11 @@
 #include "ui_TrackingGraph.h"
 #include "iATrackingGraphItem.h"
 // VTK
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget.h>
+#endif
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
@@ -49,8 +53,12 @@ public:
 
 	void updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
 
-private: 
+private:
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
 	QVTKOpenGLWidget*		graphWidget;
+#else
+	QVTKWidget*		graphWidget;
+#endif
 
 	vtkSmartPointer<vtkMutableDirectedGraph>	m_graph;
 	vtkSmartPointer<iATrackingGraphItem>		m_graphItem;
