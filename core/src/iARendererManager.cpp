@@ -26,7 +26,6 @@
 #include <vtkCommand.h>
 #include <vtkObject.h>
 #include <vtkOpenGLRenderer.h>
-#include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
 
 #include <cassert>

@@ -56,7 +56,6 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPoints;
 class vtkPolyData;
-class vtkRenderWindow;
 class vtkScalarsToColors;
 class vtkTransform;
 
