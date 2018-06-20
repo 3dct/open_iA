@@ -39,7 +39,12 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
 
 class QDockWidget;
 
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class QVTKOpenGLWidget;
+#else
+class QVTKWidget
+#endif
 class vtkColorTransferFunction;
 class vtkImageData;
 class vtkLookupTable;
@@ -206,4 +211,9 @@ private:
 	QVector<iACharacteristicEnergy>							m_characteristicEnergies;
 	QDockWidget*											m_pieChartContainer;
 	QSharedPointer<iAPeriodicTableListener>					m_periodicTableListener;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QVTKOpenGLWidget* colormapWidget;
+#else
+	QVTKWidget* colormapWidget;
+#endif
 };

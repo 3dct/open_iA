@@ -33,7 +33,11 @@ class QListWidgetItem;
 class QTableWidget;
 class QVBoxLayout;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class QVTKOpenGLWidget;
+#else
+class QVTKWidget;
+#endif
 class vtkColorTransferFunction;
 class vtkCommand;
 class vtkContextView;
@@ -115,7 +119,11 @@ protected:
 	iAPAQSplom * m_splom;
 	vtkSmartPointer<vtkIdTypeArray> m_SPLOMSelection;
 	vtkSmartPointer<vtkLookupTable> m_lut;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	QVTKOpenGLWidget * m_SBQVTKWidget;
+#else
+	QVTKWidget * m_SBQVTKWidget;
+#endif
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;
 	QString m_colorArrayName;

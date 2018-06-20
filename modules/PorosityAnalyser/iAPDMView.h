@@ -36,7 +36,11 @@ struct iAHMData;
 class QCustomPlot;
 class QModelIndex;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class QVTKOpenGLWidget;
+#else
+class QVTKWidget;
+#endif
 class vtkChartBox;
 class vtkContextView;
 class vtkLookupTable;
@@ -90,7 +94,11 @@ protected:
 	QMap<QObject*, QModelIndex> m_indices;
 	QModelIndexList m_selectedIndices;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	QVTKOpenGLWidget * m_sbWiget;
+#else
+	QVTKWidget * m_sbWiget;
+#endif
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;

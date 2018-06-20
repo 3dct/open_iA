@@ -26,7 +26,12 @@
 #include "iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_PlaneSlicer> dlg_planeSlicerUI;
 
+
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class QVTKOpenGLWidget;
+#else
+class QVTKWidget2;
+#endif
 class vtkCamera;
 class vtkColorTransferFunction;
 class vtkImageData;
@@ -43,7 +48,11 @@ public:
 	void SetCuttingPlane(double pos[3], double n[3]);
 	void SetOpacity(int imageIdx, double opacity);
 private:
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	QVTKOpenGLWidget* m_vtkWidget;
+#else
+	QVTKWidget2* m_vtkWidget;
+#endif
 	vtkSmartPointer<vtkOpenGLRenderer> m_renderer;
 	vtkCamera* m_camera_ext;
 
