@@ -64,7 +64,11 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 	m_renderer->SetBackground(BACKGROUND[0], BACKGROUND[1], BACKGROUND[2]);
 	m_renderer->AddActor(m_actor);
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	m_renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+#else
 	m_renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+#endif
 	m_renderWindow->AddRenderer(m_renderer);
 
 	graphWidget->SetRenderWindow(m_renderWindow);

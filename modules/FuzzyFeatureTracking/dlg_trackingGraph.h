@@ -29,12 +29,13 @@
 // VTK
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QVTKOpenGLWidget.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #else
 #include <QVTKWidget.h>
+#include <vtkRenderWindow.h>
 #endif
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
 #include <vtkContextInteractorStyle.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkContextTransform.h>
@@ -55,9 +56,11 @@ public:
 
 private:
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-	QVTKOpenGLWidget*		graphWidget;
+	QVTKOpenGLWidget* graphWidget;
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renderWindow;
 #else
 	QVTKWidget*		graphWidget;
+	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
 #endif
 
 	vtkSmartPointer<vtkMutableDirectedGraph>	m_graph;
@@ -66,7 +69,6 @@ private:
 	vtkSmartPointer<vtkContextTransform>		m_trans;
 	vtkSmartPointer<vtkRenderer>				m_renderer;
 	vtkSmartPointer<vtkContextScene>			m_contextScene;
-	vtkSmartPointer<vtkRenderWindow>			m_renderWindow;
 	vtkSmartPointer<vtkContextInteractorStyle>	m_interactorStyle;
 	vtkSmartPointer<vtkRenderWindowInteractor>	m_interactor;
 
