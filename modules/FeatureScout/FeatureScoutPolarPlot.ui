@@ -150,20 +150,9 @@
       </layout>
      </widget>
     </item>
-    <item>
-     <widget class="QVTKOpenGLWidget" name="plotWidget" native="true"/>
-    </item>
    </layout>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QVTKOpenGLWidget</class>
-   <extends></extends>
-   <header>QVTKOpenGLWidget.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
