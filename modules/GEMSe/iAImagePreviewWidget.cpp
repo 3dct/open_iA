@@ -69,7 +69,7 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_aspectRatio(1.0),
 	m_colorTheme(nullptr)
 {
-	m_slicer = new iASlicer(this, mode, this, 0, 0, false, magicLens);
+	m_slicer = new iASlicer(this, mode, this, false, magicLens);
 }
 
 iAImagePreviewWidget::~iAImagePreviewWidget()
