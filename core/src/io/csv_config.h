@@ -30,7 +30,7 @@ namespace csvConfig {
 	//seperator in csv file
 	enum class csvSeparator{Colunm = 1, Comma };
 	enum class decimalPoint{Dot = 1, Comma  };
-	enum class inputLang{EN = 1, GER};
+	enum class inputLang{EN = 1, DE};
 	enum class CTInputObjectType{Fiber =1, Voids = 0};
 
 	//parameters for csv loading configuraton

@@ -325,9 +325,7 @@ void dlg_CSVInput::setAllHeaders(QSharedPointer<QStringList> &allHeaders)
 
 void dlg_CSVInput::assignFormatLanguage()
 {
-	if (cb_fmtEnglish->isChecked()) {
-		this->m_confParams->csv_Inputlanguage = csvConfig::inputLang::EN;
-	}else this->m_confParams->csv_Inputlanguage = csvConfig::inputLang::GER;
+	m_confParams->csv_Inputlanguage = (cb_fmtEnglish->isChecked()) ? csvConfig::inputLang::EN : csvConfig::inputLang::DE;
 }
 
 const csvConfig::configPararams& dlg_CSVInput::getConfigParameters() const
@@ -737,13 +735,7 @@ bool dlg_CSVInput::loadEntriesFromRegistry(QSettings & anySetting, const QString
 	}
 
 	useEN_DecimalPoint = anySetting.value(this->m_regEntries->str_reg_languageFormat).toBool();//inputlang - decimalPoint
-	if (useEN_DecimalPoint) {
-		this->m_confParams->csv_Inputlanguage = csvLang::EN;
-	}
-	else {
-		this->m_confParams->csv_Inputlanguage = csvLang::GER;
-	}
-
+	this->m_confParams->csv_Inputlanguage = useEN_DecimalPoint ? csvLang::EN : csvLang::DE;
 
 	//Fiber or Pores as Input
 	CSV_InputType = anySetting.value(this->m_regEntries->str_reg_FiberPoreData).toString();
@@ -838,16 +830,11 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 			case csvColSeparator::Colunm: colSeparator = "Column"; break;
 			case csvColSeparator::Comma : colSeparator = "Comma"; break;
 		}
-
-
-		switch (csv_params.csv_Inputlanguage) {
-
-		case(csvLang::EN): useEN_Decimals = true; break;
-
-		case(csvLang::GER): useEN_Decimals = false; break;
-
-		default: useEN_Decimals = true;
-
+		switch (csv_params.csv_Inputlanguage)
+		{
+			default:
+			case csvLang::EN: useEN_Decimals = true; break;
+			case csvLang::DE: useEN_Decimals = false; break;
 		}
 		switch (csv_params.inputObjectType)
 		{
