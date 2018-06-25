@@ -204,8 +204,8 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 }
 
 
-void iACsvIO::FibreCalculation(QTextStream & in, int eleWidth, int tableLength, const int colCount /*eleString*/, const bool useOldFeatureScoutFormat) {
-
+void iACsvIO::FibreCalculation(QTextStream & in, int eleWidth, int tableLength, const int colCount /*eleString*/, const bool useOldFeatureScoutFormat)
+{
 	double x1, x2, y1, y2, z1, z2, dx, dy, dz, xm, ym, zm, phi, theta;
 	double a11, a22, a33, a12, a13, a23;
 
@@ -273,67 +273,59 @@ void iACsvIO::FibreCalculation(QTextStream & in, int eleWidth, int tableLength, 
 
 			if ((!useCVSOnly) | enableFiberTransformation )
 			{
+				table->SetValue(i, 0, line.section(",", 0, 0).toInt());
 
-					table->SetValue(i, 0, line.section(",", 0, 0).toInt());
+				//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
+				//first entrys are those ones
 
-					//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
-					//first entrys are those ones
+				//TODO save in the first column with AUTO ID 2-8, //start colIdx ->2, end will be 8
+				//
+				for (int j = 1; j < 7; j++)
+				{
+					table->SetValue(i, j, line.section(",", j, j).toFloat());
+				}
+				int col_idx = 7;
 
-					//TODO save in the first column with AUTO ID 2-8, //start colIdx ->2, end will be 8
-					//
-					for (int j = 1; j < 7; j++)
-					{
-						table->SetValue(i, j, line.section(",", j, j).toFloat());
-					}
-					int col_idx = 7;
+				if (useOldFeatureScoutFormat)
+				{
+					//7 - 12
+					col_idx = assignFiberValuesPart1(i, col_idx, a11, a22, a33, a12, a13, a23);
 
+					//13 - 17
+					col_idx = assingFiberValuesPart_2(i, col_idx, phi, theta, xm, ym, zm);
 
-					if (useOldFeatureScoutFormat) {
+					//original
+					//table->SetValue(i, 7, a11);  //7
+					//table->SetValue(i, 8, a22);	 //8
+					//table->SetValue(i, 9, a33);  //9
+					//table->SetValue(i, 10, a12);  //10
+					//table->SetValue(i, 11, a13);  //11
+					//table->SetValue(i, 12, a23);  //12
+					//table->SetValue(i, 13, phi);  //13
+					//table->SetValue(i, 14, theta); //14
+					//table->SetValue(i, 15, xm);		//15
+					//table->SetValue(i, 16, ym);		//16
+					//table->SetValue(i, 17, zm);		//17
+				} // end useOldFeatureScout format
 
-						//7 - 12
-						col_idx = assignFiberValuesPart1(i, col_idx, a11, a22, a33, a12, a13, a23);
+				//use the other entries of columns, using auto ID will be 8
+				for (int j = 7; j < eleWidth; j++)
+				{
+					table->SetValue(i, col_idx /*j + 11*/, line.section(",", j, j).toFloat()); //TODO in dbl
+					col_idx++;
+				}
 
-						//13 - 17
-						col_idx = assingFiberValuesPart_2(i, col_idx, phi, theta, xm, ym, zm);
+				//for new FeatureScout format just append it
+				if (!useOldFeatureScoutFormat) {
+					col_idx = assignFiberValuesPart1(i, col_idx, a11, a22, a33, a12, a13, a23);
 
-						//original
-						//table->SetValue(i, 7, a11);  //7
-						//table->SetValue(i, 8, a22);	 //8
-						//table->SetValue(i, 9, a33);  //9
-						//table->SetValue(i, 10, a12);  //10
-						//table->SetValue(i, 11, a13);  //11
-						//table->SetValue(i, 12, a23);  //12
-						//table->SetValue(i, 13, phi);  //13
-						//table->SetValue(i, 14, theta); //14
-						//table->SetValue(i, 15, xm);		//15
-						//table->SetValue(i, 16, ym);		//16
-						//table->SetValue(i, 17, zm);		//17
+					//13 - 17
+					col_idx = assingFiberValuesPart_2(i, col_idx, phi, theta, xm, ym, zm);
 
-
-					} // end useOldFeatureScout format
-
-						//use the other entries of columns, using auto ID will be 8
-					for (int j = 7; j < eleWidth; j++)
-					{
-						table->SetValue(i, col_idx /*j + 11*/, line.section(",", j, j).toFloat()); //TODO in dbl
-						col_idx++;
-					}
-
-					//for new FeatureScout format just append it
-					if (!useOldFeatureScoutFormat) {
-						col_idx = assignFiberValuesPart1(i, col_idx, a11, a22, a33, a12, a13, a23);
-
-						//13 - 17
-						col_idx = assingFiberValuesPart_2(i, col_idx, phi, theta, xm, ym, zm);
-
-					}
-
-
-						table->SetValue(i, colCount - 1, 0); // with autoId +1 last column adding class information
-
-					//TODO setup to new featureScoutFormat
-
-			}//end !use csv only
+				}
+				table->SetValue(i, colCount - 1, 0); // with autoId +1 last column adding class information
+				//TODO setup to new featureScoutFormat
+			} //end !use csv only
 		}
 		else table->RemoveRow(i);  //Skip empty rows
 	}//end for loop
@@ -347,17 +339,10 @@ int iACsvIO::assingFiberValuesPart_2(int i, int col_idx, double phi, double thet
 	//table->SetValue(i, 16, ym);		//16
 	//table->SetValue(i, 17, zm);		//17
 
-	table->SetValue(i, col_idx, phi);  col_idx++;
-	//14
-
-	table->SetValue(i, col_idx, theta); col_idx++;
-	//15
-	table->SetValue(i, col_idx, xm);	col_idx++;
-	//16
-
-	table->SetValue(i, col_idx, ym);	col_idx++;
-	//17
-
+	table->SetValue(i, col_idx, phi);  col_idx++;   //14
+	table->SetValue(i, col_idx, theta); col_idx++;  //15
+	table->SetValue(i, col_idx, xm);	col_idx++;  //16
+	table->SetValue(i, col_idx, ym);	col_idx++;  //17
 	table->SetValue(i, col_idx, zm);	col_idx++;
 	return col_idx;
 }
@@ -372,18 +357,13 @@ int iACsvIO::assignFiberValuesPart1(int i, int col_idx, double a11, double a22, 
 	//table->SetValue(i, 11, a13);  //11
 	//table->SetValue(i, 12, a23);  //12
 
-	table->SetValue(i, col_idx, a11);  col_idx++;
-	//8
-	table->SetValue(i, col_idx, a22); col_idx++;
-	//9
-	table->SetValue(i, col_idx, a33); col_idx++;
-	//10
-
-	table->SetValue(i, col_idx, a12); col_idx++;
-	//11
-	table->SetValue(i, col_idx, a13);  col_idx++;
-	//12
-	table->SetValue(i, col_idx, a23);  col_idx++;						return col_idx;
+	table->SetValue(i, col_idx, a11);  col_idx++;  //8
+	table->SetValue(i, col_idx, a22); col_idx++;   //9
+	table->SetValue(i, col_idx, a33); col_idx++;   //10
+	table->SetValue(i, col_idx, a12); col_idx++;   //11
+	table->SetValue(i, col_idx, a13);  col_idx++;  //12
+	table->SetValue(i, col_idx, a23);  col_idx++;
+	return col_idx;
 }
 
 bool iACsvIO::LoadPoreCSV(const QString &fileName)
@@ -454,21 +434,18 @@ bool iACsvIO::LoadPoreCSV(const QString &fileName)
 bool iACsvIO::loadConfig(const QString configName, bool & applyEN_Formating )
 {
 	QFile file(configName);
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-		return false;
-	else return true;
-
+	return file.open(QIODevice::ReadOnly | QIODevice::Text);
 }
 
 bool iACsvIO::loadCSVCustom(csvConfig::configPararams &cnfg_params)
 {
-	if (!cnfg_params.paramsValid) {
+	if (!cnfg_params.paramsValid)
+	{
 		return false;
 	}
 	setTableParams(cnfg_params);
 	return loadCsv_WithConfig();
 }
-
 
 void iACsvIO::setParams(QStringList & headers, const QVector<uint>& colIDs, uint TableWidth)
 {
@@ -480,25 +457,29 @@ void iACsvIO::setParams(QStringList & headers, const QVector<uint>& colIDs, uint
 void iACsvIO::debugTable(const bool useTabSeparator)
 {
 	std::string separator = ",";
-
-	if (useTabSeparator) {
+	if (useTabSeparator)
+	{
 		separator = "\t";
 	}
 
 	ofstream debugfile;
 	debugfile.open("C:/Users/p41883/Desktop/inputData.txt");
-	if (debugfile.is_open()) {
+	if (debugfile.is_open())
+	{
 		vtkVariant spCol, spRow, spCN, spVal;
 		spCol = this->table->GetNumberOfColumns();
 		spRow = this->table->GetNumberOfRows();
 
-		for (int i = 0; i<spCol.ToInt(); i++) {
+		for (int i = 0; i<spCol.ToInt(); i++)
+		{
 			spCN = this->table->GetColumnName(i);
 			debugfile << spCN.ToString() << separator;
 		}
 		debugfile << "\n";
-		for (int row = 0; row < spRow.ToInt(); row++) {
-			for (int col = 0; col < spCol.ToInt(); col++) {
+		for (int row = 0; row < spRow.ToInt(); row++)
+		{
+			for (int col = 0; col < spCol.ToInt(); col++)
+			{
 				spVal = this->table->GetValue(row, col);
 				debugfile << spVal.ToString() << separator; //TODO cast debug to double
 			}
@@ -514,7 +495,7 @@ void iACsvIO::setDefaultConfigPath()
 	configPath = "D:/OpenIa_TestDaten/TestInput/config/";
 }
 
-long iACsvIO::CalcTableLength(const QString &fileName,const int *nrHeadersToSkip)
+long iACsvIO::CalcTableLength(const QString &fileName,const int skipLinesStart)
 {
 	// skip lines which are not headers
 	// todo: to find another efficient way to count the lines in a file
@@ -596,25 +577,25 @@ QStringList iACsvIO::GetFibreElementsName(bool withUnit)
 	eleString.append(QString("Ym%1").arg(micro1));		// 16
 	eleString.append(QString("Zm%1").arg(micro1));		// 17
 
-														////QUICK&DIRTY to set the right labeling for voids
-														//eleString.append("ID");							// 0
-														//eleString.append("Volume");		// 1
-														//eleString.append("DimX");		// 2
-														//eleString.append("DimY");		// 3
-														//eleString.append("DimZ");		// 4
-														//eleString.append("PositionX");		// 5
-														//eleString.append("PositionY");		// 6
-														//eleString.append("PositionZ");							// 7
-														//eleString.append("ShapeFactor");							// 8
-														//eleString.append("a33");							// 9
-														//eleString.append("a12");							// 10
-														//eleString.append("a13");							// 11
-														//eleString.append("a23");							// 12
-														//eleString.append(QString("phi%1").arg(udegree));	// 13
-														//eleString.append(QString("theta%1").arg(udegree));	// 14
-														//eleString.append(QString("Xm%1").arg(micro1));		// 15
-														//eleString.append(QString("Ym%1").arg(micro1));		// 16
-														//eleString.append(QString("Zm%1").arg(micro1));		// 17
+	////QUICK&DIRTY to set the right labeling for voids
+	//eleString.append("ID");							// 0
+	//eleString.append("Volume");		// 1
+	//eleString.append("DimX");		// 2
+	//eleString.append("DimY");		// 3
+	//eleString.append("DimZ");		// 4
+	//eleString.append("PositionX");		// 5
+	//eleString.append("PositionY");		// 6
+	//eleString.append("PositionZ");							// 7
+	//eleString.append("ShapeFactor");							// 8
+	//eleString.append("a33");							// 9
+	//eleString.append("a12");							// 10
+	//eleString.append("a13");							// 11
+	//eleString.append("a23");							// 12
+	//eleString.append(QString("phi%1").arg(udegree));	// 13
+	//eleString.append(QString("theta%1").arg(udegree));	// 14
+	//eleString.append(QString("Xm%1").arg(micro1));		// 15
+	//eleString.append(QString("Ym%1").arg(micro1));		// 16
+	//eleString.append(QString("Zm%1").arg(micro1));		// 17
 
 	if (withUnit)
 	{
@@ -625,7 +606,6 @@ QStringList iACsvIO::GetFibreElementsName(bool withUnit)
 	{
 		eleString.append(QString("sL%1").arg(micro1));		// 18
 		eleString.append(QString("cL%1").arg(micro1));		// 19
-
 	}
 	eleString.append(QString("Diameter%1").arg(micro1));	// 20
 	eleString.append(QString("Surface%1").arg(micro2));		// 21
@@ -665,13 +645,11 @@ vtkTable* iACsvIO::GetCSVTable()
 	return table.GetPointer();
 }
 
-
-
 //loading csv into table
-bool iACsvIO::loadCsv_WithConfig(){
+bool iACsvIO::loadCsv_WithConfig()
+{
 	this->useCVSOnly = true;
 	table->Initialize();
-
 	bool retFlag = false;
 	//read entries with selected headers
 	this->readCustomFileEntries(this->m_FileName, this->m_rowsToSkip, this->m_TableHeaders, this->m_colIds, this->m_EN_Values, retFlag);
@@ -683,15 +661,18 @@ void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 	this->m_FileName = csv_Params.fileName;
 	this->m_rowsToSkip = csv_Params.startLine;
 
-	if (csv_Params.file_seperator == csvConfig::csvSeparator::Colunm) {
+	if (csv_Params.file_seperator == csvConfig::csvSeparator::Colunm)
+	{
 		this->m_colSeparator = ";";
 	}
-	else if (csv_Params.file_seperator == csvConfig::csvSeparator::Comma) {
+	else if (csv_Params.file_seperator == csvConfig::csvSeparator::Comma)
+	{
 		this->m_colSeparator = ",";
 	}
 
 	//english decimal format
-	if (!(csv_Params.csv_Inputlanguage == (csvConfig::inputLang::EN))) {
+	if (!(csv_Params.csv_Inputlanguage == (csvConfig::inputLang::EN)))
+	{
 		this->m_decimalSeparator = ".";
 		this->m_EN_Values = false;
 	}
@@ -703,7 +684,8 @@ void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 
 	}
 
-	if (csv_Params.inputObjectType == csvConfig::CTInputObjectType::Fiber) {
+	if (csv_Params.inputObjectType == csvConfig::CTInputObjectType::Fiber)
+	{
 		this->enableFiberTransformation = true;
 	}
 	else this->enableFiberTransformation = false;
@@ -749,22 +731,21 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	QString tmp_section = "";
 	tableWidth = this->m_tableWidth;
 
-
-
-
-	//load pores
-	if (!enableFiberTransformation) {
-
-		if (this->m_colIds.length() > 0) {
+	if (!enableFiberTransformation)
+	{
+		if (this->m_colIds.length() > 0)
+		{
 			col_count = this->m_colIds.length();
 		}
-		else {
+		else
+		{
 			col_count = this->m_TableHeaders.length();
 		}
 
 		loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
 	} //TODO FIberTransformation
-	else {
+	else
+	{
 		//loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
 		this->FibreCalculation(in, tableWidth, tableLength,col_count, true);
 		//TODO adapt to new Featurescout csvOnly
@@ -781,13 +762,16 @@ void iACsvIO::setColumnHeaders(QStringList &colHeaders)
 	const char* element;
 
 	vtkSmartPointer<vtkIntArray> arrAuto = vtkSmartPointer<vtkIntArray>::New();
-	if(!this->enableFiberTransformation){
-	arrAuto->SetName("Auto_ID");
-	table->AddColumn(arrAuto);
+	if(!this->enableFiberTransformation)
+	{
+		arrAuto->SetName("Auto_ID");
+		table->AddColumn(arrAuto);
 	}
 	//adding headers;
-	for (const auto &elLine : colHeaders) {
-		if (!elLine.isEmpty()) {
+	for (const auto &elLine : colHeaders)
+	{
+		if (!elLine.isEmpty())
+		{
 			vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
 			byteArr = elLine.toUtf8();
 			element = byteArr.constData();
@@ -795,8 +779,6 @@ void iACsvIO::setColumnHeaders(QStringList &colHeaders)
 			table->AddColumn(arrX);
 		}
 	}
-
-
 	//read entries;
 	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
 	arr->SetName("Class_ID");
@@ -827,33 +809,25 @@ void iACsvIO::loadPoreData(long tableLength, QString &line, QTextStream &in, int
 			//adding entries for each col
 			for (int col = 1; col<tableWidth + 1; col++)
 			{
-
-
 				//skip rows
 				if (m_colIds.contains((uint)col - 1))
 				{
 					tmp_section = line.section(m_colSeparator, col - 1, col - 1);
 					if (!tmp_section.isEmpty())
 					{
-
 						//replace decimal separator for german input format
 						if (!this->m_EN_Values)
 							tmp_section = tmp_section.replace(",", m_decimalSeparator);
 
 						tbl_value = tmp_section.toDouble();
 						table->SetValue(row, cur_Colcount, tbl_value);
-					}cur_Colcount++;
-
+					}
+					cur_Colcount++;
 				}
-
 			}
-
 			table->SetValue(row, col_count + 1, 0);
 			this->m_EL_ID++;
 		} // exclude white spaces if row is empty
 		else table->RemoveRow(row);
 	}
 }
-
-
-

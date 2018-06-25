@@ -93,25 +93,18 @@ private:
 	QString configPath;
 
 	bool LoadFibreCSV(const QString &fileName);
-
 	void FibreCalculation(QTextStream & in, int eleWidth, int tableLength, const int colCount, const bool useOldFeatureScoutFormat);
-
 	int assingFiberValuesPart_2(int i, int col_idx, double phi, double theta, double xm, double ym, double zm);
-
 	int assignFiberValuesPart1(int i, int col_idx, double a11, double a22, double a33, double a12, double a13, double a23);
-
 	bool LoadPoreCSV(const QString &fileName);
-
 	bool loadConfig(const QString configName, bool & applyEN_Formating);
-
-private:
 
 	bool m_EN_Values;
 	bool m_useEndLine;
 	bool useCVSOnly;  //Mode Read Custom csv
 	bool enableFiberTransformation;
 
-	//element id for each row entry
+	//! element id for each row entry
 	ulong m_EL_ID;
 	uint m_tableWidth;
 	ulong m_endLine;

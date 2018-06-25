@@ -22,18 +22,16 @@
 
 #include "open_iA_Core_export.h"
 #include "io/csv_config.h"
-#include <qstringlist.h>
-#include <qtablewidget.h>
-#include <QSharedPointer>
-#include <qstringlist.h>
-#include <qstring.h>
 
+#include <QString.h>
+#include <QStringList>
+#include <QSharedPointer>
+#include <QTableWidget>
 
 class QFile;
 
-
-namespace  DataIO{
-
+namespace  DataIO
+{
 
 	class open_iA_Core_API DataTable : public QTableWidget
 	{
@@ -41,9 +39,6 @@ namespace  DataIO{
 		DataTable();
 		void initToDefault();
 		~DataTable();
-
-
-
 		void initTable();
 
 		inline const DataTable &getPreviewTable() const {
@@ -56,25 +51,11 @@ namespace  DataIO{
 		bool readTableEntries(const QString &fName, const uint rowCount, uint colCount, const int headerNr, const uint *StartLine, const bool readHeaders, bool insertID);
 
 		void readTableValues(const uint &rowCount, QTextStream &file, QString &el_line);
-
 		void prepareHeader(int headerLine, QString &el_line, QTextStream &file, const bool &readHeaders, bool insertID);
-
 		bool prepareFile(const QString & fName, QFile &file, bool &retflag);
-
 		void prepareTable(const int rowCount, const int colCount, const int headerLineNr);
-
 		void clearTable();
 		void resetIndizes();
-
-
-		inline void showTable() {
-			this->show();
-		}
-
-		//writing all elements to file
-		void dataToFile(const QString &FileName);
-
-
 		void setHeader(const QStringList &headerEntries);
 		void setColSeparator(const csvConfig::csvSeparator & separator);
 
@@ -84,7 +65,6 @@ namespace  DataIO{
 
 	protected:
 		QSharedPointer<QStringList> m_currentEntry;
-
 		QSharedPointer<QStringList> m_headerEntries;
 
 		QTableWidgetItem *m_currentItem;
@@ -113,6 +93,5 @@ namespace  DataIO{
 		DataTable(const DataTable &other);
 
 	};
-
 
 }

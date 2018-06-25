@@ -19,7 +19,8 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
-#include <qstring.h>
+
+#include <QString>
 
 //stores csv config parameters
 namespace csvConfig {
@@ -35,12 +36,14 @@ namespace csvConfig {
 	//parameters for csv loading configuraton
 	struct configPararams {
 
-		configPararams(){
+		configPararams()
+		{
 			initDefaultParams();
 
 		};
 
-		void initDefaultParams() {
+		void initDefaultParams()
+		{
 			fileName = "";
 			startLine = 5;
 			headerStartLine = 5;
@@ -64,8 +67,8 @@ namespace csvConfig {
 			LayoutName = "";
 		}
 
-
-		void resetParams() {
+		void resetParams()
+		{
 			startLine = 0;
 			headerStartLine = 0;
 			colCount = 31;
@@ -95,7 +98,6 @@ namespace csvConfig {
 		decimalPoint file_decimalPoint;
 		bool paramsValid;
 		bool useEndline;
-
 
 		CTInputObjectType inputObjectType;
 	};

@@ -19,8 +19,9 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "DataTable.h"
-#include <qfile.h>
-#include <qmessagebox.h>
+
+#include <QFile>
+#include <QMessageBox>
 #include <QTextStream>
 
 namespace DataIO {
@@ -79,7 +80,8 @@ namespace DataIO {
 
 	}
 
-	void DataTable::prepareTable(const int rowCount, const int colCount, const int headerLineNr) {
+	void DataTable::prepareTable(const int rowCount, const int colCount, const int headerLineNr)
+	{
 		//this->initToDefault();
 		this->initTable();
 		this->setRowCount((int)rowCount);
@@ -118,18 +120,19 @@ namespace DataIO {
 		this->insertRow(m_rowInd);
 
 		//adding autoID column for first;
-		if (insertROW_ID) {
+		if (insertROW_ID)
+		{
 			this->m_currentItem->setText(QString("%1").arg(this->m_autoRID));
 			this->setItem(m_rowInd, 0, m_currentItem->clone());
 			this->m_autoRID++;
 			this->m_colInd = 1;
 		}
 
-
-		for (const auto &tableEntry : *tableEntries) {
-				this->m_currentItem->setText(tableEntry);
-				this->setItem(m_rowInd, this->m_colInd, m_currentItem->clone());
-				this->m_colInd++;
+		for (const auto &tableEntry : *tableEntries)
+		{
+			this->m_currentItem->setText(tableEntry);
+			this->setItem(m_rowInd, this->m_colInd, m_currentItem->clone());
+			this->m_colInd++;
 		}
 
 		//reset colIDx for next row
@@ -148,9 +151,9 @@ namespace DataIO {
 	//optional startLine as nullptr
 	bool  DataTable::readTableEntries(const QString &fName, const uint rowCount, uint colCount,const int headerNr,  const uint *StartLine, const bool readHeaders, bool insertID)
 	{
-		if (insertID) {
+		if (insertID)
+		{
 			this->insertROW_ID = insertID;
-
 			//cols + 1 for AutoID
 			colCount++;
 		}
@@ -199,23 +202,28 @@ namespace DataIO {
 
 	void DataTable::prepareHeader(int headerLine, QString &el_line, QTextStream &file, const bool &readHeaders, bool insertID)
 	{
-		for (int curRow = 0; curRow < headerLine; curRow++) {
+		for (int curRow = 0; curRow < headerLine; curRow++)
+		{
 			el_line = file.readLine();
 		}
 
 		//nextLine is headerLine if not enabled skip is this line
 		el_line = file.readLine();
-		if (readHeaders) {
-			if (!el_line.isEmpty()) {
+		if (readHeaders)
+		{
+			if (!el_line.isEmpty())
+			{
 
 				*this->m_headerEntries = el_line.split(m_FileSeperator);
 
 				//resize table
-				if(this->m_headerEntries->length() > this->m_colCount){
+				if (this->m_headerEntries->length() > this->m_colCount)
+				{
 					this->setColumnCount(this->m_headerEntries->length());
 				}
 
-				if (insertID) {
+				if (insertID)
+				{
 					//insert autoID header;
 					this->m_headerEntries->insert(this->m_headerEntries->begin(), this->m_rowID);
 				}
@@ -230,11 +238,13 @@ namespace DataIO {
 	bool DataTable::prepareFile(const QString & fName, QFile &file, bool &retflag)
 	{
 		retflag = true;
-		if (fName.isEmpty()) {
+		if (fName.isEmpty())
+		{
 			return false;
 		}
 
-		if (!file.open(QIODevice::ReadOnly)) {
+		if (!file.open(QIODevice::ReadOnly))
+		{
 			QMessageBox::information
 			(this, tr("Unable to open file"), file.errorString());
 			return false;
@@ -244,18 +254,13 @@ namespace DataIO {
 		return {};
 	}
 
-void DataTable::setColSeparator(const csvConfig::csvSeparator & separator) {
+	void DataTable::setColSeparator(const csvConfig::csvSeparator & separator)
+	{
 		switch (separator)
 		{
-		case csvConfig::csvSeparator::Colunm:
-			m_FileSeperator = ";";
-			break;
-		case csvConfig::csvSeparator::Comma:
-			m_FileSeperator = ",";
-			break;
-
-		default:m_FileSeperator = ";";
-			break;
+		default:
+		case csvConfig::csvSeparator::Colunm: m_FileSeperator = ";"; break;
+		case csvConfig::csvSeparator::Comma:  m_FileSeperator = ","; break;
 		}
 
 	}
