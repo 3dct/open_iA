@@ -162,9 +162,8 @@ namespace DataIO {
 		QString el_line;
 		QFile file(fName);
 
-		bool retflag;
-		bool retval = prepareFile(fName, file, retflag);
-		if (retflag) return retval;
+		if (!prepareFile(fName, file))
+			return false;
 		QTextStream in(&file);
 		if (!encoding.isEmpty())
 			in.setCodec(encoding.toStdString().c_str());
@@ -225,20 +224,16 @@ namespace DataIO {
 		}
 	}
 
-	bool DataTable::prepareFile(const QString & fName, QFile &file, bool &retflag)
+	bool DataTable::prepareFile(const QString & fName, QFile &file)
 	{
-		retflag = true;
 		if (fName.isEmpty())
-		{
 			return false;
-		}
 		if (!file.open(QIODevice::ReadOnly))
 		{
 			QMessageBox::information(this, tr("Unable to open file"), file.errorString());
 			return false;
 		}
-		retflag = false;
-		return {};
+		return true;
 	}
 
 	void DataTable::setColSeparator(const csvConfig::csvSeparator & separator)

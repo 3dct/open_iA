@@ -20,20 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
-#include "io/csv_config.h"
+#include "csv_config.h"
 
-#include <QString.h>
+#include <QString>
 #include <QStringList>
 #include <QSharedPointer>
 #include <QTableWidget>
 
 class QFile;
 
-namespace  DataIO
+namespace DataIO
 {
 
-	class open_iA_Core_API DataTable : public QTableWidget
+	class DataTable : public QTableWidget
 	{
 	public:
 		DataTable();
@@ -53,7 +52,7 @@ namespace  DataIO
 
 		void readTableValues(const uint &rowCount, QTextStream &file, QString &el_line);
 		void prepareHeader(uint headerLine, QString &el_line, QTextStream &file, const bool &readHeaders, bool insertID);
-		bool prepareFile(const QString & fName, QFile &file, bool &retflag);
+		bool prepareFile(const QString & fName, QFile &file);
 		void prepareTable(const int rowCount, const int colCount, const int headerLineNr);
 		void clearTable();
 		void resetIndizes();

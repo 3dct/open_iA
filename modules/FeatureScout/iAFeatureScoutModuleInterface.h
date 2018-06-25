@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "io/csv_config.h"
-#include "io/iACsvIO.h"
+#include "csv_config.h"
+#include "iACsvIO.h"
 
 #include "iAModuleInterface.h"
 #include "iAObjectAnalysisType.h"
@@ -32,11 +32,9 @@ class dlg_FeatureScout;
 class iAFeatureScoutToolbar;
 
 
-
 class iAFeatureScoutModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
-
 public:
 	void Initialize();
 private slots:
@@ -46,14 +44,14 @@ private slots:
 	void onChildClose();
 private:
 	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
+	//! entry point for openIA FeatureScout. optional parameter FileParams for custom csv
 	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID,
 		csvConfig::configPararams *FileParams, const bool is_csvOnly, const QSharedPointer<QStringList> &selHeader);
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
-	void initializeFeatureScoutStartUp(QString &item, QString &fileName, QString &filterName, const bool isCsvOnly,
+	void initializeFeatureScoutStartUp(QString &item, QString &fileName, const bool isCsvOnly,
 		csvConfig::configPararams *FileParams, const QSharedPointer<QStringList> &selHeaders);
 	iAFeatureScoutToolbar * tlbFeatureScout;
 
 	iACsvIO io;
-
 };

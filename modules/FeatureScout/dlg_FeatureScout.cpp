@@ -2308,7 +2308,8 @@ void dlg_FeatureScout::applyClassSelection(bool &retflag, QSharedPointer<QVector
 	double rgba[4];
 	bool returnflag;
 	setSPMData(selInd, returnflag);
-	if (applyColorMap) {
+	if (applyColorMap)
+	{
 		spmApplyColorMap(rgba, colorIdx);
 	}
 
@@ -2317,13 +2318,15 @@ void dlg_FeatureScout::applyClassSelection(bool &retflag, QSharedPointer<QVector
 }
 
 //apply color index
-void dlg_FeatureScout::applyClassSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const int colorIdx, const bool applyColorMap) {
+void dlg_FeatureScout::applyClassSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const int colorIdx, const bool applyColorMap)
+{
 	retflag = true;
 	double rgba[4];
 	setSPMData(classEntries, retflag);
 	if (retflag)return;
 
-	if (applyColorMap) {
+	if (applyColorMap)
+	{
 		spmApplyColorMap(rgba, colorIdx);
 	}
 
@@ -2333,28 +2336,29 @@ void dlg_FeatureScout::applyClassSelection(bool &retflag, vtkSmartPointer<vtkTab
 }
 
 //applies selection for single object selected in class
-void dlg_FeatureScout::applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries,const uint selectionOID, const int colorIdx, const bool applyColorMap) {
+void dlg_FeatureScout::applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries,const uint selectionOID, const int colorIdx, const bool applyColorMap)
+{
 	retflag = true;
 	double rgba[4];
 	setSingeSPMObjectDataSelection(classEntries, selectionOID, retflag);
 
 	if (retflag)return;
 
-	if (applyColorMap) {
+	if (applyColorMap)
+	{
 		spmApplyColorMap(rgba, colorIdx);
 	}
 
 	retflag = false;
 	//(classEntries, retflag);
-
-
 }
 
 //copy all entries from a chart table to matrix
 //with no selection?
 
 
-void prepareTable(const int rowCount, const int colCount, QSharedPointer<QTableWidget> &spInput, const vtkSmartPointer<vtkTable> &classEntries) {
+void prepareTable(const int rowCount, const int colCount, QSharedPointer<QTableWidget> &spInput, const vtkSmartPointer<vtkTable> &classEntries)
+{
 	spInput->setColumnCount(colCount/*this->csvTable->GetNumberOfColumns()*/);
 	//header (1 row) + entries
 	spInput->setRowCount(rowCount/*this->csvTable->GetNumberOfRows()*/ + 1);
@@ -2362,19 +2366,21 @@ void prepareTable(const int rowCount, const int colCount, QSharedPointer<QTableW
 	{
 		spInput->setItem(0, col, new QTableWidgetItem(classEntries->GetColumnName(col)));
 	}
-
 }
 
 //set data from current class to SPM
-void dlg_FeatureScout::setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool &retflag) {
+void dlg_FeatureScout::setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool &retflag)
+{
 	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
 	const int colCount = (int)classEntries->GetNumberOfColumns();
 	const int rowCount = (int)classEntries->GetNumberOfRows();
 	prepareTable(rowCount, colCount, spInput, csvTable);
 
-	for (int row = 1; row < rowCount + 1; row++) {
+	for (int row = 1; row < rowCount + 1; row++)
+	{
 		//adds each column entry to vtktable
-		for (int col = 0; col < colCount; col++) {
+		for (int col = 0; col < colCount; col++)
+		{
 			vtkStdString csvValue = classEntries->GetValue(row-1, col).ToString();
 			spInput->setItem(row, col, new QTableWidgetItem(csvValue.c_str()));
 		}
@@ -2408,10 +2414,8 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &r
 	//header (1 row) + entries
 	spInput->setRowCount(entriesCount/*this->csvTable->GetNumberOfRows()*/ + 1);
 
-
 	//set first colum n ID n
 	prepareTable(entriesCount, colCount, spInput, this->csvTable);
-
 
 	//set entrys for each row;
 	//TODO ersten eintrag mit 0 und dritten eintrag mit index 2 auswählen?? schauen ob das korrekt ist
@@ -2423,19 +2427,19 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &r
 	for (auto const &curr_selIndx : *selInd) {
 
 		//if row index is in selection index
-		for (int row = 1; row < rowCount + 1; row++) {
-
+		for (int row = 1; row < rowCount + 1; row++)
+		{
 			//skip first row
 			cur_IndRow = all_rowInd->GetVariantValue(row - 1).ToInt() - 1;
 			//compares current selection index to rowIndex
 			containsRowInd = ((int)curr_selIndx) == cur_IndRow;
-			if (containsRowInd) {
-
+			if (containsRowInd)
+			{
 				//adds each column entry to vtktable
-				for (int col = 0; col < colCount; col++) {
+				for (int col = 0; col < colCount; col++)
+				{
 					//current row index for saving sind
 					//row index of spInput and QTableWidget are different!!
-
 					vtkStdString csvValue = csvTable->GetValue(row - 1, col).ToString();
 					spInput->setItem(rowSavingIndx, col, new QTableWidgetItem(csvValue.c_str()));
 				}
@@ -2454,7 +2458,8 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &r
 }
 
 //set data for single object in class
-void dlg_FeatureScout::setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, bool &retflag) {
+void dlg_FeatureScout::setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, bool &retflag)
+{
 	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
 	const int colCount = (int)classEntries->GetNumberOfColumns();//->GetNumberOfColumns();
 	const int rowCount = (int)classEntries->GetNumberOfRows();
@@ -2466,7 +2471,8 @@ void dlg_FeatureScout::setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkT
 	bool containsRowInd = false;
 	int rowSavingIndx = 1;
 
-	for (int row = 1; row < rowCount + 1; row++) {
+	for (int row = 1; row < rowCount + 1; row++)
+	{
 
 		//skip first row
 		cur_IndRow = all_rowInd->GetVariantValue(row - 1).ToInt() - 1;
@@ -2475,7 +2481,8 @@ void dlg_FeatureScout::setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkT
 		if (containsRowInd) {
 
 			//adds each column entry to vtktable
-			for (int col = 0; col < colCount; col++) {
+			for (int col = 0; col < colCount; col++)
+			{
 				//current row index for saving sind
 				//row index of spInput and QTableWidget are different!!
 
@@ -2485,7 +2492,6 @@ void dlg_FeatureScout::setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkT
 			rowSavingIndx++;
 			break;
 		}
-
 	}
 
 	//if scatterplot is active
@@ -3173,7 +3179,8 @@ void dlg_FeatureScout::ClassDeleteButton()
 	// remove the deleted row item
 	rootItem->removeRow( cID );
 
-	if (!useCsvOnly) {
+	if (!useCsvOnly)
+	{
 		this->SingleRendering();
 	}
 	if ( this->spmActivated )

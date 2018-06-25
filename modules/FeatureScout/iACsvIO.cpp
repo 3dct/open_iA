@@ -42,7 +42,6 @@ namespace
 iACsvIO::iACsvIO() :
 	table(vtkSmartPointer<vtkTable>::New()),
 	m_colSeparator(","),
-	m_decimalSeparator("."),
 	m_EN_Values(true),
 	m_EL_ID(1),
 	m_FileName(""),
@@ -457,12 +456,7 @@ void iACsvIO::setParams(QStringList & headers, const QVector<uint>& colIDs, uint
 
 void iACsvIO::debugTable(const bool useTabSeparator)
 {
-	std::string separator = ",";
-	if (useTabSeparator)
-	{
-		separator = "\t";
-	}
-
+	std::string separator = (useTabSeparator) ? "\t": ",";
 	ofstream debugfile;
 	debugfile.open("C:/Users/p41883/Desktop/inputData.txt");
 	if (debugfile.is_open())
@@ -490,7 +484,7 @@ void iACsvIO::debugTable(const bool useTabSeparator)
 	}
 }
 
-long iACsvIO::CalcTableLength(const QString &fileName,const int skipLinesStart)
+long iACsvIO::CalcTableLength(const QString &fileName, const int skipLinesStart)
 {
 	// skip lines which are not headers
 	// todo: to find another efficient way to count the lines in a file
@@ -631,10 +625,7 @@ bool iACsvIO::loadCsv_WithConfig()
 {
 	this->useCVSOnly = true;
 	table->Initialize();
-	bool retFlag = false;
-	//read entries with selected headers
-	this->readCustomFileEntries(this->m_FileName, this->m_skipLinesStart, this->m_TableHeaders, this->m_colIds, this->m_EN_Values, retFlag);
-	return retFlag;
+	return readCustomFileEntries(this->m_FileName, this->m_skipLinesStart);
 }
 
 void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
@@ -650,26 +641,12 @@ void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 	{
 		this->m_colSeparator = ",";
 	}
-
-	//english decimal format
-	if (!(csv_Params.csv_Inputlanguage == (csvConfig::inputLang::EN)))
-	{
-		this->m_decimalSeparator = ".";
-		this->m_EN_Values = false;
-	}
-
-	//endline to Skip
-	this->m_skipLinesEnd = csv_Params.skipLinesEnd;
-
-	if (csv_Params.inputObjectType == csvConfig::CTInputObjectType::Fiber)
-	{
-		this->enableFiberTransformation = true;
-	}
-	else this->enableFiberTransformation = false;
-
+	m_EN_Values = (csv_Params.csv_Inputlanguage != csvConfig::inputLang::EN);
+	m_skipLinesEnd = csv_Params.skipLinesEnd;
+	enableFiberTransformation = (csv_Params.inputObjectType == csvConfig::CTInputObjectType::Fiber);
 }
 
-void iACsvIO::readCustomFileEntries(const QString &fileName, const uint skipLinesStart, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag)
+bool iACsvIO::readCustomFileEntries(const QString &fileName, const uint skipLinesStart)
 {
 	int tableWidth = 0;
 	long tableLength = 0;
@@ -678,8 +655,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const uint skipLine
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		retFlag = false;
-		return;
+		return false;
 	}
 
 	QTextStream in(&file);
@@ -691,7 +667,8 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const uint skipLine
 	}
 
 	int col_count = 0;
-	if (enableFiberTransformation) {
+	if (enableFiberTransformation)
+	{
 		this->m_TableHeaders = 	this->GetFibreElementsName(true);
 		this->m_tableWidth = m_colIds.length();
 		col_count = this->m_TableHeaders.length();
@@ -716,19 +693,17 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const uint skipLine
 		{
 			col_count = this->m_TableHeaders.length();
 		}
-
 		loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
 	} //TODO FIberTransformation
 	else
 	{
-		//loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
 		this->FibreCalculation(in, tableWidth, tableLength,col_count, true);
 		//TODO adapt to new Featurescout csvOnly
 	}
 
 	if(file.isOpen())
 		file.close();
-	retFlag = true;
+	return true;
 }
 
 void iACsvIO::setColumnHeaders(QStringList &colHeaders)
@@ -789,7 +764,7 @@ void iACsvIO::loadPoreData(long tableLength, QString &line, QTextStream &in, int
 					{
 						//replace decimal separator for german input format
 						if (!this->m_EN_Values)
-							tmp_section = tmp_section.replace(",", m_decimalSeparator);
+							tmp_section = tmp_section.replace(",", ".");
 
 						tbl_value = tmp_section.toDouble();
 						table->SetValue(row, cur_Colcount, tbl_value);

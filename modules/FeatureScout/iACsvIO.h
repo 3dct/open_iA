@@ -21,23 +21,23 @@
 #pragma once
 
 #include "iAObjectAnalysisType.h"
-#include "open_iA_Core_export.h"
+#include "csv_config.h"
+
 #include <vtkSmartPointer.h>
-#include "io/csv_config.h"
+
 #include <QString>
-#include <qvector.h>
+#include <QVector>
 
 class vtkTable;
 class QTextStream;
 
-class open_iA_Core_API iACsvIO
+class iACsvIO
 {
 public:
 	iACsvIO();
 	bool LoadCsvFile(iAObjectAnalysisType fid, QString const & fileName);
 	vtkTable * GetCSVTable();
 
-	void readCustomFileEntries(const QString & fileName, const uint skipLinesStart, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag);
 	void setColumnHeaders(QStringList & colHeaders);
 	bool loadCSVCustom(csvConfig::configPararams &cnfg_params);
 	void setTableParams(csvConfig::configPararams & csv_Params);
@@ -45,7 +45,7 @@ public:
 	void setParams(QStringList& headers, const QVector<uint> &colIDs, uint TableWidth);
 
 	void debugTable(const bool useTabSeparator);
-	QStringList GetFibreElementsName(bool withUnit);
+	static QStringList GetFibreElementsName(bool withUnit);
 
 private:
 
@@ -58,6 +58,8 @@ private:
 	inline void setTableWidth(uint TableWidth) {
 		this->m_tableWidth = TableWidth;
 	}
+
+	bool readCustomFileEntries(const QString & fileName, const uint skipLinesStart);
 	bool loadCsv_WithConfig();
 	void loadPoreData(long tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count);
 	long CalcTableLength(const QString &fileName, const int skipLinesStart);

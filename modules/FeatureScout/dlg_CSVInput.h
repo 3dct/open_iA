@@ -21,12 +21,12 @@
 #pragma once
 
 #include "ui_CsvInput.h"
-#include "io/csv_config.h"
-#include "io/DataTable.h"
+#include "csv_config.h"
+#include "DataTable.h"
 
 #include <QMetaType>
 
-#include "vtkTable.h"
+#include <vtkTable.h>
 #include <vtkSmartPointer.h>
 
 class QSettings;

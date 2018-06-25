@@ -21,12 +21,12 @@
 #include "iAFeatureScoutModuleInterface.h"
 
 #include "dlg_CSVInput.h"
+#include "iACsvIO.h"
 #include "iAFeatureScoutAttachment.h"
 #include "iAFeatureScoutToolbar.h"
 #include "ui_CsvInput.h"
 
 #include "iAConsole.h"
-#include "io/iACsvIO.h"
 #include "mainwindow.h"
 
 #include <vtkTable.h>
@@ -43,27 +43,17 @@ void iAFeatureScoutModuleInterface::Initialize()
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QMenu * FeatureScoutCsvReader = getMenuWithTitle(toolsMenu, QString("FeatureScout"), false);
 
-	//1 Menu mit mehreren untereinträgen
-
-	//adds an entry to feature scout with name featurescout
 	QAction * actionFibreScout = new QAction( m_mainWnd );
 	actionFibreScout->setText( QApplication::translate( "MainWindow", "FeatureScout", 0 ) );
 	AddActionToMenuAlphabeticallySorted(FeatureScoutCsvReader, actionFibreScout);
-
 	connect(actionFibreScout, SIGNAL(triggered()), this, SLOT(FeatureScout()));
 
-
-	//new entry FeaturescoutWithCSV
 	QAction * actionOpenCSVFeatureScout = new QAction(m_mainWnd);
 	actionOpenCSVFeatureScout->setText(QApplication::translate("MainWindow", "FeatureScoutWithCSV", 0));
 	AddActionToMenuAlphabeticallySorted(FeatureScoutCsvReader, actionOpenCSVFeatureScout, false);
-
-	//action mit module verbinden
 	connect(actionOpenCSVFeatureScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScoutWithCSV);
 
-
-	tlbFeatureScout = 0;
-
+	tlbFeatureScout = nullptr;
 }
 
 void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
@@ -81,7 +71,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	QSharedPointer<QStringList> featScout_headers = QSharedPointer<QStringList>(new QStringList);
 	fileConfParams = dlg.getConfigParameters();
 	headers = dlg.getHeaderSelection();
-	QString filterName = tr("FeatureScout"), item;
+	QString item;
 	if (fileConfParams.inputObjectType == csvConfig::CTInputObjectType::Voids)
 	{
 		item = "Voids";
@@ -90,28 +80,21 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	else
 	{
 		item = "Fibers";
-		*featScout_headers = io.GetFibreElementsName(true);
-		//headers = dlg.getAllHeaders();
+		*featScout_headers = iACsvIO::GetFibreElementsName(true);
 	}
-
 	io.setParams(*headers, dlg.getEntriesSelInd(), dlg.getTableWidth());
-	//featScout_headers = headers;
-
-	if (!fileConfParams.fileName.isEmpty()) {
-		initializeFeatureScoutStartUp(item, fileConfParams.fileName, filterName, true, &fileConfParams, featScout_headers /*headers*/);
+	if (!fileConfParams.fileName.isEmpty())
+	{
+		initializeFeatureScoutStartUp(item, fileConfParams.fileName, true, &fileConfParams, featScout_headers /*headers*/);
 	}
 	else m_mdiChild->addMsg("CSV-file name error.");
 }
 
-
 void iAFeatureScoutModuleInterface::FeatureScout()
 {
-	QString fileName, filterName = tr( "FeatureScout" ), item;
-
+	QString fileName, item;
 	PrepareActiveChild();
-
 	fileName = QFileDialog::getOpenFileName( m_mdiChild, tr( "Select CSV File" ), m_mdiChild->getFilePath(), tr( "CSV Files (*.csv)" ) );
-
 	if ( !fileName.isEmpty() )
 	{
 		QFile file( fileName );
@@ -126,7 +109,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 				item = "Fibers";
 			file.close();
 
-			initializeFeatureScoutStartUp(item, fileName, filterName, false, nullptr, QSharedPointer<QStringList>());
+			initializeFeatureScoutStartUp(item, fileName, false, nullptr, QSharedPointer<QStringList>());
 		}
 		else
 			m_mdiChild->addMsg( "CSV-file could not be opened." );
@@ -136,7 +119,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 }
 
 void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item, QString &fileName,
-	QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams, const QSharedPointer<QStringList> &selHeaders)
+	const bool isCsvOnly, csvConfig::configPararams *FileParams, const QSharedPointer<QStringList> &selHeaders)
 {
 	QStringList items;
 	items << tr("Fibers") << tr("Voids");
@@ -148,10 +131,9 @@ void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item,
 		if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, objectMap[item], FileParams, isCsvOnly, selHeaders))
 		{
 			SetupToolbar();
-			m_mdiChild->addStatusMsg(filterName);
+			m_mdiChild->addStatusMsg("Starting FeatureScout");
 			setFeatureScoutRenderSettings();
-			m_mdiChild->addMsg("The render settings of the current mdiChild"
-				" window have been adapted to the FeatureScout!");
+			m_mdiChild->addMsg("The render settings of the current mdiChild window have been adapted to the FeatureScout!");
 		}
 	}
 	else
@@ -190,27 +172,23 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
-/*entry point for openIA FeatureScout
-*optional parameter FileParams for custom csv
-*/
-bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType, csvConfig::configPararams *FileParams, const bool is_csvOnly, const QSharedPointer<QStringList> &selHeader)
-	{
+bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType,
+	csvConfig::configPararams *FileParams, const bool is_csvOnly, const QSharedPointer<QStringList> &selHeader)
+{
 	//default action if file params is null
-	if (!FileParams) {
-
+	if (!FileParams)
+	{
 		if (!io.LoadCsvFile(objectType, fileName)) //hier wird das csv geladen;
 			return false;
 	}
-	else {
-		if (!io.loadCSVCustom(*FileParams)) {
+	else
+	{
+		if (!io.loadCSVCustom(*FileParams))
 			return false;
-		}
-
 	}
 
 	//enables debug writing out table to desktop
 	//io.debugTable(false);
-
 	QString filtername = tr( "FeatureScout started" );
 	m_mdiChild->addStatusMsg( filtername );
 	m_mdiChild->addMsg( filtername );
@@ -222,8 +200,6 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 		m_mdiChild->addMsg( "Error while creating FeatureScout module!" );
 		return false;
 	}
-
-
 	attach->init(objectType, io.GetCSVTable(), is_csvOnly, selHeader);
 	return true;
 }
@@ -257,9 +233,8 @@ void iAFeatureScoutModuleInterface::onChildClose()
 {
 	m_mainWnd->removeToolBar( tlbFeatureScout );
 	delete tlbFeatureScout;
-	tlbFeatureScout = 0;
+	tlbFeatureScout = nullptr;
 }
-
 
 iAModuleAttachmentToChild * iAFeatureScoutModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
 {
