@@ -77,14 +77,10 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	if (!m_mdiChild)
 		return;
 	this->m_mdiChild->show();
-	QVector<uint> selEntriesId;
 	QSharedPointer<QStringList> headers = QSharedPointer<QStringList>(new QStringList);
 	QSharedPointer<QStringList> featScout_headers = QSharedPointer<QStringList>(new QStringList);
-	ulong table_width;
 	fileConfParams = dlg.getConfigParameters();
-	selEntriesId = dlg.getEntriesSelInd();
 	headers = dlg.getHeaderSelection();
-	table_width = dlg.getTableWidth();
 	QString filterName = tr("FeatureScout"), item;
 	if (fileConfParams.inputObjectType == csvConfig::CTInputObjectType::Voids)
 	{
@@ -98,7 +94,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 		//headers = dlg.getAllHeaders();
 	}
 
-	io.setParams(*headers, selEntriesId, table_width);
+	io.setParams(*headers, dlg.getEntriesSelInd(), dlg.getTableWidth());
 	//featScout_headers = headers;
 
 	if (!fileConfParams.fileName.isEmpty()) {

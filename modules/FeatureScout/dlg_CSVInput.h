@@ -152,6 +152,8 @@ private slots:
 	void resetTable();
 	//! Add format to the list of known formats
 	void SaveFormatBtnClicked();
+	//! Enables or disables angle mapping edits depending on checkbox
+	void UpdateAngleEditStates();
 private:
 	void connectSignals();
 	//! load entries with layoutName or list all entries under FeaturescoutCSV. output is groups, it is empty if no features in registry
@@ -178,6 +180,7 @@ private:
 	void assignSpacingUnits();
 	//! assign headers and prepare map with indexes
 	void assignHeaderLine();
+	//! void assignColumnMappings();
 	bool loadFilePreview(const int rowCount, const bool formatLoaded);
 	//! checks if file exists and save it to config params
 	bool checkFile(bool Layoutloaded);

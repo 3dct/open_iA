@@ -81,6 +81,8 @@ void dlg_CSVInput::connectSignals()
 	//connect(cmb_box_FileFormat, SIGNAL(currentTextChanged(const QString&)), this, SLOT(LoadFormatSettings(QString)));
 	connect(ed_startLine, SIGNAL(valueChanged(int)), this, SLOT(UpdateCSVPreview()));
 	connect(ed_endLine, SIGNAL(valueChanged(int)), this, SLOT(UpdateCSVPreview()));
+	connect(sb_PreviewLines, SIGNAL(valueChanged(int)), this, SLOT(UpdateCSVPreview()));
+	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::UpdateAngleEditStates);
 }
 
 void dlg_CSVInput::OKButtonClicked()
@@ -120,7 +122,8 @@ void dlg_CSVInput::LoadSelectedFormatSettings(const QString &LayoutName)
 	//load preview
 
 	//if file is not good -> show empty table but selection
-	if (this->loadFilePreview(15, true)) {
+	if (this->loadFilePreview(sb_PreviewLines->value(), true))
+	{
 		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, LayoutName);
 	}
 	else
@@ -220,7 +223,12 @@ void dlg_CSVInput::SaveFormatBtnClicked()
 		//save all entries in order to make sure if file is not available  one still can see the headers??
 		this->saveHeaderEntriesToReg(*this->m_currentHeaders, this->m_regEntries->str_allHeaders, layoutName);
 	}
+}
 
+void dlg_CSVInput::UpdateAngleEditStates()
+{
+	ed_Phi_Col->setEnabled(cb_ComputeAngles->isChecked());
+	ed_Theta_Col->setEnabled(cb_ComputeAngles->isChecked());
 }
 
 void dlg_CSVInput::LoadCSVPreviewClicked()
@@ -230,7 +238,7 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 	this->assignInputObjectTypes();
 	this->assignStartEndLine();
 	this->m_entriesPreviewTable->resetIndizes();
-	if (!this->loadFilePreview(15, this->m_PreviewUpdated))
+	if (!this->loadFilePreview(sb_PreviewLines->value(), this->m_PreviewUpdated))
 	{
 		return;
 	}
