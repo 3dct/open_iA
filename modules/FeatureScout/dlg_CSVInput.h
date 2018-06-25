@@ -143,9 +143,6 @@ private slots:
 	void LoadCSVPreviewClicked();
 	void setAllHeaders(QSharedPointer<QStringList> &allHeaders);
 	void OKButtonClicked();
-	//custom file format
-	void EnableCustomFormat();
-	void showFormatComponents();
 	//! load format based on selected input format (ex. mavi/ vg, ...)
 	void LoadSelectedFormatSettings(const QString &LayoutName);
 	//! switch between comma and column and show file preview
@@ -188,19 +185,11 @@ private:
 	bool loadEntries(const QString & fileName, const unsigned int nrPreviewElements, QString const & encoding);
 	//! shows table with entries
 	void showPreviewTable();
-	void readHeaderLine(const uint headerStartRow);
-
-	void hideCoordinateInputs();
-	void disableFormatComponents();
-
 	void saveHeaderEntriesToReg(const QStringList & HeaderEntries, const QString & HeaderName, const QString & LayoutName);
 	void clearTextControl();
 	void selectAllFromTextControl();
 
 private:
-
-	bool useCustomformat;
-
 	QSharedPointer<csvConfig::configPararams> m_confParams;
 	QString m_fPath;
 	QString m_Error_Parameter;

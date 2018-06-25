@@ -31,31 +31,7 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	this->initParameters();
 	this->myLayout->addWidget(this->m_entriesPreviewTable);
 	this->m_confParams = QSharedPointer<csvConfig::configPararams>(new csvConfig::configPararams());
-	disableFormatComponents();
 	connectSignals();
-	EnableCustomFormat();
-}
-
-void dlg_CSVInput::hideCoordinateInputs()
-{
-	this->ed_XStartCol->setVisible(false);
-	this->ed_X_EndCol->setVisible(false);
-	this->ed_yStart_Col->setVisible(false);
-	this->ed_X_EndCol->setVisible(false);
-}
-
-void dlg_CSVInput::disableFormatComponents()
-{
-	this->ed_startLine->setVisible(true);
-	this->lbl_startLine->setVisible(true);
-	this->ed_startLine->setEnabled(false);
-	this->ed_endLIne->setEnabled(false);
-	this->lbl_endLine->setVisible(true);
-	this->ed_decimal->setVisible(false);
-	this->lbl_decimal->setVisible(false);
-	this->buttonBox->setVisible(true);
-	this->buttonBox->setDisabled(false);
-	this->btn_LoadCSVData->setEnabled(false);
 }
 
 void dlg_CSVInput::saveHeaderEntriesToReg(const QStringList& HeaderEntries, const QString &HeaderName, const QString &LayoutName)
@@ -112,28 +88,6 @@ void dlg_CSVInput::OKButtonClicked()
 	if (!setSelectedEntries(true))
 		return;
 	this->accept();
-}
-
-//enabling for custom file format
-void dlg_CSVInput::EnableCustomFormat(){
-	bool enabled = true;
-	showFormatComponents();
-	this->useCustomformat = true;
-	this->btn_LoadCSVData->setEnabled(true);
-}
-
-void dlg_CSVInput::showFormatComponents()
-{
-	this->groupBox_Config->setEnabled(true);
-	this->ed_startLine->setVisible(true);
-	this->ed_startLine->setEnabled(true);
-	this->lbl_endLine->setVisible(true);
-	this->cb_applyEndLine->setEnabled(true);
-	this->cmb_box_separator->setEnabled(true);
-	this->cb_fmtEnglish->setEnabled(true);
-	this->btn_SaveLayout->setEnabled(true);
-	this->ed_endLIne->setEnabled(true);
-	this->ed_CSVFormat_Name->setEnabled(true);
 }
 
 void dlg_CSVInput::LoadSelectedFormatSettings(const QString &LayoutName)

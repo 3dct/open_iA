@@ -51,10 +51,7 @@ iACsvIO::iACsvIO() :
 	m_skipLinesEnd(0),
 	useCVSOnly(false),
 	enableFiberTransformation(false)
-{
-	this->setDefaultConfigPath();
-}
-
+{}
 
 bool iACsvIO::LoadFibreCSV(const QString &fileName)
 {
@@ -491,12 +488,6 @@ void iACsvIO::debugTable(const bool useTabSeparator)
 		}
 		debugfile.close();
 	}
-
-}
-
-void iACsvIO::setDefaultConfigPath()
-{
-	configPath = "D:/OpenIa_TestDaten/TestInput/config/";
 }
 
 long iACsvIO::CalcTableLength(const QString &fileName,const int skipLinesStart)
