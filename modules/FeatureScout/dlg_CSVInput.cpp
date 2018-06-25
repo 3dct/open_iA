@@ -98,8 +98,9 @@ void dlg_CSVInput::connectSignals()
 	connect(btn_SaveFormat, SIGNAL(clicked()), this, SLOT(SaveFormatBtnClicked()));
 	connect(btn_updatePreview, SIGNAL(clicked()), this, SLOT(UpdateCSVPreview()));
 	connect(cmb_box_FileFormat, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadSelectedFormatSettings);
-	connect(cmb_box_separator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);  //switch separator
-	connect(cmb_box_InputObject, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchCTInputObjectType); //Switch between fiber and pores / voids
+	connect(cmb_box_separator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);  // switch separator
+	connect(cmb_box_InputObject, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchCTInputObjectType); // switch between fiber and pores / voids
+	connect(cmb_box_Encoding, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);
 	connect(buttonBox, SIGNAL(accepted()), this, SLOT(OKButtonClicked()));
 	//connect(cmb_box_FileFormat, SIGNAL(currentTextChanged(const QString&)), this, SLOT(LoadFormatSettings(QString)));
 }
@@ -504,7 +505,14 @@ bool dlg_CSVInput::loadFilePreview(const int rowCount, const bool formatLoaded)
 			return false;
 	}
 	this->m_entriesPreviewTable->prepareTable(rowCount, this->m_confParams->colCount, this->m_confParams->headerStartLine);
-	this->loadEntries(this->m_confParams->fileName, rowCount);
+	QString encoding;
+	if (formatLoaded)
+		encoding = cmb_box_Encoding->currentText();
+	this->loadEntries(this->m_confParams->fileName, rowCount, encoding);
+	if (!formatLoaded)
+	{
+		cmb_box_Encoding->setCurrentText(m_entriesPreviewTable->getLastEncoding());
+	}
 	this->txt_ed_fileName->setText(this->m_confParams->fileName);
 
 	//adding text to label
@@ -573,14 +581,14 @@ bool dlg_CSVInput::checkFile(bool LayoutLoaded)
 	return fileOK;
 }
 
-//loading entries into table widget preview
-bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPreviewElements) {
-
+bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPreviewElements, QString const & encoding)
+{
 	bool dataLoaded = false;
 	uint startElLine = (uint)  this->m_confParams->startLine;
-	if (isFilledWithData) { this->m_entriesPreviewTable->clearTable(); }
-
-	dataLoaded = this->m_entriesPreviewTable->readTableEntries(fileName, nrPreviewElements, this->m_confParams->colCount,this->m_confParams->headerStartLine, &startElLine, true, false);
+	if (isFilledWithData)
+		this->m_entriesPreviewTable->clearTable();
+	dataLoaded = this->m_entriesPreviewTable->readTableEntries(fileName, nrPreviewElements, this->m_confParams->colCount,
+		this->m_confParams->headerStartLine, &startElLine, true, false, encoding);
 	this->m_entriesPreviewTable->update();
 	this->assignHeaderLine();
 	isFilledWithData = true;

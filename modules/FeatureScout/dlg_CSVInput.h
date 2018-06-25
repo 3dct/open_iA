@@ -188,7 +188,7 @@ private:
 	//! checks if file exists and save it to config params
 	bool checkFile(bool Layoutloaded);
 	//! loading entries into table widget preview
-	bool loadEntries(const QString & fileName, const unsigned int nrPreviewElements);
+	bool loadEntries(const QString & fileName, const unsigned int nrPreviewElements, QString const & encoding);
 	//! shows table with entries
 	void showPreviewTable();
 	void readHeaderLine(const uint headerStartRow);

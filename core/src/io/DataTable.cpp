@@ -22,6 +22,7 @@
 
 #include <QFile>
 #include <QMessageBox>
+#include <QTextCodec>
 #include <QTextStream>
 
 namespace DataIO {
@@ -147,9 +148,10 @@ namespace DataIO {
 		this->setHorizontalHeaderLabels(headerEntries);
 	}
 
-	//reads table entries from csv file into qtable widget
-	//optional startLine as nullptr
-	bool  DataTable::readTableEntries(const QString &fName, const uint rowCount, uint colCount,const int headerNr,  const uint *StartLine, const bool readHeaders, bool insertID)
+	//! reads table entries from csv file into qtable widget
+	//! @param startLine is optional (nullptr)
+	bool  DataTable::readTableEntries(const QString &fName, const uint rowCount, uint colCount, const int headerNr,
+		const uint StartLine, const bool readHeaders, bool insertID, QString const & encoding)
 	{
 		if (insertID)
 		{
@@ -173,11 +175,15 @@ namespace DataIO {
 		bool retval = prepareFile(fName, file, retflag);
 		if (retflag) return retval;
 		QTextStream in(&file);
+		if (!encoding.isEmpty())
+			in.setCodec(encoding.toStdString().c_str());
 		//skip lines and add header to table;
 		prepareHeader(headerLine, el_line, in, readHeaders, insertID);
 
 		//read all entries;
 		readTableValues(rowCount, in, el_line);
+
+		m_LastEncoding = in.codec()->name().toStdString().c_str();
 		if (file.isOpen()) file.close();
 		return true;
 	}
@@ -262,6 +268,10 @@ namespace DataIO {
 		case csvConfig::csvSeparator::Colunm: m_FileSeperator = ";"; break;
 		case csvConfig::csvSeparator::Comma:  m_FileSeperator = ","; break;
 		}
+	}
 
+	QString DataTable::getLastEncoding() const
+	{
+		return m_LastEncoding;
 	}
 }

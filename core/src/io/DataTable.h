@@ -48,7 +48,8 @@ namespace  DataIO
 		void addLineToTable(const QSharedPointer<QStringList> &tableEntries);
 
 		//reading rows from a file;
-		bool readTableEntries(const QString &fName, const uint rowCount, uint colCount, const int headerNr, const uint *StartLine, const bool readHeaders, bool insertID);
+		bool readTableEntries(const QString &fName, const uint rowCount, uint colCount, const int headerNr,
+			const uint StartLine, const bool readHeaders, bool insertID, QString const & encoding);
 
 		void readTableValues(const uint &rowCount, QTextStream &file, QString &el_line);
 		void prepareHeader(int headerLine, QString &el_line, QTextStream &file, const bool &readHeaders, bool insertID);
@@ -58,6 +59,7 @@ namespace  DataIO
 		void resetIndizes();
 		void setHeader(const QStringList &headerEntries);
 		void setColSeparator(const csvConfig::csvSeparator & separator);
+		QString getLastEncoding() const;
 
 		inline const QStringList &getHeaders() {
 			return *this->m_headerEntries;
@@ -82,6 +84,7 @@ namespace  DataIO
 		bool insertROW_ID;
 		QString m_FileSeperator;
 		QString m_FileName;
+		QString m_LastEncoding;
 
 		//name of first column
 		QString m_rowID;
