@@ -71,68 +71,45 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	csvConfig::configPararams fileConfParams;
 	//TODO set file path
 	dlg_CSVInput dlg;
-
-	if (dlg.exec() != QDialog::Accepted) {
+	if (dlg.exec() != QDialog::Accepted)
 		return;
-	}
-
-
 	this->m_mdiChild = m_mainWnd->createMdiChild(false);
+	if (!m_mdiChild)
+		return;
 	this->m_mdiChild->show();
-
-	if (!m_mdiChild) return;
 	QVector<uint> selEntriesId;
 	QSharedPointer<QStringList> headers = QSharedPointer<QStringList>(new QStringList);
 	QSharedPointer<QStringList> featScout_headers = QSharedPointer<QStringList>(new QStringList);
-
 	ulong table_width;
 	fileConfParams = dlg.getConfigParameters();
 	selEntriesId = dlg.getEntriesSelInd();
 	headers = dlg.getHeaderSelection();
-
-
 	table_width = dlg.getTableWidth();
-
-	QMap<QString, iAObjectAnalysisType> objectMap;
-	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
-	objectMap["Voids"] = INDIVIDUAL_PORE_VISUALIZATION;
-
-	QStringList items;
-	items << tr("Fibers") << tr("Voids");
 	QString filterName = tr("FeatureScout"), item;
-	if (fileConfParams.inputObjectType == csvConfig::CTInputObjectType::Voids) {
+	if (fileConfParams.inputObjectType == csvConfig::CTInputObjectType::Voids)
+	{
 		item = "Voids";
 		featScout_headers = headers;
 	}
-	else {
+	else
+	{
 		item = "Fibers";
 		*featScout_headers = io.GetFibreElementsName(true);
 		//headers = dlg.getAllHeaders();
-
 	}
 
 	io.setParams(*headers, selEntriesId, table_width);
 	//featScout_headers = headers;
 
-
 	if (!fileConfParams.fileName.isEmpty()) {
-		initializeFeatureScoutStartUp(item, items, fileConfParams.fileName, objectMap, filterName, true, &fileConfParams, featScout_headers /*headers*/);
+		initializeFeatureScoutStartUp(item, fileConfParams.fileName, filterName, true, &fileConfParams, featScout_headers /*headers*/);
 	}
 	else m_mdiChild->addMsg("CSV-file name error.");
-
-
-
-};
+}
 
 
 void iAFeatureScoutModuleInterface::FeatureScout()
 {
-	QMap<QString, iAObjectAnalysisType> objectMap;
-	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
-	objectMap["Voids"] = INDIVIDUAL_PORE_VISUALIZATION;
-
-	QStringList items;
-	items << tr( "Fibers" ) << tr( "Voids" );
 	QString fileName, filterName = tr( "FeatureScout" ), item;
 
 	PrepareActiveChild();
@@ -153,7 +130,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 				item = "Fibers";
 			file.close();
 
-			initializeFeatureScoutStartUp(item, items, fileName, objectMap, filterName, false, nullptr, QSharedPointer<QStringList>());
+			initializeFeatureScoutStartUp(item, fileName, filterName, false, nullptr, QSharedPointer<QStringList>());
 		}
 		else
 			m_mdiChild->addMsg( "CSV-file could not be opened." );
@@ -162,9 +139,14 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 		m_mdiChild->addMsg( "CSV-file name error." );
 }
 
-void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString,
-	iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams, const QSharedPointer<QStringList> &selHeaders)
+void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item, QString &fileName,
+	QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams, const QSharedPointer<QStringList> &selHeaders)
 {
+	QStringList items;
+	items << tr("Fibers") << tr("Voids");
+	QMap<QString, iAObjectAnalysisType> objectMap;
+	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
+	objectMap["Voids"] = INDIVIDUAL_PORE_VISUALIZATION;
 	if (item == items[0] || item == items[1])
 	{
 		if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, objectMap[item], FileParams, isCsvOnly, selHeaders))
