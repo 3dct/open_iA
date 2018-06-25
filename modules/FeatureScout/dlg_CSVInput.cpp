@@ -103,6 +103,8 @@ void dlg_CSVInput::connectSignals()
 	connect(cmb_box_Encoding, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);
 	connect(buttonBox, SIGNAL(accepted()), this, SLOT(OKButtonClicked()));
 	//connect(cmb_box_FileFormat, SIGNAL(currentTextChanged(const QString&)), this, SLOT(LoadFormatSettings(QString)));
+	connect(ed_startLine, SIGNAL(valueChanged(int)), this, SLOT(UpdateCSVPreview()));
+	connect(ed_endLine, SIGNAL(valueChanged(int)), this, SLOT(UpdateCSVPreview()));
 }
 
 void dlg_CSVInput::OKButtonClicked()
@@ -272,13 +274,10 @@ void dlg_CSVInput::LoadCSVPreviewClicked()
 	this->assignSeparator();
 	this->assignFormatLanguage();
 	this->assignInputObjectTypes();
-
-	if (this->useCustomformat | this->m_formatSelected) {
-		this->assignStartEndLine();
-		this->m_entriesPreviewTable->resetIndizes();
-	}
-
-	if (!this->loadFilePreview(15, this->m_PreviewUpdated)) {
+	this->assignStartEndLine();
+	this->m_entriesPreviewTable->resetIndizes();
+	if (!this->loadFilePreview(15, this->m_PreviewUpdated))
+	{
 		return;
 	}
 
@@ -340,7 +339,6 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams &params, con
 {
 	if (paramsLoaded)
 	{
-		QString endLine = "";
 		QString FileSeparator = "";
 		if (params.file_seperator == csvColSeparator::Comma)
 			FileSeparator = "COMMA (,)";
@@ -348,15 +346,6 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams &params, con
 			FileSeparator = "COLUMN (;)";
 		int currIdx = cmb_box_separator->findText(FileSeparator, Qt::MatchContains);
 		this->cmb_box_separator->setCurrentIndex(currIdx);
-
-		this->ed_startLine->setText(QString("%1").arg(params.startLine));
-		if (params.useEndline) {
-			endLine = QString("%1").arg(params.endLine);
-		}
-		else endLine = "";
-
-		this->ed_endLIne->setText(endLine);
-		this->cb_applyEndLine->setChecked(params.useEndline);
 
 		QString ObjInputType = "";
 		if (params.inputObjectType == csvConfig::CTInputObjectType::Fiber)
@@ -366,7 +355,8 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams &params, con
 		int index = cmb_box_InputObject->findText(ObjInputType, Qt::MatchContains);
 		this->cmb_box_InputObject->setCurrentIndex(index);
 
-
+		this->ed_startLine->setValue(params.skipLinesStart);
+		this->ed_endLine->setValue(params.skipLinesEnd);
 		this->ed_Spacing->setText(QString("%1").arg(params.spacing));
 		this->ed_Units->setText(QString("1").arg(params.csv_units));
 		this->cb_fmtEnglish->setChecked(m_confParams->csv_Inputlanguage == csvLang::EN);
@@ -383,10 +373,8 @@ void dlg_CSVInput::initParameters()
 	{
 		this->m_regEntries = cvsRegSettings_ShrdPtr(new csv_reg());
 	}
-
-	this->useCustomformat = false;
 	initBasicFormatParameters(csvLang::EN, csvColSeparator::Colunm, csvFormat::Default);
-	initStartEndline(5, 0, false);
+	initLineSkip(5, 0);
 	this->m_confParams->spacing = 10.5f;
 	this->m_confParams->csv_units = "microns";
 	this->m_confParams->paramsValid = false;
@@ -420,30 +408,17 @@ void dlg_CSVInput::initBasicFormatParameters(csvLang Language, csvColSeparator F
 	this->m_confParams->file_fmt = FileFormat;
 }
 
-void dlg_CSVInput::initStartEndline(unsigned long startLine, unsigned long EndLine, const bool useEndline)
+void dlg_CSVInput::initLineSkip(uint skipLinesStart, uint skipLinesEnd)
 {
-	this->m_confParams->startLine = startLine;
-	this->m_confParams->headerStartLine = startLine;
-	if (useEndline) {
-		//starts with 0
-		this->m_confParams->endLine = EndLine - 1;
-		this->m_confParams->useEndline = useEndline;
-	}
+	this->m_confParams->skipLinesStart = skipLinesStart;
+	this->m_confParams->headerStartLine = skipLinesStart;
+	this->m_confParams->skipLinesEnd = skipLinesEnd;
 }
 
 //todo validate data format
-void dlg_CSVInput::assignStartEndLine() {
-	QString startLine = "";
-	QString endLine = "";
-	bool skipEndline = this->cb_applyEndLine->isChecked();
-	startLine = this->ed_startLine->text();
-	endLine = this->ed_endLIne->text();
-	this->initStartEndline(startLine.toLong(), endLine.toLong(), skipEndline);
-}
-
-void dlg_CSVInput::resetDefault()
+void dlg_CSVInput::assignStartEndLine()
 {
-	this->initParameters();
+	this->initLineSkip(ed_startLine->value(), ed_endLine->value());
 }
 
 void dlg_CSVInput::setError(const QString &ParamName,const QString &Param_value)
@@ -510,9 +485,7 @@ bool dlg_CSVInput::loadFilePreview(const int rowCount, const bool formatLoaded)
 		encoding = cmb_box_Encoding->currentText();
 	this->loadEntries(this->m_confParams->fileName, rowCount, encoding);
 	if (!formatLoaded)
-	{
 		cmb_box_Encoding->setCurrentText(m_entriesPreviewTable->getLastEncoding());
-	}
 	this->txt_ed_fileName->setText(this->m_confParams->fileName);
 
 	//adding text to label
@@ -584,11 +557,10 @@ bool dlg_CSVInput::checkFile(bool LayoutLoaded)
 bool dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPreviewElements, QString const & encoding)
 {
 	bool dataLoaded = false;
-	uint startElLine = (uint)  this->m_confParams->startLine;
 	if (isFilledWithData)
 		this->m_entriesPreviewTable->clearTable();
 	dataLoaded = this->m_entriesPreviewTable->readTableEntries(fileName, nrPreviewElements, this->m_confParams->colCount,
-		this->m_confParams->headerStartLine, &startElLine, true, false, encoding);
+		this->m_confParams->headerStartLine, this->m_confParams->skipLinesStart, true, false, encoding);
 	this->m_entriesPreviewTable->update();
 	this->assignHeaderLine();
 	isFilledWithData = true;
@@ -641,7 +613,8 @@ bool dlg_CSVInput::setSelectedEntries(const bool EnableMessageBox)
 	//no selection use all entries
 	if (!(this->m_selectedHeadersList.length() == 0))
 	{
-		if (m_selHeaders->length() > 0) {
+		if (m_selHeaders->length() > 0)
+		{
 			this->m_selHeaders->clear();
 			this->m_selColIdx.clear();
 		}
@@ -741,14 +714,9 @@ bool dlg_CSVInput::loadEntriesFromRegistry(QSettings & anySetting, const QString
 	}
 
 	this->m_confParams->fileName = anySetting.value(this->m_regEntries->str_fileName).toString();
-	this->m_confParams->startLine = anySetting.value( this->m_regEntries->str_reg_startLine).toLongLong(); //startLine
-	this->m_confParams->headerStartLine = this->m_confParams->startLine;
-	this->m_confParams->useEndline = anySetting.value(this->m_regEntries->str_reg_useEndline).toBool() ; //useEndline
-
-	if (this->m_confParams->useEndline) {
-		this->m_confParams->endLine = anySetting.value(this->m_regEntries->str_reg_EndLine).toLongLong() + 1; //endLine Endline +1
-	}
-	else this->m_confParams->endLine = 0;
+	this->m_confParams->skipLinesStart = anySetting.value( this->m_regEntries->str_reg_startLine).toLongLong(); //startLine
+	this->m_confParams->headerStartLine = this->m_confParams->skipLinesStart;
+	this->m_confParams->skipLinesEnd = anySetting.value(this->m_regEntries->str_reg_EndLine).toLongLong() + 1; //endLine Endline +1
 
 	//this->m_confParams->spacing = anySetting.value(this->m_regEntries->str_reg_Spacing).toDouble(); //Spacing TODO TBA
 	//this->m_confParams->csv_units = anySetting.value(this->m_regEntries->str_reg_Units).toString(); //Units
@@ -861,7 +829,6 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 	QString colSeparator = "";
 	QString CSVinputObjectType;
 	bool useEN_Decimals = false;
-	ulong endLine = 0;
 
 	if (this->m_regEntries)
 	{
@@ -891,14 +858,8 @@ void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, c
 		//setting values to variant
 		this->m_regEntries->v_FiberPoreObject = CSVinputObjectType;
 		this->m_regEntries->v_colSeparator.setValue(colSeparator);
-		this->m_regEntries->v_startLine.setValue(csv_params.startLine);
-		this->m_regEntries->v_useEndline.setValue(csv_params.useEndline);
-
-		if (csv_params.useEndline) {
-			endLine = csv_params.endLine + 1;
-		}
-
-		this->m_regEntries->v_endLine.setValue(endLine);
+		this->m_regEntries->v_startLine.setValue(csv_params.skipLinesStart);
+		this->m_regEntries->v_endLine.setValue(csv_params.skipLinesEnd);
 		this->m_regEntries->v_languageFormat.setValue(useEN_Decimals);
 
 		//spacing + units

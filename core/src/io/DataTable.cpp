@@ -39,7 +39,6 @@ namespace DataIO {
 		this->m_currHeaderLineNr = 0;
 		this->m_colInd = 0;
 		this->m_rowInd = 0;
-		this->m_currHeaderLineNr = 0;
 		this->m_FileSeperator = ",";
 		this->isDataFilled = false;
 		this->m_autoRID = 0;
@@ -160,16 +159,8 @@ namespace DataIO {
 			colCount++;
 		}
 
-		//this->prepareTable(rowCount, colCount, headerNr );
-		int startRow = -1;
-		int headerLine = (uint) this->m_currHeaderLineNr -1;
 		QString el_line;
 		QFile file(fName);
-		//number of rows to skip
-		if (StartLine ) {
-			//startRow Line where the header starts
-			startRow = (*StartLine)-1;
-		}
 
 		bool retflag;
 		bool retval = prepareFile(fName, file, retflag);
@@ -178,7 +169,7 @@ namespace DataIO {
 		if (!encoding.isEmpty())
 			in.setCodec(encoding.toStdString().c_str());
 		//skip lines and add header to table;
-		prepareHeader(headerLine, el_line, in, readHeaders, insertID);
+		prepareHeader(this->m_currHeaderLineNr, el_line, in, readHeaders, insertID);
 
 		//read all entries;
 		readTableValues(rowCount, in, el_line);
@@ -206,7 +197,7 @@ namespace DataIO {
 		this->isDataFilled = true;
 	}
 
-	void DataTable::prepareHeader(int headerLine, QString &el_line, QTextStream &file, const bool &readHeaders, bool insertID)
+	void DataTable::prepareHeader(uint headerLine, QString &el_line, QTextStream &file, const bool &readHeaders, bool insertID)
 	{
 		for (int curRow = 0; curRow < headerLine; curRow++)
 		{
@@ -215,30 +206,23 @@ namespace DataIO {
 
 		//nextLine is headerLine if not enabled skip is this line
 		el_line = file.readLine();
-		if (readHeaders)
+		if (readHeaders && !el_line.isEmpty())
 		{
-			if (!el_line.isEmpty())
+			*this->m_headerEntries = el_line.split(m_FileSeperator);
+
+			//resize table
+			if (this->m_headerEntries->length() > this->m_colCount)
 			{
-
-				*this->m_headerEntries = el_line.split(m_FileSeperator);
-
-				//resize table
-				if (this->m_headerEntries->length() > this->m_colCount)
-				{
-					this->setColumnCount(this->m_headerEntries->length());
-				}
-
-				if (insertID)
-				{
-					//insert autoID header;
-					this->m_headerEntries->insert(this->m_headerEntries->begin(), this->m_rowID);
-				}
-
-				this->setHeader(*m_headerEntries);
+				this->setColumnCount(this->m_headerEntries->length());
 			}
+
+			if (insertID)
+			{
+				//insert autoID header;
+				this->m_headerEntries->insert(this->m_headerEntries->begin(), this->m_rowID);
+			}
+			this->setHeader(*m_headerEntries);
 		}
-
-
 	}
 
 	bool DataTable::prepareFile(const QString & fName, QFile &file, bool &retflag)
@@ -248,14 +232,11 @@ namespace DataIO {
 		{
 			return false;
 		}
-
 		if (!file.open(QIODevice::ReadOnly))
 		{
-			QMessageBox::information
-			(this, tr("Unable to open file"), file.errorString());
+			QMessageBox::information(this, tr("Unable to open file"), file.errorString());
 			return false;
 		}
-
 		retflag = false;
 		return {};
 	}
@@ -264,9 +245,9 @@ namespace DataIO {
 	{
 		switch (separator)
 		{
-		default:
-		case csvConfig::csvSeparator::Colunm: m_FileSeperator = ";"; break;
-		case csvConfig::csvSeparator::Comma:  m_FileSeperator = ","; break;
+			default:
+			case csvConfig::csvSeparator::Colunm: m_FileSeperator = ";"; break;
+			case csvConfig::csvSeparator::Comma:  m_FileSeperator = ","; break;
 		}
 	}
 

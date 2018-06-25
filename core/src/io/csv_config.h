@@ -45,11 +45,10 @@ namespace csvConfig {
 		void initDefaultParams()
 		{
 			fileName = "";
-			startLine = 5;
+			skipLinesStart = 5;
+			skipLinesEnd   = 0;
 			headerStartLine = 5;
 			colCount = 31;
-			useEndline = false;
-			endLine = 0;
 			setDefaultConfigs();
 		}
 
@@ -69,21 +68,17 @@ namespace csvConfig {
 
 		void resetParams()
 		{
-			startLine = 0;
+			skipLinesStart = 0;
+			skipLinesEnd = 0;
 			headerStartLine = 0;
 			colCount = 31;
-			useEndline = false;
-			endLine = 0;
 			setDefaultConfigs();
 		}
 
 		QString fileName;
 
-
-		unsigned long startLine;
-
+		uint skipLinesStart, skipLinesEnd;
 		unsigned long headerStartLine;
-		unsigned long endLine;
 		unsigned long colCount;
 		unsigned long tableWidth;
 
@@ -98,10 +93,6 @@ namespace csvConfig {
 		decimalPoint file_decimalPoint;
 		bool paramsValid;
 		bool useEndline;
-
 		CTInputObjectType inputObjectType;
 	};
-
-
-
 }

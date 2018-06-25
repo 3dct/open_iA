@@ -46,7 +46,6 @@ namespace FeatureScoutCSV
 			str_headerName = "HeaderEntries";
 			str_allHeaders = "AllHeaders";
 			str_fileName = "FileName";
-			str_reg_useEndline = "useEndLine";
 			str_reg_startLine = "StartLine";
 			str_reg_EndLine = "Endline";
 			str_reg_colSeparator = "ColumnSeperator";
@@ -173,11 +172,9 @@ private:
 	//! saving headers from registry entry
 	void initParameters();
 	void initBasicFormatParameters(csvLang Language, csvColSeparator FileSeparator, csvFormat FileFormat);
-	void initStartEndline(unsigned long startLine, unsigned long EndLine, const bool useEndline);
-
-	void resetDefault();
-	void assignStartEndLine();
+	void initLineSkip(uint skipLinesStart, uint skipLinesEnd);
 	void setError(const QString &ParamName, const QString & Param_value);
+	void assignStartEndLine();
 	void assignFormatLanguage();
 	void assignInputObjectTypes();
 	void assignSeparator();

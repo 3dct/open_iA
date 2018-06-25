@@ -34,6 +34,10 @@
 #include <QStringList>
 #include <QTextStream>
 
+namespace
+{
+	const int LegacyFormatStartSkipLines = 5;
+}
 
 iACsvIO::iACsvIO() :
 	table(vtkSmartPointer<vtkTable>::New()),
@@ -43,8 +47,8 @@ iACsvIO::iACsvIO() :
 	m_EL_ID(1),
 	m_FileName(""),
 	m_tableWidth(0),
-	m_useEndLine(false),
-	m_endLine(0),
+	m_skipLinesStart(0),
+	m_skipLinesEnd(0),
 	useCVSOnly(false),
 	enableFiberTransformation(false)
 {
@@ -58,7 +62,7 @@ bool iACsvIO::LoadFibreCSV(const QString &fileName)
 	table->Initialize();
 
 	// calculate the length of objects in csv file for defining the vtkTable
-	int tableLength = CalcTableLength(fileName, nullptr);
+	int tableLength = CalcTableLength(fileName, LegacyFormatStartSkipLines);
 	if (tableLength <= 0)
 		return false;
 
@@ -370,7 +374,7 @@ bool iACsvIO::LoadPoreCSV(const QString &fileName)
 {
 	table->Initialize();
 	// calculate the length of objects in csv file for defining the vtkTable
-	int tableLength = CalcTableLength(fileName,  nullptr);
+	int tableLength = CalcTableLength(fileName,  LegacyFormatStartSkipLines);
 	if (tableLength <= 0)
 		return false;
 	QFile file(fileName);
@@ -506,25 +510,11 @@ long iACsvIO::CalcTableLength(const QString &fileName,const int skipLinesStart)
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 		return 0;
 
+	// skip header lines
+	for (int i = 0; i < skipLinesStart && !file.atEnd(); i++)
+		file.readLine();
+
 	long int TableLength = 0;
-
-	// read header lines, need specification each time the structure of the csv file changes
-	//TODO change reading header lines
-	//default for feature scout
-	if (!nrHeadersToSkip) {
-		file.readLine();
-		file.readLine();
-		file.readLine();
-		file.readLine();
-		file.readLine();
-	}
-	else {
-		const int headersToSkip = *nrHeadersToSkip;
-		for (int i = 0; i < headersToSkip; i++) {
-			file.readLine();
-		}
-	}
-
 	while (!file.atEnd())
 	{
 		file.readLine();
@@ -652,14 +642,14 @@ bool iACsvIO::loadCsv_WithConfig()
 	table->Initialize();
 	bool retFlag = false;
 	//read entries with selected headers
-	this->readCustomFileEntries(this->m_FileName, this->m_rowsToSkip, this->m_TableHeaders, this->m_colIds, this->m_EN_Values, retFlag);
+	this->readCustomFileEntries(this->m_FileName, this->m_skipLinesStart, this->m_TableHeaders, this->m_colIds, this->m_EN_Values, retFlag);
 	return retFlag;
 }
 
 void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 {
 	this->m_FileName = csv_Params.fileName;
-	this->m_rowsToSkip = csv_Params.startLine;
+	this->m_skipLinesStart = csv_Params.skipLinesStart;
 
 	if (csv_Params.file_seperator == csvConfig::csvSeparator::Colunm)
 	{
@@ -678,11 +668,7 @@ void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 	}
 
 	//endline to Skip
-	this->m_useEndLine = csv_Params.useEndline;
-	if (this->m_useEndLine) {
-		this->m_endLine = csv_Params.endLine;
-
-	}
+	this->m_skipLinesEnd = csv_Params.skipLinesEnd;
 
 	if (csv_Params.inputObjectType == csvConfig::CTInputObjectType::Fiber)
 	{
@@ -692,15 +678,12 @@ void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 
 }
 
-void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag) {
+void iACsvIO::readCustomFileEntries(const QString &fileName, const uint skipLinesStart, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag)
+{
 	int tableWidth = 0;
 	long tableLength = 0;
 	this->m_EL_ID = 1;  //reset to 1 -> ID starts with 1!
-	tableLength = CalcTableLength(fileName, (&rows_toSkip));
-	/*if (this->m_useEndLine) {
-		this->m_endLine = tableLength -1 ;
-	}*/
-
+	tableLength = CalcTableLength(fileName, skipLinesStart);
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
@@ -711,7 +694,8 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	QTextStream in(&file);
 
 	//skip lines including header
-	for (int i = 0; i < rows_toSkip; i++) {
+	for (int i = 0; i < skipLinesStart; i++)
+	{
 		QString tmp = in.readLine();
 	}
 
@@ -752,7 +736,7 @@ void iACsvIO::readCustomFileEntries(const QString &fileName, const int rows_toSk
 	}
 
 	if(file.isOpen())
-	file.close();
+		file.close();
 	retFlag = true;
 }
 
@@ -788,16 +772,13 @@ void iACsvIO::setColumnHeaders(QStringList &colHeaders)
 void iACsvIO::loadPoreData(long tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count)
 {
 	double tbl_value = 0.0;
-
 	vtkVariant ID_val;
-
 	//use separate col count index
 	int cur_Colcount = 1;
 
 	for (long row = 0; row<tableLength; ++row)
 	{
-		//skip endline if activated
-		if (m_useEndLine && (row > m_endLine))
+		if (row >= (tableLength-m_skipLinesEnd))
 			break;
 
 		line = in.readLine();

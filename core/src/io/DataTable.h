@@ -52,7 +52,7 @@ namespace  DataIO
 			const uint StartLine, const bool readHeaders, bool insertID, QString const & encoding);
 
 		void readTableValues(const uint &rowCount, QTextStream &file, QString &el_line);
-		void prepareHeader(int headerLine, QString &el_line, QTextStream &file, const bool &readHeaders, bool insertID);
+		void prepareHeader(uint headerLine, QString &el_line, QTextStream &file, const bool &readHeaders, bool insertID);
 		bool prepareFile(const QString & fName, QFile &file, bool &retflag);
 		void prepareTable(const int rowCount, const int colCount, const int headerLineNr);
 		void clearTable();

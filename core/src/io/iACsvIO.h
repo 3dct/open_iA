@@ -37,48 +37,10 @@ public:
 	bool LoadCsvFile(iAObjectAnalysisType fid, QString const & fileName);
 	vtkTable * GetCSVTable();
 
-	bool loadCsv_WithConfig();
-
-	void readCustomFileEntries(const QString & fileName, const int rows_toSkip, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag);
-
+	void readCustomFileEntries(const QString & fileName, const uint skipLinesStart, const QStringList &m_Headers, QVector<uint> colSelEntries, bool En_values, bool &retFlag);
 	void setColumnHeaders(QStringList & colHeaders);
-
-	void loadPoreData(long tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count);
-	//void readFileEntries(const QString & fileName, const int rows_toSkip, bool En_Values, bool & retFlag);
-
-
-	//input parameters from configuration file
-	//headerlines to skip	nrOfHeaderLines: headerLinesToSkip
-	//startRowInd -> where to start from row
-	//column separator "," "\t", ";"
-	//similar to load pore csv
-
 	bool loadCSVCustom(csvConfig::configPararams &cnfg_params);
-	/*bool setCSVConfiguration(csvConfig::configPararams &cnf_Params) const;*/
-
-	//todo check if file path exists
-	inline void setConfigPath(const QString _configPath) {
-		configPath = _configPath;
-	}
-
-	const csvConfig::CTInputObjectType getInputElementType() const {
-		return this->inputElementType;
-	}
-
 	void setTableParams(csvConfig::configPararams & csv_Params);
-
-	inline void setTableHeaders(QStringList& headers) {
-		this->m_TableHeaders = headers;
-	}
-
-	inline void setColIDs(const QVector<uint> &colIDs) {
-		this->m_colIds = colIDs;
-	}
-
-
-	inline void setTableWidth(uint TableWidth) {
-		this->m_tableWidth = TableWidth;
-	}
 
 	void setParams(QStringList& headers, const QVector<uint> &colIDs, uint TableWidth);
 
@@ -87,11 +49,18 @@ public:
 
 private:
 
-	void setDefaultConfigPath();
-	long CalcTableLength(const QString &fileName, const int *nrHeadersToSkip);  //
-
-	QString configPath;
-
+	inline void setTableHeaders(QStringList& headers) {
+		this->m_TableHeaders = headers;
+	}
+	inline void setColIDs(const QVector<uint> &colIDs) {
+		this->m_colIds = colIDs;
+	}
+	inline void setTableWidth(uint TableWidth) {
+		this->m_tableWidth = TableWidth;
+	}
+	bool loadCsv_WithConfig();
+	void loadPoreData(long tableLength, QString &line, QTextStream &in, int tableWidth, QString &tmp_section, int col_count);
+	long CalcTableLength(const QString &fileName, const int skipLinesStart);
 	bool LoadFibreCSV(const QString &fileName);
 	void FibreCalculation(QTextStream & in, int eleWidth, int tableLength, const int colCount, const bool useOldFeatureScoutFormat);
 	int assingFiberValuesPart_2(int i, int col_idx, double phi, double theta, double xm, double ym, double zm);
@@ -100,17 +69,16 @@ private:
 	bool loadConfig(const QString configName, bool & applyEN_Formating);
 
 	bool m_EN_Values;
-	bool m_useEndLine;
-	bool useCVSOnly;  //Mode Read Custom csv
+	//!Mode Read Custom csv
+	bool useCVSOnly;
 	bool enableFiberTransformation;
 
 	//! element id for each row entry
 	ulong m_EL_ID;
 	uint m_tableWidth;
-	ulong m_endLine;
+	uint m_skipLinesEnd, m_skipLinesStart;
 
-	int m_rowsToSkip;
-
+	QString configPath;
 	QString m_colSeparator;
 	QString m_decimalSeparator;
 	QString m_FileName;
