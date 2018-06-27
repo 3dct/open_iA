@@ -23,76 +23,50 @@
 #include <QString>
 
 //stores csv config parameters
-namespace csvConfig {
-	//which file format apply - default, vg, mavi, featurescout
-	enum class csv_FileFormat { Default = 1, VolumeGraphics, MAVI, open_IA_FeatureScout };
-	//parameters for csv loading configuraton
-	//seperator in csv file
-	enum class csvSeparator{Colunm = 1, Comma };
-	enum class decimalPoint{Dot = 1, Comma  };
-	enum class inputLang{EN = 1, DE};
+namespace csvConfig
+{
 	enum class CTInputObjectType{Fiber =1, Voids = 0};
+	const QString DefaultColSeparator(";");
+	const QString DefaultDecimalSeparator(".");
 
-	//parameters for csv loading configuraton
-	struct configPararams {
-
+	//! parameters for csv loading configuraton
+	struct configPararams
+	{
 		configPararams()
 		{
 			initDefaultParams();
-
-		};
+		}
 
 		void initDefaultParams()
 		{
 			fileName = "";
 			skipLinesStart = 5;
 			skipLinesEnd   = 0;
-			headerStartLine = 5;
-			colCount = 31;
-			setDefaultConfigs();
-		}
-
-		void setDefaultConfigs()
-		{
-			file_seperator = csvSeparator::Colunm;
-			csv_Inputlanguage = inputLang::EN;
-			spacing = 0.0f;
-			file_fmt = csv_FileFormat::Default;
-			file_decimalPoint = decimalPoint::Dot;
-			csv_units = "microns";
+			colSeparator = DefaultColSeparator;
+			decimalSeparator = DefaultDecimalSeparator;
+			unit = "microns";
 			paramsValid = true;
 			inputObjectType = CTInputObjectType::Voids;
 			tableWidth = 0;
-			LayoutName = "";
+			formatName = "";
+			colCount = 0;
+			spacing = 0.0f;
 		}
 
-		void resetParams()
-		{
-			skipLinesStart = 0;
-			skipLinesEnd = 0;
-			headerStartLine = 0;
-			colCount = 31;
-			setDefaultConfigs();
-		}
-
+		//! filename, not stored in registrys
 		QString fileName;
 
 		uint skipLinesStart, skipLinesEnd;
-		unsigned long headerStartLine;
 		unsigned long colCount;
 		unsigned long tableWidth;
 
+		QString unit;
+		QString formatName;
+		QString colSeparator, decimalSeparator;
+		bool paramsValid;
+		CTInputObjectType inputObjectType;
+
 		//TODO to be applied later
 		float spacing;
-
-		QString csv_units;
-		QString LayoutName;
-		csvSeparator file_seperator;
-		csv_FileFormat file_fmt;
-		inputLang csv_Inputlanguage;
-		decimalPoint file_decimalPoint;
-		bool paramsValid;
-		bool useEndline;
-		CTInputObjectType inputObjectType;
 	};
 }

@@ -22,9 +22,9 @@
 
 #include "csv_config.h"
 #include "iACsvIO.h"
+#include "iAObjectAnalysisType.h"
 
 #include "iAModuleInterface.h"
-#include "iAObjectAnalysisType.h"
 #include "mdichild.h"
 
 class QDockWidget;

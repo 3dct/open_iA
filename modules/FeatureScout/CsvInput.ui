@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>657</width>
-    <height>634</height>
+    <width>656</width>
+    <height>676</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -80,467 +80,464 @@
      <property name="title">
       <string>Format</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
       <property name="spacing">
        <number>4</number>
       </property>
-      <property name="leftMargin">
-       <number>4</number>
-      </property>
-      <property name="topMargin">
-       <number>4</number>
-      </property>
-      <property name="rightMargin">
-       <number>4</number>
-      </property>
-      <property name="bottomMargin">
-       <number>4</number>
-      </property>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <property name="spacing">
+       <layout class="QFormLayout" name="formLayout_2">
+        <property name="horizontalSpacing">
          <number>4</number>
         </property>
-        <item>
-         <layout class="QFormLayout" name="formLayout_2">
-          <property name="horizontalSpacing">
-           <number>4</number>
+        <property name="verticalSpacing">
+         <number>4</number>
+        </property>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="cmbbox_FormatName">
+          <property name="editable">
+           <bool>true</bool>
           </property>
-          <property name="verticalSpacing">
-           <number>4</number>
-          </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="lbl_DataFormat">
-            <property name="text">
-             <string>CSV-Data Format</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="cmb_box_FileFormat"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="lbl_InputObject">
-            <property name="text">
-             <string>Data Input-Type</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="cmb_box_InputObject">
-            <item>
-             <property name="text">
-              <string>Fiber</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Pores</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="lbl_ColumnSeparator">
-            <property name="text">
-             <string>Column Separator</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QComboBox" name="cmb_box_separator">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <item>
-             <property name="text">
-              <string>COMMA (,)</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>COLUMN (;)</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="4" column="0" colspan="2">
-           <widget class="QCheckBox" name="cb_fmtEnglish">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="text">
-             <string>English Format</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QLineEdit" name="ed_CSVFormat_Name">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="lbl_FormatName">
-            <property name="text">
-             <string>Format Name</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0" colspan="2">
-           <widget class="QPushButton" name="btn_SaveFormat">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="text">
-             <string>Save Format</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="cmb_box_Encoding">
-            <item>
-             <property name="text">
-              <string>ISO-8859-1</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>System</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>UTF-8</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Windows-1252</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="lbl_Encoding">
-            <property name="text">
-             <string>Encoding</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         </widget>
         </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_Config">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lbl_FormatName">
+          <property name="text">
+           <string>Format Name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="cmbbox_ObjectType">
+          <item>
+           <property name="text">
+            <string>Fibers</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Voids</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="lbl_ObjectType">
+          <property name="text">
+           <string>Object Type</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QComboBox" name="cmbbox_Encoding">
+          <item>
+           <property name="text">
+            <string>ISO-8859-1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>System</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>UTF-8</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Windows-1252</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="lbl_Encoding">
+          <property name="text">
+           <string>Encoding</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QComboBox" name="cmbbox_ColSeparator">
           <property name="enabled">
            <bool>true</bool>
           </property>
-          <property name="title">
-           <string>Configuration settings</string>
+          <property name="editable">
+           <bool>true</bool>
           </property>
-          <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="1">
-            <widget class="QSpinBox" name="ed_startLine">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="maximum">
-              <number>9999999</number>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QLineEdit" name="ed_Units">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Microns</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="lbl_SkipS1tartLine">
-             <property name="text">
-              <string>Skip Start Lines:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="lbl_Spacing">
-             <property name="text">
-              <string>Spacing:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QLineEdit" name="ed_Spacing">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>10.5</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="lbl_Unit">
-             <property name="text">
-              <string>Unit:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <spacer name="verticalSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="lbl_DecimalSeparator">
-             <property name="text">
-              <string>Decimal separator:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLineEdit" name="ed_decimal">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Point(.)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="lbl_SkipEndLines">
-             <property name="text">
-              <string>Skip End Lines:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QSpinBox" name="ed_endLine"/>
-           </item>
-          </layout>
+          <item>
+           <property name="text">
+            <string>;</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>,</string>
+           </property>
+          </item>
          </widget>
         </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_ColMapping">
+        <item row="3" column="0">
+         <widget class="QLabel" name="lbl_ColumnSeparator">
+          <property name="text">
+           <string>Column Separator</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QComboBox" name="cmbbox_DecimalSeparator">
+          <property name="editable">
+           <bool>true</bool>
+          </property>
+          <item>
+           <property name="text">
+            <string>.</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>,</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="lbl_DecimalSeparator">
+          <property name="text">
+           <string>Decimal separator:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QSpinBox" name="ed_SkipLinesStart">
           <property name="enabled">
            <bool>true</bool>
           </property>
-          <property name="title">
-           <string>Column Mapping</string>
+          <property name="minimum">
+           <number>0</number>
           </property>
-          <layout class="QFormLayout" name="formLayout">
-           <property name="horizontalSpacing">
-            <number>4</number>
-           </property>
-           <property name="verticalSpacing">
-            <number>4</number>
-           </property>
-           <property name="leftMargin">
-            <number>4</number>
-           </property>
-           <property name="topMargin">
-            <number>4</number>
-           </property>
-           <property name="rightMargin">
-            <number>4</number>
-           </property>
-           <property name="bottomMargin">
-            <number>4</number>
-           </property>
-           <item row="0" column="0">
-            <widget class="QLabel" name="lbl_startPosX">
-             <property name="text">
-              <string>Start Pos. X</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="ed_StartX_Col">
-             <property name="text">
-              <string>2</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="lbl_StartPosY">
-             <property name="text">
-              <string>Start Pos. Y</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLineEdit" name="ed_StartY_Col">
-             <property name="text">
-              <string>3</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="lbl_startPosZ">
-             <property name="text">
-              <string>Start Pos. Z</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLineEdit" name="ed_StartZ_Col">
-             <property name="text">
-              <string>4</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="lbl_EndPosX">
-             <property name="text">
-              <string>End Pos. X</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QLineEdit" name="ed_EndX_Col">
-             <property name="text">
-              <string>5</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="lbl_EndPosY">
-             <property name="text">
-              <string>End Pos. Y</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1">
-            <widget class="QLineEdit" name="ed_EndY_Col">
-             <property name="text">
-              <string>6</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="lbl_EndPosZ">
-             <property name="text">
-              <string>End Pos. Z</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1">
-            <widget class="QLineEdit" name="ed_EndZ_Col">
-             <property name="text">
-              <string>7</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="lbl_EndPosZ_2">
-             <property name="text">
-              <string>Diameter</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="1">
-            <widget class="QLineEdit" name="ed_EndZ_Col_2">
-             <property name="text">
-              <string>10</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="0" colspan="2">
-            <widget class="QCheckBox" name="cb_ComputeAngles">
-             <property name="text">
-              <string>Compute Angles</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="0">
-            <widget class="QLabel" name="lbl_Phi_Col">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Phi Angle</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="0">
-            <widget class="QLabel" name="lbl_Theta_Col">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Theta Angle</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="1">
-            <widget class="QLineEdit" name="ed_Phi_Col">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="1">
-            <widget class="QLineEdit" name="ed_Theta_Col">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <property name="maximum">
+           <number>9999999</number>
+          </property>
+          <property name="value">
+           <number>5</number>
+          </property>
          </widget>
         </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_ColSelection">
-          <property name="title">
-           <string> Column selection</string>
+        <item row="5" column="0">
+         <widget class="QLabel" name="lbl_SkipS1tartLine">
+          <property name="text">
+           <string>Skip Start Lines:</string>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <property name="spacing">
-            <number>4</number>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="lbl_SkipEndLines">
+          <property name="text">
+           <string>Skip End Lines:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="lbl_Unit">
+          <property name="text">
+           <string>Unit:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QSpinBox" name="ed_SkipLinesEnd"/>
+        </item>
+        <item row="7" column="1">
+         <widget class="QComboBox" name="cmbbox_Unit">
+          <item>
+           <property name="text">
+            <string>microns</string>
            </property>
-           <property name="leftMargin">
-            <number>4</number>
-           </property>
-           <property name="topMargin">
-            <number>4</number>
-           </property>
-           <property name="rightMargin">
-            <number>4</number>
-           </property>
-           <property name="bottomMargin">
-            <number>4</number>
-           </property>
-           <item>
-            <widget class="QListWidget" name="textControl_list">
-             <property name="selectionMode">
-              <enum>QAbstractItemView::ExtendedSelection</enum>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          </item>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QLineEdit" name="ed_Spacing">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>10.5</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="lbl_Spacing">
+          <property name="text">
+           <string>Spacing:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="0" colspan="2">
+         <widget class="QPushButton" name="btn_SaveFormat">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>Save Format</string>
+          </property>
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_ColMapping">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="title">
+         <string>Column Mapping</string>
+        </property>
+        <layout class="QFormLayout" name="formLayout">
+         <property name="horizontalSpacing">
+          <number>4</number>
+         </property>
+         <property name="verticalSpacing">
+          <number>4</number>
+         </property>
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
+          <number>4</number>
+         </property>
+         <item row="0" column="0" colspan="2">
+          <widget class="QComboBox" name="cmbbox_col_Selection">
+           <property name="currentIndex">
+            <number>0</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>Start and End</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Center, Length, Orientation</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="lbl_col_posStartX">
+           <property name="text">
+            <string>Start Pos. X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosStartX"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="lbl_col_posStartY">
+           <property name="text">
+            <string>Start Pos. Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosStartY"/>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="lbl_col_posStartZ">
+           <property name="text">
+            <string>Start Pos. Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosStartZ"/>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="lbl_col_posEndX">
+           <property name="text">
+            <string>End Pos. X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosEndX"/>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="lbl_col_posEndY">
+           <property name="text">
+            <string>End Pos. Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosEndY"/>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="lbl_col_posEndZ">
+           <property name="text">
+            <string>End Pos. Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosEndZ"/>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="lbl_col_posCenterX">
+           <property name="text">
+            <string>Center X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosCenterX">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="0">
+          <widget class="QLabel" name="lbl_col_posCenterY">
+           <property name="text">
+            <string>Center Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosCenterY">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="0">
+          <widget class="QLabel" name="lbl_col_posCenterZ">
+           <property name="text">
+            <string>Center Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosCenterZ">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="0">
+          <widget class="QLabel" name="lbl_col_length">
+           <property name="text">
+            <string>Length</string>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="1">
+          <widget class="QComboBox" name="cmbbox_col_Length">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="0">
+          <widget class="QLabel" name="lbl_col_diameter">
+           <property name="text">
+            <string>Diameter</string>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="1">
+          <widget class="QComboBox" name="cmbbox_col_Diameter"/>
+         </item>
+         <item row="13" column="0">
+          <widget class="QLabel" name="lbl_col_phi">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Phi Angle</string>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="1">
+          <widget class="QComboBox" name="cmbbox_col_Phi">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="0">
+          <widget class="QLabel" name="lbl_col_theta">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Theta Angle</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="1">
+          <widget class="QComboBox" name="cmbbox_col_Theta">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="0" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeAngles">
+           <property name="text">
+            <string>Compute Angles</string>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="0" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeLength">
+           <property name="text">
+            <string>Compute Length</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_ColSelection">
+        <property name="title">
+         <string> Column selection</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
+          <number>4</number>
+         </property>
+         <item>
+          <widget class="QListWidget" name="list_ColumnSelection">
+           <property name="selectionMode">
+            <enum>QAbstractItemView::ExtendedSelection</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -606,7 +603,7 @@
             <number>1</number>
            </property>
            <property name="maximum">
-            <number>999</number>
+            <number>99999</number>
            </property>
            <property name="value">
             <number>10</number>
@@ -614,7 +611,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_updatePreview">
+          <widget class="QPushButton" name="btn_UpdatePreview">
            <property name="text">
             <string>Update Preview</string>
            </property>

@@ -59,8 +59,9 @@ void iAFeatureScoutModuleInterface::Initialize()
 void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 
 	csvConfig::configPararams fileConfParams;
-	//TODO set file path
 	dlg_CSVInput dlg;
+	if (m_mainWnd->activeMdiChild())
+		dlg.setPath(m_mainWnd->activeMdiChild()->getFilePath());
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	this->m_mdiChild = m_mainWnd->createMdiChild(false);
@@ -84,10 +85,9 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	}
 	io.setParams(*headers, dlg.getEntriesSelInd(), dlg.getTableWidth());
 	if (!fileConfParams.fileName.isEmpty())
-	{
-		initializeFeatureScoutStartUp(item, fileConfParams.fileName, true, &fileConfParams, featScout_headers /*headers*/);
-	}
-	else m_mdiChild->addMsg("CSV-file name error.");
+		initializeFeatureScoutStartUp(item, fileConfParams.fileName, true, &fileConfParams, featScout_headers);
+	else
+		m_mdiChild->addMsg("CSV-file name error.");
 }
 
 void iAFeatureScoutModuleInterface::FeatureScout()

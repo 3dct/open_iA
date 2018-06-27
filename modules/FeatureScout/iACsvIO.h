@@ -80,10 +80,9 @@ private:
 	uint m_tableWidth;
 	uint m_skipLinesEnd, m_skipLinesStart;
 
-	QString configPath;
 	QString m_colSeparator;
 	QString m_decimalSeparator;
-	QString m_FileName;
+	QString m_fileName;
 
 	vtkSmartPointer<vtkTable> table;
 	csvConfig::CTInputObjectType inputElementType;

@@ -41,10 +41,9 @@ namespace
 
 iACsvIO::iACsvIO() :
 	table(vtkSmartPointer<vtkTable>::New()),
-	m_colSeparator(","),
+	m_colSeparator(csvConfig::DefaultColSeparator),
 	m_EN_Values(true),
 	m_EL_ID(1),
-	m_FileName(""),
 	m_tableWidth(0),
 	m_skipLinesStart(0),
 	m_skipLinesEnd(0),
@@ -518,12 +517,10 @@ QStringList iACsvIO::GetFibreElementsName(bool withUnit)
 	QString ud = QChar(0x00B0);
 	QString h2 = QChar(0x00B2);
 	QString h3 = QChar(0x00B3);
-
 	QString udegree = QString("");
 	QString micro1 = QString("");
 	QString micro2 = QString("");
 	QString micro3 = QString("");
-
 	if (withUnit)
 	{
 		udegree = QString("[%1]").arg(ud);
@@ -533,69 +530,48 @@ QStringList iACsvIO::GetFibreElementsName(bool withUnit)
 	}
 
 	QStringList eleString;
-	eleString.append("Label");							// 0
-	eleString.append(QString("X1%1").arg(micro1));		// 1
-	eleString.append(QString("Y1%1").arg(micro1));		// 2
-	eleString.append(QString("Z1%1").arg(micro1));		// 3
-	eleString.append(QString("X2%1").arg(micro1));		// 4
-	eleString.append(QString("Y2%1").arg(micro1));		// 5
-	eleString.append(QString("Z2%1").arg(micro1));		// 6
-	eleString.append("a11");							// 7
-	eleString.append("a22");							// 8
-	eleString.append("a33");							// 9
-	eleString.append("a12");							// 10
-	eleString.append("a13");							// 11
-	eleString.append("a23");							// 12
-	eleString.append(QString("phi%1").arg(udegree));	// 13
-	eleString.append(QString("theta%1").arg(udegree));	// 14
-	eleString.append(QString("Xm%1").arg(micro1));		// 15
-	eleString.append(QString("Ym%1").arg(micro1));		// 16
-	eleString.append(QString("Zm%1").arg(micro1));		// 17
-
-	////QUICK&DIRTY to set the right labeling for voids
-	//eleString.append("ID");							// 0
-	//eleString.append("Volume");		// 1
-	//eleString.append("DimX");		// 2
-	//eleString.append("DimY");		// 3
-	//eleString.append("DimZ");		// 4
-	//eleString.append("PositionX");		// 5
-	//eleString.append("PositionY");		// 6
-	//eleString.append("PositionZ");							// 7
-	//eleString.append("ShapeFactor");							// 8
-	//eleString.append("a33");							// 9
-	//eleString.append("a12");							// 10
-	//eleString.append("a13");							// 11
-	//eleString.append("a23");							// 12
-	//eleString.append(QString("phi%1").arg(udegree));	// 13
-	//eleString.append(QString("theta%1").arg(udegree));	// 14
-	//eleString.append(QString("Xm%1").arg(micro1));		// 15
-	//eleString.append(QString("Ym%1").arg(micro1));		// 16
-	//eleString.append(QString("Zm%1").arg(micro1));		// 17
-
+	eleString.append("Label");                                       // 0
+	eleString.append(QString("X1%1").arg(micro1));                   // 1
+	eleString.append(QString("Y1%1").arg(micro1));                   // 2
+	eleString.append(QString("Z1%1").arg(micro1));                   // 3
+	eleString.append(QString("X2%1").arg(micro1));                   // 4
+	eleString.append(QString("Y2%1").arg(micro1));                   // 5
+	eleString.append(QString("Z2%1").arg(micro1));                   // 6
+	eleString.append("a11");                                         // 7
+	eleString.append("a22");                                         // 8
+	eleString.append("a33");                                         // 9
+	eleString.append("a12");                                         // 10
+	eleString.append("a13");                                         // 11
+	eleString.append("a23");                                         // 12
+	eleString.append(QString("phi%1").arg(udegree));                 // 13
+	eleString.append(QString("theta%1").arg(udegree));               // 14
+	eleString.append(QString("Xm%1").arg(micro1));                   // 15
+	eleString.append(QString("Ym%1").arg(micro1));                   // 16
+	eleString.append(QString("Zm%1").arg(micro1));                   // 17
 	if (withUnit)
 	{
-		eleString.append(QString("StraightLength%1").arg(micro1));		// 18
-		eleString.append(QString("CurvedLength%1").arg(micro1));		// 19
+		eleString.append(QString("StraightLength%1").arg(micro1));   // 18
+		eleString.append(QString("CurvedLength%1").arg(micro1));     // 19
 	}
 	else
 	{
-		eleString.append(QString("sL%1").arg(micro1));		// 18
-		eleString.append(QString("cL%1").arg(micro1));		// 19
+		eleString.append(QString("sL%1").arg(micro1));               // 18
+		eleString.append(QString("cL%1").arg(micro1));               // 19
 	}
-	eleString.append(QString("Diameter%1").arg(micro1));	// 20
-	eleString.append(QString("Surface%1").arg(micro2));		// 21
-	eleString.append(QString("Volume%1").arg(micro3));		// 22
+	eleString.append(QString("Diameter%1").arg(micro1));             // 20
+	eleString.append(QString("Surface%1").arg(micro2));              // 21
+	eleString.append(QString("Volume%1").arg(micro3));               // 22
 	if (withUnit)
 	{
-		eleString.append("SperatedFiber");								// 23
-		eleString.append("CurvedFiber");								// 24
+		eleString.append("SeparatedFiber");                          // 23
+		eleString.append("CurvedFiber");                             // 24
 	}
 	else
 	{
-		eleString.append("sFiber");								// 23
-		eleString.append("cFiber");								// 24
+		eleString.append("sFiber");                                  // 23
+		eleString.append("cFiber");                                  // 24
 	}
-	eleString.append("Class_ID");							// 25
+	eleString.append("Class_ID");                                    // 25
 
 	return eleString;
 }
@@ -625,23 +601,15 @@ bool iACsvIO::loadCsv_WithConfig()
 {
 	this->useCVSOnly = true;
 	table->Initialize();
-	return readCustomFileEntries(this->m_FileName, this->m_skipLinesStart);
+	return readCustomFileEntries(m_fileName, m_skipLinesStart);
 }
 
 void iACsvIO::setTableParams(csvConfig::configPararams &csv_Params)
 {
-	this->m_FileName = csv_Params.fileName;
-	this->m_skipLinesStart = csv_Params.skipLinesStart;
-
-	if (csv_Params.file_seperator == csvConfig::csvSeparator::Colunm)
-	{
-		this->m_colSeparator = ";";
-	}
-	else if (csv_Params.file_seperator == csvConfig::csvSeparator::Comma)
-	{
-		this->m_colSeparator = ",";
-	}
-	m_EN_Values = (csv_Params.csv_Inputlanguage != csvConfig::inputLang::EN);
+	m_fileName = csv_Params.fileName;
+	m_skipLinesStart = csv_Params.skipLinesStart;
+	m_colSeparator = csv_Params.colSeparator;
+	m_decimalSeparator = csv_Params.decimalSeparator;
 	m_skipLinesEnd = csv_Params.skipLinesEnd;
 	enableFiberTransformation = (csv_Params.inputObjectType == csvConfig::CTInputObjectType::Fiber);
 }
@@ -659,12 +627,8 @@ bool iACsvIO::readCustomFileEntries(const QString &fileName, const uint skipLine
 	}
 
 	QTextStream in(&file);
-
-	//skip lines including header
-	for (int i = 0; i < skipLinesStart; i++)
-	{
-		QString tmp = in.readLine();
-	}
+	for (int i = 0; i < skipLinesStart + 1; i++)	// skip lines including header
+		in.readLine();
 
 	int col_count = 0;
 	if (enableFiberTransformation)
@@ -694,7 +658,7 @@ bool iACsvIO::readCustomFileEntries(const QString &fileName, const uint skipLine
 			col_count = this->m_TableHeaders.length();
 		}
 		loadPoreData(tableLength, line, in, tableWidth, tmp_section, col_count);
-	} //TODO FIberTransformation
+	}
 	else
 	{
 		this->FibreCalculation(in, tableWidth, tableLength,col_count, true);
@@ -729,7 +693,6 @@ void iACsvIO::setColumnHeaders(QStringList &colHeaders)
 			table->AddColumn(arrX);
 		}
 	}
-	//read entries;
 	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
 	arr->SetName("Class_ID");
 	table->AddColumn(arr);

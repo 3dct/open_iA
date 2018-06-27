@@ -24,119 +24,35 @@
 #include "csv_config.h"
 #include "DataTable.h"
 
-#include <QMetaType>
-
 #include <vtkTable.h>
 #include <vtkSmartPointer.h>
 
+#include <QMetaType>
+
 class QSettings;
 
-namespace FeatureScoutCSV
-{
-	struct csvRegKeys
-	{
-		csvRegKeys()
-		{
-			initParam();
-		}
-		void initParam()
-		{
-			str_settingsName = "FeatureScoutCSV";
-			str_formatName = "FormatName";
-			str_headerName = "HeaderEntries";
-			str_allHeaders = "AllHeaders";
-			str_fileName = "FileName";
-			str_reg_startLine = "StartLine";
-			str_reg_EndLine = "Endline";
-			str_reg_colSeparator = "ColumnSeperator";
-			str_reg_languageFormat = "LanguageFormat";
-			str_reg_Spacing = "Spacing";
-			str_reg_Units = "Microns";
-			str_reg_FiberPoreData = "InputObjectType";
-		}
-		//Values to be written in registry
-		QVariant v_startLine;
-		QVariant v_useEndline;
-		QVariant v_endLine;
-		QVariant v_colSeparator;
-		QVariant v_languageFormat;
-		QVariant v_Spacing;
-		QVariant v_Units;
-		QVariant v_FiberPoreObject; //for fibers or pores
-		QVariant v_fileName;
-		QVariant v_allHeaders;
-
-		//Names for registry
-		QString str_settingsName;
-		QString str_headerName;
-		QString str_allHeaders;
-		QString str_fileName;
-		QString str_formatName;
-		QString str_reg_useEndline;
-		QString str_reg_startLine;
-		QString str_reg_EndLine;
-		QString str_reg_colSeparator;
-		QString str_reg_languageFormat;
-		QString str_reg_Spacing;
-		QString str_reg_Units;
-
-		//for fibers or pores
-		QString str_reg_FiberPoreData;
-	};
-}
-
-
-//! Loads custom csv File with DataPreview
-//! Settings can be adapted and saved for specified DataFormat
-//! Enables column pre selection to be shown in FeatureScout
+//! Loads custom csv file with data preview
+//! Settings can be adapted and saved under a specified format name,
+//! columns can be pre-selected to be shown in FeatureScout
 class dlg_CSVInput : public QDialog, public Ui_CsvInput
 {
-	Q_OBJECT
-		typedef DataIO::DataTable dataTable;
-		typedef dataTable* csvTable_ptr;
-		typedef FeatureScoutCSV::csvRegKeys csv_reg;
-		typedef QSharedPointer<csv_reg> cvsRegSettings_ShrdPtr;  //QSharedPointer csv_reg
-
-		typedef csvConfig::csvSeparator csvColSeparator;
-		typedef csvConfig::inputLang csvLang;
-		typedef csvConfig::csv_FileFormat csvFormat;
-		typedef csvConfig::CTInputObjectType FiberPoreType;
+Q_OBJECT
+	typedef DataIO::DataTable dataTable;
+	typedef dataTable* csvTable_ptr;
+	typedef csvConfig::CTInputObjectType FiberPoreType;
 public:
 	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0); /*: QDialog(parent, f)*/
-
-	//! load Headers from registry
-	void LoadHeaderEntriesFromReg(QStringList &HeaderEntries, const QString &HeaderNames, const QString &LayoutName);
+	void setPath(QString const & path);
 	const csvConfig::configPararams & getConfigParameters() const;
-	//! shows configuration parameters to GUI
-	void showConfigParams(const csvConfig::configPararams &params, const bool paramsLoaded);
-	inline void setFilePath(const QString& FPath)
-	{
-		if(!FPath.isEmpty())
-		{
-			this->m_fPath = FPath;
-		}
-	}
-	void addSelectedHeaders(QVector<uint>& data);
-	void addSingleHeaderToList(uint &currItemIdx, QString &listEntry);
 	const QVector<uint>& getEntriesSelInd();
-	void selectSingleHeader(uint & currItemIdx, QString & listEntry);
-	void setSelectedHeaderToTextControl(QStringList & sel_headers);
-	//! set entries from a selected List + setting column count information for selection
-	bool setSelectedEntries(const bool EnableMessageBox);
 
 	inline const QSharedPointer<QStringList> getHeaderSelection()
 	{
 		return this->m_selHeaders;
 	}
-
-	inline const QSharedPointer<QStringList> getAllHeaders()
-	{
-		return this->m_currentHeaders;
-	}
-
 	inline const ulong getTableWidth()
 	{
-		return this->m_confParams->tableWidth;
+		return this->m_confParams.tableWidth;
 	}
 
 private slots:
@@ -144,34 +60,36 @@ private slots:
 	void setAllHeaders(QSharedPointer<QStringList> &allHeaders);
 	void OKButtonClicked();
 	//! load format based on selected input format (ex. mavi/ vg, ...)
-	void LoadSelectedFormatSettings(const QString &LayoutName);
+	void LoadSelectedFormatSettings(const QString &formatName);
 	//! switch between comma and column and show file preview
 	void UpdateCSVPreview();
 	void switchCTInputObjectType(const QString &ObjectInputType); //Switch Object Type Fiber / Pores
-	//! clear all entries in Table
-	void resetTable();
 	//! Add format to the list of known formats
 	void SaveFormatBtnClicked();
-	//! Enables or disables angle mapping edits depending on checkbox
-	void UpdateAngleEditStates();
+	//! Switch the inputs for the column mappings depending on what data is available
+	void UpdateColumnMappingInputs();
+	void UpdateLengthEditVisibility();
+	void UpdateAngleEditVisibility();
 private:
+	//! connect signals and slots of all dialog controls
 	void connectSignals();
-	//! load entries with layoutName or list all entries under FeaturescoutCSV. output is groups, it is empty if no features in registry
-	bool CheckFeatureInRegistry(QSettings & anySetting, const QString * LayoutName, QStringList & groups, bool useSubGroup);
-
+	//! load entries with formatName or list all csv format entries. output is groups, it is empty if no features in registry
+	bool CheckFeatureInRegistry(QSettings & anySetting, const QString * formatName, QStringList & groups, bool useSubGroup);
+	//! store format parameters in registry
 	void saveParamsToRegistry(csvConfig::configPararams & csv_params, const QString & LayoutName);
-	//! load entries from registry for a configuration setting
-	bool loadEntriesFromRegistry(QSettings & anySetting, const QString & LayoutName);
+	//! load entries from registry for a given format name
+	bool loadEntriesFromRegistry(QSettings & anySetting, const QString & formatName);
+	//! load headers from registry
+	void LoadHeaderEntriesFromReg(QStringList &HeaderEntries, const QString &HeaderNames, const QString &LayoutName);
+	//! shows configuration parameters to GUI
+	void showConfigParams(const csvConfig::configPararams &params);
 
 	//! load initial settings
 	void LoadFormatEntriesOnStartUp();
-	void saveSettings(QSettings & anySetting, const QString & LayoutName, const QString & FeatureName, const QVariant & feat_value);
-	void createSettingsName(QString &fullSettingsName, const QString & LayoutName, const QString & FeatureName, bool useSubGroup);
+	void saveSettings(QSettings & anySetting, const QString & formatName, const QString & FeatureName, const QVariant & feat_value);
+	void createSettingsName(QString &fullSettingsName, const QString & formatName, const QString & FeatureName, bool useSubGroup);
 
-	//! saving headers from registry entry
 	void initParameters();
-	void initBasicFormatParameters(csvLang Language, csvColSeparator FileSeparator, csvFormat FileFormat);
-	void initLineSkip(uint skipLinesStart, uint skipLinesEnd);
 	void setError(const QString &ParamName, const QString & Param_value);
 	void assignStartEndLine();
 	void assignFormatLanguage();
@@ -185,23 +103,26 @@ private:
 	//! checks if file exists and save it to config params
 	bool checkFile(bool Layoutloaded);
 	//! loading entries into table widget preview
-	bool loadEntries(const QString & fileName, const unsigned int nrPreviewElements, QString const & encoding);
+	void loadEntries(const QString & fileName, const unsigned int nrPreviewElements, QString const & encoding);
 	//! shows table with entries
 	void showPreviewTable();
 	void saveHeaderEntriesToReg(const QStringList & HeaderEntries, const QString & HeaderName, const QString & LayoutName);
 	void clearTextControl();
 	void selectAllFromTextControl();
+	void setSelectedHeaderToTextControl(QStringList & sel_headers);
+	//! set entries from a selected List + setting column count information for selection
+	bool setSelectedEntries(const bool EnableMessageBox);
+	void addSelectedHeaders(QVector<uint>& data);
+	void addSingleHeaderToList(uint &currItemIdx, QString &listEntry);
+	void selectSingleHeader(uint & currItemIdx, QString & listEntry);
 
-private:
-	QSharedPointer<csvConfig::configPararams> m_confParams;
+	csvConfig::configPararams m_confParams;
 	QString m_fPath;
 	QString m_Error_Parameter;
-	csvTable_ptr m_entriesPreviewTable = nullptr;
-	cvsRegSettings_ShrdPtr m_regEntries;
-	QString m_LayoutName;
+	csvTable_ptr m_previewTable = nullptr;
+	QString m_formatName;
 
 	bool isFileNameValid = false;
-	bool isFilledWithData = false;
 	bool m_formatSelected = false;
 	bool m_PreviewUpdated = false;
 	ulong m_headersCount;
