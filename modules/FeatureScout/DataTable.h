@@ -20,46 +20,38 @@
 * ************************************************************************************/
 #pragma once
 
-#include "csv_config.h"
-
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
 
-namespace DataIO
+class DataTable : public QTableWidget
 {
-	class DataTable : public QTableWidget
-	{
-	public:
-		DataTable();
-		void initToDefault();
-		//! reads table entries from csv file into qtable widget
-		bool readTableEntries(const QString &fName, const uint rowCount, const QString & colSeparator,
-			const uint skipLinesStart, const bool readHeaders, bool addAutoID, QString const & encoding);
-		void prepareTable(const int rowCount, const int colCount);
-		//! to clear the table when adding new entries
-		void clearTable();
-		void setHeader(const QStringList &headerEntries);
-		QString getLastEncoding() const;
-		const QStringList & getHeaders() const;
+public:
+	DataTable();
+	void initToDefault();
+	//! reads table entries from csv file into qtable widget
+	bool readTableEntries(const QString &fName, const uint rowCount, const QString & colSeparator,
+		const uint skipLinesStart, const bool readHeaders, bool addAutoID, QString const & encoding);
+	//! clears the table content and sets it to zero rows
+	void clearTable();
+	void setHeader(const QStringList &headerEntries);
+	QString getLastEncoding() const;
+	const QStringList & getHeaders() const;
 
-		QString AutoIDColumnName = "Auto ID";
+	QString AutoIDColumnName = "Auto ID";
 
-	private:
-		QStringList m_headerEntries;
-		bool isDataFilled;	// check if can be  removed
+private:
+	QStringList m_headerEntries; //!< list of column header names
+	QString m_colSeparator; //!< separator between columns
+	QString m_FileName;     //!< file name used for reading csv file
+	QString m_LastEncoding; //!< encoding used when last reading the csv file
+	size_t m_autoRID;       //!< counter variable for automatically assigned row ID
 
-		QString m_colSeparator; //!< separator between columns
-		QString m_FileName;     //!< file name used for reading csv file
-		QString m_LastEncoding; //!< encoding used when last reading the csv file
-		size_t m_autoRID;       //!< counter variable for automatically assigned row ID
+	//! disable copy constructor
+	DataTable(const DataTable &other) =delete;
 
-		//! disable copy constructor
-		DataTable(const DataTable &other) =delete;
-
-		void readTableValues(size_t const rowCount, QTextStream &file, bool addAutoID, const QString & colSeparator);
-		//! adding file entry to table (+ optional auto id entry)
-		void addLineToTable(QStringList const &tableEntries, size_t row, bool addAutoID);
-		void prepareHeader(uint skipLinesStart, QTextStream &file, bool readHeaders, bool addAutoID, const QString & colSeparator);
-	};
-}
+	void readTableValues(size_t const rowCount, QTextStream &file, bool addAutoID, const QString & colSeparator);
+	//! adding file entry to table (+ optional auto id entry)
+	void addLineToTable(QStringList const &tableEntries, size_t row, bool addAutoID);
+	void prepareHeader(uint skipLinesStart, QTextStream &file, bool readHeaders, bool addAutoID, const QString & colSeparator);
+};

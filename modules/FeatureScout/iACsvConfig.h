@@ -20,53 +20,39 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAFeatureScoutObjectType.h"
+
 #include <QString>
 
-//stores csv config parameters
-namespace csvConfig
+//! parameters for csv loading configuraton
+struct iACsvConfig
 {
-	enum class CTInputObjectType{Fiber =1, Voids = 0};
-	const QString DefaultColSeparator(";");
-	const QString DefaultDecimalSeparator(".");
+	iACsvConfig() :
+		fileName(""),
+		formatName(""),
+		skipLinesStart(5),
+		skipLinesEnd(0),
+		colSeparator(";"),
+		decimalSeparator("."),
+		addAutoID(false),
+		objectType(iAFeatureScoutObjectType::Voids),
+		unit("microns"),
+		spacing(0.0f),
+		tableWidth(0),
+		paramsValid(true)
+	{}
 
-	//! parameters for csv loading configuraton
-	struct configPararams
-	{
-		configPararams()
-		{
-			initDefaultParams();
-		}
+	QString fileName;//!< filename, not stored in registrys
 
-		void initDefaultParams()
-		{
-			fileName = "";
-			skipLinesStart = 5;
-			skipLinesEnd   = 0;
-			colSeparator = DefaultColSeparator;
-			decimalSeparator = DefaultDecimalSeparator;
-			unit = "microns";
-			paramsValid = true;
-			inputObjectType = CTInputObjectType::Voids;
-			tableWidth = 0;
-			formatName = "";
-			colCount = 0;
-			spacing = 0.0f;
-		}
+	QString formatName;
+	size_t skipLinesStart, skipLinesEnd;
+	QString colSeparator, decimalSeparator;
+	bool addAutoID;
+	iAFeatureScoutObjectType objectType;
+	//TODO to be applied later
+	QString unit;
+	float spacing;
+	size_t tableWidth;
 
-		//! filename, not stored in registrys
-		QString fileName;
-
-		uint skipLinesStart, skipLinesEnd;
-		unsigned long colCount;
-		unsigned long tableWidth;
-
-		QString unit;
-		QString formatName;
-		QString colSeparator, decimalSeparator;
-		bool paramsValid;
-		CTInputObjectType inputObjectType;
-
-		//TODO to be applied later
-		float spacing;
-	};
-}
+	bool paramsValid;
+};

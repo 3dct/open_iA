@@ -23,7 +23,7 @@
 #include "iADockWidgetWrapper.h"
 
 #include "iAFeatureScoutModuleInterface.h"
-#include "iAObjectAnalysisType.h"
+#include "iAFeatureScoutObjectType.h"
 #include "iAQTtoUIConnector.h"
 #include "ui_FeatureScoutClassExplorer.h"
 #include "ui_FeatureScoutParallelCoordinates.h"
@@ -46,14 +46,18 @@ class dlg_blobVisualization;
 class MdiChild;
 
 class vtkChartParallelCoordinates;
+class vtkColorTransferFunction;
 class vtkContextView;
 class vtkDataArray;
 class vtkDelaunay2D;
 class vtkFixedPointVolumeRayCastMapper;
 class vtkIdTypeArray;
 class vtkLookupTable;
+class vtkPiecewiseFunction;
+class vtkRenderer;
 class vtkScalarBarActor;
 class vtkScalarBarWidget;
+class vtkScalarsToColors;
 class vtkSmartVolumeMapper;
 class vtkStringArray;
 class vtkTable;
@@ -88,8 +92,8 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 	Q_OBJECT
 
 public:
-	dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl,
-		const bool useCsvOnly, const QSharedPointer<QStringList>  &selHeaders);
+	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl,
+		const bool useCsvOnly, QStringList const & selHeaders);
 	~dlg_FeatureScout();
 
 	// setups
@@ -190,7 +194,7 @@ public slots:
 	void updateMarProgress(int i);
 
 protected:
-	bool initParallelCoordinates( iAObjectAnalysisType fid );
+	bool initParallelCoordinates( iAFeatureScoutObjectType fid );
 
 
 private:
@@ -212,7 +216,7 @@ private:
 	// private members
 	int elementNr;		// Number of elements in csv inputTable
 	int objectNr;		// Number of objects in the specimen
-	iAObjectAnalysisType filterID;
+	iAFeatureScoutObjectType filterID;
 
 	bool draw3DPolarPlot;
 	bool classRendering;
@@ -310,6 +314,5 @@ private:
 	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
 
 	vtkSmartPointer<vtkLookupTable> m_pointLUT;
-	QSharedPointer<QStringList> m_headersSelected;
-
+	QStringList m_headersSelected;
 };

@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "dlg_CSVInput.h"
 
+#include "DataTable.h"
+
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QStandardItemModel>
@@ -28,17 +30,35 @@
 namespace csvRegKeys
 {
 	//Names for registry
-	static const QString str_settingsName = "FeatureScout";
-	static const QString str_formatName = "CSVFormats";
-	static const QString str_headerName = "HeaderEntries";
-	static const QString str_allHeaders = "AllHeaders";
-	static const QString str_reg_skipLinesStart = "SkipLinesStart";
-	static const QString str_reg_skipLinesEnd = "SkipLinesEnd";
-	static const QString str_reg_colSeparator = "ColumnSeparator";
-	static const QString str_reg_decimalSeparator = "DecimalSeparator";
-	static const QString str_reg_Spacing = "Spacing";
-	static const QString str_reg_Units = "Unit";
-	static const QString str_reg_FiberPoreData = "InputObjectType";
+	static const QString SettingsName = "FeatureScout";
+	static const QString FormatName = "CSVFormats";
+	static const QString HeaderName = "HeaderEntries";
+	static const QString AllHeaders = "AllHeaders";
+	static const QString SkipLinesStart = "SkipLinesStart";
+	static const QString SkipLinesEnd = "SkipLinesEnd";
+	static const QString ColSeparator = "ColumnSeparator";
+	static const QString DecimalSeparator = "DecimalSeparator";
+	static const QString Spacing = "Spacing";
+	static const QString Unit = "Unit";
+	static const QString ObjectType = "ObjectType";
+	static const QString AddAutoID = "AddAutoID";
+}
+namespace
+{
+	QStringList const & ColumnSeparators()
+	{
+		static QStringList colSeparators;
+		if (colSeparators.isEmpty())
+		{                 // has to match order of the entries in cmbbox_ColSeparator!
+			colSeparators << ";" << "," << "\t" ;
+		}
+		return colSeparators;
+	}
+
+	QString getFormatRegistryKey(QString const & formatName)
+	{
+		return csvRegKeys::SettingsName + "/" + csvRegKeys::FormatName + "/" + formatName;
+	}
 }
 
 dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/) : QDialog(parent, f)
@@ -49,6 +69,34 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	connectSignals();
 }
 
+void dlg_CSVInput::connectSignals()
+{
+	connect(btn_LoadCSVData, SIGNAL(clicked()), this, SLOT(LoadCSVPreviewClicked()));
+	connect(btn_SaveFormat, SIGNAL(clicked()), this, SLOT(SaveFormatBtnClicked()));
+	connect(btn_UpdatePreview, SIGNAL(clicked()), this, SLOT(UpdateCSVPreview()));
+	connect(cmbbox_FormatName, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadSelectedFormatSettings);
+	connect(cmbbox_ColSeparator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);  // switch separator
+	connect(cmbbox_ObjectType, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchObjectType); // switch between fiber and pores / voids
+	connect(cmbbox_Encoding, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);
+	connect(buttonBox, SIGNAL(accepted()), this, SLOT(OKButtonClicked()));
+	connect(ed_SkipLinesStart, SIGNAL(valueChanged(int)), this, SLOT(UpdateCSVPreview()));
+	connect(ed_SkipLinesEnd, SIGNAL(valueChanged(int)), this, SLOT(UpdateCSVPreview()));
+	connect(sb_PreviewLines, SIGNAL(valueChanged(int)), this, SLOT(UpdateCSVPreview()));
+	connect(cmbbox_col_Selection, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateColumnMappingInputs);
+	connect(cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::UpdateLengthEditVisibility);
+	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::UpdateAngleEditVisibility);
+}
+
+void dlg_CSVInput::initParameters()
+{
+	m_previewTable = new DataTable();
+	myLayout->addWidget(m_previewTable);
+	m_headersCount = 0;
+	cmbbox_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
+	loadFormatEntriesOnStartUp();
+	m_formatName = "";
+}
+
 void dlg_CSVInput::setPath(QString const & path)
 {
 	m_fPath = path;
@@ -57,10 +105,8 @@ void dlg_CSVInput::setPath(QString const & path)
 void dlg_CSVInput::saveHeaderEntriesToReg(const QStringList& HeaderEntries, const QString &HeaderName, const QString &formatName)
 {
 	QSettings settings;
-	QString settingsName = csvRegKeys::str_settingsName + "/" + csvRegKeys::str_formatName + "/" + formatName;
-	settings.beginGroup(settingsName);
-	settings.setValue(csvRegKeys::str_headerName,*this->m_selHeaders);
-	settings.endGroup();
+	settings.beginGroup(getFormatRegistryKey(formatName));
+	settings.setValue(csvRegKeys::HeaderName, m_selHeaders);
 }
 
 void dlg_CSVInput::clearTextControl()
@@ -76,93 +122,60 @@ void dlg_CSVInput::clearTextControl()
 	}
 }
 
-void dlg_CSVInput::LoadHeaderEntriesFromReg(QStringList &HeaderEntries, const QString &HeaderNames, const QString &formatName)
+void dlg_CSVInput::loadHeaderEntriesFromReg(QStringList & HeaderEntries, const QString &HeaderNames, const QString &formatName)
 {
 	QSettings settings;
-	QString settingsName = csvRegKeys::str_settingsName + "/" + csvRegKeys::str_formatName + "/" + formatName;
-	settings.beginGroup(settingsName);
-	HeaderEntries = settings.value(csvRegKeys::str_headerName).value<QStringList>();
-	settings.endGroup();
-}
-
-void dlg_CSVInput::connectSignals()
-{
-	connect(btn_LoadCSVData, SIGNAL(clicked()), this, SLOT(LoadCSVPreviewClicked()));
-	connect(btn_SaveFormat, SIGNAL(clicked()), this, SLOT(SaveFormatBtnClicked()));
-	connect(btn_UpdatePreview, SIGNAL(clicked()), this, SLOT(UpdateCSVPreview()));
-	connect(cmbbox_FormatName, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadSelectedFormatSettings);
-	connect(cmbbox_ColSeparator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);  // switch separator
-	connect(cmbbox_ObjectType, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchCTInputObjectType); // switch between fiber and pores / voids
-	connect(cmbbox_Encoding, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);
-	connect(buttonBox, SIGNAL(accepted()), this, SLOT(OKButtonClicked()));
-	//connect(cmb_box_FileFormat, SIGNAL(currentTextChanged(const QString&)), this, SLOT(LoadFormatSettings(QString)));
-	connect(ed_SkipLinesStart, SIGNAL(valueChanged(int)), this, SLOT(UpdateCSVPreview()));
-	connect(ed_SkipLinesEnd, SIGNAL(valueChanged(int)), this, SLOT(UpdateCSVPreview()));
-	connect(sb_PreviewLines, SIGNAL(valueChanged(int)), this, SLOT(UpdateCSVPreview()));
-	connect(cmbbox_col_Selection, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateColumnMappingInputs);
-	connect(cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::UpdateLengthEditVisibility);
-	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::UpdateAngleEditVisibility);
-
+	settings.beginGroup(getFormatRegistryKey(formatName));
+	HeaderEntries = settings.value(csvRegKeys::HeaderName).value<QStringList>();
 }
 
 void dlg_CSVInput::OKButtonClicked()
 {
 	if (!setSelectedEntries(true))
 		return;
-	this->accept();
+	accept();
 }
 
 void dlg_CSVInput::LoadSelectedFormatSettings(const QString &formatName)
 {
 	if (formatName.isEmpty())
 		return;
-	QSettings mySettings;
-	QStringList feat_Groups;
-	this->m_formatSelected = true;
-	bool formatAvailable = CheckFeatureInRegistry(mySettings, &formatName, feat_Groups, true);
-	if (!formatAvailable)
-	{
-		m_previewTable->clearTable();
-		clearTextControl();
-		QMessageBox::warning(this, tr("FeatureScout"), tr("Format '%1' is not yet defined!").arg(formatName));
-		return;
-	}
-	this->m_formatName = formatName;
-	formatAvailable = loadEntriesFromRegistry(mySettings, formatName);
+	m_formatSelected = true;
+	m_formatName = formatName;
+	bool formatAvailable = loadFormatFromRegistry(formatName);
 	if (!formatAvailable)
 	{
 		m_previewTable->clearTable();
 		clearTextControl();
 		return;
 	}
-
+	showConfigParams(m_confParams);
 	//if file is not good -> show empty table but selection
-	if (this->loadFilePreview(sb_PreviewLines->value(), true))
+	if (loadFilePreview(sb_PreviewLines->value(), true))
 	{
-		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, csvRegKeys::str_allHeaders, formatName);
+		loadHeaderEntriesFromReg(m_currentHeaders, csvRegKeys::AllHeaders, formatName);
 	}
 	else
 	{
 		m_previewTable->clearTable();
 		return;
 	}
-
-	this->LoadHeaderEntriesFromReg(*this->m_selHeaders, csvRegKeys::str_headerName, formatName);
-	setSelectedHeaderToTextControl(*this->m_selHeaders); //load all headers
-	showConfigParams(this->m_confParams);
+	loadHeaderEntriesFromReg(m_selHeaders, csvRegKeys::HeaderName, formatName);
+	setSelectedHeaderToTextControl(m_selHeaders); //load all headers
+	showConfigParams(m_confParams);
 }
 
 void dlg_CSVInput::UpdateCSVPreview()
 {
-	this->m_PreviewUpdated = true;
-	this->LoadCSVPreviewClicked();
-	this->m_PreviewUpdated = false;
+	m_PreviewUpdated = true;
+	LoadCSVPreviewClicked();
+	m_PreviewUpdated = false;
 }
 
-void dlg_CSVInput::switchCTInputObjectType(const QString &ObjectInputType)
+void dlg_CSVInput::switchObjectType(const QString &ObjectInputType)
 {
-	this->assignInputObjectTypes();
-	if (m_confParams.inputObjectType == FiberPoreType::Fiber)
+	assignObjectTypes();
+	if (m_confParams.objectType == iAFeatureScoutObjectType::Fibers)
 	{
 		if (list_ColumnSelection->count() > 0)
 		{
@@ -193,21 +206,13 @@ void dlg_CSVInput::SaveFormatBtnClicked()
 		return;
 	}
 
-	this->assignSeparator();
-	this->assignStartEndLine();
-	this->assignFormatLanguage();
-	this->assignSpacingUnits();
-	this->assignInputObjectTypes();
+	assignFormatSettings();
 
 	//header Entries from selection in control list
-	this->setSelectedEntries(false);
-
-	QStringList OtherFormatEntries;
-	QSettings FormatSettings;
+	setSelectedEntries(false);
 
 	bool writeSettings = true;
-	CheckFeatureInRegistry(FormatSettings, nullptr, OtherFormatEntries, false);
-
+	QStringList OtherFormatEntries = GetFormatListFromRegistry();
 	if (OtherFormatEntries.contains(formatName, Qt::CaseSensitivity::CaseSensitive))
 	{
 		QMessageBox::StandardButton reply;
@@ -222,11 +227,11 @@ void dlg_CSVInput::SaveFormatBtnClicked()
 
 	if (writeSettings)
 	{
-		saveParamsToRegistry(this->m_confParams, formatName);
-		this->saveHeaderEntriesToReg(*this->m_selHeaders, csvRegKeys::str_headerName, formatName);
+		saveParamsToRegistry(m_confParams, formatName);
+		saveHeaderEntriesToReg(m_selHeaders, csvRegKeys::HeaderName, formatName);
 
 		//save all entries in order to make sure if file is not available  one still can see the headers??
-		this->saveHeaderEntriesToReg(*this->m_currentHeaders, csvRegKeys::str_allHeaders, formatName);
+		saveHeaderEntriesToReg(m_currentHeaders, csvRegKeys::AllHeaders, formatName);
 	}
 }
 
@@ -280,28 +285,25 @@ void dlg_CSVInput::UpdateAngleEditVisibility()
 
 void dlg_CSVInput::LoadCSVPreviewClicked()
 {
-	this->assignSeparator();
-	this->assignFormatLanguage();
-	this->assignInputObjectTypes();
-	this->assignStartEndLine();
+	assignFormatSettings();
 
-	if (!this->loadFilePreview(sb_PreviewLines->value(), this->m_PreviewUpdated))
+	if (!loadFilePreview(sb_PreviewLines->value(), m_PreviewUpdated))
 		return;
 
-	if (this->m_formatSelected)
-		this->LoadHeaderEntriesFromReg(*this->m_currentHeaders, csvRegKeys::str_allHeaders, this->m_formatName);
+	if (m_formatSelected)
+		loadHeaderEntriesFromReg(m_currentHeaders, csvRegKeys::AllHeaders, m_formatName);
 
-	if (m_confParams.inputObjectType == csvConfig::CTInputObjectType::Fiber)		// for fibers use all headers; TODO: find out why!
+	if (m_confParams.objectType == iAFeatureScoutObjectType::Fibers)		// for fibers use all headers; TODO: find out why!
 		setAllHeaders(m_currentHeaders);
 	else
-		this->setSelectedHeaderToTextControl(*this->m_currentHeaders);
+		setSelectedHeaderToTextControl(m_currentHeaders);
 	m_formatSelected = false;
 }
 
-void dlg_CSVInput::setAllHeaders(QSharedPointer<QStringList> &allHeaders)
+void dlg_CSVInput::setAllHeaders(QStringList const & allHeaders)
 {
-	m_confParams.tableWidth = allHeaders->size();
-	setSelectedHeaderToTextControl(*allHeaders);
+	m_confParams.tableWidth = allHeaders.size();
+	setSelectedHeaderToTextControl(allHeaders);
 	//ensure that there are values in textcontrol list
 	if (list_ColumnSelection->count() > 0)
 	{
@@ -309,23 +311,18 @@ void dlg_CSVInput::setAllHeaders(QSharedPointer<QStringList> &allHeaders)
 	}
 }
 
-void dlg_CSVInput::assignFormatLanguage()
+iACsvConfig const & dlg_CSVInput::getConfigParameters() const
 {
-	m_confParams.decimalSeparator = cmbbox_DecimalSeparator->currentText();
+	return m_confParams;
 }
 
-const csvConfig::configPararams& dlg_CSVInput::getConfigParameters() const
+void dlg_CSVInput::showConfigParams(iACsvConfig const &params)
 {
-	return this->m_confParams;
-}
-
-void dlg_CSVInput::showConfigParams(const csvConfig::configPararams &params)
-{
-	QString ObjInputType = (params.inputObjectType == csvConfig::CTInputObjectType::Fiber) ? "Fibers": "Voids";
+	QString ObjInputType = MapObjectTypeToString(params.objectType);
 	int index = cmbbox_ObjectType->findText(ObjInputType, Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
 
-	cmbbox_ColSeparator->setCurrentText(params.colSeparator);
+	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(params.colSeparator));
 	cmbbox_DecimalSeparator->setCurrentText(params.decimalSeparator);
 	ed_SkipLinesStart->setValue(params.skipLinesStart);
 	ed_SkipLinesEnd->setValue(params.skipLinesEnd);
@@ -333,65 +330,54 @@ void dlg_CSVInput::showConfigParams(const csvConfig::configPararams &params)
 	cmbbox_Unit->setCurrentText(params.unit);
 }
 
-void dlg_CSVInput::initParameters()
+void dlg_CSVInput::setError(const QString &ParamName, const QString &Param_value)
 {
-	this->m_previewTable = new dataTable();
-	this->myLayout->addWidget(m_previewTable);
-	this->m_headersCount = 0;
-
-	if (!this->m_currentHeaders)
-	{
-		this->m_currentHeaders = QSharedPointer<QStringList>(new QStringList());
-	}
-
-	if (!this->m_selHeaders)
-	{
-		this->m_selHeaders = QSharedPointer < QStringList>(new QStringList());
-	}
-
-	//limit input
-	this->cmbbox_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this));
-	LoadFormatEntriesOnStartUp();
-	this->m_formatName = "";
-}
-
-void dlg_CSVInput::assignStartEndLine()
-{
-	m_confParams.skipLinesStart = ed_SkipLinesStart->value();
-	m_confParams.skipLinesEnd = ed_SkipLinesEnd->value();
-}
-
-void dlg_CSVInput::setError(const QString &ParamName,const QString &Param_value)
-{
-	this->m_Error_Parameter.append("Error" + ParamName + "\t" + Param_value + "\n");
+	m_Error_Parameter.append("Error" + ParamName + "\t" + Param_value + "\n");
 	m_confParams.paramsValid = false;
 }
 
-void dlg_CSVInput::assignInputObjectTypes()
+void dlg_CSVInput::assignFormatSettings()
 {
-	QString InputType = this->cmbbox_ObjectType->currentText();
-	if (InputType == "Fibers")
-		m_confParams.inputObjectType = csvConfig::CTInputObjectType::Fiber;
-	else // if (InputType == "Voids")
-		m_confParams.inputObjectType = csvConfig::CTInputObjectType::Voids;
-	//else
-	//	QMessageBox::warning()
+	m_confParams.colSeparator = ColumnSeparators()[cmbbox_ColSeparator->currentIndex()];
+	m_confParams.decimalSeparator = cmbbox_DecimalSeparator->currentText();
+	m_confParams.skipLinesStart = ed_SkipLinesStart->value();
+	m_confParams.skipLinesEnd = ed_SkipLinesEnd->value();
+	m_confParams.spacing = ed_Spacing->text().toDouble();
+	m_confParams.unit = cmbbox_Unit->currentText();
+	m_confParams.addAutoID = cb_addAutoID->isChecked();
+	assignObjectTypes();
 }
 
-void dlg_CSVInput::assignSeparator()
+void dlg_CSVInput::assignObjectTypes()
 {
-	m_confParams.colSeparator = cmbbox_ColSeparator->currentText();
+	m_confParams.objectType = MapStringToObjectType(cmbbox_ObjectType->currentText());
 }
 
-void dlg_CSVInput::assignSpacingUnits()
+void dlg_CSVInput::assignHeaderLine()
 {
-	m_confParams.spacing = this->ed_Spacing->text().toDouble();
-	m_confParams.unit = this->cmbbox_Unit->currentText();
+	list_ColumnSelection->clear();
+	m_hashEntries.clear();
+
+	m_currentHeaders = m_previewTable->getHeaders();
+	if (m_currentHeaders.isEmpty())
+		return;
+	m_confParams.tableWidth = m_currentHeaders.length();
+
+	int autoIdxCol = 0;
+	for (const auto &currItem : m_currentHeaders)
+	{
+		if (!currItem.trimmed().isEmpty())
+		{
+			list_ColumnSelection->addItem(currItem);
+			m_hashEntries.insert(currItem, autoIdxCol);
+		}
+		++autoIdxCol;
+	}
 }
 
 bool dlg_CSVInput::loadFilePreview(const int rowCount, const bool formatLoaded)
 {
-	isFileNameValid = this->checkFile(formatLoaded);
+	isFileNameValid = checkFile(formatLoaded);
 	if (!isFileNameValid)
 		return false;
 	QString encoding;
@@ -399,16 +385,19 @@ bool dlg_CSVInput::loadFilePreview(const int rowCount, const bool formatLoaded)
 		encoding = cmbbox_Encoding->currentText();
 	loadEntries(m_confParams.fileName, rowCount, encoding);
 	if (!formatLoaded)
+	{
+		QSignalBlocker blocker(cmbbox_Encoding);
 		cmbbox_Encoding->setCurrentText(m_previewTable->getLastEncoding());
+	}
 	txt_ed_fileName->setText(m_confParams.fileName);
 	showPreviewTable();
 	return true;
 }
 
-bool dlg_CSVInput::checkFile(bool LayoutLoaded)
+bool dlg_CSVInput::checkFile(bool formatLoaded)
 {
 	QString fileName = "";
-	if (!LayoutLoaded)
+	if (!formatLoaded)
 	{
 		fileName = QFileDialog::getOpenFileName(
 			this, tr("Open Files"), m_fPath, tr("csv spreadsheet (*.csv),.csv")
@@ -431,7 +420,7 @@ bool dlg_CSVInput::checkFile(bool LayoutLoaded)
 		if (!file.open(QIODevice::ReadOnly))
 		{
 			QMessageBox::information(this, tr("FeatureScout"), tr("Unable to open file: %1").arg(file.errorString()));
-			this->setError(QString("unable to open file"), file.errorString());
+			setError(QString("unable to open file"), file.errorString());
 			m_confParams.paramsValid = false;
 			return false;
 		}
@@ -439,7 +428,7 @@ bool dlg_CSVInput::checkFile(bool LayoutLoaded)
 		{
 			if (!m_confParams.paramsValid)
 			{
-				QMessageBox::information(this, tr("FeatureScout"), tr("Wrong parameters assigned: %1").arg(this->m_Error_Parameter));
+				QMessageBox::information(this, tr("FeatureScout"), tr("Wrong parameters assigned: %1").arg(m_Error_Parameter));
 			}
 			else
 			{
@@ -460,7 +449,7 @@ void dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPre
 	m_previewTable->clearTable();
 	m_previewTable->readTableEntries(fileName, nrPreviewElements, m_confParams.colSeparator,
 		m_confParams.skipLinesStart, true, false, encoding);
-	this->assignHeaderLine();
+	assignHeaderLine();
 }
 
 void dlg_CSVInput::showPreviewTable()
@@ -468,31 +457,6 @@ void dlg_CSVInput::showPreviewTable()
 	m_previewTable->setAutoScroll(true);
 	m_previewTable->setEnabled(true);
 	m_previewTable->setVisible(true);
-}
-
-void dlg_CSVInput::assignHeaderLine()
-{
-	list_ColumnSelection->clear();
-	m_hashEntries.clear();
-
-	if (!m_currentHeaders)
-		return;
-	*m_currentHeaders = m_previewTable->getHeaders();
-	if (m_currentHeaders->isEmpty())
-		return;
-	m_confParams.tableWidth = m_currentHeaders->length();
-	
-	int autoIdxCol = 0;
-	for (const auto &currItem:*this->m_currentHeaders)
-	{
-		if (!currItem.trimmed().isEmpty())
-		{
-			list_ColumnSelection->addItem(currItem);
-			m_hashEntries.insert(currItem, autoIdxCol);
-		}
-		++autoIdxCol;
-	}
-	list_ColumnSelection->update();
 }
 
 bool dlg_CSVInput::setSelectedEntries(const bool EnableMessageBox)
@@ -503,63 +467,55 @@ bool dlg_CSVInput::setSelectedEntries(const bool EnableMessageBox)
 		QMessageBox::warning(this, tr("FeatureScout"), "Please select at least 2 columns to load!");
 		return false;
 	}
-	uint currItemIdx;
-	QString listEntry;
 	//no selection use all entries
-	if (this->m_selectedHeadersList.length() != 0)
+	if (m_selectedHeadersList.length() != 0)
 	{
-		if (m_selHeaders->length() > 0)
+		if (m_selHeaders.length() > 0)
 		{
-			this->m_selHeaders->clear();
-			this->m_selColIdx.clear();
+			m_selHeaders.clear();
+			m_selColIdx.clear();
 		}
 
-		this->m_selColIdx.capacity();
+		m_selColIdx.capacity();
 		for (const auto &selEntry : m_selectedHeadersList)
 		{
-
-			listEntry = selEntry->text();
-			addSingleHeaderToList(currItemIdx, listEntry);
+			QString listEntry = selEntry->text();
+			addSingleHeaderToList(listEntry);
 		}
 
-		qSort(this->m_selColIdx.begin(), this->m_selColIdx.end(), qLess<uint>());
-		this->addSelectedHeaders(this->m_selColIdx);
+		qSort(m_selColIdx.begin(), m_selColIdx.end(), qLess<uint>());
+		addSelectedHeaders(m_selColIdx);
 	}
-
-	m_confParams.colCount = this->m_selColIdx.length();
 	return true;
 }
 
 //ensure correct order of header!
 void dlg_CSVInput::addSelectedHeaders(QVector<uint> &data)
 {
-	QString curHeader = "";
-	this->m_selHeaders->clear();
-	for (const auto &HeaderIdx : data) {
-		curHeader = this->m_hashEntries.key(HeaderIdx);
-		this->m_selHeaders->push_back(curHeader);
+	m_selHeaders.clear();
+	for (const auto &HeaderIdx : data)
+	{
+		QString curHeader = m_hashEntries.key(HeaderIdx);
+		m_selHeaders.push_back(curHeader);
 	}
 }
 
-
-void dlg_CSVInput::addSingleHeaderToList(uint &currItemIdx, QString &listEntry)
+void dlg_CSVInput::addSingleHeaderToList(QString const & listEntry)
 {
-	currItemIdx = this->m_hashEntries.value(listEntry);
-	this->m_selColIdx.push_back(currItemIdx);
-
+	uint currItemIdx = m_hashEntries[listEntry];
+	m_selColIdx.push_back(currItemIdx);
 }
 
 const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
 {
-	return this->m_selColIdx;
+	return m_selColIdx;
 }
 
-void dlg_CSVInput::selectSingleHeader(uint & currItemIdx, QString & listEntry)
+void dlg_CSVInput::selectSingleHeader(QString const & listEntry)
 {
-
-	if (this->m_hashEntries.contains(listEntry))
+	if (m_hashEntries.contains(listEntry))
 	{
-		currItemIdx = this->m_hashEntries.value(listEntry);
+		uint currItemIdx = m_hashEntries.value(listEntry);
 		//set selected if item exists
 		if (list_ColumnSelection->item(currItemIdx))
 		{
@@ -568,12 +524,11 @@ void dlg_CSVInput::selectSingleHeader(uint & currItemIdx, QString & listEntry)
 	}
 }
 
-void dlg_CSVInput::setSelectedHeaderToTextControl(QStringList &sel_headers)
+void dlg_CSVInput::setSelectedHeaderToTextControl(QStringList const &sel_headers)
 {
-	uint itemIDx = 0;
 	QSharedPointer<QListWidgetItem> myItem = QSharedPointer<QListWidgetItem>(new QListWidgetItem());
 
-	if ((sel_headers.length() > m_currentHeaders->length()) || sel_headers.length() == 0 )
+	if ((sel_headers.length() > m_currentHeaders.length()) || sel_headers.length() == 0 )
 	{
 		QMessageBox::warning(this, tr("FeatureScout"),
 			tr("Size of selected headers does not match with headers in file!"));
@@ -582,123 +537,55 @@ void dlg_CSVInput::setSelectedHeaderToTextControl(QStringList &sel_headers)
 
 	for ( auto &h_entry: sel_headers)
 	{
-		selectSingleHeader(itemIDx, h_entry);
+		selectSingleHeader(h_entry);
 	}
-
 }
 
-bool dlg_CSVInput::loadEntriesFromRegistry(QSettings & anySetting, const QString & formatName)
+bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 {
-	QString CSV_InputType = "";
-	QString fullName = "";
-	QString  cnfgSettingsName;
-	QStringList allEntries;
-
-	m_confParams.initDefaultParams();
-	cnfgSettingsName = csvRegKeys::str_settingsName + "/" + csvRegKeys::str_formatName + "/" + formatName;
-	anySetting.beginGroup(cnfgSettingsName);
-	allEntries = anySetting.allKeys();
-
+	QSettings settings;
+	settings.beginGroup(getFormatRegistryKey(formatName));
+	QStringList allEntries = settings.allKeys();
 	if (allEntries.isEmpty())
 	{
 		QMessageBox::warning(this, tr("FeatureScout"), tr("Format not available!"));
 		return false;
 	}
-
-	m_confParams.skipLinesStart = anySetting.value(csvRegKeys::str_reg_skipLinesStart).toLongLong(); //startLine
-	m_confParams.skipLinesEnd = anySetting.value(csvRegKeys::str_reg_skipLinesEnd).toLongLong() + 1; //endLine Endline +1
-
-	//this->m_confParams->spacing = anySetting.value(this->m_regEntries->str_reg_Spacing).toDouble(); //Spacing TODO TBA
-	//this->m_confParams->csv_units = anySetting.value(this->m_regEntries->str_reg_Units).toString(); //Units
-
-	m_confParams.colSeparator = anySetting.value(csvRegKeys::str_reg_colSeparator).toString();//file separator
-	m_confParams.decimalSeparator = anySetting.value(csvRegKeys::str_reg_decimalSeparator).toString();
-
-	//Fiber or Pores as Input
-	CSV_InputType = anySetting.value(csvRegKeys::str_reg_FiberPoreData).toString();
-	if (CSV_InputType == "Voids")
-		m_confParams.inputObjectType =csvConfig::CTInputObjectType::Voids;
-	else if (CSV_InputType == "Fibers")
-		m_confParams.inputObjectType = csvConfig::CTInputObjectType::Fiber;
-	anySetting.endGroup();
+	iACsvConfig defaultConfig;
+	m_confParams.skipLinesStart = settings.value(csvRegKeys::SkipLinesStart, defaultConfig.skipLinesStart).toLongLong();
+	m_confParams.skipLinesEnd = settings.value(csvRegKeys::SkipLinesEnd, defaultConfig.skipLinesEnd).toLongLong();
+	m_confParams.colSeparator = settings.value(csvRegKeys::ColSeparator, defaultConfig.colSeparator).toString();
+	m_confParams.decimalSeparator = settings.value(csvRegKeys::DecimalSeparator, defaultConfig.decimalSeparator).toString();
+	m_confParams.objectType = MapStringToObjectType(settings.value(csvRegKeys::ObjectType, defaultConfig.objectType).toString());
+	m_confParams.addAutoID = settings.value(csvRegKeys::AddAutoID, defaultConfig.addAutoID).toBool();
+	m_confParams.unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
+	m_confParams.spacing = settings.value(csvRegKeys::Spacing, defaultConfig.spacing).toDouble();
 	return true;
 }
 
-void dlg_CSVInput::LoadFormatEntriesOnStartUp()
+void dlg_CSVInput::loadFormatEntriesOnStartUp()
+{
+	QStringList formatEntries = GetFormatListFromRegistry();
+	cmbbox_FormatName->addItems(formatEntries);
+}
+
+QStringList dlg_CSVInput::GetFormatListFromRegistry() const
 {
 	QSettings settings;
-	QStringList formatEntries;
-	CheckFeatureInRegistry(settings, nullptr, formatEntries, false);
-	if (!formatEntries.isEmpty())
-		this->cmbbox_FormatName->addItems(formatEntries);
+	settings.beginGroup(getFormatRegistryKey("") );
+	return settings.childGroups();
 }
 
-bool dlg_CSVInput::CheckFeatureInRegistry(QSettings & anySetting, const QString *formatName, QStringList &groups, bool useSubGroup)
-{
-	QString Layout = "";
-	QString subEntry = "";
-	bool isValidEntry = false;
-
-	if (formatName)
-	{
-		Layout = *formatName;
-		Layout += "/";
-	}
-
-	QString regName = csvRegKeys::str_settingsName + "/" + csvRegKeys::str_formatName + "/" + Layout;
-	anySetting.beginGroup(regName);
-	groups = anySetting.childGroups();
-	subEntry = anySetting.group();
-
-	if (useSubGroup)
-	{
-		if (!subEntry.isEmpty())
-		{
-			isValidEntry = true;
-		}
-	}
-	else
-	{
-		if(!groups.isEmpty())
-		{
-			isValidEntry = true;
-		}
-	}
-
-	anySetting.endGroup();
-	return isValidEntry;
-}
-
-void dlg_CSVInput::saveParamsToRegistry(csvConfig::configPararams& csv_params, const QString &formatName)
+void dlg_CSVInput::saveParamsToRegistry(iACsvConfig const & csv_params, const QString &formatName)
 {
 	QSettings settings;
-	QString CSVinputObjectType = (csv_params.inputObjectType == csvConfig::CTInputObjectType::Fiber)? "Fibers": "Voids";
-	QString settingsName = csvRegKeys::str_settingsName + "/" + csvRegKeys::str_formatName + "/" + formatName;
-	settings.beginGroup(settingsName);
-	settings.setValue(csvRegKeys::str_reg_colSeparator, csv_params.colSeparator);
-	settings.setValue(csvRegKeys::str_reg_skipLinesStart, csv_params.skipLinesStart);
-	settings.setValue(csvRegKeys::str_reg_skipLinesEnd, csv_params.skipLinesEnd);
-	settings.setValue(csvRegKeys::str_reg_decimalSeparator, csv_params.decimalSeparator);
-	settings.setValue(csvRegKeys::str_reg_Spacing, csv_params.spacing);
-	settings.setValue(csvRegKeys::str_reg_Units, csv_params.unit);
-	settings.setValue(csvRegKeys::str_reg_FiberPoreData, CSVinputObjectType);
-	settings.endGroup();
-}
-
-//save single setting
-void dlg_CSVInput::saveSettings(QSettings &anySetting, const QString &formatName, const QString &FeatureName, const QVariant &feat_value)
-{
-	QString fullSettingsName = "";
-	createSettingsName(fullSettingsName, formatName, FeatureName, true);
-	anySetting.setValue(fullSettingsName, feat_value);
-}
-
-void dlg_CSVInput::createSettingsName(QString &fullSettingsName, const QString & FormatName, const QString & FeatureName, bool useSubGroup)
-{
-	QString myFeature = "";
-	if (useSubGroup)
-	{
-		myFeature = FeatureName;
-	}
-	fullSettingsName = csvRegKeys::str_settingsName + "/" + csvRegKeys::str_formatName + "/" + FormatName + "/" + myFeature;
+	settings.beginGroup(getFormatRegistryKey(formatName));
+	settings.setValue(csvRegKeys::SkipLinesStart, csv_params.skipLinesStart);
+	settings.setValue(csvRegKeys::SkipLinesEnd, csv_params.skipLinesEnd);
+	settings.setValue(csvRegKeys::ColSeparator, csv_params.colSeparator);
+	settings.setValue(csvRegKeys::DecimalSeparator, csv_params.decimalSeparator);
+	settings.setValue(csvRegKeys::ObjectType, MapObjectTypeToString(csv_params.objectType));
+	settings.setValue(csvRegKeys::AddAutoID, csv_params.addAutoID);
+	settings.setValue(csvRegKeys::Unit, csv_params.unit);
+	settings.setValue(csvRegKeys::Spacing, csv_params.spacing);
 }

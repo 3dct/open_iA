@@ -20,8 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-enum iAObjectAnalysisType
+#include <QString>
+
+enum iAFeatureScoutObjectType
 {
-	INDIVIDUAL_FIBRE_VISUALIZATION,
-	INDIVIDUAL_PORE_VISUALIZATION,
+	InvalidObjectType = -1,
+	Fibers,
+	Voids,
 };
+
+QString MapObjectTypeToString(int objectType);
+iAFeatureScoutObjectType MapStringToObjectType(QString const & objectTypeName);

@@ -22,10 +22,11 @@
 
 #include "dlg_FeatureScout.h"
 #include "iABlobCluster.h"
-#include "iAObjectAnalysisType.h"
+#include "iAFeatureScoutObjectType.h"
 
 #include "iARenderer.h"
 #include "mainwindow.h"
+#include "mdichild.h"
 
 #include <vtkOpenGLRenderer.h>
 
@@ -39,9 +40,9 @@ iAFeatureScoutAttachment::iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildD
 iAFeatureScoutAttachment::~iAFeatureScoutAttachment()
 {}
 
-void iAFeatureScoutAttachment::init(int filterID, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, const QSharedPointer<QStringList> &selHeaders)
+void iAFeatureScoutAttachment::init(int filterID, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QStringList const & selHeaders)
 {
-	imgFS = new dlg_FeatureScout(m_childData.child, static_cast<iAObjectAnalysisType>(filterID), blobRen, csvtbl, useCsvOnly, selHeaders);
+	imgFS = new dlg_FeatureScout(m_childData.child, static_cast<iAFeatureScoutObjectType>(filterID), blobRen, csvtbl, useCsvOnly, selHeaders);
 	connect(imgFS, SIGNAL(updateViews()), m_childData.child, SLOT(updateViews()));
 
 	blobRen->SetLayer(1);

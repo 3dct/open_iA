@@ -28,6 +28,7 @@
 
 #include "iAConsole.h"
 #include "mainwindow.h"
+#include "mdichild.h"
 
 #include <vtkTable.h>
 #include <vtkSmartVolumeMapper.h>
@@ -56,9 +57,8 @@ void iAFeatureScoutModuleInterface::Initialize()
 	tlbFeatureScout = nullptr;
 }
 
-void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
-
-	csvConfig::configPararams fileConfParams;
+void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
+{
 	dlg_CSVInput dlg;
 	if (m_mainWnd->activeMdiChild())
 		dlg.setPath(m_mainWnd->activeMdiChild()->getFilePath());
@@ -68,24 +68,17 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV() {
 	if (!m_mdiChild)
 		return;
 	this->m_mdiChild->show();
-	QSharedPointer<QStringList> headers = QSharedPointer<QStringList>(new QStringList);
-	QSharedPointer<QStringList> featScout_headers = QSharedPointer<QStringList>(new QStringList);
-	fileConfParams = dlg.getConfigParameters();
-	headers = dlg.getHeaderSelection();
-	QString item;
-	if (fileConfParams.inputObjectType == csvConfig::CTInputObjectType::Voids)
-	{
-		item = "Voids";
+	QStringList featScout_headers;
+	iACsvConfig csvConfig = dlg.getConfigParameters();
+	QStringList headers = dlg.getHeaderSelection();
+	QString item = MapObjectTypeToString(csvConfig.objectType);
+	if (csvConfig.objectType == iAFeatureScoutObjectType::Voids) // TODO: check featScout_headers and headers, seems fishy!
 		featScout_headers = headers;
-	}
 	else
-	{
-		item = "Fibers";
-		*featScout_headers = iACsvIO::GetFibreElementsName(true);
-	}
-	io.setParams(*headers, dlg.getEntriesSelInd(), dlg.getTableWidth());
-	if (!fileConfParams.fileName.isEmpty())
-		initializeFeatureScoutStartUp(item, fileConfParams.fileName, true, &fileConfParams, featScout_headers);
+		featScout_headers = iACsvIO::GetFibreElementsName(true);
+	io.setParams(headers, dlg.getEntriesSelInd(), dlg.getTableWidth());
+	if (!csvConfig.fileName.isEmpty())
+		initializeFeatureScoutStartUp(item, csvConfig.fileName, true, &csvConfig, featScout_headers);
 	else
 		m_mdiChild->addMsg("CSV-file name error.");
 }
@@ -109,7 +102,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 				item = "Fibers";
 			file.close();
 
-			initializeFeatureScoutStartUp(item, fileName, false, nullptr, QSharedPointer<QStringList>());
+			initializeFeatureScoutStartUp(item, fileName, false, nullptr, QStringList());
 		}
 		else
 			m_mdiChild->addMsg( "CSV-file could not be opened." );
@@ -119,25 +112,20 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 }
 
 void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item, QString &fileName,
-	const bool isCsvOnly, csvConfig::configPararams *FileParams, const QSharedPointer<QStringList> &selHeaders)
+	const bool isCsvOnly, iACsvConfig *FileParams, QStringList const & selHeaders)
 {
-	QStringList items;
-	items << tr("Fibers") << tr("Voids");
-	QMap<QString, iAObjectAnalysisType> objectMap;
-	objectMap["Fibers"] = INDIVIDUAL_FIBRE_VISUALIZATION;
-	objectMap["Voids"] = INDIVIDUAL_PORE_VISUALIZATION;
-	if (item == items[0] || item == items[1])
+	if (MapStringToObjectType(item) == iAFeatureScoutObjectType::InvalidObjectType)
 	{
-		if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, objectMap[item], FileParams, isCsvOnly, selHeaders))
-		{
-			SetupToolbar();
-			m_mdiChild->addStatusMsg("Starting FeatureScout");
-			setFeatureScoutRenderSettings();
-			m_mdiChild->addMsg("The render settings of the current mdiChild window have been adapted to the FeatureScout!");
-		}
-	}
-	else
 		m_mdiChild->addMsg("CSV-file header error.");
+		return;
+	}
+	if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, MapStringToObjectType(item), FileParams, isCsvOnly, selHeaders))
+	{
+		SetupToolbar();
+		m_mdiChild->addStatusMsg("Starting FeatureScout");
+		setFeatureScoutRenderSettings();
+		m_mdiChild->addMsg("The render settings of the current mdiChild window have been adapted to the FeatureScout!");
+	}
 }
 
 void iAFeatureScoutModuleInterface::SetupToolbar()
@@ -172,8 +160,8 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
-bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAObjectAnalysisType objectType,
-	csvConfig::configPararams *FileParams, const bool is_csvOnly, const QSharedPointer<QStringList> &selHeader)
+bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAFeatureScoutObjectType objectType,
+	iACsvConfig const * FileParams, const bool is_csvOnly, QStringList const & selHeader)
 {
 	//default action if file params is null
 	if (!FileParams)

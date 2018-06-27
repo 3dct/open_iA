@@ -31,7 +31,7 @@
 #include "iABlobManager.h"
 #include "iAMeanObjectTFView.h"
 #include "iAModalityTransfer.h"
-#include "iAObjectAnalysisType.h"
+#include "iAFeatureScoutObjectType.h"
 
 #include "charts/iADiagramFctWidget.h"
 #include "dlg_commoninput.h"
@@ -185,7 +185,7 @@ ColormapFuncPtr colormapsIndex[] =
 };
 
 //TODO APPEND m_headers selected  as pointer
-dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, const QSharedPointer<QStringList>  &selHeaders)
+dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QStringList const & selHeaders)
 	: QDockWidget( parent ),
 	csvTable( csvtbl ),
 	raycaster( parent->getRenderer() ),
@@ -217,12 +217,12 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 	blobManager = new iABlobManager();
 	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
 	double bounds[6];
-	this->m_headersSelected = QSharedPointer<QStringList>(new QStringList());
-	if (this->useCsvOnly && selHeaders)
+	if (this->useCsvOnly)
 	{
 		this->m_headersSelected = selHeaders;
 	}
-	if (!this->useCsvOnly) {
+	else
+	{
 
 		raycaster->GetImageDataBounds(bounds);
 		blobManager->SetBounds(bounds);
@@ -451,7 +451,7 @@ void dlg_FeatureScout::setupDefaultElement()
 {
 	if (useCsvOnly)
 		return;
-	if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )                      //Fibers
+	if ( this->filterID == iAFeatureScoutObjectType::Fibers )                      //Fibers
 	{
 		pcChart->SetColumnVisibilityAll(false);
 		pcChart->SetColumnVisibility(eleString.at(7).toStdString(), true);	//a11
@@ -494,14 +494,14 @@ void dlg_FeatureScout::setupModel()
 	for ( int i = 0; i < elementNr; i++ )
 	{
 		//Fibers - a11, a22, a33, theta, phi, xm, ym, zm, straightlength, diameter, volume
-		if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION && ( i == 7 || i == 8 ||
+		if ( this->filterID == iAFeatureScoutObjectType::Fibers && ( i == 7 || i == 8 ||
 			i == 9 || i == 13 || i == 14 || i == 15 || i == 16 || i == 17 || i == 18 ) )
 		{
 			elementTableModel->setData( elementTableModel->index( i, 0, QModelIndex() ), Qt::Checked, Qt::CheckStateRole );
 			columnVisArr->SetValue( i, chartTable->GetColumnName( i ) );
 		}
 		//Pores - volume, dimx, dimy, dimz, posx, posy, posz, shapefactor
-		else if ( this->filterID == INDIVIDUAL_PORE_VISUALIZATION &&
+		else if ( this->filterID == iAFeatureScoutObjectType::Voids &&
 				( i == 0 || i == 13 || i == 14 || i == 15 || i == 16 || i == 17 || i == 18 || i == 19 || i == 20 ||
 				  i == 21 || i == 28 ) )
 		{
@@ -1377,7 +1377,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 		std::map<int, int>* meanObjectIds = new std::map<int, int>();
 		for ( int j = 0; j < classTreeModel->invisibleRootItem()->child( currClass )->rowCount(); ++j )
 		{
-			if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+			if ( filterID == iAFeatureScoutObjectType::Fibers )
 				meanObjectIds->operator[]( tableList[currClass]->GetValue( j, 0 ).ToInt() ) =
 				tableList[currClass]->GetValue( j, 0 ).ToFloat();
 			else
@@ -1451,7 +1451,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 
 		// Create histogram and TFs for each MObject
 		QString moHistName = classTreeModel->invisibleRootItem()->child( currClass, 0 )->text();
-		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+		if ( filterID == iAFeatureScoutObjectType::Fibers )
 			moHistName.append( " Fiber Mean Object" );
 		else
 			moHistName.append( " Void Mean Object" );
@@ -1459,7 +1459,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 		m_MOData.moHistogramList.append( moHistogram );
 
 		// Create MObject default Transfer Tunctions
-		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION ) // Fibers
+		if ( filterID == iAFeatureScoutObjectType::Fibers ) // Fibers
 		{
 			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
 			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.01, 1.0, 1.0, 0.0 );
@@ -1546,7 +1546,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 		vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle( style );
 
-		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+		if ( filterID == iAFeatureScoutObjectType::Fibers )
 			iovMO->setWindowTitle( QString( "Fiber Mean Object View" ) );
 		else
 			iovMO->setWindowTitle( QString( "Void Mean Object View" ) );
@@ -1651,7 +1651,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 void dlg_FeatureScout::modifyMeanObjectTF()
 {
 	m_motfView = new iAMeanObjectTFView( this );
-	if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+	if ( filterID == iAFeatureScoutObjectType::Fibers )
 		m_motfView->setWindowTitle( QString( iovMO->cb_Classes->itemText( iovMO->cb_Classes->currentIndex() ) + " Fiber Mean Object Transfer Function" ));
 	else
 		m_motfView->setWindowTitle( QString( iovMO->cb_Classes->itemText( iovMO->cb_Classes->currentIndex() ) + " Void Mean Object Transfer Function" ) );
@@ -1866,7 +1866,7 @@ void dlg_FeatureScout::RenderingOrientation()
 
 	for ( int i = 0; i < this->objectNr; i++ )
 	{
-		if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+		if ( this->filterID == iAFeatureScoutObjectType::Fibers )
 		{
 			ip = qFloor( this->csvTable->GetValue( i, 13 ).ToDouble() );
 			it = qFloor( this->csvTable->GetValue( i, 14 ).ToDouble() );
@@ -1958,7 +1958,7 @@ void dlg_FeatureScout::RenderingFLD()
 	double range[2] = { 0.0, 0.0 };
 	vtkDataArray* length;
 
-	if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+	if ( this->filterID == iAFeatureScoutObjectType::Fibers )
 	{
 		numberOfBins = 8;
 		iovPP->setWindowTitle( "Fibers Length Frequency Distribution" );
@@ -2018,7 +2018,7 @@ void dlg_FeatureScout::RenderingFLD()
 	//Create a transfer function mapping scalar value to color
 	vtkSmartPointer<vtkColorTransferFunction> cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
 	cTFun->SetColorSpaceToRGB();
-	if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+	if ( this->filterID == iAFeatureScoutObjectType::Fibers )
 	{
 		cTFun->AddRGBPoint( range[0], 1.0, 0.6, 0.0 );	//orange
 		cTFun->AddRGBPoint( extents->GetValue( 0 ) + halfInc, 1.0, 0.0, 0.0 ); //red
@@ -2062,7 +2062,7 @@ void dlg_FeatureScout::RenderingFLD()
 		red = dcolor[0];
 		green = dcolor[1];
 		blue = dcolor[2];
-		if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+		if ( this->filterID == iAFeatureScoutObjectType::Fibers )
 		{
 			if ( ll >= range[0] && ll < extents->GetValue( 0 ) + halfInc )
 			{
@@ -2130,7 +2130,7 @@ void dlg_FeatureScout::RenderingFLD()
 	VTK_CREATE( vtkContextView, view );
 	VTK_CREATE( vtkChartXY, chart );
 
-	if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+	if ( this->filterID == iAFeatureScoutObjectType::Fibers )
 	{
 		chart->SetTitle( "Fibers Length Frequency Distribution" );
 		chart->GetTitleProperties()->SetFontSize( 15 );
@@ -2561,7 +2561,7 @@ void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
 	//check if it is a class item
 	if ( classTreeModel->invisibleRootItem()->hasChildren() )
 	{
-		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+		if ( filterID == iAFeatureScoutObjectType::Fibers )
 		{
 			writer->writeStartElement( "FibreClasses" ); //start FibreClasses tag
 
@@ -2603,7 +2603,7 @@ void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
 			}
 			writer->writeEndElement(); //end FibreClasses tag
 		}
-		else if ( filterID == INDIVIDUAL_PORE_VISUALIZATION )
+		else if ( filterID == iAFeatureScoutObjectType::Voids )
 		{
 			writer->writeStartElement( "VoidClasses" ); //start FibreClasses tag
 
@@ -3059,7 +3059,7 @@ void dlg_FeatureScout::ClassLoadButton()
 			if ( reader.name() == ObjectTag )
 			{
 				QString label;
-				if( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION)
+				if( this->filterID == iAFeatureScoutObjectType::Fibers)
 					label = reader.attributes().value( LabelAttribute ).toString();
 				else
 					label = reader.attributes().value( LabelAttributePore ).toString();
@@ -3951,7 +3951,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 		FeatureInfo fi;
 		int index = chartTable->GetValue( i, 0 ).ToInt();
 
-		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+		if ( filterID == iAFeatureScoutObjectType::Fibers )
 		{
 			fi.x1 = chartTable->GetValue( i, 1 ).ToDouble();
 			fi.y1 = chartTable->GetValue( i, 2 ).ToDouble();
@@ -3975,7 +3975,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 	}
 
 	// set right objecttype (for the labeling)
-	if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+	if ( filterID == iAFeatureScoutObjectType::Fibers )
 		blob->SetObjectType( "Fibers" );
 	else
 		blob->SetObjectType( "Voids" );
@@ -4150,7 +4150,7 @@ int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 
 	for ( int k = 0; k < length; k++ )
 	{
-		if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+		if ( this->filterID == iAFeatureScoutObjectType::Fibers )
 		{
 			fp = t->GetValue( k, 13 ).ToDouble() / PolarPlotPhiResolution;
 			ft = t->GetValue( k, 14 ).ToDouble() / PolarPlotThetaResolution;
@@ -4186,7 +4186,7 @@ void dlg_FeatureScout::updateObjectOrientationID( vtkTable *table )
 
 	for ( int k = 0; k < this->objectNr; k++ )
 	{
-		if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+		if ( this->filterID == iAFeatureScoutObjectType::Fibers )
 		{
 			fp = this->csvTable->GetValue( k, 13 ).ToDouble() / PolarPlotPhiResolution;
 			ft = this->csvTable->GetValue( k, 14 ).ToDouble() / PolarPlotThetaResolution;
@@ -4727,13 +4727,13 @@ QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 	QStringList eleString;
 
 	//Names of the fiber characteristics
-	if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+	if ( filterID == iAFeatureScoutObjectType::Fibers )
 	{
 		if (useCsvOnly) {
 			eleString.append("AUTO_ID");
-			for (auto &element : *this->m_headersSelected) {
+			for (auto &element : this->m_headersSelected)
+			{
 				eleString.append(element);
-
 			}
 
 
@@ -4790,12 +4790,12 @@ QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 		if (useCsvOnly)  //TODO ADAPT Adapt units
 		{
 			eleString.append("AUTO_ID");
-			for (auto &element : *this->m_headersSelected) {
+			for (auto &element : this->m_headersSelected)
+			{
 				eleString.append(element);
-
 			}
-
-		}else
+		}
+		else
 		{
 
 		//TODO REPLACE HARD CODED HEADERS BY SELECTED HEADERS
@@ -4955,7 +4955,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 		return;
 }
 
-bool dlg_FeatureScout::initParallelCoordinates( iAObjectAnalysisType fid )
+bool dlg_FeatureScout::initParallelCoordinates( iAFeatureScoutObjectType fid )
 {
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	if ( !mdiChild )
@@ -4977,7 +4977,7 @@ bool dlg_FeatureScout::initParallelCoordinates( iAObjectAnalysisType fid )
 	mdiChild->sXZ->hide();
 	mdiChild->sXY->hide();
 	mdiChild->GetModalitiesDlg()->hide();
-	if ( this->filterID == INDIVIDUAL_PORE_VISUALIZATION )
+	if ( this->filterID == iAFeatureScoutObjectType::Voids )
 		iovPP->hide();
 
 	connect( iovPP->comboBox, SIGNAL( currentIndexChanged( int ) ), this, SLOT( RenderingOrientation() ) );

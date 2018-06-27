@@ -20,7 +20,7 @@
 * ************************************************************************************/
  /*
 #include "iAFeatureScoutScatterPlotMatrix.h"
-#include "iAObjectAnalysisType.h"
+#include "iAFeatureScoutObjectType.h"
 
 #include <itkDecisionRule.h>
 #include <itkDistanceToCentroidMembershipFunction.h>
@@ -973,7 +973,7 @@ void iAScatterPlotMatrix::UpdateCustomLegend()
 	if ( this->Size.GetX() > 2 )
 	{
 		QString segmentedObjects;
-		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
+		if ( filterID == iAFeatureScoutObjectType::Fibers )
 			segmentedObjects = "Fibers";
 		else
 			segmentedObjects = "Objects";
