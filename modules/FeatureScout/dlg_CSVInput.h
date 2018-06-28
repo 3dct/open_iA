@@ -63,6 +63,8 @@ private slots:
 	void switchObjectType(const QString &inputType);
 	//! Add format to the list of known formats
 	void SaveFormatBtnClicked();
+	//! Delete format from the list of known formats
+	void DeleteFormatBtnClicked();
 	//! switch the inputs for the column mappings depending on what data is available
 	void UpdateColumnMappingInputs();
 	void UpdateLengthEditVisibility();

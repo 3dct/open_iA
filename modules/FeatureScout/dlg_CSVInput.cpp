@@ -73,8 +73,9 @@ void dlg_CSVInput::connectSignals()
 {
 	connect(btn_LoadCSVData, SIGNAL(clicked()), this, SLOT(LoadCSVPreviewClicked()));
 	connect(btn_SaveFormat, SIGNAL(clicked()), this, SLOT(SaveFormatBtnClicked()));
+	connect(btn_DeleteFormat, SIGNAL(clicked()), this, SLOT(DeleteFormatBtnClicked()));
 	connect(btn_UpdatePreview, SIGNAL(clicked()), this, SLOT(UpdateCSVPreview()));
-	connect(cmbbox_FormatName, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadSelectedFormatSettings);
+	connect(cmbbox_Format, &QComboBox::currentTextChanged, this, &dlg_CSVInput::LoadSelectedFormatSettings);
 	connect(cmbbox_ColSeparator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);  // switch separator
 	connect(cmbbox_ObjectType, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchObjectType); // switch between fiber and pores / voids
 	connect(cmbbox_Encoding, &QComboBox::currentTextChanged, this, &dlg_CSVInput::UpdateCSVPreview);
@@ -92,7 +93,7 @@ void dlg_CSVInput::initParameters()
 	m_previewTable = new DataTable();
 	myLayout->addWidget(m_previewTable);
 	m_headersCount = 0;
-	cmbbox_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
+	ed_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
 	loadFormatEntriesOnStartUp();
 	m_formatName = "";
 }
@@ -162,7 +163,6 @@ void dlg_CSVInput::LoadSelectedFormatSettings(const QString &formatName)
 	}
 	loadHeaderEntriesFromReg(m_selHeaders, csvRegKeys::HeaderName, formatName);
 	setSelectedHeaderToTextControl(m_selHeaders); //load all headers
-	showConfigParams(m_confParams);
 }
 
 void dlg_CSVInput::UpdateCSVPreview()
@@ -199,7 +199,7 @@ void dlg_CSVInput::selectAllFromTextControl()
 
 void dlg_CSVInput::SaveFormatBtnClicked()
 {
-	QString formatName = cmbbox_FormatName->currentText();
+	QString formatName = ed_FormatName->text();
 	if (formatName.trimmed().isEmpty())
 	{
 		QMessageBox::warning(this, tr("FeatureScout"), tr("Please enter a format name!"));
@@ -216,13 +216,15 @@ void dlg_CSVInput::SaveFormatBtnClicked()
 	if (OtherFormatEntries.contains(formatName, Qt::CaseSensitivity::CaseSensitive))
 	{
 		QMessageBox::StandardButton reply;
-		reply = QMessageBox::warning(this, tr("FeatureScout"), tr("Format '%1' already exists. Do you want to overwrite it?").arg(formatName),
+		reply = QMessageBox::warning(this, tr("FeatureScout"),
+			tr("Format '%1' already exists. Do you want to overwrite it?").arg(formatName),
 			QMessageBox::Yes | QMessageBox::No);
 		writeSettings = (reply == QMessageBox::Yes);
 	}
 	else
 	{ // not yet in registry, add
-		cmbbox_FormatName->addItem(formatName);
+		cmbbox_Format->addItem(formatName);
+		//cmbbox_Format->setCurrentText(formatName);
 	}
 
 	if (writeSettings)
@@ -233,6 +235,21 @@ void dlg_CSVInput::SaveFormatBtnClicked()
 		//save all entries in order to make sure if file is not available  one still can see the headers??
 		saveHeaderEntriesToReg(m_currentHeaders, csvRegKeys::AllHeaders, formatName);
 	}
+}
+
+void dlg_CSVInput::DeleteFormatBtnClicked()
+{
+	QString formatName = cmbbox_Format->currentText();
+	QMessageBox::StandardButton reply;
+	reply = QMessageBox::warning(this, tr("FeatureScout"),
+		tr("Format '%1' will be deleted permanently. Do you want to proceed?").arg(formatName),
+		QMessageBox::Yes | QMessageBox::No);
+	if (reply != QMessageBox::Yes)
+		return;
+
+	QSettings settings;
+	settings.remove(getFormatRegistryKey(formatName));
+	cmbbox_Format->removeItem(cmbbox_Format->currentIndex());
 }
 
 void dlg_CSVInput::UpdateColumnMappingInputs()
@@ -328,6 +345,7 @@ void dlg_CSVInput::showConfigParams(iACsvConfig const &params)
 	ed_SkipLinesEnd->setValue(params.skipLinesEnd);
 	ed_Spacing->setText(QString("%1").arg(params.spacing));
 	cmbbox_Unit->setCurrentText(params.unit);
+	ed_FormatName->setText(params.formatName);
 }
 
 void dlg_CSVInput::setError(const QString &ParamName, const QString &Param_value)
@@ -448,7 +466,7 @@ void dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPre
 {
 	m_previewTable->clearTable();
 	m_previewTable->readTableEntries(fileName, nrPreviewElements, m_confParams.colSeparator,
-		m_confParams.skipLinesStart, true, false, encoding);
+		m_confParams.skipLinesStart, true, cb_addAutoID->isChecked(), encoding);
 	assignHeaderLine();
 }
 
@@ -566,7 +584,7 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 void dlg_CSVInput::loadFormatEntriesOnStartUp()
 {
 	QStringList formatEntries = GetFormatListFromRegistry();
-	cmbbox_FormatName->addItems(formatEntries);
+	cmbbox_Format->addItems(formatEntries);
 }
 
 QStringList dlg_CSVInput::GetFormatListFromRegistry() const
