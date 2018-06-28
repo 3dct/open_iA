@@ -28,7 +28,6 @@ class DataTable : public QTableWidget
 {
 public:
 	DataTable();
-	void initToDefault();
 	//! reads table entries from csv file into qtable widget
 	bool readTableEntries(const QString &fName, const uint rowCount, const QString & colSeparator,
 		const uint skipLinesStart, const bool readHeaders, bool addAutoID, QString const & encoding);
@@ -39,7 +38,6 @@ public:
 	const QStringList & getHeaders() const;
 
 	QString AutoIDColumnName = "Auto ID";
-
 private:
 	QStringList m_headerEntries; //!< list of column header names
 	QString m_colSeparator; //!< separator between columns

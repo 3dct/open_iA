@@ -75,7 +75,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 	if (csvConfig.objectType == iAFeatureScoutObjectType::Voids) // TODO: check featScout_headers and headers, seems fishy!
 		featScout_headers = headers;
 	else
-		featScout_headers = iACsvIO::GetFibreElementsName(true);
+		featScout_headers = iACsvIO::getFibreElementsName(true);
 	io.setParams(headers, dlg.getEntriesSelInd(), dlg.getTableWidth());
 	if (!csvConfig.fileName.isEmpty())
 		initializeFeatureScoutStartUp(item, csvConfig.fileName, true, &csvConfig, featScout_headers);
@@ -166,7 +166,7 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 	//default action if file params is null
 	if (!FileParams)
 	{
-		if (!io.LoadCsvFile(objectType, fileName)) //hier wird das csv geladen;
+		if (!io.loadCsvFile(objectType, fileName)) //hier wird das csv geladen;
 			return false;
 	}
 	else
@@ -188,7 +188,7 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 		m_mdiChild->addMsg( "Error while creating FeatureScout module!" );
 		return false;
 	}
-	attach->init(objectType, io.GetCSVTable(), is_csvOnly, selHeader);
+	attach->init(objectType, io.getCSVTable(), is_csvOnly, selHeader);
 	return true;
 }
 

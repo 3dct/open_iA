@@ -35,18 +35,14 @@ class iACsvIO
 {
 public:
 	iACsvIO();
-	bool LoadCsvFile(iAFeatureScoutObjectType fid, QString const & fileName);
-	vtkTable * GetCSVTable();
-
+	bool loadCsvFile(iAFeatureScoutObjectType fid, QString const & fileName);
+	vtkTable * getCSVTable();
 	void setColumnHeaders(QStringList & colHeaders);
 	bool loadCSVCustom(iACsvConfig const & cnfg_params);
-	void setTableParams(iACsvConfig const & csv_Params);
-
 	void setParams(QStringList& headers, const QVector<uint> &colIDs, uint TableWidth);
-
+	static QStringList getFibreElementsName(bool withUnit);
+	
 	void debugTable(const bool useTabSeparator);
-	static QStringList GetFibreElementsName(bool withUnit);
-
 private:
 
 	inline void setTableHeaders(QStringList& headers)
@@ -64,19 +60,18 @@ private:
 
 	bool readCustomFileEntries(const QString & fileName, const uint skipLinesStart);
 	void loadPoreData(long tableLength, QString &line, QTextStream &in, int const tableWidth, QString &tmp_section, int col_count);
-	size_t CalcTableLength(const QString &fileName, const int skipLinesStart);
-	bool LoadFibreCSV(const QString &fileName);
-	void FibreCalculation(QTextStream & in, int const eleWidth, int tableLength, const int colCount, const bool useOldFeatureScoutFormat);
+	size_t calcTableLength(const QString &fileName, const int skipLinesStart);
+	bool loadFibreCSV(const QString &fileName);
+	void fibreCalculation(QTextStream & in, int const eleWidth, int tableLength, const int colCount, const bool useOldFeatureScoutFormat);
 	int assingFiberValuesPart_2(int i, int col_idx, double phi, double theta, double xm, double ym, double zm);
 	int assignFiberValuesPart1(int i, int col_idx, double a11, double a22, double a33, double a12, double a13, double a23);
-	bool LoadPoreCSV(const QString &fileName);
+	bool loadPoreCSV(const QString &fileName);
 	bool loadConfig(const QString configName, bool & applyEN_Formating);
 
 	bool useCVSOnly;	//!< indicates whether we read a custom csv format or a "legacy" FiberScout/FeatureScout fiber/pore file
 	bool enableFiberTransformation; //!< indicates whether to compute fiber characteristics
 
 	iACsvConfig m_csvConfig;
-
 	vtkSmartPointer<vtkTable> table;
 	QVector<uint> m_colIds;
 	QStringList  m_TableHeaders;

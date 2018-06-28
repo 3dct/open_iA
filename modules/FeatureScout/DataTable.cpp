@@ -25,17 +25,12 @@
 #include <QTextCodec>
 #include <QTextStream>
 
-DataTable::DataTable()
+DataTable::DataTable():
+	m_autoRID(0)
 {
-	initToDefault();
 	setSortingEnabled(false);
 	setShowGrid(true);
 	setEnabled(false);
-}
-
-void DataTable::initToDefault()
-{
-	m_autoRID = 0;
 }
 
 void DataTable::clearTable()
