@@ -120,19 +120,6 @@ void dlg_CSVInput::saveHeaderEntriesToReg(const QStringList& HeaderEntries, cons
 	settings.setValue(csvRegKeys::HeaderName, m_selHeaders);
 }
 
-void dlg_CSVInput::clearTextControl()
-{
-	while (list_ColumnSelection->count()>0)
-	{
-		QListWidgetItem* item = list_ColumnSelection->takeItem(0);
-		if (item)
-		{
-			delete item;
-			item = nullptr;
-		}
-	}
-}
-
 void dlg_CSVInput::loadHeaderEntriesFromReg(QStringList & HeaderEntries, const QString &HeaderNames, const QString &formatName)
 {
 	QSettings settings;
@@ -157,13 +144,8 @@ void dlg_CSVInput::loadSelectedFormatSettings(const QString &formatName)
 	m_formatName = formatName;
 	bool formatAvailable = loadFormatFromRegistry(formatName);
 	if (!formatAvailable)
-	{
-		m_previewTable->clearTable();
-		clearTextControl();
 		return;
-	}
 	showConfigParams(m_confParams);
-	//if file is not good -> show empty table but selection
 	if (!loadFilePreview(sb_PreviewLines->value(), true))
 	{
 		m_previewTable->clearTable();
@@ -193,14 +175,6 @@ void dlg_CSVInput::switchObjectType(const QString &ObjectInputType)
 	else
 	{
 		list_ColumnSelection->setSelectionMode(QAbstractItemView::ExtendedSelection);
-	}
-}
-
-void dlg_CSVInput::selectAllFromTextControl()
-{
-	for (int i = 0; i < list_ColumnSelection->count(); ++i)
-	{
-		list_ColumnSelection->item(i)->setSelected(true);
 	}
 }
 
@@ -493,43 +467,21 @@ bool dlg_CSVInput::setSelectedEntries(const bool EnableMessageBox)
 		QMessageBox::warning(this, tr("FeatureScout"), "Please select at least 2 columns to load!");
 		return false;
 	}
-	// no selection -> use all entries
-	if (selectedHeadersList.length() != 0)
-	{
-		if (m_selHeaders.length() > 0)
-		{
-			m_selHeaders.clear();
-			m_selColIdx.clear();
-		}
-
-		m_selColIdx.capacity();
-		for (const auto &selEntry : selectedHeadersList)
-		{
-			QString listEntry = selEntry->text();
-			addSingleHeaderToList(listEntry);
-		}
-
-		qSort(m_selColIdx.begin(), m_selColIdx.end(), qLess<uint>());
-		addSelectedHeaders(m_selColIdx);
-	}
-	return true;
-}
-
-//ensure correct order of header!
-void dlg_CSVInput::addSelectedHeaders(QVector<uint> &data)
-{
 	m_selHeaders.clear();
-	for (const auto &HeaderIdx : data)
+	m_selColIdx.clear();
+	for (const auto &selEntry : selectedHeadersList)
+	{
+		QString listEntry = selEntry->text();
+		uint currItemIdx = m_hashEntries[listEntry];
+		m_selColIdx.push_back(currItemIdx);
+	}
+	qSort(m_selColIdx.begin(), m_selColIdx.end(), qLess<uint>());
+	for (const auto &HeaderIdx : m_selColIdx)
 	{
 		QString curHeader = m_hashEntries.key(HeaderIdx);
 		m_selHeaders.push_back(curHeader);
 	}
-}
-
-void dlg_CSVInput::addSingleHeaderToList(QString const & listEntry)
-{
-	uint currItemIdx = m_hashEntries[listEntry];
-	m_selColIdx.push_back(currItemIdx);
+	return true;
 }
 
 const QVector<uint>& dlg_CSVInput::getEntriesSelInd()

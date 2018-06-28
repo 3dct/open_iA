@@ -34,6 +34,8 @@ class QTextStream;
 class iACsvIO
 {
 public:
+	static const char * ColNameAutoID;
+	static const char * ColNameClassID;
 	iACsvIO();
 	bool loadCsvFile(iAFeatureScoutObjectType fid, QString const & fileName);
 	vtkTable * getCSVTable();

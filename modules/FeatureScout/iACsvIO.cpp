@@ -39,6 +39,9 @@ namespace
 	const int LegacyFormatStartSkipLines = 5;
 }
 
+const char* iACsvIO::ColNameAutoID = "Auto_ID";
+const char* iACsvIO::ColNameClassID = "Class_ID";
+
 iACsvIO::iACsvIO() :
 	table(vtkSmartPointer<vtkTable>::New()),
 	useCVSOnly(false),
@@ -644,9 +647,9 @@ bool iACsvIO::readCustomFileEntries()
 void iACsvIO::setColumnHeaders(QStringList &colHeaders)
 {
 	vtkSmartPointer<vtkIntArray> arrAuto = vtkSmartPointer<vtkIntArray>::New();
-	if (!enableFiberTransformation)
+	if (m_csvConfig.addAutoID)
 	{
-		arrAuto->SetName("Auto_ID");
+		arrAuto->SetName(ColNameAutoID);
 		table->AddColumn(arrAuto);
 	}
 	//adding headers;
@@ -661,7 +664,7 @@ void iACsvIO::setColumnHeaders(QStringList &colHeaders)
 		}
 	}
 	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
-	arr->SetName("Class_ID");
+	arr->SetName(ColNameClassID);
 	table->AddColumn(arr);
 }
 

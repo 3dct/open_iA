@@ -33,15 +33,11 @@ public:
 		const uint skipLinesStart, const bool readHeaders, bool addAutoID, QString const & encoding);
 	//! clears the table content and sets it to zero rows
 	void clearTable();
-	void setHeader(const QStringList &headerEntries);
 	QString getLastEncoding() const;
 	const QStringList & getHeaders() const;
-
-	QString AutoIDColumnName = "AutoID";
 private:
 	QStringList m_headerEntries; //!< list of column header names
-	QString m_LastEncoding; //!< encoding used when last reading the csv file
-	size_t m_autoRID;       //!< counter variable for automatically assigned row ID
+	QString m_LastEncoding;      //!< encoding used when last reading the csv file
 
 	//! disable copy constructor
 	DataTable(const DataTable &other) =delete;

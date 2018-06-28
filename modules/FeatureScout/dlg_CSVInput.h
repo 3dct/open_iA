@@ -110,13 +110,9 @@ private:
 	//! shows table with entries
 	void showPreviewTable();
 	void saveHeaderEntriesToReg(const QStringList & HeaderEntries, const QString & HeaderName, const QString & LayoutName);
-	void clearTextControl();
-	void selectAllFromTextControl();
 	void setSelectedHeaderToTextControl(QStringList const & sel_headers);
 	//! set entries from a selected List + setting column count information for selection
 	bool setSelectedEntries(const bool EnableMessageBox);
-	void addSelectedHeaders(QVector<uint>& data);
-	void addSingleHeaderToList(QString const & listEntry);
 	void selectSingleHeader(QString const & listEntry);
 
 	iACsvConfig m_confParams;
@@ -130,12 +126,8 @@ private:
 	bool m_PreviewUpdated = false;
 	ulong m_headersCount;
 
-	//! current headers of the table
-	QStringList m_currentHeaders;
-	//! names of the selected headers
-	QStringList m_selHeaders;
-	//! indices of the selected headers
-	QVector<uint> m_selColIdx;
-	//! mapping from selected header entry
-	QHash<QString, uint> m_hashEntries;
+	QStringList m_currentHeaders;       //!< current headers of the table
+	QStringList m_selHeaders;           //!< names of the selected headers
+	QVector<uint> m_selColIdx;          //!< indices of the selected headers
+	QHash<QString, uint> m_hashEntries; //! mapping from selected header entry
 };

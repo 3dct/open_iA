@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #include "DataTable.h"
 
+#include "iACsvIO.h"
+
 #include <QFile>
 #include <QMessageBox>
 #include <QTextCodec>
 #include <QTextStream>
 
-DataTable::DataTable():
-	m_autoRID(0)
+DataTable::DataTable()
 {
 	setSortingEnabled(false);
 	setShowGrid(true);
@@ -45,8 +46,7 @@ void DataTable::addLineToTable(QStringList const & tableEntries, size_t row, boo
 	uint colInd = 0;
 	if (addAutoID) // adding autoID column
 	{
-		setItem(row, colInd, new QTableWidgetItem(QString("%1").arg(m_autoRID)));
-		m_autoRID++;
+		setItem(row, colInd, new QTableWidgetItem(QString("%1").arg(row)));
 		++colInd;
 	}
 	for (const auto &tableEntry : tableEntries)
@@ -54,13 +54,6 @@ void DataTable::addLineToTable(QStringList const & tableEntries, size_t row, boo
 		setItem(row, colInd, new QTableWidgetItem(tableEntry));
 		++colInd;
 	}
-}
-
-void DataTable::setHeader(const QStringList &headerEntries)
-{
-	m_headerEntries = headerEntries;
-	setColumnCount(headerEntries.length());
-	setHorizontalHeaderLabels(headerEntries);
 }
 
 bool  DataTable::readTableEntries(const QString &fName, const uint rowCount, const QString & colSeparator,
@@ -108,10 +101,11 @@ void DataTable::prepareHeader(uint skipLinesStart, QTextStream &file, bool readH
 	QString line = file.readLine();	// header line
 	if (readHeaders)
 	{
-		auto headerEntries = line.split(colSeparator);
+		m_headerEntries = line.split(colSeparator);
 		if (addAutoID)
-			headerEntries.insert(headerEntries.begin(), AutoIDColumnName);
-		setHeader(headerEntries);
+			m_headerEntries.insert(m_headerEntries.begin(), iACsvIO::ColNameAutoID);
+		setColumnCount(m_headerEntries.length());
+		setHorizontalHeaderLabels(m_headerEntries);
 	}
 }
 
