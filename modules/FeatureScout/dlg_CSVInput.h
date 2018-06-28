@@ -52,23 +52,25 @@ public:
 	}
 
 private slots:
-	void LoadCSVPreviewClicked();
+	void loadCSVPreviewClicked();
 	void setAllHeaders(QStringList const & allHeaders);
-	void OKButtonClicked();
+	void okButtonClicked();
 	//! load format based on selected input format (ex. mavi/ vg, ...)
-	void LoadSelectedFormatSettings(const QString &formatName);
+	void loadSelectedFormatSettings(const QString &formatName);
 	//! switch between comma and column and show file preview
-	void UpdateCSVPreview();
+	void updateCSVPreview();
 	//! switch Object Type Fiber / Pores
 	void switchObjectType(const QString &inputType);
 	//! Add format to the list of known formats
-	void SaveFormatBtnClicked();
+	void saveFormatBtnClicked();
 	//! Delete format from the list of known formats
-	void DeleteFormatBtnClicked();
+	void deleteFormatBtnClicked();
+	//! Apply default format selection
+	void applyFormatColumnSelection();
 	//! switch the inputs for the column mappings depending on what data is available
-	void UpdateColumnMappingInputs();
-	void UpdateLengthEditVisibility();
-	void UpdateAngleEditVisibility();
+	void updateColumnMappingInputs();
+	void updateLengthEditEnabled();
+	void updateAngleEditEnabled();
 private:
 	//! connect signals and slots of all dialog controls
 	void connectSignals();
@@ -128,11 +130,12 @@ private:
 	bool m_PreviewUpdated = false;
 	ulong m_headersCount;
 
-	//current headers of the table
+	//! current headers of the table
 	QStringList m_currentHeaders;
+	//! names of the selected headers
 	QStringList m_selHeaders;
-	QList<QListWidgetItem*> m_selectedHeadersList;
-
-	QHash<QString, uint> m_hashEntries;
+	//! indices of the selected headers
 	QVector<uint> m_selColIdx;
+	//! mapping from selected header entry
+	QHash<QString, uint> m_hashEntries;
 };

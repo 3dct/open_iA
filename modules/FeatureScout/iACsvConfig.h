@@ -41,15 +41,14 @@ struct iACsvConfig
 		tableWidth(0)
 	{}
 
-	QString fileName;//!< filename, not stored in registrys
+	QString fileName;  //!< filename, not stored in registrys
+	size_t tableWidth; //!< number of columns, not stored in registry
 
 	QString encoding;
 	size_t skipLinesStart, skipLinesEnd;
 	QString colSeparator, decimalSeparator;
 	bool addAutoID;
 	iAFeatureScoutObjectType objectType;
-	//TODO to be applied later
 	QString unit;
 	float spacing;
-	size_t tableWidth;
 };

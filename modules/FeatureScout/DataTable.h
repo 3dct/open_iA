@@ -37,11 +37,9 @@ public:
 	QString getLastEncoding() const;
 	const QStringList & getHeaders() const;
 
-	QString AutoIDColumnName = "Auto ID";
+	QString AutoIDColumnName = "AutoID";
 private:
 	QStringList m_headerEntries; //!< list of column header names
-	QString m_colSeparator; //!< separator between columns
-	QString m_FileName;     //!< file name used for reading csv file
 	QString m_LastEncoding; //!< encoding used when last reading the csv file
 	size_t m_autoRID;       //!< counter variable for automatically assigned row ID
 

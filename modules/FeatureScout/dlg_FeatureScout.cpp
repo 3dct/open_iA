@@ -4740,7 +4740,7 @@ QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 		}
 		else {
 
-			// TODO: overlap with iACsvIO::calcTableLength !
+			// TODO: overlap with iACsvIO::getFibreElementsName !
 			eleString.append("Label");								// 0
 			eleString.append(QString("X1%1").arg(micro1));		// 1
 			eleString.append(QString("Y1%1").arg(micro1));		// 2
