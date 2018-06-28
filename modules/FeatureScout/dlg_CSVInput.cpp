@@ -34,6 +34,7 @@ namespace csvRegKeys
 	static const QString FormatName = "CSVFormats";
 	static const QString HeaderName = "HeaderEntries";
 	static const QString AllHeaders = "AllHeaders";
+	static const QString DefaultFormat = "DefaultFormat";
 	static const QString SkipLinesStart = "SkipLinesStart";
 	static const QString SkipLinesEnd = "SkipLinesEnd";
 	static const QString ColSeparator = "ColumnSeparator";
@@ -95,6 +96,12 @@ void dlg_CSVInput::initParameters()
 	m_headersCount = 0;
 	ed_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
 	loadFormatEntriesOnStartUp();
+	QString defaultFormat = getDefaultFormat();
+	if (!defaultFormat.isEmpty())
+	{
+		loadFormatFromRegistry(defaultFormat);
+		showConfigParams(m_confParams);
+	}
 	m_formatName = "";
 }
 
@@ -134,6 +141,8 @@ void dlg_CSVInput::OKButtonClicked()
 {
 	if (!setSelectedEntries(true))
 		return;
+	if (!cmbbox_Format->currentText().isEmpty())
+		storeDefaultFormat(cmbbox_Format->currentText());
 	accept();
 }
 
@@ -212,7 +221,7 @@ void dlg_CSVInput::SaveFormatBtnClicked()
 	setSelectedEntries(false);
 
 	bool writeSettings = true;
-	QStringList OtherFormatEntries = GetFormatListFromRegistry();
+	QStringList OtherFormatEntries = getFormatListFromRegistry();
 	if (OtherFormatEntries.contains(formatName, Qt::CaseSensitivity::CaseSensitive))
 	{
 		QMessageBox::StandardButton reply;
@@ -345,13 +354,11 @@ void dlg_CSVInput::showConfigParams(iACsvConfig const &params)
 	ed_SkipLinesEnd->setValue(params.skipLinesEnd);
 	ed_Spacing->setText(QString("%1").arg(params.spacing));
 	cmbbox_Unit->setCurrentText(params.unit);
-	ed_FormatName->setText(params.formatName);
 }
 
 void dlg_CSVInput::setError(const QString &ParamName, const QString &Param_value)
 {
 	m_Error_Parameter.append("Error" + ParamName + "\t" + Param_value + "\n");
-	m_confParams.paramsValid = false;
 }
 
 void dlg_CSVInput::assignFormatSettings()
@@ -363,6 +370,7 @@ void dlg_CSVInput::assignFormatSettings()
 	m_confParams.spacing = ed_Spacing->text().toDouble();
 	m_confParams.unit = cmbbox_Unit->currentText();
 	m_confParams.addAutoID = cb_addAutoID->isChecked();
+	m_confParams.encoding = cmbbox_Encoding->currentText();
 	assignObjectTypes();
 }
 
@@ -429,7 +437,6 @@ bool dlg_CSVInput::checkFile(bool formatLoaded)
 	bool fileOK = false;
 	if (fileName.isEmpty())
 	{
-		m_confParams.paramsValid = false;
 		return false;
 	}
 	else
@@ -439,20 +446,12 @@ bool dlg_CSVInput::checkFile(bool formatLoaded)
 		{
 			QMessageBox::information(this, tr("FeatureScout"), tr("Unable to open file: %1").arg(file.errorString()));
 			setError(QString("unable to open file"), file.errorString());
-			m_confParams.paramsValid = false;
 			return false;
 		}
 		else
 		{
-			if (!m_confParams.paramsValid)
-			{
-				QMessageBox::information(this, tr("FeatureScout"), tr("Wrong parameters assigned: %1").arg(m_Error_Parameter));
-			}
-			else
-			{
-				fileOK = true;
-				m_confParams.fileName = fileName;
-			}
+			fileOK = true;
+			m_confParams.fileName = fileName;
 		}
 		if (file.isOpen())
 		{
@@ -569,6 +568,8 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 		QMessageBox::warning(this, tr("FeatureScout"), tr("Format not available!"));
 		return false;
 	}
+	ed_FormatName->setText(formatName);
+	cmbbox_Format->setCurrentText(formatName);
 	iACsvConfig defaultConfig;
 	m_confParams.skipLinesStart = settings.value(csvRegKeys::SkipLinesStart, defaultConfig.skipLinesStart).toLongLong();
 	m_confParams.skipLinesEnd = settings.value(csvRegKeys::SkipLinesEnd, defaultConfig.skipLinesEnd).toLongLong();
@@ -583,11 +584,25 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 
 void dlg_CSVInput::loadFormatEntriesOnStartUp()
 {
-	QStringList formatEntries = GetFormatListFromRegistry();
+	QStringList formatEntries = getFormatListFromRegistry();
 	cmbbox_Format->addItems(formatEntries);
 }
 
-QStringList dlg_CSVInput::GetFormatListFromRegistry() const
+void dlg_CSVInput::storeDefaultFormat(QString const & formatName)
+{
+	QSettings settings;
+	settings.beginGroup(getFormatRegistryKey(""));
+	settings.setValue(csvRegKeys::DefaultFormat, formatName);
+}
+
+QString dlg_CSVInput::getDefaultFormat() const
+{
+	QSettings settings;
+	settings.beginGroup(getFormatRegistryKey(""));
+	return settings.value(csvRegKeys::DefaultFormat, "").toString();
+}
+
+QStringList dlg_CSVInput::getFormatListFromRegistry() const
 {
 	QSettings settings;
 	settings.beginGroup(getFormatRegistryKey("") );

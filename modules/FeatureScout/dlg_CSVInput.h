@@ -73,7 +73,11 @@ private:
 	//! connect signals and slots of all dialog controls
 	void connectSignals();
 	//! List all csv format entries, returned list is empty if no format definitions in registry
-	QStringList GetFormatListFromRegistry() const;
+	QStringList getFormatListFromRegistry() const;
+	//! Retrieve name of format loaded last time the dialog was open
+	QString getDefaultFormat() const;
+	//! Store name of format to be loaded next time dialog is opened
+	void storeDefaultFormat(QString const & formatName);
 	//! store format parameters in registry
 	void saveParamsToRegistry(iACsvConfig const & csv_params, const QString & formatName);
 	//! load entries from registry for a given format name

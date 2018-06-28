@@ -58,7 +58,7 @@ private:
 		m_csvConfig.tableWidth = TableWidth;
 	}
 
-	bool readCustomFileEntries(const QString & fileName, const uint skipLinesStart);
+	bool readCustomFileEntries();
 	void loadPoreData(long tableLength, QString &line, QTextStream &in, int const tableWidth, QString &tmp_section, int col_count);
 	size_t calcTableLength(const QString &fileName, const int skipLinesStart);
 	bool loadFibreCSV(const QString &fileName);

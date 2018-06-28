@@ -29,7 +29,7 @@ struct iACsvConfig
 {
 	iACsvConfig() :
 		fileName(""),
-		formatName(""),
+		encoding("System"),
 		skipLinesStart(5),
 		skipLinesEnd(0),
 		colSeparator(";"),
@@ -38,13 +38,12 @@ struct iACsvConfig
 		objectType(iAFeatureScoutObjectType::Voids),
 		unit("microns"),
 		spacing(0.0f),
-		tableWidth(0),
-		paramsValid(true)
+		tableWidth(0)
 	{}
 
 	QString fileName;//!< filename, not stored in registrys
 
-	QString formatName;
+	QString encoding;
 	size_t skipLinesStart, skipLinesEnd;
 	QString colSeparator, decimalSeparator;
 	bool addAutoID;
@@ -53,6 +52,4 @@ struct iACsvConfig
 	QString unit;
 	float spacing;
 	size_t tableWidth;
-
-	bool paramsValid;
 };

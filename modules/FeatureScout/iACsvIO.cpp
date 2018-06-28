@@ -432,15 +432,11 @@ bool iACsvIO::loadConfig(const QString configName, bool & applyEN_Formating )
 
 bool iACsvIO::loadCSVCustom(iACsvConfig const & cnfg_params)
 {
-	if (!cnfg_params.paramsValid)
-	{
-		return false;
-	}
 	m_csvConfig = cnfg_params;
 	enableFiberTransformation = cnfg_params.objectType == iAFeatureScoutObjectType::Fibers;
 	useCVSOnly = true;
 	table->Initialize();
-	return readCustomFileEntries(m_csvConfig.fileName, m_csvConfig.skipLinesStart);
+	return readCustomFileEntries();
 }
 
 void iACsvIO::setParams(QStringList & headers, const QVector<uint>& colIDs, uint TableWidth)
@@ -508,6 +504,7 @@ size_t iACsvIO::calcTableLength(const QString &fileName, const int skipLinesStar
 
 QStringList iACsvIO::getFibreElementsName(bool withUnit)
 {
+	// TODO: overlap with dlg_FeatureScout::getNamesOfObjectCharakteristics !
 	// manually define new table elements
 	// using unicode to define the unit
 	QString micro = QChar(0x00B5);
@@ -584,7 +581,7 @@ bool iACsvIO::loadCsvFile(iAFeatureScoutObjectType fid, QString const & fileName
 	{
 		case iAFeatureScoutObjectType::Fibers: return loadFibreCSV(fileName);
 		case iAFeatureScoutObjectType::Voids:  return loadPoreCSV(fileName);
-		default:                             return false;
+		default:                               return false;
 	}
 }
 
@@ -593,21 +590,22 @@ vtkTable* iACsvIO::getCSVTable()
 	return table.GetPointer();
 }
 
-bool iACsvIO::readCustomFileEntries(const QString &fileName, const uint skipLinesStart)
+bool iACsvIO::readCustomFileEntries()
 {
-	size_t tableLength = calcTableLength(fileName, skipLinesStart);
-	QFile file(fileName);
+	size_t tableLength = calcTableLength(m_csvConfig.fileName, m_csvConfig.skipLinesStart);
+	QFile file(m_csvConfig.fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 		return false;
 
 	QTextStream in(&file);
-	for (int i = 0; i < skipLinesStart + 1; i++)	// skip lines including header
+	in.setCodec(m_csvConfig.encoding.toStdString().c_str());
+	for (int i = 0; i < m_csvConfig.skipLinesStart + 1; i++)	// skip lines including header
 		in.readLine();
 
 	int col_count = 0;
 	if (enableFiberTransformation)
 	{
-		m_TableHeaders = 	getFibreElementsName(true);
+		m_TableHeaders = getFibreElementsName(true);
 		m_csvConfig.tableWidth = m_colIds.length();
 		col_count = m_TableHeaders.length();
 	}
