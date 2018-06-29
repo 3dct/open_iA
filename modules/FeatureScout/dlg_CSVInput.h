@@ -52,8 +52,9 @@ public:
 	}
 
 private slots:
+	//! updates preview (e.g. when Update Preview button called)
 	void loadCSVPreviewClicked();
-	void setAllHeaders(QStringList const & allHeaders);
+	//! handles a click on the OK button
 	void okButtonClicked();
 	//! load format based on selected input format (ex. mavi/ vg, ...)
 	void loadSelectedFormatSettings(const QString &formatName);
@@ -84,50 +85,46 @@ private:
 	void saveParamsToRegistry(iACsvConfig const & csv_params, const QString & formatName);
 	//! load entries from registry for a given format name
 	bool loadFormatFromRegistry(const QString & formatName);
-	//! load headers from registry
-	void loadHeaderEntriesFromReg(QStringList &HeaderEntries, const QString &HeaderNames, const QString &formatName);
+	//! load selected headers from registry
+	QStringList loadHeadersFromReg(const QString &formatName, const QString& entryName);
+	//! save selected headers to registry
+	void saveHeadersToReg(const QString &formatName, const QString& entryName, QStringList const & headers);
 	//! shows configuration parameters to GUI
 	void showConfigParams(iACsvConfig const & params);
-
+	//! show selected columns from parameters in GUI
+	void showSelectedCols();
 	//! load initial settings
 	void loadFormatEntriesOnStartUp();
 
 	void initParameters();
-	void setError(const QString &ParamName, const QString & Param_value);
+	//! @{ assign methods take data from GUI and assign it to config object
 	//! assign all format settings from the GUI to the internal configuration object
 	//! (except for header lines)
 	void assignFormatSettings();
 	//! assign the input object type from the GUI to the internal configuration object
 	void assignObjectTypes();
-	//! assign headers and prepare map with indexes
-	void assignHeaderLine();
+	//! set entries from a selected List + setting column count information for selection
+	bool assignSelectedCols(const bool EnableMessageBox);
+	//! @}
+	//! show column header in list widget, and prepare map with indexes
+	void showColumnHeaders();
 	//! void assignColumnMappings();
 	bool loadFilePreview(const int rowCount, const bool formatLoaded);
 	//! checks if file exists and save it to config params
-	bool checkFile(bool Layoutloaded);
+	bool checkFile(bool formatloaded);
 	//! loading entries into table widget preview
 	void loadEntries(const QString & fileName, const unsigned int nrPreviewElements, QString const & encoding);
-	//! shows table with entries
-	void showPreviewTable();
-	void saveHeaderEntriesToReg(const QStringList & HeaderEntries, const QString & HeaderName, const QString & LayoutName);
-	void setSelectedHeaderToTextControl(QStringList const & sel_headers);
-	//! set entries from a selected List + setting column count information for selection
-	bool setSelectedEntries(const bool EnableMessageBox);
-	void selectSingleHeader(QString const & listEntry);
 
 	iACsvConfig m_confParams;
 	QString m_fPath;
-	QString m_Error_Parameter;
 	DataTable* m_previewTable = nullptr;
 	QString m_formatName;
 
 	bool isFileNameValid = false;
 	bool m_formatSelected = false;
 	bool m_PreviewUpdated = false;
-	ulong m_headersCount;
 
 	QStringList m_currentHeaders;       //!< current headers of the table
 	QStringList m_selHeaders;           //!< names of the selected headers
 	QVector<uint> m_selColIdx;          //!< indices of the selected headers
-	QHash<QString, uint> m_hashEntries; //! mapping from selected header entry
 };

@@ -39,11 +39,8 @@ private:
 	QStringList m_headerEntries; //!< list of column header names
 	QString m_LastEncoding;      //!< encoding used when last reading the csv file
 
-	//! disable copy constructor
 	DataTable(const DataTable &other) =delete;
-
 	void readTableValues(size_t const rowCount, QTextStream &file, bool addAutoID, const QString & colSeparator);
-	//! adding file entry to table (+ optional auto id entry)
 	void addLineToTable(QStringList const &tableEntries, size_t row, bool addAutoID);
 	void prepareHeader(uint skipLinesStart, QTextStream &file, bool readHeaders, bool addAutoID, const QString & colSeparator);
 };
