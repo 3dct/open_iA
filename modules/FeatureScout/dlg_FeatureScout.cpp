@@ -941,7 +941,7 @@ void dlg_FeatureScout::RenderingButton()
 	this->setupNewPcView(true);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetScalarVisibility(1);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetLookupTable(lut);
-	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray("Class_ID");
+	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
 	this->pcChart->SetSize(pcChart->GetSize());
 
 	//Updates SPM
@@ -4832,7 +4832,7 @@ QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 		eleString.append("MinorLength");								// 29
 		} //end else default configuration for feature scout
 	}
-	eleString.append( "Class_ID" );	// 25 / 19
+	eleString.append( iACsvIO::ColNameClassID );	// 25 / 19
 	return eleString;
 }
 

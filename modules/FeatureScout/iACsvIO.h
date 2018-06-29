@@ -41,30 +41,16 @@ public:
 	vtkTable * getCSVTable();
 	void setColumnHeaders(QStringList & colHeaders);
 	bool loadCSVCustom(iACsvConfig const & cnfg_params);
-	void setParams(QStringList& headers, const QVector<uint> &colIDs, uint TableWidth);
+	void setParams(QStringList& headers, QVector<uint> const & colIDs);
 	static QStringList getFibreElementsName(bool withUnit);
 	
 	void debugTable(const bool useTabSeparator);
 private:
-
-	inline void setTableHeaders(QStringList& headers)
-	{
-		this->m_TableHeaders = headers;
-	}
-	inline void setColIDs(const QVector<uint> &colIDs)
-	{
-		this->m_colIds = colIDs;
-	}
-	inline void setTableWidth(uint TableWidth)
-	{
-		m_csvConfig.tableWidth = TableWidth;
-	}
-
 	bool readCustomFileEntries();
-	void loadPoreData(long tableLength, QString &line, QTextStream &in, int const tableWidth, QString &tmp_section, int col_count);
-	size_t calcTableLength(const QString &fileName, const int skipLinesStart);
+	void loadPoreData(QTextStream &in, size_t const colCount, size_t const rowCount);
+	size_t calcRowCount(const QString &fileName, size_t const skipLinesStart, size_t const skipLinesEnd);
 	bool loadFibreCSV(const QString &fileName);
-	void fibreCalculation(QTextStream & in, int const eleWidth, int tableLength, const int colCount, const bool useOldFeatureScoutFormat);
+	void fibreCalculation(QTextStream & in, size_t const colCount, size_t const rowCount, bool const useOldFeatureScoutFormat);
 	int assingFiberValuesPart_2(int i, int col_idx, double phi, double theta, double xm, double ym, double zm);
 	int assignFiberValuesPart1(int i, int col_idx, double a11, double a22, double a33, double a12, double a13, double a23);
 	bool loadPoreCSV(const QString &fileName);

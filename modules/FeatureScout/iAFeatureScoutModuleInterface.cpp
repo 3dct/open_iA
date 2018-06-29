@@ -76,7 +76,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 		featScout_headers = headers;
 	else
 		featScout_headers = iACsvIO::getFibreElementsName(true);
-	io.setParams(headers, dlg.getEntriesSelInd(), dlg.getTableWidth());
+	io.setParams(headers, dlg.getEntriesSelInd());
 	if (!csvConfig.fileName.isEmpty())
 		initializeFeatureScoutStartUp(item, csvConfig.fileName, true, &csvConfig, featScout_headers);
 	else
@@ -166,7 +166,7 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 	//default action if file params is null
 	if (!FileParams)
 	{
-		if (!io.loadCsvFile(objectType, fileName)) //hier wird das csv geladen;
+		if (!io.loadCsvFile(objectType, fileName))
 			return false;
 	}
 	else

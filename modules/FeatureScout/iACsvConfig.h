@@ -23,6 +23,7 @@
 #include "iAFeatureScoutObjectType.h"
 
 #include <QString>
+#include <QVector>
 
 //! parameters for csv loading configuraton
 struct iACsvConfig
@@ -37,18 +38,19 @@ struct iACsvConfig
 		addAutoID(false),
 		objectType(iAFeatureScoutObjectType::Voids),
 		unit("microns"),
-		spacing(0.0f),
-		tableWidth(0)
+		spacing(0.0f)
 	{}
 
-	QString fileName;  //!< filename, not stored in registrys
-	size_t tableWidth; //!< number of columns, not stored in registry
+	QString fileName;                       //!< filename, not stored in registrys
+	QString encoding;                       //!< text encoding of the csv file
+	size_t skipLinesStart, skipLinesEnd;    //!< how many lines to skip at start and end of the file
+	QString colSeparator, decimalSeparator; //!< column and decimal separator strings
+	bool addAutoID;                         //!< whether to add an automatic ID column
+	iAFeatureScoutObjectType objectType;    //!< type of objects to be analyzed
+	QString unit;                           //!< unit of measurement for the values given in the csv
+	float spacing;                          //!< volume spacing to be used, currently unused
 
-	QString encoding;
-	size_t skipLinesStart, skipLinesEnd;
-	QString colSeparator, decimalSeparator;
-	bool addAutoID;
-	iAFeatureScoutObjectType objectType;
-	QString unit;
-	float spacing;
+	QStringList currentHeaders;             //!< current headers of the table
+	QStringList selHeaders;                 //!< names of the selected headers
+	QVector<uint> selColIdx;                //!< indices of the selected headers
 };

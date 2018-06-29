@@ -44,11 +44,11 @@ public:
 
 	inline const QStringList & getHeaderSelection()
 	{
-		return m_selHeaders;
+		return m_confParams.selHeaders;
 	}
 	inline const ulong getTableWidth()
 	{
-		return this->m_confParams.tableWidth;
+		return m_confParams.currentHeaders.length();
 	}
 
 private slots:
@@ -123,8 +123,4 @@ private:
 	bool isFileNameValid = false;
 	bool m_formatSelected = false;
 	bool m_PreviewUpdated = false;
-
-	QStringList m_currentHeaders;       //!< current headers of the table
-	QStringList m_selHeaders;           //!< names of the selected headers
-	QVector<uint> m_selColIdx;          //!< indices of the selected headers
 };

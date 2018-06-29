@@ -183,8 +183,7 @@ void dlg_CSVInput::saveFormatBtnClicked()
 	QStringList OtherFormatEntries = getFormatListFromRegistry();
 	if (OtherFormatEntries.contains(formatName, Qt::CaseSensitivity::CaseSensitive))
 	{
-		QMessageBox::StandardButton reply;
-		reply = QMessageBox::warning(this, tr("FeatureScout"),
+		auto reply = QMessageBox::warning(this, tr("FeatureScout"),
 			tr("Format '%1' already exists. Do you want to overwrite it?").arg(formatName),
 			QMessageBox::Yes | QMessageBox::No);
 		if (reply != QMessageBox::Yes)
@@ -194,9 +193,10 @@ void dlg_CSVInput::saveFormatBtnClicked()
 	{ // not yet in registry, add
 		cmbbox_Format->addItem(formatName);
 	}
+	cmbbox_Format->setCurrentText(formatName);
 	saveParamsToRegistry(m_confParams, formatName);
-	saveHeadersToReg(formatName, csvRegKeys::SelectedHeaders, m_selHeaders);
-	saveHeadersToReg(formatName, csvRegKeys::AllHeaders, m_currentHeaders);
+	saveHeadersToReg(formatName, csvRegKeys::SelectedHeaders, m_confParams.selHeaders);
+	saveHeadersToReg(formatName, csvRegKeys::AllHeaders, m_confParams.currentHeaders);
 }
 
 void dlg_CSVInput::deleteFormatBtnClicked()
@@ -217,7 +217,7 @@ void dlg_CSVInput::deleteFormatBtnClicked()
 void dlg_CSVInput::applyFormatColumnSelection()
 {
 	QString formatName = cmbbox_Format->currentText();
-	m_selHeaders = loadHeadersFromReg(formatName, csvRegKeys::SelectedHeaders);
+	m_confParams.selHeaders = loadHeadersFromReg(formatName, csvRegKeys::SelectedHeaders);
 	showSelectedCols();
 }
 
@@ -272,14 +272,10 @@ void dlg_CSVInput::updateAngleEditEnabled()
 void dlg_CSVInput::loadCSVPreviewClicked()
 {
 	assignFormatSettings();
-
 	if (!loadFilePreview(sb_PreviewLines->value(), m_PreviewUpdated))
 		return;
-	m_confParams.tableWidth = m_currentHeaders.size();
-
 	if (m_formatSelected)
-		m_selHeaders = loadHeadersFromReg(m_formatName, csvRegKeys::SelectedHeaders);
-	
+		m_confParams.selHeaders = loadHeadersFromReg(m_formatName, csvRegKeys::SelectedHeaders);
 	showSelectedCols();
 	m_formatSelected = false;
 }
@@ -326,11 +322,10 @@ void dlg_CSVInput::assignObjectTypes()
 void dlg_CSVInput::showColumnHeaders()
 {
 	list_ColumnSelection->clear();
-	m_currentHeaders = m_previewTable->getHeaders();
-	if (m_currentHeaders.isEmpty())
+	m_confParams.currentHeaders = m_previewTable->getHeaders();
+	if (m_confParams.currentHeaders.isEmpty())
 		return;
-	m_confParams.tableWidth = m_currentHeaders.length();
-	for (const auto &currItem : m_currentHeaders)
+	for (const auto &currItem : m_confParams.currentHeaders)
 		list_ColumnSelection->addItem(currItem);
 }
 
@@ -409,34 +404,39 @@ bool dlg_CSVInput::assignSelectedCols(const bool EnableMessageBox)
 		QMessageBox::warning(this, tr("FeatureScout"), "Please select at least 2 columns to load!");
 		return false;
 	}
-	m_selColIdx.clear();
+	m_confParams.selColIdx.clear();
 	for (auto selColModelIdx : selectedColModelIndices)
-		m_selColIdx.push_back(selColModelIdx.row());
-	qSort(m_selColIdx.begin(), m_selColIdx.end(), qLess<uint>());
-	m_selHeaders.clear();
-	for (auto selColIdx: m_selColIdx)
-		m_selHeaders.push_back(m_currentHeaders[selColIdx]);
+		m_confParams.selColIdx.push_back(selColModelIdx.row());
+	qSort(m_confParams.selColIdx.begin(), m_confParams.selColIdx.end(), qLess<uint>());
+	m_confParams.selHeaders.clear();
+	for (auto selColIdx: m_confParams.selColIdx)
+		m_confParams.selHeaders.push_back(m_confParams.currentHeaders[selColIdx]);
 
 	return true;
 }
 
 const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
 {
-	return m_selColIdx;
+	return m_confParams.selColIdx;
 }
 
 void dlg_CSVInput::showSelectedCols()
 {
-	list_ColumnSelection->clearSelection();
-	if (m_selHeaders.length() > m_currentHeaders.length())
+	if (m_confParams.selHeaders.length() == 0)
+	{
+		list_ColumnSelection->selectAll();
+		return;
+	}
+	if (m_confParams.selHeaders.length() > m_confParams.currentHeaders.length())
 	{
 		QMessageBox::warning(this, tr("FeatureScout"),
 			tr("Size of selected headers does not match with headers in file!"));
 		return;
 	}
-	for ( auto &h_entry: m_selHeaders)
+	list_ColumnSelection->clearSelection();
+	for ( auto &h_entry: m_confParams.selHeaders)
 	{
-		int idx = m_currentHeaders.indexOf(h_entry);
+		int idx = m_confParams.currentHeaders.indexOf(h_entry);
 		if (list_ColumnSelection->item(idx))
 			list_ColumnSelection->item(idx)->setSelected(true);
 	}
