@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>509</width>
+    <width>517</width>
     <height>700</height>
    </rect>
   </property>
@@ -30,7 +30,7 @@
     <number>4</number>
    </property>
    <item>
-    <widget class="QGroupBox" name="groupBox_File">
+    <widget class="QGroupBox" name="grpbox_File">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -70,7 +70,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="gb_Format">
+    <widget class="QGroupBox" name="grpbox_Format">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -332,7 +332,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox_ColMapping">
+       <widget class="QGroupBox" name="grpbox_ColMapping">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -553,7 +553,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox_ColSelection">
+       <widget class="QGroupBox" name="grpbox_ColSelection">
         <property name="title">
          <string> Column selection</string>
         </property>
@@ -594,7 +594,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_Preview">
+    <widget class="QGroupBox" name="grpbox_Preview">
      <property name="title">
       <string>Preview</string>
      </property>

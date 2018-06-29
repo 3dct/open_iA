@@ -67,7 +67,6 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 {
 	setupUi(this);
 	initParameters();
-	updateColumnMappingInputs();
 	connectSignals();
 }
 
@@ -108,6 +107,7 @@ void dlg_CSVInput::initParameters()
 		showConfigParams(m_confParams);
 		m_formatName = defaultFormat;
 	}
+	updateColumnMappingInputs();
 }
 
 void dlg_CSVInput::setPath(QString const & path)
@@ -223,6 +223,9 @@ void dlg_CSVInput::applyFormatColumnSelection()
 
 void dlg_CSVInput::updateColumnMappingInputs()
 {
+	// overall, enable column mapping only for analysis type fiber for now
+	grpbox_ColMapping->setEnabled(m_confParams.objectType == iAFeatureScoutObjectType::Fibers);
+
 	bool useStartEnd = cmbbox_col_Selection->currentIndex() == 0;
 	cmbbox_col_PosStartX->setEnabled(useStartEnd);
 	cmbbox_col_PosStartY->setEnabled(useStartEnd);
