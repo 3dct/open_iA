@@ -31,7 +31,10 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QIODevice>
+#include <QMessageBox>
 #include <QStringList>
+#include <QTableWidget>
+#include <QTextCodec>
 #include <QTextStream>
 
 namespace
@@ -53,16 +56,13 @@ bool iACsvIO::loadFibreCSV(const QString &fileName)
 	// test availability of the table and clear the table
 	table->Initialize();
 
-	// calculate the length of objects in csv file for defining the vtkTable
-	int rowCount = calcRowCount(fileName, LegacyFormatStartSkipLines, 0);
-	if (rowCount <= 0)
-		return false;
-
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 		return false;
-
 	QTextStream in(&file);
+	size_t rowCount = calcRowCount(in, LegacyFormatStartSkipLines, 0);
+	if (rowCount <= 0)
+		return false;
 
 	// todo: efficient ways to detect header lines in csv file
 	// or define header information with header length and table length
@@ -231,15 +231,15 @@ int iACsvIO::assignFiberValuesPart1(int i, int col_idx, double a11, double a22, 
 bool iACsvIO::loadPoreCSV(const QString &fileName)
 {
 	table->Initialize();
-	// calculate the length of objects in csv file for defining the vtkTable
-	size_t rowCount = calcRowCount(fileName,  LegacyFormatStartSkipLines, 0);
-	if (rowCount <= 0)
-		return false;
+
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 		return false;
-
 	QTextStream in(&file);
+	size_t rowCount = calcRowCount(in, LegacyFormatStartSkipLines, 0);
+	if (rowCount <= 0)
+		return false;
+
 	// todo: efficient ways to detect header lines in csv file
 	// or define header information with header length and table length
 	// then there is no need to calculate the table length
@@ -336,31 +336,22 @@ void iACsvIO::debugTable(const bool useTabSeparator)
 	}
 }
 
-size_t iACsvIO::calcRowCount(const QString &fileName, const size_t skipLinesStart, const size_t skipLinesEnd)
+size_t iACsvIO::calcRowCount(QTextStream& in, const size_t skipLinesStart, const size_t skipLinesEnd)
 {
-	// skip lines which are not headers
-	// todo: to find another efficient way to count the lines in a file
-	if (fileName.isEmpty())
-		return 0;
+	// skip (unused) header lines (+1 for line containing actual column headers)
+	for (int i = 0; i < skipLinesStart + 1 && !in.atEnd(); i++)
+		in.readLine();
 
-	QFile file(fileName);
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-		return 0;
-
-	// skip header lines
-	for (int i = 0; i < skipLinesStart && !file.atEnd(); i++)
-		file.readLine();
-
+	// count remaining lines
 	size_t rowCount = 0;
-	while (!file.atEnd())
+	while (!in.atEnd())
 	{
-		file.readLine();
-		++rowCount; // count text line
+		in.readLine();
+		++rowCount;
 	}
-	file.close();
+	in.seek(0);
 	return rowCount - skipLinesEnd;
 }
-
 
 QStringList iACsvIO::getFibreElementsName(bool withUnit)
 {
@@ -452,13 +443,15 @@ vtkTable* iACsvIO::getCSVTable()
 
 bool iACsvIO::readCustomFileEntries()
 {
-	size_t rowCount = calcRowCount(m_csvConfig.fileName, m_csvConfig.skipLinesStart, m_csvConfig.skipLinesEnd);
 	QFile file(m_csvConfig.fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 		return false;
-
 	QTextStream in(&file);
 	in.setCodec(m_csvConfig.encoding.toStdString().c_str());
+	size_t rowCount = calcRowCount(in, m_csvConfig.skipLinesStart, m_csvConfig.skipLinesEnd);
+	if (rowCount <= 0)
+		return false;
+	
 	for (int i = 0; i < m_csvConfig.skipLinesStart + 1; i++)	// skip lines including header
 		in.readLine();
 
@@ -557,3 +550,86 @@ void iACsvIO::loadPoreData(QTextStream &in, size_t const col_count, size_t const
 			table->RemoveRow(row);
 	}
 }
+
+// @{ migrated from DataTable
+
+void iACsvIO::addLineToTable(QTableWidget* dstTbl, QStringList const & tableEntries, size_t row, bool addAutoID)
+{
+	dstTbl->insertRow(row);
+	uint colInd = 0;
+	if (addAutoID) // adding autoID column
+	{
+		dstTbl->setItem(row, colInd, new QTableWidgetItem(QString("%1").arg(row)));
+		++colInd;
+	}
+	for (const auto &tableEntry : tableEntries)
+	{
+		dstTbl->setItem(row, colInd, new QTableWidgetItem(tableEntry));
+		++colInd;
+	}
+}
+
+bool  iACsvIO::readTableEntries(QTableWidget* dstTbl, const QString &fName, const uint rowCount, const QString & colSeparator,
+	const uint skipLinesStart, const bool readHeaders, bool addAutoID, QString const & encoding)
+{
+	if (fName.isEmpty())
+		return false;
+	QFile file(fName);
+	if (!file.open(QIODevice::ReadOnly))
+	{
+		QMessageBox::information(dstTbl, QObject::tr("FeatureScout"), QObject::tr("Unable to open file: %1").arg(file.errorString()));
+		return false;
+	}
+	QTextStream in(&file);
+	if (!encoding.isEmpty())
+		in.setCodec(encoding.toStdString().c_str());
+
+	//skip lines and add header to table;
+	prepareHeader(dstTbl, skipLinesStart, in, readHeaders, addAutoID, colSeparator);
+	readTableValues(dstTbl, rowCount, in, addAutoID, colSeparator);
+
+	m_LastEncoding = in.codec()->name().toStdString().c_str();
+	if (file.isOpen()) file.close();
+	return true;
+}
+
+void iACsvIO::readTableValues(QTableWidget* dstTbl, size_t const rowCount, QTextStream &file, bool addAutoID, const QString & colSeparator)
+{
+	size_t row = 0;
+	while (!file.atEnd() && row < rowCount)
+	{
+		QString el_line = file.readLine();
+		auto currentEntry = el_line.split(colSeparator);
+		addLineToTable(dstTbl, currentEntry, row, addAutoID);
+		++row;
+	}
+	dstTbl->setRowCount(row);
+}
+
+void iACsvIO::prepareHeader(QTableWidget* destTbl, uint skipLinesStart, QTextStream &file, bool readHeaders, bool addAutoID, const QString & colSeparator)
+{
+	for (int curRow = 0; curRow < skipLinesStart; curRow++)
+		file.readLine();
+
+	QString line = file.readLine();	// header line
+	if (readHeaders)
+	{
+		m_headerEntries = line.split(colSeparator);
+		if (addAutoID)
+			m_headerEntries.insert(m_headerEntries.begin(), iACsvIO::ColNameAutoID);
+		destTbl->setColumnCount(m_headerEntries.length());
+		destTbl->setHorizontalHeaderLabels(m_headerEntries);
+	}
+}
+
+QString iACsvIO::getLastEncoding() const
+{
+	return m_LastEncoding;
+}
+
+const QStringList & iACsvIO::getHeaders() const
+{
+	return m_headerEntries;
+}
+
+// @}

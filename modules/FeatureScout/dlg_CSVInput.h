@@ -26,7 +26,9 @@
 #include <vtkTable.h>
 #include <vtkSmartPointer.h>
 
-class DataTable;
+#include <QSharedPointer>
+
+class iACsvIO;
 
 class QSettings;
 
@@ -109,18 +111,17 @@ private:
 	//! show column header in list widget, and prepare map with indexes
 	void showColumnHeaders();
 	//! void assignColumnMappings();
-	bool loadFilePreview(const int rowCount, const bool formatLoaded);
+	bool loadFilePreview(const bool formatLoaded);
 	//! checks if file exists and save it to config params
 	bool checkFile(bool formatloaded);
 	//! loading entries into table widget preview
-	void loadEntries(const QString & fileName, const unsigned int nrPreviewElements, QString const & encoding);
+	void loadEntries(const QString & fileName, QString const & encoding);
+	//! clears the preview table (so that it doesn't contain any rows or columns
+	void clearPreviewTable();
 
 	iACsvConfig m_confParams;
 	QString m_fPath;
-	DataTable* m_previewTable = nullptr;
 	QString m_formatName;
-
-	bool isFileNameValid = false;
-	bool m_formatSelected = false;
 	bool m_PreviewUpdated = false;
+	QSharedPointer<iACsvIO> io;
 };

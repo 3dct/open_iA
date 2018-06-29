@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_CSVInput.h"
 
-#include "DataTable.h"
+#include "iACsvIO.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -63,7 +63,9 @@ namespace
 	}
 }
 
-dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/) : QDialog(parent, f)
+dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
+	: QDialog(parent, f),
+	io(new iACsvIO())
 {
 	setupUi(this);
 	initParameters();
@@ -93,11 +95,6 @@ void dlg_CSVInput::connectSignals()
 
 void dlg_CSVInput::initParameters()
 {
-	m_previewTable = new DataTable();
-	myLayout->addWidget(m_previewTable);
-	m_previewTable->setAutoScroll(true);
-	m_previewTable->setEnabled(true);
-	m_previewTable->setVisible(true);
 	ed_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
 	loadFormatEntriesOnStartUp();
 	QString defaultFormat = getDefaultFormat();
@@ -142,15 +139,14 @@ void dlg_CSVInput::loadSelectedFormatSettings(const QString &formatName)
 {
 	if (formatName.isEmpty())
 		return;
-	m_formatSelected = true;
 	m_formatName = formatName;
 	bool formatAvailable = loadFormatFromRegistry(formatName);
 	if (!formatAvailable)
 		return;
 	showConfigParams(m_confParams);
-	if (!loadFilePreview(sb_PreviewLines->value(), true))
+	if (!loadFilePreview(true))
 	{
-		m_previewTable->clearTable();
+		clearPreviewTable();
 		return;
 	}
 	applyFormatColumnSelection();
@@ -275,12 +271,11 @@ void dlg_CSVInput::updateAngleEditEnabled()
 void dlg_CSVInput::loadCSVPreviewClicked()
 {
 	assignFormatSettings();
-	if (!loadFilePreview(sb_PreviewLines->value(), m_PreviewUpdated))
+	if (!loadFilePreview(m_PreviewUpdated))
 		return;
-	if (m_formatSelected)
+	if (!m_PreviewUpdated)
 		m_confParams.selHeaders = loadHeadersFromReg(m_formatName, csvRegKeys::SelectedHeaders);
 	showSelectedCols();
-	m_formatSelected = false;
 }
 
 iACsvConfig const & dlg_CSVInput::getConfigParameters() const
@@ -327,26 +322,25 @@ void dlg_CSVInput::assignObjectTypes()
 void dlg_CSVInput::showColumnHeaders()
 {
 	list_ColumnSelection->clear();
-	m_confParams.currentHeaders = m_previewTable->getHeaders();
+	m_confParams.currentHeaders = io->getHeaders();
 	if (m_confParams.currentHeaders.isEmpty())
 		return;
 	for (const auto &currItem : m_confParams.currentHeaders)
 		list_ColumnSelection->addItem(currItem);
 }
 
-bool dlg_CSVInput::loadFilePreview(const int rowCount, const bool formatLoaded)
+bool dlg_CSVInput::loadFilePreview(const bool formatLoaded)
 {
-	isFileNameValid = checkFile(formatLoaded);
-	if (!isFileNameValid)
+	if (!checkFile(formatLoaded))
 		return false;
 	QString encoding;
 	if (formatLoaded)
 		encoding = cmbbox_Encoding->currentText();
-	loadEntries(m_confParams.fileName, rowCount, encoding);
+	loadEntries(m_confParams.fileName, encoding);
 	if (!formatLoaded)
 	{
 		QSignalBlocker blocker(cmbbox_Encoding);
-		cmbbox_Encoding->setCurrentText(m_previewTable->getLastEncoding());
+		cmbbox_Encoding->setCurrentText(io->getLastEncoding());
 	}
 	txt_ed_fileName->setText(m_confParams.fileName);
 	return true;
@@ -392,12 +386,19 @@ bool dlg_CSVInput::checkFile(bool formatLoaded)
 	return fileOK;
 }
 
-void dlg_CSVInput::loadEntries(const QString& fileName, const unsigned int nrPreviewElements, QString const & encoding)
+void dlg_CSVInput::loadEntries(const QString& fileName, QString const & encoding)
 {
-	m_previewTable->clearTable();
-	m_previewTable->readTableEntries(fileName, nrPreviewElements, m_confParams.colSeparator,
+	int previewLines = sb_PreviewLines->value();
+	clearPreviewTable();
+	io->readTableEntries(tbl_preview, fileName, previewLines, m_confParams.colSeparator,
 		m_confParams.skipLinesStart, true, cb_addAutoID->isChecked(), encoding);
 	showColumnHeaders();
+}
+
+void dlg_CSVInput::clearPreviewTable()
+{
+	tbl_preview->clear();
+	tbl_preview->setRowCount(0);
 }
 
 bool dlg_CSVInput::assignSelectedCols(const bool EnableMessageBox)

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>517</width>
-    <height>700</height>
+    <height>630</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -675,11 +675,11 @@
        </widget>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="myLayout">
-        <property name="spacing">
-         <number>4</number>
+       <widget class="QTableWidget" name="tbl_preview">
+        <property name="sortingEnabled">
+         <bool>true</bool>
         </property>
-       </layout>
+       </widget>
       </item>
      </layout>
     </widget>

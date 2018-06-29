@@ -29,6 +29,7 @@
 #include <QVector>
 
 class vtkTable;
+class QTableWidget;
 class QTextStream;
 
 class iACsvIO
@@ -41,14 +42,29 @@ public:
 	vtkTable * getCSVTable();
 	void setColumnHeaders(QStringList & colHeaders);
 	bool loadCSVCustom(iACsvConfig const & cnfg_params);
+
 	void setParams(QStringList& headers, QVector<uint> const & colIDs);
 	static QStringList getFibreElementsName(bool withUnit);
 	
 	void debugTable(const bool useTabSeparator);
+
+	//! @{ migrated from DataTable
+	//! reads table entries from csv file
+	bool readTableEntries(QTableWidget* dstTbl, const QString &fName, const uint rowCount, const QString & colSeparator,
+		const uint skipLinesStart, const bool readHeaders, bool addAutoID, QString const & encoding);
+	QString getLastEncoding() const;
+	const QStringList & getHeaders() const;
 private:
+	QStringList m_headerEntries; //!< list of column header names <-> TODO: duplicate of m_TableHeaders ??
+	QString m_LastEncoding;      //!< encoding used when last reading the csv file
+	void readTableValues(QTableWidget* dstTbl, size_t const rowCount, QTextStream &file, bool addAutoID, const QString & colSeparator);
+	void addLineToTable(QTableWidget* dstTbl, QStringList const &tableEntries, size_t row, bool addAutoID);
+	void prepareHeader(QTableWidget* dstTbl, uint skipLinesStart, QTextStream &file, bool readHeaders, bool addAutoID, const QString & colSeparator);
+	//! @}
+
 	bool readCustomFileEntries();
 	void loadPoreData(QTextStream &in, size_t const colCount, size_t const rowCount);
-	size_t calcRowCount(const QString &fileName, size_t const skipLinesStart, size_t const skipLinesEnd);
+	size_t calcRowCount(QTextStream& in, size_t const skipLinesStart, size_t const skipLinesEnd);
 	bool loadFibreCSV(const QString &fileName);
 	void fibreCalculation(QTextStream & in, size_t const colCount, size_t const rowCount, bool const useOldFeatureScoutFormat);
 	int assingFiberValuesPart_2(int i, int col_idx, double phi, double theta, double xm, double ym, double zm);
