@@ -285,12 +285,6 @@ bool iACsvIO::loadPoreCSV(const QString &fileName)
 	return true;
 }
 
-bool iACsvIO::loadConfig(const QString configName, bool & applyEN_Formating )
-{
-	QFile file(configName);
-	return file.open(QIODevice::ReadOnly | QIODevice::Text);
-}
-
 bool iACsvIO::loadCSVCustom(iACsvConfig const & cnfg_params)
 {
 	m_csvConfig = cnfg_params;
@@ -477,7 +471,7 @@ bool iACsvIO::readCustomFileEntries()
 		{
 			colCount = m_TableHeaders.length();
 		}
-		loadPoreData(in, colCount, rowCount);
+		loadFeatureData(in, colCount, rowCount);
 	}
 	else
 	{
@@ -514,7 +508,7 @@ void iACsvIO::setColumnHeaders(QStringList &colHeaders)
 	table->AddColumn(arr);
 }
 
-void iACsvIO::loadPoreData(QTextStream &in, size_t const col_count, size_t const rowCount)
+void iACsvIO::loadFeatureData(QTextStream &in, size_t const col_count, size_t const rowCount)
 {
 	size_t resultRowID = 1;
 	for (size_t row = 0; row < (rowCount - m_csvConfig.skipLinesEnd); ++row)
@@ -553,7 +547,7 @@ void iACsvIO::loadPoreData(QTextStream &in, size_t const col_count, size_t const
 
 // @{ migrated from DataTable
 
-void iACsvIO::addLineToTable(QTableWidget* dstTbl, QStringList const & tableEntries, size_t row, bool addAutoID)
+void iACsvIO::addLineToTable(QTableWidget* dstTbl, QStringList const & tableEntries, size_t const row, bool addAutoID)
 {
 	dstTbl->insertRow(row);
 	uint colInd = 0;
@@ -569,31 +563,25 @@ void iACsvIO::addLineToTable(QTableWidget* dstTbl, QStringList const & tableEntr
 	}
 }
 
-bool  iACsvIO::readTableEntries(QTableWidget* dstTbl, const QString &fName, const uint rowCount, const QString & colSeparator,
-	const uint skipLinesStart, const bool readHeaders, bool addAutoID, QString const & encoding)
+bool  iACsvIO::readTableEntries(QTableWidget* dstTbl, iACsvConfig const & params, size_t const rowCount)
 {
-	if (fName.isEmpty())
+	if (params.fileName.isEmpty())
 		return false;
-	QFile file(fName);
+	QFile file(params.fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		QMessageBox::information(dstTbl, QObject::tr("FeatureScout"), QObject::tr("Unable to open file: %1").arg(file.errorString()));
 		return false;
 	}
 	QTextStream in(&file);
-	if (!encoding.isEmpty())
-		in.setCodec(encoding.toStdString().c_str());
-
-	//skip lines and add header to table;
-	prepareHeader(dstTbl, skipLinesStart, in, readHeaders, addAutoID, colSeparator);
-	readTableValues(dstTbl, rowCount, in, addAutoID, colSeparator);
-
-	m_LastEncoding = in.codec()->name().toStdString().c_str();
+	in.setCodec(params.encoding.toStdString().c_str());
+	prepareHeader(dstTbl, params.skipLinesStart, in, true, params.addAutoID, params.colSeparator);
+	readTableValues(dstTbl, rowCount, in, params.addAutoID, params.colSeparator);
 	if (file.isOpen()) file.close();
 	return true;
 }
 
-void iACsvIO::readTableValues(QTableWidget* dstTbl, size_t const rowCount, QTextStream &file, bool addAutoID, const QString & colSeparator)
+void iACsvIO::readTableValues(QTableWidget* dstTbl, size_t const rowCount, QTextStream &file, bool addAutoID, QString const & colSeparator)
 {
 	size_t row = 0;
 	while (!file.atEnd() && row < rowCount)
@@ -606,7 +594,7 @@ void iACsvIO::readTableValues(QTableWidget* dstTbl, size_t const rowCount, QText
 	dstTbl->setRowCount(row);
 }
 
-void iACsvIO::prepareHeader(QTableWidget* destTbl, uint skipLinesStart, QTextStream &file, bool readHeaders, bool addAutoID, const QString & colSeparator)
+void iACsvIO::prepareHeader(QTableWidget* destTbl, size_t skipLinesStart, QTextStream &file, bool readHeaders, bool addAutoID, QString const & colSeparator)
 {
 	for (int curRow = 0; curRow < skipLinesStart; curRow++)
 		file.readLine();
@@ -620,11 +608,6 @@ void iACsvIO::prepareHeader(QTableWidget* destTbl, uint skipLinesStart, QTextStr
 		destTbl->setColumnCount(m_headerEntries.length());
 		destTbl->setHorizontalHeaderLabels(m_headerEntries);
 	}
-}
-
-QString iACsvIO::getLastEncoding() const
-{
-	return m_LastEncoding;
 }
 
 const QStringList & iACsvIO::getHeaders() const

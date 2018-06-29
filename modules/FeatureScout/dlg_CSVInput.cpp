@@ -52,7 +52,7 @@ namespace
 		static QStringList colSeparators;
 		if (colSeparators.isEmpty())
 		{                 // has to match order of the entries in cmbbox_ColSeparator!
-			colSeparators << ";" << "," << "\t" ;
+			colSeparators << "," << ";" << "\t" ;
 		}
 		return colSeparators;
 	}
@@ -72,39 +72,37 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	connectSignals();
 }
 
-void dlg_CSVInput::connectSignals()
-{
-	connect(btn_LoadCSVData, &QPushButton::clicked, this, &dlg_CSVInput::loadCSVPreviewClicked);
-	connect(btn_SaveFormat, &QPushButton::clicked, this, &dlg_CSVInput::saveFormatBtnClicked);
-	connect(btn_DeleteFormat, &QPushButton::clicked, this, &dlg_CSVInput::deleteFormatBtnClicked);
-	connect(btn_UpdatePreview, &QPushButton::clicked, this, &dlg_CSVInput::updateCSVPreview);
-	connect(btn_ApplyFormatColumnSelection, &QPushButton::clicked, this, &dlg_CSVInput::applyFormatColumnSelection);
-	connect(cmbbox_Format, &QComboBox::currentTextChanged, this, &dlg_CSVInput::loadSelectedFormatSettings);
-	connect(cmbbox_ColSeparator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updateCSVPreview);
-	connect(cmbbox_ObjectType, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchObjectType);
-	connect(cmbbox_Encoding, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updateCSVPreview);
-	connect(buttonBox, &QDialogButtonBox::accepted, this, &dlg_CSVInput::okButtonClicked);
-	connect(ed_SkipLinesStart, SIGNAL(valueChanged(int)), this, SLOT(updateCSVPreview()));
-	connect(ed_SkipLinesEnd,   SIGNAL(valueChanged(int)), this, SLOT(updateCSVPreview()));
-	connect(sb_PreviewLines,   SIGNAL(valueChanged(int)), this, SLOT(updateCSVPreview()));
-	connect(cmbbox_col_Selection, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updateColumnMappingInputs);
-	connect(cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::updateLengthEditEnabled);
-	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::updateAngleEditEnabled);
-	connect(cb_addAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updateCSVPreview);
-}
-
 void dlg_CSVInput::initParameters()
 {
 	ed_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
-	loadFormatEntriesOnStartUp();
-	QString defaultFormat = getDefaultFormat();
-	if (!defaultFormat.isEmpty())
-	{
-		loadFormatFromRegistry(defaultFormat);
-		showConfigParams(m_confParams);
-		m_formatName = defaultFormat;
-	}
+	QStringList formatEntries = getFormatListFromRegistry();
+	cmbbox_Format->addItems(formatEntries);
+	// load default format, and if that fails, load first format if available:
+	if (!loadFormatFromRegistry(getDefaultFormat()) && formatEntries.length() > 0)
+		loadFormatFromRegistry(formatEntries[0]);
+	showConfigParams(m_confParams);
 	updateColumnMappingInputs();
+}
+
+void dlg_CSVInput::connectSignals()
+{
+	connect(btn_SelectFile, &QPushButton::clicked, this, &dlg_CSVInput::selectFileBtnClicked);
+	connect(btn_SaveFormat, &QPushButton::clicked, this, &dlg_CSVInput::saveFormatBtnClicked);
+	connect(btn_DeleteFormat, &QPushButton::clicked, this, &dlg_CSVInput::deleteFormatBtnClicked);
+	connect(btn_UpdatePreview, &QPushButton::clicked, this, &dlg_CSVInput::updatePreview);
+	connect(btn_ApplyFormatColumnSelection, &QPushButton::clicked, this, &dlg_CSVInput::applyFormatColumnSelection);
+	connect(cmbbox_Format, &QComboBox::currentTextChanged, this, &dlg_CSVInput::loadSelectedFormatSettings);
+	connect(cmbbox_ColSeparator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updatePreview);
+	connect(cmbbox_ObjectType, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchObjectType);
+	connect(cmbbox_Encoding, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updatePreview);
+	connect(buttonBox, &QDialogButtonBox::accepted, this, &dlg_CSVInput::okBtnClicked);
+	connect(ed_SkipLinesStart, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
+	connect(ed_SkipLinesEnd, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
+	connect(sb_PreviewLines, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
+	connect(cmbbox_col_Selection, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updateColumnMappingInputs);
+	connect(cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::updateLengthEditEnabled);
+	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::updateAngleEditEnabled);
+	connect(cb_addAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 }
 
 void dlg_CSVInput::setPath(QString const & path)
@@ -126,42 +124,66 @@ QStringList dlg_CSVInput::loadHeadersFromReg(const QString &formatName, const QS
 	return settings.value(entryName).value<QStringList>();
 }
 
-void dlg_CSVInput::okButtonClicked()
+bool dlg_CSVInput::checkFile()
 {
-	if (!assignSelectedCols(true))
+	if (m_confParams.fileName.isEmpty())
+	{
+		QMessageBox::information(this, tr("FeatureScout"), tr("Please specify a filename!"));
+		return false;
+	}
+	QFile file(m_confParams.fileName);
+	if (!file.open(QIODevice::ReadOnly))
+	{
+		QMessageBox::information(this, tr("FeatureScout"), tr("Unable to open file: %1!").arg(file.errorString()));
+		return false;
+	}
+	file.close();
+	return true;
+}
+
+void dlg_CSVInput::okBtnClicked()
+{
+	assignFormatSettings();
+	if (!checkFile())
 		return;
+	assignSelectedCols();
+	if (m_confParams.selHeaders.size() < 2)
+	{
+		QMessageBox::warning(this, tr("FeatureScout"), "Please select at least 2 columns to load!");
+		return;
+	}
 	if (!cmbbox_Format->currentText().isEmpty())
-		storeDefaultFormat(cmbbox_Format->currentText());
+		saveDefaultFormat(cmbbox_Format->currentText());
 	accept();
 }
 
 void dlg_CSVInput::loadSelectedFormatSettings(const QString &formatName)
 {
-	if (formatName.isEmpty())
-		return;
-	m_formatName = formatName;
-	bool formatAvailable = loadFormatFromRegistry(formatName);
-	if (!formatAvailable)
-		return;
-	showConfigParams(m_confParams);
-	if (!loadFilePreview(true))
+	if (!loadFormatFromRegistry(formatName))
 	{
-		clearPreviewTable();
+		QMessageBox::warning(this, tr("FeatureScout"), tr("Format not available (or name empty)!"));
 		return;
 	}
+	showConfigParams(m_confParams);
+	if (!loadFilePreview())
+		return;
 	applyFormatColumnSelection();
 }
 
-void dlg_CSVInput::updateCSVPreview()
+void dlg_CSVInput::updatePreview()
 {
-	m_PreviewUpdated = true;
-	loadCSVPreviewClicked();
-	m_PreviewUpdated = false;
+	assignFormatSettings();
+	if (!loadFilePreview())
+		return;
+	if (!m_PreviewUpdated)
+		m_confParams.selHeaders = loadHeadersFromReg(m_formatName, csvRegKeys::SelectedHeaders);
+	showSelectedCols();
 }
 
 void dlg_CSVInput::switchObjectType(const QString &ObjectInputType)
 {
 	assignObjectTypes();
+	updateColumnMappingInputs();
 }
 
 void dlg_CSVInput::saveFormatBtnClicked()
@@ -172,27 +194,26 @@ void dlg_CSVInput::saveFormatBtnClicked()
 		QMessageBox::warning(this, tr("FeatureScout"), tr("Please enter a format name!"));
 		return;
 	}
-
 	assignFormatSettings();
-	assignSelectedCols(false);
-
-	QStringList OtherFormatEntries = getFormatListFromRegistry();
-	if (OtherFormatEntries.contains(formatName, Qt::CaseSensitivity::CaseSensitive))
+	assignSelectedCols();
+	QStringList formatEntries = getFormatListFromRegistry();
+	QSignalBlocker fmtBlocker(cmbbox_Format);
+	if (formatEntries.contains(formatName, Qt::CaseSensitivity::CaseInsensitive))
 	{
 		auto reply = QMessageBox::warning(this, tr("FeatureScout"),
 			tr("Format '%1' already exists. Do you want to overwrite it?").arg(formatName),
 			QMessageBox::Yes | QMessageBox::No);
 		if (reply != QMessageBox::Yes)
 			return;
+		else // to be sure to have the same lower/upper case string in the combo-box, delete existing entry:
+			deleteFormatFromReg(formatName);
 	}
-	else
-	{ // not yet in registry, add
-		cmbbox_Format->addItem(formatName);
-	}
-	cmbbox_Format->setCurrentText(formatName);
-	saveParamsToRegistry(m_confParams, formatName);
+	saveFormatToRegistry(m_confParams, formatName);
 	saveHeadersToReg(formatName, csvRegKeys::SelectedHeaders, m_confParams.selHeaders);
 	saveHeadersToReg(formatName, csvRegKeys::AllHeaders, m_confParams.currentHeaders);
+	cmbbox_Format->addItem(formatName);
+	cmbbox_Format->model()->sort(0);
+	cmbbox_Format->setCurrentText(formatName);
 }
 
 void dlg_CSVInput::deleteFormatBtnClicked()
@@ -204,10 +225,14 @@ void dlg_CSVInput::deleteFormatBtnClicked()
 		QMessageBox::Yes | QMessageBox::No);
 	if (reply != QMessageBox::Yes)
 		return;
+	deleteFormatFromReg(formatName);
+}
 
+void dlg_CSVInput::deleteFormatFromReg(QString const & formatName)
+{
 	QSettings settings;
 	settings.remove(getFormatRegistryKey(formatName));
-	cmbbox_Format->removeItem(cmbbox_Format->currentIndex());
+	cmbbox_Format->removeItem(cmbbox_Format->findText(formatName, Qt::MatchFixedString));
 }
 
 void dlg_CSVInput::applyFormatColumnSelection()
@@ -268,14 +293,15 @@ void dlg_CSVInput::updateAngleEditEnabled()
 	lbl_col_theta   ->setEnabled(!cb_ComputeAngles->isChecked());
 }
 
-void dlg_CSVInput::loadCSVPreviewClicked()
+void dlg_CSVInput::selectFileBtnClicked()
 {
-	assignFormatSettings();
-	if (!loadFilePreview(m_PreviewUpdated))
+	QString fileName = QFileDialog::getOpenFileName(
+		this, tr("Open Files"), m_fPath, tr("Comma-separated values (*.csv),.csv")
+	);
+	if (fileName.isEmpty())
 		return;
-	if (!m_PreviewUpdated)
-		m_confParams.selHeaders = loadHeadersFromReg(m_formatName, csvRegKeys::SelectedHeaders);
-	showSelectedCols();
+	ed_FileName->setText(fileName);
+	updatePreview();
 }
 
 iACsvConfig const & dlg_CSVInput::getConfigParameters() const
@@ -284,11 +310,11 @@ iACsvConfig const & dlg_CSVInput::getConfigParameters() const
 }
 
 void dlg_CSVInput::showConfigParams(iACsvConfig const &params)
-{   // do not send signals to update config / preview:
+{
+	// prevent signals to update config and preview:
 	QSignalBlocker slsblock(ed_SkipLinesStart), sleblock(ed_SkipLinesEnd),
 		csblock(cmbbox_ColSeparator), aiblock(cb_addAutoID),
 		eblock(cmbbox_Encoding), otblock(cmbbox_ObjectType);
-	
 	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(params.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
 	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(params.colSeparator));
@@ -311,6 +337,7 @@ void dlg_CSVInput::assignFormatSettings()
 	m_confParams.unit = cmbbox_Unit->currentText();
 	m_confParams.addAutoID = cb_addAutoID->isChecked();
 	m_confParams.encoding = cmbbox_Encoding->currentText();
+	m_confParams.fileName = ed_FileName->text();
 	assignObjectTypes();
 }
 
@@ -329,70 +356,14 @@ void dlg_CSVInput::showColumnHeaders()
 		list_ColumnSelection->addItem(currItem);
 }
 
-bool dlg_CSVInput::loadFilePreview(const bool formatLoaded)
+bool dlg_CSVInput::loadFilePreview()
 {
-	if (!checkFile(formatLoaded))
-		return false;
-	QString encoding;
-	if (formatLoaded)
-		encoding = cmbbox_Encoding->currentText();
-	loadEntries(m_confParams.fileName, encoding);
-	if (!formatLoaded)
-	{
-		QSignalBlocker blocker(cmbbox_Encoding);
-		cmbbox_Encoding->setCurrentText(io->getLastEncoding());
-	}
-	txt_ed_fileName->setText(m_confParams.fileName);
-	return true;
-}
-
-bool dlg_CSVInput::checkFile(bool formatLoaded)
-{
-	QString fileName = "";
-	if (!formatLoaded)
-	{
-		fileName = QFileDialog::getOpenFileName(
-			this, tr("Open Files"), m_fPath, tr("csv spreadsheet (*.csv),.csv")
-		);
-	}
-	else
-	{
-		fileName = m_confParams.fileName;
-	}
-
-	bool fileOK = false;
-	if (fileName.isEmpty())
-	{
-		return false;
-	}
-	else
-	{
-		QFile file(fileName);
-		if (!file.open(QIODevice::ReadOnly))
-		{
-			QMessageBox::information(this, tr("FeatureScout"), tr("Unable to open file: %1").arg(file.errorString()));
-			return false;
-		}
-		else
-		{
-			fileOK = true;
-			m_confParams.fileName = fileName;
-		}
-		if (file.isOpen())
-		{
-			file.close();
-		}
-	}
-	return fileOK;
-}
-
-void dlg_CSVInput::loadEntries(const QString& fileName, QString const & encoding)
-{
-	int previewLines = sb_PreviewLines->value();
 	clearPreviewTable();
-	io->readTableEntries(tbl_preview, fileName, previewLines, m_confParams.colSeparator,
-		m_confParams.skipLinesStart, true, cb_addAutoID->isChecked(), encoding);
+	int previewLines = sb_PreviewLines->value();
+	if (!io->readTableEntries(tbl_preview, m_confParams, previewLines))
+		return false;
 	showColumnHeaders();
+	return true;
 }
 
 void dlg_CSVInput::clearPreviewTable()
@@ -401,15 +372,10 @@ void dlg_CSVInput::clearPreviewTable()
 	tbl_preview->setRowCount(0);
 }
 
-bool dlg_CSVInput::assignSelectedCols(const bool EnableMessageBox)
+void dlg_CSVInput::assignSelectedCols()
 {
 	auto selectedHeadersList = list_ColumnSelection->selectedItems();
 	auto selectedColModelIndices = list_ColumnSelection->selectionModel()->selectedIndexes();
-	if (EnableMessageBox && (selectedHeadersList.length() < 2))
-	{
-		QMessageBox::warning(this, tr("FeatureScout"), "Please select at least 2 columns to load!");
-		return false;
-	}
 	m_confParams.selColIdx.clear();
 	for (auto selColModelIdx : selectedColModelIndices)
 		m_confParams.selColIdx.push_back(selColModelIdx.row());
@@ -417,8 +383,6 @@ bool dlg_CSVInput::assignSelectedCols(const bool EnableMessageBox)
 	m_confParams.selHeaders.clear();
 	for (auto selColIdx: m_confParams.selColIdx)
 		m_confParams.selHeaders.push_back(m_confParams.currentHeaders[selColIdx]);
-
-	return true;
 }
 
 const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
@@ -450,14 +414,14 @@ void dlg_CSVInput::showSelectedCols()
 
 bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 {
+	if (formatName.isEmpty())
+		return false;
 	QSettings settings;
 	settings.beginGroup(getFormatRegistryKey(formatName));
 	QStringList allEntries = settings.allKeys();
 	if (allEntries.isEmpty())
-	{
-		QMessageBox::warning(this, tr("FeatureScout"), tr("Format not available!"));
 		return false;
-	}
+	m_formatName = formatName;
 	ed_FormatName->setText(formatName);
 	cmbbox_Format->setCurrentText(formatName);
 	iACsvConfig defaultConfig;
@@ -473,13 +437,7 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	return true;
 }
 
-void dlg_CSVInput::loadFormatEntriesOnStartUp()
-{
-	QStringList formatEntries = getFormatListFromRegistry();
-	cmbbox_Format->addItems(formatEntries);
-}
-
-void dlg_CSVInput::storeDefaultFormat(QString const & formatName)
+void dlg_CSVInput::saveDefaultFormat(QString const & formatName)
 {
 	QSettings settings;
 	settings.beginGroup(getFormatRegistryKey(""));
@@ -500,7 +458,7 @@ QStringList dlg_CSVInput::getFormatListFromRegistry() const
 	return settings.childGroups();
 }
 
-void dlg_CSVInput::saveParamsToRegistry(iACsvConfig const & csv_params, const QString &formatName)
+void dlg_CSVInput::saveFormatToRegistry(iACsvConfig const & csv_params, const QString &formatName)
 {
 	QSettings settings;
 	settings.beginGroup(getFormatRegistryKey(formatName));

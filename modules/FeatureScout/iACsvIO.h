@@ -50,27 +50,24 @@ public:
 
 	//! @{ migrated from DataTable
 	//! reads table entries from csv file
-	bool readTableEntries(QTableWidget* dstTbl, const QString &fName, const uint rowCount, const QString & colSeparator,
-		const uint skipLinesStart, const bool readHeaders, bool addAutoID, QString const & encoding);
-	QString getLastEncoding() const;
+	bool readTableEntries(QTableWidget* dstTbl, iACsvConfig const & params, const size_t rowCount);
 	const QStringList & getHeaders() const;
 private:
 	QStringList m_headerEntries; //!< list of column header names <-> TODO: duplicate of m_TableHeaders ??
 	QString m_LastEncoding;      //!< encoding used when last reading the csv file
 	void readTableValues(QTableWidget* dstTbl, size_t const rowCount, QTextStream &file, bool addAutoID, const QString & colSeparator);
 	void addLineToTable(QTableWidget* dstTbl, QStringList const &tableEntries, size_t row, bool addAutoID);
-	void prepareHeader(QTableWidget* dstTbl, uint skipLinesStart, QTextStream &file, bool readHeaders, bool addAutoID, const QString & colSeparator);
+	void prepareHeader(QTableWidget* dstTbl, size_t skipLinesStart, QTextStream &file, bool readHeaders, bool addAutoID, const QString & colSeparator);
 	//! @}
 
 	bool readCustomFileEntries();
-	void loadPoreData(QTextStream &in, size_t const colCount, size_t const rowCount);
+	void loadFeatureData(QTextStream &in, size_t const colCount, size_t const rowCount);
 	size_t calcRowCount(QTextStream& in, size_t const skipLinesStart, size_t const skipLinesEnd);
-	bool loadFibreCSV(const QString &fileName);
 	void fibreCalculation(QTextStream & in, size_t const colCount, size_t const rowCount, bool const useOldFeatureScoutFormat);
 	int assingFiberValuesPart_2(int i, int col_idx, double phi, double theta, double xm, double ym, double zm);
 	int assignFiberValuesPart1(int i, int col_idx, double a11, double a22, double a33, double a12, double a13, double a23);
+	bool loadFibreCSV(const QString &fileName);
 	bool loadPoreCSV(const QString &fileName);
-	bool loadConfig(const QString configName, bool & applyEN_Formating);
 
 	bool useCVSOnly;	//!< indicates whether we read a custom csv format or a "legacy" FiberScout/FeatureScout fiber/pore file
 	bool enableFiberTransformation; //!< indicates whether to compute fiber characteristics

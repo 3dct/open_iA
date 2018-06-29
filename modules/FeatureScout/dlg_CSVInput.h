@@ -55,13 +55,13 @@ public:
 
 private slots:
 	//! updates preview (e.g. when Update Preview button called)
-	void loadCSVPreviewClicked();
+	void selectFileBtnClicked();
 	//! handles a click on the OK button
-	void okButtonClicked();
+	void okBtnClicked();
 	//! load format based on selected input format (ex. mavi/ vg, ...)
 	void loadSelectedFormatSettings(const QString &formatName);
-	//! switch between comma and column and show file preview
-	void updateCSVPreview();
+	//! show file preview (triggered on any update to the format settings and when Update Preview button is clicked)
+	void updatePreview();
 	//! switch Object Type Fiber / Pores
 	void switchObjectType(const QString &inputType);
 	//! Add format to the list of known formats
@@ -75,48 +75,47 @@ private slots:
 	void updateLengthEditEnabled();
 	void updateAngleEditEnabled();
 private:
+	//! initialize GUI elements
+	void initParameters();
 	//! connect signals and slots of all dialog controls
 	void connectSignals();
 	//! List all csv format entries, returned list is empty if no format definitions in registry
 	QStringList getFormatListFromRegistry() const;
 	//! Retrieve name of format loaded last time the dialog was open
 	QString getDefaultFormat() const;
-	//! Store name of format to be loaded next time dialog is opened
-	void storeDefaultFormat(QString const & formatName);
-	//! store format parameters in registry
-	void saveParamsToRegistry(iACsvConfig const & csv_params, const QString & formatName);
-	//! load entries from registry for a given format name
+	//! Save name of format to be loaded next time dialog is opened
+	void saveDefaultFormat(QString const & formatName);
+	//! Save a specific format with its settings in registry
+	void saveFormatToRegistry(iACsvConfig const & csv_params, const QString & formatName);
+	//! Load entries from registry for a given format name
 	bool loadFormatFromRegistry(const QString & formatName);
-	//! load selected headers from registry
+	//! Deletes a format from the registry
+	void deleteFormatFromReg(QString const & formatName);
+	//! Load selected headers from registry
 	QStringList loadHeadersFromReg(const QString &formatName, const QString& entryName);
-	//! save selected headers to registry
+	//! Save selected headers to registry
 	void saveHeadersToReg(const QString &formatName, const QString& entryName, QStringList const & headers);
-	//! shows configuration parameters to GUI
+	//! Shows configuration parameters in GUI
 	void showConfigParams(iACsvConfig const & params);
-	//! show selected columns from parameters in GUI
+	//! Show selected columns from parameters in GUI
 	void showSelectedCols();
-	//! load initial settings
-	void loadFormatEntriesOnStartUp();
-
-	void initParameters();
 	//! @{ assign methods take data from GUI and assign it to config object
-	//! assign all format settings from the GUI to the internal configuration object
+	//! Assign all format settings from the GUI to the internal configuration object
 	//! (except for header lines)
 	void assignFormatSettings();
-	//! assign the input object type from the GUI to the internal configuration object
+	//! Assign the input object type from the GUI to the internal configuration object
 	void assignObjectTypes();
-	//! set entries from a selected List + setting column count information for selection
-	bool assignSelectedCols(const bool EnableMessageBox);
+	//! Set entries from a selected List + setting column count information for selection
+	void assignSelectedCols();
 	//! @}
-	//! show column header in list widget, and prepare map with indexes
+	//! Show column header in list widget, and prepare map with indexes
 	void showColumnHeaders();
 	//! void assignColumnMappings();
-	bool loadFilePreview(const bool formatLoaded);
-	//! checks if file exists and save it to config params
-	bool checkFile(bool formatloaded);
-	//! loading entries into table widget preview
-	void loadEntries(const QString & fileName, QString const & encoding);
-	//! clears the preview table (so that it doesn't contain any rows or columns
+	//! Load file into preview table widget
+	bool loadFilePreview();
+	//! Checks if file exists and save it to config params
+	bool checkFile();
+	//! Clears the preview table (so that it doesn't contain any rows or columns
 	void clearPreviewTable();
 
 	iACsvConfig m_confParams;
