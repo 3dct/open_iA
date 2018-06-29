@@ -106,8 +106,8 @@ void dlg_CSVInput::initParameters()
 	{
 		loadFormatFromRegistry(defaultFormat);
 		showConfigParams(m_confParams);
+		m_formatName = defaultFormat;
 	}
-	m_formatName = "";
 }
 
 void dlg_CSVInput::setPath(QString const & path)
@@ -286,11 +286,13 @@ iACsvConfig const & dlg_CSVInput::getConfigParameters() const
 }
 
 void dlg_CSVInput::showConfigParams(iACsvConfig const &params)
-{
-	QString ObjInputType = MapObjectTypeToString(params.objectType);
-	int index = cmbbox_ObjectType->findText(ObjInputType, Qt::MatchContains);
+{   // do not send signals to update config / preview:
+	QSignalBlocker slsblock(ed_SkipLinesStart), sleblock(ed_SkipLinesEnd),
+		csblock(cmbbox_ColSeparator), aiblock(cb_addAutoID),
+		eblock(cmbbox_Encoding), otblock(cmbbox_ObjectType);
+	
+	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(params.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
-
 	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(params.colSeparator));
 	cmbbox_DecimalSeparator->setCurrentText(params.decimalSeparator);
 	ed_SkipLinesStart->setValue(params.skipLinesStart);
