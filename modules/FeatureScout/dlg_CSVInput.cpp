@@ -81,7 +81,6 @@ void dlg_CSVInput::initParameters()
 	if (!loadFormatFromRegistry(getDefaultFormat()) && formatEntries.length() > 0)
 		loadFormatFromRegistry(formatEntries[0]);
 	showConfigParams(m_confParams);
-	updateColumnMappingInputs();
 }
 
 void dlg_CSVInput::connectSignals()
@@ -102,7 +101,8 @@ void dlg_CSVInput::connectSignals()
 	connect(cmbbox_col_Selection, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updateColumnMappingInputs);
 	connect(cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::updateLengthEditEnabled);
 	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::updateAngleEditEnabled);
-	connect(cb_addAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
+	connect(cb_addAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updateCreateIDEnabled);
+	connect(list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
 }
 
 void dlg_CSVInput::setPath(QString const & path)
@@ -291,6 +291,19 @@ void dlg_CSVInput::updateAngleEditEnabled()
 	lbl_col_theta   ->setEnabled(!cb_ComputeAngles->isChecked());
 }
 
+void dlg_CSVInput::updateCreateIDEnabled()
+{
+	lbl_col_ID->setEnabled(!cb_addAutoID->isChecked());
+	cmbbox_col_ID->setEnabled(!cb_addAutoID->isChecked());
+	updatePreview();
+}
+
+void dlg_CSVInput::selectedColsChanged()
+{
+	assignSelectedCols();
+	updatePreview();
+}
+
 void dlg_CSVInput::selectFileBtnClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(
@@ -323,6 +336,8 @@ void dlg_CSVInput::showConfigParams(iACsvConfig const &params)
 	cmbbox_Unit->setCurrentText(params.unit);
 	cb_addAutoID->setChecked(params.addAutoID);
 	cmbbox_Encoding->setCurrentText(params.encoding);
+	updateColumnMappingInputs();
+	updateCreateIDEnabled();
 }
 
 void dlg_CSVInput::assignFormatSettings()
@@ -346,6 +361,7 @@ void dlg_CSVInput::assignObjectTypes()
 
 void dlg_CSVInput::showColumnHeaders()
 {
+	QSignalBlocker listSignalBlock(list_ColumnSelection);
 	list_ColumnSelection->clear();
 	m_confParams.currentHeaders = io->getHeaders();
 	if (m_confParams.currentHeaders.isEmpty())
@@ -372,7 +388,6 @@ void dlg_CSVInput::clearPreviewTable()
 
 void dlg_CSVInput::assignSelectedCols()
 {
-	auto selectedHeadersList = list_ColumnSelection->selectedItems();
 	auto selectedColModelIndices = list_ColumnSelection->selectionModel()->selectedIndexes();
 	m_confParams.selColIdx.clear();
 	for (auto selColModelIdx : selectedColModelIndices)
@@ -390,6 +405,7 @@ const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
 
 void dlg_CSVInput::showSelectedCols()
 {
+	QSignalBlocker listSignalBlock(list_ColumnSelection);
 	if (m_confParams.selHeaders.length() == 0)
 	{
 		list_ColumnSelection->selectAll();

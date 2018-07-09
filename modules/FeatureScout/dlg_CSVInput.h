@@ -72,8 +72,14 @@ private slots:
 	void applyFormatColumnSelection();
 	//! switch the inputs for the column mappings depending on what data is available
 	void updateColumnMappingInputs();
+	//! switch length mapping choice enabled based on whether to checkbox to automatically compute it is checked or not
 	void updateLengthEditEnabled();
+	//! switch angle mapping choices enabled based on whether to checkbox to automatically compute it is checked or not
 	void updateAngleEditEnabled();
+	//! called when check box controlling auto ID creation is changed
+	void updateCreateIDEnabled();
+	//! called when selected columns change
+	void selectedColsChanged();
 private:
 	//! initialize GUI elements
 	void initParameters();
