@@ -764,3 +764,19 @@ QSizeGrip
 		width: 16px;
 		height: 16px;
 	}
+/****************************************************************************
+Disabled Inputs
+****************************************************************************/
+	QLabel:disabled,
+	QCheckBox:disabled,
+	QLineEdit:disabled,
+	QComboBox:disabled
+	{
+		color: rgba(75, 75, 75, 75);
+	}
+	QLineEdit:disabled,
+	QComboBox:disabled
+	{
+		border: 1px solid rgba(205, 205, 205, 255);
+		background-color: rgba(235, 235, 235, 255);
+	}
