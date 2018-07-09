@@ -167,7 +167,7 @@ void dlg_CSVInput::loadSelectedFormatSettings(const QString &formatName)
 	showConfigParams(m_confParams);
 	if (!loadFilePreview())
 		return;
-	applyFormatColumnSelection();
+	showSelectedCols();
 }
 
 void dlg_CSVInput::updatePreview()
@@ -175,8 +175,6 @@ void dlg_CSVInput::updatePreview()
 	assignFormatSettings();
 	if (!loadFilePreview())
 		return;
-	if (!m_PreviewUpdated)
-		m_confParams.selHeaders = loadHeadersFromReg(m_formatName, csvRegKeys::SelectedHeaders);
 	showSelectedCols();
 }
 
@@ -434,6 +432,7 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	m_confParams.unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
 	m_confParams.spacing = settings.value(csvRegKeys::Spacing, defaultConfig.spacing).toDouble();
 	m_confParams.encoding = settings.value(csvRegKeys::Encoding, defaultConfig.encoding).toString();
+	m_confParams.selHeaders = loadHeadersFromReg(formatName, csvRegKeys::SelectedHeaders);
 	return true;
 }
 

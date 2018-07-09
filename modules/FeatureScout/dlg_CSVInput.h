@@ -121,6 +121,5 @@ private:
 	iACsvConfig m_confParams;
 	QString m_fPath;
 	QString m_formatName;
-	bool m_PreviewUpdated = false;
 	QSharedPointer<iACsvIO> io;
 };
