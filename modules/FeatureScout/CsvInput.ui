@@ -341,7 +341,11 @@
          </widget>
         </item>
         <item row="11" column="1">
-         <widget class="QComboBox" name="cmbbox_col_ID"/>
+         <widget class="QLineEdit" name="ed_col_ID">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

@@ -72,7 +72,6 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	connectSignals();
 
 	// combo boxes involved in column mapping (in the same order as in iACsvConfig::MappedColumn):
-	mappingBoxes.push_back(cmbbox_col_ID);
 	mappingBoxes.push_back(cmbbox_col_PosStartX);
 	mappingBoxes.push_back(cmbbox_col_PosStartY);
 	mappingBoxes.push_back(cmbbox_col_PosStartZ);
@@ -309,8 +308,10 @@ void dlg_CSVInput::updateAngleEditEnabled()
 
 void dlg_CSVInput::updateCreateIDEnabled()
 {
-	lbl_col_ID->setEnabled(!cb_addAutoID->isChecked());
-	cmbbox_col_ID->setEnabled(!cb_addAutoID->isChecked());
+	if (cb_addAutoID->isChecked())
+		ed_col_ID->setText(iACsvIO::ColNameAutoID);
+	else if (m_confParams.currentHeaders.size() > 0)
+		ed_col_ID->setText(m_confParams.currentHeaders[0]);
 	updatePreview();
 }
 
