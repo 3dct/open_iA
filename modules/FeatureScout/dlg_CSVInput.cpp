@@ -324,7 +324,7 @@ void dlg_CSVInput::selectedColsChanged()
 void dlg_CSVInput::selectFileBtnClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(
-		this, tr("Open Files"), m_fPath, tr("Comma-separated values (*.csv),.csv")
+		this, tr("Open Files"), m_fPath, tr("Comma-separated values (*.csv);;")
 	);
 	if (fileName.isEmpty())
 		return;

@@ -201,6 +201,11 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, ReadMode mode)
 				auto values = line.split(m_csvConfig.colSeparator);
 				for (int valIdx : selectedColIdx)
 				{
+					if (valIdx >= values.size())
+					{
+						DEBUG_LOG(QString("Error in line %1: Only %2 values, at least %3 expected").arg(resultRowID).arg(values.size()).arg(valIdx));
+						break;
+					}
 					QString value = values[valIdx];
 					if (m_csvConfig.decimalSeparator != ".")
 						value = value.replace(m_csvConfig.decimalSeparator, ".");
@@ -249,11 +254,10 @@ QVector<int> iACsvIO::getSelectedColIdx(QStringList const & fileHeaders, QString
 		for (QString colName: selectedHeaders)
 		{
 			int idx = fileHeaders.indexOf(colName);
-			if (idx == -1)
-			{
+			if (idx >= 0)
+				result.append(idx);
+			else
 				DEBUG_LOG(QString("Selected column '%1' not found in file headers '%2', skipping.").arg(colName).arg(fileHeaders.join(",")));
-			}
-			result.append(idx);
 		}
 	}
 	return result;
