@@ -41,6 +41,12 @@ class iARenderer;
 class dlg_blobVisualization;
 class MdiChild;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class QVTKOpenGLWidget;
+#else
+class QVTKWidget;
+class vtkRenderWindow;
+#endif
 class vtkChartParallelCoordinates;
 class vtkContextView;
 class vtkDataArray;

@@ -50,6 +50,12 @@
 #include <itkPasteImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget.h>
+#include <vtkRenderWindow.h>
+#endif
 #include <vtkActor.h>
 #include <vtkActor2D.h>
 #include <vtkAnnotationLink.h>
@@ -91,10 +97,6 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#else
-#include <vtkRenderWindow.h>
-#endif
 #include <vtkRenderWindowInteractor.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarWidget.h>
@@ -1552,7 +1554,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 		m_meanObjectRenderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		meanObjectWidget = new QVTKOpenGLWidget();
 #else
-		m_meanObjectRenderWindow = vtkSmartPointer<vtkRenderer>::New();
+		m_meanObjectRenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
 		meanObjectWidget = new QVTKWidget();
 #endif
 		iovMO->verticalLayout->addWidget( meanObjectWidget );

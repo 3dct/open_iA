@@ -43,7 +43,7 @@ class QDockWidget;
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class QVTKOpenGLWidget;
 #else
-class QVTKWidget
+class QVTKWidget;
 #endif
 class vtkColorTransferFunction;
 class vtkImageData;

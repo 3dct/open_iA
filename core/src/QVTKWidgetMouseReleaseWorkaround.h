@@ -45,8 +45,7 @@ class open_iA_Core_API QVTKWidgetMouseReleaseWorkaround : public QVTKWidget
 {
 	Q_OBJECT
 public:
-	QVTKWidgetMouseReleaseWorkaround(QWidget* parent = NULL, Qt::WindowFlags f = 0): QVTKOpenGLWidget(parent, f) {}
-	~QVTKWidgetMouseReleaseWorkaround(){}
+	QVTKWidgetMouseReleaseWorkaround(QWidget* parent = NULL, Qt::WindowFlags f = 0);
 protected:
 	virtual void mouseReleaseEvent ( QMouseEvent * event );
 	virtual void resizeEvent ( QResizeEvent * event );

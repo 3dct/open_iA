@@ -20,6 +20,16 @@
 * ************************************************************************************/
 #include "QVTKWidgetMouseReleaseWorkaround.h"
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+QVTKWidgetMouseReleaseWorkaround::QVTKWidgetMouseReleaseWorkaround(QWidget* parent, Qt::WindowFlags f)
+	: QVTKOpenGLWidget(parent, f)
+{}
+#else
+QVTKWidgetMouseReleaseWorkaround::QVTKWidgetMouseReleaseWorkaround(QWidget* parent, Qt::WindowFlags f)
+	: QVTKWidget(parent, f)
+{}
+#endif
+
 void QVTKWidgetMouseReleaseWorkaround::mouseReleaseEvent( QMouseEvent * event )
 {
 	if ( Qt::RightButton == event->button() )

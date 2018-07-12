@@ -144,9 +144,9 @@ private:
 	Plot3DVtk * plot3dWeighting;
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget * qvtkWidget, *qvtkPlot3d, *qvtkWeighing;
+	QVTKOpenGLWidget *qvtkWidget, *qvtkPlot3d, *qvtkWeighing;
 #else
-	QVTKWidget * qvtkWidget, *qvtkPlot3d, qvtkWeighing;
+	QVTKWidget *qvtkWidget, *qvtkPlot3d, *qvtkWeighing;
 #endif
 	void  Pick(int pickPos[2]);
 	//! Update all the views and labels corresponding to the picked placement
