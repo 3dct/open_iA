@@ -23,6 +23,8 @@
 #include "iACsvIO.h"
 #include "iACsvQTableCreator.h"
 
+#include "iAConsole.h"
+
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QStandardItemModel>
@@ -45,6 +47,10 @@ namespace csvRegKeys
 	static const QString ObjectType = "ObjectType";
 	static const QString AddAutoID = "AddAutoID";
 	static const QString Encoding = "Encoding";
+	static const QString ComputeLength = "ComputeLength";
+	static const QString ComputeAngles = "ComputeAngles";
+	static const QString ComputeTensors = "ComputeTensors";
+	static const QString ColumnMappings = "ColumnMappings";
 }
 namespace
 {
@@ -62,29 +68,31 @@ namespace
 	{
 		return csvRegKeys::SettingsName + "/" + csvRegKeys::FormatName + "/" + formatName;
 	}
+
+	const char* NotMapped = "Not mapped";
 }
 
 dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
 	: QDialog(parent, f)
 {
 	setupUi(this);
+	// combo boxes involved in column mapping (in the same order as in iACsvConfig::MappedColumn):
+	m_mappingBoxes.push_back(cmbbox_col_PosStartX);
+	m_mappingBoxes.push_back(cmbbox_col_PosStartY);
+	m_mappingBoxes.push_back(cmbbox_col_PosStartZ);
+	m_mappingBoxes.push_back(cmbbox_col_PosEndX);
+	m_mappingBoxes.push_back(cmbbox_col_PosEndY);
+	m_mappingBoxes.push_back(cmbbox_col_PosEndZ);
+	m_mappingBoxes.push_back(cmbbox_col_PosCenterX);
+	m_mappingBoxes.push_back(cmbbox_col_PosCenterY);
+	m_mappingBoxes.push_back(cmbbox_col_PosCenterZ);
+	m_mappingBoxes.push_back(cmbbox_col_Length);
+	m_mappingBoxes.push_back(cmbbox_col_Diameter);
+	m_mappingBoxes.push_back(cmbbox_col_Phi);
+	m_mappingBoxes.push_back(cmbbox_col_Theta);
+
 	initParameters();
 	connectSignals();
-
-	// combo boxes involved in column mapping (in the same order as in iACsvConfig::MappedColumn):
-	mappingBoxes.push_back(cmbbox_col_PosStartX);
-	mappingBoxes.push_back(cmbbox_col_PosStartY);
-	mappingBoxes.push_back(cmbbox_col_PosStartZ);
-	mappingBoxes.push_back(cmbbox_col_PosEndX);
-	mappingBoxes.push_back(cmbbox_col_PosEndY);
-	mappingBoxes.push_back(cmbbox_col_PosEndZ);
-	mappingBoxes.push_back(cmbbox_col_PosCenterX);
-	mappingBoxes.push_back(cmbbox_col_PosCenterY);
-	mappingBoxes.push_back(cmbbox_col_PosCenterZ);
-	mappingBoxes.push_back(cmbbox_col_Length);
-	mappingBoxes.push_back(cmbbox_col_Diameter);
-	mappingBoxes.push_back(cmbbox_col_Phi);
-	mappingBoxes.push_back(cmbbox_col_Theta);
 }
 
 void dlg_CSVInput::initParameters()
@@ -95,7 +103,7 @@ void dlg_CSVInput::initParameters()
 	// load default format, and if that fails, load first format if available:
 	if (!loadFormatFromRegistry(getDefaultFormat()) && formatEntries.length() > 0)
 		loadFormatFromRegistry(formatEntries[0]);
-	showConfigParams(m_confParams);
+	showConfigParams();
 }
 
 void dlg_CSVInput::connectSignals()
@@ -114,15 +122,16 @@ void dlg_CSVInput::connectSignals()
 	connect(ed_SkipLinesEnd, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
 	connect(sb_PreviewLines, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
 	connect(cmbbox_col_Selection, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updateColumnMappingInputs);
-	connect(cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::updateLengthEditEnabled);
-	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::updateAngleEditEnabled);
-	connect(cb_addAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updateCreateIDEnabled);
+	connect(cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeLengthChanged);
+	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeAngleChanged);
+	connect(cb_ComputeTensors, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
+	connect(cb_addAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
 }
 
 void dlg_CSVInput::setPath(QString const & path)
 {
-	m_fPath = path;
+	m_path = path;
 }
 
 void dlg_CSVInput::saveHeadersToReg(const QString &formatName, const QString& entryName, QStringList const & headers)
@@ -136,7 +145,7 @@ QStringList dlg_CSVInput::loadHeadersFromReg(const QString &formatName, const QS
 {
 	QSettings settings;
 	settings.beginGroup(getFormatRegistryKey(formatName));
-	return settings.value(entryName).value<QStringList>();
+	return settings.value(entryName).toStringList();
 }
 
 bool dlg_CSVInput::checkFile()
@@ -162,9 +171,9 @@ void dlg_CSVInput::okBtnClicked()
 	if (!checkFile())
 		return;
 	assignSelectedCols();
-	if (m_confParams.selectedHeaders.size() < 2)
+	if (m_confParams.selectedHeaders.size() < 1)
 	{
-		QMessageBox::warning(this, tr("FeatureScout"), "Please select at least 2 columns to load!");
+		QMessageBox::warning(this, tr("FeatureScout"), "Please select at least one column to load!");
 		return;
 	}
 	if (!cmbbox_Format->currentText().isEmpty())
@@ -179,7 +188,7 @@ void dlg_CSVInput::loadSelectedFormatSettings(const QString &formatName)
 		QMessageBox::warning(this, tr("FeatureScout"), tr("Format not available (or name empty)!"));
 		return;
 	}
-	showConfigParams(m_confParams);
+	showConfigParams();
 	if (!loadFilePreview())
 		return;
 	showSelectedCols();
@@ -221,7 +230,7 @@ void dlg_CSVInput::saveFormatBtnClicked()
 		else // to be sure to have the same lower/upper case string in the combo-box, delete existing entry:
 			deleteFormatFromReg(formatName);
 	}
-	saveFormatToRegistry(m_confParams, formatName);
+	saveFormatToRegistry(formatName);
 	saveHeadersToReg(formatName, csvRegKeys::SelectedHeaders, m_confParams.selectedHeaders);
 	saveHeadersToReg(formatName, csvRegKeys::AllHeaders, m_confParams.currentHeaders);
 	cmbbox_Format->addItem(formatName);
@@ -283,10 +292,13 @@ void dlg_CSVInput::updateColumnMappingInputs()
 
 	cb_ComputeLength->setEnabled(useStartEnd);
 	cb_ComputeAngles->setEnabled(useStartEnd);
+	cb_ComputeTensors->setEnabled(useStartEnd);
 	if (!useStartEnd)
 	{
+		QSignalBlocker clblock(cb_ComputeLength), cablock(cb_ComputeAngles), ctblock(cb_ComputeTensors);
 		cb_ComputeLength->setChecked(false);
 		cb_ComputeAngles->setChecked(false);
+		cb_ComputeTensors->setChecked(false);
 	}
 	updateAngleEditEnabled();
 	updateLengthEditEnabled();
@@ -298,6 +310,12 @@ void dlg_CSVInput::updateLengthEditEnabled()
 	lbl_col_length   ->setEnabled(!cb_ComputeLength->isChecked());
 }
 
+void dlg_CSVInput::computeLengthChanged()
+{
+	updateLengthEditEnabled();
+	updatePreview();
+}
+
 void dlg_CSVInput::updateAngleEditEnabled()
 {
 	cmbbox_col_Phi  ->setEnabled(!cb_ComputeAngles->isChecked());
@@ -306,12 +324,9 @@ void dlg_CSVInput::updateAngleEditEnabled()
 	lbl_col_theta   ->setEnabled(!cb_ComputeAngles->isChecked());
 }
 
-void dlg_CSVInput::updateCreateIDEnabled()
+void dlg_CSVInput::computeAngleChanged()
 {
-	if (cb_addAutoID->isChecked())
-		ed_col_ID->setText(iACsvIO::ColNameAutoID);
-	else if (m_confParams.currentHeaders.size() > 0)
-		ed_col_ID->setText(m_confParams.currentHeaders[0]);
+	updateAngleEditEnabled();
 	updatePreview();
 }
 
@@ -324,7 +339,7 @@ void dlg_CSVInput::selectedColsChanged()
 void dlg_CSVInput::selectFileBtnClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(
-		this, tr("Open Files"), m_fPath, tr("Comma-separated values (*.csv);;")
+		this, tr("Open Files"), m_path, tr("Comma-separated values (*.csv);;")
 	);
 	if (fileName.isEmpty())
 		return;
@@ -337,38 +352,59 @@ iACsvConfig const & dlg_CSVInput::getConfig() const
 	return m_confParams;
 }
 
-void dlg_CSVInput::showConfigParams(iACsvConfig const &params)
+void dlg_CSVInput::showConfigParams()
 {
 	// prevent signals to update config and preview:
 	QSignalBlocker slsblock(ed_SkipLinesStart), sleblock(ed_SkipLinesEnd),
 		csblock(cmbbox_ColSeparator), aiblock(cb_addAutoID),
-		eblock(cmbbox_Encoding), otblock(cmbbox_ObjectType);
-	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(params.objectType), Qt::MatchContains);
+		eblock(cmbbox_Encoding), otblock(cmbbox_ObjectType),
+		clblock(cb_ComputeLength), cablock(cb_ComputeAngles), ctblock(cb_ComputeTensors);
+	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
-	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(params.colSeparator));
-	cmbbox_DecimalSeparator->setCurrentText(params.decimalSeparator);
-	ed_SkipLinesStart->setValue(params.skipLinesStart);
-	ed_SkipLinesEnd->setValue(params.skipLinesEnd);
-	ed_Spacing->setText(QString("%1").arg(params.spacing));
-	cmbbox_Unit->setCurrentText(params.unit);
-	cb_addAutoID->setChecked(params.addAutoID);
-	cmbbox_Encoding->setCurrentText(params.encoding);
+	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(m_confParams.colSeparator));
+	cmbbox_DecimalSeparator->setCurrentText(m_confParams.decimalSeparator);
+	ed_SkipLinesStart->setValue(m_confParams.skipLinesStart);
+	ed_SkipLinesEnd->setValue(m_confParams.skipLinesEnd);
+	ed_Spacing->setText(QString("%1").arg(m_confParams.spacing));
+	cmbbox_Unit->setCurrentText(m_confParams.unit);
+	cmbbox_Encoding->setCurrentText(m_confParams.encoding);
+	cb_addAutoID->setChecked(m_confParams.addAutoID);
+	cb_ComputeLength->setChecked(m_confParams.computeLength);
+	cb_ComputeAngles->setChecked(m_confParams.computeAngles);
+	cb_ComputeTensors->setChecked(m_confParams.computeTensors);
 	updateColumnMappingInputs();
-	updateCreateIDEnabled();
 }
 
 void dlg_CSVInput::assignFormatSettings()
 {
+	m_confParams.fileName = ed_FileName->text();
+	assignObjectTypes();
 	m_confParams.colSeparator = ColumnSeparators()[cmbbox_ColSeparator->currentIndex()];
 	m_confParams.decimalSeparator = cmbbox_DecimalSeparator->currentText();
 	m_confParams.skipLinesStart = ed_SkipLinesStart->value();
 	m_confParams.skipLinesEnd = ed_SkipLinesEnd->value();
 	m_confParams.spacing = ed_Spacing->text().toDouble();
 	m_confParams.unit = cmbbox_Unit->currentText();
-	m_confParams.addAutoID = cb_addAutoID->isChecked();
 	m_confParams.encoding = cmbbox_Encoding->currentText();
-	m_confParams.fileName = ed_FileName->text();
-	assignObjectTypes();
+	m_confParams.addAutoID = cb_addAutoID->isChecked();
+	m_confParams.computeLength = cb_ComputeLength->isChecked();
+	m_confParams.computeAngles = cb_ComputeAngles->isChecked();
+	m_confParams.computeTensors = cb_ComputeTensors->isChecked();
+	m_confParams.columnMapping.clear();
+	QSet<QString> usedColumns;
+	for (int i = 0; i < iACsvConfig::MappedCount; ++i)
+	{
+		if (!m_mappingBoxes[i]->currentText().isEmpty() &&  m_mappingBoxes[i]->currentText() != NotMapped)
+		{
+			if (usedColumns.contains(m_mappingBoxes[i]->currentText()))
+			{
+				DEBUG_LOG(QString("Column '%1' used more than once!").arg(m_mappingBoxes[i]->currentText()));
+			}
+			else
+				usedColumns.insert(m_mappingBoxes[i]->currentText());
+			m_confParams.columnMapping.insert(i, m_mappingBoxes[i]->currentText());
+		}
+	}
 }
 
 void dlg_CSVInput::assignObjectTypes()
@@ -384,13 +420,20 @@ void dlg_CSVInput::showColumnHeaders()
 		return;
 	list_ColumnSelection->addItems(m_confParams.currentHeaders);
 	QStringList selectibleColumns = m_confParams.currentHeaders;
-	selectibleColumns.insert(0, "Not mapped");
-	for (auto cmbbox : mappingBoxes)
+	selectibleColumns.insert(0, NotMapped);
+	for (auto cmbbox : m_mappingBoxes)
 	{
 		auto curText = cmbbox->currentText();
 		cmbbox->clear();
 		cmbbox->addItems(selectibleColumns);
 		cmbbox->setCurrentText(curText);
+	}
+	for (int i = 0; i < iACsvConfig::MappedCount; ++i)
+	{
+		if (m_confParams.columnMapping.contains(i))
+			m_mappingBoxes[i]->setCurrentText(m_confParams.columnMapping[i]);
+		else
+			m_mappingBoxes[i]->setCurrentIndex(0);
 	}
 }
 
@@ -430,24 +473,21 @@ void dlg_CSVInput::assignSelectedCols()
 void dlg_CSVInput::showSelectedCols()
 {
 	QSignalBlocker listSignalBlock(list_ColumnSelection);
-	if (m_confParams.selectedHeaders.length() == 0)
-	{
-		list_ColumnSelection->selectAll();
-		return;
-	}
-	if (m_confParams.selectedHeaders.length() > m_confParams.currentHeaders.length())
-	{
-		QMessageBox::warning(this, tr("FeatureScout"),
-			tr("Size of selected headers does not match with headers in file!"));
-		return;
-	}
 	list_ColumnSelection->clearSelection();
-	for ( auto &h_entry: m_confParams.selectedHeaders)
+	for ( auto &selected: m_confParams.selectedHeaders)
 	{
-		int idx = m_confParams.currentHeaders.indexOf(h_entry);
-		if (list_ColumnSelection->item(idx))
+		int idx = m_confParams.currentHeaders.indexOf(selected);
+		if (idx >= 0)
 			list_ColumnSelection->item(idx)->setSelected(true);
+		else
+			DEBUG_LOG(QString("Header entry %1 not found, skipping its selection.").arg(selected));
 	}
+	if (m_confParams.addAutoID)
+		ed_col_ID->setText(iACsvIO::ColNameAutoID);
+	else if (m_confParams.selectedHeaders.size() > 0)
+		ed_col_ID->setText(m_confParams.selectedHeaders[0]);
+	else
+		ed_col_ID->setText("NONE");
 }
 
 bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
@@ -469,10 +509,21 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	m_confParams.decimalSeparator = settings.value(csvRegKeys::DecimalSeparator, defaultConfig.decimalSeparator).toString();
 	m_confParams.objectType = MapStringToObjectType(settings.value(csvRegKeys::ObjectType, defaultConfig.objectType).toString());
 	m_confParams.addAutoID = settings.value(csvRegKeys::AddAutoID, defaultConfig.addAutoID).toBool();
+	m_confParams.computeLength = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeLength).toBool();
+	m_confParams.computeAngles = settings.value(csvRegKeys::ComputeAngles, defaultConfig.computeAngles).toBool();
+	m_confParams.computeTensors = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeTensors).toBool();
 	m_confParams.unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
 	m_confParams.spacing = settings.value(csvRegKeys::Spacing, defaultConfig.spacing).toDouble();
 	m_confParams.encoding = settings.value(csvRegKeys::Encoding, defaultConfig.encoding).toString();
 	m_confParams.selectedHeaders = loadHeadersFromReg(formatName, csvRegKeys::SelectedHeaders);
+	// load column mappings:
+	QStringList columnMappings = settings.value(csvRegKeys::ColumnMappings).toStringList();
+	for (QString mapping : columnMappings)
+	{
+		int columnKey = mapping.section(":", 0, 0).toInt();
+		QString columnName = mapping.section(":", 1);
+		m_confParams.columnMapping.insert(columnKey, columnName);
+	}
 	return true;
 }
 
@@ -497,17 +548,25 @@ QStringList dlg_CSVInput::getFormatListFromRegistry() const
 	return settings.childGroups();
 }
 
-void dlg_CSVInput::saveFormatToRegistry(iACsvConfig const & csv_params, const QString &formatName)
+void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
 {
 	QSettings settings;
 	settings.beginGroup(getFormatRegistryKey(formatName));
-	settings.setValue(csvRegKeys::SkipLinesStart, csv_params.skipLinesStart);
-	settings.setValue(csvRegKeys::SkipLinesEnd, csv_params.skipLinesEnd);
-	settings.setValue(csvRegKeys::ColSeparator, csv_params.colSeparator);
-	settings.setValue(csvRegKeys::DecimalSeparator, csv_params.decimalSeparator);
-	settings.setValue(csvRegKeys::ObjectType, MapObjectTypeToString(csv_params.objectType));
-	settings.setValue(csvRegKeys::AddAutoID, csv_params.addAutoID);
-	settings.setValue(csvRegKeys::Unit, csv_params.unit);
-	settings.setValue(csvRegKeys::Spacing, csv_params.spacing);
-	settings.setValue(csvRegKeys::Encoding, csv_params.encoding);
+	settings.setValue(csvRegKeys::SkipLinesStart, m_confParams.skipLinesStart);
+	settings.setValue(csvRegKeys::SkipLinesEnd, m_confParams.skipLinesEnd);
+	settings.setValue(csvRegKeys::ColSeparator, m_confParams.colSeparator);
+	settings.setValue(csvRegKeys::DecimalSeparator, m_confParams.decimalSeparator);
+	settings.setValue(csvRegKeys::ObjectType, MapObjectTypeToString(m_confParams.objectType));
+	settings.setValue(csvRegKeys::AddAutoID, m_confParams.addAutoID);
+	settings.setValue(csvRegKeys::Unit, m_confParams.unit);
+	settings.setValue(csvRegKeys::Spacing, m_confParams.spacing);
+	settings.setValue(csvRegKeys::Encoding, m_confParams.encoding);
+	settings.setValue(csvRegKeys::ComputeLength, m_confParams.computeLength);
+	settings.setValue(csvRegKeys::ComputeAngles, m_confParams.computeAngles);
+	settings.setValue(csvRegKeys::ComputeTensors, m_confParams.computeTensors);
+	// save column mappings:
+	QStringList columnMappings;
+	for (auto key : m_confParams.columnMapping.keys())
+		columnMappings.append(QString("%1:%2").arg(key).arg(m_confParams.columnMapping[key]));
+	settings.setValue(csvRegKeys::ColumnMappings, columnMappings);
 }

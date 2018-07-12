@@ -43,8 +43,17 @@ public:
 class iACsvIO
 {
 public:
-	static const char * ColNameAutoID;  //!< name of the auto ID column (inserted optionally depending on config)
+	static const char * ColNameAutoID;  //!< name of the auto ID column (inserted optionally)
 	static const char * ColNameClassID; //!< name of the class ID column (always inserted as last column)
+	static const char * ColNamePhi;     //!< name of the phi column (inserted optionally)
+	static const char * ColNameTheta;   //!< name of the theta angle column (inserted optionally)
+	static const char * ColNameA11;   //!< name of the a11 component column (inserted optionally)
+	static const char * ColNameA22;   //!< name of the a22 component column (inserted optionally)
+	static const char * ColNameA33;   //!< name of the a33 component column (inserted optionally)
+	static const char * ColNameA12;   //!< name of the a12 component column (inserted optionally)
+	static const char * ColNameA13;   //!< name of the a13 component column (inserted optionally)
+	static const char * ColNameA23;   //!< name of the a23 component column (inserted optionally)
+	static const char * ColNameLength;  //!< name of the length angle column (inserted optionally)
 	iACsvIO();
 	//! reads table entries from csv file
 	bool loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & params,

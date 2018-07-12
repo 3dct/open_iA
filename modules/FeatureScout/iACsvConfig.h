@@ -22,6 +22,7 @@
 
 #include "iAFeatureScoutObjectType.h"
 
+#include <QMap>
 #include <QString>
 #include <QVector>
 
@@ -39,7 +40,10 @@ struct iACsvConfig
 		addAutoID(false),
 		objectType(iAFeatureScoutObjectType::Voids),
 		unit("microns"),
-		spacing(0.0f)
+		spacing(0.0f),
+		computeLength(false),
+		computeAngles(false),
+		computeTensors(false)
 	{}
 
 	QString fileName;                       //!< filename, not stored in registrys
@@ -56,12 +60,14 @@ struct iACsvConfig
 
 	enum MappedColumn {
 		NotMapped=-1,
-		ID,
 		StartX, StartY, StartZ,
 		EndX, EndY, EndZ,
 		CenterX, CenterY, CenterZ,
 		Length,
 		Diameter,
-		Phi, Theta
+		Phi, Theta,
+		MappedCount
 	};
+	bool computeLength, computeAngles, computeTensors;  //!< flags whether to compute additional columns
+	QMap<uint, QString> columnMapping;
 };

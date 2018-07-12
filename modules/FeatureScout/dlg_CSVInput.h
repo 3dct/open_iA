@@ -61,15 +61,17 @@ private slots:
 	void applyFormatColumnSelection();
 	//! switch the inputs for the column mappings depending on what data is available
 	void updateColumnMappingInputs();
+	//! called when selected columns change
+	void selectedColsChanged();
+	//! called when Compute Length checkbox check state changed
+	void computeLengthChanged();
+	//! called when Compute Angles checkbox check state changed
+	void computeAngleChanged();
+private:
 	//! switch length mapping choice enabled based on whether to checkbox to automatically compute it is checked or not
 	void updateLengthEditEnabled();
 	//! switch angle mapping choices enabled based on whether to checkbox to automatically compute it is checked or not
 	void updateAngleEditEnabled();
-	//! called when check box controlling auto ID creation is changed
-	void updateCreateIDEnabled();
-	//! called when selected columns change
-	void selectedColsChanged();
-private:
 	//! initialize GUI elements
 	void initParameters();
 	//! connect signals and slots of all dialog controls
@@ -81,7 +83,7 @@ private:
 	//! Save name of format to be loaded next time dialog is opened
 	void saveDefaultFormat(QString const & formatName);
 	//! Save a specific format with its settings in registry
-	void saveFormatToRegistry(iACsvConfig const & csv_params, const QString & formatName);
+	void saveFormatToRegistry(const QString & formatName);
 	//! Load entries from registry for a given format name
 	bool loadFormatFromRegistry(const QString & formatName);
 	//! Deletes a format from the registry
@@ -91,7 +93,7 @@ private:
 	//! Save selected headers to registry
 	void saveHeadersToReg(const QString &formatName, const QString& entryName, QStringList const & headers);
 	//! Shows configuration parameters in GUI
-	void showConfigParams(iACsvConfig const & params);
+	void showConfigParams();
 	//! Show selected columns from parameters in GUI
 	void showSelectedCols();
 	//! @{ assign methods take data from GUI and assign it to config object
@@ -114,7 +116,7 @@ private:
 	void clearPreviewTable();
 
 	iACsvConfig m_confParams;
-	QString m_fPath;
+	QString m_path;
 	QString m_formatName;
-	QVector<QComboBox*> mappingBoxes;
+	QVector<QComboBox*> m_mappingBoxes;
 };

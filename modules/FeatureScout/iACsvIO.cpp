@@ -30,9 +30,18 @@
 #include <QTextCodec>
 #include <QTextStream>
 
-
+// iACsvConfig:
 const char* iACsvIO::ColNameAutoID = "Auto_ID";
 const char* iACsvIO::ColNameClassID = "Class_ID";
+const char* iACsvIO::ColNamePhi = "Phi";
+const char* iACsvIO::ColNameTheta = "Theta";
+const char* iACsvIO::ColNameA11 = "a11";
+const char* iACsvIO::ColNameA22 = "a22";
+const char* iACsvIO::ColNameA33 = "a33";
+const char* iACsvIO::ColNameA12 = "a12";
+const char* iACsvIO::ColNameA13 = "a13";
+const char* iACsvIO::ColNameA23 = "a23";
+const char* iACsvIO::ColNameLength = "Length";
 
 iACsvIO::iACsvIO():
 	m_rowCount(std::numeric_limits<size_t>::max())
@@ -78,7 +87,7 @@ QStringList iACsvIO::fibreCalculation(QString const & line, size_t const colCoun
 
 	phi = (phi*180.0f) / vtkMath::Pi();
 	theta = (theta*180.0f) / vtkMath::Pi(); // finish calculation
-									// locat the phi value to quadrant
+									// locate the phi value to quadrant
 	if (dx < 0)
 	{
 		phi = 180.0 - phi;
@@ -237,6 +246,24 @@ void iACsvIO::determineOutputHeaders(QVector<int> const & selectedCols, ReadMode
 
 		if (m_csvConfig.addAutoID)
 			m_outputHeaders.insert(0, iACsvIO::ColNameAutoID);
+		if (m_csvConfig.computeLength)
+		{
+			m_outputHeaders.append(iACsvIO::ColNameLength);
+		}
+		if (m_csvConfig.computeAngles)
+		{
+			m_outputHeaders.append(iACsvIO::ColNamePhi);
+			m_outputHeaders.append(iACsvIO::ColNameTheta);
+		}
+		if (m_csvConfig.computeTensors)
+		{
+			m_outputHeaders.append(iACsvIO::ColNameA11);
+			m_outputHeaders.append(iACsvIO::ColNameA22);
+			m_outputHeaders.append(iACsvIO::ColNameA33);
+			m_outputHeaders.append(iACsvIO::ColNameA12);
+			m_outputHeaders.append(iACsvIO::ColNameA13);
+			m_outputHeaders.append(iACsvIO::ColNameA23);
+		}
 	}
 	m_outputHeaders.append(iACsvIO::ColNameClassID);
 }
