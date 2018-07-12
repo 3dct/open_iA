@@ -70,6 +70,22 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	setupUi(this);
 	initParameters();
 	connectSignals();
+
+	// combo boxes involved in column mapping (in the same order as in iACsvConfig::MappedColumn):
+	mappingBoxes.push_back(cmbbox_col_ID);
+	mappingBoxes.push_back(cmbbox_col_PosStartX);
+	mappingBoxes.push_back(cmbbox_col_PosStartY);
+	mappingBoxes.push_back(cmbbox_col_PosStartZ);
+	mappingBoxes.push_back(cmbbox_col_PosEndX);
+	mappingBoxes.push_back(cmbbox_col_PosEndY);
+	mappingBoxes.push_back(cmbbox_col_PosEndZ);
+	mappingBoxes.push_back(cmbbox_col_PosCenterX);
+	mappingBoxes.push_back(cmbbox_col_PosCenterY);
+	mappingBoxes.push_back(cmbbox_col_PosCenterZ);
+	mappingBoxes.push_back(cmbbox_col_Length);
+	mappingBoxes.push_back(cmbbox_col_Diameter);
+	mappingBoxes.push_back(cmbbox_col_Phi);
+	mappingBoxes.push_back(cmbbox_col_Theta);
 }
 
 void dlg_CSVInput::initParameters()
@@ -366,8 +382,14 @@ void dlg_CSVInput::showColumnHeaders()
 	m_confParams.currentHeaders = io->getHeaders();
 	if (m_confParams.currentHeaders.isEmpty())
 		return;
-	for (const auto &currItem : m_confParams.currentHeaders)
-		list_ColumnSelection->addItem(currItem);
+	list_ColumnSelection->addItems(m_confParams.currentHeaders);
+	QStringList selectibleColumns = m_confParams.currentHeaders;
+	selectibleColumns.insert(0, "Not mapped");
+	for (auto cmbbox : mappingBoxes)
+	{
+		cmbbox->clear();
+		cmbbox->addItems(m_confParams.currentHeaders);
+	}
 }
 
 bool dlg_CSVInput::loadFilePreview()

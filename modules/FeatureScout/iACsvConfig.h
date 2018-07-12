@@ -53,4 +53,15 @@ struct iACsvConfig
 	QStringList currentHeaders;             //!< current headers of the table
 	QStringList selHeaders;                 //!< names of the selected headers
 	QVector<uint> selColIdx;                //!< indices of the selected headers
+
+	enum MappedColumn {
+		NotMapped,
+		ID,
+		StartX, StartY, StartZ,
+		EndX, EndY, EndZ,
+		CenterX, CenterY, CenterZ,
+		Length,
+		Diameter,
+		Phi, Theta
+	};
 };

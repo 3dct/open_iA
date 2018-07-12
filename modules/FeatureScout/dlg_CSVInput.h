@@ -128,4 +128,5 @@ private:
 	QString m_fPath;
 	QString m_formatName;
 	QSharedPointer<iACsvIO> io;
+	QVector<QComboBox*> mappingBoxes;
 };
