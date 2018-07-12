@@ -181,7 +181,10 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, ReadMode mode)
 	for (int i = 0; i < m_csvConfig.skipLinesStart; i++)
 		in.readLine();
 	
-	m_fileHeaders = in.readLine().split(m_csvConfig.colSeparator);
+	if (m_csvConfig.containsHeader)
+		m_fileHeaders = in.readLine().split(m_csvConfig.colSeparator);
+	else
+		m_fileHeaders = m_csvConfig.currentHeaders;
 	auto selectedColIdx = getSelectedColIdx(m_fileHeaders, m_csvConfig.selectedHeaders, mode);
 	determineOutputHeaders(selectedColIdx, mode);
 	int colCount = m_outputHeaders.size();
@@ -212,7 +215,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, ReadMode mode)
 				{
 					if (valIdx >= values.size())
 					{
-						DEBUG_LOG(QString("Error in line %1: Only %2 values, at least %3 expected").arg(resultRowID).arg(values.size()).arg(valIdx));
+						DEBUG_LOG(QString("Error in line %1: Only %2 values, at least %3 expected").arg(resultRowID).arg(values.size()).arg(valIdx+1));
 						break;
 					}
 					QString value = values[valIdx];

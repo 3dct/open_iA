@@ -50,6 +50,7 @@ namespace csvRegKeys
 	static const QString ComputeLength = "ComputeLength";
 	static const QString ComputeAngles = "ComputeAngles";
 	static const QString ComputeTensors = "ComputeTensors";
+	static const QString ContainsHeader = "ContainsHeader";
 	static const QString ColumnMappings = "ColumnMappings";
 }
 namespace
@@ -73,7 +74,8 @@ namespace
 }
 
 dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
-	: QDialog(parent, f)
+	: QDialog(parent, f),
+	m_columnMappingChoiceSet(false)
 {
 	setupUi(this);
 	// combo boxes involved in column mapping (in the same order as in iACsvConfig::MappedColumn):
@@ -126,6 +128,7 @@ void dlg_CSVInput::connectSignals()
 	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeAngleChanged);
 	connect(cb_ComputeTensors, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cb_addAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
+	connect(cb_ContainsHeader, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
 }
 
@@ -372,6 +375,7 @@ void dlg_CSVInput::showConfigParams()
 	cb_ComputeLength->setChecked(m_confParams.computeLength);
 	cb_ComputeAngles->setChecked(m_confParams.computeAngles);
 	cb_ComputeTensors->setChecked(m_confParams.computeTensors);
+	cb_ContainsHeader->setChecked(m_confParams.containsHeader);
 	updateColumnMappingInputs();
 }
 
@@ -390,6 +394,9 @@ void dlg_CSVInput::assignFormatSettings()
 	m_confParams.computeLength = cb_ComputeLength->isChecked();
 	m_confParams.computeAngles = cb_ComputeAngles->isChecked();
 	m_confParams.computeTensors = cb_ComputeTensors->isChecked();
+	m_confParams.containsHeader = cb_ContainsHeader->isChecked();
+	if (!m_columnMappingChoiceSet)
+		return;
 	m_confParams.columnMapping.clear();
 	QSet<QString> usedColumns;
 	for (int i = 0; i < iACsvConfig::MappedCount; ++i)
@@ -435,6 +442,7 @@ void dlg_CSVInput::showColumnHeaders()
 		else
 			m_mappingBoxes[i]->setCurrentIndex(0);
 	}
+	m_columnMappingChoiceSet = true;
 }
 
 bool dlg_CSVInput::loadFilePreview()
@@ -512,10 +520,12 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	m_confParams.computeLength = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeLength).toBool();
 	m_confParams.computeAngles = settings.value(csvRegKeys::ComputeAngles, defaultConfig.computeAngles).toBool();
 	m_confParams.computeTensors = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeTensors).toBool();
+	m_confParams.containsHeader = settings.value(csvRegKeys::ContainsHeader, defaultConfig.containsHeader).toBool();
 	m_confParams.unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
 	m_confParams.spacing = settings.value(csvRegKeys::Spacing, defaultConfig.spacing).toDouble();
 	m_confParams.encoding = settings.value(csvRegKeys::Encoding, defaultConfig.encoding).toString();
 	m_confParams.selectedHeaders = loadHeadersFromReg(formatName, csvRegKeys::SelectedHeaders);
+	m_confParams.currentHeaders = loadHeadersFromReg(formatName, csvRegKeys::AllHeaders);
 	// load column mappings:
 	QStringList columnMappings = settings.value(csvRegKeys::ColumnMappings).toStringList();
 	for (QString mapping : columnMappings)
@@ -564,6 +574,7 @@ void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
 	settings.setValue(csvRegKeys::ComputeLength, m_confParams.computeLength);
 	settings.setValue(csvRegKeys::ComputeAngles, m_confParams.computeAngles);
 	settings.setValue(csvRegKeys::ComputeTensors, m_confParams.computeTensors);
+	settings.setValue(csvRegKeys::ContainsHeader, m_confParams.containsHeader);
 	// save column mappings:
 	QStringList columnMappings;
 	for (auto key : m_confParams.columnMapping.keys())

@@ -119,4 +119,5 @@ private:
 	QString m_path;
 	QString m_formatName;
 	QVector<QComboBox*> m_mappingBoxes;
+	bool m_columnMappingChoiceSet; //!< whether we have provided proper choices in the column mapping comboboxes already
 };

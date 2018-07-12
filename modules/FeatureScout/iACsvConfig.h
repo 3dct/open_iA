@@ -43,11 +43,13 @@ struct iACsvConfig
 		spacing(0.0f),
 		computeLength(false),
 		computeAngles(false),
-		computeTensors(false)
+		computeTensors(false),
+		containsHeader(true)
 	{}
 
 	QString fileName;                       //!< filename, not stored in registrys
 	QString encoding;                       //!< text encoding of the csv file
+	bool containsHeader;                    //!< whether the file contains a header
 	size_t skipLinesStart, skipLinesEnd;    //!< how many lines to skip at start and end of the file
 	QString colSeparator, decimalSeparator; //!< column and decimal separator strings
 	bool addAutoID;                         //!< whether to add an automatic ID column
