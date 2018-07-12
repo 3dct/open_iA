@@ -21,6 +21,7 @@
 #include "dlg_CSVInput.h"
 
 #include "iACsvIO.h"
+#include "iACsvQTableCreator.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -64,8 +65,7 @@ namespace
 }
 
 dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
-	: QDialog(parent, f),
-	io(new iACsvIO())
+	: QDialog(parent, f)
 {
 	setupUi(this);
 	initParameters();
@@ -163,7 +163,7 @@ void dlg_CSVInput::okBtnClicked()
 	if (!checkFile())
 		return;
 	assignSelectedCols();
-	if (m_confParams.selHeaders.size() < 2)
+	if (m_confParams.selectedHeaders.size() < 2)
 	{
 		QMessageBox::warning(this, tr("FeatureScout"), "Please select at least 2 columns to load!");
 		return;
@@ -223,7 +223,7 @@ void dlg_CSVInput::saveFormatBtnClicked()
 			deleteFormatFromReg(formatName);
 	}
 	saveFormatToRegistry(m_confParams, formatName);
-	saveHeadersToReg(formatName, csvRegKeys::SelectedHeaders, m_confParams.selHeaders);
+	saveHeadersToReg(formatName, csvRegKeys::SelectedHeaders, m_confParams.selectedHeaders);
 	saveHeadersToReg(formatName, csvRegKeys::AllHeaders, m_confParams.currentHeaders);
 	cmbbox_Format->addItem(formatName);
 	cmbbox_Format->model()->sort(0);
@@ -252,7 +252,7 @@ void dlg_CSVInput::deleteFormatFromReg(QString const & formatName)
 void dlg_CSVInput::applyFormatColumnSelection()
 {
 	QString formatName = cmbbox_Format->currentText();
-	m_confParams.selHeaders = loadHeadersFromReg(formatName, csvRegKeys::SelectedHeaders);
+	m_confParams.selectedHeaders = loadHeadersFromReg(formatName, csvRegKeys::SelectedHeaders);
 	showSelectedCols();
 }
 
@@ -331,7 +331,7 @@ void dlg_CSVInput::selectFileBtnClicked()
 	updatePreview();
 }
 
-iACsvConfig const & dlg_CSVInput::getConfigParameters() const
+iACsvConfig const & dlg_CSVInput::getConfig() const
 {
 	return m_confParams;
 }
@@ -379,7 +379,6 @@ void dlg_CSVInput::showColumnHeaders()
 {
 	QSignalBlocker listSignalBlock(list_ColumnSelection);
 	list_ColumnSelection->clear();
-	m_confParams.currentHeaders = io->getHeaders();
 	if (m_confParams.currentHeaders.isEmpty())
 		return;
 	list_ColumnSelection->addItems(m_confParams.currentHeaders);
@@ -387,17 +386,24 @@ void dlg_CSVInput::showColumnHeaders()
 	selectibleColumns.insert(0, "Not mapped");
 	for (auto cmbbox : mappingBoxes)
 	{
+		auto curText = cmbbox->currentText();
 		cmbbox->clear();
-		cmbbox->addItems(m_confParams.currentHeaders);
+		cmbbox->addItems(selectibleColumns);
+		cmbbox->setCurrentText(curText);
 	}
 }
 
 bool dlg_CSVInput::loadFilePreview()
 {
+	if (m_confParams.fileName.isEmpty())
+		return false;
 	clearPreviewTable();
 	int previewLines = sb_PreviewLines->value();
-	if (!io->readTableEntries(tbl_preview, m_confParams, previewLines))
+	iACsvIO io;
+	iACsvQTableCreator creator(tbl_preview);
+	if (!io.loadCSV(creator, m_confParams, previewLines))
 		return false;
+	m_confParams.currentHeaders = io.getFileHeaders();
 	showColumnHeaders();
 	return true;
 }
@@ -411,36 +417,31 @@ void dlg_CSVInput::clearPreviewTable()
 void dlg_CSVInput::assignSelectedCols()
 {
 	auto selectedColModelIndices = list_ColumnSelection->selectionModel()->selectedIndexes();
-	m_confParams.selColIdx.clear();
+	QVector<int> selectedColIDx;
 	for (auto selColModelIdx : selectedColModelIndices)
-		m_confParams.selColIdx.push_back(selColModelIdx.row());
-	qSort(m_confParams.selColIdx.begin(), m_confParams.selColIdx.end(), qLess<uint>());
-	m_confParams.selHeaders.clear();
-	for (auto selColIdx: m_confParams.selColIdx)
-		m_confParams.selHeaders.push_back(m_confParams.currentHeaders[selColIdx]);
-}
-
-const QVector<uint>& dlg_CSVInput::getEntriesSelInd()
-{
-	return m_confParams.selColIdx;
+		selectedColIDx.push_back(selColModelIdx.row());
+	qSort(selectedColIDx.begin(), selectedColIDx.end(), qLess<uint>());
+	m_confParams.selectedHeaders.clear();
+	for (auto selColIdx: selectedColIDx)
+		m_confParams.selectedHeaders.push_back(m_confParams.currentHeaders[selColIdx]);
 }
 
 void dlg_CSVInput::showSelectedCols()
 {
 	QSignalBlocker listSignalBlock(list_ColumnSelection);
-	if (m_confParams.selHeaders.length() == 0)
+	if (m_confParams.selectedHeaders.length() == 0)
 	{
 		list_ColumnSelection->selectAll();
 		return;
 	}
-	if (m_confParams.selHeaders.length() > m_confParams.currentHeaders.length())
+	if (m_confParams.selectedHeaders.length() > m_confParams.currentHeaders.length())
 	{
 		QMessageBox::warning(this, tr("FeatureScout"),
 			tr("Size of selected headers does not match with headers in file!"));
 		return;
 	}
 	list_ColumnSelection->clearSelection();
-	for ( auto &h_entry: m_confParams.selHeaders)
+	for ( auto &h_entry: m_confParams.selectedHeaders)
 	{
 		int idx = m_confParams.currentHeaders.indexOf(h_entry);
 		if (list_ColumnSelection->item(idx))
@@ -470,7 +471,7 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	m_confParams.unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
 	m_confParams.spacing = settings.value(csvRegKeys::Spacing, defaultConfig.spacing).toDouble();
 	m_confParams.encoding = settings.value(csvRegKeys::Encoding, defaultConfig.encoding).toString();
-	m_confParams.selHeaders = loadHeadersFromReg(formatName, csvRegKeys::SelectedHeaders);
+	m_confParams.selectedHeaders = loadHeadersFromReg(formatName, csvRegKeys::SelectedHeaders);
 	return true;
 }
 

@@ -18,37 +18,33 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iACsvQTableCreator.h"
 
-#include "iACsvIO.h"
-#include "iAFeatureScoutObjectType.h"
+#include <QTableWidget>
 
-#include "iAModuleInterface.h"
 
-class dlg_FeatureScout;
-class iACsvConfig;
-class iAFeatureScoutToolbar;
+iACsvQTableCreator::iACsvQTableCreator(QTableWidget* tblWidget) :
+	m_table(tblWidget)
+{}
 
-class iAFeatureScoutModuleInterface : public iAModuleInterface
+void iACsvQTableCreator::initialize(QStringList const & headers, size_t const rowCount)
 {
-	Q_OBJECT
-public:
-	void Initialize();
-private slots:
-	void FeatureScoutWithCSV();
-	void FeatureScout();
-	void FeatureScout_Options();
-	void onChildClose();
-private:
-	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
-	//! entry point for openIA FeatureScout. optional parameter FileParams for custom csv
-	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAFeatureScoutObjectType filterID,
-		iACsvConfig const *FileParams, const bool is_csvOnly, QStringList const &selHeader);
-	void SetupToolbar();
-	void setFeatureScoutRenderSettings();
-	void initializeFeatureScoutStartUp(QString &item, QString &fileName, const bool isCsvOnly,
-		iACsvConfig *FileParams, QStringList const & selectedHeaders);
-	iAFeatureScoutToolbar * tlbFeatureScout;
+	m_table->setColumnCount(headers.size());
+	m_table->setRowCount(rowCount);
+	m_table->setHorizontalHeaderLabels(headers);
+}
 
-	iACsvIO io;
-};
+void iACsvQTableCreator::addRow(size_t row, QStringList const & values)
+{
+	uint col = 0;
+	for (const auto &value : values)
+	{
+		m_table->setItem(row, col, new QTableWidgetItem(value));
+		++col;
+	}
+}
+
+QTableWidget* iACsvQTableCreator::getTable()
+{
+	return m_table;
+}

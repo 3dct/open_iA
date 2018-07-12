@@ -41,18 +41,7 @@ Q_OBJECT
 public:
 	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0); /*: QDialog(parent, f)*/
 	void setPath(QString const & path);
-	const iACsvConfig & getConfigParameters() const;
-	const QVector<uint>& getEntriesSelInd();
-
-	inline const QStringList & getHeaderSelection()
-	{
-		return m_confParams.selHeaders;
-	}
-	inline const ulong getTableWidth()
-	{
-		return m_confParams.currentHeaders.length();
-	}
-
+	const iACsvConfig & getConfig() const;
 private slots:
 	//! updates preview (e.g. when Update Preview button called)
 	void selectFileBtnClicked();
@@ -127,6 +116,5 @@ private:
 	iACsvConfig m_confParams;
 	QString m_fPath;
 	QString m_formatName;
-	QSharedPointer<iACsvIO> io;
 	QVector<QComboBox*> mappingBoxes;
 };

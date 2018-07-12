@@ -23,57 +23,64 @@
 #include "iAFeatureScoutObjectType.h"
 #include "iACsvConfig.h"
 
-#include <vtkSmartPointer.h>
-
 #include <QString>
 #include <QVector>
 
-class vtkTable;
-class QTableWidget;
 class QTextStream;
 
+//! interface used by iACsvIO for creating the actual table
+//! subclass for each kind of table that is specifically required somewhere
+//! (e.g. vtkTable, QTableWidget)
+//! @see iACsvVtkTableCreator, iACsvQTableCreator
+class iACsvTableCreator
+{
+public:
+	virtual void initialize(QStringList const & headers, size_t const rowCount) = 0;
+	virtual void addRow(size_t row, QStringList const & values) = 0;
+};
+
+//! class for reading a csv into a table, using given options
 class iACsvIO
 {
 public:
-	static const char * ColNameAutoID;
-	static const char * ColNameClassID;
+	static const char * ColNameAutoID;  //!< name of the auto ID column (inserted optionally depending on config)
+	static const char * ColNameClassID; //!< name of the class ID column (always inserted as last column)
 	iACsvIO();
-	bool loadCsvFile(iAFeatureScoutObjectType fid, QString const & fileName);
-	vtkTable * getCSVTable();
-	void setColumnHeaders(QStringList & colHeaders);
-	bool loadCSVCustom(iACsvConfig const & cnfg_params);
-
-	void setParams(QStringList& headers, QVector<uint> const & colIDs);
-	static QStringList getFibreElementsName(bool withUnit);
-	
-	void debugTable(const bool useTabSeparator);
-
-	//! @{ migrated from DataTable
 	//! reads table entries from csv file
-	bool readTableEntries(QTableWidget* dstTbl, iACsvConfig const & params, const size_t rowCount);
-	const QStringList & getHeaders() const;
+	bool loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & params,
+		size_t const rowCount = std::numeric_limits<size_t>::max());
+	//! get the list of columns/headers as it is in the file
+	const QStringList & getFileHeaders() const;
+	//! get list of all headers in result table (including computed columns)
+	const QStringList & getOutputHeaders() const;
+	//! [legacy] load an old fiber or pore csv file
+	bool loadLegacyCSV(iACsvTableCreator & dstTbl, iAFeatureScoutObjectType fid,
+		QString const & fileName);
+	//! [legacy] get column header names for old fiber csv format:
+	static QStringList getFibreElementsName(bool withUnit);
 private:
-	QStringList m_headerEntries; //!< list of column header names <-> TODO: duplicate of m_TableHeaders ??
-	QString m_LastEncoding;      //!< encoding used when last reading the csv file
-	void readTableValues(QTableWidget* dstTbl, size_t const rowCount, QTextStream &file, bool addAutoID, const QString & colSeparator);
-	void addLineToTable(QTableWidget* dstTbl, QStringList const &tableEntries, size_t row, bool addAutoID);
-	void prepareHeader(QTableWidget* dstTbl, size_t skipLinesStart, QTextStream &file, bool readHeaders, bool addAutoID, const QString & colSeparator);
-	//! @}
+	enum ReadMode                       //!< type of csv currently being read
+	{
+		LegacyFibers,
+		LegacyPores,
+		NewCSV
+	};
+	QStringList m_fileHeaders;          //!< list of column header names in file
+	QStringList m_outputHeaders;        //!< list of column header names in result table
+	iACsvConfig m_csvConfig;            //!< settings used for reading the csv
+	size_t m_rowCount;                  //!< row count
 
-	bool readCustomFileEntries();
-	void loadFeatureData(QTextStream &in, size_t const colCount, size_t const rowCount);
-	size_t calcRowCount(QTextStream& in, size_t const skipLinesStart, size_t const skipLinesEnd);
-	void fibreCalculation(QTextStream & in, size_t const colCount, size_t const rowCount, bool const useOldFeatureScoutFormat);
-	int assingFiberValuesPart_2(int i, int col_idx, double phi, double theta, double xm, double ym, double zm);
-	int assignFiberValuesPart1(int i, int col_idx, double a11, double a22, double a33, double a12, double a13, double a23);
-	bool loadFibreCSV(const QString &fileName);
-	bool loadPoreCSV(const QString &fileName);
-
-	bool useCVSOnly;	//!< indicates whether we read a custom csv format or a "legacy" FiberScout/FeatureScout fiber/pore file
-	bool enableFiberTransformation; //!< indicates whether to compute fiber characteristics
-
-	iACsvConfig m_csvConfig;
-	vtkSmartPointer<vtkTable> table;
-	QVector<uint> m_colIds;
-	QStringList  m_TableHeaders;
+	//! internal function for the actual loading procedure
+	bool loadCSV(iACsvTableCreator & dstTbl, ReadMode mode);
+	//! determine the header columns used in the output
+	void determineOutputHeaders(QVector<int> const & selectedCols, ReadMode mode);
+	//! determine how man actual data rows the result table will have
+	size_t calcRowCount(QTextStream& in, size_t const skipLinesStart,
+		size_t const skipLinesEnd);
+	//! [legacy]read and compute data for a single fiber
+	QStringList fibreCalculation(QString const & line, size_t const colCount,
+		size_t const rowCount);
+	//! determine the indices of the selected columns
+	QVector<int> getSelectedColIdx(QStringList const & fileHeaders,
+		QStringList const & selectedHeaders, ReadMode mode);
 };

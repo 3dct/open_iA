@@ -31,6 +31,8 @@
 #include "ui_FeatureScoutDistributionView.h"
 #include "ui_FeatureScoutMeanObjectView.h"
 
+#include <vtkSmartPointer.h>
+
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPC> dlg_IOVPC;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutDV> dlg_IOVDV;
@@ -93,7 +95,7 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 
 public:
 	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl,
-		const bool useCsvOnly, QStringList const & selHeaders);
+		const bool useCsvOnly, QStringList const & selectedHeaders);
 	~dlg_FeatureScout();
 
 	// setups

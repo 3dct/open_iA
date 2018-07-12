@@ -22,312 +22,241 @@
 
 #include "iAConsole.h"
 
-#include <vtkDoubleArray.h>
-#include <vtkFloatArray.h>
-#include <vtkIntArray.h>
 #include <vtkMath.h>
-#include <vtkTable.h>
 
 #include <QFile>
-#include <QFileDialog>
 #include <QIODevice>
-#include <QMessageBox>
 #include <QStringList>
-#include <QTableWidget>
 #include <QTextCodec>
 #include <QTextStream>
 
-namespace
-{
-	const int LegacyFormatStartSkipLines = 5;
-}
 
 const char* iACsvIO::ColNameAutoID = "Auto_ID";
 const char* iACsvIO::ColNameClassID = "Class_ID";
 
-iACsvIO::iACsvIO() :
-	table(vtkSmartPointer<vtkTable>::New()),
-	useCVSOnly(false),
-	enableFiberTransformation(false)
+iACsvIO::iACsvIO():
+	m_rowCount(std::numeric_limits<size_t>::max())
 {}
 
-bool iACsvIO::loadFibreCSV(const QString &fileName)
-{
-	// test availability of the table and clear the table
-	table->Initialize();
-
-	QFile file(fileName);
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-		return false;
-	QTextStream in(&file);
-	size_t rowCount = calcRowCount(in, LegacyFormatStartSkipLines, 0);
-	if (rowCount <= 0)
-		return false;
-
-	// todo: efficient ways to detect header lines in csv file
-	// or define header information with header length and table length
-	// then there is no need to calculate the table length
-
-	// skip header lines
-	in.readLine(); in.readLine(); in.readLine(); in.readLine(); in.readLine();
-
-	QStringList eleString = getFibreElementsName(true);
-	vtkSmartPointer<vtkIntArray> arrX = vtkSmartPointer<vtkIntArray>::New();
-	arrX->SetName("Label");
-	table->AddColumn(arrX);
-
-	for (int i = 1; i<eleString.size(); i++)
-	{
-		vtkSmartPointer<vtkDoubleArray> arrX = vtkSmartPointer<vtkDoubleArray>::New();
-		QByteArray byteArr = eleString.at(i).toUtf8();
-		arrX->SetName(byteArr.constData());
-		table->AddColumn(arrX);
-	}
-	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
-	arr->SetName(ColNameClassID);
-	table->AddColumn(arr);
-	table->SetNumberOfRows(rowCount);
-
-	//additional entries for Fibres
-	int colCount = eleString.size();
-	fibreCalculation(in, colCount, rowCount, true);
-	file.close();
-	return true;
-}
-
-
-void iACsvIO::fibreCalculation(QTextStream & in, size_t const colCount, size_t const rowCount, bool const useOldFeatureScoutFormat)
+QStringList iACsvIO::fibreCalculation(QString const & line, size_t const colCount, size_t const rowCount)
 {
 	double x1, x2, y1, y2, z1, z2, dx, dy, dz, xm, ym, zm, phi, theta;
 	double a11, a22, a33, a12, a13, a23;
 
-	for (int i = 0; i < rowCount; i++)
+	//getting start and EndPoints
+	x1 = line.section(",", 1, 1).toFloat();
+	y1 = line.section(",", 2, 2).toFloat();
+	z1 = line.section(",", 3, 3).toFloat();
+	x2 = line.section(",", 4, 4).toFloat();
+	y2 = line.section(",", 5, 5).toFloat();
+	z2 = line.section(",", 6, 6).toFloat();
+
+	// preparing the tensor calculation
+	dx = x1 - x2;
+	dy = y1 - y2;
+	dz = z1 - z2;
+	xm = (x1 + x2) / 2.0f;
+	ym = (y1 + y2) / 2.0f;
+	zm = (z1 + z2) / 2.0f;
+
+	if (dz < 0)
 	{
-		QString line = in.readLine();
-		if (!line.isEmpty())
-		{
-			//getting start and EndPoints
-			x1 = line.section(",", 1, 1).toFloat();
-			y1 = line.section(",", 2, 2).toFloat();
-			z1 = line.section(",", 3, 3).toFloat();
-			x2 = line.section(",", 4, 4).toFloat();
-			y2 = line.section(",", 5, 5).toFloat();
-			z2 = line.section(",", 6, 6).toFloat();
+		dx = x2 - x1;
+		dy = y2 - y1;
+		dz = z2 - z1;
+	}
 
-			// preparing the tensor calculation
-			dx = x1 - x2;
-			dy = y1 - y2;
-			dz = z1 - z2;
-			xm = (x1 + x2) / 2.0f;
-			ym = (y1 + y2) / 2.0f;
-			zm = (z1 + z2) / 2.0f;
+	phi = asin(dy / sqrt(dx*dx + dy * dy));
+	theta = acos(dz / sqrt(dx*dx + dy * dy + dz * dz));
 
-			if (dz < 0)
-			{
-				dx = x2 - x1;
-				dy = y2 - y1;
-				dz = z2 - z1;
-			}
+	a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
+	a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
+	a33 = cos(theta)*cos(theta);
+	a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
+	a13 = cos(phi)*sin(theta)*cos(theta);
+	a23 = sin(phi)*sin(theta)*cos(theta);
 
-			phi = asin(dy / sqrt(dx*dx + dy * dy));
-			theta = acos(dz / sqrt(dx*dx + dy * dy + dz * dz));
+	phi = (phi*180.0f) / vtkMath::Pi();
+	theta = (theta*180.0f) / vtkMath::Pi(); // finish calculation
+									// locat the phi value to quadrant
+	if (dx < 0)
+	{
+		phi = 180.0 - phi;
+	}
 
-			a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
-			a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
-			a33 = cos(theta)*cos(theta);
-			a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
-			a13 = cos(phi)*sin(theta)*cos(theta);
-			a23 = sin(phi)*sin(theta)*cos(theta);
+	if (phi < 0.0)
+	{
+		phi = phi + 360.0;
+	}
 
-			phi = (phi*180.0f) / vtkMath::Pi();
-			theta = (theta*180.0f) / vtkMath::Pi(); // finish calculation
-										 // locat the phi value to quadrant
-			if (dx < 0)
-			{
-				phi = 180.0 - phi;
-			}
+	if (dx == 0 && dy == 0)
+	{
+		phi = 0.0;
+		theta = 0.0;
+		a11 = 0.0;
+		a22 = 0.0;
+		a12 = 0.0;
+		a13 = 0.0;
+		a23 = 0.0;
+	}
+	size_t id = line.section(",", 0, 0).toULongLong();
+	QStringList result;
+	result.append(QString::number(id));
 
-			if (phi < 0.0)
-			{
-				phi = phi + 360.0;
-			}
-
-			if (dx == 0 && dy == 0)
-			{
-				phi = 0.0;
-				theta = 0.0;
-				a11 = 0.0;
-				a22 = 0.0;
-				a12 = 0.0;
-				a13 = 0.0;
-				a23 = 0.0;
-			}
-
-			if ((!useCVSOnly) | enableFiberTransformation )
-			{
-				table->SetValue(i, 0, line.section(",", 0, 0).toInt());
-
-				//QUICK&DIRTY: and dirty for voids to get the right values out of the csv: j<13 (7)+ comment table->SetValues 7-17
-				//first entrys are those ones
-
-				//TODO save in the first column with AUTO ID 2-8, //start colIdx ->2, end will be 8
-				//
-				for (int j = 1; j < 7; j++)
-				{
-					table->SetValue(i, j, line.section(",", j, j).toFloat());
-				}
-				int col_idx = 7;
-
-				if (useOldFeatureScoutFormat)
-				{
-					col_idx = assignFiberValuesPart1(i, col_idx, a11, a22, a33, a12, a13, a23); // 7 - 12
-					col_idx = assingFiberValuesPart_2(i, col_idx, phi, theta, xm, ym, zm);      // 13 - 17
-				} // end useOldFeatureScout format
-
-				//use the other entries of columns, using auto ID will be 8
-				for (int j = 7; j < colCount; j++)
-				{
-					table->SetValue(i, col_idx /*j + 11*/, line.section(",", j, j).toFloat()); //TODO in dbl
-					col_idx++;
-				}
-
-				//for new FeatureScout format just append it
-				if (!useOldFeatureScoutFormat) {
-					col_idx = assignFiberValuesPart1(i, col_idx, a11, a22, a33, a12, a13, a23);
-
-					//13 - 17
-					col_idx = assingFiberValuesPart_2(i, col_idx, phi, theta, xm, ym, zm);
-
-				}
-				table->SetValue(i, colCount - 1, 0); // with autoId +1 last column adding class information
-				//TODO setup to new featureScoutFormat
-			} //end !use csv only
-		}
-		else table->RemoveRow(i);  //Skip empty rows
-	}//end for loop
+	for (int j = 1; j < 7; j++)
+	{
+		result.append(line.section(",", j, j));
+	}
+	result.append(QString::number(a11));
+	result.append(QString::number(a22));
+	result.append(QString::number(a33));
+	result.append(QString::number(a12));
+	result.append(QString::number(a13));
+	result.append(QString::number(a23));
+	result.append(QString::number(phi));
+	result.append(QString::number(theta));
+	result.append(QString::number(xm));
+	result.append(QString::number(ym));
+	result.append(QString::number(zm));
+	for (int j = 7; j < colCount; j++)
+	{
+		result.append(line.section(",", j, j));
+	}
+	return result;
 }
 
-int iACsvIO::assingFiberValuesPart_2(int i, int col_idx, double phi, double theta, double xm, double ym, double zm)
+bool iACsvIO::loadLegacyCSV(iACsvTableCreator & dstTbl, iAFeatureScoutObjectType fid, QString const & fileName)
 {
-	table->SetValue(i, col_idx, phi);  col_idx++;   //14
-	table->SetValue(i, col_idx, theta); col_idx++;  //15
-	table->SetValue(i, col_idx, xm);	col_idx++;  //16
-	table->SetValue(i, col_idx, ym);	col_idx++;  //17
-	table->SetValue(i, col_idx, zm);	col_idx++;
-	return col_idx;
+	m_csvConfig.fileName = fileName;
+	m_csvConfig.colSeparator = ",";
+	m_csvConfig.decimalSeparator = ".";
+	m_csvConfig.skipLinesStart = iACsvConfig::LegacyFormatStartSkipLines;
+	m_csvConfig.skipLinesEnd = 0;
+	switch (fid)
+	{
+		default:
+		case iAFeatureScoutObjectType::Fibers: return loadCSV(dstTbl, LegacyFibers);
+		case iAFeatureScoutObjectType::Voids:  return loadCSV(dstTbl, LegacyPores);
+	}
 }
 
-int iACsvIO::assignFiberValuesPart1(int i, int col_idx, double a11, double a22, double a33, double a12, double a13, double a23)
+bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_params, size_t const rowCount)
 {
-	table->SetValue(i, col_idx, a11);  col_idx++;  //8
-	table->SetValue(i, col_idx, a22); col_idx++;   //9
-	table->SetValue(i, col_idx, a33); col_idx++;   //10
-	table->SetValue(i, col_idx, a12); col_idx++;   //11
-	table->SetValue(i, col_idx, a13);  col_idx++;  //12
-	table->SetValue(i, col_idx, a23);  col_idx++;
-	return col_idx;
+	m_csvConfig = cnfg_params;
+	m_rowCount = rowCount;
+	return loadCSV(dstTbl, NewCSV);
 }
 
-bool iACsvIO::loadPoreCSV(const QString &fileName)
+bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, ReadMode mode)
 {
-	table->Initialize();
-
-	QFile file(fileName);
+	if (!QFile::exists(m_csvConfig.fileName))
+	{
+		DEBUG_LOG("Error loading csv file, file does not exist.");
+		return false;
+	}
+	QFile file(m_csvConfig.fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-		return false;
-	QTextStream in(&file);
-	size_t rowCount = calcRowCount(in, LegacyFormatStartSkipLines, 0);
-	if (rowCount <= 0)
-		return false;
-
-	// todo: efficient ways to detect header lines in csv file
-	// or define header information with header length and table length
-	// then there is no need to calculate the table length
-
-	// skip header lines
-	in.readLine(); in.readLine(); in.readLine(); in.readLine();
-
-	// read names of elements
-	QString eleLine = in.readLine();
-	const char* element;
-	int colCount = eleLine.count(",");
-
-	for (int i = 0; i<colCount; i++)
 	{
-		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
-		QByteArray byteArr = eleLine.section(",", i, i, QString::SectionSkipEmpty).toUtf8();
-		element = byteArr.constData();
-		arrX->SetName(element);
-		table->AddColumn(arrX);
+		DEBUG_LOG(QString("Unable to open file: %1").arg(file.errorString()));
+		return false;
 	}
-	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
-	arr->SetName(iACsvIO::ColNameClassID);
-	table->AddColumn(arr);
-	table->SetNumberOfRows(rowCount);
+	QTextStream in(&file);
+	in.setCodec(m_csvConfig.encoding.toStdString().c_str());
+	size_t rowCount = std::min(m_rowCount, calcRowCount(in, m_csvConfig.skipLinesStart, m_csvConfig.skipLinesEnd));
+	if (rowCount <= 0)
+	{
+		DEBUG_LOG("No rows to load in the csv file!");
+		return false;
+	}
+	
+	for (int i = 0; i < m_csvConfig.skipLinesStart; i++)
+		in.readLine();
+	
+	m_fileHeaders = in.readLine().split(m_csvConfig.colSeparator);
+	auto selectedColIdx = getSelectedColIdx(m_fileHeaders, m_csvConfig.selectedHeaders, mode);
+	determineOutputHeaders(selectedColIdx, mode);
+	int colCount = m_outputHeaders.size();
 
-	for (int i = 0; i<rowCount; ++i)
+	dstTbl.initialize(m_outputHeaders, rowCount);
+
+	size_t resultRowID = 1;
+	for (size_t row = 0; row < rowCount; ++row)
 	{
 		QString line = in.readLine();
-		if (!line.isEmpty())
+		if (line.isEmpty())
+			continue;
+		QStringList entries;
+		switch (mode)
 		{
-			vtkVariant v = line.section(",", 0, 0).toInt();
-			table->SetValue(i, 0, v.ToString()); // set pore or fibre id
-
-			for (int j = 1; j<colCount; j++) // saving values for each col
+			case LegacyFibers: entries = fibreCalculation(line, colCount, rowCount); break;
+			case LegacyPores:
+				for (int j = 0; j < colCount; j++)
+					entries.append(line.section(",", j, j));
+				break;
+			case NewCSV:
 			{
-				float tmp = line.section(",", j, j).toFloat(); //TODO REMOVE
-				table->SetValue(i, j, line.section(",", j, j).toFloat());
+				if (m_csvConfig.addAutoID)
+					entries.append(QString::number(resultRowID));
+
+				auto values = line.split(m_csvConfig.colSeparator);
+				for (int valIdx : selectedColIdx)
+				{
+					QString value = values[valIdx];
+					if (m_csvConfig.decimalSeparator != ".")
+						value = value.replace(m_csvConfig.decimalSeparator, ".");
+					entries.append(value);
+				}
+				break;
 			}
-			table->SetValue(i, colCount, 0);  // set Class_ID value to zero
 		}
+		entries.append("0"); // class ID
+		dstTbl.addRow(resultRowID-1, entries);
+		++resultRowID;
 	}
-	file.close();
+
+	if (file.isOpen())
+		file.close();
 	return true;
 }
 
-bool iACsvIO::loadCSVCustom(iACsvConfig const & cnfg_params)
+void iACsvIO::determineOutputHeaders(QVector<int> const & selectedCols, ReadMode mode)
 {
-	m_csvConfig = cnfg_params;
-	enableFiberTransformation = cnfg_params.objectType == iAFeatureScoutObjectType::Fibers;
-	useCVSOnly = true;
-	table->Initialize();
-	return readCustomFileEntries();
-}
-
-void iACsvIO::setParams(QStringList & headers, const QVector<uint>& colIDs)
-{
-	m_TableHeaders = headers;
-	m_colIds = colIDs;
-}
-
-void iACsvIO::debugTable(const bool useTabSeparator)
-{
-	std::string separator = (useTabSeparator) ? "\t": ",";
-	ofstream debugfile;
-	debugfile.open("C:/Users/p41883/Desktop/inputData.txt");
-	if (debugfile.is_open())
+	if (mode == LegacyFibers)
 	{
-		vtkVariant spCol, spRow, spCN, spVal;
-		spCol = table->GetNumberOfColumns();
-		spRow = table->GetNumberOfRows();
-
-		for (int i = 0; i<spCol.ToInt(); i++)
-		{
-			spCN = table->GetColumnName(i);
-			debugfile << spCN.ToString() << separator;
-		}
-		debugfile << "\n";
-		for (int row = 0; row < spRow.ToInt(); row++)
-		{
-			for (int col = 0; col < spCol.ToInt(); col++)
-			{
-				spVal = table->GetValue(row, col);
-				debugfile << spVal.ToString() << separator; //TODO cast debug to double
-			}
-			debugfile << "\n";
-		}
-		debugfile.close();
+		m_outputHeaders = getFibreElementsName(true);
 	}
+	else
+	{
+		for (int i=0; i<selectedCols.size(); ++i)
+			m_outputHeaders.append(m_fileHeaders[selectedCols[i]]);
+
+		if (m_csvConfig.addAutoID)
+			m_outputHeaders.insert(0, iACsvIO::ColNameAutoID);
+	}
+	m_outputHeaders.append(iACsvIO::ColNameClassID);
+}
+
+QVector<int> iACsvIO::getSelectedColIdx(QStringList const & fileHeaders, QStringList const & selectedHeaders, ReadMode mode)
+{
+	QVector<int> result;
+	if (mode == LegacyFibers || mode == LegacyPores)
+	{
+		for (int i = 0; i < fileHeaders.size(); ++i)
+			result.append(i);
+	}
+	else
+	{
+		for (QString colName: selectedHeaders)
+		{
+			int idx = fileHeaders.indexOf(colName);
+			if (idx == -1)
+			{
+				DEBUG_LOG(QString("Selected column '%1' not found in file headers '%2', skipping.").arg(colName).arg(fileHeaders.join(",")));
+			}
+			result.append(idx);
+		}
+	}
+	return result;
 }
 
 size_t iACsvIO::calcRowCount(QTextStream& in, const size_t skipLinesStart, const size_t skipLinesEnd)
@@ -340,7 +269,9 @@ size_t iACsvIO::calcRowCount(QTextStream& in, const size_t skipLinesStart, const
 	size_t rowCount = 0;
 	while (!in.atEnd())
 	{
-		in.readLine();
+		QString line = in.readLine();
+		if (line.trimmed().isEmpty()) // skip empty lines
+			continue;
 		++rowCount;
 	}
 	in.seek(0);
@@ -415,204 +346,12 @@ QStringList iACsvIO::getFibreElementsName(bool withUnit)
 	return eleString;
 }
 
-bool iACsvIO::loadCsvFile(iAFeatureScoutObjectType fid, QString const & fileName)
+const QStringList & iACsvIO::getFileHeaders() const
 {
-	if (!QFile::exists(fileName))
-	{
-		DEBUG_LOG("Error loading csv file, file does not exist.");
-		return false;
-	}
-	switch (fid)
-	{
-		case iAFeatureScoutObjectType::Fibers: return loadFibreCSV(fileName);
-		case iAFeatureScoutObjectType::Voids:  return loadPoreCSV(fileName);
-		default:                               return false;
-	}
+	return m_fileHeaders;
 }
 
-vtkTable* iACsvIO::getCSVTable()
+const QStringList & iACsvIO::getOutputHeaders() const
 {
-	return table.GetPointer();
+	return m_outputHeaders;
 }
-
-bool iACsvIO::readCustomFileEntries()
-{
-	QFile file(m_csvConfig.fileName);
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-		return false;
-	QTextStream in(&file);
-	in.setCodec(m_csvConfig.encoding.toStdString().c_str());
-	size_t rowCount = calcRowCount(in, m_csvConfig.skipLinesStart, m_csvConfig.skipLinesEnd);
-	if (rowCount <= 0)
-		return false;
-	
-	for (int i = 0; i < m_csvConfig.skipLinesStart + 1; i++)	// skip lines including header
-		in.readLine();
-
-	int colCount = 0;
-	if (enableFiberTransformation)
-	{
-		m_TableHeaders = getFibreElementsName(true);
-		colCount = m_TableHeaders.length();
-	}
-
-	//else use default header
-
-	setColumnHeaders(m_TableHeaders);
-	table->SetNumberOfRows(rowCount);
-
-	if (!enableFiberTransformation)
-	{
-		if (m_colIds.length() > 0)
-		{
-			colCount = m_colIds.length();
-		}
-		else
-		{
-			colCount = m_TableHeaders.length();
-		}
-		loadFeatureData(in, colCount, rowCount);
-	}
-	else
-	{
-		fibreCalculation(in, rowCount, colCount, true);
-		//TODO adapt to new Featurescout csvOnly
-	}
-
-	if(file.isOpen())
-		file.close();
-	return true;
-}
-
-void iACsvIO::setColumnHeaders(QStringList &colHeaders)
-{
-	vtkSmartPointer<vtkIntArray> arrAuto = vtkSmartPointer<vtkIntArray>::New();
-	if (m_csvConfig.addAutoID)
-	{
-		arrAuto->SetName(ColNameAutoID);
-		table->AddColumn(arrAuto);
-	}
-	//adding headers;
-	for (const auto &elLine : colHeaders)
-	{
-		if (!elLine.isEmpty())
-		{
-			vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
-			QByteArray byteArr = elLine.toUtf8();
-			arrX->SetName(byteArr.constData());
-			table->AddColumn(arrX);
-		}
-	}
-	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
-	arr->SetName(ColNameClassID);
-	table->AddColumn(arr);
-}
-
-void iACsvIO::loadFeatureData(QTextStream &in, size_t const col_count, size_t const rowCount)
-{
-	size_t resultRowID = 1;
-	for (size_t row = 0; row < (rowCount - m_csvConfig.skipLinesEnd); ++row)
-	{
-		QString line = in.readLine();
-		if (!line.isEmpty())
-		{
-			table->SetValue(row, 0, resultRowID);
-			int curResultCol = 1; // column index in filtered result table
-
-			//adding entries for each col
-			for (int col = 1; col<col_count + 1; col++)
-			{
-				if (m_colIds.contains((uint)col - 1)) //< skip rows not contained in m_colIds
-				{
-					QString tmp_section = line.section(m_csvConfig.colSeparator, col - 1, col - 1);
-					if (!tmp_section.isEmpty())
-					{
-						//replace decimal separator for german input format
-						if (m_csvConfig.decimalSeparator != ".")
-							tmp_section = tmp_section.replace(m_csvConfig.decimalSeparator, ".");
-
-						double tbl_value = tmp_section.toDouble();
-						table->SetValue(row, curResultCol, tbl_value);
-					}
-					++curResultCol;
-				}
-			}
-			table->SetValue(row, col_count + 1, 0);
-			++resultRowID;
-		}
-		else // remove row from result if empty
-			table->RemoveRow(row);
-	}
-}
-
-// @{ migrated from DataTable
-
-void iACsvIO::addLineToTable(QTableWidget* dstTbl, QStringList const & tableEntries, size_t const row, bool addAutoID)
-{
-	dstTbl->insertRow(row);
-	uint colInd = 0;
-	if (addAutoID) // adding autoID column
-	{
-		dstTbl->setItem(row, colInd, new QTableWidgetItem(QString("%1").arg(row)));
-		++colInd;
-	}
-	for (const auto &tableEntry : tableEntries)
-	{
-		dstTbl->setItem(row, colInd, new QTableWidgetItem(tableEntry));
-		++colInd;
-	}
-}
-
-bool  iACsvIO::readTableEntries(QTableWidget* dstTbl, iACsvConfig const & params, size_t const rowCount)
-{
-	if (params.fileName.isEmpty())
-		return false;
-	QFile file(params.fileName);
-	if (!file.open(QIODevice::ReadOnly))
-	{
-		QMessageBox::information(dstTbl, QObject::tr("FeatureScout"), QObject::tr("Unable to open file: %1").arg(file.errorString()));
-		return false;
-	}
-	QTextStream in(&file);
-	in.setCodec(params.encoding.toStdString().c_str());
-	prepareHeader(dstTbl, params.skipLinesStart, in, true, params.addAutoID, params.colSeparator);
-	readTableValues(dstTbl, rowCount, in, params.addAutoID, params.colSeparator);
-	if (file.isOpen()) file.close();
-	return true;
-}
-
-void iACsvIO::readTableValues(QTableWidget* dstTbl, size_t const rowCount, QTextStream &file, bool addAutoID, QString const & colSeparator)
-{
-	size_t row = 0;
-	while (!file.atEnd() && row < rowCount)
-	{
-		QString el_line = file.readLine();
-		auto currentEntry = el_line.split(colSeparator);
-		addLineToTable(dstTbl, currentEntry, row, addAutoID);
-		++row;
-	}
-	dstTbl->setRowCount(row);
-}
-
-void iACsvIO::prepareHeader(QTableWidget* destTbl, size_t skipLinesStart, QTextStream &file, bool readHeaders, bool addAutoID, QString const & colSeparator)
-{
-	for (int curRow = 0; curRow < skipLinesStart; curRow++)
-		file.readLine();
-
-	QString line = file.readLine();	// header line
-	if (readHeaders)
-	{
-		m_headerEntries = line.split(colSeparator);
-		if (addAutoID)
-			m_headerEntries.insert(m_headerEntries.begin(), iACsvIO::ColNameAutoID);
-		destTbl->setColumnCount(m_headerEntries.length());
-		destTbl->setHorizontalHeaderLabels(m_headerEntries);
-	}
-}
-
-const QStringList & iACsvIO::getHeaders() const
-{
-	return m_headerEntries;
-}
-
-// @}

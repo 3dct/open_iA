@@ -20,35 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iACsvIO.h"
-#include "iAFeatureScoutObjectType.h"
+#include "iACsvVtkTableCreator.h"
 
-#include "iAModuleInterface.h"
+class QTableWidget;
 
-class dlg_FeatureScout;
-class iACsvConfig;
-class iAFeatureScoutToolbar;
-
-class iAFeatureScoutModuleInterface : public iAModuleInterface
+class iACsvQTableCreator : public iACsvTableCreator
 {
-	Q_OBJECT
 public:
-	void Initialize();
-private slots:
-	void FeatureScoutWithCSV();
-	void FeatureScout();
-	void FeatureScout_Options();
-	void onChildClose();
+	iACsvQTableCreator(QTableWidget* tblWidget);
+	void initialize(QStringList const & headers, size_t const rowCount) override;
+	void addRow(size_t row, QStringList const & values) override;
+	QTableWidget* getTable();
 private:
-	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
-	//! entry point for openIA FeatureScout. optional parameter FileParams for custom csv
-	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAFeatureScoutObjectType filterID,
-		iACsvConfig const *FileParams, const bool is_csvOnly, QStringList const &selHeader);
-	void SetupToolbar();
-	void setFeatureScoutRenderSettings();
-	void initializeFeatureScoutStartUp(QString &item, QString &fileName, const bool isCsvOnly,
-		iACsvConfig *FileParams, QStringList const & selectedHeaders);
-	iAFeatureScoutToolbar * tlbFeatureScout;
-
-	iACsvIO io;
+	QTableWidget* m_table;
 };

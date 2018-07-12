@@ -28,10 +28,11 @@
 //! parameters for csv loading configuraton
 struct iACsvConfig
 {
+	static const int LegacyFormatStartSkipLines = 5;
 	iACsvConfig() :
 		fileName(""),
 		encoding("System"),
-		skipLinesStart(5),
+		skipLinesStart(LegacyFormatStartSkipLines),
 		skipLinesEnd(0),
 		colSeparator(";"),
 		decimalSeparator("."),
@@ -51,11 +52,10 @@ struct iACsvConfig
 	float spacing;                          //!< volume spacing to be used, currently unused
 
 	QStringList currentHeaders;             //!< current headers of the table
-	QStringList selHeaders;                 //!< names of the selected headers
-	QVector<uint> selColIdx;                //!< indices of the selected headers
+	QStringList selectedHeaders;            //!< names of the selected headers
 
 	enum MappedColumn {
-		NotMapped,
+		NotMapped=-1,
 		ID,
 		StartX, StartY, StartZ,
 		EndX, EndY, EndZ,
