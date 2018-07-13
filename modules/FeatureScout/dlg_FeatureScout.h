@@ -45,18 +45,21 @@ class MdiChild;
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class QVTKOpenGLWidget;
+class vtkGenericOpenGLRenderWindow;
 #else
 class QVTKWidget;
 class vtkRenderWindow;
 #endif
 class vtkChartParallelCoordinates;
 class vtkColorTransferFunction;
+class vtkCommand;
 class vtkContextView;
 class vtkDataArray;
 class vtkDelaunay2D;
 class vtkFixedPointVolumeRayCastMapper;
 class vtkIdTypeArray;
 class vtkLookupTable;
+class vtkObject;
 class vtkPiecewiseFunction;
 class vtkRenderer;
 class vtkScalarBarActor;
@@ -64,10 +67,10 @@ class vtkScalarBarWidget;
 class vtkScalarsToColors;
 class vtkSmartVolumeMapper;
 class vtkStringArray;
+class vtkStructuredGrid;
 class vtkTable;
 class vtkVolume;
 class vtkVolumeProperty;
-class vtkStructuredGrid;
 
 class QComboBox;
 class QStandardItem;
