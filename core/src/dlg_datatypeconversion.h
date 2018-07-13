@@ -23,19 +23,24 @@
 #include "charts/iAPlotData.h"
 #include "ui_DataTypeConversion.h"
 
+#include <vtkSmartPointer.h>
+
+#include <QDialog>
+#include <QString>
+
 class iAConnector;
 
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class QVTKOpenGLWidget;
+#else
 class QVTKWidget2;
+#endif
 class vtkImageData;
 class vtkPlaneSource;
 
 class QCheckBox;
 class QComboBox;
-
-#include <vtkSmartPointer.h>
-
-#include <QDialog>
-#include <QString>
 
 class dlg_datatypeconversion : public QDialog, public Ui_DataTypeConversion
 {
@@ -86,7 +91,11 @@ private:
 	iAPlotData::DataType * m_histbinlist;
 	float m_min, m_max, m_dis;
 	vtkImageData* m_testxyimage, * m_testxzimage, * m_testyzimage, * m_roiimage;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QVTKOpenGLWidget* vtkWidgetXY, *vtkWidgetXZ, *vtkWidgetYZ;
+#else
 	QVTKWidget2* vtkWidgetXY, *vtkWidgetXZ, *vtkWidgetYZ;
+#endif
 
 	iAConnector* xyconvertimage, * xzconvertimage, * yzconvertimage;
 

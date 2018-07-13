@@ -291,7 +291,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 	volumeSettings.DiffuseLighting = settings.value("Renderer/rsDiffuseLighting", 0.5).toDouble();
 	volumeSettings.SpecularLighting = settings.value("Renderer/rsSpecularLighting", 0.7).toDouble();
 	volumeSettings.SpecularPower = settings.value("Renderer/rsSpecularPower", 1).toDouble();
-	volumeSettings.Mode = settings.value("Renderer/rsRenderMode", 0).toInt();
+	volumeSettings.RenderMode = settings.value("Renderer/rsRenderMode", 0).toInt();
 
 	m_renderer->ApplySettings(renderSettings);
 	m_volumeRenderer->ApplySettings(volumeSettings);

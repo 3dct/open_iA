@@ -32,47 +32,52 @@
 #include "StabilityWidget.h"
 #include "dlg_histogram_simple.h"
 
-//#include <QtGui>
-#include <QTime>
-#include <QFileDialog>
-//VTK
-#include <vtkMath.h>
+#include <itkMacro.h>
+
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#else
+#include <QVTKWidget.h>
+#endif
 #include <vtkActor.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkSTLReader.h>
-#include <vtkTransform.h> 
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkSphereSource.h>
-#include <vtkCylinderSource.h>
-#include <vtkProperty.h>
+#include <vtkAppendPolyData.h>
+#include <vtkCallbackCommand.h>
+#include <vtkCamera.h>
+#include <vtkCameraPass.h>
 #include <vtkCellArray.h>
+#include <vtkCellData.h>
+#include <vtkDataArray.h>
+#include <vtkDepthPeelingPass.h>
+#include <vtkDepthSortPolyData.h>
+#include <vtkDoubleArray.h>
+#include <vtkCylinderSource.h>
 #include <vtkFloatArray.h>
+#include <vtkInteractorStyleSwitch.h>
+#include <vtkLightsPass.h>
+#include <vtkLookupTable.h>
+#include <vtkMath.h>
+#include <vtkMatrix4x4.h>
+#include <vtkOpaquePass.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
-#include <vtkMatrix4x4.h>
-#include <vtkCamera.h>
-#include <vtkLookupTable.h>
-#include <vtkCellData.h>
-#include <vtkDataArray.h>
-#include <vtkDoubleArray.h>
-#include <vtkInteractorStyleSwitch.h>
-#include <vtkCallbackCommand.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkQuad.h>
-#include <vtkDepthSortPolyData.h>
-#include <vtkAppendPolyData.h>
-#include <vtkVersion.h>
-
-#include <vtkCameraPass.h>
-#include <vtkSequencePass.h>
-#include <vtkOpaquePass.h>
-#include <vtkDepthPeelingPass.h>
-#include <vtkTranslucentPass.h>
-#include <vtkLightsPass.h>
+#include <vtkRenderer.h>
 #include <vtkRenderPassCollection.h>
-#include <itkMacro.h>
+#include <vtkRenderWindow.h>
+#include <vtkSequencePass.h>
+#include <vtkSphereSource.h>
+#include <vtkSTLReader.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkTranslucentPass.h>
+
+#include <QTime>
+#include <QFileDialog>
 
 #define DEG_IN_PI  180
 #define DEG2RAD M_PI/DEG_IN_PI
@@ -187,41 +192,33 @@ DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	//
 	hist = new dlg_histogram_simple(ui.histWidget);
 	hist->setGeometry(0, 0, ui.histWidget->geometry().width(), ui.histWidget->geometry().height());
-	//ViewsFrame->reparent()
-	///
-	/*plot = new Plot(ui.PlotWidget->parentWidget());
-	//plot->resize(800,600);
-	plot->setGeometry(ui.PlotWidget->geometry());
-	Qwt3D::ColorVector cv;
-	int colorcnt = 100;
-	for (int i=0; i<colorcnt; i++)
-	{
-		float coef = (float)i/colorcnt;
-		cv.push_back(Qwt3D::RGBA((double)(COL_RANGE_MIN_R+COL_RANGE_DR*coef)/255.0,
-			(double)(COL_RANGE_MIN_G+COL_RANGE_DG*coef)/255.0,
-			(double)(COL_RANGE_MIN_B+COL_RANGE_DB*coef)/255.0, 1));
-	}
-	Qwt3D::StandardColor  * color = new Qwt3D::StandardColor(plot,cv.size());
-	color->setColorVector(cv);
-	plot->setTitleFont("Arial",14);
-	plot->setDataColor(color);
-	plot->showColorLegend(1);
-	plot->show();
-	QObject * pparent = plot->parent();*/
-	//connect(this, SIGNAL(hide()), &hist, SLOT(close()));
-	//QT/VTK stuff
-
-	/*vtkRenderWindow* renWin = vtkRenderWindow::New();
-	renWin->StereoCapableWindowOn();
-	renWin->SetStereoTypeToCrystalEyes();
-	renWin->StereoRenderOn(); //On();
-	renWin->StereoUpdate();
-	ui.qvtkWidget->SetRenderWindow(renWin);
-	renWin->AddRenderer(ren);
-	renWin->Delete(); */
 
 	ren = vtkRenderer::New();
-	ui.qvtkWidget->GetRenderWindow()->AddRenderer(ren);
+
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	qvtkWidget = new QVTKOpenGLWidget();
+	auto qvtkWidgetRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	qvtkWidget->SetRenderWindow(qvtkWidgetRenWin);
+	qvtkPlot3d = new QVTKOpenGLWidget();
+	auto qvtkPlot3dRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	qvtkPlot3d->SetRenderWindow(qvtkPlot3dRenWin);
+	qvtkWeighing = new QVTKOpenGLWidget();
+	auto qvtkWeighingRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	qvtkWeighing->SetRenderWindow(qvtkWeighingRenWin);
+#else
+	qvtkWidget = new QVTKWidget();
+	qvtkPlot3d = new QVTKWidget();
+	qvtkWeighing = new QVTKWidget();
+#endif
+	qvtkWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	qvtkWidget->setMinimumSize(100, 250);
+	qvtkWidget->setAutoFillBackground(true);
+	qvtkWeighing->setAutoFillBackground(true);
+	ui.verticalLayout_63->addWidget(qvtkWidget);
+	ui.gridLayout_4->addWidget(qvtkPlot3d);
+	ui.gridLayout_1->addWidget(qvtkWeighing);
+
+	qvtkWidget->GetRenderWindow()->AddRenderer(ren);
 	stlReader = vtkSTLReader::New();
 	mapper = vtkPolyDataMapper::New();
 	actor = vtkActor::New();
@@ -240,7 +237,7 @@ DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	depthSort = 0;
 	vtkInteractorStyleSwitch *style = vtkInteractorStyleSwitch::New();
 	style->SetCurrentStyleToTrackballCamera();
-	ui.qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+	qvtkWidget->GetInteractor()->SetInteractorStyle(style);
 	style->Delete();
 
 	rotations=0;
@@ -359,33 +356,33 @@ DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	//plot3d->GetRenderer()->GetActiveCamera()->SetParallelProjection(1);
 	plot3d->GetRenderer()->SetBackground(stngs.BG_COL_R/255.0, stngs.BG_COL_G/255.0, stngs.BG_COL_B/255.0);//(0,0,0);//
 	plot3d->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
-	ui.qvtkPlot3d->GetRenderWindow()->AddRenderer(plot3d->GetRenderer());
+	qvtkPlot3d->GetRenderWindow()->AddRenderer(plot3d->GetRenderer());
 	vtkInteractorStyleSwitch *cube_style = vtkInteractorStyleSwitch::New();
 	cube_style->SetCurrentStyleToTrackballCamera();
-	ui.qvtkPlot3d->GetInteractor()->SetInteractorStyle(cube_style);
+	qvtkPlot3d->GetInteractor()->SetInteractorStyle(cube_style);
 	cube_style->Delete();
 	plot3d->SetPalette(100, stngs.COL_RANGE_MIN_R, stngs.COL_RANGE_MIN_G, stngs.COL_RANGE_MIN_B, stngs.COL_RANGE_MAX_R, stngs.COL_RANGE_MAX_G, stngs.COL_RANGE_MAX_B);
 	plot3d->Update();
 	//TODO: callback not used?
 	vtkCallbackCommand* callback = vtkCallbackCommand::New();
 	//callback->SetCallback(&(plot3d->Pick));
-	ui.qvtkPlot3d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
+	qvtkPlot3d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
 	callback->Delete();
 	//plot3dWeighting stuff
 	plot3dWeighting = new Plot3DVtk;
 	plot3dWeighting->GetRenderer()->SetBackground(stngs.BG_COL_R/255.0, stngs.BG_COL_G/255.0, stngs.BG_COL_B/255.0);//(0,0,0);//
 	plot3dWeighting->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
-	ui.qvtkWeighing->GetRenderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
+	qvtkWeighing->GetRenderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
 	vtkInteractorStyleSwitch *cube_style2 = vtkInteractorStyleSwitch::New();
 	cube_style2->SetCurrentStyleToTrackballCamera();
-	ui.qvtkWeighing->GetInteractor()->SetInteractorStyle(cube_style2);
+	qvtkWeighing->GetInteractor()->SetInteractorStyle(cube_style2);
 	cube_style2->Delete();
 	plot3dWeighting->SetPalette(100, stngs.COL_RANGE_MIN_R, stngs.COL_RANGE_MIN_G, stngs.COL_RANGE_MIN_B, stngs.COL_RANGE_MAX_R, stngs.COL_RANGE_MAX_G, stngs.COL_RANGE_MAX_B);
 	plot3dWeighting->Update();
 
-	ui.qvtkPlot3d->GetRenderWindow()->Render();
+	qvtkPlot3d->GetRenderWindow()->Render();
 	//
-	ui.qvtkPlot3d->installEventFilter(this);
+	qvtkPlot3d->installEventFilter(this);
 	ui.RenderViewWidget->installEventFilter(this);
 	ui.HeightWidget->installEventFilter(this);
 	ui.w_stabilityWidget->installEventFilter(this);
@@ -3587,12 +3584,12 @@ void DreamCaster::Pick(int pickPos[2] )
 
 bool DreamCaster::eventFilter(QObject *obj, QEvent *event)
 {
-	if (obj == ui.qvtkPlot3d) 
+	if (obj == qvtkPlot3d)
 	{
 		if (event->type() == QEvent::MouseButtonDblClick) 
 		{
 			QMouseEvent * mevent = static_cast<QMouseEvent*>(event);
-			int pcoords[2] = {mevent->x(), ui.qvtkPlot3d->height() - mevent->y()};
+			int pcoords[2] = {mevent->x(), qvtkPlot3d->height() - mevent->y()};
 			Pick(pcoords);
 		} 
 	}

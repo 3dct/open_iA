@@ -19,8 +19,6 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
-
-// iA
 #include "iAAbstractMagicLensWidget.h"
 
 #include "open_iA_Core_export.h"

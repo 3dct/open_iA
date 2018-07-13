@@ -20,7 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
 #include <QVTKWidget2.h>
+#endif
 
 #include <QSharedPointer>
 
@@ -35,7 +40,11 @@ class vtkTable;
 
 class QColor;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class iAGEMSeScatterplot : public QVTKOpenGLWidget
+#else
 class iAGEMSeScatterplot : public QVTKWidget2
+#endif
 {
 public:
 	iAGEMSeScatterplot(QWidget* parent);

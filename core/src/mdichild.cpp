@@ -273,6 +273,7 @@ void MdiChild::connectSignalsToSlots()
 	{
 		connect(slicer[s]->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
 		connect(slicer[s]->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+		connect(slicer[s]->widget(), SIGNAL(ctrlMouseWheel(int)), this, SLOT(ChangeMagicLensSize(int)));
 	}
 
 	connect(m_histogram, SIGNAL(updateViews()), this, SLOT(updateViews()));
@@ -1627,7 +1628,7 @@ void MdiChild::resetLayout()
 
 int MdiChild::GetRenderMode()
 {
-	return volumeSettings.Mode;
+	return volumeSettings.RenderMode;
 }
 
 void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
@@ -2779,7 +2780,6 @@ void MdiChild::ChangeMagicLensModality(int chg)
 		m_currentModality = 0;
 		return;
 	}
-
 	iAChannelVisualizationData chData;
 	vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetComponent(m_currentComponent);
 	chData.SetImage(img);
@@ -2791,19 +2791,31 @@ void MdiChild::ChangeMagicLensModality(int chg)
 	for (int s = 0; s<3; ++s)
 		slicer[s]->initializeChannel(ch_SlicerMagicLens, &chData);
 	SetMagicLensInput(ch_SlicerMagicLens, true);
+	SetHistogramModality(m_currentModality);	// TODO: don't change histogram, just read/create min/max and transfer function?
 }
 
 void MdiChild::ChangeMagicLensOpacity(int chg)
 {
-	iASlicerWidget * sliceWidget = dynamic_cast<iASlicerWidget *>(sender());
-	if (!sliceWidget)
-	{
-		DEBUG_LOG("Invalid slice widget sender!");
-		return;
-	}
-	sliceWidget->SetMagicLensOpacity(sliceWidget->GetMagicLensOpacity() + (chg*0.05));
+	for (int s=0; s<3; ++s)
+		slicer[s]->SetMagicLensOpacity(slicer[s]->GetMagicLensOpacity() + (chg*0.05));
 }
 
+void MdiChild::ChangeMagicLensSize(int chg)
+{
+	if (!isMagicLensToggled())
+		return;
+	double sizeFactor = 1.1 * (std::abs(chg));
+	if (chg < 0)
+		sizeFactor = 1 / sizeFactor;
+	int newSize = std::max(MinimumMagicLensSize, static_cast<int>(preferences.MagicLensSize * sizeFactor));
+	for (int s = 0; s < 3; ++s)
+	{
+		slicer[s]->SetMagicLensSize(newSize);
+		newSize = std::min(slicer[s]->GetMagicLensSize(), newSize);
+	}
+	preferences.MagicLensSize = newSize;
+	updateSlicers();
+}
 
 int MdiChild::GetCurrentModality() const
 {
@@ -2864,10 +2876,7 @@ void MdiChild::InitModalities()
 
 void MdiChild::SetHistogramModality(int modalityIdx)
 {
-	if (GetModality(modalityIdx)->GetImage()->GetNumberOfScalarComponents() != 1) //No histogram/profile for rgb, rgba or vector pixel type images
-		return;
-
-	if (!m_histogram)
+	if (!m_histogram || GetModality(modalityIdx)->GetImage()->GetNumberOfScalarComponents() != 1) //No histogram/profile for rgb, rgba or vector pixel type images
 		return;
 	auto histData = GetModality(modalityIdx)->GetTransfer()->GetHistogramData();
 	size_t newBinCount = preferences.HistogramBins;
@@ -2965,7 +2974,6 @@ void MdiChild::InitVolumeRenderers()
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{
 		m_dlgModalities->InitDisplay(GetModality(i));
-
 	}
 	ApplyVolumeSettings(true);
 	connect(GetModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),

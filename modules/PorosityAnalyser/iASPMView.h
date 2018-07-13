@@ -27,29 +27,32 @@
 #include "ui_SPMView.h"
 #include "iAQTtoUIConnector.h"
 
-class QVBoxLayout;
+class QAction;
 class QCheckBox;
 class QListWidgetItem;
-class QAction;
 class QTableWidget;
+class QVBoxLayout;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class QVTKOpenGLWidget;
+#else
 class QVTKWidget;
-class vtkScatterPlotMatrix;
-class vtkObject;
-class vtkCommand;
-class vtkTable;
-class vtkIdTypeArray;
-class vtkScatterPlotMatrix;
-class vtkContextView;
-class vtkLookupTable;
+#endif
 class vtkColorTransferFunction;
+class vtkCommand;
+class vtkContextView;
+class vtkIdTypeArray;
+class vtkLookupTable;
+class vtkRenderer;
 class vtkScalarsToColors;
 class vtkScalarBarActor;
-class vtkRenderer;
+class vtkScatterPlotMatrix;
 class vtkSelection;
+class vtkTable;
+
+class iAPAQSplom;
 struct iASelection;
 class iASPMSettings;
-class iAPAQSplom;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView>  PorosityAnalyzerSPMConnector;
 
@@ -116,7 +119,11 @@ protected:
 	iAPAQSplom * m_splom;
 	vtkSmartPointer<vtkIdTypeArray> m_SPLOMSelection;
 	vtkSmartPointer<vtkLookupTable> m_lut;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QVTKOpenGLWidget * m_SBQVTKWidget;
+#else
 	QVTKWidget * m_SBQVTKWidget;
+#endif
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;
 	QString m_colorArrayName;

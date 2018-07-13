@@ -34,15 +34,15 @@ public:
 	QString CursorMode;
 
 	iASingleSlicerSettings() :
-		LinearInterpolation(false),
+		LinearInterpolation(true),
 		ShowIsoLines(false),
 		ShowPosition(false),
 		ShowAxesCaption(false),
-		MinIsoValue(0),
-		MaxIsoValue(0),
-		NumberOfIsoLines(0),
+		MinIsoValue(20000),
+		MaxIsoValue(40000),
+		NumberOfIsoLines(5),
 		ToolTipFontSize(12),
-		CursorMode(QString()),
+		CursorMode(QString("Crosshair default")),
 		ShowTooltip(true)
 	{}
 };
@@ -60,7 +60,7 @@ public:
 		InteractorsEnabled(true),
 		LinkViews(false),
 		LinkMDIs(false),
-		SnakeSlices(0)
+		SnakeSlices(100)
 	{}
 
 };

@@ -28,6 +28,7 @@
 #include "mdichild.h"
 
 #include <vtkActor.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 
 #include <QFileDialog>
@@ -35,8 +36,7 @@
 
 #include <cassert>
 
-iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0*/,
-	bool decorations /*= true*/, bool magicLensAvailable /*= true*/) :
+iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations /*= true*/, bool magicLensAvailable /*= true*/) :
 
 		QObject(parent),
 		m_mode(mode),
@@ -47,7 +47,7 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
 	}
 	m_data		= new iASlicerData(this, parent, decorations);
-	m_widget	= new iASlicerWidget(this, widget_container, shareWidget, f, decorations);
+	m_widget	= new iASlicerWidget(this, widget_container, decorations);
 
 	assert(m_widget);
 	if (!m_widget)
@@ -60,8 +60,7 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 
 	if (m_magicLens)
 	{
-		m_magicLens->InitWidget(m_widget, shareWidget, f);
-		m_magicLens->SetScaleCoefficient(static_cast<double>(m_magicLens->GetSize()) / m_widget->height());
+		m_magicLens->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_widget->GetRenderWindow()));
 	}
 }
 
@@ -142,9 +141,7 @@ void iASlicer::setResliceChannelAxesOrigin(iAChannelID id, double x, double y, d
 {
 	m_data->setResliceChannelAxesOrigin(id, x, y, z);
 	if (m_magicLens)
-	{
 		m_magicLens->UpdateColors();
-	}
 }
 
 void iASlicer::setPositionMarkerCenter(double x, double y)
@@ -156,9 +153,7 @@ void iASlicer::update()
 {
 	m_data->update();
 	if (m_magicLens)
-	{
 		m_magicLens->Render();
-	}
 }
 
 void iASlicer::saveAsImage() const
@@ -296,6 +291,7 @@ void iASlicer::SetMagicLensEnabled( bool isEnabled )
 		return;
 	}
 	m_magicLens->SetEnabled(isEnabled);
+	m_data->SetRightButtonDragZoomEnabled(!isEnabled);
 	m_data->setShowText(!isEnabled);
 	widget()->updateMagicLens();
 }
@@ -308,8 +304,12 @@ void iASlicer::SetMagicLensSize(int newSize)
 		return;
 	}
 	m_magicLens->SetSize(newSize);
-	m_magicLens->SetScaleCoefficient(static_cast<double>(m_magicLens->GetSize()) / widget()->height());
 	widget()->updateMagicLens();
+}
+
+int iASlicer::GetMagicLensSize() const
+{
+	return m_magicLens ? m_magicLens->GetSize() : 0;
 }
 
 void iASlicer::SetMagicLensFrameWidth(int newWidth)
@@ -336,13 +336,30 @@ void iASlicer::SetMagicLensCount(int count)
 
 void iASlicer::SetMagicLensInput(iAChannelID id)
 {
+	if (!m_magicLens)
+	{
+		DEBUG_LOG("SetMagicLensInput called on slicer which doesn't have a magic lens!");
+		return;
+	}
 	m_data->setMagicLensInput(id);
 	m_magicLensInput = id;
+	update();
 }
 
 void iASlicer::SetMagicLensOpacity(double opacity)
 {
+	if (!m_magicLens)
+	{
+		DEBUG_LOG("SetMagicLensOpacity called on slicer which doesn't have a magic lens!");
+		return;
+	}
 	m_magicLens->SetOpacity(opacity);
+	update();
+}
+
+double iASlicer::GetMagicLensOpacity() const
+{
+	return (m_magicLens) ? m_magicLens->GetOpacity() : 0;
 }
 
 vtkGenericOpenGLRenderWindow * iASlicer::GetRenderWindow() const
