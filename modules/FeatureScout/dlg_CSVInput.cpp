@@ -27,7 +27,6 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QStandardItemModel>
 #include <QSettings>
 
 namespace csvRegKeys
@@ -151,32 +150,14 @@ QStringList dlg_CSVInput::loadHeadersFromReg(const QString &formatName, const QS
 	return settings.value(entryName).toStringList();
 }
 
-bool dlg_CSVInput::checkFile()
-{
-	if (m_confParams.fileName.isEmpty())
-	{
-		QMessageBox::information(this, tr("FeatureScout"), tr("Please specify a filename!"));
-		return false;
-	}
-	QFile file(m_confParams.fileName);
-	if (!file.open(QIODevice::ReadOnly))
-	{
-		QMessageBox::information(this, tr("FeatureScout"), tr("Unable to open file: %1!").arg(file.errorString()));
-		return false;
-	}
-	file.close();
-	return true;
-}
-
 void dlg_CSVInput::okBtnClicked()
 {
 	assignFormatSettings();
-	if (!checkFile())
-		return;
 	assignSelectedCols();
-	if (m_confParams.selectedHeaders.size() < 1)
+	QString errorMsg;
+	if (!m_confParams.isValid(errorMsg))
 	{
-		QMessageBox::warning(this, tr("FeatureScout"), "Please select at least one column to load!");
+		QMessageBox::warning(this, tr("FeatureScout"), errorMsg);
 		return;
 	}
 	if (!cmbbox_Format->currentText().isEmpty())

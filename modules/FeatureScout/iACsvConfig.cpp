@@ -18,44 +18,57 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iACsvConfig.h"
 
-#include "iAFeatureScoutObjectType.h"
+#include <QFile>
 
-#include <QMap>
-#include <QString>
-#include <QVector>
+iACsvConfig::iACsvConfig() :
+	fileName(""),
+	encoding("System"),
+	skipLinesStart(LegacyFormatStartSkipLines),
+	skipLinesEnd(0),
+	colSeparator(";"),
+	decimalSeparator("."),
+	addAutoID(false),
+	objectType(iAFeatureScoutObjectType::Voids),
+	unit("microns"),
+	spacing(0.0f),
+	computeLength(false),
+	computeAngles(false),
+	computeTensors(false),
+	containsHeader(true)
+{}
 
-//! parameters for csv loading configuraton
-struct iACsvConfig
+bool iACsvConfig::isValid(QString & errorMsg) const
 {
-	static const int LegacyFormatStartSkipLines = 5;
-	iACsvConfig();
-	bool isValid(QString & errorMsg) const;
-
-	QString fileName;                       //!< filename, not stored in registrys
-	QString encoding;                       //!< text encoding of the csv file
-	bool containsHeader;                    //!< whether the file contains a header
-	size_t skipLinesStart, skipLinesEnd;    //!< how many lines to skip at start and end of the file
-	QString colSeparator, decimalSeparator; //!< column and decimal separator strings
-	bool addAutoID;                         //!< whether to add an automatic ID column
-	iAFeatureScoutObjectType objectType;    //!< type of objects to be analyzed
-	QString unit;                           //!< unit of measurement for the values given in the csv
-	float spacing;                          //!< volume spacing to be used, currently unused
-
-	QStringList currentHeaders;             //!< current headers of the table
-	QStringList selectedHeaders;            //!< names of the selected headers
-
-	enum MappedColumn {
-		NotMapped=-1,
-		StartX, StartY, StartZ,
-		EndX, EndY, EndZ,
-		CenterX, CenterY, CenterZ,
-		Length,
-		Diameter,
-		Phi, Theta,
-		MappedCount
-	};
-	bool computeLength, computeAngles, computeTensors;  //!< flags whether to compute additional columns
-	QMap<uint, QString> columnMapping;
-};
+	if (fileName.isEmpty())
+	{
+		errorMsg = "Please specify a filename!";
+		return false;
+	}
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly))
+	{
+		errorMsg = QString("Unable to open file: %1!").arg(file.errorString());
+		return false;
+	}
+	file.close();
+	if ((computeLength || computeAngles || computeTensors) && (
+		!columnMapping.contains(iACsvConfig::StartX) ||
+		!columnMapping.contains(iACsvConfig::StartY) ||
+		!columnMapping.contains(iACsvConfig::StartZ) ||
+		!columnMapping.contains(iACsvConfig::EndX) ||
+		!columnMapping.contains(iACsvConfig::EndY) ||
+		!columnMapping.contains(iACsvConfig::EndZ)))
+	{
+		errorMsg = "Cannot compute length/angles/tensors without fully defined start and end position! "
+			"Please specify a mapping to the column containing start (x, y, z) and end (x, y, z) coordinate!";
+			return false;
+	}
+	if (selectedHeaders.size() < 1)
+	{
+		errorMsg = "Please select at least one column to load!";
+		return false;
+	}
+	return true;
+}

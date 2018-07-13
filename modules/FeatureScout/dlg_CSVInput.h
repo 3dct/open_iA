@@ -23,18 +23,12 @@
 #include "ui_CsvInput.h"
 #include "iACsvConfig.h"
 
-#include <vtkTable.h>
-#include <vtkSmartPointer.h>
-
-#include <QSharedPointer>
-
 class iACsvIO;
 
 class QSettings;
 
 //! Loads custom csv file with data preview
-//! Settings can be adapted and saved under a specified format name,
-//! columns can be pre-selected to be shown in FeatureScout
+//! Settings can be adapted and saved under a specified format name
 class dlg_CSVInput : public QDialog, public Ui_CsvInput
 {
 Q_OBJECT
