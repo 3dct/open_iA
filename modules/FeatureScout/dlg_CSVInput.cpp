@@ -49,6 +49,7 @@ namespace csvRegKeys
 	static const QString ComputeLength = "ComputeLength";
 	static const QString ComputeAngles = "ComputeAngles";
 	static const QString ComputeTensors = "ComputeTensors";
+	static const QString ComputeCenter = "ComputeCenter";
 	static const QString ContainsHeader = "ContainsHeader";
 	static const QString ColumnMappings = "ColumnMappings";
 }
@@ -70,6 +71,9 @@ namespace
 	}
 
 	const char* NotMapped = "Not mapped";
+
+	const char* LegacyFiberFormat = "Legacy Fiber csv";
+	const char* LegacyPoreFormat = "Legacy Pore csv";
 }
 
 dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
@@ -100,6 +104,10 @@ void dlg_CSVInput::initParameters()
 {
 	ed_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
 	QStringList formatEntries = getFormatListFromRegistry();
+	if (!formatEntries.contains(LegacyFiberFormat))
+		formatEntries.append(LegacyFiberFormat);
+	if (!formatEntries.contains(LegacyPoreFormat))
+		formatEntries.append(LegacyPoreFormat);
 	cmbbox_Format->addItems(formatEntries);
 	// load default format, and if that fails, load first format if available:
 	if (!loadFormatFromRegistry(getDefaultFormat()) && formatEntries.length() > 0)
@@ -122,10 +130,11 @@ void dlg_CSVInput::connectSignals()
 	connect(ed_SkipLinesStart, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
 	connect(ed_SkipLinesEnd, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
 	connect(sb_PreviewLines, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
-	connect(cmbbox_col_Selection, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updateColumnMappingInputs);
+	connect(cmbbox_col_Selection, &QComboBox::currentTextChanged, this, &dlg_CSVInput::cmbboxColSelectionChanged);
 	connect(cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeLengthChanged);
 	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeAngleChanged);
 	connect(cb_ComputeTensors, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
+	connect(cb_ComputeCenter, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeCenterChanged);
 	connect(cb_addAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cb_ContainsHeader, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
@@ -248,6 +257,12 @@ void dlg_CSVInput::applyFormatColumnSelection()
 	showSelectedCols();
 }
 
+void dlg_CSVInput::cmbboxColSelectionChanged()
+{
+	updateColumnMappingInputs();
+	updatePreview();
+}
+
 void dlg_CSVInput::updateColumnMappingInputs()
 {
 	// overall, enable column mapping only for analysis type fiber for now
@@ -267,25 +282,21 @@ void dlg_CSVInput::updateColumnMappingInputs()
 	lbl_col_posEndY->setEnabled(useStartEnd);
 	lbl_col_posEndZ->setEnabled(useStartEnd);
 
-	cmbbox_col_PosCenterX->setEnabled(!useStartEnd);
-	cmbbox_col_PosCenterY->setEnabled(!useStartEnd);
-	cmbbox_col_PosCenterZ->setEnabled(!useStartEnd);
-	lbl_col_posCenterX->setEnabled(!useStartEnd);
-	lbl_col_posCenterY->setEnabled(!useStartEnd);
-	lbl_col_posCenterZ->setEnabled(!useStartEnd);
-
 	cb_ComputeLength->setEnabled(useStartEnd);
 	cb_ComputeAngles->setEnabled(useStartEnd);
 	cb_ComputeTensors->setEnabled(useStartEnd);
+	cb_ComputeCenter->setEnabled(useStartEnd);
 	if (!useStartEnd)
 	{
-		QSignalBlocker clblock(cb_ComputeLength), cablock(cb_ComputeAngles), ctblock(cb_ComputeTensors);
+		QSignalBlocker clblock(cb_ComputeLength), cablock(cb_ComputeAngles), ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter);
 		cb_ComputeLength->setChecked(false);
 		cb_ComputeAngles->setChecked(false);
 		cb_ComputeTensors->setChecked(false);
+		cb_ComputeCenter->setChecked(false);
 	}
 	updateAngleEditEnabled();
 	updateLengthEditEnabled();
+	updateCenterEditEnabled();
 }
 
 void dlg_CSVInput::updateLengthEditEnabled()
@@ -311,6 +322,22 @@ void dlg_CSVInput::updateAngleEditEnabled()
 void dlg_CSVInput::computeAngleChanged()
 {
 	updateAngleEditEnabled();
+	updatePreview();
+}
+
+void dlg_CSVInput::updateCenterEditEnabled()
+{
+	bool centerEditEnabled = cmbbox_col_Selection->currentIndex() == 0 && cb_ComputeCenter->isChecked();
+	cmbbox_col_PosCenterX->setEnabled(!centerEditEnabled);
+	cmbbox_col_PosCenterY->setEnabled(!centerEditEnabled);
+	cmbbox_col_PosCenterZ->setEnabled(!centerEditEnabled);
+	lbl_col_posCenterX->setEnabled(!centerEditEnabled);
+	lbl_col_posCenterY->setEnabled(!centerEditEnabled);
+	lbl_col_posCenterZ->setEnabled(!centerEditEnabled);
+}
+
+void dlg_CSVInput::computeCenterChanged()
+{
 	updatePreview();
 }
 
@@ -342,10 +369,10 @@ void dlg_CSVInput::showConfigParams()
 	QSignalBlocker slsblock(ed_SkipLinesStart), sleblock(ed_SkipLinesEnd),
 		csblock(cmbbox_ColSeparator), aiblock(cb_addAutoID),
 		eblock(cmbbox_Encoding), otblock(cmbbox_ObjectType),
-		clblock(cb_ComputeLength), cablock(cb_ComputeAngles), ctblock(cb_ComputeTensors);
+		clblock(cb_ComputeLength), cablock(cb_ComputeAngles), ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter);
 	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
-	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(m_confParams.colSeparator));
+	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(m_confParams.columnSeparator));
 	cmbbox_DecimalSeparator->setCurrentText(m_confParams.decimalSeparator);
 	ed_SkipLinesStart->setValue(m_confParams.skipLinesStart);
 	ed_SkipLinesEnd->setValue(m_confParams.skipLinesEnd);
@@ -356,6 +383,7 @@ void dlg_CSVInput::showConfigParams()
 	cb_ComputeLength->setChecked(m_confParams.computeLength);
 	cb_ComputeAngles->setChecked(m_confParams.computeAngles);
 	cb_ComputeTensors->setChecked(m_confParams.computeTensors);
+	cb_ComputeCenter->setChecked(m_confParams.computeCenter);
 	cb_ContainsHeader->setChecked(m_confParams.containsHeader);
 	updateColumnMappingInputs();
 }
@@ -364,7 +392,7 @@ void dlg_CSVInput::assignFormatSettings()
 {
 	m_confParams.fileName = ed_FileName->text();
 	assignObjectTypes();
-	m_confParams.colSeparator = ColumnSeparators()[cmbbox_ColSeparator->currentIndex()];
+	m_confParams.columnSeparator = ColumnSeparators()[cmbbox_ColSeparator->currentIndex()];
 	m_confParams.decimalSeparator = cmbbox_DecimalSeparator->currentText();
 	m_confParams.skipLinesStart = ed_SkipLinesStart->value();
 	m_confParams.skipLinesEnd = ed_SkipLinesEnd->value();
@@ -375,6 +403,7 @@ void dlg_CSVInput::assignFormatSettings()
 	m_confParams.computeLength = cb_ComputeLength->isChecked();
 	m_confParams.computeAngles = cb_ComputeAngles->isChecked();
 	m_confParams.computeTensors = cb_ComputeTensors->isChecked();
+	m_confParams.computeCenter = cb_ComputeCenter->isChecked();
 	m_confParams.containsHeader = cb_ContainsHeader->isChecked();
 	if (!m_columnMappingChoiceSet)
 		return;
@@ -487,20 +516,33 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	settings.beginGroup(getFormatRegistryKey(formatName));
 	QStringList allEntries = settings.allKeys();
 	if (allEntries.isEmpty())
+	{
+		if (formatName == LegacyFiberFormat)
+		{
+			m_confParams = iACsvConfig::getLegacyFiberFormat();
+			setCurrentFormat(formatName);
+			return true;
+		}
+		else if (formatName == LegacyPoreFormat)
+		{
+			m_confParams = iACsvConfig::getLegacyPoreFormat();
+			setCurrentFormat(formatName);
+			return true;
+		}
 		return false;
-	m_formatName = formatName;
-	ed_FormatName->setText(formatName);
-	cmbbox_Format->setCurrentText(formatName);
+	}
+	setCurrentFormat(formatName);
 	iACsvConfig defaultConfig;
 	m_confParams.skipLinesStart = settings.value(csvRegKeys::SkipLinesStart, defaultConfig.skipLinesStart).toLongLong();
 	m_confParams.skipLinesEnd = settings.value(csvRegKeys::SkipLinesEnd, defaultConfig.skipLinesEnd).toLongLong();
-	m_confParams.colSeparator = settings.value(csvRegKeys::ColSeparator, defaultConfig.colSeparator).toString();
+	m_confParams.columnSeparator = settings.value(csvRegKeys::ColSeparator, defaultConfig.columnSeparator).toString();
 	m_confParams.decimalSeparator = settings.value(csvRegKeys::DecimalSeparator, defaultConfig.decimalSeparator).toString();
 	m_confParams.objectType = MapStringToObjectType(settings.value(csvRegKeys::ObjectType, defaultConfig.objectType).toString());
 	m_confParams.addAutoID = settings.value(csvRegKeys::AddAutoID, defaultConfig.addAutoID).toBool();
 	m_confParams.computeLength = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeLength).toBool();
 	m_confParams.computeAngles = settings.value(csvRegKeys::ComputeAngles, defaultConfig.computeAngles).toBool();
 	m_confParams.computeTensors = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeTensors).toBool();
+	m_confParams.computeCenter = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeCenter).toBool();
 	m_confParams.containsHeader = settings.value(csvRegKeys::ContainsHeader, defaultConfig.containsHeader).toBool();
 	m_confParams.unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
 	m_confParams.spacing = settings.value(csvRegKeys::Spacing, defaultConfig.spacing).toDouble();
@@ -516,6 +558,13 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 		m_confParams.columnMapping.insert(columnKey, columnName);
 	}
 	return true;
+}
+
+void dlg_CSVInput::setCurrentFormat(QString const & formatName)
+{
+	m_formatName = formatName;
+	ed_FormatName->setText(formatName);
+	cmbbox_Format->setCurrentText(formatName);
 }
 
 void dlg_CSVInput::saveDefaultFormat(QString const & formatName)
@@ -545,7 +594,7 @@ void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
 	settings.beginGroup(getFormatRegistryKey(formatName));
 	settings.setValue(csvRegKeys::SkipLinesStart, m_confParams.skipLinesStart);
 	settings.setValue(csvRegKeys::SkipLinesEnd, m_confParams.skipLinesEnd);
-	settings.setValue(csvRegKeys::ColSeparator, m_confParams.colSeparator);
+	settings.setValue(csvRegKeys::ColSeparator, m_confParams.columnSeparator);
 	settings.setValue(csvRegKeys::DecimalSeparator, m_confParams.decimalSeparator);
 	settings.setValue(csvRegKeys::ObjectType, MapObjectTypeToString(m_confParams.objectType));
 	settings.setValue(csvRegKeys::AddAutoID, m_confParams.addAutoID);
@@ -555,6 +604,7 @@ void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
 	settings.setValue(csvRegKeys::ComputeLength, m_confParams.computeLength);
 	settings.setValue(csvRegKeys::ComputeAngles, m_confParams.computeAngles);
 	settings.setValue(csvRegKeys::ComputeTensors, m_confParams.computeTensors);
+	settings.setValue(csvRegKeys::ComputeCenter, m_confParams.computeCenter);
 	settings.setValue(csvRegKeys::ContainsHeader, m_confParams.containsHeader);
 	// save column mappings:
 	QStringList columnMappings;

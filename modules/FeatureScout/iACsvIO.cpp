@@ -33,15 +33,18 @@
 // iACsvConfig:
 const char* iACsvIO::ColNameAutoID = "Auto_ID";
 const char* iACsvIO::ColNameClassID = "Class_ID";
-const char* iACsvIO::ColNamePhi = "Phi";
-const char* iACsvIO::ColNameTheta = "Theta";
+const char* iACsvIO::ColNamePhi = "Phi[°]";
+const char* iACsvIO::ColNameTheta = "Theta[°]";
 const char* iACsvIO::ColNameA11 = "a11";
 const char* iACsvIO::ColNameA22 = "a22";
 const char* iACsvIO::ColNameA33 = "a33";
 const char* iACsvIO::ColNameA12 = "a12";
 const char* iACsvIO::ColNameA13 = "a13";
 const char* iACsvIO::ColNameA23 = "a23";
-const char* iACsvIO::ColNameLength = "Length";
+const char* iACsvIO::ColNameCenterX = "Xm[µm]";
+const char* iACsvIO::ColNameCenterY = "Xm[µm]";
+const char* iACsvIO::ColNameCenterZ = "Xm[µm]";
+const char* iACsvIO::ColNameLength = "Length[µm]";
 
 iACsvIO::iACsvIO():
 	m_rowCount(std::numeric_limits<size_t>::max())
@@ -137,7 +140,7 @@ QStringList iACsvIO::fibreCalculation(QString const & line, size_t const colCoun
 bool iACsvIO::loadLegacyCSV(iACsvTableCreator & dstTbl, iAFeatureScoutObjectType fid, QString const & fileName)
 {
 	m_csvConfig.fileName = fileName;
-	m_csvConfig.colSeparator = ",";
+	m_csvConfig.columnSeparator = ",";
 	m_csvConfig.decimalSeparator = ".";
 	m_csvConfig.skipLinesStart = iACsvConfig::LegacyFormatStartSkipLines;
 	m_csvConfig.skipLinesEnd = 0;
@@ -182,7 +185,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, ReadMode mode)
 		in.readLine();
 	
 	if (m_csvConfig.containsHeader)
-		m_fileHeaders = in.readLine().split(m_csvConfig.colSeparator);
+		m_fileHeaders = in.readLine().split(m_csvConfig.columnSeparator);
 	else
 		m_fileHeaders = m_csvConfig.currentHeaders;
 	auto selectedColIdx = getSelectedColIdx(m_fileHeaders, m_csvConfig.selectedHeaders, mode);
@@ -210,7 +213,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, ReadMode mode)
 				if (m_csvConfig.addAutoID)
 					entries.append(QString::number(resultRowID));
 
-				auto values = line.split(m_csvConfig.colSeparator);
+				auto values = line.split(m_csvConfig.columnSeparator);
 				for (int valIdx : selectedColIdx)
 				{
 					if (valIdx >= values.size())
@@ -252,6 +255,12 @@ void iACsvIO::determineOutputHeaders(QVector<int> const & selectedCols, ReadMode
 		if (m_csvConfig.computeLength)
 		{
 			m_outputHeaders.append(iACsvIO::ColNameLength);
+		}
+		if (m_csvConfig.computeCenter)
+		{
+			m_outputHeaders.append(iACsvIO::ColNameCenterX);
+			m_outputHeaders.append(iACsvIO::ColNameCenterY);
+			m_outputHeaders.append(iACsvIO::ColNameCenterZ);
 		}
 		if (m_csvConfig.computeAngles)
 		{

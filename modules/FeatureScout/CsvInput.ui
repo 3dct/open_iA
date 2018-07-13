@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>517</width>
-    <height>630</height>
+    <height>651</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -460,73 +460,73 @@
          <item row="6" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosEndZ"/>
          </item>
-         <item row="7" column="0">
+         <item row="8" column="0">
           <widget class="QLabel" name="lbl_col_posCenterX">
            <property name="text">
             <string>Center X</string>
            </property>
           </widget>
          </item>
-         <item row="7" column="1">
+         <item row="8" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosCenterX">
            <property name="enabled">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="8" column="0">
+         <item row="9" column="0">
           <widget class="QLabel" name="lbl_col_posCenterY">
            <property name="text">
             <string>Center Y</string>
            </property>
           </widget>
          </item>
-         <item row="8" column="1">
+         <item row="9" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosCenterY">
            <property name="enabled">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="9" column="0">
+         <item row="10" column="0">
           <widget class="QLabel" name="lbl_col_posCenterZ">
            <property name="text">
             <string>Center Z</string>
            </property>
           </widget>
          </item>
-         <item row="9" column="1">
+         <item row="10" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosCenterZ">
            <property name="enabled">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="11" column="0">
+         <item row="12" column="0">
           <widget class="QLabel" name="lbl_col_length">
            <property name="text">
             <string>Length</string>
            </property>
           </widget>
          </item>
-         <item row="11" column="1">
+         <item row="12" column="1">
           <widget class="QComboBox" name="cmbbox_col_Length">
            <property name="enabled">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="16" column="0">
+         <item row="17" column="0">
           <widget class="QLabel" name="lbl_col_diameter">
            <property name="text">
             <string>Diameter</string>
            </property>
           </widget>
          </item>
-         <item row="16" column="1">
+         <item row="17" column="1">
           <widget class="QComboBox" name="cmbbox_col_Diameter"/>
          </item>
-         <item row="14" column="0">
+         <item row="15" column="0">
           <widget class="QLabel" name="lbl_col_phi">
            <property name="enabled">
             <bool>true</bool>
@@ -536,14 +536,14 @@
            </property>
           </widget>
          </item>
-         <item row="14" column="1">
+         <item row="15" column="1">
           <widget class="QComboBox" name="cmbbox_col_Phi">
            <property name="enabled">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="15" column="0">
+         <item row="16" column="0">
           <widget class="QLabel" name="lbl_col_theta">
            <property name="enabled">
             <bool>true</bool>
@@ -553,31 +553,38 @@
            </property>
           </widget>
          </item>
-         <item row="15" column="1">
+         <item row="16" column="1">
           <widget class="QComboBox" name="cmbbox_col_Theta">
            <property name="enabled">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="13" column="0" colspan="2">
+         <item row="14" column="0" colspan="2">
           <widget class="QCheckBox" name="cb_ComputeAngles">
            <property name="text">
             <string>Compute Angles</string>
            </property>
           </widget>
          </item>
-         <item row="10" column="0" colspan="2">
+         <item row="11" column="0" colspan="2">
           <widget class="QCheckBox" name="cb_ComputeLength">
            <property name="text">
             <string>Compute Length</string>
            </property>
           </widget>
          </item>
-         <item row="12" column="0" colspan="2">
+         <item row="13" column="0" colspan="2">
           <widget class="QCheckBox" name="cb_ComputeTensors">
            <property name="text">
             <string>Compute Tensors</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeCenter">
+           <property name="text">
+            <string>Compute Center</string>
            </property>
           </widget>
          </item>

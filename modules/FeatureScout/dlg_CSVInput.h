@@ -61,11 +61,17 @@ private slots:
 	void computeLengthChanged();
 	//! called when Compute Angles checkbox check state changed
 	void computeAngleChanged();
+	//! called when Compute Center checkbox check state changed
+	void computeCenterChanged();
+	//! called when combobox selecting whether csv provides "start and end" or "center" changes
+	void cmbboxColSelectionChanged();
 private:
 	//! switch length mapping choice enabled based on whether to checkbox to automatically compute it is checked or not
 	void updateLengthEditEnabled();
 	//! switch angle mapping choices enabled based on whether to checkbox to automatically compute it is checked or not
 	void updateAngleEditEnabled();
+	//! switch center mapping choices enabled if start/end is selected and compute center is not checked
+	void updateCenterEditEnabled();
 	//! initialize GUI elements
 	void initParameters();
 	//! connect signals and slots of all dialog controls
@@ -104,10 +110,10 @@ private:
 	//! void assignColumnMappings();
 	//! Load file into preview table widget
 	bool loadFilePreview();
-	//! Checks if file exists and save it to config params
-	bool checkFile();
 	//! Clears the preview table (so that it doesn't contain any rows or columns
 	void clearPreviewTable();
+	//! sets the name of the current format
+	void setCurrentFormat(QString const & name);
 
 	iACsvConfig m_confParams;
 	QString m_path;

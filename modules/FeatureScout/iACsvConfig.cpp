@@ -27,7 +27,7 @@ iACsvConfig::iACsvConfig() :
 	encoding("System"),
 	skipLinesStart(LegacyFormatStartSkipLines),
 	skipLinesEnd(0),
-	colSeparator(";"),
+	columnSeparator(";"),
 	decimalSeparator("."),
 	addAutoID(false),
 	objectType(iAFeatureScoutObjectType::Voids),
@@ -36,6 +36,7 @@ iACsvConfig::iACsvConfig() :
 	computeLength(false),
 	computeAngles(false),
 	computeTensors(false),
+	computeCenter(false),
 	containsHeader(true)
 {}
 
@@ -53,7 +54,7 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		return false;
 	}
 	file.close();
-	if ((computeLength || computeAngles || computeTensors) && (
+	if ((computeLength || computeAngles || computeTensors || computeCenter) && (
 		!columnMapping.contains(iACsvConfig::StartX) ||
 		!columnMapping.contains(iACsvConfig::StartY) ||
 		!columnMapping.contains(iACsvConfig::StartZ) ||
@@ -61,7 +62,7 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		!columnMapping.contains(iACsvConfig::EndY) ||
 		!columnMapping.contains(iACsvConfig::EndZ)))
 	{
-		errorMsg = "Cannot compute length/angles/tensors without fully defined start and end position! "
+		errorMsg = "Cannot compute length/angles/tensors/center without fully defined start and end position! "
 			"Please specify a mapping to the column containing start (x, y, z) and end (x, y, z) coordinate!";
 			return false;
 	}
@@ -71,4 +72,67 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		return false;
 	}
 	return true;
+}
+
+iACsvConfig const & iACsvConfig::getLegacyFiberFormat()
+{
+	static iACsvConfig LegacyFormat;
+	LegacyFormat.encoding = "System";
+	LegacyFormat.containsHeader = false;
+	LegacyFormat.skipLinesStart = 5;
+	LegacyFormat.skipLinesEnd = 0;
+	LegacyFormat.columnSeparator = ",";
+	LegacyFormat.decimalSeparator = ".";
+	LegacyFormat.addAutoID = false;
+	LegacyFormat.objectType = iAFeatureScoutObjectType::Fibers;
+	LegacyFormat.computeLength = false;
+	LegacyFormat.computeAngles = true;
+	LegacyFormat.computeTensors = true;
+	LegacyFormat.computeCenter = true;
+	LegacyFormat.currentHeaders = QStringList() << "Label"
+		<< "X1[µm]"
+		<< "Y1[µm]"
+		<< "Z1[µm]"
+		<< "X2[µm]"
+		<< "Y2[µm]"
+		<< "Z2[µm]"
+		<< "StraightLength[µm]"
+		<< "CurvedLength[µm]"
+		<< "Diameter[µm]"
+		<< "Surface[µm²]"
+		<< "Volume[µm³]"
+		<< "SeperatedFibre"
+		<< "CurvedFibre";
+	LegacyFormat.selectedHeaders = LegacyFormat.currentHeaders;
+	LegacyFormat.columnMapping.clear();
+	LegacyFormat.columnMapping.insert(StartX,   LegacyFormat.currentHeaders[0]);
+	LegacyFormat.columnMapping.insert(StartY,   LegacyFormat.currentHeaders[1]);
+	LegacyFormat.columnMapping.insert(StartZ,   LegacyFormat.currentHeaders[2]);
+	LegacyFormat.columnMapping.insert(EndX,     LegacyFormat.currentHeaders[3]);
+	LegacyFormat.columnMapping.insert(EndY,     LegacyFormat.currentHeaders[4]);
+	LegacyFormat.columnMapping.insert(EndZ,     LegacyFormat.currentHeaders[5]);
+	LegacyFormat.columnMapping.insert(Length,   LegacyFormat.currentHeaders[7]);
+	LegacyFormat.columnMapping.insert(Diameter, LegacyFormat.currentHeaders[9]);
+	return LegacyFormat;
+}
+
+iACsvConfig const & iACsvConfig::getLegacyPoreFormat()
+{
+	static iACsvConfig LegacyFormat;
+	LegacyFormat.encoding = "System";
+	LegacyFormat.containsHeader = true;
+	LegacyFormat.skipLinesStart = 4;
+	LegacyFormat.skipLinesEnd = 0;
+	LegacyFormat.columnSeparator = ",";
+	LegacyFormat.decimalSeparator = ".";
+	LegacyFormat.addAutoID = false;
+	LegacyFormat.objectType = iAFeatureScoutObjectType::Fibers;
+	LegacyFormat.computeLength = false;
+	LegacyFormat.computeAngles = false;
+	LegacyFormat.computeTensors = false;
+	LegacyFormat.computeCenter = false;
+	LegacyFormat.currentHeaders.clear();
+	LegacyFormat.selectedHeaders.clear();
+	LegacyFormat.columnMapping.clear();
+	return LegacyFormat;
 }

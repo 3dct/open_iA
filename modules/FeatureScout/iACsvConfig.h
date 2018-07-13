@@ -29,25 +29,8 @@
 //! parameters for csv loading configuraton
 struct iACsvConfig
 {
-	static const int LegacyFormatStartSkipLines = 5;
-	iACsvConfig();
-	bool isValid(QString & errorMsg) const;
-
-	QString fileName;                       //!< filename, not stored in registrys
-	QString encoding;                       //!< text encoding of the csv file
-	bool containsHeader;                    //!< whether the file contains a header
-	size_t skipLinesStart, skipLinesEnd;    //!< how many lines to skip at start and end of the file
-	QString colSeparator, decimalSeparator; //!< column and decimal separator strings
-	bool addAutoID;                         //!< whether to add an automatic ID column
-	iAFeatureScoutObjectType objectType;    //!< type of objects to be analyzed
-	QString unit;                           //!< unit of measurement for the values given in the csv
-	float spacing;                          //!< volume spacing to be used, currently unused
-
-	QStringList currentHeaders;             //!< current headers of the table
-	QStringList selectedHeaders;            //!< names of the selected headers
-
 	enum MappedColumn {
-		NotMapped=-1,
+		NotMapped = -1,
 		StartX, StartY, StartZ,
 		EndX, EndY, EndZ,
 		CenterX, CenterY, CenterZ,
@@ -56,6 +39,25 @@ struct iACsvConfig
 		Phi, Theta,
 		MappedCount
 	};
-	bool computeLength, computeAngles, computeTensors;  //!< flags whether to compute additional columns
-	QMap<uint, QString> columnMapping;
+	static const int LegacyFormatStartSkipLines = 5;
+	iACsvConfig();
+	bool isValid(QString & errorMsg) const;
+
+	QString fileName;                       //!< filename, not stored in registrys
+	QString encoding;                       //!< text encoding of the csv file
+	bool containsHeader;                    //!< whether the file contains a header
+	size_t skipLinesStart, skipLinesEnd;    //!< how many lines to skip at start and end of the file
+	QString columnSeparator;                //!< string separating the columns in the csv
+	QString decimalSeparator;               //!< string separating the integer from the fractional part in the numbers
+	bool addAutoID;                         //!< whether to add an automatic ID column
+	iAFeatureScoutObjectType objectType;    //!< type of objects to be analyzed
+	QString unit;                           //!< unit of measurement for the values given in the csv
+	float spacing;                          //!< volume spacing to be used, currently unused
+	QStringList currentHeaders;             //!< current headers of the table
+	QStringList selectedHeaders;            //!< names of the selected headers
+	bool computeLength, computeAngles, computeTensors, computeCenter;  //!< flags whether to compute additional columns
+	QMap<uint, QString> columnMapping;      //! map a specific value (denoted by an ID from MappedColumn) to the name of the field where it's stored
+
+	static iACsvConfig const & getLegacyFiberFormat();
+	static iACsvConfig const & getLegacyPoreFormat();
 };
