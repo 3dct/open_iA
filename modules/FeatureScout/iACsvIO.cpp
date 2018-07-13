@@ -30,7 +30,6 @@
 #include <QTextCodec>
 #include <QTextStream>
 
-// iACsvConfig:
 const char* iACsvIO::ColNameAutoID = "Auto_ID";
 const char* iACsvIO::ColNameClassID = "Class_ID";
 const char* iACsvIO::ColNamePhi = "Phi[°]";
@@ -45,6 +44,21 @@ const char* iACsvIO::ColNameCenterX = "Xm[µm]";
 const char* iACsvIO::ColNameCenterY = "Xm[µm]";
 const char* iACsvIO::ColNameCenterZ = "Xm[µm]";
 const char* iACsvIO::ColNameLength = "Length[µm]";
+
+namespace
+{
+	double getValueAsDouble(QStringList const & values, int index, QString const & decimalSeparator)
+	{
+		QString value = values[index];
+		if (decimalSeparator != ".")
+			value = value.replace(decimalSeparator, ".");
+		return value.toDouble();
+	}
+	QString DblToString(double value)
+	{
+		return QString::number(value, 'f', 10);
+	}
+}
 
 iACsvIO::iACsvIO():
 	m_rowCount(std::numeric_limits<size_t>::max())
@@ -88,8 +102,8 @@ QStringList iACsvIO::fibreCalculation(QString const & line, size_t const colCoun
 	a13 = cos(phi)*sin(theta)*cos(theta);
 	a23 = sin(phi)*sin(theta)*cos(theta);
 
-	phi = (phi*180.0f) / vtkMath::Pi();
-	theta = (theta*180.0f) / vtkMath::Pi(); // finish calculation
+	phi = vtkMath::DegreesFromRadians(phi);
+	theta = vtkMath::DegreesFromRadians(theta); // finish calculation
 									// locate the phi value to quadrant
 	if (dx < 0)
 	{
@@ -119,17 +133,17 @@ QStringList iACsvIO::fibreCalculation(QString const & line, size_t const colCoun
 	{
 		result.append(line.section(",", j, j));
 	}
-	result.append(QString::number(a11));
-	result.append(QString::number(a22));
-	result.append(QString::number(a33));
-	result.append(QString::number(a12));
-	result.append(QString::number(a13));
-	result.append(QString::number(a23));
-	result.append(QString::number(phi));
-	result.append(QString::number(theta));
-	result.append(QString::number(xm));
-	result.append(QString::number(ym));
-	result.append(QString::number(zm));
+	result.append(DblToString(a11));
+	result.append(DblToString(a22));
+	result.append(DblToString(a33));
+	result.append(DblToString(a12));
+	result.append(DblToString(a13));
+	result.append(DblToString(a23));
+	result.append(DblToString(phi));
+	result.append(DblToString(theta));
+	result.append(DblToString(xm));
+	result.append(DblToString(ym));
+	result.append(DblToString(zm));
 	for (int j = 7; j < colCount; j++)
 	{
 		result.append(line.section(",", j, j));
@@ -180,15 +194,17 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, ReadMode mode)
 		DEBUG_LOG("No rows to load in the csv file!");
 		return false;
 	}
-	
+
 	for (int i = 0; i < m_csvConfig.skipLinesStart; i++)
 		in.readLine();
-	
+
 	if (m_csvConfig.containsHeader)
 		m_fileHeaders = in.readLine().split(m_csvConfig.columnSeparator);
 	else
 		m_fileHeaders = m_csvConfig.currentHeaders;
 	auto selectedColIdx = getSelectedColIdx(m_fileHeaders, m_csvConfig.selectedHeaders, mode);
+	if (!computeColumnMapping())
+		return false;
 	determineOutputHeaders(selectedColIdx, mode);
 	int colCount = m_outputHeaders.size();
 
@@ -225,6 +241,84 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, ReadMode mode)
 					if (m_csvConfig.decimalSeparator != ".")
 						value = value.replace(m_csvConfig.decimalSeparator, ".");
 					entries.append(value);
+				}
+				if (m_csvConfig.computeLength || m_csvConfig.computeAngles || m_csvConfig.computeTensors || m_csvConfig.computeCenter)
+				{
+					double x1 = getValueAsDouble(values, m_columnMapping[iACsvConfig::StartX], m_csvConfig.decimalSeparator);
+					double y1 = getValueAsDouble(values, m_columnMapping[iACsvConfig::StartY], m_csvConfig.decimalSeparator);
+					double z1 = getValueAsDouble(values, m_columnMapping[iACsvConfig::StartZ], m_csvConfig.decimalSeparator);
+					double x2 = getValueAsDouble(values, m_columnMapping[iACsvConfig::EndX], m_csvConfig.decimalSeparator);
+					double y2 = getValueAsDouble(values, m_columnMapping[iACsvConfig::EndY], m_csvConfig.decimalSeparator);
+					double z2 = getValueAsDouble(values, m_columnMapping[iACsvConfig::EndZ], m_csvConfig.decimalSeparator);
+					double dx = x1 - x2;
+					double dy = y1 - y2;
+					double dz = z1 - z2;
+					if (dz < 0)
+					{
+						dx = x2 - x1;
+						dy = y2 - y1;
+						dz = z2 - z1;
+					}
+					if (m_csvConfig.computeLength)
+					{
+						double length = std::sqrt(dx*dx + dy*dy + dz*dz);
+						entries.append(DblToString(length));
+					}
+					if (m_csvConfig.computeCenter)
+					{
+						double xm = (x1 + x2) / 2.0f;
+						double ym = (y1 + y2) / 2.0f;
+						double zm = (z1 + z2) / 2.0f;
+						entries.append(DblToString(xm));
+						entries.append(DblToString(ym));
+						entries.append(DblToString(zm));
+					}
+					if (m_csvConfig.computeAngles || m_csvConfig.computeTensors)
+					{
+						double phi = asin(dy / sqrt(dx*dx + dy*dy));
+						double theta = acos(dz / sqrt(dx*dx + dy*dy + dz*dz));
+						double a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
+						double a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
+						double a33 = cos(theta)*cos(theta);
+						double a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
+						double a13 = cos(phi)*sin(theta)*cos(theta);
+						double a23 = sin(phi)*sin(theta)*cos(theta);
+						phi = vtkMath::DegreesFromRadians(phi);
+						theta = vtkMath::DegreesFromRadians(theta);
+						// locate the phi value to quadrant
+						if (dx < 0)
+						{
+							phi = 180.0 - phi;
+						}
+						if (phi < 0.0)
+						{
+							phi = phi + 360.0;
+						}
+						if (dx == 0 && dy == 0)
+						{
+							phi = 0.0;
+							theta = 0.0;
+							a11 = 0.0;
+							a22 = 0.0;
+							a12 = 0.0;
+							a13 = 0.0;
+							a23 = 0.0;
+						}
+						if (m_csvConfig.computeAngles)
+						{
+							entries.append(DblToString(phi));
+							entries.append(DblToString(theta));
+						}
+						if (m_csvConfig.computeTensors)
+						{
+							entries.append(DblToString(a11));
+							entries.append(DblToString(a22));
+							entries.append(DblToString(a33));
+							entries.append(DblToString(a12));
+							entries.append(DblToString(a13));
+							entries.append(DblToString(a23));
+						}
+					}
 				}
 				break;
 			}
@@ -300,6 +394,23 @@ QVector<int> iACsvIO::getSelectedColIdx(QStringList const & fileHeaders, QString
 		}
 	}
 	return result;
+}
+
+bool iACsvIO::computeColumnMapping()
+{
+	m_columnMapping.clear();
+	for (int key : m_csvConfig.columnMapping.keys())
+	{
+		QString columnName = m_csvConfig.columnMapping[key];
+		int index = m_fileHeaders.lastIndexOf(columnName);
+		if (index == -1)
+		{
+			DEBUG_LOG(QString("Invalid column mapping: No column found with name '%1'!").arg(columnName));
+			return false;
+		}
+		m_columnMapping.insert(key, index);
+	}
+	return true;
 }
 
 size_t iACsvIO::calcRowCount(QTextStream& in, const size_t skipLinesStart, const size_t skipLinesEnd)

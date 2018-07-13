@@ -74,9 +74,10 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 	return true;
 }
 
-iACsvConfig const & iACsvConfig::getLegacyFiberFormat()
+iACsvConfig const & iACsvConfig::getLegacyFiberFormat(QString const & fileName)
 {
 	static iACsvConfig LegacyFormat;
+	LegacyFormat.fileName = fileName;
 	LegacyFormat.encoding = "System";
 	LegacyFormat.containsHeader = false;
 	LegacyFormat.skipLinesStart = 5;
@@ -105,20 +106,21 @@ iACsvConfig const & iACsvConfig::getLegacyFiberFormat()
 		<< "CurvedFibre";
 	LegacyFormat.selectedHeaders = LegacyFormat.currentHeaders;
 	LegacyFormat.columnMapping.clear();
-	LegacyFormat.columnMapping.insert(StartX,   LegacyFormat.currentHeaders[0]);
-	LegacyFormat.columnMapping.insert(StartY,   LegacyFormat.currentHeaders[1]);
-	LegacyFormat.columnMapping.insert(StartZ,   LegacyFormat.currentHeaders[2]);
-	LegacyFormat.columnMapping.insert(EndX,     LegacyFormat.currentHeaders[3]);
-	LegacyFormat.columnMapping.insert(EndY,     LegacyFormat.currentHeaders[4]);
-	LegacyFormat.columnMapping.insert(EndZ,     LegacyFormat.currentHeaders[5]);
+	LegacyFormat.columnMapping.insert(StartX,   LegacyFormat.currentHeaders[1]);
+	LegacyFormat.columnMapping.insert(StartY,   LegacyFormat.currentHeaders[2]);
+	LegacyFormat.columnMapping.insert(StartZ,   LegacyFormat.currentHeaders[3]);
+	LegacyFormat.columnMapping.insert(EndX,     LegacyFormat.currentHeaders[4]);
+	LegacyFormat.columnMapping.insert(EndY,     LegacyFormat.currentHeaders[5]);
+	LegacyFormat.columnMapping.insert(EndZ,     LegacyFormat.currentHeaders[6]);
 	LegacyFormat.columnMapping.insert(Length,   LegacyFormat.currentHeaders[7]);
 	LegacyFormat.columnMapping.insert(Diameter, LegacyFormat.currentHeaders[9]);
 	return LegacyFormat;
 }
 
-iACsvConfig const & iACsvConfig::getLegacyPoreFormat()
+iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 {
 	static iACsvConfig LegacyFormat;
+	LegacyFormat.fileName = fileName;
 	LegacyFormat.encoding = "System";
 	LegacyFormat.containsHeader = true;
 	LegacyFormat.skipLinesStart = 4;

@@ -485,7 +485,7 @@ void dlg_FeatureScout::setupDefaultElement()
 		pcChart->SetColumnVisibility(eleString.at(14).toStdString(), true);	//dimy
 		pcChart->SetColumnVisibility(eleString.at(15).toStdString(), true);	//dimz
 		pcChart->SetColumnVisibility(eleString.at(16).toStdString(), true);	//phi
-		pcChart->SetColumnVisibility(eleString.at(17).toStdString(), true);	//theata
+		pcChart->SetColumnVisibility(eleString.at(17).toStdString(), true);	//theta
 		pcChart->SetColumnVisibility(eleString.at(18).toStdString(), true);	//Xm
 		pcChart->SetColumnVisibility(eleString.at(19).toStdString(), true);	//Ym
 		pcChart->SetColumnVisibility(eleString.at(20).toStdString(), true);	//Zm

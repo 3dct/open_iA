@@ -23,6 +23,7 @@
 #include "iAFeatureScoutObjectType.h"
 #include "iACsvConfig.h"
 
+#include <QMap>
 #include <QString>
 #include <QVector>
 
@@ -81,6 +82,8 @@ private:
 	QStringList m_outputHeaders;        //!< list of column header names in result table
 	iACsvConfig m_csvConfig;            //!< settings used for reading the csv
 	size_t m_rowCount;                  //!< row count
+	QMap<int, int> m_columnMapping;     //!< maps a value identifier (given as a value out of the iACsvIO::MappedColumn enum)
+	//! to the index of the column which contains this value.
 
 	//! internal function for the actual loading procedure
 	bool loadCSV(iACsvTableCreator & dstTbl, ReadMode mode);
@@ -95,4 +98,6 @@ private:
 	//! determine the indices of the selected columns
 	QVector<int> getSelectedColIdx(QStringList const & fileHeaders,
 		QStringList const & selectedHeaders, ReadMode mode);
+	//! compute the m_columnMapping map out of the config and the file header
+	bool computeColumnMapping();
 };

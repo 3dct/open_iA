@@ -58,6 +58,6 @@ struct iACsvConfig
 	bool computeLength, computeAngles, computeTensors, computeCenter;  //!< flags whether to compute additional columns
 	QMap<uint, QString> columnMapping;      //! map a specific value (denoted by an ID from MappedColumn) to the name of the field where it's stored
 
-	static iACsvConfig const & getLegacyFiberFormat();
-	static iACsvConfig const & getLegacyPoreFormat();
+	static iACsvConfig const & getLegacyFiberFormat(QString const & fileName);
+	static iACsvConfig const & getLegacyPoreFormat(QString const & fileName);
 };

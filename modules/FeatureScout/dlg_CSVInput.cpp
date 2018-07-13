@@ -369,7 +369,8 @@ void dlg_CSVInput::showConfigParams()
 	QSignalBlocker slsblock(ed_SkipLinesStart), sleblock(ed_SkipLinesEnd),
 		csblock(cmbbox_ColSeparator), aiblock(cb_addAutoID),
 		eblock(cmbbox_Encoding), otblock(cmbbox_ObjectType),
-		clblock(cb_ComputeLength), cablock(cb_ComputeAngles), ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter);
+		clblock(cb_ComputeLength), cablock(cb_ComputeAngles),
+		ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter), chblock(cb_ContainsHeader);
 	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
 	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(m_confParams.columnSeparator));
@@ -519,13 +520,13 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	{
 		if (formatName == LegacyFiberFormat)
 		{
-			m_confParams = iACsvConfig::getLegacyFiberFormat();
+			m_confParams = iACsvConfig::getLegacyFiberFormat(m_confParams.fileName);
 			setCurrentFormat(formatName);
 			return true;
 		}
 		else if (formatName == LegacyPoreFormat)
 		{
-			m_confParams = iACsvConfig::getLegacyPoreFormat();
+			m_confParams = iACsvConfig::getLegacyPoreFormat(m_confParams.fileName);
 			setCurrentFormat(formatName);
 			return true;
 		}
