@@ -22,22 +22,19 @@
 
 #include "dlg_blobVisualization.h"
 #include "dlg_editPCClass.h"
-#include "dlg_imageproperty.h"
-#include "dlg_modalities.h"
-#include "charts/iADiagramFctWidget.h"
-#include "charts/iAQSplom.h"
-#include "iAmat4.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iAMeanObjectTFView.h"
-#include "iAModalityTransfer.h"
 #include "iAObjectAnalysisType.h"
 
 #include "charts/iADiagramFctWidget.h"
+#include "charts/iAQSplom.h"
 #include "dlg_commoninput.h"
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
+#include "iADockWidgetWrapper.h"
 #include "iAmat4.h"
+#include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"
 #include "iAProgress.h"
 #include "iARenderer.h"
@@ -53,6 +50,12 @@
 #include <itkPasteImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget.h>
+#include <vtkRenderWindow.h>
+#endif
 #include <vtkActor.h>
 #include <vtkActor2D.h>
 #include <vtkAnnotationLink.h>
@@ -94,7 +97,6 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
-#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarWidget.h>
@@ -245,9 +247,20 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 	columnVisArr->SetNumberOfValues( elementNr );
 
 	initParallelCoordinates( fid );
-	// connect IFV module to mdiChild dockwidgets
-	this->pcWidget = iovPC->dockWidgetContents;
-	this->pcPolarPlot = iovPP->plotWidget;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	pcWidget = new QVTKOpenGLWidget();
+	auto pcWidgetRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	pcWidget->SetRenderWindow(pcWidgetRenWin);
+
+	polarPlot = new QVTKOpenGLWidget();
+	auto polarPlotRenWin = vtkGenericOpenGLRenderWindow::New();
+	polarPlot->SetRenderWindow(polarPlotRenWin);
+#else
+	pcWidget = new QVTKWidget();
+	polarPlot = new QVTKWidget();
+#endif
+	iovPC->setWidget(pcWidget);
+	iovPP->verticalLayout->addWidget(polarPlot);
 	this->orientationColorMapSelection = iovPP->colorMapSelection;
 	this->orientColormap = iovPP->comboBox;
 
@@ -342,6 +355,8 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long
 
 void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 {
+	// !!!!! DUPLICATES FUNCTIONALITY FROM setupViews !!!!!
+
 	this->pcWidget->setEnabled( true );
 
 	// copy csvTable to chartTable, columnNames should be changed if we have fibre visualization
@@ -352,15 +367,13 @@ void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 		this->updateColumnNames();
 	}
 
-	this->pcWidget->SetRenderWindow( NULL );
 	this->deletePcViewPointer();
 
 	// new initialize of the pcChart
 	this->pcView = vtkContextView::New();
 	this->pcChart = vtkChartParallelCoordinates::New();
-	// setup interactor and render window
-	this->pcView->SetInteractor( this->pcWidget->GetInteractor() );
-	this->pcWidget->SetRenderWindow( this->pcView->GetRenderWindow() );
+	pcView->SetRenderWindow( pcWidget->GetRenderWindow() );
+	pcView->SetInteractor( pcWidget->GetInteractor() );
 	this->pcChart->GetPlot( 0 )->SetInputData( chartTable );
 	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
 	this->pcChart->GetPlot( 0 )->SetWidth( 0.1 );
@@ -560,10 +573,8 @@ void dlg_FeatureScout::setupViews()
 	// preparing chart and view for Parallel Coordinates
 	this->pcView = vtkContextView::New();
 	this->pcChart = vtkChartParallelCoordinates::New();
-
-	// setup interactor and render window
-	this->pcView->SetInteractor( this->pcWidget->GetInteractor() );
-	this->pcWidget->SetRenderWindow( this->pcView->GetRenderWindow() );
+	pcView->SetRenderWindow( pcWidget->GetRenderWindow() );
+	pcView->SetInteractor( pcWidget->GetInteractor() );
 	this->pcChart->GetPlot( 0 )->SetInputData( chartTable );
 	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
 	this->pcChart->GetPlot( 0 )->SetWidth( 0.1 );
@@ -1539,10 +1550,17 @@ void dlg_FeatureScout::RenderingMeanObject()
 		connect( iovMO->tb_SaveStl, SIGNAL( clicked() ), this, SLOT( saveStl() ) );
 
 		// Create a render window and an interactor for all the MObjects
-		m_renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-		iovMO->plotWidget->SetRenderWindow( m_renderWindow );
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+		m_meanObjectRenderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+		meanObjectWidget = new QVTKOpenGLWidget();
+#else
+		m_meanObjectRenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+		meanObjectWidget = new QVTKWidget();
+#endif
+		iovMO->verticalLayout->addWidget( meanObjectWidget );
+		meanObjectWidget->SetRenderWindow( m_meanObjectRenderWindow );
 		vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-		renderWindowInteractor->SetRenderWindow( m_renderWindow );
+		renderWindowInteractor->SetRenderWindow( m_meanObjectRenderWindow );
 		vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle( style );
 
@@ -1574,7 +1592,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 	}
 
 	// Remove old renderers
-	iovMO->plotWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
+	meanObjectWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
 
 	// Define viewport variables
 	unsigned numberOfMeanObjectVolumes = m_MOData.moVolumesList.size();
@@ -1589,7 +1607,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 		m_MOData.moRendererList.append( renderer );
 		renderer->GetActiveCamera()->ParallelProjectionOn();
 		renderer->SetBackground( 1.0, 1.0, 1.0 );
-		m_renderWindow->AddRenderer( m_MOData.moRendererList[i] );
+		m_meanObjectRenderWindow->AddRenderer( m_MOData.moRendererList[i] );
 		renderer->SetViewport( fmod( i, viewportColumns ) * fieldLengthX,
 							   1 - ( ceil( ( i + 1.0 ) / viewportColumns ) / viewportRows ),
 							   fmod( i, viewportColumns ) * fieldLengthX + fieldLengthX,
@@ -1644,7 +1662,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 			renderer->AddActor( cubeAxesActor );
 			renderer->AddActor( outlineActor );
 		}
-		m_renderWindow->Render();
+		m_meanObjectRenderWindow->Render();
 	}
 }
 
@@ -1664,7 +1682,7 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 
 void dlg_FeatureScout::updateMOView()
 {
-	iovMO->plotWidget->GetRenderWindow()->Render();
+	meanObjectWidget->GetRenderWindow()->Render();
 }
 
 void dlg_FeatureScout::browseFolderDialog()
@@ -1883,9 +1901,6 @@ void dlg_FeatureScout::RenderingOrientation()
 		this->cTF->AddRGBPoint( i + 1, red, green, blue );
 	}
 
-	// update polar plot for orientation rendering
-	this->pcPolarPlot->SetRenderWindow( NULL );
-
 	// prepare the delaunay triangles
 	VTK_CREATE( vtkDelaunay2D, del );
 	VTK_CREATE( vtkPoints, points );
@@ -1934,7 +1949,11 @@ void dlg_FeatureScout::RenderingOrientation()
 	VTK_CREATE( vtkRenderer, renderer );
 	renderer->SetBackground( 1, 1, 1 );
 
-	VTK_CREATE( vtkRenderWindow, renW );
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	VTK_CREATE(vtkGenericOpenGLRenderWindow, renW);
+#else
+	VTK_CREATE(vtkRenderWindow, renW);
+#endif
 	renW->AddRenderer( renderer );
 	renderer->AddActor( actor );
 
@@ -1942,10 +1961,10 @@ void dlg_FeatureScout::RenderingOrientation()
 	this->drawPolarPlotMesh( renderer );
 	this->drawAnnotations( renderer );
 
-	vtkRenderWindowInteractor *renI = pcPolarPlot->GetInteractor();
+	vtkRenderWindowInteractor *renI = polarPlot->GetInteractor();
 	renI->SetRenderWindow( renW );
-	pcPolarPlot->SetRenderWindow( renI->GetRenderWindow() );
-	pcPolarPlot->GetRenderWindow()->Render();
+	polarPlot->SetRenderWindow( renW );
+	renW->Render();
 
 	static_cast<MdiChild*>( activeChild )->updateViews();
 	orientationColorMapSelection->show();
@@ -2146,9 +2165,9 @@ void dlg_FeatureScout::RenderingFLD()
 	plot->GetXAxis()->SetTitle( "Length in microns" );
 	plot->GetYAxis()->SetTitle( "Frequency" );
 	view->GetScene()->AddItem( chart );
-	view->SetInteractor( this->pcPolarPlot->GetInteractor() );
-	this->pcPolarPlot->SetRenderWindow( view->GetRenderWindow() );
-	pcPolarPlot->update();
+	view->SetInteractor( polarPlot->GetInteractor() );
+	view->SetRenderWindow( polarPlot->GetRenderWindow() );
+	polarPlot->update();
 }
 
 void dlg_FeatureScout::ClassAddButton()
@@ -2849,10 +2868,16 @@ void dlg_FeatureScout::CsvDVSaveButton()
 			MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 			if ( !iovDV )
 			{
-				iovDV = new dlg_IOVDV( this );
-				iovDV->setWindowTitle( QString( "Distribution View" ) );
-				this->m_dvContextView->SetInteractor( iovDV->dockWidgetContents->GetInteractor() );
-				iovDV->dockWidgetContents->SetRenderWindow( this->m_dvContextView->GetRenderWindow() );
+				iovDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+				auto dvqvtkWidget = new QVTKOpenGLWidget();
+				dvqvtkWidget->SetRenderWindow(vtkGenericOpenGLRenderWindow::New());
+#else
+				auto dvqvtkWidget = new QVTKWidget();
+#endif
+				iovDV->setWidget(dvqvtkWidget);
+				m_dvContextView->SetRenderWindow( dvqvtkWidget->GetRenderWindow() );
+				m_dvContextView->SetInteractor( dvqvtkWidget->GetInteractor() );
 				mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovDV );
 				iovDV->show();
 			}
@@ -3235,7 +3260,7 @@ void dlg_FeatureScout::ScatterPlotButton()
 
 		matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
 		matrix->setSelectionColor(QColor(255, 40, 0, 1));
-	
+
 		// Scatter plot matrix only shows features which are selected in PC-ElementTableModel.
 		spUpdateSPColumnVisibilityWithVis();
 
@@ -4330,7 +4355,7 @@ void dlg_FeatureScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *rend
 			m_scalarBarPP->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
 			m_scalarBarPP->SetTitle( "Frequency" );
 			m_scalarBarPP->SetNumberOfLabels( 5 );
-			m_scalarWidgetPP->SetInteractor( this->pcPolarPlot->GetInteractor() );
+			m_scalarWidgetPP->SetInteractor( polarPlot->GetInteractor() );
 			m_scalarWidgetPP->SetScalarBarActor( m_scalarBarPP );
 			m_scalarWidgetPP->SetEnabled( true );
 			m_scalarWidgetPP->SetRepositionable( true );
@@ -4410,7 +4435,6 @@ void dlg_FeatureScout::createFLDODLookupTable( vtkLookupTable *lut, int Num )
 void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 {
 	iovPP->setWindowTitle( "Polar Plot View" );
-	this->pcPolarPlot->SetRenderWindow( NULL );
 	double xx, yy, zz, phi;
 
 	// construct delaunay triangulation
@@ -4503,25 +4527,27 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	VTK_CREATE( vtkRenderer, renderer );
 	renderer->SetBackground( 1, 1, 1 );
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	VTK_CREATE( vtkGenericOpenGLRenderWindow, renW );
+#else
 	VTK_CREATE( vtkRenderWindow, renW );
+#endif
 	renW->AddRenderer( renderer );
 	renderer->AddActor( actor );
 
-	vtkRenderWindowInteractor *renI = pcPolarPlot->GetInteractor();
+	vtkRenderWindowInteractor *renI = polarPlot->GetInteractor();
 	renI->SetRenderWindow( renW );
-	pcPolarPlot->SetRenderWindow( renI->GetRenderWindow() );
+	polarPlot->SetRenderWindow( renW );
 
-	// Projection grid
 	this->drawPolarPlotMesh( renderer );
 	this->drawAnnotations( renderer );
 	this->drawScalarBar( cTFun, renderer, 0 );
-	pcPolarPlot->GetRenderWindow()->Render();
+	polarPlot->GetRenderWindow()->Render();
 }
 
 void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 {
 	iovPP->setWindowTitle( "Polar Plot View" );
-	this->pcPolarPlot->SetRenderWindow( NULL );
 	double xx, yy, zz, phi;
 
 	// calculate object probability and save it to a table
@@ -4601,19 +4627,22 @@ void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 	VTK_CREATE( vtkRenderer, renderer );
 	renderer->SetBackground( 1, 1, 1 );
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	VTK_CREATE( vtkGenericOpenGLRenderWindow, renW );
+#else
 	VTK_CREATE( vtkRenderWindow, renW );
+#endif
 	renW->AddRenderer( renderer );
 	renderer->AddActor( actor );
 
-	vtkRenderWindowInteractor *renI = pcPolarPlot->GetInteractor();
+	vtkRenderWindowInteractor *renI = polarPlot->GetInteractor();
 	renI->SetRenderWindow( renW );
-	pcPolarPlot->SetRenderWindow( renI->GetRenderWindow() );
+	polarPlot->SetRenderWindow( renW );
 
-	// Projection grid and annotations
 	this->drawPolarPlotMesh( renderer );
 	this->drawAnnotations( renderer );
 	this->drawScalarBar( cTFun, renderer );
-	pcPolarPlot->GetRenderWindow()->Render();
+	polarPlot->GetRenderWindow()->Render();
 }
 
 void dlg_FeatureScout::setupPolarPlotResolution( float grad )
@@ -4954,7 +4983,7 @@ bool dlg_FeatureScout::initParallelCoordinates( iAObjectAnalysisType fid )
 	if ( !mdiChild )
 		return false;
 
-	iovPC = new dlg_IOVPC( this );
+	iovPC = new iADockWidgetWrapper("Parallel Coordinates",  "FeatureScoutPC");
 	iovPP = new dlg_IOVPP( this );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, this );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPC );

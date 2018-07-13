@@ -27,7 +27,6 @@
 #include <vtkMatrix4x4.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkTexture.h>
 

@@ -21,8 +21,13 @@
 #pragma once
 
 #include "open_iA_Core_export.h"
-// vtk
+
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
 #include <QVTKWidget2.h>
+#endif
 #include <vtkSmartPointer.h>
 
 class vtkActor2D;
@@ -30,7 +35,11 @@ class vtkCamera;
 class vtkInteractorStyle;
 class vtkRenderer;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class open_iA_Core_API iAAbstractMagicLensWidget : public QVTKOpenGLWidget
+#else
 class open_iA_Core_API iAAbstractMagicLensWidget : public QVTKWidget2
+#endif
 {
 	Q_OBJECT
 public:
@@ -38,35 +47,32 @@ public:
 		CENTERED,
 		OFFSET
 	};
-						iAAbstractMagicLensWidget( QWidget * parent = 0 );
-	virtual				~iAAbstractMagicLensWidget( );
-	void				magicLensOn( );
-	void				magicLensOff( );
-	void				setLensSize( int sizeX, int sizeY );
-	vtkRenderer*		getLensRenderer( );
-	void				setViewMode( ViewMode mode );
-
+	iAAbstractMagicLensWidget( QWidget * parent = 0 );
+	virtual ~iAAbstractMagicLensWidget( );
+	void magicLensOn( );
+	void magicLensOff( );
+	void setLensSize( int sizeX, int sizeY );
+	vtkRenderer* getLensRenderer( );
+	void setViewMode( ViewMode mode );
 	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin);
-
 
 signals:
 	void MouseMoved( );
 
-
 protected:
-	virtual void		mouseMoveEvent( QMouseEvent * event );
-	virtual void		updateLens( );
-	virtual void		updateGUI( );
-	void				getViewportPoints( double points[4] );
+	void mouseMoveEvent( QMouseEvent * event ) override;
+	virtual void updateLens( );
+	virtual void updateGUI( );
+	void getViewportPoints( double points[4] );
 
-	vtkSmartPointer<vtkRenderer>	m_lensRen;
-	vtkSmartPointer<vtkRenderer>	m_GUIRen;
-	vtkSmartPointer<vtkActor2D>		m_GUIActor;
-	int								m_pos[2];
-	int								m_size[2];
-	double							m_halfSize[2];
-	ViewMode						m_viewMode;
+	vtkSmartPointer<vtkRenderer> m_lensRen;
+	vtkSmartPointer<vtkRenderer> m_GUIRen;
+	vtkSmartPointer<vtkActor2D>  m_GUIActor;
+	int                          m_pos[2];
+	int                          m_size[2];
+	double                       m_halfSize[2];
+	ViewMode                     m_viewMode;
 
 private:
-	static const double				OFFSET_VAL;
+	static const double          OFFSET_VAL;
 };

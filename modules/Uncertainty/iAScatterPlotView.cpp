@@ -30,7 +30,6 @@
 #include "iAUncertaintyColors.h"
 #include "iAVtkDraw.h"
 
-#include <QVTKWidget.h>
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>

@@ -47,6 +47,11 @@
 #include <itkSTAPLEImageFilter.h>
 #include <itkLabelStatisticsImageFilter.h>
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget2.h>
+#endif
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
@@ -56,7 +61,6 @@
 #include <vtkPlot.h>
 #include <vtkPlotLine.h>
 #include <vtkTable.h>
-#include <QVTKWidget2.h>
 
 #include <QCheckBox>
 #include <QFileDialog>
@@ -100,7 +104,11 @@
 
 struct ChartWidgetData
 {
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QVTKOpenGLWidget* vtkWidget;
+#else
 	QVTKWidget2* vtkWidget;
+#endif
 	vtkSmartPointer<vtkChartXY> chart;
 };
 
@@ -108,7 +116,11 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 		MdiChild* mdiChild)
 {
 	ChartWidgetData result;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	result.vtkWidget = new QVTKOpenGLWidget();
+#else
 	result.vtkWidget = new QVTKWidget2();
+#endif
 	auto contextView = vtkSmartPointer<vtkContextView>::New();
 	contextView->SetRenderWindow(result.vtkWidget->GetRenderWindow());
 	result.chart = vtkSmartPointer<vtkChartXY>::New();

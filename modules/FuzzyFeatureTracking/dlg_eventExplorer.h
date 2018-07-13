@@ -23,17 +23,17 @@
 #include <QtGui>
 #include <QObject>
 #include <QList>
+
 #include "ui_EventExplorer.h"
-#include "QVTKWidget.h"
 
 #include <vtkChartXY.h>
 #include <vtkContextView.h>
 #include <vtkIdTypeArray.h>
 #include <vtkIntArray.h>
+#include <vtkMutableDirectedGraph.h>
 #include <vtkPlot.h>
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
-#include <vtkMutableDirectedGraph.h>
 
 #include <vector>
 
@@ -41,6 +41,12 @@ class dlg_trackingGraph;
 class iAFeatureTracking;
 class iAVolumeStack;
 
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class QVTKOpenGLWidget;
+#else
+class QVTKWidget;
+#endif
 class vtkEventQtSlotConnect;
 
 class dlg_eventExplorer : public QDockWidget, private Ui_EventExplorer
@@ -78,11 +84,7 @@ private:
 	void buildGraph(int id, int layer, int eventType, double uncertainty);
 	void buildSubGraph(int id, int layer);
 
-	QWidget* m_activeChild;
-	QVTKWidget* m_chartWidget1;
-
 	iAVolumeStack* m_volumeStack;
-
 	int m_numberOfCharts;
 	int m_numberOfEventTypes;
 	int m_plotPositionInVector[5];
@@ -91,7 +93,11 @@ private:
 	int m_propertyYId;
 	int m_rgb[5][3];
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	std::vector<QVTKOpenGLWidget*> m_widgets;
+#else
 	std::vector<QVTKWidget*> m_widgets;
+#endif
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY>> m_charts;
 	std::vector<vtkSmartPointer<vtkPlot>> m_plots;

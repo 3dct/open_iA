@@ -26,14 +26,10 @@
 #include "iAObjectAnalysisType.h"
 #include "iAQTtoUIConnector.h"
 #include "ui_FeatureScoutClassExplorer.h"
-#include "ui_FeatureScoutParallelCoordinates.h"
 #include "ui_FeatureScoutPolarPlot.h"
-#include "ui_FeatureScoutDistributionView.h"
 #include "ui_FeatureScoutMeanObjectView.h"
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPC> dlg_IOVPC;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutDV> dlg_IOVDV;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
 
 class iABlobCluster;
@@ -45,6 +41,12 @@ class iARenderer;
 class dlg_blobVisualization;
 class MdiChild;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class QVTKOpenGLWidget;
+#else
+class QVTKWidget;
+class vtkRenderWindow;
+#endif
 class vtkChartParallelCoordinates;
 class vtkContextView;
 class vtkDataArray;
@@ -80,9 +82,6 @@ struct moData
 	QList<vtkSmartPointer<vtkImageData> > moImageDataList;
 };
 
-/**
-* \brief	implement vtkChartParallelCoordinates as dialog
-*/
 class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
 	Q_OBJECT
@@ -100,12 +99,10 @@ public:
 	void updateObjectOrientationID(vtkTable *table);
 	void createPolarPlotLookupTable(vtkLookupTable *lut);
 	void createFLDODLookupTable(vtkLookupTable *lut, int Num);
-	void updatePolarPlotView(vtkTable *it);
 	void drawPolarPlotMesh(vtkRenderer *renderer);
 	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
-	void updatePolarPlotForOrientationRendering(vtkLookupTable *lut);
 	void setupNewPcView(bool lookupTable=false);
 	void deletePcViewPointer();
 	void calculateElementTable();
@@ -115,7 +112,6 @@ public:
 	double calculateOpacity(QStandardItem *item);
 	void recalculateChartTable(QStandardItem *item);
 	void updateColumnNames();
-	void updateColumnOrder();
 	void setupDefaultElement();
 	void SingleRendering(int idx = -10000);
 	void updateLookupTable(double alpha= 0.7);
@@ -129,7 +125,6 @@ public:
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
 	void writeWisetex(QXmlStreamWriter *writer);
 	void autoAddClass(int NbOfClasses);
-	void initOrientationColorMap();
 
 	//selection for each class and show SPM for it
 	void applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
@@ -283,8 +278,14 @@ private:
 	dlg_blobVisualization *blobVisDialog;
 
 	iAQSplom *matrix;
-	QVTKWidget *pcWidget;
-	QVTKWidget *pcPolarPlot;
+
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QVTKOpenGLWidget *pcWidget, *polarPlot, *meanObjectWidget;
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_meanObjectRenderWindow;
+#else
+	QVTKWidget *pcWidget, *polarPlot, *meanObjectWidget;
+	vtkSmartPointer<vtkRenderWindow> m_meanObjectRenderWindow;
+#endif
 	QWidget *orientationColorMapSelection;
 	QComboBox * orientColormap;
 
@@ -297,16 +298,13 @@ private:
 
 	int mousePressedPos [2];
 
-	dlg_IOVPC * iovPC;
+	iADockWidgetWrapper * iovPC, *iovDV, *iovSPM;
 	dlg_IOVPP * iovPP;
-	dlg_IOVDV * iovDV;
 	dlg_IOVMO * iovMO;
-	QDockWidget* iovSPM;
 
 	//Mean Object Rendering
 	iAMeanObjectTFView* m_motfView;
 	moData m_MOData;
-	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
 
 	vtkSmartPointer<vtkLookupTable> m_pointLUT;
 private:

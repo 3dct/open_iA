@@ -47,7 +47,6 @@
 #include "iASingleResult.h"
 #include "iAToolsITK.h"
 
-#include <QVTKWidget2.h>
 #include <vtkImageData.h>
 
 #include <QApplication>
