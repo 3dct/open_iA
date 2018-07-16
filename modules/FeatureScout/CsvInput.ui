@@ -715,9 +715,6 @@
       </item>
       <item>
        <widget class="QTableWidget" name="tbl_preview">
-        <property name="sortingEnabled">
-         <bool>true</bool>
-        </property>
        </widget>
       </item>
      </layout>
