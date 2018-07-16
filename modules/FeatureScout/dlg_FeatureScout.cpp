@@ -24,6 +24,7 @@
 #include "dlg_editPCClass.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
+#include "iACsvIO.h"
 #include "iAMeanObjectTFView.h"
 #include "iAFeatureScoutObjectType.h"
 
@@ -186,8 +187,8 @@ ColormapFuncPtr colormapsIndex[] =
 	ColormapRGBHalfSphere,
 };
 
-//TODO APPEND m_headers selected  as pointer
-dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QStringList const & selectedHeaders)
+dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, vtkRenderer* blobRen,
+	vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<int, int> const & columnMapping)
 	: QDockWidget( parent ),
 	csvTable( csvtbl ),
 	raycaster( parent->getRenderer() ),
@@ -199,7 +200,8 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	iovMO(nullptr),
 	matrix(nullptr),
 	spmActivated(false),
-	sourcePath( parent->currentFile() )
+	sourcePath( parent->currentFile() ),
+	m_columnMapping(columnMapping)
 {
 	setupUi( this );
 	this->useCsvOnly = useCsvOnly;
@@ -235,7 +237,6 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	lut = vtkSmartPointer<vtkLookupTable>::New();
 	chartTable = vtkSmartPointer<vtkTable>::New();
 	chartTable->DeepCopy( csvTable );
-	this->updateColumnNames();
 	if (!tableList.isEmpty())
 	{
 		tableList.clear();
@@ -243,8 +244,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	tableList.push_back( chartTable );
 	colorList.clear();
 	selectedObjID.clear();
-	columnVisArr = vtkSmartPointer<vtkStringArray>::New();
-	columnVisArr->SetNumberOfValues( elementNr );
+	columnVisibility.resize(elementNr);
 
 	initParallelCoordinates( fid );
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
@@ -364,7 +364,6 @@ void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 	if ( lookupTable )
 	{
 		chartTable->DeepCopy( csvTable );
-		this->updateColumnNames();
 	}
 
 	this->deletePcViewPointer();
@@ -416,25 +415,11 @@ void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 
 void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
 {
-	// new solution for using individual itemchagend signal
 	if ( item->isCheckable() )
 	{
 		int i = item->index().row();
-
-		if ( item->checkState() )
-		{
-			// use eleString.count() > 0 to specify that we have a fibre classificaiton
-			// cause the column names in chartTable are manually changed
-			if ( eleString.count() > 0 )
-				columnVisArr->SetValue( i, eleString.at( i ).toStdString() );
-			else
-				columnVisArr->SetValue( i, elementTable->GetValue( i, 0 ).ToString() );
-		}
-		else
-			columnVisArr->SetValue( i, "open_iA" );
-
+		columnVisibility[i] = (item->checkState() == Qt::Checked);
 		this->updatePCColumnVisibility();
-
 		if ( this->spmActivated )
 			this->spUpdateSPColumnVisibility();
 	}
@@ -442,19 +427,9 @@ void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
 
 void dlg_FeatureScout::updatePCColumnVisibility()
 {
-	pcChart->SetColumnVisibilityAll( false );
-
 	for ( int j = 0; j < elementNr; j++ )
 	{
-		const vtkStdString str = columnVisArr->GetValue( j );
-
-		if ( str != "open_iA" )
-		{
-			if ( eleString.count() > 0 )
-				pcChart->SetColumnVisibility( eleString.at( j ).toStdString(), true );
-			else
-				pcChart->SetColumnVisibility( elementTable->GetValue( j, 0 ).ToString(), true );
-		}
+		pcChart->SetColumnVisibility( elementTable->GetValue( j, 0 ).ToString(), columnVisibility[j]);
 	}
 	this->pcView->ResetCamera();
 	this->pcView->Render();
@@ -464,34 +439,35 @@ void dlg_FeatureScout::setupDefaultElement()
 {
 	if (useCsvOnly)
 		return;
-	if ( this->filterID == iAFeatureScoutObjectType::Fibers )                      //Fibers
-	{
-		pcChart->SetColumnVisibilityAll(false);
-		pcChart->SetColumnVisibility(eleString.at(7).toStdString(), true);	//a11
-		pcChart->SetColumnVisibility(eleString.at(8).toStdString(), true);	//a22
-		pcChart->SetColumnVisibility(eleString.at(9).toStdString(), true);	//a33
-		pcChart->SetColumnVisibility(eleString.at(13).toStdString(), true);	//theta
-		pcChart->SetColumnVisibility(eleString.at(14).toStdString(), true);	//phi
-		pcChart->SetColumnVisibility(eleString.at(15).toStdString(), true);	//xm
-		pcChart->SetColumnVisibility(eleString.at(16).toStdString(), true);	//ym
-		pcChart->SetColumnVisibility(eleString.at(17).toStdString(), true);	//zm
-		pcChart->SetColumnVisibility(eleString.at(18).toStdString(), true);	//straightlength
+	// TODO: define this also in config!
+	pcChart->SetColumnVisibilityAll(false);
+	if ( this->filterID == iAFeatureScoutObjectType::Fibers )
+	{   // Fibers: a11, a22, a33, theta, phi, xm, ym, zm, straightlength
+		pcChart->SetColumnVisibility(iACsvIO::ColNameA11, true);
+		pcChart->SetColumnVisibility(iACsvIO::ColNameA22, true);
+		pcChart->SetColumnVisibility(iACsvIO::ColNameA33, true);
+		pcChart->SetColumnVisibility(iACsvIO::ColNameTheta, true);
+		pcChart->SetColumnVisibility(iACsvIO::ColNamePhi, true);
+		pcChart->SetColumnVisibility(iACsvIO::ColNameCenterX, true);
+		pcChart->SetColumnVisibility(iACsvIO::ColNameCenterY, true);
+		pcChart->SetColumnVisibility(iACsvIO::ColNameCenterZ, true);
+		pcChart->SetColumnVisibility(iACsvIO::ColNameLength, true);
 	}
-	else                                                                         //Pores
-	{
+	else
+	{  // Pores: id, dimx, dimy, dimz, phi, theta, Xm, Ym, Zm, volume, roundness, MajorLength
 		pcChart->SetColumnVisibilityAll(false);
-		pcChart->SetColumnVisibility(eleString.at(0).toStdString(), true);	//id
-		pcChart->SetColumnVisibility(eleString.at(13).toStdString(), true);	//dimx
-		pcChart->SetColumnVisibility(eleString.at(14).toStdString(), true);	//dimy
-		pcChart->SetColumnVisibility(eleString.at(15).toStdString(), true);	//dimz
-		pcChart->SetColumnVisibility(eleString.at(16).toStdString(), true);	//phi
-		pcChart->SetColumnVisibility(eleString.at(17).toStdString(), true);	//theta
-		pcChart->SetColumnVisibility(eleString.at(18).toStdString(), true);	//Xm
-		pcChart->SetColumnVisibility(eleString.at(19).toStdString(), true);	//Ym
-		pcChart->SetColumnVisibility(eleString.at(20).toStdString(), true);	//Zm
-		pcChart->SetColumnVisibility(eleString.at(21).toStdString(), true);	//volume
-		pcChart->SetColumnVisibility(eleString.at(22).toStdString(), true);	//roundness
-		pcChart->SetColumnVisibility(eleString.at(28).toStdString(), true);	//MajorLength
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(0), true);
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(13), true);
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(14), true);
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(15), true);
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(16), true);
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(17), true);
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(18), true);
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(19), true);
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(20), true);
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(21), true);
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(22), true);
+		pcChart->SetColumnVisibility(csvTable->GetColumnName(28), true);
 	}
 }
 
@@ -506,26 +482,18 @@ void dlg_FeatureScout::setupModel()
 	// initialize checkboxes for the first column
 	for ( int i = 0; i < elementNr; i++ )
 	{
-		//Fibers - a11, a22, a33, theta, phi, xm, ym, zm, straightlength, diameter, volume
-		if ( this->filterID == iAFeatureScoutObjectType::Fibers && ( i == 7 || i == 8 ||
-			i == 9 || i == 13 || i == 14 || i == 15 || i == 16 || i == 17 || i == 18 ) )
-		{
-			elementTableModel->setData( elementTableModel->index( i, 0, QModelIndex() ), Qt::Checked, Qt::CheckStateRole );
-			columnVisArr->SetValue( i, chartTable->GetColumnName( i ) );
-		}
-		//Pores - volume, dimx, dimy, dimz, posx, posy, posz, shapefactor
-		else if ( this->filterID == iAFeatureScoutObjectType::Voids &&
-				( i == 0 || i == 13 || i == 14 || i == 15 || i == 16 || i == 17 || i == 18 || i == 19 || i == 20 ||
-				  i == 21 || i == 28 ) )
-		{
-			elementTableModel->setData( elementTableModel->index( i, 0, QModelIndex() ), Qt::Checked, Qt::CheckStateRole );
-			columnVisArr->SetValue( i, chartTable->GetColumnName( i ) );
-		}
-		else
-		{
-			elementTableModel->setData( elementTableModel->index( i, 0, QModelIndex() ), Qt::Unchecked, Qt::CheckStateRole );
-			columnVisArr->SetValue( i, "open_iA" );
-		}
+		// TODO: separate configuration for visibility?
+		Qt::CheckState checkState = (
+			// Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
+			(filterID == iAFeatureScoutObjectType::Fibers && (
+				i == m_columnMapping[iACsvConfig::Theta] || i == m_columnMapping[iACsvConfig::Phi] ||
+				i == m_columnMapping[iACsvConfig::CenterX] || i == m_columnMapping[iACsvConfig::CenterY] || i == m_columnMapping[iACsvConfig::CenterZ] ||
+				i == m_columnMapping[iACsvConfig::Length] || i == m_columnMapping[iACsvConfig::Diameter]) ) ||
+			// Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
+			(filterID == iAFeatureScoutObjectType::Voids && (
+				i == m_columnMapping[iACsvConfig::CenterX] || i == m_columnMapping[iACsvConfig::CenterY] || i == m_columnMapping[iACsvConfig::CenterZ]))
+		) ? Qt::Checked : Qt::Unchecked;
+		elementTableModel->setData(elementTableModel->index(i, 0, QModelIndex()), checkState, Qt::CheckStateRole);
 		elementTableModel->item( i, 0 )->setCheckable( true );
 	}
 
@@ -1388,11 +1356,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 		std::map<int, int>* meanObjectIds = new std::map<int, int>();
 		for ( int j = 0; j < classTreeModel->invisibleRootItem()->child( currClass )->rowCount(); ++j )
 		{
-			if ( filterID == iAFeatureScoutObjectType::Fibers )
-				meanObjectIds->operator[]( tableList[currClass]->GetValue( j, 0 ).ToInt() ) =
-				tableList[currClass]->GetValue( j, 0 ).ToFloat();
-			else
-				meanObjectIds->operator[]( tableList[currClass]->GetValue( j, 0 ).ToInt() ) =
+			meanObjectIds->operator[]( tableList[currClass]->GetValue( j, 0 ).ToInt() ) =
 				tableList[currClass]->GetValue( j, 0 ).ToFloat();
 		}
 
@@ -1462,10 +1426,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 
 		// Create histogram and TFs for each MObject
 		QString moHistName = classTreeModel->invisibleRootItem()->child( currClass, 0 )->text();
-		if ( filterID == iAFeatureScoutObjectType::Fibers )
-			moHistName.append( " Fiber Mean Object" );
-		else
-			moHistName.append( " Void Mean Object" );
+		moHistName.append( QString(" %1 Mean Object").arg(MapObjectTypeToString(filterID)));
 		iAModalityTransfer* moHistogram = new iAModalityTransfer( m_MOData.moImageDataList[currClass - 1]->GetScalarRange() );
 		m_MOData.moHistogramList.append( moHistogram );
 
@@ -1564,10 +1525,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 		vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle( style );
 
-		if ( filterID == iAFeatureScoutObjectType::Fibers )
-			iovMO->setWindowTitle( QString( "Fiber Mean Object View" ) );
-		else
-			iovMO->setWindowTitle( QString( "Void Mean Object View" ) );
+		iovMO->setWindowTitle( QString( "%1 Mean Object View" ).arg(MapObjectTypeToString(filterID)) );
 
 		mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovMO );
 		iovMO->show();
@@ -1669,10 +1627,9 @@ void dlg_FeatureScout::RenderingMeanObject()
 void dlg_FeatureScout::modifyMeanObjectTF()
 {
 	m_motfView = new iAMeanObjectTFView( this );
-	if ( filterID == iAFeatureScoutObjectType::Fibers )
-		m_motfView->setWindowTitle( QString( iovMO->cb_Classes->itemText( iovMO->cb_Classes->currentIndex() ) + " Fiber Mean Object Transfer Function" ));
-	else
-		m_motfView->setWindowTitle( QString( iovMO->cb_Classes->itemText( iovMO->cb_Classes->currentIndex() ) + " Void Mean Object Transfer Function" ) );
+	m_motfView->setWindowTitle( QString("%1 %2 Mean Object Transfer Function")
+		.arg(iovMO->cb_Classes->itemText(iovMO->cb_Classes->currentIndex()))
+		.arg(MapObjectTypeToString(filterID)) );
 	iADiagramFctWidget* histogram = static_cast<MdiChild*>(activeChild)->getHistogram();
 	connect( histogram, SIGNAL( updateViews() ), this, SLOT( updateMOView() ) );
 	m_motfView->horizontalLayout->addWidget( histogram );
@@ -1884,16 +1841,8 @@ void dlg_FeatureScout::RenderingOrientation()
 
 	for ( int i = 0; i < this->objectNr; i++ )
 	{
-		if ( this->filterID == iAFeatureScoutObjectType::Fibers )
-		{
-			ip = qFloor( this->csvTable->GetValue( i, 13 ).ToDouble() );
-			it = qFloor( this->csvTable->GetValue( i, 14 ).ToDouble() );
-		}
-		else
-		{
-			ip = qFloor( this->csvTable->GetValue( i, 16 ).ToDouble() );
-			it = qFloor( this->csvTable->GetValue( i, 17 ).ToDouble() );
-		}
+		ip = qFloor( this->csvTable->GetValue( i, m_columnMapping[iACsvConfig::Phi]).ToDouble() );
+		it = qFloor( this->csvTable->GetValue( i, m_columnMapping[iACsvConfig::Theta]).ToDouble() );
 
 		double *p = static_cast<double *>( oi->GetScalarPointer( it, ip, 0 ) );
 		red = p[0]; green = p[1]; blue = p[2];
@@ -1977,18 +1926,10 @@ void dlg_FeatureScout::RenderingFLD()
 	double range[2] = { 0.0, 0.0 };
 	vtkDataArray* length;
 
-	if ( this->filterID == iAFeatureScoutObjectType::Fibers )
-	{
-		numberOfBins = 8;
-		iovPP->setWindowTitle( "Fibers Length Frequency Distribution" );
-		length = vtkDataArray::SafeDownCast( this->csvTable->GetColumn( 18 ) );
-	}
-	else
-	{
-		numberOfBins = 3;
-		iovPP->setWindowTitle( "Major Axis Length Frequency Distribution" );
-		length = vtkDataArray::SafeDownCast( this->csvTable->GetColumn( 28 ) );
-	}
+	length = vtkDataArray::SafeDownCast(this->csvTable->GetColumn(m_columnMapping[iACsvConfig::Length]));
+	QString title = QString("%1 Frequency Distribution").arg(csvTable->GetColumnName(m_columnMapping[iACsvConfig::Length]));
+	iovPP->setWindowTitle(title);
+	numberOfBins = (this->filterID == iAFeatureScoutObjectType::Fibers) ? 8 : 3;
 
 	length->GetRange( range );
 	if ( range[0] == range[1] )
@@ -2148,17 +2089,8 @@ void dlg_FeatureScout::RenderingFLD()
 	// plot length distribution
 	VTK_CREATE( vtkContextView, view );
 	VTK_CREATE( vtkChartXY, chart );
-
-	if ( this->filterID == iAFeatureScoutObjectType::Fibers )
-	{
-		chart->SetTitle( "Fibers Length Frequency Distribution" );
-		chart->GetTitleProperties()->SetFontSize( 15 );
-	}
-	else
-	{
-		chart->SetTitle( "Major Axis Length Frequency Distribution" );
-		chart->GetTitleProperties()->SetFontSize( 12 );
-	}
+	chart->SetTitle(title.toUtf8().constData());
+	chart->GetTitleProperties()->SetFontSize( (filterID == iAFeatureScoutObjectType::Fibers) ? 15 : 12 );
 
 	vtkPlot *plot = chart->AddPlot( vtkChartXY::BAR );
 	plot->SetInputData( fldTable, 0, 1 );
@@ -2215,115 +2147,112 @@ void dlg_FeatureScout::ClassAddButton()
 
 	// class name and color input when calling AddClassDialog.
 	cText = dlg_editPCClass::getClassInfo( 0, "FeatureScout", cText, &cColor, &ok ).section( ',', 0, 0 );
+	if (!ok )
+		return
+	//TODO save transfer function for each class classe
+	this->colorList.append( cColor );
+	// get the root item from class tree
+	QStandardItem *rootItem = classTreeModel->invisibleRootItem();
+	QStandardItem *item;
 
-	if ( ok ) // if input correctly
-	{ //TODO save transfer function for each class classe
-		this->colorList.append( cColor );
-		// get the root item from class tree
-		QStandardItem *rootItem = classTreeModel->invisibleRootItem();
-		QStandardItem *item;
+	// create a first level child under rootItem as new class
+	double percent = 100.0*CountObject / objectNr;
+	QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
+	firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
 
-		// create a first level child under rootItem as new class
-		double percent = 100.0*CountObject / objectNr;
-		QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
-		firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
+	int ClassID = rootItem->rowCount();
+	int objID = 0;
+	QList<int> kIdx; // list to regist the selected index of object IDs in activeClassItem
 
-		int ClassID = rootItem->rowCount();
-		int objID = 0;
-		QList<int> kIdx; // list to regist the selected index of object IDs in activeClassItem
+	// add new class
+	for ( int i = 0; i < CountObject; i++ )
+	{
+		// get objID from item->text()
+		vtkVariant v = pcChart->GetPlot( 0 )->GetSelection()->GetVariantValue( i );
+		objID = v.ToInt() + 1;	//fibre index starting at 1 not at 0
+		objID = this->activeClassItem->child( v.ToInt() )->text().toInt();
 
-		// add new class
-		for ( int i = 0; i < CountObject; i++ )
+		if ( !kIdx.contains( v.ToInt() ) )
 		{
-			// get objID from item->text()
-			vtkVariant v = pcChart->GetPlot( 0 )->GetSelection()->GetVariantValue( i );
-			objID = v.ToInt() + 1;	//fibre index starting at 1 not at 0
-			objID = this->activeClassItem->child( v.ToInt() )->text().toInt();
+			kIdx.prepend( v.ToInt() );
+			selectedObjID.append( objID );
 
-			if ( !kIdx.contains( v.ToInt() ) )
-			{
-				kIdx.prepend( v.ToInt() );
-				selectedObjID.append( objID );
+			// add item to the new class
+			QString str = QString( "%1" ).arg( objID );
+			item = new QStandardItem( str );
+			firstLevelItem.first()->appendRow( item );
 
-				// add item to the new class
-				QString str = QString( "%1" ).arg( objID );
-				item = new QStandardItem( str );
-				firstLevelItem.first()->appendRow( item );
-
-				// update Class_ID column, prepare values for LookupTable
-				this->csvTable->SetValue( objID - 1, elementNr - 1, ClassID );
-			}
+			// update Class_ID column, prepare values for LookupTable
+			this->csvTable->SetValue( objID - 1, elementNr - 1, ClassID );
 		}
+	}
 
-		// a simple check of the selections
-		if ( kIdx.isEmpty() )
-		{
-			QMessageBox msgBox;
-			msgBox.setText( "Selected objects are already classified, please make a new selection." );
-			msgBox.setWindowTitle( "FeatureScout" );
-			msgBox.exec();
-			return;
-		}
+	// a simple check of the selections
+	if ( kIdx.isEmpty() )
+	{
+		QMessageBox msgBox;
+		msgBox.setText( "Selected objects are already classified, please make a new selection." );
+		msgBox.setWindowTitle( "FeatureScout" );
+		msgBox.exec();
+		return;
+	}
 
-		if ( kIdx.count() != CountObject )
-		{
-			QMessageBox msgBox;
-			msgBox.setText( "Selection Error, please make a new selection." );
-			msgBox.setWindowTitle( "FeatureScout" );
-			msgBox.exec();
-			return;
-		}
+	if ( kIdx.count() != CountObject )
+	{
+		QMessageBox msgBox;
+		msgBox.setText( "Selection Error, please make a new selection." );
+		msgBox.setWindowTitle( "FeatureScout" );
+		msgBox.exec();
+		return;
+	}
 
-		// append the new class to class tree
-		rootItem->appendRow( firstLevelItem );
+	// append the new class to class tree
+	rootItem->appendRow( firstLevelItem );
 
-		// remove items from activeClassItem from table button to top, otherwise you would make a wrong delete
-		for ( int i = 0; i < CountObject; i++ )
-			this->activeClassItem->removeRow( kIdx.value( i ) );
+	// remove items from activeClassItem from table button to top, otherwise you would make a wrong delete
+	for ( int i = 0; i < CountObject; i++ )
+		this->activeClassItem->removeRow( kIdx.value( i ) );
 
-		// update statistics for activeClassItem
-		this->updateClassStatistics( this->activeClassItem );
-		if ( this->activeClassItem->rowCount() == 0 && this->activeClassItem->index().row() != 0 )
-		{
-			// delete the activeItem
-			int cID = this->activeClassItem->index().row();
-			rootItem->removeRow( cID );
-			this->colorList.removeAt( cID );
-			//update Class_ID and lookupTable??
+	// update statistics for activeClassItem
+	this->updateClassStatistics( this->activeClassItem );
+	if ( this->activeClassItem->rowCount() == 0 && this->activeClassItem->index().row() != 0 )
+	{
+		// delete the activeItem
+		int cID = this->activeClassItem->index().row();
+		rootItem->removeRow( cID );
+		this->colorList.removeAt( cID );
+		//update Class_ID and lookupTable??
 
-		}
+	}
 
-		this->setActiveClassItem( firstLevelItem.first(), 1 );
-		this->calculateElementTable();
-		this->initElementTableModel();
-		this->setupNewPcView();
-		this->classTreeView->collapseAll();
-		this->classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
+	this->setActiveClassItem( firstLevelItem.first(), 1 );
+	this->calculateElementTable();
+	this->initElementTableModel();
+	this->setupNewPcView();
+	this->classTreeView->collapseAll();
+	this->classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
 
-		if (!this->useCsvOnly) {
-			this->SingleRendering();
-			this->updatePolarPlotColorScalar( chartTable );
-		}
+	if (!this->useCsvOnly) {
+		this->SingleRendering();
+		this->updatePolarPlotColorScalar( chartTable );
+	}
 
-		//Updates scatter plot matrix when a class is added.
-		if ( this->spmActivated && matrix != NULL )
-		{
-			bool retflag;
-			QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
+	//Updates scatter plot matrix when a class is added.
+	if ( this->spmActivated && matrix != NULL )
+	{
+		QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
 
-			//handle over cid (color id)
-			*selInd = matrix->getSelection();
-			applyClassSelection(retflag, selInd, cid, false);
-			matrix->clearSelection();
-			matrix->update();
-			spUpdateSPColumnVisibilityWithVis();
-		}
+		//handle over cid (color id)
+		*selInd = matrix->getSelection();
+		applyClassSelection(selInd, cid, false);
+		matrix->clearSelection();
+		matrix->update();
+		spUpdateSPColumnVisibilityWithVis();
 	}
 }
 
-void dlg_FeatureScout::applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap)
+void dlg_FeatureScout::applyClassSelection(QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap)
 {
-	retflag = true;
 	double rgba[4];
 	bool returnflag;
 	setSPMData(selInd, returnflag);
@@ -2331,9 +2260,6 @@ void dlg_FeatureScout::applyClassSelection(bool &retflag, QSharedPointer<QVector
 	{
 		spmApplyColorMap(rgba, colorIdx);
 	}
-
-	if (retflag) return;
-	retflag = false;
 }
 
 //apply color index
@@ -2348,10 +2274,7 @@ void dlg_FeatureScout::applyClassSelection(bool &retflag, vtkSmartPointer<vtkTab
 	{
 		spmApplyColorMap(rgba, colorIdx);
 	}
-
 	retflag = false;
-
-
 }
 
 //applies selection for single object selected in class
@@ -2359,7 +2282,7 @@ void dlg_FeatureScout::applySingleClassObjectSelection(bool &retflag, vtkSmartPo
 {
 	retflag = true;
 	double rgba[4];
-	setSingeSPMObjectDataSelection(classEntries, selectionOID, retflag);
+	setSingleSPMObjectDataSelection(classEntries, selectionOID, retflag);
 
 	if (retflag)return;
 
@@ -2477,7 +2400,7 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &r
 }
 
 //set data for single object in class
-void dlg_FeatureScout::setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, bool &retflag)
+void dlg_FeatureScout::setSingleSPMObjectDataSelection(const vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, bool &retflag)
 {
 	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
 	const int colCount = (int)classEntries->GetNumberOfColumns();//->GetNumberOfColumns();
@@ -2574,8 +2497,12 @@ void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4])
 	spmApplyGeneralColorMap(rgba, range);
 }
 
-void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
+void dlg_FeatureScout::writeWisetex(QXmlStreamWriter *writer)
 {
+	if (QMessageBox::warning(this, "FeatureScout",
+			"This functionality is only available for legacy fiber/pore csv formats at the moment. Are you sure you want to proceed?",
+			QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
+		return;
 	// Write XML tags using WiseTex specification
 	//check if it is a class item
 	if ( classTreeModel->invisibleRootItem()->hasChildren() )
@@ -2601,16 +2528,17 @@ void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
 					writer->writeStartElement( QString( "Fibre-%1" ).arg( j + 1 ) ); //Fibre-n tag
 
 					//Gets fibre features from csvTable
-					writer->writeTextElement( "X1", QString( tableList[i]->GetValue( j, 1 ).ToString() ) );
-					writer->writeTextElement( "Y1", QString( tableList[i]->GetValue( j, 2 ).ToString() ) );
-					writer->writeTextElement( "Z1", QString( tableList[i]->GetValue( j, 3 ).ToString() ) );
-					writer->writeTextElement( "X1", QString( tableList[i]->GetValue( j, 4 ).ToString() ) );
-					writer->writeTextElement( "Y2", QString( tableList[i]->GetValue( j, 5 ).ToString() ) );
-					writer->writeTextElement( "Z2", QString( tableList[i]->GetValue( j, 6 ).ToString() ) );
-					writer->writeTextElement( "Phi", QString( tableList[i]->GetValue( j, 13 ).ToString() ) );
-					writer->writeTextElement( "Theta", QString( tableList[i]->GetValue( j, 14 ).ToString() ) );
-					writer->writeTextElement( "Dia", QString( tableList[i]->GetValue( j, 20 ).ToString() ) );
-					writer->writeTextElement( "sL", QString( tableList[i]->GetValue( j, 18 ).ToString() ) );
+					writer->writeTextElement( "X1", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::StartX]).ToString() ) );
+					writer->writeTextElement( "Y1", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::StartY]).ToString() ) );
+					writer->writeTextElement( "Z1", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::StartZ]).ToString() ) );
+					writer->writeTextElement( "X1", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::EndX] ).ToString() ) );
+					writer->writeTextElement( "Y2", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::EndY] ).ToString() ) );
+					writer->writeTextElement( "Z2", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::EndZ] ).ToString() ) );
+					writer->writeTextElement( "Phi", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::Phi]).ToString() ) );
+					writer->writeTextElement( "Theta", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::Theta]).ToString() ) );
+					writer->writeTextElement( "Dia", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::Diameter]).ToString() ) );
+					writer->writeTextElement( "sL", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::Length]).ToString() ) );
+					// TODO: define mapping?
 					writer->writeTextElement( "cL", QString( tableList[i]->GetValue( j, 19 ).ToString() ) );
 					writer->writeTextElement( "Surf", QString( tableList[i]->GetValue( j, 21 ).ToString() ) );
 					writer->writeTextElement( "Vol", QString( tableList[i]->GetValue( j, 22 ).ToString() ) );
@@ -2647,9 +2575,9 @@ void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
 					writer->writeTextElement( "dimX", QString( tableList[i]->GetValue( j, 13 ).ToString() ) );
 					writer->writeTextElement( "dimY", QString( tableList[i]->GetValue( j, 14 ).ToString() ) );
 					writer->writeTextElement( "dimZ", QString( tableList[i]->GetValue( j, 15 ).ToString() ) );
-					writer->writeTextElement( "posX", QString( tableList[i]->GetValue( j, 18 ).ToString() ) );
-					writer->writeTextElement( "posY", QString( tableList[i]->GetValue( j, 19 ).ToString() ) );
-					writer->writeTextElement( "posZ", QString( tableList[i]->GetValue( j, 20 ).ToString() ) );
+					writer->writeTextElement( "posX", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::CenterX]).ToString() ) );
+					writer->writeTextElement( "posY", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::CenterY]).ToString() ) );
+					writer->writeTextElement( "posZ", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::CenterZ]).ToString() ) );
 					//writer->writeTextElement("ShapeFactor", QString(tableList[i]->GetValue(j,22).ToString()));
 
 					writer->writeEndElement(); //end Void-n tag
@@ -3053,8 +2981,6 @@ void dlg_FeatureScout::ClassLoadButton()
 	// clear classTree, colorList, TableList
 	chartTable->DeepCopy( csvTable ); // reset charttable
 
-	this->updateColumnNames();
-
 	tableList.clear();
 	tableList.push_back( chartTable );
 
@@ -3083,12 +3009,8 @@ void dlg_FeatureScout::ClassLoadButton()
 		{
 			if ( reader.name() == ObjectTag )
 			{
-				QString label;
-				if( this->filterID == iAFeatureScoutObjectType::Fibers)
-					label = reader.attributes().value( LabelAttribute ).toString();
-				else
-					label = reader.attributes().value( LabelAttributePore ).toString();
-
+				QString label = reader.attributes().value(
+					(filterID == iAFeatureScoutObjectType::Fibers) ? LabelAttribute : LabelAttributePore ).toString();
 				QStandardItem *item = new QStandardItem( label );
 
 				// add objects to firstLevelClassItem
@@ -3294,7 +3216,6 @@ void dlg_FeatureScout::spUpdateSPColumnVisibility()
 void dlg_FeatureScout::spUpdateSPColumnVisibilityWithVis()
 {
 	matrix->showAllPlots(false);
-	matrix->update();
 	matrix->showPreviewPlot();
 	spUpdateSPColumnVisibility();
 }
@@ -3788,17 +3709,9 @@ void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStand
 			{
 				vtkVariant v = csvTable->GetValue( item->child( i )->text().toInt() - 1, j );
 				QString str = QString::fromUtf8( v.ToUnicodeString().utf8_str() ).trimmed();
-
-				if ( eleString.count()>0 )
-				{
-					writer->writeAttribute( eleString.at( j ), str );
-				}
-				else
-				{
-					vtkVariant v1 = elementTable->GetValue( j, 0 );
-					QString str1 = QString::fromUtf8( v1.ToUnicodeString().utf8_str() ).trimmed();
-					writer->writeAttribute( str1, str );
-				}
+				vtkVariant v1 = elementTable->GetValue( j, 0 );
+				QString str1 = QString::fromUtf8( v1.ToUnicodeString().utf8_str() ).trimmed();
+				writer->writeAttribute( str1, str );
 			}
 			writer->writeEndElement(); // end object tag
 		}
@@ -3902,19 +3815,6 @@ void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 	}
 }
 
-void dlg_FeatureScout::updateColumnNames()
-{
-	eleString.clear();
-	eleString = getNamesOfObjectCharakteristics( false );
-	const char* element;
-	for ( int i = 0; i < elementNr; i++ )
-	{
-		QByteArray bA = eleString.at( i ).toUtf8();
-		element = bA.constData();
-		this->chartTable->GetColumn( i )->SetName( element );
-	}
-}
-
 void dlg_FeatureScout::deletePcViewPointer()
 {
 	if ( this->pcChart != 0 )
@@ -3974,37 +3874,17 @@ void dlg_FeatureScout::EnableBlobRendering()
 	for ( int i = 0; i < chartTable->GetNumberOfRows(); i++ )
 	{
 		FeatureInfo fi;
-		int index = chartTable->GetValue( i, 0 ).ToInt();
-
-		if ( filterID == iAFeatureScoutObjectType::Fibers )
-		{
-			fi.x1 = chartTable->GetValue( i, 1 ).ToDouble();
-			fi.y1 = chartTable->GetValue( i, 2 ).ToDouble();
-			fi.z1 = chartTable->GetValue( i, 3 ).ToDouble();
-			fi.x2 = chartTable->GetValue( i, 4 ).ToDouble();
-			fi.y2 = chartTable->GetValue( i, 5 ).ToDouble();
-			fi.z2 = chartTable->GetValue( i, 6 ).ToDouble();
-			fi.diameter = chartTable->GetValue( i, 20 ).ToDouble();
-		}
-		else
-		{
-			fi.x1 = chartTable->GetValue( i, 1 ).ToDouble();
-			fi.y1 = chartTable->GetValue( i, 2 ).ToDouble();
-			fi.z1 = chartTable->GetValue( i, 3 ).ToDouble();
-			fi.x2 = chartTable->GetValue( i, 4 ).ToDouble();
-			fi.y2 = chartTable->GetValue( i, 5 ).ToDouble();
-			fi.z2 = chartTable->GetValue( i, 6 ).ToDouble();
-			fi.diameter = chartTable->GetValue( i, 23 ).ToDouble();;
-		}
+		//int index = chartTable->GetValue( i, 0 ).ToInt();
+		fi.x1 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::StartX]).ToDouble();
+		fi.y1 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::StartY]).ToDouble();
+		fi.z1 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::StartZ]).ToDouble();
+		fi.x2 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::EndX]).ToDouble();
+		fi.y2 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::EndY]).ToDouble();
+		fi.z2 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::EndZ]).ToDouble();
+		fi.diameter = chartTable->GetValue(i, m_columnMapping[iACsvConfig::Diameter]).ToDouble();
 		objects.append( fi );
 	}
-
-	// set right objecttype (for the labeling)
-	if ( filterID == iAFeatureScoutObjectType::Fibers )
-		blob->SetObjectType( "Fibers" );
-	else
-		blob->SetObjectType( "Voids" );
-
+	blob->SetObjectType( MapObjectTypeToString(filterID) );
 	blob->SetLabelScale( 10.0 * maxDim / 100.0 );
 	blob->SetCluster( objects );
 
@@ -4175,17 +4055,8 @@ int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 
 	for ( int k = 0; k < length; k++ )
 	{
-		if ( this->filterID == iAFeatureScoutObjectType::Fibers )
-		{
-			fp = t->GetValue( k, 13 ).ToDouble() / PolarPlotPhiResolution;
-			ft = t->GetValue( k, 14 ).ToDouble() / PolarPlotThetaResolution;
-		}
-		else
-		{
-			fp = t->GetValue( k, 16 ).ToDouble() / PolarPlotPhiResolution;
-			ft = t->GetValue( k, 17 ).ToDouble() / PolarPlotThetaResolution;
-		}
-
+		fp = t->GetValue( k, m_columnMapping[iACsvConfig::Phi]).ToDouble() / PolarPlotPhiResolution;
+		ft = t->GetValue( k, m_columnMapping[iACsvConfig::Theta]).ToDouble() / PolarPlotThetaResolution;
 		ip = vtkMath::Round( fp );
 		it = vtkMath::Round( ft );
 
@@ -4211,23 +4082,12 @@ void dlg_FeatureScout::updateObjectOrientationID( vtkTable *table )
 
 	for ( int k = 0; k < this->objectNr; k++ )
 	{
-		if ( this->filterID == iAFeatureScoutObjectType::Fibers )
-		{
-			fp = this->csvTable->GetValue( k, 13 ).ToDouble() / PolarPlotPhiResolution;
-			ft = this->csvTable->GetValue( k, 14 ).ToDouble() / PolarPlotThetaResolution;
-		}
-		else
-		{
-			fp = this->csvTable->GetValue( k, 16 ).ToDouble() / PolarPlotPhiResolution;
-			ft = this->csvTable->GetValue( k, 17 ).ToDouble() / PolarPlotThetaResolution;
-		}
-
+		fp = this->csvTable->GetValue( k, m_columnMapping[iACsvConfig::Phi] ).ToDouble() / PolarPlotPhiResolution;
+		ft = this->csvTable->GetValue( k, m_columnMapping[iACsvConfig::Theta] ).ToDouble() / PolarPlotThetaResolution;
 		ip = vtkMath::Round( fp );
 		it = vtkMath::Round( ft );
-
 		if ( ip == gPhi )
 			ip = 0;
-
 		tt = table->GetValue( ip, it ).ToInt();
 		this->ObjectOrientationProbabilityList.append( tt );
 	}
@@ -4728,141 +4588,6 @@ int dlg_FeatureScout::OpenBlobVisDialog()
 	}
 	else
 		return 0;
-}
-
-
-QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
-{
-	// manually define new table elements
-	// using unicode to define the unit
-	QString micro = QChar( 0x00B5 );
-	QString ud = QChar( 0x00B0 );
-	QString h2 = QChar( 0x00B2 );
-	QString h3 = QChar( 0x00B3 );
-
-	QString udegree = QString( "" );
-	QString micro1 = QString( "" );
-	QString micro2 = QString( "" );
-	QString micro3 = QString( "" );
-
-	if ( withUnit )
-	{
-		udegree = QString( "[%1]" ).arg( ud );
-		micro1 = QString( "[%1m]" ).arg( micro );
-		micro2 = QString( "[%1m%2]" ).arg( micro ).arg( h2 );
-		micro3 = QString( "[%1m%2]" ).arg( micro ).arg( h3 );
-	}
-
-	QStringList eleString;
-
-	//Names of the fiber characteristics
-	if ( filterID == iAFeatureScoutObjectType::Fibers )
-	{
-		if (useCsvOnly) {
-			eleString.append("AUTO_ID");
-			for (auto &element : this->m_headersSelected)
-			{
-				eleString.append(element);
-			}
-
-
-		}
-		else {
-
-			// TODO: overlap with iACsvIO::getFibreElementsName !
-			eleString.append("Label");								// 0
-			eleString.append(QString("X1%1").arg(micro1));		// 1
-			eleString.append(QString("Y1%1").arg(micro1));		// 2
-			eleString.append(QString("Z1%1").arg(micro1));		// 3
-			eleString.append(QString("X2%1").arg(micro1));		// 4
-			eleString.append(QString("Y2%1").arg(micro1));		// 5
-			eleString.append(QString("Z2%1").arg(micro1));		// 6
-			eleString.append("a11");									// 7
-			eleString.append("a22");									// 8
-			eleString.append("a33");									// 9
-			eleString.append("a12");									// 10
-			eleString.append("a13");									// 11
-			eleString.append("a23");									// 12
-			eleString.append(QString("phi%1").arg(udegree));		// 13
-			eleString.append(QString("theta%1").arg(udegree));	// 14
-			eleString.append(QString("Xm%1").arg(micro1));		// 15
-			eleString.append(QString("Ym%1").arg(micro1));		// 16
-			eleString.append(QString("Zm%1").arg(micro1));		// 17
-			if (withUnit)
-			{
-				eleString.append(QString("StraightLength%1").arg(micro1));	// 18
-				eleString.append(QString("CurvedLength%1").arg(micro1));		// 19
-			}
-			else
-			{
-				eleString.append(QString("sL%1").arg(micro1));				// 18
-				eleString.append(QString("cL%1").arg(micro1));				// 19
-			}
-			eleString.append(QString("Diameter%1").arg(micro1));				// 20
-			eleString.append(QString("Surface%1").arg(micro2));				// 21
-			eleString.append(QString("Volume%1").arg(micro3));				// 22
-
-			if (withUnit)
-			{
-				eleString.append("SperatedFiber");								// 23
-				eleString.append("CurvedFiber");									// 24
-			}
-			else
-			{
-				eleString.append("sFiber");										// 23
-				eleString.append("cFiber");										// 24
-			}
-		}
-	}
-	//Names of the pore charakteristics
-	else
-	{
-		if (useCsvOnly)  //TODO ADAPT Adapt units
-		{
-			eleString.append("AUTO_ID");
-			for (auto &element : this->m_headersSelected)
-			{
-				eleString.append(element);
-			}
-		}
-		else
-		{
-
-		//TODO REPLACE HARD CODED HEADERS BY SELECTED HEADERS
-		eleString.append("LabelId");									// 0
-		eleString.append(QString("X1%1").arg(micro1));			// 1
-		eleString.append(QString("Y1%1").arg(micro1));			// 2
-		eleString.append(QString("Z1%1").arg(micro1));			// 3
-		eleString.append(QString("X2%1").arg(micro1));			// 4
-		eleString.append(QString("Y2%1").arg(micro1));			// 5
-		eleString.append(QString("Z2%1").arg(micro1));			// 6
-		eleString.append("a11");										// 7
-		eleString.append("a22");										// 8
-		eleString.append("a33");										// 9
-		eleString.append("a12");										// 10
-		eleString.append("a13");										// 11
-		eleString.append("a23");										// 12
-		eleString.append(QString("DimX%1").arg(micro1));			// 13
-		eleString.append(QString("DimY%1").arg(micro1));			// 14
-		eleString.append(QString("DimZ%1").arg(micro1));			// 15
-		eleString.append(QString("phi%1").arg(udegree));			// 16
-		eleString.append(QString("theta%1").arg(udegree));		// 17
-		eleString.append(QString("Xm%1").arg(micro1));			// 18
-		eleString.append(QString("Ym%1").arg(micro1));			// 19
-		eleString.append(QString("Zm%1").arg(micro1));			// 20
-		eleString.append(QString("Volume%1").arg(micro3));		// 21
-		eleString.append("Roundness");								// 22
-		eleString.append(QString("FeretDiam%1").arg(micro1));		// 23
-		eleString.append("Flatness");									// 24
-		eleString.append("VoxDimX");									// 25
-		eleString.append("VoxDimY");									// 26
-		eleString.append("VoxDimZ");									// 27
-		eleString.append("MajorLength");								// 28
-		eleString.append("MinorLength");								// 29
-		} //end else default configuration for feature scout
-	}
-	eleString.append( iACsvIO::ColNameClassID );	// 25 / 19
-	return eleString;
 }
 
 void dlg_FeatureScout::SaveBlobMovie()

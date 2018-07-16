@@ -37,7 +37,8 @@ iACsvConfig::iACsvConfig() :
 	computeAngles(false),
 	computeTensors(false),
 	computeCenter(false),
-	containsHeader(true)
+	containsHeader(true),
+	useVolumeData(false)
 {}
 
 bool iACsvConfig::isValid(QString & errorMsg) const
@@ -90,6 +91,7 @@ iACsvConfig const & iACsvConfig::getLegacyFiberFormat(QString const & fileName)
 	LegacyFormat.computeAngles = true;
 	LegacyFormat.computeTensors = true;
 	LegacyFormat.computeCenter = true;
+	LegacyFormat.useVolumeData = true;
 	LegacyFormat.currentHeaders = QStringList() << "Label"
 		<< "X1[µm]"
 		<< "Y1[µm]"
@@ -133,8 +135,13 @@ iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 	LegacyFormat.computeAngles = false;
 	LegacyFormat.computeTensors = false;
 	LegacyFormat.computeCenter = false;
+	LegacyFormat.useVolumeData = true;
 	LegacyFormat.currentHeaders.clear();
 	LegacyFormat.selectedHeaders.clear();
 	LegacyFormat.columnMapping.clear();
+	LegacyFormat.columnMapping.insert(Phi, LegacyFormat.currentHeaders[16]);
+	LegacyFormat.columnMapping.insert(Theta, LegacyFormat.currentHeaders[17]);
+	LegacyFormat.columnMapping.insert(Diameter, LegacyFormat.currentHeaders[23]);
+	LegacyFormat.columnMapping.insert(Length, LegacyFormat.currentHeaders[28]);
 	return LegacyFormat;
 }

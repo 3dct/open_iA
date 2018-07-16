@@ -70,11 +70,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 		return;
 	this->m_mdiChild->show();
 	iACsvConfig csvConfig = dlg.getConfig();
-	QString item = MapObjectTypeToString(csvConfig.objectType);
-	if (!csvConfig.fileName.isEmpty())
-		initializeFeatureScoutStartUp(item, csvConfig.fileName, true, &csvConfig, csvConfig.selectedHeaders);
-	else
-		m_mdiChild->addMsg("CSV-file name error.");
+	initializeFeatureScoutStartUp(csvConfig);
 }
 
 void iAFeatureScoutModuleInterface::FeatureScout()
@@ -92,11 +88,17 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 			QTextStream in( &file );
 			in.readLine();
 			item = in.readLine();
-			if ( item != "Voids" )
-				item = "Fibers";
+			iACsvConfig csvConfig;
+			if (item != "Voids")
+			{
+				csvConfig = iACsvConfig::getLegacyFiberFormat(fileName);
+			}
+			else
+			{
+				csvConfig = iACsvConfig::getLegacyPoreFormat(fileName);
+			}
 			file.close();
-
-			initializeFeatureScoutStartUp(item, fileName, false, nullptr, QStringList());
+			initializeFeatureScoutStartUp(csvConfig);
 		}
 		else
 			m_mdiChild->addMsg( "CSV-file could not be opened." );
@@ -105,15 +107,9 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 		m_mdiChild->addMsg( "CSV-file name error." );
 }
 
-void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(QString &item, QString &fileName,
-	const bool isCsvOnly, iACsvConfig *FileParams, QStringList const & selectedHeaders)
+void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(iACsvConfig const & csvConfig)
 {
-	if (MapStringToObjectType(item) == iAFeatureScoutObjectType::InvalidObjectType)
-	{
-		m_mdiChild->addMsg("CSV-file header error.");
-		return;
-	}
-	if (m_mdiChild && filter_FeatureScout(m_mdiChild, fileName, MapStringToObjectType(item), FileParams, isCsvOnly, selectedHeaders))
+	if (m_mdiChild && filter_FeatureScout(m_mdiChild, csvConfig))
 	{
 		SetupToolbar();
 		m_mdiChild->addStatusMsg("Starting FeatureScout");
@@ -154,22 +150,12 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
-bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QString fileName, iAFeatureScoutObjectType objectType,
-	iACsvConfig const * FileParams, const bool is_csvOnly, QStringList const & selHeader)
+bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, iACsvConfig const & csvConfig)
 {
-	//default action if file params is null
 	iACsvVtkTableCreator creator;
-	if (!FileParams)
-	{
-		if (!io.loadLegacyCSV(creator, objectType, fileName))
-			return false;
-	}
-	else
-	{
-		if (!io.loadCSV(creator, *FileParams))
-			return false;
-	}
-
+	iACsvIO io;
+	if (!io.loadCSV(creator, csvConfig))
+		return false;
 	//enables debug writing out table to desktop
 	//io.debugTable(false);
 	QString filtername = tr( "FeatureScout started" );
@@ -183,7 +169,7 @@ bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, QSt
 		m_mdiChild->addMsg( "Error while creating FeatureScout module!" );
 		return false;
 	}
-	attach->init(objectType, creator.getTable(), is_csvOnly, selHeader);
+	attach->init(csvConfig.objectType, creator.getTable(), !csvConfig.useVolumeData, io.getOutputMapping());
 	return true;
 }
 

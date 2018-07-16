@@ -96,8 +96,8 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 	Q_OBJECT
 
 public:
-	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl,
-		const bool useCsvOnly, QStringList const & selectedHeaders);
+	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, vtkRenderer* blobRen,
+		vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<int, int> const & columnMapping);
 	~dlg_FeatureScout();
 
 	// setups
@@ -121,7 +121,6 @@ public:
 	void setActiveClassItem(QStandardItem* item, int situ = 0);
 	double calculateOpacity(QStandardItem *item);
 	void recalculateChartTable(QStandardItem *item);
-	void updateColumnNames();
 	void setupDefaultElement();
 	void SingleRendering(int idx = -10000);
 	void updateLookupTable(double alpha= 0.7);
@@ -130,14 +129,13 @@ public:
 	int calcOrientationProbability(vtkTable *t, vtkTable *ot);
 	void addLogMsg(const QString &str);
 
-	QStringList getNamesOfObjectCharakteristics(bool withUnit);
 	QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third);
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
 	void writeWisetex(QXmlStreamWriter *writer);
 	void autoAddClass(int NbOfClasses);
 
 	//selection for each class and show SPM for it
-	void applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
+	void applyClassSelection(QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
 
 	//selection for single class and show SPM
 	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> &classEntries, const int colInd, const bool applyColorMap);
@@ -200,7 +198,7 @@ protected:
 private:
 	void setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool & retflag);
 	void setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &retflag);
-	void setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkTable>& classEntries, const uint selectionOID, bool & retflag);
+	void setSingleSPMObjectDataSelection(const vtkSmartPointer<vtkTable>& classEntries, const uint selectionOID, bool & retflag);
 	void setClassColour(double * rgba, const int colInd);
 	void spmApplyColorMap(double  rgba[4], const int colInd);
 	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
@@ -246,11 +244,8 @@ private:
 	QList<int> ObjectOrientationProbabilityList; //Probability distribution of every single object
 	int pcMaxC; // maximal count of the object orientation
 
-	// elementNameStringList for using fibre csv file
-	QStringList eleString;
-
-	// column visiability list
-	vtkSmartPointer<vtkStringArray> columnVisArr;
+	// column visibility list
+	QVector<bool> columnVisibility;
 	// color lookup table for PC view
 	vtkSmartPointer<vtkLookupTable> lut;
 
@@ -317,5 +312,5 @@ private:
 	moData m_MOData;
 
 	vtkSmartPointer<vtkLookupTable> m_pointLUT;
-	QStringList m_headersSelected;
+	QMap<int, int> m_columnMapping;
 };

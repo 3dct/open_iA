@@ -58,7 +58,6 @@ public:
 	static const char * ColNameCenterY; //!< name of the center y column (inserted optionally)
 	static const char * ColNameCenterZ; //!< name of the center z column (inserted optionally)
 	static const char * ColNameLength;  //!< name of the length angle column (inserted optionally)
-	iACsvIO();
 	//! reads table entries from csv file
 	bool loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & params,
 		size_t const rowCount = std::numeric_limits<size_t>::max());
@@ -66,38 +65,22 @@ public:
 	const QStringList & getFileHeaders() const;
 	//! get list of all headers in result table (including computed columns)
 	const QStringList & getOutputHeaders() const;
-	//! [legacy] load an old fiber or pore csv file
-	bool loadLegacyCSV(iACsvTableCreator & dstTbl, iAFeatureScoutObjectType fid,
-		QString const & fileName);
-	//! [legacy] get column header names for old fiber csv format:
-	static QStringList getFibreElementsName(bool withUnit);
+	//! get mapping in which fields the important values are stored
+	const QMap<int, int> & getOutputMapping() const;
 private:
-	enum ReadMode                       //!< type of csv currently being read
-	{
-		LegacyFibers,
-		LegacyPores,
-		NewCSV
-	};
 	QStringList m_fileHeaders;          //!< list of column header names in file
 	QStringList m_outputHeaders;        //!< list of column header names in result table
 	iACsvConfig m_csvConfig;            //!< settings used for reading the csv
-	size_t m_rowCount;                  //!< row count
-	QMap<int, int> m_columnMapping;     //!< maps a value identifier (given as a value out of the iACsvIO::MappedColumn enum)
-	//! to the index of the column which contains this value.
+	QMap<int, int> m_columnMapping;     //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the file which contains this value
+	QMap<int, int> m_outputMapping;     //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
 
-	//! internal function for the actual loading procedure
-	bool loadCSV(iACsvTableCreator & dstTbl, ReadMode mode);
 	//! determine the header columns used in the output
-	void determineOutputHeaders(QVector<int> const & selectedCols, ReadMode mode);
+	void determineOutputHeaders(QVector<int> const & selectedCols);
 	//! determine how man actual data rows the result table will have
 	size_t calcRowCount(QTextStream& in, size_t const skipLinesStart,
 		size_t const skipLinesEnd);
-	//! [legacy]read and compute data for a single fiber
-	QStringList fibreCalculation(QString const & line, size_t const colCount,
-		size_t const rowCount);
 	//! determine the indices of the selected columns
-	QVector<int> getSelectedColIdx(QStringList const & fileHeaders,
-		QStringList const & selectedHeaders, ReadMode mode);
+	QVector<int> computeSelectedColIdx();
 	//! compute the m_columnMapping map out of the config and the file header
 	bool computeColumnMapping();
 };

@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iACsvIO.h"
 #include "iAFeatureScoutObjectType.h"
 
 #include "iAModuleInterface.h"
@@ -42,13 +41,9 @@ private slots:
 private:
 	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 	//! entry point for openIA FeatureScout. optional parameter FileParams for custom csv
-	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAFeatureScoutObjectType filterID,
-		iACsvConfig const *FileParams, const bool is_csvOnly, QStringList const &selHeader);
+	bool filter_FeatureScout(MdiChild* mdiChild, iACsvConfig const & csvConfig);
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
-	void initializeFeatureScoutStartUp(QString &item, QString &fileName, const bool isCsvOnly,
-		iACsvConfig *FileParams, QStringList const & selectedHeaders);
+	void initializeFeatureScoutStartUp(iACsvConfig const & csvConfig);
 	iAFeatureScoutToolbar * tlbFeatureScout;
-
-	iACsvIO io;
 };

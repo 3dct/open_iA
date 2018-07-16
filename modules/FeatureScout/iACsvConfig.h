@@ -29,16 +29,15 @@
 //! parameters for csv loading configuraton
 struct iACsvConfig
 {
-	enum MappedColumn {
+	enum MappedColumn {                    //! "ID" for columns needed either in computation of other columns or later in FeatureScout
 		NotMapped = -1,
 		StartX, StartY, StartZ,
 		EndX, EndY, EndZ,
 		CenterX, CenterY, CenterZ,
-		Length,
-		Diameter,
+		Length, Diameter,
 		Phi, Theta,
 		MappedCount
-	};
+	}; // must be the ame order as dlg_CSVInput::m_mappingBoxes!
 	static const int LegacyFormatStartSkipLines = 5;
 	iACsvConfig();
 	bool isValid(QString & errorMsg) const;
@@ -56,6 +55,7 @@ struct iACsvConfig
 	QStringList currentHeaders;             //!< current headers of the table
 	QStringList selectedHeaders;            //!< names of the selected headers
 	bool computeLength, computeAngles, computeTensors, computeCenter;  //!< flags whether to compute additional columns
+	bool useVolumeData;                     //! whether the given format expects volume data to be loaded or not
 	QMap<uint, QString> columnMapping;      //! map a specific value (denoted by an ID from MappedColumn) to the name of the field where it's stored
 
 	static iACsvConfig const & getLegacyFiberFormat(QString const & fileName);
