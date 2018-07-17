@@ -517,6 +517,8 @@ void dlg_CSVInput::showSelectedCols()
 		ed_col_ID->setText(iACsvIO::ColNameAutoID);
 	else if (m_confParams.selectedHeaders.size() > 0)
 		ed_col_ID->setText(m_confParams.selectedHeaders[0]);
+	else if (m_confParams.currentHeaders.size() > 0)
+		ed_col_ID->setText(m_confParams.currentHeaders[0]);
 	else
 		ed_col_ID->setText("NONE");
 }
@@ -554,8 +556,8 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	m_confParams.addAutoID = settings.value(csvRegKeys::AddAutoID, defaultConfig.addAutoID).toBool();
 	m_confParams.computeLength = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeLength).toBool();
 	m_confParams.computeAngles = settings.value(csvRegKeys::ComputeAngles, defaultConfig.computeAngles).toBool();
-	m_confParams.computeTensors = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeTensors).toBool();
-	m_confParams.computeCenter = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeCenter).toBool();
+	m_confParams.computeTensors = settings.value(csvRegKeys::ComputeTensors, defaultConfig.computeTensors).toBool();
+	m_confParams.computeCenter = settings.value(csvRegKeys::ComputeCenter, defaultConfig.computeCenter).toBool();
 	m_confParams.containsHeader = settings.value(csvRegKeys::ContainsHeader, defaultConfig.containsHeader).toBool();
 	m_confParams.useVolumeData = settings.value(csvRegKeys::UseVolumeData, defaultConfig.useVolumeData).toBool();
 	m_confParams.unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
