@@ -27,6 +27,7 @@ enum iAFeatureScoutObjectType
 	InvalidObjectType = -1,
 	Fibers,
 	Voids,
+	Other
 };
 
 QString MapObjectTypeToString(int objectType);

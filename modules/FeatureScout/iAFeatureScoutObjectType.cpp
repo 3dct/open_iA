@@ -23,7 +23,8 @@
 QString MapObjectTypeToString(int objectType)
 {
 	return (objectType == iAFeatureScoutObjectType::Fibers) ? "Fibers" :
-		(objectType == iAFeatureScoutObjectType::Voids) ? "Voids" : "Invalid";
+		(objectType == iAFeatureScoutObjectType::Voids) ? "Voids" :
+		(objectType == iAFeatureScoutObjectType::Other) ? "Other" : "Invalid";
 }
 
 iAFeatureScoutObjectType MapStringToObjectType(QString const & objectTypeName)
@@ -32,6 +33,8 @@ iAFeatureScoutObjectType MapStringToObjectType(QString const & objectTypeName)
 		return iAFeatureScoutObjectType::Voids;
 	else if (objectTypeName == "Fibers")
 		return iAFeatureScoutObjectType::Fibers;
+	else if (objectTypeName == "Other")
+		return iAFeatureScoutObjectType::Other;
 	else
 		return iAFeatureScoutObjectType::InvalidObjectType;
 }
