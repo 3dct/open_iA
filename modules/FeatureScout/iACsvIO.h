@@ -66,13 +66,12 @@ public:
 	//! get list of all headers in result table (including computed columns)
 	const QStringList & getOutputHeaders() const;
 	//! get mapping in which fields the important values are stored
-	const QMap<int, int> & getOutputMapping() const;
+	const QMap<uint, uint> & getOutputMapping() const;
 private:
 	QStringList m_fileHeaders;          //!< list of column header names in file
 	QStringList m_outputHeaders;        //!< list of column header names in result table
 	iACsvConfig m_csvConfig;            //!< settings used for reading the csv
-	QMap<int, int> m_columnMapping;     //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the file which contains this value
-	QMap<int, int> m_outputMapping;     //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
+	QMap<uint, uint> m_outputMapping;   //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
 
 	//! determine the header columns used in the output
 	void determineOutputHeaders(QVector<int> const & selectedCols);
@@ -81,6 +80,4 @@ private:
 		size_t const skipLinesEnd);
 	//! determine the indices of the selected columns
 	QVector<int> computeSelectedColIdx();
-	//! compute the m_columnMapping map out of the config and the file header
-	bool computeColumnMapping();
 };

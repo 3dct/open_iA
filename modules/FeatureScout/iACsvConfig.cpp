@@ -108,14 +108,14 @@ iACsvConfig const & iACsvConfig::getLegacyFiberFormat(QString const & fileName)
 		<< "CurvedFibre";
 	LegacyFormat.selectedHeaders = LegacyFormat.currentHeaders;
 	LegacyFormat.columnMapping.clear();
-	LegacyFormat.columnMapping.insert(StartX,   LegacyFormat.currentHeaders[1]);
-	LegacyFormat.columnMapping.insert(StartY,   LegacyFormat.currentHeaders[2]);
-	LegacyFormat.columnMapping.insert(StartZ,   LegacyFormat.currentHeaders[3]);
-	LegacyFormat.columnMapping.insert(EndX,     LegacyFormat.currentHeaders[4]);
-	LegacyFormat.columnMapping.insert(EndY,     LegacyFormat.currentHeaders[5]);
-	LegacyFormat.columnMapping.insert(EndZ,     LegacyFormat.currentHeaders[6]);
-	LegacyFormat.columnMapping.insert(Length,   LegacyFormat.currentHeaders[7]);
-	LegacyFormat.columnMapping.insert(Diameter, LegacyFormat.currentHeaders[9]);
+	LegacyFormat.columnMapping.insert(StartX,   1);
+	LegacyFormat.columnMapping.insert(StartY,   2);
+	LegacyFormat.columnMapping.insert(StartZ,   3);
+	LegacyFormat.columnMapping.insert(EndX,     4);
+	LegacyFormat.columnMapping.insert(EndY,     5);
+	LegacyFormat.columnMapping.insert(EndZ,     6);
+	LegacyFormat.columnMapping.insert(Length,   7);
+	LegacyFormat.columnMapping.insert(Diameter, 9);
 	return LegacyFormat;
 }
 
@@ -139,9 +139,9 @@ iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 	LegacyFormat.currentHeaders.clear();
 	LegacyFormat.selectedHeaders.clear();
 	LegacyFormat.columnMapping.clear();
-	LegacyFormat.columnMapping.insert(Phi, LegacyFormat.currentHeaders[16]);
-	LegacyFormat.columnMapping.insert(Theta, LegacyFormat.currentHeaders[17]);
-	LegacyFormat.columnMapping.insert(Diameter, LegacyFormat.currentHeaders[23]);
-	LegacyFormat.columnMapping.insert(Length, LegacyFormat.currentHeaders[28]);
+	LegacyFormat.columnMapping.insert(Phi,      16);
+	LegacyFormat.columnMapping.insert(Theta,    17);
+	LegacyFormat.columnMapping.insert(Diameter, 23);
+	LegacyFormat.columnMapping.insert(Length,   28);
 	return LegacyFormat;
 }

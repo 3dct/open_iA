@@ -432,7 +432,7 @@ void dlg_CSVInput::assignFormatSettings()
 			}
 			else
 				usedColumns.insert(m_mappingBoxes[i]->currentText());
-			m_confParams.columnMapping.insert(i, m_mappingBoxes[i]->currentText());
+			m_confParams.columnMapping.insert(i, m_mappingBoxes[i]->currentIndex()-1);
 		}
 	}
 }
@@ -461,7 +461,7 @@ void dlg_CSVInput::showColumnHeaders()
 	for (int i = 0; i < iACsvConfig::MappedCount; ++i)
 	{
 		if (m_confParams.columnMapping.contains(i))
-			m_mappingBoxes[i]->setCurrentText(m_confParams.columnMapping[i]);
+			m_mappingBoxes[i]->setCurrentIndex(m_confParams.columnMapping[i]+1);
 		else
 			m_mappingBoxes[i]->setCurrentIndex(0);
 	}
@@ -567,9 +567,9 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	QStringList columnMappings = settings.value(csvRegKeys::ColumnMappings).toStringList();
 	for (QString mapping : columnMappings)
 	{
-		int columnKey = mapping.section(":", 0, 0).toInt();
-		QString columnName = mapping.section(":", 1);
-		m_confParams.columnMapping.insert(columnKey, columnName);
+		uint columnKey = mapping.section(":", 0, 0).toInt();
+		uint columnNumber = mapping.section(":", 1).toInt();
+		m_confParams.columnMapping.insert(columnKey, columnNumber);
 	}
 	return true;
 }

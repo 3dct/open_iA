@@ -109,7 +109,6 @@ private:
 	//! @}
 	//! Show column header in list widget, and prepare map with indexes
 	void showColumnHeaders();
-	//! void assignColumnMappings();
 	//! Load file into preview table widget
 	bool loadFilePreview();
 	//! Clears the preview table (so that it doesn't contain any rows or columns

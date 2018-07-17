@@ -56,7 +56,7 @@ struct iACsvConfig
 	QStringList selectedHeaders;            //!< names of the selected headers
 	bool computeLength, computeAngles, computeTensors, computeCenter;  //!< flags whether to compute additional columns
 	bool useVolumeData;                     //! whether the given format expects volume data to be loaded or not
-	QMap<uint, QString> columnMapping;      //! map a specific value (denoted by an ID from MappedColumn) to the name of the field where it's stored
+	QMap<uint, uint> columnMapping;      //! map a specific value (denoted by an ID from MappedColumn) to the number of the column where it's stored
 
 	static iACsvConfig const & getLegacyFiberFormat(QString const & fileName);
 	static iACsvConfig const & getLegacyPoreFormat(QString const & fileName);

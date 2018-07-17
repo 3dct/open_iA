@@ -91,8 +91,6 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	else
 		m_fileHeaders = m_csvConfig.currentHeaders;
 	auto selectedColIdx = computeSelectedColIdx();
-	if (!computeColumnMapping())
-		return false;
 	determineOutputHeaders(selectedColIdx);
 	int colCount = m_outputHeaders.size();
 
@@ -123,12 +121,12 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		}
 		if (m_csvConfig.computeLength || m_csvConfig.computeAngles || m_csvConfig.computeTensors || m_csvConfig.computeCenter)
 		{
-			double x1 = getValueAsDouble(values, m_columnMapping[iACsvConfig::StartX], m_csvConfig.decimalSeparator);
-			double y1 = getValueAsDouble(values, m_columnMapping[iACsvConfig::StartY], m_csvConfig.decimalSeparator);
-			double z1 = getValueAsDouble(values, m_columnMapping[iACsvConfig::StartZ], m_csvConfig.decimalSeparator);
-			double x2 = getValueAsDouble(values, m_columnMapping[iACsvConfig::EndX], m_csvConfig.decimalSeparator);
-			double y2 = getValueAsDouble(values, m_columnMapping[iACsvConfig::EndY], m_csvConfig.decimalSeparator);
-			double z2 = getValueAsDouble(values, m_columnMapping[iACsvConfig::EndZ], m_csvConfig.decimalSeparator);
+			double x1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartX], m_csvConfig.decimalSeparator);
+			double y1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartY], m_csvConfig.decimalSeparator);
+			double z1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartZ], m_csvConfig.decimalSeparator);
+			double x2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndX], m_csvConfig.decimalSeparator);
+			double y2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndY], m_csvConfig.decimalSeparator);
+			double z2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndZ], m_csvConfig.decimalSeparator);
 			double dx = x1 - x2;
 			double dy = y1 - y2;
 			double dz = z1 - z2;
@@ -218,24 +216,16 @@ void iACsvIO::determineOutputHeaders(QVector<int> const & selectedCols)
 
 	for (int key : m_csvConfig.columnMapping.keys())
 	{
-		int inIdx = m_csvConfig.selectedHeaders.indexOf(m_csvConfig.columnMapping[key]);
-		if (inIdx < 0)
+		int outIdx = selectedCols.indexOf(m_csvConfig.columnMapping[key]);
+		if (outIdx < 0)
 		{
-			DEBUG_LOG(QString("Mapped column (ID=%1, name=%2) not selected for output.").arg(key).arg(m_csvConfig.columnMapping[key]));
+			DEBUG_LOG(QString("Mapped column (ID=%1, input col=%2) not selected for output.").arg(key).arg(m_csvConfig.columnMapping[key]));
 		}
 		else
 		{
-			int outIdx = selectedCols.indexOf(inIdx);
-			if (outIdx < 0)
-			{
-				DEBUG_LOG(QString("Mapped column (ID=%1, name=%2, input col=%3) not found in input data").arg(key).arg(m_csvConfig.columnMapping[key]).arg(inIdx));
-			}
-			else
-			{
-				int fullOutIdx = (m_csvConfig.addAutoID ? 1 : 0) + outIdx;
-				DEBUG_LOG(QString("COLUMN (ID=%1, name=%2, input col=%3) is mapped to column %4 in output!").arg(key).arg(m_csvConfig.columnMapping[key]).arg(inIdx).arg(fullOutIdx));
-				m_outputMapping.insert(key, fullOutIdx);
-			}
+			int fullOutIdx = (m_csvConfig.addAutoID ? 1 : 0) + outIdx;
+			//DEBUG_LOG(QString("COLUMN (ID=%1, input col=%2) is mapped to column %3 in output!").arg(key).arg(m_csvConfig.columnMapping[key]).arg(fullOutIdx));
+			m_outputMapping.insert(key, fullOutIdx);
 		}
 	}
 
@@ -300,23 +290,6 @@ QVector<int> iACsvIO::computeSelectedColIdx()
 	return result;
 }
 
-bool iACsvIO::computeColumnMapping()
-{
-	m_columnMapping.clear();
-	for (int key : m_csvConfig.columnMapping.keys())
-	{
-		QString columnName = m_csvConfig.columnMapping[key];
-		int index = m_fileHeaders.lastIndexOf(columnName);
-		if (index == -1)
-		{
-			DEBUG_LOG(QString("Invalid column mapping: No column found with name '%1'!").arg(columnName));
-			return false;
-		}
-		m_columnMapping.insert(key, index);
-	}
-	return true;
-}
-
 size_t iACsvIO::calcRowCount(QTextStream& in, const size_t skipLinesStart, const size_t skipLinesEnd)
 {
 	// skip (unused) header lines (+1 for line containing actual column headers)
@@ -346,7 +319,7 @@ const QStringList & iACsvIO::getOutputHeaders() const
 	return m_outputHeaders;
 }
 
-const QMap<int, int> & iACsvIO::getOutputMapping() const
+const QMap<uint, uint> & iACsvIO::getOutputMapping() const
 {
 	return m_outputMapping;
 }

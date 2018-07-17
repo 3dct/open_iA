@@ -190,8 +190,8 @@ ColormapFuncPtr colormapsIndex[] =
 	ColormapRGBHalfSphere,
 };
 
-dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, vtkRenderer* blobRen,
-	vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<int, int> const & columnMapping)
+dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
+	vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<uint, uint> const & columnMapping)
 	: QDockWidget( parent ),
 	csvTable( csvtbl ),
 	raycaster( parent->getRenderer() ),
@@ -272,11 +272,8 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 			}
 			linesPolyData->SetPoints(pts);
 			linesPolyData->SetLines(lines);
-			//linesPolyData->GetCellData()->SetScalars(colors);
 			linesPolyData->GetPointData()->AddArray(colors);
 			parent->displayResult("FeatureScout", nullptr, linesPolyData);
-			//renWin->AddRenderer(m_3dvisRenderer);
-			//renWin->Render();
 			parent->enableRenderWindows();
 		}
 	}

@@ -96,11 +96,9 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 	Q_OBJECT
 
 public:
-	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, vtkRenderer* blobRen,
-		vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<int, int> const & columnMapping);
+	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
+		vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<uint, uint> const & columnMapping);
 	~dlg_FeatureScout();
-
-	// setups
 	void setupModel();
 	void setupViews();
 	void setupConnections();
@@ -128,19 +126,16 @@ public:
 	void updateClassStatistics(QStandardItem *item);
 	int calcOrientationProbability(vtkTable *t, vtkTable *ot);
 	void addLogMsg(const QString &str);
-
 	QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third);
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
 	void writeWisetex(QXmlStreamWriter *writer);
 	void autoAddClass(int NbOfClasses);
 
-	//selection for each class and show SPM for it
+	//! selection for each class and show SPM for it
 	void applyClassSelection(QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
-
-	//selection for single class and show SPM
+	//! selection for single class and show SPM
 	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> &classEntries, const int colInd, const bool applyColorMap);
-
-	//highlights singe object in class
+	//! highlights single object in class
 	void applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, const int colorIdx, const bool applyColorMap);
 
 Q_SIGNALS:
@@ -312,5 +307,5 @@ private:
 	moData m_MOData;
 
 	vtkSmartPointer<vtkLookupTable> m_pointLUT;
-	QMap<int, int> m_columnMapping;
+	QMap<uint, uint> m_columnMapping;
 };
