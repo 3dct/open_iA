@@ -449,6 +449,10 @@ void dlg_CSVInput::showColumnHeaders()
 	if (m_confParams.currentHeaders.isEmpty())
 		return;
 	list_ColumnSelection->addItems(m_confParams.currentHeaders);
+	for (int row = 0; row < list_ColumnSelection->count(); ++row)
+	{
+		list_ColumnSelection->item(row)->setFlags(list_ColumnSelection->item(row)->flags() | Qt::ItemIsEditable);
+	}
 	QStringList selectibleColumns = m_confParams.currentHeaders;
 	selectibleColumns.insert(0, NotMapped);
 	for (auto cmbbox : m_mappingBoxes)
@@ -496,6 +500,10 @@ void dlg_CSVInput::assignSelectedCols()
 	for (auto selColModelIdx : selectedColModelIndices)
 		selectedColIDx.push_back(selColModelIdx.row());
 	qSort(selectedColIDx.begin(), selectedColIDx.end(), qLess<uint>());
+	m_confParams.currentHeaders.clear();
+	for (int row = 0; row < list_ColumnSelection->count(); ++row)
+		m_confParams.currentHeaders.append(list_ColumnSelection->item(row)->text());
+
 	m_confParams.selectedHeaders.clear();
 	for (auto selColIdx: selectedColIDx)
 		m_confParams.selectedHeaders.push_back(m_confParams.currentHeaders[selColIdx]);
