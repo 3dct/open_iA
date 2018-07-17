@@ -65,6 +65,8 @@ private slots:
 	void computeCenterChanged();
 	//! called when combobox selecting whether csv provides "start and end" or "center" changes
 	void cmbboxColSelectionChanged();
+	//! called when the Advanced Mode checkbox is checked or unchecked
+	void advancedModeToggled();
 private:
 	//! switch length mapping choice enabled based on whether to checkbox to automatically compute it is checked or not
 	void updateLengthEditEnabled();
@@ -78,10 +80,10 @@ private:
 	void connectSignals();
 	//! List all csv format entries, returned list is empty if no format definitions in registry
 	QStringList getFormatListFromRegistry() const;
-	//! Retrieve name of format loaded last time the dialog was open
-	QString getDefaultFormat() const;
-	//! Save name of format to be loaded next time dialog is opened
-	void saveDefaultFormat(QString const & formatName);
+	//! Load a general setting, such as the name of format loaded last time, or whether advanced mode was shown
+	QString loadGeneralSetting(QString const & settingName) const;
+	//! Save a general setting, such as the name of format to be loaded next time dialog is opened or whether advanced mode is shown
+	void saveGeneralSetting(QString const & settinName, QString const & value);
 	//! Save a specific format with its settings in registry
 	void saveFormatToRegistry(const QString & formatName);
 	//! Load entries from registry for a given format name

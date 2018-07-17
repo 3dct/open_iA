@@ -34,9 +34,10 @@ namespace csvRegKeys
 	//Names for registry
 	static const QString SettingsName = "FeatureScout";
 	static const QString FormatName = "CSVFormats";
+	static const QString DefaultFormat = "DefaultFormat";
+	static const QString AdvancedMode = "AdvancedMode";
 	static const QString SelectedHeaders = "SelectedHeaders";
 	static const QString AllHeaders = "AllHeaders";
-	static const QString DefaultFormat = "DefaultFormat";
 	static const QString SkipLinesStart = "SkipLinesStart";
 	static const QString SkipLinesEnd = "SkipLinesEnd";
 	static const QString ColSeparator = "ColumnSeparator";
@@ -96,7 +97,8 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	m_mappingBoxes.push_back(cmbbox_col_Diameter);
 	m_mappingBoxes.push_back(cmbbox_col_Phi);
 	m_mappingBoxes.push_back(cmbbox_col_Theta);
-
+	cb_AdvancedMode->setChecked(loadGeneralSetting(csvRegKeys::AdvancedMode).toInt());
+	advancedModeToggled();
 	initParameters();
 	connectSignals();
 }
@@ -111,7 +113,7 @@ void dlg_CSVInput::initParameters()
 		formatEntries.append(LegacyPoreFormat);
 	cmbbox_Format->addItems(formatEntries);
 	// load default format, and if that fails, load first format if available:
-	if (!loadFormatFromRegistry(getDefaultFormat()) && formatEntries.length() > 0)
+	if (!loadFormatFromRegistry(loadGeneralSetting(csvRegKeys::DefaultFormat)) && formatEntries.length() > 0)
 		loadFormatFromRegistry(formatEntries[0]);
 	showConfigParams();
 }
@@ -138,6 +140,7 @@ void dlg_CSVInput::connectSignals()
 	connect(cb_ComputeCenter, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeCenterChanged);
 	connect(cb_AddAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cb_ContainsHeader, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
+	connect(cb_AdvancedMode, &QCheckBox::stateChanged, this, &dlg_CSVInput::advancedModeToggled);
 	connect(list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
 }
 
@@ -171,7 +174,8 @@ void dlg_CSVInput::okBtnClicked()
 		return;
 	}
 	if (!cmbbox_Format->currentText().isEmpty())
-		saveDefaultFormat(cmbbox_Format->currentText());
+		saveGeneralSetting(csvRegKeys::DefaultFormat, cmbbox_Format->currentText());
+	saveGeneralSetting(csvRegKeys::AdvancedMode, QString::number(cb_AdvancedMode->isChecked()));
 	accept();
 }
 
@@ -346,6 +350,11 @@ void dlg_CSVInput::selectedColsChanged()
 {
 	assignSelectedCols();
 	updatePreview();
+}
+
+void dlg_CSVInput::advancedModeToggled()
+{
+	grpbox_Format->setVisible(cb_AdvancedMode->isChecked());
 }
 
 void dlg_CSVInput::selectFileBtnClicked()
@@ -572,18 +581,18 @@ void dlg_CSVInput::setCurrentFormat(QString const & formatName)
 	cmbbox_Format->setCurrentText(formatName);
 }
 
-void dlg_CSVInput::saveDefaultFormat(QString const & formatName)
+void dlg_CSVInput::saveGeneralSetting(QString const & settingName, QString const & value)
 {
 	QSettings settings;
 	settings.beginGroup(getFormatRegistryKey(""));
-	settings.setValue(csvRegKeys::DefaultFormat, formatName);
+	settings.setValue(settingName, value);
 }
 
-QString dlg_CSVInput::getDefaultFormat() const
+QString dlg_CSVInput::loadGeneralSetting(QString const & settingName) const
 {
 	QSettings settings;
 	settings.beginGroup(getFormatRegistryKey(""));
-	return settings.value(csvRegKeys::DefaultFormat, "").toString();
+	return settings.value(settingName, "").toString();
 }
 
 QStringList dlg_CSVInput::getFormatListFromRegistry() const
