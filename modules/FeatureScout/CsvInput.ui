@@ -310,7 +310,7 @@
          </widget>
         </item>
         <item row="10" column="0" colspan="2">
-         <widget class="QCheckBox" name="cb_addAutoID">
+         <widget class="QCheckBox" name="cb_AddAutoID">
           <property name="text">
            <string>Create ID</string>
           </property>
@@ -330,7 +330,7 @@
           </property>
          </widget>
         </item>
-        <item row="13" column="0" colspan="2">
+        <item row="14" column="0" colspan="2">
          <widget class="QPushButton" name="btn_SaveFormat">
           <property name="enabled">
            <bool>true</bool>
@@ -340,7 +340,7 @@
           </property>
          </widget>
         </item>
-        <item row="14" column="0" colspan="2">
+        <item row="15" column="0" colspan="2">
          <widget class="QPushButton" name="btn_DeleteFormat">
           <property name="text">
            <string>Delete Format</string>
@@ -351,6 +351,13 @@
          <widget class="QCheckBox" name="cb_ContainsHeader">
           <property name="text">
            <string>Contains header</string>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0" colspan="2">
+         <widget class="QCheckBox" name="cb_UseVolumeData">
+          <property name="text">
+           <string>Use Volume Data</string>
           </property>
          </widget>
         </item>
@@ -654,14 +661,14 @@
        <number>4</number>
       </property>
       <item>
-       <widget class="QWidget" name="widget" native="true">
+       <widget class="QWidget" name="wd_previewControls" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <layout class="QHBoxLayout" name="layout_previewControls">
          <property name="spacing">
           <number>4</number>
          </property>
@@ -715,6 +722,9 @@
       </item>
       <item>
        <widget class="QTableWidget" name="tbl_preview">
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
        </widget>
       </item>
      </layout>

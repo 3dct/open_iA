@@ -227,6 +227,8 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	m_profileLineEndPointActor->GetProperty()->SetColor(0.0, 0.65, 1.0);
 	setArbitraryProfileOn(false);
 
+	if (!imageData)
+		return;
 	double center[3], origin[3];
 	const int * dim = imageData->GetDimensions();
 	const double * spc = imageData->GetSpacing();

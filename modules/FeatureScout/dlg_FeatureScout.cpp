@@ -60,9 +60,11 @@
 #include <vtkActor.h>
 #include <vtkActor2D.h>
 #include <vtkAnnotationLink.h>
+#include <vtkAppendPolyData.h>
 #include <vtkAxis.h>
 #include <vtkImageCast.h>
 #include <vtkCamera.h>
+#include <vtkCellData.h>
 #include <vtkChart.h>
 #include <vtkChartMatrix.h>
 #include <vtkChartParallelCoordinates.h>
@@ -80,6 +82,7 @@
 #include <vtkIdTypeArray.h>
 #include <vtkIntArray.h>
 #include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkLine.h>
 #include <vtkLookupTable.h>
 #include <vtkMarchingCubes.h>
 #include <vtkMath.h>
@@ -223,11 +226,62 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	double bounds[6];
 	if (this->useCsvOnly)
 	{
-		this->m_headersSelected = selHeaders;
+		// create 3D representation from object characteristics.
+		if (fid == iAFeatureScoutObjectType::Fibers)
+		{
+			vtkRenderWindow* renWin = parent->getRenderer()->GetRenderWindow();
+			//m_3dvisRenderer = vtkSmartPointer<vtkRenderer>::New();
+
+			vtkUnsignedCharArray *colors = vtkUnsignedCharArray::New();
+			colors->SetNumberOfComponents(3);
+			colors->SetName("Colors");
+			vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
+			vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
+			vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+
+			for (vtkIdType row = 0; row < csvTable->GetNumberOfRows(); ++row)
+			{
+				float first[3], end[3];
+				for (int i = 0; i < 3; ++i)
+				{
+					first[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::StartX + i]).ToFloat();
+					end[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::EndX + i]).ToFloat();
+				}
+				pts->InsertNextPoint(first);
+				pts->InsertNextPoint(end);
+				vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+				line->GetPointIds()->SetId(0, 2*row); // the second 0 is the index of the Origin in linesPolyData's points
+				line->GetPointIds()->SetId(1, 2*row + 1); // the second 1 is the index of P0 in linesPolyData's points
+				lines->InsertNextCell(line);
+				float dir[3];
+				unsigned char c[3];
+				dir[0] = end[0] - first[0];
+				dir[1] = end[1] - first[1];
+				dir[2] = end[2] - first[2];
+				float length = sqrt(pow(dir[0], 2) + pow(dir[1], 2) + pow(dir[2], 2));
+				c[0] = abs(dir[0]) / abs(length) * 255;
+				c[1] = abs(dir[1]) / abs(length) * 255;
+				c[2] = abs(dir[2]) / abs(length) * 255;
+#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
+				colors->InsertNextTupleValue(c);
+				colors->InsertNextTupleValue(c);
+#else
+				colors->InsertNextTypedTuple(c);
+				colors->InsertNextTypedTuple(c);
+#endif
+			}
+			linesPolyData->SetPoints(pts);
+			linesPolyData->SetLines(lines);
+			//linesPolyData->GetCellData()->SetScalars(colors);
+			linesPolyData->GetPointData()->AddArray(colors);
+			parent->displayResult("FeatureScout", nullptr, linesPolyData);
+			//renWin->AddRenderer(m_3dvisRenderer);
+			//renWin->Render();
+			parent->enableRenderWindows();
+		}
 	}
 	else
 	{
-
 		raycaster->GetImageDataBounds(bounds);
 		blobManager->SetBounds(bounds);
 		blobManager->SetProtrusion(1.5);

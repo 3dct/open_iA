@@ -40,10 +40,9 @@ private slots:
 	void onChildClose();
 private:
 	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
-	//! entry point for openIA FeatureScout. optional parameter FileParams for custom csv
-	bool filter_FeatureScout(MdiChild* mdiChild, iACsvConfig const & csvConfig);
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
-	void initializeFeatureScoutStartUp(iACsvConfig const & csvConfig);
+	//! entry point for FeatureScout
+	void startFeatureScout(iACsvConfig const & csvConfig);
 	iAFeatureScoutToolbar * tlbFeatureScout;
 };

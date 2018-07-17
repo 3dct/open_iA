@@ -471,12 +471,14 @@ bool MdiChild::displayResult(QString const & title, vtkImageData* image, vtkPoly
 	// TODO: image is actually not the final imagedata here (or at least not always)
 	//    -> maybe skip all image-related initializations?
 	addStatusMsg("Creating Result View");
-	if (poly) {
+	if (poly)
+	{
 		polyData->ReleaseData();
 		polyData->DeepCopy(poly);
 	}
 
-	if (image) {
+	if (image)
+	{
 		imageData->ReleaseData();
 		imageData->DeepCopy(image);
 	}

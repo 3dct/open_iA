@@ -36,6 +36,7 @@
 
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QMessageBox>
 #include <QTextStream>
 
 void iAFeatureScoutModuleInterface::Initialize()
@@ -65,12 +66,20 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 		dlg.setPath(m_mainWnd->activeMdiChild()->getFilePath());
 	if (dlg.exec() != QDialog::Accepted)
 		return;
-	this->m_mdiChild = m_mainWnd->createMdiChild(false);
-	if (!m_mdiChild)
-		return;
-	this->m_mdiChild->show();
 	iACsvConfig csvConfig = dlg.getConfig();
-	initializeFeatureScoutStartUp(csvConfig);
+	if (csvConfig.useVolumeData && !m_mainWnd->activeMdiChild())
+	{
+		QMessageBox::information(m_mainWnd, "FeatureScout", "You have selected to use volume data in FeatureScout, yet no volume data is open!");
+		return;
+	}
+	if (!csvConfig.useVolumeData)
+	{
+		m_mdiChild = m_mainWnd->createMdiChild(false);
+		this->m_mdiChild->show();
+	}
+	else
+		m_mdiChild = m_mainWnd->activeMdiChild();
+	startFeatureScout(csvConfig);
 }
 
 void iAFeatureScoutModuleInterface::FeatureScout()
@@ -78,52 +87,33 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 	QString fileName, item;
 	PrepareActiveChild();
 	fileName = QFileDialog::getOpenFileName( m_mdiChild, tr( "Select CSV File" ), m_mdiChild->getFilePath(), tr( "CSV Files (*.csv)" ) );
-	if ( !fileName.isEmpty() )
-	{
-		QFile file( fileName );
-		if ( file.open( QIODevice::ReadOnly | QIODevice::Text ) )
-		{
-			// TODO: create convention, 2nd line of csv file for fibers (pore csv file have this line)
-			// Automatic csv file detection
-			QTextStream in( &file );
-			in.readLine();
-			item = in.readLine();
-			iACsvConfig csvConfig;
-			if (item != "Voids")
-			{
-				csvConfig = iACsvConfig::getLegacyFiberFormat(fileName);
-			}
-			else
-			{
-				csvConfig = iACsvConfig::getLegacyPoreFormat(fileName);
-			}
-			file.close();
-			initializeFeatureScoutStartUp(csvConfig);
-		}
-		else
-			m_mdiChild->addMsg( "CSV-file could not be opened." );
-	}
-	else
-		m_mdiChild->addMsg( "CSV-file name error." );
-}
+	if ( fileName.isEmpty() )
+		return;
 
-void iAFeatureScoutModuleInterface::initializeFeatureScoutStartUp(iACsvConfig const & csvConfig)
-{
-	if (m_mdiChild && filter_FeatureScout(m_mdiChild, csvConfig))
+	QFile file( fileName );
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		SetupToolbar();
-		m_mdiChild->addStatusMsg("Starting FeatureScout");
-		setFeatureScoutRenderSettings();
-		m_mdiChild->addMsg("The render settings of the current mdiChild window have been adapted to the FeatureScout!");
+		m_mdiChild->addMsg("CSV-file could not be opened.");
+		return;
 	}
+	// TODO: create convention, 2nd line of csv file for fibers (pore csv file have this line)
+	// Automatic csv file detection
+	QTextStream in( &file );
+	in.readLine();
+	item = in.readLine();
+	iACsvConfig csvConfig;
+	if (item != "Voids")
+		csvConfig = iACsvConfig::getLegacyFiberFormat(fileName);
+	else
+		csvConfig = iACsvConfig::getLegacyPoreFormat(fileName);
+	file.close();
+	startFeatureScout(csvConfig);
 }
 
 void iAFeatureScoutModuleInterface::SetupToolbar()
 {
 	if ( tlbFeatureScout )
-	{
 		return;
-	}
 	tlbFeatureScout = new iAFeatureScoutToolbar( m_mainWnd );
 	m_mainWnd->addToolBar( Qt::BottomToolBarArea, tlbFeatureScout );
 	connect( tlbFeatureScout->actionLength_Distribution, SIGNAL( triggered() ), this, SLOT( FeatureScout_Options() ) );
@@ -150,27 +140,27 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
-bool iAFeatureScoutModuleInterface::filter_FeatureScout( MdiChild* mdiChild, iACsvConfig const & csvConfig)
+void iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvConfig)
 {
 	iACsvVtkTableCreator creator;
 	iACsvIO io;
 	if (!io.loadCSV(creator, csvConfig))
-		return false;
-	//enables debug writing out table to desktop
-	//io.debugTable(false);
-	QString filtername = tr( "FeatureScout started" );
-	m_mdiChild->addStatusMsg( filtername );
-	m_mdiChild->addMsg( filtername );
+		return;
 	AttachToMdiChild( m_mdiChild );
 	connect( m_mdiChild, SIGNAL( closed() ), this, SLOT( onChildClose() ) );
 	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 	if ( !attach )
 	{
-		m_mdiChild->addMsg( "Error while creating FeatureScout module!" );
-		return false;
+		m_mdiChild->addMsg( "Error while attaching FeatureScout to mdi child window!" );
+		return;
 	}
 	attach->init(csvConfig.objectType, creator.getTable(), !csvConfig.useVolumeData, io.getOutputMapping());
-	return true;
+	SetupToolbar();
+	m_mdiChild->addStatusMsg("FeatureScout started");
+	m_mdiChild->addMsg("FeatureScout started");
+	setFeatureScoutRenderSettings();
+	m_mdiChild->addMsg("The render settings of the current mdiChild window have been adapted to the FeatureScout!");
+	return;
 }
 
 void iAFeatureScoutModuleInterface::FeatureScout_Options()
@@ -200,6 +190,7 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 
 void iAFeatureScoutModuleInterface::onChildClose()
 {
+	// TODO: check if a second mdi child has FeatureScout open?
 	m_mainWnd->removeToolBar( tlbFeatureScout );
 	delete tlbFeatureScout;
 	tlbFeatureScout = nullptr;

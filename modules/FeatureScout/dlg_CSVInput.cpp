@@ -51,6 +51,7 @@ namespace csvRegKeys
 	static const QString ComputeTensors = "ComputeTensors";
 	static const QString ComputeCenter = "ComputeCenter";
 	static const QString ContainsHeader = "ContainsHeader";
+	static const QString UseVolumeData = "UseVolumeData";
 	static const QString ColumnMappings = "ColumnMappings";
 }
 namespace
@@ -135,7 +136,7 @@ void dlg_CSVInput::connectSignals()
 	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeAngleChanged);
 	connect(cb_ComputeTensors, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cb_ComputeCenter, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeCenterChanged);
-	connect(cb_addAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
+	connect(cb_AddAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cb_ContainsHeader, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
 }
@@ -367,7 +368,7 @@ void dlg_CSVInput::showConfigParams()
 {
 	// prevent signals to update config and preview:
 	QSignalBlocker slsblock(ed_SkipLinesStart), sleblock(ed_SkipLinesEnd),
-		csblock(cmbbox_ColSeparator), aiblock(cb_addAutoID),
+		csblock(cmbbox_ColSeparator), aiblock(cb_AddAutoID),
 		eblock(cmbbox_Encoding), otblock(cmbbox_ObjectType),
 		clblock(cb_ComputeLength), cablock(cb_ComputeAngles),
 		ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter), chblock(cb_ContainsHeader);
@@ -380,12 +381,13 @@ void dlg_CSVInput::showConfigParams()
 	ed_Spacing->setText(QString("%1").arg(m_confParams.spacing));
 	cmbbox_Unit->setCurrentText(m_confParams.unit);
 	cmbbox_Encoding->setCurrentText(m_confParams.encoding);
-	cb_addAutoID->setChecked(m_confParams.addAutoID);
+	cb_AddAutoID->setChecked(m_confParams.addAutoID);
 	cb_ComputeLength->setChecked(m_confParams.computeLength);
 	cb_ComputeAngles->setChecked(m_confParams.computeAngles);
 	cb_ComputeTensors->setChecked(m_confParams.computeTensors);
 	cb_ComputeCenter->setChecked(m_confParams.computeCenter);
 	cb_ContainsHeader->setChecked(m_confParams.containsHeader);
+	cb_UseVolumeData->setChecked(m_confParams.useVolumeData);
 	updateColumnMappingInputs();
 }
 
@@ -400,12 +402,13 @@ void dlg_CSVInput::assignFormatSettings()
 	m_confParams.spacing = ed_Spacing->text().toDouble();
 	m_confParams.unit = cmbbox_Unit->currentText();
 	m_confParams.encoding = cmbbox_Encoding->currentText();
-	m_confParams.addAutoID = cb_addAutoID->isChecked();
+	m_confParams.addAutoID = cb_AddAutoID->isChecked();
 	m_confParams.computeLength = cb_ComputeLength->isChecked();
 	m_confParams.computeAngles = cb_ComputeAngles->isChecked();
 	m_confParams.computeTensors = cb_ComputeTensors->isChecked();
 	m_confParams.computeCenter = cb_ComputeCenter->isChecked();
 	m_confParams.containsHeader = cb_ContainsHeader->isChecked();
+	m_confParams.useVolumeData = cb_UseVolumeData->isChecked();
 	if (!m_columnMappingChoiceSet)
 		return;
 	m_confParams.columnMapping.clear();
@@ -545,6 +548,7 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	m_confParams.computeTensors = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeTensors).toBool();
 	m_confParams.computeCenter = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeCenter).toBool();
 	m_confParams.containsHeader = settings.value(csvRegKeys::ContainsHeader, defaultConfig.containsHeader).toBool();
+	m_confParams.useVolumeData = settings.value(csvRegKeys::UseVolumeData, defaultConfig.useVolumeData).toBool();
 	m_confParams.unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
 	m_confParams.spacing = settings.value(csvRegKeys::Spacing, defaultConfig.spacing).toDouble();
 	m_confParams.encoding = settings.value(csvRegKeys::Encoding, defaultConfig.encoding).toString();
@@ -607,6 +611,7 @@ void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
 	settings.setValue(csvRegKeys::ComputeTensors, m_confParams.computeTensors);
 	settings.setValue(csvRegKeys::ComputeCenter, m_confParams.computeCenter);
 	settings.setValue(csvRegKeys::ContainsHeader, m_confParams.containsHeader);
+	settings.setValue(csvRegKeys::UseVolumeData, m_confParams.useVolumeData);
 	// save column mappings:
 	QStringList columnMappings;
 	for (auto key : m_confParams.columnMapping.keys())
