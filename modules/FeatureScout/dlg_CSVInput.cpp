@@ -97,7 +97,7 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	m_mappingBoxes.push_back(cmbbox_col_Diameter);
 	m_mappingBoxes.push_back(cmbbox_col_Phi);
 	m_mappingBoxes.push_back(cmbbox_col_Theta);
-	cb_AdvancedMode->setChecked(loadGeneralSetting(csvRegKeys::AdvancedMode).toInt());
+	cb_AdvancedMode->setChecked(loadGeneralSetting(csvRegKeys::AdvancedMode).toBool());
 	advancedModeToggled();
 	initParameters();
 	connectSignals();
@@ -113,7 +113,7 @@ void dlg_CSVInput::initParameters()
 		formatEntries.append(LegacyPoreFormat);
 	cmbbox_Format->addItems(formatEntries);
 	// load default format, and if that fails, load first format if available:
-	if (!loadFormatFromRegistry(loadGeneralSetting(csvRegKeys::DefaultFormat)) && formatEntries.length() > 0)
+	if (!loadFormatFromRegistry(loadGeneralSetting(csvRegKeys::DefaultFormat).toString()) && formatEntries.length() > 0)
 		loadFormatFromRegistry(formatEntries[0]);
 	showConfigParams();
 }
@@ -175,7 +175,7 @@ void dlg_CSVInput::okBtnClicked()
 	}
 	if (!cmbbox_Format->currentText().isEmpty())
 		saveGeneralSetting(csvRegKeys::DefaultFormat, cmbbox_Format->currentText());
-	saveGeneralSetting(csvRegKeys::AdvancedMode, QString::number(cb_AdvancedMode->isChecked()));
+	saveGeneralSetting(csvRegKeys::AdvancedMode, cb_AdvancedMode->isChecked());
 	accept();
 }
 
@@ -581,18 +581,18 @@ void dlg_CSVInput::setCurrentFormat(QString const & formatName)
 	cmbbox_Format->setCurrentText(formatName);
 }
 
-void dlg_CSVInput::saveGeneralSetting(QString const & settingName, QString const & value)
+void dlg_CSVInput::saveGeneralSetting(QString const & settingName, QVariant value)
 {
 	QSettings settings;
 	settings.beginGroup(getFormatRegistryKey(""));
 	settings.setValue(settingName, value);
 }
 
-QString dlg_CSVInput::loadGeneralSetting(QString const & settingName) const
+QVariant dlg_CSVInput::loadGeneralSetting(QString const & settingName) const
 {
 	QSettings settings;
 	settings.beginGroup(getFormatRegistryKey(""));
-	return settings.value(settingName, "").toString();
+	return settings.value(settingName, "");
 }
 
 QStringList dlg_CSVInput::getFormatListFromRegistry() const
