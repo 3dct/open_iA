@@ -67,6 +67,10 @@ private slots:
 	void cmbboxColSelectionChanged();
 	//! called when the Advanced Mode checkbox is checked or unchecked
 	void advancedModeToggled();
+	//! called when the export button is clicked
+	void exportButtonClicked();
+	//! called when the export button is clicked
+	void importButtonClicked();
 private:
 	//! switch length mapping choice enabled based on whether to checkbox to automatically compute it is checked or not
 	void updateLengthEditEnabled();
@@ -84,16 +88,16 @@ private:
 	QVariant loadGeneralSetting(QString const & settingName) const;
 	//! Save a general setting, such as the name of format to be loaded next time dialog is opened or whether advanced mode is shown
 	void saveGeneralSetting(QString const & settinName, QVariant value);
-	//! Save a specific format with its settings in registry
+	//! Save the currently configured format in registry
 	void saveFormatToRegistry(const QString & formatName);
-	//! Load entries from registry for a given format name
+	//! Save the currently configured format in a given settings object
+	void saveFormat(QSettings & settings, const QString & formatName);
+	//! Loads settings from registry for a given format name, into default config object
 	bool loadFormatFromRegistry(const QString & formatName);
+	//! Loads settings from registry for a given format name, into a given config object
+	bool loadFormatFromRegistry(const QString & formatName, iACsvConfig & dest);
 	//! Deletes a format from the registry
 	void deleteFormatFromReg(QString const & formatName);
-	//! Load selected headers from registry
-	QStringList loadHeadersFromReg(const QString &formatName, const QString& entryName);
-	//! Save selected headers to registry
-	void saveHeadersToReg(const QString &formatName, const QString& entryName, QStringList const & headers);
 	//! Shows configuration parameters in GUI
 	void showConfigParams();
 	//! Show selected columns from parameters in GUI
@@ -118,7 +122,6 @@ private:
 
 	iACsvConfig m_confParams;
 	QString m_path;
-	QString m_formatName;
 	QVector<QComboBox*> m_mappingBoxes;
 	bool m_columnMappingChoiceSet; //!< whether we have provided proper choices in the column mapping comboboxes already
 };

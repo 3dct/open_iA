@@ -67,7 +67,7 @@ namespace
 		return colSeparators;
 	}
 
-	QString getFormatRegistryKey(QString const & formatName)
+	QString getFormatKey(QString const & formatName)
 	{
 		return csvRegKeys::SettingsName + "/" + csvRegKeys::FormatName + "/" + formatName;
 	}
@@ -76,6 +76,41 @@ namespace
 
 	const char* LegacyFiberFormat = "Legacy Fiber csv";
 	const char* LegacyPoreFormat = "Legacy Pore csv";
+
+	static const QString IniFormatName = "FormatName";
+
+	bool loadFormat(const QString & formatName, iACsvConfig & dest, QSettings & settings)
+	{
+		settings.beginGroup(getFormatKey(formatName));
+		iACsvConfig defaultConfig;
+		dest.skipLinesStart = settings.value(csvRegKeys::SkipLinesStart, defaultConfig.skipLinesStart).toLongLong();
+		dest.skipLinesEnd = settings.value(csvRegKeys::SkipLinesEnd, defaultConfig.skipLinesEnd).toLongLong();
+		dest.columnSeparator = settings.value(csvRegKeys::ColSeparator, defaultConfig.columnSeparator).toString();
+		dest.decimalSeparator = settings.value(csvRegKeys::DecimalSeparator, defaultConfig.decimalSeparator).toString();
+		dest.objectType = MapStringToObjectType(settings.value(csvRegKeys::ObjectType, MapObjectTypeToString(defaultConfig.objectType)).toString());
+		dest.addAutoID = settings.value(csvRegKeys::AddAutoID, defaultConfig.addAutoID).toBool();
+		dest.computeLength = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeLength).toBool();
+		dest.computeAngles = settings.value(csvRegKeys::ComputeAngles, defaultConfig.computeAngles).toBool();
+		dest.computeTensors = settings.value(csvRegKeys::ComputeTensors, defaultConfig.computeTensors).toBool();
+		dest.computeCenter = settings.value(csvRegKeys::ComputeCenter, defaultConfig.computeCenter).toBool();
+		dest.containsHeader = settings.value(csvRegKeys::ContainsHeader, defaultConfig.containsHeader).toBool();
+		dest.useVolumeData = settings.value(csvRegKeys::UseVolumeData, defaultConfig.useVolumeData).toBool();
+		dest.unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
+		dest.spacing = settings.value(csvRegKeys::Spacing, defaultConfig.spacing).toDouble();
+		dest.encoding = settings.value(csvRegKeys::Encoding, defaultConfig.encoding).toString();
+		dest.selectedHeaders = settings.value(csvRegKeys::SelectedHeaders, defaultConfig.currentHeaders).toStringList();
+		dest.currentHeaders = settings.value(csvRegKeys::AllHeaders, defaultConfig.currentHeaders).toStringList();
+		// load column mappings:
+		QStringList columnMappings = settings.value(csvRegKeys::ColumnMappings).toStringList();
+		for (QString mapping : columnMappings)
+		{
+			uint columnKey = mapping.section(":", 0, 0).toInt();
+			uint columnNumber = mapping.section(":", 1).toInt();
+			dest.columnMapping.insert(columnKey, columnNumber);
+		}
+		settings.endGroup();
+		return true;
+	}
 }
 
 dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
@@ -125,6 +160,8 @@ void dlg_CSVInput::connectSignals()
 	connect(btn_DeleteFormat, &QPushButton::clicked, this, &dlg_CSVInput::deleteFormatBtnClicked);
 	connect(btn_UpdatePreview, &QPushButton::clicked, this, &dlg_CSVInput::updatePreview);
 	connect(btn_ApplyFormatColumnSelection, &QPushButton::clicked, this, &dlg_CSVInput::applyFormatColumnSelection);
+	connect(btn_ExportFormat, &QPushButton::clicked, this, &dlg_CSVInput::exportButtonClicked);
+	connect(btn_ImportFormat, &QPushButton::clicked, this, &dlg_CSVInput::importButtonClicked);
 	connect(cmbbox_Format, &QComboBox::currentTextChanged, this, &dlg_CSVInput::loadSelectedFormatSettings);
 	connect(cmbbox_ColSeparator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cmbbox_ObjectType, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchObjectType);
@@ -147,20 +184,6 @@ void dlg_CSVInput::connectSignals()
 void dlg_CSVInput::setPath(QString const & path)
 {
 	m_path = path;
-}
-
-void dlg_CSVInput::saveHeadersToReg(const QString &formatName, const QString& entryName, QStringList const & headers)
-{
-	QSettings settings;
-	settings.beginGroup(getFormatRegistryKey(formatName));
-	settings.setValue(entryName, headers);
-}
-
-QStringList dlg_CSVInput::loadHeadersFromReg(const QString &formatName, const QString& entryName)
-{
-	QSettings settings;
-	settings.beginGroup(getFormatRegistryKey(formatName));
-	return settings.value(entryName).toStringList();
 }
 
 void dlg_CSVInput::okBtnClicked()
@@ -216,24 +239,6 @@ void dlg_CSVInput::saveFormatBtnClicked()
 	}
 	assignFormatSettings();
 	assignSelectedCols();
-	QStringList formatEntries = getFormatListFromRegistry();
-	QSignalBlocker fmtBlocker(cmbbox_Format);
-	if (formatEntries.contains(formatName, Qt::CaseSensitivity::CaseInsensitive))
-	{
-		auto reply = QMessageBox::warning(this, tr("FeatureScout"),
-			tr("Format '%1' already exists. Do you want to overwrite it?").arg(formatName),
-			QMessageBox::Yes | QMessageBox::No);
-		if (reply != QMessageBox::Yes)
-			return;
-		else // to be sure to have the same lower/upper case string in the combo-box, delete existing entry:
-			deleteFormatFromReg(formatName);
-	}
-	saveFormatToRegistry(formatName);
-	saveHeadersToReg(formatName, csvRegKeys::SelectedHeaders, m_confParams.selectedHeaders);
-	saveHeadersToReg(formatName, csvRegKeys::AllHeaders, m_confParams.currentHeaders);
-	cmbbox_Format->addItem(formatName);
-	cmbbox_Format->model()->sort(0);
-	cmbbox_Format->setCurrentText(formatName);
 }
 
 void dlg_CSVInput::deleteFormatBtnClicked()
@@ -251,14 +256,16 @@ void dlg_CSVInput::deleteFormatBtnClicked()
 void dlg_CSVInput::deleteFormatFromReg(QString const & formatName)
 {
 	QSettings settings;
-	settings.remove(getFormatRegistryKey(formatName));
+	settings.remove(getFormatKey(formatName));
 	cmbbox_Format->removeItem(cmbbox_Format->findText(formatName, Qt::MatchFixedString));
 }
 
 void dlg_CSVInput::applyFormatColumnSelection()
 {
 	QString formatName = cmbbox_Format->currentText();
-	m_confParams.selectedHeaders = loadHeadersFromReg(formatName, csvRegKeys::SelectedHeaders);
+	iACsvConfig tmp;
+	loadFormatFromRegistry(formatName, tmp);
+	m_confParams.selectedHeaders = tmp.selectedHeaders;
 	showSelectedCols();
 }
 
@@ -531,91 +538,119 @@ void dlg_CSVInput::showSelectedCols()
 		ed_col_ID->setText("NONE");
 }
 
-bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
-{
-	if (formatName.isEmpty())
-		return false;
-	QSettings settings;
-	settings.beginGroup(getFormatRegistryKey(formatName));
-	QStringList allEntries = settings.allKeys();
-	if (allEntries.isEmpty())
-	{
-		if (formatName == LegacyFiberFormat)
-		{
-			m_confParams = iACsvConfig::getLegacyFiberFormat(m_confParams.fileName);
-			setCurrentFormat(formatName);
-			return true;
-		}
-		else if (formatName == LegacyPoreFormat)
-		{
-			m_confParams = iACsvConfig::getLegacyPoreFormat(m_confParams.fileName);
-			setCurrentFormat(formatName);
-			return true;
-		}
-		return false;
-	}
-	setCurrentFormat(formatName);
-	iACsvConfig defaultConfig;
-	m_confParams.skipLinesStart = settings.value(csvRegKeys::SkipLinesStart, defaultConfig.skipLinesStart).toLongLong();
-	m_confParams.skipLinesEnd = settings.value(csvRegKeys::SkipLinesEnd, defaultConfig.skipLinesEnd).toLongLong();
-	m_confParams.columnSeparator = settings.value(csvRegKeys::ColSeparator, defaultConfig.columnSeparator).toString();
-	m_confParams.decimalSeparator = settings.value(csvRegKeys::DecimalSeparator, defaultConfig.decimalSeparator).toString();
-	m_confParams.objectType = MapStringToObjectType(settings.value(csvRegKeys::ObjectType, defaultConfig.objectType).toString());
-	m_confParams.addAutoID = settings.value(csvRegKeys::AddAutoID, defaultConfig.addAutoID).toBool();
-	m_confParams.computeLength = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeLength).toBool();
-	m_confParams.computeAngles = settings.value(csvRegKeys::ComputeAngles, defaultConfig.computeAngles).toBool();
-	m_confParams.computeTensors = settings.value(csvRegKeys::ComputeTensors, defaultConfig.computeTensors).toBool();
-	m_confParams.computeCenter = settings.value(csvRegKeys::ComputeCenter, defaultConfig.computeCenter).toBool();
-	m_confParams.containsHeader = settings.value(csvRegKeys::ContainsHeader, defaultConfig.containsHeader).toBool();
-	m_confParams.useVolumeData = settings.value(csvRegKeys::UseVolumeData, defaultConfig.useVolumeData).toBool();
-	m_confParams.unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
-	m_confParams.spacing = settings.value(csvRegKeys::Spacing, defaultConfig.spacing).toDouble();
-	m_confParams.encoding = settings.value(csvRegKeys::Encoding, defaultConfig.encoding).toString();
-	m_confParams.selectedHeaders = loadHeadersFromReg(formatName, csvRegKeys::SelectedHeaders);
-	m_confParams.currentHeaders = loadHeadersFromReg(formatName, csvRegKeys::AllHeaders);
-	// load column mappings:
-	QStringList columnMappings = settings.value(csvRegKeys::ColumnMappings).toStringList();
-	for (QString mapping : columnMappings)
-	{
-		uint columnKey = mapping.section(":", 0, 0).toInt();
-		uint columnNumber = mapping.section(":", 1).toInt();
-		m_confParams.columnMapping.insert(columnKey, columnNumber);
-	}
-	return true;
-}
-
-void dlg_CSVInput::setCurrentFormat(QString const & formatName)
-{
-	m_formatName = formatName;
-	ed_FormatName->setText(formatName);
-	cmbbox_Format->setCurrentText(formatName);
-}
-
 void dlg_CSVInput::saveGeneralSetting(QString const & settingName, QVariant value)
 {
 	QSettings settings;
-	settings.beginGroup(getFormatRegistryKey(""));
+	settings.beginGroup(getFormatKey(""));
 	settings.setValue(settingName, value);
 }
 
 QVariant dlg_CSVInput::loadGeneralSetting(QString const & settingName) const
 {
 	QSettings settings;
-	settings.beginGroup(getFormatRegistryKey(""));
+	settings.beginGroup(getFormatKey(""));
 	return settings.value(settingName, "");
 }
 
 QStringList dlg_CSVInput::getFormatListFromRegistry() const
 {
 	QSettings settings;
-	settings.beginGroup(getFormatRegistryKey("") );
+	settings.beginGroup(getFormatKey("") );
 	return settings.childGroups();
+}
+
+void dlg_CSVInput::exportButtonClicked()
+{
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save Settings"),
+		m_path, "Settings file (*.ini);;");
+	if (fileName.isEmpty())
+		return;
+	QSettings settings(fileName, QSettings::IniFormat);
+	QString formatName = ed_FormatName->text();
+	settings.setValue(IniFormatName, formatName);
+	saveFormat(settings, formatName);
+}
+
+void dlg_CSVInput::importButtonClicked()
+{
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Settings"),
+		m_path, "Settings file (*.ini);;");
+	if (fileName.isEmpty())
+		return;
+	QSettings settings(fileName, QSettings::IniFormat);
+	QString formatName = settings.value(IniFormatName).toString();
+	if (formatName.isEmpty())
+	{
+		QMessageBox::information(this, "FeatureScout", "Invalid format settings file, cannot read format name");
+		return;
+	}
+	loadFormat(formatName, m_confParams, settings);
+	showConfigParams();
+	ed_FormatName->setText(formatName);
+	saveFormatToRegistry(formatName);
+}
+
+bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
+{
+	bool result = loadFormatFromRegistry(formatName, m_confParams);
+	if (result)
+	{
+		ed_FormatName->setText(formatName);
+		cmbbox_Format->setCurrentText(formatName);
+	}
+	return result;
+}
+
+bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName, iACsvConfig & dest)
+{
+	if (formatName.isEmpty())
+		return false;
+	QSettings settings;
+	settings.beginGroup(getFormatKey(formatName));
+	QStringList allEntries = settings.allKeys();
+	settings.endGroup();
+	if (allEntries.isEmpty())
+	{
+		if (formatName == LegacyFiberFormat)
+		{
+			m_confParams = iACsvConfig::getLegacyFiberFormat(m_confParams.fileName);
+			return true;
+		}
+		else if (formatName == LegacyPoreFormat)
+		{
+			m_confParams = iACsvConfig::getLegacyPoreFormat(m_confParams.fileName);
+			return true;
+		}
+		return false;
+	}
+	loadFormat(formatName, dest, settings);
+	return true;
 }
 
 void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
 {
+	QStringList formatEntries = getFormatListFromRegistry();
+	QSignalBlocker fmtBlocker(cmbbox_Format);
+	if (formatEntries.contains(formatName, Qt::CaseSensitivity::CaseInsensitive))
+	{
+		auto reply = QMessageBox::warning(this, tr("FeatureScout"),
+			tr("Format '%1' already exists. Do you want to overwrite it?").arg(formatName),
+			QMessageBox::Yes | QMessageBox::No);
+		if (reply != QMessageBox::Yes)
+			return;
+		else // to be sure to have the same lower/upper case string in the combo-box, delete existing entry:
+			deleteFormatFromReg(formatName);
+	}
 	QSettings settings;
-	settings.beginGroup(getFormatRegistryKey(formatName));
+	saveFormat(settings, formatName);
+	cmbbox_Format->addItem(formatName);
+	cmbbox_Format->model()->sort(0);
+	cmbbox_Format->setCurrentText(formatName);
+}
+
+void dlg_CSVInput::saveFormat(QSettings & settings, QString const & formatName)
+{
+	settings.beginGroup(getFormatKey(formatName));
 	settings.setValue(csvRegKeys::SkipLinesStart, m_confParams.skipLinesStart);
 	settings.setValue(csvRegKeys::SkipLinesEnd, m_confParams.skipLinesEnd);
 	settings.setValue(csvRegKeys::ColSeparator, m_confParams.columnSeparator);
@@ -636,4 +671,7 @@ void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
 	for (auto key : m_confParams.columnMapping.keys())
 		columnMappings.append(QString("%1:%2").arg(key).arg(m_confParams.columnMapping[key]));
 	settings.setValue(csvRegKeys::ColumnMappings, columnMappings);
+	settings.setValue(csvRegKeys::SelectedHeaders, m_confParams.selectedHeaders);
+	settings.setValue(csvRegKeys::AllHeaders, m_confParams.currentHeaders);
+	settings.endGroup();
 }

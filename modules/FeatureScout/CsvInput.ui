@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>517</width>
-    <height>672</height>
+    <height>704</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -397,6 +397,20 @@
          <widget class="QCheckBox" name="cb_UseVolumeData">
           <property name="text">
            <string>Use Volume Data</string>
+          </property>
+         </widget>
+        </item>
+        <item row="16" column="0" colspan="2">
+         <widget class="QPushButton" name="btn_ExportFormat">
+          <property name="text">
+           <string>Export Format</string>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="0" colspan="2">
+         <widget class="QPushButton" name="btn_ImportFormat">
+          <property name="text">
+           <string>Import Format</string>
           </property>
          </widget>
         </item>
