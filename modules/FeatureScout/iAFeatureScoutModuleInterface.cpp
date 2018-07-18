@@ -25,6 +25,7 @@
 #include "iACsvVtkTableCreator.h"
 #include "iAFeatureScoutAttachment.h"
 #include "iAFeatureScoutToolbar.h"
+#include "iAModalityList.h"
 #include "ui_CsvInput.h"
 
 #include "iAConsole.h"
@@ -67,9 +68,12 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	iACsvConfig csvConfig = dlg.getConfig();
-	if (csvConfig.useVolumeData && !m_mainWnd->activeMdiChild())
+	if (csvConfig.useVolumeData && (!m_mainWnd->activeMdiChild() ||
+		m_mainWnd->activeMdiChild()->GetModalities()->size() == 0 ||
+		!m_mainWnd->activeMdiChild()->IsVolumeDataLoaded()))
 	{
-		QMessageBox::information(m_mainWnd, "FeatureScout", "You have selected to use volume data in FeatureScout, yet no volume data is open!");
+		QMessageBox::information(m_mainWnd, "FeatureScout", "You have selected to use volume data in FeatureScout, "
+			"yet there is either no open window or the active window does not contain volume data!");
 		return;
 	}
 	if (!csvConfig.useVolumeData)

@@ -33,6 +33,7 @@
 #include "dlg_commoninput.h"
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
+#include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
 #include "iAmat4.h"
 #include "iAModalityTransfer.h"
@@ -295,7 +296,6 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	tableList.push_back( chartTable );
 	colorList.clear();
 	selectedObjID.clear();
-	columnVisibility.resize(elementNr);
 
 	initParallelCoordinates( fid );
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
@@ -316,9 +316,10 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	this->orientColormap = iovPP->comboBox;
 
 	// Initialize the models for QtViews
-	this->setupViews();
-	this->setupModel();
-	this->setupConnections();
+	setupViews();
+	initColumnVisibility();
+	setupModel();
+	setupConnections();
 	blobVisDialog = new dlg_blobVisualization();
 
 	// set first column of the classTreeView to minimal (not stretched)
@@ -456,8 +457,6 @@ void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 							this,
 							SLOT( pcViewMouseButtonCallBack( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
 
-	this->updatePCColumnVisibility();
-
 	if ( lookupTable )
 	{
 		this->pcWidget->setEnabled( false );
@@ -471,8 +470,7 @@ void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
 		int i = item->index().row();
 		columnVisibility[i] = (item->checkState() == Qt::Checked);
 		this->updatePCColumnVisibility();
-		if ( this->spmActivated )
-			this->spUpdateSPColumnVisibility();
+		this->spUpdateSPColumnVisibility();
 	}
 }
 
@@ -480,46 +478,26 @@ void dlg_FeatureScout::updatePCColumnVisibility()
 {
 	for ( int j = 0; j < elementNr; j++ )
 	{
-		pcChart->SetColumnVisibility( elementTable->GetValue( j, 0 ).ToString(), columnVisibility[j]);
+		pcChart->SetColumnVisibility( csvTable->GetColumnName( j ), columnVisibility[j]);
 	}
 	this->pcView->ResetCamera();
 	this->pcView->Render();
 }
 
-void dlg_FeatureScout::setupDefaultElement()
+void dlg_FeatureScout::initColumnVisibility()
 {
-	if (useCsvOnly)
-		return;
-	// TODO: define this also in config!
-	pcChart->SetColumnVisibilityAll(false);
-	if ( this->filterID == iAFeatureScoutObjectType::Fibers )
-	{   // Fibers: a11, a22, a33, theta, phi, xm, ym, zm, straightlength
-		pcChart->SetColumnVisibility(iACsvIO::ColNameA11, true);
-		pcChart->SetColumnVisibility(iACsvIO::ColNameA22, true);
-		pcChart->SetColumnVisibility(iACsvIO::ColNameA33, true);
-		pcChart->SetColumnVisibility(iACsvIO::ColNameTheta, true);
-		pcChart->SetColumnVisibility(iACsvIO::ColNamePhi, true);
-		pcChart->SetColumnVisibility(iACsvIO::ColNameCenterX, true);
-		pcChart->SetColumnVisibility(iACsvIO::ColNameCenterY, true);
-		pcChart->SetColumnVisibility(iACsvIO::ColNameCenterZ, true);
-		pcChart->SetColumnVisibility(iACsvIO::ColNameLength, true);
-	}
-	else
-	{  // Pores: id, dimx, dimy, dimz, phi, theta, Xm, Ym, Zm, volume, roundness, MajorLength
-		pcChart->SetColumnVisibilityAll(false);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(0), true);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(13), true);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(14), true);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(15), true);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(16), true);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(17), true);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(18), true);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(19), true);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(20), true);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(21), true);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(22), true);
-		pcChart->SetColumnVisibility(csvTable->GetColumnName(28), true);
-	}
+	QVector<int> visibleColumns;
+	if (filterID == iAFeatureScoutObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
+		visibleColumns = { iACsvConfig::Theta, iACsvConfig::Phi,
+		iACsvConfig::CenterX, iACsvConfig::CenterY, iACsvConfig::CenterZ,
+		iACsvConfig::Length, iACsvConfig::Diameter };
+	else if (filterID == iAFeatureScoutObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
+		visibleColumns = { iACsvConfig::CenterX, iACsvConfig::CenterY, iACsvConfig::CenterZ };
+	columnVisibility.resize(elementNr);
+	std::fill(columnVisibility.begin(), columnVisibility.end(), false);
+	for (int columnID : visibleColumns)
+		columnVisibility[m_columnMapping[columnID]] = true;
+	updatePCColumnVisibility();
 }
 
 void dlg_FeatureScout::setupModel()
@@ -533,17 +511,7 @@ void dlg_FeatureScout::setupModel()
 	// initialize checkboxes for the first column
 	for ( int i = 0; i < elementNr; i++ )
 	{
-		// TODO: separate configuration for visibility?
-		Qt::CheckState checkState = (
-			// Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
-			(filterID == iAFeatureScoutObjectType::Fibers && (
-				i == m_columnMapping[iACsvConfig::Theta] || i == m_columnMapping[iACsvConfig::Phi] ||
-				i == m_columnMapping[iACsvConfig::CenterX] || i == m_columnMapping[iACsvConfig::CenterY] || i == m_columnMapping[iACsvConfig::CenterZ] ||
-				i == m_columnMapping[iACsvConfig::Length] || i == m_columnMapping[iACsvConfig::Diameter]) ) ||
-			// Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
-			(filterID == iAFeatureScoutObjectType::Voids && (
-				i == m_columnMapping[iACsvConfig::CenterX] || i == m_columnMapping[iACsvConfig::CenterY] || i == m_columnMapping[iACsvConfig::CenterZ]))
-		) ? Qt::Checked : Qt::Unchecked;
+		Qt::CheckState checkState = (columnVisibility[i]) ? Qt::Checked : Qt::Unchecked;
 		elementTableModel->setData(elementTableModel->index(i, 0, QModelIndex()), checkState, Qt::CheckStateRole);
 		elementTableModel->item( i, 0 )->setCheckable( true );
 	}
@@ -552,7 +520,6 @@ void dlg_FeatureScout::setupModel()
 	this->calculateElementTable();
 	this->initElementTableModel();
 
-	// class tree model
 	// set up class tree headeritems
 	this->activeClassItem = new QStandardItem();
 	classTreeModel->setHorizontalHeaderItem( 0, new QStandardItem( "Class" ) );
@@ -599,7 +566,6 @@ void dlg_FeatureScout::setupViews()
 	this->pcChart->GetPlot( 0 )->SetWidth( 0.1 );
 
 	this->pcView->GetScene()->AddItem( pcChart );
-	this->setupDefaultElement();
 
 	// Creates a popup menu
 	QMenu* popup2 = new QMenu( pcWidget );
@@ -622,8 +588,7 @@ void dlg_FeatureScout::setupViews()
 							this,
 							SLOT( spBigChartMouseButtonPressed( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
 
-	if (!this->useCsvOnly) //TODO enable some 3d view
-		this->setupPolarPlotView(chartTable);
+	this->setupPolarPlotView(chartTable);
 }
 
 void dlg_FeatureScout::calculateElementTable()
@@ -632,7 +597,7 @@ void dlg_FeatureScout::calculateElementTable()
 	elementTable->Initialize();
 
 	double range[2] = { 0, 1 };
-	VTK_CREATE( vtkStringArray, nameArr );  // name of columns, both for set visuability of columns in PC view and for element table
+	VTK_CREATE( vtkStringArray, nameArr );  // name of columns
 	VTK_CREATE( vtkFloatArray, v1Arr );	// minimum
 	VTK_CREATE( vtkFloatArray, v2Arr );	// maximal
 	VTK_CREATE( vtkFloatArray, v3Arr );	// average
@@ -3251,16 +3216,11 @@ void dlg_FeatureScout::ScatterPlotButton()
 
 void dlg_FeatureScout::spUpdateSPColumnVisibility()
 {
-	// Updates scatter plot matrix if a feature of PC-ElementTableModel is added or removed.
-	if ( this->spmActivated )
-	{
-		for ( int j = 0; j < elementNr; ++j )
-		{
-			matrix->setParameterVisibility( elementTable->GetValue( j, 0 ).ToString().c_str(),
-				elementTableModel->item(j, 0)->checkState() == Qt::Checked );
-		}
-		matrix->update();
-	}
+	if (!this->spmActivated)
+		return;
+	for ( int j = 0; j < elementNr; ++j )
+		matrix->setParameterVisibility( csvTable->GetColumnName( j ), columnVisibility[j] );
+	matrix->update();
 }
 
 
@@ -4352,6 +4312,11 @@ void dlg_FeatureScout::createFLDODLookupTable( vtkLookupTable *lut, int Num )
 
 void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 {
+	if (!m_columnMapping.contains(iACsvConfig::Phi) || !m_columnMapping.contains(iACsvConfig::Theta))
+	{
+		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view");
+		return;
+	}
 	iovPP->setWindowTitle( "Polar Plot View" );
 	double xx, yy, zz, phi;
 
@@ -4465,6 +4430,11 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 
 void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 {
+	if (!m_columnMapping.contains(iACsvConfig::Phi) || !m_columnMapping.contains(iACsvConfig::Theta))
+	{
+		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot scalar");
+		return;
+	}
 	iovPP->setWindowTitle( "Polar Plot View" );
 	double xx, yy, zz, phi;
 

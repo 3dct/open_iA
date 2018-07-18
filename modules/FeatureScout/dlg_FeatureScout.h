@@ -103,6 +103,7 @@ public:
 	void setupViews();
 	void setupConnections();
 	void setupPolarPlotView(vtkTable *it);
+	void initColumnVisibility();
 	void updatePolarPlotColorScalar(vtkTable *it);
 	void updateObjectOrientationID(vtkTable *table);
 	void createPolarPlotLookupTable(vtkLookupTable *lut);
@@ -119,7 +120,6 @@ public:
 	void setActiveClassItem(QStandardItem* item, int situ = 0);
 	double calculateOpacity(QStandardItem *item);
 	void recalculateChartTable(QStandardItem *item);
-	void setupDefaultElement();
 	void SingleRendering(int idx = -10000);
 	void updateLookupTable(double alpha= 0.7);
 	void updatePCColumnVisibility();
