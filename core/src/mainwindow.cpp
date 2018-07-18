@@ -2043,10 +2043,7 @@ MdiChild* MainWindow::activeMdiChild()
 {
 	int subWndCnt = MdiChildList().size();
 	if(subWndCnt>0)
-	{
 		return MdiChildList(QMdiArea::ActivationHistoryOrder).last();
-	}
-
 	return 0;
 }
 
