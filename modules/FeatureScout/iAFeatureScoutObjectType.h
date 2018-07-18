@@ -22,6 +22,8 @@
 
 #include <QString>
 
+class QColor;
+
 enum iAFeatureScoutObjectType
 {
 	InvalidObjectType = -1,
@@ -32,3 +34,6 @@ enum iAFeatureScoutObjectType
 
 QString MapObjectTypeToString(int objectType);
 iAFeatureScoutObjectType MapStringToObjectType(QString const & objectTypeName);
+
+//! returns the color for a given class id
+QColor getClassColor(int cid);

@@ -2057,32 +2057,7 @@ void dlg_FeatureScout::ClassAddButton()
 	// class name and color
 	int cid = classTreeModel->invisibleRootItem()->rowCount();
 	QString cText = QString( "Class %1" ).arg( cid );
-
-	// automatically select a predefined color
-	// (from the list of colors defined in the list of SVG
-	// color keyword names provided by the World Wide Web Consortium).
-	//http://www.w3.org/TR/SVG/types.html#ColorKeywords
-	if ( cid > 7 ) { cid = 1; }
-
-	QColor cColor;
-
-	switch ( cid )
-	{
-		case 1:
-			cColor.setNamedColor( "cornflowerblue" ); break;
-		case 2:
-			cColor.setNamedColor( "darkorange" ); break;
-		case 3:
-			cColor.setNamedColor( "chartreuse" ); break;
-		case 4:
-			cColor.setNamedColor( "yellow" ); break;
-		case 5:
-			cColor.setNamedColor( "mediumvioletred" ); break;
-		case 6:
-			cColor.setNamedColor( "blue" ); break;
-		case 7:
-			cColor.setNamedColor( "green" ); break;
-	}
+	QColor cColor = getClassColor(cid);
 
 	bool ok;
 
@@ -2157,7 +2132,6 @@ void dlg_FeatureScout::ClassAddButton()
 		rootItem->removeRow( cID );
 		this->colorList.removeAt( cID );
 		//update Class_ID and lookupTable??
-
 	}
 
 	this->setActiveClassItem( firstLevelItem.first(), 1 );
@@ -3237,29 +3211,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 				// class name and color
 				int cid = classTreeModel->invisibleRootItem()->rowCount();
 				QString cText = QString( "Class %1" ).arg( cid );
-
-				cid = cid % 8;	//rotate between prefedined colors only
-				// automatically select a predefined color (http://www.w3.org/TR/SVG/types.html#ColorKeywords)
-				QColor cColor;
-
-				switch ( cid )
-				{
-					case 1:
-						cColor.setNamedColor( "cornflowerblue" ); break;
-					case 2:
-						cColor.setNamedColor( "darkorange" ); break;
-					case 3:
-						cColor.setNamedColor( "chartreuse" ); break;
-					case 4:
-						cColor.setNamedColor( "yellow" ); break;
-					case 5:
-						cColor.setNamedColor( "mediumvioletred" ); break;
-					case 6:
-						cColor.setNamedColor( "blue" ); break;
-					case 7:
-						cColor.setNamedColor( "green" ); break;
-				}
-
+				QColor cColor = getClassColor(cid);
 				this->colorList.append( cColor );
 
 				// create a first level child under rootItem as new class

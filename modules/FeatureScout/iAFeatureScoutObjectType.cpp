@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAFeatureScoutObjectType.h"
 
+#include <QColor>
+
 QString MapObjectTypeToString(int objectType)
 {
 	return (objectType == iAFeatureScoutObjectType::Fibers) ? "Fibers" :
@@ -37,4 +39,24 @@ iAFeatureScoutObjectType MapStringToObjectType(QString const & objectTypeName)
 		return iAFeatureScoutObjectType::Other;
 	else
 		return iAFeatureScoutObjectType::InvalidObjectType;
+}
+
+QColor getClassColor(int cid)
+{
+	// automatically select a predefined color
+	// (from the list of colors defined in the list of SVG
+	// color keyword names provided by the World Wide Web Consortium).
+	//http://www.w3.org/TR/SVG/types.html#ColorKeywords
+	if (cid > 7) { cid = 1; }
+	switch (cid)
+	{
+		default:
+		case 1: return QColor("cornflowerblue");
+		case 2: return QColor("darkorange");
+		case 3: return QColor("chartreuse");
+		case 4: return QColor("yellow");
+		case 5: return QColor("mediumvioletred");
+		case 6: return QColor("blue");
+		case 7: return QColor("green");
+	}
 }
