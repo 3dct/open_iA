@@ -442,12 +442,14 @@ void iAQSplom::removeHighlightedPoint( int index )
 }
 
 //shows a preselected plot based on id
-void iAQSplom::showSelectedPlot(const unsigned int plot_selInd_y, const unsigned int plot_selind_x) {
+void iAQSplom::showSelectedPlot(const unsigned int plot_selInd_y, const unsigned int plot_selind_x)
+{
 	this->plt_selIndx.initPlotSelection(plot_selInd_y, plot_selind_x);
 	renderPreselectedPlot();
 }
 
-void iAQSplom::showSelectedPlot() {
+void iAQSplom::showSelectedPlot()
+{
 	unsigned int plot_selInd_y = 0;
 	unsigned int plot_selind_x = 0;
 	const uint paramCount = getVisibleParametersCount();
@@ -467,24 +469,24 @@ void iAQSplom::renderPreselectedPlot()
 
 void iAQSplom::showPreviewPlot()
 {
-	if (!this->plt_selIndx.isPlotpreselected) {
-
+	if (!this->plt_selIndx.isPlotpreselected)
+	{
 		this->plt_selIndx.setPlotIdxToZero();
 	}
-
 	this->renderPreselectedPlot();
 }
 
 //selects a scatterplot by an indx
-void iAQSplom::getPlotByIdx(iAScatterPlot *&selected_Plot, const iAQSplom_variables::plotSelectionIndex &plt_idx) const {
+void iAQSplom::getPlotByIdx(iAScatterPlot *&selected_Plot, const iAQSplom_variables::plotSelectionIndex &plt_idx) const
+{
 	unsigned int visParamCnt = (uint)  getVisibleParametersCount();
 	if(this->m_visiblePlots.isEmpty()) {
 		return;
 	}
 
-	if((plt_idx.plt_ind_y > visParamCnt) || (plt_idx.plt_ind_x > visParamCnt)){
+	if ((plt_idx.plt_ind_y > visParamCnt) || (plt_idx.plt_ind_x > visParamCnt))
 		return;
-	}else
+	else
 		selected_Plot = (m_visiblePlots.at(plt_idx.plt_ind_y).at(plt_idx.plt_ind_x));
 }
 
