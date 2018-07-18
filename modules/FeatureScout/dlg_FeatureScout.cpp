@@ -61,7 +61,6 @@
 #include <vtkActor.h>
 #include <vtkActor2D.h>
 #include <vtkAnnotationLink.h>
-#include <vtkAppendPolyData.h>
 #include <vtkAxis.h>
 #include <vtkImageCast.h>
 #include <vtkCamera.h>
@@ -221,7 +220,6 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	this->draw3DPolarPlot = false;
 	this->classRendering = true;
 	this->setupPolarPlotResolution( 3.0 );
-	this->raycaster = raycaster;
 	blobManager = new iABlobManager();
 	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
 	double bounds[6];
@@ -233,11 +231,11 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 			vtkRenderWindow* renWin = parent->getRenderer()->GetRenderWindow();
 			//m_3dvisRenderer = vtkSmartPointer<vtkRenderer>::New();
 
-			vtkUnsignedCharArray *colors = vtkUnsignedCharArray::New();
-			colors->SetNumberOfComponents(3);
+			auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+			colors->SetNumberOfComponents(4);
 			colors->SetName("Colors");
 			vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
-			vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
+			auto polyData = vtkSmartPointer<vtkPolyData>::New();
 			vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
 
 			for (vtkIdType row = 0; row < csvTable->GetNumberOfRows(); ++row)
@@ -254,15 +252,23 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 				line->GetPointIds()->SetId(0, 2*row); // the second 0 is the index of the Origin in linesPolyData's points
 				line->GetPointIds()->SetId(1, 2*row + 1); // the second 1 is the index of P0 in linesPolyData's points
 				lines->InsertNextCell(line);
-				float dir[3];
-				unsigned char c[3];
-				dir[0] = end[0] - first[0];
-				dir[1] = end[1] - first[1];
-				dir[2] = end[2] - first[2];
-				float length = sqrt(pow(dir[0], 2) + pow(dir[1], 2) + pow(dir[2], 2));
-				c[0] = abs(dir[0]) / abs(length) * 255;
-				c[1] = abs(dir[1]) / abs(length) * 255;
-				c[2] = abs(dir[2]) / abs(length) * 255;
+
+				unsigned char c[4];
+				
+				// color encoding by direction:
+				//float dir[3];
+				//dir[0] = end[0] - first[0];
+				//dir[1] = end[1] - first[1];
+				//dir[2] = end[2] - first[2];
+				//float length = sqrt(pow(dir[0], 2) + pow(dir[1], 2) + pow(dir[2], 2));
+				//c[0] = abs(dir[0]) / abs(length) * 255;
+				//c[1] = abs(dir[1]) / abs(length) * 255;
+				//c[2] = abs(dir[2]) / abs(length) * 255;
+
+				c[0] = 128;
+				c[1] = 128;
+				c[2] = 128;
+				c[3] = 128;
 #if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
 				colors->InsertNextTupleValue(c);
 				colors->InsertNextTupleValue(c);
@@ -271,10 +277,10 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 				colors->InsertNextTypedTuple(c);
 #endif
 			}
-			linesPolyData->SetPoints(pts);
-			linesPolyData->SetLines(lines);
-			linesPolyData->GetPointData()->AddArray(colors);
-			parent->displayResult("FeatureScout", nullptr, linesPolyData);
+			polyData->SetPoints(pts);
+			polyData->SetLines(lines);
+			polyData->GetPointData()->AddArray(colors);
+			parent->displayResult("FeatureScout", nullptr, polyData);
 			parent->enableRenderWindows();
 		}
 	}
@@ -290,8 +296,6 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	chartTable = vtkSmartPointer<vtkTable>::New();
 	chartTable->DeepCopy( csvTable );
 	tableList.push_back( chartTable );
-	colorList.clear();
-	selectedObjID.clear();
 
 	initFeatureScoutUI();
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
@@ -379,10 +383,7 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long
 			matrix->setSelection(&selID);
 		}
 	}
-	if (!useCsvOnly)
-	{
-		this->RealTimeRendering(this->pcChart->GetPlot(0)->GetSelection());
-	}
+	this->RealTimeRendering(this->pcChart->GetPlot(0)->GetSelection());
 }
 
 void dlg_FeatureScout::setupNewPcView( bool lookupTable )
@@ -746,25 +747,43 @@ void dlg_FeatureScout::setupConnections()
 
 void dlg_FeatureScout::RenderingButton()
 {
-	if (this->useCsvOnly)
-	{
-		QMessageBox::warning(this, tr("MultiClassView"),
-			tr("Multi class rendering disabled - 3D data is required"));
-		return;
-	}
 	//Turns off FLD scalar bar updates polar plot view
 	if (m_scalarWidgetFLD != NULL)
 	{
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar(chartTable);
 	}
-
 	QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
 	int classCount = rootItem->rowCount();
 
 	if (classCount == 1)
 		return;
-
+	if (this->useCsvOnly)
+	{
+		auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
+		for (int i = 0; i < classCount; i++)
+		{
+			unsigned char rgb[3];
+			rgb[0] = colorList.at(i).red();
+			rgb[1] = colorList.at(i).green();
+			rgb[2] = colorList.at(i).blue();
+			QStandardItem *item = rootItem->child(i, 0);
+			int itemL = item->rowCount();
+			for (int j = 0; j < itemL; ++j)
+			{
+				int objectID = item->child(j, 0)->text().toInt();
+				for (int c = 0; c < 3; ++c)
+				{
+					colors->SetComponent(objectID * 2, c, rgb[c]);
+					colors->SetComponent(objectID * 2 + 1, c, rgb[c]);
+				}
+			}
+		}
+		colors->Modified();
+		activeChild->getPolyData()->Modified();
+		raycaster->update();
+		return;
+	}
 	double backAlpha = 0.00005;
 	double backRGB[3];
 	backRGB[0] = colorList.at(0).redF();
@@ -898,33 +917,64 @@ void dlg_FeatureScout::SingleRendering( int idx )
 		   backAlpha = 0.0,
 		   backRGB[3] = { 0.0, 0.0, 0.0 };
 
-	// clear existing points
-	this->oTF->RemoveAllPoints();
-	this->cTF->RemoveAllPoints();
+	if (!useCsvOnly)
+	{
+		// clear existing points
+		this->oTF->RemoveAllPoints();
+		this->cTF->RemoveAllPoints();
 
-	// set background opacity and color with clamping off
-	this->oTF->ClampingOff();
-	this->cTF->ClampingOff();
-	this->oTF->AddPoint( 0, backAlpha );
-	this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
+		// set background opacity and color with clamping off
+		this->oTF->ClampingOff();
+		this->cTF->ClampingOff();
+		this->oTF->AddPoint(0, backAlpha);
+		this->cTF->AddRGBPoint(0, backRGB[0], backRGB[1], backRGB[2]);
+	}
 
 	if ( idx > 0 ) // for single object selection
 	{
-		if ( ( idx - 1 ) >= 0 )
+		if (useCsvOnly)
 		{
-			this->oTF->AddPoint( idx - 0.5, backAlpha );
-			this->oTF->AddPoint( idx - 0.49, alpha );
-			this->cTF->AddRGBPoint( idx - 0.5, backRGB[0], backRGB[1], backRGB[2] );
-			this->cTF->AddRGBPoint( idx - 0.49, red, green, blue );
+			auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
+			if (!colors)
+				return;
+			unsigned char selColor[4];
+			selColor[0] = 255;//colorList.at(cID).red();
+			selColor[1] = 0; //colorList.at(cID).red();
+			selColor[2] = 0; //colorList.at(cID).red();
+			selColor[3] = 255;
+			unsigned char otherColor[4];
+			otherColor[0] = 127;
+			otherColor[1] = 127;
+			otherColor[2] = 127;
+			otherColor[3] = 32;
+			for (int i = 0; i < objectNr; ++i)
+			{
+				for (int c = 0; c < 4; ++c)
+				{
+					colors->SetComponent(i * 2, c, i == idx ? selColor[c] : otherColor[c]);
+					colors->SetComponent(i * 2+1, c, i == idx ? selColor[c]: otherColor[c]);
+				}
+			}
+			colors->Modified();
 		}
-		oTF->AddPoint( idx, alpha );
-		cTF->AddRGBPoint( idx, red, green, blue );
-		if ( ( idx + 1 ) <= objectNr )
+		else
 		{
-			this->oTF->AddPoint( idx + 0.3, backAlpha );
-			this->oTF->AddPoint( idx + 0.29, alpha );
-			this->cTF->AddRGBPoint( idx + 0.3, backRGB[0], backRGB[1], backRGB[2] );
-			this->cTF->AddRGBPoint( idx + 0.29, red, green, blue );
+			if ((idx - 1) >= 0)
+			{
+				this->oTF->AddPoint(idx - 0.5, backAlpha);
+				this->oTF->AddPoint(idx - 0.49, alpha);
+				this->cTF->AddRGBPoint(idx - 0.5, backRGB[0], backRGB[1], backRGB[2]);
+				this->cTF->AddRGBPoint(idx - 0.49, red, green, blue);
+			}
+			oTF->AddPoint(idx, alpha);
+			cTF->AddRGBPoint(idx, red, green, blue);
+			if ((idx + 1) <= objectNr)
+			{
+				this->oTF->AddPoint(idx + 0.3, backAlpha);
+				this->oTF->AddPoint(idx + 0.29, alpha);
+				this->cTF->AddRGBPoint(idx + 0.3, backRGB[0], backRGB[1], backRGB[2]);
+				this->cTF->AddRGBPoint(idx + 0.29, red, green, blue);
+			}
 		}
 	}
 	else // for single class selection
@@ -932,68 +982,104 @@ void dlg_FeatureScout::SingleRendering( int idx )
 		int hid = 0, next_hid = 1;
 		bool starting = false;
 
-		for ( int j = 0; j < itemL; ++j )
+		if (useCsvOnly)
 		{
-			hid = this->activeClassItem->child( j, 0 )->text().toInt();
-
-			if ( j + 1 < itemL )
-				next_hid = this->activeClassItem->child( j + 1, 0 )->text().toInt();
-			else
+			auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
+			if (!colors)
+				return;
+			unsigned char selColor[4];
+			selColor[0] = 255;//colorList.at(cID).red();
+			selColor[1] = 0; //colorList.at(cID).red();
+			selColor[2] = 0; //colorList.at(cID).red();
+			selColor[3] = 255;
+			unsigned char otherColor[4];
+			otherColor[0] = 127;
+			otherColor[1] = 127;
+			otherColor[2] = 127;
+			otherColor[3] = 32;
+			int currentObjectIndexInClass = 0;
+			int currentObjectID = this->activeClassItem->child(currentObjectIndexInClass, 0)->text().toInt();
+			for (int i = 0; i < objectNr; ++i)
 			{
-				if ( starting )
+				for (int c = 0; c < 4; ++c)
 				{
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					break;
+					colors->SetComponent(i * 2, c, i == currentObjectID ? selColor[c] : otherColor[c]);
+					colors->SetComponent(i * 2 + 1, c, i == currentObjectID ? selColor[c] : otherColor[c]);
 				}
+				if (i == currentObjectID)
+				{
+					++currentObjectIndexInClass;
+					if (currentObjectIndexInClass < itemL)
+						currentObjectID = this->activeClassItem->child(currentObjectIndexInClass, 0)->text().toInt();
+				}
+			}
+			colors->Modified();
+		}
+		else
+		{
+			for ( int j = 0; j < itemL; ++j )
+			{
+				hid = this->activeClassItem->child( j, 0 )->text().toInt();
+
+				if ( j + 1 < itemL )
+					next_hid = this->activeClassItem->child( j + 1, 0 )->text().toInt();
 				else
 				{
+					if ( starting )
+					{
+						oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+						oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+						cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+						cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+						break;
+					}
+					else
+					{
+						oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+						oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+						cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+						cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+						oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+						cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+						break;
+					}
+				}
+
+				//Create one single tooth
+				if ( next_hid > hid + 1 && !starting )
+				{
+					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				}
+				else if ( next_hid == hid + 1 && !starting )
+				{
+					starting = true;
 					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
 					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
 					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+				}
+				else if ( next_hid == hid + 1 && starting )
+					continue;
+				else if ( next_hid > hid + 1 && starting )
+				{
+					starting = false;
+					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
 					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
 					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					break;
 				}
 			}
 
-			//Create one single tooth
-			if ( next_hid > hid + 1 && !starting )
+			if ( hid < objectNr )
 			{
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
+				this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 			}
-			else if ( next_hid == hid + 1 && !starting )
-			{
-				starting = true;
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-			}
-			else if ( next_hid == hid + 1 && starting )
-				continue;
-			else if ( next_hid > hid + 1 && starting )
-			{
-				starting = false;
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-			}
-		}
-
-		if ( hid < objectNr )
-		{
-			this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
-			this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
 	}
 	raycaster->update();
@@ -1014,179 +1100,226 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 	int countClass = this->activeClassItem->rowCount();
 	int countSelection = selection->GetNumberOfTuples();
 
-	if ( countClass > 0 )
+	if (countClass <= 0) // TODO: check if this can even happen -> uncategorized class always should exist!
+		return;
+
+	if (useCsvOnly)
 	{
-		double red = 0.0, green = 0.0, blue = 0.0, alpha = 0.5, backAlpha = 0.00, backRGB[3], classRGB[3], selRGB[3];
-		backRGB[0] = 0.5; backRGB[1] = 0.5; backRGB[2] = 0.5;
-		selRGB[0] = 1.0; selRGB[1] = 0.0; selRGB[2] = 0.0;	//selection color
-		classRGB[0] = colorList.at( activeClassItem->index().row() ).redF();
-		classRGB[1] = colorList.at( activeClassItem->index().row() ).greenF();
-		classRGB[2] = colorList.at( activeClassItem->index().row() ).blueF();
-
-		// clear existing points
-		this->oTF->RemoveAllPoints();
-		this->cTF->RemoveAllPoints();
-
-		this->oTF->ClampingOff();
-		this->cTF->ClampingOff();
-
-		this->oTF->AddPoint( 0, backAlpha, 0.5, 1.0 );
-		this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-
-		int hid = 0, next_hid = 1, selectionIndex = 0, previous_selectionIndex = 0;
-		bool starting = false, hid_isASelection = false, previous_hid_isASelection = false;
-
-		for ( int j = 0; j < countClass; ++j )
+		auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
+		if (!colors)
+			return;
+		unsigned char selColor[4];
+		selColor[0] = 255;
+		selColor[1] = 0;
+		selColor[2] = 0;
+		selColor[3] = 255;
+		unsigned char otherColor[4];
+		int currentObjectIndexInSelection = 0;
+		int currentObjectID = -1;
+		if (countSelection > 0)
 		{
-			hid = this->activeClassItem->child( j )->text().toInt();
-
-			if ( countSelection > 0 )
+			currentObjectID = selection->GetVariantValue(currentObjectIndexInSelection).ToInt();
+			otherColor[0] = 127;
+			otherColor[1] = 127;
+			otherColor[2] = 127;
+			otherColor[3] = 32;
+		}
+		else
+		{
+			otherColor[0] = colorList.at(activeClassItem->index().row()).red();
+			otherColor[1] = colorList.at(activeClassItem->index().row()).green();
+			otherColor[2] = colorList.at(activeClassItem->index().row()).blue();
+			otherColor[3] = 255;;
+		}
+		for (int obj = 0; obj < objectNr; ++obj)
+		{
+			for (int c = 0; c < 4; ++c)
 			{
-				if ( j == selection->GetVariantValue( selectionIndex ).ToInt() )
-				{
-					hid_isASelection = true;
-					red = selRGB[0], green = selRGB[1], blue = selRGB[2];
+				colors->SetComponent(obj * 2, c, (obj == currentObjectID) ? selColor[c] : otherColor[c]);
+				colors->SetComponent(obj * 2 + 1, c, (obj == currentObjectID) ? selColor[c] : otherColor[c]);
+			}
+			if (obj == currentObjectID)
+			{
+				++currentObjectIndexInSelection;
+				if (currentObjectIndexInSelection < countSelection)
+					currentObjectID = selection->GetVariantValue(currentObjectIndexInSelection).ToInt();
+			}
+			colors->Modified();
+		}
+		raycaster->update();
+		return;
+	}
 
-					if ( selectionIndex + 1 < selection->GetNumberOfTuples() )
-						selectionIndex++;
-				}
-				else
-				{
-					hid_isASelection = false;
-					red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
-				}
+	double red = 0.0, green = 0.0, blue = 0.0, alpha = 0.5, backAlpha = 0.00, backRGB[3], classRGB[3], selRGB[3];
+	backRGB[0] = 0.5; backRGB[1] = 0.5; backRGB[2] = 0.5;
+	selRGB[0] = 1.0; selRGB[1] = 0.0; selRGB[2] = 0.0;	//selection color
+	classRGB[0] = colorList.at( activeClassItem->index().row() ).redF();
+	classRGB[1] = colorList.at( activeClassItem->index().row() ).greenF();
+	classRGB[2] = colorList.at( activeClassItem->index().row() ).blueF();
 
-				if ( j > 0 )
-				{
-					if ( j - 1 == selection->GetVariantValue( previous_selectionIndex ).ToInt() )
-					{
-						previous_hid_isASelection = true;
+	// clear existing points
+	this->oTF->RemoveAllPoints();
+	this->cTF->RemoveAllPoints();
 
-						if ( previous_selectionIndex + 1 < selection->GetNumberOfTuples() )
-							previous_selectionIndex++;
-					}
-					else
-						previous_hid_isASelection = false;
-				}
+	this->oTF->ClampingOff();
+	this->cTF->ClampingOff();
+
+	this->oTF->AddPoint( 0, backAlpha, 0.5, 1.0 );
+	this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+
+	int hid = 0, next_hid = 1, selectionIndex = 0, previous_selectionIndex = 0;
+	bool starting = false, hid_isASelection = false, previous_hid_isASelection = false;
+
+	for ( int j = 0; j < countClass; ++j )
+	{
+		hid = this->activeClassItem->child( j )->text().toInt();
+
+		if ( countSelection > 0 )
+		{
+			if ( j == selection->GetVariantValue( selectionIndex ).ToInt() )
+			{
+				hid_isASelection = true;
+				red = selRGB[0], green = selRGB[1], blue = selRGB[2];
+
+				if ( selectionIndex + 1 < selection->GetNumberOfTuples() )
+					selectionIndex++;
 			}
 			else
 			{
+				hid_isASelection = false;
 				red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
 			}
 
-			// If we are not yet at the last object (of the class) get the next hid
-			if ( ( j + 1 ) < countClass )
+			if ( j > 0 )
 			{
-				next_hid = this->activeClassItem->child( j + 1 )->text().toInt();
-			}
-			else	// If hid = the last object (of the class) we have to set the last object points
-			{
-				if ( starting )	// If we are in a sequence we have to set the ending (\)
+				if ( j - 1 == selection->GetVariantValue( previous_selectionIndex ).ToInt() )
 				{
-					oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+					previous_hid_isASelection = true;
 
-					if ( hid_isASelection )
-					{
-						cTF->AddRGBPoint( hid - 0.5, 1.0, 0.0, 0.0, 0.5, 1.0 );
-						cTF->AddRGBPoint( hid, 1.0, 0.0, 0.0, 0.5, 1.0 );
-						cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					}
-					else
-					{
-						cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-						cTF->AddRGBPoint( hid, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-						cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					}
-
-					if ( previous_hid_isASelection )
-						cTF->AddRGBPoint( hid - 1 + 0.3, 1.0, 0.0, 0.0, 0.5, 1.0 );
-					else
-						cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-					break;
+					if ( previous_selectionIndex + 1 < selection->GetNumberOfTuples() )
+						previous_selectionIndex++;
 				}
-				else	// if we are not in a sequence we have to create the last tooth (/\)
-				{
-					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-
-					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					break;
-				}
+				else
+					previous_hid_isASelection = false;
 			}
+		}
+		else
+		{
+			red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
+		}
 
-			if ( next_hid > hid + 1 && !starting )		//Create one single tooth
+		// If we are not yet at the last object (of the class) get the next hid
+		if ( ( j + 1 ) < countClass )
+		{
+			next_hid = this->activeClassItem->child( j + 1 )->text().toInt();
+		}
+		else	// If hid = the last object (of the class) we have to set the last object points
+		{
+			if ( starting )	// If we are in a sequence we have to set the ending (\)
 			{
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-			}
-			else if ( next_hid == hid + 1 && !starting )	//Creates the beginning of a sequence (/)
-			{
-				starting = true;
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-			}
-			else if ( next_hid == hid + 1 && starting )	//Continous the started sequence (-)
-			{
-				if ( !hid_isASelection && previous_hid_isASelection )
-				{
-					cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-
-					oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
-				}
-				else if ( hid_isASelection && !previous_hid_isASelection )
-				{
-					cTF->AddRGBPoint( hid - 0.5, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-
-					oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-				}
-			}
-			else if ( next_hid > hid + 1 && starting )	//  (\)
-			{
-				starting = false;
-
 				oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
 				oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
 				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
 				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
 
+				if ( hid_isASelection )
+				{
+					cTF->AddRGBPoint( hid - 0.5, 1.0, 0.0, 0.0, 0.5, 1.0 );
+					cTF->AddRGBPoint( hid, 1.0, 0.0, 0.0, 0.5, 1.0 );
+					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				}
+				else
+				{
+					cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+					cTF->AddRGBPoint( hid, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				}
+
 				if ( previous_hid_isASelection )
-					cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+					cTF->AddRGBPoint( hid - 1 + 0.3, 1.0, 0.0, 0.0, 0.5, 1.0 );
 				else
 					cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+				break;
+			}
+			else	// if we are not in a sequence we have to create the last tooth (/\)
+			{
+				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
 
-				cTF->AddRGBPoint( hid - 0.5, red, green, blue, 0.5, 1.0 );
+				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
 				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				break;
 			}
 		}
 
-		if ( hid < objectNr )	// Creates the very last points (for all objects)  if it's not created yet
+		if ( next_hid > hid + 1 && !starting )		//Create one single tooth
 		{
-			this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
-			this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+			oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+			oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+			cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+			cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
-		activeChild->updateViews();
+		else if ( next_hid == hid + 1 && !starting )	//Creates the beginning of a sequence (/)
+		{
+			starting = true;
+			oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+			oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+			cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+		}
+		else if ( next_hid == hid + 1 && starting )	//Continous the started sequence (-)
+		{
+			if ( !hid_isASelection && previous_hid_isASelection )
+			{
+				cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+				cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+				cTF->AddRGBPoint( hid + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+
+				oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
+				oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
+				oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
+			}
+			else if ( hid_isASelection && !previous_hid_isASelection )
+			{
+				cTF->AddRGBPoint( hid - 0.5, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+				cTF->AddRGBPoint( hid + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+				cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+
+				oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
+				oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
+				oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
+			}
+		}
+		else if ( next_hid > hid + 1 && starting )	//  (\)
+		{
+			starting = false;
+
+			oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
+			oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
+			oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+			oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+
+			if ( previous_hid_isASelection )
+				cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+			else
+				cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+
+			cTF->AddRGBPoint( hid - 0.5, red, green, blue, 0.5, 1.0 );
+			cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+			cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+		}
 	}
+
+	if ( hid < objectNr )	// Creates the very last points (for all objects)  if it's not created yet
+	{
+		this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
+		this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+	}
+	activeChild->updateViews();
 }
 
 void dlg_FeatureScout::RenderingMeanObject()
@@ -2063,9 +2196,8 @@ void dlg_FeatureScout::ClassAddButton()
 
 	// class name and color input when calling AddClassDialog.
 	cText = dlg_editPCClass::getClassInfo( 0, "FeatureScout", cText, &cColor, &ok ).section( ',', 0, 0 );
-	if (!ok )
-		return
-	//TODO save transfer function for each class classe
+	if (!ok)
+		return;
 	this->colorList.append( cColor );
 	// get the root item from class tree
 	QStandardItem *rootItem = classTreeModel->invisibleRootItem();
@@ -2141,10 +2273,8 @@ void dlg_FeatureScout::ClassAddButton()
 	this->classTreeView->collapseAll();
 	this->classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
 
-	if (!this->useCsvOnly) {
-		this->SingleRendering();
-		this->updatePolarPlotColorScalar( chartTable );
-	}
+	this->updatePolarPlotColorScalar(chartTable);
+	this->SingleRendering();
 
 	//Updates scatter plot matrix when a class is added.
 	if ( this->spmActivated && matrix != NULL )
@@ -2975,10 +3105,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	// remove the deleted row item
 	rootItem->removeRow( cID );
 
-	if (!useCsvOnly)
-	{
-		this->SingleRendering();
-	}
+	this->SingleRendering();
 	if ( this->spmActivated )
 	{
 		bool retFlag = true;
@@ -3097,12 +3224,7 @@ void dlg_FeatureScout::spSelInformsPCChart(QVector<unsigned int> * selInds)
 
 		this->pcChart->GetPlot(0)->SetSelection(vtk_selInd);
 		this->pcView->Render();
-
-		//TODO enable Rendering for csv only data
-		if (!this->useCsvOnly)
-		{
-			this->RealTimeRendering(pcChart->GetPlot(0)->GetSelection());
-		}
+		this->RealTimeRendering(pcChart->GetPlot(0)->GetSelection());
 	}
 }
 
@@ -3380,10 +3502,8 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			this->setupNewPcView();
 
 			//disable rendering
-			if (!useCsvOnly) {
-				this->updatePolarPlotColorScalar(chartTable);
-				this->SingleRendering();
-			}
+			this->updatePolarPlotColorScalar(chartTable);
+			this->SingleRendering();
 			this->initElementTableModel();
 
 			if ( this->spmActivated )
@@ -3438,11 +3558,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		// update elementTableView
 		this->initElementTableModel( sID );
 		int oID = item->text().toInt();
-
-		//disable rendering for csv only data
-		if (!useCsvOnly) {
-			this->SingleRendering(oID);
-		}
+		this->SingleRendering(oID);
 		elementTableView->update();
 
 		if ( this->spmActivated )
