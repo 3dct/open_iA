@@ -208,11 +208,6 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 {
 	setupUi( this );
 	this->useCsvOnly = useCsvOnly;
-	if (!this->useCsvOnly)
-	{
-		oTF = parent->getPiecewiseFunction();
-		cTF = parent->getColorTransferFunction();
-	}
 	this->elementNr = csvTable->GetNumberOfColumns();
 	this->objectNr = csvTable->GetNumberOfRows();
 	this->activeChild = parent;
@@ -223,69 +218,10 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	blobManager = new iABlobManager();
 	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
 	double bounds[6];
-	if (this->useCsvOnly)
+	if (!this->useCsvOnly)
 	{
-		// create 3D representation from object characteristics.
-		if (fid == iAFeatureScoutObjectType::Fibers)
-		{
-			vtkRenderWindow* renWin = parent->getRenderer()->GetRenderWindow();
-			//m_3dvisRenderer = vtkSmartPointer<vtkRenderer>::New();
-
-			auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-			colors->SetNumberOfComponents(4);
-			colors->SetName("Colors");
-			vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
-			auto polyData = vtkSmartPointer<vtkPolyData>::New();
-			vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
-
-			for (vtkIdType row = 0; row < csvTable->GetNumberOfRows(); ++row)
-			{
-				float first[3], end[3];
-				for (int i = 0; i < 3; ++i)
-				{
-					first[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::StartX + i]).ToFloat();
-					end[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::EndX + i]).ToFloat();
-				}
-				pts->InsertNextPoint(first);
-				pts->InsertNextPoint(end);
-				vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-				line->GetPointIds()->SetId(0, 2*row); // the second 0 is the index of the Origin in linesPolyData's points
-				line->GetPointIds()->SetId(1, 2*row + 1); // the second 1 is the index of P0 in linesPolyData's points
-				lines->InsertNextCell(line);
-
-				unsigned char c[4];
-				
-				// color encoding by direction:
-				//float dir[3];
-				//dir[0] = end[0] - first[0];
-				//dir[1] = end[1] - first[1];
-				//dir[2] = end[2] - first[2];
-				//float length = sqrt(pow(dir[0], 2) + pow(dir[1], 2) + pow(dir[2], 2));
-				//c[0] = abs(dir[0]) / abs(length) * 255;
-				//c[1] = abs(dir[1]) / abs(length) * 255;
-				//c[2] = abs(dir[2]) / abs(length) * 255;
-
-				c[0] = 128;
-				c[1] = 128;
-				c[2] = 128;
-				c[3] = 128;
-#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-				colors->InsertNextTupleValue(c);
-				colors->InsertNextTupleValue(c);
-#else
-				colors->InsertNextTypedTuple(c);
-				colors->InsertNextTypedTuple(c);
-#endif
-			}
-			polyData->SetPoints(pts);
-			polyData->SetLines(lines);
-			polyData->GetPointData()->AddArray(colors);
-			parent->displayResult("FeatureScout", nullptr, polyData);
-			parent->enableRenderWindows();
-		}
-	}
-	else
-	{
+		oTF = parent->getPiecewiseFunction();
+		cTF = parent->getColorTransferFunction();
 		raycaster->GetImageDataBounds(bounds);
 		blobManager->SetBounds(bounds);
 		blobManager->SetProtrusion(1.5);
@@ -321,7 +257,56 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupModel();
 	setupConnections();
 	blobVisDialog = new dlg_blobVisualization();
+	if (useCsvOnly)
+	{
+		// create 3D representation from object characteristics.
+		if (fid == iAFeatureScoutObjectType::Fibers)
+		{
+			vtkRenderWindow* renWin = parent->getRenderer()->GetRenderWindow();
+			//m_3dvisRenderer = vtkSmartPointer<vtkRenderer>::New();
 
+			auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+			colors->SetNumberOfComponents(4);
+			colors->SetName("Colors");
+			vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
+			auto polyData = vtkSmartPointer<vtkPolyData>::New();
+			vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+
+			for (vtkIdType row = 0; row < csvTable->GetNumberOfRows(); ++row)
+			{
+				float first[3], end[3];
+				for (int i = 0; i < 3; ++i)
+				{
+					first[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::StartX + i]).ToFloat();
+					end[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::EndX + i]).ToFloat();
+				}
+				pts->InsertNextPoint(first);
+				pts->InsertNextPoint(end);
+				vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+				line->GetPointIds()->SetId(0, 2 * row); // the second 0 is the index of the Origin in linesPolyData's points
+				line->GetPointIds()->SetId(1, 2 * row + 1); // the second 1 is the index of P0 in linesPolyData's points
+				lines->InsertNextCell(line);
+
+				unsigned char c[4];
+				c[0] = colorList.at(0).red();
+				c[1] = colorList.at(0).green();
+				c[2] = colorList.at(0).blue();
+				c[3] = 255;
+#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
+				colors->InsertNextTupleValue(c);
+				colors->InsertNextTupleValue(c);
+#else
+				colors->InsertNextTypedTuple(c);
+				colors->InsertNextTypedTuple(c);
+#endif
+			}
+			polyData->SetPoints(pts);
+			polyData->SetLines(lines);
+			polyData->GetPointData()->AddArray(colors);
+			parent->displayResult("FeatureScout", nullptr, polyData);
+			parent->enableRenderWindows();
+		}
+	}
 	// set first column of the classTreeView to minimal (not stretched)
 	this->classTreeView->resizeColumnToContents( 0 );
 	this->classTreeView->header()->setStretchLastSection( false );
@@ -763,16 +748,17 @@ void dlg_FeatureScout::RenderingButton()
 		auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
 		for (int i = 0; i < classCount; i++)
 		{
-			unsigned char rgb[3];
+			unsigned char rgb[4];
 			rgb[0] = colorList.at(i).red();
 			rgb[1] = colorList.at(i).green();
 			rgb[2] = colorList.at(i).blue();
+			rgb[3] = 255;
 			QStandardItem *item = rootItem->child(i, 0);
 			int itemL = item->rowCount();
 			for (int j = 0; j < itemL; ++j)
 			{
 				int objectID = item->child(j, 0)->text().toInt();
-				for (int c = 0; c < 3; ++c)
+				for (int c = 0; c < 4; ++c)
 				{
 					colors->SetComponent(objectID * 2, c, rgb[c]);
 					colors->SetComponent(objectID * 2 + 1, c, rgb[c]);
@@ -943,10 +929,10 @@ void dlg_FeatureScout::SingleRendering( int idx )
 			selColor[2] = 0; //colorList.at(cID).red();
 			selColor[3] = 255;
 			unsigned char otherColor[4];
-			otherColor[0] = 127;
-			otherColor[1] = 127;
-			otherColor[2] = 127;
-			otherColor[3] = 32;
+			otherColor[0] = colorList.at(cID).red();
+			otherColor[1] = colorList.at(cID).green();
+			otherColor[2] = colorList.at(cID).blue();
+			otherColor[3] = 192;
 			for (int i = 0; i < objectNr; ++i)
 			{
 				for (int c = 0; c < 4; ++c)
@@ -988,15 +974,15 @@ void dlg_FeatureScout::SingleRendering( int idx )
 			if (!colors)
 				return;
 			unsigned char selColor[4];
-			selColor[0] = 255;//colorList.at(cID).red();
-			selColor[1] = 0; //colorList.at(cID).red();
-			selColor[2] = 0; //colorList.at(cID).red();
+			selColor[0] = 255;
+			selColor[1] = 0;
+			selColor[2] = 0;
 			selColor[3] = 255;
 			unsigned char otherColor[4];
-			otherColor[0] = 127;
-			otherColor[1] = 127;
-			otherColor[2] = 127;
-			otherColor[3] = 32;
+			otherColor[0] = colorList.at(cID).red();
+			otherColor[1] = colorList.at(cID).green();
+			otherColor[2] = colorList.at(cID).blue();
+			otherColor[3] = 192;
 			int currentObjectIndexInClass = 0;
 			int currentObjectID = this->activeClassItem->child(currentObjectIndexInClass, 0)->text().toInt();
 			for (int i = 0; i < objectNr; ++i)
@@ -1114,22 +1100,19 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 		selColor[2] = 0;
 		selColor[3] = 255;
 		unsigned char otherColor[4];
+		otherColor[0] = colorList.at(activeClassItem->index().row()).red();
+		otherColor[1] = colorList.at(activeClassItem->index().row()).green();
+		otherColor[2] = colorList.at(activeClassItem->index().row()).blue();
 		int currentObjectIndexInSelection = 0;
 		int currentObjectID = -1;
 		if (countSelection > 0)
 		{
 			currentObjectID = selection->GetVariantValue(currentObjectIndexInSelection).ToInt();
-			otherColor[0] = 127;
-			otherColor[1] = 127;
-			otherColor[2] = 127;
-			otherColor[3] = 32;
+			otherColor[3] = 192;
 		}
 		else
 		{
-			otherColor[0] = colorList.at(activeClassItem->index().row()).red();
-			otherColor[1] = colorList.at(activeClassItem->index().row()).green();
-			otherColor[2] = colorList.at(activeClassItem->index().row()).blue();
-			otherColor[3] = 255;;
+			otherColor[3] = 255;
 		}
 		for (int obj = 0; obj < objectNr; ++obj)
 		{
