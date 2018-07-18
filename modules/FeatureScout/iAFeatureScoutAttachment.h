@@ -40,7 +40,7 @@ public:
 	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<uint, uint> const & columnMapping);
 	void enableBlobVisualization();
 	void disableBlobVisualization();
-	bool FeatureScout_Options(int idx);
+	void FeatureScout_Options(int idx);
 private:
 	bool blobVisEnabled;
 	iABlobManager m_blobManager;

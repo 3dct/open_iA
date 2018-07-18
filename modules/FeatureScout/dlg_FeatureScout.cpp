@@ -289,15 +289,11 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	lut = vtkSmartPointer<vtkLookupTable>::New();
 	chartTable = vtkSmartPointer<vtkTable>::New();
 	chartTable->DeepCopy( csvTable );
-	if (!tableList.isEmpty())
-	{
-		tableList.clear();
-	}
 	tableList.push_back( chartTable );
 	colorList.clear();
 	selectedObjID.clear();
 
-	initParallelCoordinates( fid );
+	initFeatureScoutUI();
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	pcWidget = new QVTKOpenGLWidget();
 	auto pcWidgetRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
@@ -344,22 +340,6 @@ dlg_FeatureScout::~dlg_FeatureScout()
 		delete classTreeModel;
 		classTreeModel = 0;
 	}
-
-	if ( this->activeChild != 0 )
-		activeChild = 0;
-
-	if ( this->oTF != 0 )
-		oTF = 0;
-
-	if ( this->cTF != 0 )
-		cTF = 0;
-
-	if ( this->PolarPlotPolyData != 0 )
-		PolarPlotPolyData = 0;
-
-	if ( this->delaunay != 0 )
-		delaunay = 0;
-
 	this->deletePcViewPointer();
 
 	if ( this->spmActivated )
@@ -764,47 +744,6 @@ void dlg_FeatureScout::setupConnections()
 							SLOT( pcViewMouseButtonCallBack( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ), 0, 0.0, Qt::UniqueConnection );
 }
 
-void dlg_FeatureScout::pcChangeOptions( int idx )
-{
-	switch ( idx )
-	{
-		case 0:			// option menu, do nothing
-			break;
-
-		case 1:			// blob Rendering, trigger Slot OpenBlobVisDialog()
-			this->OpenBlobVisDialog();
-			break;
-
-		case 3:			// multi Rendering
-			this->RenderingButton();
-			this->classRendering = false;
-			break;
-
-		case 4:			// probability Rendering
-			this->RenderingMeanObject();
-			this->classRendering = false;
-			break;
-
-		case 5:			// orientation Rendering
-			this->RenderingOrientation();
-			this->classRendering = false;
-			break;
-
-		case 6:			// plot scatterplot matrix
-			this->spmActivated = true;
-			this->ScatterPlotButton();
-			break;
-
-		case 7:
-			this->RenderingFLD();
-			this->classRendering = false;
-			break;
-
-		default:
-			break;
-	}
-}
-
 void dlg_FeatureScout::RenderingButton()
 {
 	if (this->useCsvOnly)
@@ -945,7 +884,7 @@ void dlg_FeatureScout::RenderingButton()
 		// TODO SPM
 	}
 
-	static_cast<MdiChild*>(activeChild)->updateViews();
+	activeChild->updateViews();
 }
 
 void dlg_FeatureScout::SingleRendering( int idx )
@@ -1246,25 +1185,21 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 			this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
 			this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
-		MdiChild * mdiChild = static_cast<MdiChild*>(activeChild);
-		mdiChild->updateViews();
+		activeChild->updateViews();
 	}
 }
 
 void dlg_FeatureScout::RenderingMeanObject()
 {
+	if (useCsvOnly)
+		return;
 	int classCount = classTreeModel->invisibleRootItem()->rowCount();
 	if ( classCount < 2 )	// unclassified class only
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "No defined class (except the 'unclassified' class)." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class)." );
 		return;
 	}
-
-	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
-	mdiChild->initProgressBar();
+	activeChild->initProgressBar();
 
 	// Delete old mean object data lists
 	for ( int i = 0; i < m_MOData.moHistogramList.size(); i++ )
@@ -1280,10 +1215,10 @@ void dlg_FeatureScout::RenderingMeanObject()
 	typedef itk::Image< long, DIM > IType;
 	typedef itk::VTKImageToImageFilter<IType> VTKToITKConnector;
 	VTKToITKConnector::Pointer vtkToItkConverter = VTKToITKConnector::New();
-	if ( static_cast<MdiChild*>( activeChild )->getImagePointer()->GetScalarType() != 8 )	// long type
+	if ( activeChild->getImagePointer()->GetScalarType() != 8 )	// long type
 	{
 		vtkSmartPointer<vtkImageCast> cast = vtkSmartPointer<vtkImageCast>::New();
-		cast->SetInputData( static_cast<MdiChild*>( activeChild )->getImagePointer() );
+		cast->SetInputData( activeChild->getImagePointer() );
 		cast->SetOutputScalarTypeToLong();
 		cast->Update();
 		vtkToItkConverter->SetInput( cast->GetOutput() );
@@ -1294,9 +1229,9 @@ void dlg_FeatureScout::RenderingMeanObject()
 
 	IType::Pointer itkImageData = vtkToItkConverter->GetOutput();
 	double spacing[3];
-	spacing[0] = static_cast<MdiChild*>( activeChild )->getImagePointer()->GetSpacing()[0];
-	spacing[1] = static_cast<MdiChild*>( activeChild )->getImagePointer()->GetSpacing()[1];
-	spacing[2] = static_cast<MdiChild*>( activeChild )->getImagePointer()->GetSpacing()[2];
+	spacing[0] = activeChild->getImagePointer()->GetSpacing()[0];
+	spacing[1] = activeChild->getImagePointer()->GetSpacing()[1];
+	spacing[2] = activeChild->getImagePointer()->GetSpacing()[2];
 	itk::Size<DIM> itkImageDataSize = itkImageData->GetLargestPossibleRegion().GetSize();
 
 	typedef itk::BinaryThresholdImageFilter <IType, IType> BinaryThresholdImageFilterType;
@@ -1415,7 +1350,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 
 			double percentage = round( ( currClass - 1 ) * 100.0 / ( classCount - 1 ) +
 									   ( progress + 1.0 ) * ( 100.0 / ( classCount - 1 ) ) / meanObjectIds->size() );
-			mdiChild->updateProgressBar( percentage );
+			activeChild->updateProgressBar( percentage );
 			QCoreApplication::processEvents();
 			progress++;
 		}
@@ -1543,7 +1478,7 @@ void dlg_FeatureScout::RenderingMeanObject()
 
 		iovMO->setWindowTitle( QString( "%1 Mean Object View" ).arg(MapObjectTypeToString(filterID)) );
 
-		mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovMO );
+		activeChild->addDockWidget( Qt::RightDockWidgetArea, iovMO );
 		iovMO->show();
 	}
 
@@ -1554,13 +1489,13 @@ void dlg_FeatureScout::RenderingMeanObject()
 
 	if ( iovSPM )
 	{
-		mdiChild->tabifyDockWidget(iovSPM, iovMO );
+		activeChild->tabifyDockWidget(iovSPM, iovMO );
 		iovMO->show();
 		iovMO->raise();
 	}
 	else if ( iovDV )
 	{
-		mdiChild->tabifyDockWidget( iovDV, iovMO );
+		activeChild->tabifyDockWidget( iovDV, iovMO );
 		iovMO->show();
 		iovMO->raise();
 	}
@@ -1646,7 +1581,7 @@ void dlg_FeatureScout::modifyMeanObjectTF()
 	m_motfView->setWindowTitle( QString("%1 %2 Mean Object Transfer Function")
 		.arg(iovMO->cb_Classes->itemText(iovMO->cb_Classes->currentIndex()))
 		.arg(MapObjectTypeToString(filterID)) );
-	iADiagramFctWidget* histogram = static_cast<MdiChild*>(activeChild)->getHistogram();
+	iADiagramFctWidget* histogram = activeChild->getHistogram();
 	connect( histogram, SIGNAL( updateViews() ), this, SLOT( updateMOView() ) );
 	m_motfView->horizontalLayout->addWidget( histogram );
 	histogram->show();
@@ -1672,15 +1607,10 @@ void dlg_FeatureScout::saveStl()
 {
 	if ( iovMO->le_StlPath->text().isEmpty() )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "No save file destination specified." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "No save file destination specified." );
 		return;
 	}
-
-	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
-	mdiChild->initProgressBar();
+	activeChild->initProgressBar();
 
 	iAProgress marCubProgress;
 	iAProgress stlWriProgress;
@@ -1703,14 +1633,12 @@ void dlg_FeatureScout::saveStl()
 
 void dlg_FeatureScout::updateMarProgress(int i)
 {
-	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
-	mdiChild->updateProgressBar( i / 2  );
+	activeChild->updateProgressBar( i / 2  );
 }
 
 void dlg_FeatureScout::updateStlProgress( int i )
 {
-	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
-	mdiChild->updateProgressBar( 50 + i / 2 );
+	activeChild->updateProgressBar( 50 + i / 2 );
 }
 
 void CheckBounds( double color_out[3] )
@@ -1931,7 +1859,7 @@ void dlg_FeatureScout::RenderingOrientation()
 	polarPlot->SetRenderWindow( renW );
 	renW->Render();
 
-	static_cast<MdiChild*>( activeChild )->updateViews();
+	activeChild->updateViews();
 	orientationColorMapSelection->show();
 	this->orientColormap->show();
 }
@@ -2123,10 +2051,7 @@ void dlg_FeatureScout::ClassAddButton()
 	int CountObject = pcChart->GetPlot( 0 )->GetSelection()->GetNumberOfTuples();
 	if (CountObject <= 0)
 	{
-		QMessageBox msgBox;
-		msgBox.setText("No object was selected!");
-		msgBox.setWindowTitle("FeatureScout");
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
 		return;
 	}
 	// class name and color
@@ -2206,19 +2131,13 @@ void dlg_FeatureScout::ClassAddButton()
 	// a simple check of the selections
 	if ( kIdx.isEmpty() )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "Selected objects are already classified, please make a new selection." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::information(this, "FeatureScout", "Selected objects are already classified, please make a new selection." );
 		return;
 	}
 
 	if ( kIdx.count() != CountObject )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "Selection Error, please make a new selection." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "Selection Error, please make a new selection." );
 		return;
 	}
 
@@ -2642,211 +2561,198 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 	if ( rowList.count() == 0 )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "No characteristic specified in the element explorer." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::information(this, "FeatureScout", "No characteristic specified in the element explorer." );
 		return;
 	}
 
 	dlg_commoninput dlg( this, "DistributionViewCSVSaveDialog", inList, inPara, NULL );
+	if (dlg.exec() != QDialog::Accepted || (dlg.getCheckValue(0) != 2 && dlg.getCheckValue(1) != 2))
+		return;
 
-	if ( dlg.exec() == QDialog::Accepted && ( dlg.getCheckValue(0) == 2 || dlg.getCheckValue(1) == 2 ) )
+	QString filename;
+	if ( dlg.getCheckValue(0) == 2 )
 	{
-		QString filename;
+		filename = QFileDialog::getSaveFileName( this, tr( "Save characteristic distributions" ), sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
+		if ( filename.isEmpty() )
+			return;
+	}
 
-		if ( dlg.getCheckValue(0) == 2 )
+	this->m_dvContextView->GetScene()->ClearItems();
+
+	//Sets up a chart matrix for the feature distribution charts
+	vtkNew<vtkChartMatrix> distributionChartMatrix;
+	distributionChartMatrix->SetSize( vtkVector2i( rowList.count() < 3 ? rowList.count() % 3 : 3, ceil( rowList.count() / 3.0 ) ) );
+	distributionChartMatrix->SetGutter( vtkVector2f( 70.0, 70.0 ) );
+
+	//Calculates histogram for each selected characteristic
+	for ( int row = 0; row < rowList.count(); ++row )
+	{
+		double range[2] = { 0.0, 0.0 };
+		vtkDataArray *length = vtkDataArray::SafeDownCast(
+			this->tableList[this->activeClassItem->index().row()]->GetColumn( rowList.at( row ) ) );
+		range[0] = dlg.getDblValue(4 * row + 3);
+		range[1] = dlg.getDblValue(4 * row + 4);
+		//length->GetRange(range);
+
+		if ( range[0] == range[1] )
+			range[1] = range[0] + 1.0;
+
+		int numberOfBins = dlg.getDblValue(4 * row + 5);
+		//int numberOfBins = dlg.getDblValue(row+2);
+		//double inc = (range[1] - range[0]) / (numberOfBins) * 1.001; //test
+		double inc = ( range[1] - range[0] ) / ( numberOfBins );
+		double halfInc = inc / 2.0;
+
+		VTK_CREATE( vtkFloatArray, extents );
+		extents->SetName( "Value" );
+		extents->SetNumberOfTuples( numberOfBins );
+
+		float *centers = static_cast<float *>( extents->GetVoidPointer( 0 ) );
+		//double min = range[0] - 0.0005*inc + halfInc;	//test
+		double min = range[0] + halfInc;
+
+		for ( int j = 0; j < numberOfBins; ++j )
+			extents->SetValue( j, min + j * inc );;
+
+		VTK_CREATE( vtkIntArray, populations );
+		populations->SetName( "Probability" );
+		populations->SetNumberOfTuples( numberOfBins );
+		int *pops = static_cast<int *>( populations->GetVoidPointer( 0 ) );
+
+		for ( int k = 0; k < numberOfBins; ++k )
+			pops[k] = 0;
+
+		for ( vtkIdType j = 0; j < length->GetNumberOfTuples(); ++j )
 		{
-			filename = QFileDialog::getSaveFileName( this, tr( "Save characteristic distributions" ), sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
-
-			if ( filename.isEmpty() )
-			{
-				QMessageBox msgBox;
-				msgBox.setText( "No save file destination specified." );
-				msgBox.setWindowTitle( "FeatureScout" );
-				msgBox.exec();
-				return;
-			}
-		}
-
-		this->m_dvContextView->GetScene()->ClearItems();
-
-		//Sets up a chart matrix for the feature distribution charts
-		vtkNew<vtkChartMatrix> distributionChartMatrix;
-		distributionChartMatrix->SetSize( vtkVector2i( rowList.count() < 3 ? rowList.count() % 3 : 3, ceil( rowList.count() / 3.0 ) ) );
-		distributionChartMatrix->SetGutter( vtkVector2f( 70.0, 70.0 ) );
-
-		//Calculates histogram for each selected characteristic
-		for ( int row = 0; row < rowList.count(); ++row )
-		{
-			double range[2] = { 0.0, 0.0 };
-			vtkDataArray *length = vtkDataArray::SafeDownCast(
-				this->tableList[this->activeClassItem->index().row()]->GetColumn( rowList.at( row ) ) );
-			range[0] = dlg.getDblValue(4 * row + 3);
-			range[1] = dlg.getDblValue(4 * row + 4);
-			//length->GetRange(range);
-
-			if ( range[0] == range[1] )
-				range[1] = range[0] + 1.0;
-
-			int numberOfBins = dlg.getDblValue(4 * row + 5);
-			//int numberOfBins = dlg.getDblValue(row+2);
-			//double inc = (range[1] - range[0]) / (numberOfBins) * 1.001; //test
-			double inc = ( range[1] - range[0] ) / ( numberOfBins );
-			double halfInc = inc / 2.0;
-
-			VTK_CREATE( vtkFloatArray, extents );
-			extents->SetName( "Value" );
-			extents->SetNumberOfTuples( numberOfBins );
-
-			float *centers = static_cast<float *>( extents->GetVoidPointer( 0 ) );
-			//double min = range[0] - 0.0005*inc + halfInc;	//test
-			double min = range[0] + halfInc;
-
-			for ( int j = 0; j < numberOfBins; ++j )
-				extents->SetValue( j, min + j * inc );;
-
-			VTK_CREATE( vtkIntArray, populations );
-			populations->SetName( "Probability" );
-			populations->SetNumberOfTuples( numberOfBins );
-			int *pops = static_cast<int *>( populations->GetVoidPointer( 0 ) );
+			double v( 0.0 );
+			length->GetTuple( j, &v );
 
 			for ( int k = 0; k < numberOfBins; ++k )
-				pops[k] = 0;
-
-			for ( vtkIdType j = 0; j < length->GetNumberOfTuples(); ++j )
 			{
-				double v( 0.0 );
-				length->GetTuple( j, &v );
-
-				for ( int k = 0; k < numberOfBins; ++k )
+				//value lies between [center-halfInc & center+halfInc]
+				if ( ( fabs( v - double( centers[k] ) ) ) <= halfInc )
 				{
-					//value lies between [center-halfInc & center+halfInc]
-					if ( ( fabs( v - double( centers[k] ) ) ) <= halfInc )
+					//value lies between ]center-halfInc & center+halfInc[ and is assigned to class k
+					if ( ( fabs( v - double( centers[k] ) ) ) < halfInc )
 					{
-						//value lies between ]center-halfInc & center+halfInc[ and is assigned to class k
-						if ( ( fabs( v - double( centers[k] ) ) ) < halfInc )
-						{
-							++pops[k];
-							break;
-						}
-						// value = lower limit and is assigned to class k
-						else if ( ( v - centers[k] ) == ( halfInc*-1.0 ) )
-						{
-							++pops[k];
-							break;
-						}
-						// value = upper limit and is assigned to class k+1
-						else if ( ( ( v - centers[k] ) == halfInc ) && ( v != range[1] ) )
-						{
-							++pops[k + 1];
-							break;
-						}
-						// if value = range[1] assigned it to class k
-						else if ( v == range[1] )
-						{
-							++pops[k];
-							break;
-						}
+						++pops[k];
+						break;
+					}
+					// value = lower limit and is assigned to class k
+					else if ( ( v - centers[k] ) == ( halfInc*-1.0 ) )
+					{
+						++pops[k];
+						break;
+					}
+					// value = upper limit and is assigned to class k+1
+					else if ( ( ( v - centers[k] ) == halfInc ) && ( v != range[1] ) )
+					{
+						++pops[k + 1];
+						break;
+					}
+					// if value = range[1] assigned it to class k
+					else if ( v == range[1] )
+					{
+						++pops[k];
+						break;
 					}
 				}
-			}
-
-			VTK_CREATE( vtkTable, disTable );
-			disTable->AddColumn( extents.GetPointer() );
-			disTable->AddColumn( populations.GetPointer() );
-
-			//Writes csv file
-			if ( dlg.getCheckValue(0) == 2 )
-			{
-				ofstream file( filename.toStdString().c_str(), std::ios::app );
-				if ( file.is_open() )
-				{
-					vtkVariant tColNb, tRowNb, tVal;
-					tColNb = disTable->GetNumberOfColumns();
-					tRowNb = disTable->GetNumberOfRows();
-
-					file << QString( "%1 Distribution of '%2'" )
-						.arg( this->csvTable->GetColumnName( rowList.at( row ) ) )
-						.arg( this->activeClassItem->text() ).toStdString()
-						<< endl;
-
-					file << "HistoBinID;" << "HistoBinCenter" << "Frequency;" << endl;
-
-					for ( int row = 0; row < tRowNb.ToTypeUInt64(); ++row )
-					{
-						for ( int col = 0; col < tColNb.ToUnsignedShort(); ++col )
-						{
-							tVal = disTable->GetValue( row, col );
-							switch ( col )
-							{
-								case 0:
-									file << row + 1 << ";"
-										<< std::setprecision( 20 ) << tVal.ToDouble() << ";";
-									break;
-								case 1:
-									file << tVal.ToTypeUInt64() << endl;
-									break;
-							}
-						}
-					}
-					file.close();
-				}
-			}
-
-			//Creates chart for each selected characteristic
-			if ( dlg.getCheckValue(1) == 2 )
-			{
-				vtkChartXY* chart = vtkChartXY::SafeDownCast( distributionChartMatrix
-															  ->GetChart( vtkVector2i( row % ( rowList.count() < 3 ? rowList.count() % 3 : 3 ), row / 3 ) ) );
-				//chart->SetBarWidthFraction(0.95);
-				chart->GetTitleProperties()->SetFontSize( 18 );
-				vtkPlot *plot = chart->AddPlot( vtkChartXY::BAR );
-				plot->SetInputData( disTable, 0, 1 );
-				plot->GetXAxis()->SetTitle( this->csvTable->GetColumnName( rowList.at( row ) ) );
-				plot->GetYAxis()->SetTitle( "Frequency" );
-				plot->GetXAxis()->GetLabelProperties()->SetFontSize( 19 );
-				plot->GetYAxis()->GetLabelProperties()->SetFontSize( 19 );
-				plot->GetXAxis()->GetTitleProperties()->SetFontSize( 19 );
-				plot->GetYAxis()->GetTitleProperties()->SetFontSize( 19 );
 			}
 		}
 
-		//Renders the distributionMatrix in a new dockWidget
+		VTK_CREATE( vtkTable, disTable );
+		disTable->AddColumn( extents.GetPointer() );
+		disTable->AddColumn( populations.GetPointer() );
+
+		//Writes csv file
+		if ( dlg.getCheckValue(0) == 2 )
+		{
+			ofstream file( filename.toStdString().c_str(), std::ios::app );
+			if ( file.is_open() )
+			{
+				vtkVariant tColNb, tRowNb, tVal;
+				tColNb = disTable->GetNumberOfColumns();
+				tRowNb = disTable->GetNumberOfRows();
+
+				file << QString( "%1 Distribution of '%2'" )
+					.arg( this->csvTable->GetColumnName( rowList.at( row ) ) )
+					.arg( this->activeClassItem->text() ).toStdString()
+					<< endl;
+
+				file << "HistoBinID;" << "HistoBinCenter" << "Frequency;" << endl;
+
+				for ( int row = 0; row < tRowNb.ToTypeUInt64(); ++row )
+				{
+					for ( int col = 0; col < tColNb.ToUnsignedShort(); ++col )
+					{
+						tVal = disTable->GetValue( row, col );
+						switch ( col )
+						{
+							case 0:
+								file << row + 1 << ";"
+									<< std::setprecision( 20 ) << tVal.ToDouble() << ";";
+								break;
+							case 1:
+								file << tVal.ToTypeUInt64() << endl;
+								break;
+						}
+					}
+				}
+				file.close();
+			}
+		}
+
+		//Creates chart for each selected characteristic
 		if ( dlg.getCheckValue(1) == 2 )
 		{
-			MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
-			if ( !iovDV )
-			{
-				iovDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-				auto dvqvtkWidget = new QVTKOpenGLWidget();
-				dvqvtkWidget->SetRenderWindow(vtkGenericOpenGLRenderWindow::New());
-#else
-				auto dvqvtkWidget = new QVTKWidget();
-#endif
-				iovDV->setWidget(dvqvtkWidget);
-				m_dvContextView->SetRenderWindow( dvqvtkWidget->GetRenderWindow() );
-				m_dvContextView->SetInteractor( dvqvtkWidget->GetInteractor() );
-				mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovDV );
-				iovDV->show();
-			}
-
-			if ( iovSPM && !iovMO || ( iovSPM && iovMO ) )
-			{
-				mdiChild->tabifyDockWidget( iovSPM, iovDV );
-				iovDV->show();
-				iovDV->raise();
-			}
-			else if ( !iovSPM && iovMO )
-			{
-				mdiChild->tabifyDockWidget( iovMO, iovDV );
-				iovDV->show();
-				iovDV->raise();
-			}
-			this->m_dvContextView->GetScene()->AddItem( distributionChartMatrix.GetPointer() );
-			this->m_dvContextView->GetRenderWindow()->Render();
+			vtkChartXY* chart = vtkChartXY::SafeDownCast( distributionChartMatrix
+															->GetChart( vtkVector2i( row % ( rowList.count() < 3 ? rowList.count() % 3 : 3 ), row / 3 ) ) );
+			//chart->SetBarWidthFraction(0.95);
+			chart->GetTitleProperties()->SetFontSize( 18 );
+			vtkPlot *plot = chart->AddPlot( vtkChartXY::BAR );
+			plot->SetInputData( disTable, 0, 1 );
+			plot->GetXAxis()->SetTitle( this->csvTable->GetColumnName( rowList.at( row ) ) );
+			plot->GetYAxis()->SetTitle( "Frequency" );
+			plot->GetXAxis()->GetLabelProperties()->SetFontSize( 19 );
+			plot->GetYAxis()->GetLabelProperties()->SetFontSize( 19 );
+			plot->GetXAxis()->GetTitleProperties()->SetFontSize( 19 );
+			plot->GetYAxis()->GetTitleProperties()->SetFontSize( 19 );
 		}
+	}
+
+	//Renders the distributionMatrix in a new dockWidget
+	if ( dlg.getCheckValue(1) == 2 )
+	{
+		if ( !iovDV )
+		{
+			iovDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+			auto dvqvtkWidget = new QVTKOpenGLWidget();
+			dvqvtkWidget->SetRenderWindow(vtkGenericOpenGLRenderWindow::New());
+#else
+			auto dvqvtkWidget = new QVTKWidget();
+#endif
+			iovDV->setWidget(dvqvtkWidget);
+			m_dvContextView->SetRenderWindow( dvqvtkWidget->GetRenderWindow() );
+			m_dvContextView->SetInteractor( dvqvtkWidget->GetInteractor() );
+			activeChild->addDockWidget( Qt::RightDockWidgetArea, iovDV );
+			iovDV->show();
+		}
+
+		if ( iovSPM && !iovMO || ( iovSPM && iovMO ) )
+		{
+			activeChild->tabifyDockWidget( iovSPM, iovDV );
+			iovDV->show();
+			iovDV->raise();
+		}
+		else if ( !iovSPM && iovMO )
+		{
+			activeChild->tabifyDockWidget( iovMO, iovDV );
+			iovDV->show();
+			iovDV->raise();
+		}
+		this->m_dvContextView->GetScene()->AddItem( distributionChartMatrix.GetPointer() );
+		this->m_dvContextView->GetRenderWindow()->Render();
 	}
 }
 
@@ -2854,31 +2760,19 @@ void dlg_FeatureScout::WisetexSaveButton()
 {
 	if ( !classTreeModel->invisibleRootItem()->hasChildren() )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "No data available!" );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "No data available!" );
 		return;
 	}
 
 	//XML file save path
 	QString filename = QFileDialog::getSaveFileName( this, tr( "Save File" ), sourcePath, tr( "XML Files (*.xml *.XML)" ) );
 	if ( filename.isEmpty() )
-	{
-		QMessageBox msgBox;
-		msgBox.setText( "No destination file was specified!" );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
 		return;
-	}
 
 	QFile file( filename );
 	if ( !file.open( QIODevice::WriteOnly | QIODevice::Text ) )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "Could not open XML file." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "Could not open XML file for writing." );
 		return;
 	}
 
@@ -2896,30 +2790,18 @@ void dlg_FeatureScout::ClassSaveButton()
 {
 	if ( classTreeModel->invisibleRootItem()->rowCount() == 1 )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "No classes was defined." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "No classes was defined." );
 		return;
 	}
 
 	QString filename = QFileDialog::getSaveFileName( this, tr( "Save File" ), sourcePath, tr( "XML Files (*.xml *.XML)" ) );
 	if ( filename.isEmpty() )
-	{
-		QMessageBox msgBox;
-		msgBox.setText( "No destination file was specified!" );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
 		return;
-	}
 
 	QFile file( filename );
 	if ( !file.open( QIODevice::WriteOnly | QIODevice::Text ) )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "Could not open XML file." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "Could not open XML file for writing." );
 		return;
 	}
 
@@ -2945,21 +2827,12 @@ void dlg_FeatureScout::ClassLoadButton()
 	// open xml file and get meta information
 	QString filename = QFileDialog::getOpenFileName( this, tr( "Load xml file" ), sourcePath, tr( "XML Files (*.xml *.XML)" ) );
 	if ( filename.isEmpty() )
-	{
-		QMessageBox msgBox;
-		msgBox.setText( "Class load error: No source file was specified!" );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
 		return;
-	}
 
 	QFile file( filename );
 	if ( !file.open( QIODevice::ReadOnly ) )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "Class load error: Could not open source xml file." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "Class load error: Could not open source xml file." );
 		return;
 	}
 
@@ -2972,20 +2845,14 @@ void dlg_FeatureScout::ClassLoadButton()
 		// if the object number is not correct, stop the load process
 		if ( checker.attributes().value( CountAllAttribute ).toString().toInt() != this->objectNr )
 		{
-			QMessageBox msgBox;
-			msgBox.setText( "Class load error: Incorrect xml file for current dataset, please check." );
-			msgBox.setWindowTitle( "FeatureScout" );
-			msgBox.exec();
+			QMessageBox::warning(this, "FeatureScout", "Class load error: Incorrect xml file for current dataset, please check." );
 			checker.clear();
 			return;
 		}
 	}
 	else // incompatible xml file
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "Class load error: xml file incompatible with FeatureScout, please check." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "Class load error: xml file incompatible with FeatureScout, please check." );
 		checker.clear();
 		return;
 	}
@@ -3062,19 +2929,14 @@ void dlg_FeatureScout::ClassLoadButton()
 	}
 	else
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "Class load error: unclear class load process." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "Class load error: unclear class load process." );
 	}
 	reader.clear();
 	readFile.close();
 	if ( this->spmActivated )
 	{
 		// reinitialize spm
-		MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
-		mdiChild->removeDockWidget( iovSPM );
-		this->layout()->removeWidget( iovSPM );
+		activeChild->removeDockWidget( iovSPM );
 		delete iovSPM;
 		iovSPM = nullptr;
 		this->spmActivated = false;
@@ -3088,10 +2950,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	QStandardItem *stammItem = rootItem->child( 0 );
 	if ( this->activeClassItem->index().row() == 0 )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "You are trying to delete the unclassified class, please select another class." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
+		QMessageBox::warning(this, "FeatureScout", "You are trying to delete the unclassified class, please select another class." );
 		return;
 	}
 
@@ -3433,10 +3292,8 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 			}
 			else
 			{
-				QMessageBox msgBox;
-				msgBox.setText( "No object was selected!" );
-				msgBox.setWindowTitle( "FeatureScout" );
-				msgBox.exec();
+				QMessageBox::warning(this, "FeatureScout", "No object was selected!" );
+				// return; (?)
 			}
 			*/
 		}
@@ -3552,19 +3409,13 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 	// check if unclassified class is empty
 	if ( this->classTreeModel->invisibleRootItem()->child( 0 ) == item && item->rowCount() == 0 )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "Unclassified class contains no object more, please make another selection." );
-		msgBox.setWindowTitle( "Parallel Coordinates View" );
-		msgBox.exec();
+		QMessageBox::information(this, "FeatureScout", "Unclassified class contains no objects, please make another selection." );
 		return;
 	}
 	//MOD kMeans
 	if ( item->rowCount() == 0 && item->parent()->index() == this->classTreeModel->invisibleRootItem()->index() )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "This class contains no object more, please make another selection or delete the class." );
-		msgBox.setWindowTitle( "Parallel Coordinates View" );
-		msgBox.exec();
+		QMessageBox::information(this, "FeatureScout", "This class contains no object, please make another selection or delete the class." );
 		return;
 	}
 	// for first level class //has children = class
@@ -3949,10 +3800,7 @@ void dlg_FeatureScout::showContextMenu( const QPoint &pnt )
 
 void dlg_FeatureScout::addObject()
 {
-	QMessageBox msgBox;
-	msgBox.setText( "Adding an object to the active class, needs to be done." );
-	msgBox.setWindowTitle( "Parallel Coordinates View" );
-	msgBox.exec();
+	QMessageBox::warning(this, "FeatureScout", "Adding an object to the active class is not implemented yet!" );
 	// checking Class_ID, delete the object from the formerly class, update the corresponding class Table in Table list
 	// adding the new object to the active class, update class table, reordering the label id...
 }
@@ -3966,10 +3814,7 @@ void dlg_FeatureScout::deleteObject()
 	// if the parent item is the unclassified item
 	if ( item->parent()->index() == this->classTreeModel->invisibleRootItem()->child( 0 )->index() )
 	{
-		QMessageBox msgBox;
-		msgBox.setText( "Object in unclassified class could not be deleted." );
-		msgBox.setWindowTitle( "Parallel Coordinates View" );
-		msgBox.exec();
+		QMessageBox::information(this, "FeatureScout", "An object in the unclassified class can not be deleted.");
 		return;
 	}
 
@@ -4038,11 +3883,6 @@ void dlg_FeatureScout::updateClassStatistics( QStandardItem *item )
 			rootItem->child( item->index().row(), 2 )->setText( "0.00" );
 		}
 	}
-}
-
-void dlg_FeatureScout::addLogMsg( const QString &str )
-{
-	static_cast<MdiChild*>( activeChild )->addMsg( str );
 }
 
 int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
@@ -4706,7 +4546,7 @@ void dlg_FeatureScout::SaveBlobMovie()
 		for ( int ind = 0; ind < 2; ++ind )	dimY[ind] = dlg.getIntValue(i++);
 		for ( int ind = 0; ind < 2; ++ind )	dimZ[ind] = dlg.getIntValue(i++);
 
-		QFileInfo fileInfo = static_cast<MdiChild*>( activeChild )->getFileInfo();
+		QFileInfo fileInfo = activeChild->getFileInfo();
 
 		blobManager->SaveMovie( activeChild,
 								raycaster,
@@ -4731,69 +4571,82 @@ void dlg_FeatureScout::SaveBlobMovie()
 		return;
 }
 
-bool dlg_FeatureScout::initParallelCoordinates( iAFeatureScoutObjectType fid )
+void dlg_FeatureScout::initFeatureScoutUI()
 {
-	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
-	if ( !mdiChild )
-		return false;
-
 	iovPC = new iADockWidgetWrapper("Parallel Coordinates",  "FeatureScoutPC");
 	iovPP = new dlg_IOVPP( this );
-	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, this );
-	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPC );
-	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPP );
+	activeChild->addDockWidget( Qt::BottomDockWidgetArea, this );
+	activeChild->addDockWidget( Qt::BottomDockWidgetArea, iovPC );
+	activeChild->addDockWidget( Qt::BottomDockWidgetArea, iovPP );
 	iovPP->colorMapSelection->hide();
-	mdiChild->HideHistogram();
-
-	if (!this->useCsvOnly) {
-		mdiChild->getImagePropertyDlg()->hide();
-		mdiChild->logs->hide();
-	}
-	mdiChild->sYZ->hide();
-	mdiChild->sXZ->hide();
-	mdiChild->sXY->hide();
-	mdiChild->GetModalitiesDlg()->hide();
-	if ( this->filterID == iAFeatureScoutObjectType::Voids )
+	if (this->filterID == iAFeatureScoutObjectType::Voids)
 		iovPP->hide();
+	connect(iovPP->comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderingOrientation()));
 
-	connect( iovPP->comboBox, SIGNAL( currentIndexChanged( int ) ), this, SLOT( RenderingOrientation() ) );
-	return true;
+	if (!this->useCsvOnly)
+		activeChild->getImagePropertyDlg()->hide();
+	activeChild->HideHistogram();
+	activeChild->logs->hide();
+	activeChild->sYZ->hide();
+	activeChild->sXZ->hide();
+	activeChild->sXY->hide();
+	activeChild->GetModalitiesDlg()->hide();
 }
 
-bool dlg_FeatureScout::changeFeatureScout_Options( int idx )
+void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 {
-	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
-	if ( !mdiChild )
-		return false;
-
-	if ( idx == 6 && !iovSPM )
+	switch (idx)
 	{
+	case 0:         // option menu, do nothing
+	default:
+		break;
+	case 1:			// blob Rendering, trigger OpenBlobVisDialog()
+		this->OpenBlobVisDialog();
+		break;
+
+	case 3:			// multi Rendering
+		this->RenderingButton();
+		this->classRendering = false;
+		break;
+
+	case 4:			// probability Rendering
+		this->RenderingMeanObject();
+		this->classRendering = false;
+		break;
+
+	case 5:			// orientation Rendering
+		this->RenderingOrientation();
+		this->classRendering = false;
+		break;
+
+	case 6:			// plot scatterplot matrix
+		if (iovSPM)
+		{
+			QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
+			return;
+		}
 		iovSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
-		mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovSPM );
+		activeChild->addDockWidget(Qt::RightDockWidgetArea, iovSPM);
 		iovSPM->show();
-
-		if ( iovDV && !iovMO || ( iovDV && iovMO ) )
+		if (iovDV && !iovMO || (iovDV && iovMO))
 		{
-			mdiChild->tabifyDockWidget( iovDV, iovSPM);
+			activeChild->tabifyDockWidget(iovDV, iovSPM);
 			iovSPM->show();
 			iovSPM->raise();
 		}
-		else if ( !iovDV && iovMO )
+		else if (!iovDV && iovMO)
 		{
-			mdiChild->tabifyDockWidget( iovMO, iovSPM);
+			activeChild->tabifyDockWidget(iovMO, iovSPM);
 			iovSPM->show();
 			iovSPM->raise();
 		}
-	}
-	else if ( idx == 6 && iovSPM )
-	{
-		QMessageBox msgBox;
-		msgBox.setText( "Scatterplot Matrix already created." );
-		msgBox.setWindowTitle( "FeatureScout" );
-		msgBox.exec();
-		return false;
-	}
+		this->spmActivated = true;
+		this->ScatterPlotButton();
+		break;
 
-	pcChangeOptions( idx );
-	return true;
+	case 7:
+		this->RenderingFLD();
+		this->classRendering = false;
+		break;
+	}
 }

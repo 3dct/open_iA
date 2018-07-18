@@ -94,16 +94,49 @@ struct moData
 class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
 	Q_OBJECT
-
 public:
 	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
 		vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<uint, uint> const & columnMapping);
 	~dlg_FeatureScout();
+	void changeFeatureScout_Options(int idx);
+private slots:
+	void SaveBlobMovie();
+	void ClassSaveButton();
+	void ClassAddButton();
+	void ClassLoadButton();
+	void ClassDeleteButton();
+	void WisetexSaveButton();
+	void CsvDVSaveButton();
+	void RenderingOrientation();
+	void updatePCColumnValues(QStandardItem *item);
+	void classClicked(const QModelIndex &index);
+	void classDoubleClicked(const QModelIndex &index);
+	void EnableBlobRendering();
+	void DisableBlobRendering();
+	void showContextMenu(const QPoint &pnt);
+	void deleteObject();
+	void addObject();
+	void spBigChartMouseButtonPressed(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
+	void spPopup(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
+	void spPopupSelection(QAction *selection);
+	void spSelInformsPCChart(QVector<unsigned int> * selInds);
+	void spUpdateSPColumnVisibility();
+	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
+	void modifyMeanObjectTF();
+	void updateMOView();
+	void browseFolderDialog();
+	void saveStl();
+	void updateStlProgress(int i);
+	void updateMarProgress(int i);
+private:
 	void setupModel();
 	void setupViews();
 	void setupConnections();
 	void setupPolarPlotView(vtkTable *it);
 	void initColumnVisibility();
+	void initElementTableModel(int idx = -10000);
+	void initClassTreeModel();
+	void initFeatureScoutUI();
 	void updatePolarPlotColorScalar(vtkTable *it);
 	void updateObjectOrientationID(vtkTable *table);
 	void createPolarPlotLookupTable(vtkLookupTable *lut);
@@ -112,24 +145,27 @@ public:
 	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
-	void setupNewPcView(bool lookupTable=false);
+	void setupNewPcView(bool lookupTable = false);
 	void deletePcViewPointer();
 	void calculateElementTable();
-	void initElementTableModel(int idx = -10000);
-	void initClassTreeModel();
 	void setActiveClassItem(QStandardItem* item, int situ = 0);
 	double calculateOpacity(QStandardItem *item);
 	void recalculateChartTable(QStandardItem *item);
 	void SingleRendering(int idx = -10000);
-	void updateLookupTable(double alpha= 0.7);
+	void updateLookupTable(double alpha = 0.7);
 	void updatePCColumnVisibility();
 	void updateClassStatistics(QStandardItem *item);
 	int calcOrientationProbability(vtkTable *t, vtkTable *ot);
-	void addLogMsg(const QString &str);
 	QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third);
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
 	void writeWisetex(QXmlStreamWriter *writer);
 	void autoAddClass(int NbOfClasses);
+	int OpenBlobVisDialog();
+	void RenderingButton();
+	void RealTimeRendering(vtkIdTypeArray *selection);
+	void RenderingMeanObject();
+	void ScatterPlotButton();
+	void RenderingFLD();
 
 	//! selection for each class and show SPM for it
 	void applyClassSelection(QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
@@ -138,59 +174,6 @@ public:
 	//! highlights single object in class
 	void applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, const int colorIdx, const bool applyColorMap);
 
-Q_SIGNALS:
-	void updateViews();
-
-public slots:
-	void SaveBlobMovie();
-	void pcChangeOptions(int idx);
-	void ClassSaveButton();
-	void ClassAddButton();
-	void ClassLoadButton();
-	void ClassDeleteButton();
-	void WisetexSaveButton();
-	void CsvDVSaveButton();
-
-	void RenderingButton();
-	void RealTimeRendering(vtkIdTypeArray *selection);
-	void RenderingMeanObject();
-	void RenderingOrientation();
-	void ScatterPlotButton();
-	void RenderingFLD();
-
-	void updatePCColumnValues(QStandardItem *item);
-	void classClicked(const QModelIndex &index);
-	void classDoubleClicked(const QModelIndex &index);
-
-	int OpenBlobVisDialog ();
-	void EnableBlobRendering();
-	void DisableBlobRendering();
-
-	void showContextMenu(const QPoint &pnt);
-	void deleteObject();
-	void addObject();
-
-	void spBigChartMouseButtonPressed(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
-	void spPopup(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
-	void spPopupSelection(QAction *selection);
-	void spSelInformsPCChart(QVector<unsigned int> * selInds);
-	void spUpdateSPColumnVisibility();
-
-	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
-	bool changeFeatureScout_Options( int idx );
-
-	void modifyMeanObjectTF();
-	void updateMOView();
-	void browseFolderDialog();
-	void saveStl();
-	void updateStlProgress(int i);
-	void updateMarProgress(int i);
-
-protected:
-	bool initParallelCoordinates( iAFeatureScoutObjectType fid );
-
-
-private:
 	void setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool & retflag);
 	void setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &retflag);
 	void setSingleSPMObjectDataSelection(const vtkSmartPointer<vtkTable>& classEntries, const uint selectionOID, bool & retflag);
@@ -199,16 +182,13 @@ private:
 	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
 	void spmApplyGeneralColorMap(const double rgba[4]);
 	void spUpdateSPColumnVisibilityWithVis();
-	// Qt members
-	QWidget *activeChild;
 
 	// members referencing MdiChild
+	MdiChild *activeChild;
 	vtkPiecewiseFunction     *oTF;
 	vtkColorTransferFunction *cTF;
-
-	// private members
-	int elementNr;		// Number of elements in csv inputTable
-	int objectNr;		// Number of objects in the specimen
+	int elementNr;		//!< Number of elements(=columns) in csv inputTable
+	int objectNr;		//!< Number of objects in the specimen
 	iAFeatureScoutObjectType filterID;
 
 	bool draw3DPolarPlot;
