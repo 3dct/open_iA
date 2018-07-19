@@ -230,7 +230,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	}
 	lut = vtkSmartPointer<vtkLookupTable>::New();
 	chartTable = vtkSmartPointer<vtkTable>::New();
-	chartTable->DeepCopy( csvTable );
+	chartTable->ShallowCopy( csvTable );
 	tableList.push_back( chartTable );
 
 	initFeatureScoutUI();
@@ -252,8 +252,8 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	this->orientColormap = iovPP->comboBox;
 
 	// Initialize the models for QtViews
-	setupViews();
 	initColumnVisibility();
+	setupViews();
 	setupModel();
 	setupConnections();
 	blobVisDialog = new dlg_blobVisualization();
@@ -329,8 +329,6 @@ dlg_FeatureScout::~dlg_FeatureScout()
 		delete classTreeModel;
 		classTreeModel = 0;
 	}
-	this->deletePcViewPointer();
-
 	if ( this->spmActivated )
 		delete matrix;
 }
@@ -371,58 +369,25 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long
 	this->RealTimeRendering(this->pcChart->GetPlot(0)->GetSelection());
 }
 
-void dlg_FeatureScout::setupNewPcView( bool lookupTable )
+void dlg_FeatureScout::setPCChartData( bool lookupTable )
 {
-	// !!!!! DUPLICATES FUNCTIONALITY FROM setupViews !!!!!
-
 	this->pcWidget->setEnabled( true );
-
-	// copy csvTable to chartTable, columnNames should be changed if we have fibre visualization
-	// lookupTable set to true for multi rendering, draw a color ParallelCoordinates
 	if ( lookupTable )
-	{
-		chartTable->DeepCopy( csvTable );
+	{   // lookupTable set to true for multi rendering, draw a color ParallelCoordinates
+		chartTable->ShallowCopy( csvTable );
 	}
-
-	this->deletePcViewPointer();
-
-	// new initialize of the pcChart
-	this->pcView = vtkContextView::New();
-	this->pcChart = vtkChartParallelCoordinates::New();
-	pcView->SetRenderWindow( pcWidget->GetRenderWindow() );
-	pcView->SetInteractor( pcWidget->GetInteractor() );
+	if (pcView->GetScene()->GetNumberOfItems() > 0)
+		pcView->GetScene()->RemoveItem(0u);
+	this->pcChart = vtkSmartPointer<vtkChartParallelCoordinates>::New();
 	this->pcChart->GetPlot( 0 )->SetInputData( chartTable );
 	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
 	this->pcChart->GetPlot( 0 )->SetWidth( 0.1 );
-	this->pcView->GetScene()->AddItem( pcChart );
-
-	//Creates a popup menu
-	QMenu* popup2 = new QMenu( pcWidget );
-	popup2->addAction( "Add Class" );
-	popup2->setStyleSheet( "font-size: 11px; background-color: #9B9B9B; border: 1px solid black;" );
-	connect( popup2, SIGNAL( triggered( QAction* ) ), this, SLOT( spPopupSelection( QAction* ) ) );
-
-	vtkEventQtSlotConnect *pcConnections = vtkEventQtSlotConnect::New();
-
-	// Gets right button release event (on a parallel coordinates).
-	pcConnections->Connect( pcWidget->GetRenderWindow()->GetInteractor(),
-							vtkCommand::RightButtonReleaseEvent,
-							this,
-							SLOT( spPopup( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ),
-							popup2, 1.0 );
-
-	// Gets right button press event (on a scatter plot).
-	pcConnections->Connect( pcWidget->GetRenderWindow()->GetInteractor(),
-							vtkCommand::RightButtonPressEvent,
-							this,
-							SLOT( spBigChartMouseButtonPressed( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
-
-	// Sets up a connection for an selection changed event.
+	pcView->GetScene()->AddItem( pcChart );
 	pcConnections->Connect( pcChart,
 							vtkCommand::SelectionChangedEvent,
 							this,
 							SLOT( pcViewMouseButtonCallBack( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
-
+	updatePCColumnVisibility();
 	if ( lookupTable )
 	{
 		this->pcWidget->setEnabled( false );
@@ -463,7 +428,6 @@ void dlg_FeatureScout::initColumnVisibility()
 	std::fill(columnVisibility.begin(), columnVisibility.end(), false);
 	for (int columnID : visibleColumns)
 		columnVisibility[m_columnMapping[columnID]] = true;
-	updatePCColumnVisibility();
 }
 
 void dlg_FeatureScout::setupModel()
@@ -524,22 +488,23 @@ void dlg_FeatureScout::setupViews()
 
 	// preparing chart and view for Parallel Coordinates
 	this->pcView = vtkContextView::New();
-	this->pcChart = vtkChartParallelCoordinates::New();
 	pcView->SetRenderWindow( pcWidget->GetRenderWindow() );
 	pcView->SetInteractor( pcWidget->GetInteractor() );
+	/*
+	this->pcChart = vtkChartParallelCoordinates::New();
 	this->pcChart->GetPlot( 0 )->SetInputData( chartTable );
 	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
 	this->pcChart->GetPlot( 0 )->SetWidth( 0.1 );
 
 	this->pcView->GetScene()->AddItem( pcChart );
-
+	*/
 	// Creates a popup menu
 	QMenu* popup2 = new QMenu( pcWidget );
 	popup2->addAction( "Add Class" );
 	popup2->setStyleSheet( "font-size: 11px; background-color: #9B9B9B; border: 1px solid black;" );
 	connect( popup2, SIGNAL( triggered( QAction* ) ), this, SLOT( spPopupSelection( QAction* ) ) );
 
-	vtkEventQtSlotConnect *pcConnections = vtkEventQtSlotConnect::New();
+	pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 
 	// Gets right button release event (on a parallel coordinates).
 	pcConnections->Connect( pcWidget->GetRenderWindow()->GetInteractor(),
@@ -554,6 +519,7 @@ void dlg_FeatureScout::setupViews()
 							this,
 							SLOT( spBigChartMouseButtonPressed( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
 
+	setPCChartData(false);
 	this->setupPolarPlotView(chartTable);
 }
 
@@ -766,7 +732,6 @@ void dlg_FeatureScout::RenderingButton()
 			}
 		}
 		colors->Modified();
-		activeChild->getPolyData()->Modified();
 		raycaster->update();
 		return;
 	}
@@ -877,7 +842,7 @@ void dlg_FeatureScout::RenderingButton()
 
 	// update lookup table in PC View
 	this->updateLookupTable(alpha);
-	this->setupNewPcView(true);
+	this->setPCChartData(true);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetScalarVisibility(1);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetLookupTable(lut);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
@@ -2252,7 +2217,7 @@ void dlg_FeatureScout::ClassAddButton()
 	this->setActiveClassItem( firstLevelItem.first(), 1 );
 	this->calculateElementTable();
 	this->initElementTableModel();
-	this->setupNewPcView();
+	this->setPCChartData();
 	this->classTreeView->collapseAll();
 	this->classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
 
@@ -2949,7 +2914,7 @@ void dlg_FeatureScout::ClassLoadButton()
 
 	// start class laod process
 	// clear classTree, colorList, TableList
-	chartTable->DeepCopy( csvTable ); // reset charttable
+	chartTable->ShallowCopy( csvTable ); // reset charttable
 
 	tableList.clear();
 	tableList.push_back( chartTable );
@@ -3083,7 +3048,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	// update element view
 	this->calculateElementTable();
 	this->initElementTableModel();
-	this->setupNewPcView();
+	this->setPCChartData();
 
 	// remove the deleted row item
 	rootItem->removeRow( cID );
@@ -3373,7 +3338,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 
 		this->calculateElementTable();
 		this->initElementTableModel();
-		this->setupNewPcView();
+		this->setPCChartData();
 		this->classTreeView->collapseAll();
 		this->SingleRendering();
 		this->updatePolarPlotColorScalar( chartTable );
@@ -3482,7 +3447,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		{
 			this->setActiveClassItem( item );
 			this->calculateElementTable();
-			this->setupNewPcView();
+			this->setPCChartData();
 
 			//disable rendering
 			this->updatePolarPlotColorScalar(chartTable);
@@ -3517,7 +3482,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		{
 			this->setActiveClassItem( item->parent() );
 			this->calculateElementTable();
-			this->setupNewPcView();
+			this->setPCChartData();
 			this->updatePolarPlotColorScalar( chartTable );
 		}
 
@@ -3725,20 +3690,6 @@ void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 		// maka a copy to chartTable
 		tableList.push_back( table );
 		chartTable->ShallowCopy( tableList[item->index().row()] );
-	}
-}
-
-void dlg_FeatureScout::deletePcViewPointer()
-{
-	if ( this->pcChart != 0 )
-	{
-		pcChart->Delete();
-		pcChart = 0;
-	}
-	if ( this->pcView != 0 )
-	{
-		pcView->Delete();
-		pcView = 0;
 	}
 }
 

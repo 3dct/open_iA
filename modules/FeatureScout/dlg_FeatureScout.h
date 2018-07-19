@@ -56,6 +56,7 @@ class vtkCommand;
 class vtkContextView;
 class vtkDataArray;
 class vtkDelaunay2D;
+class vtkEventQtSlotConnect;
 class vtkFixedPointVolumeRayCastMapper;
 class vtkIdTypeArray;
 class vtkLookupTable;
@@ -145,8 +146,7 @@ private:
 	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
-	void setupNewPcView(bool lookupTable = false);
-	void deletePcViewPointer();
+	void setPCChartData(bool lookupTable = false);
 	void calculateElementTable();
 	void setActiveClassItem(QStandardItem* item, int situ = 0);
 	double calculateOpacity(QStandardItem *item);
@@ -241,8 +241,9 @@ private:
 	QStandardItem *activeClassItem;
 
 	// Parallel coordinates view
-	vtkContextView *pcView;
-	vtkChartParallelCoordinates *pcChart;
+	vtkSmartPointer<vtkContextView> pcView;
+	vtkSmartPointer<vtkChartParallelCoordinates> pcChart;
+	vtkSmartPointer<vtkEventQtSlotConnect> pcConnections;
 
 	iARenderer *raycaster;
 	iABlobManager *blobManager;
