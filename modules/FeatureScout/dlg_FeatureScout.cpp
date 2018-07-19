@@ -303,7 +303,8 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 			polyData->SetPoints(pts);
 			polyData->SetLines(lines);
 			polyData->GetPointData()->AddArray(colors);
-			parent->displayResult("FeatureScout", nullptr, polyData);
+			parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
+				.arg(MapObjectTypeToString(filterID)), nullptr, polyData);
 			parent->enableRenderWindows();
 		}
 	}
