@@ -2031,12 +2031,19 @@ void dlg_FeatureScout::RenderingFLD()
 	double blue = 0.0;
 	double dcolor[3];
 	int CID = 0;
-
-	// clear existing points
-	this->oTF->RemoveAllPoints();
-	this->cTF->RemoveAllPoints();
-
-	this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
+	
+	vtkUnsignedCharArray* colors;
+	if (!useCsvOnly)
+	{
+		// clear existing points
+		this->oTF->RemoveAllPoints();
+		this->cTF->RemoveAllPoints();
+		this->cTF->AddRGBPoint(0, backRGB[0], backRGB[1], backRGB[2]);
+	}
+	else
+	{
+		colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
+	}
 
 	double alpha = 0.001;
 
@@ -2048,63 +2055,83 @@ void dlg_FeatureScout::RenderingFLD()
 		red = dcolor[0];
 		green = dcolor[1];
 		blue = dcolor[2];
-		if ( this->filterID == iAFeatureScoutObjectType::Fibers )
+		if (useCsvOnly)
 		{
-			if ( ll >= range[0] && ll < extents->GetValue( 0 ) + halfInc )
+			unsigned char rgb[4];
+			rgb[0] = red * 255;
+			rgb[1] = green * 255;
+			rgb[2] = blue * 255;
+			rgb[3] = 255;
+			for (int c = 0; c < 4; ++c)
 			{
-				this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-				this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-				this->oTF->AddPoint( i + 1, 1.0 );
-			}
-			else if ( ll >= extents->GetValue( 0 ) + halfInc && ll < extents->GetValue( 1 ) + halfInc )
-			{
-				this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-				this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-				this->oTF->AddPoint( i + 1, 0.03 );
-			}
-			else if ( ll >= extents->GetValue( 1 ) + halfInc && ll < extents->GetValue( 2 ) + halfInc )
-			{
-				this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-				this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-				this->oTF->AddPoint( i + 1, 0.03 );
-			}
-			else if ( ll >= extents->GetValue( 2 ) + halfInc && ll < extents->GetValue( 5 ) + halfInc )
-			{
-				this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-				this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-				this->oTF->AddPoint( i + 1, 0.015 );
-			}
-			else if ( ll >= extents->GetValue( 5 ) + halfInc && ll <= extents->GetValue( 7 ) + halfInc )
-			{
-				this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-				this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-				this->oTF->AddPoint( i + 1, 1.0 );
+				colors->SetComponent(i * 2, c, rgb[c]);
+				colors->SetComponent(i * 2 + 1, c, rgb[c]);
 			}
 		}
 		else
 		{
-			if ( ll >= range[0] && ll < extents->GetValue( 0 ) + halfInc )
+			if ( this->filterID == iAFeatureScoutObjectType::Fibers )
 			{
-				this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-				this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-				this->oTF->AddPoint( i + 1, 0.5 );
+				if ( ll >= range[0] && ll < extents->GetValue( 0 ) + halfInc )
+				{
+					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
+					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
+					this->oTF->AddPoint( i + 1, 1.0 );
+				}
+				else if ( ll >= extents->GetValue( 0 ) + halfInc && ll < extents->GetValue( 1 ) + halfInc )
+				{
+					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
+					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
+					this->oTF->AddPoint( i + 1, 0.03 );
+				}
+				else if ( ll >= extents->GetValue( 1 ) + halfInc && ll < extents->GetValue( 2 ) + halfInc )
+				{
+					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
+					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
+					this->oTF->AddPoint( i + 1, 0.03 );
+				}
+				else if ( ll >= extents->GetValue( 2 ) + halfInc && ll < extents->GetValue( 5 ) + halfInc )
+				{
+					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
+					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
+					this->oTF->AddPoint( i + 1, 0.015 );
+				}
+				else if ( ll >= extents->GetValue( 5 ) + halfInc && ll <= extents->GetValue( 7 ) + halfInc )
+				{
+					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
+					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
+					this->oTF->AddPoint( i + 1, 1.0 );
+				}
 			}
-			else if ( ll >= extents->GetValue( 0 ) + halfInc && ll < extents->GetValue( 1 ) + halfInc )
+			else
 			{
-				this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-				this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-				this->oTF->AddPoint( i + 1, 0.5 );
+				if ( ll >= range[0] && ll < extents->GetValue( 0 ) + halfInc )
+				{
+					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
+					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
+					this->oTF->AddPoint( i + 1, 0.5 );
+				}
+				else if ( ll >= extents->GetValue( 0 ) + halfInc && ll < extents->GetValue( 1 ) + halfInc )
+				{
+					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
+					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
+					this->oTF->AddPoint( i + 1, 0.5 );
+				}
+				else if ( ll >= extents->GetValue( 5 ) + halfInc && ll <= extents->GetValue( 2 ) + halfInc )
+				{
+					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
+					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
+					this->oTF->AddPoint( i + 1, 0.5 );
+				}
 			}
-			else if ( ll >= extents->GetValue( 5 ) + halfInc && ll <= extents->GetValue( 2 ) + halfInc )
-			{
-				this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-				this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-				this->oTF->AddPoint( i + 1, 0.5 );
-			}
+			this->cTF->AddRGBPoint( i + 1, red, green, blue );
+			this->cTF->AddRGBPoint( i + 1 - 0.5, red, green, blue );
+			this->cTF->AddRGBPoint( i + 1 + 0.3, red, green, blue );
 		}
-		this->cTF->AddRGBPoint( i + 1, red, green, blue );
-		this->cTF->AddRGBPoint( i + 1 - 0.5, red, green, blue );
-		this->cTF->AddRGBPoint( i + 1 + 0.3, red, green, blue );
+	}
+	if (useCsvOnly)
+	{
+		colors->Modified();
 	}
 
 	this->orientationColorMapSelection->hide();
