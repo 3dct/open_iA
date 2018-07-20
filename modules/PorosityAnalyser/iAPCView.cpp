@@ -26,6 +26,7 @@
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QVTKOpenGLWidget.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #else
 #include <QVTKWidget.h>
 #endif
@@ -46,6 +47,7 @@ iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_widget( new QVTKWidget( this ) )
 #endif
 {
+	m_widget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	QHBoxLayout *layoutHB = new QHBoxLayout( this );
 	layoutHB->setMargin( 0 );
 	layoutHB->addWidget( m_widget );

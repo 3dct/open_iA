@@ -29,6 +29,7 @@
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QVTKOpenGLWidget.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #else
 #include <QVTKWidget.h>
 #endif
@@ -52,14 +53,17 @@ void SetWidgetSelectionStyle(QWidget * w, bool isSelected)
 iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: PorosityAnalyzerPDMConnector( parent, f ),
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	m_sbWiget( new QVTKOpenGLWidget( this ) ),
+	m_sbWidget( new QVTKOpenGLWidget( this ) ),
 #else
-	m_sbWiget( new QVTKWidget( this ) ),
+	m_sbWidget( new QVTKWidget( this ) ),
 #endif
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
 	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() )
 {
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	m_sbWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
+#endif
 	QSettings settings( organisationName, applicationName );
 	this->dsbCMRange->setValue( settings.value( "PorosityAnalyser/GUI/CMRange", 2.0 ).toDouble() );
 
@@ -80,11 +84,11 @@ iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_sbActor->SetOrientationToHorizontal();
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( "Deviation from reference porosity (%)" );
-	m_sbWiget->GetRenderWindow()->AddRenderer( m_sbRen );
-	m_sbWiget->update();
+	m_sbWidget->GetRenderWindow()->AddRenderer( m_sbRen );
+	m_sbWidget->update();
 	QVBoxLayout *lutLayoutHB = new QVBoxLayout( this );
 	lutLayoutHB->setMargin( 0 );
-	lutLayoutHB->addWidget( m_sbWiget );
+	lutLayoutHB->addWidget( m_sbWidget );
 	lutLayoutHB->update();
 	scalarBarWidget->setLayout( lutLayoutHB );
 
@@ -426,7 +430,7 @@ void iAPDMView::UpdateColormapSettings( double range )
 	iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( m_lut, -range, range, 256 );
 	m_sbActor->SetLookupTable( m_lut );
 	UpdateTableDeviation();
-	m_sbWiget->update();
+	m_sbWidget->update();
 
 	QSettings settings( organisationName, applicationName );
 	settings.setValue( "PorosityAnalyser/GUI/CMRange", range );
