@@ -1948,23 +1948,14 @@ void dlg_FeatureScout::RenderingOrientation()
 
 	VTK_CREATE( vtkRenderer, renderer );
 	renderer->SetBackground( 1, 1, 1 );
-
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	VTK_CREATE(vtkGenericOpenGLRenderWindow, renW);
-#else
-	VTK_CREATE(vtkRenderWindow, renW);
-#endif
-	renW->AddRenderer( renderer );
+	vtkRenderWindow* renW = polarPlot->GetRenderWindow();
+	renW->RemoveRenderer(renW->GetRenderers()->GetFirstRenderer());
 	renderer->AddActor( actor );
+	renW->AddRenderer(renderer);
 
 	// Projection grid and annotations
 	this->drawPolarPlotMesh( renderer );
 	this->drawAnnotations( renderer );
-
-	vtkRenderWindowInteractor *renI = polarPlot->GetInteractor();
-	renI->SetRenderWindow( renW );
-	polarPlot->SetRenderWindow( renW );
-	renW->Render();
 
 	activeChild->updateViews();
 	orientationColorMapSelection->show();
@@ -4212,7 +4203,7 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view");
 		return;
 	}
-	iovPP->setWindowTitle( "Polar Plot View" );
+	iovPP->setWindowTitle( "Orientation Distribution" );
 	double xx, yy, zz, phi;
 
 	// construct delaunay triangulation
@@ -4330,7 +4321,7 @@ void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot scalar");
 		return;
 	}
-	iovPP->setWindowTitle( "Polar Plot View" );
+	iovPP->setWindowTitle( "Orientation Distribution" );
 	double xx, yy, zz, phi;
 
 	// calculate object probability and save it to a table
