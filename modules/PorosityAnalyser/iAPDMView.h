@@ -95,9 +95,9 @@ protected:
 	QModelIndexList m_selectedIndices;
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget * m_sbWiget;
+	QVTKOpenGLWidget * m_sbWidget;
 #else
-	QVTKWidget * m_sbWiget;
+	QVTKWidget * m_sbWidget;
 #endif
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkRenderer> m_sbRen;
