@@ -42,13 +42,10 @@ const int maskOpacity = 127;
 
 iAPAQSplom::iAPAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: iAQSplom( parent, shareWidget, f ),
-	m_contextMenu( new QMenu( this ) ),
 	m_fixAction( 0 ),
 	m_removeFixedAction( 0 ),
 	m_fixedPointInd( -1 )
 {
-	//context menu
-	//m_contextMenu->setStyleSheet( contextMenuStyle );
 	m_fixAction = m_contextMenu->addAction( "Fix Point", this, SLOT( fixPoint() ) );
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
 	m_fixAction->setVisible( false );
@@ -241,27 +238,6 @@ void iAPAQSplom::keyPressEvent( QKeyEvent * event )
 		}
 	}
 	iAQSplom::keyPressEvent( event );
-}
-
-void iAPAQSplom::mouseReleaseEvent( QMouseEvent * event )
-{
-	iAQSplom::mouseReleaseEvent( event );
-	if( event->button() == Qt::RightButton )//selection
-	{
-		if( m_rightPressPos != event->pos() )
-			return;
-		if( m_fixAction->isVisible() || m_removeFixedAction->isVisible() )
-			m_contextMenu->exec( event->globalPos() );
-	}
-}
-
-void iAPAQSplom::mousePressEvent( QMouseEvent * event )
-{
-	iAQSplom::mousePressEvent( event );
-	if( event->button() == Qt::RightButton )//selection
-	{
-		m_rightPressPos = event->pos();
-	}
 }
 
 void iAPAQSplom::updatePreviewPixmap()

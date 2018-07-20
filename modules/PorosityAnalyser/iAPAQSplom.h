@@ -45,8 +45,6 @@ public:
 protected:
 	virtual bool drawPopup( QPainter& painter );	//!< Draws popup on the splom with mask preview
 	virtual void keyPressEvent( QKeyEvent * event );
-	virtual void mouseReleaseEvent( QMouseEvent * event );
-	virtual void mousePressEvent( QMouseEvent * event );
 	void updatePreviewPixmap();
 
 signals:
@@ -72,7 +70,6 @@ protected:
 	QStringList m_datasets;
 	QList<int> m_dsIndices;
 	QList<int> m_datasetIndices;
-	QMenu * m_contextMenu;
 	QAction * m_fixAction, *m_removeFixedAction;
 	int m_fixedPointInd;
 	QPoint m_rightPressPos;
