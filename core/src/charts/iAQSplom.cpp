@@ -187,13 +187,45 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 
 	m_animationIn->setDuration( settings.animDuration );
 	m_animationOut->setDuration( settings.animDuration );
+	
 	showHistogramAction = new QAction(tr("Show Histograms"), this);
 	showHistogramAction->setCheckable(true);
+	showHistogramAction->setChecked(true);
+	selectionModePolygonAction = new QAction(tr("Polygon Selection Mode"), this);
+	QActionGroup * selectionModeGroup = new QActionGroup(m_contextMenu);
+	selectionModeGroup->setExclusive(true);
+	selectionModePolygonAction->setCheckable(true);
+	selectionModePolygonAction->setChecked(true);
+	selectionModePolygonAction->setActionGroup(selectionModeGroup);
+	selectionModeRectangleAction = new QAction(tr("Rectangle Selection Mode"), this);
+	selectionModeRectangleAction->setCheckable(true);
+	selectionModeRectangleAction->setActionGroup(selectionModeGroup);
 	m_contextMenu->addAction(showHistogramAction);
+	m_contextMenu->addAction(selectionModeRectangleAction);
+	m_contextMenu->addAction(selectionModePolygonAction);
 	connect(showHistogramAction, SIGNAL(toggled(bool)), this, SLOT(enableHistVisibility(bool)));
+	connect(selectionModePolygonAction, SIGNAL(toggled(bool)), this, SLOT(selectionModePolygon(bool)));
+	connect(selectionModeRectangleAction, SIGNAL(toggled(bool)), this, SLOT(selectionModeRectangle(bool)));
 
 	m_showAllPlots = false;
-	m_histVisibility = false;
+	m_histVisibility = true;
+}
+
+void iAQSplom::setSelectionMode(int mode)
+{
+	if (m_maximizedPlot)
+		m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(mode);
+	m_selectionMode = mode;
+}
+
+void iAQSplom::selectionModePolygon(bool toggled)
+{
+	setSelectionMode(iAScatterPlot::Polygon);
+}
+
+void iAQSplom::selectionModeRectangle(bool toggled)
+{
+	setSelectionMode(iAScatterPlot::Rectangle);
 }
 
 void iAQSplom::initializeGL()
@@ -355,7 +387,7 @@ void iAQSplom::transformUpdated( double scale, QPointF deltaOffset )
 	if (!sender)
 		return;
 
-	if (m_maximizedPlot != 0 && settings.maximizedLinked)
+	if (m_maximizedPlot && settings.maximizedLinked)
 	{
 		m_maximizedPlot->setTransform(sender->getScale(),
 									  QPointF(sender->getOffset().x() / sender->getRect().width() * m_maximizedPlot->getRect().width(),
@@ -551,6 +583,7 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 
 	m_maximizedPlot->setSelectionColor(settings.selectionColor);
 	m_maximizedPlot->setPointRadius(settings.pointRadius);
+	m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(m_selectionMode);
 	updateMaxPlotRect();
 	//transform
 	QPointF ofst = selectedPlot->getOffset();
