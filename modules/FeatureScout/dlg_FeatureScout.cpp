@@ -259,12 +259,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	blobVisDialog = new dlg_blobVisualization();
 	if (useCsvOnly)
 	{
-		// create 3D representation from object characteristics.
 		if (fid == iAFeatureScoutObjectType::Fibers)
 		{
 			vtkRenderWindow* renWin = parent->getRenderer()->GetRenderWindow();
-			//m_3dvisRenderer = vtkSmartPointer<vtkRenderer>::New();
-
 			auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 			colors->SetNumberOfComponents(4);
 			colors->SetName("Colors");
@@ -272,7 +269,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 			auto polyData = vtkSmartPointer<vtkPolyData>::New();
 			vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
 
-			for (vtkIdType row = 0; row < csvTable->GetNumberOfRows(); ++row)
+			for (vtkIdType row = 0; row < objectNr; ++row)
 			{
 				float first[3], end[3];
 				for (int i = 0; i < 3; ++i)
@@ -283,10 +280,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 				pts->InsertNextPoint(first);
 				pts->InsertNextPoint(end);
 				vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-				line->GetPointIds()->SetId(0, 2 * row); // the second 0 is the index of the Origin in linesPolyData's points
-				line->GetPointIds()->SetId(1, 2 * row + 1); // the second 1 is the index of P0 in linesPolyData's points
+				line->GetPointIds()->SetId(0, 2 * row);     // the index of line start point in pts
+				line->GetPointIds()->SetId(1, 2 * row + 1); // the index of line end point in pts
 				lines->InsertNextCell(line);
-
 				unsigned char c[4];
 				c[0] = colorList.at(0).red();
 				c[1] = colorList.at(0).green();
@@ -901,10 +897,11 @@ void dlg_FeatureScout::SingleRendering( int idx )
 			otherColor[3] = 192;
 			for (int i = 0; i < objectNr; ++i)
 			{
+				unsigned char* color = (csvTable->GetValue(i, 0) == idx) ? selColor : otherColor;
 				for (int c = 0; c < 4; ++c)
 				{
-					colors->SetComponent(i * 2, c, i == idx ? selColor[c] : otherColor[c]);
-					colors->SetComponent(i * 2+1, c, i == idx ? selColor[c]: otherColor[c]);
+					colors->SetComponent(i * 2, c, color[c]);
+					colors->SetComponent(i * 2+1, c, color[c]);
 				}
 			}
 			colors->Modified();
@@ -953,10 +950,11 @@ void dlg_FeatureScout::SingleRendering( int idx )
 			int currentObjectID = this->activeClassItem->child(currentObjectIndexInClass, 0)->text().toInt();
 			for (int i = 0; i < objectNr; ++i)
 			{
+				unsigned char* color = (csvTable->GetValue(i, 0) == currentObjectID) ? selColor : otherColor;
 				for (int c = 0; c < 4; ++c)
 				{
-					colors->SetComponent(i * 2, c, i == currentObjectID ? selColor[c] : otherColor[c]);
-					colors->SetComponent(i * 2 + 1, c, i == currentObjectID ? selColor[c] : otherColor[c]);
+					colors->SetComponent(i * 2, c, color[c]);
+					colors->SetComponent(i * 2 + 1, c, color[c]);
 				}
 				if (i == currentObjectID)
 				{
@@ -1858,12 +1856,19 @@ void dlg_FeatureScout::RenderingOrientation()
 	backRGB[0] = 0.0; backRGB[1] = 0.0; backRGB[2] = 0.0;
 	int ip, it;
 
-	// clear existing points
-	this->oTF->RemoveAllPoints();
-	this->cTF->RemoveAllPoints();
-
-	this->oTF->AddPoint( 0, backAlpha );
-	this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
+	vtkUnsignedCharArray* polyColors;
+	if (useCsvOnly)
+	{
+		polyColors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
+	}
+	else
+	{
+		// clear existing points
+		this->oTF->RemoveAllPoints();
+		this->cTF->RemoveAllPoints();
+		this->oTF->AddPoint( 0, backAlpha );
+		this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
+	}
 
 	for ( int i = 0; i < this->objectNr; i++ )
 	{
@@ -1872,10 +1877,30 @@ void dlg_FeatureScout::RenderingOrientation()
 
 		double *p = static_cast<double *>( oi->GetScalarPointer( it, ip, 0 ) );
 		red = p[0]; green = p[1]; blue = p[2];
-		this->oTF->AddPoint( i + 1, alpha );
-		this->cTF->AddRGBPoint( i + 1, red, green, blue );
+		if (useCsvOnly)
+		{
+			unsigned char color[4];
+			color[0] = red * 255;
+			color[1] = green * 255;
+			color[2] = blue * 255;
+			color[3] = 255;
+			for (int c = 0; c < 4; ++c)
+			{
+				polyColors->SetComponent(i * 2, c, color[c]);
+				polyColors->SetComponent(i * 2 + 1, c, color[c]);
+			}
+		}
+		else
+		{
+			this->oTF->AddPoint( i + 1, alpha );
+			this->cTF->AddRGBPoint( i + 1, red, green, blue );
+		}
 	}
-
+	if (useCsvOnly)
+	{
+		polyColors->Modified();
+		this->raycaster->update();
+	}
 	// prepare the delaunay triangles
 	VTK_CREATE( vtkDelaunay2D, del );
 	VTK_CREATE( vtkPoints, points );
