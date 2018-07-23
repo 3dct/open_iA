@@ -23,10 +23,10 @@
 #include "iAFoamCharacterizationDialogBinarization.h"
 
 #include "iAConnector.h"
+#include "iAConsole.h"
+#include "iAFilter.h"
+#include "iAFilterRegistry.h"
 #include "iAProgress.h"
-
-#include <itkBinaryThresholdImageFilter.h>
-#include <itkOtsuThresholdImageFilter.h>
 
 #include <vtkImageData.h>
 
@@ -98,52 +98,42 @@ void iAFoamCharacterizationItemBinarization::execute()
 
 void iAFoamCharacterizationItemBinarization::executeBinarization()
 {
-	QScopedPointer<iAConnector> pConnector(new iAConnector());
-	pConnector->SetImage(m_pImageData);
-
-	typedef itk::BinaryThresholdImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
-	itkFilter::Pointer pFilter(itkFilter::New());
-
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
-	pFilter->SetLowerThreshold(m_usLowerThreshold);
-	pFilter->SetUpperThreshold(m_usUpperThreshold);
-	pFilter->SetInsideValue(0);
-	pFilter->SetOutsideValue(1);
-	
+	iAConnector con;
+	con.SetImage(m_pImageData);
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	pObserver->Observe(pFilter);
-	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
-
-	pFilter->Update();
-
-	pConnector->SetImage(pFilter->GetOutput());
-
-	m_pImageData->DeepCopy(pConnector->GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
+	connect(pObserver.data(), SIGNAL(pprogress(const int&)), this, SLOT(slotObserver(const int&)));
+	auto filter = iAFilterRegistry::Filter("Binary Thresholding");
+	filter->SetLogger(iAConsoleLogger::Get());
+	filter->SetProgress(pObserver.data());
+	filter->AddInput(&con);
+	QMap<QString, QVariant> parameters;
+	parameters["Lower threshold"] = m_usLowerThreshold;
+	parameters["Upper threshold"] = m_usUpperThreshold;
+	parameters["Inside value"] = 0;
+	parameters["Outside value"] = 1;
+	filter->Run(parameters);
+	m_pImageData->DeepCopy(filter->Output()[0]->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(filter->Output()[0]->GetVTKImage()->GetInformation());
 }
 
 void iAFoamCharacterizationItemBinarization::executeOtzu()
 {
-	QScopedPointer<iAConnector> pConnector(new iAConnector());
-	pConnector->SetImage(m_pImageData);
-
-	typedef itk::OtsuThresholdImageFilter<itk::Image<unsigned short, 3>, itk::Image<unsigned short, 3>> itkFilter;
-	itkFilter::Pointer pFilter(itkFilter::New());
-	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
-	pFilter->SetInsideValue(0);
-	pFilter->SetOutsideValue(1);
-	pFilter->SetNumberOfHistogramBins(m_uiOtzuHistogramBins);
-	
+	iAConnector con;
+	con.SetImage(m_pImageData);
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	pObserver->Observe(pFilter);
 	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
-
-	pFilter->Update();
-
-	pConnector->SetImage(pFilter->GetOutput());
-
-	m_pImageData->DeepCopy(pConnector->GetVTKImage());
-	m_pImageData->CopyInformationFromPipeline(pConnector->GetVTKImage()->GetInformation());
+	auto filter = iAFilterRegistry::Filter("Otsu Threshold");
+	filter->SetLogger(iAConsoleLogger::Get());
+	filter->SetProgress(pObserver.data());
+	filter->AddInput(&con);
+	QMap<QString, QVariant> parameters;
+	parameters["Remove peaks"] = false;
+	parameters["Number of histogram bins"] = m_uiOtzuHistogramBins;
+	parameters["Outside value"] = 1;
+	parameters["Inside value"] = 0;
+	filter->Run(parameters);
+	m_pImageData->DeepCopy(filter->Output()[0]->GetVTKImage());
+	m_pImageData->CopyInformationFromPipeline(filter->Output()[0]->GetVTKImage()->GetInformation());
 }
 
 iAFoamCharacterizationItemBinarization::EItemFilterType iAFoamCharacterizationItemBinarization::itemFilterType() const

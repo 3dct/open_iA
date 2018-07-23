@@ -42,8 +42,8 @@ dlg_editPCClass::dlg_editPCClass(QWidget *parent) : QDialog(parent)
 	colorButton = new QPushButton;
 	colorButton->setText("Set Color:");
 	cColorLabel = new QLabel;
-	
-	
+
+
 	QWidget *page = new QWidget;
 	QGridLayout *layout = new QGridLayout(page);
 	layout->addWidget(cNameLabel, 0, 0);

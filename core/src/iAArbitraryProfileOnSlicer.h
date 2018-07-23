@@ -28,7 +28,7 @@ class vtkRenderer;
 class vtkImageData;
 class vtkActor;
 
-struct iAArbitraryProfileOnSlicer 
+struct iAArbitraryProfileOnSlicer
 {
 	iAArbitraryProfileOnSlicer();
 

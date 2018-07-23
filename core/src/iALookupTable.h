@@ -30,13 +30,13 @@
 
 //! Class representing lookup table for color coding used in scatter plot matrix (SPLOM).
 /*!
-	Has methods for importing existing VTK lookup table (!if VTK is enabled via a preprocessor flag!) 
+	Has methods for importing existing VTK lookup table (!if VTK is enabled via a preprocessor flag!)
 	and mapping scalar values to a corresponding QColor.
 */
 class iALookupTable
 {
 public:
-	iALookupTable() 
+	iALookupTable()
 		: m_isInitialized( false ),
 		m_rangeLen( 1.0 ),
 		m_numColors( 0 )
@@ -67,10 +67,17 @@ public:
 	//!  Map a scalar value into an RGBA color.
 	void getColor( double val, double * rgba_out )
 	{
+		if (m_data.size() < 4)
+		{
+			for (unsigned long i = 0; i < 3; ++i)
+				rgba_out[i] = 0;
+			rgba_out[3] = 1;
+			return;
+		}
 		double t = ( val - m_range[0] ) / m_rangeLen;
-		int index = clamp(0ul, m_numColors-1, static_cast<unsigned long>(t * m_numColors));
+		int index = clamp(0, static_cast<int>(m_numColors-1), static_cast<int>(t * m_numColors));
 		index *= 4;
-		for( unsigned long i = 0; i < 4; ++i )
+		for( unsigned int i = 0; i < 4; ++i )
 			rgba_out[i] = m_data[index++];
 	}
 
@@ -102,7 +109,7 @@ public:
 		double rgba[4] = { col.redF(), col.greenF(), col.blueF(), col.alphaF(), };
 		setColor(colInd, rgba);
 	}
-	
+
 	//! Fill the lookup table using provided raw RBGA data for a given number of colors.
 	void setData( unsigned long numberOfColors, double * rgba_data )
 	{
@@ -130,9 +137,9 @@ public:
 	/* Setters/Getters */
 	const double * getRange() const { return m_range; }						//!< Get the mapped scalar range.
 	void setRange( double from_val, double to_val )							//!< Set the mapped scalar range.
-	{ 
-		m_range[0] = from_val; m_range[1] = to_val; 
-		m_rangeLen = m_range[1] - m_range[0]; 
+	{
+		m_range[0] = from_val; m_range[1] = to_val;
+		m_rangeLen = m_range[1] - m_range[0];
 	}
 	void setRange( double * range ) { setRange( range[0], range[1] ); }		//!< Set the mapped scalar range.
 	bool initialized() const { return m_isInitialized; }					//!< Check if the table has data (initialized).
@@ -140,7 +147,7 @@ public:
 protected:
 	bool m_isInitialized;					///< flag which is on if lookup table data is set
 	QList<double> m_data;					///< lookup table raw color data, each color is 4 doubles (RGBA)
-	double m_range[2];						///< scalar range mapped by the lookup table 
+	double m_range[2];						///< scalar range mapped by the lookup table
 	double m_rangeLen;						///< length of the total scalar range that is mapped by the lookup table
 	unsigned long m_numColors;				///< number of colors stored in the lookup table
 };

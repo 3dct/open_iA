@@ -44,13 +44,10 @@
 #include <qmath.h>
 
 iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, iAChildData childData ) : iAModuleAttachmentToChild( mainWnd, childData ), 
-	dlgPeriodicTable(0), dlgXRF(0), dlgSimilarityMap(0), ioThread(0), slicerXZ(0), slicerXY(0),	slicerYZ(0)
+	dlgPeriodicTable(0), dlgXRF(0), dlgSimilarityMap(0), ioThread(0)
 {
 	MdiChild * mdiChild = m_childData.child;
 	connect( mdiChild, SIGNAL( magicLensToggled( bool ) ), this, SLOT( magicLensToggled( bool ) ) );
-	slicerXZ = mdiChild->getSlicerXZ();
-	slicerXY = mdiChild->getSlicerXY();
-	slicerYZ = mdiChild->getSlicerYZ();
 	connect( mdiChild->getSlicerDataXY(), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
 	connect( mdiChild->getSlicerDataXZ(), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
 	connect( mdiChild->getSlicerDataYZ(), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );

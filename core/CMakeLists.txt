@@ -15,15 +15,12 @@ SET (LIB_TYPE SHARED)
 add_library(${CORE_LIBRARY_NAME} ${LIB_TYPE} ${open_iA_core_SRCS} ${open_iA_core_QRC} )
 TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${QT_LIBRARIES} ${VTK_LIBRARIES} ${ITK_LIBRARIES})
 IF (HDF5_FOUND)
-	SET (DO_LINK_HDF5 "ON")
-	IF (MSVC AND MSVC_VERSION LESS 1900)
-		UNSET (DO_LINK_HDF5) # in Visual Studio 2013 (and probably prior), hdf5 is linked already via itk
-	ENDIF()
-	IF (DO_LINK_HDF5)
-		TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${HDF5_LIBRARY})
-		ADD_DEFINITIONS(-DH5_BUILT_AS_DYNAMIC_LIB) # only if we use non-itk hdf5 it is linked as dll
-	ENDIF()
-	ADD_DEFINITIONS(-DUSE_HDF5)
+	# as HDF5 is required only in core, we could link privately, but under Linux this leads
+	# to gui and cmd also requiring linking to it separately, it's easier to link PUBLIC here:
+	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${HDF5_LIBRARY})
+	# make sure HDF5 is included before itk (which brings its own hdf5 libraries in a different version):
+	TARGET_INCLUDE_DIRECTORIES(${CORE_LIBRARY_NAME} BEFORE PRIVATE ${HDF5_INCLUDE_DIR})
+	ADD_DEFINITIONS(-DH5_BUILT_AS_DYNAMIC_LIB -DUSE_HDF5)
 ENDIF()
 IF (WIN32)
 	# apparently required for VS 2015, and doesn't hurt for VS2013:

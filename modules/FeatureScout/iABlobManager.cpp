@@ -358,7 +358,7 @@ void iABlobManager::OverlapWithMask( vtkImageData* imageData )
 				}
 
 				// 				float m_overlapThreshold2 = m_overlapThreshold * 2;
-				// 
+				//
 				// 				if (dataVal < maskVal)
 				// 				{
 				// 					imageData->SetScalarComponentFromDouble (x, y, z, MAX_VALUE_COMPONENT, 0);
@@ -371,7 +371,7 @@ void iABlobManager::OverlapWithMask( vtkImageData* imageData )
 				// 				{
 				// 					float a1 = m_overlapThreshold2;
 				// 					float a2 = m_overlapThreshold;
-				// 
+				//
 				// 					imageData->SetScalarComponentFromDouble (x, y, z, MAX_VALUE_COMPONENT, dataVal * (deltaValue - a1) / (a2 - a1));
 				// 				}
 			}
@@ -721,7 +721,7 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 
 		if ( mode != 0 )
 		{
-			//cam->SetFocalPoint( 0,0,0 );			
+			//cam->SetFocalPoint( 0,0,0 );
 			m_blobRen->ResetCamera();
 			cam->SetParallelScale( pscale );
 			cam->SetViewAngle( viewAngle );
@@ -735,7 +735,7 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 
 		if ( movieWriter->GetError() )
 		{
-			//emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode())); 
+			//emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
 		//emit progress( 100 * (i+1) / (extent[1]-extent[0]));

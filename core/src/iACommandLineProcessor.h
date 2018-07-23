@@ -37,4 +37,4 @@ private:
 	bool m_quiet;
 };
 
-open_iA_Core_API int ProcessCommandLine(int argc, char const * const * argv);
+open_iA_Core_API int ProcessCommandLine(int argc, char const * const * argv, const char * version);

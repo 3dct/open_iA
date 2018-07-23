@@ -277,8 +277,8 @@ QSharedPointer<iAHistogramData> const iAModality::GetHistogramData() const
 
 void iAModality::setVolSettings(const iAVolumeSettings &volSettings)
 {
-	this->m_volSettings = volSettings; 
-	this->m_VolSettingsSavedStatus = true; 
+	this->m_volSettings = volSettings;
+	this->m_VolSettingsSavedStatus = true;
 }
 
 const iAVolumeSettings &iAModality::getVolumeSettings() const

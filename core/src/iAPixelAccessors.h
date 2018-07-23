@@ -21,15 +21,15 @@
 #pragma once
 
 // Eigenvalue pixel accessor to access vector of eigen value pixels
-// as individual images 
+// as individual images
 template< class TPixel >
 class EigenValueAccessor
 {
 public:
   typedef TPixel                     InternalType;
   typedef float                      ExternalType;
-  
-  inline ExternalType Get( const InternalType & input ) const 
+
+  inline ExternalType Get( const InternalType & input ) const
 	{
 	  return static_cast<ExternalType>( input[m_EigenIdx] );
 	}
@@ -38,15 +38,15 @@ public:
 	{
 	this->m_EigenIdx = i;
 	}
-  
+
 private:
   unsigned int m_EigenIdx;
 };
 
 
 // Functor to get trace of the hessian matrix (laplacian of the image )
-namespace Functor {  
- 
+namespace Functor {
+
 	template< typename TInput, typename TOutput >
 	class HessianToLaplacianFunction
 	{
@@ -54,7 +54,7 @@ namespace Functor {
 	  typedef typename TInput::RealValueType  RealValueType;
 	  HessianToLaplacianFunction() {}
 	  ~HessianToLaplacianFunction() {}
-  
+
 	  inline TOutput operator()( const TInput & x ) const
 		{
 		return static_cast< TOutput >( x(0,0) + x(1,1) + x(2,2) );

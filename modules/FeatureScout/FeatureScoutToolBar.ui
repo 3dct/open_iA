@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FiberScoutToolBar</class>
- <widget class="QToolBar" name="FiberScoutToolBar">
+ <class>FeatureScoutToolBar</class>
+ <widget class="QToolBar" name="FeatureScoutToolBar">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -46,7 +46,7 @@
   <action name="actionLength_Distribution">
    <property name="icon">
     <iconset resource="../../core/open_iA.qrc">
-     <normaloff>:/images/FiberScout_csvDV.png</normaloff>:/images/FiberScout_csvDV.png</iconset>
+     <normaloff>:/images/FeatureScout_csvDV.png</normaloff>:/images/FeatureScout_csvDV.png</iconset>
    </property>
    <property name="text">
     <string>Length Distribution</string>
@@ -58,7 +58,7 @@
   <action name="actionMeanObject">
    <property name="icon">
     <iconset resource="../../core/open_iA.qrc">
-     <normaloff>:/images/FiberMeanObject.png</normaloff>:/images/FiberMeanObject.png</iconset>
+     <normaloff>:/images/FeatureScout_meanObject.png</normaloff>:/images/FeatureScout_meanObject.png</iconset>
    </property>
    <property name="text">
     <string>Mean Object</string>

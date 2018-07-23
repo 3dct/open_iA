@@ -69,6 +69,8 @@ public:
 	QPointF getOffset() const { return m_offset; }									//!< Get current offset applied to the plot points
 	QPointF getPointPosition( int index ) const;									//!< Get global position of a point by its index
 	double getPointRadius() const;													//!< Get point radius (magnified if plot is maximized)
+	void setPointRadius(double radius);										//!< Set point radius (magnified if plot is maximized)
+	
 	//!  Output positions and labels of plot ticks for X and Y axes
 	void printTicksInfo( QList<double> * posX, QList<double> * posY, QList<QString> * textX, QList<QString> * textY ) const;
 	void setCurrentPoint( int index );												//!< Set the index of currently hovered point
@@ -86,6 +88,7 @@ public:
 	void SPLOMMouseMoveEvent( QMouseEvent * event );
 	void SPLOMMousePressEvent( QMouseEvent * event );
 	void SPLOMMouseReleaseEvent( QMouseEvent * event );
+	void setSelectionColor(QColor selCol);
 
 protected:
 	int p2binx( double p ) const;											//!< Get grid bin index using parameter value X
@@ -111,25 +114,24 @@ protected:
 	QPointF getPositionFromPointIndex( int ind ) const;						//!< Get position of a data point with a given index
 	void updateSelectedPoints( bool append = false );						//!< Update a set of selected points: if append add to the previous selection.
 	void updateDrawRect();													//!< Re-calculate dimensions of the plot's rectangle
-	void updateMaxBtnRect();												//!< Re-calculate dimensions of the plot's maximize-button rectangle
 	QPoint getLocalPos( QPoint pos ) const;									//!< Local (plot) position from global (SPLOM)
 	QPoint cropLocalPos( QPoint locPos ) const;								//!< Make sure that local position is inside plot's rectangle
-	bool isMaximizedClicked( QMouseEvent * event );							//!< Check if maximized button of the plot was clicked
-	void drawParameterName( QPainter &painter );							//!< Draws parameter name (only diagonal plots)
+	//void drawParameterName( QPainter &painter );							//!< Draws parameter name (only diagonal plots)
 	void drawBorder( QPainter &painter );									//!< Draws plot's border
 	void drawTicks( QPainter &painter );									//!< Draws plot's ticks
 	void drawMaximizedLabels( QPainter &painter );							//!< Draws additional plot's labels (only maximized plot)
 	void drawSelectionPolygon( QPainter &painter );							//!< Draws selection-lasso polygon
 	void drawPoints( QPainter &painter );									//!< Draws plot's points (uses native OpenGL)
-	void drawMaximizeButton( QPainter & painter );							//!< Draws plot's maximized button (only active plot)
+	//void drawMaximizeButton( QPainter & painter );							//!< Draws plot's maximized button (only active plot)
 	void createAndFillVBO();												//!< Creates and fills VBO with plot's 2D-points.
 	void fillVBO();															//!< Fill existing VBO with plot's 2D-points.
+
+
 
 signals:
 	void selectionModified();												//!< Emitted when selected points changed
 	void transformModified( double scale, QPointF deltaOffset );			//!< Emitted when user transforms (scales, translates)
 	void currentPointModified( int index );									//!< Emitted when hovered over new point
-	void plotMaximized();													//!< Emitted when plot maximized button is clicked
 
 protected:
 	//! All settings of the plot in one struct

@@ -18,19 +18,44 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #pragma once
 
-#include <QToolBar>
+#include "io/csv_config.h"
+#include "io/iACsvIO.h"
 
-#include "ui_FiberScoutToolBar.h"
-#include "iAQTtoUIConnector.h"
+#include "iAModuleInterface.h"
+#include "iAObjectAnalysisType.h"
+#include "mdichild.h"
 
-class iAFiberScoutToolbar : public QToolBar, public Ui_FiberScoutToolBar
+class QDockWidget;
+class dlg_FeatureScout;
+class iAFeatureScoutToolbar;
+
+
+
+class iAFeatureScoutModuleInterface : public iAModuleInterface
 {
+	Q_OBJECT
+
 public:
-	iAFiberScoutToolbar(QWidget* parent) : QToolBar("FiberScout ToolBar", parent)
-	{
-		this->setupUi(this);
-	}
+	void Initialize();
+	void hideFeatureScoutToolbar();
+private slots:
+
+	void FeatureScoutWithCSV();
+
+	void FeatureScout();
+	void FeatureScout_Options();
+	void onChildClose();
+private:
+	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
+	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID, csvConfig::configPararams *FileParams, const bool is_csvOnly, const QSharedPointer<QStringList> &selHeader);
+	void SetupToolbar();
+	void setFeatureScoutRenderSettings();
+	void initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString,
+		iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams, const QSharedPointer<QStringList> &selHeaders);
+	iAFeatureScoutToolbar * tlbFeatureScout;
+
+	iACsvIO io;
+
 };

@@ -18,22 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_FiberScout.h"
+#include "dlg_FeatureScout.h"
 
 #include "dlg_blobVisualization.h"
 #include "dlg_editPCClass.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
-#include "iAFiberScoutScatterPlotMatrix.h"
 #include "iAMeanObjectTFView.h"
-#include "iAModalityTransfer.h"
 #include "iAObjectAnalysisType.h"
 
 #include "charts/iADiagramFctWidget.h"
+#include "charts/iAQSplom.h"
 #include "dlg_commoninput.h"
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
+#include "iADockWidgetWrapper.h"
 #include "iAmat4.h"
+#include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"
 #include "iAProgress.h"
 #include "iARenderer.h"
@@ -49,6 +50,12 @@
 #include <itkPasteImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget.h>
+#include <vtkRenderWindow.h>
+#endif
 #include <vtkActor.h>
 #include <vtkActor2D.h>
 #include <vtkAnnotationLink.h>
@@ -56,6 +63,7 @@
 #include <vtkImageCast.h>
 #include <vtkCamera.h>
 #include <vtkChart.h>
+#include <vtkChartMatrix.h>
 #include <vtkChartParallelCoordinates.h>
 #include <vtkChartXY.h>
 #include <vtkColorTransferFunction.h>
@@ -76,6 +84,7 @@
 #include <vtkMath.h>
 #include <vtkMathUtilities.h>
 #include <vtkMetaImageWriter.h>
+#include <vtkNew.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOutlineFilter.h>
 #include <vtkPen.h>
@@ -88,7 +97,6 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
-#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarWidget.h>
@@ -113,8 +121,10 @@
 #include "QtCore/qmath.h"
 #include <QtCore/QXmlStreamReader>
 #include <QtCore/QXmlStreamWriter>
+#include <QDockWidget>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QHeaderView>
 #include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
@@ -122,6 +132,7 @@
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTableView>
+#include <QTableWidget>
 #include <QTreeView>
 #include <QProgressBar>
 
@@ -175,45 +186,60 @@ ColormapFuncPtr colormapsIndex[] =
 	ColormapRGBHalfSphere,
 };
 
-dlg_FiberScout::dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl )
+//TODO APPEND m_headers selected  as pointer
+dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, const QSharedPointer<QStringList>  &selHeaders)
 	: QDockWidget( parent ),
-	oTF( parent->getPiecewiseFunction() ),
-	cTF( parent->getColorTransferFunction() ),
 	csvTable( csvtbl ),
 	raycaster( parent->getRenderer() ),
-	elementTableModel( 0 ),
-	iovSPM( 0 ),
-	iovPP( 0 ),
-	iovPC( 0 ),
-	iovDV( 0 ),
-	iovMO( 0 ),
+	elementTableModel(nullptr),
+	iovSPM(nullptr),
+	iovPP(nullptr),
+	iovPC(nullptr),
+	iovDV(nullptr),
+	iovMO(nullptr),
+	matrix(nullptr),
+	spmActivated(false),
 	sourcePath( parent->currentFile() )
 {
 	setupUi( this );
+	this->useCsvOnly = useCsvOnly;
+	if (!this->useCsvOnly)
+	{
+		oTF = parent->getPiecewiseFunction();
+		cTF = parent->getColorTransferFunction();
+	}
 	this->elementNr = csvTable->GetNumberOfColumns();
 	this->objectNr = csvTable->GetNumberOfRows();
 	this->activeChild = parent;
 	this->filterID = fid;
 	this->draw3DPolarPlot = false;
-	this->enableRealTimeRendering = true;
 	this->classRendering = true;
 	this->setupPolarPlotResolution( 3.0 );
-
 	this->raycaster = raycaster;
 	blobManager = new iABlobManager();
 	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
 	double bounds[6];
-	raycaster->GetImageDataBounds( bounds );
-	blobManager->SetBounds( bounds );
-	blobManager->SetProtrusion( 1.5 );
-	int dimens[3] = { 50, 50, 50 };
-	blobManager->SetDimensions( dimens );
+	this->m_headersSelected = QSharedPointer<QStringList>(new QStringList());
+	if (this->useCsvOnly && selHeaders)
+	{
+		this->m_headersSelected = selHeaders;
+	}
+	if (!this->useCsvOnly) {
 
+		raycaster->GetImageDataBounds(bounds);
+		blobManager->SetBounds(bounds);
+		blobManager->SetProtrusion(1.5);
+		int dimens[3] = { 50, 50, 50 };
+		blobManager->SetDimensions(dimens);
+	}
 	lut = vtkSmartPointer<vtkLookupTable>::New();
 	chartTable = vtkSmartPointer<vtkTable>::New();
 	chartTable->DeepCopy( csvTable );
 	this->updateColumnNames();
-	tableList.clear();
+	if (!tableList.isEmpty())
+	{
+		tableList.clear();
+	}
 	tableList.push_back( chartTable );
 	colorList.clear();
 	selectedObjID.clear();
@@ -221,9 +247,20 @@ dlg_FiberScout::dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkR
 	columnVisArr->SetNumberOfValues( elementNr );
 
 	initParallelCoordinates( fid );
-	// connect IFV module to mdiChild dockwidgets
-	this->pcWidget = iovPC->dockWidgetContents;
-	this->pcPolarPlot = iovPP->plotWidget;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	pcWidget = new QVTKOpenGLWidget();
+	auto pcWidgetRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	pcWidget->SetRenderWindow(pcWidgetRenWin);
+
+	polarPlot = new QVTKOpenGLWidget();
+	auto polarPlotRenWin = vtkGenericOpenGLRenderWindow::New();
+	polarPlot->SetRenderWindow(polarPlotRenWin);
+#else
+	pcWidget = new QVTKWidget();
+	polarPlot = new QVTKWidget();
+#endif
+	iovPC->setWidget(pcWidget);
+	iovPP->verticalLayout->addWidget(polarPlot);
 	this->orientationColorMapSelection = iovPP->colorMapSelection;
 	this->orientColormap = iovPP->comboBox;
 
@@ -238,12 +275,9 @@ dlg_FiberScout::dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkR
 	this->classTreeView->header()->setStretchLastSection( false );
 	this->elementTableView->resizeColumnsToContents();
 	this->classTreeView->setExpandsOnDoubleClick( false );
-	spmActivated = false;	//???
-	if ( this->spmActivated )
-		this->ScatterPlotButton();
 }
 
-dlg_FiberScout::~dlg_FiberScout()
+dlg_FeatureScout::~dlg_FeatureScout()
 {
 	delete blobManager;
 
@@ -277,25 +311,52 @@ dlg_FiberScout::~dlg_FiberScout()
 	this->deletePcViewPointer();
 
 	if ( this->spmActivated )
-		matrix->Delete();
+		delete matrix;
 }
 
-void dlg_FiberScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long,
+void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long,
 														 void * client_data, void *, vtkCommand * command )
 {
 	// Gets the mouse button event for pcChart and holds the SPM-Annotations consistent with PC-Annoatations.
 	if ( this->spmActivated )
 	{
-		matrix->UpdateCustomLegend();
-		matrix->GetAnnotationLink()->SetCurrentSelection( pcChart->GetAnnotationLink()->GetCurrentSelection() );
-		this->RealTimeRendering( this->pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
+		vtkSmartPointer<vtkIdTypeArray> DataSelection = this->pcChart->GetPlot(0)->GetSelection();
+
+		vtkIdType val = DataSelection->GetDataTypeValueMax();
+
+		QVector<uint> selID;
+#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
+		int countSelection = DataSelection->GetNumberOfValues();
+#else
+		int countSelection = DataSelection->GetNumberOfTuples();
+#endif
+		int idx = 0;
+		vtkVariant var_Idx = 0;
+		uint objID = 0;
+		if (countSelection > 0) {
+
+			for (idx; idx < countSelection; idx++) {
+
+				var_Idx = DataSelection->GetVariantValue(idx);
+				//fiber starts with index 1!!, mininum is 0
+				//todo change
+				objID =  (unsigned int)var_Idx.ToLongLong() +1;
+				selID.push_back(objID);
+
+			}
+			matrix->setSelection(&selID);
+		}
 	}
-	else
-		this->RealTimeRendering( this->pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
+	if (!useCsvOnly)
+	{
+		this->RealTimeRendering(this->pcChart->GetPlot(0)->GetSelection());
+	}
 }
 
-void dlg_FiberScout::setupNewPcView( bool lookupTable )
+void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 {
+	// !!!!! DUPLICATES FUNCTIONALITY FROM setupViews !!!!!
+
 	this->pcWidget->setEnabled( true );
 
 	// copy csvTable to chartTable, columnNames should be changed if we have fibre visualization
@@ -306,36 +367,22 @@ void dlg_FiberScout::setupNewPcView( bool lookupTable )
 		this->updateColumnNames();
 	}
 
-	this->pcWidget->SetRenderWindow( NULL );
 	this->deletePcViewPointer();
 
 	// new initialize of the pcChart
 	this->pcView = vtkContextView::New();
 	this->pcChart = vtkChartParallelCoordinates::New();
-
-	if ( this->spmActivated )
-		this->pcChart->SetAnnotationLink( matrix->GetAnnotationLink() ); //annLink
-
-	// setup interactor and render window
-	this->pcView->SetInteractor( this->pcWidget->GetInteractor() );
-	this->pcWidget->SetRenderWindow( this->pcView->GetRenderWindow() );
+	pcView->SetRenderWindow( pcWidget->GetRenderWindow() );
+	pcView->SetInteractor( pcWidget->GetInteractor() );
 	this->pcChart->GetPlot( 0 )->SetInputData( chartTable );
-
-	//pcChart->GetAxis(0)->GetLabelProperties()->SetFontSize(22);
-
-	// Line smoothness
 	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
-
 	this->pcChart->GetPlot( 0 )->SetWidth( 0.1 );
-	//this->pcView->GetRenderWindow()->SetMultiSamples(0);
-
 	this->pcView->GetScene()->AddItem( pcChart );
 
-	//Creates a popup menu 
+	//Creates a popup menu
 	QMenu* popup2 = new QMenu( pcWidget );
 	popup2->addAction( "Add Class" );
 	popup2->setStyleSheet( "font-size: 11px; background-color: #9B9B9B; border: 1px solid black;" );
-
 	connect( popup2, SIGNAL( triggered( QAction* ) ), this, SLOT( spPopupSelection( QAction* ) ) );
 
 	vtkEventQtSlotConnect *pcConnections = vtkEventQtSlotConnect::New();
@@ -364,14 +411,10 @@ void dlg_FiberScout::setupNewPcView( bool lookupTable )
 	if ( lookupTable )
 	{
 		this->pcWidget->setEnabled( false );
-		//QMessageBox msgBox;
-		//msgBox.setText("ParallelCoordinates view is disabled for multi cluster rendering. Please click any class to continue the classification.");
-		//msgBox.setWindowTitle("ParallelCoordinates View");
-		//msgBox.exec();
 	}
 }
 
-void dlg_FiberScout::updatePCColumnValues( QStandardItem *item )
+void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
 {
 	// new solution for using individual itemchagend signal
 	if ( item->isCheckable() )
@@ -397,7 +440,7 @@ void dlg_FiberScout::updatePCColumnValues( QStandardItem *item )
 	}
 }
 
-void dlg_FiberScout::updatePCColumnVisibility()
+void dlg_FeatureScout::updatePCColumnVisibility()
 {
 	pcChart->SetColumnVisibilityAll( false );
 
@@ -417,42 +460,42 @@ void dlg_FiberScout::updatePCColumnVisibility()
 	this->pcView->Render();
 }
 
-void dlg_FiberScout::setupDefaultElement()
+void dlg_FeatureScout::setupDefaultElement()
 {
-	if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )					//Fibers
+	if (useCsvOnly)
+		return;
+	if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )                      //Fibers
 	{
-		pcChart->SetColumnVisibilityAll( false );
-		pcChart->SetColumnVisibility( eleString.at( 7 ).toStdString(), true );	//a11
-		pcChart->SetColumnVisibility( eleString.at( 8 ).toStdString(), true );	//a22	
-		pcChart->SetColumnVisibility( eleString.at( 9 ).toStdString(), true );	//a33
-		pcChart->SetColumnVisibility( eleString.at( 13 ).toStdString(), true );	//theta
-		pcChart->SetColumnVisibility( eleString.at( 14 ).toStdString(), true );	//phi
-		pcChart->SetColumnVisibility( eleString.at( 15 ).toStdString(), true );	//xm
-		pcChart->SetColumnVisibility( eleString.at( 16 ).toStdString(), true );	//ym
-		pcChart->SetColumnVisibility( eleString.at( 17 ).toStdString(), true );	//zm
-		pcChart->SetColumnVisibility( eleString.at( 18 ).toStdString(), true );	//straightlength
-		//pcChart->SetColumnVisibility(eleString.at(20).toStdString(), true);	//diameter
-		//pcChart->SetColumnVisibility(eleString.at(22).toStdString(), true);	//volume
+		pcChart->SetColumnVisibilityAll(false);
+		pcChart->SetColumnVisibility(eleString.at(7).toStdString(), true);	//a11
+		pcChart->SetColumnVisibility(eleString.at(8).toStdString(), true);	//a22
+		pcChart->SetColumnVisibility(eleString.at(9).toStdString(), true);	//a33
+		pcChart->SetColumnVisibility(eleString.at(13).toStdString(), true);	//theta
+		pcChart->SetColumnVisibility(eleString.at(14).toStdString(), true);	//phi
+		pcChart->SetColumnVisibility(eleString.at(15).toStdString(), true);	//xm
+		pcChart->SetColumnVisibility(eleString.at(16).toStdString(), true);	//ym
+		pcChart->SetColumnVisibility(eleString.at(17).toStdString(), true);	//zm
+		pcChart->SetColumnVisibility(eleString.at(18).toStdString(), true);	//straightlength
 	}
-	else																		//Pores
+	else                                                                         //Pores
 	{
-		pcChart->SetColumnVisibilityAll( false );
-		pcChart->SetColumnVisibility( eleString.at( 0 ).toStdString(), true );	//id	
-		pcChart->SetColumnVisibility( eleString.at( 13 ).toStdString(), true );	//dimx	
-		pcChart->SetColumnVisibility( eleString.at( 14 ).toStdString(), true );	//dimy
-		pcChart->SetColumnVisibility( eleString.at( 15 ).toStdString(), true );	//dimz
-		pcChart->SetColumnVisibility( eleString.at( 16 ).toStdString(), true );	//phi
-		pcChart->SetColumnVisibility( eleString.at( 17 ).toStdString(), true );	//theata
-		pcChart->SetColumnVisibility( eleString.at( 18 ).toStdString(), true );	//Xm
-		pcChart->SetColumnVisibility( eleString.at( 19 ).toStdString(), true );	//Ym	
-		pcChart->SetColumnVisibility( eleString.at( 20 ).toStdString(), true );	//Zm	
-		pcChart->SetColumnVisibility( eleString.at( 21 ).toStdString(), true );	//volume
-		pcChart->SetColumnVisibility( eleString.at( 22 ).toStdString(), true );	//roundness
-		pcChart->SetColumnVisibility( eleString.at( 28 ).toStdString(), true );	//MajorLength
+		pcChart->SetColumnVisibilityAll(false);
+		pcChart->SetColumnVisibility(eleString.at(0).toStdString(), true);	//id
+		pcChart->SetColumnVisibility(eleString.at(13).toStdString(), true);	//dimx
+		pcChart->SetColumnVisibility(eleString.at(14).toStdString(), true);	//dimy
+		pcChart->SetColumnVisibility(eleString.at(15).toStdString(), true);	//dimz
+		pcChart->SetColumnVisibility(eleString.at(16).toStdString(), true);	//phi
+		pcChart->SetColumnVisibility(eleString.at(17).toStdString(), true);	//theata
+		pcChart->SetColumnVisibility(eleString.at(18).toStdString(), true);	//Xm
+		pcChart->SetColumnVisibility(eleString.at(19).toStdString(), true);	//Ym
+		pcChart->SetColumnVisibility(eleString.at(20).toStdString(), true);	//Zm
+		pcChart->SetColumnVisibility(eleString.at(21).toStdString(), true);	//volume
+		pcChart->SetColumnVisibility(eleString.at(22).toStdString(), true);	//roundness
+		pcChart->SetColumnVisibility(eleString.at(28).toStdString(), true);	//MajorLength
 	}
 }
 
-void dlg_FiberScout::setupModel()
+void dlg_FeatureScout::setupModel()
 {
 	// setup header data
 	elementTableModel->setHeaderData( 0, Qt::Horizontal, tr( "Element" ) );
@@ -490,7 +533,7 @@ void dlg_FiberScout::setupModel()
 	this->calculateElementTable();
 	this->initElementTableModel();
 
-	// class tree model 
+	// class tree model
 	// set up class tree headeritems
 	this->activeClassItem = new QStandardItem();
 	classTreeModel->setHorizontalHeaderItem( 0, new QStandardItem( "Class" ) );
@@ -501,7 +544,7 @@ void dlg_FiberScout::setupModel()
 	this->initClassTreeModel();
 }
 
-void dlg_FiberScout::setupViews()
+void dlg_FeatureScout::setupViews()
 {
 	// declare element table model
 	elementTableModel = new QStandardItemModel( elementNr, 4, this );
@@ -526,31 +569,23 @@ void dlg_FiberScout::setupViews()
 	// set models
 	this->elementTableView->setModel( elementTableModel );
 	this->classTreeView->setModel( classTreeModel );
-	//	this->elementTableView->setSortingEnabled(true);
 
 	// preparing chart and view for Parallel Coordinates
 	this->pcView = vtkContextView::New();
 	this->pcChart = vtkChartParallelCoordinates::New();
-
-	// setup interactor and render window
-	this->pcView->SetInteractor( this->pcWidget->GetInteractor() );
-	this->pcWidget->SetRenderWindow( this->pcView->GetRenderWindow() );
-
+	pcView->SetRenderWindow( pcWidget->GetRenderWindow() );
+	pcView->SetInteractor( pcWidget->GetInteractor() );
 	this->pcChart->GetPlot( 0 )->SetInputData( chartTable );
-
-	// Line smoothness
 	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
 	this->pcChart->GetPlot( 0 )->SetWidth( 0.1 );
-	//this->pcView->GetRenderWindow()->SetMultiSamples(0);
 
 	this->pcView->GetScene()->AddItem( pcChart );
 	this->setupDefaultElement();
 
-	// Creates a popup menu 
+	// Creates a popup menu
 	QMenu* popup2 = new QMenu( pcWidget );
 	popup2->addAction( "Add Class" );
 	popup2->setStyleSheet( "font-size: 11px; background-color: #9B9B9B; border: 1px solid black;" );
-
 	connect( popup2, SIGNAL( triggered( QAction* ) ), this, SLOT( spPopupSelection( QAction* ) ) );
 
 	vtkEventQtSlotConnect *pcConnections = vtkEventQtSlotConnect::New();
@@ -568,11 +603,11 @@ void dlg_FiberScout::setupViews()
 							this,
 							SLOT( spBigChartMouseButtonPressed( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
 
-	//this->createSphereView();
-	this->setupPolarPlotView( chartTable );
+	if (!this->useCsvOnly) //TODO enable some 3d view
+		this->setupPolarPlotView(chartTable);
 }
 
-void dlg_FiberScout::calculateElementTable()
+void dlg_FeatureScout::calculateElementTable()
 {
 	// free table contents first
 	elementTable->Initialize();
@@ -610,7 +645,7 @@ void dlg_FiberScout::calculateElementTable()
 	elementTable->AddColumn( v3Arr );
 }
 
-void dlg_FiberScout::initElementTableModel( int idx )
+void dlg_FeatureScout::initElementTableModel( int idx )
 {
 	// here try to convert the vtkTable values into a QtStandardItemModel
 	// this should be done every time when initialize realtime values for elementTable
@@ -646,7 +681,7 @@ void dlg_FiberScout::initElementTableModel( int idx )
 	else
 	{
 		// if the values of objectID is given and bigger than zero
-		// we then know that is a single selection, and we want to update the 
+		// we then know that is a single selection, and we want to update the
 		// element Table view with the new values
 		elementTableModel->setHeaderData( 1, Qt::Horizontal, tr( "Value" ) );
 		elementTableView->hideColumn( 2 );
@@ -660,13 +695,12 @@ void dlg_FiberScout::initElementTableModel( int idx )
 			if ( i == 0 || i == elementNr - 1 )
 				str = QString::number( v.ToInt() );
 
-			//QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
 			elementTableModel->setData( elementTableModel->index( i, 1, QModelIndex() ), str );
 		}
 	}
 }
 
-void dlg_FiberScout::initClassTreeModel()
+void dlg_FeatureScout::initClassTreeModel()
 {
 	QStandardItem *rootItem = classTreeModel->invisibleRootItem();
 	QList<QStandardItem *> stammItem = prepareRow( "Unclassified", QString( "%1" ).arg( objectNr ), "100" );
@@ -684,7 +718,7 @@ void dlg_FiberScout::initClassTreeModel()
 }
 
 // calculate the average value of a 1D array
-float dlg_FiberScout::calculateAverage( vtkDataArray *arr )
+float dlg_FeatureScout::calculateAverage( vtkDataArray *arr )
 {
 	double av = 0.0;
 	double sum = 0.0;
@@ -696,7 +730,7 @@ float dlg_FiberScout::calculateAverage( vtkDataArray *arr )
 	return av;
 }
 
-QList<QStandardItem *> dlg_FiberScout::prepareRow( const QString &first, const QString &second, const QString &third )
+QList<QStandardItem *> dlg_FeatureScout::prepareRow( const QString &first, const QString &second, const QString &third )
 {
 	// prepare the class header rows for class tree view first grade child unter rootitem
 	// for adding child object to this class, use item.first()->appendRow()
@@ -708,7 +742,7 @@ QList<QStandardItem *> dlg_FiberScout::prepareRow( const QString &first, const Q
 }
 
 // setup connections, define signal and slots
-void dlg_FiberScout::setupConnections()
+void dlg_FeatureScout::setupConnections()
 {
 	// create ClassTreeView context menu actions
 	blobRendering = new QAction( tr( "Enable blob rendering" ), this->classTreeView );
@@ -729,15 +763,6 @@ void dlg_FiberScout::setupConnections()
 	connect( this->delete_class, SIGNAL( clicked() ), this, SLOT( ClassDeleteButton() ) );
 	connect( this->wisetex_save, SIGNAL( released() ), this, SLOT( WisetexSaveButton() ) );
 	connect( this->csv_dv, SIGNAL( released() ), this, SLOT( CsvDVSaveButton() ) );
-	/*connect(this->rendering, SIGNAL(clicked()), this, SLOT(RenderingButton()));
-	connect(this->blob_rendering, SIGNAL(clicked()), this, SLOT(OpenBlobVisDialog()));
-	connect(this->plot_scatter, SIGNAL(clicked()), this, SLOT(ScatterPlotButton()));*/
-
-
-	// Set up other options
-	//connect(this->option_Box, SIGNAL(currentIndexChanged(int)), this, SLOT(pcChangeOptions(int )));
-	// set up realtime rendering for parallel coordinates brushing rendering
-	//connect(this->pcWidget, SIGNAL(this->pcWidget), this, SLOT(RealTimeRendering()));
 
 	// Element checkstate for visualizing Columns in PC view
 	// Define ranges for PC columns
@@ -755,10 +780,8 @@ void dlg_FiberScout::setupConnections()
 							SLOT( pcViewMouseButtonCallBack( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ), 0, 0.0, Qt::UniqueConnection );
 }
 
-void dlg_FiberScout::pcChangeOptions( int idx )
+void dlg_FeatureScout::pcChangeOptions( int idx )
 {
-	//this->raycaster->GetRenderer()->RemoveActor(scalarBar);
-
 	switch ( idx )
 	{
 		case 0:			// option menu, do nothing
@@ -766,17 +789,15 @@ void dlg_FiberScout::pcChangeOptions( int idx )
 
 		case 1:			// blob Rendering, trigger Slot OpenBlobVisDialog()
 			this->OpenBlobVisDialog();
-			//this->option_Box->setCurrentIndex(0);
 			break;
 
 		case 3:			// multi Rendering
 			this->RenderingButton();
-			//this->option_Box->setCurrentIndex(0);
 			this->classRendering = false;
 			break;
 
 		case 4:			// probability Rendering
-			this->RenderingFiberMeanObject();
+			this->RenderingMeanObject();
 			this->classRendering = false;
 			break;
 
@@ -788,12 +809,10 @@ void dlg_FiberScout::pcChangeOptions( int idx )
 		case 6:			// plot scatterplot matrix
 			this->spmActivated = true;
 			this->ScatterPlotButton();
-			//this->option_Box->setCurrentIndex(0);
 			break;
 
 		case 7:
 			this->RenderingFLD();
-			//this->option_Box->setCurrentIndex(0);
 			this->classRendering = false;
 			break;
 
@@ -802,29 +821,34 @@ void dlg_FiberScout::pcChangeOptions( int idx )
 	}
 }
 
-void dlg_FiberScout::RenderingButton()
+void dlg_FeatureScout::RenderingButton()
 {
+	if (this->useCsvOnly)
+	{
+		QMessageBox::warning(this, tr("MultiClassView"),
+			tr("Multi class rendering disabled - 3D data is required"));
+		return;
+	}
 	//Turns off FLD scalar bar updates polar plot view
-	if ( m_scalarWidgetFLD != NULL )
+	if (m_scalarWidgetFLD != NULL)
 	{
 		m_scalarWidgetFLD->Off();
-		this->updatePolarPlotColorScalar( chartTable );
+		this->updatePolarPlotColorScalar(chartTable);
 	}
 
 	QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
 	int classCount = rootItem->rowCount();
 
-	if ( classCount == 1 )
+	if (classCount == 1)
 		return;
 
 	double backAlpha = 0.00005;
 	double backRGB[3];
-	backRGB[0] = colorList.at( 0 ).redF();
-	backRGB[1] = colorList.at( 0 ).greenF();
-	backRGB[2] = colorList.at( 0 ).blueF();
+	backRGB[0] = colorList.at(0).redF();
+	backRGB[1] = colorList.at(0).greenF();
+	backRGB[2] = colorList.at(0).blueF();
 
-	//double alpha = 1.0;
-	double alpha = this->calculateOpacity( rootItem );
+	double alpha = this->calculateOpacity(rootItem);
 	double red = 0.0;
 	double green = 0.0;
 	double blue = 0.0;
@@ -839,123 +863,116 @@ void dlg_FiberScout::RenderingButton()
 	this->cTF->ClampingOff();
 
 	// Iterate trough all classes to render, starting with 0 unclassified, 1 Class1,...
-	for ( int i = 0; i < classCount; i++ )
+	for (int i = 0; i < classCount; i++)
 	{
-		// alpha = colorList.at(i).alpha()/255.0;
-		red = colorList.at( i ).redF();
-		green = colorList.at( i ).greenF();
-		blue = colorList.at( i ).blueF();
+		red = colorList.at(i).redF();
+		green = colorList.at(i).greenF();
+		blue = colorList.at(i).blueF();
 
-		QStandardItem *item = rootItem->child( i, 0 );
+		QStandardItem *item = rootItem->child(i, 0);
 		int itemL = item->rowCount();
 
 		// Class has no objects, proceed with next class
-		if ( !itemL )
+		if (!itemL)
 			continue;
 
 		int hid = 0, next_hid = 1;
 		bool starting = false;
 
-		for ( int j = 0; j < itemL; ++j )
+		for (int j = 0; j < itemL; ++j)
 		{
-			hid = item->child( j, 0 )->text().toInt();
+			hid = item->child(j, 0)->text().toInt();
 
-			if ( ( j + 1 ) < itemL )
+			if ((j + 1) < itemL)
 			{
-				next_hid = item->child( j + 1, 0 )->text().toInt();
+				next_hid = item->child(j + 1, 0)->text().toInt();
 			}
 			else
 			{
-				if ( starting )
+				if (starting)
 				{
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					oTF->AddPoint(hid, alpha, 0.5, 1.0);
+					oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+					cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+					cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 					break;
 				}
 				else
 				{
-					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
+					oTF->AddPoint(hid, alpha, 0.5, 1.0);
+					cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+					cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+					oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+					cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 					break;
 				}
 			}
 
 			//Create one single tooth
-			if ( next_hid > hid + 1 && !starting )
+			if (next_hid > hid + 1 && !starting)
 			{
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
+				oTF->AddPoint(hid, alpha, 0.5, 1.0);
+				oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+				cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+				cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+				cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 			}
-			else if ( next_hid == hid + 1 && !starting )
+			else if (next_hid == hid + 1 && !starting)
 			{
 				starting = true;
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+				oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
+				oTF->AddPoint(hid, alpha, 0.5, 1.0);
+				cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+				cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
 			}
-			else if ( next_hid == hid + 1 && starting )
+			else if (next_hid == hid + 1 && starting)
 				continue;
 
-			else if ( next_hid > hid + 1 && starting )
+			else if (next_hid > hid + 1 && starting)
 			{
 				starting = false;
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				oTF->AddPoint(hid, alpha, 0.5, 1.0);
+				oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
+				cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
+				cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 			}
 		}
 
-		if ( hid < objectNr )
+		if (hid < objectNr)
 		{
-			this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
-			this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			this->oTF->AddPoint(objectNr + 0.3, backAlpha, 0.5, 1.0);
+			this->cTF->AddRGBPoint(objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 		}
 	}
 
 	// update lookup table in PC View
-	this->updateLookupTable( alpha );
-	this->setupNewPcView( true );
-	static_cast<vtkPlotParallelCoordinates *>( pcChart->GetPlot( 0 ) )->SetScalarVisibility( 1 );
-	static_cast<vtkPlotParallelCoordinates *>( pcChart->GetPlot( 0 ) )->SetLookupTable( lut );
-	static_cast<vtkPlotParallelCoordinates *>( pcChart->GetPlot( 0 ) )->SelectColorArray( "Class_ID" );
-	this->pcChart->SetSize( pcChart->GetSize() );
+	this->updateLookupTable(alpha);
+	this->setupNewPcView(true);
+	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetScalarVisibility(1);
+	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetLookupTable(lut);
+	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray("Class_ID");
+	this->pcChart->SetSize(pcChart->GetSize());
 
 	//Updates SPM
-	if ( this->spmActivated )
+	if (this->spmActivated)
 	{
-		matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
-		matrix->SetClass2Plot( -1 );
-		matrix->UpdateLayout();
-		//iovSPM->dockWidgetContents->setWindowTitle(QString("FiberScout - Scatter Plot Matrix: Multi Class View"));	
+		// TODO SPM
 	}
 
-	static_cast<MdiChild*>( activeChild )->updateViews();
-
-	//Cause of performance turrned off
-	//static_cast<MdiChild*>(activeChild)->redrawHistogram();
+	static_cast<MdiChild*>(activeChild)->updateViews();
 }
 
-void dlg_FiberScout::SingleRendering( int idx )
+void dlg_FeatureScout::SingleRendering( int idx )
 {
 	int cID = this->activeClassItem->index().row();
 	int itemL = this->activeClassItem->rowCount();
-	double red = colorList.at( cID ).redF(), 
+	double red = colorList.at( cID ).redF(),
 		   green = colorList.at( cID ).greenF(),
-		   blue = colorList.at( cID ).blueF(), 
-		   alpha = 0.5, 
-		   backAlpha = 0.0, 
+		   blue = colorList.at( cID ).blueF(),
+		   alpha = 0.5,
+		   backAlpha = 0.0,
 		   backRGB[3] = { 0.0, 0.0, 0.0 };
 
 	// clear existing points
@@ -1059,202 +1076,198 @@ void dlg_FiberScout::SingleRendering( int idx )
 	raycaster->update();
 }
 
-void dlg_FiberScout::RealTimeRendering( vtkIdTypeArray *selection, bool enabled )
+void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 {
-	if ( enabled )
+	//Turns off FLD scalar bar updates polar plot view
+	if ( m_scalarWidgetFLD != NULL )
 	{
-		//Turns off FLD scalar bar updates polar plot view
-		if ( m_scalarWidgetFLD != NULL )
+		m_scalarWidgetFLD->Off();
+		this->updatePolarPlotColorScalar( chartTable );
+	}
+
+	this->orientationColorMapSelection->hide();
+	this->orientColormap->hide();
+
+	int countClass = this->activeClassItem->rowCount();
+	int countSelection = selection->GetNumberOfTuples();
+
+	if ( countClass > 0 )
+	{
+		double red = 0.0, green = 0.0, blue = 0.0, alpha = 0.5, backAlpha = 0.00, backRGB[3], classRGB[3], selRGB[3];
+		backRGB[0] = 0.5; backRGB[1] = 0.5; backRGB[2] = 0.5;
+		selRGB[0] = 1.0; selRGB[1] = 0.0; selRGB[2] = 0.0;	//selection color
+		classRGB[0] = colorList.at( activeClassItem->index().row() ).redF();
+		classRGB[1] = colorList.at( activeClassItem->index().row() ).greenF();
+		classRGB[2] = colorList.at( activeClassItem->index().row() ).blueF();
+
+		// clear existing points
+		this->oTF->RemoveAllPoints();
+		this->cTF->RemoveAllPoints();
+
+		this->oTF->ClampingOff();
+		this->cTF->ClampingOff();
+
+		this->oTF->AddPoint( 0, backAlpha, 0.5, 1.0 );
+		this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+
+		int hid = 0, next_hid = 1, selectionIndex = 0, previous_selectionIndex = 0;
+		bool starting = false, hid_isASelection = false, previous_hid_isASelection = false;
+
+		for ( int j = 0; j < countClass; ++j )
 		{
-			m_scalarWidgetFLD->Off();
-			this->updatePolarPlotColorScalar( chartTable );
-		}
+			hid = this->activeClassItem->child( j )->text().toInt();
 
-		this->orientationColorMapSelection->hide();
-		this->orientColormap->hide();
-
-		int countClass = this->activeClassItem->rowCount();
-		int countSelection = selection->GetNumberOfTuples();
-
-		if ( countClass > 0 )
-		{
-			double red = 0.0, green = 0.0, blue = 0.0, alpha = 0.5, backAlpha = 0.00, backRGB[3], classRGB[3], selRGB[3];
-			backRGB[0] = 0.5; backRGB[1] = 0.5; backRGB[2] = 0.5;
-			selRGB[0] = 1.0; selRGB[1] = 0.0; selRGB[2] = 0.0;	//selection color
-			classRGB[0] = colorList.at( activeClassItem->index().row() ).redF();
-			classRGB[1] = colorList.at( activeClassItem->index().row() ).greenF();
-			classRGB[2] = colorList.at( activeClassItem->index().row() ).blueF();
-
-			// clear existing points
-			this->oTF->RemoveAllPoints();
-			this->cTF->RemoveAllPoints();
-
-			this->oTF->ClampingOff();
-			this->cTF->ClampingOff();
-
-			this->oTF->AddPoint( 0, backAlpha, 0.5, 1.0 );
-			this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-
-			int hid = 0, next_hid = 1, selectionIndex = 0, previous_selectionIndex = 0;
-			bool starting = false, hid_isASelection = false, previous_hid_isASelection = false;
-
-			for ( int j = 0; j < countClass; ++j )
+			if ( countSelection > 0 )
 			{
-				hid = this->activeClassItem->child( j )->text().toInt();
-
-				if ( countSelection > 0 )
+				if ( j == selection->GetVariantValue( selectionIndex ).ToInt() )
 				{
-					if ( j == selection->GetVariantValue( selectionIndex ).ToInt() )
-					{
-						hid_isASelection = true;
-						red = selRGB[0], green = selRGB[1], blue = selRGB[2];
+					hid_isASelection = true;
+					red = selRGB[0], green = selRGB[1], blue = selRGB[2];
 
-						if ( selectionIndex + 1 < selection->GetNumberOfTuples() )
-							selectionIndex++;
-					}
-					else
-					{
-						hid_isASelection = false;
-						red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
-					}
-
-					if ( j > 0 )
-					{
-						if ( j - 1 == selection->GetVariantValue( previous_selectionIndex ).ToInt() )
-						{
-							previous_hid_isASelection = true;
-
-							if ( previous_selectionIndex + 1 < selection->GetNumberOfTuples() )
-								previous_selectionIndex++;
-						}
-						else
-							previous_hid_isASelection = false;
-					}
+					if ( selectionIndex + 1 < selection->GetNumberOfTuples() )
+						selectionIndex++;
 				}
 				else
 				{
+					hid_isASelection = false;
 					red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
 				}
 
-				// If we are not yet at the last object (of the class) get the next hid 
-				if ( ( j + 1 ) < countClass )
+				if ( j > 0 )
 				{
-					next_hid = this->activeClassItem->child( j + 1 )->text().toInt();
-				}
-				else	// If hid = the last object (of the class) we have to set the last object points
-				{
-					if ( starting )	// If we are in a sequence we have to set the ending (\)
+					if ( j - 1 == selection->GetVariantValue( previous_selectionIndex ).ToInt() )
 					{
-						oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-						oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-						oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-						oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+						previous_hid_isASelection = true;
 
-						if ( hid_isASelection )
-						{
-							cTF->AddRGBPoint( hid - 0.5, 1.0, 0.0, 0.0, 0.5, 1.0 );
-							cTF->AddRGBPoint( hid, 1.0, 0.0, 0.0, 0.5, 1.0 );
-							cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-						}
-						else
-						{
-							cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-							cTF->AddRGBPoint( hid, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-							cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-						}
-
-						if ( previous_hid_isASelection )
-							cTF->AddRGBPoint( hid - 1 + 0.3, 1.0, 0.0, 0.0, 0.5, 1.0 );
-						else
-							cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-						break;
+						if ( previous_selectionIndex + 1 < selection->GetNumberOfTuples() )
+							previous_selectionIndex++;
 					}
-					else	// if we are not in a sequence we have to create the last tooth (/\)
-					{
-						oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-						oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-						oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-
-						cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-						cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-						cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-						break;
-					}
+					else
+						previous_hid_isASelection = false;
 				}
+			}
+			else
+			{
+				red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
+			}
 
-				if ( next_hid > hid + 1 && !starting )		//Create one single tooth
+			// If we are not yet at the last object (of the class) get the next hid
+			if ( ( j + 1 ) < countClass )
+			{
+				next_hid = this->activeClassItem->child( j + 1 )->text().toInt();
+			}
+			else	// If hid = the last object (of the class) we have to set the last object points
+			{
+				if ( starting )	// If we are in a sequence we have to set the ending (\)
 				{
-					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				}
-				else if ( next_hid == hid + 1 && !starting )	//Creates the beginning of a sequence (/)
-				{
-					starting = true;
-					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				}
-				else if ( next_hid == hid + 1 && starting )	//Continous the started sequence (-)
-				{
-					if ( !hid_isASelection && previous_hid_isASelection )
-					{
-						cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-						cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-						cTF->AddRGBPoint( hid + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-
-						oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-						oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-						oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
-					}
-					else if ( hid_isASelection && !previous_hid_isASelection )
-					{
-						cTF->AddRGBPoint( hid - 0.5, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-						cTF->AddRGBPoint( hid + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-						cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-
-						oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-						oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
-						oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-					}
-				}
-				else if ( next_hid > hid + 1 && starting )	//  (\)
-				{
-					starting = false;
-
 					oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
 					oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
 					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
 					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
 
+					if ( hid_isASelection )
+					{
+						cTF->AddRGBPoint( hid - 0.5, 1.0, 0.0, 0.0, 0.5, 1.0 );
+						cTF->AddRGBPoint( hid, 1.0, 0.0, 0.0, 0.5, 1.0 );
+						cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					}
+					else
+					{
+						cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+						cTF->AddRGBPoint( hid, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+						cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					}
+
 					if ( previous_hid_isASelection )
-						cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+						cTF->AddRGBPoint( hid - 1 + 0.3, 1.0, 0.0, 0.0, 0.5, 1.0 );
 					else
 						cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+					break;
+				}
+				else	// if we are not in a sequence we have to create the last tooth (/\)
+				{
+					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
 
-					cTF->AddRGBPoint( hid - 0.5, red, green, blue, 0.5, 1.0 );
+					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
 					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					break;
 				}
 			}
 
-			if ( hid < objectNr )	// Creates the very last points (for all objects)  if it's not created yet
+			if ( next_hid > hid + 1 && !starting )		//Create one single tooth
 			{
-				this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
-				this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 			}
-			MdiChild * mdiChild = static_cast<MdiChild*>(activeChild);
-			mdiChild->updateViews();
-			//raycaster->update();
+			else if ( next_hid == hid + 1 && !starting )	//Creates the beginning of a sequence (/)
+			{
+				starting = true;
+				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+			}
+			else if ( next_hid == hid + 1 && starting )	//Continous the started sequence (-)
+			{
+				if ( !hid_isASelection && previous_hid_isASelection )
+				{
+					cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+					cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+					cTF->AddRGBPoint( hid + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+
+					oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
+					oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
+					oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
+				}
+				else if ( hid_isASelection && !previous_hid_isASelection )
+				{
+					cTF->AddRGBPoint( hid - 0.5, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+					cTF->AddRGBPoint( hid + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+					cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+
+					oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
+					oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
+					oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
+				}
+			}
+			else if ( next_hid > hid + 1 && starting )	//  (\)
+			{
+				starting = false;
+
+				oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
+				oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
+				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+
+				if ( previous_hid_isASelection )
+					cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
+				else
+					cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
+
+				cTF->AddRGBPoint( hid - 0.5, red, green, blue, 0.5, 1.0 );
+				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			}
 		}
+
+		if ( hid < objectNr )	// Creates the very last points (for all objects)  if it's not created yet
+		{
+			this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
+			this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+		}
+		MdiChild * mdiChild = static_cast<MdiChild*>(activeChild);
+		mdiChild->updateViews();
 	}
 }
 
-void dlg_FiberScout::RenderingFiberMeanObject()
+void dlg_FeatureScout::RenderingMeanObject()
 {
 	int classCount = classTreeModel->invisibleRootItem()->rowCount();
 	if ( classCount < 2 )	// unclassified class only
@@ -1265,7 +1278,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 		msgBox.exec();
 		return;
 	}
-	
+
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	mdiChild->initProgressBar();
 
@@ -1457,20 +1470,20 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 		m_MOData.moHistogramList.append( moHistogram );
 
 		// Create MObject default Transfer Tunctions
-		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION ) // Fibers 
+		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION ) // Fibers
 		{
 			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.01, 1.0, 1.0, 0.0 ); 
+			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.01, 1.0, 1.0, 0.0 );
 			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.095, 1.0, 1.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.1, 0.0, 0.0, 1.0 );  
+			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 0.1, 0.0, 0.0, 1.0 );
 			m_MOData.moHistogramList[currClass-1]->GetColorFunction()->AddRGBPoint( 1.00, 0.0, 0.0, 1.0 );
 			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.01, 0.01 ); 
+			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.01, 0.01 );
 			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.095, 0.01 );
-			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.1, 0.05 ); 
+			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 0.1, 0.05 );
 			m_MOData.moHistogramList[currClass-1]->GetOpacityFunction()->AddPoint( 1.00, 0.18 );
 		}
-		else // Voids 
+		else // Voids
 		{
 			m_MOData.moHistogramList[currClass - 1]->GetColorFunction()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
 			m_MOData.moHistogramList[currClass - 1]->GetColorFunction()->AddRGBPoint( 0.0001, 0.0, 0.0, 0.0 );
@@ -1520,7 +1533,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 	outlineActor->GetProperty()->SetLineWidth( 1.0 );
 	outlineActor->GetProperty()->SetOpacity( 0.1 );
 
-	// Calculates the max dimension of the image 
+	// Calculates the max dimension of the image
 	double maxDim = 0.0;
 	for ( int i = 0; i < 6; ++i )
 	{
@@ -1537,10 +1550,17 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 		connect( iovMO->tb_SaveStl, SIGNAL( clicked() ), this, SLOT( saveStl() ) );
 
 		// Create a render window and an interactor for all the MObjects
-		m_renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-		iovMO->plotWidget->SetRenderWindow( m_renderWindow );
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+		m_meanObjectRenderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+		meanObjectWidget = new QVTKOpenGLWidget();
+#else
+		m_meanObjectRenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+		meanObjectWidget = new QVTKWidget();
+#endif
+		iovMO->verticalLayout->addWidget( meanObjectWidget );
+		meanObjectWidget->SetRenderWindow( m_meanObjectRenderWindow );
 		vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-		renderWindowInteractor->SetRenderWindow( m_renderWindow );
+		renderWindowInteractor->SetRenderWindow( m_meanObjectRenderWindow );
 		vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle( style );
 
@@ -1560,7 +1580,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 
 	if ( iovSPM )
 	{
-		mdiChild->tabifyDockWidget( iovSPM, iovMO );
+		mdiChild->tabifyDockWidget(iovSPM, iovMO );
 		iovMO->show();
 		iovMO->raise();
 	}
@@ -1572,7 +1592,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 	}
 
 	// Remove old renderers
-	iovMO->plotWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
+	meanObjectWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
 
 	// Define viewport variables
 	unsigned numberOfMeanObjectVolumes = m_MOData.moVolumesList.size();
@@ -1587,7 +1607,7 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 		m_MOData.moRendererList.append( renderer );
 		renderer->GetActiveCamera()->ParallelProjectionOn();
 		renderer->SetBackground( 1.0, 1.0, 1.0 );
-		m_renderWindow->AddRenderer( m_MOData.moRendererList[i] );
+		m_meanObjectRenderWindow->AddRenderer( m_MOData.moRendererList[i] );
 		renderer->SetViewport( fmod( i, viewportColumns ) * fieldLengthX,
 							   1 - ( ceil( ( i + 1.0 ) / viewportColumns ) / viewportRows ),
 							   fmod( i, viewportColumns ) * fieldLengthX + fieldLengthX,
@@ -1597,8 +1617,8 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 		{
 			renderer->AddVolume( m_MOData.moVolumesList[i] );
 			renderer->SetActiveCamera( raycaster->GetRenderer()->GetActiveCamera() );
-			renderer->GetActiveCamera()->SetParallelScale( maxDim );	//use maxDim for right scaling to fit the data in the viewports 
-			
+			renderer->GetActiveCamera()->SetParallelScale( maxDim );	//use maxDim for right scaling to fit the data in the viewports
+
 			vtkSmartPointer<vtkCornerAnnotation> cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
 			cornerAnnotation->SetLinearFontScaleFactor( 2 );
 			cornerAnnotation->SetNonlinearFontScaleFactor( 1 );
@@ -1637,16 +1657,16 @@ void dlg_FiberScout::RenderingFiberMeanObject()
 			cubeAxesActor->GetYAxesLinesProperty()->SetColor( 0.0, 1.0, 0.0 );
 			cubeAxesActor->ZAxisLabelVisibilityOn(); cubeAxesActor->ZAxisTickVisibilityOn(); cubeAxesActor->ZAxisMinorTickVisibilityOff();
 			cubeAxesActor->GetZAxesLinesProperty()->SetColor( 0.0, 0.0, 1.0 );
-			
+
 			renderer->AddViewProp( cornerAnnotation );
 			renderer->AddActor( cubeAxesActor );
 			renderer->AddActor( outlineActor );
 		}
-		m_renderWindow->Render();
+		m_meanObjectRenderWindow->Render();
 	}
 }
 
-void dlg_FiberScout::modifyMeanObjectTF()
+void dlg_FeatureScout::modifyMeanObjectTF()
 {
 	m_motfView = new iAMeanObjectTFView( this );
 	if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
@@ -1660,12 +1680,12 @@ void dlg_FiberScout::modifyMeanObjectTF()
 	m_motfView->show();
 }
 
-void dlg_FiberScout::updateMOView()
+void dlg_FeatureScout::updateMOView()
 {
-	iovMO->plotWidget->GetRenderWindow()->Render();	
+	meanObjectWidget->GetRenderWindow()->Render();
 }
 
-void dlg_FiberScout::browseFolderDialog()
+void dlg_FeatureScout::browseFolderDialog()
 {
 	QString dir = sourcePath;
 	dir.truncate( sourcePath.lastIndexOf( "/" ) );
@@ -1675,7 +1695,7 @@ void dlg_FiberScout::browseFolderDialog()
 	iovMO->le_StlPath->setText( filename );
 }
 
-void dlg_FiberScout::saveStl()
+void dlg_FeatureScout::saveStl()
 {
 	if ( iovMO->le_StlPath->text().isEmpty() )
 	{
@@ -1693,7 +1713,7 @@ void dlg_FiberScout::saveStl()
 	iAProgress stlWriProgress;
 	connect( &marCubProgress, SIGNAL( progress( int ) ), this, SLOT( updateMarProgress( int ) ) );
 	connect( &stlWriProgress, SIGNAL( progress( int ) ), this, SLOT( updateStlProgress( int ) ) );
-	
+
 	vtkSmartPointer<vtkMarchingCubes> moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
 	marCubProgress.Observe(moSurface);
 	moSurface->SetInputData( m_MOData.moImageDataList[iovMO->cb_Classes->currentIndex()] );
@@ -1708,13 +1728,13 @@ void dlg_FiberScout::saveStl()
 	stlWriter->Write();
 }
 
-void dlg_FiberScout::updateMarProgress(int i)
+void dlg_FeatureScout::updateMarProgress(int i)
 {
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	mdiChild->updateProgressBar( i / 2  );
 }
 
-void dlg_FiberScout::updateStlProgress( int i )
+void dlg_FeatureScout::updateStlProgress( int i )
 {
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	mdiChild->updateProgressBar( 50 + i / 2 );
@@ -1816,7 +1836,7 @@ void ColormapRGBHalfSphere( const double normal[3], double color_out[3] )
 	CheckBounds( color_out );
 }
 
-void dlg_FiberScout::RenderingOrientation()
+void dlg_FeatureScout::RenderingOrientation()
 {
 	//Turns off FLD scalar bar and updates polar plot view
 	if ( m_scalarWidgetFLD != NULL )
@@ -1858,8 +1878,6 @@ void dlg_FiberScout::RenderingOrientation()
 	// clear existing points
 	this->oTF->RemoveAllPoints();
 	this->cTF->RemoveAllPoints();
-	//this->oTF->ClampingOff();
-	//this->cTF->ClampingOff();
 
 	this->oTF->AddPoint( 0, backAlpha );
 	this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
@@ -1882,9 +1900,6 @@ void dlg_FiberScout::RenderingOrientation()
 		this->oTF->AddPoint( i + 1, alpha );
 		this->cTF->AddRGBPoint( i + 1, red, green, blue );
 	}
-
-	// update polar plot for orientation rendering
-	this->pcPolarPlot->SetRenderWindow( NULL );
 
 	// prepare the delaunay triangles
 	VTK_CREATE( vtkDelaunay2D, del );
@@ -1934,7 +1949,11 @@ void dlg_FiberScout::RenderingOrientation()
 	VTK_CREATE( vtkRenderer, renderer );
 	renderer->SetBackground( 1, 1, 1 );
 
-	VTK_CREATE( vtkRenderWindow, renW );
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	VTK_CREATE(vtkGenericOpenGLRenderWindow, renW);
+#else
+	VTK_CREATE(vtkRenderWindow, renW);
+#endif
 	renW->AddRenderer( renderer );
 	renderer->AddActor( actor );
 
@@ -1942,17 +1961,17 @@ void dlg_FiberScout::RenderingOrientation()
 	this->drawPolarPlotMesh( renderer );
 	this->drawAnnotations( renderer );
 
-	vtkRenderWindowInteractor *renI = pcPolarPlot->GetInteractor();
+	vtkRenderWindowInteractor *renI = polarPlot->GetInteractor();
 	renI->SetRenderWindow( renW );
-	pcPolarPlot->SetRenderWindow( renI->GetRenderWindow() );
-	pcPolarPlot->GetRenderWindow()->Render();
+	polarPlot->SetRenderWindow( renW );
+	renW->Render();
 
 	static_cast<MdiChild*>( activeChild )->updateViews();
 	orientationColorMapSelection->show();
 	this->orientColormap->show();
 }
 
-void dlg_FiberScout::RenderingFLD()
+void dlg_FeatureScout::RenderingFLD()
 {
 	int numberOfBins;
 	double range[2] = { 0.0, 0.0 };
@@ -2020,17 +2039,17 @@ void dlg_FiberScout::RenderingFLD()
 	cTFun->SetColorSpaceToRGB();
 	if ( this->filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
 	{
-		cTFun->AddRGBPoint( range[0], 1.0, 0.6, 0.0 );	//orange				
-		cTFun->AddRGBPoint( extents->GetValue( 0 ) + halfInc, 1.0, 0.0, 0.0 ); //rot
-		cTFun->AddRGBPoint( extents->GetValue( 1 ) + halfInc, 1.0, 0.0, 1.0 ); //magaenta			
-		cTFun->AddRGBPoint( extents->GetValue( 2 ) + halfInc, 0.0, 0.0, 1.0 ); //blau	
-		cTFun->AddRGBPoint( extents->GetValue( 7 ) + halfInc, 0.0, 1.0, 0.7 ); //cyan	
+		cTFun->AddRGBPoint( range[0], 1.0, 0.6, 0.0 );	//orange
+		cTFun->AddRGBPoint( extents->GetValue( 0 ) + halfInc, 1.0, 0.0, 0.0 ); //red
+		cTFun->AddRGBPoint( extents->GetValue( 1 ) + halfInc, 1.0, 0.0, 1.0 ); //magenta
+		cTFun->AddRGBPoint( extents->GetValue( 2 ) + halfInc, 0.0, 0.0, 1.0 ); //blue
+		cTFun->AddRGBPoint( extents->GetValue( 7 ) + halfInc, 0.0, 1.0, 0.7 ); //cyan
 	}
 	else
 	{
-		cTFun->AddRGBPoint( range[0], 1.0, 0.6, 0.0 );	//orange				
-		cTFun->AddRGBPoint( extents->GetValue( 1 ) + halfInc, 1.0, 0.0, 1.0 ); //magaenta			
-		cTFun->AddRGBPoint( extents->GetValue( 2 ) + halfInc, 0.0, 1.0, 0.7 ); //cyan	
+		cTFun->AddRGBPoint( range[0], 1.0, 0.6, 0.0 );	//orange
+		cTFun->AddRGBPoint( extents->GetValue( 1 ) + halfInc, 1.0, 0.0, 1.0 ); //magenta
+		cTFun->AddRGBPoint( extents->GetValue( 2 ) + halfInc, 0.0, 1.0, 0.7 ); //cyan
 	}
 
 	// start rendering process with colorlookuptable
@@ -2050,19 +2069,14 @@ void dlg_FiberScout::RenderingFLD()
 	this->oTF->RemoveAllPoints();
 	this->cTF->RemoveAllPoints();
 
-	//this->oTF->ClampingOff();
-	//this->cTF->ClampingOff();
-
 	this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
 
-	//alpha = colorLookupTable->GetAlpha();
 	double alpha = 0.001;
 
 	for ( int i = 0; i < this->objectNr; i++ )
 	{
 		double ll = length->GetTuple( i )[0];
 
-		//colorLookupTable->GetColor(ll, dcolor);
 		cTFun->GetColor( ll, dcolor );
 		red = dcolor[0];
 		green = dcolor[1];
@@ -2131,7 +2145,7 @@ void dlg_FiberScout::RenderingFLD()
 	this->drawScalarBar( cTFun, this->raycaster->GetRenderer(), 1 );
 	this->raycaster->update();
 
-	// plot fiber length distribution
+	// plot length distribution
 	VTK_CREATE( vtkContextView, view );
 	VTK_CREATE( vtkChartXY, chart );
 
@@ -2151,164 +2165,410 @@ void dlg_FiberScout::RenderingFLD()
 	plot->GetXAxis()->SetTitle( "Length in microns" );
 	plot->GetYAxis()->SetTitle( "Frequency" );
 	view->GetScene()->AddItem( chart );
-	view->SetInteractor( this->pcPolarPlot->GetInteractor() );
-	this->pcPolarPlot->SetRenderWindow( view->GetRenderWindow() );
-	pcPolarPlot->update();
+	view->SetInteractor( polarPlot->GetInteractor() );
+	view->SetRenderWindow( polarPlot->GetRenderWindow() );
+	polarPlot->update();
 }
 
-void dlg_FiberScout::ClassAddButton()
+void dlg_FeatureScout::ClassAddButton()
 {
-	int CountObject = 0;
-	CountObject = pcChart->GetPlot( 0 )->GetSelection()->GetNumberOfTuples();
-
-	if ( CountObject > 0 )
-	{
-		// class name and color
-		int cid = classTreeModel->invisibleRootItem()->rowCount();
-		QString cText = QString( "Class %1" ).arg( cid );
-
-		// automatically select a predefined color
-		// (from the list of colors defined in the list of SVG
-		// color keyword names provided by the World Wide Web Consortium).
-		//http://www.w3.org/TR/SVG/types.html#ColorKeywords
-		if ( cid > 7 ) { cid = 1; }
-
-		QColor cColor;
-
-		switch ( cid )
-		{
-			case 1:
-				cColor.setNamedColor( "cornflowerblue" ); break;
-			case 2:
-				cColor.setNamedColor( "darkorange" ); break;
-			case 3:
-				cColor.setNamedColor( "chartreuse" ); break;
-			case 4:
-				cColor.setNamedColor( "yellow" ); break;
-			case 5:
-				cColor.setNamedColor( "mediumvioletred" ); break;
-			case 6:
-				cColor.setNamedColor( "blue" ); break;
-			case 7:
-				cColor.setNamedColor( "green" ); break;
-		}
-
-		bool ok;
-
-		// class name and color input when calling AddClassDialog.	
-		cText = dlg_editPCClass::getClassInfo( 0, "FeatureScout", cText, &cColor, &ok ).section( ',', 0, 0 );
-
-		if ( ok ) // if input correctly
-		{
-			this->colorList.append( cColor );
-			// get the root item from class tree
-			QStandardItem *rootItem = classTreeModel->invisibleRootItem();
-			QStandardItem *item;
-
-			// create a first level child under rootItem as new class	
-			double percent = 100.0*CountObject / objectNr;
-			QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
-			firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
-
-			int ClassID = rootItem->rowCount();
-			int objID = 0;
-			QList<int> kIdx; // list to regist the selected index of object IDs in activeClassItem
-
-			// add new class
-			for ( int i = 0; i < CountObject; i++ )
-			{
-				// get objID from item->text()
-				vtkVariant v = pcChart->GetPlot( 0 )->GetSelection()->GetVariantValue( i );
-				objID = v.ToInt() + 1;	//fibre index starting at 1 not at 0
-
-				//vtkVariant v = SelectedArr->GetComponent(i, 0);
-				objID = this->activeClassItem->child( v.ToInt() )->text().toInt();
-
-				if ( !kIdx.contains( v.ToInt() ) )
-				{
-					kIdx.prepend( v.ToInt() );
-					selectedObjID.append( objID );
-
-					// add item to the new class
-					QString str = QString( "%1" ).arg( objID );
-					item = new QStandardItem( str );
-					firstLevelItem.first()->appendRow( item );
-
-					// update Class_ID column, prepare values for LookupTable
-					this->csvTable->SetValue( objID - 1, elementNr - 1, ClassID );
-				}
-			}
-
-			// a simple check of the selections
-			if ( kIdx.isEmpty() )
-			{
-				QMessageBox msgBox;
-				msgBox.setText( "Selected objects are already classified, please make a new selection." );
-				msgBox.setWindowTitle( "FeatureScout" );
-				msgBox.exec();
-				return;
-			}
-
-			if ( kIdx.count() != CountObject )
-			{
-				QMessageBox msgBox;
-				msgBox.setText( "Selection Error, please make a new selection." );
-				msgBox.setWindowTitle( "FeatureScout" );
-				msgBox.exec();
-				return;
-			}
-
-			// append the new class to class tree
-			rootItem->appendRow( firstLevelItem );
-
-			// count activeClassItem
-			//int activeCount = this->activeClassItem->rowCount();
-
-			// remove items from activeClassItem from table button to top, otherwise you would make a wrong delete
-			for ( int i = 0; i < CountObject; i++ )
-				this->activeClassItem->removeRow( kIdx.value( i ) );
-			
-			// update statistics for activeClassItem
-			this->updateClassStatistics( this->activeClassItem );
-			if ( this->activeClassItem->rowCount() == 0 && this->activeClassItem->index().row() != 0 )
-			{
-				// delete the activeItem
-				int cID = this->activeClassItem->index().row();
-				rootItem->removeRow( cID );
-				this->colorList.removeAt( cID );
-				//update Class_ID and lookupTable??
-
-			}
-
-			this->setActiveClassItem( firstLevelItem.first(), 1 );
-			this->calculateElementTable();
-			this->initElementTableModel();
-			this->setupNewPcView();
-			this->classTreeView->collapseAll();
-			this->classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
-			this->SingleRendering();
-			this->updatePolarPlotColorScalar( chartTable );
-
-			//Updates scatter plot matrix when a class is added.
-			if ( this->spmActivated && matrix != NULL )
-			{
-				matrix->UpdateColorInfo( classTreeModel, colorList );
-				matrix->SetClass2Plot( this->activeClassItem->index().row() );
-				matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
-				matrix->UpdateLayout();
-			}
-		}
-	}
-	else
+	int CountObject = pcChart->GetPlot( 0 )->GetSelection()->GetNumberOfTuples();
+	if (CountObject <= 0)
 	{
 		QMessageBox msgBox;
-		msgBox.setText( "No object was selected!" );
-		msgBox.setWindowTitle( "FeatureScout" );
+		msgBox.setText("No object was selected!");
+		msgBox.setWindowTitle("FeatureScout");
 		msgBox.exec();
+		return;
+	}
+	// class name and color
+	int cid = classTreeModel->invisibleRootItem()->rowCount();
+	QString cText = QString( "Class %1" ).arg( cid );
+
+	// automatically select a predefined color
+	// (from the list of colors defined in the list of SVG
+	// color keyword names provided by the World Wide Web Consortium).
+	//http://www.w3.org/TR/SVG/types.html#ColorKeywords
+	if ( cid > 7 ) { cid = 1; }
+
+	QColor cColor;
+
+	switch ( cid )
+	{
+		case 1:
+			cColor.setNamedColor( "cornflowerblue" ); break;
+		case 2:
+			cColor.setNamedColor( "darkorange" ); break;
+		case 3:
+			cColor.setNamedColor( "chartreuse" ); break;
+		case 4:
+			cColor.setNamedColor( "yellow" ); break;
+		case 5:
+			cColor.setNamedColor( "mediumvioletred" ); break;
+		case 6:
+			cColor.setNamedColor( "blue" ); break;
+		case 7:
+			cColor.setNamedColor( "green" ); break;
+	}
+
+	bool ok;
+
+	// class name and color input when calling AddClassDialog.
+	cText = dlg_editPCClass::getClassInfo( 0, "FeatureScout", cText, &cColor, &ok ).section( ',', 0, 0 );
+
+	if ( ok ) // if input correctly
+	{ //TODO save transfer function for each class classe
+		this->colorList.append( cColor );
+		// get the root item from class tree
+		QStandardItem *rootItem = classTreeModel->invisibleRootItem();
+		QStandardItem *item;
+
+		// create a first level child under rootItem as new class
+		double percent = 100.0*CountObject / objectNr;
+		QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
+		firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
+
+		int ClassID = rootItem->rowCount();
+		int objID = 0;
+		QList<int> kIdx; // list to regist the selected index of object IDs in activeClassItem
+
+		// add new class
+		for ( int i = 0; i < CountObject; i++ )
+		{
+			// get objID from item->text()
+			vtkVariant v = pcChart->GetPlot( 0 )->GetSelection()->GetVariantValue( i );
+			objID = v.ToInt() + 1;	//fibre index starting at 1 not at 0
+			objID = this->activeClassItem->child( v.ToInt() )->text().toInt();
+
+			if ( !kIdx.contains( v.ToInt() ) )
+			{
+				kIdx.prepend( v.ToInt() );
+				selectedObjID.append( objID );
+
+				// add item to the new class
+				QString str = QString( "%1" ).arg( objID );
+				item = new QStandardItem( str );
+				firstLevelItem.first()->appendRow( item );
+
+				// update Class_ID column, prepare values for LookupTable
+				this->csvTable->SetValue( objID - 1, elementNr - 1, ClassID );
+			}
+		}
+
+		// a simple check of the selections
+		if ( kIdx.isEmpty() )
+		{
+			QMessageBox msgBox;
+			msgBox.setText( "Selected objects are already classified, please make a new selection." );
+			msgBox.setWindowTitle( "FeatureScout" );
+			msgBox.exec();
+			return;
+		}
+
+		if ( kIdx.count() != CountObject )
+		{
+			QMessageBox msgBox;
+			msgBox.setText( "Selection Error, please make a new selection." );
+			msgBox.setWindowTitle( "FeatureScout" );
+			msgBox.exec();
+			return;
+		}
+
+		// append the new class to class tree
+		rootItem->appendRow( firstLevelItem );
+
+		// remove items from activeClassItem from table button to top, otherwise you would make a wrong delete
+		for ( int i = 0; i < CountObject; i++ )
+			this->activeClassItem->removeRow( kIdx.value( i ) );
+
+		// update statistics for activeClassItem
+		this->updateClassStatistics( this->activeClassItem );
+		if ( this->activeClassItem->rowCount() == 0 && this->activeClassItem->index().row() != 0 )
+		{
+			// delete the activeItem
+			int cID = this->activeClassItem->index().row();
+			rootItem->removeRow( cID );
+			this->colorList.removeAt( cID );
+			//update Class_ID and lookupTable??
+
+		}
+
+		this->setActiveClassItem( firstLevelItem.first(), 1 );
+		this->calculateElementTable();
+		this->initElementTableModel();
+		this->setupNewPcView();
+		this->classTreeView->collapseAll();
+		this->classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
+
+		if (!this->useCsvOnly) {
+			this->SingleRendering();
+			this->updatePolarPlotColorScalar( chartTable );
+		}
+
+		//Updates scatter plot matrix when a class is added.
+		if ( this->spmActivated && matrix != NULL )
+		{
+			bool retflag;
+			QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
+
+			//handle over cid (color id)
+			*selInd = matrix->getSelection();
+			applyClassSelection(retflag, selInd, cid, false);
+			matrix->clearSelection();
+			matrix->update();
+			spUpdateSPColumnVisibilityWithVis();
+		}
 	}
 }
 
-void dlg_FiberScout::writeWisetex( QXmlStreamWriter *writer )
+void dlg_FeatureScout::applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap)
+{
+	retflag = true;
+	double rgba[4];
+	bool returnflag;
+	setSPMData(selInd, returnflag);
+	if (applyColorMap) {
+		spmApplyColorMap(rgba, colorIdx);
+	}
+
+	if (retflag) return;
+	retflag = false;
+}
+
+//apply color index
+void dlg_FeatureScout::applyClassSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const int colorIdx, const bool applyColorMap) {
+	retflag = true;
+	double rgba[4];
+	setSPMData(classEntries, retflag);
+	if (retflag)return;
+
+	if (applyColorMap) {
+		spmApplyColorMap(rgba, colorIdx);
+	}
+
+	retflag = false;
+
+
+}
+
+//applies selection for single object selected in class
+void dlg_FeatureScout::applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries,const uint selectionOID, const int colorIdx, const bool applyColorMap) {
+	retflag = true;
+	double rgba[4];
+	setSingeSPMObjectDataSelection(classEntries, selectionOID, retflag);
+
+	if (retflag)return;
+
+	if (applyColorMap) {
+		spmApplyColorMap(rgba, colorIdx);
+	}
+
+	retflag = false;
+	//(classEntries, retflag);
+
+
+}
+
+//copy all entries from a chart table to matrix
+//with no selection?
+
+
+void prepareTable(const int rowCount, const int colCount, QSharedPointer<QTableWidget> &spInput, const vtkSmartPointer<vtkTable> &classEntries) {
+	spInput->setColumnCount(colCount/*this->csvTable->GetNumberOfColumns()*/);
+	//header (1 row) + entries
+	spInput->setRowCount(rowCount/*this->csvTable->GetNumberOfRows()*/ + 1);
+	for (int col = 0; col < colCount /*this->csvTable->GetNumberOfColumns()*/; ++col)
+	{
+		spInput->setItem(0, col, new QTableWidgetItem(classEntries->GetColumnName(col)));
+	}
+
+}
+
+//set data from current class to SPM
+void dlg_FeatureScout::setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool &retflag) {
+	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
+	const int colCount = (int)classEntries->GetNumberOfColumns();
+	const int rowCount = (int)classEntries->GetNumberOfRows();
+	prepareTable(rowCount, colCount, spInput, csvTable);
+
+	for (int row = 1; row < rowCount + 1; row++) {
+		//adds each column entry to vtktable
+		for (int col = 0; col < colCount; col++) {
+			vtkStdString csvValue = classEntries->GetValue(row-1, col).ToString();
+			spInput->setItem(row, col, new QTableWidgetItem(csvValue.c_str()));
+		}
+	}
+
+	if (!iovSPM)
+		return;
+
+	this->matrix->setData(&(*spInput));
+	this->spUpdateSPColumnVisibility();
+
+	retflag = false;
+
+}
+
+//set data in SPM selection to class
+
+void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &retflag)
+{
+	retflag = true;
+	/**selInd = (this->matrix->getSelection());*/
+
+	//indezes rausziehen selection indezes;
+
+	//TODO Save data in the selection
+	const uint entriesCount = (uint)selInd->length();
+	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
+	const int colCount = (int)this->csvTable->GetNumberOfColumns();
+	const int rowCount = (int)this->csvTable->GetNumberOfRows();
+	spInput->setColumnCount(colCount/*this->csvTable->GetNumberOfColumns()*/);
+	//header (1 row) + entries
+	spInput->setRowCount(entriesCount/*this->csvTable->GetNumberOfRows()*/ + 1);
+
+
+	//set first colum n ID n
+	prepareTable(entriesCount, colCount, spInput, this->csvTable);
+
+
+	//set entrys for each row;
+	//TODO ersten eintrag mit 0 und dritten eintrag mit index 2 auswählen?? schauen ob das korrekt ist
+	vtkSmartPointer<vtkAbstractArray> all_rowInd = csvTable->GetColumn(0);
+	int cur_IndRow = 0;
+	//TODO set label ID in first column?
+	bool containsRowInd = false;
+	int rowSavingIndx = 1;
+	for (auto const &curr_selIndx : *selInd) {
+
+		//if row index is in selection index
+		for (int row = 1; row < rowCount + 1; row++) {
+
+			//skip first row
+			cur_IndRow = all_rowInd->GetVariantValue(row - 1).ToInt() - 1;
+			//compares current selection index to rowIndex
+			containsRowInd = ((int)curr_selIndx) == cur_IndRow;
+			if (containsRowInd) {
+
+				//adds each column entry to vtktable
+				for (int col = 0; col < colCount; col++) {
+					//current row index for saving sind
+					//row index of spInput and QTableWidget are different!!
+
+					vtkStdString csvValue = csvTable->GetValue(row - 1, col).ToString();
+					spInput->setItem(rowSavingIndx, col, new QTableWidgetItem(csvValue.c_str()));
+				}
+				rowSavingIndx++;
+				break;
+			}
+		}
+	}
+
+	if (!iovSPM)
+		return;
+
+	this->matrix->setData(&(*spInput));
+	this->spUpdateSPColumnVisibility();
+	retflag = false;
+}
+
+//set data for single object in class
+void dlg_FeatureScout::setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, bool &retflag) {
+	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
+	const int colCount = (int)classEntries->GetNumberOfColumns();//->GetNumberOfColumns();
+	const int rowCount = (int)classEntries->GetNumberOfRows();
+	prepareTable(rowCount, colCount, spInput, classEntries);
+	vtkSmartPointer<vtkAbstractArray> all_rowInd = classEntries->GetColumn(0);
+	int cur_IndRow = 0;
+
+	//TODO set label ID in first column?
+	bool containsRowInd = false;
+	int rowSavingIndx = 1;
+
+	for (int row = 1; row < rowCount + 1; row++) {
+
+		//skip first row
+		cur_IndRow = all_rowInd->GetVariantValue(row - 1).ToInt() - 1;
+		//compares current selection index to rowIndex
+		containsRowInd = ((int)selectionOID) == cur_IndRow;
+		if (containsRowInd) {
+
+			//adds each column entry to vtktable
+			for (int col = 0; col < colCount; col++) {
+				//current row index for saving sind
+				//row index of spInput and QTableWidget are different!!
+
+				vtkStdString csvValue = csvTable->GetValue(row - 1, col).ToString();
+				spInput->setItem(rowSavingIndx, col, new QTableWidgetItem(csvValue.c_str()));
+			}
+			rowSavingIndx++;
+			break;
+		}
+
+	}
+
+	//if scatterplot is active
+	if (!iovSPM)
+		return;
+
+	this->matrix->setData(&(*spInput));
+	this->matrix->update();
+	this->spUpdateSPColumnVisibility();
+	retflag = false;
+}
+
+//sets color based on color index
+void dlg_FeatureScout::setClassColour(double * rgba, const int colInd)
+{
+	rgba[0] = this->colorList.at(colInd).redF();
+	rgba[1] = this->colorList.at(colInd).greenF();
+	rgba[2] = this->colorList.at(colInd).blueF();
+	const double alpha = 1;
+	rgba[3] = alpha;
+}
+
+void dlg_FeatureScout::spmApplyColorMap(double  rgba[4], const int colInd)
+{
+	setClassColour(rgba, colInd);
+	spmApplyGeneralColorMap(rgba);
+}
+
+
+void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4], double range[2])
+{
+	this->m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
+	this->m_pointLUT->SetRange(range);
+	this->m_pointLUT->SetTableRange(range);
+	this->m_pointLUT->SetNumberOfTableValues(2);
+
+	//set color for scatter plot and Renderer
+	for (vtkIdType i = 0; i < 2; i++)
+	{
+#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
+		this->m_pointLUT->SetTableValue(i, rgba);
+#else
+		double nonConstRGBA[4];
+		for (int i = 0; i < 4; ++i)
+			nonConstRGBA[i] = rgba[i];
+		this->m_pointLUT->SetTableValue(i, nonConstRGBA);
+#endif
+	}
+	this->m_pointLUT->Build();
+
+	//is this still required?
+	this->matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
+}
+
+
+void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4])
+{
+	double range[2];
+	vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
+	mmr->GetRange(range);
+	spmApplyGeneralColorMap(rgba, range);
+}
+
+void dlg_FeatureScout::writeWisetex( QXmlStreamWriter *writer )
 {
 	// Write XML tags using WiseTex specification
 	//check if it is a class item
@@ -2320,7 +2580,7 @@ void dlg_FiberScout::writeWisetex( QXmlStreamWriter *writer )
 
 			for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); i++ )
 			{
-				//Gets the fibre class 
+				//Gets the fibre class
 				QStandardItem* fc = classTreeModel->invisibleRootItem()->child( i, 1 );
 
 				writer->writeStartElement( QString( "FibreClass-%1" ).arg( i ) ); //start FibreClass-n tag
@@ -2362,7 +2622,7 @@ void dlg_FiberScout::writeWisetex( QXmlStreamWriter *writer )
 
 			for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); i++ )
 			{
-				//Gets the fibre class 
+				//Gets the fibre class
 				QStandardItem* fc = classTreeModel->invisibleRootItem()->child( i, 1 );
 
 				writer->writeStartElement( QString( "VoidClass-%1" ).arg( i ) ); //start VoidClass-n tag
@@ -2384,7 +2644,7 @@ void dlg_FiberScout::writeWisetex( QXmlStreamWriter *writer )
 					writer->writeTextElement( "posX", QString( tableList[i]->GetValue( j, 18 ).ToString() ) );
 					writer->writeTextElement( "posY", QString( tableList[i]->GetValue( j, 19 ).ToString() ) );
 					writer->writeTextElement( "posZ", QString( tableList[i]->GetValue( j, 20 ).ToString() ) );
-					//writer->writeTextElement("ShapeFactor", QString(tableList[i]->GetValue(j,22).ToString())); 
+					//writer->writeTextElement("ShapeFactor", QString(tableList[i]->GetValue(j,22).ToString()));
 
 					writer->writeEndElement(); //end Void-n tag
 				}
@@ -2396,7 +2656,7 @@ void dlg_FiberScout::writeWisetex( QXmlStreamWriter *writer )
 	}
 }
 
-void dlg_FiberScout::CsvDVSaveButton()
+void dlg_FeatureScout::CsvDVSaveButton()
 {
 	//Gets the selected rows out of elementTable
 	QModelIndexList indexes = elementTableView->selectionModel()->selection().indexes();
@@ -2433,7 +2693,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 	if ( rowList.count() == 0 )
 	{
 		QMessageBox msgBox;
-		msgBox.setText( "No fiber characteristic specified in the element explorer." );
+		msgBox.setText( "No characteristic specified in the element explorer." );
 		msgBox.setWindowTitle( "FeatureScout" );
 		msgBox.exec();
 		return;
@@ -2447,7 +2707,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 
 		if ( dlg.getCheckValue(0) == 2 )
 		{
-			filename = QFileDialog::getSaveFileName( this, tr( "Save fiber characteristic distributions" ), sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
+			filename = QFileDialog::getSaveFileName( this, tr( "Save characteristic distributions" ), sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
 
 			if ( filename.isEmpty() )
 			{
@@ -2608,10 +2868,16 @@ void dlg_FiberScout::CsvDVSaveButton()
 			MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 			if ( !iovDV )
 			{
-				iovDV = new dlg_IOVDV( this );
-				iovDV->setWindowTitle( QString( "Distribution View" ) );
-				this->m_dvContextView->SetInteractor( iovDV->dockWidgetContents->GetInteractor() );
-				iovDV->dockWidgetContents->SetRenderWindow( this->m_dvContextView->GetRenderWindow() );
+				iovDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+				auto dvqvtkWidget = new QVTKOpenGLWidget();
+				dvqvtkWidget->SetRenderWindow(vtkGenericOpenGLRenderWindow::New());
+#else
+				auto dvqvtkWidget = new QVTKWidget();
+#endif
+				iovDV->setWidget(dvqvtkWidget);
+				m_dvContextView->SetRenderWindow( dvqvtkWidget->GetRenderWindow() );
+				m_dvContextView->SetInteractor( dvqvtkWidget->GetInteractor() );
 				mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovDV );
 				iovDV->show();
 			}
@@ -2634,7 +2900,7 @@ void dlg_FiberScout::CsvDVSaveButton()
 	}
 }
 
-void dlg_FiberScout::WisetexSaveButton()
+void dlg_FeatureScout::WisetexSaveButton()
 {
 	if ( !classTreeModel->invisibleRootItem()->hasChildren() )
 	{
@@ -2676,7 +2942,7 @@ void dlg_FiberScout::WisetexSaveButton()
 	stream.writeEndDocument();
 }
 
-void dlg_FiberScout::ClassSaveButton()
+void dlg_FeatureScout::ClassSaveButton()
 {
 	if ( classTreeModel->invisibleRootItem()->rowCount() == 1 )
 	{
@@ -2724,7 +2990,7 @@ void dlg_FiberScout::ClassSaveButton()
 	stream.writeEndDocument();
 }
 
-void dlg_FiberScout::ClassLoadButton()
+void dlg_FeatureScout::ClassLoadButton()
 {
 	// open xml file and get meta information
 	QString filename = QFileDialog::getOpenFileName( this, tr( "Load xml file" ), sourcePath, tr( "XML Files (*.xml *.XML)" ) );
@@ -2862,18 +3128,17 @@ void dlg_FiberScout::ClassLoadButton()
 	if ( this->spmActivated )
 	{
 		// reinitialize spm
-		matrix->Delete();
 		MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 		mdiChild->removeDockWidget( iovSPM );
 		this->layout()->removeWidget( iovSPM );
 		delete iovSPM;
-		iovSPM = 0;
+		iovSPM = nullptr;
 		this->spmActivated = false;
-		changeFiberScout_Options( 6 );
+		changeFeatureScout_Options( 6 );
 	}
 }
 
-void dlg_FiberScout::ClassDeleteButton()
+void dlg_FeatureScout::ClassDeleteButton()
 {
 	QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
 	QStandardItem *stammItem = rootItem->child( 0 );
@@ -2924,141 +3189,152 @@ void dlg_FiberScout::ClassDeleteButton()
 
 	// update tableList and setup activeClassItem
 	this->setActiveClassItem( stammItem, 2 );
-	this->setupNewPcView();
 
 	// update element view
 	this->calculateElementTable();
 	this->initElementTableModel();
+	this->setupNewPcView();
 
 	// remove the deleted row item
 	rootItem->removeRow( cID );
-	this->SingleRendering();
 
+	if (!useCsvOnly) {
+		this->SingleRendering();
+	}
 	if ( this->spmActivated )
-	{	//Updates SPM
-		matrix->UpdateColorInfo( classTreeModel, colorList );
-		matrix->SetClass2Plot( this->activeClassItem->index().row() );
-		matrix->UpdateLayout();
+	{
+		bool retFlag = true;
+		applyClassSelection(retFlag, this->chartTable, 0, false);
+		spUpdateSPColumnVisibilityWithVis();
+		matrix->clearSelection();
+		matrix->update();
 	}
 }
 
 
-void dlg_FiberScout::ScatterPlotButton()
+void dlg_FeatureScout::ScatterPlotButton()
 {
 	if ( this->spmActivated )
 	{
-		matrix = FiberScout::iAScatterPlotMatrix::New();
-		vtkSmartPointer<vtkTable> spInput = vtkSmartPointer<vtkTable>::New();
-		spInput->DeepCopy( csvTable );
+		assert( !matrix );
+		matrix = new iAQSplom();
 
-		// QVTKWidget setup and initialization
+		QTableWidget* spInput = new QTableWidget();
+		spInput->setColumnCount(csvTable->GetNumberOfColumns());
+		spInput->setRowCount(csvTable->GetNumberOfRows()+1);
+		for (int col = 0; col < csvTable->GetNumberOfColumns(); ++col)
+		{
+			spInput->setItem(0, col, new QTableWidgetItem(csvTable->GetColumnName(col)));
+		}
+		for (int row = 1; row < csvTable->GetNumberOfRows()+1; ++row)
+		{
+			for (int col = 0; col < csvTable->GetNumberOfColumns(); ++col)
+			{
+				spInput->setItem(row, col, new QTableWidgetItem(csvTable->GetValue(row-1, col).ToString().c_str()) );
+			}
+		}
 		if ( !iovSPM )
 			return;
-		iovSPM->setWindowTitle( QString( "Scatter Plot Matrix" ) );
+		iovSPM->setWidget(matrix);
 
-		//sp_qvtkWidget->setWindowFlags(Qt::CustomizeWindowHint|Qt::WindowCloseButtonHint);
+		//apply lookup table for scatter plot matrix
+		matrix->setData(spInput);
+		double range[2];
 
-		//Create vtkContextView and marry it with QVTKWidget
-		VTK_CREATE( vtkContextView, view );
-		view->SetInteractor( iovSPM->dockWidgetContents->GetInteractor() );
-		iovSPM->dockWidgetContents->SetRenderWindow( view->GetRenderWindow() );
+		//csv table einträge werte erste spalte min max für color transformation
+		vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
+		mmr->GetRange(range);
+		m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
+		m_pointLUT->SetRange(range);
+		m_pointLUT->SetTableRange(range);
+		m_pointLUT->SetNumberOfTableValues(2);
 
-		// Add a ScatterPlotMatrix to the vtkContextView
-		view->GetScene()->AddItem( matrix );
-
-		//PC-SPM-AnnotationLink-Wedding to get same red selection highlights.
-		pcChart->SetAnnotationLink( matrix->GetAnnotationLink() );
-
-		// Set input for the scatterplot matrix
-		matrix->SetInput( spInput, this->filterID );
-
-		// Updates scatter plot matrix with up to date (PC tree) information 
-		// about Class_ID and RGB color. IMPORTANT: Set UpdateColorInfo after SetInput() 
-		matrix->UpdateColorInfo( classTreeModel, colorList );
-
-		// If PC-Option 'Multi Rendering' is clicked a scatter plot matrix
-		// with all (colored) plots is shown.
-		matrix->SetClass2Plot( this->activeClassItem->index().row() );
-
-		// Scatter plot matrix settings
-		if ( this->activeClassItem->rowCount() < 30 )
+		//set color for scatter plot and Renderer
+		for (vtkIdType i = 0; i < 2; i++)
 		{
-			matrix->SetPlotMarkerSize( 0, 3.0f );
-			matrix->SetPlotMarkerSize( 2, 10.0f );
+			double rgba[4] = { 0.5, 0.5, 0.5, 1.0 };
+			m_pointLUT->SetTableValue(i, rgba);
 		}
-		matrix->SetScatterPlotSelectedActiveColor( vtkColor4ub( 175, 238, 238, 130 ) );
-		matrix->SetScatterPlotSelectedRowColumnColor( vtkColor4ub( 0, 0, 0, 20 ) );
-		matrix->SetBackgroundColor( 1, vtkColor4ub( 235, 235, 235, 100 ) );
-		matrix->SetGutter( vtkVector2f( 30.0f, 30.0f ) );
+		m_pointLUT->Build();
+
+
+		matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
+		matrix->setSelectionColor(QColor(255, 40, 0, 1));
 
 		// Scatter plot matrix only shows features which are selected in PC-ElementTableModel.
-		spUpdateSPColumnVisibility();
+		spUpdateSPColumnVisibilityWithVis();
 
-		// Creates a popup menu 
-		QMenu* popup1 = new QMenu( iovSPM->dockWidgetContents );
-		popup1->addAction( "Add Class" );
-		//popup1->addAction( "Suggest Classification" );
-		popup1->addSeparator();
-		popup1->addAction( "Histograms On/Off" );
-		popup1->addSeparator();
-		popup1->addAction( "Subtraction Selection Mode" );
-		popup1->addAction( "Polygon Selection Tool" );
-		popup1->setStyleSheet( "font-size: 11px; background-color: #9B9B9B; border: 1px solid black;" );
-
-		connect( popup1, SIGNAL( triggered( QAction* ) ), this, SLOT( spPopupSelection( QAction* ) ) );
-
-		vtkEventQtSlotConnect *spConnections = vtkEventQtSlotConnect::New();
-
-		// Gets right button release event (on a scatter plot).
-		spConnections->Connect( iovSPM->dockWidgetContents->GetRenderWindow()->GetInteractor(),
-								vtkCommand::RightButtonReleaseEvent,
-								this,
-								SLOT( spPopup( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ),
-								popup1, 1.0 );
-
-		// Gets right button press event (on a scatter plot).
-		spConnections->Connect( iovSPM->dockWidgetContents->GetRenderWindow()->GetInteractor(),
-								vtkCommand::RightButtonPressEvent,
-								this,
-								SLOT( spBigChartMouseButtonPressed( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
-
-		//Gets selection changed event (on scatterplot).
-		spConnections->Connect( matrix,
-								vtkCommand::SelectionChangedEvent,
-								this,
-								SLOT( spSelInformsPCChart( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ), 0, 1.0 );
-		iovSPM->dockWidgetContents->show();
+		//connects signal from SPM selection to PCView
+		connect(matrix, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(spSelInformsPCChart(QVector<unsigned int> *)) );
 	}
 }
 
-void dlg_FiberScout::spUpdateSPColumnVisibility()
+void dlg_FeatureScout::spUpdateSPColumnVisibility()
 {
 	// Updates scatter plot matrix if a feature of PC-ElementTableModel is added or removed.
 	if ( this->spmActivated )
 	{
-		matrix->SetColumnVisibilityAll( false );
 		for ( int j = 0; j < elementNr; ++j )
 		{
-			if ( elementTableModel->item( j, 0 )->checkState() == Qt::Checked )
-				matrix->SetColumnVisibility( elementTable->GetValue( j, 0 ).ToString(), true );
+			matrix->setParameterVisibility( elementTable->GetValue( j, 0 ).ToString().c_str(),
+				elementTableModel->item(j, 0)->checkState() == Qt::Checked );
 		}
-		matrix->Update();
+		matrix->update();
 	}
 }
 
-void dlg_FiberScout::spSelInformsPCChart( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
+
+void dlg_FeatureScout::spUpdateSPColumnVisibilityWithVis()
 {
+	matrix->showAllPlots(false);
+	matrix->update();
+	matrix->showPreviewPlot();
+	spUpdateSPColumnVisibility();
+}
+
+
+void dlg_FeatureScout::spSelInformsPCChart(QVector<unsigned int> * selInds)
+{
+	qSort(*selInds);
+	vtkSmartPointer<vtkIdTypeArray> vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
 	// If scatter plot selection changes Parallel Coordinates gets informed and updates.
-	if ( this->spmActivated )
+	if (this->spmActivated)
 	{
 		QCoreApplication::processEvents();
-		this->iovSPM->dockWidgetContents->update();
+		// update selection in PC view!
+		//set selection for pcView / chart
+		int countSelection = selInds->length();
+		vtk_selInd->Allocate(countSelection);
+		vtk_selInd->SetNumberOfValues(countSelection);
+		int idx = 0;
+		vtkVariant var_Idx = 0;
+
+		//current selection index
+		long long curr_selInd;
+		if (countSelection > 0) {
+
+
+			for (auto ind : *selInds) {
+
+				var_Idx = ind;
+				curr_selInd = var_Idx.ToLongLong()  /*+1*/;
+				vtk_selInd->SetVariantValue(idx, curr_selInd);
+				idx++;
+			}
+		}
+
+		this->pcChart->GetPlot(0)->SetSelection(vtk_selInd);
 		this->pcView->Render();
-		this->RealTimeRendering( pcChart->GetPlot( 0 )->GetSelection(), this->enableRealTimeRendering );
+
+		//TODO enable Rendering for csv only data
+		if (!this->useCsvOnly)
+		{
+			this->RealTimeRendering(pcChart->GetPlot(0)->GetSelection());
+		}
 	}
 }
 
-void dlg_FiberScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
+void dlg_FeatureScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
 {
 	// Gets the right mouse button press event for scatter plot matrix.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast( obj );
@@ -3066,7 +3342,7 @@ void dlg_FiberScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned lon
 	mousePressedPos[1] = iren->GetEventPosition()[1];
 }
 
-void dlg_FiberScout::spPopup( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
+void dlg_FeatureScout::spPopup( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
 {
 	// Gets the mouse button event for scatter plot matrix and opens a popup menu.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast( obj );
@@ -3096,51 +3372,56 @@ void dlg_FiberScout::spPopup( vtkObject * obj, unsigned long, void * client_data
 	}
 }
 
-void dlg_FiberScout::spPopupSelection( QAction *selection )
+void dlg_FeatureScout::spPopupSelection( QAction *selection )
 {
-	// Function to handle the scatter plot matrix popup menu selection. 
+	// Function to handle the scatter plot matrix popup menu selection.
 	if ( selection->text() == "Add Class" ) { ClassAddButton(); }
-	else if ( selection->text() == "Histograms On/Off" ) { matrix->ShowHideHistograms(); }
-	else if ( selection->text() == "Subtraction Selection Mode" ) 
+	// TODO SPM
+	else if ( selection->text() == "Histograms On/Off" )
 	{
-		matrix->SetSelectionMode( vtkContextScene::SELECTION_SUBTRACTION ); 
+		//matrix->ShowHideHistograms();
+	}
+	else if ( selection->text() == "Subtraction Selection Mode" )
+	{
+		//matrix->SetSelectionMode( vtkContextScene::SELECTION_SUBTRACTION );
 		selection->setText( "Toggle Selection Mode" );
 	}
 	else if ( selection->text() == "Toggle Selection Mode" )
 	{
-		matrix->SetSelectionMode( vtkContextScene::SELECTION_DEFAULT );
+		//matrix->SetSelectionMode( vtkContextScene::SELECTION_DEFAULT );
 		selection->setText( "Subtraction Selection Mode" );
 	}
-	else if ( selection->text() == "Polygon Selection Tool" ) 
+	else if ( selection->text() == "Polygon Selection Tool" )
 	{
-		matrix->setPolygonSelectionOn();
+		//matrix->setPolygonSelectionOn();
 		selection->setText( "Rectangle Selection Tool" );
 	}
 	else if ( selection->text() == "Rectangle Selection Tool" )
 	{
-		matrix->setRectangleSelectionOn();
+		//matrix->setRectangleSelectionOn();
 		selection->setText( "Polygon Selection Tool" );
 	}
 	else if ( selection->text() == "Suggest Classification" )
 	{
 		bool ok;
-		int i = QInputDialog::getInt( iovSPM->dockWidgetContents, tr( "kMeans-Classification" ), tr( "Number of Classes" ), 3, 1, 7, 1, &ok );
+		int i = QInputDialog::getInt( iovSPM, tr( "kMeans-Classification" ), tr( "Number of Classes" ), 3, 1, 7, 1, &ok );
 
 		if ( ok )
 		{
-			matrix->NumberOfClusters = i;
-			matrix->SetkMeansMode( true );
+
+			//matrix->NumberOfClusters = i;
+			//matrix->SetkMeansMode( true );
 			selection->setText( "Accept Classification" );
 		}
 	}
 	else if ( selection->text() == "Accept Classification" )
 	{
-		autoAddClass( matrix->GetkMeansClusterCount() );
+		//autoAddClass( matrix->GetkMeansClusterCount() );
 		selection->setText( "Suggest Classification" );
 	}
 }
 
-void dlg_FiberScout::autoAddClass( int NbOfClusters )
+void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 {
 	if ( this->spmActivated )
 	{
@@ -3149,9 +3430,10 @@ void dlg_FiberScout::autoAddClass( int NbOfClusters )
 		for ( int i = 1; i <= NbOfClusters; ++i )
 		{
 			// recieve the current selections from annotationlink
-			vtkAbstractArray *SelArr = matrix->GetkMeansCluster( i )->GetNode( 0 )->GetSelectionList();
-			int CountObject = SelArr->GetNumberOfTuples();
-
+			// TODO SPM
+			//vtkAbstractArray *SelArr = matrix->GetkMeansCluster( i )->GetNode( 0 )->GetSelectionList();
+			int CountObject = 0; //  SelArr->GetNumberOfTuples();
+			/*
 			if ( CountObject > 0 )
 			{
 				// class name and color
@@ -3182,7 +3464,7 @@ void dlg_FiberScout::autoAddClass( int NbOfClusters )
 
 				this->colorList.append( cColor );
 
-				// create a first level child under rootItem as new class	
+				// create a first level child under rootItem as new class
 				double percent = 100.0*CountObject / objectNr;
 				QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
 				firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
@@ -3217,6 +3499,7 @@ void dlg_FiberScout::autoAddClass( int NbOfClusters )
 				msgBox.setWindowTitle( "FeatureScout" );
 				msgBox.exec();
 			}
+			*/
 		}
 
 		//  Mother Class is empty after kMeans auto class added, therefore rows are removed
@@ -3245,14 +3528,15 @@ void dlg_FiberScout::autoAddClass( int NbOfClusters )
 		//Updates scatter plot matrix when a class is added.
 		if ( matrix != NULL )
 		{
-			matrix->UpdateColorInfo( classTreeModel, colorList );
-			matrix->SetClass2Plot( this->activeClassItem->index().row() );
-			matrix->UpdateLayout();
+			// TODO SPM
+			//matrix->UpdateColorInfo( classTreeModel, colorList );
+			//matrix->SetClass2Plot( this->activeClassItem->index().row() );
+			//matrix->UpdateLayout();
 		}
 	}
 }
 
-void dlg_FiberScout::classDoubleClicked( const QModelIndex &index )
+void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 {
 	QStandardItem *item;
 	// Gets right item from ClassTreeModel to remove AccesViolationError on item double click).
@@ -3269,7 +3553,7 @@ void dlg_FiberScout::classDoubleClicked( const QModelIndex &index )
 		classTreeModel->itemFromIndex( index )->setEditable( false );
 		return;
 	}
-	else	// An 'undifined area' was clicked.
+	else	// An 'undefined area' was clicked.
 		return;
 
 	this->pcWidget->setEnabled( true );
@@ -3292,22 +3576,23 @@ void dlg_FiberScout::classDoubleClicked( const QModelIndex &index )
 			if ( this->spmActivated )
 			{
 				// Update Scatter Plot Matrix when another class than the active is selected.
-				if ( matrix != NULL )
+				if ( matrix)
 				{
-					//matrix->SetSelection(annLink->GetCurrentSelection());
-					matrix->UpdateColorInfo( classTreeModel, colorList );
-					matrix->SetClass2Plot( this->activeClassItem->index().row() );
-					matrix->UpdateLayout();
+					matrix->clearSelection();
+					bool returnFlag = false;
+					this->applyClassSelection(returnFlag, this->chartTable, index.row(), true);
+					if (returnFlag) return;
+					this->spUpdateSPColumnVisibilityWithVis();
 				}
 			}
 		}
 	}
 }
 
-void dlg_FiberScout::classClicked( const QModelIndex &index )
+void dlg_FeatureScout::classClicked( const QModelIndex &index )
 {
 	//Turns off FLD scalar bar updates polar plot view
-	if ( m_scalarWidgetFLD != NULL )
+	if ( m_scalarWidgetFLD )
 	{
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar( chartTable );
@@ -3316,16 +3601,16 @@ void dlg_FiberScout::classClicked( const QModelIndex &index )
 	this->orientationColorMapSelection->hide();
 	this->orientColormap->hide();
 
-	// Gets right Item from ClassTreeModel 
+	// Gets right Item from ClassTreeModel
 	QStandardItem *item;
 
-	// checks if click on class 'level' 
+	// checks if click on class 'level'
 	if ( index.parent().row() == -1 )
 		item = classTreeModel->item( index.row(), 0 );
 	else
 		item = classTreeModel->itemFromIndex( index );
 
-	// check if unclassified class is empty  
+	// check if unclassified class is empty
 	if ( this->classTreeModel->invisibleRootItem()->child( 0 ) == item && item->rowCount() == 0 )
 	{
 		QMessageBox msgBox;
@@ -3336,7 +3621,6 @@ void dlg_FiberScout::classClicked( const QModelIndex &index )
 	}
 	//MOD kMeans
 	if ( item->rowCount() == 0 && item->parent()->index() == this->classTreeModel->invisibleRootItem()->index() )
-		//if(item->rowCount() == 0)
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "This class contains no object more, please make another selection or delete the class." );
@@ -3344,7 +3628,7 @@ void dlg_FiberScout::classClicked( const QModelIndex &index )
 		msgBox.exec();
 		return;
 	}
-	// for first level class
+	// for first level class //has children = class
 	if ( item->hasChildren() )
 	{
 		if ( this->activeClassItem != item )
@@ -3352,18 +3636,25 @@ void dlg_FiberScout::classClicked( const QModelIndex &index )
 			this->setActiveClassItem( item );
 			this->calculateElementTable();
 			this->setupNewPcView();
-			this->updatePolarPlotColorScalar( chartTable );
-			this->SingleRendering();
+
+			//disable rendering
+			if (!useCsvOnly) {
+				this->updatePolarPlotColorScalar(chartTable);
+				this->SingleRendering();
+			}
 			this->initElementTableModel();
 
 			if ( this->spmActivated )
 			{
 				// Update Scatter Plot Matrix when another class than the active is selected.
-				if ( matrix != NULL )
+				if ( matrix )
 				{
-					//matrix->SetSelection(annLink->GetCurrentSelection());
-					matrix->SetClass2Plot( this->activeClassItem->index().row() );
-					matrix->UpdateLayout();
+					matrix->clearSelection();
+					matrix->update();
+					bool returnFlag = false;
+					this->applyClassSelection(returnFlag, this->chartTable, index.row(), false);
+					this->spUpdateSPColumnVisibilityWithVis();
+					if (returnFlag) return;
 				}
 			}
 		}
@@ -3405,22 +3696,39 @@ void dlg_FiberScout::classClicked( const QModelIndex &index )
 		// update elementTableView
 		this->initElementTableModel( sID );
 		int oID = item->text().toInt();
-		this->SingleRendering( oID );
+
+		//disable rendering for csv only data
+		if (!useCsvOnly) {
+			this->SingleRendering(oID);
+		}
 		elementTableView->update();
 
 		if ( this->spmActivated )
 		{
 			// Update Scatter Plot Matrix when another class than the active is selected.
-			if ( matrix != NULL )
+			//set ID selection im feature scout
+			if ( matrix )
 			{
-				matrix->SetClass2Plot( this->activeClassItem->index().row() );
-				matrix->UpdateLayout();
+				matrix->clearSelection();
+				matrix->update();
+				const int colorID = this->activeClassItem->index().row();
+				bool retflag = false;
+				QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
+
+				//Object ID starts with 0 eg. oID -1;
+				selInd->push_back(sID);
+				//set all entries
+				applyClassSelection(retflag, chartTable, colorID, false);
+				matrix->setSelection(&(*selInd));
+				matrix->update();
+				spUpdateSPColumnVisibilityWithVis();
+				if (retflag) return;
 			}
 		}
 	}
 }
 
-double dlg_FiberScout::calculateOpacity( QStandardItem *item )
+double dlg_FeatureScout::calculateOpacity( QStandardItem *item )
 {
 	// chart opacity dependence of number of objects
 	// for multi rendering
@@ -3453,7 +3761,7 @@ double dlg_FiberScout::calculateOpacity( QStandardItem *item )
 	return 1.0;
 }
 
-void dlg_FiberScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStandardItem *item )
+void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStandardItem *item )
 {
 	// check if it is a class item
 	if ( item->hasChildren() )
@@ -3492,9 +3800,9 @@ void dlg_FiberScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStandar
 }
 
 
-void dlg_FiberScout::setActiveClassItem( QStandardItem* item, int situ )
+void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 {
-	// check once more, if its really a class item 
+	// check once more, if its really a class item
 	if ( !item->hasChildren() )
 		return;
 
@@ -3504,13 +3812,9 @@ void dlg_FiberScout::setActiveClassItem( QStandardItem* item, int situ )
 		this->activeClassItem = item;
 		// make sure when a class is added, at the same time the tableList should also be updated
 
-		// reload the class table to chartTable 
+		// reload the class table to chartTable
 		int id = item->index().row();
 		chartTable->ShallowCopy( tableList[id] );
-
-		// reset selection to NULL
-		if ( this->spmActivated )
-			this->matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
 	}
 	else if ( situ == 1 )	// add class
 	{
@@ -3523,13 +3827,9 @@ void dlg_FiberScout::setActiveClassItem( QStandardItem* item, int situ )
 		// set active class
 		this->activeClassItem = item;
 
-		// reload the class table to chartTable 
+		// reload the class table to chartTable
 		int id = item->index().row();
 		chartTable->ShallowCopy( tableList[id] );
-
-		// reset selection to NULL
-		if ( this->spmActivated )
-			this->matrix->GetAnnotationLink()->GetCurrentSelection()->RemoveAllNodes();
 	}
 	else if ( situ == 2 )	// delete class
 	{
@@ -3546,7 +3846,7 @@ void dlg_FiberScout::setActiveClassItem( QStandardItem* item, int situ )
 		return;
 }
 
-void dlg_FiberScout::recalculateChartTable( QStandardItem *item )
+void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 {
 	if ( !item->hasChildren() )
 		return;
@@ -3595,7 +3895,7 @@ void dlg_FiberScout::recalculateChartTable( QStandardItem *item )
 	}
 }
 
-void dlg_FiberScout::updateColumnNames()
+void dlg_FeatureScout::updateColumnNames()
 {
 	eleString.clear();
 	eleString = getNamesOfObjectCharakteristics( false );
@@ -3608,7 +3908,7 @@ void dlg_FiberScout::updateColumnNames()
 	}
 }
 
-void dlg_FiberScout::deletePcViewPointer()
+void dlg_FeatureScout::deletePcViewPointer()
 {
 	if ( this->pcChart != 0 )
 	{
@@ -3622,7 +3922,7 @@ void dlg_FiberScout::deletePcViewPointer()
 	}
 }
 
-void dlg_FiberScout::updateLookupTable( double alpha )
+void dlg_FeatureScout::updateLookupTable( double alpha )
 {
 	int lutNum = colorList.length();
 	lut->SetNumberOfTableValues( lutNum );
@@ -3638,7 +3938,7 @@ void dlg_FiberScout::updateLookupTable( double alpha )
 	lut->SetAlpha( alpha );
 }
 
-void dlg_FiberScout::EnableBlobRendering()
+void dlg_FeatureScout::EnableBlobRendering()
 {
 	if ( !OpenBlobVisDialog() )
 		return;
@@ -3663,10 +3963,10 @@ void dlg_FiberScout::EnableBlobRendering()
 	double maxDim = dims[0] >= dims[1] ? dims[0] : dims[1];
 	maxDim = dims[2] >= maxDim ? dims[2] : maxDim;
 
-	QVector<FiberInfo> fibres;
+	QVector<FeatureInfo> objects;
 	for ( int i = 0; i < chartTable->GetNumberOfRows(); i++ )
 	{
-		FiberInfo fi;
+		FeatureInfo fi;
 		int index = chartTable->GetValue( i, 0 ).ToInt();
 
 		if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
@@ -3689,7 +3989,7 @@ void dlg_FiberScout::EnableBlobRendering()
 			fi.z2 = chartTable->GetValue( i, 6 ).ToDouble();
 			fi.diameter = chartTable->GetValue( i, 23 ).ToDouble();;
 		}
-		fibres.append( fi );
+		objects.append( fi );
 	}
 
 	// set right objecttype (for the labeling)
@@ -3699,19 +3999,19 @@ void dlg_FiberScout::EnableBlobRendering()
 		blob->SetObjectType( "Voids" );
 
 	blob->SetLabelScale( 10.0 * maxDim / 100.0 );
-	blob->SetCluster( fibres );
+	blob->SetCluster( objects );
 
 	// set color
 	QColor color = colorList.at( activeClassItem->index().row() );
 	blob->GetSurfaceProperty()->SetColor( color.redF(), color.greenF(), color.blueF() );
 	blob->SetName( activeClassItem->text() );
-	const double fiberCount = activeClassItem->rowCount();
-	const double fiberPercentage = 100.0*fiberCount / objectNr;
-	blob->SetFiberStats( fiberCount, fiberPercentage );
+	const double count = activeClassItem->rowCount();
+	const double percentage = 100.0*count / objectNr;
+	blob->SetStats( count, percentage );
 	blobManager->Update();
 }
 
-void dlg_FiberScout::DisableBlobRendering()
+void dlg_FeatureScout::DisableBlobRendering()
 {
 	// delete blob for class
 	if ( blobMap.contains( this->activeClassItem->text() ) )
@@ -3722,7 +4022,7 @@ void dlg_FiberScout::DisableBlobRendering()
 	}
 }
 
-void dlg_FiberScout::showContextMenu( const QPoint &pnt )
+void dlg_FeatureScout::showContextMenu( const QPoint &pnt )
 {
 	QStandardItem *item = this->classTreeModel->itemFromIndex( this->classTreeView->currentIndex() );
 
@@ -3749,7 +4049,7 @@ void dlg_FiberScout::showContextMenu( const QPoint &pnt )
 		QMenu::exec( actions, this->classTreeView->mapToGlobal( pnt ) );
 }
 
-void dlg_FiberScout::addObject()
+void dlg_FeatureScout::addObject()
 {
 	QMessageBox msgBox;
 	msgBox.setText( "Adding an object to the active class, needs to be done." );
@@ -3759,7 +4059,7 @@ void dlg_FiberScout::addObject()
 	// adding the new object to the active class, update class table, reordering the label id...
 }
 
-void dlg_FiberScout::deleteObject()
+void dlg_FeatureScout::deleteObject()
 {
 	QStandardItem *item = this->classTreeModel->itemFromIndex( this->classTreeView->currentIndex() );
 	if ( item->hasChildren() )
@@ -3816,7 +4116,7 @@ void dlg_FiberScout::deleteObject()
 	}
 }
 
-void dlg_FiberScout::updateClassStatistics( QStandardItem *item )
+void dlg_FeatureScout::updateClassStatistics( QStandardItem *item )
 {
 	QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
 
@@ -3842,14 +4142,14 @@ void dlg_FiberScout::updateClassStatistics( QStandardItem *item )
 	}
 }
 
-void dlg_FiberScout::addLogMsg( const QString &str )
+void dlg_FeatureScout::addLogMsg( const QString &str )
 {
 	static_cast<MdiChild*>( activeChild )->addMsg( str );
 }
 
-int dlg_FiberScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
+int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 {
-	// compute the probability distribution of fiber orientations
+	// compute the probability distribution of orientations
 	ot->Initialize();
 	int maxF = 0;
 	double fp, ft;
@@ -3897,7 +4197,7 @@ int dlg_FiberScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 	return maxF;
 }
 
-void dlg_FiberScout::updateObjectOrientationID( vtkTable *table )
+void dlg_FeatureScout::updateObjectOrientationID( vtkTable *table )
 {
 	double fp, ft;
 	int ip, it, tt;
@@ -3926,7 +4226,7 @@ void dlg_FiberScout::updateObjectOrientationID( vtkTable *table )
 	}
 }
 
-void dlg_FiberScout::drawAnnotations( vtkRenderer *renderer )
+void dlg_FeatureScout::drawAnnotations( vtkRenderer *renderer )
 {
 	// annotations for phi
 	vtkIdType numPoints = 12 + 6;
@@ -3986,7 +4286,7 @@ void dlg_FiberScout::drawAnnotations( vtkRenderer *renderer )
 	renderer->AddActor( actor );
 }
 
-void dlg_FiberScout::drawPolarPlotMesh( vtkRenderer *renderer )
+void dlg_FeatureScout::drawPolarPlotMesh( vtkRenderer *renderer )
 {
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 
@@ -4037,7 +4337,7 @@ void dlg_FiberScout::drawPolarPlotMesh( vtkRenderer *renderer )
 }
 
 
-void dlg_FiberScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType )
+void dlg_FeatureScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType )
 {
 	// Default: RenderTpye = 0
 	// 1		RenderFLD
@@ -4055,7 +4355,7 @@ void dlg_FiberScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *render
 			m_scalarBarPP->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
 			m_scalarBarPP->SetTitle( "Frequency" );
 			m_scalarBarPP->SetNumberOfLabels( 5 );
-			m_scalarWidgetPP->SetInteractor( this->pcPolarPlot->GetInteractor() );
+			m_scalarWidgetPP->SetInteractor( polarPlot->GetInteractor() );
 			m_scalarWidgetPP->SetScalarBarActor( m_scalarBarPP );
 			m_scalarWidgetPP->SetEnabled( true );
 			m_scalarWidgetPP->SetRepositionable( true );
@@ -4091,7 +4391,7 @@ void dlg_FiberScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *render
 	}
 }
 
-void dlg_FiberScout::createPolarPlotLookupTable( vtkLookupTable *lut )
+void dlg_FeatureScout::createPolarPlotLookupTable( vtkLookupTable *lut )
 {
 	// set up an individual color table for LookupTable
 	double rgb[3];
@@ -4113,7 +4413,7 @@ void dlg_FiberScout::createPolarPlotLookupTable( vtkLookupTable *lut )
 	lut->SetTableValue( 0, rgb[0], rgb[1], rgb[2] );
 }
 
-void dlg_FiberScout::createFLDODLookupTable( vtkLookupTable *lut, int Num )
+void dlg_FeatureScout::createFLDODLookupTable( vtkLookupTable *lut, int Num )
 {
 	if ( Num > 9 )
 		return;
@@ -4132,10 +4432,9 @@ void dlg_FiberScout::createFLDODLookupTable( vtkLookupTable *lut, int Num )
 		lut->SetTableValue( 8, 0.5, 0.0, 0.0 );
 }
 
-void dlg_FiberScout::setupPolarPlotView( vtkTable *it )
+void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 {
 	iovPP->setWindowTitle( "Polar Plot View" );
-	this->pcPolarPlot->SetRenderWindow( NULL );
 	double xx, yy, zz, phi;
 
 	// construct delaunay triangulation
@@ -4157,10 +4456,10 @@ void dlg_FiberScout::setupPolarPlotView( vtkTable *it )
 	//cold-warm-map
 	//cTFun->AddRGBPoint(   0, 1.0, 1.0, 1.0 );
 	//cTFun->AddRGBPoint(   1, 0.0, 1.0, 1.0 );
-	//cTFun->AddRGBPoint(  pcMaxC, 1.0, 0.0, 1.0 );	
+	//cTFun->AddRGBPoint(  pcMaxC, 1.0, 0.0, 1.0 );
 
 	//heatmap
-	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );					//gray			
+	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );					//gray
 	cTFun->AddRGBPoint( pcMaxC * 1 / 9.0, 0.0, 0.0, 1.0, 0.1, 0.0 );		//blue
 	cTFun->AddRGBPoint( pcMaxC * 4 / 9.0, 1.0, 0.0, 0.0, 0.1, 0.0 );		//red
 	cTFun->AddRGBPoint( pcMaxC * 9 / 9.0, 1.0, 1.0, 0.0, 0.1, 0.0 );		//yellow
@@ -4228,43 +4527,44 @@ void dlg_FiberScout::setupPolarPlotView( vtkTable *it )
 	VTK_CREATE( vtkRenderer, renderer );
 	renderer->SetBackground( 1, 1, 1 );
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	VTK_CREATE( vtkGenericOpenGLRenderWindow, renW );
+#else
 	VTK_CREATE( vtkRenderWindow, renW );
+#endif
 	renW->AddRenderer( renderer );
 	renderer->AddActor( actor );
 
-	vtkRenderWindowInteractor *renI = pcPolarPlot->GetInteractor();
+	vtkRenderWindowInteractor *renI = polarPlot->GetInteractor();
 	renI->SetRenderWindow( renW );
-	pcPolarPlot->SetRenderWindow( renI->GetRenderWindow() );
+	polarPlot->SetRenderWindow( renW );
 
-	// Projection grid
 	this->drawPolarPlotMesh( renderer );
 	this->drawAnnotations( renderer );
 	this->drawScalarBar( cTFun, renderer, 0 );
-	pcPolarPlot->GetRenderWindow()->Render();
+	polarPlot->GetRenderWindow()->Render();
 }
 
-void dlg_FiberScout::updatePolarPlotColorScalar( vtkTable *it )
+void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 {
 	iovPP->setWindowTitle( "Polar Plot View" );
-	this->pcPolarPlot->SetRenderWindow( NULL );
 	double xx, yy, zz, phi;
 
 	// calculate object probability and save it to a table
 	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
-	//this->setupPolarPlotResolution(2.0);
 	int maxF = this->calcOrientationProbability( it, table );
 
 	// Create a transfer function mapping scalar value to color
 	vtkSmartPointer<vtkColorTransferFunction> cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
-	//cold-warm-map	
+	//cold-warm-map
 	//cTFun->AddRGBPoint(   0, 1.0, 1.0, 1.0 );
 	//cTFun->AddRGBPoint(   1, 0.0, 1.0, 1.0 );
 	//cTFun->AddRGBPoint(  maxF, 1.0, 0.0, 1.0 );
 
 	//heatmap
-	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );				//gray				
+	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );				//gray
 	cTFun->AddRGBPoint( maxF*1.0 / 9.0, 0.0, 0.0, 1.0, 0.1, 0.0 );		//blue
 	cTFun->AddRGBPoint( maxF*4.0 / 9.0, 1.0, 0.0, 0.0, 0.1, 0.0 );		//red
 	cTFun->AddRGBPoint( maxF*9.0 / 9.0, 1.0, 1.0, 0.0, 0.1, 0.0 );		//yellow
@@ -4327,22 +4627,25 @@ void dlg_FiberScout::updatePolarPlotColorScalar( vtkTable *it )
 	VTK_CREATE( vtkRenderer, renderer );
 	renderer->SetBackground( 1, 1, 1 );
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	VTK_CREATE( vtkGenericOpenGLRenderWindow, renW );
+#else
 	VTK_CREATE( vtkRenderWindow, renW );
+#endif
 	renW->AddRenderer( renderer );
 	renderer->AddActor( actor );
 
-	vtkRenderWindowInteractor *renI = pcPolarPlot->GetInteractor();
+	vtkRenderWindowInteractor *renI = polarPlot->GetInteractor();
 	renI->SetRenderWindow( renW );
-	pcPolarPlot->SetRenderWindow( renI->GetRenderWindow() );
+	polarPlot->SetRenderWindow( renW );
 
-	// Projection grid and annotations
 	this->drawPolarPlotMesh( renderer );
 	this->drawAnnotations( renderer );
 	this->drawScalarBar( cTFun, renderer );
-	pcPolarPlot->GetRenderWindow()->Render();
+	polarPlot->GetRenderWindow()->Render();
 }
 
-void dlg_FiberScout::setupPolarPlotResolution( float grad )
+void dlg_FeatureScout::setupPolarPlotResolution( float grad )
 {
 	this->gPhi = vtkMath::Floor( 360.0 / grad );
 	this->gThe = vtkMath::Floor( 90.0 / grad );
@@ -4351,7 +4654,7 @@ void dlg_FiberScout::setupPolarPlotResolution( float grad )
 	gThe = gThe + 1;
 }
 
-int dlg_FiberScout::OpenBlobVisDialog()
+int dlg_FeatureScout::OpenBlobVisDialog()
 {
 	QStringList inList = ( QStringList()
 						   << tr( "^Range:" )
@@ -4421,7 +4724,7 @@ int dlg_FiberScout::OpenBlobVisDialog()
 }
 
 
-QStringList dlg_FiberScout::getNamesOfObjectCharakteristics( bool withUnit )
+QStringList dlg_FeatureScout::getNamesOfObjectCharakteristics( bool withUnit )
 {
 	// manually define new table elements
 	// using unicode to define the unit
@@ -4445,92 +4748,116 @@ QStringList dlg_FiberScout::getNamesOfObjectCharakteristics( bool withUnit )
 
 	QStringList eleString;
 
-	//Names of the fiber charakteristics
+	//Names of the fiber characteristics
 	if ( filterID == INDIVIDUAL_FIBRE_VISUALIZATION )
 	{
-		eleString.append( "Label" );								// 0	
-		eleString.append( QString( "X1%1" ).arg( micro1 ) );		// 1
-		eleString.append( QString( "Y1%1" ).arg( micro1 ) );		// 2
-		eleString.append( QString( "Z1%1" ).arg( micro1 ) );		// 3
-		eleString.append( QString( "X2%1" ).arg( micro1 ) );		// 4
-		eleString.append( QString( "Y2%1" ).arg( micro1 ) );		// 5
-		eleString.append( QString( "Z2%1" ).arg( micro1 ) );		// 6
-		eleString.append( "a11" );									// 7
-		eleString.append( "a22" );									// 8
-		eleString.append( "a33" );									// 9
-		eleString.append( "a12" );									// 10
-		eleString.append( "a13" );									// 11
-		eleString.append( "a23" );									// 12
-		eleString.append( QString( "phi%1" ).arg( udegree ) );		// 13
-		eleString.append( QString( "theta%1" ).arg( udegree ) );	// 14
-		eleString.append( QString( "Xm%1" ).arg( micro1 ) );		// 15
-		eleString.append( QString( "Ym%1" ).arg( micro1 ) );		// 16
-		eleString.append( QString( "Zm%1" ).arg( micro1 ) );		// 17
-		if ( withUnit )
-		{
-			eleString.append( QString( "StraightLength%1" ).arg( micro1 ) );	// 18
-			eleString.append( QString( "CurvedLength%1" ).arg( micro1 ) );		// 19
-		}
-		else
-		{
-			eleString.append( QString( "sL%1" ).arg( micro1 ) );				// 18
-			eleString.append( QString( "cL%1" ).arg( micro1 ) );				// 19
-		}
-		eleString.append( QString( "Diameter%1" ).arg( micro1 ) );				// 20
-		eleString.append( QString( "Surface%1" ).arg( micro2 ) );				// 21
-		eleString.append( QString( "Volume%1" ).arg( micro3 ) );				// 22
+		if (useCsvOnly) {
+			eleString.append("AUTO_ID");
+			for (auto &element : *this->m_headersSelected) {
+				eleString.append(element);
 
-		if ( withUnit )
-		{
-			eleString.append( "SperatedFiber" );								// 23
-			eleString.append( "CurvedFiber" );									// 24
+			}
+
+
 		}
-		else
-		{
-			eleString.append( "sFiber" );										// 23
-			eleString.append( "cFiber" );										// 24
+		else {
+
+			eleString.append("Label");								// 0
+			eleString.append(QString("X1%1").arg(micro1));		// 1
+			eleString.append(QString("Y1%1").arg(micro1));		// 2
+			eleString.append(QString("Z1%1").arg(micro1));		// 3
+			eleString.append(QString("X2%1").arg(micro1));		// 4
+			eleString.append(QString("Y2%1").arg(micro1));		// 5
+			eleString.append(QString("Z2%1").arg(micro1));		// 6
+			eleString.append("a11");									// 7
+			eleString.append("a22");									// 8
+			eleString.append("a33");									// 9
+			eleString.append("a12");									// 10
+			eleString.append("a13");									// 11
+			eleString.append("a23");									// 12
+			eleString.append(QString("phi%1").arg(udegree));		// 13
+			eleString.append(QString("theta%1").arg(udegree));	// 14
+			eleString.append(QString("Xm%1").arg(micro1));		// 15
+			eleString.append(QString("Ym%1").arg(micro1));		// 16
+			eleString.append(QString("Zm%1").arg(micro1));		// 17
+			if (withUnit)
+			{
+				eleString.append(QString("StraightLength%1").arg(micro1));	// 18
+				eleString.append(QString("CurvedLength%1").arg(micro1));		// 19
+			}
+			else
+			{
+				eleString.append(QString("sL%1").arg(micro1));				// 18
+				eleString.append(QString("cL%1").arg(micro1));				// 19
+			}
+			eleString.append(QString("Diameter%1").arg(micro1));				// 20
+			eleString.append(QString("Surface%1").arg(micro2));				// 21
+			eleString.append(QString("Volume%1").arg(micro3));				// 22
+
+			if (withUnit)
+			{
+				eleString.append("SperatedFiber");								// 23
+				eleString.append("CurvedFiber");									// 24
+			}
+			else
+			{
+				eleString.append("sFiber");										// 23
+				eleString.append("cFiber");										// 24
+			}
 		}
 	}
 	//Names of the pore charakteristics
 	else
 	{
-		eleString.append( "LabelId" );									// 0	
-		eleString.append( QString( "X1%1" ).arg( micro1 ) );			// 1
-		eleString.append( QString( "Y1%1" ).arg( micro1 ) );			// 2
-		eleString.append( QString( "Z1%1" ).arg( micro1 ) );			// 3
-		eleString.append( QString( "X2%1" ).arg( micro1 ) );			// 4
-		eleString.append( QString( "Y2%1" ).arg( micro1 ) );			// 5
-		eleString.append( QString( "Z2%1" ).arg( micro1 ) );			// 6
-		eleString.append( "a11" );										// 7
-		eleString.append( "a22" );										// 8
-		eleString.append( "a33" );										// 9
-		eleString.append( "a12" );										// 10
-		eleString.append( "a13" );										// 11
-		eleString.append( "a23" );										// 12
-		eleString.append( QString( "DimX%1" ).arg( micro1 ) );			// 13
-		eleString.append( QString( "DimY%1" ).arg( micro1 ) );			// 14
-		eleString.append( QString( "DimZ%1" ).arg( micro1 ) );			// 15
-		eleString.append( QString( "phi%1" ).arg( udegree ) );			// 16
-		eleString.append( QString( "theta%1" ).arg( udegree ) );		// 17
-		eleString.append( QString( "Xm%1" ).arg( micro1 ) );			// 18
-		eleString.append( QString( "Ym%1" ).arg( micro1 ) );			// 19
-		eleString.append( QString( "Zm%1" ).arg( micro1 ) );			// 20
-		//eleString.append( "ShapeFactor" );								
-		eleString.append( QString( "Volume%1" ).arg( micro3 ) );		// 21
-		eleString.append( "Roundness" );								// 22
-		eleString.append( QString( "FeretDiam%1" ).arg( micro1 ) );		// 23
-		eleString.append( "Flatness" );									// 24
-		eleString.append( "VoxDimX" );									// 25
-		eleString.append( "VoxDimY" );									// 26
-		eleString.append( "VoxDimZ" );									// 27
-		eleString.append( "MajorLength" );								// 28
-		eleString.append( "MinorLength" );								// 29
+		if (useCsvOnly)  //TODO ADAPT Adapt units
+		{
+			eleString.append("AUTO_ID");
+			for (auto &element : *this->m_headersSelected) {
+				eleString.append(element);
+
+			}
+
+		}else
+		{
+
+		//TODO REPLACE HARD CODED HEADERS BY SELECTED HEADERS
+		eleString.append("LabelId");									// 0
+		eleString.append(QString("X1%1").arg(micro1));			// 1
+		eleString.append(QString("Y1%1").arg(micro1));			// 2
+		eleString.append(QString("Z1%1").arg(micro1));			// 3
+		eleString.append(QString("X2%1").arg(micro1));			// 4
+		eleString.append(QString("Y2%1").arg(micro1));			// 5
+		eleString.append(QString("Z2%1").arg(micro1));			// 6
+		eleString.append("a11");										// 7
+		eleString.append("a22");										// 8
+		eleString.append("a33");										// 9
+		eleString.append("a12");										// 10
+		eleString.append("a13");										// 11
+		eleString.append("a23");										// 12
+		eleString.append(QString("DimX%1").arg(micro1));			// 13
+		eleString.append(QString("DimY%1").arg(micro1));			// 14
+		eleString.append(QString("DimZ%1").arg(micro1));			// 15
+		eleString.append(QString("phi%1").arg(udegree));			// 16
+		eleString.append(QString("theta%1").arg(udegree));		// 17
+		eleString.append(QString("Xm%1").arg(micro1));			// 18
+		eleString.append(QString("Ym%1").arg(micro1));			// 19
+		eleString.append(QString("Zm%1").arg(micro1));			// 20
+		eleString.append(QString("Volume%1").arg(micro3));		// 21
+		eleString.append("Roundness");								// 22
+		eleString.append(QString("FeretDiam%1").arg(micro1));		// 23
+		eleString.append("Flatness");									// 24
+		eleString.append("VoxDimX");									// 25
+		eleString.append("VoxDimY");									// 26
+		eleString.append("VoxDimZ");									// 27
+		eleString.append("MajorLength");								// 28
+		eleString.append("MinorLength");								// 29
+		} //end else default configuration for feature scout
 	}
 	eleString.append( "Class_ID" );	// 25 / 19
 	return eleString;
 }
 
-void dlg_FiberScout::SaveBlobMovie()
+void dlg_FeatureScout::SaveBlobMovie()
 {
 	QString movie_file_types = GetAvailableMovieFormats();
 
@@ -4626,7 +4953,7 @@ void dlg_FiberScout::SaveBlobMovie()
 		for ( int ind = 0; ind < 2; ++ind )	dimZ[ind] = dlg.getIntValue(i++);
 
 		QFileInfo fileInfo = static_cast<MdiChild*>( activeChild )->getFileInfo();
-		
+
 		blobManager->SaveMovie( activeChild,
 								raycaster,
 								raycaster->GetRenderer()->GetActiveCamera(),
@@ -4650,21 +4977,24 @@ void dlg_FiberScout::SaveBlobMovie()
 		return;
 }
 
-bool dlg_FiberScout::initParallelCoordinates( iAObjectAnalysisType fid )
+bool dlg_FeatureScout::initParallelCoordinates( iAObjectAnalysisType fid )
 {
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	if ( !mdiChild )
 		return false;
 
-	iovPC = new dlg_IOVPC( this );
+	iovPC = new iADockWidgetWrapper("Parallel Coordinates",  "FeatureScoutPC");
 	iovPP = new dlg_IOVPP( this );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, this );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPC );
 	mdiChild->addDockWidget( Qt::BottomDockWidgetArea, iovPP );
 	iovPP->colorMapSelection->hide();
 	mdiChild->HideHistogram();
-	mdiChild->getImagePropertyDlg()->hide();
-	mdiChild->logs->hide();
+
+	if (!this->useCsvOnly) {
+		mdiChild->getImagePropertyDlg()->hide();
+		mdiChild->logs->hide();
+	}
 	mdiChild->sYZ->hide();
 	mdiChild->sXZ->hide();
 	mdiChild->sXY->hide();
@@ -4676,7 +5006,7 @@ bool dlg_FiberScout::initParallelCoordinates( iAObjectAnalysisType fid )
 	return true;
 }
 
-bool dlg_FiberScout::changeFiberScout_Options( int idx )
+bool dlg_FeatureScout::changeFeatureScout_Options( int idx )
 {
 	MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
 	if ( !mdiChild )
@@ -4684,19 +5014,19 @@ bool dlg_FiberScout::changeFiberScout_Options( int idx )
 
 	if ( idx == 6 && !iovSPM )
 	{
-		iovSPM = new dlg_IOVSPM( this );
+		iovSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
 		mdiChild->addDockWidget( Qt::RightDockWidgetArea, iovSPM );
 		iovSPM->show();
 
 		if ( iovDV && !iovMO || ( iovDV && iovMO ) )
 		{
-			mdiChild->tabifyDockWidget( iovDV, iovSPM );
+			mdiChild->tabifyDockWidget( iovDV, iovSPM);
 			iovSPM->show();
 			iovSPM->raise();
 		}
 		else if ( !iovDV && iovMO )
 		{
-			mdiChild->tabifyDockWidget( iovMO, iovSPM );
+			mdiChild->tabifyDockWidget( iovMO, iovSPM);
 			iovSPM->show();
 			iovSPM->raise();
 		}

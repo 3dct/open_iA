@@ -144,10 +144,14 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	axesTransform = vtkTransform::New();
 	slicerTransform = vtkTransform::New();
 
-	slicerXY = new iASlicer(this, iASlicerMode::XY, sXY->sliceWidget);
-	slicerXZ = new iASlicer(this, iASlicerMode::XZ, sXZ->sliceWidget);
-	slicerYZ = new iASlicer(this, iASlicerMode::YZ, sYZ->sliceWidget);
-
+	slicer[iASlicerMode::YZ] = new iASlicer(this, iASlicerMode::YZ, sYZ->sliceWidget);
+	slicer[iASlicerMode::XY] = new iASlicer(this, iASlicerMode::XY, sXY->sliceWidget);
+	slicer[iASlicerMode::XZ] = new iASlicer(this, iASlicerMode::XZ, sXZ->sliceWidget);
+	
+	sYZ->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(255, 0  , 0  ) } ").arg(iASlicerWidget::BorderWidth));
+	sXY->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(0  , 0  , 255) } ").arg(iASlicerWidget::BorderWidth));
+	sXZ->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(0  , 255, 0  ) } ").arg(iASlicerWidget::BorderWidth));
+	
 	Raycaster = new iARenderer(this);
 	Raycaster->setAxesTransform(axesTransform);
 
@@ -176,6 +180,13 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	sXY->spinBoxXY->setRange(-8192,8192);
 	sYZ->spinBoxYZ->setRange(-8192,8192);
 
+	sXY->sbinBoxSlabThicknessXY->hide();
+	sXY->labelSlabThicknessXY->hide();
+	sXZ->sbinBoxSlabThicknessXZ->hide();
+	sXZ->labelSlabThicknessXZ->hide();
+	sYZ->sbinBoxSlabThicknessYZ->hide();
+	sYZ->labelSlabThicknessYZ->hide();
+
 	worldProfilePoints = vtkPoints::New();
 	worldProfilePoints->Allocate(2);
 
@@ -192,9 +203,8 @@ MdiChild::~MdiChild()
 
 	polyData->Delete();
 
-	delete slicerXZ;
-	delete slicerXY;
-	delete slicerYZ;
+	for (int s=0; s<3; ++s)
+		delete slicer[s];
 	delete Raycaster; Raycaster = nullptr;
 
 	if(imgProperty)		delete imgProperty;
@@ -252,12 +262,19 @@ void MdiChild::connectSignalsToSlots()
 	connect(sXZ->doubleSpinBoxXZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationXZ(double)));
 	connect(sYZ->doubleSpinBoxYZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationYZ(double)));
 
-	connect(slicerXY->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
-	connect(slicerXZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
-	connect(slicerYZ->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
-	connect(slicerXY->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
-	connect(slicerXZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
-	connect(slicerYZ->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(sXY->checkBoxSlabModeXY, SIGNAL(toggled(bool)), this, SLOT(setSlabModeXY(bool)));
+	connect(sXY->sbinBoxSlabThicknessXY, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessXY(int)));
+	connect(sXZ->checkBoxSlabModeXZ, SIGNAL(toggled(bool)), this, SLOT(setSlabModeXZ(bool)));
+	connect(sXZ->sbinBoxSlabThicknessXZ, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessXZ(int)));
+	connect(sYZ->checkBoxSlabModeYZ, SIGNAL(toggled(bool)), this, SLOT(setSlabModeYZ(bool)));
+	connect(sYZ->sbinBoxSlabThicknessYZ, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessYZ(int)));
+
+	for (int s = 0; s < 3; ++s)
+	{
+		connect(slicer[s]->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
+		connect(slicer[s]->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+		connect(slicer[s]->widget(), SIGNAL(ctrlMouseWheel(int)), this, SLOT(ChangeMagicLensSize(int)));
+	}
 
 	connect(m_histogram, SIGNAL(updateViews()), this, SLOT(updateViews()));
 	connect(m_histogram, SIGNAL(pointSelected()), this, SIGNAL(pointSelected()));
@@ -320,9 +337,8 @@ void MdiChild::updateRenderWindows(int channels)
 
 void MdiChild::disableRenderWindows(int ch)
 {
-	slicerXZ->disableInteractor();
-	slicerXY->disableInteractor();
-	slicerYZ->disableInteractor();
+	for (int s = 0; s<3; ++s)
+		slicer[s]->disableInteractor();
 	Raycaster->disableInteractor();
 	emit rendererDeactivated(ch);
 }
@@ -331,14 +347,26 @@ void MdiChild::enableRenderWindows()	// = image data available
 {
 	if (IsVolumeDataLoaded() && reInitializeRenderWindows)
 	{
-		SetHistogramModality(0);
 		Raycaster->enableInteractor();
-		slicerXZ->enableInteractor();
-		slicerXY->enableInteractor();
-		slicerYZ->enableInteractor();
+		for (int s = 0; s<3; ++s)
+			slicer[s]->enableInteractor();
 		updateViews();
 		updateImageProperties();
-		UpdateProfile();
+		if (imageData->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
+		{
+			SetHistogramModality(0);
+			UpdateProfile();
+		}
+		else
+		{
+			InitVolumeRenderers();
+			QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
+			for (int s = 0; s < 3; ++s)
+			{
+				slicer[s]->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+				slicer[s]->GetSlicerData()->ResetCamera();
+			}
+		}
 	}
 	// set to true for next time, in case it is false now (i.e. default to always reinitialize,
 	// unless explicitly set otherwise)
@@ -367,15 +395,14 @@ void MdiChild::enableRenderWindows()	// = image data available
 		iAChannelVisualizationData * chData = m_channels.value(key).data();
 		if (chData->IsEnabled()
 			|| (isMagicLensEnabled && (
-				key == slicerXY->getMagicLensInput() ||
-				key == slicerXZ->getMagicLensInput() ||
-				key == slicerYZ->getMagicLensInput()
+				key == slicer[iASlicerMode::XY]->getMagicLensInput() ||
+				key == slicer[iASlicerMode::XZ]->getMagicLensInput() ||
+				key == slicer[iASlicerMode::YZ]->getMagicLensInput()
 				))
 			)
 		{
-			slicerXZ->reInitializeChannel(key, chData);
-			slicerXY->reInitializeChannel(key, chData);
-			slicerYZ->reInitializeChannel(key, chData);
+			for (int s = 0; s<3; ++s)
+				slicer[s]->reInitializeChannel(key, chData);
 		}
 	}
 	m_dlgModalities->EnableUI();
@@ -384,9 +411,8 @@ void MdiChild::enableRenderWindows()	// = image data available
 void MdiChild::ModalityTFChanged()
 {
 	updateChannelMappers();
-	slicerXZ->UpdateMagicLensColors();
-	slicerXY->UpdateMagicLensColors();
-	slicerYZ->UpdateMagicLensColors();
+	for (int s = 0; s<3; ++s)
+		slicer[s]->UpdateMagicLensColors();
 	emit TransferFunctionChanged();
 }
 
@@ -405,21 +431,21 @@ void MdiChild::updateRenderers(int x, int y, int z, int mode)
 		xCoord = x; yCoord = y; zCoord = z;
 		if (mode != iASlicerMode::XZ) {
 			if (slicerSettings.SingleSlicer.ShowPosition) {
-				slicerXZ->setPositionMarkerCenter(x*spacing[0], z*spacing[2]);
+				slicer[iASlicerMode::XZ]->setPositionMarkerCenter(x*spacing[0], z*spacing[2]);
 			}
-			slicerXZ->setIndex(x,y,z);
+			slicer[iASlicerMode::XZ]->setIndex(x,y,z);
 			sXZ->spinBoxXZ->setValue(y);
 		}
 		if (mode != iASlicerMode::YZ) {
 			if (slicerSettings.SingleSlicer.ShowPosition)
-				slicerYZ->setPositionMarkerCenter(y*spacing[1], z*spacing[2]);
-			slicerYZ->setIndex(x,y,z);
+				slicer[iASlicerMode::YZ]->setPositionMarkerCenter(y*spacing[1], z*spacing[2]);
+			slicer[iASlicerMode::YZ]->setIndex(x,y,z);
 			sYZ->spinBoxYZ->setValue(x);
 		}
 		if (mode != iASlicerMode::XY) {
 			if (slicerSettings.SingleSlicer.ShowPosition)
-				slicerXY->setPositionMarkerCenter(x*spacing[0], y*spacing[1]);
-			slicerXY->setIndex(x,y,z);
+				slicer[iASlicerMode::XY]->setPositionMarkerCenter(x*spacing[0], y*spacing[1]);
+			slicer[iASlicerMode::XY]->setIndex(x,y,z);
 			sXY->spinBoxXY->setValue(z);
 		}
 		if (renderSettings.ShowRPosition)
@@ -546,7 +572,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	setCurrentFile(f);
 
 	waitForPreviousIO();
-	
+
 	ioThread = new iAIO(imageData, polyData, m_logger, this, volumeStack->GetVolumes(), volumeStack->GetFileNames());
 	if (f.endsWith(iAIOProvider::ProjectFileExtension))
 	{
@@ -563,9 +589,9 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 		connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	}
 	connectIOThreadSignals(ioThread);
-	connect(m_dlgModalities, SIGNAL(ModalityAvailable(int)), this, SLOT(SetHistogramModality(int)));
+	connect(m_dlgModalities, SIGNAL(ModalityAvailable(int)), this, SLOT(ModalityAdded(int)));
 	connect(ioThread, SIGNAL(done()), this, SIGNAL(fileLoaded()));
-	
+
 	polyData->ReleaseData();
 
 	if (!setupLoadIO(f, isStack))
@@ -627,9 +653,8 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 	SetHistogramModality(0);
 
 	Raycaster->reInitialize(imageData, polyData);
-	slicerXZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
-	slicerXY->reInitialize(imageData, slicerTransform, colorTransferFunction);
-	slicerYZ->reInitialize(imageData, slicerTransform, colorTransferFunction);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->reInitialize(imageData, slicerTransform, colorTransferFunction);
 	updateViews();
 
 	if (CheckedList.at(updateIndex)!=0) {
@@ -671,9 +696,8 @@ void MdiChild::setupStackView(bool active)
 	addVolumePlayer(volumeStack.data());
 
 	Raycaster->reInitialize(imageData, polyData);
-	slicerXZ->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
-	slicerXY->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
-	slicerYZ->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
+	for (int s = 0; s<3; ++s)
+		slicer[s]->reInitialize(imageData, slicerTransform, modTrans->GetColorFunction());
 	updateViews();
 
 	Raycaster->update();
@@ -794,6 +818,7 @@ int MdiChild::chooseComponentNr(int modalityNr)
 	{
 		components << QString::number(i);
 	}
+	components << "All components";
 	QList<QVariant> values = (QList<QVariant>() << components);
 	dlg_commoninput componentChoice(this, "Choose Component", parameters, values, nullptr);
 	if (componentChoice.exec() != QDialog::Accepted)
@@ -827,7 +852,7 @@ bool MdiChild::save()
 		{
 			return false;
 		}
-		
+
 		return saveFile(GetModality(modalityNr)->GetFileName(), modalityNr, componentNr);
 	}
 }
@@ -969,7 +994,8 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 	waitForPreviousIO();
 
 	tmpSaveImg = GetModality(modalityNr)->GetImage();
-	if (tmpSaveImg->GetNumberOfScalarComponents() > 1)
+	if (tmpSaveImg->GetNumberOfScalarComponents() > 1 &&
+		componentNr != tmpSaveImg->GetNumberOfScalarComponents())
 	{
 		auto imgExtract = vtkSmartPointer<vtkImageExtractComponents>::New();
 		imgExtract->SetInputData(tmpSaveImg);
@@ -1056,49 +1082,49 @@ void MdiChild::saveRC()
 
 void MdiChild::saveXY()
 {
-	slicerXY->saveAsImage();
+	slicer[iASlicerMode::XY]->saveAsImage();
 }
 
 void MdiChild::saveXZ()
 {
-	slicerXZ->saveAsImage();
+	slicer[iASlicerMode::XZ]->saveAsImage();
 }
 
 void MdiChild::saveYZ()
 {
-	slicerYZ->saveAsImage();
+	slicer[iASlicerMode::YZ]->saveAsImage();
 }
 
 
 void MdiChild::saveStackXY()
 {
-	slicerXY->saveImageStack();
+	slicer[iASlicerMode::XY]->saveImageStack();
 }
 
 void MdiChild::saveStackXZ()
 {
-	slicerXZ->saveImageStack();
+	slicer[iASlicerMode::XZ]->saveImageStack();
 }
 
 void MdiChild::saveStackYZ()
 {
-	slicerYZ->saveImageStack();
+	slicer[iASlicerMode::YZ]->saveImageStack();
 }
 
 
 void MdiChild::saveMovXY()
 {
-	saveMovie(slicerXY);
+	saveMovie(slicer[iASlicerMode::XY]);
 }
 
 void MdiChild::saveMovXZ()
 {
-	saveMovie(slicerXZ);
+	saveMovie(slicer[iASlicerMode::XZ]);
 }
 
 void MdiChild::saveMovYZ()
 {
-	saveMovie(slicerYZ);
+	saveMovie(slicer[iASlicerMode::YZ]);
 }
 
 void MdiChild::saveMovRC()
@@ -1155,7 +1181,7 @@ void MdiChild::setCamPosition(double * camOptions, bool rsParallelProjection)
 
 void MdiChild::triggerInteractionXY()
 {
-	bool newState = slicerXY->changeInteractorState();
+	bool newState = slicer[iASlicerMode::XY]->changeInteractorState();
 	if (!newState)
 		addMsg(tr("%1  Slicer XY disabled.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	else
@@ -1165,7 +1191,7 @@ void MdiChild::triggerInteractionXY()
 
 void MdiChild::triggerInteractionXZ()
 {
-	bool newState = slicerXZ->changeInteractorState();
+	bool newState = slicer[iASlicerMode::XZ]->changeInteractorState();
 	if (!newState)
 		addMsg(tr("%1  Slicer XZ disabled.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	else
@@ -1175,7 +1201,7 @@ void MdiChild::triggerInteractionXZ()
 
 void MdiChild::triggerInteractionYZ()
 {
-	bool newState = slicerYZ->changeInteractorState();
+	bool newState = slicer[iASlicerMode::YZ]->changeInteractorState();
 	if (!newState)
 		addMsg(tr("%1  Slicer YZ disabled.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
 	else
@@ -1199,6 +1225,21 @@ void MdiChild::setSliceXYSpinBox(int s)
 	setSliceXY(s);
 	QSignalBlocker block(sXY->verticalScrollBarXY);
 	sXY->verticalScrollBarXY->setValue(s);
+}
+
+void MdiChild::setSlabModeXY(bool slabMode)
+{
+	sXY->labelSlabThicknessXY->setVisible(slabMode);
+	sXY->sbinBoxSlabThicknessXY->setVisible(slabMode);
+
+	slabMode == true ?
+		updateSlabThicknessXY(sXY->sbinBoxSlabThicknessXY->value()) :
+		updateSlabThicknessXY(0);
+}
+
+void MdiChild::updateSlabThicknessXY(int thickness)
+{
+	slicer[iASlicerMode::XY]->setSlabThickness(thickness);
 }
 
 void MdiChild::setSliceXYScrollBar(int s)
@@ -1344,17 +1385,15 @@ void MdiChild::setSliceXY(int s)
 {
 	if (snakeSlicer)
 	{
-		updateSnakeSlicer(sXY->spinBoxXY, slicerXY, 2, s);
+		updateSnakeSlicer(sXY->spinBoxXY, slicer[iASlicerMode::XY], 2, s);
 	}
 	else
 	{
 		this->zCoord = s;
-		slicerXY->setSliceNumber(s);
-		if (renderSettings.ShowSlicers)
+		slicer[iASlicerMode::XY]->setSliceNumber(s);
+		if (renderSettings.ShowSlicers || renderSettings.ShowSlicePlanes)
 		{
-			Raycaster->getPlane3()->SetNormal(0.0, 0.0, 1.0);
-			Raycaster->getPlane3()->SetOrigin(0.0,0.0,s*imageData->GetSpacing()[2]);
-			Raycaster->update();
+			Raycaster->setSlicePlane(2, 0.0, 0.0, s*imageData->GetSpacing()[2]);
 		}
 	}
 }
@@ -1365,6 +1404,21 @@ void MdiChild::setSliceYZSpinBox(int s)
 	setSliceYZ(s);
 	QSignalBlocker block(sYZ->verticalScrollBarYZ);
 	sYZ->verticalScrollBarYZ->setValue(s);
+}
+
+void MdiChild::setSlabModeYZ(bool slabMode)
+{
+	sYZ->labelSlabThicknessYZ->setVisible(slabMode);
+	sYZ->sbinBoxSlabThicknessYZ->setVisible(slabMode);
+
+	slabMode == true ?
+		updateSlabThicknessYZ(sYZ->sbinBoxSlabThicknessYZ->value()) :
+		updateSlabThicknessYZ(0);
+}
+
+void MdiChild::updateSlabThicknessYZ(int thickness)
+{
+	slicer[iASlicerMode::YZ]->setSlabThickness(thickness);
 }
 
 void MdiChild::setSliceYZScrollBar(int s)
@@ -1381,16 +1435,15 @@ void MdiChild::setSliceYZ(int s)
 {
 	if (snakeSlicer)
 	{
-		updateSnakeSlicer(sYZ->spinBoxYZ, slicerYZ, 0, s);
+		updateSnakeSlicer(sYZ->spinBoxYZ, slicer[iASlicerMode::YZ], 0, s);
 	}
 	else
 	{
 		this->xCoord = s;
-		slicerYZ->setSliceNumber(s);
-		if (renderSettings.ShowSlicers)
+		slicer[iASlicerMode::YZ]->setSliceNumber(s);
+		if (renderSettings.ShowSlicers || renderSettings.ShowSlicePlanes)
 		{
-			Raycaster->getPlane1()->SetOrigin(s*imageData->GetSpacing()[0],0,0);
-			Raycaster->update();
+			Raycaster->setSlicePlane(0, s*imageData->GetSpacing()[0],0,0);
 		}
 	}
 }
@@ -1401,6 +1454,21 @@ void MdiChild::setSliceXZSpinBox(int s)
 	setSliceXZ(s);
 	QSignalBlocker block(sXZ->verticalScrollBarXZ);
 	sXZ->verticalScrollBarXZ->setValue(s);
+}
+
+void MdiChild::setSlabModeXZ(bool slabMode)
+{
+	sXZ->labelSlabThicknessXZ->setVisible(slabMode);
+	sXZ->sbinBoxSlabThicknessXZ->setVisible(slabMode);
+
+	slabMode == true ?
+		updateSlabThicknessXZ(sXZ->sbinBoxSlabThicknessXZ->value()) :
+		updateSlabThicknessXZ(0);
+}
+
+void MdiChild::updateSlabThicknessXZ(int thickness)
+{
+	slicer[iASlicerMode::XZ]->setSlabThickness(thickness);
 }
 
 void MdiChild::setSliceXZScrollBar(int s)
@@ -1417,16 +1485,15 @@ void MdiChild::setSliceXZ(int s)
 {
 	if (snakeSlicer)
 	{
-		updateSnakeSlicer(sXZ->spinBoxXZ, slicerXZ, 1, s);
+		updateSnakeSlicer(sXZ->spinBoxXZ, slicer[iASlicerMode::XZ], 1, s);
 	}
 	else
 	{
 		this->yCoord = s;
-		slicerXZ->setSliceNumber(s);
-		if (renderSettings.ShowSlicers)
+		slicer[iASlicerMode::XZ]->setSliceNumber(s);
+		if (renderSettings.ShowSlicers || renderSettings.ShowSlicePlanes)
 		{
-			Raycaster->getPlane2()->SetOrigin(0,s*imageData->GetSpacing()[1],0);
-			Raycaster->update();
+			Raycaster->setSlicePlane(1, 0,s*imageData->GetSpacing()[1],0);
 		}
 	}
 }
@@ -1441,21 +1508,21 @@ void MdiChild::setChannel(int c)
 
 void MdiChild::setRotationXY(double a)
 {
-	slicerXY->rotateSlice( a );
+	slicer[iASlicerMode::XY]->rotateSlice( a );
 	Raycaster->setPlaneNormals( slicerTransform );
 }
 
 
 void MdiChild::setRotationYZ(double a)
 {
-	slicerYZ->rotateSlice( a );
+	slicer[iASlicerMode::YZ]->rotateSlice( a );
 	Raycaster->setPlaneNormals( slicerTransform );
 }
 
 
 void MdiChild::setRotationXZ(double a)
 {
-	slicerXZ->rotateSlice( a );
+	slicer[iASlicerMode::XZ]->rotateSlice( a );
 	Raycaster->setPlaneNormals( slicerTransform );
 }
 
@@ -1472,16 +1539,11 @@ void MdiChild::linkM(bool lm)
 
 void MdiChild::enableInteraction( bool b)
 {
-	if (b) {
-		slicerYZ->enableInteractor();
-		slicerXY->enableInteractor();
-		slicerXZ->enableInteractor();
-	} else {
-		slicerYZ->disableInteractor();
-		slicerXY->disableInteractor();
-		slicerXZ->disableInteractor();
-	}
-
+	for (int s = 0; s < 3; ++s)
+		if (b)
+			slicer[s]->enableInteractor();
+		else
+			slicer[s]->disableInteractor();
 }
 
 bool MdiChild::editPrefs(iAPreferences const & prefs)
@@ -1503,16 +1565,13 @@ bool MdiChild::editPrefs(iAPreferences const & prefs)
 
 void MdiChild::ApplyViewerPreferences()
 {
-	slicerXY->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
-	slicerXZ->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
-	slicerYZ->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
-	slicerXY->SetMagicLensSize(preferences.MagicLensSize);
-	slicerXZ->SetMagicLensSize(preferences.MagicLensSize);
-	slicerYZ->SetMagicLensSize(preferences.MagicLensSize);
+	for (int s = 0; s < 3; ++s)
+	{
+		slicer[s]->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
+		slicer[s]->SetMagicLensSize(preferences.MagicLensSize);
+		slicer[s]->setStatisticalExtent(preferences.StatisticalExtent);
+	}
 	renderer->vtkWidgetRC->setLensSize(preferences.MagicLensSize, preferences.MagicLensSize);
-	slicerXY->setStatisticalExtent(preferences.StatisticalExtent);
-	slicerYZ->setStatisticalExtent(preferences.StatisticalExtent);
-	slicerXZ->setStatisticalExtent(preferences.StatisticalExtent);
 	Raycaster->setStatExt(preferences.StatisticalExtent);
 }
 
@@ -1529,7 +1588,9 @@ void MdiChild::ApplyRenderSettings(iARenderer* raycaster)
 
 void MdiChild::ApplyVolumeSettings(const bool loadSavedVolumeSettings)
 {
-	m_dlgModalities->ShowSlicePlanes(renderSettings.ShowSlicers);
+	for (int i = 0; i < 3; ++i)
+		slicer[i]->widget()->showBorder(renderSettings.ShowSlicePlanes);
+	m_dlgModalities->ShowSlicers(renderSettings.ShowSlicers);
 	m_dlgModalities->ChangeRenderSettings(volumeSettings, loadSavedVolumeSettings);
 }
 
@@ -1567,7 +1628,7 @@ void MdiChild::resetLayout()
 
 int MdiChild::GetRenderMode()
 {
-	return volumeSettings.Mode;
+	return volumeSettings.RenderMode;
 }
 
 void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
@@ -1585,70 +1646,68 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 	linkViews(ss.LinkViews);
 	linkMDIs(ss.LinkMDIs);
 
-	slicerYZ->setup(ss.SingleSlicer);
-	slicerXY->setup(ss.SingleSlicer);
-	slicerXZ->setup(ss.SingleSlicer);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->setup(ss.SingleSlicer);
 
 	if (init)
 	{
 		//this initializes the snake slicer
-		slicerYZ->initializeWidget(imageData, worldSnakePoints);
-		slicerXY->initializeWidget(imageData, worldSnakePoints);
-		slicerXZ->initializeWidget(imageData, worldSnakePoints);
+		for (int s = 0; s<3; ++s)
+			slicer[s]->initializeWidget(imageData, worldSnakePoints);
 
 		updateSliceIndicators();
 
 		//Adding new point to the parametric spline for snake slicer
-		connect(slicerXY->widget(), SIGNAL(addedPoint(double, double, double)), slicerYZ->widget(), SLOT(addPoint(double, double, double)));
-		connect(slicerXY->widget(), SIGNAL(addedPoint(double, double, double)), slicerXZ->widget(), SLOT(addPoint(double, double, double)));
-		connect(slicerYZ->widget(), SIGNAL(addedPoint(double, double, double)), slicerXY->widget(), SLOT(addPoint(double, double, double)));
-		connect(slicerYZ->widget(), SIGNAL(addedPoint(double, double, double)), slicerXZ->widget(), SLOT(addPoint(double, double, double)));
-		connect(slicerXZ->widget(), SIGNAL(addedPoint(double, double, double)), slicerXY->widget(), SLOT(addPoint(double, double, double)));
-		connect(slicerXZ->widget(), SIGNAL(addedPoint(double, double, double)), slicerYZ->widget(), SLOT(addPoint(double, double, double)));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(addedPoint(double, double, double)), slicer[iASlicerMode::YZ]->widget(), SLOT(addPoint(double, double, double)));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(addedPoint(double, double, double)), slicer[iASlicerMode::XZ]->widget(), SLOT(addPoint(double, double, double)));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(addedPoint(double, double, double)), slicer[iASlicerMode::XY]->widget(), SLOT(addPoint(double, double, double)));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(addedPoint(double, double, double)), slicer[iASlicerMode::XZ]->widget(), SLOT(addPoint(double, double, double)));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(addedPoint(double, double, double)), slicer[iASlicerMode::XY]->widget(), SLOT(addPoint(double, double, double)));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(addedPoint(double, double, double)), slicer[iASlicerMode::YZ]->widget(), SLOT(addPoint(double, double, double)));
 
 		//Moving point
-		connect(slicerXY->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicerYZ->widget(), SLOT(movePoint(size_t, double, double, double)));
-		connect(slicerXY->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicerXZ->widget(), SLOT(movePoint(size_t, double, double, double)));
-		connect(slicerYZ->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicerXY->widget(), SLOT(movePoint(size_t, double, double, double)));
-		connect(slicerYZ->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicerXZ->widget(), SLOT(movePoint(size_t, double, double, double)));
-		connect(slicerXZ->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicerXY->widget(), SLOT(movePoint(size_t, double, double, double)));
-		connect(slicerXZ->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicerYZ->widget(), SLOT(movePoint(size_t, double, double, double)));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicer[iASlicerMode::YZ]->widget(), SLOT(movePoint(size_t, double, double, double)));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicer[iASlicerMode::XZ]->widget(), SLOT(movePoint(size_t, double, double, double)));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicer[iASlicerMode::XY]->widget(), SLOT(movePoint(size_t, double, double, double)));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicer[iASlicerMode::XZ]->widget(), SLOT(movePoint(size_t, double, double, double)));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicer[iASlicerMode::XY]->widget(), SLOT(movePoint(size_t, double, double, double)));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(movedPoint(size_t, double, double, double)), slicer[iASlicerMode::YZ]->widget(), SLOT(movePoint(size_t, double, double, double)));
 
 		//Changing arbitrary profile positioning
-		connect(slicerXY->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicerYZ->widget(), SLOT(setArbitraryProfile(int, double*)));
-		connect(slicerXY->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicerXZ->widget(), SLOT(setArbitraryProfile(int, double*)));
-		connect(slicerXY->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(UpdateProbe(int, double*)));
-		connect(slicerYZ->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicerXY->widget(), SLOT(setArbitraryProfile(int, double*)));
-		connect(slicerYZ->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicerXZ->widget(), SLOT(setArbitraryProfile(int, double*)));
-		connect(slicerYZ->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(UpdateProbe(int, double*)));
-		connect(slicerXZ->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicerXY->widget(), SLOT(setArbitraryProfile(int, double*)));
-		connect(slicerXZ->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicerYZ->widget(), SLOT(setArbitraryProfile(int, double*)));
-		connect(slicerXZ->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(UpdateProbe(int, double*)));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::YZ]->widget(), SLOT(setArbitraryProfile(int, double*)));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::XZ]->widget(), SLOT(setArbitraryProfile(int, double*)));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(UpdateProbe(int, double*)));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::XY]->widget(), SLOT(setArbitraryProfile(int, double*)));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::XZ]->widget(), SLOT(setArbitraryProfile(int, double*)));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(UpdateProbe(int, double*)));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::XY]->widget(), SLOT(setArbitraryProfile(int, double*)));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::YZ]->widget(), SLOT(setArbitraryProfile(int, double*)));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(UpdateProbe(int, double*)));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), Raycaster, SLOT(setArbitraryProfile(int, double*)));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), Raycaster, SLOT(setArbitraryProfile(int, double*)));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), Raycaster, SLOT(setArbitraryProfile(int, double*)));
 
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(switchedMode(int)), slicer[iASlicerMode::YZ]->widget(), SLOT(switchMode(int)));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(switchedMode(int)), slicer[iASlicerMode::XZ]->widget(), SLOT(switchMode(int)));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(switchedMode(int)), slicer[iASlicerMode::XY]->widget(), SLOT(switchMode(int)));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(switchedMode(int)), slicer[iASlicerMode::XZ]->widget(), SLOT(switchMode(int)));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(switchedMode(int)), slicer[iASlicerMode::XY]->widget(), SLOT(switchMode(int)));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(switchedMode(int)), slicer[iASlicerMode::YZ]->widget(), SLOT(switchMode(int)));
 
-		connect(slicerXY->widget(), SIGNAL(switchedMode(int)), slicerYZ->widget(), SLOT(switchMode(int)));
-		connect(slicerXY->widget(), SIGNAL(switchedMode(int)), slicerXZ->widget(), SLOT(switchMode(int)));
-		connect(slicerYZ->widget(), SIGNAL(switchedMode(int)), slicerXY->widget(), SLOT(switchMode(int)));
-		connect(slicerYZ->widget(), SIGNAL(switchedMode(int)), slicerXZ->widget(), SLOT(switchMode(int)));
-		connect(slicerXZ->widget(), SIGNAL(switchedMode(int)), slicerXY->widget(), SLOT(switchMode(int)));
-		connect(slicerXZ->widget(), SIGNAL(switchedMode(int)), slicerYZ->widget(), SLOT(switchMode(int)));
-
-		connect(slicerXY->widget(), SIGNAL(deletedSnakeLine()), slicerYZ->widget(), SLOT(deleteSnakeLine()));
-		connect(slicerXY->widget(), SIGNAL(deletedSnakeLine()), slicerXZ->widget(), SLOT(deleteSnakeLine()));
-		connect(slicerYZ->widget(), SIGNAL(deletedSnakeLine()), slicerXY->widget(), SLOT(deleteSnakeLine()));
-		connect(slicerYZ->widget(), SIGNAL(deletedSnakeLine()), slicerXZ->widget(), SLOT(deleteSnakeLine()));
-		connect(slicerXZ->widget(), SIGNAL(deletedSnakeLine()), slicerXY->widget(), SLOT(deleteSnakeLine()));
-		connect(slicerXZ->widget(), SIGNAL(deletedSnakeLine()), slicerYZ->widget(), SLOT(deleteSnakeLine()));
-
-		connect(slicerXY->widget(), SIGNAL(deselectedPoint()), slicerYZ->widget(), SLOT(deselectPoint()));
-		connect(slicerXY->widget(), SIGNAL(deselectedPoint()), slicerXZ->widget(), SLOT(deselectPoint()));
-		connect(slicerYZ->widget(), SIGNAL(deselectedPoint()), slicerXY->widget(), SLOT(deselectPoint()));
-		connect(slicerYZ->widget(), SIGNAL(deselectedPoint()), slicerXZ->widget(), SLOT(deselectPoint()));
-		connect(slicerXZ->widget(), SIGNAL(deselectedPoint()), slicerXY->widget(), SLOT(deselectPoint()));
-		connect(slicerXZ->widget(), SIGNAL(deselectedPoint()), slicerYZ->widget(), SLOT(deselectPoint()));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(deletedSnakeLine()), slicer[iASlicerMode::YZ]->widget(), SLOT(deleteSnakeLine()));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(deletedSnakeLine()), slicer[iASlicerMode::XZ]->widget(), SLOT(deleteSnakeLine()));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(deletedSnakeLine()), slicer[iASlicerMode::XY]->widget(), SLOT(deleteSnakeLine()));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(deletedSnakeLine()), slicer[iASlicerMode::XZ]->widget(), SLOT(deleteSnakeLine()));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(deletedSnakeLine()), slicer[iASlicerMode::XY]->widget(), SLOT(deleteSnakeLine()));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(deletedSnakeLine()), slicer[iASlicerMode::YZ]->widget(), SLOT(deleteSnakeLine()));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(deselectedPoint()),  slicer[iASlicerMode::YZ]->widget(), SLOT(deselectPoint()));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(deselectedPoint()),  slicer[iASlicerMode::XZ]->widget(), SLOT(deselectPoint()));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(deselectedPoint()),  slicer[iASlicerMode::XY]->widget(), SLOT(deselectPoint()));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(deselectedPoint()),  slicer[iASlicerMode::XZ]->widget(), SLOT(deselectPoint()));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(deselectedPoint()),  slicer[iASlicerMode::XY]->widget(), SLOT(deselectPoint()));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(deselectedPoint()),  slicer[iASlicerMode::YZ]->widget(), SLOT(deselectPoint()));
 	}
 }
-
 
 bool MdiChild::editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs)
 {
@@ -1684,11 +1743,8 @@ iAPreferences const & MdiChild::GetPreferences() const
 bool MdiChild::editSlicerSettings(iASlicerSettings const & slicerSettings)
 {
 	setupSlicers(slicerSettings, false);
-
-	slicerXY->show();
-	slicerYZ->show();
-	slicerXZ->show();
-
+	for (int s = 0; s<3; ++s)
+		slicer[s]->show();
 	return true;
 }
 
@@ -1810,14 +1866,15 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 	QStringList modes = (QStringList() <<  tr("Rotate Z") <<  tr("Rotate X") <<  tr("Rotate Y"));
 	QStringList inList = ( QStringList() << tr("+Rotation mode") );
 	QList<QVariant> inPara = ( QList<QVariant>() << modes );
+	QTextDocument * descr = new QTextDocument;
+	descr->setHtml("Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
 
-	dlg_commoninput dlg(this, "Save movie options", inList, inPara);
-	if (dlg.exec() == QDialog::Accepted)
-	{
-		mode =  dlg.getComboBoxValue(0);
-		imode = dlg.getComboBoxIndex(0);
-	}
+	dlg_commoninput dlg(this, "Save movie options", inList, inPara, descr);
+	if (dlg.exec() != QDialog::Accepted)
+		return;
 
+	mode = dlg.getComboBoxValue(0);
+	imode = dlg.getComboBoxIndex(0);
 
 	// Show standard save file dialog using available movie file types.
 	raycaster.saveMovie(
@@ -1836,9 +1893,9 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 	if (snakeSlicer)
 	{
 		//save the slicer transforms
-		SlicerYZ_Transform = slicerYZ->GetReslicer()->GetResliceTransform();
-		SlicerXY_Transform = slicerXY->GetReslicer()->GetResliceTransform();
-		SlicerXZ_Transform = slicerXZ->GetReslicer()->GetResliceTransform();
+		SlicerYZ_Transform = slicer[iASlicerMode::YZ]->GetReslicer()->GetResliceTransform();
+		SlicerXY_Transform = slicer[iASlicerMode::XY]->GetReslicer()->GetResliceTransform();
+		SlicerXZ_Transform = slicer[iASlicerMode::XZ]->GetReslicer()->GetResliceTransform();
 
 		parametricSpline->Modified();
 		double emptyper[3]; emptyper[0] = 0; emptyper[1] = 0; emptyper[2] = 0;
@@ -1849,44 +1906,41 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		sXZ->spinBoxXZ->setValue(0);//set initial value
 		sYZ->spinBoxYZ->setValue(0);//set initial value
 
-		slicerXY->widget()->switchMode(iASlicerWidget::NORMAL);
-		slicerXZ->widget()->switchMode(iASlicerWidget::NORMAL);
-		slicerYZ->widget()->switchMode(iASlicerWidget::NORMAL);
+		for (int s = 0; s<3; ++s)
+			slicer[s]->widget()->switchMode(iASlicerWidget::NORMAL);
 	}
 	else
 	{
 		renderSettings.ShowSlicers = false;
 
 		sXY->spinBoxXY->setValue(imageData->GetDimensions()[2]>>1);
-		slicerXY->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);
-		slicerXY->GetReslicer()->SetResliceTransform(SlicerXY_Transform);
-		slicerXY->GetReslicer()->SetOutputExtentToDefault();
-		slicerXY->GetRenderer()->ResetCamera();
-		slicerXY->GetRenderer()->Render();
+		slicer[iASlicerMode::XY]->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);
+		slicer[iASlicerMode::XY]->GetReslicer()->SetResliceTransform(SlicerXY_Transform);
+		slicer[iASlicerMode::XY]->GetReslicer()->SetOutputExtentToDefault();
+		slicer[iASlicerMode::XY]->GetRenderer()->ResetCamera();
+		slicer[iASlicerMode::XY]->GetRenderer()->Render();
 
 		sXZ->spinBoxXZ->setValue(imageData->GetDimensions()[1]>>1);
-		slicerXZ->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,0,1,  0,-1,0);
-		slicerXZ->GetReslicer()->SetResliceTransform(SlicerXZ_Transform);
-		slicerXZ->GetReslicer()->SetOutputExtentToDefault();
-		slicerXZ->GetRenderer()->ResetCamera();
-		slicerXZ->GetRenderer()->Render();
+		slicer[iASlicerMode::XZ]->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,0,1,  0,-1,0);
+		slicer[iASlicerMode::XZ]->GetReslicer()->SetResliceTransform(SlicerXZ_Transform);
+		slicer[iASlicerMode::XZ]->GetReslicer()->SetOutputExtentToDefault();
+		slicer[iASlicerMode::XZ]->GetRenderer()->ResetCamera();
+		slicer[iASlicerMode::XZ]->GetRenderer()->Render();
 
 		sYZ->spinBoxYZ->setValue(imageData->GetDimensions()[0]>>1);
-		slicerYZ->GetReslicer()->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);
-		slicerYZ->GetReslicer()->SetResliceTransform(SlicerYZ_Transform);
-		slicerYZ->GetReslicer()->SetOutputExtentToDefault();
-		slicerYZ->GetRenderer()->ResetCamera();
-		slicerYZ->GetRenderer()->Render();
+		slicer[iASlicerMode::YZ]->GetReslicer()->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);
+		slicer[iASlicerMode::YZ]->GetReslicer()->SetResliceTransform(SlicerYZ_Transform);
+		slicer[iASlicerMode::YZ]->GetReslicer()->SetOutputExtentToDefault();
+		slicer[iASlicerMode::YZ]->GetRenderer()->ResetCamera();
+		slicer[iASlicerMode::YZ]->GetRenderer()->Render();
 
 		/*
 		// TODO: VOLUME: VolumeManager
 		if (renderSettings.ShowSlicers)
 			Raycaster->showSlicers(true);
 		*/
-
-		slicerXY->widget()->switchMode(iASlicerWidget::DEFINE_SPLINE);
-		slicerXZ->widget()->switchMode(iASlicerWidget::DEFINE_SPLINE);
-		slicerYZ->widget()->switchMode(iASlicerWidget::DEFINE_SPLINE);
+		for (int s = 0; s<3; ++s)
+			slicer[s]->widget()->switchMode(iASlicerWidget::DEFINE_SPLINE);
 	}
 }
 
@@ -1898,9 +1952,8 @@ bool MdiChild::isSnakeSlicerToggled() const
 void MdiChild::toggleSliceProfile(bool isChecked)
 {
 	isSliceProfileEnabled = isChecked;
-	slicerXY->setSliceProfileOn(isSliceProfileEnabled);
-	slicerXZ->setSliceProfileOn(isSliceProfileEnabled);
-	slicerYZ->setSliceProfileOn(isSliceProfileEnabled);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->widget()->setSliceProfileOn(isSliceProfileEnabled);
 }
 
 bool MdiChild::isSliceProfileToggled(void) const
@@ -1991,7 +2044,7 @@ void MdiChild::updateReslicer(double point[3], double normal[3], int mode)
 		axial_transform->SetInput(axial_transformation_matrix);
 		axial_transform->Update();
 
-		slicerXY->GetReslicer()->SetResliceAxes(axial_transformation_matrix);
+		slicer[iASlicerMode::XY]->GetReslicer()->SetResliceAxes(axial_transformation_matrix);
 	}
 
 	if ( mode == 0 )
@@ -2009,7 +2062,7 @@ void MdiChild::updateReslicer(double point[3], double normal[3], int mode)
 		coronial_transform->SetInput(coronial_transformation_matrix);
 		coronial_transform->Update();
 
-		slicerYZ->GetReslicer()->SetResliceAxes(coronial_transformation_matrix);
+		slicer[iASlicerMode::YZ]->GetReslicer()->SetResliceAxes(coronial_transformation_matrix);
 	}
 
 	if ( mode == 2 )
@@ -2027,7 +2080,7 @@ void MdiChild::updateReslicer(double point[3], double normal[3], int mode)
 		sagittal_transform->SetInput(sagittal_transformation_matrix);
 		sagittal_transform->Update();
 
-		slicerXZ->GetReslicer()->SetResliceAxes(sagittal_transformation_matrix);
+		slicer[iASlicerMode::XZ]->GetReslicer()->SetResliceAxes(sagittal_transformation_matrix);
 	}
 }
 
@@ -2102,9 +2155,8 @@ bool MdiChild::initView( QString const & title )
 	}
 	vtkColorTransferFunction* colorFunction = (GetModalities()->size() > 0)
 		? GetModality(0)->GetTransfer()->GetColorFunction() : vtkColorTransferFunction::New();
-	slicerXZ->initializeData(imageData, slicerTransform, colorFunction);
-	slicerXY->initializeData(imageData, slicerTransform, colorFunction);
-	slicerYZ->initializeData(imageData, slicerTransform, colorFunction);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->initializeData(imageData, slicerTransform, colorFunction);
 
 	renderer->stackedWidgetRC->setCurrentIndex(0);
 	updateSliceIndicators();
@@ -2200,16 +2252,14 @@ bool MdiChild::isMaximized()
 
 void MdiChild::UpdateROI(int const roi[6])
 {
-	slicerXY->UpdateROI(roi);
-	slicerYZ->UpdateROI(roi);
-	slicerXZ->UpdateROI(roi);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->UpdateROI(roi);
 }
 
 void MdiChild::SetROIVisible(bool visible)
 {
-	slicerXY->SetROIVisible(visible);
-	slicerYZ->SetROIVisible(visible);
-	slicerXZ->SetROIVisible(visible);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->SetROIVisible(visible);
 }
 
 QString MdiChild::userFriendlyCurrentFile()
@@ -2291,21 +2341,12 @@ void MdiChild::setVisibility(QList<QWidget*> widgets, bool show)
 
 void MdiChild::updateSlicer(int index)
 {
-	switch(index)
+	if (index < 0 || index > 2)
 	{
-	case 0://XY
-		slicerXY->update();
-		break;
-	case 1://YZ
-		slicerYZ->update();
-		break;
-	case 2://XZ
-		slicerXZ->update();
-		break;
-	default:
 		QMessageBox::warning(this, tr("Wrong slice plane index"), tr("updateSlicer(int index) is called with the wrong index parameter"));
-		break;
+		return;
 	}
+	slicer[index]->update();
 }
 
 void MdiChild::InitChannelRenderer(iAChannelID id, bool use3D, bool enableChannel)
@@ -2316,9 +2357,8 @@ void MdiChild::InitChannelRenderer(iAChannelID id, bool use3D, bool enableChanne
 	{
 		return;
 	}
-	slicerXY->initializeChannel(id, data);
-	slicerXZ->initializeChannel(id, data);
-	slicerYZ->initializeChannel(id, data);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->initializeChannel(id, data);
 	/*
 	// TODO: VOLUME: rewrite using separate volume
 	if (use3D)
@@ -2337,16 +2377,14 @@ void MdiChild::InitChannelRenderer(iAChannelID id, bool use3D, bool enableChanne
 
 void MdiChild::SetSlicerPieGlyphsEnabled( bool isOn )
 {
-	slicerXY->setPieGlyphsOn(isOn);
-	slicerXZ->setPieGlyphsOn(isOn);
-	slicerYZ->setPieGlyphsOn(isOn);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->setPieGlyphsOn(isOn);
 }
 
 void MdiChild::SetPieGlyphParameters( double opacity, double spacing, double magFactor )
 {
-	slicerXY->setPieGlyphParameters(opacity, spacing, magFactor);
-	slicerXZ->setPieGlyphParameters(opacity, spacing, magFactor);
-	slicerYZ->setPieGlyphParameters(opacity, spacing, magFactor);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->setPieGlyphParameters(opacity, spacing, magFactor);
 }
 
 iAChannelVisualizationData * MdiChild::GetChannelData(iAChannelID id)
@@ -2377,9 +2415,8 @@ void MdiChild::InsertChannelData(iAChannelID id, iAChannelVisualizationData * ch
 
 void MdiChild::updateSlicers()
 {
-	updateSlicer(0);
-	updateSlicer(1);
-	updateSlicer(2);
+	for (int s = 0; s < 3; ++s)
+		slicer[s]->update();
 }
 
 void MdiChild::UpdateChannelSlicerOpacity(iAChannelID id, double opacity)
@@ -2389,10 +2426,8 @@ void MdiChild::UpdateChannelSlicerOpacity(iAChannelID id, double opacity)
 		return;
 	}
 	GetChannelData(id)->SetOpacity(opacity);
-	getSlicerDataXY()->setChannelOpacity(id, opacity);
-	getSlicerDataXZ()->setChannelOpacity(id, opacity);
-	getSlicerDataYZ()->setChannelOpacity(id, opacity);
-
+	for (int s = 0; s<3; ++s)
+		slicer[s]->GetSlicerData()->setChannelOpacity(id, opacity);
 	updateSlicers();
 }
 
@@ -2446,14 +2481,21 @@ void MdiChild::cleanWorkingAlgorithms()
 
 void MdiChild::addProfile()
 {
-	// unify this with iASlicerWidget::changeImageData somehow?
 	profileProbe = QSharedPointer<iAProfileProbe>(new iAProfileProbe(imageData));
-	double const * const start = imageData->GetOrigin();
+	double start[3];
+	imageData->GetOrigin(start);
 	int const * const dim = imageData->GetDimensions();
 	double const * const spacing = imageData->GetSpacing();
 	double end[3];
 	for (int i = 0; i<3; i++)
 		end[i] = start[i] + (dim[i] - 1) * spacing[i];
+	for (int s = 0; s < 3; ++s)
+	{
+		slicer[s]->widget()->setArbitraryProfile(0, start);
+		slicer[s]->widget()->setArbitraryProfile(1, end);
+	}
+	Raycaster->setArbitraryProfile(0, start);
+	Raycaster->setArbitraryProfile(1, end);
 	profileProbe->UpdateProbe(0, start);
 	profileProbe->UpdateProbe(1, end);
 	profileProbe->UpdateData();
@@ -2465,13 +2507,15 @@ void MdiChild::addProfile()
 void MdiChild::toggleArbitraryProfile( bool isChecked )
 {
 	isArbProfileEnabled = (bool)isChecked;
-	slicerXY->setArbitraryProfileOn(isArbProfileEnabled);
-	slicerXZ->setArbitraryProfileOn(isArbProfileEnabled);
-	slicerYZ->setArbitraryProfileOn(isArbProfileEnabled);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->widget()->setArbitraryProfileOn(isArbProfileEnabled);
+	Raycaster->setArbitraryProfileOn(isArbProfileEnabled);
 }
 
 void MdiChild::UpdateProbe( int ptIndex, double * newPos )
 {
+	if (imageData->GetNumberOfScalarComponents() != 1) //No profile for rgb, rgba or vector pixel type images
+		return;
 	profileProbe->UpdateProbe(ptIndex, newPos);
 	UpdateProfile();
 }
@@ -2560,32 +2604,32 @@ void MdiChild::ioFinished()
 
 iASlicerData* MdiChild::getSlicerDataXZ()
 {
-	return slicerXZ->GetSlicerData();
+	return slicer[iASlicerMode::XZ]->GetSlicerData();
 }
 
 iASlicerData* MdiChild::getSlicerDataXY()
 {
-	return slicerXY->GetSlicerData();
+	return slicer[iASlicerMode::XY]->GetSlicerData();
 }
 
 iASlicerData* MdiChild::getSlicerDataYZ()
 {
-	return slicerYZ->GetSlicerData();
+	return slicer[iASlicerMode::YZ]->GetSlicerData();
 }
 
 iASlicer* MdiChild::getSlicerXZ()
 {
-	return slicerXZ;
+	return slicer[iASlicerMode::XZ];
 }
 
 iASlicer* MdiChild::getSlicerXY()
 {
-	return slicerXY;
+	return slicer[iASlicerMode::XY];
 }
 
 iASlicer* MdiChild::getSlicerYZ()
 {
-	return slicerYZ;
+	return slicer[iASlicerMode::YZ];
 }
 
 dlg_sliceXY * MdiChild::getSlicerDlgXY()
@@ -2640,23 +2684,21 @@ void MdiChild::check2DMode()
 
 void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice)
 {
-	slicerXY->SetMagicLensInput(id);
-	slicerXZ->SetMagicLensInput(id);
-	slicerYZ->SetMagicLensInput(id);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->SetMagicLensInput(id);
 	if (initReslice)
 	{
-		slicerYZ->setResliceChannelAxesOrigin(id, static_cast<double>(sYZ->spinBoxYZ->value()) * imageData->GetSpacing()[0], 0, 0);
-		slicerXZ->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sXZ->spinBoxXZ->value()) * imageData->GetSpacing()[1], 0);
-		slicerXY->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sXY->spinBoxXY->value()) * imageData->GetSpacing()[2]);
+		slicer[iASlicerMode::YZ]->setResliceChannelAxesOrigin(id, static_cast<double>(sYZ->spinBoxYZ->value()) * imageData->GetSpacing()[0], 0, 0);
+		slicer[iASlicerMode::XZ]->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sXZ->spinBoxXZ->value()) * imageData->GetSpacing()[1], 0);
+		slicer[iASlicerMode::XY]->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sXY->spinBoxXY->value()) * imageData->GetSpacing()[2]);
 	}
 }
 
 
 void MdiChild::SetMagicLensEnabled(bool isOn)
 {
-	slicerXZ->SetMagicLensEnabled( isOn );
-	slicerYZ->SetMagicLensEnabled( isOn );
-	slicerXY->SetMagicLensEnabled( isOn );
+	for (int s = 0; s<3; ++s)
+		slicer[s]->SetMagicLensEnabled( isOn );
 }
 
 
@@ -2670,9 +2712,8 @@ void MdiChild::reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgDa
 	chData->SetImage( imgData );
 	chData->SetColorTF( ctf );
 	chData->SetOpacityTF( otf );
-	slicerXZ->reInitializeChannel( id, chData );
-	slicerXY->reInitializeChannel( id, chData );
-	slicerYZ->reInitializeChannel( id, chData );
+	for (int s = 0; s<3; ++s)
+		slicer[s]->reInitializeChannel( id, chData );
 }
 
 
@@ -2686,9 +2727,8 @@ void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> img
 	chData.SetImage(imgData);
 	chData.SetColorTF(ctf);
 	chData.SetOpacityTF(otf);
-	slicerXZ->reInitializeChannel(id, &chData);
-	slicerXY->reInitializeChannel(id, &chData);
-	slicerYZ->reInitializeChannel(id, &chData);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->reInitializeChannel(id, &chData);
 	SetMagicLensInput( id, true);
 	updateSlicers();
 }
@@ -2696,9 +2736,8 @@ void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> img
 
 void MdiChild::updateChannelMappers()
 {
-	getSlicerDataXY()->updateChannelMappers();
-	getSlicerDataYZ()->updateChannelMappers();
-	getSlicerDataXZ()->updateChannelMappers();
+	for (int s = 0; s<3; ++s)
+		slicer[s]->GetSlicerData()->updateChannelMappers();
 }
 
 QString MdiChild::getFilePath() const
@@ -2729,9 +2768,6 @@ bool MdiChild::IsVolumeDataLoaded() const
 
 void MdiChild::ChangeMagicLensModality(int chg)
 {
-	//slicerXY->removeChannel(ch_SlicerMagicLens);
-	//slicerXZ->removeChannel(ch_SlicerMagicLens);
-	//slicerYZ->removeChannel(ch_SlicerMagicLens);
 	m_currentComponent = (m_currentComponent + chg);
 	if (m_currentComponent < 0 || m_currentComponent >= GetModality(m_currentModality)->ComponentCount())
 	{
@@ -2744,7 +2780,6 @@ void MdiChild::ChangeMagicLensModality(int chg)
 		m_currentModality = 0;
 		return;
 	}
-
 	iAChannelVisualizationData chData;
 	vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetComponent(m_currentComponent);
 	chData.SetImage(img);
@@ -2753,23 +2788,34 @@ void MdiChild::ChangeMagicLensModality(int chg)
 	chData.SetOpacity(0.5);
 	QString name(GetModality(m_currentModality)->GetImageName(m_currentComponent));
 	chData.SetName(name);
-	slicerXY->initializeChannel(ch_SlicerMagicLens, &chData);
-	slicerXZ->initializeChannel(ch_SlicerMagicLens, &chData);
-	slicerYZ->initializeChannel(ch_SlicerMagicLens, &chData);
+	for (int s = 0; s<3; ++s)
+		slicer[s]->initializeChannel(ch_SlicerMagicLens, &chData);
 	SetMagicLensInput(ch_SlicerMagicLens, true);
+	SetHistogramModality(m_currentModality);	// TODO: don't change histogram, just read/create min/max and transfer function?
 }
 
 void MdiChild::ChangeMagicLensOpacity(int chg)
 {
-	iASlicerWidget * sliceWidget = dynamic_cast<iASlicerWidget *>(sender());
-	if (!sliceWidget)
-	{
-		DEBUG_LOG("Invalid slice widget sender!");
-		return;
-	}
-	sliceWidget->SetMagicLensOpacity(sliceWidget->GetMagicLensOpacity() + (chg*0.05));
+	for (int s=0; s<3; ++s)
+		slicer[s]->SetMagicLensOpacity(slicer[s]->GetMagicLensOpacity() + (chg*0.05));
 }
 
+void MdiChild::ChangeMagicLensSize(int chg)
+{
+	if (!isMagicLensToggled())
+		return;
+	double sizeFactor = 1.1 * (std::abs(chg));
+	if (chg < 0)
+		sizeFactor = 1 / sizeFactor;
+	int newSize = std::max(MinimumMagicLensSize, static_cast<int>(preferences.MagicLensSize * sizeFactor));
+	for (int s = 0; s < 3; ++s)
+	{
+		slicer[s]->SetMagicLensSize(newSize);
+		newSize = std::min(slicer[s]->GetMagicLensSize(), newSize);
+	}
+	preferences.MagicLensSize = newSize;
+	updateSlicers();
+}
 
 int MdiChild::GetCurrentModality() const
 {
@@ -2830,17 +2876,22 @@ void MdiChild::InitModalities()
 
 void MdiChild::SetHistogramModality(int modalityIdx)
 {
-	if (!m_histogram)
+	if (!m_histogram || GetModality(modalityIdx)->GetImage()->GetNumberOfScalarComponents() != 1) //No histogram/profile for rgb, rgba or vector pixel type images
 		return;
 	auto histData = GetModality(modalityIdx)->GetTransfer()->GetHistogramData();
-	if (histData &&	histData->GetNumBin() == preferences.HistogramBins)
+	size_t newBinCount = preferences.HistogramBins;
+	auto img = GetModality(modalityIdx)->GetImage();
+	auto scalarRange = img->GetScalarRange();
+	if (isVtkIntegerType(GetModality(modalityIdx)->GetImage()->GetScalarType()))
+		newBinCount = std::min(newBinCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
+	if (histData &&	histData->GetNumBin() == newBinCount)
 	{
 		if (modalityIdx != m_currentHistogramModality)
 			HistogramDataAvailable(modalityIdx);
 		return;
 	}
 	auto workerThread = new iAHistogramUpdater(modalityIdx,
-		GetModality(modalityIdx), preferences.HistogramBins);
+		GetModality(modalityIdx), newBinCount);
 	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::HistogramDataAvailable);
 	connect(workerThread, &iAHistogramUpdater::StatisticsReady, this, &MdiChild::StatisticsAvailable);
 	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
@@ -2848,6 +2899,20 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(GetModality(modalityIdx)->GetName()));
 	workerThread->start();
+}
+
+
+void MdiChild::ModalityAdded(int modalityIdx)
+{
+	if (GetModality(modalityIdx)->GetImage()->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
+	{
+		SetHistogramModality(modalityIdx);
+	}
+	else
+	{
+		m_dlgModalities->InitDisplay(GetModality(modalityIdx));
+		ApplyVolumeSettings(false);
+	}
 }
 
 
@@ -2868,6 +2933,11 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 		GetModality(modalityIdx)->GetTransfer()->GetOpacityFunction());
 	m_histogram->updateTrf();	// will also redraw() the histogram
 	updateImageProperties();
+	if (!findChild<iADockWidgetWrapper*>("Histogram"))
+	{
+		tabifyDockWidget(logs, m_histogramContainer);
+		this->addProfile();
+	}
 }
 
 
@@ -2880,12 +2950,11 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 	if (modalityIdx == 0)
 	{
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
-		slicerXZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
-		slicerXZ->GetSlicerData()->ResetCamera();
-		slicerXY->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
-		slicerXY->GetSlicerData()->ResetCamera();
-		slicerYZ->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
-		slicerYZ->GetSlicerData()->ResetCamera();
+		for (int s = 0; s < 3; ++s)
+		{
+			slicer[s]->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->GetColorFunction());
+			slicer[s]->GetSlicerData()->ResetCamera();
+		}
 	}
 	ChangeMagicLensModality(0);
 	ModalityTFChanged();
@@ -2905,7 +2974,6 @@ void MdiChild::InitVolumeRenderers()
 	for (int i = 0; i < GetModalities()->size(); ++i)
 	{
 		m_dlgModalities->InitDisplay(GetModality(i));
-
 	}
 	ApplyVolumeSettings(true);
 	connect(GetModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),

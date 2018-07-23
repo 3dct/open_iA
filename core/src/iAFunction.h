@@ -36,7 +36,7 @@ public:
 	~iAFunction();
 	typedef ArgType ArgumentType;
 	typedef ValType ValueType;
-	
+
 	ValType get(ArgType a) const;
 	void set(ArgType a, ValType);
 	ValType operator[](ArgType a) const;

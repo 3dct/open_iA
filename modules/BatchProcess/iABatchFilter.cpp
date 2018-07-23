@@ -268,10 +268,9 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		}
 		catch (std::exception & e)
 		{
+			DEBUG_LOG(QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 			if (!parameters["Continue on error"].toBool())
 				throw e;
-			else
-				DEBUG_LOG(QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 		}
 		Progress()->EmitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
 	}

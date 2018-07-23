@@ -35,9 +35,7 @@
 
 =========================================================================*/
 
-
-#include "mdichild.h"
-
+/*
 #include "vtkChartMatrix.h"
 #include "vtkSmartPointer.h" // For ivars
 #include "vtkNew.h"          // For ivars
@@ -55,7 +53,7 @@ class vtkTable;
 class vtkTextProperty;
 
 
-namespace FiberScout
+namespace FeatureScout
 {
 class iAScatterPlotMatrix : public vtkChartMatrix
 {
@@ -265,17 +263,17 @@ public:
   // Set the scatter plot selected active chart background color.
   void SetScatterPlotSelectedActiveColor(const vtkColor4ub& color);
   vtkColor4ub GetScatterPlotSelectedActiveColor();
-  
+
   // Description:
   // Collectinig object IDs and color information from the 'Parallel Coordinates Class Tree'.
   void UpdateColorInfo(QStandardItemModel *classTree, QList<QColor> colorList);
 
   // Description:
-  // Set the scatter plot histograms visibility. 
+  // Set the scatter plot histograms visibility.
   void ShowHideHistograms();
 
   // Description:
-  //Sets the class number (0,1,2,3,...) that will be plotted. -1 plots all classes.  
+  //Sets the class number (0,1,2,3,...) that will be plotted. -1 plots all classes.
   void SetClass2Plot(short);
 
   // Description:
@@ -291,14 +289,14 @@ public:
   void UpdateChartSettings(int plotType);
 
   // Description:
-  // Shows a color class legend with small statistics. 
+  // Shows a color class legend with small statistics.
   void UpdateCustomLegend();
 
   int NumberOfClusters;
 
   void setPolygonSelectionOn();
   void setRectangleSelectionOn();
- 
+
   // Description:
   // Set/get the Selection Mode that will be used by the chart while doing
   // selection. The only valid enums are vtkContextScene::SELECTION_NONE,
@@ -374,5 +372,6 @@ private:
   void operator=(const iAScatterPlotMatrix &); // Not implemented.
 };
 
-} // namespace FiberScout
+} // namespace FeatureScout
 
+*/

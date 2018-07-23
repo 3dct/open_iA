@@ -112,7 +112,7 @@ protected:
 
 	virtual void DrawPlots(QPainter& painter);
 	virtual void DrawAxes(QPainter& painter);
-	virtual QString GetXAxisTickMarkLabel(double value, int placesBeforeComma, int requiredPlacesAfterComma);
+	virtual QString GetXAxisTickMarkLabel(double value, double stepWidth);
 
 	void zoomAlongY(double value, bool deltaMode);
 	void zoomAlongX(double value, int x, bool deltaMode);

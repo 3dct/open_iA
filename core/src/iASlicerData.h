@@ -68,8 +68,8 @@ class iAWrapperText;
 
 /**
  * \brief	implements a slicer widget
- * 
- * This class implements a slicer widget to evaluate 3D datasets. 
+ *
+ * This class implements a slicer widget to evaluate 3D datasets.
  */
 class open_iA_Core_API iASlicerData :  public QObject
 {
@@ -82,7 +82,7 @@ public:
 	void reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool showisolines = false, bool showpolygon = false);
 	void changeImageData(vtkImageData *idata);
 	void setup(iASingleSlicerSettings const & settings);
-	
+
 	void initializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
 	void removeChannel(iAChannelID id);
 	void reInitializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
@@ -110,7 +110,7 @@ public:
 	void disableInteractor();
 	void enableInteractor();
 	void showIsolines(bool s);
-	void showPosition(bool s);	
+	void showPosition(bool s);
 	void saveMovie(QString& fileName, int qual = 2);
 	void update();
 
@@ -147,14 +147,14 @@ public:
 
 	void SetManualBackground(double r, double g, double b);
 
-	vtkScalarBarWidget * GetScalarWidget();
+	vtkScalarBarWidget * GetScalarBarWidget();
 	vtkImageActor* GetImageActor();
 	QCursor getMouseCursor();
 
 	vtkScalarsToColors * GetColorTransferFunction();
 
-	int getSliceNumber(); // for fisheye transformation
-
+	void SetRightButtonDragZoomEnabled(bool enabled);
+	void setSlabThickness(int thickness);
 protected:
 	void UpdateResliceAxesDirectionCosines();
 	void UpdateBackground();
@@ -214,8 +214,8 @@ private:
 
 	QMap<iAChannelID, QSharedPointer<iAChannelSlicerData> > m_channels;
 
-	vtkScalarBarWidget *scalarWidget;
-	vtkTextProperty *textProperty;
+	vtkSmartPointer<vtkScalarBarWidget> scalarBarWidget;
+	vtkSmartPointer<vtkTextProperty> textProperty;
 
 	// TODO: extract/ unify with iARenderer
 	vtkSmartPointer<vtkLogoWidget> logoWidget;
@@ -262,7 +262,7 @@ private:
 	bool disabled;
 	int no;
 	double contourMin, contourMax;
-	
+
 	int measureStart[2];
 	double angleX, angleY, angleZ;
 
@@ -281,4 +281,6 @@ private:
 	void UpdatePositionMarkerExtent();
 
 	QCursor m_mouseCursor;
+
+	void setupColorMapper();
 };

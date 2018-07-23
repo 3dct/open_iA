@@ -89,6 +89,9 @@ FOREACH( indx RANGE ${len} )
 		ADD_DEFINITIONS( -D${module_option} )
 
 		add_library(${module_name} ${LIB_TYPE} ${module_srcs} ${module_hs} )
+		if(MSVC)
+			set_target_properties(${module_name} PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
+		endif()
 		TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${module_full_path} )
 		# workaround for ui_xyz.h files:
 		TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/Toolkit)  # ui files in toolkit folder
@@ -138,7 +141,7 @@ FOREACH( indx RANGE ${len} )
 			INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)
 
 			# Install .vcxproj.user file for module to be able to start open_iA
-			IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_${module_name}_DBG_ENV_PATH}")
+			IF (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user OR NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_${module_name}_DBG_ENV_PATH}")
 				# force cmake to copy the files:
 				FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.vcxproj.user)
 				# create .user files:

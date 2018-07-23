@@ -48,7 +48,7 @@ private:
 	double m_origin[3];
 	QFileInfoList m_subDirs;
 	iAMultiStepProgressObserver* m_multiStepObserver;
-	
+
 	virtual void run();
 private slots:
 	void finishUp();

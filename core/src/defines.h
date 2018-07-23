@@ -59,7 +59,7 @@ enum IOType
 	VOLUME_STACK_VOLSTACK_READER,
 	VOLUME_STACK_VOLSTACK_WRITER,
 	DCM_READER,
-	DCM_WRITER, 
+	DCM_WRITER,
 	NRRD_READER,
 	OIF_READER,
 	AM_READER,
@@ -75,7 +75,7 @@ enum IOType
 };
 
 const int DefaultMagicLensSize = 120;
-const int MinimumMagicLensSize = 20;
+const int MinimumMagicLensSize = 40;
 const int MaximumMagicLensSize = 8192;
 const int DefaultHistogramBins = 2048;
 

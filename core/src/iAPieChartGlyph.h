@@ -29,7 +29,7 @@
 class iAPieChartGlyph
 {
 public:
-	iAPieChartGlyph(double portion) 
+	iAPieChartGlyph(double portion)
 		:
 		sectorSrc(vtkSmartPointer<iAPieSource>::New()),
 		mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
@@ -40,7 +40,7 @@ public:
 		Init();
 	}
 
-	iAPieChartGlyph(double startAngle, double endAngle) 
+	iAPieChartGlyph(double startAngle, double endAngle)
 		:
 		sectorSrc(vtkSmartPointer<iAPieSource>::New()),
 		mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
@@ -52,14 +52,14 @@ public:
 	}
 
 	iAPieChartGlyph( const iAPieChartGlyph& other ) :
-		sectorSrc( other.sectorSrc ), 
-		mapper( other.mapper ), 
+		sectorSrc( other.sectorSrc ),
+		mapper( other.mapper ),
 		actor( other.actor )
 	{}
 
 	vtkSmartPointer<iAPieSource>		sectorSrc;
 	vtkSmartPointer<vtkPolyDataMapper>	mapper;
-	vtkSmartPointer<vtkActor>			actor;  
+	vtkSmartPointer<vtkActor>			actor;
 private:
 	void Init()
 	{

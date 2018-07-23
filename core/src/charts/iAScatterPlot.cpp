@@ -47,7 +47,7 @@ maximizedParamsOffset( 5 ),
 textRectHeight( 30 ),
 
 rangeMargin( 0.08 ),
-pointRadius( 2.5 ),
+pointRadius( 1.0/*2.5*/ ),
 maximizedPointMagnification( 1.7 ),
 defaultGridDimensions( 100 ),
 defaultMaxBtnSz( 10 ),
@@ -173,7 +173,6 @@ void iAScatterPlot::setRect( QRect val )
 {
 	m_globRect = val;
 	updateDrawRect();
-	updateMaxBtnRect();
 	calculateNiceSteps();
 }
 
@@ -227,13 +226,14 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	if ( !hasData() )
 		return;
 	painter.save();
-	painter.translate( m_globRect.x(), m_globRect.y() );
+	painter.translate( m_globRect.x(), m_globRect.y());
 	painter.setBrush( settings.backgroundColor );
 	drawTicks( painter );
-	drawParameterName( painter );
+	//drawParameterName( painter );
 	drawPoints( painter );
-	drawSelectionPolygon( painter );
-	drawMaximizeButton( painter );
+	if (m_isMaximizedPlot)
+		drawSelectionPolygon( painter );
+	/*drawMaximizeButton( painter );*/
 	drawBorder( painter );
 	painter.restore();
 }
@@ -276,7 +276,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		}
 	}
 
-	if ( event->buttons()&Qt::RightButton )//moving
+	if ( event->buttons()&Qt::RightButton ) // drag
 	{
 		QPointF deltaOffset = locPos - m_prevPos;
 		m_offset += locPos - m_prevPos;
@@ -286,7 +286,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		emit transformModified( m_scale, deltaOffset );
 	}
 
-	if ( event->buttons()&Qt::LeftButton )//moving
+	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton ) // selection
 	{
 		if (settings.selectionMode == Polygon)
 		{
@@ -311,7 +311,7 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 {
 	QPoint locPos = getLocalPos( event->pos() );
 	m_prevPos = locPos;
-	if ( event->buttons()&Qt::LeftButton )//selection
+	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton )//selection
 	{
 		if (settings.selectionMode == Rectangle)
 		{
@@ -326,15 +326,10 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 
 void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 {
-	if ( event->button() == Qt::LeftButton )//selection
+	if (m_isMaximizedPlot && event->button() == Qt::LeftButton )//selection
 	{
-		bool isMaxClicked = isMaximizedClicked( event ); //maximize button clicked
 		bool append = ( event->modifiers() & Qt::ShiftModifier ) ? true : false;
-		if ( !isMaxClicked )
-			updateSelectedPoints( append ); //selection
-		m_selPoly.clear();
-		if ( isMaxClicked )
-			emit plotMaximized();
+		updateSelectedPoints( append ); //selection
 	}
 }
 
@@ -442,8 +437,8 @@ void iAScatterPlot::updateGrid()
 
 	for ( unsigned long i = 0; i < m_splomData->numPoints(); ++i )
 	{
-		double x = m_splomData->paramData( m_paramIndices[0] )[i];
-		double y = m_splomData->paramData( m_paramIndices[1] )[i];
+		double x = m_splomData->paramData(m_paramIndices[0] )[i];
+		double y = m_splomData->paramData(m_paramIndices[1] )[i];
 		int xbin = p2binx( x );
 		int ybin = p2biny( y );
 		int binInd = getBinIndex( xbin, ybin );
@@ -602,11 +597,15 @@ QPointF iAScatterPlot::getPositionFromPointIndex( int ind ) const
 	return QPointF( x, y );
 }
 
-void iAScatterPlot::updateSelectedPoints( bool append )
+void iAScatterPlot::updateSelectedPoints(bool append)
 {
+	bool wasModified = false;
 	QVector<unsigned int> & selInds = m_splom->getSelection();
-	if ( !append )
+	if (!append)
+	{
+		wasModified = selInds.size() > 0;
 		selInds.clear();
+	}
 	if (m_selPoly.size() > 0)
 	{
 		QPolygonF pPoly;
@@ -633,22 +632,23 @@ void iAScatterPlot::updateSelectedPoints( bool append )
 				}
 			}
 		}
+		wasModified |= (selInds.size() > 0);
 	}
-	if (!append || m_selPoly.size() > 0)
+	bool needToClearPolygon = m_selPoly.size() > 0;
+	m_selPoly.clear();
+	if (wasModified)
 	{
 		emit selectionModified();
+	}
+	else if (needToClearPolygon)
+	{
+		m_parentWidget->update();
 	}
 }
 
 void iAScatterPlot::updateDrawRect()
 {
 	m_locRect = QRectF( 0.0, 0.0, m_globRect.width(), m_globRect.height() );//QRectF( 0.5, 0.5, m_rect.width() - 1, m_rect.height() - 1 );
-}
-
-void iAScatterPlot::updateMaxBtnRect()
-{
-	int dMBS = settings.defaultMaxBtnSz;
-	m_maxBtnRect = QRectF( m_locRect.right() - dMBS, m_locRect.top(), dMBS, dMBS );
 }
 
 QPoint iAScatterPlot::getLocalPos( QPoint pos ) const
@@ -670,18 +670,6 @@ QPoint iAScatterPlot::cropLocalPos( QPoint locPos ) const
 	return res;
 }
 
-bool iAScatterPlot::isMaximizedClicked( QMouseEvent * event )
-{
-	if ( m_paramIndices[0] > m_paramIndices[1] ) //only plots above the diagonal can be maximized
-		return false;
-	if ( m_splom->getVisibleParametersCount() <= 1 )
-		return false;
-	QPoint epos = event->pos();
-	if ( m_maxBtnRect.contains( getLocalPos( epos ) ) )
-		return true;
-	return false;
-}
-
 void iAScatterPlot::drawPoints( QPainter &painter )
 {
 	// points
@@ -693,7 +681,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 
 	painter.save();
 	double ptRad = getPointRadius();
-	double ptSize = 2 * ptRad;
+	double ptSize =2 * ptRad;
 	//painter.translate( m_offset );
 	//painter.scale( m_rect.width() * m_scale, m_rect.height() * m_scale );
 	painter.beginNativePainting();
@@ -877,45 +865,19 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 	painter.restore();
 }
 
-void iAScatterPlot::drawParameterName( QPainter &painter )
-{
-	if ( ( m_paramIndices[0] == m_paramIndices[1] ) && !m_isMaximizedPlot )
-	{
-		painter.save();
-		QFont font = painter.font(); font.setBold( true ); painter.setFont( font );
-		painter.setPen( settings.tickLabelColor );
-		QString paramName = m_splomData->parameterName( m_paramIndices[0] );
-		QRectF textRect = QRectF( settings.paramTextOffset, 0, m_locRect.width() - settings.paramTextOffset, m_locRect.height() );
-		painter.drawText( textRect, Qt::AlignLeft | Qt::AlignTop, paramName );
-		painter.restore();
-	}
-}
-
-void iAScatterPlot::drawMaximizeButton( QPainter & painter )
-{
-	if ( !m_isPlotActive || m_isPreviewPlot )
-		return;
-	if ( m_splom->getVisibleParametersCount() <= 1 )
-		return;
-	if ( m_paramIndices[0] > m_paramIndices[1] )
-		return;
-	painter.setPen( Qt::NoPen );
-	painter.setBrush( settings.plotBorderColor );
-	QPointF pts[3];
-	if ( m_isMaximizedPlot )
-	{
-		pts[0] = m_maxBtnRect.topLeft();
-		pts[1] = m_maxBtnRect.bottomRight();
-		pts[2] = m_maxBtnRect.bottomLeft();
-	}
-	else
-	{
-		pts[0] = m_maxBtnRect.topLeft();
-		pts[1] = m_maxBtnRect.topRight();
-		pts[2] = m_maxBtnRect.bottomRight();
-	}
-	painter.drawPolygon( pts, 3 );
-}
+//void iAScatterPlot::drawParameterName( QPainter &painter )
+//{
+//	if ( ( m_paramIndices[0] == m_paramIndices[1] ) && !m_isMaximizedPlot )
+//	{
+//		painter.save();
+//		QFont font = painter.font(); font.setBold( true ); painter.setFont( font );
+//		painter.setPen( settings.tickLabelColor );
+//		QString paramName = m_splomData->parameterName( m_paramIndices[0] );
+//		QRectF textRect = QRectF( settings.paramTextOffset, 0, m_locRect.width() - settings.paramTextOffset, m_locRect.height() );
+//		painter.drawText( textRect, Qt::AlignLeft | Qt::AlignTop, paramName );
+//		painter.restore();
+//	}
+//}
 
 void iAScatterPlot::createAndFillVBO()
 {
@@ -969,10 +931,20 @@ void iAScatterPlot::fillVBO()
 	}
 }
 
+void iAScatterPlot::setSelectionColor(QColor selCol)
+{
+	this->settings.selectionColor = selCol;
+}
+
 double iAScatterPlot::getPointRadius() const
 {
 	double res = settings.pointRadius;
 	if ( m_isMaximizedPlot )
 		res *= settings.maximizedPointMagnification;
 	return res;
+}
+
+void iAScatterPlot::setPointRadius(double radius)
+{
+	settings.pointRadius = radius;
 }

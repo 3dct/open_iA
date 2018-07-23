@@ -57,18 +57,16 @@ namespace
 	struct Output
 	{
 		static const QString NameSeparator;
-		static const QString ValueSeparator;
 		static const QString OptionalParamSeparator;
 	};
 
 	const QString Output::NameSeparator(": ");
-	const QString Output::ValueSeparator(",");
 	const QString Output::OptionalParamSeparator(" ");
 
 	const QString SMPFileVersion("v8");
 	const QString SMPFileFormatVersion("Sampling File " + SMPFileVersion);
 
-	const QString ValueSplitString(" ");
+	const QString ValueSplitString(",");
 
 	// TODO: replace with QSettings?
 	bool GetNameValue(QString const & name, QString & value, QTextStream & in)

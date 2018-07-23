@@ -287,11 +287,10 @@ void InternalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAI
 	typename ExtractType::InputImageRegionType region;
 	region.SetIndex(index);
 	region.SetSize(size);
-	extractor->InPlaceOn();
 	extractor->SetInput(typedImg);
 	extractor->SetExtractionRegion(region);
 	extractor->Update();
-	outImg = extractor->GetOutput();
+	outImg = SetIndexOffsetToZero<T>(extractor->GetOutput());
 }
 
 iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM])

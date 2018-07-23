@@ -56,7 +56,6 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPoints;
 class vtkPolyData;
-class vtkRenderWindow;
 class vtkScalarsToColors;
 class vtkTransform;
 
@@ -328,6 +327,12 @@ private slots:
 	void setRotationXY(double a);
 	void setRotationYZ(double a);
 	void setRotationXZ(double a);
+	void setSlabModeXY(bool slabMode);
+	void setSlabModeYZ(bool slabMode);
+	void setSlabModeXZ(bool slabMode);
+	void updateSlabThicknessXY(int thickness);
+	void updateSlabThicknessYZ(int thickness);
+	void updateSlabThicknessXZ(int thickness);
 	void updateRenderWindows(int channels);
 	void updateRenderers(int x, int y, int z, int mode);
 	void toggleArbitraryProfile(bool isChecked);
@@ -407,7 +412,7 @@ private:
 	void updateReslicer(double point[3], double normal[3], int mode);
 	void updateSliceIndicators();
 	QString strippedName(const QString &f);
-	
+
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//! \return	true if it succeeds, false if it fails.
 	bool setupSaveIO(QString const & f);
@@ -449,7 +454,7 @@ private:
 	bool isSliceProfileEnabled; //!< slice profile, shown in slices
 	bool isArbProfileEnabled;   //!< arbitrary profile, shown in profile widget
 	bool isMagicLensEnabled;    //!< magic lens exploration
-	
+
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void setupViewInternal(bool active);
 	bool IsVolumeDataLoaded() const;
@@ -460,7 +465,7 @@ private:
 	vtkTransform* slicerTransform;
 	vtkAbstractTransform *SlicerYZ_Transform, *SlicerXY_Transform, *SlicerXZ_Transform;
 	iARenderer* Raycaster;
-	iASlicer * slicerYZ, * slicerXY, * slicerXZ;
+	iASlicer * slicer[3];
 	QSharedPointer<iAProfileProbe> profileProbe;
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;
@@ -500,10 +505,12 @@ private:
 private slots:
 	void ChangeMagicLensModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
+	void ChangeMagicLensSize(int chg);
 	void ShowModality(int modIdx);
 	void SaveFinished();
-	void SetHistogramModality(int modalityIdx);
+	void ModalityAdded(int modalityIdx);
 private:
+	void SetHistogramModality(int modalityIdx);
 	int GetCurrentModality() const;
 	void InitModalities();
 	void InitVolumeRenderers();

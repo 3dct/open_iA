@@ -36,15 +36,14 @@ class vtkImageData;
 
 
 
-struct iASlicerProfile 
+struct iASlicerProfile
 {
 	iASlicerProfile();
+	void SetVisibility ( bool isVisible );
+	void GetPoint ( vtkIdType id, double pos_out[3] );
+	void initialize (vtkRenderer * ren);
+	int updatePosition( double posY, vtkImageData * imgData );
 
-	void	SetVisibility ( bool isVisible );
-	void	GetPoint ( vtkIdType id, double pos_out[3] );
-	void	initialize (vtkRenderer * ren);
-	int		setup ( double posY, vtkImageData * imgData );
-	
 public:
 	static const int Z_COORD = 0;
 
@@ -60,7 +59,7 @@ protected:
 	vtkSmartPointer<vtkPolyData>		m_plotPolyData;
 	vtkSmartPointer<vtkPoints>			m_plotPoints;
 	vtkSmartPointer<vtkActor>			m_plotActor;
-	vtkSmartPointer<vtkActor>			m_plotActorHalo;  
+	vtkSmartPointer<vtkActor>			m_plotActorHalo;
 	vtkSmartPointer<vtkPolyDataMapper>	m_plotMapper;
 	float								m_plotScaleFactor;
 };

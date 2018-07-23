@@ -87,15 +87,15 @@ public:
 protected:
 	ProbabilisticVotingImageFilter();
 	virtual ~ProbabilisticVotingImageFilter() {}
-	void BeforeThreadedGenerateData() ITK_OVERRIDE;
+	void BeforeThreadedGenerateData() override;
 	void ThreadedGenerateData
-		(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+		(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId) override;
 
-	void PrintSelf(std::ostream &, itk::Indent) const ITK_OVERRIDE;
+	void PrintSelf(std::ostream &, itk::Indent) const override;
 
 private:
-	ProbabilisticVotingImageFilter(const Self &) ITK_DELETE_FUNCTION;
-	void operator=(const Self &) ITK_DELETE_FUNCTION;
+	ProbabilisticVotingImageFilter(const Self &) =delete;
+	void operator=(const Self &) =delete;
 
 	std::map<int, std::vector<DoubleImg::Pointer> > m_probImgs;
 	std::vector<double> m_weights;

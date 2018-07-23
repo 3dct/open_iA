@@ -325,17 +325,19 @@ namespace
 	}
 }
 
-QString iAChartWidget::GetXAxisTickMarkLabel(double value, int placesBeforeComma, int requiredPlacesAfterComma)
+QString iAChartWidget::GetXAxisTickMarkLabel(double value, double stepWidth)
 {
-	if ((!m_plots.empty() && m_plots[0]->GetData()->GetRangeType() == Continuous) || requiredPlacesAfterComma > 1)
+	int placesBeforeComma = requiredDigits(value);
+	int placesAfterComma = (stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
+	if ((!m_plots.empty() && m_plots[0]->GetData()->GetRangeType() == Continuous) || placesAfterComma > 1)
 	{
-		QString result = QString::number(value, 'g', ((value > 0) ? placesBeforeComma + requiredPlacesAfterComma : requiredPlacesAfterComma));
-		if (result.contains("e")) // only 2 digits for scientific notation:
-			result = QString::number(value, 'g', 2);
+		QString result = QString::number(value, 'g', ((value > 0) ? placesBeforeComma + placesAfterComma : placesAfterComma));
+		if (result.contains("e")) // only 4 digits for scientific notation:
+			result = QString::number(value, 'g', 4);
 		return result;
 	}
 	else
-		return QString::number(static_cast<long long>(value), 10);
+		return QString::number(static_cast<long long>(value), 'g', 15);
 }
 
 void iAChartWidget::DrawAxes(QPainter& painter)
@@ -385,9 +387,7 @@ void iAChartWidget::DrawXAxis(QPainter &painter)
 			for (size_t i = 0; i<stepCount && !overlap; ++i)
 			{
 				double value = XBounds()[0] + static_cast<double>(i) * stepWidth;
-				int placesBeforeComma = requiredDigits(value);
-				int placesAfterComma = (stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
-				QString text = GetXAxisTickMarkLabel(value, placesBeforeComma, placesAfterComma);
+				QString text = GetXAxisTickMarkLabel(value, stepWidth);
 				int markerX = markerPos(i, stepCount, ActiveWidth()*xZoom, markerOffset);
 				int textX = textPos(markerX, i, stepCount, fm.width(text));
 				int next_markerX = markerPos(i + 1, stepCount, ActiveWidth()*xZoom, markerOffset);
@@ -412,9 +412,7 @@ void iAChartWidget::DrawXAxis(QPainter &painter)
 	for (int i = 0; i <= stepCount; ++i)
 	{
 		double value = XBounds()[0] + static_cast<double>(i) * stepWidth;
-		int placesBeforeComma = requiredDigits(value);
-		int placesAfterComma = (stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
-		QString text = GetXAxisTickMarkLabel(value, placesBeforeComma, placesAfterComma);
+		QString text = GetXAxisTickMarkLabel(value, stepWidth);
 		if (IsDrawnDiscrete() && i == stepCount && text.length() < 3)
 			break;	// avoid last tick for discrete ranges
 
@@ -722,13 +720,14 @@ void iAChartWidget::showDataTooltip(QMouseEvent *event)
 	if (xPos == width - 1)
 		nthBin = static_cast<int>(numBin) - 1;
 	QString toolTip;
+	double stepWidth = numBin >= 1 ? m_plots[0]->GetData()->GetBinStart(1) - m_plots[0]->GetData()->GetBinStart(0) : 0;
 	double binStart = m_plots[0]->GetData()->GetBinStart(nthBin);
 	if (IsDrawnDiscrete())
 		binStart = static_cast<int>(binStart);
 	if (yCaption.isEmpty())
-		toolTip = QString("%1: ").arg(binStart);
+		toolTip = QString("%1: ").arg(GetXAxisTickMarkLabel(binStart, stepWidth));
 	else
-		toolTip = QString("%1: %2\n%3: ").arg(xCaption).arg(binStart).arg(yCaption);
+		toolTip = QString("%1: %2\n%3: ").arg(xCaption).arg(GetXAxisTickMarkLabel(binStart, stepWidth)).arg(yCaption);
 	bool more = false;
 	for (auto plot : m_plots)
 	{
@@ -739,7 +738,7 @@ void iAChartWidget::showDataTooltip(QMouseEvent *event)
 			toolTip += ", ";
 		else
 			more = true;
-		toolTip += QString::number(data->GetRawData()[nthBin]);
+		toolTip += QString::number(data->GetRawData()[nthBin], 'g', 15);
 	}
 	QToolTip::showText(event->globalPos(), toolTip, this);
 }
@@ -897,10 +896,10 @@ void iAChartWidget::ExportData()
 	out << std::endl;
 	for (int b = 0; b < m_plots[0]->GetData()->GetNumBin(); ++b)
 	{
-		out << m_plots[0]->GetData()->GetBinStart(b);
+		out << QString::number(m_plots[0]->GetData()->GetBinStart(b), 'g', 15).toStdString();
 		for (int p = 0; p < m_plots.size(); ++p)
 		{
-			out << "," << m_plots[p]->GetData()->GetRawData()[b];
+			out << "," << QString::number(m_plots[p]->GetData()->GetRawData()[b], 'g', 15).toStdString();
 		}
 		out << std::endl;
 	}

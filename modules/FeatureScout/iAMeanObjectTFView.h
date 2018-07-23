@@ -20,29 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QString>
-#include <QFile>
-#include <QTextStream>
+#include "ui_FeatureScoutMOTFView.h"
+#include "iAQTtoUIConnector.h"
 
-typedef struct {
-	double	x1, y1, z1,
-			x2, y2, z2,
-			straightLength, curvedLength, diameter, surfaceArea, volume;
-	bool	isSeperated, isCurved;
-} FiberInfo;
+typedef iAQTtoUIConnector<QDialog, Ui_MOTFView>  iAMeanObjectTFViewConnector;
 
-class iAXmlFiberParser : QFile
+class iAMeanObjectTFView : public iAMeanObjectTFViewConnector
 {
+	Q_OBJECT
 public:
-	iAXmlFiberParser(QFile* flie);
-	~iAXmlFiberParser();
-
-	FiberInfo getFiberInfo(bool* ok = (bool *)0);
-
-protected:
-	QFile* file;
-	QTextStream* textStream;
-
-private:
-	QString currentRow;
+	iAMeanObjectTFView( QWidget * parent = 0, Qt::WindowFlags f = 0 )
+		: iAMeanObjectTFViewConnector( parent, f )
+	{}
+	~iAMeanObjectTFView() {}
 };

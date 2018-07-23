@@ -18,42 +18,19 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAXmlFiberParser.h"
 
-iAXmlFiberParser::iAXmlFiberParser(QFile* file)
+#pragma once
+
+#include <QToolBar>
+
+#include "ui_FeatureScoutToolBar.h"
+#include "iAQTtoUIConnector.h"
+
+class iAFeatureScoutToolbar : public QToolBar, public Ui_FeatureScoutToolBar
 {
-	this->file = file;
-	textStream = new QTextStream(file);
-}
-
-iAXmlFiberParser::~iAXmlFiberParser()
-{
-	delete textStream;
-}
-
-FiberInfo iAXmlFiberParser::getFiberInfo(bool* ok)
-{
-	FiberInfo fi;
-	*ok = true;	// this flag take false if we get damaged fiber info
-
-	currentRow = textStream->readLine();
-
-	fi.x1 = currentRow.section(",", 1, 1).toDouble(*ok ? ok : (bool *)0);
-	fi.y1 = currentRow.section(",", 2, 2).toDouble(*ok ? ok : (bool *)0);
-	fi.z1 = currentRow.section(",", 3, 3).toDouble(*ok ? ok : (bool *)0);
-
-	fi.x2 = currentRow.section(",", 4, 4).toDouble(*ok ? ok : (bool *)0);
-	fi.y2 = currentRow.section(",", 5, 5).toDouble(*ok ? ok : (bool *)0);
-	fi.z2 = currentRow.section(",", 6, 6).toDouble(*ok ? ok : (bool *)0);
-
-	fi.straightLength	= currentRow.section(",",  7,  7).toDouble(*ok ? ok : (bool *)0);
-	fi.curvedLength		= currentRow.section(",",  8,  8).toDouble(*ok ? ok : (bool *)0);
-	fi.diameter			= currentRow.section(",",  9,  9).toDouble(*ok ? ok : (bool *)0);
-	fi.surfaceArea		= currentRow.section(",", 10, 10).toDouble(*ok ? ok : (bool *)0);
-	fi.volume			= currentRow.section(",", 11, 11).toDouble(*ok ? ok : (bool *)0);
-
-	fi.isSeperated	= currentRow.section(",", 12, 12).toInt(*ok ? ok : (bool *)0) == 0? false : true;
-	fi.isCurved		= currentRow.section(",", 13, 13).toInt(*ok ? ok : (bool *)0) == 0? false : true;
-
-	return fi;
-}
+public:
+	iAFeatureScoutToolbar(QWidget* parent) : QToolBar("FeatureScout ToolBar", parent)
+	{
+		this->setupUi(this);
+	}
+};

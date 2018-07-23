@@ -26,7 +26,6 @@
 #include <vtkCommand.h>
 #include <vtkObject.h>
 #include <vtkOpenGLRenderer.h>
-#include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
 
 #include <cassert>
@@ -43,7 +42,7 @@ void iARendererManager::addToBundle(iARenderer* renderer)
 		m_commonCamera = renderer->GetRenderer()->GetActiveCamera();
 	else
 		renderer->setCamera(m_commonCamera);
-	
+
 	m_renderers.append(renderer);
 	renderer->GetRenderer()->AddObserver(vtkCommand::EndEvent, this, &iARendererManager::redrawOtherRenderers);
 }

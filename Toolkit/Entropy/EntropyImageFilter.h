@@ -111,16 +111,15 @@ protected:
 
 	/** Determine maximum label value in all input images and initialize
 	 * global data. */
-	void BeforeThreadedGenerateData() ITK_OVERRIDE;
+	void BeforeThreadedGenerateData() override;
 
 	void ThreadedGenerateData
-	(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+	(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId) override;
 
-	void PrintSelf(std::ostream &, itk::Indent) const ITK_OVERRIDE;
-
+	void PrintSelf(std::ostream &, itk::Indent) const override;
 private:
-	EntropyImageFilter(const Self &) ITK_DELETE_FUNCTION;
-	void operator=(const Self &) ITK_DELETE_FUNCTION;
+	EntropyImageFilter(const Self &) =delete;
+	void operator=(const Self &) =delete;
 
 	bool m_normalize;
 };

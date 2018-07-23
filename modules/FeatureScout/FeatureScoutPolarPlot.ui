@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FiberScoutPP</class>
- <widget class="QDockWidget" name="FiberScoutPP">
+ <class>FeatureScoutPP</class>
+ <widget class="QDockWidget" name="FeatureScoutPP">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -20,7 +20,7 @@
    <set>QDockWidget::DockWidgetFeatureMask</set>
   </property>
   <property name="windowTitle">
-   <string>Fiber Orientation Plot</string>
+   <string>Orientation Plot</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -150,20 +150,9 @@
       </layout>
      </widget>
     </item>
-    <item>
-     <widget class="QVTKWidget" name="plotWidget" native="true"/>
-    </item>
    </layout>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QVTKWidget</class>
-   <extends>QWidget</extends>
-   <header>QVTKWidget.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -117,7 +117,7 @@ public:
   // axes at the corners. Default value is 2.0.
   vtkSetClampMacro(CornerOffsetFactor, double, 1.0, 10.0);
   vtkGetMacro(CornerOffsetFactor, double);
-      
+
   // Description:
   // These are methods to retrieve the vtkAxisActors used to represent
   // the four axes that form this representation. Users may retrieve and
@@ -144,15 +144,15 @@ protected:
   int    LeftBorderOffset;
   int    BottomBorderOffset;
   double CornerOffsetFactor;
-  
+
   // The axes around the borders of the renderer
   vtkAxisActor2D *LeftAxis;
   vtkAxisActor2D *BottomAxis;
-  
+
   // Control the display of the axes
   int LeftAxisVisibility;
   int BottomAxisVisibility;
-    
+
   vtkTimeStamp         BuildTime;
 
   vtkCoordinate * ReferenceCoordinate;

@@ -8,12 +8,6 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 		"and run cmake with a newly created build directory.")
 endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
-option (openiA_USE_IDE_FOLDERS "Whether to group projects in subfolders in the IDE (mainly Visual Studio). Default: enabled." ON)
-IF (openiA_USE_IDE_FOLDERS)
-	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-	set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "_CMake")
-ENDIF()
-	
 #-------------------------
 # CTest
 #-------------------------
@@ -56,17 +50,6 @@ ENDIF()
 # LIBRARIES
 #-------------------------
 
-FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE)
-IF (HDF5_FOUND)
-	FIND_LIBRARY(HDF5_LIBRARY hdf5 PATHS ${HDF5_DIR}/../bin ${HDF5_DIR}/../../lib ${HDF5_DIR}/../lib)
-	IF (CMAKE_COMPILER_IS_GNUCXX)
-		FIND_LIBRARY(HDF5_Z z PATHS ${HDF5_DIR}/../../lib NO_CMAKE_SYSTEM_PATH)
-		FIND_LIBRARY(HDF5_SZIP szip PATHS ${HDF5_DIR}/../../lib)
-		SET (HDF5_LIBRARY ${HDF5_LIBRARY} ${HDF5_SZIP} ${HDF5_Z})
-	ENDIF()
-	INCLUDE_DIRECTORIES( ${HDF5_INCLUDE_DIR} )
-ENDIF()
-
 # ITK (>= 4)
 FIND_PACKAGE(ITK)
 IF(ITK_FOUND)
@@ -78,17 +61,16 @@ IF(ITK_VERSION_MAJOR LESS 4)
 	MESSAGE(FATAL_ERROR "Your ITK version is too old. Please use ITK >= 4.x")
 ENDIF (ITK_VERSION_MAJOR LESS 4)
 SET( ITK_LIBRARIES
-	ITKBiasCorrection		ITKBioCell				ITKCommon			ITKIOImageBase
-	ITKFEM					ITKIOBioRad				ITKIOBMP			ITKIOGDCM			ITKIOGE
-	ITKIOGIPL				ITKIOHDF5				ITKIOIPL			ITKIOJPEG			ITKIOLSM
-	ITKIOMeta				ITKIONIFTI				ITKIONRRD			ITKIOPNG			ITKIOSiemens
-	ITKIOSpatialObjects		ITKIOStimulate			ITKIOTIFF			ITKIOVTK			ITKIOXML
-	ITKVtkGlue				ITKKLMRegionGrowing		ITKMesh				ITKOptimizers		ITKPath
-	ITKVNLInstantiation		ITKVTK					ITKWatersheds		ITKDICOMParser		ITKEXPAT
-	ITKLabelMap				itkjpeg					ITKMetaIO			itkNetlibSlatec
-	ITKniftiio				ITKNrrdIO				itkpng				itksys
-	itktiff					itkv3p_netlib			itkvcl				itkvnl				itkvnl_algo
+	ITKBiasCorrection    ITKCommon       ITKDICOMParser       ITKEXPAT
+	ITKIOImageBase       ITKIOBioRad     ITKIOBMP             ITKIOGDCM            ITKIOGE         ITKIOGIPL
+	ITKIOHDF5            ITKIOIPL        ITKIOJPEG            ITKIOLSM             ITKIOMeta       ITKIONIFTI
+	ITKIONRRD            ITKIOPNG        ITKIOSiemens         ITKIOSpatialObjects  ITKIOStimulate  ITKIOTIFF
+	ITKIOVTK             ITKIOXML
+	ITKKLMRegionGrowing  ITKLabelMap     ITKMesh              ITKMetaIO            ITKniftiio      ITKNrrdIO
+	ITKOptimizers        ITKPath         ITKVNLInstantiation  ITKVTK               ITKVtkGlue      ITKWatersheds
 	ITKznz
+	itkjpeg              itkNetlibSlatec itkpng               itksys               itktiff         itkv3p_netlib
+	itkvcl               itkvnl          itkvnl_algo
 )
 IF ("${ITKZLIB_LIBRARIES}" STREQUAL "itkzlib")
 	SET (ITK_LIBRARIES ${ITK_LIBRARIES} itkzlib)
@@ -117,6 +99,10 @@ IF (ITK_USE_SYSTEM_FFTW)
 		#INSTALL (FILES ${ITK_FFTW_LIBDIR}/libfftw3f-3.so DESTINATION .)
 	ENDIF (MSVC)
 ENDIF (ITK_USE_SYSTEM_FFTW)
+IF (ITK_VERSION_MAJOR LESS 5)
+	# some libraries were removed with ITK 5:
+	SET (ITK_LIBRARIES ${ITK_LIBRARIES} ITKBioCell  ITKFEM)
+ENDIF()
 IF (ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 12)
 	# apparently, in 4.12 the itkopenjpeg.lib isn't built anymore by default
 	SET (ITK_LIBRARIES ${ITK_LIBRARIES} itkopenjpeg)
@@ -130,7 +116,7 @@ IF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 	SET(ITK_LIBRARIES ${ITK_LIBRARIES} ITKIOMRC)
 	# SCIFIO only available in ITK >= 4.5?
 	IF (SCIFIO_LOADED)
-		ADD_DEFINITIONS( -DUSE_SCIFIO )
+		ADD_DEFINITIONS(-DUSE_SCIFIO)
 		MESSAGE(STATUS "ITK has SCIFIO support enabled.\n\
     Notice that in order to run a build with this library on another machine\n\
     than the one you built it, the environment variable SCIFIO_PATH\n\
@@ -215,9 +201,33 @@ SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES}
 # Eigen
 FIND_PACKAGE(Eigen3)
 IF(EIGEN3_FOUND)
-	ADD_DEFINITIONS( -DUSE_EIGEN )
+	ADD_DEFINITIONS(-DUSE_EIGEN)
 	INCLUDE_DIRECTORIES( ${EIGEN3_INCLUDE_DIR} )
 ENDIF(EIGEN3_FOUND)
+
+
+# HDF5
+FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE)
+IF (HDF5_ROOT AND NOT "${HDF5_ROOT}" STREQUAL "${HDF5_DIR}")
+	SET(HDF5_DIR "${HDF5_ROOT}" CACHE PATH "" FORCE)
+	MESSAGE(STATUS "HDF5: Overriding found HDF5_DIR=${HDF5_DIR} with HDF5_ROOT=${HDF5_ROOT}")
+ENDIF()
+IF (HDF5_FOUND)
+	FIND_LIBRARY(HDF5_CORE_LIB hdf5 PATHS ${HDF5_DIR}/../bin ${HDF5_DIR}/../../lib ${HDF5_DIR}/../lib)
+	FIND_PATH(HDF5_INCLUDE_OVERWRITE_DIR hdf5.h PATHS "${HDF5_DIR}/../include" "${HDF5_DIR}/../../include")
+	SET(HDF5_INCLUDE_DIR "${HDF5_INCLUDE_OVERWRITE_DIR}" CACHE PATH "" FORCE)
+	UNSET(HDF5_INCLUDE_OVERWRITE_DIR CACHE)
+	IF (CMAKE_COMPILER_IS_GNUCXX)
+		FIND_LIBRARY(HDF5_Z_LIB z PATHS ${HDF5_DIR}/../../lib NO_DEFAULT_PATH NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH)
+		FIND_LIBRARY(HDF5_SZIP_LIB szip PATHS ${HDF5_DIR}/../../lib)
+		SET (HDF5_LIBRARY ${HDF5_CORE_LIB} ${HDF5_SZIP_LIB} ${HDF5_Z_LIB} CACHE STRING "" FORCE)
+		UNSET(HDF5_Z_LIB CACHE)
+		UNSET(HDF5_SZIP_LIB CACHE)
+	ELSE()
+		SET (HDF5_LIBRARY ${HDF5_CORE_LIB} CACHE STRING "" FORCE)
+	ENDIF()
+	UNSET(HDF5_CORE_LIB CACHE)
+ENDIF()
 
 
 # Astra Toolbox
@@ -232,7 +242,7 @@ FIND_PACKAGE(CUDA)
 FIND_PACKAGE(OpenCL)
 
 
-#OpenMP
+# OpenMP
 INCLUDE(${CMAKE_ROOT}/Modules/FindOpenMP.cmake)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -278,11 +288,9 @@ IF (WIN32)
 	ENDFOREACH(ITK_LIB)
 ELSEIF (UNIX)
 	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
-	SET (EXTRA_ITK_LIBS	itkdouble-conversion
-		itkgdcmcharls	itkgdcmCommon	itkgdcmDICT	itkgdcmDSED	itkgdcmIOD	itkgdcmjpeg12
-		itkgdcmjpeg16	itkgdcmjpeg8	itkgdcmMSFF	itkgdcmopenjpeg itkgdcmuuid
-		itknetlib	ITKSpatialObjects
-		ITKStatistics	ITKTransform)
+	SET (EXTRA_ITK_LIBS           ITKSpatialObjects  ITKStatistics  ITKTransform
+		itkdouble-conversion  itkgdcmcharls      itkgdcmCommon  itkgdcmDICT  itkgdcmDSED  itkgdcmIOD
+		itkgdcmjpeg12         itkgdcmjpeg16      itkgdcmjpeg8   itkgdcmMSFF  itkgdcmuuid  itknetlib)
 	# starting with ITK 4.11, itkhdf5* libraries must not be referenced anymore, before they are required:
 	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
 		SET(EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkhdf5_cpp itkhdf5)
@@ -302,6 +310,12 @@ ELSEIF (UNIX)
 			ENDIF()
 		ENDFOREACH()
 	ENDIF()
+	# previous to 4.13: libitkgdcmopenjpeg, afterwards: libitkgdcmopenjp2
+	IF (ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 12)
+		SET (EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkgdcmopenjp2)
+	ELSE()
+		SET (EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkgdcmopenjpeg)
+	ENDIF()
 	SET (ALL_ITK_LIBS ${ITK_LIBRARIES} ${EXTRA_ITK_LIBS})
 	FOREACH(ITK_LIB ${ALL_ITK_LIBS})
 	# hack: SCIFIO apparently needs to be linked as "SCIFIO" but the lib is called "itkSCFICIO"...
@@ -312,25 +326,26 @@ ELSE()
 	MESSAGE(WARNING "Installation procedure for your operating system is not yet implemented!")
 ENDIF()
 
+
 # VTK
 SET (VTK_VER "${VTK_VERSION_MAJOR}.${VTK_VERSION_MINOR}")
 SET (VTK_EXTRA_LIBS
-	vtkalglib	vtkCommonColor	vtkCommonComputationalGeometry	vtkCommonDataModel
-	vtkCommonExecutionModel	vtkCommonMath	vtkCommonMisc	vtkCommonSystem
-	vtkCommonTransforms	vtkexoIIc	vtkexpat	vtkFiltersExtraction
-	vtkFiltersGeneral	vtkFiltersGeometry	vtkFiltersImaging	vtkFiltersSources
-	vtkFiltersStatistics	vtkFiltersTexture	vtkfreetype	vtkhdf5
-	vtkImagingColor	vtkImagingFourier	vtkImagingGeneral	vtkImagingHybrid
-	vtkImagingSources	vtkInfovisLayout	vtkInteractionStyle	vtkInteractionWidgets
-	vtkIOImage	vtkIOLegacy	vtkIOXMLParser	vtkjpeg	vtklibxml2
-	vtkmetaio	vtkoggtheora	vtkpng	vtkRenderingLabel
-	vtkRenderingVolume	vtktiff	vtkverdict	vtkViewsInfovis
-	vtkzlib)
+	vtkalglib                vtkCommonColor      vtkCommonComputationalGeometry  vtkCommonDataModel
+	vtkCommonExecutionModel  vtkCommonMath       vtkCommonMisc                   vtkCommonSystem
+	vtkCommonTransforms      vtkexoIIc           vtkexpat                        vtkFiltersExtraction
+	vtkFiltersGeneral        vtkFiltersGeometry  vtkFiltersImaging               vtkFiltersSources
+	vtkFiltersStatistics     vtkFiltersTexture   vtkfreetype                     vtkhdf5
+	vtkImagingColor          vtkImagingFourier   vtkImagingGeneral               vtkImagingHybrid
+	vtkImagingSources        vtkInfovisLayout    vtkInteractionStyle             vtkInteractionWidgets
+	vtkIOImage               vtkIOLegacy         vtkIOXMLParser                  vtkjpeg
+	vtklibxml2               vtkmetaio           vtkoggtheora                    vtkpng
+	vtkRenderingLabel        vtkRenderingVolume  vtktiff                         vtkverdict
+	vtkViewsInfovis          vtkzlib)
 IF (${VTK_MAJOR_VERSION} LESS 7 AND ${VTK_MINOR_VERSION} LESS 3)
-	SET (VTK_EXTRA_LIBS ${VTK_EXTRA_LIBS}	vtkRenderingFreeTypeOpenGL)
+	SET (VTK_EXTRA_LIBS ${VTK_EXTRA_LIBS}  vtkRenderingFreeTypeOpenGL)
 ENDIF()
 IF (${VTK_MAJOR_VERSION} GREATER 7)
-	SET (VTK_EXTRA_LIBS ${VTK_EXTRA_LIBS}	vtklz4)
+	SET (VTK_EXTRA_LIBS ${VTK_EXTRA_LIBS}  vtklz4)
 ENDIF()
 SET (VTK_ALL_LIBS ${VTK_LIBRARIES} ${VTK_EXTRA_LIBS})
 IF (WIN32)
@@ -351,6 +366,7 @@ ELSEIF (UNIX)
 	ENDFOREACH(VTK_LIB)
 	INSTALL(FILES ${VTK_LIB_DIR}/libQVTKWidgetPlugin.so DESTINATION .)
 ENDIF()
+
 
 # Qt
 STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
@@ -420,6 +436,7 @@ IF(UNIX AND NOT APPLE)
 	ENDFOREACH()
 ENDIF()
 
+
 # OpenCL
 IF (OPENCL_FOUND)
 	IF (WIN32)
@@ -444,9 +461,10 @@ IF (OPENCL_FOUND)
 	ENDIF()
 ENDIF()
 
+
 # CUDA:
 IF (CUDA_FOUND)
-	ADD_DEFINITIONS("-DASTRA_CUDA")
+	ADD_DEFINITIONS(-DASTRA_CUDA)
 	IF (WIN32)
 		INSTALL (FILES "${CUDA_TOOLKIT_ROOT_DIR}/bin/cudart64_${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}.dll" DESTINATION .)
 		INSTALL (FILES "${CUDA_TOOLKIT_ROOT_DIR}/bin/cufft64_${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}.dll" DESTINATION .)
@@ -458,6 +476,7 @@ IF (CUDA_FOUND)
 	ENDIF ()
 ENDIF()
 
+
 # ASTRA Toolbox
 IF (ASTRA_TOOLBOX_FOUND)
 	IF (WIN32)
@@ -468,6 +487,7 @@ IF (ASTRA_TOOLBOX_FOUND)
 		INSTALL (FILES "${ASTRA_SHAREDLIB}" DESTINATION . RENAME libastra.so.0)
 	ENDIF ()
 ENDIF()
+
 
 # HDF5
 IF (HDF5_FOUND)
@@ -496,8 +516,8 @@ IF (WIN32)
 ENDIF (WIN32)
 IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /EHsc")  # multi-processor compilation and common exception handling strategy
-	ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)
-	ADD_DEFINITIONS(/D _SCL_SECURE_NO_WARNINGS)
+	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
+	ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
 ENDIF (MSVC)
 IF (CMAKE_COMPILER_IS_GNUCXX)
 
@@ -540,6 +560,17 @@ ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 #-------------------------
 
 SET (CORE_LIBRARY_NAME open_iA_Core)
+
+option (openiA_USE_IDE_FOLDERS "Whether to group projects in subfolders in the IDE (mainly Visual Studio). Default: enabled." ON)
+IF (openiA_USE_IDE_FOLDERS)
+	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+	set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "_CMake")
+ENDIF()
+
+# open_iA Version number
+include(GetGitRevisionDescription)
+git_describe(VERSION --tags)
+configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
 
 ADD_DEFINITIONS(-DUNICODE -D_UNICODE)    # Enable Unicode
 

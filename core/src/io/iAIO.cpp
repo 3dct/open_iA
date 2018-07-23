@@ -875,12 +875,12 @@ void iAIO::readNRRD()
  */
 void iAIO::readDCM()
 {
-	typedef signed short PixelType; 
-	typedef itk::Image<PixelType, DIM> ImageType; 
-	typedef itk::ImageSeriesReader<ImageType> ReaderType; 
+	typedef signed short PixelType;
+	typedef itk::Image<PixelType, DIM> ImageType;
+	typedef itk::ImageSeriesReader<ImageType> ReaderType;
 	auto reader = ReaderType::New();
-	typedef itk::GDCMImageIO ImageIOType; 
-	ImageIOType::Pointer dicomIO = ImageIOType::New();	
+	typedef itk::GDCMImageIO ImageIOType;
+	ImageIOType::Pointer dicomIO = ImageIOType::New();
 	reader->SetImageIO( dicomIO );
 	typedef itk::GDCMSeriesFileNames NamesGeneratorType;
 	NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
@@ -1170,9 +1170,9 @@ bool iAIO::setupVolumeStackVolStackWriter(QString f)
 }
 
 
-void iAIO::FillFileNameArray(int * indexRange, int digitsInIndex)
+void iAIO::FillFileNameArray(int * indexRange, int digitsInIndex, int stepSize)
 {
-	for (int i=indexRange[0]; i<=indexRange[1]; i++)
+	for (int i=indexRange[0]; i<=indexRange[1]; i += stepSize)
 	{
 		QString temp = fileNamesBase + QString("%1").arg(i, digitsInIndex, 10, QChar('0')) + extension;
 		fileNameArray->InsertNextValue(temp.toLatin1());
@@ -1584,12 +1584,14 @@ bool iAIO::setupStackReader( QString f )
 		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
 		<< tr("#Minimum Index") << tr("#Maximum Index")
+		<< tr("*Step")
 		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
 		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z"));
 	QList<QVariant> inPara = (QList<QVariant>()
 		<< fileNamesBase << extension
 		<< tr("%1").arg(digits)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
+		<< QString::number(1)
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
 		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]));
 
@@ -1603,9 +1605,10 @@ bool iAIO::setupStackReader( QString f )
 	extension = dlg.getText(1);
 	digits = dlg.getDblValue(2);
 	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
-	spacing[0] = dlg.getDblValue(5); spacing[1]= dlg.getDblValue(6); spacing[2] = dlg.getDblValue(7);
-	origin[0] = dlg.getDblValue(8); origin[1]= dlg.getDblValue(9); origin[2] = dlg.getDblValue(10);
-	FillFileNameArray(indexRange, digits);
+	int stepSize = dlg.getIntValue(5);
+	spacing[0] = dlg.getDblValue(6); spacing[1]= dlg.getDblValue(7); spacing[2] = dlg.getDblValue(8);
+	origin[0] = dlg.getDblValue(9); origin[1]= dlg.getDblValue(10); origin[2] = dlg.getDblValue(11);
+	FillFileNameArray(indexRange, digits, stepSize);
 	return true;
 }
 

@@ -198,25 +198,6 @@
                   </item>
                  </layout>
                 </item>
-                <item>
-                 <widget class="QVTKWidget" name="qvtkWidget" native="true">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>250</width>
-                    <height>100</height>
-                   </size>
-                  </property>
-                  <property name="autoFillBackground">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
                </layout>
               </widget>
               <widget class="QFrame" name="frameRC">
@@ -1295,11 +1276,7 @@
                    <attribute name="title">
                     <string>3D plot</string>
                    </attribute>
-                   <layout class="QGridLayout" name="gridLayout_4">
-                    <item row="0" column="0">
-                     <widget class="QVTKWidget" name="qvtkPlot3d" native="true"/>
-                    </item>
-                   </layout>
+                   <layout class="QGridLayout" name="gridLayout_4" />
                   </widget>
                   <widget class="QWidget" name="tab_13">
                    <attribute name="title">
@@ -3452,19 +3429,7 @@
                <attribute name="title">
                 <string>Weighting</string>
                </attribute>
-               <widget class="QVTKWidget" name="qvtkWeighing" native="true">
-                <property name="geometry">
-                 <rect>
-                  <x>10</x>
-                  <y>20</y>
-                  <width>151</width>
-                  <height>131</height>
-                 </rect>
-                </property>
-                <property name="autoFillBackground">
-                 <bool>true</bool>
-                </property>
-               </widget>
+               <layout class="QGridLayout" name="gridLayout_1" />
               </widget>
               <widget class="QWidget" name="tab_11">
                <attribute name="title">
@@ -6816,13 +6781,6 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>QVTKWidget</class>
-   <extends>QWidget</extends>
-   <header>QVTKWidget.h</header>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="dreamcaster.qrc"/>
  </resources>

@@ -32,7 +32,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkMath.h"
 
-class iARegularPolygonSourceEx : public vtkRegularPolygonSource 
+class iARegularPolygonSourceEx : public vtkRegularPolygonSource
 {
 public:
 	// Description:
@@ -52,7 +52,7 @@ public:
 	vtkGetVectorMacro(Point2,double,3);
 
 protected:
-	iARegularPolygonSourceEx() : vtkRegularPolygonSource() 
+	iARegularPolygonSourceEx() : vtkRegularPolygonSource()
 	{
 		Point1[0] = Point1[1] = Point1[2] = 0.0;
 		Point2[0] = Point2[1] = Point2[2] = 0.0;
@@ -79,7 +79,7 @@ protected:
 
 		double x[3];
 		int i, j, numPts=this->NumberOfSides;
-		vtkPoints *newPoints; 
+		vtkPoints *newPoints;
 
 		// Prepare to produce the output; create the connectivity array(s)
 		newPoints = vtkPoints::New();

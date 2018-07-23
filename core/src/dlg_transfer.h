@@ -40,7 +40,7 @@ Q_OBJECT
 	QColor          color;
 	QColorDialog    *dlg;
 	QLinearGradient gradient;
-		
+
 	vtkPiecewiseFunction     *opacityTF;
 	vtkColorTransferFunction *colorTF;
 public:
@@ -48,7 +48,7 @@ public:
 	~dlg_transfer();
 
 	int getType() { return TRANSFER; }
-	
+
 	// abstract functions
 	void draw(QPainter &painter);
 	void draw(QPainter &painter, QColor color, int lineWidth);
@@ -69,12 +69,12 @@ public:
 
 	void reset();
 	void TranslateToNewRange(double const oldDataRange[2]);
-	
+
 	void mousePressEvent(QMouseEvent*)   {}
 	void mouseMoveEvent(QMouseEvent*)    {}
 	void mouseReleaseEvent(QMouseEvent*) {}
 	void mouseReleaseEventAfterNewPoint(QMouseEvent *event);
-	
+
 	// additional public functions
 	void setOpacityFunction(vtkPiecewiseFunction *opacityTF) { this->opacityTF = opacityTF; }
 	void setColorFunction(vtkColorTransferFunction *colorTF) { this->colorTF = colorTF; }
@@ -91,7 +91,7 @@ private:
 	void setPoint(int selectedPoint, int x, int y);
 	void setPointX(int selectedPoint, int x);
 	void setPointY(int selectedPoint, int y);
-	
+
 	// convert view to data
 	double v2dX(int x);
 	double v2dY(int y);

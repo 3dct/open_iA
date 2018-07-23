@@ -20,30 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFiberScoutModuleInterface.h"
+#include "iADockWidgetWrapper.h"
+
+#include "iAFeatureScoutModuleInterface.h"
 #include "iAObjectAnalysisType.h"
 #include "iAQTtoUIConnector.h"
-#include "ui_FiberScoutClassExplorer.h"
-#include "ui_FiberScoutParallelCoordinates.h"
-#include "ui_FiberScoutPolarPlot.h"
-#include "ui_FiberScoutScatterPlotMatrix.h"
-#include "ui_FiberScoutDistributionView.h"
-#include "ui_FiberScoutMeanObjectView.h"
+#include "ui_FeatureScoutClassExplorer.h"
+#include "ui_FeatureScoutPolarPlot.h"
+#include "ui_FeatureScoutMeanObjectView.h"
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutPC> dlg_IOVPC;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutPP> dlg_IOVPP;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutSPM> dlg_IOVSPM;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutDV> dlg_IOVDV;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FiberScoutMO> dlg_IOVMO;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
+typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
 
 class iABlobCluster;
 class iABlobManager;
 class iAMeanObjectTFView;
 class iAModalityTransfer;
+class iAQSplom;
 class iARenderer;
 class dlg_blobVisualization;
 class MdiChild;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class QVTKOpenGLWidget;
+#else
+class QVTKWidget;
+class vtkRenderWindow;
+#endif
 class vtkChartParallelCoordinates;
 class vtkContextView;
 class vtkDataArray;
@@ -67,10 +70,7 @@ class QTreeView;
 class QTableView;
 class QXmlStreamWriter;
 
-namespace FiberScout
-{
-	class iAScatterPlotMatrix;
-}
+class iAQSPLOM;
 
 struct moData
 {
@@ -82,16 +82,13 @@ struct moData
 	QList<vtkSmartPointer<vtkImageData> > moImageDataList;
 };
 
-/**
-* \brief	implement vtkChartParallelCoordinates as dialog
-*/
-class dlg_FiberScout : public QDockWidget, public Ui_FiberScoutCE
+class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
 	Q_OBJECT
 
 public:
-	dlg_FiberScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl);
-	~dlg_FiberScout();
+	dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, const QSharedPointer<QStringList>  &selHeaders);
+	~dlg_FeatureScout();
 
 	// setups
 	void setupModel();
@@ -102,12 +99,10 @@ public:
 	void updateObjectOrientationID(vtkTable *table);
 	void createPolarPlotLookupTable(vtkLookupTable *lut);
 	void createFLDODLookupTable(vtkLookupTable *lut, int Num);
-	void updatePolarPlotView(vtkTable *it);
 	void drawPolarPlotMesh(vtkRenderer *renderer);
 	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
-	void updatePolarPlotForOrientationRendering(vtkLookupTable *lut);
 	void setupNewPcView(bool lookupTable=false);
 	void deletePcViewPointer();
 	void calculateElementTable();
@@ -117,7 +112,6 @@ public:
 	double calculateOpacity(QStandardItem *item);
 	void recalculateChartTable(QStandardItem *item);
 	void updateColumnNames();
-	void updateColumnOrder();
 	void setupDefaultElement();
 	void SingleRendering(int idx = -10000);
 	void updateLookupTable(double alpha= 0.7);
@@ -131,7 +125,15 @@ public:
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
 	void writeWisetex(QXmlStreamWriter *writer);
 	void autoAddClass(int NbOfClasses);
-	void initOrientationColorMap();
+
+	//selection for each class and show SPM for it
+	void applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
+
+	//selection for single class and show SPM
+	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> &classEntries, const int colInd, const bool applyColorMap);
+
+	//highlights singe object in class
+	void applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, const int colorIdx, const bool applyColorMap);
 
 Q_SIGNALS:
 	void updateViews();
@@ -147,8 +149,8 @@ public slots:
 	void CsvDVSaveButton();
 
 	void RenderingButton();
-	void RealTimeRendering(vtkIdTypeArray *selection, bool enabled);
-	void RenderingFiberMeanObject();
+	void RealTimeRendering(vtkIdTypeArray *selection);
+	void RenderingMeanObject();
 	void RenderingOrientation();
 	void ScatterPlotButton();
 	void RenderingFLD();
@@ -164,15 +166,15 @@ public slots:
 	void showContextMenu(const QPoint &pnt);
 	void deleteObject();
 	void addObject();
-	
+
 	void spBigChartMouseButtonPressed(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopup(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopupSelection(QAction *selection);
-	void spSelInformsPCChart(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
+	void spSelInformsPCChart(QVector<unsigned int> * selInds);
 	void spUpdateSPColumnVisibility();
 
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
-	bool changeFiberScout_Options( int idx );
+	bool changeFeatureScout_Options( int idx );
 
 	void modifyMeanObjectTF();
 	void updateMOView();
@@ -186,6 +188,14 @@ protected:
 
 
 private:
+	void setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool & retflag);
+	void setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &retflag);
+	void setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkTable>& classEntries, const uint selectionOID, bool & retflag);
+	void setClassColour(double * rgba, const int colInd);
+	void spmApplyColorMap(double  rgba[4], const int colInd);
+	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
+	void spmApplyGeneralColorMap(const double rgba[4]);
+	void spUpdateSPColumnVisibilityWithVis();
 	// Qt members
 	QWidget *activeChild;
 
@@ -199,19 +209,20 @@ private:
 	iAObjectAnalysisType filterID;
 
 	bool draw3DPolarPlot;
-	bool enableRealTimeRendering;
 	bool classRendering;
 	bool spmActivated;
 
+	bool useCsvOnly;
+
 	const QString sourcePath;
 	vtkSmartPointer<vtkStringArray> nameArr;
-	
+
 	// calculate the average value of a 1D array
 	float calculateAverage(vtkDataArray* arr);
 
 	// input csv table with all objects, column names updated for vtk rendering problem
 	// by solving this rendering problem satisfacted here a pointer to the orginal table
-	vtkSmartPointer<vtkTable> csvTable; 
+	vtkSmartPointer<vtkTable> csvTable;
 	// element table with calculated elments values for every individual class
 	vtkSmartPointer<vtkTable> elementTable;
 	// table for ParallelCoordinates view, should be initialized every time when a new class is defined
@@ -246,7 +257,7 @@ private:
 	QAction *objectDelete;
 	QAction *objectAdd;
 	QAction *saveBlobMovie;
-	// the active first level item 
+	// the active first level item
 	QStandardItem *activeClassItem;
 
 	// Parallel coordinates view
@@ -266,29 +277,37 @@ private:
 
 	dlg_blobVisualization *blobVisDialog;
 
-	FiberScout::iAScatterPlotMatrix *matrix;
-	QVTKWidget *pcWidget;
-	QVTKWidget *pcPolarPlot;
+	iAQSplom *matrix;
+
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QVTKOpenGLWidget *pcWidget, *polarPlot, *meanObjectWidget;
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_meanObjectRenderWindow;
+#else
+	QVTKWidget *pcWidget, *polarPlot, *meanObjectWidget;
+	vtkSmartPointer<vtkRenderWindow> m_meanObjectRenderWindow;
+#endif
 	QWidget *orientationColorMapSelection;
 	QComboBox * orientColormap;
-	
+
 	vtkSmartPointer<vtkContextView> m_dvContextView;
 
 	vtkSmartPointer<vtkScalarBarActor> m_scalarBarPP;
 	vtkSmartPointer<vtkScalarBarActor> m_scalarBarFLD;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarWidgetPP;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarWidgetFLD;
-	
+
 	int mousePressedPos [2];
 
-	dlg_IOVPC * iovPC;
+	iADockWidgetWrapper * iovPC, *iovDV, *iovSPM;
 	dlg_IOVPP * iovPP;
-	dlg_IOVSPM * iovSPM;
-	dlg_IOVDV * iovDV;
 	dlg_IOVMO * iovMO;
 
-	//Mean Object Rendering	
-	iAMeanObjectTFView* m_motfView;	
+	//Mean Object Rendering
+	iAMeanObjectTFView* m_motfView;
 	moData m_MOData;
-	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
+
+	vtkSmartPointer<vtkLookupTable> m_pointLUT;
+private:
+	QSharedPointer<QStringList> m_headersSelected;
+
 };

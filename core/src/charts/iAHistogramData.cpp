@@ -21,6 +21,7 @@
 #include "iAHistogramData.h"
 
 #include "iAImageInfo.h"
+#include "iAMathUtility.h"
 #include "iAVtkDataTypeMapper.h"
 #include "iAToolsVTK.h"
 
@@ -66,9 +67,6 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, size_
 	accumulate->SetInputData(img);
 	accumulate->SetComponentOrigin(img->GetScalarRange()[0], 0.0, 0.0);
 	double * const scalarRange = img->GetScalarRange();
-	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
-		binCount = std::min(binCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
-
 	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0);
 	const double RangeEnlargeFactor = 1 + 1e-10;  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
 	accumulate->SetComponentSpacing(((scalarRange[1] - scalarRange[0]) * RangeEnlargeFactor) / binCount, 0.0, 0.0);
@@ -119,6 +117,35 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(
 	result->accSpacing = space;
 	result->xBounds[0] = min;
 	result->xBounds[1] = max;
+	result->SetMaxFreq();
+	return result;
+}
+
+QSharedPointer<iAHistogramData> iAHistogramData::Create(const QList<DataType>& histData, size_t binCount)
+{
+	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
+	DataType minValue = std::numeric_limits<DataType>::max();
+	DataType maxValue = std::numeric_limits<DataType>::lowest();
+	for (DataType d : histData)
+	{
+		if (d < minValue)
+			minValue = d;
+		if (d > maxValue)
+			maxValue = d;
+	}
+	result->rawData = new DataType[binCount];
+	result->m_binCount = binCount;
+	result->accSpacing = (maxValue - minValue) / binCount;
+	result->xBounds[0] = minValue;
+	result->xBounds[1] = maxValue;
+	std::fill(result->rawData, result->rawData + binCount, 0.0);
+	//double factor = 1 / result->accSpacing;
+	for (DataType d : histData)
+	{
+		//int bin = clamp(static_cast<size_t>(0), binCount-1, static_cast<int>(((d - minValue) * factor) ));	 // potentially faster but less readable
+		int bin = clamp(static_cast<size_t>(0), binCount-1, mapValue(minValue, maxValue, static_cast<size_t>(0), binCount, d));
+		++result->rawData[bin];
+	}
 	result->SetMaxFreq();
 	return result;
 }

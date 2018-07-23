@@ -20,36 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QVTKWidget2.h>
+#include "iAModuleAttachmentToChild.h"
+#include "iABlobManager.h"
 
-class iAFramedQVTKWidget2 : public QVTKWidget2
+#include <QList>
+
+class dlg_FeatureScout;
+class iABlobCluster;
+
+class vtkOpenGLRenderer;
+class vtkTable;
+
+class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
-public: 
-	enum FrameStyle {
-		FRAMED,
-		NO_FRAME,
-		LEFT_SIDE,
-	};
 public:
-	iAFramedQVTKWidget2(QWidget * parent = NULL, const QGLWidget * shareWidget=0, Qt::WindowFlags f = 0);
-
-	void SetFrameStyle(FrameStyle frameStyle);
-	FrameStyle GetFrameStyle() const;
-
-	qreal GetFrameWidth() const;
-	void SetFrameWidth(qreal newWidth);
-
-	void SetCrossHair(bool enabled);
-
-protected slots:
-	//overloaded events of QVTKWidget2
-	virtual void Frame();
-
-protected:
-	qreal m_penWidth;
-	FrameStyle m_frameStyle;
-	bool m_crossHair;
+	iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildData childData);
+	~iAFeatureScoutAttachment();
+	void init(int filterID, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, const QSharedPointer<QStringList>  &selHeaders);
+	void enableBlobVisualization();
+	void disableBlobVisualization();
+	bool FeatureScout_Options(int idx);
+private:
+	bool blobVisEnabled;
+	iABlobManager m_blobManager;
+	QList<iABlobCluster*> blobList;
+	vtkSmartPointer<vtkOpenGLRenderer> blobRen;
+	dlg_FeatureScout * imgFS;
+private slots:
+	void rendererSetCamera();
 };
-
-void drawBorderRectangle(QPainter & painter, QPointF const points[4], int const borderWidth);

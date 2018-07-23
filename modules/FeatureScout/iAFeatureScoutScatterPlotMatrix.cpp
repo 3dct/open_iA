@@ -18,7 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFiberScoutScatterPlotMatrix.h"
+ /*
+#include "iAFeatureScoutScatterPlotMatrix.h"
 #include "iAObjectAnalysisType.h"
 
 #include <itkDecisionRule.h>
@@ -70,7 +71,7 @@
 #include <float.h>
 #include <vector>
 
-namespace FiberScout
+namespace FeatureScout
 {
 
 #define VTK_CREATE(type, name) \
@@ -233,7 +234,7 @@ namespace
 				vtkSmartPointer<vtkFloatArray> extents =
 					vtkFloatArray::SafeDownCast(
 					output->GetColumnByName( vtkStdString( name + "_extents" ).c_str() ) );
-				
+
 				if ( !extents )
 				{
 					extents = vtkSmartPointer<vtkFloatArray>::New();
@@ -243,14 +244,14 @@ namespace
 				extents->SetNumberOfTuples( NumberOfBins );
 				float *centers = static_cast<float *>( extents->GetVoidPointer( 0 ) );
 				double min = minmax[0] - 0.0005 * inc + halfInc;
-				
+
 				for ( int j = 0; j < NumberOfBins; ++j )
 					extents->SetValue( j, min + j * inc );
 
 				vtkSmartPointer<vtkIntArray> populations =
 					vtkIntArray::SafeDownCast(
 					output->GetColumnByName( vtkStdString( name + "_pops" ).c_str() ) );
-				
+
 				if ( !populations )
 				{
 					populations = vtkSmartPointer<vtkIntArray>::New();
@@ -259,7 +260,7 @@ namespace
 
 				populations->SetNumberOfTuples( NumberOfBins );
 				int *pops = static_cast<int *>( populations->GetVoidPointer( 0 ) );
-				
+
 				for ( int k = 0; k < NumberOfBins; ++k )
 					pops[k] = 0;
 
@@ -288,11 +289,11 @@ namespace
 		if ( !visCols || visCols->GetNumberOfTuples() == 0
 			 || fromCol == toCol || fromCol == ( toCol - 1 ) || fromCol < 0 || toCol < 0 )
 			return false;
-		
+
 		int numCols = visCols->GetNumberOfTuples();
 		if ( fromCol >= numCols || toCol > numCols )
 			return false;
-		
+
 		std::vector<vtkStdString> newVisCols;
 		vtkIdType c;
 		if ( toCol == numCols )
@@ -311,12 +312,12 @@ namespace
 			// move Cols in the middle up
 			for ( c = 0; c < fromCol; c++ )
 				newVisCols.push_back( visCols->GetValue( c ) );
-			
+
 			for ( c = fromCol + 1; c < numCols; c++ )
 			{
 				if ( c == toCol )
 					newVisCols.push_back( visCols->GetValue( fromCol ) );
-				
+
 				newVisCols.push_back( visCols->GetValue( c ) );
 			}
 		}
@@ -324,7 +325,7 @@ namespace
 		{
 			for ( c = 0; c < toCol; c++ )
 				newVisCols.push_back( visCols->GetValue( c ) );
-			
+
 			newVisCols.push_back( visCols->GetValue( fromCol ) );
 			for ( c = toCol; c < numCols; c++ )
 			{
@@ -338,7 +339,7 @@ namespace
 		std::vector<vtkStdString>::iterator arrayIt;
 		for ( arrayIt = newVisCols.begin(); arrayIt != newVisCols.end(); ++arrayIt )
 			visCols->SetValue( visId++, *arrayIt );
-		
+
 		return true;
 	}
 }
@@ -485,13 +486,13 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 						this->Private->Link->GetCurrentSelection()->GetNode( 0 )->GetSelectionList() ) );
 				}
 
-				// BigChart is drawn in the upper right corner. 
+				// BigChart is drawn in the upper right corner.
 				vtkChartXY *xy = vtkChartXY::SafeDownCast( this->Private->BigChart );
 
 				if(xy)
-					xy->SetPlotCorner(plot, 2); 
+					xy->SetPlotCorner(plot, 2);
 
-				// Fill up plot with data from the tmptable and set color. 
+				// Fill up plot with data from the tmptable and set color.
 				plot->SetInputData( CurrentClassTable.GetPointer(),
 									this->VisibleColumns->GetValue( pos.GetX() ),
 									this->VisibleColumns->GetValue( this->Size.GetX() - pos.GetY() - 1 ) );
@@ -504,7 +505,7 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 				plotPoints->SetMarkerSize( this->Private->ChartSettings[ACTIVEPLOT]->MarkerSize );
 				plotPoints->SetMarkerStyle( this->Private->ChartSettings[ACTIVEPLOT]->MarkerStyle );
 
-				// If option Multi Rendering is selected all classes will be plotted. 
+				// If option Multi Rendering is selected all classes will be plotted.
 			}
 			else if ( this->Private->ClassNumber2Plot == -1 && !this->Private->kMeansClustering )
 			{
@@ -516,7 +517,7 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 
 				while ( currcl < this->Private->NbOfClasses )
 				{
-					// Set up a temporary table with objects belonging to a specific calss only. 
+					// Set up a temporary table with objects belonging to a specific calss only.
 					vtkSmartPointer<vtkTable> tmpTable = vtkSmartPointer<vtkTable>::New();
 					tmpTable->DeepCopy( Input );
 
@@ -530,13 +531,13 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 					// Add a plot to the BigChart.
 					vtkPlot *plot = this->Private->BigChart->AddPlot( vtkChart::POINTS );
 
-					// BigChart is drawn in the upper right corner. 
+					// BigChart is drawn in the upper right corner.
 					vtkChartXY *xy = vtkChartXY::SafeDownCast( this->Private->BigChart );
 
 					if(xy)
-						xy->SetPlotCorner(plot, 2);	
+						xy->SetPlotCorner(plot, 2);
 
-					// Fill up plot with data from the tmptable and set to its class color. 
+					// Fill up plot with data from the tmptable and set to its class color.
 					plot->SetInputData( tmpTable,
 										this->VisibleColumns->GetValue( pos.GetX() ),
 										this->VisibleColumns->GetValue( this->Size.GetX() - pos.GetY() - 1 ) );
@@ -595,10 +596,10 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 				{
 					for ( unsigned int Idx = 0; Idx < kMeansTable->GetNumberOfRows(); ++Idx )
 					{
-						mv[0] = kMeansTable->GetValueByName( 
+						mv[0] = kMeansTable->GetValueByName(
 							Idx, this->VisibleColumns->GetValue( pos.GetX() ) ).ToDouble() / ( tValueXMax );
 
-						mv[1] = kMeansTable->GetValueByName( 
+						mv[1] = kMeansTable->GetValueByName(
 							Idx, this->VisibleColumns->GetValue( this->Size.GetX() - pos.GetY() - 1 ) ).ToDouble();
 
 						sample->PushBack( mv );
@@ -608,10 +609,10 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 				{
 					for ( unsigned int Idx = 0; Idx < kMeansTable->GetNumberOfRows(); ++Idx )
 					{
-						mv[0] = kMeansTable->GetValueByName( 
+						mv[0] = kMeansTable->GetValueByName(
 							Idx, this->VisibleColumns->GetValue( pos.GetX() ) ).ToDouble();
 
-						mv[1] = kMeansTable->GetValueByName( 
+						mv[1] = kMeansTable->GetValueByName(
 							Idx, this->VisibleColumns->GetValue( this->Size.GetX() - pos.GetY() - 1 ) ).ToDouble() / ( tValueYMax );
 
 						sample->PushBack( mv );
@@ -621,10 +622,10 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 				{
 					for ( unsigned int Idx = 0; Idx < kMeansTable->GetNumberOfRows(); ++Idx )
 					{
-						mv[0] = kMeansTable->GetValueByName( 
+						mv[0] = kMeansTable->GetValueByName(
 							Idx, this->VisibleColumns->GetValue( pos.GetX() ) ).ToDouble() / ( tValueXMax );
 
-						mv[1] = kMeansTable->GetValueByName( 
+						mv[1] = kMeansTable->GetValueByName(
 							Idx, this->VisibleColumns->GetValue( this->Size.GetX() - pos.GetY() - 1 ) ).ToDouble() / ( tValueYMax );
 
 						sample->PushBack( mv );
@@ -634,17 +635,17 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 				{
 					for ( unsigned int Idx = 0; Idx < kMeansTable->GetNumberOfRows(); ++Idx )
 					{
-						mv[0] = kMeansTable->GetValueByName( 
+						mv[0] = kMeansTable->GetValueByName(
 							Idx, this->VisibleColumns->GetValue( pos.GetX() ) ).ToDouble() / tValueXMax;
 
-						mv[1] = kMeansTable->GetValueByName( 
+						mv[1] = kMeansTable->GetValueByName(
 							Idx, this->VisibleColumns->GetValue( this->Size.GetX() - pos.GetY() - 1 ) ).ToDouble() / tValueYMax;
 
 						sample->PushBack( mv );
 					}
 				}
 
-				//  Get (normailzed) min, max value ranges of sample 
+				//  Get (normailzed) min, max value ranges of sample
 				SampleType::Iterator it = sample->Begin();
 				MeasurementVectorType sv;
 
@@ -689,11 +690,7 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 				typedef itk::Statistics::DistanceToCentroidMembershipFunction< MeasurementVectorType > MembershipFunctionType;
 				typedef MembershipFunctionType::Pointer	MembershipFunctionPointer;
 
-#if ITK_VERSION_MAJOR < 4
-				typedef itk::Statistics::MinimumDecisionRule2 DecisionRuleType;
-#else
 				typedef itk::Statistics::MinimumDecisionRule DecisionRuleType;
-#endif
 				DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
 
 				typedef itk::Statistics::SampleClassifierFilter< SampleType > ClassifierType;
@@ -714,8 +711,8 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 				ClassLabelVectorType &  classLabelsVector = classLabelsObject->Get();
 				for ( int i = 1; i <= NumberOfClusters; ++i )
 					classLabelsVector.push_back( i * 100 );
-				
-				MembershipFunctionVectorObjectType::Pointer membershipFunctionsObject = 
+
+				MembershipFunctionVectorObjectType::Pointer membershipFunctionsObject =
 					MembershipFunctionVectorObjectType::New();
 				classifier->SetMembershipFunctions( membershipFunctionsObject );
 
@@ -729,7 +726,7 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 					MembershipFunctionPointer membershipFunction = MembershipFunctionType::New();
 					for ( unsigned int j = 0; j < sample->GetMeasurementVectorSize(); j++ )
 						origin[j] = estimatedMeans[index++];
-				
+
 					membershipFunction->SetCentroid( origin );
 					membershipFunctionsVector.push_back( membershipFunction.GetPointer() );
 				}
@@ -762,7 +759,7 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 
 				while ( currcl <= NumberOfClusters )
 				{
-					// Set up a temporary table with objects belonging to a specific calss only. 
+					// Set up a temporary table with objects belonging to a specific calss only.
 					vtkSmartPointer<vtkTable> tmpTable = vtkSmartPointer<vtkTable>::New();
 					tmpTable->DeepCopy( kMeansTable );
 
@@ -779,17 +776,17 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 					// Add a plot to the BigChart.
 					plot = this->Private->BigChart->AddPlot( vtkChart::POINTS );
 
-					// BigChart is drawn in the upper right corner. 
+					// BigChart is drawn in the upper right corner.
 					vtkChartXY *xy = vtkChartXY::SafeDownCast( this->Private->BigChart );
 
 					if(xy){ xy->SetPlotCorner(plot, 2); }
 
-					// Fill up plot with data from the tmptable and set to its class color. 
+					// Fill up plot with data from the tmptable and set to its class color.
 					plot->SetInputData( tmpTable,
 										this->VisibleColumns->GetValue( pos.GetX() ),
 										this->VisibleColumns->GetValue( this->Size.GetX() - pos.GetY() - 1 ) );
 
-					QColor cColor;	/* http://www.w3.org/TR/SVG/types.html#ColorKeywords */
+					QColor cColor;	/* http://www.w3.org/TR/SVG/types.html#ColorKeywords *----------/
 
 					switch ( currcl )
 					{
@@ -825,7 +822,7 @@ bool iAScatterPlotMatrix::SetActivePlot( const vtkVector2i &pos )
 			// Adds custom legend.
 			this->UpdateCustomLegend();
 
-			//Sets ToolTipLabelFormat to "X-Value, Y-Value" 
+			//Sets ToolTipLabelFormat to "X-Value, Y-Value"
 			this->Private->BigChart->GetPlot( 0 )->SetTooltipLabelFormat( vtkStdString( "%x,  %y" ) );
 
 			// Set BigChart ground color.
@@ -854,7 +851,7 @@ vtkStdString iAScatterPlotMatrix::removeUnit( vtkStdString str )
 
 	if ( rUStr.indexOf( "[" ) > -1 )
 		rUStr.replace( rUStr.indexOf( "[" ), rUStr.indexOf( "]" ) - rUStr.indexOf( "[" ) + 1, "" );
-	
+
 	return rUStr.toStdString();
 }
 
@@ -891,7 +888,7 @@ void iAScatterPlotMatrix::UpdateColorInfo( QStandardItemModel *classTree,
 	// Collects object IDs and color information from the 'Parallel Coordinates Class Tree'
 	// and adds the information to the Input (table).
 
-	//Number of Classes in the PC tree 
+	//Number of Classes in the PC tree
 	int hmcl = classTree->invisibleRootItem()->rowCount();
 
 	if ( hmcl > 0 )
@@ -901,7 +898,7 @@ void iAScatterPlotMatrix::UpdateColorInfo( QStandardItemModel *classTree,
 			// Number of objects in this class
 			int iclNbOfObj = classTree->invisibleRootItem()->child( cclIndex, 0 )->rowCount();
 
-			// Sets the class color to the corresponding object Ids 
+			// Sets the class color to the corresponding object Ids
 			for ( int iclIndex = 0; iclIndex < iclNbOfObj; ++iclIndex )
 			{
 				Input->SetValueByName( classTree->invisibleRootItem()->child( cclIndex, 0 )->
@@ -965,13 +962,13 @@ vtkSelection * iAScatterPlotMatrix::GetkMeansCluster( int clusterNumber )
 void iAScatterPlotMatrix::UpdateCustomLegend()
 {
 	// Creates an custom legend left to the Big Chart
-	// Smallest possible scatter plot matrix with custom legend 
+	// Smallest possible scatter plot matrix with custom legend
 	//
-	//  3 H L bbb   
+	//  3 H L bbb
 	//  2 S H Bbb
 	//  1 S S H
-	//  0 S S S H 
-	//    0 1 2 3 
+	//  0 S S S H
+	//    0 1 2 3
 
 	if ( this->Size.GetX() > 2 )
 	{
@@ -1216,14 +1213,14 @@ void iAScatterPlotMatrix::SetColumnVisibility( const vtkStdString &name,
 
 				this->VisibleColumns->SetNumberOfTuples( this->VisibleColumns->GetNumberOfTuples() - 1 );
 				this->SetSize( vtkVector2i( 0, 0 ) );
-				this->SetSize( 
+				this->SetSize(
 					vtkVector2i( this->VisibleColumns->GetNumberOfTuples(),
 					this->VisibleColumns->GetNumberOfTuples() ) );
 
 				if ( this->ActivePlot.GetX() + this->ActivePlot.GetY() + 1 >=
 					 this->VisibleColumns->GetNumberOfTuples() )
 					this->ActivePlot.Set( 0, this->VisibleColumns->GetNumberOfTuples() - 1 );
-				
+
 				this->Private->VisibleColumnsModified = true;
 				this->Modified();
 				return;
@@ -1238,7 +1235,7 @@ void iAScatterPlotMatrix::InsertVisibleColumn( const vtkStdString &name,
 {
 	if ( !this->Input || !this->Input->GetColumnByName( name.c_str() ) )
 		return;
-	
+
 	// Check if the column is already in the list. If yes,
 	// we may need to rearrange the order of the columns.
 	vtkIdType currIdx = -1;
@@ -1255,7 +1252,7 @@ void iAScatterPlotMatrix::InsertVisibleColumn( const vtkStdString &name,
 	//This column is already there.
 	if ( currIdx > 0 && currIdx == index )
 		return;
-	
+
 	if ( currIdx < 0 )
 	{
 		this->VisibleColumns->SetNumberOfTuples( numCols + 1 );
@@ -1365,7 +1362,7 @@ void iAScatterPlotMatrix::SetPlotColor( int plotType, const vtkColor4ub& color )
 			this->Private->ChartSettings[plotType]->PlotPen->SetColor( color );
 		else
 			this->Private->ChartSettings[HISTOGRAM]->PlotBrush->SetColor( color );
-		
+
 		this->Modified();
 	}
 }
@@ -1478,7 +1475,7 @@ bool iAScatterPlotMatrix::MouseButtonPressEvent( const vtkContextMouseEvent & )
 bool iAScatterPlotMatrix::MouseButtonReleaseEvent(
 	const vtkContextMouseEvent &mouse )
 {
-	// Work out which scatter plot was clicked 
+	// Work out which scatter plot was clicked
 	// Make that one the active plot (no animation).
 
 	int n = this->GetSize().GetX();
@@ -1537,17 +1534,17 @@ void iAScatterPlotMatrix::UpdateLayout()
 
 	////map holds class tables when multi-view rendering
 	//if(this->Private->ClassNumber2Plot == -1)
-	//{				
+	//{
 	//	while(currcl < this->Private->NbOfClasses)
 	//	{
 	//		tablelist[currcl] = vtkTable::New();
 	//		tablelist[currcl]->DeepCopy(Input);
-	//	
+	//
 	//		for(int del=tablelist[currcl]->GetNumberOfRows(); del>=0; --del)
 	//		{
 	//			if(tablelist[currcl]->GetValueByName(del, "Class_ID").ToInt() != currcl )
 	//				tablelist[currcl]->RemoveRow(del);
-	//			
+	//
 	//			currcl++;
 	//		}
 	//	}
@@ -1604,7 +1601,7 @@ void iAScatterPlotMatrix::UpdateLayout()
 					this->Private->NbOfColoredFibersPerClass
 						->SetValue(this->Private->ClassNumber2Plot, CurrentClassTable->GetNumberOfRows());
 
-					// Fill up plot with data from the tmptable and set color. 
+					// Fill up plot with data from the tmptable and set color.
 					vtkPlot	*points = chart->AddPlot( vtkChart::POINTS );
 					points->SetInputData( CurrentClassTable.GetPointer(),
 										  this->VisibleColumns->GetValue( i ),
@@ -1641,7 +1638,7 @@ void iAScatterPlotMatrix::UpdateLayout()
 						// Sets the nubmer of elements for the NbOfColoredFiberPerClass array.
 						this->Private->NbOfColoredFibersPerClass->SetValue(currcl, tmpTable->GetNumberOfRows());
 
-						// Fill up plot with data from the tmptable and set color. 
+						// Fill up plot with data from the tmptable and set color.
 						vtkPlot	*points = chart->AddPlot( vtkChart::POINTS );
 
 						points->SetInputData( tmpTable,
@@ -1661,7 +1658,7 @@ void iAScatterPlotMatrix::UpdateLayout()
 					currcl = 0;
 				}
 
-				//Sets ToolTipLabelFormat to "X-Value, Y-Value" 
+				//Sets ToolTipLabelFormat to "X-Value, Y-Value"
 				chart->GetPlot( 0 )->SetTooltipLabelFormat( vtkStdString( "%x, %y" ) );
 			}
 			else if ( this->GetPlotType( pos ) == HISTOGRAM )
@@ -1684,7 +1681,7 @@ void iAScatterPlotMatrix::UpdateLayout()
 									->PlotBrush.GetPointer() );
 					vtkStdString name( this->VisibleColumns->GetValue( i ) );
 
-					plot->SetInputData( this->Private->Histogram.GetPointer(), 
+					plot->SetInputData( this->Private->Histogram.GetPointer(),
 										name + "_extents", name + "_pops" );
 
 					vtkAxis *axis = chart->GetAxis( vtkAxis::TOP );
@@ -1692,7 +1689,7 @@ void iAScatterPlotMatrix::UpdateLayout()
 					axis->GetTitleProperties()->SetFontSize( 10 );
 					if ( i != n - 1 )
 						axis->SetBehavior( vtkAxis::FIXED );
-					
+
 					// Set the plot corner to the top-right
 					vtkChartXY *xy = vtkChartXY::SafeDownCast( chart );
 
@@ -1722,7 +1719,7 @@ void iAScatterPlotMatrix::UpdateLayout()
 				// Added since VTK 6.1; needed to enable multi selection with modifiers (SHIFT,...)
 				this->Private->BigChart->SetSelectionMethod( vtkChart::SELECTION_PLOTS );
 
-				//Bigchart gets observed by one observer only 
+				//Bigchart gets observed by one observer only
 				this->Private->BigChart->RemoveAllObservers();
 				this->Private->BigChart->AddObserver( vtkCommand::SelectionChangedEvent, this,
 													  &iAScatterPlotMatrix::BigChartSelectionCallback, 2.0 );
@@ -1793,10 +1790,10 @@ void iAScatterPlotMatrix::AxisRangeForwarderCallback( vtkObject*,
 		this->GetChart( vtkVector2i( i, 0 ) )->GetAxis( vtkAxis::BOTTOM )->GetRange( r );
 		for ( int j = 1; j < n - i; ++j )
 			this->GetChart( vtkVector2i( i, j ) )->GetAxis( vtkAxis::BOTTOM )->SetRange( r );
-		
+
 		this->GetChart( vtkVector2i( i, n - i ) )->GetAxis( vtkAxis::TOP )->SetRange( r );
 		this->GetChart( vtkVector2i( 0, i ) )->GetAxis( vtkAxis::LEFT )->GetRange( r );
-		
+
 		for ( int j = 1; j < n - i; ++j )
 			this->GetChart( vtkVector2i( j, i ) )->GetAxis( vtkAxis::LEFT )->SetRange( r );
 	}
@@ -1867,7 +1864,7 @@ vtkTextProperty* iAScatterPlotMatrix::GetAxisLabelProperties( int plotType )
 {
 	if ( plotType >= 0 && plotType < iAScatterPlotMatrix::NOPLOT )
 		return this->Private->ChartSettings[plotType]->LabelFont.GetPointer();
-	
+
 	return NULL;
 }
 
@@ -2045,9 +2042,9 @@ void iAScatterPlotMatrix::SetSelectionMode( int selMode )
 		 selMode < vtkContextScene::SELECTION_NONE ||
 		 selMode > vtkContextScene::SELECTION_TOGGLE )
 		return;
-	
+
 	this->SelectionMode = selMode;
-	
+
 	if ( this->Private->BigChart )
 		this->Private->BigChart->SetSelectionMode( selMode );
 
@@ -2166,3 +2163,4 @@ void iAScatterPlotMatrix::setPolygonSelectionOn()
 
 }
 
+*/

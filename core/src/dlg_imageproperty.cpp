@@ -66,7 +66,7 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QSt
 	EnterMsg( QString("    %1: %2")
 		.arg(tr("Datatype"))
 		.arg(src->GetScalarTypeAsString()) );
-	
+
 	QString componentStr;
 	if (src->GetNumberOfScalarComponents() > 1 && channelCount > 1)
 	{
@@ -85,7 +85,7 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QSt
 	EnterMsg( QString( "    %1: %2" )
 		.arg(tr("Components"))
 		.arg(componentStr) );
-	
+
 	if ( src->GetNumberOfScalarComponents() == 1 ) //No histogram statistics for rgb, rgba or vector pixel type images
 	{
 		if (info.VoxelCount() == 0)

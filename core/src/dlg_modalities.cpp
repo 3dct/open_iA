@@ -43,7 +43,6 @@
 #include <vtkInteractorStyleSwitch.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
 
 #include <QFileDialog>
@@ -57,7 +56,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),
 	m_mainRenderer(mainRenderer),
-	m_showSlicePlanes(false),
+	m_showSlicers(false),
 	m_plane1(nullptr),
 	m_plane2(nullptr),
 	m_plane3(nullptr)
@@ -67,7 +66,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	connect(pbEdit,   SIGNAL(clicked()), this, SLOT(EditClicked()));
 	connect(cbManualRegistration, SIGNAL(clicked()), this, SLOT(ManualRegistration()));
 	connect(cbShowMagicLens, SIGNAL(clicked()), this, SLOT(MagicLens()));
-	
+
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
 		this, SLOT(ListClicked(QListWidgetItem*)));
 
@@ -240,7 +239,7 @@ void dlg_modalities::EditClicked()
 		DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
 		return;
 	}
-	dlg_modalityProperties prop(this, editModality, m_mainRenderer);
+	dlg_modalityProperties prop(this, editModality);
 	if (prop.exec() == QDialog::Rejected)
 	{
 		return;
@@ -373,20 +372,18 @@ void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs, const boo
 			DEBUG_LOG("ChangeRenderSettings: No Renderer set!");
 			return;
 		}
-
 		//load volume settings from file otherwise use default rs
 		//check if a volume setting is saved for a modality
 		//set saved status to false after loading
-		if (loadSavedVolumeSettings) {
-			
-			
-				if (modalities->Get(i)->getVolSettingsSavedStatus()) {
-					renderer->ApplySettings(modalities->Get(i)->getVolumeSettings());
-					modalities->Get(i)->setVolSettingsSavedStatusFalse();
-				}
-
+		if (loadSavedVolumeSettings  &&
+			modalities->Get(i)->getVolSettingsSavedStatus())
+		{
+			renderer->ApplySettings(modalities->Get(i)->getVolumeSettings());
+			modalities->Get(i)->setVolSettingsSavedStatusFalse();
+		}
 		//use default settings
-		}else {
+		else
+		{
 			renderer->ApplySettings(rs);
 		}
 	}
@@ -404,9 +401,9 @@ void dlg_modalities::RendererMouseMoved()
 	}
 }
 
-void dlg_modalities::ShowSlicePlanes(bool enabled)
+void dlg_modalities::ShowSlicers(bool enabled)
 {
-	m_showSlicePlanes = enabled;
+	m_showSlicers = enabled;
 	for (int i = 0; i < modalities->size(); ++i)
 	{
 		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();

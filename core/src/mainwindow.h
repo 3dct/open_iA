@@ -115,6 +115,7 @@ protected:
 private slots:
 	void timeout();
 	void Open();
+	void OpenCSV();
 	void OpenRaw();
 	void OpenImageStack();
 	void OpenVolumeStack();
@@ -203,7 +204,7 @@ private:
 	QActionGroup *slicerToolsGroup;
 	QSignalMapper *windowMapper;
 	QString qssName;
-	iAVolumeSettings defaultVolumeSettings;	
+	iAVolumeSettings defaultVolumeSettings;
 	iARenderSettings defaultRenderSettings;
 	iASlicerSettings defaultSlicerSettings;
 	iAPreferences defaultPreferences;

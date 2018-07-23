@@ -49,7 +49,7 @@ vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, 
 		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
 		aviwriter->SetCompressorFourCC("XVID");
 		aviwriter->SetRate(25);
-		aviwriter->PromptCompressionOptionsOn();
+		//aviwriter->PromptCompressionOptionsOn();
 		aviwriter->SetQuality(quality);
 		movieWriter = aviwriter;
 	}

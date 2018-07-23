@@ -30,7 +30,6 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRendererCollection.h>
-#include <vtkRenderWindow.h>
 #include <vtkSmartVolumeMapper.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
@@ -85,7 +84,11 @@ void iAVolumeRenderer::SetImage(iATransferFunction * transfer, vtkSmartPointer<v
 	}
 	else
 	{
-		volProp->SetScalarOpacityUnitDistance(imgData->GetSpacing()[0]);
+		if (m_VolSettings.ScalarOpacityUnitDistance < 0)
+		{
+			m_VolSettings.ScalarOpacityUnitDistance = imgData->GetSpacing()[0];
+			volProp->SetScalarOpacityUnitDistance(imgData->GetSpacing()[0]);
+		}
 		volProp->SetColor(0, transfer->GetColorFunction());
 		volProp->SetScalarOpacity(0, transfer->GetOpacityFunction());
 	}
@@ -109,14 +112,18 @@ void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
 {
 	if (m_isFlat)
 		return;
-	m_VolSettings = vs; 
+	m_VolSettings = vs;
 	volProp->SetAmbient(vs.AmbientLighting);
 	volProp->SetDiffuse(vs.DiffuseLighting);
 	volProp->SetSpecular(vs.SpecularLighting);
 	volProp->SetSpecularPower(vs.SpecularPower);
 	volProp->SetInterpolationType(vs.LinearInterpolation);
 	volProp->SetShade(vs.Shading);
-	volMapper->SetRequestedRenderMode(vs.Mode);
+	if (vs.ScalarOpacityUnitDistance > 0)
+		volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
+	else
+		m_VolSettings.ScalarOpacityUnitDistance = volProp->GetScalarOpacityUnitDistance();
+	volMapper->SetRequestedRenderMode(vs.RenderMode);
 #ifdef VTK_OPENGL2_BACKEND
 	volMapper->SetSampleDistance(vs.SampleDistance);
 	volMapper->InteractiveAdjustSampleDistancesOff();

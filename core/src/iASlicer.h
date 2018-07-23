@@ -52,15 +52,15 @@ class iASingleSlicerSettings;
 class iASlicerData;
 class iASlicerWidget;
 
-static const int MODE_TO_X_IND[3]	= { 1, 0, 0 }; 
-static const int MODE_TO_Y_IND[3]	= { 2, 1, 2 }; 
-static const int MODE_TO_Z_IND[3]	= { 0, 2, 1 }; 
+static const int MODE_TO_X_IND[3]	= { 1, 0, 0 };
+static const int MODE_TO_Y_IND[3]	= { 2, 1, 2 };
+static const int MODE_TO_Z_IND[3]	= { 0, 2, 1 };
 
 /**
  * \brief	A container which combines classes for a slicer. Combines a special widget and vtk classes.
- * 
- * This class keeps all the functionality of the slicer 
- * and is responsible for linking all the parts together 
+ *
+ * This class keeps all the functionality of the slicer
+ * and is responsible for linking all the parts together
  * and managing all the communication and dependencies.
  */
 class open_iA_Core_API iASlicer : public QObject
@@ -69,8 +69,7 @@ class open_iA_Core_API iASlicer : public QObject
 	friend class iASlicerData;
 	friend class iASlicerWidget;
 public:
-	iASlicer(QWidget * parent, const iASlicerMode mode, QWidget * widget_container, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0,
-		bool decorations = true, bool magicLensAvailable = true);
+	iASlicer(QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations = true, bool magicLensAvailable = true);
 	~iASlicer();
 	bool changeInteractorState();
 	iASlicerWidget * widget() const;
@@ -79,28 +78,30 @@ public:
 	void changeImageData(vtkImageData *idata);
 	void SetMagicLensEnabled( bool isEnabled );
 	void SetMagicLensSize(int newSize);
+	int GetMagicLensSize() const;
 	void SetMagicLensFrameWidth(int newWidth);
 	void SetMagicLensCount(int count);
 	void SetMagicLensInput( iAChannelID id );
 	void AddMagicLensInput(iAChannelID id);
+	iAChannelID getMagicLensInput() const;
 	void SetMagicLensOpacity(double opacity);
+	double GetMagicLensOpacity() const;
 	void UpdateMagicLensColors();
-	
+
 	//iASlicerData: wrapping methods--------------------------
-	void disableInteractor(); 
+	void disableInteractor();
 	void enableInteractor(); //also updates widget
 	void initializeData( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
-	void reInitialize(	vtkImageData *ds, 
-						vtkTransform *tr, 
+	void reInitialize(	vtkImageData *ds,
+						vtkTransform *tr,
 						vtkScalarsToColors* ctf,
-						bool sil = false, 
+						bool sil = false,
 						bool sp = false );
 
 	void initializeChannel( iAChannelID id, iAChannelVisualizationData * chData );
 	void removeChannel(iAChannelID id);
-	void reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData );	
+	void reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData );
 	void setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z);
-	iAChannelID getMagicLensInput() const;
 
 	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
@@ -123,8 +124,6 @@ public:
 	void setIndex( int x, int y, int z );
 	void initializeWidget(vtkImageData *imageData, vtkPoints *points = 0);//also connects to mdichild slots
 	void show();
-	void setSliceProfileOn(bool isOn);
-	void setArbitraryProfileOn(bool isOn);
 	void setPieGlyphsOn(bool isOn);
 	void setPieGlyphParameters( double opacity, double spacing, double magFactor );
 	void setChannelOpacity( iAChannelID id, double opacity );
@@ -147,11 +146,12 @@ public slots:
 	void setSliceNumber( int sliceNumber );
 	void saveMovie();
 	void rotateSlice( double angle );
+	void setSlabThickness(int thickness);
 
 protected:
 	iASlicerData * m_data;
 	iASlicerWidget * m_widget;
-	
+
 	iASlicerMode m_mode;
 	iAChannelID m_magicLensInput;
 

@@ -50,7 +50,7 @@ iAMappingDiagramData::iAMappingDiagramData(DataType const * data,
 		if (data[i] > myMax)
 			myMax = data[i];
 	double scaleFactor = static_cast<double>(maxValue) / myMax;
-		
+
 	// map source data to target indices:
 	for (int i=0; i<targetNumBin; ++i)
 	{

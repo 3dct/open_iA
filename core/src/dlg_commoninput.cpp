@@ -89,7 +89,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	container->setObjectName("container");
 	auto containerLayout = new QGridLayout(container);
 	containerLayout->setObjectName("containerLayout");
-	
+
 	for ( int i = 0; i < inList.size(); i++)
 	{
 		QString tStr = inList[i];
@@ -159,7 +159,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 		widgetList[i] = newWidget;
 		containerLayout->addWidget(newWidget, i, 1);
 	}
-		
+
 	//Controls the containers width and sets the correct width for the widgets
 	containerLayout->setColumnMinimumWidth(0, WIDTH/3);
 	containerLayout->setColumnMinimumWidth(1, WIDTH/3);
@@ -230,7 +230,7 @@ void dlg_commoninput::SelectFilter()
 				default:
 					paramStr += QuoteString(paramValues[param->Name()].toString()); break;
 				}
-				
+
 			}
 			QLineEdit* e = qobject_cast<QLineEdit*>(widgetList[idx + 1]);
 			if (e)
