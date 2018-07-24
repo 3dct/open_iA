@@ -35,7 +35,7 @@ typedef iAQTtoUIConnector<QMainWindow, Ui_PorosityAnalyser> PorosityAnalyserConn
 class iASPMView;
 class iATreeView;
 class iAPDMView;
-class iAPCView;
+//class iAPCView;
 class iASSView;
 class iARangeSliderDiagramView;
 class iASelectionsView;
@@ -85,7 +85,7 @@ protected:
 	iASPMView * m_spmView;
 	iATreeView * m_treeView;
 	iAPDMView * m_pdmView;
-	iAPCView * m_pcView;
+	//iAPCView * m_pcView;
 	iASSView * m_ssView;
 	iARangeSliderDiagramView * m_rangeSliderDiagramView;
 	iASelectionsView * m_selView;

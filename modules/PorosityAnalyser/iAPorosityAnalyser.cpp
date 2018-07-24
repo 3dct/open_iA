@@ -23,7 +23,7 @@
 #include "defines.h"
 #include "iACSVToQTableWidgetConverter.h"
 #include "io/iAITKIO.h"
-#include "iAPCView.h"
+//#include "iAPCView.h"
 #include "iAPDMView.h"
 #include "iAPreviewSPLOMView.h"
 #include "iARangeSliderDiagramView.h"
@@ -57,7 +57,7 @@ iAPorosityAnalyser::iAPorosityAnalyser( const QString & resDir, const QString & 
 	m_spmView( new iASPMView( parent, f ) ),
 	m_treeView( new iATreeView( 0, f ) ),
 	m_pdmView( new iAPDMView( parent, f ) ),
-	m_pcView( new iAPCView( parent, f ) ),
+	//m_pcView( new iAPCView( parent, f ) ),
 	m_ssView( new iASSView( parent, f ) ),
 	m_rangeSliderDiagramView( new iARangeSliderDiagramView( parent, f ) ),
 	m_selView( new iASelectionsView( 0, f ) ),
@@ -88,7 +88,7 @@ iAPorosityAnalyser::iAPorosityAnalyser( const QString & resDir, const QString & 
 	connect( m_treeView, SIGNAL( loadSelectionToSSSignal( const QTableWidget*, QString ) ), m_ssView, SLOT( SetData( const QTableWidget*, QString ) ) );
 	connect( m_treeView, SIGNAL( loadSelectionsToSSSignal( const QList< QPair<QTableWidget *, QString> > * ) ), m_ssView, SLOT( SetCompareData( const QList< QPair<QTableWidget *, QString> > * ) ) );
 	connect( m_treeView, SIGNAL( loadSelectionToPDMSignal( const iABPMData*, const iAHMData* ) ), m_pdmView, SLOT( SetData( const iABPMData*, const iAHMData* ) ) );
-	connect( m_treeView, SIGNAL( loadSelectionToPCSignal( const QTableWidget* ) ), m_pcView, SLOT( SetData( const QTableWidget* ) ) );
+	//connect( m_treeView, SIGNAL( loadSelectionToPCSignal( const QTableWidget* ) ), m_pcView, SLOT( SetData( const QTableWidget* ) ) );
 	connect( m_treeView, SIGNAL( loadSelectionToRSDSignal( const QTableWidget* ) ), m_rangeSliderDiagramView, SLOT( setData( const QTableWidget* ) ) );
 	connect( tbSelections, SIGNAL( clicked( bool ) ), this, SLOT( ShowSelections( bool ) ) );
 	connect( tbTreeView, SIGNAL( clicked( bool ) ), this, SLOT( ShowTreeView( bool ) ) );
