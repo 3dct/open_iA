@@ -29,15 +29,21 @@ class BarycentricTriangle
 {
 	public: // TODO: int/double or references?
 		BarycentricTriangle(int xa, int ya, int xb, int yb, int xc, int yc);
+		BarycentricTriangle();
 
 		int getXa();
 		int getYa();
-
 		int getXb();
 		int getYb();
-
 		int getXc();
 		int getYc();
+
+		void setXa(int xa);
+		void setYa(int ya);
+		void setXb(int xb);
+		void setYb(int yb);
+		void setXc(int xc);
+		void setYc(int yc);
 
 		BCoord* getBarycentricCoordinates(double x, double y);
 		BCoord* getBarycentricCoordinatesA();
@@ -45,6 +51,7 @@ class BarycentricTriangle
 		BCoord* getBarycentricCoordinatesC();
 
 		QPoint* getCartesianCoordinates(const BCoord &bCoord);
+		void updateCartesianCoordinates(QPoint &qPoint, const BCoord &bCoord);
 
 	private:
 		int m_xa;

@@ -28,6 +28,11 @@ BarycentricTriangle::BarycentricTriangle(int xa, int ya, int xb, int yb, int xc,
 {
 }
 
+BarycentricTriangle::BarycentricTriangle() :
+	m_xa(0), m_ya(0), m_xb(0), m_yb(0), m_xc(0), m_yc(0)
+{
+}
+
 BCoord* BarycentricTriangle::getBarycentricCoordinates(double x, double y)
 {
 	return new BCoord(this, x, y);
@@ -50,15 +55,20 @@ BCoord* BarycentricTriangle::getBarycentricCoordinatesC()
 
 QPoint* BarycentricTriangle::getCartesianCoordinates(const BCoord &bCoord)
 {
+	QPoint* ret = new QPoint();
+	updateCartesianCoordinates(*ret, bCoord);
+	return ret;
+}
+
+void BarycentricTriangle::updateCartesianCoordinates(QPoint &qPoint, const BCoord &bCoord)
+{
 	double alpha, beta, gamma;
 	alpha = bCoord.getAlpha();
 	beta = bCoord.getBeta();
 	gamma = bCoord.getGamma();
 
-	return new QPoint(
-		(alpha * m_xa) + (beta * m_xb) + (gamma * m_xc),
-		(alpha * m_ya) + (beta * m_yb) + (gamma * m_yc)
-	);
+	qPoint.setX((alpha * m_xa) + (beta * m_xb) + (gamma * m_xc));
+	qPoint.setY((alpha * m_ya) + (beta * m_yb) + (gamma * m_yc));
 }
 
 
@@ -90,4 +100,34 @@ int BarycentricTriangle::getXc()
 int BarycentricTriangle::getYc()
 {
 	return m_yc;
+}
+
+void BarycentricTriangle::setXa(int xa)
+{
+	m_xa = xa;
+}
+
+void BarycentricTriangle::setYa(int ya)
+{
+	m_ya = ya;
+}
+
+void BarycentricTriangle::setXb(int xb)
+{
+	m_xb = xb;
+}
+
+void BarycentricTriangle::setYb(int yb)
+{
+	m_yb = yb;
+}
+
+void BarycentricTriangle::setXc(int xc)
+{
+	m_xc = xc;
+}
+
+void BarycentricTriangle::setYc(int yc)
+{
+	m_yc = yc;
 }

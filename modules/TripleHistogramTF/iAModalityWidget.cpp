@@ -53,7 +53,7 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, MdiChild * mdiChild, Qt::Wi
 
 	QHBoxLayout *mainLayout = new QHBoxLayout(this);
 	//mainLayout->addWidget(histogram);
-
+	
 	// TODO: move
 	if (mdiChild->GetModalities()->size() > 0)
 	{

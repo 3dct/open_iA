@@ -21,9 +21,16 @@
 
 #pragma once
 
+#include <QOpenGLWidget>
 #include <QWidget>
+#include <QPainterPath>
+#include <QPen>
+#include <QPoint>
 
-class iABarycentricTriangleWidget : public QWidget
+#include "BarycentricTriangle.h"
+#include "BCoord.h"
+
+class iABarycentricTriangleWidget : public QOpenGLWidget
 {
 	Q_OBJECT
 
@@ -31,7 +38,7 @@ public:
 	iABarycentricTriangleWidget(QWidget* parent, Qt::WindowFlags f = 0);
 	~iABarycentricTriangleWidget();
 
-	public slots:
+public slots:
 	//void mousePress(QMouseEvent*);
 	//void mouseMove(QMouseEvent*);
 	//void mouseWheel(QWheelEvent*);
@@ -40,8 +47,34 @@ signals:
 
 
 protected:
-
+	void initializeGL();
+	void resizeGL(int width, int height);
+	void paintGL();
+	void mousePressEvent(QMouseEvent *event);
+	void mouseMoveEvent(QMouseEvent *event);
 
 private:
+	BarycentricTriangle m_triangle;
+	QPoint m_controlPoint;
+	QPoint m_controlPointOld;
+	BCoord m_controlPointBCoord;
+
+	QPainterPath m_trianglePainterPath;
+	QPen m_triangleBorderPen;// = QPen(); // TODO: could be constant...?
+	QBrush m_triangleFillBrush;
+
+	QPainterPath m_controlPointBorderPainterPath;
+	QPen m_controlPointBorderPen;
+	QPainterPath m_controlPointCrossPainterPath;
+	QPen m_controlPointCrossPen;
+
+	void initializeControlPointPaths();
+	void moveControlPointTo(QPoint newPos);
+	void updateControlPointPosition(BCoord bCoord, QPoint newPos);
+
+	void updatePositions(int w, int h);
+	void paintTriangleBorder();
+	void paintTriangleFill();
+	void paintControlPoint();
 
 };
