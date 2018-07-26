@@ -33,7 +33,6 @@ typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
 class iAGEMSeModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
-
 public:
 	iAGEMSeModuleInterface();
 	void Initialize();
