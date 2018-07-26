@@ -3179,7 +3179,7 @@ void dlg_FeatureScout::spUpdateSPColumnVisibility()
 void dlg_FeatureScout::spUpdateSPColumnVisibilityWithVis()
 {
 	matrix->showAllPlots(false);
-	matrix->showPreviewPlot();
+	matrix->showDefaultMaxizimedPlot();
 	spUpdateSPColumnVisibility();
 }
 
