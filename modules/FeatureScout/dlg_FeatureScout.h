@@ -182,11 +182,11 @@ private:
 	void autoAddClass(int NbOfClasses);
 	bool OpenBlobVisDialog();
 	//! @{ 3D-rendering-related methods:
-	void SingleRendering(int idx = -10000);
-	void RenderingButton();
-	void RealTimeRendering(vtkIdTypeArray *selection);
-	void RenderingMeanObject();
-	void RenderingFLD();
+	void SingleRendering(int idx = -10000);               //!< render a single fiber or a single class
+	void RenderingButton();                               //!< multi-class rendering
+	void RealTimeRendering(vtkIdTypeArray *selection);    //!< render a selection (+ the class that contains it)
+	void RenderingFLD();                                  //!< render fiber-length distribution
+	void RenderingMeanObject();                           //!< compute and render a mean object for each class
 	//! @}
 
 	//! selection for each class and show SPM for it
@@ -220,7 +220,7 @@ private:
 	// input csv table with all objects, column names updated for vtk rendering problem
 	// by solving this rendering problem satisfacted here a pointer to the orginal table
 	vtkSmartPointer<vtkTable> csvTable;
-	// element table with calculated elments values for every individual class
+	//! table of elements (=parameters) with min, max and average computed for each elements and every individual class
 	vtkSmartPointer<vtkTable> elementTable;
 	// table for ParallelCoordinates view, should be initialized every time when a new class is defined
 	// or a class is selected in the class tree view
