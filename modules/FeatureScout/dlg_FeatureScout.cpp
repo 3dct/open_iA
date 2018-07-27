@@ -202,7 +202,6 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	iovDV(nullptr),
 	iovMO(nullptr),
 	matrix(nullptr),
-	spmActivated(false),
 	sourcePath( parent->currentFile() ),
 	m_columnMapping(columnMapping)
 {
@@ -327,15 +326,14 @@ dlg_FeatureScout::~dlg_FeatureScout()
 		delete classTreeModel;
 		classTreeModel = 0;
 	}
-	if ( this->spmActivated )
-		delete matrix;
+	delete matrix;
 }
 
 void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long,
 														 void * client_data, void *, vtkCommand * command )
 {
 	// Gets the mouse button event for pcChart and holds the SPM-Annotations consistent with PC-Annoatations.
-	if ( this->spmActivated )
+	if ( matrix )
 	{
 		vtkSmartPointer<vtkIdTypeArray> DataSelection = this->pcChart->GetPlot(0)->GetSelection();
 		vtkIdType val = DataSelection->GetDataTypeValueMax();
@@ -838,10 +836,9 @@ void dlg_FeatureScout::RenderingButton()
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
 	this->pcChart->SetSize(pcChart->GetSize());
 
-	//Updates SPM
-	if (this->spmActivated)
+	if (matrix)
 	{
-		// TODO SPM
+		// TODO SPM: color points according to class
 	}
 
 	activeChild->updateViews();
@@ -2887,14 +2884,13 @@ void dlg_FeatureScout::ClassLoadButton()
 	}
 	reader.clear();
 	readFile.close();
-	if ( this->spmActivated )
+	if ( matrix )
 	{
 		// reinitialize spm
 		activeChild->removeDockWidget( iovSPM );
 		delete iovSPM;
 		iovSPM = nullptr;
-		this->spmActivated = false;
-		changeFeatureScout_Options( 6 );
+		ScatterPlotButton();
 	}
 }
 
@@ -2967,43 +2963,57 @@ void dlg_FeatureScout::ClassDeleteButton()
 
 void dlg_FeatureScout::ScatterPlotButton()
 {
-	if ( spmActivated && iovSPM)
+	if (iovSPM)
+		return;
+	iovSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
+	activeChild->addDockWidget(Qt::RightDockWidgetArea, iovSPM);
+	iovSPM->show();
+	if (iovDV && !iovMO || (iovDV && iovMO))
 	{
-		assert( !matrix );
-		matrix = new iAQSplom();
-		auto spInput = createSPLOMData(csvTable);
-		iovSPM->setWidget(matrix);
-
-		//apply lookup table for scatter plot matrix
-		matrix->setData(spInput);
-		double range[2];
-
-		//csv table einträge werte erste spalte min max für color transformation
-		vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
-		mmr->GetRange(range);
-		m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
-		m_pointLUT->SetRange(range);
-		m_pointLUT->SetTableRange(range);
-		m_pointLUT->SetNumberOfTableValues(2);
-
-		//set color for scatter plot and Renderer
-		for (vtkIdType i = 0; i < 2; i++)
-		{
-			double rgba[4] = { 0.5, 0.5, 0.5, 1.0 };
-			m_pointLUT->SetTableValue(i, rgba);
-		}
-		m_pointLUT->Build();
-		matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
-		matrix->setSelectionColor(QColor(255, 40, 0, 1));
-		updateSPColumnVisibilityWithVis();
-		matrix->showDefaultMaxizimedPlot();
-		connect(matrix, &iAQSplom::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
+		activeChild->tabifyDockWidget(iovDV, iovSPM);
+		iovSPM->show();
+		iovSPM->raise();
 	}
+	else if (!iovDV && iovMO)
+	{
+		activeChild->tabifyDockWidget(iovMO, iovSPM);
+		iovSPM->show();
+		iovSPM->raise();
+	}
+	assert( !matrix );
+	matrix = new iAQSplom();
+	auto spInput = createSPLOMData(csvTable);
+	iovSPM->setWidget(matrix);
+
+	//apply lookup table for scatter plot matrix
+	matrix->setData(spInput);
+	double range[2];
+
+	//csv table einträge werte erste spalte min max für color transformation
+	vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
+	mmr->GetRange(range);
+	m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
+	m_pointLUT->SetRange(range);
+	m_pointLUT->SetTableRange(range);
+	m_pointLUT->SetNumberOfTableValues(2);
+
+	//set color for scatter plot and Renderer
+	for (vtkIdType i = 0; i < 2; i++)
+	{
+		double rgba[4] = { 0.5, 0.5, 0.5, 1.0 };
+		m_pointLUT->SetTableValue(i, rgba);
+	}
+	m_pointLUT->Build();
+	matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
+	matrix->setSelectionColor(QColor(255, 40, 0, 1));
+	updateSPColumnVisibilityWithVis();
+	matrix->showDefaultMaxizimedPlot();
+	connect(matrix, &iAQSplom::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
 }
 
 void dlg_FeatureScout::updateSPColumnVisibility()
 {
-	if (!this->spmActivated)
+	if (!matrix)
 		return;
 	matrix->setParameterVisibility( columnVisibility );
 }
@@ -3016,7 +3026,7 @@ void dlg_FeatureScout::updateSPColumnVisibilityWithVis()
 
 void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 {	// If scatter plot selection changes, Parallel Coordinates gets informed
-	assert(spmActivated);
+	assert(matrix);
 	QCoreApplication::processEvents();
 	int countSelection = selInds.size();
 	vtkSmartPointer<vtkIdTypeArray> vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
@@ -3131,93 +3141,89 @@ void dlg_FeatureScout::spPopupSelection( QAction *selection )
 
 void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 {
-	if ( this->spmActivated )
+	if (!matrix)
+		return;
+	QStandardItem *motherClassItem = this->activeClassItem;
+
+	for ( int i = 1; i <= NbOfClusters; ++i )
 	{
-		QStandardItem *motherClassItem = this->activeClassItem;
-
-		for ( int i = 1; i <= NbOfClusters; ++i )
+		// recieve the current selections from annotationlink
+		// TODO SPM
+		//vtkAbstractArray *SelArr = matrix->GetkMeansCluster( i )->GetNode( 0 )->GetSelectionList();
+		int CountObject = 0; //  SelArr->GetNumberOfTuples();
+		/*
+		if ( CountObject > 0 )
 		{
-			// recieve the current selections from annotationlink
-			// TODO SPM
-			//vtkAbstractArray *SelArr = matrix->GetkMeansCluster( i )->GetNode( 0 )->GetSelectionList();
-			int CountObject = 0; //  SelArr->GetNumberOfTuples();
-			/*
-			if ( CountObject > 0 )
+			// class name and color
+			int cid = classTreeModel->invisibleRootItem()->rowCount();
+			QString cText = QString( "Class %1" ).arg( cid );
+			QColor cColor = getClassColor(cid);
+			this->colorList.append( cColor );
+
+			// create a first level child under rootItem as new class
+			double percent = 100.0*CountObject / objectNr;
+			QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
+			firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
+
+			QList<int> kIdx; // list to regist the selected index of object IDs in activeClassItem
+			int objID = 0;
+			// add new class
+			for ( int i = 0; i < CountObject; ++i )
 			{
-				// class name and color
-				int cid = classTreeModel->invisibleRootItem()->rowCount();
-				QString cText = QString( "Class %1" ).arg( cid );
-				QColor cColor = getClassColor(cid);
-				this->colorList.append( cColor );
-
-				// create a first level child under rootItem as new class
-				double percent = 100.0*CountObject / objectNr;
-				QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
-				firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
-
-				QList<int> kIdx; // list to regist the selected index of object IDs in activeClassItem
-				int objID = 0;
-				// add new class
-				for ( int i = 0; i < CountObject; ++i )
+				objID = SelArr->GetVariantValue( i ).ToInt();
+				if ( !kIdx.contains( objID ) )
 				{
-					objID = SelArr->GetVariantValue( i ).ToInt();
-					if ( !kIdx.contains( objID ) )
-					{
-						kIdx.prepend( objID );
-						// add item to the new class
-						firstLevelItem.first()->appendRow( new QStandardItem( QString( "%1" ).arg( objID ) ) );
-						// update Class_ID column, prepare values for LookupTable
-						this->csvTable->SetValue( objID - 1, elementNr - 1, cid );
-					}
+					kIdx.prepend( objID );
+					// add item to the new class
+					firstLevelItem.first()->appendRow( new QStandardItem( QString( "%1" ).arg( objID ) ) );
+					// update Class_ID column, prepare values for LookupTable
+					this->csvTable->SetValue( objID - 1, elementNr - 1, cid );
 				}
-
-				// append the new class to class tree
-				classTreeModel->invisibleRootItem()->appendRow( firstLevelItem );
-
-				// update chartTable
-				this->setActiveClassItem( firstLevelItem.first(), 1 );
-				this->classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
 			}
-			else
-			{
-				QMessageBox::warning(this, "FeatureScout", "No object was selected!" );
-				// return; (?)
-			}
-			*/
+
+			// append the new class to class tree
+			classTreeModel->invisibleRootItem()->appendRow( firstLevelItem );
+
+			// update chartTable
+			this->setActiveClassItem( firstLevelItem.first(), 1 );
+			this->classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
 		}
-
-		//  Mother Class is empty after kMeans auto class added, therefore rows are removed
-		classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() )->
-			removeRows( 0, classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() )->rowCount() );
-
-		// Update statistics for motherClassItem
-		this->updateClassStatistics( classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() ) );
-
-		if ( this->activeClassItem->rowCount() == 0 && this->activeClassItem->index().row() != 0 )//new
+		else
 		{
-			// delete the activeItem
-			int cID = this->activeClassItem->index().row();
-			classTreeModel->invisibleRootItem()->removeRow( cID );
-			this->colorList.removeAt( cID );
-			//update Class_ID and lookupTable??
+			QMessageBox::warning(this, "FeatureScout", "No object was selected!" );
+			// return; (?)
 		}
-
-		this->calculateElementTable();
-		this->initElementTableModel();
-		this->setPCChartData();
-		this->classTreeView->collapseAll();
-		this->SingleRendering();
-		this->updatePolarPlotColorScalar( chartTable );
-
-		//Updates scatter plot matrix when a class is added.
-		if ( matrix != NULL )
-		{
-			// TODO SPM
-			//matrix->UpdateColorInfo( classTreeModel, colorList );
-			//matrix->SetClass2Plot( this->activeClassItem->index().row() );
-			//matrix->UpdateLayout();
-		}
+		*/
 	}
+
+	//  Mother Class is empty after kMeans auto class added, therefore rows are removed
+	classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() )->
+		removeRows( 0, classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() )->rowCount() );
+
+	// Update statistics for motherClassItem
+	this->updateClassStatistics( classTreeModel->invisibleRootItem()->child( motherClassItem->index().row() ) );
+
+	if ( this->activeClassItem->rowCount() == 0 && this->activeClassItem->index().row() != 0 )//new
+	{
+		// delete the activeItem
+		int cID = this->activeClassItem->index().row();
+		classTreeModel->invisibleRootItem()->removeRow( cID );
+		this->colorList.removeAt( cID );
+		//update Class_ID and lookupTable??
+	}
+
+	this->calculateElementTable();
+	this->initElementTableModel();
+	this->setPCChartData();
+	this->classTreeView->collapseAll();
+	this->SingleRendering();
+	this->updatePolarPlotColorScalar( chartTable );
+
+	//Updates scatter plot matrix when a class is added.
+	// TODO SPM
+	//matrix->UpdateColorInfo( classTreeModel, colorList );
+	//matrix->SetClass2Plot( this->activeClassItem->index().row() );
+	//matrix->UpdateLayout();
 }
 
 void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
@@ -3257,16 +3263,12 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 			item->setText( new_cText );
 			item->setData( new_cColor, Qt::DecorationRole );
 			this->SingleRendering();
-			if ( this->spmActivated )
-			{
-				// Update Scatter Plot Matrix when another class than the active is selected.
-				if ( matrix )
-				{
-					matrix->clearSelection();
-					setSPMData(this->chartTable);
-					spmApplyColorMap(/*colorIdx=*/ index.row());
-					updateSPColumnVisibilityWithVis();
-				}
+			if ( matrix )
+			{   // Update Scatter Plot Matrix when another class than the active is selected.
+				matrix->clearSelection();
+				setSPMData(this->chartTable);
+				spmApplyColorMap(/*colorIdx=*/ index.row());
+				updateSPColumnVisibilityWithVis();
 			}
 		}
 	}
@@ -3319,16 +3321,13 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			this->SingleRendering();
 			this->initElementTableModel();
 
-			if ( this->spmActivated )
+			// Update Scatter Plot Matrix when another class than the active is selected.
+			if ( matrix )
 			{
-				// Update Scatter Plot Matrix when another class than the active is selected.
-				if ( matrix )
-				{
-					matrix->clearSelection();
-					matrix->update();
-					setSPMData(this->chartTable);
-					updateSPColumnVisibilityWithVis();
-				}
+				matrix->clearSelection();
+				matrix->update();
+				setSPMData(this->chartTable);
+				updateSPColumnVisibilityWithVis();
 			}
 		}
 		if ( !classRendering )
@@ -3359,12 +3358,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		testArr->SetName( "Label" );
 		testArr->InsertNextValue( sID );
 
-		// Lines below are commented cause of selection error of a single void object in a new defined class
-		//if(!spmActivated)
 		this->pcChart->GetPlot( 0 )->SetSelection( testArr );
-		//else
-		//this->matrix->GetAnnotationLink()->GetCurrentSelection()->GetNode(0)->SetSelectionList(testArr);
-
 		pcView->ResetCamera();
 		pcView->Render();
 
@@ -3374,7 +3368,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		this->SingleRendering(oID);
 		elementTableView->update();
 
-		if ( this->spmActivated && matrix && iovSPM )
+		if ( matrix )
 		{
 			// Update Scatter Plot Matrix when another class than the active is selected.
 			//set ID selection im feature scout
@@ -4462,22 +4456,6 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 			QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
 			return;
 		}
-		iovSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
-		activeChild->addDockWidget(Qt::RightDockWidgetArea, iovSPM);
-		iovSPM->show();
-		if (iovDV && !iovMO || (iovDV && iovMO))
-		{
-			activeChild->tabifyDockWidget(iovDV, iovSPM);
-			iovSPM->show();
-			iovSPM->raise();
-		}
-		else if (!iovDV && iovMO)
-		{
-			activeChild->tabifyDockWidget(iovMO, iovSPM);
-			iovSPM->show();
-			iovSPM->raise();
-		}
-		this->spmActivated = true;
 		this->ScatterPlotButton();
 		break;
 

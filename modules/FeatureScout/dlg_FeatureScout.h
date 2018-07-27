@@ -197,8 +197,6 @@ private:
 
 	bool draw3DPolarPlot;
 	bool classRendering;
-	bool spmActivated;
-
 	bool useCsvOnly;
 
 	const QString sourcePath;
