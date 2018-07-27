@@ -242,11 +242,9 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	painter.translate( m_globRect.x(), m_globRect.y());
 	painter.setBrush( settings.backgroundColor );
 	drawTicks( painter );
-	//drawParameterName( painter );
 	drawPoints( painter );
 	if (m_isMaximizedPlot)
 		drawSelectionPolygon( painter );
-	/*drawMaximizeButton( painter );*/
 	drawBorder( painter );
 	painter.restore();
 }
@@ -691,21 +689,18 @@ QPoint iAScatterPlot::cropLocalPos( QPoint locPos ) const
 
 void iAScatterPlot::drawPoints( QPainter &painter )
 {
-	// points
 	if ( !m_splomData )
 		return;
 
+	// all points
 	int pwidth  = m_parentWidget->width();
 	int pheight = m_parentWidget->height();
 
 	painter.save();
 	double ptRad = getPointRadius();
 	double ptSize =2 * ptRad;
-	//painter.translate( m_offset );
-	//painter.scale( m_rect.width() * m_scale, m_rect.height() * m_scale );
 	painter.beginNativePainting();
 	QPoint tl = m_globRect.topLeft(), br = m_globRect.bottomRight();
-	//glScissor( tl.x() - 3, h - br.y(), br.x() - tl.x() + 6, br.y() - tl.y() );
 	int y = pheight - m_globRect.bottom() - 1; //Qt and OpenGL have inverted Y axes
 
 	glMatrixMode( GL_PROJECTION );
@@ -739,6 +734,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glDisableClientState( GL_COLOR_ARRAY );
 	glColor3f( settings.selectionColor.red() / 255.0, settings.selectionColor.green() / 255.0, settings.selectionColor.blue() / 255.0 );
 
+	// draw selection:
 	auto const & selInds = m_splom->getSelection();
 	// TODO: This still limits the data to be drawn to the maximum of unsigned int (i.e. 2^32!)
 	//       but unfortunately, there is no GL_UNSIGNED_LONG_LONG (yet)
@@ -749,7 +745,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glDisableClientState( GL_VERTEX_ARRAY );
 	m_pointsBuffer->release();
 
-	//draw current point
+	// draw current point
 	double anim = m_splom->getAnimIn();
 	if (m_curInd != NoPointIndex)
 	{
@@ -769,7 +765,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		glEnd();
 	}
 
-	//draw highlighted points
+	// draw highlighted points
 	auto const & highlightedPoints = m_splom->getHighlightedPoints();
 	for(auto ind: highlightedPoints)
 	{
@@ -788,7 +784,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		glEnd();
 	}
 
-	//draw previous point
+	// draw previous point
 	anim = m_splom->getAnimOut();
 	if (m_prevPtInd != NoPointIndex && anim > 0.0)
 	{
@@ -886,20 +882,6 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 
 	painter.restore();
 }
-
-//void iAScatterPlot::drawParameterName( QPainter &painter )
-//{
-//	if ( ( m_paramIndices[0] == m_paramIndices[1] ) && !m_isMaximizedPlot )
-//	{
-//		painter.save();
-//		QFont font = painter.font(); font.setBold( true ); painter.setFont( font );
-//		painter.setPen( settings.tickLabelColor );
-//		QString paramName = m_splomData->parameterName( m_paramIndices[0] );
-//		QRectF textRect = QRectF( settings.paramTextOffset, 0, m_locRect.width() - settings.paramTextOffset, m_locRect.height() );
-//		painter.drawText( textRect, Qt::AlignLeft | Qt::AlignTop, paramName );
-//		painter.restore();
-//	}
-//}
 
 void iAScatterPlot::createAndFillVBO()
 {
