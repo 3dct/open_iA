@@ -157,11 +157,9 @@ private:
 	void updateSPColumnVisibility();
 	void updateSPColumnVisibilityWithVis();
 	void ScatterPlotButton();
-	void setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool & retflag); //!< set data from current class to SPM
-	void setSPMData(std::vector<size_t> const & selInd, bool &retflag);  //!< set data in SPM selection to class
-	//! set data for single object in class
-	void setSingleSPMObjectDataSelection(const vtkSmartPointer<vtkTable>& classEntries, const uint selectionOID, bool & retflag);
-	void spmApplyColorMap(double  rgba[4], const int colInd);
+	void setSPMData(vtkSmartPointer<vtkTable> const &classEntries);  //!< set data from current class to SPM
+	void setSPMData(std::vector<size_t> const & selInd);             //!< set data in SPM selection to class
+	void spmApplyColorMap(const int classIdx);                         //!< set SPM dot color according to given class index
 	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
 	void spmApplyGeneralColorMap(const double rgba[4]);
 	//! @}
@@ -188,15 +186,6 @@ private:
 	void RenderingFLD();                                  //!< render fiber-length distribution
 	void RenderingMeanObject();                           //!< compute and render a mean object for each class
 	//! @}
-
-	//! selection for each class and show SPM for it
-	void applyClassSelection(std::vector<size_t> const & selInd, const int colorIdx, const bool applyColorMap);
-	//! selection for single class and show SPM
-	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> &classEntries, const int colInd, const bool applyColorMap);
-	//! highlights single object in class
-	void applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, const int colorIdx, const bool applyColorMap);
-	//! sets color based on color index
-	void setClassColour(double * rgba, const int colInd);
 
 	// members referencing MdiChild
 	MdiChild *activeChild;
