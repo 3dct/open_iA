@@ -2807,19 +2807,14 @@ void dlg_FeatureScout::ClassLoadButton()
 		checker.clear();
 		return;
 	}
-	// close the cheker puffer
 	checker.clear();
 	file.close();
 
-	// start class laod process
-	// clear classTree, colorList, TableList
 	chartTable->ShallowCopy( csvTable ); // reset charttable
-
 	tableList.clear();
 	tableList.push_back( chartTable );
-
-	this->colorList.clear();
-	this->classTreeModel->clear();
+	colorList.clear();
+	classTreeModel->clear();
 
 	// init header names for class tree model
 	classTreeModel->setHorizontalHeaderItem( 0, new QStandardItem( "Class" ) );
@@ -2989,7 +2984,7 @@ void dlg_FeatureScout::ScatterPlotButton()
 	matrix->setData(spInput);
 	double range[2];
 
-	//csv table einträge werte erste spalte min max für color transformation
+	// min max of first column (ID) for color transformation
 	vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
 	mmr->GetRange(range);
 	m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
@@ -3032,8 +3027,6 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 	vtkSmartPointer<vtkIdTypeArray> vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
 	vtk_selInd->Allocate(countSelection);
 	vtk_selInd->SetNumberOfValues(countSelection);
-	//current selection index
-	long long curr_selInd;
 	if (countSelection > 0)
 	{
 		std::vector<size_t> sortedSelInds = selInds;
@@ -3042,7 +3035,7 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 		for (auto ind: sortedSelInds)
 		{
 			vtkVariant var_Idx = ind;
-			curr_selInd = var_Idx.ToLongLong() /*+1*/;
+			long long curr_selInd = var_Idx.ToLongLong() /*+1*/;
 			vtk_selInd->SetVariantValue(idx, curr_selInd);
 			++idx;
 		}
@@ -3069,23 +3062,16 @@ void dlg_FeatureScout::spPopup( vtkObject * obj, unsigned long, void * client_da
 	{
 		// Consume event so the interactor style doesn't get it
 		command->AbortFlagOn();
-		// Get popup menu
 		QMenu* popupMenu = static_cast<QMenu*>( client_data );
-		// Get event location
-		int* sz = iren->GetSize();
-		// Remember to flip y
-		QPoint pt = QPoint( mouseReleasePos[0], sz[1] - mouseReleasePos[1] );
-		// Map to global
+		int* sz = iren->GetSize();  // Get event location
+		QPoint pt = QPoint( mouseReleasePos[0], sz[1] - mouseReleasePos[1] );  // flip y
 		QPoint global_pt = popupMenu->parentWidget()->mapToGlobal( pt );
-		// Show popup menu at global point
 		popupMenu->popup( global_pt );
 	}
 	else
 	{
-		// Reset to original SPM popup
-		QMenu* popupMenu = static_cast<QMenu*>( client_data );
-		// Check if SPM or PC popup
-		if ( popupMenu->actions().count() > 1 )
+		QMenu* popupMenu = static_cast<QMenu*>( client_data );     // Reset to original SPM popup
+		if ( popupMenu->actions().count() > 1 )                    // Check if SPM or PC popups
 			popupMenu->actions().at( 1 )->setText( "Suggest Classification" );
 	}
 }
