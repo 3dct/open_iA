@@ -61,7 +61,8 @@ iAQSplom::Settings::Settings()
 	histogramBins(10),
 	popupWidth(180),
 	pointRadius(1.0),
-	selectionMode(iAScatterPlot::Polygon)
+	selectionMode(iAScatterPlot::Polygon),
+	histogramVisible(true)
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
 }
@@ -150,11 +151,11 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	settings(),
 	m_lut(new iALookupTable()),
 	m_colorArrayName(),
-	m_activePlot(0),
+	m_activePlot(nullptr),
 	m_mode(ALL_PLOTS),
 	m_splomData(new iASPLOMData()),
-	m_previewPlot(0),
-	m_maximizedPlot(0),
+	m_previewPlot(nullptr),
+	m_maximizedPlot(nullptr),
 	m_isIndexingBottomToTop(true), //always true: maximizing will not work otherwise a proper layout needs to be implemented
 	m_animIn(1.0),
 	m_animOut(0.0),
@@ -186,11 +187,9 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	m_contextMenu->addAction(showHistogramAction);
 	m_contextMenu->addAction(selectionModeRectangleAction);
 	m_contextMenu->addAction(selectionModePolygonAction);
-	connect(showHistogramAction, SIGNAL(toggled(bool)), this, SLOT(enableHistVisibility(bool)));
+	connect(showHistogramAction, &QAction::toggled, this, &iAQSplom::setHistogramVisible);
 	connect(selectionModePolygonAction, SIGNAL(toggled(bool)), this, SLOT(selectionModePolygon()));
 	connect(selectionModeRectangleAction, SIGNAL(toggled(bool)), this, SLOT(selectionModeRectangle()));
-
-	m_histVisibility = true;
 }
 
 void iAQSplom::setSelectionMode(int mode)
@@ -289,7 +288,7 @@ void iAQSplom::setParameterVisibility( const QString & paramName, bool isVisible
 	}
 }
 
-void iAQSplom::setParameterVisibility( int paramIndex, bool isVisible )
+void iAQSplom::setParameterVisibility( size_t paramIndex, bool isVisible )
 {
 	if( paramIndex < 0 || paramIndex >= m_paramVisibility.size() )
 		return;
@@ -298,7 +297,7 @@ void iAQSplom::setParameterVisibility( int paramIndex, bool isVisible )
 	update();
 }
 
-void iAQSplom::setParameterInverted(int paramIndex, bool isInverted)
+void iAQSplom::setParameterInverted( size_t paramIndex, bool isInverted )
 {
 	m_splomData->setInverted(paramIndex, isInverted);
 	unsigned long numParams = m_splomData->numParams();
@@ -476,15 +475,15 @@ void iAQSplom::showDefaultMaxizimedPlot()
 	this->maximizeSelectedPlot(m_visiblePlots.at(getVisibleParametersCount() - 1).at(0));
 }
 
-void iAQSplom::enableHistVisibility(bool setPlotVisible)
+void iAQSplom::setHistogramVisible(bool visible)
 {
-	this->m_histVisibility = setPlotVisible;
+	settings.histogramVisible = visible;
 	this->updateVisiblePlots();
 }
 
 void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 {
-	showHistogramAction->setChecked(m_histVisibility);
+	showHistogramAction->setChecked(settings.histogramVisible);
 	m_contextMenu->exec(event->globalPos());
 }
 
@@ -818,12 +817,18 @@ void iAQSplom::updateMaxPlotRect()
 	}
 	QRect r = QRect( tl_rect.topLeft(), br_rect.bottomRight() );
 
+	if (!settings.histogramVisible)
+	{
+		int widthCorr = tl_rect.width() - settings.tickOffsets.x();
+		int heightCorr = tl_rect.height() - settings.tickOffsets.y();
+		r.adjust(-widthCorr, -heightCorr, 0, 0);
+	}
+
 	if( !( visParamCnt % 2 ) )
 	{
 		int extraOffset = settings.tickLabelsOffset + settings.maxRectExtraOffset;
 		r.setTopLeft( r.topLeft() + settings.tickOffsets + QPoint( extraOffset, extraOffset ) );
 	}
-
 	m_maximizedPlot->setRect( r );
 }
 
@@ -832,8 +837,6 @@ void iAQSplom::updateSPLOMLayout()
 	long visParamCnt = getVisibleParametersCount();
 	if( !visParamCnt )
 		return;
-	QRect rect;
-
 	updatePlotGridParams();
 	for( int yind = 0; yind < visParamCnt; ++yind )
 	{
@@ -844,12 +847,9 @@ void iAQSplom::updateSPLOMLayout()
 			if( s )
 				s->setRect( getPlotRectByIndex( xind, yind ) );
 		}
-
-
-			rect = getPlotRectByIndex(yind, yind);
-		if (this->m_histVisibility) {
+		QRect rect = getPlotRectByIndex(yind, yind);
+		if (settings.histogramVisible)
 			m_histograms[yind]->setGeometry(rect);
-		}
 	}
 	updateMaxPlotRect();
 }
@@ -864,18 +864,17 @@ void iAQSplom::updateVisiblePlots()
 	unsigned long numParams = m_splomData->numParams();
 	for( unsigned long y = 0; y < numParams; ++y )
 	{
-
 		if( !m_paramVisibility[y] )
 			continue;
 
-		if (this->m_histVisibility) {
+		if (settings.histogramVisible)
+		{
 			m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
 			auto histogramData = iAHistogramData::Create(m_splomData->data()[y], settings.histogramBins);
 			auto histogramPlot = QSharedPointer<iABarGraphDrawer>(new iABarGraphDrawer(histogramData,QColor(70, 70, 70, 255)));
 			m_histograms[m_histograms.size()-1]->AddPlot(histogramPlot);
 			m_histograms[m_histograms.size()-1]->show();
 		}
-
 		QList<iAScatterPlot*> row;
 		for( unsigned long x = 0; x < numParams; ++x )
 		{

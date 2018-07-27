@@ -69,7 +69,6 @@ class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectio
 	};
 // Methods
 public:
-	typedef std::vector<size_t> SelectionType;
 	iAQSplom( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
 	~iAQSplom();
 
@@ -78,10 +77,10 @@ public:
 	void setLookupTable( vtkLookupTable * lut, const QString & colorArrayName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
 	void setLookupTable( iALookupTable &lut, const QString & colorArrayName ); //!< Set lookup table given the name of a parameter to color-code.
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
-	void setParameterVisibility( int paramIndex, bool isVisible );   //!< Show/hide scatter plots of a parameter given parameter's index.
+	void setParameterVisibility( size_t paramIndex, bool isVisible );//!< Show/hide scatter plots of a parameter given parameter's index.
 	void setParameterVisibility( const QString & paramName, bool isVisible ); //!< Show/hide scatter plots of a parameter given parameter's name.
-	void setParameterInverted(int paramIndex, bool isInverted);      //!< whether to invert the axis for a given parameter's index.
-	void setPointRadius(double radius);                              //!< set the radius for scatter plot points
+	void setParameterInverted( size_t paramIndex, bool isInverted);  //!< whether to invert the axis for a given parameter's index.
+	void setPointRadius( double radius );                            //!< set the radius for scatter plot points
 	SelectionType & getSelection();                                  //!< Get const vector of indices of currently selected data points.
 	SelectionType const & getSelection() const;                      //!< Get vector of indices of currently selected data points.
 	void setSelection( SelectionType const & selInds );              //!< Set selected data points from a vector of indices.
@@ -143,7 +142,7 @@ private:
 private slots:
 	void selectionUpdated();                                         //!< When selection of data points is modified.
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
-	void enableHistVisibility(bool setPlotVisible);                  //!< set visibility of histograms
+	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
 	void selectionModePolygon();                                     //!< set selection mode to polygon
 	void selectionModeRectangle();                                   //!< set selection mode to rectangle
 
@@ -175,6 +174,7 @@ public:
 
 		int separationMargin;
 		int histogramBins;
+		bool histogramVisible;
 
 		int selectionMode;                     //!< The selection mode of all scatter plots
 	};
@@ -204,6 +204,5 @@ protected:
 	QMenu* m_contextMenu;                        //!< the context menu (can be extended by subclass)
 private:
 	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction;
-	bool m_histVisibility;
 	QVector<iAChartWidget*> m_histograms;
 };
