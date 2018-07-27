@@ -77,6 +77,7 @@ public:
 	void setLookupTable( vtkLookupTable * lut, const QString & colorArrayName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
 	void setLookupTable( iALookupTable &lut, const QString & colorArrayName ); //!< Set lookup table given the name of a parameter to color-code.
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
+	void setParameterVisibility(std::vector<bool> const & visibility);//!< Adapt visibility of all columns at once.
 	void setParameterVisibility( size_t paramIndex, bool isVisible );//!< Show/hide scatter plots of a parameter given parameter's index.
 	void setParameterVisibility( const QString & paramName, bool isVisible ); //!< Show/hide scatter plots of a parameter given parameter's name.
 	void setParameterInverted( size_t paramIndex, bool isInverted);  //!< whether to invert the axis for a given parameter's index.
@@ -182,7 +183,7 @@ public:
 protected:
 	QList<QList<iAScatterPlot*>> m_matrix;       //!< matrix of all scatter plots
 	QList<QList<iAScatterPlot*>> m_visiblePlots; //!< matrix of visible scatter plots
-	QList<bool> m_paramVisibility;               //!< array of individual parameter visibility
+	std::vector<bool> m_paramVisibility;         //!< array of individual parameter visibility
 	QSharedPointer<iALookupTable> m_lut;         //!< lookup table, shared with individual scatter plots
 	QString m_colorArrayName;                    //!< name of a color-coded parameter
 	QPoint m_scatPlotSize;                       //!< size of one scatter plot in the layout

@@ -22,6 +22,7 @@
 
 #include "iAChartWidget.h"
 #include "iAColorTheme.h"
+#include "iAConsole.h"
 #include "iAHistogramData.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
@@ -278,7 +279,7 @@ void iAQSplom::applyLookupTable()
 
 void iAQSplom::setParameterVisibility( const QString & paramName, bool isVisible )
 {
-	for( unsigned long i = 0; i < m_splomData->numParams(); ++i )
+	for( size_t i = 0; i < m_splomData->numParams(); ++i )
 	{
 		if (m_splomData->parameterName(i) == paramName)
 		{
@@ -293,6 +294,18 @@ void iAQSplom::setParameterVisibility( size_t paramIndex, bool isVisible )
 	if( paramIndex < 0 || paramIndex >= m_paramVisibility.size() )
 		return;
 	m_paramVisibility[paramIndex] = isVisible;
+	updateVisiblePlots();
+	update();
+}
+
+void iAQSplom::setParameterVisibility(std::vector<bool> const & visibility)
+{
+	if (visibility.size() != m_paramVisibility.size())
+	{
+		DEBUG_LOG("Call to setParameterVisibility with vector of invalid size!");
+		return;
+	}
+	m_paramVisibility = visibility;
 	updateVisiblePlots();
 	update();
 }
