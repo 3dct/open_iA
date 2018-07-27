@@ -33,33 +33,37 @@
 class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {
 public:
-	virtual QVector<unsigned int> & getSelection()
+	virtual std::vector<size_t> & getSelection() override
 	{
 		return m_selection;
 	}
-	void setSelection(QVector<unsigned int> const & selection)
+	virtual std::vector<size_t> const & getSelection() const override
+	{
+		return m_selection;
+	}
+	void setSelection(std::vector<size_t> const & selection)
 	{
 		m_selection = selection;
 	}
-	virtual const QList<int> & getHighlightedPoints() const
+	std::vector<size_t> const & getHighlightedPoints() const override
 	{
 		return m_highlight;
 	}
-	virtual int getVisibleParametersCount() const
+	int getVisibleParametersCount() const override
 	{
 		return 2;
 	}
-	virtual double getAnimIn() const
+	double getAnimIn() const override
 	{
 		return 1.0;
 	}
-	virtual double getAnimOut() const
+	double getAnimOut() const override
 	{
 		return 0.0;
 	}
 private:
-	QList<int> m_highlight;
-	QVector<unsigned int> m_selection;
+	std::vector<size_t> m_highlight;
+	std::vector<size_t> m_selection;
 };
 
 namespace
@@ -228,12 +232,12 @@ void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
 	}
 }
 
-QVector<unsigned int> iAScatterPlotWidget::GetSelection()
+std::vector<size_t> & iAScatterPlotWidget::GetSelection()
 {
 	return m_scatterPlotHandler->getSelection();
 }
 
-void iAScatterPlotWidget::SetSelection(QVector<unsigned int> const & selection)
+void iAScatterPlotWidget::SetSelection(std::vector<size_t> const & selection)
 {
 	m_scatterPlotHandler->setSelection(selection);
 }

@@ -40,7 +40,7 @@ public:
 	void setDatasetsByIndices ( QStringList selDatasets, QList<int> indices );
 	void reemitFixedPixmap();
 
-	int getDatasetIndexFromPointIndex(int pointIndex);
+	int getDatasetIndexFromPointIndex(size_t pointIndex);
 
 protected:
 	virtual bool drawPopup( QPainter& painter );	//!< Draws popup on the splom with mask preview
@@ -71,7 +71,7 @@ protected:
 	QList<int> m_dsIndices;
 	QList<int> m_datasetIndices;
 	QAction * m_fixAction, *m_removeFixedAction;
-	int m_fixedPointInd;
+	size_t m_fixedPointInd;
 	QPoint m_rightPressPos;
 	QString m_currPrevDatasetName;
 	QString m_currPrevPipelineName;

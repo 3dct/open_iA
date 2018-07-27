@@ -44,7 +44,7 @@ iAPAQSplom::iAPAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget 
 	: iAQSplom( parent, shareWidget, f ),
 	m_fixAction( 0 ),
 	m_removeFixedAction( 0 ),
-	m_fixedPointInd( -1 )
+	m_fixedPointInd( iAScatterPlot::NoPointIndex )
 {
 	m_fixAction = m_contextMenu->addAction( "Fix Point", this, SLOT( fixPoint() ) );
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
@@ -122,7 +122,7 @@ void iAPAQSplom::setDatasetsByIndices( QStringList selDatasets, QList<int> indic
 
 void iAPAQSplom::reemitFixedPixmap()
 {
-	if( m_fixedPointInd >= 0 )
+	if( m_fixedPointInd != iAScatterPlot::NoPointIndex )
 	{
 		int dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 		QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
@@ -136,12 +136,12 @@ void iAPAQSplom::reemitFixedPixmap()
 		emit maskHovered( &m_maskPxmp, dsInd );
 	}
 	else
-		emit maskHovered( 0, -1 );
+		emit maskHovered( nullptr, -1 );
 }
 
-int iAPAQSplom::getDatasetIndexFromPointIndex(int pointIndex)
+int iAPAQSplom::getDatasetIndexFromPointIndex(size_t pointIndex)
 {
-	if (pointIndex == -1)
+	if (pointIndex == iAScatterPlot::NoPointIndex)
 		return -1;
 	int absInd = m_datasetIndices[pointIndex];
 	int relInd = m_dsIndices.indexOf( absInd );
@@ -154,9 +154,9 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 		return false;
 	if( m_maskPxmp.isNull() )
 		return false;
-	int curInd = m_activePlot->getCurrentPoint();
+	size_t curInd = m_activePlot->getCurrentPoint();
 	double anim = 1.0;
-	if( curInd < 0 )
+	if( curInd == iAScatterPlot::NoPointIndex )
 	{
 		if( m_animOut > 0.0 && m_animIn >= 1.0 )
 		{
@@ -166,7 +166,7 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 		else
 			return false;
 	}
-	else if( -1 == m_activePlot->getPreviousIndex() )
+	else if( m_activePlot->getPreviousIndex() == iAScatterPlot::NoPointIndex )
 		anim = m_animIn;
 
 	painter.save();
@@ -245,8 +245,8 @@ void iAPAQSplom::updatePreviewPixmap()
 	if( !m_activePlot )
 		return;
 
-	int curInd = m_activePlot->getCurrentPoint();
-	if( curInd < 0 && m_fixedPointInd < 0 )
+	size_t curInd = m_activePlot->getCurrentPoint();
+	if( curInd == iAScatterPlot::NoPointIndex && m_fixedPointInd == iAScatterPlot::NoPointIndex )
 	{
 		emit maskHovered( 0, -1 );
 		return;
@@ -265,7 +265,7 @@ void iAPAQSplom::updatePreviewPixmap()
 	}
 
 	QImage maskImg;
-	if( curInd < 0 )
+	if( curInd == iAScatterPlot::NoPointIndex )
 		maskImg = fixedMaskImg;
 	else
 	{
@@ -331,21 +331,20 @@ void iAPAQSplom::fixPoint()
 	if( !m_activePlot )
 		return;
 
-	if( m_fixedPointInd >= 0 )
+	if( m_fixedPointInd != iAScatterPlot::NoPointIndex )
 		removeFixedPoint();
 
 	m_removeFixedAction->setVisible( true );
 	m_fixedPointInd = m_activePlot->getCurrentPoint();
 	addHighlightedPoint( m_fixedPointInd );
-
 	updatePreviewPixmap();
 }
 
 void iAPAQSplom::removeFixedPoint()
 {
-	if( m_fixedPointInd >= 0 )
+	if( m_fixedPointInd != iAScatterPlot::NoPointIndex )
 		removeHighlightedPoint( m_fixedPointInd );
-	m_fixedPointInd = -1;
+	m_fixedPointInd = iAScatterPlot::NoPointIndex;
 	m_removeFixedAction->setVisible( false );
 	updatePreviewPixmap();
 }

@@ -106,7 +106,7 @@ iASPMView::iASPMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	connect( m_SPMSettings->sbMax, SIGNAL( valueChanged( double ) ), this, SLOT( UpdateLookupTable() ) );
 	connect( m_SPMSettings->opacitySlider, SIGNAL( valueChanged( int ) ), this, SLOT( UpdateLookupTable() ) );
 	connect( tbSettings, SIGNAL( clicked() ), this, SLOT( showSettings() ) );
-	connect( m_splom, SIGNAL( selectionModified( QVector<unsigned int>* ) ), this, SLOT( selectionUpdated( QVector<unsigned int>* ) ) );
+	connect( m_splom, &iAQSplom::selectionModified, this, &iASPMView::selectionUpdated );
 	connect( m_splom, SIGNAL( previewSliceChanged( int ) ), this, SIGNAL( previewSliceChanged( int ) ) );
 	connect( m_splom, SIGNAL( sliceCountChanged( int ) ), this, SIGNAL( sliceCountChanged( int ) ) );
 	connect( m_splom, SIGNAL( maskHovered( const QPixmap *, int ) ), this, SIGNAL( maskHovered( const QPixmap *, int ) ) );
@@ -214,12 +214,12 @@ void iASPMView::UpdateLookupTable()
 	ApplyLookupTable();
 }
 
-void iASPMView::selectionUpdated( QVector<unsigned int>* selInds )
+void iASPMView::selectionUpdated( std::vector<size_t> const & selInds )
 {
 	//selection
 	m_SPLOMSelection = vtkSmartPointer<vtkIdTypeArray>::New();
-	foreach( const unsigned int & i, *selInds )
-		m_SPLOMSelection->InsertNextValue( vtkIdType( i ) );
+	for( auto & i: selInds )
+		m_SPLOMSelection->InsertNextValue( static_cast<vtkIdType>( i ) );
 
 	emit selectionModified( getActivePlotIndices(), m_SPLOMSelection );
 }
@@ -239,10 +239,10 @@ void iASPMView::UpdateLUTOpacity()
 
 void iASPMView::setSPLOMSelection( vtkIdTypeArray * ids )
 {
-	QVector<unsigned int> selInds;
+	iAQSplom::SelectionType selInds;
 	for( vtkIdType i = 0; i < ids->GetDataSize(); ++i )
 		selInds.push_back( ids->GetValue( i ) );
-	m_splom->setSelection( &selInds );
+	m_splom->setSelection( selInds );
 }
 
 vtkVector2i iASPMView::getActivePlotIndices()

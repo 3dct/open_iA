@@ -23,9 +23,11 @@
 #include "open_iA_Core_export.h"
 
 #include "iAScatterPlotSelectionHandler.h"
-#include "qmenu.h"
+
 #include <QGLWidget>
 #include <QList>
+
+#include <vector>
 
 class iAChartWidget;
 class iAColorTheme;
@@ -35,9 +37,10 @@ class iASPLOMData;
 
 class vtkLookupTable;
 
-class QTableWidget;
 class QGridLayout;
+class QMenu;
 class QPropertyAnimation;
+class QTableWidget;
 
 //! A scatter plot matrix (SPLOM) widget.
 /*!
@@ -66,6 +69,7 @@ class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectio
 	};
 // Methods
 public:
+	typedef std::vector<size_t> SelectionType;
 	iAQSplom( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
 	~iAQSplom();
 
@@ -78,8 +82,9 @@ public:
 	void setParameterVisibility( const QString & paramName, bool isVisible ); //!< Show/hide scatter plots of a parameter given parameter's name.
 	void setParameterInverted(int paramIndex, bool isInverted);      //!< whether to invert the axis for a given parameter's index.
 	void setPointRadius(double radius);                              //!< set the radius for scatter plot points
-	QVector<unsigned int> & getSelection();                          //!< Get vector of indices of currently selected data points.
-	void setSelection( const QVector<unsigned int> * selInds );      //!< Set selected data points from a vector of indices.
+	SelectionType & getSelection();                                  //!< Get const vector of indices of currently selected data points.
+	SelectionType const & getSelection() const;                      //!< Get vector of indices of currently selected data points.
+	void setSelection( SelectionType const & selInds );              //!< Set selected data points from a vector of indices.
 	void clearSelection();                                           //!< deletes current selection
 	void setSelectionColor(QColor color);                            //!< set the color for selected points
 	void getActivePlotIndices( int * inds_out );                     //!< Get X and Y parameter indices of currently active scatter plot.
@@ -88,7 +93,7 @@ public:
 	void setAnimIn( double anim );                                   //!< Setter for animation in property
 	double getAnimOut() const { return m_animOut; }                  //!< Getter for animation in property
 	void setAnimOut( double anim );                                  //!< Setter for animation in property
-	const QList<int> & getHighlightedPoints() const;                 //!< get the list of highlighted points
+	SelectionType const & getHighlightedPoints() const;              //!< get the list of highlighted points
 	void setSeparation(int idx);                                     //!< define an index at which a separation margin is inserted
 	void setBackgroundColorTheme(iAColorTheme const * theme);        //!< define the color theme to use for coloring the different separated regions
 	iAColorTheme const * getBackgroundColorTheme();                  //!< retrieve the theme for background colors for the separated regions
@@ -96,8 +101,8 @@ public:
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
 signals:
-	void selectionModified(QVector<unsigned int> * selInds);         //!< Emitted when new data points are selected. Contains a list of selected data points.
-	void currentPointModified(int index);                            //!< Emitted when hovered over a new point.
+	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
+	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
 protected:
 	void clear();                                                    //!< Clear all scatter plots in the SPLOM.
 	void initializeGL() override;                                    //!< overrides function inherited from QGLWidget.
@@ -130,9 +135,11 @@ protected:
 	void mouseDoubleClickEvent( QMouseEvent * event ) override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	//! @}
-	virtual void currentPointUpdated(int index);                     //!< When hovered over a new point.
-	virtual void addHighlightedPoint(int index);                     //!< Keep a point with index always highlighted
-	virtual void removeHighlightedPoint(int index);                  //!< Remove a point from the highlighted list
+	virtual void currentPointUpdated(size_t index);                  //!< When hovered over a new point.
+	virtual void addHighlightedPoint(size_t index);                  //!< Keep a point with index always highlighted
+	virtual void removeHighlightedPoint(size_t index);               //!< Remove a point from the highlighted list
+private:
+	void dataChanged();                                              //!< handles changes of the internal data
 private slots:
 	void selectionUpdated();                                         //!< When selection of data points is modified.
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
@@ -168,6 +175,8 @@ public:
 
 		int separationMargin;
 		int histogramBins;
+
+		int selectionMode;                     //!< The selection mode of all scatter plots
 	};
 	Settings settings;
 protected:
@@ -182,13 +191,13 @@ protected:
 	QSharedPointer<iASPLOMData> m_splomData;     //!< contains raw data points used in SPLOM
 	iAScatterPlot * m_previewPlot;               //!< plot currently being previewed (shown in maximized plot)
 	iAScatterPlot * m_maximizedPlot;             //!< pointer to the maximized plot
-	QVector<unsigned int> m_selInds;             //!< array containing indices of currently selected data points
+	SelectionType m_selInds;                     //!< contains indices of currently selected data points
 	const bool m_isIndexingBottomToTop;          //!< flag indicating if Y-indices in the SPLOM are inverted
 	double m_animIn;                             //!< In animation parameter
 	double m_animOut;                            //!< Out animation parameter
 	QPropertyAnimation * m_animationIn;
 	QPropertyAnimation * m_animationOut;
-	QList<int> m_highlightedPoints;              //!< list of always highlighted points
+	SelectionType m_highlightedPoints;           //!< contains indices of always highlighted points
 	double m_popupHeight;                        //!< height of the last drawn popup
 	int m_separationIdx;                         //!< index at which to separate scatterplots spatially (e.g. into in- and output parameters)
 	iAColorTheme const * m_bgColorTheme;         //!< background colors for regions in the scatterplot
@@ -197,5 +206,4 @@ private:
 	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction;
 	bool m_histVisibility;
 	QVector<iAChartWidget*> m_histograms;
-	int m_selectionMode;
 };

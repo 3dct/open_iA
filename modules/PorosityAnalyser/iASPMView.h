@@ -106,7 +106,7 @@ protected slots:
 	void UpdateLookupTable();
 
 	/** When selection of the SPLOM is modified */
-	void selectionUpdated( QVector<unsigned int>* selInds );
+	void selectionUpdated( std::vector<size_t> const & selInds );
 
 signals:
 	void selectionModified( vtkVector2i, vtkIdTypeArray* );

@@ -24,6 +24,8 @@
 #include <QVector>
 #include <QWidget>
 
+#include <vector>
+
 class iAParamSpatialView;
 class iAParamTableView;
 class iAQSplom;
@@ -41,9 +43,9 @@ public:
 	iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView* spatialView);
 private slots:
 	void SetLUTColumn(QString const & colName);
-	void SplomSelection(QVector<unsigned int> *);
+	void SplomSelection(std::vector<size_t> const &);
 	void UpdateFeatVisibilty(int);
-	void PointHovered(int);
+	void PointHovered(size_t);
 private:
 	iAParamSpatialView* m_spatialView;
 	iAParamTableView* m_tableView;

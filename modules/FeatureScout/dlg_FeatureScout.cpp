@@ -337,30 +337,24 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long
 	if ( this->spmActivated )
 	{
 		vtkSmartPointer<vtkIdTypeArray> DataSelection = this->pcChart->GetPlot(0)->GetSelection();
-
 		vtkIdType val = DataSelection->GetDataTypeValueMax();
-
-		QVector<uint> selID;
 #if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 		int countSelection = DataSelection->GetNumberOfValues();
 #else
 		int countSelection = DataSelection->GetNumberOfTuples();
 #endif
-		int idx = 0;
-		vtkVariant var_Idx = 0;
-		uint objID = 0;
-		if (countSelection > 0) {
-
-			for (idx; idx < countSelection; idx++) {
-
-				var_Idx = DataSelection->GetVariantValue(idx);
+		if (countSelection > 0)
+		{
+			iAQSplom::SelectionType selID;
+			for (int idx=0; idx < countSelection; idx++)
+			{
+				vtkVariant var_Idx = DataSelection->GetVariantValue(idx);
 				//fiber starts with index 1!!, mininum is 0
-				//todo change
-				objID =  (unsigned int)var_Idx.ToLongLong() +1;
+				//TODO change
+				uint objID =  (unsigned int)var_Idx.ToLongLong() +1;
 				selID.push_back(objID);
-
 			}
-			matrix->setSelection(&selID);
+			matrix->setSelection(selID);
 		}
 	}
 	this->RealTimeRendering(this->pcChart->GetPlot(0)->GetSelection());
@@ -2271,10 +2265,7 @@ void dlg_FeatureScout::ClassAddButton()
 	//Updates scatter plot matrix when a class is added.
 	if ( this->spmActivated && matrix != NULL )
 	{
-		QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
-
-		//handle over cid (color id)
-		*selInd = matrix->getSelection();
+		auto const &selInd = matrix->getSelection();
 		applyClassSelection(selInd, cid, false);
 		matrix->clearSelection();
 		matrix->update();
@@ -2282,7 +2273,7 @@ void dlg_FeatureScout::ClassAddButton()
 	}
 }
 
-void dlg_FeatureScout::applyClassSelection(QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap)
+void dlg_FeatureScout::applyClassSelection(std::vector<size_t> const & selInd, const int colorIdx, const bool applyColorMap)
 {
 	double rgba[4];
 	bool returnflag;
@@ -2371,7 +2362,7 @@ void dlg_FeatureScout::setSPMData(const vtkSmartPointer<vtkTable> &classEntries,
 
 //set data in SPM selection to class
 
-void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &retflag)
+void dlg_FeatureScout::setSPMData(std::vector<size_t> const & selInd, bool &retflag)
 {
 	retflag = true;
 	/**selInd = (this->matrix->getSelection());*/
@@ -2379,7 +2370,7 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &r
 	//indezes rausziehen selection indezes;
 
 	//TODO Save data in the selection
-	const uint entriesCount = (uint)selInd->length();
+	size_t entriesCount = selInd.size();
 	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
 	const int colCount = (int)this->csvTable->GetNumberOfColumns();
 	const int rowCount = (int)this->csvTable->GetNumberOfRows();
@@ -2397,7 +2388,7 @@ void dlg_FeatureScout::setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &r
 	//TODO set label ID in first column?
 	bool containsRowInd = false;
 	int rowSavingIndx = 1;
-	for (auto const &curr_selIndx : *selInd) {
+	for (auto const &curr_selIndx : selInd) {
 
 		//if row index is in selection index
 		for (int row = 1; row < rowCount + 1; row++)
@@ -3162,7 +3153,7 @@ void dlg_FeatureScout::ScatterPlotButton()
 		spUpdateSPColumnVisibilityWithVis();
 
 		//connects signal from SPM selection to PCView
-		connect(matrix, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(spSelInformsPCChart(QVector<unsigned int> *)) );
+		connect(matrix, &iAQSplom::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
 	}
 }
 
@@ -3184,40 +3175,32 @@ void dlg_FeatureScout::spUpdateSPColumnVisibilityWithVis()
 }
 
 
-void dlg_FeatureScout::spSelInformsPCChart(QVector<unsigned int> * selInds)
-{
-	qSort(*selInds);
+void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
+{	// If scatter plot selection changes, Parallel Coordinates gets informed
+	assert(spmActivated);
+	QCoreApplication::processEvents();
+	int countSelection = selInds.size();
 	vtkSmartPointer<vtkIdTypeArray> vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
-	// If scatter plot selection changes Parallel Coordinates gets informed and updates.
-	if (this->spmActivated)
+	vtk_selInd->Allocate(countSelection);
+	vtk_selInd->SetNumberOfValues(countSelection);
+	//current selection index
+	long long curr_selInd;
+	if (countSelection > 0)
 	{
-		QCoreApplication::processEvents();
-		// update selection in PC view!
-		//set selection for pcView / chart
-		int countSelection = selInds->length();
-		vtk_selInd->Allocate(countSelection);
-		vtk_selInd->SetNumberOfValues(countSelection);
+		std::vector<size_t> sortedSelInds = selInds;
+		std::sort(sortedSelInds.begin(), sortedSelInds.end());
 		int idx = 0;
-		vtkVariant var_Idx = 0;
-
-		//current selection index
-		long long curr_selInd;
-		if (countSelection > 0) {
-
-
-			for (auto ind : *selInds) {
-
-				var_Idx = ind;
-				curr_selInd = var_Idx.ToLongLong()  /*+1*/;
-				vtk_selInd->SetVariantValue(idx, curr_selInd);
-				idx++;
-			}
+		for (auto ind: sortedSelInds)
+		{
+			vtkVariant var_Idx = ind;
+			curr_selInd = var_Idx.ToLongLong() /*+1*/;
+			vtk_selInd->SetVariantValue(idx, curr_selInd);
+			++idx;
 		}
-
-		this->pcChart->GetPlot(0)->SetSelection(vtk_selInd);
-		this->pcView->Render();
-		this->RealTimeRendering(pcChart->GetPlot(0)->GetSelection());
 	}
+	this->pcChart->GetPlot(0)->SetSelection(vtk_selInd);
+	this->pcView->Render();
+	this->RealTimeRendering(pcChart->GetPlot(0)->GetSelection());
 }
 
 void dlg_FeatureScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
@@ -3553,27 +3536,21 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		this->SingleRendering(oID);
 		elementTableView->update();
 
-		if ( this->spmActivated )
+		if ( this->spmActivated && matrix)
 		{
 			// Update Scatter Plot Matrix when another class than the active is selected.
 			//set ID selection im feature scout
-			if ( matrix )
-			{
-				matrix->clearSelection();
-				matrix->update();
-				const int colorID = this->activeClassItem->index().row();
-				bool retflag = false;
-				QSharedPointer<QVector<uint>> selInd = QSharedPointer<QVector<uint>>(new QVector<uint>);
-
-				//Object ID starts with 0 eg. oID -1;
-				selInd->push_back(sID);
-				//set all entries
-				applyClassSelection(retflag, chartTable, colorID, false);
-				matrix->setSelection(&(*selInd));
-				matrix->update();
-				spUpdateSPColumnVisibilityWithVis();
-				if (retflag) return;
-			}
+			matrix->clearSelection();
+			matrix->update();
+			const int colorID = this->activeClassItem->index().row();
+			bool retflag = false;
+			iAQSplom::SelectionType selInd;
+			selInd.push_back(sID);
+			//set all entries
+			applyClassSelection(retflag, chartTable, colorID, false); // TODO: CHECK!
+			matrix->setSelection(selInd);
+			matrix->update();
+			spUpdateSPColumnVisibilityWithVis();
 		}
 	}
 }

@@ -31,6 +31,8 @@
 
 #include <vtkSmartPointer.h>
 
+#include <vector>
+
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
 
@@ -120,7 +122,7 @@ private slots:
 	void spBigChartMouseButtonPressed(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopup(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopupSelection(QAction *selection);
-	void spSelInformsPCChart(QVector<unsigned int> * selInds);
+	void spSelInformsPCChart(std::vector<size_t> const & selInds);
 	void spUpdateSPColumnVisibility();
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
 	void modifyMeanObjectTF();
@@ -168,14 +170,14 @@ private:
 	void RenderingFLD();
 
 	//! selection for each class and show SPM for it
-	void applyClassSelection(QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
+	void applyClassSelection(std::vector<size_t> const & selInd, const int colorIdx, const bool applyColorMap);
 	//! selection for single class and show SPM
 	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> &classEntries, const int colInd, const bool applyColorMap);
 	//! highlights single object in class
 	void applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, const int colorIdx, const bool applyColorMap);
 
 	void setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool & retflag);
-	void setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &retflag);
+	void setSPMData(std::vector<size_t> const & selInd, bool &retflag);
 	void setSingleSPMObjectDataSelection(const vtkSmartPointer<vtkTable>& classEntries, const uint selectionOID, bool & retflag);
 	void setClassColour(double * rgba, const int colInd);
 	void spmApplyColorMap(double  rgba[4], const int colInd);

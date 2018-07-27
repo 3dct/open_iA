@@ -18,12 +18,15 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#include "iAQSplom.h"
+
 #include "iAChartWidget.h"
 #include "iAColorTheme.h"
-#include "iAQSplom.h"
-#include "iAScatterPlot.h"
+#include "iAHistogramData.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
+#include "iAPlotTypes.h"
+#include "iAScatterPlot.h"
 #include "iASPLOMData.h"
 
 #include <vtkLookupTable.h>
@@ -32,10 +35,8 @@
 #include <QPropertyAnimation>
 #include <QTableWidget>
 #include <QWheelEvent>
-#include <qmath.h>
-#include <qmenu.h>
-#include "iAHistogramData.h"
-#include "iAPlotTypes.h"
+#include <QtMath>
+#include <QMenu>
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -59,7 +60,8 @@ iAQSplom::Settings::Settings()
 	separationMargin( 10 ),
 	histogramBins(10),
 	popupWidth(180),
-	pointRadius(1.0)
+	pointRadius(1.0),
+	selectionMode(iAScatterPlot::Polygon)
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
 }
@@ -76,7 +78,7 @@ void iAQSplom::setAnimOut( double anim )
 	update();
 }
 
-const QList<int> & iAQSplom::getHighlightedPoints() const
+iAQSplom::SelectionType const & iAQSplom::getHighlightedPoints() const
 {
 	return m_highlightedPoints;
 }
@@ -102,7 +104,7 @@ iAColorTheme const * iAQSplom::getBackgroundColorTheme()
 
 void iAQSplom::clearSelection()
 {
-	this->m_selInds.clear();
+	m_selInds.clear();
 
 }
 
@@ -195,7 +197,7 @@ void iAQSplom::setSelectionMode(int mode)
 {
 	if (m_maximizedPlot)
 		m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(mode);
-	m_selectionMode = mode;
+	settings.selectionMode = mode;
 }
 
 void iAQSplom::selectionModePolygon()
@@ -233,9 +235,8 @@ void iAQSplom::setData( const QTableWidget * data )
 		for( unsigned long x = 0; x < numParams; ++x )
 		{
 			iAScatterPlot * s = new iAScatterPlot(this, this);
-			//connect( s, SIGNAL( selectionModified() ), this, SLOT( selectionUpdated() ) );
-			connect( s, SIGNAL( transformModified( double, QPointF ) ), this, SLOT( transformUpdated( double, QPointF ) ) );
-			connect( s, SIGNAL( currentPointModified( int ) ), this, SLOT( currentPointUpdated( int ) ) );
+			connect( s, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
+			connect( s, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
 			s->setData( x, y, m_splomData ); //we want first plot in lower left corner of the SPLOM
 			s->setSelectionColor(settings.selectionColor);
 			s->setPointRadius(settings.pointRadius);
@@ -304,24 +305,29 @@ void iAQSplom::setParameterInverted(int paramIndex, bool isInverted)
 	for (unsigned long row = 0; row < numParams; ++row)
 	{
 		if (m_paramVisibility[row])
-			m_matrix[row][paramIndex]->UpdatePoints();
+			m_matrix[row][paramIndex]->updatePoints();
 	}
 	for (unsigned long col = 0; col < numParams; ++col)
 	{  // avoid double updated of row==col plot
 		if (col != paramIndex && m_paramVisibility[col])
-			m_matrix[paramIndex][col]->UpdatePoints();
+			m_matrix[paramIndex][col]->updatePoints();
 	}
 	update();
 }
 
-QVector<unsigned int> & iAQSplom::getSelection()
+iAQSplom::SelectionType const & iAQSplom::getSelection() const
 {
 	return m_selInds;
 }
 
-void iAQSplom::setSelection( const QVector<unsigned int> * selInds )
+iAQSplom::SelectionType & iAQSplom::getSelection()
 {
-	m_selInds = *selInds;
+	return m_selInds;
+}
+
+void iAQSplom::setSelection( iAQSplom::SelectionType const & selInds )
+{
+	m_selInds = selInds;
 	update();
 }
 
@@ -363,7 +369,7 @@ void iAQSplom::clear()
 void iAQSplom::selectionUpdated()
 {
 	update();
-	emit selectionModified( &m_selInds );
+	emit selectionModified( m_selInds );
 }
 
 void iAQSplom::transformUpdated( double scale, QPointF deltaOffset )
@@ -402,7 +408,7 @@ void iAQSplom::transformUpdated( double scale, QPointF deltaOffset )
 	update();
 }
 
-void iAQSplom::currentPointUpdated( int index )
+void iAQSplom::currentPointUpdated( size_t index )
 {
 	foreach( QList<iAScatterPlot*> row, m_matrix )
 	{
@@ -420,16 +426,16 @@ void iAQSplom::currentPointUpdated( int index )
 	//animation
 	if( settings.isAnimated && m_activePlot )
 	{
-		int curPt = m_activePlot->getCurrentPoint();
-		int prePt = m_activePlot->getPreviousIndex();
-		if( prePt >= 0 && curPt != prePt )
+		size_t curPt = m_activePlot->getCurrentPoint();
+		size_t prePt = m_activePlot->getPreviousIndex();
+		if( prePt != iAScatterPlot::NoPointIndex && curPt != prePt )
 		{
 			//Out
 			m_animationOut->setStartValue( m_animIn );
 			m_animationOut->setEndValue( 0.0 );
 			m_animationOut->start();
 		}
-		if( curPt >= 0 )
+		if( curPt != iAScatterPlot::NoPointIndex )
 		{
 			//In
 			m_animationIn->setStartValue( settings.animStart );
@@ -443,19 +449,23 @@ void iAQSplom::currentPointUpdated( int index )
 		emit currentPointModified( index );
 }
 
-void iAQSplom::addHighlightedPoint( int index )
+void iAQSplom::addHighlightedPoint( size_t index )
 {
-	if( !m_highlightedPoints.contains( index ) )
+	if ( std::find(m_highlightedPoints.begin(), m_highlightedPoints.end(), index) == m_highlightedPoints.end() )
+	{
 		m_highlightedPoints.push_back( index );
-	update();
+		update();
+	}
 }
 
-void iAQSplom::removeHighlightedPoint( int index )
+void iAQSplom::removeHighlightedPoint( size_t index )
 {
-	int pos = m_highlightedPoints.indexOf( index );
-	if( pos >= 0 )
-		m_highlightedPoints.removeAt( pos );
-	update();
+	auto it = std::find(m_highlightedPoints.begin(), m_highlightedPoints.end(), index );
+	if (it != m_highlightedPoints.end())
+	{
+		m_highlightedPoints.erase(it);
+		update();
+	}
 }
 
 void iAQSplom::showDefaultMaxizimedPlot()
@@ -512,11 +522,11 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 	delete m_maximizedPlot;
 	m_maximizedPlot = new iAScatterPlot(this, this, 11, true);
 
-	connect(m_maximizedPlot, SIGNAL(selectionModified()), this, SLOT(selectionUpdated()));
-	connect(m_maximizedPlot, SIGNAL(currentPointModified(int)), this, SLOT(currentPointUpdated(int)));
+	connect(m_maximizedPlot, &iAScatterPlot::selectionModified, this, &iAQSplom::selectionUpdated);
+	connect(m_maximizedPlot, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
 
 	if (settings.maximizedLinked)
-		connect(m_maximizedPlot, SIGNAL(transformModified(double, QPointF)), this, SLOT(transformUpdated(double, QPointF)));
+		connect(m_maximizedPlot, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
 
 	const int * plotInds = selectedPlot->getIndices();
 	m_maximizedPlot->setData(plotInds[0], plotInds[1], m_splomData); //we want first plot in lower left corner of the SPLOM
@@ -526,7 +536,7 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 
 	m_maximizedPlot->setSelectionColor(settings.selectionColor);
 	m_maximizedPlot->setPointRadius(settings.pointRadius);
-	m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(m_selectionMode);
+	m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(settings.selectionMode);
 	updateMaxPlotRect();
 	//transform
 	QPointF ofst = selectedPlot->getOffset();
@@ -651,9 +661,9 @@ bool iAQSplom::drawPopup( QPainter& painter )
 {
 	if( !m_activePlot )
 		return false;
-	int curInd = m_activePlot->getCurrentPoint();
+	size_t curInd = m_activePlot->getCurrentPoint();
 	double anim = 1.0;
-	if( curInd < 0 )
+	if( curInd == iAScatterPlot::NoPointIndex )
 	{
 		if( m_animOut > 0.0 && m_animIn >= 1.0)
 		{
@@ -662,8 +672,8 @@ bool iAQSplom::drawPopup( QPainter& painter )
 		}
 		return false;
 	}
-	else if( -1 == m_activePlot->getPreviousIndex() )
-			anim = m_animIn;
+	else if ( m_activePlot->getPreviousIndex() == iAScatterPlot::NoPointIndex )
+		anim = m_animIn;
 	const int * pInds = m_activePlot->getIndices();
 
 	painter.save();

@@ -40,8 +40,8 @@ public:
 	int PaddingLeft();
 	static const int TextPadding;
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
-	QVector<unsigned int> GetSelection();
-	void SetSelection(QVector<unsigned int> const & selection);
+	std::vector<size_t> & GetSelection();
+	void SetSelection(std::vector<size_t> const & selection);
 	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void SetSelectionColor(QColor const & c);
 	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
