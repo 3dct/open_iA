@@ -226,6 +226,17 @@ iAQSplom::~iAQSplom()
 void iAQSplom::setData( const QTableWidget * data )
 {
 	m_splomData->import( data );
+	dataChanged();
+}
+
+void iAQSplom::setData( QSharedPointer<iASPLOMData> data )
+{
+	m_splomData = data;
+	dataChanged();
+}
+
+void iAQSplom::dataChanged()
+{
 	clear();
 	unsigned long numParams = m_splomData->numParams();
 	for( unsigned long y = 0; y < numParams; ++y )

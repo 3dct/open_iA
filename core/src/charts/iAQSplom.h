@@ -72,8 +72,8 @@ public:
 	iAQSplom( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
 	~iAQSplom();
 
-	//! Import data into SPLOM from QTableWidget. It is assumed that the first row contains parameter names and each column corresponds to one parameter.
-	virtual void setData( const QTableWidget * data );
+	virtual void setData( const QTableWidget * data );               //! import data from QTableWidget, first row should contain parameter names, each column corresponds to one parameter.
+	void setData(QSharedPointer<iASPLOMData> data);                  //! set SPLOM data directly.
 	void setLookupTable( vtkLookupTable * lut, const QString & colorArrayName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
 	void setLookupTable( iALookupTable &lut, const QString & colorArrayName ); //!< Set lookup table given the name of a parameter to color-code.
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
