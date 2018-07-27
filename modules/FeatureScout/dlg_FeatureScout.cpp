@@ -391,8 +391,8 @@ void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
 	{
 		int i = item->index().row();
 		columnVisibility[i] = (item->checkState() == Qt::Checked);
-		this->updatePCColumnVisibility();
-		this->spUpdateSPColumnVisibility();
+		updatePCColumnVisibility();
+		updateSPColumnVisibility();
 	}
 }
 
@@ -624,7 +624,6 @@ void dlg_FeatureScout::initClassTreeModel()
 	this->activeClassItem = stammItem.first();
 }
 
-// calculate the average value of a 1D array
 float dlg_FeatureScout::calculateAverage( vtkDataArray *arr )
 {
 	double av = 0.0;
@@ -648,7 +647,6 @@ QList<QStandardItem *> dlg_FeatureScout::prepareRow( const QString &first, const
 	return rowItems;
 }
 
-// setup connections, define signal and slots
 void dlg_FeatureScout::setupConnections()
 {
 	// create ClassTreeView context menu actions
@@ -2269,7 +2267,7 @@ void dlg_FeatureScout::ClassAddButton()
 		applyClassSelection(selInd, cid, false);
 		matrix->clearSelection();
 		matrix->update();
-		spUpdateSPColumnVisibilityWithVis();
+		updateSPColumnVisibilityWithVis();
 	}
 }
 
@@ -2284,7 +2282,6 @@ void dlg_FeatureScout::applyClassSelection(std::vector<size_t> const & selInd, c
 	}
 }
 
-//apply color index
 void dlg_FeatureScout::applyClassSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const int colorIdx, const bool applyColorMap)
 {
 	retflag = true;
@@ -2299,7 +2296,6 @@ void dlg_FeatureScout::applyClassSelection(bool &retflag, vtkSmartPointer<vtkTab
 	retflag = false;
 }
 
-//applies selection for single object selected in class
 void dlg_FeatureScout::applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries,const uint selectionOID, const int colorIdx, const bool applyColorMap)
 {
 	retflag = true;
@@ -2317,10 +2313,7 @@ void dlg_FeatureScout::applySingleClassObjectSelection(bool &retflag, vtkSmartPo
 	//(classEntries, retflag);
 }
 
-//copy all entries from a chart table to matrix
-//with no selection?
-
-
+//! copy all entries from a chart table to matrix
 void prepareTable(const int rowCount, const int colCount, QSharedPointer<QTableWidget> &spInput, const vtkSmartPointer<vtkTable> &classEntries)
 {
 	spInput->setColumnCount(colCount/*this->csvTable->GetNumberOfColumns()*/);
@@ -2332,7 +2325,6 @@ void prepareTable(const int rowCount, const int colCount, QSharedPointer<QTableW
 	}
 }
 
-//set data from current class to SPM
 void dlg_FeatureScout::setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool &retflag)
 {
 	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
@@ -2354,22 +2346,13 @@ void dlg_FeatureScout::setSPMData(const vtkSmartPointer<vtkTable> &classEntries,
 		return;
 
 	this->matrix->setData(&(*spInput));
-	this->spUpdateSPColumnVisibility();
-
+	this->updateSPColumnVisibility();
 	retflag = false;
-
 }
-
-//set data in SPM selection to class
 
 void dlg_FeatureScout::setSPMData(std::vector<size_t> const & selInd, bool &retflag)
 {
 	retflag = true;
-	/**selInd = (this->matrix->getSelection());*/
-
-	//indezes rausziehen selection indezes;
-
-	//TODO Save data in the selection
 	size_t entriesCount = selInd.size();
 	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
 	const int colCount = (int)this->csvTable->GetNumberOfColumns();
@@ -2381,16 +2364,13 @@ void dlg_FeatureScout::setSPMData(std::vector<size_t> const & selInd, bool &retf
 	//set first colum n ID n
 	prepareTable(entriesCount, colCount, spInput, this->csvTable);
 
-	//set entrys for each row;
-	//TODO ersten eintrag mit 0 und dritten eintrag mit index 2 auswählen?? schauen ob das korrekt ist
 	vtkSmartPointer<vtkAbstractArray> all_rowInd = csvTable->GetColumn(0);
 	int cur_IndRow = 0;
 	//TODO set label ID in first column?
 	bool containsRowInd = false;
 	int rowSavingIndx = 1;
-	for (auto const &curr_selIndx : selInd) {
-
-		//if row index is in selection index
+	for (auto const &curr_selIndx : selInd)
+	{
 		for (int row = 1; row < rowCount + 1; row++)
 		{
 			//skip first row
@@ -2417,15 +2397,14 @@ void dlg_FeatureScout::setSPMData(std::vector<size_t> const & selInd, bool &retf
 		return;
 
 	this->matrix->setData(&(*spInput));
-	this->spUpdateSPColumnVisibility();
+	this->updateSPColumnVisibility();
 	retflag = false;
 }
 
-//set data for single object in class
 void dlg_FeatureScout::setSingleSPMObjectDataSelection(const vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, bool &retflag)
 {
 	QSharedPointer<QTableWidget> spInput = QSharedPointer<QTableWidget>(new QTableWidget);
-	const int colCount = (int)classEntries->GetNumberOfColumns();//->GetNumberOfColumns();
+	const int colCount = (int)classEntries->GetNumberOfColumns();
 	const int rowCount = (int)classEntries->GetNumberOfRows();
 	prepareTable(rowCount, colCount, spInput, classEntries);
 	vtkSmartPointer<vtkAbstractArray> all_rowInd = classEntries->GetColumn(0);
@@ -2437,13 +2416,12 @@ void dlg_FeatureScout::setSingleSPMObjectDataSelection(const vtkSmartPointer<vtk
 
 	for (int row = 1; row < rowCount + 1; row++)
 	{
-
 		//skip first row
 		cur_IndRow = all_rowInd->GetVariantValue(row - 1).ToInt() - 1;
 		//compares current selection index to rowIndex
 		containsRowInd = ((int)selectionOID) == cur_IndRow;
-		if (containsRowInd) {
-
+		if (containsRowInd)
+		{
 			//adds each column entry to vtktable
 			for (int col = 0; col < colCount; col++)
 			{
@@ -2464,11 +2442,10 @@ void dlg_FeatureScout::setSingleSPMObjectDataSelection(const vtkSmartPointer<vtk
 
 	this->matrix->setData(&(*spInput));
 	this->matrix->update();
-	this->spUpdateSPColumnVisibility();
+	this->updateSPColumnVisibility();
 	retflag = false;
 }
 
-//sets color based on color index
 void dlg_FeatureScout::setClassColour(double * rgba, const int colInd)
 {
 	rgba[0] = this->colorList.at(colInd).redF();
@@ -2483,7 +2460,6 @@ void dlg_FeatureScout::spmApplyColorMap(double  rgba[4], const int colInd)
 	setClassColour(rgba, colInd);
 	spmApplyGeneralColorMap(rgba);
 }
-
 
 void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4], double range[2])
 {
@@ -2509,7 +2485,6 @@ void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4], double rang
 	//is this still required?
 	this->matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
 }
-
 
 void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4])
 {
@@ -3093,12 +3068,11 @@ void dlg_FeatureScout::ClassDeleteButton()
 	{
 		bool retFlag = true;
 		applyClassSelection(retFlag, this->chartTable, 0, false);
-		spUpdateSPColumnVisibilityWithVis();
+		updateSPColumnVisibilityWithVis();
 		matrix->clearSelection();
 		matrix->update();
 	}
 }
-
 
 void dlg_FeatureScout::ScatterPlotButton()
 {
@@ -3150,30 +3124,26 @@ void dlg_FeatureScout::ScatterPlotButton()
 		matrix->setSelectionColor(QColor(255, 40, 0, 1));
 
 		// Scatter plot matrix only shows features which are selected in PC-ElementTableModel.
-		spUpdateSPColumnVisibilityWithVis();
+		updateSPColumnVisibilityWithVis();
 
 		//connects signal from SPM selection to PCView
 		connect(matrix, &iAQSplom::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
 	}
 }
 
-void dlg_FeatureScout::spUpdateSPColumnVisibility()
+void dlg_FeatureScout::updateSPColumnVisibility()
 {
 	if (!this->spmActivated)
 		return;
-	for ( int j = 0; j < elementNr; ++j )
-		matrix->setParameterVisibility( csvTable->GetColumnName( j ), columnVisibility[j] );
-	matrix->update();
+	matrix->setParameterVisibility( columnVisibility );
 }
 
-
-void dlg_FeatureScout::spUpdateSPColumnVisibilityWithVis()
+void dlg_FeatureScout::updateSPColumnVisibilityWithVis()
 {
 	matrix->showAllPlots(false);
-	spUpdateSPColumnVisibility();
+	updateSPColumnVisibility();
 	matrix->showDefaultMaxizimedPlot();
 }
-
 
 void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 {	// If scatter plot selection changes, Parallel Coordinates gets informed
@@ -3427,7 +3397,7 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 					bool returnFlag = false;
 					this->applyClassSelection(returnFlag, this->chartTable, index.row(), true);
 					if (returnFlag) return;
-					this->spUpdateSPColumnVisibilityWithVis();
+					this->updateSPColumnVisibilityWithVis();
 				}
 			}
 		}
@@ -3490,7 +3460,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 					matrix->update();
 					bool returnFlag = false;
 					this->applyClassSelection(returnFlag, this->chartTable, index.row(), false);
-					this->spUpdateSPColumnVisibilityWithVis();
+					this->updateSPColumnVisibilityWithVis();
 					if (returnFlag) return;
 				}
 			}
@@ -3550,7 +3520,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			applyClassSelection(retflag, chartTable, colorID, false); // TODO: CHECK!
 			matrix->setSelection(selInd);
 			matrix->update();
-			spUpdateSPColumnVisibilityWithVis();
+			updateSPColumnVisibilityWithVis();
 		}
 	}
 }
@@ -3617,7 +3587,6 @@ void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStand
 		writer->writeEndElement(); // end class tag
 	}
 }
-
 
 void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 {
@@ -4077,7 +4046,6 @@ void dlg_FeatureScout::drawPolarPlotMesh( vtkRenderer *renderer )
 	renderer->AddActor( actor );
 }
 
-
 void dlg_FeatureScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType )
 {
 	// Default: RenderTpye = 0
@@ -4405,7 +4373,7 @@ void dlg_FeatureScout::setupPolarPlotResolution( float grad )
 	gThe = gThe + 1;
 }
 
-int dlg_FeatureScout::OpenBlobVisDialog()
+bool dlg_FeatureScout::OpenBlobVisDialog()
 {
 	QStringList inList = ( QStringList()
 						   << tr( "^Range:" )
@@ -4446,79 +4414,65 @@ int dlg_FeatureScout::OpenBlobVisDialog()
 		<< tr( "%1" ).arg( blob ? blob->GetDimensions()[1] : blobManager->GetDimensions()[1] )
 		<< tr( "%1" ).arg( blob ? blob->GetDimensions()[2] : blobManager->GetDimensions()[2] );
 	dlg_commoninput dlg( this, "Blob rendering preferences", inList, inPara, NULL );
+	if ( dlg.exec() != QDialog::Accepted )
+		return false;
+	int i = 0;
+	blobManager->SetRange               ( dlg.getDblValue(i++) );
+	blobManager->SetShowBlob            ( dlg.getCheckValue(i++) != 0 );
+	blobManager->SetUseDepthPeeling     ( dlg.getCheckValue(i++) );
+	blobManager->SetBlobOpacity         ( dlg.getDblValue(i++) );
+	blobManager->SetSilhouettes         ( dlg.getCheckValue(i++) != 0 );
+	blobManager->SetSilhouetteOpacity   ( dlg.getDblValue(i++) );
+	blobManager->SetLabeling            ( dlg.getCheckValue(i++) != 0 );
+	blobManager->SetOverlappingEnabled  ( dlg.getCheckValue(i++) != 0 );
+	blobManager->SetOverlapThreshold    ( dlg.getDblValue(i++) );
+	blobManager->SetSmoothing           ( dlg.getCheckValue(i++) );
+	blobManager->SetGaussianBlur        ( dlg.getCheckValue(i++) );
+	blobManager->SetGaussianBlurVariance( dlg.getIntValue(i++) );
 
-	if ( dlg.exec() == QDialog::Accepted )
-	{
-		int i = 0;
-		blobManager->SetRange               ( dlg.getDblValue(i++) );
-		blobManager->SetShowBlob            ( dlg.getCheckValue(i++) != 0 );
-		blobManager->SetUseDepthPeeling     ( dlg.getCheckValue(i++) );
-		blobManager->SetBlobOpacity         ( dlg.getDblValue(i++) );
-		blobManager->SetSilhouettes         ( dlg.getCheckValue(i++) != 0 );
-		blobManager->SetSilhouetteOpacity   ( dlg.getDblValue(i++) );
-		blobManager->SetLabeling            ( dlg.getCheckValue(i++) != 0 );
-		blobManager->SetOverlappingEnabled  ( dlg.getCheckValue(i++) != 0 );
-		blobManager->SetOverlapThreshold    ( dlg.getDblValue(i++) );
-		blobManager->SetSmoothing           ( dlg.getCheckValue(i++) );
-		blobManager->SetGaussianBlur        ( dlg.getCheckValue(i++) );
-		blobManager->SetGaussianBlurVariance( dlg.getIntValue(i++) );
-
-		int dimens[3];
-		dimens[0] = dlg.getIntValue(i++);
-		dimens[1] = dlg.getIntValue(i++);
-		dimens[2] = dlg.getIntValue(i++);
-		blobManager->SetDimensions( dimens );
-		return 1;
-	}
-	else
-		return 0;
+	int dimens[3];
+	dimens[0] = dlg.getIntValue(i++);
+	dimens[1] = dlg.getIntValue(i++);
+	dimens[2] = dlg.getIntValue(i++);
+	blobManager->SetDimensions( dimens );
+	return true;
 }
 
 void dlg_FeatureScout::SaveBlobMovie()
 {
 	QString movie_file_types = GetAvailableMovieFormats();
-
-	// If VTK was built without video support,
-	// display error message and quit.
 	if ( movie_file_types.isEmpty() )
 	{
 		QMessageBox::information( this, "Movie Export", "Sorry, but movie export support is disabled." );
 		return;
 	}
-
-	QString mode;
-	int imode = 0;
-	{
-		QStringList modes = ( QStringList() << tr( "No rotation" ) << tr( "Rotate Z" ) << tr( "Rotate X" ) << tr( "Rotate Y" ) );
-		QStringList inList = ( QStringList() << tr( "+Rotation mode" ) );
-		QList<QVariant> inPara = ( QList<QVariant>() << modes );
-
-		dlg_commoninput dlg( this, "Save movie options", inList, inPara, NULL );
-		if ( dlg.exec() == QDialog::Accepted )
-		{
-			mode = dlg.getComboBoxValue(0);
-			imode = dlg.getComboBoxIndex(0);
-		}
-	}
-
-	QStringList inList = ( QStringList()//TODO: fails if the same string for several widgets
-						   << tr( "*Number of frames:" )
-						   << tr( "^Range from:" ) << tr( "^Range to:" )
-						   << tr( "$Blob body:" )
-						   << tr( "^Blob opacity [0,1]:" ) << tr( "^Blob opacity to:" )
-						   << tr( "$Silhouettes:" )
-						   << tr( "^Silhouettes opacity [0,1]:" ) << tr( "^Silhouettes opacity to:" )
-						   << tr( "$3D labels:" )
-						   << tr( "$Smart overlapping:" )
-						   << tr( "^Separation distance (if smart overlapping):" ) << tr( "^ Separation distance to:" )
-						   << tr( "$Smooth after smart overlapping:" )
-						   << tr( "$Gaussian blurring of the blob:" )
-						   << tr( "*Gaussian blur variance:" ) << tr( "*Gaussian blur variance to:" )
-						   << tr( "*Dimension X" ) << tr( "*Dimension X to:" )
-						   << tr( "*Dimension Y" ) << tr( "*Dimension Y to:" )
-						   << tr( "*Dimension Z" ) << tr( "*Dimension Z to:" )
-						   );
-	QList<QVariant> inPara;
+	QStringList modes = ( QStringList() << tr( "No rotation" ) << tr( "Rotate Z" ) << tr( "Rotate X" ) << tr( "Rotate Y" ) );
+	QStringList inList = ( QStringList() << tr( "+Rotation mode" ) );
+	QList<QVariant> inPara = ( QList<QVariant>() << modes );
+	dlg_commoninput dlg( this, "Save movie options", inList, inPara, NULL );
+	if ( dlg.exec() != QDialog::Accepted )
+		return;
+	QString mode = dlg.getComboBoxValue(0);
+	int imode = dlg.getComboBoxIndex(0);
+	inList.clear();
+	inList = ( QStringList()
+		<< tr( "*Number of frames:" )
+		<< tr( "^Range from:" ) << tr( "^Range to:" )
+		<< tr( "$Blob body:" )
+		<< tr( "^Blob opacity [0,1]:" ) << tr( "^Blob opacity to:" )
+		<< tr( "$Silhouettes:" )
+		<< tr( "^Silhouettes opacity [0,1]:" ) << tr( "^Silhouettes opacity to:" )
+		<< tr( "$3D labels:" )
+		<< tr( "$Smart overlapping:" )
+		<< tr( "^Separation distance (if smart overlapping):" ) << tr( "^ Separation distance to:" )
+		<< tr( "$Smooth after smart overlapping:" )
+		<< tr( "$Gaussian blurring of the blob:" )
+		<< tr( "*Gaussian blur variance:" ) << tr( "*Gaussian blur variance to:" )
+		<< tr( "*Dimension X" ) << tr( "*Dimension X to:" )
+		<< tr( "*Dimension Y" ) << tr( "*Dimension Y to:" )
+		<< tr( "*Dimension Z" ) << tr( "*Dimension Z to:" )
+		);
+	inPara.clear();
 	inPara
 		<< tr( "%1" ).arg( 24 )
 		<< tr( "%1" ).arg( blobManager->GetRange() ) << tr( "%1" ).arg( blobManager->GetRange() )
@@ -4535,63 +4489,60 @@ void dlg_FeatureScout::SaveBlobMovie()
 		<< tr( "%1" ).arg( blobManager->GetDimensions()[0] ) << tr( "%1" ).arg( blobManager->GetDimensions()[0] )
 		<< tr( "%1" ).arg( blobManager->GetDimensions()[1] ) << tr( "%1" ).arg( blobManager->GetDimensions()[1] )
 		<< tr( "%1" ).arg( blobManager->GetDimensions()[2] ) << tr( "%1" ).arg( blobManager->GetDimensions()[2] );
-	dlg_commoninput dlg( this, "Blob rendering preferences", inList, inPara, NULL );
-
-	if ( dlg.exec() == QDialog::Accepted )
-	{
-		int i = 0;
-		double range[2];
-		double blobOpacity[2];
-		double silhouetteOpacity[2];
-		double overlapThreshold[2];
-		double gaussianBlurVariance[2];
-		int dimX[2]; int dimY[2]; int dimZ[2];
-
-		size_t numFrames = dlg.getIntValue(i++);
-		for ( int ind = 0; ind < 2; ++ind )
-			range[ind] = dlg.getDblValue(i++);
-		blobManager->SetShowBlob( dlg.getCheckValue(i++) != 0 );
-		for ( int ind = 0; ind < 2; ++ind )
-			blobOpacity[ind] = dlg.getDblValue(i++);
-		blobManager->SetSilhouettes( dlg.getCheckValue(i++) != 0 );
-		for ( int ind = 0; ind < 2; ++ind )
-			silhouetteOpacity[ind] = dlg.getDblValue(i++);
-		blobManager->SetLabeling( dlg.getCheckValue(i++) != 0 );
-		blobManager->SetOverlappingEnabled( dlg.getCheckValue(i++) != 0 );
-		for ( int ind = 0; ind < 2; ++ind )
-			overlapThreshold[ind] = dlg.getDblValue(i++);
-		blobManager->SetSmoothing( dlg.getCheckValue(i++) );
-		blobManager->SetGaussianBlur( dlg.getCheckValue(i++) );
-		for ( int ind = 0; ind < 2; ++ind )
-			gaussianBlurVariance[ind] = dlg.getIntValue(i++);
-
-		for ( int ind = 0; ind < 2; ++ind )	dimX[ind] = dlg.getIntValue(i++);
-		for ( int ind = 0; ind < 2; ++ind )	dimY[ind] = dlg.getIntValue(i++);
-		for ( int ind = 0; ind < 2; ++ind )	dimZ[ind] = dlg.getIntValue(i++);
-
-		QFileInfo fileInfo = activeChild->getFileInfo();
-
-		blobManager->SaveMovie( activeChild,
-								raycaster,
-								raycaster->GetRenderer()->GetActiveCamera(),
-								raycaster->GetInteractor(),
-								raycaster->GetRenderWindow(),
-								numFrames,
-								range,
-								blobOpacity,
-								silhouetteOpacity,
-								overlapThreshold,
-								gaussianBlurVariance,
-								dimX, dimY, dimZ,
-								QFileDialog::getSaveFileName(
-								this,
-								tr( "Export movie %1" ).arg( mode ),
-								fileInfo.absolutePath() + "/" + ( ( mode.isEmpty() ) ? fileInfo.baseName() : fileInfo.baseName() + "_" + mode ), movie_file_types ),
-								imode
-								);
-	}
-	else
+	dlg_commoninput dlg2( this, "Blob rendering preferences", inList, inPara, NULL );
+	if ( dlg2.exec() != QDialog::Accepted )
 		return;
+	
+	int i = 0;
+	double range[2];
+	double blobOpacity[2];
+	double silhouetteOpacity[2];
+	double overlapThreshold[2];
+	double gaussianBlurVariance[2];
+	int dimX[2]; int dimY[2]; int dimZ[2];
+
+	size_t numFrames = dlg.getIntValue(i++);
+	for ( int ind = 0; ind < 2; ++ind )
+		range[ind] = dlg.getDblValue(i++);
+	blobManager->SetShowBlob( dlg.getCheckValue(i++) != 0 );
+	for ( int ind = 0; ind < 2; ++ind )
+		blobOpacity[ind] = dlg.getDblValue(i++);
+	blobManager->SetSilhouettes( dlg.getCheckValue(i++) != 0 );
+	for ( int ind = 0; ind < 2; ++ind )
+		silhouetteOpacity[ind] = dlg.getDblValue(i++);
+	blobManager->SetLabeling( dlg.getCheckValue(i++) != 0 );
+	blobManager->SetOverlappingEnabled( dlg.getCheckValue(i++) != 0 );
+	for ( int ind = 0; ind < 2; ++ind )
+		overlapThreshold[ind] = dlg.getDblValue(i++);
+	blobManager->SetSmoothing( dlg.getCheckValue(i++) );
+	blobManager->SetGaussianBlur( dlg.getCheckValue(i++) );
+	for ( int ind = 0; ind < 2; ++ind )
+		gaussianBlurVariance[ind] = dlg.getIntValue(i++);
+
+	for ( int ind = 0; ind < 2; ++ind )	dimX[ind] = dlg.getIntValue(i++);
+	for ( int ind = 0; ind < 2; ++ind )	dimY[ind] = dlg.getIntValue(i++);
+	for ( int ind = 0; ind < 2; ++ind )	dimZ[ind] = dlg.getIntValue(i++);
+
+	QFileInfo fileInfo = activeChild->getFileInfo();
+
+	blobManager->SaveMovie( activeChild,
+		raycaster,
+		raycaster->GetRenderer()->GetActiveCamera(),
+		raycaster->GetInteractor(),
+		raycaster->GetRenderWindow(),
+		numFrames,
+		range,
+		blobOpacity,
+		silhouetteOpacity,
+		overlapThreshold,
+		gaussianBlurVariance,
+		dimX, dimY, dimZ,
+		QFileDialog::getSaveFileName(
+		this,
+		tr( "Export movie %1" ).arg( mode ),
+		fileInfo.absolutePath() + "/" + ( ( mode.isEmpty() ) ? fileInfo.baseName() : fileInfo.baseName() + "_" + mode ), movie_file_types ),
+		imode
+	);
 }
 
 void dlg_FeatureScout::initFeatureScoutUI()

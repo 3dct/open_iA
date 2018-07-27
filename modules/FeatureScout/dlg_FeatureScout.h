@@ -111,7 +111,6 @@ private slots:
 	void WisetexSaveButton();
 	void CsvDVSaveButton();
 	void RenderingOrientation();
-	void updatePCColumnValues(QStandardItem *item);
 	void classClicked(const QModelIndex &index);
 	void classDoubleClicked(const QModelIndex &index);
 	void EnableBlobRendering();
@@ -119,12 +118,16 @@ private slots:
 	void showContextMenu(const QPoint &pnt);
 	void deleteObject();
 	void addObject();
+	//! @{ scatterplot-related methods:
 	void spBigChartMouseButtonPressed(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopup(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopupSelection(QAction *selection);
 	void spSelInformsPCChart(std::vector<size_t> const & selInds);
-	void spUpdateSPColumnVisibility();
+	//! @}
+	//! @{ parallel coordinate chart related methods:
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
+	void updatePCColumnValues(QStandardItem *item);
+	//! @}
 	void modifyMeanObjectTF();
 	void updateMOView();
 	void browseFolderDialog();
@@ -134,40 +137,57 @@ private slots:
 private:
 	void setupModel();
 	void setupViews();
-	void setupConnections();
-	void setupPolarPlotView(vtkTable *it);
+	void setupConnections();  //! define signal and slots connections
 	void initColumnVisibility();
 	void initElementTableModel(int idx = -10000);
 	void initClassTreeModel();
 	void initFeatureScoutUI();
-	void updatePolarPlotColorScalar(vtkTable *it);
 	void updateObjectOrientationID(vtkTable *table);
+	//! @{ polar plot related methods:
+	void setupPolarPlotView(vtkTable *it);
+	void updatePolarPlotColorScalar(vtkTable *it);
 	void createPolarPlotLookupTable(vtkLookupTable *lut);
 	void createFLDODLookupTable(vtkLookupTable *lut, int Num);
 	void drawPolarPlotMesh(vtkRenderer *renderer);
 	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
+	//! @}
+	//! @{ scatterplot-related methods:
+	void updateSPColumnVisibility();
+	void updateSPColumnVisibilityWithVis();
+	void ScatterPlotButton();
+	void setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool & retflag); //!< set data from current class to SPM
+	void setSPMData(std::vector<size_t> const & selInd, bool &retflag);  //!< set data in SPM selection to class
+	//! set data for single object in class
+	void setSingleSPMObjectDataSelection(const vtkSmartPointer<vtkTable>& classEntries, const uint selectionOID, bool & retflag);
+	void spmApplyColorMap(double  rgba[4], const int colInd);
+	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
+	void spmApplyGeneralColorMap(const double rgba[4]);
+	//! @}
+	//! @{ parallel coordinate chart related methods:
 	void setPCChartData(bool lookupTable = false);
+	void updatePCColumnVisibility();
+	//! @}
 	void calculateElementTable();
 	void setActiveClassItem(QStandardItem* item, int situ = 0);
 	double calculateOpacity(QStandardItem *item);
 	void recalculateChartTable(QStandardItem *item);
-	void SingleRendering(int idx = -10000);
 	void updateLookupTable(double alpha = 0.7);
-	void updatePCColumnVisibility();
 	void updateClassStatistics(QStandardItem *item);
 	int calcOrientationProbability(vtkTable *t, vtkTable *ot);
 	QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third);
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
 	void writeWisetex(QXmlStreamWriter *writer);
 	void autoAddClass(int NbOfClasses);
-	int OpenBlobVisDialog();
+	bool OpenBlobVisDialog();
+	//! @{ 3D-rendering-related methods:
+	void SingleRendering(int idx = -10000);
 	void RenderingButton();
 	void RealTimeRendering(vtkIdTypeArray *selection);
 	void RenderingMeanObject();
-	void ScatterPlotButton();
 	void RenderingFLD();
+	//! @}
 
 	//! selection for each class and show SPM for it
 	void applyClassSelection(std::vector<size_t> const & selInd, const int colorIdx, const bool applyColorMap);
@@ -175,15 +195,8 @@ private:
 	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> &classEntries, const int colInd, const bool applyColorMap);
 	//! highlights single object in class
 	void applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, const int colorIdx, const bool applyColorMap);
-
-	void setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool & retflag);
-	void setSPMData(std::vector<size_t> const & selInd, bool &retflag);
-	void setSingleSPMObjectDataSelection(const vtkSmartPointer<vtkTable>& classEntries, const uint selectionOID, bool & retflag);
+	//! sets color based on color index
 	void setClassColour(double * rgba, const int colInd);
-	void spmApplyColorMap(double  rgba[4], const int colInd);
-	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
-	void spmApplyGeneralColorMap(const double rgba[4]);
-	void spUpdateSPColumnVisibilityWithVis();
 
 	// members referencing MdiChild
 	MdiChild *activeChild;
@@ -202,8 +215,7 @@ private:
 	const QString sourcePath;
 	vtkSmartPointer<vtkStringArray> nameArr;
 
-	// calculate the average value of a 1D array
-	float calculateAverage(vtkDataArray* arr);
+	float calculateAverage(vtkDataArray* arr); //!< calculate the average value of a 1D array
 
 	// input csv table with all objects, column names updated for vtk rendering problem
 	// by solving this rendering problem satisfacted here a pointer to the orginal table
@@ -222,7 +234,7 @@ private:
 	int pcMaxC; // maximal count of the object orientation
 
 	// column visibility list
-	QVector<bool> columnVisibility;
+	std::vector<bool> columnVisibility;
 	// color lookup table for PC view
 	vtkSmartPointer<vtkLookupTable> lut;
 
