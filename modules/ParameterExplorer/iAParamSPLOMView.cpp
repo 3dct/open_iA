@@ -164,7 +164,7 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 
 void iAParamSPLOMView::UpdateFeatVisibilty(int)
 {
-	for (int i = 0; i < m_featCB.size(); ++i)
+	for (size_t i = 0; i < m_featCB.size(); ++i)
 		m_splom->setParameterVisibility(m_tableView->Table()->item(0, i+1)->text(), m_featCB[i]->isChecked());
 }
 

@@ -28,9 +28,10 @@
 class iAScatterPlotSelectionHandler
 {
 public:
-	virtual std::vector<size_t> & getSelection() = 0;
-	virtual std::vector<size_t> const & getSelection() const = 0;
-	virtual std::vector<size_t> const & getHighlightedPoints() const = 0;
+	typedef std::vector<size_t> SelectionType;
+	virtual SelectionType & getSelection() = 0;
+	virtual SelectionType const & getSelection() const = 0;
+	virtual SelectionType const & getHighlightedPoints() const = 0;
 	virtual int getVisibleParametersCount() const = 0;
 	virtual double getAnimIn() const = 0;
 	virtual double getAnimOut() const = 0;

@@ -925,37 +925,36 @@ void iAScatterPlot::createAndFillVBO()
 void iAScatterPlot::fillVBO()
 {
 	//draw data points
-	if ( hasData() )
+	if ( !hasData() )
+		return;
+	size_t vcount = 3 * m_splomData->numPoints();
+	size_t ccount = 4 * m_splomData->numPoints();
+	int elSz = 7;
+	GLfloat * buffer = new GLfloat[vcount + ccount];
+	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
 	{
-		size_t vcount = 3 * m_splomData->numPoints();
-		size_t ccount = 4 * m_splomData->numPoints();
-		int elSz = 7;
-		GLfloat * buffer = new GLfloat[vcount + ccount];
-		for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
+		double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[i] );
+		double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[i] );
+		buffer[elSz * i + 0] = tx;
+		buffer[elSz * i + 1] = ty;
+		buffer[elSz * i + 2] = 0.0;
+		if ( m_lut->initialized() )
 		{
-			double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[i] );
-			double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[i] );
-			buffer[elSz * i + 0] = tx;
-			buffer[elSz * i + 1] = ty;
-			buffer[elSz * i + 2] = 0.0;
-			if ( m_lut->initialized() )
-			{
-				double val = m_splomData->paramData( m_colInd )[i];
-				double rgba[4]; m_lut->getColor( val, rgba );
-				buffer[elSz * i + 3] = rgba[0];
-				buffer[elSz * i + 4] = rgba[1];
-				buffer[elSz * i + 5] = rgba[2];
-				buffer[elSz * i + 6] = rgba[3];
-			}
+			double val = m_splomData->paramData( m_colInd )[i];
+			double rgba[4]; m_lut->getColor( val, rgba );
+			buffer[elSz * i + 3] = rgba[0];
+			buffer[elSz * i + 4] = rgba[1];
+			buffer[elSz * i + 5] = rgba[2];
+			buffer[elSz * i + 6] = rgba[3];
 		}
-		m_pointsBuffer->allocate( buffer, ( vcount + ccount ) * sizeof( GLfloat ) );
-		delete[] buffer;
 	}
+	m_pointsBuffer->allocate( buffer, ( vcount + ccount ) * sizeof( GLfloat ) );
+	delete[] buffer;
 }
 
 void iAScatterPlot::setSelectionColor(QColor selCol)
 {
-	this->settings.selectionColor = selCol;
+	settings.selectionColor = selCol;
 }
 
 double iAScatterPlot::getPointRadius() const

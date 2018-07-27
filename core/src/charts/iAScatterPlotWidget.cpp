@@ -33,19 +33,19 @@
 class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {
 public:
-	virtual std::vector<size_t> & getSelection() override
+	virtual SelectionType & getSelection() override
 	{
 		return m_selection;
 	}
-	virtual std::vector<size_t> const & getSelection() const override
+	virtual SelectionType const & getSelection() const override
 	{
 		return m_selection;
 	}
-	void setSelection(std::vector<size_t> const & selection)
+	void setSelection(SelectionType const & selection)
 	{
 		m_selection = selection;
 	}
-	std::vector<size_t> const & getHighlightedPoints() const override
+	SelectionType const & getHighlightedPoints() const override
 	{
 		return m_highlight;
 	}
@@ -62,8 +62,8 @@ public:
 		return 0.0;
 	}
 private:
-	std::vector<size_t> m_highlight;
-	std::vector<size_t> m_selection;
+	SelectionType m_highlight;
+	SelectionType m_selection;
 };
 
 namespace

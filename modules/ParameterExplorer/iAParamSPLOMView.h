@@ -21,7 +21,6 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QVector>
 #include <QWidget>
 
 #include <vector>
@@ -54,5 +53,5 @@ private:
 	vtkSmartPointer<vtkColorTransferFunction> m_selection_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_selection_otf;
 	QWidget* m_settings;
-	QVector<QCheckBox*> m_featCB;
+	std::vector<QCheckBox*> m_featCB;
 };
