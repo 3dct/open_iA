@@ -21,8 +21,10 @@
 #pragma once
 
 #include "ui_dlg_TripleHistogramTF.h"
-#include "mdichild.h"
 #include "iAQTtoUIConnector.h"
+
+//class MdiChild;
+#include "mdichild.h"
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
 

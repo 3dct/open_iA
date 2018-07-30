@@ -25,30 +25,43 @@
 #include "iAModalityWidget.h"
 #include "iABarycentricTriangleWidget.h"
 
+// TODO: why tf do I need this?
+#include "iAModalityList.h"
+
 dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	TripleHistogramTFConnector(mdiChild, f)
 {
 	QWidget *histogramStackContainer = new QWidget();
-	
-	/*QLabel *modality1 = new QLabel(histogramStackContainer);
-	modality1->setText("Modality 1");
-
-	QLabel *modality2 = new QLabel(histogramStackContainer);
-	modality2->setText("Modality 2");
-
-	QLabel *modality3 = new QLabel(histogramStackContainer);
-	modality3->setText("Modality 3");*/
-
-	iAModalityWidget *modality1 = new iAModalityWidget(histogramStackContainer, mdiChild);
-	iAModalityWidget *modality2 = new iAModalityWidget(histogramStackContainer, mdiChild);
-	iAModalityWidget *modality3 = new iAModalityWidget(histogramStackContainer, mdiChild);
-
 	QVBoxLayout *histogramStackContainerLayout = new QVBoxLayout(histogramStackContainer);
-	histogramStackContainerLayout->addWidget(modality1);
-	histogramStackContainerLayout->addWidget(modality2);
-	histogramStackContainerLayout->addWidget(modality3);
+
+	iAModalityWidget *modality1, *modality2, *modality3;
+	// TODO: load 3 DIFFERENT modalities
+	if (mdiChild->GetModalities()->size() > 0)
+	{
+		iAModalityWidget *modalities[3];
+		int i = 0;
+		for (int j = 0; j < 3/*mdiChild->GetModalities()->size()*/; ++j)
+		{
+			modalities[j] = new iAModalityWidget(histogramStackContainer, mdiChild->GetModality(i), mdiChild);
+			histogramStackContainerLayout->addWidget(modalities[j]);
+		}
+		modality1 = modalities[0];
+		modality2 = modalities[1];
+		modality3 = modalities[2];
+	}
 
 	iABarycentricTriangleWidget *triangle = new iABarycentricTriangleWidget(dockWidgetContents);
+	
+	// TODO: I'm confused here with the references and pointers
+	connect(
+		triangle, &iABarycentricTriangleWidget::weightChanged,
+		[=](const BCoord bCoord)
+		{
+			modality1->setWeight(bCoord.getAlpha());
+			modality2->setWeight(bCoord.getBeta());
+			modality3->setWeight(bCoord.getGamma());
+		}
+	);
 
 	QLayout *mainLayout = dockWidgetContents->layout();
 	mainLayout->addWidget(histogramStackContainer);

@@ -28,15 +28,15 @@ BCoord::BCoord(double alpha, double beta) :
 {
 }
 
-BCoord::BCoord(BarycentricTriangle *triangle, double x, double y)
+BCoord::BCoord(BarycentricTriangle triangle, double x, double y)
 {
 	double x1, y1, x2, y2, x3, y3;
-	x1 = triangle->getXa();
-	y1 = triangle->getYa();
-	x2 = triangle->getXb();
-	y2 = triangle->getYb();
-	x3 = triangle->getXc();
-	y3 = triangle->getYc();
+	x1 = triangle.getXa();
+	y1 = triangle.getYa();
+	x2 = triangle.getXb();
+	y2 = triangle.getYb();
+	x3 = triangle.getXc();
+	y3 = triangle.getYc();
 
 	double x_x3 = x - x3;
 	double y_y3 = y - y3;

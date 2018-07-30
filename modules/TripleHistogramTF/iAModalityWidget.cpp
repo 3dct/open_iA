@@ -21,9 +21,19 @@
  
 #include "iAModalityWidget.h"
 
+#include "vtkImageData.h"
+
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QString>
 
+// Debug
+#include <QDebug>
+
+// TODO: does this belong here?
+static const char *m_weightFormat = "%.10f";
+
+// Required to load histogram
 #include "iAModalityList.h"
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
@@ -33,51 +43,87 @@
 #include "charts/iAProfileWidget.h"
 #include "iAPreferences.h"
 
-iAModalityWidget::iAModalityWidget(QWidget * parent, MdiChild * mdiChild, Qt::WindowFlags f /*= 0 */) :
+// Required to create slicer
+#include "vtkColorTransferFunction.h"
+#include "vtkCamera.h"
+#include "iASlicerData.h"
+
+iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> modality, MdiChild *mdiChild, Qt::WindowFlags f /*= 0 */) :
 	QWidget(parent, f)
 {
 	QWidget *rightWidget = new QWidget(this);
 
-	QLabel *slicer = new QLabel(rightWidget);
-	slicer->setText("Slicer");
+	//QLabel *slicer = new QLabel(rightWidget);
+	//slicer->setText("Slicer");
 
-	QLabel *weight = new QLabel(rightWidget);
-	weight->setText("Weight");
+	vtkImageData *imageData = mdiChild->getImageData();
 
-	QVBoxLayout *rightWidgetLayout = new QVBoxLayout(rightWidget);
-	rightWidgetLayout->addWidget(slicer);
-	rightWidgetLayout->addWidget(weight);
+	// ----------------------------------------------------------------------------------------------------------
+	// Initialize histogram
 
-	//QLabel *histogram = new QLabel(this);
-	//histogram->setText("Histogram");
+	QWidget *slicerWidget = new QWidget(rightWidget);
+	slicer = new iASlicer(rightWidget, iASlicerMode::XY, slicerWidget,
+		// Value of shareWidget is defaulted to 0 in the iASlicer constructor... that's why I do that here
+		// TODO: do this in a better way?
+		/*QGLWidget * shareWidget = */0,
+		/*Qt::WindowFlags f = */f,
+		/*bool decorations = */false); // Hide everything except the slice itself
 
-	QHBoxLayout *mainLayout = new QHBoxLayout(this);
-	//mainLayout->addWidget(histogram);
-	
-	// TODO: move
-	if (mdiChild->GetModalities()->size() > 0)
+	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->GetColorFunction();
+	slicerTransform = vtkTransform::New();
+	slicer->initializeData(imageData, slicerTransform, colorFunction);
+
+	// TODO: deactivate interaction with the slice (zoom, pan, etc)
+	// TODO: fill widget with the sliced image
+
+	int dimz = imageData->GetDimensions()[2]; // length of the Z dimension
+	slicer->setSliceNumber(dimz/2); // set slice on to half of the volume
+
+	// Initialize slicer
+	// ----------------------------------------------------------------------------------------------------------
+	// Initialize histogram
+
+	if (!modality->GetHistogramData() || modality->GetHistogramData()->GetNumBin() != mdiChild->GetPreferences().HistogramBins)
 	{
-		for (int i = 0; i < mdiChild->GetModalities()->size(); ++i)
-		{
-			if (!mdiChild->GetModality(i)->GetHistogramData() || mdiChild->GetModality(i)->GetHistogramData()->GetNumBin() != mdiChild->GetPreferences().HistogramBins)
-			{
-				mdiChild->GetModality(i)->ComputeImageStatistics();
-				mdiChild->GetModality(i)->ComputeHistogramData(mdiChild->GetPreferences().HistogramBins);
-			}
-
-			iADiagramFctWidget* histogram = new iADiagramFctWidget(0, mdiChild);
-			QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
-				new	iABarGraphDrawer(mdiChild->GetModality(i)->GetHistogramData(), QColor(70, 70, 70, 255)));
-			histogram->AddPlot(histogramPlot);
-			histogram->SetTransferFunctions(mdiChild->GetModality(i)->GetTransfer()->GetColorFunction(),
-				mdiChild->GetModality(i)->GetTransfer()->GetOpacityFunction());
-			mainLayout->addWidget(histogram);
-			histogram->updateTrf();
-		}
+		modality->ComputeImageStatistics();
+		modality->ComputeHistogramData(mdiChild->GetPreferences().HistogramBins);
 	}
 
+	iADiagramFctWidget* histogram = new iADiagramFctWidget(this, mdiChild);
+	QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
+		new	iABarGraphDrawer(modality->GetHistogramData(), QColor(70, 70, 70, 255)));
+	histogram->AddPlot(histogramPlot);
+	histogram->SetTransferFunctions(modality->GetTransfer()->GetColorFunction(),
+		modality->GetTransfer()->GetOpacityFunction());
+
+	histogram->updateTrf();
+
+	// Initialize histogram
+	// ----------------------------------------------------------------------------------------------------------
+
+
+	m_weightLabel = new QLabel(rightWidget);
+	m_weightLabel->setText("Weight");
+
+	QVBoxLayout *rightWidgetLayout = new QVBoxLayout(rightWidget);
+	rightWidgetLayout->addWidget(slicerWidget);
+	rightWidgetLayout->addWidget(m_weightLabel);
+
+	QHBoxLayout *mainLayout = new QHBoxLayout(this);
+	mainLayout->addWidget((QWidget*) histogram); // TODO: why do I need to cast a subclass into its superclass?
 	mainLayout->addWidget(rightWidget);
 }
 
 iAModalityWidget::~iAModalityWidget()
-{}
+{
+	slicerTransform->Delete();
+
+	delete slicer;
+}
+
+void iAModalityWidget::setWeight(double weight)
+{
+	qDebug() << "Modality widget setWeight(double) method called!";
+	QString text;
+	m_weightLabel->setText(text.sprintf(m_weightFormat, weight));
+}

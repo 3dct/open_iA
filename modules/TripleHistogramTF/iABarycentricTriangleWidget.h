@@ -44,7 +44,7 @@ public slots:
 	//void mouseWheel(QWheelEvent*);
 
 signals:
-
+	void weightChanged(BCoord bCoord);
 
 protected:
 	void initializeGL();
@@ -69,8 +69,9 @@ private:
 	QPen m_controlPointCrossPen;
 
 	void initializeControlPointPaths();
+	void updateControlPointPosition(QPoint newPos);
+	void updateControlPointPosition();
 	void moveControlPointTo(QPoint newPos);
-	void updateControlPointPosition(BCoord bCoord, QPoint newPos);
 
 	void updatePositions(int w, int h);
 	void paintTriangleBorder();

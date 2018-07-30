@@ -33,30 +33,30 @@ BarycentricTriangle::BarycentricTriangle() :
 {
 }
 
-BCoord* BarycentricTriangle::getBarycentricCoordinates(double x, double y)
+BCoord BarycentricTriangle::getBarycentricCoordinates(double x, double y)
 {
-	return new BCoord(this, x, y);
+	return BCoord(*this, x, y);
 }
 
-BCoord* BarycentricTriangle::getBarycentricCoordinatesA()
+BCoord BarycentricTriangle::getBarycentricCoordinatesA()
 {
-	return new BCoord(1, 0);
+	return BCoord(1, 0);
 }
 
-BCoord* BarycentricTriangle::getBarycentricCoordinatesB()
+BCoord BarycentricTriangle::getBarycentricCoordinatesB()
 {
-	return new BCoord(0, 1);
+	return BCoord(0, 1);
 }
 
-BCoord* BarycentricTriangle::getBarycentricCoordinatesC()
+BCoord BarycentricTriangle::getBarycentricCoordinatesC()
 {
-	return new BCoord(0, 0);
+	return BCoord(0, 0);
 }
 
-QPoint* BarycentricTriangle::getCartesianCoordinates(const BCoord &bCoord)
+QPoint BarycentricTriangle::getCartesianCoordinates(const BCoord &bCoord)
 {
-	QPoint* ret = new QPoint();
-	updateCartesianCoordinates(*ret, bCoord);
+	QPoint ret = QPoint();
+	updateCartesianCoordinates(ret, bCoord);
 	return ret;
 }
 

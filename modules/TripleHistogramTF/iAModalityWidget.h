@@ -23,20 +23,30 @@
 #include <QWidget>
 #include "mdichild.h"
 
+// Modality
+#include <QSharedPointer>;
+class iAModality;
+
+// Histogram
+
+
+// Slicer
+#include "iASlicer.h"
+#include "vtkTransform.h"
+
 class iAModalityWidget : public QWidget
 {
 	Q_OBJECT
 
 public:
-	iAModalityWidget(QWidget* parent, MdiChild* mdiChild, Qt::WindowFlags f = 0);
+	iAModalityWidget(QWidget* parent, QSharedPointer<iAModality> modality, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 	~iAModalityWidget();
-
-	void setWeight(double weight);
 
 public slots:
 	//void mousePress(QMouseEvent*);
 	//void mouseMove(QMouseEvent*);
 	//void mouseWheel(QWheelEvent*);
+	void setWeight(double weight);
 
 signals:
 	void slicePixelHovered(unsigned int x, unsigned int y);
@@ -46,5 +56,8 @@ protected:
 
 
 private:
+	QLabel *m_weightLabel;
+	iASlicer *slicer;
+	vtkTransform *slicerTransform;
 	
 };

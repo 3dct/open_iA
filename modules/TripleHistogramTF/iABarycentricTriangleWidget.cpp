@@ -33,6 +33,7 @@
 #include <QDebug>
 
 // Constants
+// TODO: is this really the way to declare constants?
 static const qreal RAD60 = M_PI / 3.0;
 static const qreal SIN60 = sin(RAD60);
 static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
@@ -103,32 +104,16 @@ void iABarycentricTriangleWidget::resizeGL(int w, int h)
 
 void iABarycentricTriangleWidget::mousePressEvent(QMouseEvent *event)
 {
-	int x = event->x();
-	int y = event->y();
-
-	// TODO: remove
-	qDebug() << "Mouse pressed - X: " << x << " | Y: " << y;
-	qDebug() << "Inside triangle? " << m_triangle.getBarycentricCoordinates(x, y)->isInside();
-
-	updateControlPointPosition(*m_triangle.getBarycentricCoordinates(x, y), event->pos());
-
+	updateControlPointPosition(event->pos());
 	update();
 }
 
 void iABarycentricTriangleWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	int x = event->x();
-	int y = event->y();
-
-	// TODO: remove
-	qDebug() << "Mouse moved - X: " << x << " | Y: " << y;
-	qDebug() << "Inside triangle? " << m_triangle.getBarycentricCoordinates(x, y)->isInside();
-	
 	// This should only happen in a mouse DRAG, not mouse MOVE
 	// However, Qt is weird. Therefore, this method is only called on a mouse DRAG
 	// TODO: fix?
-	updateControlPointPosition(*m_triangle.getBarycentricCoordinates(x, y), event->pos());
-
+	updateControlPointPosition(event->pos());
 	update();
 }
 
@@ -166,23 +151,28 @@ void iABarycentricTriangleWidget::updatePositions(int width, int height)
 	m_trianglePainterPath.lineTo(right, bottom);
 	m_trianglePainterPath.lineTo(left, bottom);
 
-	//m_triangle.updateCartesianCoordinates(m_controlPoint, m_controlPointBCoord);
-	//m_controlPointBorderPainterPath.translate(m_c)
-	
-	moveControlPointTo(*m_triangle.getCartesianCoordinates(m_controlPointBCoord));
+	updateControlPointPosition();
 }
 
-void iABarycentricTriangleWidget::updateControlPointPosition(BCoord bCoord, QPoint newPos)
+void iABarycentricTriangleWidget::updateControlPointPosition(QPoint newPos)
 {
+	BCoord bCoord = m_triangle.getBarycentricCoordinates(newPos.x(), newPos.y());
+
 	if (bCoord.isInside())
 	{
 		m_controlPointBCoord = bCoord;
 		moveControlPointTo(newPos);
+		weightChanged(bCoord);
 	}
 	else {
 		// Do nothing for now
-		// TODO: Set point to closes position inside the triangle
+		// TODO: Set point to closes positiont inside the triangle
 	}
+}
+
+void iABarycentricTriangleWidget::updateControlPointPosition()
+{
+	moveControlPointTo(m_triangle.getCartesianCoordinates(m_controlPointBCoord));
 }
 
 void iABarycentricTriangleWidget::moveControlPointTo(QPoint newPos)
@@ -197,8 +187,6 @@ void iABarycentricTriangleWidget::moveControlPointTo(QPoint newPos)
 	int movy = m_controlPoint.y() - m_controlPointOld.y();
 	m_controlPointBorderPainterPath.translate(movx, movy);
 	m_controlPointCrossPainterPath.translate(movx, movy);
-
-	qDebug() << "Moving control point by X=" << movx << " and Y=" << movy;
 }
 
 // ----------------------------------------------------------------------------------------------

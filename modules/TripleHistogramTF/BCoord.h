@@ -27,7 +27,7 @@ class BCoord
 {
 public:
 	BCoord(double alpha, double beta);
-	BCoord(BarycentricTriangle *triangle, double x, double y);
+	BCoord(BarycentricTriangle triangle, double x, double y);
 
 	double getAlpha() const;
 	double getBeta() const;

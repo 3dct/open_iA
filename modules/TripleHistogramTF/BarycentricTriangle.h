@@ -45,12 +45,12 @@ class BarycentricTriangle
 		void setXc(int xc);
 		void setYc(int yc);
 
-		BCoord* getBarycentricCoordinates(double x, double y);
-		BCoord* getBarycentricCoordinatesA();
-		BCoord* getBarycentricCoordinatesB();
-		BCoord* getBarycentricCoordinatesC();
+		BCoord getBarycentricCoordinates(double x, double y);
+		BCoord getBarycentricCoordinatesA();
+		BCoord getBarycentricCoordinatesB();
+		BCoord getBarycentricCoordinatesC();
 
-		QPoint* getCartesianCoordinates(const BCoord &bCoord);
+		QPoint getCartesianCoordinates(const BCoord &bCoord);
 		void updateCartesianCoordinates(QPoint &qPoint, const BCoord &bCoord);
 
 	private:
