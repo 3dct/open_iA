@@ -72,8 +72,7 @@
 const QString defaultColorParam = "Deviat. from Ref.";
 const int popupWidthRange[2] = { 80, 300 };
 
-iASPMView::iASPMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: PorosityAnalyzerSPMConnector( parent, f ),
+iASPMView::iASPMView(MainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : PorosityAnalyzerSPMConnector( parent, f ),
 	m_SPMSettings( new iASPMSettings( this, f ) ),
 	m_SPLOMSelection( vtkSmartPointer<vtkIdTypeArray>::New() ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
@@ -86,7 +85,7 @@ iASPMView::iASPMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() ),
 	m_colorArrayName( defaultColorParam ),
 	m_updateColumnVisibility( true ),
-	m_splom( new iAPAQSplom( parent ) )
+	m_splom( new iAPAQSplom(mWnd, parent) )
 {
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	m_SBQVTKWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());

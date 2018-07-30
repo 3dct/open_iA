@@ -492,9 +492,9 @@
        <widget class="QRadioButton" name="rbNewPipelineData">
         <property name="geometry">
          <rect>
-          <x>97</x>
+          <x>160</x>
           <y>4</y>
-          <width>111</width>
+          <width>161</width>
           <height>17</height>
          </rect>
         </property>
@@ -502,26 +502,10 @@
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Calculates the pore characteristics for every defined pipeline in the table &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>with pore char.</string>
+         <string>With Feature Characteristics</string>
         </property>
         <property name="checked">
          <bool>false</bool>
-        </property>
-       </widget>
-       <widget class="QRadioButton" name="rbExistingPipelineData">
-        <property name="geometry">
-         <rect>
-          <x>200</x>
-          <y>4</y>
-          <width>165</width>
-          <height>17</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Calculates the pore characteristics for all the existing pipeline data in the results folder &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>por char. for old file structure</string>
         </property>
        </widget>
        <widget class="QRadioButton" name="rbNewPipelineDataNoPores">
@@ -529,7 +513,7 @@
          <rect>
           <x>0</x>
           <y>4</y>
-          <width>111</width>
+          <width>151</width>
           <height>17</height>
          </rect>
         </property>
@@ -537,7 +521,7 @@
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Calculates no pore charcteristics for the defined pipelines in the table&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>no pore char.</string>
+         <string>No Feature Characteristics</string>
         </property>
         <property name="checked">
          <bool>true</bool>

@@ -50,11 +50,10 @@
 const int treeViewIndex = 0;
 const int overviewIndex = 1;
 
-iAPorosityAnalyser::iAPorosityAnalyser( const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0 */, Qt::WindowFlags f /*= 0*/ )
-	: PorosityAnalyserConnector( parent, f ),
+iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : PorosityAnalyserConnector( parent, f ),
 	m_dataDir( resDir ),
 	m_datasetsDir( datasetsDir ),
-	m_spmView( new iASPMView( parent, f ) ),
+	m_spmView( new iASPMView(mWnd, parent, f ) ),
 	m_treeView( new iATreeView( 0, f ) ),
 	m_pdmView( new iAPDMView( parent, f ) ),
 	//m_pcView( new iAPCView( parent, f ) ),

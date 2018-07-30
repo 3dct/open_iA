@@ -31,6 +31,8 @@
 #include <QTreeWidget>
 #include <QPair>
 
+#include <iAConsole.h>
+
 iATreeView::iATreeView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) 
     : TreeViewConnector( parent, f ),
     m_contextMenu( new QMenu( this ) ),
@@ -139,9 +141,22 @@ bool iATreeView::calculatedSelectedRunsData( QList<QTreeWidgetItem*> selectedIte
 	//aggregate all runs
 	QList<QTreeWidgetItem *> finalItems = aggregateRuns( m_lastSelectedItems );
 
+	//Debug
+	//for (int i = 0; i < finalItems.size(); ++i)
+	//{
+	//	QString s;
+	//	for (int j = 0; j < finalItems[i]->columnCount(); ++j)
+	//	{
+	//		s.append(finalItems[i]->text(j));
+	//		if (j < finalItems[i]->columnCount() - 1);
+	//		s.append(",");
+	//	}
+	//	DEBUG_LOG(QString(s));
+	//}
+	
 	//insert header
 	m_selectedRunsData->clear();
-	m_selectedRunsData->setColumnCount( inParCnt + outputSPMParamNum + outParCnt + 2 + 3 + 1);//+deviation from rererence+dataset index +3dice errors + mask path
+	m_selectedRunsData->setColumnCount( inParCnt + outputSPMParamNum + outParCnt + 2 + 3 + 6 + 1);//+deviation from rererence+dataset index +3dice errors + 6avg feature outputs + mask path
 	m_selectedRunsData->setRowCount( 1 );
 	int headerOffset = 0;
 	for( int i = 0; i < inParCnt; ++i )
@@ -153,6 +168,13 @@ bool iATreeView::calculatedSelectedRunsData( QList<QTreeWidgetItem*> selectedIte
 	m_selectedRunsData->setItem( 0, headerOffset++, new QTableWidgetItem( "False Positive Error" ) );
 	m_selectedRunsData->setItem( 0, headerOffset++, new QTableWidgetItem( "False Negative Error" ) );
 	m_selectedRunsData->setItem( 0, headerOffset++, new QTableWidgetItem( "Dice" ) );
+	m_selectedRunsData->setItem(0, headerOffset++, new QTableWidgetItem("FeatureCnt"));
+	m_selectedRunsData->setItem(0, headerOffset++, new QTableWidgetItem("AvgFeatureVol"));
+	m_selectedRunsData->setItem(0, headerOffset++, new QTableWidgetItem("AvgFeaturePhi"));
+	m_selectedRunsData->setItem(0, headerOffset++, new QTableWidgetItem("AvgFeatureTheta"));
+	m_selectedRunsData->setItem(0, headerOffset++, new QTableWidgetItem("AvgFeatureRoundness"));
+	m_selectedRunsData->setItem(0, headerOffset++, new QTableWidgetItem("AvgFeatureLength"));
+
 	for( int i = 0; i < outParCnt; ++i )
 		m_selectedRunsData->setItem( 0, headerOffset++, new QTableWidgetItem( outParamNames[i] ) );
 	m_selectedRunsData->setItem( 0, headerOffset++, new QTableWidgetItem( "Mask Path" ) );
@@ -189,21 +211,30 @@ bool iATreeView::calculatedSelectedRunsData( QList<QTreeWidgetItem*> selectedIte
 		//insert dataset index
 		m_selectedRunsData->setItem( lastRow, paramOffset++, new QTableWidgetItem( QString::number( m_datasets.indexOf( datasetName ) ) ) );
 		//insert dice errors
-		int errorInd = m_runsOffset + paramsOffsetInRunsCSV - 3;
-		QString fpe = item->text( errorInd );
+		int errorInd = m_runsOffset + paramsOffsetInRunsCSV - 9;
+		//Debug
+		/*QString fpe = item->text( errorInd );
 		QString fne = item->text( errorInd + 1 );
-		QString dice = item->text( errorInd + 2 );
+		QString dice = item->text( errorInd + 2 );*/
 		m_selectedRunsData->setItem( lastRow, paramOffset++, new QTableWidgetItem( item->text( errorInd++ ) ) );
 		m_selectedRunsData->setItem( lastRow, paramOffset++, new QTableWidgetItem( item->text( errorInd++) ) );
-		m_selectedRunsData->setItem( lastRow, paramOffset++, new QTableWidgetItem( item->text( errorInd ) ) );
+		m_selectedRunsData->setItem( lastRow, paramOffset++, new QTableWidgetItem( item->text( errorInd++ ) ) );
+		
+		//Parse average feature outputs (FeatureCount, AvgFeatureVol, AvgFeaturePhi, AvgFeatureTheta, AvgFeatureRoundness, AvgFeatureLength)
+		m_selectedRunsData->setItem(lastRow, paramOffset++, new QTableWidgetItem(item->text(errorInd++)));
+		m_selectedRunsData->setItem(lastRow, paramOffset++, new QTableWidgetItem(item->text(errorInd++)));
+		m_selectedRunsData->setItem(lastRow, paramOffset++, new QTableWidgetItem(item->text(errorInd++)));
+		m_selectedRunsData->setItem(lastRow, paramOffset++, new QTableWidgetItem(item->text(errorInd++)));
+		m_selectedRunsData->setItem(lastRow, paramOffset++, new QTableWidgetItem(item->text(errorInd++)));
+		m_selectedRunsData->setItem(lastRow, paramOffset++, new QTableWidgetItem(item->text(errorInd)));
+
 		//parse output parameter values
 		for( int i = 0; i < outParCnt; ++i )
 			m_selectedRunsData->setItem( lastRow, paramOffset++, new QTableWidgetItem( item->text( itemOffset++ ) ) );
 		//mask path
-		int maskPathInd =  m_runsOffset + paramsOffsetInRunsCSV - 4;
+		int maskPathInd =  m_runsOffset + paramsOffsetInRunsCSV - 10;
 		m_selectedRunsData->setItem( lastRow, paramOffset, new QTableWidgetItem( item->text( maskPathInd ) ) );
 	}
-
 	return true;
 }
 

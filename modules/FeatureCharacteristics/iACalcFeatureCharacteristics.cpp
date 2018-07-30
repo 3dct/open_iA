@@ -33,7 +33,7 @@
 
 #include <QLocale>
 
-template<class T> void calcFeatureCharacteristics_template( iAConnector *image, iAProgress* progress,  QString pathCSV, bool feretDiameter )
+template<class T> void calcFeatureCharacteristics_template( iAConnector *image, iAProgress* progress, QString pathCSV, bool feretDiameter )
 {
 	// Cast iamge to type long
 	typedef itk::Image< T, DIM > InputImageType;

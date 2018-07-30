@@ -30,6 +30,7 @@
 
 #include <vtkSmartPointer.h>
 
+
 typedef iAQTtoUIConnector<QMainWindow, Ui_PorosityAnalyser> PorosityAnalyserConnector;
 
 class iASPMView;
@@ -47,13 +48,14 @@ struct iASelection;
 class iASegm3DView;
 class iAPreviewSPLOMView;
 class QButtonGroup;
+class MainWindow; 
 
 class iAPorosityAnalyser : public PorosityAnalyserConnector
 {
 	Q_OBJECT
 
 public:
-	iAPorosityAnalyser( const QString & resDir, const QString & datasetsDir, QWidget * parent = 0, Qt::WindowFlags f = 0 );
+	iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iAPorosityAnalyser();
 	void LoadStateAndShow();
 

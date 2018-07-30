@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
+#include "FeatureScout_export.h"
+
 #include "io/csv_config.h"
 #include "io/iACsvIO.h"
-
 #include "iAModuleInterface.h"
 #include "iAObjectAnalysisType.h"
 #include "mdichild.h"
@@ -33,18 +34,22 @@ class iAFeatureScoutToolbar;
 
 
 
-class iAFeatureScoutModuleInterface : public iAModuleInterface
+
+class FeatureScout_API iAFeatureScoutModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 
 public:
 	void Initialize();
 	void hideFeatureScoutToolbar();
+	void LoadFeatureScoutWithParams(const QString &csvName, MdiChild *mchildWnd); 
+
+public slots:
+	void FeatureScout();
+
 private slots:
 
 	void FeatureScoutWithCSV();
-
-	void FeatureScout();
 	void FeatureScout_Options();
 	void onChildClose();
 private:
@@ -52,10 +57,9 @@ private:
 	bool filter_FeatureScout(MdiChild* mdiChild, QString fileName, iAObjectAnalysisType filterID, csvConfig::configPararams *FileParams, const bool is_csvOnly, const QSharedPointer<QStringList> &selHeader);
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
-	void initializeFeatureScoutStartUp(QString &item, QStringList &items, QString &fileName, QMap<QString,
-		iAObjectAnalysisType> &objectMap, QString &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams, const QSharedPointer<QStringList> &selHeaders);
+	void initializeFeatureScoutStartUp(QString &item, QStringList &items, QString const &fileName, QMap<QString,
+		iAObjectAnalysisType> &objectMap, QString const &filterName, const bool isCsvOnly, csvConfig::configPararams *FileParams, const QSharedPointer<QStringList> &selHeaders);
+	
 	iAFeatureScoutToolbar * tlbFeatureScout;
-
 	iACsvIO io;
-
 };

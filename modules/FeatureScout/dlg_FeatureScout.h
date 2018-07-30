@@ -309,5 +309,6 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_pointLUT;
 private:
 	QSharedPointer<QStringList> m_headersSelected;
+	float m_pcLineWidth;   //!< with of line in Parallel Coordinates
 
 };

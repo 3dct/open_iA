@@ -21,16 +21,20 @@
 #pragma once
 
 #include "charts/iAQSplom.h"
+#include "mainwindow.h"
+#include "mdichild.h"
 #include <QStringList>
+
 
 class QMenu;
 class QAction;
+class Mainwindow;
 
 class iAPAQSplom : public iAQSplom
 {
 	Q_OBJECT
 public:
-	iAPAQSplom( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
+	iAPAQSplom(MainWindow *mainWind,  QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
 public:
 	virtual void setData( const QTableWidget * data );
 	void setPreviewSliceNumbers( QList<int> sliceNumber );
@@ -56,10 +60,16 @@ signals:
 
 public slots:
 	void removeFixedPoint();
+	void StartFeatureScout();
 
 protected slots:
 	virtual void currentPointUpdated( int index );
 	void fixPoint();
+
+	//send labeled image and csv from PA to FeatureScout
+	void sendToFeatureScout();
+	void getFilesLabeledFromPoint(QString & fileName, QString & mhdName);
+
 
 protected:
 	QStringList m_maskNames;
@@ -74,8 +84,17 @@ protected:
 	QList<int> m_datasetIndices;
 	QMenu * m_contextMenu;
 	QAction * m_fixAction, *m_removeFixedAction;
+
+	//connecting to feature scout
+	QAction * m_detailsToFeatureScoutAction;
 	int m_fixedPointInd;
 	QPoint m_rightPressPos;
 	QString m_currPrevDatasetName;
 	QString m_currPrevPipelineName;
+
+private: 
+	MainWindow * m_mainWnd;
+	MdiChild* m_mdiChild;
+	QString m_csvName; 
+
 };

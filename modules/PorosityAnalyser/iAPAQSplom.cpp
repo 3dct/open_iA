@@ -22,9 +22,13 @@
 
 #include "PorosityAnalyserHelpers.h"
 
-#include "iAMathUtility.h"
+#include "iAFeatureScoutModuleInterface.h"
+
 #include "charts/iASPLOMData.h"
 #include "charts/iAScatterPlot.h"
+#include "iAConsole.h"
+#include "iAMathUtility.h"
+#include "iAModuleDispatcher.h"
 
 #include <QDir>
 #include <QKeyEvent>
@@ -40,17 +44,26 @@
 
 const int maskOpacity = 127;
 
-iAPAQSplom::iAPAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: iAQSplom( parent, shareWidget, f ),
-	m_contextMenu( new QMenu( this ) ),
-	m_fixAction( 0 ),
+iAPAQSplom::iAPAQSplom(MainWindow *mWnd, QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */)
+	: iAQSplom(parent, shareWidget, f),
+	m_contextMenu(new QMenu(this)),
+	m_mainWnd(mWnd),
+	m_fixAction(0),
+	m_mdiChild(0),
+	m_detailsToFeatureScoutAction(0),
 	m_removeFixedAction( 0 ),
+	m_csvName(""),
 	m_fixedPointInd( -1 )
 {
 	//context menu
 	//m_contextMenu->setStyleSheet( contextMenuStyle );
 	m_fixAction = m_contextMenu->addAction( "Fix Point", this, SLOT( fixPoint() ) );
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
+	
+	//sent to FeatureScout
+	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, SLOT(sendToFeatureScout()));
+	m_detailsToFeatureScoutAction->setVisible(true);
+	
 	m_fixAction->setVisible( false );
 	m_removeFixedAction->setVisible( false );
 }
@@ -363,6 +376,52 @@ void iAPAQSplom::fixPoint()
 	addHighlightedPoint( m_fixedPointInd );
 
 	updatePreviewPixmap();
+}
+
+
+void iAPAQSplom::sendToFeatureScout()
+{
+	
+	QString fileName = ""; 
+	QString mhdName = ""; 
+	getFilesLabeledFromPoint(fileName, mhdName);
+
+	
+	this->m_mdiChild = m_mainWnd->createMdiChild(false);
+	
+	if (!this->m_mdiChild) return;
+	this->m_mdiChild->show();
+	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(StartFeatureScout()));
+	if (!m_mdiChild->loadFile(mhdName, false))
+	{
+		DEBUG_LOG("File could not be loaded!");
+		m_mdiChild->close();
+		return;
+	}
+}
+
+void iAPAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
+{
+	QString sliceFileName = "";
+	QString dataPath = "";
+	int dsInd = 0;
+	m_fixedPointInd = m_activePlot->getCurrentPoint();
+	dsInd = getDatasetIndexFromPointIndex(m_fixedPointInd);
+	sliceFileName = getSliceFilename(m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd]);
+	dataPath = sliceFileName.section('/', 0, -3);
+	fileName = sliceFileName.section('/', -2, -2).section('_', 0, 0);
+	mhdName = dataPath + "/" + fileName + "_labeled" + ".mhd";
+	m_csvName = dataPath + "/" + fileName + ".mhd.csv";
+}
+
+void iAPAQSplom::StartFeatureScout()
+{
+	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	if (!featureScout) {
+		
+		return; 
+	}
+	featureScout->LoadFeatureScoutWithParams(m_csvName, m_mdiChild);
 }
 
 void iAPAQSplom::removeFixedPoint()
