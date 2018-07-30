@@ -200,6 +200,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, 
 {
 	setupUi( this );
 	this->useCsvOnly = useCsvOnly;
+	m_pcLineWidth = 0.1;
 	if (!this->useCsvOnly)
 	{
 		oTF = parent->getPiecewiseFunction();
@@ -362,7 +363,7 @@ void dlg_FeatureScout::setupNewPcView( bool lookupTable )
 	this->pcWidget->SetRenderWindow( this->pcView->GetRenderWindow() );
 	this->pcChart->GetPlot( 0 )->SetInputData( chartTable );
 	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
-	this->pcChart->GetPlot( 0 )->SetWidth( 0.1 );
+	this->pcChart->GetPlot( 0 )->SetWidth( m_pcLineWidth );
 	this->pcView->GetScene()->AddItem( pcChart );
 
 	//Creates a popup menu
@@ -565,7 +566,7 @@ void dlg_FeatureScout::setupViews()
 	this->pcWidget->SetRenderWindow( this->pcView->GetRenderWindow() );
 	this->pcChart->GetPlot( 0 )->SetInputData( chartTable );
 	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
-	this->pcChart->GetPlot( 0 )->SetWidth( 0.1 );
+	this->pcChart->GetPlot( 0 )->SetWidth(m_pcLineWidth );
 
 	this->pcView->GetScene()->AddItem( pcChart );
 	this->setupDefaultElement();
