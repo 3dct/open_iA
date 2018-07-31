@@ -44,13 +44,11 @@ public:
 	void setDatasetsByIndices ( QStringList selDatasets, QList<int> indices );
 	void reemitFixedPixmap();
 
-	int getDatasetIndexFromPointIndex(int pointIndex);
+	int getDatasetIndexFromPointIndex(size_t pointIndex);
 
 protected:
 	virtual bool drawPopup( QPainter& painter );	//!< Draws popup on the splom with mask preview
 	virtual void keyPressEvent( QKeyEvent * event );
-	virtual void mouseReleaseEvent( QMouseEvent * event );
-	virtual void mousePressEvent( QMouseEvent * event );
 	void updatePreviewPixmap();
 
 signals:
@@ -82,19 +80,19 @@ protected:
 	QStringList m_datasets;
 	QList<int> m_dsIndices;
 	QList<int> m_datasetIndices;
-	QMenu * m_contextMenu;
-	QAction * m_fixAction, *m_removeFixedAction;
+	QAction * m_fixAction, * m_removeFixedAction;
+	size_t m_fixedPointInd;
 
 	//connecting to feature scout
 	QAction * m_detailsToFeatureScoutAction;
-	int m_fixedPointInd;
+
 	QPoint m_rightPressPos;
 	QString m_currPrevDatasetName;
 	QString m_currPrevPipelineName;
 
 private: 
 	MainWindow * m_mainWnd;
-	MdiChild* m_mdiChild;
+	MdiChild * m_mdiChild;
 	QString m_csvName; 
 
 };

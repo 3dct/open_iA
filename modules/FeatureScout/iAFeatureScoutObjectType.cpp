@@ -18,45 +18,45 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAFeatureScoutObjectType.h"
 
-#include "open_iA_Core_export.h"
+#include <QColor>
 
-#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
-
-#include <QGLWidget>
-
-class iASPLOMData;
-class iAScatterPlotStandaloneHandler;
-
-/** Widget for using a single scatter plot (outside of a SPLOM)
-*/
-class open_iA_Core_API iAScatterPlotWidget : public QGLWidget
+QString MapObjectTypeToString(int objectType)
 {
-public:
-	static const int PaddingTop;
-	static const int PaddingRight;
-	int PaddingBottom();
-	int PaddingLeft();
-	static const int TextPadding;
-	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
-	std::vector<size_t> & GetSelection();
-	void SetSelection(std::vector<size_t> const & selection);
-	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
-	void SetSelectionColor(QColor const & c);
-	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
-protected:
-	virtual void paintEvent(QPaintEvent * event);
-	virtual void resizeEvent(QResizeEvent* event);
-	virtual void wheelEvent(QWheelEvent * event);
-	virtual void mousePressEvent(QMouseEvent * event);
-	virtual void mouseReleaseEvent(QMouseEvent * event);
-	virtual void mouseMoveEvent(QMouseEvent * event);
-	virtual void keyPressEvent(QKeyEvent * event);
-public:
-	iAScatterPlot* m_scatterplot;
-private:
-	QSharedPointer<iASPLOMData> m_data;
-	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
-	int m_fontHeight, m_maxTickLabelWidth;
-};
+	return (objectType == iAFeatureScoutObjectType::Fibers) ? "Fibers" :
+		(objectType == iAFeatureScoutObjectType::Voids) ? "Voids" :
+		(objectType == iAFeatureScoutObjectType::Other) ? "Other" : "Invalid";
+}
+
+iAFeatureScoutObjectType MapStringToObjectType(QString const & objectTypeName)
+{
+	if (objectTypeName == "Voids")
+		return iAFeatureScoutObjectType::Voids;
+	else if (objectTypeName == "Fibers")
+		return iAFeatureScoutObjectType::Fibers;
+	else if (objectTypeName == "Other")
+		return iAFeatureScoutObjectType::Other;
+	else
+		return iAFeatureScoutObjectType::InvalidObjectType;
+}
+
+QColor getClassColor(int cid)
+{
+	// automatically select a predefined color
+	// (from the list of colors defined in the list of SVG
+	// color keyword names provided by the World Wide Web Consortium).
+	//http://www.w3.org/TR/SVG/types.html#ColorKeywords
+	if (cid > 7) { cid = 1; }
+	switch (cid)
+	{
+		default:
+		case 1: return QColor("cornflowerblue");
+		case 2: return QColor("darkorange");
+		case 3: return QColor("chartreuse");
+		case 4: return QColor("yellow");
+		case 5: return QColor("mediumvioletred");
+		case 6: return QColor("blue");
+		case 7: return QColor("green");
+	}
+}

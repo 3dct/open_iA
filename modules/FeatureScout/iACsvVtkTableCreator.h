@@ -20,43 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "iACsvIO.h"
 
-#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
+#include <vtkSmartPointer.h>
 
-#include <QGLWidget>
+class vtkTable;
 
-class iASPLOMData;
-class iAScatterPlotStandaloneHandler;
-
-/** Widget for using a single scatter plot (outside of a SPLOM)
-*/
-class open_iA_Core_API iAScatterPlotWidget : public QGLWidget
+class iACsvVtkTableCreator: public iACsvTableCreator
 {
 public:
-	static const int PaddingTop;
-	static const int PaddingRight;
-	int PaddingBottom();
-	int PaddingLeft();
-	static const int TextPadding;
-	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
-	std::vector<size_t> & GetSelection();
-	void SetSelection(std::vector<size_t> const & selection);
-	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
-	void SetSelectionColor(QColor const & c);
-	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
-protected:
-	virtual void paintEvent(QPaintEvent * event);
-	virtual void resizeEvent(QResizeEvent* event);
-	virtual void wheelEvent(QWheelEvent * event);
-	virtual void mousePressEvent(QMouseEvent * event);
-	virtual void mouseReleaseEvent(QMouseEvent * event);
-	virtual void mouseMoveEvent(QMouseEvent * event);
-	virtual void keyPressEvent(QKeyEvent * event);
-public:
-	iAScatterPlot* m_scatterplot;
+	iACsvVtkTableCreator();
+	void initialize(QStringList const & headers, size_t const rowCount) override;
+	void addRow(size_t row, QStringList const & values) override;
+	vtkSmartPointer<vtkTable> getTable();
 private:
-	QSharedPointer<iASPLOMData> m_data;
-	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
-	int m_fontHeight, m_maxTickLabelWidth;
+	vtkSmartPointer<vtkTable> m_table;   //!< output vtk table
+	// void debugTable(const bool useTabSeparator);
 };

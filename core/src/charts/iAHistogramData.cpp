@@ -121,7 +121,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(
 	return result;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::Create(const QList<DataType>& histData, size_t binCount)
+QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataType>& histData, size_t binCount)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
 	DataType minValue = std::numeric_limits<DataType>::max();

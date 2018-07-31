@@ -22,10 +22,11 @@
 
 #include "dlg_FeatureScout.h"
 #include "iABlobCluster.h"
-#include "iAObjectAnalysisType.h"
+#include "iAFeatureScoutObjectType.h"
 
 #include "iARenderer.h"
 #include "mainwindow.h"
+#include "mdichild.h"
 
 #include <vtkOpenGLRenderer.h>
 
@@ -39,10 +40,9 @@ iAFeatureScoutAttachment::iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildD
 iAFeatureScoutAttachment::~iAFeatureScoutAttachment()
 {}
 
-void iAFeatureScoutAttachment::init(int filterID, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, const QSharedPointer<QStringList>  &selHeaders)
+void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<uint, uint> const & columnMapping)
 {
-	imgFS = new dlg_FeatureScout(m_childData.child, static_cast<iAObjectAnalysisType>(filterID), blobRen, csvtbl, useCsvOnly, selHeaders);
-	connect(imgFS, SIGNAL(updateViews()), m_childData.child, SLOT(updateViews()));
+	imgFS = new dlg_FeatureScout(m_childData.child, static_cast<iAFeatureScoutObjectType>(filterID), fileName, blobRen, csvtbl, useCsvOnly, columnMapping);
 
 	blobRen->SetLayer(1);
 	blobRen->UseDepthPeelingOn();
@@ -82,9 +82,9 @@ void iAFeatureScoutAttachment::rendererSetCamera()
 	blobRen->SetActiveCamera(m_childData.child->getRenderer()->getCamera());
 }
 
-bool iAFeatureScoutAttachment::FeatureScout_Options(int idx)
+void iAFeatureScoutAttachment::FeatureScout_Options(int idx)
 {
 	if (!imgFS)
-		return false;
-	return imgFS->changeFeatureScout_Options(idx);
+		return;
+	imgFS->changeFeatureScout_Options(idx);
 }

@@ -44,7 +44,7 @@ public:
 	~dlg_modalitySPLOM();
 	void SetData(QSharedPointer<iAModalityList> img);
 private slots:
-	void SplomSelection(QVector<unsigned int> *);
+	void SplomSelection(std::vector<size_t> const &);
 private:
 	iAQSplom* m_splom;
 	QTableWidget* m_voxelData;

@@ -20,43 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include <QString>
 
-#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
+class QColor;
 
-#include <QGLWidget>
-
-class iASPLOMData;
-class iAScatterPlotStandaloneHandler;
-
-/** Widget for using a single scatter plot (outside of a SPLOM)
-*/
-class open_iA_Core_API iAScatterPlotWidget : public QGLWidget
+enum iAFeatureScoutObjectType
 {
-public:
-	static const int PaddingTop;
-	static const int PaddingRight;
-	int PaddingBottom();
-	int PaddingLeft();
-	static const int TextPadding;
-	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
-	std::vector<size_t> & GetSelection();
-	void SetSelection(std::vector<size_t> const & selection);
-	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
-	void SetSelectionColor(QColor const & c);
-	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
-protected:
-	virtual void paintEvent(QPaintEvent * event);
-	virtual void resizeEvent(QResizeEvent* event);
-	virtual void wheelEvent(QWheelEvent * event);
-	virtual void mousePressEvent(QMouseEvent * event);
-	virtual void mouseReleaseEvent(QMouseEvent * event);
-	virtual void mouseMoveEvent(QMouseEvent * event);
-	virtual void keyPressEvent(QKeyEvent * event);
-public:
-	iAScatterPlot* m_scatterplot;
-private:
-	QSharedPointer<iASPLOMData> m_data;
-	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
-	int m_fontHeight, m_maxTickLabelWidth;
+	InvalidObjectType = -1,
+	Fibers,
+	Voids,
+	Other
 };
+
+QString MapObjectTypeToString(int objectType);
+iAFeatureScoutObjectType MapStringToObjectType(QString const & objectTypeName);
+
+//! returns the color for a given class id
+QColor getClassColor(int cid);

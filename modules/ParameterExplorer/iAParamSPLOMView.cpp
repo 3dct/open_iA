@@ -62,8 +62,8 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	m_selection_ctf->AddRGBPoint(1, 1.0, 0.0, 0.0);
 	m_selection_otf->AddPoint(0, 0);
 	m_selection_otf->AddPoint(1, 1);
-	connect(m_splom, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(SplomSelection(QVector<unsigned int> *)));
-	connect(m_splom, SIGNAL(currentPointModified(int)), this, SLOT(PointHovered(int)));
+	connect(m_splom, &iAQSplom::selectionModified, this, &iAParamSPLOMView::SplomSelection);
+	connect(m_splom, &iAQSplom::currentPointModified, this, &iAParamSPLOMView::PointHovered);
 	m_splom->setData(m_tableView->Table());
 	SetLUTColumn("None");
 	m_splom->setParameterVisibility("filename", false);
@@ -107,10 +107,10 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	layout()->addWidget(m_settings);
 }
 
-void iAParamSPLOMView::SplomSelection(QVector<unsigned int> * selInds)
+void iAParamSPLOMView::SplomSelection(std::vector<size_t> const & selInds)
 {
 	// set 1 for selection:
-	for (int i = 0; i<selInds->size(); ++i)
+	for (int i = 0; i<selInds.size(); ++i)
 	{
 		// show in spatial view?
 	}
@@ -164,12 +164,12 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 
 void iAParamSPLOMView::UpdateFeatVisibilty(int)
 {
-	for (int i = 0; i < m_featCB.size(); ++i)
+	for (size_t i = 0; i < m_featCB.size(); ++i)
 		m_splom->setParameterVisibility(m_tableView->Table()->item(0, i+1)->text(), m_featCB[i]->isChecked());
 }
 
 
-void iAParamSPLOMView::PointHovered(int id)
+void iAParamSPLOMView::PointHovered(size_t id)
 {
 	m_spatialView->SetImage(id+1);
 }

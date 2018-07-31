@@ -23,11 +23,15 @@
 #include "iADockWidgetWrapper.h"
 
 #include "iAFeatureScoutModuleInterface.h"
-#include "iAObjectAnalysisType.h"
+#include "iAFeatureScoutObjectType.h"
 #include "iAQTtoUIConnector.h"
 #include "ui_FeatureScoutClassExplorer.h"
 #include "ui_FeatureScoutPolarPlot.h"
 #include "ui_FeatureScoutMeanObjectView.h"
+
+#include <vtkSmartPointer.h>
+
+#include <vector>
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
@@ -43,25 +47,33 @@ class MdiChild;
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class QVTKOpenGLWidget;
+class vtkGenericOpenGLRenderWindow;
 #else
 class QVTKWidget;
 class vtkRenderWindow;
 #endif
 class vtkChartParallelCoordinates;
+class vtkColorTransferFunction;
+class vtkCommand;
 class vtkContextView;
 class vtkDataArray;
 class vtkDelaunay2D;
+class vtkEventQtSlotConnect;
 class vtkFixedPointVolumeRayCastMapper;
 class vtkIdTypeArray;
 class vtkLookupTable;
+class vtkObject;
+class vtkPiecewiseFunction;
+class vtkRenderer;
 class vtkScalarBarActor;
 class vtkScalarBarWidget;
+class vtkScalarsToColors;
 class vtkSmartVolumeMapper;
 class vtkStringArray;
+class vtkStructuredGrid;
 class vtkTable;
 class vtkVolume;
 class vtkVolumeProperty;
-class vtkStructuredGrid;
 
 class QComboBox;
 class QStandardItem;
@@ -85,145 +97,117 @@ struct moData
 class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
 	Q_OBJECT
-
 public:
-	dlg_FeatureScout( MdiChild *parent, iAObjectAnalysisType fid, vtkRenderer* blobRen, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, const QSharedPointer<QStringList>  &selHeaders);
+	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
+		vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<uint, uint> const & columnMapping);
 	~dlg_FeatureScout();
-
-	// setups
-	void setupModel();
-	void setupViews();
-	void setupConnections();
-	void setupPolarPlotView(vtkTable *it);
-	void updatePolarPlotColorScalar(vtkTable *it);
-	void updateObjectOrientationID(vtkTable *table);
-	void createPolarPlotLookupTable(vtkLookupTable *lut);
-	void createFLDODLookupTable(vtkLookupTable *lut, int Num);
-	void drawPolarPlotMesh(vtkRenderer *renderer);
-	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
-	void drawAnnotations(vtkRenderer *renderer);
-	void setupPolarPlotResolution(float grad);
-	void setupNewPcView(bool lookupTable=false);
-	void deletePcViewPointer();
-	void calculateElementTable();
-	void initElementTableModel(int idx = -10000);
-	void initClassTreeModel();
-	void setActiveClassItem(QStandardItem* item, int situ = 0);
-	double calculateOpacity(QStandardItem *item);
-	void recalculateChartTable(QStandardItem *item);
-	void updateColumnNames();
-	void setupDefaultElement();
-	void SingleRendering(int idx = -10000);
-	void updateLookupTable(double alpha= 0.7);
-	void updatePCColumnVisibility();
-	void updateClassStatistics(QStandardItem *item);
-	int calcOrientationProbability(vtkTable *t, vtkTable *ot);
-	void addLogMsg(const QString &str);
-
-	QStringList getNamesOfObjectCharakteristics(bool withUnit);
-	QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third);
-	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
-	void writeWisetex(QXmlStreamWriter *writer);
-	void autoAddClass(int NbOfClasses);
-
-	//selection for each class and show SPM for it
-	void applyClassSelection(bool &retflag, QSharedPointer<QVector<uint>> selInd, const int colorIdx, const bool applyColorMap);
-
-	//selection for single class and show SPM
-	void applyClassSelection(bool & retflag, vtkSmartPointer<vtkTable> &classEntries, const int colInd, const bool applyColorMap);
-
-	//highlights singe object in class
-	void applySingleClassObjectSelection(bool &retflag, vtkSmartPointer<vtkTable> &classEntries, const uint selectionOID, const int colorIdx, const bool applyColorMap);
-
-Q_SIGNALS:
-	void updateViews();
-
-public slots:
+	void changeFeatureScout_Options(int idx);
+private slots:
 	void SaveBlobMovie();
-	void pcChangeOptions(int idx);
 	void ClassSaveButton();
 	void ClassAddButton();
 	void ClassLoadButton();
 	void ClassDeleteButton();
 	void WisetexSaveButton();
 	void CsvDVSaveButton();
-
-	void RenderingButton();
-	void RealTimeRendering(vtkIdTypeArray *selection);
-	void RenderingMeanObject();
 	void RenderingOrientation();
-	void ScatterPlotButton();
-	void RenderingFLD();
-
-	void updatePCColumnValues(QStandardItem *item);
 	void classClicked(const QModelIndex &index);
 	void classDoubleClicked(const QModelIndex &index);
-
-	int OpenBlobVisDialog ();
 	void EnableBlobRendering();
 	void DisableBlobRendering();
-
 	void showContextMenu(const QPoint &pnt);
 	void deleteObject();
 	void addObject();
-
+	//! @{ scatterplot-related methods:
 	void spBigChartMouseButtonPressed(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopup(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopupSelection(QAction *selection);
-	void spSelInformsPCChart(QVector<unsigned int> * selInds);
-	void spUpdateSPColumnVisibility();
-
+	void spSelInformsPCChart(std::vector<size_t> const & selInds);
+	//! @}
+	//! @{ parallel coordinate chart related methods:
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
-	bool changeFeatureScout_Options( int idx );
-
+	void updatePCColumnValues(QStandardItem *item);
+	//! @}
 	void modifyMeanObjectTF();
 	void updateMOView();
 	void browseFolderDialog();
 	void saveStl();
 	void updateStlProgress(int i);
 	void updateMarProgress(int i);
-
-protected:
-	bool initParallelCoordinates( iAObjectAnalysisType fid );
-
-
 private:
-	void setSPMData(const vtkSmartPointer<vtkTable> &classEntries, bool & retflag);
-	void setSPMData(QSharedPointer<QVector<uint>> &selInd, bool &retflag);
-	void setSingeSPMObjectDataSelection(const vtkSmartPointer<vtkTable>& classEntries, const uint selectionOID, bool & retflag);
-	void setClassColour(double * rgba, const int colInd);
-	void spmApplyColorMap(double  rgba[4], const int colInd);
+	void setupModel();
+	void setupViews();
+	void setupConnections();  //! define signal and slots connections
+	void initColumnVisibility();
+	void initElementTableModel(int idx = -10000);
+	void initClassTreeModel();
+	void initFeatureScoutUI();
+	void updateObjectOrientationID(vtkTable *table);
+	//! @{ polar plot related methods:
+	void setupPolarPlotView(vtkTable *it);
+	void updatePolarPlotColorScalar(vtkTable *it);
+	void createPolarPlotLookupTable(vtkLookupTable *lut);
+	void createFLDODLookupTable(vtkLookupTable *lut, int Num);
+	void drawPolarPlotMesh(vtkRenderer *renderer);
+	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
+	void drawAnnotations(vtkRenderer *renderer);
+	void setupPolarPlotResolution(float grad);
+	//! @}
+	//! @{ scatterplot-related methods:
+	void updateSPColumnVisibility();
+	void updateSPColumnVisibilityWithVis();
+	void ScatterPlotButton();
+	void setSPMData(vtkSmartPointer<vtkTable> const &classEntries);  //!< set data from current class to SPM
+	void setSPMData(std::vector<size_t> const & selInd);             //!< set data in SPM selection to class
+	void spmApplyColorMap(const int classIdx);                         //!< set SPM dot color according to given class index
 	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
 	void spmApplyGeneralColorMap(const double rgba[4]);
-	void spUpdateSPColumnVisibilityWithVis();
-	// Qt members
-	QWidget *activeChild;
+	//! @}
+	//! @{ parallel coordinate chart related methods:
+	void setPCChartData(bool lookupTable = false);
+	void updatePCColumnVisibility();
+	//! @}
+	void calculateElementTable();
+	void setActiveClassItem(QStandardItem* item, int situ = 0);
+	double calculateOpacity(QStandardItem *item);
+	void recalculateChartTable(QStandardItem *item);
+	void updateLookupTable(double alpha = 0.7);
+	void updateClassStatistics(QStandardItem *item);
+	int calcOrientationProbability(vtkTable *t, vtkTable *ot);
+	QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third);
+	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
+	void writeWisetex(QXmlStreamWriter *writer);
+	void autoAddClass(int NbOfClasses);
+	bool OpenBlobVisDialog();
+	//! @{ 3D-rendering-related methods:
+	void SingleRendering(int idx = -10000);               //!< render a single fiber or a single class
+	void RenderingButton();                               //!< multi-class rendering
+	void RealTimeRendering(vtkIdTypeArray *selection);    //!< render a selection (+ the class that contains it)
+	void RenderingFLD();                                  //!< render fiber-length distribution
+	void RenderingMeanObject();                           //!< compute and render a mean object for each class
+	//! @}
 
 	// members referencing MdiChild
+	MdiChild *activeChild;
 	vtkPiecewiseFunction     *oTF;
 	vtkColorTransferFunction *cTF;
-
-	// private members
-	int elementNr;		// Number of elements in csv inputTable
-	int objectNr;		// Number of objects in the specimen
-	iAObjectAnalysisType filterID;
+	int elementNr;		//!< Number of elements(=columns) in csv inputTable
+	int objectNr;		//!< Number of objects in the specimen
+	iAFeatureScoutObjectType filterID;
 
 	bool draw3DPolarPlot;
 	bool classRendering;
-	bool spmActivated;
-
 	bool useCsvOnly;
 
 	const QString sourcePath;
 	vtkSmartPointer<vtkStringArray> nameArr;
 
-	// calculate the average value of a 1D array
-	float calculateAverage(vtkDataArray* arr);
+	float calculateAverage(vtkDataArray* arr); //!< calculate the average value of a 1D array
 
 	// input csv table with all objects, column names updated for vtk rendering problem
 	// by solving this rendering problem satisfacted here a pointer to the orginal table
 	vtkSmartPointer<vtkTable> csvTable;
-	// element table with calculated elments values for every individual class
+	//! table of elements (=parameters) with min, max and average computed for each elements and every individual class
 	vtkSmartPointer<vtkTable> elementTable;
 	// table for ParallelCoordinates view, should be initialized every time when a new class is defined
 	// or a class is selected in the class tree view
@@ -236,11 +220,8 @@ private:
 	QList<int> ObjectOrientationProbabilityList; //Probability distribution of every single object
 	int pcMaxC; // maximal count of the object orientation
 
-	// elementNameStringList for using fibre csv file
-	QStringList eleString;
-
-	// column visiability list
-	vtkSmartPointer<vtkStringArray> columnVisArr;
+	// column visibility list
+	std::vector<bool> columnVisibility;
 	// color lookup table for PC view
 	vtkSmartPointer<vtkLookupTable> lut;
 
@@ -261,8 +242,9 @@ private:
 	QStandardItem *activeClassItem;
 
 	// Parallel coordinates view
-	vtkContextView *pcView;
-	vtkChartParallelCoordinates *pcChart;
+	vtkSmartPointer<vtkContextView> pcView;
+	vtkSmartPointer<vtkChartParallelCoordinates> pcChart;
+	vtkSmartPointer<vtkEventQtSlotConnect> pcConnections;
 
 	iARenderer *raycaster;
 	iABlobManager *blobManager;
@@ -307,8 +289,6 @@ private:
 	moData m_MOData;
 
 	vtkSmartPointer<vtkLookupTable> m_pointLUT;
-private:
-	QSharedPointer<QStringList> m_headersSelected;
-	float m_pcLineWidth;   //!< with of line in Parallel Coordinates
-
+	QMap<uint, uint> m_columnMapping;
+	float m_pcLineWidth;   //!< width of line in Parallel Coordinates
 };
