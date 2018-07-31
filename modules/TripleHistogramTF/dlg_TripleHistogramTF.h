@@ -22,9 +22,20 @@
 
 #include "ui_dlg_TripleHistogramTF.h"
 #include "iAQTtoUIConnector.h"
+#include "iABarycentricTriangleWidget.h"
 
-//class MdiChild;
+#include <QResizeEvent>
+#include <qcombobox.h>
+#include <qslider.h>
+
+#include "iAModalityWidget.h"
+//class BCoord; // TODO: shouldn't this work?
+#include "BCoord.h"
+
+//class MdiChild; // TODO: shouldn't this work?
 #include "mdichild.h"
+#include "iASlicerMode.h"
+#include "vtkImageData.h" // TODO: really necessary?
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
 
@@ -40,14 +51,26 @@ public slots:
 	//void mousePress(QMouseEvent*);
 	//void mouseMove(QMouseEvent*);
 	//void mouseWheel(QWheelEvent*);
-	
+	void setWeight(BCoord bCoord);
+	void updateSlicerMode();
+	void setSliceNumber(int sliceNumber);
 
 signals:
 	
 
 protected:
-
+	void resizeEvent(QResizeEvent* event);
 
 private:
+	void setSlicerMode(iASlicerMode slicerMode);
+
+	QComboBox *m_slicerModeComboBox;
+	QSlider *m_sliceSlider;
+
+	// TODO: is it really good to keep the mdiChild as a member variable?
+	MdiChild *m_mdiChild;
+
+	iAModalityWidget *modality1, *modality2, *modality3;
+	iABarycentricTriangleWidget *triangle;
 	
 };

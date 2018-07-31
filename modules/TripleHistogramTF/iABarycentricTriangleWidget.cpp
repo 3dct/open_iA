@@ -94,7 +94,7 @@ iABarycentricTriangleWidget::~iABarycentricTriangleWidget()
 
 void iABarycentricTriangleWidget::initializeGL()
 {
-	glClearColor(0.9, 0.9, 0.9, 1);
+	glClearColor(0.9, 0.7, 0.9, 1);
 }
 
 void iABarycentricTriangleWidget::resizeGL(int w, int h)
@@ -119,14 +119,14 @@ void iABarycentricTriangleWidget::mouseMoveEvent(QMouseEvent *event)
 
 void iABarycentricTriangleWidget::updatePositions(int width, int height)
 {
-	int tw, th; // triangle width and triangle height
-	if ((double)width / (double)height < ONE_DIV_SIN60) // ONE_DIV_SIN60 = width ratio
-	{// TODO (line above): casting width and height - is that really the best?
+	int tw, th;
+	if (isTooWide(width, height))
+	{
 		tw = width;
-		th = (int)round(width * SIN60); // SIN60 = height ratio
+		th = getHeightForWidth(width);
 	}
 	else {
-		tw = (int)round(height * ONE_DIV_SIN60); // ONE_DIV_SIN60 = width ratio
+		tw = getWidthForHeight(height);
 		th = height;
 	}
 
@@ -187,6 +187,38 @@ void iABarycentricTriangleWidget::moveControlPointTo(QPoint newPos)
 	int movy = m_controlPoint.y() - m_controlPointOld.y();
 	m_controlPointBorderPainterPath.translate(movx, movy);
 	m_controlPointCrossPainterPath.translate(movx, movy);
+}
+
+bool iABarycentricTriangleWidget::isTooWide(int width, int height)
+{
+	// TODO (line above): casting width and height - is that really the best?
+	return ((double)width / (double)height) < ONE_DIV_SIN60;
+}
+
+bool iABarycentricTriangleWidget::isTooTall(int width, int height)
+{
+	// TODO (line above): casting width and height - is that really the best?
+	return ((double)width / (double)height) > ONE_DIV_SIN60;
+}
+
+int iABarycentricTriangleWidget::getHeightForWidth(int width)
+{
+	return (int)round(width * SIN60);
+}
+
+int iABarycentricTriangleWidget::getWidthForHeight(int height) 
+{
+	return (int)round(height * ONE_DIV_SIN60);
+}
+
+int iABarycentricTriangleWidget::getWidthForCurrentHeight()
+{
+	return getWidthForHeight(height());
+}
+
+int iABarycentricTriangleWidget::getHeightForCurrentWidth()
+{
+	return getHeightForWidth(width());
 }
 
 // ----------------------------------------------------------------------------------------------

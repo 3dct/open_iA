@@ -47,17 +47,18 @@ public slots:
 	//void mouseMove(QMouseEvent*);
 	//void mouseWheel(QWheelEvent*);
 	void setWeight(double weight);
+	void setSlicerMode(iASlicerMode slicerMode);
+	void setSliceNumber(int sliceNumber);
 
 signals:
-	void slicePixelHovered(unsigned int x, unsigned int y);
-	void histogramBarHovered(unsigned int x);
+
 
 protected:
 
 
 private:
 	QLabel *m_weightLabel;
-	iASlicer *slicer;
-	vtkTransform *slicerTransform;
+	iASlicer *m_slicer;
+	vtkTransform *m_slicerTransform;
 	
 };

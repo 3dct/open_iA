@@ -59,10 +59,10 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 	vtkImageData *imageData = mdiChild->getImageData();
 
 	// ----------------------------------------------------------------------------------------------------------
-	// Initialize histogram
+	// Initialize slicer
 
 	QWidget *slicerWidget = new QWidget(rightWidget);
-	slicer = new iASlicer(rightWidget, iASlicerMode::XY, slicerWidget,
+	m_slicer = new iASlicer(rightWidget, iASlicerMode::XY, slicerWidget,
 		// Value of shareWidget is defaulted to 0 in the iASlicer constructor... that's why I do that here
 		// TODO: do this in a better way?
 		/*QGLWidget * shareWidget = */0,
@@ -70,14 +70,11 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 		/*bool decorations = */false); // Hide everything except the slice itself
 
 	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->GetColorFunction();
-	slicerTransform = vtkTransform::New();
-	slicer->initializeData(imageData, slicerTransform, colorFunction);
+	m_slicerTransform = vtkTransform::New();
+	m_slicer->initializeData(imageData, m_slicerTransform, colorFunction);
 
 	// TODO: deactivate interaction with the slice (zoom, pan, etc)
 	// TODO: fill widget with the sliced image
-
-	int dimz = imageData->GetDimensions()[2]; // length of the Z dimension
-	slicer->setSliceNumber(dimz/2); // set slice on to half of the volume
 
 	// Initialize slicer
 	// ----------------------------------------------------------------------------------------------------------
@@ -101,7 +98,6 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 	// Initialize histogram
 	// ----------------------------------------------------------------------------------------------------------
 
-
 	m_weightLabel = new QLabel(rightWidget);
 	m_weightLabel->setText("Weight");
 
@@ -116,9 +112,9 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 
 iAModalityWidget::~iAModalityWidget()
 {
-	slicerTransform->Delete();
+	m_slicerTransform->Delete();
 
-	delete slicer;
+	delete m_slicer;
 }
 
 void iAModalityWidget::setWeight(double weight)
@@ -126,4 +122,18 @@ void iAModalityWidget::setWeight(double weight)
 	qDebug() << "Modality widget setWeight(double) method called!";
 	QString text;
 	m_weightLabel->setText(text.sprintf(m_weightFormat, weight));
+}
+
+void iAModalityWidget::setSlicerMode(iASlicerMode slicerMode)
+{
+	qDebug() << "Modality widget setSlicerMode(iASlicerMode) method called!";
+	m_slicer->ChangeMode(slicerMode);
+	m_slicer->update();
+}
+
+void iAModalityWidget::setSliceNumber(int sliceNumber)
+{
+	qDebug() << "Modality widget setSliceNumber(int) method called!";
+	m_slicer->setSliceNumber(sliceNumber);
+	m_slicer->update();
 }

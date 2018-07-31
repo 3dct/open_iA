@@ -38,6 +38,11 @@ public:
 	iABarycentricTriangleWidget(QWidget* parent, Qt::WindowFlags f = 0);
 	~iABarycentricTriangleWidget();
 
+	int getWidthForHeight(int height);
+	int getHeightForWidth(int width);
+	int getWidthForCurrentHeight();
+	int getHeightForCurrentWidth();
+
 public slots:
 	//void mousePress(QMouseEvent*);
 	//void mouseMove(QMouseEvent*);
@@ -77,5 +82,8 @@ private:
 	void paintTriangleBorder();
 	void paintTriangleFill();
 	void paintControlPoint();
+
+	bool isTooWide(int width, int height);
+	bool isTooTall(int width, int height);
 
 };
