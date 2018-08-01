@@ -24,14 +24,12 @@
 #include "vtkImageData.h"
 
 #include <QHBoxLayout>
+#include <QBorderLayout>
 #include <QLabel>
 #include <QString>
 
 // Debug
 #include <QDebug>
-
-// TODO: does this belong here?
-static const char *m_weightFormat = "%.10f";
 
 // Required to load histogram
 #include "iAModalityList.h"
@@ -47,6 +45,9 @@ static const char *m_weightFormat = "%.10f";
 #include "vtkColorTransferFunction.h"
 #include "vtkCamera.h"
 #include "iASlicerData.h"
+
+// TODO: does this belong here?
+static const char *m_weightFormat = "%.10f";
 
 iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> modality, MdiChild *mdiChild, Qt::WindowFlags f /*= 0 */) :
 	QWidget(parent, f)
@@ -105,7 +106,7 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 	rightWidgetLayout->addWidget(slicerWidget);
 	rightWidgetLayout->addWidget(m_weightLabel);
 
-	QHBoxLayout *mainLayout = new QHBoxLayout(this);
+	QBorderLayout *mainLayout = new QHBoxLayout(this);
 	mainLayout->addWidget((QWidget*) histogram); // TODO: why do I need to cast a subclass into its superclass?
 	mainLayout->addWidget(rightWidget);
 }

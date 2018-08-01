@@ -201,14 +201,19 @@ bool iABarycentricTriangleWidget::isTooTall(int width, int height)
 	return ((double)width / (double)height) > ONE_DIV_SIN60;
 }
 
+bool iABarycentricTriangleWidget::hasWidthForHeight()
+{
+	return true;
+}
+
+int iABarycentricTriangleWidget::getWidthForHeight(int height)
+{
+	return (int)round(height * ONE_DIV_SIN60);
+}
+
 int iABarycentricTriangleWidget::getHeightForWidth(int width)
 {
 	return (int)round(width * SIN60);
-}
-
-int iABarycentricTriangleWidget::getWidthForHeight(int height) 
-{
-	return (int)round(height * ONE_DIV_SIN60);
 }
 
 int iABarycentricTriangleWidget::getWidthForCurrentHeight()

@@ -27,10 +27,11 @@
 #include <QPen>
 #include <QPoint>
 
+#include "RightBorderLayout.h"
 #include "BarycentricTriangle.h"
 #include "BCoord.h"
 
-class iABarycentricTriangleWidget : public QOpenGLWidget
+class iABarycentricTriangleWidget : public QOpenGLWidget, public RightBorderWidget
 {
 	Q_OBJECT
 
@@ -38,7 +39,9 @@ public:
 	iABarycentricTriangleWidget(QWidget* parent, Qt::WindowFlags f = 0);
 	~iABarycentricTriangleWidget();
 
-	int getWidthForHeight(int height);
+	bool hasWidthForHeight() override;
+	int getWidthForHeight(int height) override;
+
 	int getHeightForWidth(int width);
 	int getWidthForCurrentHeight();
 	int getHeightForCurrentWidth();
