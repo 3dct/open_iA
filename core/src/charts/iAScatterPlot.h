@@ -204,4 +204,9 @@ protected:
 	//state flags
 	bool m_isMaximizedPlot;                                          //!< flag telling if this plot itself is maximized (bigger plot)
 	bool m_isPreviewPlot;                                            //!< flag telling if a large version of this plot is shown maximized currently
+
+	protected:
+		bool setFilterForClassID(const int colInd, const int rowInd, const double value); //!<Apply filter to each class and draw points only of current class
+		int m_currClassID; //TODO Added MS
+		int m_classColInd; //!< Current class index of columns
 };

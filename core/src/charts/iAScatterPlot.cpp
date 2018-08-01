@@ -914,7 +914,16 @@ void iAScatterPlot::fillVBO()
 	int elSz = 7;
 	GLfloat * buffer = new GLfloat[vcount + ccount];
 	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
-	{
+	{	
+		//MS
+
+		//was ist das i?
+		//Abfrage nach classenId //setFilter(colIdx, value) nicht gleich der aktuellen class id, dann continue
+		if (!setFilterForClassID(m_colInd, i, (double) m_currClassID)) 
+			continue;
+		
+		//end MS
+
 		double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[i] );
 		double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[i] );
 		buffer[elSz * i + 0] = tx;
@@ -950,4 +959,15 @@ double iAScatterPlot::getPointRadius() const
 void iAScatterPlot::setPointRadius(double radius)
 {
 	settings.pointRadius = radius;
+}
+
+bool iAScatterPlot::setFilterForClassID(const int colInd, const int rowInd, const double value) {
+	const double epsilon = 0.00001; 
+	
+	double col_val = m_splomData->paramData(colInd)[rowInd];
+	if (abs(col_val - value) < epsilon) {
+		return true;
+
+	}else return false; 
+	
 }
