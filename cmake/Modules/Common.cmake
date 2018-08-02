@@ -207,10 +207,15 @@ ENDIF(EIGEN3_FOUND)
 
 
 # HDF5
+# FIND_PACKAGE(HDF5) does not behave properly:
+#     - always uses first installed version without allowing to override
+#     - if not installed, reports missing HDF5_DIR and unsets it even when set to directory having same structure as install
+#   => skip? for now, allow overriding with HDF5_DIR_OVERRIDE
 FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE)
-IF (HDF5_ROOT AND NOT "${HDF5_ROOT}" STREQUAL "${HDF5_DIR}")
-	SET(HDF5_DIR "${HDF5_ROOT}" CACHE PATH "" FORCE)
-	MESSAGE(STATUS "HDF5: Overriding found HDF5_DIR=${HDF5_DIR} with HDF5_ROOT=${HDF5_ROOT}")
+IF (HDF5_DIR AND NOT "${HDF5_DIR_OVERRIDE}" STREQUAL "${HDF5_DIR}")
+	SET(HDF5_DIR "${HDF5_DIR_OVERRIDE}" CACHE PATH "" FORCE)
+	SET(HDF5_FOUND "true")
+	MESSAGE(STATUS "HDF5: Overriding found HDF5_DIR=${HDF5_DIR} with HDF5_DIR_OVERRIDE=${HDF5_DIR_OVERRIDE}")
 ENDIF()
 IF (HDF5_FOUND)
 	FIND_LIBRARY(HDF5_CORE_LIB hdf5 PATHS ${HDF5_DIR}/../bin ${HDF5_DIR}/../../lib ${HDF5_DIR}/../lib)
