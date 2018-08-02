@@ -83,8 +83,8 @@ namespace
 	{
 		settings.beginGroup(getFormatKey(formatName));
 		iACsvConfig defaultConfig;
-		dest.skipLinesStart = settings.value(csvRegKeys::SkipLinesStart, defaultConfig.skipLinesStart).toLongLong();
-		dest.skipLinesEnd = settings.value(csvRegKeys::SkipLinesEnd, defaultConfig.skipLinesEnd).toLongLong();
+		dest.skipLinesStart = settings.value(csvRegKeys::SkipLinesStart, static_cast<qulonglong>(defaultConfig.skipLinesStart)).toULongLong();
+		dest.skipLinesEnd = settings.value(csvRegKeys::SkipLinesEnd, static_cast<qulonglong>(defaultConfig.skipLinesEnd)).toULongLong();
 		dest.columnSeparator = settings.value(csvRegKeys::ColSeparator, defaultConfig.columnSeparator).toString();
 		dest.decimalSeparator = settings.value(csvRegKeys::DecimalSeparator, defaultConfig.decimalSeparator).toString();
 		dest.objectType = MapStringToObjectType(settings.value(csvRegKeys::ObjectType, MapObjectTypeToString(defaultConfig.objectType)).toString());
@@ -651,8 +651,8 @@ void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
 void dlg_CSVInput::saveFormat(QSettings & settings, QString const & formatName)
 {
 	settings.beginGroup(getFormatKey(formatName));
-	settings.setValue(csvRegKeys::SkipLinesStart, m_confParams.skipLinesStart);
-	settings.setValue(csvRegKeys::SkipLinesEnd, m_confParams.skipLinesEnd);
+	settings.setValue(csvRegKeys::SkipLinesStart, static_cast<qulonglong>(m_confParams.skipLinesStart));
+	settings.setValue(csvRegKeys::SkipLinesEnd, static_cast<qulonglong>(m_confParams.skipLinesEnd));
 	settings.setValue(csvRegKeys::ColSeparator, m_confParams.columnSeparator);
 	settings.setValue(csvRegKeys::DecimalSeparator, m_confParams.decimalSeparator);
 	settings.setValue(csvRegKeys::ObjectType, MapObjectTypeToString(m_confParams.objectType));
