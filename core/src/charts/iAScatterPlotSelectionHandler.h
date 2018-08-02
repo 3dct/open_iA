@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QList>
-#include <QVector>
+#include <cstddef>    // for size_t
+#include <vector>
 
 //! class providing a few selection/highlight/settings details to a single scatterplot
 //! implemented by iAQSplom, but can also be implemented separately to e.g. allow a
@@ -29,8 +29,10 @@
 class iAScatterPlotSelectionHandler
 {
 public:
-	virtual QVector<unsigned int> & getSelection() = 0;
-	virtual const QList<int> & getHighlightedPoints() const = 0;
+	typedef std::vector<size_t> SelectionType;
+	virtual SelectionType & getSelection() = 0;
+	virtual SelectionType const & getSelection() const = 0;
+	virtual SelectionType const & getHighlightedPoints() const = 0;
 	virtual int getVisibleParametersCount() const = 0;
 	virtual double getAnimIn() const = 0;
 	virtual double getAnimOut() const = 0;

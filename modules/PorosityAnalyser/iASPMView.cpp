@@ -27,7 +27,12 @@
 #include "iAPerceptuallyUniformLUT.h"
 #include "iAPAQSplom.h"
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#else
 #include <QVTKWidget.h>
+#endif
 #include <vtkAnnotationLink.h>
 #include <vtkChart.h>
 #include <vtkColor.h>
@@ -67,18 +72,24 @@
 const QString defaultColorParam = "Deviat. from Ref.";
 const int popupWidthRange[2] = { 80, 300 };
 
-iASPMView::iASPMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: PorosityAnalyzerSPMConnector( parent, f ),
+iASPMView::iASPMView(MainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : PorosityAnalyzerSPMConnector( parent, f ),
 	m_SPMSettings( new iASPMSettings( this, f ) ),
 	m_SPLOMSelection( vtkSmartPointer<vtkIdTypeArray>::New() ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	m_SBQVTKWidget( new QVTKOpenGLWidget( this ) ),
+#else
 	m_SBQVTKWidget( new QVTKWidget( this ) ),
+#endif
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
 	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() ),
 	m_colorArrayName( defaultColorParam ),
 	m_updateColumnVisibility( true ),
-	m_splom( new iAPAQSplom( parent ) )
+	m_splom( new iAPAQSplom(mWnd, parent) )
 {
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	m_SBQVTKWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
+#endif
 	QHBoxLayout *layoutHB2 = new QHBoxLayout( this );
 	layoutHB2->setMargin( 0 );
 	layoutHB2->setSpacing( 0 );
@@ -94,7 +105,7 @@ iASPMView::iASPMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	connect( m_SPMSettings->sbMax, SIGNAL( valueChanged( double ) ), this, SLOT( UpdateLookupTable() ) );
 	connect( m_SPMSettings->opacitySlider, SIGNAL( valueChanged( int ) ), this, SLOT( UpdateLookupTable() ) );
 	connect( tbSettings, SIGNAL( clicked() ), this, SLOT( showSettings() ) );
-	connect( m_splom, SIGNAL( selectionModified( QVector<unsigned int>* ) ), this, SLOT( selectionUpdated( QVector<unsigned int>* ) ) );
+	connect( m_splom, &iAQSplom::selectionModified, this, &iASPMView::selectionUpdated );
 	connect( m_splom, SIGNAL( previewSliceChanged( int ) ), this, SIGNAL( previewSliceChanged( int ) ) );
 	connect( m_splom, SIGNAL( sliceCountChanged( int ) ), this, SIGNAL( sliceCountChanged( int ) ) );
 	connect( m_splom, SIGNAL( maskHovered( const QPixmap *, int ) ), this, SIGNAL( maskHovered( const QPixmap *, int ) ) );
@@ -202,12 +213,12 @@ void iASPMView::UpdateLookupTable()
 	ApplyLookupTable();
 }
 
-void iASPMView::selectionUpdated( QVector<unsigned int>* selInds )
+void iASPMView::selectionUpdated( std::vector<size_t> const & selInds )
 {
 	//selection
 	m_SPLOMSelection = vtkSmartPointer<vtkIdTypeArray>::New();
-	foreach( const unsigned int & i, *selInds )
-		m_SPLOMSelection->InsertNextValue( vtkIdType( i ) );
+	for( auto & i: selInds )
+		m_SPLOMSelection->InsertNextValue( static_cast<vtkIdType>( i ) );
 
 	emit selectionModified( getActivePlotIndices(), m_SPLOMSelection );
 }
@@ -227,10 +238,10 @@ void iASPMView::UpdateLUTOpacity()
 
 void iASPMView::setSPLOMSelection( vtkIdTypeArray * ids )
 {
-	QVector<unsigned int> selInds;
+	iAQSplom::SelectionType selInds;
 	for( vtkIdType i = 0; i < ids->GetDataSize(); ++i )
 		selInds.push_back( ids->GetValue( i ) );
-	m_splom->setSelection( &selInds );
+	m_splom->setSelection( selInds );
 }
 
 vtkVector2i iASPMView::getActivePlotIndices()

@@ -69,8 +69,7 @@ class open_iA_Core_API iASlicer : public QObject
 	friend class iASlicerData;
 	friend class iASlicerWidget;
 public:
-	iASlicer(QWidget * parent, const iASlicerMode mode, QWidget * widget_container, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0,
-		bool decorations = true, bool magicLensAvailable = true);
+	iASlicer(QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations = true, bool magicLensAvailable = true);
 	~iASlicer();
 	bool changeInteractorState();
 	iASlicerWidget * widget() const;
@@ -79,11 +78,14 @@ public:
 	void changeImageData(vtkImageData *idata);
 	void SetMagicLensEnabled( bool isEnabled );
 	void SetMagicLensSize(int newSize);
+	int GetMagicLensSize() const;
 	void SetMagicLensFrameWidth(int newWidth);
 	void SetMagicLensCount(int count);
 	void SetMagicLensInput( iAChannelID id );
 	void AddMagicLensInput(iAChannelID id);
+	iAChannelID getMagicLensInput() const;
 	void SetMagicLensOpacity(double opacity);
+	double GetMagicLensOpacity() const;
 	void UpdateMagicLensColors();
 
 	//iASlicerData: wrapping methods--------------------------
@@ -100,7 +102,6 @@ public:
 	void removeChannel(iAChannelID id);
 	void reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData );
 	void setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z);
-	iAChannelID getMagicLensInput() const;
 
 	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);

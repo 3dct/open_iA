@@ -23,9 +23,11 @@
 #include "open_iA_Core_export.h"
 
 #include "iAScatterPlotSelectionHandler.h"
-#include "qmenu.h"
+
 #include <QGLWidget>
 #include <QList>
+
+#include <vector>
 
 class iAChartWidget;
 class iAColorTheme;
@@ -35,36 +37,10 @@ class iASPLOMData;
 
 class vtkLookupTable;
 
-class QTableWidget;
 class QGridLayout;
+class QMenu;
 class QPropertyAnimation;
-
-namespace iAQSplom_variables{
-
-	//storing current selection index of previewplot
-	struct plotSelectionIndex {
-		plotSelectionIndex() :plt_ind_y(0), plt_ind_x(0), isPlotpreselected(false){
-
-		}
-
-		void initPlotSelection(const unsigned int plt_id_y, const unsigned int plt_id_x) {
-			plt_ind_y = plt_id_y;
-			plt_ind_x = plt_id_x;
-			isPlotpreselected = true;
-		}
-
-		void setPlotIdxToZero() {
-			plt_ind_y = 0;
-			plt_ind_x = 0;
-			isPlotpreselected = false;
-		}
-
-		 unsigned int plt_ind_y;
-		 unsigned int plt_ind_x;
-		 bool isPlotpreselected;
-	};
-
-};
+class QTableWidget;
 
 //! A scatter plot matrix (SPLOM) widget.
 /*!
@@ -91,110 +67,88 @@ class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectio
 		UPPER_HALF,
 		ALL_PLOTS
 	};
-//Methods
+// Methods
 public:
 	iAQSplom( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
 	~iAQSplom();
 
-	//! Import data into SPLOM from QTableWidget. It is assumed that the first row contains parameter names and each column corresponds to one parameter.
-	virtual void setData( const QTableWidget * data );
-	void setLookupTable( vtkLookupTable * lut, const QString & colorArrayName );	//!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
-	void setLookupTable( iALookupTable &lut, const QString & colorArrayName );	//!< Set lookup table given the name of a parameter to color-code.
-	void applyLookupTable();												//!< Apply lookup table to all the scatter plots.
-	void setParameterVisibility( int paramIndex, bool isVisible );			//!< Show/hide scatter plots of a parameter given parameter's index.
+	virtual void setData( const QTableWidget * data );               //! import data from QTableWidget, first row should contain parameter names, each column corresponds to one parameter.
+	void setData(QSharedPointer<iASPLOMData> data);                  //! set SPLOM data directly.
+	void setLookupTable( vtkLookupTable * lut, const QString & colorArrayName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
+	void setLookupTable( iALookupTable &lut, const QString & colorArrayName ); //!< Set lookup table given the name of a parameter to color-code.
+	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
+	void setParameterVisibility(std::vector<bool> const & visibility);//!< Adapt visibility of all columns at once.
+	void setParameterVisibility( size_t paramIndex, bool isVisible );//!< Show/hide scatter plots of a parameter given parameter's index.
 	void setParameterVisibility( const QString & paramName, bool isVisible ); //!< Show/hide scatter plots of a parameter given parameter's name.
-	void setParameterInverted(int paramIndex, bool isInverted);				//!< whether to invert the axis for a given parameter's index.
-	QVector<unsigned int> & getSelection();									//!< Get vector of indices of currently selected data points.
-	void setSelection( const QVector<unsigned int> * selInds );				//!< Set selected data points from a vector of indices.
-	void getActivePlotIndices( int * inds_out );							//!< Get X and Y parameter indices of currently active scatter plot.
-	inline int getVisibleParametersCount() const							//!< Get the number of parameters currently displayed
-	{
-		return m_visiblePlots.size();
-	}
-	double getAnimIn() const { return m_animIn; }							//!< Getter for animation in property
-	void setAnimIn( double anim );											//!< Setter for animation in property
-	double getAnimOut() const { return m_animOut; }							//!< Getter for animation in property
-	void setAnimOut( double anim );											//!< Setter for animation in property
-	const QList<int> & getHighlightedPoints() const;
-	void SetSeparation(int idx);								//!< define an index at which a separation margin is inserted
-	void SetBackgroundColorTheme(iAColorTheme const * theme);   //!< define the color theme to use for coloring the different separated regions
-	iAColorTheme const * GetBackgroundColorTheme();
-
-	void setSelectionColor(QColor color);
-	void setPointRadius(double radius);
-
-	void clearSelection();  //deletes current selection
-
-	void showAllPlots(const bool enableAllPlotsVisible);
-
-	//sets visibility for plots upperhalf
-
-
-	//TODO show plot selected by index
-	void showSelectedPlot(const unsigned int plot_selInd_y, const unsigned int plot_selind_x);
-
-	void showSelectedPlot();
-
-	void showPreviewPlot();
-	//maximize selected plot
-
-
-protected:
-	void clear();												//!< Clear all scatter plots in the SPLOM.
-	virtual void initializeGL();								//!< Re-implements QGLWidget.
-	virtual void paintEvent( QPaintEvent * event );				//!< Draws SPLOM. Re-implements QGLWidget.
-	virtual bool drawPopup( QPainter& painter );				//!< Draws popup on the splom
-	iAScatterPlot * getScatterplotAt( QPoint pos );				//!< Get a scatter plot at mouse position.
-	void changeActivePlot( iAScatterPlot * s);
-	void drawVisibleParameters(QPainter & painter);    //draws  lable for the whole scatter plot matrix
-	void setSPMLabels(QVector<ulong> &ind_VisX, int axisOffSet, QPainter & painter, bool switchXY);
-
-	/*void normPT(double norm, QPoint &pt);
-
-	void tranformPoint(qreal &res_x, qreal &res_y, const QPoint &pt , const double radians, const QPoint& center);*/
-
-	//!< Specify the new active scatter plot.
-	void drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX,
-		QList<QString> const & textY);							//!< Draw ticks for X and Y parameters of plots in the SPLOM.
-	void updateMaxPlotRect();									//!< Updates the rectangle of the maximized scatter plot.
-	void updateSPLOMLayout();									//!< Updates SPLOM layout: every plot in the matrix + maximized plot (if exists).
-	void updatePlotGridParams();								//!< Updates some parameters used for the matrix grid layout calculations.
-	void updateVisiblePlots();									//!< Updates matrix using only plots that are currently visible.
-	void removeMaxPlotIfHidden();								//!< Removes maximized plot if any of his parameters is hidden.
-	void resetTransform();										//!< Resets transform in all plots of the matrix.
-	QRect getPlotRectByIndex( int x, int y );					//!< Get a rectangle of a plot by its indices.
-	void removeMaximizedPlot();									//!< Removes maximized plot.
-	int invert( int val ) const;								//!< Inverts parameter index. Used for inverting SPLOM Y indexing order.
-	int GetMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & fm) const;//!< Get the width of the longest tick label width
-
-
-
-	void setM_Mode(splom_mode);
-	void setSplomVisModeUpperHalf();
-
-	//sets visibility for ALL Plots
-	void setSplomVisModeAllPlots();
-	//Re-implements Qt event handlers
-	virtual void wheelEvent( QWheelEvent * event );
-	virtual void resizeEvent( QResizeEvent * event );
-	virtual void mousePressEvent( QMouseEvent * event );
-	virtual void mouseReleaseEvent( QMouseEvent * event );
-	virtual void mouseMoveEvent( QMouseEvent * event );
-	virtual void keyPressEvent( QKeyEvent * event );
-	virtual void mouseDoubleClickEvent( QMouseEvent * event );
-
-protected slots:
-	void selectionUpdated();									//!< When selection of data points is modified.
-	void transformUpdated( double scale, QPointF deltaOffset );	//!< When transform of scatter plots is modified.
-	virtual void currentPointUpdated( int index );				//!< When hovered over a new point.
-	virtual void addHighlightedPoint(int index);				//!< Keep a point with index always highlighted
-	virtual void removeHighlightedPoint( int index );			//!< Remove a point from the highlighted list
-	void enableHistVisibility(bool setPlotVisible);				//set visibility of histograms
+	void setParameterInverted( size_t paramIndex, bool isInverted);  //!< whether to invert the axis for a given parameter's index.
+	void setPointRadius( double radius );                            //!< set the radius for scatter plot points
+	SelectionType & getSelection();                                  //!< Get const vector of indices of currently selected data points.
+	SelectionType const & getSelection() const;                      //!< Get vector of indices of currently selected data points.
+	void setSelection( SelectionType const & selInds );              //!< Set selected data points from a vector of indices.
+	void clearSelection();                                           //!< deletes current selection
+	void setSelectionColor(QColor color);                            //!< set the color for selected points
+	void getActivePlotIndices( int * inds_out );                     //!< Get X and Y parameter indices of currently active scatter plot.
+	int getVisibleParametersCount() const;                           //!< Get the number of parameters currently displayed
+	double getAnimIn() const { return m_animIn; }                    //!< Getter for animation in property
+	void setAnimIn( double anim );                                   //!< Setter for animation in property
+	double getAnimOut() const { return m_animOut; }                  //!< Getter for animation in property
+	void setAnimOut( double anim );                                  //!< Setter for animation in property
+	SelectionType const & getHighlightedPoints() const;              //!< get the list of highlighted points
+	void setSeparation(int idx);                                     //!< define an index at which a separation margin is inserted
+	void setBackgroundColorTheme(iAColorTheme const * theme);        //!< define the color theme to use for coloring the different separated regions
+	iAColorTheme const * getBackgroundColorTheme();                  //!< retrieve the theme for background colors for the separated regions
+	void showAllPlots(const bool enableAllPlotsVisible);             //!< switch between showing all plots or only upper half
+	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
+	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
 signals:
-	void selectionModified( QVector<unsigned int> * selInds );		//!< Emitted when new data points are selected. Contains a list of selected data points.
-	void currentPointModified( int index );							//!< Emitted when hovered over a new point.
-
+	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
+	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
 protected:
+	void clear();                                                    //!< Clear all scatter plots in the SPLOM.
+	void initializeGL() override;                                    //!< overrides function inherited from QGLWidget.
+	void paintEvent( QPaintEvent * event ) override;                 //!< Draws SPLOM. Re-implements QGLWidget.
+	virtual bool drawPopup( QPainter& painter );                     //!< Draws popup on the splom
+	iAScatterPlot * getScatterplotAt( QPoint pos );                  //!< Get a scatter plot at mouse position.
+	void changeActivePlot( iAScatterPlot * s);
+	void drawVisibleParameters(QPainter & painter);                  //!< draws label for the whole scatter plot matrix
+	void setSPMLabels(QVector<ulong> &ind_VisX, int axisOffSet, QPainter & painter, bool switchXY);
+	void drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX,
+	    QList<QString> const & textY);                               //!< Draw ticks for X and Y axes of all plots in the SPLOM.
+	void updateMaxPlotRect();                                        //!< Updates the rectangle of the maximized scatter plot.
+	void updateSPLOMLayout();                                        //!< Updates SPLOM layout: every plot in the matrix + maximized plot (if exists).
+	void updatePlotGridParams();                                     //!< Updates some parameters used for the matrix grid layout calculations.
+	void updateVisiblePlots();                                       //!< Updates matrix using only plots that are currently visible.
+	void removeMaxPlotIfHidden();                                    //!< Removes maximized plot if any of his parameters is hidden.
+	void resetTransform();                                           //!< Resets transform in all plots of the matrix.
+	QRect getPlotRectByIndex( int x, int y );                        //!< Get a rectangle of a plot by its indices.
+	void removeMaximizedPlot();                                      //!< Removes maximized plot.
+	int invert( int val ) const;                                     //!< Inverts parameter index. Used for inverting SPLOM Y indexing order.
+	int getMaxTickLabelWidth(QList<QString> const & textX, QFontMetrics & fm) const; //!< Get the width of the longest tick label width
+	void maximizeSelectedPlot(iAScatterPlot * selectedPlot);         //!< shows a maximized preview of the selected plot
+	//! @{ Overrides of Qt event handlers
+	void wheelEvent( QWheelEvent * event ) override;
+	void resizeEvent( QResizeEvent * event ) override;
+	void mousePressEvent( QMouseEvent * event ) override;
+	void mouseReleaseEvent( QMouseEvent * event ) override;
+	void mouseMoveEvent( QMouseEvent * event ) override;
+	void keyPressEvent( QKeyEvent * event ) override;
+	void mouseDoubleClickEvent( QMouseEvent * event ) override;
+	void contextMenuEvent(QContextMenuEvent *event) override;
+	//! @}
+	virtual void currentPointUpdated(size_t index);                  //!< When hovered over a new point.
+	virtual void addHighlightedPoint(size_t index);                  //!< Keep a point with index always highlighted
+	virtual void removeHighlightedPoint(size_t index);               //!< Remove a point from the highlighted list
+private:
+	void dataChanged();                                              //!< handles changes of the internal data
+private slots:
+	void selectionUpdated();                                         //!< When selection of data points is modified.
+	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
+	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
+	void selectionModePolygon();                                     //!< set selection mode to polygon
+	void selectionModeRectangle();                                   //!< set selection mode to rectangle
+
+// Members:
+public:
 	//! All settings of the plot in one struct
 	struct Settings
 	{
@@ -221,46 +175,35 @@ protected:
 
 		int separationMargin;
 		int histogramBins;
-	};
+		bool histogramVisible;
 
-//Members
-public:
+		int selectionMode;                     //!< The selection mode of all scatter plots
+	};
 	Settings settings;
 protected:
-	QList<QList<iAScatterPlot*>> m_matrix;			//!< matrix of all scatter plots
-	QList<QList<iAScatterPlot*>> m_visiblePlots;	//!< matrix of visible scatter plots
-	QList<bool> m_paramVisibility;					//!< array of individual parameter visibility
-	QSharedPointer<iALookupTable> m_lut;			//!< lookup table, shared with individual scatter plots
-	QString m_colorArrayName;						//!< name of a color-coded parameter
-	QPoint m_scatPlotSize;							//!< size of one scatter plot in the layout
-	iAScatterPlot * m_activePlot;					//!< scatter plot that user currently interacts with
-	splom_mode m_mode;								//!< SPLOM current state: all plots or upper triangle with maximized plot
-	QSharedPointer<iASPLOMData> m_splomData;		//!< contains raw data points used in SPLOM
-	iAScatterPlot * m_previewPlot;					//!< plot currently being previewed (shown in maximized plot)
-	iAScatterPlot * m_maximizedPlot;				//!< pointer to the maximized plot
-	QVector<unsigned int> m_selInds;				//!< array containing indices of currently selected data points
-	const bool m_isIndexingBottomToTop;				//!< flag indicating if Y-indices in the SPLOM are inverted
-	double m_animIn;								//!< In animation parameter
-	double m_animOut;								//!< Out animation parameter
+	QList<QList<iAScatterPlot*>> m_matrix;       //!< matrix of all scatter plots
+	QList<QList<iAScatterPlot*>> m_visiblePlots; //!< matrix of visible scatter plots
+	std::vector<bool> m_paramVisibility;         //!< array of individual parameter visibility
+	QSharedPointer<iALookupTable> m_lut;         //!< lookup table, shared with individual scatter plots
+	QString m_colorArrayName;                    //!< name of a color-coded parameter
+	QPoint m_scatPlotSize;                       //!< size of one scatter plot in the layout
+	iAScatterPlot * m_activePlot;                //!< scatter plot that user currently interacts with
+	splom_mode m_mode;                           //!< SPLOM current state: all plots or upper triangle with maximized plot
+	QSharedPointer<iASPLOMData> m_splomData;     //!< contains raw data points used in SPLOM
+	iAScatterPlot * m_previewPlot;               //!< plot currently being previewed (shown in maximized plot)
+	iAScatterPlot * m_maximizedPlot;             //!< pointer to the maximized plot
+	SelectionType m_selInds;                     //!< contains indices of currently selected data points
+	const bool m_isIndexingBottomToTop;          //!< flag indicating if Y-indices in the SPLOM are inverted
+	double m_animIn;                             //!< In animation parameter
+	double m_animOut;                            //!< Out animation parameter
 	QPropertyAnimation * m_animationIn;
 	QPropertyAnimation * m_animationOut;
-	QList<int> m_highlightedPoints;					//!< list of always highlighted points
-	double m_popupHeight;							//!< height of the last drawn popup
-	int m_separationIdx;							//!< index at which to separate scatterplots spatially (e.g. into in- and output parameters)
-	iAColorTheme const * m_bgColorTheme;			//!< background colors for regions in the scatterplot
-
+	SelectionType m_highlightedPoints;           //!< contains indices of always highlighted points
+	double m_popupHeight;                        //!< height of the last drawn popup
+	int m_separationIdx;                         //!< index at which to separate scatterplots spatially (e.g. into in- and output parameters)
+	iAColorTheme const * m_bgColorTheme;         //!< background colors for regions in the scatterplot
+	QMenu* m_contextMenu;                        //!< the context menu (can be extended by subclass)
 private:
-	//shows a maximized preview of a plot
-	void maximizeSelectedPlot(iAScatterPlot * selectedPlot);
-	void getPlotByIdx(iAScatterPlot *&selected_Plot, const iAQSplom_variables::plotSelectionIndex &plt_idx) const;
-
-	void contextMenuEvent(QContextMenuEvent *event) override;
-
-	iAQSplom_variables::plotSelectionIndex plt_selIndx;
-	QMenu* m_contextMenu;
-	QAction *showHistogramAction;
-	void renderPreselectedPlot();
-	bool m_showAllPlots;
-	bool m_histVisibility;
+	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction;
 	QVector<iAChartWidget*> m_histograms;
 };

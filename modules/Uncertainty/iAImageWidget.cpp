@@ -69,7 +69,7 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 	renderWindow->AddRenderer(m_renderer);
 	SetRenderWindow(renderWindow);
 	*/
-	m_slicer = new iASlicer(this, iASlicerMode::XY, this, 0, 0, false, true);
+	m_slicer = new iASlicer(this, iASlicerMode::XY, this, false, true);
 	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->initializeData(img, m_transform, m_lut);
 	m_slicer->initializeWidget(img);

@@ -21,8 +21,9 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QVector>
 #include <QWidget>
+
+#include <vector>
 
 class iAParamSpatialView;
 class iAParamTableView;
@@ -41,9 +42,9 @@ public:
 	iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialView* spatialView);
 private slots:
 	void SetLUTColumn(QString const & colName);
-	void SplomSelection(QVector<unsigned int> *);
+	void SplomSelection(std::vector<size_t> const &);
 	void UpdateFeatVisibilty(int);
-	void PointHovered(int);
+	void PointHovered(size_t);
 private:
 	iAParamSpatialView* m_spatialView;
 	iAParamTableView* m_tableView;
@@ -52,5 +53,5 @@ private:
 	vtkSmartPointer<vtkColorTransferFunction> m_selection_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_selection_otf;
 	QWidget* m_settings;
-	QVector<QCheckBox*> m_featCB;
+	std::vector<QCheckBox*> m_featCB;
 };

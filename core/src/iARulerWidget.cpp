@@ -27,8 +27,7 @@
 #include <vtkCoordinate.h>
 #include <vtkObjectFactory.h>
 #include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
+#include <vtkRenderWindow.h>  // for VTK_CURSOR_DEFAULT
 #include <vtkWidgetCallbackMapper.h>
 #include <vtkWidgetEvent.h>
 

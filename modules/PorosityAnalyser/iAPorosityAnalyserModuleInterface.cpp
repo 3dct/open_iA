@@ -355,16 +355,14 @@ void iAPorosityAnalyserModuleInterface::browserDatasetsFolder()
 
 void iAPorosityAnalyserModuleInterface::runCalculations()
 {
-	iACalculatePoreProperties * calcPoreProps = new iACalculatePoreProperties( m_mainWnd );
 	iARunBatchThread * rbt = new iARunBatchThread( this );
 	connect( rbt, SIGNAL( batchProgress( int ) ), this, SLOT( batchProgress( int ) ) );
 	connect( rbt, SIGNAL( totalProgress( int ) ), this, SLOT( totalProgress( int ) ) );
 	connect( rbt, SIGNAL( currentBatch( QString ) ), this, SLOT( currentBatch( QString ) ) );
-	rbt->Init( this, m_datasetsFolder,
-			   uiComputeSegm.rbNewPipelineDataNoPores->isChecked(), 
-			   uiComputeSegm.rbNewPipelineData->isChecked(), 
-			   uiComputeSegm.rbExistingPipelineData->isChecked(), 
-			   calcPoreProps );
+	rbt->Init(this,
+		m_datasetsFolder,
+		uiComputeSegm.rbNewPipelineDataNoPores->isChecked(),
+		uiComputeSegm.rbNewPipelineData->isChecked());
 	rbt->start();
 }
 
@@ -442,7 +440,7 @@ void iAPorosityAnalyserModuleInterface::launchPorosityAnalyser()
 	if( !dlg->exec() == QDialog::Accepted )
 		return;
 	
-	m_porosityAnalyser = new iAPorosityAnalyser( dlg->ResultsFolderName(), dlg->DatasetsFolderName(), m_mainWnd );
+	m_porosityAnalyser = new iAPorosityAnalyser(m_mainWnd, dlg->ResultsFolderName(), dlg->DatasetsFolderName(), m_mainWnd );
 	m_mainWnd->addSubWindow( m_porosityAnalyser );
 	m_porosityAnalyser->LoadStateAndShow(); //show();
 }

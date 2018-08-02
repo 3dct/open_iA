@@ -56,7 +56,6 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPoints;
 class vtkPolyData;
-class vtkRenderWindow;
 class vtkScalarsToColors;
 class vtkTransform;
 
@@ -278,6 +277,9 @@ public:
 	//! save all currently loaded files into a project with the given file name
 	void saveProject(QString const & fileName);
 
+	//! whether volume data is loaded (only checks filename and volume dimensions)
+	bool IsVolumeDataLoaded() const;
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -461,7 +463,6 @@ private:
 
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void setupViewInternal(bool active);
-	bool IsVolumeDataLoaded() const;
 
 	vtkSmartPointer<vtkImageData> imageData;		// TODO: remove - use modality data instead!
 	vtkPolyData* polyData;
@@ -509,6 +510,7 @@ private:
 private slots:
 	void ChangeMagicLensModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
+	void ChangeMagicLensSize(int chg);
 	void ShowModality(int modIdx);
 	void SaveFinished();
 	void ModalityAdded(int modalityIdx);

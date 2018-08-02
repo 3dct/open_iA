@@ -27,29 +27,33 @@
 #include "ui_SPMView.h"
 #include "iAQTtoUIConnector.h"
 
-class QVBoxLayout;
+class QAction;
 class QCheckBox;
 class QListWidgetItem;
-class QAction;
 class QTableWidget;
+class QVBoxLayout;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class QVTKOpenGLWidget;
+#else
 class QVTKWidget;
-class vtkScatterPlotMatrix;
-class vtkObject;
-class vtkCommand;
-class vtkTable;
-class vtkIdTypeArray;
-class vtkScatterPlotMatrix;
-class vtkContextView;
-class vtkLookupTable;
+#endif
 class vtkColorTransferFunction;
+class vtkCommand;
+class vtkContextView;
+class vtkIdTypeArray;
+class vtkLookupTable;
+class vtkRenderer;
 class vtkScalarsToColors;
 class vtkScalarBarActor;
-class vtkRenderer;
+class vtkScatterPlotMatrix;
 class vtkSelection;
+class vtkTable;
+
+class iAPAQSplom;
 struct iASelection;
 class iASPMSettings;
-class iAPAQSplom;
+class MainWindow; 
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView>  PorosityAnalyzerSPMConnector;
 
@@ -58,7 +62,7 @@ class iASPMView : public PorosityAnalyzerSPMConnector
 	Q_OBJECT
 
 public:
-	iASPMView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+	iASPMView(MainWindow *mWnd, QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iASPMView();
 	void setSelection( iASelection * sel );
 	void setDatasetsDir( QString datasetsDir );
@@ -103,7 +107,7 @@ protected slots:
 	void UpdateLookupTable();
 
 	/** When selection of the SPLOM is modified */
-	void selectionUpdated( QVector<unsigned int>* selInds );
+	void selectionUpdated( std::vector<size_t> const & selInds );
 
 signals:
 	void selectionModified( vtkVector2i, vtkIdTypeArray* );
@@ -116,7 +120,11 @@ protected:
 	iAPAQSplom * m_splom;
 	vtkSmartPointer<vtkIdTypeArray> m_SPLOMSelection;
 	vtkSmartPointer<vtkLookupTable> m_lut;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QVTKOpenGLWidget * m_SBQVTKWidget;
+#else
 	QVTKWidget * m_SBQVTKWidget;
+#endif
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;
 	QString m_colorArrayName;

@@ -26,7 +26,6 @@
 #include <QThread>
 
 #include "PorosityAnalyserHelpers.h"
-#include "iACalculatePoreProperties.h"
 
 class iAPorosityAnalyserModuleInterface;
 struct RunInfo;
@@ -36,8 +35,10 @@ class iARunBatchThread : public QThread
 	Q_OBJECT
 public:
 	iARunBatchThread( QObject * parent = 0 ) : QThread( parent ) {};
-	void Init( iAPorosityAnalyserModuleInterface *pmi, QString datasetsDescriptionFile, bool rbNewPipelineDataNoPores,
-			   bool rbNewPipelineData, bool rbExistingPipelineData, iACalculatePoreProperties * poreProps );
+	void Init(iAPorosityAnalyserModuleInterface *pmi,
+		QString datasetsDescriptionFile,
+		bool rbNewPipelineDataNoPores,
+		bool rbNewPipelineData);
 protected:
 	virtual void run();
 	void executeNewBatches( QTableWidget & settingsCSV, QMap<int, bool> & isBatchNew );
@@ -48,7 +49,7 @@ protected:
 	void updateBatchesCSVFiles( QTableWidget & settingsCSV, QMap<int, bool> & isBatchNew );
 	bool updateBatchesCSVFile( QTableWidget & settingsCSV, int row, QString batchesFile );
 	void generateMasksCSVFile( QString batchDir, QString batchesDir );
-	void calculatePoreChars( QString masksCSVPath );
+	void calcFeatureCharsForMask(RunInfo &results, QString currMaskFilePath);
 
 	iAPorosityAnalyserModuleInterface * m_pmi;
 	QTableWidget m_runsCSV;
@@ -61,10 +62,6 @@ protected:
 	QString m_datasetsDescrFile;
 	bool m_rbNewPipelineDataNoPores;
 	bool m_rbNewPipelineData;
-	bool m_rbExistingPipelineData;
-
-	iACalculatePoreProperties* m_poreProps;
-
 signals:
 	void batchProgress( int progress );
 	void totalProgress( int progress );

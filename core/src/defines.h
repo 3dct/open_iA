@@ -75,7 +75,7 @@ enum IOType
 };
 
 const int DefaultMagicLensSize = 120;
-const int MinimumMagicLensSize = 20;
+const int MinimumMagicLensSize = 40;
 const int MaximumMagicLensSize = 8192;
 const int DefaultHistogramBins = 2048;
 

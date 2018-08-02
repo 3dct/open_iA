@@ -21,16 +21,20 @@
 #pragma once
 
 #include "charts/iAQSplom.h"
+#include "mainwindow.h"
+#include "mdichild.h"
 #include <QStringList>
+
 
 class QMenu;
 class QAction;
+class Mainwindow;
 
 class iAPAQSplom : public iAQSplom
 {
 	Q_OBJECT
 public:
-	iAPAQSplom( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
+	iAPAQSplom(MainWindow *mainWind,  QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
 public:
 	virtual void setData( const QTableWidget * data );
 	void setPreviewSliceNumbers( QList<int> sliceNumber );
@@ -40,13 +44,11 @@ public:
 	void setDatasetsByIndices ( QStringList selDatasets, QList<int> indices );
 	void reemitFixedPixmap();
 
-	int getDatasetIndexFromPointIndex(int pointIndex);
+	int getDatasetIndexFromPointIndex(size_t pointIndex);
 
 protected:
 	virtual bool drawPopup( QPainter& painter );	//!< Draws popup on the splom with mask preview
 	virtual void keyPressEvent( QKeyEvent * event );
-	virtual void mouseReleaseEvent( QMouseEvent * event );
-	virtual void mousePressEvent( QMouseEvent * event );
 	void updatePreviewPixmap();
 
 signals:
@@ -56,10 +58,16 @@ signals:
 
 public slots:
 	void removeFixedPoint();
+	void StartFeatureScout();
 
 protected slots:
 	virtual void currentPointUpdated( int index );
 	void fixPoint();
+
+	//send labeled image and csv from PA to FeatureScout
+	void sendToFeatureScout();
+	void getFilesLabeledFromPoint(QString & fileName, QString & mhdName);
+
 
 protected:
 	QStringList m_maskNames;
@@ -72,10 +80,19 @@ protected:
 	QStringList m_datasets;
 	QList<int> m_dsIndices;
 	QList<int> m_datasetIndices;
-	QMenu * m_contextMenu;
-	QAction * m_fixAction, *m_removeFixedAction;
-	int m_fixedPointInd;
+	QAction * m_fixAction, * m_removeFixedAction;
+	size_t m_fixedPointInd;
+
+	//connecting to feature scout
+	QAction * m_detailsToFeatureScoutAction;
+
 	QPoint m_rightPressPos;
 	QString m_currPrevDatasetName;
 	QString m_currPrevPipelineName;
+
+private: 
+	MainWindow * m_mainWnd;
+	MdiChild * m_mdiChild;
+	QString m_csvName; 
+
 };

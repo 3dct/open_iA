@@ -43,7 +43,6 @@
 #include <vtkInteractorStyleSwitch.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
 
 #include <QFileDialog>

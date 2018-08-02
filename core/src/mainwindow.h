@@ -109,13 +109,14 @@ public:
 	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
 	void LoadArguments(int argc, char** argv);
 	iAPreferences const & GetDefaultPreferences() const;
+	iAModuleDispatcher& getModuleDispatcher() const; 
+
 protected:
 	void closeEvent(QCloseEvent *event);
 
 private slots:
 	void timeout();
 	void Open();
-	void OpenCSV();
 	void OpenRaw();
 	void OpenImageStack();
 	void OpenVolumeStack();

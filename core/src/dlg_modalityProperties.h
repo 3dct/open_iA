@@ -38,8 +38,7 @@ public:
 	dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality);
 public slots:
 	void OKButtonClicked();
-
 private:
 	QSharedPointer<iAModality> m_modality;
-	iAVolumeSettings m_DefaultVolumeSettings;
+	iAVolumeSettings m_volumeSettings;
 };

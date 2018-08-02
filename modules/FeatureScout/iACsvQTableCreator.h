@@ -20,8 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-enum iAObjectAnalysisType
+#include "iACsvVtkTableCreator.h"
+
+class QTableWidget;
+
+class iACsvQTableCreator : public iACsvTableCreator
 {
-	INDIVIDUAL_FIBRE_VISUALIZATION,
-	INDIVIDUAL_PORE_VISUALIZATION,
+public:
+	iACsvQTableCreator(QTableWidget* tblWidget);
+	void initialize(QStringList const & headers, size_t const rowCount) override;
+	void addRow(size_t row, QStringList const & values) override;
+	QTableWidget* getTable();
+private:
+	QTableWidget* m_table;
 };

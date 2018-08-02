@@ -46,15 +46,13 @@ void iAGEMSeModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
+	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
 	
-	QAction * actionGEMSe = new QAction( m_mainWnd );
-	actionGEMSe->setText(QApplication::translate("MainWindow", "GEMSe", 0));
+	QAction * actionGEMSe = new QAction( tr("GEMSe"), nullptr);
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
 	connect(actionGEMSe, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
 
-	QAction * actionPreCalculated = new QAction( m_mainWnd );
-	actionPreCalculated->setText( QApplication::translate( "MainWindow", "Load Segmentation Ensemble in GEMSe", 0 ));
+	QAction * actionPreCalculated = new QAction( tr("Load Segmentation Ensemble in GEMSe"), nullptr );
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionPreCalculated, false);
 	connect(actionPreCalculated, SIGNAL(triggered()), this, SLOT(LoadPreCalculatedData()));
 }

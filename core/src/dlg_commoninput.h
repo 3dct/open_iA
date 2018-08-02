@@ -40,7 +40,7 @@ class open_iA_Core_API dlg_commoninput : public QDialog, public Ui_CommonInput
 {
 	Q_OBJECT
 public:
-	dlg_commoninput ( QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = new QTextDocument( 0 ));
+	dlg_commoninput ( QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = nullptr);
 	int getCheckValue(int index) const;
 	QString getComboBoxValue(int index) const;
 	int getComboBoxIndex(int index) const;

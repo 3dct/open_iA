@@ -20,36 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QVTKWidget2.h>
+#include "iACsvIO.h"
 
-class iAFramedQVTKWidget2 : public QVTKWidget2
+#include <vtkSmartPointer.h>
+
+class vtkTable;
+
+class iACsvVtkTableCreator: public iACsvTableCreator
 {
-	Q_OBJECT
 public:
-	enum FrameStyle {
-		FRAMED,
-		NO_FRAME,
-		LEFT_SIDE,
-	};
-public:
-	iAFramedQVTKWidget2(QWidget * parent = NULL, const QGLWidget * shareWidget=0, Qt::WindowFlags f = 0);
-
-	void SetFrameStyle(FrameStyle frameStyle);
-	FrameStyle GetFrameStyle() const;
-
-	qreal GetFrameWidth() const;
-	void SetFrameWidth(qreal newWidth);
-
-	void SetCrossHair(bool enabled);
-
-protected slots:
-	//overloaded events of QVTKWidget2
-	virtual void Frame();
-
-protected:
-	qreal m_penWidth;
-	FrameStyle m_frameStyle;
-	bool m_crossHair;
+	iACsvVtkTableCreator();
+	void initialize(QStringList const & headers, size_t const rowCount) override;
+	void addRow(size_t row, QStringList const & values) override;
+	vtkSmartPointer<vtkTable> getTable();
+private:
+	vtkSmartPointer<vtkTable> m_table;   //!< output vtk table
+	// void debugTable(const bool useTabSeparator);
 };
-
-void drawBorderRectangle(QPainter & painter, QPointF const points[4], int const borderWidth);

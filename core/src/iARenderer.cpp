@@ -163,6 +163,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	double spacing[3];	ds->GetSpacing(spacing);
 	ren->SetLayer(0);
 	ren->UseDepthPeelingOn();
+	ren->UseDepthPeelingForVolumesOn();
 	labelRen->SetLayer(1);
 	labelRen->InteractiveOff();
 	labelRen->UseDepthPeelingOn();
@@ -228,6 +229,8 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 
 	double center[3], origin[3];
 	const int * dim = imageData->GetDimensions();
+	if (dim[0] == 0 || dim[1] == 0 || dim[2] == 0)
+		return;
 	const double * spc = imageData->GetSpacing();
 	for (int i = 0; i < 3; ++i)
 	{

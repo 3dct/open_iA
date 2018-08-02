@@ -101,15 +101,39 @@ public:
 	static iAInteractorStyleImage *New();
 	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage);
 
-	virtual void OnLeftButtonDown()
+	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
+	void OnLeftButtonDown() override
 	{
-		// disable "window-level" and rotation interaction
 		if (!this->Interactor->GetShiftKey())
-		{
 			return;
-		}
 		vtkInteractorStyleImage::OnLeftButtonDown();
 	}
+	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
+	void OnMouseWheelForward() override
+	{
+		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+			return;
+		vtkInteractorStyleImage::OnMouseWheelForward();
+	}
+	void OnMouseWheelBackward() override
+	{
+		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+			return;
+		vtkInteractorStyleImage::OnMouseWheelBackward();
+	}
+	//! @}
+	//! @{ Conditionally disable zooming via right button dragging
+	void OnRightButtonDown() override
+	{
+		if (!m_rightButtonDragZoomEnabled)
+			return;
+		vtkInteractorStyleImage::OnRightButtonDown();
+	}
+	void SetRightButtonDragZoomEnabled(bool enabled)
+	{
+		m_rightButtonDragZoomEnabled = enabled;
+	}
+	//! @}
 	/*
 	virtual void OnChar()
 	{
@@ -124,6 +148,8 @@ public:
 		}
 	}
 	*/
+private:
+	bool m_rightButtonDragZoomEnabled = true;
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);
@@ -268,6 +294,7 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 	interactor->SetInteractorStyle(interactorStyle);
 	interactor->SetPicker(pointPicker);
 	interactor->Initialize( );
+	interactorStyle->SetDefaultRenderer(ren);
 
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
 	interactor->AddObserver(vtkCommand::LeftButtonPressEvent, redirect);
@@ -618,7 +645,6 @@ void iASlicerData::update()
 	interactor->ReInitialize();
 	interactor->Render();
 	ren->Render();
-
 
 	emit updateSignal();
 }
@@ -1734,8 +1760,7 @@ void iASlicerData::setMagicLensInput(iAChannelID id)
 	}
 	if (m_magicLensExternal)
 	{
-		m_magicLensExternal->AddInput(data->reslicer, data->GetLookupTable(),
-			reslicer, colorTransferFunction, data->GetName());
+		m_magicLensExternal->AddInput(data->reslicer, data->GetLookupTable(), data->GetName());
 	}
 }
 
@@ -1902,4 +1927,10 @@ QCursor iASlicerData::getMouseCursor()
 int iASlicerData::getSliceNumber() const
 {
 	return m_sliceNumber;
+}
+
+
+void iASlicerData::SetRightButtonDragZoomEnabled(bool enabled)
+{
+	interactorStyle->SetRightButtonDragZoomEnabled(enabled);
 }

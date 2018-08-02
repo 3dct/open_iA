@@ -86,7 +86,7 @@ iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & 
 	std::fill(m_sliceNr, m_sliceNr + 3, 0);
 }
 
-void iAParamSpatialView::SetImage(int id)
+void iAParamSpatialView::SetImage(size_t id)
 {
 	if (!m_imageCache.contains(id))
 	{

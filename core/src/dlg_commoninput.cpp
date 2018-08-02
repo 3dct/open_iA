@@ -70,7 +70,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	setupUi(this);
 	this->setWindowTitle(winTitle);
 
-	if(fDescr)
+	if (fDescr)
 	{
 		auto info = new QTextBrowser();
 		QPalette p = info->palette();
