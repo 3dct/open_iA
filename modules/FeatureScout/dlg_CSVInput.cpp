@@ -21,6 +21,7 @@
 #include "dlg_CSVInput.h"
 
 #include "iACsvIO.h"
+#include "iACsvConfig.h"
 #include "iACsvQTableCreator.h"
 
 #include "iAConsole.h"
@@ -52,7 +53,7 @@ namespace csvRegKeys
 	static const QString ComputeTensors = "ComputeTensors";
 	static const QString ComputeCenter = "ComputeCenter";
 	static const QString ContainsHeader = "ContainsHeader";
-	static const QString UseVolumeData = "UseVolumeData";
+	static const QString VisualizationType = "VisualizationType";
 	static const QString ColumnMappings = "ColumnMappings";
 }
 namespace
@@ -94,7 +95,7 @@ namespace
 		dest.computeTensors = settings.value(csvRegKeys::ComputeTensors, defaultConfig.computeTensors).toBool();
 		dest.computeCenter = settings.value(csvRegKeys::ComputeCenter, defaultConfig.computeCenter).toBool();
 		dest.containsHeader = settings.value(csvRegKeys::ContainsHeader, defaultConfig.containsHeader).toBool();
-		dest.useVolumeData = settings.value(csvRegKeys::UseVolumeData, defaultConfig.useVolumeData).toBool();
+		dest.visType = MapStr2VisType(settings.value(csvRegKeys::VisualizationType, MapVisType2Str(defaultConfig.visType)).toString());
 		dest.unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
 		dest.spacing = settings.value(csvRegKeys::Spacing, defaultConfig.spacing).toDouble();
 		dest.encoding = settings.value(csvRegKeys::Encoding, defaultConfig.encoding).toString();
@@ -133,6 +134,10 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	m_mappingBoxes.push_back(cmbbox_col_Phi);
 	m_mappingBoxes.push_back(cmbbox_col_Theta);
 	cb_AdvancedMode->setChecked(loadGeneralSetting(csvRegKeys::AdvancedMode).toBool());
+	for (int i = 0; i < iACsvConfig::VisTypeCount; ++i)
+	{
+		cmbbox_VisualizeAs->addItem( MapVisType2Str(static_cast<iACsvConfig::VisualizationType>(i) ) );
+	}
 	advancedModeToggled();
 	initParameters();
 	connectSignals();
@@ -239,6 +244,7 @@ void dlg_CSVInput::saveFormatBtnClicked()
 	}
 	assignFormatSettings();
 	assignSelectedCols();
+	saveFormatToRegistry(formatName);
 }
 
 void dlg_CSVInput::deleteFormatBtnClicked()
@@ -403,7 +409,7 @@ void dlg_CSVInput::showConfigParams()
 	cb_ComputeTensors->setChecked(m_confParams.computeTensors);
 	cb_ComputeCenter->setChecked(m_confParams.computeCenter);
 	cb_ContainsHeader->setChecked(m_confParams.containsHeader);
-	cb_UseVolumeData->setChecked(m_confParams.useVolumeData);
+	cmbbox_VisualizeAs->setCurrentText(MapVisType2Str(m_confParams.visType));
 	updateColumnMappingInputs();
 }
 
@@ -424,7 +430,7 @@ void dlg_CSVInput::assignFormatSettings()
 	m_confParams.computeTensors = cb_ComputeTensors->isChecked();
 	m_confParams.computeCenter = cb_ComputeCenter->isChecked();
 	m_confParams.containsHeader = cb_ContainsHeader->isChecked();
-	m_confParams.useVolumeData = cb_UseVolumeData->isChecked();
+	m_confParams.visType = static_cast<iACsvConfig::VisualizationType>(cmbbox_VisualizeAs->currentIndex());
 	if (!m_columnMappingChoiceSet)
 		return;
 	m_confParams.columnMapping.clear();
@@ -665,7 +671,7 @@ void dlg_CSVInput::saveFormat(QSettings & settings, QString const & formatName)
 	settings.setValue(csvRegKeys::ComputeTensors, m_confParams.computeTensors);
 	settings.setValue(csvRegKeys::ComputeCenter, m_confParams.computeCenter);
 	settings.setValue(csvRegKeys::ContainsHeader, m_confParams.containsHeader);
-	settings.setValue(csvRegKeys::UseVolumeData, m_confParams.useVolumeData);
+	settings.setValue(csvRegKeys::VisualizationType, MapVisType2Str(m_confParams.visType));
 	// save column mappings:
 	QStringList columnMappings;
 	for (auto key : m_confParams.columnMapping.keys())

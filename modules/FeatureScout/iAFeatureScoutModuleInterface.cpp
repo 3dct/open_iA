@@ -68,7 +68,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	iACsvConfig csvConfig = dlg.getConfig();
-	if (csvConfig.useVolumeData && (!m_mainWnd->activeMdiChild() ||
+	if (csvConfig.visType == iACsvConfig::UseVolume && (!m_mainWnd->activeMdiChild() ||
 		m_mainWnd->activeMdiChild()->GetModalities()->size() == 0 ||
 		!m_mainWnd->activeMdiChild()->IsVolumeDataLoaded()))
 	{
@@ -76,7 +76,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 			"yet there is either no open window or the active window does not contain volume data!");
 		return;
 	}
-	if (!csvConfig.useVolumeData)
+	if (csvConfig.visType != iACsvConfig::UseVolume)
 	{
 		m_mdiChild = m_mainWnd->createMdiChild(false);
 		this->m_mdiChild->show();
@@ -85,7 +85,6 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 		m_mdiChild = m_mainWnd->activeMdiChild();
 	startFeatureScout(csvConfig);
 }
-
 
 void iAFeatureScoutModuleInterface::FeatureScout()
 {
@@ -164,7 +163,7 @@ void iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		m_mdiChild->addMsg( "Error while attaching FeatureScout to mdi child window!" );
 		return;
 	}
-	attach->init(csvConfig.objectType, csvConfig.fileName, creator.getTable(), !csvConfig.useVolumeData, io.getOutputMapping());
+	attach->init(csvConfig.objectType, csvConfig.fileName, creator.getTable(), csvConfig.visType, io.getOutputMapping());
 	SetupToolbar();
 	m_mdiChild->addStatusMsg("FeatureScout started");
 	m_mdiChild->addMsg("FeatureScout started");

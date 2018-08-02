@@ -99,7 +99,7 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 	Q_OBJECT
 public:
 	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
-		vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<uint, uint> const & columnMapping);
+		vtkSmartPointer<vtkTable> csvtbl, int vis, QMap<uint, uint> const & columnMapping);
 	~dlg_FeatureScout();
 	void changeFeatureScout_Options(int idx);
 private slots:
@@ -197,7 +197,7 @@ private:
 
 	bool draw3DPolarPlot;
 	bool classRendering;
-	bool useCsvOnly;
+	int visualization;
 
 	const QString sourcePath;
 	vtkSmartPointer<vtkStringArray> nameArr;

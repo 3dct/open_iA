@@ -191,7 +191,7 @@ ColormapFuncPtr colormapsIndex[] =
 };
 
 dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
-	vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<uint, uint> const & columnMapping)
+	vtkSmartPointer<vtkTable> csvtbl, int vis, QMap<uint, uint> const & columnMapping)
 	: QDockWidget( parent ),
 	csvTable( csvtbl ),
 	raycaster( parent->getRenderer() ),
@@ -207,7 +207,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 {
 	// TODO: sort input table by ID column? could speed up setSPMData
 	setupUi( this );
-	this->useCsvOnly = useCsvOnly;
+	visualization = vis;
 	m_pcLineWidth = 0.1;
 	this->elementNr = csvTable->GetNumberOfColumns();
 	this->objectNr = csvTable->GetNumberOfRows();
@@ -219,7 +219,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	blobManager = new iABlobManager();
 	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
 	double bounds[6];
-	if (!this->useCsvOnly)
+	if (visualization == iACsvConfig::UseVolume)
 	{
 		oTF = parent->getPiecewiseFunction();
 		cTF = parent->getColorTransferFunction();
@@ -258,52 +258,49 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupModel();
 	setupConnections();
 	blobVisDialog = new dlg_blobVisualization();
-	if (useCsvOnly)
+	if (visualization == iACsvConfig::Lines)
 	{
-		if (fid == iAFeatureScoutObjectType::Fibers)
-		{
-			vtkRenderWindow* renWin = parent->getRenderer()->GetRenderWindow();
-			auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-			colors->SetNumberOfComponents(4);
-			colors->SetName("Colors");
-			vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
-			auto polyData = vtkSmartPointer<vtkPolyData>::New();
-			vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+		vtkRenderWindow* renWin = parent->getRenderer()->GetRenderWindow();
+		auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		colors->SetNumberOfComponents(4);
+		colors->SetName("Colors");
+		vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
+		auto polyData = vtkSmartPointer<vtkPolyData>::New();
+		vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
 
-			for (vtkIdType row = 0; row < objectNr; ++row)
+		for (vtkIdType row = 0; row < objectNr; ++row)
+		{
+			float first[3], end[3];
+			for (int i = 0; i < 3; ++i)
 			{
-				float first[3], end[3];
-				for (int i = 0; i < 3; ++i)
-				{
-					first[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::StartX + i]).ToFloat();
-					end[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::EndX + i]).ToFloat();
-				}
-				pts->InsertNextPoint(first);
-				pts->InsertNextPoint(end);
-				vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-				line->GetPointIds()->SetId(0, 2 * row);     // the index of line start point in pts
-				line->GetPointIds()->SetId(1, 2 * row + 1); // the index of line end point in pts
-				lines->InsertNextCell(line);
-				unsigned char c[4];
-				c[0] = colorList.at(0).red();
-				c[1] = colorList.at(0).green();
-				c[2] = colorList.at(0).blue();
-				c[3] = 255;
-#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-				colors->InsertNextTupleValue(c);
-				colors->InsertNextTupleValue(c);
-#else
-				colors->InsertNextTypedTuple(c);
-				colors->InsertNextTypedTuple(c);
-#endif
+				first[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::StartX + i]).ToFloat();
+				end[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::EndX + i]).ToFloat();
 			}
-			polyData->SetPoints(pts);
-			polyData->SetLines(lines);
-			polyData->GetPointData()->AddArray(colors);
-			parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
-				.arg(MapObjectTypeToString(filterID)), nullptr, polyData);
-			parent->enableRenderWindows();
+			pts->InsertNextPoint(first);
+			pts->InsertNextPoint(end);
+			vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+			line->GetPointIds()->SetId(0, 2 * row);     // the index of line start point in pts
+			line->GetPointIds()->SetId(1, 2 * row + 1); // the index of line end point in pts
+			lines->InsertNextCell(line);
+			unsigned char c[4];
+			c[0] = colorList.at(0).red();
+			c[1] = colorList.at(0).green();
+			c[2] = colorList.at(0).blue();
+			c[3] = 255;
+#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
+			colors->InsertNextTupleValue(c);
+			colors->InsertNextTupleValue(c);
+#else
+			colors->InsertNextTypedTuple(c);
+			colors->InsertNextTypedTuple(c);
+#endif
 		}
+		polyData->SetPoints(pts);
+		polyData->SetLines(lines);
+		polyData->GetPointData()->AddArray(colors);
+		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
+			.arg(MapObjectTypeToString(filterID)), nullptr, polyData);
+		parent->enableRenderWindows();
 	}
 	// set first column of the classTreeView to minimal (not stretched)
 	this->classTreeView->resizeColumnToContents( 0 );
@@ -698,7 +695,7 @@ void dlg_FeatureScout::RenderingButton()
 
 	if (classCount == 1)
 		return;
-	if (this->useCsvOnly)
+	if (visualization == iACsvConfig::Lines)
 	{
 		auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
 		for (int i = 0; i < classCount; i++)
@@ -856,7 +853,7 @@ void dlg_FeatureScout::SingleRendering( int idx )
 		   backAlpha = 0.0,
 		   backRGB[3] = { 0.0, 0.0, 0.0 };
 
-	if (!useCsvOnly)
+	if (visualization == iACsvConfig::UseVolume)
 	{
 		// clear existing points
 		this->oTF->RemoveAllPoints();
@@ -871,7 +868,7 @@ void dlg_FeatureScout::SingleRendering( int idx )
 
 	if ( idx > 0 ) // for single object selection
 	{
-		if (useCsvOnly)
+		if (visualization == iACsvConfig::Lines)
 		{
 			auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
 			if (!colors)
@@ -919,10 +916,7 @@ void dlg_FeatureScout::SingleRendering( int idx )
 	}
 	else // for single class selection
 	{
-		int hid = 0, next_hid = 1;
-		bool starting = false;
-
-		if (useCsvOnly)
+		if (visualization == iACsvConfig::Lines)
 		{
 			auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
 			if (!colors)
@@ -958,6 +952,8 @@ void dlg_FeatureScout::SingleRendering( int idx )
 		}
 		else
 		{
+			int hid = 0, next_hid = 1;
+			bool starting = false;
 			for ( int j = 0; j < itemL; ++j )
 			{
 				hid = this->activeClassItem->child( j, 0 )->text().toInt();
@@ -1044,7 +1040,7 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 	if (countClass <= 0) // TODO: check if this can even happen -> uncategorized class always should exist!
 		return;
 
-	if (useCsvOnly)
+	if (visualization == iACsvConfig::Lines)
 	{
 		auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
 		if (!colors)
@@ -1262,7 +1258,7 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 
 void dlg_FeatureScout::RenderingMeanObject()
 {
-	if (useCsvOnly)
+	if (visualization != iACsvConfig::UseVolume)
 		return;
 	int classCount = classTreeModel->invisibleRootItem()->rowCount();
 	if ( classCount < 2 )	// unclassified class only
@@ -1848,7 +1844,7 @@ void dlg_FeatureScout::RenderingOrientation()
 	int ip, it;
 
 	vtkUnsignedCharArray* polyColors;
-	if (useCsvOnly)
+	if (visualization == iACsvConfig::Lines)
 	{
 		polyColors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
 	}
@@ -1868,7 +1864,7 @@ void dlg_FeatureScout::RenderingOrientation()
 
 		double *p = static_cast<double *>( oi->GetScalarPointer( it, ip, 0 ) );
 		red = p[0]; green = p[1]; blue = p[2];
-		if (useCsvOnly)
+		if (visualization == iACsvConfig::Lines)
 		{
 			unsigned char color[4];
 			color[0] = red * 255;
@@ -1887,7 +1883,7 @@ void dlg_FeatureScout::RenderingOrientation()
 			this->cTF->AddRGBPoint( i + 1, red, green, blue );
 		}
 	}
-	if (useCsvOnly)
+	if (visualization == iACsvConfig::Lines)
 	{
 		polyColors->Modified();
 		this->raycaster->update();
@@ -2040,7 +2036,7 @@ void dlg_FeatureScout::RenderingFLD()
 	int CID = 0;
 	
 	vtkUnsignedCharArray* colors;
-	if (!useCsvOnly)
+	if (visualization == iACsvConfig::UseVolume)
 	{
 		// clear existing points
 		this->oTF->RemoveAllPoints();
@@ -2062,7 +2058,7 @@ void dlg_FeatureScout::RenderingFLD()
 		red = dcolor[0];
 		green = dcolor[1];
 		blue = dcolor[2];
-		if (useCsvOnly)
+		if (visualization == iACsvConfig::Lines)
 		{
 			unsigned char rgb[4];
 			rgb[0] = red * 255;
@@ -2136,7 +2132,7 @@ void dlg_FeatureScout::RenderingFLD()
 			this->cTF->AddRGBPoint( i + 1 + 0.3, red, green, blue );
 		}
 	}
-	if (useCsvOnly)
+	if (visualization == iACsvConfig::Lines)
 	{
 		colors->Modified();
 	}
@@ -4401,7 +4397,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 		iovPP->hide();
 	connect(iovPP->comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderingOrientation()));
 
-	if (!this->useCsvOnly)
+	if (visualization == iACsvConfig::UseVolume)
 		activeChild->getImagePropertyDlg()->hide();
 	activeChild->HideHistogram();
 	activeChild->logs->hide();

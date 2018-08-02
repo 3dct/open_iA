@@ -22,6 +22,32 @@
 
 #include <QFile>
 
+namespace
+{
+	const char * VisualizationTypeName[iACsvConfig::VisTypeCount] =
+	{
+		"Labelled Volume",
+		"Lines",
+		"Cylinders",
+		"Ellipses"
+	};
+}
+
+QString MapVisType2Str(iACsvConfig::VisualizationType visType)
+{
+	return VisualizationTypeName[visType];
+}
+
+iACsvConfig::VisualizationType MapStr2VisType(QString name)
+{
+	for (int i = 0; i < iACsvConfig::VisTypeCount; ++i)
+	{
+		if (name == VisualizationTypeName[i])
+			return static_cast<iACsvConfig::VisualizationType>(i);
+	}
+	return iACsvConfig::UseVolume;
+}
+
 iACsvConfig::iACsvConfig() :
 	fileName(""),
 	encoding("System"),
@@ -38,7 +64,7 @@ iACsvConfig::iACsvConfig() :
 	computeTensors(false),
 	computeCenter(false),
 	containsHeader(true),
-	useVolumeData(false)
+	visType(UseVolume)
 {}
 
 bool iACsvConfig::isValid(QString & errorMsg) const
@@ -67,6 +93,27 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 			"Please specify a mapping to the column containing start (x, y, z) and end (x, y, z) coordinate!";
 			return false;
 	}
+	if ((visType == Lines || visType == Cylinders) && (
+		!columnMapping.contains(iACsvConfig::StartX) ||
+		!columnMapping.contains(iACsvConfig::StartY) ||
+		!columnMapping.contains(iACsvConfig::StartZ) ||
+		!columnMapping.contains(iACsvConfig::EndX) ||
+		!columnMapping.contains(iACsvConfig::EndY) ||
+		!columnMapping.contains(iACsvConfig::EndZ)))
+	{
+		errorMsg = "Visualization as Lines or Cylinders requires start and end position column, please specify where to find these!";
+		return false;
+	}
+	if (visType == Cylinders && !columnMapping.contains(iACsvConfig::Diameter))
+	{
+		errorMsg = "Visualization as Cylinders requires a diameter column, please specify where to find it!";
+		return false;
+	}
+	if (visType == Cylinders || visType == Ellipses)
+	{
+		errorMsg = "Visualization as Cylinders or Ellipses are not implemented yet!";
+		return false;
+	}
 	if (selectedHeaders.size() < 1)
 	{
 		errorMsg = "Please select at least one column to load!";
@@ -91,7 +138,7 @@ iACsvConfig const & iACsvConfig::getLegacyFiberFormat(QString const & fileName)
 	LegacyFormat.computeAngles = true;
 	LegacyFormat.computeTensors = true;
 	LegacyFormat.computeCenter = true;
-	LegacyFormat.useVolumeData = true;
+	LegacyFormat.visType = UseVolume;
 	LegacyFormat.currentHeaders = QStringList() << "Label"
 		<< "X1[µm]"
 		<< "Y1[µm]"
@@ -135,7 +182,7 @@ iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 	LegacyFormat.computeAngles = false;
 	LegacyFormat.computeTensors = false;
 	LegacyFormat.computeCenter = false;
-	LegacyFormat.useVolumeData = true;
+	LegacyFormat.visType = UseVolume;
 	LegacyFormat.currentHeaders.clear();
 	LegacyFormat.selectedHeaders.clear();
 	LegacyFormat.columnMapping.clear();

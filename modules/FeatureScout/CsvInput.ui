@@ -189,13 +189,23 @@
          </widget>
         </item>
         <item row="3" column="0">
+         <widget class="QLabel" name="lbl_VisualizeAs">
+          <property name="text">
+           <string>Visualization</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QComboBox" name="cmbbox_VisualizeAs"/>
+        </item>
+        <item row="4" column="0">
          <widget class="QLabel" name="lbl_Encoding">
           <property name="text">
            <string>Encoding</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
+        <item row="4" column="1">
          <widget class="QComboBox" name="cmbbox_Encoding">
           <item>
            <property name="text">
@@ -219,14 +229,14 @@
           </item>
          </widget>
         </item>
-        <item row="4" column="0">
+        <item row="5" column="0">
          <widget class="QLabel" name="lbl_ColumnSeparator">
           <property name="text">
            <string>Column Separator</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
+        <item row="5" column="1">
          <widget class="QComboBox" name="cmbbox_ColSeparator">
           <property name="enabled">
            <bool>true</bool>
@@ -251,14 +261,14 @@
           </item>
          </widget>
         </item>
-        <item row="5" column="0">
+        <item row="6" column="0">
          <widget class="QLabel" name="lbl_DecimalSeparator">
           <property name="text">
            <string>Decimal separator:</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="1">
+        <item row="6" column="1">
          <widget class="QComboBox" name="cmbbox_DecimalSeparator">
           <property name="editable">
            <bool>true</bool>
@@ -275,14 +285,14 @@
           </item>
          </widget>
         </item>
-        <item row="6" column="0">
+        <item row="7" column="0">
          <widget class="QLabel" name="lbl_SkipS1tartLine">
           <property name="text">
            <string>Skip Start Lines:</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="1">
+        <item row="7" column="1">
          <widget class="QSpinBox" name="ed_SkipLinesStart">
           <property name="enabled">
            <bool>true</bool>
@@ -298,28 +308,28 @@
           </property>
          </widget>
         </item>
-        <item row="7" column="0">
+        <item row="8" column="0">
          <widget class="QLabel" name="lbl_SkipEndLines">
           <property name="text">
            <string>Skip End Lines:</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="1">
+        <item row="8" column="1">
          <widget class="QSpinBox" name="ed_SkipLinesEnd">
           <property name="maximum">
            <number>9999999</number>
           </property>
          </widget>
         </item>
-        <item row="8" column="0">
+        <item row="9" column="0">
          <widget class="QLabel" name="lbl_Unit">
           <property name="text">
            <string>Unit:</string>
           </property>
          </widget>
         </item>
-        <item row="8" column="1">
+        <item row="9" column="1">
          <widget class="QComboBox" name="cmbbox_Unit">
           <item>
            <property name="text">
@@ -328,7 +338,7 @@
           </item>
          </widget>
         </item>
-        <item row="9" column="0">
+        <item row="10" column="0">
          <widget class="QLabel" name="lbl_Spacing">
           <property name="enabled">
            <bool>false</bool>
@@ -338,7 +348,7 @@
           </property>
          </widget>
         </item>
-        <item row="9" column="1">
+        <item row="10" column="1">
          <widget class="QLineEdit" name="ed_Spacing">
           <property name="enabled">
            <bool>false</bool>
@@ -348,24 +358,31 @@
           </property>
          </widget>
         </item>
-        <item row="10" column="0" colspan="2">
+        <item row="11" column="0" colspan="2">
          <widget class="QCheckBox" name="cb_AddAutoID">
           <property name="text">
            <string>Create ID</string>
           </property>
          </widget>
         </item>
-        <item row="11" column="0">
+        <item row="12" column="0">
          <widget class="QLabel" name="lbl_col_ID">
           <property name="text">
            <string>ID</string>
           </property>
          </widget>
         </item>
-        <item row="11" column="1">
+        <item row="12" column="1">
          <widget class="QLineEdit" name="ed_col_ID">
           <property name="enabled">
            <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0" colspan="2">
+         <widget class="QCheckBox" name="cb_ContainsHeader">
+          <property name="text">
+           <string>Contains header</string>
           </property>
          </widget>
         </item>
@@ -383,20 +400,6 @@
          <widget class="QPushButton" name="btn_DeleteFormat">
           <property name="text">
            <string>Delete Format</string>
-          </property>
-         </widget>
-        </item>
-        <item row="12" column="0" colspan="2">
-         <widget class="QCheckBox" name="cb_ContainsHeader">
-          <property name="text">
-           <string>Contains header</string>
-          </property>
-         </widget>
-        </item>
-        <item row="13" column="0" colspan="2">
-         <widget class="QCheckBox" name="cb_UseVolumeData">
-          <property name="text">
-           <string>Use Volume Data</string>
           </property>
          </widget>
         </item>
