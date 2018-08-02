@@ -157,8 +157,6 @@ private:
 	void updateSPColumnVisibility();
 	void updateSPColumnVisibilityWithVis();
 	void ScatterPlotButton();
-	void setSPMData(vtkSmartPointer<vtkTable> const &classEntries);  //!< set data from current class to SPM
-	void setSPMData(std::vector<size_t> const & selInd);             //!< set data in SPM selection to class
 	void spmApplyColorMap(const int classIdx);                         //!< set SPM dot color according to given class index
 	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
 	void spmApplyGeneralColorMap(const double rgba[4]);

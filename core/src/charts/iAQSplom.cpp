@@ -165,7 +165,9 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	m_popupHeight(0),
 	m_separationIdx(-1),
 	m_contextMenu(new QMenu(this)),
-	m_bgColorTheme(iAColorThemeManager::GetInstance().GetTheme("White"))
+	m_bgColorTheme(iAColorThemeManager::GetInstance().GetTheme("White")),
+	m_FilterColID(-1),
+	m_FilterValue(-1.0)
 {
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
@@ -198,6 +200,29 @@ void iAQSplom::setSelectionMode(int mode)
 	if (m_maximizedPlot)
 		m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(mode);
 	settings.selectionMode = mode;
+}
+
+void iAQSplom::setCurrentFilterParams(int FilterCol_ID, double FilterValue)
+{
+	if (FilterCol_ID < -1 || FilterCol_ID >= m_splomData->numParams())
+	{
+		DEBUG_LOG("Invalid filter column ID!");
+		return;
+	}
+	m_FilterColID = FilterCol_ID;
+	m_FilterValue = FilterValue;
+
+	foreach(QList<iAScatterPlot*> row, m_matrix)
+	{
+		foreach(iAScatterPlot* s, row)
+		{
+			s->setFilter(m_FilterColID, m_FilterValue);
+		}
+	}
+
+	if(m_maximizedPlot)
+		m_maximizedPlot->setFilter(m_FilterColID, m_FilterValue);
+
 }
 
 void iAQSplom::selectionModePolygon()
@@ -235,6 +260,22 @@ void iAQSplom::setData( QSharedPointer<iASPLOMData> data )
 	dataChanged();
 }
 
+QSharedPointer<iASPLOMData> iAQSplom::data()
+{
+	return m_splomData;
+}
+
+void iAQSplom::paramChanged(int idx)
+{
+	if (idx < 0 || idx >= m_matrix.size())
+		return;
+	for (int i = 0; i < m_matrix.size(); ++i)
+	{
+		m_matrix[idx][i]->calculateRanges();
+		m_matrix[i][idx]->calculateRanges();
+	}
+}
+
 void iAQSplom::dataChanged()
 {
 	clear();
@@ -248,6 +289,8 @@ void iAQSplom::dataChanged()
 			iAScatterPlot * s = new iAScatterPlot(this, this);
 			connect( s, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
 			connect( s, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
+
+			s->setFilter(m_FilterColID, m_FilterValue);
 			s->setData( x, y, m_splomData ); //we want first plot in lower left corner of the SPLOM
 			s->setSelectionColor(settings.selectionColor);
 			s->setPointRadius(settings.pointRadius);
@@ -283,8 +326,11 @@ void iAQSplom::applyLookupTable()
 			s->setLookupTable( m_lut, m_colorArrayName );
 		}
 	}
-	if( m_maximizedPlot )
-		m_maximizedPlot->setLookupTable( m_lut, m_colorArrayName );
+	if (m_maximizedPlot) 
+	{
+		m_maximizedPlot->setLookupTable(m_lut, m_colorArrayName);
+	}
+
 	update();
 }
 
@@ -348,9 +394,61 @@ iAQSplom::SelectionType & iAQSplom::getSelection()
 	return m_selInds;
 }
 
+iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
+{
+	if (m_FilterColID == -1 || m_selInds.size() == 0)
+		return getSelection();
+	static iAQSplom::SelectionType filteredSelectionInds;
+	filteredSelectionInds.clear();
+	std::vector<size_t> sortedSelInds = m_selInds;
+	std::sort(sortedSelInds.begin(), sortedSelInds.end());
+	size_t curFilteredIdx = 0;
+	size_t curSelIdx = 0;
+	const double Epsilon = 1e-10;
+	for (size_t curIdx = 0; curIdx < m_splomData->numPoints(); ++curIdx)
+	{
+		if (abs(m_splomData->paramData(m_FilterColID)[curIdx] - m_FilterValue) > Epsilon)
+			continue;
+		if (curSelIdx >= sortedSelInds.size())
+			break;
+		if (curIdx == sortedSelInds[curSelIdx])
+		{
+			filteredSelectionInds.push_back(curFilteredIdx);
+			++curSelIdx;
+		}
+		++curFilteredIdx;
+	}
+	return filteredSelectionInds;
+}
+
 void iAQSplom::setSelection( iAQSplom::SelectionType const & selInds )
 {
 	m_selInds = selInds;
+	update();
+}
+
+void iAQSplom::setFilteredSelection(iAQSplom::SelectionType const & filteredSelInds)
+{
+	if ( m_FilterColID == -1 )
+		setSelection(filteredSelInds);
+	std::vector<size_t> sortedFilteredSelInds = filteredSelInds;
+	std::sort(sortedFilteredSelInds.begin(), sortedFilteredSelInds.end());
+	size_t curFilteredIdx = 0,
+		curSelIdx = 0;
+	m_selInds.clear();
+	const double Epsilon = 1e-10;
+	for (size_t curIdx = 0; curIdx < m_splomData->numPoints(); ++curIdx)
+	{
+		if (abs(m_splomData->paramData(m_FilterColID)[curIdx] - m_FilterValue) > Epsilon)
+			continue;
+		if (curSelIdx >= sortedFilteredSelInds.size())
+			break;
+		if (curFilteredIdx == sortedFilteredSelInds[curSelIdx])
+		{
+			m_selInds.push_back(curIdx);
+		}
+		++curFilteredIdx;
+	}
 	update();
 }
 
@@ -544,7 +642,7 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 	//create main plot
 	delete m_maximizedPlot;
 	m_maximizedPlot = new iAScatterPlot(this, this, 11, true);
-
+	m_maximizedPlot->setFilter(m_FilterColID, m_FilterValue);
 	connect(m_maximizedPlot, &iAScatterPlot::selectionModified, this, &iAQSplom::selectionUpdated);
 	connect(m_maximizedPlot, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
 

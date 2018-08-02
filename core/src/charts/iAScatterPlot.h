@@ -59,6 +59,7 @@ public:
 	~iAScatterPlot();
 
 	void setData( int x, int y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
+	void calculateRanges();                                          //!< Compute parameter ranges
 	bool hasData() const;                                            //!< Check if data is already set to the plot
 	//! Set color lookup table and the name of a color-coded parameter
 	void setLookupTable( QSharedPointer<iALookupTable> &lut, QString const & colorArrayName );
@@ -93,6 +94,8 @@ public:
 	void setSelectionColor(QColor selCol);
 	//! @}
 
+	void setFilter(int colID, double value); 
+
 protected:
 	int p2binx( double p ) const;                                    //!< Get grid bin index using parameter value X
 	int p2biny( double p ) const;                                    //!< Get grid bin index using parameter value Y
@@ -108,7 +111,6 @@ protected:
 	double revertTransformY( double v ) const;                       //!< Revert scaling and offset to get Y coordinate
 	void initGrid();                                                 //!< Allocate lists for grid subdivision ( for point-picking acceleration)
 	void updateGrid();                                               //!< Fill subdivision grid with points ( for point-picking acceleration)
-	void calculateRanges();                                          //!< Compute parameter ranges
 	void applyMarginToRanges();                                      //!< Apply margins to ranges so that points are not stretched border-to-border
 	void calculateNiceSteps();                                       //!< Calculates nice steps displayed parameter ranges
 	void calculateNiceSteps( double * r, QList<double> * ticks );    //!< Calculates nice steps displayed parameter ranges given a range and a desired number of ticks
@@ -205,8 +207,8 @@ protected:
 	bool m_isMaximizedPlot;                                          //!< flag telling if this plot itself is maximized (bigger plot)
 	bool m_isPreviewPlot;                                            //!< flag telling if a large version of this plot is shown maximized currently
 
-	protected:
-		bool setFilterForClassID(const int colInd, const int rowInd, const double value); //!<Apply filter to each class and draw points only of current class
-		int m_currClassID; //TODO Added MS
-		int m_classColInd; //!< Current class index of columns
+protected:
+	bool matchesFilter(const int ind) const; //!<Apply filter to each class and draw points only of current class, no filtering for colInd -1
+	int	m_FilterColID; //!<Filter Column ID
+	double m_FilterValue; //!< Current Filter value 
 };

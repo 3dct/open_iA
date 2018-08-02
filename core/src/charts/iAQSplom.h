@@ -74,6 +74,8 @@ public:
 
 	virtual void setData( const QTableWidget * data );               //! import data from QTableWidget, first row should contain parameter names, each column corresponds to one parameter.
 	void setData(QSharedPointer<iASPLOMData> data);                  //! set SPLOM data directly.
+	QSharedPointer<iASPLOMData> data();                              //! retrieve SPLOM data
+	void paramChanged(int idx);                                      //! column idx in SPLOM data changed
 	void setLookupTable( vtkLookupTable * lut, const QString & colorArrayName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
 	void setLookupTable( iALookupTable &lut, const QString & colorArrayName ); //!< Set lookup table given the name of a parameter to color-code.
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
@@ -84,6 +86,8 @@ public:
 	void setPointRadius( double radius );                            //!< set the radius for scatter plot points
 	SelectionType & getSelection();                                  //!< Get const vector of indices of currently selected data points.
 	SelectionType const & getSelection() const;                      //!< Get vector of indices of currently selected data points.
+	SelectionType const & getFilteredSelection() const;              //!< Get vector of indices of currently selected data points.
+	void setFilteredSelection(SelectionType const & filteredSelInds);//!< Set selected data points from indices within the filtered data points
 	void setSelection( SelectionType const & selInds );              //!< Set selected data points from a vector of indices.
 	void clearSelection();                                           //!< deletes current selection
 	void setSelectionColor(QColor color);                            //!< set the color for selected points
@@ -100,6 +104,8 @@ public:
 	void showAllPlots(const bool enableAllPlotsVisible);             //!< switch between showing all plots or only upper half
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
+	void setCurrentFilterParams(int FilterCol_ID, double FilterValue);							 //!< set selection mode to either rectangle or polygon mode
+
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
@@ -206,4 +212,7 @@ protected:
 private:
 	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction;
 	QVector<iAChartWidget*> m_histograms;
+	int m_FilterColID; 
+	double m_FilterValue; 
+
 };
