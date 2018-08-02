@@ -573,6 +573,8 @@ void dlg_CSVInput::exportButtonClicked()
 		m_path, "Settings file (*.ini);;");
 	if (fileName.isEmpty())
 		return;
+	assignFormatSettings();
+	assignSelectedCols();
 	QSettings settings(fileName, QSettings::IniFormat);
 	QString formatName = ed_FormatName->text();
 	settings.setValue(IniFormatName, formatName);
