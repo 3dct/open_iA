@@ -50,6 +50,7 @@ FOREACH( indx RANGE ${len} )
 		SET(ADDITIONAL_MODULE_LIBRARIES_DEBUG "")
 		SET(ADDITIONAL_MODULE_LIBRARIES_RELEASE "")
 		SET(ADDITIONAL_MODULE_INCLUDE_DIRS "")
+		SET(ADDITIONAL_MODULE_MODULES "")
 		LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
 		# Collect source files from the module directories, except potential *Test.cpp/cxx files
 		FILE( GLOB_RECURSE module_srcs "${module_full_path}/*.cpp" "${module_full_path}/*.cxx" )
@@ -68,6 +69,7 @@ FOREACH( indx RANGE ${len} )
 			IF (${depend_full_path} STREQUAL "NOTFOUND")
 				MESSAGE(STATUS "Module ${d}, required for module ${module_name}, not found in the filesystem!")
 			ELSE()
+				# old way of module dependency which just includes all source files:
 				FILE( GLOB_RECURSE depend_srcs "${depend_full_path}/*.cpp" "${depend_full_path}/*.cxx" )
 				FILE( GLOB_RECURSE depend_test_srcs "${depend_full_path}/*Test.cpp" "${depend_full_path}/*Test.cxx" )
 				FILE( GLOB_RECURSE depend_hs "${depend_full_path}/*.h" )
@@ -78,7 +80,6 @@ FOREACH( indx RANGE ${len} )
 				# Collect .ui files from the  module directory and add them
 				FILE( GLOB_RECURSE depend_uis "${depend_full_path}/*.ui" )
 				QT5_WRAP_UI( depend_srcs ${depend_uis})
-
 				LIST (APPEND module_srcs ${depend_srcs})
 				LIST (APPEND module_hs ${depend_hs})
 			ENDIF()
@@ -105,6 +106,18 @@ FOREACH( indx RANGE ${len} )
 		FOREACH( d ${module_dependencies} )
 			GET_MODULE_FULL_PATH ( ${d} depend_full_path )
 			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${depend_full_path} )
+		ENDFOREACH()
+
+		FOREACH( d ${ADDITIONAL_MODULE_MODULES} )
+			GET_MODULE_FULL_PATH ( ${d} depend_full_path )
+			IF (${depend_full_path} STREQUAL "NOTFOUND")
+				MESSAGE(STATUS "Module ${d}, required for module ${module_name}, not found in the filesystem!")
+			ELSE()
+				# probably only works if modules are dependent on modules which come before them in the alphabet!
+				# TODO: real solution working in all cases would need to sort modules in dependency order!
+				TARGET_LINK_LIBRARIES(${module_name} PRIVATE ${d})
+				TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${depend_full_path})
+			ENDIF()
 		ENDFOREACH()
 
 		IF (openiA_USE_IDE_FOLDERS)
