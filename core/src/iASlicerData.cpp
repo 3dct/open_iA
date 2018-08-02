@@ -1570,13 +1570,11 @@ void iASlicerData::InitReslicerWithImageData()
 	reslicer->SetInputData( imageData );
 	reslicer->SetInformationInput( imageData );
 	reslicer->SetResliceTransform( transform );
-
 	reslicer->SetOutputDimensionality( 2 );
 	reslicer->SetInterpolationModeToCubic();
 	reslicer->InterpolateOn();
 	reslicer->AutoCropOutputOn();
 	reslicer->SetNumberOfThreads(QThread::idealThreadCount());
-
 	reslicer->UpdateWholeExtent();
 	UpdateReslicer();
 }
@@ -1691,6 +1689,12 @@ void iASlicerData::setSliceNumber( int sliceNumber )
 void iASlicerData::setSlabThickness(int thickness)
 {
 	reslicer->SetSlabNumberOfSlices(thickness);
+	update();
+}
+
+void iASlicerData::setSlabCompositeMode(int compositeMode)
+{
+	reslicer->SetSlabMode(compositeMode);
 	update();
 }
 

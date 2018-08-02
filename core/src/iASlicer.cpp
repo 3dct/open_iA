@@ -231,6 +231,11 @@ void iASlicer::setSlabThickness(int thickness)
 	m_data->setSlabThickness(thickness);
 }
 
+void iASlicer::setSlabCompositeMode(int compositeMode)
+{
+	m_data->setSlabCompositeMode(compositeMode);
+}
+
 vtkRenderer * iASlicer::GetRenderer() const
 {
 	return m_data->GetRenderer();

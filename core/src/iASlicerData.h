@@ -154,6 +154,7 @@ public:
 	vtkScalarsToColors * GetColorTransferFunction();
 
 	void setSlabThickness(int thickness);
+	void setSlabCompositeMode(int compositeMode);
 
 protected:
 	void UpdateResliceAxesDirectionCosines();

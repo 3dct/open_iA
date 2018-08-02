@@ -176,8 +176,8 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	parametricSpline = iAParametricSpline::New();
 	parametricSpline->SetPoints(worldSnakePoints);
 
+	sXY->spinBoxXY->setRange(-8192, 8192);
 	sXZ->spinBoxXZ->setRange(-8192,8192);
-	sXY->spinBoxXY->setRange(-8192,8192);
 	sYZ->spinBoxYZ->setRange(-8192,8192);
 
 	sXY->sbinBoxSlabThicknessXY->hide();
@@ -186,6 +186,10 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	sXZ->labelSlabThicknessXZ->hide();
 	sYZ->sbinBoxSlabThicknessYZ->hide();
 	sYZ->labelSlabThicknessYZ->hide();
+
+	sXY->comboBoxSlabCompositeModeXY->hide();
+	sXZ->comboBoxSlabCompositeModeXZ->hide();
+	sYZ->comboBoxSlabCompositeModeYZ->hide();
 
 	worldProfilePoints = vtkPoints::New();
 	worldProfilePoints->Allocate(2);
@@ -268,6 +272,10 @@ void MdiChild::connectSignalsToSlots()
 	connect(sXZ->sbinBoxSlabThicknessXZ, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessXZ(int)));
 	connect(sYZ->checkBoxSlabModeYZ, SIGNAL(toggled(bool)), this, SLOT(setSlabModeYZ(bool)));
 	connect(sYZ->sbinBoxSlabThicknessYZ, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessYZ(int)));
+
+	connect(sXY->comboBoxSlabCompositeModeXY, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeModeXY(int)));
+	connect(sXZ->comboBoxSlabCompositeModeXZ, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeModeXZ(int)));
+	connect(sYZ->comboBoxSlabCompositeModeYZ, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeModeYZ(int)));
 
 	for (int s = 0; s < 3; ++s)
 	{
@@ -1230,6 +1238,7 @@ void MdiChild::setSlabModeXY(bool slabMode)
 {
 	sXY->labelSlabThicknessXY->setVisible(slabMode);
 	sXY->sbinBoxSlabThicknessXY->setVisible(slabMode);
+	sXY->comboBoxSlabCompositeModeXY->setVisible(slabMode);
 
 	slabMode == true ?
 		updateSlabThicknessXY(sXY->sbinBoxSlabThicknessXY->value()) :
@@ -1239,6 +1248,11 @@ void MdiChild::setSlabModeXY(bool slabMode)
 void MdiChild::updateSlabThicknessXY(int thickness)
 {
 	slicer[iASlicerMode::XY]->setSlabThickness(thickness);
+}
+
+void MdiChild::updateSlabCompositeModeXY(int mode)
+{
+	slicer[iASlicerMode::XY]->setSlabCompositeMode(mode);
 }
 
 void MdiChild::setSliceXYScrollBar(int s)
@@ -1409,6 +1423,7 @@ void MdiChild::setSlabModeYZ(bool slabMode)
 {
 	sYZ->labelSlabThicknessYZ->setVisible(slabMode);
 	sYZ->sbinBoxSlabThicknessYZ->setVisible(slabMode);
+	sYZ->comboBoxSlabCompositeModeYZ->setVisible(slabMode);
 
 	slabMode == true ?
 		updateSlabThicknessYZ(sYZ->sbinBoxSlabThicknessYZ->value()) :
@@ -1418,6 +1433,11 @@ void MdiChild::setSlabModeYZ(bool slabMode)
 void MdiChild::updateSlabThicknessYZ(int thickness)
 {
 	slicer[iASlicerMode::YZ]->setSlabThickness(thickness);
+}
+
+void MdiChild::updateSlabCompositeModeYZ(int mode)
+{
+	slicer[iASlicerMode::YZ]->setSlabCompositeMode(mode);
 }
 
 void MdiChild::setSliceYZScrollBar(int s)
@@ -1459,6 +1479,7 @@ void MdiChild::setSlabModeXZ(bool slabMode)
 {
 	sXZ->labelSlabThicknessXZ->setVisible(slabMode);
 	sXZ->sbinBoxSlabThicknessXZ->setVisible(slabMode);
+	sXZ->comboBoxSlabCompositeModeXZ->setVisible(slabMode);
 
 	slabMode == true ?
 		updateSlabThicknessXZ(sXZ->sbinBoxSlabThicknessXZ->value()) :
@@ -1468,6 +1489,11 @@ void MdiChild::setSlabModeXZ(bool slabMode)
 void MdiChild::updateSlabThicknessXZ(int thickness)
 {
 	slicer[iASlicerMode::XZ]->setSlabThickness(thickness);
+}
+
+void MdiChild::updateSlabCompositeModeXZ(int mode)
+{
+	slicer[iASlicerMode::XZ]->setSlabCompositeMode(mode);
 }
 
 void MdiChild::setSliceXZScrollBar(int s)
