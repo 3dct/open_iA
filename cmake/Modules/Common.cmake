@@ -211,8 +211,8 @@ ENDIF(EIGEN3_FOUND)
 #     - always uses first installed version without allowing to override
 #     - if not installed, reports missing HDF5_DIR and unsets it even when set to directory having same structure as install
 #   => skip? for now, allow overriding with HDF5_DIR_OVERRIDE
-FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE)
-IF (HDF5_DIR AND NOT "${HDF5_DIR_OVERRIDE}" STREQUAL "${HDF5_DIR}")
+FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE QUIET)
+IF (HDF5_DIR_OVERRIDE AND NOT "${HDF5_DIR_OVERRIDE}" STREQUAL "${HDF5_DIR}")
 	SET(HDF5_DIR "${HDF5_DIR_OVERRIDE}" CACHE PATH "" FORCE)
 	SET(HDF5_FOUND "true")
 	MESSAGE(STATUS "HDF5: Overriding found HDF5_DIR=${HDF5_DIR} with HDF5_DIR_OVERRIDE=${HDF5_DIR_OVERRIDE}")
@@ -232,6 +232,7 @@ IF (HDF5_FOUND)
 		SET (HDF5_LIBRARY ${HDF5_CORE_LIB} CACHE STRING "" FORCE)
 	ENDIF()
 	UNSET(HDF5_CORE_LIB CACHE)
+	MESSAGE(STATUS "Found HDF5: ${HDF5_DIR}")
 ENDIF()
 
 
