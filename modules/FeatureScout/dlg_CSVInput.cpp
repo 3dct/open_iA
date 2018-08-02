@@ -513,13 +513,15 @@ void dlg_CSVInput::assignSelectedCols()
 	for (auto selColModelIdx : selectedColModelIndices)
 		selectedColIDx.push_back(selColModelIdx.row());
 	qSort(selectedColIDx.begin(), selectedColIDx.end(), qLess<uint>());
-	m_confParams.currentHeaders.clear();
-	for (int row = 0; row < list_ColumnSelection->count(); ++row)
-		m_confParams.currentHeaders.append(list_ColumnSelection->item(row)->text());
-
-	m_confParams.selectedHeaders.clear();
-	for (auto selColIdx: selectedColIDx)
-		m_confParams.selectedHeaders.push_back(m_confParams.currentHeaders[selColIdx]);
+	if (list_ColumnSelection->count() > 0)
+	{
+		m_confParams.currentHeaders.clear();
+		for (int row = 0; row < list_ColumnSelection->count(); ++row)
+			m_confParams.currentHeaders.append(list_ColumnSelection->item(row)->text());
+		m_confParams.selectedHeaders.clear();
+		for (auto selColIdx : selectedColIDx)
+			m_confParams.selectedHeaders.push_back(m_confParams.currentHeaders[selColIdx]);
+	}
 }
 
 void dlg_CSVInput::showSelectedCols()
