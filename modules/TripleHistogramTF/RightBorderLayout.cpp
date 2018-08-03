@@ -36,14 +36,23 @@ RightBorderLayout::RightBorderLayout(int spacing)
 
 RightBorderLayout::~RightBorderLayout()
 {
-	QLayoutItem *l;
-	while ((l = takeAt(0)))
-		delete l;
+	delete m_centerItem;
+	delete m_rightItem;
 }
 
 void RightBorderLayout::addItem(QLayoutItem *item)
 {
-	addCenter(item);
+	// Do nothing
+}
+
+void RightBorderLayout::addWidgetRight(RightBorderLayoutItemWrapper *item)
+{
+	setRight(item);
+}
+
+void RightBorderLayout::addWidgetCenter(QLayoutItem *item)
+{
+	setCenter(item);
 }
 
 Qt::Orientations RightBorderLayout::expandingDirections() const
@@ -58,17 +67,33 @@ bool RightBorderLayout::hasHeightForWidth() const
 
 int RightBorderLayout::count() const
 {
-	return centerItems.size() + rightItems.size();
+	return m_centerItem != 0 ? 1 : 0
+		+
+		m_rightItem != 0 ? 1 : 0;
 }
 
 QLayoutItem *RightBorderLayout::itemAt(int index) const
 {
-	if (index < centerItems.size())
+	switch (index)
 	{
-		return centerItems.value(index);
-	}
-	else {
-		return rightItems.value(index - centerItems.size());
+	case 0:
+		if (m_centerItem)
+		{
+			return m_centerItem;
+		}
+		else {
+			return m_rightItem->layoutItem();
+		}
+	case 1:
+		if (m_centerItem)
+		{
+			return m_rightItem->layoutItem();
+		}
+		else {
+			return 0;
+		}
+	default:
+		return 0;
 	}
 }
 
@@ -79,118 +104,47 @@ QSize RightBorderLayout::minimumSize() const
 
 void RightBorderLayout::setGeometry(const QRect &rect)
 {
-	/*ItemWrapper *center = 0;
-	int eastWidth = 0;
-	int westWidth = 0;
-	int northHeight = 0;
-	int southHeight = 0;
-	int centerHeight = 0;
-	int i;*/
+	/*QLayout::setGeometry(rect);
 
-	QLayout::setGeometry(rect);
+	QWidget *a = m_centerItem->widget();
+	const QRect b = m_centerItem->geometry();
+	const QRect c = a->geometry();
 
+	m_centerItem->setGeometry(rect);
+	//m_rightItem->layoutItem()->setGeometry(rect);*/
 
+	QLayoutItem *rightLayoutItem = m_rightItem->layoutItem();
 
-	int x = rect.x() + rect.width();
-	int width;
-	int i;
-	
+	int width = m_rightItem->hasWidthForHeight()
+		? m_rightItem->getWidthForHeight(rect.height())
+		: rightLayoutItem->sizeHint().width(); // TODO: sizeHint() or geometry()?
+
+	int x = rect.x() + rect.width() - width;
+
+	rightLayoutItem->setGeometry(QRect(
+		x,
+		rect.y(),
+		width,
+		rect.height()
+	));
+
+	if (x > rect.x())
 	{
-		RightBorderWidgetItem *item;
-		for (i = rightItems.size() - 1; i >=0; --i)
-		{
-			item = rightItems.at(i);
-			width = item->widget()->getWidthForHeight(rect.height());
-
-			x -= width;
-
-			item->setGeometry(QRect(
-				x,
-				rect.y(),
-				width,
-				rect.height()
-			));
-		}
+		width = x - rect.x(); // remaining width
+		x = rect.x();
+	}
+	else {
+		// TODO: remove?
+		//width = m_centerItem->sizeHint().width(); // TODO: sizeHint() or geometry()?
+		return;
 	}
 
-	{
-		QLayoutItem *item;
-		for (i = rightItems.size() - 1; i >= 0; --i)
-		{
-			item = rightItems.at(i);
-			width = item->sizeHint().width();
-
-			x -= width;
-
-			item->setGeometry(QRect(
-				x,
-				rect.y(),
-				width,
-				rect.height()
-			));
-		}
-	}
-
-
-
-	/*for (i = 0; i < list.size(); ++i) {
-		ItemWrapper *wrapper = list.at(i);
-		QLayoutItem *item = wrapper->item;
-		Position position = wrapper->position;
-
-		if (position == North) {
-			item->setGeometry(QRect(rect.x(), northHeight, rect.width(),
-				item->sizeHint().height()));
-
-			northHeight += item->geometry().height() + spacing();
-		}
-		else if (position == South) {
-			item->setGeometry(QRect(item->geometry().x(),
-				item->geometry().y(), rect.width(),
-				item->sizeHint().height()));
-
-			southHeight += item->geometry().height() + spacing();
-
-			item->setGeometry(QRect(rect.x(),
-				rect.y() + rect.height() - southHeight + spacing(),
-				item->geometry().width(),
-				item->geometry().height()));
-		}
-		else if (position == Center) {
-			center = wrapper;
-		}
-	}
-
-	centerHeight = rect.height() - northHeight - southHeight;
-
-	for (i = 0; i < list.size(); ++i) {
-		ItemWrapper *wrapper = list.at(i);
-		QLayoutItem *item = wrapper->item;
-		Position position = wrapper->position;
-
-		if (position == West) {
-			item->setGeometry(QRect(rect.x() + westWidth, northHeight,
-				item->sizeHint().width(), centerHeight));
-
-			westWidth += item->geometry().width() + spacing();
-		}
-		else if (position == East) {
-			item->setGeometry(QRect(item->geometry().x(), item->geometry().y(),
-				item->sizeHint().width(), centerHeight));
-
-			eastWidth += item->geometry().width() + spacing();
-
-			item->setGeometry(QRect(
-				rect.x() + rect.width() - eastWidth + spacing(),
-				northHeight, item->geometry().width(),
-				item->geometry().height()));
-		}
-	}
-
-	if (center)
-		center->item->setGeometry(QRect(westWidth, northHeight,
-			rect.width() - eastWidth - westWidth,
-			centerHeight));*/
+	m_centerItem->setGeometry(QRect(
+		x,
+		rect.y(),
+		width,
+		rect.height()
+	));
 }
 
 QSize RightBorderLayout::sizeHint() const
@@ -206,24 +160,26 @@ QLayoutItem *RightBorderLayout::takeAt(int index)
 	return 0;
 }
 
-void RightBorderLayout::addCenter(QLayoutItem* item)
+void RightBorderLayout::setCenter(QLayoutItem* item)
 {
-	centerItems.append(item);
+	QLayout::addWidget(item->widget());
+	m_centerItem = item;
 }
 
-void RightBorderLayout::addRight(RightBorderWidgetItem* item)
+void RightBorderLayout::setRight(RightBorderLayoutItemWrapper* item)
 {
-	rightItems.append(item);
+	QLayout::addWidget(item->layoutItem()->widget());
+	m_rightItem = item;
 }
 
-void RightBorderLayout::addCenterWidget(QWidget* widget)
+void RightBorderLayout::setCenterWidget(QWidget* widget)
 {
-	centerItems.append(new QWidgetItem(widget));
+	setCenter(new QWidgetItem(widget));
 }
 
-void RightBorderLayout::addRightWidget(RightBorderWidget *widget)
+void RightBorderLayout::setRightWidget(IRightBorderWidget *rbw)
 {
-	rightItems.append(new RightBorderWidgetItem(widget));
+	setRight(new RightBorderLayoutItemWrapper(rbw));
 }
 
 QSize RightBorderLayout::calculateSize(SizeType sizeType) const
@@ -231,14 +187,8 @@ QSize RightBorderLayout::calculateSize(SizeType sizeType) const
 	//return calculateSize(centerItems, sizeType) + calculateSize(rightItems, sizeType);
 
 	QSize totalSize;
-	for (QLayoutItem* item : centerItems)
-	{
-		incrementSize(totalSize, item, sizeType);
-	}
-	for (QLayoutItem* item : rightItems)
-	{
-		incrementSize(totalSize, item, sizeType);
-	}
+	incrementSize(totalSize, m_centerItem, sizeType);
+	incrementSize(totalSize, m_rightItem->layoutItem(), sizeType);
 	return totalSize;
 }
 

@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_dlg_TripleHistogramTF.h"
-#include "iAQTtoUIConnector.h"
+//#include "ui_dlg_TripleHistogramTF.h"
+//#include "iAQTtoUIConnector.h"
+#include <QDockWidget>
 #include "iABarycentricTriangleWidget.h"
 
 #include <QResizeEvent>
@@ -37,9 +38,9 @@
 #include "iASlicerMode.h"
 #include "vtkImageData.h" // TODO: really necessary?
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
+//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
 
-class dlg_TripleHistogramTF : public TripleHistogramTFConnector
+class dlg_TripleHistogramTF : public QDockWidget//public TripleHistogramTFConnector
 {
 	Q_OBJECT
 
@@ -70,7 +71,7 @@ private:
 	// TODO: is it really good to keep the mdiChild as a member variable?
 	MdiChild *m_mdiChild;
 
-	iAModalityWidget *modality1, *modality2, *modality3;
-	iABarycentricTriangleWidget *triangle;
+	iAModalityWidget *m_modality1, *m_modality2, *m_modality3;
+	iABarycentricTriangleWidget *m_triangleWidget;
 	
 };

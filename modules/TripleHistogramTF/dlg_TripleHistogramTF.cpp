@@ -28,10 +28,29 @@
 #include "qdebug.h"
 
 dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */) :
-	TripleHistogramTFConnector(mdiChild, f), m_mdiChild(mdiChild)
+	//TripleHistogramTFConnector(mdiChild, f), m_mdiChild(mdiChild)
+	QDockWidget("Triple Histogram Transfer Function", mdiChild, f),
+	m_mdiChild(mdiChild)
 {
+
+	//-----------------------------------------------
+	// Test vvv // TODO: remove comments
+	resize(779, 501);
+	setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetVerticalTitleBar);
+
+	QWidget *dockWidgetContents = new QWidget();
+	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
+
+	RightBorderLayout *mainLayout = new RightBorderLayout(dockWidgetContents);
+	//QHBoxLayout *mainLayout = new QHBoxLayout(dockWidgetContents);
+	mainLayout->setSpacing(0);
+	mainLayout->setObjectName(QStringLiteral("horizontalLayout_2"));
+	mainLayout->setContentsMargins(0, 0, 0, 0);
+
 	QWidget *optionsContainer = new QWidget();
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	// Test ^^^
+	//-----------------------------------------------
 
 	m_slicerModeComboBox = new QComboBox(optionsContainer);
 	m_slicerModeComboBox->addItem("YZ", QVariant(iASlicerMode::YZ));
@@ -58,19 +77,19 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 			modalities[j] = new iAModalityWidget(histogramStackContainer, mdiChild->GetModality(i), mdiChild);
 			histogramStackContainerLayout->addWidget(modalities[j]);
 		}
-		modality1 = modalities[0];
-		modality2 = modalities[1];
-		modality3 = modalities[2];
+		m_modality1 = modalities[0];
+		m_modality2 = modalities[1];
+		m_modality3 = modalities[2];
 	}
 	else {
-		modality1 = 0;
-		modality2 = 0;
-		modality3 = 0;
+		m_modality1 = 0;
+		m_modality2 = 0;
+		m_modality3 = 0;
 	}
 
-	triangle = new iABarycentricTriangleWidget(dockWidgetContents);
+	m_triangleWidget = new iABarycentricTriangleWidget(dockWidgetContents);
 	
-	connect(triangle, SIGNAL(weightChanged(BCoord)), this, SLOT(setWeight(BCoord)));
+	connect(m_triangleWidget, SIGNAL(weightChanged(BCoord)), this, SLOT(setWeight(BCoord)));
 	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlicerMode()));
 	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(setSliceNumber(int)));
 
@@ -82,12 +101,13 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	//QLayout *mainLayout = dockWidgetContents->layout();
 	//mainLayout->addWidget(leftWidget);
-	//mainLayout->addWidget(triangle);
-	mainLayout->addWidget(leftWidget);
-	mainLayout->addWidget(triangle);
+	//mainLayout->addWidget(m_triangleWidget);
+	mainLayout->setCenterWidget(leftWidget);
+	mainLayout->setRightWidget(m_triangleWidget);
 
 	// Initialize
 	updateSlicerMode();
+	setWidget(dockWidgetContents);
 }
 
 dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
@@ -96,22 +116,20 @@ dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
 void dlg_TripleHistogramTF::resizeEvent(QResizeEvent* event)
 {
 	// TODO: create own layout instead of doing this
-	int w = triangle->getWidthForHeight(event->size().height());
-	mainLayout->setStretch(0, event->size().width() - w);
-	mainLayout->setStretch(1,						  w);
+	//int w = m_triangleWidget->getWidthForHeight(event->size().height());
+	//mainLayout->setStretch(0, event->size().width() - w);
+	//mainLayout->setStretch(1,						  w);
 }
 
 void dlg_TripleHistogramTF::setWeight(BCoord bCoord)
 {
-	qDebug() << "setWeight(BCoord) called!";
-	modality1->setWeight(bCoord.getAlpha());
-	modality2->setWeight(bCoord.getBeta());
-	modality3->setWeight(bCoord.getGamma());
+	m_modality1->setWeight(bCoord.getAlpha());
+	m_modality2->setWeight(bCoord.getBeta());
+	m_modality3->setWeight(bCoord.getGamma());
 }
 
 void dlg_TripleHistogramTF::updateSlicerMode()
 {
-	qDebug() << "updateSlicerMode() called!";
 	setSlicerMode((iASlicerMode) m_slicerModeComboBox->currentData().toInt());
 }
 
@@ -138,15 +156,14 @@ void dlg_TripleHistogramTF::setSlicerMode(iASlicerMode slicerMode)
 	int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
 	m_sliceSlider->setMaximum(dimensionLength - 1);
 
-	modality1->setSlicerMode(slicerMode);
-	modality2->setSlicerMode(slicerMode);
-	modality3->setSlicerMode(slicerMode);
+	m_modality1->setSlicerMode(slicerMode);
+	m_modality2->setSlicerMode(slicerMode);
+	m_modality3->setSlicerMode(slicerMode);
 }
 
 void dlg_TripleHistogramTF::setSliceNumber(int sliceNumber)
 {
-	qDebug() << "setSliceNumber(int) called!";
-	modality1->setSliceNumber(sliceNumber);
-	modality2->setSliceNumber(sliceNumber);
-	modality3->setSliceNumber(sliceNumber);
+	m_modality1->setSliceNumber(sliceNumber);
+	m_modality2->setSliceNumber(sliceNumber);
+	m_modality3->setSliceNumber(sliceNumber);
 }
