@@ -21,8 +21,8 @@
 
 #include "RightBorderLayout.h"
 
-RightBorderLayout::RightBorderLayout(QWidget *parent, int margin, int spacing)
-	: QLayout(parent)
+RightBorderLayout::RightBorderLayout(QWidget *parent, Position pos, int margin, int spacing)
+	: QLayout(parent), m_pos(pos)
 {
 	setMargin(margin);
 	setSpacing(spacing);
@@ -37,7 +37,7 @@ RightBorderLayout::RightBorderLayout(int spacing)
 RightBorderLayout::~RightBorderLayout()
 {
 	delete m_centerItem;
-	delete m_rightItem;
+	delete m_borderItem;
 }
 
 void RightBorderLayout::addItem(QLayoutItem *item)
@@ -45,14 +45,14 @@ void RightBorderLayout::addItem(QLayoutItem *item)
 	// Do nothing
 }
 
-void RightBorderLayout::addWidgetRight(RightBorderLayoutItemWrapper *item)
+void RightBorderLayout::addWidgetBorder(BorderLayoutItemWrapper *item)
 {
-	setRight(item);
+	setBorderItem(item);
 }
 
 void RightBorderLayout::addWidgetCenter(QLayoutItem *item)
 {
-	setCenter(item);
+	setCenterItem(item);
 }
 
 Qt::Orientations RightBorderLayout::expandingDirections() const
@@ -69,7 +69,7 @@ int RightBorderLayout::count() const
 {
 	return m_centerItem != 0 ? 1 : 0
 		+
-		m_rightItem != 0 ? 1 : 0;
+		m_borderItem != 0 ? 1 : 0;
 }
 
 QLayoutItem *RightBorderLayout::itemAt(int index) const
@@ -82,12 +82,12 @@ QLayoutItem *RightBorderLayout::itemAt(int index) const
 			return m_centerItem;
 		}
 		else {
-			return m_rightItem->layoutItem();
+			return m_borderItem->layoutItem();
 		}
 	case 1:
 		if (m_centerItem)
 		{
-			return m_rightItem->layoutItem();
+			return m_borderItem->layoutItem();
 		}
 		else {
 			return 0;
@@ -104,47 +104,42 @@ QSize RightBorderLayout::minimumSize() const
 
 void RightBorderLayout::setGeometry(const QRect &rect)
 {
-	/*QLayout::setGeometry(rect);
+	QLayoutItem *borderLayoutItem = m_borderItem->layoutItem();
 
-	QWidget *a = m_centerItem->widget();
-	const QRect b = m_centerItem->geometry();
-	const QRect c = a->geometry();
-
-	m_centerItem->setGeometry(rect);
-	//m_rightItem->layoutItem()->setGeometry(rect);*/
-
-	QLayoutItem *rightLayoutItem = m_rightItem->layoutItem();
-
-	int width = m_rightItem->hasWidthForHeight()
-		? m_rightItem->getWidthForHeight(rect.height())
-		: rightLayoutItem->sizeHint().width(); // TODO: sizeHint() or geometry()?
-
-	int x = rect.x() + rect.width() - width;
-
-	rightLayoutItem->setGeometry(QRect(
-		x,
-		rect.y(),
-		width,
-		rect.height()
-	));
-
-	if (x > rect.x())
+	if (m_pos == Right)
 	{
-		width = x - rect.x(); // remaining width
-		x = rect.x();
-	}
-	else {
-		// TODO: remove?
-		//width = m_centerItem->sizeHint().width(); // TODO: sizeHint() or geometry()?
-		return;
-	}
+		int width = m_borderItem->hasWidthForHeight()
+			? m_borderItem->getWidthForHeight(rect.height())
+			: borderLayoutItem->sizeHint().width(); // TODO: sizeHint() or geometry()?
 
-	m_centerItem->setGeometry(QRect(
-		x,
-		rect.y(),
-		width,
-		rect.height()
-	));
+		int x = rect.x() + rect.width() - width;
+
+		borderLayoutItem->setGeometry(QRect(x, rect.y(), width, rect.height()
+		));
+
+		if (x > rect.x())
+		{
+			width = x - rect.x(); // remaining width
+			x = rect.x();
+		}
+		else {
+			// TODO: remove?
+			//width = m_centerItem->sizeHint().width(); // TODO: sizeHint() or geometry()?
+			return;
+		}
+
+		m_centerItem->setGeometry(QRect(x, rect.y(), width, rect.height()
+		));
+
+	} else {// if (m_pos == Top)
+		int width = rect.width();//m_centerItem->minimumSize().width();
+		int height = m_borderItem->hasHeightForWidth()
+			? m_borderItem->getHeightForWidth(width)
+			: borderLayoutItem->sizeHint().height();
+
+		borderLayoutItem->setGeometry(QRect(rect.x(), rect.y(), width, height));
+		m_centerItem->setGeometry(QRect(rect.x(), rect.y() + height, width, rect.height() - height));
+	}
 }
 
 QSize RightBorderLayout::sizeHint() const
@@ -160,26 +155,26 @@ QLayoutItem *RightBorderLayout::takeAt(int index)
 	return 0;
 }
 
-void RightBorderLayout::setCenter(QLayoutItem* item)
+void RightBorderLayout::setCenterItem(QLayoutItem* item)
 {
 	QLayout::addWidget(item->widget());
 	m_centerItem = item;
 }
 
-void RightBorderLayout::setRight(RightBorderLayoutItemWrapper* item)
+void RightBorderLayout::setBorderItem(BorderLayoutItemWrapper* item)
 {
 	QLayout::addWidget(item->layoutItem()->widget());
-	m_rightItem = item;
+	m_borderItem = item;
 }
 
 void RightBorderLayout::setCenterWidget(QWidget* widget)
 {
-	setCenter(new QWidgetItem(widget));
+	setCenterItem(new QWidgetItem(widget));
 }
 
-void RightBorderLayout::setRightWidget(IRightBorderWidget *rbw)
+void RightBorderLayout::setBorderWidget(IBorderWidget *rbw)
 {
-	setRight(new RightBorderLayoutItemWrapper(rbw));
+	setBorderItem(new BorderLayoutItemWrapper(rbw));
 }
 
 QSize RightBorderLayout::calculateSize(SizeType sizeType) const
@@ -188,7 +183,7 @@ QSize RightBorderLayout::calculateSize(SizeType sizeType) const
 
 	QSize totalSize;
 	incrementSize(totalSize, m_centerItem, sizeType);
-	incrementSize(totalSize, m_rightItem->layoutItem(), sizeType);
+	incrementSize(totalSize, m_borderItem->layoutItem(), sizeType);
 	return totalSize;
 }
 

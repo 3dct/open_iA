@@ -27,39 +27,58 @@
 
 #include <QOpenGLWidget>
 
-class IRightBorderItem
+class IBorderItem
 {
 public:
-	//IRightBorderWidget() {}
-	//virtual ~IRightBorderWidget(); // TODO: uncomment?
+	//IBorderItem() {}
+	//virtual ~IBorderItem(); // TODO: uncomment?
 	virtual bool hasWidthForHeight() = 0;
 	virtual int getWidthForHeight(int height) = 0;
+	virtual bool hasHeightForWidth() = 0;
+	virtual int getHeightForWidth(int width) = 0;
 };
 
-class IRightBorderLayoutItem : public IRightBorderItem
+class IBorderLayoutItem : public IBorderItem
 {
 public:
 	virtual QLayoutItem* layoutItem() = 0;
 };
 
-class IRightBorderWidget : public IRightBorderItem
+class IBorderWidget : public IBorderItem
 {
 public:
 	virtual QWidget* widget() = 0;
 };
 
-class RightBorderLayoutItemWrapper : IRightBorderLayoutItem
+class SquareBorderWidget : public IBorderWidget
 {
 public:
-	RightBorderLayoutItemWrapper(IRightBorderItem* rbi, QLayoutItem *layoutItem) : m_rbi(rbi), m_layoutItem(layoutItem) {}
-	RightBorderLayoutItemWrapper(IRightBorderWidget* rbw) : m_rbi(rbw), m_layoutItem(new QWidgetItem(rbw->widget())) {}
-	RightBorderLayoutItemWrapper(IRightBorderLayoutItem* rbli) : m_rbi(rbli), m_layoutItem(rbli->layoutItem()) {}
-	bool RightBorderLayoutItemWrapper::hasWidthForHeight() { return m_rbi->hasWidthForHeight(); }
-	int RightBorderLayoutItemWrapper::getWidthForHeight(int height) { return m_rbi->getWidthForHeight(height); }
-	QLayoutItem* RightBorderLayoutItemWrapper::layoutItem() { return m_layoutItem; }
+	SquareBorderWidget(QWidget* widget) : m_widget(widget) {}
+	bool hasWidthForHeight() override { return true; }
+	int getWidthForHeight(int height) override { return height; }
+	bool hasHeightForWidth() override { return true; }
+	int getHeightForWidth(int width) override { return width; }
+	QWidget* widget() override { return m_widget; }
 
 private:
-	IRightBorderItem *m_rbi;
+	QWidget *m_widget;
+
+};
+
+class BorderLayoutItemWrapper : IBorderLayoutItem
+{
+public:
+	BorderLayoutItemWrapper(IBorderItem* rbi, QLayoutItem *layoutItem) : m_rbi(rbi), m_layoutItem(layoutItem) {}
+	BorderLayoutItemWrapper(IBorderWidget* rbw) : m_rbi(rbw), m_layoutItem(new QWidgetItem(rbw->widget())) {}
+	BorderLayoutItemWrapper(IBorderLayoutItem* rbli) : m_rbi(rbli), m_layoutItem(rbli->layoutItem()) {}
+	bool BorderLayoutItemWrapper::hasWidthForHeight() { return m_rbi->hasWidthForHeight(); }
+	int BorderLayoutItemWrapper::getWidthForHeight(int height) { return m_rbi->getWidthForHeight(height); }
+	bool BorderLayoutItemWrapper::hasHeightForWidth() { return m_rbi->hasHeightForWidth();  }
+	int BorderLayoutItemWrapper::getHeightForWidth(int width) { return m_rbi->getHeightForWidth(width); }
+	QLayoutItem* BorderLayoutItemWrapper::layoutItem() { return m_layoutItem; }
+
+private:
+	IBorderItem *m_rbi;
 	QLayoutItem *m_layoutItem;
 
 };
@@ -67,9 +86,9 @@ private:
 class RightBorderLayout : public QLayout
 {
 public:
-	//enum Position { West, North, South, East, Center };
+	enum Position { Right, Top };
 
-	explicit RightBorderLayout(QWidget *parent, int margin = 0, int spacing = -1);
+	explicit RightBorderLayout(QWidget *parent, Position pos = Right, int margin = 0, int spacing = -1);
 	RightBorderLayout(int spacing = -1);
 	~RightBorderLayout();
 
@@ -84,23 +103,23 @@ public:
 	QSize sizeHint() const override;
 	QLayoutItem *takeAt(int index) override;
 
-	void addWidgetRight(RightBorderLayoutItemWrapper *item);
+	void setPosition(Position pos);
+
+	void addWidgetBorder(BorderLayoutItemWrapper *item);
 	void addWidgetCenter(QLayoutItem *item);
 
 	void setCenterWidget(QWidget* widget);
-	void setRightWidget(IRightBorderWidget *rbw);
-
-	/*void setCenter(QLayoutItem* item);
-	void setRight(RightBorderLayoutItemWrapper* item);*/
+	void setBorderWidget(IBorderWidget *rbw);
 
 private:
 	enum SizeType { MinimumSize, SizeHint };
 	QSize calculateSize(SizeType sizeType) const;
 	void incrementSize(QSize &totalSize, QLayoutItem *item, SizeType sizeType) const;
 
-	void setCenter(QLayoutItem *item);
-	void setRight(RightBorderLayoutItemWrapper *item);
+	void setCenterItem(QLayoutItem *item);
+	void setBorderItem(BorderLayoutItemWrapper *item); // TODO: should really be a pointer?
 
 	QLayoutItem *m_centerItem;
-	RightBorderLayoutItemWrapper *m_rightItem;
+	BorderLayoutItemWrapper *m_borderItem;
+	Position m_pos;
 };

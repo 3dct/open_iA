@@ -20,6 +20,7 @@
 * ************************************************************************************/
  
 #include "iAModalityWidget.h"
+#include "RightBorderLayout.h"
 
 #include "vtkImageData.h"
 
@@ -61,20 +62,7 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 	// ----------------------------------------------------------------------------------------------------------
 	// Initialize slicer
 
-	QWidget *slicerWidget = new QWidget(rightWidget);
-	m_slicer = new iASlicer(rightWidget, iASlicerMode::XY, slicerWidget,
-		// Value of shareWidget is defaulted to 0 in the iASlicer constructor... that's why I do that here
-		// TODO: do this in a better way?
-		/*QGLWidget * shareWidget = */0,
-		/*Qt::WindowFlags f = */f,
-		/*bool decorations = */false); // Hide everything except the slice itself
-
-	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->GetColorFunction();
-	m_slicerTransform = vtkTransform::New();
-	m_slicer->initializeData(imageData, m_slicerTransform, colorFunction);
-
-	// TODO: deactivate interaction with the slice (zoom, pan, etc)
-	// TODO: fill widget with the sliced image
+	m_slicerWidget = new iASimpleSlicerWidget(rightWidget, modality, imageData, f);
 
 	// Initialize slicer
 	// ----------------------------------------------------------------------------------------------------------
@@ -101,39 +89,53 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 	m_weightLabel = new QLabel(rightWidget);
 	m_weightLabel->setText("Weight");
 
-	QVBoxLayout *rightWidgetLayout = new QVBoxLayout(rightWidget);
-	rightWidgetLayout->addWidget(slicerWidget);
-	rightWidgetLayout->addWidget(m_weightLabel);
+	m_rightWidgetLayout = new QVBoxLayout(rightWidget);
+	m_rightWidgetLayout->addWidget(m_slicerWidget);
+	m_rightWidgetLayout->addWidget(m_weightLabel);
+	//RightBorderLayout *rightWidgetLayout = new RightBorderLayout(rightWidget, RightBorderLayout::Top);
+	//rightWidgetLayout->setBorderWidget(new SquareBorderWidget(m_slicerWidget));
+	//rightWidgetLayout->setCenterWidget(m_weightLabel);
 
-	QHBoxLayout *mainLayout = new QHBoxLayout(this);
-	mainLayout->addWidget((QWidget*) histogram); // TODO: why do I need to cast a subclass into its superclass?
-	mainLayout->addWidget(rightWidget);
+	m_mainLayout = new QHBoxLayout(this);
+	m_mainLayout->addWidget(histogram); // TODO: why do I need to cast a subclass into its superclass?
+	m_mainLayout->addWidget(rightWidget);
+	//RightBorderLayout *mainLayout = new RightBorderLayout(this, RightBorderLayout::Right);
+	//mainLayout->setCenterWidget(histogram);
+	//mainLayout->setBorderWidget(new SquareBorderWidget(rightWidget));
 }
 
 iAModalityWidget::~iAModalityWidget()
 {
-	m_slicerTransform->Delete();
-
-	delete m_slicer;
+	delete m_slicerWidget;
 }
 
 void iAModalityWidget::setWeight(double weight)
 {
-	qDebug() << "Modality widget setWeight(double) method called!";
 	QString text;
 	m_weightLabel->setText(text.sprintf(m_weightFormat, weight));
 }
 
-void iAModalityWidget::setSlicerMode(iASlicerMode slicerMode)
+void iAModalityWidget::setSlicerMode(iASlicerMode slicerMode, int dimensionLength)
 {
-	qDebug() << "Modality widget setSlicerMode(iASlicerMode) method called!";
-	m_slicer->ChangeMode(slicerMode);
-	m_slicer->update();
+	m_slicerWidget->changeMode(slicerMode, dimensionLength);
+	m_slicerWidget->update();
 }
 
 void iAModalityWidget::setSliceNumber(int sliceNumber)
 {
-	qDebug() << "Modality widget setSliceNumber(int) method called!";
-	m_slicer->setSliceNumber(sliceNumber);
-	m_slicer->update();
+	m_slicerWidget->setSliceNumber(sliceNumber);
+	//m_slicerWidget->update();
+}
+
+void iAModalityWidget::resizeEvent(QResizeEvent* event)
+{
+	// TODO: create own layout instead of doing this?
+	int hText = m_weightLabel->minimumSize().height();
+	int hSlice = event->size().height() - hText;
+	m_mainLayout->setStretch(0, event->size().width() - hSlice);
+	m_mainLayout->setStretch(1,							hSlice);
+
+	int h = m_weightLabel->sizeHint().height();
+	m_rightWidgetLayout->setStretch(0, hSlice);
+	m_rightWidgetLayout->setStretch(1, hText);
 }

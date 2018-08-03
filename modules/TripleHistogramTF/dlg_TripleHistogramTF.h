@@ -73,5 +73,7 @@ private:
 
 	iAModalityWidget *m_modality1, *m_modality2, *m_modality3;
 	iABarycentricTriangleWidget *m_triangleWidget;
+
+	QHBoxLayout *m_mainLayout;
 	
 };

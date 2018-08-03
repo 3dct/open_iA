@@ -31,7 +31,7 @@
 #include "BarycentricTriangle.h"
 #include "BCoord.h"
 
-class iABarycentricTriangleWidget : public QOpenGLWidget, public IRightBorderWidget
+class iABarycentricTriangleWidget : public QOpenGLWidget, public IBorderWidget
 {
 	Q_OBJECT
 
@@ -41,9 +41,10 @@ public:
 
 	bool hasWidthForHeight() override;
 	int getWidthForHeight(int height) override;
+	bool hasHeightForWidth() override;
+	int getHeightForWidth(int width) override;
 	QWidget* widget() override;
 
-	int getHeightForWidth(int width);
 	int getWidthForCurrentHeight();
 	int getHeightForCurrentWidth();
 
