@@ -183,10 +183,12 @@ private:
 	bool OpenBlobVisDialog();
 	//! @{ 3D-rendering-related methods:
 	void SingleRendering(int idx = -10000);               //!< render a single fiber or a single class
-	void RenderingButton();                               //!< multi-class rendering
-	void RealTimeRendering(vtkIdTypeArray *selection);    //!< render a selection (+ the class that contains it)
+	void MultiClassRendering();                           //!< multi-class rendering
+	void RenderSelection(std::vector<size_t> const & selInds); //!< render a selection (+ the class that contains it)
 	void RenderingFLD();                                  //!< render fiber-length distribution
 	void RenderingMeanObject();                           //!< compute and render a mean object for each class
+	void SetPolyPointColor(int ptIdx, QColor const & qcolor);
+	void UpdatePolyMapper();
 	//! @}
 
 	// members referencing MdiChild

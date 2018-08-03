@@ -179,6 +179,8 @@ namespace
 {
 	const int NumberOfCylinderSides = 12;
 	const int TransparentAlpha = 32;
+	const size_t NoPointIdx = std::numeric_limits<size_t>::max();
+	QColor SelectedColor(255, 0, 0, 255);
 }
 
 typedef void( *ColormapFuncPtr )( const double normal[3], double color_out[3] );
@@ -370,31 +372,21 @@ dlg_FeatureScout::~dlg_FeatureScout()
 void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long,
 														 void * client_data, void *, vtkCommand * command )
 {
-	// Gets the mouse button event for pcChart and holds the SPM-Annotations consistent with PC-Annoatations.
-	if ( matrix )
-	{
-		vtkSmartPointer<vtkIdTypeArray> DataSelection = this->pcChart->GetPlot(0)->GetSelection();
-		vtkIdType val = DataSelection->GetDataTypeValueMax();
+	iAQSplom::SelectionType selectedIndices;
+	vtkSmartPointer<vtkIdTypeArray> DataSelection = this->pcChart->GetPlot(0)->GetSelection();
 #if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
-		int countSelection = DataSelection->GetNumberOfValues();
+	int countSelection = DataSelection->GetNumberOfValues();
 #else
-		int countSelection = DataSelection->GetNumberOfTuples();
+	int countSelection = DataSelection->GetNumberOfTuples();
 #endif
-		if (countSelection > 0)
-		{
-			iAQSplom::SelectionType selID;
-			for (int idx=0; idx < countSelection; idx++)
-			{
-				vtkVariant var_Idx = DataSelection->GetVariantValue(idx);
-				//fiber starts with index 1!!, mininum is 0
-				//TODO change
-				uint objID =  (unsigned int)var_Idx.ToLongLong() +1;
-				selID.push_back(objID);
-			}
-			matrix->setSelection(selID);
-		}
+	for (int idx = 0; idx < countSelection; idx++)
+	{
+		size_t objID = DataSelection->GetVariantValue(idx).ToUnsignedLongLong();
+		selectedIndices.push_back(objID);
 	}
-	this->RealTimeRendering(this->pcChart->GetPlot(0)->GetSelection());
+	if ( matrix )
+		matrix->setSelection(selectedIndices);
+	RenderSelection(selectedIndices);
 }
 
 void dlg_FeatureScout::setPCChartData( bool lookupTable )
@@ -722,7 +714,7 @@ void dlg_FeatureScout::setupConnections()
 							SLOT( pcViewMouseButtonCallBack( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ), 0, 0.0, Qt::UniqueConnection );
 }
 
-void dlg_FeatureScout::RenderingButton()
+void dlg_FeatureScout::MultiClassRendering()
 {
 	//Turns off FLD scalar bar updates polar plot view
 	if (m_scalarWidgetFLD != NULL)
@@ -739,26 +731,15 @@ void dlg_FeatureScout::RenderingButton()
 	{
 		for (int i = 0; i < classCount; i++)
 		{
-			unsigned char rgb[4];
-			rgb[0] = colorList.at(i).red();
-			rgb[1] = colorList.at(i).green();
-			rgb[2] = colorList.at(i).blue();
-			rgb[3] = 255;
 			QStandardItem *item = rootItem->child(i, 0);
 			int itemL = item->rowCount();
 			for (int j = 0; j < itemL; ++j)
 			{
 				int objectID = item->child(j, 0)->text().toInt();
-				for (int c = 0; c < 4; ++c)
-				{
-					m_colors->SetComponent(objectID * 2, c, rgb[c]);
-					m_colors->SetComponent(objectID * 2 + 1, c, rgb[c]);
-				}
+				SetPolyPointColor(objectID, colorList.at(i));
 			}
 		}
-		m_colors->Modified();
-		m_mapper->Update();
-		raycaster->update();
+		UpdatePolyMapper();
 		return;
 	}
 	double backAlpha = 0.00005;
@@ -905,164 +886,113 @@ void dlg_FeatureScout::SingleRendering( int idx )
 		this->oTF->AddPoint(0, backAlpha);
 		this->cTF->AddRGBPoint(0, backRGB[0], backRGB[1], backRGB[2]);
 	}
-
+	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
+	{
+		QColor nonClassColor = QColor(0, 0, 0, 0);
+		QColor classColor = colorList.at(cID);
+		if (idx > 0)
+			classColor.setAlpha(TransparentAlpha);
+		for (int objID = 0; objID < objectNr; ++objID)
+		{
+			int curClassID = csvTable->GetValue(objID, elementNr - 1).ToInt();
+			SetPolyPointColor(objID, (idx > 0 && objID == idx) ? SelectedColor : (curClassID == cID) ? classColor : nonClassColor);
+		}
+		UpdatePolyMapper();
+		return;
+	}
+	if (visualization != iACsvConfig::UseVolume)
+		return;
 	if ( idx > 0 ) // for single object selection
 	{
-		if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
+		if ((idx - 1) >= 0)
 		{
-			if (!m_colors)
-				return;
-			unsigned char selColor[4];
-			selColor[0] = 255;//colorList.at(cID).red();
-			selColor[1] = 0; //colorList.at(cID).red();
-			selColor[2] = 0; //colorList.at(cID).red();
-			selColor[3] = 255;
-			unsigned char otherColor[4];
-			otherColor[0] = colorList.at(cID).red();
-			otherColor[1] = colorList.at(cID).green();
-			otherColor[2] = colorList.at(cID).blue();
-			otherColor[3] = TransparentAlpha;
-			for (int i = 0; i < objectNr; ++i)
-			{
-				unsigned char* color = (csvTable->GetValue(i, 0) == idx) ? selColor : otherColor;
-				for (int c = 0; c < 4; ++c)
-				{
-					m_colors->SetComponent(i * 2, c, color[c]);
-					m_colors->SetComponent(i * 2+1, c, color[c]);
-				}
-			}
-			m_colors->Modified();
-			m_mapper->Update();
+			this->oTF->AddPoint(idx - 0.5, backAlpha);
+			this->oTF->AddPoint(idx - 0.49, alpha);
+			this->cTF->AddRGBPoint(idx - 0.5, backRGB[0], backRGB[1], backRGB[2]);
+			this->cTF->AddRGBPoint(idx - 0.49, red, green, blue);
 		}
-		else
+		oTF->AddPoint(idx, alpha);
+		cTF->AddRGBPoint(idx, red, green, blue);
+		if ((idx + 1) <= objectNr)
 		{
-			if ((idx - 1) >= 0)
-			{
-				this->oTF->AddPoint(idx - 0.5, backAlpha);
-				this->oTF->AddPoint(idx - 0.49, alpha);
-				this->cTF->AddRGBPoint(idx - 0.5, backRGB[0], backRGB[1], backRGB[2]);
-				this->cTF->AddRGBPoint(idx - 0.49, red, green, blue);
-			}
-			oTF->AddPoint(idx, alpha);
-			cTF->AddRGBPoint(idx, red, green, blue);
-			if ((idx + 1) <= objectNr)
-			{
-				this->oTF->AddPoint(idx + 0.3, backAlpha);
-				this->oTF->AddPoint(idx + 0.29, alpha);
-				this->cTF->AddRGBPoint(idx + 0.3, backRGB[0], backRGB[1], backRGB[2]);
-				this->cTF->AddRGBPoint(idx + 0.29, red, green, blue);
-			}
+			this->oTF->AddPoint(idx + 0.3, backAlpha);
+			this->oTF->AddPoint(idx + 0.29, alpha);
+			this->cTF->AddRGBPoint(idx + 0.3, backRGB[0], backRGB[1], backRGB[2]);
+			this->cTF->AddRGBPoint(idx + 0.29, red, green, blue);
 		}
 	}
 	else // for single class selection
 	{
-		if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
+		int hid = 0, next_hid = 1;
+		bool starting = false;
+		for ( int j = 0; j < itemL; ++j )
 		{
-			if (!m_colors)
-				return;
-			unsigned char selColor[4];
-			selColor[0] = 255;
-			selColor[1] = 0;
-			selColor[2] = 0;
-			selColor[3] = 255;
-			unsigned char otherColor[4];
-			otherColor[0] = colorList.at(cID).red();
-			otherColor[1] = colorList.at(cID).green();
-			otherColor[2] = colorList.at(cID).blue();
-			otherColor[3] = TransparentAlpha;
-			int currentObjectIndexInClass = 0;
-			int currentObjectID = this->activeClassItem->child(currentObjectIndexInClass, 0)->text().toInt();
-			for (int i = 0; i < objectNr; ++i)
-			{
-				unsigned char* color = (csvTable->GetValue(i, 0) == currentObjectID) ? selColor : otherColor;
-				for (int c = 0; c < 4; ++c)
-				{
-					m_colors->SetComponent(i * 2, c, color[c]);
-					m_colors->SetComponent(i * 2 + 1, c, color[c]);
-				}
-				if (i == currentObjectID)
-				{
-					++currentObjectIndexInClass;
-					if (currentObjectIndexInClass < itemL)
-						currentObjectID = this->activeClassItem->child(currentObjectIndexInClass, 0)->text().toInt();
-				}
-			}
-			m_colors->Modified();
-			m_mapper->Update();
-		}
-		else
-		{
-			int hid = 0, next_hid = 1;
-			bool starting = false;
-			for ( int j = 0; j < itemL; ++j )
-			{
-				hid = this->activeClassItem->child( j, 0 )->text().toInt();
+			hid = this->activeClassItem->child( j, 0 )->text().toInt();
 
-				if ( j + 1 < itemL )
-					next_hid = this->activeClassItem->child( j + 1, 0 )->text().toInt();
+			if ( j + 1 < itemL )
+				next_hid = this->activeClassItem->child( j + 1, 0 )->text().toInt();
+			else
+			{
+				if ( starting )
+				{
+					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					break;
+				}
 				else
 				{
-					if ( starting )
-					{
-						oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-						oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-						cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-						cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-						break;
-					}
-					else
-					{
-						oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-						oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-						cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-						cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-						oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-						cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-						break;
-					}
-				}
-
-				//Create one single tooth
-				if ( next_hid > hid + 1 && !starting )
-				{
-					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				}
-				else if ( next_hid == hid + 1 && !starting )
-				{
-					starting = true;
 					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
 					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
 					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				}
-				else if ( next_hid == hid + 1 && starting )
-					continue;
-				else if ( next_hid > hid + 1 && starting )
-				{
-					starting = false;
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
 					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
 					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+					break;
 				}
 			}
 
-			if ( hid < objectNr )
+			//Create one single tooth
+			if ( next_hid > hid + 1 && !starting )
 			{
-				this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
-				this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 			}
+			else if ( next_hid == hid + 1 && !starting )
+			{
+				starting = true;
+				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
+				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+			}
+			else if ( next_hid == hid + 1 && starting )
+				continue;
+			else if ( next_hid > hid + 1 && starting )
+			{
+				starting = false;
+				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
+				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
+				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			}
+		}
+
+		if ( hid < objectNr )
+		{
+			this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
+			this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
 	}
 	raycaster->update();
 }
 
-void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
+void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 {
 	//Turns off FLD scalar bar updates polar plot view
 	if ( m_scalarWidgetFLD != NULL )
@@ -1075,58 +1005,53 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 	this->orientColormap->hide();
 
 	int countClass = this->activeClassItem->rowCount();
-	int countSelection = selection->GetNumberOfTuples();
+	int countSelection = selInds.size();
 
-	if (countClass <= 0) // TODO: check if this can even happen -> uncategorized class always should exist!
+	if (countClass <= 0)
 		return;
 
+	QColor BackColor(128, 128, 128, TransparentAlpha);
+	double backRGB[3];
+	backRGB[0] = BackColor.redF(); backRGB[1] = BackColor.greenF(); backRGB[2] = BackColor.blueF(); // background color
 	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
-		if (!m_colors)
-			return;
-		unsigned char selColor[4];
-		selColor[0] = 255;
-		selColor[1] = 0;
-		selColor[2] = 0;
-		selColor[3] = 255;
-		unsigned char otherColor[4];
-		otherColor[0] = colorList.at(activeClassItem->index().row()).red();
-		otherColor[1] = colorList.at(activeClassItem->index().row()).green();
-		otherColor[2] = colorList.at(activeClassItem->index().row()).blue();
+		int selectedClassID = activeClassItem->index().row();
+		QColor classColor = colorList.at(selectedClassID);
 		int currentObjectIndexInSelection = 0;
-		int currentObjectID = -1;
+		size_t curSelObjID = NoPointIdx;
 		if (countSelection > 0)
 		{
-			currentObjectID = selection->GetVariantValue(currentObjectIndexInSelection).ToInt();
-			otherColor[3] = TransparentAlpha;
+			curSelObjID = selInds[currentObjectIndexInSelection];
+			classColor.setAlpha(TransparentAlpha);
 		}
 		else
 		{
-			otherColor[3] = 255;
+			classColor.setAlpha(255);
 		}
-		for (int obj = 0; obj < objectNr; ++obj)
+		for (int objID = 0; objID < objectNr; ++objID)
 		{
-			for (int c = 0; c < 4; ++c)
-			{
-				m_colors->SetComponent(obj * 2, c, (obj == currentObjectID) ? selColor[c] : otherColor[c]);
-				m_colors->SetComponent(obj * 2 + 1, c, (obj == currentObjectID) ? selColor[c] : otherColor[c]);
-			}
-			if (obj == currentObjectID)
+			int curClassID = csvTable->GetValue(objID, elementNr - 1).ToInt();
+			QColor curColor = (objID == curSelObjID) ?
+				SelectedColor :
+				((curClassID == selectedClassID) ?
+					classColor :
+					BackColor);
+			SetPolyPointColor(objID, curColor);
+			if (objID == curSelObjID)
 			{
 				++currentObjectIndexInSelection;
 				if (currentObjectIndexInSelection < countSelection)
-					currentObjectID = selection->GetVariantValue(currentObjectIndexInSelection).ToInt();
+					curSelObjID = selInds[currentObjectIndexInSelection];
 			}
-			m_colors->Modified();
-			m_mapper->Update();
 		}
-		raycaster->update();
+		UpdatePolyMapper();
 		return;
 	}
 
-	double red = 0.0, green = 0.0, blue = 0.0, alpha = 0.5, backAlpha = 0.00, backRGB[3], classRGB[3], selRGB[3];
-	backRGB[0] = 0.5; backRGB[1] = 0.5; backRGB[2] = 0.5;
-	selRGB[0] = 1.0; selRGB[1] = 0.0; selRGB[2] = 0.0;	//selection color
+	double red = 0.0, green = 0.0, blue = 0.0, alpha = 0.5, backAlpha = 0.00, classRGB[3], selRGB[3];
+	selRGB[0] = SelectedColor.redF();
+	selRGB[1] = SelectedColor.redF();
+	selRGB[2] = SelectedColor.redF();
 	classRGB[0] = colorList.at( activeClassItem->index().row() ).redF();
 	classRGB[1] = colorList.at( activeClassItem->index().row() ).greenF();
 	classRGB[2] = colorList.at( activeClassItem->index().row() ).blueF();
@@ -1144,18 +1069,18 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 	int hid = 0, next_hid = 1, selectionIndex = 0, previous_selectionIndex = 0;
 	bool starting = false, hid_isASelection = false, previous_hid_isASelection = false;
 
-	for ( int j = 0; j < countClass; ++j )
+	for ( size_t j = 0; j < countClass; ++j )
 	{
 		hid = this->activeClassItem->child( j )->text().toInt();
 
 		if ( countSelection > 0 )
 		{
-			if ( j == selection->GetVariantValue( selectionIndex ).ToInt() )
+			if ( j == selInds[selectionIndex] )
 			{
 				hid_isASelection = true;
-				red = selRGB[0], green = selRGB[1], blue = selRGB[2];
+				red = SelectedColor.redF(), green = SelectedColor.greenF(), blue = SelectedColor.blueF();
 
-				if ( selectionIndex + 1 < selection->GetNumberOfTuples() )
+				if ( selectionIndex + 1 < selInds.size() )
 					selectionIndex++;
 			}
 			else
@@ -1166,11 +1091,11 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 
 			if ( j > 0 )
 			{
-				if ( j - 1 == selection->GetVariantValue( previous_selectionIndex ).ToInt() )
+				if ( j - 1 == selInds[previous_selectionIndex])
 				{
 					previous_hid_isASelection = true;
 
-					if ( previous_selectionIndex + 1 < selection->GetNumberOfTuples() )
+					if ( previous_selectionIndex + 1 < selInds.size())
 						previous_selectionIndex++;
 				}
 				else
@@ -1844,6 +1769,27 @@ void ColormapRGBHalfSphere( const double normal[3], double color_out[3] )
 	CheckBounds( color_out );
 }
 
+void dlg_FeatureScout::SetPolyPointColor(int ptIdx, QColor const & qcolor)
+{
+	unsigned char color[4];
+	color[0] = qcolor.red();
+	color[1] = qcolor.green();
+	color[2] = qcolor.blue();
+	color[3] = qcolor.alpha();
+	for (int c = 0; c < 4; ++c)
+	{
+		m_colors->SetComponent(ptIdx * 2, c, color[c]);
+		m_colors->SetComponent(ptIdx * 2 + 1, c, color[c]);
+	}
+}
+
+void dlg_FeatureScout::UpdatePolyMapper()
+{
+	m_colors->Modified();
+	m_mapper->Update();
+	raycaster->update();
+}
+
 void dlg_FeatureScout::RenderingOrientation()
 {
 	//Turns off FLD scalar bar and updates polar plot view
@@ -1901,16 +1847,7 @@ void dlg_FeatureScout::RenderingOrientation()
 		red = p[0]; green = p[1]; blue = p[2];
 		if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 		{
-			unsigned char color[4];
-			color[0] = red * 255;
-			color[1] = green * 255;
-			color[2] = blue * 255;
-			color[3] = 255;
-			for (int c = 0; c < 4; ++c)
-			{
-				m_colors->SetComponent(i * 2, c, color[c]);
-				m_colors->SetComponent(i * 2 + 1, c, color[c]);
-			}
+			SetPolyPointColor(i, QColor(red*255, green*255, blue*255, 255));
 		}
 		else
 		{
@@ -1920,9 +1857,7 @@ void dlg_FeatureScout::RenderingOrientation()
 	}
 	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
-		m_colors->Modified();
-		m_mapper->Update();
-		this->raycaster->update();
+		UpdatePolyMapper();
 	}
 	// prepare the delaunay triangles
 	VTK_CREATE( vtkDelaunay2D, del );
@@ -2091,16 +2026,8 @@ void dlg_FeatureScout::RenderingFLD()
 		blue = dcolor[2];
 		if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 		{
-			unsigned char rgb[4];
-			rgb[0] = red * 255;
-			rgb[1] = green * 255;
-			rgb[2] = blue * 255;
-			rgb[3] = 255;
-			for (int c = 0; c < 4; ++c)
-			{
-				m_colors->SetComponent(i * 2, c, rgb[c]);
-				m_colors->SetComponent(i * 2 + 1, c, rgb[c]);
-			}
+			QColor color(red * 255, green * 255, blue * 255, 255);
+			SetPolyPointColor(i, color);
 		}
 		else
 		{
@@ -2165,9 +2092,7 @@ void dlg_FeatureScout::RenderingFLD()
 	}
 	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
-		m_colors->Modified();
-		m_mapper->Update();
-		raycaster->update();
+		UpdatePolyMapper();
 	}
 
 	this->orientationColorMapSelection->hide();
@@ -3052,6 +2977,9 @@ void dlg_FeatureScout::updateSPColumnVisibilityWithVis()
 void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 {	// If scatter plot selection changes, Parallel Coordinates gets informed
 	assert(matrix);
+	RenderSelection(selInds);
+	if (csvTable->GetNumberOfRows() > 5000)
+		return;
 	QCoreApplication::processEvents();
 	int countSelection = selInds.size();
 	vtkSmartPointer<vtkIdTypeArray> vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
@@ -3072,7 +3000,6 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 	}
 	this->pcChart->GetPlot(0)->SetSelection(vtk_selInd);
 	this->pcView->Render();
-	this->RealTimeRendering(pcChart->GetPlot(0)->GetSelection());
 }
 
 void dlg_FeatureScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
@@ -4452,7 +4379,7 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 		break;
 
 	case 3:			// multi Rendering
-		this->RenderingButton();
+		this->MultiClassRendering();
 		this->classRendering = false;
 		break;
 
