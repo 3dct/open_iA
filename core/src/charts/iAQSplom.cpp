@@ -1063,13 +1063,12 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 	int height = 0;
 	int top = 0;
 	int loopLength = 0;
-	int axisIdx = 0;
 	int textwidth = 0;
-	int textHeight = 0;
+	int textHeight = painter.fontMetrics().height();
 
 	loopLength = ind_Elements.length();
 
-	for (axisIdx; axisIdx < loopLength; axisIdx++)
+	for (int axisIdx = 0; axisIdx < loopLength; axisIdx++)
 	{
 		if (switchTO_YRow) 
 		{
@@ -1082,17 +1081,14 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 			currentRect = getPlotRectByIndex(/*ind_VisX[*/axisIdx/*]*/, 0/*axisOffSet - 1*/);
 			top = 0 + TextPadding;
 			currentRect.setTop(top);
+			currentRect.setHeight(painter.fontMetrics().height());
 		}
 
-		//currentRect.W
 		currIdx = ind_Elements[axisIdx];
 		currentParam = m_splomData->parameterName(currIdx);
 		if (switchTO_YRow) 
 		{
-
 			textwidth = currentRect.height();
-			textHeight = painter.fontMetrics().height();
-
 			QPoint pos_center;
 			pos_center.setX(currentRect.top() + textwidth / 2);
 			pos_center.setY(-(TextPadding + textHeight / 2));
@@ -1107,7 +1103,6 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 		}
 		else
 		{
-
 			painter.drawText(currentRect, Qt::AlignHCenter, currentParam);
 		}
 	}
