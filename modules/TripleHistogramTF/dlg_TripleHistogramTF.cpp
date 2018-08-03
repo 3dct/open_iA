@@ -41,11 +41,11 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	QWidget *dockWidgetContents = new QWidget();
 	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
 
-	RightBorderLayout *mainLayout = new RightBorderLayout(dockWidgetContents);
-	//QHBoxLayout *mainLayout = new QHBoxLayout(dockWidgetContents);
-	mainLayout->setSpacing(0);
-	mainLayout->setObjectName(QStringLiteral("horizontalLayout_2"));
-	mainLayout->setContentsMargins(0, 0, 0, 0);
+	//RightBorderLayout *mainLayout = new RightBorderLayout(dockWidgetContents, RightBorderLayout::Right);
+	m_mainLayout = new QHBoxLayout(dockWidgetContents);
+	m_mainLayout->setSpacing(0);
+	m_mainLayout->setObjectName(QStringLiteral("horizontalLayout_2"));
+	m_mainLayout->setContentsMargins(0, 0, 0, 0);
 
 	QWidget *optionsContainer = new QWidget();
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -99,11 +99,10 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	leftWidgetLayout->addWidget(optionsContainer);
 	leftWidgetLayout->addWidget(histogramStackContainer);
 
-	//QLayout *mainLayout = dockWidgetContents->layout();
-	//mainLayout->addWidget(leftWidget);
-	//mainLayout->addWidget(m_triangleWidget);
-	mainLayout->setCenterWidget(leftWidget);
-	mainLayout->setRightWidget(m_triangleWidget);
+	m_mainLayout->addWidget(leftWidget);
+	m_mainLayout->addWidget(m_triangleWidget);
+	//mainLayout->setCenterWidget(leftWidget);
+	//mainLayout->setBorderWidget(m_triangleWidget);
 
 	// Initialize
 	updateSlicerMode();
@@ -115,10 +114,10 @@ dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
 
 void dlg_TripleHistogramTF::resizeEvent(QResizeEvent* event)
 {
-	// TODO: create own layout instead of doing this
-	//int w = m_triangleWidget->getWidthForHeight(event->size().height());
-	//mainLayout->setStretch(0, event->size().width() - w);
-	//mainLayout->setStretch(1,						  w);
+	// TODO: create own layout instead of doing this?
+	int w = m_triangleWidget->getWidthForHeight(event->size().height());
+	m_mainLayout->setStretch(0, event->size().width() - w);
+	m_mainLayout->setStretch(1,						    w);
 }
 
 void dlg_TripleHistogramTF::setWeight(BCoord bCoord)
@@ -156,9 +155,9 @@ void dlg_TripleHistogramTF::setSlicerMode(iASlicerMode slicerMode)
 	int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
 	m_sliceSlider->setMaximum(dimensionLength - 1);
 
-	m_modality1->setSlicerMode(slicerMode);
-	m_modality2->setSlicerMode(slicerMode);
-	m_modality3->setSlicerMode(slicerMode);
+	m_modality1->setSlicerMode(slicerMode, dimensionLength);
+	m_modality2->setSlicerMode(slicerMode, dimensionLength);
+	m_modality3->setSlicerMode(slicerMode, dimensionLength);
 }
 
 void dlg_TripleHistogramTF::setSliceNumber(int sliceNumber)

@@ -21,38 +21,43 @@
 #pragma once
 
 #include <QWidget>
-#include "mdichild.h"
-
-// Modality
-#include <QSharedPointer>;
-class iAModality;
-
-// Slicer
 #include "iASimpleSlicerWidget.h"
+//#include "mdichild.h"
 
-class iAModalityWidget : public QWidget
+#include <QSharedPointer>;
+#include "iAModality.h"
+
+#include "iASlicer.h"
+#include "vtkTransform.h"
+
+class iASimpleSlicerWidget : public QWidget
 {
 	Q_OBJECT
 
 public:
-	iAModalityWidget(QWidget* parent, QSharedPointer<iAModality> modality, MdiChild *mdiChild, Qt::WindowFlags f = 0);
-	~iAModalityWidget();
+	iASimpleSlicerWidget(QWidget* parent, QSharedPointer<iAModality> modality, vtkImageData *imageData, Qt::WindowFlags f = 0);
+	~iASimpleSlicerWidget();
+
+	void changeMode(iASlicerMode slicerMode, int dimensionLength);
+	void setSliceNumber(int sliceNumber);
+
+	bool hasHeightForWidth();
+	int heightForWidth(int width);
+
+	void update();
+
 
 public slots:
-	void setWeight(double weight);
-	void setSlicerMode(iASlicerMode slicerMode, int dimensionLength);
-	void setSliceNumber(int sliceNumber);
+
 
 signals:
 
 
 protected:
-	void resizeEvent(QResizeEvent* event);
 
 private:
-	QVBoxLayout *m_rightWidgetLayout;
-	QHBoxLayout *m_mainLayout;
-	QLabel *m_weightLabel;
-	iASimpleSlicerWidget *m_slicerWidget;
+	int m_curSlice;
+	vtkTransform *m_slicerTransform;
+	iASlicer *m_slicer;
 	
 };

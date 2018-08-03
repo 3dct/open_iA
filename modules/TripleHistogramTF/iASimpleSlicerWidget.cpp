@@ -18,41 +18,68 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
-
-#include <QWidget>
-#include "mdichild.h"
-
-// Modality
-#include <QSharedPointer>;
-class iAModality;
-
-// Slicer
+ 
 #include "iASimpleSlicerWidget.h"
 
-class iAModalityWidget : public QWidget
+#include "iAModalityTransfer.h"
+#include "vtkImageData.h"
+#include "vtkColorTransferFunction.h"
+#include "vtkCamera.h"
+#include "iASlicerData.h"
+
+iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, QSharedPointer<iAModality> modality, vtkImageData *imageData, Qt::WindowFlags f /*= 0 */) :
+	QWidget(parent, f)
 {
-	Q_OBJECT
+	m_slicer = new iASlicer(parent, iASlicerMode::XY, this,
+		// Value of shareWidget is defaulted to 0 in the iASlicer constructor... that's why I do that here
+		// TODO: do this in a better way?
+		/*QGLWidget * shareWidget = */0,
+		/*Qt::WindowFlags f = */f,
+		/*bool decorations = */false); // Hide everything except the slice itself
 
-public:
-	iAModalityWidget(QWidget* parent, QSharedPointer<iAModality> modality, MdiChild *mdiChild, Qt::WindowFlags f = 0);
-	~iAModalityWidget();
+	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->GetColorFunction();
+	m_slicerTransform = vtkTransform::New();
+	m_slicer->initializeData(imageData, m_slicerTransform, colorFunction);
 
-public slots:
-	void setWeight(double weight);
-	void setSlicerMode(iASlicerMode slicerMode, int dimensionLength);
-	void setSliceNumber(int sliceNumber);
+	// TODO: deactivate interaction with the slice (zoom, pan, etc)
+	// TODO: fill widget with the sliced image
+}
 
-signals:
+iASimpleSlicerWidget::~iASimpleSlicerWidget()
+{
+	m_slicerTransform->Delete();
 
+	delete m_slicer;
+}
 
-protected:
-	void resizeEvent(QResizeEvent* event);
+void iASimpleSlicerWidget::changeMode(iASlicerMode slicerMode, int dimensionLength)
+{
+	m_slicer->ChangeMode(slicerMode);
+	if (m_curSlice >= dimensionLength)
+	{
+		m_curSlice = dimensionLength;
+	}
+	m_slicer->setSliceNumber(m_curSlice);
+}
 
-private:
-	QVBoxLayout *m_rightWidgetLayout;
-	QHBoxLayout *m_mainLayout;
-	QLabel *m_weightLabel;
-	iASimpleSlicerWidget *m_slicerWidget;
-	
-};
+void iASimpleSlicerWidget::setSliceNumber(int sliceNumber)
+{
+	m_curSlice = sliceNumber;
+	m_slicer->setSliceNumber(sliceNumber);
+}
+
+bool iASimpleSlicerWidget::hasHeightForWidth()
+{
+	return true;
+}
+
+int iASimpleSlicerWidget::heightForWidth(int width)
+{
+	return width;
+}
+
+void iASimpleSlicerWidget::update()
+{
+	QWidget::update();
+	m_slicer->update();
+}

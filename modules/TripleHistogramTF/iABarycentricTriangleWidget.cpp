@@ -216,6 +216,11 @@ QWidget* iABarycentricTriangleWidget::widget()
 	return this;
 }
 
+bool iABarycentricTriangleWidget::hasHeightForWidth()
+{
+	return true;
+}
+
 int iABarycentricTriangleWidget::getHeightForWidth(int width)
 {
 	return (int)round(width * SIN60);
