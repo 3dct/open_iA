@@ -24,7 +24,6 @@
 #include "vtkImageData.h"
 
 #include <QHBoxLayout>
-#include <QBorderLayout>
 #include <QLabel>
 #include <QString>
 
@@ -106,7 +105,7 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 	rightWidgetLayout->addWidget(slicerWidget);
 	rightWidgetLayout->addWidget(m_weightLabel);
 
-	QBorderLayout *mainLayout = new QHBoxLayout(this);
+	QHBoxLayout *mainLayout = new QHBoxLayout(this);
 	mainLayout->addWidget((QWidget*) histogram); // TODO: why do I need to cast a subclass into its superclass?
 	mainLayout->addWidget(rightWidget);
 }

@@ -25,22 +25,42 @@
 #include <QRect>
 #include <QWidget>
 
-class RightBorderWidget : public QWidget
+#include <QOpenGLWidget>
+
+class IRightBorderItem
 {
 public:
-	RightBorderWidget() {}
-	virtual ~RightBorderWidget();
-	virtual bool hasWidthForHeight();
-	virtual int getWidthForHeight(int height);
+	//IRightBorderWidget() {}
+	//virtual ~IRightBorderWidget(); // TODO: uncomment?
+	virtual bool hasWidthForHeight() = 0;
+	virtual int getWidthForHeight(int height) = 0;
 };
 
-class RightBorderWidgetItem : public QWidgetItem
+class IRightBorderLayoutItem : public IRightBorderItem
 {
-
 public:
-	RightBorderWidgetItem(RightBorderWidget *widget) : QWidgetItem(widget) {}
-	//~RightBorderWidgetItem() { delete m_widget; } // TODO: uncomment?
-	RightBorderWidget* widget() { return widget(); }
+	virtual QLayoutItem* layoutItem() = 0;
+};
+
+class IRightBorderWidget : public IRightBorderItem
+{
+public:
+	virtual QWidget* widget() = 0;
+};
+
+class RightBorderLayoutItemWrapper : IRightBorderLayoutItem
+{
+public:
+	RightBorderLayoutItemWrapper(IRightBorderItem* rbi, QLayoutItem *layoutItem) : m_rbi(rbi), m_layoutItem(layoutItem) {}
+	RightBorderLayoutItemWrapper(IRightBorderWidget* rbw) : m_rbi(rbw), m_layoutItem(new QWidgetItem(rbw->widget())) {}
+	RightBorderLayoutItemWrapper(IRightBorderLayoutItem* rbli) : m_rbi(rbli), m_layoutItem(rbli->layoutItem()) {}
+	bool RightBorderLayoutItemWrapper::hasWidthForHeight() { return m_rbi->hasWidthForHeight(); }
+	int RightBorderLayoutItemWrapper::getWidthForHeight(int height) { return m_rbi->getWidthForHeight(height); }
+	QLayoutItem* RightBorderLayoutItemWrapper::layoutItem() { return m_layoutItem; }
+
+private:
+	IRightBorderItem *m_rbi;
+	QLayoutItem *m_layoutItem;
 
 };
 
@@ -64,36 +84,23 @@ public:
 	QSize sizeHint() const override;
 	QLayoutItem *takeAt(int index) override;
 
-	void addCenterWidget(QWidget* widget);
-	void addRightWidget(RightBorderWidget *widget);
+	void addWidgetRight(RightBorderLayoutItemWrapper *item);
+	void addWidgetCenter(QLayoutItem *item);
+
+	void setCenterWidget(QWidget* widget);
+	void setRightWidget(IRightBorderWidget *rbw);
+
+	/*void setCenter(QLayoutItem* item);
+	void setRight(RightBorderLayoutItemWrapper* item);*/
 
 private:
-	/*struct ItemWrapper
-	{
-		ItemWrapper(QLayoutItem *i, Position p) {
-			item = i;
-			position = p;
-		}
-
-		QLayoutItem *item;
-		Position position;
-	};*/
-
 	enum SizeType { MinimumSize, SizeHint };
 	QSize calculateSize(SizeType sizeType) const;
 	void incrementSize(QSize &totalSize, QLayoutItem *item, SizeType sizeType) const;
 
-	void addCenter(QLayoutItem* item);
-	void addRight(RightBorderWidgetItem* item);
+	void setCenter(QLayoutItem *item);
+	void setRight(RightBorderLayoutItemWrapper *item);
 
-	//QList<ItemWrapper *> list;
-
-	// Widgets that will be placed in the center
-	// The ith element has index i-1 in this layout
-	QList<QLayoutItem *> centerItems;
-
-	// Widgets that will be placed in the right
-	// For N elements in 'centerItems', the ith element in 'rightItems'
-	//		has index N+i-1
-	QList<RightBorderWidgetItem *> rightItems;
+	QLayoutItem *m_centerItem;
+	RightBorderLayoutItemWrapper *m_rightItem;
 };
