@@ -118,6 +118,7 @@
 #include <vtkStructuredGridGeometryFilter.h>
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
+#include <vtkTubeFilter.h>
 #include <vtkVariantArray.h>
 #include <vtkVersion.h>
 #include <vtkVolume.h>
@@ -173,6 +174,12 @@ void ColormapRGBAbsolute( const double normal[3], double color_out[3] );
 void ColormapCMYAbsoluteNormalized( const double normal[3], double color_out[3] );
 void ColormapRGBAbsoluteNormalized( const double normal[3], double color_out[3] );
 void ColormapRGBHalfSphere( const double normal[3], double color_out[3] );
+
+namespace
+{
+	const int NumberOfCylinderSides = 12;
+	const int TransparentAlpha = 32;
+}
 
 typedef void( *ColormapFuncPtr )( const double normal[3], double color_out[3] );
 ColormapFuncPtr colormapsIndex[] =
@@ -258,12 +265,11 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupModel();
 	setupConnections();
 	blobVisDialog = new dlg_blobVisualization();
-	if (visualization == iACsvConfig::Lines)
+	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
-		vtkRenderWindow* renWin = parent->getRenderer()->GetRenderWindow();
-		auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-		colors->SetNumberOfComponents(4);
-		colors->SetName("Colors");
+		m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		m_colors->SetNumberOfComponents(4);
+		m_colors->SetName("Colors");
 		vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
 		auto polyData = vtkSmartPointer<vtkPolyData>::New();
 		vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
@@ -288,18 +294,52 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 			c[2] = colorList.at(0).blue();
 			c[3] = 255;
 #if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-			colors->InsertNextTupleValue(c);
-			colors->InsertNextTupleValue(c);
+			m_colors->InsertNextTupleValue(c);
+			m_colors->InsertNextTupleValue(c);
 #else
-			colors->InsertNextTypedTuple(c);
-			colors->InsertNextTypedTuple(c);
+			m_colors->InsertNextTypedTuple(c);
+			m_colors->InsertNextTypedTuple(c);
 #endif
 		}
 		polyData->SetPoints(pts);
 		polyData->SetLines(lines);
-		polyData->GetPointData()->AddArray(colors);
+		polyData->GetPointData()->AddArray(m_colors);
+		m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		if (visualization == iACsvConfig::Lines)
+		{
+			m_mapper->SetInputData(polyData);
+		}
+		else if (visualization == iACsvConfig::Cylinders)
+		{
+			auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
+			tubeRadius->SetName("TubeRadius");
+			tubeRadius->SetNumberOfTuples(objectNr);
+			for (vtkIdType row = 0; row < objectNr; ++row)
+			{
+				float diameter = csvTable->GetValue(row, m_columnMapping[iACsvConfig::Diameter]).ToFloat();
+				tubeRadius->SetTuple1(row, diameter/2);
+			}
+			polyData->GetPointData()->AddArray(tubeRadius);
+			polyData->GetPointData()->SetActiveScalars("TubeRadius");
+			auto tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
+			tubeFilter->SetInputData(polyData);
+			tubeFilter->CappingOn();
+			tubeFilter->SidesShareVerticesOff();
+			tubeFilter->SetNumberOfSides(NumberOfCylinderSides);
+			//tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
+			tubeFilter->SetRadius(3.5);
+			tubeFilter->Update();
+			m_mapper->SetInputConnection(tubeFilter->GetOutputPort());
+		}
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
-			.arg(MapObjectTypeToString(filterID)), nullptr, polyData);
+					.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
+		vtkRenderWindow* renWin = parent->getRenderer()->GetRenderWindow();
+		m_mapper->SelectColorArray("Colors");
+		m_mapper->SetScalarModeToUsePointFieldData();
+		m_mapper->ScalarVisibilityOn();
+		auto actor = vtkSmartPointer<vtkActor>::New();
+		actor->SetMapper(m_mapper);
+		renWin->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 		parent->enableRenderWindows();
 	}
 	// set first column of the classTreeView to minimal (not stretched)
@@ -695,9 +735,8 @@ void dlg_FeatureScout::RenderingButton()
 
 	if (classCount == 1)
 		return;
-	if (visualization == iACsvConfig::Lines)
+	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
-		auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
 		for (int i = 0; i < classCount; i++)
 		{
 			unsigned char rgb[4];
@@ -712,12 +751,13 @@ void dlg_FeatureScout::RenderingButton()
 				int objectID = item->child(j, 0)->text().toInt();
 				for (int c = 0; c < 4; ++c)
 				{
-					colors->SetComponent(objectID * 2, c, rgb[c]);
-					colors->SetComponent(objectID * 2 + 1, c, rgb[c]);
+					m_colors->SetComponent(objectID * 2, c, rgb[c]);
+					m_colors->SetComponent(objectID * 2 + 1, c, rgb[c]);
 				}
 			}
 		}
-		colors->Modified();
+		m_colors->Modified();
+		m_mapper->Update();
 		raycaster->update();
 		return;
 	}
@@ -868,10 +908,9 @@ void dlg_FeatureScout::SingleRendering( int idx )
 
 	if ( idx > 0 ) // for single object selection
 	{
-		if (visualization == iACsvConfig::Lines)
+		if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 		{
-			auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
-			if (!colors)
+			if (!m_colors)
 				return;
 			unsigned char selColor[4];
 			selColor[0] = 255;//colorList.at(cID).red();
@@ -882,17 +921,18 @@ void dlg_FeatureScout::SingleRendering( int idx )
 			otherColor[0] = colorList.at(cID).red();
 			otherColor[1] = colorList.at(cID).green();
 			otherColor[2] = colorList.at(cID).blue();
-			otherColor[3] = 192;
+			otherColor[3] = TransparentAlpha;
 			for (int i = 0; i < objectNr; ++i)
 			{
 				unsigned char* color = (csvTable->GetValue(i, 0) == idx) ? selColor : otherColor;
 				for (int c = 0; c < 4; ++c)
 				{
-					colors->SetComponent(i * 2, c, color[c]);
-					colors->SetComponent(i * 2+1, c, color[c]);
+					m_colors->SetComponent(i * 2, c, color[c]);
+					m_colors->SetComponent(i * 2+1, c, color[c]);
 				}
 			}
-			colors->Modified();
+			m_colors->Modified();
+			m_mapper->Update();
 		}
 		else
 		{
@@ -916,10 +956,9 @@ void dlg_FeatureScout::SingleRendering( int idx )
 	}
 	else // for single class selection
 	{
-		if (visualization == iACsvConfig::Lines)
+		if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 		{
-			auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
-			if (!colors)
+			if (!m_colors)
 				return;
 			unsigned char selColor[4];
 			selColor[0] = 255;
@@ -930,7 +969,7 @@ void dlg_FeatureScout::SingleRendering( int idx )
 			otherColor[0] = colorList.at(cID).red();
 			otherColor[1] = colorList.at(cID).green();
 			otherColor[2] = colorList.at(cID).blue();
-			otherColor[3] = 192;
+			otherColor[3] = TransparentAlpha;
 			int currentObjectIndexInClass = 0;
 			int currentObjectID = this->activeClassItem->child(currentObjectIndexInClass, 0)->text().toInt();
 			for (int i = 0; i < objectNr; ++i)
@@ -938,8 +977,8 @@ void dlg_FeatureScout::SingleRendering( int idx )
 				unsigned char* color = (csvTable->GetValue(i, 0) == currentObjectID) ? selColor : otherColor;
 				for (int c = 0; c < 4; ++c)
 				{
-					colors->SetComponent(i * 2, c, color[c]);
-					colors->SetComponent(i * 2 + 1, c, color[c]);
+					m_colors->SetComponent(i * 2, c, color[c]);
+					m_colors->SetComponent(i * 2 + 1, c, color[c]);
 				}
 				if (i == currentObjectID)
 				{
@@ -948,7 +987,8 @@ void dlg_FeatureScout::SingleRendering( int idx )
 						currentObjectID = this->activeClassItem->child(currentObjectIndexInClass, 0)->text().toInt();
 				}
 			}
-			colors->Modified();
+			m_colors->Modified();
+			m_mapper->Update();
 		}
 		else
 		{
@@ -1040,10 +1080,9 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 	if (countClass <= 0) // TODO: check if this can even happen -> uncategorized class always should exist!
 		return;
 
-	if (visualization == iACsvConfig::Lines)
+	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
-		auto colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
-		if (!colors)
+		if (!m_colors)
 			return;
 		unsigned char selColor[4];
 		selColor[0] = 255;
@@ -1059,7 +1098,7 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 		if (countSelection > 0)
 		{
 			currentObjectID = selection->GetVariantValue(currentObjectIndexInSelection).ToInt();
-			otherColor[3] = 192;
+			otherColor[3] = TransparentAlpha;
 		}
 		else
 		{
@@ -1069,8 +1108,8 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 		{
 			for (int c = 0; c < 4; ++c)
 			{
-				colors->SetComponent(obj * 2, c, (obj == currentObjectID) ? selColor[c] : otherColor[c]);
-				colors->SetComponent(obj * 2 + 1, c, (obj == currentObjectID) ? selColor[c] : otherColor[c]);
+				m_colors->SetComponent(obj * 2, c, (obj == currentObjectID) ? selColor[c] : otherColor[c]);
+				m_colors->SetComponent(obj * 2 + 1, c, (obj == currentObjectID) ? selColor[c] : otherColor[c]);
 			}
 			if (obj == currentObjectID)
 			{
@@ -1078,7 +1117,8 @@ void dlg_FeatureScout::RealTimeRendering( vtkIdTypeArray *selection)
 				if (currentObjectIndexInSelection < countSelection)
 					currentObjectID = selection->GetVariantValue(currentObjectIndexInSelection).ToInt();
 			}
-			colors->Modified();
+			m_colors->Modified();
+			m_mapper->Update();
 		}
 		raycaster->update();
 		return;
@@ -1843,12 +1883,7 @@ void dlg_FeatureScout::RenderingOrientation()
 	backRGB[0] = 0.0; backRGB[1] = 0.0; backRGB[2] = 0.0;
 	int ip, it;
 
-	vtkUnsignedCharArray* polyColors;
-	if (visualization == iACsvConfig::Lines)
-	{
-		polyColors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
-	}
-	else
+	if (visualization == iACsvConfig::UseVolume)
 	{
 		// clear existing points
 		this->oTF->RemoveAllPoints();
@@ -1864,7 +1899,7 @@ void dlg_FeatureScout::RenderingOrientation()
 
 		double *p = static_cast<double *>( oi->GetScalarPointer( it, ip, 0 ) );
 		red = p[0]; green = p[1]; blue = p[2];
-		if (visualization == iACsvConfig::Lines)
+		if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 		{
 			unsigned char color[4];
 			color[0] = red * 255;
@@ -1873,8 +1908,8 @@ void dlg_FeatureScout::RenderingOrientation()
 			color[3] = 255;
 			for (int c = 0; c < 4; ++c)
 			{
-				polyColors->SetComponent(i * 2, c, color[c]);
-				polyColors->SetComponent(i * 2 + 1, c, color[c]);
+				m_colors->SetComponent(i * 2, c, color[c]);
+				m_colors->SetComponent(i * 2 + 1, c, color[c]);
 			}
 		}
 		else
@@ -1883,9 +1918,10 @@ void dlg_FeatureScout::RenderingOrientation()
 			this->cTF->AddRGBPoint( i + 1, red, green, blue );
 		}
 	}
-	if (visualization == iACsvConfig::Lines)
+	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
-		polyColors->Modified();
+		m_colors->Modified();
+		m_mapper->Update();
 		this->raycaster->update();
 	}
 	// prepare the delaunay triangles
@@ -2035,17 +2071,12 @@ void dlg_FeatureScout::RenderingFLD()
 	double dcolor[3];
 	int CID = 0;
 	
-	vtkUnsignedCharArray* colors;
 	if (visualization == iACsvConfig::UseVolume)
 	{
 		// clear existing points
 		this->oTF->RemoveAllPoints();
 		this->cTF->RemoveAllPoints();
 		this->cTF->AddRGBPoint(0, backRGB[0], backRGB[1], backRGB[2]);
-	}
-	else
-	{
-		colors = dynamic_cast<vtkUnsignedCharArray*>(activeChild->getPolyData()->GetPointData()->GetAbstractArray("Colors"));
 	}
 
 	double alpha = 0.001;
@@ -2058,7 +2089,7 @@ void dlg_FeatureScout::RenderingFLD()
 		red = dcolor[0];
 		green = dcolor[1];
 		blue = dcolor[2];
-		if (visualization == iACsvConfig::Lines)
+		if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 		{
 			unsigned char rgb[4];
 			rgb[0] = red * 255;
@@ -2067,8 +2098,8 @@ void dlg_FeatureScout::RenderingFLD()
 			rgb[3] = 255;
 			for (int c = 0; c < 4; ++c)
 			{
-				colors->SetComponent(i * 2, c, rgb[c]);
-				colors->SetComponent(i * 2 + 1, c, rgb[c]);
+				m_colors->SetComponent(i * 2, c, rgb[c]);
+				m_colors->SetComponent(i * 2 + 1, c, rgb[c]);
 			}
 		}
 		else
@@ -2132,9 +2163,11 @@ void dlg_FeatureScout::RenderingFLD()
 			this->cTF->AddRGBPoint( i + 1 + 0.3, red, green, blue );
 		}
 	}
-	if (visualization == iACsvConfig::Lines)
+	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
-		colors->Modified();
+		m_colors->Modified();
+		m_mapper->Update();
+		raycaster->update();
 	}
 
 	this->orientationColorMapSelection->hide();

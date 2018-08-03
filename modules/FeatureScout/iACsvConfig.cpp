@@ -109,9 +109,9 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		errorMsg = "Visualization as Cylinders requires a diameter column, please specify where to find it!";
 		return false;
 	}
-	if (visType == Cylinders || visType == Ellipses)
+	if (visType == Ellipses)
 	{
-		errorMsg = "Visualization as Cylinders or Ellipses are not implemented yet!";
+		errorMsg = "Visualization as Ellipses are not implemented yet!";
 		return false;
 	}
 	if (selectedHeaders.size() < 1)

@@ -64,6 +64,7 @@ class vtkIdTypeArray;
 class vtkLookupTable;
 class vtkObject;
 class vtkPiecewiseFunction;
+class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkScalarBarActor;
 class vtkScalarBarWidget;
@@ -72,6 +73,7 @@ class vtkSmartVolumeMapper;
 class vtkStringArray;
 class vtkStructuredGrid;
 class vtkTable;
+class vtkUnsignedCharArray;
 class vtkVolume;
 class vtkVolumeProperty;
 
@@ -291,4 +293,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_pointLUT;
 	QMap<uint, uint> m_columnMapping;
 	float m_pcLineWidth;   //!< width of line in Parallel Coordinates
+
+	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
+	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
 };
