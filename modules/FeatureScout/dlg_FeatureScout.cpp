@@ -270,9 +270,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 		m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 		m_colors->SetNumberOfComponents(4);
 		m_colors->SetName("Colors");
-		vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
+		auto pts = vtkSmartPointer<vtkPoints>::New();
 		auto polyData = vtkSmartPointer<vtkPolyData>::New();
-		vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+		auto lines = vtkSmartPointer<vtkCellArray>::New();
 
 		for (vtkIdType row = 0; row < objectNr; ++row)
 		{
@@ -284,7 +284,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 			}
 			pts->InsertNextPoint(first);
 			pts->InsertNextPoint(end);
-			vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+			auto line = vtkSmartPointer<vtkLine>::New();
 			line->GetPointIds()->SetId(0, 2 * row);     // the index of line start point in pts
 			line->GetPointIds()->SetId(1, 2 * row + 1); // the index of line end point in pts
 			lines->InsertNextCell(line);
@@ -313,11 +313,12 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 		{
 			auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 			tubeRadius->SetName("TubeRadius");
-			tubeRadius->SetNumberOfTuples(objectNr);
+			tubeRadius->SetNumberOfTuples(objectNr*2);
 			for (vtkIdType row = 0; row < objectNr; ++row)
 			{
-				float diameter = csvTable->GetValue(row, m_columnMapping[iACsvConfig::Diameter]).ToFloat();
-				tubeRadius->SetTuple1(row, diameter/2);
+				double diameter = csvTable->GetValue(row, m_columnMapping[iACsvConfig::Diameter]).ToDouble();
+				tubeRadius->SetTuple1(row*2,   diameter/2);
+				tubeRadius->SetTuple1(row*2+1, diameter/2);
 			}
 			polyData->GetPointData()->AddArray(tubeRadius);
 			polyData->GetPointData()->SetActiveScalars("TubeRadius");
@@ -326,21 +327,20 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 			tubeFilter->CappingOn();
 			tubeFilter->SidesShareVerticesOff();
 			tubeFilter->SetNumberOfSides(NumberOfCylinderSides);
-			//tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
-			tubeFilter->SetRadius(3.5);
+			tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
 			tubeFilter->Update();
 			m_mapper->SetInputConnection(tubeFilter->GetOutputPort());
 		}
-		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
-					.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
 		vtkRenderWindow* renWin = parent->getRenderer()->GetRenderWindow();
 		m_mapper->SelectColorArray("Colors");
 		m_mapper->SetScalarModeToUsePointFieldData();
 		m_mapper->ScalarVisibilityOn();
 		auto actor = vtkSmartPointer<vtkActor>::New();
 		actor->SetMapper(m_mapper);
+		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
+			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
 		renWin->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-		parent->enableRenderWindows();
+		renWin->GetRenderers()->GetFirstRenderer()->ResetCamera();
 	}
 	// set first column of the classTreeView to minimal (not stretched)
 	this->classTreeView->resizeColumnToContents( 0 );
