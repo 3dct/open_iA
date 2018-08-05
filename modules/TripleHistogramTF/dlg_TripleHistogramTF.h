@@ -24,6 +24,7 @@
 //#include "iAQTtoUIConnector.h"
 #include <QDockWidget>
 #include "iABarycentricTriangleWidget.h"
+#include "iAWeightedTransfer.h"
 
 #include <QResizeEvent>
 #include <qcombobox.h>
@@ -55,9 +56,10 @@ public slots:
 	void setWeight(BCoord bCoord);
 	void updateSlicerMode();
 	void setSliceNumber(int sliceNumber);
+	void updateTransferFunction();
 
 signals:
-	
+	void transferFunctionUpdated();
 
 protected:
 	void resizeEvent(QResizeEvent* event);
@@ -75,5 +77,7 @@ private:
 	iABarycentricTriangleWidget *m_triangleWidget;
 
 	QHBoxLayout *m_mainLayout;
+
+	iAWeightedTransfer *m_transferFunction;
 	
 };

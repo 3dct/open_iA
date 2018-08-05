@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,47 +15,53 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include <QWidget>
-#include "iASimpleSlicerWidget.h"
-//#include "mdichild.h"
+#include "iAWeightedTransfer.h"
 
-#include <QSharedPointer>;
-#include "iAModality.h"
+// Color and opacity functions
 
-#include "iASlicer.h"
-#include "vtkTransform.h"
-
-class iASimpleSlicerWidget : public QWidget
+iAWeightedColorFunction::iAWeightedColorFunction()
 {
-	Q_OBJECT
 
-public:
-	iASimpleSlicerWidget(QWidget* parent, QSharedPointer<iAModality> modality, vtkImageData *imageData, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
+}
 
-	void changeMode(iASlicerMode slicerMode, int dimensionLength);
-	void setSliceNumber(int sliceNumber);
+iAWeightedOpacityFunction::iAWeightedOpacityFunction()
+{
 
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
+}
 
-	void update();
+// Weighted iATransferFunction
+
+iAWeightedTransfer::iAWeightedTransfer(iATransferFunction* tf1, iATransferFunction* tf2, iATransferFunction* tf3)
+{
+	setTransferFunctions(tf1, tf2, tf3);
+
+	m_cf = new iAWeightedColorFunction();
+	m_of = new iAWeightedOpacityFunction();
 
 
-public slots:
+}
 
-signals:
+iAWeightedTransfer::~iAWeightedTransfer()
+{
 
-protected:
+}
 
-private:
-	int m_curSlice;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
-	
-};
+void iAWeightedTransfer::setTransferFunctions(iATransferFunction* tf1, iATransferFunction* tf2, iATransferFunction* tf3) {
+	m_tf1 = tf1;
+	m_tf2 = tf2;
+	m_tf3 = tf3;
+}
+
+iAWeightedColorFunction* iAWeightedTransfer::GetColorFunction()
+{
+	return m_cf;
+}
+
+iAWeightedOpacityFunction* iAWeightedTransfer::GetOpacityFunction()
+{
+	return m_of;
+}

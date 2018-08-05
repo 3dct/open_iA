@@ -23,6 +23,8 @@
 #include <QWidget>
 #include "mdichild.h"
 
+#include "iATransferFunction.h"
+
 // Modality
 #include <QSharedPointer>;
 class iAModality;
@@ -38,13 +40,17 @@ public:
 	iAModalityWidget(QWidget* parent, QSharedPointer<iAModality> modality, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 	~iAModalityWidget();
 
-public slots:
 	void setWeight(double weight);
 	void setSlicerMode(iASlicerMode slicerMode, int dimensionLength);
 	void setSliceNumber(int sliceNumber);
 
-signals:
+	iATransferFunction* getTransferFunction();
 
+private slots:
+	void updateTransferFunction();
+
+signals:
+	void modalityTfChanged();
 
 protected:
 	void resizeEvent(QResizeEvent* event);
@@ -54,5 +60,6 @@ private:
 	QHBoxLayout *m_mainLayout;
 	QLabel *m_weightLabel;
 	iASimpleSlicerWidget *m_slicerWidget;
+	iADiagramFctWidget* m_histogram;
 	
 };

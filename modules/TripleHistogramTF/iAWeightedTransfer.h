@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,47 +15,44 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+
 #pragma once
 
-#include <QWidget>
-#include "iASimpleSlicerWidget.h"
-//#include "mdichild.h"
+#include "iATransferFunction.h"
 
-#include <QSharedPointer>;
-#include "iAModality.h"
+#include "vtkColorTransferFunction.h"
+#include "vtkPiecewiseFunction.h"
 
-#include "iASlicer.h"
-#include "vtkTransform.h"
-
-class iASimpleSlicerWidget : public QWidget
+class iAWeightedColorFunction : public vtkColorTransferFunction
 {
-	Q_OBJECT
-
 public:
-	iASimpleSlicerWidget(QWidget* parent, QSharedPointer<iAModality> modality, vtkImageData *imageData, Qt::WindowFlags f = 0);
-	~iASimpleSlicerWidget();
+	iAWeightedColorFunction();
+};
 
-	void changeMode(iASlicerMode slicerMode, int dimensionLength);
-	void setSliceNumber(int sliceNumber);
+class iAWeightedOpacityFunction : public vtkPiecewiseFunction
+{
+public:
+	iAWeightedOpacityFunction();
+};
 
-	bool hasHeightForWidth();
-	int heightForWidth(int width);
+class iAWeightedTransfer : public iATransferFunction
+{
+public:
+	iAWeightedTransfer(iATransferFunction* tf1, iATransferFunction* tf2, iATransferFunction* tf3);
+	~iAWeightedTransfer();
 
-	void update();
+	void setTransferFunctions(iATransferFunction* tf1, iATransferFunction* tf2, iATransferFunction* tf3);
 
-
-public slots:
-
-signals:
-
-protected:
+	iAWeightedColorFunction* GetColorFunction() override;
+	iAWeightedOpacityFunction* GetOpacityFunction() override;
 
 private:
-	int m_curSlice;
-	vtkTransform *m_slicerTransform;
-	iASlicer *m_slicer;
-	
+	iATransferFunction *m_tf1, *m_tf2, *m_tf3;
+
+	iAWeightedColorFunction* m_cf;
+	iAWeightedOpacityFunction* m_of;
+
 };

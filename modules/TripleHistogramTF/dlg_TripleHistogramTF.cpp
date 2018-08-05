@@ -67,31 +67,36 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	QWidget *histogramStackContainer = new QWidget();
 	QVBoxLayout *histogramStackContainerLayout = new QVBoxLayout(histogramStackContainer);
 
-	// TODO: load 3 DIFFERENT modalities
-	if (m_mdiChild->GetModalities()->size() > 0)
+	if (m_mdiChild->GetModalities()->size() > 0) // What if it isn't bigger than 0? Then what?
 	{
 		iAModalityWidget *modalities[3];
-		int i = 0;
-		for (int j = 0; j < 3/*mdiChild->GetModalities()->size()*/; ++j)
+		if (m_mdiChild->GetModalities()->size() == 1) // TODO: remove
 		{
-			modalities[j] = new iAModalityWidget(histogramStackContainer, mdiChild->GetModality(i), mdiChild);
-			histogramStackContainerLayout->addWidget(modalities[j]);
+			for (int i = 0; i < 3/*mdiChild->GetModalities()->size()*/; ++i)
+			{
+				modalities[i] = new iAModalityWidget(histogramStackContainer, mdiChild->GetModality(0), mdiChild);
+				histogramStackContainerLayout->addWidget(modalities[i]);
+			}
+		}
+		else if (m_mdiChild->GetModalities()->size() >= 3) // TODO: handle more than 3 available modalities
+		{
+			for (int i = 0; i < 3/*mdiChild->GetModalities()->size()*/; ++i)
+			{
+				modalities[i] = new iAModalityWidget(histogramStackContainer, mdiChild->GetModality(i), mdiChild);
+				histogramStackContainerLayout->addWidget(modalities[i]);
+			}
 		}
 		m_modality1 = modalities[0];
 		m_modality2 = modalities[1];
 		m_modality3 = modalities[2];
 	}
-	else {
+	else { // TODO: remove?
 		m_modality1 = 0;
 		m_modality2 = 0;
 		m_modality3 = 0;
 	}
 
 	m_triangleWidget = new iABarycentricTriangleWidget(dockWidgetContents);
-	
-	connect(m_triangleWidget, SIGNAL(weightChanged(BCoord)), this, SLOT(setWeight(BCoord)));
-	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlicerMode()));
-	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(setSliceNumber(int)));
 
 	QWidget *leftWidget = new QWidget();
 	//leftWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
@@ -104,9 +109,32 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	//mainLayout->setCenterWidget(leftWidget);
 	//mainLayout->setBorderWidget(m_triangleWidget);
 
+	// Initialize transfer function
+	m_transferFunction = new iAWeightedTransfer(
+		m_modality1->getTransferFunction(),
+		m_modality2->getTransferFunction(),
+		m_modality3->getTransferFunction());
+
 	// Initialize
 	updateSlicerMode();
 	setWidget(dockWidgetContents);
+
+	//Connect
+	connect(m_triangleWidget, SIGNAL(weightChanged(BCoord)), this, SLOT(setWeight(BCoord)));
+	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlicerMode()));
+	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(setSliceNumber(int)));
+	// TODO: move into for-loop?
+	// {
+	// TODO: necessary?
+	//     {
+	connect(m_modality1, SIGNAL(modalityTfChanged()), this, SLOT(updateTransferFunction()));
+	connect(m_modality2, SIGNAL(modalityTfChanged()), this, SLOT(updateTransferFunction()));
+	connect(m_modality3, SIGNAL(modalityTfChanged()), this, SLOT(updateTransferFunction()));
+	//     }
+	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
+	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
+	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
+	// }
 }
 
 dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
@@ -139,13 +167,13 @@ void dlg_TripleHistogramTF::setSlicerMode(iASlicerMode slicerMode)
 	switch (slicerMode)
 	{
 	case iASlicerMode::YZ:
-		dimensionIndex = 0; // X length is in position 0 in dimensions array
+		dimensionIndex = 0; // X length is in position 0 in the dimensions array
 		break;
 	case iASlicerMode::XZ:
-		dimensionIndex = 1; // Y length is in position 1 in dimensions array
+		dimensionIndex = 1; // Y length is in position 1 in the dimensions array
 		break;
 	case iASlicerMode::XY:
-		dimensionIndex = 2; // Z length is in position 2 in dimensions array
+		dimensionIndex = 2; // Z length is in position 2 in the dimensions array
 		break;
 	default:
 		// TODO?
@@ -165,4 +193,10 @@ void dlg_TripleHistogramTF::setSliceNumber(int sliceNumber)
 	m_modality1->setSliceNumber(sliceNumber);
 	m_modality2->setSliceNumber(sliceNumber);
 	m_modality3->setSliceNumber(sliceNumber);
+}
+
+void dlg_TripleHistogramTF::updateTransferFunction()
+{
+	// TODO: update weighted transfer function (m_transferFunction->...)
+	emit transferFunctionUpdated();
 }

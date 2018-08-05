@@ -31,7 +31,7 @@
 // Debug
 #include <QDebug>
 
-// Required to load histogram
+// Required for the histogram
 #include "iAModalityList.h"
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
@@ -40,6 +40,7 @@
 #include "charts/iAPlotTypes.h"
 #include "charts/iAProfileWidget.h"
 #include "iAPreferences.h"
+#include "dlg_transfer.h"
 
 // Required to create slicer
 #include "vtkColorTransferFunction.h"
@@ -74,14 +75,23 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 		modality->ComputeHistogramData(mdiChild->GetPreferences().HistogramBins);
 	}
 
-	iADiagramFctWidget* histogram = new iADiagramFctWidget(this, mdiChild);
+	m_histogram = new iADiagramFctWidget(this, mdiChild);
 	QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
 		new	iABarGraphDrawer(modality->GetHistogramData(), QColor(70, 70, 70, 255)));
-	histogram->AddPlot(histogramPlot);
-	histogram->SetTransferFunctions(modality->GetTransfer()->GetColorFunction(),
+	m_histogram->AddPlot(histogramPlot);
+	m_histogram->SetTransferFunctions(modality->GetTransfer()->GetColorFunction(),
 		modality->GetTransfer()->GetOpacityFunction());
 
-	histogram->updateTrf();
+	m_histogram->updateTrf();
+
+	//connect(histogram, SIGNAL(updateViews()), this, SLOT(updateViews()));
+	//connect(histogram, SIGNAL(pointSelected()), this, SIGNAL(pointSelected()));
+	//connect(histogram, SIGNAL(noPointSelected()), this, SIGNAL(noPointSelected()));
+	//connect(histogram, SIGNAL(endPointSelected()), this, SIGNAL(endPointSelected()));
+	//connect(histogram, SIGNAL(active()), this, SIGNAL(active()));
+	//connect(histogram, SIGNAL(autoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
+	//connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), mdiChild, SLOT(ModalityTFChanged()));
+	connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction()));
 
 	// Initialize histogram
 	// ----------------------------------------------------------------------------------------------------------
@@ -97,7 +107,7 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 	//rightWidgetLayout->setCenterWidget(m_weightLabel);
 
 	m_mainLayout = new QHBoxLayout(this);
-	m_mainLayout->addWidget(histogram); // TODO: why do I need to cast a subclass into its superclass?
+	m_mainLayout->addWidget(m_histogram); // TODO: why do I need to cast a subclass into its superclass?
 	m_mainLayout->addWidget(rightWidget);
 	//RightBorderLayout *mainLayout = new RightBorderLayout(this, RightBorderLayout::Right);
 	//mainLayout->setCenterWidget(histogram);
@@ -118,13 +128,11 @@ void iAModalityWidget::setWeight(double weight)
 void iAModalityWidget::setSlicerMode(iASlicerMode slicerMode, int dimensionLength)
 {
 	m_slicerWidget->changeMode(slicerMode, dimensionLength);
-	m_slicerWidget->update();
 }
 
 void iAModalityWidget::setSliceNumber(int sliceNumber)
 {
 	m_slicerWidget->setSliceNumber(sliceNumber);
-	//m_slicerWidget->update();
 }
 
 void iAModalityWidget::resizeEvent(QResizeEvent* event)
@@ -138,4 +146,22 @@ void iAModalityWidget::resizeEvent(QResizeEvent* event)
 	int h = m_weightLabel->sizeHint().height();
 	m_rightWidgetLayout->setStretch(0, hSlice);
 	m_rightWidgetLayout->setStretch(1, hText);
+}
+
+iATransferFunction* iAModalityWidget::getTransferFunction()
+{
+	// TODO: can this cast really work? handle it well instead of returning 0
+	if (m_histogram->getSelectedFunction()->getType() != dlg_function::TRANSFER)
+	{
+		return 0;
+	}
+
+	dlg_transfer* transfer = (dlg_transfer*) m_histogram->getSelectedFunction();
+	return new iASimpleTransferFunction(transfer->GetColorFunction(), transfer->GetOpacityFunction());
+}
+
+void iAModalityWidget::updateTransferFunction()
+{
+	m_slicerWidget->update();
+	emit modalityTfChanged();
 }
