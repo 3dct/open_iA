@@ -21,6 +21,7 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
+#include <vtkVersion.h>
 
 #include "ui_planeSlicer.h"
 #include "iAQTtoUIConnector.h"

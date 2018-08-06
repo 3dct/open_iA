@@ -30,7 +30,6 @@
 #include "raycast/include/common.h"
 
 #include <vtkVersion.h>
-
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class QVTKOpenGLWidget;
 #else

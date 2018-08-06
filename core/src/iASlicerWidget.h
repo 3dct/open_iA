@@ -23,6 +23,7 @@
 #include "open_iA_Core_export.h"
 #include "iASlicer.h"
 
+#include <vtkVersion.h>
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QVTKOpenGLWidget.h>
 #else

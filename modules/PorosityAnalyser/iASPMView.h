@@ -23,6 +23,7 @@
 #include <QDockWidget>
 #include <vtkSmartPointer.h>
 #include <vtkVector.h>
+#include <vtkVersion.h>
 
 #include "ui_SPMView.h"
 #include "iAQTtoUIConnector.h"

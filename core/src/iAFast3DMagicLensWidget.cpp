@@ -35,6 +35,7 @@
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkVersion.h>
 
 #include <QMouseEvent>
 

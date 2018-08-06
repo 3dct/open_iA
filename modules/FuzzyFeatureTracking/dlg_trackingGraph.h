@@ -27,6 +27,7 @@
 #include "ui_TrackingGraph.h"
 #include "iATrackingGraphItem.h"
 // VTK
+#include <vtkVersion.h>
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QVTKOpenGLWidget.h>
 #include <vtkGenericOpenGLRenderWindow.h>
