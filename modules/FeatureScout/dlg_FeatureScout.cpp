@@ -1008,12 +1008,14 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 	this->orientColormap->hide();
 
 	int countClass = this->activeClassItem->rowCount();
-	int countSelection = selInds.size();
+	auto sortedSelInds = selInds;
+	std::sort(sortedSelInds.begin(), sortedSelInds.end());
+	int countSelection = sortedSelInds.size();
 
 	if (countClass <= 0)
 		return;
 
-	QColor BackColor(128, 128, 128, TransparentAlpha);
+	QColor BackColor(128, 128, 128, 0);
 	double backRGB[3];
 	backRGB[0] = BackColor.redF(); backRGB[1] = BackColor.greenF(); backRGB[2] = BackColor.blueF(); // background color
 	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
@@ -1024,7 +1026,7 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 		size_t curSelObjID = NoPointIdx;
 		if (countSelection > 0)
 		{
-			curSelObjID = selInds[currentObjectIndexInSelection];
+			curSelObjID = sortedSelInds[currentObjectIndexInSelection];
 			classColor.setAlpha(TransparentAlpha);
 		}
 		else
@@ -1044,10 +1046,11 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 			{
 				++currentObjectIndexInSelection;
 				if (currentObjectIndexInSelection < countSelection)
-					curSelObjID = selInds[currentObjectIndexInSelection];
+					curSelObjID = sortedSelInds[currentObjectIndexInSelection];
 			}
 		}
 		UpdatePolyMapper();
+		activeChild->updateViews();
 		return;
 	}
 
@@ -1078,12 +1081,12 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 
 		if ( countSelection > 0 )
 		{
-			if ( j == selInds[selectionIndex] )
+			if ( j == sortedSelInds[selectionIndex] )
 			{
 				hid_isASelection = true;
 				red = SelectedColor.redF(), green = SelectedColor.greenF(), blue = SelectedColor.blueF();
 
-				if ( selectionIndex + 1 < selInds.size() )
+				if ( selectionIndex + 1 < sortedSelInds.size() )
 					selectionIndex++;
 			}
 			else
@@ -1094,11 +1097,11 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 
 			if ( j > 0 )
 			{
-				if ( j - 1 == selInds[previous_selectionIndex])
+				if ( j - 1 == sortedSelInds[previous_selectionIndex])
 				{
 					previous_hid_isASelection = true;
 
-					if ( previous_selectionIndex + 1 < selInds.size())
+					if ( previous_selectionIndex + 1 < sortedSelInds.size())
 						previous_selectionIndex++;
 				}
 				else
