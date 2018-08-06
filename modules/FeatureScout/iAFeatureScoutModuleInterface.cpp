@@ -45,16 +45,14 @@ void iAFeatureScoutModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * FeatureScoutCsvReader = getMenuWithTitle(toolsMenu, QString("FeatureScout"), false);
+	QMenu * featureScoutMenu = getMenuWithTitle(toolsMenu, QString("FeatureScout"), false);
 
-	QAction * actionFibreScout = new QAction( m_mainWnd );
-	actionFibreScout->setText( QApplication::translate( "MainWindow", "FeatureScout", 0 ) );
-	AddActionToMenuAlphabeticallySorted(FeatureScoutCsvReader, actionFibreScout);
+	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
+	AddActionToMenuAlphabeticallySorted( featureScoutMenu, actionFibreScout);
 	connect(actionFibreScout, SIGNAL(triggered()), this, SLOT(FeatureScout()));
 
-	QAction * actionOpenCSVFeatureScout = new QAction(m_mainWnd);
-	actionOpenCSVFeatureScout->setText(QApplication::translate("MainWindow", "FeatureScoutWithCSV", 0));
-	AddActionToMenuAlphabeticallySorted(FeatureScoutCsvReader, actionOpenCSVFeatureScout, false);
+	QAction * actionOpenCSVFeatureScout = new QAction( QObject::tr("FeatureScoutWithCSV"), nullptr );
+	AddActionToMenuAlphabeticallySorted( featureScoutMenu, actionOpenCSVFeatureScout, false);
 	connect(actionOpenCSVFeatureScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScoutWithCSV);
 
 	tlbFeatureScout = nullptr;

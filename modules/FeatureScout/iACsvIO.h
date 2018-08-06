@@ -23,6 +23,8 @@
 #include "iAFeatureScoutObjectType.h"
 #include "iACsvConfig.h"
 
+#include "FeatureScout_export.h"
+
 #include <QMap>
 #include <QString>
 #include <QVector>
@@ -41,7 +43,7 @@ public:
 };
 
 //! class for reading a csv into a table, using given options
-class iACsvIO
+class FeatureScout_API iACsvIO
 {
 public:
 	static const char * ColNameAutoID;  //!< name of the auto ID column (inserted optionally)

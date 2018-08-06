@@ -22,11 +22,13 @@
 
 #include "iACsvIO.h"
 
+#include "FeatureScout_export.h"
+
 #include <vtkSmartPointer.h>
 
 class vtkTable;
 
-class iACsvVtkTableCreator: public iACsvTableCreator
+class FeatureScout_API iACsvVtkTableCreator: public iACsvTableCreator
 {
 public:
 	iACsvVtkTableCreator();
