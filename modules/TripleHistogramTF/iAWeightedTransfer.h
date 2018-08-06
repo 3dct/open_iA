@@ -38,7 +38,7 @@ public:
 	iAWeightedOpacityFunction();
 };
 
-class iAWeightedTransfer : public iATransferFunction
+class iAWeightedTransfer : public vtkScalarsToColors //public iATransferFunction
 {
 public:
 	iAWeightedTransfer(iATransferFunction* tf1, iATransferFunction* tf2, iATransferFunction* tf3);
@@ -46,13 +46,17 @@ public:
 
 	void setTransferFunctions(iATransferFunction* tf1, iATransferFunction* tf2, iATransferFunction* tf3);
 
-	iAWeightedColorFunction* GetColorFunction() override;
-	iAWeightedOpacityFunction* GetOpacityFunction() override;
+	//iAWeightedColorFunction* GetColorFunction() override;
+	//iAWeightedOpacityFunction* GetOpacityFunction() override;
+
+	void GetColor(double x, double rgb[3]) override;
 
 private:
 	iATransferFunction *m_tf1, *m_tf2, *m_tf3;
 
 	iAWeightedColorFunction* m_cf;
 	iAWeightedOpacityFunction* m_of;
+
+	//void mix(Color c1, Color c2, Color c3);
 
 };

@@ -115,6 +115,10 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 		m_modality2->getTransferFunction(),
 		m_modality3->getTransferFunction());
 
+	//m_mdiChild->getRaycaster()->setTransferFunction(m_transferFunction);
+	//m_mdiChild->getSlicerXY()->setTransferFunction(m_transferFunction);
+	//...
+
 	// Initialize
 	updateSlicerMode();
 	setWidget(dockWidgetContents);
@@ -198,5 +202,8 @@ void dlg_TripleHistogramTF::setSliceNumber(int sliceNumber)
 void dlg_TripleHistogramTF::updateTransferFunction()
 {
 	// TODO: update weighted transfer function (m_transferFunction->...)
+	//m_mdiChild->getSlicerXY()->reInitialize(); // ?
+	//m_mdiChild->getSlicerXZ()->reInitialize(); // ?
+	//m_mdiChild->getSlicerYZ()->reInitialize(); // ?
 	emit transferFunctionUpdated();
 }

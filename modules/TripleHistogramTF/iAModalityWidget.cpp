@@ -58,7 +58,9 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 	//QLabel *slicer = new QLabel(rightWidget);
 	//slicer->setText("Slicer");
 
+	// TODO: ?????
 	vtkImageData *imageData = mdiChild->getImageData();
+	//vtmImageData *imageData = modality->GetImage()->GetScalarPointer(x, y, z);
 
 	// ----------------------------------------------------------------------------------------------------------
 	// Initialize slicer

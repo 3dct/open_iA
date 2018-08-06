@@ -42,6 +42,9 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, QSharedPointer<iAMo
 	m_slicer->initializeData(imageData, m_slicerTransform, colorFunction);
 
 	// TODO: deactivate interaction with the slice (zoom, pan, etc)
+	//m_slicer->GetSlicerData()->disableInteractor();
+	m_slicer->disableInteractor(); // doesn't work!
+
 	// TODO: fill widget with the sliced image
 }
 

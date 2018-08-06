@@ -20,6 +20,7 @@
 * ************************************************************************************/
 
 #include "iAWeightedTransfer.h"
+#include "iAModalityTransfer.h"
 
 // Color and opacity functions
 
@@ -56,7 +57,7 @@ void iAWeightedTransfer::setTransferFunctions(iATransferFunction* tf1, iATransfe
 	m_tf3 = tf3;
 }
 
-iAWeightedColorFunction* iAWeightedTransfer::GetColorFunction()
+/*iAWeightedColorFunction* iAWeightedTransfer::GetColorFunction()
 {
 	return m_cf;
 }
@@ -64,4 +65,15 @@ iAWeightedColorFunction* iAWeightedTransfer::GetColorFunction()
 iAWeightedOpacityFunction* iAWeightedTransfer::GetOpacityFunction()
 {
 	return m_of;
+}*/
+
+void iAWeightedTransfer::GetColor(double x, double rgb[3])
+{
+	double c1[3], c2[3], c3[3];
+
+	m_tf1->GetColorFunction()->GetColor(x, c1);
+	m_tf2->GetColorFunction()->GetColor(x, c1);
+	m_tf3->GetColorFunction()->GetColor(x, c1);
+
+	//mix(c1, c2, c3);
 }
