@@ -36,6 +36,7 @@
 #include "dlg_modalities.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
+#include "iALookupTable.h"
 #include "iAmat4.h"
 #include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"
@@ -727,19 +728,36 @@ void dlg_FeatureScout::MultiClassRendering()
 
 	if (classCount == 1)
 		return;
+
+	double alpha = this->calculateOpacity(rootItem);
+	// color points according to class color:
+	if (matrix)
+	{
+		matrix->resetFilter();
+		iALookupTable lookupTable;
+		lookupTable.allocate(classCount);
+		lookupTable.setRange(0, classCount-1);
+		for (size_t c = 0; c < classCount; ++c)
+			lookupTable.setColor(c, colorList.at(c));
+		matrix->setLookupTable(lookupTable, csvTable->GetColumnName(csvTable->GetNumberOfColumns() - 1));
+	}
+	// update lookup table in PC View
+	this->updateLookupTable(alpha);
+	this->setPCChartData(true);
+	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetScalarVisibility(1);
+	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetLookupTable(lut);
+	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
+	this->pcChart->SetSize(pcChart->GetSize());
+
 	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
-		for (int i = 0; i < classCount; i++)
+		for (size_t objID =0; objID < csvTable->GetNumberOfRows(); ++objID)
 		{
-			QStandardItem *item = rootItem->child(i, 0);
-			int itemL = item->rowCount();
-			for (int j = 0; j < itemL; ++j)
-			{
-				int objectID = item->child(j, 0)->text().toInt();
-				SetPolyPointColor(objectID, colorList.at(i));
-			}
+			int classID = csvTable->GetValue(objID, elementNr - 1).ToInt();
+			SetPolyPointColor(objID, colorList.at(classID));
 		}
 		UpdatePolyMapper();
+		activeChild->updateViews();
 		return;
 	}
 	double backAlpha = 0.00005;
@@ -748,7 +766,6 @@ void dlg_FeatureScout::MultiClassRendering()
 	backRGB[1] = colorList.at(0).greenF();
 	backRGB[2] = colorList.at(0).blueF();
 
-	double alpha = this->calculateOpacity(rootItem);
 	double red = 0.0;
 	double green = 0.0;
 	double blue = 0.0;
@@ -846,20 +863,6 @@ void dlg_FeatureScout::MultiClassRendering()
 			this->cTF->AddRGBPoint(objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 		}
 	}
-
-	// update lookup table in PC View
-	this->updateLookupTable(alpha);
-	this->setPCChartData(true);
-	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetScalarVisibility(1);
-	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetLookupTable(lut);
-	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
-	this->pcChart->SetSize(pcChart->GetSize());
-
-	if (matrix)
-	{
-		// TODO SPM: color points according to class
-	}
-
 	activeChild->updateViews();
 }
 
