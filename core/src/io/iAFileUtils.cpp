@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAFileUtils.h"
 
+#include "iAConsole.h"
+
 #include <QCollator>
 #include <QDir>
 #include <QString>
@@ -80,4 +82,16 @@ void FindFiles(QString const & directory, QStringList const & filters, bool recu
 				filesOut.append(fi.absoluteFilePath());
 		}
 	}
+}
+
+std::string getVTKFileName(QString const & fileName)
+{
+	QByteArray fileNameEncoded = fileName.toLocal8Bit();
+	if (fileNameEncoded.contains('?'))
+	{
+		DEBUG_LOG(QString("File name '%1' not convertible to a system encoding string. "
+			"Please specify a filename without special characters!").arg(fileName));
+		return std::string();
+	}
+	return std::string(fileNameEncoded.constData());
 }

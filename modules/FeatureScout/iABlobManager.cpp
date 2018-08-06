@@ -645,7 +645,7 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 
 	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter( fileName, qual );
 
-	if ( movieWriter.GetPointer() == NULL )
+	if ( movieWriter.GetPointer() == nullptr )
 		return;
 
 	//interactor->Disable();
@@ -661,7 +661,6 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 	w2if->ReadFrontBufferOff();
 
 	movieWriter->SetInputConnection( w2if->GetOutputPort() );
-	movieWriter->SetFileName( fileName.toLatin1().data() );
 	movieWriter->Start();
 
 	//emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
