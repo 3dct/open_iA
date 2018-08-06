@@ -24,8 +24,6 @@
 
 #include <QList>
 
-#include <cstddef> // for size_t
-
 struct open_iA_Core_API iABoxPlotData
 {
 public:

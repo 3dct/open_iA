@@ -155,6 +155,7 @@ public:
 
 	void SetRightButtonDragZoomEnabled(bool enabled);
 	void setSlabThickness(int thickness);
+	void setSlabCompositeMode(int compositeMode);
 protected:
 	void UpdateResliceAxesDirectionCosines();
 	void UpdateBackground();

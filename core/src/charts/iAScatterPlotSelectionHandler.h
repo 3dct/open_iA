@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+#include <cstddef>    // for size_t
 #include <vector>
 
 //! class providing a few selection/highlight/settings details to a single scatterplot

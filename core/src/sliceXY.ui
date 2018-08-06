@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>494</width>
+    <width>934</width>
     <height>236</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>334</width>
+    <width>346</width>
     <height>80</height>
    </size>
   </property>
@@ -261,6 +261,36 @@
            <property name="value">
             <number>10</number>
            </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBoxSlabCompositeModeXY">
+           <property name="currentIndex">
+            <number>2</number>
+           </property>
+           <property name="maxVisibleItems">
+            <number>4</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>Min</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Max</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Mean</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Sum</string>
+            </property>
+           </item>
           </widget>
          </item>
          <item>
