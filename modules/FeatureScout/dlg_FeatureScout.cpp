@@ -2223,10 +2223,9 @@ void dlg_FeatureScout::ClassAddButton()
 	this->updatePolarPlotColorScalar(chartTable);
 	this->SingleRendering();
 
-	//Updates scatter plot matrix when a class is added.
 	if ( matrix )
 	{
-		matrix->setCurrentFilterParams((int)chartTable->GetNumberOfColumns() - 1, ClassID);
+		matrix->setFilter((int)chartTable->GetNumberOfColumns() - 1, ClassID);
 		matrix->clearSelection();
 		matrix->update();
 	}
@@ -2871,14 +2870,13 @@ void dlg_FeatureScout::ClassDeleteButton()
 
 	this->SingleRendering();
 	if ( matrix )
-	{
-
-		//set class id zero to update only unclassified class for rendering in splom
-		//spalte, value; 
-		matrix->setCurrentFilterParams((int)chartTable->GetNumberOfColumns() - 1,0);
+	{   // set SPM to filter for classID = 0 so that unclassified class is selected
+		matrix->setFilter((int)chartTable->GetNumberOfColumns() - 1, 0);
 		matrix->clearSelection();
 		matrix->update();
 	}
+	QSignalBlocker ctvBlocker(classTreeView);
+	classTreeView->setCurrentIndex(classTreeView->model()->index(0, 0));
 }
 
 void dlg_FeatureScout::ScatterPlotButton()
@@ -2954,16 +2952,13 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 	vtkSmartPointer<vtkIdTypeArray> vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
 	vtk_selInd->Allocate(countSelection);
 	vtk_selInd->SetNumberOfValues(countSelection);
-	if (countSelection > 0)
+	int idx = 0;
+	for (auto ind: sortedSelInds)
 	{
-		int idx = 0;
-		for (auto ind: sortedSelInds)
-		{
-			vtkVariant var_Idx = ind;
-			long long curr_selInd = var_Idx.ToLongLong() /*+1*/;
-			vtk_selInd->SetVariantValue(idx, curr_selInd);
-			++idx;
-		}
+		vtkVariant var_Idx = ind;
+		long long curr_selInd = var_Idx.ToLongLong() /*+1*/;
+		vtk_selInd->SetVariantValue(idx, curr_selInd);
+		++idx;
 	}
 	this->pcChart->GetPlot(0)->SetSelection(vtk_selInd);
 	this->pcView->Render();
@@ -3178,7 +3173,7 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 				matrix->clearSelection();
 				spmApplyColorMap(/*colorIdx=*/ index.row());
 				int classID = item->index().row();
-				matrix->setCurrentFilterParams((int)chartTable->GetNumberOfColumns() - 1, classID);
+				matrix->setFilter((int)chartTable->GetNumberOfColumns() - 1, classID);
 			}
 		}
 	}
@@ -3288,7 +3283,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 	}
 	if (matrix && classID != -1)
 	{
-		matrix->setCurrentFilterParams((int)chartTable->GetNumberOfColumns() - 1, classID);
+		matrix->setFilter((int)chartTable->GetNumberOfColumns() - 1, classID);
 		matrix->update();
 	}
 }
@@ -3455,7 +3450,6 @@ void dlg_FeatureScout::updateLookupTable( double alpha )
 {
 	int lutNum = colorList.length();
 	lut->SetNumberOfTableValues( lutNum );
-	lut->Build();
 	for ( int i = 0; i < lutNum; i++ )
 		lut->SetTableValue( i,
 		colorList.at( i ).red() / 255.0,
@@ -3465,6 +3459,7 @@ void dlg_FeatureScout::updateLookupTable( double alpha )
 
 	lut->SetRange( 0, lutNum - 1 );
 	lut->SetAlpha( alpha );
+	lut->Build();
 }
 
 void dlg_FeatureScout::EnableBlobRendering()
