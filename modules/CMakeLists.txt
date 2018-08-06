@@ -62,28 +62,7 @@ FOREACH( indx RANGE ${len} )
 		FILE( GLOB_RECURSE module_uis "${module_full_path}/*.ui" )
 		QT5_WRAP_UI( module_srcs ${module_uis})
 		# If there are dependencies do the check
-		MODULE_CHECK_DEPENDENCIES( ${module_option} ${module_full_path} module_dependencies )
-
-		FOREACH( d ${module_dependencies} )
-			GET_MODULE_FULL_PATH ( ${d} depend_full_path )
-			IF (${depend_full_path} STREQUAL "NOTFOUND")
-				MESSAGE(STATUS "Module ${d}, required for module ${module_name}, not found in the filesystem!")
-			ELSE()
-				# old way of module dependency which just includes all source files:
-				FILE( GLOB_RECURSE depend_srcs "${depend_full_path}/*.cpp" "${depend_full_path}/*.cxx" )
-				FILE( GLOB_RECURSE depend_test_srcs "${depend_full_path}/*Test.cpp" "${depend_full_path}/*Test.cxx" )
-				FILE( GLOB_RECURSE depend_hs "${depend_full_path}/*.h" )
-				IF ( NOT "${depend_test_srcs}" STREQUAL "" )
-					# MESSAGE (STATUS "Removing test sources: ${depend_test_srcs}")
-					LIST( REMOVE_ITEM depend_srcs ${depend_test_srcs} )
-				ENDIF ( NOT "${depend_test_srcs}" STREQUAL "" )
-				# Collect .ui files from the  module directory and add them
-				FILE( GLOB_RECURSE depend_uis "${depend_full_path}/*.ui" )
-				QT5_WRAP_UI( depend_srcs ${depend_uis})
-				LIST (APPEND module_srcs ${depend_srcs})
-				LIST (APPEND module_hs ${depend_hs})
-			ENDIF()
-		ENDFOREACH()
+		MODULE_CHECK_DEPENDENCIES( ${module_option} ${module_full_path} )
 
 		# clean module name for use as identifier (if leading number, then add "_" prefix)
 		string(REGEX REPLACE "^([0123456789])" "_\\1" ident_module_name ${module_name})
@@ -92,8 +71,6 @@ FOREACH( indx RANGE ${len} )
 		# Generate module interface factory
 		MODULE_GENERATE_INTERFACE_FACTORY ( ${ident_module_name}, ${module_name} )
 		LIST (APPEND module_srcs "${CMAKE_CURRENT_BINARY_DIR}/${module_name}_factory.cpp")
-		# Add preprocessor definition TODO: check if it can be removed!
-		ADD_DEFINITIONS( -D${module_option} )
 
 		add_library(${module_name} ${LIB_TYPE} ${module_srcs} ${module_hs} )
 		if(MSVC)
@@ -104,15 +81,6 @@ FOREACH( indx RANGE ${len} )
 		TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/Toolkit)  # ui files in toolkit folder
 		TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # ui files in module folders
 		
-		# Module dependencies: old style - include directory
-		FOREACH( d ${module_dependencies} )
-			GET_MODULE_FULL_PATH ( ${d} depend_full_path )
-			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${depend_full_path} )
-		ENDFOREACH()
-		IF (NOT "${module_dependencies}" STREQUAL "")
-			ADD_DEPENDENCIES(${module_name} ${module_dependencies})
-		ENDIF()
-
 		# Module dependencies: new style - include directory and link dll:
 		FOREACH( d ${ADDITIONAL_MODULE_MODULES} )
 			GET_MODULE_FULL_PATH ( ${d} depend_full_path )

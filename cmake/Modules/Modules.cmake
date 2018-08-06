@@ -29,9 +29,8 @@ MACRO( LOAD_MODULES curdir names_out descriptions_out def_vals_out )
 ENDMACRO()
 
 # Module stores its dependencies in Dependencies.txt file. Check if all the dependencies are enabled
-MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path module_dependencies)
+MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path )
     # reset entries:
-    SET (DEPENDENCIES_MODULES)
     SET (DEPENDENCIES_MODULES_NEW)
     SET (DEPENDENCIES_CMAKE)
     SET (DEPENDENCIES_LIBRARIES)
@@ -42,14 +41,6 @@ MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path module_dependencie
     SET( dependencies_full_path ${module_full_path}/Dependencies.cmake)
     IF( EXISTS ${dependencies_full_path} )
         INCLUDE( ${dependencies_full_path} )
-        # Modules - old style (source gets included in depending module):
-        FOREACH( d ${DEPENDENCIES_MODULES} )
-            SET( d_option  ${option_prefix}${d})
-            IF( NOT ${d_option} )
-                MESSAGE(SEND_ERROR "${option_name} depends on ${d_option}")
-            ENDIF()
-        ENDFOREACH()
-        SET (module_dependencies ${DEPENDENCIES_MODULES})
         # Modules - new style (only link-dependency instead of compiling all files in)
         FOREACH( d ${DEPENDENCIES_MODULES_NEW} )
             SET( d_option  ${option_prefix}${d})
