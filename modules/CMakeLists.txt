@@ -103,11 +103,17 @@ FOREACH( indx RANGE ${len} )
 		# workaround for ui_xyz.h files:
 		TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/Toolkit)  # ui files in toolkit folder
 		TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # ui files in module folders
+		
+		# Module dependencies: old style - include directory
 		FOREACH( d ${module_dependencies} )
 			GET_MODULE_FULL_PATH ( ${d} depend_full_path )
 			TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${depend_full_path} )
 		ENDFOREACH()
+		IF (NOT "${module_dependencies}" STREQUAL "")
+			ADD_DEPENDENCIES(${module_name} ${module_dependencies})
+		ENDIF()
 
+		# Module dependencies: new style - include directory and link dll:
 		FOREACH( d ${ADDITIONAL_MODULE_MODULES} )
 			GET_MODULE_FULL_PATH ( ${d} depend_full_path )
 			IF (${depend_full_path} STREQUAL "NOTFOUND")
@@ -120,13 +126,6 @@ FOREACH( indx RANGE ${len} )
 			ENDIF()
 		ENDFOREACH()
 
-		IF (openiA_USE_IDE_FOLDERS)
-			SET_PROPERTY(TARGET ${module_name} PROPERTY FOLDER "Modules")
-		ENDIF()
-
-		IF (NOT "${module_dependencies}" STREQUAL "")
-			ADD_DEPENDENCIES(${module_name} ${module_dependencies})
-		ENDIF()
 		# also pulls in libraries defined in core interface (qt, vtk, itk):
 		TARGET_LINK_LIBRARIES(${module_name} PRIVATE ${CORE_LIBRARY_NAME})
 
@@ -146,6 +145,10 @@ FOREACH( indx RANGE ${len} )
 
 		IF (openiA_USE_COTIRE)
 			cotire(${module_name})
+		ENDIF()
+
+		IF (openiA_USE_IDE_FOLDERS)
+			SET_PROPERTY(TARGET ${module_name} PROPERTY FOLDER "Modules")
 		ENDIF()
 
 		IF (MSVC)
