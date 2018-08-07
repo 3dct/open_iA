@@ -135,7 +135,7 @@ void StoreImage(TImage * image, QString const & filename, bool useCompression = 
 	typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
 	try
 	{
-		writer->SetFileName(filename.toStdString());
+		writer->SetFileName(getLocalEncodingFileName(filename).c_str());
 		writer->SetUseCompression(useCompression);
 		writer->SetInput(image);
 		writer->Update();
