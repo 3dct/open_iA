@@ -217,7 +217,6 @@ private:
 
 	QList<vtkSmartPointer<vtkTable> > tableList;
 	QList<QColor> colorList;
-	QList<int> selectedObjID;
 
 	QList<int> ObjectOrientationProbabilityList; //Probability distribution of every single object
 	int pcMaxC; // maximal count of the object orientation

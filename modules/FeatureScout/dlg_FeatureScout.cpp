@@ -2163,7 +2163,6 @@ void dlg_FeatureScout::ClassAddButton()
 		if ( !kIdx.contains( v.ToInt() ) )
 		{
 			kIdx.prepend( v.ToInt() );
-			selectedObjID.append( objID );
 
 			// add item to the new class
 			QString str = QString( "%1" ).arg( objID );
@@ -2817,7 +2816,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	// define a list to sort the items in stammItem
 	QList<int> list;
 	// get Class_ID
-	int cID = this->activeClassItem->index().row();
+	int deleteClassID = this->activeClassItem->index().row();
 	int countActive = this->activeClassItem->rowCount();
 
 	// append stamm item values to list
@@ -2825,15 +2824,13 @@ void dlg_FeatureScout::ClassDeleteButton()
 		list.append( stammItem->child( i )->text().toInt() );
 	for ( int j = 0; j < countActive; j++ )
 	{
-		int v = this->activeClassItem->child( j )->text().toInt();
+		int labelID = this->activeClassItem->child( j )->text().toInt();
 		// update Class_ID column, prepare values for LookupTable
-		this->csvTable->SetValue( v - 1, elementNr - 1, 0 );
+		this->csvTable->SetValue(labelID - 1, elementNr - 1, 0);
 		if (matrix)
-			matrix->data()->data()[elementNr - 1][v - 1] = 0;
-		// remove the object from selected IDs
-		selectedObjID.removeOne( v );
+			matrix->data()->data()[elementNr - 1][labelID - 1] = 0;
 		// append the deleted object IDs to list
-		list.append( v );
+		list.append(labelID);
 	}
 	if (matrix)
 		matrix->paramChanged(elementNr - 1);
@@ -2848,22 +2845,50 @@ void dlg_FeatureScout::ClassDeleteButton()
 		stammItem->appendRow( item );
 	}
 
-	// update colorList
-	this->colorList.removeAt( cID );
+	// remove the deleted class from tree view, its entry in tableList and its color
+	tableList.removeAt(this->activeClassItem->index().row());
+	rootItem->removeRow(deleteClassID);
+	this->colorList.removeAt(deleteClassID);
+
+	// Update class ID for all remaining classes elements
+	int classCount = rootItem->rowCount();
+
+	//set new class ID, iterate 
+	if (classCount > 0)
+	{
+		for (int classID = deleteClassID; classID < classCount; ++classID)
+		{
+			QStandardItem *item = rootItem->child(classID, 0);
+
+			//go for each element in the class and reset id
+			//element number = number of colums
+			for (int j = 0; j < item->rowCount(); j++)
+			{
+				int labelID = item->child(j, 0)->text().toInt();
+				this->csvTable->SetValue(labelID - 1, elementNr - 1, classID);
+				if (matrix)
+					matrix->data()->data()[elementNr - 1][labelID - 1] = classID;
+			}
+			for (int k = 0; k < tableList[classID]->GetNumberOfRows(); ++k)
+			{
+				tableList[classID]->SetValue(k, elementNr - 1, classID);
+			}
+			tableList[classID]->GetColumn(classID)->Modified();
+		}
+	}
 
 	// update statistics for activeClassItem
-	this->updateClassStatistics( stammItem );
+	this->updateClassStatistics(stammItem);
 
 	// update tableList and setup activeClassItem
 	this->setActiveClassItem( stammItem, 2 );
+	QSignalBlocker ctvBlocker(classTreeView);
+	classTreeView->setCurrentIndex(classTreeView->model()->index(0, 0));
 
 	// update element view
+	this->setPCChartData();
 	this->calculateElementTable();
 	this->initElementTableModel();
-	this->setPCChartData();
-
-	// remove the deleted row item
-	rootItem->removeRow( cID );
 
 	this->SingleRendering();
 	if ( matrix )
@@ -2872,8 +2897,6 @@ void dlg_FeatureScout::ClassDeleteButton()
 		matrix->clearSelection();
 		matrix->update();
 	}
-	QSignalBlocker ctvBlocker(classTreeView);
-	classTreeView->setCurrentIndex(classTreeView->model()->index(0, 0));
 }
 
 void dlg_FeatureScout::ScatterPlotButton()
@@ -3385,9 +3408,6 @@ void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 		this->recalculateChartTable( item );
 		chartTable->ShallowCopy( tableList[0] );
 
-		// delete the old activeClassItem in tableList
-		tableList.removeAt( this->activeClassItem->index().row() );
-
 		this->activeClassItem = item;
 	}
 	else
@@ -3429,7 +3449,7 @@ void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 	int itemID = item->index().row();
 	if ( itemID + 1 <= tableList.size() )
 	{
-		// add the new acitve class table to tableList
+		// add the new active class table to tableList
 		tableList.insert( itemID, table );
 		// delete the old active class table
 		tableList.removeAt( itemID + 1 );
@@ -3577,7 +3597,6 @@ void dlg_FeatureScout::deleteObject()
 	else
 	{
 		int oID = item->text().toInt();
-		selectedObjID.removeOne( oID );
 		this->csvTable->SetValue( oID - 1, elementNr - 1, 0 );
 
 		QStandardItem *sItem = this->classTreeModel->invisibleRootItem()->child( 0 );
