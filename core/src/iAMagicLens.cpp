@@ -110,9 +110,9 @@ iALensData::iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacit
 	m_textActor(vtkSmartPointer<vtkTextActor>::New()),
 	m_guiRenderer(vtkSmartPointer<vtkRenderer>::New()),
 	m_renderWindow(renderWindow),
-	m_size(size),
-	m_offset{0, 0}
+	m_size(size)
 {
+	m_offset[0] = m_offset[1] = 0;
 	m_imageActor->SetInputData(m_imageColors->GetOutput());
 	m_imageActor->GetMapper()->BorderOn();
 	m_imageActor->SetOpacity(opacity);
