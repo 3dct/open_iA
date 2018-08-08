@@ -714,7 +714,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 
 	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter(fileName, qual);
 
-	if (movieWriter.GetPointer() == NULL)
+	if (movieWriter.GetPointer() == nullptr)
 		return;
 
 	interactor->Disable();
@@ -730,7 +730,6 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	w2if->ReadFrontBufferOff();
 
 	movieWriter->SetInputConnection(w2if->GetOutputPort());
-	movieWriter->SetFileName(fileName.toLatin1().data());
 	movieWriter->Start();
 
 	int i;

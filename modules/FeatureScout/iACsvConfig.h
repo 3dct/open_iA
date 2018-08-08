@@ -22,12 +22,14 @@
 
 #include "iAFeatureScoutObjectType.h"
 
+#include "FeatureScout_export.h"
+
 #include <QMap>
 #include <QString>
 #include <QVector>
 
 //! parameters for csv loading configuraton
-struct iACsvConfig
+struct FeatureScout_API iACsvConfig
 {
 	enum MappedColumn {                    //! "ID" for columns needed either in computation of other columns or later in FeatureScout
 		NotMapped = -1,

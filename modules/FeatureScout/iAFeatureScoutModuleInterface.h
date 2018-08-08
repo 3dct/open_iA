@@ -28,13 +28,12 @@ class dlg_FeatureScout;
 class iACsvConfig;
 class iAFeatureScoutToolbar;
 
-
 class FeatureScout_API iAFeatureScoutModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize();
-	void LoadFeatureScoutWithParams(const QString &csvName, MdiChild *mchildWnd); 
+	void LoadFeatureScoutWithParams(const QString &csvName, MdiChild *mchildWnd);
 private slots:
 	void FeatureScoutWithCSV();
 	void FeatureScout();

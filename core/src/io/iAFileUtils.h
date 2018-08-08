@@ -24,6 +24,8 @@
 
 #include <QFlags>
 
+#include <string>
+
 class QString;
 class QStringList;
 
@@ -39,3 +41,5 @@ open_iA_Core_API QString MakeRelative(QString const & baseDir, QString const & f
 
 open_iA_Core_API void FindFiles(QString const & directory, QStringList const & filters, bool recurse,
 	QStringList & filesOut, QFlags<FilesFolders> filesFolders);
+
+open_iA_Core_API std::string getVTKFileName(QString const & fileName);

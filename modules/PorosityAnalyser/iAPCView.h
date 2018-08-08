@@ -24,6 +24,7 @@
 #include "iAQTtoUIConnector.h"
 
 #include <vtkSmartPointer.h>
+#include <vtkVersion.h>
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_PCView> PCViewConnector;
 

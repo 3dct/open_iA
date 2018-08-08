@@ -42,11 +42,7 @@
 #include "io/iAIOProvider.h"
 #include "mdichild.h"
 
-#include <itkCastImageFilter.h>
-#include <itkMultiLabelSTAPLEImageFilter.h>
-#include <itkSTAPLEImageFilter.h>
-#include <itkLabelStatisticsImageFilter.h>
-
+#include <vtkVersion.h>
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QVTKOpenGLWidget.h>
 #else
@@ -61,6 +57,11 @@
 #include <vtkPlot.h>
 #include <vtkPlotLine.h>
 #include <vtkTable.h>
+
+#include <itkCastImageFilter.h>
+#include <itkMultiLabelSTAPLEImageFilter.h>
+#include <itkSTAPLEImageFilter.h>
+#include <itkLabelStatisticsImageFilter.h>
 
 #include <QCheckBox>
 #include <QFileDialog>

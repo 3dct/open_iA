@@ -30,6 +30,7 @@
 #include "ui_FeatureScoutMeanObjectView.h"
 
 #include <vtkSmartPointer.h>
+#include <vtkVersion.h>
 
 #include <vector>
 

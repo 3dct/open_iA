@@ -24,6 +24,7 @@
 #include "iAQTtoUIConnector.h"
 
 #include <vtkSmartPointer.h>
+#include <vtkVersion.h>
 
 #include <QDockWidget>
 #include <QList>
