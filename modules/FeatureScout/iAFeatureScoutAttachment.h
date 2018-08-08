@@ -37,7 +37,7 @@ class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
 public:
 	iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildData childData);
 	~iAFeatureScoutAttachment();
-	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<uint, uint> const & columnMapping);
+	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType, QMap<uint, uint> const & columnMapping);
 	void enableBlobVisualization();
 	void disableBlobVisualization();
 	void FeatureScout_Options(int idx);

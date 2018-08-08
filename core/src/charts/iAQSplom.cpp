@@ -202,27 +202,31 @@ void iAQSplom::setSelectionMode(int mode)
 	settings.selectionMode = mode;
 }
 
-void iAQSplom::setCurrentFilterParams(int FilterCol_ID, double FilterValue)
+void iAQSplom::resetFilter()
+{
+	m_FilterColID = -1;
+	updateFilter();
+}
+
+void iAQSplom::setFilter(int FilterCol_ID, double FilterValue)
 {
 	if (FilterCol_ID < -1 || FilterCol_ID >= m_splomData->numParams())
 	{
-		DEBUG_LOG("Invalid filter column ID!");
+		DEBUG_LOG(QString("Invalid filter column ID %1!").arg(FilterCol_ID));
 		return;
 	}
 	m_FilterColID = FilterCol_ID;
 	m_FilterValue = FilterValue;
+	updateFilter();
+}
 
+void iAQSplom::updateFilter()
+{
 	foreach(QList<iAScatterPlot*> row, m_matrix)
-	{
 		foreach(iAScatterPlot* s, row)
-		{
 			s->setFilter(m_FilterColID, m_FilterValue);
-		}
-	}
-
-	if(m_maximizedPlot)
+	if (m_maximizedPlot)
 		m_maximizedPlot->setFilter(m_FilterColID, m_FilterValue);
-
 }
 
 void iAQSplom::selectionModePolygon()
@@ -396,12 +400,14 @@ iAQSplom::SelectionType & iAQSplom::getSelection()
 
 iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
 {
-	if (m_FilterColID == -1 || m_selInds.size() == 0)
-		return getSelection();
-	static iAQSplom::SelectionType filteredSelectionInds;
-	filteredSelectionInds.clear();
-	std::vector<size_t> sortedSelInds = m_selInds;
+	SelectionType sortedSelInds = m_selInds;
 	std::sort(sortedSelInds.begin(), sortedSelInds.end());
+	if (m_FilterColID == -1 || m_selInds.size() == 0)
+	{
+		m_filteredSelInds = sortedSelInds;
+		return m_filteredSelInds;
+	}
+	m_filteredSelInds.clear();
 	size_t curFilteredIdx = 0;
 	size_t curSelIdx = 0;
 	const double Epsilon = 1e-10;
@@ -413,12 +419,12 @@ iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
 			break;
 		if (curIdx == sortedSelInds[curSelIdx])
 		{
-			filteredSelectionInds.push_back(curFilteredIdx);
+			m_filteredSelInds.push_back(curFilteredIdx);
 			++curSelIdx;
 		}
 		++curFilteredIdx;
 	}
-	return filteredSelectionInds;
+	return m_filteredSelInds;
 }
 
 void iAQSplom::setSelection( iAQSplom::SelectionType const & selInds )
@@ -429,8 +435,11 @@ void iAQSplom::setSelection( iAQSplom::SelectionType const & selInds )
 
 void iAQSplom::setFilteredSelection(iAQSplom::SelectionType const & filteredSelInds)
 {
-	if ( m_FilterColID == -1 )
+	if (m_FilterColID == -1)
+	{
 		setSelection(filteredSelInds);
+		return;
+	}
 	std::vector<size_t> sortedFilteredSelInds = filteredSelInds;
 	std::sort(sortedFilteredSelInds.begin(), sortedFilteredSelInds.end());
 	size_t curFilteredIdx = 0,
@@ -444,9 +453,7 @@ void iAQSplom::setFilteredSelection(iAQSplom::SelectionType const & filteredSelI
 		if (curSelIdx >= sortedFilteredSelInds.size())
 			break;
 		if (curFilteredIdx == sortedFilteredSelInds[curSelIdx])
-		{
 			m_selInds.push_back(curIdx);
-		}
 		++curFilteredIdx;
 	}
 	update();
@@ -1161,13 +1168,12 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 	int height = 0;
 	int top = 0;
 	int loopLength = 0;
-	int axisIdx = 0;
 	int textwidth = 0;
-	int textHeight = 0;
+	int textHeight = painter.fontMetrics().height();
 
 	loopLength = ind_Elements.length();
 
-	for (axisIdx; axisIdx < loopLength; axisIdx++)
+	for (int axisIdx = 0; axisIdx < loopLength; axisIdx++)
 	{
 		if (switchTO_YRow) 
 		{
@@ -1180,17 +1186,14 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 			currentRect = getPlotRectByIndex(/*ind_VisX[*/axisIdx/*]*/, 0/*axisOffSet - 1*/);
 			top = 0 + TextPadding;
 			currentRect.setTop(top);
+			currentRect.setHeight(painter.fontMetrics().height());
 		}
 
-		//currentRect.W
 		currIdx = ind_Elements[axisIdx];
 		currentParam = m_splomData->parameterName(currIdx);
 		if (switchTO_YRow) 
 		{
-
 			textwidth = currentRect.height();
-			textHeight = painter.fontMetrics().height();
-
 			QPoint pos_center;
 			pos_center.setX(currentRect.top() + textwidth / 2);
 			pos_center.setY(-(TextPadding + textHeight / 2));
@@ -1205,7 +1208,6 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 		}
 		else
 		{
-
 			painter.drawText(currentRect, Qt::AlignHCenter, currentParam);
 		}
 	}

@@ -22,6 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
+#include <cstddef>    // for size_t
 #include <vector>
 
 class QString;

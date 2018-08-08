@@ -85,7 +85,7 @@ class MainWindow;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXY>   dlg_sliceXY;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXZ>   dlg_sliceXZ;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceYZ>   dlg_sliceYZ;
-typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>   dlg_renderer;
+typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
 class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild
@@ -336,6 +336,9 @@ private slots:
 	void updateSlabThicknessXY(int thickness);
 	void updateSlabThicknessYZ(int thickness);
 	void updateSlabThicknessXZ(int thickness);
+	void updateSlabCompositeModeXY(int compositeMode);
+	void updateSlabCompositeModeXZ(int compositeMode);
+	void updateSlabCompositeModeYZ(int compositeMode);
 	void updateRenderWindows(int channels);
 	void updateRenderers(int x, int y, int z, int mode);
 	void toggleArbitraryProfile(bool isChecked);

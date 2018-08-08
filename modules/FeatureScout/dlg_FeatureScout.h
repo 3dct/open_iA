@@ -64,6 +64,7 @@ class vtkIdTypeArray;
 class vtkLookupTable;
 class vtkObject;
 class vtkPiecewiseFunction;
+class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkScalarBarActor;
 class vtkScalarBarWidget;
@@ -72,6 +73,7 @@ class vtkSmartVolumeMapper;
 class vtkStringArray;
 class vtkStructuredGrid;
 class vtkTable;
+class vtkUnsignedCharArray;
 class vtkVolume;
 class vtkVolumeProperty;
 
@@ -99,7 +101,7 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 	Q_OBJECT
 public:
 	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
-		vtkSmartPointer<vtkTable> csvtbl, const bool useCsvOnly, QMap<uint, uint> const & columnMapping);
+		vtkSmartPointer<vtkTable> csvtbl, int vis, QMap<uint, uint> const & columnMapping);
 	~dlg_FeatureScout();
 	void changeFeatureScout_Options(int idx);
 private slots:
@@ -179,10 +181,12 @@ private:
 	bool OpenBlobVisDialog();
 	//! @{ 3D-rendering-related methods:
 	void SingleRendering(int idx = -10000);               //!< render a single fiber or a single class
-	void RenderingButton();                               //!< multi-class rendering
-	void RealTimeRendering(vtkIdTypeArray *selection);    //!< render a selection (+ the class that contains it)
+	void MultiClassRendering();                           //!< multi-class rendering
+	void RenderSelection(std::vector<size_t> const & selInds); //!< render a selection (+ the class that contains it)
 	void RenderingFLD();                                  //!< render fiber-length distribution
 	void RenderingMeanObject();                           //!< compute and render a mean object for each class
+	void SetPolyPointColor(int ptIdx, QColor const & qcolor);
+	void UpdatePolyMapper();
 	//! @}
 
 	// members referencing MdiChild
@@ -195,7 +199,7 @@ private:
 
 	bool draw3DPolarPlot;
 	bool classRendering;
-	bool useCsvOnly;
+	int visualization;
 
 	const QString sourcePath;
 	vtkSmartPointer<vtkStringArray> nameArr;
@@ -213,7 +217,6 @@ private:
 
 	QList<vtkSmartPointer<vtkTable> > tableList;
 	QList<QColor> colorList;
-	QList<int> selectedObjID;
 
 	QList<int> ObjectOrientationProbabilityList; //Probability distribution of every single object
 	int pcMaxC; // maximal count of the object orientation
@@ -289,4 +292,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_pointLUT;
 	QMap<uint, uint> m_columnMapping;
 	float m_pcLineWidth;   //!< width of line in Parallel Coordinates
+
+	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
+	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
 };

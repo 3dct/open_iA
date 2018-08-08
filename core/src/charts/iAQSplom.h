@@ -86,7 +86,7 @@ public:
 	void setPointRadius( double radius );                            //!< set the radius for scatter plot points
 	SelectionType & getSelection();                                  //!< Get const vector of indices of currently selected data points.
 	SelectionType const & getSelection() const;                      //!< Get vector of indices of currently selected data points.
-	SelectionType const & getFilteredSelection() const;              //!< Get vector of indices of currently selected data points.
+	SelectionType const & getFilteredSelection() const;              //!< Get currently selected data points, as indices in the list of filtered data points. These indices are always sorted.
 	void setFilteredSelection(SelectionType const & filteredSelInds);//!< Set selected data points from indices within the filtered data points
 	void setSelection( SelectionType const & selInds );              //!< Set selected data points from a vector of indices.
 	void clearSelection();                                           //!< deletes current selection
@@ -104,8 +104,8 @@ public:
 	void showAllPlots(const bool enableAllPlotsVisible);             //!< switch between showing all plots or only upper half
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
-	void setCurrentFilterParams(int FilterCol_ID, double FilterValue);							 //!< set selection mode to either rectangle or polygon mode
-
+	void setFilter(int columnID, double value);                      //!< set filter on data to be shown; only data points where given column contains given value will be shown
+	void resetFilter();                                              //!< reset filter on data; after calling this method, all data points will be shown again
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
@@ -146,6 +146,7 @@ protected:
 	virtual void removeHighlightedPoint(size_t index);               //!< Remove a point from the highlighted list
 private:
 	void dataChanged();                                              //!< handles changes of the internal data
+	void updateFilter();                                             //!< update filter in internal scatter plots
 private slots:
 	void selectionUpdated();                                         //!< When selection of data points is modified.
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
@@ -199,6 +200,7 @@ protected:
 	iAScatterPlot * m_previewPlot;               //!< plot currently being previewed (shown in maximized plot)
 	iAScatterPlot * m_maximizedPlot;             //!< pointer to the maximized plot
 	SelectionType m_selInds;                     //!< contains indices of currently selected data points
+	mutable SelectionType m_filteredSelInds;     //!< contains indices of selected points in filtered list (TODO: update only when selection changes and when filters change, remove mutable)
 	const bool m_isIndexingBottomToTop;          //!< flag indicating if Y-indices in the SPLOM are inverted
 	double m_animIn;                             //!< In animation parameter
 	double m_animOut;                            //!< Out animation parameter

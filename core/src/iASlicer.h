@@ -147,6 +147,7 @@ public slots:
 	void saveMovie();
 	void rotateSlice( double angle );
 	void setSlabThickness(int thickness);
+	void setSlabCompositeMode(int compositeMode);
 
 protected:
 	iASlicerData * m_data;

@@ -104,7 +104,7 @@ public:
 	}
 
 	//!  Assign an QColor color to a given index in the table.
-	void setColor( unsigned long colInd, QColor & col )
+	void setColor( unsigned long colInd, QColor const & col )
 	{
 		double rgba[4] = { col.redF(), col.greenF(), col.blueF(), col.alphaF(), };
 		setColor(colInd, rgba);
