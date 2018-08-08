@@ -651,6 +651,62 @@ void dlg_FeatureScout::initClassTreeModel()
 	this->activeClassItem = stammItem.first();
 }
 
+void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString &outputPath, const QString* fileName) const
+{
+	std::string separator = (useTabSeparator) ? "\t" : ",";
+	ofstream debugfile;
+	std::string OutfileName = "";
+	if (fileName) {
+		OutfileName = fileName->toStdString(); 
+	}else OutfileName = "debugFile.txt";
+
+	if (QDir(outputPath).exists() && (anyTable != nullptr)) {	
+		debugfile.open(outputPath.toStdString() + OutfileName);
+
+		if (debugfile.is_open())
+		{
+			vtkVariant spCol, spRow, spCN, spVal;
+			spCol = anyTable->GetNumberOfColumns();
+			spRow = anyTable->GetNumberOfRows();
+
+			for (int i = 0; i < spCol.ToInt(); i++)
+			{
+				spCN = anyTable->GetColumnName(i);
+				debugfile << spCN.ToString() << separator;
+			}
+		
+			debugfile << "\n";
+		
+			for (int row = 0; row < spRow.ToInt(); row++)
+			{
+				for (int col = 0; col < spCol.ToInt(); col++)
+				{
+					spVal = anyTable->GetValue(row, col);
+					debugfile << spVal.ToString() << separator; //TODO cast debug to double
+				}
+				debugfile << "\n";
+			}
+			
+			debugfile.close();
+		}
+	}
+	
+
+
+}
+
+void dlg_FeatureScout::PrintChartTable(const QString &outputPath)
+{
+	QString fileName = "chartTable.txt"; 
+	PrintVTKTable(this->chartTable, true, outputPath, &fileName);
+}
+
+void dlg_FeatureScout::PrintCSVTable(const QString &outputPath)
+{
+	QString fileName = "csvTable.txt";
+	PrintVTKTable(this->csvTable, true, outputPath, &fileName);
+}
+
 float dlg_FeatureScout::calculateAverage( vtkDataArray *arr )
 {
 	double av = 0.0;
@@ -2877,6 +2933,10 @@ void dlg_FeatureScout::ClassDeleteButton()
 		}
 	}
 
+
+	
+	//vlt hier mal die csv Table ausgeben
+
 	// update statistics for activeClassItem
 	this->updateClassStatistics(stammItem);
 
@@ -2897,6 +2957,10 @@ void dlg_FeatureScout::ClassDeleteButton()
 		matrix->clearSelection();
 		matrix->update();
 	}
+
+
+	QString fPath = "C:/Users/p41883/Desktop/"; 
+	this->PrintVTKTable(csvTable, true, fPath, nullptr);
 }
 
 void dlg_FeatureScout::ScatterPlotButton()

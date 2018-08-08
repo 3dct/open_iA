@@ -64,34 +64,33 @@ vtkSmartPointer<vtkTable> iACsvVtkTableCreator::getTable()
 	return m_table;
 }
 
-/*
-void iACsvVtkTableCreator::debugTable(const bool useTabSeparator)
-{
-	std::string separator = (useTabSeparator) ? "\t" : ",";
-	ofstream debugfile;
-	debugfile.open("C:/Users/p41883/Desktop/inputData.txt");
-	if (debugfile.is_open())
-	{
-		vtkVariant spCol, spRow, spCN, spVal;
-		spCol = m_table->GetNumberOfColumns();
-		spRow = m_table->GetNumberOfRows();
 
-		for (int i = 0; i<spCol.ToInt(); i++)
-		{
-			spCN = m_table->GetColumnName(i);
-			debugfile << spCN.ToString() << separator;
-		}
-		debugfile << "\n";
-		for (int row = 0; row < spRow.ToInt(); row++)
-		{
-			for (int col = 0; col < spCol.ToInt(); col++)
-			{
-				spVal = m_table->GetValue(row, col);
-				debugfile << spVal.ToString() << separator; //TODO cast debug to double
-			}
-			debugfile << "\n";
-		}
-		debugfile.close();
-	}
-}
-*/
+//void iACsvVtkTableCreator::debugTable(const bool useTabSeparator)
+//{
+//	std::string separator = (useTabSeparator) ? "\t" : ",";
+//	ofstream debugfile;
+//	debugfile.open("C:/Users/p41883/Desktop/inputData.txt");
+//	if (debugfile.is_open())
+//	{
+//		vtkVariant spCol, spRow, spCN, spVal;
+//		spCol = m_table->GetNumberOfColumns();
+//		spRow = m_table->GetNumberOfRows();
+//
+//		for (int i = 0; i<spCol.ToInt(); i++)
+//		{
+//			spCN = m_table->GetColumnName(i);
+//			debugfile << spCN.ToString() << separator;
+//		}
+//		debugfile << "\n";
+//		for (int row = 0; row < spRow.ToInt(); row++)
+//		{
+//			for (int col = 0; col < spCol.ToInt(); col++)
+//			{
+//				spVal = m_table->GetValue(row, col);
+//				debugfile << spVal.ToString() << separator; //TODO cast debug to double
+//			}
+//			debugfile << "\n";
+//		}
+//		debugfile.close();
+//	}
+//}

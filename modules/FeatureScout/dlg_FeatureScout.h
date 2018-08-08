@@ -204,6 +204,10 @@ private:
 	const QString sourcePath;
 	vtkSmartPointer<vtkStringArray> nameArr;
 
+	void PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString &outputPath, const QString* fileName) const ; //!< print out a vtkTabel
+	void PrintChartTable(const QString &outputPath); //! < Print current chartTable
+	void PrintCSVTable(const QString &outputPath);	//! <Print current CSVTable
+
 	float calculateAverage(vtkDataArray* arr); //!< calculate the average value of a 1D array
 
 	// input csv table with all objects, column names updated for vtk rendering problem
@@ -215,7 +219,7 @@ private:
 	// or a class is selected in the class tree view
 	vtkSmartPointer<vtkTable> chartTable;
 
-	QList<vtkSmartPointer<vtkTable> > tableList;
+	QList<vtkSmartPointer<vtkTable> > tableList;  //! < contains a table for each class; 
 	QList<QColor> colorList;
 
 	QList<int> ObjectOrientationProbabilityList; //Probability distribution of every single object
