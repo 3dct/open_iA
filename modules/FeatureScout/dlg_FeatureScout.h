@@ -193,7 +193,7 @@ private:
 	MdiChild *activeChild;
 	vtkPiecewiseFunction     *oTF;
 	vtkColorTransferFunction *cTF;
-	int elementNr;		//!< Number of elements(=columns) in csv inputTable
+	int elementsCount;		//!< Number of elements(=columns) in csv inputTable
 	int objectNr;		//!< Number of objects in the specimen
 	iAFeatureScoutObjectType filterID;
 

@@ -219,7 +219,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupUi( this );
 	visualization = vis;
 	m_pcLineWidth = 0.1;
-	this->elementNr = csvTable->GetNumberOfColumns();
+	this->elementsCount = csvTable->GetNumberOfColumns();
 	this->objectNr = csvTable->GetNumberOfRows();
 	this->activeChild = parent;
 	this->filterID = fid;
@@ -428,7 +428,7 @@ void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
 
 void dlg_FeatureScout::updatePCColumnVisibility()
 {
-	for ( int j = 0; j < elementNr; j++ )
+	for ( int j = 0; j < elementsCount; j++ )
 	{
 		pcChart->SetColumnVisibility( csvTable->GetColumnName( j ), columnVisibility[j]);
 	}
@@ -438,7 +438,7 @@ void dlg_FeatureScout::updatePCColumnVisibility()
 
 void dlg_FeatureScout::initColumnVisibility()
 {
-	columnVisibility.resize(elementNr);
+	columnVisibility.resize(elementsCount);
 	std::fill(columnVisibility.begin(), columnVisibility.end(), false);
 	if (filterID == iAFeatureScoutObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
 		columnVisibility[iACsvConfig::Theta] = columnVisibility[iACsvConfig::Phi] =
@@ -457,7 +457,7 @@ void dlg_FeatureScout::setupModel()
 	elementTableModel->setHeaderData( 3, Qt::Horizontal, tr( "Average" ) );
 
 	// initialize checkboxes for the first column
-	for ( int i = 0; i < elementNr; i++ )
+	for ( int i = 0; i < elementsCount; i++ )
 	{
 		Qt::CheckState checkState = (columnVisibility[i]) ? Qt::Checked : Qt::Unchecked;
 		elementTableModel->setData(elementTableModel->index(i, 0, QModelIndex()), checkState, Qt::CheckStateRole);
@@ -481,7 +481,7 @@ void dlg_FeatureScout::setupModel()
 void dlg_FeatureScout::setupViews()
 {
 	// declare element table model
-	elementTableModel = new QStandardItemModel( elementNr, 4, this );
+	elementTableModel = new QStandardItemModel( elementsCount, 4, this );
 	elementTable = vtkSmartPointer<vtkTable>::New();
 
 	// declare class tree model
@@ -551,10 +551,10 @@ void dlg_FeatureScout::calculateElementTable()
 	VTK_CREATE( vtkFloatArray, v1Arr );	// minimum
 	VTK_CREATE( vtkFloatArray, v2Arr );	// maximal
 	VTK_CREATE( vtkFloatArray, v3Arr );	// average
-	nameArr->SetNumberOfValues( elementNr );
-	v1Arr->SetNumberOfValues( elementNr );
-	v2Arr->SetNumberOfValues( elementNr );
-	v3Arr->SetNumberOfValues( elementNr );
+	nameArr->SetNumberOfValues( elementsCount );
+	v1Arr->SetNumberOfValues( elementsCount );
+	v2Arr->SetNumberOfValues( elementsCount );
+	v3Arr->SetNumberOfValues( elementsCount );
 
 	// convert IDs in String to Int
 	nameArr->SetValue( 0, csvTable->GetColumnName( 0 ) );
@@ -562,7 +562,7 @@ void dlg_FeatureScout::calculateElementTable()
 	v2Arr->SetValue( 0, chartTable->GetColumn( 0 )->GetVariantValue( chartTable->GetNumberOfRows() - 1 ).ToFloat() );
 	v3Arr->SetValue( 0, 0 );
 
-	for ( int i = 1; i < elementNr; i++ )
+	for ( int i = 1; i < elementsCount; i++ )
 	{
 		nameArr->SetValue( i, csvTable->GetColumnName( i ) );
 		vtkDataArray *mmr = vtkDataArray::SafeDownCast( chartTable->GetColumn( i ) );
@@ -589,7 +589,7 @@ void dlg_FeatureScout::initElementTableModel( int idx )
 		elementTableView->showColumn( 2 );
 		elementTableView->showColumn( 3 );
 
-		for ( int i = 0; i < elementNr; i++ ) // number of rows
+		for ( int i = 0; i < elementsCount; i++ ) // number of rows
 		{
 			for ( int j = 0; j < 4; j++ )
 			{
@@ -601,7 +601,7 @@ void dlg_FeatureScout::initElementTableModel( int idx )
 				}
 				else
 				{
-					if ( i == 0 || i == elementNr - 1 )
+					if ( i == 0 || i == elementsCount - 1 )
 						str = QString::number( v.ToInt() );
 					else
 						str = QString::number( v.ToDouble(), 'f', 2 );
@@ -621,12 +621,12 @@ void dlg_FeatureScout::initElementTableModel( int idx )
 		elementTableView->hideColumn( 2 );
 		elementTableView->hideColumn( 3 );
 
-		for ( int i = 0; i < elementNr; i++ )
+		for ( int i = 0; i < elementsCount; i++ )
 		{
 			vtkVariant v = chartTable->GetValue( idx, i );
 			QString str = QString::number( v.ToDouble(), 'f', 2 );
 
-			if ( i == 0 || i == elementNr - 1 )
+			if ( i == 0 || i == elementsCount - 1 )
 				str = QString::number( v.ToInt() );
 
 			elementTableModel->setData( elementTableModel->index( i, 1, QModelIndex() ), str );
@@ -750,7 +750,7 @@ void dlg_FeatureScout::MultiClassRendering()
 	{
 		for (size_t objID =0; objID < csvTable->GetNumberOfRows(); ++objID)
 		{
-			int classID = csvTable->GetValue(objID, elementNr - 1).ToInt();
+			int classID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
 			SetPolyPointColor(objID, colorList.at(classID));
 		}
 		UpdatePolyMapper();
@@ -894,7 +894,7 @@ void dlg_FeatureScout::SingleRendering( int idx )
 			classColor.setAlpha(TransparentAlpha);
 		for (int objID = 0; objID < objectNr; ++objID)
 		{
-			int curClassID = csvTable->GetValue(objID, elementNr - 1).ToInt();
+			int curClassID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
 			SetPolyPointColor(objID, (idx > 0 && objID == idx) ? SelectedColor : (curClassID == cID) ? classColor : nonClassColor);
 		}
 		UpdatePolyMapper();
@@ -1032,7 +1032,7 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 		}
 		for (int objID = 0; objID < objectNr; ++objID)
 		{
-			int curClassID = csvTable->GetValue(objID, elementNr - 1).ToInt();
+			int curClassID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
 			QColor curColor = (objID == curSelObjID) ?
 				SelectedColor :
 				((curClassID == selectedClassID) ?
@@ -2170,13 +2170,13 @@ void dlg_FeatureScout::ClassAddButton()
 			firstLevelItem.first()->appendRow( item );
 
 			// update Class_ID column, prepare values for LookupTable
-			this->csvTable->SetValue( objID - 1, elementNr - 1, ClassID );
+			this->csvTable->SetValue( objID - 1, elementsCount - 1, ClassID );
 			if (matrix)
-				matrix->data()->data()[elementNr - 1][objID - 1] = ClassID;
+				matrix->data()->data()[elementsCount - 1][objID - 1] = ClassID;
 		}
 	}
 	if (matrix)
-		matrix->paramChanged(elementNr-1);
+		matrix->paramChanged(elementsCount-1);
 
 	// a simple check of the selections
 	if ( kIdx.isEmpty() )
@@ -2756,9 +2756,9 @@ void dlg_FeatureScout::ClassLoadButton()
 				activeItem->appendRow( item );
 
 				// update Class_ID number in csvTable;
-				this->csvTable->SetValue( label.toInt() - 1, this->elementNr - 1, idxClass - 1 );
+				this->csvTable->SetValue( label.toInt() - 1, this->elementsCount - 1, idxClass - 1 );
 				if (matrix)
-					matrix->data()->data()[this->elementNr - 1][label.toInt() - 1] = idxClass - 1;
+					matrix->data()->data()[this->elementsCount - 1][label.toInt() - 1] = idxClass - 1;
 			}
 			else if ( reader.name() == ClassTag )
 			{
@@ -2778,7 +2778,7 @@ void dlg_FeatureScout::ClassLoadButton()
 		}
 	}
 	if (matrix)
-		matrix->paramChanged(elementNr - 1);
+		matrix->paramChanged(elementsCount - 1);
 
 	//upadate TableList
 	if ( rootItem->rowCount() == idxClass )
@@ -2826,14 +2826,14 @@ void dlg_FeatureScout::ClassDeleteButton()
 	{
 		int labelID = this->activeClassItem->child( j )->text().toInt();
 		// update Class_ID column, prepare values for LookupTable
-		this->csvTable->SetValue(labelID - 1, elementNr - 1, 0);
+		this->csvTable->SetValue(labelID - 1, elementsCount - 1, 0);
 		if (matrix)
-			matrix->data()->data()[elementNr - 1][labelID - 1] = 0;
+			matrix->data()->data()[elementsCount - 1][labelID - 1] = 0;
 		// append the deleted object IDs to list
 		list.append(labelID);
 	}
 	if (matrix)
-		matrix->paramChanged(elementNr - 1);
+		matrix->paramChanged(elementsCount - 1);
 
 	// sort the new stamm list
 	qSort( list );
@@ -2865,13 +2865,13 @@ void dlg_FeatureScout::ClassDeleteButton()
 			for (int j = 0; j < item->rowCount(); j++)
 			{
 				int labelID = item->child(j, 0)->text().toInt();
-				this->csvTable->SetValue(labelID - 1, elementNr - 1, classID);
+				this->csvTable->SetValue(labelID - 1, elementsCount - 1, classID);
 				if (matrix)
-					matrix->data()->data()[elementNr - 1][labelID - 1] = classID;
+					matrix->data()->data()[elementsCount - 1][labelID - 1] = classID;
 			}
 			for (int k = 0; k < tableList[classID]->GetNumberOfRows(); ++k)
 			{
-				tableList[classID]->SetValue(k, elementNr - 1, classID);
+				tableList[classID]->SetValue(k, elementsCount - 1, classID);
 			}
 			tableList[classID]->GetColumn(classID)->Modified();
 		}
@@ -3357,7 +3357,7 @@ void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStand
 		for ( int i = 0; i < item->rowCount(); i++ )
 		{
 			writer->writeStartElement( ObjectTag );
-			for ( int j = 0; j < elementNr; j++ )
+			for ( int j = 0; j < elementsCount; j++ )
 			{
 				vtkVariant v = csvTable->GetValue( item->child( i )->text().toInt() - 1, j );
 				QString str = QString::fromUtf8( v.ToUnicodeString().utf8_str() ).trimmed();
@@ -3423,14 +3423,14 @@ void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
 	arr->SetName( chartTable->GetColumnName( 0 ) );
 	table->AddColumn( arr );
-	for ( int i = 1; i < elementNr - 1; i++ )
+	for ( int i = 1; i < elementsCount - 1; i++ )
 	{
 		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
 		arrX->SetName( chartTable->GetColumnName( i ) );
 		table->AddColumn( arrX );
 	}
 	vtkSmartPointer<vtkIntArray> arrI = vtkSmartPointer<vtkIntArray>::New();
-	arrI->SetName( chartTable->GetColumnName( elementNr - 1 ) );
+	arrI->SetName( chartTable->GetColumnName( elementsCount - 1 ) );
 	table->AddColumn( arrI );
 
 	int oCount = item->rowCount();
@@ -3597,7 +3597,7 @@ void dlg_FeatureScout::deleteObject()
 	else
 	{
 		int oID = item->text().toInt();
-		this->csvTable->SetValue( oID - 1, elementNr - 1, 0 );
+		this->csvTable->SetValue( oID - 1, elementsCount - 1, 0 );
 
 		QStandardItem *sItem = this->classTreeModel->invisibleRootItem()->child( 0 );
 		QStandardItem *newItem = new QStandardItem( QString( "%1" ).arg( oID ) );
