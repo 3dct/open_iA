@@ -194,7 +194,7 @@ private:
 	vtkPiecewiseFunction     *oTF;
 	vtkColorTransferFunction *cTF;
 	int elementsCount;		//!< Number of elements(=columns) in csv inputTable
-	int objectNr;		//!< Number of objects in the specimen
+	int objectsCount;		//!< Number of objects in the specimen
 	iAFeatureScoutObjectType filterID;
 
 	bool draw3DPolarPlot;

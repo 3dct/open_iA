@@ -220,7 +220,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	visualization = vis;
 	m_pcLineWidth = 0.1;
 	this->elementsCount = csvTable->GetNumberOfColumns();
-	this->objectNr = csvTable->GetNumberOfRows();
+	this->objectsCount = csvTable->GetNumberOfRows();
 	this->activeChild = parent;
 	this->filterID = fid;
 	this->draw3DPolarPlot = false;
@@ -277,7 +277,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 		auto polyData = vtkSmartPointer<vtkPolyData>::New();
 		auto lines = vtkSmartPointer<vtkCellArray>::New();
 
-		for (vtkIdType row = 0; row < objectNr; ++row)
+		for (vtkIdType row = 0; row < objectsCount; ++row)
 		{
 			float first[3], end[3];
 			for (int i = 0; i < 3; ++i)
@@ -316,8 +316,8 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 		{
 			auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 			tubeRadius->SetName("TubeRadius");
-			tubeRadius->SetNumberOfTuples(objectNr*2);
-			for (vtkIdType row = 0; row < objectNr; ++row)
+			tubeRadius->SetNumberOfTuples(objectsCount*2);
+			for (vtkIdType row = 0; row < objectsCount; ++row)
 			{
 				double diameter = csvTable->GetValue(row, m_columnMapping[iACsvConfig::Diameter]).ToDouble();
 				tubeRadius->SetTuple1(row*2,   diameter/2);
@@ -637,12 +637,12 @@ void dlg_FeatureScout::initElementTableModel( int idx )
 void dlg_FeatureScout::initClassTreeModel()
 {
 	QStandardItem *rootItem = classTreeModel->invisibleRootItem();
-	QList<QStandardItem *> stammItem = prepareRow( "Unclassified", QString( "%1" ).arg( objectNr ), "100" );
+	QList<QStandardItem *> stammItem = prepareRow( "Unclassified", QString( "%1" ).arg( objectsCount ), "100" );
 	stammItem.first()->setData( QColor( "darkGray" ), Qt::DecorationRole );
 	this->colorList.append( QColor( "darkGray" ) );
 
 	rootItem->appendRow( stammItem );
-	for ( int i = 0; i < objectNr; ++i )
+	for ( int i = 0; i < objectsCount; ++i )
 	{
 		vtkVariant v = chartTable->GetColumn( 0 )->GetVariantValue( i );
 		QStandardItem *item = new QStandardItem( QString::fromUtf8( v.ToUnicodeString().utf8_str() ).trimmed() );
@@ -854,10 +854,10 @@ void dlg_FeatureScout::MultiClassRendering()
 			}
 		}
 
-		if (hid < objectNr)
+		if (hid < objectsCount)
 		{
-			this->oTF->AddPoint(objectNr + 0.3, backAlpha, 0.5, 1.0);
-			this->cTF->AddRGBPoint(objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
+			this->oTF->AddPoint(objectsCount + 0.3, backAlpha, 0.5, 1.0);
+			this->cTF->AddRGBPoint(objectsCount + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 		}
 	}
 	activeChild->updateViews();
@@ -892,7 +892,7 @@ void dlg_FeatureScout::SingleRendering( int idx )
 		QColor classColor = colorList.at(cID);
 		if (idx > 0)
 			classColor.setAlpha(TransparentAlpha);
-		for (int objID = 0; objID < objectNr; ++objID)
+		for (int objID = 0; objID < objectsCount; ++objID)
 		{
 			int curClassID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
 			SetPolyPointColor(objID, (idx > 0 && objID == idx) ? SelectedColor : (curClassID == cID) ? classColor : nonClassColor);
@@ -913,7 +913,7 @@ void dlg_FeatureScout::SingleRendering( int idx )
 		}
 		oTF->AddPoint(idx, alpha);
 		cTF->AddRGBPoint(idx, red, green, blue);
-		if ((idx + 1) <= objectNr)
+		if ((idx + 1) <= objectsCount)
 		{
 			this->oTF->AddPoint(idx + 0.3, backAlpha);
 			this->oTF->AddPoint(idx + 0.29, alpha);
@@ -983,10 +983,10 @@ void dlg_FeatureScout::SingleRendering( int idx )
 			}
 		}
 
-		if ( hid < objectNr )
+		if ( hid < objectsCount )
 		{
-			this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
-			this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+			this->oTF->AddPoint( objectsCount + 0.3, backAlpha, 0.5, 1.0 );
+			this->cTF->AddRGBPoint( objectsCount + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
 	}
 	raycaster->update();
@@ -1030,7 +1030,7 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 		{
 			classColor.setAlpha(255);
 		}
-		for (int objID = 0; objID < objectNr; ++objID)
+		for (int objID = 0; objID < objectsCount; ++objID)
 		{
 			int curClassID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
 			QColor curColor = (objID == curSelObjID) ?
@@ -1216,10 +1216,10 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 		}
 	}
 
-	if ( hid < objectNr )	// Creates the very last points (for all objects)  if it's not created yet
+	if ( hid < objectsCount )	// Creates the very last points (for all objects)  if it's not created yet
 	{
-		this->oTF->AddPoint( objectNr + 0.3, backAlpha, 0.5, 1.0 );
-		this->cTF->AddRGBPoint( objectNr + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
+		this->oTF->AddPoint( objectsCount + 0.3, backAlpha, 0.5, 1.0 );
+		this->cTF->AddRGBPoint( objectsCount + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 	}
 	activeChild->updateViews();
 }
@@ -1841,7 +1841,7 @@ void dlg_FeatureScout::RenderingOrientation()
 		this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
 	}
 
-	for ( int i = 0; i < this->objectNr; i++ )
+	for ( int i = 0; i < this->objectsCount; i++ )
 	{
 		ip = qFloor( this->csvTable->GetValue( i, m_columnMapping[iACsvConfig::Phi]).ToDouble() );
 		it = qFloor( this->csvTable->GetValue( i, m_columnMapping[iACsvConfig::Theta]).ToDouble() );
@@ -2019,7 +2019,7 @@ void dlg_FeatureScout::RenderingFLD()
 
 	double alpha = 0.001;
 
-	for ( int i = 0; i < this->objectNr; i++ )
+	for ( int i = 0; i < this->objectsCount; i++ )
 	{
 		double ll = length->GetTuple( i )[0];
 
@@ -2144,7 +2144,7 @@ void dlg_FeatureScout::ClassAddButton()
 	QStandardItem *item;
 
 	// create a first level child under rootItem as new class
-	double percent = 100.0*CountObject / objectNr;
+	double percent = 100.0*CountObject / objectsCount;
 	QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
 	firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
 
@@ -2672,7 +2672,7 @@ void dlg_FeatureScout::ClassSaveButton()
 	stream.writeStartDocument();
 	stream.writeStartElement( IFVTag );
 	stream.writeAttribute( VersionAttribute, "1.0" );
-	stream.writeAttribute( CountAllAttribute, QString( "%1" ).arg( objectNr ) );
+	stream.writeAttribute( CountAllAttribute, QString( "%1" ).arg( objectsCount ) );
 
 	for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); i++ )
 	{
@@ -2704,7 +2704,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	if ( checker.name() == IFVTag )
 	{
 		// if the object number is not correct, stop the load process
-		if ( checker.attributes().value( CountAllAttribute ).toString().toInt() != this->objectNr )
+		if ( checker.attributes().value( CountAllAttribute ).toString().toInt() != this->objectsCount )
 		{
 			QMessageBox::warning(this, "FeatureScout", "Class load error: Incorrect xml file for current dataset, please check." );
 			checker.clear();
@@ -3314,11 +3314,11 @@ double dlg_FeatureScout::calculateOpacity( QStandardItem *item )
 	// for multi rendering
 	if ( item == this->classTreeModel->invisibleRootItem() )
 	{
-		if ( objectNr < 1000 )
+		if ( objectsCount < 1000 )
 			return 1.0;
-		if ( objectNr < 3000 )
+		if ( objectsCount < 3000 )
 			return 0.8;
-		if ( objectNr < 10000 )
+		if ( objectsCount < 10000 )
 			return 0.6;
 		return 0.5;
 	}
@@ -3527,7 +3527,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 	blob->GetSurfaceProperty()->SetColor( color.redF(), color.greenF(), color.blueF() );
 	blob->SetName( activeClassItem->text() );
 	const double count = activeClassItem->rowCount();
-	const double percentage = 100.0*count / objectNr;
+	const double percentage = 100.0*count / objectsCount;
 	blob->SetStats( count, percentage );
 	blobManager->Update();
 }
@@ -3637,7 +3637,7 @@ void dlg_FeatureScout::updateClassStatistics( QStandardItem *item )
 	if ( item->hasChildren() )
 	{
 		rootItem->child( item->index().row(), 1 )->setText( QString( "%1" ).arg( item->rowCount() ) );
-		double percent = 100.0*item->rowCount() / objectNr;
+		double percent = 100.0*item->rowCount() / objectsCount;
 		rootItem->child( item->index().row(), 2 )->setText( QString::number( percent, 'f', 1 ) );
 	}
 	else
@@ -3702,7 +3702,7 @@ void dlg_FeatureScout::updateObjectOrientationID( vtkTable *table )
 	double fp, ft;
 	int ip, it, tt;
 
-	for ( int k = 0; k < this->objectNr; k++ )
+	for ( int k = 0; k < this->objectsCount; k++ )
 	{
 		fp = this->csvTable->GetValue( k, m_columnMapping[iACsvConfig::Phi] ).ToDouble() / PolarPlotPhiResolution;
 		ft = this->csvTable->GetValue( k, m_columnMapping[iACsvConfig::Theta] ).ToDouble() / PolarPlotThetaResolution;
