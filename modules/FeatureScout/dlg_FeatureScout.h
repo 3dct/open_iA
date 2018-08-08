@@ -137,7 +137,7 @@ private slots:
 private:
 	void setupModel();
 	void setupViews();
-	void setupConnections();  //! define signal and slots connections
+	void setupConnections();  //!< define signal and slots connections
 	void initColumnVisibility();
 	void initElementTableModel(int idx = -10000);
 	void initClassTreeModel();
