@@ -566,9 +566,11 @@ namespace
 	bool Is2DImageFile(QString const & f)
 	{
 		return f.endsWith("bmp", Qt::CaseInsensitive) ||
+			f.endsWith("jpg", Qt::CaseInsensitive) ||
+			f.endsWith("jpeg", Qt::CaseInsensitive) ||
+			f.endsWith("png", Qt::CaseInsensitive) ||
 			f.endsWith("tif", Qt::CaseInsensitive) ||
-			f.endsWith("tiff", Qt::CaseInsensitive) ||
-			f.endsWith("jpg", Qt::CaseInsensitive);
+			f.endsWith("tiff", Qt::CaseInsensitive);
 	}
 }
 
@@ -685,6 +687,7 @@ void MdiChild::setupStackView(bool active)
 	if (numberOfVolumes == 0)
 	{
 		DEBUG_LOG("Invalid call to setupStackView: No Volumes loaded!");
+		return;
 	}
 
 	int currentIndexOfVolume=0;

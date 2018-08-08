@@ -1235,9 +1235,7 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 
 	vtkImageData * reslicerOutput = reslicer->GetOutput();
 	double const * const slicerSpacing = reslicerOutput->GetSpacing();
-	double const * const slicerOrigin = reslicerOutput->GetOrigin();
 	int const * const slicerExtent = reslicerOutput->GetExtent();
-	int const * const slicerDims = reslicerOutput->GetDimensions();
 	double const * const slicerBounds = reslicerOutput->GetBounds();
 
 	// We have to manually set the physical z-coordinate which requires us to get the volume spacing.
@@ -1247,7 +1245,8 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	int cY = static_cast<int>(floor((m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1]));
 
 	// check image extent; if outside ==> default output
-	if ( cX < slicerExtent[0] || cX > slicerExtent[1]    ||    cY < slicerExtent[2] || cY > slicerExtent[3] ) {
+	if ( cX < slicerExtent[0] || cX > slicerExtent[1] || cY < slicerExtent[2] || cY > slicerExtent[3] ) 
+	{
 		defaultOutput(); return;
 	}
 
@@ -1258,17 +1257,34 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if (mdi_parent)
 	{
-		for (int m=0; m<mdi_parent->GetModalities()->size(); ++m)
+		for (int m=0; m < mdi_parent->GetModalities()->size(); ++m)
 		{
 			auto mod = mdi_parent->GetModality(m);
 			strDetails += PadOrTruncate(mod->GetName(), 12)+" ";
-			for (int c = 0; c<mod->ComponentCount(); ++c)
+			for (int c = 0; c < mod->ComponentCount(); ++c)
 			{
 				strDetails += "[ ";
 				auto img = mod->GetComponent(c);
 				for (int i = 0; i < img->GetNumberOfScalarComponents(); i++)
 				{
-					double value = img->GetScalarComponentAsDouble(xCoord, yCoord, zCoord, i);
+					// TODO: check muliple componets + MDIChild Linked Views
+					// TODO: limit slab thickness
+					double value = -1.0;
+					switch (m_mode)
+					{
+					case iASlicerMode::XY:	
+						value = reslicerOutput->GetScalarComponentAsDouble(
+							static_cast<int>(xCoord), static_cast<int>(yCoord), 0, i);
+						break;
+					case iASlicerMode::YZ:
+						value = reslicerOutput->GetScalarComponentAsDouble(
+							static_cast<int>(yCoord), static_cast<int>(zCoord), 0, i);
+						break;
+					case iASlicerMode::XZ:
+						value = reslicerOutput->GetScalarComponentAsDouble(
+							static_cast<int>(xCoord), static_cast<int>(zCoord), 0, i);
+						break;
+					}
 					if (i > 0)
 						strDetails += " ";
 					strDetails += QString::number(value);

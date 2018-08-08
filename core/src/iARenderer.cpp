@@ -119,6 +119,7 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 		m_slicePlaneSource[s] = vtkSmartPointer<vtkPlaneSource>::New();
 		m_slicePlaneMapper[s] = vtkSmartPointer<vtkPolyDataMapper>::New();
 		m_slicePlaneActor[s] = vtkSmartPointer<vtkActor>::New();
+		m_slicePlaneActor[s]->GetProperty()->LightingOff();
 	}
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
@@ -254,7 +255,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 		m_slicePlaneMapper[s]->SetInputConnection(m_slicePlaneSource[s]->GetOutputPort());
 		m_slicePlaneActor[s]->SetMapper(m_slicePlaneMapper[s]);
 		m_slicePlaneActor[s]->GetProperty()->SetColor( (s == 0) ? 1:0, (s == 1) ? 1 : 0, (s == 2) ? 1 : 0);
-		m_slicePlaneActor[s]->GetProperty()->SetOpacity(0.5);
+		m_slicePlaneActor[s]->GetProperty()->SetOpacity(1.0);
 		m_slicePlaneActor[s]->SetVisibility(false);
 		m_slicePlaneMapper[s]->Update();
 	}
