@@ -215,7 +215,7 @@ protected:
 	QMenu* m_contextMenu;                        //!< the context menu (can be extended by subclass)
 private:
 	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction;
-	QVector<iAChartWidget*> m_histograms;
+	QVector<iAChartWidget*> m_histograms;        //<! histograms of scatter plot matrix
 	int m_FilterColID; 
 	double m_FilterValue; 
 
