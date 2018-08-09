@@ -658,10 +658,10 @@ void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, c
 	std::string OutfileName = "";
 	if (fileName) {
 		OutfileName = fileName->toStdString(); 
-	}else OutfileName = "debugFile.txt";
+	}else OutfileName = "debugFile";
 
 	if (QDir(outputPath).exists() && (anyTable != nullptr)) {	
-		debugfile.open(outputPath.toStdString() + OutfileName);
+		debugfile.open(outputPath.toStdString() + OutfileName + ".csv");
 
 		if (debugfile.is_open())
 		{
@@ -697,15 +697,36 @@ void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, c
 
 void dlg_FeatureScout::PrintChartTable(const QString &outputPath)
 {
-	QString fileName = "chartTable.txt"; 
+	QString fileName = "chartTable"; 
 	PrintVTKTable(this->chartTable, true, outputPath, &fileName);
 }
 
 void dlg_FeatureScout::PrintCSVTable(const QString &outputPath)
 {
-	QString fileName = "csvTable.txt";
+	QString fileName = "csvTable";
 	PrintVTKTable(this->csvTable, true, outputPath, &fileName);
 }
+
+void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>> &OutTableList,  QString &outputPath) const  {
+	QString FileName ="TableClass";
+	QString fID = "";
+	QString outPutFile = ""; 
+	
+	if (OutTableList.count() > 1) {
+		
+		for (int i = 0; i < tableList.count(); i++) {
+			fID = QString(i);
+			vtkSmartPointer<vtkTable> OutPutTable = OutTableList[i];
+			outPutFile = FileName + "_" + fID;
+			this->PrintVTKTable(OutPutTable, true, outputPath, &outPutFile);
+			OutPutTable = nullptr; 
+		}
+	
+	}
+	
+
+}
+
 
 float dlg_FeatureScout::calculateAverage( vtkDataArray *arr )
 {
@@ -2959,8 +2980,13 @@ void dlg_FeatureScout::ClassDeleteButton()
 	}
 
 
-	QString fPath = "C:/Users/p41883/Desktop/"; 
-	this->PrintVTKTable(csvTable, true, fPath, nullptr);
+	QString fPath = "C:/Users/p41883/Desktop/output/"; 
+	QString fName1 = "chartTable"; 
+	//this->PrintVTKTable(this->tableList[2]/*csvTable*/, true, fPath, &fName);
+	//this->PrintTableList(this->tableList, fPath);
+	this->PrintChartTable(fPath);
+	this->PrintCSVTable(fPath);
+
 }
 
 void dlg_FeatureScout::ScatterPlotButton()
