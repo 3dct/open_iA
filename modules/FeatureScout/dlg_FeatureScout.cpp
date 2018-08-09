@@ -644,48 +644,45 @@ void dlg_FeatureScout::initClassTreeModel()
 	this->activeClassItem = stammItem.first();
 }
 
+// BEGIN DEBUG FUNCTIONS
+
 void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString &outputPath, const QString* fileName) const
 {
 	std::string separator = (useTabSeparator) ? "\t" : ",";
 	ofstream debugfile;
 	std::string OutfileName = "";
-	if (fileName) {
+	if (fileName)
 		OutfileName = fileName->toStdString(); 
-	}else OutfileName = "debugFile";
+	else
+		OutfileName = "debugFile";
 
-	if (QDir(outputPath).exists() && (anyTable != nullptr)) {	
-		debugfile.open(outputPath.toStdString() + OutfileName + ".csv");
+	if (!QDir(outputPath).exists() || !anyTable)
+		return;
 
-		if (debugfile.is_open())
-		{
-			vtkVariant spCol, spRow, spCN, spVal;
-			spCol = anyTable->GetNumberOfColumns();
-			spRow = anyTable->GetNumberOfRows();
+	debugfile.open(outputPath.toStdString() + OutfileName + ".csv");
+	if (!debugfile.is_open())
+		return;
 
-			for (int i = 0; i < spCol.ToInt(); i++)
-			{
-				spCN = anyTable->GetColumnName(i);
-				debugfile << spCN.ToString() << separator;
-			}
-		
-			debugfile << "\n";
-		
-			for (int row = 0; row < spRow.ToInt(); row++)
-			{
-				for (int col = 0; col < spCol.ToInt(); col++)
-				{
-					spVal = anyTable->GetValue(row, col);
-					debugfile << spVal.ToString() << separator; //TODO cast debug to double
-				}
-				debugfile << "\n";
-			}
-			
-			debugfile.close();
-		}
+	vtkVariant spCol, spRow, spCN, spVal;
+	spCol = anyTable->GetNumberOfColumns();
+	spRow = anyTable->GetNumberOfRows();
+
+	for (int i = 0; i < spCol.ToInt(); i++)
+	{
+		spCN = anyTable->GetColumnName(i);
+		debugfile << spCN.ToString() << separator;
 	}
-	
-
-
+	debugfile << "\n";	
+	for (int row = 0; row < spRow.ToInt(); row++)
+	{
+		for (int col = 0; col < spCol.ToInt(); col++)
+		{
+			spVal = anyTable->GetValue(row, col);
+			debugfile << spVal.ToString() << separator; //TODO cast debug to double
+		}
+		debugfile << "\n";
+	}
+	debugfile.close();
 }
 
 void dlg_FeatureScout::PrintChartTable(const QString &outputPath)
@@ -705,21 +702,20 @@ void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>> &Ou
 	QString fID = "";
 	QString outPutFile = ""; 
 	
-	if (OutTableList.count() > 1) {
-		
-		for (int i = 0; i < tableList.count(); i++) {
+	if (OutTableList.count() > 1)
+	{	
+		for (int i = 0; i < tableList.count(); i++)
+		{
 			fID = QString(i);
 			vtkSmartPointer<vtkTable> OutPutTable = OutTableList[i];
 			outPutFile = FileName + "_" + fID;
 			this->PrintVTKTable(OutPutTable, true, outputPath, &outPutFile);
 			OutPutTable = nullptr; 
 		}
-	
 	}
-	
-
 }
 
+// END DEBUG FUNCTIONS
 
 float dlg_FeatureScout::calculateAverage( vtkDataArray *arr )
 {

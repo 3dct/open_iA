@@ -198,11 +198,12 @@ private:
 	const QString sourcePath;
 	vtkSmartPointer<vtkStringArray> nameArr;
 
-	void PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString &outputPath, const QString* fileName) const ; //!< print out a vtkTabel
+	//! @{ debug functions
+	void PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString &outputPath, const QString* fileName) const ; //!< print out a vtkTable
 	void PrintChartTable(const QString &outputPath); //! < Print current chartTable
 	void PrintCSVTable(const QString &outputPath);	//! <Print current CSVTable
-
 	void PrintTableList(const QList<vtkSmartPointer<vtkTable>> &OutTableList, QString &outputPath) const;
+	//! @}
 
 	float calculateAverage(vtkDataArray* arr); //!< calculate the average value of a 1D array
 
