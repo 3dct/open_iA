@@ -2313,11 +2313,8 @@ void dlg_FeatureScout::spmApplyColor(QColor const & color)
 	iALookupTable lut;
 	lut.setRange(range);
 	lut.allocate(2);
-
-	for (vtkIdType i = 0; i < 2; i++)
-	{
+	for (size_t i = 0; i < 2; i++)
 		lut.setColor(i, color);
-	}
 	this->matrix->setLookupTable(lut, csvTable->GetColumnName(0));
 }
 
