@@ -107,7 +107,6 @@ iAColorTheme const * iAQSplom::getBackgroundColorTheme()
 void iAQSplom::clearSelection()
 {
 	m_selInds.clear();
-
 }
 
 void iAQSplom::showAllPlots(const bool enableAllPlotsVisible)
