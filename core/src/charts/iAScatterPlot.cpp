@@ -58,7 +58,8 @@ iAScatterPlot::Settings::Settings() :
 	tickLabelColor( QColor( 100, 100, 100 ) ),
 	backgroundColor( QColor( 255, 255, 255 ) ),
 	selectionColor( QColor(0, 0, 0) ),
-	selectionMode(Polygon)
+	selectionMode(Polygon),
+	selectionEnabled(true)
 {}
 
 size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
@@ -290,7 +291,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		emit transformModified( m_scale, deltaOffset );
 	}
 
-	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton ) // selection
+	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled ) // selection
 	{
 		if (settings.selectionMode == Polygon)
 		{
@@ -315,7 +316,7 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 {
 	QPoint locPos = getLocalPos( event->pos() );
 	m_prevPos = locPos;
-	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton )//selection
+	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled)//selection
 	{
 		if (settings.selectionMode == Rectangle)
 		{
@@ -330,7 +331,7 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 
 void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 {
-	if (m_isMaximizedPlot && event->button() == Qt::LeftButton )//selection
+	if (m_isMaximizedPlot && event->button() == Qt::LeftButton && settings.selectionEnabled)//selection
 	{
 		bool append = ( event->modifiers() & Qt::ShiftModifier ) ? true : false;
 		updateSelectedPoints( append ); //selection
