@@ -77,7 +77,7 @@ public:
 	QSharedPointer<iASPLOMData> data();                              //! retrieve SPLOM data
 	void paramChanged(int idx);                                      //! column idx in SPLOM data changed
 	void setLookupTable( vtkLookupTable * lut, const QString & colorArrayName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
-	void setLookupTable( iALookupTable &lut, const QString & colorArrayName ); //!< Set lookup table given the name of a parameter to color-code.
+	void setLookupTable(iALookupTable &lut, size_t columnIndex);        //!< Set lookup table given the index of a parameter to color-code.
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
 	void setParameterVisibility(std::vector<bool> const & visibility);//!< Adapt visibility of all columns at once.
 	void setParameterVisibility( size_t paramIndex, bool isVisible );//!< Show/hide scatter plots of a parameter given parameter's index.
@@ -192,7 +192,7 @@ protected:
 	QList<QList<iAScatterPlot*>> m_visiblePlots; //!< matrix of visible scatter plots
 	std::vector<bool> m_paramVisibility;         //!< array of individual parameter visibility
 	QSharedPointer<iALookupTable> m_lut;         //!< lookup table, shared with individual scatter plots
-	QString m_colorArrayName;                    //!< name of a color-coded parameter
+	size_t m_colorLookupColumn;                  //!< index of the column to use for color lookup
 	QPoint m_scatPlotSize;                       //!< size of one scatter plot in the layout
 	iAScatterPlot * m_activePlot;                //!< scatter plot that user currently interacts with
 	splom_mode m_mode;                           //!< SPLOM current state: all plots or upper triangle with maximized plot

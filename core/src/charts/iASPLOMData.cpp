@@ -88,6 +88,14 @@ QString iASPLOMData::parameterName(size_t paramIndex) const
 	return m_paramNames[paramIndex];
 }
 
+size_t iASPLOMData::paramIndex(QString const & paramName) const
+{
+	for (unsigned long i = 0; i < numParams(); ++i)
+		if (m_paramNames[i] == paramName)
+			return i;
+	return std::numeric_limits<size_t>::max();
+}
+
 size_t iASPLOMData::numParams() const
 {
 	return m_paramNames.size();

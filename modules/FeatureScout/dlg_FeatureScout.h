@@ -38,6 +38,7 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
 
 class iABlobCluster;
 class iABlobManager;
+class iAFeatureScoutSPLOM;
 class iAMeanObjectTFView;
 class iAModalityTransfer;
 class iAQSplom;
@@ -137,6 +138,7 @@ private slots:
 	void updateStlProgress(int i);
 	void updateMarProgress(int i);
 private:
+	void showScatterPlot();
 	void setupModel();
 	void setupViews();
 	void setupConnections();  //!< define signal and slots connections
@@ -154,14 +156,6 @@ private:
 	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
-	//! @}
-	//! @{ scatterplot-related methods:
-	void updateSPColumnVisibility();
-	void updateSPColumnVisibilityWithVis();
-	void ScatterPlotButton();
-	void spmApplyColorMap(const int classIdx);                         //!< set SPM dot color according to given class index
-	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
-	void spmApplyGeneralColorMap(const double rgba[4]);
 	//! @}
 	//! @{ parallel coordinate chart related methods:
 	void setPCChartData(bool lookupTable = false);
@@ -193,8 +187,8 @@ private:
 	MdiChild *activeChild;
 	vtkPiecewiseFunction     *oTF;
 	vtkColorTransferFunction *cTF;
-	int elementsCount;		//!< Number of elements(=columns) in csv inputTable
-	int objectsCount;		//!< Number of objects in the specimen
+	int elementsCount;      //!< Number of elements(=columns) in csv inputTable
+	int objectsCount;       //!< Number of objects in the specimen
 	iAFeatureScoutObjectType filterID;
 
 	bool draw3DPolarPlot;
@@ -266,8 +260,6 @@ private:
 
 	dlg_blobVisualization *blobVisDialog;
 
-	iAQSplom *matrix;
-
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	QVTKOpenGLWidget *pcWidget, *polarPlot, *meanObjectWidget;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_meanObjectRenderWindow;
@@ -295,10 +287,11 @@ private:
 	iAMeanObjectTFView* m_motfView;
 	moData m_MOData;
 
-	vtkSmartPointer<vtkLookupTable> m_pointLUT;
 	QMap<uint, uint> m_columnMapping;
 	float m_pcLineWidth;   //!< width of line in Parallel Coordinates
 
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
+
+	QSharedPointer<iAFeatureScoutSPLOM> m_splom;
 };

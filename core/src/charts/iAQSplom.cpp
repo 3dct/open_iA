@@ -107,7 +107,6 @@ iAColorTheme const * iAQSplom::getBackgroundColorTheme()
 void iAQSplom::clearSelection()
 {
 	m_selInds.clear();
-
 }
 
 void iAQSplom::showAllPlots(const bool enableAllPlotsVisible)
@@ -151,7 +150,7 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	:QGLWidget(parent, shareWidget, f),
 	settings(),
 	m_lut(new iALookupTable()),
-	m_colorArrayName(),
+	m_colorLookupColumn(0),
 	m_activePlot(nullptr),
 	m_mode(ALL_PLOTS),
 	m_splomData(new iASPLOMData()),
@@ -299,7 +298,7 @@ void iAQSplom::dataChanged()
 			s->setSelectionColor(settings.selectionColor);
 			s->setPointRadius(settings.pointRadius);
 			if( m_lut->initialized() )
-				s->setLookupTable( m_lut, m_colorArrayName );
+				s->setLookupTable( m_lut, m_colorLookupColumn );
 			row.push_back( s );
 		}
 		m_matrix.push_back( row );
@@ -310,14 +309,19 @@ void iAQSplom::dataChanged()
 void iAQSplom::setLookupTable( vtkLookupTable * lut, const QString & colorArrayName )
 {
 	m_lut->copyFromVTK( lut );
-	m_colorArrayName = colorArrayName;
+	size_t colorLookupCol = m_splomData->paramIndex(colorArrayName);
+	if (colorLookupCol == std::numeric_limits<size_t>::max())
+		return;
+	m_colorLookupColumn = colorLookupCol;
 	applyLookupTable();
 }
 
-void iAQSplom::setLookupTable( iALookupTable &lut, const QString & colorArrayName ) //TODO: method not tested
+void iAQSplom::setLookupTable( iALookupTable &lut, size_t columnIndex)
 {
+	if (columnIndex >= m_splomData->numParams())
+		return;
+	m_colorLookupColumn = columnIndex;
 	*m_lut = lut;
-	m_colorArrayName = colorArrayName;
 	applyLookupTable();
 }
 
@@ -327,12 +331,12 @@ void iAQSplom::applyLookupTable()
 	{
 		foreach( iAScatterPlot* s, row )
 		{
-			s->setLookupTable( m_lut, m_colorArrayName );
+			s->setLookupTable( m_lut, m_colorLookupColumn );
 		}
 	}
 	if (m_maximizedPlot) 
 	{
-		m_maximizedPlot->setLookupTable(m_lut, m_colorArrayName);
+		m_maximizedPlot->setLookupTable( m_lut, m_colorLookupColumn );
 	}
 
 	update();
@@ -660,7 +664,7 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 	m_maximizedPlot->setData(plotInds[0], plotInds[1], m_splomData); //we want first plot in lower left corner of the SPLOM
 
 	if (m_lut->initialized())
-		m_maximizedPlot->setLookupTable(m_lut, m_colorArrayName);
+		m_maximizedPlot->setLookupTable(m_lut, m_colorLookupColumn);
 
 	m_maximizedPlot->setSelectionColor(settings.selectionColor);
 	m_maximizedPlot->setPointRadius(settings.pointRadius);

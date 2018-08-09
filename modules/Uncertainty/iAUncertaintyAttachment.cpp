@@ -41,6 +41,8 @@
 #include "mdichild.h"
 #include "mainwindow.h"
 
+#include <vtkLookupTable.h>
+
 #include <QDir>
 
 const int EntropyBinCount = 100;
