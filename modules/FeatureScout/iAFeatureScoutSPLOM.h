@@ -52,6 +52,7 @@ public:
 	std::vector<size_t> getFilteredSelection() const;                  //!< proxy for getFilteredSelection in SPLOM
 	bool isShown() const;
 	void clearSelection();
+	void enableSelection(bool enable);
 signals:
 	void selectionModified(std::vector<size_t>);
 private:

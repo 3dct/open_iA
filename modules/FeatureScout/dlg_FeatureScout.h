@@ -113,7 +113,7 @@ private slots:
 	void ClassDeleteButton();
 	void WisetexSaveButton();
 	void CsvDVSaveButton();
-	void RenderingOrientation();
+	void RenderOrientation();
 	void classClicked(const QModelIndex &index);
 	void classDoubleClicked(const QModelIndex &index);
 	void EnableBlobRendering();
@@ -177,8 +177,8 @@ private:
 	void SingleRendering(int idx = -10000);               //!< render a single fiber or a single class
 	void MultiClassRendering();                           //!< multi-class rendering
 	void RenderSelection(std::vector<size_t> const & selInds); //!< render a selection (+ the class that contains it)
-	void RenderingFLD();                                  //!< render fiber-length distribution
-	void RenderingMeanObject();                           //!< compute and render a mean object for each class
+	void RenderFiberLengthDistribution();                 //!< render fiber-length distribution
+	void RenderMeanObject();                              //!< compute and render a mean object for each class
 	void SetPolyPointColor(int ptIdx, QColor const & qcolor);
 	void UpdatePolyMapper();
 	//! @}

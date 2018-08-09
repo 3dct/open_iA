@@ -387,11 +387,11 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long
 	RenderSelection(selectedIndices);
 }
 
-void dlg_FeatureScout::setPCChartData( bool lookupTable )
+void dlg_FeatureScout::setPCChartData( bool specialRendering )
 {
-	this->pcWidget->setEnabled( true );
-	if ( lookupTable )
-	{   // lookupTable set to true for multi rendering, draw a color ParallelCoordinates
+	pcWidget->setEnabled( !specialRendering ); // to disable selection
+	if ( specialRendering )
+	{   // for the special renderings, we use all data:
 		chartTable->ShallowCopy( csvTable );
 	}
 	if (pcView->GetScene()->GetNumberOfItems() > 0)
@@ -406,10 +406,6 @@ void dlg_FeatureScout::setPCChartData( bool lookupTable )
 							this,
 							SLOT( pcViewMouseButtonCallBack( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
 	updatePCColumnVisibility();
-	if ( lookupTable )
-	{
-		this->pcWidget->setEnabled( false );
-	}
 }
 
 void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
@@ -805,6 +801,7 @@ void dlg_FeatureScout::MultiClassRendering()
 	// update lookup table in PC View
 	this->updateLookupTable(alpha);
 	this->setPCChartData(true);
+	m_splom->enableSelection(false);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetScalarVisibility(1);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetLookupTable(lut);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
@@ -1288,7 +1285,7 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 	activeChild->updateViews();
 }
 
-void dlg_FeatureScout::RenderingMeanObject()
+void dlg_FeatureScout::RenderMeanObject()
 {
 	if (visualization != iACsvConfig::UseVolume)
 		return;
@@ -1857,7 +1854,7 @@ void dlg_FeatureScout::UpdatePolyMapper()
 	raycaster->update();
 }
 
-void dlg_FeatureScout::RenderingOrientation()
+void dlg_FeatureScout::RenderOrientation()
 {
 	//Turns off FLD scalar bar and updates polar plot view
 	if ( m_scalarWidgetFLD != NULL )
@@ -1865,6 +1862,9 @@ void dlg_FeatureScout::RenderingOrientation()
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar( chartTable );
 	}
+	setPCChartData(true);
+	m_splom->enableSelection(false);
+	m_splom->setFilter(-1);
 
 	iovPP->setWindowTitle( "Orientation Distribution Color Map" );
 
@@ -1987,8 +1987,12 @@ void dlg_FeatureScout::RenderingOrientation()
 	this->orientColormap->show();
 }
 
-void dlg_FeatureScout::RenderingFLD()
+void dlg_FeatureScout::RenderFiberLengthDistribution()
 {
+	setPCChartData(true);
+	m_splom->enableSelection(false);
+	m_splom->setFilter(-1);
+
 	int numberOfBins;
 	double range[2] = { 0.0, 0.0 };
 	vtkDataArray* length;
@@ -2185,18 +2189,18 @@ void dlg_FeatureScout::RenderingFLD()
 
 void dlg_FeatureScout::ClassAddButton()
 {
-	if (!classRendering)
-	{
-		QMessageBox::warning(this, "FeatureScout", "Cannot add a class while in a special rendering mode "
-			"(Multi-Class, Fiber Length/Orientation Distribution). "
-			"Please click on a class first!");
-		return;
-	}
 	vtkIdTypeArray* pcSelection = pcChart->GetPlot(0)->GetSelection();
 	int CountObject = pcSelection->GetNumberOfTuples();
 	if (CountObject <= 0)
 	{
 		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
+		return;
+	}
+	if (!classRendering)
+	{
+		QMessageBox::warning(this, "FeatureScout", "Cannot add a class while in a special rendering mode "
+			"(Multi-Class, Fiber Length/Orientation Distribution). "
+			"Please click on a class first!");
 		return;
 	}
 	// class name and color
@@ -2882,15 +2886,14 @@ void dlg_FeatureScout::ClassDeleteButton()
 	this->setPCChartData();
 	this->calculateElementTable();
 	this->initElementTableModel();
-
 	this->SingleRendering();
-	
 	if (!classRendering)  // special rendering was enabled before
 	{
 		classRendering = true;
 		// reset color in SPLOM
 		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
 		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+		m_splom->enableSelection(true);
 	}
 }
 
@@ -3228,6 +3231,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		// reset color in SPLOM
 		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
 		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+		m_splom->enableSelection(true);
 	}
 	if (classID != -1)
 		m_splom->setFilter(classID);
@@ -4259,7 +4263,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	iovPP->colorMapSelection->hide();
 	if (this->filterID == iAFeatureScoutObjectType::Voids)
 		iovPP->hide();
-	connect(iovPP->comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderingOrientation()));
+	connect(iovPP->comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
 
 	if (visualization == iACsvConfig::UseVolume)
 		activeChild->getImagePropertyDlg()->hide();
@@ -4288,12 +4292,12 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 		break;
 
 	case 4:			// probability Rendering
-		this->RenderingMeanObject();
+		this->RenderMeanObject();
 		this->classRendering = false;
 		break;
 
 	case 5:			// orientation Rendering
-		this->RenderingOrientation();
+		this->RenderOrientation();
 		this->classRendering = false;
 		break;
 
@@ -4307,7 +4311,7 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 		break;
 
 	case 7:
-		this->RenderingFLD();
+		this->RenderFiberLengthDistribution();
 		this->classRendering = false;
 		break;
 	}

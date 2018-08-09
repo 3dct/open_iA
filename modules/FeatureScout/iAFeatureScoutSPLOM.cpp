@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAFeatureScoutSPLOM.h"
 
+#include "charts/iAScatterPlot.h"
 #include "charts/iAQSplom.h"
 #include "charts/iASPLOMData.h"
 #include "iALookupTable.h"
@@ -62,6 +63,7 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	if (matrix)
 		delete matrix;
 	matrix = new iAQSplom();
+	matrix->setSelectionMode(iAScatterPlot::Rectangle);
 	auto spInput = createSPLOMData(csvTable);
 	container->setWidget(matrix);
 	matrix->setData(spInput);
@@ -96,7 +98,9 @@ void iAFeatureScoutSPLOM::setFilter(int classID)
 	if (classID == -1)
 		matrix->resetFilter();
 	else
+	{
 		matrix->setFilter(matrix->data()->numParams() - 1, classID);
+	}
 	matrix->update();
 }
 
@@ -172,4 +176,10 @@ bool iAFeatureScoutSPLOM::isShown() const
 void iAFeatureScoutSPLOM::clearSelection()
 {
 	matrix->clearSelection();
+}
+
+void iAFeatureScoutSPLOM::enableSelection(bool enable)
+{
+	matrix->clearSelection();
+	matrix->enableSelection(enable);
 }
