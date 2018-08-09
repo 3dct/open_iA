@@ -820,7 +820,6 @@ void dlg_FeatureScout::MultiClassRendering()
 			SetPolyPointColor(objID, colorList.at(classID));
 		}
 		UpdatePolyMapper();
-		activeChild->updateViews();
 		return;
 	}
 	double backAlpha = 0.00005;
@@ -1113,7 +1112,6 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 			}
 		}
 		UpdatePolyMapper();
-		activeChild->updateViews();
 		return;
 	}
 
@@ -2187,6 +2185,13 @@ void dlg_FeatureScout::RenderingFLD()
 
 void dlg_FeatureScout::ClassAddButton()
 {
+	if (!classRendering)
+	{
+		QMessageBox::warning(this, "FeatureScout", "Cannot add a class while in a special rendering mode "
+			"(Multi-Class, Fiber Length/Orientation Distribution). "
+			"Please click on a class first!");
+		return;
+	}
 	vtkIdTypeArray* pcSelection = pcChart->GetPlot(0)->GetSelection();
 	int CountObject = pcSelection->GetNumberOfTuples();
 	if (CountObject <= 0)
@@ -2879,6 +2884,14 @@ void dlg_FeatureScout::ClassDeleteButton()
 	this->initElementTableModel();
 
 	this->SingleRendering();
+	
+	if (!classRendering)  // special rendering was enabled before
+	{
+		classRendering = true;
+		// reset color in SPLOM
+		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
+		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+	}
 }
 
 void dlg_FeatureScout::showScatterPlot()
@@ -3120,6 +3133,8 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 			this->SingleRendering();
 			m_splom->clearSelection();
 			m_splom->setFilter(classID);
+			vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
+			m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
 		}
 	}
 }
@@ -3157,11 +3172,11 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		QMessageBox::information(this, "FeatureScout", "This class contains no object, please make another selection or delete the class." );
 		return;
 	}
-	// for first level class //has children = class
+	
 	int classID = -1;
-	if ( item->hasChildren() )
+	if ( item->hasChildren() )  // has children => a class was selected
 	{
-		if ( this->activeClassItem != item )
+		if ( this->activeClassItem != item || !classRendering)
 		{
 			classID = item->index().row();
 			this->setActiveClassItem( item );
@@ -3172,17 +3187,11 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			this->initElementTableModel();
 			m_splom->clearSelection();
 		}
-		if ( !classRendering )
-		{
-			classRendering = true;
-			this->SingleRendering();
-			this->initElementTableModel();
-		}
 	}
-	else // for single object selection
+	else // has no children => single object selected
 	{
 		// update ParallelCoordinates
-		if ( item->parent() != this->activeClassItem )
+		if ( item->parent() != this->activeClassItem || !classRendering )
 		{
 			classID = item->parent()->index().row();
 			this->setActiveClassItem( item->parent() );
@@ -3212,6 +3221,13 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		std::vector<size_t> selection;
 		selection.push_back(sID);
 		m_splom->setSelection(selection);
+	}
+	if (!classRendering)  // special rendering was enabled before
+	{
+		classRendering = true;
+		// reset color in SPLOM
+		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
+		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
 	}
 	if (classID != -1)
 		m_splom->setFilter(classID);
