@@ -42,6 +42,7 @@ public:
 	const std::vector<std::vector<double>> & data() const; //!< Get constant ref. to the lists containing raw data points.
 	const std::vector<double> & paramData(size_t paramIndex) const; //!< Get constant ref. to the list containing raw data points of a given parameter (index).
 	QString parameterName(size_t paramIndex) const;   //!< Get parameter name by its index.
+	size_t paramIndex(QString const & paramName) const; //!< Get the index of a specified parameter name.
 	size_t numParams() const;                         //!< Get number of data point parameters.
 	size_t numPoints() const;                         //!< Get number of data points.
 	bool isInverted(size_t paramIndex);               //!< Get whether the axis of a parameter should be inverted in the scatter plots.

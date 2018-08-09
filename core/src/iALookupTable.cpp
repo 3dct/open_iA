@@ -135,7 +135,7 @@ void iALookupTable::setRange(double from_val, double to_val)
 	m_rangeLen = m_range[1] - m_range[0];
 }
 
-void iALookupTable::setRange(double * range)
+void iALookupTable::setRange(double const * range)
 {
 	setRange(range[0], range[1]);
 }

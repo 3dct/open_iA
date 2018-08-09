@@ -66,7 +66,7 @@ public:
 	/* Setters/Getters */
 	const double * getRange() const;                //!< Get the mapped scalar range.
 	void setRange(double from_val, double to_val);  //!< Set the mapped scalar range.
-	void setRange(double * range);                  //!< Set the mapped scalar range.
+	void setRange(double const * range);            //!< Set the mapped scalar range.
 	bool initialized() const;                       //!< Check if the table has data (initialized).
 
 protected:
