@@ -25,18 +25,16 @@
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iACsvIO.h"
-#include "iAMeanObjectTFView.h"
+#include "iAFeatureScoutSPLOM.h"
 #include "iAFeatureScoutObjectType.h"
+#include "iAMeanObjectTFView.h"
 
 #include "charts/iADiagramFctWidget.h"
-#include "charts/iAQSplom.h"
-#include "charts/iASPLOMData.h"
 #include "dlg_commoninput.h"
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
-#include "iALookupTable.h"
 #include "iAmat4.h"
 #include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"
@@ -182,6 +180,7 @@ namespace
 	const int TransparentAlpha = 32;
 	const size_t NoPointIdx = std::numeric_limits<size_t>::max();
 	QColor SelectedColor(255, 0, 0, 255);
+	QColor StandardSPLOMDotColor(128, 128, 128, 255);
 }
 
 typedef void( *ColormapFuncPtr )( const double normal[3], double color_out[3] );
@@ -211,7 +210,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	iovPC(nullptr),
 	iovDV(nullptr),
 	iovMO(nullptr),
-	matrix(nullptr),
+	m_splom(new iAFeatureScoutSPLOM()),
 	sourcePath( parent->currentFile() ),
 	m_columnMapping(columnMapping)
 {
@@ -367,13 +366,12 @@ dlg_FeatureScout::~dlg_FeatureScout()
 		delete classTreeModel;
 		classTreeModel = 0;
 	}
-	delete matrix;
 }
 
 void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long,
 														 void * client_data, void *, vtkCommand * command )
 {
-	iAQSplom::SelectionType selectedIndices;
+	std::vector<size_t> selectedIndices;
 	vtkSmartPointer<vtkIdTypeArray> DataSelection = this->pcChart->GetPlot(0)->GetSelection();
 #if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 	int countSelection = DataSelection->GetNumberOfValues();
@@ -385,8 +383,7 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long
 		size_t objID = DataSelection->GetVariantValue(idx).ToUnsignedLongLong();
 		selectedIndices.push_back(objID);
 	}
-	if ( matrix )
-		matrix->setFilteredSelection(selectedIndices);
+	m_splom->setSelection(selectedIndices);
 	RenderSelection(selectedIndices);
 }
 
@@ -422,7 +419,7 @@ void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
 		int i = item->index().row();
 		columnVisibility[i] = (item->checkState() == Qt::Checked);
 		updatePCColumnVisibility();
-		updateSPColumnVisibility();
+		m_splom->updateColumnVisibility(columnVisibility);
 	}
 }
 
@@ -783,17 +780,7 @@ void dlg_FeatureScout::MultiClassRendering()
 		return;
 
 	double alpha = this->calculateOpacity(rootItem);
-	// color points according to class color:
-	if (matrix)
-	{
-		matrix->resetFilter();
-		iALookupTable lookupTable;
-		lookupTable.allocate(classCount);
-		lookupTable.setRange(0, classCount-1);
-		for (size_t c = 0; c < classCount; ++c)
-			lookupTable.setColor(c, colorList.at(c));
-		matrix->setLookupTable(lookupTable, csvTable->GetColumnName(csvTable->GetNumberOfColumns() - 1));
-	}
+	m_splom->multiClassRendering(colorList);
 	// update lookup table in PC View
 	this->updateLookupTable(alpha);
 	this->setPCChartData(true);
@@ -2177,7 +2164,8 @@ void dlg_FeatureScout::RenderingFLD()
 
 void dlg_FeatureScout::ClassAddButton()
 {
-	int CountObject = pcChart->GetPlot( 0 )->GetSelection()->GetNumberOfTuples();
+	vtkIdTypeArray* pcSelection = pcChart->GetPlot(0)->GetSelection();
+	int CountObject = pcSelection->GetNumberOfTuples();
 	if (CountObject <= 0)
 	{
 		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
@@ -2204,7 +2192,7 @@ void dlg_FeatureScout::ClassAddButton()
 	QList<QStandardItem *> firstLevelItem = prepareRow( cText, QString( "%1" ).arg( CountObject ), QString::number( percent, 'f', 1 ) );
 	firstLevelItem.first()->setData( cColor, Qt::DecorationRole );
 
-	int ClassID = rootItem->rowCount();
+	int classID = rootItem->rowCount();
 	int objID = 0;
 	QList<int> kIdx; // list to regist the selected index of object IDs in activeClassItem
 
@@ -2212,11 +2200,15 @@ void dlg_FeatureScout::ClassAddButton()
 	for ( int i = 0; i < CountObject; i++ )
 	{
 		// get objID from item->text()
-		vtkVariant v = pcChart->GetPlot( 0 )->GetSelection()->GetVariantValue( i );
+		vtkVariant v = pcSelection->GetVariantValue( i );
 		objID = v.ToInt() + 1;	//fibre index starting at 1 not at 0
 		objID = this->activeClassItem->child( v.ToInt() )->text().toInt();
 
-		if ( !kIdx.contains( v.ToInt() ) )
+		if ( kIdx.contains(v.ToInt()) )
+		{
+			DEBUG_LOG(QString("Tried to add objID=%1, v=%2 to class which is already contained in other class!").arg(objID).arg(v.ToInt()));
+		}
+		else
 		{
 			kIdx.prepend( v.ToInt() );
 
@@ -2225,14 +2217,9 @@ void dlg_FeatureScout::ClassAddButton()
 			item = new QStandardItem( str );
 			firstLevelItem.first()->appendRow( item );
 
-			// update Class_ID column, prepare values for LookupTable
-			this->csvTable->SetValue( objID - 1, elementsCount - 1, ClassID );
-			if (matrix)
-				matrix->data()->data()[elementsCount - 1][objID - 1] = ClassID;
+			this->csvTable->SetValue( objID - 1, elementsCount - 1, classID ); // update Class_ID column in csvTable
 		}
 	}
-	if (matrix)
-		matrix->paramChanged(elementsCount-1);
 
 	// a simple check of the selections
 	if ( kIdx.isEmpty() )
@@ -2246,6 +2233,7 @@ void dlg_FeatureScout::ClassAddButton()
 		QMessageBox::warning(this, "FeatureScout", "Selection Error, please make a new selection." );
 		return;
 	}
+	m_splom->classAdded(classID);
 
 	// append the new class to class tree
 	rootItem->appendRow( firstLevelItem );
@@ -2274,48 +2262,6 @@ void dlg_FeatureScout::ClassAddButton()
 
 	this->updatePolarPlotColorScalar(chartTable);
 	this->SingleRendering();
-
-	if ( matrix )
-	{
-		matrix->setFilter((int)chartTable->GetNumberOfColumns() - 1, ClassID);
-		matrix->clearSelection();
-		matrix->update();
-	}
-}
-
-QSharedPointer<iASPLOMData> prepareSPLOMData(vtkSmartPointer<vtkTable> table)
-{
-	QSharedPointer<iASPLOMData> result(new iASPLOMData());
-	std::vector<QString> paramNames;
-	for (vtkIdType col = 0; col < table->GetNumberOfColumns(); ++col)
-		paramNames.push_back(table->GetColumnName(col));
-	result->setParameterNames(paramNames);
-	return result;
-}
-
-QSharedPointer<iASPLOMData> createSPLOMData(vtkSmartPointer<vtkTable> table)
-{
-	auto result = prepareSPLOMData(table);
-	for (vtkIdType row = 0; row < table->GetNumberOfRows(); ++row)
-		for (vtkIdType col = 0; col < table->GetNumberOfColumns(); ++col)
-		{
-			double value = table->GetValue(row, col).ToDouble();
-			result->data()[col].push_back(value);
-		}
-	return result;
-}
-
-void dlg_FeatureScout::spmApplyColor(QColor const & color)
-{
-	double range[2];
-	vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
-	mmr->GetRange(range);
-	iALookupTable lut;
-	lut.setRange(range);
-	lut.allocate(2);
-	for (size_t i = 0; i < 2; i++)
-		lut.setColor(i, color);
-	this->matrix->setLookupTable(lut, csvTable->GetColumnName(0));
 }
 
 void dlg_FeatureScout::writeWisetex(QXmlStreamWriter *writer)
@@ -2782,8 +2728,7 @@ void dlg_FeatureScout::ClassLoadButton()
 
 				// update Class_ID number in csvTable;
 				this->csvTable->SetValue( label.toInt() - 1, this->elementsCount - 1, idxClass - 1 );
-				if (matrix)
-					matrix->data()->data()[this->elementsCount - 1][label.toInt() - 1] = idxClass - 1;
+				m_splom->changeClass(label.toInt() - 1, idxClass - 1);
 			}
 			else if ( reader.name() == ClassTag )
 			{
@@ -2802,8 +2747,7 @@ void dlg_FeatureScout::ClassLoadButton()
 			}
 		}
 	}
-	if (matrix)
-		matrix->paramChanged(elementsCount - 1);
+	m_splom->classesChanged();
 
 	//upadate TableList
 	if ( rootItem->rowCount() == idxClass )
@@ -2818,13 +2762,13 @@ void dlg_FeatureScout::ClassLoadButton()
 	}
 	reader.clear();
 	readFile.close();
-	if ( matrix )
+	if ( m_splom->isShown() )
 	{
 		// reinitialize spm
 		activeChild->removeDockWidget( iovSPM );
 		delete iovSPM;
 		iovSPM = nullptr;
-		ScatterPlotButton();
+		showScatterPlot();
 	}
 }
 
@@ -2852,14 +2796,10 @@ void dlg_FeatureScout::ClassDeleteButton()
 		int labelID = this->activeClassItem->child( j )->text().toInt();
 		// update Class_ID column, prepare values for LookupTable
 		this->csvTable->SetValue(labelID - 1, elementsCount - 1, 0);
-		if (matrix)
-			matrix->data()->data()[elementsCount - 1][labelID - 1] = 0;
 		// append the deleted object IDs to list
 		list.append(labelID);
 	}
-	if (matrix)
-		matrix->paramChanged(elementsCount - 1);
-
+	m_splom->classDeleted(deleteClassID);
 	// sort the new stamm list
 	qSort( list );
 	// give the values from list to stammitem
@@ -2891,8 +2831,6 @@ void dlg_FeatureScout::ClassDeleteButton()
 			{
 				int labelID = item->child(j, 0)->text().toInt();
 				this->csvTable->SetValue(labelID - 1, elementsCount - 1, classID);
-				if (matrix)
-					matrix->data()->data()[elementsCount - 1][labelID - 1] = classID;
 			}
 			for (int k = 0; k < tableList[classID]->GetNumberOfRows(); ++k)
 			{
@@ -2902,8 +2840,6 @@ void dlg_FeatureScout::ClassDeleteButton()
 		}
 	}
 
-
-	
 	//vlt hier mal die csv Table ausgeben
 
 	// update statistics for activeClassItem
@@ -2920,19 +2856,9 @@ void dlg_FeatureScout::ClassDeleteButton()
 	this->initElementTableModel();
 
 	this->SingleRendering();
-	if ( matrix )
-	{   // set SPM to filter for classID = 0 so that unclassified class is selected
-		matrix->setFilter((int)chartTable->GetNumberOfColumns() - 1, 0);
-		matrix->clearSelection();
-		matrix->update();
-	}
-
-
-	QString fPath = "C:/Users/p41883/Desktop/"; 
-	this->PrintVTKTable(csvTable, true, fPath, nullptr);
 }
 
-void dlg_FeatureScout::ScatterPlotButton()
+void dlg_FeatureScout::showScatterPlot()
 {
 	if (iovSPM)
 		return;
@@ -2951,32 +2877,20 @@ void dlg_FeatureScout::ScatterPlotButton()
 		iovSPM->show();
 		iovSPM->raise();
 	}
-	assert( !matrix );
-	matrix = new iAQSplom();
-	auto spInput = createSPLOMData(csvTable);
-	iovSPM->setWidget(matrix);
-	matrix->setData(spInput);
-	spmApplyColor(colorList.at(0));
-	matrix->setSelectionColor(QColor(255, 40, 0, 1));
-	updateSPColumnVisibility();
-	matrix->showDefaultMaxizimedPlot();
-	connect(matrix, &iAQSplom::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
-}
-
-void dlg_FeatureScout::updateSPColumnVisibility()
-{
-	if (matrix)
-		matrix->setParameterVisibility( columnVisibility );
+	m_splom->initScatterPlot(iovSPM, csvTable);
+	m_splom->updateColumnVisibility(columnVisibility);
+	vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
+	m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+	connect(m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
 }
 
 void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 {	// If scatter plot selection changes, Parallel Coordinates gets informed
-	assert(matrix);
 	RenderSelection(selInds);
-	if (csvTable->GetNumberOfRows() > 5000)
-		return;
 	QCoreApplication::processEvents();
-	auto sortedSelInds = matrix->getFilteredSelection();
+	if (csvTable->GetNumberOfRows() > 10000)
+		return;
+	auto sortedSelInds = m_splom->getFilteredSelection();
 	int countSelection = sortedSelInds.size();
 	vtkSmartPointer<vtkIdTypeArray> vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
 	vtk_selInd->Allocate(countSelection);
@@ -3029,10 +2943,6 @@ void dlg_FeatureScout::spPopupSelection( QAction *selection )
 	// Function to handle the scatter plot matrix popup menu selection.
 	if ( selection->text() == "Add Class" ) { ClassAddButton(); }
 	// TODO SPM
-	else if ( selection->text() == "Histograms On/Off" )
-	{
-		//matrix->ShowHideHistograms();
-	}
 	else if ( selection->text() == "Subtraction Selection Mode" )
 	{
 		//matrix->SetSelectionMode( vtkContextScene::SELECTION_SUBTRACTION );
@@ -3043,16 +2953,6 @@ void dlg_FeatureScout::spPopupSelection( QAction *selection )
 		//matrix->SetSelectionMode( vtkContextScene::SELECTION_DEFAULT );
 		selection->setText( "Subtraction Selection Mode" );
 	}
-	else if ( selection->text() == "Polygon Selection Tool" )
-	{
-		//matrix->setPolygonSelectionOn();
-		selection->setText( "Rectangle Selection Tool" );
-	}
-	else if ( selection->text() == "Rectangle Selection Tool" )
-	{
-		//matrix->setRectangleSelectionOn();
-		selection->setText( "Polygon Selection Tool" );
-	}
 	else if ( selection->text() == "Suggest Classification" )
 	{
 		bool ok;
@@ -3060,7 +2960,6 @@ void dlg_FeatureScout::spPopupSelection( QAction *selection )
 
 		if ( ok )
 		{
-
 			//matrix->NumberOfClusters = i;
 			//matrix->SetkMeansMode( true );
 			selection->setText( "Accept Classification" );
@@ -3075,8 +2974,6 @@ void dlg_FeatureScout::spPopupSelection( QAction *selection )
 
 void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 {
-	if (!matrix)
-		return;
 	QStandardItem *motherClassItem = this->activeClassItem;
 
 	for ( int i = 1; i <= NbOfClusters; ++i )
@@ -3184,8 +3081,9 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 
 	if ( item->hasChildren() )
 	{
+		int classID = index.row();
 		bool ok;
-		QColor old_cColor = this->colorList.at( index.row() );
+		QColor old_cColor = this->colorList.at( classID );
 		QString old_cText = item->text();
 		QColor new_cColor = old_cColor;
 		QString new_cText = old_cText;
@@ -3197,13 +3095,8 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 			item->setText( new_cText );
 			item->setData( new_cColor, Qt::DecorationRole );
 			this->SingleRendering();
-			if ( matrix )
-			{   // Update Scatter Plot Matrix when another class than the active is selected.
-				matrix->clearSelection();
-				int classID = index.row();
-				spmApplyColor( colorList.at(classID) );
-				matrix->setFilter((int)chartTable->GetNumberOfColumns() - 1, classID);
-			}
+			m_splom->clearSelection();
+			m_splom->setFilter(classID);
 		}
 	}
 }
@@ -3251,17 +3144,10 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			this->setActiveClassItem( item );
 			this->calculateElementTable();
 			this->setPCChartData();
-
-			//disable rendering
 			this->updatePolarPlotColorScalar(chartTable);
 			this->SingleRendering();
 			this->initElementTableModel();
-
-			// Update Scatter Plot Matrix when another class than the active is selected.
-			if ( matrix )
-			{
-				matrix->clearSelection();
-			}
+			m_splom->clearSelection();
 		}
 		if ( !classRendering )
 		{
@@ -3300,21 +3186,12 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		this->SingleRendering(oID);
 		elementTableView->update();
 
-		if ( matrix )
-		{
-			// Update Scatter Plot Matrix when another class than the active is selected.
-			//set ID selection im feature scout
-			matrix->clearSelection();
-			iAQSplom::SelectionType selInd;
-			selInd.push_back(sID);
-			matrix->setFilteredSelection(selInd);
-		}
+		std::vector<size_t> selection;
+		selection.push_back(sID);
+		m_splom->setSelection(selection);
 	}
-	if (matrix && classID != -1)
-	{
-		matrix->setFilter((int)chartTable->GetNumberOfColumns() - 1, classID);
-		matrix->update();
-	}
+	if (classID != -1)
+		m_splom->setFilter(classID);
 }
 
 double dlg_FeatureScout::calculateOpacity( QStandardItem *item )
@@ -4387,7 +4264,7 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 			QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
 			return;
 		}
-		this->ScatterPlotButton();
+		showScatterPlot();
 		break;
 
 	case 7:

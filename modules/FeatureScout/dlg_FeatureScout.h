@@ -38,6 +38,7 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
 
 class iABlobCluster;
 class iABlobManager;
+class iAFeatureScoutSPLOM;
 class iAMeanObjectTFView;
 class iAModalityTransfer;
 class iAQSplom;
@@ -137,6 +138,7 @@ private slots:
 	void updateStlProgress(int i);
 	void updateMarProgress(int i);
 private:
+	void showScatterPlot();
 	void setupModel();
 	void setupViews();
 	void setupConnections();  //!< define signal and slots connections
@@ -154,11 +156,6 @@ private:
 	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
-	//! @}
-	//! @{ scatterplot-related methods:
-	void updateSPColumnVisibility();
-	void ScatterPlotButton();
-	void spmApplyColor(QColor const & color);                         //!< set SPM dot color to given color
 	//! @}
 	//! @{ parallel coordinate chart related methods:
 	void setPCChartData(bool lookupTable = false);
@@ -261,8 +258,6 @@ private:
 
 	dlg_blobVisualization *blobVisDialog;
 
-	iAQSplom *matrix;
-
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	QVTKOpenGLWidget *pcWidget, *polarPlot, *meanObjectWidget;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_meanObjectRenderWindow;
@@ -295,4 +290,6 @@ private:
 
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
+
+	QSharedPointer<iAFeatureScoutSPLOM> m_splom;
 };
