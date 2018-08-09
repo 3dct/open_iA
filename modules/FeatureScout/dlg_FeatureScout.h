@@ -202,6 +202,8 @@ private:
 	void PrintChartTable(const QString &outputPath); //! < Print current chartTable
 	void PrintCSVTable(const QString &outputPath);	//! <Print current CSVTable
 
+	void PrintTableList(const QList<vtkSmartPointer<vtkTable>> &OutTableList, QString &outputPath) const;
+
 	float calculateAverage(vtkDataArray* arr); //!< calculate the average value of a 1D array
 
 	// input csv table with all objects, column names updated for vtk rendering problem
