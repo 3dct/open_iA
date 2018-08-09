@@ -823,6 +823,10 @@ void dlg_FeatureScout::MultiClassRendering()
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
 	this->pcChart->SetSize(pcChart->GetSize());
 
+	this->pcChart->GetPlot(0)->SetOpacity(0.8);
+	pcView->Render();
+	pcView->GetInteractor()->Start();
+
 	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
 		for (size_t objID =0; objID < csvTable->GetNumberOfRows(); ++objID)
