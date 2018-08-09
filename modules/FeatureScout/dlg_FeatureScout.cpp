@@ -2305,48 +2305,20 @@ QSharedPointer<iASPLOMData> createSPLOMData(vtkSmartPointer<vtkTable> table)
 	return result;
 }
 
-void dlg_FeatureScout::spmApplyColorMap(const int classIdx)
-{
-	double rgba[4];
-	rgba[0] = colorList.at(classIdx).redF();
-	rgba[1] = colorList.at(classIdx).greenF();
-	rgba[2] = colorList.at(classIdx).blueF();
-	const double alpha = 1;
-	rgba[3] = alpha;
-	spmApplyGeneralColorMap(rgba);
-}
-
-void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4])
+void dlg_FeatureScout::spmApplyColor(QColor const & color)
 {
 	double range[2];
 	vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
 	mmr->GetRange(range);
-	spmApplyGeneralColorMap(rgba, range);
-}
+	iALookupTable lut;
+	lut.setRange(range);
+	lut.allocate(2);
 
-void dlg_FeatureScout::spmApplyGeneralColorMap(const double rgba[4], double range[2])
-{
-	this->m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
-	this->m_pointLUT->SetRange(range);
-	this->m_pointLUT->SetTableRange(range);
-	this->m_pointLUT->SetNumberOfTableValues(2);
-
-	//set color for scatter plot and Renderer
 	for (vtkIdType i = 0; i < 2; i++)
 	{
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
-		this->m_pointLUT->SetTableValue(i, rgba);
-#else
-		double nonConstRGBA[4];
-		for (int i = 0; i < 4; ++i)
-			nonConstRGBA[i] = rgba[i];
-		this->m_pointLUT->SetTableValue(i, nonConstRGBA);
-#endif
+		lut.setColor(i, color);
 	}
-	this->m_pointLUT->Build();
-
-	//is this still required?
-	this->matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
+	this->matrix->setLookupTable(lut, csvTable->GetColumnName(0));
 }
 
 void dlg_FeatureScout::writeWisetex(QXmlStreamWriter *writer)
@@ -2987,41 +2959,17 @@ void dlg_FeatureScout::ScatterPlotButton()
 	auto spInput = createSPLOMData(csvTable);
 	iovSPM->setWidget(matrix);
 	matrix->setData(spInput);
-
-	double range[2];
-	// min max of first column (ID) for color transformation
-	vtkDataArray *mmr = vtkDataArray::SafeDownCast(chartTable->GetColumn(0));
-	mmr->GetRange(range);
-	m_pointLUT = vtkSmartPointer<vtkLookupTable>::New();
-	m_pointLUT->SetRange(range);
-	m_pointLUT->SetTableRange(range);
-	m_pointLUT->SetNumberOfTableValues(2);
-
-	//set color for scatter plot and Renderer
-	for (vtkIdType i = 0; i < 2; i++)
-	{
-		double rgba[4] = { 0.5, 0.5, 0.5, 1.0 };
-		m_pointLUT->SetTableValue(i, rgba);
-	}
-	m_pointLUT->Build();
-	matrix->setLookupTable(m_pointLUT, csvTable->GetColumnName(0));
+	spmApplyColor(colorList.at(0));
 	matrix->setSelectionColor(QColor(255, 40, 0, 1));
-	updateSPColumnVisibilityWithVis();
+	updateSPColumnVisibility();
 	matrix->showDefaultMaxizimedPlot();
 	connect(matrix, &iAQSplom::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
 }
 
 void dlg_FeatureScout::updateSPColumnVisibility()
 {
-	if (!matrix)
-		return;
-	matrix->setParameterVisibility( columnVisibility );
-}
-
-void dlg_FeatureScout::updateSPColumnVisibilityWithVis()
-{
-	matrix->showAllPlots(false);
-	updateSPColumnVisibility();
+	if (matrix)
+		matrix->setParameterVisibility( columnVisibility );
 }
 
 void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
@@ -3255,8 +3203,8 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 			if ( matrix )
 			{   // Update Scatter Plot Matrix when another class than the active is selected.
 				matrix->clearSelection();
-				spmApplyColorMap(/*colorIdx=*/ index.row());
-				int classID = item->index().row();
+				int classID = index.row();
+				spmApplyColor( colorList.at(classID) );
 				matrix->setFilter((int)chartTable->GetNumberOfColumns() - 1, classID);
 			}
 		}

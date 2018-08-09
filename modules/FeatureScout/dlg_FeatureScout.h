@@ -157,11 +157,8 @@ private:
 	//! @}
 	//! @{ scatterplot-related methods:
 	void updateSPColumnVisibility();
-	void updateSPColumnVisibilityWithVis();
 	void ScatterPlotButton();
-	void spmApplyColorMap(const int classIdx);                         //!< set SPM dot color according to given class index
-	void spmApplyGeneralColorMap(const double rgba[4], double range[2]);
-	void spmApplyGeneralColorMap(const double rgba[4]);
+	void spmApplyColor(QColor const & color);                         //!< set SPM dot color to given color
 	//! @}
 	//! @{ parallel coordinate chart related methods:
 	void setPCChartData(bool lookupTable = false);
@@ -193,8 +190,8 @@ private:
 	MdiChild *activeChild;
 	vtkPiecewiseFunction     *oTF;
 	vtkColorTransferFunction *cTF;
-	int elementsCount;		//!< Number of elements(=columns) in csv inputTable
-	int objectsCount;		//!< Number of objects in the specimen
+	int elementsCount;      //!< Number of elements(=columns) in csv inputTable
+	int objectsCount;       //!< Number of objects in the specimen
 	iAFeatureScoutObjectType filterID;
 
 	bool draw3DPolarPlot;
@@ -293,7 +290,6 @@ private:
 	iAMeanObjectTFView* m_motfView;
 	moData m_MOData;
 
-	vtkSmartPointer<vtkLookupTable> m_pointLUT;
 	QMap<uint, uint> m_columnMapping;
 	float m_pcLineWidth;   //!< width of line in Parallel Coordinates
 
