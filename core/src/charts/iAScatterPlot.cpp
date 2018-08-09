@@ -918,13 +918,9 @@ void iAScatterPlot::fillVBO()
 	int elSz = 7;
 	GLfloat * buffer = new GLfloat[vcount + ccount];
 	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
-	{	
-		//Abfrage nach classenId //setFilter(colIdx, value) nicht gleich der aktuellen class id, dann continue
+	{
 		if (!matchesFilter(i))
 			continue;
-		
-		//end MS
-
 		double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[i] );
 		double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[i] );
 		buffer[elSz * i + 0] = tx;
