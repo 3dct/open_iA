@@ -22,6 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
+#include <cstddef>    // for size_t
 #include <vector>
 
 class QColor;
@@ -73,4 +74,5 @@ protected:
 	std::vector<double> m_data;             //!< lookup table raw color data, each color is 4 doubles (RGBA)
 	double m_range[2];                      //!< scalar range mapped by the lookup table
 	double m_rangeLen;                      //!< length of the total scalar range that is mapped by the lookup table
+	size_t m_numColors;                     //!< number of colors stored in the lookup table
 };
