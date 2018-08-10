@@ -493,15 +493,17 @@ void iAQSplom::setFilteredSelection(iAQSplom::SelectionType const & filteredSelI
 	size_t curFilteredIdx = 0,
 		curSelIdx = 0;
 	m_selInds.clear();
-	const double Epsilon = 1e-10;
 	for (size_t curIdx = 0; curIdx < m_splomData->numPoints(); ++curIdx)
 	{
-		if (m_splomData->matchesFilter(curIdx))
+		if (!m_splomData->matchesFilter(curIdx))
 			continue;
 		if (curSelIdx >= sortedFilteredSelInds.size())
 			break;
 		if (curFilteredIdx == sortedFilteredSelInds[curSelIdx])
+		{
 			m_selInds.push_back(curIdx);
+			++curSelIdx;
+		}
 		++curFilteredIdx;
 	}
 	update();
