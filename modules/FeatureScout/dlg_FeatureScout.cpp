@@ -395,9 +395,17 @@ std::vector<size_t> dlg_FeatureScout::getPCSelection()
 
 void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * , unsigned long, void *, void *, vtkCommand * )
 {
-	auto selectedIndices = getPCSelection();
-	m_splom->setSelection(selectedIndices);
-	RenderSelection(selectedIndices);
+	auto classSelectionIndices = getPCSelection();
+	m_splom->setFilteredSelection(classSelectionIndices);
+	// map from incides inside the class to global indices:
+	std::vector<size_t> selectionIndices;
+	int classID = activeClassItem->index().row();
+	for (size_t filteredSelIdx : classSelectionIndices)
+	{
+		size_t labelID = tableList[classID]->GetValue(filteredSelIdx, 0).ToUnsignedLongLong();
+		selectionIndices.push_back(labelID - 1);
+	}
+	RenderSelection(selectionIndices);
 }
 
 void dlg_FeatureScout::setPCChartData( bool specialRendering )
@@ -2917,8 +2925,8 @@ void dlg_FeatureScout::showScatterPlot()
 		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
 		if (m_renderMode == rmSingleClass)
 		{
-			auto selectedIndices = getPCSelection();
-			m_splom->setSelection(selectedIndices);
+			auto filteredSelInds = getPCSelection();
+			m_splom->setFilteredSelection(filteredSelInds);
 			QStandardItem* item = activeClassItem;
 			if (item)
 			{
@@ -3212,14 +3220,14 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 
 		// update elementTableView
 		this->initElementTableModel( sID );
-		int oID = item->text().toInt();
-		this->SingleRendering(oID);
+		int objID = item->text().toInt() - 1;
+		this->SingleRendering(objID);
 		elementTableView->update();
 
 		// update SPLOM selection
-		std::vector<size_t> selection;
-		selection.push_back(sID);
-		m_splom->setSelection(selection);
+		std::vector<size_t> filteredSelInds;
+		filteredSelInds.push_back(sID);
+		m_splom->setFilteredSelection(filteredSelInds);
 	}
 	if (m_renderMode != rmSingleClass)  // special rendering was enabled before
 	{

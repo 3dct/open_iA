@@ -40,11 +40,11 @@ public:
 	iAFeatureScoutSPLOM();
 	~iAFeatureScoutSPLOM();
 	void initScatterPlot(QDockWidget* container, vtkTable* csvTable);  //!< initialize SPLOM and show in given container
-	void updateColumnVisibility(std::vector<bool> columnVisibility);   //!< update column visibility
+	void updateColumnVisibility(std::vector<bool> const & columnVisibility); //!< update column visibility
 	void setDotColor(QColor const & color, double const range[2]);     //!< set color for all SPLOM dots (TODO: move range calculations to iASplomData!)
 	void setFilter(int classID);                                       //!< specify a filter on class column
 	void multiClassRendering(QList<QColor> const & colors);            //!< colors each dot according to its class
-	void setSelection(std::vector<size_t> selection);                  //!< set selection in SPLOM
+	void setFilteredSelection(std::vector<size_t> const & selection);  //!< set filtered selection in SPLOM
 	void classAdded(int classID);                                      //!< notifies SPLOM that class was added of current selection
 	void classDeleted(int classID);                                    //!< notifies SPLOM that class was deleted
 	void changeClass(size_t objID, int classID);                       //!< set class of single object to given ID

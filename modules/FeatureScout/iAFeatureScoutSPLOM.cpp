@@ -87,7 +87,7 @@ void iAFeatureScoutSPLOM::multiClassRendering(QList<QColor> const & colors)
 	matrix->setLookupTable(lookupTable, matrix->data()->numParams()-1 );
 }
 
-void iAFeatureScoutSPLOM::updateColumnVisibility(std::vector<bool> columnVisibility)
+void iAFeatureScoutSPLOM::updateColumnVisibility(std::vector<bool> const & columnVisibility)
 {
 	if (matrix)
 		matrix->setParameterVisibility(columnVisibility);
@@ -116,7 +116,7 @@ void iAFeatureScoutSPLOM::setDotColor(QColor const & color, double const range[2
 	matrix->setLookupTable(lut, 0);
 }
 
-void iAFeatureScoutSPLOM::setSelection(std::vector<size_t> selection)
+void iAFeatureScoutSPLOM::setFilteredSelection(std::vector<size_t> const & selection)
 {
 	if (matrix && selectionEnabled)
 		matrix->setFilteredSelection(selection);
