@@ -211,10 +211,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	iovDV(nullptr),
 	iovMO(nullptr),
 	m_splom(new iAFeatureScoutSPLOM()),
-	sourcePath( parent->currentFile() ),
+	sourcePath( parent->getFilePath() ),
 	m_columnMapping(columnMapping)
 {
-	// TODO: sort input table by ID column? could speed up setSPMData
 	setupUi( this );
 	visualization = vis;
 	m_pcLineWidth = 0.1;
@@ -762,27 +761,16 @@ void dlg_FeatureScout::setupConnections()
 	connect( this->wisetex_save, SIGNAL( released() ), this, SLOT( WisetexSaveButton() ) );
 	connect( this->csv_dv, SIGNAL( released() ), this, SLOT( CsvDVSaveButton() ) );
 
-	// Element checkstate for visualizing Columns in PC view
-	// Define ranges for PC columns
 	connect( this->elementTableModel, SIGNAL( itemChanged( QStandardItem * ) ), this, SLOT( updatePCColumnValues( QStandardItem * ) ) );
 	connect( this->classTreeView, SIGNAL( clicked( QModelIndex ) ), this, SLOT( classClicked( QModelIndex ) ) );
 	connect( this->classTreeView, SIGNAL( activated( QModelIndex ) ), this, SLOT( classClicked( QModelIndex ) ) );
 	connect( this->classTreeView, SIGNAL( doubleClicked( QModelIndex ) ), this, SLOT( classDoubleClicked( QModelIndex ) ) );
-
-	// Creates signal from qVtkWidget on a selection changed event
-	// and sends it to the callback.
-	vtkEventQtSlotConnect *pcConnections = vtkEventQtSlotConnect::New();
-	pcConnections->Connect( pcChart,
-							vtkCommand::SelectionChangedEvent,
-							this,
-							SLOT( pcViewMouseButtonCallBack( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ), 0, 0.0, Qt::UniqueConnection );
 }
 
 void dlg_FeatureScout::MultiClassRendering()
 {
-	//Turns off FLD scalar bar updates polar plot view
-	if (m_scalarWidgetFLD != NULL)
-	{
+	if ( m_scalarWidgetFLD )
+	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar(chartTable);
 	}
@@ -1052,13 +1040,11 @@ void dlg_FeatureScout::SingleRendering( int idx )
 
 void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 {
-	//Turns off FLD scalar bar updates polar plot view
-	if ( m_scalarWidgetFLD != NULL )
-	{
+	if ( m_scalarWidgetFLD )
+	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar( chartTable );
 	}
-
 	this->orientationColorMapSelection->hide();
 	this->orientColormap->hide();
 
@@ -1687,9 +1673,7 @@ void dlg_FeatureScout::updateMOView()
 
 void dlg_FeatureScout::browseFolderDialog()
 {
-	QString dir = sourcePath;
-	dir.truncate( sourcePath.lastIndexOf( "/" ) );
-	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), dir, tr( "CSV Files (*.stl *.STL)" ) );
+	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), sourcePath, tr( "CSV Files (*.stl *.STL)" ) );
 	if ( filename.isEmpty() )
 		return;
 	iovMO->le_StlPath->setText( filename );
@@ -1852,9 +1836,8 @@ void dlg_FeatureScout::UpdatePolyMapper()
 
 void dlg_FeatureScout::RenderOrientation()
 {
-	//Turns off FLD scalar bar and updates polar plot view
-	if ( m_scalarWidgetFLD != NULL )
-	{
+	if ( m_scalarWidgetFLD )
+	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar( chartTable );
 	}
@@ -2409,7 +2392,6 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		QString columnName( this->elementTable->GetColumn( 0 )->GetVariantValue( rowList.at( i ) ).ToString().c_str() );
 		columnName.remove( "Â" );
 
-		inList.append( QString( "?Characteristic %1" ).arg( columnName ) );
 		inList.append( QString( "#HistoMin for %1" ).arg( columnName ) );
 		inList.append( QString( "#HistoMax for %1" ).arg( columnName ) );
 		inList.append( QString( "#HistoBinNbr for %1" ).arg( columnName ) );
@@ -3140,13 +3122,11 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 
 void dlg_FeatureScout::classClicked( const QModelIndex &index )
 {
-	//Turns off FLD scalar bar updates polar plot view
 	if ( m_scalarWidgetFLD )
-	{
+	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar( chartTable );
 	}
-
 	this->orientationColorMapSelection->hide();
 	this->orientColormap->hide();
 
