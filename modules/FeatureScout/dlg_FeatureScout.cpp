@@ -3190,21 +3190,30 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		return;
 	}
 	QStandardItem* classItem = item->hasChildren() ? item : item->parent();
-	if (classItem == activeClassItem && m_renderMode == rmSingleClass)
-		return;
-	int classID = classItem->index().row();
-	m_splom->setFilter(classID);
-	setActiveClassItem(classItem);
-	calculateElementTable();
-	setPCChartData();
-	updatePolarPlotColorScalar(chartTable);
-	if (item->hasChildren())  // has children => a class was selected
+	if (classItem != activeClassItem || m_renderMode != rmSingleClass)
 	{
-		SingleRendering();
-		initElementTableModel();
-		m_splom->clearSelection();
+		int classID = classItem->index().row();
+		m_splom->setFilter(classID);
+		setActiveClassItem(classItem);
+		calculateElementTable();
+		setPCChartData();
+		updatePolarPlotColorScalar(chartTable);
+		if (item->hasChildren())  // has children => a class was selected
+		{
+			SingleRendering();
+			initElementTableModel();
+			m_splom->clearSelection();
+		}
 	}
-	else // has no children => single object selected
+	if (m_renderMode != rmSingleClass)  // special rendering was enabled before
+	{
+		m_renderMode = rmSingleClass;
+		// reset color in SPLOM
+		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
+		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+		m_splom->enableSelection(true);
+	}
+	if (!item->hasChildren()) // has no children => single object selected
 	{
 		// update ParallelCoordinates view selection
 		int sID = item->index().row();
@@ -3220,7 +3229,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 
 		// update elementTableView
 		this->initElementTableModel( sID );
-		int objID = item->text().toInt() - 1;
+		int objID = item->text().toInt() - 1; // item text is labelID, object ID is labelID - 1
 		this->SingleRendering(objID);
 		elementTableView->update();
 
@@ -3228,14 +3237,6 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		std::vector<size_t> filteredSelInds;
 		filteredSelInds.push_back(sID);
 		m_splom->setFilteredSelection(filteredSelInds);
-	}
-	if (m_renderMode != rmSingleClass)  // special rendering was enabled before
-	{
-		m_renderMode = rmSingleClass;
-		// reset color in SPLOM
-		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
-		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
-		m_splom->enableSelection(true);
 	}
 }
 
