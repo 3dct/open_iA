@@ -3181,34 +3181,23 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		QMessageBox::information(this, "FeatureScout", "This class contains no object, please make another selection or delete the class." );
 		return;
 	}
-	
-	int classID = -1;
-	if ( item->hasChildren() )  // has children => a class was selected
+	QStandardItem* classItem = item->hasChildren() ? item : item->parent();
+	if (classItem == activeClassItem && m_renderMode == rmSingleClass)
+		return;
+	int classID = classItem->index().row();
+	m_splom->setFilter(classID);
+	setActiveClassItem(classItem);
+	calculateElementTable();
+	setPCChartData();
+	updatePolarPlotColorScalar(chartTable);
+	if (item->hasChildren())  // has children => a class was selected
 	{
-		if ( this->activeClassItem != item || m_renderMode != rmSingleClass)
-		{
-			classID = item->index().row();
-			this->setActiveClassItem( item );
-			this->calculateElementTable();
-			this->setPCChartData();
-			this->updatePolarPlotColorScalar(chartTable);
-			this->SingleRendering();
-			this->initElementTableModel();
-			m_splom->clearSelection();
-		}
+		SingleRendering();
+		initElementTableModel();
+		m_splom->clearSelection();
 	}
 	else // has no children => single object selected
 	{
-		// update ParallelCoordinates
-		if ( item->parent() != this->activeClassItem || m_renderMode != rmSingleClass)
-		{
-			classID = item->parent()->index().row();
-			this->setActiveClassItem( item->parent() );
-			this->calculateElementTable();
-			this->setPCChartData();
-			this->updatePolarPlotColorScalar(chartTable);
-		}
-
 		// update ParallelCoordinates view selection
 		int sID = item->index().row();
 
@@ -3227,6 +3216,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		this->SingleRendering(oID);
 		elementTableView->update();
 
+		// update SPLOM selection
 		std::vector<size_t> selection;
 		selection.push_back(sID);
 		m_splom->setSelection(selection);
@@ -3239,8 +3229,6 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
 		m_splom->enableSelection(true);
 	}
-	if (classID != -1)
-		m_splom->setFilter(classID);
 }
 
 double dlg_FeatureScout::calculateOpacity( QStandardItem *item )
