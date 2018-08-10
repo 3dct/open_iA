@@ -214,6 +214,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	csvTable( csvtbl ),
 	raycaster( parent->getRenderer() ),
 	elementTableModel(nullptr),
+	classTreeModel(new QStandardItemModel()),
 	iovSPM(nullptr),
 	iovPP(nullptr),
 	iovPC(nullptr),
@@ -362,18 +363,8 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 dlg_FeatureScout::~dlg_FeatureScout()
 {
 	delete blobManager;
-
-	if ( this->elementTableModel != 0 )
-	{
-		delete elementTableModel;
-		elementTableModel = 0;
-	}
-
-	if ( this->classTreeModel != 0 )
-	{
-		delete classTreeModel;
-		classTreeModel = 0;
-	}
+	delete elementTableModel;
+	delete classTreeModel;
 }
 
 std::vector<size_t> dlg_FeatureScout::getPCSelection()
@@ -471,7 +462,7 @@ void dlg_FeatureScout::setupModel()
 	elementTableModel->setHeaderData( 3, Qt::Horizontal, tr( "Average" ) );
 
 	// initialize checkboxes for the first column
-	for ( int i = 0; i < elementsCount; i++ )
+	for ( int i = 0; i < elementsCount-1; i++ )
 	{
 		Qt::CheckState checkState = (columnVisibility[i]) ? Qt::Checked : Qt::Unchecked;
 		elementTableModel->setData(elementTableModel->index(i, 0, QModelIndex()), checkState, Qt::CheckStateRole);
@@ -495,11 +486,8 @@ void dlg_FeatureScout::setupModel()
 void dlg_FeatureScout::setupViews()
 {
 	// declare element table model
-	elementTableModel = new QStandardItemModel( elementsCount, 4, this );
+	elementTableModel = new QStandardItemModel( elementsCount-1, 4, this );
 	elementTable = vtkSmartPointer<vtkTable>::New();
-
-	// declare class tree model
-	classTreeModel = new QStandardItemModel();
 
 	//init Distribution View
 	m_dvContextView = vtkSmartPointer<vtkContextView>::New();
@@ -596,7 +584,7 @@ void dlg_FeatureScout::initElementTableModel( int idx )
 		elementTableView->showColumn( 2 );
 		elementTableView->showColumn( 3 );
 
-		for ( int i = 0; i < elementsCount; i++ ) // number of rows
+		for ( int i = 0; i < elementsCount-1; i++ ) // number of rows
 		{
 			for ( int j = 0; j < 4; j++ )
 			{
@@ -628,7 +616,7 @@ void dlg_FeatureScout::initElementTableModel( int idx )
 		elementTableView->hideColumn( 2 );
 		elementTableView->hideColumn( 3 );
 
-		for ( int i = 0; i < elementsCount; i++ )
+		for ( int i = 0; i < elementsCount-1; i++ )
 		{
 			vtkVariant v = chartTable->GetValue( idx, i );
 			QString str = QString::number( v.ToDouble(), 'f', 2 );
