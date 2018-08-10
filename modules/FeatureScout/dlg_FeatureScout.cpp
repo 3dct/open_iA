@@ -1094,8 +1094,8 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 
 	double red = 0.0, green = 0.0, blue = 0.0, alpha = 0.5, backAlpha = 0.00, classRGB[3], selRGB[3];
 	selRGB[0] = SelectedColor.redF();
-	selRGB[1] = SelectedColor.redF();
-	selRGB[2] = SelectedColor.redF();
+	selRGB[1] = SelectedColor.greenF();
+	selRGB[2] = SelectedColor.blueF();
 	classRGB[0] = colorList.at( activeClassItem->index().row() ).redF();
 	classRGB[1] = colorList.at( activeClassItem->index().row() ).greenF();
 	classRGB[2] = colorList.at( activeClassItem->index().row() ).blueF();
