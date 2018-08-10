@@ -181,6 +181,15 @@ namespace
 	const size_t NoPointIdx = std::numeric_limits<size_t>::max();
 	QColor SelectedColor(255, 0, 0, 255);
 	QColor StandardSPLOMDotColor(128, 128, 128, 255);
+
+	enum RenderMode
+	{
+		rmSingleClass,
+		rmMultiClass,
+		rmOrientation,
+		rmLengthDistribution,
+		rmMeanObject
+	};
 }
 
 typedef void( *ColormapFuncPtr )( const double normal[3], double color_out[3] );
@@ -211,8 +220,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	iovDV(nullptr),
 	iovMO(nullptr),
 	m_splom(new iAFeatureScoutSPLOM()),
-	sourcePath( parent->getFilePath() ),
-	m_columnMapping(columnMapping)
+	m_sourcePath( parent->getFilePath() ),
+	m_columnMapping(columnMapping),
+	m_renderMode(rmSingleClass)
 {
 	setupUi( this );
 	visualization = vis;
@@ -222,7 +232,6 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	this->activeChild = parent;
 	this->filterID = fid;
 	this->draw3DPolarPlot = false;
-	this->classRendering = true;
 	this->setupPolarPlotResolution( 3.0 );
 	blobManager = new iABlobManager();
 	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
@@ -763,10 +772,13 @@ void dlg_FeatureScout::setupConnections()
 	connect( this->classTreeView, SIGNAL( clicked( QModelIndex ) ), this, SLOT( classClicked( QModelIndex ) ) );
 	connect( this->classTreeView, SIGNAL( activated( QModelIndex ) ), this, SLOT( classClicked( QModelIndex ) ) );
 	connect( this->classTreeView, SIGNAL( doubleClicked( QModelIndex ) ), this, SLOT( classDoubleClicked( QModelIndex ) ) );
+
+	connect( m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart);
 }
 
 void dlg_FeatureScout::MultiClassRendering()
 {
+	m_renderMode = rmMultiClass;
 	if ( m_scalarWidgetFLD )
 	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
@@ -1269,6 +1281,7 @@ void dlg_FeatureScout::RenderMeanObject()
 {
 	if (visualization != iACsvConfig::UseVolume)
 		return;
+	m_renderMode = rmMeanObject;
 	int classCount = classTreeModel->invisibleRootItem()->rowCount();
 	if ( classCount < 2 )	// unclassified class only
 	{
@@ -1671,7 +1684,7 @@ void dlg_FeatureScout::updateMOView()
 
 void dlg_FeatureScout::browseFolderDialog()
 {
-	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), sourcePath, tr( "CSV Files (*.stl *.STL)" ) );
+	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), m_sourcePath, tr( "CSV Files (*.stl *.STL)" ) );
 	if ( filename.isEmpty() )
 		return;
 	iovMO->le_StlPath->setText( filename );
@@ -1834,6 +1847,7 @@ void dlg_FeatureScout::UpdatePolyMapper()
 
 void dlg_FeatureScout::RenderOrientation()
 {
+	m_renderMode = rmOrientation;
 	if ( m_scalarWidgetFLD )
 	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
@@ -1964,8 +1978,9 @@ void dlg_FeatureScout::RenderOrientation()
 	this->orientColormap->show();
 }
 
-void dlg_FeatureScout::RenderFiberLengthDistribution()
+void dlg_FeatureScout::RenderLengthDistribution()
 {
+	m_renderMode = rmLengthDistribution;
 	setPCChartData(true);
 	m_splom->enableSelection(false);
 	m_splom->setFilter(-1);
@@ -2173,7 +2188,7 @@ void dlg_FeatureScout::ClassAddButton()
 		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
 		return;
 	}
-	if (!classRendering)
+	if (m_renderMode != rmSingleClass)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Cannot add a class while in a special rendering mode "
 			"(Multi-Class, Fiber Length/Orientation Distribution). "
@@ -2412,7 +2427,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	QString filename;
 	if ( dlg.getCheckValue(0) == 2 )
 	{
-		filename = QFileDialog::getSaveFileName( this, tr( "Save characteristic distributions" ), sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
+		filename = QFileDialog::getSaveFileName( this, tr( "Save characteristic distributions" ), m_sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
 		if ( filename.isEmpty() )
 			return;
 	}
@@ -2605,7 +2620,7 @@ void dlg_FeatureScout::WisetexSaveButton()
 	}
 
 	//XML file save path
-	QString filename = QFileDialog::getSaveFileName( this, tr( "Save File" ), sourcePath, tr( "XML Files (*.xml *.XML)" ) );
+	QString filename = QFileDialog::getSaveFileName( this, tr( "Save File" ), m_sourcePath, tr( "XML Files (*.xml *.XML)" ) );
 	if ( filename.isEmpty() )
 		return;
 
@@ -2634,7 +2649,7 @@ void dlg_FeatureScout::ClassSaveButton()
 		return;
 	}
 
-	QString filename = QFileDialog::getSaveFileName( this, tr( "Save File" ), sourcePath, tr( "XML Files (*.xml *.XML)" ) );
+	QString filename = QFileDialog::getSaveFileName( this, tr( "Save File" ), m_sourcePath, tr( "XML Files (*.xml *.XML)" ) );
 	if ( filename.isEmpty() )
 		return;
 
@@ -2665,7 +2680,7 @@ void dlg_FeatureScout::ClassSaveButton()
 void dlg_FeatureScout::ClassLoadButton()
 {
 	// open xml file and get meta information
-	QString filename = QFileDialog::getOpenFileName( this, tr( "Load xml file" ), sourcePath, tr( "XML Files (*.xml *.XML)" ) );
+	QString filename = QFileDialog::getOpenFileName( this, tr( "Load xml file" ), m_sourcePath, tr( "XML Files (*.xml *.XML)" ) );
 	if ( filename.isEmpty() )
 		return;
 
@@ -2863,9 +2878,9 @@ void dlg_FeatureScout::ClassDeleteButton()
 	this->calculateElementTable();
 	this->initElementTableModel();
 	this->SingleRendering();
-	if (!classRendering)  // special rendering was enabled before
+	if (m_renderMode != rmSingleClass)
 	{
-		classRendering = true;
+		m_renderMode = rmSingleClass;
 		// reset color in SPLOM
 		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
 		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
@@ -2894,11 +2909,26 @@ void dlg_FeatureScout::showScatterPlot()
 	}
 	m_splom->initScatterPlot(iovSPM, csvTable);
 	m_splom->updateColumnVisibility(columnVisibility);
-	auto selectedIndices = getPCSelection();
-	m_splom->setSelection(selectedIndices);
-	vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
-	m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
-	connect(m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
+	if (m_renderMode == rmMultiClass)
+		m_splom->multiClassRendering(colorList);
+	else
+	{
+		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
+		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+		if (m_renderMode == rmSingleClass)
+		{
+			auto selectedIndices = getPCSelection();
+			m_splom->setSelection(selectedIndices);
+			QStandardItem* item = activeClassItem;
+			if (item)
+			{
+				if (!item->hasChildren())
+					item = item->parent();
+				int classID = item->row();
+				m_splom->setFilter(classID);
+			}
+		}
+	}
 }
 
 void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
@@ -3155,7 +3185,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 	int classID = -1;
 	if ( item->hasChildren() )  // has children => a class was selected
 	{
-		if ( this->activeClassItem != item || !classRendering)
+		if ( this->activeClassItem != item || m_renderMode != rmSingleClass)
 		{
 			classID = item->index().row();
 			this->setActiveClassItem( item );
@@ -3170,7 +3200,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 	else // has no children => single object selected
 	{
 		// update ParallelCoordinates
-		if ( item->parent() != this->activeClassItem || !classRendering )
+		if ( item->parent() != this->activeClassItem || m_renderMode != rmSingleClass)
 		{
 			classID = item->parent()->index().row();
 			this->setActiveClassItem( item->parent() );
@@ -3201,9 +3231,9 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		selection.push_back(sID);
 		m_splom->setSelection(selection);
 	}
-	if (!classRendering)  // special rendering was enabled before
+	if (m_renderMode != rmSingleClass)  // special rendering was enabled before
 	{
-		classRendering = true;
+		m_renderMode = rmSingleClass;
 		// reset color in SPLOM
 		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
 		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
@@ -4241,20 +4271,10 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 		this->OpenBlobVisDialog();
 		break;
 
-	case 3:			// multi Rendering
-		this->MultiClassRendering();
-		this->classRendering = false;
-		break;
-
-	case 4:			// probability Rendering
-		this->RenderMeanObject();
-		this->classRendering = false;
-		break;
-
-	case 5:			// orientation Rendering
-		this->RenderOrientation();
-		this->classRendering = false;
-		break;
+	case 3: MultiClassRendering();      break;
+	case 4: RenderMeanObject();         break;
+	case 5: RenderOrientation();        break;
+	case 7: RenderLengthDistribution(); break;
 
 	case 6:			// plot scatterplot matrix
 		if (iovSPM)
@@ -4265,9 +4285,5 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 		showScatterPlot();
 		break;
 
-	case 7:
-		this->RenderFiberLengthDistribution();
-		this->classRendering = false;
-		break;
 	}
 }

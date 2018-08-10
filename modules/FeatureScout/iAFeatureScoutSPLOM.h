@@ -57,4 +57,5 @@ signals:
 	void selectionModified(std::vector<size_t>);
 private:
 	iAQSplom * matrix;
+	bool selectionEnabled;
 };

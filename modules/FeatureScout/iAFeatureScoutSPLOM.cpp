@@ -50,7 +50,8 @@ namespace
 }
 
 iAFeatureScoutSPLOM::iAFeatureScoutSPLOM():
-	matrix(nullptr)
+	matrix(nullptr),
+	selectionEnabled(true)
 {}
 
 iAFeatureScoutSPLOM::~iAFeatureScoutSPLOM()
@@ -68,6 +69,7 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	container->setWidget(matrix);
 	matrix->setData(spInput);
 	matrix->setSelectionColor(QColor(255, 40, 0, 1));
+	matrix->enableSelection(selectionEnabled);
 	matrix->showDefaultMaxizimedPlot();
 	connect(matrix, &iAQSplom::selectionModified, this, &iAFeatureScoutSPLOM::selectionModified);
 }
@@ -116,7 +118,7 @@ void iAFeatureScoutSPLOM::setDotColor(QColor const & color, double const range[2
 
 void iAFeatureScoutSPLOM::setSelection(std::vector<size_t> selection)
 {
-	if (matrix)
+	if (matrix && selectionEnabled)
 		matrix->setFilteredSelection(selection);
 }
 
@@ -175,11 +177,15 @@ bool iAFeatureScoutSPLOM::isShown() const
 
 void iAFeatureScoutSPLOM::clearSelection()
 {
-	matrix->clearSelection();
+	if (matrix)
+		matrix->clearSelection();
 }
 
 void iAFeatureScoutSPLOM::enableSelection(bool enable)
 {
+	selectionEnabled = enable;
+	if (!matrix)
+		return;
 	matrix->clearSelection();
 	matrix->enableSelection(enable);
 }

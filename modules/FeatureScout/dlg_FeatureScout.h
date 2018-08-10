@@ -179,7 +179,7 @@ private:
 	void SingleRendering(int idx = -10000);               //!< render a single fiber or a single class
 	void MultiClassRendering();                           //!< multi-class rendering
 	void RenderSelection(std::vector<size_t> const & selInds); //!< render a selection (+ the class that contains it)
-	void RenderFiberLengthDistribution();                 //!< render fiber-length distribution
+	void RenderLengthDistribution();                 //!< render fiber-length distribution
 	void RenderMeanObject();                              //!< compute and render a mean object for each class
 	void SetPolyPointColor(int ptIdx, QColor const & qcolor);
 	void UpdatePolyMapper();
@@ -198,13 +198,13 @@ private:
 	vtkColorTransferFunction *cTF;
 	//! @}
 
-	int elementsCount;      //!< Number of elements(=columns) in csv inputTable
-	int objectsCount;       //!< Number of objects in the specimen
-	iAFeatureScoutObjectType filterID; //!< Type of objects that are shown
-	bool draw3DPolarPlot;   //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
-	bool classRendering;    //!< Indicates whether currently single classes are being rendered (true) or some special rendering (multi-class, orientation, ...) is going on (false)
-	int visualization;      //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
-	const QString sourcePath; //!< folder of file currently opened
+	int elementsCount;                              //!< Number of elements(=columns) in csv inputTable
+	int objectsCount;                               //!< Number of objects in the specimen
+	iAFeatureScoutObjectType filterID;              //!< Type of objects that are shown
+	bool draw3DPolarPlot;                           //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
+	int m_renderMode;                               //!< Indicates what is currently shown: single classes, or special rendering (multi-class, orientation, ...)
+	int visualization;                              //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
+	const QString m_sourcePath;                     //!< folder of file currently opened
 
 	// input csv table with all objects, column names updated for vtk rendering problem
 	// by solving this rendering problem satisfacted here a pointer to the orginal table
@@ -215,14 +215,14 @@ private:
 	// or a class is selected in the class tree view
 	vtkSmartPointer<vtkTable> chartTable;
 
-	QList<vtkSmartPointer<vtkTable> > tableList;  //!< The data table for each class.
-	QList<QColor> colorList;                      //!< The color for each class.
-	std::vector<bool> columnVisibility;           //!< Column visibility list
-	vtkSmartPointer<vtkLookupTable> lut;          //!< Color lookup table for PC view
-	QTreeView* classTreeView;                     //!< Class tree view
-	QTableView* elementTableView;                 //!< Element(=column) table view
-	QStandardItemModel* elementTableModel;        //!< Model for element table
-	QStandardItemModel* classTreeModel;           //!< Model for class tree view (->invisibleRootItem->child(0,...,i, 0,..,2))
+	QList<vtkSmartPointer<vtkTable> > tableList;    //!< The data table for each class.
+	QList<QColor> colorList;                        //!< The color for each class.
+	std::vector<bool> columnVisibility;             //!< Column visibility list
+	vtkSmartPointer<vtkLookupTable> lut;            //!< Color lookup table for PC view
+	QTreeView* classTreeView;                       //!< Class tree view
+	QTableView* elementTableView;                   //!< Element(=column) table view
+	QStandardItemModel* elementTableModel;          //!< Model for element table
+	QStandardItemModel* classTreeModel;             //!< Model for class tree view (->invisibleRootItem->child(0,...,i, 0,..,2))
 
 	// context menu actions for classTreeView
 	QAction *blobRendering;
