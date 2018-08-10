@@ -217,7 +217,6 @@ private:
 
 	QList<vtkSmartPointer<vtkTable> > tableList;  //!< The data table for each class.
 	QList<QColor> colorList;                      //!< The color for each class.
-	QList<int> ObjectOrientationProbabilityList;  //!< Probability distribution of every single object
 	std::vector<bool> columnVisibility;           //!< Column visibility list
 	vtkSmartPointer<vtkLookupTable> lut;          //!< Color lookup table for PC view
 	QTreeView* classTreeView;                     //!< Class tree view

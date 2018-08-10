@@ -3602,24 +3602,6 @@ int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 	return maxF;
 }
 
-void dlg_FeatureScout::updateObjectOrientationID( vtkTable *table )
-{
-	double fp, ft;
-	int ip, it, tt;
-
-	for ( int k = 0; k < this->objectsCount; k++ )
-	{
-		fp = this->csvTable->GetValue( k, m_columnMapping[iACsvConfig::Phi] ).ToDouble() / PolarPlotPhiResolution;
-		ft = this->csvTable->GetValue( k, m_columnMapping[iACsvConfig::Theta] ).ToDouble() / PolarPlotThetaResolution;
-		ip = vtkMath::Round( fp );
-		it = vtkMath::Round( ft );
-		if ( ip == gPhi )
-			ip = 0;
-		tt = table->GetValue( ip, it ).ToInt();
-		this->ObjectOrientationProbabilityList.append( tt );
-	}
-}
-
 void dlg_FeatureScout::drawAnnotations( vtkRenderer *renderer )
 {
 	// annotations for phi
@@ -3844,9 +3826,6 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	// calculate object probability and save it to a table
 	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
 	int pcMaxC = this->calcOrientationProbability( it, table ); // maximal count of the object orientation
-
-	// update the object probability ID list
-	this->updateObjectOrientationID( table );
 
 	// Create a transfer function mapping scalar value to color
 	vtkSmartPointer<vtkColorTransferFunction> cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
