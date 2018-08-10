@@ -461,7 +461,7 @@ iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
 	const double Epsilon = 1e-10;
 	for (size_t curIdx = 0; curIdx < m_splomData->numPoints(); ++curIdx)
 	{
-		if (m_splomData->matchesFilter(curIdx))
+		if (!m_splomData->matchesFilter(curIdx))
 			continue;
 		if (curSelIdx >= sortedSelInds.size())
 			break;
