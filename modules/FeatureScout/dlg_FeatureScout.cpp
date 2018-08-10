@@ -927,7 +927,7 @@ void dlg_FeatureScout::MultiClassRendering()
 	activeChild->updateViews();
 }
 
-void dlg_FeatureScout::SingleRendering( int idx )
+void dlg_FeatureScout::SingleRendering( int labelID )
 {
 	int cID = this->activeClassItem->index().row();
 	int itemL = this->activeClassItem->rowCount();
@@ -954,35 +954,35 @@ void dlg_FeatureScout::SingleRendering( int idx )
 	{
 		QColor nonClassColor = QColor(0, 0, 0, 0);
 		QColor classColor = colorList.at(cID);
-		if (idx > 0)
+		if ( labelID > 0)
 			classColor.setAlpha(TransparentAlpha);
 		for (int objID = 0; objID < objectsCount; ++objID)
 		{
 			int curClassID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
-			SetPolyPointColor(objID, (idx > 0 && objID == idx) ? SelectedColor : (curClassID == cID) ? classColor : nonClassColor);
+			SetPolyPointColor(objID, ( labelID > 0 && objID+1 == labelID ) ? SelectedColor : (curClassID == cID) ? classColor : nonClassColor);
 		}
 		UpdatePolyMapper();
 		return;
 	}
 	if (visualization != iACsvConfig::UseVolume)
 		return;
-	if ( idx > 0 ) // for single object selection
+	if ( labelID > 0 ) // for single object selection
 	{
-		if ((idx - 1) >= 0)
+		if ( (labelID - 1) >= 0)
 		{
-			this->oTF->AddPoint(idx - 0.5, backAlpha);
-			this->oTF->AddPoint(idx - 0.49, alpha);
-			this->cTF->AddRGBPoint(idx - 0.5, backRGB[0], backRGB[1], backRGB[2]);
-			this->cTF->AddRGBPoint(idx - 0.49, red, green, blue);
+			this->oTF->AddPoint(labelID - 0.5, backAlpha);
+			this->oTF->AddPoint(labelID - 0.49, alpha);
+			this->cTF->AddRGBPoint(labelID - 0.5, backRGB[0], backRGB[1], backRGB[2]);
+			this->cTF->AddRGBPoint(labelID - 0.49, red, green, blue);
 		}
-		oTF->AddPoint(idx, alpha);
-		cTF->AddRGBPoint(idx, red, green, blue);
-		if ((idx + 1) <= objectsCount)
+		oTF->AddPoint(labelID, alpha);
+		cTF->AddRGBPoint(labelID, red, green, blue);
+		if ((labelID + 1) <= objectsCount)
 		{
-			this->oTF->AddPoint(idx + 0.3, backAlpha);
-			this->oTF->AddPoint(idx + 0.29, alpha);
-			this->cTF->AddRGBPoint(idx + 0.3, backRGB[0], backRGB[1], backRGB[2]);
-			this->cTF->AddRGBPoint(idx + 0.29, red, green, blue);
+			this->oTF->AddPoint(labelID + 0.3, backAlpha);
+			this->oTF->AddPoint(labelID + 0.29, alpha);
+			this->cTF->AddRGBPoint(labelID + 0.3, backRGB[0], backRGB[1], backRGB[2]);
+			this->cTF->AddRGBPoint(labelID + 0.29, red, green, blue);
 		}
 	}
 	else // for single class selection
@@ -3229,8 +3229,8 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 
 		// update elementTableView
 		this->initElementTableModel( sID );
-		int objID = item->text().toInt() - 1; // item text is labelID, object ID is labelID - 1
-		this->SingleRendering(objID);
+		int labelID = item->text().toInt();
+		this->SingleRendering(labelID);
 		elementTableView->update();
 
 		// update SPLOM selection
