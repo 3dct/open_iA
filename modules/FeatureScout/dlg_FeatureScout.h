@@ -113,7 +113,7 @@ private slots:
 	void ClassDeleteButton();
 	void WisetexSaveButton();
 	void CsvDVSaveButton();
-	void RenderingOrientation();
+	void RenderOrientation();
 	void classClicked(const QModelIndex &index);
 	void classDoubleClicked(const QModelIndex &index);
 	void EnableBlobRendering();
@@ -160,7 +160,9 @@ private:
 	//! @{ parallel coordinate chart related methods:
 	void setPCChartData(bool lookupTable = false);
 	void updatePCColumnVisibility();
+	std::vector<size_t> getPCSelection();
 	//! @}
+	float calculateAverage(vtkDataArray* arr); //!< calculate the average value of a 1D array
 	void calculateElementTable();
 	void setActiveClassItem(QStandardItem* item, int situ = 0);
 	double calculateOpacity(QStandardItem *item);
@@ -177,34 +179,32 @@ private:
 	void SingleRendering(int idx = -10000);               //!< render a single fiber or a single class
 	void MultiClassRendering();                           //!< multi-class rendering
 	void RenderSelection(std::vector<size_t> const & selInds); //!< render a selection (+ the class that contains it)
-	void RenderingFLD();                                  //!< render fiber-length distribution
-	void RenderingMeanObject();                           //!< compute and render a mean object for each class
+	void RenderFiberLengthDistribution();                 //!< render fiber-length distribution
+	void RenderMeanObject();                              //!< compute and render a mean object for each class
 	void SetPolyPointColor(int ptIdx, QColor const & qcolor);
 	void UpdatePolyMapper();
 	//! @}
 
-	// members referencing MdiChild
+	//! @{ debug functions
+	void PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString &outputPath, const QString* fileName) const ; //!< print out a vtkTable
+	void PrintChartTable(const QString &outputPath); //! < Print current chartTable
+	void PrintCSVTable(const QString &outputPath);	//! <Print current CSVTable
+	void PrintTableList(const QList<vtkSmartPointer<vtkTable>> &OutTableList, QString &outputPath) const;
+	//! @}
+
+	//! @{ members referencing MdiChild, used for 3D rendering
 	MdiChild *activeChild;
 	vtkPiecewiseFunction     *oTF;
 	vtkColorTransferFunction *cTF;
+	//! @}
+
 	int elementsCount;      //!< Number of elements(=columns) in csv inputTable
 	int objectsCount;       //!< Number of objects in the specimen
-	iAFeatureScoutObjectType filterID;
-
-	bool draw3DPolarPlot;
-	bool classRendering;
-	int visualization;
-
-	const QString sourcePath;
-	vtkSmartPointer<vtkStringArray> nameArr;
-
-	void PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString &outputPath, const QString* fileName) const ; //!< print out a vtkTabel
-	void PrintChartTable(const QString &outputPath); //! < Print current chartTable
-	void PrintCSVTable(const QString &outputPath);	//! <Print current CSVTable
-
-	void PrintTableList(const QList<vtkSmartPointer<vtkTable>> &OutTableList, QString &outputPath) const;
-
-	float calculateAverage(vtkDataArray* arr); //!< calculate the average value of a 1D array
+	iAFeatureScoutObjectType filterID; //!< Type of objects that are shown
+	bool draw3DPolarPlot;   //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
+	bool classRendering;    //!< Indicates whether currently single classes are being rendered (true) or some special rendering (multi-class, orientation, ...) is going on (false)
+	int visualization;      //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
+	const QString sourcePath; //!< folder of file currently opened
 
 	// input csv table with all objects, column names updated for vtk rendering problem
 	// by solving this rendering problem satisfacted here a pointer to the orginal table
@@ -215,24 +215,15 @@ private:
 	// or a class is selected in the class tree view
 	vtkSmartPointer<vtkTable> chartTable;
 
-	QList<vtkSmartPointer<vtkTable> > tableList;  //! < contains a table for each class; 
-	QList<QColor> colorList;
+	QList<vtkSmartPointer<vtkTable> > tableList;  //!< The data table for each class.
+	QList<QColor> colorList;                      //!< The color for each class.
+	std::vector<bool> columnVisibility;           //!< Column visibility list
+	vtkSmartPointer<vtkLookupTable> lut;          //!< Color lookup table for PC view
+	QTreeView* classTreeView;                     //!< Class tree view
+	QTableView* elementTableView;                 //!< Element(=column) table view
+	QStandardItemModel* elementTableModel;        //!< Model for element table
+	QStandardItemModel* classTreeModel;           //!< Model for class tree view (->invisibleRootItem->child(0,...,i, 0,..,2))
 
-	QList<int> ObjectOrientationProbabilityList; //Probability distribution of every single object
-	int pcMaxC; // maximal count of the object orientation
-
-	// column visibility list
-	std::vector<bool> columnVisibility;
-	// color lookup table for PC view
-	vtkSmartPointer<vtkLookupTable> lut;
-
-	// element and class views
-	QTreeView* classTreeView;
-	QTableView* elementTableView;
-	// models
-	QStandardItemModel* elementTableModel;
-	// view of the different classes (->invisibleRootItem->child(0,...,i, 0,..,2))
-	QStandardItemModel* classTreeModel;
 	// context menu actions for classTreeView
 	QAction *blobRendering;
 	QAction *blobRemoveRendering;

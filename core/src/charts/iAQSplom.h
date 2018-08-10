@@ -91,6 +91,8 @@ public:
 	void setSelection( SelectionType const & selInds );              //!< Set selected data points from a vector of indices.
 	void clearSelection();                                           //!< deletes current selection
 	void setSelectionColor(QColor color);                            //!< set the color for selected points
+	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
+	void enableSelection(bool enable);                               //!< set whether selections are allowed or not
 	void getActivePlotIndices( int * inds_out );                     //!< Get X and Y parameter indices of currently active scatter plot.
 	int getVisibleParametersCount() const;                           //!< Get the number of parameters currently displayed
 	double getAnimIn() const { return m_animIn; }                    //!< Getter for animation in property
@@ -103,7 +105,6 @@ public:
 	iAColorTheme const * getBackgroundColorTheme();                  //!< retrieve the theme for background colors for the separated regions
 	void showAllPlots(const bool enableAllPlotsVisible);             //!< switch between showing all plots or only upper half
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
-	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
 	void setFilter(int columnID, double value);                      //!< set filter on data to be shown; only data points where given column contains given value will be shown
 	void resetFilter();                                              //!< reset filter on data; after calling this method, all data points will be shown again
 signals:
@@ -186,7 +187,8 @@ public:
 		int histogramBins;
 		bool histogramVisible;
 
-		int selectionMode;                     //!< The selection mode of all scatter plots
+		int selectionMode;                       //!< The selection mode of all scatter plots
+		bool selectionEnabled;                   //!< Whether selection is enabled in the SPLOM
 	};
 	Settings settings;
 protected:

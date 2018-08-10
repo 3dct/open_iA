@@ -166,6 +166,7 @@ public:
 		QColor backgroundColor;
 		QColor selectionColor;
 		SelectionMode selectionMode;
+		bool selectionEnabled;
 	};
 
 	// Members

@@ -63,6 +63,7 @@ iAQSplom::Settings::Settings()
 	popupWidth(180),
 	pointRadius(1.0),
 	selectionMode(iAScatterPlot::Polygon),
+	selectionEnabled(true),
 	histogramVisible(true)
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
@@ -132,6 +133,31 @@ void iAQSplom::setSelectionColor(QColor color)
 		m_maximizedPlot->setSelectionColor(color);
 }
 
+void iAQSplom::setSelectionMode(int mode)
+{
+	if (m_maximizedPlot)
+		m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(mode);
+	settings.selectionMode = mode;
+}
+
+void iAQSplom::enableSelection(bool enabled)
+{
+	if (m_maximizedPlot)
+		m_maximizedPlot->settings.selectionEnabled = enabled;
+	settings.selectionEnabled = enabled;
+
+}
+
+void iAQSplom::selectionModePolygon()
+{
+	setSelectionMode(iAScatterPlot::Polygon);
+}
+
+void iAQSplom::selectionModeRectangle()
+{
+	setSelectionMode(iAScatterPlot::Rectangle);
+}
+
 void iAQSplom::setPointRadius(double radius)
 {
 	settings.pointRadius = radius;
@@ -192,13 +218,6 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	connect(selectionModeRectangleAction, SIGNAL(toggled(bool)), this, SLOT(selectionModeRectangle()));
 }
 
-void iAQSplom::setSelectionMode(int mode)
-{
-	if (m_maximizedPlot)
-		m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(mode);
-	settings.selectionMode = mode;
-}
-
 void iAQSplom::resetFilter()
 {
 	m_splomData->setFilter( -1, 0 );
@@ -257,16 +276,6 @@ void iAQSplom::updateFilter()
 		m_maximizedPlot->runFilter();
 
 	updateHistograms();
-}
-
-void iAQSplom::selectionModePolygon()
-{
-	setSelectionMode(iAScatterPlot::Polygon);
-}
-
-void iAQSplom::selectionModeRectangle()
-{
-	setSelectionMode(iAScatterPlot::Rectangle);
 }
 
 void iAQSplom::initializeGL()
@@ -705,6 +714,7 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 	m_maximizedPlot->setSelectionColor(settings.selectionColor);
 	m_maximizedPlot->setPointRadius(settings.pointRadius);
 	m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(settings.selectionMode);
+	m_maximizedPlot->settings.selectionEnabled = settings.selectionEnabled;
 	updateMaxPlotRect();
 	//transform
 	QPointF ofst = selectedPlot->getOffset();

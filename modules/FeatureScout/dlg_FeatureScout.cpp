@@ -211,10 +211,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	iovDV(nullptr),
 	iovMO(nullptr),
 	m_splom(new iAFeatureScoutSPLOM()),
-	sourcePath( parent->currentFile() ),
+	sourcePath( parent->getFilePath() ),
 	m_columnMapping(columnMapping)
 {
-	// TODO: sort input table by ID column? could speed up setSPMData
 	setupUi( this );
 	visualization = vis;
 	m_pcLineWidth = 0.1;
@@ -368,30 +367,35 @@ dlg_FeatureScout::~dlg_FeatureScout()
 	}
 }
 
-void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long,
-														 void * client_data, void *, vtkCommand * command )
+std::vector<size_t> dlg_FeatureScout::getPCSelection()
 {
 	std::vector<size_t> selectedIndices;
-	vtkSmartPointer<vtkIdTypeArray> DataSelection = this->pcChart->GetPlot(0)->GetSelection();
+	vtkSmartPointer<vtkIdTypeArray> pcSelection = pcChart->GetPlot(0)->GetSelection();
 #if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
-	int countSelection = DataSelection->GetNumberOfValues();
+	int countSelection = pcSelection->GetNumberOfValues();
 #else
 	int countSelection = DataSelection->GetNumberOfTuples();
 #endif
 	for (int idx = 0; idx < countSelection; idx++)
 	{
-		size_t objID = DataSelection->GetVariantValue(idx).ToUnsignedLongLong();
+		size_t objID = pcSelection->GetVariantValue(idx).ToUnsignedLongLong();
 		selectedIndices.push_back(objID);
 	}
+	return selectedIndices;
+}
+
+void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * , unsigned long, void *, void *, vtkCommand * )
+{
+	auto selectedIndices = getPCSelection();
 	m_splom->setSelection(selectedIndices);
 	RenderSelection(selectedIndices);
 }
 
-void dlg_FeatureScout::setPCChartData( bool lookupTable )
+void dlg_FeatureScout::setPCChartData( bool specialRendering )
 {
-	this->pcWidget->setEnabled( true );
-	if ( lookupTable )
-	{   // lookupTable set to true for multi rendering, draw a color ParallelCoordinates
+	pcWidget->setEnabled( !specialRendering ); // to disable selection
+	if ( specialRendering )
+	{   // for the special renderings, we use all data:
 		chartTable->ShallowCopy( csvTable );
 	}
 	if (pcView->GetScene()->GetNumberOfItems() > 0)
@@ -406,10 +410,6 @@ void dlg_FeatureScout::setPCChartData( bool lookupTable )
 							this,
 							SLOT( pcViewMouseButtonCallBack( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
 	updatePCColumnVisibility();
-	if ( lookupTable )
-	{
-		this->pcWidget->setEnabled( false );
-	}
 }
 
 void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
@@ -505,14 +505,7 @@ void dlg_FeatureScout::setupViews()
 	this->pcView = vtkContextView::New();
 	pcView->SetRenderWindow( pcWidget->GetRenderWindow() );
 	pcView->SetInteractor( pcWidget->GetInteractor() );
-	/*
-	this->pcChart = vtkChartParallelCoordinates::New();
-	this->pcChart->GetPlot( 0 )->SetInputData( chartTable );
-	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
-	this->pcChart->GetPlot( 0 )->SetWidth(m_pcLineWidth );
 
-	this->pcView->GetScene()->AddItem( pcChart );
-	*/
 	// Creates a popup menu
 	QMenu* popup2 = new QMenu( pcWidget );
 	popup2->addAction( "Add Class" );
@@ -648,48 +641,45 @@ void dlg_FeatureScout::initClassTreeModel()
 	this->activeClassItem = stammItem.first();
 }
 
+// BEGIN DEBUG FUNCTIONS
+
 void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString &outputPath, const QString* fileName) const
 {
 	std::string separator = (useTabSeparator) ? "\t" : ",";
 	ofstream debugfile;
 	std::string OutfileName = "";
-	if (fileName) {
+	if (fileName)
 		OutfileName = fileName->toStdString(); 
-	}else OutfileName = "debugFile";
+	else
+		OutfileName = "debugFile";
 
-	if (QDir(outputPath).exists() && (anyTable != nullptr)) {	
-		debugfile.open(outputPath.toStdString() + OutfileName + ".csv");
+	if (!QDir(outputPath).exists() || !anyTable)
+		return;
 
-		if (debugfile.is_open())
-		{
-			vtkVariant spCol, spRow, spCN, spVal;
-			spCol = anyTable->GetNumberOfColumns();
-			spRow = anyTable->GetNumberOfRows();
+	debugfile.open(outputPath.toStdString() + OutfileName + ".csv");
+	if (!debugfile.is_open())
+		return;
 
-			for (int i = 0; i < spCol.ToInt(); i++)
-			{
-				spCN = anyTable->GetColumnName(i);
-				debugfile << spCN.ToString() << separator;
-			}
-		
-			debugfile << "\n";
-		
-			for (int row = 0; row < spRow.ToInt(); row++)
-			{
-				for (int col = 0; col < spCol.ToInt(); col++)
-				{
-					spVal = anyTable->GetValue(row, col);
-					debugfile << spVal.ToString() << separator; //TODO cast debug to double
-				}
-				debugfile << "\n";
-			}
-			
-			debugfile.close();
-		}
+	vtkVariant spCol, spRow, spCN, spVal;
+	spCol = anyTable->GetNumberOfColumns();
+	spRow = anyTable->GetNumberOfRows();
+
+	for (int i = 0; i < spCol.ToInt(); i++)
+	{
+		spCN = anyTable->GetColumnName(i);
+		debugfile << spCN.ToString() << separator;
 	}
-	
-
-
+	debugfile << "\n";	
+	for (int row = 0; row < spRow.ToInt(); row++)
+	{
+		for (int col = 0; col < spCol.ToInt(); col++)
+		{
+			spVal = anyTable->GetValue(row, col);
+			debugfile << spVal.ToString() << separator; //TODO cast debug to double
+		}
+		debugfile << "\n";
+	}
+	debugfile.close();
 }
 
 void dlg_FeatureScout::PrintChartTable(const QString &outputPath)
@@ -709,21 +699,20 @@ void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>> &Ou
 	QString fID = "";
 	QString outPutFile = ""; 
 	
-	if (OutTableList.count() > 1) {
-		
-		for (int i = 0; i < tableList.count(); i++) {
+	if (OutTableList.count() > 1)
+	{	
+		for (int i = 0; i < tableList.count(); i++)
+		{
 			fID = QString(i);
 			vtkSmartPointer<vtkTable> OutPutTable = OutTableList[i];
 			outPutFile = FileName + "_" + fID;
 			this->PrintVTKTable(OutPutTable, true, outputPath, &outPutFile);
 			OutPutTable = nullptr; 
 		}
-	
 	}
-	
-
 }
 
+// END DEBUG FUNCTIONS
 
 float dlg_FeatureScout::calculateAverage( vtkDataArray *arr )
 {
@@ -770,27 +759,16 @@ void dlg_FeatureScout::setupConnections()
 	connect( this->wisetex_save, SIGNAL( released() ), this, SLOT( WisetexSaveButton() ) );
 	connect( this->csv_dv, SIGNAL( released() ), this, SLOT( CsvDVSaveButton() ) );
 
-	// Element checkstate for visualizing Columns in PC view
-	// Define ranges for PC columns
 	connect( this->elementTableModel, SIGNAL( itemChanged( QStandardItem * ) ), this, SLOT( updatePCColumnValues( QStandardItem * ) ) );
 	connect( this->classTreeView, SIGNAL( clicked( QModelIndex ) ), this, SLOT( classClicked( QModelIndex ) ) );
 	connect( this->classTreeView, SIGNAL( activated( QModelIndex ) ), this, SLOT( classClicked( QModelIndex ) ) );
 	connect( this->classTreeView, SIGNAL( doubleClicked( QModelIndex ) ), this, SLOT( classDoubleClicked( QModelIndex ) ) );
-
-	// Creates signal from qVtkWidget on a selection changed event
-	// and sends it to the callback.
-	vtkEventQtSlotConnect *pcConnections = vtkEventQtSlotConnect::New();
-	pcConnections->Connect( pcChart,
-							vtkCommand::SelectionChangedEvent,
-							this,
-							SLOT( pcViewMouseButtonCallBack( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ), 0, 0.0, Qt::UniqueConnection );
 }
 
 void dlg_FeatureScout::MultiClassRendering()
 {
-	//Turns off FLD scalar bar updates polar plot view
-	if (m_scalarWidgetFLD != NULL)
-	{
+	if ( m_scalarWidgetFLD )
+	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar(chartTable);
 	}
@@ -805,14 +783,13 @@ void dlg_FeatureScout::MultiClassRendering()
 	// update lookup table in PC View
 	this->updateLookupTable(alpha);
 	this->setPCChartData(true);
+	m_splom->enableSelection(false);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetScalarVisibility(1);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetLookupTable(lut);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
 	this->pcChart->SetSize(pcChart->GetSize());
-
 	this->pcChart->GetPlot(0)->SetOpacity(0.8);
 	pcView->Render();
-	pcView->GetInteractor()->Start();
 
 	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
@@ -822,7 +799,6 @@ void dlg_FeatureScout::MultiClassRendering()
 			SetPolyPointColor(objID, colorList.at(classID));
 		}
 		UpdatePolyMapper();
-		activeChild->updateViews();
 		return;
 	}
 	double backAlpha = 0.00005;
@@ -1062,13 +1038,11 @@ void dlg_FeatureScout::SingleRendering( int idx )
 
 void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 {
-	//Turns off FLD scalar bar updates polar plot view
-	if ( m_scalarWidgetFLD != NULL )
-	{
+	if ( m_scalarWidgetFLD )
+	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar( chartTable );
 	}
-
 	this->orientationColorMapSelection->hide();
 	this->orientColormap->hide();
 
@@ -1115,14 +1089,13 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 			}
 		}
 		UpdatePolyMapper();
-		activeChild->updateViews();
 		return;
 	}
 
 	double red = 0.0, green = 0.0, blue = 0.0, alpha = 0.5, backAlpha = 0.00, classRGB[3], selRGB[3];
 	selRGB[0] = SelectedColor.redF();
-	selRGB[1] = SelectedColor.redF();
-	selRGB[2] = SelectedColor.redF();
+	selRGB[1] = SelectedColor.greenF();
+	selRGB[2] = SelectedColor.blueF();
 	classRGB[0] = colorList.at( activeClassItem->index().row() ).redF();
 	classRGB[1] = colorList.at( activeClassItem->index().row() ).greenF();
 	classRGB[2] = colorList.at( activeClassItem->index().row() ).blueF();
@@ -1292,7 +1265,7 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 	activeChild->updateViews();
 }
 
-void dlg_FeatureScout::RenderingMeanObject()
+void dlg_FeatureScout::RenderMeanObject()
 {
 	if (visualization != iACsvConfig::UseVolume)
 		return;
@@ -1698,9 +1671,7 @@ void dlg_FeatureScout::updateMOView()
 
 void dlg_FeatureScout::browseFolderDialog()
 {
-	QString dir = sourcePath;
-	dir.truncate( sourcePath.lastIndexOf( "/" ) );
-	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), dir, tr( "CSV Files (*.stl *.STL)" ) );
+	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), sourcePath, tr( "CSV Files (*.stl *.STL)" ) );
 	if ( filename.isEmpty() )
 		return;
 	iovMO->le_StlPath->setText( filename );
@@ -1861,14 +1832,16 @@ void dlg_FeatureScout::UpdatePolyMapper()
 	raycaster->update();
 }
 
-void dlg_FeatureScout::RenderingOrientation()
+void dlg_FeatureScout::RenderOrientation()
 {
-	//Turns off FLD scalar bar and updates polar plot view
-	if ( m_scalarWidgetFLD != NULL )
-	{
+	if ( m_scalarWidgetFLD )
+	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar( chartTable );
 	}
+	setPCChartData(true);
+	m_splom->enableSelection(false);
+	m_splom->setFilter(-1);
 
 	iovPP->setWindowTitle( "Orientation Distribution Color Map" );
 
@@ -1991,8 +1964,12 @@ void dlg_FeatureScout::RenderingOrientation()
 	this->orientColormap->show();
 }
 
-void dlg_FeatureScout::RenderingFLD()
+void dlg_FeatureScout::RenderFiberLengthDistribution()
 {
+	setPCChartData(true);
+	m_splom->enableSelection(false);
+	m_splom->setFilter(-1);
+
 	int numberOfBins;
 	double range[2] = { 0.0, 0.0 };
 	vtkDataArray* length;
@@ -2194,6 +2171,13 @@ void dlg_FeatureScout::ClassAddButton()
 	if (CountObject <= 0)
 	{
 		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
+		return;
+	}
+	if (!classRendering)
+	{
+		QMessageBox::warning(this, "FeatureScout", "Cannot add a class while in a special rendering mode "
+			"(Multi-Class, Fiber Length/Orientation Distribution). "
+			"Please click on a class first!");
 		return;
 	}
 	// class name and color
@@ -2406,7 +2390,6 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		QString columnName( this->elementTable->GetColumn( 0 )->GetVariantValue( rowList.at( i ) ).ToString().c_str() );
 		columnName.remove( "Â" );
 
-		inList.append( QString( "?Characteristic %1" ).arg( columnName ) );
 		inList.append( QString( "#HistoMin for %1" ).arg( columnName ) );
 		inList.append( QString( "#HistoMax for %1" ).arg( columnName ) );
 		inList.append( QString( "#HistoBinNbr for %1" ).arg( columnName ) );
@@ -2879,8 +2862,15 @@ void dlg_FeatureScout::ClassDeleteButton()
 	this->setPCChartData();
 	this->calculateElementTable();
 	this->initElementTableModel();
-
 	this->SingleRendering();
+	if (!classRendering)  // special rendering was enabled before
+	{
+		classRendering = true;
+		// reset color in SPLOM
+		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
+		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+		m_splom->enableSelection(true);
+	}
 }
 
 void dlg_FeatureScout::showScatterPlot()
@@ -2904,6 +2894,8 @@ void dlg_FeatureScout::showScatterPlot()
 	}
 	m_splom->initScatterPlot(iovSPM, csvTable);
 	m_splom->updateColumnVisibility(columnVisibility);
+	auto selectedIndices = getPCSelection();
+	m_splom->setSelection(selectedIndices);
 	vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
 	m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
 	connect(m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
@@ -3122,19 +3114,19 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 			this->SingleRendering();
 			m_splom->clearSelection();
 			m_splom->setFilter(classID);
+			vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
+			m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
 		}
 	}
 }
 
 void dlg_FeatureScout::classClicked( const QModelIndex &index )
 {
-	//Turns off FLD scalar bar updates polar plot view
 	if ( m_scalarWidgetFLD )
-	{
+	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
 		this->updatePolarPlotColorScalar( chartTable );
 	}
-
 	this->orientationColorMapSelection->hide();
 	this->orientColormap->hide();
 
@@ -3159,11 +3151,11 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		QMessageBox::information(this, "FeatureScout", "This class contains no object, please make another selection or delete the class." );
 		return;
 	}
-	// for first level class //has children = class
+	
 	int classID = -1;
-	if ( item->hasChildren() )
+	if ( item->hasChildren() )  // has children => a class was selected
 	{
-		if ( this->activeClassItem != item )
+		if ( this->activeClassItem != item || !classRendering)
 		{
 			classID = item->index().row();
 			this->setActiveClassItem( item );
@@ -3174,17 +3166,11 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			this->initElementTableModel();
 			m_splom->clearSelection();
 		}
-		if ( !classRendering )
-		{
-			classRendering = true;
-			this->SingleRendering();
-			this->initElementTableModel();
-		}
 	}
-	else // for single object selection
+	else // has no children => single object selected
 	{
 		// update ParallelCoordinates
-		if ( item->parent() != this->activeClassItem )
+		if ( item->parent() != this->activeClassItem || !classRendering )
 		{
 			classID = item->parent()->index().row();
 			this->setActiveClassItem( item->parent() );
@@ -3214,6 +3200,14 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		std::vector<size_t> selection;
 		selection.push_back(sID);
 		m_splom->setSelection(selection);
+	}
+	if (!classRendering)  // special rendering was enabled before
+	{
+		classRendering = true;
+		// reset color in SPLOM
+		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
+		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+		m_splom->enableSelection(true);
 	}
 	if (classID != -1)
 		m_splom->setFilter(classID);
@@ -3608,24 +3602,6 @@ int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 	return maxF;
 }
 
-void dlg_FeatureScout::updateObjectOrientationID( vtkTable *table )
-{
-	double fp, ft;
-	int ip, it, tt;
-
-	for ( int k = 0; k < this->objectsCount; k++ )
-	{
-		fp = this->csvTable->GetValue( k, m_columnMapping[iACsvConfig::Phi] ).ToDouble() / PolarPlotPhiResolution;
-		ft = this->csvTable->GetValue( k, m_columnMapping[iACsvConfig::Theta] ).ToDouble() / PolarPlotThetaResolution;
-		ip = vtkMath::Round( fp );
-		it = vtkMath::Round( ft );
-		if ( ip == gPhi )
-			ip = 0;
-		tt = table->GetValue( ip, it ).ToInt();
-		this->ObjectOrientationProbabilityList.append( tt );
-	}
-}
-
 void dlg_FeatureScout::drawAnnotations( vtkRenderer *renderer )
 {
 	// annotations for phi
@@ -3849,10 +3825,7 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 
 	// calculate object probability and save it to a table
 	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
-	this->pcMaxC = this->calcOrientationProbability( it, table );
-
-	// update the object probability ID list
-	this->updateObjectOrientationID( table );
+	int pcMaxC = this->calcOrientationProbability( it, table ); // maximal count of the object orientation
 
 	// Create a transfer function mapping scalar value to color
 	vtkSmartPointer<vtkColorTransferFunction> cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
@@ -4245,7 +4218,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	iovPP->colorMapSelection->hide();
 	if (this->filterID == iAFeatureScoutObjectType::Voids)
 		iovPP->hide();
-	connect(iovPP->comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderingOrientation()));
+	connect(iovPP->comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
 
 	if (visualization == iACsvConfig::UseVolume)
 		activeChild->getImagePropertyDlg()->hide();
@@ -4274,12 +4247,12 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 		break;
 
 	case 4:			// probability Rendering
-		this->RenderingMeanObject();
+		this->RenderMeanObject();
 		this->classRendering = false;
 		break;
 
 	case 5:			// orientation Rendering
-		this->RenderingOrientation();
+		this->RenderOrientation();
 		this->classRendering = false;
 		break;
 
@@ -4293,7 +4266,7 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 		break;
 
 	case 7:
-		this->RenderingFLD();
+		this->RenderFiberLengthDistribution();
 		this->classRendering = false;
 		break;
 	}
