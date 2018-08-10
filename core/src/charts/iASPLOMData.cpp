@@ -22,10 +22,15 @@
 
 #include <QTableWidget>
 
-iASPLOMData::iASPLOMData()
-{}
+iASPLOMData::iASPLOMData():
+	m_FilterColID(-1),
+	m_FilterValue(-1.0)
+{
+}
 
-iASPLOMData::iASPLOMData(const QTableWidget * tw)
+iASPLOMData::iASPLOMData(const QTableWidget * tw):
+	m_FilterColID(-1),
+	m_FilterValue(-1.0)
 {
 	import(tw);
 }
@@ -114,4 +119,26 @@ bool iASPLOMData::isInverted(size_t paramIndex)
 void iASPLOMData::setInverted(size_t paramIndex, bool isInverted)
 {
 	m_inverted[paramIndex] = isInverted;
+}
+
+
+bool iASPLOMData::matchesFilter(size_t ind) const
+{
+	const double epsilon = 0.00001;
+	if (m_FilterColID == -1)
+		return true;
+
+	double col_val = this->paramData(m_FilterColID)[ind];
+	return (abs(col_val - m_FilterValue) < epsilon);
+}
+
+void iASPLOMData::setFilter(int colID, double value)
+{
+	m_FilterColID = colID;
+	m_FilterValue = value;
+}
+
+bool iASPLOMData::filterDefined() const
+{
+	return m_FilterColID != -1;
 }

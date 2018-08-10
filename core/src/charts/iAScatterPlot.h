@@ -94,7 +94,7 @@ public:
 	void setSelectionColor(QColor selCol);
 	//! @}
 
-	void setFilter(int colID, double value); 
+	void runFilter(); 
 
 protected:
 	int p2binx( double p ) const;                                    //!< Get grid bin index using parameter value X
@@ -127,7 +127,6 @@ protected:
 	void drawMaximizedLabels( QPainter &painter );                   //!< Draws additional plot's labels (only maximized plot)
 	void drawSelectionPolygon( QPainter &painter );                  //!< Draws selection-lasso polygon
 	void drawPoints( QPainter &painter );                            //!< Draws plot's points (uses native OpenGL)
-	//void drawMaximizeButton( QPainter & painter );                 //!< Draws plot's maximized button (only active plot)
 	void createAndFillVBO();                                         //!< Creates and fills VBO with plot's 2D-points.
 	void fillVBO();                                                  //!< Fill existing VBO with plot's 2D-points.
 
@@ -206,9 +205,4 @@ protected:
 	//state flags
 	bool m_isMaximizedPlot;                                          //!< flag telling if this plot itself is maximized (bigger plot)
 	bool m_isPreviewPlot;                                            //!< flag telling if a large version of this plot is shown maximized currently
-
-protected:
-	bool matchesFilter(const int ind) const; //!<Apply filter to each class and draw points only of current class, no filtering for colInd -1
-	int	m_FilterColID; //!<Filter Column ID
-	double m_FilterValue; //!< Current Filter value 
 };

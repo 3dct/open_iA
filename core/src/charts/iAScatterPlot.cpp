@@ -79,9 +79,7 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	m_pointsBuffer( 0 ),
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false ),
-	m_colInd( 0 ),
-	m_FilterColID(-1),
-	m_FilterValue(-1)
+	m_colInd( 0 )	
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
@@ -589,7 +587,7 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 				double x = p2x( m_splomData->paramData( m_paramIndices[0] )[ptIdx] );
 				double y = p2y( m_splomData->paramData( m_paramIndices[1] )[ptIdx] );
 				double dist = pow( x - mpos.x(), 2 ) + pow( y - mpos.y(), 2 );
-				if ( dist < minDist && matchesFilter(ptIdx) )//if( dist <= m_pointRadius*m_pointRadius )
+				if ( dist < minDist && m_splomData->matchesFilter(ptIdx) )
 				{
 					minDist = dist;
 					res = ptIdx;
@@ -632,7 +630,7 @@ void iAScatterPlot::updateSelectedPoints(bool append)
 				auto const & pts = m_pointsGrid[getBinIndex(binx, biny)];
 				for(auto i: pts)
 				{
-					if (!matchesFilter(i))
+					if (!m_splomData->matchesFilter(i))
 						continue;
 					QPointF pt(m_splomData->paramData(m_paramIndices[0])[i], m_splomData->paramData(m_paramIndices[1])[i]);
 					if (pPoly.containsPoint(pt, Qt::OddEvenFill))
@@ -910,7 +908,7 @@ void iAScatterPlot::fillVBO()
 	GLfloat * buffer = new GLfloat[vcount + ccount];
 	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
 	{
-		if (!matchesFilter(i))
+		if (!m_splomData->matchesFilter(i))
 			continue;
 		double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[i] );
 		double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[i] );
@@ -949,19 +947,7 @@ void iAScatterPlot::setPointRadius(double radius)
 	settings.pointRadius = radius;
 }
 
-bool iAScatterPlot::matchesFilter(const int ind) const
+void iAScatterPlot::runFilter()
 {
-	const double epsilon = 0.00001; 
-	if ( m_FilterColID == -1) 
-		return true; 
-	
-	double col_val = m_splomData->paramData(m_FilterColID)[ind];
-	return (abs(col_val - m_FilterValue) < epsilon);
-}
-
-void iAScatterPlot::setFilter(int colID, double value)
-{
-	m_FilterColID = colID;
-	m_FilterValue = value;
 	createAndFillVBO();
 }
