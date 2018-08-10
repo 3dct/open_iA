@@ -182,7 +182,8 @@ private:
 	void RenderLengthDistribution();                 //!< render fiber-length distribution
 	void RenderMeanObject();                              //!< compute and render a mean object for each class
 	void SetPolyPointColor(int ptIdx, QColor const & qcolor);
-	void UpdatePolyMapper();
+	void updatePolyMapper();
+	void updateRenderer();
 	//! @}
 
 	//! @{ debug functions

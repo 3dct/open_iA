@@ -437,8 +437,8 @@ void dlg_FeatureScout::updatePCColumnVisibility()
 	{
 		pcChart->SetColumnVisibility( csvTable->GetColumnName( j ), columnVisibility[j]);
 	}
-	this->pcView->ResetCamera();
-	this->pcView->Render();
+	pcView->ResetCamera();
+	pcView->Render();
 }
 
 void dlg_FeatureScout::initColumnVisibility()
@@ -806,7 +806,7 @@ void dlg_FeatureScout::MultiClassRendering()
 			int classID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
 			SetPolyPointColor(objID, colorList.at(classID));
 		}
-		UpdatePolyMapper();
+		updatePolyMapper();
 		return;
 	}
 	double backAlpha = 0.00005;
@@ -949,7 +949,7 @@ void dlg_FeatureScout::SingleRendering( int labelID )
 			int curClassID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
 			SetPolyPointColor(objID, ( labelID > 0 && objID+1 == labelID ) ? SelectedColor : (curClassID == cID) ? classColor : nonClassColor);
 		}
-		UpdatePolyMapper();
+		updatePolyMapper();
 		return;
 	}
 	if (visualization != iACsvConfig::UseVolume)
@@ -1041,7 +1041,7 @@ void dlg_FeatureScout::SingleRendering( int labelID )
 			this->cTF->AddRGBPoint( objectsCount + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
 	}
-	raycaster->update();
+	updateRenderer();
 }
 
 void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
@@ -1096,7 +1096,7 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 					curSelObjID = sortedSelInds[currentObjectIndexInSelection];
 			}
 		}
-		UpdatePolyMapper();
+		updatePolyMapper();
 		return;
 	}
 
@@ -1271,6 +1271,7 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 		this->cTF->AddRGBPoint( objectsCount + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 	}
 	activeChild->updateViews();
+	updateRenderer();
 }
 
 void dlg_FeatureScout::RenderMeanObject()
@@ -1834,11 +1835,17 @@ void dlg_FeatureScout::SetPolyPointColor(int ptIdx, QColor const & qcolor)
 	}
 }
 
-void dlg_FeatureScout::UpdatePolyMapper()
+void dlg_FeatureScout::updatePolyMapper()
 {
 	m_colors->Modified();
 	m_mapper->Update();
+	updateRenderer();
+}
+
+void dlg_FeatureScout::updateRenderer()
+{
 	raycaster->update();
+	activeChild->renderer->update();
 }
 
 void dlg_FeatureScout::RenderOrientation()
@@ -1911,7 +1918,7 @@ void dlg_FeatureScout::RenderOrientation()
 	}
 	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
-		UpdatePolyMapper();
+		updatePolyMapper();
 	}
 	// prepare the delaunay triangles
 	VTK_CREATE( vtkDelaunay2D, del );
@@ -2151,13 +2158,13 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	}
 	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
-		UpdatePolyMapper();
+		updatePolyMapper();
 	}
 
 	this->orientationColorMapSelection->hide();
 	this->orientColormap->hide();
 	this->drawScalarBar( cTFun, this->raycaster->GetRenderer(), 1 );
-	this->raycaster->update();
+	updateRenderer();
 
 	// plot length distribution
 	VTK_CREATE( vtkContextView, view );
@@ -2946,8 +2953,8 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 		vtk_selInd->SetVariantValue(idx, curr_selInd);
 		++idx;
 	}
-	this->pcChart->GetPlot(0)->SetSelection(vtk_selInd);
-	this->pcView->Render();
+	pcChart->GetPlot(0)->SetSelection(vtk_selInd);
+	pcView->Render();
 }
 
 void dlg_FeatureScout::spBigChartMouseButtonPressed( vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command )
