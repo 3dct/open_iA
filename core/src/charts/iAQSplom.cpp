@@ -190,9 +190,7 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	m_popupHeight(0),
 	m_separationIdx(-1),
 	m_contextMenu(new QMenu(this)),
-	m_bgColorTheme(iAColorThemeManager::GetInstance().GetTheme("White")),
-	m_FilterColID(-1),
-	m_FilterValue(-1.0)
+	m_bgColorTheme(iAColorThemeManager::GetInstance().GetTheme("White"))
 {
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
@@ -222,8 +220,38 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 
 void iAQSplom::resetFilter()
 {
-	m_FilterColID = -1;
+	m_splomData->setFilter( -1, 0 );
 	updateFilter();
+}
+
+void iAQSplom::updateHistogram(size_t paramIndex)
+{
+	std::vector<double> hist_InputValues;
+	for (size_t i = 0; i < m_splomData->numPoints(); ++i)
+	{
+		if (m_splomData->matchesFilter(i))
+			hist_InputValues.push_back(m_splomData->paramData(paramIndex)[i]);
+	}
+	if (m_histograms[paramIndex]->Plots().size() > 0)
+		m_histograms[paramIndex]->RemovePlot(m_histograms[paramIndex]->Plots()[0]);
+
+	auto histogramData = iAHistogramData::Create(hist_InputValues, settings.histogramBins);
+	auto histogramPlot = QSharedPointer<iABarGraphDrawer>(new iABarGraphDrawer(histogramData, QColor(70, 70, 70, 255)));
+	m_histograms[paramIndex]->AddPlot(histogramPlot);
+	m_histograms[paramIndex]->redraw();
+}
+
+void iAQSplom::updateHistograms()
+{
+	if (!settings.histogramVisible)
+		return;
+	for (size_t y = 0; y < m_splomData->numParams(); ++y)
+	{
+		if (m_paramVisibility[y])
+		{
+			updateHistogram(y);
+		}
+	}
 }
 
 void iAQSplom::setFilter(int FilterCol_ID, double FilterValue)
@@ -233,18 +261,21 @@ void iAQSplom::setFilter(int FilterCol_ID, double FilterValue)
 		DEBUG_LOG(QString("Invalid filter column ID %1!").arg(FilterCol_ID));
 		return;
 	}
-	m_FilterColID = FilterCol_ID;
-	m_FilterValue = FilterValue;
+	m_splomData->setFilter(FilterCol_ID, FilterValue);
 	updateFilter();
 }
 
 void iAQSplom::updateFilter()
 {
-	foreach(QList<iAScatterPlot*> row, m_matrix)
-		foreach(iAScatterPlot* s, row)
-			s->setFilter(m_FilterColID, m_FilterValue);
+	foreach(const QList<iAScatterPlot*> & row, m_visiblePlots)
+		foreach(iAScatterPlot * s, row)
+			if (s)
+				s->runFilter();
+			
 	if (m_maximizedPlot)
-		m_maximizedPlot->setFilter(m_FilterColID, m_FilterValue);
+		m_maximizedPlot->runFilter();
+
+	updateHistograms();
 }
 
 void iAQSplom::initializeGL()
@@ -302,7 +333,6 @@ void iAQSplom::dataChanged()
 			connect( s, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
 			connect( s, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
 
-			s->setFilter(m_FilterColID, m_FilterValue);
 			s->setData( x, y, m_splomData ); //we want first plot in lower left corner of the SPLOM
 			s->setSelectionColor(settings.selectionColor);
 			s->setPointRadius(settings.pointRadius);
@@ -311,8 +341,10 @@ void iAQSplom::dataChanged()
 			row.push_back( s );
 		}
 		m_matrix.push_back( row );
+		m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
 	}
 	updateVisiblePlots();
+	updateHistograms();
 }
 
 void iAQSplom::setLookupTable( vtkLookupTable * lut, const QString & colorArrayName )
@@ -368,6 +400,8 @@ void iAQSplom::setParameterVisibility( size_t paramIndex, bool isVisible )
 	if( paramIndex < 0 || paramIndex >= m_paramVisibility.size() )
 		return;
 	m_paramVisibility[paramIndex] = isVisible;
+	if (settings.histogramVisible)
+		updateHistogram(paramIndex);
 	updateVisiblePlots();
 	update();
 }
@@ -381,6 +415,7 @@ void iAQSplom::setParameterVisibility(std::vector<bool> const & visibility)
 	}
 	m_paramVisibility = visibility;
 	updateVisiblePlots();
+	updateHistograms();
 	update();
 }
 
@@ -415,7 +450,7 @@ iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
 {
 	SelectionType sortedSelInds = m_selInds;
 	std::sort(sortedSelInds.begin(), sortedSelInds.end());
-	if (m_FilterColID == -1 || m_selInds.size() == 0)
+	if (!m_splomData->filterDefined() || m_selInds.size() == 0)
 	{
 		m_filteredSelInds = sortedSelInds;
 		return m_filteredSelInds;
@@ -426,7 +461,7 @@ iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
 	const double Epsilon = 1e-10;
 	for (size_t curIdx = 0; curIdx < m_splomData->numPoints(); ++curIdx)
 	{
-		if (abs(m_splomData->paramData(m_FilterColID)[curIdx] - m_FilterValue) > Epsilon)
+		if (m_splomData->matchesFilter(curIdx))
 			continue;
 		if (curSelIdx >= sortedSelInds.size())
 			break;
@@ -448,7 +483,7 @@ void iAQSplom::setSelection( iAQSplom::SelectionType const & selInds )
 
 void iAQSplom::setFilteredSelection(iAQSplom::SelectionType const & filteredSelInds)
 {
-	if (m_FilterColID == -1)
+	if (!m_splomData->filterDefined())
 	{
 		setSelection(filteredSelInds);
 		return;
@@ -461,7 +496,7 @@ void iAQSplom::setFilteredSelection(iAQSplom::SelectionType const & filteredSelI
 	const double Epsilon = 1e-10;
 	for (size_t curIdx = 0; curIdx < m_splomData->numPoints(); ++curIdx)
 	{
-		if (abs(m_splomData->paramData(m_FilterColID)[curIdx] - m_FilterValue) > Epsilon)
+		if (m_splomData->matchesFilter(curIdx))
 			continue;
 		if (curSelIdx >= sortedFilteredSelInds.size())
 			break;
@@ -504,6 +539,7 @@ void iAQSplom::clear()
 		row.clear();
 	}
 	m_matrix.clear();
+	m_histograms.clear();
 	m_paramVisibility.clear();
 }
 
@@ -621,6 +657,7 @@ void iAQSplom::setHistogramVisible(bool visible)
 {
 	settings.histogramVisible = visible;
 	this->updateVisiblePlots();
+	updateHistograms();
 }
 
 void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
@@ -662,7 +699,6 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 	//create main plot
 	delete m_maximizedPlot;
 	m_maximizedPlot = new iAScatterPlot(this, this, 11, true);
-	m_maximizedPlot->setFilter(m_FilterColID, m_FilterValue);
 	connect(m_maximizedPlot, &iAScatterPlot::selectionModified, this, &iAQSplom::selectionUpdated);
 	connect(m_maximizedPlot, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
 
@@ -788,9 +824,8 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	{
 		foreach( iAScatterPlot * s, row )
 		{
-			if( !s )
-				continue;
-			s->paintOnParent( painter );
+			if( s )
+				s->paintOnParent( painter );
 		}
 	}
 	if( m_maximizedPlot )
@@ -992,34 +1027,25 @@ void iAQSplom::updateSPLOMLayout()
 		}
 		QRect rect = getPlotRectByIndex(yind, yind);
 		if (settings.histogramVisible)
-			m_histograms[yind]->setGeometry(rect);
+			m_histograms[ m_visibleIndices[yind] ]->setGeometry(rect);
 	}
 	updateMaxPlotRect();
 }
 
 void iAQSplom::updateVisiblePlots()
 {
+	m_visibleIndices.clear();
 	removeMaxPlotIfHidden();
 	m_visiblePlots.clear();
-	for (auto histo : m_histograms)
-		delete histo;
-	m_histograms.clear();
-	unsigned long numParams = m_splomData->numParams();
-	for( unsigned long y = 0; y < numParams; ++y )
+	for( size_t y = 0; y < m_splomData->numParams(); ++y )
 	{
+		m_histograms[y]->setVisible(settings.histogramVisible && m_paramVisibility[y]);
+
 		if( !m_paramVisibility[y] )
 			continue;
 
-		if (settings.histogramVisible)
-		{
-			m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
-			auto histogramData = iAHistogramData::Create(m_splomData->data()[y], settings.histogramBins);
-			auto histogramPlot = QSharedPointer<iABarGraphDrawer>(new iABarGraphDrawer(histogramData,QColor(70, 70, 70, 255)));
-			m_histograms[m_histograms.size()-1]->AddPlot(histogramPlot);
-			m_histograms[m_histograms.size()-1]->show();
-		}
 		QList<iAScatterPlot*> row;
-		for( unsigned long x = 0; x < numParams; ++x )
+		for( size_t x = 0; x < m_splomData->numParams(); ++x )
 		{
 			if( !m_paramVisibility[x] )
 				continue;
@@ -1029,6 +1055,7 @@ void iAQSplom::updateVisiblePlots()
 			row.push_back( plot );
 		}
 		m_visiblePlots.push_back( row );
+		m_visibleIndices.push_back(y);
 	}
 	updateSPLOMLayout();
 }

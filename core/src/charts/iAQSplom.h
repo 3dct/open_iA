@@ -148,6 +148,8 @@ protected:
 private:
 	void dataChanged();                                              //!< handles changes of the internal data
 	void updateFilter();                                             //!< update filter in internal scatter plots
+	void updateHistograms();                                         //!< Updates all histograms when data or filter changes
+	void updateHistogram(size_t paramIndex);                           //!< Updates the histogram of the given parameter
 private slots:
 	void selectionUpdated();                                         //!< When selection of data points is modified.
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
@@ -193,6 +195,7 @@ protected:
 	QList<QList<iAScatterPlot*>> m_matrix;       //!< matrix of all scatter plots
 	QList<QList<iAScatterPlot*>> m_visiblePlots; //!< matrix of visible scatter plots
 	std::vector<bool> m_paramVisibility;         //!< array of individual parameter visibility
+	std::vector<int> m_visibleIndices;           //!< stores mapping from visible plot index to parameter index
 	QSharedPointer<iALookupTable> m_lut;         //!< lookup table, shared with individual scatter plots
 	size_t m_colorLookupColumn;                  //!< index of the column to use for color lookup
 	QPoint m_scatPlotSize;                       //!< size of one scatter plot in the layout
@@ -216,7 +219,4 @@ protected:
 private:
 	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction;
 	QVector<iAChartWidget*> m_histograms;        //<! histograms of scatter plot matrix
-	int m_FilterColID; 
-	double m_FilterValue; 
-
 };
