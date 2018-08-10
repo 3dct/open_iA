@@ -367,21 +367,26 @@ dlg_FeatureScout::~dlg_FeatureScout()
 	}
 }
 
-void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * obj, unsigned long,
-														 void * client_data, void *, vtkCommand * command )
+std::vector<size_t> dlg_FeatureScout::getPCSelection()
 {
 	std::vector<size_t> selectedIndices;
-	vtkSmartPointer<vtkIdTypeArray> DataSelection = this->pcChart->GetPlot(0)->GetSelection();
+	vtkSmartPointer<vtkIdTypeArray> pcSelection = pcChart->GetPlot(0)->GetSelection();
 #if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
-	int countSelection = DataSelection->GetNumberOfValues();
+	int countSelection = pcSelection->GetNumberOfValues();
 #else
 	int countSelection = DataSelection->GetNumberOfTuples();
 #endif
 	for (int idx = 0; idx < countSelection; idx++)
 	{
-		size_t objID = DataSelection->GetVariantValue(idx).ToUnsignedLongLong();
+		size_t objID = pcSelection->GetVariantValue(idx).ToUnsignedLongLong();
 		selectedIndices.push_back(objID);
 	}
+	return selectedIndices;
+}
+
+void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * , unsigned long, void *, void *, vtkCommand * )
+{
+	auto selectedIndices = getPCSelection();
 	m_splom->setSelection(selectedIndices);
 	RenderSelection(selectedIndices);
 }
@@ -500,14 +505,7 @@ void dlg_FeatureScout::setupViews()
 	this->pcView = vtkContextView::New();
 	pcView->SetRenderWindow( pcWidget->GetRenderWindow() );
 	pcView->SetInteractor( pcWidget->GetInteractor() );
-	/*
-	this->pcChart = vtkChartParallelCoordinates::New();
-	this->pcChart->GetPlot( 0 )->SetInputData( chartTable );
-	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
-	this->pcChart->GetPlot( 0 )->SetWidth(m_pcLineWidth );
 
-	this->pcView->GetScene()->AddItem( pcChart );
-	*/
 	// Creates a popup menu
 	QMenu* popup2 = new QMenu( pcWidget );
 	popup2->addAction( "Add Class" );
@@ -2896,6 +2894,8 @@ void dlg_FeatureScout::showScatterPlot()
 	}
 	m_splom->initScatterPlot(iovSPM, csvTable);
 	m_splom->updateColumnVisibility(columnVisibility);
+	auto selectedIndices = getPCSelection();
+	m_splom->setSelection(selectedIndices);
 	vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
 	m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
 	connect(m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
@@ -3843,7 +3843,7 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 
 	// calculate object probability and save it to a table
 	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
-	this->pcMaxC = this->calcOrientationProbability( it, table );
+	int pcMaxC = this->calcOrientationProbability( it, table ); // maximal count of the object orientation
 
 	// update the object probability ID list
 	this->updateObjectOrientationID( table );
