@@ -300,9 +300,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 			line->GetPointIds()->SetId(1, 2 * row + 1); // the index of line end point in pts
 			lines->InsertNextCell(line);
 			unsigned char c[4];
-			c[0] = colorList.at(0).red();
-			c[1] = colorList.at(0).green();
-			c[2] = colorList.at(0).blue();
+			c[0] = m_colorList.at(0).red();
+			c[1] = m_colorList.at(0).green();
+			c[2] = m_colorList.at(0).blue();
 			c[3] = 255;
 #if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
 			m_colors->InsertNextTupleValue(c);
@@ -634,7 +634,7 @@ void dlg_FeatureScout::initClassTreeModel()
 	QStandardItem *rootItem = classTreeModel->invisibleRootItem();
 	QList<QStandardItem *> stammItem = prepareRow( "Unclassified", QString( "%1" ).arg( objectsCount ), "100" );
 	stammItem.first()->setData( QColor( "darkGray" ), Qt::DecorationRole );
-	this->colorList.append( QColor( "darkGray" ) );
+	m_colorList.push_back( QColor( "darkGray" ) );
 
 	rootItem->appendRow( stammItem );
 	for ( int i = 0; i < objectsCount; ++i )
@@ -787,7 +787,7 @@ void dlg_FeatureScout::MultiClassRendering()
 		return;
 
 	double alpha = this->calculateOpacity(rootItem);
-	m_splom->multiClassRendering(colorList);
+	m_splom->multiClassRendering( m_colorList );
 	// update lookup table in PC View
 	this->updateLookupTable(alpha);
 	this->setPCChartData(true);
@@ -804,16 +804,16 @@ void dlg_FeatureScout::MultiClassRendering()
 		for (size_t objID =0; objID < csvTable->GetNumberOfRows(); ++objID)
 		{
 			int classID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
-			SetPolyPointColor(objID, colorList.at(classID));
+			SetPolyPointColor(objID, m_colorList.at(classID));
 		}
 		updatePolyMapper();
 		return;
 	}
 	double backAlpha = 0.00005;
 	double backRGB[3];
-	backRGB[0] = colorList.at(0).redF();
-	backRGB[1] = colorList.at(0).greenF();
-	backRGB[2] = colorList.at(0).blueF();
+	backRGB[0] = m_colorList.at(0).redF();
+	backRGB[1] = m_colorList.at(0).greenF();
+	backRGB[2] = m_colorList.at(0).blueF();
 
 	double red = 0.0;
 	double green = 0.0;
@@ -831,9 +831,9 @@ void dlg_FeatureScout::MultiClassRendering()
 	// Iterate trough all classes to render, starting with 0 unclassified, 1 Class1,...
 	for (int i = 0; i < classCount; i++)
 	{
-		red = colorList.at(i).redF();
-		green = colorList.at(i).greenF();
-		blue = colorList.at(i).blueF();
+		red   = m_colorList.at(i).redF();
+		green = m_colorList.at(i).greenF();
+		blue  = m_colorList.at(i).blueF();
 
 		QStandardItem *item = rootItem->child(i, 0);
 		int itemL = item->rowCount();
@@ -919,9 +919,9 @@ void dlg_FeatureScout::SingleRendering( int labelID )
 {
 	int cID = this->activeClassItem->index().row();
 	int itemL = this->activeClassItem->rowCount();
-	double red = colorList.at( cID ).redF(),
-		   green = colorList.at( cID ).greenF(),
-		   blue = colorList.at( cID ).blueF(),
+	double red   = m_colorList.at( cID ).redF(),
+		   green = m_colorList.at( cID ).greenF(),
+		   blue  = m_colorList.at( cID ).blueF(),
 		   alpha = 0.5,
 		   backAlpha = 0.0,
 		   backRGB[3] = { 0.0, 0.0, 0.0 };
@@ -941,7 +941,7 @@ void dlg_FeatureScout::SingleRendering( int labelID )
 	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
 		QColor nonClassColor = QColor(0, 0, 0, 0);
-		QColor classColor = colorList.at(cID);
+		QColor classColor = m_colorList.at(cID);
 		if ( labelID > 0)
 			classColor.setAlpha(TransparentAlpha);
 		for (int objID = 0; objID < objectsCount; ++objID)
@@ -1068,7 +1068,7 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
 	{
 		int selectedClassID = activeClassItem->index().row();
-		QColor classColor = colorList.at(selectedClassID);
+		QColor classColor = m_colorList.at(selectedClassID);
 		int currentObjectIndexInSelection = 0;
 		size_t curSelObjID = NoPointIdx;
 		if (countSelection > 0)
@@ -1104,9 +1104,9 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 	selRGB[0] = SelectedColor.redF();
 	selRGB[1] = SelectedColor.greenF();
 	selRGB[2] = SelectedColor.blueF();
-	classRGB[0] = colorList.at( activeClassItem->index().row() ).redF();
-	classRGB[1] = colorList.at( activeClassItem->index().row() ).greenF();
-	classRGB[2] = colorList.at( activeClassItem->index().row() ).blueF();
+	classRGB[0] = m_colorList.at( activeClassItem->index().row() ).redF();
+	classRGB[1] = m_colorList.at( activeClassItem->index().row() ).greenF();
+	classRGB[2] = m_colorList.at( activeClassItem->index().row() ).blueF();
 
 	// clear existing points
 	this->oTF->RemoveAllPoints();
@@ -1619,7 +1619,7 @@ void dlg_FeatureScout::RenderMeanObject()
 			cornerAnnotation->SetNonlinearFontScaleFactor( 1 );
 			cornerAnnotation->SetMaximumFontSize( 25 );
 			cornerAnnotation->SetText( 2, classTreeModel->invisibleRootItem()->child( i + 1, 0 )->text().toStdString().c_str() );
-			cornerAnnotation->GetTextProperty()->SetColor( colorList.at( i + 1 ).redF(), colorList.at( i + 1 ).greenF(), colorList.at( i + 1 ).blueF() );
+			cornerAnnotation->GetTextProperty()->SetColor( m_colorList.at( i + 1 ).redF(), m_colorList.at( i + 1 ).greenF(), m_colorList.at( i + 1 ).blueF() );
 			cornerAnnotation->GetTextProperty()->BoldOn();
 
 			vtkSmartPointer<vtkCubeAxesActor> cubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
@@ -2209,7 +2209,7 @@ void dlg_FeatureScout::ClassAddButton()
 	cText = dlg_editPCClass::getClassInfo( 0, "FeatureScout", cText, &cColor, &ok ).section( ',', 0, 0 );
 	if (!ok)
 		return;
-	this->colorList.append( cColor );
+	m_colorList.push_back( cColor );
 	// get the root item from class tree
 	QStandardItem *rootItem = classTreeModel->invisibleRootItem();
 	QStandardItem *item;
@@ -2273,11 +2273,9 @@ void dlg_FeatureScout::ClassAddButton()
 	this->updateClassStatistics( this->activeClassItem );
 	if ( this->activeClassItem->rowCount() == 0 && this->activeClassItem->index().row() != 0 )
 	{
-		// delete the activeItem
 		int cID = this->activeClassItem->index().row();
 		rootItem->removeRow( cID );
-		this->colorList.removeAt( cID );
-		//update Class_ID and lookupTable??
+		m_colorList.removeAt( cID );
 	}
 
 	this->setActiveClassItem( firstLevelItem.first(), 1 );
@@ -2312,7 +2310,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter *writer)
 
 				writer->writeStartElement( QString( "FibreClass-%1" ).arg( i ) ); //start FibreClass-n tag
 				writer->writeTextElement( "CColor", QString( "0x00" ).append
-										  ( QString( colorList.at( fc->index().row() ).name() ).remove( 0, 1 ) ) ); //CColor tag
+										  ( QString( m_colorList.at( fc->index().row() ).name() ).remove( 0, 1 ) ) ); //CColor tag
 				writer->writeTextElement( "NFibres", QString( fc->text() ) ); //NFibres tag
 
 				writer->writeStartElement( QString( "Fibres" ) ); //Fibres tag
@@ -2355,7 +2353,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter *writer)
 
 				writer->writeStartElement( QString( "VoidClass-%1" ).arg( i ) ); //start VoidClass-n tag
 				writer->writeTextElement( "CColor", QString( "0x00" ).append
-										  ( QString( colorList.at( fc->index().row() ).name() ).remove( 0, 1 ) ) ); //CColor tag
+										  ( QString( m_colorList.at( fc->index().row() ).name() ).remove( 0, 1 ) ) ); //CColor tag
 				writer->writeTextElement( "NVoids", QString( fc->text() ) ); //NVoids tag
 
 				writer->writeStartElement( QString( "Voids" ) ); //Voids tag
@@ -2720,7 +2718,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	chartTable->ShallowCopy( csvTable ); // reset charttable
 	tableList.clear();
 	tableList.push_back( chartTable );
-	colorList.clear();
+	m_colorList.clear();
 	classTreeModel->clear();
 
 	// init header names for class tree model
@@ -2766,7 +2764,7 @@ void dlg_FeatureScout::ClassLoadButton()
 
 				QList<QStandardItem *> stammItem = this->prepareRow( name, count, percent );
 				stammItem.first()->setData( QColor( color ), Qt::DecorationRole );
-				this->colorList.append( QColor( color ) );
+				m_colorList.append( QColor( color ) );
 				rootItem->appendRow( stammItem );
 				activeItem = rootItem->child( idxClass );
 				idxClass++;
@@ -2839,7 +2837,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	// remove the deleted class from tree view, its entry in tableList and its color
 	tableList.removeAt(this->activeClassItem->index().row());
 	rootItem->removeRow(deleteClassID);
-	this->colorList.removeAt(deleteClassID);
+	m_colorList.removeAt(deleteClassID);
 
 	// Update class ID for all remaining classes elements
 	int classCount = rootItem->rowCount();
@@ -2913,7 +2911,7 @@ void dlg_FeatureScout::showScatterPlot()
 	m_splom->initScatterPlot(iovSPM, csvTable);
 	m_splom->updateColumnVisibility(columnVisibility);
 	if (m_renderMode == rmMultiClass)
-		m_splom->multiClassRendering(colorList);
+		m_splom->multiClassRendering(m_colorList);
 	else
 	{
 		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
@@ -3039,7 +3037,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 			int cid = classTreeModel->invisibleRootItem()->rowCount();
 			QString cText = QString( "Class %1" ).arg( cid );
 			QColor cColor = getClassColor(cid);
-			this->colorList.append( cColor );
+			m_colorList.append( cColor );
 
 			// create a first level child under rootItem as new class
 			double percent = 100.0*CountObject / objectNr;
@@ -3089,7 +3087,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 		// delete the activeItem
 		int cID = this->activeClassItem->index().row();
 		classTreeModel->invisibleRootItem()->removeRow( cID );
-		this->colorList.removeAt( cID );
+		m_colorList.removeAt( cID );
 		//update Class_ID and lookupTable??
 	}
 
@@ -3102,7 +3100,7 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 
 	//Updates scatter plot matrix when a class is added.
 	// TODO SPM
-	//matrix->UpdateColorInfo( classTreeModel, colorList );
+	//matrix->UpdateColorInfo( classTreeModel, m_colorList );
 	//matrix->SetClass2Plot( this->activeClassItem->index().row() );
 	//matrix->UpdateLayout();
 }
@@ -3133,7 +3131,7 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 	{
 		int classID = index.row();
 		bool ok;
-		QColor old_cColor = this->colorList.at( classID );
+		QColor old_cColor = m_colorList.at( classID );
 		QString old_cText = item->text();
 		QColor new_cColor = old_cColor;
 		QString new_cText = old_cText;
@@ -3141,7 +3139,7 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 
 		if ( ok && ( old_cText.compare( new_cText ) != 0 || new_cColor != old_cColor ) )
 		{
-			this->colorList[index.row()] = new_cColor;
+			m_colorList[index.row()] = new_cColor;
 			item->setText( new_cText );
 			item->setData( new_cColor, Qt::DecorationRole );
 			this->SingleRendering();
@@ -3276,7 +3274,7 @@ void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStand
 		writer->writeStartElement( ClassTag );
 		writer->writeAttribute( NameAttribute, item->text() );
 
-		QString color = QString( colorList.at( item->index().row() ).name() );
+		QString color = QString( m_colorList.at( item->index().row() ).name() );
 
 		writer->writeAttribute( ColorAttribute, color );
 		writer->writeAttribute( CountAttribute, classTreeModel->invisibleRootItem()->child( item->index().row(), 1 )->text() );
@@ -3392,14 +3390,14 @@ void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 
 void dlg_FeatureScout::updateLookupTable( double alpha )
 {
-	int lutNum = colorList.length();
+	int lutNum = m_colorList.size();
 	lut->SetNumberOfTableValues( lutNum );
 	for ( int i = 0; i < lutNum; i++ )
 		lut->SetTableValue( i,
-		colorList.at( i ).red() / 255.0,
-		colorList.at( i ).green() / 255.0,
-		colorList.at( i ).blue() / 255.0,
-		colorList.at( i ).alpha() / 255.0 );
+		m_colorList.at( i ).red() / 255.0,
+		m_colorList.at( i ).green() / 255.0,
+		m_colorList.at( i ).blue() / 255.0,
+		m_colorList.at( i ).alpha() / 255.0 );
 
 	lut->SetRange( 0, lutNum - 1 );
 	lut->SetAlpha( alpha );
@@ -3450,7 +3448,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 	blob->SetCluster( objects );
 
 	// set color
-	QColor color = colorList.at( activeClassItem->index().row() );
+	QColor color = m_colorList.at( activeClassItem->index().row() );
 	blob->GetSurfaceProperty()->SetColor( color.redF(), color.greenF(), color.blueF() );
 	blob->SetName( activeClassItem->text() );
 	const double count = activeClassItem->rowCount();
