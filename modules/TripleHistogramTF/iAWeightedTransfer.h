@@ -22,21 +22,10 @@
 #pragma once
 
 #include "iATransferFunction.h"
+#include "BCoord.h"
 
 #include "vtkColorTransferFunction.h"
 #include "vtkPiecewiseFunction.h"
-
-class iAWeightedColorFunction : public vtkColorTransferFunction
-{
-public:
-	iAWeightedColorFunction();
-};
-
-class iAWeightedOpacityFunction : public vtkPiecewiseFunction
-{
-public:
-	iAWeightedOpacityFunction();
-};
 
 class iAWeightedTransfer : public vtkScalarsToColors //public iATransferFunction
 {
@@ -46,17 +35,13 @@ public:
 
 	void setTransferFunctions(iATransferFunction* tf1, iATransferFunction* tf2, iATransferFunction* tf3);
 
-	//iAWeightedColorFunction* GetColorFunction() override;
-	//iAWeightedOpacityFunction* GetOpacityFunction() override;
-
-	void GetColor(double x, double rgb[3]) override;
+	// Overrides
+	void GetColor(double v, double rgb[3]) override;
+	double GetOpacity(double v) override;
 
 private:
 	iATransferFunction *m_tf1, *m_tf2, *m_tf3;
 
-	iAWeightedColorFunction* m_cf;
-	iAWeightedOpacityFunction* m_of;
-
-	//void mix(Color c1, Color c2, Color c3);
+	BCoord m_weight;
 
 };

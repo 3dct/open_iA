@@ -21,11 +21,14 @@
  
 #include "dlg_TripleHistogramTF.h"
 
+#include <qsplitter.h>
+
 // TODO: why tf do I need this?
 #include "iAModalityList.h"
 
 // Debug
 #include "qdebug.h"
+#include "ColorInterpolator.h"
 
 dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	//TripleHistogramTFConnector(mdiChild, f), m_mdiChild(mdiChild)
@@ -38,19 +41,22 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	resize(779, 501);
 	setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetVerticalTitleBar);
 
-	QWidget *dockWidgetContents = new QWidget();
+	//QWidget *dockWidgetContents = new QWidget();
+	QSplitter *dockWidgetContents = new QSplitter(Qt::Horizontal);
 	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
 
 	//RightBorderLayout *mainLayout = new RightBorderLayout(dockWidgetContents, RightBorderLayout::Right);
-	m_mainLayout = new QHBoxLayout(dockWidgetContents);
-	m_mainLayout->setSpacing(0);
-	m_mainLayout->setObjectName(QStringLiteral("horizontalLayout_2"));
-	m_mainLayout->setContentsMargins(0, 0, 0, 0);
+	//m_mainLayout = new QHBoxLayout(dockWidgetContents);
+	//m_mainLayout->setSpacing(0);
+	//m_mainLayout->setObjectName(QStringLiteral("horizontalLayout_2"));
+	//m_mainLayout->setContentsMargins(0, 0, 0, 0);
 
 	QWidget *optionsContainer = new QWidget();
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	// Test ^^^
 	//-----------------------------------------------
+
+	m_triangleWidget = new iABarycentricTriangleWidget(dockWidgetContents);
 
 	m_slicerModeComboBox = new QComboBox(optionsContainer);
 	m_slicerModeComboBox->addItem("YZ", QVariant(iASlicerMode::YZ));
@@ -70,12 +76,14 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	if (m_mdiChild->GetModalities()->size() > 0) // What if it isn't bigger than 0? Then what?
 	{
 		iAModalityWidget *modalities[3];
+		QString names[3];
 		if (m_mdiChild->GetModalities()->size() == 1) // TODO: remove
 		{
 			for (int i = 0; i < 3/*mdiChild->GetModalities()->size()*/; ++i)
 			{
 				modalities[i] = new iAModalityWidget(histogramStackContainer, mdiChild->GetModality(0), mdiChild);
 				histogramStackContainerLayout->addWidget(modalities[i]);
+				names[i] = mdiChild->GetModality(0)->GetName();
 			}
 		}
 		else if (m_mdiChild->GetModalities()->size() >= 3) // TODO: handle more than 3 available modalities
@@ -84,11 +92,29 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 			{
 				modalities[i] = new iAModalityWidget(histogramStackContainer, mdiChild->GetModality(i), mdiChild);
 				histogramStackContainerLayout->addWidget(modalities[i]);
+				names[i] = mdiChild->GetModality(i)->GetName();
 			}
 		}
+
+		names[0] = "A (" + names[0] + ")";
+		names[1] = "B (" + names[1] + ")";
+		names[2] = "C (" + names[2] + ")";
+
 		m_modality1 = modalities[0];
 		m_modality2 = modalities[1];
 		m_modality3 = modalities[2];
+
+		m_modality1->setModalityLabel(names[0]);
+		m_modality2->setModalityLabel(names[1]);
+		m_modality3->setModalityLabel(names[2]);
+
+		// TODO: include modality name
+		//m_triangleWidget->setModality1label("A (" + names[0] + ")");
+		//m_triangleWidget->setModality2label("B (" + names[1] + ")");
+		//m_triangleWidget->setModality3label("C (" + names[2] + ")");
+		m_triangleWidget->setModality1label(names[0]);
+		m_triangleWidget->setModality2label(names[1]);
+		m_triangleWidget->setModality3label(names[2]);
 	}
 	else { // TODO: remove?
 		m_modality1 = 0;
@@ -96,24 +122,26 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 		m_modality3 = 0;
 	}
 
-	m_triangleWidget = new iABarycentricTriangleWidget(dockWidgetContents);
 
 	QWidget *leftWidget = new QWidget();
-	//leftWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
 	leftWidgetLayout->addWidget(optionsContainer);
 	leftWidgetLayout->addWidget(histogramStackContainer);
 
-	m_mainLayout->addWidget(leftWidget);
-	m_mainLayout->addWidget(m_triangleWidget);
-	//mainLayout->setCenterWidget(leftWidget);
-	//mainLayout->setBorderWidget(m_triangleWidget);
+	dockWidgetContents->addWidget(leftWidget);
+	dockWidgetContents->addWidget(m_triangleWidget);
 
 	// Initialize transfer function
 	m_transferFunction = new iAWeightedTransfer(
 		m_modality1->getTransferFunction(),
 		m_modality2->getTransferFunction(),
 		m_modality3->getTransferFunction());
+
+	// Does not work. TODO: fix
+	mdiChild->getSlicerXY()->reInitialize(
+		mdiChild->getImageData(),
+		vtkTransform::New(), // no way of getting current transform, so create a new one // TODO: fix?
+		m_transferFunction); // here is where the magic happens ;)
 
 	//m_mdiChild->getRaycaster()->setTransferFunction(m_transferFunction);
 	//m_mdiChild->getSlicerXY()->setTransferFunction(m_transferFunction);
@@ -122,6 +150,10 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	// Initialize
 	updateSlicerMode();
 	setWidget(dockWidgetContents);
+	setWeight(m_triangleWidget->getControlPointCoordinates());
+
+	// TODO: remove this class (ColorInterpolator), probably
+	ColorInterpolator::setInstance(new LinearRGBColorInterpolator());
 
 	//Connect
 	connect(m_triangleWidget, SIGNAL(weightChanged(BCoord)), this, SLOT(setWeight(BCoord)));
@@ -143,14 +175,6 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
 {}
-
-void dlg_TripleHistogramTF::resizeEvent(QResizeEvent* event)
-{
-	// TODO: create own layout instead of doing this?
-	int w = m_triangleWidget->getWidthForHeight(event->size().height());
-	m_mainLayout->setStretch(0, event->size().width() - w);
-	m_mainLayout->setStretch(1,						    w);
-}
 
 void dlg_TripleHistogramTF::setWeight(BCoord bCoord)
 {
@@ -202,7 +226,13 @@ void dlg_TripleHistogramTF::setSliceNumber(int sliceNumber)
 void dlg_TripleHistogramTF::updateTransferFunction()
 {
 	// TODO: update weighted transfer function (m_transferFunction->...)
-	//m_mdiChild->getSlicerXY()->reInitialize(); // ?
+
+	// Exact same code as above. TODO: avoid that
+	//mdiChild->getSlicerXY()->reInitialize(
+	//	mdiChild->getImageData(),
+	//	vtkTransform::New(), // no way of getting current transform, so create a new one // TODO: fix?
+	//	m_transferFunction); // here is where the magic happens ;)
+
 	//m_mdiChild->getSlicerXZ()->reInitialize(); // ?
 	//m_mdiChild->getSlicerYZ()->reInitialize(); // ?
 	emit transferFunctionUpdated();

@@ -31,12 +31,32 @@
 #include "BarycentricTriangle.h"
 #include "BCoord.h"
 
+#define _USE_MATH_DEFINES // necessary to use M_PI (with math.height)
+#include <math.h>
+
+// Constants
+// TODO: is this really the way to declare constants?
+static const qreal RAD60 = M_PI / 3.0;
+static const qreal SIN60 = sin(RAD60);
+static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
+static const qreal COS60 = 0.5;
+static const qreal ONE_DIV_THREE = 1.0 / 3.0;
+
+static const int CONTROL_POINT_RADIUS = 10;
+static const int MODALITY_LABEL_MARGIN = 10;
+static const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
+
+static const QString MODALITY_LABEL_1_DEFAULT = "A";
+static const QString MODALITY_LABEL_2_DEFAULT = "B";
+static const QString MODALITY_LABEL_3_DEFAULT = "C";
+
 class iABarycentricTriangleWidget : public QOpenGLWidget, public IBorderWidget
 {
 	Q_OBJECT
 
 public:
 	iABarycentricTriangleWidget(QWidget* parent, Qt::WindowFlags f = 0);
+	
 	~iABarycentricTriangleWidget();
 
 	bool hasWidthForHeight() override;
@@ -47,6 +67,14 @@ public:
 
 	int getWidthForCurrentHeight();
 	int getHeightForCurrentWidth();
+
+	void recalculatePositions() { recalculatePositions(width(), height()); }
+	void setFont(QFont font);
+	void setModality1label(QString label);
+	void setModality2label(QString label);
+	void setModality3label(QString label);
+
+	BCoord getControlPointCoordinates();
 
 public slots:
 	//void mousePress(QMouseEvent*);
@@ -69,6 +97,15 @@ private:
 	QPoint m_controlPointOld;
 	BCoord m_controlPointBCoord;
 
+	QString m_modalityLabel1 = MODALITY_LABEL_1_DEFAULT;
+	QString m_modalityLabel2 = MODALITY_LABEL_2_DEFAULT;
+	QString m_modalityLabel3 = MODALITY_LABEL_3_DEFAULT;
+
+	QFont m_modalityLabelFont;
+	QPoint m_modalityLabel1Pos;
+	QPoint m_modalityLabel2Pos;
+	QPoint m_modalityLabel3Pos;
+
 	QPainterPath m_trianglePainterPath;
 	QPen m_triangleBorderPen;// = QPen(); // TODO: could be constant...?
 	QBrush m_triangleFillBrush;
@@ -83,10 +120,12 @@ private:
 	void updateControlPointPosition();
 	void moveControlPointTo(QPoint newPos);
 
-	void updatePositions(int w, int h);
-	void paintTriangleBorder();
-	void paintTriangleFill();
-	void paintControlPoint();
+	void recalculatePositions(int w, int h);
+
+	void paintTriangleBorder(QPainter &p);
+	void paintTriangleFill(QPainter &p);
+	void paintControlPoint(QPainter &p);
+	void paintModalityLabels(QPainter &p);
 
 	bool isTooWide(int width, int height);
 	bool isTooTall(int width, int height);

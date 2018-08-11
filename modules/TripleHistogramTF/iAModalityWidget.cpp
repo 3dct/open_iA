@@ -58,9 +58,7 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 	//QLabel *slicer = new QLabel(rightWidget);
 	//slicer->setText("Slicer");
 
-	// TODO: ?????
-	vtkImageData *imageData = mdiChild->getImageData();
-	//vtmImageData *imageData = modality->GetImage()->GetScalarPointer(x, y, z);
+	vtkImageData *imageData = modality->GetImage().GetPointer();
 
 	// ----------------------------------------------------------------------------------------------------------
 	// Initialize slicer
@@ -99,10 +97,14 @@ iAModalityWidget::iAModalityWidget(QWidget * parent, QSharedPointer<iAModality> 
 	// ----------------------------------------------------------------------------------------------------------
 
 	m_weightLabel = new QLabel(rightWidget);
-	m_weightLabel->setText("Weight");
+	//m_weightLabel->setText("Weight");
+
+	// TODO: use a better name
+	m_modalityLabel = new QLabel(modality->GetName());
 
 	m_rightWidgetLayout = new QVBoxLayout(rightWidget);
 	m_rightWidgetLayout->addWidget(m_slicerWidget);
+	m_rightWidgetLayout->addWidget(m_modalityLabel);
 	m_rightWidgetLayout->addWidget(m_weightLabel);
 	//RightBorderLayout *rightWidgetLayout = new RightBorderLayout(rightWidget, RightBorderLayout::Top);
 	//rightWidgetLayout->setBorderWidget(new SquareBorderWidget(m_slicerWidget));
@@ -166,4 +168,9 @@ void iAModalityWidget::updateTransferFunction()
 {
 	m_slicerWidget->update();
 	emit modalityTfChanged();
+}
+
+void iAModalityWidget::setModalityLabel(QString label)
+{
+	m_modalityLabel->setText(label);
 }

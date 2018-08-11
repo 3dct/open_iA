@@ -62,7 +62,6 @@ signals:
 	void transferFunctionUpdated();
 
 protected:
-	void resizeEvent(QResizeEvent* event);
 
 private:
 	void setSlicerMode(iASlicerMode slicerMode);
@@ -75,8 +74,6 @@ private:
 
 	iAModalityWidget *m_modality1, *m_modality2, *m_modality3;
 	iABarycentricTriangleWidget *m_triangleWidget;
-
-	QHBoxLayout *m_mainLayout;
 
 	iAWeightedTransfer *m_transferFunction;
 	

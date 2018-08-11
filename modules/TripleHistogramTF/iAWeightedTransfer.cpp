@@ -22,28 +22,14 @@
 #include "iAWeightedTransfer.h"
 #include "iAModalityTransfer.h"
 
-// Color and opacity functions
-
-iAWeightedColorFunction::iAWeightedColorFunction()
-{
-
-}
-
-iAWeightedOpacityFunction::iAWeightedOpacityFunction()
-{
-
-}
+// TODO: remove
+#include "ColorInterpolator.h"
 
 // Weighted iATransferFunction
 
 iAWeightedTransfer::iAWeightedTransfer(iATransferFunction* tf1, iATransferFunction* tf2, iATransferFunction* tf3)
 {
 	setTransferFunctions(tf1, tf2, tf3);
-
-	m_cf = new iAWeightedColorFunction();
-	m_of = new iAWeightedOpacityFunction();
-
-
 }
 
 iAWeightedTransfer::~iAWeightedTransfer()
@@ -67,13 +53,25 @@ iAWeightedOpacityFunction* iAWeightedTransfer::GetOpacityFunction()
 	return m_of;
 }*/
 
-void iAWeightedTransfer::GetColor(double x, double rgb[3])
+void iAWeightedTransfer::GetColor(double v, double rgb[3])
 {
 	double c1[3], c2[3], c3[3];
 
-	m_tf1->GetColorFunction()->GetColor(x, c1);
-	m_tf2->GetColorFunction()->GetColor(x, c1);
-	m_tf3->GetColorFunction()->GetColor(x, c1);
+	m_tf1->GetColorFunction()->GetColor(v, c1);
+	m_tf2->GetColorFunction()->GetColor(v, c1);
+	m_tf3->GetColorFunction()->GetColor(v, c1);
 
-	//mix(c1, c2, c3);
+	ColorInterpolator::getInstance()->interpolateColor3(
+		c1, c2, c3,
+		m_weight.getAlpha(), m_weight.getBeta(),
+		rgb);
+}
+
+double iAWeightedTransfer::GetOpacity(double v)
+{
+	return ColorInterpolator::getInstance()->interpolateAlpha3(
+		m_tf1->GetOpacityFunction()->GetValue(v),
+		m_tf2->GetOpacityFunction()->GetValue(v),
+		m_tf3->GetOpacityFunction()->GetValue(v),
+		m_weight.getAlpha(), m_weight.getBeta());
 }

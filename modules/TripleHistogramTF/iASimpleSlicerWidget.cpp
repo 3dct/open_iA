@@ -20,12 +20,14 @@
 * ************************************************************************************/
  
 #include "iASimpleSlicerWidget.h"
-
 #include "iAModalityTransfer.h"
-#include "vtkImageData.h"
-#include "vtkColorTransferFunction.h"
-#include "vtkCamera.h"
 #include "iASlicerData.h"
+
+#include <vtkCamera.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkImageData.h>
+#include <vtkInteractorStyle.h>
+#include <vtkRenderWindowInteractor.h>
 
 iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, QSharedPointer<iAModality> modality, vtkImageData *imageData, Qt::WindowFlags f /*= 0 */) :
 	QWidget(parent, f)
@@ -40,10 +42,12 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, QSharedPointer<iAMo
 	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->GetColorFunction();
 	m_slicerTransform = vtkTransform::New();
 	m_slicer->initializeData(imageData, m_slicerTransform, colorFunction);
-
-	// TODO: deactivate interaction with the slice (zoom, pan, etc)
-	//m_slicer->GetSlicerData()->disableInteractor();
-	m_slicer->disableInteractor(); // doesn't work!
+	m_slicer->initializeWidget(imageData);
+	
+	// Deactivate interaction with the slice (zoom, pan, etc)
+	//m_slicer->disableInteractor();
+	vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
+	m_slicer->GetSlicerData()->GetInteractor()->SetInteractorStyle(dummyStyle);
 
 	// TODO: fill widget with the sliced image
 }

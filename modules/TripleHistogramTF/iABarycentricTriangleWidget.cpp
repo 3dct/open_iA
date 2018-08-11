@@ -25,31 +25,20 @@
 #include <QLabel>
 #include <QPainter>
 #include <QMouseEvent>
+#include <QString>
 
-#define _USE_MATH_DEFINES // necessary to use M_PI (with math.height)
-#include <math.h>
+// TODO: really necessary? (just to get the font()!)
+#include <QApplication>
 
 // Debug
 #include <QDebug>
 
-// Constants
-// TODO: is this really the way to declare constants?
-static const qreal RAD60 = M_PI / 3.0;
-static const qreal SIN60 = sin(RAD60);
-static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
-static const qreal COS60 = 0.5;
-static const qreal ONE_DIV_THREE = 1.0 / 3.0;
-
-static const int CONTROL_POINT_RADIUS = 10;
-
 iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
-	QOpenGLWidget(parent, f), m_controlPointBCoord(ONE_DIV_THREE, ONE_DIV_THREE)
+	QOpenGLWidget(parent, f)
 {
-	QLabel *triangle = new QLabel(this);
-	triangle->setText("Triangle");
-
-	QHBoxLayout *mainLayout = new QHBoxLayout(this);
-	mainLayout->addWidget(triangle);
+	QFont font = QApplication::font();
+	font.setPointSize(16);
+	m_modalityLabelFont = font;
 
 	m_triangleBorderPen.setWidth(5);
 	m_triangleBorderPen.setColor(Qt::black);
@@ -94,12 +83,12 @@ iABarycentricTriangleWidget::~iABarycentricTriangleWidget()
 
 void iABarycentricTriangleWidget::initializeGL()
 {
-	glClearColor(0.9, 0.7, 0.9, 1);
+	glClearColor(1, 1, 1, 1);
 }
 
 void iABarycentricTriangleWidget::resizeGL(int w, int h)
 {
-	updatePositions(w, h);
+	recalculatePositions(w, h);
 }
 
 void iABarycentricTriangleWidget::mousePressEvent(QMouseEvent *event)
@@ -117,23 +106,38 @@ void iABarycentricTriangleWidget::mouseMoveEvent(QMouseEvent *event)
 	update();
 }
 
-void iABarycentricTriangleWidget::updatePositions(int width, int height)
+void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 {
-	int tw, th;
-	if (isTooWide(width, height))
+	QFontMetrics metrics = QFontMetrics(m_modalityLabelFont);
+
+	int modalityLabelHeight = metrics.height();
+
+	int modalityLabel1width = metrics.width(m_modalityLabel1);
+	int modalityLabel2width = metrics.width(m_modalityLabel2);
+	int modalityLabel3width = metrics.width(m_modalityLabel3);
+
+	int triangleSpacingLeft = MODALITY_LABEL_MARGIN; // LEFT margin of BOTTOM-LEFT modality
+	int triangleSpacingTop = modalityLabelHeight + MODALITY_LABEL_MARGIN_TIMES_TWO; // complete height of TOP modality
+	int triangleSpacingRight = MODALITY_LABEL_MARGIN; // RIGHT margin of BOTTOM-RIGHT modality
+	int triangleSpacingBottom = triangleSpacingTop; // complete height of BOTTOM modality
+
+	int aw = width - triangleSpacingLeft - triangleSpacingRight; // available width (for the triangle)
+	int ah = height - triangleSpacingTop - triangleSpacingBottom; // available height (for the triangle)
+	int tw, th; // triangle's width and height
+	if (isTooWide(aw, ah))
 	{
-		tw = width;
-		th = getHeightForWidth(width);
+		tw = aw;
+		th = getHeightForWidth(aw);
 	}
 	else {
-		tw = getWidthForHeight(height);
-		th = height;
+		tw = getWidthForHeight(ah);
+		th = ah;
 	}
 
-	// triangle box
+	// triangle rect
 	int top, left, right, bottom, centerX;
-	top = (height - th) / 2;
-	left = (width - tw) / 2;
+	left = triangleSpacingLeft + ((aw - tw) / 2);
+	top = triangleSpacingTop + ((ah - th) / 2);
 	right = left + tw;
 	bottom = top + th;
 	centerX = left + (tw / 2);
@@ -150,6 +154,10 @@ void iABarycentricTriangleWidget::updatePositions(int width, int height)
 	m_trianglePainterPath.lineTo(centerX, top);
 	m_trianglePainterPath.lineTo(right, bottom);
 	m_trianglePainterPath.lineTo(left, bottom);
+
+	m_modalityLabel1Pos = QPoint(left + MODALITY_LABEL_MARGIN, bottom + MODALITY_LABEL_MARGIN + modalityLabelHeight); // bottom left
+	m_modalityLabel2Pos = QPoint(centerX - (modalityLabel2width / 2), top - MODALITY_LABEL_MARGIN); // top centerX
+	m_modalityLabel3Pos = QPoint(right - modalityLabel3width - MODALITY_LABEL_MARGIN, m_modalityLabel1Pos.y()); // bottom right
 
 	updateControlPointPosition();
 }
@@ -236,43 +244,68 @@ int iABarycentricTriangleWidget::getHeightForCurrentWidth()
 	return getHeightForWidth(width());
 }
 
+void iABarycentricTriangleWidget::setFont(QFont font)
+{
+	m_modalityLabelFont = font;
+}
+
+void iABarycentricTriangleWidget::setModality1label(QString label)
+{
+	m_modalityLabel1 = label;
+}
+
+void iABarycentricTriangleWidget::setModality2label(QString label)
+{
+	m_modalityLabel2 = label;
+}
+
+void iABarycentricTriangleWidget::setModality3label(QString label)
+{
+	m_modalityLabel3 = label;
+}
+
+BCoord iABarycentricTriangleWidget::getControlPointCoordinates()
+{
+	return m_controlPointBCoord;
+}
+
 // ----------------------------------------------------------------------------------------------
 // PAINT METHODS
 // ----------------------------------------------------------------------------------------------
 
 void iABarycentricTriangleWidget::paintGL()
 {
-	paintTriangleFill();
-	paintTriangleBorder();
-	paintControlPoint();
+	QPainter p(this);
+	paintTriangleFill(p);
+	paintTriangleBorder(p);
+	paintControlPoint(p);
+	paintModalityLabels(p);
 }
 
-void iABarycentricTriangleWidget::paintTriangleBorder()
+void iABarycentricTriangleWidget::paintTriangleBorder(QPainter &p)
 {
-	// TODO: is it good to do "QPainter p(this)" multiple times?
-	QPainter p(this);
-
 	p.setPen(m_triangleBorderPen);
 	p.drawPath(m_trianglePainterPath);
-	//p.drawLine(m_triangle.getXa(), m_triangle.getYa(), m_triangle.getXb(), m_triangle.getYb());
-	//p.drawLine(m_triangle.getXb(), m_triangle.getYb(), m_triangle.getXc(), m_triangle.getYc());
-	//p.drawLine(m_triangle.getXc(), m_triangle.getYc(), m_triangle.getXa(), m_triangle.getYa());
 }
 
-void iABarycentricTriangleWidget::paintTriangleFill()
+void iABarycentricTriangleWidget::paintTriangleFill(QPainter &p)
 {
-	QPainter p(this);
-
 	p.fillPath(m_trianglePainterPath, m_triangleFillBrush);
 }
 
-void iABarycentricTriangleWidget::paintControlPoint()
+void iABarycentricTriangleWidget::paintControlPoint(QPainter &p)
 {
-	QPainter p(this);
-
 	p.setPen(m_controlPointCrossPen);
 	p.drawPath(m_controlPointCrossPainterPath);
 
 	p.setPen(m_controlPointBorderPen);
 	p.drawPath(m_controlPointBorderPainterPath);
+}
+
+void iABarycentricTriangleWidget::paintModalityLabels(QPainter &p)
+{
+	p.setFont(m_modalityLabelFont);
+	p.drawText(m_modalityLabel1Pos, m_modalityLabel1);
+	p.drawText(m_modalityLabel2Pos, m_modalityLabel2);
+	p.drawText(m_modalityLabel3Pos, m_modalityLabel3);
 }
