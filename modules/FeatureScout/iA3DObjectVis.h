@@ -20,33 +20,43 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
-#include "iABlobManager.h"
-
 #include <QList>
+#include <QMap>
+#include <QSharedPointer>
 
-class dlg_FeatureScout;
-class iABlobCluster;
+#include <vector>
 
-class vtkOpenGLRenderer;
+class MdiChild;
+
+class vtkColorTransferFunction;
+class vtkFloatArray;
+class vtkImageData;
 class vtkTable;
 
-class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
+class QColor;
+class QStandardItem;
+
+//! Base class for 3D visualizations of objects (e.g. fibers or pores) defined in a table
+//! use the factory method create3DObjectVis to create a specific instance!
+class iA3DObjectVis
 {
-	Q_OBJECT
 public:
-	iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildData childData);
-	~iAFeatureScoutAttachment();
-	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType, QSharedPointer<QMap<uint, uint> > columnMapping);
-	void enableBlobVisualization();
-	void disableBlobVisualization();
-	void FeatureScout_Options(int idx);
-private:
-	bool blobVisEnabled;
-	iABlobManager m_blobManager;
-	QList<iABlobCluster*> blobList;
-	vtkSmartPointer<vtkOpenGLRenderer> blobRen;
-	dlg_FeatureScout * imgFS;
-private slots:
-	void rendererSetCamera();
+	static const QColor SelectedColor;
+	iA3DObjectVis( MdiChild* mdi, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping);
+	virtual void show(int filterID, QString const & fileName);
+	virtual ~iA3DObjectVis();
+	virtual void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) =0;
+	virtual void renderSingle( int labelID, int classID, QColor const & classColor, QStandardItem* activeClassItem ) =0;
+	virtual void multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha ) =0;
+	virtual void renderOrientationDistribution( vtkImageData* oi ) =0;
+	virtual void renderLengthDistribution( vtkColorTransferFunction* cTFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) =0;
+protected:
+	QColor getOrientationColor( vtkImageData* oi, size_t objID ) const;
+	QColor getLengthColor( vtkColorTransferFunction* ctFun, size_t objID ) const;
+	void updateRenderer();
+	MdiChild* m_mdiChild;
+	vtkTable* m_objectTable;
+	QSharedPointer<QMap<uint, uint> > m_columnMapping;
 };
+
+QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi, vtkTable* table, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor);

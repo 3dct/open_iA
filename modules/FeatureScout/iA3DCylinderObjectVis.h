@@ -20,33 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
-#include "iABlobManager.h"
+#include "iA3DLineObjectVis.h"
 
-#include <QList>
-
-class dlg_FeatureScout;
-class iABlobCluster;
-
-class vtkOpenGLRenderer;
-class vtkTable;
-
-class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
+class iA3DCylinderObjectVis: public iA3DLineObjectVis
 {
-	Q_OBJECT
 public:
-	iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildData childData);
-	~iAFeatureScoutAttachment();
-	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType, QSharedPointer<QMap<uint, uint> > columnMapping);
-	void enableBlobVisualization();
-	void disableBlobVisualization();
-	void FeatureScout_Options(int idx);
-private:
-	bool blobVisEnabled;
-	iABlobManager m_blobManager;
-	QList<iABlobCluster*> blobList;
-	vtkSmartPointer<vtkOpenGLRenderer> blobRen;
-	dlg_FeatureScout * imgFS;
-private slots:
-	void rendererSetCamera();
+	iA3DCylinderObjectVis( MdiChild* mdi, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
 };
+

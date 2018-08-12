@@ -24,6 +24,7 @@
 #include "iACsvConfig.h"
 
 #include <QMap>
+#include <QSharedPointer>
 #include <QString>
 #include <QVector>
 
@@ -58,6 +59,7 @@ public:
 	static const char * ColNameCenterY; //!< name of the center y column (inserted optionally)
 	static const char * ColNameCenterZ; //!< name of the center z column (inserted optionally)
 	static const char * ColNameLength;  //!< name of the length angle column (inserted optionally)
+	iACsvIO();
 	//! reads table entries from csv file
 	bool loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & params,
 		size_t const rowCount = std::numeric_limits<size_t>::max());
@@ -66,12 +68,12 @@ public:
 	//! get list of all headers in result table (including computed columns)
 	const QStringList & getOutputHeaders() const;
 	//! get mapping in which fields the important values are stored
-	const QMap<uint, uint> & getOutputMapping() const;
+	QSharedPointer<QMap<uint, uint>> getOutputMapping() const;
 private:
 	QStringList m_fileHeaders;          //!< list of column header names in file
 	QStringList m_outputHeaders;        //!< list of column header names in result table
 	iACsvConfig m_csvConfig;            //!< settings used for reading the csv
-	QMap<uint, uint> m_outputMapping;   //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
+	QSharedPointer<QMap<uint, uint> > m_outputMapping;   //!< maps a value identifier (given as a value out of the iACsvConfig::MappedColumn enum) to the index of the column in the output which contains this value
 
 	//! determine the header columns used in the output
 	void determineOutputHeaders(QVector<int> const & selectedCols);

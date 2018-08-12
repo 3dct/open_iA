@@ -22,6 +22,7 @@
 
 #include "dlg_blobVisualization.h"
 #include "dlg_editPCClass.h"
+#include "iA3DObjectVis.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iACsvIO.h"
@@ -62,7 +63,6 @@
 #include <vtkActor2D.h>
 #include <vtkAnnotationLink.h>
 #include <vtkAxis.h>
-#include <vtkImageCast.h>
 #include <vtkCamera.h>
 #include <vtkCellData.h>
 #include <vtkChart.h>
@@ -80,14 +80,13 @@
 #include <vtkFixedPointVolumeRayCastMapper.h>
 #include <vtkFloatArray.h>
 #include <vtkIdTypeArray.h>
+#include <vtkImageCast.h>
 #include <vtkIntArray.h>
 #include <vtkInteractorStyleTrackballCamera.h>
-#include <vtkLine.h>
 #include <vtkLookupTable.h>
 #include <vtkMarchingCubes.h>
 #include <vtkMath.h>
 #include <vtkMathUtilities.h>
-#include <vtkMetaImageWriter.h>
 #include <vtkNew.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOutlineFilter.h>
@@ -106,18 +105,12 @@
 #include <vtkScalarBarWidget.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarsToColors.h>
-#include <vtkSelection.h>
-#include <vtkSelectionNode.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkSphereSource.h>
-#include <vtkStdString.h>
 #include <vtkSTLWriter.h>
 #include <vtkStringArray.h>
 #include <vtkStructuredGrid.h>
 #include <vtkStructuredGridGeometryFilter.h>
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
-#include <vtkTubeFilter.h>
 #include <vtkVariantArray.h>
 #include <vtkVersion.h>
 #include <vtkVolume.h>
@@ -176,10 +169,6 @@ void ColormapRGBHalfSphere( const double normal[3], double color_out[3] );
 
 namespace
 {
-	const int NumberOfCylinderSides = 12;
-	const int TransparentAlpha = 32;
-	const size_t NoPointIdx = std::numeric_limits<size_t>::max();
-	QColor SelectedColor(255, 0, 0, 255);
 	QColor StandardSPLOMDotColor(128, 128, 128, 255);
 
 	enum RenderMode
@@ -209,7 +198,7 @@ ColormapFuncPtr colormapsIndex[] =
 };
 
 dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
-	vtkSmartPointer<vtkTable> csvtbl, int vis, QMap<uint, uint> const & columnMapping)
+	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping)
 	: QDockWidget( parent ),
 	csvTable( csvtbl ),
 	raycaster( parent->getRenderer() ),
@@ -239,8 +228,6 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	double bounds[6];
 	if (visualization == iACsvConfig::UseVolume)
 	{
-		oTF = parent->getPiecewiseFunction();
-		cTF = parent->getColorTransferFunction();
 		raycaster->GetImageDataBounds(bounds);
 		blobManager->SetBounds(bounds);
 		blobManager->SetProtrusion(1.5);
@@ -275,84 +262,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupViews();
 	setupModel();
 	setupConnections();
+	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0));
+	m_3dvis->show(filterID, fileName);
 	blobVisDialog = new dlg_blobVisualization();
-	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
-	{
-		m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-		m_colors->SetNumberOfComponents(4);
-		m_colors->SetName("Colors");
-		auto pts = vtkSmartPointer<vtkPoints>::New();
-		auto polyData = vtkSmartPointer<vtkPolyData>::New();
-		auto lines = vtkSmartPointer<vtkCellArray>::New();
-
-		for (vtkIdType row = 0; row < objectsCount; ++row)
-		{
-			float first[3], end[3];
-			for (int i = 0; i < 3; ++i)
-			{
-				first[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::StartX + i]).ToFloat();
-				end[i] = csvTable->GetValue(row, m_columnMapping[iACsvConfig::EndX + i]).ToFloat();
-			}
-			pts->InsertNextPoint(first);
-			pts->InsertNextPoint(end);
-			auto line = vtkSmartPointer<vtkLine>::New();
-			line->GetPointIds()->SetId(0, 2 * row);     // the index of line start point in pts
-			line->GetPointIds()->SetId(1, 2 * row + 1); // the index of line end point in pts
-			lines->InsertNextCell(line);
-			unsigned char c[4];
-			c[0] = m_colorList.at(0).red();
-			c[1] = m_colorList.at(0).green();
-			c[2] = m_colorList.at(0).blue();
-			c[3] = 255;
-#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-			m_colors->InsertNextTupleValue(c);
-			m_colors->InsertNextTupleValue(c);
-#else
-			m_colors->InsertNextTypedTuple(c);
-			m_colors->InsertNextTypedTuple(c);
-#endif
-		}
-		polyData->SetPoints(pts);
-		polyData->SetLines(lines);
-		polyData->GetPointData()->AddArray(m_colors);
-		m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		if (visualization == iACsvConfig::Lines)
-		{
-			m_mapper->SetInputData(polyData);
-		}
-		else if (visualization == iACsvConfig::Cylinders)
-		{
-			auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
-			tubeRadius->SetName("TubeRadius");
-			tubeRadius->SetNumberOfTuples(objectsCount*2);
-			for (vtkIdType row = 0; row < objectsCount; ++row)
-			{
-				double diameter = csvTable->GetValue(row, m_columnMapping[iACsvConfig::Diameter]).ToDouble();
-				tubeRadius->SetTuple1(row*2,   diameter/2);
-				tubeRadius->SetTuple1(row*2+1, diameter/2);
-			}
-			polyData->GetPointData()->AddArray(tubeRadius);
-			polyData->GetPointData()->SetActiveScalars("TubeRadius");
-			auto tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
-			tubeFilter->SetInputData(polyData);
-			tubeFilter->CappingOn();
-			tubeFilter->SidesShareVerticesOff();
-			tubeFilter->SetNumberOfSides(NumberOfCylinderSides);
-			tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
-			tubeFilter->Update();
-			m_mapper->SetInputConnection(tubeFilter->GetOutputPort());
-		}
-		vtkRenderWindow* renWin = parent->getRenderer()->GetRenderWindow();
-		m_mapper->SelectColorArray("Colors");
-		m_mapper->SetScalarModeToUsePointFieldData();
-		m_mapper->ScalarVisibilityOn();
-		auto actor = vtkSmartPointer<vtkActor>::New();
-		actor->SetMapper(m_mapper);
-		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
-			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
-		renWin->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-		renWin->GetRenderers()->GetFirstRenderer()->ResetCamera();
-	}
 	// set first column of the classTreeView to minimal (not stretched)
 	this->classTreeView->resizeColumnToContents( 0 );
 	this->classTreeView->header()->setStretchLastSection( false );
@@ -446,11 +358,11 @@ void dlg_FeatureScout::initColumnVisibility()
 	columnVisibility.resize(elementsCount);
 	std::fill(columnVisibility.begin(), columnVisibility.end(), false);
 	if (filterID == iAFeatureScoutObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
-		columnVisibility[m_columnMapping[iACsvConfig::Theta]]   = columnVisibility[m_columnMapping[iACsvConfig::Phi]] =
-		columnVisibility[m_columnMapping[iACsvConfig::CenterX]] = columnVisibility[m_columnMapping[iACsvConfig::CenterY]] = columnVisibility[m_columnMapping[iACsvConfig::CenterZ]] =
-		columnVisibility[m_columnMapping[iACsvConfig::Length]]  = columnVisibility[m_columnMapping[iACsvConfig::Diameter]] = true;
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]]   = columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Length]]  = columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
 	else if (filterID == iAFeatureScoutObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
-		columnVisibility[m_columnMapping[iACsvConfig::CenterX]] = columnVisibility[m_columnMapping[iACsvConfig::CenterY]] = columnVisibility[m_columnMapping[iACsvConfig::CenterZ]] = true;
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] = true;
 }
 
 void dlg_FeatureScout::setupModel()
@@ -788,10 +700,11 @@ void dlg_FeatureScout::MultiClassRendering()
 
 	double alpha = this->calculateOpacity(rootItem);
 	m_splom->multiClassRendering( m_colorList );
+	m_splom->enableSelection(false);
+
 	// update lookup table in PC View
 	this->updateLookupTable(alpha);
 	this->setPCChartData(true);
-	m_splom->enableSelection(false);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetScalarVisibility(1);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SetLookupTable(lut);
 	static_cast<vtkPlotParallelCoordinates *>(pcChart->GetPlot(0))->SelectColorArray(iACsvIO::ColNameClassID);
@@ -799,249 +712,14 @@ void dlg_FeatureScout::MultiClassRendering()
 	this->pcChart->GetPlot(0)->SetOpacity(0.8);
 	pcView->Render();
 
-	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
-	{
-		for (size_t objID =0; objID < csvTable->GetNumberOfRows(); ++objID)
-		{
-			int classID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
-			SetPolyPointColor(objID, m_colorList.at(classID));
-		}
-		updatePolyMapper();
-		return;
-	}
-	double backAlpha = 0.00005;
-	double backRGB[3];
-	backRGB[0] = m_colorList.at(0).redF();
-	backRGB[1] = m_colorList.at(0).greenF();
-	backRGB[2] = m_colorList.at(0).blueF();
-
-	double red = 0.0;
-	double green = 0.0;
-	double blue = 0.0;
-	int CID = 0;
-
-	// clear existing points
-	this->oTF->RemoveAllPoints();
-	this->cTF->RemoveAllPoints();
-
-	// set background opacity and color
-	this->oTF->ClampingOff();
-	this->cTF->ClampingOff();
-
-	// Iterate trough all classes to render, starting with 0 unclassified, 1 Class1,...
-	for (int i = 0; i < classCount; i++)
-	{
-		red   = m_colorList.at(i).redF();
-		green = m_colorList.at(i).greenF();
-		blue  = m_colorList.at(i).blueF();
-
-		QStandardItem *item = rootItem->child(i, 0);
-		int itemL = item->rowCount();
-
-		// Class has no objects, proceed with next class
-		if (!itemL)
-			continue;
-
-		int hid = 0, next_hid = 1;
-		bool starting = false;
-
-		for (int j = 0; j < itemL; ++j)
-		{
-			hid = item->child(j, 0)->text().toInt();
-
-			if ((j + 1) < itemL)
-			{
-				next_hid = item->child(j + 1, 0)->text().toInt();
-			}
-			else
-			{
-				if (starting)
-				{
-					oTF->AddPoint(hid, alpha, 0.5, 1.0);
-					oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
-					cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
-					cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-					break;
-				}
-				else
-				{
-					oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
-					oTF->AddPoint(hid, alpha, 0.5, 1.0);
-					cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-					cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
-					oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
-					cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-					break;
-				}
-			}
-
-			//Create one single tooth
-			if (next_hid > hid + 1 && !starting)
-			{
-				oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
-				oTF->AddPoint(hid, alpha, 0.5, 1.0);
-				oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
-				cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-				cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
-				cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-			}
-			else if (next_hid == hid + 1 && !starting)
-			{
-				starting = true;
-				oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
-				oTF->AddPoint(hid, alpha, 0.5, 1.0);
-				cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-				cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
-			}
-			else if (next_hid == hid + 1 && starting)
-				continue;
-
-			else if (next_hid > hid + 1 && starting)
-			{
-				starting = false;
-				oTF->AddPoint(hid, alpha, 0.5, 1.0);
-				oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
-				cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
-				cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-			}
-		}
-
-		if (hid < objectsCount)
-		{
-			this->oTF->AddPoint(objectsCount + 0.3, backAlpha, 0.5, 1.0);
-			this->cTF->AddRGBPoint(objectsCount + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
-		}
-	}
-	activeChild->updateViews();
+	m_3dvis->multiClassRendering( m_colorList, rootItem, alpha );
 }
 
 void dlg_FeatureScout::SingleRendering( int labelID )
 {
-	int cID = this->activeClassItem->index().row();
-	int itemL = this->activeClassItem->rowCount();
-	double red   = m_colorList.at( cID ).redF(),
-		   green = m_colorList.at( cID ).greenF(),
-		   blue  = m_colorList.at( cID ).blueF(),
-		   alpha = 0.5,
-		   backAlpha = 0.0,
-		   backRGB[3] = { 0.0, 0.0, 0.0 };
-
-	if (visualization == iACsvConfig::UseVolume)
-	{
-		// clear existing points
-		this->oTF->RemoveAllPoints();
-		this->cTF->RemoveAllPoints();
-
-		// set background opacity and color with clamping off
-		this->oTF->ClampingOff();
-		this->cTF->ClampingOff();
-		this->oTF->AddPoint(0, backAlpha);
-		this->cTF->AddRGBPoint(0, backRGB[0], backRGB[1], backRGB[2]);
-	}
-	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
-	{
-		QColor nonClassColor = QColor(0, 0, 0, 0);
-		QColor classColor = m_colorList.at(cID);
-		if ( labelID > 0)
-			classColor.setAlpha(TransparentAlpha);
-		for (int objID = 0; objID < objectsCount; ++objID)
-		{
-			int curClassID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
-			SetPolyPointColor(objID, ( labelID > 0 && objID+1 == labelID ) ? SelectedColor : (curClassID == cID) ? classColor : nonClassColor);
-		}
-		updatePolyMapper();
-		return;
-	}
-	if (visualization != iACsvConfig::UseVolume)
-		return;
-	if ( labelID > 0 ) // for single object selection
-	{
-		if ( (labelID - 1) >= 0)
-		{
-			this->oTF->AddPoint(labelID - 0.5, backAlpha);
-			this->oTF->AddPoint(labelID - 0.49, alpha);
-			this->cTF->AddRGBPoint(labelID - 0.5, backRGB[0], backRGB[1], backRGB[2]);
-			this->cTF->AddRGBPoint(labelID - 0.49, red, green, blue);
-		}
-		oTF->AddPoint(labelID, alpha);
-		cTF->AddRGBPoint(labelID, red, green, blue);
-		if ((labelID + 1) <= objectsCount)
-		{
-			this->oTF->AddPoint(labelID + 0.3, backAlpha);
-			this->oTF->AddPoint(labelID + 0.29, alpha);
-			this->cTF->AddRGBPoint(labelID + 0.3, backRGB[0], backRGB[1], backRGB[2]);
-			this->cTF->AddRGBPoint(labelID + 0.29, red, green, blue);
-		}
-	}
-	else // for single class selection
-	{
-		int hid = 0, next_hid = 1;
-		bool starting = false;
-		for ( int j = 0; j < itemL; ++j )
-		{
-			hid = this->activeClassItem->child( j, 0 )->text().toInt();
-
-			if ( j + 1 < itemL )
-				next_hid = this->activeClassItem->child( j + 1, 0 )->text().toInt();
-			else
-			{
-				if ( starting )
-				{
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					break;
-				}
-				else
-				{
-					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-					break;
-				}
-			}
-
-			//Create one single tooth
-			if ( next_hid > hid + 1 && !starting )
-			{
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-			}
-			else if ( next_hid == hid + 1 && !starting )
-			{
-				starting = true;
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-			}
-			else if ( next_hid == hid + 1 && starting )
-				continue;
-			else if ( next_hid > hid + 1 && starting )
-			{
-				starting = false;
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-			}
-		}
-
-		if ( hid < objectsCount )
-		{
-			this->oTF->AddPoint( objectsCount + 0.3, backAlpha, 0.5, 1.0 );
-			this->cTF->AddRGBPoint( objectsCount + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-		}
-	}
-	updateRenderer();
+	int cID = activeClassItem->index().row();
+	QColor classColor = m_colorList.at(cID);
+	m_3dvis->renderSingle( labelID, cID, classColor, activeClassItem );
 }
 
 void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
@@ -1054,224 +732,15 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 	this->orientationColorMapSelection->hide();
 	this->orientColormap->hide();
 
-	int countClass = this->activeClassItem->rowCount();
+	if (activeClassItem->rowCount() <= 0)
+		return;
+
 	auto sortedSelInds = selInds;
 	std::sort(sortedSelInds.begin(), sortedSelInds.end());
-	int countSelection = sortedSelInds.size();
 
-	if (countClass <= 0)
-		return;
-
-	QColor BackColor(128, 128, 128, 0);
-	double backRGB[3];
-	backRGB[0] = BackColor.redF(); backRGB[1] = BackColor.greenF(); backRGB[2] = BackColor.blueF(); // background color
-	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
-	{
-		int selectedClassID = activeClassItem->index().row();
-		QColor classColor = m_colorList.at(selectedClassID);
-		int currentObjectIndexInSelection = 0;
-		size_t curSelObjID = NoPointIdx;
-		if (countSelection > 0)
-		{
-			curSelObjID = sortedSelInds[currentObjectIndexInSelection];
-			classColor.setAlpha(TransparentAlpha);
-		}
-		else
-		{
-			classColor.setAlpha(255);
-		}
-		for (int objID = 0; objID < objectsCount; ++objID)
-		{
-			int curClassID = csvTable->GetValue(objID, elementsCount - 1).ToInt();
-			QColor curColor = (objID == curSelObjID) ?
-				SelectedColor :
-				((curClassID == selectedClassID) ?
-					classColor :
-					BackColor);
-			SetPolyPointColor(objID, curColor);
-			if (objID == curSelObjID)
-			{
-				++currentObjectIndexInSelection;
-				if (currentObjectIndexInSelection < countSelection)
-					curSelObjID = sortedSelInds[currentObjectIndexInSelection];
-			}
-		}
-		updatePolyMapper();
-		return;
-	}
-
-	double red = 0.0, green = 0.0, blue = 0.0, alpha = 0.5, backAlpha = 0.00, classRGB[3], selRGB[3];
-	selRGB[0] = SelectedColor.redF();
-	selRGB[1] = SelectedColor.greenF();
-	selRGB[2] = SelectedColor.blueF();
-	classRGB[0] = m_colorList.at( activeClassItem->index().row() ).redF();
-	classRGB[1] = m_colorList.at( activeClassItem->index().row() ).greenF();
-	classRGB[2] = m_colorList.at( activeClassItem->index().row() ).blueF();
-
-	// clear existing points
-	this->oTF->RemoveAllPoints();
-	this->cTF->RemoveAllPoints();
-
-	this->oTF->ClampingOff();
-	this->cTF->ClampingOff();
-
-	this->oTF->AddPoint( 0, backAlpha, 0.5, 1.0 );
-	this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-
-	int hid = 0, next_hid = 1, selectionIndex = 0, previous_selectionIndex = 0;
-	bool starting = false, hid_isASelection = false, previous_hid_isASelection = false;
-
-	for ( size_t j = 0; j < countClass; ++j )
-	{
-		hid = this->activeClassItem->child( j )->text().toInt();
-
-		if ( countSelection > 0 )
-		{
-			if ( j == sortedSelInds[selectionIndex] )
-			{
-				hid_isASelection = true;
-				red = SelectedColor.redF(), green = SelectedColor.greenF(), blue = SelectedColor.blueF();
-
-				if ( selectionIndex + 1 < sortedSelInds.size() )
-					selectionIndex++;
-			}
-			else
-			{
-				hid_isASelection = false;
-				red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
-			}
-
-			if ( j > 0 )
-			{
-				if ( j - 1 == sortedSelInds[previous_selectionIndex])
-				{
-					previous_hid_isASelection = true;
-
-					if ( previous_selectionIndex + 1 < sortedSelInds.size())
-						previous_selectionIndex++;
-				}
-				else
-					previous_hid_isASelection = false;
-			}
-		}
-		else
-		{
-			red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
-		}
-
-		// If we are not yet at the last object (of the class) get the next hid
-		if ( ( j + 1 ) < countClass )
-		{
-			next_hid = this->activeClassItem->child( j + 1 )->text().toInt();
-		}
-		else	// If hid = the last object (of the class) we have to set the last object points
-		{
-			if ( starting )	// If we are in a sequence we have to set the ending (\)
-			{
-				oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-
-				if ( hid_isASelection )
-				{
-					cTF->AddRGBPoint( hid - 0.5, 1.0, 0.0, 0.0, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, 1.0, 0.0, 0.0, 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				}
-				else
-				{
-					cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				}
-
-				if ( previous_hid_isASelection )
-					cTF->AddRGBPoint( hid - 1 + 0.3, 1.0, 0.0, 0.0, 0.5, 1.0 );
-				else
-					cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-				break;
-			}
-			else	// if we are not in a sequence we have to create the last tooth (/\)
-			{
-				oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-				oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-
-				cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-				break;
-			}
-		}
-
-		if ( next_hid > hid + 1 && !starting )		//Create one single tooth
-		{
-			oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-			oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-			oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-			cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-			cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-			cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-		}
-		else if ( next_hid == hid + 1 && !starting )	//Creates the beginning of a sequence (/)
-		{
-			starting = true;
-			oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
-			oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-			cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-			cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-		}
-		else if ( next_hid == hid + 1 && starting )	//Continous the started sequence (-)
-		{
-			if ( !hid_isASelection && previous_hid_isASelection )
-			{
-				cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 0.5, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-
-				oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
-			}
-			else if ( hid_isASelection && !previous_hid_isASelection )
-			{
-				cTF->AddRGBPoint( hid - 0.5, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-				cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-
-				oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid + 0.3, alpha, 0.5, 1.0 );
-				oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-			}
-		}
-		else if ( next_hid > hid + 1 && starting )	//  (\)
-		{
-			starting = false;
-
-			oTF->AddPoint( hid - 1 + 0.3, alpha, 0.5, 1.0 );
-			oTF->AddPoint( hid - 0.5, alpha, 0.5, 1.0 );
-			oTF->AddPoint( hid, alpha, 0.5, 1.0 );
-			oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
-
-			if ( previous_hid_isASelection )
-				cTF->AddRGBPoint( hid - 1 + 0.3, selRGB[0], selRGB[1], selRGB[2], 0.5, 1.0 );
-			else
-				cTF->AddRGBPoint( hid - 1 + 0.3, classRGB[0], classRGB[1], classRGB[2], 0.5, 1.0 );
-
-			cTF->AddRGBPoint( hid - 0.5, red, green, blue, 0.5, 1.0 );
-			cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-			cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-		}
-	}
-
-	if ( hid < objectsCount )	// Creates the very last points (for all objects)  if it's not created yet
-	{
-		this->oTF->AddPoint( objectsCount + 0.3, backAlpha, 0.5, 1.0 );
-		this->cTF->AddRGBPoint( objectsCount + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
-	}
-	activeChild->updateViews();
-	updateRenderer();
+	int selectedClassID = activeClassItem->index().row();
+	QColor classColor = m_colorList.at(selectedClassID);
+	m_3dvis->renderSelection( sortedSelInds, selectedClassID, classColor, activeClassItem );
 }
 
 void dlg_FeatureScout::RenderMeanObject()
@@ -1821,33 +1290,6 @@ void ColormapRGBHalfSphere( const double normal[3], double color_out[3] )
 	CheckBounds( color_out );
 }
 
-void dlg_FeatureScout::SetPolyPointColor(int ptIdx, QColor const & qcolor)
-{
-	unsigned char color[4];
-	color[0] = qcolor.red();
-	color[1] = qcolor.green();
-	color[2] = qcolor.blue();
-	color[3] = qcolor.alpha();
-	for (int c = 0; c < 4; ++c)
-	{
-		m_colors->SetComponent(ptIdx * 2, c, color[c]);
-		m_colors->SetComponent(ptIdx * 2 + 1, c, color[c]);
-	}
-}
-
-void dlg_FeatureScout::updatePolyMapper()
-{
-	m_colors->Modified();
-	m_mapper->Update();
-	updateRenderer();
-}
-
-void dlg_FeatureScout::updateRenderer()
-{
-	raycaster->update();
-	activeChild->renderer->update();
-}
-
 void dlg_FeatureScout::RenderOrientation()
 {
 	m_renderMode = rmOrientation;
@@ -1884,42 +1326,8 @@ void dlg_FeatureScout::RenderOrientation()
 		}
 	}
 
-	// start rendering process with scalar values from the imagedata
-	// rendering in 3D with color transfer function
-	double backAlpha = 0.0, alpha = 0.5, red = 0.0, green = 0.0, blue = 0.0, backRGB[3];
-	backRGB[0] = 0.0; backRGB[1] = 0.0; backRGB[2] = 0.0;
-	int ip, it;
+	m_3dvis->renderOrientationDistribution( oi );
 
-	if (visualization == iACsvConfig::UseVolume)
-	{
-		// clear existing points
-		this->oTF->RemoveAllPoints();
-		this->cTF->RemoveAllPoints();
-		this->oTF->AddPoint( 0, backAlpha );
-		this->cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2] );
-	}
-
-	for ( int i = 0; i < this->objectsCount; i++ )
-	{
-		ip = qFloor( this->csvTable->GetValue( i, m_columnMapping[iACsvConfig::Phi]).ToDouble() );
-		it = qFloor( this->csvTable->GetValue( i, m_columnMapping[iACsvConfig::Theta]).ToDouble() );
-
-		double *p = static_cast<double *>( oi->GetScalarPointer( it, ip, 0 ) );
-		red = p[0]; green = p[1]; blue = p[2];
-		if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
-		{
-			SetPolyPointColor(i, QColor(red*255, green*255, blue*255, 255));
-		}
-		else
-		{
-			this->oTF->AddPoint( i + 1, alpha );
-			this->cTF->AddRGBPoint( i + 1, red, green, blue );
-		}
-	}
-	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
-	{
-		updatePolyMapper();
-	}
 	// prepare the delaunay triangles
 	VTK_CREATE( vtkDelaunay2D, del );
 	VTK_CREATE( vtkPoints, points );
@@ -1992,8 +1400,8 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	double range[2] = { 0.0, 0.0 };
 	vtkDataArray* length;
 
-	length = vtkDataArray::SafeDownCast(this->csvTable->GetColumn(m_columnMapping[iACsvConfig::Length]));
-	QString title = QString("%1 Frequency Distribution").arg(csvTable->GetColumnName(m_columnMapping[iACsvConfig::Length]));
+	length = vtkDataArray::SafeDownCast(this->csvTable->GetColumn(m_columnMapping->value(iACsvConfig::Length)));
+	QString title = QString("%1 Frequency Distribution").arg(csvTable->GetColumnName(m_columnMapping->value(iACsvConfig::Length)));
 	iovPP->setWindowTitle(title);
 	numberOfBins = (this->filterID == iAFeatureScoutObjectType::Fibers) ? 8 : 3;
 
@@ -2059,119 +1467,17 @@ void dlg_FeatureScout::RenderLengthDistribution()
 		cTFun->AddRGBPoint( extents->GetValue( 2 ) + halfInc, 0.0, 1.0, 0.7 ); //cyan
 	}
 
-	// start rendering process with colorlookuptable
-	double backAlpha = 0.00005;
-	double backRGB[3];
-	backRGB[0] = 0.0;
-	backRGB[1] = 0.0;
-	backRGB[2] = 0.0;
-
-	double red = 0.0;
-	double green = 0.0;
-	double blue = 0.0;
-	double dcolor[3];
-	int CID = 0;
-	
-	if (visualization == iACsvConfig::UseVolume)
-	{
-		// clear existing points
-		this->oTF->RemoveAllPoints();
-		this->cTF->RemoveAllPoints();
-		this->cTF->AddRGBPoint(0, backRGB[0], backRGB[1], backRGB[2]);
-	}
-
-	double alpha = 0.001;
-
-	for ( int i = 0; i < this->objectsCount; i++ )
-	{
-		double ll = length->GetTuple( i )[0];
-
-		cTFun->GetColor( ll, dcolor );
-		red = dcolor[0];
-		green = dcolor[1];
-		blue = dcolor[2];
-		if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
-		{
-			QColor color(red * 255, green * 255, blue * 255, 255);
-			SetPolyPointColor(i, color);
-		}
-		else
-		{
-			if ( this->filterID == iAFeatureScoutObjectType::Fibers )
-			{
-				if ( ll >= range[0] && ll < extents->GetValue( 0 ) + halfInc )
-				{
-					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-					this->oTF->AddPoint( i + 1, 1.0 );
-				}
-				else if ( ll >= extents->GetValue( 0 ) + halfInc && ll < extents->GetValue( 1 ) + halfInc )
-				{
-					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-					this->oTF->AddPoint( i + 1, 0.03 );
-				}
-				else if ( ll >= extents->GetValue( 1 ) + halfInc && ll < extents->GetValue( 2 ) + halfInc )
-				{
-					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-					this->oTF->AddPoint( i + 1, 0.03 );
-				}
-				else if ( ll >= extents->GetValue( 2 ) + halfInc && ll < extents->GetValue( 5 ) + halfInc )
-				{
-					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-					this->oTF->AddPoint( i + 1, 0.015 );
-				}
-				else if ( ll >= extents->GetValue( 5 ) + halfInc && ll <= extents->GetValue( 7 ) + halfInc )
-				{
-					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-					this->oTF->AddPoint( i + 1, 1.0 );
-				}
-			}
-			else
-			{
-				if ( ll >= range[0] && ll < extents->GetValue( 0 ) + halfInc )
-				{
-					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-					this->oTF->AddPoint( i + 1, 0.5 );
-				}
-				else if ( ll >= extents->GetValue( 0 ) + halfInc && ll < extents->GetValue( 1 ) + halfInc )
-				{
-					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-					this->oTF->AddPoint( i + 1, 0.5 );
-				}
-				else if ( ll >= extents->GetValue( 5 ) + halfInc && ll <= extents->GetValue( 2 ) + halfInc )
-				{
-					this->oTF->AddPoint( i + 1 - 0.5, 0.0 );
-					this->oTF->AddPoint( i + 1 + 0.3, 0.0 );
-					this->oTF->AddPoint( i + 1, 0.5 );
-				}
-			}
-			this->cTF->AddRGBPoint( i + 1, red, green, blue );
-			this->cTF->AddRGBPoint( i + 1 - 0.5, red, green, blue );
-			this->cTF->AddRGBPoint( i + 1 + 0.3, red, green, blue );
-		}
-	}
-	if (visualization == iACsvConfig::Lines || visualization == iACsvConfig::Cylinders)
-	{
-		updatePolyMapper();
-	}
+	m_3dvis->renderLengthDistribution( cTFun, extents, halfInc, filterID, range );
 
 	this->orientationColorMapSelection->hide();
 	this->orientColormap->hide();
 	this->drawScalarBar( cTFun, this->raycaster->GetRenderer(), 1 );
-	updateRenderer();
 
 	// plot length distribution
 	VTK_CREATE( vtkContextView, view );
 	VTK_CREATE( vtkChartXY, chart );
 	chart->SetTitle(title.toUtf8().constData());
 	chart->GetTitleProperties()->SetFontSize( (filterID == iAFeatureScoutObjectType::Fibers) ? 15 : 12 );
-
 	vtkPlot *plot = chart->AddPlot( vtkChartXY::BAR );
 	plot->SetInputData( fldTable, 0, 1 );
 	plot->GetXAxis()->SetTitle( "Length in microns" );
@@ -2320,16 +1626,16 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter *writer)
 					writer->writeStartElement( QString( "Fibre-%1" ).arg( j + 1 ) ); //Fibre-n tag
 
 					//Gets fibre features from csvTable
-					writer->writeTextElement( "X1", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::StartX]).ToString() ) );
-					writer->writeTextElement( "Y1", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::StartY]).ToString() ) );
-					writer->writeTextElement( "Z1", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::StartZ]).ToString() ) );
-					writer->writeTextElement( "X1", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::EndX] ).ToString() ) );
-					writer->writeTextElement( "Y2", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::EndY] ).ToString() ) );
-					writer->writeTextElement( "Z2", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::EndZ] ).ToString() ) );
-					writer->writeTextElement( "Phi", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::Phi]).ToString() ) );
-					writer->writeTextElement( "Theta", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::Theta]).ToString() ) );
-					writer->writeTextElement( "Dia", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::Diameter]).ToString() ) );
-					writer->writeTextElement( "sL", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::Length]).ToString() ) );
+					writer->writeTextElement( "X1",    QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::StartX)).ToString() ) );
+					writer->writeTextElement( "Y1",    QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::StartY)).ToString() ) );
+					writer->writeTextElement( "Z1",    QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::StartZ)).ToString() ) );
+					writer->writeTextElement( "X1",    QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::EndX) ).ToString() ) );
+					writer->writeTextElement( "Y2",    QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::EndY) ).ToString() ) );
+					writer->writeTextElement( "Z2",    QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::EndZ) ).ToString() ) );
+					writer->writeTextElement( "Phi",   QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::Phi)).ToString() ) );
+					writer->writeTextElement( "Theta", QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::Theta)).ToString() ) );
+					writer->writeTextElement( "Dia",   QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::Diameter)).ToString() ) );
+					writer->writeTextElement( "sL",    QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::Length)).ToString() ) );
 					// TODO: define mapping?
 					writer->writeTextElement( "cL", QString( tableList[i]->GetValue( j, 19 ).ToString() ) );
 					writer->writeTextElement( "Surf", QString( tableList[i]->GetValue( j, 21 ).ToString() ) );
@@ -2367,9 +1673,9 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter *writer)
 					writer->writeTextElement( "dimX", QString( tableList[i]->GetValue( j, 13 ).ToString() ) );
 					writer->writeTextElement( "dimY", QString( tableList[i]->GetValue( j, 14 ).ToString() ) );
 					writer->writeTextElement( "dimZ", QString( tableList[i]->GetValue( j, 15 ).ToString() ) );
-					writer->writeTextElement( "posX", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::CenterX]).ToString() ) );
-					writer->writeTextElement( "posY", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::CenterY]).ToString() ) );
-					writer->writeTextElement( "posZ", QString( tableList[i]->GetValue( j, m_columnMapping[iACsvConfig::CenterZ]).ToString() ) );
+					writer->writeTextElement( "posX", QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::CenterX)).ToString() ) );
+					writer->writeTextElement( "posY", QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::CenterY)).ToString() ) );
+					writer->writeTextElement( "posZ", QString( tableList[i]->GetValue( j, m_columnMapping->value(iACsvConfig::CenterZ)).ToString() ) );
 					//writer->writeTextElement("ShapeFactor", QString(tableList[i]->GetValue(j,22).ToString()));
 
 					writer->writeEndElement(); //end Void-n tag
@@ -3434,13 +2740,13 @@ void dlg_FeatureScout::EnableBlobRendering()
 	{
 		FeatureInfo fi;
 		//int index = chartTable->GetValue( i, 0 ).ToInt();
-		fi.x1 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::StartX]).ToDouble();
-		fi.y1 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::StartY]).ToDouble();
-		fi.z1 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::StartZ]).ToDouble();
-		fi.x2 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::EndX]).ToDouble();
-		fi.y2 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::EndY]).ToDouble();
-		fi.z2 = chartTable->GetValue(i, m_columnMapping[iACsvConfig::EndZ]).ToDouble();
-		fi.diameter = chartTable->GetValue(i, m_columnMapping[iACsvConfig::Diameter]).ToDouble();
+		fi.x1 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::StartX)).ToDouble();
+		fi.y1 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::StartY)).ToDouble();
+		fi.z1 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::StartZ)).ToDouble();
+		fi.x2 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::EndX)).ToDouble();
+		fi.y2 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::EndY)).ToDouble();
+		fi.z2 = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::EndZ)).ToDouble();
+		fi.diameter = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::Diameter)).ToDouble();
 		objects.append( fi );
 	}
 	blob->SetObjectType( MapObjectTypeToString(filterID) );
@@ -3602,8 +2908,8 @@ int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 
 	for ( int k = 0; k < length; k++ )
 	{
-		fp = t->GetValue( k, m_columnMapping[iACsvConfig::Phi]).ToDouble() / PolarPlotPhiResolution;
-		ft = t->GetValue( k, m_columnMapping[iACsvConfig::Theta]).ToDouble() / PolarPlotThetaResolution;
+		fp = t->GetValue( k, m_columnMapping->value(iACsvConfig::Phi)).ToDouble() / PolarPlotPhiResolution;
+		ft = t->GetValue( k, m_columnMapping->value(iACsvConfig::Theta)).ToDouble() / PolarPlotThetaResolution;
 		ip = vtkMath::Round( fp );
 		it = vtkMath::Round( ft );
 
@@ -3786,50 +3092,9 @@ void dlg_FeatureScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *rend
 	}
 }
 
-void dlg_FeatureScout::createPolarPlotLookupTable( vtkLookupTable *lut )
-{
-	// set up an individual color table for LookupTable
-	double rgb[3];
-	double h = 0.0;
-	double s = 1.0;
-	double v = 1.0;
-	int nv = 1800;
-
-	lut->SetNumberOfTableValues( nv + 1 );
-
-	for ( int i = 0; i < nv + 1; i++ )
-	{
-		h = ( nv - i ) / 3600.0;
-		vtkMath::HSVToRGB( h, s, v, &rgb[0], &rgb[1], &rgb[2] );
-		lut->SetTableValue( i, rgb[0], rgb[1], rgb[2] );
-	}
-
-	vtkMath::HSVToRGB( 0.6, 1.0, 1.0, &rgb[0], &rgb[1], &rgb[2] );
-	lut->SetTableValue( 0, rgb[0], rgb[1], rgb[2] );
-}
-
-void dlg_FeatureScout::createFLDODLookupTable( vtkLookupTable *lut, int Num )
-{
-	if ( Num > 9 )
-		return;
-
-	lut->SetNumberOfTableValues( Num );
-	lut->SetTableValue( 0, 1.0, 0.0, 0.0 );
-	lut->SetTableValue( 1, 1.0, 0.549, 0.0 );
-	lut->SetTableValue( 2, 1.0, 1.0, 0.0 );
-	lut->SetTableValue( 3, 0.0, 1.0, 0.0 );
-	lut->SetTableValue( 4, 0.0, 1.0, 1.0 );
-	lut->SetTableValue( 5, 0.0, 0.0, 1.0 );
-	lut->SetTableValue( 6, 1.0, 0.0, 1.0 );
-	lut->SetTableValue( 7, 0.5, 0.0, 0.5 );
-
-	if ( Num == 9 )
-		lut->SetTableValue( 8, 0.5, 0.0, 0.0 );
-}
-
 void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 {
-	if (!m_columnMapping.contains(iACsvConfig::Phi) || !m_columnMapping.contains(iACsvConfig::Theta))
+	if (!m_columnMapping->contains(iACsvConfig::Phi) || !m_columnMapping->contains(iACsvConfig::Theta))
 	{
 		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view");
 		return;
@@ -3944,7 +3209,7 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 
 void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 {
-	if (!m_columnMapping.contains(iACsvConfig::Phi) || !m_columnMapping.contains(iACsvConfig::Theta))
+	if (!m_columnMapping->contains(iACsvConfig::Phi) || !m_columnMapping->contains(iACsvConfig::Theta))
 	{
 		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot scalar");
 		return;

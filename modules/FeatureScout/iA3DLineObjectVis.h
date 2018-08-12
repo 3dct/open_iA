@@ -20,33 +20,30 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
-#include "iABlobManager.h"
+#include "iA3DObjectVis.h"
 
-#include <QList>
+#include <vtkSmartPointer.h>
 
-class dlg_FeatureScout;
-class iABlobCluster;
+class vtkPolyData;
+class vtkPolyDataMapper;
+class vtkUnsignedCharArray;
 
-class vtkOpenGLRenderer;
-class vtkTable;
-
-class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
+class iA3DLineObjectVis: public iA3DObjectVis
 {
-	Q_OBJECT
 public:
-	iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildData childData);
-	~iAFeatureScoutAttachment();
-	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType, QSharedPointer<QMap<uint, uint> > columnMapping);
-	void enableBlobVisualization();
-	void disableBlobVisualization();
-	void FeatureScout_Options(int idx);
+	iA3DLineObjectVis( MdiChild* mdi, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
+	void show(int filterID, QString const & fileName) override;
+	void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
+	void renderSingle( int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem ) override;
+	void multiClassRendering( QList<QColor> const & colors, QStandardItem* rootItem, double alpha ) override;
+	void renderOrientationDistribution ( vtkImageData* oi ) override;
+	void renderLengthDistribution(  vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) override;
+protected:
+	vtkSmartPointer<vtkPolyData> m_linePolyData;
+	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
+	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
 private:
-	bool blobVisEnabled;
-	iABlobManager m_blobManager;
-	QList<iABlobCluster*> blobList;
-	vtkSmartPointer<vtkOpenGLRenderer> blobRen;
-	dlg_FeatureScout * imgFS;
-private slots:
-	void rendererSetCamera();
+	void setPolyPointColor(int ptIdx, QColor const & qcolor);
+	void updatePolyMapper();
 };
+

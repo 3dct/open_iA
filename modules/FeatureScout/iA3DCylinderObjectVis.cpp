@@ -18,35 +18,42 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iA3DCylinderObjectVis.h"
 
-#include "iAModuleAttachmentToChild.h"
-#include "iABlobManager.h"
+#include "iACsvConfig.h"
 
-#include <QList>
+#include <vtkDoubleArray.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPointData.h>
+#include <vtkTable.h>
+#include <vtkTubeFilter.h>
 
-class dlg_FeatureScout;
-class iABlobCluster;
-
-class vtkOpenGLRenderer;
-class vtkTable;
-
-class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
+namespace
 {
-	Q_OBJECT
-public:
-	iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildData childData);
-	~iAFeatureScoutAttachment();
-	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType, QSharedPointer<QMap<uint, uint> > columnMapping);
-	void enableBlobVisualization();
-	void disableBlobVisualization();
-	void FeatureScout_Options(int idx);
-private:
-	bool blobVisEnabled;
-	iABlobManager m_blobManager;
-	QList<iABlobCluster*> blobList;
-	vtkSmartPointer<vtkOpenGLRenderer> blobRen;
-	dlg_FeatureScout * imgFS;
-private slots:
-	void rendererSetCamera();
-};
+	const int NumberOfCylinderSides = 12;
+}
+
+iA3DCylinderObjectVis::iA3DCylinderObjectVis( MdiChild* mdi, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color ):
+	iA3DLineObjectVis( mdi, objectTable, columnMapping, color )
+{
+	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
+	tubeRadius->SetName("TubeRadius");
+	tubeRadius->SetNumberOfTuples(objectTable->GetNumberOfRows()*2);
+	for (vtkIdType row = 0; row < objectTable->GetNumberOfRows(); ++row)
+	{
+		double diameter = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::Diameter)).ToDouble();
+		tubeRadius->SetTuple1(row*2,   diameter/2);
+		tubeRadius->SetTuple1(row*2+1, diameter/2);
+	}
+	m_linePolyData->GetPointData()->AddArray(tubeRadius);
+	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
+	auto tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
+	tubeFilter->SetInputData(m_linePolyData);
+	tubeFilter->CappingOn();
+	tubeFilter->SidesShareVerticesOff();
+	tubeFilter->SetNumberOfSides(NumberOfCylinderSides);
+	tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
+	tubeFilter->Update();
+	m_mapper->SetInputConnection(tubeFilter->GetOutputPort());
+}

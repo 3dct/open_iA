@@ -36,14 +36,16 @@
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_IOVPP;
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
 
+class iA3DObjectVis;
 class iABlobCluster;
 class iABlobManager;
 class iAFeatureScoutSPLOM;
 class iAMeanObjectTFView;
+class dlg_blobVisualization;
+
 class iAModalityTransfer;
 class iAQSplom;
 class iARenderer;
-class dlg_blobVisualization;
 class MdiChild;
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
@@ -102,7 +104,7 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 	Q_OBJECT
 public:
 	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
-		vtkSmartPointer<vtkTable> csvtbl, int vis, QMap<uint, uint> const & columnMapping);
+		vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping);
 	~dlg_FeatureScout();
 	void changeFeatureScout_Options(int idx);
 private slots:
@@ -150,8 +152,6 @@ private:
 	//! @{ polar plot related methods:
 	void setupPolarPlotView(vtkTable *it);
 	void updatePolarPlotColorScalar(vtkTable *it);
-	void createPolarPlotLookupTable(vtkLookupTable *lut);
-	void createFLDODLookupTable(vtkLookupTable *lut, int Num);
 	void drawPolarPlotMesh(vtkRenderer *renderer);
 	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
 	void drawAnnotations(vtkRenderer *renderer);
@@ -181,8 +181,6 @@ private:
 	void RenderSelection(std::vector<size_t> const & selInds); //!< render a selection (+ the class that contains it)
 	void RenderLengthDistribution();                 //!< render fiber-length distribution
 	void RenderMeanObject();                              //!< compute and render a mean object for each class
-	void SetPolyPointColor(int ptIdx, QColor const & qcolor);
-	void updatePolyMapper();
 	void updateRenderer();
 	//! @}
 
@@ -195,8 +193,6 @@ private:
 
 	//! @{ members referencing MdiChild, used for 3D rendering
 	MdiChild *activeChild;
-	vtkPiecewiseFunction     *oTF;
-	vtkColorTransferFunction *cTF;
 	//! @}
 
 	int elementsCount;                              //!< Number of elements(=columns) in csv inputTable
@@ -217,7 +213,7 @@ private:
 	vtkSmartPointer<vtkTable> chartTable;
 
 	QList<vtkSmartPointer<vtkTable> > tableList;    //!< The data table for each class.
-	QList<QColor> colorList;                        //!< The color for each class.
+	QList<QColor> m_colorList;                      //!< The color for each class.
 	std::vector<bool> columnVisibility;             //!< Column visibility list
 	vtkSmartPointer<vtkLookupTable> lut;            //!< Color lookup table for PC view
 	QTreeView* classTreeView;                       //!< Class tree view
@@ -279,11 +275,9 @@ private:
 	iAMeanObjectTFView* m_motfView;
 	moData m_MOData;
 
-	QMap<uint, uint> m_columnMapping;
+	QSharedPointer<QMap<uint, uint>> m_columnMapping;
 	float m_pcLineWidth;   //!< width of line in Parallel Coordinates
 
-	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
-	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
-
 	QSharedPointer<iAFeatureScoutSPLOM> m_splom;
+	QSharedPointer<iA3DObjectVis> m_3dvis;
 };
