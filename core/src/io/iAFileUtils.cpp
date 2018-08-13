@@ -84,7 +84,7 @@ void FindFiles(QString const & directory, QStringList const & filters, bool recu
 	}
 }
 
-std::string getVTKFileName(QString const & fileName)
+std::string getLocalEncodingFileName(QString const & fileName)
 {
 	QByteArray fileNameEncoded = fileName.toLocal8Bit();
 	if (fileNameEncoded.contains('?'))

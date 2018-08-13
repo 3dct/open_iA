@@ -34,7 +34,7 @@
 
 vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, int quality)
 {
-	std::string encodedFileName = getVTKFileName(fileName);
+	std::string encodedFileName = getLocalEncodingFileName(fileName);
 	if (encodedFileName.empty())
 		return vtkSmartPointer<vtkGenericMovieWriter>();
 	vtkSmartPointer<vtkGenericMovieWriter> movieWriter;
