@@ -158,17 +158,17 @@ dlg_XRF::~dlg_XRF()
 
 void dlg_XRF::AddSimilarityMarkers()
 {
-	m_spectrumDiagram->AddPlot( m_selectedBinXDrawer );
-	m_spectrumDiagram->AddPlot( m_selectedBinYDrawer );
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->addPlot( m_selectedBinXDrawer );
+	m_spectrumDiagram->addPlot( m_selectedBinYDrawer );
+	m_spectrumDiagram->update();
 }
 
 
 void dlg_XRF::RemoveSimilarityMarkers()
 {
-	m_spectrumDiagram->RemovePlot( m_selectedBinXDrawer );
-	m_spectrumDiagram->RemovePlot( m_selectedBinYDrawer );
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->removePlot( m_selectedBinXDrawer );
+	m_spectrumDiagram->removePlot( m_selectedBinYDrawer );
+	m_spectrumDiagram->update();
 }
 
 
@@ -287,8 +287,8 @@ void dlg_XRF::setLogDrawMode(bool checked)
 {
 	if (checked)
 	{
-		m_spectrumDiagram->SetYMappingMode(iAEnergySpectrumWidget::Logarithmic);
-		m_spectrumDiagram->redraw();
+		m_spectrumDiagram->setYMappingMode(iAEnergySpectrumWidget::Logarithmic);
+		m_spectrumDiagram->update();
 	}
 }
 
@@ -297,8 +297,8 @@ void dlg_XRF::setLinDrawMode(bool checked)
 {
 	if (checked)
 	{
-		m_spectrumDiagram->SetYMappingMode(iAEnergySpectrumWidget::Linear);
-		m_spectrumDiagram->redraw();
+		m_spectrumDiagram->setYMappingMode(iAEnergySpectrumWidget::Linear);
+		m_spectrumDiagram->update();
 	}
 }
 
@@ -372,8 +372,7 @@ void dlg_XRF::UpdateVoxelSpectrum(int x, int y, int z)
 {
 	m_voxelEnergy->updateEnergyFunction(x, y, z);
 	m_voxelSpectrumDrawer->update();
-	m_spectrumDiagram->redraw();
-	m_spectrumDiagram->repaint();
+	m_spectrumDiagram->update();
 }
 
 
@@ -403,8 +402,8 @@ void dlg_XRF::SpectrumTFChanged()
 void dlg_XRF::updateAccumulate(int fctIdx)
 {
 	m_accumulatedXRF->SetFct(fctIdx);
-	m_spectrumDiagram->Plots()[0]->update();
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->plots()[0]->update();
+	m_spectrumDiagram->update();
 }
 
 
@@ -459,7 +458,7 @@ void dlg_XRF::initSpectraOverlay()
 		m_spectraHistogramColormap,
 		numBin,
 		sensVal, sensMax, threshVal, threshMax, smoothFade);
-	m_spectrumDiagram->AddImageOverlay(m_spectraHistogramImage);
+	m_spectrumDiagram->addImageOverlay(m_spectraHistogramImage);
 	colormapWidget->GetRenderWindow()->Render();
 }
 
@@ -472,13 +471,13 @@ void dlg_XRF::showSpectraLines(int show)
 		{
 			initSpectraLinesDrawer();
 		}
-		m_spectrumDiagram->AddPlot(m_spectraLinesDrawer);
+		m_spectrumDiagram->addPlot(m_spectraLinesDrawer);
 	}
 	else
 	{
-		m_spectrumDiagram->RemovePlot(m_spectraLinesDrawer);
+		m_spectrumDiagram->removePlot(m_spectraLinesDrawer);
 	}
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->update();
 }
 
 
@@ -493,11 +492,11 @@ void dlg_XRF::showSpectraHistograms( int show )
 	{
 		if(!m_spectraHistogramImage.isNull())
 		{
-			m_spectrumDiagram->RemoveImageOverlay(m_spectraHistogramImage.data());
+			m_spectrumDiagram->removeImageOverlay(m_spectraHistogramImage.data());
 			tb_spectraSettings->setEnabled(false);
 		}
 	}
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->update();
 }
 
 
@@ -524,20 +523,20 @@ void dlg_XRF::showVoxelSpectrum(int show)
 	}
 	if (show)
 	{
-		m_spectrumDiagram->AddPlot(m_voxelSpectrumDrawer);
+		m_spectrumDiagram->addPlot(m_voxelSpectrumDrawer);
 	}
 	else
 	{
-		m_spectrumDiagram->RemovePlot(m_voxelSpectrumDrawer);
-		m_spectrumDiagram->redraw();
+		m_spectrumDiagram->removePlot(m_voxelSpectrumDrawer);
+		m_spectrumDiagram->update();
 	}
 }
 
 
 void dlg_XRF::showAggregatedSpectrum( int show )
 {
-	m_spectrumDiagram->Plots()[0]->SetVisible(show);
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->plots()[0]->SetVisible(show);
+	m_spectrumDiagram->update();
 }
 
 
@@ -548,13 +547,13 @@ void dlg_XRF::updateFunctionalBoxplot(int show)
 		m_functionalBoxplotImage = drawFunctionalBoxplot(m_accumulatedXRF->GetFunctionalBoxPlot(),
 			m_xrfData->size(),
 			m_accumulatedXRF->YBounds()[1]);
-		m_spectrumDiagram->AddImageOverlay(m_functionalBoxplotImage);
+		m_spectrumDiagram->addImageOverlay(m_functionalBoxplotImage);
 	}
 	else
 	{
-		m_spectrumDiagram->RemoveImageOverlay(m_functionalBoxplotImage.data());
+		m_spectrumDiagram->removeImageOverlay(m_functionalBoxplotImage.data());
 	}
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->update();
 }
 
 
@@ -638,7 +637,7 @@ void dlg_XRF::ReferenceSpectrumItemChanged( QStandardItem * item )
 	}
 	if (m_spectrumDiagram)
 	{
-		m_spectrumDiagram->redraw();
+		m_spectrumDiagram->update();
 	}
 }
 
@@ -890,9 +889,9 @@ void dlg_XRF::pieGlyphsVisualization( int show )
 void dlg_XRF::recomputeSpectraHistograms()
 {
 	if(!m_spectraHistogramImage.isNull())
-		m_spectrumDiagram->RemoveImageOverlay(m_spectraHistogramImage.data());
+		m_spectrumDiagram->removeImageOverlay(m_spectraHistogramImage.data());
 	initSpectraOverlay();
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->update();
 }
 
 
@@ -974,7 +973,7 @@ void dlg_XRF::updateSelection()
 	{
 		// filter spectra lines by current filter - highlight those going through selection
 		initSpectraLinesDrawer();
-		m_spectrumDiagram->redraw();
+		m_spectrumDiagram->update();
 	}
 
 	mdiChild->updateViews();
@@ -1137,7 +1136,7 @@ void dlg_XRF::showRefSpectraChanged( int show )
 			}
 		}
 	}
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->update();
 }
 
 
@@ -1165,7 +1164,7 @@ void dlg_XRF::showRefLineChanged( int show )
 			}
 		}
 	}
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->update();
 }
 
 
@@ -1322,7 +1321,7 @@ void dlg_XRF::energyBinsSelected( int binX, int binY )
 {
 	m_selectedBinXDrawer->setPosition( binX );
 	m_selectedBinYDrawer->setPosition( binY );
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->update();
 }
 
 
@@ -1381,7 +1380,7 @@ void dlg_XRF::AddElementLine(QString const & symbol)
 	{
 		m_spectrumDiagram->AddElementLines(&m_characteristicEnergies[idx], color);
 	}
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->update();
 }
 
 
@@ -1396,7 +1395,7 @@ void dlg_XRF::RemoveElementLine(QString const & symbol)
 	{
 		m_spectrumDiagram->RemoveElementLines(&m_characteristicEnergies[idx]);
 	}
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->update();
 }
 
 
@@ -1423,8 +1422,8 @@ void dlg_XRF::AddReferenceSpectrum(int modelIdx)
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
 	QSharedPointer<iAStepFunctionDrawer> drawable(new iAStepFunctionDrawer(data, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);
-	m_spectrumDiagram->AddPlot(drawable);
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->addPlot(drawable);
+	m_spectrumDiagram->update();
 }
 
 
@@ -1440,10 +1439,10 @@ void dlg_XRF::RemoveReferenceSpectrum(int modelIdx)
 	}
 	if (m_refSpectraDrawers.contains(modelIdx))
 	{
-		m_spectrumDiagram->RemovePlot(m_refSpectraDrawers[modelIdx]);
+		m_spectrumDiagram->removePlot(m_refSpectraDrawers[modelIdx]);
 		m_refSpectraDrawers.remove(modelIdx);
 	}
-	m_spectrumDiagram->redraw();
+	m_spectrumDiagram->update();
 }
 
 

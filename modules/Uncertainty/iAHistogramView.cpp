@@ -44,7 +44,7 @@ void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleH
 	m_chart->setMinimumHeight(120);
 	QSharedPointer<iABarGraphDrawer> barGraph(new iABarGraphDrawer(data, color, 2));
 	barGraph->setLookupTable(lut);
-	m_chart->AddPlot(barGraph);
+	m_chart->addPlot(barGraph);
 	layout()->setSpacing(0);
 	layout()->setContentsMargins(4, 4, 4, 4);
 	layout()->addWidget(m_chart);

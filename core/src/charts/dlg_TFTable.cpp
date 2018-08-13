@@ -179,7 +179,7 @@ void dlg_TFTable::updateHistogram()
 		m_oTF->AddPoint( x, y );
 		m_cTF->AddRGBPoint( x, c.redF(), c.greenF(), c.blueF() );
 	}
-	m_parent->SetTransferFunctions( m_cTF, m_oTF );
+	m_parent->setTransferFunctions( m_cTF, m_oTF );
 }
 
 void dlg_TFTable::itemClicked( QTableWidgetItem * item )

@@ -1833,8 +1833,8 @@ void MdiChild::setHistogramFocus()
 
 void MdiChild::redrawHistogram()
 {
-	if (!m_histogram) return;
-	m_histogram->redraw();
+	if (m_histogram)
+		m_histogram->update();
 }
 
 void MdiChild::resetTrf()
@@ -1843,9 +1843,9 @@ void MdiChild::resetTrf()
 	m_histogram->resetTrf();
 	addMsg(tr("Resetting Transfer Functions."));
 	addMsg(tr("  Adding transfer function point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
-		.arg(m_histogram->XBounds()[0]));
+		.arg(m_histogram->xBounds()[0]));
 	addMsg(tr("  Adding transfer function point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
-		.arg(m_histogram->XBounds()[1]));
+		.arg(m_histogram->xBounds()[1]));
 }
 
 std::vector<dlg_function*> & MdiChild::getFunctions()
@@ -2552,7 +2552,7 @@ void MdiChild::UpdateProfile()
 {
 	profileProbe->UpdateData();
 	imgProfile->profileWidget->initialize(profileProbe->profileData, profileProbe->GetRayLength());
-	imgProfile->profileWidget->redraw();
+	imgProfile->profileWidget->update();
 }
 
 int MdiChild::getSliceXY()
@@ -2951,13 +2951,13 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 	addMsg(QString("%1  Displaying histogram for modality %2.")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(modalityName));
-	m_histogram->RemovePlot(m_histogramPlot);
+	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iAPlot>(new
 		iABarGraphDrawer(GetModality(modalityIdx)->GetHistogramData(),
 			QColor(70, 70, 70, 255)));
-	m_histogram->AddPlot(m_histogramPlot);
-	m_histogram->SetXCaption("Histogram " + modalityName);
-	m_histogram->SetTransferFunctions(GetModality(modalityIdx)->GetTransfer()->GetColorFunction(),
+	m_histogram->addPlot(m_histogramPlot);
+	m_histogram->setXCaption("Histogram " + modalityName);
+	m_histogram->setTransferFunctions(GetModality(modalityIdx)->GetTransfer()->GetColorFunction(),
 		GetModality(modalityIdx)->GetTransfer()->GetOpacityFunction());
 	m_histogram->updateTrf();	// will also redraw() the histogram
 	updateImageProperties();

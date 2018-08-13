@@ -42,20 +42,20 @@ void iAProfileWidget::initialize(vtkPolyData* profData, double rayLength)
 	profileData->GetScalarRange(yDataRange);
 	scalars = profData->GetPointData()->GetScalars();
 	yHeight = yDataRange[1] - yDataRange[0];
-	SetXBounds(0, rayLength);
-	SetYBounds(yDataRange[0], yDataRange[1]);
+	setXBounds(0, rayLength);
+	setYBounds(yDataRange[0], yDataRange[1]);
 }
 
 void iAProfileWidget::showDataTooltip(QMouseEvent *event)
 {
 	if (!scalars)
 		return;
-	int xPos = clamp(0, ActiveWidth() - 1, event->x() - LeftMargin());
-	int nthBin = (int)((((xPos-translationX) * numBin) / ActiveWidth()) / xZoom);
-	double len = (((xPos-translationX) * rayLen) / ActiveWidth()) / xZoom;
-	if (nthBin >= numBin || xPos == ActiveWidth()-1)
+	int xPos = clamp(0, activeWidth() - 1, event->x() - leftMargin());
+	int nthBin = (int)((((xPos-translationX) * numBin) / activeWidth()) / xZoom);
+	double len = (((xPos-translationX) * rayLen) / activeWidth()) / xZoom;
+	if (nthBin >= numBin || xPos == activeWidth()-1)
 		nthBin = numBin-1;
-	if (IsTooltipShown())
+	if (isTooltipShown())
 	{
 		QString text = xCaption
 			+ QString(": %1").arg(len)
@@ -67,17 +67,17 @@ void iAProfileWidget::showDataTooltip(QMouseEvent *event)
 	emit binSelected(nthBin);
 }
 
-void iAProfileWidget::DrawPlots(QPainter &painter)
+void iAProfileWidget::drawPlots(QPainter &painter)
 {
 	if (!scalars)
 		return;
 
-	double binWidth = (double)(ActiveWidth()) / numBin *xZoom;
+	double binWidth = (double)(activeWidth()) / numBin *xZoom;
 	int intBinWidth = (int)binWidth;
 	if (intBinWidth < binWidth)
 		intBinWidth++;
 	painter.setPen(QWidget::palette().color(QPalette::Text));
-	double scalingCoef = (double)(height-BottomMargin()-1) / yHeight *yZoom;
+	double scalingCoef = (double)(height-bottomMargin()-1) / yHeight *yZoom;
 	for ( int j = 0; j < numBin-1; j++ )
 	{
 		double x1 = (int)(j * binWidth);

@@ -49,15 +49,15 @@ public:
 	double GetMaxSliderPos();
 	void SetMinMaxSlider(double min, double max);
 signals:
-	void SelectionChanged();
+	void selectionChanged();
 protected:
-	void DrawAxes(QPainter& painter) override;
+	void drawAxes(QPainter& painter) override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	void mousePressEvent( QMouseEvent *event ) override;
 	void mouseReleaseEvent( QMouseEvent *event ) override;
 	void mouseMoveEvent( QMouseEvent *event ) override;
 private:
-	QString GetXAxisTickMarkLabel(double value, double stepWidth) override;
+	QString getXAxisTickMarkLabel(double value, double stepWidth) override;
 	int value2X(double value) const;
 	double x2value(int x) const;
 	void drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush);

@@ -59,17 +59,17 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 
 	painter.setPen(pen);
 
-	double range = chart->XRange();
+	double range = chart->xRange();
 	double startStep = range /100;
 	double step = startStep;
 
-	double X1 = chart->XBounds()[0];
+	double X1 = chart->xBounds()[0];
 	double X2 = X1;
 	double Y1 = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
 	double Y2 = Y1;
 
 	double smallStep = std::max(6 * sigma / 100, 0.25*i2dX(1));
-	while (X2 <= chart->XBounds()[1]+step && step > std::numeric_limits<double>::epsilon())
+	while (X2 <= chart->xBounds()[1]+step && step > std::numeric_limits<double>::epsilon())
 	{
 		Y1 = Y2;
 		Y2 = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*exp(-pow((X2-mean)/sigma, 2)/2) *multiplier;
@@ -142,7 +142,7 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 int dlg_gaussian::selectPoint(QMouseEvent *event, int*)
 {
 	int lx = event->x();
-	int ly = chart->geometry().height() - event->y() - chart->BottomMargin();
+	int ly = chart->geometry().height() - event->y() - chart->bottomMargin();
 
 	double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()));
 
@@ -170,7 +170,7 @@ int dlg_gaussian::selectPoint(QMouseEvent *event, int*)
 
 void dlg_gaussian::moveSelectedPoint(int x, int y)
 {
-	y = clamp(0, chart->geometry().height() - chart->BottomMargin() - 1, y);
+	y = clamp(0, chart->geometry().height() - chart->bottomMargin() - 1, y);
 	if (selectedPoint != -1)
 	{
 		switch(selectedPoint)
@@ -190,7 +190,7 @@ void dlg_gaussian::moveSelectedPoint(int x, int y)
 		}
 
 		double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->YZoom();
-		multiplier  = (double)y /(chart->geometry().height() - chart->BottomMargin()-1)*chart->YBounds()[1] /meanValue;
+		multiplier  = (double)y /(chart->geometry().height() - chart->bottomMargin()-1)*chart->yBounds()[1] /meanValue;
 	}
 }
 
@@ -206,27 +206,27 @@ void dlg_gaussian::setMultiplier(int multiplier)
 // TODO: unify somewhere!
 double dlg_gaussian::v2dX(int x)
 {
-	return ((double)(x-chart->XShift()) / (double)chart->geometry().width() * chart->XRange()) /chart->XZoom() + chart->XBounds()[0];
+	return ((double)(x-chart->xShift()) / (double)chart->geometry().width() * chart->xRange()) /chart->XZoom() + chart->xBounds()[0];
 }
 
 double dlg_gaussian::v2dY(int y)
 {
-	return chart->YMapper()->SrcToDest(y) *chart->YBounds()[1] /chart->YZoom();
+	return chart->yMapper()->SrcToDest(y) *chart->yBounds()[1] /chart->YZoom();
 }
 
 int dlg_gaussian::d2vX(double x)
 {
-	return (int)((x - chart->XBounds()[0]) * (double)chart->geometry().width() / chart->XRange()*chart->XZoom()) +chart->XShift();
+	return (int)((x - chart->xBounds()[0]) * (double)chart->geometry().width() / chart->xRange()*chart->XZoom()) +chart->xShift();
 }
 
 int dlg_gaussian::d2vY(double y)
 {
-	return (int)(y /chart->YBounds()[1] *(double)(chart->geometry().height() - chart->BottomMargin()-1) *chart->YZoom());
+	return (int)(y /chart->yBounds()[1] *(double)(chart->geometry().height() - chart->bottomMargin()-1) *chart->YZoom());
 }
 
 int dlg_gaussian::d2iX(double x)
 {
-	return d2vX(x) -chart->XShift();
+	return d2vX(x) -chart->xShift();
 }
 
 int dlg_gaussian::d2iY(double y)
@@ -236,5 +236,5 @@ int dlg_gaussian::d2iY(double y)
 
 double dlg_gaussian::i2dX(int x)
 {
-	return ((double)x / (double)chart->geometry().width() * chart->XRange()) /chart->XZoom() + chart->XBounds()[0];
+	return ((double)x / (double)chart->geometry().width() * chart->xRange()) /chart->XZoom() + chart->xBounds()[0];
 }
