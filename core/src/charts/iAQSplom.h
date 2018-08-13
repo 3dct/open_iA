@@ -118,7 +118,7 @@ protected:
 	iAScatterPlot * getScatterplotAt( QPoint pos );                  //!< Get a scatter plot at mouse position.
 	void changeActivePlot( iAScatterPlot * s);
 	void drawVisibleParameters(QPainter & painter);                  //!< draws label for the whole scatter plot matrix
-	void setSPMLabels(QVector<ulong> &ind_VisX, int axisOffSet, QPainter & painter, bool switchXY);
+	void drawPlotLabels(QVector<ulong> &ind_VisX, int axisOffSet, QPainter & painter, bool switchXY);
 	void drawTicks( QPainter & painter, QList<double> const & ticksX, QList<double> const & ticksY, QList<QString> const & textX,
 	    QList<QString> const & textY);                               //!< Draw ticks for X and Y axes of all plots in the SPLOM.
 	void updateMaxPlotRect();                                        //!< Updates the rectangle of the maximized scatter plot.

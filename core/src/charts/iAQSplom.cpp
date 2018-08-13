@@ -782,28 +782,19 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	painter.beginNativePainting();
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();
-	if (m_visiblePlots.size() < 2) {
+	if (m_visiblePlots.size() < 2)
+	{
 		painter.drawText(geometry(), Qt::AlignCenter | Qt::AlignVCenter, "Too few parameters selected!");
 		return;
 	}
 	QFontMetrics fm = painter.fontMetrics();
-	//collect info
+	
+	// collect tick labels text and positions:
 	QList<double> ticksX, ticksY; QList<QString> textX, textY;
-
-	//here should be given the ticks info
-	int j = 0;
-	//without diagonal elements
 	for (int i = 0; i < m_visiblePlots.size() -1; ++i)
-	{
-						//y   //x
-			m_visiblePlots[i+1][i]->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
+	{                //y  //x
+		m_visiblePlots[i+1][i]->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
 	}
-
-	//hier sind alle Parameter drin
-	auto x = this->m_splomData->paramNames();
-
-	//TODO PRINT coordinates info
-
 	int maxTickLabelWidth = getMaxTickLabelWidth(textX, fm);
 	if (settings.tickOffsets.x() != maxTickLabelWidth || settings.tickOffsets.y() != maxTickLabelWidth)
 	{
@@ -1226,15 +1217,13 @@ void iAQSplom::drawVisibleParameters(QPainter &painter)
 	}
 
 	//getting x positions
-	setSPMLabels(ind_Vis, ind_Vis.length(), painter, false);
-	setSPMLabels(ind_Vis, ind_Vis.length(), painter, true);
+	drawPlotLabels(ind_Vis, ind_Vis.length(), painter, false);
+	drawPlotLabels(ind_Vis, ind_Vis.length(), painter, true);
 }
 
-void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPainter & painter, bool switchTO_YRow)
+void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPainter & painter, bool switchTO_YRow)
 {
-	QString currentParam = "";
 	QRect currentRect;
-	ulong currIdx = 0;
 
 	int width;
 	int height = 0;
@@ -1247,6 +1236,8 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 
 	for (int axisIdx = 0; axisIdx < loopLength; axisIdx++)
 	{
+		ulong currIdx = ind_Elements[axisIdx];
+		QString currentParamName = m_splomData->parameterName(currIdx);
 		if (switchTO_YRow) 
 		{
 			currentRect = getPlotRectByIndex(0, axisIdx);
@@ -1261,8 +1252,6 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 			currentRect.setHeight(painter.fontMetrics().height());
 		}
 
-		currIdx = ind_Elements[axisIdx];
-		currentParam = m_splomData->parameterName(currIdx);
 		if (switchTO_YRow) 
 		{
 			textwidth = currentRect.height();
@@ -1275,12 +1264,12 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 
 			currentRect.setTopLeft(QPoint(-textwidth / 2, -textHeight / 2));
 			currentRect.setSize(QSize(textwidth, textHeight));
-			painter.drawText(currentRect, Qt::AlignCenter | Qt::AlignTop, currentParam);
+			painter.drawText(currentRect, Qt::AlignCenter | Qt::AlignTop, currentParamName);
 			painter.restore();
 		}
 		else
 		{
-			painter.drawText(currentRect, Qt::AlignHCenter, currentParam);
+			painter.drawText(currentRect, Qt::AlignHCenter, currentParamName);
 		}
 	}
 }
