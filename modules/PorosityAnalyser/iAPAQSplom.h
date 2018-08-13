@@ -34,7 +34,11 @@ class iAPAQSplom : public iAQSplom
 {
 	Q_OBJECT
 public:
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	iAPAQSplom(MainWindow *mainWind,  QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
 	iAPAQSplom(MainWindow *mainWind,  QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
+#endif
 public:
 	virtual void setData( const QTableWidget * data );
 	void setPreviewSliceNumbers( QList<int> sliceNumber );

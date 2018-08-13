@@ -174,8 +174,13 @@ void iAQSplom::setPointRadius(double radius)
 		m_maximizedPlot->setPointRadius(radius);
 }
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f)
+	:QOpenGLWidget(parent, f),
+#else
 iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */)
 	:QGLWidget(parent, shareWidget, f),
+#endif
 	settings(),
 	m_lut(new iALookupTable()),
 	m_colorLookupColumn(0),
@@ -293,7 +298,6 @@ void iAQSplom::updateFilter()
 
 void iAQSplom::initializeGL()
 {
-	this->qglClearColor( settings.backgroundColor );
 }
 
 iAQSplom::~iAQSplom()
@@ -780,6 +784,7 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	painter.setRenderHint(QPainter::Antialiasing);
 	painter.setRenderHint(QPainter::HighQualityAntialiasing);
 	painter.beginNativePainting();
+	glClearColor(settings.backgroundColor.redF(), settings.backgroundColor.greenF(), settings.backgroundColor.blueF(), settings.backgroundColor.alphaF());
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();
 	if (m_visiblePlots.size() < 2)
@@ -957,7 +962,11 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 void iAQSplom::resizeEvent( QResizeEvent * event )
 {
 	updateSPLOMLayout();
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QOpenGLWidget::resizeEvent( event );
+#else
 	QGLWidget::resizeEvent( event );
+#endif
 }
 
 void iAQSplom::updatePlotGridParams()

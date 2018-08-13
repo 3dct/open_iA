@@ -22,9 +22,13 @@
 
 #include "open_iA_Core_export.h"
 
-#include <QGLWidget>
 #include <QList>
-#include <QOpenGLFramebufferObject>
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QOpenGLWidget>
+#else
+#include <QGLWidget>
+#endif
 #include <QScopedPointer>
 #include <QWidget>
 
@@ -33,7 +37,11 @@ class iAScatterPlotSelectionHandler;
 class iASPLOMData;
 class QTableWidget;
 class QTimer;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class QOpenGLBuffer;
+#else
 class QGLBuffer;
+#endif
 class vtkLookupTable;
 
 //! Represents a single scatter plot in the scatter plot matrix (SPLOM).
@@ -55,7 +63,11 @@ public:
 		Polygon
 	};
 	//!  Constructor: requires a parent SPLOM widget
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	iAScatterPlot(iAScatterPlotSelectionHandler * splom, QOpenGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
+#else
 	iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
+#endif
 	~iAScatterPlot();
 
 	void setData( int x, int y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
@@ -173,7 +185,13 @@ public:
 	// Members
 	Settings settings;
 protected:
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QOpenGLWidget* m_parentWidget;                                   //!< the parent widget
+	QOpenGLBuffer * m_pointsBuffer;                                  //!< OpenGL buffer used for points VBO
+#else
 	QGLWidget* m_parentWidget;                                       //!< the parent widget
+	QGLBuffer * m_pointsBuffer;                                      //!< OpenGL buffer used for points VBO
+#endif
 	iAScatterPlotSelectionHandler * m_splom;                         //!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
 	QRect m_globRect;                                                //!< plot's rectangle
 	QRectF m_locRect;                                                //!< plot's local drawing rectangle
@@ -200,7 +218,6 @@ protected:
 	size_t m_prevPtInd;                                              //!< index of point selected before (NoPointIndex if none, but keeps point index even if no point was selected in between)
 	size_t m_prevInd;                                                //!< index of previously selected point (NoPointIndex if none)
 	size_t m_curInd;                                                 //!< index of currently selected point (NoPointIndex if none)
-	QGLBuffer * m_pointsBuffer;                                      //!< OpenGL buffer used for points VBO
 	//selection polygon
 	QPolygon m_selPoly;                                              //!< polygon of selection lasso
 	QPoint m_selStart;                                               //!< point where the selection started

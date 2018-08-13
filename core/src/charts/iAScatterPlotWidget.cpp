@@ -29,6 +29,7 @@
 #include <vtkSmartPointer.h>
 
 #include <QMouseEvent>
+#include <QPainter>
 
 class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {

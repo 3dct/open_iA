@@ -29,7 +29,11 @@
 #include <QAbstractTextDocumentLayout>
 #include <QColor>
 #include <QDebug>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QOpenGLBuffer>
+#else
 #include <QGLBuffer>
+#endif
 #include <qmath.h>
 #include <QPainter>
 #include <QPen>
@@ -65,7 +69,11 @@ iAScatterPlot::Settings::Settings() :
 
 size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QOpenGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
+#else
 iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
+#endif
 	:QObject(parent),
 	settings(),
 	m_parentWidget(parent),
@@ -894,7 +902,11 @@ void iAScatterPlot::createAndFillVBO()
 		m_pointsBuffer->destroy();
 		delete m_pointsBuffer;
 	}
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	m_pointsBuffer = new QOpenGLBuffer( QOpenGLBuffer::VertexBuffer );
+#else
 	m_pointsBuffer = new QGLBuffer( QGLBuffer::VertexBuffer );
+#endif
 	if ( !m_pointsBuffer->create() )//TODO: exceptions?
 		return;
 	if ( m_splomData && m_lut->initialized() )

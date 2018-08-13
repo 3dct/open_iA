@@ -24,7 +24,12 @@
 
 #include "iAScatterPlotSelectionHandler.h"
 
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QOpenGLWidget>
+#else
 #include <QGLWidget>
+#endif
 #include <QList>
 
 #include <vector>
@@ -56,7 +61,12 @@ class QTableWidget;
 	Inherits QGLWidget,manages scatter plots internally.
 	Some customization options are available via the public settings member.
 */
+
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class open_iA_Core_API iAQSplom : public QOpenGLWidget, public iAScatterPlotSelectionHandler
+#else
 class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectionHandler
+#endif
 {
 	Q_OBJECT
 	Q_PROPERTY( double m_animIn READ getAnimIn WRITE setAnimIn )
@@ -69,7 +79,11 @@ class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectio
 	};
 // Methods
 public:
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
 	iAQSplom( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
+#endif
 	~iAQSplom();
 
 	virtual void setData( const QTableWidget * data );               //! import data from QTableWidget, first row should contain parameter names, each column corresponds to one parameter.
@@ -112,8 +126,8 @@ signals:
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
 protected:
 	void clear();                                                    //!< Clear all scatter plots in the SPLOM.
-	void initializeGL() override;                                    //!< overrides function inherited from QGLWidget.
-	void paintEvent( QPaintEvent * event ) override;                 //!< Draws SPLOM. Re-implements QGLWidget.
+	void initializeGL() override;                                    //!< overrides function inherited from base class.
+	void paintEvent( QPaintEvent * event ) override;                 //!< Draws SPLOM. Re-implemented from base class.
 	virtual bool drawPopup( QPainter& painter );                     //!< Draws popup on the splom
 	iAScatterPlot * getScatterplotAt( QPoint pos );                  //!< Get a scatter plot at mouse position.
 	void changeActivePlot( iAScatterPlot * s);
