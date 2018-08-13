@@ -43,6 +43,7 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	//QWidget *dockWidgetContents = new QWidget();
 	QSplitter *dockWidgetContents = new QSplitter(Qt::Horizontal);
+	setWidget(dockWidgetContents);
 	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
 
 	//RightBorderLayout *mainLayout = new RightBorderLayout(dockWidgetContents, RightBorderLayout::Right);
@@ -50,6 +51,10 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	//m_mainLayout->setSpacing(0);
 	//m_mainLayout->setObjectName(QStringLiteral("horizontalLayout_2"));
 	//m_mainLayout->setContentsMargins(0, 0, 0, 0);
+
+	if (mdiChild->GetModalities()->size() != 3) {
+		return;
+	}
 
 	QWidget *optionsContainer = new QWidget();
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -70,90 +75,47 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	optionsContainerLayout->addWidget(m_slicerModeComboBox);
 	optionsContainerLayout->addWidget(m_sliceSlider);
 
-	QWidget *histogramStackContainer = new QWidget();
-	QVBoxLayout *histogramStackContainerLayout = new QVBoxLayout(histogramStackContainer);
+	//QWidget *histogramStackContainer = new QWidget();
+	//QVBoxLayout *histogramStackContainerLayout = new QVBoxLayout(histogramStackContainer);
 
-	if (m_mdiChild->GetModalities()->size() > 0) // What if it isn't bigger than 0? Then what?
-	{
-		iAModalityWidget *modalities[3];
-		QString names[3];
-		if (m_mdiChild->GetModalities()->size() == 1) // TODO: remove
-		{
-			for (int i = 0; i < 3/*mdiChild->GetModalities()->size()*/; ++i)
-			{
-				modalities[i] = new iAModalityWidget(histogramStackContainer, mdiChild->GetModality(0), mdiChild);
-				histogramStackContainerLayout->addWidget(modalities[i]);
-				names[i] = mdiChild->GetModality(0)->GetName();
-			}
-		}
-		else if (m_mdiChild->GetModalities()->size() >= 3) // TODO: handle more than 3 available modalities
-		{
-			for (int i = 0; i < 3/*mdiChild->GetModalities()->size()*/; ++i)
-			{
-				modalities[i] = new iAModalityWidget(histogramStackContainer, mdiChild->GetModality(i), mdiChild);
-				histogramStackContainerLayout->addWidget(modalities[i]);
-				names[i] = mdiChild->GetModality(i)->GetName();
-			}
-		}
-
-		names[0] = "A (" + names[0] + ")";
-		names[1] = "B (" + names[1] + ")";
-		names[2] = "C (" + names[2] + ")";
-
-		m_modality1 = modalities[0];
-		m_modality2 = modalities[1];
-		m_modality3 = modalities[2];
-
-		m_modality1->setModalityLabel(names[0]);
-		m_modality2->setModalityLabel(names[1]);
-		m_modality3->setModalityLabel(names[2]);
-
-		// TODO: include modality name
-		//m_triangleWidget->setModality1label("A (" + names[0] + ")");
-		//m_triangleWidget->setModality2label("B (" + names[1] + ")");
-		//m_triangleWidget->setModality3label("C (" + names[2] + ")");
+	m_histogramStack = new iAHistogramStack(dockWidgetContents, mdiChild);
+	if (m_histogramStack->isEnabled()) {
+		QString names[3] = {
+			"A (" + m_histogramStack->getModality(0)->GetName() + ")",
+			"B (" + m_histogramStack->getModality(1)->GetName() + ")",
+			"C (" + m_histogramStack->getModality(2)->GetName() + ")"
+		};
+		m_histogramStack->setModalityLabel(names[0], 0);
+		m_histogramStack->setModalityLabel(names[1], 1);
+		m_histogramStack->setModalityLabel(names[2], 2);
 		m_triangleWidget->setModality1label(names[0]);
 		m_triangleWidget->setModality2label(names[1]);
 		m_triangleWidget->setModality3label(names[2]);
 	}
-	else { // TODO: remove?
-		m_modality1 = 0;
-		m_modality2 = 0;
-		m_modality3 = 0;
-	}
-
 
 	QWidget *leftWidget = new QWidget();
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
 	leftWidgetLayout->addWidget(optionsContainer);
-	leftWidgetLayout->addWidget(histogramStackContainer);
+	leftWidgetLayout->addWidget(m_histogramStack);
 
 	dockWidgetContents->addWidget(leftWidget);
 	dockWidgetContents->addWidget(m_triangleWidget);
-
-	// Initialize transfer function
-	m_transferFunction = new iAWeightedTransfer(
-		m_modality1->getTransferFunction(),
-		m_modality2->getTransferFunction(),
-		m_modality3->getTransferFunction());
-
-	// Does not work. TODO: fix
-	mdiChild->getSlicerXY()->reInitialize(
-		mdiChild->getImageData(),
-		vtkTransform::New(), // no way of getting current transform, so create a new one // TODO: fix?
-		m_transferFunction); // here is where the magic happens ;)
 
 	//m_mdiChild->getRaycaster()->setTransferFunction(m_transferFunction);
 	//m_mdiChild->getSlicerXY()->setTransferFunction(m_transferFunction);
 	//...
 
-	// Initialize
 	updateSlicerMode();
-	setWidget(dockWidgetContents);
 	setWeight(m_triangleWidget->getControlPointCoordinates());
 
 	// TODO: remove this class (ColorInterpolator), probably
 	ColorInterpolator::setInstance(new LinearRGBColorInterpolator());
+
+	// Does not work. TODO: fix
+	mdiChild->getSlicerXY()->reInitialize(
+		mdiChild->getImageData(),
+		vtkTransform::New(), // no way of getting current transform, so create a new one // TODO: fix?
+		m_histogramStack->getTransferFunction()); // here is where the magic happens ;)
 
 	//Connect
 	connect(m_triangleWidget, SIGNAL(weightChanged(BCoord)), this, SLOT(setWeight(BCoord)));
@@ -163,9 +125,7 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	// {
 	// TODO: necessary?
 	//     {
-	connect(m_modality1, SIGNAL(modalityTfChanged()), this, SLOT(updateTransferFunction()));
-	connect(m_modality2, SIGNAL(modalityTfChanged()), this, SLOT(updateTransferFunction()));
-	connect(m_modality3, SIGNAL(modalityTfChanged()), this, SLOT(updateTransferFunction()));
+	connect(m_histogramStack, SIGNAL(transferFunctionChanged()), this, SLOT(updateTransferFunction()));
 	//     }
 	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
 	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
@@ -176,16 +136,14 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
 {}
 
-void dlg_TripleHistogramTF::setWeight(BCoord bCoord)
-{
-	m_modality1->setWeight(bCoord.getAlpha());
-	m_modality2->setWeight(bCoord.getBeta());
-	m_modality3->setWeight(bCoord.getGamma());
-}
-
 void dlg_TripleHistogramTF::updateSlicerMode()
 {
 	setSlicerMode((iASlicerMode) m_slicerModeComboBox->currentData().toInt());
+}
+
+void dlg_TripleHistogramTF::setWeight(BCoord bCoord)
+{
+	m_histogramStack->setWeight(bCoord);
 }
 
 void dlg_TripleHistogramTF::setSlicerMode(iASlicerMode slicerMode)
@@ -211,16 +169,12 @@ void dlg_TripleHistogramTF::setSlicerMode(iASlicerMode slicerMode)
 	int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
 	m_sliceSlider->setMaximum(dimensionLength - 1);
 
-	m_modality1->setSlicerMode(slicerMode, dimensionLength);
-	m_modality2->setSlicerMode(slicerMode, dimensionLength);
-	m_modality3->setSlicerMode(slicerMode, dimensionLength);
+	m_histogramStack->setSlicerMode(slicerMode, dimensionLength);
 }
 
 void dlg_TripleHistogramTF::setSliceNumber(int sliceNumber)
 {
-	m_modality1->setSliceNumber(sliceNumber);
-	m_modality2->setSliceNumber(sliceNumber);
-	m_modality3->setSliceNumber(sliceNumber);
+	m_histogramStack->setSliceNumber(sliceNumber);
 }
 
 void dlg_TripleHistogramTF::updateTransferFunction()

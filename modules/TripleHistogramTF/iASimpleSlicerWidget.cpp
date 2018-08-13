@@ -29,7 +29,7 @@
 #include <vtkInteractorStyle.h>
 #include <vtkRenderWindowInteractor.h>
 
-iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, QSharedPointer<iAModality> modality, vtkImageData *imageData, Qt::WindowFlags f /*= 0 */) :
+iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, QSharedPointer<iAModality> modality, Qt::WindowFlags f /*= 0 */) :
 	QWidget(parent, f)
 {
 	m_slicer = new iASlicer(parent, iASlicerMode::XY, this,
@@ -38,6 +38,8 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, QSharedPointer<iAMo
 		/*QGLWidget * shareWidget = */0,
 		/*Qt::WindowFlags f = */f,
 		/*bool decorations = */false); // Hide everything except the slice itself
+
+	vtkImageData *imageData = modality->GetImage().GetPointer();
 
 	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->GetColorFunction();
 	m_slicerTransform = vtkTransform::New();

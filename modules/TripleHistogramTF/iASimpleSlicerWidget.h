@@ -35,7 +35,7 @@ class iASimpleSlicerWidget : public QWidget
 	Q_OBJECT
 
 public:
-	iASimpleSlicerWidget(QWidget* parent, QSharedPointer<iAModality> modality, vtkImageData *imageData, Qt::WindowFlags f = 0);
+	iASimpleSlicerWidget(QWidget* parent, QSharedPointer<iAModality> modality, Qt::WindowFlags f = 0);
 	~iASimpleSlicerWidget();
 
 	void changeMode(iASlicerMode slicerMode, int dimensionLength);

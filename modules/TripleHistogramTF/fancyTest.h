@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,53 +15,14 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+
 #pragma once
 
-#include <QWidget>
-#include "mdichild.h"
-
-#include "iATransferFunction.h"
-
-// Modality
-#include <QSharedPointer>;
-class iAModality;
-
-// Slicer
-#include "iASimpleSlicerWidget.h"
-
-class iAModalityWidget : public QWidget
+class fancyTest
 {
-	Q_OBJECT
-
 public:
-	iAModalityWidget(QWidget* parent, QSharedPointer<iAModality> modality, MdiChild *mdiChild, Qt::WindowFlags f = 0);
-	~iAModalityWidget();
 
-	void setWeight(double weight);
-	void setSlicerMode(iASlicerMode slicerMode, int dimensionLength);
-	void setSliceNumber(int sliceNumber);
-	void setModalityLabel(QString label);
-
-	iATransferFunction* getTransferFunction();
-
-private slots:
-	void updateTransferFunction();
-
-signals:
-	void modalityTfChanged();
-
-protected:
-	void resizeEvent(QResizeEvent* event);
-
-private:
-	QVBoxLayout *m_rightWidgetLayout;
-	QHBoxLayout *m_mainLayout;
-	QLabel *m_weightLabel;
-	QLabel *m_modalityLabel;
-	iASimpleSlicerWidget *m_slicerWidget;
-	iADiagramFctWidget* m_histogram;
-	
 };

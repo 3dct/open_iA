@@ -20,50 +20,48 @@
 * ************************************************************************************/
 #pragma once
 
-//#include "ui_dlg_TripleHistogramTF.h"
-//#include "iAQTtoUIConnector.h"
-#include <QDockWidget>
-#include <QResizeEvent>
-#include <qcombobox.h>
-#include <qslider.h>
+#include <QWidget>
 
 #include "mdichild.h"
-#include "iABarycentricTriangleWidget.h"
-#include "iAHistogramStack.h"
-#include "iASlicerMode.h"
 #include "BCoord.h"
+#include "iAWeightedTransfer.h"
 
-//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
+// Slicer
+#include "iASimpleSlicerWidget.h"
 
-class dlg_TripleHistogramTF : public QDockWidget//public TripleHistogramTFConnector
+class iAHistogramStack : public QWidget
 {
 	Q_OBJECT
 
 public:
-	dlg_TripleHistogramTF(MdiChild* parent, Qt::WindowFlags f = 0);
-	~dlg_TripleHistogramTF();
+	iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	~iAHistogramStack();
 
-public slots:
 	void setWeight(BCoord bCoord);
-	void updateSlicerMode();
+	void setSlicerMode(iASlicerMode slicerMode, int dimensionLength);
 	void setSliceNumber(int sliceNumber);
-	void updateTransferFunction();
+	void setModalityLabel(QString label, int index);
+
+	iAWeightedTransfer* getTransferFunction();
+	QSharedPointer<iAModality> getModality(int index);
+
+private slots:
+	void updateTransferFunction(int index);
 
 signals:
-	void transferFunctionUpdated();
+	void transferFunctionChanged();
 
 protected:
+	void resizeEvent(QResizeEvent* event);
 
 private:
-	void setSlicerMode(iASlicerMode slicerMode);
+	QGridLayout *m_mainLayout;
+	QSharedPointer<iAModality> m_modalities[3];
+	QLabel *m_weightLabels[3];
+	QLabel *m_modalityLabels[3];
+	iASimpleSlicerWidget *m_slicerWidgets[3];
+	iADiagramFctWidget* m_histograms[3];
 
-	QComboBox *m_slicerModeComboBox;
-	QSlider *m_sliceSlider;
-	iAHistogramStack *m_histogramStack;
-
-	// TODO: is it really good to keep the mdiChild as a member variable?
-	MdiChild *m_mdiChild;
-
-	iABarycentricTriangleWidget *m_triangleWidget;
+	iAWeightedTransfer *m_transferFunction;
 	
 };
