@@ -174,14 +174,33 @@ inline T linterp(const T a, const T b, const T t)
 	return a + (b - a)*t;
 }
 
+typedef std::vector<double> FuncType;
 
+//! compute Gaussian function for the given value x and parameter sigma (mean = 0)
 open_iA_Core_API double gaussian(double x, double sigma);
 
-open_iA_Core_API std::vector<double> gaussianKernel(double kernelSigma, size_t kernelSteps);
+//! compute a gaussian kernel with the given sigma (mean = 0)
+open_iA_Core_API FuncType gaussianKernel(double kernelSigma, size_t kernelSteps);
 
 //! convolutes the given function with a Gaussian kernel with the given sigma and steps
-//! TODO: steps could be  calculated from sigma (cut off kernel when factor gets very small
-open_iA_Core_API std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSigma, int kernelSteps);
+//! TODO: number of steps could be calculated from sigma (cut off kernel when factor gets very small)
+open_iA_Core_API FuncType gaussianSmoothing(FuncType const & data, double kernelSigma, int kernelSteps);
 
+//! calculate first derivative of a given function
+open_iA_Core_API FuncType derivative(FuncType const & func);
 
-open_iA_Core_API std::vector<double> derivative(std::vector<double> func);
+//! compute the mean of a function
+open_iA_Core_API double mean(FuncType const & func);
+
+//! compute the variation of a function. mean can be given (to improve speed)
+open_iA_Core_API double variance(FuncType const & func, double meanVal = std::numeric_limits<double>::infinity(), bool correctDF = true);
+
+//! compute the standard deviation of a function. mean can be given (to improve speed)
+open_iA_Core_API double standardDeviation(FuncType const & func, double meanVal = std::numeric_limits<double>::infinity(), bool correctDF = true);
+
+//! compute covariance between two functions
+open_iA_Core_API double covariance(FuncType const & func1, FuncType const & func2,
+	double mean1 = std::numeric_limits<double>::infinity(), double mean2 = std::numeric_limits<double>::infinity(), bool correctDF = true);
+
+//! calculate the Pearson's correlation coefficient between two functions
+open_iA_Core_API double pearsonsCorrelationCoefficient(FuncType const & func1, FuncType const & func2);

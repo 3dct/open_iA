@@ -59,7 +59,8 @@ iAScatterPlot::Settings::Settings() :
 	backgroundColor( QColor( 255, 255, 255 ) ),
 	selectionColor( QColor(0, 0, 0) ),
 	selectionMode(Polygon),
-	selectionEnabled(true)
+	selectionEnabled(true),
+	showPCC(false)
 {}
 
 size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
@@ -80,7 +81,8 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	m_pointsBuffer( 0 ),
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false ),
-	m_colInd( 0 )	
+	m_colInd( 0 ),
+	m_pcc( 0 )
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
@@ -92,6 +94,7 @@ void iAScatterPlot::setData( int x, int y, QSharedPointer<iASPLOMData> &splomDat
 {
 	m_paramIndices[0] = x; m_paramIndices[1] = y;
 	m_splomData = splomData;
+	m_pcc = pearsonsCorrelationCoefficient(m_splomData->paramData(m_paramIndices[0]), m_splomData->paramData(m_paramIndices[1]));
 	if ( !hasData() )
 		return;
 	calculateRanges();
@@ -238,6 +241,11 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	if (m_isMaximizedPlot)
 		drawSelectionPolygon( painter );
 	drawBorder( painter );
+	if (settings.showPCC)
+	{
+		painter.setPen(QColor(0, 0, 0));
+		painter.drawText( QRect(0, 0, m_globRect.width(), m_globRect.height()), Qt::AlignCenter | Qt::AlignVCenter, QString::number(m_pcc));
+	}
 	painter.restore();
 }
 
@@ -903,6 +911,7 @@ void iAScatterPlot::fillVBO()
 	//draw data points
 	if ( !hasData() )
 		return;
+	// TODO: adapt sizes to filter!
 	size_t vcount = 3 * m_splomData->numPoints();
 	size_t ccount = 4 * m_splomData->numPoints();
 	int elSz = 7;

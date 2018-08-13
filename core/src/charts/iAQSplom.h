@@ -155,6 +155,7 @@ private slots:
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
 	void setQuadraticPlots(bool quadratic);                          //!< set whether plots are restricted to quadratic size
+	void setShowPCC(bool showPCC);                                   //!< set whether the correlation coefficient is shown in each plot
 	void selectionModePolygon();                                     //!< set selection mode to polygon
 	void selectionModeRectangle();                                   //!< set selection mode to rectangle
 
@@ -191,6 +192,7 @@ public:
 		int selectionMode;                       //!< The selection mode of all scatter plots
 		bool selectionEnabled;                   //!< Whether selection is enabled in the SPLOM
 		bool quadraticPlots;                     //!< Whether the scatter plots are constrained to quadratic sizes
+		bool showPCC;                            //!< Whether to show the Pearson's correlation coefficient
 	};
 	Settings settings;
 protected:
@@ -219,6 +221,6 @@ protected:
 	iAColorTheme const * m_bgColorTheme;         //!< background colors for regions in the scatterplot
 	QMenu* m_contextMenu;                        //!< the context menu (can be extended by subclass)
 private:
-	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction;
+	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction, *showPCCAction;
 	QVector<iAChartWidget*> m_histograms;        //<! histograms of scatter plot matrix
 };

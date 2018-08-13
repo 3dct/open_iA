@@ -167,6 +167,7 @@ public:
 		QColor selectionColor;
 		SelectionMode selectionMode;
 		bool selectionEnabled;
+		bool showPCC;
 	};
 
 	// Members
@@ -206,4 +207,5 @@ protected:
 	//state flags
 	bool m_isMaximizedPlot;                                          //!< flag telling if this plot itself is maximized (bigger plot)
 	bool m_isPreviewPlot;                                            //!< flag telling if a large version of this plot is shown maximized currently
+	double m_pcc;                                                    //!< correlation coefficient between the two given data columns
 };

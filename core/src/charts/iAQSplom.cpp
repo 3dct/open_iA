@@ -65,7 +65,8 @@ iAQSplom::Settings::Settings()
 	selectionMode(iAScatterPlot::Polygon),
 	selectionEnabled(true),
 	histogramVisible(true),
-	quadraticPlots(false)
+	quadraticPlots(false),
+	showPCC(false)
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
 }
@@ -117,7 +118,7 @@ void iAQSplom::showAllPlots(const bool enableAllPlotsVisible)
 		m_mode = ALL_PLOTS;
 	else
 		m_mode = UPPER_HALF;
-	this->update();
+	updateVisiblePlots();
 }
 
 void iAQSplom::setSelectionColor(QColor color)
@@ -206,6 +207,9 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	quadraticPlotsAction = new QAction(tr("Quadratic Plots"), this);
 	quadraticPlotsAction->setCheckable(true);
 	quadraticPlotsAction->setChecked(settings.quadraticPlots);
+	showPCCAction = new QAction(tr("Show Pearsons's Correlation Coefficient"), this);
+	showPCCAction->setCheckable(true);
+	showPCCAction->setChecked(settings.quadraticPlots);
 	selectionModePolygonAction = new QAction(tr("Polygon Selection Mode"), this);
 	QActionGroup * selectionModeGroup = new QActionGroup(m_contextMenu);
 	selectionModeGroup->setExclusive(true);
@@ -217,10 +221,12 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	selectionModeRectangleAction->setActionGroup(selectionModeGroup);
 	m_contextMenu->addAction(showHistogramAction);
 	m_contextMenu->addAction(quadraticPlotsAction);
+	m_contextMenu->addAction(showPCCAction);
 	m_contextMenu->addAction(selectionModeRectangleAction);
 	m_contextMenu->addAction(selectionModePolygonAction);
 	connect(showHistogramAction, &QAction::toggled, this, &iAQSplom::setHistogramVisible);
 	connect(quadraticPlotsAction, &QAction::toggled, this, &iAQSplom::setQuadraticPlots);
+	connect(showPCCAction, &QAction::toggled, this, &iAQSplom::setShowPCC);
 	connect(selectionModePolygonAction, SIGNAL(toggled(bool)), this, SLOT(selectionModePolygon()));
 	connect(selectionModeRectangleAction, SIGNAL(toggled(bool)), this, SLOT(selectionModeRectangle()));
 }
@@ -677,10 +683,22 @@ void iAQSplom::setQuadraticPlots(bool quadratic)
 	update();
 }
 
+void iAQSplom::setShowPCC(bool showPCC)
+{
+	settings.showPCC = showPCC;
+	foreach(QList<iAScatterPlot*> row, m_matrix)
+		foreach(iAScatterPlot* s, row)
+			s->settings.showPCC = showPCC;
+	if (m_maximizedPlot)
+		m_maximizedPlot->settings.showPCC = showPCC;
+	update();
+}
+
 void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 {
 	showHistogramAction->setChecked(settings.histogramVisible);
 	quadraticPlotsAction->setChecked(settings.quadraticPlots);
+	showPCCAction->setChecked(settings.showPCC);
 	m_contextMenu->exec(event->globalPos());
 }
 
@@ -694,25 +712,14 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 
 	selectedPlot->setPreviewState(true);
 	m_previewPlot = selectedPlot;
-	m_mode = UPPER_HALF;
-
-	//hide lower triangle
-	// TODO: check - duplication to the code in updateVisiblePlots!
-	QList<QList<iAScatterPlot*>> newVisPlots;
-	int visParamCnt = getVisibleParametersCount();
-	for (int y = 0; y < visParamCnt; ++y)
-	{
-		QList<iAScatterPlot*> row;
-		for (int x = 0; x < visParamCnt; ++x)
-		{
-			if (x <= y)
-				row.push_back(m_visiblePlots[y][x]);
-			else
-				row.push_back(0);
-		}
-		newVisPlots.push_back(row);
+	if (m_mode == ALL_PLOTS)
+	{	// hide lower triangle
+		m_mode = UPPER_HALF;
+		for (int y = 0; y < getVisibleParametersCount(); ++y)
+			for (int x = 0; x < getVisibleParametersCount(); ++x)
+				if (x >= y)
+					m_visiblePlots[y][x] = nullptr;
 	}
-	m_visiblePlots = newVisPlots;
 
 	//create main plot
 	delete m_maximizedPlot;
@@ -733,6 +740,7 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 	m_maximizedPlot->setPointRadius(settings.pointRadius);
 	m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(settings.selectionMode);
 	m_maximizedPlot->settings.selectionEnabled = settings.selectionEnabled;
+	m_maximizedPlot->settings.showPCC = settings.showPCC;
 	updateMaxPlotRect();
 	//transform
 	QPointF ofst = selectedPlot->getOffset();
@@ -758,7 +766,6 @@ void iAQSplom::removeMaximizedPlot()
 		m_previewPlot->setPreviewState( false );
 		m_previewPlot = 0;
 	}
-	m_mode = UPPER_HALF;
 }
 
 int iAQSplom::invert( int val ) const
