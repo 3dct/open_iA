@@ -64,7 +64,8 @@ iAQSplom::Settings::Settings()
 	pointRadius(1.0),
 	selectionMode(iAScatterPlot::Polygon),
 	selectionEnabled(true),
-	histogramVisible(true)
+	histogramVisible(true),
+	quadraticPlots(false)
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
 }
@@ -198,9 +199,13 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	m_animationIn->setDuration( settings.animDuration );
 	m_animationOut->setDuration( settings.animDuration );
 
+	// set up context menu:
 	showHistogramAction = new QAction(tr("Show Histograms"), this);
 	showHistogramAction->setCheckable(true);
-	showHistogramAction->setChecked(true);
+	showHistogramAction->setChecked(settings.histogramVisible);
+	quadraticPlotsAction = new QAction(tr("Quadratic Plots"), this);
+	quadraticPlotsAction->setCheckable(true);
+	quadraticPlotsAction->setChecked(settings.quadraticPlots);
 	selectionModePolygonAction = new QAction(tr("Polygon Selection Mode"), this);
 	QActionGroup * selectionModeGroup = new QActionGroup(m_contextMenu);
 	selectionModeGroup->setExclusive(true);
@@ -211,9 +216,11 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	selectionModeRectangleAction->setCheckable(true);
 	selectionModeRectangleAction->setActionGroup(selectionModeGroup);
 	m_contextMenu->addAction(showHistogramAction);
+	m_contextMenu->addAction(quadraticPlotsAction);
 	m_contextMenu->addAction(selectionModeRectangleAction);
 	m_contextMenu->addAction(selectionModePolygonAction);
 	connect(showHistogramAction, &QAction::toggled, this, &iAQSplom::setHistogramVisible);
+	connect(quadraticPlotsAction, &QAction::toggled, this, &iAQSplom::setQuadraticPlots);
 	connect(selectionModePolygonAction, SIGNAL(toggled(bool)), this, SLOT(selectionModePolygon()));
 	connect(selectionModeRectangleAction, SIGNAL(toggled(bool)), this, SLOT(selectionModeRectangle()));
 }
@@ -658,13 +665,22 @@ void iAQSplom::showDefaultMaxizimedPlot()
 void iAQSplom::setHistogramVisible(bool visible)
 {
 	settings.histogramVisible = visible;
-	this->updateVisiblePlots();
+	updateVisiblePlots();
 	updateHistograms();
+}
+
+void iAQSplom::setQuadraticPlots(bool quadratic)
+{
+	settings.quadraticPlots = quadratic;
+	updatePlotGridParams();
+	updateSPLOMLayout();
+	update();
 }
 
 void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 {
 	showHistogramAction->setChecked(settings.histogramVisible);
+	quadraticPlotsAction->setChecked(settings.quadraticPlots);
 	m_contextMenu->exec(event->globalPos());
 }
 
@@ -953,11 +969,17 @@ void iAQSplom::updatePlotGridParams()
 		height() - settings.tickOffsets.y() };
 	long visParamCnt = getVisibleParametersCount();
 	int spc = settings.plotsSpacing;
-	int wSz[2] = {
+	m_scatPlotSize = QPoint(
 		static_cast<int>(( plotsRect[0] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
-		static_cast<int>(( plotsRect[1] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
-	};
-	m_scatPlotSize = QPoint( wSz[0], wSz[1] );
+		static_cast<int>(( plotsRect[1] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt ))
+	);
+	if (settings.quadraticPlots)
+	{
+		if (m_scatPlotSize.x() < m_scatPlotSize.y())
+			m_scatPlotSize.setY(m_scatPlotSize.x());
+		else
+			m_scatPlotSize.setX(m_scatPlotSize.y());
+	}
 }
 
 QRect iAQSplom::getPlotRectByIndex( int x, int y )
