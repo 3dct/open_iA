@@ -174,17 +174,6 @@ void iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 
 void iAFeatureScoutModuleInterface::FeatureScout_Options()
 {
-	QAction *action = (QAction *) sender();
-	QString actionText = action->text();
-
-	int idx = 0;
-
-	if ( actionText.toStdString() == "Length Distribution" ) idx = 7;
-	if ( actionText.toStdString() == "Mean Object" ) idx = 4;
-	if ( actionText.toStdString() == "Multi Rendering" ) idx = 3;
-	if ( actionText.toStdString() == "Orientation Rendering" ) idx = 5;
-	if ( actionText.toStdString() == "Activate SPM" ) idx = 6;
-
 	m_mdiChild = m_mainWnd->activeMdiChild();
 	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 	if ( !attach )
@@ -192,14 +181,30 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 		DEBUG_LOG( "No FeatureScout attachment in current MdiChild!" );
 		return;
 	}
-	attach->FeatureScout_Options( idx );
+	QString actionText = ((QAction *)sender())->text();
+	int idx = 0;
+	if ( actionText.toStdString() == "Length Distribution" ) idx = 7;
+	if ( actionText.toStdString() == "Mean Object" ) idx = 4;
+	if ( actionText.toStdString() == "Multi Rendering" ) idx = 3;
+	if ( actionText.toStdString() == "Orientation Rendering" ) idx = 5;
+	if ( actionText.toStdString() == "Activate SPM" ) idx = 6;
 
+	attach->FeatureScout_Options( idx );
 	m_mainWnd->statusBar()->showMessage( tr( "FeatureScout options changed to: " ).append( actionText ), 5000 );
 }
 
 void iAFeatureScoutModuleInterface::onChildClose()
 {
-	// TODO: check if a second mdi child has FeatureScout open?
+	if (!tlbFeatureScout)
+		return;
+	auto mdis = m_mainWnd->MdiChildList();
+	for (auto mdi : mdis)
+	{
+		m_mdiChild = mdi;
+		iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
+		if (attach)
+			return;
+	}
 	m_mainWnd->removeToolBar( tlbFeatureScout );
 	delete tlbFeatureScout;
 	tlbFeatureScout = nullptr;

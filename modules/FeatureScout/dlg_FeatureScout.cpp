@@ -2242,8 +2242,6 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 {	// If scatter plot selection changes, Parallel Coordinates gets informed
 	RenderSelection(selInds);
 	QCoreApplication::processEvents();
-	if (csvTable->GetNumberOfRows() > 10000)
-		return;
 	auto sortedSelInds = m_splom->getFilteredSelection();
 	int countSelection = sortedSelInds.size();
 	vtkSmartPointer<vtkIdTypeArray> vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
@@ -3539,6 +3537,5 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 		}
 		showScatterPlot();
 		break;
-
 	}
 }
