@@ -2214,8 +2214,7 @@ void dlg_FeatureScout::showScatterPlot()
 		iovSPM->show();
 		iovSPM->raise();
 	}
-	m_splom->initScatterPlot(iovSPM, csvTable);
-	m_splom->updateColumnVisibility(columnVisibility);
+	m_splom->initScatterPlot(iovSPM, csvTable, columnVisibility);
 	if (m_renderMode == rmMultiClass)
 		m_splom->multiClassRendering(m_colorList);
 	else

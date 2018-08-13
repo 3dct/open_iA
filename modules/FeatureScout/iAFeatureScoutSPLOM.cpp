@@ -59,7 +59,7 @@ iAFeatureScoutSPLOM::~iAFeatureScoutSPLOM()
 	delete matrix;
 }
 
-void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvTable)
+void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvTable, std::vector<bool> const & columnVisibility)
 {
 	if (matrix)
 		delete matrix;
@@ -70,6 +70,7 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	matrix->setData(spInput);
 	matrix->setSelectionColor(QColor(255, 40, 0, 1));
 	matrix->enableSelection(selectionEnabled);
+	matrix->setParameterVisibility(columnVisibility);
 	matrix->showDefaultMaxizimedPlot();
 	connect(matrix, &iAQSplom::selectionModified, this, &iAFeatureScoutSPLOM::selectionModified);
 }
