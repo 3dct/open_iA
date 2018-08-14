@@ -46,16 +46,17 @@ private:
 	QSharedPointer<iAHistogramData> m_histogramData;
 	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
-	bool m_tfInitialized;
+	bool m_statisticsComputed;
 public:
 	iAImageInfo const & Info() const;
 	iAModalityTransfer(double range[2]);
-	QSharedPointer<iAHistogramData> const GetHistogramData() const;
-	void ComputeStatistics(vtkSmartPointer<vtkImageData> img);
-	void ComputeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount);
-	void Reset();
+	QSharedPointer<iAHistogramData> const getHistogramData() const;
+	void computeStatistics(vtkSmartPointer<vtkImageData> img);
+	void computeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount);
+	void reset();
+	bool statisticsComputed() const;
 
 	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
-	vtkPiecewiseFunction* GetOpacityFunction();
-	vtkColorTransferFunction* GetColorFunction();
+	vtkPiecewiseFunction* getOpacityFunction() override;
+	vtkColorTransferFunction* getColorFunction() override;
 };

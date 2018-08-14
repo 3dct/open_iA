@@ -257,12 +257,12 @@ QString iAModality::GetPositionString()
 
 void iAModality::ComputeHistogramData(size_t numBin)
 {
-	m_transfer->ComputeHistogramData(GetImage(), numBin);
+	m_transfer->computeHistogramData(GetImage(), numBin);
 }
 
 void iAModality::ComputeImageStatistics()
 {
-	m_transfer->ComputeStatistics(GetImage());
+	m_transfer->computeStatistics(GetImage());
 	if (!tfFileName.isEmpty())
 	{
 		LoadTransferFunction();
@@ -272,7 +272,7 @@ void iAModality::ComputeImageStatistics()
 
 QSharedPointer<iAHistogramData> const iAModality::GetHistogramData() const
 {
-	return m_transfer->GetHistogramData();
+	return m_transfer->getHistogramData();
 }
 
 void iAModality::setVolSettings(const iAVolumeSettings &volSettings)
@@ -288,12 +288,24 @@ const iAVolumeSettings &iAModality::getVolumeSettings() const
 
 
 
+// iAStatisticsUpdater
+
+void iAStatisticsUpdater::run()
+{
+	m_modality->ComputeImageStatistics();
+	emit StatisticsReady(m_modalityIdx);
+}
+
+iAStatisticsUpdater::iAStatisticsUpdater(int modalityIdx, QSharedPointer<iAModality> modality) :
+	m_modalityIdx(modalityIdx),
+	m_modality(modality)
+{}
+
+
 // iAHistogramUpdater
 
 void iAHistogramUpdater::run()
 {
-	m_modality->ComputeImageStatistics();
-	emit StatisticsReady(m_modalityIdx);
 	m_modality->ComputeHistogramData(m_binCount);
 	emit HistogramReady(m_modalityIdx);
 }

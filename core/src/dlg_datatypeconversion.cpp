@@ -24,7 +24,7 @@
 #include "iAConnector.h"
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
-#include "iATransferFunction.h"
+#include "iATransferFunction.h"    // for GetDefault... functions
 #include "iATypedCallHelper.h"
 
 #include <itkChangeInformationImageFilter.h>

@@ -33,8 +33,8 @@ class open_iA_Core_API iATransferFunction
 {
 public:
 	virtual ~iATransferFunction();
-	virtual vtkPiecewiseFunction* GetOpacityFunction() =0;
-	virtual vtkColorTransferFunction* GetColorFunction() = 0;
+	virtual vtkPiecewiseFunction* getOpacityFunction() =0;
+	virtual vtkColorTransferFunction* getColorFunction() = 0;
 };
 
 //! simplest possible transfer function: just a container for ctf and otf
@@ -43,8 +43,8 @@ class open_iA_Core_API iASimpleTransferFunction : public iATransferFunction
 {
 public:
 	iASimpleTransferFunction(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf);
-	virtual vtkColorTransferFunction * GetColorFunction();
-	virtual vtkPiecewiseFunction * GetOpacityFunction();
+	vtkColorTransferFunction * getColorFunction() override;
+	vtkPiecewiseFunction * getOpacityFunction() override;
 private:
 	vtkColorTransferFunction * m_ctf;
 	vtkPiecewiseFunction * m_otf;

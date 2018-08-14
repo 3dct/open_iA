@@ -33,12 +33,12 @@ iASimpleTransferFunction::iASimpleTransferFunction(vtkColorTransferFunction* ctf
 	m_otf(otf)
 {}
 
-vtkColorTransferFunction * iASimpleTransferFunction::GetColorFunction()
+vtkColorTransferFunction * iASimpleTransferFunction::getColorFunction()
 {
 	return m_ctf;
 }
 
-vtkPiecewiseFunction * iASimpleTransferFunction::GetOpacityFunction()
+vtkPiecewiseFunction * iASimpleTransferFunction::getOpacityFunction()
 {
 	return m_otf;
 }
