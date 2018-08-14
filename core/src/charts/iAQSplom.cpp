@@ -38,6 +38,9 @@
 #include <QWheelEvent>
 #include <QtMath>
 #include <QMenu>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QSurfaceFormat>
+#endif
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -201,7 +204,13 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 {
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
-
+	setBackgroundRole(QPalette::Base);
+	setAutoFillBackground(true);
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QSurfaceFormat format = QSurfaceFormat();
+	format.setSamples(4);
+	setFormat(format);
+#endif
 	m_animationIn->setDuration( settings.animDuration );
 	m_animationOut->setDuration( settings.animDuration );
 
