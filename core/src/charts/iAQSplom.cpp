@@ -250,13 +250,13 @@ void iAQSplom::updateHistogram(size_t paramIndex)
 		if (m_splomData->matchesFilter(i))
 			hist_InputValues.push_back(m_splomData->paramData(paramIndex)[i]);
 	}
-	if (m_histograms[paramIndex]->Plots().size() > 0)
-		m_histograms[paramIndex]->RemovePlot(m_histograms[paramIndex]->Plots()[0]);
+	if (m_histograms[paramIndex]->plots().size() > 0)
+		m_histograms[paramIndex]->removePlot(m_histograms[paramIndex]->plots()[0]);
 
 	auto histogramData = iAHistogramData::Create(hist_InputValues, settings.histogramBins);
 	auto histogramPlot = QSharedPointer<iABarGraphDrawer>(new iABarGraphDrawer(histogramData, QColor(70, 70, 70, 255)));
-	m_histograms[paramIndex]->AddPlot(histogramPlot);
-	m_histograms[paramIndex]->redraw();
+	m_histograms[paramIndex]->addPlot(histogramPlot);
+	m_histograms[paramIndex]->repaint();
 }
 
 void iAQSplom::updateHistograms()
