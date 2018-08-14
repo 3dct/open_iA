@@ -108,10 +108,12 @@ void iAFeatureScoutSPLOM::setFilter(int classID)
 	matrix->update();
 }
 
-void iAFeatureScoutSPLOM::setDotColor(QColor const & color, double const range[2])
+void iAFeatureScoutSPLOM::setDotColor(QColor const & color)
 {
+	if (!matrix)
+		return;
 	iALookupTable lut;
-	lut.setRange(range);
+	lut.setRange(matrix->data()->paramRange(0));
 	lut.allocate(2);
 	for (size_t i = 0; i < 2; i++)
 		lut.setColor(i, color);
@@ -140,6 +142,8 @@ void iAFeatureScoutSPLOM::classAdded(int classID)
 
 void iAFeatureScoutSPLOM::classDeleted(int deleteClassID)
 {
+	if (!matrix)
+		return;
 	matrix->clearSelection();
 	size_t classColumn = matrix->data()->numParams() - 1;
 	for (size_t objID = 0; objID < matrix->data()->numPoints(); ++objID)
@@ -157,12 +161,16 @@ void iAFeatureScoutSPLOM::classDeleted(int deleteClassID)
 
 void iAFeatureScoutSPLOM::changeClass(size_t objID, int classID)
 {
+	if (!matrix)
+		return;
 	size_t classColumn = matrix->data()->numParams() - 1;
 	matrix->data()->data()[classColumn][objID] = classID;
 }
 
 void iAFeatureScoutSPLOM::classesChanged()
 {
+	if (!matrix)
+		return;
 	size_t classColumn = matrix->data()->numParams() - 1;
 	matrix->paramChanged(classColumn);
 }

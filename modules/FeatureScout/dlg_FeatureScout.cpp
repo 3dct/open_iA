@@ -2189,8 +2189,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	{
 		m_renderMode = rmSingleClass;
 		// reset color in SPLOM
-		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
-		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+		m_splom->setDotColor(StandardSPLOMDotColor);
 		m_splom->enableSelection(true);
 	}
 }
@@ -2219,8 +2218,7 @@ void dlg_FeatureScout::showScatterPlot()
 		m_splom->multiClassRendering(m_colorList);
 	else
 	{
-		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
-		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+		m_splom->setDotColor(StandardSPLOMDotColor);
 		if (m_renderMode == rmSingleClass)
 		{
 			auto filteredSelInds = getPCSelection();
@@ -2448,8 +2446,7 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 			this->SingleRendering();
 			m_splom->clearSelection();
 			m_splom->setFilter(classID);
-			vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
-			m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+			m_splom->setDotColor(StandardSPLOMDotColor);
 		}
 	}
 }
@@ -2505,8 +2502,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 	{
 		m_renderMode = rmSingleClass;
 		// reset color in SPLOM
-		vtkDataArray *mmr = vtkDataArray::SafeDownCast(csvTable->GetColumn(0));
-		m_splom->setDotColor(StandardSPLOMDotColor, mmr->GetRange());
+		m_splom->setDotColor(StandardSPLOMDotColor);
 		m_splom->enableSelection(true);
 	}
 	if (!item->hasChildren()) // has no children => single object selected
