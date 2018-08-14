@@ -35,7 +35,8 @@ class iASimpleSlicerWidget : public QWidget
 	Q_OBJECT
 
 public:
-	iASimpleSlicerWidget(QWidget* parent, QSharedPointer<iAModality> modality, Qt::WindowFlags f = 0);
+	iASimpleSlicerWidget(QWidget* parent, Qt::WindowFlags f = 0);
+	//iASimpleSlicerWidget(QWidget* parent, QSharedPointer<iAModality> modality, Qt::WindowFlags f = 0);
 	~iASimpleSlicerWidget();
 
 	void changeMode(iASlicerMode slicerMode, int dimensionLength);
@@ -46,6 +47,7 @@ public:
 
 	void update();
 
+	void changeModality(QSharedPointer<iAModality> modality);
 
 public slots:
 

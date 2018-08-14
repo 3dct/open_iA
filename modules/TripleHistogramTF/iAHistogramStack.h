@@ -45,6 +45,10 @@ public:
 	iAWeightedTransfer* getTransferFunction();
 	QSharedPointer<iAModality> getModality(int index);
 
+	void removeModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild);
+	void addModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild);
+	//int getModalityCount();
+
 private slots:
 	void updateTransferFunction(int index);
 
@@ -55,13 +59,20 @@ protected:
 	void resizeEvent(QResizeEvent* event);
 
 private:
-	QGridLayout *m_mainLayout;
+	void updateModalities(MdiChild* mdiChild);
+
+	// TODO: more const?
+	const QString m_labels[3] = { "A", "B", "C" };
+
+	QList<QSharedPointer<iAModality>> m_modalities2;
 	QSharedPointer<iAModality> m_modalities[3];
+	iAWeightedTransfer *m_transferFunction;
+
+	// Widgets and stuff
+	QGridLayout *m_mainLayout;
 	QLabel *m_weightLabels[3];
 	QLabel *m_modalityLabels[3];
 	iASimpleSlicerWidget *m_slicerWidgets[3];
 	iADiagramFctWidget* m_histograms[3];
-
-	iAWeightedTransfer *m_transferFunction;
 	
 };

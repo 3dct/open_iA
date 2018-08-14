@@ -23,8 +23,9 @@
 
 #include <qsplitter.h>
 
-// TODO: why tf do I need this?
 #include "iAModalityList.h"
+
+#include <vtkImageData.h>
 
 // Debug
 #include "qdebug.h"
@@ -36,10 +37,15 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	m_mdiChild(mdiChild)
 {
 
+	// Initialize dock widget
+	setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetVerticalTitleBar);
+
+	// Set up connects
+	// ...
+
 	//-----------------------------------------------
 	// Test vvv // TODO: remove comments
 	resize(779, 501);
-	setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetVerticalTitleBar);
 
 	//QWidget *dockWidgetContents = new QWidget();
 	QSplitter *dockWidgetContents = new QSplitter(Qt::Horizontal);
@@ -52,16 +58,15 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	//m_mainLayout->setObjectName(QStringLiteral("horizontalLayout_2"));
 	//m_mainLayout->setContentsMargins(0, 0, 0, 0);
 
-	if (mdiChild->GetModalities()->size() != 3) {
-		return;
-	}
-
 	QWidget *optionsContainer = new QWidget();
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	// Test ^^^
 	//-----------------------------------------------
 
 	m_triangleWidget = new iABarycentricTriangleWidget(dockWidgetContents);
+	m_triangleWidget->setModality1label(m_labels[0]);
+	m_triangleWidget->setModality2label(m_labels[1]);
+	m_triangleWidget->setModality3label(m_labels[2]);
 
 	m_slicerModeComboBox = new QComboBox(optionsContainer);
 	m_slicerModeComboBox->addItem("YZ", QVariant(iASlicerMode::YZ));
@@ -79,19 +84,6 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	//QVBoxLayout *histogramStackContainerLayout = new QVBoxLayout(histogramStackContainer);
 
 	m_histogramStack = new iAHistogramStack(dockWidgetContents, mdiChild);
-	if (m_histogramStack->isEnabled()) {
-		QString names[3] = {
-			"A (" + m_histogramStack->getModality(0)->GetName() + ")",
-			"B (" + m_histogramStack->getModality(1)->GetName() + ")",
-			"C (" + m_histogramStack->getModality(2)->GetName() + ")"
-		};
-		m_histogramStack->setModalityLabel(names[0], 0);
-		m_histogramStack->setModalityLabel(names[1], 1);
-		m_histogramStack->setModalityLabel(names[2], 2);
-		m_triangleWidget->setModality1label(names[0]);
-		m_triangleWidget->setModality2label(names[1]);
-		m_triangleWidget->setModality3label(names[2]);
-	}
 
 	QWidget *leftWidget = new QWidget();
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
@@ -110,12 +102,12 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	// TODO: remove this class (ColorInterpolator), probably
 	ColorInterpolator::setInstance(new LinearRGBColorInterpolator());
-
+	
 	// Does not work. TODO: fix
-	mdiChild->getSlicerXY()->reInitialize(
+	/*mdiChild->getSlicerXY()->reInitialize(
 		mdiChild->getImageData(),
 		vtkTransform::New(), // no way of getting current transform, so create a new one // TODO: fix?
-		m_histogramStack->getTransferFunction()); // here is where the magic happens ;)
+		m_histogramStack->getTransferFunction()); // here is where the magic happens ;)*/
 
 	//Connect
 	connect(m_triangleWidget, SIGNAL(weightChanged(BCoord)), this, SLOT(setWeight(BCoord)));

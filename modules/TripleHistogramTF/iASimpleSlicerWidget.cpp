@@ -29,7 +29,7 @@
 #include <vtkInteractorStyle.h>
 #include <vtkRenderWindowInteractor.h>
 
-iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, QSharedPointer<iAModality> modality, Qt::WindowFlags f /*= 0 */) :
+iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, Qt::WindowFlags f /*= 0 */) :
 	QWidget(parent, f)
 {
 	m_slicer = new iASlicer(parent, iASlicerMode::XY, this,
@@ -39,25 +39,12 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, QSharedPointer<iAMo
 		/*Qt::WindowFlags f = */f,
 		/*bool decorations = */false); // Hide everything except the slice itself
 
-	vtkImageData *imageData = modality->GetImage().GetPointer();
 
-	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->GetColorFunction();
-	m_slicerTransform = vtkTransform::New();
-	m_slicer->initializeData(imageData, m_slicerTransform, colorFunction);
-	m_slicer->initializeWidget(imageData);
-	
-	// Deactivate interaction with the slice (zoom, pan, etc)
-	//m_slicer->disableInteractor();
-	vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
-	m_slicer->GetSlicerData()->GetInteractor()->SetInteractorStyle(dummyStyle);
-
-	// TODO: fill widget with the sliced image
 }
 
 iASimpleSlicerWidget::~iASimpleSlicerWidget()
 {
-	m_slicerTransform->Delete();
-
+	if (m_slicerTransform) m_slicerTransform->Delete();
 	delete m_slicer;
 }
 
@@ -91,4 +78,19 @@ void iASimpleSlicerWidget::update()
 {
 	QWidget::update();
 	m_slicer->update();
+}
+
+void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
+{
+	vtkImageData *imageData = modality->GetImage().GetPointer();
+
+	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->GetColorFunction();
+	m_slicerTransform = vtkTransform::New();
+	m_slicer->initializeData(imageData, m_slicerTransform, colorFunction);
+	m_slicer->initializeWidget(imageData);
+
+	// Deactivate interaction with the slice (zoom, pan, etc)
+	//m_slicer->disableInteractor();
+	vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
+	m_slicer->GetSlicerData()->GetInteractor()->SetInteractorStyle(dummyStyle);
 }

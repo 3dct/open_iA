@@ -57,13 +57,17 @@ protected:
 private:
 	void setSlicerMode(iASlicerMode slicerMode);
 
-	QComboBox *m_slicerModeComboBox;
-	QSlider *m_sliceSlider;
-	iAHistogramStack *m_histogramStack;
+	QString m_labels[3] = { "A", "B", "C" };
 
 	// TODO: is it really good to keep the mdiChild as a member variable?
 	MdiChild *m_mdiChild;
 
+	// Widgets and stuff
+	QComboBox *m_slicerModeComboBox;
+	QSlider *m_sliceSlider;
+	iAHistogramStack *m_histogramStack;
 	iABarycentricTriangleWidget *m_triangleWidget;
+
+
 	
 };

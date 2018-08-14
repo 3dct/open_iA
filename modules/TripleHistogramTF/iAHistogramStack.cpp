@@ -55,20 +55,19 @@ iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::Win
 {
 	m_mainLayout = new QGridLayout(this);
 
-	QString labels[3] = { "A", "B", "C" };
-	iATransferFunction *tfs[3];
+	//iATransferFunction *tfs[3];
 	for (int i = 0; i < 3; ++i) {
-		m_modalities[i] = mdiChild->GetModality(i);
+		//m_modalities[i] = mdiChild->GetModality(i);
 		//vtkImageData *imageData = modality->GetImage().GetPointer();
 
 		// Slicer, label and weight {
 		QWidget *rightWidget = new QWidget(this);
 		QVBoxLayout *rightWidgetLayout = new QVBoxLayout(rightWidget);
 
-		m_slicerWidgets[i] = new iASimpleSlicerWidget(rightWidget, m_modalities[i]);
+		m_slicerWidgets[i] = new iASimpleSlicerWidget(rightWidget);
 		m_weightLabels[i] = new QLabel(rightWidget);
 
-		m_modalityLabels[i] = new QLabel(labels[i]);
+		m_modalityLabels[i] = new QLabel(m_labels[i]);
 		m_modalityLabels[i]->setStyleSheet("font-weight: bold");
 
 		rightWidgetLayout->addWidget(m_slicerWidgets[i]);
@@ -80,48 +79,12 @@ iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::Win
 		m_weightLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 		// }
 
-		// Histogram {
-		if (!m_modalities[i]->GetHistogramData() || m_modalities[i]->GetHistogramData()->GetNumBin() != mdiChild->GetPreferences().HistogramBins)
-		{
-			m_modalities[i]->ComputeImageStatistics();
-			m_modalities[i]->ComputeHistogramData(mdiChild->GetPreferences().HistogramBins);
-		}
-
-		m_histograms[i] = new iADiagramFctWidget(this, mdiChild);
-		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
-			new	iABarGraphDrawer(m_modalities[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
-		m_histograms[i]->AddPlot(histogramPlot);
-		m_histograms[i]->SetTransferFunctions(m_modalities[i]->GetTransfer()->GetColorFunction(),
-			m_modalities[i]->GetTransfer()->GetOpacityFunction());
-		m_histograms[i]->updateTrf();
-		// }
-
 		// Add to (grid) layout {
-		m_mainLayout->addWidget(m_histograms[i], i, 0);
+		//m_mainLayout->addWidget(m_histograms[i], i, 0);
 		m_mainLayout->addWidget(rightWidget, i, 1);
 		// }
-
-		// Transfer function
-		if (m_histograms[i]->getSelectedFunction()->getType() != dlg_function::TRANSFER) {
-			tfs[i] = 0;
-		}
-		else {
-			dlg_transfer* transfer = (dlg_transfer*)m_histograms[i]->getSelectedFunction();
-			tfs[i] = new iASimpleTransferFunction(transfer->GetColorFunction(), transfer->GetOpacityFunction());
-		}
-
-		// Connect {
-		//connect(histogram, SIGNAL(updateViews()), this, SLOT(updateViews()));
-		//connect(histogram, SIGNAL(pointSelected()), this, SIGNAL(pointSelected()));
-		//connect(histogram, SIGNAL(noPointSelected()), this, SIGNAL(noPointSelected()));
-		//connect(histogram, SIGNAL(endPointSelected()), this, SIGNAL(endPointSelected()));
-		//connect(histogram, SIGNAL(active()), this, SIGNAL(active()));
-		//connect(histogram, SIGNAL(autoUpdateChanged(bool)), this, SIGNAL(autoUpdateChanged(bool)));
-		//connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), mdiChild, SLOT(ModalityTFChanged()));
-		connect((dlg_transfer*)(m_histograms[i]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction(i)));
-		// }
 	}
-	m_transferFunction = new iAWeightedTransfer(tfs[0], tfs[1], tfs[2]);
+	//m_transferFunction = new iAWeightedTransfer(tfs[0], tfs[1], tfs[2]);
 }
 
 iAHistogramStack::~iAHistogramStack()
@@ -129,6 +92,9 @@ iAHistogramStack::~iAHistogramStack()
 	delete m_slicerWidgets[0];
 	delete m_slicerWidgets[1];
 	delete m_slicerWidgets[2];
+	delete m_histograms[0];
+	delete m_histograms[1];
+	delete m_histograms[2];
 }
 
 void iAHistogramStack::setWeight(BCoord bCoord)
@@ -179,4 +145,77 @@ void iAHistogramStack::setModalityLabel(QString label, int index)
 QSharedPointer<iAModality> iAHistogramStack::getModality(int index)
 {
 	return m_modalities[index];
+}
+
+void iAHistogramStack::removeModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild)
+{
+	m_modalities2.removeOne(modality);
+	updateModalities(mdiChild);
+}
+
+void iAHistogramStack::addModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild)
+{
+	m_modalities2.append(modality);
+	updateModalities(mdiChild);
+}
+
+void iAHistogramStack::updateModalities(MdiChild* mdiChild)
+{
+	if (m_modalities2.size() == 3) {
+		if (m_modalities2.contains(m_modalities[0]) &&
+			m_modalities2.contains(m_modalities[1]) &&
+			m_modalities2.contains(m_modalities[2])) {
+
+			return;
+		}
+	} else {
+		return;
+	}
+
+	for (int i = 0; i < 3; ++i) {
+		if (!m_modalities2.contains(m_modalities[i])) {
+			//delete m_modalities[i];
+			delete m_histograms[i];
+		}
+	}
+
+	iATransferFunction *tfs[3];
+	for (int i = 0; i < 3; ++i) {
+		// Slicer {
+		m_slicerWidgets[i]->changeModality(m_modalities2[i]);
+		// }
+
+		// Histogram {
+		if (!m_modalities[i]->GetHistogramData() || m_modalities[i]->GetHistogramData()->GetNumBin() != mdiChild->GetPreferences().HistogramBins)
+		{
+			m_modalities[i]->ComputeImageStatistics();
+			m_modalities[i]->ComputeHistogramData(mdiChild->GetPreferences().HistogramBins);
+		}
+
+		m_histograms[i] = new iADiagramFctWidget(this, mdiChild);
+		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
+			new	iABarGraphDrawer(m_modalities[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
+		m_histograms[i]->AddPlot(histogramPlot);
+		m_histograms[i]->SetTransferFunctions(m_modalities[i]->GetTransfer()->GetColorFunction(),
+			m_modalities[i]->GetTransfer()->GetOpacityFunction());
+		m_histograms[i]->updateTrf();
+
+		m_mainLayout->addWidget(m_histograms[i], i, 0);
+
+		connect((dlg_transfer*)(m_histograms[i]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction(i)));
+		// }
+
+		// Transfer function {
+		if (m_histograms[i]->getSelectedFunction()->getType() != dlg_function::TRANSFER) {
+			tfs[i] = 0;
+		}
+		else {
+			dlg_transfer* transfer = (dlg_transfer*)m_histograms[i]->getSelectedFunction();
+			tfs[i] = new iASimpleTransferFunction(transfer->GetColorFunction(), transfer->GetOpacityFunction());
+		}
+		// }
+
+		m_modalities[i] = m_modalities2[i];
+	}
+	m_transferFunction = new iAWeightedTransfer(tfs[0], tfs[1], tfs[2]);
 }
