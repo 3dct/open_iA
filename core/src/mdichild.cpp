@@ -2909,6 +2909,7 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 	auto histData = GetModality(modalityIdx)->GetTransfer()->GetHistogramData();
 	size_t newBinCount = preferences.HistogramBins;
 	auto img = GetModality(modalityIdx)->GetImage();
+	// half the work (determining min/max) already done here:
 	auto scalarRange = img->GetScalarRange();
 	if (isVtkIntegerType(GetModality(modalityIdx)->GetImage()->GetScalarType()))
 		newBinCount = std::min(newBinCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
@@ -2984,7 +2985,6 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 			slicer[s]->GetSlicerData()->ResetCamera();
 		}
 	}
-	ChangeMagicLensModality(0);
 	ModalityTFChanged();
 	updateViews();
 }
