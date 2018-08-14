@@ -105,7 +105,7 @@ void iAScatterPlot::setData( int x, int y, QSharedPointer<iASPLOMData> &splomDat
 	m_pcc = pearsonsCorrelationCoefficient(m_splomData->paramData(m_paramIndices[0]), m_splomData->paramData(m_paramIndices[1]));
 	if ( !hasData() )
 		return;
-	calculateRanges();
+	applyMarginToRanges();
 	updateGrid();
 	createAndFillVBO();
 }
@@ -361,7 +361,7 @@ int iAScatterPlot::p2binx( double p ) const
 
 double iAScatterPlot::p2tx( double pval ) const
 {
-	double norm = mapToNorm( m_prX, pval);
+	double norm = mapToNorm(m_prX, pval);
 	if (m_splomData->isInverted(m_paramIndices[0]))
 		norm = 1.0 - norm;
 	return norm;
@@ -370,7 +370,7 @@ double iAScatterPlot::p2tx( double pval ) const
 double iAScatterPlot::p2x( double pval ) const
 {
 	double rangeDst[2] = { m_locRect.left(), m_locRect.right() };
-	double pixelX = mapValue(m_prX, rangeDst, pval);
+	double pixelX = mapValue( m_prX, rangeDst, pval);
 	if (m_splomData->isInverted(m_paramIndices[0]))
 		pixelX = invertValue(rangeDst, pixelX);
 	return applyTransformX(pixelX);
@@ -464,24 +464,12 @@ void iAScatterPlot::updateGrid()
 		m_pointsGrid[binInd].push_back( i );
 	}
 }
-
-void iAScatterPlot::calculateRanges()
+void iAScatterPlot::applyMarginToRanges()
 {
-	m_prX[0] = m_prX[1] = m_splomData->paramData( m_paramIndices[0] )[0];
-	m_prY[0] = m_prY[1] = m_splomData->paramData( m_paramIndices[1] )[0];
-	for ( unsigned long i = 1; i < m_splomData->numPoints(); ++i )
-	{
-		double x = m_splomData->paramData( m_paramIndices[0] )[i];
-		double y = m_splomData->paramData( m_paramIndices[1] )[i];
-		if ( x < m_prX[0] )
-			m_prX[0] = x;
-		if ( x > m_prX[1] )
-			m_prX[1] = x;
-		if ( y < m_prY[0] )
-			m_prY[0] = y;
-		if ( y > m_prY[1] )
-			m_prY[1] = y;
-	}
+	m_prX[0] = m_splomData->paramRange(m_paramIndices[0])[0];
+	m_prX[1] = m_splomData->paramRange(m_paramIndices[0])[1];
+	m_prY[0] = m_splomData->paramRange(m_paramIndices[1])[0];
+	m_prY[1] = m_splomData->paramRange(m_paramIndices[1])[1];
 	if ( m_prX[0] == m_prX[1] )
 	{
 		m_prX[0] -= 0.1; m_prX[1] += 0.1;
@@ -490,17 +478,11 @@ void iAScatterPlot::calculateRanges()
 	{
 		m_prY[0] -= 0.1; m_prY[1] += 0.1;
 	}
-	applyMarginToRanges();
-	calculateNiceSteps();
-}
-
-void iAScatterPlot::applyMarginToRanges()
-{
-	//apply margins to ranges
 	double rM = settings.rangeMargin;
 	double prLenX = m_prX[1] - m_prX[0], prLenY = m_prY[1] - m_prY[0];
 	m_prX[0] -= rM * prLenX; m_prX[1] += rM * prLenX;
 	m_prY[0] -= rM * prLenY; m_prY[1] += rM * prLenY;
+	calculateNiceSteps();
 }
 
 void iAScatterPlot::calculateNiceSteps()

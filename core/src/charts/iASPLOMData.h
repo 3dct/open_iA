@@ -51,14 +51,15 @@ public:
 	bool matchesFilter(size_t ind) const;             //!< Returns true if point with given index matches current filter
 	void setFilter(int colID, double value);          //!< Sets a filter on the given column (index), it needs to match the given value
 	bool filterDefined() const;                       //!< Returns true if a filter is defined on the data
-
+	double const* paramRange(size_t paramIndex) const;//!< Get the range of the parameter with given index
+	void updateRanges();                              //!< update range of all parameters
+	void updateRange(size_t paramIndex);              //!< update range of a single parameter
 protected:
 	std::vector<QString> m_paramNames;                //!< list of parameter names
 	std::vector<std::vector<double>> m_dataPoints;    //!< lists containing data points
+	std::vector<std::vector<double> > m_ranges;       //!< ranges of all parameters
 	std::vector<bool> m_inverted;                     //!< whether to invert a feature
-
 private:
 	int	m_FilterColID;                                //!< Filter Column ID
 	double m_FilterValue;                             //!< Current Filter value 
-
 };

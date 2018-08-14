@@ -71,7 +71,6 @@ public:
 	~iAScatterPlot();
 
 	void setData( int x, int y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
-	void calculateRanges();                                          //!< Compute parameter ranges
 	bool hasData() const;                                            //!< Check if data is already set to the plot
 	//! Set color lookup table and the name of a color-coded parameter
 	void setLookupTable( QSharedPointer<iALookupTable> &lut, int colInd );
@@ -97,6 +96,8 @@ public:
 	void leave();                                                    //!< Mouse is hovering over the plot's rectangle
 	void enter();                                                    //!< Mouse entered the plot's rectangle
 	void updatePoints();
+	void runFilter();
+	void applyMarginToRanges();                                      //!< Apply margins to ranges so that points are not stretched border-to-border
 
 	//! @{ Qt events are redirected from SPLOM to the active plot using these public event handlers
 	void SPLOMWheelEvent( QWheelEvent * event );
@@ -105,8 +106,6 @@ public:
 	void SPLOMMouseReleaseEvent( QMouseEvent * event );
 	void setSelectionColor(QColor selCol);
 	//! @}
-
-	void runFilter(); 
 
 protected:
 	int p2binx( double p ) const;                                    //!< Get grid bin index using parameter value X
@@ -123,7 +122,6 @@ protected:
 	double revertTransformY( double v ) const;                       //!< Revert scaling and offset to get Y coordinate
 	void initGrid();                                                 //!< Allocate lists for grid subdivision ( for point-picking acceleration)
 	void updateGrid();                                               //!< Fill subdivision grid with points ( for point-picking acceleration)
-	void applyMarginToRanges();                                      //!< Apply margins to ranges so that points are not stretched border-to-border
 	void calculateNiceSteps();                                       //!< Calculates nice steps displayed parameter ranges
 	void calculateNiceSteps( double * r, QList<double> * ticks );    //!< Calculates nice steps displayed parameter ranges given a range and a desired number of ticks
 	int getBinIndex( int x, int y ) const;                           //!< Get global grid bin offset (index) using X and Y bin indices
@@ -197,8 +195,7 @@ protected:
 	QRectF m_locRect;                                                //!< plot's local drawing rectangle
 	QSharedPointer<iASPLOMData> m_splomData;                         //!< pointer to SPLOM-parent's data
 	int m_paramIndices[2];                                           //!< indices of plot X, Y parameters
-	double m_prX[2];                                                 //!< range of X parameter
-	double m_prY[2];                                                 //!< range of Y parameter
+	double m_prX[2], m_prY[2];                                       //!< range of x and y parameter
 	int m_colInd;                                                    //!< index of color-coded parameter
 	QSharedPointer<iALookupTable> m_lut;                             //!< pointer to SPLOM-parent's lookup table
 	QRectF m_maxBtnRect;                                             //!< rectangle of maximized button

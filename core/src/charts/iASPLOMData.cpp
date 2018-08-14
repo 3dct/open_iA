@@ -58,6 +58,7 @@ void iASPLOMData::import(const QTableWidget * tw)
 			paramData->push_back(tw->item(r, c)->text().toDouble());
 		m_inverted.push_back(false);
 	}
+	updateRanges();
 }
 
 void iASPLOMData::setParameterNames(std::vector<QString> const & names)
@@ -136,9 +137,42 @@ void iASPLOMData::setFilter(int colID, double value)
 {
 	m_FilterColID = colID;
 	m_FilterValue = value;
+	//updateRanges();
 }
 
 bool iASPLOMData::filterDefined() const
 {
 	return m_FilterColID != -1;
+}
+
+double const* iASPLOMData::paramRange(size_t paramIndex) const
+{
+	return m_ranges[paramIndex].data();
+}
+
+void iASPLOMData::updateRanges()
+{
+	m_ranges.resize(m_dataPoints.size());
+	for (size_t param = 0; param < m_dataPoints.size(); ++param)
+	{
+		updateRange(param);
+	}
+}
+
+void iASPLOMData::updateRange(size_t paramIndex)
+{
+	std::vector<double> range(2);
+	range[0] = std::numeric_limits<double>::max();
+	range[1] = std::numeric_limits<double>::lowest();
+	for (size_t row = 0; row < m_dataPoints[paramIndex].size(); ++row)
+	{
+		//if (!matchesFilter(row))
+		//	continue;
+		double value = m_dataPoints[paramIndex][row];
+		if (value < range[0])
+			range[0] = value;
+		if (value > range[1])
+			range[1] = value;
+	}
+	m_ranges[paramIndex] = range;
 }

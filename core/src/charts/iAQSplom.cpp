@@ -340,8 +340,9 @@ void iAQSplom::paramChanged(int idx)
 		return;
 	for (int i = 0; i < m_matrix.size(); ++i)
 	{
-		m_matrix[idx][i]->calculateRanges();
-		m_matrix[i][idx]->calculateRanges();
+		m_splomData->updateRange(i);
+		m_matrix[idx][i]->applyMarginToRanges();
+		m_matrix[i][idx]->applyMarginToRanges();
 	}
 }
 

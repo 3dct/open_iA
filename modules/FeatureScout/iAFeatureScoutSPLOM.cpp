@@ -45,6 +45,7 @@ namespace
 				double value = table->GetValue(row, col).ToDouble();
 				result->data()[col].push_back(value);
 			}
+		result->updateRanges();
 		return result;
 	}
 }
