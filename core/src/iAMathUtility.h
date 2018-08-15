@@ -25,6 +25,7 @@
 #include <cassert>
 #include <cmath>   // for ceil/floor
 #include <cstddef> // for size_t
+#include <limits>  // for std::numeric_limits
 #include <vector>
 
 // consistently define isNaN/isInf:

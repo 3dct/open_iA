@@ -40,6 +40,7 @@
 #include <QMenu>
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QSurfaceFormat>
+#include <QPainter>
 #endif
 
 namespace
