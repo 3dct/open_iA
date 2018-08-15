@@ -77,7 +77,7 @@ void iAProfileWidget::drawPlots(QPainter &painter)
 	if (intBinWidth < binWidth)
 		intBinWidth++;
 	painter.setPen(QWidget::palette().color(QPalette::Text));
-	double scalingCoef = (double)(height-bottomMargin()-1) / yHeight *yZoom;
+	double scalingCoef = (double)(activeHeight()-1) / yHeight *yZoom;
 	for ( int j = 0; j < numBin-1; j++ )
 	{
 		double x1 = (int)(j * binWidth);

@@ -26,15 +26,24 @@
 
 #define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
 #define NOMINMAX
+
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QOpenGLWidget>
+#else
 #include <QGLWidget>
-#include <QImage>
+#endif
 
 class iAPlot;
 class iAMapper;
 
 class QMenu;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class open_iA_Core_API iAChartWidget : public QOpenGLWidget
+#else
 class open_iA_Core_API iAChartWidget : public QGLWidget
+#endif
 {
 	Q_OBJECT
 public:
@@ -51,7 +60,6 @@ public:
 	virtual int leftMargin() const;
 	int activeWidth()  const;
 	int activeHeight() const;
-	int Height() const;
 	iAPlotData::DataType getMaxYDataValue() const;
 	QSharedPointer<iAMapper> const yMapper() const;
 	virtual iAPlotData::DataType const * yBounds() const;
@@ -101,8 +109,6 @@ protected:
 	int translationStartY;
 	int dragStartPosX;
 	int dragStartPosY;
-
-	int width, height;
 	int mode;
 	QSharedPointer<iAMapper> m_yConverter;
 	AxisMappingType m_yMappingMode;
@@ -115,10 +121,8 @@ protected:
 	void zoomAlongY(double value, bool deltaMode);
 	void zoomAlongX(double value, int x, bool deltaMode);
 
-	virtual void setNewSize();
 	virtual void changeMode(int newMode, QMouseEvent *event);
 	virtual void showDataTooltip(QMouseEvent *event);
-	virtual void drawEverything(QPainter &painter);
 	virtual void drawBackground(QPainter &painter);
 
 	void mouseMoveEvent(QMouseEvent *event) override;
@@ -126,7 +130,6 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void wheelEvent(QWheelEvent *event) override;
 	void leaveEvent(QEvent *event) override;
-	void resizeEvent(QResizeEvent *event) override;
 	void paintEvent(QPaintEvent *) override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	void keyReleaseEvent(QKeyEvent *event) override;

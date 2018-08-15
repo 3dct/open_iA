@@ -436,7 +436,7 @@ void iADiagramFctWidget::addBezierFunction()
 
 void iADiagramFctWidget::addGaussianFunction()
 {
-	addGaussianFunction(contextMenuPos().x(), width / 6, (int)((activeHeight() - contextMenuPos().y())*YZoom()));
+	addGaussianFunction(contextMenuPos().x(), geometry().width() / 6, (int)((activeHeight() - contextMenuPos().y())*YZoom()));
 }
 
 void iADiagramFctWidget::addGaussianFunction(double mean, double sigma, double multiplier)
@@ -534,7 +534,7 @@ dlg_function *iADiagramFctWidget::getSelectedFunction()
 
 int iADiagramFctWidget::chartHeight() const
 {
-	return height - bottomMargin();
+	return geometry().height() - bottomMargin();
 }
 
 std::vector<dlg_function*> &iADiagramFctWidget::getFunctions()

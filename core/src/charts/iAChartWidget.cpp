@@ -55,7 +55,11 @@ namespace
 }
 
 iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel):
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QOpenGLWidget(parent),
+#else
 	QGLWidget(parent),
+#endif
 	xCaption(xLabel),
 	yCaption(yLabel),
 	yZoom(1.0),
@@ -81,7 +85,6 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	updateBounds();
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
-	setNewSize();
 	setAutoFillBackground(false);
 }
 
@@ -105,25 +108,9 @@ void iAChartWidget::wheelEvent(QWheelEvent *event)
 	update();
 }
 
-void iAChartWidget::resizeEvent(QResizeEvent *event)
-{
-	if ( (this->geometry().width() != width) || (this->geometry().height() != height) )
-	{
-		setNewSize();
-		update();
-	}
-	QWidget::resizeEvent(event);
-}
-
 void iAChartWidget::leaveEvent(QEvent*)
 {
 	this->clearFocus();
-}
-
-void iAChartWidget::setNewSize()
-{
-	width = this->geometry().width();
-	height = this->geometry().height();
 }
 
 void iAChartWidget::zoomAlongY(double value, bool deltaMode)
@@ -179,17 +166,12 @@ void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 
 int iAChartWidget::activeWidth() const
 {
-	return width - leftMargin();
+	return geometry().width() - leftMargin();
 }
 
 int iAChartWidget::activeHeight() const
 {
-	return height - bottomMargin();
-}
-
-int iAChartWidget::Height() const
-{
-	return height;
+	return geometry().height() - bottomMargin();
 }
 
 void iAChartWidget::setXCaption(QString const & caption)
@@ -243,30 +225,6 @@ void iAChartWidget::createYConverter()
 	else
 		// 1 - smallest value larger than 0. TODO: find that from data!
 		m_yConverter = QSharedPointer<iAMapper>(new iALogarithmicMapper(yZoom, m_yBounds[1], 1, activeHeight() - 1));
-}
-
-void iAChartWidget::drawEverything(QPainter & painter)
-{
-	if (!m_yConverter)
-		createYConverter();
-	m_yConverter->update(yZoom, m_yBounds[1], m_yMappingMode == Linear? m_yBounds[0] : 1, activeHeight());
-	QFontMetrics fm = painter.fontMetrics();
-	m_fontHeight = fm.height();
-	m_yMaxTickLabelWidth = fm.width("4.44M");
-	painter.setRenderHint(QPainter::Antialiasing);
-	drawBackground(painter);
-	painter.translate(translationX + leftMargin(), -bottomMargin());
-	drawImageOverlays(painter);
-	//change the origin of the window to left bottom
-	painter.translate(0, height);
-	painter.scale(1, -1);
-
-	drawPlots(painter);
-	drawAfterPlots(painter);
-
-	painter.scale(1, -1);
-	painter.setRenderHint(QPainter::Antialiasing, false);
-	drawAxes(painter);
 }
 
 void iAChartWidget::drawImageOverlays(QPainter& painter)
@@ -363,7 +321,7 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	size_t stepCount = maxXAxisSteps();
 	double stepWidth;
 	// for discrete x axis variables, marker&caption should be in middle of value; MaxXAxisSteps() = numBin of plot[0]
-	int markerOffset = isDrawnDiscrete() ? static_cast<int>(0.5 * width / stepCount) : 0;
+	int markerOffset = isDrawnDiscrete() ? static_cast<int>(0.5 * geometry().width() / stepCount) : 0;
 	double xRng = xRange();
 	if (!m_plots.empty() && m_plots[0]->GetData()->GetRangeType() == Discrete)
 		xRng += 1;
@@ -429,7 +387,7 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 				/* Left   */ : 0 ,
 			m_captionPosition.testFlag(Qt::AlignBottom) ?
 				/* Bottom */ bottomMargin() - fm.descent() - 1 :
-				/* Top (of chart) */ -Height() + bottomMargin() + m_fontHeight
+				/* Top (of chart) */ -geometry().height() + bottomMargin() + m_fontHeight
 		);
 		painter.drawText(textPos, xCaption);
 	}
@@ -697,12 +655,12 @@ void iAChartWidget::showDataTooltip(QMouseEvent *event)
 {
 	if (m_plots.empty() || !m_showTooltip)
 		return;
-	int xPos = clamp(0, width - 1, event->x());
+	int xPos = clamp(0, geometry().width() - 1, event->x());
 	size_t numBin = m_plots[0]->GetData()->GetNumBin();
 	assert(numBin > 0);
 	int nthBin = static_cast<int>((((xPos - translationX - leftMargin()) * numBin) / (activeWidth())) / xZoom);
 	nthBin = clamp(0, static_cast<int>(numBin), nthBin);
-	if (xPos == width - 1)
+	if (xPos == geometry().width() - 1)
 		nthBin = static_cast<int>(numBin) - 1;
 	QString toolTip;
 	double stepWidth = numBin >= 1 ? m_plots[0]->GetData()->GetBinStart(1) - m_plots[0]->GetData()->GetBinStart(0) : 0;
@@ -801,7 +759,8 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 			translationStartX + event->x() - dragStartPosX);
 		emit xAxisChanged();
 		translationY = translationStartY + event->y() - dragStartPosY;
-		translationY = clamp(static_cast<int>(-(height * yZoom - height)), static_cast<int>(height * yZoom - height), translationY);
+		translationY = clamp(static_cast<int>(-(geometry().height() * yZoom - geometry().height())),
+				static_cast<int>(geometry().height() * yZoom - geometry().height()), translationY);
 		update();
 		break;
 	case X_ZOOM_MODE:
@@ -825,7 +784,26 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 void iAChartWidget::paintEvent(QPaintEvent * e)
 {
 	QPainter painter(this);
-	drawEverything(painter);
+	if (!m_yConverter)
+		createYConverter();
+	m_yConverter->update(yZoom, m_yBounds[1], m_yMappingMode == Linear? m_yBounds[0] : 1, activeHeight());
+	QFontMetrics fm = painter.fontMetrics();
+	m_fontHeight = fm.height();
+	m_yMaxTickLabelWidth = fm.width("4.44M");
+	painter.setRenderHint(QPainter::Antialiasing);
+	drawBackground(painter);
+	painter.translate(translationX + leftMargin(), -bottomMargin());
+	drawImageOverlays(painter);
+	//change the origin of the window to left bottom
+	painter.translate(0, geometry().height());
+	painter.scale(1, -1);
+
+	drawPlots(painter);
+	drawAfterPlots(painter);
+
+	painter.scale(1, -1);
+	painter.setRenderHint(QPainter::Antialiasing, false);
+	drawAxes(painter);
 }
 
 void iAChartWidget::keyReleaseEvent(QKeyEvent *event)
