@@ -21,6 +21,7 @@
 #pragma once
 
 #include <QWidget>
+#include <QStackedLayout>
 
 #include "mdichild.h"
 #include "BCoord.h"
@@ -47,7 +48,7 @@ public:
 
 	void removeModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild);
 	void addModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild);
-	//int getModalityCount();
+	void updateModalities(MdiChild* mdiChild); // Temporary // TODO: remove
 
 private slots:
 	void updateTransferFunction(int index);
@@ -59,17 +60,23 @@ protected:
 	void resizeEvent(QResizeEvent* event);
 
 private:
-	void updateModalities(MdiChild* mdiChild);
+	void removeModality(QSharedPointer<iAModality> modality);
+	void addModality(QSharedPointer<iAModality> modality);
+	void updateModalities2(MdiChild* mdiChild);
 
-	// TODO: more const?
-	const QString m_labels[3] = { "A", "B", "C" };
+	void adjustStretch(int totalWidth);
 
-	QList<QSharedPointer<iAModality>> m_modalities2;
-	QSharedPointer<iAModality> m_modalities[3];
+	void disable();
+	void enable();
+
+	QList<QSharedPointer<iAModality>> m_modalitiesAvailable;
+	QSharedPointer<iAModality> m_modalitiesActive[3];
 	iAWeightedTransfer *m_transferFunction;
 
 	// Widgets and stuff
-	QGridLayout *m_mainLayout;
+	QStackedLayout *m_stackedLayout;
+	QLabel *m_disabledLabel;
+	QGridLayout *m_gridLayout;
 	QLabel *m_weightLabels[3];
 	QLabel *m_modalityLabels[3];
 	iASimpleSlicerWidget *m_slicerWidgets[3];

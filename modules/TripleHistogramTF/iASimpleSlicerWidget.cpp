@@ -39,12 +39,11 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, Qt::WindowFlags f /
 		/*Qt::WindowFlags f = */f,
 		/*bool decorations = */false); // Hide everything except the slice itself
 
-
 }
 
 iASimpleSlicerWidget::~iASimpleSlicerWidget()
 {
-	if (m_slicerTransform) m_slicerTransform->Delete();
+	//if (m_slicerTransform) m_slicerTransform->Delete();
 	delete m_slicer;
 }
 

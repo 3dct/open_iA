@@ -23,6 +23,7 @@
 
 #include <qsplitter.h>
 
+#include "dlg_modalities.h"
 #include "iAModalityList.h"
 
 #include <vtkImageData.h>
@@ -53,10 +54,10 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
 
 	//RightBorderLayout *mainLayout = new RightBorderLayout(dockWidgetContents, RightBorderLayout::Right);
-	//m_mainLayout = new QHBoxLayout(dockWidgetContents);
-	//m_mainLayout->setSpacing(0);
-	//m_mainLayout->setObjectName(QStringLiteral("horizontalLayout_2"));
-	//m_mainLayout->setContentsMargins(0, 0, 0, 0);
+	//m_gridLayout = new QHBoxLayout(dockWidgetContents);
+	//m_gridLayout->setSpacing(0);
+	//m_gridLayout->setObjectName(QStringLiteral("horizontalLayout_2"));
+	//m_gridLayout->setContentsMargins(0, 0, 0, 0);
 
 	QWidget *optionsContainer = new QWidget();
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -122,6 +123,10 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
 	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
 	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
+
+	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalityAvailable(int)), this, SLOT(modalityAvailable(int)));
+	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitySelected(int)), this, SLOT(modalitySelected(int)));
+	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
 	// }
 }
 
@@ -182,4 +187,19 @@ void dlg_TripleHistogramTF::updateTransferFunction()
 	//m_mdiChild->getSlicerXZ()->reInitialize(); // ?
 	//m_mdiChild->getSlicerYZ()->reInitialize(); // ?
 	emit transferFunctionUpdated();
+}
+
+void dlg_TripleHistogramTF::modalityAvailable(int modalityIdx)
+{
+	
+}
+
+void dlg_TripleHistogramTF::modalitySelected(int modalityIdx)
+{
+	
+}
+
+void dlg_TripleHistogramTF::modalitiesChanged()
+{
+	m_histogramStack->updateModalities(m_mdiChild);
 }

@@ -49,6 +49,10 @@ public slots:
 	void setSliceNumber(int sliceNumber);
 	void updateTransferFunction();
 
+	void modalityAvailable(int modalityIdx);
+	void modalitySelected(int modalityIdx);
+	void modalitiesChanged();
+
 signals:
 	void transferFunctionUpdated();
 

@@ -60,7 +60,7 @@ private:
 		const QString &SampleDistance, const QString AmbientLighting, const QString& DiffuseLighting, const QString &SpecularLighting,
 		const QString &SpecularPower); 
 
-	ModalityCollection m_modalities;
+	ModalityCollection m_modalitiesActive;
 	QString m_fileName;
 	bool m_camSettingsAvailable;
 	double camPosition[3], camFocalPoint[3], camViewUp[3];

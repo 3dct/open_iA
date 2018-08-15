@@ -48,26 +48,43 @@
 #include "iASlicerData.h"
 
 // TODO: does this belong here?
-static const char *m_weightFormat = "%.10f";
+static const char *WEIGHT_FORMAT = "%.10f";
+static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
+static const QString DISABLED_BACKGROUND_COLOR = "rgba(0,0,0,127)"; // transparent black
+static const QString DEFAULT_MODALITY_LABELS[3] = { "A", "B", "C" };
 
 iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::WindowFlags f /*= 0 */) :
 	QWidget(parent, f)
 {
-	m_mainLayout = new QGridLayout(this);
+	m_stackedLayout = new QStackedLayout(this);
+	m_stackedLayout->setStackingMode(QStackedLayout::StackAll);
+
+	m_disabledLabel = new QLabel();
+	m_disabledLabel->setAlignment(Qt::AlignCenter);
+	m_disabledLabel->setStyleSheet("background-color: " + DISABLED_BACKGROUND_COLOR + "; color: " + DISABLED_TEXT_COLOR);
+
+	QWidget *gridWidget = new QWidget(this);
+	m_gridLayout = new QGridLayout(gridWidget);
+
+	m_stackedLayout->addWidget(gridWidget);
+	m_stackedLayout->addWidget(m_disabledLabel);
+	m_stackedLayout->setCurrentIndex(1);
+
+	int i;
 
 	//iATransferFunction *tfs[3];
-	for (int i = 0; i < 3; ++i) {
-		//m_modalities[i] = mdiChild->GetModality(i);
+	for (i = 0; i < 3; ++i) {
+		//m_modalitiesActive[i] = mdiChild->GetModality(i);
 		//vtkImageData *imageData = modality->GetImage().GetPointer();
 
 		// Slicer, label and weight {
-		QWidget *rightWidget = new QWidget(this);
+		QWidget *rightWidget = new QWidget(gridWidget);
 		QVBoxLayout *rightWidgetLayout = new QVBoxLayout(rightWidget);
 
 		m_slicerWidgets[i] = new iASimpleSlicerWidget(rightWidget);
 		m_weightLabels[i] = new QLabel(rightWidget);
 
-		m_modalityLabels[i] = new QLabel(m_labels[i]);
+		m_modalityLabels[i] = new QLabel(DEFAULT_MODALITY_LABELS[i]);
 		m_modalityLabels[i]->setStyleSheet("font-weight: bold");
 
 		rightWidgetLayout->addWidget(m_slicerWidgets[i]);
@@ -80,11 +97,16 @@ iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::Win
 		// }
 
 		// Add to (grid) layout {
-		//m_mainLayout->addWidget(m_histograms[i], i, 0);
-		m_mainLayout->addWidget(rightWidget, i, 1);
+		//m_gridLayout->addWidget(m_histograms[i], i, 0);
+		m_gridLayout->addWidget(rightWidget, i, 1);
 		// }
 	}
 	//m_transferFunction = new iAWeightedTransfer(tfs[0], tfs[1], tfs[2]);
+
+	for (i = 0; i < mdiChild->GetModalities()->size(); ++i) {
+		addModality(mdiChild->GetModality(i));
+	}
+	updateModalities(mdiChild);
 }
 
 iAHistogramStack::~iAHistogramStack()
@@ -100,9 +122,9 @@ iAHistogramStack::~iAHistogramStack()
 void iAHistogramStack::setWeight(BCoord bCoord)
 {
 	QString text;
-	m_weightLabels[0]->setText(text.sprintf(m_weightFormat, bCoord.getAlpha()));
-	m_weightLabels[1]->setText(text.sprintf(m_weightFormat, bCoord.getBeta()));
-	m_weightLabels[2]->setText(text.sprintf(m_weightFormat, bCoord.getGamma()));
+	m_weightLabels[0]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getAlpha()));
+	m_weightLabels[1]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getBeta()));
+	m_weightLabels[2]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getGamma()));
 }
 
 void iAHistogramStack::setSlicerMode(iASlicerMode slicerMode, int dimensionLength)
@@ -121,9 +143,14 @@ void iAHistogramStack::setSliceNumber(int sliceNumber)
 
 void iAHistogramStack::resizeEvent(QResizeEvent* event)
 {
+	adjustStretch(event->size().width());
+}
+
+void iAHistogramStack::adjustStretch(int totalWidth)
+{
 	int slicerHeight = m_slicerWidgets[0]->size().height();
-	m_mainLayout->setColumnStretch(0, event->size().width() - slicerHeight);
-	m_mainLayout->setColumnStretch(1,					      slicerHeight);
+	m_gridLayout->setColumnStretch(0, totalWidth - slicerHeight);
+	m_gridLayout->setColumnStretch(1, slicerHeight);
 }
 
 iAWeightedTransfer* iAHistogramStack::getTransferFunction()
@@ -144,78 +171,130 @@ void iAHistogramStack::setModalityLabel(QString label, int index)
 
 QSharedPointer<iAModality> iAHistogramStack::getModality(int index)
 {
-	return m_modalities[index];
+	return m_modalitiesActive[index];
 }
 
-void iAHistogramStack::removeModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild)
-{
-	m_modalities2.removeOne(modality);
-	updateModalities(mdiChild);
-}
-
+// Public
 void iAHistogramStack::addModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild)
 {
-	m_modalities2.append(modality);
+	addModality(modality);
 	updateModalities(mdiChild);
 }
+// Private
+void iAHistogramStack::addModality(QSharedPointer<iAModality> modality)
+{
+	m_modalitiesAvailable.append(modality);
+}
 
+// Public
+void iAHistogramStack::removeModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild)
+{
+	removeModality(modality);
+	updateModalities(mdiChild);
+}
+// Private
+void iAHistogramStack::removeModality(QSharedPointer<iAModality> modality)
+{
+	m_modalitiesAvailable.removeOne(modality);
+}
+
+// Temporary // TODO: remove
 void iAHistogramStack::updateModalities(MdiChild* mdiChild)
 {
-	if (m_modalities2.size() == 3) {
-		if (m_modalities2.contains(m_modalities[0]) &&
-			m_modalities2.contains(m_modalities[1]) &&
-			m_modalities2.contains(m_modalities[2])) {
+	m_modalitiesAvailable.clear();
+	for (int i = 0; i < mdiChild->GetModalities()->size(); ++i) {
+		addModality(mdiChild->GetModality(i));
+	}
+	updateModalities2(mdiChild);
+}
+
+void iAHistogramStack::updateModalities2(MdiChild* mdiChild)
+{
+	if (m_modalitiesAvailable.size() >= 3) {
+		if (m_modalitiesAvailable.contains(m_modalitiesActive[0]) &&
+			m_modalitiesAvailable.contains(m_modalitiesActive[1]) &&
+			m_modalitiesAvailable.contains(m_modalitiesActive[2])) {
 
 			return;
 		}
 	} else {
+		if (!m_modalitiesActive[2]) {
+			disable();
+		}
 		return;
 	}
 
-	for (int i = 0; i < 3; ++i) {
-		if (!m_modalities2.contains(m_modalities[i])) {
-			//delete m_modalities[i];
+	for (int i = 0; i < m_modalitiesAvailable.size(); ++i) {
+		if (!m_modalitiesActive[i].isNull() && !m_modalitiesAvailable.contains(m_modalitiesActive[i])) {
+			//delete m_modalitiesActive[i];
 			delete m_histograms[i];
+			//delete m_slicerWidgets[i];
 		}
+		m_modalitiesActive[i] = m_modalitiesAvailable[i];
 	}
 
 	iATransferFunction *tfs[3];
 	for (int i = 0; i < 3; ++i) {
 		// Slicer {
-		m_slicerWidgets[i]->changeModality(m_modalities2[i]);
+		m_slicerWidgets[i]->changeModality(m_modalitiesAvailable[i]);
 		// }
 
 		// Histogram {
-		if (!m_modalities[i]->GetHistogramData() || m_modalities[i]->GetHistogramData()->GetNumBin() != mdiChild->GetPreferences().HistogramBins)
+		if (!m_modalitiesActive[i]->GetHistogramData() || m_modalitiesActive[i]->GetHistogramData()->GetNumBin() != mdiChild->GetPreferences().HistogramBins)
 		{
-			m_modalities[i]->ComputeImageStatistics();
-			m_modalities[i]->ComputeHistogramData(mdiChild->GetPreferences().HistogramBins);
+			m_modalitiesActive[i]->ComputeImageStatistics();
+			m_modalitiesActive[i]->ComputeHistogramData(mdiChild->GetPreferences().HistogramBins);
 		}
 
 		m_histograms[i] = new iADiagramFctWidget(this, mdiChild);
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
-			new	iABarGraphDrawer(m_modalities[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
+			new	iABarGraphDrawer(m_modalitiesActive[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->AddPlot(histogramPlot);
-		m_histograms[i]->SetTransferFunctions(m_modalities[i]->GetTransfer()->GetColorFunction(),
-			m_modalities[i]->GetTransfer()->GetOpacityFunction());
+		m_histograms[i]->SetTransferFunctions(m_modalitiesActive[i]->GetTransfer()->GetColorFunction(),
+			m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction());
 		m_histograms[i]->updateTrf();
 
-		m_mainLayout->addWidget(m_histograms[i], i, 0);
+		m_gridLayout->addWidget(m_histograms[i], i, 0);
 
 		connect((dlg_transfer*)(m_histograms[i]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction(i)));
 		// }
 
 		// Transfer function {
 		if (m_histograms[i]->getSelectedFunction()->getType() != dlg_function::TRANSFER) {
-			tfs[i] = 0;
-		}
-		else {
+			tfs[i] = 0; // TODO
+		} else {
 			dlg_transfer* transfer = (dlg_transfer*)m_histograms[i]->getSelectedFunction();
 			tfs[i] = new iASimpleTransferFunction(transfer->GetColorFunction(), transfer->GetOpacityFunction());
 		}
 		// }
 
-		m_modalities[i] = m_modalities2[i];
+		m_modalitiesActive[i] = m_modalitiesAvailable[i];
 	}
 	m_transferFunction = new iAWeightedTransfer(tfs[0], tfs[1], tfs[2]);
+
+	adjustStretch(size().width());
+	enable();
+}
+
+void iAHistogramStack::enable()
+{
+	m_disabledLabel->hide();
+}
+
+void iAHistogramStack::disable()
+{
+	int modalitiesCount = m_modalitiesAvailable.size();
+	QString modalit_y_ies_is_are = modalitiesCount == 2 ? "modality is" : "modalities are";
+	QString nameA = modalitiesCount >= 1 ? m_modalitiesAvailable[0]->GetName() : "missing";
+	QString nameB = modalitiesCount >= 2 ? m_modalitiesAvailable[1]->GetName() : "missing";
+	//QString nameC = modalitiesCount >= 3 ? m_modalitiesAvailable[2]->GetName() : "missing";
+	m_disabledLabel->setText(
+		"Unable to set up this widget.\n" +
+		QString::number(3 - modalitiesCount) + " " + modalit_y_ies_is_are + " missing.\n" +
+		"\n" +
+		"Modality " + DEFAULT_MODALITY_LABELS[0] + ": " + nameA + "\n" +
+		"Modality " + DEFAULT_MODALITY_LABELS[1] + ": " + nameB + "\n" +
+		"Modality " + DEFAULT_MODALITY_LABELS[2] + ": missing"
+	);
+	m_disabledLabel->show();
 }
