@@ -121,6 +121,7 @@ public:
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
 	void setFilter(int columnID, double value);                      //!< set filter on data to be shown; only data points where given column contains given value will be shown
 	void resetFilter();                                              //!< reset filter on data; after calling this method, all data points will be shown again
+	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.

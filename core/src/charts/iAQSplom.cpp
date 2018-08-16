@@ -234,16 +234,21 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	selectionModeRectangleAction = new QAction(tr("Rectangle Selection Mode"), this);
 	selectionModeRectangleAction->setCheckable(true);
 	selectionModeRectangleAction->setActionGroup(selectionModeGroup);
-	m_contextMenu->addAction(showHistogramAction);
-	m_contextMenu->addAction(quadraticPlotsAction);
-	m_contextMenu->addAction(showPCCAction);
-	m_contextMenu->addAction(selectionModeRectangleAction);
-	m_contextMenu->addAction(selectionModePolygonAction);
+	addContextMenuAction(showHistogramAction);
+	addContextMenuAction(quadraticPlotsAction);
+	addContextMenuAction(showPCCAction);
+	addContextMenuAction(selectionModeRectangleAction);
+	addContextMenuAction(selectionModePolygonAction);
 	connect(showHistogramAction, &QAction::toggled, this, &iAQSplom::setHistogramVisible);
 	connect(quadraticPlotsAction, &QAction::toggled, this, &iAQSplom::setQuadraticPlots);
 	connect(showPCCAction, &QAction::toggled, this, &iAQSplom::setShowPCC);
 	connect(selectionModePolygonAction, SIGNAL(toggled(bool)), this, SLOT(selectionModePolygon()));
 	connect(selectionModeRectangleAction, SIGNAL(toggled(bool)), this, SLOT(selectionModeRectangle()));
+}
+
+void iAQSplom::addContextMenuAction(QAction* action)
+{
+	m_contextMenu->addAction(action);
 }
 
 void iAQSplom::resetFilter()
@@ -266,7 +271,7 @@ void iAQSplom::updateHistogram(size_t paramIndex)
 	auto histogramData = iAHistogramData::Create(hist_InputValues, settings.histogramBins);
 	auto histogramPlot = QSharedPointer<iABarGraphDrawer>(new iABarGraphDrawer(histogramData, QColor(70, 70, 70, 255)));
 	m_histograms[paramIndex]->addPlot(histogramPlot);
-	m_histograms[paramIndex]->repaint();
+	m_histograms[paramIndex]->update();
 }
 
 void iAQSplom::updateHistograms()
@@ -862,7 +867,6 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	}
 	if( m_maximizedPlot )
 		m_maximizedPlot->paintOnParent( painter );
-
 	drawPopup( painter );
 }
 

@@ -51,7 +51,6 @@ public:
 	enum AxisMappingType { Linear, Logarithmic };
 	iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
 	virtual ~iAChartWidget();
-
 	double XZoom()  const { return xZoom;        }
 	double YZoom()  const { return yZoom;        }
 	int    xShift() const { return translationX; }
@@ -74,7 +73,6 @@ public:
 	bool isContextMenuVisible() const;
 	bool isTooltipShown() const;
 	QPoint contextMenuPos() const;
-
 	void setXBounds(double minVal, double maxVal);
 	void setYBounds(iAPlotData::DataType minVal, iAPlotData::DataType maxVal);
 	void resetYBounds();
@@ -82,14 +80,12 @@ public:
 	void setYMappingMode(AxisMappingType drawMode);
 	void setCaptionPosition(QFlags<Qt::AlignmentFlag>);
 	void setShowXAxisLabel(bool show);
-
 	void addPlot(QSharedPointer<iAPlot> plot);
 	void removePlot(QSharedPointer<iAPlot> plot);
 	QVector< QSharedPointer< iAPlot > > const & plots();
 	bool isDrawnDiscrete() const;
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
 	void removeImageOverlay(QImage * imgOverlay);
-
 public slots:
 	void resetView();
 signals:
