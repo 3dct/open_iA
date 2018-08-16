@@ -314,7 +314,6 @@ bool iAChartWidget::categoricalAxis() const
 void iAChartWidget::drawXAxis(QPainter &painter)
 {
 	painter.setPen(QWidget::palette().color(QPalette::Text));
-
 	const int MINIMUM_MARGIN = 8;
 	const int TextAxisDistance = 2;
 	QFontMetrics fm = painter.fontMetrics();
@@ -325,6 +324,10 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	double xRng = xRange();
 	if (!m_plots.empty() && m_plots[0]->GetData()->GetRangeType() == Discrete)
 		xRng += 1;
+
+	double visibleRng = xRng / xZoom;
+	double startXVal = clamp(xBounds()[0], xBounds()[1], xBounds()[0] + ( ((static_cast<double>(-translationX)) / (activeWidth()*xZoom)) * xRng) );
+	double endXVal = clamp(xBounds()[0], xBounds()[1], startXVal + visibleRng);
 	if (!categoricalAxis())
 	{
 		// check for overlap:
@@ -336,6 +339,8 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 			for (size_t i = 0; i<stepCount && !overlap; ++i)
 			{
 				double value = xBounds()[0] + static_cast<double>(i) * stepWidth;
+				if (value < startXVal || value > endXVal)
+					continue;
 				QString text = getXAxisTickMarkLabel(value, stepWidth);
 				int markerX = markerPos(i, stepCount, activeWidth()*xZoom, markerOffset);
 				int textX = textPos(markerX, i, stepCount, fm.width(text));
@@ -361,6 +366,8 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	for (int i = 0; i <= stepCount; ++i)
 	{
 		double value = xBounds()[0] + static_cast<double>(i) * stepWidth;
+		if (value < startXVal || value > endXVal)
+			continue;
 		QString text = getXAxisTickMarkLabel(value, stepWidth);
 		if (isDrawnDiscrete() && i == stepCount && text.length() < 3)
 			break;	// avoid last tick for discrete ranges
