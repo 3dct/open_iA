@@ -236,7 +236,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	}
 	lut = vtkSmartPointer<vtkLookupTable>::New();
 	chartTable = vtkSmartPointer<vtkTable>::New();
-	chartTable->ShallowCopy( csvTable );
+	chartTable->DeepCopy( csvTable );
 	tableList.push_back( chartTable );
 
 	initFeatureScoutUI();
@@ -321,7 +321,7 @@ void dlg_FeatureScout::setPCChartData( bool specialRendering )
 	pcWidget->setEnabled( !specialRendering ); // to disable selection
 	if ( specialRendering )
 	{   // for the special renderings, we use all data:
-		chartTable->ShallowCopy( csvTable );
+		chartTable = csvTable;
 	}
 	if (pcView->GetScene()->GetNumberOfItems() > 0)
 		pcView->GetScene()->RemoveItem(0u);
@@ -2026,7 +2026,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	checker.clear();
 	file.close();
 
-	chartTable->ShallowCopy( csvTable ); // reset charttable
+	chartTable->DeepCopy( csvTable ); // reset charttable
 	tableList.clear();
 	tableList.push_back( chartTable );
 	m_colorList.clear();
@@ -2146,7 +2146,7 @@ void dlg_FeatureScout::ClassDeleteButton()
 	}
 
 	// remove the deleted class from tree view, its entry in tableList and its color
-	tableList.removeAt(this->activeClassItem->index().row());
+	tableList.removeAt(deleteClassID);
 	rootItem->removeRow(deleteClassID);
 	m_colorList.removeAt(deleteClassID);
 
@@ -2294,6 +2294,7 @@ void dlg_FeatureScout::spPopup( vtkObject * obj, unsigned long, void * client_da
 
 void dlg_FeatureScout::spPopupSelection( QAction *selection )
 {
+	if (selection->text() == "Add class") { ClassAddButton(); }
 	// TODO SPM
 	if ( selection->text() == "Suggest Classification" )
 	{
@@ -2602,7 +2603,7 @@ void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 
 		// reload the class table to chartTable
 		int id = item->index().row();
-		chartTable->ShallowCopy( tableList[id] );
+		chartTable = tableList[id];
 	}
 	else if ( situ == 1 )	// add class
 	{
@@ -2617,13 +2618,13 @@ void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 
 		// reload the class table to chartTable
 		int id = item->index().row();
-		chartTable->ShallowCopy( tableList[id] );
+		chartTable =  tableList[id];
 	}
 	else if ( situ == 2 )	// delete class
 	{
 		// merge the deleted class table to stamm table
 		this->recalculateChartTable( item );
-		chartTable->ShallowCopy( tableList[0] );
+		chartTable = tableList[0];
 
 		this->activeClassItem = item;
 	}
@@ -2676,7 +2677,7 @@ void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 		// add the new table to the end of the tableList
 		// maka a copy to chartTable
 		tableList.push_back( table );
-		chartTable->ShallowCopy( tableList[item->index().row()] );
+		chartTable = tableList[item->index().row()];
 	}
 }
 
