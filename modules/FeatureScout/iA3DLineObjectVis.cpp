@@ -90,11 +90,19 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 
 void iA3DLineObjectVis::show()
 {
-	auto actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(m_mapper);
+	m_actor = vtkSmartPointer<vtkActor>::New();
+	m_actor->SetMapper(m_mapper);
 	vtkRenderWindow* renWin = m_widget->GetRenderWindow();
-	renWin->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+	renWin->GetRenderers()->GetFirstRenderer()->AddActor(m_actor);
 	renWin->GetRenderers()->GetFirstRenderer()->ResetCamera();
+}
+
+void iA3DLineObjectVis::hide()
+{
+	if (!m_actor)
+		return;
+	vtkRenderWindow* renWin = m_widget->GetRenderWindow();
+	renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(m_actor);
 }
 
 void iA3DLineObjectVis::renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* activeClassItem )

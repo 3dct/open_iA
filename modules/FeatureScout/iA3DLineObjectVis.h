@@ -25,6 +25,7 @@
 
 #include <vtkSmartPointer.h>
 
+class vtkActor;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkUnsignedCharArray;
@@ -34,6 +35,7 @@ class FeatureScout_API iA3DLineObjectVis: public iA3DObjectVis
 public:
 	iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
 	void show() override;
+	void hide();
 	void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
 	void renderSingle( int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem ) override;
 	void multiClassRendering( QList<QColor> const & colors, QStandardItem* rootItem, double alpha ) override;
@@ -43,6 +45,7 @@ protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
+	vtkSmartPointer<vtkActor> m_actor;
 private:
 	void setPolyPointColor(int ptIdx, QColor const & qcolor);
 	void updatePolyMapper();
