@@ -641,7 +641,7 @@ void iAChartWidget::drawPlots(QPainter &painter, size_t startBin, size_t endBin)
 	if (m_plots.empty())
 	{
 		painter.scale(1, -1);
-		painter.drawText(QRect(translationX, translationY, activeWidth()*xZoom, -activeHeight()*yZoom), Qt::AlignCenter, "Chart not (yet) available.");
+		painter.drawText(QRect(-translationX, -translationY, activeWidth(), -activeHeight()), Qt::AlignCenter, "Chart not (yet) available.");
 		painter.scale(1, -1);
 		return;
 	}
