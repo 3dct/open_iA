@@ -718,6 +718,8 @@ void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 {
 	showHistogramAction->setChecked(settings.histogramVisible);
 	quadraticPlotsAction->setChecked(settings.quadraticPlots);
+	selectionModeRectangleAction->setChecked(settings.selectionMode == iAScatterPlot::Rectangle);
+	selectionModePolygonAction->setChecked(settings.selectionMode == iAScatterPlot::Polygon);
 	showPCCAction->setChecked(settings.showPCC);
 	m_contextMenu->exec(event->globalPos());
 }
