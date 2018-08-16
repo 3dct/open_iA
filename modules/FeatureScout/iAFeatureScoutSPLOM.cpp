@@ -28,6 +28,7 @@
 #include <vtkDataArray.h>
 #include <vtkTable.h>
 
+#include <QAction>
 #include <QDockWidget>
 
 namespace
@@ -74,6 +75,10 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	matrix->setParameterVisibility(columnVisibility);
 	matrix->showDefaultMaxizimedPlot();
 	connect(matrix, &iAQSplom::selectionModified, this, &iAFeatureScoutSPLOM::selectionModified);
+
+	QAction* addClass = new QAction(QObject::tr("Add class"));
+	connect(addClass, &QAction::triggered, this, &iAFeatureScoutSPLOM::addClass);
+	matrix->addContextMenuAction(addClass);
 }
 
 void iAFeatureScoutSPLOM::multiClassRendering(QList<QColor> const & colors)

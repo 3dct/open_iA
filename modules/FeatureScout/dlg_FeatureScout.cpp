@@ -325,10 +325,10 @@ void dlg_FeatureScout::setPCChartData( bool specialRendering )
 	this->pcChart->GetPlot( 0 )->GetPen()->SetOpacity( 90 );
 	this->pcChart->GetPlot( 0 )->SetWidth( m_pcLineWidth );
 	pcView->GetScene()->AddItem( pcChart );
-	pcConnections->Connect( pcChart,
-							vtkCommand::SelectionChangedEvent,
-							this,
-							SLOT( pcViewMouseButtonCallBack( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
+	pcConnections->Connect(pcChart,
+		vtkCommand::SelectionChangedEvent,
+		this,
+		SLOT(pcViewMouseButtonCallBack(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
 	updatePCColumnVisibility();
 }
 
@@ -425,24 +425,23 @@ void dlg_FeatureScout::setupViews()
 
 	// Creates a popup menu
 	QMenu* popup2 = new QMenu( pcWidget );
-	popup2->addAction( "Add Class" );
+	popup2->addAction( "Add class" );
 	popup2->setStyleSheet( "font-size: 11px; background-color: #9B9B9B; border: 1px solid black;" );
 	connect( popup2, SIGNAL( triggered( QAction* ) ), this, SLOT( spPopupSelection( QAction* ) ) );
 
 	pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
-
 	// Gets right button release event (on a parallel coordinates).
 	pcConnections->Connect( pcWidget->GetRenderWindow()->GetInteractor(),
-							vtkCommand::RightButtonReleaseEvent,
-							this,
-							SLOT( spPopup( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ),
-							popup2, 1.0 );
+		vtkCommand::RightButtonReleaseEvent,
+		this,
+		SLOT( spPopup( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ),
+		popup2, 1.0 );
 
 	// Gets right button press event (on a scatter plot).
 	pcConnections->Connect( pcWidget->GetRenderWindow()->GetInteractor(),
-							vtkCommand::RightButtonPressEvent,
-							this,
-							SLOT( spBigChartMouseButtonPressed( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
+		vtkCommand::RightButtonPressEvent,
+		this,
+		SLOT( spBigChartMouseButtonPressed( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
 
 	setPCChartData(false);
 	this->setupPolarPlotView(chartTable);
@@ -681,7 +680,8 @@ void dlg_FeatureScout::setupConnections()
 	connect( this->classTreeView, SIGNAL( activated( QModelIndex ) ), this, SLOT( classClicked( QModelIndex ) ) );
 	connect( this->classTreeView, SIGNAL( doubleClicked( QModelIndex ) ), this, SLOT( classDoubleClicked( QModelIndex ) ) );
 
-	connect( m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart);
+	connect( m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
+	connect( m_splom.data(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::ClassAddButton );
 }
 
 void dlg_FeatureScout::MultiClassRendering()
@@ -2289,20 +2289,8 @@ void dlg_FeatureScout::spPopup( vtkObject * obj, unsigned long, void * client_da
 
 void dlg_FeatureScout::spPopupSelection( QAction *selection )
 {
-	// Function to handle the scatter plot matrix popup menu selection.
-	if ( selection->text() == "Add Class" ) { ClassAddButton(); }
 	// TODO SPM
-	else if ( selection->text() == "Subtraction Selection Mode" )
-	{
-		//matrix->SetSelectionMode( vtkContextScene::SELECTION_SUBTRACTION );
-		selection->setText( "Toggle Selection Mode" );
-	}
-	else if ( selection->text() == "Toggle Selection Mode" )
-	{
-		//matrix->SetSelectionMode( vtkContextScene::SELECTION_DEFAULT );
-		selection->setText( "Subtraction Selection Mode" );
-	}
-	else if ( selection->text() == "Suggest Classification" )
+	if ( selection->text() == "Suggest Classification" )
 	{
 		bool ok;
 		int i = QInputDialog::getInt( iovSPM, tr( "kMeans-Classification" ), tr( "Number of Classes" ), 3, 1, 7, 1, &ok );

@@ -56,6 +56,7 @@ public:
 	void enableSelection(bool enable);
 signals:
 	void selectionModified(std::vector<size_t>);
+	void addClass();
 private:
 	iAQSplom * matrix;
 	bool selectionEnabled;
