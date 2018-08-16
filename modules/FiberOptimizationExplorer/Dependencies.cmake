@@ -1,0 +1,3 @@
+SET (DEPENDENCIES_MODULES_NEW
+	FeatureScout
+)
