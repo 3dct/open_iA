@@ -49,7 +49,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 	m_mdiChild = dynamic_cast<MdiChild*>(parent);
 	m_volumeStack = volumeStack;
 
-	m_rendererManager.addToBundle(m_mdiChild->getRenderer());
+	m_rendererManager.addToBundle(m_mdiChild->getRenderer()->GetRenderer());
 
 	// add widgets to window
 	int numOfVolumes = m_volumeStack->getNumberOfVolumes();
@@ -78,7 +78,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 		m_renderers[i]->GetRenderer()->SetBackground(FOURDCT_BACGROUND[0], FOURDCT_BACGROUND[1], FOURDCT_BACGROUND[2]);
 		m_renderers[i]->GetRenderer()->SetBackground2(FOURDCT_BACGROUND2[0], FOURDCT_BACGROUND2[1], FOURDCT_BACGROUND2[2]);
 
-		m_rendererManager.addToBundle(m_renderers[i]);
+		m_rendererManager.addToBundle(m_renderers[i]->GetRenderer());
 		
 		this->dockWidgetContents->layout()->addWidget(m_vtkWidgets[i]);
 	}

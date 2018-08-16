@@ -76,6 +76,7 @@
 #include <vtkMath.h>
 #include <vtkMetaImageReader.h>
 #include <vtkMetaImageWriter.h>
+#include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
 #include <vtkScalarBarActor.h>
@@ -989,7 +990,7 @@ void dlg_XRF::showLinkedElementMaps( int show )
 	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
 
 	m_rendererManager.removeAll();
-	m_rendererManager.addToBundle(mdiChild->getRenderer());
+	m_rendererManager.addToBundle(mdiChild->getRenderer()->GetRenderer());
 
 	if (!show)
 	{
@@ -1017,7 +1018,7 @@ void dlg_XRF::showLinkedElementMaps( int show )
 		InitElementRenderer( elemRend, i );
 		mdiChild->ApplyRenderSettings( elemRend->GetRenderer() );
 		elemRend->ApplyVolumeSettings(mdiChild->GetVolumeSettings());
-		m_rendererManager.addToBundle(elemRend->GetRenderer());
+		m_rendererManager.addToBundle(elemRend->GetRenderer()->GetRenderer());
 		m_elementRenderers.push_back( elemRend );
 		if(isFirst)
 			mdiChild->splitDockWidget(mdiChild->renderer, elemRend, Qt::Horizontal);
