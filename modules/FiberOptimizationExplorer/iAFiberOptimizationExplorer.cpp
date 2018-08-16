@@ -109,6 +109,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path):
 
 		QSharedPointer<iA3DCylinderObjectVis> vis(new iA3DCylinderObjectVis(vtkWidget, tableCreator.getTable(), io.getOutputMapping(), m_colorTheme->GetColor(curLine)));
 		vis->show();
+		ren->ResetCamera();
 		m_vtkWidgets.push_back(vtkWidget);
 		m_mini3DVis.push_back(vis);
 		m_resultTables.push_back(tableCreator.getTable());

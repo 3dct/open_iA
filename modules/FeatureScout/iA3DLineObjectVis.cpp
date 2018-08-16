@@ -94,7 +94,6 @@ void iA3DLineObjectVis::show()
 	m_actor->SetMapper(m_mapper);
 	vtkRenderWindow* renWin = m_widget->GetRenderWindow();
 	renWin->GetRenderers()->GetFirstRenderer()->AddActor(m_actor);
-	renWin->GetRenderers()->GetFirstRenderer()->ResetCamera();
 }
 
 void iA3DLineObjectVis::hide()

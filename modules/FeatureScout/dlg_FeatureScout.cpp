@@ -269,6 +269,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
 	}
 	m_3dvis->show();
+	parent->getRenderer()->GetRenderer()->ResetCamera();
 	blobVisDialog = new dlg_blobVisualization();
 	// set first column of the classTreeView to minimal (not stretched)
 	this->classTreeView->resizeColumnToContents( 0 );
