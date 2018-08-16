@@ -25,12 +25,15 @@
 
 #include "dlg_modalities.h"
 #include "iAModalityList.h"
+#include "iARenderer.h"
 
 #include <vtkImageData.h>
 
 // Debug
 #include "qdebug.h"
 #include "ColorInterpolator.h"
+
+const static QString DEFAULT_LABELS[3] = { "A", "B", "C" };
 
 dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	//TripleHistogramTFConnector(mdiChild, f), m_mdiChild(mdiChild)
@@ -65,9 +68,9 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	//-----------------------------------------------
 
 	m_triangleWidget = new iABarycentricTriangleWidget(dockWidgetContents);
-	m_triangleWidget->setModality1label(m_labels[0]);
-	m_triangleWidget->setModality2label(m_labels[1]);
-	m_triangleWidget->setModality3label(m_labels[2]);
+	m_triangleWidget->setModality1label(DEFAULT_LABELS[0]);
+	m_triangleWidget->setModality2label(DEFAULT_LABELS[1]);
+	m_triangleWidget->setModality3label(DEFAULT_LABELS[2]);
 
 	m_slicerModeComboBox = new QComboBox(optionsContainer);
 	m_slicerModeComboBox->addItem("YZ", QVariant(iASlicerMode::YZ));
@@ -81,10 +84,10 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	optionsContainerLayout->addWidget(m_slicerModeComboBox);
 	optionsContainerLayout->addWidget(m_sliceSlider);
 
-	//QWidget *histogramStackContainer = new QWidget();
-	//QVBoxLayout *histogramStackContainerLayout = new QVBoxLayout(histogramStackContainer);
-
 	m_histogramStack = new iAHistogramStack(dockWidgetContents, mdiChild);
+	m_histogramStack->setModalityLabel(DEFAULT_LABELS[0], 0);
+	m_histogramStack->setModalityLabel(DEFAULT_LABELS[1], 1);
+	m_histogramStack->setModalityLabel(DEFAULT_LABELS[2], 2);
 
 	QWidget *leftWidget = new QWidget();
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
@@ -103,7 +106,7 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	// TODO: remove this class (ColorInterpolator), probably
 	ColorInterpolator::setInstance(new LinearRGBColorInterpolator());
-	
+
 	// Does not work. TODO: fix
 	/*mdiChild->getSlicerXY()->reInitialize(
 		mdiChild->getImageData(),
@@ -119,6 +122,7 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	// TODO: necessary?
 	//     {
 	connect(m_histogramStack, SIGNAL(transferFunctionChanged()), this, SLOT(updateTransferFunction()));
+	connect(m_histogramStack, SIGNAL(modalityAdded(QSharedPointer<iAModality>, int)), this, SLOT(modalityAddedToStack(QSharedPointer<iAModality>, int)));
 	//     }
 	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
 	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
@@ -135,7 +139,7 @@ dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
 
 void dlg_TripleHistogramTF::updateSlicerMode()
 {
-	setSlicerMode((iASlicerMode) m_slicerModeComboBox->currentData().toInt());
+	setSlicerMode((iASlicerMode)m_slicerModeComboBox->currentData().toInt());
 }
 
 void dlg_TripleHistogramTF::setWeight(BCoord bCoord)
@@ -176,30 +180,42 @@ void dlg_TripleHistogramTF::setSliceNumber(int sliceNumber)
 
 void dlg_TripleHistogramTF::updateTransferFunction()
 {
-	// TODO: update weighted transfer function (m_transferFunction->...)
+	// TODO: update transfer function
 
-	// Exact same code as above. TODO: avoid that
-	//mdiChild->getSlicerXY()->reInitialize(
-	//	mdiChild->getImageData(),
-	//	vtkTransform::New(), // no way of getting current transform, so create a new one // TODO: fix?
-	//	m_transferFunction); // here is where the magic happens ;)
-
-	//m_mdiChild->getSlicerXZ()->reInitialize(); // ?
-	//m_mdiChild->getSlicerYZ()->reInitialize(); // ?
-	emit transferFunctionUpdated();
+	m_mdiChild->getRenderer()->update();
+	m_mdiChild->renderer->update();
 }
 
 void dlg_TripleHistogramTF::modalityAvailable(int modalityIdx)
 {
-	
+
 }
 
 void dlg_TripleHistogramTF::modalitySelected(int modalityIdx)
 {
-	
+
 }
 
 void dlg_TripleHistogramTF::modalitiesChanged()
 {
 	m_histogramStack->updateModalities(m_mdiChild);
+}
+
+void dlg_TripleHistogramTF::modalityAddedToStack(QSharedPointer<iAModality> modality, int index)
+{
+	if (index < 3) {
+		QString name = DEFAULT_LABELS[index] + " (" + modality->GetName() + ")";
+		m_histogramStack->setModalityLabel(name, index);
+		switch (index) {
+		case 0:
+			m_triangleWidget->setModality1label(name);
+			break;
+		case 1:
+			m_triangleWidget->setModality2label(name);
+			break;
+		case 2:
+			m_triangleWidget->setModality3label(name);
+			break;
+		}
+	}
 }

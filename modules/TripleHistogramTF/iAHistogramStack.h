@@ -50,11 +50,14 @@ public:
 	void addModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild);
 	void updateModalities(MdiChild* mdiChild); // Temporary // TODO: remove
 
+	bool isReady();
+
 private slots:
 	void updateTransferFunction(int index);
 
 signals:
 	void transferFunctionChanged();
+	void modalityAdded(QSharedPointer<iAModality> modality, int index);
 
 protected:
 	void resizeEvent(QResizeEvent* event);

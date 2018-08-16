@@ -252,16 +252,22 @@ void iABarycentricTriangleWidget::setFont(QFont font)
 void iABarycentricTriangleWidget::setModality1label(QString label)
 {
 	m_modalityLabel1 = label;
+	recalculatePositions();
+	update();
 }
 
 void iABarycentricTriangleWidget::setModality2label(QString label)
 {
 	m_modalityLabel2 = label;
+	recalculatePositions();
+	update();
 }
 
 void iABarycentricTriangleWidget::setModality3label(QString label)
 {
 	m_modalityLabel3 = label;
+	recalculatePositions();
+	update();
 }
 
 BCoord iABarycentricTriangleWidget::getControlPointCoordinates()

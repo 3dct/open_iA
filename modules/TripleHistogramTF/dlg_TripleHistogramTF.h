@@ -53,15 +53,14 @@ public slots:
 	void modalitySelected(int modalityIdx);
 	void modalitiesChanged();
 
+	void modalityAddedToStack(QSharedPointer<iAModality> modality, int index);
+
 signals:
-	void transferFunctionUpdated();
 
 protected:
 
 private:
 	void setSlicerMode(iASlicerMode slicerMode);
-
-	QString m_labels[3] = { "A", "B", "C" };
 
 	// TODO: is it really good to keep the mdiChild as a member variable?
 	MdiChild *m_mdiChild;
@@ -71,7 +70,5 @@ private:
 	QSlider *m_sliceSlider;
 	iAHistogramStack *m_histogramStack;
 	iABarycentricTriangleWidget *m_triangleWidget;
-
-
 	
 };
