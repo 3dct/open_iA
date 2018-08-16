@@ -24,13 +24,13 @@
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QVTKOpenGLWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #else
 #include <QVTKWidget.h>
 #endif
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkChartParallelCoordinates.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkRenderWindow.h>
 #include <vtkTable.h>
 #include <vtkPlot.h>
