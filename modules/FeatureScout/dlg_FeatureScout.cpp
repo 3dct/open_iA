@@ -2175,8 +2175,6 @@ void dlg_FeatureScout::ClassDeleteButton()
 		}
 	}
 
-	//vlt hier mal die csv Table ausgeben
-
 	// update statistics for activeClassItem
 	this->updateClassStatistics(stammItem);
 
@@ -2597,11 +2595,7 @@ void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 
 	if ( situ == 0 )	// class clicked
 	{
-		// setActiveClassItem
 		this->activeClassItem = item;
-		// make sure when a class is added, at the same time the tableList should also be updated
-
-		// reload the class table to chartTable
 		int id = item->index().row();
 		chartTable = tableList[id];
 	}
@@ -2613,23 +2607,17 @@ void dlg_FeatureScout::setActiveClassItem( QStandardItem* item, int situ )
 		// calculate the new class table and set up chartTable
 		this->recalculateChartTable( item );
 
-		// set active class
 		this->activeClassItem = item;
-
-		// reload the class table to chartTable
 		int id = item->index().row();
-		chartTable =  tableList[id];
+		chartTable = tableList[id];
 	}
 	else if ( situ == 2 )	// delete class
 	{
 		// merge the deleted class table to stamm table
 		this->recalculateChartTable( item );
-		chartTable = tableList[0];
-
 		this->activeClassItem = item;
+		chartTable = tableList[0];
 	}
-	else
-		return;
 }
 
 void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
