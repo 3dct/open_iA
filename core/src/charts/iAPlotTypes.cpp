@@ -86,7 +86,7 @@ iASelectedBinDrawer::iASelectedBinDrawer( int position /*= 0*/, QColor const & c
 : iAPlot( color ), m_position( position )
 {}
 
-void iASelectedBinDrawer::draw( QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter ) const
+void iASelectedBinDrawer::draw( QPainter& painter, double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter ) const
 {
 	int x = (int)(m_position * binWidth);
 	int h = painter.device()->height();
@@ -106,16 +106,20 @@ iAPolygonBasedFunctionDrawer::iAPolygonBasedFunctionDrawer(QSharedPointer<iAPlot
 	iAPlot(color),
 	m_data(data),
 	m_cachedBinWidth(0.0),
-	m_cachedCoordConv(0)
+	m_cachedCoordConv(0),
+	m_cachedEndBin(0),
+	m_cachedStartBin(0)
 {}
 
-void iAPolygonBasedFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const
+void iAPolygonBasedFunctionDrawer::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const
 {
-	if (!m_poly || m_cachedBinWidth != binWidth || !m_cachedCoordConv || !m_cachedCoordConv->equals(converter) )
+	if (!m_poly || m_cachedBinWidth != binWidth || !m_cachedCoordConv || !m_cachedCoordConv->equals(converter) || startBin != m_cachedStartBin || endBin != m_cachedEndBin )
 	{
 		m_cachedBinWidth = binWidth;
 		m_cachedCoordConv = converter->clone();
-		if (!computePolygons(binWidth, converter))
+		m_cachedStartBin = startBin;
+		m_cachedEndBin = endBin;
+		if (!computePolygons(binWidth, startBin, endBin, converter))
 		{
 			return;
 		}
@@ -149,21 +153,24 @@ void iALineFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPolygon> 
 	painter.drawPolyline(*poly.data());
 }
 
-bool iALineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<iAMapper> converter) const
+bool iALineFunctionDrawer::computePolygons(double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const
 {
 	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	if (!rawData)
 		return false;
 	int binWidthHalf = binWidth / 2;
 	m_poly = QSharedPointer<QPolygon>(new QPolygon);
-	m_poly->push_back(QPoint(0, 0));
-	for (int j = 0; j < m_data->GetNumBin(); j++)
+	// one extra bin in each direction to see lines leading in direction of the previous/next data values
+	startBin = (startBin > 0 ? startBin - 1 : startBin);
+	endBin = endBin < m_data->GetNumBin() ? endBin + 1 : endBin;
+	m_poly->push_back(QPoint((startBin - 1)*binWidth, 0));
+	for (int j = startBin; j < endBin; j++)
 	{
 		int curX = (int)(j * binWidth) + binWidthHalf;
 		int curY = converter->SrcToDest(rawData[j]);
 		m_poly->push_back(QPoint(curX, curY));
 	}
-	m_poly->push_back(QPoint(m_data->GetNumBin() * binWidth, 0 ));
+	m_poly->push_back(QPoint(endBin * binWidth, 0 ));
 	return true;
 }
 
@@ -186,48 +193,24 @@ void iAFilledLineFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPol
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
 
-bool iAFilledLineFunctionDrawer::computePolygons(double binWidth, QSharedPointer<iAMapper> converter) const
+bool iAFilledLineFunctionDrawer::computePolygons(double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const
 {
 	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	if (!rawData)
 		return false;
 	m_poly = QSharedPointer<QPolygon>(new QPolygon);
-	//m_poly->push_back(QPoint(1, 0));
 	int binWidthHalf = binWidth / 2;
-	int minBin = static_cast<int>(m_data->GetMinX());
-	int maxBin = static_cast<int>(m_data->GetMaxX()-0.01);
-	int minX = static_cast<int>(m_data->GetMinX() * binWidth);
-	int maxX = static_cast<int>(m_data->GetMaxX() * binWidth);
-	for (int j = 0; j < m_data->GetNumBin(); j++)
+	// one extra bin in each direction to see lines leading in direction of the previous/next data values
+	startBin = (startBin > 0 ? startBin - 1 : startBin);
+	endBin = endBin < m_data->GetNumBin() ? endBin + 1 : endBin;
+	m_poly->push_back(QPoint(startBin-1 * binWidth, 0));
+	for (int j = startBin; j < endBin; j++)
 	{
-		if (j < minBin || j > maxBin)
-		{
-			continue;
-		}
 		int curX = (int)(j * binWidth) + binWidthHalf;
-		if (j == minBin)
-		{
-			m_poly->push_back(QPoint(minX, 0));
-			if (j == maxBin)
-			{
-				curX = (minX + maxX) / 2;
-			}
-			else
-			{
-				curX = (minX + (int)((j + 1) * binWidth)) / 2;
-			}
-		}
-		else if (j == maxBin)
-		{
-			curX = ((int)(j*binWidth) + maxX) / 2;
-		}
 		int curY = converter->SrcToDest(rawData[j]);
 		m_poly->push_back(QPoint(curX, curY));
-		if (j == maxBin)
-		{
-			m_poly->push_back(QPoint(maxX, 0));
-		}
 	}
+	m_poly->push_back(QPoint(endBin * binWidth, 0));
 	return true;
 }
 
@@ -251,22 +234,22 @@ void iAStepFunctionDrawer::drawPoly(QPainter& painter, QSharedPointer<QPolygon> 
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
 
-bool iAStepFunctionDrawer::computePolygons(double binWidth, QSharedPointer<iAMapper> converter) const
+bool iAStepFunctionDrawer::computePolygons(double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const
 {
 	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	if (!rawData)
 		return false;
 	m_poly = QSharedPointer<QPolygon>(new QPolygon);
-	m_poly->push_back(QPoint(1, 0));
-	for (int j = 0; j < m_data->GetNumBin(); j++)
+	m_poly->push_back(QPoint(startBin * binWidth, 0));
+	for (int j = startBin; j < endBin; j++)
 	{
-		int curX1 = 1 + (int)(j * binWidth);
-		int curX2 = 1 + (int)(j * binWidth) + binWidth;
+		int curX1 = (int)(j * binWidth);
+		int curX2 = (int)((j+1) * binWidth);
 		int curY = converter->SrcToDest(rawData[j]);
 		m_poly->push_back(QPoint(curX1, curY));
 		m_poly->push_back(QPoint(curX2, curY));
 	}
-	m_poly->push_back(QPoint(m_data->GetNumBin() * binWidth, 0));
+	m_poly->push_back(QPoint(endBin * binWidth, 0));
 	return true;
 }
 
@@ -283,7 +266,7 @@ iABarGraphDrawer::iABarGraphDrawer(QSharedPointer<iAPlotData> data, QColor const
 {
 }
 
-void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const
+void iABarGraphDrawer::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const
 {
 	iAPlotData::DataType const * rawData = m_data->GetRawData();
 	int intBinWidth = static_cast<int>(std::ceil(binWidth)) - m_margin;
@@ -295,7 +278,7 @@ void iABarGraphDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<i
 	int x, h;
 	QColor fillColor = getColor();
 	int halfMargin = m_margin / 2;
-	for ( int j = 0; j < m_data->GetNumBin(); j++ )
+	for ( int j = startBin; j < endBin; j++ )
 	{
 		x = (int)(j * binWidth) + halfMargin;
 		h = converter->SrcToDest(rawData[j]);
@@ -320,7 +303,7 @@ iAMultipleFunctionDrawer::iAMultipleFunctionDrawer():
 	iAPlot(QColor())
 {}
 
-void iAMultipleFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const
+void iAMultipleFunctionDrawer::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const
 {
 	qreal oldPenWidth = painter.pen().widthF();
 	QPen pen = painter.pen();
@@ -328,7 +311,7 @@ void iAMultipleFunctionDrawer::draw(QPainter& painter, double binWidth, QSharedP
 	painter.setPen(pen);
 	for(auto drawer: m_drawers)
 	{
-		drawer->draw(painter, binWidth, converter);
+		drawer->draw(painter, binWidth, startBin, endBin, converter);
 	}
 	pen.setWidthF(oldPenWidth);
 	painter.setPen(pen);

@@ -636,19 +636,19 @@ void iAChartWidget::removeImageOverlay(QImage * imgOverlay)
 	}
 }
 
-void iAChartWidget::drawPlots(QPainter &painter)
+void iAChartWidget::drawPlots(QPainter &painter, size_t startBin, size_t endBin)
 {
 	if (m_plots.empty())
 	{
 		painter.scale(1, -1);
-		painter.drawText(QRect(0, 0, activeWidth(), -activeHeight()), Qt::AlignCenter, "Chart not (yet) available.");
+		painter.drawText(QRect(translationX, translationY, activeWidth()*xZoom, -activeHeight()*yZoom), Qt::AlignCenter, "Chart not (yet) available.");
 		painter.scale(1, -1);
 		return;
 	}
 	double binWidth = activeWidth() * xZoom / m_plots[0]->GetData()->GetNumBin();
 	for (auto it = m_plots.constBegin(); it != m_plots.constEnd(); ++it)
 		if ((*it)->Visible())
-			(*it)->draw(painter, binWidth, m_yConverter);
+			(*it)->draw(painter, binWidth, startBin, endBin, m_yConverter);
 }
 
 void iAChartWidget::showDataTooltip(QMouseEvent *event)
@@ -792,13 +792,24 @@ void iAChartWidget::paintEvent(QPaintEvent * e)
 	m_yMaxTickLabelWidth = fm.width("4.44M");
 	painter.setRenderHint(QPainter::Antialiasing);
 	drawBackground(painter);
+	size_t startBin = 0, endBin = 0;
+	if (m_plots.size() > 0)
+	{
+		size_t numBin = m_plots[0]->GetData()->GetNumBin();
+		double visibleBins = numBin / xZoom;
+		double startBinDbl = clamp(0.0, static_cast<double>(numBin), (static_cast<double>(abs(translationX)) / (activeWidth()*xZoom)) * numBin);
+		// for range to be correctly considered, above needs to be calculated in double, and +1 below to make sure a last partial bin is also drawn
+		endBin = clamp(static_cast<size_t>(0), numBin, static_cast<size_t>(startBinDbl + visibleBins + 1) );
+		startBin = static_cast<size_t>(startBinDbl);
+	}
+
 	painter.translate(translationX + leftMargin(), -bottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom
 	painter.translate(0, geometry().height());
 	painter.scale(1, -1);
 
-	drawPlots(painter);
+	drawPlots(painter, startBin, endBin);
 	drawAfterPlots(painter);
 
 	painter.scale(1, -1);

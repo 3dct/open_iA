@@ -114,7 +114,7 @@ protected:
 	AxisMappingType m_yMappingMode;
 	bool m_contextMenuVisible;
 
-	virtual void drawPlots(QPainter& painter);
+	virtual void drawPlots(QPainter& painter, size_t startBin, size_t endBin);
 	virtual void drawAxes(QPainter& painter);
 	virtual QString getXAxisTickMarkLabel(double value, double stepWidth);
 
