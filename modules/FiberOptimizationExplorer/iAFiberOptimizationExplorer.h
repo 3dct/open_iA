@@ -20,22 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
+#include <vtkSmartPointer.h>
+
+#include <QMainWindow>
+#include <QMap>
 #include <QSharedPointer>
 
 #include <vector>
 
 class iA3DCylinderObjectVis;
+class iAColorTheme;
 class iARendererManager;
 
 class QVTKOpenGLWidget;
+class vtkTable;
 
-class iAFiberOptimizationExplorer : public QWidget
+class iAFiberOptimizationExplorer : public QMainWindow
 {
 public:
 	iAFiberOptimizationExplorer(QString const & path);
+private slots:
+	void toggleVis(int);
 private:
+	std::vector<vtkSmartPointer<vtkTable> > m_resultTables;
+	std::vector<QSharedPointer<QMap<uint, uint> > > m_outputMappings;
 	std::vector<QVTKOpenGLWidget*> m_vtkWidgets;
-	std::vector<QSharedPointer<iA3DCylinderObjectVis> > m_cylinderVis;
+	std::vector<QSharedPointer<iA3DCylinderObjectVis> > m_mini3DVis;
 	QSharedPointer<iARendererManager> m_renderManager;
+	QVTKOpenGLWidget* m_mainRenderer;
+	QSharedPointer<iA3DCylinderObjectVis> m_mainVis;
+	iAColorTheme const * m_colorTheme;
+	QMap<int, QSharedPointer<iA3DCylinderObjectVis> > m_main3DVis;
 };
