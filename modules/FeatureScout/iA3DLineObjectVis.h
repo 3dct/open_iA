@@ -20,53 +20,30 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iAChartWidget.h"
+#include "iA3DObjectVis.h"
 
-#include "iAValueType.h"
+#include <vtkSmartPointer.h>
 
-class iAParamHistogramData;
-class iANameMapper;
+class vtkPolyData;
+class vtkPolyDataMapper;
+class vtkUnsignedCharArray;
 
-class iAFilterChart: public iAChartWidget
+class iA3DLineObjectVis: public iA3DObjectVis
 {
-	Q_OBJECT
 public:
-	iAFilterChart(QWidget* parent,
-		QString const & caption,
-		QSharedPointer<iAParamHistogramData> data,
-		QSharedPointer<iANameMapper> nameMapper,
-		bool showCaption = false);
-	double mapBinToValue(double bin) const;
-	double mapValueToBin(double value) const;
-	QSharedPointer<iAPlot> GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color);
-	void RemoveMarker();
-	void SetMarker(double value);
-	virtual iAValueType GetRangeType() const;
-	double GetMinVisibleBin() const;
-	double GetMaxVisibleBin() const;
-	void SetBinColor(int bin, QColor const & color);
-	double GetMinSliderPos();
-	double GetMaxSliderPos();
-	void SetMinMaxSlider(double min, double max);
-signals:
-	void selectionChanged();
+	iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
+	void show() override;
+	void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
+	void renderSingle( int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem ) override;
+	void multiClassRendering( QList<QColor> const & colors, QStandardItem* rootItem, double alpha ) override;
+	void renderOrientationDistribution ( vtkImageData* oi ) override;
+	void renderLengthDistribution(  vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) override;
 protected:
-	void drawAxes(QPainter& painter) override;
-	void contextMenuEvent(QContextMenuEvent *event) override;
-	void mousePressEvent( QMouseEvent *event ) override;
-	void mouseReleaseEvent( QMouseEvent *event ) override;
-	void mouseMoveEvent( QMouseEvent *event ) override;
+	vtkSmartPointer<vtkPolyData> m_linePolyData;
+	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
+	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
 private:
-	QString getXAxisTickMarkLabel(double value, double stepWidth) override;
-	int value2X(double value) const;
-	double x2value(int x) const;
-	void drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush);
-
-	QSharedPointer<iAParamHistogramData> m_data;
-	QSharedPointer<iANameMapper> m_nameMapper;
-	double m_markedLocation;
-	QVector<QColor> m_binColors;
-	double m_minSliderPos, m_maxSliderPos;
-	int m_selectedHandle;
-	int m_selectionOffset;
+	void setPolyPointColor(int ptIdx, QColor const & qcolor);
+	void updatePolyMapper();
 };
+

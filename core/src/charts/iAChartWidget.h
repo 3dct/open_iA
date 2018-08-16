@@ -26,15 +26,24 @@
 
 #define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
 #define NOMINMAX
+
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QOpenGLWidget>
+#else
 #include <QGLWidget>
-#include <QImage>
+#endif
 
 class iAPlot;
 class iAMapper;
 
 class QMenu;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class open_iA_Core_API iAChartWidget : public QOpenGLWidget
+#else
 class open_iA_Core_API iAChartWidget : public QGLWidget
+#endif
 {
 	Q_OBJECT
 public:
@@ -42,51 +51,45 @@ public:
 	enum AxisMappingType { Linear, Logarithmic };
 	iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
 	virtual ~iAChartWidget();
-
 	double XZoom()  const { return xZoom;        }
 	double YZoom()  const { return yZoom;        }
-	int    XShift() const { return translationX; }
-	int    YShift() const { return translationY; }
-	virtual int BottomMargin() const;
-	virtual int LeftMargin() const;
-	int ActiveWidth()  const;
-	int ActiveHeight() const;
-	int Height() const;
-	iAPlotData::DataType GetMaxYDataValue() const;
-	QSharedPointer<iAMapper> const YMapper() const;
-	virtual iAPlotData::DataType const * YBounds() const;
-	virtual double const * XBounds() const;
-	virtual size_t MaxXAxisSteps() const;
-	bool CategoricalAxis() const;
-	double XRange() const;
-	double MaxXZoom() const;
+	int    xShift() const { return translationX; }
+	int    yShift() const { return translationY; }
+	virtual int bottomMargin() const;
+	virtual int leftMargin() const;
+	int activeWidth()  const;
+	int activeHeight() const;
+	iAPlotData::DataType getMaxYDataValue() const;
+	QSharedPointer<iAMapper> const yMapper() const;
+	virtual iAPlotData::DataType const * yBounds() const;
+	virtual double const * xBounds() const;
+	virtual size_t maxXAxisSteps() const;
+	bool categoricalAxis() const;
+	double xRange() const;
+	double maxXZoom() const;
 	int diagram2PaintX(double x) const;
 	long screenX2DataBin(int x) const;
 	int  dataBin2ScreenX(long x) const;
-	bool IsContextMenuVisible() const;
-	bool IsTooltipShown() const;
-	QPoint ContextMenuPos() const;
-
-	void SetXBounds(double minVal, double maxVal);
-	void SetYBounds(iAPlotData::DataType minVal, iAPlotData::DataType maxVal);
-	void ResetYBounds();
-	void SetXCaption(QString const & caption);
-	void SetYMappingMode(AxisMappingType drawMode);
-	void SetCaptionPosition(QFlags<Qt::AlignmentFlag>);
-	void SetShowXAxisLabel(bool show);
-
-	void AddPlot(QSharedPointer<iAPlot> plot);
-	void RemovePlot(QSharedPointer<iAPlot> plot);
-	QVector< QSharedPointer< iAPlot > > const & Plots();
-	bool IsDrawnDiscrete() const;
-	void AddImageOverlay(QSharedPointer<QImage> imgOverlay);
-	void RemoveImageOverlay(QImage * imgOverlay);
-
-	virtual void redraw();
+	bool isContextMenuVisible() const;
+	bool isTooltipShown() const;
+	QPoint contextMenuPos() const;
+	void setXBounds(double minVal, double maxVal);
+	void setYBounds(iAPlotData::DataType minVal, iAPlotData::DataType maxVal);
+	void resetYBounds();
+	void setXCaption(QString const & caption);
+	void setYMappingMode(AxisMappingType drawMode);
+	void setCaptionPosition(QFlags<Qt::AlignmentFlag>);
+	void setShowXAxisLabel(bool show);
+	void addPlot(QSharedPointer<iAPlot> plot);
+	void removePlot(QSharedPointer<iAPlot> plot);
+	QVector< QSharedPointer< iAPlot > > const & plots();
+	bool isDrawnDiscrete() const;
+	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
+	void removeImageOverlay(QImage * imgOverlay);
 public slots:
 	void resetView();
 signals:
-	void XAxisChanged();
+	void xAxisChanged();
 protected:
 	QString xCaption, yCaption;
 	int zoomX;
@@ -102,49 +105,43 @@ protected:
 	int translationStartY;
 	int dragStartPosX;
 	int dragStartPosY;
-
-	int width, height;
 	int mode;
 	QSharedPointer<iAMapper> m_yConverter;
 	AxisMappingType m_yMappingMode;
 	bool m_contextMenuVisible;
-	QImage m_drawBuffer;
 
-	virtual void DrawPlots(QPainter& painter);
-	virtual void DrawAxes(QPainter& painter);
-	virtual QString GetXAxisTickMarkLabel(double value, double stepWidth);
+	virtual void drawPlots(QPainter& painter, size_t startBin, size_t endBin);
+	virtual void drawAxes(QPainter& painter);
+	virtual QString getXAxisTickMarkLabel(double value, double stepWidth);
 
 	void zoomAlongY(double value, bool deltaMode);
 	void zoomAlongX(double value, int x, bool deltaMode);
 
-	virtual void setNewSize();
 	virtual void changeMode(int newMode, QMouseEvent *event);
 	virtual void showDataTooltip(QMouseEvent *event);
-	virtual void DrawEverything();
-	virtual void DrawBackground(QPainter &painter);
+	virtual void drawBackground(QPainter &painter);
 
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void wheelEvent(QWheelEvent *event) override;
 	void leaveEvent(QEvent *event) override;
-	void resizeEvent(QResizeEvent *event) override;
 	void paintEvent(QPaintEvent *) override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	void keyReleaseEvent(QKeyEvent *event) override;
 private slots:
 	void showTooltip(bool toggled);
-	void ExportData();
+	void exportData();
 private:
-	virtual void AddContextMenuEntries(QMenu* contextMenu);
-	void CreateYConverter();
-	void DrawImageOverlays(QPainter &painter);
-	virtual void DrawAfterPlots(QPainter& painter);
-	virtual void DrawXAxis(QPainter &painter);
-	virtual void DrawYAxis(QPainter &painter);
-	void UpdateBounds();
-	void UpdateXBounds();
-	void UpdateYBounds();
+	virtual void addContextMenuEntries(QMenu* contextMenu);
+	void createYConverter();
+	void drawImageOverlays(QPainter &painter);
+	virtual void drawAfterPlots(QPainter& painter);
+	virtual void drawXAxis(QPainter &painter);
+	virtual void drawYAxis(QPainter &painter);
+	void updateBounds();
+	void updateXBounds();
+	void updateYBounds();
 
 	QVector< QSharedPointer< iAPlot > >	m_plots;
 	QList< QSharedPointer< QImage > > m_overlays;
@@ -154,7 +151,6 @@ private:
 	bool m_showXAxisLabel;
 	int  m_fontHeight;
 	int  m_yMaxTickLabelWidth;
-	bool m_draw;
 	bool m_customXBounds, m_customYBounds;
 	double m_xBounds[2], m_yBounds[2];
 	QFlags<Qt::AlignmentFlag> m_captionPosition;

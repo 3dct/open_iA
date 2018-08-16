@@ -262,10 +262,10 @@ void iADetailView::ChangeModality(int offset)
 	vtkSmartPointer<vtkImageData> imageData = mod->GetComponent(m_magicLensCurrentComponent);
 	vtkColorTransferFunction* ctf = (mod->GetName() == "Ground Truth") ?
 		m_previewWidget->GetCTF().GetPointer() :
-		mod->GetTransfer()->GetColorFunction();
+		mod->GetTransfer()->getColorFunction();
 	vtkPiecewiseFunction* otf = (mod->GetName() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
-		mod->GetTransfer()->GetOpacityFunction();
+		mod->GetTransfer()->getOpacityFunction();
 	QString name(mod->GetImageName(m_magicLensCurrentComponent));
 	AddMagicLensInput(imageData, ctf, otf, name);
 }

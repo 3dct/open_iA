@@ -66,7 +66,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	iACsvConfig csvConfig = dlg.getConfig();
-	if (csvConfig.useVolumeData && (!m_mainWnd->activeMdiChild() ||
+	if (csvConfig.visType == iACsvConfig::UseVolume && (!m_mainWnd->activeMdiChild() ||
 		m_mainWnd->activeMdiChild()->GetModalities()->size() == 0 ||
 		!m_mainWnd->activeMdiChild()->IsVolumeDataLoaded()))
 	{
@@ -74,7 +74,7 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 			"yet there is either no open window or the active window does not contain volume data!");
 		return;
 	}
-	if (!csvConfig.useVolumeData)
+	if (csvConfig.visType != iACsvConfig::UseVolume)
 	{
 		m_mdiChild = m_mainWnd->createMdiChild(false);
 		this->m_mdiChild->show();
@@ -83,7 +83,6 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 		m_mdiChild = m_mainWnd->activeMdiChild();
 	startFeatureScout(csvConfig);
 }
-
 
 void iAFeatureScoutModuleInterface::FeatureScout()
 {
@@ -162,7 +161,7 @@ void iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		m_mdiChild->addMsg( "Error while attaching FeatureScout to mdi child window!" );
 		return;
 	}
-	attach->init(csvConfig.objectType, csvConfig.fileName, creator.getTable(), !csvConfig.useVolumeData, io.getOutputMapping());
+	attach->init(csvConfig.objectType, csvConfig.fileName, creator.getTable(), csvConfig.visType, io.getOutputMapping());
 	SetupToolbar();
 	m_mdiChild->addStatusMsg("FeatureScout started");
 	m_mdiChild->addMsg("FeatureScout started");
@@ -173,17 +172,6 @@ void iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 
 void iAFeatureScoutModuleInterface::FeatureScout_Options()
 {
-	QAction *action = (QAction *) sender();
-	QString actionText = action->text();
-
-	int idx = 0;
-
-	if ( actionText.toStdString() == "Length Distribution" ) idx = 7;
-	if ( actionText.toStdString() == "Mean Object" ) idx = 4;
-	if ( actionText.toStdString() == "Multi Rendering" ) idx = 3;
-	if ( actionText.toStdString() == "Orientation Rendering" ) idx = 5;
-	if ( actionText.toStdString() == "Activate SPM" ) idx = 6;
-
 	m_mdiChild = m_mainWnd->activeMdiChild();
 	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 	if ( !attach )
@@ -191,14 +179,30 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 		DEBUG_LOG( "No FeatureScout attachment in current MdiChild!" );
 		return;
 	}
-	attach->FeatureScout_Options( idx );
+	QString actionText = ((QAction *)sender())->text();
+	int idx = 0;
+	if ( actionText.toStdString() == "Length Distribution" ) idx = 7;
+	if ( actionText.toStdString() == "Mean Object" ) idx = 4;
+	if ( actionText.toStdString() == "Multi Rendering" ) idx = 3;
+	if ( actionText.toStdString() == "Orientation Rendering" ) idx = 5;
+	if ( actionText.toStdString() == "Activate SPM" ) idx = 6;
 
+	attach->FeatureScout_Options( idx );
 	m_mainWnd->statusBar()->showMessage( tr( "FeatureScout options changed to: " ).append( actionText ), 5000 );
 }
 
 void iAFeatureScoutModuleInterface::onChildClose()
 {
-	// TODO: check if a second mdi child has FeatureScout open?
+	if (!tlbFeatureScout)
+		return;
+	auto mdis = m_mainWnd->MdiChildList();
+	for (auto mdi : mdis)
+	{
+		m_mdiChild = mdi;
+		iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
+		if (attach)
+			return;
+	}
 	m_mainWnd->removeToolBar( tlbFeatureScout );
 	delete tlbFeatureScout;
 	tlbFeatureScout = nullptr;

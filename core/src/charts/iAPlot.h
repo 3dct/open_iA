@@ -44,7 +44,7 @@ public:
 	* \brief method which draws the function
 	* it is allowed to cache the result; when the data has changed, update() needs to be called
 	*/
-	virtual void draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const =0;
+	virtual void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const =0;
 	/** retrieves the data used for drawing */
 	virtual QSharedPointer<iAPlotData> GetData();
 	virtual bool Visible() const;

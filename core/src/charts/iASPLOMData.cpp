@@ -22,10 +22,15 @@
 
 #include <QTableWidget>
 
-iASPLOMData::iASPLOMData()
-{}
+iASPLOMData::iASPLOMData():
+	m_FilterColID(-1),
+	m_FilterValue(-1.0)
+{
+}
 
-iASPLOMData::iASPLOMData(const QTableWidget * tw)
+iASPLOMData::iASPLOMData(const QTableWidget * tw):
+	m_FilterColID(-1),
+	m_FilterValue(-1.0)
 {
 	import(tw);
 }
@@ -53,6 +58,7 @@ void iASPLOMData::import(const QTableWidget * tw)
 			paramData->push_back(tw->item(r, c)->text().toDouble());
 		m_inverted.push_back(false);
 	}
+	updateRanges();
 }
 
 void iASPLOMData::setParameterNames(std::vector<QString> const & names)
@@ -88,6 +94,14 @@ QString iASPLOMData::parameterName(size_t paramIndex) const
 	return m_paramNames[paramIndex];
 }
 
+size_t iASPLOMData::paramIndex(QString const & paramName) const
+{
+	for (unsigned long i = 0; i < numParams(); ++i)
+		if (m_paramNames[i] == paramName)
+			return i;
+	return std::numeric_limits<size_t>::max();
+}
+
 size_t iASPLOMData::numParams() const
 {
 	return m_paramNames.size();
@@ -106,4 +120,59 @@ bool iASPLOMData::isInverted(size_t paramIndex)
 void iASPLOMData::setInverted(size_t paramIndex, bool isInverted)
 {
 	m_inverted[paramIndex] = isInverted;
+}
+
+
+bool iASPLOMData::matchesFilter(size_t ind) const
+{
+	const double epsilon = 0.00001;
+	if (m_FilterColID == -1)
+		return true;
+
+	double col_val = this->paramData(m_FilterColID)[ind];
+	return (abs(col_val - m_FilterValue) < epsilon);
+}
+
+void iASPLOMData::setFilter(int colID, double value)
+{
+	m_FilterColID = colID;
+	m_FilterValue = value;
+	//updateRanges();
+}
+
+bool iASPLOMData::filterDefined() const
+{
+	return m_FilterColID != -1;
+}
+
+double const* iASPLOMData::paramRange(size_t paramIndex) const
+{
+	return m_ranges[paramIndex].data();
+}
+
+void iASPLOMData::updateRanges()
+{
+	m_ranges.resize(m_dataPoints.size());
+	for (size_t param = 0; param < m_dataPoints.size(); ++param)
+	{
+		updateRange(param);
+	}
+}
+
+void iASPLOMData::updateRange(size_t paramIndex)
+{
+	std::vector<double> range(2);
+	range[0] = std::numeric_limits<double>::max();
+	range[1] = std::numeric_limits<double>::lowest();
+	for (size_t row = 0; row < m_dataPoints[paramIndex].size(); ++row)
+	{
+		//if (!matchesFilter(row))
+		//	continue;
+		double value = m_dataPoints[paramIndex][row];
+		if (value < range[0])
+			range[0] = value;
+		if (value > range[1])
+			range[1] = value;
+	}
+	m_ranges[paramIndex] = range;
 }

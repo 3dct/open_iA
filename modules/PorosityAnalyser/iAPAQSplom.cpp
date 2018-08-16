@@ -44,8 +44,13 @@
 
 const int maskOpacity = 127;
 
-iAPAQSplom::iAPAQSplom( MainWindow *mWnd, QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+iAPAQSplom::iAPAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*= 0 */)
+	: iAQSplom( parent, f ),
+#else
+iAPAQSplom::iAPAQSplom(MainWindow *mWnd, QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */)
 	: iAQSplom( parent, shareWidget, f ),
+#endif
 	m_fixAction( nullptr ),
 	m_removeFixedAction( nullptr ),
 	m_detailsToFeatureScoutAction(nullptr),

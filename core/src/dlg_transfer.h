@@ -79,8 +79,8 @@ public:
 	void setOpacityFunction(vtkPiecewiseFunction *opacityTF) { this->opacityTF = opacityTF; }
 	void setColorFunction(vtkColorTransferFunction *colorTF) { this->colorTF = colorTF; }
 
-	vtkPiecewiseFunction* GetOpacityFunction() { return opacityTF; }
-	vtkColorTransferFunction* GetColorFunction() { return colorTF; }
+	vtkPiecewiseFunction* getOpacityFunction() override { return opacityTF; }
+	vtkColorTransferFunction* getColorFunction() override { return colorTF; }
 	void triggerOnChange();
 signals:
 	void Changed();

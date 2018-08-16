@@ -101,8 +101,7 @@ public:
 	iAPerformanceTimer::DurationType time(std::string const & caption = "") const;
 	iAPerformanceTimer::DurationType stop();
 
-	//! internal helper method for printing the time (and optionally memory
-	//! usage)
+	//! helper method for printing the time (and optionally memory usage)
 	static void printTime(iAPerformanceTimer::DurationType, std::string const & caption = "", bool printMemUsage = false);
 	//! print memory usage information
 	static QString printMemoryUsage();

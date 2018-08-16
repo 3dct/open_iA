@@ -76,8 +76,8 @@ void iASettings::LoadTransferFunction(QDomNode const & functionsNode, iATransfer
 	QDomNode transferNode = functionsNode.namedItem("transfer");
 	if (!transferNode.isElement())
 		return;
-	transferFunction->GetOpacityFunction()->RemoveAllPoints();
-	transferFunction->GetColorFunction()->RemoveAllPoints();
+	transferFunction->getOpacityFunction()->RemoveAllPoints();
+	transferFunction->getColorFunction()->RemoveAllPoints();
 	QDomNodeList list = transferNode.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
 	{
@@ -89,10 +89,10 @@ void iASettings::LoadTransferFunction(QDomNode const & functionsNode, iATransfer
 		double green = attributes.namedItem("green").nodeValue().toDouble();
 		double blue = attributes.namedItem("blue").nodeValue().toDouble();
 		//value = clamp(range[0], range[1], value);
-		transferFunction->GetOpacityFunction()->AddPoint(value, opacity);
-		transferFunction->GetColorFunction()->AddRGBPoint(value, red, green, blue);
+		transferFunction->getOpacityFunction()->AddPoint(value, opacity);
+		transferFunction->getColorFunction()->AddRGBPoint(value, red, green, blue);
 	}
-	transferFunction->GetColorFunction()->Build();
+	transferFunction->getColorFunction()->Build();
 }
 
 void iASettings::StoreTransferFunction(iATransferFunction* transferFunction)
@@ -108,12 +108,12 @@ void iASettings::StoreTransferFunction(iATransferFunction* transferFunction)
 
 	QDomElement transferElement = domDocument.createElement("transfer");
 
-	for (int i = 0; i < transferFunction->GetOpacityFunction()->GetSize(); i++)
+	for (int i = 0; i < transferFunction->getOpacityFunction()->GetSize(); i++)
 	{
 		double opacityTFValue[4];
 		double colorTFValue[6];
-		transferFunction->GetOpacityFunction()->GetNodeValue(i, opacityTFValue);
-		transferFunction->GetColorFunction()->GetNodeValue(i, colorTFValue);
+		transferFunction->getOpacityFunction()->GetNodeValue(i, opacityTFValue);
+		transferFunction->getColorFunction()->GetNodeValue(i, colorTFValue);
 
 		QDomElement nodeElement = domDocument.createElement("node");
 		nodeElement.setAttribute("value", QObject::tr("%1").arg(opacityTFValue[0]));

@@ -45,7 +45,7 @@ protected:
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
-	void DrawAfterPlots(QPainter& painter) override;
+	void drawAfterPlots(QPainter& painter) override;
 private:
 	void NotifySelectionUpdateListener();
 

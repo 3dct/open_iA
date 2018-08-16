@@ -24,7 +24,7 @@
 #include "iAConnector.h"
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
-#include "iATransferFunction.h"
+#include "iATransferFunction.h"    // for GetDefault... functions
 #include "iATypedCallHelper.h"
 
 #include <itkChangeInformationImageFilter.h>
@@ -670,7 +670,7 @@ void dlg_datatypeconversion::histogramdrawing(iAPlotData::DataType* histbinlist,
 	iAHistogramWidget *imgHistogram = new iAHistogramWidget(this, (MdiChild*)parent(), piecewiseFunction, colorTransferFunction,
 		histbinlist, min, max , m_bins, discretization, "Histogram (Intensities)");
 	imgHistogram->updateTrf();
-	imgHistogram->redraw();
+	imgHistogram->update();
 	verticalLayout->addWidget(imgHistogram);
 }
 

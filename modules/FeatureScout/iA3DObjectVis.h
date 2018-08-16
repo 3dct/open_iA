@@ -20,51 +20,51 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include <QList>
+#include <QMap>
+#include <QSharedPointer>
 
-#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
+#include <vector>
 
 #include <vtkVersion.h>
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QOpenGLWidget>
+class QVTKOpenGLWidget;
+typedef QVTKOpenGLWidget iAVtkWidgetClass;
 #else
-#include <QGLWidget>
+class QVTKWidget2;
+typedef QVTKWidget2 iAVtkWidgetClass;
 #endif
+class vtkColorTransferFunction;
+class vtkFloatArray;
+class vtkImageData;
+class vtkTable;
 
-class iASPLOMData;
-class iAScatterPlotStandaloneHandler;
+class QColor;
+class QStandardItem;
 
-//! Widget for using a single scatter plot (outside of a SPLOM)
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-class open_iA_Core_API iAScatterPlotWidget : public QOpenGLWidget
-#else
-class open_iA_Core_API iAScatterPlotWidget : public QGLWidget
-#endif
+//! Base class for 3D visualizations of objects (e.g. fibers or pores) defined in a table
+//! use the factory method create3DObjectVis to create a specific instance!
+class iA3DObjectVis
 {
 public:
-	static const int PaddingTop;
-	static const int PaddingRight;
-	int PaddingBottom();
-	int PaddingLeft();
-	static const int TextPadding;
-	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
-	std::vector<size_t> & GetSelection();
-	void SetSelection(std::vector<size_t> const & selection);
-	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
-	void SetSelectionColor(QColor const & c);
-	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
+	static const QColor SelectedColor;
+	iA3DObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping );
+	virtual ~iA3DObjectVis();
+	virtual void show();
+	virtual void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) =0;
+	virtual void renderSingle( int labelID, int classID, QColor const & classColor, QStandardItem* activeClassItem ) =0;
+	virtual void multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha ) =0;
+	virtual void renderOrientationDistribution( vtkImageData* oi ) =0;
+	virtual void renderLengthDistribution( vtkColorTransferFunction* cTFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) =0;
 protected:
-	virtual void paintEvent(QPaintEvent * event);
-	virtual void resizeEvent(QResizeEvent* event);
-	virtual void wheelEvent(QWheelEvent * event);
-	virtual void mousePressEvent(QMouseEvent * event);
-	virtual void mouseReleaseEvent(QMouseEvent * event);
-	virtual void mouseMoveEvent(QMouseEvent * event);
-	virtual void keyPressEvent(QKeyEvent * event);
-public:
-	iAScatterPlot* m_scatterplot;
-private:
-	QSharedPointer<iASPLOMData> m_data;
-	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
-	int m_fontHeight, m_maxTickLabelWidth;
+	QColor getOrientationColor( vtkImageData* oi, size_t objID ) const;
+	QColor getLengthColor( vtkColorTransferFunction* ctFun, size_t objID ) const;
+	void updateRenderer();
+	iAVtkWidgetClass* m_widget;
+	vtkTable* m_objectTable;
+	QSharedPointer<QMap<uint, uint> > m_columnMapping;
 };
+
+class MdiChild;
+
+QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi, vtkTable* table, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor);

@@ -516,6 +516,7 @@ private slots:
 	void ModalityAdded(int modalityIdx);
 private:
 	void SetHistogramModality(int modalityIdx);
+	void displayHistogram(int modalityIdx);
 	int GetCurrentModality() const;
 	void InitModalities();
 	void InitVolumeRenderers();

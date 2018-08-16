@@ -38,6 +38,10 @@
 #include <QWheelEvent>
 #include <QtMath>
 #include <QMenu>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QSurfaceFormat>
+#include <QPainter>
+#endif
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -63,7 +67,10 @@ iAQSplom::Settings::Settings()
 	popupWidth(180),
 	pointRadius(1.0),
 	selectionMode(iAScatterPlot::Polygon),
-	histogramVisible(true)
+	selectionEnabled(true),
+	histogramVisible(true),
+	quadraticPlots(false),
+	showPCC(false)
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
 }
@@ -107,7 +114,6 @@ iAColorTheme const * iAQSplom::getBackgroundColorTheme()
 void iAQSplom::clearSelection()
 {
 	m_selInds.clear();
-
 }
 
 void iAQSplom::showAllPlots(const bool enableAllPlotsVisible)
@@ -116,7 +122,7 @@ void iAQSplom::showAllPlots(const bool enableAllPlotsVisible)
 		m_mode = ALL_PLOTS;
 	else
 		m_mode = UPPER_HALF;
-	this->update();
+	updateVisiblePlots();
 }
 
 void iAQSplom::setSelectionColor(QColor color)
@@ -133,6 +139,31 @@ void iAQSplom::setSelectionColor(QColor color)
 		m_maximizedPlot->setSelectionColor(color);
 }
 
+void iAQSplom::setSelectionMode(int mode)
+{
+	if (m_maximizedPlot)
+		m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(mode);
+	settings.selectionMode = mode;
+}
+
+void iAQSplom::enableSelection(bool enabled)
+{
+	if (m_maximizedPlot)
+		m_maximizedPlot->settings.selectionEnabled = enabled;
+	settings.selectionEnabled = enabled;
+
+}
+
+void iAQSplom::selectionModePolygon()
+{
+	setSelectionMode(iAScatterPlot::Polygon);
+}
+
+void iAQSplom::selectionModeRectangle()
+{
+	setSelectionMode(iAScatterPlot::Rectangle);
+}
+
 void iAQSplom::setPointRadius(double radius)
 {
 	settings.pointRadius = radius;
@@ -147,11 +178,16 @@ void iAQSplom::setPointRadius(double radius)
 		m_maximizedPlot->setPointRadius(radius);
 }
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f)
+	:QOpenGLWidget(parent, f),
+#else
 iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */)
 	:QGLWidget(parent, shareWidget, f),
+#endif
 	settings(),
 	m_lut(new iALookupTable()),
-	m_colorArrayName(),
+	m_colorLookupColumn(0),
 	m_activePlot(nullptr),
 	m_mode(ALL_PLOTS),
 	m_splomData(new iASPLOMData()),
@@ -169,13 +205,26 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 {
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
-
+	setBackgroundRole(QPalette::Base);
+	setAutoFillBackground(true);
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QSurfaceFormat format = QSurfaceFormat();
+	format.setSamples(4);
+	setFormat(format);
+#endif
 	m_animationIn->setDuration( settings.animDuration );
 	m_animationOut->setDuration( settings.animDuration );
 
+	// set up context menu:
 	showHistogramAction = new QAction(tr("Show Histograms"), this);
 	showHistogramAction->setCheckable(true);
-	showHistogramAction->setChecked(true);
+	showHistogramAction->setChecked(settings.histogramVisible);
+	quadraticPlotsAction = new QAction(tr("Quadratic Plots"), this);
+	quadraticPlotsAction->setCheckable(true);
+	quadraticPlotsAction->setChecked(settings.quadraticPlots);
+	showPCCAction = new QAction(tr("Show Pearsons's Correlation Coefficient"), this);
+	showPCCAction->setCheckable(true);
+	showPCCAction->setChecked(settings.quadraticPlots);
 	selectionModePolygonAction = new QAction(tr("Polygon Selection Mode"), this);
 	QActionGroup * selectionModeGroup = new QActionGroup(m_contextMenu);
 	selectionModeGroup->setExclusive(true);
@@ -185,34 +234,85 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	selectionModeRectangleAction = new QAction(tr("Rectangle Selection Mode"), this);
 	selectionModeRectangleAction->setCheckable(true);
 	selectionModeRectangleAction->setActionGroup(selectionModeGroup);
-	m_contextMenu->addAction(showHistogramAction);
-	m_contextMenu->addAction(selectionModeRectangleAction);
-	m_contextMenu->addAction(selectionModePolygonAction);
+	addContextMenuAction(showHistogramAction);
+	addContextMenuAction(quadraticPlotsAction);
+	addContextMenuAction(showPCCAction);
+	addContextMenuAction(selectionModeRectangleAction);
+	addContextMenuAction(selectionModePolygonAction);
 	connect(showHistogramAction, &QAction::toggled, this, &iAQSplom::setHistogramVisible);
+	connect(quadraticPlotsAction, &QAction::toggled, this, &iAQSplom::setQuadraticPlots);
+	connect(showPCCAction, &QAction::toggled, this, &iAQSplom::setShowPCC);
 	connect(selectionModePolygonAction, SIGNAL(toggled(bool)), this, SLOT(selectionModePolygon()));
 	connect(selectionModeRectangleAction, SIGNAL(toggled(bool)), this, SLOT(selectionModeRectangle()));
 }
 
-void iAQSplom::setSelectionMode(int mode)
+void iAQSplom::addContextMenuAction(QAction* action)
 {
+	m_contextMenu->addAction(action);
+}
+
+void iAQSplom::resetFilter()
+{
+	m_splomData->setFilter( -1, 0 );
+	updateFilter();
+}
+
+void iAQSplom::updateHistogram(size_t paramIndex)
+{
+	std::vector<double> hist_InputValues;
+	for (size_t i = 0; i < m_splomData->numPoints(); ++i)
+	{
+		if (m_splomData->matchesFilter(i))
+			hist_InputValues.push_back(m_splomData->paramData(paramIndex)[i]);
+	}
+	if (m_histograms[paramIndex]->plots().size() > 0)
+		m_histograms[paramIndex]->removePlot(m_histograms[paramIndex]->plots()[0]);
+
+	auto histogramData = iAHistogramData::Create(hist_InputValues, settings.histogramBins);
+	auto histogramPlot = QSharedPointer<iABarGraphDrawer>(new iABarGraphDrawer(histogramData, QColor(70, 70, 70, 255)));
+	m_histograms[paramIndex]->addPlot(histogramPlot);
+	m_histograms[paramIndex]->update();
+}
+
+void iAQSplom::updateHistograms()
+{
+	if (!settings.histogramVisible)
+		return;
+	for (size_t y = 0; y < m_splomData->numParams(); ++y)
+	{
+		if (m_paramVisibility[y])
+		{
+			updateHistogram(y);
+		}
+	}
+}
+
+void iAQSplom::setFilter(int FilterCol_ID, double FilterValue)
+{
+	if (FilterCol_ID < -1 || FilterCol_ID >= m_splomData->numParams())
+	{
+		DEBUG_LOG(QString("Invalid filter column ID %1!").arg(FilterCol_ID));
+		return;
+	}
+	m_splomData->setFilter(FilterCol_ID, FilterValue);
+	updateFilter();
+}
+
+void iAQSplom::updateFilter()
+{
+	foreach(const QList<iAScatterPlot*> & row, m_visiblePlots)
+		foreach(iAScatterPlot * s, row)
+			if (s)
+				s->runFilter();
+			
 	if (m_maximizedPlot)
-		m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(mode);
-	settings.selectionMode = mode;
-}
+		m_maximizedPlot->runFilter();
 
-void iAQSplom::selectionModePolygon()
-{
-	setSelectionMode(iAScatterPlot::Polygon);
-}
-
-void iAQSplom::selectionModeRectangle()
-{
-	setSelectionMode(iAScatterPlot::Rectangle);
+	updateHistograms();
 }
 
 void iAQSplom::initializeGL()
 {
-	this->qglClearColor( settings.backgroundColor );
 }
 
 iAQSplom::~iAQSplom()
@@ -235,6 +335,23 @@ void iAQSplom::setData( QSharedPointer<iASPLOMData> data )
 	dataChanged();
 }
 
+QSharedPointer<iASPLOMData> iAQSplom::data()
+{
+	return m_splomData;
+}
+
+void iAQSplom::paramChanged(int idx)
+{
+	if (idx < 0 || idx >= m_matrix.size())
+		return;
+	for (int i = 0; i < m_matrix.size(); ++i)
+	{
+		m_splomData->updateRange(i);
+		m_matrix[idx][i]->applyMarginToRanges();
+		m_matrix[i][idx]->applyMarginToRanges();
+	}
+}
+
 void iAQSplom::dataChanged()
 {
 	clear();
@@ -248,29 +365,37 @@ void iAQSplom::dataChanged()
 			iAScatterPlot * s = new iAScatterPlot(this, this);
 			connect( s, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
 			connect( s, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
+
 			s->setData( x, y, m_splomData ); //we want first plot in lower left corner of the SPLOM
 			s->setSelectionColor(settings.selectionColor);
 			s->setPointRadius(settings.pointRadius);
 			if( m_lut->initialized() )
-				s->setLookupTable( m_lut, m_colorArrayName );
+				s->setLookupTable( m_lut, m_colorLookupColumn );
 			row.push_back( s );
 		}
 		m_matrix.push_back( row );
+		m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
 	}
 	updateVisiblePlots();
+	updateHistograms();
 }
 
 void iAQSplom::setLookupTable( vtkLookupTable * lut, const QString & colorArrayName )
 {
 	m_lut->copyFromVTK( lut );
-	m_colorArrayName = colorArrayName;
+	size_t colorLookupCol = m_splomData->paramIndex(colorArrayName);
+	if (colorLookupCol == std::numeric_limits<size_t>::max())
+		return;
+	m_colorLookupColumn = colorLookupCol;
 	applyLookupTable();
 }
 
-void iAQSplom::setLookupTable( iALookupTable &lut, const QString & colorArrayName ) //TODO: method not tested
+void iAQSplom::setLookupTable( iALookupTable &lut, size_t columnIndex)
 {
+	if (columnIndex >= m_splomData->numParams())
+		return;
+	m_colorLookupColumn = columnIndex;
 	*m_lut = lut;
-	m_colorArrayName = colorArrayName;
 	applyLookupTable();
 }
 
@@ -280,11 +405,14 @@ void iAQSplom::applyLookupTable()
 	{
 		foreach( iAScatterPlot* s, row )
 		{
-			s->setLookupTable( m_lut, m_colorArrayName );
+			s->setLookupTable( m_lut, m_colorLookupColumn );
 		}
 	}
-	if( m_maximizedPlot )
-		m_maximizedPlot->setLookupTable( m_lut, m_colorArrayName );
+	if (m_maximizedPlot) 
+	{
+		m_maximizedPlot->setLookupTable( m_lut, m_colorLookupColumn );
+	}
+
 	update();
 }
 
@@ -305,6 +433,8 @@ void iAQSplom::setParameterVisibility( size_t paramIndex, bool isVisible )
 	if( paramIndex < 0 || paramIndex >= m_paramVisibility.size() )
 		return;
 	m_paramVisibility[paramIndex] = isVisible;
+	if (settings.histogramVisible)
+		updateHistogram(paramIndex);
 	updateVisiblePlots();
 	update();
 }
@@ -318,6 +448,7 @@ void iAQSplom::setParameterVisibility(std::vector<bool> const & visibility)
 	}
 	m_paramVisibility = visibility;
 	updateVisiblePlots();
+	updateHistograms();
 	update();
 }
 
@@ -348,9 +479,66 @@ iAQSplom::SelectionType & iAQSplom::getSelection()
 	return m_selInds;
 }
 
+iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
+{
+	SelectionType sortedSelInds = m_selInds;
+	std::sort(sortedSelInds.begin(), sortedSelInds.end());
+	if (!m_splomData->filterDefined() || m_selInds.size() == 0)
+	{
+		m_filteredSelInds = sortedSelInds;
+		return m_filteredSelInds;
+	}
+	m_filteredSelInds.clear();
+	size_t curFilteredIdx = 0;
+	size_t curSelIdx = 0;
+	const double Epsilon = 1e-10;
+	for (size_t curIdx = 0; curIdx < m_splomData->numPoints(); ++curIdx)
+	{
+		if (!m_splomData->matchesFilter(curIdx))
+			continue;
+		if (curSelIdx >= sortedSelInds.size())
+			break;
+		if (curIdx == sortedSelInds[curSelIdx])
+		{
+			m_filteredSelInds.push_back(curFilteredIdx);
+			++curSelIdx;
+		}
+		++curFilteredIdx;
+	}
+	return m_filteredSelInds;
+}
+
 void iAQSplom::setSelection( iAQSplom::SelectionType const & selInds )
 {
 	m_selInds = selInds;
+	update();
+}
+
+void iAQSplom::setFilteredSelection(iAQSplom::SelectionType const & filteredSelInds)
+{
+	if (!m_splomData->filterDefined())
+	{
+		setSelection(filteredSelInds);
+		return;
+	}
+	std::vector<size_t> sortedFilteredSelInds = filteredSelInds;
+	std::sort(sortedFilteredSelInds.begin(), sortedFilteredSelInds.end());
+	size_t curFilteredIdx = 0,
+		curSelIdx = 0;
+	m_selInds.clear();
+	for (size_t curIdx = 0; curIdx < m_splomData->numPoints(); ++curIdx)
+	{
+		if (!m_splomData->matchesFilter(curIdx))
+			continue;
+		if (curSelIdx >= sortedFilteredSelInds.size())
+			break;
+		if (curFilteredIdx == sortedFilteredSelInds[curSelIdx])
+		{
+			m_selInds.push_back(curIdx);
+			++curSelIdx;
+		}
+		++curFilteredIdx;
+	}
 	update();
 }
 
@@ -386,6 +574,7 @@ void iAQSplom::clear()
 		row.clear();
 	}
 	m_matrix.clear();
+	m_histograms.clear();
 	m_paramVisibility.clear();
 }
 
@@ -502,12 +691,36 @@ void iAQSplom::showDefaultMaxizimedPlot()
 void iAQSplom::setHistogramVisible(bool visible)
 {
 	settings.histogramVisible = visible;
-	this->updateVisiblePlots();
+	updateVisiblePlots();
+	updateHistograms();
+}
+
+void iAQSplom::setQuadraticPlots(bool quadratic)
+{
+	settings.quadraticPlots = quadratic;
+	updatePlotGridParams();
+	updateSPLOMLayout();
+	update();
+}
+
+void iAQSplom::setShowPCC(bool showPCC)
+{
+	settings.showPCC = showPCC;
+	foreach(QList<iAScatterPlot*> row, m_matrix)
+		foreach(iAScatterPlot* s, row)
+			s->settings.showPCC = showPCC;
+	if (m_maximizedPlot)
+		m_maximizedPlot->settings.showPCC = showPCC;
+	update();
 }
 
 void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 {
 	showHistogramAction->setChecked(settings.histogramVisible);
+	quadraticPlotsAction->setChecked(settings.quadraticPlots);
+	selectionModeRectangleAction->setChecked(settings.selectionMode == iAScatterPlot::Rectangle);
+	selectionModePolygonAction->setChecked(settings.selectionMode == iAScatterPlot::Polygon);
+	showPCCAction->setChecked(settings.showPCC);
 	m_contextMenu->exec(event->globalPos());
 }
 
@@ -521,30 +734,18 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 
 	selectedPlot->setPreviewState(true);
 	m_previewPlot = selectedPlot;
-	m_mode = UPPER_HALF;
-
-	//hide lower triangle
-	// TODO: check - duplication to the code in updateVisiblePlots!
-	QList<QList<iAScatterPlot*>> newVisPlots;
-	int visParamCnt = getVisibleParametersCount();
-	for (int y = 0; y < visParamCnt; ++y)
-	{
-		QList<iAScatterPlot*> row;
-		for (int x = 0; x < visParamCnt; ++x)
-		{
-			if (x <= y)
-				row.push_back(m_visiblePlots[y][x]);
-			else
-				row.push_back(0);
-		}
-		newVisPlots.push_back(row);
+	if (m_mode == ALL_PLOTS)
+	{	// hide lower triangle
+		m_mode = UPPER_HALF;
+		for (int y = 0; y < getVisibleParametersCount(); ++y)
+			for (int x = 0; x < getVisibleParametersCount(); ++x)
+				if (x >= y)
+					m_visiblePlots[y][x] = nullptr;
 	}
-	m_visiblePlots = newVisPlots;
 
 	//create main plot
 	delete m_maximizedPlot;
 	m_maximizedPlot = new iAScatterPlot(this, this, 11, true);
-
 	connect(m_maximizedPlot, &iAScatterPlot::selectionModified, this, &iAQSplom::selectionUpdated);
 	connect(m_maximizedPlot, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
 
@@ -555,11 +756,13 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 	m_maximizedPlot->setData(plotInds[0], plotInds[1], m_splomData); //we want first plot in lower left corner of the SPLOM
 
 	if (m_lut->initialized())
-		m_maximizedPlot->setLookupTable(m_lut, m_colorArrayName);
+		m_maximizedPlot->setLookupTable(m_lut, m_colorLookupColumn);
 
 	m_maximizedPlot->setSelectionColor(settings.selectionColor);
 	m_maximizedPlot->setPointRadius(settings.pointRadius);
 	m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(settings.selectionMode);
+	m_maximizedPlot->settings.selectionEnabled = settings.selectionEnabled;
+	m_maximizedPlot->settings.showPCC = settings.showPCC;
 	updateMaxPlotRect();
 	//transform
 	QPointF ofst = selectedPlot->getOffset();
@@ -585,7 +788,6 @@ void iAQSplom::removeMaximizedPlot()
 		m_previewPlot->setPreviewState( false );
 		m_previewPlot = 0;
 	}
-	m_mode = UPPER_HALF;
 }
 
 int iAQSplom::invert( int val ) const
@@ -600,30 +802,22 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	painter.setRenderHint(QPainter::Antialiasing);
 	painter.setRenderHint(QPainter::HighQualityAntialiasing);
 	painter.beginNativePainting();
+	glClearColor(settings.backgroundColor.redF(), settings.backgroundColor.greenF(), settings.backgroundColor.blueF(), settings.backgroundColor.alphaF());
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();
-	if (m_visiblePlots.size() < 2) {
+	if (m_visiblePlots.size() < 2)
+	{
 		painter.drawText(geometry(), Qt::AlignCenter | Qt::AlignVCenter, "Too few parameters selected!");
 		return;
 	}
 	QFontMetrics fm = painter.fontMetrics();
-	//collect info
+	
+	// collect tick labels text and positions:
 	QList<double> ticksX, ticksY; QList<QString> textX, textY;
-
-	//here should be given the ticks info
-	int j = 0;
-	//without diagonal elements
 	for (int i = 0; i < m_visiblePlots.size() -1; ++i)
-	{
-						//y   //x
-			m_visiblePlots[i+1][i]->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
+	{                //y  //x
+		m_visiblePlots[i+1][i]->printTicksInfo(&ticksX, &ticksY, &textX, &textY);
 	}
-
-	//hier sind alle Parameter drin
-	auto x = this->m_splomData->paramNames();
-
-	//TODO PRINT coordinates info
-
 	int maxTickLabelWidth = getMaxTickLabelWidth(textX, fm);
 	if (settings.tickOffsets.x() != maxTickLabelWidth || settings.tickOffsets.y() != maxTickLabelWidth)
 	{
@@ -669,14 +863,12 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	{
 		foreach( iAScatterPlot * s, row )
 		{
-			if( !s )
-				continue;
-			s->paintOnParent( painter );
+			if( s )
+				s->paintOnParent( painter );
 		}
 	}
 	if( m_maximizedPlot )
 		m_maximizedPlot->paintOnParent( painter );
-
 	drawPopup( painter );
 }
 
@@ -787,7 +979,11 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 void iAQSplom::resizeEvent( QResizeEvent * event )
 {
 	updateSPLOMLayout();
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QOpenGLWidget::resizeEvent( event );
+#else
 	QGLWidget::resizeEvent( event );
+#endif
 }
 
 void iAQSplom::updatePlotGridParams()
@@ -797,11 +993,17 @@ void iAQSplom::updatePlotGridParams()
 		height() - settings.tickOffsets.y() };
 	long visParamCnt = getVisibleParametersCount();
 	int spc = settings.plotsSpacing;
-	int wSz[2] = {
+	m_scatPlotSize = QPoint(
 		static_cast<int>(( plotsRect[0] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
-		static_cast<int>(( plotsRect[1] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt )),
-	};
-	m_scatPlotSize = QPoint( wSz[0], wSz[1] );
+		static_cast<int>(( plotsRect[1] - ( visParamCnt - 1 ) * spc - ((m_separationIdx != -1) ? settings.separationMargin : 0) ) / ( (double)visParamCnt ))
+	);
+	if (settings.quadraticPlots)
+	{
+		if (m_scatPlotSize.x() < m_scatPlotSize.y())
+			m_scatPlotSize.setY(m_scatPlotSize.x());
+		else
+			m_scatPlotSize.setX(m_scatPlotSize.y());
+	}
 }
 
 QRect iAQSplom::getPlotRectByIndex( int x, int y )
@@ -873,34 +1075,25 @@ void iAQSplom::updateSPLOMLayout()
 		}
 		QRect rect = getPlotRectByIndex(yind, yind);
 		if (settings.histogramVisible)
-			m_histograms[yind]->setGeometry(rect);
+			m_histograms[ m_visibleIndices[yind] ]->setGeometry(rect);
 	}
 	updateMaxPlotRect();
 }
 
 void iAQSplom::updateVisiblePlots()
 {
+	m_visibleIndices.clear();
 	removeMaxPlotIfHidden();
 	m_visiblePlots.clear();
-	for (auto histo : m_histograms)
-		delete histo;
-	m_histograms.clear();
-	unsigned long numParams = m_splomData->numParams();
-	for( unsigned long y = 0; y < numParams; ++y )
+	for( size_t y = 0; y < m_splomData->numParams(); ++y )
 	{
+		m_histograms[y]->setVisible(settings.histogramVisible && m_paramVisibility[y]);
+
 		if( !m_paramVisibility[y] )
 			continue;
 
-		if (settings.histogramVisible)
-		{
-			m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
-			auto histogramData = iAHistogramData::Create(m_splomData->data()[y], settings.histogramBins);
-			auto histogramPlot = QSharedPointer<iABarGraphDrawer>(new iABarGraphDrawer(histogramData,QColor(70, 70, 70, 255)));
-			m_histograms[m_histograms.size()-1]->AddPlot(histogramPlot);
-			m_histograms[m_histograms.size()-1]->show();
-		}
 		QList<iAScatterPlot*> row;
-		for( unsigned long x = 0; x < numParams; ++x )
+		for( size_t x = 0; x < m_splomData->numParams(); ++x )
 		{
 			if( !m_paramVisibility[x] )
 				continue;
@@ -910,6 +1103,7 @@ void iAQSplom::updateVisiblePlots()
 			row.push_back( plot );
 		}
 		m_visiblePlots.push_back( row );
+		m_visibleIndices.push_back(y);
 	}
 	updateSPLOMLayout();
 }
@@ -1049,28 +1243,27 @@ void iAQSplom::drawVisibleParameters(QPainter &painter)
 	}
 
 	//getting x positions
-	setSPMLabels(ind_Vis, ind_Vis.length(), painter, false);
-	setSPMLabels(ind_Vis, ind_Vis.length(), painter, true);
+	drawPlotLabels(ind_Vis, ind_Vis.length(), painter, false);
+	drawPlotLabels(ind_Vis, ind_Vis.length(), painter, true);
 }
 
-void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPainter & painter, bool switchTO_YRow)
+void iAQSplom::drawPlotLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPainter & painter, bool switchTO_YRow)
 {
-	QString currentParam = "";
 	QRect currentRect;
-	ulong currIdx = 0;
 
 	int width;
 	int height = 0;
 	int top = 0;
 	int loopLength = 0;
-	int axisIdx = 0;
 	int textwidth = 0;
-	int textHeight = 0;
+	int textHeight = painter.fontMetrics().height();
 
 	loopLength = ind_Elements.length();
 
-	for (axisIdx; axisIdx < loopLength; axisIdx++)
+	for (int axisIdx = 0; axisIdx < loopLength; axisIdx++)
 	{
+		ulong currIdx = ind_Elements[axisIdx];
+		QString currentParamName = m_splomData->parameterName(currIdx);
 		if (switchTO_YRow) 
 		{
 			currentRect = getPlotRectByIndex(0, axisIdx);
@@ -1082,17 +1275,12 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 			currentRect = getPlotRectByIndex(/*ind_VisX[*/axisIdx/*]*/, 0/*axisOffSet - 1*/);
 			top = 0 + TextPadding;
 			currentRect.setTop(top);
+			currentRect.setHeight(painter.fontMetrics().height());
 		}
 
-		//currentRect.W
-		currIdx = ind_Elements[axisIdx];
-		currentParam = m_splomData->parameterName(currIdx);
 		if (switchTO_YRow) 
 		{
-
 			textwidth = currentRect.height();
-			textHeight = painter.fontMetrics().height();
-
 			QPoint pos_center;
 			pos_center.setX(currentRect.top() + textwidth / 2);
 			pos_center.setY(-(TextPadding + textHeight / 2));
@@ -1102,13 +1290,12 @@ void iAQSplom::setSPMLabels(QVector<ulong> &ind_Elements, int axisOffSet, QPaint
 
 			currentRect.setTopLeft(QPoint(-textwidth / 2, -textHeight / 2));
 			currentRect.setSize(QSize(textwidth, textHeight));
-			painter.drawText(currentRect, Qt::AlignCenter | Qt::AlignTop, currentParam);
+			painter.drawText(currentRect, Qt::AlignCenter | Qt::AlignTop, currentParamName);
 			painter.restore();
 		}
 		else
 		{
-
-			painter.drawText(currentRect, Qt::AlignHCenter, currentParam);
+			painter.drawText(currentRect, Qt::AlignHCenter, currentParamName);
 		}
 	}
 }

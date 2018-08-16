@@ -29,7 +29,11 @@
 #include <QAbstractTextDocumentLayout>
 #include <QColor>
 #include <QDebug>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QOpenGLBuffer>
+#else
 #include <QGLBuffer>
+#endif
 #include <qmath.h>
 #include <QPainter>
 #include <QPen>
@@ -58,12 +62,18 @@ iAScatterPlot::Settings::Settings() :
 	tickLabelColor( QColor( 100, 100, 100 ) ),
 	backgroundColor( QColor( 255, 255, 255 ) ),
 	selectionColor( QColor(0, 0, 0) ),
-	selectionMode(Polygon)
+	selectionMode(Polygon),
+	selectionEnabled(true),
+	showPCC(false)
 {}
 
 size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QOpenGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
+#else
 iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
+#endif
 	:QObject(parent),
 	settings(),
 	m_parentWidget(parent),
@@ -79,7 +89,8 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	m_pointsBuffer( 0 ),
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false ),
-	m_colInd( 0 )
+	m_colInd( 0 ),
+	m_pcc( 0 )
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
@@ -91,9 +102,10 @@ void iAScatterPlot::setData( int x, int y, QSharedPointer<iASPLOMData> &splomDat
 {
 	m_paramIndices[0] = x; m_paramIndices[1] = y;
 	m_splomData = splomData;
+	m_pcc = pearsonsCorrelationCoefficient(m_splomData->paramData(m_paramIndices[0]), m_splomData->paramData(m_paramIndices[1]));
 	if ( !hasData() )
 		return;
-	calculateRanges();
+	applyMarginToRanges();
 	updateGrid();
 	createAndFillVBO();
 }
@@ -110,19 +122,10 @@ void iAScatterPlot::updatePoints()
 	createAndFillVBO();
 }
 
-void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, QString const & colorArrayName )
+void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, int colInd )
 {
+	m_colInd = colInd;
 	m_lut = lut;
-	//qDebug() << colorArrayName;
-	for ( unsigned long i = 0; i < m_splomData->numParams(); ++i )
-	{
-		//qDebug() << m_splomData->parameterName( i );
-		if (m_splomData->parameterName(i) == colorArrayName)
-		{
-			m_colInd = i;
-			break;
-		}
-	}
 	createAndFillVBO();
 }
 
@@ -246,6 +249,11 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	if (m_isMaximizedPlot)
 		drawSelectionPolygon( painter );
 	drawBorder( painter );
+	if (settings.showPCC)
+	{
+		painter.setPen(QColor(0, 0, 0));
+		painter.drawText( QRect(0, 0, m_globRect.width(), m_globRect.height()), Qt::AlignCenter | Qt::AlignVCenter, QString::number(m_pcc));
+	}
 	painter.restore();
 }
 
@@ -297,7 +305,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		emit transformModified( m_scale, deltaOffset );
 	}
 
-	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton ) // selection
+	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled ) // selection
 	{
 		if (settings.selectionMode == Polygon)
 		{
@@ -322,7 +330,7 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 {
 	QPoint locPos = getLocalPos( event->pos() );
 	m_prevPos = locPos;
-	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton )//selection
+	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled)//selection
 	{
 		if (settings.selectionMode == Rectangle)
 		{
@@ -337,7 +345,7 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 
 void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 {
-	if (m_isMaximizedPlot && event->button() == Qt::LeftButton )//selection
+	if (m_isMaximizedPlot && event->button() == Qt::LeftButton && settings.selectionEnabled)//selection
 	{
 		bool append = ( event->modifiers() & Qt::ShiftModifier ) ? true : false;
 		updateSelectedPoints( append ); //selection
@@ -353,7 +361,7 @@ int iAScatterPlot::p2binx( double p ) const
 
 double iAScatterPlot::p2tx( double pval ) const
 {
-	double norm = mapToNorm( m_prX, pval);
+	double norm = mapToNorm(m_prX, pval);
 	if (m_splomData->isInverted(m_paramIndices[0]))
 		norm = 1.0 - norm;
 	return norm;
@@ -362,7 +370,7 @@ double iAScatterPlot::p2tx( double pval ) const
 double iAScatterPlot::p2x( double pval ) const
 {
 	double rangeDst[2] = { m_locRect.left(), m_locRect.right() };
-	double pixelX = mapValue(m_prX, rangeDst, pval);
+	double pixelX = mapValue( m_prX, rangeDst, pval);
 	if (m_splomData->isInverted(m_paramIndices[0]))
 		pixelX = invertValue(rangeDst, pixelX);
 	return applyTransformX(pixelX);
@@ -456,24 +464,12 @@ void iAScatterPlot::updateGrid()
 		m_pointsGrid[binInd].push_back( i );
 	}
 }
-
-void iAScatterPlot::calculateRanges()
+void iAScatterPlot::applyMarginToRanges()
 {
-	m_prX[0] = m_prX[1] = m_splomData->paramData( m_paramIndices[0] )[0];
-	m_prY[0] = m_prY[1] = m_splomData->paramData( m_paramIndices[1] )[0];
-	for ( unsigned long i = 1; i < m_splomData->numPoints(); ++i )
-	{
-		double x = m_splomData->paramData( m_paramIndices[0] )[i];
-		double y = m_splomData->paramData( m_paramIndices[1] )[i];
-		if ( x < m_prX[0] )
-			m_prX[0] = x;
-		if ( x > m_prX[1] )
-			m_prX[1] = x;
-		if ( y < m_prY[0] )
-			m_prY[0] = y;
-		if ( y > m_prY[1] )
-			m_prY[1] = y;
-	}
+	m_prX[0] = m_splomData->paramRange(m_paramIndices[0])[0];
+	m_prX[1] = m_splomData->paramRange(m_paramIndices[0])[1];
+	m_prY[0] = m_splomData->paramRange(m_paramIndices[1])[0];
+	m_prY[1] = m_splomData->paramRange(m_paramIndices[1])[1];
 	if ( m_prX[0] == m_prX[1] )
 	{
 		m_prX[0] -= 0.1; m_prX[1] += 0.1;
@@ -482,17 +478,11 @@ void iAScatterPlot::calculateRanges()
 	{
 		m_prY[0] -= 0.1; m_prY[1] += 0.1;
 	}
-	applyMarginToRanges();
-	calculateNiceSteps();
-}
-
-void iAScatterPlot::applyMarginToRanges()
-{
-	//apply margins to ranges
 	double rM = settings.rangeMargin;
 	double prLenX = m_prX[1] - m_prX[0], prLenY = m_prY[1] - m_prY[0];
 	m_prX[0] -= rM * prLenX; m_prX[1] += rM * prLenX;
 	m_prY[0] -= rM * prLenY; m_prY[1] += rM * prLenY;
+	calculateNiceSteps();
 }
 
 void iAScatterPlot::calculateNiceSteps()
@@ -596,7 +586,7 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 				double x = p2x( m_splomData->paramData( m_paramIndices[0] )[ptIdx] );
 				double y = p2y( m_splomData->paramData( m_paramIndices[1] )[ptIdx] );
 				double dist = pow( x - mpos.x(), 2 ) + pow( y - mpos.y(), 2 );
-				if ( dist < minDist )//if( dist <= m_pointRadius*m_pointRadius )
+				if ( dist < minDist && m_splomData->matchesFilter(ptIdx) )
 				{
 					minDist = dist;
 					res = ptIdx;
@@ -639,6 +629,8 @@ void iAScatterPlot::updateSelectedPoints(bool append)
 				auto const & pts = m_pointsGrid[getBinIndex(binx, biny)];
 				for(auto i: pts)
 				{
+					if (!m_splomData->matchesFilter(i))
+						continue;
 					QPointF pt(m_splomData->paramData(m_paramIndices[0])[i], m_splomData->paramData(m_paramIndices[1])[i]);
 					if (pPoly.containsPoint(pt, Qt::OddEvenFill))
 					{
@@ -892,7 +884,11 @@ void iAScatterPlot::createAndFillVBO()
 		m_pointsBuffer->destroy();
 		delete m_pointsBuffer;
 	}
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	m_pointsBuffer = new QOpenGLBuffer( QOpenGLBuffer::VertexBuffer );
+#else
 	m_pointsBuffer = new QGLBuffer( QGLBuffer::VertexBuffer );
+#endif
 	if ( !m_pointsBuffer->create() )//TODO: exceptions?
 		return;
 	if ( m_splomData && m_lut->initialized() )
@@ -909,12 +905,15 @@ void iAScatterPlot::fillVBO()
 	//draw data points
 	if ( !hasData() )
 		return;
+	// TODO: adapt sizes to filter!
 	size_t vcount = 3 * m_splomData->numPoints();
 	size_t ccount = 4 * m_splomData->numPoints();
 	int elSz = 7;
 	GLfloat * buffer = new GLfloat[vcount + ccount];
 	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
 	{
+		if (!m_splomData->matchesFilter(i))
+			continue;
 		double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[i] );
 		double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[i] );
 		buffer[elSz * i + 0] = tx;
@@ -950,4 +949,9 @@ double iAScatterPlot::getPointRadius() const
 void iAScatterPlot::setPointRadius(double radius)
 {
 	settings.pointRadius = radius;
+}
+
+void iAScatterPlot::runFilter()
+{
+	createAndFillVBO();
 }

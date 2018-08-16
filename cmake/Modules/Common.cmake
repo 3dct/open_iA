@@ -301,8 +301,8 @@ ELSEIF (UNIX)
 	IF(ITK_VERSION_MAJOR LESS 5 AND ITK_VERSION_MINOR LESS 11)
 		SET(EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkhdf5_cpp itkhdf5)
 	ENDIF()
-	# But they are required again for ITK 4.12, yet here they are the only libraries without the version suffix:
-	IF (ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 11)
+	# They are required again only for ITK 4.12, yet here they are the only libraries without the version suffix:
+	IF (ITK_VERSION_MAJOR EQUAL 4 AND ITK_VERSION_MINOR EQUAL 12)
 		SET (SPECIAL_ITK_LIBS  itkhdf5_cpp itkhdf5)
 		FOREACH (SPECIAL_ITK_LIB ${SPECIAL_ITK_LIBS})
 			IF (EXISTS ${ITK_LIB_DIR}/lib${SPECIAL_ITK_LIB}.so.1)

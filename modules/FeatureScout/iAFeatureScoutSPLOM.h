@@ -20,53 +20,44 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iAChartWidget.h"
+#include <QList>
+#include <QObject>
 
-#include "iAValueType.h"
+#include <vector>
 
-class iAParamHistogramData;
-class iANameMapper;
+#include <cstddef>    // for size_t
 
-class iAFilterChart: public iAChartWidget
+class iAQSplom;
+
+class vtkTable;
+
+class QColor;
+class QDockWidget;
+
+class iAFeatureScoutSPLOM: public QObject
 {
 	Q_OBJECT
 public:
-	iAFilterChart(QWidget* parent,
-		QString const & caption,
-		QSharedPointer<iAParamHistogramData> data,
-		QSharedPointer<iANameMapper> nameMapper,
-		bool showCaption = false);
-	double mapBinToValue(double bin) const;
-	double mapValueToBin(double value) const;
-	QSharedPointer<iAPlot> GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color);
-	void RemoveMarker();
-	void SetMarker(double value);
-	virtual iAValueType GetRangeType() const;
-	double GetMinVisibleBin() const;
-	double GetMaxVisibleBin() const;
-	void SetBinColor(int bin, QColor const & color);
-	double GetMinSliderPos();
-	double GetMaxSliderPos();
-	void SetMinMaxSlider(double min, double max);
+	iAFeatureScoutSPLOM();
+	~iAFeatureScoutSPLOM();
+	void initScatterPlot(QDockWidget* container, vtkTable* csvTable, std::vector<bool> const & columnVisibility);  //!< initialize SPLOM and show in given container
+	void updateColumnVisibility(std::vector<bool> const & columnVisibility); //!< update column visibility
+	void setDotColor(QColor const & color);                            //!< set color for all SPLOM dots (TODO: move range calculations to iASplomData!)
+	void setFilter(int classID);                                       //!< specify a filter on class column
+	void multiClassRendering(QList<QColor> const & colors);            //!< colors each dot according to its class
+	void setFilteredSelection(std::vector<size_t> const & selection);  //!< set filtered selection in SPLOM
+	void classAdded(int classID);                                      //!< notifies SPLOM that class was added of current selection
+	void classDeleted(int classID);                                    //!< notifies SPLOM that class was deleted
+	void changeClass(size_t objID, int classID);                       //!< set class of single object to given ID
+	void classesChanged();
+	std::vector<size_t> getFilteredSelection() const;                  //!< proxy for getFilteredSelection in SPLOM
+	bool isShown() const;
+	void clearSelection();
+	void enableSelection(bool enable);
 signals:
-	void selectionChanged();
-protected:
-	void drawAxes(QPainter& painter) override;
-	void contextMenuEvent(QContextMenuEvent *event) override;
-	void mousePressEvent( QMouseEvent *event ) override;
-	void mouseReleaseEvent( QMouseEvent *event ) override;
-	void mouseMoveEvent( QMouseEvent *event ) override;
+	void selectionModified(std::vector<size_t>);
+	void addClass();
 private:
-	QString getXAxisTickMarkLabel(double value, double stepWidth) override;
-	int value2X(double value) const;
-	double x2value(int x) const;
-	void drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush);
-
-	QSharedPointer<iAParamHistogramData> m_data;
-	QSharedPointer<iANameMapper> m_nameMapper;
-	double m_markedLocation;
-	QVector<QColor> m_binColors;
-	double m_minSliderPos, m_maxSliderPos;
-	int m_selectedHandle;
-	int m_selectionOffset;
+	iAQSplom * matrix;
+	bool selectionEnabled;
 };

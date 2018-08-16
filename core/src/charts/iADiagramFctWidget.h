@@ -65,15 +65,15 @@ public:
 
 	int getSelectedFuncPoint() const;
 	bool isFuncEndPoint(int index) const;
-	int ChartHeight() const;
+	int chartHeight() const;
 
-	void SetTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
+	void setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 
 	dlg_function *getSelectedFunction();
 	std::vector<dlg_function*> &getFunctions();
 
-	void SetAllowTrfReset(bool allow);
-	void SetEnableAdditionalFunctions(bool enable);
+	void setAllowTrfReset(bool allow);
+	void setEnableAdditionalFunctions(bool enable);
 
 	bool isTFTableCreated() const;
 	void closeTFTable();
@@ -88,8 +88,8 @@ protected:
 	void mouseDoubleClickEvent(QMouseEvent *event);
 	void enterEvent(QEvent *event);
 	void keyPressEvent(QKeyEvent *event);
-	void AddContextMenuEntries(QMenu* contextMenu) override;
-	virtual void changeMode(int newMode, QMouseEvent *event) override;
+	void addContextMenuEntries(QMenu* contextMenu) override;
+	void changeMode(int newMode, QMouseEvent *event) override;
 
 	MdiChild*      activeChild;
 	std::vector<dlg_function*> functions;
@@ -101,7 +101,7 @@ signals:
 	void endPointSelected();
 	void active();
 	void applyTFForAll();
-	void DblClicked();
+	void dblClicked();
 	void updateTFTable();
 
 public slots:
@@ -119,7 +119,7 @@ public slots:
 	bool saveFunctions();
 	void removeFunction();
 	void showTFTable();
-	void TFTableIsFinished();
+	void tfTableIsFinished();
 
 protected:
 	virtual void drawFunctions(QPainter &painter);
@@ -128,6 +128,6 @@ private:
 	bool m_allowTrfReset;
 	bool m_enableAdditionalFunctions;
 	dlg_TFTable* TFTable;
-	void NewTransferFunction();
-	void DrawAfterPlots(QPainter& painter) override;
+	void newTransferFunction();
+	void drawAfterPlots(QPainter& painter) override;
 };

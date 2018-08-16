@@ -18,55 +18,39 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iA3DCylinderObjectVis.h"
 
-#include "charts/iAChartWidget.h"
+#include "iACsvConfig.h"
 
-#include "iAValueType.h"
+#include <vtkDoubleArray.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPointData.h>
+#include <vtkTable.h>
+#include <vtkTubeFilter.h>
 
-class iAParamHistogramData;
-class iANameMapper;
 
-class iAFilterChart: public iAChartWidget
+iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+	QColor const & color, int numberOfCylinderSides ):
+	iA3DLineObjectVis( widget, objectTable, columnMapping, color )
 {
-	Q_OBJECT
-public:
-	iAFilterChart(QWidget* parent,
-		QString const & caption,
-		QSharedPointer<iAParamHistogramData> data,
-		QSharedPointer<iANameMapper> nameMapper,
-		bool showCaption = false);
-	double mapBinToValue(double bin) const;
-	double mapValueToBin(double value) const;
-	QSharedPointer<iAPlot> GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color);
-	void RemoveMarker();
-	void SetMarker(double value);
-	virtual iAValueType GetRangeType() const;
-	double GetMinVisibleBin() const;
-	double GetMaxVisibleBin() const;
-	void SetBinColor(int bin, QColor const & color);
-	double GetMinSliderPos();
-	double GetMaxSliderPos();
-	void SetMinMaxSlider(double min, double max);
-signals:
-	void selectionChanged();
-protected:
-	void drawAxes(QPainter& painter) override;
-	void contextMenuEvent(QContextMenuEvent *event) override;
-	void mousePressEvent( QMouseEvent *event ) override;
-	void mouseReleaseEvent( QMouseEvent *event ) override;
-	void mouseMoveEvent( QMouseEvent *event ) override;
-private:
-	QString getXAxisTickMarkLabel(double value, double stepWidth) override;
-	int value2X(double value) const;
-	double x2value(int x) const;
-	void drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush);
-
-	QSharedPointer<iAParamHistogramData> m_data;
-	QSharedPointer<iANameMapper> m_nameMapper;
-	double m_markedLocation;
-	QVector<QColor> m_binColors;
-	double m_minSliderPos, m_maxSliderPos;
-	int m_selectedHandle;
-	int m_selectionOffset;
-};
+	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
+	tubeRadius->SetName("TubeRadius");
+	tubeRadius->SetNumberOfTuples(objectTable->GetNumberOfRows()*2);
+	for (vtkIdType row = 0; row < objectTable->GetNumberOfRows(); ++row)
+	{
+		double diameter = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::Diameter)).ToDouble();
+		tubeRadius->SetTuple1(row*2,   diameter/2);
+		tubeRadius->SetTuple1(row*2+1, diameter/2);
+	}
+	m_linePolyData->GetPointData()->AddArray(tubeRadius);
+	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
+	auto tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
+	tubeFilter->SetInputData(m_linePolyData);
+	tubeFilter->CappingOn();
+	tubeFilter->SidesShareVerticesOff();
+	tubeFilter->SetNumberOfSides(numberOfCylinderSides);
+	tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
+	tubeFilter->Update();
+	m_mapper->SetInputConnection(tubeFilter->GetOutputPort());
+}

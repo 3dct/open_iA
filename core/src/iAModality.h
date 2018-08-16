@@ -142,13 +142,26 @@ private:
 };
 
 
+class iAStatisticsUpdater : public QThread
+{
+Q_OBJECT
+	void run() override;
+signals:
+	void StatisticsReady(int modalityIdx);
+private:
+	int m_modalityIdx;
+	QSharedPointer<iAModality> m_modality;
+public:
+	iAStatisticsUpdater(int modalityIdx, QSharedPointer<iAModality> modality);
+};
+
+
 //! class for updating the histogram of a modality
 class iAHistogramUpdater : public QThread
 {
 Q_OBJECT
 	void run() override;
 signals:
-	void StatisticsReady(int modalityIdx);
 	void HistogramReady(int modalityIdx);
 private:
 	int m_modalityIdx;

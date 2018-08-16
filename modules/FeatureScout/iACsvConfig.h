@@ -39,7 +39,15 @@ struct FeatureScout_API iACsvConfig
 		Length, Diameter,
 		Phi, Theta,
 		MappedCount
-	}; // must be the ame order as dlg_CSVInput::m_mappingBoxes!
+	}; //!< must be the ame order as dlg_CSVInput::m_mappingBoxes!
+	enum VisualizationType
+	{
+		UseVolume,
+		Lines,
+		Cylinders,
+		Ellipses,
+		VisTypeCount
+	}; //!< what visualization to use for the objects. Should match the entries in CsvInput.ui
 	static const int LegacyFormatStartSkipLines = 5;
 	iACsvConfig();
 	bool isValid(QString & errorMsg) const;
@@ -57,9 +65,12 @@ struct FeatureScout_API iACsvConfig
 	QStringList currentHeaders;             //!< current headers of the table
 	QStringList selectedHeaders;            //!< names of the selected headers
 	bool computeLength, computeAngles, computeTensors, computeCenter;  //!< flags whether to compute additional columns
-	bool useVolumeData;                     //! whether the given format expects volume data to be loaded or not
-	QMap<uint, uint> columnMapping;      //! map a specific value (denoted by an ID from MappedColumn) to the number of the column where it's stored
+	VisualizationType visType;              //! how to visualize the given objects
+	QMap<uint, uint> columnMapping;         //! map a specific value (denoted by an ID from MappedColumn) to the number of the column where it's stored
 
 	static iACsvConfig const & getLegacyFiberFormat(QString const & fileName);
 	static iACsvConfig const & getLegacyPoreFormat(QString const & fileName);
 };
+
+QString MapVisType2Str(iACsvConfig::VisualizationType visType);
+iACsvConfig::VisualizationType MapStr2VisType(QString name);

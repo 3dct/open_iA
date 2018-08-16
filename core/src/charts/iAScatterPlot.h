@@ -22,9 +22,13 @@
 
 #include "open_iA_Core_export.h"
 
-#include <QGLWidget>
 #include <QList>
-#include <QOpenGLFramebufferObject>
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QOpenGLWidget>
+#else
+#include <QGLWidget>
+#endif
 #include <QScopedPointer>
 #include <QWidget>
 
@@ -33,7 +37,11 @@ class iAScatterPlotSelectionHandler;
 class iASPLOMData;
 class QTableWidget;
 class QTimer;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class QOpenGLBuffer;
+#else
 class QGLBuffer;
+#endif
 class vtkLookupTable;
 
 //! Represents a single scatter plot in the scatter plot matrix (SPLOM).
@@ -55,13 +63,17 @@ public:
 		Polygon
 	};
 	//!  Constructor: requires a parent SPLOM widget
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	iAScatterPlot(iAScatterPlotSelectionHandler * splom, QOpenGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
+#else
 	iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
+#endif
 	~iAScatterPlot();
 
 	void setData( int x, int y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
 	bool hasData() const;                                            //!< Check if data is already set to the plot
 	//! Set color lookup table and the name of a color-coded parameter
-	void setLookupTable( QSharedPointer<iALookupTable> &lut, QString const & colorArrayName );
+	void setLookupTable( QSharedPointer<iALookupTable> &lut, int colInd );
 	const int * getIndices() const { return m_paramIndices; }        //!< Get indices of X and Y parameters
 	void setTransform( double scale, QPointF newOffset );            //!< Set new transform: new scale and new offset
 	void setTransformDelta( double scale, QPointF deltaOffset );     //!< Set new transform: new scale and change in the offset (delta)
@@ -84,6 +96,8 @@ public:
 	void leave();                                                    //!< Mouse is hovering over the plot's rectangle
 	void enter();                                                    //!< Mouse entered the plot's rectangle
 	void updatePoints();
+	void runFilter();
+	void applyMarginToRanges();                                      //!< Apply margins to ranges so that points are not stretched border-to-border
 
 	//! @{ Qt events are redirected from SPLOM to the active plot using these public event handlers
 	void SPLOMWheelEvent( QWheelEvent * event );
@@ -108,8 +122,6 @@ protected:
 	double revertTransformY( double v ) const;                       //!< Revert scaling and offset to get Y coordinate
 	void initGrid();                                                 //!< Allocate lists for grid subdivision ( for point-picking acceleration)
 	void updateGrid();                                               //!< Fill subdivision grid with points ( for point-picking acceleration)
-	void calculateRanges();                                          //!< Compute parameter ranges
-	void applyMarginToRanges();                                      //!< Apply margins to ranges so that points are not stretched border-to-border
 	void calculateNiceSteps();                                       //!< Calculates nice steps displayed parameter ranges
 	void calculateNiceSteps( double * r, QList<double> * ticks );    //!< Calculates nice steps displayed parameter ranges given a range and a desired number of ticks
 	int getBinIndex( int x, int y ) const;                           //!< Get global grid bin offset (index) using X and Y bin indices
@@ -125,7 +137,6 @@ protected:
 	void drawMaximizedLabels( QPainter &painter );                   //!< Draws additional plot's labels (only maximized plot)
 	void drawSelectionPolygon( QPainter &painter );                  //!< Draws selection-lasso polygon
 	void drawPoints( QPainter &painter );                            //!< Draws plot's points (uses native OpenGL)
-	//void drawMaximizeButton( QPainter & painter );                 //!< Draws plot's maximized button (only active plot)
 	void createAndFillVBO();                                         //!< Creates and fills VBO with plot's 2D-points.
 	void fillVBO();                                                  //!< Fill existing VBO with plot's 2D-points.
 
@@ -165,19 +176,26 @@ public:
 		QColor backgroundColor;
 		QColor selectionColor;
 		SelectionMode selectionMode;
+		bool selectionEnabled;
+		bool showPCC;
 	};
 
 	// Members
 	Settings settings;
 protected:
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QOpenGLWidget* m_parentWidget;                                   //!< the parent widget
+	QOpenGLBuffer * m_pointsBuffer;                                  //!< OpenGL buffer used for points VBO
+#else
 	QGLWidget* m_parentWidget;                                       //!< the parent widget
+	QGLBuffer * m_pointsBuffer;                                      //!< OpenGL buffer used for points VBO
+#endif
 	iAScatterPlotSelectionHandler * m_splom;                         //!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
 	QRect m_globRect;                                                //!< plot's rectangle
 	QRectF m_locRect;                                                //!< plot's local drawing rectangle
 	QSharedPointer<iASPLOMData> m_splomData;                         //!< pointer to SPLOM-parent's data
 	int m_paramIndices[2];                                           //!< indices of plot X, Y parameters
-	double m_prX[2];                                                 //!< range of X parameter
-	double m_prY[2];                                                 //!< range of Y parameter
+	double m_prX[2], m_prY[2];                                       //!< range of x and y parameter
 	int m_colInd;                                                    //!< index of color-coded parameter
 	QSharedPointer<iALookupTable> m_lut;                             //!< pointer to SPLOM-parent's lookup table
 	QRectF m_maxBtnRect;                                             //!< rectangle of maximized button
@@ -197,11 +215,11 @@ protected:
 	size_t m_prevPtInd;                                              //!< index of point selected before (NoPointIndex if none, but keeps point index even if no point was selected in between)
 	size_t m_prevInd;                                                //!< index of previously selected point (NoPointIndex if none)
 	size_t m_curInd;                                                 //!< index of currently selected point (NoPointIndex if none)
-	QGLBuffer * m_pointsBuffer;                                      //!< OpenGL buffer used for points VBO
 	//selection polygon
 	QPolygon m_selPoly;                                              //!< polygon of selection lasso
 	QPoint m_selStart;                                               //!< point where the selection started
 	//state flags
 	bool m_isMaximizedPlot;                                          //!< flag telling if this plot itself is maximized (bigger plot)
 	bool m_isPreviewPlot;                                            //!< flag telling if a large version of this plot is shown maximized currently
+	double m_pcc;                                                    //!< correlation coefficient between the two given data columns
 };

@@ -90,7 +90,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	auto containerLayout = new QGridLayout(container);
 	containerLayout->setObjectName("containerLayout");
 
-	for ( int i = 0; i < inList.size(); i++)
+	for ( int i = 0; i < inList.size(); ++i)
 	{
 		QString tStr = inList[i];
 		tStr.remove(0, 1);
@@ -143,15 +143,6 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 			case ';':
 				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::Folder);
 				break;
-			case '?':
-			{
-				label->setStyleSheet("background-color : lightGray");
-				QFont font = label->font();
-				font.setBold(true);
-				font.setPointSize(11);
-				label->setFont(font);
-				continue;
-			}
 			default:
 				eMessage->showMessage(QString("Unknown widget prefix '%1' for label \"%2\"").arg(inList[i][0]).arg(tStr));
 				continue;
@@ -248,7 +239,7 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 	QObjectList children = container->children();
 
 	int paramIdx = 0;
-	for ( int i = 0; i < children.size(); i++)
+	for ( int i = 0; i < children.size(); ++i)
 	{
 		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(children.at(i));
 		if (lineEdit)
@@ -322,7 +313,7 @@ void dlg_commoninput::showROI()
 		m_roi[i] = 0;
 		m_roi[i + 3] = m_sourceMdiChild->getImagePointer()->GetDimensions()[i];
 	}
-	for (int i = 0; i < children.size(); i++)
+	for (int i = 0; i < children.size(); ++i)
 	{
 		QSpinBox *input = dynamic_cast<QSpinBox*>(children.at(i));
 		if (input && (input->objectName().contains("Index") || input->objectName().contains("Size")))

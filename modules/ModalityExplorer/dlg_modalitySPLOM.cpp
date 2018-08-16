@@ -24,6 +24,7 @@
 #include "iAChannelVisualizationData.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
+#include "iAPerformanceHelper.h"
 #include "mdichild.h"
 
 #include <vtkColorTransferFunction.h>
@@ -137,9 +138,6 @@ void IteratePixels(vtkSmartPointer<vtkImageData> img, const int step[3], std::fu
 		}
 	}
 }
-
-#include "iAPerformanceHelper.h"
-
 
 void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 {

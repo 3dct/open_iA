@@ -37,5 +37,5 @@ public:
 	vtkSmartPointer<vtkTable> getTable();
 private:
 	vtkSmartPointer<vtkTable> m_table;   //!< output vtk table
-	// void debugTable(const bool useTabSeparator);
+	//void debugTable(const bool useTabSeparator); //! <debugTable)
 };

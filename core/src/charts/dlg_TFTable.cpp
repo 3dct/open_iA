@@ -45,8 +45,8 @@ public:
 
 dlg_TFTable::dlg_TFTable( iADiagramFctWidget * parent, dlg_function* func ) : dlg_TFTableWidgetConnector( parent ),
 	m_parent(parent),
-	m_oTF( dynamic_cast<dlg_transfer*>( func )->GetOpacityFunction() ),
-	m_cTF( dynamic_cast<dlg_transfer*>( func )->GetColorFunction() ),
+	m_oTF( dynamic_cast<dlg_transfer*>( func )->getOpacityFunction() ),
+	m_cTF( dynamic_cast<dlg_transfer*>( func )->getColorFunction() ),
 	m_newPointColor( Qt::gray )
 {
 	Init();
@@ -179,7 +179,7 @@ void dlg_TFTable::updateHistogram()
 		m_oTF->AddPoint( x, y );
 		m_cTF->AddRGBPoint( x, c.redF(), c.greenF(), c.blueF() );
 	}
-	m_parent->SetTransferFunctions( m_cTF, m_oTF );
+	m_parent->setTransferFunctions( m_cTF, m_oTF );
 }
 
 void dlg_TFTable::itemClicked( QTableWidgetItem * item )

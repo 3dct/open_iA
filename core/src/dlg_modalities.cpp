@@ -319,6 +319,11 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 	for (int i = 0; i<modalities->size(); ++i)
 	{
 		QSharedPointer<iAModality> mod = modalities->Get(i);
+		if (!mod->GetRenderer())
+		{
+			DEBUG_LOG(QString("Renderer for modality %1 not yet created. Please try again later!").arg(i));
+			continue;
+		}
 		mod->GetRenderer()->SetMovable(mod == currentData);
 	}
 	emit ModalitySelected(selectedRow);
@@ -354,12 +359,12 @@ int dlg_modalities::GetSelected() const
 
 vtkSmartPointer<vtkColorTransferFunction> dlg_modalities::GetCTF(int modality)
 {
-	return modalities->Get(modality)->GetTransfer()->GetColorFunction();
+	return modalities->Get(modality)->GetTransfer()->getColorFunction();
 }
 
 vtkSmartPointer<vtkPiecewiseFunction> dlg_modalities::GetOTF(int modality)
 {
-	return modalities->Get(modality)->GetTransfer()->GetOpacityFunction();
+	return modalities->Get(modality)->GetTransfer()->getOpacityFunction();
 }
 
 void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings)
