@@ -376,7 +376,7 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 
 	//draw the x axis
 	painter.setPen(QWidget::palette().color(QPalette::Text));
-	painter.drawLine(0, -1, (int)((activeWidth())*xZoom), -1);
+	painter.drawLine(-translationX, -1, -translationX + activeWidth(), -1);
 
 	if (m_showXAxisLabel)
 	{
