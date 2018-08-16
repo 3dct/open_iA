@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "FeatureScout_export.h"
+
 #include <QList>
 #include <QMap>
 #include <QSharedPointer>
@@ -44,7 +46,7 @@ class QStandardItem;
 
 //! Base class for 3D visualizations of objects (e.g. fibers or pores) defined in a table
 //! use the factory method create3DObjectVis to create a specific instance!
-class iA3DObjectVis
+class FeatureScout_API iA3DObjectVis
 {
 public:
 	static const QColor SelectedColor;

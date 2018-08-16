@@ -21,8 +21,9 @@
 #pragma once
 
 #include "iA3DLineObjectVis.h"
+#include "FeatureScout_export.h"
 
-class iA3DCylinderObjectVis: public iA3DLineObjectVis
+class FeatureScout_API iA3DCylinderObjectVis: public iA3DLineObjectVis
 {
 public:
 	static const int DefaultNumberOfCylinderSides = 12;

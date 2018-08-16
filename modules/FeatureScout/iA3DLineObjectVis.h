@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iA3DObjectVis.h"
+#include "FeatureScout_export.h"
 
 #include <vtkSmartPointer.h>
 
@@ -28,7 +29,7 @@ class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkUnsignedCharArray;
 
-class iA3DLineObjectVis: public iA3DObjectVis
+class FeatureScout_API iA3DLineObjectVis: public iA3DObjectVis
 {
 public:
 	iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
