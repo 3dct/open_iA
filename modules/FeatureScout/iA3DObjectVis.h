@@ -26,8 +26,14 @@
 
 #include <vector>
 
-class MdiChild;
-
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class QVTKOpenGLWidget;
+typedef QVTKOpenGLWidget iAVtkWidgetClass;
+#else
+class QVTKGLWidget2;
+typedef QVTKGLWidget2 iAVtkWidgetClass;
+#endif
 class vtkColorTransferFunction;
 class vtkFloatArray;
 class vtkImageData;
@@ -42,9 +48,9 @@ class iA3DObjectVis
 {
 public:
 	static const QColor SelectedColor;
-	iA3DObjectVis( MdiChild* mdi, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping);
-	virtual void show(int filterID, QString const & fileName);
+	iA3DObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping );
 	virtual ~iA3DObjectVis();
+	virtual void show();
 	virtual void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) =0;
 	virtual void renderSingle( int labelID, int classID, QColor const & classColor, QStandardItem* activeClassItem ) =0;
 	virtual void multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha ) =0;
@@ -54,9 +60,11 @@ protected:
 	QColor getOrientationColor( vtkImageData* oi, size_t objID ) const;
 	QColor getLengthColor( vtkColorTransferFunction* ctFun, size_t objID ) const;
 	void updateRenderer();
-	MdiChild* m_mdiChild;
+	iAVtkWidgetClass* m_widget;
 	vtkTable* m_objectTable;
 	QSharedPointer<QMap<uint, uint> > m_columnMapping;
 };
+
+class MdiChild;
 
 QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi, vtkTable* table, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor);

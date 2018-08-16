@@ -24,12 +24,11 @@
 
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
-class MdiChild;
 
 class iA3DLabelledVolumeVis: public iA3DObjectVis
 {
 public:
-	iA3DLabelledVolumeVis( MdiChild* mdi, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping );
+	iA3DLabelledVolumeVis( iAVtkWidgetClass* widget, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping );
 	void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
 	void renderSingle( int labelID, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
 	void multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha ) override;

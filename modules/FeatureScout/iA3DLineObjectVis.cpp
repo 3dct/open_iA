@@ -42,8 +42,8 @@ namespace
 	const size_t NoPointIdx = std::numeric_limits<size_t>::max();
 }
 
-iA3DLineObjectVis::iA3DLineObjectVis( MdiChild* mdi, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor ):
-	iA3DObjectVis(mdi, objectTable, columnMapping)
+iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor ):
+	iA3DObjectVis(widget, objectTable, columnMapping)
 {
 	m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	m_colors->SetNumberOfComponents(4);
@@ -88,13 +88,11 @@ iA3DLineObjectVis::iA3DLineObjectVis( MdiChild* mdi, vtkTable* objectTable, QSha
 	m_mapper->ScalarVisibilityOn();
 }
 
-void iA3DLineObjectVis::show(int filterID, QString const & fileName)
+void iA3DLineObjectVis::show()
 {
 	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(m_mapper);
-	m_mdiChild->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
-		.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
-	vtkRenderWindow* renWin = m_mdiChild->getRenderer()->GetRenderWindow();
+	vtkRenderWindow* renWin = m_widget->GetRenderWindow();
 	renWin->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 	renWin->GetRenderers()->GetFirstRenderer()->ResetCamera();
 }

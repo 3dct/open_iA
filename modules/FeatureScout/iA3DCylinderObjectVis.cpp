@@ -29,13 +29,10 @@
 #include <vtkTable.h>
 #include <vtkTubeFilter.h>
 
-namespace
-{
-	const int NumberOfCylinderSides = 12;
-}
 
-iA3DCylinderObjectVis::iA3DCylinderObjectVis( MdiChild* mdi, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color ):
-	iA3DLineObjectVis( mdi, objectTable, columnMapping, color )
+iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+	QColor const & color, int numberOfCylinderSides ):
+	iA3DLineObjectVis( widget, objectTable, columnMapping, color )
 {
 	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 	tubeRadius->SetName("TubeRadius");
@@ -52,7 +49,7 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis( MdiChild* mdi, vtkTable* objectTab
 	tubeFilter->SetInputData(m_linePolyData);
 	tubeFilter->CappingOn();
 	tubeFilter->SidesShareVerticesOff();
-	tubeFilter->SetNumberOfSides(NumberOfCylinderSides);
+	tubeFilter->SetNumberOfSides(numberOfCylinderSides);
 	tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
 	tubeFilter->Update();
 	m_mapper->SetInputConnection(tubeFilter->GetOutputPort());

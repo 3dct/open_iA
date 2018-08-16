@@ -32,11 +32,11 @@
 
 #include <QStandardItem>
 
-iA3DLabelledVolumeVis::iA3DLabelledVolumeVis( MdiChild* mdi, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping ):
-	iA3DObjectVis(mdi, objectTable, columnMapping)
+iA3DLabelledVolumeVis::iA3DLabelledVolumeVis( iAVtkWidgetClass* widget, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping ):
+	iA3DObjectVis(widget, objectTable, columnMapping),
+	cTF(color),
+	oTF(opac)
 {
-	oTF = mdi->getPiecewiseFunction();
-	cTF = mdi->getColorTransferFunction();
 }
 
 void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem )
@@ -214,7 +214,6 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 		oTF->AddPoint( m_objectTable->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
 		cTF->AddRGBPoint( m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 	}
-	m_mdiChild->updateViews();
 	updateRenderer();
 }
 
@@ -432,7 +431,7 @@ void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColo
 			cTF->AddRGBPoint(m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 		}
 	}
-	m_mdiChild->updateViews();
+	updateRenderer();
 }
 
 void iA3DLabelledVolumeVis::renderOrientationDistribution( vtkImageData* oi )

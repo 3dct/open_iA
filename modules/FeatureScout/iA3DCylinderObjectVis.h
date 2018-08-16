@@ -25,6 +25,8 @@
 class iA3DCylinderObjectVis: public iA3DLineObjectVis
 {
 public:
-	iA3DCylinderObjectVis( MdiChild* mdi, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
+	static const int DefaultNumberOfCylinderSides = 12;
+	iA3DCylinderObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+		QColor const & neutralColor, int numberOfCylinderSides = DefaultNumberOfCylinderSides);
 };
 

@@ -31,8 +31,8 @@ class vtkUnsignedCharArray;
 class iA3DLineObjectVis: public iA3DObjectVis
 {
 public:
-	iA3DLineObjectVis( MdiChild* mdi, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
-	void show(int filterID, QString const & fileName) override;
+	iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
+	void show() override;
 	void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
 	void renderSingle( int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem ) override;
 	void multiClassRendering( QList<QColor> const & colors, QStandardItem* rootItem, double alpha ) override;
