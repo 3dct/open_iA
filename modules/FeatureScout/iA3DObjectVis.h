@@ -31,8 +31,8 @@
 class QVTKOpenGLWidget;
 typedef QVTKOpenGLWidget iAVtkWidgetClass;
 #else
-class QVTKGLWidget2;
-typedef QVTKGLWidget2 iAVtkWidgetClass;
+class QVTKWidget2;
+typedef QVTKWidget2 iAVtkWidgetClass;
 #endif
 class vtkColorTransferFunction;
 class vtkFloatArray;
