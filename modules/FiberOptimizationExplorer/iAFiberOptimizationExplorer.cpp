@@ -46,9 +46,9 @@
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QScrollArea>
+#include <QSettings>
 #include <QSlider>
 #include <QTextStream>
-//#include <QVBoxLayout>
 
 class iAResultData
 {
@@ -75,6 +75,8 @@ namespace
 	}
 
 	const double MiddlePointShift = 74.5;
+
+	const QString ModuleSettingsKey("FiberOptimizationExplorer");
 }
 
 iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd):
@@ -82,6 +84,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_mainWnd(mainWnd),
 	m_timeStepCount(0)
 {
+	setMinimumSize(600, 400);
 	this->setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 
@@ -112,7 +115,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_renderManager->addToBundle(ren);
 	m_mainRenderer->SetRenderWindow(renWin);
 
-	int curLine = 0;
+	int resultID = 0;
 	for (QString csvFile : csvFileNames)
 	{
 		iACsvConfig config = getCsvConfig(csvFile);
@@ -133,16 +136,16 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		ren->SetBackground(1.0, 1.0, 1.0);
 		renWin->AddRenderer(ren);
 		resultData.m_vtkWidget->SetRenderWindow(renWin);
-		resultData.m_vtkWidget->setProperty("resultID", curLine);
+		resultData.m_vtkWidget->setProperty("resultID", resultID);
 
 		QCheckBox* toggleMainRender = new QCheckBox(QFileInfo(csvFile).fileName());
 		toggleMainRender->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-		toggleMainRender->setProperty("resultID", curLine);
-		resultsListLayout->addWidget(toggleMainRender, curLine, 0);
-		resultsListLayout->addWidget(resultData.m_vtkWidget, curLine, 1);
+		toggleMainRender->setProperty("resultID", resultID);
+		resultsListLayout->addWidget(toggleMainRender, resultID, 0);
+		resultsListLayout->addWidget(resultData.m_vtkWidget, resultID, 1);
 
 		resultData.m_mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
-				resultData.m_vtkWidget, tableCreator.getTable(), io.getOutputMapping(), m_colorTheme->GetColor(curLine)));
+				resultData.m_vtkWidget, tableCreator.getTable(), io.getOutputMapping(), m_colorTheme->GetColor(resultID)));
 		resultData.m_mini3DVis->show();
 		ren->ResetCamera();
 		resultData.m_resultTable = tableCreator.getTable();
@@ -243,7 +246,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 
 		}
 
-		++curLine;
+		++resultID;
 	}
 	QWidget* resultList = new QWidget();
 	resultList->setLayout(resultsListLayout);
@@ -270,6 +273,29 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	addDockWidget(Qt::RightDockWidgetArea, resultListDockWidget);
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
+}
+
+iAFiberOptimizationExplorer::~iAFiberOptimizationExplorer()
+{
+	QSettings settings;
+	settings.setValue(ModuleSettingsKey + "/maximized", isMaximized());
+	if (!isMaximized())
+		settings.setValue(ModuleSettingsKey + "/geometry", qobject_cast<QWidget*>(parent())->geometry());
+	settings.setValue(ModuleSettingsKey+"/state", saveState());
+}
+
+void iAFiberOptimizationExplorer::loadStateAndShow()
+{
+	QSettings settings;
+	if (settings.value(ModuleSettingsKey + "/maximized", true).toBool())
+		showMaximized();
+	else
+	{
+		QRect newGeometry = settings.value(ModuleSettingsKey + "/geometry", geometry()).value<QRect>();
+		show();
+		qobject_cast<QWidget*>(parent())->setGeometry(newGeometry);
+	}
+	restoreState(settings.value(ModuleSettingsKey + "/state", saveState()).toByteArray());
 }
 
 void iAFiberOptimizationExplorer::toggleVis(int state)

@@ -45,5 +45,5 @@ void iAFiberOptimizationExplorerModuleInterface::FibreOptimizationExploration()
 	
 	auto explorer = new iAFiberOptimizationExplorer(path, m_mainWnd);
 	m_mainWnd->addSubWindow(explorer);
-	explorer->show();
+	explorer->loadStateAndShow();
 }

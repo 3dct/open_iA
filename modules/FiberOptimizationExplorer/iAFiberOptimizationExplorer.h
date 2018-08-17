@@ -43,6 +43,8 @@ class iAFiberOptimizationExplorer : public QMainWindow
 {
 public:
 	iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd);
+	~iAFiberOptimizationExplorer();
+	void loadStateAndShow();
 private slots:
 	void toggleVis(int);
 	void miniMouseEvent(QMouseEvent* ev);
