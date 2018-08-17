@@ -73,6 +73,8 @@ namespace
 		config.visType = iACsvConfig::Cylinders;
 		return config;
 	}
+
+	const double MiddlePointShift = 74.5;
 }
 
 iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd):
@@ -178,9 +180,16 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 					std::vector<double> timeStepValues;
 					QString line = in.readLine();
 					QStringList values = line.split(",");
-					for (QString value : values)
+					int valIdx = 0;
+					for (QString valueStr : values)
 					{
-						timeStepValues.push_back(value.toDouble());
+						double value = valueStr.toDouble();
+						if (valIdx < 3)
+							value += MiddlePointShift; // middle point positions are shifted!
+						if (valIdx == 4 && value < 0)  // phi is encoded in -Pi, Pi instead of 0..Pi as we expect
+							value = 2*vtkMath::Pi() + value;
+						timeStepValues.push_back(value);
+						++valIdx;
 					}
 					singleFiberValues.push_back(timeStepValues);
 				}
@@ -277,7 +286,8 @@ void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
 		int resultID = QObject::sender()->property("resultID").toInt();
 		iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 		MdiChild* newChild = m_mainWnd->createMdiChild(false);
-		//featureScout->startFeatureScout(getCsvConfig(m_resultData[resultID].m_fileName), newChild);
+		iACsvConfig config = getCsvConfig(m_resultData[resultID].m_fileName);
+		featureScout->LoadFeatureScout(config, newChild);
 		newChild->LoadLayout("FeatureScout");
 	}
 }
