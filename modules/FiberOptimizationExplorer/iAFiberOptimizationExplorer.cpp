@@ -175,22 +175,46 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 				}
 				QTextStream in(&file);
 				in.readLine(); // skip header line
+				size_t lineNr = 1;
 				while (!in.atEnd())
 				{
-					std::vector<double> timeStepValues;
+					lineNr++;
 					QString line = in.readLine();
 					QStringList values = line.split(",");
-					int valIdx = 0;
-					for (QString valueStr : values)
+					if (values.size() != 6)
 					{
-						double value = valueStr.toDouble();
-						if (valIdx < 3)
-							value += MiddlePointShift; // middle point positions are shifted!
-						if (valIdx == 4 && value < 0)  // phi is encoded in -Pi, Pi instead of 0..Pi as we expect
-							value = 2*vtkMath::Pi() + value;
-						timeStepValues.push_back(value);
-						++valIdx;
+						DEBUG_LOG(QString("Invalid line %1 in file %2, there should be 6 entries but there are %3 (line: %4)")
+							.arg(lineNr).arg(fiberTimeCsvInfo.fileName()).arg(values.size()).arg(line));
+						continue;
 					}
+					int valIdx = 0;
+					double middlePoint[3];
+					for (int i = 0; i < 3; ++i)
+						middlePoint[i] = values[i].toDouble() + MiddlePointShift; // middle point positions are shifted!
+					double theta = values[4].toDouble();
+					if (theta < 0)  // theta is encoded in -Pi, Pi instead of 0..Pi as we expect
+						theta = 2*vtkMath::Pi() + theta;
+					double phi = values[3].toDouble();
+					double radius = values[5].toDouble() * 0.5;
+
+					std::vector<double> timeStepValues(6);
+					// convert spherical to cartesian coordinates:
+					double dir[3];
+					dir[0] = radius * std::sin(phi) * std::cos(theta);
+					dir[1] = radius * std::sin(phi) * std::sin(theta);
+					dir[2] = radius * std::cos(phi);
+					for (int i = 0; i<3; ++i)
+					{
+						timeStepValues[i] = middlePoint[i] + dir[i];
+						timeStepValues[i+3] = middlePoint[i] - dir[i];
+					}
+					/*
+					DEBUG_LOG(QString("Fiber %1, step %2: Start (%3, %4, %5) - End (%6, %7, %8)")
+						.arg(curFiber)
+						.arg(singleFiberValues.size())
+						.arg(timeStepValues[0]).arg(timeStepValues[1]).arg(timeStepValues[2])
+						.arg(timeStepValues[3]).arg(timeStepValues[4]).arg(timeStepValues[5]));
+					*/
 					singleFiberValues.push_back(timeStepValues);
 				}
 				if (singleFiberValues.size() > m_timeStepCount)

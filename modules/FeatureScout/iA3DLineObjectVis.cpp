@@ -92,29 +92,8 @@ void iA3DLineObjectVis::updateValues( std::vector<std::vector<double> > const & 
 {
 	for (int f = 0; f < values.size(); ++f)
 	{
-		double middlePoint[3];
-		for (int i=0; i<3; ++i)
-			middlePoint[i] = values[f][i];
-		double theta = values[f][4];
-		double phi = values[f][3];
-		double radius = values[f][5] * 0.5;
-
-		double startPoint[3], endPoint[3];
-
-		// convert spherical to cartesian coordinates:
-		double dir[3];
-		dir[0] = radius * std::sin(phi) * std::cos(theta);
-		dir[1] = radius * std::sin(phi) * std::sin(theta);
-		dir[2] = radius * std::cos(phi);
-
-		for (int i=0; i<3; ++i)
-		{
-			startPoint[i] = middlePoint[i] - dir[i];
-			endPoint[i]   = middlePoint[i] + dir[i];
-		}
-
-		m_points->SetPoint(2 * f, startPoint);
-		m_points->SetPoint(2 * f + 1, endPoint);
+		m_points->SetPoint(2 * f, values[f].data());
+		m_points->SetPoint(2 * f + 1, values[f].data() + 3);
 	}
 	m_points->Modified();
 	updatePolyMapper();
