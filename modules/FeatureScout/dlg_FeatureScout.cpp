@@ -3472,9 +3472,9 @@ void dlg_FeatureScout::initFeatureScoutUI()
 {
 	iovPC = new iADockWidgetWrapper("Parallel Coordinates",  "FeatureScoutPC");
 	iovPP = new dlg_IOVPP( this );
-	activeChild->addDockWidget( Qt::BottomDockWidgetArea, this );
-	activeChild->addDockWidget( Qt::BottomDockWidgetArea, iovPC );
-	activeChild->addDockWidget( Qt::BottomDockWidgetArea, iovPP );
+	activeChild->addDockWidget( Qt::RightDockWidgetArea, this );
+	activeChild->addDockWidget( Qt::RightDockWidgetArea, iovPC );
+	activeChild->addDockWidget( Qt::RightDockWidgetArea, iovPP );
 	iovPP->colorMapSelection->hide();
 	if (this->filterID == iAFeatureScoutObjectType::Voids)
 		iovPP->hide();
