@@ -43,6 +43,29 @@
 #include <QScrollArea>
 //#include <QVBoxLayout>
 
+class iAResultData
+{
+public:
+	vtkSmartPointer<vtkTable> m_resultTable;
+	QSharedPointer<QMap<uint, uint> > m_outputMapping;
+	QVTKOpenGLWidget* m_vtkWidget;
+	QSharedPointer<iA3DCylinderObjectVis> m_mini3DVis;
+	QSharedPointer<iA3DCylinderObjectVis> m_main3DVis;
+	QString m_fileName;
+};
+
+namespace
+{
+	iACsvConfig getCsvConfig(QString const & csvFile)
+	{
+		iACsvConfig config = iACsvConfig::getLegacyFiberFormat(csvFile);
+		config.skipLinesStart = 0;
+		config.containsHeader = false;
+		config.visType = iACsvConfig::Cylinders;
+		return config;
+	}
+}
+
 iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path):
 	m_colorTheme(iAColorThemeManager::GetInstance().GetTheme("Brewer Accent (max. 8)"))
 {
@@ -79,10 +102,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path):
 	int curLine = 0;
 	for (QString csvFile : csvFileNames)
 	{
-		iACsvConfig config = iACsvConfig::getLegacyFiberFormat(csvFile);
-		config.skipLinesStart = 0;
-		config.containsHeader = false;
-		config.visType = iACsvConfig::Cylinders;
+		iACsvConfig config = getCsvConfig(csvFile);
 
 		iACsvIO io;
 		iACsvVtkTableCreator tableCreator;
@@ -92,29 +112,32 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path):
 			continue;
 		}
 		
-		QVTKOpenGLWidget* vtkWidget = new QVTKOpenGLWidget();
+		iAResultData resultData;
+		resultData.m_vtkWidget  = new QVTKOpenGLWidget();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
 		m_renderManager->addToBundle(ren);
 		ren->SetBackground(1.0, 1.0, 1.0);
 		renWin->AddRenderer(ren);
-		vtkWidget->SetRenderWindow(renWin);
+//		resultData.m_vtkWidget->SetRenderWindow(renWin);
 
 		QCheckBox* toggleMainRender = new QCheckBox(QFileInfo(csvFile).fileName());
 		toggleMainRender->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 		toggleMainRender->setProperty("resultID", curLine);
 		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleVis);
 		resultsListLayout->addWidget(toggleMainRender, curLine, 0);
-		resultsListLayout->addWidget(vtkWidget, curLine, 1);
+		resultsListLayout->addWidget(resultData.m_vtkWidget, curLine, 1);
 
-		QSharedPointer<iA3DCylinderObjectVis> vis(new iA3DCylinderObjectVis(vtkWidget, tableCreator.getTable(), io.getOutputMapping(), m_colorTheme->GetColor(curLine)));
-		vis->show();
+		resultData.m_mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
+				resultData.m_vtkWidget, tableCreator.getTable(), io.getOutputMapping(), m_colorTheme->GetColor(curLine)));
+		resultData.m_mini3DVis->show();
 		ren->ResetCamera();
-		m_vtkWidgets.push_back(vtkWidget);
-		m_mini3DVis.push_back(vis);
-		m_resultTables.push_back(tableCreator.getTable());
-		m_outputMappings.push_back(io.getOutputMapping());
+		resultData.m_resultTable = tableCreator.getTable();
+		resultData.m_outputMapping = io.getOutputMapping();
+		resultData.m_fileName = csvFile;
 		
+		m_resultData.push_back(resultData);
+
 		++curLine;
 	}
 	QWidget* resultList = new QWidget();
@@ -131,9 +154,10 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
 	DEBUG_LOG(QString("TogleVis: Result %1 - state=%2").arg(resultID).arg(state));
+	iAResultData & data = m_resultData[resultID];
 	if (state == Qt::Checked)
 	{
-		if (m_main3DVis.contains(resultID))
+		if (data.m_main3DVis)
 		{
 			DEBUG_LOG("Visualization already exists!");
 			return;
@@ -141,21 +165,20 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 		DEBUG_LOG("Showing Vis.");
 		QColor color = m_colorTheme->GetColor(resultID);
 		color.setAlpha(128);
-		QSharedPointer<iA3DCylinderObjectVis> vis(new iA3DCylinderObjectVis(m_mainRenderer,
-				m_resultTables[resultID], m_outputMappings[resultID], color));
-		vis->show();
-		m_main3DVis.insert(resultID, vis);
+		data.m_main3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer,
+				data.m_resultTable, data.m_outputMapping, color));
+		data.m_main3DVis->show();
 	}
 	else
 	{
-		if (!m_main3DVis.contains(resultID))
+		if (!data.m_main3DVis)
 		{
 			DEBUG_LOG("Visualization not found!");
 			return;
 		}
 		DEBUG_LOG("Hiding Vis.");
-		m_main3DVis[resultID]->hide();
-		m_main3DVis.remove(resultID);
+		data.m_main3DVis->hide();
+		data.m_main3DVis.reset();
 	}
 	m_mainRenderer->GetRenderWindow()->Render();
 	m_mainRenderer->update();
