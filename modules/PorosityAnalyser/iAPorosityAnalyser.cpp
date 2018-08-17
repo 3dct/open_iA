@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAPorosityAnalyser.h"
 
-#include "defines.h"
 #include "iACSVToQTableWidgetConverter.h"
 #include "io/iAITKIO.h"
 //#include "iAPCView.h"
@@ -138,7 +137,7 @@ iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir,
 iAPorosityAnalyser::~iAPorosityAnalyser()
 {
 	QByteArray state = saveState( 0 );
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	settings.setValue( "PorosityAnalyser/UI_State", state );
 }
 
@@ -309,7 +308,7 @@ void iAPorosityAnalyser::ParseComputerCSV( const QFileInfo & fi )
 
 void iAPorosityAnalyser::LoadStateAndShow()
 {
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	QByteArray state = settings.value( "PorosityAnalyser/UI_State" ).value<QByteArray>();
 	showMaximized();
 	restoreState( state, 0 );
