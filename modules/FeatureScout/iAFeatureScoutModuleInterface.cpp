@@ -147,7 +147,7 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
-void iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvConfig, MdiChild * mdiChild)
+void iAFeatureScoutModuleInterface::LoadFeatureScout(iACsvConfig const & csvConfig, MdiChild * mdiChild)
 {
 	m_mdiChild = mdiChild;
 	startFeatureScout(csvConfig);

@@ -95,17 +95,17 @@ void iA3DLineObjectVis::updateValues( std::vector<std::vector<double> > const & 
 		double middlePoint[3];
 		for (int i=0; i<3; ++i)
 			middlePoint[i] = values[f][i];
-		double theta = values[f][3];
-		double phi = values[f][4];
+		double theta = values[f][4];
+		double phi = values[f][3];
 		double radius = values[f][5] * 0.5;
 
 		double startPoint[3], endPoint[3];
 
 		// convert spherical to cartesian coordinates:
 		double dir[3];
-		dir[0] = radius * sin(phi) * cos(theta);
-		dir[1] = radius * sin(phi) * sin(theta);
-		dir[2] = radius * cos(phi);
+		dir[0] = radius * std::sin(phi) * std::cos(theta);
+		dir[1] = radius * std::sin(phi) * std::sin(theta);
+		dir[2] = radius * std::cos(phi);
 
 		for (int i=0; i<3; ++i)
 		{

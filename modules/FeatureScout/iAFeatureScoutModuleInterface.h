@@ -23,9 +23,9 @@
 #include "iAFeatureScoutObjectType.h"
 #include "FeatureScout_export.h"
 #include "iAModuleInterface.h"
+#include "iACsvConfig.h"
 
 class dlg_FeatureScout;
-class iACsvConfig;
 class iAFeatureScoutToolbar;
 
 class FeatureScout_API iAFeatureScoutModuleInterface : public iAModuleInterface
@@ -34,7 +34,7 @@ class FeatureScout_API iAFeatureScoutModuleInterface : public iAModuleInterface
 public:
 	void Initialize();
 	void LoadFeatureScoutWithParams(const QString &csvName, MdiChild *childWnd);
-	void startFeatureScout(iACsvConfig const & csvConfig, MdiChild *childWnd);
+	void LoadFeatureScout(iACsvConfig const & csvConfig, MdiChild *childWnd);
 private slots:
 	void FeatureScoutWithCSV();
 	void FeatureScout();
