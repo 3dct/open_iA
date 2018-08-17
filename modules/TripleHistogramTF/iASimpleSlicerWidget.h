@@ -24,7 +24,7 @@
 #include "iASimpleSlicerWidget.h"
 //#include "mdichild.h"
 
-#include <QSharedPointer>;
+#include <QSharedPointer>
 #include "iAModality.h"
 
 #include "iASlicer.h"

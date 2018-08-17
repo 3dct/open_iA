@@ -35,6 +35,19 @@ public:
 	double getGamma() const;
 	bool isInside() const;
 
+	double operator[] (int x) {
+		switch (x) {
+		case 0: return getAlpha();
+		case 1: return getBeta();
+		case 2: return getGamma();
+		default: return 0;
+		}
+	}
+
+	bool operator== (const BCoord that) {
+		return getAlpha() == that.getAlpha() && getBeta() == that.getBeta();
+	}
+
 private:
 	double m_alpha;
 	double m_beta;

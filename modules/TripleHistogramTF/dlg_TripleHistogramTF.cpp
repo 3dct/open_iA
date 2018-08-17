@@ -31,7 +31,6 @@
 
 // Debug
 #include "qdebug.h"
-#include "ColorInterpolator.h"
 
 const static QString DEFAULT_LABELS[3] = { "A", "B", "C" };
 
@@ -103,9 +102,6 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	updateSlicerMode();
 	setWeight(m_triangleWidget->getControlPointCoordinates());
-
-	// TODO: remove this class (ColorInterpolator), probably
-	ColorInterpolator::setInstance(new LinearRGBColorInterpolator());
 
 	// Does not work. TODO: fix
 	/*mdiChild->getSlicerXY()->reInitialize(

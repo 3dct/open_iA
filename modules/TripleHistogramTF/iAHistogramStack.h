@@ -25,7 +25,6 @@
 
 #include "mdichild.h"
 #include "BCoord.h"
-#include "iAWeightedTransfer.h"
 
 // Slicer
 #include "iASimpleSlicerWidget.h"
@@ -42,18 +41,19 @@ public:
 	void setSlicerMode(iASlicerMode slicerMode, int dimensionLength);
 	void setSliceNumber(int sliceNumber);
 	void setModalityLabel(QString label, int index);
+	bool containsModality(QSharedPointer<iAModality> modality);
+	int modalitiesCount();
 
-	iAWeightedTransfer* getTransferFunction();
 	QSharedPointer<iAModality> getModality(int index);
 
-	void removeModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild);
-	void addModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild);
-	void updateModalities(MdiChild* mdiChild); // Temporary // TODO: remove
+	void updateModalities(MdiChild* mdiChild);
 
 	bool isReady();
 
 private slots:
-	void updateTransferFunction(int index);
+	void updateTransferFunction1() { updateTransferFunction(0); }
+	void updateTransferFunction2() { updateTransferFunction(1); }
+	void updateTransferFunction3() { updateTransferFunction(2); }
 
 signals:
 	void transferFunctionChanged();
@@ -63,18 +63,21 @@ protected:
 	void resizeEvent(QResizeEvent* event);
 
 private:
-	void removeModality(QSharedPointer<iAModality> modality);
-	void addModality(QSharedPointer<iAModality> modality);
-	void updateModalities2(MdiChild* mdiChild);
+	void updateTransferFunction(int index);
+
+	BCoord m_weightCur;
+	void updateTransferFunctions(int index);
+	void applyWeights();
 
 	void adjustStretch(int totalWidth);
 
 	void disable();
 	void enable();
 
-	QList<QSharedPointer<iAModality>> m_modalitiesAvailable;
 	QSharedPointer<iAModality> m_modalitiesActive[3];
-	iAWeightedTransfer *m_transferFunction;
+	vtkSmartPointer<vtkPiecewiseFunction> m_opFuncsCopy[3];
+	void createOpFuncCopy(int index);
+	void deleteOpFuncCopy(int index);
 
 	// Widgets and stuff
 	QStackedLayout *m_stackedLayout;

@@ -23,6 +23,8 @@
 #include "RightBorderLayout.h"
 
 #include "vtkImageData.h"
+#include "vtkPiecewiseFunction.h"
+#include "vtkSmartPointer.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -70,10 +72,7 @@ iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::Win
 	m_stackedLayout->addWidget(m_disabledLabel);
 	m_stackedLayout->setCurrentIndex(1);
 
-	int i;
-
-	//iATransferFunction *tfs[3];
-	for (i = 0; i < 3; ++i) {
+	for (int i = 0; i < 3; ++i) {
 		//m_modalitiesActive[i] = mdiChild->GetModality(i);
 		//vtkImageData *imageData = modality->GetImage().GetPointer();
 
@@ -103,17 +102,19 @@ iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::Win
 	}
 	//m_transferFunction = new iAWeightedTransfer(tfs[0], tfs[1], tfs[2]);
 
-	for (i = 0; i < mdiChild->GetModalities()->size(); ++i) {
-		addModality(mdiChild->GetModality(i));
-	}
 	updateModalities(mdiChild);
 }
 
 iAHistogramStack::~iAHistogramStack()
 {
+	if (m_opFuncsCopy[0]) deleteOpFuncCopy(0);
+	if (m_opFuncsCopy[1]) deleteOpFuncCopy(1);
+	if (m_opFuncsCopy[2]) deleteOpFuncCopy(2);
+
 	if (m_slicerWidgets[0]) delete m_slicerWidgets[0];
 	if (m_slicerWidgets[1]) delete m_slicerWidgets[1];
 	if (m_slicerWidgets[2]) delete m_slicerWidgets[2];
+
 	if (m_histograms[0]) delete m_histograms[0];
 	if (m_histograms[1]) delete m_histograms[1];
 	if (m_histograms[2]) delete m_histograms[2];
@@ -121,28 +122,18 @@ iAHistogramStack::~iAHistogramStack()
 
 void iAHistogramStack::setWeight(BCoord bCoord)
 {
+	if (bCoord == m_weightCur) {
+		return;
+	}
+
 	QString text;
 	m_weightLabels[0]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getAlpha()));
 	m_weightLabels[1]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getBeta()));
 	m_weightLabels[2]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getGamma()));
 
-	if (isReady()) {
-		double opArr[3] = { bCoord.getAlpha(), bCoord.getBeta(), bCoord.getGamma() };
-		for (int i = 0; i < 3; ++i)
-		{
-
-			vtkPiecewiseFunction *opFunc = m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction();
-			double pntVal[4];
-			for (int j = 0; j < opFunc->GetSize(); ++j)
-			{
-				opFunc->GetNodeValue(j, pntVal);
-				pntVal[1] = opArr[i];
-				opFunc->SetNodeValue(j, pntVal);
-			}
-			m_histograms[i]->redraw();
-		}
-		emit transferFunctionChanged();
-	}
+	m_weightCur = bCoord;
+	applyWeights();
+	emit transferFunctionChanged();
 }
 
 void iAHistogramStack::setSlicerMode(iASlicerMode slicerMode, int dimensionLength)
@@ -175,13 +166,9 @@ void iAHistogramStack::adjustStretch(int totalWidth)
 	m_gridLayout->setColumnStretch(1, slicerHeight);
 }
 
-iAWeightedTransfer* iAHistogramStack::getTransferFunction()
-{
-	return m_transferFunction;
-}
-
 void iAHistogramStack::updateTransferFunction(int index)
 {
+	updateTransferFunctions(index);
 	m_slicerWidgets[index]->update();
 	emit transferFunctionChanged();
 }
@@ -197,70 +184,44 @@ QSharedPointer<iAModality> iAHistogramStack::getModality(int index)
 	return m_modalitiesActive[index];
 }
 
-// Public
-void iAHistogramStack::addModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild)
-{
-	addModality(modality);
-	updateModalities(mdiChild);
-}
-// Private
-void iAHistogramStack::addModality(QSharedPointer<iAModality> modality)
-{
-	m_modalitiesAvailable.append(modality);
-	emit modalityAdded(modality, m_modalitiesAvailable.length() - 1);
-}
-
-// Public
-void iAHistogramStack::removeModality(QSharedPointer<iAModality> modality, MdiChild* mdiChild)
-{
-	removeModality(modality);
-	updateModalities(mdiChild);
-}
-// Private
-void iAHistogramStack::removeModality(QSharedPointer<iAModality> modality)
-{
-	m_modalitiesAvailable.removeOne(modality);
-}
-
-// Temporary // TODO: remove
+// When new modalities are added/removed
 void iAHistogramStack::updateModalities(MdiChild* mdiChild)
 {
-	m_modalitiesAvailable.clear();
-	for (int i = 0; i < mdiChild->GetModalities()->size(); ++i) {
-		addModality(mdiChild->GetModality(i));
-	}
-	updateModalities2(mdiChild);
-}
-
-void iAHistogramStack::updateModalities2(MdiChild* mdiChild)
-{
-	if (m_modalitiesAvailable.size() >= 3) {
-		if (m_modalitiesAvailable.contains(m_modalitiesActive[0]) &&
-			m_modalitiesAvailable.contains(m_modalitiesActive[1]) &&
-			m_modalitiesAvailable.contains(m_modalitiesActive[2])) {
+	int i;
+	if (mdiChild->GetModalities()->size() >= 3) {
+		if (containsModality(mdiChild->GetModality(0)) &&
+			containsModality(mdiChild->GetModality(1)) &&
+			containsModality(mdiChild->GetModality(2))) {
 
 			return;
 		}
 	} else {
 		if (!isReady()) {
+			for (i = 0; i < 3 && i < mdiChild->GetModalities()->size(); ++i) {
+				if (!m_modalitiesActive[i]) {
+					m_modalitiesActive[i] = mdiChild->GetModality(i);
+				}
+			}
 			disable();
 		}
 		return;
 	}
 
-	for (int i = 0; i < m_modalitiesAvailable.size(); ++i) {
-		if (!m_modalitiesActive[i].isNull() && !m_modalitiesAvailable.contains(m_modalitiesActive[i])) {
+	// Clear up modalities being replaced
+	for (i = 0; i < 3; ++i) {
+		if (!m_modalitiesActive[i].isNull() && !containsModality(mdiChild->GetModality(i))) {
 			//delete m_modalitiesActive[i];
 			delete m_histograms[i];
 			//delete m_slicerWidgets[i];
+			deleteOpFuncCopy(i);
 		}
-		m_modalitiesActive[i] = m_modalitiesAvailable[i];
 	}
 
-	iATransferFunction *tfs[3];
-	for (int i = 0; i < 3; ++i) {
+	// Initialize modalities being added
+	for (i = 0; i < 3; ++i) {
+		m_modalitiesActive[i] = mdiChild->GetModality(i);
 		// Slicer {
-		m_slicerWidgets[i]->changeModality(m_modalitiesAvailable[i]);
+		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
 		// }
 
 		// Histogram {
@@ -277,26 +238,36 @@ void iAHistogramStack::updateModalities2(MdiChild* mdiChild)
 		m_histograms[i]->SetTransferFunctions(m_modalitiesActive[i]->GetTransfer()->GetColorFunction(),
 			m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction());
 		m_histograms[i]->updateTrf();
+		switch (i) {
+		case 0:
+			assert(connect((dlg_transfer*)(m_histograms[i]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1())));
+			break;
+		case 1:
+			assert(connect((dlg_transfer*)(m_histograms[i]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction2())));
+			break;
+		case 2:
+			assert(connect((dlg_transfer*)(m_histograms[i]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction3())));
+			break;
+		}
 
 		m_gridLayout->addWidget(m_histograms[i], i, 0);
-
-		connect((dlg_transfer*)(m_histograms[i]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction(i)));
 		// }
 
 		// Transfer function {
-		if (m_histograms[i]->getSelectedFunction()->getType() != dlg_function::TRANSFER) {
-			tfs[i] = 0; // TODO
+		if (m_histograms[i]->getSelectedFunction()->getType() == dlg_function::TRANSFER) {
+			createOpFuncCopy(i);
 		} else {
-			dlg_transfer* transfer = (dlg_transfer*)m_histograms[i]->getSelectedFunction();
-			tfs[i] = new iASimpleTransferFunction(transfer->GetColorFunction(), transfer->GetOpacityFunction());
+			// TODO
+			assert(false);
 		}
 		// }
-
-		m_modalitiesActive[i] = m_modalitiesAvailable[i];
 	}
-	m_transferFunction = new iAWeightedTransfer(tfs[0], tfs[1], tfs[2]);
 
 	adjustStretch(size().width());
+	applyWeights();
+	emit modalityAdded(m_modalitiesActive[0], 0);
+	emit modalityAdded(m_modalitiesActive[1], 1);
+	emit modalityAdded(m_modalitiesActive[2], 2);
 	enable();
 }
 
@@ -307,14 +278,14 @@ void iAHistogramStack::enable()
 
 void iAHistogramStack::disable()
 {
-	int modalitiesCount = m_modalitiesAvailable.size();
-	QString modalit_y_ies_is_are = modalitiesCount == 2 ? "modality is" : "modalities are";
-	QString nameA = modalitiesCount >= 1 ? m_modalitiesAvailable[0]->GetName() : "missing";
-	QString nameB = modalitiesCount >= 2 ? m_modalitiesAvailable[1]->GetName() : "missing";
+	int count = modalitiesCount();
+	QString modalit_y_ies_is_are = count == 2 ? "modality is" : "modalities are";
+	QString nameA = count >= 1 ? m_modalitiesActive[0]->GetName() : "missing";
+	QString nameB = count >= 2 ? m_modalitiesActive[1]->GetName() : "missing";
 	//QString nameC = modalitiesCount >= 3 ? m_modalitiesAvailable[2]->GetName() : "missing";
 	m_disabledLabel->setText(
 		"Unable to set up this widget.\n" +
-		QString::number(3 - modalitiesCount) + " " + modalit_y_ies_is_are + " missing.\n" +
+		QString::number(3 - count) + " " + modalit_y_ies_is_are + " missing.\n" +
 		"\n" +
 		"Modality " + DEFAULT_MODALITY_LABELS[0] + ": " + nameA + "\n" +
 		"Modality " + DEFAULT_MODALITY_LABELS[1] + ": " + nameB + "\n" +
@@ -326,4 +297,91 @@ void iAHistogramStack::disable()
 bool iAHistogramStack::isReady()
 {
 	return m_modalitiesActive[2];
+}
+
+
+bool iAHistogramStack::containsModality(QSharedPointer<iAModality> modality)
+{
+	return m_modalitiesActive[0] == modality || m_modalitiesActive[1] == modality || m_modalitiesActive[2] == modality;
+}
+
+int iAHistogramStack::modalitiesCount()
+{
+	return m_modalitiesActive[2] ? 3 : (m_modalitiesActive[1] ? 2 : (m_modalitiesActive[0] ? 1 : 0));
+}
+
+void iAHistogramStack::createOpFuncCopy(int index)
+{
+	m_opFuncsCopy[index] = vtkSmartPointer<vtkPiecewiseFunction>::New();
+	m_opFuncsCopy[index]->DeepCopy(m_modalitiesActive[index]->GetTransfer()->GetOpacityFunction());
+}
+
+void iAHistogramStack::deleteOpFuncCopy(int index)
+{
+	disconnect((dlg_transfer*)(m_histograms[index]->getFunctions()[0]), 0, this, 0);
+	dlg_transfer *dlgTransfer = ((dlg_transfer*)m_histograms[index]->getFunctions()[0]);
+	dlgTransfer->setOpacityFunction(m_opFuncsCopy[index]);
+	m_opFuncsCopy[index] = 0;
+}
+
+/** Makes sure no node exceeds the opacity value m_weightCur[index] in the effective transfer function
+  *
+  * ALSO
+  *
+  * Adds newly added nodes to the transfer function copy (adjusting its weight with m_weightCur[index]
+  * Also changes (in the copy) the respective changed node (in the effective transfer function)
+  *
+  * CHANGES THE EFFECTIVE (prevent illegal values)
+  * CHANGES THE COPY (clear and repopulate with adjusted effective values (numerical imprecision but live with it))
+  */
+void iAHistogramStack::updateTransferFunctions(int index)
+{
+	double weight = m_weightCur[index];
+
+	// newly set transfer function (set via the histogram)
+	vtkPiecewiseFunction *effective = m_modalitiesActive[index]->GetTransfer()->GetOpacityFunction();
+
+	// copy of previous transfer function, to be updated in this method
+	vtkPiecewiseFunction *copy = m_opFuncsCopy[index];
+	copy->RemoveAllPoints();
+
+	double val[4]; // value effective, value copy
+				   //for (e = 0, c = 0; e < effective->GetSize() && c < copy->GetSize(); ++e, ++c)
+	for (int j = 0; j < effective->GetSize(); ++j)
+	{
+		effective->GetNodeValue(j, val);
+
+		// effective node cannot exceed weight because that would
+		//     mean an actual value bigger than 1
+		if (val[1] >= weight) { // index 1 means opacity
+			val[1] = weight;
+			effective->SetNodeValue(j, val);
+		}
+		val[1] = val[1] / weight; // admit numerical imprecision...
+		copy->AddPoint(val[0], val[1], val[2], val[3]);
+	}
+
+	m_histograms[index]->redraw();
+}
+
+/** Resets the values of all nodes in the effective transfer function using the values present in the
+  *     copy of the transfer function, using m_weightCur for the adjustment
+  * CHANGES THE EFFECTIVE ONLY (based on the copy)
+  */
+void iAHistogramStack::applyWeights()
+{
+	for (int i = 0; i < 3; ++i)
+	{
+		vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction();
+		vtkPiecewiseFunction *copy = m_opFuncsCopy[i];
+
+		double pntVal[4];
+		for (int j = 0; j < copy->GetSize(); ++j)
+		{
+			copy->GetNodeValue(j, pntVal);
+			pntVal[1] = pntVal[1] * m_weightCur[i]; // index 1 in pntVal means opacity
+			effective->SetNodeValue(j, pntVal);
+		}
+		m_histograms[i]->redraw();
+	}
 }
