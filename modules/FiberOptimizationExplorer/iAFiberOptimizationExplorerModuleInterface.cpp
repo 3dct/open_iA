@@ -43,7 +43,7 @@ void iAFiberOptimizationExplorerModuleInterface::FibreOptimizationExploration()
 	if (path.isEmpty())
 		return;
 	
-	auto explorer = new iAFiberOptimizationExplorer(path);
+	auto explorer = new iAFiberOptimizationExplorer(path, m_mainWnd);
 	m_mainWnd->addSubWindow(explorer);
 	explorer->show();
 }

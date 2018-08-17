@@ -33,7 +33,8 @@ class FeatureScout_API iAFeatureScoutModuleInterface : public iAModuleInterface
 	Q_OBJECT
 public:
 	void Initialize();
-	void LoadFeatureScoutWithParams(const QString &csvName, MdiChild *mchildWnd);
+	void LoadFeatureScoutWithParams(const QString &csvName, MdiChild *childWnd);
+	void startFeatureScout(iACsvConfig const & csvConfig, MdiChild *childWnd);
 private slots:
 	void FeatureScoutWithCSV();
 	void FeatureScout();

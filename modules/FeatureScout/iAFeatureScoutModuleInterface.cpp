@@ -147,6 +147,12 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
+void iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvConfig, MdiChild * mdiChild)
+{
+	m_mdiChild = mdiChild;
+	startFeatureScout(csvConfig);
+}
+
 void iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvConfig)
 {
 	iACsvVtkTableCreator creator;

@@ -25,12 +25,16 @@
 #include "iACsvConfig.h"
 #include "iACsvIO.h"
 #include "iACsvVtkTableCreator.h"
+#include "iAFeatureScoutModuleInterface.h"
 
 #include "iAColorTheme.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
-#include "io/iAFileUtils.h"
+#include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
+#include "io/iAFileUtils.h"
+#include "mainwindow.h"
+#include "mdichild.h"
 
 #include <QVTKOpenGLWidget.h>
 #include <vtkGenericOpenGLRenderWindow.h>
@@ -66,8 +70,9 @@ namespace
 	}
 }
 
-iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path):
-	m_colorTheme(iAColorThemeManager::GetInstance().GetTheme("Brewer Accent (max. 8)"))
+iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd):
+	m_colorTheme(iAColorThemeManager::GetInstance().GetTheme("Brewer Accent (max. 8)")),
+	m_mainWnd(mainWnd)
 {
 	this->setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
@@ -119,12 +124,12 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path):
 		m_renderManager->addToBundle(ren);
 		ren->SetBackground(1.0, 1.0, 1.0);
 		renWin->AddRenderer(ren);
-//		resultData.m_vtkWidget->SetRenderWindow(renWin);
+		resultData.m_vtkWidget->SetRenderWindow(renWin);
+		resultData.m_vtkWidget->setProperty("resultID", curLine);
 
 		QCheckBox* toggleMainRender = new QCheckBox(QFileInfo(csvFile).fileName());
 		toggleMainRender->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 		toggleMainRender->setProperty("resultID", curLine);
-		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleVis);
 		resultsListLayout->addWidget(toggleMainRender, curLine, 0);
 		resultsListLayout->addWidget(resultData.m_vtkWidget, curLine, 1);
 
@@ -137,6 +142,9 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path):
 		resultData.m_fileName = csvFile;
 		
 		m_resultData.push_back(resultData);
+
+		connect(resultData.m_vtkWidget, &QVTKOpenGLWidget::mouseEvent, this, &iAFiberOptimizationExplorer::miniMouseEvent);
+		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleVis);
 
 		++curLine;
 	}
@@ -182,4 +190,16 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 	}
 	m_mainRenderer->GetRenderWindow()->Render();
 	m_mainRenderer->update();
+}
+
+void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
+{
+	if (ev->buttons() == Qt::RightButton && ev->type() == QEvent::MouseButtonPress)
+	{
+		int resultID = QObject::sender()->property("resultID").toInt();
+		iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+		MdiChild* newChild = m_mainWnd->createMdiChild(false);
+		featureScout->startFeatureScout(getCsvConfig(m_resultData[resultID].m_fileName), newChild);
+		newChild->LoadLayout("FeatureScout");
+	}
 }
