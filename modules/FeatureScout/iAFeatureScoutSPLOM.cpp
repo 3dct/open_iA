@@ -76,7 +76,7 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	matrix->showDefaultMaxizimedPlot();
 	connect(matrix, &iAQSplom::selectionModified, this, &iAFeatureScoutSPLOM::selectionModified);
 
-	QAction* addClass = new QAction(QObject::tr("Add class"));
+	QAction* addClass = new QAction(QObject::tr("Add class"), nullptr);
 	connect(addClass, &QAction::triggered, this, &iAFeatureScoutSPLOM::addClass);
 	matrix->addContextMenuAction(addClass);
 }
