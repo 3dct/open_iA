@@ -26,6 +26,7 @@
 #include <vtkSmartPointer.h>
 
 class vtkActor;
+class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkUnsignedCharArray;
@@ -41,11 +42,13 @@ public:
 	void multiClassRendering( QList<QColor> const & colors, QStandardItem* rootItem, double alpha ) override;
 	void renderOrientationDistribution ( vtkImageData* oi ) override;
 	void renderLengthDistribution(  vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) override;
+	void updateValues( std::vector<std::vector<double> > const & values );
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
 	vtkSmartPointer<vtkActor> m_actor;
+	vtkSmartPointer<vtkPoints> m_points;
 private:
 	void setPolyPointColor(int ptIdx, QColor const & qcolor);
 	void updatePolyMapper();

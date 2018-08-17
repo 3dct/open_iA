@@ -48,7 +48,7 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 	m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	m_colors->SetNumberOfComponents(4);
 	m_colors->SetName("Colors");
-	auto pts = vtkSmartPointer<vtkPoints>::New();
+	m_points = vtkSmartPointer<vtkPoints>::New();
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
 	unsigned char c[4];
@@ -64,8 +64,8 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 			first[i] = m_objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::StartX + i)).ToFloat();
 			end[i] = m_objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::EndX + i)).ToFloat();
 		}
-		pts->InsertNextPoint(first);
-		pts->InsertNextPoint(end);
+		m_points->InsertNextPoint(first);
+		m_points->InsertNextPoint(end);
 		auto line = vtkSmartPointer<vtkLine>::New();
 		line->GetPointIds()->SetId(0, 2 * row);     // the index of line start point in pts
 		line->GetPointIds()->SetId(1, 2 * row + 1); // the index of line end point in pts
@@ -78,7 +78,7 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 		m_colors->InsertNextTypedTuple(c);
 #endif
 	}
-	m_linePolyData->SetPoints(pts);
+	m_linePolyData->SetPoints(m_points);
 	m_linePolyData->SetLines(lines);
 	m_linePolyData->GetPointData()->AddArray(m_colors);
 	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -86,6 +86,38 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 	m_mapper->SelectColorArray("Colors");
 	m_mapper->SetScalarModeToUsePointFieldData();
 	m_mapper->ScalarVisibilityOn();
+}
+
+void iA3DLineObjectVis::updateValues( std::vector<std::vector<double> > const & values )
+{
+	for (int f = 0; f < values.size(); ++f)
+	{
+		double middlePoint[3];
+		for (int i=0; i<3; ++i)
+			middlePoint[i] = values[f][i];
+		double theta = values[f][3];
+		double phi = values[f][4];
+		double radius = values[f][5] * 0.5;
+
+		double startPoint[3], endPoint[3];
+
+		// convert spherical to cartesian coordinates:
+		double dir[3];
+		dir[0] = radius * sin(phi) * cos(theta);
+		dir[1] = radius * sin(phi) * sin(theta);
+		dir[2] = radius * cos(phi);
+
+		for (int i=0; i<3; ++i)
+		{
+			startPoint[i] = middlePoint[i] - dir[i];
+			endPoint[i]   = middlePoint[i] + dir[i];
+		}
+
+		m_points->SetPoint(2 * f, startPoint);
+		m_points->SetPoint(2 * f + 1, endPoint);
+	}
+	m_points->Modified();
+	updatePolyMapper();
 }
 
 void iA3DLineObjectVis::show()
