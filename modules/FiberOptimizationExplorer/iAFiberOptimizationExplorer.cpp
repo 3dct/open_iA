@@ -41,10 +41,13 @@
 #include <vtkRenderer.h>
 #include <vtkTable.h>
 
+#include <QCheckBox>
 #include <QFileInfo>
 #include <QGridLayout>
-#include <QCheckBox>
+#include <QHBoxLayout>
 #include <QScrollArea>
+#include <QSlider>
+#include <QTextStream>
 //#include <QVBoxLayout>
 
 class iAResultData
@@ -56,6 +59,8 @@ public:
 	QSharedPointer<iA3DCylinderObjectVis> m_mini3DVis;
 	QSharedPointer<iA3DCylinderObjectVis> m_main3DVis;
 	QString m_fileName;
+	// timestep, fiber, values
+	std::vector<std::vector<std::vector<double> > > m_timeValues;
 };
 
 namespace
@@ -72,7 +77,8 @@ namespace
 
 iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd):
 	m_colorTheme(iAColorThemeManager::GetInstance().GetTheme("Brewer Accent (max. 8)")),
-	m_mainWnd(mainWnd)
+	m_mainWnd(mainWnd),
+	m_timeStepCount(0)
 {
 	this->setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
@@ -146,22 +152,96 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		connect(resultData.m_vtkWidget, &QVTKOpenGLWidget::mouseEvent, this, &iAFiberOptimizationExplorer::miniMouseEvent);
 		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleVis);
 
+		QFileInfo timeInfo(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).baseName());
+		if (timeInfo.exists() && timeInfo.isDir())
+		{
+			// fiber, timestep, value
+			std::vector<std::vector<std::vector<double> > > fiberTimeValues;
+			int curFiber = 0;
+			do
+			{
+				QString fiberTimeCsv = QString("fiber%1_paramlog.csv").arg(curFiber, 3, 10, QChar('0'));
+				QFileInfo fiberTimeCsvInfo(timeInfo.absoluteFilePath() + "/" + fiberTimeCsv);
+				if (!fiberTimeCsvInfo.exists())
+					break;
+				std::vector<std::vector<double> > singleFiberValues;
+				QFile file(fiberTimeCsvInfo.absoluteFilePath());
+				if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+				{
+					DEBUG_LOG(QString("Unable to open file: %1").arg(file.errorString()));
+					break;
+				}
+				QTextStream in(&file);
+				in.readLine(); // skip header line
+				while (!in.atEnd())
+				{
+					std::vector<double> timeStepValues;
+					QString line = in.readLine();
+					QStringList values = line.split(",");
+					for (QString value : values)
+					{
+						timeStepValues.push_back(value.toDouble());
+					}
+					singleFiberValues.push_back(timeStepValues);
+				}
+				if (singleFiberValues.size() > m_timeStepCount)
+				{
+					if (m_timeStepCount != 0)
+					{
+						DEBUG_LOG(QString("Different time step counts! Encountered %1 before, now %2").arg(m_timeStepCount).arg(singleFiberValues.size()));
+					}
+					m_timeStepCount = singleFiberValues.size();
+				}
+				fiberTimeValues.push_back(singleFiberValues);
+				++curFiber;
+			} while (true);
+			int fiberCount = curFiber;
+
+			// transform from [fiber, timestep, value] to [timestep, fiber, value] indexing
+			m_resultData[m_resultData.size() - 1].m_timeValues.resize(m_timeStepCount);
+			for (int t = 0; t < m_timeStepCount; ++t)
+			{
+				m_resultData[m_resultData.size() - 1].m_timeValues[t].resize(fiberCount);
+				for (int f = 0; f < fiberCount; ++f)
+				{
+					m_resultData[m_resultData.size() - 1].m_timeValues[t][f] = fiberTimeValues[f][t];
+				}
+			}
+
+		}
+
 		++curLine;
 	}
 	QWidget* resultList = new QWidget();
 	resultList->setLayout(resultsListLayout);
 
 	iADockWidgetWrapper* main3DView = new iADockWidgetWrapper(m_mainRenderer, "3D view", "foe3DView");
-	addDockWidget(Qt::RightDockWidgetArea, main3DView);
 
 	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultList, "Result list", "foeResultList");
-	addDockWidget(Qt::LeftDockWidgetArea, resultListDockWidget);
+
+	QSlider* slider = new QSlider(Qt::Horizontal);
+	slider->setMinimum(0);
+	slider->setMaximum(m_timeStepCount-1);
+	slider->setValue(m_timeStepCount-1);
+	
+	connect(slider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::timeSliderChanged);
+	m_currentTimeStepLabel = new QLabel(QString::number(m_timeStepCount - 1));
+
+	QWidget* timeSteps = new QWidget();
+	timeSteps->setLayout(new QHBoxLayout());
+	timeSteps->layout()->addWidget(slider);
+	timeSteps->layout()->addWidget(m_currentTimeStepLabel);
+	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(timeSteps, "Time Steps", "foeTimeSteps");
+
+
+	addDockWidget(Qt::RightDockWidgetArea, resultListDockWidget);
+	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
+	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 }
 
 void iAFiberOptimizationExplorer::toggleVis(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
-	DEBUG_LOG(QString("TogleVis: Result %1 - state=%2").arg(resultID).arg(state));
 	iAResultData & data = m_resultData[resultID];
 	if (state == Qt::Checked)
 	{
@@ -170,7 +250,6 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 			DEBUG_LOG("Visualization already exists!");
 			return;
 		}
-		DEBUG_LOG("Showing Vis.");
 		QColor color = m_colorTheme->GetColor(resultID);
 		color.setAlpha(128);
 		data.m_main3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer,
@@ -184,7 +263,6 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 			DEBUG_LOG("Visualization not found!");
 			return;
 		}
-		DEBUG_LOG("Hiding Vis.");
 		data.m_main3DVis->hide();
 		data.m_main3DVis.reset();
 	}
@@ -199,7 +277,23 @@ void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
 		int resultID = QObject::sender()->property("resultID").toInt();
 		iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 		MdiChild* newChild = m_mainWnd->createMdiChild(false);
-		featureScout->startFeatureScout(getCsvConfig(m_resultData[resultID].m_fileName), newChild);
+		//featureScout->startFeatureScout(getCsvConfig(m_resultData[resultID].m_fileName), newChild);
 		newChild->LoadLayout("FeatureScout");
+	}
+}
+
+void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
+{
+	m_currentTimeStepLabel->setText(QString::number(timeStep));
+	for (int resultID = 0; resultID < m_resultData.size(); ++resultID)
+	{
+		if (m_resultData[resultID].m_timeValues.size() > timeStep)
+		{
+			m_resultData[resultID].m_mini3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
+			if (m_resultData[resultID].m_main3DVis)
+			{
+				m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
+			}
+		}
 	}
 }

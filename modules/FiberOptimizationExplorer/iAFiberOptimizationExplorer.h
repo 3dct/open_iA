@@ -31,12 +31,13 @@
 class iA3DCylinderObjectVis;
 class iAColorTheme;
 class iARendererManager;
+class iAResultData;
 class MainWindow;
 
 class QVTKOpenGLWidget;
 class vtkTable;
 
-class iAResultData;
+class QLabel;
 
 class iAFiberOptimizationExplorer : public QMainWindow
 {
@@ -45,10 +46,13 @@ public:
 private slots:
 	void toggleVis(int);
 	void miniMouseEvent(QMouseEvent* ev);
+	void timeSliderChanged(int);
 private:
 	std::vector<iAResultData> m_resultData;
 	QSharedPointer<iARendererManager> m_renderManager;
 	QVTKOpenGLWidget* m_mainRenderer;
 	iAColorTheme const * m_colorTheme;
 	MainWindow* m_mainWnd;
+	int m_timeStepCount;
+	QLabel* m_currentTimeStepLabel;
 };
