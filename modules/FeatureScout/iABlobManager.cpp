@@ -54,6 +54,10 @@
 #define MAX_VALUE_COMPONENT 0
 #define DELTA_COMPONENT 1
 
+namespace
+{
+	const QString DepthPeelingKey("FeatureScout/Blobs/UseDepthPeeling");
+}
 
 
 // Constructor
@@ -83,8 +87,8 @@ iABlobManager::iABlobManager( void )
 	m_silhouetteMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_silhouetteActor = vtkSmartPointer<vtkActor>::New();
 
-	QSettings settings( "FHW", "FeatureScout" );
-	m_depthPeelingEnabled = settings.value( "UseDepthPeeling", true ).toBool();
+	QSettings settings;
+	m_depthPeelingEnabled = settings.value( DepthPeelingKey, true ).toBool();
 }
 
 // Desctructor
@@ -597,8 +601,8 @@ void iABlobManager::SetUseDepthPeeling( bool enabled )
 	{
 		m_depthPeelingEnabled = enabled;
 		//save to the settings
-		QSettings settings( "FHW", "FeatureScout" );
-		settings.setValue( "UseDepthPeeling", m_depthPeelingEnabled );
+		QSettings settings;
+		settings.setValue( DepthPeelingKey, m_depthPeelingEnabled );
 		for ( int i = 0; i < m_blobsList.count(); i++ )
 		{
 			m_blobsList[i]->SetRenderIndividually( m_depthPeelingEnabled );

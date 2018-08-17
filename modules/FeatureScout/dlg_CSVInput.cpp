@@ -34,7 +34,7 @@ namespace csvRegKeys
 {
 	//Names for registry
 	static const QString SettingsName = "FeatureScout";
-	static const QString FormatName = "CSVFormats";
+	static const QString FormatKeyName = "CSVFormats";
 	static const QString DefaultFormat = "DefaultFormat";
 	static const QString AdvancedMode = "AdvancedMode";
 	static const QString SelectedHeaders = "SelectedHeaders";
@@ -70,7 +70,7 @@ namespace
 
 	QString getFormatKey(QString const & formatName)
 	{
-		return csvRegKeys::SettingsName + "/" + csvRegKeys::FormatName + "/" + formatName;
+		return csvRegKeys::SettingsName + "/" + csvRegKeys::FormatKeyName + "/" + formatName;
 	}
 
 	const char* NotMapped = "Not mapped";
