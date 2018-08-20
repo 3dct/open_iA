@@ -27,6 +27,7 @@
 
 #include <vtkActor.h>
 #include <vtkCellArray.h>
+#include <vtkIdFilter.h>
 #include <vtkLine.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
@@ -81,6 +82,15 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 	m_linePolyData->SetPoints(m_points);
 	m_linePolyData->SetLines(lines);
 	m_linePolyData->GetPointData()->AddArray(m_colors);
+
+	auto ids = vtkSmartPointer<vtkIdTypeArray>::New();
+	ids->SetName("OriginalIds");
+	vtkIdType numPoints = objectTable->GetNumberOfRows() * 2;
+	ids->SetNumberOfTuples(numPoints);
+	for (vtkIdType id = 0; id < numPoints; ++id)
+		ids->SetTuple1(id, id);
+	m_linePolyData->GetPointData()->AddArray(ids);
+
 	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_mapper->SetInputData(m_linePolyData);
 	m_mapper->SelectColorArray("Colors");
@@ -214,4 +224,8 @@ void iA3DLineObjectVis::updatePolyMapper()
 	updateRenderer();
 }
 
+vtkPolyData* iA3DLineObjectVis::getLinePolyData()
+{
+	return m_linePolyData;
+}
 

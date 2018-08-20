@@ -43,6 +43,7 @@ public:
 	void renderOrientationDistribution ( vtkImageData* oi ) override;
 	void renderLengthDistribution(  vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) override;
 	void updateValues( std::vector<std::vector<double> > const & values );
+	vtkPolyData* getLinePolyData();
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
