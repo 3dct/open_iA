@@ -28,6 +28,8 @@
 
 #include <vector>
 
+class InteractorStyle;
+
 class iA3DCylinderObjectVis;
 class iAColorTheme;
 class iARendererManager;
@@ -49,9 +51,13 @@ private slots:
 	void toggleVis(int);
 	void miniMouseEvent(QMouseEvent* ev);
 	void timeSliderChanged(int);
+	void selectionChanged(std::vector<size_t> const & selection);
 private:
 	std::vector<iAResultData> m_resultData;
 	QSharedPointer<iARendererManager> m_renderManager;
+	QSharedPointer<iA3DCylinderObjectVis> m_lastMain3DVis;
+	int m_lastResultID;
+	vtkSmartPointer<InteractorStyle> m_style;
 	QVTKOpenGLWidget* m_mainRenderer;
 	iAColorTheme const * m_colorTheme;
 	MainWindow* m_mainWnd;
