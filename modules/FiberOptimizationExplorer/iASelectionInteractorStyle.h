@@ -50,12 +50,7 @@ public:
 	static InteractorStyle* New();
 	vtkTypeMacro(InteractorStyle, vtkInteractorStyleRubberBandPick);
 
-	InteractorStyle()
-	{
-		this->SelectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-		this->SelectedActor = vtkSmartPointer<vtkActor>::New();
-		this->SelectedActor->SetMapper(SelectedMapper);
-	}
+	InteractorStyle() {}
 
 	virtual void OnLeftButtonUp()
 	{
@@ -80,8 +75,6 @@ public:
 		DEBUG_LOG(QString("Selected %1 points and %2 cells.")
 			.arg(selected->GetNumberOfPoints())
 			.arg(selected->GetNumberOfCells()));
-		this->SelectedMapper->SetInputData(selected);
-		this->SelectedMapper->ScalarVisibilityOff();
 
 		vtkPointData* pointData = selected->GetPointData();
 		vtkIdTypeArray* ids = vtkIdTypeArray::SafeDownCast(pointData->GetArray("OriginalIds"));
@@ -97,13 +90,6 @@ public:
 		std::vector<size_t> selection;
 		std::copy(selset.begin(), selset.end(), std::back_inserter(selection));
 		emit selectionChanged(selection);
-
-		this->SelectedActor->GetProperty()->SetColor(1.0, 0.0, 0.0); //(R,G,B)
-		this->SelectedActor->GetProperty()->SetPointSize(3);
-
-		this->CurrentRenderer->AddActor(SelectedActor);
-		this->GetInteractor()->GetRenderWindow()->Render();
-		this->HighlightProp(NULL);
 	}
 
 	void SetInput(vtkSmartPointer<vtkPolyData> points) { this->Points = points; }
@@ -111,6 +97,4 @@ signals:
 	void selectionChanged(std::vector<size_t> const &);
 private:
 	vtkSmartPointer<vtkPolyData> Points;
-	vtkSmartPointer<vtkActor> SelectedActor;
-	vtkSmartPointer<vtkDataSetMapper> SelectedMapper;
 };
