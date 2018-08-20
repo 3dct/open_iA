@@ -47,9 +47,10 @@
 // Required to create slicer
 #include "vtkColorTransferFunction.h"
 #include "vtkCamera.h"
+#include "vtkImageActor.h"
 #include "iASlicerData.h"
+#include "iAChannelVisualizationData.h"
 
-// TODO: does this belong here?
 static const char *WEIGHT_FORMAT = "%.10f";
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
 static const QString DISABLED_BACKGROUND_COLOR = "rgba(0,0,0,127)"; // transparent black
@@ -58,6 +59,9 @@ static const QString DEFAULT_MODALITY_LABELS[3] = { "A", "B", "C" };
 iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::WindowFlags f /*= 0 */) :
 	QWidget(parent, f)
 {
+	// TODO: remove
+	m_mdiChild = mdiChild;
+
 	m_stackedLayout = new QStackedLayout(this);
 	m_stackedLayout->setStackingMode(QStackedLayout::StackAll);
 
@@ -102,11 +106,23 @@ iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::Win
 	}
 	//m_transferFunction = new iAWeightedTransfer(tfs[0], tfs[1], tfs[2]);
 
-	updateModalities(mdiChild);
+	m_slicerXYopacity = mdiChild->getSlicerDataXY()->GetImageActor()->GetOpacity();
+	m_slicerXZopacity = mdiChild->getSlicerDataXZ()->GetImageActor()->GetOpacity();
+	m_slicerYZopacity = mdiChild->getSlicerDataYZ()->GetImageActor()->GetOpacity();
+
+	mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(0.0);
+	mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
+	mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
+
+	updateModalities();
 }
 
 iAHistogramStack::~iAHistogramStack()
 {
+	//m_mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(m_slicerXYopacity);
+	//m_mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(m_slicerXZopacity);
+	//m_mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(m_slicerYZopacity);
+
 	if (m_opFuncsCopy[0]) deleteOpFuncCopy(0);
 	if (m_opFuncsCopy[1]) deleteOpFuncCopy(1);
 	if (m_opFuncsCopy[2]) deleteOpFuncCopy(2);
@@ -170,6 +186,7 @@ void iAHistogramStack::updateTransferFunction(int index)
 {
 	updateTransferFunctions(index);
 	m_slicerWidgets[index]->update();
+	m_histograms[index]->redraw();
 	emit transferFunctionChanged();
 }
 
@@ -184,22 +201,27 @@ QSharedPointer<iAModality> iAHistogramStack::getModality(int index)
 	return m_modalitiesActive[index];
 }
 
+double iAHistogramStack::getWeight(int index)
+{
+	return m_weightCur[index];
+}
+
 // When new modalities are added/removed
-void iAHistogramStack::updateModalities(MdiChild* mdiChild)
+void iAHistogramStack::updateModalities()
 {
 	int i;
-	if (mdiChild->GetModalities()->size() >= 3) {
-		if (containsModality(mdiChild->GetModality(0)) &&
-			containsModality(mdiChild->GetModality(1)) &&
-			containsModality(mdiChild->GetModality(2))) {
+	if (m_mdiChild->GetModalities()->size() >= 3) {
+		if (containsModality(m_mdiChild->GetModality(0)) &&
+			containsModality(m_mdiChild->GetModality(1)) &&
+			containsModality(m_mdiChild->GetModality(2))) {
 
 			return;
 		}
 	} else {
 		if (!isReady()) {
-			for (i = 0; i < 3 && i < mdiChild->GetModalities()->size(); ++i) {
+			for (i = 0; i < 3 && i < m_mdiChild->GetModalities()->size(); ++i) {
 				if (!m_modalitiesActive[i]) {
-					m_modalitiesActive[i] = mdiChild->GetModality(i);
+					m_modalitiesActive[i] = m_mdiChild->GetModality(i);
 				}
 			}
 			disable();
@@ -209,7 +231,7 @@ void iAHistogramStack::updateModalities(MdiChild* mdiChild)
 
 	// Clear up modalities being replaced
 	for (i = 0; i < 3; ++i) {
-		if (!m_modalitiesActive[i].isNull() && !containsModality(mdiChild->GetModality(i))) {
+		if (!m_modalitiesActive[i].isNull() && !containsModality(m_mdiChild->GetModality(i))) {
 			//delete m_modalitiesActive[i];
 			delete m_histograms[i];
 			//delete m_slicerWidgets[i];
@@ -219,19 +241,19 @@ void iAHistogramStack::updateModalities(MdiChild* mdiChild)
 
 	// Initialize modalities being added
 	for (i = 0; i < 3; ++i) {
-		m_modalitiesActive[i] = mdiChild->GetModality(i);
+		m_modalitiesActive[i] = m_mdiChild->GetModality(i);
 		// Slicer {
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
 		// }
 
 		// Histogram {
-		if (!m_modalitiesActive[i]->GetHistogramData() || m_modalitiesActive[i]->GetHistogramData()->GetNumBin() != mdiChild->GetPreferences().HistogramBins)
+		if (!m_modalitiesActive[i]->GetHistogramData() || m_modalitiesActive[i]->GetHistogramData()->GetNumBin() != m_mdiChild->GetPreferences().HistogramBins)
 		{
 			m_modalitiesActive[i]->ComputeImageStatistics();
-			m_modalitiesActive[i]->ComputeHistogramData(mdiChild->GetPreferences().HistogramBins);
+			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->GetPreferences().HistogramBins);
 		}
 
-		m_histograms[i] = new iADiagramFctWidget(this, mdiChild);
+		m_histograms[i] = new iADiagramFctWidget(this, m_mdiChild);
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
 			new	iABarGraphDrawer(m_modalitiesActive[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->AddPlot(histogramPlot);
@@ -261,13 +283,20 @@ void iAHistogramStack::updateModalities(MdiChild* mdiChild)
 			assert(false);
 		}
 		// }
+
+		iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
+		iAChannelVisualizationData* chData = new iAChannelVisualizationData();
+		m_mdiChild->InsertChannelData(id, chData);
+		vtkImageData* imageData = m_modalitiesActive[i]->GetImage();
+		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->GetTransfer()->GetColorFunction();
+		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction();
+		ResetChannel(chData, imageData, ctf, otf);
+		m_mdiChild->InitChannelRenderer(id, false, true);
 	}
 
 	adjustStretch(size().width());
 	applyWeights();
-	emit modalityAdded(m_modalitiesActive[0], 0);
-	emit modalityAdded(m_modalitiesActive[1], 1);
-	emit modalityAdded(m_modalitiesActive[2], 2);
+	emit modalitiesChanged(m_modalitiesActive[0], m_modalitiesActive[1], m_modalitiesActive[2]);
 	enable();
 }
 
@@ -360,8 +389,6 @@ void iAHistogramStack::updateTransferFunctions(int index)
 		val[1] = val[1] / weight; // admit numerical imprecision...
 		copy->AddPoint(val[0], val[1], val[2], val[3]);
 	}
-
-	m_histograms[index]->redraw();
 }
 
 /** Resets the values of all nodes in the effective transfer function using the values present in the
@@ -383,5 +410,12 @@ void iAHistogramStack::applyWeights()
 			effective->SetNodeValue(j, pntVal);
 		}
 		m_histograms[i]->redraw();
+
+		iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
+		//m_mdiChild->UpdateChannelSlicerOpacity(id, m_weightCur[i]);
+		m_mdiChild->getSlicerDataXY()->updateChannelMappers();
+		m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
+		m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
+		m_mdiChild->updateSlicers();
 	}
 }

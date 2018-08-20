@@ -45,8 +45,9 @@ public:
 	int modalitiesCount();
 
 	QSharedPointer<iAModality> getModality(int index);
+	double getWeight(int index);
 
-	void updateModalities(MdiChild* mdiChild);
+	void updateModalities();
 
 	bool isReady();
 
@@ -57,7 +58,7 @@ private slots:
 
 signals:
 	void transferFunctionChanged();
-	void modalityAdded(QSharedPointer<iAModality> modality, int index);
+	void modalitiesChanged(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3);
 
 protected:
 	void resizeEvent(QResizeEvent* event);
@@ -79,6 +80,8 @@ private:
 	void createOpFuncCopy(int index);
 	void deleteOpFuncCopy(int index);
 
+	double m_slicerXYopacity, m_slicerXZopacity, m_slicerYZopacity;
+
 	// Widgets and stuff
 	QStackedLayout *m_stackedLayout;
 	QLabel *m_disabledLabel;
@@ -86,6 +89,9 @@ private:
 	QLabel *m_weightLabels[3];
 	QLabel *m_modalityLabels[3];
 	iASimpleSlicerWidget *m_slicerWidgets[3];
-	iADiagramFctWidget* m_histograms[3];
+	iADiagramFctWidget* m_histograms[3] = { 0, 0, 0 };
+
+	// TODO: remove
+	MdiChild *m_mdiChild;
 	
 };

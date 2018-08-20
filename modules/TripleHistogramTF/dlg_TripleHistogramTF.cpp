@@ -26,6 +26,7 @@
 #include "dlg_modalities.h"
 #include "iAModalityList.h"
 #include "iARenderer.h"
+#include "iASlicerData.h"
 
 #include <vtkImageData.h>
 
@@ -118,11 +119,9 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	// TODO: necessary?
 	//     {
 	connect(m_histogramStack, SIGNAL(transferFunctionChanged()), this, SLOT(updateTransferFunction()));
-	connect(m_histogramStack, SIGNAL(modalityAdded(QSharedPointer<iAModality>, int)), this, SLOT(modalityAddedToStack(QSharedPointer<iAModality>, int)));
+	connect(m_histogramStack, SIGNAL(modalitiesChanged(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3)), this, SLOT(modalityAddedToStack(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3)));
 	//     }
-	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
-	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
-	connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
+	//connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
 
 	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalityAvailable(int)), this, SLOT(modalityAvailable(int)));
 	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitySelected(int)), this, SLOT(modalitySelected(int)));
@@ -165,6 +164,7 @@ void dlg_TripleHistogramTF::setSlicerMode(iASlicerMode slicerMode)
 
 	int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
 	m_sliceSlider->setMaximum(dimensionLength - 1);
+	m_sliceSlider->setValue(dimensionLength / 2);
 
 	m_histogramStack->setSlicerMode(slicerMode, dimensionLength);
 }
@@ -176,10 +176,18 @@ void dlg_TripleHistogramTF::setSliceNumber(int sliceNumber)
 
 void dlg_TripleHistogramTF::updateTransferFunction()
 {
-	// TODO: update transfer function
+	/*for (int i = 0; i < m_histogramStack->modalitiesCount(); ++i) {
+		iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
+		m_mdiChild->UpdateChannelSlicerOpacity(id, m_histogramStack->getWeight(i));
+		m_mdiChild->getSlicerDataXY()->updateChannelMappers();
+		m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
+		m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
+		m_mdiChild->updateSlicers();
+	}*/
 
+	m_mdiChild->redrawHistogram();
 	m_mdiChild->getRenderer()->update();
-	m_mdiChild->renderer->update();
+	//m_mdiChild->renderer->update();
 }
 
 void dlg_TripleHistogramTF::modalityAvailable(int modalityIdx)
@@ -194,24 +202,19 @@ void dlg_TripleHistogramTF::modalitySelected(int modalityIdx)
 
 void dlg_TripleHistogramTF::modalitiesChanged()
 {
-	m_histogramStack->updateModalities(m_mdiChild);
+	m_histogramStack->updateModalities();
 }
 
-void dlg_TripleHistogramTF::modalityAddedToStack(QSharedPointer<iAModality> modality, int index)
+void dlg_TripleHistogramTF::modalitiesChanged(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3)
 {
-	if (index < 3) {
-		QString name = DEFAULT_LABELS[index] + " (" + modality->GetName() + ")";
-		m_histogramStack->setModalityLabel(name, index);
-		switch (index) {
-		case 0:
-			m_triangleWidget->setModality1label(name);
-			break;
-		case 1:
-			m_triangleWidget->setModality2label(name);
-			break;
-		case 2:
-			m_triangleWidget->setModality3label(name);
-			break;
-		}
-	}
+	QString name;
+
+	name = DEFAULT_LABELS[0] + " (" + modality1->GetName() + ")";
+	m_triangleWidget->setModality1label(name);
+
+	name = DEFAULT_LABELS[1] + " (" + modality2->GetName() + ")";
+	m_triangleWidget->setModality2label(name);
+
+	name = DEFAULT_LABELS[2] + " (" + modality3->GetName() + ")";
+	m_triangleWidget->setModality3label(name);
 }

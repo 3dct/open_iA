@@ -8,7 +8,7 @@ class iATripleHistogramTFModuleInterface : public iAModuleInterface
 public:
 	void Initialize();
 private slots:
-	void TestAction();
+	void MenuItemSelected();
 private:
 	dlg_TripleHistogramTF * thtf;
 };

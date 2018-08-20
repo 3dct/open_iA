@@ -53,7 +53,7 @@ public slots:
 	void modalitySelected(int modalityIdx);
 	void modalitiesChanged();
 
-	void modalityAddedToStack(QSharedPointer<iAModality> modality, int index);
+	void modalitiesChanged(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3);
 
 signals:
 
