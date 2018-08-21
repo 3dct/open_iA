@@ -77,6 +77,7 @@ namespace
 	}
 
 	const double MiddlePointShift = 74.5;
+	const int DefaultMainOpacity = 128;
 
 	const QString ModuleSettingsKey("FiberOptimizationExplorer");
 }
@@ -116,6 +117,22 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	renWin->AddRenderer(ren);
 	m_renderManager->addToBundle(ren);
 	m_mainRenderer->SetRenderWindow(renWin);
+	m_opacitySlider = new QSlider(Qt::Horizontal);
+	m_opacitySlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	m_opacitySlider->setMinimum(0);
+	m_opacitySlider->setMaximum(255);
+	m_opacitySlider->setValue(DefaultMainOpacity);
+	connect(m_opacitySlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::mainOpacityChanged);
+	m_currentOpacityLabel = new QLabel(QString::number(DefaultMainOpacity));
+	QWidget* opacityWidget = new QWidget();
+	opacityWidget->setLayout(new QHBoxLayout());
+	opacityWidget->layout()->addWidget(m_opacitySlider);
+	opacityWidget->layout()->addWidget(m_currentOpacityLabel);
+
+	QWidget* mainRendererContainer = new QWidget();
+	mainRendererContainer->setLayout(new QVBoxLayout());
+	mainRendererContainer->layout()->addWidget(m_mainRenderer);
+	mainRendererContainer->layout()->addWidget(opacityWidget);
 
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->assignToRenderWindow(renWin);
@@ -257,24 +274,20 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	QWidget* resultList = new QWidget();
 	resultList->setLayout(resultsListLayout);
 
-	iADockWidgetWrapper* main3DView = new iADockWidgetWrapper(m_mainRenderer, "3D view", "foe3DView");
-
-	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultList, "Result list", "foeResultList");
-
 	QSlider* slider = new QSlider(Qt::Horizontal);
 	slider->setMinimum(0);
 	slider->setMaximum(m_timeStepCount-1);
 	slider->setValue(m_timeStepCount-1);
-	
 	connect(slider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::timeSliderChanged);
 	m_currentTimeStepLabel = new QLabel(QString::number(m_timeStepCount - 1));
-
 	QWidget* timeSteps = new QWidget();
 	timeSteps->setLayout(new QHBoxLayout());
 	timeSteps->layout()->addWidget(slider);
 	timeSteps->layout()->addWidget(m_currentTimeStepLabel);
-	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(timeSteps, "Time Steps", "foeTimeSteps");
 
+	iADockWidgetWrapper* main3DView = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
+	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultList, "Result list", "foeResultList");
+	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(timeSteps, "Time Steps", "foeTimeSteps");
 
 	addDockWidget(Qt::RightDockWidgetArea, resultListDockWidget);
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
@@ -304,6 +317,13 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	restoreState(settings.value(ModuleSettingsKey + "/state", saveState()).toByteArray());
 }
 
+QColor iAFiberOptimizationExplorer::getMainRendererColor(int resultID)
+{
+	QColor color = m_colorTheme->GetColor(resultID);
+	color.setAlpha(m_opacitySlider->value());
+	return color;
+}
+
 void iAFiberOptimizationExplorer::toggleVis(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
@@ -315,10 +335,8 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 			DEBUG_LOG("Visualization already exists!");
 			return;
 		}
-		QColor color = m_colorTheme->GetColor(resultID);
-		color.setAlpha(128);
 		data.m_main3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer,
-				data.m_resultTable, data.m_outputMapping, color));
+				data.m_resultTable, data.m_outputMapping, getMainRendererColor(resultID)));
 		data.m_main3DVis->show();
 		m_style->setInput( data.m_main3DVis->getLinePolyData() );
 		m_lastMain3DVis = data.m_main3DVis;
@@ -341,7 +359,7 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 void iAFiberOptimizationExplorer::selectionChanged(std::vector<size_t> const & selection)
 {
 	if (m_lastMain3DVis)
-		m_lastMain3DVis->renderSelection(selection, 0, m_colorTheme->GetColor(m_lastResultID), nullptr);
+		m_lastMain3DVis->renderSelection(selection, 0, getMainRendererColor(m_lastResultID), nullptr);
 }
 
 void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
@@ -370,5 +388,15 @@ void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
 				m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
 			}
 		}
+	}
+}
+
+void iAFiberOptimizationExplorer::mainOpacityChanged(int opacity)
+{
+	m_currentOpacityLabel->setText(QString::number(opacity));
+	for (int resultID = 0; resultID < m_resultData.size(); ++resultID)
+	{
+		if (m_resultData[resultID].m_main3DVis)
+			m_resultData[resultID].m_main3DVis->renderSelection(std::vector<size_t>(), 0, getMainRendererColor(resultID), nullptr);
 	}
 }

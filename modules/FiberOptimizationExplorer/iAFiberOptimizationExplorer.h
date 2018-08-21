@@ -40,6 +40,7 @@ class QVTKOpenGLWidget;
 class vtkTable;
 
 class QLabel;
+class QSlider;
 
 class iAFiberOptimizationExplorer : public QMainWindow
 {
@@ -51,8 +52,11 @@ private slots:
 	void toggleVis(int);
 	void miniMouseEvent(QMouseEvent* ev);
 	void timeSliderChanged(int);
+	void mainOpacityChanged(int);
 	void selectionChanged(std::vector<size_t> const & selection);
 private:
+	QColor getMainRendererColor(int resultID);
+
 	std::vector<iAResultData> m_resultData;
 	QSharedPointer<iARendererManager> m_renderManager;
 	QSharedPointer<iA3DCylinderObjectVis> m_lastMain3DVis;
@@ -63,4 +67,6 @@ private:
 	MainWindow* m_mainWnd;
 	int m_timeStepCount;
 	QLabel* m_currentTimeStepLabel;
+	QLabel* m_currentOpacityLabel;
+	QSlider* m_opacitySlider;
 };
