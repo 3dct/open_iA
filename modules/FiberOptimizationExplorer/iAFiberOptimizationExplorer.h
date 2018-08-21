@@ -31,9 +31,12 @@
 class iASelectionInteractorStyle;
 
 class iA3DCylinderObjectVis;
-class iAColorTheme;
-class iARendererManager;
 class iAResultData;
+
+class iAColorTheme;
+class iAQSplom;
+class iARendererManager;
+class iASPLOMData;
 class MainWindow;
 
 class QVTKOpenGLWidget;
@@ -73,4 +76,7 @@ private:
 	QSlider* m_opacitySlider;
 	QButtonGroup* m_defaultButtonGroup;
 	int m_referenceID;
+
+	iAQSplom* m_splom;
+	QSharedPointer<iASPLOMData> m_splomData;
 };

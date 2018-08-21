@@ -27,9 +27,13 @@
 #include "iACsvVtkTableCreator.h"
 #include "iAFeatureScoutModuleInterface.h"
 
+#include "charts/iAScatterPlot.h" // for selection mode: iAScatterPlot::Rectangle
+#include "charts/iAQSplom.h"
+#include "charts/iASPLOMData.h"
 #include "iAColorTheme.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
+#include "iALookupTable.h"
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
 #include "iASelectionInteractorStyle.h"
@@ -87,7 +91,9 @@ namespace
 iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd):
 	m_colorTheme(iAColorThemeManager::GetInstance().GetTheme("Brewer Accent (max. 8)")),
 	m_mainWnd(mainWnd),
-	m_timeStepCount(0)
+	m_timeStepCount(0),
+	m_splomData(new iASPLOMData()),
+	m_splom(new iAQSplom())
 {
 	setMinimumSize(600, 400);
 	this->setCentralWidget(nullptr);
@@ -111,6 +117,10 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_renderManager = QSharedPointer<iARendererManager>(new iARendererManager());
 
 	m_mainRenderer = new QVTKOpenGLWidget();
+	//QSurfaceFormat format = m_mainRenderer->format();
+	//format.setSamples(4);
+	//m_mainRenderer->setFormat(format);
+	// QVTKOpenGLWidget does not seem to work with multi-sampling enabled (window remains empty when I add polydata actor)
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	auto ren = vtkSmartPointer<vtkRenderer>::New();
 	ren->SetBackground(1.0, 1.0, 1.0);
@@ -120,7 +130,6 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_renderManager->addToBundle(ren);
 	m_mainRenderer->SetRenderWindow(renWin);
 	m_opacitySlider = new QSlider(Qt::Horizontal);
-	m_opacitySlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	m_opacitySlider->setMinimum(0);
 	m_opacitySlider->setMaximum(255);
 	m_opacitySlider->setValue(DefaultMainOpacity);
@@ -130,6 +139,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	opacityWidget->setLayout(new QHBoxLayout());
 	opacityWidget->layout()->addWidget(m_opacitySlider);
 	opacityWidget->layout()->addWidget(m_currentOpacityLabel);
+	opacityWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	QWidget* mainRendererContainer = new QWidget();
 	mainRendererContainer->setLayout(new QVBoxLayout());
@@ -142,6 +152,14 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 
 	int resultID = 0;
 	m_defaultButtonGroup = new QButtonGroup();
+
+	const int MaxDatasetCount = 24;
+	if (csvFileNames.size() > MaxDatasetCount)
+	{
+		DEBUG_LOG(QString("You tried to open %1 datasets. This tool can only handle a small amount of datasets. Loading only the first %2.").arg(csvFileNames.size()).arg(MaxDatasetCount));
+		csvFileNames.erase( csvFileNames.begin() + MaxDatasetCount, csvFileNames.end() );
+	}
+
 	for (QString csvFile : csvFileNames)
 	{
 		iACsvConfig config = getCsvConfig(csvFile);
@@ -152,6 +170,28 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		{
 			DEBUG_LOG(QString("Could not load file '%1', skipping!").arg(csvFile));
 			continue;
+		}
+
+		if (resultID == 0)
+		{
+			std::vector<QString> paramNames;
+			for (QString s: io.getOutputHeaders())
+				paramNames.push_back(s);
+			paramNames.push_back("ProjectionError");
+			paramNames.push_back("Result_ID");
+			m_splomData->setParameterNames(paramNames);
+		}
+
+		vtkIdType numColumns = tableCreator.getTable()->GetNumberOfColumns();
+		for (vtkIdType row = 0; row < tableCreator.getTable()->GetNumberOfRows(); ++row)
+		{
+			for (vtkIdType col = 0; col < numColumns; ++col)
+			{
+				double value = tableCreator.getTable()->GetValue(row, col).ToDouble();
+				m_splomData->data()[col].push_back(value);
+			}
+			m_splomData->data()[numColumns].push_back(0);            // projection error
+			m_splomData->data()[numColumns + 1].push_back(resultID);
 		}
 		
 		iAResultData resultData;
@@ -192,6 +232,9 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		QFileInfo timeInfo(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).baseName());
 		if (timeInfo.exists() && timeInfo.isDir())
 		{
+			// read projection error info:
+
+
 			// fiber, timestep, value
 			std::vector<std::vector<std::vector<double> > > fiberTimeValues;
 			int curFiber = 0;
@@ -275,11 +318,11 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 					m_resultData[m_resultData.size() - 1].m_timeValues[t][f] = fiberTimeValues[f][t];
 				}
 			}
-
 		}
-
 		++resultID;
 	}
+	m_splomData->updateRanges();
+
 	QWidget* resultList = new QWidget();
 	resultList->setLayout(resultsListLayout);
 
@@ -297,9 +340,11 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	iADockWidgetWrapper* main3DView = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
 	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultList, "Result list", "foeResultList");
 	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(timeSteps, "Time Steps", "foeTimeSteps");
+	iADockWidgetWrapper* splomWidget = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
 
 	addDockWidget(Qt::RightDockWidgetArea, resultListDockWidget);
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
+	splitDockWidget(main3DView, splomWidget, Qt::Horizontal);
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 }
 
@@ -324,6 +369,21 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 		qobject_cast<QWidget*>(parent())->setGeometry(newGeometry);
 	}
 	restoreState(settings.value(ModuleSettingsKey + "/state", saveState()).toByteArray());
+
+	// splom needs an active OpenGL Context (it must be visible when setData is called):
+	m_splom->setMinimumWidth(200);
+	m_splom->setData(m_splomData);
+	iALookupTable lut;
+	int numOfResults = m_resultData.size();
+	lut.setRange(0, numOfResults - 1);
+	lut.allocate(numOfResults);
+	for (size_t i = 0; i < numOfResults; i++)
+		lut.setColor(i, m_colorTheme->GetColor(i));
+	m_splom->setLookupTable(lut, m_splomData->numParams() - 1);
+	m_splom->setSelectionMode(iAScatterPlot::Rectangle);
+	std::vector<bool> paramVisib(m_splomData->numParams(), false);
+	paramVisib[7] = paramVisib[9] = paramVisib[14] = paramVisib[15] = paramVisib[16] = paramVisib[17] = paramVisib[18] = true;
+	m_splom->setParameterVisibility(paramVisib);
 }
 
 QColor iAFiberOptimizationExplorer::getMainRendererColor(int resultID)
