@@ -28,7 +28,7 @@
 
 #include <vector>
 
-class InteractorStyle;
+class iASelectionInteractorStyle;
 
 class iA3DCylinderObjectVis;
 class iAColorTheme;
@@ -57,7 +57,7 @@ private:
 	QSharedPointer<iARendererManager> m_renderManager;
 	QSharedPointer<iA3DCylinderObjectVis> m_lastMain3DVis;
 	int m_lastResultID;
-	vtkSmartPointer<InteractorStyle> m_style;
+	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	QVTKOpenGLWidget* m_mainRenderer;
 	iAColorTheme const * m_colorTheme;
 	MainWindow* m_mainWnd;

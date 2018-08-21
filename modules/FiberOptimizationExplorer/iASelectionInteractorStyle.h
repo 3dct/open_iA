@@ -20,81 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAConsole.h"
-
-#include <vtkActor.h>
-#include <vtkAreaPicker.h>
-#include <vtkDataSetMapper.h>
-#include <vtkExtractGeometry.h>
-#include <vtkIdTypeArray.h>
 #include <vtkInteractorStyleRubberBandPick.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkPlane.h>
-#include <vtkPlanes.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkVertexGlyphFilter.h>
+#include <vtkSmartPointer.h>
 
 #include <QObject>
 
-#include <set>
 #include <vector>
 
-class InteractorStyle : public QObject, public vtkInteractorStyleRubberBandPick
+class vtkPolyData;
+class vtkRenderWindow;
+
+class iASelectionInteractorStyle : public QObject, public vtkInteractorStyleRubberBandPick
 {
 	Q_OBJECT
 public:
-	static InteractorStyle* New();
-	vtkTypeMacro(InteractorStyle, vtkInteractorStyleRubberBandPick);
-
-	InteractorStyle() {}
-
-	virtual void OnLeftButtonUp()
-	{
-		// Forward events
-		vtkInteractorStyleRubberBandPick::OnLeftButtonUp();
-
-		if (!Points)
-			return;
-
-		vtkPlanes* frustum = static_cast<vtkAreaPicker*>(this->GetInteractor()->GetPicker())->GetFrustum();
-
-		vtkSmartPointer<vtkExtractGeometry> extractGeometry = vtkSmartPointer<vtkExtractGeometry>::New();
-		extractGeometry->SetImplicitFunction(frustum);
-		extractGeometry->SetInputData(this->Points);
-		extractGeometry->Update();
-
-		vtkSmartPointer<vtkVertexGlyphFilter> glyphFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
-		glyphFilter->SetInputConnection(extractGeometry->GetOutputPort());
-		glyphFilter->Update();
-
-		vtkPolyData* selected = glyphFilter->GetOutput();
-		DEBUG_LOG(QString("Selected %1 points and %2 cells.")
-			.arg(selected->GetNumberOfPoints())
-			.arg(selected->GetNumberOfCells()));
-
-		vtkPointData* pointData = selected->GetPointData();
-		vtkIdTypeArray* ids = vtkIdTypeArray::SafeDownCast(pointData->GetArray("OriginalIds"));
-		if (!ids)
-			return;
-
-		std::set<size_t> selset;
-		for (vtkIdType i = 0; i < ids->GetNumberOfTuples(); i++)
-		{
-			selset.insert(ids->GetValue(i) / 2);
-			//DEBUG_LOG(QString("    %1: %2").arg(i).arg(ids->GetValue(i)));
-		}
-		std::vector<size_t> selection;
-		std::copy(selset.begin(), selset.end(), std::back_inserter(selection));
-		emit selectionChanged(selection);
-	}
-
-	void SetInput(vtkSmartPointer<vtkPolyData> points) { this->Points = points; }
+	static iASelectionInteractorStyle* New();
+	vtkTypeMacro(iASelectionInteractorStyle, vtkInteractorStyleRubberBandPick);
+	void OnLeftButtonUp() override;
+	void setInput(vtkSmartPointer<vtkPolyData> points);
+	void assignToRenderWindow(vtkSmartPointer<vtkRenderWindow> renWin);
 signals:
 	void selectionChanged(std::vector<size_t> const &);
 private:
-	vtkSmartPointer<vtkPolyData> Points;
+	vtkSmartPointer<vtkPolyData> m_points;
 };

@@ -39,6 +39,7 @@
 
 #include <QVTKOpenGLWidget.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkPolyData.h>
 #include <vtkRenderer.h>
 #include <vtkTable.h>
 
@@ -63,9 +64,6 @@ public:
 	// timestep, fiber, values
 	std::vector<std::vector<std::vector<double> > > m_timeValues;
 };
-
-
-vtkStandardNewMacro(InteractorStyle);
 
 namespace
 {
@@ -119,13 +117,9 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_renderManager->addToBundle(ren);
 	m_mainRenderer->SetRenderWindow(renWin);
 
-	vtkSmartPointer<vtkAreaPicker> areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
-	renWin->GetInteractor()->SetPicker(areaPicker);
-	renWin->GetInteractor()->SetRenderWindow(renWin);
-	m_style = vtkSmartPointer<InteractorStyle>::New();
-	renWin->GetInteractor()->SetInteractorStyle(m_style);
-
-	connect(m_style.GetPointer(), &InteractorStyle::selectionChanged, this, &iAFiberOptimizationExplorer::selectionChanged);
+	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
+	m_style->assignToRenderWindow(renWin);
+	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiberOptimizationExplorer::selectionChanged);
 
 	int resultID = 0;
 	for (QString csvFile : csvFileNames)
@@ -326,7 +320,7 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 		data.m_main3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer,
 				data.m_resultTable, data.m_outputMapping, color));
 		data.m_main3DVis->show();
-		m_style->SetInput( data.m_main3DVis->getLinePolyData() );
+		m_style->setInput( data.m_main3DVis->getLinePolyData() );
 		m_lastMain3DVis = data.m_main3DVis;
 		m_lastResultID = resultID;
 	}
