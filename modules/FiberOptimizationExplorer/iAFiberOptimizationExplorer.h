@@ -39,6 +39,7 @@ class MainWindow;
 class QVTKOpenGLWidget;
 class vtkTable;
 
+class QButtonGroup;
 class QLabel;
 class QSlider;
 
@@ -50,6 +51,7 @@ public:
 	void loadStateAndShow();
 private slots:
 	void toggleVis(int);
+	void referenceToggled(bool);
 	void miniMouseEvent(QMouseEvent* ev);
 	void timeSliderChanged(int);
 	void mainOpacityChanged(int);
@@ -69,4 +71,6 @@ private:
 	QLabel* m_currentTimeStepLabel;
 	QLabel* m_currentOpacityLabel;
 	QSlider* m_opacitySlider;
+	QButtonGroup* m_defaultButtonGroup;
+	int m_referenceID;
 };

@@ -43,10 +43,12 @@
 #include <vtkRenderer.h>
 #include <vtkTable.h>
 
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QFileInfo>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QRadioButton>
 #include <QScrollArea>
 #include <QSettings>
 #include <QSlider>
@@ -139,6 +141,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiberOptimizationExplorer::selectionChanged);
 
 	int resultID = 0;
+	m_defaultButtonGroup = new QButtonGroup();
 	for (QString csvFile : csvFileNames)
 	{
 		iACsvConfig config = getCsvConfig(csvFile);
@@ -164,8 +167,13 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		QCheckBox* toggleMainRender = new QCheckBox(QFileInfo(csvFile).fileName());
 		toggleMainRender->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 		toggleMainRender->setProperty("resultID", resultID);
+		QRadioButton* toggleReference = new QRadioButton("");
+		toggleReference->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+		toggleReference->setProperty("resultID", resultID);
+		m_defaultButtonGroup->addButton(toggleReference);
 		resultsListLayout->addWidget(toggleMainRender, resultID, 0);
-		resultsListLayout->addWidget(resultData.m_vtkWidget, resultID, 1);
+		resultsListLayout->addWidget(toggleReference, resultID, 1);
+		resultsListLayout->addWidget(resultData.m_vtkWidget, resultID, 2);
 
 		resultData.m_mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
 				resultData.m_vtkWidget, tableCreator.getTable(), io.getOutputMapping(), m_colorTheme->GetColor(resultID)));
@@ -179,6 +187,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 
 		connect(resultData.m_vtkWidget, &QVTKOpenGLWidget::mouseEvent, this, &iAFiberOptimizationExplorer::miniMouseEvent);
 		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleVis);
+		connect(toggleReference, &QRadioButton::toggled, this, &iAFiberOptimizationExplorer::referenceToggled);
 
 		QFileInfo timeInfo(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).baseName());
 		if (timeInfo.exists() && timeInfo.isDir())
@@ -399,4 +408,16 @@ void iAFiberOptimizationExplorer::mainOpacityChanged(int opacity)
 		if (m_resultData[resultID].m_main3DVis)
 			m_resultData[resultID].m_main3DVis->renderSelection(std::vector<size_t>(), 0, getMainRendererColor(resultID), nullptr);
 	}
+}
+
+
+void iAFiberOptimizationExplorer::referenceToggled(bool)
+{
+	QRadioButton* sender = qobject_cast<QRadioButton*>(QObject::sender());
+	sender->setText("reference");
+	for (auto button: m_defaultButtonGroup->buttons())
+		if (button != sender)
+			button->setText("");
+
+	m_referenceID = sender->property("resultID").toULongLong();
 }
