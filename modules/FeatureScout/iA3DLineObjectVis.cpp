@@ -136,10 +136,6 @@ void iA3DLineObjectVis::renderSelection( std::vector<size_t> const & sortedSelIn
 		curSelObjID = sortedSelInds[currentObjectIndexInSelection];
 		classColor.setAlpha(TransparentAlpha);
 	}
-	else
-	{
-		classColor.setAlpha(255);
-	}
 	for ( size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
 	{
 		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
