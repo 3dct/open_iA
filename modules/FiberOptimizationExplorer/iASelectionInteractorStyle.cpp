@@ -41,9 +41,10 @@ void iASelectionInteractorStyle::OnLeftButtonUp()
 {
 	vtkInteractorStyleRubberBandPick::OnLeftButtonUp();
 
-	if (!m_points)
+	if (!m_points || GetInteractor()->GetPicker()->GetMTime() == m_lastPickTime)
 		return;
-
+	
+	m_lastPickTime = GetInteractor()->GetPicker()->GetMTime();
 	vtkPlanes* frustum = static_cast<vtkAreaPicker*>(GetInteractor()->GetPicker())->GetFrustum();
 
 	vtkSmartPointer<vtkExtractGeometry> extractGeometry = vtkSmartPointer<vtkExtractGeometry>::New();
@@ -61,14 +62,23 @@ void iASelectionInteractorStyle::OnLeftButtonUp()
 	if (!ids)
 		return;
 
-	std::set<size_t> selset;
-	for (vtkIdType i = 0; i < ids->GetNumberOfTuples(); i++)
+	if (GetInteractor()->GetAltKey())
 	{
-		selset.insert(ids->GetValue(i) / 2);
+		for (vtkIdType i = 0; i < ids->GetNumberOfTuples(); i++)
+			m_lastSelection.erase(ids->GetValue(i) / 2);
 	}
-	std::vector<size_t> selection;
-	std::copy(selset.begin(), selset.end(), std::back_inserter(selection));
-	emit selectionChanged(selection);
+	else
+	{
+		if (!GetInteractor()->GetShiftKey())
+			m_lastSelection.clear();
+		for (vtkIdType i = 0; i < ids->GetNumberOfTuples(); i++)
+			m_lastSelection.insert(ids->GetValue(i) / 2);
+	}
+
+	// TODO: find more efficient way - pass set directly?
+	std::vector<size_t> result;
+	std::copy(m_lastSelection.begin(), m_lastSelection.end(), std::back_inserter(result));
+	emit selectionChanged(result);
 }
 
 

@@ -25,6 +25,7 @@
 
 #include <QObject>
 
+#include <set>
 #include <vector>
 
 class vtkPolyData;
@@ -43,4 +44,6 @@ signals:
 	void selectionChanged(std::vector<size_t> const &);
 private:
 	vtkSmartPointer<vtkPolyData> m_points;
+	std::set<size_t> m_lastSelection;
+	vtkMTimeType m_lastPickTime;
 };
