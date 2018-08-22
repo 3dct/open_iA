@@ -679,6 +679,8 @@ void iAChartWidget::showDataTooltip(QMouseEvent *event)
 	else
 		toolTip = QString("%1: %2\n%3: ").arg(xCaption).arg(getXAxisTickMarkLabel(binStart, stepWidth)).arg(yCaption);
 	bool more = false;
+	const int MaxToolTipDataCount = 5;
+	int curTooltipDataCount = 1;
 	for (auto plot : m_plots)
 	{
 		auto data = plot->GetData();
@@ -689,6 +691,12 @@ void iAChartWidget::showDataTooltip(QMouseEvent *event)
 		else
 			more = true;
 		toolTip += QString::number(data->GetRawData()[nthBin], 'g', 15);
+		++curTooltipDataCount;
+		if (curTooltipDataCount > MaxToolTipDataCount)
+		{
+			toolTip += "...";
+			break;
+		}
 	}
 	QToolTip::showText(event->globalPos(), toolTip, this);
 }
