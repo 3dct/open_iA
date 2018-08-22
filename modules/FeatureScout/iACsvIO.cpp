@@ -82,7 +82,8 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	}
 	QTextStream in(&file);
 	in.setCodec(m_csvConfig.encoding.toStdString().c_str());
-	size_t effectiveRowCount = std::min(rowCount, calcRowCount(in, m_csvConfig.skipLinesStart, m_csvConfig.skipLinesEnd));
+	size_t effectiveRowCount = std::min(rowCount, 
+		calcRowCount(in, m_csvConfig.skipLinesStart + (cnfg_params.containsHeader ? 1 : 0), m_csvConfig.skipLinesEnd));
 	if (effectiveRowCount <= 0)
 	{
 		DEBUG_LOG("No rows to load in the csv file!");
@@ -304,7 +305,7 @@ QVector<int> iACsvIO::computeSelectedColIdx()
 size_t iACsvIO::calcRowCount(QTextStream& in, const size_t skipLinesStart, const size_t skipLinesEnd)
 {
 	// skip (unused) header lines (+1 for line containing actual column headers)
-	for (int i = 0; i < skipLinesStart + 1 && !in.atEnd(); i++)
+	for (int i = 0; i < skipLinesStart && !in.atEnd(); i++)
 		in.readLine();
 
 	// count remaining lines
