@@ -210,6 +210,13 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			std::vector<QString> paramNames;
 			for (QString s: io.getOutputHeaders())
 				paramNames.push_back(s);
+			paramNames.push_back("XShift");
+			paramNames.push_back("YShift");
+			paramNames.push_back("ZShift");
+			paramNames.push_back("PhiDiff");
+			paramNames.push_back("ThetaDiff");
+			paramNames.push_back("LengthDiff");
+			paramNames.push_back("DiameterDiff");
 			paramNames.push_back("ProjectionErrorReduction");
 			paramNames.push_back("Result_ID");
 			m_splomData->setParameterNames(paramNames);
@@ -217,6 +224,14 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		// TODO: Check if output mapping is the same!
 		vtkIdType numColumns = tableCreator.getTable()->GetNumberOfColumns();
 		vtkIdType numFibers = tableCreator.getTable()->GetNumberOfRows();
+		m_splomData->data()[m_splomData->numParams()-9].resize(numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-8].resize(numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-7].resize(numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-6].resize(numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-5].resize(numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-4].resize(numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-3].resize(numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-2].resize(numFibers, 0); // proj error red
 		for (vtkIdType row = 0; row < numFibers; ++row)
 		{
 			for (vtkIdType col = 0; col < numColumns; ++col)
@@ -224,8 +239,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 				double value = tableCreator.getTable()->GetValue(row, col).ToDouble();
 				m_splomData->data()[col].push_back(value);
 			}
-			m_splomData->data()[numColumns].push_back(0);            // projection error
-			m_splomData->data()[numColumns + 1].push_back(resultID);
+			m_splomData->data()[m_splomData->numParams()-1].push_back(resultID);
 		}
 		
 		iAResultData resultData;
@@ -305,7 +319,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 					}
 					resultData.m_projectionError[fiberNr] = values;
 					double projErrorRed = values->at(0) - values->at(values->size() - 1);
-					m_splomData->data()[numColumns][fiberNr] = projErrorRed;
+					m_splomData->data()[m_splomData->numParams()-2][fiberNr] = projErrorRed;
 					QSharedPointer<iAVectorPlotData> plotData(new iAVectorPlotData(values));
 					m_timeStepProjectionErrorChart->addPlot(QSharedPointer<iALineFunctionDrawer>(new iALineFunctionDrawer(plotData, ProjectionErrorDefaultPlotColor)));
 					fiberNr++;
@@ -707,10 +721,14 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 		}
 	}
 	colsToInclude.push_back(iACsvConfig::Diameter); // for now, don't include diameter in error calculations. later, move up?
+	size_t splomID = 0;
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
 		if (resultID == m_referenceID)
+		{
+			splomID += m_resultData[resultID].m_resultTable->GetNumberOfRows();
 			continue;
+		}
 
 		DEBUG_LOG(QString("Differences of result %1 to reference (%2):").arg(resultID).arg(m_referenceID));
 		size_t fiberCount = m_resultData[resultID].m_resultTable->GetNumberOfRows();
@@ -722,6 +740,8 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			{
 				refDiff[diffID] = m_resultData[resultID].m_resultTable->GetValue(fiberID, mapping[colsToInclude[diffID]]).ToDouble()
 					- m_resultData[m_referenceID].m_resultTable->GetValue(m_resultData[resultID].m_referenceMapping[fiberID], mapping[colsToInclude[diffID]]).ToDouble();
+				m_splomData->data()[m_splomData->numParams()-9 + diffID][splomID] = refDiff[diffID];
+				++ splomID;
 			}
 			DEBUG_LOG(QString("  Fiber %1 -> ref #%2. Shift: center=(%3, %4, %5), phi=%6, theta=%7, length=%8, diameter=%9")
 				.arg(fiberID).arg(m_resultData[resultID].m_referenceMapping[fiberID])
