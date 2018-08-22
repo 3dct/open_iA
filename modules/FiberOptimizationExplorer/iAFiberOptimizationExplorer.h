@@ -39,7 +39,15 @@ class iARendererManager;
 class iASPLOMData;
 class MainWindow;
 
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class QVTKOpenGLWidget;
+typedef QVTKOpenGLWidget iAVtkWidgetClass;
+#else
+class QVTKWidget2;
+typedef QVTKWidget2 iAVtkWidgetClass;
+#endif
+
 class vtkTable;
 
 class QButtonGroup;
@@ -67,7 +75,7 @@ private:
 	QSharedPointer<iA3DCylinderObjectVis> m_lastMain3DVis;
 	int m_lastResultID;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
-	QVTKOpenGLWidget* m_mainRenderer;
+	iAVtkWidgetClass* m_mainRenderer;
 	iAColorTheme const * m_colorTheme;
 	MainWindow* m_mainWnd;
 	int m_timeStepCount;

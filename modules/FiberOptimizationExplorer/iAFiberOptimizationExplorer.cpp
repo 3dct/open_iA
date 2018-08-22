@@ -41,7 +41,11 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget2.h>
+#endif
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkPolyData.h>
 #include <vtkRenderer.h>
@@ -63,7 +67,7 @@ class iAResultData
 public:
 	vtkSmartPointer<vtkTable> m_resultTable;
 	QSharedPointer<QMap<uint, uint> > m_outputMapping;
-	QVTKOpenGLWidget* m_vtkWidget;
+	iAVtkWidgetClass* m_vtkWidget;
 	QSharedPointer<iA3DCylinderObjectVis> m_mini3DVis;
 	QSharedPointer<iA3DCylinderObjectVis> m_main3DVis;
 	QString m_fileName;
@@ -116,7 +120,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 
 	m_renderManager = QSharedPointer<iARendererManager>(new iARendererManager());
 
-	m_mainRenderer = new QVTKOpenGLWidget();
+	m_mainRenderer = new iAVtkWidgetClass();
 	//QSurfaceFormat format = m_mainRenderer->format();
 	//format.setSamples(4);
 	//m_mainRenderer->setFormat(format);
@@ -195,7 +199,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		}
 		
 		iAResultData resultData;
-		resultData.m_vtkWidget  = new QVTKOpenGLWidget();
+		resultData.m_vtkWidget  = new iAVtkWidgetClass();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
 		m_renderManager->addToBundle(ren);
@@ -225,7 +229,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		
 		m_resultData.push_back(resultData);
 
-		connect(resultData.m_vtkWidget, &QVTKOpenGLWidget::mouseEvent, this, &iAFiberOptimizationExplorer::miniMouseEvent);
+		connect(resultData.m_vtkWidget, &iAVtkWidgetClass::mouseEvent, this, &iAFiberOptimizationExplorer::miniMouseEvent);
 		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleVis);
 		connect(toggleReference, &QRadioButton::toggled, this, &iAFiberOptimizationExplorer::referenceToggled);
 
