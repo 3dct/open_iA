@@ -20,74 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
+#include "charts/iAPlotData.h"
 
-#include <QMainWindow>
-#include <QMap>
 #include <QSharedPointer>
 
 #include <vector>
 
-class iASelectionInteractorStyle;
-
-class iA3DCylinderObjectVis;
-class iAResultData;
-
-class iAChartWidget;
-class iAColorTheme;
-class iAQSplom;
-class iARendererManager;
-class iASPLOMData;
-class MainWindow;
-
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-class QVTKOpenGLWidget;
-typedef QVTKOpenGLWidget iAVtkWidgetClass;
-#else
-class QVTKWidget2;
-typedef QVTKWidget2 iAVtkWidgetClass;
-#endif
-
-class vtkTable;
-
-class QButtonGroup;
-class QLabel;
-class QSlider;
-
-class iAFiberOptimizationExplorer : public QMainWindow
+class iAVectorPlotData : public iAPlotData
 {
 public:
-	iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd);
-	~iAFiberOptimizationExplorer();
-	void loadStateAndShow();
-private slots:
-	void toggleVis(int);
-	void referenceToggled(bool);
-	void miniMouseEvent(QMouseEvent* ev);
-	void timeSliderChanged(int);
-	void mainOpacityChanged(int);
-	void selectionChanged(std::vector<size_t> const & selection);
+	iAVectorPlotData(QSharedPointer<std::vector<double> > data);
+	DataType const * GetRawData() const override;
+	size_t GetNumBin() const override;
+	double GetSpacing() const override;
+	double const * XBounds() const override;
+	DataType const * YBounds() const override;
 private:
-	QColor getMainRendererColor(int resultID);
-
-	std::vector<iAResultData> m_resultData;
-	QSharedPointer<iARendererManager> m_renderManager;
-	QSharedPointer<iA3DCylinderObjectVis> m_lastMain3DVis;
-	int m_lastResultID;
-	vtkSmartPointer<iASelectionInteractorStyle> m_style;
-	iAVtkWidgetClass* m_mainRenderer;
-	iAColorTheme const * m_colorTheme;
-	MainWindow* m_mainWnd;
-	int m_timeStepCount;
-	QLabel* m_currentTimeStepLabel;
-	QLabel* m_currentOpacityLabel;
-	QSlider* m_opacitySlider;
-	QButtonGroup* m_defaultButtonGroup;
-	int m_referenceID;
-
-	iAQSplom* m_splom;
-	QSharedPointer<iASPLOMData> m_splomData;
-
-	iAChartWidget* m_timeStepProjectionErrorChart;
+	QSharedPointer<std::vector<double>> m_data;
+	double m_xBounds[2];
+	double m_yBounds[2];
 };

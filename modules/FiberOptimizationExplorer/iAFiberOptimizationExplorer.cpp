@@ -26,7 +26,10 @@
 #include "iACsvIO.h"
 #include "iACsvVtkTableCreator.h"
 #include "iAFeatureScoutModuleInterface.h"
+#include "iAVectorPlotData.h"
 
+#include "charts/iAChartWidget.h"
+#include "charts/iAPlotTypes.h"
 #include "charts/iAScatterPlot.h" // for selection mode: iAScatterPlot::Rectangle
 #include "charts/iAQSplom.h"
 #include "charts/iASPLOMData.h"
@@ -71,8 +74,10 @@ public:
 	QSharedPointer<iA3DCylinderObjectVis> m_mini3DVis;
 	QSharedPointer<iA3DCylinderObjectVis> m_main3DVis;
 	QString m_fileName;
-	// timestep, fiber, values
+	// timestep, fiber, 6 values (center, phi, theta, length)
 	std::vector<std::vector<std::vector<double> > > m_timeValues;
+	// fiber, timestep, global projection error
+	std::vector<QSharedPointer<std::vector<double> > > m_projectionError;
 };
 
 namespace
@@ -90,6 +95,8 @@ namespace
 	const int DefaultMainOpacity = 128;
 
 	const QString ModuleSettingsKey("FiberOptimizationExplorer");
+
+	QColor ProjectionErrorChartColor(128, 128, 128);
 }
 
 iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd):
@@ -154,6 +161,23 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_style->assignToRenderWindow(renWin);
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiberOptimizationExplorer::selectionChanged);
 
+	QWidget* optimizationSteps = new QWidget();
+	m_timeStepProjectionErrorChart = new iAChartWidget(optimizationSteps, "Time Step", "Projection Error");
+	optimizationSteps->setLayout(new QHBoxLayout());
+	QWidget* timeSteps = new QWidget();
+	QSlider* slider = new QSlider(Qt::Horizontal);
+	slider->setMinimum(0);
+	slider->setMaximum(m_timeStepCount - 1);
+	slider->setValue(m_timeStepCount - 1);
+	connect(slider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::timeSliderChanged);
+	m_currentTimeStepLabel = new QLabel(QString::number(m_timeStepCount - 1));
+	timeSteps->setLayout(new QHBoxLayout());
+	timeSteps->layout()->addWidget(slider);
+	timeSteps->layout()->addWidget(m_currentTimeStepLabel);
+	timeSteps->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	optimizationSteps->layout()->addWidget(m_timeStepProjectionErrorChart);
+	optimizationSteps->layout()->addWidget(timeSteps);
+
 	int resultID = 0;
 	m_defaultButtonGroup = new QButtonGroup();
 
@@ -181,13 +205,14 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			std::vector<QString> paramNames;
 			for (QString s: io.getOutputHeaders())
 				paramNames.push_back(s);
-			paramNames.push_back("ProjectionError");
+			paramNames.push_back("ProjectionErrorReduction");
 			paramNames.push_back("Result_ID");
 			m_splomData->setParameterNames(paramNames);
 		}
 
 		vtkIdType numColumns = tableCreator.getTable()->GetNumberOfColumns();
-		for (vtkIdType row = 0; row < tableCreator.getTable()->GetNumberOfRows(); ++row)
+		vtkIdType numFibers = tableCreator.getTable()->GetNumberOfRows();
+		for (vtkIdType row = 0; row < numFibers; ++row)
 		{
 			for (vtkIdType col = 0; col < numColumns; ++col)
 			{
@@ -234,9 +259,50 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		connect(toggleReference, &QRadioButton::toggled, this, &iAFiberOptimizationExplorer::referenceToggled);
 
 		QFileInfo timeInfo(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).baseName());
+
+		// TODO: in case reading gets inefficient, look at pre-reserving the required amount of fields
+		//       and using std::vector::swap to assign the sub-vectors!
 		if (timeInfo.exists() && timeInfo.isDir())
 		{
 			// read projection error info:
+			QFile projErrorFile(timeInfo.absoluteFilePath() + "/projection_error.csv");
+			if (!projErrorFile.open(QIODevice::ReadOnly | QIODevice::Text))
+			{
+				DEBUG_LOG(QString("Unable to open projection error file: %1").arg(projErrorFile.errorString()));
+			}
+			else
+			{
+				QTextStream in(&projErrorFile);
+				size_t fiberNr = 0;
+				while (!in.atEnd())
+				{
+					QString line = in.readLine();
+					QStringList valueStrList = line.split(",");
+					QSharedPointer<std::vector<double> > values (new std::vector<double>() );
+					for (int i = 0; i < valueStrList.size(); ++i)
+					{
+						if (valueStrList[i] == "nan")
+							break;
+						values->push_back(valueStrList[i].toDouble());
+					}
+					resultData.m_projectionError.push_back(values);
+
+					double projErrorRed = values->at(values->size() - 1) - values->at(0);
+					if (fiberNr >= numFibers)
+					{
+						DEBUG_LOG(QString("Discrepancy: More lines in %1 file than there were fibers in the fiber description csv (%2)").arg(projErrorFile.fileName()).arg(numFibers));
+					}
+					else
+					{
+						m_splomData->data()[numColumns][fiberNr] = projErrorRed;
+					}
+					QSharedPointer<iAVectorPlotData> plotData(new iAVectorPlotData(values));
+					m_timeStepProjectionErrorChart->addPlot(QSharedPointer<iALineFunctionDrawer>(new iALineFunctionDrawer(plotData, ProjectionErrorChartColor)));
+					fiberNr++;
+				}
+			}
+
+			// visualize projection error of each fiber:
 
 
 			// fiber, timestep, value
@@ -330,20 +396,9 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	QWidget* resultList = new QWidget();
 	resultList->setLayout(resultsListLayout);
 
-	QSlider* slider = new QSlider(Qt::Horizontal);
-	slider->setMinimum(0);
-	slider->setMaximum(m_timeStepCount-1);
-	slider->setValue(m_timeStepCount-1);
-	connect(slider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::timeSliderChanged);
-	m_currentTimeStepLabel = new QLabel(QString::number(m_timeStepCount - 1));
-	QWidget* timeSteps = new QWidget();
-	timeSteps->setLayout(new QHBoxLayout());
-	timeSteps->layout()->addWidget(slider);
-	timeSteps->layout()->addWidget(m_currentTimeStepLabel);
-
 	iADockWidgetWrapper* main3DView = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
 	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultList, "Result list", "foeResultList");
-	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(timeSteps, "Time Steps", "foeTimeSteps");
+	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(optimizationSteps, "Time Steps", "foeTimeSteps");
 	iADockWidgetWrapper* splomWidget = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
 
 	addDockWidget(Qt::RightDockWidgetArea, resultListDockWidget);
