@@ -163,16 +163,15 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 
 	QWidget* optimizationSteps = new QWidget();
 	m_timeStepProjectionErrorChart = new iAChartWidget(optimizationSteps, "Time Step", "Projection Error");
-	optimizationSteps->setLayout(new QHBoxLayout());
+	m_timeStepProjectionErrorChart->setMinimumHeight(200);
+	optimizationSteps->setLayout(new QVBoxLayout());
 	QWidget* timeSteps = new QWidget();
-	QSlider* slider = new QSlider(Qt::Horizontal);
-	slider->setMinimum(0);
-	slider->setMaximum(m_timeStepCount - 1);
-	slider->setValue(m_timeStepCount - 1);
-	connect(slider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::timeSliderChanged);
-	m_currentTimeStepLabel = new QLabel(QString::number(m_timeStepCount - 1));
+	QSlider* timeStepSlider = new QSlider(Qt::Horizontal);
+	timeStepSlider->setMinimum(0);
+	connect(timeStepSlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::timeSliderChanged);
+	m_currentTimeStepLabel = new QLabel("");
 	timeSteps->setLayout(new QHBoxLayout());
-	timeSteps->layout()->addWidget(slider);
+	timeSteps->layout()->addWidget(timeStepSlider);
 	timeSteps->layout()->addWidget(m_currentTimeStepLabel);
 	timeSteps->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	optimizationSteps->layout()->addWidget(m_timeStepProjectionErrorChart);
@@ -272,12 +271,20 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			}
 			else
 			{
+				resultData.m_projectionError.resize(numFibers);
 				QTextStream in(&projErrorFile);
 				size_t fiberNr = 0;
 				while (!in.atEnd())
 				{
 					QString line = in.readLine();
 					QStringList valueStrList = line.split(",");
+					if (valueStrList.size() < 2)
+						continue;
+					if (fiberNr >= numFibers)
+					{
+						DEBUG_LOG(QString("Discrepancy: More lines in %1 file than there were fibers in the fiber description csv (%2)").arg(projErrorFile.fileName()).arg(numFibers));
+						break;
+					}
 					QSharedPointer<std::vector<double> > values (new std::vector<double>() );
 					for (int i = 0; i < valueStrList.size(); ++i)
 					{
@@ -285,17 +292,13 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 							break;
 						values->push_back(valueStrList[i].toDouble());
 					}
-					resultData.m_projectionError.push_back(values);
-
-					double projErrorRed = values->at(values->size() - 1) - values->at(0);
-					if (fiberNr >= numFibers)
+					for (int i = 0; i < values->size(); ++i)
 					{
-						DEBUG_LOG(QString("Discrepancy: More lines in %1 file than there were fibers in the fiber description csv (%2)").arg(projErrorFile.fileName()).arg(numFibers));
+						(*values)[i] -= values->at(values->size() - 1);
 					}
-					else
-					{
-						m_splomData->data()[numColumns][fiberNr] = projErrorRed;
-					}
+					resultData.m_projectionError[fiberNr] = values;
+					double projErrorRed = values->at(0) - values->at(values->size() - 1);
+					m_splomData->data()[numColumns][fiberNr] = projErrorRed;
 					QSharedPointer<iAVectorPlotData> plotData(new iAVectorPlotData(values));
 					m_timeStepProjectionErrorChart->addPlot(QSharedPointer<iALineFunctionDrawer>(new iALineFunctionDrawer(plotData, ProjectionErrorChartColor)));
 					fiberNr++;
@@ -393,6 +396,10 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	}
 	m_splomData->updateRanges();
 
+	timeStepSlider->setMaximum(m_timeStepCount - 1);
+	timeStepSlider->setValue(m_timeStepCount - 1);
+	m_currentTimeStepLabel->setText(QString::number(m_timeStepCount - 1));
+
 	QWidget* resultList = new QWidget();
 	resultList->setLayout(resultsListLayout);
 
@@ -441,8 +448,9 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	m_splom->setLookupTable(lut, m_splomData->numParams() - 1);
 	m_splom->setSelectionMode(iAScatterPlot::Rectangle);
 	std::vector<bool> paramVisib(m_splomData->numParams(), false);
-	paramVisib[7] = paramVisib[9] = paramVisib[14] = paramVisib[15] = paramVisib[16] = paramVisib[17] = paramVisib[18] = true;
+	paramVisib[7] = paramVisib[9] = paramVisib[14] = paramVisib[15] = paramVisib[16] = paramVisib[17] = paramVisib[18] = paramVisib[m_splomData->numParams()-2] = true;
 	m_splom->setParameterVisibility(paramVisib);
+	m_splom->showDefaultMaxizimedPlot();
 }
 
 QColor iAFiberOptimizationExplorer::getMainRendererColor(int resultID)
