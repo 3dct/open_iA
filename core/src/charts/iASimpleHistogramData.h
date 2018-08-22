@@ -21,7 +21,6 @@
 #pragma once
 
 #include "iAPlotData.h"
-#include "iAPlotTypes.h"
 #include "open_iA_Core_export.h"
 
 #include <QSharedPointer>
