@@ -67,7 +67,9 @@ private slots:
 	void miniMouseEvent(QMouseEvent* ev);
 	void timeSliderChanged(int);
 	void mainOpacityChanged(int);
-	void selectionChanged(std::vector<size_t> const & selection);
+	void selection3DChanged(std::vector<size_t> const & selection);
+	void selectionSPLOMChanged(std::vector<size_t> const & selection);
+	// void selection
 private:
 	QColor getMainRendererColor(int resultID);
 
