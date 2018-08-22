@@ -163,14 +163,14 @@ bool iALineFunctionDrawer::computePolygons(double binWidth, size_t startBin, siz
 	// one extra bin in each direction to see lines leading in direction of the previous/next data values
 	startBin = (startBin > 0 ? startBin - 1 : startBin);
 	endBin = endBin < m_data->GetNumBin() ? endBin + 1 : endBin;
-	m_poly->push_back(QPoint((startBin - 1)*binWidth, 0));
+	//m_poly->push_back(QPoint((startBin - 1)*binWidth, 0));
 	for (int j = startBin; j < endBin; j++)
 	{
 		int curX = (int)(j * binWidth) + binWidthHalf;
 		int curY = converter->SrcToDest(rawData[j]);
 		m_poly->push_back(QPoint(curX, curY));
 	}
-	m_poly->push_back(QPoint(endBin * binWidth, 0 ));
+	//m_poly->push_back(QPoint(endBin * binWidth, 0 ));
 	return true;
 }
 
