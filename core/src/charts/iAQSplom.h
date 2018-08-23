@@ -228,7 +228,6 @@ protected:
 	iAScatterPlot * m_maximizedPlot;             //!< pointer to the maximized plot
 	SelectionType m_selInds;                     //!< contains indices of currently selected data points
 	mutable SelectionType m_filteredSelInds;     //!< contains indices of selected points in filtered list (TODO: update only when selection changes and when filters change, remove mutable)
-	const bool m_isIndexingBottomToTop;          //!< flag indicating if Y-indices in the SPLOM are inverted
 	double m_animIn;                             //!< In animation parameter
 	double m_animOut;                            //!< Out animation parameter
 	QPropertyAnimation * m_animationIn;
