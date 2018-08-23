@@ -237,6 +237,8 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 
 void iAPAQSplom::keyPressEvent( QKeyEvent * event )
 {
+	if (!m_activePlot)
+		return;
 	int dsInd = getDatasetIndexFromPointIndex( m_activePlot->getCurrentPoint() );
 	if (dsInd != -1)
 	{
