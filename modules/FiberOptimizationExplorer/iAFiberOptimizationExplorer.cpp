@@ -110,7 +110,8 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_mainWnd(mainWnd),
 	m_timeStepCount(0),
 	m_splomData(new iASPLOMData()),
-	m_splom(new iAQSplom())
+	m_splom(new iAQSplom()),
+	m_lastResultID(-1)
 {
 	setMinimumSize(600, 400);
 	this->setCentralWidget(nullptr);
@@ -221,17 +222,18 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			paramNames.push_back("Result_ID");
 			m_splomData->setParameterNames(paramNames);
 		}
-		// TODO: Check if output mapping is the same!
+		// TODO: Check if output mapping is the same (it must be)!
 		vtkIdType numColumns = tableCreator.getTable()->GetNumberOfColumns();
 		vtkIdType numFibers = tableCreator.getTable()->GetNumberOfRows();
-		m_splomData->data()[m_splomData->numParams()-9].resize(numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-8].resize(numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-7].resize(numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-6].resize(numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-5].resize(numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-4].resize(numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-3].resize(numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-2].resize(numFibers, 0); // proj error red
+		// TOOD: simplify - load all tables beforehand, then allocate splom data fully and then fill it?
+		m_splomData->data()[m_splomData->numParams()-9].resize(m_splomData->data()[m_splomData->numParams()-9].size()+ numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-8].resize(m_splomData->data()[m_splomData->numParams()-8].size()+ numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-7].resize(m_splomData->data()[m_splomData->numParams()-7].size()+ numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-6].resize(m_splomData->data()[m_splomData->numParams()-6].size()+ numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-5].resize(m_splomData->data()[m_splomData->numParams()-5].size()+ numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-4].resize(m_splomData->data()[m_splomData->numParams()-4].size()+ numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-3].resize(m_splomData->data()[m_splomData->numParams()-3].size()+ numFibers, 0);
+		m_splomData->data()[m_splomData->numParams()-2].resize(m_splomData->data()[m_splomData->numParams()-2].size()+ numFibers, 0); // proj error red
 		for (vtkIdType row = 0; row < numFibers; ++row)
 		{
 			for (vtkIdType col = 0; col < numColumns; ++col)
@@ -518,39 +520,38 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 
 void iAFiberOptimizationExplorer::selection3DChanged(std::vector<size_t> const & selection)
 {
-	if (m_lastMain3DVis)
+	if (!m_lastMain3DVis)
+		return;
+	m_lastMain3DVis->renderSelection(selection, 0, getMainRendererColor(m_lastResultID), nullptr);
+		
+	// shift IDs so that they are in the proper range for SPLOM (which has the fibers from all datasets one after another)
+	std::vector<size_t> selectionSPLOM(selection);
+	if (m_lastResultID > 0)
 	{
-		m_lastMain3DVis->renderSelection(selection, 0, getMainRendererColor(m_lastResultID), nullptr);
-		
-		// shift IDs so that they are in the proper range for SPLOM (which has the fibers from all datasets one after another)
-		std::vector<size_t> selectionSPLOM(selection);
-		if (m_lastResultID > 0)
+		size_t startID = 0;
+		for (int i = 0; i < m_lastResultID; ++i)
+			startID += m_resultData[i].m_resultTable->GetNumberOfRows();
+		for (int s = 0; s < selectionSPLOM.size(); ++s)
 		{
-			size_t startID = 0;
-			for (int i = 0; i < m_lastResultID; ++i)
-				startID += m_resultData[i].m_resultTable->GetNumberOfRows();
-			for (int s = 0; s < selectionSPLOM.size(); ++s)
-			{
-				selectionSPLOM[s] += startID;
-			}
+			selectionSPLOM[s] += startID;
 		}
-		m_splom->setSelection(selectionSPLOM);
-		
-		// color the projection error plots of the selected fibers:
-		for (auto plot : m_timeStepProjectionErrorChart->plots())
-		{
-			plot->setColor(ProjectionErrorDefaultPlotColor);
-		}
-		if (m_resultData[m_lastResultID].m_startPlotIdx != NoPlotsIdx)
-		{
-			for (size_t idx : selection)
-			{
-				auto plot = m_timeStepProjectionErrorChart->plots()[m_resultData[m_lastResultID].m_startPlotIdx + idx];
-				plot->setColor(SelectionColor);
-			}
-		}
-		m_timeStepProjectionErrorChart->update();
 	}
+	m_splom->setSelection(selectionSPLOM);
+		
+	// color the projection error plots of the selected fibers:
+	for (auto plot : m_timeStepProjectionErrorChart->plots())
+	{
+		plot->setColor(ProjectionErrorDefaultPlotColor);
+	}
+	if (m_resultData[m_lastResultID].m_startPlotIdx != NoPlotsIdx)
+	{
+		for (size_t idx : selection)
+		{
+			auto plot = m_timeStepProjectionErrorChart->plots()[m_resultData[m_lastResultID].m_startPlotIdx + idx];
+			plot->setColor(SelectionColor);
+		}
+	}
+	m_timeStepProjectionErrorChart->update();
 }
 
 void getResultFiberIDFromSPLOMID(size_t splomID, size_t & resultID, size_t & fiberID, std::vector<size_t> const & fiberCounts)
@@ -599,7 +600,7 @@ void iAFiberOptimizationExplorer::selectionSPLOMChanged(std::vector<size_t> cons
 		if (result.m_main3DVis)
 			result.m_main3DVis->renderSelection(selectionsByResult[resultID], 0, getMainRendererColor(resultID), nullptr);
 		// color the projection error plots of the selected fibers:
-		if (m_resultData[m_lastResultID].m_startPlotIdx != NoPlotsIdx)
+		if (m_resultData[resultID].m_startPlotIdx != NoPlotsIdx)
 		{
 			for (size_t idx : selectionsByResult[resultID])
 			{
@@ -750,6 +751,10 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			);
 			m_resultData[resultID].m_referenceDiff[fiberID].swap(refDiff);
 		}
+	}
+	for (size_t paramID = 0; paramID < colsToInclude.size(); ++paramID)
+	{
+		m_splomData->updateRange(m_splomData->numParams() - 9 + paramID);
 	}
 
 	// TODO: how to visualize?
