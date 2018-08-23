@@ -75,6 +75,7 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	matrix->setParameterVisibility(columnVisibility);
 	matrix->showDefaultMaxizimedPlot();
 	connect(matrix, &iAQSplom::selectionModified, this, &iAFeatureScoutSPLOM::selectionModified);
+	connect(matrix, &iAQSplom::parameterVisibilityChanged, this, &iAFeatureScoutSPLOM::parameterVisibilityChanged);
 
 	QAction* addClass = new QAction(QObject::tr("Add class"), nullptr);
 	connect(addClass, &QAction::triggered, this, &iAFeatureScoutSPLOM::addClass);
@@ -98,6 +99,12 @@ void iAFeatureScoutSPLOM::updateColumnVisibility(std::vector<bool> const & colum
 {
 	if (matrix)
 		matrix->setParameterVisibility(columnVisibility);
+}
+
+void iAFeatureScoutSPLOM::setParameterVisibility(size_t paramIndex, bool visible)
+{
+	if (matrix)
+		matrix->setParameterVisibility(paramIndex, visible);
 }
 
 void iAFeatureScoutSPLOM::setFilter(int classID)

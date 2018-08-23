@@ -244,6 +244,7 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	connect(showPCCAction, &QAction::toggled, this, &iAQSplom::setShowPCC);
 	connect(selectionModePolygonAction, SIGNAL(toggled(bool)), this, SLOT(selectionModePolygon()));
 	connect(selectionModeRectangleAction, SIGNAL(toggled(bool)), this, SLOT(selectionModeRectangle()));
+	m_columnPickMenu = m_contextMenu->addMenu("Columns");
 }
 
 void iAQSplom::addContextMenuAction(QAction* action)
@@ -355,6 +356,7 @@ void iAQSplom::paramChanged(int idx)
 void iAQSplom::dataChanged()
 {
 	clear();
+	m_columnPickMenu->clear();
 	unsigned long numParams = m_splomData->numParams();
 	for( unsigned long y = 0; y < numParams; ++y )
 	{
@@ -375,7 +377,13 @@ void iAQSplom::dataChanged()
 		}
 		m_matrix.push_back( row );
 		m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
+
+		QAction * a = new QAction(m_splomData->parameterName(y));
+		a->setCheckable(true);
+		m_columnPickMenu->addAction(a);
+		connect(a, &QAction::toggled, this, &iAQSplom::parameterVisibilityToggled);
 	}
+
 	updateVisiblePlots();
 	updateHistograms();
 }
@@ -416,21 +424,23 @@ void iAQSplom::applyLookupTable()
 	update();
 }
 
+void iAQSplom::parameterVisibilityToggled(bool enabled)
+{
+	QAction* sender = qobject_cast<QAction*>(QObject::sender());
+	size_t paramIndex = m_splomData->paramIndex(sender->text());
+	setParameterVisibility( paramIndex, enabled );
+	parameterVisibilityChanged( paramIndex, enabled );
+}
+
+
 void iAQSplom::setParameterVisibility( const QString & paramName, bool isVisible )
 {
-	for( size_t i = 0; i < m_splomData->numParams(); ++i )
-	{
-		if (m_splomData->parameterName(i) == paramName)
-		{
-			setParameterVisibility(i, isVisible);
-			break;
-		}
-	}
+	setParameterVisibility(m_splomData->paramIndex(paramName), isVisible);
 }
 
 void iAQSplom::setParameterVisibility( size_t paramIndex, bool isVisible )
 {
-	if( paramIndex < 0 || paramIndex >= m_paramVisibility.size() )
+	if( paramIndex < 0 || paramIndex >= m_paramVisibility.size() || m_paramVisibility[paramIndex] == isVisible )
 		return;
 	m_paramVisibility[paramIndex] = isVisible;
 	if (settings.histogramVisible)
@@ -721,6 +731,17 @@ void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 	selectionModeRectangleAction->setChecked(settings.selectionMode == iAScatterPlot::Rectangle);
 	selectionModePolygonAction->setChecked(settings.selectionMode == iAScatterPlot::Polygon);
 	showPCCAction->setChecked(settings.showPCC);
+	for (auto col : m_columnPickMenu->actions())
+	{
+		size_t paramIdx = m_splomData->paramIndex(col->text());
+		if (paramIdx >= m_splomData->numParams())
+		{
+			DEBUG_LOG(QString("Invalid menu entry %1 in column pick submenu - there is currently no such column!").arg(col->text()));
+			continue;
+		}
+		QSignalBlocker toggleBlock(col);
+		col->setChecked( m_paramVisibility[paramIdx] );
+	}
 	m_contextMenu->exec(event->globalPos());
 }
 

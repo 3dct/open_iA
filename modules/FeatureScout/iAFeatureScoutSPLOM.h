@@ -42,6 +42,7 @@ public:
 	~iAFeatureScoutSPLOM();
 	void initScatterPlot(QDockWidget* container, vtkTable* csvTable, std::vector<bool> const & columnVisibility);  //!< initialize SPLOM and show in given container
 	void updateColumnVisibility(std::vector<bool> const & columnVisibility); //!< update column visibility
+	void setParameterVisibility(size_t paramIndex, bool visible);      //!< matrix proxy method
 	void setDotColor(QColor const & color);                            //!< set color for all SPLOM dots (TODO: move range calculations to iASplomData!)
 	void setFilter(int classID);                                       //!< specify a filter on class column
 	void multiClassRendering(QList<QColor> const & colors);            //!< colors each dot according to its class
@@ -56,6 +57,7 @@ public:
 	void enableSelection(bool enable);
 signals:
 	void selectionModified(std::vector<size_t>);
+	void parameterVisibilityChanged(size_t paramIndex, bool visible);
 	void addClass();
 private:
 	iAQSplom * matrix;
