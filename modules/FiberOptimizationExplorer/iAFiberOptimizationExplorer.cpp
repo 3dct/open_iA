@@ -66,6 +66,18 @@
 #include <QSlider>
 #include <QTextStream>
 
+class iAFiberDistance
+{
+public:
+	size_t index;
+	std::vector<double> distance;
+	friend bool operator<(iAFiberDistance const & a, iAFiberDistance const & b);
+};
+bool operator<(iAFiberDistance const & a, iAFiberDistance const & b)
+{
+	return a.distance[0] < b.distance[0];
+}
+
 class iAResultData
 {
 public:
@@ -80,9 +92,9 @@ public:
 	// fiber, timestep, global projection error
 	std::vector<QSharedPointer<std::vector<double> > > m_projectionError;
 	size_t m_startPlotIdx;
-	std::vector<size_t> m_referenceMapping;
 	// fiber, errors (shiftx, shifty, shiftz, phi, theta, length, diameter)
 	std::vector<std::vector<double> > m_referenceDiff;
+	std::vector<std::vector<iAFiberDistance> > m_referenceDist;
 };
 
 namespace
@@ -103,6 +115,8 @@ namespace
 
 	QColor ProjectionErrorDefaultPlotColor(128, 128, 128, 64);
 	QColor SelectionColor(255, 0, 0, 255);
+
+	int NumberOfCloseFibers = 25;
 }
 
 iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd):
@@ -211,9 +225,15 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			std::vector<QString> paramNames;
 			for (QString s: io.getOutputHeaders())
 				paramNames.push_back(s);
-			paramNames.push_back("XShift");
-			paramNames.push_back("YShift");
-			paramNames.push_back("ZShift");
+			paramNames.push_back("StartXShift");
+			paramNames.push_back("StartYShift");
+			paramNames.push_back("StartZShift");
+			paramNames.push_back("EndXShift");
+			paramNames.push_back("EndYShift");
+			paramNames.push_back("EndZShift");
+			paramNames.push_back("XmShift");
+			paramNames.push_back("YmShift");
+			paramNames.push_back("ZmShift");
 			paramNames.push_back("PhiDiff");
 			paramNames.push_back("ThetaDiff");
 			paramNames.push_back("LengthDiff");
@@ -225,15 +245,13 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		// TODO: Check if output mapping is the same (it must be)!
 		vtkIdType numColumns = tableCreator.getTable()->GetNumberOfColumns();
 		vtkIdType numFibers = tableCreator.getTable()->GetNumberOfRows();
+		if (numFibers < NumberOfCloseFibers)
+			NumberOfCloseFibers = numFibers;
 		// TOOD: simplify - load all tables beforehand, then allocate splom data fully and then fill it?
-		m_splomData->data()[m_splomData->numParams()-9].resize(m_splomData->data()[m_splomData->numParams()-9].size()+ numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-8].resize(m_splomData->data()[m_splomData->numParams()-8].size()+ numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-7].resize(m_splomData->data()[m_splomData->numParams()-7].size()+ numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-6].resize(m_splomData->data()[m_splomData->numParams()-6].size()+ numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-5].resize(m_splomData->data()[m_splomData->numParams()-5].size()+ numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-4].resize(m_splomData->data()[m_splomData->numParams()-4].size()+ numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-3].resize(m_splomData->data()[m_splomData->numParams()-3].size()+ numFibers, 0);
-		m_splomData->data()[m_splomData->numParams()-2].resize(m_splomData->data()[m_splomData->numParams()-2].size()+ numFibers, 0); // proj error red
+		for (int i = 15; i >= 2; --i)
+		{
+			m_splomData->data()[m_splomData->numParams() - i].resize(m_splomData->data()[m_splomData->numParams() - i].size() + numFibers, 0);
+		}
 		for (vtkIdType row = 0; row < numFibers; ++row)
 		{
 			for (vtkIdType col = 0; col < numColumns; ++col)
@@ -663,22 +681,25 @@ double getDistance(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vt
 	return std::sqrt(distance);
 }
 
-size_t getBestMatch(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, vtkTable* reference,
-	std::vector<int> const & colsToInclude, std::vector<double> const & weights, double & minDistance)
+void getBestMatches(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, vtkTable* reference,
+	std::vector<std::vector<int> > const & colsToInclude,
+	std::vector<std::vector<double> > const & weights, std::vector<iAFiberDistance> & bestMatches)
 {
 	size_t refFiberCount = reference->GetNumberOfRows();
-	minDistance = std::numeric_limits<double>::max();
-	size_t bestMatch = std::numeric_limits<size_t>::max();
+	//minDistance = std::numeric_limits<double>::max();
+	//size_t bestMatch = std::numeric_limits<size_t>::max();
+	std::vector<iAFiberDistance> distances(refFiberCount);
 	for (size_t fiberID = 0; fiberID < refFiberCount; ++fiberID)
 	{
-		double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(fiberID), colsToInclude, weights);
-		if (curDistance < minDistance)
+		distances[fiberID].index = fiberID;
+		for (int d=0; d<colsToInclude.size(); ++d)
 		{
-			bestMatch = fiberID;
-			minDistance = curDistance;
+			double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(fiberID), colsToInclude[d], weights[d]);
+			distances[fiberID].distance.push_back(curDistance);
 		}
 	}
-	return bestMatch;
+	std::sort(distances.begin(), distances.end());
+	std::copy(distances.begin(), distances.begin() + NumberOfCloseFibers, std::back_inserter(bestMatches));
 }
 
 void iAFiberOptimizationExplorer::referenceToggled(bool)
@@ -692,13 +713,21 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 	m_referenceID = sender->property("resultID").toULongLong();
 	
 	// determine which columns to use and their normalization factors:
-	std::vector<int> colsToInclude;                  std::vector<double> weights;
-	colsToInclude.push_back(iACsvConfig::CenterX);   weights.push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterX])[1]);
-	colsToInclude.push_back(iACsvConfig::CenterY);   weights.push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterY])[1]);
-	colsToInclude.push_back(iACsvConfig::CenterZ);   weights.push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterZ])[1]);
-	colsToInclude.push_back(iACsvConfig::Phi);       weights.push_back(1 / (2 * vtkMath::Pi()));
-	colsToInclude.push_back(iACsvConfig::Theta);     weights.push_back(1 / (2 * vtkMath::Pi()));
-	colsToInclude.push_back(iACsvConfig::Length);    weights.push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::Length])[1]);
+	std::vector<std::vector<int> > colsToInclude(2);  std::vector<std::vector<double> > weights(2);
+	colsToInclude[0].push_back(iACsvConfig::CenterX);   weights[0].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterX])[1]);
+	colsToInclude[0].push_back(iACsvConfig::CenterY);   weights[0].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterY])[1]);
+	colsToInclude[0].push_back(iACsvConfig::CenterZ);   weights[0].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterZ])[1]);
+	colsToInclude[0].push_back(iACsvConfig::Phi);       weights[0].push_back(1 / (2 * vtkMath::Pi()));
+	colsToInclude[0].push_back(iACsvConfig::Theta);     weights[0].push_back(1 / (2 * vtkMath::Pi()));
+	colsToInclude[0].push_back(iACsvConfig::Length);    weights[0].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::Length])[1]);
+
+	colsToInclude[1].push_back(iACsvConfig::StartX);   weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::StartX])[1]);
+	colsToInclude[1].push_back(iACsvConfig::StartY);   weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::StartY])[1]);
+	colsToInclude[1].push_back(iACsvConfig::StartZ);   weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::StartZ])[1]);
+	colsToInclude[1].push_back(iACsvConfig::EndX);     weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::EndX])[1]);
+	colsToInclude[1].push_back(iACsvConfig::EndY);     weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::EndY])[1]);
+	colsToInclude[1].push_back(iACsvConfig::EndZ);     weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::EndZ])[1]);
+	colsToInclude[1].push_back(iACsvConfig::Length);   weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::Length])[1]);
 
 	// "register" other datasets to reference:
 	auto const & mapping = *m_resultData[m_referenceID].m_outputMapping.data();
@@ -710,20 +739,39 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 
 		DEBUG_LOG(QString("Matching result %1 to reference (%2):").arg(resultID).arg(m_referenceID));
 		size_t fiberCount = m_resultData[resultID].m_resultTable->GetNumberOfRows();
-		m_resultData[resultID].m_referenceMapping.resize(fiberCount);
+		m_resultData[resultID].m_referenceDist.resize(fiberCount);
 		m_resultData[resultID].m_referenceDiff.resize(fiberCount);
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
-			double distance;
-			// find the best-matching fiber in reference & compute difference:
-			size_t referenceFiberID = getBestMatch(m_resultData[resultID].m_resultTable->GetRow(fiberID),
+			// find the best-matching fibers in reference & compute difference:
+			getBestMatches(m_resultData[resultID].m_resultTable->GetRow(fiberID),
 				mapping, m_resultData[m_referenceID].m_resultTable,
-				colsToInclude, weights, distance);
-			m_resultData[resultID].m_referenceMapping[fiberID] = referenceFiberID;
-			DEBUG_LOG(QString("  Fiber %1: Best matches fiber %2 from reference (distance: %3)").arg(fiberID).arg(referenceFiberID).arg(distance));
+				colsToInclude, weights, m_resultData[resultID].m_referenceDist[fiberID]);
+			DEBUG_LOG(QString("  Fiber %1: Best matches fiber %2 from reference (distance: %3/%4), second best: %5 (distance: %6/%7)")
+				.arg(fiberID)
+				.arg(m_resultData[resultID].m_referenceDist[fiberID][0].index)
+				.arg(m_resultData[resultID].m_referenceDist[fiberID][0].distance[0])
+				.arg(m_resultData[resultID].m_referenceDist[fiberID][0].distance[1])
+				.arg(m_resultData[resultID].m_referenceDist[fiberID][1].index)
+				.arg(m_resultData[resultID].m_referenceDist[fiberID][1].distance[0])
+				.arg(m_resultData[resultID].m_referenceDist[fiberID][1].distance[1]));
 		}
 	}
-	colsToInclude.push_back(iACsvConfig::Diameter); // for now, don't include diameter in error calculations. later, move up?
+	
+	std::vector<size_t> diffCols;
+	diffCols.push_back(mapping[iACsvConfig::StartX]);
+	diffCols.push_back(mapping[iACsvConfig::StartY]);
+	diffCols.push_back(mapping[iACsvConfig::StartZ]);
+	diffCols.push_back(mapping[iACsvConfig::EndX]);
+	diffCols.push_back(mapping[iACsvConfig::EndY]);
+	diffCols.push_back(mapping[iACsvConfig::EndZ]);
+	diffCols.push_back(mapping[iACsvConfig::CenterX]);
+	diffCols.push_back(mapping[iACsvConfig::CenterY]);
+	diffCols.push_back(mapping[iACsvConfig::CenterZ]);
+	diffCols.push_back(mapping[iACsvConfig::Phi]);
+	diffCols.push_back(mapping[iACsvConfig::Theta]);
+	diffCols.push_back(mapping[iACsvConfig::Length]);
+	diffCols.push_back(mapping[iACsvConfig::Diameter]);
 	size_t splomID = 0;
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
@@ -732,31 +780,32 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			splomID += m_resultData[resultID].m_resultTable->GetNumberOfRows();
 			continue;
 		}
-
 		DEBUG_LOG(QString("Differences of result %1 to reference (%2):").arg(resultID).arg(m_referenceID));
 		size_t fiberCount = m_resultData[resultID].m_resultTable->GetNumberOfRows();
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
-			// compute error (=difference - shiftx, shifty, shiftz, phi, theta, length, diameter)
-			std::vector<double> refDiff(7);
-			for (size_t diffID = 0; diffID < colsToInclude.size(); ++diffID)
+			// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
+			std::vector<double> refDiff(13);
+			for (size_t diffID = 0; diffID < diffCols.size(); ++diffID)
 			{
-				refDiff[diffID] = m_resultData[resultID].m_resultTable->GetValue(fiberID, mapping[colsToInclude[diffID]]).ToDouble()
-					- m_resultData[m_referenceID].m_resultTable->GetValue(m_resultData[resultID].m_referenceMapping[fiberID], mapping[colsToInclude[diffID]]).ToDouble();
-				m_splomData->data()[m_splomData->numParams()-9 + diffID][splomID] = refDiff[diffID];
+				refDiff[diffID] = m_resultData[resultID].m_resultTable->GetValue(fiberID, diffCols[diffID]).ToDouble()
+					- m_resultData[m_referenceID].m_resultTable->GetValue(m_resultData[resultID].m_referenceDist[fiberID][0].index, diffCols[diffID]).ToDouble();
+				m_splomData->data()[m_splomData->numParams()-15 + diffID][splomID] = refDiff[diffID];
 			}
-			DEBUG_LOG(QString("  Fiber %1 -> ref #%2. Shift: center=(%3, %4, %5), phi=%6, theta=%7, length=%8, diameter=%9")
-				.arg(fiberID).arg(m_resultData[resultID].m_referenceMapping[fiberID])
+			DEBUG_LOG(QString("  Fiber %1 -> ref #%2. Shift: startx=(%3, %4, %5), endx=(%6, %7, %8), center=(%9, %10, %11), phi=%12, theta=%13, length=%14, diameter=%15")
+				.arg(fiberID).arg(m_resultData[resultID].m_referenceDist[fiberID][0].index)
 				.arg(refDiff[0]).arg(refDiff[1]).arg(refDiff[2])
-				.arg(refDiff[3]).arg(refDiff[4]).arg(refDiff[5]).arg(refDiff[6])
+				.arg(refDiff[3]).arg(refDiff[4]).arg(refDiff[5])
+				.arg(refDiff[6]).arg(refDiff[7]).arg(refDiff[8])
+				.arg(refDiff[9]).arg(refDiff[10]).arg(refDiff[11]).arg(refDiff[12])
 			);
 			m_resultData[resultID].m_referenceDiff[fiberID].swap(refDiff);
 			++splomID;
 		}
 	}
 	std::vector<size_t> changedSplomColumns;
-	for (size_t paramID = 0; paramID < colsToInclude.size(); ++paramID)
-		changedSplomColumns.push_back(m_splomData->numParams() - 9 + paramID);
+	for (size_t paramID = 0; paramID < diffCols.size(); ++paramID)
+		changedSplomColumns.push_back(m_splomData->numParams() - 15 + paramID);
 	m_splomData->updateRanges(changedSplomColumns);
 	// TODO: how to visualize?
 }
