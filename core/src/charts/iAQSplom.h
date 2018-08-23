@@ -89,7 +89,6 @@ public:
 	virtual void setData( const QTableWidget * data );               //! import data from QTableWidget, first row should contain parameter names, each column corresponds to one parameter.
 	void setData(QSharedPointer<iASPLOMData> data);                  //! set SPLOM data directly.
 	QSharedPointer<iASPLOMData> data();                              //! retrieve SPLOM data
-	void paramChanged(int idx);                                      //! column idx in SPLOM data changed
 	void setLookupTable( vtkLookupTable * lut, const QString & colorArrayName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
 	void setLookupTable(iALookupTable &lut, size_t columnIndex);        //!< Set lookup table given the index of a parameter to color-code.
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.

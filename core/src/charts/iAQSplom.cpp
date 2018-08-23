@@ -341,18 +341,6 @@ QSharedPointer<iASPLOMData> iAQSplom::data()
 	return m_splomData;
 }
 
-void iAQSplom::paramChanged(int idx)
-{
-	if (idx < 0 || idx >= m_matrix.size())
-		return;
-	for (int i = 0; i < m_matrix.size(); ++i)
-	{
-		m_splomData->updateRange(i);
-		m_matrix[idx][i]->applyMarginToRanges();
-		m_matrix[i][idx]->applyMarginToRanges();
-	}
-}
-
 void iAQSplom::dataChanged()
 {
 	clear();

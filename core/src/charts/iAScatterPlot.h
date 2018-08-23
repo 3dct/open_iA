@@ -145,6 +145,9 @@ signals:
 	void transformModified( double scale, QPointF deltaOffset );     //!< Emitted when user transforms (scales, translates)
 	void currentPointModified( size_t index );                       //!< Emitted when hovered over new point
 
+private slots:
+	void dataChanged(size_t paramIndex);
+
 public:
 	//! All settings of the plot in one struct
 	struct Settings

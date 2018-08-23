@@ -22,6 +22,8 @@
 
 #include "open_iA_Core_export.h"
 
+#include <QObject>
+
 #include <cstddef>    // for size_t
 #include <vector>
 
@@ -30,8 +32,9 @@ class QTableWidget;
 
 //! Class for storing data shown in a scatter plot matrix (SPLOM)
 //! (a table with data values for one object per row, along with the names of the columns/parameters).
-class open_iA_Core_API iASPLOMData
+class open_iA_Core_API iASPLOMData: public QObject
 {
+	Q_OBJECT
 public:
 	iASPLOMData();
 	explicit iASPLOMData(const QTableWidget * tw);    //!< Create data from a QTableWidget
@@ -53,13 +56,17 @@ public:
 	bool filterDefined() const;                       //!< Returns true if a filter is defined on the data
 	double const* paramRange(size_t paramIndex) const;//!< Get the range of the parameter with given index
 	void updateRanges();                              //!< update range of all parameters
-	void updateRange(size_t paramIndex);              //!< update range of a single parameter
+	void updateRanges(std::vector<size_t> paramIndices); //!< update range for multiple parameters. Call if data of multiple parameters has changed
+	void updateRange(size_t paramIndex);              //!< update range of a single parameter. Call if data of a parameter has changed
+signals:
+	void dataChanged(size_t paramIndex);              //!< emitted when the range of a parameter has changed
 protected:
 	std::vector<QString> m_paramNames;                //!< list of parameter names
 	std::vector<std::vector<double>> m_dataPoints;    //!< lists containing data points
 	std::vector<std::vector<double> > m_ranges;       //!< ranges of all parameters
 	std::vector<bool> m_inverted;                     //!< whether to invert a feature
 private:
+	void updateRangeInternal(size_t paramIndex);      //!< Update internal range data for parameter paramIndex
 	int	m_FilterColID;                                //!< Filter Column ID
 	double m_FilterValue;                             //!< Current Filter value 
 };
