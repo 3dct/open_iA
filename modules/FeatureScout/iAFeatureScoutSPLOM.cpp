@@ -184,7 +184,7 @@ void iAFeatureScoutSPLOM::classesChanged()
 	if (!matrix)
 		return;
 	size_t classColumn = matrix->data()->numParams() - 1;
-	matrix->paramChanged(classColumn);
+	matrix->data()->updateRange(classColumn);
 }
 
 std::vector<size_t> iAFeatureScoutSPLOM::getFilteredSelection() const

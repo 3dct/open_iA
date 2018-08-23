@@ -101,7 +101,12 @@ iAScatterPlot::~iAScatterPlot() {}
 void iAScatterPlot::setData( int x, int y, QSharedPointer<iASPLOMData> &splomData )
 {
 	m_paramIndices[0] = x; m_paramIndices[1] = y;
+	if (m_splomData)
+	{
+		disconnect(m_splomData.data(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
+	}
 	m_splomData = splomData;
+	connect(m_splomData.data(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
 	m_pcc = pearsonsCorrelationCoefficient(m_splomData->paramData(m_paramIndices[0]), m_splomData->paramData(m_paramIndices[1]));
 	if ( !hasData() )
 		return;
@@ -464,6 +469,16 @@ void iAScatterPlot::updateGrid()
 		m_pointsGrid[binInd].push_back( i );
 	}
 }
+
+void iAScatterPlot::dataChanged(size_t paramIndex)
+{
+	if (paramIndex != m_paramIndices[0] && paramIndex != m_paramIndices[1])
+		return;
+	applyMarginToRanges();
+	updateGrid();
+	updatePoints();
+}
+
 void iAScatterPlot::applyMarginToRanges()
 {
 	m_prX[0] = m_splomData->paramRange(m_paramIndices[0])[0];
