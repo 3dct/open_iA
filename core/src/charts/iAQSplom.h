@@ -125,6 +125,7 @@ public:
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
+	void parameterVisibilityChanged(size_t paramIndex, bool visible);//!< Emitted when the visibility of a parameter has changed (from within SPLOM, not triggered if it was set from the outside via setParameterVisibility).
 protected:
 	void clear();                                                    //!< Clear all scatter plots in the SPLOM.
 	void initializeGL() override;                                    //!< overrides function inherited from base class.
@@ -173,6 +174,7 @@ private slots:
 	void setShowPCC(bool showPCC);                                   //!< set whether the correlation coefficient is shown in each plot
 	void selectionModePolygon();                                     //!< set selection mode to polygon
 	void selectionModeRectangle();                                   //!< set selection mode to rectangle
+	void parameterVisibilityToggled(bool enabled);                   //!< called when column visibility is adapted through the context menu
 
 // Members:
 public:
@@ -234,7 +236,8 @@ protected:
 	double m_popupHeight;                        //!< height of the last drawn popup
 	int m_separationIdx;                         //!< index at which to separate scatterplots spatially (e.g. into in- and output parameters)
 	iAColorTheme const * m_bgColorTheme;         //!< background colors for regions in the scatterplot
-	QMenu* m_contextMenu;                        //!< the context menu (can be extended by subclass)
+	QMenu* m_contextMenu;                        //!< the context menu (can be extended via addContextMenuAction)
+	QMenu* m_columnPickMenu;                     //!< sub-menu of the context menu for picking which columns are visible
 private:
 	QAction *showHistogramAction, *selectionModePolygonAction, *selectionModeRectangleAction, *quadraticPlotsAction, *showPCCAction;
 	QVector<iAChartWidget*> m_histograms;        //<! histograms of scatter plot matrix
