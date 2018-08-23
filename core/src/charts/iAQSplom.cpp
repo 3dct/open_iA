@@ -346,6 +346,12 @@ void iAQSplom::dataChanged()
 	clear();
 	m_columnPickMenu->clear();
 	unsigned long numParams = m_splomData->numParams();
+
+	// cleanup old histograms (if any)
+	for (auto histo : m_histograms)
+		delete histo;
+	m_histograms.clear();
+
 	for( unsigned long y = 0; y < numParams; ++y )
 	{
 		m_paramVisibility.push_back( true );
