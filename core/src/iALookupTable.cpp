@@ -79,8 +79,7 @@ void iALookupTable::allocate(size_t numberOfColors)
 	m_numColors = numberOfColors;
 	m_data.clear();
 	size_t size = numberOfColors * NumberOfColorComponents;
-	for (size_t i = 0; i < size; ++i)
-		m_data.push_back(0.0);
+	m_data.resize(size, 0.0);
 	m_isInitialized = true;
 }
 

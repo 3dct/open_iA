@@ -661,7 +661,7 @@ void iAQSplom::currentPointUpdated( size_t index )
 	}
 
 	update();
-	if( index >= 0 )
+	if( index != iAScatterPlot::NoPointIndex )
 		emit currentPointModified( index );
 }
 
