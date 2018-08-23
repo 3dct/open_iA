@@ -129,6 +129,7 @@ private slots:
 	void spPopup(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopupSelection(QAction *selection);
 	void spSelInformsPCChart(std::vector<size_t> const & selInds);
+	void spParameterVisibilityChanged(size_t paramIndex, bool enabled);
 	//! @}
 	//! @{ parallel coordinate chart related methods:
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);

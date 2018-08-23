@@ -344,8 +344,14 @@ void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
 		int i = item->index().row();
 		columnVisibility[i] = (item->checkState() == Qt::Checked);
 		updatePCColumnVisibility();
-		m_splom->updateColumnVisibility(columnVisibility);
+		m_splom->setParameterVisibility(i, columnVisibility[i]);
 	}
+}
+
+void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enabled)
+{
+	elementTableModel->item(paramIndex, 0)->setCheckState( enabled ? Qt::Checked : Qt::Unchecked );
+	// itemChanged signal from elementTableModel takes care about updating PC (see updatePCColumnValues slot)
 }
 
 void dlg_FeatureScout::updatePCColumnVisibility()
@@ -687,6 +693,7 @@ void dlg_FeatureScout::setupConnections()
 
 	connect( m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
 	connect( m_splom.data(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::ClassAddButton );
+	connect( m_splom.data(), &iAFeatureScoutSPLOM::parameterVisibilityChanged, this, &dlg_FeatureScout::spParameterVisibilityChanged);
 }
 
 void dlg_FeatureScout::MultiClassRendering()
