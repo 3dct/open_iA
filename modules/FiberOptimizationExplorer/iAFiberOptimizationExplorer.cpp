@@ -754,10 +754,9 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			++splomID;
 		}
 	}
+	std::vector<size_t> changedSplomColumns;
 	for (size_t paramID = 0; paramID < colsToInclude.size(); ++paramID)
-	{
-		m_splomData->updateRange(m_splomData->numParams() - 9 + paramID);
-	}
-
+		changedSplomColumns.push_back(m_splomData->numParams() - 9 + paramID);
+	m_splomData->updateRanges(changedSplomColumns);
 	// TODO: how to visualize?
 }
