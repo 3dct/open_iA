@@ -337,7 +337,7 @@ void iAPAQSplom::updatePreviewPixmap()
 
 void iAPAQSplom::currentPointUpdated( size_t index )
 {
-	if( index >= 0 )
+	if( index != iAScatterPlot::NoPointIndex )
 		m_fixAction->setVisible( true );
 	else
 		m_fixAction->setVisible( false );
