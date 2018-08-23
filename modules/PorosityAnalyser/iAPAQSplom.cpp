@@ -68,6 +68,7 @@ iAPAQSplom::iAPAQSplom(MainWindow *mWnd, QWidget * parent /*= 0*/, const QGLWidg
 	
 	m_fixAction->setVisible( false );
 	m_removeFixedAction->setVisible( false );
+	setHistogramVisible(false);
 }
 
 void iAPAQSplom::setData( const QTableWidget * data )
@@ -272,7 +273,7 @@ void iAPAQSplom::updatePreviewPixmap()
 
 	QImage fixedMaskImg;
 	int dsInd = -1;
-	if( m_fixedPointInd >= 0 )
+	if( m_fixedPointInd != iAScatterPlot::NoPointIndex)
 	{
 		dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 		QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
@@ -303,7 +304,7 @@ void iAPAQSplom::updatePreviewPixmap()
 		maskImg.setColor( 2, qRgba( 0, 0, 255, maskOpacity ) );
 		maskImg.setColor( 3, qRgba( 255, 255, 0, maskOpacity ) );
 
-		if( m_fixedPointInd >= 0 && getDatasetIndexFromPointIndex(m_fixedPointInd) == dsInd )
+		if( m_fixedPointInd != iAScatterPlot::NoPointIndex && getDatasetIndexFromPointIndex(m_fixedPointInd) == dsInd )
 		{
 			uchar * maskPtr = maskImg.bits();
 			uchar * fixedPtr = fixedMaskImg.bits();
@@ -334,7 +335,7 @@ void iAPAQSplom::updatePreviewPixmap()
 	emit maskHovered( &m_maskPxmp, dsInd );
 }
 
-void iAPAQSplom::currentPointUpdated( int index )
+void iAPAQSplom::currentPointUpdated( size_t index )
 {
 	if( index >= 0 )
 		m_fixAction->setVisible( true );

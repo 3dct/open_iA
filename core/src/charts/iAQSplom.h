@@ -121,6 +121,8 @@ public:
 	void setFilter(int columnID, double value);                      //!< set filter on data to be shown; only data points where given column contains given value will be shown
 	void resetFilter();                                              //!< reset filter on data; after calling this method, all data points will be shown again
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
+public slots:
+	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
@@ -157,18 +159,18 @@ protected:
 	void mouseDoubleClickEvent( QMouseEvent * event ) override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	//! @}
-	virtual void currentPointUpdated(size_t index);                  //!< When hovered over a new point.
 	virtual void addHighlightedPoint(size_t index);                  //!< Keep a point with index always highlighted
 	virtual void removeHighlightedPoint(size_t index);               //!< Remove a point from the highlighted list
+protected slots:
+	virtual void currentPointUpdated(size_t index);                  //!< When hovered over a new point.
 private:
 	void dataChanged();                                              //!< handles changes of the internal data
 	void updateFilter();                                             //!< update filter in internal scatter plots
 	void updateHistograms();                                         //!< Updates all histograms when data or filter changes
-	void updateHistogram(size_t paramIndex);                           //!< Updates the histogram of the given parameter
+	void updateHistogram(size_t paramIndex);                         //!< Updates the histogram of the given parameter
 private slots:
 	void selectionUpdated();                                         //!< When selection of data points is modified.
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
-	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
 	void setQuadraticPlots(bool quadratic);                          //!< set whether plots are restricted to quadratic size
 	void setShowPCC(bool showPCC);                                   //!< set whether the correlation coefficient is shown in each plot
 	void selectionModePolygon();                                     //!< set selection mode to polygon
