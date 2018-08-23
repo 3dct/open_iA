@@ -523,6 +523,7 @@ void iAFiberOptimizationExplorer::selection3DChanged(std::vector<size_t> const &
 	if (!m_lastMain3DVis)
 		return;
 	m_lastMain3DVis->renderSelection(selection, 0, getMainRendererColor(m_lastResultID), nullptr);
+	m_resultData[m_lastResultID].m_mini3DVis->renderSelection(selection, 0, getMainRendererColor(m_lastResultID), nullptr);
 		
 	// shift IDs so that they are in the proper range for SPLOM (which has the fibers from all datasets one after another)
 	std::vector<size_t> selectionSPLOM(selection);
@@ -647,6 +648,7 @@ void iAFiberOptimizationExplorer::mainOpacityChanged(int opacity)
 	for (int resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
 		if (m_resultData[resultID].m_main3DVis)
+			// TODO: keep a potential selection!
 			m_resultData[resultID].m_main3DVis->renderSelection(std::vector<size_t>(), 0, getMainRendererColor(resultID), nullptr);
 	}
 }
@@ -742,7 +744,6 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 				refDiff[diffID] = m_resultData[resultID].m_resultTable->GetValue(fiberID, mapping[colsToInclude[diffID]]).ToDouble()
 					- m_resultData[m_referenceID].m_resultTable->GetValue(m_resultData[resultID].m_referenceMapping[fiberID], mapping[colsToInclude[diffID]]).ToDouble();
 				m_splomData->data()[m_splomData->numParams()-9 + diffID][splomID] = refDiff[diffID];
-				++ splomID;
 			}
 			DEBUG_LOG(QString("  Fiber %1 -> ref #%2. Shift: center=(%3, %4, %5), phi=%6, theta=%7, length=%8, diameter=%9")
 				.arg(fiberID).arg(m_resultData[resultID].m_referenceMapping[fiberID])
@@ -750,6 +751,7 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 				.arg(refDiff[3]).arg(refDiff[4]).arg(refDiff[5]).arg(refDiff[6])
 			);
 			m_resultData[resultID].m_referenceDiff[fiberID].swap(refDiff);
+			++splomID;
 		}
 	}
 	for (size_t paramID = 0; paramID < colsToInclude.size(); ++paramID)
