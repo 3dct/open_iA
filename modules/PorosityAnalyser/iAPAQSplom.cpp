@@ -385,6 +385,8 @@ void iAPAQSplom::sendToFeatureScout()
 
 void iAPAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
 {
+	if (!m_activePlot)
+		return;
 	QString sliceFileName = "";
 	QString dataPath = "";
 	int dsInd = 0;
