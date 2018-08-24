@@ -66,6 +66,8 @@
 #include <QSlider>
 #include <QTextStream>
 
+#include <QtGlobal> // for QT_VERSION
+
 class iAFiberDistance
 {
 public:
@@ -127,8 +129,11 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_splom(new iAQSplom()),
 	m_lastResultID(-1)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
+#endif
 	setMinimumSize(600, 400);
-	this->setCentralWidget(nullptr);
+	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 
 	//QVBoxLayout* mainLayout = new QVBoxLayout();
