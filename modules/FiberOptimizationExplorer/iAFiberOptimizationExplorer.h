@@ -69,7 +69,7 @@ private slots:
 	void mainOpacityChanged(int);
 	void selection3DChanged(std::vector<size_t> const & selection);
 	void selectionSPLOMChanged(std::vector<size_t> const & selection);
-	// void selection
+	void selectionTimeStepChartChanged(std::vector<size_t> const & selection);
 private:
 	QColor getMainRendererColor(int resultID);
 
@@ -87,9 +87,7 @@ private:
 	QSlider* m_opacitySlider;
 	QButtonGroup* m_defaultButtonGroup;
 	int m_referenceID;
-
 	iAQSplom* m_splom;
 	QSharedPointer<iASPLOMData> m_splomData;
-
-	iAChartWidget* m_timeStepProjectionErrorChart;
+	iAChartWidget* m_timeStepChart;
 };

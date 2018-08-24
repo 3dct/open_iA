@@ -188,8 +188,11 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiberOptimizationExplorer::selection3DChanged);
 
 	QWidget* optimizationSteps = new QWidget();
-	m_timeStepProjectionErrorChart = new iAChartWidget(optimizationSteps, "Time Step", "Projection Error");
-	m_timeStepProjectionErrorChart->setMinimumHeight(200);
+	m_timeStepChart = new iAChartWidget(optimizationSteps, "Time Step", "Projection Error");
+	m_timeStepChart->setMinimumHeight(200);
+	m_timeStepChart->setSelectionMode(iAChartWidget::SelectPlot);
+	connect(m_timeStepChart, &iAChartWidget::plotsSelected, this, &iAFiberOptimizationExplorer::selectionTimeStepChartChanged);
+
 	optimizationSteps->setLayout(new QVBoxLayout());
 	QWidget* timeSteps = new QWidget();
 	QSlider* timeStepSlider = new QSlider(Qt::Horizontal);
@@ -200,7 +203,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	timeSteps->layout()->addWidget(timeStepSlider);
 	timeSteps->layout()->addWidget(m_currentTimeStepLabel);
 	timeSteps->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-	optimizationSteps->layout()->addWidget(m_timeStepProjectionErrorChart);
+	optimizationSteps->layout()->addWidget(m_timeStepChart);
 	optimizationSteps->layout()->addWidget(timeSteps);
 
 	int resultID = 0;
@@ -319,7 +322,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 				resultData.m_projectionError.resize(numFibers);
 				QTextStream in(&projErrorFile);
 				size_t fiberNr = 0;
-				m_resultData[m_resultData.size() - 1].m_startPlotIdx = m_timeStepProjectionErrorChart->plots().size();
+				m_resultData[m_resultData.size() - 1].m_startPlotIdx = m_timeStepChart->plots().size();
 				while (!in.atEnd())
 				{
 					QString line = in.readLine();
@@ -346,7 +349,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 					double projErrorRed = values->at(0) - values->at(values->size() - 1);
 					m_splomData->data()[m_splomData->numParams()-2][fiberNr] = projErrorRed;
 					QSharedPointer<iAVectorPlotData> plotData(new iAVectorPlotData(values));
-					m_timeStepProjectionErrorChart->addPlot(QSharedPointer<iALineFunctionDrawer>(new iALineFunctionDrawer(plotData, ProjectionErrorDefaultPlotColor)));
+					m_timeStepChart->addPlot(QSharedPointer<iALineFunctionDrawer>(new iALineFunctionDrawer(plotData, ProjectionErrorDefaultPlotColor)));
 					fiberNr++;
 				}
 			}
@@ -563,7 +566,7 @@ void iAFiberOptimizationExplorer::selection3DChanged(std::vector<size_t> const &
 	m_splom->setSelection(selectionSPLOM);
 		
 	// color the projection error plots of the selected fibers:
-	for (auto plot : m_timeStepProjectionErrorChart->plots())
+	for (auto plot : m_timeStepChart->plots())
 	{
 		plot->setColor(ProjectionErrorDefaultPlotColor);
 	}
@@ -571,11 +574,11 @@ void iAFiberOptimizationExplorer::selection3DChanged(std::vector<size_t> const &
 	{
 		for (size_t idx : selection)
 		{
-			auto plot = m_timeStepProjectionErrorChart->plots()[m_resultData[m_lastResultID].m_startPlotIdx + idx];
+			auto plot = m_timeStepChart->plots()[m_resultData[m_lastResultID].m_startPlotIdx + idx];
 			plot->setColor(SelectionColor);
 		}
 	}
-	m_timeStepProjectionErrorChart->update();
+	m_timeStepChart->update();
 }
 
 void getResultFiberIDFromSPLOMID(size_t splomID, size_t & resultID, size_t & fiberID, std::vector<size_t> const & fiberCounts)
@@ -611,7 +614,7 @@ void iAFiberOptimizationExplorer::selectionSPLOMChanged(std::vector<size_t> cons
 		getResultFiberIDFromSPLOMID(splomID, resultID, fiberID, fiberCounts);
 		selectionsByResult[resultID].push_back(fiberID);
 	}
-	for (auto plot : m_timeStepProjectionErrorChart->plots())
+	for (auto plot : m_timeStepChart->plots())
 	{
 		plot->setColor(ProjectionErrorDefaultPlotColor);
 	}
@@ -628,12 +631,49 @@ void iAFiberOptimizationExplorer::selectionSPLOMChanged(std::vector<size_t> cons
 		{
 			for (size_t idx : selectionsByResult[resultID])
 			{
-				auto plot = m_timeStepProjectionErrorChart->plots()[m_resultData[resultID].m_startPlotIdx + idx];
+				auto plot = m_timeStepChart->plots()[m_resultData[resultID].m_startPlotIdx + idx];
 				plot->setColor(SelectionColor);
 			}
 		}
-		m_timeStepProjectionErrorChart->update();
 	}
+	m_timeStepChart->update();
+}
+
+void iAFiberOptimizationExplorer::selectionTimeStepChartChanged(std::vector<size_t> const & selection)
+{
+	size_t curSelectionIndex = 0;
+	size_t splomIDStart = 0;
+	std::vector<size_t> splomSelection;
+	for (size_t resultID=0; resultID<m_resultData.size() && curSelectionIndex < selection.size(); ++resultID)
+	{
+		if (m_resultData[resultID].m_startPlotIdx != NoPlotsIdx)
+		{
+			std::vector<size_t> curResultSelection;
+			while (curSelectionIndex < selection.size() &&
+				   selection[curSelectionIndex] <
+				   (m_resultData[resultID].m_startPlotIdx + m_resultData[resultID].m_resultTable->GetNumberOfRows()) )
+			{
+				size_t inResultFiberIdx = selection[curSelectionIndex] - m_resultData[resultID].m_startPlotIdx;
+				curResultSelection.push_back(inResultFiberIdx);
+				size_t splomID = splomIDStart + inResultFiberIdx;
+				splomSelection.push_back(splomID);
+				++curSelectionIndex;
+			}
+			m_resultData[resultID].m_mini3DVis->renderSelection(curResultSelection, 0, getMainRendererColor(resultID), nullptr);
+			if (m_resultData[resultID].m_main3DVis)
+				m_resultData[resultID].m_main3DVis->renderSelection(curResultSelection, 0, getMainRendererColor(resultID), nullptr);
+		}
+		splomIDStart += m_resultData[resultID].m_resultTable->GetNumberOfRows();
+	}
+	for (auto plot : m_timeStepChart->plots())
+	{
+		plot->setColor(ProjectionErrorDefaultPlotColor);
+	}
+	for (auto idx: selection)
+	{
+		m_timeStepChart->plots()[idx]->setColor(SelectionColor);
+	}
+	m_splom->setSelection(splomSelection);
 }
 
 void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
