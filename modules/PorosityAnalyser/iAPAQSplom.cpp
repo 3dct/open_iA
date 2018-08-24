@@ -364,15 +364,14 @@ void iAPAQSplom::fixPoint()
 
 void iAPAQSplom::sendToFeatureScout()
 {
-	
+	if (!m_activePlot)
+		return;
 	QString fileName = ""; 
 	QString mhdName = ""; 
 	getFilesLabeledFromPoint(fileName, mhdName);
-
-	
 	this->m_mdiChild = m_mainWnd->createMdiChild(false);
-	
-	if (!this->m_mdiChild) return;
+	if (!this->m_mdiChild)
+		return;
 	this->m_mdiChild->show();
 	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(StartFeatureScout()));
 	if (!m_mdiChild->loadFile(mhdName, false))
@@ -385,8 +384,6 @@ void iAPAQSplom::sendToFeatureScout()
 
 void iAPAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
 {
-	if (!m_activePlot)
-		return;
 	QString sliceFileName = "";
 	QString dataPath = "";
 	int dsInd = 0;
