@@ -646,9 +646,9 @@ void iAFiberOptimizationExplorer::selectionTimeStepChartChanged(std::vector<size
 	std::vector<size_t> splomSelection;
 	for (size_t resultID=0; resultID<m_resultData.size() && curSelectionIndex < selection.size(); ++resultID)
 	{
+		std::vector<size_t> curResultSelection;
 		if (m_resultData[resultID].m_startPlotIdx != NoPlotsIdx)
 		{
-			std::vector<size_t> curResultSelection;
 			while (curSelectionIndex < selection.size() &&
 				   selection[curSelectionIndex] <
 				   (m_resultData[resultID].m_startPlotIdx + m_resultData[resultID].m_resultTable->GetNumberOfRows()) )
@@ -659,10 +659,10 @@ void iAFiberOptimizationExplorer::selectionTimeStepChartChanged(std::vector<size
 				splomSelection.push_back(splomID);
 				++curSelectionIndex;
 			}
-			m_resultData[resultID].m_mini3DVis->renderSelection(curResultSelection, 0, getMainRendererColor(resultID), nullptr);
-			if (m_resultData[resultID].m_main3DVis)
-				m_resultData[resultID].m_main3DVis->renderSelection(curResultSelection, 0, getMainRendererColor(resultID), nullptr);
 		}
+		m_resultData[resultID].m_mini3DVis->renderSelection(curResultSelection, 0, getMainRendererColor(resultID), nullptr);
+		if (m_resultData[resultID].m_main3DVis)
+			m_resultData[resultID].m_main3DVis->renderSelection(curResultSelection, 0, getMainRendererColor(resultID), nullptr);
 		splomIDStart += m_resultData[resultID].m_resultTable->GetNumberOfRows();
 	}
 	for (auto plot : m_timeStepChart->plots())
