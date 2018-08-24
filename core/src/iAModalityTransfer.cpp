@@ -39,8 +39,8 @@ void iAModalityTransfer::computeStatistics(vtkSmartPointer<vtkImageData> img)
 {
 	if (m_statisticsComputed)	// already calculated
 		return;
-	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange()); // Set range of rgb, rgba or vector pixel type images to fully opaque
-	m_otf = GetDefaultPiecewiseFunction(img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
+	GetDefaultColorTransferFunction(m_ctf, img->GetScalarRange()); // Set range of rgb, rgba or vector pixel type images to fully opaque
+	GetDefaultPiecewiseFunction(m_otf, img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
 	m_statisticsComputed = true;
 }
 
