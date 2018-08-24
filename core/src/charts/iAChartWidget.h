@@ -34,10 +34,13 @@
 #include <QGLWidget>
 #endif
 
+#include <vector>
+
 class iAPlot;
 class iAMapper;
 
 class QMenu;
+class QRubberBand;
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 class open_iA_Core_API iAChartWidget : public QOpenGLWidget
@@ -48,6 +51,7 @@ class open_iA_Core_API iAChartWidget : public QGLWidget
 	Q_OBJECT
 public:
 	enum Mode { NO_MODE, MOVE_VIEW_MODE, X_ZOOM_MODE, Y_ZOOM_MODE };
+	enum SelectionMode { SelectionDisabled, SelectPlot };
 	enum AxisMappingType { Linear, Logarithmic };
 	iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
 	virtual ~iAChartWidget();
@@ -86,10 +90,12 @@ public:
 	bool isDrawnDiscrete() const;
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
 	void removeImageOverlay(QImage * imgOverlay);
+	void setSelectionMode(SelectionMode mode);
 public slots:
 	void resetView();
 signals:
 	void xAxisChanged();
+	void plotsSelected(std::vector<size_t> const & plotIDs);
 protected:
 	QString xCaption, yCaption;
 	int zoomX;
@@ -154,4 +160,8 @@ private:
 	bool m_customXBounds, m_customYBounds;
 	double m_xBounds[2], m_yBounds[2];
 	QFlags<Qt::AlignmentFlag> m_captionPosition;
+	SelectionMode m_selectionMode;
+	QRubberBand* m_selectionBand;
+	QPoint m_selectionOrigin;
+	std::vector<size_t> m_selectedPlots;
 };

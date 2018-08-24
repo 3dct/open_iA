@@ -32,6 +32,7 @@
 #include <QIcon>
 #include <QMenu>
 #include <QPainter>
+#include <QRubberBand>
 #include <QToolTip>
 #include <QWheelEvent>
 
@@ -80,12 +81,15 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_showXAxisLabel(true),
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
 	m_fontHeight(0),
-	m_yMaxTickLabelWidth(0)
+	m_yMaxTickLabelWidth(0),
+	m_selectionMode(SelectionDisabled),
+	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this))
 {
 	updateBounds();
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
 	setAutoFillBackground(false);
+	m_selectionBand->hide();
 }
 
 iAChartWidget::~iAChartWidget()
@@ -643,6 +647,11 @@ void iAChartWidget::removeImageOverlay(QImage * imgOverlay)
 	}
 }
 
+void iAChartWidget::setSelectionMode(SelectionMode mode)
+{
+	m_selectionMode = mode;
+}
+
 void iAChartWidget::drawPlots(QPainter &painter, size_t startBin, size_t endBin)
 {
 	if (m_plots.empty())
@@ -719,7 +728,39 @@ void iAChartWidget::changeMode(int newMode, QMouseEvent *event)
 void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton)
+	{
+		if (m_selectionBand->isVisible())
+		{
+			m_selectionBand->hide();
+			QRectF diagramRect;
+			QRectF selectionRect(m_selectionBand->geometry());     // height-y because we are drawing reversed from actual y direction
+			diagramRect.setTop(    yMapper()->DestToSrc(activeHeight() - selectionRect.bottom()) );
+			diagramRect.setBottom( yMapper()->DestToSrc(activeHeight() - selectionRect.top()   ) );
+			diagramRect.setLeft(   screenX2DataBin(selectionRect.left()  ) );
+			diagramRect.setRight(  screenX2DataBin(selectionRect.right() ) );
+			diagramRect = diagramRect.normalized();
+			if (diagramRect.top() < yBounds()[0])
+				diagramRect.setTop(yBounds()[0]);
+			if (diagramRect.bottom() > yBounds()[1])
+				diagramRect.setBottom(yBounds()[1]);
+			m_selectedPlots.clear();
+			double yMin = diagramRect.top(), yMax = diagramRect.bottom();
+			for (int plotIdx=0; plotIdx<m_plots.size(); ++plotIdx)
+			{
+				for (int bin=diagramRect.left(); bin <= diagramRect.right(); ++bin)
+				{
+					double binYValue = m_plots[plotIdx].data()->GetData()->GetRawData()[bin];
+					if (yMin < binYValue && binYValue < yMax)
+					{
+						m_selectedPlots.push_back(plotIdx);
+						break;
+					}
+				}
+			}
+			emit plotsSelected(m_selectedPlots);
+		}
 		update();
+	}
 	this->mode = NO_MODE;
 }
 
@@ -750,6 +791,12 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 			translationStartY = translationY;
 			changeMode(MOVE_VIEW_MODE, event);
 		}
+		else if (m_selectionMode == SelectPlot)
+		{
+			m_selectionOrigin = event->pos();
+			m_selectionBand->setGeometry(QRect(m_selectionOrigin, QSize()));
+			m_selectionBand->show();
+		}
 		break;
 	case Qt::RightButton:
 		update();
@@ -768,7 +815,12 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	switch(mode)
 	{
-	case NO_MODE: /* do nothing */ break;
+	case NO_MODE:
+		if (m_selectionBand->isVisible())
+		{
+			m_selectionBand->setGeometry(QRect(m_selectionOrigin, event->pos()).normalized());
+		}
+		/* do nothing */ break;
 	case MOVE_VIEW_MODE:
 		translationX = clamp(-static_cast<int>(activeWidth() * (xZoom-1)), 0,
 			translationStartX + event->x() - dragStartPosX);
