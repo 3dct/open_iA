@@ -1032,16 +1032,17 @@ void iAQSplom::updateMaxPlotRect()
 	if( !m_maximizedPlot )
 		return;
 	long visParamCnt = getVisibleParametersCount();
-	int mid = visParamCnt / 2;
-	QRect tl_rect, br_rect;
-	tl_rect = getPlotRectByIndex( mid + (visParamCnt%2) + (settings.histogramVisible?1:0),
-		mid - 1 - (settings.histogramVisible?1:0) );
-	int adjustX = std::max( (visParamCnt%2) ? -m_scatPlotSize.x():0, settings.tickOffsets.x() - m_scatPlotSize.x()),
-		adjustY = std::max( (visParamCnt%2) ? -m_scatPlotSize.y():0, settings.tickOffsets.y() - m_scatPlotSize.y());
-	tl_rect.adjust(adjustX, adjustY, 0, 0);
-	br_rect = getPlotRectByIndex( visParamCnt-1, 0 );
-	QRect r = QRect( tl_rect.topLeft(), br_rect.bottomRight() );
-	m_maximizedPlot->setRect( r );
+	QRect topLeftPlot = getPlotRectByIndex(0, visParamCnt - 1);
+	QRect bottomRightPlot = getPlotRectByIndex(visParamCnt - 1, 0);
+	// default top left for max plot is in the middle of the chart area:
+	QPoint topLeft(topLeftPlot.left() + (bottomRightPlot.right() - topLeftPlot.left() + settings.plotsSpacing) / 2,
+		topLeftPlot.top() + (bottomRightPlot.bottom() - topLeftPlot.top() + settings.plotsSpacing) / 2);
+	// make sure there is enough space for the labels:
+	topLeft += QPoint(std::max(0, settings.tickOffsets.x() - ((visParamCnt % 2) ? m_scatPlotSize.x() / 2 : m_scatPlotSize.x())),
+		std::max(0, settings.tickOffsets.y() - ((visParamCnt % 2) ? m_scatPlotSize.y() / 2 : m_scatPlotSize.y())));
+	if (settings.histogramVisible)
+		topLeft += QPoint(m_scatPlotSize.x(), m_scatPlotSize.y());
+	m_maximizedPlot->setRect( QRect(topLeft, bottomRightPlot.bottomRight()) );
 }
 
 void iAQSplom::updateSPLOMLayout()

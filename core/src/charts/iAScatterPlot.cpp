@@ -353,7 +353,8 @@ void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 	if (m_isMaximizedPlot && event->button() == Qt::LeftButton && settings.selectionEnabled)//selection
 	{
 		bool append = ( event->modifiers() & Qt::ShiftModifier ) ? true : false;
-		updateSelectedPoints( append ); //selection
+		bool remove = ( event->modifiers() & Qt::AltModifier ) ? true : false;
+		updateSelectedPoints( append, remove );
 	}
 }
 
@@ -618,11 +619,11 @@ QPointF iAScatterPlot::getPositionFromPointIndex( int ind ) const
 	return QPointF( x, y );
 }
 
-void iAScatterPlot::updateSelectedPoints(bool append)
+void iAScatterPlot::updateSelectedPoints(bool append, bool remove)
 {
 	bool wasModified = false;
 	auto & selInds = m_splom->getSelection();
-	if (!append)
+	if (!append && !remove)
 	{
 		wasModified = selInds.size() > 0;
 		selInds.clear();
@@ -649,9 +650,11 @@ void iAScatterPlot::updateSelectedPoints(bool append)
 					QPointF pt(m_splomData->paramData(m_paramIndices[0])[i], m_splomData->paramData(m_paramIndices[1])[i]);
 					if (pPoly.containsPoint(pt, Qt::OddEvenFill))
 					{
-						if (append && std::find(selInds.begin(), selInds.end(), i) != selInds.end())
-							continue;
-						selInds.push_back(i);
+						auto pos = std::find(selInds.begin(), selInds.end(), i);
+						if (pos != selInds.end() && remove)
+							selInds.erase(pos);
+						else if (!remove || append) // achieves XOR-like behavior if both remove and append are true
+							selInds.push_back(i);
 					}
 				}
 			}
