@@ -1035,8 +1035,11 @@ void iAQSplom::updateMaxPlotRect()
 	long visParamCnt = getVisibleParametersCount();
 	int mid = visParamCnt / 2;
 	QRect tl_rect, br_rect;
-	tl_rect = getPlotRectByIndex( mid + (settings.histogramVisible?1:0),
-								  mid - 1 - (settings.histogramVisible?1:0) );
+	tl_rect = getPlotRectByIndex( mid + (visParamCnt%2) + (settings.histogramVisible?1:0),
+		mid - 1 - (settings.histogramVisible?1:0) );
+	int adjustX = std::max( (visParamCnt%2) ? -m_scatPlotSize.x():0, settings.tickOffsets.x() - m_scatPlotSize.x()),
+		adjustY = std::max( (visParamCnt%2) ? -m_scatPlotSize.y():0, settings.tickOffsets.y() - m_scatPlotSize.y());
+	tl_rect.adjust(adjustX, adjustY, 0, 0);
 	br_rect = getPlotRectByIndex( visParamCnt-1, 0 );
 	QRect r = QRect( tl_rect.topLeft(), br_rect.bottomRight() );
 	m_maximizedPlot->setRect( r );
