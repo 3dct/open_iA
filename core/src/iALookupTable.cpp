@@ -68,7 +68,8 @@ void iALookupTable::getColor(double val, double * rgba_out)
 		return;
 	}
 	double t = (val - m_range[0]) / m_rangeLen;
-	int index = clamp(static_cast<size_t>(0), m_numColors-1, static_cast<size_t>(t * m_numColors));
+	// clamp needs signed type so that value falls out on right side of table!
+	size_t index = static_cast<size_t>(clamp(static_cast<long long>(0), static_cast<long long>(m_numColors)-1, static_cast<long long>(t * m_numColors)));
 	index *= NumberOfColorComponents;
 	for (int i = 0; i < NumberOfColorComponents; ++i)
 		rgba_out[i] = m_data[index++];
