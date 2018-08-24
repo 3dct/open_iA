@@ -127,7 +127,7 @@ protected:
 	int getBinIndex( int x, int y ) const;                           //!< Get global grid bin offset (index) using X and Y bin indices
 	size_t getPointIndexAtPosition( QPointF mpos ) const;            //!< Get index of data point under cursor, NoPointIndex if none
 	QPointF getPositionFromPointIndex( int ind ) const;              //!< Get position of a data point with a given index
-	void updateSelectedPoints( bool append = false );                //!< Update a set of selected points: if append add to the previous selection.
+	void updateSelectedPoints( bool append, bool remove);            //!< Update selected points; parameters specify whether to append or to remove from previous selection (or create new if both false). if both append and remove are true, then XOR logic is applied (of newly selected, those already selected will be de-selected, new ones will be added)
 	void updateDrawRect();                                           //!< Re-calculate dimensions of the plot's rectangle
 	QPoint getLocalPos( QPoint pos ) const;                          //!< Local (plot) position from global (SPLOM)
 	QPoint cropLocalPos( QPoint locPos ) const;                      //!< Make sure that local position is inside plot's rectangle
