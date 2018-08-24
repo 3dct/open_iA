@@ -88,6 +88,7 @@
 #include <QSettings>
 #include <QSpinBox>
 #include <QToolButton>
+#include <QtGlobal> // for QT_VERSION
 
 MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsavedChanges) :
 	m_isSmthMaximized(false),
@@ -104,6 +105,9 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_currentComponent(0),
 	m_currentHistogramModality(-1)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
+#endif
 	setWindowModified(unsavedChanges);
 	m_mainWnd = mainWnd;
 	setupUi(this);
