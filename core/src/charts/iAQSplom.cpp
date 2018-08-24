@@ -193,7 +193,6 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	m_splomData(new iASPLOMData()),
 	m_previewPlot(nullptr),
 	m_maximizedPlot(nullptr),
-	m_isIndexingBottomToTop(true), //always true: maximizing will not work otherwise a proper layout needs to be implemented
 	m_animIn(1.0),
 	m_animOut(0.0),
 	m_animationOut(new QPropertyAnimation(this, "m_animOut")),
@@ -346,6 +345,12 @@ void iAQSplom::dataChanged()
 	clear();
 	m_columnPickMenu->clear();
 	unsigned long numParams = m_splomData->numParams();
+
+	// cleanup old histograms (if any)
+	for (auto histo : m_histograms)
+		delete histo;
+	m_histograms.clear();
+
 	for( unsigned long y = 0; y < numParams; ++y )
 	{
 		m_paramVisibility.push_back( true );
@@ -653,9 +658,8 @@ void iAQSplom::currentPointUpdated( size_t index )
 			m_animationIn->start();
 		}
 	}
-
-	update();
-	if( index >= 0 )
+	repaint(); // should be update, but that does not work if called from base class at the moment (no idea why)
+	if( index != iAScatterPlot::NoPointIndex )
 		emit currentPointModified( index );
 }
 
@@ -967,9 +971,7 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 	bool isBetween = false;
 	if( offsetPos.x() - ind[0] * grid.x() >= m_scatPlotSize.x() ) isBetween = true;
 	if( offsetPos.y() - ind[1] * grid.y() >= m_scatPlotSize.y() ) isBetween = true;
-	//if indexing is bottom to top invert index Y
-	if( m_isIndexingBottomToTop )
-		ind[1] = invert( ind[1] );
+	ind[1] = invert( ind[1] );	// indexing is bottom to top -> invert index Y
 	//get the resulting plot
 	iAScatterPlot * s = isBetween ? 0 : m_visiblePlots[ind[1]][ind[0]];
 	//check if we hit the maximized plot if necessary
@@ -1017,8 +1019,7 @@ void iAQSplom::updatePlotGridParams()
 
 QRect iAQSplom::getPlotRectByIndex( int x, int y )
 {
-	if( m_isIndexingBottomToTop )
-		y = invert( y );
+	y = invert( y );
 	int spc = settings.plotsSpacing;
 	int xpos = settings.tickOffsets.x() + x * ( m_scatPlotSize.x() + spc ) + ((m_separationIdx != -1 && x > m_separationIdx) ? settings.separationMargin : 0);
 	int ypos = settings.tickOffsets.y() + y * ( m_scatPlotSize.y() + spc ) + ((m_separationIdx != -1 && y > (getVisibleParametersCount() - m_separationIdx - 2)) ? settings.separationMargin : 0);
@@ -1031,39 +1032,15 @@ void iAQSplom::updateMaxPlotRect()
 	if( !m_maximizedPlot )
 		return;
 	long visParamCnt = getVisibleParametersCount();
-	int tl_ind = visParamCnt / 2 + 1;
-	int br_ind = visParamCnt - 1;
-
-	if( !( visParamCnt % 2 ) )
-		tl_ind--;
-
+	int mid = visParamCnt / 2;
 	QRect tl_rect, br_rect;
-	if( m_isIndexingBottomToTop )
-	{
-		int tl_ind_inv = invert( tl_ind );
-		int br_ind_inv = invert( br_ind );
-		tl_rect = getPlotRectByIndex( tl_ind, tl_ind_inv );
-		br_rect = getPlotRectByIndex( br_ind, br_ind_inv );
-	}
-	else
-	{
-		tl_rect = getPlotRectByIndex( tl_ind, tl_ind );
-		br_rect = getPlotRectByIndex( br_ind, br_ind );
-	}
+	tl_rect = getPlotRectByIndex( mid + (visParamCnt%2) + (settings.histogramVisible?1:0),
+		mid - 1 - (settings.histogramVisible?1:0) );
+	int adjustX = std::max( (visParamCnt%2) ? -m_scatPlotSize.x():0, settings.tickOffsets.x() - m_scatPlotSize.x()),
+		adjustY = std::max( (visParamCnt%2) ? -m_scatPlotSize.y():0, settings.tickOffsets.y() - m_scatPlotSize.y());
+	tl_rect.adjust(adjustX, adjustY, 0, 0);
+	br_rect = getPlotRectByIndex( visParamCnt-1, 0 );
 	QRect r = QRect( tl_rect.topLeft(), br_rect.bottomRight() );
-
-	if (!settings.histogramVisible)
-	{
-		int widthCorr = tl_rect.width() - settings.tickOffsets.x();
-		int heightCorr = tl_rect.height() - settings.tickOffsets.y();
-		r.adjust(-widthCorr, -heightCorr, 0, 0);
-	}
-
-	if( !( visParamCnt % 2 ) )
-	{
-		int extraOffset = settings.tickLabelsOffset + settings.maxRectExtraOffset;
-		r.setTopLeft( r.topLeft() + settings.tickOffsets + QPoint( extraOffset, extraOffset ) );
-	}
 	m_maximizedPlot->setRect( r );
 }
 

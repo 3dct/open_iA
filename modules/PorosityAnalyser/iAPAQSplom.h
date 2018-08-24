@@ -40,7 +40,7 @@ public:
 	iAPAQSplom(MainWindow *mainWind,  QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
 #endif
 public:
-	virtual void setData( const QTableWidget * data );
+	void setData( const QTableWidget * data ) override;
 	void setPreviewSliceNumbers( QList<int> sliceNumber );
 	void setROIList( QList<QRectF> roi );
 	void setSliceCounts( QList<int> sliceCnts );
@@ -51,8 +51,8 @@ public:
 	int getDatasetIndexFromPointIndex(size_t pointIndex);
 
 protected:
-	virtual bool drawPopup( QPainter& painter );	//!< Draws popup on the splom with mask preview
-	virtual void keyPressEvent( QKeyEvent * event );
+	bool drawPopup( QPainter& painter ) override;	//!< Draws popup on the splom with mask preview
+	void keyPressEvent( QKeyEvent * event ) override;
 	void updatePreviewPixmap();
 
 signals:
@@ -64,8 +64,8 @@ public slots:
 	void removeFixedPoint();
 	void StartFeatureScout();
 
-protected slots:
-	virtual void currentPointUpdated( int index );
+private slots:
+	void currentPointUpdated( size_t index ) override;
 	void fixPoint();
 
 	//send labeled image and csv from PA to FeatureScout

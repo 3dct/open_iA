@@ -64,10 +64,11 @@ iAPAQSplom::iAPAQSplom(MainWindow *mWnd, QWidget * parent /*= 0*/, const QGLWidg
 	
 	//sent to FeatureScout
 	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, SLOT(sendToFeatureScout()));
-	m_detailsToFeatureScoutAction->setVisible(true);
+	m_detailsToFeatureScoutAction->setVisible(false);
 	
 	m_fixAction->setVisible( false );
 	m_removeFixedAction->setVisible( false );
+	setHistogramVisible(false);
 }
 
 void iAPAQSplom::setData( const QTableWidget * data )
@@ -236,6 +237,8 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 
 void iAPAQSplom::keyPressEvent( QKeyEvent * event )
 {
+	if (!m_activePlot)
+		return;
 	int dsInd = getDatasetIndexFromPointIndex( m_activePlot->getCurrentPoint() );
 	if (dsInd != -1)
 	{
@@ -272,7 +275,7 @@ void iAPAQSplom::updatePreviewPixmap()
 
 	QImage fixedMaskImg;
 	int dsInd = -1;
-	if( m_fixedPointInd >= 0 )
+	if( m_fixedPointInd != iAScatterPlot::NoPointIndex)
 	{
 		dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 		QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
@@ -303,7 +306,7 @@ void iAPAQSplom::updatePreviewPixmap()
 		maskImg.setColor( 2, qRgba( 0, 0, 255, maskOpacity ) );
 		maskImg.setColor( 3, qRgba( 255, 255, 0, maskOpacity ) );
 
-		if( m_fixedPointInd >= 0 && getDatasetIndexFromPointIndex(m_fixedPointInd) == dsInd )
+		if( m_fixedPointInd != iAScatterPlot::NoPointIndex && getDatasetIndexFromPointIndex(m_fixedPointInd) == dsInd )
 		{
 			uchar * maskPtr = maskImg.bits();
 			uchar * fixedPtr = fixedMaskImg.bits();
@@ -334,12 +337,18 @@ void iAPAQSplom::updatePreviewPixmap()
 	emit maskHovered( &m_maskPxmp, dsInd );
 }
 
-void iAPAQSplom::currentPointUpdated( int index )
+void iAPAQSplom::currentPointUpdated( size_t index )
 {
-	if( index >= 0 )
-		m_fixAction->setVisible( true );
+	if (index != iAScatterPlot::NoPointIndex)
+	{
+		m_fixAction->setVisible(true);
+		m_detailsToFeatureScoutAction->setVisible(true);
+	}
 	else
-		m_fixAction->setVisible( false );
+	{
+		m_fixAction->setVisible(false);
+		m_detailsToFeatureScoutAction->setVisible(false);
+	}
 	updatePreviewPixmap();
 	iAQSplom::currentPointUpdated( index );
 }
@@ -361,15 +370,14 @@ void iAPAQSplom::fixPoint()
 
 void iAPAQSplom::sendToFeatureScout()
 {
-	
+	if (!m_activePlot)
+		return;
 	QString fileName = ""; 
 	QString mhdName = ""; 
 	getFilesLabeledFromPoint(fileName, mhdName);
-
-	
 	this->m_mdiChild = m_mainWnd->createMdiChild(false);
-	
-	if (!this->m_mdiChild) return;
+	if (!this->m_mdiChild)
+		return;
 	this->m_mdiChild->show();
 	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(StartFeatureScout()));
 	if (!m_mdiChild->loadFile(mhdName, false))
@@ -385,6 +393,7 @@ void iAPAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
 	QString sliceFileName = "";
 	QString dataPath = "";
 	int dsInd = 0;
+	// TODO: why is fixed point set here?
 	m_fixedPointInd = m_activePlot->getCurrentPoint();
 	dsInd = getDatasetIndexFromPointIndex(m_fixedPointInd);
 	sliceFileName = getSliceFilename(m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd]);
