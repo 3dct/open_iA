@@ -658,8 +658,7 @@ void iAQSplom::currentPointUpdated( size_t index )
 			m_animationIn->start();
 		}
 	}
-
-	update();
+	repaint(); // should be update, but that does not work if called from base class at the moment (no idea why)
 	if( index != iAScatterPlot::NoPointIndex )
 		emit currentPointModified( index );
 }
