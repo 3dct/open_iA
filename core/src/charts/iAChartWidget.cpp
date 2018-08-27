@@ -32,6 +32,9 @@
 #include <QIcon>
 #include <QMenu>
 #include <QPainter>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QSurfaceFormat>
+#endif
 #include <QToolTip>
 #include <QWheelEvent>
 
@@ -82,6 +85,11 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_fontHeight(0),
 	m_yMaxTickLabelWidth(0)
 {
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QSurfaceFormat fmt = format();
+	fmt.setSamples(8);
+	setFormat(fmt);
+#endif
 	updateBounds();
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
