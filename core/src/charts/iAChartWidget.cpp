@@ -33,6 +33,9 @@
 #include <QMenu>
 #include <QPainter>
 #include <QRubberBand>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QSurfaceFormat>
+#endif
 #include <QToolTip>
 #include <QWheelEvent>
 
@@ -85,6 +88,11 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_selectionMode(SelectionDisabled),
 	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this))
 {
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QSurfaceFormat fmt = format();
+	fmt.setSamples(8);
+	setFormat(fmt);
+#endif
 	updateBounds();
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
