@@ -371,7 +371,7 @@ void iAQSplom::dataChanged()
 		m_matrix.push_back( row );
 		m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
 
-		QAction * a = new QAction(m_splomData->parameterName(y));
+		QAction * a = new QAction(m_splomData->parameterName(y), nullptr);
 		a->setCheckable(true);
 		m_columnPickMenu->addAction(a);
 		connect(a, &QAction::toggled, this, &iAQSplom::parameterVisibilityToggled);

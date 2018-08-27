@@ -22,13 +22,14 @@
 
 #include "charts/iADiagramFctWidget.h"
 
-#include <QRubberBand>
 #include <QMap>
 
 class iAAccumulatedXRFData;
 struct iACharacteristicEnergy;
 class iAPlotData;
 class iASpectrumFilterListener;
+
+class QRubberBand;
 
 class iAEnergySpectrumWidget: public iADiagramFctWidget
 {

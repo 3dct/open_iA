@@ -31,6 +31,7 @@
 #include <QMap>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QRubberBand>
 
 const char * EnergyLineNames[9] =
 {
