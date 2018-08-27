@@ -39,12 +39,14 @@
 
 namespace
 {
-	const int TransparentAlpha = 32;
+	const int DefaultContextAlpha = 32;
 	const size_t NoPointIdx = std::numeric_limits<size_t>::max();
 }
 
 iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor ):
-	iA3DObjectVis(widget, objectTable, columnMapping)
+	iA3DObjectVis(widget, objectTable, columnMapping),
+	m_contextAlpha(DefaultContextAlpha),
+	m_selectionColor(SelectedColor)
 {
 	m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	m_colors->SetNumberOfComponents(4);
@@ -134,13 +136,13 @@ void iA3DLineObjectVis::renderSelection( std::vector<size_t> const & sortedSelIn
 	if ( sortedSelInds.size() > 0 )
 	{
 		curSelObjID = sortedSelInds[currentObjectIndexInSelection];
-		classColor.setAlpha(TransparentAlpha);
+		classColor.setAlpha(m_contextAlpha);
 	}
 	for ( size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
 	{
 		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
 		QColor curColor = (objID == curSelObjID) ?
-			SelectedColor :
+			m_selectionColor :
 			((curClassID == classID) ?
 				classColor :
 				BackColor);
@@ -160,11 +162,11 @@ void iA3DLineObjectVis::renderSingle( int labelID, int classID, QColor const & c
 	QColor classColor(constClassColor);
 	QColor nonClassColor = QColor(0, 0, 0, 0);
 	if ( labelID > 0)
-		classColor.setAlpha(TransparentAlpha);
+		classColor.setAlpha(m_contextAlpha);
 	for ( size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
 	{
 		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
-		setPolyPointColor(objID, ( labelID > 0 && objID+1 == labelID ) ? SelectedColor : (curClassID == classID) ? classColor : nonClassColor);
+		setPolyPointColor(objID, ( labelID > 0 && objID+1 == labelID ) ? m_selectionColor : (curClassID == classID) ? classColor : nonClassColor);
 	}
 	updatePolyMapper();
 }
@@ -225,3 +227,13 @@ vtkPolyData* iA3DLineObjectVis::getLinePolyData()
 	return m_linePolyData;
 }
 
+
+void iA3DLineObjectVis::setContextAlpha(int contextAlpha)
+{
+	m_contextAlpha = contextAlpha;
+}
+
+void iA3DLineObjectVis::setSelectionColor(QColor const & selectionColor)
+{
+	m_selectionColor = selectionColor;
+}

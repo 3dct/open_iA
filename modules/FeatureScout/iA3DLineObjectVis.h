@@ -25,6 +25,8 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QColor>
+
 class vtkActor;
 class vtkPoints;
 class vtkPolyData;
@@ -44,6 +46,8 @@ public:
 	void renderLengthDistribution(  vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) override;
 	void updateValues( std::vector<std::vector<double> > const & values );
 	vtkPolyData* getLinePolyData();
+	void setContextAlpha(int contextAlpha);
+	void setSelectionColor(QColor const & selectionColor);
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
@@ -53,5 +57,8 @@ protected:
 private:
 	void setPolyPointColor(int ptIdx, QColor const & qcolor);
 	void updatePolyMapper();
+
+	int m_contextAlpha;
+	QColor m_selectionColor;
 };
 
