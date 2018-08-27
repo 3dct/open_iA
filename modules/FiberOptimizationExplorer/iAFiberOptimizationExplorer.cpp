@@ -112,12 +112,13 @@ namespace
 	}
 
 	const double MiddlePointShift = 74.5;
-	const int DefaultMainOpacity = 128;
+	int DefaultOpacity = 128;
+	int ContextOpacity = 32;
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
 	const QString ModuleSettingsKey("FiberOptimizationExplorer");
 
-	QColor ProjectionErrorDefaultPlotColor(128, 128, 128, 64);
-	QColor SelectionColor(255, 0, 0, 255);
+	QColor ProjectionErrorDefaultPlotColor(128, 128, 128, DefaultOpacity);
+	QColor SPLOMSelectionColor(255, 0, 0, ContextOpacity);
 
 	int NumberOfCloseFibers = 25;
 }
@@ -167,22 +168,38 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	renWin->AddRenderer(ren);
 	m_renderManager->addToBundle(ren);
 	m_mainRenderer->SetRenderWindow(renWin);
-	m_opacitySlider = new QSlider(Qt::Horizontal);
-	m_opacitySlider->setMinimum(0);
-	m_opacitySlider->setMaximum(255);
-	m_opacitySlider->setValue(DefaultMainOpacity);
-	connect(m_opacitySlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::mainOpacityChanged);
-	m_currentOpacityLabel = new QLabel(QString::number(DefaultMainOpacity));
-	QWidget* opacityWidget = new QWidget();
-	opacityWidget->setLayout(new QHBoxLayout());
-	opacityWidget->layout()->addWidget(m_opacitySlider);
-	opacityWidget->layout()->addWidget(m_currentOpacityLabel);
-	opacityWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	m_defaultOpacitySlider = new QSlider(Qt::Horizontal);
+	m_defaultOpacitySlider->setMinimum(0);
+	m_defaultOpacitySlider->setMaximum(255);
+	m_defaultOpacitySlider->setValue(DefaultOpacity);
+	connect(m_defaultOpacitySlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::mainOpacityChanged);
+	m_defaultOpacityLabel = new QLabel(QString::number(DefaultOpacity));
+	QWidget* defaultOpacityWidget = new QWidget();
+	defaultOpacityWidget->setLayout(new QHBoxLayout());
+	defaultOpacityWidget->layout()->addWidget(new QLabel("Main Opacity"));
+	defaultOpacityWidget->layout()->addWidget(m_defaultOpacitySlider);
+	defaultOpacityWidget->layout()->addWidget(m_defaultOpacityLabel);
+	defaultOpacityWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+	m_contextOpacitySlider = new QSlider(Qt::Horizontal);
+	m_contextOpacitySlider->setMinimum(0);
+	m_contextOpacitySlider->setMaximum(255);
+	m_contextOpacitySlider->setValue(ContextOpacity);
+	connect(m_contextOpacitySlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::contextOpacityChanged);
+	m_contextOpacityLabel = new QLabel(QString::number(ContextOpacity));
+	QWidget* contextOpacityWidget = new QWidget();
+	contextOpacityWidget->setLayout(new QHBoxLayout());
+	contextOpacityWidget->layout()->addWidget(new QLabel("Context Opacity"));
+	contextOpacityWidget->layout()->addWidget(m_contextOpacitySlider);
+	contextOpacityWidget->layout()->addWidget(m_contextOpacityLabel);
+	contextOpacityWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	
 
 	QWidget* mainRendererContainer = new QWidget();
 	mainRendererContainer->setLayout(new QVBoxLayout());
 	mainRendererContainer->layout()->addWidget(m_mainRenderer);
-	mainRendererContainer->layout()->addWidget(opacityWidget);
+	mainRendererContainer->layout()->addWidget(defaultOpacityWidget);
+	mainRendererContainer->layout()->addWidget(contextOpacityWidget);
 
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->assignToRenderWindow(renWin);
@@ -294,7 +311,9 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		resultsListLayout->addWidget(resultData.m_vtkWidget, resultID, 2);
 
 		resultData.m_mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
-				resultData.m_vtkWidget, tableCreator.getTable(), io.getOutputMapping(), m_colorTheme->GetColor(resultID)));
+				resultData.m_vtkWidget, tableCreator.getTable(), io.getOutputMapping(), getResultColor(resultID)));
+		resultData.m_mini3DVis->setSelectionColor(getResultColor(resultID));
+		resultData.m_mini3DVis->setContextAlpha(ContextOpacity);
 		resultData.m_mini3DVis->show();
 		ren->ResetCamera();
 		resultData.m_resultTable = tableCreator.getTable();
@@ -351,7 +370,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 					double projErrorRed = values->at(0) - values->at(values->size() - 1);
 					m_splomData->data()[m_splomData->numParams()-2][fiberNr] = projErrorRed;
 					QSharedPointer<iAVectorPlotData> plotData(new iAVectorPlotData(values));
-					m_timeStepChart->addPlot(QSharedPointer<iALineFunctionDrawer>(new iALineFunctionDrawer(plotData, ProjectionErrorDefaultPlotColor)));
+					m_timeStepChart->addPlot(QSharedPointer<iALineFunctionDrawer>(new iALineFunctionDrawer(plotData, getResultColor(resultID))));
 					fiberNr++;
 				}
 			}
@@ -491,7 +510,7 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 
 	// splom needs an active OpenGL Context (it must be visible when setData is called):
 	m_splom->setMinimumWidth(200);
-	m_splom->setSelectionColor(SelectionColor);
+	m_splom->setSelectionColor(SPLOMSelectionColor);
 	m_splom->setData(m_splomData);
 	iALookupTable lut;
 	int numOfResults = m_resultData.size();
@@ -508,10 +527,10 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiberOptimizationExplorer::selectionSPLOMChanged);
 }
 
-QColor iAFiberOptimizationExplorer::getMainRendererColor(int resultID)
+QColor iAFiberOptimizationExplorer::getResultColor(int resultID)
 {
 	QColor color = m_colorTheme->GetColor(resultID);
-	color.setAlpha(m_opacitySlider->value());
+	color.setAlpha(DefaultOpacity);
 	return color;
 }
 
@@ -527,7 +546,9 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 			return;
 		}
 		data.m_main3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer,
-				data.m_resultTable, data.m_outputMapping, getMainRendererColor(resultID)));
+				data.m_resultTable, data.m_outputMapping, getResultColor(resultID)));
+		data.m_main3DVis->setSelectionColor(getResultColor(resultID));
+		data.m_main3DVis->setContextAlpha(ContextOpacity);
 		data.m_main3DVis->show();
 		m_style->setInput( data.m_main3DVis->getLinePolyData() );
 		m_lastMain3DVis = data.m_main3DVis;
@@ -583,18 +604,25 @@ void iAFiberOptimizationExplorer::sortCurrentSelection()
 
 void iAFiberOptimizationExplorer::showCurrentSelectionInPlot()
 {
-	for (auto plot : m_timeStepChart->plots())
-	{
-		plot->setColor(ProjectionErrorDefaultPlotColor);
-	}
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
 		if (m_resultData[resultID].m_startPlotIdx != NoPlotsIdx)
 		{
-			for (size_t idx : m_currentSelection[resultID])
+			size_t curSelIdx = 0;
+			QColor color(getResultColor(resultID));
+			for (size_t fiberID=0; fiberID < m_resultData[resultID].m_fiberCount; ++fiberID)
 			{
-				auto plot = m_timeStepChart->plots()[m_resultData[resultID].m_startPlotIdx + idx];
-				plot->setColor(SelectionColor);
+				if (curSelIdx < m_currentSelection[resultID].size() && fiberID == m_currentSelection[resultID][curSelIdx])
+				{
+					color.setAlpha(DefaultOpacity);
+					++curSelIdx;
+				}
+				else if (m_currentSelection[resultID].size() > 0)
+				{
+					color.setAlpha(ContextOpacity);
+				}
+				auto plot = m_timeStepChart->plots()[m_resultData[resultID].m_startPlotIdx + fiberID];
+				plot->setColor(color);
 			}
 		}
 	}
@@ -606,9 +634,9 @@ void iAFiberOptimizationExplorer::showCurrentSelectionIn3DViews()
 	for (size_t resultID = 0; resultID<m_resultData.size(); ++resultID)
 	{
 		auto result = m_resultData[resultID];
-		result.m_mini3DVis->renderSelection(m_currentSelection[resultID], 0, getMainRendererColor(resultID), nullptr);
+		result.m_mini3DVis->renderSelection(m_currentSelection[resultID], 0, getResultColor(resultID), nullptr);
 		if (result.m_main3DVis)
-			result.m_main3DVis->renderSelection(m_currentSelection[resultID], 0, getMainRendererColor(resultID), nullptr);
+			result.m_main3DVis->renderSelection(m_currentSelection[resultID], 0, getResultColor(resultID), nullptr);
 
 	}
 }
@@ -718,13 +746,31 @@ void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
 
 void iAFiberOptimizationExplorer::mainOpacityChanged(int opacity)
 {
-	m_currentOpacityLabel->setText(QString::number(opacity));
+	m_defaultOpacityLabel->setText(QString::number(opacity));
+	DefaultOpacity = opacity;
 	for (int resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
 		if (m_resultData[resultID].m_main3DVis)
-			// TODO: keep a potential selection!
-			m_resultData[resultID].m_main3DVis->renderSelection(std::vector<size_t>(), 0, getMainRendererColor(resultID), nullptr);
+		{
+			m_resultData[resultID].m_main3DVis->setSelectionColor(getResultColor(resultID));
+			m_resultData[resultID].m_main3DVis->renderSelection(m_currentSelection[resultID], 0, getResultColor(resultID), nullptr);
+		}
 	}
+}
+
+void iAFiberOptimizationExplorer::contextOpacityChanged(int opacity)
+{
+	m_contextOpacityLabel->setText(QString::number(opacity));
+	ContextOpacity = opacity;
+	for (int resultID = 0; resultID < m_resultData.size(); ++resultID)
+	{
+		if (m_resultData[resultID].m_main3DVis)
+		{
+			m_resultData[resultID].m_main3DVis->setContextAlpha(opacity);
+			m_resultData[resultID].m_main3DVis->renderSelection(m_currentSelection[resultID], 0, getResultColor(resultID), nullptr);
+		}
+	}
+	showCurrentSelectionInPlot();
 }
 
 // currently: L2 norm (euclidean distance). other measures?

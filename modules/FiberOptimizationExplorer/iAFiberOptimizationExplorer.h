@@ -67,12 +67,12 @@ private slots:
 	void miniMouseEvent(QMouseEvent* ev);
 	void timeSliderChanged(int);
 	void mainOpacityChanged(int);
+	void contextOpacityChanged(int);
 	void selection3DChanged(std::vector<size_t> const & selection);
 	void selectionSPLOMChanged(std::vector<size_t> const & selection);
 	void selectionTimeStepChartChanged(std::vector<size_t> const & selection);
 private:
-	QColor getMainRendererColor(int resultID);
-
+	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
 	void clearSelection();
 	void sortCurrentSelection();
@@ -89,9 +89,8 @@ private:
 	iAColorTheme const * m_colorTheme;
 	MainWindow* m_mainWnd;
 	int m_timeStepCount;
-	QLabel* m_currentTimeStepLabel;
-	QLabel* m_currentOpacityLabel;
-	QSlider* m_opacitySlider;
+	QLabel* m_currentTimeStepLabel, * m_defaultOpacityLabel, * m_contextOpacityLabel;
+	QSlider* m_defaultOpacitySlider, * m_contextOpacitySlider;
 	QButtonGroup* m_defaultButtonGroup;
 	int m_referenceID;
 	iAQSplom* m_splom;
