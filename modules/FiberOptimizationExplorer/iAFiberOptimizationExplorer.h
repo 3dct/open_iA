@@ -73,6 +73,13 @@ private slots:
 private:
 	QColor getMainRendererColor(int resultID);
 
+	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
+	void clearSelection();
+	void sortCurrentSelection();
+	void showCurrentSelectionInPlot();
+	void showCurrentSelectionIn3DViews();
+	void showCurrentSelectionInSPLOM();
+
 	std::vector<iAResultData> m_resultData;
 	QSharedPointer<iARendererManager> m_renderManager;
 	QSharedPointer<iA3DCylinderObjectVis> m_lastMain3DVis;
@@ -90,4 +97,5 @@ private:
 	iAQSplom* m_splom;
 	QSharedPointer<iASPLOMData> m_splomData;
 	iAChartWidget* m_timeStepChart;
+	std::vector<std::vector<size_t> > m_currentSelection;
 };

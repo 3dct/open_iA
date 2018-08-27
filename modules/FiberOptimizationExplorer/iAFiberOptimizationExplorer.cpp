@@ -97,6 +97,7 @@ public:
 	// fiber, errors (shiftx, shifty, shiftz, phi, theta, length, diameter)
 	std::vector<std::vector<double> > m_referenceDiff;
 	std::vector<std::vector<iAFiberDistance> > m_referenceDist;
+	size_t m_fiberCount;
 };
 
 namespace
@@ -272,6 +273,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		
 		iAResultData resultData;
 		resultData.m_vtkWidget  = new iAVtkWidgetClass();
+		resultData.m_fiberCount = tableCreator.getTable()->GetNumberOfRows();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
 		m_renderManager->addToBundle(ren);
@@ -445,6 +447,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		++resultID;
 	}
 	m_splomData->updateRanges();
+	m_currentSelection.resize(resultID);
 
 	timeStepSlider->setMaximum(m_timeStepCount - 1);
 	timeStepSlider->setValue(m_timeStepCount - 1);
@@ -544,54 +547,17 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 	m_mainRenderer->update();
 }
 
-void iAFiberOptimizationExplorer::selection3DChanged(std::vector<size_t> const & selection)
-{
-	if (!m_lastMain3DVis)
-		return;
-	m_lastMain3DVis->renderSelection(selection, 0, getMainRendererColor(m_lastResultID), nullptr);
-	m_resultData[m_lastResultID].m_mini3DVis->renderSelection(selection, 0, getMainRendererColor(m_lastResultID), nullptr);
-		
-	// shift IDs so that they are in the proper range for SPLOM (which has the fibers from all datasets one after another)
-	std::vector<size_t> selectionSPLOM(selection);
-	if (m_lastResultID > 0)
-	{
-		size_t startID = 0;
-		for (int i = 0; i < m_lastResultID; ++i)
-			startID += m_resultData[i].m_resultTable->GetNumberOfRows();
-		for (int s = 0; s < selectionSPLOM.size(); ++s)
-		{
-			selectionSPLOM[s] += startID;
-		}
-	}
-	m_splom->setSelection(selectionSPLOM);
-		
-	// color the projection error plots of the selected fibers:
-	for (auto plot : m_timeStepChart->plots())
-	{
-		plot->setColor(ProjectionErrorDefaultPlotColor);
-	}
-	if (m_resultData[m_lastResultID].m_startPlotIdx != NoPlotsIdx)
-	{
-		for (size_t idx : selection)
-		{
-			auto plot = m_timeStepChart->plots()[m_resultData[m_lastResultID].m_startPlotIdx + idx];
-			plot->setColor(SelectionColor);
-		}
-	}
-	m_timeStepChart->update();
-}
-
-void getResultFiberIDFromSPLOMID(size_t splomID, size_t & resultID, size_t & fiberID, std::vector<size_t> const & fiberCounts)
+void iAFiberOptimizationExplorer::getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID)
 {
 	size_t curStart = 0;
 	resultID = 0;
 	fiberID = 0;
-	while (splomID >= curStart + fiberCounts[resultID] && resultID < fiberCounts.size())
+	while (splomID >= curStart + m_resultData[resultID].m_fiberCount && resultID < m_resultData.size())
 	{
-		curStart += fiberCounts[resultID];
+		curStart += m_resultData[resultID].m_fiberCount;
 		++resultID;
 	}
-	if (resultID == fiberCounts.size())
+	if (resultID == m_resultData.size())
 	{
 		DEBUG_LOG(QString("Invalid index in SPLOM: %1").arg(splomID));
 		return;
@@ -599,37 +565,33 @@ void getResultFiberIDFromSPLOMID(size_t splomID, size_t & resultID, size_t & fib
 	fiberID = splomID - curStart;
 }
 
-void iAFiberOptimizationExplorer::selectionSPLOMChanged(std::vector<size_t> const & selection)
+void iAFiberOptimizationExplorer::clearSelection()
 {
-	// map from SPLOM index to (resultID, fiberID) pairs
-	std::vector<size_t> fiberCounts(m_resultData.size());
-	for (int o = 0; o < m_resultData.size(); ++o)
+	for (size_t resultID=0; resultID<m_currentSelection.size(); ++resultID)
 	{
-		fiberCounts[o] = m_resultData[o].m_resultTable->GetNumberOfRows();
+		m_currentSelection[resultID].clear();
 	}
-	std::vector<std::vector<size_t> > selectionsByResult(m_resultData.size());
-	size_t resultID, fiberID;
-	for (size_t splomID: selection)
+}
+
+void iAFiberOptimizationExplorer::sortCurrentSelection()
+{
+	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
-		getResultFiberIDFromSPLOMID(splomID, resultID, fiberID, fiberCounts);
-		selectionsByResult[resultID].push_back(fiberID);
+		std::sort(m_currentSelection[resultID].begin(), m_currentSelection[resultID].end());
 	}
+}
+
+void iAFiberOptimizationExplorer::showCurrentSelectionInPlot()
+{
 	for (auto plot : m_timeStepChart->plots())
 	{
 		plot->setColor(ProjectionErrorDefaultPlotColor);
 	}
-	for (size_t resultID=0; resultID<m_resultData.size(); ++resultID)
+	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
-		// color fibers in each 3D visualization
-		std::sort(selectionsByResult[resultID].begin(), selectionsByResult[resultID].end());
-		auto result = m_resultData[resultID];
-		result.m_mini3DVis->renderSelection(selectionsByResult[resultID], 0, getMainRendererColor(resultID), nullptr);
-		if (result.m_main3DVis)
-			result.m_main3DVis->renderSelection(selectionsByResult[resultID], 0, getMainRendererColor(resultID), nullptr);
-		// color the projection error plots of the selected fibers:
 		if (m_resultData[resultID].m_startPlotIdx != NoPlotsIdx)
 		{
-			for (size_t idx : selectionsByResult[resultID])
+			for (size_t idx : m_currentSelection[resultID])
 			{
 				auto plot = m_timeStepChart->plots()[m_resultData[resultID].m_startPlotIdx + idx];
 				plot->setColor(SelectionColor);
@@ -639,14 +601,74 @@ void iAFiberOptimizationExplorer::selectionSPLOMChanged(std::vector<size_t> cons
 	m_timeStepChart->update();
 }
 
+void iAFiberOptimizationExplorer::showCurrentSelectionIn3DViews()
+{
+	for (size_t resultID = 0; resultID<m_resultData.size(); ++resultID)
+	{
+		auto result = m_resultData[resultID];
+		result.m_mini3DVis->renderSelection(m_currentSelection[resultID], 0, getMainRendererColor(resultID), nullptr);
+		if (result.m_main3DVis)
+			result.m_main3DVis->renderSelection(m_currentSelection[resultID], 0, getMainRendererColor(resultID), nullptr);
+
+	}
+}
+
+void iAFiberOptimizationExplorer::showCurrentSelectionInSPLOM()
+{
+	size_t splomSelectionSize = 0;
+	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
+	{
+		splomSelectionSize += m_currentSelection[resultID].size();
+	}
+	std::vector<size_t> splomSelection;
+	splomSelection.reserve(splomSelectionSize);
+	size_t splomIDStart = 0;
+	for (size_t resultID = 0; resultID<m_resultData.size(); ++resultID)
+	{
+		for (int fiberID = 0; fiberID < m_currentSelection[resultID].size(); ++fiberID)
+		{
+			size_t splomID = splomIDStart + m_currentSelection[resultID][fiberID];
+			splomSelection.push_back(splomID);
+		}
+		splomIDStart += m_resultData[resultID].m_fiberCount;
+	}
+	m_splom->setSelection(splomSelection);
+}
+
+void iAFiberOptimizationExplorer::selection3DChanged(std::vector<size_t> const & selection)
+{
+	if (!m_lastMain3DVis)
+		return;
+	clearSelection();
+	m_currentSelection[m_lastResultID].assign(selection.begin(), selection.end());
+	sortCurrentSelection();
+	showCurrentSelectionIn3DViews();
+	showCurrentSelectionInPlot();
+	showCurrentSelectionInSPLOM();
+}
+
+void iAFiberOptimizationExplorer::selectionSPLOMChanged(std::vector<size_t> const & selection)
+{
+	// map from SPLOM index to (resultID, fiberID) pairs
+	clearSelection();
+	size_t resultID, fiberID;
+	for (size_t splomID: selection)
+	{
+		getResultFiberIDFromSplomID(splomID, resultID, fiberID);
+		m_currentSelection[resultID].push_back(fiberID);
+	}
+	sortCurrentSelection();
+	showCurrentSelectionIn3DViews();
+	showCurrentSelectionInPlot();
+}
+
 void iAFiberOptimizationExplorer::selectionTimeStepChartChanged(std::vector<size_t> const & selection)
 {
 	size_t curSelectionIndex = 0;
-	size_t splomIDStart = 0;
-	std::vector<size_t> splomSelection;
+	clearSelection();
+	// map from plot IDs to (resultID, fiberID) pairs
 	for (size_t resultID=0; resultID<m_resultData.size() && curSelectionIndex < selection.size(); ++resultID)
 	{
-		std::vector<size_t> curResultSelection;
 		if (m_resultData[resultID].m_startPlotIdx != NoPlotsIdx)
 		{
 			while (curSelectionIndex < selection.size() &&
@@ -654,26 +676,15 @@ void iAFiberOptimizationExplorer::selectionTimeStepChartChanged(std::vector<size
 				   (m_resultData[resultID].m_startPlotIdx + m_resultData[resultID].m_resultTable->GetNumberOfRows()) )
 			{
 				size_t inResultFiberIdx = selection[curSelectionIndex] - m_resultData[resultID].m_startPlotIdx;
-				curResultSelection.push_back(inResultFiberIdx);
-				size_t splomID = splomIDStart + inResultFiberIdx;
-				splomSelection.push_back(splomID);
+				m_currentSelection[resultID].push_back(inResultFiberIdx);
 				++curSelectionIndex;
 			}
 		}
-		m_resultData[resultID].m_mini3DVis->renderSelection(curResultSelection, 0, getMainRendererColor(resultID), nullptr);
-		if (m_resultData[resultID].m_main3DVis)
-			m_resultData[resultID].m_main3DVis->renderSelection(curResultSelection, 0, getMainRendererColor(resultID), nullptr);
-		splomIDStart += m_resultData[resultID].m_resultTable->GetNumberOfRows();
 	}
-	for (auto plot : m_timeStepChart->plots())
-	{
-		plot->setColor(ProjectionErrorDefaultPlotColor);
-	}
-	for (auto idx: selection)
-	{
-		m_timeStepChart->plots()[idx]->setColor(SelectionColor);
-	}
-	m_splom->setSelection(splomSelection);
+	sortCurrentSelection();
+	showCurrentSelectionInPlot();
+	showCurrentSelectionIn3DViews();
+	showCurrentSelectionInSPLOM();
 }
 
 void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
