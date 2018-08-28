@@ -382,7 +382,7 @@ void iAPAQSplom::sendToFeatureScout()
 	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(StartFeatureScout()));
 	if (!m_mdiChild->loadFile(mhdName, false))
 	{
-		DEBUG_LOG("File could not be loaded!");
+		DEBUG_LOG(QString("File '%1' could not be loaded!").arg(mhdName));
 		m_mdiChild->close();
 		return;
 	}
@@ -390,14 +390,10 @@ void iAPAQSplom::sendToFeatureScout()
 
 void iAPAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
 {
-	QString sliceFileName = "";
-	QString dataPath = "";
-	int dsInd = 0;
-	// TODO: why is fixed point set here?
-	m_fixedPointInd = m_activePlot->getCurrentPoint();
-	dsInd = getDatasetIndexFromPointIndex(m_fixedPointInd);
-	sliceFileName = getSliceFilename(m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd]);
-	dataPath = sliceFileName.section('/', 0, -3);
+	size_t curPoint = m_activePlot->getCurrentPoint();
+	int dsInd = getDatasetIndexFromPointIndex(curPoint);
+	QString sliceFileName = getSliceFilename(m_maskNames[curPoint], m_sliceNumPopupLst[dsInd]);
+	QString dataPath = sliceFileName.section('/', 0, -3);
 	fileName = sliceFileName.section('/', -2, -2).section('_', 0, 0);
 	mhdName = dataPath + "/" + fileName + "_labeled" + ".mhd";
 	m_csvName = dataPath + "/" + fileName + ".mhd.csv";
