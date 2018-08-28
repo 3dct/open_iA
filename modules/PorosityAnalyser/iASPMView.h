@@ -97,6 +97,9 @@ protected:
 protected slots:
 	/** Show/hide a parameter in SPLOM when list widget item is clicked */
 	void changeColumnVisibility( QListWidgetItem * item );
+
+	/** Update list widget item checked state when column is shown/hidden from SPLOM context menu */
+	void changeColumnVisibility( size_t paramIndex, bool visible );
 	
 	/** Apply lookup table to all the plots in the SPM */
 	void ApplyLookupTable();

@@ -109,6 +109,7 @@ iASPMView::iASPMView(MainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFlag
 	connect( m_splom, SIGNAL( previewSliceChanged( int ) ), this, SIGNAL( previewSliceChanged( int ) ) );
 	connect( m_splom, SIGNAL( sliceCountChanged( int ) ), this, SIGNAL( sliceCountChanged( int ) ) );
 	connect( m_splom, SIGNAL( maskHovered( const QPixmap *, int ) ), this, SIGNAL( maskHovered( const QPixmap *, int ) ) );
+	connect (m_splom, SIGNAL( parameterVisibilityChanged(size_t, bool) ), this, SLOT(changeColumnVisibility(size_t, bool)) );
 }
 
 void iASPMView::InitScalarBar()
@@ -151,7 +152,7 @@ void iASPMView::SetData( const QTableWidget * data )
 {
 	//Init SPLOM
 	m_splom->setData( data );
-
+	
 	m_splom->setSelectionColor(QColor(Qt::black));
 	m_splom->setPointRadius(2.5);
 	
@@ -181,6 +182,14 @@ void iASPMView::changeColumnVisibility( QListWidgetItem * item )
 	if( !m_updateColumnVisibility )
 		return;
 	m_splom->setParameterVisibility( item->text(), item->checkState() );
+}
+
+void iASPMView::changeColumnVisibility(size_t paramIndex, bool visible)
+{
+	if (!m_updateColumnVisibility)
+		return;
+	QSignalBlocker listBlocker(m_SPMSettings->parametersList);
+	m_SPMSettings->parametersList->item(paramIndex)->setCheckState( visible ? Qt::Checked : Qt::Unchecked );
 }
 
 inline void SetLookupTable( vtkPlotPoints * pp, vtkScalarsToColors * lut, const vtkStdString colorArrayName )
