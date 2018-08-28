@@ -169,11 +169,13 @@ void iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	}
 	attach->init(csvConfig.objectType, csvConfig.fileName, creator.getTable(), csvConfig.visType, io.getOutputMapping());
 	SetupToolbar();
-	m_mdiChild->addStatusMsg("FeatureScout started");
-	m_mdiChild->addMsg("FeatureScout started");
-	setFeatureScoutRenderSettings();
-	m_mdiChild->addMsg("The render settings of the current mdiChild window have been adapted to the FeatureScout!");
-	return;
+	m_mdiChild->addStatusMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
+	m_mdiChild->addMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
+	if (csvConfig.visType == iACsvConfig::UseVolume)
+	{
+		setFeatureScoutRenderSettings();
+		m_mdiChild->addMsg("The render settings of the current child window have been adapted for the volume visualization of FeatureScout!");
+	}
 }
 
 void iAFeatureScoutModuleInterface::FeatureScout_Options()

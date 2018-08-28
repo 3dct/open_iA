@@ -23,16 +23,27 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
 
+#include "iALookupTable.h"
+
+namespace
+{
+	vtkSmartPointer<vtkColorTransferFunction> PerceptuallyUniformCTF()
+	{
+		vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
+		ctf->SetColorSpaceToLab();
+		ctf->AddRGBPoint(0.0, 0.230, 0.299, 0.754);
+		ctf->AddRGBPoint(0.5, 0.865, 0.865, 0.865);
+		ctf->AddRGBPoint(1.0, 0.706, 0.016, 0.150);
+		return ctf;
+	}
+}
+
 void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, int numCols /*= 256 */ )
 {
-	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
-	ctf->SetColorSpaceToLab();
-	ctf->AddRGBPoint( 0.0, 0.230, 0.299, 0.754 );
-	ctf->AddRGBPoint( 0.5, 0.865, 0.865, 0.865 );
-	ctf->AddRGBPoint( 1.0, 0.706, 0.016, 0.150 );
 	pLUT->SetRange( lutRange );
 	pLUT->SetTableRange( lutRange );
 	pLUT->SetNumberOfColors( numCols );
+	auto ctf = PerceptuallyUniformCTF();
 	for( int i = 0; i < numCols; ++i )
 	{
 		double rgb[3];
@@ -46,5 +57,22 @@ void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkL
 {
 	double lutRange[2] = { rangeFrom, rangeTo };
 	BuildPerceptuallyUniformLUT( pLUT, lutRange, numCols );
+}
+
+iALookupTable iAPerceptuallyUniformLUT::Build(double * lutRange, int numCols, double alpha)
+{
+	iALookupTable result;
+	result.setRange(lutRange);
+	result.allocate(numCols);
+	auto ctf = PerceptuallyUniformCTF();
+	double rgba[4];
+	rgba[3] = alpha;
+	for (int i = 0; i < numCols; ++i)
+	{
+		ctf->GetColor((double)i / numCols, rgba );
+		result.setColor(i, rgba );
+	}
+	return result;
+
 }
 

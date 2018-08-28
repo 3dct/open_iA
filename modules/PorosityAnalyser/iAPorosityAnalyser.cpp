@@ -82,7 +82,7 @@ iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir,
 	m_prvSplomView->sliderPreviewSize->setValue( defaultPopupSizePercentage );
 	m_spmView->setSPLOMPreviewSize( defaultPopupSizePercentage );
 
-	connect( m_treeView, SIGNAL( loadSelectionToSPMSignal( const QTableWidget* ) ), m_spmView, SLOT( SetData( const QTableWidget* ) ) );
+	connect( m_treeView, SIGNAL( loadSelectionToSPMSignal( const QTableWidget* ) ), m_spmView, SLOT( setData( const QTableWidget* ) ) );
 	connect( m_treeView, SIGNAL( loadSelectionToSSSignal( const QTableWidget*, QString ) ), m_ssView, SLOT( SetData( const QTableWidget*, QString ) ) );
 	connect( m_treeView, SIGNAL( loadSelectionsToSSSignal( const QList< QPair<QTableWidget *, QString> > * ) ), m_ssView, SLOT( SetCompareData( const QList< QPair<QTableWidget *, QString> > * ) ) );
 	connect( m_treeView, SIGNAL( loadSelectionToPDMSignal( const iABPMData*, const iAHMData* ) ), m_pdmView, SLOT( SetData( const iABPMData*, const iAHMData* ) ) );

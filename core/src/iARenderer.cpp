@@ -164,7 +164,9 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	double spacing[3];	ds->GetSpacing(spacing);
 	ren->SetLayer(0);
 	ren->UseDepthPeelingOn();
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	ren->UseDepthPeelingForVolumesOn();
+#endif
 	labelRen->SetLayer(1);
 	labelRen->InteractiveOff();
 	labelRen->UseDepthPeelingOn();

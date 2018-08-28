@@ -59,7 +59,7 @@ QColor iA3DObjectVis::getOrientationColor( vtkImageData* oi, size_t objID ) cons
 QColor iA3DObjectVis::getLengthColor( vtkColorTransferFunction* cTFun, size_t objID ) const
 {
 	double length = m_objectTable->GetValue( objID, m_columnMapping->value(iACsvConfig::Length) ).ToDouble();
-	double dcolor[2];
+	double dcolor[3];
 	cTFun->GetColor( length, dcolor );
 	return QColor(dcolor[0]*255, dcolor[1]*255, dcolor[2]*255);
 }
