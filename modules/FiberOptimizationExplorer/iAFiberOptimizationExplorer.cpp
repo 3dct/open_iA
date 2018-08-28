@@ -83,11 +83,9 @@ bool operator<(iAFiberDistance const & a, iAFiberDistance const & b)
 class iAResultData
 {
 public:
+	// data:
 	vtkSmartPointer<vtkTable> m_resultTable;
 	QSharedPointer<QMap<uint, uint> > m_outputMapping;
-	iAVtkWidgetClass* m_vtkWidget;
-	QSharedPointer<iA3DCylinderObjectVis> m_mini3DVis;
-	QSharedPointer<iA3DCylinderObjectVis> m_main3DVis;
 	QString m_fileName;
 	// timestep, fiber, 6 values (center, phi, theta, length)
 	std::vector<std::vector<std::vector<double> > > m_timeValues;
@@ -98,6 +96,11 @@ public:
 	std::vector<std::vector<double> > m_referenceDiff;
 	std::vector<std::vector<iAFiberDistance> > m_referenceDist;
 	size_t m_fiberCount;
+
+	// UI elements:
+	iAVtkWidgetClass* m_vtkWidget;
+	QSharedPointer<iA3DCylinderObjectVis> m_mini3DVis;
+	QSharedPointer<iA3DCylinderObjectVis> m_main3DVis;
 };
 
 namespace
@@ -153,21 +156,19 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	QStringList csvFileNames;
 	FindFiles(path, filters, false, csvFileNames, Files);
 
-	m_renderManager = QSharedPointer<iARendererManager>(new iARendererManager());
 
 	m_mainRenderer = new iAVtkWidgetClass();
-	//QSurfaceFormat format = m_mainRenderer->format();
-	//format.setSamples(4);
-	//m_mainRenderer->setFormat(format);
-	// QVTKOpenGLWidget does not seem to work with multi-sampling enabled (window remains empty when I add polydata actor)
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	auto ren = vtkSmartPointer<vtkRenderer>::New();
 	ren->SetBackground(1.0, 1.0, 1.0);
 	renWin->SetAlphaBitPlanes(1);
 	ren->SetUseDepthPeeling(true);
 	renWin->AddRenderer(ren);
-	m_renderManager->addToBundle(ren);
 	m_mainRenderer->SetRenderWindow(renWin);
+
+	m_renderManager = QSharedPointer<iARendererManager>(new iARendererManager());
+	m_renderManager->addToBundle(ren);
+
 	m_defaultOpacitySlider = new QSlider(Qt::Horizontal);
 	m_defaultOpacitySlider->setMinimum(0);
 	m_defaultOpacitySlider->setMaximum(255);
@@ -194,7 +195,6 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	contextOpacityWidget->layout()->addWidget(m_contextOpacityLabel);
 	contextOpacityWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	
-
 	QWidget* mainRendererContainer = new QWidget();
 	mainRendererContainer->setLayout(new QVBoxLayout());
 	mainRendererContainer->layout()->addWidget(m_mainRenderer);
@@ -480,10 +480,10 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(optimizationSteps, "Time Steps", "foeTimeSteps");
 	iADockWidgetWrapper* splomWidget = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
 
-	addDockWidget(Qt::RightDockWidgetArea, resultListDockWidget);
-	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
-	splitDockWidget(main3DView, splomWidget, Qt::Horizontal);
+	addDockWidget(Qt::BottomDockWidgetArea, resultListDockWidget);
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
+	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
+	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
 }
 
 iAFiberOptimizationExplorer::~iAFiberOptimizationExplorer()
