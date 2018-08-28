@@ -322,10 +322,10 @@ void iAQSplom::updateFilter()
 	foreach(const QList<iAScatterPlot*> & row, m_visiblePlots)
 		foreach(iAScatterPlot * s, row)
 			if (s)
-				s->runFilter();
+				s->updatePoints();
 			
 	if (m_maximizedPlot)
-		m_maximizedPlot->runFilter();
+		m_maximizedPlot->updatePoints();
 
 	updateHistograms();
 }

@@ -90,7 +90,8 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false ),
 	m_colInd( 0 ),
-	m_pcc( 0 )
+	m_pcc( 0 ),
+	m_pointsInitialized(false)
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
@@ -112,7 +113,7 @@ void iAScatterPlot::setData( int x, int y, QSharedPointer<iASPLOMData> &splomDat
 		return;
 	applyMarginToRanges();
 	updateGrid();
-	createAndFillVBO();
+	updatePoints();
 }
 
 bool iAScatterPlot::hasData() const
@@ -124,6 +125,7 @@ bool iAScatterPlot::hasData() const
 
 void iAScatterPlot::updatePoints()
 {
+	m_pointsInitialized = false;
 	createAndFillVBO();
 }
 
@@ -131,6 +133,7 @@ void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, int colI
 {
 	m_colInd = colInd;
 	m_lut = lut;
+	m_pointsInitialized = false;
 	createAndFillVBO();
 }
 
@@ -246,6 +249,8 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 {
 	if ( !hasData() )
 		return;
+	if (!m_pointsInitialized)
+		createAndFillVBO();
 	painter.save();
 	painter.translate( m_globRect.x(), m_globRect.y());
 	painter.setBrush( settings.backgroundColor );
@@ -895,6 +900,8 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 
 void iAScatterPlot::createAndFillVBO()
 {
+	if (!m_parentWidget->isVisible())
+		return;
 	m_parentWidget->makeCurrent();
 	if ( m_pointsBuffer )
 	{
@@ -916,6 +923,7 @@ void iAScatterPlot::createAndFillVBO()
 			fillVBO();
 		m_pointsBuffer->release();
 	}
+	m_pointsInitialized = true;
 }
 
 void iAScatterPlot::fillVBO()
@@ -967,9 +975,4 @@ double iAScatterPlot::getPointRadius() const
 void iAScatterPlot::setPointRadius(double radius)
 {
 	settings.pointRadius = radius;
-}
-
-void iAScatterPlot::runFilter()
-{
-	createAndFillVBO();
 }

@@ -96,7 +96,6 @@ public:
 	void leave();                                                    //!< Mouse is hovering over the plot's rectangle
 	void enter();                                                    //!< Mouse entered the plot's rectangle
 	void updatePoints();
-	void runFilter();
 	void applyMarginToRanges();                                      //!< Apply margins to ranges so that points are not stretched border-to-border
 
 	//! @{ Qt events are redirected from SPLOM to the active plot using these public event handlers
@@ -225,4 +224,5 @@ protected:
 	bool m_isMaximizedPlot;                                          //!< flag telling if this plot itself is maximized (bigger plot)
 	bool m_isPreviewPlot;                                            //!< flag telling if a large version of this plot is shown maximized currently
 	double m_pcc;                                                    //!< correlation coefficient between the two given data columns
+	bool m_pointsInitialized;                                        //!< indicates whether the point buffer is currently initialized
 };
