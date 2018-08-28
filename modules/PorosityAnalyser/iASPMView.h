@@ -30,7 +30,6 @@
 
 class QAction;
 class QCheckBox;
-class QListWidgetItem;
 class QTableWidget;
 class QVBoxLayout;
 
@@ -69,8 +68,7 @@ public:
 	void setDatasetsDir( QString datasetsDir );
 
 public slots:
-	void SetData( const QTableWidget * data );
-	void showSettings();
+	void setData( const QTableWidget * data );
 	void setRSDSelection( vtkIdTypeArray * );
 	void setSPLOMPreviewSliceNumbers( QList<int> sliceNumberLst );
 	void setSPLOMPreviewSize( int percent );
@@ -80,35 +78,21 @@ public slots:
 	void reemitFixedPixmap();
 
 protected:
-	void UpdateLUTOpacity();
+	void updateLUT();
 
 	/** Set selection to SPLOM from VTK array of id-s */
 	void setSPLOMSelection( vtkIdTypeArray * ids );
 
-	/** Initialize Lookup Table */
-	void InitLUT();
-
 	/** Initialize scalar bar widget which shows color coding */
-	void InitScalarBar();
+	void initScalarBar();
 
 	/** Active plot indices */
 	vtkVector2i getActivePlotIndices();
 
 protected slots:
-	/** Show/hide a parameter in SPLOM when list widget item is clicked */
-	void changeColumnVisibility( QListWidgetItem * item );
-
-	/** Update list widget item checked state when column is shown/hidden from SPLOM context menu */
-	void changeColumnVisibility( size_t paramIndex, bool visible );
 	
 	/** Apply lookup table to all the plots in the SPM */
-	void ApplyLookupTable();
-
-	/** Apply color coding based on the parameter name */
-	void SetParameterToColorcode( const QString & paramName);
-
-	/** Update lookup table sensitivity */
-	void UpdateLookupTable();
+	void applyLookupTable();
 
 	/** When selection of the SPLOM is modified */
 	void selectionUpdated( std::vector<size_t> const & selInds );
@@ -120,7 +104,6 @@ signals:
 	void maskHovered( const QPixmap * mask, int datasetIndex = -1 );
 
 protected:
-	iASPMSettings * m_SPMSettings;
 	iAPAQSplom * m_splom;
 	vtkSmartPointer<vtkIdTypeArray> m_SPLOMSelection;
 	vtkSmartPointer<vtkLookupTable> m_lut;
@@ -131,6 +114,4 @@ protected:
 #endif
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;
-	QString m_colorArrayName;
-	bool m_updateColumnVisibility;
 };

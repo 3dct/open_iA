@@ -24,10 +24,13 @@
 
 #include <vtkSmartPointer.h>
 
+class iALookupTable;
+
 class vtkLookupTable;
 
 namespace iAPerceptuallyUniformLUT
 {
 	void open_iA_Core_API BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, int numCols = 256 );
 	void open_iA_Core_API BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, int numCols = 256 );
+	iALookupTable open_iA_Core_API Build(double * lutRange, int numCols, double alpha);
 }

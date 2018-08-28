@@ -57,7 +57,7 @@ void iALookupTable::copyFromVTK(vtkLookupTable * vtk_lut)
 	}
 }
 
-void iALookupTable::getColor(double val, double * rgba_out)
+void iALookupTable::getColor(double val, double * rgba_out) const
 {
 	assert(m_isInitialized);
 	if (m_data.size() < NumberOfColorComponents)
@@ -70,6 +70,11 @@ void iALookupTable::getColor(double val, double * rgba_out)
 	double t = (val - m_range[0]) / m_rangeLen;
 	// clamp needs signed type so that value falls out on right side of table!
 	size_t index = static_cast<size_t>(clamp(static_cast<long long>(0), static_cast<long long>(m_numColors)-1, static_cast<long long>(t * m_numColors)));
+	getTableValue(index, rgba_out);
+}
+
+void iALookupTable::getTableValue(size_t index, double * rgba_out) const
+{
 	index *= NumberOfColorComponents;
 	for (int i = 0; i < NumberOfColorComponents; ++i)
 		rgba_out[i] = m_data[index++];
@@ -82,6 +87,11 @@ void iALookupTable::allocate(size_t numberOfColors)
 	size_t size = numberOfColors * NumberOfColorComponents;
 	m_data.resize(size, 0.0);
 	m_isInitialized = true;
+}
+
+size_t iALookupTable::numberOfValues() const
+{
+	return m_numColors;
 }
 
 void iALookupTable::setColor(size_t colInd, double * rgba)

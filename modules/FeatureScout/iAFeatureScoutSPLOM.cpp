@@ -74,6 +74,7 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	matrix->enableSelection(selectionEnabled);
 	matrix->setParameterVisibility(columnVisibility);
 	matrix->showDefaultMaxizimedPlot();
+	matrix->settings.enableColorSettings = true;
 	connect(matrix, &iAQSplom::selectionModified, this, &iAFeatureScoutSPLOM::selectionModified);
 	connect(matrix, &iAQSplom::parameterVisibilityChanged, this, &iAFeatureScoutSPLOM::parameterVisibilityChanged);
 
@@ -124,12 +125,7 @@ void iAFeatureScoutSPLOM::setDotColor(QColor const & color)
 {
 	if (!matrix)
 		return;
-	iALookupTable lut;
-	lut.setRange(matrix->data()->paramRange(0));
-	lut.allocate(2);
-	for (size_t i = 0; i < 2; i++)
-		lut.setColor(i, color);
-	matrix->setLookupTable(lut, 0);
+	matrix->setPointColor(color);
 }
 
 void iAFeatureScoutSPLOM::setFilteredSelection(std::vector<size_t> const & selection)
