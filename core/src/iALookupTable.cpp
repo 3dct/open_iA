@@ -73,6 +73,13 @@ void iALookupTable::getColor(double val, double * rgba_out) const
 	getTableValue(index, rgba_out);
 }
 
+QColor iALookupTable::getQColor(double val) const
+{
+	double rgba[4];
+	getColor(val, rgba);
+	return QColor(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
+}
+
 void iALookupTable::getTableValue(size_t index, double * rgba_out) const
 {
 	index *= NumberOfColorComponents;
