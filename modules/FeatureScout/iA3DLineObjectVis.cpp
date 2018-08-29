@@ -22,8 +22,9 @@
 
 #include "iACsvConfig.h"
 
-#include "mdichild.h"
+#include "iALookupTable.h"
 #include "iARenderer.h"
+#include "mdichild.h"
 
 #include <vtkActor.h>
 #include <vtkCellArray.h>
@@ -196,6 +197,19 @@ void iA3DLineObjectVis::renderLengthDistribution( vtkColorTransferFunction* ctFu
 	for ( int objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
 	{
 		QColor color = getLengthColor( ctFun, objID );
+		setPolyPointColor(objID, color);
+	}
+	updatePolyMapper();
+}
+
+void iA3DLineObjectVis::setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex)
+{
+	m_lut = lut;
+	m_colorParamIdx = paramIndex;
+	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	{
+		double curValue = m_objectTable->GetValue(objID, m_colorParamIdx).ToDouble();
+		QColor color = m_lut->getQColor(curValue);
 		setPolyPointColor(objID, color);
 	}
 	updatePolyMapper();

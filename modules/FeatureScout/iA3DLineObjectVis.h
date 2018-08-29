@@ -27,6 +27,8 @@
 
 #include <QColor>
 
+class iALookupTable;
+
 class vtkActor;
 class vtkPoints;
 class vtkPolyData;
@@ -48,6 +50,7 @@ public:
 	vtkPolyData* getLinePolyData();
 	void setContextAlpha(int contextAlpha);
 	void setSelectionColor(QColor const & selectionColor);
+	void setLookupTable( QSharedPointer<iALookupTable> lut, size_t paramIndex );
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
@@ -60,5 +63,7 @@ private:
 
 	int m_contextAlpha;
 	QColor m_selectionColor;
+	QSharedPointer<iALookupTable> m_lut;
+	size_t m_colorParamIdx;
 };
 
