@@ -49,6 +49,7 @@
 #else
 #include <QVTKWidget2.h>
 #endif
+#include <vtkFloatArray.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkPolyData.h>
 #include <vtkRenderer.h>
@@ -135,7 +136,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_lastResultID(-1)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
+	//setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
 #endif
 	setMinimumSize(600, 400);
 	setCentralWidget(nullptr);
@@ -233,7 +234,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		DEBUG_LOG(QString("You tried to open %1 datasets. This tool can only handle a small amount of datasets. Loading only the first %2.").arg(csvFileNames.size()).arg(MaxDatasetCount));
 		csvFileNames.erase( csvFileNames.begin() + MaxDatasetCount, csvFileNames.end() );
 	}
-
+	size_t additionalColumns = 0;
 	for (QString csvFile : csvFileNames)
 	{
 		iACsvConfig config = getCsvConfig(csvFile);
@@ -246,6 +247,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			continue;
 		}
 
+		vtkIdType numColumns = tableCreator.getTable()->GetNumberOfColumns();
 		if (resultID == 0)
 		{
 			std::vector<QString> paramNames;
@@ -267,9 +269,9 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			paramNames.push_back("ProjectionErrorReduction");
 			paramNames.push_back("Result_ID");
 			m_splomData->setParameterNames(paramNames);
+			additionalColumns = paramNames.size() - numColumns;
 		}
 		// TODO: Check if output mapping is the same (it must be)!
-		vtkIdType numColumns = tableCreator.getTable()->GetNumberOfColumns();
 		vtkIdType numFibers = tableCreator.getTable()->GetNumberOfRows();
 		if (numFibers < NumberOfCloseFibers)
 			NumberOfCloseFibers = numFibers;
@@ -287,10 +289,18 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			}
 			m_splomData->data()[m_splomData->numParams()-1].push_back(resultID);
 		}
+		// TODO: reuse splomData also for visualization?
+		for (int col = 0; col < additionalColumns; ++col)
+		{
+			vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+			arrX->SetName(m_splomData->parameterName(numColumns+col).toStdString().c_str());
+			arrX->SetNumberOfValues(numFibers);
+			tableCreator.getTable()->AddColumn(arrX);
+		}
 		
 		iAResultData resultData;
 		resultData.m_vtkWidget  = new iAVtkWidgetClass();
-		resultData.m_fiberCount = tableCreator.getTable()->GetNumberOfRows();
+		resultData.m_fiberCount = numFibers;
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
 		m_renderManager->addToBundle(ren);
@@ -369,6 +379,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 					resultData.m_projectionError[fiberNr] = values;
 					double projErrorRed = values->at(0) - values->at(values->size() - 1);
 					m_splomData->data()[m_splomData->numParams()-2][fiberNr] = projErrorRed;
+					resultData.m_resultTable->SetValue(fiberNr, m_splomData->numParams() - 2, projErrorRed);
 					QSharedPointer<iAVectorPlotData> plotData(new iAVectorPlotData(values));
 					m_timeStepChart->addPlot(QSharedPointer<iALineFunctionDrawer>(new iALineFunctionDrawer(plotData, getResultColor(resultID))));
 					fiberNr++;
@@ -524,7 +535,9 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	paramVisib[7] = paramVisib[9] = paramVisib[14] = paramVisib[15] = paramVisib[16] = paramVisib[17] = paramVisib[18] = paramVisib[m_splomData->numParams()-2] = true;
 	m_splom->setParameterVisibility(paramVisib);
 	m_splom->showDefaultMaxizimedPlot();
+	m_splom->settings.enableColorSettings = true;
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiberOptimizationExplorer::selectionSPLOMChanged);
+	connect(m_splom, &iAQSplom::lookupTableChanged, this, &iAFiberOptimizationExplorer::splomLookupTableChanged);
 }
 
 QColor iAFiberOptimizationExplorer::getResultColor(int resultID)
@@ -737,9 +750,7 @@ void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
 		{
 			m_resultData[resultID].m_mini3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
 			if (m_resultData[resultID].m_main3DVis)
-			{
 				m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
-			}
 		}
 	}
 }
@@ -892,7 +903,9 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			{
 				refDiff[diffID] = m_resultData[resultID].m_resultTable->GetValue(fiberID, diffCols[diffID]).ToDouble()
 					- m_resultData[m_referenceID].m_resultTable->GetValue(m_resultData[resultID].m_referenceDist[fiberID][0].index, diffCols[diffID]).ToDouble();
-				m_splomData->data()[m_splomData->numParams()-15 + diffID][splomID] = refDiff[diffID];
+				size_t tableColumnID = m_splomData->numParams() - 15 + diffID;
+				m_splomData->data()[tableColumnID][splomID] = refDiff[diffID];
+				m_resultData[resultID].m_resultTable->SetValue(fiberID, tableColumnID, refDiff[diffID]);
 			}
 			DEBUG_LOG(QString("  Fiber %1 -> ref #%2. Shift: startx=(%3, %4, %5), endx=(%6, %7, %8), center=(%9, %10, %11), phi=%12, theta=%13, length=%14, diameter=%15")
 				.arg(fiberID).arg(m_resultData[resultID].m_referenceDist[fiberID][0].index)
@@ -910,4 +923,16 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 		changedSplomColumns.push_back(m_splomData->numParams() - 15 + paramID);
 	m_splomData->updateRanges(changedSplomColumns);
 	// TODO: how to visualize?
+}
+
+void iAFiberOptimizationExplorer::splomLookupTableChanged()
+{
+	QSharedPointer<iALookupTable> lut = m_splom->lookupTable();
+	size_t colorLookupParam = m_splom->colorLookupParam();
+	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
+	{
+		m_resultData[resultID].m_mini3DVis->setLookupTable(lut, colorLookupParam);
+		if (m_resultData[resultID].m_main3DVis)
+			m_resultData[resultID].m_main3DVis->setLookupTable(lut, colorLookupParam);
+	}
 }

@@ -71,6 +71,7 @@ private slots:
 	void selection3DChanged(std::vector<size_t> const & selection);
 	void selectionSPLOMChanged(std::vector<size_t> const & selection);
 	void selectionTimeStepChartChanged(std::vector<size_t> const & selection);
+	void splomLookupTableChanged();
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
