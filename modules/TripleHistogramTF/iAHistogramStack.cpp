@@ -163,6 +163,7 @@ void iAHistogramStack::setSlicerMode(iASlicerMode slicerMode, int dimensionLengt
 
 void iAHistogramStack::setSliceNumber(int sliceNumber)
 {
+	m_sliceNumber = sliceNumber;
 	if (isReady()) {
 		m_slicerWidgets[0]->setSliceNumber(sliceNumber);
 		m_slicerWidgets[1]->setSliceNumber(sliceNumber);
@@ -374,8 +375,9 @@ void iAHistogramStack::updateTransferFunctions(int index)
 	vtkPiecewiseFunction *copy = m_opFuncsCopy[index];
 	copy->RemoveAllPoints();
 
-	double val[4]; // value effective, value copy
-				   //for (e = 0, c = 0; e < effective->GetSize() && c < copy->GetSize(); ++e, ++c)
+	double val[4];
+
+	//for (e = 0, c = 0; e < effective->GetSize() && c < copy->GetSize(); ++e, ++c)
 	for (int j = 0; j < effective->GetSize(); ++j)
 	{
 		effective->GetNodeValue(j, val);

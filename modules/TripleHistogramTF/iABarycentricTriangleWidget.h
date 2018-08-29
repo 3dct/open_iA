@@ -30,22 +30,12 @@
 #include "RightBorderLayout.h"
 #include "BarycentricTriangle.h"
 #include "BCoord.h"
+class iATriangleRenderer;
 
-#define _USE_MATH_DEFINES // necessary to use M_PI (with math.height)
-#include <math.h>
+#include "vtkSmartPointer.h"
+#include "vtkImageData.h"
 
-// Constants
-// TODO: is this really the way to declare constants?
-static const qreal RAD60 = M_PI / 3.0;
-static const qreal SIN60 = sin(RAD60);
-static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
-static const qreal COS60 = 0.5;
-static const qreal ONE_DIV_THREE = 1.0 / 3.0;
-
-static const int CONTROL_POINT_RADIUS = 10;
-static const int MODALITY_LABEL_MARGIN = 10;
-static const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
-
+// Constants (more in the cpp file!)
 static const QString MODALITY_LABEL_1_DEFAULT = "A";
 static const QString MODALITY_LABEL_2_DEFAULT = "B";
 static const QString MODALITY_LABEL_3_DEFAULT = "C";
@@ -76,10 +66,10 @@ public:
 
 	BCoord getControlPointCoordinates();
 
+	void setTriangleRenderer(iATriangleRenderer *triangleRenderer);
+	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
+
 public slots:
-	//void mousePress(QMouseEvent*);
-	//void mouseMove(QMouseEvent*);
-	//void mouseWheel(QWheelEvent*);
 
 signals:
 	void weightChanged(BCoord bCoord);
@@ -106,14 +96,15 @@ private:
 	QPoint m_modalityLabel2Pos;
 	QPoint m_modalityLabel3Pos;
 
-	QPainterPath m_trianglePainterPath;
-	QPen m_triangleBorderPen;// = QPen(); // TODO: could be constant...?
-	QBrush m_triangleFillBrush;
+	//QPainterPath m_trianglePainterPath;
+	//QBrush m_triangleFillBrush;
 
 	QPainterPath m_controlPointBorderPainterPath;
 	QPen m_controlPointBorderPen;
 	QPainterPath m_controlPointCrossPainterPath;
 	QPen m_controlPointCrossPen;
+
+	iATriangleRenderer *m_triangleRenderer;
 
 	void initializeControlPointPaths();
 	void updateControlPointPosition(QPoint newPos);
@@ -122,10 +113,10 @@ private:
 
 	void recalculatePositions(int w, int h);
 
-	void paintTriangleBorder(QPainter &p);
 	void paintTriangleFill(QPainter &p);
 	void paintControlPoint(QPainter &p);
 	void paintModalityLabels(QPainter &p);
+	void paintHelper(QPainter &p);
 
 	bool isTooWide(int width, int height);
 	bool isTooTall(int width, int height);

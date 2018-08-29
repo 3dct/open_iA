@@ -27,6 +27,7 @@
 #include "iAModalityList.h"
 #include "iARenderer.h"
 #include "iASlicerData.h"
+#include "iABarycentricHelperRenderer.h"
 
 #include <vtkImageData.h>
 
@@ -67,10 +68,12 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	// Test ^^^
 	//-----------------------------------------------
 
+	m_triangleRenderer = new iABarycentricHelperRenderer();
 	m_triangleWidget = new iABarycentricTriangleWidget(dockWidgetContents);
 	m_triangleWidget->setModality1label(DEFAULT_LABELS[0]);
 	m_triangleWidget->setModality2label(DEFAULT_LABELS[1]);
 	m_triangleWidget->setModality3label(DEFAULT_LABELS[2]);
+	m_triangleWidget->setTriangleRenderer(m_triangleRenderer);
 
 	m_slicerModeComboBox = new QComboBox(optionsContainer);
 	m_slicerModeComboBox->addItem("YZ", QVariant(iASlicerMode::YZ));
@@ -130,7 +133,9 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 }
 
 dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
-{}
+{
+	delete m_triangleRenderer;
+}
 
 void dlg_TripleHistogramTF::updateSlicerMode()
 {
@@ -203,18 +208,16 @@ void dlg_TripleHistogramTF::modalitySelected(int modalityIdx)
 void dlg_TripleHistogramTF::modalitiesChanged()
 {
 	m_histogramStack->updateModalities();
+	if (m_histogramStack->modalitiesCount() >= 3) {
+		modalitiesChanged(m_histogramStack->getModality(0), m_histogramStack->getModality(1), m_histogramStack->getModality(2));
+	}
 }
 
 void dlg_TripleHistogramTF::modalitiesChanged(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3)
 {
 	QString name;
 
-	name = DEFAULT_LABELS[0] + " (" + modality1->GetName() + ")";
-	m_triangleWidget->setModality1label(name);
+	m_triangleWidget->setModalities(modality1->GetImage(), modality2->GetImage(), modality3->GetImage());
 
-	name = DEFAULT_LABELS[1] + " (" + modality2->GetName() + ")";
-	m_triangleWidget->setModality2label(name);
-
-	name = DEFAULT_LABELS[2] + " (" + modality3->GetName() + ")";
-	m_triangleWidget->setModality3label(name);
+	m_triangleWidget->update();
 }

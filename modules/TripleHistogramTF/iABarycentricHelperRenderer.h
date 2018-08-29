@@ -21,56 +21,25 @@
 
 #pragma once
 
-#include <QPoint>
+#include "iATriangleRenderer.h"
 
-class BCoord;
+#include "vtkSmartPointer.h"
+#include "vtkImageData.h"
 
-class BarycentricTriangle
+class iABarycentricHelperRenderer : public iATriangleRenderer
 {
-	public: // TODO: int/double or references?
-		BarycentricTriangle(int xa, int ya, int xb, int yb, int xc, int yc);
-		BarycentricTriangle();
+public:
+	iABarycentricHelperRenderer();
+	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle) override;
+	void setTriangle(BarycentricTriangle triangle) override;
+	~iABarycentricHelperRenderer() override;
+	void paintHelper(QPainter &p) override;
 
-		BarycentricTriangle operator- (QPoint p) {
-			return BarycentricTriangle(m_xa - p.x(), m_ya - p.y(), m_xb - p.x(), m_yb - p.y(), m_xc - p.x(), m_yc - p.y());
-		}
+private:
+	void calculateCoordinates(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
+	void drawImage(BarycentricTriangle triangle);
 
-		int getXa();
-		int getYa();
-		int getXb();
-		int getYb();
-		int getXc();
-		int getYc();
-
-		void setXa(int xa);
-		void setYa(int ya);
-		void setXb(int xb);
-		void setYb(int yb);
-		void setXc(int xc);
-		void setYc(int yc);
-
-		BCoord getBarycentricCoordinates(double x, double y);
-		BCoord getBarycentricCoordinatesA();
-		BCoord getBarycentricCoordinatesB();
-		BCoord getBarycentricCoordinatesC();
-
-		bool contains(double x, double y);
-
-		QPoint getCartesianCoordinates(const BCoord &bCoord);
-		QPoint getCartesianCoordinates(double alpha, double beta);
-		void updateCartesianCoordinates(QPoint &qPoint, const BCoord &bCoord);
-		void updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta);
-		void updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta, double gamma);
-
-	private:
-		int m_xa;
-		int m_ya;
-
-		int m_xb;
-		int m_yb;
-
-		int m_xc;
-		int m_yc;
-
-
+	vtkSmartPointer<vtkImageData> m_barycentricCoordinates;
+	QImage m_image;
+	QPoint m_imagePoint;
 };

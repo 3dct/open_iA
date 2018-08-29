@@ -60,13 +60,25 @@ QPoint BarycentricTriangle::getCartesianCoordinates(const BCoord &bCoord)
 	return ret;
 }
 
+QPoint BarycentricTriangle::getCartesianCoordinates(double alpha, double beta)
+{
+	QPoint ret = QPoint();
+	updateCartesianCoordinates(ret, alpha, beta);
+	return ret;
+}
+
 void BarycentricTriangle::updateCartesianCoordinates(QPoint &qPoint, const BCoord &bCoord)
 {
-	double alpha, beta, gamma;
-	alpha = bCoord.getAlpha();
-	beta = bCoord.getBeta();
-	gamma = bCoord.getGamma();
+	updateCartesianCoordinates(qPoint, bCoord.getAlpha(), bCoord.getBeta(), bCoord.getGamma());
+}
 
+void BarycentricTriangle::updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta)
+{
+	updateCartesianCoordinates(qPoint, alpha, beta, 1.0 - alpha - beta);
+}
+
+void BarycentricTriangle::updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta, double gamma)
+{
 	qPoint.setX((alpha * m_xa) + (beta * m_xb) + (gamma * m_xc));
 	qPoint.setY((alpha * m_ya) + (beta * m_yb) + (gamma * m_yc));
 }
@@ -130,4 +142,8 @@ void BarycentricTriangle::setXc(int xc)
 void BarycentricTriangle::setYc(int yc)
 {
 	m_yc = yc;
+}
+
+bool BarycentricTriangle::contains(double x, double y) {
+	return getBarycentricCoordinates(x, y).isInside();
 }

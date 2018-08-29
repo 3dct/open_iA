@@ -80,6 +80,7 @@ private:
 	void createOpFuncCopy(int index);
 	void deleteOpFuncCopy(int index);
 
+	int m_sliceNumber;
 	double m_slicerXYopacity, m_slicerXZopacity, m_slicerYZopacity;
 
 	// Widgets and stuff

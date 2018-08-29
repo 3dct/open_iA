@@ -62,6 +62,8 @@ protected:
 private:
 	void setSlicerMode(iASlicerMode slicerMode);
 
+	iATriangleRenderer *m_triangleRenderer;
+
 	// TODO: is it really good to keep the mdiChild as a member variable?
 	MdiChild *m_mdiChild;
 

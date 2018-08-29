@@ -20,18 +20,32 @@
 * ************************************************************************************/
 
 #include "iABarycentricTriangleWidget.h"
+#include "iATriangleRenderer.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
 #include <QMouseEvent>
 #include <QString>
+#define _USE_MATH_DEFINES // necessary to use M_PI (with math.height)
+#include <math.h>
 
 // TODO: really necessary? (just to get the font()!)
 #include <QApplication>
 
 // Debug
 #include <QDebug>
+
+// Constants (more in the header file)
+static const qreal RAD60 = M_PI / 3.0;
+static const qreal SIN60 = sin(RAD60);
+static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
+static const qreal COS60 = 0.5;
+static const qreal ONE_DIV_THREE = 1.0 / 3.0;
+
+static const int CONTROL_POINT_RADIUS = 10;
+static const int MODALITY_LABEL_MARGIN = 10;
+static const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
 
 iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	QOpenGLWidget(parent, f)
@@ -40,16 +54,11 @@ iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*
 	font.setPointSize(16);
 	m_modalityLabelFont = font;
 
-	m_triangleBorderPen.setWidth(5);
-	m_triangleBorderPen.setColor(Qt::black);
-
 	m_controlPointBorderPen.setWidth(3);
 	m_controlPointBorderPen.setColor(Qt::black);
 
 	m_controlPointCrossPen.setWidth(2);
 	m_controlPointCrossPen.setColor(Qt::black);
-
-	m_triangleFillBrush.setColor(Qt::white);
 
 	initializeControlPointPaths();
 }
@@ -79,7 +88,8 @@ void iABarycentricTriangleWidget::initializeControlPointPaths()
 }
 
 iABarycentricTriangleWidget::~iABarycentricTriangleWidget()
-{}
+{
+}
 
 void iABarycentricTriangleWidget::initializeGL()
 {
@@ -149,11 +159,11 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 	m_triangle.setXc(right);
 	m_triangle.setYc(bottom);
 
-	m_trianglePainterPath = QPainterPath();
-	m_trianglePainterPath.moveTo(left, bottom);
-	m_trianglePainterPath.lineTo(centerX, top);
-	m_trianglePainterPath.lineTo(right, bottom);
-	m_trianglePainterPath.lineTo(left, bottom);
+	//m_trianglePainterPath = QPainterPath();
+	//m_trianglePainterPath.moveTo(left, bottom);
+	//m_trianglePainterPath.lineTo(centerX, top);
+	//m_trianglePainterPath.lineTo(right, bottom);
+	//m_trianglePainterPath.lineTo(left, bottom);
 
 	m_modalityLabel1Pos = QPoint(left + MODALITY_LABEL_MARGIN, bottom + MODALITY_LABEL_MARGIN + modalityLabelHeight); // bottom left
 	m_modalityLabel2Pos = QPoint(centerX - (modalityLabel2width / 2), top - MODALITY_LABEL_MARGIN); // top centerX
@@ -253,21 +263,18 @@ void iABarycentricTriangleWidget::setModality1label(QString label)
 {
 	m_modalityLabel1 = label;
 	recalculatePositions();
-	update();
 }
 
 void iABarycentricTriangleWidget::setModality2label(QString label)
 {
 	m_modalityLabel2 = label;
 	recalculatePositions();
-	update();
 }
 
 void iABarycentricTriangleWidget::setModality3label(QString label)
 {
 	m_modalityLabel3 = label;
 	recalculatePositions();
-	update();
 }
 
 BCoord iABarycentricTriangleWidget::getControlPointCoordinates()
@@ -282,21 +289,15 @@ BCoord iABarycentricTriangleWidget::getControlPointCoordinates()
 void iABarycentricTriangleWidget::paintGL()
 {
 	QPainter p(this);
-	paintTriangleFill(p);
-	paintTriangleBorder(p);
+	//paintTriangleFill(p);
+	paintHelper(p);
 	paintControlPoint(p);
 	paintModalityLabels(p);
 }
 
-void iABarycentricTriangleWidget::paintTriangleBorder(QPainter &p)
-{
-	p.setPen(m_triangleBorderPen);
-	p.drawPath(m_trianglePainterPath);
-}
-
 void iABarycentricTriangleWidget::paintTriangleFill(QPainter &p)
 {
-	p.fillPath(m_trianglePainterPath, m_triangleFillBrush);
+	//p.fillPath(m_trianglePainterPath, m_triangleFillBrush);
 }
 
 void iABarycentricTriangleWidget::paintControlPoint(QPainter &p)
@@ -314,4 +315,20 @@ void iABarycentricTriangleWidget::paintModalityLabels(QPainter &p)
 	p.drawText(m_modalityLabel1Pos, m_modalityLabel1);
 	p.drawText(m_modalityLabel2Pos, m_modalityLabel2);
 	p.drawText(m_modalityLabel3Pos, m_modalityLabel3);
+}
+
+void iABarycentricTriangleWidget::setTriangleRenderer(iATriangleRenderer *triangleRenderer)
+{
+	m_triangleRenderer = triangleRenderer;
+}
+
+void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3)
+{
+	m_triangleRenderer->setModalities(d1, d2, d3, m_triangle);
+}
+
+void iABarycentricTriangleWidget::paintHelper(QPainter &p) {
+	if (m_triangleRenderer) {
+		m_triangleRenderer->paintHelper(p);
+	}
 }
