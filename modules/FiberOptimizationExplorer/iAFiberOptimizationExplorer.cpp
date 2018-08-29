@@ -289,7 +289,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			}
 			m_splomData->data()[m_splomData->numParams()-1].push_back(resultID);
 		}
-		// TODO: reuse splomData also for visualization?
+		// TODO: reuse splomData also for 3d visualization?
 		for (int col = 0; col < additionalColumns; ++col)
 		{
 			vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
@@ -381,6 +381,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 					m_splomData->data()[m_splomData->numParams()-2][fiberNr] = projErrorRed;
 					resultData.m_resultTable->SetValue(fiberNr, m_splomData->numParams() - 2, projErrorRed);
 					QSharedPointer<iAVectorPlotData> plotData(new iAVectorPlotData(values));
+					plotData->setXDataType(Discrete);
 					m_timeStepChart->addPlot(QSharedPointer<iALineFunctionDrawer>(new iALineFunctionDrawer(plotData, getResultColor(resultID))));
 					fiberNr++;
 				}

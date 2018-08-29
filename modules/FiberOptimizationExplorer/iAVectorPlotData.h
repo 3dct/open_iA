@@ -35,8 +35,11 @@ public:
 	double GetSpacing() const override;
 	double const * XBounds() const override;
 	DataType const * YBounds() const override;
+	iAValueType GetRangeType() const override;
+	void setXDataType(iAValueType);
 private:
 	QSharedPointer<std::vector<double>> m_data;
+	iAValueType m_xDataType;
 	double m_xBounds[2];
 	double m_yBounds[2];
 };

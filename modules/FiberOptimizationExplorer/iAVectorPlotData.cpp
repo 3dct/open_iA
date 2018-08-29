@@ -61,3 +61,12 @@ iAVectorPlotData::DataType const * iAVectorPlotData::YBounds() const
 {
 	return m_yBounds;
 }
+
+iAValueType iAVectorPlotData::GetRangeType() const
+{
+	return m_xDataType;
+}
+void iAVectorPlotData::setXDataType(iAValueType xDataType)
+{
+	m_xDataType = xDataType;
+}
