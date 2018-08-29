@@ -47,7 +47,7 @@ iASimpleSlicerWidget::~iASimpleSlicerWidget()
 	delete m_slicer;
 }
 
-void iASimpleSlicerWidget::changeMode(iASlicerMode slicerMode, int dimensionLength)
+void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode, int dimensionLength)
 {
 	m_slicer->ChangeMode(slicerMode);
 	if (m_curSlice >= dimensionLength)
@@ -55,6 +55,11 @@ void iASimpleSlicerWidget::changeMode(iASlicerMode slicerMode, int dimensionLeng
 		m_curSlice = dimensionLength;
 	}
 	m_slicer->setSliceNumber(m_curSlice);
+}
+
+void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
+{
+	m_slicer->ChangeMode(slicerMode);
 }
 
 void iASimpleSlicerWidget::setSliceNumber(int sliceNumber)

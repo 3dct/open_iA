@@ -175,11 +175,14 @@ void dlg_TripleHistogramTF::setSlicerMode(iASlicerMode slicerMode)
 		return;
 	}
 
+	modalitiesChanged();
+
 	int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
-	m_sliceSlider->setMaximum(dimensionLength - 1);
-	m_sliceSlider->setValue(dimensionLength / 2);
 
 	m_histogramStack->setSlicerMode(slicerMode, dimensionLength);
+
+	m_sliceSlider->setMaximum(dimensionLength - 1);
+	m_sliceSlider->setValue(dimensionLength / 2);
 }
 
 void dlg_TripleHistogramTF::updateTransferFunction()

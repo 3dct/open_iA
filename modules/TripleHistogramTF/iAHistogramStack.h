@@ -77,7 +77,8 @@ private:
 	void createOpFuncCopy(int index);
 
 	int m_sliceNumber;
-	double m_slicerXYopacity, m_slicerXZopacity, m_slicerYZopacity;
+	iASlicerMode m_slicerMode;
+	void setSlicerMode(iASlicerMode slicerMode);
 
 	// Widgets and stuff
 	QLabel *m_disabledLabel;

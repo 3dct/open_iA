@@ -68,10 +68,6 @@ iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::Win
 
 	m_gridLayout = new QGridLayout(this);
 
-	m_slicerXYopacity = mdiChild->getSlicerDataXY()->GetImageActor()->GetOpacity();
-	m_slicerXZopacity = mdiChild->getSlicerDataXZ()->GetImageActor()->GetOpacity();
-	m_slicerYZopacity = mdiChild->getSlicerDataYZ()->GetImageActor()->GetOpacity();
-
 	mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(0.0);
 	mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
 	mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
@@ -109,10 +105,21 @@ void iAHistogramStack::setWeight(BCoord bCoord)
 
 void iAHistogramStack::setSlicerMode(iASlicerMode slicerMode, int dimensionLength)
 {
+	m_slicerMode = slicerMode;
 	if (isReady()) {
-		m_slicerWidgets[0]->changeMode(slicerMode, dimensionLength);
-		m_slicerWidgets[1]->changeMode(slicerMode, dimensionLength);
-		m_slicerWidgets[2]->changeMode(slicerMode, dimensionLength);
+		m_slicerWidgets[0]->setSlicerMode(slicerMode, dimensionLength);
+		m_slicerWidgets[1]->setSlicerMode(slicerMode, dimensionLength);
+		m_slicerWidgets[2]->setSlicerMode(slicerMode, dimensionLength);
+	}
+}
+
+void iAHistogramStack::setSlicerMode(iASlicerMode slicerMode)
+{
+	m_slicerMode = slicerMode;
+	if (isReady()) {
+		m_slicerWidgets[0]->setSlicerMode(slicerMode);
+		m_slicerWidgets[1]->setSlicerMode(slicerMode);
+		m_slicerWidgets[2]->setSlicerMode(slicerMode);
 	}
 }
 
@@ -168,8 +175,6 @@ double iAHistogramStack::getWeight(int index)
 void iAHistogramStack::updateModalities()
 {
 	int i;
-
-	int s = m_mdiChild->GetModalities()->size();
 	
 	if (m_mdiChild->GetModalities()->size() >= 3) {
 		if (containsModality(m_mdiChild->GetModality(0)) &&
@@ -229,6 +234,7 @@ void iAHistogramStack::updateModalities()
 		QVBoxLayout *rightWidgetLayout = new QVBoxLayout(rightWidget);
 
 		m_slicerWidgets[i] = new iASimpleSlicerWidget(rightWidget);
+		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
 
 		rightWidgetLayout->addWidget(m_slicerWidgets[i]);
 		rightWidgetLayout->addWidget(m_modalityLabels[i]);
@@ -257,6 +263,9 @@ void iAHistogramStack::updateModalities()
 		ResetChannel(chData, imageData, ctf, otf);
 		m_mdiChild->InitChannelRenderer(id, false, true);
 	}
+
+	setSlicerMode(m_slicerMode);
+	setSliceNumber(m_sliceNumber);
 	
 	adjustStretch(size().width());
 	applyWeights();

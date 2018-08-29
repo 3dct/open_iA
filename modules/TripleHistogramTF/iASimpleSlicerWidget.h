@@ -39,7 +39,8 @@ public:
 	//iASimpleSlicerWidget(QWidget* parent, QSharedPointer<iAModality> modality, Qt::WindowFlags f = 0);
 	~iASimpleSlicerWidget();
 
-	void changeMode(iASlicerMode slicerMode, int dimensionLength);
+	void setSlicerMode(iASlicerMode slicerMode, int dimensionLength);
+	void setSlicerMode(iASlicerMode slicerMode);
 	void setSliceNumber(int sliceNumber);
 
 	bool hasHeightForWidth();
