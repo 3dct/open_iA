@@ -1426,9 +1426,9 @@ size_t iAQSplom::colorLookupParam() const
 	return m_colorLookupParam;
 }
 
-iALookupTable const & iAQSplom::lookupTable() const
+QSharedPointer<iALookupTable> iAQSplom::lookupTable() const
 {
-	return *m_lut.data();
+	return m_lut;
 }
 
 void iAQSplom::setColorParam(const QString & paramName)

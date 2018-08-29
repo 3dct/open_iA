@@ -132,7 +132,7 @@ public:
 	void resetFilter();                                              //!< reset filter on data; after calling this method, all data points will be shown again
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
-	iALookupTable const & lookupTable() const;                       //!< get lookup table
+	QSharedPointer<iALookupTable> lookupTable() const;               //!< get lookup table
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
 	void showSettings();                                             //!< Show the settings dialog
