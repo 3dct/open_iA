@@ -34,10 +34,12 @@ public:
 	void setTriangle(BarycentricTriangle triangle) override;
 	~iABarycentricHelperRenderer() override;
 	void paintHelper(QPainter &p) override;
+	bool canPaint() override;
 
 private:
 	void calculateCoordinates(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
-	void drawImage(BarycentricTriangle triangle);
+	void updateTriangle(BarycentricTriangle triangle);
+	void drawImage(BarycentricTriangle triangle, int width, int height);
 
 	vtkSmartPointer<vtkImageData> m_barycentricCoordinates;
 	QImage m_image;

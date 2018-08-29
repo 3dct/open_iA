@@ -9,4 +9,5 @@ public:
 	virtual void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle) = 0;
 	virtual void setTriangle(BarycentricTriangle triangle) = 0;
 	virtual void paintHelper(QPainter &p) = 0;
+	virtual bool canPaint() = 0;
 };

@@ -60,6 +60,11 @@ iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*
 	m_controlPointCrossPen.setWidth(2);
 	m_controlPointCrossPen.setColor(Qt::black);
 
+	m_triangleFillBrush.setColor(Qt::white);
+
+	m_triangleBorderPen.setWidth(5);
+	m_triangleBorderPen.setColor(Qt::black);
+
 	initializeControlPointPaths();
 }
 
@@ -93,7 +98,7 @@ iABarycentricTriangleWidget::~iABarycentricTriangleWidget()
 
 void iABarycentricTriangleWidget::initializeGL()
 {
-	glClearColor(1, 1, 1, 1);
+	glClearColor(0.9, 0.9, 0.9, 1);
 }
 
 void iABarycentricTriangleWidget::resizeGL(int w, int h)
@@ -159,17 +164,20 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 	m_triangle.setXc(right);
 	m_triangle.setYc(bottom);
 
-	//m_trianglePainterPath = QPainterPath();
-	//m_trianglePainterPath.moveTo(left, bottom);
-	//m_trianglePainterPath.lineTo(centerX, top);
-	//m_trianglePainterPath.lineTo(right, bottom);
-	//m_trianglePainterPath.lineTo(left, bottom);
+	m_trianglePainterPath = QPainterPath();
+	m_trianglePainterPath.moveTo(left, bottom);
+	m_trianglePainterPath.lineTo(centerX, top);
+	m_trianglePainterPath.lineTo(right, bottom);
+	m_trianglePainterPath.lineTo(left, bottom);
 
 	m_modalityLabel1Pos = QPoint(left + MODALITY_LABEL_MARGIN, bottom + MODALITY_LABEL_MARGIN + modalityLabelHeight); // bottom left
 	m_modalityLabel2Pos = QPoint(centerX - (modalityLabel2width / 2), top - MODALITY_LABEL_MARGIN); // top centerX
 	m_modalityLabel3Pos = QPoint(right - modalityLabel3width - MODALITY_LABEL_MARGIN, m_modalityLabel1Pos.y()); // bottom right
 
 	updateControlPointPosition();
+	if (m_triangleRenderer) {
+		m_triangleRenderer->setTriangle(m_triangle);
+	}
 }
 
 void iABarycentricTriangleWidget::updateControlPointPosition(QPoint newPos)
@@ -180,11 +188,11 @@ void iABarycentricTriangleWidget::updateControlPointPosition(QPoint newPos)
 	{
 		m_controlPointBCoord = bCoord;
 		moveControlPointTo(newPos);
-		weightChanged(bCoord);
+		emit weightChanged(bCoord);
 	}
 	else {
 		// Do nothing for now
-		// TODO: Set point to closes positiont inside the triangle
+		// TODO: Set point to closest positiont inside the triangle
 	}
 }
 
@@ -282,6 +290,16 @@ BCoord iABarycentricTriangleWidget::getControlPointCoordinates()
 	return m_controlPointBCoord;
 }
 
+void iABarycentricTriangleWidget::setTriangleRenderer(iATriangleRenderer *triangleRenderer)
+{
+	m_triangleRenderer = triangleRenderer;
+}
+
+void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3)
+{
+	m_triangleRenderer->setModalities(d1, d2, d3, m_triangle);
+}
+
 // ----------------------------------------------------------------------------------------------
 // PAINT METHODS
 // ----------------------------------------------------------------------------------------------
@@ -289,15 +307,21 @@ BCoord iABarycentricTriangleWidget::getControlPointCoordinates()
 void iABarycentricTriangleWidget::paintGL()
 {
 	QPainter p(this);
-	//paintTriangleFill(p);
 	paintHelper(p);
 	paintControlPoint(p);
 	paintModalityLabels(p);
 }
 
+
 void iABarycentricTriangleWidget::paintTriangleFill(QPainter &p)
 {
-	//p.fillPath(m_trianglePainterPath, m_triangleFillBrush);
+	p.fillPath(m_trianglePainterPath, m_triangleFillBrush);
+}
+
+void iABarycentricTriangleWidget::paintTriangleBorder(QPainter &p)
+{
+	p.setPen(m_triangleBorderPen);
+	p.drawPath(m_trianglePainterPath);
 }
 
 void iABarycentricTriangleWidget::paintControlPoint(QPainter &p)
@@ -317,18 +341,12 @@ void iABarycentricTriangleWidget::paintModalityLabels(QPainter &p)
 	p.drawText(m_modalityLabel3Pos, m_modalityLabel3);
 }
 
-void iABarycentricTriangleWidget::setTriangleRenderer(iATriangleRenderer *triangleRenderer)
-{
-	m_triangleRenderer = triangleRenderer;
-}
-
-void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3)
-{
-	m_triangleRenderer->setModalities(d1, d2, d3, m_triangle);
-}
-
 void iABarycentricTriangleWidget::paintHelper(QPainter &p) {
-	if (m_triangleRenderer) {
+	if (m_triangleRenderer && m_triangleRenderer->canPaint()) {
 		m_triangleRenderer->paintHelper(p);
+	}
+	else {
+		paintTriangleBorder(p);
+		paintTriangleFill(p);
 	}
 }

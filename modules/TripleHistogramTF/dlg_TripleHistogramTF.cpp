@@ -87,15 +87,26 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	optionsContainerLayout->addWidget(m_slicerModeComboBox);
 	optionsContainerLayout->addWidget(m_sliceSlider);
 
+	QWidget *histogramsWidget = new QWidget(dockWidgetContents);
+	m_stackedLayout = new QStackedLayout(histogramsWidget);
+	m_stackedLayout->setStackingMode(QStackedLayout::StackOne);
+
+	m_disabledLabel = new QLabel();
+	m_disabledLabel->setAlignment(Qt::AlignCenter);
+
 	m_histogramStack = new iAHistogramStack(dockWidgetContents, mdiChild);
 	m_histogramStack->setModalityLabel(DEFAULT_LABELS[0], 0);
 	m_histogramStack->setModalityLabel(DEFAULT_LABELS[1], 1);
 	m_histogramStack->setModalityLabel(DEFAULT_LABELS[2], 2);
 
+	m_stackedLayout->addWidget(m_histogramStack);
+	m_stackedLayout->addWidget(m_disabledLabel);
+	m_stackedLayout->setCurrentIndex(1);
+
 	QWidget *leftWidget = new QWidget();
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
 	leftWidgetLayout->addWidget(optionsContainer);
-	leftWidgetLayout->addWidget(m_histogramStack);
+	leftWidgetLayout->addWidget(histogramsWidget);
 
 	dockWidgetContents->addWidget(leftWidget);
 	dockWidgetContents->addWidget(m_triangleWidget);
@@ -117,19 +128,16 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	connect(m_triangleWidget, SIGNAL(weightChanged(BCoord)), this, SLOT(setWeight(BCoord)));
 	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlicerMode()));
 	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(setSliceNumber(int)));
-	// TODO: move into for-loop?
-	// {
-	// TODO: necessary?
-	//     {
+
 	connect(m_histogramStack, SIGNAL(transferFunctionChanged()), this, SLOT(updateTransferFunction()));
 	connect(m_histogramStack, SIGNAL(modalitiesChanged(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3)), this, SLOT(modalityAddedToStack(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3)));
-	//     }
-	//connect(this, SIGNAL(transferFunctionUpdated()), m_mdiChild, SLOT(ModalityTFChanged()));
 
 	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalityAvailable(int)), this, SLOT(modalityAvailable(int)));
 	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitySelected(int)), this, SLOT(modalitySelected(int)));
 	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
 	// }
+
+	updateDisabledLabel();
 }
 
 dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
@@ -174,25 +182,10 @@ void dlg_TripleHistogramTF::setSlicerMode(iASlicerMode slicerMode)
 	m_histogramStack->setSlicerMode(slicerMode, dimensionLength);
 }
 
-void dlg_TripleHistogramTF::setSliceNumber(int sliceNumber)
-{
-	m_histogramStack->setSliceNumber(sliceNumber);
-}
-
 void dlg_TripleHistogramTF::updateTransferFunction()
 {
-	/*for (int i = 0; i < m_histogramStack->modalitiesCount(); ++i) {
-		iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
-		m_mdiChild->UpdateChannelSlicerOpacity(id, m_histogramStack->getWeight(i));
-		m_mdiChild->getSlicerDataXY()->updateChannelMappers();
-		m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
-		m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
-		m_mdiChild->updateSlicers();
-	}*/
-
 	m_mdiChild->redrawHistogram();
 	m_mdiChild->getRenderer()->update();
-	//m_mdiChild->renderer->update();
 }
 
 void dlg_TripleHistogramTF::modalityAvailable(int modalityIdx)
@@ -208,16 +201,36 @@ void dlg_TripleHistogramTF::modalitySelected(int modalityIdx)
 void dlg_TripleHistogramTF::modalitiesChanged()
 {
 	m_histogramStack->updateModalities();
-	if (m_histogramStack->modalitiesCount() >= 3) {
-		modalitiesChanged(m_histogramStack->getModality(0), m_histogramStack->getModality(1), m_histogramStack->getModality(2));
+	if (m_histogramStack->getModalitiesCount() >= 3) {
+		m_stackedLayout->setCurrentIndex(0);
+		m_triangleWidget->setModalities(m_histogramStack->getModality(0)->GetImage(), m_histogramStack->getModality(1)->GetImage(), m_histogramStack->getModality(2)->GetImage());
+	} else {
+		updateDisabledLabel();
+		m_stackedLayout->setCurrentIndex(1);
 	}
+	m_triangleWidget->update();
 }
 
-void dlg_TripleHistogramTF::modalitiesChanged(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3)
+// PRIVATE --------------------------------------------------------------------------------------------------
+
+void dlg_TripleHistogramTF::setSliceNumber(int sliceNumber)
 {
-	QString name;
+	m_histogramStack->setSliceNumber(sliceNumber);
+}
 
-	m_triangleWidget->setModalities(modality1->GetImage(), modality2->GetImage(), modality3->GetImage());
-
-	m_triangleWidget->update();
+void dlg_TripleHistogramTF::updateDisabledLabel()
+{
+	int count = m_histogramStack->getModalitiesCount();
+	QString modalit_y_ies_is_are = count == 2 ? "modality is" : "modalities are";
+	//QString nameA = count >= 1 ? m_modalitiesActive[0]->GetName() : "missing";
+	//QString nameB = count >= 2 ? m_modalitiesActive[1]->GetName() : "missing";
+	//QString nameC = modalitiesCount >= 3 ? m_modalitiesAvailable[2]->GetName() : "missing";
+	m_disabledLabel->setText(
+		"Unable to set up this widget.\n" +
+		QString::number(3 - count) + " " + modalit_y_ies_is_are + " missing.\n"/* +
+		"\n" +
+		"Modality " + DEFAULT_MODALITY_LABELS[0] + ": " + nameA + "\n" +
+		"Modality " + DEFAULT_MODALITY_LABELS[1] + ": " + nameB + "\n" +
+		"Modality " + DEFAULT_MODALITY_LABELS[2] + ": missing"*/
+	);
 }

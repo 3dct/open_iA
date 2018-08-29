@@ -53,14 +53,13 @@ public slots:
 	void modalitySelected(int modalityIdx);
 	void modalitiesChanged();
 
-	void modalitiesChanged(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3);
-
 signals:
 
 protected:
 
 private:
 	void setSlicerMode(iASlicerMode slicerMode);
+	void updateDisabledLabel();
 
 	iATriangleRenderer *m_triangleRenderer;
 
@@ -68,6 +67,8 @@ private:
 	MdiChild *m_mdiChild;
 
 	// Widgets and stuff
+	QStackedLayout *m_stackedLayout;
+	QLabel *m_disabledLabel;
 	QComboBox *m_slicerModeComboBox;
 	QSlider *m_sliceSlider;
 	iAHistogramStack *m_histogramStack;

@@ -42,7 +42,7 @@ public:
 	void setSliceNumber(int sliceNumber);
 	void setModalityLabel(QString label, int index);
 	bool containsModality(QSharedPointer<iAModality> modality);
-	int modalitiesCount();
+	int getModalitiesCount();
 
 	QSharedPointer<iAModality> getModality(int index);
 	double getWeight(int index);
@@ -72,25 +72,20 @@ private:
 
 	void adjustStretch(int totalWidth);
 
-	void disable();
-	void enable();
-
 	QSharedPointer<iAModality> m_modalitiesActive[3];
 	vtkSmartPointer<vtkPiecewiseFunction> m_opFuncsCopy[3];
 	void createOpFuncCopy(int index);
-	void deleteOpFuncCopy(int index);
 
 	int m_sliceNumber;
 	double m_slicerXYopacity, m_slicerXZopacity, m_slicerYZopacity;
 
 	// Widgets and stuff
-	QStackedLayout *m_stackedLayout;
 	QLabel *m_disabledLabel;
 	QGridLayout *m_gridLayout;
-	QLabel *m_weightLabels[3];
-	QLabel *m_modalityLabels[3];
-	iASimpleSlicerWidget *m_slicerWidgets[3];
-	iADiagramFctWidget* m_histograms[3] = { 0, 0, 0 };
+	QLabel *m_weightLabels[3] = { nullptr, nullptr, nullptr };;
+	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };;
+	iASimpleSlicerWidget *m_slicerWidgets[3] = { nullptr, nullptr, nullptr };;
+	iADiagramFctWidget* m_histograms[3] = { nullptr, nullptr, nullptr };
 
 	// TODO: remove
 	MdiChild *m_mdiChild;

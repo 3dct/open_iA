@@ -52,13 +52,19 @@ void iABarycentricHelperRenderer::paintHelper(QPainter &p)
 void iABarycentricHelperRenderer::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle)
 {
 	calculateCoordinates(d1, d2, d3);
-	drawImage(triangle);
+	updateTriangle(triangle);
 }
 
 void iABarycentricHelperRenderer::setTriangle(BarycentricTriangle triangle)
 {
-	drawImage(triangle);
+	updateTriangle(triangle);
 }
+
+bool iABarycentricHelperRenderer::canPaint()
+{
+	return !m_image.isNull();
+}
+
 
 // PRIVATE -----------------------------------------------------------------------------------------------
 
@@ -93,6 +99,7 @@ void iABarycentricHelperRenderer::calculateCoordinates(vtkSmartPointer<vtkImageD
 	for (int z = 0; z < dims[2]; z++) {
 		for (int y = 0; y < dims[1]; y++) {
 			for (int x = 0; x < dims[0]; x++) {
+
 				//a = static_cast<double*>(d1->GetScalarPointer(x, y, z))[0];
 				//b = static_cast<double*>(d2->GetScalarPointer(x, y, z))[0];
 				//c = static_cast<double*>(d3->GetScalarPointer(x, y, z))[0];
@@ -121,13 +128,13 @@ void iABarycentricHelperRenderer::calculateCoordinates(vtkSmartPointer<vtkImageD
 	}
 }
 
-void iABarycentricHelperRenderer::drawImage(BarycentricTriangle triangle)
+void iABarycentricHelperRenderer::updateTriangle(BarycentricTriangle triangle)
 {
 	if (!m_barycentricCoordinates) {
 		return;
 	}
 
-	int width, height, widthMinusOne, heightMinusOne;
+	int width, height;
 	{
 		int xMin = qMin(triangle.getXa(), qMin(triangle.getXb(), triangle.getXc()));
 		int yMin = qMin(triangle.getYa(), qMin(triangle.getYb(), triangle.getYc()));
@@ -137,18 +144,27 @@ void iABarycentricHelperRenderer::drawImage(BarycentricTriangle triangle)
 
 		width = xMax - xMin + 1;
 		height = yMax - yMin + 1;
-		widthMinusOne = width - 1;
-		heightMinusOne = height - 1;
 
 		m_imagePoint = QPoint(xMin, yMin);
+
+		if (!m_image.isNull() && m_image.width() == width && m_image.height() == height) {
+			return;
+		}
+
 		m_image = QImage(width, height, IMAGE_FORMAT);
 
 		triangle = triangle - m_imagePoint;
 	}
 
-	//int widthMinusOne = width - 1;
-	//int heightMinusOne = height - 1;
+	drawImage(triangle, width, height);
+}
 
+void iABarycentricHelperRenderer::drawImage(BarycentricTriangle triangle, int width, int height)
+{
+	int widthMinusOne = width - 1;
+	int heightMinusOne = height - 1;
+
+	// TODO: a vector of vectors or another vtkImageData?
 	QVector<QVector<int>> counts = QVector<QVector<int>>(height, QVector<int>(width, 0));
 	int max = 0;
 	int min = std::numeric_limits<int>::infinity();
@@ -186,15 +202,6 @@ void iABarycentricHelperRenderer::drawImage(BarycentricTriangle triangle)
 		}
 	}
 
-	// Assuming a logarithmic scale here
-	// f(n) = k * log(n) + c
-	// k and c are constants
-	// GRAY_VALUE_MIN represents the white value, not the black value, and is to be inverted later (255 - GRAY_VALUE_MIN)
-	//double c = GRAY_VALUE_MIN; // GRAY_VALUE_MIN = k * log(1) + c
-	double k = (255 - GRAY_VALUE_MIN) / log(max); // 255 = k * log(max) + c = k * log(max) + 48
-
-	int max1 = 0, max2 = 0, max3 = 0, max4 = 0, max5 = 0;
-
 	// Go through every pixel and set the pixel color based on the counts 2D-vector
 	double unit = (double) GRAY_VALUE_INTERVAL / (double) max;
 	int grayValue, count;
@@ -202,61 +209,21 @@ void iABarycentricHelperRenderer::drawImage(BarycentricTriangle triangle)
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
 			p = QPoint(x, y);
-
-			if (x == maxx && y == maxy) {
-				int aaa = 0;
-			}
-
 			if (triangle.contains(x, y)) {
 				count = counts[y][x];
 				if (count > 0) {
 
-					if (count == max || (x == maxx && y == maxy)) {
-						int aaa = 0;
-					}
-
-					// TODO fix gray interpolation
-					grayValue = k * log(count) + GRAY_VALUE_MIN; // k * log(n) + c
-
-					if (grayValue > max5) {
-						if (grayValue > max4) {
-							max5 = max4;
-							if (grayValue > max3) {
-								max4 = max3;
-								if (grayValue > max2) {
-									max3 = max2;
-									if (grayValue > max1) {
-										max2 = max1;
-										max1 = grayValue;
-									}
-									else {
-										max2 = grayValue;
-									}
-								}
-								else {
-									max3 = grayValue;
-								}
-							}
-							else {
-								max4 = grayValue;
-							}
-						}
-						else {
-							max5 = grayValue;
-						}
-					}
-
+					// TODO fix gray scale (really linear? or logarithmic?)
 					grayValue = 255 - ((count * unit) + GRAY_VALUE_MIN); // TODO round with ceil?
 					m_image.setPixelColor(p, QColor(grayValue, grayValue, grayValue));
+
 				}
 				else {
-					m_image.setPixelColor(p, QColor(255, 255, 255));
+					m_image.setPixelColor(p, Qt::white);
 				}
 			} else {
-				m_image.setPixelColor(p, QColor(231, 231, 231));
+				m_image.setPixelColor(p, Qt::transparent);
 			}
 		}
 	}
-
-	int aaa = 0;
 }

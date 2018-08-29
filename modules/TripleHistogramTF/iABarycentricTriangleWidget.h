@@ -96,15 +96,16 @@ private:
 	QPoint m_modalityLabel2Pos;
 	QPoint m_modalityLabel3Pos;
 
-	//QPainterPath m_trianglePainterPath;
-	//QBrush m_triangleFillBrush;
+	QPainterPath m_trianglePainterPath;
+	QBrush m_triangleFillBrush;
+	QPen m_triangleBorderPen;
 
 	QPainterPath m_controlPointBorderPainterPath;
 	QPen m_controlPointBorderPen;
 	QPainterPath m_controlPointCrossPainterPath;
 	QPen m_controlPointCrossPen;
 
-	iATriangleRenderer *m_triangleRenderer;
+	iATriangleRenderer *m_triangleRenderer = nullptr;
 
 	void initializeControlPointPaths();
 	void updateControlPointPosition(QPoint newPos);
@@ -114,9 +115,10 @@ private:
 	void recalculatePositions(int w, int h);
 
 	void paintTriangleFill(QPainter &p);
+	void paintTriangleBorder(QPainter &p);
+	void paintHelper(QPainter &p);
 	void paintControlPoint(QPainter &p);
 	void paintModalityLabels(QPainter &p);
-	void paintHelper(QPainter &p);
 
 	bool isTooWide(int width, int height);
 	bool isTooTall(int width, int height);
