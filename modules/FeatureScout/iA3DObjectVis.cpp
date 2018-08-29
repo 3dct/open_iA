@@ -24,6 +24,7 @@
 #include "iA3DLabelledVolumeVis.h"
 #include "iA3DLineObjectVis.h"
 #include "iA3DCylinderObjectVis.h"
+#include "iA3DNoVis.h"
 //#include "iA3DEllipseObjectVis.h"
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
@@ -89,6 +90,8 @@ QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi
 			return QSharedPointer<iA3DObjectVis>(new iA3DLineObjectVis(mdi->renderer->vtkWidgetRC, table, columnMapping, neutralColor));
 		case iACsvConfig::Cylinders:
 			return QSharedPointer<iA3DObjectVis>(new iA3DCylinderObjectVis(mdi->renderer->vtkWidgetRC, table, columnMapping, neutralColor));
+		case iACsvConfig::NoVis:
+			return QSharedPointer<iA3DObjectVis>(new iA3DNoVis());
 /*
 		case iACsvConfig::Ellipses:
 			return QSharedPointer<iA3DObjectVis>(new iA3DLineObjectVis());
