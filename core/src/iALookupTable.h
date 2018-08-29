@@ -42,6 +42,7 @@ public:
 	void allocate(size_t numberOfColors);                      //!< Allocate place for a given number of colors and fill with zeros.
 	size_t numberOfValues() const;                             //!< Get the number of values in the table.
 	void getColor(double val, double * rgba_out) const;        //!< Map a scalar value into an RGBA color.
+	QColor getQColor(double val) const;                        //!< Map a scalar value into an QColor object.
 	void getTableValue(size_t index, double * rgba_out) const; //!< Get the RGBA color value for a given index in the table.
 	void setColor(size_t colInd, double * rgba);               //!< Assign an RGBA color (every component 0..1) to a given index in the table.
 	void setColor(size_t colInd, QColor const & col);          //!< Assign a color specified by a QColor to a given index in the table.
