@@ -56,6 +56,7 @@ class vtkGenericOpenGLRenderWindow;
 class QVTKWidget;
 class vtkRenderWindow;
 #endif
+class vtkAxis;
 class vtkChartParallelCoordinates;
 class vtkColorTransferFunction;
 class vtkCommand;
@@ -186,6 +187,9 @@ private:
 	void updateRenderer();
 	//! @}
 
+	void setAxisLabelSize(int fontSize);
+	void setAxisTicks(vtkAxis *axis, int tickCount, bool updatePC); // <! setAxis Labels; 
+
 	//! @{ debug functions
 	void PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString &outputPath, const QString* fileName) const ; //!< print out a vtkTable
 	void PrintChartTable(const QString &outputPath); //! < Print current chartTable
@@ -279,6 +283,8 @@ private:
 
 	QSharedPointer<QMap<uint, uint>> m_columnMapping;
 	float m_pcLineWidth;   //!< width of line in Parallel Coordinates
+	int m_pcTextSize; 
+	int m_pcMinTicksCount; 
 
 	QSharedPointer<iAFeatureScoutSPLOM> m_splom;
 	QSharedPointer<iA3DObjectVis> m_3dvis;

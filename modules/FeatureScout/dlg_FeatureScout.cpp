@@ -217,6 +217,8 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupUi( this );
 	visualization = vis;
 	m_pcLineWidth = 0.1;
+	m_pcTextSize = 20;
+	m_pcMinTicksCount = 5; //Minimum tick count - 5 ticks to be shown 
 	this->elementsCount = csvTable->GetNumberOfColumns();
 	this->objectsCount = csvTable->GetNumberOfRows();
 	this->activeChild = parent;
@@ -356,12 +358,16 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 
 void dlg_FeatureScout::updatePCColumnVisibility()
 {
+	
 	for ( int j = 0; j < elementsCount; j++ )
 	{
 		pcChart->SetColumnVisibility( csvTable->GetColumnName( j ), columnVisibility[j]);
 	}
+	setAxisLabelSize(m_pcTextSize);
+	pcView->Update(); 
 	pcView->ResetCamera();
 	pcView->Render();
+	
 }
 
 void dlg_FeatureScout::initColumnVisibility()
@@ -3523,3 +3529,46 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 		break;
 	}
 }
+
+
+void dlg_FeatureScout::setAxisLabelSize(int fontSize)
+{
+	int axis_count = -1; 
+	int tick_count = -1; 
+	axis_count = pcChart->GetNumberOfAxes();
+	tick_count = 10; 
+	
+
+	for (int i = 0; i < axis_count; i++) {
+		
+		
+		pcChart->GetAxis(i)->GetLabelProperties()->SetFontSize(fontSize);
+		if (i != 4) {
+			
+			pcChart->GetAxis(i); 
+			setAxisTicks(pcChart->GetAxis(i), tick_count, false); 
+		}
+					
+		pcChart->GetAxis(i)->GetTitleProperties()->SetFontSize(fontSize);
+		
+	}
+	
+	pcChart->Update(); 
+}
+
+void dlg_FeatureScout::setAxisTicks(vtkAxis *axis, int tickCount, bool updatePC)
+{
+	if (axis && (tickCount > m_pcMinTicksCount)) {
+		axis->SetNumberOfTicks(tickCount);
+		axis->RecalculateTickSpacing(); 
+		
+		if (updatePC) {
+			pcChart->Update(); 
+		}
+	}
+	
+	//else invalid axis; 
+
+
+}
+
