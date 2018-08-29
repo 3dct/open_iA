@@ -39,15 +39,16 @@ struct FeatureScout_API iACsvConfig
 		Length, Diameter,
 		Phi, Theta,
 		MappedCount
-	}; //!< must be the ame order as dlg_CSVInput::m_mappingBoxes!
+	}; //!< must be the same order as dlg_CSVInput::m_mappingBoxes!
 	enum VisualizationType
 	{
 		UseVolume,
 		Lines,
 		Cylinders,
 		Ellipses,
-		VisTypeCount
-	}; //!< what visualization to use for the objects. Should match the entries in CsvInput.ui
+		NoVis,
+		VisTypeCount //must be last element
+	}; //!< what visualization to use for the objects. Should match the entries of VisualizationTypeName iACsvConfig.cpp 
 	static const int LegacyFormatStartSkipLines = 5;
 	iACsvConfig();
 	bool isValid(QString & errorMsg) const;

@@ -61,8 +61,8 @@ public:
 	int    yShift() const { return translationY; }
 	virtual int bottomMargin() const;
 	virtual int leftMargin() const;
-	int activeWidth()  const;
-	int activeHeight() const;
+	virtual int activeWidth()  const;
+	virtual int activeHeight() const;
 	iAPlotData::DataType getMaxYDataValue() const;
 	QSharedPointer<iAMapper> const yMapper() const;
 	virtual iAPlotData::DataType const * yBounds() const;
