@@ -653,12 +653,16 @@ void iAFiberOptimizationExplorer::showCurrentSelectionInPlot()
 
 void iAFiberOptimizationExplorer::showCurrentSelectionIn3DViews()
 {
+	bool anythingSelected = false;
+	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
+		if (m_currentSelection[resultID].size() > 0)
+			anythingSelected = true;
 	for (size_t resultID = 0; resultID<m_resultData.size(); ++resultID)
 	{
 		auto result = m_resultData[resultID];
-		result.m_mini3DVis->setSelection(m_currentSelection[resultID]);
+		result.m_mini3DVis->setSelection(m_currentSelection[resultID], anythingSelected);
 		if (result.m_main3DVis)
-			result.m_main3DVis->setSelection(m_currentSelection[resultID]);
+			result.m_main3DVis->setSelection(m_currentSelection[resultID], anythingSelected);
 
 	}
 }
