@@ -302,9 +302,11 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		resultData.m_vtkWidget  = new iAVtkWidgetClass();
 		resultData.m_fiberCount = numFibers;
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+		renWin->SetAlphaBitPlanes(1);
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
 		m_renderManager->addToBundle(ren);
 		ren->SetBackground(1.0, 1.0, 1.0);
+		ren->SetUseDepthPeeling(true);
 		renWin->AddRenderer(ren);
 		resultData.m_vtkWidget->SetRenderWindow(renWin);
 		resultData.m_vtkWidget->setProperty("resultID", resultID);
