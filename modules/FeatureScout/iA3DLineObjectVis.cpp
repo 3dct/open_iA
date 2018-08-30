@@ -40,14 +40,15 @@
 
 namespace
 {
-	const int DefaultContextAlpha = 32;
 	const size_t NoPointIdx = std::numeric_limits<size_t>::max();
 }
 
 iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor ):
 	iA3DObjectVis(widget, objectTable, columnMapping),
-	m_contextAlpha(DefaultContextAlpha),
-	m_selectionColor(SelectedColor)
+	m_contextAlpha(DefaultContextOpacity),
+	m_selectionAlpha(DefaultSelectionOpacity),
+	m_selectionColor(SelectedColor),
+	m_baseColor(128, 128, 128)
 {
 	m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	m_colors->SetNumberOfComponents(4);
@@ -202,19 +203,6 @@ void iA3DLineObjectVis::renderLengthDistribution( vtkColorTransferFunction* ctFu
 	updatePolyMapper();
 }
 
-void iA3DLineObjectVis::setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex)
-{
-	m_lut = lut;
-	m_colorParamIdx = paramIndex;
-	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
-	{
-		double curValue = m_objectTable->GetValue(objID, m_colorParamIdx).ToDouble();
-		QColor color = m_lut->getQColor(curValue);
-		setPolyPointColor(objID, color);
-	}
-	updatePolyMapper();
-}
-
 void iA3DLineObjectVis::setPolyPointColor(int ptIdx, QColor const & qcolor)
 {
 	unsigned char color[4];
@@ -241,13 +229,62 @@ vtkPolyData* iA3DLineObjectVis::getLinePolyData()
 	return m_linePolyData;
 }
 
+void iA3DLineObjectVis::setSelectionOpacity(int selectionAlpha)
+{
+	m_selectionAlpha = selectionAlpha;
+}
 
-void iA3DLineObjectVis::setContextAlpha(int contextAlpha)
+
+void iA3DLineObjectVis::setContextOpacity(int contextAlpha)
 {
 	m_contextAlpha = contextAlpha;
 }
 
-void iA3DLineObjectVis::setSelectionColor(QColor const & selectionColor)
+void iA3DLineObjectVis::setColor(QColor const &color)
 {
-	m_selectionColor = selectionColor;
+	m_baseColor = color;
+	m_colorParamIdx = -1;
+	m_lut.clear();
+	updateColorSelectionRendering();
+}
+
+void iA3DLineObjectVis::setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex)
+{
+	m_lut = lut;
+	m_colorParamIdx = paramIndex;
+	updateColorSelectionRendering();
+}
+
+void iA3DLineObjectVis::setSelection(std::vector<size_t> const & sortedSelInds)
+{
+	m_selection = sortedSelInds;
+	updateColorSelectionRendering();
+}
+
+void iA3DLineObjectVis::updateColorSelectionRendering()
+{
+	size_t curSelIdx = 0;
+	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	{
+		QColor color = m_baseColor;
+		if (m_lut)
+		{
+			double curValue = m_objectTable->GetValue(objID, m_colorParamIdx).ToDouble();
+			color = m_lut->getQColor(curValue);
+		}
+		if (m_selection.size() > 0)
+		{
+			if (curSelIdx < m_selection.size() && objID == m_selection[curSelIdx])
+			{
+				color.setAlpha(m_selectionAlpha);
+				++curSelIdx;
+			}
+			else
+				color.setAlpha(m_contextAlpha);
+		}
+		else
+			color.setAlpha(m_selectionAlpha);
+		setPolyPointColor(objID, color);
+	}
+	updatePolyMapper();
 }
