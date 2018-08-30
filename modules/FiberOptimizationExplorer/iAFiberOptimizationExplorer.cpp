@@ -73,12 +73,12 @@ class iAFiberDistance
 {
 public:
 	size_t index;
-	std::vector<double> distance;
+	double distance;
 	friend bool operator<(iAFiberDistance const & a, iAFiberDistance const & b);
 };
 bool operator<(iAFiberDistance const & a, iAFiberDistance const & b)
 {
-	return a.distance[0] < b.distance[0];
+	return a.distance < b.distance;
 }
 
 class iAResultData
@@ -94,8 +94,10 @@ public:
 	std::vector<QSharedPointer<std::vector<double> > > m_projectionError;
 	size_t m_startPlotIdx;
 	// fiber, errors (shiftx, shifty, shiftz, phi, theta, length, diameter)
+	// TODO: compute + visualize per timestep!
 	std::vector<std::vector<double> > m_referenceDiff;
-	std::vector<std::vector<iAFiberDistance> > m_referenceDist;
+	// fiber, distance measure, match in reference
+	std::vector<std::vector<std::vector<iAFiberDistance> > > m_referenceDist;
 	size_t m_fiberCount;
 
 	// UI elements:
@@ -124,7 +126,7 @@ namespace
 	QColor ProjectionErrorDefaultPlotColor(128, 128, 128, SelectionOpacity);
 	QColor SPLOMSelectionColor(255, 0, 0, ContextOpacity);
 
-	int NumberOfCloseFibers = 25;
+	int MaxNumberOfCloseFibers = 25;
 }
 
 iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd):
@@ -274,8 +276,8 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		}
 		// TODO: Check if output mapping is the same (it must be)!
 		vtkIdType numFibers = tableCreator.getTable()->GetNumberOfRows();
-		if (numFibers < NumberOfCloseFibers)
-			NumberOfCloseFibers = numFibers;
+		if (numFibers < MaxNumberOfCloseFibers)
+			MaxNumberOfCloseFibers = numFibers;
 		// TOOD: simplify - load all tables beforehand, then allocate splom data fully and then fill it?
 		for (int i = 15; i >= 2; --i)
 		{
@@ -823,23 +825,22 @@ double getDistance(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vt
 
 void getBestMatches(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, vtkTable* reference,
 	std::vector<std::vector<int> > const & colsToInclude,
-	std::vector<std::vector<double> > const & weights, std::vector<iAFiberDistance> & bestMatches)
+	std::vector<std::vector<double> > const & weights, std::vector<std::vector<iAFiberDistance> > & bestMatches)
 {
 	size_t refFiberCount = reference->GetNumberOfRows();
-	//minDistance = std::numeric_limits<double>::max();
-	//size_t bestMatch = std::numeric_limits<size_t>::max();
-	std::vector<iAFiberDistance> distances(refFiberCount);
-	for (size_t fiberID = 0; fiberID < refFiberCount; ++fiberID)
+	bestMatches.resize(colsToInclude.size());
+	for (int d=0; d<colsToInclude.size(); ++d)
 	{
-		distances[fiberID].index = fiberID;
-		for (int d=0; d<colsToInclude.size(); ++d)
+		std::vector<iAFiberDistance> distances(refFiberCount);
+		for (size_t fiberID = 0; fiberID < refFiberCount; ++fiberID)
 		{
+			distances[fiberID].index = fiberID;
 			double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(fiberID), colsToInclude[d], weights[d]);
-			distances[fiberID].distance.push_back(curDistance);
+			distances[fiberID].distance = curDistance;
 		}
+		std::sort(distances.begin(), distances.end());
+		std::copy(distances.begin(), distances.begin() + MaxNumberOfCloseFibers, std::back_inserter(bestMatches[d]));
 	}
-	std::sort(distances.begin(), distances.end());
-	std::copy(distances.begin(), distances.begin() + NumberOfCloseFibers, std::back_inserter(bestMatches));
 }
 
 void iAFiberOptimizationExplorer::referenceToggled(bool)
@@ -887,14 +888,12 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			getBestMatches(m_resultData[resultID].m_resultTable->GetRow(fiberID),
 				mapping, m_resultData[m_referenceID].m_resultTable,
 				colsToInclude, weights, m_resultData[resultID].m_referenceDist[fiberID]);
-			DEBUG_LOG(QString("  Fiber %1: Best matches fiber %2 from reference (distance: %3/%4), second best: %5 (distance: %6/%7)")
+			DEBUG_LOG(QString("  Fiber %1: Best match: distmetric1: fiber %2 (distance: %3), distmetric2: %4 (distance: %5)")
 				.arg(fiberID)
-				.arg(m_resultData[resultID].m_referenceDist[fiberID][0].index)
-				.arg(m_resultData[resultID].m_referenceDist[fiberID][0].distance[0])
-				.arg(m_resultData[resultID].m_referenceDist[fiberID][0].distance[1])
-				.arg(m_resultData[resultID].m_referenceDist[fiberID][1].index)
-				.arg(m_resultData[resultID].m_referenceDist[fiberID][1].distance[0])
-				.arg(m_resultData[resultID].m_referenceDist[fiberID][1].distance[1]));
+				.arg(m_resultData[resultID].m_referenceDist[fiberID][0][0].index)
+				.arg(m_resultData[resultID].m_referenceDist[fiberID][0][0].distance)
+				.arg(m_resultData[resultID].m_referenceDist[fiberID][1][0].index)
+				.arg(m_resultData[resultID].m_referenceDist[fiberID][1][0].distance));
 		}
 	}
 	
@@ -929,13 +928,13 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			for (size_t diffID = 0; diffID < diffCols.size(); ++diffID)
 			{
 				refDiff[diffID] = m_resultData[resultID].m_resultTable->GetValue(fiberID, diffCols[diffID]).ToDouble()
-					- m_resultData[m_referenceID].m_resultTable->GetValue(m_resultData[resultID].m_referenceDist[fiberID][0].index, diffCols[diffID]).ToDouble();
+					- m_resultData[m_referenceID].m_resultTable->GetValue(m_resultData[resultID].m_referenceDist[fiberID][0][0].index, diffCols[diffID]).ToDouble();
 				size_t tableColumnID = m_splomData->numParams() - 15 + diffID;
 				m_splomData->data()[tableColumnID][splomID] = refDiff[diffID];
 				m_resultData[resultID].m_resultTable->SetValue(fiberID, tableColumnID, refDiff[diffID]);
 			}
 			DEBUG_LOG(QString("  Fiber %1 -> ref #%2. Shift: startx=(%3, %4, %5), endx=(%6, %7, %8), center=(%9, %10, %11), phi=%12, theta=%13, length=%14, diameter=%15")
-				.arg(fiberID).arg(m_resultData[resultID].m_referenceDist[fiberID][0].index)
+				.arg(fiberID).arg(m_resultData[resultID].m_referenceDist[fiberID][0][0].index)
 				.arg(refDiff[0]).arg(refDiff[1]).arg(refDiff[2])
 				.arg(refDiff[3]).arg(refDiff[4]).arg(refDiff[5])
 				.arg(refDiff[6]).arg(refDiff[7]).arg(refDiff[8])
