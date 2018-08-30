@@ -2861,6 +2861,8 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 	addMsg(QString("%1  Computing statistics for modality %2...")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(GetModality(modalityIdx)->GetName()));
+	GetModality(modalityIdx)->GetTransfer()->Info().setComputing();
+	updateImageProperties();
 	auto workerThread = new iAStatisticsUpdater(modalityIdx, GetModality(modalityIdx));
 	connect(workerThread, &iAStatisticsUpdater::StatisticsReady, this, &MdiChild::StatisticsAvailable);
 	connect(workerThread, &iAStatisticsUpdater::finished, workerThread, &QObject::deleteLater);
@@ -2922,7 +2924,6 @@ void MdiChild::displayHistogram(int modalityIdx)
 	addMsg(QString("%1  Computing histogram for modality %2...")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(GetModality(modalityIdx)->GetName()));
-
 	auto workerThread = new iAHistogramUpdater(modalityIdx,
 		GetModality(modalityIdx), newBinCount);
 	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::HistogramDataAvailable);

@@ -18,61 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAPerceptuallyUniformLUT.h"
+#pragma once
 
-#include <vtkColorTransferFunction.h>
-#include <vtkLookupTable.h>
+#include "iAModuleInterface.h"
+#include "dlg_DynamicVolumeLines.h"
 
-#include "iALookupTable.h"
+class MdiChild;
 
-namespace
+class iADynamicVolumeLinesModuleInterface : public iAModuleInterface
 {
-	vtkSmartPointer<vtkColorTransferFunction> PerceptuallyUniformCTF()
-	{
-		vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
-		ctf->SetColorSpaceToLab();
-		ctf->AddRGBPoint(0.0, 0.230, 0.299, 0.754);
-		ctf->AddRGBPoint(0.5, 0.865, 0.865, 0.865);
-		ctf->AddRGBPoint(1.0, 0.706, 0.016, 0.150);
-		return ctf;
-	}
-}
+	Q_OBJECT
 
-void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, int numCols /*= 256 */ )
-{
-	pLUT->SetRange( lutRange );
-	pLUT->SetTableRange( lutRange );
-	pLUT->SetNumberOfColors( numCols );
-	auto ctf = PerceptuallyUniformCTF();
-	for( int i = 0; i < numCols; ++i )
-	{
-		double rgb[3];
-		ctf->GetColor( (double)i / numCols, rgb );
-		pLUT->SetTableValue( i, rgb[0], rgb[1], rgb[2] );
-	}
-	pLUT->Build();
-}
+public:
+	void Initialize();
 
-void iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, int numCols /*= 256 */ )
-{
-	double lutRange[2] = { rangeFrom, rangeTo };
-	BuildPerceptuallyUniformLUT( pLUT, lutRange, numCols );
-}
+private slots:
+	void DynamicVolumeLines();
 
-iALookupTable iAPerceptuallyUniformLUT::Build(double * lutRange, int numCols, double alpha)
-{
-	iALookupTable result;
-	result.setRange(lutRange);
-	result.allocate(numCols);
-	auto ctf = PerceptuallyUniformCTF();
-	double rgba[4];
-	rgba[3] = alpha;
-	for (int i = 0; i < numCols; ++i)
-	{
-		ctf->GetColor((double)i / numCols, rgba );
-		result.setColor(i, rgba );
-	}
-	return result;
-
-}
-
+private:
+	dlg_DynamicVolumeLines* dc;
+};

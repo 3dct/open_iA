@@ -42,6 +42,7 @@ class vtkCamera;
 class vtkCellLocator;
 class vtkCornerAnnotation;
 class vtkCubeSource;
+class vtkDataSetMapper;
 class vtkImageData;
 class vtkInteractorStyleSwitch;
 class vtkLineSource;
@@ -52,6 +53,7 @@ class vtkOrientationMarkerWidget;
 class vtkPicker;
 class vtkPlane;
 class vtkPlaneSource;
+class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkQImageToImageSource;
@@ -59,7 +61,7 @@ class vtkRenderer;
 class vtkRenderWindowInteractor;
 class vtkSphereSource;
 class vtkTransform;
-
+class vtkUnstructuredGrid;
 
 class open_iA_Core_API iARenderer: public QObject
 {
@@ -102,6 +104,9 @@ public:
 	void getCamPosition ( double * camOptions );
 	void setStatExt( int s ) { ext = s; };
 
+	void setAreaPicker();
+	void setPointPicker();
+
 	void setupCutter();
 	void setupCube();
 	void setupAxes(double spacing[3]);
@@ -129,6 +134,12 @@ public:
 	iARenderObserver * getRenderObserver(){ return renderObserver; }
 	void AddRenderer(vtkRenderer* renderer);
 	void ApplySettings(iARenderSettings & settings);
+	
+	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
+	void emitNoSelectedCells();
+	vtkSmartPointer<vtkDataSetMapper> selectedMapper;
+	vtkSmartPointer<vtkActor> selectedActor;
+	vtkSmartPointer<vtkUnstructuredGrid> finalSelection;
 protected:
 	void InitObserver();
 	iARenderObserver *renderObserver;
@@ -171,9 +182,8 @@ private:
 	vtkTransform* axesTransform;
 	vtkSmartPointer<vtkAxesActor> moveableAxesActor;
 	//! @}
-
+	
 	int ext; //!< statistical extent size
-
 	//! @{ Line profile
 	vtkSmartPointer<vtkLineSource>     m_profileLineSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_profileLineMapper;
@@ -201,7 +211,8 @@ Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);
 	void Clicked(int, int, int);
-
+	void cellsSelected(vtkPoints* selCellPoints);
+	void noCellsSelected();
 	void reInitialized();
 	void onSetupRenderer();
 	void onSetCamera();

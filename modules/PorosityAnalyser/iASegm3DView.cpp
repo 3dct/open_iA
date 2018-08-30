@@ -24,7 +24,7 @@
 #include "iAFast3DMagicLensWidget.h"
 #include "iARenderer.h"
 #include "iARendererManager.h"
-#include "iAPerceptuallyUniformLUT.h"
+#include "iALUT.h"
 #include "iARenderSettings.h"
 #include "iATransferFunction.h"
 #include "iAVolumeRenderer.h"
@@ -176,7 +176,7 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	scalarBarActor->SetNumberOfLabels( 4 );
 	vtkPolyDataMapper * mapper = m_renderer->GetPolyMapper();
 	double sr[2];  mapper->GetScalarRange(sr);
-	iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( m_lut, sr, 256 );
+	iALUT::BuildLUT( m_lut, sr, "Diverging blue-gray-red" );
 	m_lut->SetRange( sr ); m_lut->SetTableRange( sr );
 	mapper->SetLookupTable( m_lut );
 	scalarBarActor->SetLookupTable( m_lut );

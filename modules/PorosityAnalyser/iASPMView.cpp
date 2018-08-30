@@ -23,6 +23,7 @@
 #include "iAQtVTKBindings.h"
 #include "PorosityAnalyserHelpers.h"
 #include "iASelection.h"
+#include "iALUT.h"
 #include "iAPAQSplom.h"
 
 #include "charts/iASPLOMData.h"
@@ -156,6 +157,7 @@ void iASPMView::applyLookupTable()
 	updateLUT();
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( m_splom->data()->parameterName(m_splom->colorLookupParam()).toStdString().c_str() );
+	m_SBQVTKWidget->GetRenderWindow()->Render();
 	m_SBQVTKWidget->update();
 }
 

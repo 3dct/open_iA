@@ -25,7 +25,7 @@
 
 #include "defines.h"
 #include "charts/qcustomplot.h"
-#include "iAPerceptuallyUniformLUT.h"
+#include "iALUT.h"
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QVTKOpenGLWidget.h>
@@ -70,7 +70,7 @@ iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_selectedIndices.clear();
 	ShowDeviationControls( false );
 	ShowPorosityRangeControls( false );
-	iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( m_lut, -2.0, 2.0, 256 );
+	iALUT::BuildLUT( m_lut, -2.0, 2.0, "Diverging blue-gray-red");
 	m_sbRen->SetBackground( 1.0, 1.0, 1.0 );
 	m_sbRen->AddActor( m_sbActor );
 	m_sbActor->SetAnnotationTextScaling( 0 );
@@ -427,7 +427,7 @@ void iAPDMView::ShowPorosityRangeControls( bool visible )
 
 void iAPDMView::UpdateColormapSettings( double range )
 {
-	iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( m_lut, -range, range, 256 );
+	iALUT::BuildLUT( m_lut, -range, range, "Diverging blue-gray-red" );
 	m_sbActor->SetLookupTable( m_lut );
 	UpdateTableDeviation();
 	m_sbWidget->update();
