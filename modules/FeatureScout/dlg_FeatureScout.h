@@ -187,8 +187,10 @@ private:
 	void updateRenderer();
 	//! @}
 
-	void setAxisLabelSize(int fontSize);
-	void setAxisTicks(vtkAxis *axis, int tickCount, bool updatePC); // <! setAxis Labels; 
+	void setAxisProperties(int fontSize, int tickCount);  ////!< setAxis properties: fontsize, tickCount;
+
+	void setAxisFontSize(vtkAxis * axis, int fontSize, bool updatePC); //!< setAxis fontsize of label and titles;
+	void setAxisTickCount(vtkAxis *axis, int tickCount, bool updatePC);  //!< setAxis tickCount;  
 
 	//! @{ debug functions
 	void PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString &outputPath, const QString* fileName) const ; //!< print out a vtkTable
@@ -283,8 +285,9 @@ private:
 
 	QSharedPointer<QMap<uint, uint>> m_columnMapping;
 	float m_pcLineWidth;   //!< width of line in Parallel Coordinates
-	int m_pcTextSize; 
+	int m_pcDefaultTextSize; 
 	int m_pcMinTicksCount; 
+	int m_pcDefaultTickCount;
 
 	QSharedPointer<iAFeatureScoutSPLOM> m_splom;
 	QSharedPointer<iA3DObjectVis> m_3dvis;

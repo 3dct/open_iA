@@ -217,8 +217,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupUi( this );
 	visualization = vis;
 	m_pcLineWidth = 0.1;
-	m_pcTextSize = 20;
-	m_pcMinTicksCount = 5; //Minimum tick count - 5 ticks to be shown 
+	m_pcDefaultTextSize = 15;		//Default font size - 17 pt
+	m_pcMinTicksCount = 2; //Minimum tick count - 5 ticks to be shown 
+	m_pcDefaultTickCount = 10; //default tick number
 	this->elementsCount = csvTable->GetNumberOfColumns();
 	this->objectsCount = csvTable->GetNumberOfRows();
 	this->activeChild = parent;
@@ -363,7 +364,7 @@ void dlg_FeatureScout::updatePCColumnVisibility()
 	{
 		pcChart->SetColumnVisibility( csvTable->GetColumnName( j ), columnVisibility[j]);
 	}
-	setAxisLabelSize(m_pcTextSize);
+	setAxisProperties(m_pcDefaultTextSize, m_pcDefaultTickCount);
 	pcView->Update(); 
 	pcView->ResetCamera();
 	pcView->Render();
@@ -3531,44 +3532,41 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 }
 
 
-void dlg_FeatureScout::setAxisLabelSize(int fontSize)
+void dlg_FeatureScout::setAxisProperties(int fontSize, int tickCount)
 {
-	int axis_count = -1; 
-	int tick_count = -1; 
-	axis_count = pcChart->GetNumberOfAxes();
-	tick_count = 10; 
-	
-
+	int axis_count = pcChart->GetNumberOfAxes();
 	for (int i = 0; i < axis_count; i++) {
-		
-		
-		pcChart->GetAxis(i)->GetLabelProperties()->SetFontSize(fontSize);
-		if (i != 4) {
-			
-			pcChart->GetAxis(i); 
-			setAxisTicks(pcChart->GetAxis(i), tick_count, false); 
-		}
-					
-		pcChart->GetAxis(i)->GetTitleProperties()->SetFontSize(fontSize);
-		
+		vtkAxis *axis = pcChart->GetAxis(i);
+		setAxisTickCount(axis, m_pcDefaultTickCount, false);
+		setAxisFontSize(axis, m_pcDefaultTextSize, false);
 	}
 	
 	pcChart->Update(); 
 }
 
-void dlg_FeatureScout::setAxisTicks(vtkAxis *axis, int tickCount, bool updatePC)
+void dlg_FeatureScout::setAxisFontSize(vtkAxis * axis, int fontSize, bool updatePC) {
+	if (axis && (fontSize > 0)){
+		axis->GetLabelProperties()->SetFontSize(fontSize);
+		axis->GetTitleProperties()->SetFontSize(fontSize);
+		axis->RecalculateTickSpacing(); 
+		if (updatePC) {
+			pcChart->Update(); 
+		}
+
+	}
+}
+
+void dlg_FeatureScout::setAxisTickCount(vtkAxis *axis, int tickCount, bool updatePC)
 {
 	if (axis && (tickCount > m_pcMinTicksCount)) {
 		axis->SetNumberOfTicks(tickCount);
 		axis->RecalculateTickSpacing(); 
-		
 		if (updatePC) {
 			pcChart->Update(); 
 		}
 	}
-	
-	//else invalid axis; 
-
-
+	// TODO else invalid axis; 
 }
+
+
 
