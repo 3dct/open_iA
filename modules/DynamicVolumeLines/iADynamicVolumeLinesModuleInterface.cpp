@@ -18,19 +18,28 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iADynamicVolumeLinesModuleInterface.h"
 
-#include "open_iA_Core_export.h"
+#include "mainwindow.h"
+#include "mdichild.h"
 
-#include <vtkSmartPointer.h>
+#include <QFileDialog>
+#include <QMessageBox>
 
-class iALookupTable;
-
-class vtkLookupTable;
-
-namespace iAPerceptuallyUniformLUT
+void iADynamicVolumeLinesModuleInterface::Initialize()
 {
-	void open_iA_Core_API BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, int numCols = 256 );
-	void open_iA_Core_API BuildPerceptuallyUniformLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, int numCols = 256 );
-	iALookupTable open_iA_Core_API Build(double * lutRange, int numCols, double alpha);
+	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QAction * actionDynamicVolumeLines = new QAction(QApplication::translate("MainWindow", "Dynamic Volume Lines", 0), m_mainWnd);
+	AddActionToMenuAlphabeticallySorted(toolsMenu, actionDynamicVolumeLines);
+	connect(actionDynamicVolumeLines, SIGNAL(triggered()), this, SLOT(DynamicVolumeLines()));
+}
+
+void iADynamicVolumeLinesModuleInterface::DynamicVolumeLines()
+{
+	PrepareActiveChild();
+	QDir datasetsDir = m_mdiChild->getFilePath();
+	datasetsDir.setNameFilters(QStringList("*.mhd"));
+	dc = new dlg_DynamicVolumeLines(m_mdiChild, datasetsDir);
+	m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, dc);
+	dc->raise();
 }

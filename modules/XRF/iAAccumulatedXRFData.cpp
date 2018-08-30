@@ -113,10 +113,10 @@ namespace
 {
 	iASpectrumFunction * createSpectrumFunction(QSharedPointer<iAXRFData const> xrfData, int x, int y, int z)
 	{
-		iASpectrumFunction *result = new iASpectrumFunction(xrfData->size());
+		iASpectrumFunction *result = new iASpectrumFunction();
 		for (size_t i=0; i<xrfData->size(); ++i)
 		{
-			result->set(i, static_cast<unsigned int>(xrfData->GetImage(i)->GetScalarComponentAsFloat(x, y, z, 0)));
+			result->insert(std::make_pair(i, static_cast<unsigned int>(xrfData->GetImage(i)->GetScalarComponentAsFloat(x, y, z, 0))));
 		}
 		return result;
 	}
@@ -232,8 +232,7 @@ void iAAccumulatedXRFData::calculateFunctionBoxplots()
 	ModifiedDepthMeasure<size_t, unsigned int> measure;
 	std::vector<iAFunction<size_t, unsigned int> *> functions = GetSpectrumFunctions();
 	m_functionalBoxplotData = new iAFunctionalBoxplot<size_t, unsigned int>(
-		functions, /*argMin=*/0, /*argMax=*/m_xrfData->size()-1,
-		&measure, 2);
+		functions, &measure, 2);
 }
 
 FunctionalBoxPlot* const iAAccumulatedXRFData::GetFunctionalBoxPlot()

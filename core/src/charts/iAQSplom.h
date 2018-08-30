@@ -62,6 +62,31 @@ class QTableWidget;
 	The maximized plot can be minimized by using a button in upper-right corner.
 	Inherits QGLWidget,manages scatter plots internally.
 	Some customization options are available via the public settings member.
+
+	Usage:
+	- Create iAQSPLOM
+	- add to a window/widget, make visible
+	- set some data (using one of the setData methods)
+	- set a lookup table for dot colors (setLookupTable)
+	- (optional:) set the parameter visibility (by default, all parameters are visible
+	- (optional:)
+
+	Example (visibleWidget is some widget, currently shown, with a layout):
+		iAQSplom* splom = new iAQSplom();
+		visibleWidget->layout()->addWidget(splom);
+		// ... you might want enable Qt to process a paint event here, to make sure the OpenGL context is created
+		QSharedPoiner<iASPLOMData> splomData = createSPLOMDataSomehow();
+		splom->setData(splomData);
+		iALookupTable lut;
+		// we assume here you want all points colored in a middle gray; we set up a color lookoup table
+		// over all values of column 0, and set the same color for the whole range
+		// if you want to color the dots by an actual column value, adapt this to your own needs!
+		lut.setRange( splomData->paramRange(0) );
+		lut.allocate(2);
+		QColor CustomDotColor(128, 128, 128)
+		lut.setColor( 0, CustomDotColor );
+		lut.setColor( 1, CustomDotColor );
+		splom->setLookupTable( lut, 0 );
 */
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
@@ -79,6 +104,7 @@ class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectio
 		UPPER_HALF,
 		ALL_PLOTS
 	};
+public:
 	enum ColorScheme //!< what color scheme to use for coloring the dots
 	{
 		Uniform,                         //!< all points have the same color
@@ -86,7 +112,6 @@ class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectio
 		Custom                           //!< points are colored
 	};
 // Methods
-public:
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
 #else
@@ -133,6 +158,7 @@ public:
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
 	iALookupTable const & lookupTable() const;                       //!< get lookup table
+	ColorScheme colorScheme() const;                                 //!< get current color scheme
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
 	void showSettings();                                             //!< Show the settings dialog

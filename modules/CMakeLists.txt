@@ -59,6 +59,8 @@ FOREACH( indx RANGE ${len} )
 			LIST( REMOVE_ITEM module_srcs ${module_test_srcs} )
 		ENDIF ()
 		FILE( GLOB_RECURSE module_hs "${module_full_path}/*.h" )
+		FILE( GLOB_RECURSE module_hpp "${module_full_path}/*.hpp" )
+		LIST (APPEND module_hs ${module_hpp})
 		FILE( GLOB_RECURSE module_uis "${module_full_path}/*.ui" )
 		QT5_WRAP_UI( module_srcs ${module_uis})
 		# If there are dependencies do the check

@@ -61,6 +61,7 @@ class iAPDMView : public PorosityAnalyzerPDMConnector
 public:
 	iAPDMView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iAPDMView();
+
 	QModelIndexList SelectedIndices() const { return m_selectedIndices; }
 
 public slots:

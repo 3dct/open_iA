@@ -45,24 +45,30 @@ void iAFeatureScoutModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * featureScoutMenu = getMenuWithTitle(toolsMenu, QString("FeatureScout"), false);
-
 	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
-	AddActionToMenuAlphabeticallySorted( featureScoutMenu, actionFibreScout);
+	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout, false );
 	connect(actionFibreScout, SIGNAL(triggered()), this, SLOT(FeatureScout()));
-
-	QAction * actionOpenCSVFeatureScout = new QAction( QObject::tr("FeatureScoutWithCSV"), nullptr );
-	AddActionToMenuAlphabeticallySorted( featureScoutMenu, actionOpenCSVFeatureScout, false);
-	connect(actionOpenCSVFeatureScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScoutWithCSV);
-
 	tlbFeatureScout = nullptr;
 }
 
-void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
+void iAFeatureScoutModuleInterface::FeatureScout()
 {
 	dlg_CSVInput dlg;
 	if (m_mainWnd->activeMdiChild())
-		dlg.setPath(m_mainWnd->activeMdiChild()->getFilePath());
+	{
+		auto mdi = m_mainWnd->activeMdiChild();
+		QString testCSVFileName = mdi->getFileInfo().canonicalPath() + "/" +
+				mdi->getFileInfo().completeBaseName() + ".csv";
+		if (QFile(testCSVFileName).exists())
+		{
+			dlg.setFileName(testCSVFileName);
+			auto type = guessFeatureType(testCSVFileName);
+			if (type != InvalidObjectType)
+				dlg.setFormat(type == Voids ? dlg_CSVInput::LegacyVoidFormat : dlg_CSVInput::LegacyFiberFormat);
+		}
+		else
+			dlg.setPath(mdi->getFilePath());
+	}
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	iACsvConfig csvConfig = dlg.getConfig();
@@ -84,36 +90,37 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 	startFeatureScout(csvConfig);
 }
 
-void iAFeatureScoutModuleInterface::FeatureScout()
+iAFeatureScoutObjectType iAFeatureScoutModuleInterface::guessFeatureType(QString const & csvFileName)
 {
-	PrepareActiveChild();
-	QString fileName = QFileDialog::getOpenFileName( m_mdiChild, tr( "Select CSV File" ),
-		m_mdiChild->getFilePath(), tr( "CSV Files (*.csv)" ) );
-	LoadFeatureScoutWithParams(fileName, m_mdiChild);
-}
-
-void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(const QString &csvFileName, MdiChild *mchildWnd)
-{
-	if ( csvFileName.isEmpty() )
-		return;
-	m_mdiChild = mchildWnd;
 	QFile file( csvFileName );
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		m_mdiChild->addMsg("CSV-file could not be opened.");
-		return;
+		return InvalidObjectType;
 	}
 	// TODO: create convention, 2nd line of csv file for fibers (pore csv file have this line)
 	// Automatic csv file detection
 	QTextStream in( &file );
 	in.readLine();
 	QString item = in.readLine();
-	iACsvConfig csvConfig;
-	if (item != "Voids")
-		csvConfig = iACsvConfig::getLegacyFiberFormat( csvFileName );
-	else
-		csvConfig = iACsvConfig::getLegacyPoreFormat( csvFileName );
+	auto returnType = (item == "Voids") ? Voids : Fibers;
 	file.close();
+	return returnType;
+}
+
+void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & csvFileName, MdiChild* mdiChild)
+{
+	if ( csvFileName.isEmpty() )
+		return;
+	m_mdiChild = mdiChild;
+	auto type = guessFeatureType(csvFileName);
+	if (type == InvalidObjectType)
+	{
+		m_mdiChild->addMsg("CSV-file could not be opened or not a valid FeatureScout file!");
+		return;
+	}
+	iACsvConfig csvConfig = (type != Voids) ?
+		iACsvConfig::getLegacyFiberFormat( csvFileName ):
+		iACsvConfig::getLegacyPoreFormat( csvFileName );
 	startFeatureScout(csvConfig);
 }
 

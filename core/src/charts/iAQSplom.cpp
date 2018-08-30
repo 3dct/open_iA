@@ -26,7 +26,7 @@
 #include "iAHistogramData.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
-#include "iAPerceptuallyUniformLUT.h"
+#include "iALUT.h"
 #include "iAPlotTypes.h"
 #include "iAScatterPlot.h"
 #include "iASPLOMData.h"
@@ -1352,7 +1352,7 @@ void iAQSplom::updateLookupTable()
 			break;
 		}
 		case DivergingPerceptuallyUniform:
-			*m_lut.data() = iAPerceptuallyUniformLUT::Build(lutRange, 256, alpha);
+			*m_lut.data() = iALUT::Build(lutRange, "Diverging blue-gray-red", 256, alpha);
 			break;
 		case Custom:
 			for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
@@ -1429,6 +1429,11 @@ size_t iAQSplom::colorLookupParam() const
 iALookupTable const & iAQSplom::lookupTable() const
 {
 	return *m_lut.data();
+}
+
+iAQSplom::ColorScheme iAQSplom::colorScheme() const
+{
+	return settings.colorScheme;
 }
 
 void iAQSplom::setColorParam(const QString & paramName)

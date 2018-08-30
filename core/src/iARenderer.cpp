@@ -31,19 +31,26 @@
 
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
+#include <vtkAppendFilter.h>
+#include <vtkAreaPicker.h>
 #include <vtkAxesActor.h>
+#include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkCellLocator.h>
 #include <vtkCubeSource.h>
+#include <vtkDataSetMapper.h>
+#include <vtkExtractSelectedFrustum.h>
 #include <vtkGenericMovieWriter.h>
 #include <vtkGenericRenderWindowInteractor.h>
 #include <vtkImageData.h>
 #include <vtkImageCast.h>
+#include <vtkInteractorStyleRubberBandPick.h>
 #include <vtkInteractorStyleSwitch.h>
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
+#include <vtkObjectFactory.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkPicker.h>
@@ -53,21 +60,150 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
+#include <vtkRendererCollection.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSphereSource.h>
 #include <vtkTransform.h>
+#include <vtkUnstructuredGrid.h>
 #include <vtkWindowToImageFilter.h>
 
 #include <QApplication>
+#include <QColor>
 #include <QDateTime>
 #include <QImage>
 #include <QLocale>
 #include <QApplication>
 #include <QImage>
 
+#define VTKISRBP_ORIENT 0
+#define VTKISRBP_SELECT 1
+
+static void GetCellCenter(vtkUnstructuredGrid* imageData, const unsigned int cellId,
+	double center[3], double spacing[3]);
+
+class MouseInteractorStyle : public vtkInteractorStyleRubberBandPick
+{
+public:
+	static MouseInteractorStyle* New();
+	
+	virtual void OnChar()
+	{
+		switch (this->Interactor->GetKeyCode())
+		{
+		case 's':
+		case 'S':
+			if (this->CurrentMode == VTKISRBP_ORIENT)
+				this->CurrentMode = VTKISRBP_SELECT;
+			else
+				this->CurrentMode = VTKISRBP_ORIENT;
+			break;
+		case 'p':
+		case 'P':
+		{
+			vtkRenderWindowInteractor *rwi = this->Interactor;
+			int *eventPos = rwi->GetEventPosition();
+			this->FindPokedRenderer(eventPos[0], eventPos[1]);
+			this->StartPosition[0] = eventPos[0];
+			this->StartPosition[1] = eventPos[1];
+			this->EndPosition[0] = eventPos[0];
+			this->EndPosition[1] = eventPos[1];
+			this->Pick();
+			break;
+		}
+		default:
+			this->Superclass::OnChar();
+		}
+	}
+};
+vtkStandardNewMacro(MouseInteractorStyle);
+
+void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
+	void* clientData, void* vtkNotUsed(callData))
+{
+	vtkAreaPicker *areaPicker = static_cast<vtkAreaPicker*>(caller);
+	iARenderer *ren = static_cast<iARenderer*>(clientData);
+	ren->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(ren->selectedActor);
+
+	auto extractSelection = vtkSmartPointer<vtkExtractSelectedFrustum>::New();
+	extractSelection->SetInputData(0, ren->getRenderObserver()->GetImageData());
+	extractSelection->PreserveTopologyOff();
+	extractSelection->SetFrustum(areaPicker->GetFrustum());
+	extractSelection->Update();
+
+	if (!extractSelection->GetOutput()->GetNumberOfElements(vtkUnstructuredGrid::CELL))
+	{
+		ren->emitNoSelectedCells();
+		return;
+	}
+	
+	if (ren->GetInteractor()->GetControlKey() &&
+		!ren->GetInteractor()->GetShiftKey())
+	{
+		// Adds cells to selection
+		auto append = vtkSmartPointer<vtkAppendFilter>::New();
+		append->AddInputData(ren->finalSelection);
+		append->AddInputData(extractSelection->GetOutput());
+		append->Update();
+		ren->finalSelection->ShallowCopy(append->GetOutput());
+	}
+	else if (ren->GetInteractor()->GetControlKey() &&
+		ren->GetInteractor()->GetShiftKey())
+	{
+		// Removes cells from selection 
+		auto newfinalSel = vtkSmartPointer<vtkUnstructuredGrid>::New();
+		newfinalSel->Allocate(1, 1);
+		newfinalSel->SetPoints(ren->finalSelection->GetPoints());
+		auto currSel = vtkSmartPointer<vtkUnstructuredGrid>::New();
+		currSel->ShallowCopy(extractSelection->GetOutput());
+		double f_Cell[DIM] = { 0,0,0 }, c_Cell[DIM] = { 0,0,0 };
+		double* spacing = ren->getRenderObserver()->GetImageData()->GetSpacing();
+
+		for (vtkIdType i = 0; i < ren->finalSelection->GetNumberOfCells(); ++i)
+		{
+			bool addCell = true;
+			GetCellCenter(ren->finalSelection, i, f_Cell, spacing);
+			for (vtkIdType j = 0; j < currSel->GetNumberOfCells(); ++j)
+			{
+				GetCellCenter(currSel, j, c_Cell, spacing);
+				if (f_Cell[0] == c_Cell[0] &&
+					f_Cell[1] == c_Cell[1] &&
+					f_Cell[2] == c_Cell[2])
+				{
+					addCell = false;
+					break;
+				}
+			}
+			if (addCell)
+				newfinalSel->InsertNextCell(ren->finalSelection->GetCell(i)->GetCellType(),
+					ren->finalSelection->GetCell(i)->GetPointIds());
+		}		
+		ren->finalSelection->ShallowCopy(newfinalSel);
+	}
+	else
+	{
+		// New selection
+		ren->finalSelection->ShallowCopy(extractSelection->GetOutput());
+	}
+	ren->selectedMapper->Update();
+	ren->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(ren->selectedActor);
+	ren->emitSelectedCells(ren->finalSelection);
+}
+
+void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double center[DIM], double spacing[DIM])
+{
+	double pcoords[DIM] = { 0,0,0 };
+	double *weights = new double[data->GetMaxCellSize()];
+	vtkCell* cell = data->GetCell(cellId);
+	int np = cell->GetPoints()->GetNumberOfPoints();
+	int subId = cell->GetParametricCenter(pcoords);
+	cell->EvaluateLocation(subId, pcoords, center, weights);
+	for (int i = 0; i < DIM; ++i)
+		center[i] = floor(center[i] / spacing[i]);
+}
 
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
-	interactor(0)
+	interactor(0),
+	renderObserver(0)
 {
 	renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();		// TODO: move out of here?
 	renWin->AlphaBitPlanesOn();
@@ -75,7 +211,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	renWin->PointSmoothingOn();
 
 	cam = vtkSmartPointer<vtkCamera>::New();
-	interactorStyle = vtkSmartPointer<vtkInteractorStyleSwitch>::New();
 
 	cSource = vtkSmartPointer<vtkCubeSource>::New();
 	cMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -95,9 +230,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	axesActor = vtkSmartPointer<vtkAxesActor>::New();
 	moveableAxesActor = vtkSmartPointer<vtkAxesActor>::New();
 	orientationMarkerWidget = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-
-	pointPicker = vtkSmartPointer<vtkPicker>::New();
-	renderObserver = NULL;
 
 	plane1 = vtkSmartPointer<vtkPlane>::New();
 	plane2 = vtkSmartPointer<vtkPlane>::New();
@@ -134,7 +266,6 @@ iARenderer::~iARenderer(void)
 {
 	ren->RemoveAllObservers();
 	renWin->RemoveAllObservers();
-
 	if (renderObserver) renderObserver->Delete();
 }
 
@@ -173,17 +304,13 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	renWin->SetNumberOfLayers(5);
 	renWin->AddRenderer(ren);
 	renWin->AddRenderer(labelRen);
-	pointPicker->SetTolerance(0.00005);//spacing[0]/150);
 	interactor = renWin->GetInteractor();
-	interactor->SetPicker(pointPicker);
-	interactorStyle->SetCurrentStyleToTrackballCamera();
-	interactor->SetInteractorStyle(interactorStyle);
+	setPointPicker();	
 	InitObserver();
 
 	QImage img;
 	if( QDate::currentDate().dayOfYear() >= 340 )img.load(":/images/Xmas.png");
 	else img.load(":/images/fhlogo.png");
-
 	logoImage->SetQImage(&img);
 	logoImage->Update();
 	logoRep->SetImage(logoImage->GetOutput( ));
@@ -280,10 +407,44 @@ void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
 		axesTransform, ds,
 		plane1, plane2, plane3, cellLocator );
 	interactor->ReInitialize();
-
 	emit reInitialized();
-
 	update();
+}
+
+void iARenderer::setAreaPicker()
+{
+	auto areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
+	interactor->SetPicker(areaPicker);
+	auto style = vtkSmartPointer<MouseInteractorStyle>::New();
+	interactor->SetInteractorStyle(style);
+	auto pickCallback = vtkSmartPointer<vtkCallbackCommand>::New();
+	pickCallback->SetCallback(PickCallbackFunction);
+	pickCallback->SetClientData(this);
+	areaPicker->AddObserver(vtkCommand::EndPickEvent, pickCallback, 1.0);
+
+	finalSelection = vtkSmartPointer<vtkUnstructuredGrid>::New();
+	selectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+	selectedMapper->SetScalarModeToUseCellData();
+	selectedMapper->SetInputData(finalSelection);
+	selectedActor = vtkSmartPointer<vtkActor>::New();
+	QColor c(255, 0, 0);
+	selectedActor->SetMapper(selectedMapper);
+	selectedActor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
+	selectedActor->GetProperty()->SetRepresentationToWireframe();
+	selectedActor->GetProperty()->EdgeVisibilityOn();
+	selectedActor->GetProperty()->SetEdgeColor(c.redF(), c.greenF(), c.blueF());
+	selectedActor->GetProperty()->SetLineWidth(3);
+
+}
+
+void iARenderer::setPointPicker()
+{
+	pointPicker = vtkSmartPointer<vtkPicker>::New();
+	pointPicker->SetTolerance(0.00005);//spacing[0]/150);
+	interactor->SetPicker(pointPicker);
+	interactorStyle = vtkSmartPointer<vtkInteractorStyleSwitch>::New();
+	interactorStyle->SetCurrentStyleToTrackballCamera();
+	interactor->SetInteractorStyle(interactorStyle);
 }
 
 void iARenderer::setupCutter()
@@ -632,7 +793,7 @@ void iARenderer::InitObserver()
 		axesTransform, imageData,
 		plane1, plane2, plane3, cellLocator);
 
-	interactor->AddObserver(vtkCommand::KeyPressEvent, renderObserver);
+	interactor->AddObserver(vtkCommand::KeyPressEvent, renderObserver, 0.0);
 	interactor->AddObserver(vtkCommand::LeftButtonPressEvent, renderObserver);
 	interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, renderObserver);
 	interactor->AddObserver(vtkCommand::RightButtonPressEvent, renderObserver);
@@ -711,4 +872,22 @@ void iARenderer::ApplySettings(iARenderSettings & settings)
 	showHelpers(settings.ShowHelpers);
 	showRPosition(settings.ShowRPosition);
 	showSlicePlanes(settings.ShowSlicePlanes);
+}
+
+void iARenderer::emitSelectedCells(vtkUnstructuredGrid* selectedCells)
+{
+	double cell[DIM] = { 0,0,0 };
+	double* spacing = getRenderObserver()->GetImageData()->GetSpacing();
+	auto selCellPoints = vtkSmartPointer<vtkPoints>::New();
+	for (vtkIdType i = 0; i < selectedCells->GetNumberOfCells(); ++i)
+	{
+		GetCellCenter(selectedCells, i, cell, spacing);
+		selCellPoints->InsertNextPoint(cell);
+	}
+	emit cellsSelected(selCellPoints);
+}
+
+void iARenderer::emitNoSelectedCells()
+{
+	emit noCellsSelected();
 }

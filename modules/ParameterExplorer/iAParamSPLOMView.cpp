@@ -25,7 +25,7 @@
 
 #include "charts/iAQSplom.h"
 #include "iAConsole.h"
-#include "iAPerceptuallyUniformLUT.h"
+#include "iALUT.h"
 #include "iAQFlowLayout.h"
 
 #include <vtkColorTransferFunction.h>
@@ -156,7 +156,7 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 	}
 	else
 	{
-		iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT(m_lut, lutRange, FullTableValues);
+		iALUT::BuildLUT(m_lut, lutRange, "Diverging blue-gray-red", FullTableValues);
 	}
 	m_splom->setLookupTable(m_lut, (colName == "None") ? m_tableView->Table()->item(0, 1)->text() : colName );
 }

@@ -56,6 +56,9 @@ namespace csvRegKeys
 	static const QString VisualizationType = "VisualizationType";
 	static const QString ColumnMappings = "ColumnMappings";
 }
+
+const QString dlg_CSVInput::LegacyFiberFormat("Legacy Fiber csv");
+const QString dlg_CSVInput::LegacyVoidFormat("Legacy Pore csv");
 namespace
 {
 	QStringList const & ColumnSeparators()
@@ -74,9 +77,6 @@ namespace
 	}
 
 	const char* NotMapped = "Not mapped";
-
-	const char* LegacyFiberFormat = "Legacy Fiber csv";
-	const char* LegacyPoreFormat = "Legacy Pore csv";
 
 	static const QString IniFormatName = "FormatName";
 
@@ -143,14 +143,36 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	connectSignals();
 }
 
+void dlg_CSVInput::setPath(QString const & path)
+{
+	m_path = path;
+}
+
+void dlg_CSVInput::setFileName(QString const & fileName)
+{
+	ed_FileName->setText(fileName);
+	updatePreview();
+}
+
+void dlg_CSVInput::setFormat(QString const & formatName)
+{
+	if (cmbbox_Format->findText(formatName))
+		cmbbox_Format->setCurrentText(formatName);
+}
+
+iACsvConfig const & dlg_CSVInput::getConfig() const
+{
+	return m_confParams;
+}
+
 void dlg_CSVInput::initParameters()
 {
 	ed_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
 	QStringList formatEntries = getFormatListFromRegistry();
 	if (!formatEntries.contains(LegacyFiberFormat))
 		formatEntries.append(LegacyFiberFormat);
-	if (!formatEntries.contains(LegacyPoreFormat))
-		formatEntries.append(LegacyPoreFormat);
+	if (!formatEntries.contains(LegacyVoidFormat))
+		formatEntries.append(LegacyVoidFormat);
 	cmbbox_Format->addItems(formatEntries);
 	// load default format, and if that fails, load first format if available:
 	if (!loadFormatFromRegistry(loadGeneralSetting(csvRegKeys::DefaultFormat).toString()) && formatEntries.length() > 0)
@@ -184,11 +206,6 @@ void dlg_CSVInput::connectSignals()
 	connect(cb_ContainsHeader, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cb_AdvancedMode, &QCheckBox::stateChanged, this, &dlg_CSVInput::advancedModeToggled);
 	connect(list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
-}
-
-void dlg_CSVInput::setPath(QString const & path)
-{
-	m_path = path;
 }
 
 void dlg_CSVInput::okBtnClicked()
@@ -379,11 +396,6 @@ void dlg_CSVInput::selectFileBtnClicked()
 		return;
 	ed_FileName->setText(fileName);
 	updatePreview();
-}
-
-iACsvConfig const & dlg_CSVInput::getConfig() const
-{
-	return m_confParams;
 }
 
 void dlg_CSVInput::showConfigParams()
@@ -626,7 +638,7 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName, iACsvConfi
 			m_confParams = iACsvConfig::getLegacyFiberFormat(m_confParams.fileName);
 			return true;
 		}
-		else if (formatName == LegacyPoreFormat)
+		else if (formatName == LegacyVoidFormat)
 		{
 			m_confParams = iACsvConfig::getLegacyPoreFormat(m_confParams.fileName);
 			return true;
