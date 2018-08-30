@@ -135,8 +135,9 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_splom(new iAQSplom()),
 	m_lastResultID(-1)
 {
+	setDockOptions(AllowNestedDocks | AllowTabbedDocks );
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-	//setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
+	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
 #endif
 	setMinimumSize(600, 400);
 	setCentralWidget(nullptr);
@@ -156,7 +157,6 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	filters << "*.csv";
 	QStringList csvFileNames;
 	FindFiles(path, filters, false, csvFileNames, Files);
-
 
 	m_mainRenderer = new iAVtkWidgetClass();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
@@ -492,8 +492,8 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	iADockWidgetWrapper* splomWidget = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
 
 	addDockWidget(Qt::BottomDockWidgetArea, resultListDockWidget);
-	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
+	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
 }
 
