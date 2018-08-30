@@ -32,7 +32,7 @@ class iASegmentTree
 public:
 	iASegmentTree(const vector<int> &input, int binCnt, int lowerBnd, int upperBnd);
 	~iASegmentTree();
-	vector<int> iASegmentTree::hist_query(int l, int r);
+	vector<int> hist_query(int l, int r);
 	double avg_query(int l, int r);
 	int min_query(int l, int r);
 	int max_query(int l, int r);

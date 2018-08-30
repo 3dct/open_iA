@@ -77,7 +77,7 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 			
 			for (unsigned int h = 0; h < coordList.size(); ++h)
 			{
-				InputImageType::IndexType c;
+				typename InputImageType::IndexType c;
 				for (int i = 0; i < DIM; i++)
 					c[i] = coordList[h][i];
 				
