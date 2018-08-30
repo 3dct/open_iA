@@ -37,10 +37,9 @@
 
 vtkStandardNewMacro(iASelectionInteractorStyle);
 
-void iASelectionInteractorStyle::OnLeftButtonUp()
+void iASelectionInteractorStyle::Pick()
 {
-	vtkInteractorStyleRubberBandPick::OnLeftButtonUp();
-
+	vtkInteractorStyleRubberBandPick::Pick();
 	if (!m_points || GetInteractor()->GetPicker()->GetMTime() == m_lastPickTime)
 		return;
 	

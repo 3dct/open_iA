@@ -37,7 +37,7 @@ class iASelectionInteractorStyle : public QObject, public vtkInteractorStyleRubb
 public:
 	static iASelectionInteractorStyle* New();
 	vtkTypeMacro(iASelectionInteractorStyle, vtkInteractorStyleRubberBandPick);
-	void OnLeftButtonUp() override;
+	void Pick() override;
 	void setInput(vtkSmartPointer<vtkPolyData> points);
 	void assignToRenderWindow(vtkSmartPointer<vtkRenderWindow> renWin);
 signals:
