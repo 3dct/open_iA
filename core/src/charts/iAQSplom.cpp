@@ -1352,7 +1352,7 @@ void iAQSplom::updateLookupTable()
 			break;
 		}
 		case DivergingPerceptuallyUniform:
-			*m_lut.data() = iALUT::Build(lutRange, "Diverging blue - gray - red", 256, alpha);
+			*m_lut.data() = iALUT::Build(lutRange, "Diverging blue-gray-red", 256, alpha);
 			break;
 		case Custom:
 			for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
