@@ -68,7 +68,7 @@
 
 const double impInitValue = 0.025;
 const double offsetY = 1000;
-const int rangeSwitchValue = 100;
+const int rangeSwitchValue = 500;
 
 void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -275,6 +275,8 @@ void dlg_DynamicVolumeLines::setupGUIConnections()
 
 	connect(m_mdiChild->getRenderer(), SIGNAL(cellsSelected(vtkPoints*)),
 		this, SLOT(setSelectionForPlots(vtkPoints*)));
+	connect(m_mdiChild->getRenderer(), SIGNAL(noCellsSelected()),
+		this, SLOT(setNoSelectionForPlots()));
 }
 
 void dlg_DynamicVolumeLines::changePlotVisibility()
@@ -324,7 +326,7 @@ void dlg_DynamicVolumeLines::generateHilbertIdx()
 	connect(im, SIGNAL(finished()), thread, SLOT(quit()));
 	connect(im, SIGNAL(finished()), im, SLOT(deleteLater()));
 	connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-	connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));		// Debug
+	//connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));		// Debug
 	connect(thread, SIGNAL(finished()), this, SLOT(visualize()));
 	thread->start();
 }
@@ -1564,6 +1566,28 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 	m_mrvRenWin->Render();
 }
 
+void dlg_DynamicVolumeLines::setNoSelectionForPlots()
+{
+	QCPDataSelection noSelection;
+	for (int i = 0; i < m_nonlinearScaledPlot->graphCount(); ++i)
+	{
+		m_nonlinearScaledPlot->graph(i)->setSelection(noSelection);
+		m_linearScaledPlot->graph(i)->setSelection(noSelection);
+	}
+
+	m_mrvRenWin->GetRenderers()->RemoveAllItems();
+	m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D());
+	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
+	m_mrvRenWin->AddRenderer(m_mrvBGRen);
+	m_mrvRenWin->Render();
+
+	m_scalingWidget->setSel(noSelection);
+	m_scalingWidget->update();
+
+	m_nonlinearScaledPlot->replot();
+	m_linearScaledPlot->replot(); 
+}
+
 void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 {
 	auto pathSteps = m_DatasetIntensityMap.at(0).second.size();
@@ -1609,8 +1633,50 @@ void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 				selRange.setBegin(i);
 		}
 	}
-	m_nonlinearScaledPlot->graph(0)->setSelection(selection);
+	
+
+	QList<QString> visibleGraphsNameList;
+	for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
+		if (m_nonlinearScaledPlot->graph(i)->visible())
+			visibleGraphsNameList.append(m_nonlinearScaledPlot->graph(i)->name());
+
+	QCPDataSelection sel;
+	QList<QCPGraph *> selVisibleGraphsList;
+	if (!visibleGraphsNameList.isEmpty())
+	{
+		m_mrvTxtAct->VisibilityOff();
+		for (int i = 0; i < m_nonlinearScaledPlot->graphCount(); ++i)
+		{
+			if (visibleGraphsNameList.contains(m_nonlinearScaledPlot->graph(i)->name()))
+			{
+				m_nonlinearScaledPlot->graph(i)->setSelection(selection);
+				m_linearScaledPlot->graph(i)->setSelection(selection);
+				selVisibleGraphsList.append(m_nonlinearScaledPlot->graph(i));
+			}
+		}
+		for (auto graph : selVisibleGraphsList)
+		{
+			graph->setSelection(selection);
+			for (auto range : graph->selection().dataRanges())
+				sel.addDataRange(range, false);
+		}
+		sel.simplify();
+	}
+	else
+	{
+		m_mrvTxtAct->VisibilityOn();
+		//m_mrvBGRen->AddActor2D(m_mrvTxtAct);
+		//for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
+		//	m_nonlinearScaledPlot->graph(i)->setSelection(m_linearScaledPlot->graph(i)->selection());
+	}
+
+
+	setSelectionForRenderer(selVisibleGraphsList);
+	m_scalingWidget->setSel(sel);
+	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
+	m_linearScaledPlot->replot();
+
 }
 
 void dlg_DynamicVolumeLines::compLevelRangeChanged()

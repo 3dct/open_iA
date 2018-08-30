@@ -66,6 +66,7 @@ public slots:
 	void selectionChangedByUser();
 	void legendClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*);
 	void setSelectionForPlots(vtkPoints* selCellPoints);
+	void setNoSelectionForPlots();
 	void showBkgrdThrLine();
 	void syncLinearXAxis(QCPRange);
 	void syncNonlinearXAxis(QCPRange);

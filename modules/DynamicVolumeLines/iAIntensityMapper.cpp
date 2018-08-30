@@ -28,13 +28,11 @@
 
 #include <Hilbert.hpp>
 
-//
-#include "iAConsole.h"
 
 template<class T>
 void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensityList, 
 	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList, QList<double> &minEnsembleIntensityList, 
-	QList<double> &maxEnsembleIntensityList)
+	QList<double> &maxEnsembleIntensityList, QList<QVector<unsigned int>> &coordList)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
 	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
@@ -52,25 +50,39 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 	{
 		case P_HILBERT:
 		{
-			auto size = input->GetLargestPossibleRegion().GetSize();
-			unsigned int HilbertCnt = size[0] * size[1] * size[2];
-			int precArray[DIM] = { static_cast<int>(size[0])-1,
-				static_cast<int>(size[1])-1, static_cast<int>(size[2])-1 };
-			for (unsigned int h = 0; h < HilbertCnt; ++h)
+			if (coordList.size() == 0)
 			{
-				CFixBitVec *coordPtr = new CFixBitVec[HilbertCnt];
-				CFixBitVec compHilbertIdx;
-				compHilbertIdx = (FBV_UINT)h;
-				Hilbert::compactIndexToCoords(coordPtr, precArray, DIM, compHilbertIdx);
+				QVector<unsigned int> coord(QVector<unsigned int>(3));
+				auto size = input->GetLargestPossibleRegion().GetSize();
+				unsigned int HilbertCnt = size[0] * size[1] * size[2];
+				int nbOfBitsPerDim[DIM];
+				for (int i = 0; i < DIM; ++i)
+					nbOfBitsPerDim[i] = ceil(sqrt((size[i] - 1)));
 
-				InputImageType::IndexType coord;
+				for (unsigned int h = 0; h < HilbertCnt; ++h)
+				{					
+					CFixBitVec *coordPtr = new CFixBitVec[HilbertCnt];
+					CFixBitVec compHilbertIdx;
+					compHilbertIdx = (FBV_UINT)h;
+					Hilbert::compactIndexToCoords(coordPtr, 
+						nbOfBitsPerDim, DIM, compHilbertIdx);
+
+					for (int i = 0; i < DIM; i++)
+						coord[i] = coordPtr[i].rack();
+				
+					delete[] coordPtr;
+					coordList.append(coord);
+				}
+			}
+			
+			for (unsigned int h = 0; h < coordList.size(); ++h)
+			{
+				InputImageType::IndexType c;
 				for (int i = 0; i < DIM; i++)
-					coord[i] = coordPtr[i].rack();
-				delete[] coordPtr;
-
-				icData data(input->GetPixel(coord), coord);
+					c[i] = coordList[h][i];
+				
+				icData data(input->GetPixel(c), c);
 				intensityList.append(data);
-				//DEBUG_LOG(QString("Hidx: %1: x:%2 y:%3 z:%4 int:%5").arg(h).arg(coord[0]).arg(coord[1]).arg(coord[2]).arg(input->GetPixel(coord)));
 			}
 		}
 		break;
@@ -110,6 +122,7 @@ void iAIntensityMapper::process()
 	QStringList datasetsList = m_datasetsDir.entryList();
 	QList<double> minEnsembleIntensityList;
 	QList<double> maxEnsembleIntensityList;
+	QList<QVector<unsigned int>> coordList;
 	for (int i = 0; i < datasetsList.size(); ++i)
 	{
 		QList<icData> intensityList;
@@ -117,7 +130,7 @@ void iAIntensityMapper::process()
 		ScalarPixelType pixelType;
 		ImagePointer image = iAITKIO::readFile(dataset, pixelType, true);
 		ITK_TYPED_CALL(getIntensities, pixelType, m_pathID, image, intensityList,
-			m_imgDataList, minEnsembleIntensityList, maxEnsembleIntensityList);
+			m_imgDataList, minEnsembleIntensityList, maxEnsembleIntensityList, coordList);
 		m_DatasetIntensityMap.push_back(qMakePair(datasetsList.at(i), intensityList));
 	}
 	m_minEnsembleIntensity = *std::min_element(

@@ -116,7 +116,6 @@ vtkStandardNewMacro(MouseInteractorStyle);
 void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* clientData, void* vtkNotUsed(callData))
 {
-	//TODO: pick event (add to prev selection) + only visible cells (slicer)?
 	vtkAreaPicker *areaPicker = static_cast<vtkAreaPicker*>(caller);
 	iARenderer *ren = static_cast<iARenderer*>(clientData);
 	ren->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(ren->selectedActor);
@@ -128,11 +127,15 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 	extractSelection->Update();
 
 	if (!extractSelection->GetOutput()->GetNumberOfElements(vtkUnstructuredGrid::CELL))
+	{
+		ren->emitNoSelectedCells();
 		return;
+	}
 	
 	if (ren->GetInteractor()->GetControlKey() &&
 		!ren->GetInteractor()->GetShiftKey())
 	{
+		// Adds cells to selection
 		auto append = vtkSmartPointer<vtkAppendFilter>::New();
 		append->AddInputData(ren->finalSelection);
 		append->AddInputData(extractSelection->GetOutput());
@@ -142,6 +145,7 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 	else if (ren->GetInteractor()->GetControlKey() &&
 		ren->GetInteractor()->GetShiftKey())
 	{
+		// Removes cells from selection 
 		auto newfinalSel = vtkSmartPointer<vtkUnstructuredGrid>::New();
 		newfinalSel->Allocate(1, 1);
 		newfinalSel->SetPoints(ren->finalSelection->GetPoints());
@@ -173,6 +177,7 @@ void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventI
 	}
 	else
 	{
+		// New selection
 		ren->finalSelection->ShallowCopy(extractSelection->GetOutput());
 	}
 	ren->selectedMapper->Update();
@@ -729,4 +734,9 @@ void iARenderer::emitSelectedCells(vtkUnstructuredGrid* selectedCells)
 		selCellPoints->InsertNextPoint(cell);
 	}
 	emit cellsSelected(selCellPoints);
+}
+
+void iARenderer::emitNoSelectedCells()
+{
+	emit noCellsSelected();
 }

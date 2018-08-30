@@ -131,6 +131,7 @@ public:
 	void ApplySettings(iARenderSettings & settings);
 	
 	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
+	void emitNoSelectedCells();
 	vtkSmartPointer<vtkDataSetMapper> selectedMapper;
 	vtkSmartPointer<vtkActor> selectedActor;
 	vtkSmartPointer<vtkUnstructuredGrid> finalSelection;
@@ -186,6 +187,7 @@ Q_SIGNALS:
 	void progress(int);
 	void Clicked(int, int, int);
 	void cellsSelected(vtkPoints* selCellPoints);
+	void noCellsSelected();
 	void reInitialized();
 	void onSetupRenderer();
 	void onSetCamera();
