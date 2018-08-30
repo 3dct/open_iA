@@ -1431,6 +1431,11 @@ iALookupTable const & iAQSplom::lookupTable() const
 	return *m_lut.data();
 }
 
+iAQSplom::ColorScheme iAQSplom::colorScheme() const
+{
+	return settings.colorScheme;
+}
+
 void iAQSplom::setColorParam(const QString & paramName)
 {
 	size_t colorLookupParam = m_splomData->paramIndex(paramName);
