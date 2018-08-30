@@ -116,12 +116,12 @@ namespace
 	}
 
 	const double MiddlePointShift = 74.5;
-	int DefaultOpacity = 128;
-	int ContextOpacity = 32;
+	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
+	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
 	const QString ModuleSettingsKey("FiberOptimizationExplorer");
 
-	QColor ProjectionErrorDefaultPlotColor(128, 128, 128, DefaultOpacity);
+	QColor ProjectionErrorDefaultPlotColor(128, 128, 128, SelectionOpacity);
 	QColor SPLOMSelectionColor(255, 0, 0, ContextOpacity);
 
 	int NumberOfCloseFibers = 25;
@@ -173,9 +173,9 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_defaultOpacitySlider = new QSlider(Qt::Horizontal);
 	m_defaultOpacitySlider->setMinimum(0);
 	m_defaultOpacitySlider->setMaximum(255);
-	m_defaultOpacitySlider->setValue(DefaultOpacity);
+	m_defaultOpacitySlider->setValue(SelectionOpacity);
 	connect(m_defaultOpacitySlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::mainOpacityChanged);
-	m_defaultOpacityLabel = new QLabel(QString::number(DefaultOpacity));
+	m_defaultOpacityLabel = new QLabel(QString::number(SelectionOpacity));
 	QWidget* defaultOpacityWidget = new QWidget();
 	defaultOpacityWidget->setLayout(new QHBoxLayout());
 	defaultOpacityWidget->layout()->addWidget(new QLabel("Main Opacity"));
@@ -322,8 +322,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 
 		resultData.m_mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
 				resultData.m_vtkWidget, tableCreator.getTable(), io.getOutputMapping(), getResultColor(resultID)));
-		resultData.m_mini3DVis->setSelectionColor(getResultColor(resultID));
-		resultData.m_mini3DVis->setContextAlpha(ContextOpacity);
+		resultData.m_mini3DVis->setColor(getResultColor(resultID));
 		resultData.m_mini3DVis->show();
 		ren->ResetCamera();
 		resultData.m_resultTable = tableCreator.getTable();
@@ -536,6 +535,7 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	paramVisib[7] = paramVisib[9] = paramVisib[14] = paramVisib[15] = paramVisib[16] = paramVisib[17] = paramVisib[18] = paramVisib[m_splomData->numParams()-2] = true;
 	m_splom->setParameterVisibility(paramVisib);
 	m_splom->showDefaultMaxizimedPlot();
+	m_splom->setSelectionColor("black");
 	m_splom->settings.enableColorSettings = true;
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiberOptimizationExplorer::selectionSPLOMChanged);
 	connect(m_splom, &iAQSplom::lookupTableChanged, this, &iAFiberOptimizationExplorer::splomLookupTableChanged);
@@ -544,7 +544,7 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 QColor iAFiberOptimizationExplorer::getResultColor(int resultID)
 {
 	QColor color = m_colorTheme->GetColor(resultID);
-	color.setAlpha(DefaultOpacity);
+	color.setAlpha(SelectionOpacity);
 	return color;
 }
 
@@ -561,8 +561,14 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 		}
 		data.m_main3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer,
 				data.m_resultTable, data.m_outputMapping, getResultColor(resultID)));
-		data.m_main3DVis->setSelectionColor(getResultColor(resultID));
-		data.m_main3DVis->setContextAlpha(ContextOpacity);
+		data.m_main3DVis->setColor(getResultColor(resultID));
+		data.m_main3DVis->setSelectionOpacity(SelectionOpacity);
+		data.m_main3DVis->setContextOpacity(ContextOpacity);
+		if (m_splom->colorScheme() == iAQSplom::DivergingPerceptuallyUniform)
+		{
+			data.m_main3DVis->setLookupTable(m_splom->lookupTable(), m_splom->colorLookupParam());
+			data.m_main3DVis->updateColorSelectionRendering();
+		}
 		data.m_main3DVis->show();
 		m_style->setInput( data.m_main3DVis->getLinePolyData() );
 		m_lastMain3DVis = data.m_main3DVis;
@@ -628,7 +634,7 @@ void iAFiberOptimizationExplorer::showCurrentSelectionInPlot()
 			{
 				if (curSelIdx < m_currentSelection[resultID].size() && fiberID == m_currentSelection[resultID][curSelIdx])
 				{
-					color.setAlpha(DefaultOpacity);
+					color.setAlpha(SelectionOpacity);
 					++curSelIdx;
 				}
 				else if (m_currentSelection[resultID].size() > 0)
@@ -648,9 +654,9 @@ void iAFiberOptimizationExplorer::showCurrentSelectionIn3DViews()
 	for (size_t resultID = 0; resultID<m_resultData.size(); ++resultID)
 	{
 		auto result = m_resultData[resultID];
-		result.m_mini3DVis->renderSelection(m_currentSelection[resultID], 0, getResultColor(resultID), nullptr);
+		result.m_mini3DVis->setSelection(m_currentSelection[resultID]);
 		if (result.m_main3DVis)
-			result.m_main3DVis->renderSelection(m_currentSelection[resultID], 0, getResultColor(resultID), nullptr);
+			result.m_main3DVis->setSelection(m_currentSelection[resultID]);
 
 	}
 }
@@ -759,13 +765,15 @@ void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
 void iAFiberOptimizationExplorer::mainOpacityChanged(int opacity)
 {
 	m_defaultOpacityLabel->setText(QString::number(opacity));
-	DefaultOpacity = opacity;
+	SelectionOpacity = opacity;
 	for (int resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
+		m_resultData[resultID].m_mini3DVis->setSelectionOpacity(SelectionOpacity);
+		m_resultData[resultID].m_mini3DVis->updateColorSelectionRendering();
 		if (m_resultData[resultID].m_main3DVis)
 		{
-			m_resultData[resultID].m_main3DVis->setSelectionColor(getResultColor(resultID));
-			m_resultData[resultID].m_main3DVis->renderSelection(m_currentSelection[resultID], 0, getResultColor(resultID), nullptr);
+			m_resultData[resultID].m_main3DVis->setSelectionOpacity(SelectionOpacity);
+			m_resultData[resultID].m_main3DVis->updateColorSelectionRendering();
 		}
 	}
 }
@@ -776,10 +784,12 @@ void iAFiberOptimizationExplorer::contextOpacityChanged(int opacity)
 	ContextOpacity = opacity;
 	for (int resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
+		m_resultData[resultID].m_mini3DVis->setContextOpacity(ContextOpacity);
+		m_resultData[resultID].m_mini3DVis->updateColorSelectionRendering();
 		if (m_resultData[resultID].m_main3DVis)
 		{
-			m_resultData[resultID].m_main3DVis->setContextAlpha(opacity);
-			m_resultData[resultID].m_main3DVis->renderSelection(m_currentSelection[resultID], 0, getResultColor(resultID), nullptr);
+			m_resultData[resultID].m_main3DVis->setContextOpacity(ContextOpacity);
+			m_resultData[resultID].m_main3DVis->updateColorSelectionRendering();
 		}
 	}
 	showCurrentSelectionInPlot();

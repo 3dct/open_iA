@@ -32,7 +32,7 @@ void iAFiberOptimizationExplorerModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QAction * actionFibreOptimizationExploration = new QAction( "Fiber Optimization Explorer" );
+	QAction * actionFibreOptimizationExploration = new QAction( "Fiber Analytics" );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreOptimizationExploration, false );
 	connect( actionFibreOptimizationExploration, &QAction::triggered, this, &iAFiberOptimizationExplorerModuleInterface::FibreOptimizationExploration );
 }
