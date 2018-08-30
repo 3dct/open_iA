@@ -96,6 +96,7 @@ private:
 	int m_timeStepCount;
 	int m_referenceID;
 	std::vector<std::vector<size_t> > m_currentSelection;
+	vtkSmartPointer<vtkTable> m_refVisTable;
 
 	iAVtkWidgetClass* m_mainRenderer;
 	QLabel* m_currentTimeStepLabel, * m_defaultOpacityLabel, * m_contextOpacityLabel;
@@ -107,4 +108,6 @@ private:
 	QCheckBox* m_chkboxShowReference;
 	QSpinBox* m_spnboxReferenceCount;
 	QComboBox* m_cmbboxDistanceMeasure;
+
+	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 };

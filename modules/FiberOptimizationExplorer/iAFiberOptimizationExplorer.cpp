@@ -37,6 +37,7 @@
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
 #include "iALookupTable.h"
+#include "iALUT.h"
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
 #include "iASelectionInteractorStyle.h"
@@ -985,5 +986,81 @@ void iAFiberOptimizationExplorer::splomLookupTableChanged()
 }
 void iAFiberOptimizationExplorer::changeReferenceDisplay()
 {
+	size_t distanceMeasure = m_cmbboxDistanceMeasure->currentIndex();
+	bool showRef = m_chkboxShowReference->isChecked();
+	int refCount = std::min(MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
 
+	if (m_nearestReferenceVis)
+	{
+		m_nearestReferenceVis->hide();
+		m_nearestReferenceVis.clear();
+	}
+	if (!isAnythingSelected() || !showRef)
+	{
+		return;
+	}
+
+	m_refVisTable = vtkSmartPointer<vtkTable>::New();
+	m_refVisTable->Initialize();
+	// ID column (int):
+	vtkSmartPointer<vtkIntArray> arrID = vtkSmartPointer<vtkIntArray>::New();
+	arrID->SetName(m_resultData[m_referenceID].m_resultTable->GetColumnName(0));
+	m_refVisTable->AddColumn(arrID);
+	// other columns (float):
+	for (int col = 1; col < m_resultData[m_referenceID].m_resultTable->GetNumberOfColumns() - 1; ++col)
+	{
+		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+		arrX->SetName(m_resultData[m_referenceID].m_resultTable->GetColumnName(col));
+		m_refVisTable->AddColumn(arrX);
+	}
+
+	std::vector<iAFiberDistance> referenceIDsToShow;
+
+	double range[2];
+	range[0] = std::numeric_limits<double>::max();
+	range[1] = std::numeric_limits<double>::lowest();
+
+	for (size_t resultID=0; resultID < m_resultData.size(); ++resultID)
+	{
+		if (resultID == m_referenceID)
+			continue;
+
+		for (size_t fiberIdx = 0; fiberIdx < m_currentSelection[resultID].size(); ++fiberIdx)
+		{
+			size_t fiberID = m_currentSelection[resultID][fiberIdx];
+			for (int n=0; n<refCount; ++n)
+			{
+				referenceIDsToShow.push_back(m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n]);
+				if (m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance < range[0])
+					range[0] = m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance;
+				if (m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance > range[1])
+					range[1] = m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance;
+			}
+		}
+	}
+
+	m_refVisTable->SetNumberOfRows(referenceIDsToShow.size());
+
+	auto refTable = m_resultData[m_referenceID].m_resultTable;
+	for (size_t fiberIdx=0; fiberIdx<referenceIDsToShow.size(); ++fiberIdx)
+	{
+		size_t refFiberID = referenceIDsToShow[fiberIdx].index;
+		double distance = referenceIDsToShow[fiberIdx].distance;
+		for (int colIdx = 0; colIdx < refTable->GetNumberOfColumns(); ++colIdx)
+		{
+			m_refVisTable->SetValue(fiberIdx, colIdx, refTable->GetValue(refFiberID, colIdx));
+		}
+		// set projection error value to distance...
+		m_refVisTable->SetValue(fiberIdx, refTable->GetNumberOfColumns()-2, distance);
+	}
+
+	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer, m_refVisTable,
+							m_resultData[m_referenceID].m_outputMapping, QColor(0,0,0) ) );
+	QSharedPointer<iALookupTable> lut(new iALookupTable);
+	*lut.data() = iALUT::Build(range, "ColorBrewer single hue 5-class oranges", 256, SelectionOpacity);
+	// ... and set up color coding by it!
+	m_nearestReferenceVis->show();
+	m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
+
+	// TODO: show distance color map somewhere!!!
 }
