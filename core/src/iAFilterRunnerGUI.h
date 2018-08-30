@@ -101,7 +101,7 @@ public:
 	//! @return a map containing for each parameter name the stored value, as set
 	//!     by the user
 	virtual void StoreParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues);
-	
+
 	//! Connect the filter thread to the appropriate signals. If you override this,
 	//! you probably will want to still make sure to call this method to make sure
 	//! the result gets updated in the mdi child

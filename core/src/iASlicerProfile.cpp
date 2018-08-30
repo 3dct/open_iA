@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iASlicerProfile.h"
 
+#include "iATypedCallHelper.h"
+
 #include <QErrorMessage>
 
 #include <vtkActor.h>
@@ -35,32 +37,10 @@
 #include <vtkRenderer.h>
 #include <vtkVersion.h>
 
-inline float GetValueAsFloat(void * data, int scalarType, int index)
+template <typename T>
+void GetValueAsFloat(void * data, int index, float & out)
 {
-	switch(scalarType)
-	{
-	case VTK_CHAR :
-		return (float) ( ((char*)data)[index] );
-		break;
-	case VTK_UNSIGNED_CHAR:
-		return (float) ( ((unsigned char*)data)[index] );
-		break;
-	case VTK_UNSIGNED_SHORT:
-		return (float) ( ((unsigned short*)data)[index] );
-		break;
-	case VTK_FLOAT:
-		return (float) ( ((float*)data)[index] );
-		break;
-	case VTK_DOUBLE:
-		return (float) ( ((double*)data)[index] );
-		break;
-	default:
-		QErrorMessage errorMsg;
-		errorMsg.showMessage("Datatype of image is not supprted by the slice-profile.");
-		errorMsg.exec();
-		return 0;
-		break;
-	}
+	out = static_cast<float>( (static_cast<T*>(data))[index] );
 }
 
 void iASlicerProfile::SetVisibility( bool isVisible )
@@ -72,7 +52,7 @@ void iASlicerProfile::SetVisibility( bool isVisible )
 	m_plotActorHalo->SetVisibility(isVisible);
 }
 
-iASlicerProfile::iASlicerProfile() 
+iASlicerProfile::iASlicerProfile()
 	:m_plotScaleFactor(0),
 	m_plotPoints( vtkSmartPointer<vtkPoints>::New() ),
 	m_plotPolyLine( vtkSmartPointer<vtkPolyLine>::New() ),
@@ -121,21 +101,21 @@ void iASlicerProfile::initialize( vtkRenderer * ren )
 	m_ren->AddActor(m_plotActor);
 }
 
-int iASlicerProfile::setup( double posY, vtkImageData * imgData )
+int iASlicerProfile::updatePosition( double posY, vtkImageData * imgData )
 {
-	double * spacing	= imgData->GetSpacing();
-	double * origin		= imgData->GetOrigin();
-	int * dimensions	= imgData->GetDimensions();
+	double * spacing = imgData->GetSpacing();
+	double * origin	 = imgData->GetOrigin();
+	int * dimensions = imgData->GetDimensions();
 	int profileLength = dimensions[0]-1;
 	// add point to the spline linePoints
-	double startX = origin[0]; 
+	double startX = origin[0];
 	double endX = origin[0] + profileLength*spacing[0];
 
-	if( posY<origin[1] || posY >= origin[1] + dimensions[1]*spacing[1] )
+	if ( posY<origin[1] || posY >= origin[1] + dimensions[1]*spacing[1] )
 		return 0;
 
 	//setup profile horizontal line
-	m_profileLine.points->SetPoint(	0, startX,	posY, iASlicerProfile::Z_COORD); 
+	m_profileLine.points->SetPoint(	0, startX,	posY, iASlicerProfile::Z_COORD);
 	m_profileLine.points->SetPoint(	1, endX,	posY, iASlicerProfile::Z_COORD);
 	m_profileLine.lineSource->SetPoint1(m_profileLine.points->GetPoint(0));
 	m_profileLine.lineSource->SetPoint2(m_profileLine.points->GetPoint(1));
@@ -148,10 +128,10 @@ int iASlicerProfile::setup( double posY, vtkImageData * imgData )
 	float curProfVal;
 	int scalarType = imgData->GetScalarType();
 
-	float plotValueRange[2] = {0, 0};
+	float plotValueRange[2] = {std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest() };
 	for (int i=0; i<profileLength; i++)//compute range and insert points
 	{
-		curProfVal = GetValueAsFloat(profileValues, scalarType, i);
+		VTK_TYPED_CALL(GetValueAsFloat, scalarType, profileValues, i, curProfVal);
 		if(curProfVal < plotValueRange[0])
 			plotValueRange[0] = curProfVal;
 		if(curProfVal > plotValueRange[1])
@@ -160,18 +140,18 @@ int iASlicerProfile::setup( double posY, vtkImageData * imgData )
 		m_plotPolyLine->GetPointIds()->SetId(i,i);
 	}
 
-	if(plotValueRange[1] == plotValueRange[0])//zero division check
+	if (plotValueRange[1] == plotValueRange[0]) //zero division check
 		m_plotScaleFactor = 0;
-	else 
+	else
 		m_plotScaleFactor = dimensions[1]*spacing[1]/(plotValueRange[1]-plotValueRange[0]);//normalize
 
 	float offset = 0;
 	if(plotValueRange[0] < 0)
-		offset = -plotValueRange[0]*m_plotScaleFactor; 
+		offset = -plotValueRange[0]*m_plotScaleFactor;
 
 	//zero-level pointers
 	double zeroLevelPosY = origin[1] + offset;
-	m_zeroLine.points->SetPoint(0, startX,	zeroLevelPosY, iASlicerProfile::Z_COORD); 
+	m_zeroLine.points->SetPoint(0, startX,	zeroLevelPosY, iASlicerProfile::Z_COORD);
 	m_zeroLine.points->SetPoint(1, endX,	zeroLevelPosY, iASlicerProfile::Z_COORD);
 	for(int i=0; i<2; ++i)
 		m_zeroLine.pointers[i]->SetCenter(m_zeroLine.points->GetPoint(i));
@@ -179,11 +159,11 @@ int iASlicerProfile::setup( double posY, vtkImageData * imgData )
 
 	for (int i=0; i<profileLength; i++)
 	{
-		curProfVal = GetValueAsFloat(profileValues, scalarType, i);
+		VTK_TYPED_CALL(GetValueAsFloat, scalarType, profileValues, i, curProfVal);
 		m_plotPoints->InsertPoint(
-			i, 
-			origin[0] + spacing[0] * (i + 0.5), 
-			curProfVal * m_plotScaleFactor + offset, 
+			i,
+			origin[0] + spacing[0] * (i + 0.5),
+			curProfVal * m_plotScaleFactor + offset,
 			iASlicerProfile::Z_COORD);
 	}
 	m_plotCells->Initialize();

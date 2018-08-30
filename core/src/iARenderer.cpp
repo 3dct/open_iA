@@ -27,6 +27,7 @@
 #include "iAMovieHelper.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
+#include "mdichild.h"
 
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>
@@ -46,6 +47,7 @@
 #include <vtkImageCast.h>
 #include <vtkInteractorStyleRubberBandPick.h>
 #include <vtkInteractorStyleSwitch.h>
+#include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
 #include <vtkObjectFactory.h>
@@ -53,12 +55,14 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkPicker.h>
 #include <vtkPlane.h>
+#include <vtkPlaneSource.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkSphereSource.h>
 #include <vtkTransform.h>
 #include <vtkUnstructuredGrid.h>
 #include <vtkWindowToImageFilter.h>
@@ -232,6 +236,30 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	plane3 = vtkSmartPointer<vtkPlane>::New();
 
 	cellLocator = vtkSmartPointer<vtkCellLocator>::New();
+
+	m_profileLineSource = vtkSmartPointer<vtkLineSource>::New();
+	m_profileLineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_profileLineActor = vtkSmartPointer<vtkActor>::New();
+	m_profileLineStartPointSource = vtkSmartPointer<vtkSphereSource>::New();
+	m_profileLineStartPointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_profileLineStartPointActor = vtkSmartPointer<vtkActor>::New();
+	m_profileLineEndPointSource = vtkSmartPointer<vtkSphereSource>::New();
+	m_profileLineEndPointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_profileLineEndPointActor = vtkSmartPointer<vtkActor>::New();
+	for (int s = 0; s < 3; ++s)
+	{
+		m_slicePlaneSource[s] = vtkSmartPointer<vtkPlaneSource>::New();
+		m_slicePlaneMapper[s] = vtkSmartPointer<vtkPolyDataMapper>::New();
+		m_slicePlaneActor[s] = vtkSmartPointer<vtkActor>::New();
+		m_slicePlaneActor[s]->GetProperty()->LightingOff();
+	}
+
+	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
+	if (mdi_parent)
+	{
+		connect(this, SIGNAL(msg(QString)), mdi_parent, SLOT(addMsg(QString)));
+		connect(this, SIGNAL(progress(int)), mdi_parent, SLOT(updateProgressBar(int)));
+	}
 }
 
 iARenderer::~iARenderer(void)
@@ -239,6 +267,20 @@ iARenderer::~iARenderer(void)
 	ren->RemoveAllObservers();
 	renWin->RemoveAllObservers();
 	if (renderObserver) renderObserver->Delete();
+}
+
+namespace
+{
+	int GetSliceAxis(int axis, int index)
+	{
+		switch (axis)
+		{
+		default: // note: switch case labels are currently NOT equal to iASlicerMode numbers, see note there!
+		case 0: return index == 0 ? 1 : 2; // YZ
+		case 1: return index == 0 ? 0 : 2; // XZ
+		case 2: return index == 0 ? 0 : 1; // YZ
+		}
+	}
 }
 
 void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
@@ -252,6 +294,10 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	ext = e;
 	double spacing[3];	ds->GetSpacing(spacing);
 	ren->SetLayer(0);
+	ren->UseDepthPeelingOn();
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	ren->UseDepthPeelingForVolumesOn();
+#endif
 	labelRen->SetLayer(1);
 	labelRen->InteractiveOff();
 	labelRen->UseDepthPeelingOn();
@@ -293,6 +339,55 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	labelRen->SetActiveCamera(cam);
 	ren->SetActiveCamera(cam);
 	setCamPosition( 0,0,1, 1,1,1 ); // +Z
+
+	m_profileLineMapper->SetInputConnection(m_profileLineSource->GetOutputPort());
+	m_profileLineActor->SetMapper(m_profileLineMapper);
+	m_profileLineStartPointMapper->SetInputConnection(m_profileLineStartPointSource->GetOutputPort());
+	m_profileLineStartPointActor->SetMapper(m_profileLineStartPointMapper);
+	m_profileLineEndPointMapper->SetInputConnection(m_profileLineEndPointSource->GetOutputPort());
+	m_profileLineEndPointActor->SetMapper(m_profileLineEndPointMapper);
+	m_profileLineActor->GetProperty()->SetColor(0.59, 0.73, 0.94);//ffa800//150, 186, 240
+	m_profileLineActor->GetProperty()->SetLineWidth(2.0);
+	m_profileLineActor->GetProperty()->SetLineStipplePattern(0x00ff);//0xf0f0
+	m_profileLineActor->GetProperty()->SetLineStippleRepeatFactor(1);
+	m_profileLineActor->GetProperty()->SetPointSize(2);
+	m_profileLineStartPointSource->SetRadius(2 * spacing[0]);
+	m_profileLineEndPointSource->SetRadius(2 * spacing[0]);
+	m_profileLineStartPointActor->GetProperty()->SetColor(1.0, 0.65, 0.0);
+	m_profileLineEndPointActor->GetProperty()->SetColor(0.0, 0.65, 1.0);
+	setArbitraryProfileOn(false);
+
+	double center[3], origin[3];
+	const int * dim = imageData->GetDimensions();
+	if (dim[0] == 0 || dim[1] == 0 || dim[2] == 0)
+		return;
+	const double * spc = imageData->GetSpacing();
+	for (int i = 0; i < 3; ++i)
+	{
+		center[i] = dim[i] * spc[i] / 2;
+		origin[i] = 0;
+	}
+	for (int s = 0; s < 3; ++s)
+	{
+		m_slicePlaneSource[s]->SetOrigin(origin);
+		double point1[3], point2[3];
+		for (int j = 0; j < 3; ++j)
+		{
+			point1[j] = 0;
+			point2[j] = 0;
+		}
+		point1[GetSliceAxis(s, 0)] += 1.1 * dim[GetSliceAxis(s, 0)] * spc[GetSliceAxis(s, 0)];
+		point2[GetSliceAxis(s, 1)] += 1.1 * dim[GetSliceAxis(s, 1)] * spc[GetSliceAxis(s, 1)];
+		m_slicePlaneSource[s]->SetPoint1(point1);
+		m_slicePlaneSource[s]->SetPoint2(point2);
+		m_slicePlaneSource[s]->SetCenter(center);
+		m_slicePlaneMapper[s]->SetInputConnection(m_slicePlaneSource[s]->GetOutputPort());
+		m_slicePlaneActor[s]->SetMapper(m_slicePlaneMapper[s]);
+		m_slicePlaneActor[s]->GetProperty()->SetColor( (s == 0) ? 1:0, (s == 1) ? 1 : 0, (s == 2) ? 1 : 0);
+		m_slicePlaneActor[s]->GetProperty()->SetOpacity(1.0);
+		m_slicePlaneActor[s]->SetVisibility(false);
+		m_slicePlaneMapper[s]->Update();
+	}
 }
 
 void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
@@ -431,6 +526,11 @@ void iARenderer::setupRenderer()
 	ren->AddActor(cActor);
 	ren->AddActor(axesActor);
 	ren->AddActor(moveableAxesActor);
+	ren->AddActor(m_profileLineActor);
+	ren->AddActor(m_profileLineStartPointActor);
+	ren->AddActor(m_profileLineEndPointActor);
+	for (int s = 0; s < 3; ++s)
+		ren->AddActor(m_slicePlaneActor[s]);
 	emit onSetupRenderer();
 }
 
@@ -452,26 +552,32 @@ void iARenderer::showHelpers(bool show)
 	cActor->SetVisibility(show);
 }
 
-void iARenderer::showRPosition(bool s) 
-{ 
-	cActor->SetVisibility(s); 
+void iARenderer::showRPosition(bool s)
+{
+	cActor->SetVisibility(s);
 }
 
-void iARenderer::setPlaneNormals( vtkTransform *tr ) 
-{ 
+void iARenderer::showSlicePlanes(bool show)
+{
+	for (int s = 0; s < 3; ++s)
+		m_slicePlaneActor[s]->SetVisibility(show);
+}
+
+void iARenderer::setPlaneNormals( vtkTransform *tr )
+{
 	double normal[4], temp[4];
 
 	normal[0] = 1; normal[1] = 0; normal[2] = 0; normal[3] = 1;
-	tr->GetMatrix()->MultiplyPoint(normal, temp); 
-	plane1->SetNormal( temp[0], temp[1], temp[2] ); 
+	tr->GetMatrix()->MultiplyPoint(normal, temp);
+	plane1->SetNormal( temp[0], temp[1], temp[2] );
 
 	normal[0] = 0; normal[1] = 1; normal[2] = 0; normal[3] = 1;
-	tr->GetMatrix()->MultiplyPoint(normal, temp); 
-	plane2->SetNormal( temp[0], temp[1], temp[2] ); 
+	tr->GetMatrix()->MultiplyPoint(normal, temp);
+	plane2->SetNormal( temp[0], temp[1], temp[2] );
 
 	normal[0] = 0; normal[1] = 0; normal[2] = 1; normal[3] = 1;
-	tr->GetMatrix()->MultiplyPoint(normal, temp); 
-	plane3->SetNormal( temp[0], temp[1], temp[2] ); 
+	tr->GetMatrix()->MultiplyPoint(normal, temp);
+	plane3->SetNormal( temp[0], temp[1], temp[2] );
 
 	renWin->Render();
 	ren->Render();
@@ -480,8 +586,8 @@ void iARenderer::setPlaneNormals( vtkTransform *tr )
 void iARenderer::setCubeCenter( int x, int y, int z )
 {
 	if (interactor->GetEnabled()) {
-		cSource->SetCenter( x * imageData->GetSpacing()[0], 
-			y * imageData->GetSpacing()[1], 
+		cSource->SetCenter( x * imageData->GetSpacing()[0],
+			y * imageData->GetSpacing()[1],
 			z * imageData->GetSpacing()[2] );
 		update();
 	}
@@ -517,7 +623,7 @@ void iARenderer::getCamPosition( double * camOptions )
 	camOptions[7] = c[1];
 	camOptions[8] = c[2];
 	camOptions[9] = pS;
-	
+
 	ren->ResetCamera();
 	update();
 }
@@ -555,10 +661,13 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 {
 	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter(fileName, qual);
 
-	if (movieWriter.GetPointer() == NULL)
+	if (movieWriter.GetPointer() == nullptr)
 		return;
 
 	interactor->Disable();
+
+	vtkSmartPointer<vtkCamera> oldCam = vtkSmartPointer<vtkCamera>::New();
+	oldCam->DeepCopy(cam);
 
 	vtkSmartPointer<vtkWindowToImageFilter> w2if = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	int* rws = renWin->GetSize();
@@ -571,13 +680,10 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	w2if->ReadFrontBufferOff();
 
 	movieWriter->SetInputConnection(w2if->GetOutputPort());
-	movieWriter->SetFileName(fileName.toLatin1().data());
 	movieWriter->Start();
 
-	int i;
-	int* extent = imageData->GetExtent();
-
-	emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
+	emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale()
+		.toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
 
 	int numRenderings = 360;//TODO
 	vtkSmartPointer<vtkTransform> rot = vtkSmartPointer<vtkTransform>::New();
@@ -614,21 +720,22 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	}
 	cam->SetViewUp ( view );
 	cam->SetPosition ( point );
-	for ( i =0; i < numRenderings; i++ ) {
+	for (int i =0; i < numRenderings; i++ ) {
 		ren->ResetCamera();
 		renWin->Render();
 
 		w2if->Modified();
 		movieWriter->Write();
-		if (movieWriter->GetError()) { 
-			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode())); 
+		if (movieWriter->GetError()) {
+			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
-		emit progress( 100 * (i+1) / (extent[1]-extent[0]));
+		emit progress( 100 * (i+1) / numRenderings);
 		cam->ApplyTransform(rot);
 	}
 
-	movieWriter->End(); 
+	cam->DeepCopy(oldCam);
+	movieWriter->End();
 	movieWriter->ReleaseDataFlagOn();
 	w2if->ReleaseDataFlagOn();
 
@@ -652,6 +759,32 @@ void iARenderer::mouseLeftButtonReleasedSlot()
 	if (!interactor)
 		return;
 	interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent);
+}
+
+void iARenderer::setArbitraryProfile(int pointIndex, double * coords)
+{
+	if (pointIndex == 0)
+	{
+		m_profileLineSource->SetPoint1(coords);
+		m_profileLineStartPointSource->SetCenter(coords);
+		m_profileLineMapper->Update();
+		m_profileLineStartPointMapper->Update();
+	}
+	else
+	{
+		m_profileLineSource->SetPoint2(coords);
+		m_profileLineEndPointSource->SetCenter(coords);
+		m_profileLineMapper->Update();
+		m_profileLineEndPointMapper->Update();
+	}
+	update();
+}
+
+void iARenderer::setArbitraryProfileOn(bool isOn)
+{
+	m_profileLineActor->SetVisibility(isOn);
+	m_profileLineStartPointActor->SetVisibility(isOn);
+	m_profileLineEndPointActor->SetVisibility(isOn);
 }
 
 void iARenderer::InitObserver()
@@ -703,6 +836,23 @@ vtkActor* iARenderer::GetPolyActor() { return polyActor; };
 vtkOpenGLRenderer * iARenderer::GetLabelRenderer(void) { return labelRen; }
 vtkPolyDataMapper* iARenderer::GetPolyMapper() const { return polyMapper; }
 
+void iARenderer::setSlicePlane(int planeID, double originX, double originY, double originZ)
+{
+	switch (planeID)
+	{
+		default: // note: switch case labels are currently NOT equal to iASlicerMode numbers, see note there!
+		case 0: plane1->SetOrigin(originX, originY, originZ); break; // YZ
+		case 1: plane2->SetOrigin(originX, originY, originZ); break; // XZ
+		case 2: plane3->SetOrigin(originX, originY, originZ); break; // YZ
+	}
+	double center[3];
+	m_slicePlaneSource[planeID]->GetCenter(center);
+	center[planeID] = (planeID == 0) ? originX : ((planeID == 1) ? originY : originZ);
+	m_slicePlaneSource[planeID]->SetCenter(center);
+	m_slicePlaneMapper[planeID]->Update();
+	update();
+}
+
 void iARenderer::ApplySettings(iARenderSettings & settings)
 {
 	cam->SetParallelProjection(settings.ParallelProjection);
@@ -717,10 +867,11 @@ void iARenderer::ApplySettings(iARenderSettings & settings)
 		bgBottom.setRgbF(1.0, 1.0, 1.0);
 		settings.BackgroundBottom = bgTop.name();
 	}
-	ren->SetBackground(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
-	ren->SetBackground2(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
+	ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
+	ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 	showHelpers(settings.ShowHelpers);
 	showRPosition(settings.ShowRPosition);
+	showSlicePlanes(settings.ShowSlicePlanes);
 }
 
 void iARenderer::emitSelectedCells(vtkUnstructuredGrid* selectedCells)

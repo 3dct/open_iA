@@ -1507,7 +1507,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		}
 		else
 		{
-			double const *r = m_mdiChild->getHistogram()->XBounds();
+			double const *r = m_mdiChild->getHistogram()->xBounds();
 			for (unsigned int i = 0; i < pathSteps; ++i)
 			{
 				bool showVoxel = false;

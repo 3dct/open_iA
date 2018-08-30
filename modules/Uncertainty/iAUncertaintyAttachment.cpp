@@ -41,6 +41,8 @@
 #include "mdichild.h"
 #include "mainwindow.h"
 
+#include <vtkLookupTable.h>
+
 #include <QDir>
 
 const int EntropyBinCount = 100;
@@ -96,18 +98,24 @@ void iAUncertaintyAttachment::ToggleSettings()
 
 bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 {
-	QSharedPointer<iAEnsembleDescriptorFile> ensembleFile(new iAEnsembleDescriptorFile(fileName));
-	if (!ensembleFile->good())
+	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>(new iAEnsembleDescriptorFile(fileName));
+	if (!m_ensembleFile->good())
 	{
 		DEBUG_LOG("Ensemble: Given data file could not be read.");
 		return false;
 	}
-	if (!GetMdiChild()->LoadProject(ensembleFile->ModalityFileName()))
+	connect(GetMdiChild(), SIGNAL(fileLoaded()), this, SLOT(ContinueEnsembleLoading()));
+	if (!GetMdiChild()->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
-		DEBUG_LOG(QString("Ensemble: Failed loading project '%1'").arg(ensembleFile->ModalityFileName()));
+		DEBUG_LOG(QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
 		return false;
 	}
-	auto ensemble = iAEnsemble::Create(EntropyBinCount, ensembleFile);
+	return true;
+}
+
+void iAUncertaintyAttachment::ContinueEnsembleLoading()
+{
+	auto ensemble = iAEnsemble::Create(EntropyBinCount, m_ensembleFile);
 	if (ensemble)
 	{
 		m_ensembleView->AddEnsemble("Full Ensemble", ensemble);
@@ -130,11 +138,10 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 	m_childData.child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
 	m_childData.child->getSlicerDlgXY()->hide();
 	m_childData.child->getImagePropertyDlg()->hide();
-	if (!ensembleFile->LayoutName().isEmpty())
+	if (!m_ensembleFile->LayoutName().isEmpty())
 	{
-		m_childData.child->LoadLayout(ensembleFile->LayoutName());
+		m_childData.child->LoadLayout(m_ensembleFile->LayoutName());
 	}
-	return ensemble;
 }
 
 

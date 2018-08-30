@@ -255,8 +255,9 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 		}
 		case Folder:
 		{
+			// TODO: allow to specify whether the folder can be empty or not!
 			QFileInfo file(parameters[param->Name()].toString());
-			if (!file.isDir())
+			if (!parameters[param->Name()].toString().isEmpty() && !file.isDir())
 			{
 				AddMsg(QString("Parameter '%1': Given value '%2' doesn't reference a folder!")
 					.arg(param->Name()).arg(parameters[param->Name()].toString()));

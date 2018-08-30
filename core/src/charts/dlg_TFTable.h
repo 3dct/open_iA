@@ -48,7 +48,7 @@ public slots:
 	void itemClicked( QTableWidgetItem * );
 	void cellValueChanged( int, int );
 	void updateTable();
-	
+
 private:
 	void Init();
 	bool isValueXValid(double xVal, int row = -1);

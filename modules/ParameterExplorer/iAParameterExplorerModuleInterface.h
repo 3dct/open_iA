@@ -32,6 +32,4 @@ protected:
 private slots:
 	bool StartParameterExplorer();
 	void ToggleDockWidgetTitleBars();
-	double eiIndexX, eiIndexY, eiIndexZ, eiSizeX, eiSizeY, eiSizeZ, rOriginX,
-		rOriginY, rOriginZ, rSizeX, rSizeY, rSizeZ;
 };

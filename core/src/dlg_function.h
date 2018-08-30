@@ -50,17 +50,17 @@ public:
 	virtual void removePoint(int index) = 0;
 	virtual void moveSelectedPoint(int x, int y) = 0;
 	virtual void changeColor(QMouseEvent *event) = 0;
-	
+
 	virtual bool isColored() = 0;
 	virtual bool isEndPoint(int index) = 0;
 	virtual bool isDeletable(int index) = 0;
 
 	virtual void reset() = 0;
-	
+
 	virtual void mousePressEvent(QMouseEvent *event) = 0;
 	virtual void mouseMoveEvent(QMouseEvent *event) = 0;
 	virtual void mouseReleaseEvent(QMouseEvent *event) = 0;
 	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) = 0;
-	
+
 	iADiagramFctWidget *chart;
 };

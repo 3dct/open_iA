@@ -88,10 +88,10 @@ void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output)
 	output->SetRegions(input->GetLargestPossibleRegion());
 	output->SetSpacing(input->GetSpacing());
 	output->Allocate();
- 
+
 	itk::ImageRegionConstIterator<TImage> inputIterator(input, input->GetLargestPossibleRegion());
 	itk::ImageRegionIterator<TImage> outputIterator(output, output->GetLargestPossibleRegion());
- 
+
 	while(!inputIterator.IsAtEnd())
 	{
 		outputIterator.Set(inputIterator.Get());
@@ -135,7 +135,7 @@ void StoreImage(TImage * image, QString const & filename, bool useCompression = 
 	typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
 	try
 	{
-		writer->SetFileName(filename.toStdString());
+		writer->SetFileName(getLocalEncodingFileName(filename).c_str());
 		writer->SetUseCompression(useCompression);
 		writer->SetInput(image);
 		writer->Update();

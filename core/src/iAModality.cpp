@@ -45,7 +45,6 @@ iAModality::iAModality(QString const & name, QString const & filename, int chann
 	SetData(imgData);
 }
 
-
 iAModality::iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags) :
 	m_name(name),
 	m_filename(filename),
@@ -239,7 +238,6 @@ void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 	m_transfer = QSharedPointer<iAModalityTransfer>(new iAModalityTransfer(maxRange));
 }
 
-
 void iAModality::SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile)
 {
 	positionSettings = pos;
@@ -247,12 +245,10 @@ void iAModality::SetStringSettings(QString const & pos, QString const & ori, QSt
 	tfFileName = tfFile;
 }
 
-
 QString iAModality::GetOrientationString()
 {
 	return m_renderer ? Vec3D2String(m_renderer->GetOrientation()) : QString();
 }
-
 
 QString iAModality::GetPositionString()
 {
@@ -261,12 +257,12 @@ QString iAModality::GetPositionString()
 
 void iAModality::ComputeHistogramData(size_t numBin)
 {
-	m_transfer->ComputeHistogramData(GetImage(), numBin);
+	m_transfer->computeHistogramData(GetImage(), numBin);
 }
 
 void iAModality::ComputeImageStatistics()
 {
-	m_transfer->ComputeStatistics(GetImage());
+	m_transfer->computeStatistics(GetImage());
 	if (!tfFileName.isEmpty())
 	{
 		LoadTransferFunction();
@@ -276,13 +272,13 @@ void iAModality::ComputeImageStatistics()
 
 QSharedPointer<iAHistogramData> const iAModality::GetHistogramData() const
 {
-	return m_transfer->GetHistogramData();
+	return m_transfer->getHistogramData();
 }
 
 void iAModality::setVolSettings(const iAVolumeSettings &volSettings)
 {
-	this->m_volSettings = volSettings; 
-	this->m_VolSettingsSavedStatus = true; 
+	this->m_volSettings = volSettings;
+	this->m_VolSettingsSavedStatus = true;
 }
 
 const iAVolumeSettings &iAModality::getVolumeSettings() const
@@ -292,12 +288,24 @@ const iAVolumeSettings &iAModality::getVolumeSettings() const
 
 
 
+// iAStatisticsUpdater
+
+void iAStatisticsUpdater::run()
+{
+	m_modality->ComputeImageStatistics();
+	emit StatisticsReady(m_modalityIdx);
+}
+
+iAStatisticsUpdater::iAStatisticsUpdater(int modalityIdx, QSharedPointer<iAModality> modality) :
+	m_modalityIdx(modalityIdx),
+	m_modality(modality)
+{}
+
+
 // iAHistogramUpdater
 
 void iAHistogramUpdater::run()
 {
-	m_modality->ComputeImageStatistics();
-	emit StatisticsReady(m_modalityIdx);
 	m_modality->ComputeHistogramData(m_binCount);
 	emit HistogramReady(m_modalityIdx);
 }

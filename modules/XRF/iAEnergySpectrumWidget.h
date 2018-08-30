@@ -22,13 +22,14 @@
 
 #include "charts/iADiagramFctWidget.h"
 
-#include <QRubberBand>
 #include <QMap>
 
 class iAAccumulatedXRFData;
 struct iACharacteristicEnergy;
 class iAPlotData;
 class iASpectrumFilterListener;
+
+class QRubberBand;
 
 class iAEnergySpectrumWidget: public iADiagramFctWidget
 {
@@ -45,7 +46,7 @@ protected:
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
-	void DrawAfterPlots(QPainter& painter) override;
+	void drawAfterPlots(QPainter& painter) override;
 private:
 	void NotifySelectionUpdateListener();
 

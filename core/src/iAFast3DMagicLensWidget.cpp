@@ -35,6 +35,7 @@
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkVersion.h>
 
 #include <QMouseEvent>
 
@@ -56,7 +57,7 @@ void iAFast3DMagicLensWidget::updateLens()
 
 	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
 		return;
-	
+
 	vtkCamera * mainCam = GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	vtkCamera * magicLensCam = m_lensRen->GetActiveCamera();
 
@@ -88,7 +89,11 @@ void iAFast3DMagicLensWidget::updateLens()
 
 void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 {
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QVTKOpenGLWidget::resizeEvent( event );
+#else
 	QVTKWidget2::resizeEvent( event );
+#endif
 
 	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
 		return;
@@ -112,5 +117,9 @@ void iAFast3DMagicLensWidget::mouseReleaseEvent( QMouseEvent * event )
 		emit rightButtonReleasedSignal( );
 	else if( Qt::LeftButton == event->button( ) )
 		emit leftButtonReleasedSignal( );
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QVTKOpenGLWidget::mouseReleaseEvent( event );
+#else
 	QVTKWidget2::mouseReleaseEvent( event );
+#endif
 }

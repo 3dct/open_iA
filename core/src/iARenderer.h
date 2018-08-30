@@ -45,18 +45,21 @@ class vtkCubeSource;
 class vtkDataSetMapper;
 class vtkImageData;
 class vtkInteractorStyleSwitch;
+class vtkLineSource;
 class vtkLogoRepresentation;
 class vtkLogoWidget;
 class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPicker;
 class vtkPlane;
+class vtkPlaneSource;
 class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkQImageToImageSource;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
+class vtkSphereSource;
 class vtkTransform;
 class vtkUnstructuredGrid;
 
@@ -112,10 +115,12 @@ public:
 	void update();
 	void showHelpers(bool show);
 	void showRPosition(bool show);
+	void showSlicePlanes(bool show);
 
 	vtkPlane* getPlane1();
 	vtkPlane* getPlane2();
 	vtkPlane* getPlane3();
+	void setSlicePlane(int planeID, double originX, double originY, double originZ);
 	vtkRenderWindowInteractor* GetInteractor() { return interactor; }
 	vtkRenderWindow* GetRenderWindow() { return renWin;  }
 	vtkOpenGLRenderer * GetRenderer();
@@ -165,7 +170,7 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> cMapper;
 	vtkSmartPointer<vtkActor> cActor;
 	//! @}
-	
+
 	vtkSmartPointer<vtkAnnotatedCubeActor> annotatedCubeActor;
 	vtkSmartPointer<vtkAxesActor> axesActor;
 	vtkSmartPointer<vtkOrientationMarkerWidget> orientationMarkerWidget;
@@ -179,9 +184,29 @@ private:
 	//! @}
 	
 	int ext; //!< statistical extent size
+	//! @{ Line profile
+	vtkSmartPointer<vtkLineSource>     m_profileLineSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_profileLineMapper;
+	vtkSmartPointer<vtkActor>          m_profileLineActor;
+	vtkSmartPointer<vtkSphereSource>   m_profileLineStartPointSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_profileLineStartPointMapper;
+	vtkSmartPointer<vtkActor>          m_profileLineStartPointActor;
+	vtkSmartPointer<vtkSphereSource>   m_profileLineEndPointSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_profileLineEndPointMapper;
+	vtkSmartPointer<vtkActor>          m_profileLineEndPointActor;
+	//! @}
+
+	//! @{ Slice plane
+	vtkSmartPointer<vtkPlaneSource>    m_slicePlaneSource[3];
+	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
+	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
+	//! @}
+
 public slots:
 	void mouseRightButtonReleasedSlot();
 	void mouseLeftButtonReleasedSlot();
+	void setArbitraryProfile(int pointIndex, double * coords);
+	void setArbitraryProfileOn(bool isOn);
 Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);

@@ -32,7 +32,7 @@ struct iALinePointers
 	void setPointersScaling(double scaling);
 
 	vtkPoints			*points;
-	vtkActor			*actors[2];               
+	vtkActor			*actors[2];
 	vtkPolyDataMapper	*mappers[2];
 	vtkConeSource		*pointers[2];
 	static const int	CONE_HEIGHT = 10;

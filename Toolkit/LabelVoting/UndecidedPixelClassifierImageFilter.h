@@ -88,18 +88,18 @@ public:
 protected:
 	UndecidedPixelClassifierImageFilter();
 	virtual ~UndecidedPixelClassifierImageFilter() {}
-	void BeforeThreadedGenerateData() ITK_OVERRIDE;
+	void BeforeThreadedGenerateData() override;
 
 	void ThreadedGenerateData
-		(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+		(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId) override;
 
-	void PrintSelf(std::ostream &, itk::Indent) const ITK_OVERRIDE;
+	void PrintSelf(std::ostream &, itk::Indent) const override;
 
 	InputPixelType ComputeMaximumInputValue();
 
 private:
-	UndecidedPixelClassifierImageFilter(const Self &) ITK_DELETE_FUNCTION;
-	void operator=(const Self &) ITK_DELETE_FUNCTION;
+	UndecidedPixelClassifierImageFilter(const Self &) =delete;
+	void operator=(const Self &) =delete;
 
 	OutputPixelType m_undecidedPixelLabel;
 	bool m_hasUndecidedPixelLabel;

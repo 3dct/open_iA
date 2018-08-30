@@ -23,6 +23,7 @@
 #include "defines.h"          // for DIM
 #include "iAConnector.h"
 #include "iAProgress.h"
+#include "iAToolsITK.h"    // for CastImageTo
 #include "iAToolsVTK.h"    // for VTKDataTypeList
 #include "iATypedCallHelper.h"
 #include <itkFHWRescaleIntensityImageFilter.h>
@@ -35,13 +36,6 @@
 #include <itkRGBAPixel.h>
 #include <itkStatisticsImageFilter.h>
 
-class myRGBATypeException : public std::exception
-{
-	virtual const char* what() const throw()
-	{
-		return "RGBA Conversion Error: UNSIGNED LONG type needed.";
-	}
-} myRGBATypeExcep;
 
 template <class InT, class OutT> void CastImage(iAFilter* filter)
 {
@@ -207,10 +201,12 @@ void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 	}
 }
 
+template<class T>
 void ConvertToRGB(iAFilter * filter)
 {
+	iAITKIO::ImagePointer input = filter->Input()[0]->GetITKImage();
 	if (filter->InputPixelType() != itk::ImageIOBase::ULONG)
-		throw  myRGBATypeExcep;
+		input = CastImageTo<unsigned long>(input);
 
 	typedef itk::Image< unsigned long, DIM > LongImageType;
 	typedef itk::RGBPixel< unsigned char > RGBPixelType;
@@ -220,7 +216,7 @@ void ConvertToRGB(iAFilter * filter)
 
 	typedef itk::LabelToRGBImageFilter<LongImageType, RGBImageType> RGBFilterType;
 	RGBFilterType::Pointer labelToRGBFilter = RGBFilterType::New();
-	labelToRGBFilter->SetInput(dynamic_cast<LongImageType *>(filter->Input()[0]->GetITKImage()));
+	labelToRGBFilter->SetInput(dynamic_cast<LongImageType *>(input.GetPointer()));
 	labelToRGBFilter->Update();
 
 	RGBImageType::RegionType region;
@@ -250,9 +246,9 @@ void iACastImageFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 {
 	if (parameters["Data Type"].toString() == "Label image to color-coded RGBA image")
 	{
-		ConvertToRGB(this);
+		ITK_TYPED_CALL(ConvertToRGB, InputPixelType(), this);
 	}
-	if (parameters["Rescale Range"].toBool())
+	else if (parameters["Rescale Range"].toBool())
 	{
 		ITK_TYPED_CALL(DataTypeConversion, InputPixelType(), this, parameters);
 	}

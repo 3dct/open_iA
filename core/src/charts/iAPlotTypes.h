@@ -36,7 +36,7 @@ class open_iA_Core_API iASelectedBinDrawer : public iAPlot
 public:
 	iASelectedBinDrawer( int position = 0, QColor const & color = Qt::red );
 	void setPosition( int position );
-	void draw( QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter ) const override;
+	void draw( QPainter& painter, double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter ) const override;
 private:
 	int m_position;
 };
@@ -45,10 +45,10 @@ class open_iA_Core_API iAPolygonBasedFunctionDrawer: public iAPlot
 {
 public:
 	iAPolygonBasedFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color);
-	void draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const override;
+	void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const override;
 	void update() override;
 private:
-	virtual bool computePolygons(double binWidth, QSharedPointer<iAMapper> converter) const =0;
+	virtual bool computePolygons(double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const =0;
 	virtual void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const = 0;
 	QSharedPointer<iAPlotData> GetData() override;
 protected:
@@ -58,6 +58,7 @@ protected:
 	mutable QSharedPointer<QPolygon> m_poly;
 	mutable double m_cachedBinWidth;
 	mutable QSharedPointer<iAMapper> m_cachedCoordConv;
+	mutable size_t m_cachedStartBin, m_cachedEndBin;
 	//! @}
 };
 
@@ -67,7 +68,7 @@ class open_iA_Core_API iALineFunctionDrawer: public iAPolygonBasedFunctionDrawer
 public:
 	iALineFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color);
 private:
-	bool computePolygons(double binWidth, QSharedPointer<iAMapper> converter) const override;
+	bool computePolygons(double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const override;
 	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const override;
 };
 
@@ -77,7 +78,7 @@ class open_iA_Core_API iAStepFunctionDrawer : public iAPolygonBasedFunctionDrawe
 public:
 	iAStepFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color);
 private:
-	bool computePolygons(double binWidth, QSharedPointer<iAMapper> converter) const override;
+	bool computePolygons(double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const override;
 	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const override;
 	QColor getFillColor() const;
 };
@@ -87,7 +88,7 @@ class open_iA_Core_API iAFilledLineFunctionDrawer : public iAPolygonBasedFunctio
 public:
 	iAFilledLineFunctionDrawer(QSharedPointer<iAPlotData> data, QColor const & color);
 private:
-	bool computePolygons(double binWidth, QSharedPointer<iAMapper> converter) const override;
+	bool computePolygons(double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const override;
 	void drawPoly(QPainter& painter, QSharedPointer<QPolygon> m_poly) const override;
 	QColor getFillColor() const;
 };
@@ -99,7 +100,7 @@ class open_iA_Core_API iABarGraphDrawer: public iAPlot
 {
 public:
 	iABarGraphDrawer(QSharedPointer<iAPlotData> data, QColor const & color, int margin=0);
-	void draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const override;
+	void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const override;
 	QSharedPointer<iAPlotData> GetData() override;
 	void setLookupTable(QSharedPointer<iALookupTable> lut);
 private:
@@ -114,7 +115,7 @@ class open_iA_Core_API iAMultipleFunctionDrawer: public iAPlot
 {
 public:
 	iAMultipleFunctionDrawer();
-	void draw(QPainter& painter, double binWidth, QSharedPointer<iAMapper> converter) const override;
+	void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const override;
 	void add (QSharedPointer<iAPlot> drawer);
 	void clear();
 	void setColor(QColor const & color) override;

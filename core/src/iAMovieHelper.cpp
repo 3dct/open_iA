@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAMovieHelper.h"
 
+#include "io/iAFileUtils.h"
+
 #ifdef _WIN32
 #include <vtkAVIWriter.h>
 #endif
@@ -32,6 +34,9 @@
 
 vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, int quality)
 {
+	std::string encodedFileName = getLocalEncodingFileName(fileName);
+	if (encodedFileName.empty())
+		return vtkSmartPointer<vtkGenericMovieWriter>();
 	vtkSmartPointer<vtkGenericMovieWriter> movieWriter;
 	// Try to create proper video encoder based on given file name.
 #ifdef VTK_USE_OGGTHEORA_ENCODER
@@ -49,11 +54,12 @@ vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, 
 		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
 		aviwriter->SetCompressorFourCC("XVID");
 		aviwriter->SetRate(25);
-		aviwriter->PromptCompressionOptionsOn();
+		//aviwriter->PromptCompressionOptionsOn();
 		aviwriter->SetQuality(quality);
 		movieWriter = aviwriter;
 	}
 #endif
+	movieWriter->SetFileName(encodedFileName.c_str());
 	return movieWriter;
 }
 

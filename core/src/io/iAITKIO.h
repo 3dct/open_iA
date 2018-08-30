@@ -22,6 +22,8 @@
 
 #include "iATypedCallHelper.h"
 
+#include "io/iAFileUtils.h"
+
 #include <itkImageBase.h>
 #include <itkImageIOBase.h>
 #include <itkImageIOFactory.h>
@@ -36,7 +38,7 @@ namespace iAITKIO
 	typedef itk::ImageBase< m_DIM > ImageBaseType;
 	typedef ImageBaseType::Pointer ImagePointer;
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
-	
+
 	template<class T>
 	inline void read_image_template( QString const & f, ImagePointer & image, bool releaseFlag )
 	{
@@ -62,7 +64,10 @@ namespace iAITKIO
 		typename WriterType::Pointer writer = WriterType::New();
 
 		writer->ReleaseDataFlagOn();
-		writer->SetFileName( fileName.toLatin1().data() );
+		std::string encodedFileName = getLocalEncodingFileName(fileName);
+		if (encodedFileName.empty())
+			return;
+		writer->SetFileName( encodedFileName.c_str() );
 		writer->SetInput( dynamic_cast<InputImageType *> (image.GetPointer()) );
 		writer->SetUseCompression( comp );
 		writer->Update();
@@ -73,13 +78,13 @@ namespace iAITKIO
 	{
 		itk::ImageIOBase::Pointer imageIO =
 		itk::ImageIOFactory::CreateImageIO( fileName.toLatin1(), itk::ImageIOFactory::ReadMode );
-		
+
 		if (!imageIO)
 		{
 			throw itk::ExceptionObject( __FILE__, __LINE__, QString("iAITKIO: Could not open file %1, aborting loading.").arg(fileName).toLatin1().data() );
-			return 0;
+			return ImagePointer();
 		}
-		
+
 		imageIO->SetFileName(fileName.toLatin1());
 		imageIO->ReadImageInformation();
 		pixelType = imageIO->GetComponentType();
@@ -88,7 +93,7 @@ namespace iAITKIO
 
 		return image;
 	}
-	
+
 	inline void writeFile (QString const & fileName, ImagePointer image, ScalarPixelType pixelType, bool useCompression = false )
 	{
 		ITK_TYPED_CALL(write_image_template, pixelType, useCompression, fileName, image);

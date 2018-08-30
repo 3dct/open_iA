@@ -66,8 +66,15 @@ iABatchFilter::iABatchFilter():
 		"removed from the folder, and also the recursive and file mask options are the same as "
 		"with the batch run that created the file in the first place. "
 		"If <em>Add filename</em> is enabled, then the name of the file processed for that "
-		"line will be appended before the first output value from that file.", 0, 0)
+		"line will be appended before the first output value from that file."
+		"When <em>Continue on error</em> is enabled, then batch processing will continue with the next file "
+		"in case there is an error. If it is disabled, an error will interrupt the whole batch run. "
+		"Under <em>Work on</em> it can be specified whether the batched filter should get passed "
+		"only files, only folders, or both files and folders."
+		"<em>Output format</em> specifies the file format for the output image(s).", 0, 0)
 {
+	QStringList filesFoldersBoth;
+	filesFoldersBoth << "Files" << "Folders" << "Both Files and Folders";
 	AddParameter("Image folder", Folder, "");
 	AddParameter("Recursive", Boolean, false);
 	AddParameter("File mask", String, "*.mhd");
@@ -82,6 +89,11 @@ iABatchFilter::iABatchFilter():
 	AddParameter("Append to output", Boolean, true);
 	AddParameter("Add filename", Boolean, true);
 	AddParameter("Continue on error", Boolean, true);
+	AddParameter("Work on", Categorical, filesFoldersBoth);
+	QStringList outputFormat;
+	outputFormat << "Same as input"
+		<< "MetaImage (*.mhd)";
+	AddParameter("Output format", Categorical, outputFormat);
 }
 
 void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
@@ -143,8 +155,12 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		return;
 	}
 	QStringList files;
-	FindFiles(batchDir, filters, parameters["Recursive"].toBool(), files);
-
+	QFlags<FilesFolders> filesFolders;
+	if (parameters["Work on"].toString().contains("Files"))
+		filesFolders |= Files;
+	else if (parameters["Work on"].toString().contains("Folders"))
+		filesFolders |= Folders;
+	FindFiles(batchDir, filters, parameters["Recursive"].toBool(), files, filesFolders);
 	QString outDir(parameters["Output directory"].toString());
 	if (!outDir.isEmpty())
 	{
@@ -173,14 +189,28 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	{
 		try
 		{
-			iAITKIO::ScalarPixelType pixelType;
-			iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-			iAConnector con;
-			con.SetImage(img);
 			filter->ClearInput();
-			filter->AddInput(&con);
-			for (int i = 0; i < inputImages.size(); ++i)
-				filter->AddInput(inputImages[i]);
+			iAConnector con;
+			if (QFileInfo(fileName).isDir())
+			{
+				filterParams["Folder name"] = fileName;
+			}
+			else
+			{
+				if (filter->RequiredInputs() > 0)
+				{
+					iAITKIO::ScalarPixelType pixelType;
+					iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
+					con.SetImage(img);
+					filter->AddInput(&con);
+					for (int i = 0; i < inputImages.size(); ++i)
+						filter->AddInput(inputImages[i]);
+				}
+				else
+				{
+					filterParams["File name"] = fileName;
+				}
+			}
 			filter->Run(filterParams);
 			if (curLine == 0)
 			{
@@ -215,13 +245,17 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 			{
 				QFileInfo fi(outDir + "/" + relFileName);
 				QString multiFileSuffix = filter->Output().size() > 1 ? QString::number(o) : "";
-				QString outName = QString("%1/%2%3%4.%5").arg(fi.absolutePath()).arg(fi.baseName())
-					.arg(outSuffix).arg(multiFileSuffix).arg(fi.completeSuffix());
+				QString outName = QString("%1/%2%3%4.%5").arg(fi.absolutePath()).arg(
+					parameters["Output format"].toString().contains("MetaImage") ? fi.fileName() : fi.baseName())
+					.arg(outSuffix).arg(multiFileSuffix).arg(
+						parameters["Output format"].toString().contains("MetaImage")? "mhd" :	fi.completeSuffix());
 				int overwriteSuffix = 0;
 				while (!overwrite && QFile(outName).exists())
 				{
-					outName = QString("%1/%2%3%4-%5.%6").arg(fi.absolutePath()).arg(fi.baseName())
-						.arg(outSuffix).arg(multiFileSuffix).arg(overwriteSuffix).arg(fi.completeSuffix());
+					outName = QString("%1/%2%3%4-%5.%6").arg(fi.absolutePath()).arg(
+						parameters["Output format"].toString().contains("MetaImage") ? fi.fileName() : fi.baseName())
+						.arg(outSuffix).arg(multiFileSuffix).arg(overwriteSuffix).arg(
+							parameters["Output format"].toString().contains("MetaImage") ? "mhd" :	fi.completeSuffix());
 					++overwriteSuffix;
 				}
 				if (!QDir(fi.absolutePath()).exists() && !QDir(fi.absolutePath()).mkpath("."))
@@ -234,10 +268,9 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		}
 		catch (std::exception & e)
 		{
+			DEBUG_LOG(QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 			if (!parameters["Continue on error"].toBool())
 				throw e;
-			else
-				DEBUG_LOG(QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 		}
 		Progress()->EmitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
 	}

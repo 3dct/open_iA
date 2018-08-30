@@ -20,15 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
-#include "QVTKWidget2.h"
 #include "open_iA_Core_export.h"
 #include "iASlicer.h"
+
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget2.h>
+#endif
 
 #include <QSharedPointer>
 #include <QGridLayout>
 
 class QMenu;
-class vtkParametricFunctionSource;
 struct iASlicerProfile;
 struct iAArbitraryProfileOnSlicer;
 struct PickedData;
@@ -36,24 +41,28 @@ class iASnakeSpline;
 class iAMagicLens;
 class iAPieChartGlyph;
 
-class vtkRenderWindow;
 class vtkActor;
-class vtkThinPlateSplineTransform;
+class vtkParametricFunctionSource;
 class vtkPoints;
-class vtkRegularPolygonSource;
 class vtkPolyDataMapper;
+class vtkRegularPolygonSource;
+class vtkThinPlateSplineTransform;
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class open_iA_Core_API iASlicerWidget : public QVTKOpenGLWidget
+#else
 class open_iA_Core_API iASlicerWidget : public QVTKWidget2
+#endif
 {
 	Q_OBJECT
 public:
-	enum viewModeEnum{ 
+	enum viewModeEnum{
 		NORMAL = 0,
 		DEFINE_SPLINE = 1,
 		SHOW = 2
 	};
 
-protected:	
+protected:
 	iAMagicLens					* m_magicLensExternal;
 	QMenu						* m_magicLensContextMenu;
 	//QImage img;
@@ -66,11 +75,11 @@ protected:
 	bool						m_isArbProfEnabled;				//if arbitrary profile mode is enabled
 	bool						m_pieGlyphsEnabled;				//if slice pie glyphs for xrf are enabled
 	iASlicerMode				m_slicerMode;					// which slice viewer
-	int							m_xInd, m_yInd, m_zInd;		
+	int							m_xInd, m_yInd, m_zInd;
 
 	vtkImageData				* m_imageData;
 	iASnakeSpline				* m_snakeSpline;
-	vtkPoints					* m_worldSnakePointsExternal;	
+	vtkPoints					* m_worldSnakePointsExternal;
 	iASlicerProfile				* m_sliceProfile;				//necessary vtk classes for the slice profile
 	iAArbitraryProfileOnSlicer	* m_arbProfile;
 	iASlicerData				* m_slicerDataExternal;
@@ -79,32 +88,31 @@ protected:
 	double										m_pieGlyphMagFactor;
 	double										m_pieGlyphSpacing;
 	double										m_pieGlyphOpacity;
-	
+
 	static const int			RADIUS = 5;
 	QGridLayout * m_layout;
-	
+
 public:
-	iASlicerWidget(iASlicer const * slicerMaster, QWidget * parent = NULL, const QGLWidget * shareWidget=0, Qt::WindowFlags f = 0, bool decorations = true);
+	iASlicerWidget(iASlicer const * slicerMaster, QWidget * parent = NULL, bool decorations = true);
 	~iASlicerWidget();
 
+	static const int BorderWidth = 3;
+	
 	void	initialize(vtkImageData * imageData, vtkPoints * points);
 	void    changeImageData(vtkImageData * imageData);
 	void	setIndex( int x, int y, int z ) { m_xInd = x; m_yInd = y; m_zInd = z; };
 	void	setMode(iASlicerMode slicerMode);
-	void	SetSlicer(iASlicerData * slicer);
 	void	updateMagicLens();
 	void	computeGlyphs();
 	void	setPieGlyphParameters( double opacity, double spacing, double magFactor );
-	void	SetMagicLensFrameWidth(qreal width);
-	void	SetMagicLensOpacity(double opac);
-	double  GetMagicLensOpacity();
+	void	showBorder(bool show);
 protected:
 	void	updateProfile();
 	int		pickPoint( double * pos_out, double * result_out, int * ind_out);
-	int		pickPoint( double & xPos_out, double & yPos_out, double & zPos_out, 
+	int		pickPoint( double & xPos_out, double & yPos_out, double & zPos_out,
 					   double * result_out,
 					   int & xInd_out, int &yInd_out, int &zInd_out);
-	
+
 protected:			//overloaded events of QWidget
 	virtual void keyPressEvent ( QKeyEvent * event );
 	virtual void mousePressEvent ( QMouseEvent * event );
@@ -116,50 +124,41 @@ protected:			//overloaded events of QWidget
 	virtual void wheelEvent(QWheelEvent*);
 
 private:
-	void	initializeFisheyeLens(vtkImageReslice* reslicer);
+	void initializeFisheyeLens(vtkImageReslice* reslicer);
 	void updateFisheyeTransform( double focalPt[3], iASlicerData *slicerData, double lensRadius, double innerLensRadius);
-
-
-protected slots:	//overloaded events of QVTKWidget2
-	virtual void Frame();
 
 public slots:
 
-	/** Sets a profile line. */
+	//! Sets a profile line.
 	void setSliceProfile(double Pos[3]);
 
-	/** Sets profile coordinates. */
-	bool setArbitraryProfile(int pointInd, double * Pos);
+	//! Sets coordinates for line profile
+	bool setArbitraryProfile(int pointInd, double * Pos, bool doClamp=false);
 
-	/** Moves a point to a new position. */
+	//! Moves a point of the snake slicer to a new position.
 	void movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
-	
-	/** Function to deselect points necessary to avoid endless loops with signals and slots. */
+
+	//! Function to deselect points in snake slicer (necessary to avoid endless loops with signals and slots).
 	void deselectPoint();
-	
-	/**
-	* \brief Function to switch slice view modi and to change visibility of spline snakeDisks.
-	*
-	* \param	mode	Mode which should be switched to.
-	*/
+
+	//! Function to switch slice view modi and to change visibility of spline snakeDisks.
+	//! @param	mode	Mode which should be switched to.
 	void switchMode(int mode);
 	void setSliceProfileOn(bool isOn);
 	void setArbitraryProfileOn(bool isOn);
 	void setPieGlyphsOn(bool isOn);
 
-	/** Adds a new spline point to the end of the spline curve. */
+	//! Adds a new spline point to the end of the spline curve.
 	void addPoint(double x, double y, double z);
-	
-	/** Deletes the current spline curve. */
+	//! Deletes the current spline curve.
 	void deleteSnakeLine();
-
-	/** Called when the delete snake line menu is clicked. */
+	//! Called when the delete snake line menu is clicked.
 	void menuDeleteSnakeLine();
+
 	void clearProfileData();
 	void slicerUpdatedSlot();
 	void menuCenteredMagicLens();
 	void menuOffsetMagicLens();
-	void menuSideBySideMagicLens();
 
 signals:
 	void addedPoint(double x, double y, double z);
@@ -170,6 +169,7 @@ signals:
 	void deletedSnakeLine();
 	void shiftMouseWheel(int angle);
 	void altMouseWheel(int angle);
+	void ctrlMouseWheel(int angle);
 	void Clicked();
 	void DblClicked();
 

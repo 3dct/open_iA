@@ -29,7 +29,11 @@
 #include <QAbstractTextDocumentLayout>
 #include <QColor>
 #include <QDebug>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QOpenGLBuffer>
+#else
 #include <QGLBuffer>
+#endif
 #include <qmath.h>
 #include <QPainter>
 #include <QPen>
@@ -39,35 +43,37 @@
 #include <QWheelEvent>
 
 iAScatterPlot::Settings::Settings() :
-pickedPointMagnification( 2.0 ),
-
-tickOffset( 45 ),
-tickSpacing( 5 ),
-maximizedParamsOffset( 5 ),
-textRectHeight( 30 ),
-
-rangeMargin( 0.08 ),
-pointRadius( 2.5 ),
-maximizedPointMagnification( 1.7 ),
-defaultGridDimensions( 100 ),
-defaultMaxBtnSz( 10 ),
-paramTextOffset( 5 ),
-
-previewBorderWidth( 3.0 ),
-
-previewBorderColor( QColor( 140, 140, 140 ) ),
-
-selectionPolyColor( QColor( 150, 150, 150, 100 ) ),
-plotBorderColor( QColor( 170, 170, 170 ) ),
-tickLineColor( QColor( 221, 221, 221 ) ),
-tickLabelColor( QColor( 100, 100, 100 ) ),
-backgroundColor( QColor( 255, 255, 255 ) ),
-selectionColor( QColor(0, 0, 0) ),
-
-selectionMode(Polygon)
+	pickedPointMagnification( 2.0 ),
+	tickOffset( 45 ),
+	tickSpacing( 5 ),
+	maximizedParamsOffset( 5 ),
+	textRectHeight( 30 ),
+	rangeMargin( 0.08 ),
+	pointRadius( 1.0/*2.5*/ ),
+	maximizedPointMagnification( 1.7 ),
+	defaultGridDimensions( 100 ),
+	defaultMaxBtnSz( 10 ),
+	paramTextOffset( 5 ),
+	previewBorderWidth( 3.0 ),
+	previewBorderColor( QColor( 140, 140, 140 ) ),
+	selectionPolyColor( QColor( 150, 150, 150, 100 ) ),
+	plotBorderColor( QColor( 170, 170, 170 ) ),
+	tickLineColor( QColor( 221, 221, 221 ) ),
+	tickLabelColor( QColor( 100, 100, 100 ) ),
+	backgroundColor( QColor( 255, 255, 255 ) ),
+	selectionColor( QColor(0, 0, 0) ),
+	selectionMode(Polygon),
+	selectionEnabled(true),
+	showPCC(false)
 {}
 
+size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
+
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QOpenGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
+#else
 iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
+#endif
 	:QObject(parent),
 	settings(),
 	m_parentWidget(parent),
@@ -77,12 +83,15 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	m_offset( 0.0, 0.0 ),
 	m_numTicks( numTicks ),
 	m_isPlotActive( false ),
-	m_prevPtInd( -1 ),
-	m_curInd( -1 ),
+	m_curInd( NoPointIndex ),
+	m_prevInd( NoPointIndex ),
+	m_prevPtInd( NoPointIndex ),
 	m_pointsBuffer( 0 ),
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false ),
-	m_colInd( 0 )
+	m_colInd( 0 ),
+	m_pcc( 0 ),
+	m_pointsInitialized(false)
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
@@ -93,12 +102,18 @@ iAScatterPlot::~iAScatterPlot() {}
 void iAScatterPlot::setData( int x, int y, QSharedPointer<iASPLOMData> &splomData )
 {
 	m_paramIndices[0] = x; m_paramIndices[1] = y;
+	if (m_splomData)
+	{
+		disconnect(m_splomData.data(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
+	}
 	m_splomData = splomData;
+	connect(m_splomData.data(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
+	m_pcc = pearsonsCorrelationCoefficient(m_splomData->paramData(m_paramIndices[0]), m_splomData->paramData(m_paramIndices[1]));
 	if ( !hasData() )
 		return;
-	calculateRanges();
+	applyMarginToRanges();
 	updateGrid();
-	createAndFillVBO();
+	updatePoints();
 }
 
 bool iAScatterPlot::hasData() const
@@ -108,24 +123,17 @@ bool iAScatterPlot::hasData() const
 	return true;
 }
 
-void iAScatterPlot::UpdatePoints()
+void iAScatterPlot::updatePoints()
 {
+	m_pointsInitialized = false;
 	createAndFillVBO();
 }
 
-void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, QString const & colorArrayName )
+void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, int colInd )
 {
+	m_colInd = colInd;
 	m_lut = lut;
-	//qDebug() << colorArrayName;
-	for ( unsigned long i = 0; i < m_splomData->numParams(); ++i )
-	{
-		//qDebug() << m_splomData->parameterName( i );
-		if (m_splomData->parameterName(i) == colorArrayName)
-		{
-			m_colInd = i;
-			break;
-		}
-	}
+	m_pointsInitialized = false;
 	createAndFillVBO();
 }
 
@@ -173,11 +181,10 @@ void iAScatterPlot::setRect( QRect val )
 {
 	m_globRect = val;
 	updateDrawRect();
-	updateMaxBtnRect();
 	calculateNiceSteps();
 }
 
-QPointF iAScatterPlot::getPointPosition( int index ) const
+QPointF iAScatterPlot::getPointPosition( size_t index ) const
 {
 	return m_globRect.topLeft() + getPositionFromPointIndex( index );
 }
@@ -196,45 +203,67 @@ void iAScatterPlot::printTicksInfo( QList<double> * posX, QList<double> * posY, 
 	}
 }
 
-void iAScatterPlot::setCurrentPoint( int index )
+void iAScatterPlot::setCurrentPoint( size_t index )
 {
 	if ( m_curInd != index )
 	{
 		m_prevInd = m_curInd;
-		if ( m_prevInd >= 0 )
+		if ( m_prevInd != NoPointIndex )
 			m_prevPtInd = m_prevInd;
 		m_curInd = index;
 	}
 }
 
-int iAScatterPlot::getCurrentPoint() const
+size_t iAScatterPlot::getCurrentPoint() const
 {
 	return m_curInd;
 }
 
-int iAScatterPlot::getPreviousIndex() const
+size_t iAScatterPlot::getPreviousIndex() const
 {
 	return m_prevInd;
 }
 
-int iAScatterPlot::getPreviousPoint() const
+size_t iAScatterPlot::getPreviousPoint() const
 {
 	return m_prevPtInd;
+}
+
+void iAScatterPlot::setPreviewState(bool isPreviewPlot)
+{
+	m_isPreviewPlot = isPreviewPlot;
+}
+
+void iAScatterPlot::leave()
+{
+	m_curInd = m_prevPtInd = NoPointIndex;
+	m_isPlotActive = false;
+}
+
+void iAScatterPlot::enter()
+{
+	m_isPlotActive = true;
 }
 
 void iAScatterPlot::paintOnParent( QPainter & painter )
 {
 	if ( !hasData() )
 		return;
+	if (!m_pointsInitialized)
+		createAndFillVBO();
 	painter.save();
-	painter.translate( m_globRect.x(), m_globRect.y() );
+	painter.translate( m_globRect.x(), m_globRect.y());
 	painter.setBrush( settings.backgroundColor );
 	drawTicks( painter );
-	drawParameterName( painter );
 	drawPoints( painter );
-	drawSelectionPolygon( painter );
-	drawMaximizeButton( painter );
+	if (m_isMaximizedPlot)
+		drawSelectionPolygon( painter );
 	drawBorder( painter );
+	if (settings.showPCC)
+	{
+		painter.setPen(QColor(0, 0, 0));
+		painter.drawText( QRect(0, 0, m_globRect.width(), m_globRect.height()), Qt::AlignCenter | Qt::AlignVCenter, QString::number(m_pcc));
+	}
 	painter.restore();
 }
 
@@ -276,7 +305,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		}
 	}
 
-	if ( event->buttons()&Qt::RightButton )//moving
+	if ( event->buttons()&Qt::RightButton ) // drag
 	{
 		QPointF deltaOffset = locPos - m_prevPos;
 		m_offset += locPos - m_prevPos;
@@ -286,7 +315,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		emit transformModified( m_scale, deltaOffset );
 	}
 
-	if ( event->buttons()&Qt::LeftButton )//moving
+	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled ) // selection
 	{
 		if (settings.selectionMode == Polygon)
 		{
@@ -311,7 +340,7 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 {
 	QPoint locPos = getLocalPos( event->pos() );
 	m_prevPos = locPos;
-	if ( event->buttons()&Qt::LeftButton )//selection
+	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled)//selection
 	{
 		if (settings.selectionMode == Rectangle)
 		{
@@ -326,15 +355,11 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 
 void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 {
-	if ( event->button() == Qt::LeftButton )//selection
+	if (m_isMaximizedPlot && event->button() == Qt::LeftButton && settings.selectionEnabled)//selection
 	{
-		bool isMaxClicked = isMaximizedClicked( event ); //maximize button clicked
 		bool append = ( event->modifiers() & Qt::ShiftModifier ) ? true : false;
-		if ( !isMaxClicked )
-			updateSelectedPoints( append ); //selection
-		m_selPoly.clear();
-		if ( isMaxClicked )
-			emit plotMaximized();
+		bool remove = ( event->modifiers() & Qt::AltModifier ) ? true : false;
+		updateSelectedPoints( append, remove );
 	}
 }
 
@@ -347,7 +372,7 @@ int iAScatterPlot::p2binx( double p ) const
 
 double iAScatterPlot::p2tx( double pval ) const
 {
-	double norm = mapToNorm( m_prX, pval);
+	double norm = mapToNorm(m_prX, pval);
 	if (m_splomData->isInverted(m_paramIndices[0]))
 		norm = 1.0 - norm;
 	return norm;
@@ -356,7 +381,7 @@ double iAScatterPlot::p2tx( double pval ) const
 double iAScatterPlot::p2x( double pval ) const
 {
 	double rangeDst[2] = { m_locRect.left(), m_locRect.right() };
-	double pixelX = mapValue(m_prX, rangeDst, pval);
+	double pixelX = mapValue( m_prX, rangeDst, pval);
 	if (m_splomData->isInverted(m_paramIndices[0]))
 		pixelX = invertValue(rangeDst, pixelX);
 	return applyTransformX(pixelX);
@@ -432,7 +457,7 @@ void iAScatterPlot::initGrid()
 {
 	m_gridDims[0] = m_gridDims[1] = settings.defaultGridDimensions;
 	for ( int i = 0; i < m_gridDims[0] * m_gridDims[1]; ++i )
-		m_pointsGrid.push_back( QList<int>() );
+		m_pointsGrid.push_back( QList<size_t>() );
 }
 
 void iAScatterPlot::updateGrid()
@@ -440,10 +465,10 @@ void iAScatterPlot::updateGrid()
 	for ( int i = 0; i < m_gridDims[0] * m_gridDims[1]; ++i )
 		m_pointsGrid[i].clear();
 
-	for ( unsigned long i = 0; i < m_splomData->numPoints(); ++i )
+	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
 	{
-		double x = m_splomData->paramData( m_paramIndices[0] )[i];
-		double y = m_splomData->paramData( m_paramIndices[1] )[i];
+		double x = m_splomData->paramData(m_paramIndices[0] )[i];
+		double y = m_splomData->paramData(m_paramIndices[1] )[i];
 		int xbin = p2binx( x );
 		int ybin = p2biny( y );
 		int binInd = getBinIndex( xbin, ybin );
@@ -451,23 +476,21 @@ void iAScatterPlot::updateGrid()
 	}
 }
 
-void iAScatterPlot::calculateRanges()
+void iAScatterPlot::dataChanged(size_t paramIndex)
 {
-	m_prX[0] = m_prX[1] = m_splomData->paramData( m_paramIndices[0] )[0];
-	m_prY[0] = m_prY[1] = m_splomData->paramData( m_paramIndices[1] )[0];
-	for ( unsigned long i = 1; i < m_splomData->numPoints(); ++i )
-	{
-		double x = m_splomData->paramData( m_paramIndices[0] )[i];
-		double y = m_splomData->paramData( m_paramIndices[1] )[i];
-		if ( x < m_prX[0] )
-			m_prX[0] = x;
-		if ( x > m_prX[1] )
-			m_prX[1] = x;
-		if ( y < m_prY[0] )
-			m_prY[0] = y;
-		if ( y > m_prY[1] )
-			m_prY[1] = y;
-	}
+	if (paramIndex != m_paramIndices[0] && paramIndex != m_paramIndices[1])
+		return;
+	applyMarginToRanges();
+	updateGrid();
+	updatePoints();
+}
+
+void iAScatterPlot::applyMarginToRanges()
+{
+	m_prX[0] = m_splomData->paramRange(m_paramIndices[0])[0];
+	m_prX[1] = m_splomData->paramRange(m_paramIndices[0])[1];
+	m_prY[0] = m_splomData->paramRange(m_paramIndices[1])[0];
+	m_prY[1] = m_splomData->paramRange(m_paramIndices[1])[1];
 	if ( m_prX[0] == m_prX[1] )
 	{
 		m_prX[0] -= 0.1; m_prX[1] += 0.1;
@@ -476,17 +499,11 @@ void iAScatterPlot::calculateRanges()
 	{
 		m_prY[0] -= 0.1; m_prY[1] += 0.1;
 	}
-	applyMarginToRanges();
-	calculateNiceSteps();
-}
-
-void iAScatterPlot::applyMarginToRanges()
-{
-	//apply margins to ranges
 	double rM = settings.rangeMargin;
 	double prLenX = m_prX[1] - m_prX[0], prLenY = m_prY[1] - m_prY[0];
 	m_prX[0] -= rM * prLenX; m_prX[1] += rM * prLenX;
 	m_prY[0] -= rM * prLenY; m_prY[1] += rM * prLenY;
+	calculateNiceSteps();
 }
 
 void iAScatterPlot::calculateNiceSteps()
@@ -552,7 +569,12 @@ void iAScatterPlot::calculateNiceSteps( double * r, QList<double> * ticks )
 	}
 }
 
-int iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
+int iAScatterPlot::getBinIndex(int x, int y) const
+{
+	return y*m_gridDims[0] + x;
+}
+
+size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 {
 	double px = x2p( mpos.x() );
 	double py = y2p( mpos.y() );
@@ -574,23 +596,23 @@ int iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 	if ( yrange[1] > m_gridDims[1] ) yrange[1] = m_gridDims[1];
 
 	double minDist = pow( pPtMag * ptRad, 2 );
-	int res = -1;
+	size_t res = NoPointIndex;
 	for ( int x = xrange[0]; x < xrange[1]; ++x )
 		for ( int y = yrange[0]; y < yrange[1]; ++y )
 		{
-		binInd = getBinIndex( x, y );
-		for ( int indx = m_pointsGrid[binInd].size() - 1; indx >= 0; --indx )//foreach( int i, m_pointsGrid[binInd] )
-		{
-			int i = m_pointsGrid[binInd][indx];
-			double x = p2x( m_splomData->paramData( m_paramIndices[0] )[i] );
-			double y = p2y( m_splomData->paramData( m_paramIndices[1] )[i] );
-			double dist = pow( x - mpos.x(), 2 ) + pow( y - mpos.y(), 2 );
-			if ( dist < minDist )//if( dist <= m_pointRadius*m_pointRadius )
+			binInd = getBinIndex( x, y );
+			for ( int indx = m_pointsGrid[binInd].size() - 1; indx >= 0; --indx )//foreach( int i, m_pointsGrid[binInd] )
 			{
-				minDist = dist;
-				res = i;
+				size_t ptIdx = m_pointsGrid[binInd][indx];
+				double x = p2x( m_splomData->paramData( m_paramIndices[0] )[ptIdx] );
+				double y = p2y( m_splomData->paramData( m_paramIndices[1] )[ptIdx] );
+				double dist = pow( x - mpos.x(), 2 ) + pow( y - mpos.y(), 2 );
+				if ( dist < minDist && m_splomData->matchesFilter(ptIdx) )
+				{
+					minDist = dist;
+					res = ptIdx;
+				}
 			}
-		}
 		}
 	return res;
 }
@@ -602,11 +624,15 @@ QPointF iAScatterPlot::getPositionFromPointIndex( int ind ) const
 	return QPointF( x, y );
 }
 
-void iAScatterPlot::updateSelectedPoints( bool append )
+void iAScatterPlot::updateSelectedPoints(bool append, bool remove)
 {
-	QVector<unsigned int> & selInds = m_splom->getSelection();
-	if ( !append )
+	bool wasModified = false;
+	auto & selInds = m_splom->getSelection();
+	if (!append && !remove)
+	{
+		wasModified = selInds.size() > 0;
 		selInds.clear();
+	}
 	if (m_selPoly.size() > 0)
 	{
 		QPolygonF pPoly;
@@ -621,34 +647,40 @@ void iAScatterPlot::updateSelectedPoints( bool append )
 		{
 			for (int biny = rangeBinY[0]; biny <= rangeBinY[1]; ++biny)
 			{
-				QList<int> pts = m_pointsGrid[getBinIndex(binx, biny)];
-				foreach(int i, pts)
+				auto const & pts = m_pointsGrid[getBinIndex(binx, biny)];
+				for(auto i: pts)
 				{
+					if (!m_splomData->matchesFilter(i))
+						continue;
 					QPointF pt(m_splomData->paramData(m_paramIndices[0])[i], m_splomData->paramData(m_paramIndices[1])[i]);
 					if (pPoly.containsPoint(pt, Qt::OddEvenFill))
 					{
-						if (append) if (selInds.contains(i)) continue;
-						selInds.push_back(i);
+						auto pos = std::find(selInds.begin(), selInds.end(), i);
+						if (pos != selInds.end() && remove)
+							selInds.erase(pos);
+						else if (!remove || append) // achieves XOR-like behavior if both remove and append are true
+							selInds.push_back(i);
 					}
 				}
 			}
 		}
+		wasModified |= (selInds.size() > 0);
 	}
-	if (!append || m_selPoly.size() > 0)
+	bool needToClearPolygon = m_selPoly.size() > 0;
+	m_selPoly.clear();
+	if (wasModified)
 	{
 		emit selectionModified();
+	}
+	else if (needToClearPolygon)
+	{
+		m_parentWidget->update();
 	}
 }
 
 void iAScatterPlot::updateDrawRect()
 {
 	m_locRect = QRectF( 0.0, 0.0, m_globRect.width(), m_globRect.height() );//QRectF( 0.5, 0.5, m_rect.width() - 1, m_rect.height() - 1 );
-}
-
-void iAScatterPlot::updateMaxBtnRect()
-{
-	int dMBS = settings.defaultMaxBtnSz;
-	m_maxBtnRect = QRectF( m_locRect.right() - dMBS, m_locRect.top(), dMBS, dMBS );
 }
 
 QPoint iAScatterPlot::getLocalPos( QPoint pos ) const
@@ -670,38 +702,21 @@ QPoint iAScatterPlot::cropLocalPos( QPoint locPos ) const
 	return res;
 }
 
-bool iAScatterPlot::isMaximizedClicked( QMouseEvent * event )
-{
-	if ( m_paramIndices[0] > m_paramIndices[1] ) //only plots above the diagonal can be maximized
-		return false;
-	if ( m_splom->getVisibleParametersCount() <= 1 )
-		return false;
-	QPoint epos = event->pos();
-	if ( m_maxBtnRect.contains( getLocalPos( epos ) ) )
-		return true;
-	return false;
-}
-
 void iAScatterPlot::drawPoints( QPainter &painter )
 {
-	// points
 	if ( !m_splomData )
 		return;
 
+	// all points
 	int pwidth  = m_parentWidget->width();
 	int pheight = m_parentWidget->height();
 
 	painter.save();
 	double ptRad = getPointRadius();
-	double ptSize = 2 * ptRad;
-	//painter.translate( m_offset );
-	//painter.scale( m_rect.width() * m_scale, m_rect.height() * m_scale );
+	double ptSize =2 * ptRad;
 	painter.beginNativePainting();
 	QPoint tl = m_globRect.topLeft(), br = m_globRect.bottomRight();
-	//glScissor( tl.x() - 3, h - br.y(), br.x() - tl.x() + 6, br.y() - tl.y() );
 	int y = pheight - m_globRect.bottom() - 1; //Qt and OpenGL have inverted Y axes
-
-
 
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
@@ -734,14 +749,20 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glDisableClientState( GL_COLOR_ARRAY );
 	glColor3f( settings.selectionColor.red() / 255.0, settings.selectionColor.green() / 255.0, settings.selectionColor.blue() / 255.0 );
 
-	QVector<unsigned int> & selInds = m_splom->getSelection();
-	glDrawElements(GL_POINTS, selInds.size(), GL_UNSIGNED_INT, selInds.data());
+	// draw selection:
+	auto const & selInds = m_splom->getSelection();
+	// TODO: This still limits the data to be drawn to the maximum of unsigned int (i.e. 2^32!)
+	//       but unfortunately, there is no GL_UNSIGNED_LONG_LONG (yet)
+	std::vector<uint> uintSelInds;
+	for (size_t idx : selInds)         // copy doesn't work as it would require explicit conversion from size_t to uint
+		uintSelInds.push_back(idx);
+	glDrawElements(GL_POINTS, selInds.size(), GL_UNSIGNED_INT, uintSelInds.data());
 	glDisableClientState( GL_VERTEX_ARRAY );
 	m_pointsBuffer->release();
 
-	//draw current point
+	// draw current point
 	double anim = m_splom->getAnimIn();
-	if (m_curInd >= 0)
+	if (m_curInd != NoPointIndex)
 	{
 		double pPM = settings.pickedPointMagnification;
 		double curPtSize = ptSize * linterp(1.0, pPM, anim);
@@ -759,9 +780,9 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		glEnd();
 	}
 
-	//draw highlighted points
-	const QList<int> & highlightedPoints = m_splom->getHighlightedPoints();
-	foreach(const int & ind, highlightedPoints)
+	// draw highlighted points
+	auto const & highlightedPoints = m_splom->getHighlightedPoints();
+	for(auto ind: highlightedPoints)
 	{
 		double curPtSize = ptSize * settings.pickedPointMagnification;
 		glPointSize(curPtSize);
@@ -778,9 +799,9 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		glEnd();
 	}
 
-	//draw previous point
+	// draw previous point
 	anim = m_splom->getAnimOut();
-	if (m_prevPtInd >= 0 && anim > 0.0)
+	if (m_prevPtInd != NoPointIndex && anim > 0.0)
 	{
 		double pPM = settings.pickedPointMagnification;
 		double curPtSize = ptSize * linterp(1.0, pPM, anim);
@@ -877,48 +898,10 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 	painter.restore();
 }
 
-void iAScatterPlot::drawParameterName( QPainter &painter )
-{
-	if ( ( m_paramIndices[0] == m_paramIndices[1] ) && !m_isMaximizedPlot )
-	{
-		painter.save();
-		QFont font = painter.font(); font.setBold( true ); painter.setFont( font );
-		painter.setPen( settings.tickLabelColor );
-		QString paramName = m_splomData->parameterName( m_paramIndices[0] );
-		QRectF textRect = QRectF( settings.paramTextOffset, 0, m_locRect.width() - settings.paramTextOffset, m_locRect.height() );
-		painter.drawText( textRect, Qt::AlignLeft | Qt::AlignTop, paramName );
-		painter.restore();
-	}
-}
-
-void iAScatterPlot::drawMaximizeButton( QPainter & painter )
-{
-	if ( !m_isPlotActive || m_isPreviewPlot )
-		return;
-	if ( m_splom->getVisibleParametersCount() <= 1 )
-		return;
-	if ( m_paramIndices[0] > m_paramIndices[1] )
-		return;
-	painter.setPen( Qt::NoPen );
-	painter.setBrush( settings.plotBorderColor );
-	QPointF pts[3];
-	if ( m_isMaximizedPlot )
-	{
-		pts[0] = m_maxBtnRect.topLeft();
-		pts[1] = m_maxBtnRect.bottomRight();
-		pts[2] = m_maxBtnRect.bottomLeft();
-	}
-	else
-	{
-		pts[0] = m_maxBtnRect.topLeft();
-		pts[1] = m_maxBtnRect.topRight();
-		pts[2] = m_maxBtnRect.bottomRight();
-	}
-	painter.drawPolygon( pts, 3 );
-}
-
 void iAScatterPlot::createAndFillVBO()
 {
+	if (!m_parentWidget->isVisible())
+		return;
 	m_parentWidget->makeCurrent();
 	if ( m_pointsBuffer )
 	{
@@ -926,7 +909,11 @@ void iAScatterPlot::createAndFillVBO()
 		m_pointsBuffer->destroy();
 		delete m_pointsBuffer;
 	}
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	m_pointsBuffer = new QOpenGLBuffer( QOpenGLBuffer::VertexBuffer );
+#else
 	m_pointsBuffer = new QGLBuffer( QGLBuffer::VertexBuffer );
+#endif
 	if ( !m_pointsBuffer->create() )//TODO: exceptions?
 		return;
 	if ( m_splomData && m_lut->initialized() )
@@ -936,37 +923,45 @@ void iAScatterPlot::createAndFillVBO()
 			fillVBO();
 		m_pointsBuffer->release();
 	}
+	m_pointsInitialized = true;
 }
 
 void iAScatterPlot::fillVBO()
 {
 	//draw data points
-	if ( hasData() )
+	if ( !hasData() )
+		return;
+	// TODO: adapt sizes to filter!
+	size_t vcount = 3 * m_splomData->numPoints();
+	size_t ccount = 4 * m_splomData->numPoints();
+	int elSz = 7;
+	GLfloat * buffer = new GLfloat[vcount + ccount];
+	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
 	{
-		int vcount = 3 * m_splomData->numPoints();
-		int ccount = 4 * m_splomData->numPoints();
-		int elSz = 7;
-		GLfloat * buffer = new GLfloat[vcount + ccount];
-		for ( unsigned long i = 0; i < m_splomData->numPoints(); ++i )
+		if (!m_splomData->matchesFilter(i))
+			continue;
+		double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[i] );
+		double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[i] );
+		buffer[elSz * i + 0] = tx;
+		buffer[elSz * i + 1] = ty;
+		buffer[elSz * i + 2] = 0.0;
+		if ( m_lut->initialized() )
 		{
-			double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[i] );
-			double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[i] );
-			buffer[elSz * i + 0] = tx;
-			buffer[elSz * i + 1] = ty;
-			buffer[elSz * i + 2] = 0.0;
-			if ( m_lut->initialized() )
-			{
-				double val = m_splomData->paramData( m_colInd )[i];
-				double rgba[4]; m_lut->getColor( val, rgba );
-				buffer[elSz * i + 3] = rgba[0];
-				buffer[elSz * i + 4] = rgba[1];
-				buffer[elSz * i + 5] = rgba[2];
-				buffer[elSz * i + 6] = rgba[3];
-			}
+			double val = m_splomData->paramData( m_colInd )[i];
+			double rgba[4]; m_lut->getColor( val, rgba );
+			buffer[elSz * i + 3] = rgba[0];
+			buffer[elSz * i + 4] = rgba[1];
+			buffer[elSz * i + 5] = rgba[2];
+			buffer[elSz * i + 6] = rgba[3];
 		}
-		m_pointsBuffer->allocate( buffer, ( vcount + ccount ) * sizeof( GLfloat ) );
-		delete[] buffer;
 	}
+	m_pointsBuffer->allocate( buffer, ( vcount + ccount ) * sizeof( GLfloat ) );
+	delete[] buffer;
+}
+
+void iAScatterPlot::setSelectionColor(QColor selCol)
+{
+	settings.selectionColor = selCol;
 }
 
 double iAScatterPlot::getPointRadius() const
@@ -975,4 +970,9 @@ double iAScatterPlot::getPointRadius() const
 	if ( m_isMaximizedPlot )
 		res *= settings.maximizedPointMagnification;
 	return res;
+}
+
+void iAScatterPlot::setPointRadius(double radius)
+{
+	settings.pointRadius = radius;
 }

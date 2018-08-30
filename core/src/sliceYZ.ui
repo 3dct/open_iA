@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>240</width>
+    <width>935</width>
     <height>240</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>0</width>
-    <height>40</height>
+    <width>329</width>
+    <height>80</height>
    </size>
   </property>
   <property name="features">
@@ -163,18 +163,133 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="labelYZ">
+          <widget class="QLabel" name="labelSlabModeYZ">
            <property name="minimumSize">
             <size>
              <width>20</width>
              <height>0</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Slab Mode</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBoxSlabModeYZ">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelSlabThicknessYZ">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Slab Thickness</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="sbinBoxSlabThicknessYZ">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>18</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>MS Shell Dlg 2</family>
+             <pointsize>10</pointsize>
+             <weight>50</weight>
+             <italic>false</italic>
+             <bold>false</bold>
+             <kerning>true</kerning>
+            </font>
+           </property>
+           <property name="minimum">
+            <number>2</number>
+           </property>
+           <property name="maximum">
+            <number>1000</number>
+           </property>
+           <property name="value">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBoxSlabCompositeModeYZ">
+           <property name="currentIndex">
+            <number>2</number>
+           </property>
+           <property name="maxVisibleItems">
+            <number>4</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>Min</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Max</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Mean</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Sum</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelYZ">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
            </property>
            <property name="font">
             <font>
@@ -200,6 +315,9 @@
              <height>0</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>Create a movie by traversing all slices</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -222,6 +340,9 @@
              <width>10</width>
              <height>0</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string>Save current slice as image</string>
            </property>
            <property name="text">
             <string/>
@@ -246,6 +367,9 @@
              <height>0</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>Save image stack</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -268,6 +392,9 @@
              <width>10</width>
              <height>0</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string>Stop interaction</string>
            </property>
            <property name="text">
             <string/>
@@ -298,6 +425,9 @@
              <italic>false</italic>
              <bold>true</bold>
             </font>
+           </property>
+           <property name="toolTip">
+            <string>Maximize view</string>
            </property>
            <property name="text">
             <string/>

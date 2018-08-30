@@ -21,6 +21,7 @@
 #include "iABatchProcessModuleInterface.h"
 
 #include "iABatchFilter.h"
+#include "iAStackReaderFilter.h"
 
 #include "iAFilterRegistry.h"
 
@@ -29,6 +30,7 @@
 void iABatchProcessModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iABatchFilter);
+	REGISTER_FILTER(iAStackReaderFilter);
 	if (!m_mainWnd)
 		return;
 	/*

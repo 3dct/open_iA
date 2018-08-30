@@ -24,6 +24,7 @@
 #include "iAChannelVisualizationData.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
+#include "iAPerformanceHelper.h"
 #include "mdichild.h"
 
 #include <vtkColorTransferFunction.h>
@@ -59,10 +60,10 @@ dlg_modalitySPLOM::dlg_modalitySPLOM():
 	content->setLayout(lay);
 	setWidget(content);
 
-	connect(m_splom, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(SplomSelection(QVector<unsigned int> *)));
+	connect(m_splom, &iAQSplom::selectionModified, this, &dlg_modalitySPLOM::SplomSelection);
 }
 
-void dlg_modalitySPLOM::SplomSelection(QVector<unsigned int> * selInds)
+void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 {
 	vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
 	result->SetExtent(m_extent);
@@ -81,20 +82,15 @@ void dlg_modalitySPLOM::SplomSelection(QVector<unsigned int> * selInds)
 			}
 		}
 	}
-
 	// set 1 for selection:
-	for (int i=0; i<selInds->size(); ++i)
+	for (auto idx: selInds)
 	{
-		int idx = selInds->at(i);
 		int x = m_voxelData->item(idx, 0)->text().toInt();
 		int y = m_voxelData->item(idx, 1)->text().toInt();
 		int z = m_voxelData->item(idx, 2)->text().toInt();
 		result->SetScalarComponentFromFloat(x, y, z, 0, 1);
 	}
-
-
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-
 	if (!m_selected)
 	{
 		mdiChild->SetChannelRenderingEnabled(ch_ModSPLOMSelection, false);
@@ -142,9 +138,6 @@ void IteratePixels(vtkSmartPointer<vtkImageData> img, const int step[3], std::fu
 		}
 	}
 }
-
-#include "iAPerformanceHelper.h"
-
 
 void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 {

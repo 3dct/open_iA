@@ -23,7 +23,7 @@
 #include "iAConsole.h"
 #include "iAListNameMapper.h"
 
-const QString iAAttributeDescriptor::ValueSplitString(" ");
+const QString iAAttributeDescriptor::ValueSplitString(",");
 
 namespace
 {

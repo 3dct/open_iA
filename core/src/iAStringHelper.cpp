@@ -29,7 +29,7 @@ QStringList SplitPossiblyQuotedString(QString const & str)
 	// TODO : rewrite so that it can cope with multiply quoted strings
 	//     (where quotes are escaped by \" )
 	QStringList result;
-	QRegularExpression exp("\\s*([^\"]\\S*|\".+?\")\\s*");
+	QRegularExpression exp("\\s*([^\"]\\S*|\".*?\")\\s*");
 	int offset = 0;
 	QRegularExpressionMatch match = exp.match(str, offset);
 	while (match.hasMatch())

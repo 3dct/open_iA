@@ -108,20 +108,20 @@ public:
 
 	void setVolSettings(const iAVolumeSettings &volSettings);
 
-	const iAVolumeSettings &getVolumeSettings() const; 
+	const iAVolumeSettings &getVolumeSettings() const;
 
 	inline bool getVolSettingsSavedStatus() {
-		return this->m_VolSettingsSavedStatus; 
+		return this->m_VolSettingsSavedStatus;
 	}
 
 	inline void setVolSettingsSavedStatusFalse() {
-		this->m_VolSettingsSavedStatus = false; 
+		this->m_VolSettingsSavedStatus = false;
 	}
 
 
 private:
 	iAVolumeSettings m_volSettings;
-	bool m_VolSettingsSavedStatus; 
+	bool m_VolSettingsSavedStatus;
 
 
 	QString m_name;
@@ -142,13 +142,26 @@ private:
 };
 
 
+class iAStatisticsUpdater : public QThread
+{
+Q_OBJECT
+	void run() override;
+signals:
+	void StatisticsReady(int modalityIdx);
+private:
+	int m_modalityIdx;
+	QSharedPointer<iAModality> m_modality;
+public:
+	iAStatisticsUpdater(int modalityIdx, QSharedPointer<iAModality> modality);
+};
+
+
 //! class for updating the histogram of a modality
 class iAHistogramUpdater : public QThread
 {
 Q_OBJECT
 	void run() override;
 signals:
-	void StatisticsReady(int modalityIdx);
 	void HistogramReady(int modalityIdx);
 private:
 	int m_modalityIdx;

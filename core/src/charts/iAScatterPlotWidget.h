@@ -24,14 +24,22 @@
 
 #include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
 
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QOpenGLWidget>
+#else
 #include <QGLWidget>
+#endif
 
 class iASPLOMData;
 class iAScatterPlotStandaloneHandler;
 
-/** Widget for using a single scatter plot (outside of a SPLOM)
-*/
+//! Widget for using a single scatter plot (outside of a SPLOM)
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class open_iA_Core_API iAScatterPlotWidget : public QOpenGLWidget
+#else
 class open_iA_Core_API iAScatterPlotWidget : public QGLWidget
+#endif
 {
 public:
 	static const int PaddingTop;
@@ -40,8 +48,8 @@ public:
 	int PaddingLeft();
 	static const int TextPadding;
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
-	QVector<unsigned int> GetSelection();
-	void SetSelection(QVector<unsigned int> const & selection);
+	std::vector<size_t> & GetSelection();
+	void SetSelection(std::vector<size_t> const & selection);
 	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void SetSelectionColor(QColor const & c);
 	void SetSelectionMode(iAScatterPlot::SelectionMode mode);

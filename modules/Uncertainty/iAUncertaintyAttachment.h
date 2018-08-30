@@ -31,6 +31,7 @@
 
 class iADockWidgetWrapper;
 class iAEnsemble;
+class iAEnsembleDescriptorFile;
 class iAEnsembleView;
 class iAHistogramView;
 class iAMemberView;
@@ -52,6 +53,7 @@ public:
 private slots:
 	void MemberSelected(int memberIdx);
 	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);
+	void ContinueEnsembleLoading();
 private:
 	iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData);
 	iAHistogramView * m_labelDistributionView, * m_uncertaintyDistributionView;
@@ -64,4 +66,6 @@ private:
 	QSharedPointer<iAEnsemble> m_currentEnsemble;
 	vtkSmartPointer<vtkLookupTable> m_labelLut;
 	int m_newSubEnsembleID;
+	// cache for ensemble loading:
+	QSharedPointer<iAEnsembleDescriptorFile> m_ensembleFile;
 };

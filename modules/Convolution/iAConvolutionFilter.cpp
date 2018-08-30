@@ -34,19 +34,6 @@
 #include <itkPipelineMonitorImageFilter.h>
 #include <itkStreamingImageFilter.h>
 
-#include <vtkContourFilter.h>
-#include <vtkCutter.h>
-#include <vtkKochanekSpline.h>
-#include <vtkPlane.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSplineFilter.h>
-#include <vtkStripper.h>
-#include <vtkTubeFilter.h>
-
 
 template<class T> void convolution(iAFilter* filter)
 {

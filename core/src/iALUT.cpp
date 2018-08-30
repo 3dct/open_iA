@@ -21,6 +21,8 @@
  
 #include "iALUT.h"
 
+#include "iALookupTable.h"
+
 #include <QColor>
 
 #include <vtkColorTransferFunction.h>
@@ -137,4 +139,12 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, dou
 {
 	double lutRange[2] = { rangeFrom, rangeTo };
 	return BuildLUT( pLUT, lutRange, colorMap, numCols);
+}
+
+iALookupTable open_iA_Core_API iALUT::Build(double * lutRange, QString colorMap, int numCols, double alpha)
+{
+	vtkSmartPointer<vtkLookupTable> vtkLUT(vtkSmartPointer<vtkLookupTable>::New());
+	BuildLUT(vtkLUT, lutRange, colorMap, numCols);
+	iALookupTable result(vtkLUT);
+	return result;
 }

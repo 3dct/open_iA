@@ -65,6 +65,9 @@ for dir in ModuleDirList:
 			m = re.search(r"DEPENDENCIES_MODULES\s+([^)]+)", data, re.MULTILINE)
 			if m:
 				dependencies[module] = m.group(1).split()
+			m = re.search(r"DEPENDENCIES_MODULES_NEW\s+([^)]+)", data, re.MULTILINE)
+			if m:
+				dependencies[module] = m.group(1).split()
 
 # recursively resolve dependencies:
 recursiveDeps = dict()

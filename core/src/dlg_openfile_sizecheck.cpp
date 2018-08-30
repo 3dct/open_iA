@@ -39,13 +39,13 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *pare
 	actualSizeLabel = new QLabel("Actual file size: " + QString::number(fileSize) + " bytes", this);
 	actualSizeLabel->setAlignment(Qt::AlignRight);
 	gridLayout->addWidget(actualSizeLabel, inList.size(), 0, 1, 1);
-	
+
 	proposedSizeLabel = new QLabel("Predicted file size: ", this);
 	proposedSizeLabel->setAlignment(Qt::AlignRight);
 	gridLayout->addWidget(proposedSizeLabel, inList.size()+1, 0, 1, 1);
 
 	gridLayout->addWidget(buttonBox, inList.size()+2, 0, 1, 1);
-		
+
 
 	if (!isVolumeStack)
 	{
@@ -61,7 +61,7 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *pare
 		connect(qobject_cast<QLineEdit*>(widgetList[7]), SIGNAL(textChanged (const QString)), this, SLOT(CheckFileSize()));
 		connect(qobject_cast<QComboBox*>(widgetList[14]), SIGNAL(currentIndexChanged (int)), this, SLOT(CheckFileSize()));
 	}
-	
+
 	CheckFileSize();
 }
 
@@ -69,7 +69,7 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(bool isVolumeStack, QWidget *pare
 void dlg_openfile_sizecheck::CheckFileSize()
 {
 	size_t extent[3];
-	size_t voxelSize = 0; 
+	size_t voxelSize = 0;
 	size_t proposedSize;
 
 	if (!isVolumeStack) {
@@ -77,7 +77,7 @@ void dlg_openfile_sizecheck::CheckFileSize()
 		voxelSize = MapVTKTypeStringToSize(getComboBoxValue(10));
 		proposedSize = extent[0]*extent[1]*extent[2]*voxelSize;
 	}
-	else 
+	else
 	{
 		extent[0] = getDblValue(5); extent[1]= getDblValue(6); extent[2] = getDblValue(7);
 		voxelSize = MapVTKTypeStringToSize(getComboBoxValue(14));

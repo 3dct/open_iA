@@ -116,7 +116,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	if (filter->m_chart)
 	{
 		auto histoPlotData = iASimpleHistogramData::Create(minVal, maxVal, vecHist, Continuous);
-		filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(histoPlotData, QColor(180, 90, 90, 127))));
+		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(histoPlotData, QColor(180, 90, 90, 127))));
 	}
 
 	double derivSigma = static_cast<double>(binCount) / Kderiv;
@@ -126,7 +126,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	if (filter->m_chart)
 	{
 		auto smoothedHistoPlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHist, Continuous);
-		filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(smoothedHistoPlotData, QColor(90, 180, 90, 127))));
+		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(smoothedHistoPlotData, QColor(90, 180, 90, 127))));
 	}
 
 	// 3. find peaks: (derivative = 0, 2nd deriv. negative)
@@ -135,7 +135,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	if (filter->m_chart)
 	{
 		auto firstDerivPlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedDeriv, Continuous);
-		filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(firstDerivPlotData, QColor(90, 90, 180, 127))));
+		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(firstDerivPlotData, QColor(90, 90, 180, 127))));
 	}
 
 	// peak is at every 0-crossing, so where:
@@ -160,6 +160,9 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		if (peaks.size() < 2)
 		{
 			//DEBUG_LOG(QString("Cannot continue with less than 2 peaks!"));
+			filter->AddOutputValue("Signal-to-noise ratio", 0);
+			filter->AddOutputValue("Contrast-to-noise ratio", 0);
+			filter->AddOutputValue("Q", 0);
 			return;
 		}
 		numberOfPeaks = peaks.size();
@@ -171,7 +174,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	peaks.resize(numberOfPeaks);		// only consider numberOfPeaks peaks
 	if (filter->m_chart)
 		for (size_t p = 0; p < numberOfPeaks; ++p)
-			filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(peaks[p].first, QColor(90, 180, 90, 182))));
+			filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(peaks[p].first, QColor(90, 180, 90, 182))));
 
 										// order peaks by index
 	std::sort(peaks.begin(), peaks.end(), [](std::pair<size_t, double> const & a, std::pair<size_t, double> const & b) {
@@ -211,7 +214,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		// calculate mean/stddev:
 		getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[m], thresholdIndices[m + 1], mean[m], variance[m]);
 		if (filter->m_chart)
-			filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(minIdx, QColor(180, 90, 90, 182))));
+			filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(minIdx, QColor(180, 90, 90, 182))));
 	}
 	// for last peak we still have to calculate mean and stddev
 	getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[numberOfPeaks - 1], thresholdIndices[numberOfPeaks], mean[numberOfPeaks - 1], variance[numberOfPeaks - 1]);
@@ -275,6 +278,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 			}
 		}
 		*/
+		/*
 		for (int i = 0; i < mean.size(); ++i)
 		{
 			QString peakName(i == minDistToZeroIdx ? "air" : "highest non-air");
@@ -286,6 +290,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 				filter->AddOutputValue(QString("Max (%1)").arg(peakName), mapValue(static_cast<size_t>(0), binCount, minVal, maxVal, thresholdIndices[i+1]));
 			}
 		}
+		*/
 		double Q = calculateQ(mean[highestNonAirPeakIdx], mean[minDistToZeroIdx], variance[highestNonAirPeakIdx], variance[minDistToZeroIdx]);
 		filter->AddOutputValue("Q", Q);
 	}
@@ -309,6 +314,12 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 
 	int const * dim = floatImage->GetDimensions();
 	double const * range = floatImage->GetScalarRange();
+	if (range[0] == range[1])
+	{
+		filter->AddOutputValue("Q (orig, equ 0)", 0);
+		filter->AddOutputValue("Q (orig, equ 1)", 0);
+		return;
+	}
 	float* fImage = static_cast<float*>(floatImage->GetScalarPointer());
 	cImageHistogram curHist;
 	curHist.CreateHist(fImage, dim[0], dim[1], dim[2],
@@ -325,6 +336,7 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 	filter->AddOutputValue("Q (orig, equ 0)", Q0);
 	filter->AddOutputValue("Q (orig, equ 1)", Q1);
 
+	/*
 	int classNr = 0;
 	for (auto c: classMeasures)
 	{
@@ -339,6 +351,7 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 		}
 		++classNr;
 	}
+	*/
 }
 
 
@@ -386,6 +399,8 @@ iAQMeasure::iAQMeasure() :
 	AddOutputValue("Signal-to-noise ratio");
 	AddOutputValue("Contrast-to-noise ratio");
 	AddOutputValue("Q");
+	AddOutputValue("Q (orig, equ 0)");
+	AddOutputValue("Q (orig, equ 1)");
 }
 
 void iAQMeasure::SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)

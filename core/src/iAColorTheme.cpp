@@ -118,7 +118,7 @@ iAColorThemeManager::iAColorThemeManager()
 	dark2->AddColor(QColor(166,118, 29));
 	dark2->AddColor(QColor(102,102,102));
 	m_themes.insert(dark2->GetName(), dark2);
-	
+
 	iAVectorColorTheme* paired = new iAVectorColorTheme("Brewer Paired (max. 12)");
 	paired->AddColor(QColor(166, 206, 227));
 	paired->AddColor(QColor( 31, 120, 180));
@@ -171,7 +171,7 @@ iAColorThemeManager::iAColorThemeManager()
 	set3->AddColor(QColor(204, 235, 197));
 	set3->AddColor(QColor(255, 237, 111));
 	m_themes.insert(set3->GetName(), set3);
-	
+
 	// source: http://www.mulinblog.com/a-color-palette-optimized-for-data-visualization/
 	iAVectorColorTheme* few = new iAVectorColorTheme("Few (max. 9)");
 	few->AddColor(QColor( 77, 77, 77));
@@ -185,7 +185,7 @@ iAColorThemeManager::iAColorThemeManager()
 	few->AddColor(QColor(241, 88, 84));
 	m_themes.insert(few->GetName(), few);
 
- 
+
 	iAVectorColorTheme* grayScale17 = new iAVectorColorTheme("Grayscale (best for 1,2,3,5,9,17 labels; max. 17)");
 	grayScale17->AddColor(QColor(  0,  0,  0));
 	grayScale17->AddColor(QColor(255,255,255));

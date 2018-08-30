@@ -1,10 +1,5 @@
 SET (EXECUTABLE_NAME open_iA)
 
-# open_iA Version number
-include(GetGitRevisionDescription)
-git_describe(VERSION --tags)
-configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
-
 # Generate executable:
 SET (MAIN_SOURCES "${CMAKE_SOURCE_DIR}/gui/main.cpp")
 
@@ -20,9 +15,9 @@ IF (WIN32)
 	TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} PRIVATE Qt5::WinMain)
 ENDIF (WIN32)
 
-TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}) # for version.h
+TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${CMAKE_BINARY_DIR}) # for version.h
 
-IF (USE_COTIRE)
+IF (openiA_USE_COTIRE)
 	cotire(${EXECUTABLE_NAME})
 ENDIF()
 
@@ -30,7 +25,9 @@ ENDIF()
 IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-")
 
-	IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
+	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user 
+	OR NOT EXISTS ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user 
+	OR NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
 		
 		MESSAGE(STATUS "LIBRARY paths changed new=${DebugLibraryPaths}, cached=${CACHED_OPENIA_GUI_DBG_ENV_PATH}")
 		# force cmake to copy the files:

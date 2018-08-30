@@ -26,6 +26,8 @@
 
 #include <QString>
 
+class iALookupTable;
+
 class vtkLookupTable;
 
 namespace iALUT
@@ -33,4 +35,5 @@ namespace iALUT
 	open_iA_Core_API const QStringList&  GetColorMapNames();
 	open_iA_Core_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, QString colorMap, int numCols = 256 );
 	open_iA_Core_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256 );
+	iALookupTable open_iA_Core_API Build(double * lutRange, QString colorMap, int numCols, double alpha);
 }

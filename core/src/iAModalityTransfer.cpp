@@ -29,46 +29,46 @@
 #include <cassert>
 
 iAModalityTransfer::iAModalityTransfer(double range[2]):
-	m_tfInitialized(false)
+	m_statisticsComputed(false)
 {
 	m_ctf = GetDefaultColorTransferFunction(range);
 	m_otf = GetDefaultPiecewiseFunction(range, true);
 }
 
-void iAModalityTransfer::ComputeStatistics(vtkSmartPointer<vtkImageData> img)
+void iAModalityTransfer::computeStatistics(vtkSmartPointer<vtkImageData> img)
 {
-	if (m_tfInitialized)	// already calculated
+	if (m_statisticsComputed)	// already calculated
 		return;
-	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange()); // Set range of rgb, rgba or vector pixel type images to fully opaque
-	m_otf = GetDefaultPiecewiseFunction(img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
-	m_tfInitialized = true;
+	GetDefaultColorTransferFunction(m_ctf, img->GetScalarRange()); // Set range of rgb, rgba or vector pixel type images to fully opaque
+	GetDefaultPiecewiseFunction(m_otf, img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
+	m_statisticsComputed = true;
 }
 
-void iAModalityTransfer::Reset()
+void iAModalityTransfer::reset()
 {
-	m_tfInitialized = false;
+	m_statisticsComputed = false;
 	m_histogramData.clear();
 }
 
-void iAModalityTransfer::ComputeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
+void iAModalityTransfer::computeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
 {
 	if (imgData->GetNumberOfScalarComponents() != 1 || (m_histogramData && m_histogramData->GetNumBin() == binCount))
 		return;
 	m_histogramData = iAHistogramData::Create(imgData, binCount, &m_imageInfo);
 }
 
-QSharedPointer<iAHistogramData> const iAModalityTransfer::GetHistogramData() const
+QSharedPointer<iAHistogramData> const iAModalityTransfer::getHistogramData() const
 {
 	return m_histogramData;
 }
 
-vtkPiecewiseFunction* iAModalityTransfer::GetOpacityFunction()
+vtkPiecewiseFunction* iAModalityTransfer::getOpacityFunction()
 {
 	assert(m_otf);
 	return m_otf;
 }
 
-vtkColorTransferFunction* iAModalityTransfer::GetColorFunction()
+vtkColorTransferFunction* iAModalityTransfer::getColorFunction()
 {
 	assert(m_ctf);
 	return m_ctf;
@@ -78,4 +78,9 @@ iAImageInfo const & iAModalityTransfer::Info() const
 {
 	// TODO: make sure image info is initialzed!
 	return m_imageInfo;
+}
+
+bool iAModalityTransfer::statisticsComputed() const
+{
+	return m_statisticsComputed;
 }

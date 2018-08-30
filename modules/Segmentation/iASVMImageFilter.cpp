@@ -261,7 +261,7 @@ IAFILTER_CREATE(iAKMeans)
 
 iAKMeans::iAKMeans() :
 	iAFilter("K-Means", "Segmentation/Pixelwise Classification",
-		"Classifies the intensity values of a scalar image using the K-Means algorithm..<br/>"
+		"Classifies the intensity values of a scalar image using the K-Means algorithm.<br/>"
 		"Given an input image with scalar values, it uses the K-Means statistical classifier "
 		"in order to define labels for every pixel in the image. Under <em>initial means</em>, specify "
 		"your estimate for the mean intensity value for each cluster you suspect in the image,"
@@ -269,7 +269,7 @@ iAKMeans::iAKMeans() :
 		"are selected in order to span the dynamic range of the output image.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ScalarImageKmeansImageFilter.html\">"
-		"Scalar Image K-Means Filter</a> in the ITK documentation.", 2)
+		"Scalar Image K-Means Filter</a> in the ITK documentation.", 1)
 {
 	AddParameter("Initial means", Text, "");
 	AddParameter("Non-contiguous labels", Boolean, false);

@@ -33,7 +33,6 @@ typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
 class iAGEMSeModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
-
 public:
 	iAGEMSeModuleInterface();
 	void Initialize();
@@ -53,9 +52,13 @@ private slots:
 	void ExportRankings();
 	void ImportRankings();
 	//! @}
+	void continuePreCalculatedDataLoading();
 private:
 	void LoadPreCalculatedData(iASEAFile const & seaFile);
 	void SetupToolbar();
 	
 	iAGEMSeToolbar* m_toolbar;
+
+	//! cache for precalculated data loading
+	QSharedPointer<iASEAFile> m_seaFile;
 };

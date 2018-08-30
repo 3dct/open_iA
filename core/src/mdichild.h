@@ -56,7 +56,6 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPoints;
 class vtkPolyData;
-class vtkRenderWindow;
 class vtkScalarsToColors;
 class vtkTransform;
 
@@ -86,7 +85,7 @@ class MainWindow;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXY>   dlg_sliceXY;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXZ>   dlg_sliceXZ;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceYZ>   dlg_sliceYZ;
-typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>   dlg_renderer;
+typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
 class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild
@@ -145,7 +144,6 @@ public:
 	void saveMovie(iARenderer& raycaster);
 	int deletePoint();
 	void changeColor();
-	void autoUpdate(bool toggled);
 	void resetView();
 	void resetTrf();
 	void toggleSnakeSlicer(bool isEnabled);
@@ -201,7 +199,6 @@ public:
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);
-	bool isUpdateAutomatically();
 	void setHistogramFocus();
 	bool isMaximized();
 
@@ -277,13 +274,18 @@ public:
 	//! checks whether the main image data in this child is fully loaded
 	bool IsFullyLoaded() const;
 
+	//! save all currently loaded files into a project with the given file name
+	void saveProject(QString const & fileName);
+
+	//! whether volume data is loaded (only checks filename and volume dimensions)
+	bool IsVolumeDataLoaded() const;
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();
 	void noPointSelected();
 	void endPointSelected();
 	void active();
-	void autoUpdateChanged(bool toogled);
 	void magicLensToggled( bool isToggled );
 	void closed();
 	void updatedViews();
@@ -291,6 +293,7 @@ Q_SIGNALS:
 	void preferencesChanged();
 	void viewInitialized();
 	void TransferFunctionChanged();
+	void fileLoaded();
 
 private slots:
 	void maximizeRC();
@@ -327,6 +330,15 @@ private slots:
 	void setRotationXY(double a);
 	void setRotationYZ(double a);
 	void setRotationXZ(double a);
+	void setSlabModeXY(bool slabMode);
+	void setSlabModeYZ(bool slabMode);
+	void setSlabModeXZ(bool slabMode);
+	void updateSlabThicknessXY(int thickness);
+	void updateSlabThicknessYZ(int thickness);
+	void updateSlabThicknessXZ(int thickness);
+	void updateSlabCompositeModeXY(int compositeMode);
+	void updateSlabCompositeModeXZ(int compositeMode);
+	void updateSlabCompositeModeYZ(int compositeMode);
 	void updateRenderWindows(int channels);
 	void updateRenderers(int x, int y, int z, int mode);
 	void toggleArbitraryProfile(bool isChecked);
@@ -348,8 +360,9 @@ public slots:
 	void updateViews();
 	void addMsg(QString txt);
 	void addStatusMsg(QString txt);
-	bool setupView(bool active = false);
-	bool setupStackView(bool active = false);
+	void setupView(bool active = false);
+	void setupStackView(bool active = false);
+	void setupProject(bool active = false);
 	bool updateVolumePlayerView(int updateIndex, bool isApplyForAll);
 	void removeFinishedAlgorithms();
 	void camPX();
@@ -405,10 +418,10 @@ private:
 	void updateReslicer(double point[3], double normal[3], int mode);
 	void updateSliceIndicators();
 	QString strippedName(const QString &f);
-	
+
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//! \return	true if it succeeds, false if it fails.
-	bool setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img);
+	bool setupSaveIO(QString const & f);
 
 	//! sets up the IO thread for loading the correct file type according to the given filename.
 	//! \return	true if it succeeds, false if it fails.
@@ -447,10 +460,9 @@ private:
 	bool isSliceProfileEnabled; //!< slice profile, shown in slices
 	bool isArbProfileEnabled;   //!< arbitrary profile, shown in profile widget
 	bool isMagicLensEnabled;    //!< magic lens exploration
-	
+
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void setupViewInternal(bool active);
-	bool IsVolumeDataLoaded() const;
 
 	vtkSmartPointer<vtkImageData> imageData;		// TODO: remove - use modality data instead!
 	vtkPolyData* polyData;
@@ -458,7 +470,7 @@ private:
 	vtkTransform* slicerTransform;
 	vtkAbstractTransform *SlicerYZ_Transform, *SlicerXY_Transform, *SlicerXZ_Transform;
 	iARenderer* Raycaster;
-	iASlicer * slicerYZ, * slicerXY, * slicerXZ;
+	iASlicer * slicer[3];
 	QSharedPointer<iAProfileProbe> profileProbe;
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;
@@ -498,10 +510,13 @@ private:
 private slots:
 	void ChangeMagicLensModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
+	void ChangeMagicLensSize(int chg);
 	void ShowModality(int modIdx);
 	void SaveFinished();
-	void SetHistogramModality(int modalityIdx);
+	void ModalityAdded(int modalityIdx);
 private:
+	void SetHistogramModality(int modalityIdx);
+	void displayHistogram(int modalityIdx);
 	int GetCurrentModality() const;
 	void InitModalities();
 	void InitVolumeRenderers();
@@ -510,7 +525,6 @@ public:
 	QSharedPointer<iAModalityList> GetModalities();
 	QSharedPointer<iAModality> GetModality(int idx);
 	dlg_modalities* GetModalitiesDlg();
-	bool LoadProject(QString const & fileName);
 	void StoreProject();
 	//! @}
 };

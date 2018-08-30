@@ -22,9 +22,13 @@
 
 #include "PorosityAnalyserHelpers.h"
 
-#include "iAMathUtility.h"
+#include "iAFeatureScoutModuleInterface.h"
+
 #include "charts/iASPLOMData.h"
 #include "charts/iAScatterPlot.h"
+#include "iAConsole.h"
+#include "iAMathUtility.h"
+#include "iAModuleDispatcher.h"
 
 #include <QDir>
 #include <QKeyEvent>
@@ -40,19 +44,31 @@
 
 const int maskOpacity = 127;
 
-iAPAQSplom::iAPAQSplom( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+iAPAQSplom::iAPAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*= 0 */)
+	: iAQSplom( parent, f ),
+#else
+iAPAQSplom::iAPAQSplom(MainWindow *mWnd, QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */)
 	: iAQSplom( parent, shareWidget, f ),
-	m_contextMenu( new QMenu( this ) ),
-	m_fixAction( 0 ),
-	m_removeFixedAction( 0 ),
-	m_fixedPointInd( -1 )
+#endif
+	m_fixAction( nullptr ),
+	m_removeFixedAction( nullptr ),
+	m_detailsToFeatureScoutAction(nullptr),
+	m_fixedPointInd( iAScatterPlot::NoPointIndex ),
+	m_mainWnd( mWnd ),
+	m_mdiChild( nullptr ),
+	m_csvName("")
 {
-	//context menu
-	//m_contextMenu->setStyleSheet( contextMenuStyle );
 	m_fixAction = m_contextMenu->addAction( "Fix Point", this, SLOT( fixPoint() ) );
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, SLOT( removeFixedPoint() ) );
+	
+	//sent to FeatureScout
+	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, SLOT(sendToFeatureScout()));
+	m_detailsToFeatureScoutAction->setVisible(false);
+	
 	m_fixAction->setVisible( false );
 	m_removeFixedAction->setVisible( false );
+	setHistogramVisible(false);
 }
 
 void iAPAQSplom::setData( const QTableWidget * data )
@@ -125,7 +141,7 @@ void iAPAQSplom::setDatasetsByIndices( QStringList selDatasets, QList<int> indic
 
 void iAPAQSplom::reemitFixedPixmap()
 {
-	if( m_fixedPointInd >= 0 )
+	if( m_fixedPointInd != iAScatterPlot::NoPointIndex )
 	{
 		int dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 		QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
@@ -139,12 +155,12 @@ void iAPAQSplom::reemitFixedPixmap()
 		emit maskHovered( &m_maskPxmp, dsInd );
 	}
 	else
-		emit maskHovered( 0, -1 );
+		emit maskHovered( nullptr, -1 );
 }
 
-int iAPAQSplom::getDatasetIndexFromPointIndex(int pointIndex)
+int iAPAQSplom::getDatasetIndexFromPointIndex(size_t pointIndex)
 {
-	if (pointIndex == -1)
+	if (pointIndex == iAScatterPlot::NoPointIndex)
 		return -1;
 	int absInd = m_datasetIndices[pointIndex];
 	int relInd = m_dsIndices.indexOf( absInd );
@@ -157,9 +173,9 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 		return false;
 	if( m_maskPxmp.isNull() )
 		return false;
-	int curInd = m_activePlot->getCurrentPoint();
+	size_t curInd = m_activePlot->getCurrentPoint();
 	double anim = 1.0;
-	if( curInd < 0 )
+	if( curInd == iAScatterPlot::NoPointIndex )
 	{
 		if( m_animOut > 0.0 && m_animIn >= 1.0 )
 		{
@@ -169,7 +185,7 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 		else
 			return false;
 	}
-	else if( -1 == m_activePlot->getPreviousIndex() )
+	else if( m_activePlot->getPreviousIndex() == iAScatterPlot::NoPointIndex )
 		anim = m_animIn;
 
 	painter.save();
@@ -221,6 +237,8 @@ bool iAPAQSplom::drawPopup( QPainter& painter )
 
 void iAPAQSplom::keyPressEvent( QKeyEvent * event )
 {
+	if (!m_activePlot)
+		return;
 	int dsInd = getDatasetIndexFromPointIndex( m_activePlot->getCurrentPoint() );
 	if (dsInd != -1)
 	{
@@ -243,34 +261,13 @@ void iAPAQSplom::keyPressEvent( QKeyEvent * event )
 	iAQSplom::keyPressEvent( event );
 }
 
-void iAPAQSplom::mouseReleaseEvent( QMouseEvent * event )
-{
-	iAQSplom::mouseReleaseEvent( event );
-	if( event->button() == Qt::RightButton )//selection
-	{
-		if( m_rightPressPos != event->pos() )
-			return;
-		if( m_fixAction->isVisible() || m_removeFixedAction->isVisible() )
-			m_contextMenu->exec( event->globalPos() );
-	}
-}
-
-void iAPAQSplom::mousePressEvent( QMouseEvent * event )
-{
-	iAQSplom::mousePressEvent( event );
-	if( event->button() == Qt::RightButton )//selection
-	{
-		m_rightPressPos = event->pos();
-	}
-}
-
 void iAPAQSplom::updatePreviewPixmap()
 {
 	if( !m_activePlot )
 		return;
 
-	int curInd = m_activePlot->getCurrentPoint();
-	if( curInd < 0 && m_fixedPointInd < 0 )
+	size_t curInd = m_activePlot->getCurrentPoint();
+	if( curInd == iAScatterPlot::NoPointIndex && m_fixedPointInd == iAScatterPlot::NoPointIndex )
 	{
 		emit maskHovered( 0, -1 );
 		return;
@@ -278,7 +275,7 @@ void iAPAQSplom::updatePreviewPixmap()
 
 	QImage fixedMaskImg;
 	int dsInd = -1;
-	if( m_fixedPointInd >= 0 )
+	if( m_fixedPointInd != iAScatterPlot::NoPointIndex)
 	{
 		dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 		QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
@@ -289,7 +286,7 @@ void iAPAQSplom::updatePreviewPixmap()
 	}
 
 	QImage maskImg;
-	if( curInd < 0 )
+	if( curInd == iAScatterPlot::NoPointIndex )
 		maskImg = fixedMaskImg;
 	else
 	{
@@ -309,7 +306,7 @@ void iAPAQSplom::updatePreviewPixmap()
 		maskImg.setColor( 2, qRgba( 0, 0, 255, maskOpacity ) );
 		maskImg.setColor( 3, qRgba( 255, 255, 0, maskOpacity ) );
 
-		if( m_fixedPointInd >= 0 && getDatasetIndexFromPointIndex(m_fixedPointInd) == dsInd )
+		if( m_fixedPointInd != iAScatterPlot::NoPointIndex && getDatasetIndexFromPointIndex(m_fixedPointInd) == dsInd )
 		{
 			uchar * maskPtr = maskImg.bits();
 			uchar * fixedPtr = fixedMaskImg.bits();
@@ -340,12 +337,18 @@ void iAPAQSplom::updatePreviewPixmap()
 	emit maskHovered( &m_maskPxmp, dsInd );
 }
 
-void iAPAQSplom::currentPointUpdated( int index )
+void iAPAQSplom::currentPointUpdated( size_t index )
 {
-	if( index >= 0 )
-		m_fixAction->setVisible( true );
+	if (index != iAScatterPlot::NoPointIndex)
+	{
+		m_fixAction->setVisible(true);
+		m_detailsToFeatureScoutAction->setVisible(true);
+	}
 	else
-		m_fixAction->setVisible( false );
+	{
+		m_fixAction->setVisible(false);
+		m_detailsToFeatureScoutAction->setVisible(false);
+	}
 	updatePreviewPixmap();
 	iAQSplom::currentPointUpdated( index );
 }
@@ -355,21 +358,62 @@ void iAPAQSplom::fixPoint()
 	if( !m_activePlot )
 		return;
 
-	if( m_fixedPointInd >= 0 )
+	if( m_fixedPointInd != iAScatterPlot::NoPointIndex )
 		removeFixedPoint();
 
 	m_removeFixedAction->setVisible( true );
 	m_fixedPointInd = m_activePlot->getCurrentPoint();
 	addHighlightedPoint( m_fixedPointInd );
-
 	updatePreviewPixmap();
+}
+
+
+void iAPAQSplom::sendToFeatureScout()
+{
+	if (!m_activePlot)
+		return;
+	QString fileName = ""; 
+	QString mhdName = ""; 
+	getFilesLabeledFromPoint(fileName, mhdName);
+	this->m_mdiChild = m_mainWnd->createMdiChild(false);
+	if (!this->m_mdiChild)
+		return;
+	this->m_mdiChild->show();
+	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(StartFeatureScout()));
+	if (!m_mdiChild->loadFile(mhdName, false))
+	{
+		DEBUG_LOG(QString("File '%1' could not be loaded!").arg(mhdName));
+		m_mdiChild->close();
+		return;
+	}
+}
+
+void iAPAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
+{
+	size_t curPoint = m_activePlot->getCurrentPoint();
+	int dsInd = getDatasetIndexFromPointIndex(curPoint);
+	QString sliceFileName = getSliceFilename(m_maskNames[curPoint], m_sliceNumPopupLst[dsInd]);
+	QString dataPath = sliceFileName.section('/', 0, -3);
+	fileName = sliceFileName.section('/', -2, -2).section('_', 0, 0);
+	mhdName = dataPath + "/" + fileName + "_labeled" + ".mhd";
+	m_csvName = dataPath + "/" + fileName + ".mhd.csv";
+}
+
+void iAPAQSplom::StartFeatureScout()
+{
+	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	if (!featureScout) {
+		
+		return; 
+	}
+	featureScout->LoadFeatureScoutWithParams(m_csvName, m_mdiChild);
 }
 
 void iAPAQSplom::removeFixedPoint()
 {
-	if( m_fixedPointInd >= 0 )
+	if( m_fixedPointInd != iAScatterPlot::NoPointIndex )
 		removeHighlightedPoint( m_fixedPointInd );
-	m_fixedPointInd = -1;
+	m_fixedPointInd = iAScatterPlot::NoPointIndex;
 	m_removeFixedAction->setVisible( false );
 	updatePreviewPixmap();
 }

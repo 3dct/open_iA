@@ -109,6 +109,8 @@ public:
 	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
 	void LoadArguments(int argc, char** argv);
 	iAPreferences const & GetDefaultPreferences() const;
+	iAModuleDispatcher& getModuleDispatcher() const; 
+
 protected:
 	void closeEvent(QCloseEvent *event);
 
@@ -140,8 +142,6 @@ private slots:
 	void saveTransferFunction();
 	void deletePoint();
 	void changeColor();
-	void autoUpdate(bool toggled);
-	void updateViews();
 	void resetView();
 	void resetTrf();
 	void toggleSnakeSlicer(bool isChecked);
@@ -170,6 +170,7 @@ public slots:
 	void childActivatedSlot(QMdiSubWindow *wnd);
 	void OpenWithDataTypeConversion();
 	void about();
+	void wiki();
 	void updateMenus();
 	void updateWindowMenu();
 	MdiChild *createMdiChild(bool unsavedChanges);
@@ -192,7 +193,6 @@ private:
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
-	void LoadProject(QString const & fileName);
 	void LoadTLGICTData(QString const & baseDirectory);
 	bool KeepOpen();
 	MdiChild* findMdiChild(const QString &fileName);
@@ -205,7 +205,7 @@ private:
 	QActionGroup *slicerToolsGroup;
 	QSignalMapper *windowMapper;
 	QString qssName;
-	iAVolumeSettings defaultVolumeSettings;	
+	iAVolumeSettings defaultVolumeSettings;
 	iARenderSettings defaultRenderSettings;
 	iASlicerSettings defaultSlicerSettings;
 	iAPreferences defaultPreferences;

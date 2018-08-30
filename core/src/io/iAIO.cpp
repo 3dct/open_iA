@@ -28,6 +28,7 @@
 #include "iAConsole.h"
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAExtendedTypedCallHelper.h"
+#include "iAModalityList.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
@@ -169,6 +170,15 @@ iAIO::iAIO( iALogger* logger, QWidget *par /*= 0*/, std::vector<vtkSmartPointer<
 }
 
 
+iAIO::iAIO(QSharedPointer<iAModalityList> modalities, vtkCamera* cam, iALogger* logger):
+	iAAlgorithm( "IO", nullptr, nullptr, logger, nullptr ),
+	m_modalities(modalities),
+	m_camera(cam)
+{
+	init(nullptr);
+}
+
+
 void iAIO::init(QWidget *par)
 {
 	parent = par;
@@ -181,7 +191,7 @@ void iAIO::init(QWidget *par)
 	scalarType = 0;
 	byteOrder = 1;
 	ioID = 0;
-	iosettingsreader();
+	LoadIOSettings();
 }
 
 
@@ -301,7 +311,7 @@ void printHDF5ErrorsToConsole()
 
 #include <vtkImageImport.h>
 
-void iAIO::loadHDF5File()
+void iAIO::readHDF5File()
 {
 	if (m_hdf5Path.size() < 2)
 	{
@@ -389,6 +399,17 @@ void iAIO::loadHDF5File()
 	postImageReadActions();
 }
 #endif
+
+void iAIO::readProject()
+{
+	m_modalities = QSharedPointer<iAModalityList>(new iAModalityList());
+	m_modalities->Load(fileName, *ProgressObserver());
+}
+
+void iAIO::writeProject()
+{
+	m_modalities->Store(fileName, m_camera);
+}
 
 void iAIO::run()
 {
@@ -492,10 +513,16 @@ void iAIO::run()
 				}
 				else
 				{
-					loadHDF5File();
+					readHDF5File();
 				}
 				break;
 	#endif
+			case PROJECT_READER:
+				readProject();
+				break;
+			case PROJECT_WRITER:
+				writeProject();
+				break;
 			case UNKNOWN_READER:
 			default:
 				addMsg(tr("  unknown reader type"));
@@ -714,7 +741,9 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		case VOLUME_STACK_VOLSTACK_WRITER:
 			return setupVolumeStackVolStackWriter(f);
 
-		case TIF_STACK_WRITER:  // intentional fall-throughs
+		case PROJECT_READER:  // intentional fall-throughs
+		case PROJECT_WRITER:
+		case TIF_STACK_WRITER:
 		case JPG_STACK_WRITER:
 		case PNG_STACK_WRITER:
 		case BMP_STACK_WRITER:
@@ -837,7 +866,7 @@ void iAIO::readNRRD()
 	image->SetImage(reader->GetOutput());
 	image->Modified();
 	postImageReadActions();
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -846,12 +875,12 @@ void iAIO::readNRRD()
  */
 void iAIO::readDCM()
 {
-	typedef signed short PixelType; 
-	typedef itk::Image<PixelType, DIM> ImageType; 
-	typedef itk::ImageSeriesReader<ImageType> ReaderType; 
+	typedef signed short PixelType;
+	typedef itk::Image<PixelType, DIM> ImageType;
+	typedef itk::ImageSeriesReader<ImageType> ReaderType;
 	auto reader = ReaderType::New();
-	typedef itk::GDCMImageIO ImageIOType; 
-	ImageIOType::Pointer dicomIO = ImageIOType::New();	
+	typedef itk::GDCMImageIO ImageIOType;
+	ImageIOType::Pointer dicomIO = ImageIOType::New();
 	reader->SetImageIO( dicomIO );
 	typedef itk::GDCMSeriesFileNames NamesGeneratorType;
 	NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
@@ -880,7 +909,7 @@ void iAIO::readDCM()
 	image->SetImage(reader->GetOutput());
 	image->Modified();
 	postImageReadActions();
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -922,7 +951,7 @@ void iAIO::readVolumeMHDStack()
 		ProgressObserver()->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -942,7 +971,7 @@ void iAIO::readVolumeStack()
 		ProgressObserver()->EmitProgress(progress);
 	}
 	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -997,7 +1026,7 @@ void iAIO::readImageData()
 {
 	readRawImage();
 	postImageReadActions();
-	iosettingswriter();
+	StoreIOSettings();
 }
 
 
@@ -1141,9 +1170,9 @@ bool iAIO::setupVolumeStackVolStackWriter(QString f)
 }
 
 
-void iAIO::FillFileNameArray(int * indexRange, int digitsInIndex)
+void iAIO::FillFileNameArray(int * indexRange, int digitsInIndex, int stepSize)
 {
-	for (int i=indexRange[0]; i<=indexRange[1]; i++)
+	for (int i=indexRange[0]; i<=indexRange[1]; i += stepSize)
 	{
 		QString temp = fileNamesBase + QString("%1").arg(i, digitsInIndex, 10, QChar('0')) + extension;
 		fileNameArray->InsertNextValue(temp.toLatin1());
@@ -1551,18 +1580,20 @@ bool iAIO::setupStackReader( QString f )
 		}
 	}
 	extension = "." + fi.suffix();
-	QStringList inList		= (QStringList()
+	QStringList inList = (QStringList()
 		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
-		<< tr("#Minimum Index")  << tr("#Maximum Index")
-		<< tr("#Spacing X")  << tr("#Spacing Y")  << tr("#Spacing Z")
-		<< tr("#Origin X")  << tr("#Origin Y")  << tr("#Origin Z"))	<< tr("+Data Type");
-	QList<QVariant> inPara	= (QList<QVariant>()
+		<< tr("#Minimum Index") << tr("#Maximum Index")
+		<< tr("*Step")
+		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
+		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z"));
+	QList<QVariant> inPara = (QList<QVariant>()
 		<< fileNamesBase << extension
 		<< tr("%1").arg(digits)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
+		<< QString::number(1)
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
-		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]) << VTKDataTypeList());
+		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]));
 
 	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
 
@@ -1574,10 +1605,10 @@ bool iAIO::setupStackReader( QString f )
 	extension = dlg.getText(1);
 	digits = dlg.getDblValue(2);
 	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
-	spacing[0] = dlg.getDblValue(5); spacing[1]= dlg.getDblValue(6); spacing[2] = dlg.getDblValue(7);
-	origin[0] = dlg.getDblValue(8); origin[1]= dlg.getDblValue(9); origin[2] = dlg.getDblValue(10);
-	scalarType = MapVTKTypeStringToInt(dlg.getComboBoxValue(11));
-	FillFileNameArray(indexRange, digits);
+	int stepSize = dlg.getIntValue(5);
+	spacing[0] = dlg.getDblValue(6); spacing[1]= dlg.getDblValue(7); spacing[2] = dlg.getDblValue(8);
+	origin[0] = dlg.getDblValue(9); origin[1]= dlg.getDblValue(10); origin[2] = dlg.getDblValue(11);
+	FillFileNameArray(indexRange, digits, stepSize);
 	return true;
 }
 
@@ -1605,7 +1636,7 @@ void iAIO::readImageStack()
 }
 
 
-void iAIO::iosettingswriter()
+void iAIO::StoreIOSettings()
 {
 	QSettings settings;
 	settings.setValue("IO/rawSizeX", rawSizeX);
@@ -1623,7 +1654,7 @@ void iAIO::iosettingswriter()
 }
 
 
-void iAIO::iosettingsreader()
+void iAIO::LoadIOSettings()
 {
 	QSettings settings;
 	rawOriginX = settings.value("IO/rawOriginX").toDouble();
@@ -1668,4 +1699,9 @@ void iAIO::setAdditionalInfo(QString const & additionalInfo)
 QString iAIO::getFileName()
 {
 	return fileName;
+}
+
+QSharedPointer<iAModalityList> iAIO::GetModalities()
+{
+	return m_modalities;
 }

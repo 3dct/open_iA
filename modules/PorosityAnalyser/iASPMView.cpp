@@ -23,11 +23,18 @@
 #include "iAQtVTKBindings.h"
 #include "PorosityAnalyserHelpers.h"
 #include "iASelection.h"
-#include "iASPMSettings.h"
 #include "iALUT.h"
 #include "iAPAQSplom.h"
 
+#include "charts/iASPLOMData.h"
+#include "iALookupTable.h"
+
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#else
 #include <QVTKWidget.h>
+#endif
 #include <vtkAnnotationLink.h>
 #include <vtkChart.h>
 #include <vtkColor.h>
@@ -67,40 +74,39 @@
 const QString defaultColorParam = "Deviat. from Ref.";
 const int popupWidthRange[2] = { 80, 300 };
 
-iASPMView::iASPMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: PorosityAnalyzerSPMConnector( parent, f ),
-	m_SPMSettings( new iASPMSettings( this, f ) ),
+iASPMView::iASPMView(MainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : PorosityAnalyzerSPMConnector( parent, f ),
 	m_SPLOMSelection( vtkSmartPointer<vtkIdTypeArray>::New() ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	m_SBQVTKWidget( new QVTKOpenGLWidget( this ) ),
+#else
 	m_SBQVTKWidget( new QVTKWidget( this ) ),
+#endif
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
 	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() ),
-	m_colorArrayName( defaultColorParam ),
-	m_updateColumnVisibility( true ),
-	m_splom( new iAPAQSplom( parent ) )
+	m_splom( new iAPAQSplom(mWnd, parent) )
 {
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	m_SBQVTKWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
+#endif
 	QHBoxLayout *layoutHB2 = new QHBoxLayout( this );
 	layoutHB2->setMargin( 0 );
 	layoutHB2->setSpacing( 0 );
 	layoutHB2->addWidget( m_splom );
 	SPLOMWidget->setLayout( layoutHB2 );
 
-	InitLUT();
-	InitScalarBar();
+	initScalarBar();
 
-	connect( m_SPMSettings->parametersList, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( changeColumnVisibility( QListWidgetItem * ) ) );
-	connect( m_SPMSettings->colorCodingParameter, SIGNAL( currentIndexChanged( const QString & ) ), this, SLOT( SetParameterToColorcode( const QString & ) ) );
-	connect( m_SPMSettings->sbMin, SIGNAL( valueChanged( double ) ), this, SLOT( UpdateLookupTable() ) );
-	connect( m_SPMSettings->sbMax, SIGNAL( valueChanged( double ) ), this, SLOT( UpdateLookupTable() ) );
-	connect( m_SPMSettings->opacitySlider, SIGNAL( valueChanged( int ) ), this, SLOT( UpdateLookupTable() ) );
-	connect( tbSettings, SIGNAL( clicked() ), this, SLOT( showSettings() ) );
-	connect( m_splom, SIGNAL( selectionModified( QVector<unsigned int>* ) ), this, SLOT( selectionUpdated( QVector<unsigned int>* ) ) );
+	connect(tbSettings, SIGNAL(clicked()), m_splom, SLOT(showSettings()));
+
+	connect( m_splom, &iAQSplom::selectionModified, this, &iASPMView::selectionUpdated );
 	connect( m_splom, SIGNAL( previewSliceChanged( int ) ), this, SIGNAL( previewSliceChanged( int ) ) );
 	connect( m_splom, SIGNAL( sliceCountChanged( int ) ), this, SIGNAL( sliceCountChanged( int ) ) );
 	connect( m_splom, SIGNAL( maskHovered( const QPixmap *, int ) ), this, SIGNAL( maskHovered( const QPixmap *, int ) ) );
+	connect( m_splom, SIGNAL( lookupTableChanged()), this, SLOT( applyLookupTable() ));
 }
 
-void iASPMView::InitScalarBar()
+void iASPMView::initScalarBar()
 {
 	m_sbRen->SetBackground( 1.0, 1.0, 1.0 );
 	m_sbRen->AddActor( m_sbActor );
@@ -125,48 +131,18 @@ void iASPMView::InitScalarBar()
 	scalarBarWidget->setLayout( lutLayoutHB );
 }
 
-void iASPMView::InitLUT()
-{
-	double lutRange[2] = { -0.13, 0.13 };
-	m_lut->SetRange( lutRange );
-	m_lut->Build();
-	UpdateLUTOpacity();
-}
-
 iASPMView::~iASPMView()
 {}
 
-void iASPMView::SetData( const QTableWidget * data )
+void iASPMView::setData( const QTableWidget * data )
 {
-	//Init SPLOM
 	m_splom->setData( data );
-	
-	m_SPMSettings->parametersList->clear();
-	m_SPMSettings->colorCodingParameter->clear();
-	QString colorArName = defaultColorParam;
-	m_updateColumnVisibility = false;
-	for( int i = 0; i < data->columnCount(); ++i )
-	{
-		QString columnName = data->item( 0, i )->text();
-		if ( columnName == "Mask Path" )	// No mask path option in settings dialog
-			continue;
-		QCheckBox * checkBox = new QCheckBox( columnName );
-		QListWidgetItem * item = new QListWidgetItem( columnName, m_SPMSettings->parametersList );
-		item->setFlags( item->flags() | Qt::ItemIsUserCheckable ); // set checkable flag
-		item->setCheckState( Qt::Checked ); // AND initialize check state
-
-		m_SPMSettings->colorCodingParameter->addItem( columnName );
-	}
-	m_updateColumnVisibility = true;
-	m_SPMSettings->colorCodingParameter->setCurrentText( colorArName );
+	m_splom->setSelectionColor(QColor(Qt::black));
+	m_splom->setPointRadius(2.5);
+	m_splom->setColorParam(defaultColorParam);
+	m_splom->settings.enableColorSettings = true;
 	m_sbActor->VisibilityOn();
-}
-
-void iASPMView::changeColumnVisibility( QListWidgetItem * item )
-{
-	if( !m_updateColumnVisibility )
-		return;
-	m_splom->setParameterVisibility( item->text(), item->checkState() );
+	applyLookupTable();
 }
 
 inline void SetLookupTable( vtkPlotPoints * pp, vtkScalarsToColors * lut, const vtkStdString colorArrayName )
@@ -176,47 +152,33 @@ inline void SetLookupTable( vtkPlotPoints * pp, vtkScalarsToColors * lut, const 
 	pp->ScalarVisibilityOn();
 }
 
-void iASPMView::ApplyLookupTable()
+void iASPMView::applyLookupTable()
 {
-	m_splom->setLookupTable( m_lut, m_colorArrayName );
+	updateLUT();
 	m_sbActor->SetLookupTable( m_lut );
-	m_sbActor->SetTitle( m_colorArrayName.toStdString().data() );
+	m_sbActor->SetTitle( m_splom->data()->parameterName(m_splom->colorLookupParam()).toStdString().c_str() );
 	m_SBQVTKWidget->update();
 }
 
-void iASPMView::SetParameterToColorcode( const QString & paramName )
+void iASPMView::selectionUpdated( std::vector<size_t> const & selInds )
 {
-	if( !paramName.isEmpty() )
-		m_colorArrayName = paramName;
-	UpdateLookupTable();
-}
-
-void iASPMView::UpdateLookupTable()
-{
-	double lutRange[2] = { m_SPMSettings->sbMin->value(), m_SPMSettings->sbMax->value() };
-	iALUT::BuildLUT( m_lut, lutRange, "Diverging blue-gray-red" );
-	UpdateLUTOpacity();
-	ApplyLookupTable();
-}
-
-void iASPMView::selectionUpdated( QVector<unsigned int>* selInds )
-{
-	//selection
 	m_SPLOMSelection = vtkSmartPointer<vtkIdTypeArray>::New();
-	foreach( const unsigned int & i, *selInds )
-		m_SPLOMSelection->InsertNextValue( vtkIdType( i ) );
+	for( auto & i: selInds )
+		m_SPLOMSelection->InsertNextValue( static_cast<vtkIdType>( i ) );
 
 	emit selectionModified( getActivePlotIndices(), m_SPLOMSelection );
 }
 
-void iASPMView::UpdateLUTOpacity()
+void iASPMView::updateLUT()
 {
+	if (m_splom->lookupTable().numberOfValues() < m_lut->GetNumberOfTableValues())
+		return;
+	double rgba[4];
 	vtkIdType lutColCnt = m_lut->GetNumberOfTableValues();
-	double alpha = (double)m_SPMSettings->opacitySlider->value() / m_SPMSettings->opacitySlider->maximum();
+	m_lut->SetRange(m_splom->lookupTable().getRange());
 	for( vtkIdType i = 0; i < lutColCnt; i++ )
 	{
-		double rgba[4]; m_lut->GetTableValue( i, rgba );
-		rgba[3] = alpha;
+		m_splom->lookupTable().getTableValue(i, rgba);
 		m_lut->SetTableValue( i, rgba );
 	}
 	m_lut->Build();
@@ -224,10 +186,10 @@ void iASPMView::UpdateLUTOpacity()
 
 void iASPMView::setSPLOMSelection( vtkIdTypeArray * ids )
 {
-	QVector<unsigned int> selInds;
+	iAQSplom::SelectionType selInds;
 	for( vtkIdType i = 0; i < ids->GetDataSize(); ++i )
 		selInds.push_back( ids->GetValue( i ) );
-	m_splom->setSelection( &selInds );
+	m_splom->setSelection( selInds );
 }
 
 vtkVector2i iASPMView::getActivePlotIndices()
@@ -240,7 +202,6 @@ vtkVector2i iASPMView::getActivePlotIndices()
 void iASPMView::setSelection( iASelection * sel )
 {
 	setSPLOMSelection( sel->ids );
-	UpdateLookupTable();
 }
 
 void iASPMView::setDatasetsDir( QString datasetsDir )
@@ -256,11 +217,6 @@ void iASPMView::setDatasetsByIndices( QStringList selDatasets, QList<int> indice
 void iASPMView::reemitFixedPixmap()
 {
 	m_splom->reemitFixedPixmap();
-}
-
-void iASPMView::showSettings()
-{
-	m_SPMSettings->show();
 }
 
 void iASPMView::setRSDSelection( vtkIdTypeArray * rdsIds )

@@ -1,18 +1,13 @@
 SET (EXECUTABLE_NAME open_iA_cmd)
 
-# open_iA Version number
-include(GetGitRevisionDescription)
-git_describe(VERSION --tags)
-configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
-
 # Generate executable:
 SET (MAIN_SOURCES "${open_iA_SOURCE_DIR}/cmd/main.cpp")
 ADD_EXECUTABLE( ${EXECUTABLE_NAME} ${MAIN_SOURCES} )
 
 TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} PRIVATE ${CORE_LIBRARY_NAME})
-TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}) # for version.h
+TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${CMAKE_BINARY_DIR}) # for version.h
 
-IF (USE_COTIRE)
+IF (openiA_USE_COTIRE)
 	cotire(${EXECUTABLE_NAME})
 ENDIF()
 

@@ -24,7 +24,7 @@
 #include "iAConnector.h"
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
-#include "iATransferFunction.h"
+#include "iATransferFunction.h"    // for GetDefault... functions
 #include "iATypedCallHelper.h"
 
 #include <itkChangeInformationImageFilter.h>
@@ -33,7 +33,11 @@
 #include <itkNormalizeImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
 #include <QVTKWidget2.h>
+#endif
 #include <vtkColorTransferFunction.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageAccumulate.h>
@@ -106,7 +110,7 @@ template<class T> void DataTypeConversion_template(QString const & m_filename, d
 	typedef itk::ImageRegionIterator<InputImageType> iteratortype;
 	iteratortype iter(itkimage, itkimage->GetRequestedRegion());
 	iter.GoToBegin();
-	bool loop = 1; 
+	bool loop = 1;
 	fseek ( pFile , 0 , SEEK_SET );
 	std::fill(histptr, histptr + static_cast<size_t>(b[7]), 0);
 	while (loop)
@@ -342,7 +346,7 @@ template<class T> void DataTypeConversionROI_template(QString const & m_filename
 	typename InputImageType::IndexType itkindex;
 	itkindex.Fill(0);
 	typename InputImageType::RegionType itkregion;
-	itkregion.SetSize(itksize); 
+	itkregion.SetSize(itksize);
 	itkregion.SetIndex(itkindex);
 
 	itkimage->SetSpacing(itkspacing);
@@ -358,7 +362,7 @@ template<class T> void DataTypeConversionROI_template(QString const & m_filename
 	typename std::vector<unsigned int> m_VolumeCount ( (b[7]+1), 0 );
 
 	unsigned long datatypesize;
-	long slicesize; 
+	long slicesize;
 	size_t result;
 	//int numsliceread = 0;
 
@@ -381,7 +385,7 @@ template<class T> void DataTypeConversionROI_template(QString const & m_filename
 		{	max = buffer;	}
 	}
 
-	bool loop = 1; 
+	bool loop = 1;
 	// copy the file into the buffer:
 	fseek ( pFile , 0 , SEEK_SET );
 	while (loop)
@@ -442,7 +446,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 
 	//read raw file
 	m_bptr = b;
-	m_sliceskip = b[0]; 
+	m_sliceskip = b[0];
 	m_insizex = b[1];	m_insizey = b[2]; m_insizez = b[3];
 	m_spacing[0] = b[4]; m_spacing[1] = b[5];	m_spacing[2] = b[6];
 	m_bins = b[7];
@@ -462,7 +466,11 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xylabel->setMinimumWidth(50);
 	xylabel->setText("XY IMAGE");
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	vtkWidgetXY = new QVTKOpenGLWidget(this);
+#else
 	vtkWidgetXY = new QVTKWidget2(this);
+#endif
 	vtkWidgetXY->setMinimumHeight(c[0]*0.1);
 	vtkWidgetXY->setMinimumWidth(c[1]*0.1);
 	vtkWidgetXY->setWindowTitle("XY Plane");
@@ -477,7 +485,11 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xzlabel->setMinimumWidth(50);
 	xzlabel->setText("XZ IMAGE");
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	vtkWidgetXZ = new QVTKOpenGLWidget(this);
+#else
 	vtkWidgetXZ = new QVTKWidget2(this);
+#endif
 	vtkWidgetXZ->setMinimumHeight(c[0]*0.1);
 	vtkWidgetXZ->setMinimumWidth(c[1]*0.1);
 	vtkWidgetXZ->setWindowTitle("XZ Plane");
@@ -632,9 +644,9 @@ dlg_datatypeconversion::~dlg_datatypeconversion()
 
 void dlg_datatypeconversion::updatevalues(double* inPara)
 {
-	QList<QVariant> str; 
-	str <<  tr("%1").arg(inPara[0]) <<  tr("%1").arg(inPara[1]) <<  tr("%1").arg(inPara[2]) <<  tr("%1").arg(inPara[3]) 
-		<<  tr("%1").arg(inPara[4]) <<  tr("%1").arg(inPara[5])	<<  tr("%1").arg(inPara[6]) <<  tr("%1").arg(inPara[7]) 
+	QList<QVariant> str;
+	str <<  tr("%1").arg(inPara[0]) <<  tr("%1").arg(inPara[1]) <<  tr("%1").arg(inPara[2]) <<  tr("%1").arg(inPara[3])
+		<<  tr("%1").arg(inPara[4]) <<  tr("%1").arg(inPara[5])	<<  tr("%1").arg(inPara[6]) <<  tr("%1").arg(inPara[7])
 		<<  tr("%1").arg(inPara[8]) <<  tr("%1").arg(inPara[9]) <<  tr("%1").arg(inPara[10]);
 	leRangeLower->setText(str[0].toString());
 	leRangeUpper->setText(str[1].toString());
@@ -658,11 +670,15 @@ void dlg_datatypeconversion::histogramdrawing(iAPlotData::DataType* histbinlist,
 	iAHistogramWidget *imgHistogram = new iAHistogramWidget(this, (MdiChild*)parent(), piecewiseFunction, colorTransferFunction,
 		histbinlist, min, max , m_bins, discretization, "Histogram (Intensities)");
 	imgHistogram->updateTrf();
-	imgHistogram->redraw();
+	imgHistogram->update();
 	verticalLayout->addWidget(imgHistogram);
 }
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+void SetupSliceWidget(vtkSmartPointer<vtkImageMapToColors> color, QVTKOpenGLWidget* vtkWidget, vtkSmartPointer<vtkPlaneSource> roiSource)
+#else
 void SetupSliceWidget(vtkSmartPointer<vtkImageMapToColors> color, QVTKWidget2* vtkWidget, vtkSmartPointer<vtkPlaneSource> roiSource)
+#endif
 {
 	auto actor = vtkSmartPointer<vtkImageActor>::New();
 	actor->SetInputData(color->GetOutput());
@@ -708,9 +724,9 @@ void dlg_datatypeconversion::xyprojectslices()
 void dlg_datatypeconversion::xzprojectslices()
 {
 	double center[3];
-	center[0] = 0; 
-	center[1] = 0; 
-	center[2] = 0; 
+	center[0] = 0;
+	center[1] = 0;
+	center[2] = 0;
 
 	static double coronalElements[16] = {
 		1, 0, 0, 0,
@@ -778,7 +794,7 @@ QString dlg_datatypeconversion::coreconversionfunction( QString filename, QStrin
 	if ( minrange != maxrange )
 	{   scale = ( maxout - minout ) / ( maxrange - minrange );	}
 	else if ( maxrange != 0 )
-	{	//m_Scale = ( maxout - minout ) / minrange );	
+	{	//m_Scale = ( maxout - minout ) / minrange );
 	}
 	else
 	{
@@ -792,7 +808,7 @@ QString dlg_datatypeconversion::coreconversionfunction( QString filename, QStrin
 	// Setup the image
 	imageData->SetDimensions(para[1], para[2], para[3]);
 	imageData->AllocateScalars(outdatatype, 1);
-	//loading of datatype 
+	//loading of datatype
 	VTK_TYPED_CALL(loadBinary, indatatype, pFile, imageData, shift, scale, minout, maxout);
 	fclose(pFile);
 	filename.chop(4);
@@ -814,7 +830,7 @@ QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, Q
 	if ( minrange != maxrange )
 	{   m_Scale = ( maxout - minout ) / ( maxrange - minrange );}
 	else if ( maxrange != 0 )
-	{	//m_Scale = ( maxout - minout ) / minrange );	
+	{	//m_Scale = ( maxout - minout ) / minrange );
 	}
 	else
 	{	m_Scale = 0.0;	}
@@ -872,11 +888,11 @@ void dlg_datatypeconversion::update(QString a)
 void dlg_datatypeconversion::updateroi( )
 {
 	xyroiSource->SetOrigin(m_roi[0]*m_spacing[0], m_roi[1]*m_spacing[1], 0);
-	xyroiSource->SetPoint1(m_roi[0]*m_spacing[0]+m_roi[3]*m_spacing[0], m_roi[1]*m_spacing[1]  , 0); 
+	xyroiSource->SetPoint1(m_roi[0]*m_spacing[0]+m_roi[3]*m_spacing[0], m_roi[1]*m_spacing[1]  , 0);
 	xyroiSource->SetPoint2(m_roi[0]*m_spacing[0] , m_roi[1]*m_spacing[1]+m_roi[4]*m_spacing[1], 0);
 
 	xzroiSource->SetOrigin(m_roi[0]*m_spacing[0], -m_roi[5]*m_spacing[2], 0);
-	xzroiSource->SetPoint1(m_roi[0]*m_spacing[0]+m_roi[3]*m_spacing[0], -m_roi[5]*m_spacing[2], 0); 
+	xzroiSource->SetPoint1(m_roi[0]*m_spacing[0]+m_roi[3]*m_spacing[0], -m_roi[5]*m_spacing[2], 0);
 	xzroiSource->SetPoint2(m_roi[0]*m_spacing[0] , m_roi[2]+m_roi[5], 0);
 
 	vtkWidgetXY->update();

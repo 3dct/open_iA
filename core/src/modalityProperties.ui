@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>267</width>
-    <height>509</height>
+    <width>305</width>
+    <height>551</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -163,7 +163,7 @@
       <item>
        <widget class="QCheckBox" name="cb_LinearInterpolation">
         <property name="text">
-         <string>LinearInterpolation</string>
+         <string>Linear interpolation</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -182,45 +182,10 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="5" column="1">
-         <widget class="QLineEdit" name="ed_SpecularLighting">
-          <property name="text">
-           <string>0.7</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="lbl_SpecularPower">
-          <property name="text">
-           <string>SpecularPower</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="ed_DiffuseLighting">
-          <property name="text">
-           <string>0.5</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="ed_AmbientLighting">
-          <property name="text">
-           <string>0.2</string>
-          </property>
-         </widget>
-        </item>
         <item row="4" column="0">
          <widget class="QLabel" name="lbl_DiffuseLighting">
           <property name="text">
-           <string>DiffuseLighting</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="lbl_SpecularLighting">
-          <property name="text">
-           <string>SpecularLighting</string>
+           <string>Diffuse lighting</string>
           </property>
          </widget>
         </item>
@@ -231,17 +196,10 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="lbl_AmbientLighting">
+        <item row="6" column="0">
+         <widget class="QLabel" name="lbl_SpecularPower">
           <property name="text">
-           <string>AmbientLigthing</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="lbl_SampleDistance">
-          <property name="text">
-           <string>SampleDistance</string>
+           <string>Specular power</string>
           </property>
          </widget>
         </item>
@@ -249,6 +207,88 @@
          <widget class="QLineEdit" name="ed_SampleDistance">
           <property name="text">
            <string>2</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="ed_SpecularLighting">
+          <property name="text">
+           <string>0.7</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="lbl_SampleDistance">
+          <property name="text">
+           <string>Sample distance</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="ed_AmbientLighting">
+          <property name="text">
+           <string>0.2</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="lbl_SpecularLighting">
+          <property name="text">
+           <string>Specular lighting</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="lbl_AmbientLighting">
+          <property name="text">
+           <string>Ambient ligthing</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Scalar opacity unit distance</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QLineEdit" name="ed_ScalarOpacityUnitDistance">
+          <property name="text">
+           <string>1.0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="ed_DiffuseLighting">
+          <property name="text">
+           <string>0.5</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QComboBox" name="cb_RenderMode">
+          <item>
+           <property name="text">
+            <string>DefaultRenderMode</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>RayCastRenderMode</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>GPURenderMode</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Renderer type</string>
           </property>
          </widget>
         </item>

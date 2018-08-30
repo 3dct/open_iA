@@ -50,7 +50,6 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMdiSubWindow>
-#include <QMdiSubWindow>
 #include <QMessageBox>
 #include <QObject>
 #include <QSettings>

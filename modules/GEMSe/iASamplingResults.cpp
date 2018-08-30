@@ -59,13 +59,11 @@ namespace
 	struct Output
 	{
 		static const QString NameSeparator;
-		static const QString ValueSeparator;
 		static const QString OptionalParamSeparator;
 	};
 
 
 	const QString Output::NameSeparator(": ");
-	const QString Output::ValueSeparator(",");
 	const QString Output::OptionalParamSeparator(" ");
 
 	bool GetNameValue(QString const & name, QString & value, QTextStream & in)
@@ -224,7 +222,7 @@ bool iASamplingResults::LoadInternal(QString const & parameterSetFileName, QStri
 		if (charac && characIn && !characIn->atEnd())
 		{
 			QString derivedOutLine = characIn->readLine();
-			attribLine = paramLine + ValueSplitString + derivedOutLine;
+			attribLine = paramLine + iASingleResult::ValueSplitString + derivedOutLine;
 		}
 		lineNr++;
 		QSharedPointer<iASingleResult> result = iASingleResult::Create(

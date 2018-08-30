@@ -61,35 +61,32 @@ iAClusterAttribChart::iAClusterAttribChart(
 
 	setLayout(mainLayout);
 
-	connect(m_charts, SIGNAL(DblClicked()), this,  SIGNAL(ChartDblClicked()));
-	connect(m_charts, SIGNAL(SelectionChanged()), this, SLOT(SelectionChanged()));
+	connect(m_charts, SIGNAL(dblClicked()), this,  SIGNAL(ChartDblClicked()));
+	connect(m_charts, SIGNAL(selectionChanged()), this, SLOT(SelectionChanged()));
 }
-
 
 void iAClusterAttribChart::SetAdditionalDrawer(QSharedPointer<iAPlot>& drawer, QSharedPointer<iAPlot> newDrawer)
 {
 	if (drawer)
 	{
-		m_charts->RemovePlot(drawer);
+		m_charts->removePlot(drawer);
 	}
 	drawer = newDrawer;
-	m_charts->AddPlot(drawer);
-	m_charts->redraw();
+	m_charts->addPlot(drawer);
+	m_charts->update();
 }
-
 
 void iAClusterAttribChart::SetFilteredData(QSharedPointer<iAParamHistogramData> data)
 {
 	SetAdditionalDrawer(m_filteredDrawer, m_charts->GetDrawer(data, DefaultColors::FilteredChartColor));
 }
 
-
 void iAClusterAttribChart::ClearClusterData()
 {
 	m_charts->RemoveMarker();
 	foreach (QSharedPointer<iAPlot> drawer, m_clusterDrawer)
 	{
-		m_charts->RemovePlot(drawer);
+		m_charts->removePlot(drawer);
 	}
 	m_clusterDrawer.clear();
 }
@@ -99,17 +96,17 @@ void iAClusterAttribChart::RemoveFilterData()
 	bool redraw = (m_filteredDrawer || m_filteredClusterDrawer);
 	if (m_filteredDrawer)
 	{
-		m_charts->RemovePlot(m_filteredDrawer);
+		m_charts->removePlot(m_filteredDrawer);
 		m_filteredDrawer.clear();
 	}
 	if (m_filteredClusterDrawer)
 	{
-		m_charts->RemovePlot(m_filteredClusterDrawer);
+		m_charts->removePlot(m_filteredClusterDrawer);
 		m_filteredClusterDrawer.clear();
 	}
 	if (redraw)
 	{
-		m_charts->redraw();
+		m_charts->update();
 	}
 }
 
@@ -122,9 +119,8 @@ QColor iAClusterAttribChart::GetClusterColor(int nr) const
 void iAClusterAttribChart::AddClusterData(QSharedPointer<iAParamHistogramData> data)
 {
 	m_clusterDrawer.push_back(m_charts->GetDrawer(data, GetClusterColor(m_clusterDrawer.size())));
-	m_charts->AddPlot(m_clusterDrawer[m_clusterDrawer.size()-1]);
+	m_charts->addPlot(m_clusterDrawer[m_clusterDrawer.size()-1]);
 }
-
 
 void iAClusterAttribChart::SetFilteredClusterData(QSharedPointer<iAParamHistogramData> data)
 {
@@ -173,35 +169,32 @@ iAValueType iAClusterAttribChart::GetRangeType() const
 	return m_charts->GetRangeType();
 }
 
-
 double iAClusterAttribChart::GetMaxYValue() const
 {
-	return m_charts->GetMaxYDataValue();
+	return m_charts->getMaxYDataValue();
 }
 
 void iAClusterAttribChart::SetMaxYAxisValue(double val)
 {
-	m_charts->SetYBounds(0, val);
+	m_charts->setYBounds(0, val);
 }
 
 void iAClusterAttribChart::ResetSpan()
 {
 	double dr0= m_charts->mapBinToValue(0);
-	double dr1= m_charts->mapBinToValue(m_charts->Plots()[0]->GetData()->GetNumBin());
+	double dr1= m_charts->mapBinToValue(m_charts->plots()[0]->GetData()->GetNumBin());
 	SetSpanValues(dr0, dr1);
 }
 
 size_t iAClusterAttribChart::GetNumBin() const
 {
-	return m_charts->Plots()[0]->GetData()->GetNumBin();
+	return m_charts->plots()[0]->GetData()->GetNumBin();
 }
-
 
 double iAClusterAttribChart::mapValueToBin(double value) const
 {
 	return m_charts->mapValueToBin(value);
 }
-
 
 void iAClusterAttribChart::SetBinColor(int bin, QColor const & color)
 {
@@ -210,10 +203,10 @@ void iAClusterAttribChart::SetBinColor(int bin, QColor const & color)
 
 void iAClusterAttribChart::UpdateChart()
 {
-	m_charts->redraw();
+	m_charts->update();
 }
 
 void iAClusterAttribChart::ResetMaxYAxisValue()
 {
-	m_charts->ResetYBounds();
+	m_charts->resetYBounds();
 }

@@ -55,7 +55,7 @@ public:
 		double sqrLen = 0;
 		for (int i=0; i<3; i++)
 			sqrLen += comps[i] * comps[i];
-		return sqrtl(sqrLen);		
+		return sqrtl(sqrLen);
 	}
 
 public:

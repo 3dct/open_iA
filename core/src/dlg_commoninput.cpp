@@ -70,7 +70,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	setupUi(this);
 	this->setWindowTitle(winTitle);
 
-	if(fDescr)
+	if (fDescr)
 	{
 		auto info = new QTextBrowser();
 		QPalette p = info->palette();
@@ -89,8 +89,8 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	container->setObjectName("container");
 	auto containerLayout = new QGridLayout(container);
 	containerLayout->setObjectName("containerLayout");
-	
-	for ( int i = 0; i < inList.size(); i++)
+
+	for ( int i = 0; i < inList.size(); ++i)
 	{
 		QString tStr = inList[i];
 		tStr.remove(0, 1);
@@ -143,15 +143,6 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 			case ';':
 				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::Folder);
 				break;
-			case '?':
-			{
-				label->setStyleSheet("background-color : lightGray");
-				QFont font = label->font();
-				font.setBold(true);
-				font.setPointSize(11);
-				label->setFont(font);
-				continue;
-			}
 			default:
 				eMessage->showMessage(QString("Unknown widget prefix '%1' for label \"%2\"").arg(inList[i][0]).arg(tStr));
 				continue;
@@ -159,7 +150,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 		widgetList[i] = newWidget;
 		containerLayout->addWidget(newWidget, i, 1);
 	}
-		
+
 	//Controls the containers width and sets the correct width for the widgets
 	containerLayout->setColumnMinimumWidth(0, WIDTH/3);
 	containerLayout->setColumnMinimumWidth(1, WIDTH/3);
@@ -230,7 +221,7 @@ void dlg_commoninput::SelectFilter()
 				default:
 					paramStr += QuoteString(paramValues[param->Name()].toString()); break;
 				}
-				
+
 			}
 			QLineEdit* e = qobject_cast<QLineEdit*>(widgetList[idx + 1]);
 			if (e)
@@ -248,7 +239,7 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 	QObjectList children = container->children();
 
 	int paramIdx = 0;
-	for ( int i = 0; i < children.size(); i++)
+	for ( int i = 0; i < children.size(); ++i)
 	{
 		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(children.at(i));
 		if (lineEdit)
@@ -322,7 +313,7 @@ void dlg_commoninput::showROI()
 		m_roi[i] = 0;
 		m_roi[i + 3] = m_sourceMdiChild->getImagePointer()->GetDimensions()[i];
 	}
-	for (int i = 0; i < children.size(); i++)
+	for (int i = 0; i < children.size(); ++i)
 	{
 		QSpinBox *input = dynamic_cast<QSpinBox*>(children.at(i));
 		if (input && (input->objectName().contains("Index") || input->objectName().contains("Size")))

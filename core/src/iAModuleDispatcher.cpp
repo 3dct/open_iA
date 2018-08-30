@@ -112,7 +112,7 @@ QFileInfoList GetLibraryList(QString const & rootPath)
 #else
 	nameFilter << "*.so";
 #endif
-	
+
 	QFileInfoList list = root.entryInfoList(nameFilter, QDir::Files);
 	return root.entryInfoList(nameFilter, QDir::Files);
 }

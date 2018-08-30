@@ -24,15 +24,13 @@
 
 #include <QList>
 
-#include <cstddef> // for size_t
-
 struct open_iA_Core_API iABoxPlotData
 {
 public:
 	iABoxPlotData() : q25(0), med(0), q75(0), min(0), max(0) {};
-	iABoxPlotData(double q25_v, double med_v, double q75_v, double min_v, double max_v);	
+	iABoxPlotData(double q25_v, double med_v, double q75_v, double min_v, double max_v);
 	static int cmp(const void *px, const void *py);
-	
+
 	/**
 	* \fn void iABoxPlotData::CalculateBoxPlot ( double * data, int dataSize, bool removeOutliers = false, double k = 1.5)
 	* \param data

@@ -75,8 +75,8 @@ void ConnectPipelines(VTK_Exporter* exporter, ITK_Importer importer)
 
 template <class  T>
 void SetupPipelineVTKtoITK(
-	vtkImageData* inputImage, 
-	vtkImageExport * vtkExporter, 
+	vtkImageData* inputImage,
+	vtkImageExport * vtkExporter,
 	iAConnector::ProcessObjectPointer & itkImporter)
 {
 	typedef itk::Image< T, 3 >						OutputImageType;

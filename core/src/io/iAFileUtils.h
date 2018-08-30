@@ -22,11 +22,24 @@
 
 #include "open_iA_Core_export.h"
 
+#include <QFlags>
+
+#include <string>
+
 class QString;
 class QStringList;
+
+enum FilesFolders
+{
+	Files,
+	Folders,
+	FilesAndFolders
+};
 
 open_iA_Core_API QString MakeAbsolute(QString const & baseDir, QString const & fileName);
 open_iA_Core_API QString MakeRelative(QString const & baseDir, QString const & fileName);
 
 open_iA_Core_API void FindFiles(QString const & directory, QStringList const & filters, bool recurse,
-	QStringList & filesOut);
+	QStringList & filesOut, QFlags<FilesFolders> filesFolders);
+
+open_iA_Core_API std::string getLocalEncodingFileName(QString const & fileName);

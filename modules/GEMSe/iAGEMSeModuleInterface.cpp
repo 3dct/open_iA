@@ -46,15 +46,13 @@ void iAGEMSeModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
+	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
 	
-	QAction * actionGEMSe = new QAction( m_mainWnd );
-	actionGEMSe->setText(QApplication::translate("MainWindow", "GEMSe", 0));
+	QAction * actionGEMSe = new QAction( tr("GEMSe"), nullptr);
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
 	connect(actionGEMSe, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
 
-	QAction * actionPreCalculated = new QAction( m_mainWnd );
-	actionPreCalculated->setText( QApplication::translate( "MainWindow", "Load Segmentation Ensemble in GEMSe", 0 ));
+	QAction * actionPreCalculated = new QAction( tr("Load Segmentation Ensemble in GEMSe"), nullptr );
 	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionPreCalculated, false);
 	connect(actionPreCalculated, SIGNAL(triggered()), this, SLOT(LoadPreCalculatedData()));
 }
@@ -92,18 +90,31 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData()
 
 void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 {
-	MdiChild *child = m_mainWnd->createMdiChild(false);
+	m_mdiChild = m_mainWnd->createMdiChild(false);
 	if (!seaFile.good())
 	{
-		DEBUG_LOG("Given precalculated data file could not be read.");
+		DEBUG_LOG(QString("Precalculated GEMSe data %1 file could not be read.").arg(seaFile.GetSEAFileName()));
 		return;
 	}
-	if (!child->LoadProject(seaFile.GetModalityFileName()))
+	if (m_seaFile)
 	{
-		DEBUG_LOG(QString("Failed loading project '%1'").arg(seaFile.GetModalityFileName()));
+		DEBUG_LOG("A loading procedure is currently in progress. Please let this finish first.");
 		return;
 	}
-	m_mdiChild = child;
+	m_seaFile = QSharedPointer<iASEAFile>(new iASEAFile(seaFile));
+	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(continuePreCalculatedDataLoading()));
+	if (!m_mdiChild->loadFile(seaFile.GetModalityFileName(), false))
+	{
+		DEBUG_LOG(QString("Failed to load project '%1' referenced from precalculated GEMSe data file %2.")
+			.arg(seaFile.GetModalityFileName())
+			.arg(seaFile.GetSEAFileName()));
+		m_seaFile.clear();
+		return;
+	}
+}
+
+void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
+{
 	UpdateChildData();
 
 	// load segmentation explorer:
@@ -115,30 +126,31 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 		return;
 	}
 	// load sampling data:
-	QMap<int, QString> const & samplings = seaFile.GetSamplings();
+	QMap<int, QString> const & samplings = m_seaFile->GetSamplings();
 	for (int key : samplings.keys())
 	{
-		result &= gemseAttach->LoadSampling(samplings[key], seaFile.GetLabelCount(), key);
+		result &= gemseAttach->LoadSampling(samplings[key], m_seaFile->GetLabelCount(), key);
 		if (!result)
 			break;
 	}
-	if (!result || !gemseAttach->LoadClustering(seaFile.GetClusteringFileName()))
+	if (!result || !gemseAttach->LoadClustering(m_seaFile->GetClusteringFileName()))
 	{
-		DEBUG_LOG("Precomputed Data Loading failed!");
+		DEBUG_LOG(QString("Loading precomputed GEMSe data from file %1 failed!").arg(m_seaFile->GetSEAFileName()));
 	}
-	if (seaFile.GetLayoutName() != "")
+	if (m_seaFile->GetLayoutName() != "")
 	{
-		child->LoadLayout(seaFile.GetLayoutName());
+		m_mdiChild->LoadLayout(m_seaFile->GetLayoutName());
 	}
-	if (seaFile.GetReferenceImage() != "")
+	if (m_seaFile->GetReferenceImage() != "")
 	{
-		gemseAttach->LoadRefImg(seaFile.GetReferenceImage());
+		gemseAttach->LoadRefImg(m_seaFile->GetReferenceImage());
 	}
-	if (seaFile.GetHiddenCharts() != "")
+	if (m_seaFile->GetHiddenCharts() != "")
 	{
-		gemseAttach->SetSerializedHiddenCharts(seaFile.GetHiddenCharts());
+		gemseAttach->SetSerializedHiddenCharts(m_seaFile->GetHiddenCharts());
 	}
-	gemseAttach->SetLabelInfo(seaFile.GetColorTheme(), seaFile.GetLabelNames());
+	gemseAttach->SetLabelInfo(m_seaFile->GetColorTheme(), m_seaFile->GetLabelNames());
+	m_seaFile.clear();
 }
 
 void iAGEMSeModuleInterface::SetupToolbar()

@@ -142,15 +142,17 @@ namespace
 		}
 	}
 
-	void PrintUsage()
+	void PrintUsage(const char * version)
 	{
-		std::cout << "open_iA command line tool. Usage:" << std::endl
-			<< "  open_iA_cmd [-l] [-h ...] [-r ...]" << std::endl
+		std::cout << "open_iA command line tool, version " << version << "." << std::endl
+			<< "Usage:" << std::endl
+			<< "  > open_iA_cmd (-l|-h ...|-r ...|-p ...)" << std::endl
+			<< "Options:" << std::endl
 			<< "     -l" << std::endl
 			<< "         List available filters" << std::endl
 			<< "     -h FilterName" << std::endl
 			<< "         Print help on a specific filter" << std::endl
-			<< "     -r FilterName -i Input -o Output -p Parameters [-q] [-c]" << std::endl
+			<< "     -r FilterName -i Input -o Output -p Parameters [-q] [-c] [-f]" << std::endl
 			<< "         Run the filter given by FilterName with Parameters on given Input, write to Output" << std::endl
 			<< "           -q   quiet - no output except for error messages" << std::endl
 			<< "           -c   compress output" << std::endl
@@ -362,7 +364,7 @@ namespace
 	}
 }
 
-int ProcessCommandLine(int argc, char const * const * argv)
+int ProcessCommandLine(int argc, char const * const * argv, const char * version)
 {
 	auto dispatcher = new iAModuleDispatcher(QFileInfo(argv[0]).absolutePath());
 	dispatcher->InitializeModules(iAStdOutLogger::Get());
@@ -389,7 +391,7 @@ int ProcessCommandLine(int argc, char const * const * argv)
 	}
 	else
 	{
-		PrintUsage();
+		PrintUsage(version);
 	}
 	return 0;
 }

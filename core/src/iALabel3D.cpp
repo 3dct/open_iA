@@ -43,7 +43,7 @@
 #define LABEL_DISPLACEMENT 30.0
 
 const int NUM_PTS = 4;
-const float TUPLES[NUM_PTS][3] = 
+const float TUPLES[NUM_PTS][3] =
 {
 	{0.0, 1.0, 0.0},
 	{1.0, 1.0, 0.0},
@@ -135,7 +135,7 @@ void iALabel3D::SetupLabelQuad()
 	double aspRatio = ((double)qImage.width()) / ((double)qImage.height());
 	// Create a plane
 	double hAR = 0.5*aspRatio;
-	double pnts[NUM_PTS][3] = 
+	double pnts[NUM_PTS][3] =
 	{
 		{-hAR, -0.5, 0.0},
 		{ hAR, -0.5, 0.0},
@@ -189,7 +189,7 @@ void iALabel3D::UpdateImageData()
 {
 	int w = qImage.width();
 	int h = qImage.height();
-	if(m_imageData->GetDimensions()[0] != w || 
+	if(m_imageData->GetDimensions()[0] != w ||
 		m_imageData->GetDimensions()[1] != h)
 	{
 		m_imageData->SetDimensions(w, h, 1);

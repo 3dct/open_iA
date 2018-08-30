@@ -262,10 +262,10 @@ void iADetailView::ChangeModality(int offset)
 	vtkSmartPointer<vtkImageData> imageData = mod->GetComponent(m_magicLensCurrentComponent);
 	vtkColorTransferFunction* ctf = (mod->GetName() == "Ground Truth") ?
 		m_previewWidget->GetCTF().GetPointer() :
-		mod->GetTransfer()->GetColorFunction();
+		mod->GetTransfer()->getColorFunction();
 	vtkPiecewiseFunction* otf = (mod->GetName() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
-		mod->GetTransfer()->GetOpacityFunction();
+		mod->GetTransfer()->getOpacityFunction();
 	QString name(mod->GetImageName(m_magicLensCurrentComponent));
 	AddMagicLensInput(imageData, ctf, otf, name);
 }
@@ -297,13 +297,7 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 
 void iADetailView::ChangeMagicLensOpacity(int chg)
 {
-	iASlicerWidget * sliceWidget = dynamic_cast<iASlicerWidget *>(sender());
-	if (!sliceWidget)
-	{
-		DEBUG_LOG("Invalid slice widget sender!");
-		return;
-	}
-	sliceWidget->SetMagicLensOpacity(sliceWidget->GetMagicLensOpacity() + (chg*0.05));
+	m_previewWidget->GetSlicer()->SetMagicLensOpacity(m_previewWidget->GetSlicer()->GetMagicLensOpacity() + (chg*0.05));
 }
 
 

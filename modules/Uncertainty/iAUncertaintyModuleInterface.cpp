@@ -59,7 +59,7 @@ void iAUncertaintyModuleInterface::UncertaintyExploration()
 		tr("Load Ensemble"),
 		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath(): QString(),
 		tr("Image Analysis Ensemble (*.iae );;") );
-	if (fileName != "")
+	if (!fileName.isEmpty())
 	{
 		LoadEnsemble(fileName);
 	}
@@ -80,7 +80,6 @@ void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 	m_mdiChild->show();
 	if (!attach->LoadEnsemble(fileName))
 	{
-		delete m_mdiChild;
 		return;
 	}
 }

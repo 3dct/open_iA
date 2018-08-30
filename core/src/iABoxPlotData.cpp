@@ -67,7 +67,7 @@ void iABoxPlotData::CalculateBoxPlot( double * data, int dataSize, bool removeOu
 		q75 = 0.5*(buf_data[(int)ind] + buf_data[(int)ind + 1]);
 	else
 		q75 = buf_data[(int)ind];
-	
+
 	range[0] = min;
 	range[1] = max;
 	//outliers

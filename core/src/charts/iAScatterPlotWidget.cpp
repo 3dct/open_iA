@@ -29,37 +29,42 @@
 #include <vtkSmartPointer.h>
 
 #include <QMouseEvent>
+#include <QPainter>
 
 class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {
 public:
-	virtual QVector<unsigned int> & getSelection()
+	virtual SelectionType & getSelection() override
 	{
 		return m_selection;
 	}
-	void setSelection(QVector<unsigned int> const & selection)
+	virtual SelectionType const & getSelection() const override
+	{
+		return m_selection;
+	}
+	void setSelection(SelectionType const & selection)
 	{
 		m_selection = selection;
 	}
-	virtual const QList<int> & getHighlightedPoints() const
+	SelectionType const & getHighlightedPoints() const override
 	{
 		return m_highlight;
 	}
-	virtual int getVisibleParametersCount() const
+	int getVisibleParametersCount() const override
 	{
 		return 2;
 	}
-	virtual double getAnimIn() const
+	double getAnimIn() const override
 	{
 		return 1.0;
 	}
-	virtual double getAnimOut() const
+	double getAnimOut() const override
 	{
 		return 0.0;
 	}
 private:
-	QList<int> m_highlight;
-	QVector<unsigned int> m_selection;
+	SelectionType m_highlight;
+	SelectionType m_selection;
 };
 
 namespace
@@ -86,23 +91,13 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 
 void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double rangeMax)
 {
-	auto lut = vtkSmartPointer<vtkLookupTable>::New();
+	QSharedPointer<iALookupTable> lut(new iALookupTable());
 	double lutRange[2] = { rangeMin, rangeMax };
-	lut->SetRange(lutRange);
-	lut->Build();
-	vtkIdType lutColCnt = lut->GetNumberOfTableValues();
-	for (vtkIdType i = 0; i < lutColCnt; i++)
-	{
-		double rgba[4]; lut->GetTableValue(i, rgba);
-		rgba[0] = c.red() / 255.0;
-		rgba[1] = c.green() / 255.0;
-		rgba[2] = c.blue() / 255.0;
-		rgba[3] = c.alpha() / 255.0;
-		lut->SetTableValue(i, rgba);
-	}
-	lut->Build();
-	QSharedPointer<iALookupTable> lookupTable(new iALookupTable(lut.GetPointer()));
-	m_scatterplot->setLookupTable(lookupTable, m_data->parameterName(0));
+	lut->setRange(lutRange);
+	lut->allocate(2);
+	for (int i = 0; i < 2; ++i)
+		lut->setColor(i, c);
+	m_scatterplot->setLookupTable(lut, 0);
 }
 
 void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
@@ -228,12 +223,12 @@ void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
 	}
 }
 
-QVector<unsigned int> iAScatterPlotWidget::GetSelection()
+std::vector<size_t> & iAScatterPlotWidget::GetSelection()
 {
 	return m_scatterPlotHandler->getSelection();
 }
 
-void iAScatterPlotWidget::SetSelection(QVector<unsigned int> const & selection)
+void iAScatterPlotWidget::SetSelection(std::vector<size_t> const & selection)
 {
 	m_scatterPlotHandler->setSelection(selection);
 }

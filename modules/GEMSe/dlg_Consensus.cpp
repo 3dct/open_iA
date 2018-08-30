@@ -42,11 +42,12 @@
 #include "io/iAIOProvider.h"
 #include "mdichild.h"
 
-#include <itkCastImageFilter.h>
-#include <itkMultiLabelSTAPLEImageFilter.h>
-#include <itkSTAPLEImageFilter.h>
-#include <itkLabelStatisticsImageFilter.h>
-
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QVTKOpenGLWidget.h>
+#else
+#include <QVTKWidget2.h>
+#endif
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
@@ -56,7 +57,11 @@
 #include <vtkPlot.h>
 #include <vtkPlotLine.h>
 #include <vtkTable.h>
-#include <QVTKWidget2.h>
+
+#include <itkCastImageFilter.h>
+#include <itkMultiLabelSTAPLEImageFilter.h>
+#include <itkSTAPLEImageFilter.h>
+#include <itkLabelStatisticsImageFilter.h>
 
 #include <QCheckBox>
 #include <QFileDialog>
@@ -100,7 +105,11 @@
 
 struct ChartWidgetData
 {
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QVTKOpenGLWidget* vtkWidget;
+#else
 	QVTKWidget2* vtkWidget;
+#endif
 	vtkSmartPointer<vtkChartXY> chart;
 };
 
@@ -108,7 +117,11 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 		MdiChild* mdiChild)
 {
 	ChartWidgetData result;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	result.vtkWidget = new QVTKOpenGLWidget();
+#else
 	result.vtkWidget = new QVTKWidget2();
+#endif
 	auto contextView = vtkSmartPointer<vtkContextView>::New();
 	contextView->SetRenderWindow(result.vtkWidget->GetRenderWindow());
 	result.chart = vtkSmartPointer<vtkChartXY>::New();
@@ -143,6 +156,8 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Mean Dice", mdiChild));
 	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Undecided Pixels", mdiChild));
 	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Label Dice", mdiChild));
+	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Prob. Voting Label Dice", mdiChild));
+	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Undecided Label Dice", mdiChild));
 
 	QSharedPointer<iAImageTreeNode> root = dlgGEMSe->GetRoot();
 	int ensembleSize = root->GetClusterSize();
@@ -420,7 +435,8 @@ iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > se
 
 iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> > selection,
 	double threshold, VotingRule rule, int labelCount, bool undecidedPixels, double & undecided,
-	QVector<double> & diceMV, QVector<double> & diceUndecided, LabelImagePointer groundTruth)
+	QVector<double> & diceMV, QVector<double> & diceUndecided, LabelImagePointer groundTruth,
+	QString const & cachePath, int methodNr, int sampleNr)
 {
 	if (selection.size() == 0)
 	{
@@ -464,7 +480,8 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 	}
 	auto undecidedPixelIndices = pvdicefilter->IgnoredIndices();
 
-
+	QString filename(cachePath + QString("/sample-method%1-sample%2-pv.mhd").arg(methodNr).arg(sampleNr));
+	StoreImage(labelResult.GetPointer(), filename, true);
 	iAITKIO::ImagePointer result;
 	if (undecidedPixels)
 	{
@@ -1206,6 +1223,16 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 		{
 			columnNames.push_back(QString("Dice Label %1").arg(l));
 		}
+		columnNames.push_back(QString("MV Dice"));
+		for (int l = 0; l < m_labelCount; ++l)
+		{
+			columnNames.push_back(QString("MV Dice Label %1").arg(l));
+		}
+		columnNames.push_back(QString("UD Dice"));
+		for (int l = 0; l < m_labelCount; ++l)
+		{
+			columnNames.push_back(QString("UD Dice Label %1").arg(l));
+		}
 
 		const int SampleCount = sbSampleCount->value();
 		const int ResultCount = 10;
@@ -1283,13 +1310,13 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 			result[4] = GetVotingImage(selection, -1, -1, -1, -1, value[4], weightType, m_labelCount, true, undecided[4]);
 			QVector<QVector<double>>  probVoteDice;
 			QVector<QVector<double>> undecidedDice;
-			for (int i = 0; i < ProbVoteCount; ++i)
+			for (int pv = 0; pv < ProbVoteCount; ++pv)
 			{
 				probVoteDice.push_back(QVector<double>());
 				undecidedDice.push_back(QVector<double>());
-				result[i + 5] = GetProbVotingImage(selection, value[i + 5],
-					static_cast<VotingRule>(i), m_labelCount, true, undecided[i+5],
-					probVoteDice[i], undecidedDice[i], m_groundTruthImage);
+				result[pv + 5] = GetProbVotingImage(selection, value[pv + 5],
+					static_cast<VotingRule>(pv), m_labelCount, true, undecided[i+5],
+					probVoteDice[pv], undecidedDice[pv], m_groundTruthImage, m_cachePath, 5+pv, i);
 			}
 			for (int r = 0; r < ResultCount; ++r)
 			{
@@ -1314,17 +1341,18 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 				{                                // hacky workaround for label 0 having "wrong" dice values"
 					tables[r]->SetValue(i, 3 + l, (l==0)? measures[4+l]/ m_labelCount : measures[4 + l]);
 				}
-				/*
-				DEBUG_LOG(QString("%1\t%2\t%3\t%4\t%5\t%6\t%7")
-					.arg(r)
-					.arg(i)
-					.arg(measures[0]) // dice
-					.arg(measures[2]) // accuracy
-					.arg(measures[3]) // precision
-					.arg(measures[4]) // recall
-					.arg(undecidedPerc) // undecided
-				);
-				*/
+				for (int l = 0; l < m_labelCount+1; ++l)
+				{                                // hacky workaround for label 0 having "wrong" dice values"
+					tables[r]->SetValue(i, 3 + m_labelCount + l,
+							r<5 ? 0 :
+							((l==1)? probVoteDice[r-5][l]/ m_labelCount : probVoteDice[r-5][l]));
+				}
+				for (int l = 0; l < m_labelCount+1; ++l)
+				{                                // hacky workaround for label 0 having "wrong" dice values"
+					tables[r]->SetValue(i, 3 + 2*m_labelCount + 1 + l,
+							r<5 ? 0 :
+							(l==1)? undecidedDice[r-5][l]/ m_labelCount : undecidedDice[r-5][l]);
+				}
 			}
 		}
 		for (int i = 0; i < ResultCount; ++i)
@@ -1393,6 +1421,18 @@ void dlg_Consensus::SampledItemClicked(QTableWidgetItem * item)
 	{
 		QColor plotColor = m_colorTheme->GetColor(l);
 		AddPlot(vtkChart::LINE, m_consensusCharts[3].chart, m_results[row], 0, 3+l, plotColor);
+	}
+	m_consensusCharts[4].chart->ClearPlots();
+	for (int l = 0; l < m_labelCount+1; ++l)
+	{
+		QColor plotColor = (l==0) ? QColor(0, 0, 0) : m_colorTheme->GetColor(l-1);
+		AddPlot(vtkChart::LINE, m_consensusCharts[4].chart, m_results[row], 0, 3+m_labelCount+l, plotColor);
+	}
+	m_consensusCharts[5].chart->ClearPlots();
+	for (int l = 0; l < m_labelCount+1; ++l)
+	{
+		QColor plotColor = (l==0) ? QColor(0, 0, 0) : m_colorTheme->GetColor(l-1);
+		AddPlot(vtkChart::LINE, m_consensusCharts[5].chart, m_results[row], 0, 3+2*m_labelCount+1+l, plotColor);
 	}
 }
 
@@ -1472,7 +1512,7 @@ void dlg_Consensus::CalcProbRuleVote()
 	QVector<double> mv, un;
 	m_lastMVResult = GetProbVotingImage(selection, sbUndecidedThresh->value(), static_cast<VotingRule>(cbProbRule->currentIndex())
 		, m_labelCount, cbUndecidedPixels->isChecked(), undecided,
-		mv, un, m_groundTruthImage);
+		mv, un, m_groundTruthImage, m_cachePath, -1, -1);
 	m_dlgGEMSe->AddConsensusImage(m_lastMVResult, QString("Probability Vote rule=%1, thresh=%2, (%3)")
 		.arg(cbProbRule->currentIndex())
 		.arg(sbUndecidedThresh->value())
