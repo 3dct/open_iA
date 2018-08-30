@@ -143,6 +143,22 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	connectSignals();
 }
 
+void dlg_CSVInput::setPath(QString const & path)
+{
+	m_path = path;
+}
+
+void dlg_CSVInput::setFileName(QString const & fileName)
+{
+	ed_FileName->setText(fileName);
+	updatePreview();
+}
+
+iACsvConfig const & dlg_CSVInput::getConfig() const
+{
+	return m_confParams;
+}
+
 void dlg_CSVInput::initParameters()
 {
 	ed_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
@@ -184,11 +200,6 @@ void dlg_CSVInput::connectSignals()
 	connect(cb_ContainsHeader, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cb_AdvancedMode, &QCheckBox::stateChanged, this, &dlg_CSVInput::advancedModeToggled);
 	connect(list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
-}
-
-void dlg_CSVInput::setPath(QString const & path)
-{
-	m_path = path;
 }
 
 void dlg_CSVInput::okBtnClicked()
@@ -379,11 +390,6 @@ void dlg_CSVInput::selectFileBtnClicked()
 		return;
 	ed_FileName->setText(fileName);
 	updatePreview();
-}
-
-iACsvConfig const & dlg_CSVInput::getConfig() const
-{
-	return m_confParams;
 }
 
 void dlg_CSVInput::showConfigParams()

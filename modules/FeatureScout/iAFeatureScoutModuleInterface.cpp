@@ -45,24 +45,25 @@ void iAFeatureScoutModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * featureScoutMenu = getMenuWithTitle(toolsMenu, QString("FeatureScout"), false);
-
 	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
-	AddActionToMenuAlphabeticallySorted( featureScoutMenu, actionFibreScout);
+	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout, false );
 	connect(actionFibreScout, SIGNAL(triggered()), this, SLOT(FeatureScout()));
-
-	QAction * actionOpenCSVFeatureScout = new QAction( QObject::tr("FeatureScoutWithCSV"), nullptr );
-	AddActionToMenuAlphabeticallySorted( featureScoutMenu, actionOpenCSVFeatureScout, false);
-	connect(actionOpenCSVFeatureScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScoutWithCSV);
-
 	tlbFeatureScout = nullptr;
 }
 
-void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
+void iAFeatureScoutModuleInterface::FeatureScout()
 {
 	dlg_CSVInput dlg;
 	if (m_mainWnd->activeMdiChild())
-		dlg.setPath(m_mainWnd->activeMdiChild()->getFilePath());
+	{
+		auto mdi = m_mainWnd->activeMdiChild();
+		QString testCSVFileName = mdi->getFileInfo().canonicalPath() + "/" +
+				mdi->getFileInfo().completeBaseName() + ".csv";
+		if (QFile(testCSVFileName).exists())
+			dlg.setFileName(testCSVFileName);
+		else
+			dlg.setPath(mdi->getFilePath());
+	}
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	iACsvConfig csvConfig = dlg.getConfig();
@@ -82,14 +83,6 @@ void iAFeatureScoutModuleInterface::FeatureScoutWithCSV()
 	else
 		m_mdiChild = m_mainWnd->activeMdiChild();
 	startFeatureScout(csvConfig);
-}
-
-void iAFeatureScoutModuleInterface::FeatureScout()
-{
-	PrepareActiveChild();
-	QString fileName = QFileDialog::getOpenFileName( m_mdiChild, tr( "Select CSV File" ),
-		m_mdiChild->getFilePath(), tr( "CSV Files (*.csv)" ) );
-	LoadFeatureScoutWithParams(fileName, m_mdiChild);
 }
 
 void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(const QString &csvFileName, MdiChild *mchildWnd)

@@ -33,8 +33,13 @@ class dlg_CSVInput : public QDialog, public Ui_CsvInput
 {
 Q_OBJECT
 public:
-	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0); /*: QDialog(parent, f)*/
+	//! Create a new dialog, all parameters are optional
+	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0);
+	//! Set the internal path (used when choosing a csv file) to the one given as parameter
 	void setPath(QString const & path);
+	//! Set the file name input to the one given as parameter
+	void setFileName(QString const & fileName);
+	//! Retrieve the configuration currently set in the dialog
 	const iACsvConfig & getConfig() const;
 private slots:
 	//! updates preview (e.g. when Update Preview button called)

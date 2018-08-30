@@ -35,7 +35,6 @@ public:
 	void Initialize();
 	void LoadFeatureScoutWithParams(const QString &csvName, MdiChild *mchildWnd);
 private slots:
-	void FeatureScoutWithCSV();
 	void FeatureScout();
 	void FeatureScout_Options();
 	void onChildClose();
