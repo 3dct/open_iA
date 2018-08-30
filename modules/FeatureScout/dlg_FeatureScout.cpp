@@ -2773,7 +2773,7 @@ void dlg_FeatureScout::showContextMenu( const QPoint &pnt )
 			actions.append( this->saveBlobMovie );
 			actions.append( this->objectAdd );
 		}
-		else
+		else if ( item->parent() ) // item also might have no children because it's an empty class!
 		{
 			if ( item->parent()->index().row() != 0 )
 				actions.append( this->objectDelete );
