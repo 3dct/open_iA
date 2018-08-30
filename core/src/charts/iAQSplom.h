@@ -79,6 +79,7 @@ class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectio
 		UPPER_HALF,
 		ALL_PLOTS
 	};
+public:
 	enum ColorScheme //!< what color scheme to use for coloring the dots
 	{
 		Uniform,                         //!< all points have the same color
@@ -86,7 +87,6 @@ class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectio
 		Custom                           //!< points are colored
 	};
 // Methods
-public:
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
 #else
@@ -133,6 +133,7 @@ public:
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
 	QSharedPointer<iALookupTable> lookupTable() const;               //!< get lookup table
+	ColorScheme colorScheme() const;                                 //!< get current color scheme
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
 	void showSettings();                                             //!< Show the settings dialog

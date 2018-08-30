@@ -178,7 +178,7 @@ iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 	LegacyFormat.columnSeparator = ",";
 	LegacyFormat.decimalSeparator = ".";
 	LegacyFormat.addAutoID = false;
-	LegacyFormat.objectType = iAFeatureScoutObjectType::Fibers;
+	LegacyFormat.objectType = iAFeatureScoutObjectType::Voids;
 	LegacyFormat.computeLength = false;
 	LegacyFormat.computeAngles = false;
 	LegacyFormat.computeTensors = false;

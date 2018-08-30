@@ -36,11 +36,11 @@ public:
 	void LoadFeatureScoutWithParams(const QString &csvName, MdiChild *childWnd);
 	void LoadFeatureScout(iACsvConfig const & csvConfig, MdiChild *childWnd);
 private slots:
-	void FeatureScoutWithCSV();
 	void FeatureScout();
 	void FeatureScout_Options();
 	void onChildClose();
 private:
+	iAFeatureScoutObjectType guessFeatureType(QString const & csvFileName);
 	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
