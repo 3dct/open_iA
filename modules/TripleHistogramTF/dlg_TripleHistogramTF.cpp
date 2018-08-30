@@ -135,6 +135,14 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalityAvailable(int)), this, SLOT(modalityAvailable(int)));
 	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitySelected(int)), this, SLOT(modalitySelected(int)));
 	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
+
+	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
+	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
+	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
+
+	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(sliderPressed()), this, SLOT(setSliceXYScrollBar()));
+	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
+	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
 	// }
 
 	updateDisabledLabel();
@@ -212,6 +220,39 @@ void dlg_TripleHistogramTF::modalitiesChanged()
 		m_stackedLayout->setCurrentIndex(1);
 	}
 	m_triangleWidget->update();
+}
+
+void dlg_TripleHistogramTF::setSliceXYScrollBar()
+{
+	setSliceXYScrollBar(m_mdiChild->getSlicerDlgXY()->verticalScrollBarXY->value());
+}
+
+void dlg_TripleHistogramTF::setSliceXZScrollBar()
+{
+	setSliceXZScrollBar(m_mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ->value());
+}
+
+void dlg_TripleHistogramTF::setSliceYZScrollBar()
+{
+	setSliceYZScrollBar(m_mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ->value());
+}
+
+void dlg_TripleHistogramTF::setSliceXYScrollBar(int sliceNumberXY)
+{
+	setSlicerMode(iASlicerMode::XY);
+	setSliceNumber(sliceNumberXY);
+}
+
+void dlg_TripleHistogramTF::setSliceXZScrollBar(int sliceNumberXZ)
+{
+	setSlicerMode(iASlicerMode::XZ);
+	setSliceNumber(sliceNumberXZ);
+}
+
+void dlg_TripleHistogramTF::setSliceYZScrollBar(int sliceNumberYZ)
+{
+	setSlicerMode(iASlicerMode::YZ);
+	setSliceNumber(sliceNumberYZ);
 }
 
 // PRIVATE --------------------------------------------------------------------------------------------------

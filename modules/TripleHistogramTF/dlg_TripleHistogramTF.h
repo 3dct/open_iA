@@ -53,6 +53,13 @@ public slots:
 	void modalitySelected(int modalityIdx);
 	void modalitiesChanged();
 
+	void setSliceXYScrollBar();
+	void setSliceXZScrollBar();
+	void setSliceYZScrollBar();
+	void setSliceXYScrollBar(int sliceNumberXY);
+	void setSliceXZScrollBar(int sliceNumberXZ);
+	void setSliceYZScrollBar(int sliceNumberYZ);
+
 signals:
 
 protected:
