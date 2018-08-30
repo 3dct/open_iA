@@ -573,6 +573,9 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 			data.m_main3DVis->setLookupTable(m_splom->lookupTable(), m_splom->colorLookupParam());
 			data.m_main3DVis->updateColorSelectionRendering();
 		}
+		bool anythingSelected = isAnythingSelected();
+		if (anythingSelected)
+			data.m_main3DVis->setSelection(m_currentSelection[resultID], anythingSelected);
 		data.m_main3DVis->show();
 		m_style->setInput( data.m_main3DVis->getLinePolyData() );
 		m_lastMain3DVis = data.m_main3DVis;
@@ -653,12 +656,17 @@ void iAFiberOptimizationExplorer::showCurrentSelectionInPlot()
 	m_timeStepChart->update();
 }
 
-void iAFiberOptimizationExplorer::showCurrentSelectionIn3DViews()
+bool iAFiberOptimizationExplorer::isAnythingSelected() const
 {
-	bool anythingSelected = false;
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 		if (m_currentSelection[resultID].size() > 0)
-			anythingSelected = true;
+			return true;
+	return false;
+}
+
+void iAFiberOptimizationExplorer::showCurrentSelectionIn3DViews()
+{
+	bool anythingSelected = isAnythingSelected();
 	for (size_t resultID = 0; resultID<m_resultData.size(); ++resultID)
 	{
 		auto result = m_resultData[resultID];

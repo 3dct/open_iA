@@ -80,6 +80,7 @@ private:
 	void showCurrentSelectionInPlot();
 	void showCurrentSelectionIn3DViews();
 	void showCurrentSelectionInSPLOM();
+	bool isAnythingSelected() const;
 
 	std::vector<iAResultData> m_resultData;
 	QSharedPointer<iARendererManager> m_renderManager;
