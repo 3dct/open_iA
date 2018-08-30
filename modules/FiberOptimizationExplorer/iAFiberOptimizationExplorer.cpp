@@ -164,6 +164,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	ren->SetBackground(1.0, 1.0, 1.0);
 	renWin->SetAlphaBitPlanes(1);
 	ren->SetUseDepthPeeling(true);
+	ren->SetMaximumNumberOfPeels(1000);
 	renWin->AddRenderer(ren);
 	m_mainRenderer->SetRenderWindow(renWin);
 
@@ -307,6 +308,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		m_renderManager->addToBundle(ren);
 		ren->SetBackground(1.0, 1.0, 1.0);
 		ren->SetUseDepthPeeling(true);
+		ren->SetMaximumNumberOfPeels(1000);
 		renWin->AddRenderer(ren);
 		resultData.m_vtkWidget->SetRenderWindow(renWin);
 		resultData.m_vtkWidget->setProperty("resultID", resultID);
