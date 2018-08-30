@@ -48,7 +48,8 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 	m_contextAlpha(DefaultContextOpacity),
 	m_selectionAlpha(DefaultSelectionOpacity),
 	m_selectionColor(SelectedColor),
-	m_baseColor(128, 128, 128)
+	m_baseColor(128, 128, 128),
+	m_selectionActive(false)
 {
 	m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	m_colors->SetNumberOfComponents(4);
@@ -255,9 +256,10 @@ void iA3DLineObjectVis::setLookupTable(QSharedPointer<iALookupTable> lut, size_t
 	updateColorSelectionRendering();
 }
 
-void iA3DLineObjectVis::setSelection(std::vector<size_t> const & sortedSelInds)
+void iA3DLineObjectVis::setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive)
 {
 	m_selection = sortedSelInds;
+	m_selectionActive = selectionActive;
 	updateColorSelectionRendering();
 }
 
@@ -272,7 +274,7 @@ void iA3DLineObjectVis::updateColorSelectionRendering()
 			double curValue = m_objectTable->GetValue(objID, m_colorParamIdx).ToDouble();
 			color = m_lut->getQColor(curValue);
 		}
-		if (m_selection.size() > 0)
+		if (m_selectionActive)
 		{
 			if (curSelIdx < m_selection.size() && objID == m_selection[curSelIdx])
 			{

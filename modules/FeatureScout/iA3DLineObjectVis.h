@@ -54,7 +54,7 @@ public:
 	void setContextOpacity(int contextAlpha);
 	void setColor(QColor const & color);
 	void setLookupTable( QSharedPointer<iALookupTable> lut, size_t paramIndex );
-	void setSelection ( std::vector<size_t> const & sortedSelInds );
+	void setSelection ( std::vector<size_t> const & sortedSelInds, bool selectionActive );
 	void updateColorSelectionRendering();
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
@@ -73,5 +73,6 @@ private:
 	QSharedPointer<iALookupTable> m_lut;
 	size_t m_colorParamIdx;
 	std::vector<size_t> m_selection;
+	bool m_selectionActive;
 };
 
