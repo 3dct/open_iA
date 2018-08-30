@@ -52,8 +52,11 @@ typedef QVTKWidget2 iAVtkWidgetClass;
 class vtkTable;
 
 class QButtonGroup;
+class QCheckBox;
+class QComboBox;
 class QLabel;
 class QSlider;
+class QSpinBox;
 
 class iAFiberOptimizationExplorer : public QMainWindow
 {
@@ -72,6 +75,7 @@ private slots:
 	void selectionSPLOMChanged(std::vector<size_t> const & selection);
 	void selectionTimeStepChartChanged(std::vector<size_t> const & selection);
 	void splomLookupTableChanged();
+	void changeReferenceDisplay();
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
@@ -87,16 +91,20 @@ private:
 	QSharedPointer<iA3DCylinderObjectVis> m_lastMain3DVis;
 	int m_lastResultID;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
-	iAVtkWidgetClass* m_mainRenderer;
 	iAColorTheme const * m_colorTheme;
 	MainWindow* m_mainWnd;
 	int m_timeStepCount;
+	int m_referenceID;
+	std::vector<std::vector<size_t> > m_currentSelection;
+
+	iAVtkWidgetClass* m_mainRenderer;
 	QLabel* m_currentTimeStepLabel, * m_defaultOpacityLabel, * m_contextOpacityLabel;
 	QSlider* m_defaultOpacitySlider, * m_contextOpacitySlider;
 	QButtonGroup* m_defaultButtonGroup;
-	int m_referenceID;
 	iAQSplom* m_splom;
 	QSharedPointer<iASPLOMData> m_splomData;
 	iAChartWidget* m_timeStepChart;
-	std::vector<std::vector<size_t> > m_currentSelection;
+	QCheckBox* m_chkboxShowReference;
+	QSpinBox* m_spnboxReferenceCount;
+	QComboBox* m_cmbboxDistanceMeasure;
 };

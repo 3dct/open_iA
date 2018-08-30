@@ -58,6 +58,7 @@
 
 #include <QButtonGroup>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QFileInfo>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -65,6 +66,7 @@
 #include <QScrollArea>
 #include <QSettings>
 #include <QSlider>
+#include <QSpinBox>
 #include <QTextStream>
 
 #include <QtGlobal> // for QT_VERSION
@@ -173,6 +175,24 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_renderManager = QSharedPointer<iARendererManager>(new iARendererManager());
 	m_renderManager->addToBundle(ren);
 
+	QWidget* showReferenceWidget = new QWidget();
+	m_chkboxShowReference = new QCheckBox("Show ");
+	m_spnboxReferenceCount = new QSpinBox();
+	m_spnboxReferenceCount->setValue(1);
+	m_spnboxReferenceCount->setMinimum(1);
+	m_spnboxReferenceCount->setMaximum(MaxNumberOfCloseFibers);
+	showReferenceWidget->setLayout(new QHBoxLayout());
+	m_cmbboxDistanceMeasure = new QComboBox();
+	m_cmbboxDistanceMeasure->addItem("Midpoint, Angles, Length");
+	m_cmbboxDistanceMeasure->addItem("Start-/Endpoint, Length");
+	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::changeReferenceDisplay);
+	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(changeReferenceDisplay()));
+	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(changeReferenceDisplay()));
+	showReferenceWidget->layout()->addWidget(m_chkboxShowReference);
+	showReferenceWidget->layout()->addWidget(m_spnboxReferenceCount);
+	showReferenceWidget->layout()->addWidget(new QLabel(" nearest reference fibers, using distance measure: "));
+	showReferenceWidget->layout()->addWidget(m_cmbboxDistanceMeasure);
+
 	m_defaultOpacitySlider = new QSlider(Qt::Horizontal);
 	m_defaultOpacitySlider->setMinimum(0);
 	m_defaultOpacitySlider->setMaximum(255);
@@ -202,6 +222,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	QWidget* mainRendererContainer = new QWidget();
 	mainRendererContainer->setLayout(new QVBoxLayout());
 	mainRendererContainer->layout()->addWidget(m_mainRenderer);
+	mainRendererContainer->layout()->addWidget(showReferenceWidget);
 	mainRendererContainer->layout()->addWidget(defaultOpacityWidget);
 	mainRendererContainer->layout()->addWidget(contextOpacityWidget);
 
@@ -961,4 +982,8 @@ void iAFiberOptimizationExplorer::splomLookupTableChanged()
 		if (m_resultData[resultID].m_main3DVis)
 			m_resultData[resultID].m_main3DVis->setLookupTable(lut, colorLookupParam);
 	}
+}
+void iAFiberOptimizationExplorer::changeReferenceDisplay()
+{
+
 }
