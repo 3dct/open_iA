@@ -56,6 +56,9 @@ namespace csvRegKeys
 	static const QString VisualizationType = "VisualizationType";
 	static const QString ColumnMappings = "ColumnMappings";
 }
+
+const QString dlg_CSVInput::LegacyFiberFormat("Legacy Fiber csv");
+const QString dlg_CSVInput::LegacyVoidFormat("Legacy Pore csv");
 namespace
 {
 	QStringList const & ColumnSeparators()
@@ -74,9 +77,6 @@ namespace
 	}
 
 	const char* NotMapped = "Not mapped";
-
-	const char* LegacyFiberFormat = "Legacy Fiber csv";
-	const char* LegacyPoreFormat = "Legacy Pore csv";
 
 	static const QString IniFormatName = "FormatName";
 
@@ -154,6 +154,12 @@ void dlg_CSVInput::setFileName(QString const & fileName)
 	updatePreview();
 }
 
+void dlg_CSVInput::setFormat(QString const & formatName)
+{
+	if (cmbbox_Format->findText(formatName))
+		cmbbox_Format->setCurrentText(formatName);
+}
+
 iACsvConfig const & dlg_CSVInput::getConfig() const
 {
 	return m_confParams;
@@ -165,8 +171,8 @@ void dlg_CSVInput::initParameters()
 	QStringList formatEntries = getFormatListFromRegistry();
 	if (!formatEntries.contains(LegacyFiberFormat))
 		formatEntries.append(LegacyFiberFormat);
-	if (!formatEntries.contains(LegacyPoreFormat))
-		formatEntries.append(LegacyPoreFormat);
+	if (!formatEntries.contains(LegacyVoidFormat))
+		formatEntries.append(LegacyVoidFormat);
 	cmbbox_Format->addItems(formatEntries);
 	// load default format, and if that fails, load first format if available:
 	if (!loadFormatFromRegistry(loadGeneralSetting(csvRegKeys::DefaultFormat).toString()) && formatEntries.length() > 0)
@@ -632,7 +638,7 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName, iACsvConfi
 			m_confParams = iACsvConfig::getLegacyFiberFormat(m_confParams.fileName);
 			return true;
 		}
-		else if (formatName == LegacyPoreFormat)
+		else if (formatName == LegacyVoidFormat)
 		{
 			m_confParams = iACsvConfig::getLegacyPoreFormat(m_confParams.fileName);
 			return true;

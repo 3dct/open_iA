@@ -60,7 +60,12 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 		QString testCSVFileName = mdi->getFileInfo().canonicalPath() + "/" +
 				mdi->getFileInfo().completeBaseName() + ".csv";
 		if (QFile(testCSVFileName).exists())
+		{
 			dlg.setFileName(testCSVFileName);
+			auto type = guessFeatureType(testCSVFileName);
+			if (type != InvalidObjectType)
+				dlg.setFormat(type == Voids ? dlg_CSVInput::LegacyVoidFormat : dlg_CSVInput::LegacyFiberFormat);
+		}
 		else
 			dlg.setPath(mdi->getFilePath());
 	}
@@ -85,28 +90,37 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 	startFeatureScout(csvConfig);
 }
 
-void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(const QString &csvFileName, MdiChild *mchildWnd)
+iAFeatureScoutObjectType iAFeatureScoutModuleInterface::guessFeatureType(QString const & csvFileName)
 {
-	if ( csvFileName.isEmpty() )
-		return;
-	m_mdiChild = mchildWnd;
 	QFile file( csvFileName );
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		m_mdiChild->addMsg("CSV-file could not be opened.");
-		return;
+		return InvalidObjectType;
 	}
 	// TODO: create convention, 2nd line of csv file for fibers (pore csv file have this line)
 	// Automatic csv file detection
 	QTextStream in( &file );
 	in.readLine();
 	QString item = in.readLine();
-	iACsvConfig csvConfig;
-	if (item != "Voids")
-		csvConfig = iACsvConfig::getLegacyFiberFormat( csvFileName );
-	else
-		csvConfig = iACsvConfig::getLegacyPoreFormat( csvFileName );
+	auto returnType = (item == "Voids") ? Voids : Fibers;
 	file.close();
+	return returnType;
+}
+
+void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & csvFileName, MdiChild* mdiChild)
+{
+	if ( csvFileName.isEmpty() )
+		return;
+	m_mdiChild = mdiChild;
+	auto type = guessFeatureType(csvFileName);
+	if (type == InvalidObjectType)
+	{
+		m_mdiChild->addMsg("CSV-file could not be opened or not a valid FeatureScout file!");
+		return;
+	}
+	iACsvConfig csvConfig = (type != Voids) ?
+		iACsvConfig::getLegacyFiberFormat( csvFileName ):
+		iACsvConfig::getLegacyPoreFormat( csvFileName );
 	startFeatureScout(csvConfig);
 }
 

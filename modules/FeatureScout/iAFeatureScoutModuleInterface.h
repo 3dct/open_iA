@@ -39,6 +39,7 @@ private slots:
 	void FeatureScout_Options();
 	void onChildClose();
 private:
+	iAFeatureScoutObjectType guessFeatureType(QString const & csvFileName);
 	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
