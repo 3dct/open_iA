@@ -217,6 +217,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupUi( this );
 	visualization = vis;
 	m_pcLineWidth = 0.1;
+	m_pcDefaultTextSize = 15;		//Default font size - 17 pt
+	m_pcMinTicksCount = 2; //Minimum tick count - 5 ticks to be shown 
+	m_pcDefaultTickCount = 10; //default tick number
 	this->elementsCount = csvTable->GetNumberOfColumns();
 	this->objectsCount = csvTable->GetNumberOfRows();
 	this->activeChild = parent;
@@ -357,12 +360,16 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 
 void dlg_FeatureScout::updatePCColumnVisibility()
 {
+	
 	for ( int j = 0; j < elementsCount; j++ )
 	{
 		pcChart->SetColumnVisibility( csvTable->GetColumnName( j ), columnVisibility[j]);
 	}
+	setAxisProperties(m_pcDefaultTextSize, m_pcDefaultTickCount);
+	pcView->Update(); 
 	pcView->ResetCamera();
 	pcView->Render();
+	
 }
 
 void dlg_FeatureScout::initColumnVisibility()
@@ -3524,3 +3531,43 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 		break;
 	}
 }
+
+
+void dlg_FeatureScout::setAxisProperties(int fontSize, int tickCount)
+{
+	int axis_count = pcChart->GetNumberOfAxes();
+	for (int i = 0; i < axis_count; i++) {
+		vtkAxis *axis = pcChart->GetAxis(i);
+		setAxisTickCount(axis, m_pcDefaultTickCount, false);
+		setAxisFontSize(axis, m_pcDefaultTextSize, false);
+	}
+	
+	pcChart->Update(); 
+}
+
+void dlg_FeatureScout::setAxisFontSize(vtkAxis * axis, int fontSize, bool updatePC) {
+	if (axis && (fontSize > 0)){
+		axis->GetLabelProperties()->SetFontSize(fontSize);
+		axis->GetTitleProperties()->SetFontSize(fontSize);
+		axis->RecalculateTickSpacing(); 
+		if (updatePC) {
+			pcChart->Update(); 
+		}
+
+	}
+}
+
+void dlg_FeatureScout::setAxisTickCount(vtkAxis *axis, int tickCount, bool updatePC)
+{
+	if (axis && (tickCount > m_pcMinTicksCount)) {
+		axis->SetNumberOfTicks(tickCount);
+		axis->RecalculateTickSpacing(); 
+		if (updatePC) {
+			pcChart->Update(); 
+		}
+	}
+	// TODO else invalid axis; 
+}
+
+
+
