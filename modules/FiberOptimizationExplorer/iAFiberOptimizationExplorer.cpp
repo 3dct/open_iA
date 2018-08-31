@@ -287,6 +287,8 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			paramNames.push_back("ThetaDiff");
 			paramNames.push_back("LengthDiff");
 			paramNames.push_back("DiameterDiff");
+			paramNames.push_back("MinRefDistance1");
+			paramNames.push_back("MinRefDistance2");
 			paramNames.push_back("ProjectionErrorReduction");
 			paramNames.push_back("Result_ID");
 			m_splomData->setParameterNames(paramNames);
@@ -297,7 +299,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		if (numFibers < MaxNumberOfCloseFibers)
 			MaxNumberOfCloseFibers = numFibers;
 		// TOOD: simplify - load all tables beforehand, then allocate splom data fully and then fill it?
-		for (int i = 15; i >= 2; --i)
+		for (int i = additionalColumns; i >= 2; --i)
 		{
 			m_splomData->data()[m_splomData->numParams() - i].resize(m_splomData->data()[m_splomData->numParams() - i].size() + numFibers, 0);
 		}
@@ -316,6 +318,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
 			arrX->SetName(m_splomData->parameterName(numColumns+col).toStdString().c_str());
 			arrX->SetNumberOfValues(numFibers);
+			arrX->Fill(0);
 			tableCreator.getTable()->AddColumn(arrX);
 		}
 		
@@ -730,6 +733,7 @@ void iAFiberOptimizationExplorer::selection3DChanged(std::vector<size_t> const &
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInPlot();
 	showCurrentSelectionInSPLOM();
+	changeReferenceDisplay();
 }
 
 void iAFiberOptimizationExplorer::selectionSPLOMChanged(std::vector<size_t> const & selection)
@@ -745,6 +749,7 @@ void iAFiberOptimizationExplorer::selectionSPLOMChanged(std::vector<size_t> cons
 	sortCurrentSelection();
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInPlot();
+	changeReferenceDisplay();
 }
 
 void iAFiberOptimizationExplorer::selectionTimeStepChartChanged(std::vector<size_t> const & selection)
@@ -770,6 +775,7 @@ void iAFiberOptimizationExplorer::selectionTimeStepChartChanged(std::vector<size
 	showCurrentSelectionInPlot();
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInSPLOM();
+	changeReferenceDisplay();
 }
 
 void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
@@ -952,9 +958,16 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			{
 				refDiff[diffID] = m_resultData[resultID].m_resultTable->GetValue(fiberID, diffCols[diffID]).ToDouble()
 					- m_resultData[m_referenceID].m_resultTable->GetValue(m_resultData[resultID].m_referenceDist[fiberID][0][0].index, diffCols[diffID]).ToDouble();
-				size_t tableColumnID = m_splomData->numParams() - 15 + diffID;
+				size_t tableColumnID = m_splomData->numParams() - 17 + diffID;
 				m_splomData->data()[tableColumnID][splomID] = refDiff[diffID];
 				m_resultData[resultID].m_resultTable->SetValue(fiberID, tableColumnID, refDiff[diffID]);
+			}
+			for (size_t distID = 0; distID < colsToInclude.size(); ++distID)
+			{
+				double dist = m_resultData[resultID].m_referenceDist[fiberID][distID][0].distance;
+				size_t tableColumnID = m_splomData->numParams() - 4 + distID;
+				m_splomData->data()[tableColumnID][splomID] = dist;
+				m_resultData[resultID].m_resultTable->SetValue(fiberID, tableColumnID, dist);
 			}
 			DEBUG_LOG(QString("  Fiber %1 -> ref #%2. Shift: startx=(%3, %4, %5), endx=(%6, %7, %8), center=(%9, %10, %11), phi=%12, theta=%13, length=%14, diameter=%15")
 				.arg(fiberID).arg(m_resultData[resultID].m_referenceDist[fiberID][0][0].index)
@@ -968,8 +981,8 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 		}
 	}
 	std::vector<size_t> changedSplomColumns;
-	for (size_t paramID = 0; paramID < diffCols.size(); ++paramID)
-		changedSplomColumns.push_back(m_splomData->numParams() - 15 + paramID);
+	for (size_t paramID = 0; paramID < diffCols.size()+2; ++paramID)
+		changedSplomColumns.push_back(m_splomData->numParams() - 17 + paramID);
 	m_splomData->updateRanges(changedSplomColumns);
 	// TODO: how to visualize?
 }
