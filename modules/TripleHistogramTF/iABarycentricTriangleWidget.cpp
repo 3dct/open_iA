@@ -46,6 +46,10 @@ static const qreal ONE_DIV_THREE = 1.0 / 3.0;
 static const int CONTROL_POINT_RADIUS = 10;
 static const int MODALITY_LABEL_MARGIN = 10;
 static const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
+//static const int MODALITY_LABEL_HIGHLIGHT_PADDING = 5;
+//static const int MODALITY_LABEL_HIGHLIGHT_PADDING_TIMES_TWO = MODALITY_LABEL_HIGHLIGHT_PADDING * 2;
+
+static const QString WEIGHT_FORMAT = "%.10f";
 
 iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	QOpenGLWidget(parent, f)
@@ -64,6 +68,11 @@ iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*
 
 	m_triangleBorderPen.setWidth(5);
 	m_triangleBorderPen.setColor(Qt::black);
+
+	m_modalityLabelHighlightPen.setWidth(2);
+	m_modalityLabelHighlightPen.setColor(Qt::black);
+
+	setMouseTracking(true); // to enable mouse move events without the mouse button needing to be pressed
 
 	initializeControlPointPaths();
 }
@@ -98,7 +107,7 @@ iABarycentricTriangleWidget::~iABarycentricTriangleWidget()
 
 void iABarycentricTriangleWidget::initializeGL()
 {
-	glClearColor(0.9, 0.9, 0.9, 1);
+	glClearColor(0.95, 0.95, 0.95, 1);
 }
 
 void iABarycentricTriangleWidget::resizeGL(int w, int h)
@@ -108,17 +117,26 @@ void iABarycentricTriangleWidget::resizeGL(int w, int h)
 
 void iABarycentricTriangleWidget::mousePressEvent(QMouseEvent *event)
 {
-	updateControlPointPosition(event->pos());
-	update();
+	if (!interactWithModalityLabel(event->pos(), true)) {
+		updateControlPointPosition(event->pos());
+		update();
+		m_dragging = true;
+	}
 }
 
 void iABarycentricTriangleWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	// This should only happen in a mouse DRAG, not mouse MOVE
-	// However, Qt is weird. Therefore, this method is only called on a mouse DRAG
-	// TODO: fix?
-	updateControlPointPosition(event->pos());
-	update();
+	if (m_dragging) {
+		updateControlPointPosition(event->pos());
+		update();
+	} else {
+		interactWithModalityLabel(event->pos(), false);
+	}
+}
+
+void iABarycentricTriangleWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+	m_dragging = false;
 }
 
 void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
@@ -130,7 +148,7 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 	int modalityLabel1width = metrics.width(m_modalityLabel1);
 	int modalityLabel2width = metrics.width(m_modalityLabel2);
 	int modalityLabel3width = metrics.width(m_modalityLabel3);
-
+	
 	int triangleSpacingLeft = MODALITY_LABEL_MARGIN; // LEFT margin of BOTTOM-LEFT modality
 	int triangleSpacingTop = modalityLabelHeight + MODALITY_LABEL_MARGIN_TIMES_TWO; // complete height of TOP modality
 	int triangleSpacingRight = MODALITY_LABEL_MARGIN; // RIGHT margin of BOTTOM-RIGHT modality
@@ -170,14 +188,31 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 	m_trianglePainterPath.lineTo(right, bottom);
 	m_trianglePainterPath.lineTo(left, bottom);
 
-	m_modalityLabel1Pos = QPoint(left + MODALITY_LABEL_MARGIN, bottom + MODALITY_LABEL_MARGIN + modalityLabelHeight); // bottom left
-	m_modalityLabel2Pos = QPoint(centerX - (modalityLabel2width / 2), top - MODALITY_LABEL_MARGIN); // top centerX
-	m_modalityLabel3Pos = QPoint(right - modalityLabel3width - MODALITY_LABEL_MARGIN, m_modalityLabel1Pos.y()); // bottom right
+	int modalityLabel1Left = left + MODALITY_LABEL_MARGIN;
+	int modalityLabel2Left = centerX - (modalityLabel2width / 2);
+	int modalityLabel3Left = right - modalityLabel3width - MODALITY_LABEL_MARGIN;
+
+	int modalityLabel1_3Top = bottom + MODALITY_LABEL_MARGIN;
+	int modalityLabel1_3Bottom = modalityLabel1_3Top + modalityLabelHeight;
+	int modalityLabel2Bottom = top - MODALITY_LABEL_MARGIN;
+
+	m_modalityLabel1Pos = QPoint(modalityLabel1Left, modalityLabel1_3Bottom); // bottom left
+	m_modalityLabel2Pos = QPoint(modalityLabel2Left, modalityLabel2Bottom); // top centerX
+	m_modalityLabel3Pos = QPoint(modalityLabel3Left, modalityLabel1_3Bottom); // bottom right
+
+	m_modalityLabelRect[0] = QRect(modalityLabel1Left, modalityLabel1_3Top, modalityLabel1width, modalityLabelHeight);
+	m_modalityLabelRect[1] = QRect(modalityLabel2Left, modalityLabel2Bottom - modalityLabelHeight, modalityLabel2width, modalityLabelHeight);
+	m_modalityLabelRect[2] = QRect(modalityLabel3Left, modalityLabel1_3Top, modalityLabel3width, modalityLabelHeight);
 
 	updateControlPointPosition();
 	if (m_triangleRenderer) {
 		m_triangleRenderer->setTriangle(m_triangle);
 	}
+}
+
+void iABarycentricTriangleWidget::updateControlPointCoordinates(BCoord bCoord)
+{
+	updateControlPointPosition(m_triangle.getCartesianCoordinates(bCoord));
 }
 
 void iABarycentricTriangleWidget::updateControlPointPosition(QPoint newPos)
@@ -213,6 +248,29 @@ void iABarycentricTriangleWidget::moveControlPointTo(QPoint newPos)
 	int movy = m_controlPoint.y() - m_controlPointOld.y();
 	m_controlPointBorderPainterPath.translate(movx, movy);
 	m_controlPointCrossPainterPath.translate(movx, movy);
+}
+
+bool iABarycentricTriangleWidget::interactWithModalityLabel(QPoint p, bool press)
+{
+	if (press) {
+		if (m_modalityHighlightedIndex >= 0) {
+			updateControlPointCoordinates(BCoord(m_modalityHighlightedIndex == 0 ? 1 : 0, m_modalityHighlightedIndex == 1 ? 1 : 0));
+		}
+
+	} else {
+		for (int i = 0; i < 3; i++) {
+			if (m_modalityLabelRect[i].contains(p)) {
+				m_modalityHighlightedIndex = i;
+				update();
+				return true;
+			}
+		}
+		if (m_modalityHighlightedIndex >= 0) {
+			m_modalityHighlightedIndex = -1;
+			update();
+		}
+	}
+	return false;
 }
 
 bool iABarycentricTriangleWidget::isTooWide(int width, int height)
@@ -339,6 +397,10 @@ void iABarycentricTriangleWidget::paintModalityLabels(QPainter &p)
 	p.drawText(m_modalityLabel1Pos, m_modalityLabel1);
 	p.drawText(m_modalityLabel2Pos, m_modalityLabel2);
 	p.drawText(m_modalityLabel3Pos, m_modalityLabel3);
+	if (m_modalityHighlightedIndex >= 0) {
+		p.setPen(m_modalityLabelHighlightPen);
+		p.drawRect(m_modalityLabelRect[m_modalityHighlightedIndex]);
+	}
 }
 
 void iABarycentricTriangleWidget::paintHelper(QPainter &p) {

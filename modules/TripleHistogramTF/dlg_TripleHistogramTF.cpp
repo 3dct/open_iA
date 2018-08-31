@@ -76,9 +76,9 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	m_triangleWidget->setTriangleRenderer(m_triangleRenderer);
 
 	m_slicerModeComboBox = new QComboBox(optionsContainer);
-	m_slicerModeComboBox->addItem("YZ", QVariant(iASlicerMode::YZ));
-	m_slicerModeComboBox->addItem("XY", QVariant(iASlicerMode::XY));
-	m_slicerModeComboBox->addItem("XZ", QVariant(iASlicerMode::XZ));
+	m_slicerModeComboBox->addItem("YZ", iASlicerMode::YZ);
+	m_slicerModeComboBox->addItem("XY", iASlicerMode::XY);
+	m_slicerModeComboBox->addItem("XZ", iASlicerMode::XZ);
 
 	m_sliceSlider = new QSlider(Qt::Horizontal, optionsContainer);
 	m_sliceSlider->setMinimum(0);
@@ -127,13 +127,11 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	//Connect
 	connect(m_triangleWidget, SIGNAL(weightChanged(BCoord)), this, SLOT(setWeight(BCoord)));
 	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlicerMode()));
-	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(setSliceNumber(int)));
+	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 
 	connect(m_histogramStack, SIGNAL(transferFunctionChanged()), this, SLOT(updateTransferFunction()));
 	connect(m_histogramStack, SIGNAL(modalitiesChanged(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3)), this, SLOT(modalityAddedToStack(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3)));
 
-	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalityAvailable(int)), this, SLOT(modalityAvailable(int)));
-	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitySelected(int)), this, SLOT(modalitySelected(int)));
 	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
 
 	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
@@ -153,60 +151,15 @@ dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
 	delete m_triangleRenderer;
 }
 
-void dlg_TripleHistogramTF::updateSlicerMode()
-{
-	setSlicerMode((iASlicerMode)m_slicerModeComboBox->currentData().toInt());
-}
-
 void dlg_TripleHistogramTF::setWeight(BCoord bCoord)
 {
 	m_histogramStack->setWeight(bCoord);
-}
-
-void dlg_TripleHistogramTF::setSlicerMode(iASlicerMode slicerMode)
-{
-	int dimensionIndex;
-
-	switch (slicerMode)
-	{
-	case iASlicerMode::YZ:
-		dimensionIndex = 0; // X length is in position 0 in the dimensions array
-		break;
-	case iASlicerMode::XZ:
-		dimensionIndex = 1; // Y length is in position 1 in the dimensions array
-		break;
-	case iASlicerMode::XY:
-		dimensionIndex = 2; // Z length is in position 2 in the dimensions array
-		break;
-	default:
-		// TODO?
-		return;
-	}
-
-	modalitiesChanged();
-
-	int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
-
-	m_histogramStack->setSlicerMode(slicerMode, dimensionLength);
-
-	m_sliceSlider->setMaximum(dimensionLength - 1);
-	m_sliceSlider->setValue(dimensionLength / 2);
 }
 
 void dlg_TripleHistogramTF::updateTransferFunction()
 {
 	m_mdiChild->redrawHistogram();
 	m_mdiChild->getRenderer()->update();
-}
-
-void dlg_TripleHistogramTF::modalityAvailable(int modalityIdx)
-{
-
-}
-
-void dlg_TripleHistogramTF::modalitySelected(int modalityIdx)
-{
-
 }
 
 void dlg_TripleHistogramTF::modalitiesChanged()
@@ -224,42 +177,116 @@ void dlg_TripleHistogramTF::modalitiesChanged()
 
 void dlg_TripleHistogramTF::setSliceXYScrollBar()
 {
-	setSliceXYScrollBar(m_mdiChild->getSlicerDlgXY()->verticalScrollBarXY->value());
+	setSlicerMode(iASlicerMode::XY);
+	setSliceNumber(m_mdiChild->getSlicerDlgXY()->verticalScrollBarXY->value());
 }
 
 void dlg_TripleHistogramTF::setSliceXZScrollBar()
 {
-	setSliceXZScrollBar(m_mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ->value());
+	setSlicerMode(iASlicerMode::XZ);
+	setSliceNumber(m_mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ->value());
 }
 
 void dlg_TripleHistogramTF::setSliceYZScrollBar()
 {
-	setSliceYZScrollBar(m_mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ->value());
+	setSlicerMode(iASlicerMode::YZ);
+	setSliceNumber(m_mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ->value());
 }
 
 void dlg_TripleHistogramTF::setSliceXYScrollBar(int sliceNumberXY)
 {
-	setSlicerMode(iASlicerMode::XY);
 	setSliceNumber(sliceNumberXY);
 }
 
 void dlg_TripleHistogramTF::setSliceXZScrollBar(int sliceNumberXZ)
 {
-	setSlicerMode(iASlicerMode::XZ);
 	setSliceNumber(sliceNumberXZ);
 }
 
 void dlg_TripleHistogramTF::setSliceYZScrollBar(int sliceNumberYZ)
 {
-	setSlicerMode(iASlicerMode::YZ);
 	setSliceNumber(sliceNumberYZ);
 }
 
 // PRIVATE --------------------------------------------------------------------------------------------------
 
+// PRIVATE SLOT
+void dlg_TripleHistogramTF::updateSlicerMode()
+{
+	setSlicerMode((iASlicerMode)m_slicerModeComboBox->currentData().toInt());
+}
+
+void dlg_TripleHistogramTF::setSlicerMode(iASlicerMode slicerMode)
+{
+	if (slicerMode != m_slicerMode) {
+		m_slicerModeComboBox->setCurrentIndex(m_slicerModeComboBox->findData(slicerMode));
+		m_slicerMode = slicerMode;
+
+		int dimensionIndex;
+		int sliceNumber;
+		switch (slicerMode)
+		{
+		case iASlicerMode::YZ:
+			dimensionIndex = 0; // X length is in position 0 in the dimensions array
+			sliceNumber = m_mdiChild->getSlicerDataYZ()->getSliceNumber();
+			break;
+		case iASlicerMode::XZ:
+			dimensionIndex = 1; // Y length is in position 1 in the dimensions array
+			sliceNumber = m_mdiChild->getSlicerDataXZ()->getSliceNumber();
+			break;
+		case iASlicerMode::XY:
+			dimensionIndex = 2; // Z length is in position 2 in the dimensions array
+			sliceNumber = m_mdiChild->getSlicerDataXY()->getSliceNumber();
+			break;
+		default:
+			// TODO exception
+			return;
+		}
+
+		int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
+
+		m_histogramStack->setSlicerMode(slicerMode, dimensionLength);
+
+		modalitiesChanged();
+
+		m_sliceSlider->setMaximum(dimensionLength - 1);
+		//int value = dimensionLength / 2;
+		m_sliceSlider->setValue(sliceNumber);
+		setSliceNumber(sliceNumber);
+	}
+}
+
 void dlg_TripleHistogramTF::setSliceNumber(int sliceNumber)
 {
 	m_histogramStack->setSliceNumber(sliceNumber);
+}
+
+// PRIVATE SLOT
+void dlg_TripleHistogramTF::sliderValueChanged(int sliceNumber)
+{
+	setSliceNumber(sliceNumber);
+	updateMainSlicers(sliceNumber);
+}
+
+void dlg_TripleHistogramTF::updateMainSlicers(int sliceNumber) {
+	switch (m_slicerMode)
+	{
+	case iASlicerMode::YZ:
+		m_mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ->setValue(sliceNumber);
+		//m_mdiChild->getSlicerYZ()->setSliceNumber(sliceNumber); // Not necessary because setting the scrollbar already does this
+		break;
+	case iASlicerMode::XZ:
+		m_mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ->setValue(sliceNumber);
+		//m_mdiChild->getSlicerXZ()->setSliceNumber(sliceNumber);
+		break;
+	case iASlicerMode::XY:
+		m_mdiChild->getSlicerDlgXY()->verticalScrollBarXY->setValue(sliceNumber);
+		//m_mdiChild->getSlicerXY()->setSliceNumber(sliceNumber);
+		break;
+	default:
+		// TODO exception
+		return;
+	}
 }
 
 void dlg_TripleHistogramTF::updateDisabledLabel()

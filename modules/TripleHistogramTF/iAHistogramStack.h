@@ -83,7 +83,7 @@ private:
 	// Widgets and stuff
 	QLabel *m_disabledLabel;
 	QGridLayout *m_gridLayout;
-	QLabel *m_weightLabels[3] = { nullptr, nullptr, nullptr };;
+	//QLabel *m_weightLabels[3] = { nullptr, nullptr, nullptr };;
 	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };;
 	iASimpleSlicerWidget *m_slicerWidgets[3] = { nullptr, nullptr, nullptr };;
 	iADiagramFctWidget* m_histograms[3] = { nullptr, nullptr, nullptr };

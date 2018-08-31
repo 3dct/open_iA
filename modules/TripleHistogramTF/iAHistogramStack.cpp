@@ -51,7 +51,7 @@
 #include "iASlicerData.h"
 #include "iAChannelVisualizationData.h"
 
-static const char *WEIGHT_FORMAT = "%.10f";
+//static const char *WEIGHT_FORMAT = "%.10f";
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
 static const QString DISABLED_BACKGROUND_COLOR = "rgba(255,255,255)"; // white
 static const QString DEFAULT_MODALITY_LABELS[3] = { "A", "B", "C" };
@@ -76,8 +76,8 @@ iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::Win
 		m_modalityLabels[i] = new QLabel(DEFAULT_MODALITY_LABELS[i]);
 		m_modalityLabels[i]->setStyleSheet("font-weight: bold");
 
-		m_weightLabels[i] = new QLabel();
-		m_weightLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+		//m_weightLabels[i] = new QLabel();
+		//m_weightLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	}
 
 	updateModalities();
@@ -93,10 +93,10 @@ void iAHistogramStack::setWeight(BCoord bCoord)
 		return;
 	}
 
-	QString text;
-	m_weightLabels[0]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getAlpha()));
-	m_weightLabels[1]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getBeta()));
-	m_weightLabels[2]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getGamma()));
+	//QString text;
+	//m_weightLabels[0]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getAlpha()));
+	//m_weightLabels[1]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getBeta()));
+	//m_weightLabels[2]->setText(text.sprintf(WEIGHT_FORMAT, bCoord.getGamma()));
 
 	m_weightCur = bCoord;
 	applyWeights();
@@ -142,9 +142,10 @@ void iAHistogramStack::resizeEvent(QResizeEvent* event)
 
 void iAHistogramStack::adjustStretch(int totalWidth)
 {
-	int slicerHeight = m_slicerWidgets[0]->size().height();
-	m_gridLayout->setColumnStretch(0, totalWidth - slicerHeight);
-	m_gridLayout->setColumnStretch(1, slicerHeight);
+	//int slicerHeight = m_slicerWidgets[0]->size().height();
+	int histogramHeight = m_histograms[0]->size().height();
+	m_gridLayout->setColumnStretch(0, totalWidth - histogramHeight);
+	m_gridLayout->setColumnStretch(1, histogramHeight);
 }
 
 void iAHistogramStack::updateTransferFunction(int index)
@@ -230,20 +231,14 @@ void iAHistogramStack::updateModalities()
 		// }
 
 		// Slicer, label and weight {
-		QWidget *rightWidget = new QWidget(this);
-		QVBoxLayout *rightWidgetLayout = new QVBoxLayout(rightWidget);
-
-		m_slicerWidgets[i] = new iASimpleSlicerWidget(rightWidget);
+		m_slicerWidgets[i] = new iASimpleSlicerWidget(this);
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
-
-		rightWidgetLayout->addWidget(m_slicerWidgets[i]);
-		rightWidgetLayout->addWidget(m_modalityLabels[i]);
-		rightWidgetLayout->addWidget(m_weightLabels[i]);
-
 		m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+
 		m_modalityLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
-		m_gridLayout->addWidget(rightWidget, i, 1);
+		m_gridLayout->addWidget(m_slicerWidgets[i], i, 1);
+		m_gridLayout->addWidget(m_modalityLabels[i], i, 2);
 		// }
 
 		// Transfer function {

@@ -45,12 +45,8 @@ public:
 
 public slots:
 	void setWeight(BCoord bCoord);
-	void updateSlicerMode();
-	void setSliceNumber(int sliceNumber);
 	void updateTransferFunction();
 
-	void modalityAvailable(int modalityIdx);
-	void modalitySelected(int modalityIdx);
 	void modalitiesChanged();
 
 	void setSliceXYScrollBar();
@@ -60,13 +56,20 @@ public slots:
 	void setSliceXZScrollBar(int sliceNumberXZ);
 	void setSliceYZScrollBar(int sliceNumberYZ);
 
+private slots:
+	void sliderValueChanged(int sliceNumber);
+	void updateSlicerMode();
+
 signals:
 
 protected:
 
 private:
+	void setSliceNumber(int sliceNumber);
 	void setSlicerMode(iASlicerMode slicerMode);
 	void updateDisabledLabel();
+	void updateMainSlicers(int sliceNumber);
+	iASlicerMode m_slicerMode;
 
 	iATriangleRenderer *m_triangleRenderer;
 

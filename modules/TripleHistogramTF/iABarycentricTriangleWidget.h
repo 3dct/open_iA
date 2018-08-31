@@ -80,6 +80,7 @@ protected:
 	void paintGL();
 	void mousePressEvent(QMouseEvent *event);
 	void mouseMoveEvent(QMouseEvent *event);
+	void mouseReleaseEvent(QMouseEvent *event);
 
 private:
 	BarycentricTriangle m_triangle;
@@ -95,6 +96,10 @@ private:
 	QPoint m_modalityLabel1Pos;
 	QPoint m_modalityLabel2Pos;
 	QPoint m_modalityLabel3Pos;
+	QRect m_modalityLabelRect[3];
+	QPen m_modalityLabelHighlightPen;
+	int m_modalityHighlightedIndex = -1; // -1 for none (or any value < 0)
+	bool interactWithModalityLabel(QPoint p, bool press);
 
 	QPainterPath m_trianglePainterPath;
 	QBrush m_triangleFillBrush;
@@ -107,7 +112,10 @@ private:
 
 	iATriangleRenderer *m_triangleRenderer = nullptr;
 
+	bool m_dragging = false;
+
 	void initializeControlPointPaths();
+	void updateControlPointCoordinates(BCoord bCoord);
 	void updateControlPointPosition(QPoint newPos);
 	void updateControlPointPosition();
 	void moveControlPointTo(QPoint newPos);
