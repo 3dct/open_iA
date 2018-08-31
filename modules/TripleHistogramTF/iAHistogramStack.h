@@ -25,6 +25,7 @@
 
 #include "mdichild.h"
 #include "BCoord.h"
+#include "iATransferFunction.h"
 
 // Slicer
 #include "iASimpleSlicerWidget.h"
@@ -55,6 +56,10 @@ private slots:
 	void updateTransferFunction1() { updateTransferFunction(0); }
 	void updateTransferFunction2() { updateTransferFunction(1); }
 	void updateTransferFunction3() { updateTransferFunction(2); }
+	void originalHistogramChanged();
+	//void originalHistogramChanged1() { originalHistogramChanged(0); }
+	//void originalHistogramChanged2() { originalHistogramChanged(1); }
+	//void originalHistogramChanged3() { originalHistogramChanged(2); }
 
 signals:
 	void transferFunctionChanged();
@@ -64,28 +69,29 @@ protected:
 	void resizeEvent(QResizeEvent* event);
 
 private:
-	void updateTransferFunction(int index);
-
 	BCoord m_weightCur;
-	void updateTransferFunctions(int index);
+	void updateTransferFunction(int index);
+	void updateOriginalTransferFunction(int index);
 	void applyWeights();
 
 	void adjustStretch(int totalWidth);
 
 	QSharedPointer<iAModality> m_modalitiesActive[3];
-	vtkSmartPointer<vtkPiecewiseFunction> m_opFuncsCopy[3];
-	void createOpFuncCopy(int index);
 
 	int m_sliceNumber;
 	iASlicerMode m_slicerMode;
 	void setSlicerMode(iASlicerMode slicerMode);
 
+	// Background stuff
+	iATransferFunction *m_copyTFs[3] = { nullptr, nullptr, nullptr };
+	iATransferFunction* createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacity);
+
 	// Widgets and stuff
 	QLabel *m_disabledLabel;
 	QGridLayout *m_gridLayout;
-	//QLabel *m_weightLabels[3] = { nullptr, nullptr, nullptr };;
-	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };;
-	iASimpleSlicerWidget *m_slicerWidgets[3] = { nullptr, nullptr, nullptr };;
+	//QLabel *m_weightLabels[3] = { nullptr, nullptr, nullptr };
+	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };
+	iASimpleSlicerWidget *m_slicerWidgets[3] = { nullptr, nullptr, nullptr };
 	iADiagramFctWidget* m_histograms[3] = { nullptr, nullptr, nullptr };
 
 	// TODO: remove

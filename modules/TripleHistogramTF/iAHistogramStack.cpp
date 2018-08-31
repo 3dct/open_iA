@@ -23,6 +23,7 @@
 #include "RightBorderLayout.h"
 
 #include "vtkImageData.h"
+#include "vtkColorTransferFunction.h"
 #include "vtkPiecewiseFunction.h"
 #include "vtkSmartPointer.h"
 
@@ -89,6 +90,9 @@ iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::Win
 
 iAHistogramStack::~iAHistogramStack()
 {
+	if (m_copyTFs[0]) delete m_copyTFs[0];
+	if (m_copyTFs[1]) delete m_copyTFs[1];
+	if (m_copyTFs[2]) delete m_copyTFs[2];
 }
 
 void iAHistogramStack::setWeight(BCoord bCoord)
@@ -154,7 +158,7 @@ void iAHistogramStack::adjustStretch(int totalWidth)
 
 void iAHistogramStack::updateTransferFunction(int index)
 {
-	updateTransferFunctions(index);
+	updateOriginalTransferFunction(index);
 	m_slicerWidgets[index]->update();
 	m_histograms[index]->redraw();
 	emit transferFunctionChanged();
@@ -217,9 +221,18 @@ void iAHistogramStack::updateModalities()
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
 			new	iABarGraphDrawer(m_modalitiesActive[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->AddPlot(histogramPlot);
-		m_histograms[i]->SetTransferFunctions(m_modalitiesActive[i]->GetTransfer()->GetColorFunction(),
-			m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction());
+
+		//m_histograms[i]->SetTransferFunctions(m_modalitiesActive[i]->GetTransfer()->GetColorFunction(),
+		//	m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction());
+		//m_backgroundTF[i] = new iAModalityTransfer(m_modalitiesActive[i]->GetTransfer()->GetColorFunction()->GetRange()); // TODO good? assumes that the color and opacity functions have the same range
+
+		vtkSmartPointer<vtkColorTransferFunction> colorFuncCopy = vtkSmartPointer<vtkColorTransferFunction>::New();
+		vtkSmartPointer<vtkPiecewiseFunction> opFuncCopy = vtkSmartPointer<vtkPiecewiseFunction>::New();
+		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy); //new iASimpleTransferFunction(colorFuncCopy, opFuncCopy);
+		m_histograms[i]->SetTransferFunctions(colorFuncCopy, opFuncCopy);
+
 		m_histograms[i]->updateTrf();
+		connect((dlg_transfer*)(m_histograms[i]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
 		switch (i) {
 		case 0:
 			connect((dlg_transfer*)(m_histograms[i]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
@@ -246,11 +259,11 @@ void iAHistogramStack::updateModalities()
 		// }
 
 		// Transfer function {
-		if (m_histograms[i]->getSelectedFunction()->getType() == dlg_function::TRANSFER) {
-			createOpFuncCopy(i);
-		} else {
-			// TODO
-		}
+		//if (m_histograms[i]->getSelectedFunction()->getType() == dlg_function::TRANSFER) {
+		//	createOpFuncCopy(i);
+		//} else {
+		//	// TODO
+		//}
 		// }
 
 		iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
@@ -287,13 +300,24 @@ int iAHistogramStack::getModalitiesCount()
 	return m_modalitiesActive[2] ? 3 : (m_modalitiesActive[1] ? 2 : (m_modalitiesActive[0] ? 1 : 0));
 }
 
-void iAHistogramStack::createOpFuncCopy(int index)
+void iAHistogramStack::originalHistogramChanged()
 {
-	m_opFuncsCopy[index] = vtkSmartPointer<vtkPiecewiseFunction>::New();
-	m_opFuncsCopy[index]->DeepCopy(m_modalitiesActive[index]->GetTransfer()->GetOpacityFunction());
+	// TODO
+	qDebug() << "original histogram changed";
 }
 
-/** Makes sure no node exceeds the opacity value m_weightCur[index] in the effective transfer function
+iATransferFunction* iAHistogramStack::createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacityFunction)
+{
+	vtkSmartPointer<vtkColorTransferFunction> ctf = m_modalitiesActive[index]->GetTransfer()->GetColorFunction();
+	vtkSmartPointer<vtkPiecewiseFunction> otf = m_modalitiesActive[index]->GetTransfer()->GetOpacityFunction();
+
+	colorTf->DeepCopy(m_modalitiesActive[index]->GetTransfer()->GetColorFunction());
+	opacityFunction->DeepCopy(m_modalitiesActive[index]->GetTransfer()->GetOpacityFunction());
+	return new iASimpleTransferFunction(colorTf, opacityFunction);
+}
+
+/** Called when the copy transfer function changes
+  * Makes sure no node exceeds the opacity value m_weightCur[index] in the effective transfer function
   *
   * ALSO
   *
@@ -303,33 +327,30 @@ void iAHistogramStack::createOpFuncCopy(int index)
   * CHANGES THE EFFECTIVE (prevent illegal values)
   * CHANGES THE COPY (clear and repopulate with adjusted effective values (numerical imprecision but live with it))
   */
-void iAHistogramStack::updateTransferFunctions(int index)
+void iAHistogramStack::updateOriginalTransferFunction(int index)
 {
 	if (isReady()) {
 		double weight = m_weightCur[index];
 
 		// newly set transfer function (set via the histogram)
-		vtkPiecewiseFunction *effective = m_modalitiesActive[index]->GetTransfer()->GetOpacityFunction();
+		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
 
 		// copy of previous transfer function, to be updated in this method
-		vtkPiecewiseFunction *copy = m_opFuncsCopy[index];
-		copy->RemoveAllPoints();
+		iATransferFunction *copy = m_copyTFs[index];
 
-		double val[4];
+		double valCol[6], valOp[4];
+		effective->GetColorFunction()->RemoveAllPoints();
+		effective->GetOpacityFunction()->RemoveAllPoints();
 
-		//for (e = 0, c = 0; e < effective->GetSize() && c < copy->GetSize(); ++e, ++c)
-		for (int j = 0; j < effective->GetSize(); ++j)
+		for (int j = 0; j < copy->GetColorFunction()->GetSize(); ++j)
 		{
-			effective->GetNodeValue(j, val);
+			copy->GetColorFunction()->GetNodeValue(j, valCol);
+			copy->GetOpacityFunction()->GetNodeValue(j, valOp);
 
-			// effective node cannot exceed weight because that would
-			//     mean an actual value bigger than 1
-			if (val[1] >= weight) { // index 1 means opacity
-				val[1] = weight;
-				effective->SetNodeValue(j, val);
-			}
-			val[1] = val[1] / weight; // admit numerical imprecision...
-			copy->AddPoint(val[0], val[1], val[2], val[3]);
+			valOp[1] = valOp[1] * weight; // index 1 means opacity
+
+			effective->GetColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
+			effective->GetOpacityFunction()->AddPoint(valOp[0], valOp[1], valOp[2], valOp[3]);
 		}
 	}
 }
@@ -344,7 +365,10 @@ void iAHistogramStack::applyWeights()
 		for (int i = 0; i < 3; ++i)
 		{
 			vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction();
-			vtkPiecewiseFunction *copy = m_opFuncsCopy[i];
+			vtkPiecewiseFunction *copy = m_copyTFs[i]->GetOpacityFunction();
+
+			int sizee = effective->GetSize();
+			int sizec = copy->GetSize();
 
 			double pntVal[4];
 			for (int j = 0; j < copy->GetSize(); ++j)
