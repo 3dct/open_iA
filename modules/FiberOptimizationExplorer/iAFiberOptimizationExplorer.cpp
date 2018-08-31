@@ -1063,7 +1063,7 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer, m_refVisTable,
 							m_resultData[m_referenceID].m_outputMapping, QColor(0,0,0) ) );
 	QSharedPointer<iALookupTable> lut(new iALookupTable);
-	*lut.data() = iALUT::Build(range, "Kindlmann", 256, SelectionOpacity);
+	*lut.data() = iALUT::Build(range, "ColorBrewer single hue 5-class oranges inv", 256, SelectionOpacity);
 	m_nearestReferenceVis->show();
 	// ... and set up color coding by it!
 	m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
