@@ -560,6 +560,7 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	m_splom->setParameterVisibility(paramVisib);
 	m_splom->showDefaultMaxizimedPlot();
 	m_splom->setSelectionColor("black");
+	m_splom->setPointRadius(2.5);
 	m_splom->settings.enableColorSettings = true;
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiberOptimizationExplorer::selectionSPLOMChanged);
 	connect(m_splom, &iAQSplom::lookupTableChanged, this, &iAFiberOptimizationExplorer::splomLookupTableChanged);
@@ -995,6 +996,8 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 	}
 	if (!isAnythingSelected() || !showRef)
 	{
+		m_mainRenderer->GetRenderWindow()->Render();
+		m_mainRenderer->update();
 		return;
 	}
 
