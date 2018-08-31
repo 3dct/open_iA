@@ -28,14 +28,15 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
 
-const QStringList colormaps = QStringList()\
-<< "Diverging blue-gray-red"\
-<< "Black Body"\
-<< "Extended Black Body"\
-<< "Kindlmann"\
-<< "Kindlmann Extended"\
-<< "ColorBrewer single hue 5-class oranges"\
-<< "ColorBrewer single hue 5-class grays";
+const QStringList colormaps = QStringList()
+	<< "Diverging blue-gray-red"
+	<< "Black Body"
+	<< "Extended Black Body"
+	<< "Kindlmann"
+	<< "Kindlmann Extended"
+	<< "ColorBrewer single hue 5-class oranges"
+	<< "ColorBrewer single hue 5-class grays"
+	<< "ColorBrewer single hue 5-class oranges inv";
 
 const QStringList& iALUT::GetColorMapNames()
 {
@@ -120,6 +121,15 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, QS
 		c.setRgb(150, 150, 150); ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(204, 204, 204); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(247, 247, 247); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
+		break;
+
+	case 7:
+		// ColorBrewer single hue 5-class grays (inverted to the one previous)
+		c.setRgb(254, 237, 222); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(253, 190, 133); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(253, 141, 60);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(230, 85, 13);	 ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(166, 54, 3);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
 		break;
 	}
 	pLUT->SetRange( lutRange );
