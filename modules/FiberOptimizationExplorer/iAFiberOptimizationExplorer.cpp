@@ -40,7 +40,6 @@
 #include "iALUT.h"
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
-#include "iASelectionInteractorStyle.h"
 #include "io/iAFileUtils.h"
 #include "mainwindow.h"
 #include "mdichild.h"
@@ -132,8 +131,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_mainWnd(mainWnd),
 	m_timeStepCount(0),
 	m_splomData(new iASPLOMData()),
-	m_splom(new iAQSplom()),
-	m_lastResultID(-1)
+	m_splom(new iAQSplom())
 {
 	setDockOptions(AllowNestedDocks | AllowTabbedDocks );
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -224,6 +222,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	mainRendererContainer->layout()->addWidget(contextOpacityWidget);
 
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
+	m_style->setSelectionProvider(this);
 	m_style->assignToRenderWindow(renWin);
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiberOptimizationExplorer::selection3DChanged);
 
@@ -601,9 +600,7 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 		if (anythingSelected)
 			data.m_main3DVis->setSelection(m_currentSelection[resultID], anythingSelected);
 		data.m_main3DVis->show();
-		m_style->setInput( data.m_main3DVis->getLinePolyData() );
-		m_lastMain3DVis = data.m_main3DVis;
-		m_lastResultID = resultID;
+		m_style->addInput( resultID, data.m_main3DVis->getLinePolyData() );
 	}
 	else
 	{
@@ -614,6 +611,7 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 		}
 		data.m_main3DVis->hide();
 		data.m_main3DVis.reset();
+		m_style->removeInput(resultID);
 	}
 	m_mainRenderer->GetRenderWindow()->Render();
 	m_mainRenderer->update();
@@ -635,6 +633,11 @@ void iAFiberOptimizationExplorer::getResultFiberIDFromSplomID(size_t splomID, si
 		return;
 	}
 	fiberID = splomID - curStart;
+}
+
+std::vector<std::vector<size_t> > & iAFiberOptimizationExplorer::selection()
+{
+	return m_currentSelection;
 }
 
 void iAFiberOptimizationExplorer::clearSelection()
@@ -723,12 +726,8 @@ void iAFiberOptimizationExplorer::showCurrentSelectionInSPLOM()
 	m_splom->setSelection(splomSelection);
 }
 
-void iAFiberOptimizationExplorer::selection3DChanged(std::vector<size_t> const & selection)
+void iAFiberOptimizationExplorer::selection3DChanged()
 {
-	if (!m_lastMain3DVis)
-		return;
-	clearSelection();
-	m_currentSelection[m_lastResultID].assign(selection.begin(), selection.end());
 	sortCurrentSelection();
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInPlot();

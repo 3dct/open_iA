@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iASelectionInteractorStyle.h" // for iASelectionProvider
+
 #include <vtkSmartPointer.h>
 
 #include <QMainWindow>
@@ -27,8 +29,6 @@
 #include <QSharedPointer>
 
 #include <vector>
-
-class iASelectionInteractorStyle;
 
 class iA3DCylinderObjectVis;
 class iAResultData;
@@ -58,13 +58,14 @@ class QLabel;
 class QSlider;
 class QSpinBox;
 
-class iAFiberOptimizationExplorer : public QMainWindow
+class iAFiberOptimizationExplorer : public QMainWindow, public iASelectionProvider
 {
 	Q_OBJECT
 public:
 	iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd);
 	~iAFiberOptimizationExplorer();
 	void loadStateAndShow();
+	std::vector<std::vector<size_t> > & selection() override;
 private slots:
 	void toggleVis(int);
 	void referenceToggled(bool);
@@ -72,7 +73,7 @@ private slots:
 	void timeSliderChanged(int);
 	void mainOpacityChanged(int);
 	void contextOpacityChanged(int);
-	void selection3DChanged(std::vector<size_t> const & selection);
+	void selection3DChanged();
 	void selectionSPLOMChanged(std::vector<size_t> const & selection);
 	void selectionTimeStepChartChanged(std::vector<size_t> const & selection);
 	void splomLookupTableChanged();
@@ -89,8 +90,6 @@ private:
 
 	std::vector<iAResultData> m_resultData;
 	QSharedPointer<iARendererManager> m_renderManager;
-	QSharedPointer<iA3DCylinderObjectVis> m_lastMain3DVis;
-	int m_lastResultID;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_colorTheme;
 	MainWindow* m_mainWnd;

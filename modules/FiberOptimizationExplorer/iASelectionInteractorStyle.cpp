@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iASelectionInteractorStyle.h"
 
+#include "iAConsole.h"
+
 #include <vtkAreaPicker.h>
 #include <vtkExtractGeometry.h>
 #include <vtkIdTypeArray.h>
@@ -33,57 +35,73 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkVertexGlyphFilter.h>
 
-#include <set>
-
 vtkStandardNewMacro(iASelectionInteractorStyle);
+
+iASelectionInteractorStyle::iASelectionInteractorStyle():
+	m_selectionProvider(nullptr)
+{}
+
+void iASelectionInteractorStyle::setSelectionProvider(iASelectionProvider *selectionProvider)
+{
+	m_selectionProvider = selectionProvider;
+}
 
 void iASelectionInteractorStyle::Pick()
 {
-	vtkInteractorStyleRubberBandPick::Pick();
-	if (!m_points || GetInteractor()->GetPicker()->GetMTime() == m_lastPickTime)
+	if (!m_selectionProvider)
+	{
+		DEBUG_LOG("No selection provider given!");
 		return;
-	
-	m_lastPickTime = GetInteractor()->GetPicker()->GetMTime();
+	}
+	vtkInteractorStyleRubberBandPick::Pick();
 	vtkPlanes* frustum = static_cast<vtkAreaPicker*>(GetInteractor()->GetPicker())->GetFrustum();
 
-	vtkSmartPointer<vtkExtractGeometry> extractGeometry = vtkSmartPointer<vtkExtractGeometry>::New();
-	extractGeometry->SetImplicitFunction(frustum);
-	extractGeometry->SetInputData(m_points);
-	extractGeometry->Update();
-
-	vtkSmartPointer<vtkVertexGlyphFilter> glyphFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
-	glyphFilter->SetInputConnection(extractGeometry->GetOutputPort());
-	glyphFilter->Update();
-
-	vtkPolyData* selected = glyphFilter->GetOutput();
-	vtkPointData* pointData = selected->GetPointData();
-	vtkIdTypeArray* ids = vtkIdTypeArray::SafeDownCast(pointData->GetArray("OriginalIds"));
-	if (!ids)
-		return;
-
-	if (GetInteractor()->GetAltKey())
+	for (size_t resultID=0; resultID < m_selectionProvider->selection().size(); ++resultID)
 	{
-		for (vtkIdType i = 0; i < ids->GetNumberOfTuples(); i++)
-			m_lastSelection.erase(ids->GetValue(i) / 2);
-	}
-	else
-	{
-		if (!GetInteractor()->GetShiftKey())
-			m_lastSelection.clear();
-		for (vtkIdType i = 0; i < ids->GetNumberOfTuples(); i++)
-			m_lastSelection.insert(ids->GetValue(i) / 2);
-	}
+		auto& resultSel = m_selectionProvider->selection()[resultID];
 
-	// TODO: find more efficient way - pass set directly?
-	std::vector<size_t> result;
-	std::copy(m_lastSelection.begin(), m_lastSelection.end(), std::back_inserter(result));
-	emit selectionChanged(result);
+		if (!GetInteractor()->GetAltKey() && !GetInteractor()->GetShiftKey())
+			resultSel.clear();
+
+		if (!m_resultPoints.contains(resultID))
+			continue;
+
+		vtkSmartPointer<vtkExtractGeometry> extractGeometry = vtkSmartPointer<vtkExtractGeometry>::New();
+		extractGeometry->SetImplicitFunction(frustum);
+		extractGeometry->SetInputData(m_resultPoints[resultID]);
+		extractGeometry->Update();
+
+		vtkSmartPointer<vtkVertexGlyphFilter> glyphFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
+		glyphFilter->SetInputConnection(extractGeometry->GetOutputPort());
+		glyphFilter->Update();
+
+		vtkPolyData* selected = glyphFilter->GetOutput();
+		vtkPointData* pointData = selected->GetPointData();
+		vtkIdTypeArray* ids = vtkIdTypeArray::SafeDownCast(pointData->GetArray("OriginalIds"));
+		if (!ids)
+			continue;
+
+		for (vtkIdType i = 0; i < ids->GetNumberOfTuples(); i++)
+		{
+			size_t objID = ids->GetValue(i) / 2;
+			auto it = std::find(resultSel.begin(), resultSel.end(), objID);
+			if (it != resultSel.end() && GetInteractor()->GetAltKey())
+				resultSel.erase( it );
+			else if (it == resultSel.end() && (!GetInteractor()->GetAltKey() || GetInteractor()->GetShiftKey()))
+				resultSel.push_back(objID);
+		}
+	}
+	emit selectionChanged();
 }
 
-
-void iASelectionInteractorStyle::setInput(vtkSmartPointer<vtkPolyData> points)
+void iASelectionInteractorStyle::addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points)
 {
-	m_points = points;
+	m_resultPoints.insert(resultID, points);
+}
+
+void iASelectionInteractorStyle::removeInput(size_t resultID)
+{
+	m_resultPoints.remove(resultID);
 }
 
 void iASelectionInteractorStyle::assignToRenderWindow(vtkSmartPointer<vtkRenderWindow> renWin)

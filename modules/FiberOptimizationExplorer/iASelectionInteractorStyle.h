@@ -23,27 +23,37 @@
 #include <vtkInteractorStyleRubberBandPick.h>
 #include <vtkSmartPointer.h>
 
+#include <QMap>
 #include <QObject>
 
-#include <set>
 #include <vector>
 
 class vtkPolyData;
 class vtkRenderWindow;
 
+class iASelectionProvider
+{
+public:
+	virtual std::vector<std::vector<size_t> > & selection() =0;
+};
+
+
 class iASelectionInteractorStyle : public QObject, public vtkInteractorStyleRubberBandPick
 {
 	Q_OBJECT
 public:
+	iASelectionInteractorStyle();
 	static iASelectionInteractorStyle* New();
 	vtkTypeMacro(iASelectionInteractorStyle, vtkInteractorStyleRubberBandPick);
+	void setSelectionProvider(iASelectionProvider * selectionProvider);
 	void Pick() override;
-	void setInput(vtkSmartPointer<vtkPolyData> points);
+	void addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points);
+	void removeInput(size_t resultID);
 	void assignToRenderWindow(vtkSmartPointer<vtkRenderWindow> renWin);
 signals:
-	void selectionChanged(std::vector<size_t> const &);
+	void selectionChanged();
 private:
-	vtkSmartPointer<vtkPolyData> m_points;
-	std::set<size_t> m_lastSelection;
-	vtkMTimeType m_lastPickTime;
+	QMap<int, vtkSmartPointer<vtkPolyData> > m_resultPoints;
+	iASelectionProvider * m_selectionProvider;
+
 };
