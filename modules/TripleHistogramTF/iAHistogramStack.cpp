@@ -21,6 +21,7 @@
  
 #include "iAHistogramStack.h"
 #include "RightBorderLayout.h"
+#include "dlg_modalities.h"
 
 #include "vtkImageData.h"
 #include "vtkColorTransferFunction.h"
@@ -226,13 +227,12 @@ void iAHistogramStack::updateModalities()
 		//	m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction());
 		//m_backgroundTF[i] = new iAModalityTransfer(m_modalitiesActive[i]->GetTransfer()->GetColorFunction()->GetRange()); // TODO good? assumes that the color and opacity functions have the same range
 
-		vtkSmartPointer<vtkColorTransferFunction> colorFuncCopy = vtkSmartPointer<vtkColorTransferFunction>::New();
-		vtkSmartPointer<vtkPiecewiseFunction> opFuncCopy = vtkSmartPointer<vtkPiecewiseFunction>::New();
+		vtkColorTransferFunction *colorFuncCopy = vtkColorTransferFunction::New(); // TODO delete?
+		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New(); // TODO delete?
 		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy); //new iASimpleTransferFunction(colorFuncCopy, opFuncCopy);
 		m_histograms[i]->SetTransferFunctions(colorFuncCopy, opFuncCopy);
 
 		m_histograms[i]->updateTrf();
-		connect((dlg_transfer*)(m_histograms[i]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
 		switch (i) {
 		case 0:
 			connect((dlg_transfer*)(m_histograms[i]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
@@ -275,12 +275,12 @@ void iAHistogramStack::updateModalities()
 		ResetChannel(chData, imageData, ctf, otf);
 		m_mdiChild->InitChannelRenderer(id, false, true);
 	}
-
 	setSlicerMode(m_slicerMode);
 	setSliceNumber(m_sliceNumber);
 	
 	adjustStretch(size().width());
 	applyWeights();
+	connect((dlg_transfer*)(m_mdiChild->getHistogram()->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
 	emit modalitiesChanged(m_modalitiesActive[0], m_modalitiesActive[1], m_modalitiesActive[2]);
 }
 
@@ -300,32 +300,72 @@ int iAHistogramStack::getModalitiesCount()
 	return m_modalitiesActive[2] ? 3 : (m_modalitiesActive[1] ? 2 : (m_modalitiesActive[0] ? 1 : 0));
 }
 
-void iAHistogramStack::originalHistogramChanged()
-{
-	// TODO
-	qDebug() << "original histogram changed";
-}
-
 iATransferFunction* iAHistogramStack::createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacityFunction)
 {
-	vtkSmartPointer<vtkColorTransferFunction> ctf = m_modalitiesActive[index]->GetTransfer()->GetColorFunction();
-	vtkSmartPointer<vtkPiecewiseFunction> otf = m_modalitiesActive[index]->GetTransfer()->GetOpacityFunction();
-
 	colorTf->DeepCopy(m_modalitiesActive[index]->GetTransfer()->GetColorFunction());
 	opacityFunction->DeepCopy(m_modalitiesActive[index]->GetTransfer()->GetOpacityFunction());
 	return new iASimpleTransferFunction(colorTf, opacityFunction);
 }
 
+void iAHistogramStack::originalHistogramChanged()
+{
+	QSharedPointer<iAModality> selected = m_mdiChild->GetModalitiesDlg()->GetModalities()->Get(m_mdiChild->GetModalitiesDlg()->GetSelected());
+	int index;
+	if (selected == m_modalitiesActive[0]) {
+		index = 0;
+	}
+	else if (selected == m_modalitiesActive[1]) {
+		index = 1;
+	}
+	else if (selected == m_modalitiesActive[2]) {
+		index = 2;
+	} else {
+		return;
+	}
+	updateCopyTransferFunction(index);
+	updateTransferFunction(index);
+}
+
+/** Called when the original transfer function changes
+  * RESETS THE COPY (admit numerical imprecision when setting the copy values)
+  * => effective / weight = copy
+  */
+void iAHistogramStack::updateCopyTransferFunction(int index)
+{
+	if (isReady()) {
+		double weight = m_weightCur[index];
+
+		// newly set transfer function (set via the histogram)
+		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
+
+		// copy of previous transfer function, to be updated in this method
+		iATransferFunction *copy = m_copyTFs[index];
+
+		double valCol[6], valOp[4];
+		copy->GetColorFunction()->RemoveAllPoints();
+		copy->GetOpacityFunction()->RemoveAllPoints();
+
+		for (int j = 0; j < effective->GetColorFunction()->GetSize(); ++j)
+		{
+			effective->GetColorFunction()->GetNodeValue(j, valCol);
+			effective->GetOpacityFunction()->GetNodeValue(j, valOp);
+
+			if (valOp[1] > weight) {
+				valOp[1] = weight;
+			}
+			double copyOp = valOp[1] / weight;
+
+			effective->GetOpacityFunction()->SetNodeValue(j, valOp);
+
+			copy->GetColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
+			copy->GetOpacityFunction()->AddPoint(valOp[0], copyOp, valOp[2], valOp[3]);
+		}
+	}
+}
+
 /** Called when the copy transfer function changes
-  * Makes sure no node exceeds the opacity value m_weightCur[index] in the effective transfer function
-  *
-  * ALSO
-  *
-  * Adds newly added nodes to the transfer function copy (adjusting its weight with m_weightCur[index]
-  * Also changes (in the copy) the respective changed node (in the effective transfer function)
-  *
-  * CHANGES THE EFFECTIVE (prevent illegal values)
-  * CHANGES THE COPY (clear and repopulate with adjusted effective values (numerical imprecision but live with it))
+  * ADD NODES TO THE EFFECTIVE ONLY (clear and repopulate with adjusted effective values)
+  * => copy * weight = effective
   */
 void iAHistogramStack::updateOriginalTransferFunction(int index)
 {
@@ -357,7 +397,7 @@ void iAHistogramStack::updateOriginalTransferFunction(int index)
 
 /** Resets the values of all nodes in the effective transfer function using the values present in the
   *     copy of the transfer function, using m_weightCur for the adjustment
-  * CHANGES THE EFFECTIVE ONLY (based on the copy)
+  * CHANGES THE NODES OF THE EFFECTIVE ONLY (based on the copy)
   */
 void iAHistogramStack::applyWeights()
 {
@@ -366,9 +406,6 @@ void iAHistogramStack::applyWeights()
 		{
 			vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction();
 			vtkPiecewiseFunction *copy = m_copyTFs[i]->GetOpacityFunction();
-
-			int sizee = effective->GetSize();
-			int sizec = copy->GetSize();
 
 			double pntVal[4];
 			for (int j = 0; j < copy->GetSize(); ++j)

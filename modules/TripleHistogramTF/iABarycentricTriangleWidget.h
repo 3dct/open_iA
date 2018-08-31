@@ -107,7 +107,7 @@ private:
 	QPoint m_modalityWeight1Pos;
 	QPoint m_modalityWeight2Pos;
 	QPoint m_modalityWeight3Pos;
-	void updateModalityWeights(BCoord bCoord);
+	void updateModalityWeightLabels(BCoord bCoord);
 
 	QPainterPath m_trianglePainterPath;
 	QBrush m_triangleFillBrush;

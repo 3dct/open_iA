@@ -123,7 +123,6 @@ void iABarycentricTriangleWidget::mousePressEvent(QMouseEvent *event)
 {
 	if (!interactWithModalityLabel(event->pos(), true)) {
 		updateControlPointPosition(event->pos());
-		update();
 		m_dragging = true;
 	}
 }
@@ -132,7 +131,6 @@ void iABarycentricTriangleWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	if (m_dragging) {
 		updateControlPointPosition(event->pos());
-		update();
 	} else {
 		interactWithModalityLabel(event->pos(), false);
 	}
@@ -239,7 +237,8 @@ void iABarycentricTriangleWidget::updateControlPointPosition(QPoint newPos)
 	{
 		m_controlPointBCoord = bCoord;
 		moveControlPointTo(newPos);
-		updateModalityWeights(bCoord);
+		updateModalityWeightLabels(bCoord);
+		update();
 		emit weightChanged(bCoord);
 	}
 	else {
@@ -248,7 +247,7 @@ void iABarycentricTriangleWidget::updateControlPointPosition(QPoint newPos)
 	}
 }
 
-void iABarycentricTriangleWidget::updateModalityWeights(BCoord bCoord)
+void iABarycentricTriangleWidget::updateModalityWeightLabels(BCoord bCoord)
 {
 	// To format double values {
 	//QString text; // Source: https://stackoverflow.com/questions/7234824/format-a-number-to-a-specific-qstring-format

@@ -57,9 +57,6 @@ private slots:
 	void updateTransferFunction2() { updateTransferFunction(1); }
 	void updateTransferFunction3() { updateTransferFunction(2); }
 	void originalHistogramChanged();
-	//void originalHistogramChanged1() { originalHistogramChanged(0); }
-	//void originalHistogramChanged2() { originalHistogramChanged(1); }
-	//void originalHistogramChanged3() { originalHistogramChanged(2); }
 
 signals:
 	void transferFunctionChanged();
@@ -71,6 +68,7 @@ protected:
 private:
 	BCoord m_weightCur;
 	void updateTransferFunction(int index);
+	void updateCopyTransferFunction(int index);
 	void updateOriginalTransferFunction(int index);
 	void applyWeights();
 
@@ -89,7 +87,6 @@ private:
 	// Widgets and stuff
 	QLabel *m_disabledLabel;
 	QGridLayout *m_gridLayout;
-	//QLabel *m_weightLabels[3] = { nullptr, nullptr, nullptr };
 	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };
 	iASimpleSlicerWidget *m_slicerWidgets[3] = { nullptr, nullptr, nullptr };
 	iADiagramFctWidget* m_histograms[3] = { nullptr, nullptr, nullptr };
