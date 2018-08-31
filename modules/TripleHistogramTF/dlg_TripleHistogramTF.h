@@ -49,6 +49,9 @@ public slots:
 
 	void modalitiesChanged();
 
+	
+
+private slots:
 	void setSliceXYScrollBar();
 	void setSliceXZScrollBar();
 	void setSliceYZScrollBar();
@@ -56,7 +59,6 @@ public slots:
 	void setSliceXZScrollBar(int sliceNumberXZ);
 	void setSliceYZScrollBar(int sliceNumberYZ);
 
-private slots:
 	void sliderValueChanged(int sliceNumber);
 	void updateSlicerMode();
 

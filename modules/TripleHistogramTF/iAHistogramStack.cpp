@@ -80,6 +80,10 @@ iAHistogramStack::iAHistogramStack(QWidget * parent, MdiChild *mdiChild, Qt::Win
 		//m_weightLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	}
 
+	m_gridLayout->setSpacing(1);
+	m_gridLayout->setMargin(0);
+	//setStyleSheet("background-color:red"); // test spacing/padding/margin
+
 	updateModalities();
 }
 

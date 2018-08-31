@@ -64,7 +64,9 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	//m_gridLayout->setContentsMargins(0, 0, 0, 0);
 
 	QWidget *optionsContainer = new QWidget();
+	//optionsContainer->setStyleSheet("background-color:blue"); // test spacing/padding/margin
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	QHBoxLayout *optionsContainerLayout = new QHBoxLayout(optionsContainer);
 	// Test ^^^
 	//-----------------------------------------------
 
@@ -83,7 +85,6 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	m_sliceSlider = new QSlider(Qt::Horizontal, optionsContainer);
 	m_sliceSlider->setMinimum(0);
 
-	QHBoxLayout *optionsContainerLayout = new QHBoxLayout(optionsContainer);
 	optionsContainerLayout->addWidget(m_slicerModeComboBox);
 	optionsContainerLayout->addWidget(m_sliceSlider);
 
@@ -105,6 +106,8 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	QWidget *leftWidget = new QWidget();
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
+	leftWidgetLayout->setSpacing(1);
+	leftWidgetLayout->setMargin(0);
 	leftWidgetLayout->addWidget(optionsContainer);
 	leftWidgetLayout->addWidget(histogramsWidget);
 
@@ -175,40 +178,39 @@ void dlg_TripleHistogramTF::modalitiesChanged()
 	m_triangleWidget->update();
 }
 
+// ---------------------------------------------------------------------------------------------------------------------------
+// PRIVATE METHODS
+// ---------------------------------------------------------------------------------------------------------------------------
+
+// SCROLLBARS (private SLOTS) {
 void dlg_TripleHistogramTF::setSliceXYScrollBar()
 {
 	setSlicerMode(iASlicerMode::XY);
-	setSliceNumber(m_mdiChild->getSlicerDlgXY()->verticalScrollBarXY->value());
 }
-
 void dlg_TripleHistogramTF::setSliceXZScrollBar()
 {
 	setSlicerMode(iASlicerMode::XZ);
-	setSliceNumber(m_mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ->value());
 }
-
 void dlg_TripleHistogramTF::setSliceYZScrollBar()
 {
 	setSlicerMode(iASlicerMode::YZ);
-	setSliceNumber(m_mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ->value());
 }
-
 void dlg_TripleHistogramTF::setSliceXYScrollBar(int sliceNumberXY)
 {
-	setSliceNumber(sliceNumberXY);
+	//setSliceNumber(sliceNumberXY);
+	m_sliceSlider->setValue(sliceNumberXY);
 }
-
 void dlg_TripleHistogramTF::setSliceXZScrollBar(int sliceNumberXZ)
 {
-	setSliceNumber(sliceNumberXZ);
+	//setSliceNumber(sliceNumberXZ);
+	m_sliceSlider->setValue(sliceNumberXZ);
 }
-
 void dlg_TripleHistogramTF::setSliceYZScrollBar(int sliceNumberYZ)
 {
-	setSliceNumber(sliceNumberYZ);
+	//setSliceNumber(sliceNumberYZ);
+	m_sliceSlider->setValue(sliceNumberYZ);
 }
-
-// PRIVATE --------------------------------------------------------------------------------------------------
+// }
 
 // PRIVATE SLOT
 void dlg_TripleHistogramTF::updateSlicerMode()

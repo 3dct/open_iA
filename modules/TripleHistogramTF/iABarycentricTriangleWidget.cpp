@@ -36,7 +36,7 @@
 // Debug
 #include <QDebug>
 
-// Constants (more in the header file)
+// Constants (more in the header file!)
 static const qreal RAD60 = M_PI / 3.0;
 static const qreal SIN60 = sin(RAD60);
 static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
@@ -49,14 +49,18 @@ static const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
 //static const int MODALITY_LABEL_HIGHLIGHT_PADDING = 5;
 //static const int MODALITY_LABEL_HIGHLIGHT_PADDING_TIMES_TWO = MODALITY_LABEL_HIGHLIGHT_PADDING * 2;
 
-static const QString WEIGHT_FORMAT = "%.10f";
+static const char* WEIGHT_FORMAT = "%.0f%%"; //"%.2f%;
 
 iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	QOpenGLWidget(parent, f)
 {
-	QFont font = QApplication::font();
-	font.setPointSize(16);
-	m_modalityLabelFont = font;
+	// Font variables are values (not pointers)
+	m_modalityLabelFont = QApplication::font();
+	m_modalityWeightFont = m_modalityLabelFont;
+
+	m_modalityLabelFont.setPointSize(16);
+
+	m_modalityWeightFont.setPointSize(12);
 
 	m_controlPointBorderPen.setWidth(3);
 	m_controlPointBorderPen.setColor(Qt::black);
@@ -142,12 +146,7 @@ void iABarycentricTriangleWidget::mouseReleaseEvent(QMouseEvent *event)
 void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 {
 	QFontMetrics metrics = QFontMetrics(m_modalityLabelFont);
-
 	int modalityLabelHeight = metrics.height();
-
-	int modalityLabel1width = metrics.width(m_modalityLabel1);
-	int modalityLabel2width = metrics.width(m_modalityLabel2);
-	int modalityLabel3width = metrics.width(m_modalityLabel3);
 	
 	int triangleSpacingLeft = MODALITY_LABEL_MARGIN; // LEFT margin of BOTTOM-LEFT modality
 	int triangleSpacingTop = modalityLabelHeight + MODALITY_LABEL_MARGIN_TIMES_TWO; // complete height of TOP modality
@@ -188,6 +187,11 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 	m_trianglePainterPath.lineTo(right, bottom);
 	m_trianglePainterPath.lineTo(left, bottom);
 
+	// LABELS PLACEMENT {
+	int modalityLabel1width = metrics.width(m_modalityLabel1);
+	int modalityLabel2width = metrics.width(m_modalityLabel2);
+	int modalityLabel3width = metrics.width(m_modalityLabel3);
+
 	int modalityLabel1Left = left + MODALITY_LABEL_MARGIN;
 	int modalityLabel2Left = centerX - (modalityLabel2width / 2);
 	int modalityLabel3Left = right - modalityLabel3width - MODALITY_LABEL_MARGIN;
@@ -204,6 +208,13 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 	m_modalityLabelRect[1] = QRect(modalityLabel2Left, modalityLabel2Bottom - modalityLabelHeight, modalityLabel2width, modalityLabelHeight);
 	m_modalityLabelRect[2] = QRect(modalityLabel3Left, modalityLabel1_3Top, modalityLabel3width, modalityLabelHeight);
 
+	metrics = QFontMetrics(m_modalityWeightFont);
+	int modalityWeight3Width = metrics.width(m_modalityWeight3);
+	m_modalityWeight1Pos = QPoint(modalityLabel1Left + modalityLabel1width + MODALITY_LABEL_MARGIN, modalityLabel1_3Bottom);
+	m_modalityWeight2Pos = QPoint(modalityLabel2Left + modalityLabel2width + MODALITY_LABEL_MARGIN, modalityLabel2Bottom);
+	m_modalityWeight3Pos = QPoint(modalityLabel3Left - MODALITY_LABEL_MARGIN - modalityWeight3Width, modalityLabel1_3Bottom);
+	// }
+
 	updateControlPointPosition();
 	if (m_triangleRenderer) {
 		m_triangleRenderer->setTriangle(m_triangle);
@@ -215,6 +226,11 @@ void iABarycentricTriangleWidget::updateControlPointCoordinates(BCoord bCoord)
 	updateControlPointPosition(m_triangle.getCartesianCoordinates(bCoord));
 }
 
+void iABarycentricTriangleWidget::updateControlPointPosition()
+{
+	updateControlPointPosition(m_triangle.getCartesianCoordinates(m_controlPointBCoord));
+}
+
 void iABarycentricTriangleWidget::updateControlPointPosition(QPoint newPos)
 {
 	BCoord bCoord = m_triangle.getBarycentricCoordinates(newPos.x(), newPos.y());
@@ -223,6 +239,7 @@ void iABarycentricTriangleWidget::updateControlPointPosition(QPoint newPos)
 	{
 		m_controlPointBCoord = bCoord;
 		moveControlPointTo(newPos);
+		updateModalityWeights(bCoord);
 		emit weightChanged(bCoord);
 	}
 	else {
@@ -231,9 +248,35 @@ void iABarycentricTriangleWidget::updateControlPointPosition(QPoint newPos)
 	}
 }
 
-void iABarycentricTriangleWidget::updateControlPointPosition()
+void iABarycentricTriangleWidget::updateModalityWeights(BCoord bCoord)
 {
-	moveControlPointTo(m_triangle.getCartesianCoordinates(m_controlPointBCoord));
+	// To format double values {
+	//QString text; // Source: https://stackoverflow.com/questions/7234824/format-a-number-to-a-specific-qstring-format
+	//QString modalityWeight3 = text.sprintf(WEIGHT_FORMAT, bCoord.getGamma() * 100);
+
+	//QFontMetrics metrics = QFontMetrics(m_modalityWeightFont);
+	//int modalityWeight3Width = metrics.width(modalityWeight3);
+	//m_modalityWeight3Pos = QPoint(m_modalityLabel3Pos.x() - MODALITY_LABEL_MARGIN - modalityWeight3Width, m_modalityLabel3Pos.y());
+	
+	//m_modalityWeight1 = text.sprintf(WEIGHT_FORMAT, bCoord.getAlpha() * 100);
+	//m_modalityWeight2 = text.sprintf(WEIGHT_FORMAT, bCoord.getBeta() * 100);
+	//m_modalityWeight3 = modalityWeight3;
+	// }
+
+	// To format int values {
+	int a = qRound(bCoord.getAlpha() * 100);
+	int b = qRound(bCoord.getBeta() * 100);
+	int c = 100 - a - b;
+
+	QString modalityWeight3 = QString::number(c) + "%";
+	QFontMetrics metrics = QFontMetrics(m_modalityWeightFont);
+	int modalityWeight3Width = metrics.width(modalityWeight3);
+	m_modalityWeight3Pos = QPoint(m_modalityLabel3Pos.x() - MODALITY_LABEL_MARGIN - modalityWeight3Width, m_modalityLabel3Pos.y());
+
+	m_modalityWeight1 = QString::number(a) + "%";
+	m_modalityWeight2 = QString::number(b) + "%";
+	m_modalityWeight3 = modalityWeight3;
+	// }
 }
 
 void iABarycentricTriangleWidget::moveControlPointTo(QPoint newPos)
@@ -401,6 +444,11 @@ void iABarycentricTriangleWidget::paintModalityLabels(QPainter &p)
 		p.setPen(m_modalityLabelHighlightPen);
 		p.drawRect(m_modalityLabelRect[m_modalityHighlightedIndex]);
 	}
+
+	p.setFont(m_modalityWeightFont);
+	p.drawText(m_modalityWeight1Pos, m_modalityWeight1);
+	p.drawText(m_modalityWeight2Pos, m_modalityWeight2);
+	p.drawText(m_modalityWeight3Pos, m_modalityWeight3);
 }
 
 void iABarycentricTriangleWidget::paintHelper(QPainter &p) {

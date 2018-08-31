@@ -88,11 +88,10 @@ private:
 	QPoint m_controlPointOld;
 	BCoord m_controlPointBCoord;
 
+	QFont m_modalityLabelFont;
 	QString m_modalityLabel1 = MODALITY_LABEL_1_DEFAULT;
 	QString m_modalityLabel2 = MODALITY_LABEL_2_DEFAULT;
 	QString m_modalityLabel3 = MODALITY_LABEL_3_DEFAULT;
-
-	QFont m_modalityLabelFont;
 	QPoint m_modalityLabel1Pos;
 	QPoint m_modalityLabel2Pos;
 	QPoint m_modalityLabel3Pos;
@@ -100,6 +99,15 @@ private:
 	QPen m_modalityLabelHighlightPen;
 	int m_modalityHighlightedIndex = -1; // -1 for none (or any value < 0)
 	bool interactWithModalityLabel(QPoint p, bool press);
+
+	QFont m_modalityWeightFont;
+	QString m_modalityWeight1;
+	QString m_modalityWeight2;
+	QString m_modalityWeight3;
+	QPoint m_modalityWeight1Pos;
+	QPoint m_modalityWeight2Pos;
+	QPoint m_modalityWeight3Pos;
+	void updateModalityWeights(BCoord bCoord);
 
 	QPainterPath m_trianglePainterPath;
 	QBrush m_triangleFillBrush;
