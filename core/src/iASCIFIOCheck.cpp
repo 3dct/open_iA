@@ -45,7 +45,9 @@ void CheckSCIFIO(QString const & applicationPath)
 			"You might not be able to load files!").arg(scifioPath));
 		return;
 	}
+#ifdef WIN32
 	scifioPath.replace("/", "\\");
+#endif
 	QString scifioPathAssign(QString(SCIFIO_PATH) + "=" + scifioPath);
 #ifdef _MSC_VER
 	_putenv(scifioPathAssign.toStdString().c_str());
