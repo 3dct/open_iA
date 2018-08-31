@@ -322,12 +322,18 @@ ELSEIF (UNIX)
 	ELSE()
 		SET (EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkgdcmopenjpeg)
 	ENDIF()
+	IF (ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 12)
+		# starting with ITK 4.13, there is an implicit dependency on libitkminc2
+		SET (EXTRA_ITK_LIBS ${EXTRA_ITK_LIBS} itkminc2)
+	ENDIF()
+
 	SET (ALL_ITK_LIBS ${ITK_LIBRARIES} ${EXTRA_ITK_LIBS})
 	FOREACH(ITK_LIB ${ALL_ITK_LIBS})
 	# hack: SCIFIO apparently needs to be linked as "SCIFIO" but the lib is called "itkSCFICIO"...
 		STRING(REPLACE "SCIFIO" "itkSCIFIO" ITK_LIBF "${ITK_LIB}")
 		INSTALL (FILES ${ITK_LIB_DIR}/lib${ITK_LIBF}-${ITK_VER}.so.1 DESTINATION .)
 	ENDFOREACH(ITK_LIB)
+
 ELSE()
 	MESSAGE(WARNING "Installation procedure for your operating system is not yet implemented!")
 ENDIF()
