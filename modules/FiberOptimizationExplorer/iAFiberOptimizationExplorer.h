@@ -60,6 +60,7 @@ class QSpinBox;
 
 class iAFiberOptimizationExplorer : public QMainWindow
 {
+	Q_OBJECT
 public:
 	iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd);
 	~iAFiberOptimizationExplorer();

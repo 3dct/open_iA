@@ -45,11 +45,6 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#else
-#include <QVTKWidget2.h>
-#endif
 #include <vtkFloatArray.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkPolyData.h>
@@ -842,7 +837,9 @@ double getDistance(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vt
 {
 	double distance = 0;
 	for (int colIdx=0; colIdx < colsToInclude.size(); ++colIdx)
-		distance += weights[colIdx] * std::pow(fiber1->GetValue(mapping[colsToInclude[colIdx]]).ToDouble() - fiber2->GetValue(mapping[colsToInclude[colIdx]]).ToDouble(), 2);
+		distance += weights[colIdx] * weights[colIdx] * std::pow(
+				fiber1->GetValue(mapping[colsToInclude[colIdx]]).ToDouble() -
+				fiber2->GetValue(mapping[colsToInclude[colIdx]]).ToDouble(), 2);
 	return std::sqrt(distance);
 }
 
@@ -1020,17 +1017,21 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 	double range[2];
 	range[0] = std::numeric_limits<double>::max();
 	range[1] = std::numeric_limits<double>::lowest();
-
+	DEBUG_LOG("Showing reference fibers:");
 	for (size_t resultID=0; resultID < m_resultData.size(); ++resultID)
 	{
 		if (resultID == m_referenceID)
 			continue;
-
+		DEBUG_LOG(QString("  In Result %1").arg(resultID));
 		for (size_t fiberIdx = 0; fiberIdx < m_currentSelection[resultID].size(); ++fiberIdx)
 		{
 			size_t fiberID = m_currentSelection[resultID][fiberIdx];
+			DEBUG_LOG(QString("    For Fiber %1").arg(fiberID));
 			for (int n=0; n<refCount; ++n)
 			{
+				DEBUG_LOG(QString("      Ref. Fiber %1, distance=%2")
+						  .arg(m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].index)
+						  .arg(m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance));
 				referenceIDsToShow.push_back(m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n]);
 				if (m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance < range[0])
 					range[0] = m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance;
@@ -1039,6 +1040,7 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 			}
 		}
 	}
+	DEBUG_LOG(QString("  Final distance range: %1..%2").arg(range[0]).arg(range[1]));
 
 	m_refVisTable->SetNumberOfRows(referenceIDsToShow.size());
 
@@ -1058,10 +1060,9 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer, m_refVisTable,
 							m_resultData[m_referenceID].m_outputMapping, QColor(0,0,0) ) );
 	QSharedPointer<iALookupTable> lut(new iALookupTable);
-	*lut.data() = iALUT::Build(range, "ColorBrewer single hue 5-class oranges", 256, SelectionOpacity);
-	// ... and set up color coding by it!
+	*lut.data() = iALUT::Build(range, "Kindlmann", 256, SelectionOpacity);
 	m_nearestReferenceVis->show();
+	// ... and set up color coding by it!
 	m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
-
 	// TODO: show distance color map somewhere!!!
 }

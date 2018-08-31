@@ -39,7 +39,7 @@ class FeatureScout_API iA3DLineObjectVis: public iA3DObjectVis
 {
 public:
 	static const int DefaultContextOpacity = 8;
-	static const int DefaultSelectionOpacity = 255;
+	static const int DefaultSelectionOpacity = 128;
 	iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
 	void show() override;
 	void hide();
