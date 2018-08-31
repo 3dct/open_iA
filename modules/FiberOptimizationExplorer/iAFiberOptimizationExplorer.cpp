@@ -180,7 +180,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	showReferenceWidget->setLayout(new QHBoxLayout());
 	m_cmbboxDistanceMeasure = new QComboBox();
 	m_cmbboxDistanceMeasure->addItem("Midpoint, Angles, Length");
-	m_cmbboxDistanceMeasure->addItem("Start-/Endpoint, Length");
+	m_cmbboxDistanceMeasure->addItem("Start-/Center-/Endpoint");
 	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::changeReferenceDisplay);
 	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(changeReferenceDisplay()));
 	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(changeReferenceDisplay()));
@@ -889,7 +889,9 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 	colsToInclude[1].push_back(iACsvConfig::EndX);     weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::EndX])[1]);
 	colsToInclude[1].push_back(iACsvConfig::EndY);     weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::EndY])[1]);
 	colsToInclude[1].push_back(iACsvConfig::EndZ);     weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::EndZ])[1]);
-	colsToInclude[1].push_back(iACsvConfig::Length);   weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::Length])[1]);
+	colsToInclude[1].push_back(iACsvConfig::CenterX);  weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterX])[1]);
+	colsToInclude[1].push_back(iACsvConfig::CenterY);  weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterY])[1]);
+	colsToInclude[1].push_back(iACsvConfig::CenterZ);  weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterZ])[1]);
 
 	// "register" other datasets to reference:
 	auto const & mapping = *m_resultData[m_referenceID].m_outputMapping.data();
