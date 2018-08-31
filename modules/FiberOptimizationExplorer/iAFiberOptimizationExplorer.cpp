@@ -191,8 +191,9 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(changeReferenceDisplay()));
 	showReferenceWidget->layout()->addWidget(m_chkboxShowReference);
 	showReferenceWidget->layout()->addWidget(m_spnboxReferenceCount);
-	showReferenceWidget->layout()->addWidget(new QLabel(" nearest reference fibers, using distance measure: "));
+	showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers, distance metric:"));
 	showReferenceWidget->layout()->addWidget(m_cmbboxDistanceMeasure);
+	showReferenceWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	m_defaultOpacitySlider = new QSlider(Qt::Horizontal);
 	m_defaultOpacitySlider->setMinimum(0);
