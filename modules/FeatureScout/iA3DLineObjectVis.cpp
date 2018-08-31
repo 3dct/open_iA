@@ -30,10 +30,12 @@
 #include <vtkCellArray.h>
 #include <vtkIdFilter.h>
 #include <vtkLine.h>
+#include <vtkOutlineFilter.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkRendererCollection.h>
 #include <vtkTable.h>
 #include <vtkUnsignedCharArray.h>
@@ -49,7 +51,10 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 	m_selectionAlpha(DefaultSelectionOpacity),
 	m_selectionColor(SelectedColor),
 	m_baseColor(128, 128, 128),
-	m_selectionActive(false)
+	m_selectionActive(false),
+	m_outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
+	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_outlineActor(vtkSmartPointer<vtkActor>::New())
 {
 	m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	m_colors->SetNumberOfComponents(4);
@@ -101,6 +106,12 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 	m_mapper->SelectColorArray("Colors");
 	m_mapper->SetScalarModeToUsePointFieldData();
 	m_mapper->ScalarVisibilityOn();
+
+	m_outlineFilter->SetInputData(m_linePolyData);
+	m_outlineMapper->SetInputConnection(m_outlineFilter->GetOutputPort());
+	m_outlineActor->GetProperty()->SetColor(0, 0, 0);
+	m_outlineActor->PickableOff();
+	m_outlineActor->SetMapper(m_outlineMapper);
 }
 
 void iA3DLineObjectVis::updateValues( std::vector<std::vector<double> > const & values )
@@ -289,4 +300,23 @@ void iA3DLineObjectVis::updateColorSelectionRendering()
 		setPolyPointColor(objID, color);
 	}
 	updatePolyMapper();
+}
+
+void iA3DLineObjectVis::showBoundingBox()
+{
+	m_outlineMapper->Update();
+	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_outlineActor);
+	updateRenderer();
+}
+
+void iA3DLineObjectVis::hideBoundingBox()
+{
+	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_outlineActor);
+	updateRenderer();
+}
+
+iA3DLineObjectVis::~iA3DLineObjectVis()
+{
+	hide();
+	hideBoundingBox();
 }

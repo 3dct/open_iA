@@ -68,6 +68,7 @@ public:
 	std::vector<std::vector<size_t> > & selection() override;
 private slots:
 	void toggleVis(int);
+	void toggleBoundingBox(int);
 	void referenceToggled(bool);
 	void miniMouseEvent(QMouseEvent* ev);
 	void timeSliderChanged(int);

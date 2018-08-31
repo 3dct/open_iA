@@ -101,6 +101,7 @@ public:
 	iAVtkWidgetClass* m_vtkWidget;
 	QSharedPointer<iA3DCylinderObjectVis> m_mini3DVis;
 	QSharedPointer<iA3DCylinderObjectVis> m_main3DVis;
+	QCheckBox* m_boundingBox;
 };
 
 namespace
@@ -213,7 +214,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	contextOpacityWidget->layout()->addWidget(m_contextOpacitySlider);
 	contextOpacityWidget->layout()->addWidget(m_contextOpacityLabel);
 	contextOpacityWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-	
+
 	QWidget* mainRendererContainer = new QWidget();
 	mainRendererContainer->setLayout(new QVBoxLayout());
 	mainRendererContainer->layout()->addWidget(m_mainRenderer);
@@ -335,16 +336,20 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		resultData.m_vtkWidget->SetRenderWindow(renWin);
 		resultData.m_vtkWidget->setProperty("resultID", resultID);
 
-		QCheckBox* toggleMainRender = new QCheckBox(QFileInfo(csvFile).fileName());
+		QCheckBox* toggleMainRender = new QCheckBox(QFileInfo(csvFile).baseName());
 		toggleMainRender->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 		toggleMainRender->setProperty("resultID", resultID);
+		resultData.m_boundingBox = new QCheckBox("Box");
+		resultData.m_boundingBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+		resultData.m_boundingBox->setProperty("resultID", resultID);
 		QRadioButton* toggleReference = new QRadioButton("");
 		toggleReference->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 		toggleReference->setProperty("resultID", resultID);
 		m_defaultButtonGroup->addButton(toggleReference);
 		resultsListLayout->addWidget(toggleMainRender, resultID, 0);
-		resultsListLayout->addWidget(toggleReference, resultID, 1);
-		resultsListLayout->addWidget(resultData.m_vtkWidget, resultID, 2);
+		resultsListLayout->addWidget(resultData.m_boundingBox, resultID, 1);
+		resultsListLayout->addWidget(toggleReference, resultID, 2);
+		resultsListLayout->addWidget(resultData.m_vtkWidget, resultID, 3);
 
 		resultData.m_mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
 				resultData.m_vtkWidget, tableCreator.getTable(), io.getOutputMapping(), getResultColor(resultID)));
@@ -360,6 +365,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		connect(resultData.m_vtkWidget, &iAVtkWidgetClass::mouseEvent, this, &iAFiberOptimizationExplorer::miniMouseEvent);
 		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleVis);
 		connect(toggleReference, &QRadioButton::toggled, this, &iAFiberOptimizationExplorer::referenceToggled);
+		connect(resultData.m_boundingBox, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleBoundingBox);
 
 		QFileInfo timeInfo(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).baseName());
 
@@ -601,6 +607,8 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 			data.m_main3DVis->setSelection(m_currentSelection[resultID], anythingSelected);
 		data.m_main3DVis->show();
 		m_style->addInput( resultID, data.m_main3DVis->getLinePolyData() );
+		if (data.m_boundingBox->isChecked())
+			data.m_main3DVis->showBoundingBox();
 	}
 	else
 	{
@@ -609,12 +617,29 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 			DEBUG_LOG("Visualization not found!");
 			return;
 		}
-		data.m_main3DVis->hide();
 		data.m_main3DVis.reset();
 		m_style->removeInput(resultID);
 	}
 	m_mainRenderer->GetRenderWindow()->Render();
 	m_mainRenderer->update();
+}
+
+void iAFiberOptimizationExplorer::toggleBoundingBox(int state)
+{
+	int resultID = QObject::sender()->property("resultID").toInt();
+	iAResultData & data = m_resultData[resultID];
+	if (state == Qt::Checked)
+	{
+		if (!data.m_main3DVis)
+		{
+			DEBUG_LOG("Dataset has to be shown for Bounding Box at the moment!");
+			return;
+		}
+		data.m_main3DVis->showBoundingBox();
+	}
+	else
+		if (data.m_main3DVis)
+			data.m_main3DVis->hideBoundingBox();
 }
 
 void iAFiberOptimizationExplorer::getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID)

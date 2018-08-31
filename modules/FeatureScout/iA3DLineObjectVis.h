@@ -30,6 +30,7 @@
 class iALookupTable;
 
 class vtkActor;
+class vtkOutlineFilter;
 class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
@@ -38,6 +39,7 @@ class vtkUnsignedCharArray;
 class FeatureScout_API iA3DLineObjectVis: public iA3DObjectVis
 {
 public:
+	~iA3DLineObjectVis();
 	static const int DefaultContextOpacity = 8;
 	static const int DefaultSelectionOpacity = 128;
 	iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
@@ -56,12 +58,18 @@ public:
 	void setLookupTable( QSharedPointer<iALookupTable> lut, size_t paramIndex );
 	void setSelection ( std::vector<size_t> const & sortedSelInds, bool selectionActive );
 	void updateColorSelectionRendering();
+	void showBoundingBox();
+	void hideBoundingBox();
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
 	vtkSmartPointer<vtkActor> m_actor;
 	vtkSmartPointer<vtkPoints> m_points;
+
+	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
+	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
+	vtkSmartPointer<vtkActor> m_outlineActor;
 private:
 	void setPolyPointColor(int ptIdx, QColor const & qcolor);
 	void updatePolyMapper();
