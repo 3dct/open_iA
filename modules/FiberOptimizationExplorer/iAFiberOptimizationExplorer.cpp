@@ -28,6 +28,7 @@
 #include "iAFeatureScoutModuleInterface.h"
 #include "iAVectorPlotData.h"
 
+// Core:
 #include "charts/iAChartWidget.h"
 #include "charts/iAPlotTypes.h"
 #include "charts/iAScatterPlot.h" // for selection mode: iAScatterPlot::Rectangle
@@ -125,6 +126,8 @@ namespace
 	QColor SPLOMSelectionColor(255, 0, 0, ContextOpacity);
 
 	int MaxNumberOfCloseFibers = 25;
+
+	int NoResult = -1;
 }
 
 iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd):
@@ -132,7 +135,8 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_mainWnd(mainWnd),
 	m_timeStepCount(0),
 	m_splomData(new iASPLOMData()),
-	m_splom(new iAQSplom())
+	m_splom(new iAQSplom()),
+	m_referenceID(NoResult)
 {
 	setDockOptions(AllowNestedDocks | AllowTabbedDocks );
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -1023,7 +1027,11 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 		m_mainRenderer->update();
 		return;
 	}
-
+	if (m_referenceID == NoResult)
+	{
+		DEBUG_LOG("Please select a reference first!");
+		return;
+	}
 	m_refVisTable = vtkSmartPointer<vtkTable>::New();
 	m_refVisTable->Initialize();
 	// ID column (int):
