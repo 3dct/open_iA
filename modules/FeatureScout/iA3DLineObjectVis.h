@@ -60,6 +60,7 @@ public:
 	void updateColorSelectionRendering();
 	void showBoundingBox();
 	void hideBoundingBox();
+	bool visible() const;
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
@@ -70,6 +71,7 @@ protected:
 	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
 	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
 	vtkSmartPointer<vtkActor> m_outlineActor;
+	bool m_visible;
 private:
 	void setPolyPointColor(int ptIdx, QColor const & qcolor);
 	void updatePolyMapper();

@@ -52,9 +52,11 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 	m_selectionColor(SelectedColor),
 	m_baseColor(128, 128, 128),
 	m_selectionActive(false),
+	m_actor(vtkSmartPointer<vtkActor>::New()),
 	m_outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
 	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_outlineActor(vtkSmartPointer<vtkActor>::New())
+	m_outlineActor(vtkSmartPointer<vtkActor>::New()),
+	m_visible(false)
 {
 	m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	m_colors->SetNumberOfComponents(4);
@@ -106,6 +108,7 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 	m_mapper->SelectColorArray("Colors");
 	m_mapper->SetScalarModeToUsePointFieldData();
 	m_mapper->ScalarVisibilityOn();
+	m_actor->SetMapper(m_mapper);
 
 	m_outlineFilter->SetInputData(m_linePolyData);
 	m_outlineMapper->SetInputConnection(m_outlineFilter->GetOutputPort());
@@ -127,18 +130,14 @@ void iA3DLineObjectVis::updateValues( std::vector<std::vector<double> > const & 
 
 void iA3DLineObjectVis::show()
 {
-	m_actor = vtkSmartPointer<vtkActor>::New();
-	m_actor->SetMapper(m_mapper);
-	vtkRenderWindow* renWin = m_widget->GetRenderWindow();
-	renWin->GetRenderers()->GetFirstRenderer()->AddActor(m_actor);
+	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_actor);
+	m_visible = true;
 }
 
 void iA3DLineObjectVis::hide()
 {
-	if (!m_actor)
-		return;
-	vtkRenderWindow* renWin = m_widget->GetRenderWindow();
-	renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(m_actor);
+	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_actor);
+	m_visible = false;
 }
 
 void iA3DLineObjectVis::renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* activeClassItem )
@@ -313,6 +312,11 @@ void iA3DLineObjectVis::hideBoundingBox()
 {
 	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_outlineActor);
 	updateRenderer();
+}
+
+bool iA3DLineObjectVis::visible() const
+{
+	return m_visible;
 }
 
 iA3DLineObjectVis::~iA3DLineObjectVis()
