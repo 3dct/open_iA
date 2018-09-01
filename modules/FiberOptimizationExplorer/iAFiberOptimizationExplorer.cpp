@@ -353,6 +353,8 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 
 		resultData.m_mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
 				resultData.m_vtkWidget, tableCreator.getTable(), io.getOutputMapping(), getResultColor(resultID)));
+		resultData.m_main3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer,
+				tableCreator.getTable(), io.getOutputMapping(), getResultColor(resultID)));
 		resultData.m_mini3DVis->setColor(getResultColor(resultID));
 		resultData.m_mini3DVis->show();
 		ren->ResetCamera();
@@ -587,14 +589,6 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 	iAResultData & data = m_resultData[resultID];
 	if (state == Qt::Checked)
 	{
-		if (data.m_main3DVis)
-		{
-			DEBUG_LOG("Visualization already exists!");
-			return;
-		}
-		data.m_main3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer,
-				data.m_resultTable, data.m_outputMapping, getResultColor(resultID)));
-		data.m_main3DVis->setColor(getResultColor(resultID));
 		data.m_main3DVis->setSelectionOpacity(SelectionOpacity);
 		data.m_main3DVis->setContextOpacity(ContextOpacity);
 		if (m_splom->colorScheme() == iAQSplom::DivergingPerceptuallyUniform)
@@ -602,22 +596,20 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 			data.m_main3DVis->setLookupTable(m_splom->lookupTable(), m_splom->colorLookupParam());
 			data.m_main3DVis->updateColorSelectionRendering();
 		}
+		else
+		{
+			data.m_main3DVis->setColor(getResultColor(resultID));
+		}
 		bool anythingSelected = isAnythingSelected();
 		if (anythingSelected)
 			data.m_main3DVis->setSelection(m_currentSelection[resultID], anythingSelected);
+		// TODO: Apply the current time step!!!
 		data.m_main3DVis->show();
 		m_style->addInput( resultID, data.m_main3DVis->getLinePolyData() );
-		if (data.m_boundingBox->isChecked())
-			data.m_main3DVis->showBoundingBox();
 	}
 	else
 	{
-		if (!data.m_main3DVis)
-		{
-			DEBUG_LOG("Visualization not found!");
-			return;
-		}
-		data.m_main3DVis.reset();
+		data.m_main3DVis->hide();
 		m_style->removeInput(resultID);
 	}
 	m_mainRenderer->GetRenderWindow()->Render();
@@ -629,17 +621,9 @@ void iAFiberOptimizationExplorer::toggleBoundingBox(int state)
 	int resultID = QObject::sender()->property("resultID").toInt();
 	iAResultData & data = m_resultData[resultID];
 	if (state == Qt::Checked)
-	{
-		if (!data.m_main3DVis)
-		{
-			DEBUG_LOG("Dataset has to be shown for Bounding Box at the moment!");
-			return;
-		}
 		data.m_main3DVis->showBoundingBox();
-	}
 	else
-		if (data.m_main3DVis)
-			data.m_main3DVis->hideBoundingBox();
+		data.m_main3DVis->hideBoundingBox();
 }
 
 void iAFiberOptimizationExplorer::getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID)
@@ -723,7 +707,7 @@ void iAFiberOptimizationExplorer::showCurrentSelectionIn3DViews()
 	{
 		auto result = m_resultData[resultID];
 		result.m_mini3DVis->setSelection(m_currentSelection[resultID], anythingSelected);
-		if (result.m_main3DVis)
+		if (result.m_main3DVis->visible())
 			result.m_main3DVis->setSelection(m_currentSelection[resultID], anythingSelected);
 
 	}
@@ -823,7 +807,7 @@ void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
 		if (m_resultData[resultID].m_timeValues.size() > timeStep)
 		{
 			m_resultData[resultID].m_mini3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
-			if (m_resultData[resultID].m_main3DVis)
+			if (m_resultData[resultID].m_main3DVis->visible())
 				m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
 		}
 	}
@@ -837,7 +821,7 @@ void iAFiberOptimizationExplorer::mainOpacityChanged(int opacity)
 	{
 		m_resultData[resultID].m_mini3DVis->setSelectionOpacity(SelectionOpacity);
 		m_resultData[resultID].m_mini3DVis->updateColorSelectionRendering();
-		if (m_resultData[resultID].m_main3DVis)
+		if (m_resultData[resultID].m_main3DVis->visible())
 		{
 			m_resultData[resultID].m_main3DVis->setSelectionOpacity(SelectionOpacity);
 			m_resultData[resultID].m_main3DVis->updateColorSelectionRendering();
@@ -853,7 +837,7 @@ void iAFiberOptimizationExplorer::contextOpacityChanged(int opacity)
 	{
 		m_resultData[resultID].m_mini3DVis->setContextOpacity(ContextOpacity);
 		m_resultData[resultID].m_mini3DVis->updateColorSelectionRendering();
-		if (m_resultData[resultID].m_main3DVis)
+		if (m_resultData[resultID].m_main3DVis->visible())
 		{
 			m_resultData[resultID].m_main3DVis->setContextOpacity(ContextOpacity);
 			m_resultData[resultID].m_main3DVis->updateColorSelectionRendering();
@@ -1018,7 +1002,7 @@ void iAFiberOptimizationExplorer::splomLookupTableChanged()
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
 		m_resultData[resultID].m_mini3DVis->setLookupTable(lut, colorLookupParam);
-		if (m_resultData[resultID].m_main3DVis)
+		if (m_resultData[resultID].m_main3DVis->visible())
 			m_resultData[resultID].m_main3DVis->setLookupTable(lut, colorLookupParam);
 	}
 }
