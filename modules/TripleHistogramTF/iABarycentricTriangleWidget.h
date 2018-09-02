@@ -40,11 +40,14 @@ static const QString MODALITY_LABEL_1_DEFAULT = "A";
 static const QString MODALITY_LABEL_2_DEFAULT = "B";
 static const QString MODALITY_LABEL_3_DEFAULT = "C";
 
+static const QColor BACKGROUND_DEFAULT = QColor(242, 242, 242, 255);
+
 class iABarycentricTriangleWidget : public QOpenGLWidget, public IBorderWidget
 {
 	Q_OBJECT
 
 public:
+	iABarycentricTriangleWidget(QWidget* parent, QColor backgroundColor, Qt::WindowFlags f = 0);
 	iABarycentricTriangleWidget(QWidget* parent, Qt::WindowFlags f = 0);
 	
 	~iABarycentricTriangleWidget();
@@ -69,6 +72,8 @@ public:
 	void setTriangleRenderer(iATriangleRenderer *triangleRenderer);
 	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
 
+	void setBackgroundColor(QColor color);
+
 public slots:
 
 signals:
@@ -83,6 +88,7 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *event);
 
 private:
+	QColor m_backgroundColor = BACKGROUND_DEFAULT;
 	BarycentricTriangle m_triangle;
 	QPoint m_controlPoint;
 	QPoint m_controlPointOld;

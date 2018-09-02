@@ -22,7 +22,7 @@
 #include <math.h>
 #include <QPainter>
 
-#include "iABarycentricHelperRenderer.h"
+#include "iABarycentricContextRenderer.h"
 #include "BarycentricTriangle.h"
 
 #include <vtkVersion.h>
@@ -32,35 +32,35 @@ static const int ONE_DIV_THREE = 1.0 / 3.0;
 static const int GRAY_VALUE_MIN = 48;
 static const int GRAY_VALUE_INTERVAL = 255 - GRAY_VALUE_MIN;
 
-iABarycentricHelperRenderer::iABarycentricHelperRenderer()
+iABarycentricContextRenderer::iABarycentricContextRenderer()
 {
 	
 }
 
-iABarycentricHelperRenderer::~iABarycentricHelperRenderer()
+iABarycentricContextRenderer::~iABarycentricContextRenderer()
 {
 
 }
 
-void iABarycentricHelperRenderer::paintHelper(QPainter &p)
+void iABarycentricContextRenderer::paintHelper(QPainter &p)
 {
 	if (!m_image.isNull()) {
 		p.drawImage(m_imagePoint, m_image);
 	}
 }
 
-void iABarycentricHelperRenderer::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle)
+void iABarycentricContextRenderer::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle)
 {
 	calculateCoordinates(d1, d2, d3);
 	updateTriangle(triangle);
 }
 
-void iABarycentricHelperRenderer::setTriangle(BarycentricTriangle triangle)
+void iABarycentricContextRenderer::setTriangle(BarycentricTriangle triangle)
 {
 	updateTriangle(triangle);
 }
 
-bool iABarycentricHelperRenderer::canPaint()
+bool iABarycentricContextRenderer::canPaint()
 {
 	return !m_image.isNull();
 }
@@ -69,7 +69,7 @@ bool iABarycentricHelperRenderer::canPaint()
 // PRIVATE -----------------------------------------------------------------------------------------------
 
 // TODO good? we're assuming each vtkImageData has the same dimensions
-void iABarycentricHelperRenderer::calculateCoordinates(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3)
+void iABarycentricContextRenderer::calculateCoordinates(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3)
 {
 	m_barycentricCoordinates = vtkSmartPointer<vtkImageData>::New();
 
@@ -128,7 +128,7 @@ void iABarycentricHelperRenderer::calculateCoordinates(vtkSmartPointer<vtkImageD
 	}
 }
 
-void iABarycentricHelperRenderer::updateTriangle(BarycentricTriangle triangle)
+void iABarycentricContextRenderer::updateTriangle(BarycentricTriangle triangle)
 {
 	if (!m_barycentricCoordinates) {
 		return;
@@ -159,7 +159,7 @@ void iABarycentricHelperRenderer::updateTriangle(BarycentricTriangle triangle)
 	drawImage(triangle, width, height);
 }
 
-void iABarycentricHelperRenderer::drawImage(BarycentricTriangle triangle, int width, int height)
+void iABarycentricContextRenderer::drawImage(BarycentricTriangle triangle, int width, int height)
 {
 	int widthMinusOne = width - 1;
 	int heightMinusOne = height - 1;

@@ -51,6 +51,12 @@ static const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
 
 static const char* WEIGHT_FORMAT = "%.0f%%"; //"%.2f%;
 
+iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, QColor backgroundColor, Qt::WindowFlags f /*= 0 */) :
+	iABarycentricTriangleWidget(parent, f)
+{
+	setBackgroundColor(backgroundColor);
+}
+
 iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	QOpenGLWidget(parent, f)
 {
@@ -107,16 +113,6 @@ void iABarycentricTriangleWidget::initializeControlPointPaths()
 
 iABarycentricTriangleWidget::~iABarycentricTriangleWidget()
 {
-}
-
-void iABarycentricTriangleWidget::initializeGL()
-{
-	glClearColor(0.95, 0.95, 0.95, 1);
-}
-
-void iABarycentricTriangleWidget::resizeGL(int w, int h)
-{
-	recalculatePositions(w, h);
 }
 
 void iABarycentricTriangleWidget::mousePressEvent(QMouseEvent *event)
@@ -403,6 +399,23 @@ void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1
 // ----------------------------------------------------------------------------------------------
 // PAINT METHODS
 // ----------------------------------------------------------------------------------------------
+
+
+
+void iABarycentricTriangleWidget::setBackgroundColor(QColor color)
+{
+	glClearColor(color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0, color.alpha() / 255.0);
+}
+
+void iABarycentricTriangleWidget::initializeGL()
+{
+	setBackgroundColor(m_backgroundColor);
+}
+
+void iABarycentricTriangleWidget::resizeGL(int w, int h)
+{
+	recalculatePositions(w, h);
+}
 
 void iABarycentricTriangleWidget::paintGL()
 {
