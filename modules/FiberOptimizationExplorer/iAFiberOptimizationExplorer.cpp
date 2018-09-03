@@ -873,6 +873,23 @@ namespace
 		return std::sqrt(squaredSum);
 	}
 
+	double angle(double const * const pt1, double const * const pt2)
+	{
+		double prod = 0;
+		for(int i = 0; i<3; ++i)
+		{
+			prod += pt1[i] * pt2[i];
+		}
+		double len1 = std::sqrt(pt1[0] * pt1[0] + pt1[1] * pt1[1] + pt1[2] * pt1[2]);
+		double len2 = std::sqrt(pt2[0] * pt2[0] + pt2[1] * pt2[1] + pt2[2] * pt2[2]);
+		if (len1 == 0 || len2 == 0)
+		{
+			return 0;
+		}
+		double cosAngle = prod / (len1*len2);
+		return std::acos(cosAngle);
+	}
+
 	void swapPoints(double * pt1, double * pt2)
 	{
 		for (int i=0; i<3; ++i)
@@ -919,6 +936,33 @@ namespace
 			val2[4] = fiber2->GetValue(mapping[iACsvConfig::CenterZ]).ToDouble();
 
 			// TODO: opposite direction treatment! -> phi/theta reversed?
+			double radius = 1;
+			double dir1[3], dir2[3];
+			dir1[0] = radius * std::sin(val1[0]) * std::cos(val1[1]);
+			dir1[1] = radius * std::sin(val1[0]) * std::sin(val1[1]);
+			dir1[2] = radius * std::cos(val1[0]);
+			dir2[0] = radius * std::sin(val2[0]) * std::cos(val2[1]);
+			dir2[1] = radius * std::sin(val2[0]) * std::sin(val2[1]);
+			dir2[2] = radius * std::cos(val2[0]);
+			double fiberAngle = angle(dir1, dir2);
+			if (fiberAngle > vtkMath::Pi() / 2) // if angle larger than 90°
+			{
+				dir1[0] += (dir1[0] < vtkMath::Pi()) ? vtkMath::Pi() : -vtkMath::Pi();
+				dir1[1] += (dir1[1] < 0) ? vtkMath::Pi()/2 : -vtkMath::Pi()/2;
+				dir1[0] = radius * std::sin(val1[0]) * std::cos(val1[1]);
+				dir1[1] = radius * std::sin(val1[0]) * std::sin(val1[1]);
+				dir1[2] = radius * std::cos(val1[0]);
+				dir2[0] = radius * std::sin(val2[0]) * std::cos(val2[1]);
+				dir2[1] = radius * std::sin(val2[0]) * std::sin(val2[1]);
+				dir2[2] = radius * std::cos(val2[0]);
+				fiberAngle = angle(dir1, dir2);
+				if (fiberAngle > vtkMath::Pi() ) // still larger than 90° ? Then my calculations are wrong!
+				{
+					DEBUG_LOG(QString("Wrong angle computation: phi1=%1, theta1=%2, phi2=%3, theta2=%4")
+							  .arg(val1[0]).arg(val1[1]).arg(val2[0]).arg(val2[1]))
+				}
+			}
+
 
 			distance = l2dist(val1, val2, 5);
 			break;
