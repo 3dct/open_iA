@@ -27,7 +27,7 @@
 #include "charts/iADiagramFctWidget.h"
 
 iAHistogramStack::iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f)
-	: iATripleModalityHistograms(parent, mdiChild, f)
+	: iATripleModalityWidget(parent, mdiChild, f)
 {
 }
 
@@ -71,7 +71,7 @@ void iAHistogramStack::setModalityLabel(QString label, int index)
 {
 	if (isReady()) {
 		m_modalityLabels[index]->setText(label);
-		iATripleModalityHistograms::setModalityLabel(label, index);
+		iATripleModalityWidget::setModalityLabel(label, index);
 	}
 }
 

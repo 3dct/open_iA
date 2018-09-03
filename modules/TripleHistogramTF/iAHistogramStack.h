@@ -22,9 +22,11 @@
 
 #include <QWidget>
 
-#include "iATripleModalityHistograms.h"
+#include "iATripleModalityWidget.h"
 //#include "mdichild.h"
 class MdiChild;
+class iADiagramFctWidget;
+class iASimpleSlicerWidget;
 
 class iAHistogramStackGrid : public QWidget
 {
@@ -38,7 +40,7 @@ private:
 	QGridLayout *m_gridLayout;
 };
 
-class iAHistogramStack : public iATripleModalityHistograms
+class iAHistogramStack : public iATripleModalityWidget
 {
 public:
 	iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);

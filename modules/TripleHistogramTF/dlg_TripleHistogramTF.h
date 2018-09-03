@@ -29,7 +29,7 @@ class QLabel;
 
 class MdiChild;
 class iABarycentricTriangleWidget;
-class iATripleModalityHistograms;
+class iATripleModalityWidget;
 class BCoord;
 
 //typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
@@ -57,6 +57,6 @@ private:
 	// Widgets and stuff
 	QStackedLayout *m_stackedLayout;
 	QLabel *m_disabledLabel;
-	iATripleModalityHistograms *m_histogramStack;
+	iATripleModalityWidget *m_histogramStack;
 	
 };
