@@ -980,6 +980,8 @@ namespace
 			double points2[3][3];
 			setPoints(fiber1, mapping, points1);
 			setPoints(fiber2, mapping, points2);
+			double fiber1Len = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble();
+			double fiber2Len = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble();
 
 			double dist1StartTo2Start = l2dist(points1[0], points2[0], 3);
 			double dist1StartTo2End = l2dist(points1[0], points2[2], 3);
@@ -1003,11 +1005,13 @@ namespace
 			double points2[3][3];
 			setPoints(fiber1, mapping, points1);
 			setPoints(fiber2, mapping, points2);
+			double fiber1Len = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble();
+			double fiber2Len = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble();
 
 			for (int i=0; i<3; ++i)
 				for (int j=0; j<3; ++j)
 					distance += l2dist(points1[i], points2[j], 3);
-			distance /= 9;
+			distance /= 9 * fiber1Len * fiber2Len;
 			break;
 		}
 		}
