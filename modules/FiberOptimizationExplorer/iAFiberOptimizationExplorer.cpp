@@ -1053,7 +1053,7 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 		if (resultID == m_referenceID)
 			continue;
 
-		DEBUG_LOG(QString("Matching result %1 to reference (%2):").arg(resultID).arg(m_referenceID));
+		//DEBUG_LOG(QString("Matching result %1 to reference (%2):").arg(resultID).arg(m_referenceID));
 		size_t fiberCount = m_resultData[resultID].m_resultTable->GetNumberOfRows();
 		m_resultData[resultID].m_referenceDist.resize(fiberCount);
 		m_resultData[resultID].m_referenceDiff.resize(fiberCount);
@@ -1063,12 +1063,14 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			getBestMatches(m_resultData[resultID].m_resultTable->GetRow(fiberID),
 				mapping, m_resultData[m_referenceID].m_resultTable,
 				m_resultData[resultID].m_referenceDist[fiberID]);
+			/*
 			DEBUG_LOG(QString("  Fiber %1: Best match: distmetric1: fiber %2 (distance: %3), distmetric2: %4 (distance: %5)")
 				.arg(fiberID)
 				.arg(m_resultData[resultID].m_referenceDist[fiberID][0][0].index)
 				.arg(m_resultData[resultID].m_referenceDist[fiberID][0][0].distance)
 				.arg(m_resultData[resultID].m_referenceDist[fiberID][1][0].index)
 				.arg(m_resultData[resultID].m_referenceDist[fiberID][1][0].distance));
+			*/
 		}
 	}
 	
@@ -1094,7 +1096,7 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			splomID += m_resultData[resultID].m_resultTable->GetNumberOfRows();
 			continue;
 		}
-		DEBUG_LOG(QString("Differences of result %1 to reference (%2):").arg(resultID).arg(m_referenceID));
+		//DEBUG_LOG(QString("Differences of result %1 to reference (%2):").arg(resultID).arg(m_referenceID));
 		size_t fiberCount = m_resultData[resultID].m_resultTable->GetNumberOfRows();
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
@@ -1115,6 +1117,7 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 				m_splomData->data()[tableColumnID][splomID] = dist;
 				m_resultData[resultID].m_resultTable->SetValue(fiberID, tableColumnID, dist);
 			}
+			/*
 			DEBUG_LOG(QString("  Fiber %1 -> ref #%2. Shift: startx=(%3, %4, %5), endx=(%6, %7, %8), center=(%9, %10, %11), phi=%12, theta=%13, length=%14, diameter=%15")
 				.arg(fiberID).arg(m_resultData[resultID].m_referenceDist[fiberID][0][0].index)
 				.arg(refDiff[0]).arg(refDiff[1]).arg(refDiff[2])
@@ -1122,6 +1125,7 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 				.arg(refDiff[6]).arg(refDiff[7]).arg(refDiff[8])
 				.arg(refDiff[9]).arg(refDiff[10]).arg(refDiff[11]).arg(refDiff[12])
 			);
+			*/
 			m_resultData[resultID].m_referenceDiff[fiberID].swap(refDiff);
 			++splomID;
 		}
@@ -1186,30 +1190,27 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 	double range[2];
 	range[0] = std::numeric_limits<double>::max();
 	range[1] = std::numeric_limits<double>::lowest();
-	DEBUG_LOG("Showing reference fibers:");
+	//DEBUG_LOG("Showing reference fibers:");
 	for (size_t resultID=0; resultID < m_resultData.size(); ++resultID)
 	{
 		if (resultID == m_referenceID)
 			continue;
-		DEBUG_LOG(QString("  In Result %1").arg(resultID));
+		//DEBUG_LOG(QString("  In Result %1").arg(resultID));
 		for (size_t fiberIdx = 0; fiberIdx < m_currentSelection[resultID].size(); ++fiberIdx)
 		{
 			size_t fiberID = m_currentSelection[resultID][fiberIdx];
-			DEBUG_LOG(QString("    For Fiber %1").arg(fiberID));
+			//DEBUG_LOG(QString("    For Fiber %1").arg(fiberID));
 			for (int n=0; n<refCount; ++n)
 			{
+				/*
 				DEBUG_LOG(QString("      Ref. Fiber %1, distance=%2")
 						  .arg(m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].index)
 						  .arg(m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance));
+				*/
 				referenceIDsToShow.push_back(m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n]);
-				if (m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance < range[0])
-					range[0] = m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance;
-				if (m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance > range[1])
-					range[1] = m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance;
 			}
 		}
 	}
-	DEBUG_LOG(QString("  Final distance range: %1..%2").arg(range[0]).arg(range[1]));
 
 	m_refVisTable->SetNumberOfRows(referenceIDsToShow.size());
 
