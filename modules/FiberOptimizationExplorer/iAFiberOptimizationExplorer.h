@@ -111,4 +111,8 @@ private:
 	QComboBox* m_cmbboxDistanceMeasure;
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
+
+	vtkSmartPointer<vtkPolyData> m_sampleData;
+	vtkSmartPointer<vtkPolyDataMapper> m_sampleMapper;
+	vtkSmartPointer<vtkActor> m_sampleActor;
 };

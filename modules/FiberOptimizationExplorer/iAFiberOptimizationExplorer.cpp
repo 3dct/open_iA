@@ -48,6 +48,9 @@
 #include <vtkFloatArray.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkRendererCollection.h>
 #include <vtkRenderer.h>
 #include <vtkTable.h>
 #include <vtkVariantArray.h>
@@ -67,6 +70,8 @@
 #include <QTextStream>
 
 #include <QtGlobal> // for QT_VERSION
+
+#include <random>
 
 class iAFiberDistance
 {
@@ -873,18 +878,28 @@ void iAFiberOptimizationExplorer::contextOpacityChanged(int opacity)
 
 namespace
 {
-	double l2dist(double const * const pt1, double const * const pt2, int count)
+	/*
+	double vecLen(double const * vec, int count)
 	{
 		double squaredSum = 0;
-		for (int i=0; i<count; ++i)
-			squaredSum += std::pow(pt1[i]-pt2[i], 2);
+		for (int i = 0; i < count; ++i)
+			squaredSum += std::pow(vec[i], 2);
 		return std::sqrt(squaredSum);
+	}
+	*/
+
+	double l2dist(double const * const pt1, double const * const pt2, int count)
+	{
+		double distVec[3];
+		for (int i = 0; i < count; ++i)
+			distVec[i] = pt1[i] - pt2[i];
+		return vtkMath::Norm(distVec, count);
 	}
 
 	double angle(double const * const pt1, double const * const pt2)
 	{
 		double prod = 0;
-		for(int i = 0; i<3; ++i)
+		for (int i = 0; i < 3; ++i)
 		{
 			prod += pt1[i] * pt2[i];
 		}
@@ -900,7 +915,7 @@ namespace
 
 	void swapPoints(double * pt1, double * pt2)
 	{
-		for (int i=0; i<3; ++i)
+		for (int i = 0; i < 3; ++i)
 		{
 			double tmp = pt1[i];
 			pt1[i] = pt2[i];
@@ -910,16 +925,61 @@ namespace
 
 	void setPoints(vtkVariantArray* fiber, QMap<uint, uint> const & mapping, double points[3][3])
 	{
-		points[0][0] = fiber->GetValue(mapping[iACsvConfig::StartX]) .ToDouble();
-		points[0][1] = fiber->GetValue(mapping[iACsvConfig::StartY]) .ToDouble();
-		points[0][2] = fiber->GetValue(mapping[iACsvConfig::StartZ]) .ToDouble();
+		points[0][0] = fiber->GetValue(mapping[iACsvConfig::StartX]).ToDouble();
+		points[0][1] = fiber->GetValue(mapping[iACsvConfig::StartY]).ToDouble();
+		points[0][2] = fiber->GetValue(mapping[iACsvConfig::StartZ]).ToDouble();
 		points[1][0] = fiber->GetValue(mapping[iACsvConfig::CenterX]).ToDouble();
 		points[1][1] = fiber->GetValue(mapping[iACsvConfig::CenterY]).ToDouble();
 		points[1][2] = fiber->GetValue(mapping[iACsvConfig::CenterZ]).ToDouble();
-		points[2][0] = fiber->GetValue(mapping[iACsvConfig::EndX])   .ToDouble();
-		points[2][1] = fiber->GetValue(mapping[iACsvConfig::EndY])   .ToDouble();
-		points[2][2] = fiber->GetValue(mapping[iACsvConfig::EndZ])   .ToDouble();
+		points[2][0] = fiber->GetValue(mapping[iACsvConfig::EndX]).ToDouble();
+		points[2][1] = fiber->GetValue(mapping[iACsvConfig::EndY]).ToDouble();
+		points[2][2] = fiber->GetValue(mapping[iACsvConfig::EndZ]).ToDouble();
 	}
+
+	// great points about floating point equals: https://stackoverflow.com/a/41405501/671366
+	template<typename TReal>
+	static bool isApproxEqual(TReal a, TReal b, TReal tolerance = std::numeric_limits<TReal>::epsilon())
+	{
+		TReal diff = std::fabs(a - b);
+		if (diff <= tolerance)
+			return true;
+
+		if (diff < std::fmax(std::fabs(a), std::fabs(b)) * tolerance)
+			return true;
+
+		return false;
+	}
+
+	void perpendicularVector(double const vectorIn[3], double vectorOut[3])
+	{
+		if (!isApproxEqual(vectorIn[0], 0.0) && !isApproxEqual(-vectorIn[0], vectorIn[1]))
+		{
+			vectorOut[0] = vectorIn[2];
+			vectorOut[1] = vectorIn[2];
+			vectorOut[2] = -vectorIn[0] - vectorIn[1];
+		}
+		else
+		{
+			vectorOut[0] = -vectorIn[1] - vectorIn[2];
+			vectorOut[1] = vectorIn[0];
+			vectorOut[2] = vectorIn[0];
+		}
+	}
+	/*
+	void normalizeVector(double * vector, int count)
+	{
+		double length = vecLen(vector, count);
+		for (int i = 0; i < count; ++i)
+			vector[i] /= length;
+	}
+
+	void crossProduct(double const * vec1, double const * vec2, double * out)
+	{
+		out[0] = vec1[1] * vec2[2] - vec1[2] * vec2[1];
+		out[1] = -(vec1[0] * vec2[2] - vec1[2] * vec2[0]);
+		out[2] = vec1[0] * vec2[1] - vec1[1] * vec2[0];
+	}
+	*/
 
 	// currently: L2 norm (euclidean distance). other measures?
 	double getDistance(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vtkVariantArray* fiber2, int distanceMeasure)
@@ -998,7 +1058,7 @@ namespace
 
 			break;
 		}
-		case 2: // distances between all points:
+		case 2: // distances between all 9 pairs of the 3 points of each fiber:
 		{
 
 			double points1[3][3];
@@ -1011,11 +1071,80 @@ namespace
 			for (int i=0; i<3; ++i)
 				for (int j=0; j<3; ++j)
 					distance += l2dist(points1[i], points2[j], 3);
-			distance /= 9 * fiber1Len * fiber2Len;
+			distance /= fiber1Len;
 			break;
+		}
+		case 3: // overlap between the cylinder volumes, sampled through CylinderSamplePoints from the shorter fiber
+		{
+			// 1. sample points on the cylinder
+			//    -> regular?
+			//        - n places along the fiber axis (e.g. split length into 5 equal segments)
+			//        - at each place, take m points along the fiber surface (i.e. split 360° by m = x, one point for each segment of angle width x)
+			//        - at surface? -> at distance r from current middle point, in direction of angle x
+			//    -> random? -> probably simplest, something like https://stackoverflow.com/a/9266704/671366:
+			//        - one random variable for point along fiber axis (0..1, where 0=start point, 1=end point)
+			//        - one random variable for direction from axis (0..360°)
+			//            -> for now: only 4 positions (0, 90, 180, 270)°, which makes it much easier to handle (no rotation around custom axis, just cross product/inversion of direction!
+			//        - one random variable for distance from center (0.. fiber radius); make sure to use sqrt of random variable to avoid clustering points in center (http://mathworld.wolfram.com/DiskPointPicking.html)
+			//    - pseudorandom?
+			//        --> no idea at the moment
 		}
 		}
 		return distance;
+	}
+
+	const int CylinderSamplePoints = 100;
+
+	void samplePoints(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, std::vector<std::vector<double> > result)
+	{
+		std::default_random_engine generator; // deterministic, will always produce the same "random" numbers; might be exchanged for another generator to check the spread we still get
+		std::uniform_int_distribution<int> angleRnd(0, 3);
+		std::uniform_real_distribution<double> radiusRnd(0, 1 + std::numeric_limits<double>::epsilon());
+		std::uniform_real_distribution<double> posRnd(0, 1 + std::numeric_limits<double>::epsilon());
+
+		double fiberStart[3], fiberEnd[3], fiberDir[3], perpDir[3], perpDir2[3];
+		fiberStart[0] = fiberInfo->GetValue(mapping[iACsvConfig::StartX]).ToDouble();
+		fiberStart[1] = fiberInfo->GetValue(mapping[iACsvConfig::StartY]).ToDouble();
+		fiberStart[2] = fiberInfo->GetValue(mapping[iACsvConfig::StartZ]).ToDouble();
+		fiberEnd[0] = fiberInfo->GetValue(mapping[iACsvConfig::EndX]).ToDouble();
+		fiberEnd[1] = fiberInfo->GetValue(mapping[iACsvConfig::EndY]).ToDouble();
+		fiberEnd[2] = fiberInfo->GetValue(mapping[iACsvConfig::EndZ]).ToDouble();
+		fiberDir[0] = fiberEnd[0] - fiberStart[0];
+		fiberDir[1] = fiberEnd[1] - fiberStart[1];
+		fiberDir[2] = fiberEnd[2] - fiberStart[2];
+		DEBUG_LOG(QString("Sampling fiber (%1, %2, %3) - (%4, %5, %6)")
+			.arg(fiberStart[0]).arg(fiberStart[1]).arg(fiberStart[2])
+			.arg(fiberEnd[0]).arg(fiberEnd[1]).arg(fiberEnd[2]))
+
+		perpendicularVector(fiberDir, perpDir);
+		// normalizeVector(perpDir, 3);
+		// crossProduct(fiberDir, perpDir, perpDir2);
+		vtkMath::Normalize(perpDir);
+		vtkMath::Cross(fiberDir, perpDir, perpDir2);
+		vtkMath::Normalize(perpDir2);
+
+		result.resize(CylinderSamplePoints);
+
+		double fiberRadius = fiberInfo->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2;
+		for (int i = 0; i < CylinderSamplePoints; ++i)
+		{
+			int angleIdx = angleRnd(generator);
+			double radius = fiberRadius * std::sqrt(radiusRnd(generator));
+			double t = posRnd(generator);
+			double fromCenter[3];
+			// 4 possible directions: perpDir or perpDir2, each either positive or negative direction
+			for (int i = 0; i < 3; ++i)
+			{
+				fromCenter[i] = ((angleIdx < 2) ? 1 : -1) * ((angleIdx == 0 || angleIdx == 2) ? perpDir[i] : perpDir2[i]);
+			}
+
+			double fiberPos[3];
+			DEBUG_LOG(QString("    Sampled point at (%1, %2, %3)").arg(fiberPos[0]).arg(fiberPos[1]).arg(fiberPos[2]));
+			for (int j = 0; j < 3; ++j)
+			{
+				result[i].push_back(fiberStart[j] + fiberDir[j] * t + fromCenter[i] * radius);
+			}
+		}
 	}
 
 	void getBestMatches(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, vtkTable* reference,
@@ -1051,6 +1180,33 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 
 	// "register" other datasets to reference:
 	auto const & mapping = *m_resultData[m_referenceID].m_outputMapping.data();
+
+	std::vector<std::vector<double> > sampledPoints;
+	samplePoints(m_resultData[0].m_resultTable->GetRow(0), mapping, sampledPoints);
+	m_sampleData = vtkSmartPointer<vtkPolyData>::New();
+	auto points = vtkSmartPointer<vtkPoints>::New();
+	for (size_t s = 0; s < sampledPoints.size(); ++s)
+	{
+		double pt[3];
+		for (int i = 0; i < 3; ++i)
+			pt[i] = sampledPoints[s][i];
+		points->InsertNextPoint(pt);
+	}
+	m_sampleData->SetPoints(points);
+
+	m_sampleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_sampleActor = vtkSmartPointer<vtkActor>::New();
+	m_sampleMapper->SetInputData(m_sampleData);
+	m_sampleActor->SetMapper(m_sampleMapper);
+	double pointColor[3];
+	pointColor[0] = 1.0; pointColor[0] = 0.0; pointColor[0] = 0.0;
+	m_sampleActor->GetProperty()->SetColor(pointColor);
+	m_sampleActor->GetProperty()->SetPointSize(3);
+	m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
+	m_mainRenderer->GetRenderWindow()->Render();
+	m_mainRenderer->update();
+
+	return;
 
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
