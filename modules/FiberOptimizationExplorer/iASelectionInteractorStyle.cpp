@@ -31,19 +31,50 @@
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 #include <vtkVertexGlyphFilter.h>
+
+namespace
+{
+	int FontSize = 14;
+	int TextMargin = 2;
+	const char * SelectHelpText = "To select something, press 'r' while this window has focus.";
+	const char * SelectModeText = "Selection Mode";
+}
 
 vtkStandardNewMacro(iASelectionInteractorStyle);
 
 iASelectionInteractorStyle::iASelectionInteractorStyle():
-	m_selectionProvider(nullptr)
-{}
+	m_selectionProvider(nullptr),
+	m_showModeActor(vtkSmartPointer<vtkTextActor>::New())
+{
+	m_showModeActor->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+	m_showModeActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
+	m_showModeActor->GetTextProperty()->SetBackgroundOpacity(0.5);
+	m_showModeActor->GetTextProperty()->SetFontSize(FontSize);
+	m_showModeActor->SetPosition(TextMargin, TextMargin);
+}
 
 void iASelectionInteractorStyle::setSelectionProvider(iASelectionProvider *selectionProvider)
 {
 	m_selectionProvider = selectionProvider;
+}
+namespace
+{
+	// must match values in vtkInteractorStyleRubberBandPick!
+	const int VTKISRBP_ORIENT = 0;
+	const int VTKISRBP_SELECT = 1;
+}
+
+void iASelectionInteractorStyle::OnChar()
+{
+	vtkInteractorStyleRubberBandPick::OnChar();
+	m_showModeActor->SetInput( this->CurrentMode == VTKISRBP_SELECT ? SelectModeText : "" );
+	m_renWin->Render();
 }
 
 void iASelectionInteractorStyle::Pick()
@@ -107,6 +138,9 @@ void iASelectionInteractorStyle::removeInput(size_t resultID)
 void iASelectionInteractorStyle::assignToRenderWindow(vtkSmartPointer<vtkRenderWindow> renWin)
 {
 	vtkSmartPointer<vtkAreaPicker> areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
-	renWin->GetInteractor()->SetPicker(areaPicker);
-	renWin->GetInteractor()->SetInteractorStyle(this);
+	m_renWin = renWin;
+	m_renWin->GetInteractor()->SetPicker(areaPicker);
+	m_renWin->GetInteractor()->SetInteractorStyle(this);
+	m_renWin->GetRenderers()->GetFirstRenderer()->AddActor2D(m_showModeActor);
+	m_showModeActor->SetInput("To select something, press 'r' while this window has focus.");
 }

@@ -30,6 +30,7 @@
 
 class vtkPolyData;
 class vtkRenderWindow;
+class vtkTextActor;
 
 class iASelectionProvider
 {
@@ -47,6 +48,7 @@ public:
 	vtkTypeMacro(iASelectionInteractorStyle, vtkInteractorStyleRubberBandPick);
 	void setSelectionProvider(iASelectionProvider * selectionProvider);
 	void Pick() override;
+	void OnChar() override;
 	void addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points);
 	void removeInput(size_t resultID);
 	void assignToRenderWindow(vtkSmartPointer<vtkRenderWindow> renWin);
@@ -55,5 +57,6 @@ signals:
 private:
 	QMap<int, vtkSmartPointer<vtkPolyData> > m_resultPoints;
 	iASelectionProvider * m_selectionProvider;
-
+	vtkSmartPointer<vtkTextActor> m_showModeActor;
+	vtkSmartPointer<vtkRenderWindow> m_renWin;
 };
