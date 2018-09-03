@@ -203,9 +203,9 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_spnboxReferenceCount->setMaximum(MaxNumberOfCloseFibers);
 	showReferenceWidget->setLayout(new QHBoxLayout());
 	m_cmbboxDistanceMeasure = new QComboBox();
-	m_cmbboxDistanceMeasure->addItem("Midpoint, Angles, Length");
-	m_cmbboxDistanceMeasure->addItem("Start-/Center-/Endpoint (3 smallest)");
-	m_cmbboxDistanceMeasure->addItem("Start-/Center-/Endpoint (all 9 pairs)");
+	m_cmbboxDistanceMeasure->addItem("Dist1 (Midpoint, Angles, Length)");
+	m_cmbboxDistanceMeasure->addItem("Dist2 (Start-Start/Center-Center/End-End)");
+	m_cmbboxDistanceMeasure->addItem("Dist3 (all 9 pairs Start-/Center-/Endpoint)");
 	m_cmbboxDistanceMeasure->setCurrentIndex(2);
 	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::changeReferenceDisplay);
 	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(changeReferenceDisplay()));
@@ -316,7 +316,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			DifferenceCount = paramNames.size() - numColumns;
 			for (int i=0; i<DistanceMetricCount; ++i)
 			{
-				paramNames.push_back(QString("MinRefDistance%1").arg(i+1));
+				paramNames.push_back(QString("MinDist%1").arg(i+1));
 			}
 			paramNames.push_back("ProjectionErrorReduction");
 			paramNames.push_back("Result_ID");
