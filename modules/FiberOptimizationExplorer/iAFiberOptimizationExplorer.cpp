@@ -51,6 +51,7 @@
 #include <vtkRenderer.h>
 #include <vtkTable.h>
 #include <vtkVariantArray.h>
+#include <vtkVersion.h>
 
 #include <QButtonGroup>
 #include <QCheckBox>
@@ -138,7 +139,14 @@ namespace
 		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
 		arrX->SetName(columnName);
 		arrX->SetNumberOfValues(numRows);
+#if (VTK_MAJOR_VERSION >= 8)
 		arrX->Fill(value);
+#else
+		for (vtkIdType i=0; i<numRows; ++i)
+		{
+			arrX->SetValue(i, value);
+		}
+#endif
 		table->AddColumn(arrX);
 	}
 }
