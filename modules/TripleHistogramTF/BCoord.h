@@ -48,6 +48,10 @@ public:
 		return getAlpha() == that.getAlpha() && getBeta() == that.getBeta();
 	}
 
+	bool operator!= (const BCoord that) {
+		return getAlpha() != that.getAlpha() || getBeta() != that.getBeta();
+	}
+
 private:
 	double m_alpha;
 	double m_beta;

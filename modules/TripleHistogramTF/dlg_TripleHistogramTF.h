@@ -23,15 +23,14 @@
 //#include "ui_dlg_TripleHistogramTF.h"
 //#include "iAQTtoUIConnector.h"
 #include <QDockWidget>
-#include <QResizeEvent>
-#include <qcombobox.h>
-#include <qslider.h>
 
-#include "mdichild.h"
-#include "iABarycentricTriangleWidget.h"
-#include "iAHistogramStack.h"
-#include "iASlicerMode.h"
-#include "BCoord.h"
+class QStackedLayout;
+class QLabel;
+
+class MdiChild;
+class iABarycentricTriangleWidget;
+class iATripleModalityHistograms;
+class BCoord;
 
 //typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
 
@@ -44,34 +43,13 @@ public:
 	~dlg_TripleHistogramTF();
 
 public slots:
-	void setWeight(BCoord bCoord);
 	void updateTransferFunction();
-
-	void modalitiesChanged();
+	void updateModalities();
 
 private slots:
-	void setSliceXYScrollBar();
-	void setSliceXZScrollBar();
-	void setSliceYZScrollBar();
-	void setSliceXYScrollBar(int sliceNumberXY);
-	void setSliceXZScrollBar(int sliceNumberXZ);
-	void setSliceYZScrollBar(int sliceNumberYZ);
-
-	void sliderValueChanged(int sliceNumber);
-	void updateSlicerMode();
-
-signals:
-
-protected:
 
 private:
-	void setSliceNumber(int sliceNumber);
-	void setSlicerMode(iASlicerMode slicerMode);
 	void updateDisabledLabel();
-	void updateMainSlicers(int sliceNumber);
-	iASlicerMode m_slicerMode;
-
-	iATriangleRenderer *m_triangleRenderer;
 
 	// TODO: is it really good to keep the mdiChild as a member variable?
 	MdiChild *m_mdiChild;
@@ -79,9 +57,6 @@ private:
 	// Widgets and stuff
 	QStackedLayout *m_stackedLayout;
 	QLabel *m_disabledLabel;
-	QComboBox *m_slicerModeComboBox;
-	QSlider *m_sliceSlider;
-	iAHistogramStack *m_histogramStack;
-	iABarycentricTriangleWidget *m_triangleWidget;
+	iATripleModalityHistograms *m_histogramStack;
 	
 };

@@ -22,10 +22,13 @@
 
 #include <QWidget>
 #include <QStackedLayout>
+#include <QComboBox>
 
 #include "mdichild.h"
 #include "BCoord.h"
 #include "iATransferFunction.h"
+#include "iABarycentricTriangleWidget.h"
+#include "iATriangleRenderer.h"
 
 // Slicer
 #include "iASimpleSlicerWidget.h"
@@ -41,7 +44,7 @@ public:
 	~iATripleModalityHistograms();
 
 	void setWeight(BCoord bCoord);
-	void setSlicerMode(iASlicerMode slicerMode, int dimensionLength);
+	void setSlicerMode(iASlicerMode slicerMode);
 	void setSliceNumber(int sliceNumber);
 	bool containsModality(QSharedPointer<iAModality> modality);
 	int getModalitiesCount();
@@ -55,7 +58,6 @@ public:
 
 	// VIRTUAL METHODS
 	virtual void initialize() = 0;
-	virtual void resized(int w, int h) = 0;
 	virtual void setModalityLabel(QString label, int index);
 
 private slots:
@@ -64,15 +66,30 @@ private slots:
 	void updateTransferFunction3() { updateTransferFunction(2); }
 	void originalHistogramChanged();
 
+	void triangleWeightChanged(BCoord newWeight);
+	void comboBoxIndexChanged(int newIndex);
+	void sliderValueChanged(int newValue);
+
+	void setSliceXYScrollBar();
+	void setSliceXZScrollBar();
+	void setSliceYZScrollBar();
+	void setSliceXYScrollBar(int sliceNumberXY);
+	void setSliceXZScrollBar(int sliceNumberXZ);
+	void setSliceYZScrollBar(int sliceNumberYZ);
+
 signals:
 	void transferFunctionChanged();
-	void modalitiesChanged(QSharedPointer<iAModality> modality1, QSharedPointer<iAModality> modality2, QSharedPointer<iAModality> modality3);
+
+	void weightChanged(BCoord bCoord);
+	void slicerModeChanged(iASlicerMode slicerMode);
+	void sliceNumberChanged(int sliceNumber);
 
 protected:
-	void resizeEvent(QResizeEvent* event);
-
 	iADiagramFctWidget* m_histograms[3] = { nullptr, nullptr, nullptr };
 	iASimpleSlicerWidget *m_slicerWidgets[3] = { nullptr, nullptr, nullptr };
+	QComboBox *m_slicerModeComboBox;
+	QSlider *m_sliceSlider;
+	iABarycentricTriangleWidget *m_triangleWidget;
 
 private:
 	BCoord m_weightCur;
@@ -81,11 +98,18 @@ private:
 	void updateOriginalTransferFunction(int index);
 	void applyWeights();
 
+	void setWeightPrivate(BCoord weights);
+	void setSlicerModePrivate(iASlicerMode slicerMode);
+	void setSliceNumberPrivate(int sliceNumber);
+
 	QSharedPointer<iAModality> m_modalitiesActive[3];
 
-	int m_sliceNumber;
-	iASlicerMode m_slicerMode;
-	void setSlicerMode(iASlicerMode slicerMode);
+	iATriangleRenderer *m_triangleRenderer;
+
+	BCoord getWeight();
+	iASlicerMode getSlicerMode();
+	iASlicerMode getSlicerModeAt(int comboBoxIndex);
+	int getSliceNumber();
 
 	// Background stuff
 	iATransferFunction *m_copyTFs[3] = { nullptr, nullptr, nullptr };

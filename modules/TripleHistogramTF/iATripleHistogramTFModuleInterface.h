@@ -1,6 +1,6 @@
 #pragma once
 #include "iAModuleInterface.h"
-#include "dlg_TripleHistogramTF.h"
+class dlg_TripleHistogramTF;
 
 class iATripleHistogramTFModuleInterface : public iAModuleInterface
 {

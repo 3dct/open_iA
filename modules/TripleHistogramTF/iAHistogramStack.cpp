@@ -19,49 +19,85 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
  
+#include <QSplitter>
+#include <QResizeEvent>
+
 #include "iAHistogramStack.h"
 #include "iATransferFunction.h"
 #include "charts/iADiagramFctWidget.h"
 
-iAHistogramStack::iAHistogramStack(QWidget* parent, MdiChild* mdiChild, Qt::WindowFlags f)
+iAHistogramStack::iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f)
 	: iATripleModalityHistograms(parent, mdiChild, f)
 {
-	m_gridLayout = new QGridLayout(this);
-
-	for (int i = 0; i < 3; i++) {
-		m_modalityLabels[i] = new QLabel(DEFAULT_MODALITY_LABELS[i]);
-		m_modalityLabels[i]->setStyleSheet("font-weight: bold");
-		m_modalityLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-	}
 }
 
 void iAHistogramStack::initialize()
 {
 	for (int i = 0; i < 3; i++) {
-		m_gridLayout->addWidget(m_histograms[i], i, 0);
-		m_gridLayout->addWidget(m_slicerWidgets[i], i, 1);
-		m_gridLayout->addWidget(m_modalityLabels[i], i, 2);
+		m_modalityLabels[i] = new QLabel(DEFAULT_MODALITY_LABELS[i]);
+		m_modalityLabels[i]->setStyleSheet("font-weight: bold");
+		m_modalityLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	}
-	m_gridLayout->setSpacing(1);
-	m_gridLayout->setMargin(0);
 
-	adjustStretch(size().width());
+	QWidget *optionsContainer = new QWidget();
+	//optionsContainer->setStyleSheet("background-color:blue"); // test spacing/padding/margin
+	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	QHBoxLayout *optionsContainerLayout = new QHBoxLayout(optionsContainer);
+	optionsContainerLayout->addWidget(m_slicerModeComboBox);
+	optionsContainerLayout->addWidget(m_sliceSlider);
+
+	m_grid = new iAHistogramStackGrid(this, m_histograms, m_slicerWidgets, m_modalityLabels);
+
+	QWidget *leftWidget = new QWidget();
+	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
+	leftWidgetLayout->setSpacing(1);
+	leftWidgetLayout->setMargin(0);
+	leftWidgetLayout->addWidget(optionsContainer);
+	leftWidgetLayout->addWidget(m_grid);
+
+	m_splitter = new QSplitter(Qt::Horizontal);
+	m_splitter->addWidget(leftWidget);
+	m_splitter->addWidget(m_triangleWidget);
+	m_splitter->setStretchFactor(0, 1);
+	m_splitter->setStretchFactor(1, 0);
+
+	QLayout *parentLayout = new QHBoxLayout(this); // TODO we don't need any layout here because QSplitter is the only widget... what to do?
+	parentLayout->addWidget(m_splitter);
+
+	m_grid->adjustStretch();
 }
 
 void iAHistogramStack::setModalityLabel(QString label, int index)
 {
-	m_modalityLabels[index]->setText(label);
-	iATripleModalityHistograms::setModalityLabel(label, index);
+	if (isReady()) {
+		m_modalityLabels[index]->setText(label);
+		iATripleModalityHistograms::setModalityLabel(label, index);
+	}
 }
 
-void iAHistogramStack::resized(int w, int h)
+// GRID -------------------------------------------------------------------------------
+
+iAHistogramStackGrid::iAHistogramStackGrid(QWidget *parent, iADiagramFctWidget *histograms[3], iASimpleSlicerWidget *slicers[3], QLabel *labels[3], Qt::WindowFlags f)
+	: QWidget(parent, f)
 {
-	adjustStretch(w);
+	m_gridLayout = new QGridLayout(this);
+	for (int i = 0; i < 3; i++) {
+		m_gridLayout->addWidget(histograms[i], i, 0);
+		m_gridLayout->addWidget(slicers[i], i, 1);
+		m_gridLayout->addWidget(labels[i], i, 2);
+	}
+	m_gridLayout->setSpacing(1);
+	m_gridLayout->setMargin(0);
 }
 
-void iAHistogramStack::adjustStretch(int totalWidth)
+void iAHistogramStackGrid::resizeEvent(QResizeEvent* event)
 {
-	int histogramHeight = m_histograms[0]->size().height();
+	adjustStretch(event->size().width());
+}
+
+void iAHistogramStackGrid::adjustStretch(int totalWidth)
+{
+	int histogramHeight = m_gridLayout->itemAtPosition(0, 0)->widget()->size().height();
 	m_gridLayout->setColumnStretch(0, totalWidth - histogramHeight);
 	m_gridLayout->setColumnStretch(1, histogramHeight);
 }

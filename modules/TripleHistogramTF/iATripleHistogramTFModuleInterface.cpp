@@ -3,6 +3,8 @@
 #include "iATripleHistogramTFModuleInterface.h"
 
 #include "mainwindow.h"
+#include "mdichild.h"
+#include "dlg_TripleHistogramTF.h"
 
 #include <QMessageBox>
 

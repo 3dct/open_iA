@@ -19,11 +19,12 @@
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include <math.h>
-#include <QPainter>
-
 #include "iABarycentricContextRenderer.h"
 #include "BarycentricTriangle.h"
+
+#include <math.h>
+#include <QPainter>
+#include <QImage>
 
 #include <vtkVersion.h>
 
@@ -42,7 +43,7 @@ iABarycentricContextRenderer::~iABarycentricContextRenderer()
 
 }
 
-void iABarycentricContextRenderer::paintHelper(QPainter &p)
+void iABarycentricContextRenderer::paintContext(QPainter &p)
 {
 	if (!m_image.isNull()) {
 		p.drawImage(m_imagePoint, m_image);

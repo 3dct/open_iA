@@ -51,7 +51,7 @@ static const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
 
 static const char* WEIGHT_FORMAT = "%.0f%%"; //"%.2f%;
 
-iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, QColor backgroundColor, Qt::WindowFlags f /*= 0 */) :
+iABarycentricTriangleWidget::iABarycentricTriangleWidget(QColor backgroundColor, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	iABarycentricTriangleWidget(parent, f)
 {
 	setBackgroundColor(backgroundColor);
@@ -381,9 +381,14 @@ void iABarycentricTriangleWidget::setModality3label(QString label)
 	recalculatePositions();
 }
 
-BCoord iABarycentricTriangleWidget::getControlPointCoordinates()
+BCoord iABarycentricTriangleWidget::getWeight()
 {
 	return m_controlPointBCoord;
+}
+
+void iABarycentricTriangleWidget::setWeight(BCoord newWeight)
+{
+	updateControlPointCoordinates(newWeight);
 }
 
 void iABarycentricTriangleWidget::setTriangleRenderer(iATriangleRenderer *triangleRenderer)
@@ -465,7 +470,7 @@ void iABarycentricTriangleWidget::paintModalityLabels(QPainter &p)
 
 void iABarycentricTriangleWidget::paintHelper(QPainter &p) {
 	if (m_triangleRenderer && m_triangleRenderer->canPaint()) {
-		m_triangleRenderer->paintHelper(p);
+		m_triangleRenderer->paintContext(p);
 	}
 	else {
 		paintTriangleBorder(p);

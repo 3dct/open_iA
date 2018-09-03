@@ -23,6 +23,8 @@
 
 #include "iATriangleRenderer.h"
 
+#include <QImage>
+
 #include "vtkSmartPointer.h"
 #include "vtkImageData.h"
 
@@ -33,7 +35,7 @@ public:
 	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle) override;
 	void setTriangle(BarycentricTriangle triangle) override;
 	~iABarycentricContextRenderer() override;
-	void paintHelper(QPainter &p) override;
+	void paintContext(QPainter &p) override;
 	bool canPaint() override;
 
 private:

@@ -23,24 +23,33 @@
 #include <QWidget>
 
 #include "iATripleModalityHistograms.h"
-#include "mdichild.h"
+//#include "mdichild.h"
+class MdiChild;
+
+class iAHistogramStackGrid : public QWidget
+{
+public:
+	iAHistogramStackGrid(QWidget *parent, iADiagramFctWidget *histograms[3], iASimpleSlicerWidget *slicers[3], QLabel *labels[3], Qt::WindowFlags f = 0);
+	void adjustStretch() { adjustStretch(size().width()); }
+protected:
+	void resizeEvent(QResizeEvent* event);
+private:
+	void adjustStretch(int w);
+	QGridLayout *m_gridLayout;
+};
 
 class iAHistogramStack : public iATripleModalityHistograms
 {
-	Q_OBJECT
-
 public:
 	iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 
 	// OVERRIDES
 	void initialize() override;
-	void resized(int w, int h) override;
 	void setModalityLabel(QString label, int index) override;
 
 private:
-	void adjustStretch(int totalWidth);
-
-	QGridLayout *m_gridLayout;
+	QSplitter *m_splitter;
+	iAHistogramStackGrid *m_grid;
 	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };
 
 };

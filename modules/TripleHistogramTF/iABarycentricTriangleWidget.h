@@ -47,8 +47,8 @@ class iABarycentricTriangleWidget : public QOpenGLWidget, public IBorderWidget
 	Q_OBJECT
 
 public:
-	iABarycentricTriangleWidget(QWidget* parent, QColor backgroundColor, Qt::WindowFlags f = 0);
-	iABarycentricTriangleWidget(QWidget* parent, Qt::WindowFlags f = 0);
+	iABarycentricTriangleWidget(QColor backgroundColor, QWidget* parent = 0, Qt::WindowFlags f = 0);
+	iABarycentricTriangleWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
 	
 	~iABarycentricTriangleWidget();
 
@@ -67,7 +67,8 @@ public:
 	void setModality2label(QString label);
 	void setModality3label(QString label);
 
-	BCoord getControlPointCoordinates();
+	BCoord getWeight();
+	void setWeight(BCoord newWeight);
 
 	void setTriangleRenderer(iATriangleRenderer *triangleRenderer);
 	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);

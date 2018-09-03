@@ -43,18 +43,7 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, Qt::WindowFlags f /
 
 iASimpleSlicerWidget::~iASimpleSlicerWidget()
 {
-	//if (m_slicerTransform) m_slicerTransform->Delete();
-	delete m_slicer;
-}
-
-void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode, int dimensionLength)
-{
-	m_slicer->ChangeMode(slicerMode);
-	if (m_curSlice >= dimensionLength)
-	{
-		m_curSlice = dimensionLength;
-	}
-	m_slicer->setSliceNumber(m_curSlice);
+	//delete m_slicer; // TODO uncomment?
 }
 
 void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
