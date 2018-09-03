@@ -107,6 +107,10 @@ public:
 
 namespace
 {
+	const int DistanceMetricCount = 3;
+	int DifferenceCount;
+	const int EndColumns = 2;
+
 	iACsvConfig getCsvConfig(QString const & csvFile)
 	{
 		iACsvConfig config = iACsvConfig::getLegacyFiberFormat(csvFile);
@@ -128,6 +132,15 @@ namespace
 	int MaxNumberOfCloseFibers = 25;
 
 	int NoResult = -1;
+
+	void addColumn(vtkSmartPointer<vtkTable> table, float value, char const * columnName, size_t numRows)
+	{
+		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+		arrX->SetName(columnName);
+		arrX->SetNumberOfValues(numRows);
+		arrX->Fill(value);
+		table->AddColumn(arrX);
+	}
 }
 
 iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd):
@@ -183,7 +196,9 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	showReferenceWidget->setLayout(new QHBoxLayout());
 	m_cmbboxDistanceMeasure = new QComboBox();
 	m_cmbboxDistanceMeasure->addItem("Midpoint, Angles, Length");
-	m_cmbboxDistanceMeasure->addItem("Start-/Center-/Endpoint");
+	m_cmbboxDistanceMeasure->addItem("Start-/Center-/Endpoint (3 smallest)");
+	m_cmbboxDistanceMeasure->addItem("Start-/Center-/Endpoint (all 9 pairs)");
+	m_cmbboxDistanceMeasure->setCurrentIndex(2);
 	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::changeReferenceDisplay);
 	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(changeReferenceDisplay()));
 	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(changeReferenceDisplay()));
@@ -259,7 +274,6 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		DEBUG_LOG(QString("You tried to open %1 datasets. This tool can only handle a small amount of datasets. Loading only the first %2.").arg(csvFileNames.size()).arg(MaxDatasetCount));
 		csvFileNames.erase( csvFileNames.begin() + MaxDatasetCount, csvFileNames.end() );
 	}
-	size_t additionalColumns = 0;
 	for (QString csvFile : csvFileNames)
 	{
 		iACsvConfig config = getCsvConfig(csvFile);
@@ -291,19 +305,21 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			paramNames.push_back("ThetaDiff");
 			paramNames.push_back("LengthDiff");
 			paramNames.push_back("DiameterDiff");
-			paramNames.push_back("MinRefDistance1");
-			paramNames.push_back("MinRefDistance2");
+			DifferenceCount = paramNames.size() - numColumns;
+			for (int i=0; i<DistanceMetricCount; ++i)
+			{
+				paramNames.push_back(QString("MinRefDistance%1").arg(i+1));
+			}
 			paramNames.push_back("ProjectionErrorReduction");
 			paramNames.push_back("Result_ID");
 			m_splomData->setParameterNames(paramNames);
-			additionalColumns = paramNames.size() - numColumns;
 		}
 		// TODO: Check if output mapping is the same (it must be)!
 		vtkIdType numFibers = tableCreator.getTable()->GetNumberOfRows();
 		if (numFibers < MaxNumberOfCloseFibers)
 			MaxNumberOfCloseFibers = numFibers;
 		// TOOD: simplify - load all tables beforehand, then allocate splom data fully and then fill it?
-		for (int i = additionalColumns; i >= 2; --i)
+		for (int i = (DistanceMetricCount+DifferenceCount+EndColumns); i >= EndColumns; --i)
 		{
 			m_splomData->data()[m_splomData->numParams() - i].resize(m_splomData->data()[m_splomData->numParams() - i].size() + numFibers, 0);
 		}
@@ -317,14 +333,11 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 			m_splomData->data()[m_splomData->numParams()-1].push_back(resultID);
 		}
 		// TODO: reuse splomData also for 3d visualization?
-		for (int col = 0; col < additionalColumns; ++col)
+		for (int col = 0; col < (DistanceMetricCount+DifferenceCount+EndColumns-1); ++col)
 		{
-			vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
-			arrX->SetName(m_splomData->parameterName(numColumns+col).toStdString().c_str());
-			arrX->SetNumberOfValues(numFibers);
-			arrX->Fill(0);
-			tableCreator.getTable()->AddColumn(arrX);
+			addColumn(tableCreator.getTable(), 0, m_splomData->parameterName(numColumns+col).toStdString().c_str(), numFibers);
 		}
+		addColumn(tableCreator.getTable(), resultID, m_splomData->parameterName(m_splomData->numParams()-1).toStdString().c_str(), numFibers);
 		
 		iAResultData resultData;
 		resultData.m_vtkWidget  = new iAVtkWidgetClass();
@@ -850,36 +863,125 @@ void iAFiberOptimizationExplorer::contextOpacityChanged(int opacity)
 	showCurrentSelectionInPlot();
 }
 
-// currently: L2 norm (euclidean distance). other measures?
-double getDistance(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vtkVariantArray* fiber2,
-	std::vector<int> const & colsToInclude, std::vector<double> const & weights)
+namespace
 {
-	double distance = 0;
-	for (int colIdx=0; colIdx < colsToInclude.size(); ++colIdx)
-		distance += weights[colIdx] * weights[colIdx] * std::pow(
-				fiber1->GetValue(mapping[colsToInclude[colIdx]]).ToDouble() -
-				fiber2->GetValue(mapping[colsToInclude[colIdx]]).ToDouble(), 2);
-	return std::sqrt(distance);
-}
-
-void getBestMatches(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, vtkTable* reference,
-	std::vector<std::vector<int> > const & colsToInclude,
-	std::vector<std::vector<double> > const & weights, std::vector<std::vector<iAFiberDistance> > & bestMatches)
-{
-	size_t refFiberCount = reference->GetNumberOfRows();
-	bestMatches.resize(colsToInclude.size());
-	for (int d=0; d<colsToInclude.size(); ++d)
+	double l2dist(double const * const pt1, double const * const pt2, int count)
 	{
-		std::vector<iAFiberDistance> distances(refFiberCount);
-		for (size_t fiberID = 0; fiberID < refFiberCount; ++fiberID)
-		{
-			distances[fiberID].index = fiberID;
-			double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(fiberID), colsToInclude[d], weights[d]);
-			distances[fiberID].distance = curDistance;
-		}
-		std::sort(distances.begin(), distances.end());
-		std::copy(distances.begin(), distances.begin() + MaxNumberOfCloseFibers, std::back_inserter(bestMatches[d]));
+		double squaredSum = 0;
+		for (int i=0; i<count; ++i)
+			squaredSum += std::pow(pt1[i]-pt2[i], 2);
+		return std::sqrt(squaredSum);
 	}
+
+	void swapPoints(double * pt1, double * pt2)
+	{
+		for (int i=0; i<3; ++i)
+		{
+			double tmp = pt1[i];
+			pt1[i] = pt2[i];
+			pt2[i] = tmp;
+		}
+	}
+
+	void setPoints(vtkVariantArray* fiber, QMap<uint, uint> const & mapping, double points[3][3])
+	{
+		points[0][0] = fiber->GetValue(mapping[iACsvConfig::StartX]) .ToDouble();
+		points[0][1] = fiber->GetValue(mapping[iACsvConfig::StartY]) .ToDouble();
+		points[0][2] = fiber->GetValue(mapping[iACsvConfig::StartZ]) .ToDouble();
+		points[1][0] = fiber->GetValue(mapping[iACsvConfig::CenterX]).ToDouble();
+		points[1][1] = fiber->GetValue(mapping[iACsvConfig::CenterY]).ToDouble();
+		points[1][2] = fiber->GetValue(mapping[iACsvConfig::CenterZ]).ToDouble();
+		points[2][0] = fiber->GetValue(mapping[iACsvConfig::EndX])   .ToDouble();
+		points[2][1] = fiber->GetValue(mapping[iACsvConfig::EndY])   .ToDouble();
+		points[2][2] = fiber->GetValue(mapping[iACsvConfig::EndZ])   .ToDouble();
+	}
+
+	// currently: L2 norm (euclidean distance). other measures?
+	double getDistance(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vtkVariantArray* fiber2, int distanceMeasure)
+	{
+		double distance = 0;
+		switch(distanceMeasure)
+		{
+		default:
+		case 0: // mid-point, angle, length
+		{
+			double val1[5], val2[5];
+			val1[0] = fiber1->GetValue(mapping[iACsvConfig::Phi])    .ToDouble();
+			val1[1] = fiber1->GetValue(mapping[iACsvConfig::Theta])  .ToDouble();
+			val1[2] = fiber1->GetValue(mapping[iACsvConfig::CenterX]).ToDouble();
+			val1[3] = fiber1->GetValue(mapping[iACsvConfig::CenterY]).ToDouble();
+			val1[4] = fiber1->GetValue(mapping[iACsvConfig::CenterZ]).ToDouble();
+
+			val2[0] = fiber2->GetValue(mapping[iACsvConfig::Phi])     .ToDouble();
+			val2[1] = fiber2->GetValue(mapping[iACsvConfig::Theta]) .ToDouble();
+			val2[2] = fiber2->GetValue(mapping[iACsvConfig::CenterX]).ToDouble();
+			val2[3] = fiber2->GetValue(mapping[iACsvConfig::CenterY]).ToDouble();
+			val2[4] = fiber2->GetValue(mapping[iACsvConfig::CenterZ]).ToDouble();
+
+			// TODO: opposite direction treatment! -> phi/theta reversed?
+
+			distance = l2dist(val1, val2, 5);
+			break;
+		}
+		case 1: // start/end/center
+		{
+			double points1[3][3];
+			double points2[3][3];
+			setPoints(fiber1, mapping, points1);
+			setPoints(fiber2, mapping, points2);
+
+			double dist1StartTo2Start = l2dist(points1[0], points2[0], 3);
+			double dist1StartTo2End = l2dist(points1[0], points2[2], 3);
+			double dist1EndTo2Start = l2dist(points1[2], points2[0], 3);
+			double dist1EndTo2End = l2dist(points1[2], points2[2], 3);
+
+			distance = l2dist(points1[1], points2[1], 3);
+			// switch start and end of second fiber if distance from start of first to end of second is smaller:
+			if (dist1StartTo2Start > dist1StartTo2End && dist1EndTo2End > dist1EndTo2Start)
+				distance += dist1StartTo2End + dist1EndTo2Start;
+			else
+				distance += dist1StartTo2Start + dist1EndTo2End;
+			distance /= 3;
+
+			break;
+		}
+		case 2: // distances between all points:
+		{
+
+			double points1[3][3];
+			double points2[3][3];
+			setPoints(fiber1, mapping, points1);
+			setPoints(fiber2, mapping, points2);
+
+			for (int i=0; i<3; ++i)
+				for (int j=0; j<3; ++j)
+					distance += l2dist(points1[i], points2[j], 3);
+			distance /= 9;
+			break;
+		}
+		}
+		return distance;
+	}
+
+	void getBestMatches(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, vtkTable* reference,
+			std::vector<std::vector<iAFiberDistance> > & bestMatches)
+	{
+		size_t refFiberCount = reference->GetNumberOfRows();
+		bestMatches.resize(DistanceMetricCount);
+		for (int d=0; d<DistanceMetricCount; ++d)
+		{
+			std::vector<iAFiberDistance> distances(refFiberCount);
+			for (size_t fiberID = 0; fiberID < refFiberCount; ++fiberID)
+			{
+				distances[fiberID].index = fiberID;
+				double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(fiberID), d);
+				distances[fiberID].distance = curDistance;
+			}
+			std::sort(distances.begin(), distances.end());
+			std::copy(distances.begin(), distances.begin() + MaxNumberOfCloseFibers, std::back_inserter(bestMatches[d]));
+		}
+	}
+
 }
 
 void iAFiberOptimizationExplorer::referenceToggled(bool)
@@ -891,25 +993,6 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			button->setText("");
 
 	m_referenceID = sender->property("resultID").toULongLong();
-	
-	// determine which columns to use and their normalization factors:
-	std::vector<std::vector<int> > colsToInclude(2);  std::vector<std::vector<double> > weights(2);
-	colsToInclude[0].push_back(iACsvConfig::CenterX);   weights[0].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterX])[1]);
-	colsToInclude[0].push_back(iACsvConfig::CenterY);   weights[0].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterY])[1]);
-	colsToInclude[0].push_back(iACsvConfig::CenterZ);   weights[0].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterZ])[1]);
-	colsToInclude[0].push_back(iACsvConfig::Phi);       weights[0].push_back(1 / (2 * vtkMath::Pi()));
-	colsToInclude[0].push_back(iACsvConfig::Theta);     weights[0].push_back(1 / (2 * vtkMath::Pi()));
-	colsToInclude[0].push_back(iACsvConfig::Length);    weights[0].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::Length])[1]);
-
-	colsToInclude[1].push_back(iACsvConfig::StartX);   weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::StartX])[1]);
-	colsToInclude[1].push_back(iACsvConfig::StartY);   weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::StartY])[1]);
-	colsToInclude[1].push_back(iACsvConfig::StartZ);   weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::StartZ])[1]);
-	colsToInclude[1].push_back(iACsvConfig::EndX);     weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::EndX])[1]);
-	colsToInclude[1].push_back(iACsvConfig::EndY);     weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::EndY])[1]);
-	colsToInclude[1].push_back(iACsvConfig::EndZ);     weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::EndZ])[1]);
-	colsToInclude[1].push_back(iACsvConfig::CenterX);  weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterX])[1]);
-	colsToInclude[1].push_back(iACsvConfig::CenterY);  weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterY])[1]);
-	colsToInclude[1].push_back(iACsvConfig::CenterZ);  weights[1].push_back(1 / m_splomData->paramRange((*m_resultData[m_referenceID].m_outputMapping)[iACsvConfig::CenterZ])[1]);
 
 	// "register" other datasets to reference:
 	auto const & mapping = *m_resultData[m_referenceID].m_outputMapping.data();
@@ -928,7 +1011,7 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			// find the best-matching fibers in reference & compute difference:
 			getBestMatches(m_resultData[resultID].m_resultTable->GetRow(fiberID),
 				mapping, m_resultData[m_referenceID].m_resultTable,
-				colsToInclude, weights, m_resultData[resultID].m_referenceDist[fiberID]);
+				m_resultData[resultID].m_referenceDist[fiberID]);
 			DEBUG_LOG(QString("  Fiber %1: Best match: distmetric1: fiber %2 (distance: %3), distmetric2: %4 (distance: %5)")
 				.arg(fiberID)
 				.arg(m_resultData[resultID].m_referenceDist[fiberID][0][0].index)
@@ -965,19 +1048,19 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
-			std::vector<double> refDiff(13);
+			std::vector<double> refDiff(DifferenceCount);
 			for (size_t diffID = 0; diffID < diffCols.size(); ++diffID)
 			{
 				refDiff[diffID] = m_resultData[resultID].m_resultTable->GetValue(fiberID, diffCols[diffID]).ToDouble()
 					- m_resultData[m_referenceID].m_resultTable->GetValue(m_resultData[resultID].m_referenceDist[fiberID][0][0].index, diffCols[diffID]).ToDouble();
-				size_t tableColumnID = m_splomData->numParams() - 17 + diffID;
+				size_t tableColumnID = m_splomData->numParams() - (DifferenceCount + DistanceMetricCount + EndColumns) + diffID;
 				m_splomData->data()[tableColumnID][splomID] = refDiff[diffID];
 				m_resultData[resultID].m_resultTable->SetValue(fiberID, tableColumnID, refDiff[diffID]);
 			}
-			for (size_t distID = 0; distID < colsToInclude.size(); ++distID)
+			for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
 			{
 				double dist = m_resultData[resultID].m_referenceDist[fiberID][distID][0].distance;
-				size_t tableColumnID = m_splomData->numParams() - 4 + distID;
+				size_t tableColumnID = m_splomData->numParams() - (DistanceMetricCount + EndColumns) + distID;
 				m_splomData->data()[tableColumnID][splomID] = dist;
 				m_resultData[resultID].m_resultTable->SetValue(fiberID, tableColumnID, dist);
 			}
@@ -993,8 +1076,11 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 		}
 	}
 	std::vector<size_t> changedSplomColumns;
-	for (size_t paramID = 0; paramID < diffCols.size()+2; ++paramID)
-		changedSplomColumns.push_back(m_splomData->numParams() - 17 + paramID);
+	for (size_t paramID = 0; paramID < diffCols.size()+DistanceMetricCount; ++paramID)
+	{
+		size_t columnID = m_splomData->numParams() - (DifferenceCount + DistanceMetricCount + EndColumns) + paramID;
+		changedSplomColumns.push_back(columnID);
+	}
 	m_splomData->updateRanges(changedSplomColumns);
 	// TODO: how to visualize?
 }
@@ -1041,9 +1127,7 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 	// other columns (float):
 	for (int col = 1; col < m_resultData[m_referenceID].m_resultTable->GetNumberOfColumns() - 1; ++col)
 	{
-		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
-		arrX->SetName(m_resultData[m_referenceID].m_resultTable->GetColumnName(col));
-		m_refVisTable->AddColumn(arrX);
+		addColumn(m_refVisTable, 0, m_resultData[m_referenceID].m_resultTable->GetColumnName(col), 0);
 	}
 
 	std::vector<iAFiberDistance> referenceIDsToShow;
