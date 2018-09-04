@@ -22,7 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
-// #include <cmath>
+#include <cmath>  // for std::acos
 
 //!	Class representing 3 dimensional vector.
 template <typename RealType>
@@ -30,7 +30,7 @@ class iAVec3T
 {
 public:
 	iAVec3T();
-	template <typename T1, typename T2, typename T3> iAVec3T(T1 px, T2 py, T3 pz);
+	template <typename T1, typename T2, typename T3> explicit iAVec3T(T1 px, T2 py, T3 pz);
 	template <typename ParamType> explicit iAVec3T(ParamType val);
 	template <typename ParamType> explicit iAVec3T(ParamType data[3]);
 	template <typename ParamType> iAVec3T(const iAVec3T<ParamType>& v);
@@ -123,7 +123,7 @@ iAVec3T<RealType> iAVec3T<RealType>::operator+ () const
 template <typename RealType>
 iAVec3T<RealType> iAVec3T<RealType>::operator- () const
 {
-	return iAVec3(-x(), -y(), -z());
+	return iAVec3T<RealType>(-x(), -y(), -z());
 }
 
 template <typename RealType>
@@ -302,5 +302,6 @@ iAVec3T<T1> operator ^ (const iAVec3T<T1>& u, const iAVec3T<T2>& v)
 template <typename T1, typename T2>
 T1 angle(iAVec3T<T1> const & u, iAVec3T<T2> const & v)
 {
-	return std::acos(dotProduct(u, v) / (u.length() * static_cast<T1>(v.length())));
+	return (u.length() == 0 || v.length() == 0) ? 0 :
+		std::acos(dotProduct(u, v) / (u.length() * static_cast<T1>(v.length())));
 }
