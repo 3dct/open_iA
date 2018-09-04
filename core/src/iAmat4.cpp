@@ -184,13 +184,12 @@ iAMat4	operator * ( float v, const iAMat4& a )
 
 iAVec3 operator * ( const iAMat4& m, const iAVec3& v )
 {
-	iAVec3 res;
-
-	res.x = m.x [0][0] * v.x + m.x [0][1] * v.y + m.x [0][2] * v.z + m.x [0][3];
-	res.y = m.x [1][0] * v.x + m.x [1][1] * v.y + m.x [1][2] * v.z + m.x [1][3];
-	res.z = m.x [2][0] * v.x + m.x [2][1] * v.y + m.x [2][2] * v.z + m.x [2][3];
-
-	float	denom = m.x [3][0] * v.x + m.x [3][1] * v.y +  m.x [3][2] * v.z + m.x [3][3];
+	iAVec3 res(
+		m.x[0][0] * v.x() + m.x[0][1] * v.y() + m.x[0][2] * v.z() + m.x[0][3],
+		m.x[1][0] * v.x() + m.x[1][1] * v.y() + m.x[1][2] * v.z() + m.x[1][3],
+		m.x[2][0] * v.x() + m.x[2][1] * v.y() + m.x[2][2] * v.z() + m.x[2][3]
+	);
+	float denom = m.x [3][0] * v.x() + m.x [3][1] * v.y() +  m.x [3][2] * v.z() + m.x [3][3];
 
 	if ( denom != 1.0 )
 		res = res / denom;
@@ -204,9 +203,9 @@ iAMat4	translate ( const iAVec3& loc )
 {
 	iAMat4	res ( 1 );
 
-	res.x [0][3] = loc.x;
-	res.x [1][3] = loc.y;
-	res.x [2][3] = loc.z;
+	res.x [0][3] = loc.x();
+	res.x [1][3] = loc.y();
+	res.x [2][3] = loc.z();
 
 	return res;
 }
@@ -215,9 +214,9 @@ iAMat4	scale ( const iAVec3& v )
 {
 	iAMat4	res ( 1 );
 
-	res.x [0][0] = v.x;
-	res.x [1][1] = v.y;
-	res.x [2][2] = v.z;
+	res.x [0][0] = v.x();
+	res.x [1][1] = v.y();
+	res.x [2][2] = v.z();
 
 	return res;
 }
@@ -270,19 +269,19 @@ iAMat4	rotation ( const iAVec3& axis, float angle )
 	float  cosine = cos ( angle );
 	float  sine   = sin ( angle );
 
-	res.x [0][0] = axis.x * axis.x + ( 1 - axis.x * axis.x ) * cosine;
-	res.x [1][0] = axis.x * axis.y * ( 1 - cosine ) + axis.z * sine;
-	res.x [2][0] = axis.x * axis.z * ( 1 - cosine ) - axis.y * sine;
+	res.x [0][0] = axis.x() * axis.x() + ( 1 - axis.x() * axis.x() ) * cosine;
+	res.x [1][0] = axis.x() * axis.y() * ( 1 - cosine ) + axis.z() * sine;
+	res.x [2][0] = axis.x() * axis.z() * ( 1 - cosine ) - axis.y() * sine;
 	res.x [3][0] = 0;
 
-	res.x [0][1] = axis.x * axis.y * ( 1 - cosine ) - axis.z * sine;
-	res.x [1][1] = axis.y * axis.y + ( 1 - axis.y * axis.y ) * cosine;
-	res.x [2][1] = axis.y * axis.z * ( 1 - cosine ) + axis.x * sine;
+	res.x [0][1] = axis.x() * axis.y() * ( 1 - cosine ) - axis.z() * sine;
+	res.x [1][1] = axis.y() * axis.y() + ( 1 - axis.y() * axis.y() ) * cosine;
+	res.x [2][1] = axis.y() * axis.z() * ( 1 - cosine ) + axis.x() * sine;
 	res.x [3][1] = 0;
 
-	res.x [0][2] = axis.x * axis.z * ( 1 - cosine ) + axis.y * sine;
-	res.x [1][2] = axis.y * axis.z * ( 1 - cosine ) - axis.x * sine;
-	res.x [2][2] = axis.z * axis.z + ( 1 - axis.z * axis.z ) * cosine;
+	res.x [0][2] = axis.x() * axis.z() * ( 1 - cosine ) + axis.y() * sine;
+	res.x [1][2] = axis.y() * axis.z() * ( 1 - cosine ) - axis.x() * sine;
+	res.x [2][2] = axis.z() * axis.z() + ( 1 - axis.z() * axis.z() ) * cosine;
 	res.x [3][2] = 0;
 
 	res.x [0][3] = 0;
@@ -368,24 +367,24 @@ iAMat4	orthoProjectXZ ()
 iAMat4	axProjectYZ (iAVec3& v)
 {
 	iAMat4	res ( 1 );
-	res.x [2][2] = v.z/v.x;
-	res.x [1][2] = v.y/v.x;
+	res.x [2][2] = v.z()/v.x();
+	res.x [1][2] = v.y()/v.x();
 	return res;
 }
 
 iAMat4	axProjectXY (iAVec3& v)
 {
 	iAMat4	res ( 1 );
-	res.x [0][2] = v.x/v.z;
-	res.x [1][2] = v.y/v.z;
+	res.x [0][2] = v.x()/v.z();
+	res.x [1][2] = v.y()/v.z();
 	return res;
 }
 
 iAMat4	axProjectXZ (iAVec3& v)
 {
 	iAMat4	res ( 1 );
-	res.x [0][2] = v.x/v.y;
-	res.x [2][2] = v.z/v.y;
+	res.x [0][2] = v.x()/v.y();
+	res.x [2][2] = v.z()/v.y();
 	return res;
 }
 

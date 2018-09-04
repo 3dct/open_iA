@@ -55,43 +55,43 @@ struct intersection
 inline int IntersectAABB(const Ray &ray, const aabb& box, float &tmin, float&tmax)
 {
 	float txmin, txmax, tymin, tymax;
-	float ddx = 1.0f/ray.GetDirection().x;
-	float ddy = 1.0f/ray.GetDirection().y;
+	float ddx = 1.0f/ray.GetDirection().x();
+	float ddy = 1.0f/ray.GetDirection().y();
 	if(ddx>=0)
 	{
-		txmin = (box.x1 - ray.GetOrigin().x) * ddx;
-		txmax = (box.x2 - ray.GetOrigin().x) * ddx;
+		txmin = (box.x1 - ray.GetOrigin().x()) * ddx;
+		txmax = (box.x2 - ray.GetOrigin().x()) * ddx;
 	}
 	else
 	{
-		txmin = (box.x2 - ray.GetOrigin().x) * ddx;
-		txmax = (box.x1 - ray.GetOrigin().x) * ddx;
+		txmin = (box.x2 - ray.GetOrigin().x()) * ddx;
+		txmax = (box.x1 - ray.GetOrigin().x()) * ddx;
 	}
 	if(ddy>=0)
 	{
-		tymin = (box.y1 - ray.GetOrigin().y) * ddy;
-		tymax = (box.y2 - ray.GetOrigin().y) * ddy;
+		tymin = (box.y1 - ray.GetOrigin().y()) * ddy;
+		tymax = (box.y2 - ray.GetOrigin().y()) * ddy;
 	}
 	else
 	{
-		tymin = (box.y2 - ray.GetOrigin().y) * ddy;
-		tymax = (box.y1 - ray.GetOrigin().y) * ddy;
+		tymin = (box.y2 - ray.GetOrigin().y()) * ddy;
+		tymax = (box.y1 - ray.GetOrigin().y()) * ddy;
 	}
 	if( (txmin>tymax) || (tymin>txmax) ) return 0;
 	if( tymin>txmin ) txmin=tymin;
 	if( tymax<txmax ) txmax=tymax;
 
 	float tzmin, tzmax;
-	float ddz = 1.0f/ray.GetDirection().z;
+	float ddz = 1.0f/ray.GetDirection().z();
 	if(ddz>=0)
 	{
-		tzmin = (box.z1 - ray.GetOrigin().z) * ddz;
-		tzmax = (box.z2 - ray.GetOrigin().z) * ddz;
+		tzmin = (box.z1 - ray.GetOrigin().z()) * ddz;
+		tzmax = (box.z2 - ray.GetOrigin().z()) * ddz;
 	}
 	else
 	{
-		tzmin = (box.z2 - ray.GetOrigin().z) * ddz;
-		tzmax = (box.z1 - ray.GetOrigin().z) * ddz;
+		tzmin = (box.z2 - ray.GetOrigin().z()) * ddz;
+		tzmax = (box.z1 - ray.GetOrigin().z()) * ddz;
 	}
 	if( (txmin>tzmax) || (tzmin>txmax) ) return 0;
 	if( tzmin>txmin ) txmin=tzmin;
@@ -112,43 +112,43 @@ inline int IntersectAABB(const Ray &ray, const aabb& box, float &tmin, float&tma
 inline int Intersect(iAVec3& ro, iAVec3 rd, const aabb& box)
 {
 	float txmin, txmax, tymin, tymax;
-	float ddx = 1.0f/(ro.x-rd.x);
-	float ddy = 1.0f/(ro.y-rd.y);
+	float ddx = 1.0f/(ro.x()-rd.x());
+	float ddy = 1.0f/(ro.y()-rd.y());
 	if(ddx>=0)
 	{
-		txmin = (box.x1 - ro.x) * ddx;
-		txmax = (box.x2 - ro.x) * ddx;
+		txmin = (box.x1 - ro.x()) * ddx;
+		txmax = (box.x2 - ro.x()) * ddx;
 	}
 	else
 	{
-		txmin = (box.x2 - ro.x) * ddx;
-		txmax = (box.x1 - ro.x) * ddx;
+		txmin = (box.x2 - ro.x()) * ddx;
+		txmax = (box.x1 - ro.x()) * ddx;
 	}
 	if(ddy>=0)
 	{
-		tymin = (box.y1 - ro.y) * ddy;
-		tymax = (box.y2 - ro.y) * ddy;
+		tymin = (box.y1 - ro.y()) * ddy;
+		tymax = (box.y2 - ro.y()) * ddy;
 	}
 	else
 	{
-		tymin = (box.y2 - ro.y) * ddy;
-		tymax = (box.y1 - ro.y) * ddy;
+		tymin = (box.y2 - ro.y()) * ddy;
+		tymax = (box.y1 - ro.y()) * ddy;
 	}
 	if( (txmin>tymax) || (tymin>txmax) ) return 0;
 	if( tymin>txmin ) txmin=tymin;
 	if( tymax<txmax ) txmax=tymax;
 
 	float tzmin, tzmax;
-	float ddz = 1.0f/(ro.z-rd.z);
+	float ddz = 1.0f/(ro.z()-rd.z());
 	if(ddz>=0)
 	{
-		tzmin = (box.z1 - ro.z) * ddz;
-		tzmax = (box.z2 - ro.z) * ddz;
+		tzmin = (box.z1 - ro.z()) * ddz;
+		tzmax = (box.z2 - ro.z()) * ddz;
 	}
 	else
 	{
-		tzmin = (box.z2 - ro.z) * ddz;
-		tzmax = (box.z1 - ro.z) * ddz;
+		tzmin = (box.z2 - ro.z()) * ddz;
+		tzmax = (box.z1 - ro.z()) * ddz;
 	}
 	if( (txmin>tzmax) || (tzmin>txmax) ) return 0;
 	return 1;
@@ -217,27 +217,27 @@ public:
 	void recalculateD(iAVec3 *translate);
 	inline float getMinX() const
 	{
-		return min_macro( m_Tri.vertices[0]->x, min_macro(m_Tri.vertices[1]->x, m_Tri.vertices[2]->x) );
+		return min_macro( m_Tri.vertices[0]->x(), min_macro(m_Tri.vertices[1]->x(), m_Tri.vertices[2]->x()) );
 	}
 	inline float getMinY() const
 	{
-		return min_macro( m_Tri.vertices[0]->y, min_macro(m_Tri.vertices[1]->y, m_Tri.vertices[2]->y) );
+		return min_macro( m_Tri.vertices[0]->y(), min_macro(m_Tri.vertices[1]->y(), m_Tri.vertices[2]->y()) );
 	}
 	inline float getMinZ() const
 	{
-		return min_macro( m_Tri.vertices[0]->z, min_macro(m_Tri.vertices[1]->z, m_Tri.vertices[2]->z) );
+		return min_macro( m_Tri.vertices[0]->z(), min_macro(m_Tri.vertices[1]->z(), m_Tri.vertices[2]->z()) );
 	}
 	inline float getMaxX() const
 	{
-		return max_macro( m_Tri.vertices[0]->x, max_macro(m_Tri.vertices[1]->x, m_Tri.vertices[2]->x) );
+		return max_macro( m_Tri.vertices[0]->x(), max_macro(m_Tri.vertices[1]->x(), m_Tri.vertices[2]->x()) );
 	}
 	inline float getMaxY() const
 	{
-		return max_macro( m_Tri.vertices[0]->y, max_macro(m_Tri.vertices[1]->y, m_Tri.vertices[2]->y) );
+		return max_macro( m_Tri.vertices[0]->y(), max_macro(m_Tri.vertices[1]->y(), m_Tri.vertices[2]->y()) );
 	}
 	inline float getMaxZ() const
 	{
-		return max_macro( m_Tri.vertices[0]->z, max_macro(m_Tri.vertices[1]->z, m_Tri.vertices[2]->z) );
+		return max_macro( m_Tri.vertices[0]->z(), max_macro(m_Tri.vertices[1]->z(), m_Tri.vertices[2]->z()) );
 	}
 	inline const triangle * getTri() const
 	{

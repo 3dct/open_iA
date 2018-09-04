@@ -253,7 +253,7 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 				// IN THE FOLLOWINGF LINES OF CODE WE REEVALUATE THE NORMAL AS THE ABOVE NORMAL IS PROBLEM SOME
 				copy->N =  (*copy->vertices[2]-*copy->vertices[1])
 					        ^(*copy->vertices[0]-*copy->vertices[2]);
-				normalize(copy->N);// RESETTING THE NORMAL HERE
+				copy->N.normalize();// RESETTING THE NORMAL HERE
 	
 				//counter++;
 				stlMesh.push_back( copy );
@@ -320,7 +320,7 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 			// RESETTING THE NORMAL HERE
 			copy->N =  (*copy->vertices[2]-*copy->vertices[1])
 						^(*copy->vertices[0]-*copy->vertices[2]);
-			normalize(copy->N);
+			copy->N.normalize();
 
 			count++;
 

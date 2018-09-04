@@ -170,7 +170,6 @@ inline float Rand( float a_Range );
 		t[1] = (mins % 10) + '0';
 		t[0] = ((mins / 10) % 10) + '0';
 	}
-	void normalize(iAVec3& u);
 	iAVec3 projectPtOnLine(iAVec3 &o, iAVec3 &dir, iAVec3& pt);
 	float distPointToLine(iAVec3 &o, iAVec3 &dir, iAVec3& pt);
 	float distLineToLine( iAVec3 & o1, iAVec3 & d1, iAVec3 & o2, iAVec3 & d2 );
@@ -247,13 +246,10 @@ inline float Rand( float a_Range );
 		*/
 		inline int isInside(iAVec3& v) const
 		{
-			if(v.x<=x2)
-				if(v.x>=x1) 
-					if(v.y<=y2)
-						if(v.y>=y1) 
-							if(v.z<=z2)
-								if(v.z>=z1)
-									return 1;
+			if (v.x()<=x2 && v.x()>=x1 &&
+			    v.y()<=y2 && v.y()>=y1 &&
+				v.z()<=z2 && v.z()>=z1)
+				return 1;
 			return 0;
 		}
 		void setData(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2);

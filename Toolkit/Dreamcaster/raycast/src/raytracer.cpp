@@ -812,7 +812,7 @@ void RaycastingThread::run()
 			// fire primary ray
 			iAVec3 acc( 0, 0, 0 );
 			iAVec3 dir = (m_vp_corners[0] + x*m_vp_delta[0] + y*m_vp_delta[1]) - (*m_o);
-			normalize( dir );
+			dir.normalize();
 			Ray r( m_o, dir );
 			float dist;
 			e->DepthRaytrace( r, acc, 1, 1.0f, dist, &rays[rayInd], intersections, tr_stack, dipAsColor );

@@ -22,92 +22,285 @@
 
 #include "open_iA_Core_export.h"
 
-/**	\class Vec3.
-\brief Class representing 3 dimensional vector.
-*/
-class open_iA_Core_API iAVec3
+// #include <cmath>
+
+//!	Class representing 3 dimensional vector.
+template <typename RealType>
+class iAVec3T
 {
 public:
-	float x,y,z;
-	iAVec3();
-	iAVec3(float px, float py, float pz);
-	iAVec3(float val);
-	iAVec3(float data[3]);
-	iAVec3(const iAVec3& v);
-	iAVec3& operator= (const iAVec3& v);
-	iAVec3 operator+ () const;
-	iAVec3 operator- () const;
-	iAVec3& operator+= (const iAVec3& v);
-	iAVec3& operator-= (const iAVec3& v);
-	iAVec3& operator*= (const iAVec3& v);
-	iAVec3& operator*= (float f);
-	iAVec3& operator/= (const iAVec3& v);
-	const float& operator[] (int index) const;
-	float& operator[] (int index);
-	int     operator== (const iAVec3& v) const;
-	int	    operator!= (const iAVec3& v) const;
-	int	    operator<  (const iAVec3& v) const;
-	int	    operator>  (const iAVec3& v) const;
-	float	length() const;
-	static float angle(iAVec3 const & a, iAVec3 const & b);
-	iAVec3 normalize() const;
+	iAVec3T();
+	template <typename T1, typename T2, typename T3> iAVec3T(T1 px, T2 py, T3 pz);
+	template <typename ParamType> explicit iAVec3T(ParamType val);
+	template <typename ParamType> explicit iAVec3T(ParamType data[3]);
+	template <typename ParamType> iAVec3T(const iAVec3T<ParamType>& v);
 
-	friend iAVec3 operator + (const iAVec3&,const iAVec3&);
-	friend iAVec3 operator - (const iAVec3&,const iAVec3&);
-	friend iAVec3 operator * (const iAVec3&,const iAVec3&);
-	friend iAVec3 operator * (float        ,const iAVec3&);
-	friend iAVec3 operator * (const iAVec3&,float);
-	friend iAVec3 operator / (const iAVec3&,float);
-	friend iAVec3 operator / (const iAVec3&,const iAVec3&);
-	friend float  operator & (const iAVec3&,const iAVec3&);		// dot product
-	friend iAVec3 operator ^ (const iAVec3&,const iAVec3&);		// cross product
+	RealType x() const { return values[0]; }
+	RealType y() const { return values[1]; }
+	RealType z() const { return values[2]; }
+
+	template <typename ParamType> iAVec3T<RealType>& operator= (const iAVec3T<ParamType>& v);
+	iAVec3T<RealType> operator+ () const;
+	iAVec3T<RealType> operator- () const;
+	template <typename ParamType> iAVec3T<RealType>& operator+= (const iAVec3T<ParamType>& v);
+	template <typename ParamType> iAVec3T<RealType>& operator-= (const iAVec3T<ParamType>& v);
+	template <typename ParamType> iAVec3T<RealType>& operator*= (const iAVec3T<ParamType>& v);
+	template <typename ParamType> iAVec3T<RealType>& operator*= (ParamType f);
+	template <typename ParamType> iAVec3T<RealType>& operator/= (const iAVec3T<ParamType>& v);
+	const RealType& operator[] (size_t index) const;
+	RealType& operator[] (size_t index);
+	RealType length() const;
+	void normalize();
+	iAVec3T<RealType> normalized() const;
+	RealType const * data() const;
+private:
+	RealType values[3];
 };
 
-inline iAVec3 operator + (const iAVec3& u,const iAVec3& v)
+typedef iAVec3T<float> iAVec3;
+//typedef iAVec3T<double> iAVec3d;
+
+
+template <typename RealType>
+iAVec3T<RealType>::iAVec3T()
 {
-	return iAVec3(u.x + v.x, u.y + v.y, u.z + v.z);
+	std::fill(values, values + 3, static_cast<RealType>(0.0));
 }
 
-inline iAVec3 operator - (const iAVec3& u,const iAVec3& v)
+template <typename RealType>
+template <typename T1, typename T2, typename T3>
+iAVec3T<RealType>::iAVec3T(T1 px, T2 py, T3 pz)
 {
-	return iAVec3(u.x - v.x, u.y - v.y, u.z - v.z);
+	values[0] = static_cast<RealType>(px);
+	values[1] = static_cast<RealType>(py);
+	values[2] = static_cast<RealType>(pz);
 }
 
-inline iAVec3 operator * (const iAVec3& u,const iAVec3& v)
+template <typename RealType>
+template <typename ParamType>
+iAVec3T<RealType>::iAVec3T(ParamType val)
 {
-	return iAVec3(u.x * v.x, u.y * v.y, u.z * v.z);
+	std::fill(values, values + 3, static_cast<RealType>(val) );
 }
 
-inline iAVec3 operator * (const iAVec3& v,float a)
+template <typename RealType>
+template <typename ParamType>
+iAVec3T<RealType>::iAVec3T(ParamType data[3])
 {
-	return iAVec3(v.x * a, v.y * a, v.z * a);
+	for (int i = 0; i<3; ++i)
+		values[i] = static_cast<RealType>(data[i]);
 }
 
-inline iAVec3 operator * (float a, const iAVec3& v)
+template <typename RealType>
+template <typename ParamType>
+iAVec3T<RealType>::iAVec3T(const iAVec3T<ParamType>& v)
 {
-	return iAVec3(v.x * a, v.y * a, v.z * a);
+	for (int i = 0; i<3; ++i)
+		values[i] = static_cast<RealType>(v.values[i]);
 }
 
-inline iAVec3 operator / (const iAVec3& v,float a)
+template <typename RealType>
+template <typename ParamType>
+iAVec3T<RealType>& iAVec3T<RealType>::operator= (const iAVec3T<ParamType>& v)
 {
-	return iAVec3(v.x / a, v.y / a, v.z / a);
+	for (int i = 0; i<3; ++i)
+		values[i] = static_cast<RealType>(v.values[i]);
+	return *this;
 }
 
-inline iAVec3 operator / (const iAVec3& u,const iAVec3& v)
+template <typename RealType>
+RealType iAVec3T<RealType>::length() const
 {
-	return iAVec3(u.x / v.x, u.y / v.y, u.z / v.z);
+	return std::sqrt(x()*x() + y() * y() + z() * z());
 }
 
-//! dot product
-inline float    operator & (const iAVec3& u,const iAVec3& v)
+template <typename RealType>
+iAVec3T<RealType> iAVec3T<RealType>::operator+ () const
 {
-	return u.x*v.x + u.y*v.y + u.z*v.z;
+	return *this;
 }
 
-//! cross product
-inline iAVec3 operator ^ (const iAVec3& u,const iAVec3& v)
+template <typename RealType>
+iAVec3T<RealType> iAVec3T<RealType>::operator- () const
 {
-	return iAVec3(u.y*v.z - u.z*v.y,
-		u.z*v.x - u.x*v.z,
-		u.x*v.y - u.y*v.x);
+	return iAVec3(-x(), -y(), -z());
+}
+
+template <typename RealType>
+template <typename ParamType>
+iAVec3T<RealType>& iAVec3T<RealType>::operator+= (const iAVec3T<ParamType>& v)
+{
+	for (int i = 0; i<3; ++i)
+		values[i] += static_cast<RealType>(v.values[i]);
+	return *this;
+}
+
+template <typename RealType>
+template <typename ParamType>
+iAVec3T<RealType>& iAVec3T<RealType>::operator-= (const iAVec3T<ParamType>& v)
+{
+	for (int i = 0; i<3; ++i)
+		values[i] -= static_cast<RealType>(v.values[i]);
+	return *this;
+}
+
+template <typename RealType>
+template <typename ParamType>
+iAVec3T<RealType>& iAVec3T<RealType>::operator*= (const iAVec3T<ParamType>& v)
+{
+	for (int i = 0; i<3; ++i)
+		values[i] *= static_cast<RealType>(v.values[i]);
+	return *this;
+}
+
+template <typename RealType>
+template <typename ParamType>
+iAVec3T<RealType>& iAVec3T<RealType>::operator*= (ParamType f)
+{
+	for (int i = 0; i<3; ++i)
+		values[i] *= static_cast<RealType>(f);
+	return *this;
+}
+
+template <typename RealType>
+template <typename ParamType>
+iAVec3T<RealType>& iAVec3T<RealType>::operator/= (const iAVec3T<ParamType>& v)
+{
+	for (int i = 0; i<3; ++i)
+		values[i] /= static_cast<RealType>(v.values[i]);
+	return *this;
+}
+
+template <typename RealType>
+const RealType& iAVec3T<RealType>::operator[] (size_t index) const
+{
+	return values[index];
+}
+
+template <typename RealType>
+RealType& iAVec3T<RealType>::operator[] (size_t index)
+{
+	return values[index];
+}
+
+template <typename RealType>
+void iAVec3T<RealType>::normalize()
+{
+	*this = this->normalized();
+}
+
+template <typename RealType>
+iAVec3T<RealType> iAVec3T<RealType>::normalized() const
+{
+	RealType l = this->length();
+	return (l > 0) ? (*this) / l : (*this);
+}
+
+template <typename RealType>
+RealType const * iAVec3T<RealType>::data() const
+{
+	return values;
+}
+
+// BINARY FUNCTIONS/OPERATORS:
+
+template <typename RealType>
+bool operator== (const iAVec3T<RealType>& u, const iAVec3T<RealType>& v)
+{
+	return u.x() == v.x() && u.y() == v.y() && u.z() == v.z();
+}
+
+template <typename RealType>
+bool operator!= (const iAVec3T<RealType>& u, const iAVec3T<RealType>& v)
+{
+	return u.x() != v.x() || u.y() != v.y() || u.z() != v.z();
+}
+
+template <typename RealType>
+bool operator< (const iAVec3T<RealType>& u, const iAVec3T<RealType>& v)
+{
+	return (u.x() < v.x()) || (u.x() == v.x() && u.y() < v.y()) || (u.x() == v.x() && u.y() == v.y() && u.z() < v.z());
+}
+
+template <typename RealType>
+bool operator> (const iAVec3T<RealType>& u, const iAVec3T<RealType>& v)
+{
+	return (u.x() > v.x()) || (u.x() == v.x() && u.y() > v.y()) || (u.x() == v.x() && u.y() == v.y() && u.z() > v.z());
+}
+
+template <typename T1, typename T2>
+iAVec3T<T1> operator + (const iAVec3T<T1>& u, const iAVec3T<T2>& v)
+{
+	return iAVec3T<T1>(u.x() + static_cast<T1>(v.x()), u.y() + static_cast<T1>(v.y()), u.z() + static_cast<T1>(v.z()));
+}
+
+template <typename T1, typename T2>
+iAVec3T<T1> operator - (const iAVec3T<T1>& u, const iAVec3T<T2>& v)
+{
+	return iAVec3T<T1>(u.x() - static_cast<T1>(v.x()), u.y() - static_cast<T1>(v.y()), u.z() - static_cast<T1>(v.z()));
+}
+
+template <typename T1, typename T2>
+iAVec3T<T1> operator * (const iAVec3T<T1>& u, const iAVec3T<T2>& v)
+{
+	return iAVec3T<T1>(u.x() * static_cast<T1>(v.x()), u.y() * static_cast<T1>(v.y()), u.z() * static_cast<T1>(v.z()));
+}
+
+template <typename RealType, typename ParamType>
+iAVec3T<RealType> operator * (const iAVec3T<RealType>& v, ParamType a)
+{
+	RealType b = static_cast<RealType>(a);
+	return iAVec3T<RealType>(v.x() * b, v.y() * b, v.z() * b);
+}
+
+template <typename RealType, typename ParamType>
+iAVec3T<RealType> operator * (ParamType a, const iAVec3T<RealType>& v)
+{
+	return v * a;
+}
+
+template <typename RealType, typename ParamType>
+iAVec3T<RealType> operator / (const iAVec3T<RealType>& v, ParamType a)
+{
+	RealType b = static_cast<RealType>(a);
+	return iAVec3T<RealType>(v.x() / b, v.y() / b, v.z() / b);
+}
+
+template <typename T1, typename T2>
+iAVec3T<T1> operator / (const iAVec3T<T1>& u, const iAVec3T<T2>& v)
+{
+	return iAVec3T<T1>(u.x() / static_cast<T1>(v.x()), u.y() / static_cast<T1>(v.y()), u.z() / static_cast<T1>(v.z()));
+}
+
+template <typename T1, typename T2>
+T1 dotProduct(const iAVec3T<T1>& u, const iAVec3T<T2>& v)
+{
+	return u.x()*static_cast<T1>(v.x()) + u.y()*static_cast<T1>(v.y()) + u.z()*static_cast<T1>(v.z());
+}
+
+template <typename T1, typename T2>
+T1 operator & (const iAVec3T<T1>& u, const iAVec3T<T2>& v)
+{
+	return dotProduct(u, v);
+}
+
+template <typename T1, typename T2>
+iAVec3T<T1> crossProduct(const iAVec3T<T1>& u, const iAVec3T<T2>& v)
+{
+	return iAVec3T<T1>(
+		u.y()*static_cast<T1>(v.z()) - u.z()*static_cast<T1>(v.y()),
+		u.z()*static_cast<T1>(v.x()) - u.x()*static_cast<T1>(v.z()),
+		u.x()*static_cast<T1>(v.y()) - u.y()*static_cast<T1>(v.x()));
+}
+
+template <typename T1, typename T2>
+iAVec3T<T1> operator ^ (const iAVec3T<T1>& u, const iAVec3T<T2>& v)
+{
+	return crossProduct(u, v);
+}
+
+template <typename T1, typename T2>
+T1 angle(iAVec3T<T1> const & u, iAVec3T<T2> const & v)
+{
+	return std::acos(dotProduct(u, v) / (u.length() * static_cast<T1>(v.length())));
 }

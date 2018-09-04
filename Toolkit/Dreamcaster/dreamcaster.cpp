@@ -1487,9 +1487,9 @@ void DreamCaster::setup3DView()
 	scalars->SetNumberOfValues(mdata.stlMesh.size());
 	for (unsigned int i=0; i<mdata.stlMesh.size(); i++)
 	{
-		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[0]->x, mdata.stlMesh[i]->vertices[0]->y, mdata.stlMesh[i]->vertices[0]->z);
-		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[1]->x, mdata.stlMesh[i]->vertices[1]->y, mdata.stlMesh[i]->vertices[1]->z);
-		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[2]->x, mdata.stlMesh[i]->vertices[2]->y, mdata.stlMesh[i]->vertices[2]->z);
+		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[0]->data());
+		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[1]->data());
+		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[2]->data());
 		modelPolys->InsertNextCell(3, tids);
 		tids[0]+=3;
 		tids[1]+=3;
@@ -2337,7 +2337,7 @@ void DreamCaster::ShowDipAnglesSlot()
 		iAVec3 tri_center = mat*((*triangles[i]->m_Vertex[0]+*triangles[i]->m_Vertex[1]+*triangles[i]->m_Vertex[2])/3);
 		iAVec3 tri_norm = mat*triangles[i]->m_N;
 		iAVec3 ray = tri_center - tracer->o;
-		normalize(ray);
+		ray.normalize();
 		abscos = abs(ray&tri_norm);
 		if(abscos>=rmin && abscos<=rmax)
 		{
@@ -3400,7 +3400,7 @@ void DreamCaster::ColorBadAngles()
 	tracer->InitRender(vp_corners, vp_delta, &o);
 	iAVec3 rotAxis = iAVec3(0.f, 1.f, 0.f);
 	tracer->Transform(&rotAxis);
-	normalize(rotAxis);
+	rotAxis.normalize();
 
 	float abscos;
 	//unsigned int tri_ind;
@@ -3437,7 +3437,7 @@ void DreamCaster::ColorBadAngles()
 		const triangle* tri = tracer->GetScene()->getTriangle((int)i)->getTri();
 		cur_area = 0.5f*((*tri->vertices[1]-*tri->vertices[0])^(*tri->vertices[2]-*tri->vertices[0])).length();
 		iAVec3 tri_center = (*tri->vertices[0]+*tri->vertices[1]+*tri->vertices[2])/3.0f;
-		iAVec3 o2tri_center = tri_center-o; normalize(o2tri_center);
+		iAVec3 o2tri_center = tri_center-o; o2tri_center.normalize();
 		abscos = abs( tri->N & o2tri_center);
 		if(abscos<badCos)
 		{
@@ -3475,7 +3475,7 @@ double DreamCaster::RandonSpaceAnalysis()
 	//unsigned int tri_ind;
 	iAVec3 rotAxis = iAVec3(0.f, 1.f, 0.f);
 	tracer->Transform(&rotAxis);
-	normalize(rotAxis);
+	rotAxis.normalize();
 	TriPrim* tri; 
 	iAVec3 triNorm;
 	float d;

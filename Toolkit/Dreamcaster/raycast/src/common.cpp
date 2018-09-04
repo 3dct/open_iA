@@ -75,14 +75,6 @@ inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range
 		return 1;
 	}
 
-
-	void normalize(iAVec3& u)
-	{
-		float len = u.length();
-		if(len>0)
-			u = u / u.length();
-	}
-
 	iAMat4 ScaleAndCentreBBox(aabb &box, float *scale_coef_out, float* translate3f_out)
 	{
 		float scale_coeff = 1.0f;
@@ -102,8 +94,8 @@ inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range
 	{
 		iAVec3 o2pt = pt - o;
 		float o2ptLen = o2pt.length();
-		normalize(o2pt);
-		normalize(dir);
+		o2pt.normalize();
+		dir.normalize();
 		float cos_dir_o2pt = o2pt & dir;
 		iAVec3 ptproj = o + dir*o2ptLen*cos_dir_o2pt;
 		return ptproj;
@@ -113,8 +105,8 @@ inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range
 	{
 		iAVec3 o2pt = pt - o;
 		float o2ptLen = o2pt.length();
-		normalize(o2pt);
-		normalize(dir);
+		o2pt.normalize();
+		dir.normalize();
 		float cos_dir_o2pt = o2pt & dir;
 		iAVec3 ptproj = o + dir*o2ptLen*cos_dir_o2pt;
 		return (pt-ptproj).length();
@@ -123,7 +115,7 @@ inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range
 	float distLineToLine( iAVec3 & o1, iAVec3 & d1, iAVec3 & o2, iAVec3 & d2 )
 	{
 		iAVec3 perpendicular = (d1^d2);
-		normalize(perpendicular);
+		perpendicular.normalize();
 		return fabs((o1-o2)&perpendicular);
 		//return (projectPtOnLine(o1, d1, o2) - o2).length();
 		//return (projectPtOnLine(o2, d2, o1) - o1).length();

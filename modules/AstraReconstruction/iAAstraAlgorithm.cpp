@@ -126,16 +126,16 @@ namespace
 				sin(curAngle) * parameters[DetSpcX].toDouble(),
 				0);
 			iAVec3 detectorPixelVertVec(0, 0, parameters[DetSpcY].toDouble()); // vector from detector pixel(0, 0) to(1, 0)
-			iAVec3 shiftVec = detectorPixelHorizVec.normalize() * parameters[CenterOfRotOfs].toDouble();
+			iAVec3 shiftVec = detectorPixelHorizVec.normalized() * parameters[CenterOfRotOfs].toDouble();
 			sourcePos += shiftVec;
 			detectorCenter += shiftVec;
 
 			if (!vectors.isEmpty()) vectors += ",";
 			vectors += QString("%1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12")
-				.arg(sourcePos.x).arg(sourcePos.y).arg(sourcePos.z)
-				.arg(detectorCenter.x).arg(detectorCenter.y).arg(detectorCenter.z)
-				.arg(detectorPixelHorizVec.x).arg(detectorPixelHorizVec.y).arg(detectorPixelHorizVec.z)
-				.arg(detectorPixelVertVec.x).arg(detectorPixelVertVec.y).arg(detectorPixelVertVec.z);
+				.arg(sourcePos.x()).arg(sourcePos.y()).arg(sourcePos.z())
+				.arg(detectorCenter.x()).arg(detectorCenter.y()).arg(detectorCenter.z())
+				.arg(detectorPixelHorizVec.x()).arg(detectorPixelHorizVec.y()).arg(detectorPixelHorizVec.z())
+				.arg(detectorPixelVertVec.x()).arg(detectorPixelVertVec.y()).arg(detectorPixelVertVec.z());
 		}
 		astra::XMLNode projGeomNode = projectorConfig.self.addChildNode("ProjectionGeometry");
 		projGeomNode.addAttribute("type", "cone_vec");

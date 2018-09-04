@@ -76,17 +76,17 @@ public:
 		switch(mainDim)
 		{
 		case 0://X
-			bound = p_aabb.center().x;
+			bound = p_aabb.center().x();
 			l_aabb.setData(p_aabb.x1, bound, p_aabb.y1, p_aabb.y2, p_aabb.z1, p_aabb.z2);
 			r_aabb.setData(bound, p_aabb.x2, p_aabb.y1, p_aabb.y2, p_aabb.z1, p_aabb.z2);
 			break;
 		case 1://Y
-			bound = p_aabb.center().y;
+			bound = p_aabb.center().y();
 			l_aabb.setData(p_aabb.x1, p_aabb.x2, p_aabb.y1, bound, p_aabb.z1, p_aabb.z2);
 			r_aabb.setData(p_aabb.x1, p_aabb.x2, bound, p_aabb.y2, p_aabb.z1, p_aabb.z2);
 			break;
 		case 2://Z
-			bound = p_aabb.center().z;
+			bound = p_aabb.center().z();
 			l_aabb.setData(p_aabb.x1, p_aabb.x2, p_aabb.y1, p_aabb.y2, p_aabb.z1, bound);
 			r_aabb.setData(p_aabb.x1, p_aabb.x2, p_aabb.y1, p_aabb.y2, bound, p_aabb.z2);
 			break;
