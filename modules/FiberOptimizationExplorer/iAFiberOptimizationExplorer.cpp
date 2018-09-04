@@ -47,6 +47,7 @@
 
 #include <vtkFloatArray.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
@@ -55,6 +56,7 @@
 #include <vtkTable.h>
 #include <vtkVariantArray.h>
 #include <vtkVersion.h>
+#include <vtkVertexGlyphFilter.h>
 
 #include <QButtonGroup>
 #include <QCheckBox>
@@ -1093,14 +1095,29 @@ namespace
 		return distance;
 	}
 
-	const int CylinderSamplePoints = 100;
+	const int CylinderSamplePoints = 1000;
 
-	void samplePoints(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, std::vector<std::vector<double> > result)
+	//linePnt - point the line passes through
+	//lineDir - unit vector in direction of line, either direction works
+	//pnt - the point to find nearest on line for
+	void nearestPointOnLine(double const * linePnt, double * lineDir, double * point)
+	{
+		vtkMath::Normalize(lineDir);
+
+		/*
+		lineDir.Normalize();//this needs to be a unit vector
+		var v = pnt - linePnt;
+		var d = Vector3.Dot(v, lineDir);
+		return linePnt + lineDir * d;
+		*/
+	}
+
+	void samplePoints(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, std::vector<std::vector<double> > & result)
 	{
 		std::default_random_engine generator; // deterministic, will always produce the same "random" numbers; might be exchanged for another generator to check the spread we still get
 		std::uniform_int_distribution<int> angleRnd(0, 3);
-		std::uniform_real_distribution<double> radiusRnd(0, 1 + std::numeric_limits<double>::epsilon());
-		std::uniform_real_distribution<double> posRnd(0, 1 + std::numeric_limits<double>::epsilon());
+		std::uniform_real_distribution<double> radiusRnd(0, 1);
+		std::uniform_real_distribution<double> posRnd(0, 1);
 
 		double fiberStart[3], fiberEnd[3], fiberDir[3], perpDir[3], perpDir2[3];
 		fiberStart[0] = fiberInfo->GetValue(mapping[iACsvConfig::StartX]).ToDouble();
@@ -1112,9 +1129,10 @@ namespace
 		fiberDir[0] = fiberEnd[0] - fiberStart[0];
 		fiberDir[1] = fiberEnd[1] - fiberStart[1];
 		fiberDir[2] = fiberEnd[2] - fiberStart[2];
-		DEBUG_LOG(QString("Sampling fiber (%1, %2, %3) - (%4, %5, %6)")
+		double fiberRadius = fiberInfo->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2;
+		DEBUG_LOG(QString("Sampling fiber (%1, %2, %3) - (%4, %5, %6), radius = %7")
 			.arg(fiberStart[0]).arg(fiberStart[1]).arg(fiberStart[2])
-			.arg(fiberEnd[0]).arg(fiberEnd[1]).arg(fiberEnd[2]))
+			.arg(fiberEnd[0]).arg(fiberEnd[1]).arg(fiberEnd[2]).arg(fiberRadius))
 
 		perpendicularVector(fiberDir, perpDir);
 		// normalizeVector(perpDir, 3);
@@ -1123,9 +1141,12 @@ namespace
 		vtkMath::Cross(fiberDir, perpDir, perpDir2);
 		vtkMath::Normalize(perpDir2);
 
+		DEBUG_LOG(QString("Normal Vectors: (%1, %2, %3), (%4, %5, %6)")
+			.arg(perpDir[0]).arg(perpDir[1]).arg(perpDir[2])
+			.arg(perpDir2[0]).arg(perpDir2[1]).arg(perpDir2[2]))
+
 		result.resize(CylinderSamplePoints);
 
-		double fiberRadius = fiberInfo->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2;
 		for (int i = 0; i < CylinderSamplePoints; ++i)
 		{
 			int angleIdx = angleRnd(generator);
@@ -1133,17 +1154,19 @@ namespace
 			double t = posRnd(generator);
 			double fromCenter[3];
 			// 4 possible directions: perpDir or perpDir2, each either positive or negative direction
-			for (int i = 0; i < 3; ++i)
-			{
-				fromCenter[i] = ((angleIdx < 2) ? 1 : -1) * ((angleIdx == 0 || angleIdx == 2) ? perpDir[i] : perpDir2[i]);
-			}
 
 			double fiberPos[3];
-			DEBUG_LOG(QString("    Sampled point at (%1, %2, %3)").arg(fiberPos[0]).arg(fiberPos[1]).arg(fiberPos[2]));
 			for (int j = 0; j < 3; ++j)
 			{
-				result[i].push_back(fiberStart[j] + fiberDir[j] * t + fromCenter[i] * radius);
+				fromCenter[j] = ((angleIdx < 2) ? 1 : -1) * ((angleIdx == 0 || angleIdx == 2) ? perpDir[j] : perpDir2[j]);
+				fiberPos[j] = fiberStart[j] + fiberDir[j] * t;
 			}
+			DEBUG_LOG(QString("    Point on fiber axis: (%1, %2, %3)").arg(fiberPos[0]).arg(fiberPos[1]).arg(fiberPos[2]));
+			for (int j = 0; j < 3; ++j)
+			{
+				result[i].push_back(fiberPos[j] + fromCenter[j] * radius);
+			}
+			DEBUG_LOG(QString("    Sampled point: (%1, %2, %3)").arg(result[i][0]).arg(result[i][1]).arg(result[i][2]));
 		}
 	}
 
@@ -1193,15 +1216,31 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 		points->InsertNextPoint(pt);
 	}
 	m_sampleData->SetPoints(points);
+	auto vertexFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
+	vertexFilter->SetInputData(m_sampleData);
+	vertexFilter->Update();
+
+	// For color:
+	auto polydata = vtkSmartPointer<vtkPolyData>::New();
+	polydata->DeepCopy(vertexFilter->GetOutput());
+	auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	colors->SetNumberOfComponents(3);
+	colors->SetName ("Colors");
+	unsigned char blue[3] = {0, 0, 255};
+	for (size_t s = 0; s < sampledPoints.size(); ++s)
+#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
+		colors->InsertNextTupleValue(blue);
+#else
+		colors->InsertNextTypedTuple(blue);
+#endif
+	polydata->GetPointData()->SetScalars(colors);
 
 	m_sampleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_sampleActor = vtkSmartPointer<vtkActor>::New();
-	m_sampleMapper->SetInputData(m_sampleData);
+	m_sampleMapper->SetInputData(polydata);
 	m_sampleActor->SetMapper(m_sampleMapper);
-	double pointColor[3];
-	pointColor[0] = 1.0; pointColor[0] = 0.0; pointColor[0] = 0.0;
-	m_sampleActor->GetProperty()->SetColor(pointColor);
-	m_sampleActor->GetProperty()->SetPointSize(3);
+	m_sampleMapper->Update();
+	m_sampleActor->GetProperty()->SetPointSize(2);
 	m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
 	m_mainRenderer->GetRenderWindow()->Render();
 	m_mainRenderer->update();
