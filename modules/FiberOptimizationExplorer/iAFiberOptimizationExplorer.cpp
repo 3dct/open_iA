@@ -1143,12 +1143,12 @@ namespace
 			//        - one random variable for distance from center (0.. fiber radius); make sure to use sqrt of random variable to avoid clustering points in center (http://mathworld.wolfram.com/DiskPointPicking.html)
 			//    - pseudorandom?
 			//        --> no idea at the moment
-			distance = getOverlap(fiber1, mapping, fiber2, false);
+			distance = 1 - getOverlap(fiber1, mapping, fiber2, false);
 			break;
 		}
 		case 4:
 		{
-			distance = getOverlap(fiber1, mapping, fiber2, true);
+			distance = 1 - getOverlap(fiber1, mapping, fiber2, true);
 			break;
 		}
 		}
