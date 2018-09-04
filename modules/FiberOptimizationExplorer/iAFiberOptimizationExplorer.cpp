@@ -936,7 +936,7 @@ namespace
 			radius * std::cos(phi));
 	}
 
-	const int CylinderSamplePoints = 100;
+	const int CylinderSamplePoints = 200;
 
 	void samplePoints(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, std::vector<Vec3D > & result, size_t numSamples)
 	{
@@ -1012,8 +1012,9 @@ namespace
 		Vec3D ptOnLine = nearestPointOnLine(start, dir, point, dist);
 		if (dist > 0 && dist < dir.length())  // check whether point is between start and end
 		{
-			double radius = fiber->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2;
-			return (ptOnLine - point).length() < radius;
+			double radius = fiber->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2.0;
+			double distance = (ptOnLine - point).length();
+			return distance < radius;
 		}
 		return false;
 	}
@@ -1022,10 +1023,10 @@ namespace
 	{
 		// leave out pi in volume, as we only need relation of the volumes!
 		double fiber1Vol = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble() + std::pow(fiber1->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2, 2);
-		double fiber2Vol = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble() + std::pow(fiber2->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2, 2);
+		double fiber2Vol = fiber2->GetValue(mapping[iACsvConfig::Length]).ToDouble() + std::pow(fiber2->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2, 2);
 		// TODO: also map fiber volume (currently not mapped!
 		vtkVariantArray* shorterFiber = (fiber1Vol < fiber2Vol) ? fiber1 : fiber2;
-		vtkVariantArray* longerFiber = (fiber1Vol > fiber2Vol) ? fiber1 : fiber2;
+		vtkVariantArray* longerFiber  = (fiber1Vol > fiber2Vol) ? fiber1 : fiber2;
 		std::vector<Vec3D > sampledPoints;
 		samplePoints(shorterFiber, mapping, sampledPoints, CylinderSamplePoints);
 		size_t containedPoints = 0;
