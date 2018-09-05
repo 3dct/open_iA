@@ -51,4 +51,6 @@ private:
 	QTransform m_transformHistogramA; // left
 	QTransform m_transformHistogramB; // right
 	QTransform m_transformHistogramC; // bottom
+
+	int left, top, right, bottom, centerX, width, height;
 };

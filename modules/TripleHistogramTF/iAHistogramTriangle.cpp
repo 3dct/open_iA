@@ -74,7 +74,7 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event)
 
 void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 {
-	int left, top, right, bottom, centerX, width, height; // Big triangle's positions
+	//int left, top, right, bottom, centerX, width, height; // Big triangle's positions
 
 	{ // Triangle positions
 		int aw  = totalWidth - TRIANGLE_LEFT - TRIANGLE_RIGHT; // Available width for the triangle
@@ -122,13 +122,13 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 	{ // Transform histogram A (left)
 		m_transformHistogramA.reset();
 		m_transformHistogramA.translate(left - TRIANGLE_LEFT, bottom - TRIANGLE_TOP);
-		m_transformHistogramA.rotate(-RAD60);
+		m_transformHistogramA.rotate(-60.0);
 	}
 
 	{ // Transform histogram B (right)
 		m_transformHistogramB.reset();
 		m_transformHistogramB.translate(centerX + TRIANGLE_LEFT, top - TRIANGLE_TOP);
-		m_transformHistogramB.rotate(RAD60);
+		m_transformHistogramB.rotate(60.0);
 	}
 
 	{ // Transform histogram C (bottom)
@@ -155,6 +155,26 @@ void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 	paintSlicers(p);
 	paintTriangle(p);
 	paintHistograms(p);
+
+	QPen pen;
+	pen.setWidth(1);
+	p.setPen(pen);
+
+	pen.setColor(QColor(0, 0, 255));
+
+	p.setTransform(m_transformHistogramA);
+	p.drawRect(0, 0, width, HISTOGRAM_HEIGHT);
+
+	p.setTransform(m_transformHistogramB);
+	p.drawRect(0, 0, width, HISTOGRAM_HEIGHT);
+
+	p.setTransform(m_transformHistogramC);
+	p.drawRect(0, 0, width, HISTOGRAM_HEIGHT);
+}
+
+void iAHistogramTriangle::paintSlicers(QPainter &p)
+{
+
 }
 
 void iAHistogramTriangle::paintTriangle(QPainter &p)
@@ -167,10 +187,7 @@ void iAHistogramTriangle::paintTriangle(QPainter &p)
 
 void iAHistogramTriangle::paintHistograms(QPainter &p)
 {
-
-}
-
-void iAHistogramTriangle::paintSlicers(QPainter &p)
-{
-	
+	p.setTransform(m_transformHistogramA);
+	m_histograms[0]->render(&p);
+	p.resetTransform();
 }
