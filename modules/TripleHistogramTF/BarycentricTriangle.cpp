@@ -144,6 +144,16 @@ void BarycentricTriangle::setYc(int yc)
 	m_yc = yc;
 }
 
-bool BarycentricTriangle::contains(double x, double y) {
+bool BarycentricTriangle::contains(double x, double y)
+{
 	return getBarycentricCoordinates(x, y).isInside();
+}
+
+QRect BarycentricTriangle::getBounds()
+{
+	int minx = qMin(m_xa, qMin(m_xb, m_xc));
+	int maxx = qMax(m_ya, qMax(m_yb, m_yc));
+	int miny = qMin(m_xa, qMin(m_xb, m_xc));
+	int maxy = qMax(m_ya, qMax(m_yb, m_yc));
+	return QRect(minx, miny, maxx - minx, maxy - miny);
 }

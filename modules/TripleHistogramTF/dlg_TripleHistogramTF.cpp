@@ -28,7 +28,9 @@
 #include "iARenderer.h"
 #include "iASlicerData.h"
 #include "iABarycentricContextRenderer.h"
+
 #include "iAHistogramStack.h"
+#include "iAHistogramTriangle.h"
 
 #include <vtkImageData.h>
 
@@ -68,7 +70,7 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	m_disabledLabel = new QLabel();
 	m_disabledLabel->setAlignment(Qt::AlignCenter);
 
-	m_histogramStack = new iAHistogramStack(dockWidgetContents, mdiChild);
+	m_histogramStack = new iAHistogramTriangle(dockWidgetContents, mdiChild);
 	m_histogramStack->setModalityLabel(DEFAULT_LABELS[0], 0);
 	m_histogramStack->setModalityLabel(DEFAULT_LABELS[1], 1);
 	m_histogramStack->setModalityLabel(DEFAULT_LABELS[2], 2);

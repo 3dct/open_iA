@@ -35,7 +35,7 @@ class iASimpleSlicerWidget : public QWidget
 	Q_OBJECT
 
 public:
-	iASimpleSlicerWidget(QWidget* parent, Qt::WindowFlags f = 0);
+	iASimpleSlicerWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
 	//iASimpleSlicerWidget(QWidget* parent, QSharedPointer<iAModality> modality, Qt::WindowFlags f = 0);
 	~iASimpleSlicerWidget();
 

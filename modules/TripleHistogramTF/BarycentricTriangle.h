@@ -22,6 +22,7 @@
 #pragma once
 
 #include <QPoint>
+#include <QRect>
 
 class BCoord;
 
@@ -61,6 +62,8 @@ class BarycentricTriangle
 		void updateCartesianCoordinates(QPoint &qPoint, const BCoord &bCoord);
 		void updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta);
 		void updateCartesianCoordinates(QPoint &qPoint, double alpha, double beta, double gamma);
+
+		QRect getBounds();
 
 	private:
 		int m_xa;

@@ -139,6 +139,17 @@ void iABarycentricTriangleWidget::mouseReleaseEvent(QMouseEvent *event)
 
 void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 {
+	recalculatePositions(width, height, true);
+}
+
+void iABarycentricTriangleWidget::recalculatePositions(int width, int height, BarycentricTriangle triangle)
+{
+	m_triangle = triangle;
+	recalculatePositions(width, height, false);
+}
+
+void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bool changeTriangle)
+{
 	QFontMetrics metrics = QFontMetrics(m_modalityLabelFont);
 	int modalityLabelHeight = metrics.height();
 	
@@ -168,31 +179,34 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 	bottom = top + th;
 	centerX = left + (tw / 2);
 
-	m_triangle.setXa(left);
-	m_triangle.setYa(bottom);
-	m_triangle.setXb(centerX);
-	m_triangle.setYb(top);
-	m_triangle.setXc(right);
-	m_triangle.setYc(bottom);
+	if (changeTriangle) {
+		m_triangle.setXa(left);
+		m_triangle.setYa(bottom);
+		m_triangle.setXb(centerX);
+		m_triangle.setYb(top);
+		m_triangle.setXc(right);
+		m_triangle.setYc(bottom);
+	}
 
 	m_trianglePainterPath = QPainterPath();
-	m_trianglePainterPath.moveTo(left, bottom);
-	m_trianglePainterPath.lineTo(centerX, top);
-	m_trianglePainterPath.lineTo(right, bottom);
-	m_trianglePainterPath.lineTo(left, bottom);
+	m_trianglePainterPath.moveTo(m_triangle.getXa(), m_triangle.getYa());
+	m_trianglePainterPath.lineTo(m_triangle.getXb(), m_triangle.getYb());
+	m_trianglePainterPath.lineTo(m_triangle.getXc(), m_triangle.getYc());
+	m_trianglePainterPath.lineTo(m_triangle.getXa(), m_triangle.getYa());
 
 	// LABELS PLACEMENT {
 	int modalityLabel1width = metrics.width(m_modalityLabel1);
 	int modalityLabel2width = metrics.width(m_modalityLabel2);
 	int modalityLabel3width = metrics.width(m_modalityLabel3);
 
-	int modalityLabel1Left = left + MODALITY_LABEL_MARGIN;
-	int modalityLabel2Left = centerX - (modalityLabel2width / 2);
-	int modalityLabel3Left = right - modalityLabel3width - MODALITY_LABEL_MARGIN;
+	// TODO: position the edge labels correctly even with externally set triangles (not equilateral)
+	int modalityLabel1Left = m_triangle.getXa() + MODALITY_LABEL_MARGIN;
+	int modalityLabel2Left = m_triangle.getXb() - (modalityLabel2width / 2);
+	int modalityLabel3Left = m_triangle.getXc() - modalityLabel3width - MODALITY_LABEL_MARGIN;
 
-	int modalityLabel1_3Top = bottom + MODALITY_LABEL_MARGIN;
+	int modalityLabel1_3Top = m_triangle.getYa() + MODALITY_LABEL_MARGIN;
 	int modalityLabel1_3Bottom = modalityLabel1_3Top + modalityLabelHeight;
-	int modalityLabel2Bottom = top - MODALITY_LABEL_MARGIN;
+	int modalityLabel2Bottom = m_triangle.getYb() - MODALITY_LABEL_MARGIN;
 
 	m_modalityLabel1Pos = QPoint(modalityLabel1Left, modalityLabel1_3Bottom); // bottom left
 	m_modalityLabel2Pos = QPoint(modalityLabel2Left, modalityLabel2Bottom); // top centerX
@@ -425,7 +439,7 @@ void iABarycentricTriangleWidget::resizeGL(int w, int h)
 void iABarycentricTriangleWidget::paintGL()
 {
 	QPainter p(this);
-	paintHelper(p);
+	paintContext(p);
 	paintControlPoint(p);
 	paintModalityLabels(p);
 }
@@ -468,7 +482,7 @@ void iABarycentricTriangleWidget::paintModalityLabels(QPainter &p)
 	p.drawText(m_modalityWeight3Pos, m_modalityWeight3);
 }
 
-void iABarycentricTriangleWidget::paintHelper(QPainter &p) {
+void iABarycentricTriangleWidget::paintContext(QPainter &p) {
 	if (m_triangleRenderer && m_triangleRenderer->canPaint()) {
 		m_triangleRenderer->paintContext(p);
 	}

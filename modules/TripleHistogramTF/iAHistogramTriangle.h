@@ -18,6 +18,37 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include "iAHistogramTriangleWidget.h"
+#pragma once
 
+#include "iATripleModalityWidget.h"
+
+class iAHistogramTriangle : public iATripleModalityWidget
+{
+public:
+	iAHistogramTriangle(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+
+	void initialize() override;
+	void setModalityLabel(QString label, int index) override;
+
+	void paintTriangle(QPainter &p);
+	void paintHistograms(QPainter &p);
+	void paintSlicers(QPainter &p);
+
+protected:
+	void paintEvent(QPaintEvent* event);
+	void resizeEvent(QResizeEvent* event);
+
+	void mousePressEvent(QMouseEvent *event) { forwardMouseEvent(event); }
+	void mouseMoveEvent(QMouseEvent *event) { forwardMouseEvent(event); }
+	void mouseReleaseEvent(QMouseEvent *event) { forwardMouseEvent(event); }
+
+private:
+	void calculatePositions() { calculatePositions(size().width(), size().height()); }
+	void calculatePositions(int w, int h);
+
+	void forwardMouseEvent(QMouseEvent *event);
+
+	QTransform m_transformHistogramA; // left
+	QTransform m_transformHistogramB; // right
+	QTransform m_transformHistogramC; // bottom
+};

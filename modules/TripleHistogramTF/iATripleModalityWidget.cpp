@@ -346,7 +346,7 @@ void iATripleModalityWidget::updateModalities()
 		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New(); // TODO delete?
 		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy); //new iASimpleTransferFunction(colorFuncCopy, opFuncCopy);
 
-		m_histograms[i] = new iADiagramFctWidget(this, m_mdiChild);
+		m_histograms[i] = new iADiagramFctWidget(nullptr, m_mdiChild);
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
 			new	iABarGraphDrawer(m_modalitiesActive[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->AddPlot(histogramPlot);
@@ -355,7 +355,7 @@ void iATripleModalityWidget::updateModalities()
 		// }
 
 		// Slicer {
-		m_slicerWidgets[i] = new iASimpleSlicerWidget(this);
+		m_slicerWidgets[i] = new iASimpleSlicerWidget();
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
 		m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 		// }

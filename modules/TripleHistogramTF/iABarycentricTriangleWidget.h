@@ -62,6 +62,7 @@ public:
 	int getHeightForCurrentWidth();
 
 	void recalculatePositions() { recalculatePositions(width(), height()); }
+	void recalculatePositions(int w, int h, BarycentricTriangle triangle);
 	void setFont(QFont font);
 	void setModality1label(QString label);
 	void setModality2label(QString label);
@@ -74,6 +75,14 @@ public:
 	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
 
 	void setBackgroundColor(QColor color);
+
+	BarycentricTriangle getTriangle() { return m_triangle; }
+
+	void paintTriangleFill(QPainter &p);
+	void paintTriangleBorder(QPainter &p);
+	void paintContext(QPainter &p);
+	void paintControlPoint(QPainter &p);
+	void paintModalityLabels(QPainter &p);
 
 public slots:
 
@@ -136,12 +145,7 @@ private:
 	void moveControlPointTo(QPoint newPos);
 
 	void recalculatePositions(int w, int h);
-
-	void paintTriangleFill(QPainter &p);
-	void paintTriangleBorder(QPainter &p);
-	void paintHelper(QPainter &p);
-	void paintControlPoint(QPainter &p);
-	void paintModalityLabels(QPainter &p);
+	void recalculatePositions(int w, int h, bool changeTriangle);
 
 	bool isTooWide(int width, int height);
 	bool isTooTall(int width, int height);

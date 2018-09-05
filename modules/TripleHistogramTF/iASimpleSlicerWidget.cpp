@@ -29,7 +29,7 @@
 #include <vtkInteractorStyle.h>
 #include <vtkRenderWindowInteractor.h>
 
-iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent, Qt::WindowFlags f /*= 0 */) :
+iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	QWidget(parent, f)
 {
 	m_slicer = new iASlicer(parent, iASlicerMode::XY, this,
