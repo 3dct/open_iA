@@ -86,6 +86,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
 	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), this);
+	data->updateRanges();
 	m_scatterplot->setData(0, 1, data);
 }
 
