@@ -35,7 +35,7 @@ public:
 	bool isSlicerInteractionEnabled() override { return true; }
 	void setModalityLabel(QString label, int index) override;
 
-	void paintHistograms(QPainter& p);
+	void paintHistograms(QPainter &p);
 	void paintSlicers(QPainter& p);
 
 protected:
@@ -46,6 +46,7 @@ protected:
 	void mouseMoveEvent(QMouseEvent *event) { forwardMouseEvent(event); lastMousePos = event->pos(); }
 	void mouseReleaseEvent(QMouseEvent *event) { forwardMouseEvent(event); dragging = false; lastMousePos = event->pos(); }
 	void wheelEvent(QWheelEvent *event) { forwardWheelEvent(event); }
+	void contextMenuEvent(QContextMenuEvent *event) { forwardContextMenuEvent(event); }
 
 private:
 	void calculatePositions() { calculatePositions(size().width(), size().height()); }
@@ -57,9 +58,10 @@ private:
 
 	void forwardMouseEvent(QMouseEvent *event);
 	void forwardWheelEvent(QWheelEvent *event);
-	iADiagramFctWidget* onHistogram(QPoint p, QPoint &transformed);
+	void forwardContextMenuEvent(QContextMenuEvent *event);
+	iADiagramFctWidget* onHistogram(QPoint p, QPoint &transformed, int &index);
 	bool onTriangle(QPoint p);
-	iASimpleSlicerWidget* onSlicer(QPoint p, QPoint &transformed);
+	iASimpleSlicerWidget* onSlicer(QPoint p, QPoint &transformed, int &index);
 
 	QPainterPath m_clipPath;
 	QPen m_clipPathPen;
@@ -73,4 +75,18 @@ private:
 	QBrush m_slicerBackgroundBrush;
 
 	int m_triangleBigWidth;
+
+	// Painting rectangles
+	QRect m_rHistogram[3];
+	QRect m_rSlicer[3];
+	QRect m_rTriangle;
+
+	// Painting buffers
+	QImage m_buffer;
+
+	// Painting flags
+	bool m_fClear;
+	bool m_fRenderHistogram[3];
+	bool m_fRenderSlicer[3];
+	bool m_fRenderTriangle;
 };

@@ -56,6 +56,8 @@ void iAHistogramTriangle::initialize()
 
 	setMouseTracking(true);
 
+	setAttribute(Qt::WA_OpaquePaintEvent, true);
+
 	QWidget *widget = new QWidget(this);
 	//temp->setVisible(false);
 	QLayout *layout = new QHBoxLayout(widget);
@@ -88,50 +90,51 @@ void iAHistogramTriangle::resizeEvent(QResizeEvent* event)
 
 void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event)
 {
-	QWidget *slicerTarget;
-	QPoint transformed;
-
-	slicerTarget = onSlicer(event->pos(), transformed);
-	if (slicerTarget != nullptr && dragging) {
+	if (dragging && event->button() == Qt::MidButton) {
 		int deltaX = event->pos().x() - lastMousePos.x();
 		int deltaY = event->pos().y() - lastMousePos.y();
 		if (deltaX != 0 || deltaY != 0) {
 			int index = -1;
-			if (m_slicerWidgets[0] == slicerTarget) {
+			if (m_slicerWidgets[0] == lastTarget) {
 				index = 0;
-			} else if (m_slicerWidgets[1] == slicerTarget) {
+			} else if (m_slicerWidgets[1] == lastTarget) {
 				index = 1;
-			} else if (m_slicerWidgets[2] == slicerTarget) {
+			} else if (m_slicerWidgets[2] == lastTarget) {
 				index = 2;
 			}
 			if (index > -1) {
 				m_transformSlicers[index].translate(deltaX, deltaY);
+				m_fRenderSlicer[index] = true;
+				update();
 			}
 		}
-		update();
-		lastTarget = slicerTarget;
 		return;
 	}
 
 	if (onTriangle(event->pos())) {
 		QApplication::sendEvent(m_triangleWidget, event);
-		update();
 		lastTarget = m_triangleWidget;
+		m_fRenderTriangle = true;
+		update();
 		return;
 	}
 
+	QPoint transformed;
+	int index;
 	QWidget *target;
 
-	if ((target = onHistogram(event->pos(), transformed)) != nullptr) {
+	if ((target = onHistogram(event->pos(), transformed, index))) {
 		event->setLocalPos(transformed);
 		QApplication::sendEvent(target, event);
-		update();
 		lastTarget = target;
+		m_fRenderHistogram[index] = true;
+		m_fRenderSlicer[index] = true;
+		update();
 		return;
 	}
 
 	// Forwarding won't work because we're drawing the framebuffer of the slicer... TODO after fixing that, uncomment this
-	/*if ((target = onSlicer(event->pos(), transformed)) != nullptr) {
+	/*if ((target = onSlicer(event->pos(), transformed))) {
 		event->setLocalPos(transformed);
 		QApplication::sendEvent(target, event);
 		update();
@@ -139,34 +142,54 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event)
 		return;
 	}*/
 	// ...instead, tranlate the slicer's transform
-	if (event->button() == Qt::MiddleButton && slicerTarget != nullptr) {
+	target = onSlicer(event->pos(), transformed, index);
+	if (target && event->button() == Qt::MidButton) {
+		lastTarget = target;
 		dragging = true;
-		lastTarget = slicerTarget;
+		return;
 	}
 }
 
 void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 {
 	QPoint transformed;
+	int index;
 	iASimpleSlicerWidget *target;
-	if ((target = onSlicer(e->pos(), transformed)) != nullptr) {
+	if ((target = onSlicer(e->pos(), transformed, index))) {
 		QWheelEvent *newE = new QWheelEvent(e->posF(), e->globalPosF(), e->pixelDelta(), e->angleDelta(),
 			e->delta(), e->orientation(), e->buttons(),
 			e->modifiers(), e->phase(), e->source(), e->inverted());
 		QApplication::sendEvent(target, newE);
+		m_fRenderSlicer[index] = true;
 		update();
 		return;
 	}
 }
 
-iADiagramFctWidget* iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed)
+void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
+{
+	QPoint transformed;
+	int index;
+	iADiagramFctWidget* target = onHistogram(e->pos(), transformed, index);
+	if (target) {
+		QContextMenuEvent *newE = new QContextMenuEvent(e->reason(), transformed, e->globalPos());
+		QApplication::sendEvent(target, newE);
+		//m_fRenderHistogram[index] = true;
+		//update();
+		return;
+	}
+}
+
+iADiagramFctWidget* iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed, int &index)
 {
 	for (int i = 0; i < 3; i++) {
 		transformed = m_transformHistograms[i].inverted().map(p);
 		if (m_histogramsRect.contains(transformed)) {
+			index = i;
 			return m_histograms[i];
 		}
 	}
+	index = -1;
 	return nullptr;
 }
 
@@ -175,14 +198,16 @@ bool iAHistogramTriangle::onTriangle(QPoint p)
 	return m_triangleWidget->getTriangle().contains(p.x(), p.y());
 }
 
-iASimpleSlicerWidget* iAHistogramTriangle::onSlicer(QPoint p, QPoint &transformed)
+iASimpleSlicerWidget* iAHistogramTriangle::onSlicer(QPoint p, QPoint &transformed, int &index)
 {
 	for (int i = 0; i < 3; i++) {
 		if (m_slicerTriangles[i].contains(p.x(), p.y())) {
 			transformed = m_transformSlicers[i].inverted().map(p);
+			index = i;
 			return m_slicerWidgets[i];
 		}
 	}
+	index = -1;
 	return nullptr;
 }
 
@@ -258,31 +283,32 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 	}
 
 	{ // Set up the slicers's transforms and resize them
-		m_transformSlicers[0].reset(); // left
-		m_transformSlicers[0].translate(left, t);
-		m_slicerTriangles[0].set(left, bottom, l, t, centerX, bottom);
+		m_transformSlicers[0].reset(); // right
+		m_transformSlicers[0].translate(centerX, t);
+		m_slicerTriangles[0].set(centerX, bottom, r, t, right, bottom);
 
-		m_transformSlicers[1].reset(); // top
-		m_transformSlicers[1].translate(l, top);
-		m_slicerTriangles[1].set(l, t, centerX, top, r, t);
+		m_transformSlicers[1].reset(); // left
+		m_transformSlicers[1].translate(left, t);
+		m_slicerTriangles[1].set(left, bottom, l, t, centerX, bottom);
 
-		m_transformSlicers[2].reset(); // right
-		m_transformSlicers[2].translate(centerX, t);
-		m_slicerTriangles[2].set(centerX, bottom, r, t, right, bottom);
+		m_transformSlicers[2].reset(); // top
+		m_transformSlicers[2].translate(l, top);
+		m_slicerTriangles[2].set(l, t, centerX, top, r, t);
+
 
 		// Path encloses the left small triangle. When drawing, the path can be translated
 		// to the other triangle's positions, then translated back to the initial position
-		m_slicerClipPaths[0] = QPainterPath();
-		m_slicerClipPaths[0].moveTo(QPointF(l, t));
-		m_slicerClipPaths[0].lineTo(QPointF(centerX, bottom));
-		m_slicerClipPaths[0].lineTo(QPointF(left, bottom));
-		m_slicerClipPaths[0].lineTo(QPointF(l, t));
+		m_slicerClipPaths[1] = QPainterPath(); // left
+		m_slicerClipPaths[1].moveTo(QPointF(l, t));
+		m_slicerClipPaths[1].lineTo(QPointF(centerX, bottom));
+		m_slicerClipPaths[1].lineTo(QPointF(left, bottom));
+		m_slicerClipPaths[1].lineTo(QPointF(l, t));
 
-		m_slicerClipPaths[1] = m_slicerClipPaths[0];
-		m_slicerClipPaths[1].translate(w >> 1, -h);
+		m_slicerClipPaths[2] = m_slicerClipPaths[1]; // top
+		m_slicerClipPaths[2].translate(w >> 1, -h);
 
-		m_slicerClipPaths[2] = m_slicerClipPaths[0];
-		m_slicerClipPaths[2].translate(w, 0);
+		m_slicerClipPaths[0] = m_slicerClipPaths[1]; // right
+		m_slicerClipPaths[0].translate(w, 0);
 
 		QRect rect = QRect(0, 0, w, h);
 		m_slicerWidgets[0]->setGeometry(rect);
@@ -294,7 +320,7 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_slicerWidgets[2]->getSlicer()->widget()->resize(size);
 	}
 
-	{ // Set up the clipping path
+	{ // Set up the clip path convering all widgets
 		int histoLateralY = bottom - TRIANGLE_TOP;
 		m_clipPath = QPainterPath();
 		m_clipPath.moveTo(left, bottom);
@@ -308,23 +334,54 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_clipPath.lineTo(left, boxBottom);
 		m_clipPath.lineTo(left, bottom);
 	}
+
+	m_fClear = true;
 }
 
 void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 {
 	QPainter p(this);
 	p.setRenderHint(QPainter::RenderHint::Antialiasing);
+	p.setRenderHint(QPainter::RenderHint::SmoothPixmapTransform);
 	//p.setClipPath(m_clipPath);
 
+	if (m_fClear) {
+		p.eraseRect(0, 0, size().width(), size().height());
+		m_fRenderHistogram[0] = true;
+		m_fRenderHistogram[1] = true;
+		m_fRenderHistogram[2] = true;
+		m_fRenderSlicer[0] = true;
+		m_fRenderSlicer[1] = true;
+		m_fRenderSlicer[2] = true;
+		m_fRenderTriangle = true;
+	}
+
 	paintSlicers(p);
-	m_triangleWidget->paintContext(p);
+
+	if (m_fRenderTriangle) {
+		m_triangleWidget->paintContext(p);
+	}
+
 	paintHistograms(p);
+
+	// Always draw this, independent of any flags!
 	//m_triangleWidget->paintTriangleBorder(p);
 	m_triangleWidget->paintControlPoint(p);
 
-	//p.setClipping(false);
-	p.setPen(m_clipPathPen);
-	p.drawPath(m_clipPath);
+	if (m_fRenderHistogram[0] || m_fRenderHistogram[1] || m_fRenderHistogram[2]) {
+		//p.setClipping(false);
+		p.setPen(m_clipPathPen);
+		p.drawPath(m_clipPath);
+	}
+
+	m_fClear = false;
+	m_fRenderHistogram[0] = false;
+	m_fRenderHistogram[1] = false;
+	m_fRenderHistogram[2] = false;
+	m_fRenderSlicer[0] = false;
+	m_fRenderSlicer[1] = false;
+	m_fRenderSlicer[2] = false;
+	m_fRenderTriangle = false;
 }
 
 void iAHistogramTriangle::paintSlicers(QPainter &p)
@@ -332,18 +389,19 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 	bool hasClipping = p.hasClipping();
 	QPainterPath oldClipPath = p.clipPath();
 
-	p.setClipping(false);
-	p.fillPath(m_slicerClipPaths[0], QBrush(Qt::black)); // TODO use m_slicerBackgroundBrush
-	p.fillPath(m_slicerClipPaths[1], QBrush(Qt::black));
-	p.fillPath(m_slicerClipPaths[2], QBrush(Qt::black));
-
 	QImage img;
 	for (int i = 0; i < 3; i++) {
-		p.setClipPath(m_slicerClipPaths[i]);
-		p.setTransform(m_transformSlicers[i]);
-		img = m_slicerWidgets[i]->getSlicer()->widget()->grabFrameBuffer();
-		p.drawImage(0, 0, img);
-		p.resetTransform(); // otherwise, setClipPath will transform as well
+		if (m_fRenderSlicer[i]) {
+			p.setClipping(false);
+			p.fillPath(m_slicerClipPaths[i], QBrush(Qt::black)); // TODO use m_slicerBackgroundBrush
+
+			p.setClipPath(m_slicerClipPaths[i]);
+			p.setTransform(m_transformSlicers[i]);
+			img = m_slicerWidgets[i]->getSlicer()->widget()->grabFrameBuffer();
+			p.drawImage(0, 0, img);
+
+			p.resetTransform(); // otherwise, clip path in setClipPath will be transformed as well
+		}
 	}
 
 	if (hasClipping) {
@@ -359,19 +417,25 @@ void iAHistogramTriangle::paintHistograms(QPainter &p)
 	//p.setPen(m_histogramsBorderPen);
 
 	// LEFT
-	p.setTransform(m_transformHistograms[0]);
-	m_histograms[0]->render(&p);
-	//p.drawRect(m_histogramsRect);
+	if (m_fRenderHistogram[0]) {
+		p.setTransform(m_transformHistograms[0]);
+		m_histograms[0]->render(&p);
+		//p.drawRect(m_histogramsRect);
+	}
 
 	// RIGHT
-	p.setTransform(m_transformHistograms[1]);
-	m_histograms[1]->render(&p);
-	//p.drawRect(m_histogramsRect);
+	if (m_fRenderHistogram[1]) {
+		p.setTransform(m_transformHistograms[1]);
+		m_histograms[1]->render(&p);
+		//p.drawRect(m_histogramsRect);
+	}
 
 	// BOTTOM
-	p.setTransform(m_transformHistograms[2]);
-	m_histograms[2]->render(&p);
-	//p.drawRect(m_histogramsRect);
+	if (m_fRenderHistogram[2]) {
+		p.setTransform(m_transformHistograms[2]);
+		m_histograms[2]->render(&p);
+		//p.drawRect(m_histogramsRect);
+	}
 
 	p.resetTransform();
 	//p.setPen(oldPen);
