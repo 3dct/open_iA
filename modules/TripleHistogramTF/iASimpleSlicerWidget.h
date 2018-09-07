@@ -35,8 +35,7 @@ class iASimpleSlicerWidget : public QWidget
 	Q_OBJECT
 
 public:
-	iASimpleSlicerWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
-	//iASimpleSlicerWidget(QWidget* parent, QSharedPointer<iAModality> modality, Qt::WindowFlags f = 0);
+	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
 	~iASimpleSlicerWidget();
 
 	void setSlicerMode(iASlicerMode slicerMode);
@@ -49,6 +48,8 @@ public:
 
 	void changeModality(QSharedPointer<iAModality> modality);
 
+	iASlicer* getSlicer() { return m_slicer; }
+
 public slots:
 
 signals:
@@ -56,7 +57,7 @@ signals:
 protected:
 
 private:
-	int m_curSlice;
+	bool m_enableInteraction;
 	vtkTransform *m_slicerTransform;
 	iASlicer *m_slicer;
 	

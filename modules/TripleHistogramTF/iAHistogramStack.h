@@ -47,6 +47,7 @@ public:
 
 	// OVERRIDES
 	void initialize() override;
+	bool isSlicerInteractionEnabled() override { return false; }
 	void setModalityLabel(QString label, int index) override;
 
 private:

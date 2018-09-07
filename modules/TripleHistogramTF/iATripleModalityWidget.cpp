@@ -355,7 +355,7 @@ void iATripleModalityWidget::updateModalities()
 		// }
 
 		// Slicer {
-		m_slicerWidgets[i] = new iASimpleSlicerWidget();
+		m_slicerWidgets[i] = new iASimpleSlicerWidget(nullptr, isSlicerInteractionEnabled());
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
 		m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 		// }

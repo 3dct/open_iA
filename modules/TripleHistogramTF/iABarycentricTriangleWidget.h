@@ -42,12 +42,11 @@ static const QString MODALITY_LABEL_3_DEFAULT = "C";
 
 static const QColor BACKGROUND_DEFAULT = QColor(242, 242, 242, 255);
 
-class iABarycentricTriangleWidget : public QOpenGLWidget, public IBorderWidget
+class iABarycentricTriangleWidget : public QWidget, public IBorderWidget
 {
 	Q_OBJECT
 
 public:
-	iABarycentricTriangleWidget(QColor backgroundColor, QWidget* parent = 0, Qt::WindowFlags f = 0);
 	iABarycentricTriangleWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
 	
 	~iABarycentricTriangleWidget();
@@ -74,8 +73,6 @@ public:
 	void setTriangleRenderer(iATriangleRenderer *triangleRenderer);
 	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
 
-	void setBackgroundColor(QColor color);
-
 	BarycentricTriangle getTriangle() { return m_triangle; }
 
 	void paintTriangleFill(QPainter &p);
@@ -90,15 +87,13 @@ signals:
 	void weightChanged(BCoord bCoord);
 
 protected:
-	void initializeGL();
-	void resizeGL(int width, int height);
-	void paintGL();
-	void mousePressEvent(QMouseEvent *event);
-	void mouseMoveEvent(QMouseEvent *event);
-	void mouseReleaseEvent(QMouseEvent *event);
+	void paintEvent(QPaintEvent* event);
+	void resizeEvent(QResizeEvent* event);
+	void mousePressEvent(QMouseEvent* event);
+	void mouseMoveEvent(QMouseEvent* event);
+	void mouseReleaseEvent(QMouseEvent* event);
 
 private:
-	QColor m_backgroundColor = BACKGROUND_DEFAULT;
 	BarycentricTriangle m_triangle;
 	QPoint m_controlPoint;
 	QPoint m_controlPointOld;
@@ -149,5 +144,7 @@ private:
 
 	bool isTooWide(int width, int height);
 	bool isTooTall(int width, int height);
+
+	void clearGL();
 
 };

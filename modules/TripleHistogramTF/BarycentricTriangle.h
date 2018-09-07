@@ -43,6 +43,7 @@ class BarycentricTriangle
 		int getXc();
 		int getYc();
 
+		void set(int xa, int ya, int xb, int yb, int xc, int yc);
 		void setXa(int xa);
 		void setYa(int ya);
 		void setXb(int xb);

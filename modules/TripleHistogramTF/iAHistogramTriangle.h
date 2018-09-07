@@ -22,35 +22,55 @@
 
 #include "iATripleModalityWidget.h"
 
+// TODO: should be removed in the future
+#include <QMouseEvent>
+#include <QWheelEvent>
+
 class iAHistogramTriangle : public iATripleModalityWidget
 {
 public:
 	iAHistogramTriangle(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 
 	void initialize() override;
+	bool isSlicerInteractionEnabled() override { return true; }
 	void setModalityLabel(QString label, int index) override;
 
-	void paintTriangle(QPainter &p);
-	void paintHistograms(QPainter &p);
-	void paintSlicers(QPainter &p);
+	void paintHistograms(QPainter& p);
+	void paintSlicers(QPainter& p);
 
 protected:
-	void paintEvent(QPaintEvent* event);
+	void paintEvent(QPaintEvent* event) override;
 	void resizeEvent(QResizeEvent* event);
 
-	void mousePressEvent(QMouseEvent *event) { forwardMouseEvent(event); }
-	void mouseMoveEvent(QMouseEvent *event) { forwardMouseEvent(event); }
-	void mouseReleaseEvent(QMouseEvent *event) { forwardMouseEvent(event); }
+	void mousePressEvent(QMouseEvent *event) { forwardMouseEvent(event); lastMousePos = event->pos(); }
+	void mouseMoveEvent(QMouseEvent *event) { forwardMouseEvent(event); lastMousePos = event->pos(); }
+	void mouseReleaseEvent(QMouseEvent *event) { forwardMouseEvent(event); dragging = false; lastMousePos = event->pos(); }
+	void wheelEvent(QWheelEvent *event) { forwardWheelEvent(event); }
 
 private:
 	void calculatePositions() { calculatePositions(size().width(), size().height()); }
 	void calculatePositions(int w, int h);
 
+	QPoint lastMousePos;
+	QWidget *lastTarget;
+	bool dragging = false;
+
 	void forwardMouseEvent(QMouseEvent *event);
+	void forwardWheelEvent(QWheelEvent *event);
+	iADiagramFctWidget* onHistogram(QPoint p, QPoint &transformed);
+	bool onTriangle(QPoint p);
+	iASimpleSlicerWidget* onSlicer(QPoint p, QPoint &transformed);
 
-	QTransform m_transformHistogramA; // left
-	QTransform m_transformHistogramB; // right
-	QTransform m_transformHistogramC; // bottom
+	QPainterPath m_clipPath;
+	QPen m_clipPathPen;
 
-	int left, top, right, bottom, centerX, width, height;
+	QTransform m_transformHistograms[3]; // left, right, bottom (respectively)
+	QRect m_histogramsRect;
+
+	QTransform m_transformSlicers[3]; // left(A), top(B), right(C) (respectively)
+	BarycentricTriangle m_slicerTriangles[3];
+	QPainterPath m_slicerClipPaths[3];
+	QBrush m_slicerBackgroundBrush;
+
+	int m_triangleBigWidth;
 };

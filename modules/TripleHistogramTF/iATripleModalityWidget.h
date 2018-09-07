@@ -58,6 +58,7 @@ public:
 
 	// VIRTUAL METHODS
 	virtual void initialize() = 0;
+	virtual bool isSlicerInteractionEnabled() = 0;
 	virtual void setModalityLabel(QString label, int index);
 
 private slots:

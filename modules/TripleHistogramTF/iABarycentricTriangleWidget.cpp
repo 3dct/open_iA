@@ -51,14 +51,8 @@ static const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
 
 static const char* WEIGHT_FORMAT = "%.0f%%"; //"%.2f%;
 
-iABarycentricTriangleWidget::iABarycentricTriangleWidget(QColor backgroundColor, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
-	iABarycentricTriangleWidget(parent, f)
-{
-	setBackgroundColor(backgroundColor);
-}
-
 iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
-	QOpenGLWidget(parent, f)
+	QWidget(parent, f)
 {
 	// Font variables are values (not pointers)
 	m_modalityLabelFont = QApplication::font();
@@ -419,24 +413,12 @@ void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1
 // PAINT METHODS
 // ----------------------------------------------------------------------------------------------
 
-
-
-void iABarycentricTriangleWidget::setBackgroundColor(QColor color)
+void iABarycentricTriangleWidget::resizeEvent(QResizeEvent* event)
 {
-	glClearColor(color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0, color.alpha() / 255.0);
+	recalculatePositions(event->size().width(), event->size().height());
 }
 
-void iABarycentricTriangleWidget::initializeGL()
-{
-	setBackgroundColor(m_backgroundColor);
-}
-
-void iABarycentricTriangleWidget::resizeGL(int w, int h)
-{
-	recalculatePositions(w, h);
-}
-
-void iABarycentricTriangleWidget::paintGL()
+void iABarycentricTriangleWidget::paintEvent(QPaintEvent* event)
 {
 	QPainter p(this);
 	paintContext(p);

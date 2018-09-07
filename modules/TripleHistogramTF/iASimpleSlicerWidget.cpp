@@ -29,11 +29,13 @@
 #include <vtkInteractorStyle.h>
 #include <vtkRenderWindowInteractor.h>
 
-iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
-	QWidget(parent, f)
+// Debug?
+#include <QPainter>
+
+iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enableInteraction /*= false*/, Qt::WindowFlags f /*= 0 */) :
+	QWidget(parent, f), m_enableInteraction(enableInteraction)
 {
-	m_slicer = new iASlicer(parent, iASlicerMode::XY, this,
-		// Value of shareWidget is defaulted to 0 in the iASlicer constructor... that's why I do that here
+	m_slicer = new iASlicer(this, iASlicerMode::XY, this,
 		// TODO: do this in a better way?
 		/*QGLWidget * shareWidget = */0,
 		/*Qt::WindowFlags f = */f,
@@ -53,7 +55,6 @@ void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
 
 void iASimpleSlicerWidget::setSliceNumber(int sliceNumber)
 {
-	m_curSlice = sliceNumber;
 	m_slicer->setSliceNumber(sliceNumber);
 }
 
@@ -69,7 +70,6 @@ int iASimpleSlicerWidget::heightForWidth(int width)
 
 void iASimpleSlicerWidget::update()
 {
-	QWidget::update();
 	m_slicer->update();
 }
 
@@ -81,9 +81,10 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 	m_slicerTransform = vtkTransform::New();
 	m_slicer->initializeData(imageData, m_slicerTransform, colorFunction);
 	m_slicer->initializeWidget(imageData);
+	m_slicer->disableInteractor();
 
-	// Deactivate interaction with the slice (zoom, pan, etc)
-	//m_slicer->disableInteractor();
-	vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
-	m_slicer->GetSlicerData()->GetInteractor()->SetInteractorStyle(dummyStyle);
+	if (!m_enableInteraction) {
+		vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
+		m_slicer->GetSlicerData()->GetInteractor()->SetInteractorStyle(dummyStyle);
+	}
 }

@@ -144,6 +144,16 @@ void BarycentricTriangle::setYc(int yc)
 	m_yc = yc;
 }
 
+void BarycentricTriangle::set(int xa, int ya, int xb, int yb, int xc, int yc)
+{
+	m_xa = xa;
+	m_ya = ya;
+	m_xb = xb;
+	m_yb = yb;
+	m_xc = xc;
+	m_yc = yc;
+}
+
 bool BarycentricTriangle::contains(double x, double y)
 {
 	return getBarycentricCoordinates(x, y).isInside();
