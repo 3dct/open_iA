@@ -70,6 +70,12 @@ void iAHistogramTriangle::initialize()
 	//QLayout *thisLayout = new QHBoxLayout(this);
 	//thisLayout->addWidget(temp);
 
+	m_sliceSlider->setOrientation(Qt::Vertical);
+	m_sliceSlider->setInvertedAppearance(true); // top to bottom, consistent with the main sliders's scroll bars
+	m_sliceSlider->setParent(this);
+
+	m_slicerModeComboBox->setParent(this);
+
 	calculatePositions();
 }
 
@@ -320,12 +326,14 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_slicerWidgets[2]->getSlicer()->widget()->resize(size);
 	}
 
+	int histoLateralY = bottom - TRIANGLE_TOP;
+	int histoTop1X = centerX - TRIANGLE_LEFT;
+
 	{ // Set up the clip path convering all widgets
-		int histoLateralY = bottom - TRIANGLE_TOP;
 		m_clipPath = QPainterPath();
 		m_clipPath.moveTo(left, bottom);
 		m_clipPath.lineTo(boxLeft, histoLateralY);
-		m_clipPath.lineTo(centerX - TRIANGLE_LEFT, boxTop);
+		m_clipPath.lineTo(histoTop1X, boxTop);
 		m_clipPath.lineTo(centerX, top);
 		m_clipPath.lineTo(centerX + TRIANGLE_LEFT, boxTop);
 		m_clipPath.lineTo(boxRight, histoLateralY);
@@ -333,6 +341,18 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_clipPath.lineTo(right, boxBottom);
 		m_clipPath.lineTo(left, boxBottom);
 		m_clipPath.lineTo(left, bottom);
+	}
+
+	{ // Combo box and slider
+		int controlsWidth = qMax(m_slicerModeComboBox->sizeHint().width(), m_sliceSlider->sizeHint().width());
+		int controlsBottom = controlsWidth * (-histoLateralY / histoTop1X) + histoLateralY;
+		int comboBoxHeight = m_slicerModeComboBox->sizeHint().height();
+		int sliderHeight = controlsBottom - comboBoxHeight;
+
+		m_slicerModeComboBox->setGeometry(QRect(0, 0, controlsWidth, comboBoxHeight));
+		m_sliceSlider->setGeometry(QRect(0, m_slicerModeComboBox->sizeHint().height(), controlsWidth, sliderHeight));
+
+		m_rControls = QRect(0, 0, controlsWidth, controlsBottom);
 	}
 
 	m_fClear = true;
@@ -353,6 +373,8 @@ void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 		m_fRenderSlicer[1] = true;
 		m_fRenderSlicer[2] = true;
 		m_fRenderTriangle = true;
+	} else {
+		p.eraseRect(m_rControls);
 	}
 
 	paintSlicers(p);

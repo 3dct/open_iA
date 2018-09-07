@@ -77,6 +77,7 @@ private:
 	int m_triangleBigWidth;
 
 	// Painting rectangles
+	QRect m_rControls;
 	QRect m_rHistogram[3];
 	QRect m_rSlicer[3];
 	QRect m_rTriangle;
