@@ -24,6 +24,8 @@
 //#include "iAQTtoUIConnector.h"
 #include <QDockWidget>
 
+#include <vtkSmartPointer.h>
+
 class QStackedLayout;
 class QLabel;
 
@@ -31,6 +33,10 @@ class MdiChild;
 class iABarycentricTriangleWidget;
 class iATripleModalityWidget;
 class BCoord;
+
+class vtkSmartVolumeMapper;
+class vtkVolume;
+class vtkRenderer;
 
 //typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
 
@@ -59,4 +65,7 @@ private:
 	QLabel *m_disabledLabel;
 	iATripleModalityWidget *m_histogramStack;
 	
+	vtkSmartPointer<vtkSmartVolumeMapper> combinedVolMapper;
+	vtkSmartPointer<vtkRenderer> combinedVolRenderer;
+	vtkSmartPointer<vtkVolume> combinedVol;
 };
