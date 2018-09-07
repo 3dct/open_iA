@@ -313,7 +313,7 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 {
 	QPainter p(this);
-	p.setRenderHint(QPainter::RenderHint::Antialiasing);
+	p.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform );
 	//p.setClipPath(m_clipPath);
 
 	paintSlicers(p);
