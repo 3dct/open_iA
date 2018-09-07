@@ -136,6 +136,7 @@ void iA3DLineObjectVis::show()
 
 void iA3DLineObjectVis::hide()
 {
+	// TODO: problematic if main window is being shut down!
 	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_actor);
 	m_visible = false;
 }
