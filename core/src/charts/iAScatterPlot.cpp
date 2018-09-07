@@ -251,6 +251,8 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 		return;
 	if (!m_pointsInitialized)
 		createAndFillVBO();
+	if (!m_pointsInitialized) // if still not initialized here, then we cannot draw
+		return;
 	painter.save();
 	painter.translate( m_globRect.x(), m_globRect.y());
 	painter.setBrush( settings.backgroundColor );
