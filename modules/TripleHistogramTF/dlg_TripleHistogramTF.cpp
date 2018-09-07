@@ -32,7 +32,18 @@
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 
+#include "iAVolumeRenderer.h"
+#include "iAModalityTransfer.h"
+
+#include <vtkCamera.h>
+#include <vtkImageAppendComponents.h>
 #include <vtkImageData.h>
+#include <vtkRenderer.h>
+#include <vtkSmartVolumeMapper.h>
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
 
 // Debug
 #include "qdebug.h"
@@ -87,6 +98,43 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	updateDisabledLabel();
 	updateModalities();
+
+	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
+	appendFilter->SetInputData(m_histogramStack->getModality(0)->GetImage());
+	appendFilter->AddInputData(m_histogramStack->getModality(1)->GetImage());
+	appendFilter->AddInputData(m_histogramStack->getModality(2)->GetImage());
+	appendFilter->Update();
+
+	combinedVol = vtkSmartPointer<vtkVolume>::New();
+	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
+	combinedVolProp->SetInterpolationTypeToLinear();
+	combinedVolProp->SetColor(0, m_histogramStack->getModality(0)->GetTransfer()->GetColorFunction());
+	combinedVolProp->SetScalarOpacity(0, m_histogramStack->getModality(0)->GetTransfer()->GetOpacityFunction());
+	combinedVolProp->SetColor(1, m_histogramStack->getModality(1)->GetTransfer()->GetColorFunction());
+	combinedVolProp->SetScalarOpacity(1, m_histogramStack->getModality(1)->GetTransfer()->GetOpacityFunction());
+	combinedVolProp->SetColor(2, m_histogramStack->getModality(2)->GetTransfer()->GetColorFunction());
+	combinedVolProp->SetScalarOpacity(2, m_histogramStack->getModality(2)->GetTransfer()->GetOpacityFunction());
+	combinedVol->SetProperty(combinedVolProp);
+
+	combinedVolMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
+	combinedVolMapper->SetBlendModeToComposite();
+	combinedVolMapper->SetInputData(appendFilter->GetOutput());
+	combinedVolMapper->Update();
+	combinedVol->SetMapper(combinedVolMapper);
+	combinedVol->Update();
+
+	combinedVolRenderer = vtkSmartPointer<vtkRenderer>::New();
+	combinedVolRenderer->GetActiveCamera()->ParallelProjectionOn();
+	combinedVolRenderer->SetLayer(1);
+	combinedVolRenderer->AddVolume(combinedVol);
+	combinedVolRenderer->ResetCamera();
+
+	for (int i = 0; i < 3; ++i)
+	{
+		QSharedPointer<iAVolumeRenderer> renderer = m_histogramStack->getModality(i)->GetRenderer();
+		renderer->Remove();
+	}
+	mdiChild->getRenderer()->AddRenderer(combinedVolRenderer);
 }
 
 dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
