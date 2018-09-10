@@ -309,15 +309,11 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	wgtContainer = new QVTKWidget();
 #endif
 	
-	m_MultiRendererView->verticalLayout->addWidget(wgtContainer);
 	mrvRenWin->SetNumberOfLayers(2);
-	auto renWinInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-	renWinInteractor->SetRenderWindow(mrvRenWin);
-	auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-	renWinInteractor->SetInteractorStyle(style);
 	mrvRenWin->AddRenderer(m_mrvBGRen);
 	mrvRenWin->Render();
 	m_mdiChild->tabifyDockWidget(m_mdiChild->renderer, m_MultiRendererView);
+	m_MultiRendererView->verticalLayout->addWidget(wgtContainer);
 	m_MultiRendererView->show();
 }
 
