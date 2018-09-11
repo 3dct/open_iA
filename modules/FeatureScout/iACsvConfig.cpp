@@ -208,6 +208,9 @@ iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 	LegacyFormat.columnMapping.insert(EndX,      4);
 	LegacyFormat.columnMapping.insert(EndY,      5);
 	LegacyFormat.columnMapping.insert(EndZ,      6);
+	LegacyFormat.columnMapping.insert(DimensionX,13);
+	LegacyFormat.columnMapping.insert(DimensionY,14);
+	LegacyFormat.columnMapping.insert(DimensionZ,15);
 	LegacyFormat.columnMapping.insert(Phi,      16);
 	LegacyFormat.columnMapping.insert(Theta,    17);
 	LegacyFormat.columnMapping.insert(CenterX,  18);
