@@ -110,9 +110,15 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		errorMsg = "Visualization as Cylinders requires a diameter column, please specify where to find it!";
 		return false;
 	}
-	if (visType == Ellipses)
+	if (visType == Ellipses &&
+		!columnMapping.contains(iACsvConfig::CenterX) ||
+		!columnMapping.contains(iACsvConfig::CenterY) ||
+		!columnMapping.contains(iACsvConfig::CenterZ) ||
+		!columnMapping.contains(iACsvConfig::DimensionX) ||
+		!columnMapping.contains(iACsvConfig::DimensionY) ||
+		!columnMapping.contains(iACsvConfig::DimensionZ))
 	{
-		errorMsg = "Visualization as Ellipses are not implemented yet!";
+		errorMsg = "Visualization as Ellipses requires column mapping for the center point and the dimensions (in each direction), please specify where to find these!";
 		return false;
 	}
 	if (selectedHeaders.size() < 1)
