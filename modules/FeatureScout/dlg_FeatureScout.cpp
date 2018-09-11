@@ -374,11 +374,21 @@ void dlg_FeatureScout::initColumnVisibility()
 	columnVisibility.resize(elementsCount);
 	std::fill(columnVisibility.begin(), columnVisibility.end(), false);
 	if (filterID == iAFeatureScoutObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]]   = columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Length]]  = columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]]   =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Length]]  =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
 	else if (filterID == iAFeatureScoutObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
-		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] = true;
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] =	true;
 }
 
 void dlg_FeatureScout::setupModel()

@@ -300,9 +300,6 @@ void dlg_CSVInput::cmbboxColSelectionChanged()
 
 void dlg_CSVInput::updateColumnMappingInputs()
 {
-	// overall, enable column mapping only for analysis type fiber for now
-	grpbox_ColMapping->setEnabled(m_confParams.objectType == iAFeatureScoutObjectType::Fibers);
-
 	bool useStartEnd = cmbbox_col_Selection->currentIndex() == 0;
 	cmbbox_col_PosStartX->setEnabled(useStartEnd);
 	cmbbox_col_PosStartY->setEnabled(useStartEnd);
