@@ -1347,8 +1347,6 @@ void dlg_FeatureScout::RenderOrientation()
 				cos( theta_rad ) };
 			double *p = static_cast<double *>( oi->GetScalarPointer( theta, phi, 0 ) );
 			vtkMath::Normalize( recCoord );
-			ColormapRGB( recCoord, p );
-			vtkMath::Normalize( recCoord );
 			colormapsIndex[orientColormap->currentIndex()]( recCoord, p );
 		}
 	}
@@ -1406,6 +1404,7 @@ void dlg_FeatureScout::RenderOrientation()
 	renW->RemoveRenderer(renW->GetRenderers()->GetFirstRenderer());
 	renderer->AddActor( actor );
 	renW->AddRenderer(renderer);
+	renderer->ResetCamera();
 
 	// Projection grid and annotations
 	this->drawPolarPlotMesh( renderer );
@@ -1414,6 +1413,7 @@ void dlg_FeatureScout::RenderOrientation()
 	activeChild->updateViews();
 	orientationColorMapSelection->show();
 	this->orientColormap->show();
+	renW->Render();
 }
 
 void dlg_FeatureScout::RenderLengthDistribution()
