@@ -266,7 +266,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupModel();
 	setupConnections();
 	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0));
-	if (vis != iACsvConfig::Lines)
+	if (vis != iACsvConfig::UseVolume)
 	{
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
@@ -359,7 +359,6 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 
 void dlg_FeatureScout::updatePCColumnVisibility()
 {
-	
 	for ( int j = 0; j < elementsCount; j++ )
 	{
 		pcChart->SetColumnVisibility( csvTable->GetColumnName( j ), columnVisibility[j]);
@@ -368,7 +367,6 @@ void dlg_FeatureScout::updatePCColumnVisibility()
 	pcView->Update(); 
 	pcView->ResetCamera();
 	pcView->Render();
-	
 }
 
 void dlg_FeatureScout::initColumnVisibility()
@@ -3544,29 +3542,30 @@ void dlg_FeatureScout::setAxisProperties(int fontSize, int tickCount)
 	pcChart->Update(); 
 }
 
-void dlg_FeatureScout::setAxisFontSize(vtkAxis * axis, int fontSize, bool updatePC) {
-	if (axis && (fontSize > 0)){
+void dlg_FeatureScout::setAxisFontSize(vtkAxis * axis, int fontSize, bool updatePC)
+{
+	if (axis && (fontSize > 0))
+	{
 		axis->GetLabelProperties()->SetFontSize(fontSize);
 		axis->GetTitleProperties()->SetFontSize(fontSize);
-		axis->RecalculateTickSpacing(); 
-		if (updatePC) {
-			pcChart->Update(); 
+		axis->RecalculateTickSpacing();
+		if (updatePC)
+		{
+			pcChart->Update();
 		}
-
 	}
 }
 
 void dlg_FeatureScout::setAxisTickCount(vtkAxis *axis, int tickCount, bool updatePC)
 {
-	if (axis && (tickCount > m_pcMinTicksCount)) {
+	if (axis && (tickCount > m_pcMinTicksCount))
+	{
 		axis->SetNumberOfTicks(tickCount);
 		axis->RecalculateTickSpacing(); 
-		if (updatePC) {
+		if (updatePC)
+		{
 			pcChart->Update(); 
 		}
 	}
 	// TODO else invalid axis; 
 }
-
-
-
