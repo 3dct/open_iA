@@ -782,6 +782,7 @@ void iASlicerWidget::resizeEvent( QResizeEvent * event )
 
 void iASlicerWidget::wheelEvent(QWheelEvent* event)
 {
+	event->accept();
 	if (m_magicLensExternal && m_magicLensExternal->Enabled() &&
 		event->modifiers().testFlag(Qt::ControlModifier))
 	{

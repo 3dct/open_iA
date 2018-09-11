@@ -96,7 +96,7 @@ void iAHistogramTriangle::resizeEvent(QResizeEvent* event)
 
 void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event)
 {
-	if (dragging && event->button() == Qt::MidButton) {
+	if (dragging /*&& event->button() == Qt::MidButton*/) {
 		int deltaX = event->pos().x() - lastMousePos.x();
 		int deltaY = event->pos().y() - lastMousePos.y();
 		if (deltaX != 0 || deltaY != 0) {
@@ -165,7 +165,7 @@ void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 		QWheelEvent *newE = new QWheelEvent(e->posF(), e->globalPosF(), e->pixelDelta(), e->angleDelta(),
 			e->delta(), e->orientation(), e->buttons(),
 			e->modifiers(), e->phase(), e->source(), e->inverted());
-		QApplication::sendEvent(target, newE);
+		QApplication::sendEvent(target->getSlicer()->widget(), newE);
 		m_fRenderSlicer[index] = true;
 		update();
 		return;
