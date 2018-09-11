@@ -1500,8 +1500,8 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	plot->GetXAxis()->SetTitle( "Length in microns" );
 	plot->GetYAxis()->SetTitle( "Frequency" );
 	view->GetScene()->AddItem( chart );
-	view->SetInteractor( polarPlot->GetInteractor() );
 	view->SetRenderWindow( polarPlot->GetRenderWindow() );
+	view->GetRenderWindow()->Render();
 	polarPlot->update();
 }
 
