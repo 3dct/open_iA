@@ -30,26 +30,12 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPointData.h>
-#include <vtkRendererCollection.h>
-#include <vtkRenderWindow.h>
 #include <vtkTable.h>
-#include <vtkUnsignedCharArray.h>
 
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include "QVTKOpenGLWidget.h"
-#else
-#include "QVTKWidget2.h"
-#endif
-
-
-iA3DEllipseObjectVis::iA3DEllipseObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-	QColor const & color, int phiRes, int thetaRes ):
-	iA3DObjectVis( widget, objectTable, columnMapping ),
-	m_mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_colors(vtkSmartPointer<vtkUnsignedCharArray>::New())
+iA3DEllipseObjectVis::iA3DEllipseObjectVis(iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+	QColor const & color, int phiRes, int thetaRes) :
+	iA3DColoredPolyObjectVis(widget, objectTable, columnMapping, color, (phiRes - 2) * thetaRes + 2)
 {
-	// maybe use vtkParametricFunctionSource with vtkParametricEllipsoid?
 	auto fullPolySource = vtkSmartPointer<vtkAppendPolyData>::New();
 	// maybe use vtkParametricFunctionSource with vtkParametricEllipsoid?
 	for (vtkIdType row = 0; row < objectTable->GetNumberOfRows(); ++row)
@@ -71,30 +57,8 @@ iA3DEllipseObjectVis::iA3DEllipseObjectVis( iAVtkWidgetClass* widget, vtkTable* 
 		fullPolySource->AddInputData(ellipsoidSrc->GetOutput());
 	}
 	fullPolySource->Update();
-	DEBUG_LOG(QString("Full poly source number of points: %1").arg(fullPolySource->GetOutput()->GetNumberOfPoints()));
-	m_mapper->SetInputConnection(fullPolySource->GetOutputPort());
+	auto fullPoly = fullPolySource->GetOutput();
+	fullPoly->GetPointData()->AddArray(m_colors);
+	assert ( m_pointsPerObject*objectTable->GetNumberOfRows() == fullPolySource->GetOutput()->GetNumberOfPoints() );
+	m_mapper->SetInputData(fullPoly);
 }
-
-void iA3DEllipseObjectVis::show()
-{
-	auto actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(m_mapper);
-	vtkRenderWindow* renWin = m_widget->GetRenderWindow();
-	renWin->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-	renWin->GetRenderers()->GetFirstRenderer()->ResetCamera();
-}
-
-void iA3DEllipseObjectVis::renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem)
-{}
-
-void iA3DEllipseObjectVis::renderSingle(int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem)
-{}
-
-void iA3DEllipseObjectVis::multiClassRendering(QList<QColor> const & colors, QStandardItem* rootItem, double alpha)
-{}
-
-void iA3DEllipseObjectVis::renderOrientationDistribution(vtkImageData* oi)
-{}
-
-void iA3DEllipseObjectVis::renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range)
-{}

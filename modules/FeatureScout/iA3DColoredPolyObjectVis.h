@@ -18,44 +18,30 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iA3DLineObjectVis.h"
+#pragma once
 
-#include "iACsvConfig.h"
+#include "iA3DObjectVis.h"
 
-#include "mdichild.h"
-#include "iARenderer.h"
+#include <vtkSmartPointer.h>
 
-#include <vtkCellArray.h>
-#include <vtkLine.h>
-#include <vtkPointData.h>
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkTable.h>
+class vtkPolyDataMapper;
+class vtkUnsignedCharArray;
 
-iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor ):
-	iA3DColoredPolyObjectVis(widget, objectTable, columnMapping, neutralColor, 2)
+class iA3DColoredPolyObjectVis : public iA3DObjectVis
 {
-	auto pts = vtkSmartPointer<vtkPoints>::New();
-	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
-	auto lines = vtkSmartPointer<vtkCellArray>::New();
-	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
-	{
-		float first[3], end[3];
-		for (int i = 0; i < 3; ++i)
-		{
-			first[i] = m_objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::StartX + i)).ToFloat();
-			end[i] = m_objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::EndX + i)).ToFloat();
-		}
-		pts->InsertNextPoint(first);
-		pts->InsertNextPoint(end);
-		auto line = vtkSmartPointer<vtkLine>::New();
-		line->GetPointIds()->SetId(0, 2 * row);     // the index of line start point in pts
-		line->GetPointIds()->SetId(1, 2 * row + 1); // the index of line end point in pts
-		lines->InsertNextCell(line);
-	}
-	m_linePolyData->SetPoints(pts);
-	m_linePolyData->SetLines(lines);
-	m_linePolyData->GetPointData()->AddArray(m_colors);
-	m_mapper->SetInputData(m_linePolyData);
-}
+public:
+	iA3DColoredPolyObjectVis(iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor, size_t pointsPerObject );
+	void show() override;
+	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
+	void renderSingle(int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem) override;
+	void multiClassRendering(QList<QColor> const & colors, QStandardItem* rootItem, double alpha) override;
+	void renderOrientationDistribution(vtkImageData* oi) override;
+	void renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range) override;
+protected:
+	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
+	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
+	size_t m_pointsPerObject;
+private:
+	void setPolyPointColor(int ptIdx, QColor const & qcolor);
+	void updatePolyMapper();
+};

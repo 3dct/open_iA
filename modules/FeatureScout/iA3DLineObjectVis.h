@@ -20,30 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iA3DObjectVis.h"
+#include "iA3DColoredPolyObjectVis.h"
 
 #include <vtkSmartPointer.h>
 
 class vtkPolyData;
-class vtkPolyDataMapper;
-class vtkUnsignedCharArray;
 
-class iA3DLineObjectVis: public iA3DObjectVis
+class iA3DLineObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
 	iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
-	void show() override;
-	void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
-	void renderSingle( int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem ) override;
-	void multiClassRendering( QList<QColor> const & colors, QStandardItem* rootItem, double alpha ) override;
-	void renderOrientationDistribution ( vtkImageData* oi ) override;
-	void renderLengthDistribution(  vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) override;
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
-	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
-	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
-private:
-	void setPolyPointColor(int ptIdx, QColor const & qcolor);
-	void updatePolyMapper();
 };
 

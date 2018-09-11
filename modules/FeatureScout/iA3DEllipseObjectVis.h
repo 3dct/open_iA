@@ -20,29 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iA3DObjectVis.h"
+#include "iA3DColoredPolyObjectVis.h"
 
 #include <vtkSmartPointer.h>
 
-class vtkPolyDataMapper;
-class vtkUnsignedCharArray;
+class vtkAppendPolyData;
 
-class iA3DEllipseObjectVis: public iA3DObjectVis
+class iA3DEllipseObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
-	static const int DefaultPhiRes = 12;
-	static const int DefaultThetaRes = 12;
+	static const int DefaultPhiRes = 10;
+	static const int DefaultThetaRes = 10;
 	iA3DEllipseObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 		QColor const & color, int phiRes = DefaultPhiRes, int thetaRes = DefaultThetaRes);
-
-	void show() override;
-	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
-	void renderSingle(int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem) override;
-	void multiClassRendering(QList<QColor> const & colors, QStandardItem* rootItem, double alpha) override;
-	void renderOrientationDistribution(vtkImageData* oi) override;
-	void renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range) override;
-private:
-	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
-	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
 };
-
