@@ -455,7 +455,6 @@ void iA3DLabelledVolumeVis::renderOrientationDistribution( vtkImageData* oi )
 
 void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range )
 {
-	double red = 0.0, green = 0.0, blue = 0.0;
 	// clear existing points
 	oTF->RemoveAllPoints();
 	cTF->RemoveAllPoints();
@@ -465,6 +464,7 @@ void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* 
 	{
 		double ll = m_objectTable->GetValue(objID, m_columnMapping->value(iACsvConfig::Length)).ToDouble();
 		QColor color = getLengthColor( ctFun, objID );
+
 		if ( filterID == iAFeatureScoutObjectType::Fibers )
 		{
 			if ( ll >= range[0] && ll < extents->GetValue( 0 ) + halfInc )
@@ -519,9 +519,9 @@ void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* 
 				oTF->AddPoint( objID + 1, 0.5 );
 			}
 		}
-		cTF->AddRGBPoint( objID + 1, red, green, blue );
-		cTF->AddRGBPoint( objID + 1 - 0.5, red, green, blue );
-		cTF->AddRGBPoint( objID + 1 + 0.3, red, green, blue );
+		cTF->AddRGBPoint( objID + 1, color.redF(), color.greenF(), color.blueF() );
+		cTF->AddRGBPoint( objID + 1 - 0.5, color.redF(), color.greenF(), color.blueF() );
+		cTF->AddRGBPoint( objID + 1 + 0.3, color.redF(), color.greenF(), color.blueF() );
 	}
 	updateRenderer();
 }
