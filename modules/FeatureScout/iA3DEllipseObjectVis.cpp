@@ -51,14 +51,15 @@ iA3DEllipseObjectVis::iA3DEllipseObjectVis( iAVtkWidgetClass* widget, vtkTable* 
 {
 	// maybe use vtkParametricFunctionSource with vtkParametricEllipsoid?
 	auto fullPolySource = vtkSmartPointer<vtkAppendPolyData>::New();
+	// maybe use vtkParametricFunctionSource with vtkParametricEllipsoid?
 	for (vtkIdType row = 0; row < objectTable->GetNumberOfRows(); ++row)
 	{
 		double cx = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::CenterX)).ToDouble();
 		double cy = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::CenterY)).ToDouble();
 		double cz = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::CenterZ)).ToDouble();
-		double dx = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::DimensionX)).ToDouble();
-		double dy = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::DimensionY)).ToDouble();
-		double dz = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::DimensionZ)).ToDouble();
+		double dx = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::DimensionX)).ToDouble()/2;
+		double dy = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::DimensionY)).ToDouble()/2;
+		double dz = objectTable->GetValue(row, m_columnMapping->value(iACsvConfig::DimensionZ)).ToDouble()/2;
 		auto ellipsoidSrc = vtkSmartPointer<vtkEllipsoidSource>::New();
 		ellipsoidSrc->SetThetaResolution(thetaRes);
 		ellipsoidSrc->SetPhiResolution(phiRes);
