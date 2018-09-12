@@ -189,32 +189,52 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 	m_trianglePainterPath.lineTo(m_triangle.getXa(), m_triangle.getYa());
 
 	// LABELS PLACEMENT {
-	int modalityLabel1width = metrics.width(m_modalityLabel1);
-	int modalityLabel2width = metrics.width(m_modalityLabel2);
-	int modalityLabel3width = metrics.width(m_modalityLabel3);
+	if (!changeTriangle) {
+		int modalityLabel1width = metrics.width(m_modalityLabel1);
+		int modalityLabel2width = metrics.width(m_modalityLabel2);
+		int modalityLabel3width = metrics.width(m_modalityLabel3);
 
-	// TODO: position the edge labels correctly even with externally set triangles (not equilateral)
-	int modalityLabel1Left = m_triangle.getXa() + MODALITY_LABEL_MARGIN;
-	int modalityLabel2Left = m_triangle.getXb() - (modalityLabel2width / 2);
-	int modalityLabel3Left = m_triangle.getXc() - modalityLabel3width - MODALITY_LABEL_MARGIN;
+		int modalityLabel1Left = m_triangle.getXa() + MODALITY_LABEL_MARGIN;
+		int modalityLabel2Left = m_triangle.getXb() - (modalityLabel2width / 2);
+		int modalityLabel3Left = m_triangle.getXc() - modalityLabel3width - MODALITY_LABEL_MARGIN;
 
-	int modalityLabel1_3Top = m_triangle.getYa() + MODALITY_LABEL_MARGIN;
-	int modalityLabel1_3Bottom = modalityLabel1_3Top + modalityLabelHeight;
-	int modalityLabel2Bottom = m_triangle.getYb() - MODALITY_LABEL_MARGIN;
+		int modalityLabel1_3Top = m_triangle.getYa() + MODALITY_LABEL_MARGIN;
+		int modalityLabel1_3Bottom = modalityLabel1_3Top + modalityLabelHeight;
+		int modalityLabel2Bottom = m_triangle.getYb() - MODALITY_LABEL_MARGIN;
 
-	m_modalityLabel1Pos = QPoint(modalityLabel1Left, modalityLabel1_3Bottom); // bottom left
-	m_modalityLabel2Pos = QPoint(modalityLabel2Left, modalityLabel2Bottom); // top centerX
-	m_modalityLabel3Pos = QPoint(modalityLabel3Left, modalityLabel1_3Bottom); // bottom right
+		metrics = QFontMetrics(m_modalityWeightFont);
+		int modalityWeight1Width = metrics.width(m_modalityWeight1);
+		int modalityWeight2Width = metrics.width(m_modalityWeight2);
+		int modalityWeight3Width = metrics.width(m_modalityWeight3);
+		int modalityWeightHeight = metrics.height();
 
-	m_modalityLabelRect[0] = QRect(modalityLabel1Left, modalityLabel1_3Top, modalityLabel1width, modalityLabelHeight);
-	m_modalityLabelRect[1] = QRect(modalityLabel2Left, modalityLabel2Bottom - modalityLabelHeight, modalityLabel2width, modalityLabelHeight);
-	m_modalityLabelRect[2] = QRect(modalityLabel3Left, modalityLabel1_3Top, modalityLabel3width, modalityLabelHeight);
+		if (changeTriangle) {
+			m_modalityLabelRect[0] = QRect(0, 0, modalityLabel1width, modalityLabelHeight);
+			m_modalityLabelRect[1] = QRect(0, 0, modalityLabel2width, modalityLabelHeight);
+			m_modalityLabelRect[2] = QRect(0, 0, modalityLabel3width, modalityLabelHeight);
 
-	metrics = QFontMetrics(m_modalityWeightFont);
-	int modalityWeight3Width = metrics.width(m_modalityWeight3);
-	m_modalityWeight1Pos = QPoint(modalityLabel1Left + modalityLabel1width + MODALITY_LABEL_MARGIN, modalityLabel1_3Bottom);
-	m_modalityWeight2Pos = QPoint(modalityLabel2Left + modalityLabel2width + MODALITY_LABEL_MARGIN, modalityLabel2Bottom);
-	m_modalityWeight3Pos = QPoint(modalityLabel3Left - MODALITY_LABEL_MARGIN - modalityWeight3Width, modalityLabel1_3Bottom);
+			m_modalityWeightRect[0] = QRect(0, 0, modalityWeight1Width, modalityWeightHeight);
+			m_modalityWeightRect[1] = QRect(0, 0, modalityWeight2Width, modalityWeightHeight);
+			m_modalityWeightRect[2] = QRect(0, 0, modalityWeight3Width, modalityWeightHeight);
+
+		} else {
+			m_modalityLabelPos[0] = QPoint(modalityLabel1Left, modalityLabel1_3Bottom); // bottom left
+			m_modalityLabelPos[1] = QPoint(modalityLabel2Left, modalityLabel2Bottom); // top centerX
+			m_modalityLabelPos[2] = QPoint(modalityLabel3Left, modalityLabel1_3Bottom); // bottom right
+
+			m_modalityWeightPos[0] = QPoint(modalityLabel1Left + modalityLabel1width + MODALITY_LABEL_MARGIN, modalityLabel1_3Bottom);
+			m_modalityWeightPos[1] = QPoint(modalityLabel2Left + modalityLabel2width + MODALITY_LABEL_MARGIN, modalityLabel2Bottom);
+			m_modalityWeightPos[2] = QPoint(modalityLabel3Left - MODALITY_LABEL_MARGIN - modalityWeight3Width, modalityLabel1_3Bottom);
+
+			m_modalityLabelRect[0] = QRect(modalityLabel1Left, modalityLabel1_3Top, modalityLabel1width, modalityLabelHeight);
+			m_modalityLabelRect[1] = QRect(modalityLabel2Left, modalityLabel2Bottom - modalityLabelHeight, modalityLabel2width, modalityLabelHeight);
+			m_modalityLabelRect[2] = QRect(modalityLabel3Left, modalityLabel1_3Top, modalityLabel3width, modalityLabelHeight);
+
+			m_modalityWeightRect[0] = QRect(m_modalityWeightPos[0].x(), m_modalityWeightPos[0].y() - modalityWeightHeight, modalityWeight1Width, modalityWeightHeight);
+			m_modalityWeightRect[1] = QRect(m_modalityWeightPos[1].x(), m_modalityWeightPos[1].y() - modalityWeightHeight, modalityWeight2Width, modalityWeightHeight);
+			m_modalityWeightRect[2] = QRect(m_modalityWeightPos[2].x(), m_modalityWeightPos[2].y() - modalityWeightHeight, modalityWeight3Width, modalityWeightHeight);
+		}
+	}
 	// }
 
 	updateControlPointPosition();
@@ -272,9 +292,9 @@ void iABarycentricTriangleWidget::updateModalityWeightLabels(BCoord bCoord)
 	int c = 100 - a - b;
 
 	QString modalityWeight3 = QString::number(c) + "%";
-	QFontMetrics metrics = QFontMetrics(m_modalityWeightFont);
-	int modalityWeight3Width = metrics.width(modalityWeight3);
-	m_modalityWeight3Pos = QPoint(m_modalityLabel3Pos.x() - MODALITY_LABEL_MARGIN - modalityWeight3Width, m_modalityLabel3Pos.y());
+	//QFontMetrics metrics = QFontMetrics(m_modalityWeightFont);
+	//int modalityWeight3Width = metrics.width(modalityWeight3);
+	//m_modalityWeight3Pos = QPoint(m_modalityLabel3Pos.x() - MODALITY_LABEL_MARGIN - modalityWeight3Width, m_modalityLabel3Pos.y());
 
 	m_modalityWeight1 = QString::number(a) + "%";
 	m_modalityWeight2 = QString::number(b) + "%";
@@ -450,18 +470,18 @@ void iABarycentricTriangleWidget::paintControlPoint(QPainter &p)
 void iABarycentricTriangleWidget::paintModalityLabels(QPainter &p)
 {
 	p.setFont(m_modalityLabelFont);
-	p.drawText(m_modalityLabel1Pos, m_modalityLabel1);
-	p.drawText(m_modalityLabel2Pos, m_modalityLabel2);
-	p.drawText(m_modalityLabel3Pos, m_modalityLabel3);
+	p.drawText(m_modalityLabelPos[0], m_modalityLabel1);
+	p.drawText(m_modalityLabelPos[1], m_modalityLabel2);
+	p.drawText(m_modalityLabelPos[2], m_modalityLabel3);
 	if (m_modalityHighlightedIndex >= 0) {
 		p.setPen(m_modalityLabelHighlightPen);
 		p.drawRect(m_modalityLabelRect[m_modalityHighlightedIndex]);
 	}
 
 	p.setFont(m_modalityWeightFont);
-	p.drawText(m_modalityWeight1Pos, m_modalityWeight1);
-	p.drawText(m_modalityWeight2Pos, m_modalityWeight2);
-	p.drawText(m_modalityWeight3Pos, m_modalityWeight3);
+	p.drawText(m_modalityWeightPos[0], m_modalityWeight1);
+	p.drawText(m_modalityWeightPos[1], m_modalityWeight2);
+	p.drawText(m_modalityWeightPos[2], m_modalityWeight3);
 }
 
 void iABarycentricTriangleWidget::paintContext(QPainter &p) {
@@ -472,4 +492,56 @@ void iABarycentricTriangleWidget::paintContext(QPainter &p) {
 		paintTriangleBorder(p);
 		paintTriangleFill(p);
 	}
+}
+
+void iABarycentricTriangleWidget::setModalityLabelPosition(QPoint position, int modalityIndex)
+{
+	switch (modalityIndex) {
+	case 0:
+		m_modalityLabelPos[0] = position;
+		m_modalityLabelRect[0].moveLeft(position.x());
+		m_modalityLabelRect[0].moveTop(position.y() - m_modalityLabelRect[0].height());
+		break;
+	case 1:
+		m_modalityLabelPos[1] = position;
+		m_modalityLabelRect[1].moveLeft(position.x());
+		m_modalityLabelRect[1].moveTop(position.y() - m_modalityLabelRect[1].height());
+		break;
+	case 2:
+		m_modalityLabelPos[2] = position;
+		m_modalityLabelRect[2].moveLeft(position.x());
+		m_modalityLabelRect[2].moveTop(position.y() - m_modalityLabelRect[2].height());
+		break;
+	}
+}
+
+void iABarycentricTriangleWidget::setModalityWeightPosition(QPoint position, int modalityIndex)
+{
+	switch (modalityIndex) {
+	case 0:
+		m_modalityWeightPos[0] = position;
+		m_modalityWeightRect[0].moveLeft(position.x());
+		m_modalityWeightRect[0].moveTop(position.y() - m_modalityWeightRect[0].height());
+		break;
+	case 1:
+		m_modalityWeightPos[1] = position;
+		m_modalityWeightRect[0].moveLeft(position.x());
+		m_modalityWeightRect[0].moveTop(position.y() - m_modalityWeightRect[0].height());
+		break;
+	case 2:
+		m_modalityWeightPos[2] = position;
+		m_modalityWeightRect[0].moveLeft(position.x());
+		m_modalityWeightRect[0].moveTop(position.y() - m_modalityWeightRect[0].height());
+		break;
+	}
+}
+
+QRect iABarycentricTriangleWidget::getModalityLabelRect(int modalityIndex)
+{
+	return m_modalityLabelRect[modalityIndex];
+}
+
+QRect iABarycentricTriangleWidget::getModalityWeightRect(int modalityIndex)
+{
+	return m_modalityWeightRect[modalityIndex];
 }

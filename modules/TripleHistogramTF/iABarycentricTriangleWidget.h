@@ -61,11 +61,15 @@ public:
 	int getHeightForCurrentWidth();
 
 	void recalculatePositions() { recalculatePositions(width(), height()); }
-	void recalculatePositions(int w, int h, BarycentricTriangle triangle);
+	void recalculatePositions(int width, int height, BarycentricTriangle triange);
 	void setFont(QFont font);
 	void setModality1label(QString label);
 	void setModality2label(QString label);
 	void setModality3label(QString label);
+	void setModalityLabelPosition(QPoint position, int modalityIndex);
+	void setModalityWeightPosition(QPoint position, int modalityIndex);
+	QRect getModalityLabelRect(int modalityIndex);
+	QRect getModalityWeightRect(int modalityIndex);
 
 	BCoord getWeight();
 	void setWeight(BCoord newWeight);
@@ -103,9 +107,7 @@ private:
 	QString m_modalityLabel1 = MODALITY_LABEL_1_DEFAULT;
 	QString m_modalityLabel2 = MODALITY_LABEL_2_DEFAULT;
 	QString m_modalityLabel3 = MODALITY_LABEL_3_DEFAULT;
-	QPoint m_modalityLabel1Pos;
-	QPoint m_modalityLabel2Pos;
-	QPoint m_modalityLabel3Pos;
+	QPoint m_modalityLabelPos[3];
 	QRect m_modalityLabelRect[3];
 	QPen m_modalityLabelHighlightPen;
 	int m_modalityHighlightedIndex = -1; // -1 for none (or any value < 0)
@@ -115,9 +117,8 @@ private:
 	QString m_modalityWeight1;
 	QString m_modalityWeight2;
 	QString m_modalityWeight3;
-	QPoint m_modalityWeight1Pos;
-	QPoint m_modalityWeight2Pos;
-	QPoint m_modalityWeight3Pos;
+	QPoint m_modalityWeightPos[3];
+	QRect m_modalityWeightRect[3];
 	void updateModalityWeightLabels(BCoord bCoord);
 
 	QPainterPath m_trianglePainterPath;
