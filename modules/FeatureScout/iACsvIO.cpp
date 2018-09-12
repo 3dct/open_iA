@@ -116,7 +116,9 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		auto values = line.split(m_csvConfig.columnSeparator);
 		if (values.size() < m_csvConfig.currentHeaders.size())
 		{
-			DEBUG_LOG(QString("Line only contains %1 entries, expected %2. Skipping...").arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
+			DEBUG_LOG(QString("Line %1 in file '%2' only contains %3 entries, expected %4. Skipping...")
+				.arg(row + m_csvConfig.skipLinesStart + (m_csvConfig.containsHeader?0:1) ).arg(m_csvConfig.fileName)
+				.arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
 			continue;
 		}
 		for (int valIdx : selectedColIdx)
