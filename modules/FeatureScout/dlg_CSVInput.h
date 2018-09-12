@@ -91,16 +91,12 @@ private:
 	void initParameters();
 	//! connect signals and slots of all dialog controls
 	void connectSignals();
-	//! List all csv format entries, returned list is empty if no format definitions in registry
-	QStringList getFormatListFromRegistry() const;
 	//! Load a general setting, such as the name of format loaded last time, or whether advanced mode was shown
 	QVariant loadGeneralSetting(QString const & settingName) const;
 	//! Save a general setting, such as the name of format to be loaded next time dialog is opened or whether advanced mode is shown
 	void saveGeneralSetting(QString const & settinName, QVariant value);
 	//! Save the currently configured format in registry
 	void saveFormatToRegistry(const QString & formatName);
-	//! Save the currently configured format in a given settings object
-	void saveFormat(QSettings & settings, const QString & formatName);
 	//! Loads settings from registry for a given format name, into default config object
 	bool loadFormatFromRegistry(const QString & formatName);
 	//! Loads settings from registry for a given format name, into a given config object

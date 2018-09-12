@@ -28,6 +28,8 @@
 #include <QString>
 #include <QVector>
 
+class QSettings;
+
 //! parameters for csv loading configuraton
 struct FeatureScout_API iACsvConfig
 {
@@ -72,6 +74,17 @@ struct FeatureScout_API iACsvConfig
 
 	static iACsvConfig const & getLegacyFiberFormat(QString const & fileName);
 	static iACsvConfig const & getLegacyPoreFormat(QString const & fileName);
+	
+	//! Return base key for a given format
+	static QString getFormatKey(QString const & formatName);
+	//! Return list of all csv configs stored in registry, list is empty if no format definitions exist
+	static QStringList getListFromRegistry();
+
+	//! Save this configuration under the given name in the given settings object
+	void save(QSettings & settings, const QString & formatName);
+
+	//! Load a given configuration name
+	bool load(QSettings & settings, const QString & formatName);
 };
 
 QString MapVisType2Str(iACsvConfig::VisualizationType visType);
