@@ -62,7 +62,8 @@ class iAFiberOptimizationExplorer : public QMainWindow, public iASelectionProvid
 {
 	Q_OBJECT
 public:
-	iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd);
+	iAFiberOptimizationExplorer(MainWindow* mainWnd);
+	bool load(QString const & path);
 	~iAFiberOptimizationExplorer();
 	void loadStateAndShow();
 	std::vector<std::vector<size_t> > & selection() override;

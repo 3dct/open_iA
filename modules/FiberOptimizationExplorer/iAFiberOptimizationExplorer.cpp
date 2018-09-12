@@ -161,7 +161,7 @@ namespace
 	}
 }
 
-iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, MainWindow* mainWnd):
+iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(MainWindow* mainWnd) :
 	m_colorTheme(iAColorThemeManager::GetInstance().GetTheme("Brewer Accent (max. 8)")),
 	m_mainWnd(mainWnd),
 	m_timeStepCount(0),
@@ -169,14 +169,17 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	m_splom(new iAQSplom()),
 	m_referenceID(NoResult)
 {
-	setDockOptions(AllowNestedDocks | AllowTabbedDocks );
+	setDockOptions(AllowNestedDocks | AllowTabbedDocks);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
 #endif
 	setMinimumSize(600, 400);
 	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
+}
 
+bool iAFiberOptimizationExplorer::load(QString const & path)
+{
 	//QVBoxLayout* mainLayout = new QVBoxLayout();
 	//setLayout(mainLayout);
 	//QScrollArea* scrollArea = new QScrollArea();
@@ -288,11 +291,12 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	int resultID = 0;
 	m_defaultButtonGroup = new QButtonGroup();
 
-	const int MaxDatasetCount = 24;
+	const int MaxDatasetCount = 25;
 	if (csvFileNames.size() > MaxDatasetCount)
 	{
-		DEBUG_LOG(QString("You tried to open %1 datasets. This tool can only handle a small amount of datasets. Loading only the first %2.").arg(csvFileNames.size()).arg(MaxDatasetCount));
-		csvFileNames.erase( csvFileNames.begin() + MaxDatasetCount, csvFileNames.end() );
+		DEBUG_LOG(QString("The specified folder %1 contains %2 datasets; currently we only support loading up to %3 datasets!")
+			.arg(path).arg(csvFileNames.size()).arg(MaxDatasetCount));
+		return false;
 	}
 	for (QString csvFile : csvFileNames)
 	{
@@ -302,7 +306,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		iACsvVtkTableCreator tableCreator;
 		if (!io.loadCSV(tableCreator, config))
 		{
-			DEBUG_LOG(QString("Could not load file '%1', skipping!").arg(csvFile));
+			DEBUG_LOG(QString("Could not load file '%1' - probably it's in a wrong format; skipping!").arg(csvFile));
 			continue;
 		}
 
@@ -547,6 +551,11 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 		}
 		++resultID;
 	}
+	if (csvFileNames.size() == 0)
+	{
+		DEBUG_LOG(QString("The specified folder %1 does not contain any valid csv files!").arg(path));
+		return false;
+	}
 	m_splomData->updateRanges();
 	m_currentSelection.resize(resultID);
 
@@ -566,15 +575,19 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(QString const & path, M
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
+	return true;
 }
 
 iAFiberOptimizationExplorer::~iAFiberOptimizationExplorer()
 {
-	QSettings settings;
-	settings.setValue(ModuleSettingsKey + "/maximized", isMaximized());
-	if (!isMaximized())
-		settings.setValue(ModuleSettingsKey + "/geometry", qobject_cast<QWidget*>(parent())->geometry());
-	settings.setValue(ModuleSettingsKey+"/state", saveState());
+	if (parent())
+	{
+		QSettings settings;
+		settings.setValue(ModuleSettingsKey + "/maximized", isMaximized());
+		if (!isMaximized())
+			settings.setValue(ModuleSettingsKey + "/geometry", qobject_cast<QWidget*>(parent())->geometry());
+		settings.setValue(ModuleSettingsKey + "/state", saveState());
+	}
 }
 
 void iAFiberOptimizationExplorer::loadStateAndShow()

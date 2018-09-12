@@ -26,6 +26,7 @@
 
 #include <QAction>
 #include <QFileDialog>
+#include <QMessageBox>
 
 void iAFiberOptimizationExplorerModuleInterface::Initialize()
 {
@@ -43,7 +44,14 @@ void iAFiberOptimizationExplorerModuleInterface::FibreOptimizationExploration()
 	if (path.isEmpty())
 		return;
 	
-	auto explorer = new iAFiberOptimizationExplorer(path, m_mainWnd);
+	auto explorer = new iAFiberOptimizationExplorer(m_mainWnd);
+	if (!explorer->load(path))
+	{
+		QMessageBox::warning(m_mainWnd, "Fiber Analytics",
+			QString("Could not load data in folder '%1'. Make sure it is in the right format!").arg(path));
+		delete explorer;
+		return;
+	}
 	m_mainWnd->addSubWindow(explorer);
 	explorer->loadStateAndShow();
 }
