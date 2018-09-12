@@ -20,41 +20,42 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iA3DColoredPolyObjectVis.h"
+#include "iA3DObjectVis.h"
 
 #include <vtkSmartPointer.h>
 
-class iALookupTable;
+#include <QColor>
 
 class vtkActor;
-class vtkOutlineFilter;
-class vtkPoints;
-class vtkPolyData;
+class vtkPolyDataMapper;
+class vtkUnsignedCharArray;
 
-class FeatureScout_API iA3DLineObjectVis: public iA3DColoredPolyObjectVis
+class FeatureScout_API iA3DColoredPolyObjectVis : public iA3DObjectVis
 {
 public:
-	~iA3DLineObjectVis();
-	iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
-	void updateValues( std::vector<std::vector<double> > const & values );
-	vtkPolyData* getLinePolyData();
-	void setLookupTable( QSharedPointer<iALookupTable> lut, size_t paramIndex );
-	void setSelection ( std::vector<size_t> const & sortedSelInds, bool selectionActive );
-	void updateColorSelectionRendering();
-	void setColor(QColor const & color);
-	void showBoundingBox();
-	void hideBoundingBox();
+	static const int DefaultContextOpacity = 8;
+	static const int DefaultSelectionOpacity = 128;
+	iA3DColoredPolyObjectVis(iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor, size_t pointsPerObject );
+	void show() override;
+	void hide();
+	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
+	void renderSingle(int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem) override;
+	void multiClassRendering(QList<QColor> const & colors, QStandardItem* rootItem, double alpha) override;
+	void renderOrientationDistribution(vtkImageData* oi) override;
+	void renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range) override;
+	void setSelectionOpacity(int selectionAlpha);
+	void setContextOpacity(int contextAlpha);
+	bool visible() const;
 protected:
-	vtkSmartPointer<vtkPolyData> m_linePolyData;
-	vtkSmartPointer<vtkPoints> m_points;
-
-	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
-	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
-	vtkSmartPointer<vtkActor> m_outlineActor;
-private:
-	QSharedPointer<iALookupTable> m_lut;
-	size_t m_colorParamIdx;
-	std::vector<size_t> m_selection;
-	bool m_selectionActive;
+	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
+	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
+	vtkSmartPointer<vtkActor> m_actor;
+	size_t m_pointsPerObject;
+	bool m_visible;
+	int m_contextAlpha;
+	int m_selectionAlpha;
+	QColor m_baseColor;
+	QColor m_selectionColor;
+	void setPolyPointColor(int ptIdx, QColor const & qcolor);
+	void updatePolyMapper();
 };
-

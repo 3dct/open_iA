@@ -197,6 +197,8 @@ ColormapFuncPtr colormapsIndex[] =
 	ColormapRGBHalfSphere,
 };
 
+const int dlg_FeatureScout::PCMinTicksCount = 2;
+
 dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
 	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping)
 	: QDockWidget( parent ),
@@ -212,19 +214,18 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	m_splom(new iAFeatureScoutSPLOM()),
 	m_sourcePath( parent->getFilePath() ),
 	m_columnMapping(columnMapping),
-	m_renderMode(rmSingleClass)
+	m_renderMode(rmSingleClass),
+	m_pcFontSize(15),
+	m_pcTickCount(10),
+	m_pcLineWidth(0.1),
+	visualization(vis),
+	activeChild(parent),
+	filterID(fid),
+	draw3DPolarPlot(false)
 {
 	setupUi( this );
-	visualization = vis;
-	m_pcLineWidth = 0.1;
-	m_pcDefaultTextSize = 15;		//Default font size - 17 pt
-	m_pcMinTicksCount = 2; //Minimum tick count - 5 ticks to be shown 
-	m_pcDefaultTickCount = 10; //default tick number
 	this->elementsCount = csvTable->GetNumberOfColumns();
 	this->objectsCount = csvTable->GetNumberOfRows();
-	this->activeChild = parent;
-	this->filterID = fid;
-	this->draw3DPolarPlot = false;
 	this->setupPolarPlotResolution( 3.0 );
 	blobManager = new iABlobManager();
 	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
@@ -266,7 +267,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupModel();
 	setupConnections();
 	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0));
-	if (vis != iACsvConfig::Lines)
+	if (vis != iACsvConfig::UseVolume)
 	{
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
@@ -309,7 +310,7 @@ void dlg_FeatureScout::pcViewMouseButtonCallBack( vtkObject * , unsigned long, v
 {
 	auto classSelectionIndices = getPCSelection();
 	m_splom->setFilteredSelection(classSelectionIndices);
-	// map from incides inside the class to global indices:
+	// map from indices inside the class to global indices:
 	std::vector<size_t> selectionIndices;
 	int classID = activeClassItem->index().row();
 	for (size_t filteredSelIdx : classSelectionIndices)
@@ -341,15 +342,14 @@ void dlg_FeatureScout::setPCChartData( bool specialRendering )
 	updatePCColumnVisibility();
 }
 
-void dlg_FeatureScout::updatePCColumnValues( QStandardItem *item )
+void dlg_FeatureScout::updateVisibility( QStandardItem *item )
 {
-	if ( item->isCheckable() )
-	{
-		int i = item->index().row();
-		columnVisibility[i] = (item->checkState() == Qt::Checked);
-		updatePCColumnVisibility();
-		m_splom->setParameterVisibility(i, columnVisibility[i]);
-	}
+	if ( !item->isCheckable() )
+		return;
+	int i = item->index().row();
+	columnVisibility[i] = (item->checkState() == Qt::Checked);
+	updatePCColumnVisibility();
+	m_splom->setParameterVisibility(i, columnVisibility[i]);
 }
 
 void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enabled)
@@ -360,16 +360,14 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 
 void dlg_FeatureScout::updatePCColumnVisibility()
 {
-	
 	for ( int j = 0; j < elementsCount; j++ )
 	{
 		pcChart->SetColumnVisibility( csvTable->GetColumnName( j ), columnVisibility[j]);
 	}
-	setAxisProperties(m_pcDefaultTextSize, m_pcDefaultTickCount);
+	updateAxisProperties();
 	pcView->Update(); 
 	pcView->ResetCamera();
 	pcView->Render();
-	
 }
 
 void dlg_FeatureScout::initColumnVisibility()
@@ -377,11 +375,21 @@ void dlg_FeatureScout::initColumnVisibility()
 	columnVisibility.resize(elementsCount);
 	std::fill(columnVisibility.begin(), columnVisibility.end(), false);
 	if (filterID == iAFeatureScoutObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]]   = columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
-		columnVisibility[(*m_columnMapping)[iACsvConfig::Length]]  = columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]]   =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Length]]  =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
 	else if (filterID == iAFeatureScoutObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
-		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] = columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] = true;
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::CenterZ]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] =
+		columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] =	true;
 }
 
 void dlg_FeatureScout::setupModel()
@@ -694,7 +702,7 @@ void dlg_FeatureScout::setupConnections()
 	connect( this->wisetex_save, SIGNAL( released() ), this, SLOT( WisetexSaveButton() ) );
 	connect( this->csv_dv, SIGNAL( released() ), this, SLOT( CsvDVSaveButton() ) );
 
-	connect( this->elementTableModel, SIGNAL( itemChanged( QStandardItem * ) ), this, SLOT( updatePCColumnValues( QStandardItem * ) ) );
+	connect( this->elementTableModel, SIGNAL( itemChanged( QStandardItem * ) ), this, SLOT( updateVisibility( QStandardItem * ) ) );
 	connect( this->classTreeView, SIGNAL( clicked( QModelIndex ) ), this, SLOT( classClicked( QModelIndex ) ) );
 	connect( this->classTreeView, SIGNAL( activated( QModelIndex ) ), this, SLOT( classClicked( QModelIndex ) ) );
 	connect( this->classTreeView, SIGNAL( doubleClicked( QModelIndex ) ), this, SLOT( classDoubleClicked( QModelIndex ) ) );
@@ -1340,8 +1348,6 @@ void dlg_FeatureScout::RenderOrientation()
 				cos( theta_rad ) };
 			double *p = static_cast<double *>( oi->GetScalarPointer( theta, phi, 0 ) );
 			vtkMath::Normalize( recCoord );
-			ColormapRGB( recCoord, p );
-			vtkMath::Normalize( recCoord );
 			colormapsIndex[orientColormap->currentIndex()]( recCoord, p );
 		}
 	}
@@ -1399,6 +1405,7 @@ void dlg_FeatureScout::RenderOrientation()
 	renW->RemoveRenderer(renW->GetRenderers()->GetFirstRenderer());
 	renderer->AddActor( actor );
 	renW->AddRenderer(renderer);
+	renderer->ResetCamera();
 
 	// Projection grid and annotations
 	this->drawPolarPlotMesh( renderer );
@@ -1407,6 +1414,7 @@ void dlg_FeatureScout::RenderOrientation()
 	activeChild->updateViews();
 	orientationColorMapSelection->show();
 	this->orientColormap->show();
+	renW->Render();
 }
 
 void dlg_FeatureScout::RenderLengthDistribution()
@@ -1503,8 +1511,8 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	plot->GetXAxis()->SetTitle( "Length in microns" );
 	plot->GetYAxis()->SetTitle( "Frequency" );
 	view->GetScene()->AddItem( chart );
-	view->SetInteractor( polarPlot->GetInteractor() );
 	view->SetRenderWindow( polarPlot->GetRenderWindow() );
+	view->GetRenderWindow()->Render();
 	polarPlot->update();
 }
 
@@ -3532,42 +3540,32 @@ void dlg_FeatureScout::changeFeatureScout_Options( int idx )
 	}
 }
 
-
-void dlg_FeatureScout::setAxisProperties(int fontSize, int tickCount)
+void dlg_FeatureScout::updateAxisProperties()
 {
 	int axis_count = pcChart->GetNumberOfAxes();
-	for (int i = 0; i < axis_count; i++) {
+	m_pcTickCount = (m_pcTickCount < PCMinTicksCount) ? PCMinTicksCount : m_pcTickCount;
+	int visibleColIdx = 0;
+	for (int i = 0; i < axis_count; i++)
+	{
+		while (!columnVisibility[visibleColIdx])
+			++visibleColIdx;
 		vtkAxis *axis = pcChart->GetAxis(i);
-		setAxisTickCount(axis, m_pcDefaultTickCount, false);
-		setAxisFontSize(axis, m_pcDefaultTextSize, false);
-	}
-	
-	pcChart->Update(); 
-}
-
-void dlg_FeatureScout::setAxisFontSize(vtkAxis * axis, int fontSize, bool updatePC) {
-	if (axis && (fontSize > 0)){
-		axis->GetLabelProperties()->SetFontSize(fontSize);
-		axis->GetTitleProperties()->SetFontSize(fontSize);
-		axis->RecalculateTickSpacing(); 
-		if (updatePC) {
-			pcChart->Update(); 
+		if (!axis)
+		{
+			DEBUG_LOG(QString("Invalid axis %1 in Parallel Coordinates!").arg(i));
+			continue;
 		}
-
-	}
-}
-
-void dlg_FeatureScout::setAxisTickCount(vtkAxis *axis, int tickCount, bool updatePC)
-{
-	if (axis && (tickCount > m_pcMinTicksCount)) {
-		axis->SetNumberOfTicks(tickCount);
-		axis->RecalculateTickSpacing(); 
-		if (updatePC) {
-			pcChart->Update(); 
+		axis->GetLabelProperties()->SetFontSize(m_pcFontSize);
+		axis->GetTitleProperties()->SetFontSize(m_pcFontSize);
+		vtkDataArray *columnData = vtkDataArray::SafeDownCast(chartTable->GetColumn(visibleColIdx));
+		double * const range = columnData->GetRange();
+		if (range[0] != range[1])
+		{
+			// if min == max, then leave NumberOfTicks at default -1, otherwise there will be no ticks and no lines shown
+			axis->SetNumberOfTicks(m_pcTickCount);
 		}
+		axis->RecalculateTickSpacing();
+		++visibleColIdx;
 	}
-	// TODO else invalid axis; 
+	pcChart->Update();
 }
-
-
-

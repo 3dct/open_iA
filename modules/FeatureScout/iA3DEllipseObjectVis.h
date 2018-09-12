@@ -24,37 +24,13 @@
 
 #include <vtkSmartPointer.h>
 
-class iALookupTable;
+class vtkAppendPolyData;
 
-class vtkActor;
-class vtkOutlineFilter;
-class vtkPoints;
-class vtkPolyData;
-
-class FeatureScout_API iA3DLineObjectVis: public iA3DColoredPolyObjectVis
+class iA3DEllipseObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
-	~iA3DLineObjectVis();
-	iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
-	void updateValues( std::vector<std::vector<double> > const & values );
-	vtkPolyData* getLinePolyData();
-	void setLookupTable( QSharedPointer<iALookupTable> lut, size_t paramIndex );
-	void setSelection ( std::vector<size_t> const & sortedSelInds, bool selectionActive );
-	void updateColorSelectionRendering();
-	void setColor(QColor const & color);
-	void showBoundingBox();
-	void hideBoundingBox();
-protected:
-	vtkSmartPointer<vtkPolyData> m_linePolyData;
-	vtkSmartPointer<vtkPoints> m_points;
-
-	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
-	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
-	vtkSmartPointer<vtkActor> m_outlineActor;
-private:
-	QSharedPointer<iALookupTable> m_lut;
-	size_t m_colorParamIdx;
-	std::vector<size_t> m_selection;
-	bool m_selectionActive;
+	static const int DefaultPhiRes = 10;
+	static const int DefaultThetaRes = 10;
+	iA3DEllipseObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+		QColor const & color, int phiRes = DefaultPhiRes, int thetaRes = DefaultThetaRes);
 };
-

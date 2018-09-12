@@ -27,6 +27,14 @@
 #include "ui_Multi3DView.h"
 #include "iAQTtoUIConnector.h"
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
+class QVTKOpenGLWidget;
+class vtkGenericOpenGLRenderWindow;
+#else
+class QVTKWidget;
+class vtkRenderWindow;
+#endif
+
 class iAVolumeRenderer;
 class iANonLinearAxisTicker;
 class iAOrientationWidget;
@@ -113,7 +121,13 @@ private:
 
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
-	vtkSmartPointer<vtkRenderWindow> m_mrvRenWin;
+
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
+	QVTKOpenGLWidget *wgtContainer;
+#else
+	QVTKWidget *wgtContainer;
+#endif
+
 	vtkSmartPointer<vtkRenderer> m_mrvBGRen;
 	vtkSmartPointer<vtkTextActor> m_mrvTxtAct;
 	QSharedPointer<iAVolumeRenderer> m_volRen;

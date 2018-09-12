@@ -45,26 +45,25 @@
 #include <vtkImageData.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkLine.h>
+#include <vtkLookupTable.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
-#include <vtkRenderWindow.h>
+#include <vtkScalarBarActor.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h> 
 #include <vtkVolumeProperty.h>
 
-#include <vtkLookupTable.h>
-#include <vtkScalarBarActor.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
+#include <QVTKOpenGLWidget.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#else
 #include <QVTKWidget.h>
-
-// Debug
-//#include <omp.h>
-//#include <sys/timeb.h>
-//#include "iAConsole.h"
-//#include <QDebug>
+#include <vtkRenderWindow.h>
+#endif
 
 const double impInitValue = 0.025;
 const double offsetY = 1000;
@@ -86,7 +85,6 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget * parent /*= 0*/, QDir da
 	m_mdiChild(static_cast<MdiChild*>(parent)),
 	m_datasetsDir(datasetsDir),
 	m_MultiRendererView(new multi3DRendererView()),
-	m_mrvRenWin(vtkSmartPointer<vtkRenderWindow>::New()),
 	m_mrvBGRen(vtkSmartPointer<vtkRenderer>::New()),
 	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New()),
 	m_scalingWidget(0),
@@ -289,6 +287,12 @@ void dlg_DynamicVolumeLines::changePlotVisibility()
 
 void dlg_DynamicVolumeLines::setupMultiRendererView()
 {
+	m_mrvTxtAct->SetInput("No Hilbert index selected");
+	m_mrvTxtAct->GetTextProperty()->SetFontSize(24);
+	m_mrvTxtAct->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+	m_mrvTxtAct->GetTextProperty()->SetJustificationToCentered();
+	m_mrvTxtAct->GetTextProperty()->SetVerticalJustificationToCentered();
+	
 	auto mrvWinModCallback = vtkSmartPointer<vtkCallbackCommand>::New();
 	mrvWinModCallback->SetCallback(winModCallback);
 	m_mrvBGRen->AddObserver(vtkCommand::ModifiedEvent, mrvWinModCallback);
@@ -296,23 +300,20 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	m_mrvBGRen->InteractiveOff();
 	m_mrvBGRen->SetBackground(1.0, 1.0, 1.0);
 	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
-
-	m_mrvTxtAct->SetInput("No Hilbert index selected");
-	m_mrvTxtAct->GetTextProperty()->SetFontSize(24);
-	m_mrvTxtAct->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
-	m_mrvTxtAct->GetTextProperty()->SetJustificationToCentered();
-	m_mrvTxtAct->GetTextProperty()->SetVerticalJustificationToCentered();
 	
-	m_mrvRenWin->SetNumberOfLayers(2);
-	m_MultiRendererView->wgtContainer->SetRenderWindow(m_mrvRenWin);
-	auto renWinInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-	renWinInteractor->SetRenderWindow(m_mrvRenWin);
-	auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-	renWinInteractor->SetInteractorStyle(style);
-	m_mrvRenWin->AddRenderer(m_mrvBGRen);
-	m_mrvRenWin->Render();
-
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
+	wgtContainer = new QVTKOpenGLWidget();
+	auto mrvRenWin = vtkGenericOpenGLRenderWindow::New();
+	wgtContainer->SetRenderWindow(mrvRenWin);
+#else
+	wgtContainer = new QVTKWidget();
+#endif
+	
+	mrvRenWin->SetNumberOfLayers(2);
+	mrvRenWin->AddRenderer(m_mrvBGRen);
+	mrvRenWin->Render();
 	m_mdiChild->tabifyDockWidget(m_mdiChild->renderer, m_MultiRendererView);
+	m_MultiRendererView->verticalLayout->addWidget(wgtContainer);
 	m_MultiRendererView->show();
 }
 
@@ -604,7 +605,7 @@ void dlg_DynamicVolumeLines::calcNonLinearMapping()
 
 void dlg_DynamicVolumeLines::generateSegmentTree()
 {
-	// TODO: nach BkgdRanges zeichnen + nur die Histogramme ohne die BkgdRanes zeichnen 
+	// TODO: draw after BkgdRanges + draw only the histograms without the BkgdRanes 
 	int subhistBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535,
 		plotBinWidth = sb_histBinWidth->value(),
 		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
@@ -655,8 +656,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 			upperDistToNextPoint = 1.0;
 			upperDistToCurrPoint = 1.0;
 		}
-		//TODO: commented works but linear histogram looks weird
-		//double linearLowerDbl = nonlinearLowerIdx + lowerDistToNextPoint != 0.0 ? lowerDistToCurrPoint / lowerDistToNextPoint : 0;
+		
 		double linearLowerDbl = nonlinearLowerIdx + lowerDistToCurrPoint / lowerDistToNextPoint;
 		double linearUpperDbl = nonlinearUpperIdx - 1 + upperDistToCurrPoint / upperDistToNextPoint;
 		int linearLowerIdx = floor(linearLowerDbl);
@@ -686,8 +686,8 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 			nonlin_histRectItem->setPen(QPen(Qt::NoPen));
 			//nonlin_histRectItem->setPen(QPen(QColor(Qt::yellow)));	// Debug
 			nonlin_histRectItem->setClipToAxisRect(true);
-			// TODO: Problem bei 256 subhistBinCnt Farbverlauf schlecht sichtbar -> auf anderen 
-			// max wert (Lokales Histogrammmmaximum) skalieren  
+			// TODO: problem with 256 subhistBinCnt color gradient badly visible 
+			// -> scale to other max value (local histogram maximum)
 			m_histLUT->GetColor((double)nonlinear_sum / (nonlinearUpperIdx - nonlinearLowerIdx + 1), rgb);
 			c.setRgbF(rgb[0], rgb[1], rgb[2]);
 			nonlin_histRectItem->setBrush(QBrush(c));
@@ -1198,9 +1198,8 @@ void dlg_DynamicVolumeLines::mouseWheel(QWheelEvent* e)
 void dlg_DynamicVolumeLines::selectionChangedByUser()
 {
 	// TODO: change transfer function for "hidden" values; should be HistogramRangeMinimum-1 
-	m_mrvRenWin->GetRenderers()->RemoveAllItems();
-	m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D());
-	m_mrvRenWin->AddRenderer(m_mrvBGRen);
+	wgtContainer->GetRenderWindow()->GetRenderers()->RemoveAllItems();
+	wgtContainer->GetRenderWindow()->AddRenderer(m_mrvBGRen);
 
 	QCustomPlot *plotU = qobject_cast<QCustomPlot*>(QObject::sender());
 	QCustomPlot *plotP;
@@ -1217,6 +1216,7 @@ void dlg_DynamicVolumeLines::selectionChangedByUser()
 	QCPDataSelection sel;
 	if (!selVisibleGraphsList.isEmpty())
 	{
+		m_mrvTxtAct->VisibilityOff();
 		for (auto graph : selVisibleGraphsList)
 		{
 			for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
@@ -1234,7 +1234,11 @@ void dlg_DynamicVolumeLines::selectionChangedByUser()
 	}
 	else
 	{
-		m_mrvBGRen->AddActor2D(m_mrvTxtAct);
+		m_mrvTxtAct->VisibilityOn();
+		iARenderer * ren = m_mdiChild->getRenderer();
+		vtkRenderWindow * renWin = ren->GetRenderWindow();
+		renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(ren->selectedActor);
+		renWin->Render();
 		for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
 			plotP->graph(i)->setSelection(plotU->graph(i)->selection());
 	}
@@ -1452,14 +1456,10 @@ void dlg_DynamicVolumeLines::selectCompLevel()
 		}
 	}
 
-	m_mrvRenWin->GetRenderers()->RemoveAllItems();
-	m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D());
-	m_mrvRenWin->AddRenderer(m_mrvBGRen);
+	wgtContainer->GetRenderWindow()->GetRenderers()->RemoveAllItems();
+	wgtContainer->GetRenderWindow()->AddRenderer(m_mrvBGRen);
+	m_mrvTxtAct->SetVisibility(selCompLvlRanges.dataRanges().empty());
 
-	selCompLvlRanges.dataRanges().size() > 0 ? 
-		m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D()) :
-		m_mrvBGRen->AddActor2D(m_mrvTxtAct);
-	
 	QList<QCPGraph *> visibleGraphsList;
 	for (int i = 0; i < m_linearScaledPlot->graphCount(); ++i)
 	{
@@ -1467,7 +1467,8 @@ void dlg_DynamicVolumeLines::selectCompLevel()
 		{
 			m_linearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
 			m_nonlinearScaledPlot->graph(i)->setSelection(selCompLvlRanges);
-			visibleGraphsList.append(m_linearScaledPlot->graph(i));
+			if (!selCompLvlRanges.dataRanges().empty())
+				visibleGraphsList.append(m_linearScaledPlot->graph(i));
 		}
 	}
 
@@ -1561,9 +1562,9 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		m_volRen->ApplySettings(m_mdiChild->GetVolumeSettings());
 		m_volRen->AddTo(ren);
 		m_volRen->AddBoundingBoxTo(ren);
-		m_mrvRenWin->AddRenderer(ren);
+		wgtContainer->GetRenderWindow()->AddRenderer(ren);
 	}
-	m_mrvRenWin->Render();
+	wgtContainer->GetRenderWindow()->Render();
 }
 
 void dlg_DynamicVolumeLines::setNoSelectionForPlots()
@@ -1575,11 +1576,10 @@ void dlg_DynamicVolumeLines::setNoSelectionForPlots()
 		m_linearScaledPlot->graph(i)->setSelection(noSelection);
 	}
 
-	m_mrvRenWin->GetRenderers()->RemoveAllItems();
-	m_mrvBGRen->RemoveActor2D(m_mrvBGRen->GetActors2D()->GetLastActor2D());
-	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
-	m_mrvRenWin->AddRenderer(m_mrvBGRen);
-	m_mrvRenWin->Render();
+	wgtContainer->GetRenderWindow()->GetRenderers()->RemoveAllItems();
+	m_mrvTxtAct->VisibilityOn();
+	wgtContainer->GetRenderWindow()->AddRenderer(m_mrvBGRen);
+	wgtContainer->GetRenderWindow()->Render();
 
 	m_scalingWidget->setSel(noSelection);
 	m_scalingWidget->update();
@@ -1665,11 +1665,7 @@ void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 	else
 	{
 		m_mrvTxtAct->VisibilityOn();
-		//m_mrvBGRen->AddActor2D(m_mrvTxtAct);
-		//for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
-		//	m_nonlinearScaledPlot->graph(i)->setSelection(m_linearScaledPlot->graph(i)->selection());
 	}
-
 
 	setSelectionForRenderer(selVisibleGraphsList);
 	m_scalingWidget->setSel(sel);
@@ -1748,7 +1744,6 @@ void dlg_DynamicVolumeLines::showDebugPlot()
 
 void dlg_DynamicVolumeLines::showCompressionLevel()
 {
-	//TODO: check purpos!
 	double rgb[3]; QColor c;
 	for (int hIdx = 1; hIdx < m_nonlinearMappingVec.size(); ++hIdx)
 	{

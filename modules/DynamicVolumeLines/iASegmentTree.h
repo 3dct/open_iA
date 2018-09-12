@@ -28,7 +28,7 @@ using namespace std;
 
 class iASegmentTree
 {
-//TODO: to unsigned int or other more general type?
+//TODO: to unsigned int or other more general type
 public:
 	iASegmentTree(const vector<int> &input, int binCnt, int lowerBnd, int upperBnd);
 	~iASegmentTree();

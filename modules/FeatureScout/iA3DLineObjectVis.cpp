@@ -37,38 +37,19 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
 #include <vtkTable.h>
-#include <vtkUnsignedCharArray.h>
-
-namespace
-{
-	const size_t NoPointIdx = std::numeric_limits<size_t>::max();
-}
 
 iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor ):
-	iA3DObjectVis(widget, objectTable, columnMapping),
-	m_contextAlpha(DefaultContextOpacity),
-	m_selectionAlpha(DefaultSelectionOpacity),
-	m_selectionColor(SelectedColor),
-	m_baseColor(128, 128, 128),
+	iA3DColoredPolyObjectVis(widget, objectTable, columnMapping, neutralColor, 2),
 	m_selectionActive(false),
-	m_actor(vtkSmartPointer<vtkActor>::New()),
 	m_outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
 	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_outlineActor(vtkSmartPointer<vtkActor>::New()),
-	m_visible(false)
+	m_outlineActor(vtkSmartPointer<vtkActor>::New())
 {
-	m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	m_colors->SetNumberOfComponents(4);
-	m_colors->SetName("Colors");
 	m_points = vtkSmartPointer<vtkPoints>::New();
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
-	unsigned char c[4];
-	c[0] = neutralColor.red();
-	c[1] = neutralColor.green();
-	c[2] = neutralColor.blue();
-	c[3] = neutralColor.alpha();
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
 		float first[3], end[3];
@@ -83,13 +64,6 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 		line->GetPointIds()->SetId(0, 2 * row);     // the index of line start point in pts
 		line->GetPointIds()->SetId(1, 2 * row + 1); // the index of line end point in pts
 		lines->InsertNextCell(line);
-#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-		m_colors->InsertNextTupleValue(c);
-		m_colors->InsertNextTupleValue(c);
-#else
-		m_colors->InsertNextTypedTuple(c);
-		m_colors->InsertNextTypedTuple(c);
-#endif
 	}
 	m_linePolyData->SetPoints(m_points);
 	m_linePolyData->SetLines(lines);
@@ -105,9 +79,6 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 
 	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_mapper->SetInputData(m_linePolyData);
-	m_mapper->SelectColorArray("Colors");
-	m_mapper->SetScalarModeToUsePointFieldData();
-	m_mapper->ScalarVisibilityOn();
 	m_actor->SetMapper(m_mapper);
 
 	m_outlineFilter->SetInputData(m_linePolyData);
@@ -117,7 +88,7 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 	m_outlineActor->SetMapper(m_outlineMapper);
 }
 
-void iA3DLineObjectVis::updateValues( std::vector<std::vector<double> > const & values )
+void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & values)
 {
 	for (int f = 0; f < values.size(); ++f)
 	{
@@ -128,128 +99,21 @@ void iA3DLineObjectVis::updateValues( std::vector<std::vector<double> > const & 
 	updatePolyMapper();
 }
 
-void iA3DLineObjectVis::show()
+void iA3DLineObjectVis::showBoundingBox()
 {
-	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_actor);
-	m_visible = true;
-}
-
-void iA3DLineObjectVis::hide()
-{
-	// TODO: problematic if main window is being shut down!
-	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_actor);
-	m_visible = false;
-}
-
-void iA3DLineObjectVis::renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* activeClassItem )
-{
-	QColor BackColor(128, 128, 128, 0);
-	int currentObjectIndexInSelection = 0;
-	size_t curSelObjID = NoPointIdx;
-	QColor classColor(constClassColor);
-	if ( sortedSelInds.size() > 0 )
-	{
-		curSelObjID = sortedSelInds[currentObjectIndexInSelection];
-		classColor.setAlpha(m_contextAlpha);
-	}
-	for ( size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
-	{
-		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
-		QColor curColor = (objID == curSelObjID) ?
-			m_selectionColor :
-			((curClassID == classID) ?
-				classColor :
-				BackColor);
-		setPolyPointColor(objID, curColor);
-		if (objID == curSelObjID)
-		{
-			++currentObjectIndexInSelection;
-			if (currentObjectIndexInSelection < sortedSelInds.size())
-				curSelObjID = sortedSelInds[currentObjectIndexInSelection];
-		}
-	}
-	updatePolyMapper();
-}
-
-void iA3DLineObjectVis::renderSingle( int labelID, int classID, QColor const & constClassColor, QStandardItem* activeClassItem )
-{
-	QColor classColor(constClassColor);
-	QColor nonClassColor = QColor(0, 0, 0, 0);
-	if ( labelID > 0)
-		classColor.setAlpha(m_contextAlpha);
-	for ( size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
-	{
-		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
-		setPolyPointColor(objID, ( labelID > 0 && objID+1 == labelID ) ? m_selectionColor : (curClassID == classID) ? classColor : nonClassColor);
-	}
-	updatePolyMapper();
-}
-
-void iA3DLineObjectVis::multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha )
-{
-	for ( size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
-	{
-		int classID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
-		setPolyPointColor(objID, classColors.at(classID));
-	}
-	updatePolyMapper();
-}
-
-void iA3DLineObjectVis::renderOrientationDistribution ( vtkImageData* oi )
-{
-	for ( size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
-	{
-		QColor color = getOrientationColor( oi, objID );
-		setPolyPointColor(objID, color);
-	}
-	updatePolyMapper();
-}
-
-void iA3DLineObjectVis::renderLengthDistribution( vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range )
-{
-	for ( int objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID )
-	{
-		QColor color = getLengthColor( ctFun, objID );
-		setPolyPointColor(objID, color);
-	}
-	updatePolyMapper();
-}
-
-void iA3DLineObjectVis::setPolyPointColor(int ptIdx, QColor const & qcolor)
-{
-	unsigned char color[4];
-	color[0] = qcolor.red();
-	color[1] = qcolor.green();
-	color[2] = qcolor.blue();
-	color[3] = qcolor.alpha();
-	for (int c = 0; c < 4; ++c)
-	{
-		m_colors->SetComponent(ptIdx * 2, c, color[c]);
-		m_colors->SetComponent(ptIdx * 2 + 1, c, color[c]);
-	}
-}
-
-void iA3DLineObjectVis::updatePolyMapper()
-{
-	m_colors->Modified();
-	m_mapper->Update();
+	m_outlineMapper->Update();
+	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_outlineActor);
 	updateRenderer();
 }
 
+void iA3DLineObjectVis::hideBoundingBox()
+{
+	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_outlineActor);
+	updateRenderer();
+}
 vtkPolyData* iA3DLineObjectVis::getLinePolyData()
 {
 	return m_linePolyData;
-}
-
-void iA3DLineObjectVis::setSelectionOpacity(int selectionAlpha)
-{
-	m_selectionAlpha = selectionAlpha;
-}
-
-
-void iA3DLineObjectVis::setContextOpacity(int contextAlpha)
-{
-	m_contextAlpha = contextAlpha;
 }
 
 void iA3DLineObjectVis::setColor(QColor const &color)
@@ -300,24 +164,6 @@ void iA3DLineObjectVis::updateColorSelectionRendering()
 		setPolyPointColor(objID, color);
 	}
 	updatePolyMapper();
-}
-
-void iA3DLineObjectVis::showBoundingBox()
-{
-	m_outlineMapper->Update();
-	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_outlineActor);
-	updateRenderer();
-}
-
-void iA3DLineObjectVis::hideBoundingBox()
-{
-	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_outlineActor);
-	updateRenderer();
-}
-
-bool iA3DLineObjectVis::visible() const
-{
-	return m_visible;
 }
 
 iA3DLineObjectVis::~iA3DLineObjectVis()

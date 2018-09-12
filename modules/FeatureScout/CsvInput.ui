@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>517</width>
-    <height>704</height>
+    <width>826</width>
+    <height>596</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -145,67 +145,11 @@
        <number>4</number>
       </property>
       <item>
-       <layout class="QFormLayout" name="lt_Format">
-        <property name="horizontalSpacing">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <property name="spacing">
          <number>4</number>
         </property>
-        <property name="verticalSpacing">
-         <number>4</number>
-        </property>
-        <item row="1" column="0">
-         <widget class="QLabel" name="lbl_FormatName">
-          <property name="text">
-           <string>Format Name</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="ed_FormatName"/>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="lbl_ObjectType">
-          <property name="text">
-           <string>Object Type</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QComboBox" name="cmbbox_ObjectType">
-          <item>
-           <property name="text">
-            <string>Fibers</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Voids</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Other</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="lbl_VisualizeAs">
-          <property name="text">
-           <string>Visualization</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QComboBox" name="cmbbox_VisualizeAs"/>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="lbl_Encoding">
-          <property name="text">
-           <string>Encoding</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
+        <item row="2" column="2" colspan="3">
          <widget class="QComboBox" name="cmbbox_Encoding">
           <item>
            <property name="text">
@@ -229,14 +173,14 @@
           </item>
          </widget>
         </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="lbl_ColumnSeparator">
+        <item row="3" column="0">
+         <widget class="QLabel" name="lbl_Separators">
           <property name="text">
-           <string>Column Separator</string>
+           <string>Separators</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="1">
+        <item row="3" column="2">
          <widget class="QComboBox" name="cmbbox_ColSeparator">
           <property name="enabled">
            <bool>true</bool>
@@ -261,14 +205,27 @@
           </item>
          </widget>
         </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="lbl_DecimalSeparator">
+        <item row="3" column="3">
+         <widget class="QLabel" name="lbl_SeparatorDecimal">
           <property name="text">
-           <string>Decimal separator:</string>
+           <string>Decimal:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
-        <item row="6" column="1">
+        <item row="3" column="1">
+         <widget class="QLabel" name="lbl_SeparatorColumn">
+          <property name="text">
+           <string>Column:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="4">
          <widget class="QComboBox" name="cmbbox_DecimalSeparator">
           <property name="editable">
            <bool>true</bool>
@@ -285,14 +242,73 @@
           </item>
          </widget>
         </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="lbl_SkipS1tartLine">
+        <item row="1" column="3">
+         <widget class="QLabel" name="lbl_VisualizeAs">
           <property name="text">
-           <string>Skip Start Lines:</string>
+           <string>Visualization:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
-        <item row="7" column="1">
+        <item row="0" column="0" colspan="2">
+         <widget class="QLabel" name="lbl_FormatName">
+          <property name="text">
+           <string>Format Name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QComboBox" name="cmbbox_ObjectType">
+          <item>
+           <property name="text">
+            <string>Fibers</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Voids</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Other</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QLabel" name="lbl_ObjectType">
+          <property name="text">
+           <string>Object Type</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2" colspan="3">
+         <widget class="QLineEdit" name="ed_FormatName"/>
+        </item>
+        <item row="1" column="4">
+         <widget class="QComboBox" name="cmbbox_VisualizeAs"/>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="lbl_SkipLines">
+          <property name="text">
+           <string>Skip Lines</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLabel" name="lbl_SkipLinesStart">
+          <property name="text">
+           <string>Start:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="2">
          <widget class="QSpinBox" name="ed_SkipLinesStart">
           <property name="enabled">
            <bool>true</bool>
@@ -308,37 +324,24 @@
           </property>
          </widget>
         </item>
-        <item row="8" column="0">
-         <widget class="QLabel" name="lbl_SkipEndLines">
+        <item row="4" column="3">
+         <widget class="QLabel" name="lbl_SkipLinesEnd">
           <property name="text">
-           <string>Skip End Lines:</string>
+           <string>End:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
-        <item row="8" column="1">
+        <item row="4" column="4">
          <widget class="QSpinBox" name="ed_SkipLinesEnd">
           <property name="maximum">
            <number>9999999</number>
           </property>
          </widget>
         </item>
-        <item row="9" column="0">
-         <widget class="QLabel" name="lbl_Unit">
-          <property name="text">
-           <string>Unit:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="1">
-         <widget class="QComboBox" name="cmbbox_Unit">
-          <item>
-           <property name="text">
-            <string>microns</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="10" column="0">
+        <item row="5" column="3">
          <widget class="QLabel" name="lbl_Spacing">
           <property name="enabled">
            <bool>false</bool>
@@ -346,9 +349,12 @@
           <property name="text">
            <string>Spacing:</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
          </widget>
         </item>
-        <item row="10" column="1">
+        <item row="5" column="4">
          <widget class="QLineEdit" name="ed_Spacing">
           <property name="enabled">
            <bool>false</bool>
@@ -358,62 +364,78 @@
           </property>
          </widget>
         </item>
-        <item row="11" column="0" colspan="2">
-         <widget class="QCheckBox" name="cb_AddAutoID">
-          <property name="text">
-           <string>Create ID</string>
-          </property>
-         </widget>
-        </item>
-        <item row="12" column="0">
-         <widget class="QLabel" name="lbl_col_ID">
-          <property name="text">
-           <string>ID</string>
-          </property>
-         </widget>
-        </item>
-        <item row="12" column="1">
+        <item row="6" column="2">
          <widget class="QLineEdit" name="ed_col_ID">
           <property name="enabled">
            <bool>false</bool>
           </property>
          </widget>
         </item>
-        <item row="13" column="0" colspan="2">
+        <item row="6" column="3" colspan="2">
          <widget class="QCheckBox" name="cb_ContainsHeader">
           <property name="text">
            <string>Contains header</string>
           </property>
          </widget>
         </item>
-        <item row="14" column="0" colspan="2">
+        <item row="7" column="4">
+         <widget class="QPushButton" name="btn_ImportFormat">
+          <property name="text">
+           <string>Import</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="3">
+         <widget class="QPushButton" name="btn_ExportFormat">
+          <property name="text">
+           <string>Export</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="2">
+         <widget class="QPushButton" name="btn_DeleteFormat">
+          <property name="text">
+           <string>Delete</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0" colspan="2">
          <widget class="QPushButton" name="btn_SaveFormat">
           <property name="enabled">
            <bool>true</bool>
           </property>
           <property name="text">
-           <string>Save Format</string>
+           <string>Save</string>
           </property>
          </widget>
         </item>
-        <item row="15" column="0" colspan="2">
-         <widget class="QPushButton" name="btn_DeleteFormat">
+        <item row="5" column="2">
+         <widget class="QComboBox" name="cmbbox_Unit">
+          <item>
+           <property name="text">
+            <string>microns</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="2">
+         <widget class="QLabel" name="lbl_Unit">
           <property name="text">
-           <string>Delete Format</string>
+           <string>Unit:</string>
           </property>
          </widget>
         </item>
-        <item row="16" column="0" colspan="2">
-         <widget class="QPushButton" name="btn_ExportFormat">
+        <item row="2" column="0" colspan="2">
+         <widget class="QLabel" name="lbl_Encoding">
           <property name="text">
-           <string>Export Format</string>
+           <string>Encoding</string>
           </property>
          </widget>
         </item>
-        <item row="17" column="0" colspan="2">
-         <widget class="QPushButton" name="btn_ImportFormat">
+        <item row="6" column="0" colspan="2">
+         <widget class="QCheckBox" name="cb_AddAutoID">
           <property name="text">
-           <string>Import Format</string>
+           <string>Create ID</string>
           </property>
          </widget>
         </item>
@@ -427,13 +449,7 @@
         <property name="title">
          <string>Column Mapping</string>
         </property>
-        <layout class="QFormLayout" name="formLayout">
-         <property name="horizontalSpacing">
-          <number>4</number>
-         </property>
-         <property name="verticalSpacing">
-          <number>4</number>
-         </property>
+        <layout class="QGridLayout" name="gridLayout">
          <property name="leftMargin">
           <number>4</number>
          </property>
@@ -446,6 +462,25 @@
          <property name="bottomMargin">
           <number>4</number>
          </property>
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <item row="3" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosStartZ"/>
+         </item>
+         <item row="4" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosEndX"/>
+         </item>
+         <item row="5" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosEndY"/>
+         </item>
+         <item row="8" column="0">
+          <widget class="QLabel" name="lbl_col_posCenterX">
+           <property name="text">
+            <string>Center X</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0" colspan="2">
           <widget class="QComboBox" name="cmbbox_col_Selection">
            <property name="currentIndex">
@@ -463,15 +498,15 @@
            </item>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="lbl_col_posStartX">
-           <property name="text">
-            <string>Start Pos. X</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosStartX"/>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="lbl_col_posEndY">
+           <property name="text">
+            <string>End Pos. Y</string>
+           </property>
+          </widget>
          </item>
          <item row="2" column="0">
           <widget class="QLabel" name="lbl_col_posStartY">
@@ -483,35 +518,12 @@
          <item row="2" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosStartY"/>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="lbl_col_posStartZ">
-           <property name="text">
-            <string>Start Pos. Z</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QComboBox" name="cmbbox_col_PosStartZ"/>
-         </item>
          <item row="4" column="0">
           <widget class="QLabel" name="lbl_col_posEndX">
            <property name="text">
             <string>End Pos. X</string>
            </property>
           </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QComboBox" name="cmbbox_col_PosEndX"/>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="lbl_col_posEndY">
-           <property name="text">
-            <string>End Pos. Y</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QComboBox" name="cmbbox_col_PosEndY"/>
          </item>
          <item row="6" column="0">
           <widget class="QLabel" name="lbl_col_posEndZ">
@@ -523,10 +535,31 @@
          <item row="6" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosEndZ"/>
          </item>
-         <item row="8" column="0">
-          <widget class="QLabel" name="lbl_col_posCenterX">
+         <item row="1" column="0">
+          <widget class="QLabel" name="lbl_col_posStartX">
            <property name="text">
-            <string>Center X</string>
+            <string>Start Pos. X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeCenter">
+           <property name="text">
+            <string>Compute Center</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="lbl_col_posStartZ">
+           <property name="text">
+            <string>Start Pos. Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="0">
+          <widget class="QLabel" name="lbl_col_posCenterZ">
+           <property name="text">
+            <string>Center Z</string>
            </property>
           </widget>
          </item>
@@ -544,20 +577,6 @@
            </property>
           </widget>
          </item>
-         <item row="9" column="1">
-          <widget class="QComboBox" name="cmbbox_col_PosCenterY">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="0">
-          <widget class="QLabel" name="lbl_col_posCenterZ">
-           <property name="text">
-            <string>Center Z</string>
-           </property>
-          </widget>
-         </item>
          <item row="10" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosCenterZ">
            <property name="enabled">
@@ -565,48 +584,54 @@
            </property>
           </widget>
          </item>
-         <item row="12" column="0">
-          <widget class="QLabel" name="lbl_col_length">
-           <property name="text">
-            <string>Length</string>
-           </property>
-          </widget>
-         </item>
-         <item row="12" column="1">
-          <widget class="QComboBox" name="cmbbox_col_Length">
+         <item row="9" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosCenterY">
            <property name="enabled">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="17" column="0">
+         <item row="9" column="2">
+          <widget class="QLabel" name="lbl_col_dimensionZ">
+           <property name="text">
+            <string>Dimension Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="3">
+          <widget class="QComboBox" name="cmbbox_col_DimensionZ"/>
+         </item>
+         <item row="8" column="3">
+          <widget class="QComboBox" name="cmbbox_col_DimensionY"/>
+         </item>
+         <item row="8" column="2">
+          <widget class="QLabel" name="lbl_col_dimensionY">
+           <property name="text">
+            <string>Dimension Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="2">
+          <widget class="QLabel" name="lbl_col_dimensionX">
+           <property name="text">
+            <string>Dimension X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="3">
+          <widget class="QComboBox" name="cmbbox_col_DimensionX"/>
+         </item>
+         <item row="6" column="2">
           <widget class="QLabel" name="lbl_col_diameter">
            <property name="text">
             <string>Diameter</string>
            </property>
           </widget>
          </item>
-         <item row="17" column="1">
+         <item row="6" column="3">
           <widget class="QComboBox" name="cmbbox_col_Diameter"/>
          </item>
-         <item row="15" column="0">
-          <widget class="QLabel" name="lbl_col_phi">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="text">
-            <string>Phi Angle</string>
-           </property>
-          </widget>
-         </item>
-         <item row="15" column="1">
-          <widget class="QComboBox" name="cmbbox_col_Phi">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="16" column="0">
+         <item row="5" column="2">
           <widget class="QLabel" name="lbl_col_theta">
            <property name="enabled">
             <bool>true</bool>
@@ -616,38 +641,62 @@
            </property>
           </widget>
          </item>
-         <item row="16" column="1">
+         <item row="5" column="3">
           <widget class="QComboBox" name="cmbbox_col_Theta">
            <property name="enabled">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="14" column="0" colspan="2">
+         <item row="4" column="2">
+          <widget class="QLabel" name="lbl_col_phi">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Phi Angle</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="3">
+          <widget class="QComboBox" name="cmbbox_col_Phi">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2" colspan="2">
           <widget class="QCheckBox" name="cb_ComputeAngles">
            <property name="text">
             <string>Compute Angles</string>
            </property>
           </widget>
          </item>
-         <item row="11" column="0" colspan="2">
-          <widget class="QCheckBox" name="cb_ComputeLength">
-           <property name="text">
-            <string>Compute Length</string>
-           </property>
-          </widget>
-         </item>
-         <item row="13" column="0" colspan="2">
+         <item row="2" column="2" colspan="2">
           <widget class="QCheckBox" name="cb_ComputeTensors">
            <property name="text">
             <string>Compute Tensors</string>
            </property>
           </widget>
          </item>
-         <item row="7" column="0" colspan="2">
-          <widget class="QCheckBox" name="cb_ComputeCenter">
+         <item row="1" column="3">
+          <widget class="QComboBox" name="cmbbox_col_Length">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="lbl_col_length">
            <property name="text">
-            <string>Compute Center</string>
+            <string>Length</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeLength">
+           <property name="text">
+            <string>Compute Length</string>
            </property>
           </widget>
          </item>

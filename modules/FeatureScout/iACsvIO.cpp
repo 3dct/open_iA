@@ -236,7 +236,6 @@ void iACsvIO::determineOutputHeaders(QVector<int> const & selectedCols)
 		else
 		{
 			int fullOutIdx = (m_csvConfig.addAutoID ? 1 : 0) + outIdx;
-			//DEBUG_LOG(QString("COLUMN (ID=%1, input col=%2) is mapped to column %3 in output!").arg(key).arg(m_csvConfig.columnMapping[key]).arg(fullOutIdx));
 			m_outputMapping->insert(key, fullOutIdx);
 		}
 	}
@@ -249,28 +248,22 @@ void iACsvIO::determineOutputHeaders(QVector<int> const & selectedCols)
 
 	if (m_csvConfig.computeLength)
 	{
-		//DEBUG_LOG(QString("COLUMN (ID=%1, name=%2, computed) is mapped to column %3 in output!").arg(iACsvConfig::Length).arg(iACsvIO::ColNameLength).arg(m_outputHeaders.size()));
 		m_outputMapping->insert(iACsvConfig::Length, m_outputHeaders.size());
 		m_outputHeaders.append(iACsvIO::ColNameLength);
 	}
 	if (m_csvConfig.computeCenter)
 	{
 		m_outputMapping->insert(iACsvConfig::CenterX, m_outputHeaders.size());
-		//DEBUG_LOG(QString("COLUMN (ID=%1, name=%2, computed) is mapped to column %3 in output!").arg(iACsvConfig::CenterX).arg(iACsvIO::ColNameCenterX).arg(m_outputHeaders.size()));
 		m_outputHeaders.append(iACsvIO::ColNameCenterX);
 		m_outputMapping->insert(iACsvConfig::CenterY, m_outputHeaders.size());
-		//DEBUG_LOG(QString("COLUMN (ID=%1, name=%2, computed) is mapped to column %3 in output!").arg(iACsvConfig::CenterY).arg(iACsvIO::ColNameCenterY).arg(m_outputHeaders.size()));
 		m_outputHeaders.append(iACsvIO::ColNameCenterY);
 		m_outputMapping->insert(iACsvConfig::CenterZ, m_outputHeaders.size());
-		//DEBUG_LOG(QString("COLUMN (ID=%1, name=%2, computed) is mapped to column %3 in output!").arg(iACsvConfig::CenterZ).arg(iACsvIO::ColNameCenterZ).arg(m_outputHeaders.size()));
 		m_outputHeaders.append(iACsvIO::ColNameCenterZ);
 	}
 	if (m_csvConfig.computeAngles)
 	{
-		//DEBUG_LOG(QString("COLUMN (ID=%1, name=%2, computed) is mapped to column %3 in output!").arg(iACsvConfig::Phi).arg(iACsvIO::ColNamePhi).arg(m_outputHeaders.size()));
 		m_outputMapping->insert(iACsvConfig::Phi, m_outputHeaders.size());
 		m_outputHeaders.append(iACsvIO::ColNamePhi);
-		//DEBUG_LOG(QString("COLUMN (ID=%1, name=%2, computed) is mapped to column %3 in output!").arg(iACsvConfig::Theta).arg(iACsvIO::ColNameTheta).arg(m_outputHeaders.size()));
 		m_outputMapping->insert(iACsvConfig::Theta, m_outputHeaders.size());
 		m_outputHeaders.append(iACsvIO::ColNameTheta);
 	}

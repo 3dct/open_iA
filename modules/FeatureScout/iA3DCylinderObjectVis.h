@@ -21,7 +21,6 @@
 #pragma once
 
 #include "iA3DLineObjectVis.h"
-#include "FeatureScout_export.h"
 
 class FeatureScout_API iA3DCylinderObjectVis: public iA3DLineObjectVis
 {

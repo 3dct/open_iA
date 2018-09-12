@@ -38,6 +38,7 @@ struct FeatureScout_API iACsvConfig
 		CenterX, CenterY, CenterZ,
 		Length, Diameter,
 		Phi, Theta,
+		DimensionX, DimensionY, DimensionZ,
 		MappedCount
 	}; //!< must be the same order as dlg_CSVInput::m_mappingBoxes!
 	enum VisualizationType

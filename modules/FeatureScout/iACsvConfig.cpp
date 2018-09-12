@@ -110,9 +110,15 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		errorMsg = "Visualization as Cylinders requires a diameter column, please specify where to find it!";
 		return false;
 	}
-	if (visType == Ellipses)
+	if (visType == Ellipses && (
+		!columnMapping.contains(iACsvConfig::CenterX) ||
+		!columnMapping.contains(iACsvConfig::CenterY) ||
+		!columnMapping.contains(iACsvConfig::CenterZ) ||
+		!columnMapping.contains(iACsvConfig::DimensionX) ||
+		!columnMapping.contains(iACsvConfig::DimensionY) ||
+		!columnMapping.contains(iACsvConfig::DimensionZ)))
 	{
-		errorMsg = "Visualization as Ellipses are not implemented yet!";
+		errorMsg = "Visualization as Ellipses requires column mapping for the center point and the dimensions (in each direction), please specify where to find these!";
 		return false;
 	}
 	if (selectedHeaders.size() < 1)
@@ -172,8 +178,8 @@ iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 	static iACsvConfig LegacyFormat;
 	LegacyFormat.fileName = fileName;
 	LegacyFormat.encoding = "System";
-	LegacyFormat.containsHeader = true;
-	LegacyFormat.skipLinesStart = 4;
+	LegacyFormat.containsHeader = false;
+	LegacyFormat.skipLinesStart = 5;
 	LegacyFormat.skipLinesEnd = 0;
 	LegacyFormat.columnSeparator = ",";
 	LegacyFormat.decimalSeparator = ".";
@@ -184,11 +190,38 @@ iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 	LegacyFormat.computeTensors = false;
 	LegacyFormat.computeCenter = false;
 	LegacyFormat.visType = UseVolume;
-	LegacyFormat.currentHeaders.clear();
-	LegacyFormat.selectedHeaders.clear();
+	LegacyFormat.currentHeaders = QStringList()
+		<< "Label Id"
+		<< "X1"	<< "Y1"	<< "Z1"
+		<< "X2"	<< "Y2"	<< "Z2"
+		<< "a11" << "a22" << "a33"
+		<< "a12" << "a13" << "a23"
+		<< "DimX" << "DimY" << "DimZ"
+		<< "Phi" << "Theta"
+		<< "Xm" << "Ym" << "Zm"
+		<< "Volume"
+		<< "Roundness"
+		<< "FeretDiam"
+		<< "Flatness"
+		<< "VoxDimX" << "VoxDimY" << "VoxDimZ"
+		<< "MajorLength"
+		<< "MinorLength";
+	LegacyFormat.selectedHeaders = LegacyFormat.currentHeaders;
 	LegacyFormat.columnMapping.clear();
+	LegacyFormat.columnMapping.insert(StartX,    1);
+	LegacyFormat.columnMapping.insert(StartY,    2);
+	LegacyFormat.columnMapping.insert(StartZ,    3);
+	LegacyFormat.columnMapping.insert(EndX,      4);
+	LegacyFormat.columnMapping.insert(EndY,      5);
+	LegacyFormat.columnMapping.insert(EndZ,      6);
+	LegacyFormat.columnMapping.insert(DimensionX,13);
+	LegacyFormat.columnMapping.insert(DimensionY,14);
+	LegacyFormat.columnMapping.insert(DimensionZ,15);
 	LegacyFormat.columnMapping.insert(Phi,      16);
 	LegacyFormat.columnMapping.insert(Theta,    17);
+	LegacyFormat.columnMapping.insert(CenterX,  18);
+	LegacyFormat.columnMapping.insert(CenterY,  19);
+	LegacyFormat.columnMapping.insert(CenterZ,  20);
 	LegacyFormat.columnMapping.insert(Diameter, 23);
 	LegacyFormat.columnMapping.insert(Length,   28);
 	return LegacyFormat;

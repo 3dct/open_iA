@@ -133,6 +133,9 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	m_mappingBoxes.push_back(cmbbox_col_Diameter);
 	m_mappingBoxes.push_back(cmbbox_col_Phi);
 	m_mappingBoxes.push_back(cmbbox_col_Theta);
+	m_mappingBoxes.push_back(cmbbox_col_DimensionX);
+	m_mappingBoxes.push_back(cmbbox_col_DimensionY);
+	m_mappingBoxes.push_back(cmbbox_col_DimensionZ);
 	cb_AdvancedMode->setChecked(loadGeneralSetting(csvRegKeys::AdvancedMode).toBool());
 	for (int i = 0; i < iACsvConfig::VisTypeCount; ++i)
 	{
@@ -300,9 +303,9 @@ void dlg_CSVInput::cmbboxColSelectionChanged()
 
 void dlg_CSVInput::updateColumnMappingInputs()
 {
-	// overall, enable column mapping only for analysis type fiber for now
-	grpbox_ColMapping->setEnabled(m_confParams.objectType == iAFeatureScoutObjectType::Fibers);
-
+	cmbbox_col_DimensionX->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
+	cmbbox_col_DimensionY->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
+	cmbbox_col_DimensionZ->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
 	bool useStartEnd = cmbbox_col_Selection->currentIndex() == 0;
 	cmbbox_col_PosStartX->setEnabled(useStartEnd);
 	cmbbox_col_PosStartY->setEnabled(useStartEnd);
