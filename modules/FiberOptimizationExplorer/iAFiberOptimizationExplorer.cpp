@@ -541,7 +541,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path)
 				m_resultData[m_resultData.size() - 1].m_timeValues[t].resize(fiberCount);
 				for (int f = 0; f < fiberCount; ++f)
 				{
-					m_resultData[m_resultData.size() - 1].m_timeValues[t][f] = fiberTimeValues[f][t];
+					m_resultData[m_resultData.size() - 1].m_timeValues[t][f] = (t<fiberTimeValues[f].size())?fiberTimeValues[f][t] : fiberTimeValues[f][fiberTimeValues[f].size()-1];
 				}
 			}
 		}
