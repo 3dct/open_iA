@@ -295,7 +295,7 @@ std::vector<size_t> dlg_FeatureScout::getPCSelection()
 #if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 	int countSelection = pcSelection->GetNumberOfValues();
 #else
-	int countSelection = DataSelection->GetNumberOfTuples();
+	int countSelection = pcSelection->GetNumberOfTuples();
 #endif
 	for (int idx = 0; idx < countSelection; idx++)
 	{
