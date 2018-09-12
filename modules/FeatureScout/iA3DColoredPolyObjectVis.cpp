@@ -25,14 +25,15 @@
 #include <vtkActor.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkRendererCollection.h>
-#include <vtkRenderWindow.h>
 #include <vtkTable.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkVersion.h>
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include "QVTKOpenGLWidget.h"
+#include <vtkRenderWindow.h>
 #else
 #include "QVTKWidget2.h"
+#include <vtkGenericOpenGLRenderWindow.h>
 #endif
 
 #include <QColor>
@@ -77,7 +78,7 @@ void iA3DColoredPolyObjectVis::show()
 {
 	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(m_mapper);
-	vtkRenderWindow* renWin = m_widget->GetRenderWindow();
+	auto renWin = m_widget->GetRenderWindow();
 	renWin->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 	renWin->GetRenderers()->GetFirstRenderer()->ResetCamera();
 }
