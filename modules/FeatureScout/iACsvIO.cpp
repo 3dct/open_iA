@@ -63,22 +63,22 @@ namespace
 	}
 	QString transformValue(QString value, int idx, iACsvConfig const & config)
 	{
-		if (config.offset[0] != 0 &&
-			idx == config.columnMapping[iACsvConfig::CenterX] ||
-			idx == config.columnMapping[iACsvConfig::StartX] ||
-			idx == config.columnMapping[iACsvConfig::EndX])
+		if (config.offset[0] != 0 && (
+			(config.columnMapping.contains(iACsvConfig::CenterX) && idx == config.columnMapping[iACsvConfig::CenterX]) ||
+			(config.columnMapping.contains(iACsvConfig::StartX) && idx == config.columnMapping[iACsvConfig::StartX]) ||
+			(config.columnMapping.contains(iACsvConfig::EndX) && idx == config.columnMapping[iACsvConfig::EndX])))
 			return DblToString(value.toDouble() + config.offset[0]);
-		else if (config.offset[1] != 0 &&
-			idx == config.columnMapping[iACsvConfig::CenterY] ||
-			idx == config.columnMapping[iACsvConfig::StartY] ||
-			idx == config.columnMapping[iACsvConfig::EndY])
+		else if (config.offset[1] != 0 && (
+			(config.columnMapping.contains(iACsvConfig::CenterY) && idx == config.columnMapping[iACsvConfig::CenterY]) ||
+			(config.columnMapping.contains(iACsvConfig::StartY) && idx == config.columnMapping[iACsvConfig::StartY]) ||
+			(config.columnMapping.contains(iACsvConfig::EndY) && idx == config.columnMapping[iACsvConfig::EndY])))
 			return DblToString(value.toDouble() + config.offset[1]);
-		else if (config.offset[2] != 0 &&
-			idx == config.columnMapping[iACsvConfig::CenterZ] ||
-			idx == config.columnMapping[iACsvConfig::StartZ] ||
-			idx == config.columnMapping[iACsvConfig::EndZ])
+		else if (config.offset[2] != 0 && (
+			(config.columnMapping.contains(iACsvConfig::CenterZ) && idx == config.columnMapping[iACsvConfig::CenterZ]) ||
+			(config.columnMapping.contains(iACsvConfig::StartZ) && idx == config.columnMapping[iACsvConfig::StartZ]) ||
+			(config.columnMapping.contains(iACsvConfig::EndZ) && idx == config.columnMapping[iACsvConfig::EndZ])))
 			return DblToString(value.toDouble() + config.offset[2]);
-		else if (idx == config.columnMapping[iACsvConfig::Theta] && value.toDouble() < 0)
+		else if (config.columnMapping.contains(iACsvConfig::Theta) && idx == config.columnMapping[iACsvConfig::Theta] && value.toDouble() < 0)
 			return DblToString(2 * vtkMath::Pi() + value.toDouble());
 		else
 			return value;
