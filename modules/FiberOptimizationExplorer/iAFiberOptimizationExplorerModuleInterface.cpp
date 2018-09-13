@@ -62,7 +62,7 @@ void iAFiberOptimizationExplorerModuleInterface::FibreOptimizationExploration()
 	dlg_commoninput dlg(m_mainWnd, "Choose CSV Format", parameterNames, values);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
-	QString configName = dlg.getText(0);
+	QString configName = dlg.getComboBoxValue(0);
 	//cmbbox_Format->addItems(formatEntries);
 	if (!explorer->load(path, configName))
 	{
