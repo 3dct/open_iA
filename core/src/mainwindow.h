@@ -110,6 +110,8 @@ public:
 	void LoadArguments(int argc, char** argv);
 	iAPreferences const & GetDefaultPreferences() const;
 	iAModuleDispatcher& getModuleDispatcher() const; 
+	MdiChild *createMdiChild(bool unsavedChanges);
+	void closeMdiChild(MdiChild* child);
 
 protected:
 	void closeEvent(QCloseEvent *event);
@@ -173,7 +175,6 @@ public slots:
 	void wiki();
 	void updateMenus();
 	void updateWindowMenu();
-	MdiChild *createMdiChild(bool unsavedChanges);
 	void setActiveSubWindow(QWidget *window);
 	void pointSelected();
 	void noPointSelected();
