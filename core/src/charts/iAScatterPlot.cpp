@@ -767,23 +767,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	std::vector<uint> uintSelInds;
 	for (size_t idx : selInds)
 		uintSelInds.push_back(idx);
-
-	/*
-	size_t filteredIdx = 0, selectionIdx = 0;
-	for (size_t curIdx = 0; curIdx < m_splomData->numPoints(); ++curIdx)
-	{
-		if (!m_splomData->matchesFilter(curIdx))
-			continue;
-		if (curIdx == selInds[selectionIdx])
-		{
-			uintSelInds.push_back(filteredIdx);
-			++selectionIdx;
-		}
-		++filteredIdx;
-	}
-	*/
 	// copy doesn't work as it would require explicit conversion from size_t to uint
-	
 	glDrawElements(GL_POINTS, selInds.size(), GL_UNSIGNED_INT, uintSelInds.data());
 	glDisableClientState( GL_VERTEX_ARRAY );
 	m_pointsBuffer->release();
