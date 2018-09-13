@@ -78,7 +78,7 @@ namespace
 			idx == config.columnMapping[iACsvConfig::StartZ] ||
 			idx == config.columnMapping[iACsvConfig::EndZ])
 			return DblToString(value.toDouble() + config.offset[2]);
-		else if (idx == config.columnMapping[iACsvConfig::Theta] && value < 0)
+		else if (idx == config.columnMapping[iACsvConfig::Theta] && value.toDouble() < 0)
 			return DblToString(2 * vtkMath::Pi() + value.toDouble());
 		else
 			return value;
