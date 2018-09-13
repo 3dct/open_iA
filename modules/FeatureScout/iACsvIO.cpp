@@ -119,6 +119,12 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			DEBUG_LOG(QString("Line only contains %1 entries, expected %2. Skipping...").arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
 			continue;
 		}
+		if (!m_csvConfig.addAutoID && values[0].toInt() != (row + 1))
+		{
+			DEBUG_LOG(QString("ID column not ordered as expected in line %1 (needs to be consecutive, starting at 1)! "
+				"Please either fix the data in the CSV or use the 'Create ID' feature!").arg(row));
+			return false;
+		}
 		for (int valIdx : selectedColIdx)
 		{
 			if (valIdx >= values.size())

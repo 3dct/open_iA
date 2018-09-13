@@ -43,7 +43,6 @@ private:
 	virtual iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, iAChildData childData);
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
-	//! entry point for FeatureScout
-	void startFeatureScout(iACsvConfig const & csvConfig);
+	bool startFeatureScout(iACsvConfig const & csvConfig);  //!< entry point for FeatureScout
 	iAFeatureScoutToolbar * tlbFeatureScout;
 };

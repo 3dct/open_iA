@@ -83,11 +83,20 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 	if (csvConfig.visType != iACsvConfig::UseVolume)
 	{
 		m_mdiChild = m_mainWnd->createMdiChild(false);
-		this->m_mdiChild->show();
+		m_mdiChild->show();
 	}
 	else
 		m_mdiChild = m_mainWnd->activeMdiChild();
-	startFeatureScout(csvConfig);
+	if (!startFeatureScout(csvConfig))
+	{
+		if (csvConfig.visType != iACsvConfig::UseVolume)
+		{
+			m_mainWnd->closeMdiChild(m_mdiChild);
+			m_mdiChild = nullptr;
+			QMessageBox::warning(m_mainWnd, "FeatureScout", "Starting FeatureScout failed! Please check console for detailed error messages!");
+		}
+	}
+
 }
 
 iAFeatureScoutObjectType iAFeatureScoutModuleInterface::guessFeatureType(QString const & csvFileName)
@@ -154,19 +163,19 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
-void iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvConfig)
+bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvConfig)
 {
 	iACsvVtkTableCreator creator;
 	iACsvIO io;
 	if (!io.loadCSV(creator, csvConfig))
-		return;
+		return false;
 	AttachToMdiChild( m_mdiChild );
 	connect( m_mdiChild, SIGNAL( closed() ), this, SLOT( onChildClose() ) );
 	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 	if ( !attach )
 	{
 		m_mdiChild->addMsg( "Error while attaching FeatureScout to mdi child window!" );
-		return;
+		return false;
 	}
 	attach->init(csvConfig.objectType, csvConfig.fileName, creator.getTable(), csvConfig.visType, io.getOutputMapping());
 	SetupToolbar();
@@ -177,6 +186,7 @@ void iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		setFeatureScoutRenderSettings();
 		m_mdiChild->addMsg("The render settings of the current child window have been adapted for the volume visualization of FeatureScout!");
 	}
+	return true;
 }
 
 void iAFeatureScoutModuleInterface::FeatureScout_Options()
