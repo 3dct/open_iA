@@ -20,8 +20,10 @@
 * ************************************************************************************/
 #include "iAFiberOptimizationExplorerModuleInterface.h"
 
+#include "iACsvConfig.h"
 #include "iAFiberOptimizationExplorer.h"
 
+#include "dlg_commoninput.h"
 #include "mainwindow.h"
 
 #include <QAction>
@@ -45,7 +47,24 @@ void iAFiberOptimizationExplorerModuleInterface::FibreOptimizationExploration()
 		return;
 	
 	auto explorer = new iAFiberOptimizationExplorer(m_mainWnd);
-	if (!explorer->load(path))
+	QStringList parameterNames = QStringList() << "+CSV Format";
+	QStringList formatEntries = iACsvConfig::getListFromRegistry();
+	if (!formatEntries.contains(iAFiberOptimizationExplorer::SimpleFormat))
+		formatEntries.append(iAFiberOptimizationExplorer::SimpleFormat);
+	if (!formatEntries.contains(iAFiberOptimizationExplorer::LegacyFormat))
+		formatEntries.append(iAFiberOptimizationExplorer::LegacyFormat);
+	if (!formatEntries.contains(iACsvConfig::LegacyFiberFormat))
+		formatEntries.append(iACsvConfig::LegacyFiberFormat);
+	if (!formatEntries.contains(iACsvConfig::LegacyVoidFormat))
+		formatEntries.append(iACsvConfig::LegacyVoidFormat);
+	QList<QVariant> values;
+	values << formatEntries;
+	dlg_commoninput dlg(m_mainWnd, "Choose CSV Format", parameterNames, values);
+	if (dlg.exec() != QDialog::Accepted)
+		return;
+	QString configName = dlg.getText(0);
+	//cmbbox_Format->addItems(formatEntries);
+	if (!explorer->load(path, configName))
 	{
 		QMessageBox::warning(m_mainWnd, "Fiber Analytics",
 			QString("Could not load data in folder '%1'. Make sure it is in the right format!").arg(path));

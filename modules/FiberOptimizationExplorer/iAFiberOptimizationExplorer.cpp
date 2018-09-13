@@ -116,13 +116,18 @@ public:
 	QCheckBox* m_boundingBox;
 };
 
+
+const QString iAFiberOptimizationExplorer::LegacyFormat("FiberOpt Legacy Format");
+const QString iAFiberOptimizationExplorer::SimpleFormat("FiberOpt Simple Format");
+
 namespace
 {
 	const int DistanceMetricCount = 5;
 	int DifferenceCount;
 	const int EndColumns = 2;
+	const double CoordinateShift = 74.5;
 
-	iACsvConfig getCsvConfig(QString const & csvFile)
+	iACsvConfig getLegacyConfig(QString const & csvFile)
 	{
 		iACsvConfig config = iACsvConfig::getLegacyFiberFormat(csvFile);
 		config.skipLinesStart = 0;
@@ -131,7 +136,59 @@ namespace
 		return config;
 	}
 
-	const double MiddlePointShift = 74.5;
+	iACsvConfig getSimpleConfig(QString const & csvFile)
+	{
+		iACsvConfig config;
+		config.fileName = csvFile;
+		config.encoding = "System";
+		config.skipLinesStart = 0;
+		config.skipLinesEnd = 0;
+		config.containsHeader = false;
+		config.columnSeparator = ",";
+		config.decimalSeparator = ".";
+		config.addAutoID = false;
+		config.objectType = iAFeatureScoutObjectType::Fibers;
+		config.computeLength = false;
+		config.computeAngles = false;
+		config.computeTensors = false;
+		config.computeCenter = false;
+		config.computeStartEnd = true;
+		std::fill(config.offset, config.offset + 3, CoordinateShift);
+		config.visType = iACsvConfig::Cylinders;
+		config.currentHeaders = QStringList() <<
+			"ID" << "CenterX" << "CenterY" << "CenterZ" << "Phi" << "Theta" << "Length";
+		config.selectedHeaders = config.currentHeaders;
+		config.columnMapping.clear();
+		config.columnMapping.insert(iACsvConfig::CenterX, 1);
+		config.columnMapping.insert(iACsvConfig::CenterY, 2);
+		config.columnMapping.insert(iACsvConfig::CenterZ, 3);
+		config.columnMapping.insert(iACsvConfig::Phi, 4);
+		config.columnMapping.insert(iACsvConfig::Theta, 5);
+		config.columnMapping.insert(iACsvConfig::Length, 6);
+		config.visType = iACsvConfig::Cylinders;
+		config.isDiameterFixed = true;
+		config.fixedDiameterValue = 7;
+		return config;
+	}
+
+	iACsvConfig getCsvConfig(QString const & csvFile, QString const & formatName)
+	{
+		iACsvConfig result;
+		QSettings settings;
+		if (result.load(settings, formatName))
+			return result;
+		if (formatName == iACsvConfig::LegacyFiberFormat)
+			return iACsvConfig::getLegacyFiberFormat(csvFile);
+		else if (formatName == iACsvConfig::LegacyVoidFormat)
+			return iACsvConfig::getLegacyPoreFormat(csvFile);
+		else if (formatName == iAFiberOptimizationExplorer::LegacyFormat)
+			return getLegacyConfig(csvFile);
+		else if (formatName == iAFiberOptimizationExplorer::SimpleFormat)
+			return getSimpleConfig(csvFile);
+		else  // TODO: make sure iACsvConfig is invalid? or how to indicate invalid csv config?
+			return result;
+	}
+
 	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
 	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
@@ -178,7 +235,7 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(MainWindow* mainWnd) :
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 }
 
-bool iAFiberOptimizationExplorer::load(QString const & path)
+bool iAFiberOptimizationExplorer::load(QString const & path, QString const & configName)
 {
 	//QVBoxLayout* mainLayout = new QVBoxLayout();
 	//setLayout(mainLayout);
@@ -187,7 +244,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path)
 	//scrollArea->setWidgetResizable(true);
 	//QWidget* resultsListWidget = new QWidget();
 	//scrollArea->setWidget(resultsListWidget);
-
+	m_configName = configName;
 	QGridLayout* resultsListLayout = new QGridLayout();
 
 	QStringList filters;
@@ -300,7 +357,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path)
 	}
 	for (QString csvFile : csvFileNames)
 	{
-		iACsvConfig config = getCsvConfig(csvFile);
+		iACsvConfig config = getCsvConfig(csvFile, configName);
 
 		iACsvIO io;
 		iACsvVtkTableCreator tableCreator;
@@ -494,7 +551,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path)
 					int valIdx = 0;
 					double middlePoint[3];
 					for (int i = 0; i < 3; ++i)
-						middlePoint[i] = values[i].toDouble() + MiddlePointShift; // middle point positions are shifted!
+						middlePoint[i] = values[i].toDouble() + CoordinateShift; // middle point positions are shifted!
 					double theta = values[4].toDouble();
 					if (theta < 0)  // theta is encoded in -Pi, Pi instead of 0..Pi as we expect
 						theta = 2*vtkMath::Pi() + theta;
@@ -843,7 +900,7 @@ void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
 		int resultID = QObject::sender()->property("resultID").toInt();
 		iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 		MdiChild* newChild = m_mainWnd->createMdiChild(false);
-		iACsvConfig config = getCsvConfig(m_resultData[resultID].m_fileName);
+		iACsvConfig config = getCsvConfig(m_resultData[resultID].m_fileName, m_configName);
 		featureScout->LoadFeatureScout(config, newChild);
 		newChild->LoadLayout("FeatureScout");
 	}

@@ -62,8 +62,10 @@ class iAFiberOptimizationExplorer : public QMainWindow, public iASelectionProvid
 {
 	Q_OBJECT
 public:
+	static const QString LegacyFormat;
+	static const QString SimpleFormat;
 	iAFiberOptimizationExplorer(MainWindow* mainWnd);
-	bool load(QString const & path);
+	bool load(QString const & path, QString const & configName);
 	~iAFiberOptimizationExplorer();
 	void loadStateAndShow();
 	std::vector<std::vector<size_t> > & selection() override;
@@ -116,4 +118,5 @@ private:
 	vtkSmartPointer<vtkPolyData> m_sampleData;
 	vtkSmartPointer<vtkPolyDataMapper> m_sampleMapper;
 	vtkSmartPointer<vtkActor> m_sampleActor;
+	QString m_configName;
 };
