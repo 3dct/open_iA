@@ -370,7 +370,10 @@ int dlg_commoninput::getIntValue(int index) const
 	if (t)
 		return t->value();
 	QLineEdit *t2 = qobject_cast<QLineEdit*>(widgetList[index]);
-	return t2 ? t2->text().toInt() : 0;
+	if (t2)
+		return t2->text().toInt();
+	DEBUG_LOG(QString("dlg_commoninput::getIntValue(%1) Not a SpinBox/ LineEdit!").arg(index));
+	return 0;
 }
 
 
@@ -380,28 +383,40 @@ double dlg_commoninput::getDblValue(int index) const
 	if (t)
 		return t->value();
 	QLineEdit *t2 = qobject_cast<QLineEdit*>(widgetList[index]);
-	return t2 ? t2->text().toDouble() : 0.0;
+	if (t2)
+		return t2->text().toDouble();
+	DEBUG_LOG(QString("dlg_commoninput::getDblValue(%1) Not a Double SpinBox / LineEdit!").arg(index));
+	return 0.0;
 }
 
 
 int dlg_commoninput::getCheckValue(int index) const
 {
 	QCheckBox *t = qobject_cast<QCheckBox*>(widgetList[index]);
-	return t? t->checkState(): 0;
+	if (t)
+		return t->checkState();
+	DEBUG_LOG(QString("dlg_commoninput::getCheckValue(%1) Not a CheckBox!").arg(index));
+	return 0;
 }
 
 
 QString dlg_commoninput::getComboBoxValue(int index) const
 {
 	QComboBox *t = qobject_cast<QComboBox*>(widgetList[index]);
-	return t? t->currentText(): QString();
+	if (t)
+		return t->currentText();
+	DEBUG_LOG(QString("dlg_commoninput::getComboBoxValue(%1) Not a ComboBox!").arg(index));
+	return QString();
 }
 
 
 int dlg_commoninput::getComboBoxIndex(int index) const
 {
 	QComboBox *t = qobject_cast<QComboBox*>(widgetList[index]);
-	return t ? t->currentIndex() : -1;
+	if (t)
+		return t->currentIndex();
+	DEBUG_LOG(QString("dlg_commoninput::getComboBoxIndex(%1) Not a ComboBox!").arg(index));
+	return -1;
 }
 
 
@@ -417,7 +432,15 @@ QString dlg_commoninput::getText(int index) const
 	if (t3)
 		return t3->text();
 	iAFileChooserWidget* t4 = qobject_cast<iAFileChooserWidget*>(widgetList[index]);
-	return (t4)? t4->text() : "";
+	if (t4)
+		return t4->text();
+
+	QComboBox *t5 = qobject_cast<QComboBox*>(widgetList[index]);
+	if (t5)
+		return t5->currentText();
+
+	DEBUG_LOG(QString("dlg_commoninput::getText(%1) called on value which is no text!").arg(index));
+	return QString();
 }
 
 
