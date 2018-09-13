@@ -285,15 +285,6 @@ void dlg_CSVInput::updateColumnMappingInputs()
 	cb_ComputeAngles->setEnabled    (!computeStartEnd);
 	cb_ComputeCenter->setEnabled    (!computeStartEnd);
 
-	//cb_ComputeTensors->setEnabled   (StartEnd);
-	if (!computeStartEnd)
-	{
-		QSignalBlocker clblock(cb_ComputeLength), cablock(cb_ComputeAngles), ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter);
-		cb_ComputeLength->setChecked(false);
-		cb_ComputeAngles->setChecked(false);
-		cb_ComputeTensors->setChecked(false);
-		cb_ComputeCenter->setChecked(false);
-	}
 	updateAngleEditEnabled();
 	updateLengthEditEnabled();
 	updateCenterEditEnabled();
@@ -339,6 +330,7 @@ void dlg_CSVInput::updateCenterEditEnabled()
 
 void dlg_CSVInput::computeCenterChanged()
 {
+	updateCenterEditEnabled();
 	updatePreview();
 }
 
