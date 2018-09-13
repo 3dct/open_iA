@@ -127,19 +127,18 @@ namespace
 	const int EndColumns = 2;
 	const double CoordinateShift = 74.5;
 
-	iACsvConfig getLegacyConfig(QString const & csvFile)
+	iACsvConfig getLegacyConfig()
 	{
-		iACsvConfig config = iACsvConfig::getLegacyFiberFormat(csvFile);
+		iACsvConfig config = iACsvConfig::getLegacyFiberFormat("");
 		config.skipLinesStart = 0;
 		config.containsHeader = false;
 		config.visType = iACsvConfig::Cylinders;
 		return config;
 	}
 
-	iACsvConfig getSimpleConfig(QString const & csvFile)
+	iACsvConfig getSimpleConfig()
 	{
 		iACsvConfig config;
-		config.fileName = csvFile;
 		config.encoding = "System";
 		config.skipLinesStart = 0;
 		config.skipLinesEnd = 0;
@@ -175,18 +174,21 @@ namespace
 	{
 		iACsvConfig result;
 		QSettings settings;
-		if (result.load(settings, formatName))
-			return result;
-		if (formatName == iACsvConfig::LegacyFiberFormat)
-			return iACsvConfig::getLegacyFiberFormat(csvFile);
-		else if (formatName == iACsvConfig::LegacyVoidFormat)
-			return iACsvConfig::getLegacyPoreFormat(csvFile);
-		else if (formatName == iAFiberOptimizationExplorer::LegacyFormat)
-			return getLegacyConfig(csvFile);
-		else if (formatName == iAFiberOptimizationExplorer::SimpleFormat)
-			return getSimpleConfig(csvFile);
-		else  // TODO: make sure iACsvConfig is invalid? or how to indicate invalid csv config?
-			return result;
+		if (!result.load(settings, formatName))
+		{
+			if (formatName == iACsvConfig::LegacyFiberFormat)
+				result = iACsvConfig::getLegacyFiberFormat(csvFile);
+			else if (formatName == iACsvConfig::LegacyVoidFormat)
+				result = iACsvConfig::getLegacyPoreFormat(csvFile);
+			else if (formatName == iAFiberOptimizationExplorer::LegacyFormat)
+				result = getLegacyConfig();
+			else if (formatName == iAFiberOptimizationExplorer::SimpleFormat)
+				result = getSimpleConfig();
+			else
+				DEBUG_LOG(QString("Invalid format %1!").arg(formatName));
+		}
+		result.fileName = csvFile;
+		return result;
 	}
 
 	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
