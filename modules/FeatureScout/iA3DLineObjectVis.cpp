@@ -77,7 +77,6 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 		ids->SetTuple1(id, id);
 	m_linePolyData->GetPointData()->AddArray(ids);
 
-	m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	m_mapper->SetInputData(m_linePolyData);
 	m_actor->SetMapper(m_mapper);
 

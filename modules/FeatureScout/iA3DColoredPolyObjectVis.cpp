@@ -62,16 +62,14 @@ iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(iAVtkWidgetClass* widget, vtk
 	c[1] = color.green();
 	c[2] = color.blue();
 	c[3] = color.alpha();
-	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
+	size_t colorCount = m_objectTable->GetNumberOfRows()*pointsPerObject;
+	for (size_t row = 0; row < colorCount; ++row)
 	{
-		for (size_t point = 0; point < pointsPerObject; ++point)
-		{
 #if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-			m_colors->InsertNextTupleValue(c);
+		m_colors->InsertNextTupleValue(c);
 #else
-			m_colors->InsertNextTypedTuple(c);
+		m_colors->InsertNextTypedTuple(c);
 #endif
-		}
 	}
 	m_mapper->SelectColorArray("Colors");
 	m_mapper->SetScalarModeToUsePointFieldData();
