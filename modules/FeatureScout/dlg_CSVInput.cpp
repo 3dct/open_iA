@@ -523,7 +523,7 @@ void dlg_CSVInput::showSelectedCols()
 	for ( auto &selected: m_confParams.selectedHeaders)
 	{
 		int idx = m_confParams.currentHeaders.indexOf(selected);
-		if (idx >= 0)
+		if (idx >= 0 && idx < list_ColumnSelection->count())
 			list_ColumnSelection->item(idx)->setSelected(true);
 		else
 			DEBUG_LOG(QString("Header entry %1 not found, skipping its selection.").arg(selected));
