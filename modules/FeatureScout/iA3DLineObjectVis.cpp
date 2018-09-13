@@ -165,9 +165,3 @@ void iA3DLineObjectVis::updateColorSelectionRendering()
 	}
 	updatePolyMapper();
 }
-
-iA3DLineObjectVis::~iA3DLineObjectVis()
-{
-	hide();
-	hideBoundingBox();
-}
