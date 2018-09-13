@@ -28,9 +28,7 @@
 #include <vtkImageData.h>
 #include <vtkInteractorStyle.h>
 #include <vtkRenderWindowInteractor.h>
-
-// Debug?
-#include <QPainter>
+#include <vtkRenderer.h>
 
 iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enableInteraction /*= false*/, Qt::WindowFlags f /*= 0 */) :
 	QWidget(parent, f), m_enableInteraction(enableInteraction)
@@ -40,7 +38,6 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enable
 		/*QGLWidget * shareWidget = */0,
 		/*Qt::WindowFlags f = */f,
 		/*bool decorations = */false); // Hide everything except the slice itself
-
 }
 
 iASimpleSlicerWidget::~iASimpleSlicerWidget()
@@ -87,4 +84,20 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 		vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
 		m_slicer->GetSlicerData()->GetInteractor()->SetInteractorStyle(dummyStyle);
 	}
+
+	double* origin = imageData->GetOrigin();
+	int* extent = imageData->GetExtent();
+	double* spacing = imageData->GetSpacing();
+
+	double xc = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
+	double yc = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
+	double xd = (extent[1] - extent[0] + 1)*spacing[0];
+	double yd = (extent[3] - extent[2] + 1)*spacing[1];
+
+	vtkCamera *camera = m_slicer->GetCamera();
+	double d = camera->GetDistance();
+
+	camera->SetParallelScale(0.5*yd);
+	camera->SetFocalPoint(xc, yc, 0.0);
+	camera->SetPosition(xc, yc, +d);
 }
