@@ -88,7 +88,6 @@ void iA3DColoredPolyObjectVis::show()
 
 void iA3DColoredPolyObjectVis::hide()
 {
-	// TODO: problematic if main window is being shut down!
 	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_actor);
 	m_visible = false;
 }
