@@ -245,9 +245,17 @@ void dlg_CSVInput::computeStartEndChanged()
 	updatePreview();
 }
 
-void dlg_CSVInput::fixedDiameterChanged()
+void dlg_CSVInput::updateDiameterInputEnabled()
 {
 	sb_FixedDiameter->setEnabled(cb_FixedDiameter->isChecked());
+	lbl_col_diameter->setEnabled(!cb_FixedDiameter->isChecked());
+	cmbbox_col_Diameter->setEnabled(!cb_FixedDiameter->isChecked());
+}
+
+void dlg_CSVInput::fixedDiameterChanged()
+{
+	updateDiameterInputEnabled();
+	updatePreview();
 }
 
 void dlg_CSVInput::updateColumnMappingInputs()
@@ -289,6 +297,7 @@ void dlg_CSVInput::updateColumnMappingInputs()
 	updateAngleEditEnabled();
 	updateLengthEditEnabled();
 	updateCenterEditEnabled();
+	updateDiameterInputEnabled();
 }
 
 void dlg_CSVInput::updateLengthEditEnabled()
@@ -363,7 +372,8 @@ void dlg_CSVInput::showConfigParams()
 		eblock(cmbbox_Encoding), otblock(cmbbox_ObjectType),
 		clblock(cb_ComputeLength), cablock(cb_ComputeAngles),
 		ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter), chblock(cb_ContainsHeader),
-		cseblock(cb_ComputeStartEnd), cfdblock(cb_FixedDiameter);
+		cseblock(cb_ComputeStartEnd), cfdblock(cb_FixedDiameter),
+		dsblock(sb_FixedDiameter);
 	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
 	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(m_confParams.columnSeparator));

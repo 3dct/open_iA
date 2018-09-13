@@ -62,6 +62,8 @@ namespace csvRegKeys
 	static const QString VisualizationType = "VisualizationType";
 	static const QString ColumnMappings = "ColumnMappings";
 	static const QString Offset = "Offset";
+	static const QString IsDiameterFixed = "IsDiameterFixed";
+	static const QString FixedDiameterValue = "FixedDiameterValue";
 }
 
 QString MapVisType2Str(iACsvConfig::VisualizationType visType)
@@ -96,7 +98,9 @@ iACsvConfig::iACsvConfig() :
 	computeCenter(false),
 	computeStartEnd(false),
 	containsHeader(true),
-	visType(UseVolume)
+	visType(UseVolume),
+	isDiameterFixed(false),
+	fixedDiameterValue(0.0)
 {
 	std::fill(offset, offset + 3, 0.0);
 }
@@ -140,19 +144,22 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		return false;
 	}
 	if ((visType == Lines || visType == Cylinders) && (
-		!columnMapping.contains(iACsvConfig::StartX) ||
-		!columnMapping.contains(iACsvConfig::StartY) ||
-		!columnMapping.contains(iACsvConfig::StartZ) ||
-		!columnMapping.contains(iACsvConfig::EndX) ||
-		!columnMapping.contains(iACsvConfig::EndY) ||
-		!columnMapping.contains(iACsvConfig::EndZ)))
+		!computeStartEnd && (
+			!columnMapping.contains(iACsvConfig::StartX) ||
+			!columnMapping.contains(iACsvConfig::StartY) ||
+			!columnMapping.contains(iACsvConfig::StartZ) ||
+			!columnMapping.contains(iACsvConfig::EndX) ||
+			!columnMapping.contains(iACsvConfig::EndY) ||
+			!columnMapping.contains(iACsvConfig::EndZ)
+		)))
 	{
 		errorMsg = "Visualization as Lines or Cylinders requires start and end position column, please specify where to find these!";
 		return false;
 	}
-	if (visType == Cylinders && !columnMapping.contains(iACsvConfig::Diameter))
+	if (visType == Cylinders &&
+		(!columnMapping.contains(iACsvConfig::Diameter) && !isDiameterFixed) )
 	{
-		errorMsg = "Visualization as Cylinders requires a diameter column, please specify where to find it!";
+		errorMsg = "Visualization as Cylinders requires start- and end-position as well as a diameter, please specify where to find these!";
 		return false;
 	}
 	if (visType == Ellipses && (
@@ -306,6 +313,8 @@ void iACsvConfig::save(QSettings & settings, QString const & formatName)
 	settings.setValue(csvRegKeys::ComputeCenter, computeCenter);
 	settings.setValue(csvRegKeys::ComputeStartEnd, computeStartEnd);
 	settings.setValue(csvRegKeys::ContainsHeader, containsHeader);
+	settings.setValue(csvRegKeys::IsDiameterFixed, isDiameterFixed);
+	settings.setValue(csvRegKeys::FixedDiameterValue, fixedDiameterValue);
 	settings.setValue(csvRegKeys::VisualizationType, MapVisType2Str(visType));
 	for (int i=0; i<3; ++i)
 		settings.setValue(csvRegKeys::Offset+QString::number(i), offset[i]);
@@ -336,6 +345,8 @@ bool iACsvConfig::load(QSettings & settings, const QString & formatName)
 	computeCenter = settings.value(csvRegKeys::ComputeCenter, defaultConfig.computeCenter).toBool();
 	computeStartEnd = settings.value(csvRegKeys::ComputeStartEnd, defaultConfig.computeStartEnd).toBool();
 	containsHeader = settings.value(csvRegKeys::ContainsHeader, defaultConfig.containsHeader).toBool();
+	isDiameterFixed = settings.value(csvRegKeys::IsDiameterFixed, defaultConfig.isDiameterFixed).toBool();
+	fixedDiameterValue = settings.value(csvRegKeys::FixedDiameterValue, defaultConfig.fixedDiameterValue).toDouble();
 	visType = MapStr2VisType(settings.value(csvRegKeys::VisualizationType, MapVisType2Str(defaultConfig.visType)).toString());
 	for (int i = 0; i<3; ++i)
 		offset[i] = settings.value(csvRegKeys::Offset + QString::number(i), defaultConfig.offset[i]).toDouble();
@@ -345,6 +356,7 @@ bool iACsvConfig::load(QSettings & settings, const QString & formatName)
 	selectedHeaders = settings.value(csvRegKeys::SelectedHeaders, defaultConfig.currentHeaders).toStringList();
 	currentHeaders = settings.value(csvRegKeys::AllHeaders, defaultConfig.currentHeaders).toStringList();
 	// load column mappings:
+	columnMapping.clear();
 	QStringList columnMappings = settings.value(csvRegKeys::ColumnMappings).toStringList();
 	for (QString mapping : columnMappings)
 	{

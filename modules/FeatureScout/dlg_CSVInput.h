@@ -87,6 +87,8 @@ private:
 	void updateAngleEditEnabled();
 	//! switch center mapping choices enabled if start/end is selected and compute center is not checked
 	void updateCenterEditEnabled();
+	//! switch diameter choices and fixed diameter spin box enabled based on whether "add fixed diameter" is checked or not
+	void updateDiameterInputEnabled();
 	//! initialize GUI elements
 	void initParameters();
 	//! connect signals and slots of all dialog controls
