@@ -608,7 +608,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 		}
 		++resultID;
 	}
-	if (csvFileNames.size() == 0)
+	if (m_resultData.size() == 0)
 	{
 		DEBUG_LOG(QString("The specified folder %1 does not contain any valid csv files!").arg(path));
 		return false;
