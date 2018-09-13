@@ -151,6 +151,8 @@ void dlg_CSVInput::connectSignals()
 	connect(cb_ContainsHeader, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
 	connect(cb_AdvancedMode, &QCheckBox::stateChanged, this, &dlg_CSVInput::advancedModeToggled);
 	connect(list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
+	connect(cb_FixedDiameter, &QCheckBox::stateChanged, this, &dlg_CSVInput::fixedDiameterChanged);
+	connect(sb_FixedDiameter, SIGNAL(valueChanged(double)), this, SLOT(updatePreview()));
 }
 
 void dlg_CSVInput::okBtnClicked()
@@ -241,6 +243,11 @@ void dlg_CSVInput::computeStartEndChanged()
 {
 	updateColumnMappingInputs();
 	updatePreview();
+}
+
+void dlg_CSVInput::fixedDiameterChanged()
+{
+	sb_FixedDiameter->setEnabled(cb_FixedDiameter->isChecked());
 }
 
 void dlg_CSVInput::updateColumnMappingInputs()
@@ -356,7 +363,7 @@ void dlg_CSVInput::showConfigParams()
 		eblock(cmbbox_Encoding), otblock(cmbbox_ObjectType),
 		clblock(cb_ComputeLength), cablock(cb_ComputeAngles),
 		ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter), chblock(cb_ContainsHeader),
-		cseblock(cb_ComputeStartEnd);
+		cseblock(cb_ComputeStartEnd), cfdblock(cb_FixedDiameter);
 	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
 	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(m_confParams.columnSeparator));
@@ -377,6 +384,8 @@ void dlg_CSVInput::showConfigParams()
 	sb_OfsY->setValue(m_confParams.offset[1]);
 	sb_OfsZ->setValue(m_confParams.offset[2]);
 	cmbbox_VisualizeAs->setCurrentText(MapVisType2Str(m_confParams.visType));
+	cb_FixedDiameter->setChecked(m_confParams.isDiameterFixed);
+	sb_FixedDiameter->setValue(m_confParams.fixedDiameterValue);
 	updateColumnMappingInputs();
 }
 
@@ -402,6 +411,8 @@ void dlg_CSVInput::assignFormatSettings()
 	m_confParams.offset[2] = sb_OfsZ->value();
 	m_confParams.containsHeader = cb_ContainsHeader->isChecked();
 	m_confParams.visType = static_cast<iACsvConfig::VisualizationType>(cmbbox_VisualizeAs->currentIndex());
+	m_confParams.isDiameterFixed = cb_FixedDiameter->isChecked();
+	m_confParams.fixedDiameterValue = sb_FixedDiameter->value();
 	if (!m_columnMappingChoiceSet)
 		return;
 	m_confParams.columnMapping.clear();

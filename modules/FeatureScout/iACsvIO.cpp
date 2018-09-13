@@ -52,6 +52,7 @@ namespace
 	const char* ColNameEndX = "X2";
 	const char* ColNameEndY = "Y2";
 	const char* ColNameEndZ = "Z2";
+	const char* ColNameDiameter = "Diameter";
 }
 
 namespace
@@ -182,6 +183,10 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			for (int i = 0; i < 3; ++i)
 				entries.append(DblToString(center[i] - dir[i])); // end
 		}
+		if (m_csvConfig.isDiameterFixed)
+		{
+			entries.append(DblToString(m_csvConfig.fixedDiameterValue));
+		}
 		if (m_csvConfig.computeLength || m_csvConfig.computeAngles || m_csvConfig.computeTensors || m_csvConfig.computeCenter)
 		{
 			double x1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartX], m_csvConfig);
@@ -311,6 +316,11 @@ void iACsvIO::determineOutputHeaders(QVector<int> const & selectedCols)
 		m_outputHeaders.append(ColNameEndY);
 		m_outputMapping->insert(iACsvConfig::EndZ, m_outputHeaders.size());
 		m_outputHeaders.append(ColNameEndZ);
+	}
+	if (m_csvConfig.isDiameterFixed)
+	{
+		m_outputMapping->insert(iACsvConfig::Diameter, m_outputHeaders.size());
+		m_outputHeaders.append(ColNameDiameter);
 	}
 
 	if (m_csvConfig.computeLength)

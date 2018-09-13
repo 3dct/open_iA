@@ -74,7 +74,8 @@ struct FeatureScout_API iACsvConfig
 	VisualizationType visType;              //! how to visualize the given objects
 	QMap<uint, uint> columnMapping;         //! map a specific value (denoted by an ID from MappedColumn) to the number of the column where it's stored
 	double offset[3];                       //! offset to apply to all coordinates (start, end, center)
-
+	bool isDiameterFixed;                   //! whether to insert a fixed diameter (given by fixedDiameterValue)
+	double fixedDiameterValue;              //! value to use as diameter for all objects
 	static iACsvConfig const & getLegacyFiberFormat(QString const & fileName);
 	static iACsvConfig const & getLegacyPoreFormat(QString const & fileName);
 	

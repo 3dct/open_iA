@@ -72,6 +72,8 @@ private slots:
 	void computeCenterChanged();
 	//! called when Compute Start/End checkbox check state changed
 	void computeStartEndChanged();
+	//! called when Fixed Diameter checkbox state changed
+	void fixedDiameterChanged();
 	//! called when the Advanced Mode checkbox is checked or unchecked
 	void advancedModeToggled();
 	//! called when the export button is clicked
