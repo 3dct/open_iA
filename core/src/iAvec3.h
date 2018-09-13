@@ -22,6 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
+#include <algorithm>  // for std::fill (in Linux)
 #include <cmath>  // for std::acos
 
 //!	Class representing 3 dimensional vector.

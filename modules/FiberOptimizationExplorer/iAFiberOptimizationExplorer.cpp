@@ -41,7 +41,7 @@
 #include "iALUT.h"
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
-#include "iAVec3.h"
+#include "iAvec3.h"
 #include "io/iAFileUtils.h"
 #include "mainwindow.h"
 #include "mdichild.h"
