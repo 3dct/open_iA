@@ -1720,6 +1720,13 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	return child;
 }
 
+void MainWindow::closeMdiChild(MdiChild* child)
+{
+	if (!child)
+		return;
+	QMdiSubWindow* subWin = qobject_cast<QMdiSubWindow*>(child->parent());
+	delete subWin;
+}
 
 void MainWindow::connectSignalsToSlots()
 {

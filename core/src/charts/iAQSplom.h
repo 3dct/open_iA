@@ -134,7 +134,7 @@ public:
 	void setPointOpacity( double opacity );                          //!< set the opacity for all data points
 	SelectionType & getSelection();                                  //!< Get const vector of indices of currently selected data points.
 	SelectionType const & getSelection() const;                      //!< Get vector of indices of currently selected data points.
-	SelectionType const & getFilteredSelection() const;              //!< Get currently selected data points, as indices in the list of filtered data points. These indices are always sorted.
+	SelectionType const & getFilteredSelection() const override;     //!< Get currently selected data points, as indices in the list of filtered data points. These indices are always sorted.
 	void setFilteredSelection(SelectionType const & filteredSelInds);//!< Set selected data points from indices within the filtered data points
 	void setSelection( SelectionType const & selInds );              //!< Set selected data points from a vector of indices.
 	void clearSelection();                                           //!< deletes current selection

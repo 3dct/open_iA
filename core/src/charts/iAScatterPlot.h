@@ -224,5 +224,6 @@ protected:
 	bool m_isMaximizedPlot;                                          //!< flag telling if this plot itself is maximized (bigger plot)
 	bool m_isPreviewPlot;                                            //!< flag telling if a large version of this plot is shown maximized currently
 	double m_pcc;                                                    //!< correlation coefficient between the two given data columns
-	bool m_pointsInitialized;                                        //!< indicates whether the point buffer is currently initialized
+	//bool m_pointsInitialized;                                      //!< indicates whether the point buffer is currently initialized
+	size_t m_curVisiblePts;                                          //!< number of currently visible points
 };
