@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>826</width>
-    <height>596</height>
+    <width>888</width>
+    <height>673</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -481,23 +481,6 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="0" colspan="2">
-          <widget class="QComboBox" name="cmbbox_col_Selection">
-           <property name="currentIndex">
-            <number>0</number>
-           </property>
-           <item>
-            <property name="text">
-             <string>Start and End</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Center, Length, Orientation</string>
-            </property>
-           </item>
-          </widget>
-         </item>
          <item row="1" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosStartX"/>
          </item>
@@ -697,6 +680,13 @@
           <widget class="QCheckBox" name="cb_ComputeLength">
            <property name="text">
             <string>Compute Length</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeStartEnd">
+           <property name="text">
+            <string>Compute Start/End</string>
            </property>
           </widget>
          </item>

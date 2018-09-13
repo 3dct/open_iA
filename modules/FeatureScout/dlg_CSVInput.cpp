@@ -27,6 +27,7 @@
 #include "iAConsole.h"
 
 #include <QFileDialog>
+#include <QKeyEvent>
 #include <QMessageBox>
 #include <QSettings>
 
@@ -37,8 +38,6 @@ namespace csvRegKeys
 	static const QString AdvancedMode = "AdvancedMode";
 }
 
-const QString dlg_CSVInput::LegacyFiberFormat("Legacy Fiber csv");
-const QString dlg_CSVInput::LegacyVoidFormat("Legacy Pore csv");
 namespace
 {
 	QStringList const & ColumnSeparators()
@@ -86,6 +85,7 @@ dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*
 	advancedModeToggled();
 	initParameters();
 	connectSignals();
+	list_ColumnSelection->installEventFilter(this);
 }
 
 void dlg_CSVInput::setPath(QString const & path)
@@ -114,10 +114,10 @@ void dlg_CSVInput::initParameters()
 {
 	ed_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
-	if (!formatEntries.contains(LegacyFiberFormat))
-		formatEntries.append(LegacyFiberFormat);
-	if (!formatEntries.contains(LegacyVoidFormat))
-		formatEntries.append(LegacyVoidFormat);
+	if (!formatEntries.contains(iACsvConfig::LegacyFiberFormat))
+		formatEntries.append(iACsvConfig::LegacyFiberFormat);
+	if (!formatEntries.contains(iACsvConfig::LegacyVoidFormat))
+		formatEntries.append(iACsvConfig::LegacyVoidFormat);
 	cmbbox_Format->addItems(formatEntries);
 	// load default format, and if that fails, load first format if available:
 	if (!loadFormatFromRegistry(loadGeneralSetting(csvRegKeys::DefaultFormat).toString()) && formatEntries.length() > 0)
@@ -142,7 +142,7 @@ void dlg_CSVInput::connectSignals()
 	connect(ed_SkipLinesStart, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
 	connect(ed_SkipLinesEnd, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
 	connect(sb_PreviewLines, SIGNAL(valueChanged(int)), this, SLOT(updatePreview()));
-	connect(cmbbox_col_Selection, &QComboBox::currentTextChanged, this, &dlg_CSVInput::cmbboxColSelectionChanged);
+	connect(cb_ComputeStartEnd, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeStartEndChanged);
 	connect(cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeLengthChanged);
 	connect(cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeAngleChanged);
 	connect(cb_ComputeTensors, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
@@ -237,7 +237,7 @@ void dlg_CSVInput::applyFormatColumnSelection()
 	showSelectedCols();
 }
 
-void dlg_CSVInput::cmbboxColSelectionChanged()
+void dlg_CSVInput::computeStartEndChanged()
 {
 	updateColumnMappingInputs();
 	updatePreview();
@@ -245,28 +245,33 @@ void dlg_CSVInput::cmbboxColSelectionChanged()
 
 void dlg_CSVInput::updateColumnMappingInputs()
 {
+	lbl_col_dimensionX->setEnabled(m_confParams.objectType == iAFeatureScoutObjectType::Voids);
+	lbl_col_dimensionY->setEnabled(m_confParams.objectType == iAFeatureScoutObjectType::Voids);
+	lbl_col_dimensionZ->setEnabled(m_confParams.objectType == iAFeatureScoutObjectType::Voids);
 	cmbbox_col_DimensionX->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
 	cmbbox_col_DimensionY->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
 	cmbbox_col_DimensionZ->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
-	bool useStartEnd = cmbbox_col_Selection->currentIndex() == 0;
-	cmbbox_col_PosStartX->setEnabled(useStartEnd);
-	cmbbox_col_PosStartY->setEnabled(useStartEnd);
-	cmbbox_col_PosStartZ->setEnabled(useStartEnd);
-	lbl_col_posStartX->setEnabled(useStartEnd);
-	lbl_col_posStartY->setEnabled(useStartEnd);
-	lbl_col_posStartZ->setEnabled(useStartEnd);
-	cmbbox_col_PosEndX->setEnabled(useStartEnd);
-	cmbbox_col_PosEndY->setEnabled(useStartEnd);
-	cmbbox_col_PosEndZ->setEnabled(useStartEnd);
-	lbl_col_posEndX->setEnabled(useStartEnd);
-	lbl_col_posEndY->setEnabled(useStartEnd);
-	lbl_col_posEndZ->setEnabled(useStartEnd);
+	
+	bool computeStartEnd = cb_ComputeStartEnd->isChecked();
+	cmbbox_col_PosStartX->setEnabled(!computeStartEnd);
+	cmbbox_col_PosStartY->setEnabled(!computeStartEnd);
+	cmbbox_col_PosStartZ->setEnabled(!computeStartEnd);
+	lbl_col_posStartX->setEnabled   (!computeStartEnd);
+	lbl_col_posStartY->setEnabled   (!computeStartEnd);
+	lbl_col_posStartZ->setEnabled   (!computeStartEnd);
+	cmbbox_col_PosEndX->setEnabled  (!computeStartEnd);
+	cmbbox_col_PosEndY->setEnabled  (!computeStartEnd);
+	cmbbox_col_PosEndZ->setEnabled  (!computeStartEnd);
+	lbl_col_posEndX->setEnabled     (!computeStartEnd);
+	lbl_col_posEndY->setEnabled     (!computeStartEnd);
+	lbl_col_posEndZ->setEnabled     (!computeStartEnd);
 
-	cb_ComputeLength->setEnabled(useStartEnd);
-	cb_ComputeAngles->setEnabled(useStartEnd);
-	cb_ComputeTensors->setEnabled(useStartEnd);
-	cb_ComputeCenter->setEnabled(useStartEnd);
-	if (!useStartEnd)
+	cb_ComputeLength->setEnabled    (!computeStartEnd);
+	cb_ComputeAngles->setEnabled    (!computeStartEnd);
+	cb_ComputeCenter->setEnabled    (!computeStartEnd);
+
+	//cb_ComputeTensors->setEnabled   (StartEnd);
+	if (!computeStartEnd)
 	{
 		QSignalBlocker clblock(cb_ComputeLength), cablock(cb_ComputeAngles), ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter);
 		cb_ComputeLength->setChecked(false);
@@ -307,13 +312,13 @@ void dlg_CSVInput::computeAngleChanged()
 
 void dlg_CSVInput::updateCenterEditEnabled()
 {
-	bool centerEditEnabled = cmbbox_col_Selection->currentIndex() == 0 && cb_ComputeCenter->isChecked();
-	cmbbox_col_PosCenterX->setEnabled(!centerEditEnabled);
-	cmbbox_col_PosCenterY->setEnabled(!centerEditEnabled);
-	cmbbox_col_PosCenterZ->setEnabled(!centerEditEnabled);
-	lbl_col_posCenterX->setEnabled(!centerEditEnabled);
-	lbl_col_posCenterY->setEnabled(!centerEditEnabled);
-	lbl_col_posCenterZ->setEnabled(!centerEditEnabled);
+	bool centerEditEnabled = !cb_ComputeCenter->isChecked();
+	cmbbox_col_PosCenterX->setEnabled(centerEditEnabled);
+	cmbbox_col_PosCenterY->setEnabled(centerEditEnabled);
+	cmbbox_col_PosCenterZ->setEnabled(centerEditEnabled);
+	lbl_col_posCenterX->setEnabled(centerEditEnabled);
+	lbl_col_posCenterY->setEnabled(centerEditEnabled);
+	lbl_col_posCenterZ->setEnabled(centerEditEnabled);
 }
 
 void dlg_CSVInput::computeCenterChanged()
@@ -350,7 +355,8 @@ void dlg_CSVInput::showConfigParams()
 		csblock(cmbbox_ColSeparator), aiblock(cb_AddAutoID),
 		eblock(cmbbox_Encoding), otblock(cmbbox_ObjectType),
 		clblock(cb_ComputeLength), cablock(cb_ComputeAngles),
-		ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter), chblock(cb_ContainsHeader);
+		ctblock(cb_ComputeTensors), ccblock(cb_ComputeCenter), chblock(cb_ContainsHeader),
+		cseblock(cb_ComputeStartEnd);
 	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
 	cmbbox_ColSeparator->setCurrentIndex(ColumnSeparators().indexOf(m_confParams.columnSeparator));
@@ -365,7 +371,11 @@ void dlg_CSVInput::showConfigParams()
 	cb_ComputeAngles->setChecked(m_confParams.computeAngles);
 	cb_ComputeTensors->setChecked(m_confParams.computeTensors);
 	cb_ComputeCenter->setChecked(m_confParams.computeCenter);
+	cb_ComputeStartEnd->setChecked(m_confParams.computeStartEnd);
 	cb_ContainsHeader->setChecked(m_confParams.containsHeader);
+	sb_OfsX->setValue(m_confParams.offset[0]);
+	sb_OfsY->setValue(m_confParams.offset[1]);
+	sb_OfsZ->setValue(m_confParams.offset[2]);
 	cmbbox_VisualizeAs->setCurrentText(MapVisType2Str(m_confParams.visType));
 	updateColumnMappingInputs();
 }
@@ -386,6 +396,10 @@ void dlg_CSVInput::assignFormatSettings()
 	m_confParams.computeAngles = cb_ComputeAngles->isChecked();
 	m_confParams.computeTensors = cb_ComputeTensors->isChecked();
 	m_confParams.computeCenter = cb_ComputeCenter->isChecked();
+	m_confParams.computeStartEnd = cb_ComputeStartEnd->isChecked();
+	m_confParams.offset[0] = sb_OfsX->value();
+	m_confParams.offset[1] = sb_OfsY->value();
+	m_confParams.offset[2] = sb_OfsZ->value();
 	m_confParams.containsHeader = cb_ContainsHeader->isChecked();
 	m_confParams.visType = static_cast<iACsvConfig::VisualizationType>(cmbbox_VisualizeAs->currentIndex());
 	if (!m_columnMappingChoiceSet)
@@ -566,24 +580,20 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName, iACsvConfi
 	if (formatName.isEmpty())
 		return false;
 	QSettings settings;
-	settings.beginGroup(iACsvConfig::getFormatKey(formatName));
-	QStringList allEntries = settings.allKeys();
-	settings.endGroup();
-	if (allEntries.isEmpty())
+	if (!dest.load(settings, formatName))
 	{
-		if (formatName == LegacyFiberFormat)
+		if (formatName == iACsvConfig::LegacyFiberFormat)
 		{
 			m_confParams = iACsvConfig::getLegacyFiberFormat(m_confParams.fileName);
 			return true;
 		}
-		else if (formatName == LegacyVoidFormat)
+		else if (formatName == iACsvConfig::LegacyVoidFormat)
 		{
 			m_confParams = iACsvConfig::getLegacyPoreFormat(m_confParams.fileName);
 			return true;
 		}
 		return false;
 	}
-	dest.load(settings, formatName);
 	return true;
 }
 
@@ -606,4 +616,25 @@ void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
 	cmbbox_Format->addItem(formatName);
 	cmbbox_Format->model()->sort(0);
 	cmbbox_Format->setCurrentText(formatName);
+}
+
+bool dlg_CSVInput::eventFilter(QObject *obj, QEvent *event)
+{
+	if (event->type() == QEvent::KeyPress)
+	{
+		QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+		if (keyEvent->key() == Qt::Key_Delete || keyEvent->key() == Qt::Key_Backspace)
+		{
+			auto selectedItems = list_ColumnSelection->selectedItems();
+			//qDeleteAll(selectedItems);
+			for (int i = 0; i < selectedItems.size(); i++)
+			{
+				auto item = list_ColumnSelection->takeItem(list_ColumnSelection->row(selectedItems[i]));
+				delete item;
+			}
+		}
+		return true;
+	}
+	else // standard event processing
+		return QObject::eventFilter(obj, event);
 }

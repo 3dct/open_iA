@@ -33,6 +33,8 @@ class QSettings;
 //! parameters for csv loading configuraton
 struct FeatureScout_API iACsvConfig
 {
+	static const QString LegacyFiberFormat;
+	static const QString LegacyVoidFormat;
 	enum MappedColumn {                    //! "ID" for columns needed either in computation of other columns or later in FeatureScout
 		NotMapped = -1,
 		StartX, StartY, StartZ,
@@ -68,9 +70,10 @@ struct FeatureScout_API iACsvConfig
 	float spacing;                          //!< volume spacing to be used, currently unused
 	QStringList currentHeaders;             //!< current headers of the table
 	QStringList selectedHeaders;            //!< names of the selected headers
-	bool computeLength, computeAngles, computeTensors, computeCenter;  //!< flags whether to compute additional columns
+	bool computeLength, computeAngles, computeTensors, computeCenter, computeStartEnd;  //!< flags whether to compute additional columns
 	VisualizationType visType;              //! how to visualize the given objects
 	QMap<uint, uint> columnMapping;         //! map a specific value (denoted by an ID from MappedColumn) to the number of the column where it's stored
+	double offset[3];                       //! offset to apply to all coordinates (start, end, center)
 
 	static iACsvConfig const & getLegacyFiberFormat(QString const & fileName);
 	static iACsvConfig const & getLegacyPoreFormat(QString const & fileName);

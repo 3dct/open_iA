@@ -33,8 +33,6 @@ class dlg_CSVInput : public QDialog, public Ui_CsvInput
 {
 Q_OBJECT
 public:
-	static const QString LegacyFiberFormat;
-	static const QString LegacyVoidFormat;
 	//! Create a new dialog, all parameters are optional
 	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0);
 	//! Set the internal path (used when choosing a csv file) to the one given as parameter
@@ -72,8 +70,8 @@ private slots:
 	void computeAngleChanged();
 	//! called when Compute Center checkbox check state changed
 	void computeCenterChanged();
-	//! called when combobox selecting whether csv provides "start and end" or "center" changes
-	void cmbboxColSelectionChanged();
+	//! called when Compute Start/End checkbox check state changed
+	void computeStartEndChanged();
 	//! called when the Advanced Mode checkbox is checked or unchecked
 	void advancedModeToggled();
 	//! called when the export button is clicked
@@ -122,8 +120,9 @@ private:
 	bool loadFilePreview();
 	//! Clears the preview table (so that it doesn't contain any rows or columns
 	void clearPreviewTable();
-	//! sets the name of the current format
-	void setCurrentFormat(QString const & name);
+
+	//! Catches events from list view to be able  to react on delete key event
+	bool eventFilter(QObject *obj, QEvent *event) override;
 
 	iACsvConfig m_confParams;
 	QString m_path;

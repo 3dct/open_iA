@@ -64,7 +64,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 			dlg.setFileName(testCSVFileName);
 			auto type = guessFeatureType(testCSVFileName);
 			if (type != InvalidObjectType)
-				dlg.setFormat(type == Voids ? dlg_CSVInput::LegacyVoidFormat : dlg_CSVInput::LegacyFiberFormat);
+				dlg.setFormat(type == Voids ? iACsvConfig::LegacyVoidFormat : iACsvConfig::LegacyFiberFormat);
 		}
 		else
 			dlg.setPath(mdi->getFilePath());
