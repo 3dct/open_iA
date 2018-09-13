@@ -187,7 +187,8 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		{
 			entries.append(DblToString(m_csvConfig.fixedDiameterValue));
 		}
-		if (m_csvConfig.computeLength || m_csvConfig.computeAngles || m_csvConfig.computeTensors || m_csvConfig.computeCenter)
+		double phi, theta;
+		if (m_csvConfig.computeLength || m_csvConfig.computeAngles || m_csvConfig.computeCenter)
 		{
 			double x1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartX], m_csvConfig);
 			double y1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartY], m_csvConfig);
@@ -218,16 +219,10 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 				entries.append(DblToString(ym));
 				entries.append(DblToString(zm));
 			}
-			if (m_csvConfig.computeAngles || m_csvConfig.computeTensors)
+			if (m_csvConfig.computeAngles)
 			{
-				double phi = asin(dy / sqrt(dx*dx + dy*dy));
-				double theta = acos(dz / sqrt(dx*dx + dy*dy + dz*dz));
-				double a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
-				double a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
-				double a33 = cos(theta)*cos(theta);
-				double a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
-				double a13 = cos(phi)*sin(theta)*cos(theta);
-				double a23 = sin(phi)*sin(theta)*cos(theta);
+				phi = asin(dy / sqrt(dx*dx + dy*dy));
+				theta = acos(dz / sqrt(dx*dx + dy*dy + dz*dz));
 				phi = vtkMath::DegreesFromRadians(phi);
 				theta = vtkMath::DegreesFromRadians(theta);
 				// locate the phi value to quadrant
@@ -243,27 +238,40 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 				{
 					phi = 0.0;
 					theta = 0.0;
-					a11 = 0.0;
-					a22 = 0.0;
-					a12 = 0.0;
-					a13 = 0.0;
-					a23 = 0.0;
 				}
-				if (m_csvConfig.computeAngles)
-				{
-					entries.append(DblToString(phi));
-					entries.append(DblToString(theta));
-				}
-				if (m_csvConfig.computeTensors)
-				{
-					entries.append(DblToString(a11));
-					entries.append(DblToString(a22));
-					entries.append(DblToString(a33));
-					entries.append(DblToString(a12));
-					entries.append(DblToString(a13));
-					entries.append(DblToString(a23));
-				}
+				entries.append(DblToString(phi));
+				entries.append(DblToString(theta));
 			}
+		}
+		if (m_csvConfig.computeTensors)
+		{
+			if (!m_csvConfig.computeAngles)
+			{
+				double phi = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Phi], m_csvConfig);
+				double theta = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Theta], m_csvConfig);
+			}
+			double a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
+			double a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
+			double a33 = cos(theta)*cos(theta);
+			double a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
+			double a13 = cos(phi)*sin(theta)*cos(theta);
+			double a23 = sin(phi)*sin(theta)*cos(theta);
+			/*
+			if (dx == 0 && dy == 0)
+			{
+				a11 = 0.0;
+				a22 = 0.0;
+				a12 = 0.0;
+				a13 = 0.0;
+				a23 = 0.0;
+			}
+			*/
+			entries.append(DblToString(a11));
+			entries.append(DblToString(a22));
+			entries.append(DblToString(a33));
+			entries.append(DblToString(a12));
+			entries.append(DblToString(a13));
+			entries.append(DblToString(a23));
 		}
 		entries.append("0"); // class ID
 		dstTbl.addRow(resultRowID-1, entries);

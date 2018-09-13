@@ -131,7 +131,7 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 			"Please specify a mapping to the columns containing these values!";
 		return false;
 	}
-	if ((computeLength || computeAngles || computeTensors || computeCenter) && (
+	if ((computeLength || computeAngles || computeCenter) && (
 		!columnMapping.contains(iACsvConfig::StartX) ||
 		!columnMapping.contains(iACsvConfig::StartY) ||
 		!columnMapping.contains(iACsvConfig::StartZ) ||
@@ -139,8 +139,13 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		!columnMapping.contains(iACsvConfig::EndY) ||
 		!columnMapping.contains(iACsvConfig::EndZ)))
 	{
-		errorMsg = "Cannot compute length/angles/tensors/center without fully defined start and end position! "
+		errorMsg = "Cannot compute length/angles/center without fully defined start and end position! "
 			"Please specify a mapping to the column containing start (x, y, z) and end (x, y, z) coordinate!";
+		return false;
+	}
+	if (computeTensors && (!computeAngles && (!columnMapping.contains(iACsvConfig::Phi) || !columnMapping.contains(iACsvConfig::Theta))))
+	{
+		errorMsg = "Cannot compute tensors without angles. Either enable to compute them, or specify where to find them!";
 		return false;
 	}
 	if ((visType == Lines || visType == Cylinders) && (
