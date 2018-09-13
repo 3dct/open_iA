@@ -42,6 +42,13 @@
 #include <QTextDocument>
 #include <QWheelEvent>
 
+namespace 
+{
+	const size_t CordDim = 3;
+	const size_t ColChan = 4;
+}
+
+
 iAScatterPlot::Settings::Settings() :
 	pickedPointMagnification( 2.0 ),
 	tickOffset( 45 ),
@@ -91,7 +98,7 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	m_isPreviewPlot( false ),
 	m_colInd( 0 ),
 	m_pcc( 0 ),
-	m_pointsInitialized(false)
+	m_curVisiblePts ( 0 )
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
@@ -102,6 +109,9 @@ iAScatterPlot::~iAScatterPlot() {}
 void iAScatterPlot::setData( int x, int y, QSharedPointer<iASPLOMData> &splomData )
 {
 	m_paramIndices[0] = x; m_paramIndices[1] = y;
+
+	assert(!m_splomData);
+		
 	if (m_splomData)
 	{
 		disconnect(m_splomData.data(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
@@ -125,16 +135,15 @@ bool iAScatterPlot::hasData() const
 
 void iAScatterPlot::updatePoints()
 {
-	m_pointsInitialized = false;
-	createAndFillVBO();
+	if(m_pointsBuffer)
+		fillVBO();
 }
 
 void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, int colInd )
 {
 	m_colInd = colInd;
 	m_lut = lut;
-	m_pointsInitialized = false;
-	createAndFillVBO();
+	updatePoints();
 }
 
 void iAScatterPlot::setTransform( double scale, QPointF newOffset )
@@ -249,9 +258,9 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 {
 	if ( !hasData() )
 		return;
-	if (!m_pointsInitialized)
+	if (!m_pointsBuffer)
 		createAndFillVBO();
-	if (!m_pointsInitialized) // if still not initialized here, then we cannot draw
+	if (!m_pointsBuffer) // if still not initialized here, then we cannot draw
 		return;
 	painter.save();
 	painter.translate( m_globRect.x(), m_globRect.y());
@@ -747,17 +756,34 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glVertexPointer( 3, GL_FLOAT, 7 * sizeof( GLfloat ), (const void *) ( 0 ) );
 	glEnableClientState( GL_COLOR_ARRAY );
 	glColorPointer( 4, GL_FLOAT, 7 * sizeof( GLfloat ), (const void *) ( 3 * sizeof( GLfloat ) ) );
-	glDrawArrays( GL_POINTS, 0, m_splomData->numPoints() );//glDrawElements( GL_POINTS, m_pointsBuffer->size(), GL_UNSIGNED_INT, 0 );
+	glDrawArrays( GL_POINTS, 0, m_curVisiblePts );//glDrawElements( GL_POINTS, m_pointsBuffer->size(), GL_UNSIGNED_INT, 0 );
 	glDisableClientState( GL_COLOR_ARRAY );
 	glColor3f( settings.selectionColor.red() / 255.0, settings.selectionColor.green() / 255.0, settings.selectionColor.blue() / 255.0 );
 
 	// draw selection:
-	auto const & selInds = m_splom->getSelection();
+	auto const & selInds = m_splom->getFilteredSelection();
 	// TODO: This still limits the data to be drawn to the maximum of unsigned int (i.e. 2^32!)
 	//       but unfortunately, there is no GL_UNSIGNED_LONG_LONG (yet)
 	std::vector<uint> uintSelInds;
-	for (size_t idx : selInds)         // copy doesn't work as it would require explicit conversion from size_t to uint
+	for (size_t idx : selInds)
 		uintSelInds.push_back(idx);
+
+	/*
+	size_t filteredIdx = 0, selectionIdx = 0;
+	for (size_t curIdx = 0; curIdx < m_splomData->numPoints(); ++curIdx)
+	{
+		if (!m_splomData->matchesFilter(curIdx))
+			continue;
+		if (curIdx == selInds[selectionIdx])
+		{
+			uintSelInds.push_back(filteredIdx);
+			++selectionIdx;
+		}
+		++filteredIdx;
+	}
+	*/
+	// copy doesn't work as it would require explicit conversion from size_t to uint
+	
 	glDrawElements(GL_POINTS, selInds.size(), GL_UNSIGNED_INT, uintSelInds.data());
 	glDisableClientState( GL_VERTEX_ARRAY );
 	m_pointsBuffer->release();
@@ -905,27 +931,33 @@ void iAScatterPlot::createAndFillVBO()
 	if (!m_parentWidget->isVisible())
 		return;
 	m_parentWidget->makeCurrent();
-	if ( m_pointsBuffer )
-	{
-		m_pointsBuffer->release();
-		m_pointsBuffer->destroy();
-		delete m_pointsBuffer;
-	}
+
+	if (!m_splomData)
+		return;
+
+	//if ( m_pointsBuffer )
+	//{
+	//	m_pointsBuffer->release();
+	//	m_pointsBuffer->destroy();
+	//	delete m_pointsBuffer;
+	//}
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	m_pointsBuffer = new QOpenGLBuffer( QOpenGLBuffer::VertexBuffer );
 #else
 	m_pointsBuffer = new QGLBuffer( QGLBuffer::VertexBuffer );
 #endif
-	if ( !m_pointsBuffer->create() )//TODO: exceptions?
-		return;
-	if ( m_splomData && m_lut->initialized() )
+	if (!m_pointsBuffer->create())//TODO: exceptions?
 	{
-		bool res = m_pointsBuffer->bind();
-		if ( res )
-			fillVBO();
-		m_pointsBuffer->release();
+		m_pointsBuffer = nullptr;
+		return;
 	}
-	m_pointsInitialized = true;
+	bool res = m_pointsBuffer->bind();
+	assert(res);
+	m_pointsBuffer->allocate((CordDim + ColChan) * m_splomData->numPoints() * sizeof(GLfloat));
+	m_pointsBuffer->release();
+
+	if ( m_lut->initialized() )
+		fillVBO();
 }
 
 void iAScatterPlot::fillVBO()
@@ -933,32 +965,43 @@ void iAScatterPlot::fillVBO()
 	//draw data points
 	if ( !hasData() )
 		return;
-	// TODO: adapt sizes to filter!
-	size_t vcount = 3 * m_splomData->numPoints();
-	size_t ccount = 4 * m_splomData->numPoints();
-	int elSz = 7;
-	GLfloat * buffer = new GLfloat[vcount + ccount];
+
+	int elSz = CordDim + ColChan;
+	bool res = m_pointsBuffer->bind();
+	assert(res);
+
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(QOpenGLBuffer::ReadWrite));
+#else
+	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(QGLBuffer::ReadWrite));
+#endif
+
+	assert(buffer);
+
+	m_curVisiblePts = 0;
 	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
 	{
 		if (!m_splomData->matchesFilter(i))
 			continue;
 		double tx = p2tx( m_splomData->paramData( m_paramIndices[0] )[i] );
 		double ty = p2ty( m_splomData->paramData( m_paramIndices[1] )[i] );
-		buffer[elSz * i + 0] = tx;
-		buffer[elSz * i + 1] = ty;
-		buffer[elSz * i + 2] = 0.0;
+		buffer[elSz * m_curVisiblePts + 0] = tx;
+		buffer[elSz * m_curVisiblePts + 1] = ty;
+		buffer[elSz * m_curVisiblePts + 2] = 0.0;
 		if ( m_lut->initialized() )
 		{
 			double val = m_splomData->paramData( m_colInd )[i];
 			double rgba[4]; m_lut->getColor( val, rgba );
-			buffer[elSz * i + 3] = rgba[0];
-			buffer[elSz * i + 4] = rgba[1];
-			buffer[elSz * i + 5] = rgba[2];
-			buffer[elSz * i + 6] = rgba[3];
+			buffer[elSz * m_curVisiblePts + 3] = rgba[0];
+			buffer[elSz * m_curVisiblePts + 4] = rgba[1];
+			buffer[elSz * m_curVisiblePts + 5] = rgba[2];
+			buffer[elSz * m_curVisiblePts + 6] = rgba[3];
 		}
+		++m_curVisiblePts;
 	}
-	m_pointsBuffer->allocate( buffer, ( vcount + ccount ) * sizeof( GLfloat ) );
-	delete[] buffer;
+	bool res2 = m_pointsBuffer->unmap();
+	assert(res2);
+	m_pointsBuffer->release();
 }
 
 void iAScatterPlot::setSelectionColor(QColor selCol)

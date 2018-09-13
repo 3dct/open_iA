@@ -34,11 +34,15 @@
 class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {
 public:
-	virtual SelectionType & getSelection() override
+	SelectionType & getSelection() override
 	{
 		return m_selection;
 	}
-	virtual SelectionType const & getSelection() const override
+	SelectionType const & getSelection() const override
+	{
+		return m_selection;
+	}
+	SelectionType const & getFilteredSelection() const override
 	{
 		return m_selection;
 	}
