@@ -27,6 +27,6 @@ class FeatureScout_API iA3DCylinderObjectVis: public iA3DLineObjectVis
 public:
 	static const int DefaultNumberOfCylinderSides = 12;
 	iA3DCylinderObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-		QColor const & neutralColor, int numberOfCylinderSides = DefaultNumberOfCylinderSides);
+		QColor const & color, int numberOfCylinderSides = DefaultNumberOfCylinderSides);
 };
 
