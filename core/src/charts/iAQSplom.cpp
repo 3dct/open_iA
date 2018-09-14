@@ -78,7 +78,7 @@ iAQSplom::Settings::Settings()
 	quadraticPlots(false),
 	showPCC(false),
 	enableColorSettings(false),
-	colorScheme(Uniform),
+	colorScheme(AllPointsSame),
 	colorThemeName("Diverging blue-gray-red"),
 	pointColor(QColor(128, 128, 128))
 {
@@ -1358,7 +1358,7 @@ void iAQSplom::updateLookupTable()
 	switch (settings.colorScheme)
 	{
 		default:
-		case Uniform:
+		case AllPointsSame:
 		{
 			m_lut->setRange(lutRange);
 			m_lut->allocate(2);
@@ -1366,7 +1366,7 @@ void iAQSplom::updateLookupTable()
 			m_lut->setColor(1, settings.pointColor);
 			break;
 		}
-		case DivergingPerceptuallyUniform:
+		case ByParameter:
 			*m_lut.data() = iALUT::Build(lutRange, settings.colorThemeName, 256, alpha);
 			break;
 		case Custom:
@@ -1457,7 +1457,7 @@ void iAQSplom::setColorParam(const QString & paramName)
 	if (colorLookupParam == std::numeric_limits<size_t>::max())
 		return;
 	m_colorLookupParam = colorLookupParam;
-	setColorScheme(DivergingPerceptuallyUniform);
+	setColorScheme(ByParameter);
 }
 
 void iAQSplom::changePointColor()
@@ -1473,7 +1473,7 @@ void iAQSplom::setPointColor(QColor const & newColor)
 		return;
 	settings.pointColor = newColor;
 	m_settingsDlg->pbPointColor->setStyleSheet(QString("background-color:%1").arg(newColor.name()));
-	setColorScheme(Uniform);
+	setColorScheme(AllPointsSame);
 }
 
 void iAQSplom::colorSchemeChanged(int colorScheme)
@@ -1496,18 +1496,18 @@ void iAQSplom::setColorScheme(ColorScheme colorScheme)
 	settings.colorScheme = colorScheme;
 	QSignalBlocker cbColorBlock(m_settingsDlg->cbColorScheme);
 	m_settingsDlg->cbColorScheme->setCurrentIndex(colorScheme);
-	m_settingsDlg->pbPointColor->setEnabled(colorScheme == Uniform);
-	m_settingsDlg->lbPointColor->setEnabled(colorScheme == Uniform);
-	m_settingsDlg->cbColorParameter->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->lbColorParameter->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->lbRange->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->lbRangeMin->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->lbRangeMax->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->sbMin->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->sbMax->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->pbRangeFromParameter->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->lbColorTheme->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->cbColorTheme->setEnabled(colorScheme == DivergingPerceptuallyUniform);
+	m_settingsDlg->pbPointColor->setEnabled(colorScheme == AllPointsSame);
+	m_settingsDlg->lbPointColor->setEnabled(colorScheme == AllPointsSame);
+	m_settingsDlg->cbColorParameter->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->lbColorParameter->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->lbRange->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->lbRangeMin->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->lbRangeMax->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->sbMin->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->sbMax->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->pbRangeFromParameter->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->lbColorTheme->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->cbColorTheme->setEnabled(colorScheme == ByParameter);
 	updateLookupTable();
 }
 
@@ -1519,7 +1519,7 @@ void iAQSplom::setColorTheme(QString const & themeName)
 		QSignalBlocker sb(m_settingsDlg->cbColorTheme);
 		m_settingsDlg->cbColorTheme->setCurrentText(themeName);
 	}
-	if (settings.colorScheme == DivergingPerceptuallyUniform)
+	if (settings.colorScheme == ByParameter)
 		updateLookupTable();
 }
 

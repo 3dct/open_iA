@@ -99,17 +99,17 @@ class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectio
 	Q_PROPERTY( double m_animIn READ getAnimIn WRITE setAnimIn )
 	Q_PROPERTY( double m_animOut READ getAnimOut WRITE setAnimOut )
 
-	enum splom_mode //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
+	enum splom_mode    //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
 	{
 		UPPER_HALF,
 		ALL_PLOTS
 	};
 public:
-	enum ColorScheme //!< what color scheme to use for coloring the dots
+	enum ColorScheme   //!< what color scheme to use for coloring the dots
 	{
-		Uniform,                         //!< all points have the same color
-		DivergingPerceptuallyUniform,    //!< points are colored by a specific parameter, using a diverging, perceptually uniform lookup table
-		Custom                           //!< points are colored
+		AllPointsSame, //!< all points have the same color
+		ByParameter,   //!< points are colored by a specific parameter, using a diverging, perceptually uniform lookup table
+		Custom         //!< points are colored
 	};
 // Methods
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
