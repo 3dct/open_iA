@@ -222,7 +222,7 @@
                <enum>Qt::TabFocus</enum>
               </property>
               <property name="toolTip">
-               <string>Save Class</string>
+               <string>Save Classes</string>
               </property>
               <property name="text">
                <string>sC</string>
@@ -271,7 +271,7 @@
                </font>
               </property>
               <property name="toolTip">
-               <string>Load Class</string>
+               <string>Load Classes</string>
               </property>
               <property name="text">
                <string>lC</string>

@@ -2068,7 +2068,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	QXmlStreamReader reader( &readFile );
 	while ( !reader.atEnd() )
 	{
-		if ( reader.readNextStartElement() )
+		if (reader.readNext() != QXmlStreamReader::EndDocument && reader.isStartElement())
 		{
 			if ( reader.name() == ObjectTag )
 			{
@@ -2100,6 +2100,8 @@ void dlg_FeatureScout::ClassLoadButton()
 			}
 		}
 	}
+	if (reader.hasError())
+		DEBUG_LOG(QString("Error while parsing XML: %1").arg(reader.errorString()));
 	m_splom->classesChanged();
 
 	//upadate TableList
@@ -2115,14 +2117,6 @@ void dlg_FeatureScout::ClassLoadButton()
 	}
 	reader.clear();
 	readFile.close();
-	if ( m_splom->isShown() )
-	{
-		// reinitialize spm
-		activeChild->removeDockWidget( iovSPM );
-		delete iovSPM;
-		iovSPM = nullptr;
-		showScatterPlot();
-	}
 }
 
 void dlg_FeatureScout::ClassDeleteButton()
@@ -2575,6 +2569,20 @@ double dlg_FeatureScout::calculateOpacity( QStandardItem *item )
 	return 1.0;
 }
 
+namespace
+{
+	QString filterToXMLAttributeName(QString const &str)
+	{
+		QString result(str);
+		QRegularExpression validFirstChar("^[a-zA-Z_:]");
+		while (!validFirstChar.match(result).hasMatch() && result.size() > 0)
+			result.remove(0, 1);
+		QRegularExpression invalidChars("[^a-zA-Z0-9_:.-]");
+		result.remove(invalidChars);
+		return result;
+	}
+}
+
 void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStandardItem *item )
 {
 	// check if it is a class item
@@ -2596,7 +2604,7 @@ void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStand
 				vtkVariant v = csvTable->GetValue( item->child( i )->text().toInt() - 1, j );
 				QString str = QString::fromUtf8( v.ToUnicodeString().utf8_str() ).trimmed();
 				vtkVariant v1 = elementTable->GetValue( j, 0 );
-				QString str1 = QString::fromUtf8( v1.ToUnicodeString().utf8_str() ).trimmed();
+				QString str1 = filterToXMLAttributeName(QString::fromUtf8( v1.ToUnicodeString().utf8_str() ).trimmed());
 				writer->writeAttribute( str1, str );
 			}
 			writer->writeEndElement(); // end object tag
