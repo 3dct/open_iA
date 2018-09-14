@@ -700,7 +700,7 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 	{
 		data.m_main3DVis->setSelectionOpacity(SelectionOpacity);
 		data.m_main3DVis->setContextOpacity(ContextOpacity);
-		if (m_splom->colorScheme() == iAQSplom::DivergingPerceptuallyUniform)
+		if (m_splom->colorScheme() == iAQSplom::ByParameter)
 		{
 			data.m_main3DVis->setLookupTable(m_splom->lookupTable(), m_splom->colorLookupParam());
 			data.m_main3DVis->updateColorSelectionRendering();
