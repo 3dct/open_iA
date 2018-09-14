@@ -98,7 +98,8 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	m_isPreviewPlot( false ),
 	m_colInd( 0 ),
 	m_pcc( 0 ),
-	m_curVisiblePts ( 0 )
+	m_curVisiblePts ( 0 ),
+	m_dragging(false)
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
@@ -316,7 +317,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		}
 	}
 
-	else if ( event->buttons()&Qt::RightButton || (event->buttons()&Qt::LeftButton && event->modifiers()&Qt::ControlModifier) ) // drag
+	else if ( m_dragging )
 	{
 		QPointF deltaOffset = locPos - m_prevPos;
 		m_offset += locPos - m_prevPos;
@@ -351,6 +352,10 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 {
 	QPoint locPos = getLocalPos( event->pos() );
 	m_prevPos = locPos;
+	if (event->buttons()&Qt::RightButton || (event->buttons()&Qt::LeftButton && event->modifiers()&Qt::ControlModifier))
+	{
+		m_dragging = true;
+	}
 	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled)//selection
 	{
 		if (settings.selectionMode == Rectangle)
@@ -366,8 +371,11 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 
 void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 {
-	if (m_isMaximizedPlot && event->button() == Qt::LeftButton && settings.selectionEnabled
-		&& !(event->modifiers()&Qt::ControlModifier) )//selection
+	if (m_dragging)
+	{
+		m_dragging = false;
+	}
+	else if (m_isMaximizedPlot && event->button() == Qt::LeftButton && settings.selectionEnabled)//selection
 	{
 		bool append = ( event->modifiers() & Qt::ShiftModifier ) ? true : false;
 		bool remove = ( event->modifiers() & Qt::AltModifier ) ? true : false;
