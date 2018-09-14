@@ -30,6 +30,7 @@
 #include "iAPlotTypes.h"
 #include "iAScatterPlot.h"
 #include "iASPLOMData.h"
+#include "iASPMSettings.h"
 
 #include <vtkLookupTable.h>
 
@@ -46,18 +47,6 @@
 #include <QSurfaceFormat>
 #include <QPainter>
 #endif
-
-#include "ui_SPMSettings.h"
-#include "iAQTtoUIConnector.h"
-
-typedef iAQTtoUIConnector<QDialog, Ui_SPMSettings>  SPMSettingsContainer;
-class iASPMSettings : public SPMSettingsContainer
-{
-public:
-	iASPMSettings(QWidget * parent = 0, Qt::WindowFlags f = 0)
-		: SPMSettingsContainer(parent, f)
-	{}
-};
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -89,7 +78,8 @@ iAQSplom::Settings::Settings()
 	quadraticPlots(false),
 	showPCC(false),
 	enableColorSettings(false),
-	colorScheme(Uniform),
+	colorScheme(AllPointsSame),
+	colorThemeName("Diverging blue-gray-red"),
 	pointColor(QColor(128, 128, 128))
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
@@ -163,6 +153,8 @@ void iAQSplom::setSelectionMode(int mode)
 {
 	if (m_maximizedPlot)
 		m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(mode);
+	QSignalBlocker sb(m_settingsDlg->cbSelectionMode);
+	m_settingsDlg->cbSelectionMode->setCurrentIndex(mode);
 	settings.selectionMode = mode;
 }
 
@@ -262,6 +254,13 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	connect(m_settingsDlg->slPointSize, SIGNAL(valueChanged(int)), this, SLOT(pointRadiusChanged(int)));
 	connect(m_settingsDlg->pbPointColor, SIGNAL(clicked()), this, SLOT(changePointColor()));
 	connect(m_settingsDlg->pbRangeFromParameter, SIGNAL(clicked()), this, SLOT(rangeFromParameter()));
+	connect(m_settingsDlg->cbSelectionMode, SIGNAL(currentIndexChanged(int)), this, SLOT(setSelectionMode(int)));
+	connect(m_settingsDlg->cbQuadraticPlots, &QCheckBox::toggled, this, &iAQSplom::setQuadraticPlots);
+	connect(m_settingsDlg->cbShowCorrelationCoefficient, &QCheckBox::toggled, this, &iAQSplom::setShowPCC);
+	connect(m_settingsDlg->cbShowHistograms, &QCheckBox::toggled, this, &iAQSplom::setHistogramVisible);
+	connect(m_settingsDlg->sbHistogramBins, SIGNAL(valueChanged(int)), this, SLOT(setHistogramBins(int)));
+	connect(m_settingsDlg->cbColorTheme, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(setColorTheme(QString const &)));
+	m_settingsDlg->cbColorTheme->addItems(iALUT::GetColorMapNames());
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
 }
 
@@ -494,11 +493,9 @@ iAQSplom::SelectionType & iAQSplom::getSelection()
 
 iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
 {
-	SelectionType sortedSelInds = m_selInds;
-	std::sort(sortedSelInds.begin(), sortedSelInds.end());
 	if (!m_splomData->filterDefined() || m_selInds.size() == 0)
 	{
-		m_filteredSelInds = sortedSelInds;
+		m_filteredSelInds = m_selInds;
 		return m_filteredSelInds;
 	}
 	m_filteredSelInds.clear();
@@ -509,9 +506,9 @@ iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
 	{
 		if (!m_splomData->matchesFilter(curIdx))
 			continue;
-		if (curSelIdx >= sortedSelInds.size())
+		if (curSelIdx >= m_selInds.size())
 			break;
-		if (curIdx == sortedSelInds[curSelIdx])
+		if (curIdx == m_selInds[curSelIdx])
 		{
 			m_filteredSelInds.push_back(curFilteredIdx);
 			++curSelIdx;
@@ -524,6 +521,7 @@ iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
 void iAQSplom::setSelection( iAQSplom::SelectionType const & selInds )
 {
 	m_selInds = selInds;
+	std::sort(m_selInds.begin(), m_selInds.end());
 	update();
 }
 
@@ -703,13 +701,25 @@ void iAQSplom::showDefaultMaxizimedPlot()
 void iAQSplom::setHistogramVisible(bool visible)
 {
 	settings.histogramVisible = visible;
+	QSignalBlocker sb(m_settingsDlg->cbShowHistograms);
+	m_settingsDlg->cbShowHistograms->setChecked(visible);
 	updateVisiblePlots();
+	updateHistograms();
+}
+
+void iAQSplom::setHistogramBins(int bins)
+{
+	settings.histogramBins = bins;
+	if (!settings.histogramVisible)
+		return;
 	updateHistograms();
 }
 
 void iAQSplom::setQuadraticPlots(bool quadratic)
 {
 	settings.quadraticPlots = quadratic;
+	QSignalBlocker sb(m_settingsDlg->cbQuadraticPlots);
+	m_settingsDlg->cbQuadraticPlots->setChecked(quadratic);
 	updatePlotGridParams();
 	updateSPLOMLayout();
 	update();
@@ -718,6 +728,8 @@ void iAQSplom::setQuadraticPlots(bool quadratic)
 void iAQSplom::setShowPCC(bool showPCC)
 {
 	settings.showPCC = showPCC;
+	QSignalBlocker sb(m_settingsDlg->cbShowCorrelationCoefficient);
+	m_settingsDlg->cbShowCorrelationCoefficient->setChecked(showPCC);
 	foreach(QList<iAScatterPlot*> row, m_matrix)
 		foreach(iAScatterPlot* s, row)
 			s->settings.showPCC = showPCC;
@@ -730,8 +742,11 @@ void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 {
 	showHistogramAction->setChecked(settings.histogramVisible);
 	quadraticPlotsAction->setChecked(settings.quadraticPlots);
-	selectionModeRectangleAction->setChecked(settings.selectionMode == iAScatterPlot::Rectangle);
-	selectionModePolygonAction->setChecked(settings.selectionMode == iAScatterPlot::Polygon);
+	{
+		QSignalBlocker sb1(selectionModeRectangleAction), sb2(selectionModePolygonAction);
+		selectionModeRectangleAction->setChecked(settings.selectionMode == iAScatterPlot::Rectangle);
+		selectionModePolygonAction->setChecked(settings.selectionMode == iAScatterPlot::Polygon);
+	}
 	showPCCAction->setChecked(settings.showPCC);
 	for (auto col : m_columnPickMenu->actions())
 	{
@@ -1343,7 +1358,7 @@ void iAQSplom::updateLookupTable()
 	switch (settings.colorScheme)
 	{
 		default:
-		case Uniform:
+		case AllPointsSame:
 		{
 			m_lut->setRange(lutRange);
 			m_lut->allocate(2);
@@ -1351,8 +1366,8 @@ void iAQSplom::updateLookupTable()
 			m_lut->setColor(1, settings.pointColor);
 			break;
 		}
-		case DivergingPerceptuallyUniform:
-			*m_lut.data() = iALUT::Build(lutRange, "Diverging blue-gray-red", 256, alpha);
+		case ByParameter:
+			*m_lut.data() = iALUT::Build(lutRange, settings.colorThemeName, 256, alpha);
 			break;
 		case Custom:
 			for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
@@ -1442,13 +1457,14 @@ void iAQSplom::setColorParam(const QString & paramName)
 	if (colorLookupParam == std::numeric_limits<size_t>::max())
 		return;
 	m_colorLookupParam = colorLookupParam;
-	setColorScheme(DivergingPerceptuallyUniform);
+	setColorScheme(ByParameter);
 }
 
 void iAQSplom::changePointColor()
 {
 	QColor newColor = QColorDialog::getColor(settings.pointColor, this, "SPM Point color");
-	setPointColor(newColor);
+	if (newColor.isValid())
+		setPointColor(newColor);
 }
 
 void iAQSplom::setPointColor(QColor const & newColor)
@@ -1457,7 +1473,7 @@ void iAQSplom::setPointColor(QColor const & newColor)
 		return;
 	settings.pointColor = newColor;
 	m_settingsDlg->pbPointColor->setStyleSheet(QString("background-color:%1").arg(newColor.name()));
-	setColorScheme(Uniform);
+	setColorScheme(AllPointsSame);
 }
 
 void iAQSplom::colorSchemeChanged(int colorScheme)
@@ -1480,17 +1496,31 @@ void iAQSplom::setColorScheme(ColorScheme colorScheme)
 	settings.colorScheme = colorScheme;
 	QSignalBlocker cbColorBlock(m_settingsDlg->cbColorScheme);
 	m_settingsDlg->cbColorScheme->setCurrentIndex(colorScheme);
-	m_settingsDlg->pbPointColor->setEnabled(colorScheme == Uniform);
-	m_settingsDlg->lbPointColor->setEnabled(colorScheme == Uniform);
-	m_settingsDlg->cbColorParameter->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->lbColorParameter->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->lbRange->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->lbRangeMin->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->lbRangeMax->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->sbMin->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->sbMax->setEnabled(colorScheme == DivergingPerceptuallyUniform);
-	m_settingsDlg->pbRangeFromParameter->setEnabled(colorScheme == DivergingPerceptuallyUniform);
+	m_settingsDlg->pbPointColor->setEnabled(colorScheme == AllPointsSame);
+	m_settingsDlg->lbPointColor->setEnabled(colorScheme == AllPointsSame);
+	m_settingsDlg->cbColorParameter->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->lbColorParameter->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->lbRange->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->lbRangeMin->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->lbRangeMax->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->sbMin->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->sbMax->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->pbRangeFromParameter->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->lbColorTheme->setEnabled(colorScheme == ByParameter);
+	m_settingsDlg->cbColorTheme->setEnabled(colorScheme == ByParameter);
 	updateLookupTable();
+}
+
+void iAQSplom::setColorTheme(QString const & themeName)
+{
+	settings.colorThemeName = themeName;
+	if (m_settingsDlg->cbColorTheme->currentText() != themeName)
+	{
+		QSignalBlocker sb(m_settingsDlg->cbColorTheme);
+		m_settingsDlg->cbColorTheme->setCurrentText(themeName);
+	}
+	if (settings.colorScheme == ByParameter)
+		updateLookupTable();
 }
 
 void iAQSplom::rangeFromParameter()

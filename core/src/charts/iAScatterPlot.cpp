@@ -669,19 +669,25 @@ void iAScatterPlot::updateSelectedPoints(bool append, bool remove)
 					{
 						auto pos = std::find(selInds.begin(), selInds.end(), i);
 						if (pos != selInds.end() && remove)
+						{
 							selInds.erase(pos);
-						else if (!remove || append) // achieves XOR-like behavior if both remove and append are true
+							wasModified = true;
+						}
+						else if (pos == selInds.end() && (!remove || append)) // achieves XOR-like behavior if both remove and append are true
+						{
 							selInds.push_back(i);
+							wasModified = true;
+						}
 					}
 				}
 			}
 		}
-		wasModified |= (selInds.size() > 0);
 	}
 	bool needToClearPolygon = m_selPoly.size() > 0;
 	m_selPoly.clear();
 	if (wasModified)
 	{
+		std::sort(selInds.begin(), selInds.end());
 		emit selectionModified();
 	}
 	else if (needToClearPolygon)

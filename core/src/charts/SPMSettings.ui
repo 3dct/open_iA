@@ -6,17 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>255</width>
-    <height>330</height>
+    <width>278</width>
+    <height>473</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>SPM Settings</string>
   </property>
-  <layout class="QVBoxLayout" name="spmSettingsLayout">
-   <property name="spacing">
-    <number>4</number>
-   </property>
+  <layout class="QVBoxLayout" name="layout_SPMSettings">
    <property name="leftMargin">
     <number>4</number>
    </property>
@@ -32,9 +29,9 @@
    <item>
     <widget class="QGroupBox" name="gbParameters">
      <property name="title">
-      <string>Parameters:</string>
+      <string>Visible Parameters:</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="layout_Parameters">
       <property name="spacing">
        <number>4</number>
       </property>
@@ -64,11 +61,100 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>General</string>
+     </property>
+     <layout class="QGridLayout" name="layout_General">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="2" column="0" colspan="2">
+       <widget class="QCheckBox" name="cbShowCorrelationCoefficient">
+        <property name="text">
+         <string>Show Pearson's Correlation Coeefficient</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QCheckBox" name="cbShowHistograms">
+        <property name="text">
+         <string>Show Histograms with</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="sbHistogramBins">
+        <property name="minimum">
+         <number>2</number>
+        </property>
+        <property name="maximum">
+         <number>1000</number>
+        </property>
+        <property name="value">
+         <number>10</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="lbSelectionMode">
+        <property name="text">
+         <string>Selection Mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="cbQuadraticPlots">
+        <property name="text">
+         <string>Quadratic Plot Aspect Ratio</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Bins</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QComboBox" name="cbSelectionMode">
+        <item>
+         <property name="text">
+          <string>Rectangle</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Polygon</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="gbPoints">
      <property name="title">
       <string>Points:</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
+     <layout class="QGridLayout" name="layout_Points">
       <property name="leftMargin">
        <number>4</number>
       </property>
@@ -216,14 +302,14 @@
      <property name="title">
       <string>Color Coding</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
+     <layout class="QGridLayout" name="layout_ColorCoding">
       <property name="bottomMargin">
        <number>4</number>
       </property>
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="2" column="1" colspan="4">
+      <item row="2" column="1" colspan="3">
        <widget class="QComboBox" name="cbColorParameter"/>
       </item>
       <item row="2" column="0">
@@ -241,11 +327,11 @@
          </font>
         </property>
         <property name="text">
-         <string>Column</string>
+         <string>Parameter</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1" colspan="4">
+      <item row="1" column="1" colspan="3">
        <widget class="QPushButton" name="pbPointColor">
         <property name="autoFillBackground">
          <bool>false</bool>
@@ -325,16 +411,19 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1" colspan="4">
+      <item row="0" column="1" colspan="3">
        <widget class="QComboBox" name="cbColorScheme">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
         <item>
          <property name="text">
-          <string>Uniform</string>
+          <string>Same color for all points</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Diverging (Perceptually Uniform)</string>
+          <string>Color-code by parameter value</string>
          </property>
         </item>
         <item>
@@ -380,12 +469,22 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="3" rowspan="2" colspan="2">
+      <item row="4" column="3" rowspan="2">
        <widget class="QPushButton" name="pbRangeFromParameter">
         <property name="text">
          <string>from Parameter</string>
         </property>
        </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="lbColorTheme">
+        <property name="text">
+         <string>Color Theme</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="3">
+       <widget class="QComboBox" name="cbColorTheme"/>
       </item>
      </layout>
     </widget>

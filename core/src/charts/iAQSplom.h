@@ -99,17 +99,17 @@ class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectio
 	Q_PROPERTY( double m_animIn READ getAnimIn WRITE setAnimIn )
 	Q_PROPERTY( double m_animOut READ getAnimOut WRITE setAnimOut )
 
-	enum splom_mode //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
+	enum splom_mode    //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
 	{
 		UPPER_HALF,
 		ALL_PLOTS
 	};
 public:
-	enum ColorScheme //!< what color scheme to use for coloring the dots
+	enum ColorScheme   //!< what color scheme to use for coloring the dots
 	{
-		Uniform,                         //!< all points have the same color
-		DivergingPerceptuallyUniform,    //!< points are colored by a specific parameter, using a diverging, perceptually uniform lookup table
-		Custom                           //!< points are colored
+		AllPointsSame, //!< all points have the same color
+		ByParameter,   //!< points are colored by a specific parameter, using a diverging, perceptually uniform lookup table
+		Custom         //!< points are colored
 	};
 // Methods
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
@@ -139,7 +139,6 @@ public:
 	void setSelection( SelectionType const & selInds );              //!< Set selected data points from a vector of indices.
 	void clearSelection();                                           //!< deletes current selection
 	void setSelectionColor(QColor color);                            //!< set the color for selected points
-	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
 	void enableSelection(bool enable);                               //!< set whether selections are allowed or not
 	void getActivePlotIndices( int * inds_out );                     //!< Get X and Y parameter indices of currently active scatter plot.
 	int getVisibleParametersCount() const;                           //!< Get the number of parameters currently displayed
@@ -161,7 +160,10 @@ public:
 	ColorScheme colorScheme() const;                                 //!< get current color scheme
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
+	void setHistogramBins(int bins);                                 //!< set the number of histogram bins
 	void showSettings();                                             //!< Show the settings dialog
+	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
+	void setColorTheme(QString const & themeName);                   //!< Call to adapt color theme used for coloring by a parameter
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
@@ -262,6 +264,7 @@ public:
 		bool quadraticPlots;                     //!< Whether the scatter plots are constrained to quadratic sizes
 		bool showPCC;                            //!< Whether to show the Pearson's correlation coefficient
 		ColorScheme colorScheme;                 //!< Scheme to use for coloring the matrix dots
+		QString colorThemeName;                  //!< Name of a color theme for when points are colored by a parameter (from iALUT)
 		QColor pointColor;                       //!< Color for each point if color scheme is uniform
 		bool enableColorSettings;                //!< Whether color coding settings are accessible
 	};
