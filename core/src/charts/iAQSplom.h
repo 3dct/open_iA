@@ -163,6 +163,7 @@ public slots:
 	void setHistogramBins(int bins);                                 //!< set the number of histogram bins
 	void showSettings();                                             //!< Show the settings dialog
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
+	void setColorTheme(QString const & themeName);                   //!< Call to adapt color theme used for coloring by a parameter
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
@@ -263,6 +264,7 @@ public:
 		bool quadraticPlots;                     //!< Whether the scatter plots are constrained to quadratic sizes
 		bool showPCC;                            //!< Whether to show the Pearson's correlation coefficient
 		ColorScheme colorScheme;                 //!< Scheme to use for coloring the matrix dots
+		QString colorThemeName;                  //!< Name of a color theme for when points are colored by a parameter (from iALUT)
 		QColor pointColor;                       //!< Color for each point if color scheme is uniform
 		bool enableColorSettings;                //!< Whether color coding settings are accessible
 	};

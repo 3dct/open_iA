@@ -79,6 +79,7 @@ iAQSplom::Settings::Settings()
 	showPCC(false),
 	enableColorSettings(false),
 	colorScheme(Uniform),
+	colorThemeName("Diverging blue-gray-red"),
 	pointColor(QColor(128, 128, 128))
 {
 	popupTipDim[0] = 5; popupTipDim[1] = 10;
@@ -258,6 +259,8 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	connect(m_settingsDlg->cbShowCorrelationCoefficient, &QCheckBox::toggled, this, &iAQSplom::setShowPCC);
 	connect(m_settingsDlg->cbShowHistograms, &QCheckBox::toggled, this, &iAQSplom::setHistogramVisible);
 	connect(m_settingsDlg->sbHistogramBins, SIGNAL(valueChanged(int)), this, SLOT(setHistogramBins(int)));
+	connect(m_settingsDlg->cbColorTheme, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(setColorTheme(QString const &)));
+	m_settingsDlg->cbColorTheme->addItems(iALUT::GetColorMapNames());
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
 }
 
@@ -1365,7 +1368,7 @@ void iAQSplom::updateLookupTable()
 			break;
 		}
 		case DivergingPerceptuallyUniform:
-			*m_lut.data() = iALUT::Build(lutRange, "Diverging blue-gray-red", 256, alpha);
+			*m_lut.data() = iALUT::Build(lutRange, settings.colorThemeName, 256, alpha);
 			break;
 		case Custom:
 			for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
@@ -1504,6 +1507,18 @@ void iAQSplom::setColorScheme(ColorScheme colorScheme)
 	m_settingsDlg->sbMax->setEnabled(colorScheme == DivergingPerceptuallyUniform);
 	m_settingsDlg->pbRangeFromParameter->setEnabled(colorScheme == DivergingPerceptuallyUniform);
 	updateLookupTable();
+}
+
+void iAQSplom::setColorTheme(QString const & themeName)
+{
+	settings.colorThemeName = themeName;
+	if (m_settingsDlg->cbColorTheme->currentText() != themeName)
+	{
+		QSignalBlocker sb(m_settingsDlg->cbColorTheme);
+		m_settingsDlg->cbColorTheme->setCurrentText(themeName);
+	}
+	if (settings.colorScheme == DivergingPerceptuallyUniform)
+		updateLookupTable();
 }
 
 void iAQSplom::rangeFromParameter()

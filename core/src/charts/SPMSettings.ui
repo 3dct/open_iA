@@ -327,7 +327,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Column</string>
+         <string>Parameter</string>
         </property>
        </widget>
       </item>
