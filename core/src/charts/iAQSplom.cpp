@@ -1506,6 +1506,8 @@ void iAQSplom::setColorScheme(ColorScheme colorScheme)
 	m_settingsDlg->sbMin->setEnabled(colorScheme == DivergingPerceptuallyUniform);
 	m_settingsDlg->sbMax->setEnabled(colorScheme == DivergingPerceptuallyUniform);
 	m_settingsDlg->pbRangeFromParameter->setEnabled(colorScheme == DivergingPerceptuallyUniform);
+	m_settingsDlg->lbColorTheme->setEnabled(colorScheme == DivergingPerceptuallyUniform);
+	m_settingsDlg->cbColorTheme->setEnabled(colorScheme == DivergingPerceptuallyUniform);
 	updateLookupTable();
 }
 
