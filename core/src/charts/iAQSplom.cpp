@@ -1463,7 +1463,8 @@ void iAQSplom::setColorParam(const QString & paramName)
 void iAQSplom::changePointColor()
 {
 	QColor newColor = QColorDialog::getColor(settings.pointColor, this, "SPM Point color");
-	setPointColor(newColor);
+	if (newColor.isValid())
+		setPointColor(newColor);
 }
 
 void iAQSplom::setPointColor(QColor const & newColor)
