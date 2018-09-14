@@ -32,11 +32,13 @@
 
 #include <QStandardItem>
 
-iA3DLabelledVolumeVis::iA3DLabelledVolumeVis( iAVtkWidgetClass* widget, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping ):
+iA3DLabelledVolumeVis::iA3DLabelledVolumeVis( iAVtkWidgetClass* widget, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
+		vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, double const * bounds ):
 	iA3DObjectVis(widget, objectTable, columnMapping),
 	cTF(color),
 	oTF(opac)
 {
+	std::copy(bounds, bounds + 6, m_bounds);
 }
 
 void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem )
@@ -526,3 +528,7 @@ void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* 
 	updateRenderer();
 }
 
+double const * iA3DLabelledVolumeVis::bounds()
+{
+	return m_bounds;
+}

@@ -164,3 +164,8 @@ void iA3DLineObjectVis::updateColorSelectionRendering()
 	}
 	updatePolyMapper();
 }
+
+double const * iA3DLineObjectVis::bounds()
+{
+	return m_linePolyData->GetBounds();
+}

@@ -126,7 +126,6 @@ public:
 	vtkOpenGLRenderer * GetRenderer();
 	vtkActor* GetPolyActor();
 	vtkTransform* getCoordinateSystemTransform();
-	void GetImageDataBounds(double bounds[6]); //!< remove
 	vtkOpenGLRenderer * GetLabelRenderer ();
 	vtkPolyDataMapper* GetPolyMapper() const;
 

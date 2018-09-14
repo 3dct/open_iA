@@ -43,6 +43,7 @@ public:
 	void setColor(QColor const & color);
 	void showBoundingBox();
 	void hideBoundingBox();
+	double const * bounds() override;
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPoints> m_points;

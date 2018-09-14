@@ -821,7 +821,6 @@ void iARenderer::disableInteractor() { interactor->Disable(); }
 void iARenderer::enableInteractor() { interactor->ReInitialize(); }
 
 vtkTransform* iARenderer::getCoordinateSystemTransform() { axesTransform->Update(); return axesTransform; }
-void iARenderer::GetImageDataBounds(double bounds[6]) { imageData->GetBounds(bounds); }
 
 void iARenderer::AddRenderer(vtkRenderer* renderer)
 {

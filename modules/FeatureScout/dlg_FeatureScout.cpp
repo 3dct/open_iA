@@ -221,23 +221,14 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	visualization(vis),
 	activeChild(parent),
 	filterID(fid),
-	draw3DPolarPlot(false)
+	draw3DPolarPlot(false),
+	blobManager(new iABlobManager())
 {
 	setupUi( this );
 	this->elementsCount = csvTable->GetNumberOfColumns();
 	this->objectsCount = csvTable->GetNumberOfRows();
 	this->setupPolarPlotResolution( 3.0 );
-	blobManager = new iABlobManager();
-	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
-	double bounds[6];
-	if (visualization == iACsvConfig::UseVolume)
-	{
-		raycaster->GetImageDataBounds(bounds);
-		blobManager->SetBounds(bounds);
-		blobManager->SetProtrusion(1.5);
-		int dimens[3] = { 50, 50, 50 };
-		blobManager->SetDimensions(dimens);
-	}
+
 	lut = vtkSmartPointer<vtkLookupTable>::New();
 	chartTable = vtkSmartPointer<vtkTable>::New();
 	chartTable->DeepCopy( csvTable );
@@ -275,6 +266,11 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	m_3dvis->show();
 	parent->getRenderer()->GetRenderer()->ResetCamera();
 	blobVisDialog = new dlg_blobVisualization();
+	blobManager->SetRenderers(blobRen, this->raycaster->GetLabelRenderer());
+	blobManager->SetBounds(m_3dvis->bounds());
+	blobManager->SetProtrusion(1.5);
+	int dimens[3] = { 50, 50, 50 };
+	blobManager->SetDimensions(dimens);
 	// set first column of the classTreeView to minimal (not stretched)
 	this->classTreeView->resizeColumnToContents( 0 );
 	this->classTreeView->header()->setStretchLastSection( false );
@@ -2073,7 +2069,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	QXmlStreamReader reader( &readFile );
 	while ( !reader.atEnd() )
 	{
-		if ( reader.readNextStartElement() )
+		if (reader.readNext() != QXmlStreamReader::EndDocument && reader.isStartElement())
 		{
 			if ( reader.name() == ObjectTag )
 			{
@@ -2105,6 +2101,8 @@ void dlg_FeatureScout::ClassLoadButton()
 			}
 		}
 	}
+	if (reader.hasError())
+		DEBUG_LOG(QString("Error while parsing XML: %1").arg(reader.errorString()));
 	m_splom->classesChanged();
 
 	//upadate TableList
@@ -2120,14 +2118,6 @@ void dlg_FeatureScout::ClassLoadButton()
 	}
 	reader.clear();
 	readFile.close();
-	if ( m_splom->isShown() )
-	{
-		// reinitialize spm
-		activeChild->removeDockWidget( iovSPM );
-		delete iovSPM;
-		iovSPM = nullptr;
-		showScatterPlot();
-	}
 }
 
 void dlg_FeatureScout::ClassDeleteButton()
@@ -2580,6 +2570,20 @@ double dlg_FeatureScout::calculateOpacity( QStandardItem *item )
 	return 1.0;
 }
 
+namespace
+{
+	QString filterToXMLAttributeName(QString const &str)
+	{
+		QString result(str);
+		QRegularExpression validFirstChar("^[a-zA-Z_:]");
+		while (!validFirstChar.match(result).hasMatch() && result.size() > 0)
+			result.remove(0, 1);
+		QRegularExpression invalidChars("[^a-zA-Z0-9_:.-]");
+		result.remove(invalidChars);
+		return result;
+	}
+}
+
 void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStandardItem *item )
 {
 	// check if it is a class item
@@ -2601,7 +2605,7 @@ void dlg_FeatureScout::writeClassesAndChildren( QXmlStreamWriter *writer, QStand
 				vtkVariant v = csvTable->GetValue( item->child( i )->text().toInt() - 1, j );
 				QString str = QString::fromUtf8( v.ToUnicodeString().utf8_str() ).trimmed();
 				vtkVariant v1 = elementTable->GetValue( j, 0 );
-				QString str1 = QString::fromUtf8( v1.ToUnicodeString().utf8_str() ).trimmed();
+				QString str1 = filterToXMLAttributeName(QString::fromUtf8( v1.ToUnicodeString().utf8_str() ).trimmed());
 				writer->writeAttribute( str1, str );
 			}
 			writer->writeEndElement(); // end object tag
@@ -2727,8 +2731,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 	blobManager->UpdateBlobSettings( blob );
 
 	// single class rendering to blob view
-	double bounds[6];
-	raycaster->GetImageDataBounds( bounds );
+	double const * bounds = m_3dvis->bounds();
 	double dims[3] = { bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4] };
 	double maxDim = dims[0] >= dims[1] ? dims[0] : dims[1];
 	maxDim = dims[2] >= maxDim ? dims[2] : maxDim;

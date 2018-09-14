@@ -58,6 +58,7 @@ public:
 	virtual void multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha ) =0;
 	virtual void renderOrientationDistribution( vtkImageData* oi ) =0;
 	virtual void renderLengthDistribution( vtkColorTransferFunction* cTFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) =0;
+	virtual double const * bounds() =0;
 protected:
 	QColor getOrientationColor( vtkImageData* oi, size_t objID ) const;
 	QColor getLengthColor( vtkColorTransferFunction* ctFun, size_t objID ) const;
