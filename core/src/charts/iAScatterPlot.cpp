@@ -316,7 +316,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		}
 	}
 
-	if ( event->buttons()&Qt::RightButton ) // drag
+	else if ( event->buttons()&Qt::RightButton || (event->buttons()&Qt::LeftButton && event->modifiers()&Qt::ControlModifier) ) // drag
 	{
 		QPointF deltaOffset = locPos - m_prevPos;
 		m_offset += locPos - m_prevPos;
@@ -326,7 +326,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		emit transformModified( m_scale, deltaOffset );
 	}
 
-	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled ) // selection
+	else if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled ) // selection
 	{
 		if (settings.selectionMode == Polygon)
 		{
@@ -366,7 +366,8 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 
 void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 {
-	if (m_isMaximizedPlot && event->button() == Qt::LeftButton && settings.selectionEnabled)//selection
+	if (m_isMaximizedPlot && event->button() == Qt::LeftButton && settings.selectionEnabled
+		&& !(event->modifiers()&Qt::ControlModifier) )//selection
 	{
 		bool append = ( event->modifiers() & Qt::ShiftModifier ) ? true : false;
 		bool remove = ( event->modifiers() & Qt::AltModifier ) ? true : false;
