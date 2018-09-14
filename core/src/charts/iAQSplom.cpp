@@ -493,11 +493,9 @@ iAQSplom::SelectionType & iAQSplom::getSelection()
 
 iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
 {
-	SelectionType sortedSelInds = m_selInds;
-	std::sort(sortedSelInds.begin(), sortedSelInds.end());
 	if (!m_splomData->filterDefined() || m_selInds.size() == 0)
 	{
-		m_filteredSelInds = sortedSelInds;
+		m_filteredSelInds = m_selInds;
 		return m_filteredSelInds;
 	}
 	m_filteredSelInds.clear();
@@ -508,9 +506,9 @@ iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
 	{
 		if (!m_splomData->matchesFilter(curIdx))
 			continue;
-		if (curSelIdx >= sortedSelInds.size())
+		if (curSelIdx >= m_selInds.size())
 			break;
-		if (curIdx == sortedSelInds[curSelIdx])
+		if (curIdx == m_selInds[curSelIdx])
 		{
 			m_filteredSelInds.push_back(curFilteredIdx);
 			++curSelIdx;
@@ -523,6 +521,7 @@ iAQSplom::SelectionType const & iAQSplom::getFilteredSelection() const
 void iAQSplom::setSelection( iAQSplom::SelectionType const & selInds )
 {
 	m_selInds = selInds;
+	std::sort(m_selInds.begin(), m_selInds.end());
 	update();
 }
 
