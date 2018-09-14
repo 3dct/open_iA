@@ -114,9 +114,10 @@ namespace
 	}
 }
 
-dlg_CSVInput::dlg_CSVInput(QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
+dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
 	: QDialog(parent, f),
-	m_columnMappingChoiceSet(false)
+	m_columnMappingChoiceSet(false),
+	m_volumeDataAvailable(volumeDataAvailable)
 {
 	setupUi(this);
 	// combo boxes involved in column mapping (in the same order as in iACsvConfig::MappedColumn):
@@ -219,6 +220,12 @@ void dlg_CSVInput::okBtnClicked()
 	if (!m_confParams.isValid(errorMsg))
 	{
 		QMessageBox::warning(this, tr("FeatureScout"), errorMsg);
+		return;
+	}
+	if (m_confParams.visType == iACsvConfig::UseVolume && !m_volumeDataAvailable)
+	{
+		QMessageBox::information(this, "FeatureScout", "You have selected to use volume data in FeatureScout, "
+			"yet there is either no open window or the active window does not contain volume data!");
 		return;
 	}
 	if (!cmbbox_Format->currentText().isEmpty())

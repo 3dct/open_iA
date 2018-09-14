@@ -36,7 +36,7 @@ public:
 	static const QString LegacyFiberFormat;
 	static const QString LegacyVoidFormat;
 	//! Create a new dialog, all parameters are optional
-	dlg_CSVInput(QWidget * parent = 0, Qt::WindowFlags f = 0);
+	dlg_CSVInput(bool volumeDataAvailable, QWidget * parent = 0, Qt::WindowFlags f = 0);
 	//! Set the internal path (used when choosing a csv file) to the one given as parameter
 	void setPath(QString const & path);
 	//! Set the file name input to the one given as parameter
@@ -133,4 +133,5 @@ private:
 	QString m_path;
 	QVector<QComboBox*> m_mappingBoxes;
 	bool m_columnMappingChoiceSet; //!< whether we have provided proper choices in the column mapping comboboxes already
+	bool m_volumeDataAvailable;    //!< whether a volume dataset was available before opening the dialog
 };

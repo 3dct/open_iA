@@ -53,7 +53,10 @@ void iAFeatureScoutModuleInterface::Initialize()
 
 void iAFeatureScoutModuleInterface::FeatureScout()
 {
-	dlg_CSVInput dlg;
+	bool volumeDataAvailable = m_mainWnd->activeMdiChild() &&
+		m_mainWnd->activeMdiChild()->GetModalities()->size() > 0 &&
+		m_mainWnd->activeMdiChild()->IsVolumeDataLoaded();
+	dlg_CSVInput dlg(volumeDataAvailable);
 	if (m_mainWnd->activeMdiChild())
 	{
 		auto mdi = m_mainWnd->activeMdiChild();
@@ -72,14 +75,6 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	iACsvConfig csvConfig = dlg.getConfig();
-	if (csvConfig.visType == iACsvConfig::UseVolume && (!m_mainWnd->activeMdiChild() ||
-		m_mainWnd->activeMdiChild()->GetModalities()->size() == 0 ||
-		!m_mainWnd->activeMdiChild()->IsVolumeDataLoaded()))
-	{
-		QMessageBox::information(m_mainWnd, "FeatureScout", "You have selected to use volume data in FeatureScout, "
-			"yet there is either no open window or the active window does not contain volume data!");
-		return;
-	}
 	if (csvConfig.visType != iACsvConfig::UseVolume)
 	{
 		m_mdiChild = m_mainWnd->createMdiChild(false);
