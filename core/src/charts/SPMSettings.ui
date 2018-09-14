@@ -282,6 +282,12 @@
       </item>
       <item row="0" column="4">
        <widget class="QLabel" name="lbPointOpacityValue">
+        <property name="minimumSize">
+         <size>
+          <width>45</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="text">
          <string>0.50</string>
         </property>
@@ -289,6 +295,12 @@
       </item>
       <item row="1" column="4">
        <widget class="QLabel" name="lbPointSizeValue">
+        <property name="minimumSize">
+         <size>
+          <width>45</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="text">
          <string>1.0</string>
         </property>

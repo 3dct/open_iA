@@ -1368,15 +1368,9 @@ void iAQSplom::updateLookupTable()
 		}
 		case ByParameter:
 			*m_lut.data() = iALUT::Build(lutRange, settings.colorThemeName, 256, alpha);
-			break;
+			// intentional fall-through!
 		case Custom:
-			for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
-			{
-				double rgba[4];
-				m_lut->getTableValue(i, rgba);
-				rgba[3] = alpha;
-				m_lut->setColor(i, rgba);
-			}
+			m_lut->setOpacity(alpha);
 	}
 	applyLookupTable();
 	emit lookupTableChanged();
