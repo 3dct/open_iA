@@ -770,12 +770,17 @@ Disabled Inputs
 	QLabel:disabled,
 	QCheckBox:disabled,
 	QLineEdit:disabled,
-	QComboBox:disabled
+	QComboBox:disabled,
+	QSpinBox:disabled,
+	QDoubleSpinBox:disabled,
+	QPushButton:disabled
 	{
 		color: rgba(75, 75, 75, 75);
 	}
 	QLineEdit:disabled,
-	QComboBox:disabled
+	QComboBox:disabled,
+	QSpinBox:disabled,
+	QDoubleSpinBox:disabled
 	{
 		border: 1px solid rgba(205, 205, 205, 255);
 		background-color: rgba(235, 235, 235, 255);
