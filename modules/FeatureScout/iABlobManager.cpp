@@ -91,10 +91,6 @@ iABlobManager::iABlobManager( void )
 	m_depthPeelingEnabled = settings.value( DepthPeelingKey, true ).toBool();
 }
 
-// Desctructor
-iABlobManager::~iABlobManager( void )
-{}
-
 void iABlobManager::Update( void )
 {
 	for ( int i = 0; i < m_blobsList.count(); i++ )
@@ -423,7 +419,7 @@ double iABlobManager::GetRange( void )
 	return m_range;
 }
 
-void iABlobManager::SetBounds( double* bounds )
+void iABlobManager::SetBounds( double const * bounds )
 {
 	for ( int i = 0; i < 6; i++ )
 	{

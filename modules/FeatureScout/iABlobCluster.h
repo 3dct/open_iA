@@ -57,150 +57,102 @@ class vtkPolyDataSilhouette;
 class iABlobCluster
 {
 public:
-								iABlobCluster (void);
-
-								~iABlobCluster (void);
-
-	virtual void				SetDimension (int dimens[3]);
-
-	void						SetBounds (double bounds[6]);
-
-								// Get dimension for blob
-	void GetDimension (int dimens[3]) const;
-	int*						GetDimensions();
-
-								// Get bounds for blob
-	void						GetBounds (double bounds[6]) const;
-
-								// Redefine fibres cluster
-	void						SetCluster (QVector<FeatureInfo> fibres) const;
-
-								// Set if to draw a silhouette
-	void						SetSilhouette (bool isOn);
-	bool						GetSilhouette() const;
-
-								// Turn on drawing silhouette
-	void						SilhouetteOn (void);
-
-								// Turn off drawing silhouette
-	void						SilhouetteOff (void);
-
-								// Turn on draw label
-	void						LabelOn (void);
-
-								// Turn on/off draw label
-	void						SetLabel (bool isOn);
-	bool						GetLabel () const;
-
-								// Turn off draw label
-	void						LabelOff (void);
-
-								// Set renderers which will be visualize blob and labels
-	void						AttachRenderers( vtkSmartPointer<vtkRenderer> blobRen,
+	iABlobCluster ();
+	~iABlobCluster ();
+	virtual void SetDimension (int dimens[3]);
+	void SetBounds (double bounds[6]);
+	void GetDimension (int dimens[3]) const;  //!< Get dimension for blob
+	int* GetDimensions();
+	void GetBounds (double bounds[6]) const;  //!< Get bounds for blob
+	void SetCluster (QVector<FeatureInfo> fibres) const; //!< Redefine fibres cluster
+	void SetSilhouette (bool isOn);           //!< Set if to draw a silhouette
+	bool GetSilhouette() const;
+	void SilhouetteOn ();                     //!< Turn on drawing silhouette
+	void SilhouetteOff ();                    //!< Turn off drawing silhouette
+	void LabelOn ();                          //!< Turn on draw label
+	void SetLabel (bool isOn);                //! Turn on/off draw label
+	bool GetLabel () const;
+	void LabelOff ();                         //!< Turn off draw label
+	//! Set renderers which will be visualize blob and labels
+	void AttachRenderers( vtkSmartPointer<vtkRenderer> blobRen,
 												 vtkSmartPointer<vtkRenderer> labelRen );
-
-								// Get property from isosurface actor
-	vtkProperty*				GetSurfaceProperty (void);
-
-								// Get implicity fuction
-	iABlobImplicitFunction*		GetImplicitFunction (void);
-
-								// Get property from silhouette actor
-	vtkProperty*				GetSilhouetteProperty (void);
-
-								// Add clipping plane to mappers
-	void						AddClippingPlane (vtkPlane* plane);
-
-								// Fully update blob visualization
-	void						Update (void);
-
-								// Set name for blob
-	void						SetName (QString name);
-
-								// Set object count and percentage
-	void						SetStats (const double count, const double percentage);
-
-	void						SetBlobManager (iABlobManager* blobManager);
-
-	void						CalculateImageData (void);
-
-	vtkImageData*				GetImageData (void) const;
-
+	//! Get property from isosurface actor
+	vtkProperty* GetSurfaceProperty ();
+	// Get implicity function
+	iABlobImplicitFunction* GetImplicitFunction ();
+	//! Get property from silhouette actor
+	vtkProperty* GetSilhouetteProperty ();
+	//! Add clipping plane to mappers
+	void AddClippingPlane (vtkPlane* plane);
+	//! Fully update blob visualization
+	void Update ();
+	//! Set name for blob
+	void SetName (QString name);
+	//! Set object count and percentage
+	void SetStats (const double count, const double percentage);
+	void SetBlobManager (iABlobManager* blobManager);
+	void CalculateImageData ();
+	vtkImageData* GetImageData () const;
 	double GetRange (void) const;
-	void						SetRange (double range);
+	void SetRange (double range);
+	void ModifiedSampleFunction (void);
+	void SetSmoothing(bool isOn);
+	bool GetSmoothing() const;
+	void SetLabelScale(double labelScale);
+	double GetLabelScale() const;
+	void SetShowBlob(bool showBlob);
+	bool GetShowBlob() const;
+	void SetBlobOpacity(double blobOpacity);
+	double GetBlobOpacity() const;
+	void SetSilhouetteOpacity(double silhouetteOpacity);
+	double GetSilhouetteOpacity() const;
+	void SetObjectType( QString type );
+	vtkPolyData * GetBlobPolyData() const;
+	void SetRenderIndividually(bool enabled);
+	void SetGaussianBlurVariance(double blurVariance);
+	double GetGaussianBlurVariance() const;
+	void GaussianBlur();
 
-	void						ModifiedSampleFunction (void);
-
-	void						SetSmoothing(bool isOn);
-	bool						GetSmoothing() const;
-
-	void						SetLabelScale(double labelScale);
-	double						GetLabelScale() const;
-
-	void						SetShowBlob(bool showBlob);
-	bool						GetShowBlob() const;
-
-	void						SetBlobOpacity(double blobOpacity);
-	double						GetBlobOpacity() const;
-
-	void						SetSilhouetteOpacity(double silhouetteOpacity);
-	double						GetSilhouetteOpacity() const;
-
-	void						SetObjectType( QString type );
-
-	vtkPolyData *				GetBlobPolyData() const;
-
-	void						SetRenderIndividually(bool enabled);
-
-	void						SetGaussianBlurVariance(double blurVariance);
-	double						GetGaussianBlurVariance() const;
-	void						GaussianBlur();
-
-	//private members
 private:
-	void						UpdatePipeline (void);
-	void						ResetRenderers (void);
-	void						UpdateRenderer (void);
-	void						SetDefaultProperties (void);
-	void						DrawLabel (void);
-	void						RemoveLabel (void);	// NOT IMPLEMENTED
+	void UpdatePipeline ();
+	void ResetRenderers ();
+	void UpdateRenderer ();
+	void SetDefaultProperties ();
+	void DrawLabel ();
+	void RemoveLabel ();	// NOT IMPLEMENTED
 
-	vtkSmartPointer<vtkRenderer>	m_blobRenderer;
-	vtkSmartPointer<vtkRenderer>	m_labelRenderer;
-
-	iALabel3D					m_label;
-	QString						m_name;
-	double						m_count;
-	double						m_percentage;
-	QString						m_objectType;
+	iALabel3D m_label;
+	QString   m_name;
+	double    m_count;
+	double    m_percentage;
+	QString   m_objectType;
+	int       m_dimens[3];
+	double    m_bounds[6];
+	int       m_countContours;
+	double    m_range[2];
+	bool      m_silhouetteIsOn;
+	bool      m_blobIsOn;
+	bool      m_labelIsOn;
+	bool      m_isSmoothingOn;
+	bool      m_renderIndividually;
+	double    m_blurVariance;
+	double    m_labelScale;
+	double    m_blobOpacity;
+	double    m_silhouetteOpacity;
 
 	// vtk members
-	vtkSmartPointer<vtkPolyDataNormals>			m_polyDataNormals;
+	vtkSmartPointer<vtkRenderer>                m_blobRenderer;
+	vtkSmartPointer<vtkRenderer>                m_labelRenderer;
+	vtkSmartPointer<vtkPolyDataNormals>         m_polyDataNormals;
 	vtkSmartPointer<vtkWindowedSincPolyDataFilter> m_smoother;
-	iABlobImplicitFunction*		m_implicitFunction;
-	vtkSmartPointer<vtkSampleFunction>			m_sampleFunction;
-	vtkSmartPointer<vtkContourFilter>			m_contourFilter;
-	vtkSmartPointer<vtkPolyDataMapper>			m_contourMapper;
-	vtkSmartPointer<vtkActor>					m_contourActor;
-	vtkSmartPointer<vtkPolyDataSilhouette>		m_silhouette;
-	vtkSmartPointer<vtkPolyDataMapper>			m_silhouetteMapper;
-	vtkSmartPointer<vtkActor>					m_silhouetteActor;
-	vtkSmartPointer<vtkImageData>				m_imageData;
-	iABlobManager*				m_blobManager;
-
-	int							m_dimens[3];
-	double						m_bounds[6];
-	int							m_countContours;
-	double						m_range[2];
-	bool						m_silhouetteIsOn;
-	bool						m_blobIsOn;
-	bool						m_labelIsOn;
-	bool						m_isSmoothingOn;
-	bool						m_renderIndividually;
-	double						m_blurVariance;
-
-	double						m_labelScale;
-
-	double						m_blobOpacity;
-	double						m_silhouetteOpacity;
+	iABlobImplicitFunction*	                    m_implicitFunction;
+	vtkSmartPointer<vtkSampleFunction>          m_sampleFunction;
+	vtkSmartPointer<vtkContourFilter>           m_contourFilter;
+	vtkSmartPointer<vtkPolyDataMapper>          m_contourMapper;
+	vtkSmartPointer<vtkActor>                   m_contourActor;
+	vtkSmartPointer<vtkPolyDataSilhouette>      m_silhouette;
+	vtkSmartPointer<vtkPolyDataMapper>          m_silhouetteMapper;
+	vtkSmartPointer<vtkActor>                   m_silhouetteActor;
+	vtkSmartPointer<vtkImageData>               m_imageData;
+	iABlobManager*                              m_blobManager;
 };

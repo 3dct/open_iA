@@ -59,3 +59,8 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* object
 	m_linePolyData->GetPointData()->AddArray(m_colors);
 	m_mapper->SetInputData(m_linePolyData);
 }
+
+double const * iA3DLineObjectVis::bounds()
+{
+	return m_linePolyData->GetBounds();
+}

@@ -30,6 +30,7 @@ class iA3DLineObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
 	iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor );
+	double const * bounds() override;
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 };

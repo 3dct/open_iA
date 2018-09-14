@@ -221,23 +221,14 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	visualization(vis),
 	activeChild(parent),
 	filterID(fid),
-	draw3DPolarPlot(false)
+	draw3DPolarPlot(false),
+	blobManager(new iABlobManager())
 {
 	setupUi( this );
 	this->elementsCount = csvTable->GetNumberOfColumns();
 	this->objectsCount = csvTable->GetNumberOfRows();
 	this->setupPolarPlotResolution( 3.0 );
-	blobManager = new iABlobManager();
-	blobManager->SetRenderers( blobRen, this->raycaster->GetLabelRenderer() );
-	double bounds[6];
-	if (visualization == iACsvConfig::UseVolume)
-	{
-		raycaster->GetImageDataBounds(bounds);
-		blobManager->SetBounds(bounds);
-		blobManager->SetProtrusion(1.5);
-		int dimens[3] = { 50, 50, 50 };
-		blobManager->SetDimensions(dimens);
-	}
+
 	lut = vtkSmartPointer<vtkLookupTable>::New();
 	chartTable = vtkSmartPointer<vtkTable>::New();
 	chartTable->DeepCopy( csvTable );
@@ -274,6 +265,11 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	}
 	m_3dvis->show();
 	blobVisDialog = new dlg_blobVisualization();
+	blobManager->SetRenderers(blobRen, this->raycaster->GetLabelRenderer());
+	blobManager->SetBounds(m_3dvis->bounds());
+	blobManager->SetProtrusion(1.5);
+	int dimens[3] = { 50, 50, 50 };
+	blobManager->SetDimensions(dimens);
 	// set first column of the classTreeView to minimal (not stretched)
 	this->classTreeView->resizeColumnToContents( 0 );
 	this->classTreeView->header()->setStretchLastSection( false );
@@ -2726,8 +2722,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 	blobManager->UpdateBlobSettings( blob );
 
 	// single class rendering to blob view
-	double bounds[6];
-	raycaster->GetImageDataBounds( bounds );
+	double const * bounds = m_3dvis->bounds();
 	double dims[3] = { bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4] };
 	double maxDim = dims[0] >= dims[1] ? dims[0] : dims[1];
 	maxDim = dims[2] >= maxDim ? dims[2] : maxDim;

@@ -57,8 +57,14 @@ iA3DEllipseObjectVis::iA3DEllipseObjectVis(iAVtkWidgetClass* widget, vtkTable* o
 		fullPolySource->AddInputData(ellipsoidSrc->GetOutput());
 	}
 	fullPolySource->Update();
-	auto fullPoly = fullPolySource->GetOutput();
-	fullPoly->GetPointData()->AddArray(m_colors);
+	m_fullPoly = fullPolySource->GetOutput();
+	m_fullPoly->GetPointData()->AddArray(m_colors);
 	assert ( m_pointsPerObject*objectTable->GetNumberOfRows() == fullPolySource->GetOutput()->GetNumberOfPoints() );
-	m_mapper->SetInputData(fullPoly);
+	m_mapper->SetInputData(m_fullPoly);
+}
+
+
+double const * iA3DEllipseObjectVis::bounds()
+{
+	return m_fullPoly->GetBounds();
 }
