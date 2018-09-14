@@ -30,6 +30,7 @@
 #include "iAPlotTypes.h"
 #include "iAScatterPlot.h"
 #include "iASPLOMData.h"
+#include "iASPMSettings.h"
 
 #include <vtkLookupTable.h>
 
@@ -46,18 +47,6 @@
 #include <QSurfaceFormat>
 #include <QPainter>
 #endif
-
-#include "ui_SPMSettings.h"
-#include "iAQTtoUIConnector.h"
-
-typedef iAQTtoUIConnector<QDialog, Ui_SPMSettings>  SPMSettingsContainer;
-class iASPMSettings : public SPMSettingsContainer
-{
-public:
-	iASPMSettings(QWidget * parent = 0, Qt::WindowFlags f = 0)
-		: SPMSettingsContainer(parent, f)
-	{}
-};
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -163,6 +152,8 @@ void iAQSplom::setSelectionMode(int mode)
 {
 	if (m_maximizedPlot)
 		m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(mode);
+	QSignalBlocker sb(m_settingsDlg->cbSelectionMode);
+	m_settingsDlg->cbSelectionMode->setCurrentIndex(mode);
 	settings.selectionMode = mode;
 }
 
@@ -262,6 +253,11 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	connect(m_settingsDlg->slPointSize, SIGNAL(valueChanged(int)), this, SLOT(pointRadiusChanged(int)));
 	connect(m_settingsDlg->pbPointColor, SIGNAL(clicked()), this, SLOT(changePointColor()));
 	connect(m_settingsDlg->pbRangeFromParameter, SIGNAL(clicked()), this, SLOT(rangeFromParameter()));
+	connect(m_settingsDlg->cbSelectionMode, SIGNAL(currentIndexChanged(int)), this, SLOT(setSelectionMode(int)));
+	connect(m_settingsDlg->cbQuadraticPlots, &QCheckBox::toggled, this, &iAQSplom::setQuadraticPlots);
+	connect(m_settingsDlg->cbShowCorrelationCoefficient, &QCheckBox::toggled, this, &iAQSplom::setShowPCC);
+	connect(m_settingsDlg->cbShowHistograms, &QCheckBox::toggled, this, &iAQSplom::setHistogramVisible);
+	connect(m_settingsDlg->sbHistogramBins, SIGNAL(valueChanged(int)), this, SLOT(setHistogramBins(int)));
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
 }
 
@@ -703,13 +699,25 @@ void iAQSplom::showDefaultMaxizimedPlot()
 void iAQSplom::setHistogramVisible(bool visible)
 {
 	settings.histogramVisible = visible;
+	QSignalBlocker sb(m_settingsDlg->cbShowHistograms);
+	m_settingsDlg->cbShowHistograms->setChecked(visible);
 	updateVisiblePlots();
+	updateHistograms();
+}
+
+void iAQSplom::setHistogramBins(int bins)
+{
+	settings.histogramBins = bins;
+	if (!settings.histogramVisible)
+		return;
 	updateHistograms();
 }
 
 void iAQSplom::setQuadraticPlots(bool quadratic)
 {
 	settings.quadraticPlots = quadratic;
+	QSignalBlocker sb(m_settingsDlg->cbQuadraticPlots);
+	m_settingsDlg->cbQuadraticPlots->setChecked(quadratic);
 	updatePlotGridParams();
 	updateSPLOMLayout();
 	update();
@@ -718,6 +726,8 @@ void iAQSplom::setQuadraticPlots(bool quadratic)
 void iAQSplom::setShowPCC(bool showPCC)
 {
 	settings.showPCC = showPCC;
+	QSignalBlocker sb(m_settingsDlg->cbShowCorrelationCoefficient);
+	m_settingsDlg->cbShowCorrelationCoefficient->setChecked(showPCC);
 	foreach(QList<iAScatterPlot*> row, m_matrix)
 		foreach(iAScatterPlot* s, row)
 			s->settings.showPCC = showPCC;
@@ -730,8 +740,11 @@ void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 {
 	showHistogramAction->setChecked(settings.histogramVisible);
 	quadraticPlotsAction->setChecked(settings.quadraticPlots);
-	selectionModeRectangleAction->setChecked(settings.selectionMode == iAScatterPlot::Rectangle);
-	selectionModePolygonAction->setChecked(settings.selectionMode == iAScatterPlot::Polygon);
+	{
+		QSignalBlocker sb1(selectionModeRectangleAction), sb2(selectionModePolygonAction);
+		selectionModeRectangleAction->setChecked(settings.selectionMode == iAScatterPlot::Rectangle);
+		selectionModePolygonAction->setChecked(settings.selectionMode == iAScatterPlot::Polygon);
+	}
 	showPCCAction->setChecked(settings.showPCC);
 	for (auto col : m_columnPickMenu->actions())
 	{

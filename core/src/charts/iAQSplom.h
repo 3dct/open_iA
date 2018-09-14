@@ -139,7 +139,6 @@ public:
 	void setSelection( SelectionType const & selInds );              //!< Set selected data points from a vector of indices.
 	void clearSelection();                                           //!< deletes current selection
 	void setSelectionColor(QColor color);                            //!< set the color for selected points
-	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
 	void enableSelection(bool enable);                               //!< set whether selections are allowed or not
 	void getActivePlotIndices( int * inds_out );                     //!< Get X and Y parameter indices of currently active scatter plot.
 	int getVisibleParametersCount() const;                           //!< Get the number of parameters currently displayed
@@ -161,7 +160,9 @@ public:
 	ColorScheme colorScheme() const;                                 //!< get current color scheme
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
+	void setHistogramBins(int bins);                                 //!< set the number of histogram bins
 	void showSettings();                                             //!< Show the settings dialog
+	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.

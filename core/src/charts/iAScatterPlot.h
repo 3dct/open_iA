@@ -58,7 +58,7 @@ public:
 	static size_t NoPointIndex;
 
 	enum SelectionMode
-	{
+	{ // the order here needs to match the order in the cbSelectionMode combobox in SPMSettings dialog!
 		Rectangle,
 		Polygon
 	};

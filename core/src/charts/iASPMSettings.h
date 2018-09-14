@@ -32,5 +32,4 @@ public:
 		: SPMSettingsContainer( parent, f )
 	{
 	}
-	~iASPMSettings() {}
 };
