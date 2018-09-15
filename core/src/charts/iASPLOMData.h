@@ -52,7 +52,9 @@ public:
 	void setInverted(size_t paramIndex, bool isInverted);//!< Set whether the axis of a parameter should be inverted in the scatter plots.
 	void setParameterNames(std::vector<QString> const & names); //! Set the parameter names (clears all columns)
 	bool matchesFilter(size_t ind) const;             //!< Returns true if point with given index matches current filter
-	void setFilter(int colID, double value);          //!< Sets a filter on the given column (index), it needs to match the given value
+	void addFilter(int paramIndex, double value);     //!< Adds a filter on the given column (index), it needs to match the given value; multiple filters are linked via OR
+	void removeFilter(int paramIndex, double value);  //!< Removes the filter on the given column and value.
+	void clearFilter();                               //!< Clear all filters
 	bool filterDefined() const;                       //!< Returns true if a filter is defined on the data
 	double const* paramRange(size_t paramIndex) const;//!< Get the range of the parameter with given index
 	void updateRanges();                              //!< update range of all parameters
@@ -67,6 +69,5 @@ protected:
 	std::vector<bool> m_inverted;                     //!< whether to invert a feature
 private:
 	void updateRangeInternal(size_t paramIndex);      //!< Update internal range data for parameter paramIndex
-	int	m_FilterColID;                                //!< Filter Column ID
-	double m_FilterValue;                             //!< Current Filter value 
+	std::vector<std::pair<int,  double> > m_filters;  //!< collection of filters: each column index/value pair is linked via OR
 };

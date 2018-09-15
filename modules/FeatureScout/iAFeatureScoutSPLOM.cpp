@@ -115,9 +115,7 @@ void iAFeatureScoutSPLOM::setFilter(int classID)
 	if (classID == -1)
 		matrix->resetFilter();
 	else
-	{
-		matrix->setFilter(matrix->data()->numParams() - 1, classID);
-	}
+		matrix->addFilter(matrix->data()->numParams() - 1, classID);
 	matrix->update();
 }
 

@@ -269,12 +269,6 @@ void iAQSplom::addContextMenuAction(QAction* action)
 	m_contextMenu->addAction(action);
 }
 
-void iAQSplom::resetFilter()
-{
-	m_splomData->setFilter( -1, 0 );
-	updateFilter();
-}
-
 void iAQSplom::updateHistogram(size_t paramIndex)
 {
 	std::vector<double> hist_InputValues;
@@ -305,14 +299,21 @@ void iAQSplom::updateHistograms()
 	}
 }
 
-void iAQSplom::setFilter(int FilterCol_ID, double FilterValue)
+void iAQSplom::addFilter(int paramIndex, double value)
 {
-	if (FilterCol_ID < -1 || FilterCol_ID >= m_splomData->numParams())
-	{
-		DEBUG_LOG(QString("Invalid filter column ID %1!").arg(FilterCol_ID));
-		return;
-	}
-	m_splomData->setFilter(FilterCol_ID, FilterValue);
+	m_splomData->addFilter(paramIndex, value);
+	updateFilter();
+}
+
+void iAQSplom::removeFilter(int paramIndex, double value)
+{
+	m_splomData->removeFilter(paramIndex, value);
+	updateFilter();
+}
+
+void iAQSplom::resetFilter()
+{
+	m_splomData->clearFilter();
 	updateFilter();
 }
 
@@ -322,11 +323,11 @@ void iAQSplom::updateFilter()
 		foreach(iAScatterPlot * s, row)
 			if (s)
 				s->updatePoints();
-			
 	if (m_maximizedPlot)
 		m_maximizedPlot->updatePoints();
 
 	updateHistograms();
+	update();
 }
 
 void iAQSplom::initializeGL()

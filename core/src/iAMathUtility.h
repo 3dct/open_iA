@@ -205,3 +205,16 @@ open_iA_Core_API double covariance(FuncType const & func1, FuncType const & func
 
 //! calculate the Pearson's correlation coefficient between two functions
 open_iA_Core_API double pearsonsCorrelationCoefficient(FuncType const & func1, FuncType const & func2);
+
+//! checks whether two boolean values are equal, given a certain tolerance:
+//! inspired by https://stackoverflow.com/a/41405501/671366
+template <typename RealType>
+bool dblApproxEqual(RealType a, RealType b, RealType tolerance = std::numeric_limits<RealType>::epsilon())
+{
+	RealType diff = std::abs(a-b);
+	return diff < tolerance;
+	//if (diff < tolerance)
+	// return true;
+	// TODO: Test!
+	//return ((a>1 || b>1) && (diff < std::max(std::fabs(a), std::abs(b)) * tolerance));
+}
