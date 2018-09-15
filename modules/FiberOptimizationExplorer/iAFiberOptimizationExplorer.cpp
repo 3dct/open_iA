@@ -715,11 +715,14 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 		// TODO: Apply the current time step!!!
 		data.m_main3DVis->show();
 		m_style->addInput( resultID, data.m_main3DVis->getLinePolyData() );
+		// filter on ResultID!
+		m_splom->addFilter( m_splomData->numParams()-1, resultID);
 	}
 	else
 	{
 		data.m_main3DVis->hide();
 		m_style->removeInput(resultID);
+		m_splom->removeFilter( m_splomData->numParams()-1, resultID);
 	}
 	m_mainRenderer->GetRenderWindow()->Render();
 	m_mainRenderer->update();
