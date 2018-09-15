@@ -20,17 +20,16 @@
 * ************************************************************************************/
 #include "iASPLOMData.h"
 
+#include "iAConsole.h"
+#include "iAMathUtility.h"
+
 #include <QTableWidget>
 
-iASPLOMData::iASPLOMData():
-	m_FilterColID(-1),
-	m_FilterValue(-1.0)
+iASPLOMData::iASPLOMData()
 {
 }
 
-iASPLOMData::iASPLOMData(const QTableWidget * tw):
-	m_FilterColID(-1),
-	m_FilterValue(-1.0)
+iASPLOMData::iASPLOMData(const QTableWidget * tw)
 {
 	import(tw);
 }
@@ -40,6 +39,7 @@ void iASPLOMData::clear()
 	m_paramNames.clear();
 	m_dataPoints.clear();
 	m_inverted.clear();
+	m_filters.clear();
 }
 
 void iASPLOMData::import(const QTableWidget * tw)
@@ -125,24 +125,40 @@ void iASPLOMData::setInverted(size_t paramIndex, bool isInverted)
 
 bool iASPLOMData::matchesFilter(size_t ind) const
 {
-	const double epsilon = 0.00001;
-	if (m_FilterColID == -1)
+	if (m_filters.empty())
 		return true;
-
-	double col_val = this->paramData(m_FilterColID)[ind];
-	return (abs(col_val - m_FilterValue) < epsilon);
+	for (auto filter: m_filters)
+		if (dblApproxEqual(this->paramData(filter.first)[ind], filter.second))
+			return true;
+	return false;
 }
 
-void iASPLOMData::setFilter(int colID, double value)
+void iASPLOMData::addFilter(int paramIndex, double value)
 {
-	m_FilterColID = colID;
-	m_FilterValue = value;
-	//updateRanges();
+	if (paramIndex < -1 || paramIndex >= numParams())
+	{
+		DEBUG_LOG(QString("Invalid filter column ID %1!").arg(paramIndex));
+		return;
+	}
+	m_filters.push_back(std::make_pair(paramIndex, value));
+}
+
+void iASPLOMData::removeFilter(int paramIndex, double value)
+{
+	auto searchedPair = std::make_pair(paramIndex, value);
+	auto it = std::find(m_filters.begin(), m_filters.end(), searchedPair);
+	if (it != m_filters.end())
+		m_filters.erase(it);
+}
+
+void iASPLOMData::clearFilter()
+{
+	m_filters.clear();
 }
 
 bool iASPLOMData::filterDefined() const
 {
-	return m_FilterColID != -1;
+	return m_filters.size() > 0;
 }
 
 double const* iASPLOMData::paramRange(size_t paramIndex) const

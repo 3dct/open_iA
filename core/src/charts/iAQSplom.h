@@ -152,7 +152,8 @@ public:
 	iAColorTheme const * getBackgroundColorTheme();                  //!< retrieve the theme for background colors for the separated regions
 	void showAllPlots(const bool enableAllPlotsVisible);             //!< switch between showing all plots or only upper half
 	void showDefaultMaxizimedPlot();                                 //!< maximize plot in upper left corner
-	void setFilter(int paramIndex, double value);                    //!< set filter on data to be shown; only data points where given parameter contains given value will be shown
+	void addFilter(int paramIndex, double value);                    //!< set filter on data to be shown; only data points where given parameter contains given value will be shown
+	void removeFilter(int paramIndex, double value);                 //!< remove a specific filter
 	void resetFilter();                                              //!< reset filter on data; after calling this method, all data points will be shown again
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
