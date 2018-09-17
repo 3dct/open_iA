@@ -25,6 +25,7 @@
 #include "iAConsole.h"
 #include "iAImageTreeNode.h"
 #include "iASingleResult.h"
+#include "iAToolsITK.h"
 
 #include <itkImageFileWriter.h>
 #include <itkRelabelComponentImageFilter.h>
@@ -75,11 +76,8 @@ void iADerivedOutputCalculator::run()
 
 		if (m_result->ProbabilityAvailable())
 		{
-
 			typedef itk::ImageRegionConstIterator<ProbabilityImageType> ConstDblIt;
-
 			typedef fhw::EntropyImageFilter<ProbabilityImageType, ProbabilityImageType> EntropyFilter;
-			typedef itk::StatisticsImageFilter<ProbabilityImageType> MeanFilter;
 			auto entropyFilter = EntropyFilter::New();
 			for (int i = 0; i < m_labelCount; ++i)
 			{
@@ -88,10 +86,8 @@ void iADerivedOutputCalculator::run()
 			}
 			entropyFilter->SetNormalize(true);
 			entropyFilter->Update();
-			auto meanFilter = MeanFilter::New();
-			meanFilter->SetInput(entropyFilter->GetOutput());
-			meanFilter->Update();
-			double avgEntropy = meanFilter->GetMean();
+			double avgEntropy;
+			getStatistics(entropyFilter->GetOutput(), nullptr, nullptr, &avgEntropy);
 			m_result->SetAttribute(m_avgUncIdx, avgEntropy);
 			m_result->DiscardProbability();
 		}
