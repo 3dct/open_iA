@@ -34,6 +34,8 @@
 #include <QGLWidget>
 #endif
 
+#include <QMap>
+
 class iAPlot;
 class iAMapper;
 
@@ -86,6 +88,9 @@ public:
 	bool isDrawnDiscrete() const;
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
 	void removeImageOverlay(QImage * imgOverlay);
+	void addXMarker(double xPos, QColor const & color);
+	void removeXMarker(double xPos);
+	void clearMarkers();
 public slots:
 	void resetView();
 signals:
@@ -154,4 +159,5 @@ private:
 	bool m_customXBounds, m_customYBounds;
 	double m_xBounds[2], m_yBounds[2];
 	QFlags<Qt::AlignmentFlag> m_captionPosition;
+	QMap<double, QColor> m_xMarker;
 };
