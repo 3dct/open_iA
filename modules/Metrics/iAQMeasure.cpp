@@ -414,3 +414,67 @@ void iAQMeasureRunner::FilterGUIPreparations(QSharedPointer<iAFilter> filter, Md
 	iAQMeasure* qfilter = dynamic_cast<iAQMeasure*>(filter.data());
 	qfilter->SetupDebugGUI(chart, mdiChild);
 }
+
+IAFILTER_CREATE(iASNR)
+
+iASNR::iASNR() :
+	iAFilter("Signal-to-Noise Ratio", "Metrics",
+		"Computes the Signal-to-noise ratio as (mean / stddev) of the given image region.<br/>", 1, 0)
+{
+	AddParameter("Index X", Discrete, 0);
+	AddParameter("Index Y", Discrete, 0);
+	AddParameter("Index Z", Discrete, 0);
+	AddParameter("Size X", Discrete, 1);
+	AddParameter("Size Y", Discrete, 1);
+	AddParameter("Size Z", Discrete, 1);
+	AddOutputValue("Signal-to-Noise Ratio");
+}
+
+void iASNR::PerformWork(QMap<QString, QVariant> const & parameters)
+{
+	size_t size[3], index[3];
+	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
+	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
+	auto extractImg = ExtractImage(Input()[0]->GetITKImage(), index, size);
+	double mean, stddev;
+	getStatistics(extractImg, nullptr, nullptr, &mean, &stddev);
+	AddOutputValue("Signal-to-Noise Ratio", mean / stddev);
+}
+
+IAFILTER_CREATE(iACNR)
+
+iACNR::iACNR() :
+	iAFilter("Contrast-to-Noise Ratio", "Metrics",
+		"Computes the Signal-to-noise ratio as (mean(region2) - mean(region1)) / stddev(region2).<br/>"
+		"Region 1 should typically contain a homogeneous area of surrounding (air), "
+		"while region 2 should typically contain a homogeneous region of material", 1, 0)
+{
+	AddParameter("Region 1 Index X", Discrete, 0);
+	AddParameter("Region 1 Index Y", Discrete, 0);
+	AddParameter("Region 1 Index Z", Discrete, 0);
+	AddParameter("Region 1 Size X" , Discrete, 1);
+	AddParameter("Region 1 Size Y" , Discrete, 1);
+	AddParameter("Region 1 Size Z" , Discrete, 1);
+	AddParameter("Region 2 Index X", Discrete, 0);
+	AddParameter("Region 2 Index Y", Discrete, 0);
+	AddParameter("Region 2 Index Z", Discrete, 0);
+	AddParameter("Region 2 Size X" , Discrete, 1);
+	AddParameter("Region 2 Size Y" , Discrete, 1);
+	AddParameter("Region 2 Size Z" , Discrete, 1);
+	AddOutputValue("Contrast-to-Noise Ratio");
+}
+
+void iACNR::PerformWork(QMap<QString, QVariant> const & parameters)
+{
+	size_t size[3], index[3];
+	size[0] = parameters["Region 1 Size X"].toUInt(); size[1] = parameters["Region 1 Size Y"].toUInt(); size[2] = parameters["Region 1 Size Z"].toUInt();
+	index[0] = parameters["Region 1 Index X"].toUInt(); index[1] = parameters["Region 1 Index Y"].toUInt(); index[2] = parameters["Region 1 Index Z"].toUInt();
+	auto extractImg1 = ExtractImage(Input()[0]->GetITKImage(), index, size);
+	size[0] = parameters["Region 2 Size X"].toUInt(); size[1] = parameters["Region 2 Size Y"].toUInt(); size[2] = parameters["Region 2 Size Z"].toUInt();
+	index[0] = parameters["Region 2 Index X"].toUInt(); index[1] = parameters["Region 2 Index Y"].toUInt(); index[2] = parameters["Region 2 Index Z"].toUInt();
+	auto extractImg2 = ExtractImage(Input()[0]->GetITKImage(), index, size);
+	double mean1, mean2, stddev2;
+	getStatistics(extractImg1, nullptr, nullptr, &mean1, nullptr);
+	getStatistics(extractImg2, nullptr, nullptr, &mean2, &stddev2);
+	AddOutputValue("Contrast-to-Noise Ratio", (mean2 - mean1) / stddev2);
+}
