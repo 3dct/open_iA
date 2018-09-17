@@ -57,6 +57,7 @@ class QComboBox;
 class QLabel;
 class QSlider;
 class QSpinBox;
+class QTimer;
 
 class iAFiberOptimizationExplorer : public QMainWindow, public iASelectionProvider
 {
@@ -82,6 +83,9 @@ private slots:
 	void selectionTimeStepChartChanged(std::vector<size_t> const & selection);
 	void splomLookupTableChanged();
 	void changeReferenceDisplay();
+	void playPauseTimeSteps();
+	void playTimer();
+	void playDelayChanged(int);
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
@@ -119,4 +123,6 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> m_sampleMapper;
 	vtkSmartPointer<vtkActor> m_sampleActor;
 	QString m_configName;
+	QTimer * m_playTimer;
+	QSlider* m_timeStepSlider;
 };

@@ -71,6 +71,7 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QTextStream>
+#include <QTimer>
 
 #include <QtGlobal> // for QT_VERSION
 
@@ -126,6 +127,7 @@ namespace
 	int DifferenceCount;
 	const int EndColumns = 2;
 	const double CoordinateShift = 74.5;
+	const int DefaultPlayDelay = 1000;
 
 	iACsvConfig getLegacyConfig()
 	{
@@ -226,7 +228,8 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(MainWindow* mainWnd) :
 	m_timeStepCount(0),
 	m_splomData(new iASPLOMData()),
 	m_splom(new iAQSplom()),
-	m_referenceID(NoResult)
+	m_referenceID(NoResult),
+	m_playTimer(new QTimer(this))
 {
 	setDockOptions(AllowNestedDocks | AllowTabbedDocks);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -334,18 +337,36 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	m_timeStepChart->setSelectionMode(iAChartWidget::SelectPlot);
 	connect(m_timeStepChart, &iAChartWidget::plotsSelected, this, &iAFiberOptimizationExplorer::selectionTimeStepChartChanged);
 
+	QWidget* playControls = new QWidget();
+	playControls->setLayout(new QHBoxLayout());
+	QPushButton* playPauseButton = new QPushButton("Play");
+	QSpinBox* stepDelayInput = new QSpinBox();
+	stepDelayInput->setMinimum(100);
+	stepDelayInput->setMaximum(10000);
+	stepDelayInput->setSingleStep(100);
+	stepDelayInput->setValue(DefaultPlayDelay);
+	playControls->layout()->addWidget(new QLabel("Delay (ms)"));
+	playControls->layout()->addWidget(stepDelayInput);
+	playControls->layout()->addWidget(playPauseButton);
+	m_playTimer->setInterval(DefaultPlayDelay);
+	connect(m_playTimer, &QTimer::timeout, this, &iAFiberOptimizationExplorer::playTimer);
+	connect(playPauseButton, &QPushButton::pressed, this, &iAFiberOptimizationExplorer::playPauseTimeSteps);
+	connect(stepDelayInput, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
+	playControls->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
 	optimizationSteps->setLayout(new QVBoxLayout());
 	QWidget* timeSteps = new QWidget();
-	QSlider* timeStepSlider = new QSlider(Qt::Horizontal);
-	timeStepSlider->setMinimum(0);
-	connect(timeStepSlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::timeSliderChanged);
+	m_timeStepSlider = new QSlider(Qt::Horizontal);
+	m_timeStepSlider->setMinimum(0);
+	connect(m_timeStepSlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::timeSliderChanged);
 	m_currentTimeStepLabel = new QLabel("");
 	timeSteps->setLayout(new QHBoxLayout());
-	timeSteps->layout()->addWidget(timeStepSlider);
+	timeSteps->layout()->addWidget(m_timeStepSlider);
 	timeSteps->layout()->addWidget(m_currentTimeStepLabel);
 	timeSteps->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	optimizationSteps->layout()->addWidget(m_timeStepChart);
 	optimizationSteps->layout()->addWidget(timeSteps);
+	optimizationSteps->layout()->addWidget(playControls);
 
 	int resultID = 0;
 	m_defaultButtonGroup = new QButtonGroup();
@@ -618,8 +639,8 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	m_splomData->updateRanges();
 	m_currentSelection.resize(resultID);
 
-	timeStepSlider->setMaximum(m_timeStepCount - 1);
-	timeStepSlider->setValue(m_timeStepCount - 1);
+	m_timeStepSlider->setMaximum(m_timeStepCount - 1);
+	m_timeStepSlider->setValue(m_timeStepCount - 1);
 	m_currentTimeStepLabel->setText(QString::number(m_timeStepCount - 1));
 
 	QWidget* resultList = new QWidget();
@@ -918,7 +939,7 @@ void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
 	{
 		if (m_resultData[resultID].m_timeValues.size() > timeStep)
 		{
-			m_resultData[resultID].m_mini3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
+			//m_resultData[resultID].m_mini3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
 			if (m_resultData[resultID].m_main3DVis->visible())
 				m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
 		}
@@ -1496,4 +1517,31 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 	// ... and set up color coding by it!
 	m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
 	// TODO: show distance color map somewhere!!!
+}
+
+void iAFiberOptimizationExplorer::playPauseTimeSteps()
+{
+	QPushButton* btn = qobject_cast<QPushButton*>(sender());
+	if (m_playTimer->isActive())
+	{
+		m_playTimer->stop();
+		btn->setText("Play");
+	}
+	else
+	{
+		m_playTimer->start();
+		btn->setText("Pause");
+	}
+}
+
+void iAFiberOptimizationExplorer::playTimer()
+{
+	m_timeStepSlider->setValue((m_timeStepSlider->value() + 1) % (m_timeStepSlider->maximum() + 1));
+	// update of 3D vis is automatically done through signal on slider change!
+}
+
+
+void iAFiberOptimizationExplorer::playDelayChanged(int newInterval)
+{
+	m_playTimer->setInterval(newInterval);
 }
