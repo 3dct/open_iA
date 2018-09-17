@@ -36,6 +36,8 @@
 
 #include <vector>
 
+#include <QMap>
+
 class iAPlot;
 class iAMapper;
 
@@ -91,6 +93,9 @@ public:
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
 	void removeImageOverlay(QImage * imgOverlay);
 	void setSelectionMode(SelectionMode mode);
+	void addXMarker(double xPos, QColor const & color);
+	void removeXMarker(double xPos);
+	void clearMarkers();
 public slots:
 	void resetView();
 signals:
@@ -164,4 +169,5 @@ private:
 	QRubberBand* m_selectionBand;
 	QPoint m_selectionOrigin;
 	std::vector<size_t> m_selectedPlots;
+	QMap<double, QColor> m_xMarker;
 };

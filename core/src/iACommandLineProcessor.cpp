@@ -157,6 +157,8 @@ namespace
 			<< "           -q   quiet - no output except for error messages" << std::endl
 			<< "           -c   compress output" << std::endl
 			<< "           -f   overwrite output if it exists" << std::endl
+			<< "         Note: Only image output is written to the filename(s) specified after -o," << std::endl
+			<< "           filters returning one or more output values write those values to the command line." << std::endl
 			<< "     -p FilterName" << std::endl
 			<< "         Output the Parameter Descriptor for the given filter (required for sampling)." << std::endl;
 	}

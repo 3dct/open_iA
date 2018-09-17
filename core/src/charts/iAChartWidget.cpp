@@ -885,11 +885,38 @@ void iAChartWidget::paintEvent(QPaintEvent * e)
 	painter.scale(1, -1);
 
 	drawPlots(painter, startBin, endBin);
+	for (double x : m_xMarker.keys())
+	{
+		QColor color = m_xMarker[x];
+		painter.setPen(color);
+		QLine line;
+		QRect diagram = geometry();
+		double pos = diagram2PaintX(x);
+		line.setP1(QPoint(pos, 0));
+		line.setP2(QPoint(pos, diagram.height() - bottomMargin()));
+		painter.drawLine(line);
+	}
+
 	drawAfterPlots(painter);
 
 	painter.scale(1, -1);
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	drawAxes(painter);
+}
+
+void iAChartWidget::addXMarker(double xPos, QColor const & color)
+{
+	m_xMarker.insert(xPos, color);
+}
+
+void iAChartWidget::removeXMarker(double xPos)
+{
+	m_xMarker.remove(xPos);
+}
+
+void iAChartWidget::clearMarkers()
+{
+	m_xMarker.clear();
 }
 
 void iAChartWidget::keyReleaseEvent(QKeyEvent *event)

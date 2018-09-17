@@ -45,3 +45,7 @@ public:
 	static QSharedPointer<iAFilterRunnerGUI> Create();
 	void FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd) override;
 };
+
+
+IAFILTER_DEFAULT_CLASS(iACNR);
+IAFILTER_DEFAULT_CLASS(iASNR);

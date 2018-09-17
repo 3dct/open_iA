@@ -115,13 +115,10 @@ void DataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 	rescaleFilter->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
 	if (parameters["Automatic Input Range"].toBool())
 	{
-		typedef itk::StatisticsImageFilter<InputImageType> StatisticsImageFilterType;
-		auto minMaxFilter = StatisticsImageFilterType::New();
-		minMaxFilter->ReleaseDataFlagOff();
-		minMaxFilter->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
-		minMaxFilter->Update();
-		rescaleFilter->SetInputMinimum(minMaxFilter->GetMinimum());
-		rescaleFilter->SetInputMaximum(minMaxFilter->GetMaximum());
+		double minVal, maxVal;
+		getStatistics(filter->Input()[0]->GetITKImage(), nullptr, nullptr, &minVal, &maxVal);
+		rescaleFilter->SetInputMinimum(minVal);
+		rescaleFilter->SetInputMaximum(maxVal);
 	}
 	else
 	{

@@ -22,6 +22,7 @@
 
 #include "PorosityAnalyserHelpers.h"
 
+#include "iAToolsITK.h"
 #include "io/iAITKIO.h"
 
 #include <itkExtractImageFilter.h>
@@ -49,12 +50,8 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	duplicator->Update();
 	
 	//intensity statistics 
-	typedef itk::StatisticsImageFilter<InputImageType> StatisticsImageFilterType;
-	typename StatisticsImageFilterType::Pointer statisticsImageFilter = StatisticsImageFilterType::New();
-	statisticsImageFilter->SetInput( duplicator->GetOutput() );
-	statisticsImageFilter->Update();
-	int minIntensity = statisticsImageFilter->GetMinimum();
-	int maxIntensity = statisticsImageFilter->GetMaximum();
+	double minIntensity, maxIntensity, mean, sigma, variance;
+	getStatistics(duplicator->GetOutput(), &minIntensity, &maxIntensity, &mean, &sigma, &variance);
 
 	//intensity histogram
 	const unsigned int MeasurementVectorSize = 1; // Grayscale
@@ -79,9 +76,9 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	fout << "Datasetname:" << QString( datasetName ).toStdString() << '\n'
 		<< "Min:" << minIntensity << '\n'
 		<< "Max:" << maxIntensity << '\n'
-		<< "Std:" << statisticsImageFilter->GetSigma() << '\n'
-		<< "Mean:" << statisticsImageFilter->GetMean() << '\n'
-		<< "Variance:" << statisticsImageFilter->GetVariance() << '\n';
+		<< "Std:" << sigma << '\n'
+		<< "Mean:" << mean << '\n'
+		<< "Variance:" << variance << '\n';
 	// Walking through all of the histogram bins and getting the corresponding frequencies
 	typedef typename ImageToHistogramFilterType::HistogramType HistogramType;
 	typename HistogramType::ConstIterator itr = histogram->Begin();
