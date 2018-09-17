@@ -128,6 +128,7 @@ namespace
 	const int EndColumns = 2;
 	const double CoordinateShift = 74.5;
 	const int DefaultPlayDelay = 1000;
+	QColor TimeMarkerColor(192, 0, 0);
 
 	iACsvConfig getLegacyConfig()
 	{
@@ -649,6 +650,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 
 	m_timeStepSlider->setMaximum(m_timeStepMax - 1);
 	m_timeStepSlider->setValue(m_timeStepMax - 1);
+	m_timeStepChart->addXMarker(m_timeStepMax-1, TimeMarkerColor);
 	m_currentTimeStepLabel->setText(QString::number(m_timeStepMax - 1));
 
 	QWidget* resultList = new QWidget();
@@ -966,6 +968,9 @@ void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
 
 void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
 {
+	m_timeStepChart->clearMarkers();
+	m_timeStepChart->addXMarker(timeStep, TimeMarkerColor);
+	m_timeStepChart->update();
 	m_currentTimeStepLabel->setText(QString::number(timeStep));
 	for (int resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
