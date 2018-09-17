@@ -65,7 +65,6 @@ public:
 	QSharedPointer<iAMapper> const yMapper() const;
 	virtual iAPlotData::DataType const * yBounds() const;
 	virtual double const * xBounds() const;
-	virtual size_t maxXAxisSteps() const;
 	bool categoricalAxis() const;
 	double xRange() const;
 	double maxXZoom() const;
@@ -160,4 +159,5 @@ private:
 	double m_xBounds[2], m_yBounds[2];
 	QFlags<Qt::AlignmentFlag> m_captionPosition;
 	QMap<double, QColor> m_xMarker;
+	size_t m_maxXAxisSteps;
 };

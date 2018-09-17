@@ -167,7 +167,7 @@ bool iALineFunctionDrawer::computePolygons(double binWidth, size_t startBin, siz
 	m_poly->push_back(QPoint((startBin - 1)*binWidth, 0));
 	for (int j = startBin; j < endBin; j++)
 	{
-		int curX = (int)(j * binWidth) + binWidthHalf;
+		int curX = (int)(j * binWidth)+ binWidthHalf;
 		int curY = yMapper->srcToDst(rawData[j]);
 		m_poly->push_back(QPoint(curX, curY));
 	}
