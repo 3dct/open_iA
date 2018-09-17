@@ -180,12 +180,12 @@ void iAEnergySpectrumWidget::drawAfterPlots(QPainter& painter)
 		int drawnLines = 0;
 		for (int j=0; j<element->energies.size(); ++j)
 		{
-			QLine line;
-			QRect diagram = geometry();
 			double elementkEV = element->energies[j]/1000.0;
 			if (elementkEV >= xBounds()[0] &&
 				elementkEV <= xBounds()[1])
 			{
+				QLine line;
+				QRect diagram = geometry();
 				double pos = diagram2PaintX(elementkEV);
 				line.setP1(QPoint(pos, 0));
 				line.setP2(QPoint(pos, diagram.height()-bottomMargin()));
