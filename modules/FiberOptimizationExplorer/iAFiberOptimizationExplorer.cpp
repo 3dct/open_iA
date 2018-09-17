@@ -615,6 +615,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 			int fiberCount = curFiber;
 
 			// transform from [fiber, timestep, value] to [timestep, fiber, value] indexing
+			// TODO: make sure all datasets have the same max timestep count!
 			m_resultData[m_resultData.size() - 1].m_timeValues.resize(m_timeStepCount);
 			for (int t = 0; t < m_timeStepCount; ++t)
 			{
@@ -713,12 +714,26 @@ QColor iAFiberOptimizationExplorer::getResultColor(int resultID)
 	return color;
 }
 
+namespace
+{
+	bool anythingElseShown(std::vector<iAResultData> const & resultData, int resultID)
+	{
+		for (int i = 0; i < resultData.size(); ++i)
+			if (resultData[i].m_main3DVis->visible() && resultID != i)
+				return true;
+		return false;
+	}
+}
+
 void iAFiberOptimizationExplorer::toggleVis(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
 	iAResultData & data = m_resultData[resultID];
 	if (state == Qt::Checked)
 	{
+		if (!anythingElseShown(m_resultData, resultID))
+			for (size_t p = 0; p < m_timeStepChart->plots().size(); ++p)
+				m_timeStepChart->plots()[p]->SetVisible(false);
 		data.m_main3DVis->setSelectionOpacity(SelectionOpacity);
 		data.m_main3DVis->setContextOpacity(ContextOpacity);
 		if (m_splom->colorScheme() == iAQSplom::ByParameter)
@@ -730,21 +745,30 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 		{
 			data.m_main3DVis->setColor(getResultColor(resultID));
 		}
+		for (size_t p = 0; p < data.m_fiberCount; ++p)
+			m_timeStepChart->plots()[data.m_startPlotIdx + p]->SetVisible(true);
+
 		bool anythingSelected = isAnythingSelected();
 		if (anythingSelected)
 			data.m_main3DVis->setSelection(m_currentSelection[resultID], anythingSelected);
-		// TODO: Apply the current time step!!!
+		m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID].m_timeValues[m_timeStepSlider->value()]);
 		data.m_main3DVis->show();
 		m_style->addInput( resultID, data.m_main3DVis->getLinePolyData() );
-		// filter on ResultID!
 		m_splom->addFilter( m_splomData->numParams()-1, resultID);
 	}
 	else
 	{
+		if (anythingElseShown(m_resultData, resultID))
+			for (size_t p = 0; p < data.m_fiberCount; ++p)
+				m_timeStepChart->plots()[data.m_startPlotIdx + p]->SetVisible(false);
+		else // nothing selected, show everything
+			for (size_t p = 0; p < m_timeStepChart->plots().size(); ++p)
+				m_timeStepChart->plots()[p]->SetVisible(true);
 		data.m_main3DVis->hide();
 		m_style->removeInput(resultID);
 		m_splom->removeFilter( m_splomData->numParams()-1, resultID);
 	}
+	m_timeStepChart->update();
 	m_mainRenderer->GetRenderWindow()->Render();
 	m_mainRenderer->update();
 }
