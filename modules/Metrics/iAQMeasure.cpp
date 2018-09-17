@@ -367,7 +367,7 @@ IAFILTER_CREATE(iAQMeasure)
 
 iAQMeasure::iAQMeasure() :
 	iAFilter("Image Quality", "Metrics",
-		"Computes the Signal-to-noise and Contrast-to-noise ratio as well as the Q metric.<br/>"
+		"Computes the Q metric, as well as optionally a histogram-based Signal-to-noise ratio.<br/>"
 		"For more information on the Q metric, see "
 		"<a href=\"http://www.ndt.net/article/ctc2014/papers/273.pdf\">M. Reiter, D. Weiss, C. Gusenbauer, "
 		"J. Kastner, M. Erler, S. Kasperl: Evaluation of a histogram based image quality measure for X-ray "
@@ -445,8 +445,8 @@ IAFILTER_CREATE(iACNR)
 
 iACNR::iACNR() :
 	iAFilter("Contrast-to-Noise Ratio", "Metrics",
-		"Computes the Signal-to-noise ratio as (mean(region2) - mean(region1)) / stddev(region2).<br/>"
-		"Region 1 should typically contain a homogeneous area of surrounding (air), "
+		"Computes the Contrast-to-noise ratio as (mean(region2) - mean(region1)) / stddev(region2).<br/>"
+		"Region 1 should typically contain a homogeneous area of surroundings (air), "
 		"while region 2 should typically contain a homogeneous region of material", 1, 0)
 {
 	AddParameter("Region 1 Index X", Discrete, 0);
