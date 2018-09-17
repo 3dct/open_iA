@@ -225,7 +225,7 @@ namespace
 iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(MainWindow* mainWnd) :
 	m_colorTheme(iAColorThemeManager::GetInstance().GetTheme("Brewer Accent (max. 8)")),
 	m_mainWnd(mainWnd),
-	m_timeStepCount(0),
+	m_timeStepMax(1),
 	m_splomData(new iASPLOMData()),
 	m_splom(new iAQSplom()),
 	m_referenceID(NoResult),
@@ -494,6 +494,8 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 
 		// TODO: in case reading gets inefficient, look at pre-reserving the required amount of fields
 		//       and using std::vector::swap to assign the sub-vectors!
+
+		size_t thisResultTimeStepMax = 1;
 		if (timeInfo.exists() && timeInfo.isDir())
 		{
 			// read projection error info:
@@ -601,13 +603,9 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 					*/
 					singleFiberValues.push_back(timeStepValues);
 				}
-				if (singleFiberValues.size() > m_timeStepCount)
+				if (singleFiberValues.size() > thisResultTimeStepMax)
 				{
-					if (m_timeStepCount != 0)
-					{
-						DEBUG_LOG(QString("Different time step counts! Encountered %1 before, now %2").arg(m_timeStepCount).arg(singleFiberValues.size()));
-					}
-					m_timeStepCount = singleFiberValues.size();
+					thisResultTimeStepMax = singleFiberValues.size();
 				}
 				fiberTimeValues.push_back(singleFiberValues);
 				++curFiber;
@@ -616,8 +614,8 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 
 			// transform from [fiber, timestep, value] to [timestep, fiber, value] indexing
 			// TODO: make sure all datasets have the same max timestep count!
-			m_resultData[m_resultData.size() - 1].m_timeValues.resize(m_timeStepCount);
-			for (int t = 0; t < m_timeStepCount; ++t)
+			m_resultData[m_resultData.size() - 1].m_timeValues.resize(thisResultTimeStepMax);
+			for (int t = 0; t < thisResultTimeStepMax; ++t)
 			{
 				m_resultData[m_resultData.size() - 1].m_timeValues[t].resize(fiberCount);
 				for (int f = 0; f < fiberCount; ++f)
@@ -630,6 +628,15 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 		{
 			m_resultData[m_resultData.size() - 1].m_startPlotIdx = NoPlotsIdx;
 		}
+		if (thisResultTimeStepMax > m_timeStepMax)
+		{
+			if (m_timeStepMax > 1)
+			{
+				DEBUG_LOG(QString("In result %1, the maximum number of timesteps changes from %2 to %3! This shouldn't be a problem, but support for it is currently untested.")
+					.arg(resultID).arg(m_timeStepMax).arg(thisResultTimeStepMax));
+			}
+			m_timeStepMax = thisResultTimeStepMax;
+		}
 		++resultID;
 	}
 	if (m_resultData.size() == 0)
@@ -640,9 +647,9 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	m_splomData->updateRanges();
 	m_currentSelection.resize(resultID);
 
-	m_timeStepSlider->setMaximum(m_timeStepCount - 1);
-	m_timeStepSlider->setValue(m_timeStepCount - 1);
-	m_currentTimeStepLabel->setText(QString::number(m_timeStepCount - 1));
+	m_timeStepSlider->setMaximum(m_timeStepMax - 1);
+	m_timeStepSlider->setValue(m_timeStepMax - 1);
+	m_currentTimeStepLabel->setText(QString::number(m_timeStepMax - 1));
 
 	QWidget* resultList = new QWidget();
 	resultList->setLayout(resultsListLayout);
@@ -961,12 +968,10 @@ void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
 	m_currentTimeStepLabel->setText(QString::number(timeStep));
 	for (int resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
-		if (m_resultData[resultID].m_timeValues.size() > timeStep)
-		{
-			//m_resultData[resultID].m_mini3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
-			if (m_resultData[resultID].m_main3DVis->visible())
-				m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
-		}
+		//m_resultData[resultID].m_mini3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
+		if (m_resultData[resultID].m_main3DVis->visible())
+			m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID]
+				.m_timeValues[std::min(timeStep, static_cast<int>(m_resultData[resultID].m_timeValues.size()-1))]);
 	}
 }
 

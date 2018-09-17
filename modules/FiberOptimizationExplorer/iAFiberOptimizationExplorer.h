@@ -101,7 +101,7 @@ private:
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_colorTheme;
 	MainWindow* m_mainWnd;
-	int m_timeStepCount;
+	int m_timeStepMax;
 	int m_referenceID;
 	std::vector<std::vector<size_t> > m_currentSelection;
 	vtkSmartPointer<vtkTable> m_refVisTable;
