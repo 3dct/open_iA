@@ -758,7 +758,8 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 		bool anythingSelected = isAnythingSelected();
 		if (anythingSelected)
 			data.m_main3DVis->setSelection(m_currentSelection[resultID], anythingSelected);
-		m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID].m_timeValues[m_timeStepSlider->value()]);
+		m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID].m_timeValues[
+			std::min(m_resultData[resultID].m_timeValues.size()-1, static_cast<size_t>(m_timeStepSlider->value()))]);
 		data.m_main3DVis->show();
 		m_style->addInput( resultID, data.m_main3DVis->getLinePolyData() );
 		m_splom->addFilter( m_splomData->numParams()-1, resultID);
@@ -971,7 +972,7 @@ void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
 		//m_resultData[resultID].m_mini3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
 		if (m_resultData[resultID].m_main3DVis->visible())
 			m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID]
-				.m_timeValues[std::min(timeStep, static_cast<int>(m_resultData[resultID].m_timeValues.size()-1))]);
+				.m_timeValues[std::min(static_cast<size_t>(timeStep), m_resultData[resultID].m_timeValues.size()-1)]);
 	}
 }
 
