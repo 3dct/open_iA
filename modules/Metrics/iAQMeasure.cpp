@@ -160,8 +160,8 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		if (peaks.size() < 2)
 		{
 			//DEBUG_LOG(QString("Cannot continue with less than 2 peaks!"));
-			filter->AddOutputValue("Signal-to-noise ratio", 0);
-			filter->AddOutputValue("Contrast-to-noise ratio", 0);
+			if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
+				filter->AddOutputValue("Histogram-based SNR (highest non-air-peak)", 0);
 			filter->AddOutputValue("Q", 0);
 			return;
 		}
@@ -250,13 +250,9 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 			highestNonAirPeakIdx = p;
 		}
 	}
-	if (parameters["Signal-to-noise ratio"].toBool())
+	if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
 	{
-		filter->AddOutputValue("Signal-to-noise ratio", mean[highestNonAirPeakIdx] / std::sqrt(variance[highestNonAirPeakIdx]));
-	}
-	if (parameters["Contrast-to-noise ratio"].toBool())
-	{
-		filter->AddOutputValue("Contrast-to-noise ratio", (mean[highestNonAirPeakIdx]- mean[minDistToZeroIdx]) / std::sqrt(variance[highestNonAirPeakIdx]));
+		filter->AddOutputValue("Histogram-based SNR (highest non-air-peak)", mean[highestNonAirPeakIdx] / std::sqrt(variance[highestNonAirPeakIdx]));
 	}
 	if (parameters["Q metric"].toBool())
 	{
@@ -386,8 +382,7 @@ iAQMeasure::iAQMeasure() :
 	AddParameter("Size X", Discrete, 1);
 	AddParameter("Size Y", Discrete, 1);
 	AddParameter("Size Z", Discrete, 1);
-	AddParameter("Signal-to-noise ratio", Boolean, true);
-	AddParameter("Contrast-to-noise ratio", Boolean, true);
+	AddParameter("Histogram-based SNR (highest non-air-peak)", Boolean, true);
 	AddParameter("Q metric", Boolean, true);
 	AddParameter("Number of peaks", Discrete, 2, 2);
 	AddParameter("Histogram bin factor"       , Continuous, 0.125, 0.0000001);
@@ -396,8 +391,7 @@ iAQMeasure::iAQMeasure() :
 
 	AddParameter("OrigQ Histogram bins", Discrete, 512, 2);
 
-	AddOutputValue("Signal-to-noise ratio");
-	AddOutputValue("Contrast-to-noise ratio");
+	AddOutputValue("Histogram-based SNR (highest non-air-peak)");
 	AddOutputValue("Q");
 	AddOutputValue("Q (orig, equ 0)");
 	AddOutputValue("Q (orig, equ 1)");
