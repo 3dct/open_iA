@@ -668,7 +668,6 @@ void iAChartWidget::drawPlots(QPainter &painter)
 	}
 	double xStart = visibleXStart(), xEnd = visibleXEnd();
 	size_t plotIdx = 0;
-	DEBUG_LOG(QString("Drawing plots in range %1..%2").arg(xStart).arg(xEnd));
 	for (auto it = m_plots.constBegin(); it != m_plots.constEnd(); ++it)
 	{
 		if ((*it)->visible())
@@ -678,17 +677,12 @@ void iAChartWidget::drawPlots(QPainter &painter)
 			double plotXEnd = clamp((*it)->data()->XBounds()[0], (*it)->data()->XBounds()[1], xEnd);
 			double plotStepWidth = ((*it)->data()->XBounds()[1] - (*it)->data()->XBounds()[0]
 				+ (((*it)->data()->GetRangeType() == Discrete)?1:0) ) / m_plots[0]->data()->GetNumBin();
-			size_t plotStartBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotXStart-(*it)->data()->XBounds()[0]) / plotStepWidth));
+			size_t plotStartBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotXStart-(*it)->data()->XBounds()[0]) / plotStepWidth - 1));
 			size_t plotEndBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotXEnd- (*it)->data()->XBounds()[0]) / plotStepWidth + 1));
 			double plotPixelBinWidth = m_xMapper->srcToDst(xBounds()[0] + plotStepWidth);
 			iALinearMapper plotXMapper(0, plotNumBin-1,
 				m_xMapper->srcToDst((*it)->data()->XBounds()[0]),
 				m_xMapper->srcToDst((*it)->data()->XBounds()[1]));
-
-			DEBUG_LOG(QString("  Plot %1: Visible diagram value range: %2..%3, drawing bins %4..%5, stepWidth: %10, pixelBinWidth: %11, plotNumBin: %12")
-				.arg(plotIdx).arg(plotXStart).arg(plotXEnd).arg(plotStartBin).arg(plotEndBin)
-				.arg(plotStepWidth).arg(plotPixelBinWidth).arg(plotNumBin));
-
 			(*it)->draw(painter, plotPixelBinWidth, plotStartBin, plotEndBin, plotXMapper, *m_yMapper.data());
 		}
 		plotIdx;
