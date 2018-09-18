@@ -165,7 +165,7 @@ double iAFilterChart::GetMaxVisibleBin() const
 
 QString iAFilterChart::getXAxisTickMarkLabel(double value, double stepWidth)
 {
-	if (plots().size() > 0 && plots()[0]->GetData()->GetRangeType() == Categorical)
+	if (plots().size() > 0 && plots()[0]->data()->GetRangeType() == Categorical)
 	{
 		return (m_nameMapper && value < m_nameMapper->size()) ? m_nameMapper->GetName(static_cast<int>(value)): "";
 	}

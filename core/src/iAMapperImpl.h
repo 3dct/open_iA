@@ -27,33 +27,30 @@
 class iALinearMapper : public iAMapper
 {
 public:
-	iALinearMapper(double yZoom, double yMin, double yMax, int height);
-	double SrcToDest(double y) const override;
-	double DestToSrc(double y) const override;
-	bool equals(QSharedPointer<iAMapper> other) const override;
+	iALinearMapper();
+	iALinearMapper(double srcMin, double srcMax, double dstMin, double dstMax);
+	double srcToDst(double srcVal) const override;
+	double dstToSrc(double dstVal) const override;
+	bool equals(iAMapper const & other) const override;
 	QSharedPointer<iAMapper> clone() override;
-	void update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height) override;
+	void update(double srcMin, double srcMax, double dstMin, double dstMax) override;
 private:
-	iALinearMapper(iALinearMapper const & other);
-	double yScaleFactor;
-	double yMin;
+	double m_srcMin, m_dstMin, m_scaleFactor;
 };
 
 
 class iALogarithmicMapper : public iAMapper
 {
 public:
-	iALogarithmicMapper(double yZoom, double yMax, double yMinValueBiggerThanZero, int height);
-	double SrcToDest(double y) const override;
-	double DestToSrc(double y) const override;
-	bool equals(QSharedPointer<iAMapper> other) const override;
+	iALogarithmicMapper(double srcMin, double srcMax, double dstMin, double dstMax);
+	double srcToDst(double srcVal) const override;
+	double dstToSrc(double dstVal) const override;
+	bool equals(iAMapper const & other) const override;
 	QSharedPointer<iAMapper> clone() override;
-	void update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height) override;
+	void update(double srcMin, double srcMax, double dstMin, double dstMax) override;
 private:
-	iALogarithmicMapper(iALogarithmicMapper const & other);
-	double yZoom;
-	double yMaxLog, yMinLog;
-	int height;
+	double m_srcMinLog, m_srcMaxLog;
+	iALinearMapper m_internalMapper;
 };
 
 namespace

@@ -38,17 +38,17 @@ class open_iA_Core_API iAPlot: public iAColorable
 public:
 	iAPlot(QColor const & color);
 	virtual ~iAPlot();
-	/** in case your drawer implements caching, clear the cache when this is called */
+	//! In case your drawer implements caching, clear the cache when this is called
 	virtual void update();
-	/**
-	* \brief method which draws the function
-	* it is allowed to cache the result; when the data has changed, update() needs to be called
-	*/
-	virtual void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> converter) const =0;
-	/** retrieves the data used for drawing */
-	virtual QSharedPointer<iAPlotData> GetData();
-	virtual bool Visible() const;
-	virtual void SetVisible(bool visible);
+	//! Method which draws the function
+	//! It is allowed to cache the result; when the data has changed, update() needs to be called
+	virtual void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, QSharedPointer<iAMapper> yMapper) const = 0;
+	//! Retrieves the data used for drawing
+	virtual QSharedPointer<iAPlotData> data();
+	//! Whether the plot is currently being drawn
+	virtual bool visible() const;
+	//! Sets whether the plot should be currently drawn or not
+	virtual void setVisible(bool visible);
 private:
 	bool m_visible;
 };

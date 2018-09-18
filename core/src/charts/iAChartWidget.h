@@ -111,7 +111,7 @@ protected:
 	int dragStartPosX;
 	int dragStartPosY;
 	int mode;
-	QSharedPointer<iAMapper> m_yConverter;
+	QSharedPointer<iAMapper> m_yMapper;
 	AxisMappingType m_yMappingMode;
 	bool m_contextMenuVisible;
 

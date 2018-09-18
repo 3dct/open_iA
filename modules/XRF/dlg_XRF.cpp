@@ -535,7 +535,7 @@ void dlg_XRF::showVoxelSpectrum(int show)
 
 void dlg_XRF::showAggregatedSpectrum( int show )
 {
-	m_spectrumDiagram->plots()[0]->SetVisible(show);
+	m_spectrumDiagram->plots()[0]->setVisible(show);
 	m_spectrumDiagram->update();
 }
 
