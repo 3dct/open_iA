@@ -24,6 +24,7 @@
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
 #include "iAPlot.h"
+#include "iAPlotData.h"
 #include "iAStringHelper.h"
 
 #include <vtkMath.h>
@@ -223,13 +224,19 @@ iAPlotData::DataType const * iAChartWidget::yBounds() const
 	return m_yBounds;
 }
 
-QSharedPointer<iAMapper> const iAChartWidget::yMapper() const
+iAMapper const & iAChartWidget::xMapper() const
 {
-	return m_yMapper;
+	return *m_xMapper.data();
 }
 
-void iAChartWidget::createYConverter()
+iAMapper const & iAChartWidget::yMapper() const
 {
+	return *m_yMapper.data();
+}
+
+void iAChartWidget::createMappers()
+{
+	m_xMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_xBounds[0], m_xBounds[1], 0, (activeWidth() - 1)*xZoom));
 	if (m_yMappingMode == Linear)
 		m_yMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_yBounds[0], m_yBounds[1], 0, (activeHeight()-1)*yZoom));
 	else
@@ -272,10 +279,9 @@ namespace
 		return number * vtkMath::Pi() / 180;
 	}
 
-	int markerPos(int step, int stepCount, int width, int offset)
+	int markerPos(int x, int step, int stepCount)
 	{
-		int x = static_cast<int>(static_cast<double>(step) / stepCount * width) + offset;
-		if (step == stepCount) x--;
+		if (step == stepCount) --x;
 		return x;
 	}
 
@@ -318,6 +324,17 @@ bool iAChartWidget::categoricalAxis() const
 		return false;
 }
 
+double iAChartWidget::visibleXStart() const
+{
+	return xBounds()[0] + (((static_cast<double>(-translationX)) / (activeWidth()*xZoom)) * xRange());
+}
+
+double iAChartWidget::visibleXEnd() const
+{
+	double visibleRange = xRange() / xZoom;
+	return visibleXStart() + visibleRange;
+}
+
 void iAChartWidget::drawXAxis(QPainter &painter)
 {
 	painter.setPen(QWidget::palette().color(QPalette::Text));
@@ -326,35 +343,31 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	QFontMetrics fm = painter.fontMetrics();
 	size_t stepCount = m_maxXAxisSteps;
 	double stepWidth;
-	// for discrete x axis variables, marker&caption should be in middle of value; MaxXAxisSteps() = numBin of plot[0]
-	int markerOffset = isDrawnDiscrete() ? static_cast<int>(0.5 * activeWidth()*xZoom / stepCount) : 0;
-	double xRng = xRange();
-	if (!m_plots.empty() && m_plots[0]->data()->GetRangeType() == Discrete)
-		xRng += 1;
-
-	double visibleRng = xRng / xZoom;
-	double startXVal = clamp(xBounds()[0], xBounds()[1], xBounds()[0] + ( ((static_cast<double>(-translationX)) / (activeWidth()*xZoom)) * xRng) );
-	double endXVal = clamp(xBounds()[0], xBounds()[1], startXVal + visibleRng);
+	double startXVal = clamp(m_xTickBounds[0], m_xTickBounds[1], visibleXStart());
+	double endXVal = clamp(m_xTickBounds[0], m_xTickBounds[1], visibleXEnd());
 	if (!categoricalAxis())
 	{
 		// check for overlap:
 		bool overlap;
 		do
 		{
-			stepWidth = xRng / stepCount;
+			stepWidth = xRange() / stepCount;
 			overlap = false;
 			for (size_t i = 0; i<stepCount && !overlap; ++i)
 			{
-				double value = xBounds()[0] + static_cast<double>(i) * stepWidth;
-				if (value < startXVal || value > endXVal)
+				double value = m_xTickBounds[0] + static_cast<double>(i) * stepWidth;
+				double nextValue = m_xTickBounds[0] + static_cast<double>(i+1) * stepWidth;
+				if (value < startXVal)
 					continue;
+				else if (value > endXVal)
+					break;
 				QString text = getXAxisTickMarkLabel(value, stepWidth);
-				int markerX = markerPos(i, stepCount, activeWidth()*xZoom, markerOffset);
+				int markerX = markerPos(m_xMapper->srcToDst(value), i, stepCount);
 				int textX = textPos(markerX, i, stepCount, fm.width(text));
-				int next_markerX = markerPos(i + 1, stepCount, activeWidth()*xZoom, markerOffset);
-				int next_textX = textPos(next_markerX, i + 1, stepCount, fm.width(text));
+				int nextMarkerX = markerPos(m_xMapper->srcToDst(nextValue), i + 1, stepCount);
+				int nextTextX = textPos(nextMarkerX, i + 1, stepCount, fm.width(text));
 				int textWidth = fm.width(text) + fm.width("M");
-				overlap = (textX + textWidth) >= next_textX;
+				overlap = (textX + textWidth) >= nextTextX;
 			}
 			if (overlap)
 				stepCount /= 2;
@@ -366,20 +379,19 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		font.setPointSize(CATEGORICAL_FONT_SIZE);
 		painter.setFont(font);
 		fm = painter.fontMetrics();
-		stepWidth = xRng / stepCount;
+		stepWidth = xRange() / stepCount;
 	}
 
 	stepCount = std::max(static_cast<size_t>(1), stepCount); // at least one step
 	for (int i = 0; i <= stepCount; ++i)
 	{
-		double value = xBounds()[0] + static_cast<double>(i) * stepWidth;
-		if (value < startXVal || value > endXVal)
+		double value = m_xTickBounds[0] + static_cast<double>(i) * stepWidth;
+		if (value < startXVal)
 			continue;
+		else if (value > endXVal)
+			break;
 		QString text = getXAxisTickMarkLabel(value, stepWidth);
-		if (isDrawnDiscrete() && i == stepCount && text.length() < 3)
-			break;	// avoid last tick for discrete ranges
-
-		int markerX = markerPos(i, stepCount, activeWidth()*xZoom, markerOffset);
+		int markerX = markerPos(m_xMapper->srcToDst(value), i, stepCount);
 		painter.drawLine(markerX, TickWidth, markerX, -1);
 		int textX = textPos(markerX, i, stepCount, fm.width(text));
 		int textY = fm.height() + TextAxisDistance;
@@ -458,8 +470,6 @@ void iAChartWidget::setXBounds(double valMin, double valMax)
 	m_customXBounds = true;
 	m_xBounds[0] = valMin;
 	m_xBounds[1] = valMax;
-	for (auto it = m_plots.constBegin(); it != m_plots.constEnd(); ++it)
-		(*it)->update();
 }
 
 void iAChartWidget::setYBounds(iAPlotData::DataType valMin, iAPlotData::DataType valMax)
@@ -467,8 +477,6 @@ void iAChartWidget::setYBounds(iAPlotData::DataType valMin, iAPlotData::DataType
 	m_customYBounds = true;
 	m_yBounds[0] = valMin;
 	m_yBounds[1] = valMax;
-	for (auto it = m_plots.constBegin(); it != m_plots.constEnd(); ++it)
-		(*it)->update();
 }
 
 void iAChartWidget::resetYBounds()
@@ -501,14 +509,16 @@ void iAChartWidget::updateXBounds()
 	}
 	else
 	{
-		m_xBounds[0] = std::numeric_limits<double>::max();
-		m_xBounds[1] = std::numeric_limits<double>::lowest();
+		m_xBounds[0] = m_xTickBounds[0] = std::numeric_limits<double>::max();
+		m_xBounds[1] = m_xTickBounds[1] = std::numeric_limits<double>::lowest();
 		m_maxXAxisSteps = 0;
 		for (auto plot : m_plots)
 		{
-			m_xBounds[0] = std::min(m_xBounds[0], plot->data()->XBounds()[0]);
-			m_xBounds[1] = std::max(m_xBounds[1], plot->data()->XBounds()[1]);
-			m_maxXAxisSteps = std::max(m_maxXAxisSteps, plot->GetData()->GetNumBin());
+			m_xBounds[0] = std::min(m_xBounds[0], plot->data()->XBounds()[0] - ((plot->data()->GetRangeType() == Discrete) ? 0.5 : 0) );
+			m_xBounds[1] = std::max(m_xBounds[1], plot->data()->XBounds()[1] + ((plot->data()->GetRangeType() == Discrete) ? 0.5 : 0) );
+			m_xTickBounds[0] = std::min(m_xTickBounds[0], plot->data()->XBounds()[0]);
+			m_xTickBounds[1] = std::max(m_xTickBounds[1], plot->data()->XBounds()[1]);
+			m_maxXAxisSteps = std::max(m_maxXAxisSteps, plot->data()->GetNumBin() );
 		}
 	}
 }
@@ -533,15 +543,8 @@ void iAChartWidget::resetView()
 	update();
 }
 
-int iAChartWidget::diagram2PaintX(double x) const
-{
-	if (m_plots.empty())
-		return x;
-	double screenX = (x - xBounds()[0]) * activeWidth() * xZoom / xRange();
-	screenX = clamp(0.0, activeWidth()*xZoom, screenX);
-	return static_cast<int>(round(screenX));
-}
 
+// @{ TODO: these two methods need to be made plot-specific!
 long iAChartWidget::screenX2DataBin(int x) const
 {
 	if (m_plots.empty())
@@ -561,6 +564,7 @@ int iAChartWidget::dataBin2ScreenX(long x) const
 	screenX = clamp(0.0, activeWidth()*xZoom, screenX);
 	return static_cast<int>(round(screenX));
 }
+//! @}
 
 bool iAChartWidget::isContextMenuVisible() const
 {
@@ -590,7 +594,7 @@ void iAChartWidget::setYMappingMode(AxisMappingType drawMode)
 	if (m_yMappingMode == drawMode)
 		return;
 	m_yMappingMode = drawMode;
-	createYConverter();
+	createMappers();
 }
 
 void iAChartWidget::setCaptionPosition(QFlags<Qt::AlignmentFlag> captionPosition)
@@ -653,7 +657,7 @@ void iAChartWidget::removeImageOverlay(QImage * imgOverlay)
 	}
 }
 
-void iAChartWidget::drawPlots(QPainter &painter, size_t startBin, size_t endBin)
+void iAChartWidget::drawPlots(QPainter &painter)
 {
 	if (m_plots.empty())
 	{
@@ -662,11 +666,33 @@ void iAChartWidget::drawPlots(QPainter &painter, size_t startBin, size_t endBin)
 		painter.scale(1, -1);
 		return;
 	}
-	// TODO: does not consider differing minimum x values!
-	double binWidth = activeWidth() * xZoom / m_maxXAxisSteps;
+	double xStart = visibleXStart(), xEnd = visibleXEnd();
+	size_t plotIdx = 0;
+	DEBUG_LOG(QString("Drawing plots in range %1..%2").arg(xStart).arg(xEnd));
 	for (auto it = m_plots.constBegin(); it != m_plots.constEnd(); ++it)
+	{
 		if ((*it)->visible())
-			(*it)->draw(painter, binWidth, startBin, std::min(endBin, (*it)->GetData()->GetNumBin()), m_yMapper);
+		{
+			size_t plotNumBin = (*it)->data()->GetNumBin();
+			double plotXStart = clamp((*it)->data()->XBounds()[0], (*it)->data()->XBounds()[1], xStart);
+			double plotXEnd = clamp((*it)->data()->XBounds()[0], (*it)->data()->XBounds()[1], xEnd);
+			double plotStepWidth = ((*it)->data()->XBounds()[1] - (*it)->data()->XBounds()[0]
+				+ (((*it)->data()->GetRangeType() == Discrete)?1:0) ) / m_plots[0]->data()->GetNumBin();
+			size_t plotStartBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotXStart-(*it)->data()->XBounds()[0]) / plotStepWidth));
+			size_t plotEndBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotXEnd- (*it)->data()->XBounds()[0]) / plotStepWidth + 1));
+			double plotPixelBinWidth = m_xMapper->srcToDst(xBounds()[0] + plotStepWidth);
+			iALinearMapper plotXMapper(0, plotNumBin-1,
+				m_xMapper->srcToDst((*it)->data()->XBounds()[0]),
+				m_xMapper->srcToDst((*it)->data()->XBounds()[1]));
+
+			DEBUG_LOG(QString("  Plot %1: Visible diagram value range: %2..%3, drawing bins %4..%5, stepWidth: %10, pixelBinWidth: %11, plotNumBin: %12")
+				.arg(plotIdx).arg(plotXStart).arg(plotXEnd).arg(plotStartBin).arg(plotEndBin)
+				.arg(plotStepWidth).arg(plotPixelBinWidth).arg(plotNumBin));
+
+			(*it)->draw(painter, plotPixelBinWidth, plotStartBin, plotEndBin, plotXMapper, *m_yMapper.data());
+		}
+		plotIdx;
+	}
 }
 
 void iAChartWidget::showDataTooltip(QMouseEvent *event)
@@ -802,39 +828,29 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 void iAChartWidget::paintEvent(QPaintEvent * e)
 {
 	QPainter painter(this);
-	if (!m_yMapper)
-		createYConverter();
+	if (!m_xMapper || !m_yMapper)
+		createMappers();
+	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, xZoom*activeWidth());
 	m_yMapper->update(m_yMappingMode == Linear || m_yBounds > 0 ? m_yBounds[0] : 1, m_yBounds[1], 0, yZoom*activeHeight());
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
 	m_yMaxTickLabelWidth = fm.width("4.44M");
 	painter.setRenderHint(QPainter::Antialiasing);
 	drawBackground(painter);
-	size_t startBin = 0, endBin = 0;
-	if (m_plots.size() > 0)
-	{
-		size_t numBin = m_maxXAxisSteps;
-		double visibleBins = numBin / xZoom;
-		double startBinDbl = clamp(0.0, static_cast<double>(numBin), (static_cast<double>(abs(translationX)) / (activeWidth()*xZoom)) * numBin);
-		// for range to be correctly considered, above needs to be calculated in double, and +1 below to make sure a last partial bin is also drawn
-		endBin = clamp(static_cast<size_t>(0), numBin, static_cast<size_t>(startBinDbl + visibleBins + 1) );
-		startBin = static_cast<size_t>(startBinDbl);
-	}
-
 	painter.translate(translationX + leftMargin(), -bottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom
 	painter.translate(0, geometry().height());
 	painter.scale(1, -1);
 
-	drawPlots(painter, startBin, endBin);
+	drawPlots(painter);
 	for (double x : m_xMarker.keys())
 	{
 		QColor color = m_xMarker[x];
 		painter.setPen(color);
 		QLine line;
-		QRect diagram = geometry();		// TODO: does not work with mixed range types!
-		double pos = diagram2PaintX(x) + (isDrawnDiscrete() ? activeWidth() * xZoom / m_maxXAxisSteps / 2 : 0);
+		QRect diagram = geometry();
+		double pos = m_xMapper->srcToDst(x);
 		line.setP1(QPoint(pos, 0));
 		line.setP2(QPoint(pos, diagram.height() - bottomMargin()));
 		painter.drawLine(line);

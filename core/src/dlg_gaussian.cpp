@@ -211,7 +211,7 @@ double dlg_gaussian::v2dX(int x)
 
 double dlg_gaussian::v2dY(int y)
 {
-	return chart->yMapper()->srcToDst(y) *chart->yBounds()[1] /chart->YZoom();
+	return chart->yMapper().srcToDst(y) *chart->yBounds()[1] /chart->YZoom();
 }
 
 int dlg_gaussian::d2vX(double x)

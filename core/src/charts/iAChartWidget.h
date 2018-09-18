@@ -62,13 +62,13 @@ public:
 	virtual int activeWidth()  const;
 	virtual int activeHeight() const;
 	iAPlotData::DataType getMaxYDataValue() const;
-	QSharedPointer<iAMapper> const yMapper() const;
+	iAMapper const & xMapper() const;
+	iAMapper const & yMapper() const;
 	virtual iAPlotData::DataType const * yBounds() const;
 	virtual double const * xBounds() const;
 	bool categoricalAxis() const;
 	double xRange() const;
 	double maxXZoom() const;
-	int diagram2PaintX(double x) const;
 	long screenX2DataBin(int x) const;
 	int  dataBin2ScreenX(long x) const;
 	bool isContextMenuVisible() const;
@@ -110,11 +110,12 @@ protected:
 	int dragStartPosX;
 	int dragStartPosY;
 	int mode;
-	QSharedPointer<iAMapper> m_yMapper;
+	//! Main mappers from diagram coordinates to pixel coordinates, for each axis:
+	QSharedPointer<iAMapper> m_xMapper, m_yMapper;
 	AxisMappingType m_yMappingMode;
 	bool m_contextMenuVisible;
 
-	virtual void drawPlots(QPainter& painter, size_t startBin, size_t endBin);
+	virtual void drawPlots(QPainter& painter);
 	virtual void drawAxes(QPainter& painter);
 	virtual QString getXAxisTickMarkLabel(double value, double stepWidth);
 
@@ -138,7 +139,7 @@ private slots:
 	void exportData();
 private:
 	virtual void addContextMenuEntries(QMenu* contextMenu);
-	void createYConverter();
+	void createMappers();
 	void drawImageOverlays(QPainter &painter);
 	virtual void drawAfterPlots(QPainter& painter);
 	virtual void drawXAxis(QPainter &painter);
@@ -146,6 +147,8 @@ private:
 	void updateBounds();
 	void updateXBounds();
 	void updateYBounds();
+	double visibleXStart() const;
+	double visibleXEnd() const;
 
 	QVector< QSharedPointer< iAPlot > >	m_plots;
 	QList< QSharedPointer< QImage > > m_overlays;
@@ -156,7 +159,7 @@ private:
 	int  m_fontHeight;
 	int  m_yMaxTickLabelWidth;
 	bool m_customXBounds, m_customYBounds;
-	double m_xBounds[2], m_yBounds[2];
+	double m_xBounds[2], m_yBounds[2], m_xTickBounds[2];
 	QFlags<Qt::AlignmentFlag> m_captionPosition;
 	QMap<double, QColor> m_xMarker;
 	size_t m_maxXAxisSteps;

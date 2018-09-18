@@ -2891,7 +2891,7 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 		.arg(modalityName));
 	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iAPlot>(new
-		iABarGraphDrawer(GetModality(modalityIdx)->GetHistogramData(),
+		iABarGraphPlot(GetModality(modalityIdx)->GetHistogramData(),
 			QColor(70, 70, 70, 255)));
 	m_histogram->addPlot(m_histogramPlot);
 	m_histogram->setXCaption("Histogram " + modalityName);

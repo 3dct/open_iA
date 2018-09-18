@@ -110,8 +110,8 @@ public slots:
 private:
 	QSharedPointer<iARangeSliderDiagramData>			m_data;
 	QSharedPointer<iAPlotData>							m_selectedData;
-	QSharedPointer<iAStepFunctionDrawer>				m_selectionDrawer;
-	QList<QSharedPointer<iAStepFunctionDrawer> >		m_histogramDrawerList;
+	QSharedPointer<iAStepFunctionPlot>				m_selectionDrawer;
+	QList<QSharedPointer<iAStepFunctionPlot> >		m_histogramDrawerList;
 	QPoint												m_selectionOrigin;
 	QRubberBand*										m_selectionRubberBand;
 	QString												m_xLabel;

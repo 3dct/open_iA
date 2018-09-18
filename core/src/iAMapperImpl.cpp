@@ -68,11 +68,6 @@ bool iALinearMapper::equals(iAMapper const & other) const
 		m_srcMin == linearOther.m_srcMin && m_dstMin == linearOther.m_dstMin);
 }
 
-QSharedPointer<iAMapper> iALinearMapper::clone()
-{
-	return QSharedPointer<iAMapper>(new iALinearMapper(*this));
-}
-
 void iALinearMapper::update(double srcMin, double srcMax, double dstMin, double dstMax)
 {
 	m_srcMin = srcMin;
@@ -110,11 +105,6 @@ bool iALogarithmicMapper::equals(iAMapper const & other) const
 	iALogarithmicMapper const & logOther = dynamic_cast<iALogarithmicMapper const &>(other);
 	return (m_srcMinLog == logOther.m_srcMinLog && m_srcMaxLog == logOther.m_srcMaxLog &&
 		m_internalMapper.equals(logOther.m_internalMapper));
-}
-
-QSharedPointer<iAMapper> iALogarithmicMapper::clone()
-{
-	return QSharedPointer<iAMapper>(new iALogarithmicMapper(*this));
 }
 
 void iALogarithmicMapper::update(double srcMin, double srcMax, double dstMin, double dstMax)

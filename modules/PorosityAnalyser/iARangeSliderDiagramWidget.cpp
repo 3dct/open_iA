@@ -46,7 +46,7 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChil
 							m_yLabel( yLabel )
 {
 	setTransferFunctions(cTF, oTF);
-	addPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
+	addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(m_data, QColor(70, 70, 70, 255))));
 	m_selectionRubberBand->hide();
 	( (dlg_transfer*) functions[0] )->enableRangeSliderHandles( true );
 }
@@ -295,7 +295,7 @@ void iARangeSliderDiagramWidget::setupSelectionDrawer()
 	if ( m_selectionDrawer )
 		removePlot( m_selectionDrawer );
 
-	m_selectionDrawer = QSharedPointer<iAStepFunctionDrawer>( new iAStepFunctionDrawer( m_selectedData, m_selectionColor ) );
+	m_selectionDrawer = QSharedPointer<iAStepFunctionPlot>( new iAStepFunctionPlot( m_selectedData, m_selectionColor ) );
 	addPlot( m_selectionDrawer );
 }
 
@@ -322,7 +322,7 @@ void iARangeSliderDiagramWidget::selectSlot()
 	
 	if ( m_histogramDrawerList.size() )
 	{
-		QListIterator<QSharedPointer<iAStepFunctionDrawer> > it( m_histogramDrawerList );
+		QListIterator<QSharedPointer<iAStepFunctionPlot> > it( m_histogramDrawerList );
 		while ( it.hasNext() )
 			removePlot( it.next() );
 
@@ -337,8 +337,8 @@ void iARangeSliderDiagramWidget::selectSlot()
 		QSharedPointer<iAPlotData> selectedData = QSharedPointer<iAPlotData>(
 			new iAFilteringDiagramData( m_data, row - 1, row - 1 ) );	//-1 cause of DiagramData
 
-		QSharedPointer<iAStepFunctionDrawer> selectionDrawer = QSharedPointer<iAStepFunctionDrawer>(
-			new iAStepFunctionDrawer( selectedData, QColor( Qt::yellow ) ) );
+		QSharedPointer<iAStepFunctionPlot> selectionDrawer = QSharedPointer<iAStepFunctionPlot>(
+			new iAStepFunctionPlot( selectedData, QColor( Qt::yellow ) ) );
 
 		m_histogramDrawerList.append( selectionDrawer );
 		addPlot( selectionDrawer );
@@ -350,7 +350,7 @@ void iARangeSliderDiagramWidget::deleteSlot()
 {
 	if ( m_histogramDrawerList.size() )
 	{
-		QListIterator<QSharedPointer<iAStepFunctionDrawer> > it( m_histogramDrawerList );
+		QListIterator<QSharedPointer<iAStepFunctionPlot> > it( m_histogramDrawerList );
 		while ( it.hasNext() )
 			removePlot( it.next() );
 

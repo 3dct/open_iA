@@ -68,7 +68,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	m_entropyChartData = CreateEmptyProbData(Continuous, 0, 1);
 	m_charts.push_back(new iAChartWidget(this, "Algorithmic Uncertainty", "Frequency (Members)"));
 	auto plot = QSharedPointer<iAPlot>(
-		new iABarGraphDrawer(m_entropyChartData,
+		new iABarGraphPlot(m_entropyChartData,
 			QColor(117, 112, 179), BarMargin));
 	m_charts[0]->addPlot(plot);
 
@@ -81,7 +81,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	for (int label = 0; label < m_labelInfo->count(); ++label)
 	{
 		m_drawers.push_back(QSharedPointer<iAPlot>(
-			new iABarGraphDrawer(m_labelDistributionChartData[label],
+			new iABarGraphPlot(m_labelDistributionChartData[label],
 				m_labelInfo->GetColor(label), BarMargin)));
 		m_charts[1]->addPlot(m_drawers[m_drawers.size()-1]);
 	}
@@ -93,7 +93,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 		m_probabilitiesChartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
 		m_charts.push_back(new iAChartWidget(this, QString("Probability Label %1").arg(l), "Frequency (Members)"));
 		auto plot = QSharedPointer<iAPlot>(
-			new iABarGraphDrawer(m_probabilitiesChartData[l],
+			new iABarGraphPlot(m_probabilitiesChartData[l],
 				m_labelInfo->GetColor(l), BarMargin));
 		m_charts[m_charts.size() - 1]->addPlot(plot);
 	}

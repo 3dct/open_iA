@@ -111,9 +111,6 @@ dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg
 	gb_spectraSettings->hide();
 	gb_pieGlyphsSettings->hide();
 
-	m_selectedBinXDrawer = QSharedPointer<iASelectedBinDrawer>( new iASelectedBinDrawer( 0, QColor( 150, 0, 0, 50 ) ) );
-	m_selectedBinYDrawer = QSharedPointer<iASelectedBinDrawer>( new iASelectedBinDrawer( 0, QColor( 0, 0, 150, 50 ) ) );
-
 	QColor color(255, 0, 0);
 	m_selection_ctf->AddRGBPoint(0, 0, 0, 0);
 	m_selection_ctf->AddRGBPoint(1, color.redF(), color.greenF(), color.blueF());
@@ -188,10 +185,13 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_xrfData->SetEnergyRange(minEnergy, maxEnergy);
 	m_accumulatedXRF = QSharedPointer<iAAccumulatedXRFData>(new iAAccumulatedXRFData(m_xrfData, minEnergy, maxEnergy));
 	m_voxelEnergy = QSharedPointer<iAEnergySpectrumDiagramData>(new iAEnergySpectrumDiagramData(m_xrfData.data(), m_accumulatedXRF.data()));
-	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionDrawer>(new iAStepFunctionDrawer(m_voxelEnergy, QColor(150, 0, 0)));
+	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionPlot>(new iAStepFunctionPlot(m_voxelEnergy, QColor(150, 0, 0)));
 	m_spectrumDiagram = new iAEnergySpectrumWidget(this, dynamic_cast<MdiChild*>(parent()), m_accumulatedXRF, m_oTF, m_cTF, this,
 		haveEnergyLevels ? "Energy (keV)" : "Energy (bins)");
 	m_spectrumDiagram->setObjectName(QString::fromUtf8("EnergySpectrum"));
+
+	m_selectedBinXDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(150, 0, 0, 50)));
+	m_selectedBinYDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(0, 0, 150, 50)));
 
 	connect((dlg_transfer*)(m_spectrumDiagram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(SpectrumTFChanged()));
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
@@ -371,7 +371,6 @@ void dlg_XRF::updateComposition(QVector<double> const & concentration)
 void dlg_XRF::UpdateVoxelSpectrum(int x, int y, int z)
 {
 	m_voxelEnergy->updateEnergyFunction(x, y, z);
-	m_voxelSpectrumDrawer->update();
 	m_spectrumDiagram->update();
 }
 
@@ -402,7 +401,6 @@ void dlg_XRF::SpectrumTFChanged()
 void dlg_XRF::updateAccumulate(int fctIdx)
 {
 	m_accumulatedXRF->SetFct(fctIdx);
-	m_spectrumDiagram->plots()[0]->update();
 	m_spectrumDiagram->update();
 }
 
@@ -418,7 +416,7 @@ void dlg_XRF::initSpectraLinesDrawer()
 	}
 	else
 	{
-		m_spectraLinesDrawer = QSharedPointer<iAMultipleFunctionDrawer>(new iAMultipleFunctionDrawer);
+		m_spectraLinesDrawer = QSharedPointer<iAPlotCollection>(new iAPlotCollection);
 	}
 
 	long numberOfSpectra = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
@@ -436,7 +434,7 @@ void dlg_XRF::initSpectraLinesDrawer()
 				bool isSelected = m_activeFilter.empty() ||
 					m_xrfData->CheckFilters(x, y, z, m_activeFilter, static_cast<iAFilterMode>(comB_spectrumSelectionMode->currentIndex()));
 
-				QSharedPointer<iALineFunctionDrawer> lineDrawer(new iALineFunctionDrawer(dataset,
+				QSharedPointer<iALinePlot> lineDrawer(new iALinePlot(dataset,
 					m_activeFilter.empty() ? QColor(96, 102, 174, transparency) :
 					(isSelected ? QColor(255, 0, 0, transparency): QColor(88, 88, 88, transparency/2))));
 				m_spectraLinesDrawer->add(lineDrawer);
@@ -1420,7 +1418,7 @@ void dlg_XRF::AddReferenceSpectrum(int modelIdx)
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
 		m_accumulatedXRF->YBounds()[1]));
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
-	QSharedPointer<iAStepFunctionDrawer> drawable(new iAStepFunctionDrawer(data, color));
+	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(data, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);
 	m_spectrumDiagram->addPlot(drawable);
 	m_spectrumDiagram->update();

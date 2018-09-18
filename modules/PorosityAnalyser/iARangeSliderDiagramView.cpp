@@ -285,7 +285,7 @@ void iARangeSliderDiagramView::setupHistogram()
 	m_rangeSliderData = QSharedPointer<iARangeSliderDiagramData>( new iARangeSliderDiagramData( binList, 0.0, 99.9 ) );
 	m_rangeSliderData->updateRangeSliderFunction();
 
-	m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphDrawer>( new iABarGraphDrawer( m_rangeSliderData, QColor(70, 70, 70, 255)) );
+	m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>( new iABarGraphPlot( m_rangeSliderData, QColor(70, 70, 70, 255)) );
 	vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 	// Adds two end points to set up a propper transfer function
@@ -329,7 +329,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 
 		m_rangeSliderData->updateRangeSliderFunction();
 
-		m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphDrawer>( new iABarGraphDrawer( m_rangeSliderData, QColor(70, 70, 70, 255)) );
+		m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>( new iABarGraphPlot( m_rangeSliderData, QColor(70, 70, 70, 255)) );
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();;
 		// Adds two end points to set up a propper transfer function

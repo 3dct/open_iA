@@ -32,7 +32,6 @@ public:
 	double srcToDst(double srcVal) const override;
 	double dstToSrc(double dstVal) const override;
 	bool equals(iAMapper const & other) const override;
-	QSharedPointer<iAMapper> clone() override;
 	void update(double srcMin, double srcMax, double dstMin, double dstMax) override;
 private:
 	double m_srcMin, m_dstMin, m_scaleFactor;
@@ -46,7 +45,6 @@ public:
 	double srcToDst(double srcVal) const override;
 	double dstToSrc(double dstVal) const override;
 	bool equals(iAMapper const & other) const override;
-	QSharedPointer<iAMapper> clone() override;
 	void update(double srcMin, double srcMax, double dstMin, double dstMax) override;
 private:
 	double m_srcMinLog, m_srcMaxLog;

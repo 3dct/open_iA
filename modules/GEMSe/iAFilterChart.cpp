@@ -75,8 +75,8 @@ QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramD
 {
 	return (data->GetRangeType() == Categorical ||
 		(data->GetRangeType() == Discrete && ((data->XBounds()[1]-data->XBounds()[0])  <= data->GetNumBin())))
-		? QSharedPointer<iAPlot>(new iABarGraphDrawer(data, color, 2))
-		: QSharedPointer<iAPlot>(new iAFilledLineFunctionDrawer(data, color));
+		? QSharedPointer<iAPlot>(new iABarGraphPlot(data, color, 2))
+		: QSharedPointer<iAPlot>(new iAFilledLinePlot(data, color));
 }
 
 void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)
