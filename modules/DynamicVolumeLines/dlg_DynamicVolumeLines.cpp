@@ -307,8 +307,8 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	wgtContainer->SetRenderWindow(mrvRenWin);
 #else
 	wgtContainer = new QVTKWidget();
+	auto mrvRenWin = wgtContainer->GetRenderWindow();
 #endif
-	
 	mrvRenWin->SetNumberOfLayers(2);
 	mrvRenWin->AddRenderer(m_mrvBGRen);
 	mrvRenWin->Render();
