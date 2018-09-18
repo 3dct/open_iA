@@ -97,7 +97,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	ioThread(nullptr),
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
-	m_histogram(new iADiagramFctWidget(nullptr, this, " Histogram")),
+	m_histogram(new iADiagramFctWidget(nullptr, this, " Histogram", "Frequency")),
 	m_histogramContainer(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_initVolumeRenderers(false),
 	preferences(prefs),
