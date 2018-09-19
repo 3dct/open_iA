@@ -80,14 +80,12 @@ namespace
 	{
 		if (!rawData)
 			return false;
-		poly.push_back(QPoint(xMapper.srcToDst(startBin - (startBin > 0 ? 1 : 0)), 0));
 		for (size_t curBin = startBin; curBin <= endBin; ++curBin)
 		{
 			int curX = xMapper.srcToDst(curBin);
 			int curY = yMapper.srcToDst(rawData[curBin]);
 			poly.push_back(QPoint(curX, curY));
 		}
-		poly.push_back(QPoint(xMapper.srcToDst(endBin), 0));
 		return true;
 	}
 }
@@ -124,6 +122,8 @@ void iAFilledLinePlot::draw(QPainter& painter, double binWidth, size_t startBin,
 	QPolygon poly;
 	if (!buildLinePolygon(poly, m_data->GetRawData(), startBin, endBin, xMapper, yMapper))
 		return;
+	poly.insert(0, QPoint(xMapper.srcToDst(startBin - (startBin > 0 ? 1 : 0)), 0));
+	poly.push_back(QPoint(xMapper.srcToDst(endBin), 0));
 	QPainterPath tmpPath;
 	tmpPath.addPolygon(poly);
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
@@ -179,7 +179,7 @@ void iABarGraphPlot::draw(QPainter& painter, double binWidth, size_t startBin, s
 	QColor fillColor = getColor();
 	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
 	{
-		int x = xMapper.srcToDst(curBin) - ((m_data->GetRangeType() == Discrete) ? barWidth/2 : 0);
+		int x = xMapper.srcToDst(curBin) - ((m_data->GetRangeType() == Discrete || m_data->GetNumBin() == 1) ? barWidth/2 : 0);
 		int h = yMapper.srcToDst(rawData[curBin]);
 		if (m_lut)
 		{

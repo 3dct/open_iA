@@ -72,6 +72,7 @@ bool iALinearMapper::equals(iAMapper const & other) const
 
 void iALinearMapper::update(double srcMin, double srcMax, double dstMin, double dstMax)
 {
+	assert ( srcMin != srcMax && dstMin != dstMax );
 	m_srcMin = srcMin;
 	m_dstMin = dstMin;
 	m_scaleFactor = (dstMax - m_dstMin) / (srcMax - m_srcMin);
