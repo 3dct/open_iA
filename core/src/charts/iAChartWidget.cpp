@@ -778,6 +778,8 @@ void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 			double yMin = diagramRect.top(), yMax = diagramRect.bottom();
 			for (int plotIdx=0; plotIdx<m_plots.size(); ++plotIdx)
 			{
+				if (!m_plots[plotIdx]->visible())
+					continue;
 				for (int bin=diagramRect.left(); bin <= diagramRect.right(); ++bin)
 				{
 					double binYValue = m_plots[plotIdx]->data()->GetRawData()[bin];
