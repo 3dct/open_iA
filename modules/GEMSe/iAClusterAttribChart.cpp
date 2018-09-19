@@ -171,7 +171,7 @@ iAValueType iAClusterAttribChart::GetRangeType() const
 
 double iAClusterAttribChart::GetMaxYValue() const
 {
-	return m_charts->getMaxYDataValue();
+	return m_charts->maxYDataValue();
 }
 
 void iAClusterAttribChart::SetMaxYAxisValue(double val)

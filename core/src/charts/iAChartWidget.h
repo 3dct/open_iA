@@ -61,7 +61,8 @@ public:
 	virtual int leftMargin() const;
 	virtual int activeWidth()  const;
 	virtual int activeHeight() const;
-	iAPlotData::DataType getMaxYDataValue() const;
+	iAPlotData::DataType minYDataValue() const;
+	iAPlotData::DataType maxYDataValue() const;
 	iAMapper const & xMapper() const;
 	iAMapper const & yMapper() const;
 	virtual iAPlotData::DataType const * yBounds() const;
