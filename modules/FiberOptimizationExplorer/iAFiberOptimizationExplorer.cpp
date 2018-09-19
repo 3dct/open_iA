@@ -539,7 +539,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 					resultData.m_resultTable->SetValue(fiberNr, m_splomData->numParams() - 2, projErrorRed);
 					QSharedPointer<iAVectorPlotData> plotData(new iAVectorPlotData(values));
 					plotData->setXDataType(Discrete);
-					m_timeStepChart->addPlot(QSharedPointer<iALineFunctionDrawer>(new iALineFunctionDrawer(plotData, getResultColor(resultID))));
+					m_timeStepChart->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
 					fiberNr++;
 				}
 			}
@@ -742,7 +742,7 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 	{
 		if (!anythingElseShown(m_resultData, resultID))
 			for (size_t p = 0; p < m_timeStepChart->plots().size(); ++p)
-				m_timeStepChart->plots()[p]->SetVisible(false);
+				m_timeStepChart->plots()[p]->setVisible(false);
 		data.m_main3DVis->setSelectionOpacity(SelectionOpacity);
 		data.m_main3DVis->setContextOpacity(ContextOpacity);
 		if (m_splom->colorScheme() == iAQSplom::ByParameter)
@@ -755,7 +755,7 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 			data.m_main3DVis->setColor(getResultColor(resultID));
 		}
 		for (size_t p = 0; p < data.m_fiberCount; ++p)
-			m_timeStepChart->plots()[data.m_startPlotIdx + p]->SetVisible(true);
+			m_timeStepChart->plots()[data.m_startPlotIdx + p]->setVisible(true);
 
 		bool anythingSelected = isAnythingSelected();
 		if (anythingSelected)
@@ -770,10 +770,10 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 	{
 		if (anythingElseShown(m_resultData, resultID))
 			for (size_t p = 0; p < data.m_fiberCount; ++p)
-				m_timeStepChart->plots()[data.m_startPlotIdx + p]->SetVisible(false);
+				m_timeStepChart->plots()[data.m_startPlotIdx + p]->setVisible(false);
 		else // nothing selected, show everything
 			for (size_t p = 0; p < m_timeStepChart->plots().size(); ++p)
-				m_timeStepChart->plots()[p]->SetVisible(true);
+				m_timeStepChart->plots()[p]->setVisible(true);
 		data.m_main3DVis->hide();
 		m_style->removeInput(resultID);
 		m_splom->removeFilter( m_splomData->numParams()-1, resultID);
