@@ -23,6 +23,8 @@
 #include "iAConsole.h"
 #include "iAMathUtility.h"
 
+#include <typeinfo>    // for typeid
+
 // iAMapper
 
 iAMapper::~iAMapper() {}
@@ -34,8 +36,8 @@ bool iAMapper::equals(iAMapper const & other) const
 
 bool operator==(iAMapper const & a, iAMapper const & b)
 {
-	return typeid(a) == typeid(b) // Allow compare only instances of the same dynamic type
-		&& a.equals(b);           // If types are the same then do the comparision.
+	return typeid(a) == typeid(b) // Allow only to compare instances of the same dynamic type
+		&& a.equals(b);
 }
 
 
