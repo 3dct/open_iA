@@ -31,7 +31,7 @@
 
 
 iAHistogramData::iAHistogramData()
-	: m_binCount(0), rawData(nullptr), accSpacing(0)
+	: m_binCount(0), rawData(nullptr), accSpacing(0), m_type(Continuous)
 {
 	xBounds[0] = xBounds[1] = 0;
 	yBounds[0] = yBounds[1] = 0;
@@ -121,7 +121,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(
 	return result;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataType>& histData, size_t binCount)
+QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataType>& histData, size_t binCount, iAValueType type)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
 	DataType minValue = std::numeric_limits<DataType>::max();
@@ -135,6 +135,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataTy
 	}
 	result->xBounds[0] = minValue;
 	result->xBounds[1] = maxValue;
+	result->m_type = type;
 	if (dblApproxEqual(minValue, maxValue))
 	{   // if min == max, there is only one bin - one in which all values are contained!
 		result->m_binCount = 1;
