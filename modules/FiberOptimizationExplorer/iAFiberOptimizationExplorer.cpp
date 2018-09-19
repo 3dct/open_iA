@@ -371,7 +371,6 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 
 	int resultID = 0;
 	m_defaultButtonGroup = new QButtonGroup();
-
 	const int MaxDatasetCount = 25;
 	if (csvFileNames.size() > MaxDatasetCount)
 	{
@@ -379,6 +378,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 			.arg(path).arg(csvFileNames.size()).arg(MaxDatasetCount));
 		return false;
 	}
+	size_t splomStartIdx = 0;
 	for (QString csvFile : csvFileNames)
 	{
 		iACsvConfig config = getCsvConfig(csvFile, configName);
@@ -535,12 +535,12 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 					}
 					resultData.m_projectionError[fiberNr] = values;
 					double projErrorRed = values->at(0) - values->at(values->size() - 1);
-					m_splomData->data()[m_splomData->numParams()-2][fiberNr] = projErrorRed;
+					m_splomData->data()[m_splomData->numParams()-2][splomStartIdx + fiberNr] = projErrorRed;
 					resultData.m_resultTable->SetValue(fiberNr, m_splomData->numParams() - 2, projErrorRed);
 					QSharedPointer<iAVectorPlotData> plotData(new iAVectorPlotData(values));
 					plotData->setXDataType(Discrete);
 					m_timeStepChart->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
-					fiberNr++;
+					++fiberNr;
 				}
 			}
 
@@ -639,6 +639,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 			m_timeStepMax = thisResultTimeStepMax;
 		}
 		++resultID;
+		splomStartIdx += numFibers;
 	}
 	if (m_resultData.size() == 0)
 	{
