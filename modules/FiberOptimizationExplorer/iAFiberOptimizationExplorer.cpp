@@ -1174,7 +1174,8 @@ namespace
 	}
 
 	// currently: L2 norm (euclidean distance). other measures?
-	double getDistance(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vtkVariantArray* fiber2, int distanceMeasure)
+	double getDistance(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vtkVariantArray* fiber2,
+		int distanceMeasure, double diagonalLength, double maxLength)
 	{
 		double distance = 0;
 		switch(distanceMeasure)
@@ -1218,7 +1219,11 @@ namespace
 				}
 			}
 
-			distance = l2dist(val1, val2, Dist1ValueCount);
+			distance =
+				(std::abs(val2[0] - val1[0]) / (vtkMath::Pi()/2)) +  // phi diff.
+				(std::abs(val2[1] - val1[1]) / (vtkMath::Pi()/4)) +  // theta diff.
+				(l2dist(val1+2, val2+2, 3) / diagonalLength)      +  // center diff.
+				(std::abs(val2[5] - val1[5]) / maxLength);
 			break;
 		}
 		case 1: // start/end/center
@@ -1288,7 +1293,7 @@ namespace
 	}
 
 	void getBestMatches(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, vtkTable* reference,
-			std::vector<std::vector<iAFiberDistance> > & bestMatches)
+			std::vector<std::vector<iAFiberDistance> > & bestMatches, double diagonalLength, double maxLength)
 	{
 		size_t refFiberCount = reference->GetNumberOfRows();
 		bestMatches.resize(DistanceMetricCount);
@@ -1298,7 +1303,7 @@ namespace
 			for (size_t fiberID = 0; fiberID < refFiberCount; ++fiberID)
 			{
 				distances[fiberID].index = fiberID;
-				double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(fiberID), d);
+				double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(fiberID), d, diagonalLength, maxLength);
 				distances[fiberID].distance = curDistance;
 			}
 			std::sort(distances.begin(), distances.end());
@@ -1365,6 +1370,13 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 
 	return;
 	*/
+	double const * cxr = m_splomData->paramRange(mapping[iACsvConfig::CenterX]),
+		*cyr = m_splomData->paramRange(mapping[iACsvConfig::CenterY]),
+		*czr = m_splomData->paramRange(mapping[iACsvConfig::CenterZ]);
+	double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
+	double diagLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
+	double const * lengthRange = m_splomData->paramRange(mapping[iACsvConfig::Length]);
+	double maxLength = lengthRange[1] - lengthRange[0];
 
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
@@ -1380,7 +1392,7 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			// find the best-matching fibers in reference & compute difference:
 			getBestMatches(m_resultData[resultID].m_resultTable->GetRow(fiberID),
 				mapping, m_resultData[m_referenceID].m_resultTable,
-				m_resultData[resultID].m_referenceDist[fiberID]);
+				m_resultData[resultID].m_referenceDist[fiberID], maxLength, diagLength);
 			/*
 			DEBUG_LOG(QString("  Fiber %1: Best match: distmetric1: fiber %2 (distance: %3), distmetric2: %4 (distance: %5)")
 				.arg(fiberID)
