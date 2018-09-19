@@ -74,30 +74,33 @@ void iASelectedBinPlot::setPosition( int position )
 
 
 
+namespace
+{
+	bool buildLinePolygon(QPolygon & poly, iAPlotData::DataType const * rawData, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper)
+	{
+		if (!rawData)
+			return false;
+		poly.push_back(QPoint(xMapper.srcToDst(startBin - (startBin > 0 ? 1 : 0)), 0));
+		for (size_t curBin = startBin; curBin <= endBin; ++curBin)
+		{
+			int curX = xMapper.srcToDst(curBin);
+			int curY = yMapper.srcToDst(rawData[curBin]);
+			poly.push_back(QPoint(curX, curY));
+		}
+		poly.push_back(QPoint(xMapper.srcToDst(endBin), 0));
+		return true;
+	}
+}
+
 iALinePlot::iALinePlot(QSharedPointer<iAPlotData> data, QColor const & color):
 	iAPlot(data, color)
-{
-}
+{}
 
 void iALinePlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
-	// TODO: merge with iAFilledLinePlot!
 	QPolygon poly;
-	iAPlotData::DataType const * rawData = m_data->GetRawData();
-	if (!rawData)
+	if (!buildLinePolygon(poly, m_data->GetRawData(), startBin, endBin, xMapper, yMapper))
 		return;
-	//int binWidthHalf = binWidth / 2;
-	// one extra bin in each direction to see lines leading in direction of the previous/next data values
-	//startBin = (startBin > 0 ? startBin - 1 : startBin);
-	//endBin = endBin < m_data->GetNumBin() ? endBin + 1 : endBin;
-	poly.push_back(QPoint(xMapper.srcToDst(startBin - (startBin > 0 ? 1 : 0)), 0));
-	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
-	{
-		int curX = xMapper.srcToDst(curBin);
-		int curY = yMapper.srcToDst(rawData[curBin]);
-		poly.push_back(QPoint(curX, curY));
-	}
-	poly.push_back(QPoint(xMapper.srcToDst(endBin), 0));
 	QPen pen(painter.pen());
 	pen.setColor(getColor());
 	painter.setPen(pen);
@@ -108,8 +111,7 @@ void iALinePlot::draw(QPainter& painter, double binWidth, size_t startBin, size_
 
 iAFilledLinePlot::iAFilledLinePlot(QSharedPointer<iAPlotData> data, QColor const & color):
 	iAPlot(data, color)
-{
-}
+{}
 
 QColor iAFilledLinePlot::getFillColor() const
 {
@@ -119,21 +121,9 @@ QColor iAFilledLinePlot::getFillColor() const
 
 void iAFilledLinePlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
-	iAPlotData::DataType const * rawData = m_data->GetRawData();
-	if (!rawData)
-		return;
 	QPolygon poly;
-	// one extra bin in each direction to see lines leading in direction of the previous/next data values
-	// startBin = (startBin > 0 ? startBin - 1 : startBin);
-	// endBin = endBin < m_data->GetNumBin() ? endBin + 1 : endBin;
-	poly.push_back(QPoint(xMapper.srcToDst(startBin - (startBin > 0 ? 1 : 0)), 0));
-	for (size_t curBin = startBin; curBin <= endBin; curBin++)
-	{
-		int curX = xMapper.srcToDst(curBin);
-		int curY = yMapper.srcToDst(rawData[curBin]);
-		poly.push_back(QPoint(curX, curY));
-	}
-	poly.push_back(QPoint(xMapper.srcToDst(endBin), 0));
+	if (!buildLinePolygon(poly, m_data->GetRawData(), startBin, endBin, xMapper, yMapper))
+		return;
 	QPainterPath tmpPath;
 	tmpPath.addPolygon(poly);
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
@@ -143,8 +133,7 @@ void iAFilledLinePlot::draw(QPainter& painter, double binWidth, size_t startBin,
 
 iAStepFunctionPlot::iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor const & color) :
 	iAPlot(data, color)
-{
-}
+{}
 
 QColor iAStepFunctionPlot::getFillColor() const
 {
@@ -179,8 +168,7 @@ void iAStepFunctionPlot::draw(QPainter& painter, double binWidth, size_t startBi
 iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const & color, int margin):
 	iAPlot(data, color),
 	m_margin(margin)
-{
-}
+{}
 
 void iABarGraphPlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
