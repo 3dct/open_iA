@@ -1247,7 +1247,7 @@ namespace
 				distance += dist1StartTo2End + dist1EndTo2Start;
 			else
 				distance += dist1StartTo2Start + dist1EndTo2End;
-			distance /= 3;
+			distance /= (3 * diagonalLength);
 
 			break;
 		}
