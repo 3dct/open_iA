@@ -23,6 +23,8 @@
 #include "iAConsole.h"
 #include "iAMathUtility.h"
 
+#include <typeinfo>    // for typeid
+
 // iAMapper
 
 iAMapper::~iAMapper() {}
