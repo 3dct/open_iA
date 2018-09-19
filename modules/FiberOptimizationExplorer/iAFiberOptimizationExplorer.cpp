@@ -755,7 +755,8 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 			data.m_main3DVis->setColor(getResultColor(resultID));
 		}
 		for (size_t p = 0; p < data.m_fiberCount; ++p)
-			m_timeStepChart->plots()[data.m_startPlotIdx + p]->setVisible(true);
+			if (data.m_startPlotIdx != NoPlotsIdx)
+				m_timeStepChart->plots()[data.m_startPlotIdx + p]->setVisible(true);
 
 		bool anythingSelected = isAnythingSelected();
 		if (anythingSelected)
