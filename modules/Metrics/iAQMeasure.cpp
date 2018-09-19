@@ -116,7 +116,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	if (filter->m_chart)
 	{
 		auto histoPlotData = iASimpleHistogramData::Create(minVal, maxVal, vecHist, Continuous);
-		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(histoPlotData, QColor(180, 90, 90, 127))));
+		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(histoPlotData, QColor(180, 90, 90, 127))));
 	}
 
 	double derivSigma = static_cast<double>(binCount) / Kderiv;
@@ -126,7 +126,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	if (filter->m_chart)
 	{
 		auto smoothedHistoPlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHist, Continuous);
-		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(smoothedHistoPlotData, QColor(90, 180, 90, 127))));
+		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(smoothedHistoPlotData, QColor(90, 180, 90, 127))));
 	}
 
 	// 3. find peaks: (derivative = 0, 2nd deriv. negative)
@@ -135,7 +135,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	if (filter->m_chart)
 	{
 		auto firstDerivPlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedDeriv, Continuous);
-		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(firstDerivPlotData, QColor(90, 90, 180, 127))));
+		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(firstDerivPlotData, QColor(90, 90, 180, 127))));
 	}
 
 	// peak is at every 0-crossing, so where:
@@ -174,7 +174,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	peaks.resize(numberOfPeaks);		// only consider numberOfPeaks peaks
 	if (filter->m_chart)
 		for (size_t p = 0; p < numberOfPeaks; ++p)
-			filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(peaks[p].first, QColor(90, 180, 90, 182))));
+			filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iASelectedBinPlot(filter->m_chart->plots()[0]->data(), peaks[p].first, QColor(90, 180, 90, 182))));
 
 										// order peaks by index
 	std::sort(peaks.begin(), peaks.end(), [](std::pair<size_t, double> const & a, std::pair<size_t, double> const & b) {
@@ -197,7 +197,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		if (filter->m_chart)
 		{
 			//auto smoothedHisto2PlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHistoMin, Continuous);
-			//filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(smoothedHisto2PlotData, QColor(90, 180, 180, 127))));
+			//filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(smoothedHisto2PlotData, QColor(90, 180, 180, 127))));
 		}
 		int minIdx = peaks[m].first;
 		double curMinFreq = peaks[m].second;
@@ -214,7 +214,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		// calculate mean/stddev:
 		getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[m], thresholdIndices[m + 1], mean[m], variance[m]);
 		if (filter->m_chart)
-			filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(minIdx, QColor(180, 90, 90, 182))));
+			filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iASelectedBinPlot(filter->m_chart->plots()[0]->data(), minIdx, QColor(180, 90, 90, 182))));
 	}
 	// for last peak we still have to calculate mean and stddev
 	getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[numberOfPeaks - 1], thresholdIndices[numberOfPeaks], mean[numberOfPeaks - 1], variance[numberOfPeaks - 1]);

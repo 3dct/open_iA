@@ -151,10 +151,12 @@ void iASlicer::setPositionMarkerCenter(double x, double y)
 
 void iASlicer::update()
 {
-	m_data->update();
-	if (m_magicLens)
-		m_magicLens->Render();
-}
+	if (m_widget->isVisible())
+	{
+		m_data->update();
+		if (m_magicLens)
+			m_magicLens->Render();
+	}}
 
 void iASlicer::saveAsImage() const
 {

@@ -182,13 +182,13 @@ void iAClusterAttribChart::SetMaxYAxisValue(double val)
 void iAClusterAttribChart::ResetSpan()
 {
 	double dr0= m_charts->mapBinToValue(0);
-	double dr1= m_charts->mapBinToValue(m_charts->plots()[0]->GetData()->GetNumBin());
+	double dr1= m_charts->mapBinToValue(m_charts->plots()[0]->data()->GetNumBin());
 	SetSpanValues(dr0, dr1);
 }
 
 size_t iAClusterAttribChart::GetNumBin() const
 {
-	return m_charts->plots()[0]->GetData()->GetNumBin();
+	return m_charts->plots()[0]->data()->GetNumBin();
 }
 
 double iAClusterAttribChart::mapValueToBin(double value) const

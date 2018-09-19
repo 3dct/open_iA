@@ -26,9 +26,10 @@ class iAMapper
 {
 public:
 	virtual ~iAMapper();
-	virtual double SrcToDest(double y) const = 0;
-	virtual double DestToSrc(double y) const = 0;
-	virtual void update(double yZoom, double yDataMax, double yDataMin, int height) = 0;
-	virtual bool equals(QSharedPointer<iAMapper> other) const;
-	virtual QSharedPointer<iAMapper> clone() = 0;
+	virtual double srcToDst(double srcVal) const = 0;
+	virtual double dstToSrc(double dstVal) const = 0;
+	virtual void update(double srcMin, double srcMax, double dstMin, double dstMax) = 0;
+protected:
+	virtual bool equals(iAMapper const & other) const;
+	friend bool operator==(iAMapper const & a, iAMapper const & b);
 };

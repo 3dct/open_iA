@@ -97,7 +97,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	ioThread(nullptr),
 	reInitializeRenderWindows(true),
 	m_logger(new MdiChildLogger(this)),
-	m_histogram(new iADiagramFctWidget(nullptr, this, " Histogram")),
+	m_histogram(new iADiagramFctWidget(nullptr, this, " Histogram", "Frequency")),
 	m_histogramContainer(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_initVolumeRenderers(false),
 	preferences(prefs),
@@ -2891,7 +2891,7 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 		.arg(modalityName));
 	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iAPlot>(new
-		iABarGraphDrawer(GetModality(modalityIdx)->GetHistogramData(),
+		iABarGraphPlot(GetModality(modalityIdx)->GetHistogramData(),
 			QColor(70, 70, 70, 255)));
 	m_histogram->addPlot(m_histogramPlot);
 	m_histogram->setXCaption("Histogram " + modalityName);

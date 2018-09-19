@@ -281,7 +281,7 @@ void iAQSplom::updateHistogram(size_t paramIndex)
 		m_histograms[paramIndex]->removePlot(m_histograms[paramIndex]->plots()[0]);
 
 	auto histogramData = iAHistogramData::Create(hist_InputValues, settings.histogramBins);
-	auto histogramPlot = QSharedPointer<iABarGraphDrawer>(new iABarGraphDrawer(histogramData, QColor(70, 70, 70, 255)));
+	auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, QColor(70, 70, 70, 255)));
 	m_histograms[paramIndex]->addPlot(histogramPlot);
 	m_histograms[paramIndex]->update();
 }

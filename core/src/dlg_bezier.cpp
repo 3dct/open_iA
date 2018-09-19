@@ -542,7 +542,7 @@ double dlg_bezier::v2dX(int x)
 
 double dlg_bezier::v2dY(int y)
 {
-	return chart->yMapper()->SrcToDest(y) *chart->yBounds()[1] / chart->YZoom();
+	return chart->yMapper().srcToDst(y) *chart->yBounds()[1] / chart->YZoom();
 }
 
 int dlg_bezier::d2vX(double x)
