@@ -24,7 +24,7 @@ iAVectorPlotData::iAVectorPlotData(QSharedPointer<std::vector<double> > data):
 	m_data(data)
 {
 	m_xBounds[0] = 0;
-	m_xBounds[1] = m_data->size();
+	m_xBounds[1] = m_data->size()-1;
 
 	m_yBounds[0] = std::numeric_limits<double>::max();
 	m_yBounds[1] = std::numeric_limits<double>::lowest();
