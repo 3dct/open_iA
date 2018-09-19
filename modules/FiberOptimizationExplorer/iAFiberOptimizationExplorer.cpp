@@ -706,9 +706,15 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 		lut.setColor(i, m_colorTheme->GetColor(i));
 	m_splom->setLookupTable(lut, m_splomData->numParams() - 1);
 	m_splom->setSelectionMode(iAScatterPlot::Rectangle);
-	std::vector<bool> paramVisib(m_splomData->numParams(), false);
-	paramVisib[7] = paramVisib[9] = paramVisib[14] = paramVisib[15] = paramVisib[16] = paramVisib[17] = paramVisib[18] = paramVisib[m_splomData->numParams()-2] = true;
-	m_splom->setParameterVisibility(paramVisib);
+	if (m_resultData.size() > 0)
+	{
+		auto np = m_splomData->numParams();
+		std::vector<bool> v(m_splomData->numParams(), false);
+		auto & map = *m_resultData[0].m_outputMapping.data();
+		v[map[iACsvConfig::StartX]] = v[map[iACsvConfig::StartY]] = v[map[iACsvConfig::StartZ]]
+			= v[np-7] = v[np-6] = v[np-5] = v[np-4] = v[np-3] = v[np-2] = true;
+		m_splom->setParameterVisibility(v);
+	}
 	m_splom->showDefaultMaxizimedPlot();
 	m_splom->setSelectionColor("black");
 	m_splom->setPointRadius(2.5);
