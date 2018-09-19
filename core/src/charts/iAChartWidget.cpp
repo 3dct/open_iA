@@ -765,8 +765,8 @@ void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 			m_selectionBand->hide();
 			QRectF diagramRect;
 			QRectF selectionRect(m_selectionBand->geometry());     // height-y because we are drawing reversed from actual y direction
-			diagramRect.setTop(    yMapper()->DestToSrc(activeHeight() - selectionRect.bottom()) );
-			diagramRect.setBottom( yMapper()->DestToSrc(activeHeight() - selectionRect.top()   ) );
+			diagramRect.setTop(    yMapper().dstToSrc(activeHeight() - selectionRect.bottom()) );
+			diagramRect.setBottom( yMapper().dstToSrc(activeHeight() - selectionRect.top()   ) );
 			diagramRect.setLeft(   screenX2DataBin(selectionRect.left()  ) );
 			diagramRect.setRight(  screenX2DataBin(selectionRect.right() ) );
 			diagramRect = diagramRect.normalized();
@@ -780,7 +780,7 @@ void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 			{
 				for (int bin=diagramRect.left(); bin <= diagramRect.right(); ++bin)
 				{
-					double binYValue = m_plots[plotIdx].data()->GetData()->GetRawData()[bin];
+					double binYValue = m_plots[plotIdx]->data()->GetRawData()[bin];
 					if (yMin < binYValue && binYValue < yMax)
 					{
 						m_selectedPlots.push_back(plotIdx);
