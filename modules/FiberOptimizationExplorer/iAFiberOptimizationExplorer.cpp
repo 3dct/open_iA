@@ -123,7 +123,7 @@ const QString iAFiberOptimizationExplorer::SimpleFormat("FiberOpt Simple Format"
 
 namespace
 {
-	const int DistanceMetricCount = 5;
+	const int DistanceMetricCount = 4;
 	int DifferenceCount;
 	const int EndColumns = 2;
 	const double CoordinateShift = 74.5;
@@ -282,8 +282,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	m_cmbboxDistanceMeasure->addItem("Dist1 (Midpoint, Angles, Length)");
 	m_cmbboxDistanceMeasure->addItem("Dist2 (Start-Start/Center-Center/End-End)");
 	m_cmbboxDistanceMeasure->addItem("Dist3 (all 9 pairs Start-/Center-/Endpoint)");
-	m_cmbboxDistanceMeasure->addItem("Dist4 (Overlap %)");
-	m_cmbboxDistanceMeasure->addItem("Dist5 (Overlap % in relation to Volume Ratio)");
+	m_cmbboxDistanceMeasure->addItem("Dist4 (Overlap % in relation to Volume Ratio)");
 	m_cmbboxDistanceMeasure->setCurrentIndex(1);
 	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::changeReferenceDisplay);
 	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(changeReferenceDisplay()));
@@ -1158,7 +1157,7 @@ namespace
 		return false;
 	}
 
-	double getOverlap(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vtkVariantArray* fiber2, bool normalizeByVolumeRatio)
+	double getOverlap(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vtkVariantArray* fiber2)
 	{
 		// leave out pi in volume, as we only need relation of the volumes!
 		double fiber1Vol = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble() + std::pow(fiber1->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2, 2);
@@ -1175,8 +1174,7 @@ namespace
 				++containedPoints;
 		}
 		double distance = static_cast<double>(containedPoints) / CylinderSamplePoints;
-		if (normalizeByVolumeRatio)
-			distance *= (fiber1Vol < fiber2Vol) ? fiber1Vol / fiber2Vol : fiber2Vol / fiber1Vol;
+		distance *= (fiber1Vol < fiber2Vol) ? fiber1Vol / fiber2Vol : fiber2Vol / fiber1Vol;
 		return distance;
 	}
 
@@ -1287,12 +1285,7 @@ namespace
 			//        - one random variable for distance from center (0.. fiber radius); make sure to use sqrt of random variable to avoid clustering points in center (http://mathworld.wolfram.com/DiskPointPicking.html)
 			//    - pseudorandom?
 			//        --> no idea at the moment
-			distance = 1 - getOverlap(fiber1, mapping, fiber2, false);
-			break;
-		}
-		case 4:
-		{
-			distance = 1 - getOverlap(fiber1, mapping, fiber2, true);
+			distance = 1 - getOverlap(fiber1, mapping, fiber2);
 			break;
 		}
 		}
