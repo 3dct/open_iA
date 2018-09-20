@@ -767,8 +767,11 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 		bool anythingSelected = isAnythingSelected();
 		if (anythingSelected)
 			data.m_main3DVis->setSelection(m_currentSelection[resultID], anythingSelected);
-		m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID].m_timeValues[
-			std::min(m_resultData[resultID].m_timeValues.size()-1, static_cast<size_t>(m_timeStepSlider->value()))]);
+		if (m_resultData[resultID].m_timeValues.size() > 0)
+		{
+			m_resultData[resultID].m_main3DVis->updateValues(m_resultData[resultID].m_timeValues[
+				std::min(m_resultData[resultID].m_timeValues.size() - 1, static_cast<size_t>(m_timeStepSlider->value()))]);
+		}
 		data.m_main3DVis->show();
 		m_style->addInput( resultID, data.m_main3DVis->getLinePolyData() );
 		m_splom->addFilter( m_splomData->numParams()-1, resultID);
