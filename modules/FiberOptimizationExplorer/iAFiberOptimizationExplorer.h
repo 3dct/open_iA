@@ -30,13 +30,15 @@
 
 #include <vector>
 
+class iAFiberCharData;
+
 class iA3DCylinderObjectVis;
-class iAResultData;
 
 class iAChartWidget;
 class iAColorTheme;
 class iAQSplom;
 class iARendererManager;
+class iARefDistCompute;
 class iASPLOMData;
 class MainWindow;
 
@@ -86,6 +88,7 @@ private slots:
 	void playPauseTimeSteps();
 	void playTimer();
 	void playDelayChanged(int);
+	void refDistAvailable();
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
@@ -96,7 +99,7 @@ private:
 	void showCurrentSelectionInSPLOM();
 	bool isAnythingSelected() const;
 
-	std::vector<iAResultData> m_resultData;
+	std::vector<iAFiberCharData> m_resultData;
 	QSharedPointer<iARendererManager> m_renderManager;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_colorTheme;
@@ -125,4 +128,5 @@ private:
 	QString m_configName;
 	QTimer * m_playTimer;
 	QSlider* m_timeStepSlider;
+	iARefDistCompute* m_refDistCompute;
 };
