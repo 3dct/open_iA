@@ -344,7 +344,6 @@ namespace
 }
 
 int iARefDistCompute::MaxNumberOfCloseFibers = 25;
-int iARefDistCompute::DifferenceCount = 0;
 
 iARefDistCompute::iARefDistCompute(std::vector<iAFiberCharData> & results, iASPLOMData & splomData, int referenceID):
 	m_splomData(splomData),
@@ -354,7 +353,8 @@ iARefDistCompute::iARefDistCompute(std::vector<iAFiberCharData> & results, iASPL
 
 void iARefDistCompute::run()
 {
-	iATimeGuard timeReference("Reference Distance computation");
+	iAPerformanceHelper perfRefComp;
+	perfRefComp.start("Reference Distance computation");
 	// "register" other datasets to reference:
 	auto const & mapping = *m_resultData[m_referenceID].m_outputMapping.data();
 
@@ -418,7 +418,7 @@ void iARefDistCompute::run()
 		//DEBUG_LOG(QString("Matching result %1 to reference (%2):").arg(resultID).arg(m_referenceID));
 		size_t fiberCount = m_resultData[resultID].m_resultTable->GetNumberOfRows();
 		m_resultData[resultID].m_referenceDist.resize(fiberCount);
-		m_resultData[resultID].m_referenceDiff.resize(fiberCount);
+		m_resultData[resultID].m_timeRefDiff.resize(fiberCount);
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			// find the best-matching fibers in reference & compute difference:
@@ -435,7 +435,7 @@ void iARefDistCompute::run()
 			*/
 		}
 	}
-
+	perfRefComp.stop();
 	std::vector<size_t> diffCols;
 	diffCols.push_back(mapping[iACsvConfig::StartX]);
 	diffCols.push_back(mapping[iACsvConfig::StartY]);
@@ -450,46 +450,77 @@ void iARefDistCompute::run()
 	diffCols.push_back(mapping[iACsvConfig::Theta]);
 	diffCols.push_back(mapping[iACsvConfig::Length]);
 	diffCols.push_back(mapping[iACsvConfig::Diameter]);
-	size_t splomID = 0;
+	iAPerformanceHelper perfDistComp;
+	perfDistComp.start("Distance computation");
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
+		iAFiberCharData& d = m_resultData[resultID];
 		if (resultID == m_referenceID)
-		{
-			splomID += m_resultData[resultID].m_resultTable->GetNumberOfRows();
 			continue;
-		}
 		//DEBUG_LOG(QString("Differences of result %1 to reference (%2):").arg(resultID).arg(m_referenceID));
-		size_t fiberCount = m_resultData[resultID].m_resultTable->GetNumberOfRows();
+		size_t fiberCount = d.m_resultTable->GetNumberOfRows();
+		d.m_timeRefDiff.resize(fiberCount);
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
-			// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
-			std::vector<double> refDiff(DifferenceCount);
-			for (size_t diffID = 0; diffID < diffCols.size(); ++diffID)
+			size_t timeStepCount = d.m_timeValues.size();
+			d.m_timeRefDiff[fiberID].resize(timeStepCount);
+			for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
 			{
-				refDiff[diffID] = m_resultData[resultID].m_resultTable->GetValue(fiberID, diffCols[diffID]).ToDouble()
-					- m_resultData[m_referenceID].m_resultTable->GetValue(m_resultData[resultID].m_referenceDist[fiberID][0][0].index, diffCols[diffID]).ToDouble();
-				size_t tableColumnID = m_splomData.numParams() - (DifferenceCount + DistanceMetricCount + EndColumns) + diffID;
-				m_splomData.data()[tableColumnID][splomID] = refDiff[diffID];
-				m_resultData[resultID].m_resultTable->SetValue(fiberID, tableColumnID, refDiff[diffID]);
-			}
-			for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
-			{
-				double dist = m_resultData[resultID].m_referenceDist[fiberID][distID][0].distance;
-				size_t tableColumnID = m_splomData.numParams() - (DistanceMetricCount + EndColumns) + distID;
-				m_splomData.data()[tableColumnID][splomID] = dist;
-				m_resultData[resultID].m_resultTable->SetValue(fiberID, tableColumnID, dist);
+				// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
+				d.m_timeRefDiff[fiberID][timeStep].resize(iAFiberCharData::FiberValueCount+DistanceMetricCount);
+				for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+				{
+					d.m_timeRefDiff[fiberID][timeStep][diffID] = d.m_timeValues[timeStep][fiberID][diffID]
+						- m_resultData[m_referenceID].m_resultTable->GetValue(d.m_referenceDist[fiberID][0][0].index, diffCols[diffID]).ToDouble();
+				}
+				for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
+				{
+					// double dist = getDistance(d.m_timeValues[timeStep][fiberID], )
+					double dist = 0; // TODO compute distance measure from vector instead of vtkTable!
+					d.m_timeRefDiff[fiberID][timeStep][iAFiberCharData::FiberValueCount + distID] = dist;
+				}
 			}
 			/*
 			DEBUG_LOG(QString("  Fiber %1 -> ref #%2. Shift: startx=(%3, %4, %5), endx=(%6, %7, %8), center=(%9, %10, %11), phi=%12, theta=%13, length=%14, diameter=%15")
-			.arg(fiberID).arg(m_resultData[resultID].m_referenceDist[fiberID][0][0].index)
+			.arg(fiberID).arg(d.m_timeRefDiff[fiberID][d.m_timeValues.size()-1[0][0].index)
 			.arg(refDiff[0]).arg(refDiff[1]).arg(refDiff[2])
 			.arg(refDiff[3]).arg(refDiff[4]).arg(refDiff[5])
 			.arg(refDiff[6]).arg(refDiff[7]).arg(refDiff[8])
 			.arg(refDiff[9]).arg(refDiff[10]).arg(refDiff[11]).arg(refDiff[12])
 			);
 			*/
-			m_resultData[resultID].m_referenceDiff[fiberID].swap(refDiff);
+		}
+	}
+	perfDistComp.stop();
+	size_t splomID = 0;
+	iAPerformanceHelper perfSPLOMUpdate;
+	perfSPLOMUpdate.start("SPLOM Update");
+	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
+	{
+		iAFiberCharData& d = m_resultData[resultID];
+		size_t fiberCount = d.m_resultTable->GetNumberOfRows();
+		if (resultID == m_referenceID)
+		{
+			splomID += fiberCount;
+			continue;
+		}
+		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
+		{
+			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+			{
+				size_t tableColumnID = m_splomData.numParams() - (iAFiberCharData::FiberValueCount + DistanceMetricCount + EndColumns) + diffID;
+				m_splomData.data()[tableColumnID][splomID] = d.m_timeRefDiff[fiberID][d.m_timeValues.size()-1][diffID];
+				//d.m_resultTable->SetValue(fiberID, tableColumnID, d.m_timeRefDiff[fiberID][d.m_timeValues.size()-1][diffID]);
+			}
+			for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
+			{
+				double dist = d.m_referenceDist[fiberID][distID][0].distance;
+				size_t tableColumnID = m_splomData.numParams() - (DistanceMetricCount + EndColumns) + distID;
+				m_splomData.data()[tableColumnID][splomID] = dist;
+				//d.m_resultTable->SetValue(fiberID, tableColumnID, dist);
+			}
 			++splomID;
 		}
 	}
+	perfSPLOMUpdate.stop();
 }

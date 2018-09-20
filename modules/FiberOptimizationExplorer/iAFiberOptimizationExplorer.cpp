@@ -197,13 +197,6 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(MainWindow* mainWnd) :
 
 bool iAFiberOptimizationExplorer::load(QString const & path, QString const & configName)
 {
-	//QVBoxLayout* mainLayout = new QVBoxLayout();
-	//setLayout(mainLayout);
-	//QScrollArea* scrollArea = new QScrollArea();
-	//mainLayout->addWidget(scrollArea);
-	//scrollArea->setWidgetResizable(true);
-	//QWidget* resultsListWidget = new QWidget();
-	//scrollArea->setWidget(resultsListWidget);
 	m_configName = configName;
 	QGridLayout* resultsListLayout = new QGridLayout();
 
@@ -291,6 +284,8 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	m_timeStepChart->setSelectionMode(iAChartWidget::SelectPlot);
 	connect(m_timeStepChart, &iAChartWidget::plotsSelected, this, &iAFiberOptimizationExplorer::selectionTimeStepChartChanged);
 
+	QComboBox* dataChooser = new QComboBox();
+
 	QWidget* playControls = new QWidget();
 	playControls->setLayout(new QHBoxLayout());
 	QPushButton* playPauseButton = new QPushButton("Play");
@@ -302,6 +297,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	playControls->layout()->addWidget(new QLabel("Delay (ms)"));
 	playControls->layout()->addWidget(stepDelayInput);
 	playControls->layout()->addWidget(playPauseButton);
+	playControls->layout()->addWidget(dataChooser);
 	m_playTimer->setInterval(DefaultPlayDelay);
 	connect(m_playTimer, &QTimer::timeout, this, &iAFiberOptimizationExplorer::playTimer);
 	connect(playPauseButton, &QPushButton::pressed, this, &iAFiberOptimizationExplorer::playPauseTimeSteps);
@@ -363,7 +359,6 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 			paramNames.push_back("ThetaDiff");
 			paramNames.push_back("LengthDiff");
 			paramNames.push_back("DiameterDiff");
-			iARefDistCompute::DifferenceCount = paramNames.size() - numColumns;
 			for (int i=0; i<iARefDistCompute::DistanceMetricCount; ++i)
 			{
 				paramNames.push_back(QString("MinDist%1").arg(i+1));
@@ -377,7 +372,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 		if (numFibers < iARefDistCompute::MaxNumberOfCloseFibers)
 			iARefDistCompute::MaxNumberOfCloseFibers = numFibers;
 		// TOOD: simplify - load all tables beforehand, then allocate splom data fully and then fill it?
-		for (int i = (iARefDistCompute::DistanceMetricCount+ iARefDistCompute::DifferenceCount+ iARefDistCompute::EndColumns); i >= iARefDistCompute::EndColumns; --i)
+		for (int i = (iARefDistCompute::DistanceMetricCount+iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns); i >= iARefDistCompute::EndColumns; --i)
 		{
 			m_splomData->data()[m_splomData->numParams() - i].resize(m_splomData->data()[m_splomData->numParams() - i].size() + numFibers, 0);
 		}
@@ -391,7 +386,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 			m_splomData->data()[m_splomData->numParams()-1].push_back(resultID);
 		}
 		// TODO: reuse splomData also for 3d visualization?
-		for (int col = 0; col < (iARefDistCompute::DistanceMetricCount+iARefDistCompute::DifferenceCount+iARefDistCompute::EndColumns-1); ++col)
+		for (int col = 0; col < (iARefDistCompute::DistanceMetricCount+ iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns-1); ++col)
 		{
 			addColumn(tableCreator.getTable(), 0, m_splomData->parameterName(numColumns+col).toStdString().c_str(), numFibers);
 		}
@@ -537,7 +532,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 					double phi = values[3].toDouble();
 					double radius = values[5].toDouble() * 0.5;
 
-					std::vector<double> timeStepValues(6);
+					std::vector<double> timeStepValues(iAFiberCharData::FiberValueCount);
 					// convert spherical to cartesian coordinates:
 					double dir[3];
 					dir[0] = radius * std::sin(phi) * std::cos(theta);
@@ -547,7 +542,12 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 					{
 						timeStepValues[i] = middlePoint[i] + dir[i];
 						timeStepValues[i+3] = middlePoint[i] - dir[i];
+						timeStepValues[i+6] = middlePoint[i];
 					}
+					timeStepValues[9] = phi;
+					timeStepValues[10] = theta;
+					timeStepValues[11] = values[5].toDouble();
+					timeStepValues[12] = resultData.m_resultTable->GetValue(curFiber, (*resultData.m_outputMapping)[iACsvConfig::Diameter]).ToDouble();
 					/*
 					DEBUG_LOG(QString("Fiber %1, step %2: Start (%3, %4, %5) - End (%6, %7, %8)")
 						.arg(curFiber)
@@ -601,6 +601,13 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	}
 	m_splomData->updateRanges();
 	m_currentSelection.resize(resultID);
+
+	for (int i = 0; i < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount; ++i)
+	{
+		dataChooser->addItem(m_splomData->parameterName(m_splomData->numParams() -
+			(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns) + i));
+	}
+	connect(dataChooser, SIGNAL(currentIndexChanged(int)), this, SLOT(timeErrorDataChanged(int)));
 
 	m_timeStepSlider->setMaximum(m_timeStepMax - 1);
 	m_timeStepSlider->setValue(m_timeStepMax - 1);
@@ -999,9 +1006,9 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 
 void iAFiberOptimizationExplorer::refDistAvailable()
 {
-	size_t endOfs = iARefDistCompute::DifferenceCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns;
+	size_t endOfs = iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns;
 	std::vector<size_t> changedSplomColumns;
-	for (size_t paramID = 0; paramID < iARefDistCompute::DifferenceCount + iARefDistCompute::DistanceMetricCount; ++paramID)
+	for (size_t paramID = 0; paramID < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount; ++paramID)
 	{
 		size_t columnID = m_splomData->numParams() - endOfs + paramID;
 		changedSplomColumns.push_back(columnID);
@@ -1076,8 +1083,8 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 			{
 				/*
 				DEBUG_LOG(QString("      Ref. Fiber %1, distance=%2")
-						  .arg(m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].index)
-						  .arg(m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n].distance));
+						  .arg(m_resultData[resultID].m_timeRefDiff[fiberID][distanceMeasure][n].index)
+						  .arg(m_resultData[resultID].m_timeRefDiff[fiberID][distanceMeasure][n].distance));
 				*/
 				referenceIDsToShow.push_back(m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n]);
 			}
@@ -1131,8 +1138,39 @@ void iAFiberOptimizationExplorer::playTimer()
 	// update of 3D vis is automatically done through signal on slider change!
 }
 
-
 void iAFiberOptimizationExplorer::playDelayChanged(int newInterval)
 {
 	m_playTimer->setInterval(newInterval);
+}
+
+void iAFiberOptimizationExplorer::timeErrorDataChanged(int colIndex)
+{
+	if (m_referenceID == NoResult)
+	{
+		DEBUG_LOG("Please select a reference first!");
+		return;
+	}
+	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
+	{
+		auto & d = m_resultData[resultID];
+		if (d.m_startPlotIdx == NoPlotsIdx)
+			continue;
+		size_t fiberCount = d.m_resultTable->GetNumberOfRows();
+		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
+		{
+			auto plotData = static_cast<iAVectorPlotData*>(m_timeStepChart->plots()[d.m_startPlotIdx + fiberID]->data().data());
+			for (size_t timeStep = 0; timeStep < d.m_timeRefDiff[fiberID].size(); ++timeStep)
+			{
+				if (colIndex >= 0 && colIndex < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount)
+				{
+					plotData->data()[timeStep] = d.m_timeRefDiff[fiberID][timeStep][colIndex];
+				}
+				else if (d.m_projectionError.size() > 0)
+				{
+					plotData->data() = *(d.m_projectionError[fiberID].data());
+				}
+			}
+		}
+	}
+	m_timeStepChart->update();
 }

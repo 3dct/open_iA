@@ -66,7 +66,13 @@ iAValueType iAVectorPlotData::GetRangeType() const
 {
 	return m_xDataType;
 }
+
 void iAVectorPlotData::setXDataType(iAValueType xDataType)
 {
 	m_xDataType = xDataType;
+}
+
+std::vector<double> & iAVectorPlotData::data()
+{
+	return *(m_data.data());
 }

@@ -33,7 +33,6 @@ class iARefDistCompute : public QThread
 public:
 	static const int DistanceMetricCount = 4;
 	static const int EndColumns = 2;
-	static int DifferenceCount;
 	static int MaxNumberOfCloseFibers;
 	iARefDistCompute(std::vector<iAFiberCharData> & results, iASPLOMData & splomData, int referenceID);
 	void run() override;

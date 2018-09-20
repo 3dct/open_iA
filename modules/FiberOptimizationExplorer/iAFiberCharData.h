@@ -41,23 +41,31 @@ public:
 	friend bool operator<(iAFiberDistance const & a, iAFiberDistance const & b);
 };
 
+//!
+//! fibervalues layout unless otherwise specified: (start[x,y,z], end[x,y,z], center[x,y,z], phi, theta, length, diameter)
 class iAFiberCharData
 {
 public:
-	// data:
+	static const int FiberValueCount = 13;
+	//! the fiber data as vtkTable, mainly for the 3d visualization:
 	vtkSmartPointer<vtkTable> m_resultTable;
+	//! mapping of the columns in m_resultTable
 	QSharedPointer<QMap<uint, uint> > m_outputMapping;
+	//! name of the csv file this result was loaded from
 	QString m_fileName;
-	// timestep, fiber, 6 values (center, phi, theta, length)
+	//! values for all timesteps, stored as: timestep, fiber, fibervalues
 	std::vector<std::vector<std::vector<double> > > m_timeValues;
-	// fiber, timestep, global projection error
+	//! projection error stored as fiber, timestep, global projection error
 	std::vector<QSharedPointer<std::vector<double> > > m_projectionError;
+	//! index where the plots for this result start
 	size_t m_startPlotIdx;
-	// fiber, errors (shiftx, shifty, shiftz, phi, theta, length, diameter)
-	// TODO: compute + visualize per timestep!
-	std::vector<std::vector<double> > m_referenceDiff;
-	// fiber, distance measure, match in reference
+	//! differences to reference fiber, stored as fiber, diff of fibervalues
+	//std::vector<std::vector<double> > m_referenceDiff;
+	//! differences to reference fiber, stored as fiber, timestep, diff of fibervalues (+distances)
+	std::vector<std::vector<std::vector<double> > > m_timeRefDiff;
+	//! reference distances, stored as: fiber, distance measure, match in reference
 	std::vector<std::vector<std::vector<iAFiberDistance> > > m_referenceDist;
+	//! number of fibers in the dataset:
 	size_t m_fiberCount;
 
 	// UI elements:

@@ -89,6 +89,7 @@ private slots:
 	void playTimer();
 	void playDelayChanged(int);
 	void refDistAvailable();
+	void timeErrorDataChanged(int);
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);

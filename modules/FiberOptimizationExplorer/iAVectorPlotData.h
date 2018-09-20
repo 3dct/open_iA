@@ -37,6 +37,7 @@ public:
 	DataType const * YBounds() const override;
 	iAValueType GetRangeType() const override;
 	void setXDataType(iAValueType);
+	std::vector<double> & data();
 private:
 	QSharedPointer<std::vector<double>> m_data;
 	iAValueType m_xDataType;
