@@ -1302,12 +1302,26 @@ namespace
 		bestMatches.resize(DistanceMetricCount);
 		for (int d=0; d<DistanceMetricCount; ++d)
 		{
-			std::vector<iAFiberDistance> distances(refFiberCount);
-			for (size_t fiberID = 0; fiberID < refFiberCount; ++fiberID)
+			std::vector<iAFiberDistance> distances;
+			if (d < 3)
 			{
-				distances[fiberID].index = fiberID;
-				double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(fiberID), d, diagonalLength, maxLength);
-				distances[fiberID].distance = curDistance;
+				distances.resize(refFiberCount);
+				for (size_t fiberID = 0; fiberID < refFiberCount; ++fiberID)
+				{
+					distances[fiberID].index = fiberID;
+					double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(fiberID), d, diagonalLength, maxLength);
+					distances[fiberID].distance = curDistance;
+				}
+			}
+			else
+			{ // compute overlap measures only for the best-matching fibers according to metric 2:
+				distances.resize(bestMatches[1].size());
+				for (size_t bestMatchID = 0; bestMatchID < bestMatches[1].size(); ++bestMatchID)
+				{
+					distances[bestMatchID].index = bestMatches[1][bestMatchID].index;
+					double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(distances[bestMatchID].index), d, diagonalLength, maxLength);
+					distances[bestMatchID].distance = curDistance;
+				}
 			}
 			std::sort(distances.begin(), distances.end());
 			std::copy(distances.begin(), distances.begin() + MaxNumberOfCloseFibers, std::back_inserter(bestMatches[d]));
