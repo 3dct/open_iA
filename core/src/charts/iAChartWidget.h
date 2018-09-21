@@ -96,6 +96,9 @@ public:
 	void addXMarker(double xPos, QColor const & color);
 	void removeXMarker(double xPos);
 	void clearMarkers();
+	void updateBounds();
+	void updateXBounds();
+	void updateYBounds();
 public slots:
 	void resetView();
 signals:
@@ -151,9 +154,6 @@ private:
 	virtual void drawAfterPlots(QPainter& painter);
 	virtual void drawXAxis(QPainter &painter);
 	virtual void drawYAxis(QPainter &painter);
-	void updateBounds();
-	void updateXBounds();
-	void updateYBounds();
 	double visibleXStart() const;
 	double visibleXEnd() const;
 
