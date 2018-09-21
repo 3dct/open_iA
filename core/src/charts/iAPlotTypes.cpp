@@ -100,6 +100,7 @@ void iALinePlot::draw(QPainter& painter, double binWidth, size_t startBin, size_
 	if (!buildLinePolygon(poly, m_data->GetRawData(), startBin, endBin, xMapper, yMapper))
 		return;
 	QPen pen(painter.pen());
+	pen.setWidth(2);
 	pen.setColor(getColor());
 	painter.setPen(pen);
 	painter.drawPolyline(poly);
