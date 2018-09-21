@@ -1180,7 +1180,8 @@ void iAFiberOptimizationExplorer::timeErrorDataChanged(int colIndex)
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			auto plotData = static_cast<iAVectorPlotData*>(m_timeStepChart->plots()[d.m_startPlotIdx + fiberID]->data().data());
-			for (size_t timeStep = 0; timeStep < d.m_timeRefDiff[fiberID].size(); ++timeStep)
+			size_t timeStepCount = std::min(std::min(d.m_timeRefDiff[fiberID].size(), d.m_timeValues.size()), plotData->GetNumBin());
+			for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
 			{
 				if (colIndex >= 0 && colIndex < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount)
 				{
