@@ -57,6 +57,7 @@ class QButtonGroup;
 class QCheckBox;
 class QComboBox;
 class QLabel;
+class QWebEngineView;
 class QSlider;
 class QSpinBox;
 class QTimer;
@@ -130,4 +131,7 @@ private:
 	QTimer * m_playTimer;
 	QSlider* m_timeStepSlider;
 	iARefDistCompute* m_refDistCompute;
+
+	QWebEngineView*  m_browser;
+	QString m_html;
 };

@@ -72,6 +72,7 @@
 #include <QSpinBox>
 #include <QTextStream>
 #include <QTimer>
+#include <QWebEngineView>
 
 #include <QtGlobal> // for QT_VERSION
 
@@ -317,6 +318,13 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	optimizationSteps->layout()->addWidget(m_timeStepChart);
 	optimizationSteps->layout()->addWidget(timeSteps);
 	optimizationSteps->layout()->addWidget(playControls);
+
+	m_html = "<!DOCTYPE html><head>";
+	m_html += "  <link href=\"https://unpkg.com/lineupjs/build/LineUpJS.css\" rel=\"stylesheet\">";
+	m_html += "<script src=\"https://unpkg.com/lineupjs/build/LineUpJS.js\"></script>";
+	// include lineup following https://github.com/Caleydo/lineupjs
+	m_html += "<script type=\"text/javascript\">"
+			"const arr = [];";
 
 	int resultID = 0;
 	m_defaultButtonGroup = new QButtonGroup();
@@ -591,6 +599,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 			}
 			m_timeStepMax = thisResultTimeStepMax;
 		}
+		m_html += "arr.push({ csv: '"+csvFile+"', FiberCount: "+QString::number(resultData.m_fiberCount) + "});";
 		++resultID;
 		splomStartIdx += numFibers;
 	}
@@ -623,10 +632,17 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(optimizationSteps, "Time Steps", "foeTimeSteps");
 	iADockWidgetWrapper* splomWidget = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
 
+	m_browser = new QWebEngineView();
+	iADockWidgetWrapper* browserWidget = new iADockWidgetWrapper(m_browser, "LineUp", "foeLineUp");
+
 	addDockWidget(Qt::BottomDockWidgetArea, resultListDockWidget);
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
+	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
+
+	m_html += "const lineup = LineUpJS.asLineUp(document.body, arr); </script><body></body></html>";
+
 	return true;
 }
 
@@ -682,6 +698,10 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	m_splom->settings.enableColorSettings = true;
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiberOptimizationExplorer::selectionSPLOMChanged);
 	connect(m_splom, &iAQSplom::lookupTableChanged, this, &iAFiberOptimizationExplorer::splomLookupTableChanged);
+
+	DEBUG_LOG(QString("HTML: %1").arg(m_html));
+	m_browser->setHtml(m_html);
+	m_browser->show();
 }
 
 QColor iAFiberOptimizationExplorer::getResultColor(int resultID)
