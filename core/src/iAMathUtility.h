@@ -74,7 +74,7 @@ double mapToNorm(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const
 		return 0;
 	}
 	double returnVal = static_cast<double>(value - minSrcVal) / range;
-	assert(returnVal >= 0 && returnVal <= 1);
+	//assert(returnVal >= 0 && returnVal <= 1);
 	return clamp(0.0, 1.0, returnVal);
 }
 
