@@ -321,13 +321,6 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	optimizationSteps->layout()->addWidget(timeSteps);
 	optimizationSteps->layout()->addWidget(playControls);
 
-	m_html = "<!DOCTYPE html><head>";
-	m_html += "  <link href=\"https://unpkg.com/lineupjs/build/LineUpJS.css\" rel=\"stylesheet\">";
-	m_html += "<script src=\"https://unpkg.com/lineupjs/build/LineUpJS.js\"></script>";
-	// include lineup following https://github.com/Caleydo/lineupjs
-	m_html += "<script type=\"text/javascript\">"
-			"const arr = [];";
-
 	int resultID = 0;
 	m_defaultButtonGroup = new QButtonGroup();
 	const int MaxDatasetCount = 25;
@@ -601,7 +594,6 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 			}
 			m_timeStepMax = thisResultTimeStepMax;
 		}
-		m_html += "arr.push({ csv: '"+csvFile+"', FiberCount: "+QString::number(resultData.m_fiberCount) + "});";
 		++resultID;
 		splomStartIdx += numFibers;
 	}
@@ -642,8 +634,6 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
 	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
-
-	m_html += "const lineup = LineUpJS.asLineUp(document.body, arr); </script><body></body></html>";
 
 	return true;
 }
@@ -700,10 +690,6 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	m_splom->settings.enableColorSettings = true;
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiberOptimizationExplorer::selectionSPLOMChanged);
 	connect(m_splom, &iAQSplom::lookupTableChanged, this, &iAFiberOptimizationExplorer::splomLookupTableChanged);
-
-	DEBUG_LOG(QString("HTML: %1").arg(m_html));
-	m_browser->setHtml(m_html);
-	m_browser->show();
 }
 
 QColor iAFiberOptimizationExplorer::getResultColor(int resultID)
@@ -1040,6 +1026,66 @@ void iAFiberOptimizationExplorer::refDistAvailable()
 	m_splom->update();
 	delete m_refDistCompute;
 	m_refDistCompute = nullptr;
+
+	 // include lineup following https://github.com/Caleydo/lineupjs
+	m_html = "<!DOCTYPE html>\n"
+	         "<html lang=\"en\">\n"
+	         "  <head>\n"
+	         "    <title>LineUp</title>\n"
+	         "    <meta charset=\"utf-8\">\n"
+	         "    <link href=\"https://unpkg.com/lineupjs/build/LineUpJS.css\" rel=\"stylesheet\">\n"
+	         "    <script src=\"https://unpkg.com/lineupjs/build/LineUpJS.js\"></script>\n"
+	         "    <script>\n"
+		     "      const arr = [];\n";
+	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
+	{
+		if (resultID == m_referenceID)
+			continue;
+		std::array<double, iAFiberCharData::FiberValueCount> avgError = { 0.0 };
+		std::array<double, iAFiberCharData::FiberValueCount> avgDist = { 0.0 };
+		auto& d = m_resultData[resultID];
+		for (size_t fiberID = 0; fiberID < d.m_fiberCount; ++fiberID)
+		{
+			size_t lastTimeStepID = d.refDiffFiber[fiberID].timeStep.size() - 1;
+			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+			{
+				avgError[diffID] += d.refDiffFiber[fiberID].timeStep[lastTimeStepID].diff[diffID];
+			}
+			for (size_t distID = 0; distID < iARefDistCompute::DistanceMetricCount; ++distID)
+			{
+				avgDist[distID] += d.refDiffFiber[fiberID].dist[distID][0].distance;
+			}
+		}
+		for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+			avgError[diffID] /= d.m_fiberCount;
+		for (size_t distID = 0; distID < iARefDistCompute::DistanceMetricCount; ++distID)
+			avgDist[distID] /= d.m_fiberCount;
+		m_html += "      arr.push({ "
+			"csv: '" + QFileInfo(d.m_fileName).baseName() + "', " +
+			"FiberCount: " + QString::number(d.m_fiberCount) + ", " +
+			"AvgLengthError:" + QString::number(avgError[11]) + ", " +
+			"AvgPhiError:" + QString::number(avgError[9]) + ", " +
+			"AvgThetaError:" + QString::number(avgError[10]) + ", ";
+		for (size_t distID = 0; distID < iARefDistCompute::DistanceMetricCount; ++distID)
+		{
+			m_html += QString("AvgDist%1:").arg(distID) + QString::number(avgDist[distID]);
+			if (distID < iARefDistCompute::DistanceMetricCount - 1)
+				m_html += ", ";
+		}
+		m_html += "});\n";
+	}
+	m_html +=
+		"    </script>\n"
+		"  </head>\n"
+		"  <body>\n"
+		"    <script>\n"
+		"      const lineup = LineUpJS.asLineUp(document.body, arr);\n"
+		"    </script>\n"
+		"  </body>\n"
+		"</html>";
+	DEBUG_LOG(QString("HTML: %1").arg(m_html));
+	m_browser->setHtml(m_html);
+	m_browser->show();
 }
 
 void iAFiberOptimizationExplorer::splomLookupTableChanged()
