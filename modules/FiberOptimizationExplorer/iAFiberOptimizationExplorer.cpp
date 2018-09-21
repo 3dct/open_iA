@@ -76,6 +76,8 @@
 
 #include <QtGlobal> // for QT_VERSION
 
+#include <array>
+
 
 const QString iAFiberOptimizationExplorer::LegacyFormat("FiberOpt Legacy Format");
 const QString iAFiberOptimizationExplorer::SimpleFormat("FiberOpt Simple Format");
@@ -1095,19 +1097,12 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 	{
 		if (resultID == m_referenceID)
 			continue;
-		//DEBUG_LOG(QString("  In Result %1").arg(resultID));
 		for (size_t fiberIdx = 0; fiberIdx < m_currentSelection[resultID].size(); ++fiberIdx)
 		{
 			size_t fiberID = m_currentSelection[resultID][fiberIdx];
-			//DEBUG_LOG(QString("    For Fiber %1").arg(fiberID));
 			for (int n=0; n<refCount; ++n)
 			{
-				/*
-				DEBUG_LOG(QString("      Ref. Fiber %1, distance=%2")
-						  .arg(m_resultData[resultID].m_timeRefDiff[fiberID][distanceMeasure][n].index)
-						  .arg(m_resultData[resultID].m_timeRefDiff[fiberID][distanceMeasure][n].distance));
-				*/
-				referenceIDsToShow.push_back(m_resultData[resultID].m_referenceDist[fiberID][distanceMeasure][n]);
+				referenceIDsToShow.push_back(m_resultData[resultID].refDiffFiber[fiberID].dist[distanceMeasure][n]);
 			}
 		}
 	}
@@ -1179,13 +1174,14 @@ void iAFiberOptimizationExplorer::timeErrorDataChanged(int colIndex)
 		size_t fiberCount = d.m_resultTable->GetNumberOfRows();
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
+			auto & timeSteps = d.refDiffFiber[fiberID].timeStep;
 			auto plotData = static_cast<iAVectorPlotData*>(m_timeStepChart->plots()[d.m_startPlotIdx + fiberID]->data().data());
-			size_t timeStepCount = std::min(std::min(d.m_timeRefDiff[fiberID].size(), d.m_timeValues.size()), plotData->GetNumBin());
+			size_t timeStepCount = std::min(std::min(timeSteps.size(), d.m_timeValues.size()), plotData->GetNumBin());
 			for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
 			{
 				if (colIndex >= 0 && colIndex < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount)
 				{
-					plotData->data()[timeStep] = d.m_timeRefDiff[fiberID][timeStep][colIndex];
+					plotData->data()[timeStep] = timeSteps[timeStep].diff[colIndex];
 				}
 				else if (d.m_projectionError.size() > 0)
 				{

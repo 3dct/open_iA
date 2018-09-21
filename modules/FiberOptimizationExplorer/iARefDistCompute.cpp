@@ -33,8 +33,8 @@
 #include <vtkTable.h>
 #include <vtkVariantArray.h>
 
+#include <array>
 #include <random>
-
 
 typedef iAVec3T<double> Vec3D;
 
@@ -356,8 +356,8 @@ void iARefDistCompute::run()
 	iAPerformanceHelper perfRefComp;
 	perfRefComp.start("Reference Distance computation");
 	// "register" other datasets to reference:
-	auto const & mapping = *m_resultData[m_referenceID].m_outputMapping.data();
-
+	auto & ref = m_resultData[m_referenceID];
+	auto const & mapping = *ref.m_outputMapping.data();
 	/*
 	std::vector<std::vector<double> > sampledPoints;
 	samplePoints(m_resultData[0].m_resultTable->GetRow(0), mapping, sampledPoints);
@@ -412,83 +412,59 @@ void iARefDistCompute::run()
 
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
+		auto & d = m_resultData[resultID];
 		if (resultID == m_referenceID)
 			continue;
-
-		//DEBUG_LOG(QString("Matching result %1 to reference (%2):").arg(resultID).arg(m_referenceID));
-		size_t fiberCount = m_resultData[resultID].m_resultTable->GetNumberOfRows();
-		m_resultData[resultID].m_referenceDist.resize(fiberCount);
-		m_resultData[resultID].m_timeRefDiff.resize(fiberCount);
+		size_t fiberCount = d.m_resultTable->GetNumberOfRows();
+		d.refDiffFiber.resize(fiberCount);
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			// find the best-matching fibers in reference & compute difference:
-			getBestMatches(m_resultData[resultID].m_resultTable->GetRow(fiberID),
-				mapping, m_resultData[m_referenceID].m_resultTable,
-				m_resultData[resultID].m_referenceDist[fiberID], maxLength, diagLength);
-			/*
-			DEBUG_LOG(QString("  Fiber %1: Best match: distmetric1: fiber %2 (distance: %3), distmetric2: %4 (distance: %5)")
-			.arg(fiberID)
-			.arg(m_resultData[resultID].m_referenceDist[fiberID][0][0].index)
-			.arg(m_resultData[resultID].m_referenceDist[fiberID][0][0].distance)
-			.arg(m_resultData[resultID].m_referenceDist[fiberID][1][0].index)
-			.arg(m_resultData[resultID].m_referenceDist[fiberID][1][0].distance));
-			*/
+			getBestMatches(d.m_resultTable->GetRow(fiberID),
+				mapping, ref.m_resultTable,
+				d.refDiffFiber[fiberID].dist, maxLength, diagLength);
 		}
 	}
 	perfRefComp.stop();
-	std::vector<size_t> diffCols;
-	diffCols.push_back(mapping[iACsvConfig::StartX]);
-	diffCols.push_back(mapping[iACsvConfig::StartY]);
-	diffCols.push_back(mapping[iACsvConfig::StartZ]);
-	diffCols.push_back(mapping[iACsvConfig::EndX]);
-	diffCols.push_back(mapping[iACsvConfig::EndY]);
-	diffCols.push_back(mapping[iACsvConfig::EndZ]);
-	diffCols.push_back(mapping[iACsvConfig::CenterX]);
-	diffCols.push_back(mapping[iACsvConfig::CenterY]);
-	diffCols.push_back(mapping[iACsvConfig::CenterZ]);
-	diffCols.push_back(mapping[iACsvConfig::Phi]);
-	diffCols.push_back(mapping[iACsvConfig::Theta]);
-	diffCols.push_back(mapping[iACsvConfig::Length]);
-	diffCols.push_back(mapping[iACsvConfig::Diameter]);
+	std::array<size_t, iAFiberCharData::FiberValueCount> diffCols = {
+		mapping[iACsvConfig::StartX],  mapping[iACsvConfig::StartY],  mapping[iACsvConfig::StartZ],
+		mapping[iACsvConfig::EndX],    mapping[iACsvConfig::EndY],    mapping[iACsvConfig::EndZ],
+		mapping[iACsvConfig::CenterX], mapping[iACsvConfig::CenterY], mapping[iACsvConfig::CenterZ],
+		mapping[iACsvConfig::Phi], mapping[iACsvConfig::Theta],
+		mapping[iACsvConfig::Length],
+		mapping[iACsvConfig::Diameter]
+	};
 	iAPerformanceHelper perfDistComp;
 	perfDistComp.start("Distance computation");
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
-		iAFiberCharData& d = m_resultData[resultID];
+		auto& d = m_resultData[resultID];
 		if (resultID == m_referenceID)
 			continue;
-		//DEBUG_LOG(QString("Differences of result %1 to reference (%2):").arg(resultID).arg(m_referenceID));
 		size_t fiberCount = d.m_resultTable->GetNumberOfRows();
-		d.m_timeRefDiff.resize(fiberCount);
+		d.refDiffFiber.resize(fiberCount);
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			size_t timeStepCount = d.m_timeValues.size();
-			d.m_timeRefDiff[fiberID].resize(timeStepCount);
+			auto & timeSteps = d.refDiffFiber[fiberID].timeStep;
+			timeSteps.resize(timeStepCount);
 			for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
 			{
 				// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
-				d.m_timeRefDiff[fiberID][timeStep].resize(iAFiberCharData::FiberValueCount+DistanceMetricCount);
+				auto & diffs = timeSteps[timeStep].diff;
+				diffs.resize(iAFiberCharData::FiberValueCount+DistanceMetricCount);
 				for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 				{
-					d.m_timeRefDiff[fiberID][timeStep][diffID] = d.m_timeValues[timeStep][fiberID][diffID]
-						- m_resultData[m_referenceID].m_resultTable->GetValue(d.m_referenceDist[fiberID][0][0].index, diffCols[diffID]).ToDouble();
+					diffs[diffID] = d.m_timeValues[timeStep][fiberID][diffID]
+						- m_resultData[m_referenceID].m_resultTable->GetValue(d.refDiffFiber[fiberID].dist[0][0].index, diffCols[diffID]).ToDouble();
 				}
 				for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
 				{
 					// double dist = getDistance(d.m_timeValues[timeStep][fiberID], )
 					double dist = 0; // TODO compute distance measure from vector instead of vtkTable!
-					d.m_timeRefDiff[fiberID][timeStep][iAFiberCharData::FiberValueCount + distID] = dist;
+					diffs[iAFiberCharData::FiberValueCount + distID] = dist;
 				}
 			}
-			/*
-			DEBUG_LOG(QString("  Fiber %1 -> ref #%2. Shift: startx=(%3, %4, %5), endx=(%6, %7, %8), center=(%9, %10, %11), phi=%12, theta=%13, length=%14, diameter=%15")
-			.arg(fiberID).arg(d.m_timeRefDiff[fiberID][d.m_timeValues.size()-1[0][0].index)
-			.arg(refDiff[0]).arg(refDiff[1]).arg(refDiff[2])
-			.arg(refDiff[3]).arg(refDiff[4]).arg(refDiff[5])
-			.arg(refDiff[6]).arg(refDiff[7]).arg(refDiff[8])
-			.arg(refDiff[9]).arg(refDiff[10]).arg(refDiff[11]).arg(refDiff[12])
-			);
-			*/
 		}
 	}
 	perfDistComp.stop();
@@ -506,15 +482,16 @@ void iARefDistCompute::run()
 		}
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
+			auto & diffData = d.refDiffFiber[fiberID];
 			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{
 				size_t tableColumnID = m_splomData.numParams() - (iAFiberCharData::FiberValueCount + DistanceMetricCount + EndColumns) + diffID;
-				m_splomData.data()[tableColumnID][splomID] = d.m_timeRefDiff[fiberID][d.m_timeValues.size()-1][diffID];
+				m_splomData.data()[tableColumnID][splomID] = diffData.timeStep[d.m_timeValues.size()-1].diff[diffID];
 				//d.m_resultTable->SetValue(fiberID, tableColumnID, d.m_timeRefDiff[fiberID][d.m_timeValues.size()-1][diffID]);
 			}
 			for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
 			{
-				double dist = d.m_referenceDist[fiberID][distID][0].distance;
+				double dist = diffData.dist[distID][0].distance;
 				size_t tableColumnID = m_splomData.numParams() - (DistanceMetricCount + EndColumns) + distID;
 				m_splomData.data()[tableColumnID][splomID] = dist;
 				//d.m_resultTable->SetValue(fiberID, tableColumnID, dist);

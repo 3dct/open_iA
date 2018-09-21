@@ -33,6 +33,9 @@ class vtkTable;
 
 class QCheckBox;
 
+//! fibervalues layout unless otherwise specified : (start[x, y, z], end[x, y, z], center[x, y, z], phi, theta, length, diameter)
+
+//! Class for holding data about the distances from one result to another fiber in a different dataset
 class iAFiberDistance
 {
 public:
@@ -41,8 +44,25 @@ public:
 	friend bool operator<(iAFiberDistance const & a, iAFiberDistance const & b);
 };
 
-//!
-//! fibervalues layout unless otherwise specified: (start[x,y,z], end[x,y,z], center[x,y,z], phi, theta, length, diameter)
+//! Comparison data to reference for a single timestep, fiber and result
+class iARefDiffFiberTimeData
+{
+public:
+	//! diff of fibervalues (+distances)
+	std::vector<double> diff;
+};
+
+//! Comparison data to reference for a single fiber in a result
+class iARefDiffFiberData
+{
+public:
+	//! differences to reference fiber, stored per timestep
+	std::vector<iARefDiffFiberTimeData> timeStep;
+	//! dist to ref fibers in order of ascending difference
+	std::vector<std::vector<iAFiberDistance> > dist;
+};
+
+//! Data for a single fiber characterization result
 class iAFiberCharData
 {
 public:
@@ -57,14 +77,10 @@ public:
 	std::vector<std::vector<std::vector<double> > > m_timeValues;
 	//! projection error stored as fiber, timestep, global projection error
 	std::vector<QSharedPointer<std::vector<double> > > m_projectionError;
+	//! comparison data to reference for each fiber
+	std::vector<iARefDiffFiberData> refDiffFiber;
 	//! index where the plots for this result start
 	size_t m_startPlotIdx;
-	//! differences to reference fiber, stored as fiber, diff of fibervalues
-	//std::vector<std::vector<double> > m_referenceDiff;
-	//! differences to reference fiber, stored as fiber, timestep, diff of fibervalues (+distances)
-	std::vector<std::vector<std::vector<double> > > m_timeRefDiff;
-	//! reference distances, stored as: fiber, distance measure, match in reference
-	std::vector<std::vector<std::vector<iAFiberDistance> > > m_referenceDist;
 	//! number of fibers in the dataset:
 	size_t m_fiberCount;
 
