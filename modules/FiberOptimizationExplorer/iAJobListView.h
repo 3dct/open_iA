@@ -20,29 +20,31 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAProgress.h"
-
-#include <QThread>
-
-#include <vector>
-
-class iAFiberCharData;
-class iASPLOMData;
+#include <QMap>
+#include <QWidget>
 
 
-class iARefDistCompute : public QThread
+class iAJobData: public QObject
 {
 	Q_OBJECT
 public:
-	static const int DistanceMetricCount = 4;
-	static const int EndColumns = 2;
-	static int MaxNumberOfCloseFibers;
-	iARefDistCompute(std::vector<iAFiberCharData> & results, iASPLOMData & splomData, int referenceID);
-	void run() override;
-	iAProgress* progress();
+	iAJobData();
+	QWidget* jobWidget;
+public slots:
+	void jobFinished();
+};
+
+class iAProgress;
+
+class QThread;
+
+class iAJobListView : public QWidget
+{
+	Q_OBJECT
+public:
+	iAJobListView();
+	void addJob(QString name, iAProgress * p, QThread * t);
 private:
-	iAProgress m_progress;
-	iASPLOMData & m_splomData;
-	std::vector<iAFiberCharData> & m_resultData;
-	int m_referenceID;
+	QMap<iAProgress*, iAJobData> m_jobData;
+	QMap<QThread*, iAProgress*> m_jobProgress;
 };

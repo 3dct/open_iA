@@ -412,6 +412,7 @@ void iARefDistCompute::run()
 
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
+		m_progress.EmitProgress(static_cast<int>(100.0 * resultID / m_resultData.size()));
 		auto & d = m_resultData[resultID];
 		if (resultID == m_referenceID)
 			continue;
@@ -500,4 +501,9 @@ void iARefDistCompute::run()
 		}
 	}
 	perfSPLOMUpdate.stop();
+}
+
+iAProgress* iARefDistCompute::progress()
+{
+	return &m_progress;
 }

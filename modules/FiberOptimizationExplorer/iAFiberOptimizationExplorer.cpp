@@ -21,6 +21,7 @@
 #include "iAFiberOptimizationExplorer.h"
 
 #include "iAFiberCharData.h"
+#include "iAJobListView.h"
 #include "iARefDistCompute.h"
 
 // FeatureScout:
@@ -629,11 +630,15 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	m_browser = new QWebEngineView();
 	iADockWidgetWrapper* browserWidget = new iADockWidgetWrapper(m_browser, "LineUp", "foeLineUp");
 
+	m_jobs = new iAJobListView();
+	iADockWidgetWrapper* jobWidget = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
+
 	addDockWidget(Qt::BottomDockWidgetArea, resultListDockWidget);
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
 	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
+	splitDockWidget(splomWidget, jobWidget, Qt::Vertical);
 
 	return true;
 }
@@ -1007,9 +1012,9 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 		if (button != sender)
 			button->setText("");
 	m_referenceID = sender->property("resultID").toULongLong();
-
 	m_refDistCompute = new iARefDistCompute(m_resultData, *m_splomData.data(), m_referenceID);
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiberOptimizationExplorer::refDistAvailable);
+	m_jobs->addJob("Computing Reference Distances", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();
 }
 

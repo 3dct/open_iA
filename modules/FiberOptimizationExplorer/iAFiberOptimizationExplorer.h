@@ -31,6 +31,7 @@
 #include <vector>
 
 class iAFiberCharData;
+class iAJobListView;
 
 class iA3DCylinderObjectVis;
 
@@ -134,4 +135,5 @@ private:
 
 	QWebEngineView*  m_browser;
 	QString m_html;
+	iAJobListView * m_jobs;
 };

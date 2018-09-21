@@ -18,31 +18,45 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAJobListView.h"
 
+#include "iAConsole.h"
 #include "iAProgress.h"
 
+//#include <QHBoxLayout>
+#include <QLabel>
+#include <QProgressBar>
 #include <QThread>
-
-#include <vector>
-
-class iAFiberCharData;
-class iASPLOMData;
+#include <QVBoxLayout>
 
 
-class iARefDistCompute : public QThread
+iAJobData::iAJobData() : jobWidget(nullptr)
+{}
+
+void iAJobData::jobFinished()
 {
-	Q_OBJECT
-public:
-	static const int DistanceMetricCount = 4;
-	static const int EndColumns = 2;
-	static int MaxNumberOfCloseFibers;
-	iARefDistCompute(std::vector<iAFiberCharData> & results, iASPLOMData & splomData, int referenceID);
-	void run() override;
-	iAProgress* progress();
-private:
-	iAProgress m_progress;
-	iASPLOMData & m_splomData;
-	std::vector<iAFiberCharData> & m_resultData;
-	int m_referenceID;
-};
+	delete jobWidget;
+	delete this;
+}
+
+
+
+iAJobListView::iAJobListView()
+{
+	setLayout(new QVBoxLayout());
+}
+
+void iAJobListView::addJob(QString name, iAProgress * p, QThread * t)
+{
+	iAJobData * jobdata = new iAJobData;
+	jobdata->jobWidget = new QWidget();
+	jobdata->jobWidget->setLayout(new QHBoxLayout());
+	auto progressBar = new QProgressBar();
+	progressBar->setRange(0, 100);
+	progressBar->setValue(0);
+	jobdata->jobWidget->layout()->addWidget(new QLabel(name));
+	jobdata->jobWidget->layout()->addWidget(progressBar);
+	layout()->addWidget(jobdata->jobWidget);
+	connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
+	connect(t, &QThread::finished, jobdata, &iAJobData::jobFinished);
+}
