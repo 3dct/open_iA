@@ -26,15 +26,7 @@ iAVectorPlotData::iAVectorPlotData(QSharedPointer<std::vector<double> > data):
 	m_xBounds[0] = 0;
 	m_xBounds[1] = m_data->size()-1;
 
-	m_yBounds[0] = std::numeric_limits<double>::max();
-	m_yBounds[1] = std::numeric_limits<double>::lowest();
-	for (size_t i = 0; i < m_data->size(); ++i)
-	{
-		if (m_data->at(i) < m_yBounds[0])
-			m_yBounds[0] = m_data->at(i);
-		if (m_data->at(i) > m_yBounds[1])
-			m_yBounds[1] = m_data->at(i);
-	}
+	updateBounds();
 }
 
 iAVectorPlotData::DataType const * iAVectorPlotData::GetRawData() const
@@ -75,4 +67,17 @@ void iAVectorPlotData::setXDataType(iAValueType xDataType)
 std::vector<double> & iAVectorPlotData::data()
 {
 	return *(m_data.data());
+}
+
+void iAVectorPlotData::updateBounds()
+{
+	m_yBounds[0] = std::numeric_limits<double>::max();
+	m_yBounds[1] = std::numeric_limits<double>::lowest();
+	for (size_t i = 0; i < m_data->size(); ++i)
+	{
+		if (m_data->at(i) < m_yBounds[0])
+			m_yBounds[0] = m_data->at(i);
+		if (m_data->at(i) > m_yBounds[1])
+			m_yBounds[1] = m_data->at(i);
+	}
 }

@@ -602,11 +602,12 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	m_splomData->updateRanges();
 	m_currentSelection.resize(resultID);
 
-	for (int i = 0; i < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount; ++i)
+	for (int i = 0; i < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1; ++i)
 	{
 		dataChooser->addItem(m_splomData->parameterName(m_splomData->numParams() -
 			(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns) + i));
 	}
+	dataChooser->setCurrentIndex(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount);
 	connect(dataChooser, SIGNAL(currentIndexChanged(int)), this, SLOT(timeErrorDataChanged(int)));
 
 	m_timeStepSlider->setMaximum(m_timeStepMax - 1);
@@ -1170,7 +1171,12 @@ void iAFiberOptimizationExplorer::timeErrorDataChanged(int colIndex)
 					plotData->data() = *(d.m_projectionError[fiberID].data());
 				}
 			}
+			plotData->updateBounds();
 		}
 	}
+	m_timeStepChart->setYCaption(m_splomData->parameterName(m_splomData->numParams()-
+		(iAFiberCharData::FiberValueCount+iARefDistCompute::DistanceMetricCount+iARefDistCompute::EndColumns)
+															+colIndex));
+	m_timeStepChart->updateYBounds();
 	m_timeStepChart->update();
 }

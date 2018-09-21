@@ -38,6 +38,7 @@ public:
 	iAValueType GetRangeType() const override;
 	void setXDataType(iAValueType);
 	std::vector<double> & data();
+	void updateBounds();
 private:
 	QSharedPointer<std::vector<double>> m_data;
 	iAValueType m_xDataType;
