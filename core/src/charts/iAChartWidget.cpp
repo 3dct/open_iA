@@ -223,6 +223,11 @@ void iAChartWidget::setXCaption(QString const & caption)
 	xCaption = caption;
 }
 
+void iAChartWidget::setYCaption(QString const & caption)
+{
+	yCaption = caption;
+}
+
 double const * iAChartWidget::xBounds() const
 {
 	return m_xBounds;

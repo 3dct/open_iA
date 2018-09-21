@@ -79,6 +79,7 @@ public:
 	void setYBounds(iAPlotData::DataType minVal, iAPlotData::DataType maxVal);
 	void resetYBounds();
 	void setXCaption(QString const & caption);
+	void setYCaption(QString const & caption);
 	void setYMappingMode(AxisMappingType drawMode);
 	void setCaptionPosition(QFlags<Qt::AlignmentFlag>);
 	void setShowXAxisLabel(bool show);
