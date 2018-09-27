@@ -21,6 +21,7 @@
 #include "iAFiberOptimizationExplorerModuleInterface.h"
 
 #include "iACsvConfig.h"
+#include "iAFiberCharData.h"
 #include "iAFiberOptimizationExplorer.h"
 
 #include "dlg_commoninput.h"
@@ -49,10 +50,10 @@ void iAFiberOptimizationExplorerModuleInterface::FibreOptimizationExploration()
 	auto explorer = new iAFiberOptimizationExplorer(m_mainWnd);
 	QStringList parameterNames = QStringList() << "+CSV Format";
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
-	if (!formatEntries.contains(iAFiberOptimizationExplorer::SimpleFormat))
-		formatEntries.append(iAFiberOptimizationExplorer::SimpleFormat);
-	if (!formatEntries.contains(iAFiberOptimizationExplorer::LegacyFormat))
-		formatEntries.append(iAFiberOptimizationExplorer::LegacyFormat);
+	if (!formatEntries.contains(iAFiberResultsCollection::SimpleFormat))
+		formatEntries.append(iAFiberResultsCollection::SimpleFormat);
+	if (!formatEntries.contains(iAFiberResultsCollection::LegacyFormat))
+		formatEntries.append(iAFiberResultsCollection::LegacyFormat);
 	if (!formatEntries.contains(iACsvConfig::LegacyFiberFormat))
 		formatEntries.append(iACsvConfig::LegacyFiberFormat);
 	if (!formatEntries.contains(iACsvConfig::LegacyVoidFormat))

@@ -29,6 +29,10 @@
 
 #include <vector>
 
+class iASPLOMData;
+
+class iACsvConfig;
+
 class vtkTable;
 
 class QCheckBox;
@@ -68,25 +72,44 @@ class iAFiberCharData
 public:
 	static const int FiberValueCount = 13;
 	//! the fiber data as vtkTable, mainly for the 3d visualization:
-	vtkSmartPointer<vtkTable> m_resultTable;
+	vtkSmartPointer<vtkTable> table;
 	//! mapping of the columns in m_resultTable
-	QSharedPointer<QMap<uint, uint> > m_outputMapping;
+	QSharedPointer<QMap<uint, uint> > mapping;
 	//! name of the csv file this result was loaded from
-	QString m_fileName;
+	QString fileName;
 	//! values for all timesteps, stored as: timestep, fiber, fibervalues
-	std::vector<std::vector<std::vector<double> > > m_timeValues;
+	std::vector<std::vector<std::vector<double> > > timeValues;
 	//! projection error stored as fiber, timestep, global projection error
-	std::vector<QSharedPointer<std::vector<double> > > m_projectionError;
+	std::vector<std::vector<double > > projectionError;
 	//! comparison data to reference for each fiber
 	std::vector<iARefDiffFiberData> refDiffFiber;
-	//! index where the plots for this result start
-	size_t m_startPlotIdx;
 	//! number of fibers in the dataset:
-	size_t m_fiberCount;
-
-	// UI elements:
-	iAVtkWidgetClass* m_vtkWidget;
-	QSharedPointer<iA3DCylinderObjectVis> m_mini3DVis;
-	QSharedPointer<iA3DCylinderObjectVis> m_main3DVis;
-	QCheckBox* m_boundingBox;
+	size_t fiberCount;
 };
+
+class iAFiberResultsCollection
+{
+public:
+	static const QString LegacyFormat;
+	static const QString SimpleFormat;
+	iAFiberResultsCollection();
+	std::vector<iAFiberCharData> results;
+	QSharedPointer<iASPLOMData> splomData;
+	size_t minFiberNumber;
+	int timeStepMax;
+	bool loadData(QString const & path, QString const & configName);
+};
+
+class iAFiberResultsLoader: public QThread
+{
+public:
+	iAFiberResultsLoader();
+	void run() override;
+	iAProgress* progress();
+private:
+	iAProgress m_progress;
+};
+
+// helper functions:
+void addColumn(vtkSmartPointer<vtkTable> table, float value, char const * columnName, size_t numRows);
+iACsvConfig getCsvConfig(QString const & csvFile, QString const & formatName);

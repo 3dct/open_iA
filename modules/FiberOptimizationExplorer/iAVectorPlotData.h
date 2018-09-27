@@ -29,7 +29,7 @@
 class iAVectorPlotData : public iAPlotData
 {
 public:
-	iAVectorPlotData(QSharedPointer<std::vector<double> > data);
+	iAVectorPlotData(std::vector<double> const & data);
 	DataType const * GetRawData() const override;
 	size_t GetNumBin() const override;
 	double GetSpacing() const override;
@@ -40,7 +40,7 @@ public:
 	std::vector<double> & data();
 	void updateBounds();
 private:
-	QSharedPointer<std::vector<double>> m_data;
+	std::vector<double> m_data;
 	iAValueType m_xDataType;
 	double m_xBounds[2];
 	double m_yBounds[2];

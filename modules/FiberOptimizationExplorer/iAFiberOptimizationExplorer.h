@@ -30,7 +30,8 @@
 
 #include <vector>
 
-class iAFiberCharData;
+class iAFiberResultsCollection;
+class iAFiberCharUIData;
 class iAJobListView;
 
 class iA3DCylinderObjectVis;
@@ -67,8 +68,6 @@ class iAFiberOptimizationExplorer : public QMainWindow, public iASelectionProvid
 {
 	Q_OBJECT
 public:
-	static const QString LegacyFormat;
-	static const QString SimpleFormat;
 	iAFiberOptimizationExplorer(MainWindow* mainWnd);
 	bool load(QString const & path, QString const & configName);
 	~iAFiberOptimizationExplorer();
@@ -102,14 +101,16 @@ private:
 	void showCurrentSelectionInSPLOM();
 	bool isAnythingSelected() const;
 
-	std::vector<iAFiberCharData> m_resultData;
+	//! all data about the fiber characteristics optimization results that are analyzed
+	QSharedPointer<iAFiberResultsCollection> m_results;
+	std::vector<iAFiberCharUIData> m_resultUIs;
+
 	QSharedPointer<iARendererManager> m_renderManager;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_colorTheme;
 	MainWindow* m_mainWnd;
-	int m_timeStepMax;
 	int m_referenceID;
-	std::vector<std::vector<size_t> > m_currentSelection;
+	std::vector<std::vector<size_t> > m_selection;
 	vtkSmartPointer<vtkTable> m_refVisTable;
 
 	iAVtkWidgetClass* m_mainRenderer;
@@ -117,7 +118,6 @@ private:
 	QSlider* m_defaultOpacitySlider, * m_contextOpacitySlider;
 	QButtonGroup* m_defaultButtonGroup;
 	iAQSplom* m_splom;
-	QSharedPointer<iASPLOMData> m_splomData;
 	iAChartWidget* m_timeStepChart;
 	QCheckBox* m_chkboxShowReference;
 	QSpinBox* m_spnboxReferenceCount;
