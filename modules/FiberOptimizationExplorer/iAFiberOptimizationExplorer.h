@@ -69,9 +69,8 @@ class iAFiberOptimizationExplorer : public QMainWindow, public iASelectionProvid
 	Q_OBJECT
 public:
 	iAFiberOptimizationExplorer(MainWindow* mainWnd);
-	bool load(QString const & path, QString const & configName);
+	void start(QString const & path, QString const & configName);
 	~iAFiberOptimizationExplorer();
-	void loadStateAndShow();
 	std::vector<std::vector<size_t> > & selection() override;
 private slots:
 	void toggleVis(int);
@@ -91,6 +90,8 @@ private slots:
 	void playDelayChanged(int);
 	void refDistAvailable();
 	void timeErrorDataChanged(int);
+	void resultsLoaded();
+	void resultsLoadFailed(QString const & path);
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
@@ -100,6 +101,7 @@ private:
 	void showCurrentSelectionIn3DViews();
 	void showCurrentSelectionInSPLOM();
 	bool isAnythingSelected() const;
+	void loadStateAndShow();
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_results;
@@ -136,4 +138,5 @@ private:
 	QWebEngineView*  m_browser;
 	QString m_html;
 	iAJobListView * m_jobs;
+	QDockWidget* m_jobDockWidget;
 };

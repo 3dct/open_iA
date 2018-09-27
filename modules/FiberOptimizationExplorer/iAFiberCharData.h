@@ -22,10 +22,13 @@
 
 #include "iA3DCylinderObjectVis.h"
 
-#include <QMap>
-#include <QSharedPointer>
+#include "iAProgress.h"
 
 #include <vtkSmartPointer.h>
+
+#include <QMap>
+#include <QSharedPointer>
+#include <QThread>
 
 #include <vector>
 
@@ -97,17 +100,23 @@ public:
 	QSharedPointer<iASPLOMData> splomData;
 	size_t minFiberNumber;
 	int timeStepMax;
-	bool loadData(QString const & path, QString const & configName);
+	bool loadData(QString const & path, QString const & configName, iAProgress * progress);
 };
 
 class iAFiberResultsLoader: public QThread
 {
+	Q_OBJECT
 public:
-	iAFiberResultsLoader();
+	iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results, QString const & path, QString const & configName);
 	void run() override;
 	iAProgress* progress();
+signals:
+	void failed(QString const & path);
 private:
 	iAProgress m_progress;
+	QSharedPointer<iAFiberResultsCollection> m_results;
+	QString m_path;
+	QString m_configName;
 };
 
 // helper functions:

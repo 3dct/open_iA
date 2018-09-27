@@ -27,6 +27,7 @@
 
 #include "charts/iASPLOMData.h"
 #include "iAConsole.h"
+#include "iAPerformanceHelper.h"
 #include "io/iAFileUtils.h" // for FindFiles
 
 #include <vtkFloatArray.h>
@@ -136,8 +137,9 @@ iAFiberResultsCollection::iAFiberResultsCollection():
 	timeStepMax(1)
 {}
 
-bool iAFiberResultsCollection::loadData(QString const & path, QString const & configName)
+bool iAFiberResultsCollection::loadData(QString const & path, QString const & configName, iAProgress * progress)
 {
+	iATimeGuard perfLoad("Loading data...");
 	minFiberNumber = iARefDistCompute::MaxNumberOfCloseFibers;
 	QStringList filters;
 	filters << "*.csv";
@@ -158,7 +160,6 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	for (QString csvFile : csvFileNames)
 	{
 		iACsvConfig config = getCsvConfig(csvFile, configName);
-
 		iACsvIO io;
 		iACsvVtkTableCreator tableCreator;
 		if (!io.loadCSV(tableCreator, config))
@@ -329,6 +330,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 			timeStepMax = thisResultTimeStepMax;
 		}
 		++resultID;
+		progress->EmitProgress(resultID / csvFileNames.size());
 		results.push_back(curData);
 	}
 	if (results.size() == 0)
@@ -396,4 +398,21 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	splomData->updateRanges();
 
 	return true;
+}
+
+iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results, QString const & path, QString const & configName):
+	m_results(results),
+	m_path(path),
+	m_configName(configName)
+{}
+
+void iAFiberResultsLoader::run()
+{
+	if (!m_results->loadData(m_path, m_configName, &m_progress))
+		emit failed(m_path);
+}
+
+iAProgress* iAFiberResultsLoader::progress()
+{
+	return &m_progress;
 }

@@ -41,6 +41,7 @@
 #include "iALookupTable.h"
 #include "iALUT.h"
 #include "iAModuleDispatcher.h"
+#include "iAPerformanceHelper.h"
 #include "iARendererManager.h"
 #include "mainwindow.h"
 #include "mdichild.h"
@@ -62,6 +63,7 @@
 #include <QFileInfo>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QMessageBox>
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSettings>
@@ -119,16 +121,35 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(MainWindow* mainWnd) :
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
 }
 
-bool iAFiberOptimizationExplorer::load(QString const & path, QString const & configName)
+void iAFiberOptimizationExplorer::start(QString const & path, QString const & configName)
 {
-	m_results = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
-	if (!m_results->loadData(path, configName))
-	{
-		DEBUG_LOG("Loading data failed!");
-		return false;
-	}
-
 	m_configName = configName;
+	m_jobs = new iAJobListView();
+	m_jobDockWidget = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
+	addDockWidget(Qt::BottomDockWidgetArea, m_jobDockWidget);
+
+	m_results = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
+	auto resultsLoader = new iAFiberResultsLoader(m_results, path, configName);
+	connect(resultsLoader, SIGNAL(finished()), this, SLOT(resultsLoaded()));
+	connect(resultsLoader, SIGNAL(failed(QString const &)), this, SLOT(resultsLoadFailed(QString const &)));
+	m_jobs->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
+	resultsLoader->start();
+}
+
+void iAFiberOptimizationExplorer::resultsLoadFailed(QString const & path)
+{
+	QMessageBox::warning(m_mainWnd, "Fiber Analytics",
+		QString("Could not load data in folder '%1'. Make sure it is in the right format!").arg(path));
+	delete parent(); // deletes QMdiSubWindow which this widget is child of
+	return;
+}
+
+void iAFiberOptimizationExplorer::resultsLoaded()
+{
+	iATimeGuard perfGUI("Creating GUI");
+	
+	iAPerformanceHelper perfGUImain;
+	perfGUImain.start("Main GUI initialization");
 	QGridLayout* resultsListLayout = new QGridLayout();
 
 	m_mainRenderer = new iAVtkWidgetClass();
@@ -243,6 +264,11 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 	optimizationSteps->layout()->addWidget(m_timeStepChart);
 	optimizationSteps->layout()->addWidget(timeSteps);
 	optimizationSteps->layout()->addWidget(playControls);
+	
+	perfGUImain.stop();
+
+	iAPerformanceHelper perfGUIresult;
+	perfGUIresult.start("Per-result GUI initialization");
 
 	int resultID = 0;
 	m_defaultButtonGroup = new QButtonGroup();
@@ -289,6 +315,8 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 
 		if (!d.projectionError.empty())
 		{
+			iAPerformanceHelper perfGUIcharts;
+			perfGUIcharts.start(QString("Charts for result %1").arg(resultID).toStdString());
 			uiData.startPlotIdx = m_timeStepChart->plots().size();
 
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
@@ -297,6 +325,7 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 				plotData->setXDataType(Discrete);
 				m_timeStepChart->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
 			}
+			perfGUIcharts.stop();
 		}
 		else
 			uiData.startPlotIdx = NoPlotsIdx;
@@ -309,6 +338,11 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 		m_resultUIs.push_back(uiData);
 	}
 	m_selection.resize(resultID);
+	perfGUIresult.stop();
+
+
+	iAPerformanceHelper perfGUIfinal;
+	perfGUIfinal.start("Finalizing GUI...");
 
 	for (int i = 0; i < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1; ++i)
 	{
@@ -333,18 +367,16 @@ bool iAFiberOptimizationExplorer::load(QString const & path, QString const & con
 
 	m_browser = new QWebEngineView();
 	iADockWidgetWrapper* browserWidget = new iADockWidgetWrapper(m_browser, "LineUp", "foeLineUp");
-
-	m_jobs = new iAJobListView();
-	iADockWidgetWrapper* jobWidget = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
-
-	addDockWidget(Qt::BottomDockWidgetArea, resultListDockWidget);
+	
+	splitDockWidget(m_jobDockWidget, resultListDockWidget, Qt::Vertical);
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
 	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
-	splitDockWidget(splomWidget, jobWidget, Qt::Vertical);
+	
+	perfGUIfinal.stop();
 
-	return true;
+	loadStateAndShow();
 }
 
 iAFiberOptimizationExplorer::~iAFiberOptimizationExplorer()
@@ -361,6 +393,8 @@ iAFiberOptimizationExplorer::~iAFiberOptimizationExplorer()
 
 void iAFiberOptimizationExplorer::loadStateAndShow()
 {
+	iAPerformanceHelper perfGUIstate;
+	perfGUIstate.start("Restoring state...");
 	QSettings settings;
 	if (settings.value(ModuleSettingsKey + "/maximized", true).toBool())
 		showMaximized();
@@ -371,7 +405,10 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 		qobject_cast<QWidget*>(parent())->setGeometry(newGeometry);
 	}
 	restoreState(settings.value(ModuleSettingsKey + "/state", saveState()).toByteArray());
+	perfGUIstate.stop();
 
+	iAPerformanceHelper perfGUIsplom;
+	perfGUIsplom.start("Initializing SPLOM...");
 	// splom needs an active OpenGL Context (it must be visible when setData is called):
 	m_splom->setMinimumWidth(200);
 	m_splom->setSelectionColor(SPLOMSelectionColor);
@@ -399,6 +436,7 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	m_splom->settings.enableColorSettings = true;
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiberOptimizationExplorer::selectionSPLOMChanged);
 	connect(m_splom, &iAQSplom::lookupTableChanged, this, &iAFiberOptimizationExplorer::splomLookupTableChanged);
+	perfGUIsplom.stop();
 }
 
 QColor iAFiberOptimizationExplorer::getResultColor(int resultID)
