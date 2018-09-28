@@ -69,6 +69,7 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	matrix->setSelectionMode(iAScatterPlot::Rectangle);
 	auto spInput = createSPLOMData(csvTable);
 	container->setWidget(matrix);
+	matrix->showAllPlots(false);
 	matrix->setData(spInput, columnVisibility);
 	matrix->setSelectionColor(QColor(255, 40, 0, 1));
 	matrix->enableSelection(selectionEnabled);

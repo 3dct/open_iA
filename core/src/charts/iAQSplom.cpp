@@ -363,7 +363,6 @@ void iAQSplom::createScatterPlot(size_t y, size_t x, bool initial)
 	if (!m_paramVisibility[y] || !m_paramVisibility[x] || (m_mode == UPPER_HALF && x >= y)
 		|| (m_matrix.size() > y && m_matrix[y][x]))
 		return;
-	assert(x < y);
 	iAScatterPlot * s = new iAScatterPlot(this, this);
 	connect(s, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
 	connect(s, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
