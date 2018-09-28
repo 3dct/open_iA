@@ -64,6 +64,7 @@
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSettings>
