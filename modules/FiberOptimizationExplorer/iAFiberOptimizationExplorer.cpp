@@ -149,8 +149,6 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 {
 //	iATimeGuard perfGUI("Creating GUI");
 	
-//	iAPerformanceHelper perfGUImain;
-//	perfGUImain.start("Main GUI initialization");
 	QGridLayout* resultsListLayout = new QGridLayout();
 
 	m_mainRenderer = new iAVtkWidgetClass();
@@ -265,8 +263,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	optimizationSteps->layout()->addWidget(m_timeStepChart);
 	optimizationSteps->layout()->addWidget(timeSteps);
 	optimizationSteps->layout()->addWidget(playControls);
-	
-//	perfGUImain.stop();
+
 //	iAPerformanceHelper perfGUIresult;
 //	perfGUIresult.start("Per-result GUI initialization");
 
@@ -315,8 +312,6 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 
 		if (!d.projectionError.empty())
 		{
-//			iAPerformanceHelper perfGUIcharts;
-//			perfGUIcharts.start(QString("Charts for result %1").arg(resultID).toStdString());
 			uiData.startPlotIdx = m_timeStepChart->plots().size();
 
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
@@ -325,7 +320,6 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 				plotData->setXDataType(Discrete);
 				m_timeStepChart->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
 			}
-//			perfGUIcharts.stop();
 		}
 		else
 			uiData.startPlotIdx = NoPlotsIdx;
@@ -338,10 +332,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		m_resultUIs.push_back(uiData);
 	}
 	m_selection.resize(resultID);
-
 //	perfGUIresult.stop();
-//	iAPerformanceHelper perfGUIfinal;
-//	perfGUIfinal.start("Finalizing GUI...");
 
 	for (int i = 0; i < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1; ++i)
 	{
@@ -366,14 +357,17 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 
 //	m_browser = new QWebEngineView();
 //	iADockWidgetWrapper* browserWidget = new iADockWidgetWrapper(m_browser, "LineUp", "foeLineUp");
+
+//	iAPerformanceHelper perfGUIfinal6;
+//	perfGUIfinal6.start("Setting up DockWidgets...");
 	
 	splitDockWidget(m_jobDockWidget, resultListDockWidget, Qt::Vertical);
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
 //	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
-	
-//	perfGUIfinal.stop();
+
+//	perfGUIfinal6.stop();
 
 	loadStateAndShow();
 }
@@ -393,7 +387,7 @@ iAFiberOptimizationExplorer::~iAFiberOptimizationExplorer()
 void iAFiberOptimizationExplorer::loadStateAndShow()
 {
 //	iAPerformanceHelper perfGUIstate;
-//	perfGUIstate.start("Restoring state...");
+//	perfGUIstate.start("Showing and restoring state...");
 	QSettings settings;
 	if (settings.value(ModuleSettingsKey + "/maximized", true).toBool())
 		showMaximized();
@@ -412,7 +406,13 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	// splom needs an active OpenGL Context (it must be visible when setData is called):
 	m_splom->setMinimumWidth(200);
 	m_splom->setSelectionColor(SPLOMSelectionColor);
-	m_splom->setData(m_results->splomData);
+	m_splom->showAllPlots(false);
+	auto np = m_results->splomData->numParams();
+	std::vector<char> v(m_results->splomData->numParams(), false);
+	auto & map = *m_results->results[0].mapping.data();
+	v[map[iACsvConfig::StartX]] = v[map[iACsvConfig::StartY]] = v[map[iACsvConfig::StartZ]]
+		= v[np - 7] = v[np - 6] = v[np - 5] = v[np - 4] = v[np - 3] = v[np - 2] = true;
+	m_splom->setData(m_results->splomData, v);
 	iALookupTable lut;
 	int numOfResults = m_results->results.size();
 	lut.setRange(0, numOfResults - 1);
@@ -421,15 +421,6 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 		lut.setColor(i, m_colorTheme->GetColor(i));
 	m_splom->setLookupTable(lut, m_results->splomData->numParams() - 1);
 	m_splom->setSelectionMode(iAScatterPlot::Rectangle);
-	if (m_results->results.size() > 0)
-	{
-		auto np = m_results->splomData->numParams();
-		std::vector<bool> v(m_results->splomData->numParams(), false);
-		auto & map = *m_results->results[0].mapping.data();
-		v[map[iACsvConfig::StartX]] = v[map[iACsvConfig::StartY]] = v[map[iACsvConfig::StartZ]]
-			= v[np-7] = v[np-6] = v[np-5] = v[np-4] = v[np-3] = v[np-2] = true;
-		m_splom->setParameterVisibility(v);
-	}
 	m_splom->showDefaultMaxizimedPlot();
 	m_splom->setSelectionColor("black");
 	m_splom->setPointRadius(2.5);

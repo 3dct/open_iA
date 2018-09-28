@@ -214,7 +214,7 @@ private:
 
 	QList<vtkSmartPointer<vtkTable> > tableList;    //!< The data table for each class.
 	QList<QColor> m_colorList;                      //!< The color for each class.
-	std::vector<bool> columnVisibility;             //!< Element(=column) visibility list
+	std::vector<char> columnVisibility;             //!< Element(=column) visibility list
 	vtkSmartPointer<vtkLookupTable> lut;            //!< Color lookup table for multi-class rendering in parallel coordinate view
 	QTreeView* classTreeView;                       //!< Class tree view
 	QTableView* elementTableView;                   //!< Element(=column) table view

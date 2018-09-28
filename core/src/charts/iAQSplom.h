@@ -120,12 +120,12 @@ public:
 	~iAQSplom();
 
 	virtual void setData( const QTableWidget * data );               //! import data from QTableWidget, first row should contain parameter names, each column corresponds to one parameter.
-	void setData(QSharedPointer<iASPLOMData> data);                  //! set SPLOM data directly.
+	void setData(QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility);                  //! set SPLOM data directly.
 	QSharedPointer<iASPLOMData> data();                              //! retrieve SPLOM data
 	void setLookupTable( vtkLookupTable * lut, const QString & paramName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
 	void setLookupTable( iALookupTable &lut, size_t paramIndex );    //!< Set lookup table given the index of a parameter to color-code.
 	void setColorParam( const QString & paramName );                 //!< Set the parameter to color code, lookup table will be auto-determined (perceptually uniform, divergent)
-	void setParameterVisibility(std::vector<bool> const & visibility);//!< Adapt visibility of all parameters at once.
+	void setParameterVisibility(std::vector<char> const & visibility);//!< Adapt visibility of all parameters at once.
 	void setParameterVisibility( size_t paramIndex, bool isVisible );//!< Show/hide scatter plots of a parameter given parameter's index.
 	void setParameterVisibility( const QString & paramName, bool isVisible ); //!< Show/hide scatter plots of a parameter given parameter's name.
 	void setParameterInverted( size_t paramIndex, bool isInverted);  //!< whether to invert the axis for a given parameter's index.
@@ -207,12 +207,13 @@ protected:
 protected slots:
 	virtual void currentPointUpdated(size_t index);                  //!< When hovered over a new point.
 private:
-	void dataChanged();                                              //!< handles changes of the internal data
+	void dataChanged(std::vector<char> visibleParams);               //!< handles changes of the internal data
 	void updateFilter();                                             //!< update filter in internal scatter plots
 	void updateHistograms();                                         //!< Updates all histograms when data or filter changes
 	void updateHistogram(size_t paramIndex);                         //!< Updates the histogram of the given parameter
 	void setColorScheme(ColorScheme colorScheme);                    //!< Set color scheme (method how points are colored)
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
+	void createScatterPlot(size_t y, size_t x, bool initial);        //!< Creates a single scatter plot at location y, y
 private slots:
 	void selectionUpdated();                                         //!< When selection of data points is modified.
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
@@ -271,9 +272,9 @@ public:
 	};
 	Settings settings;
 protected:
-	QList<QList<iAScatterPlot*>> m_matrix;       //!< matrix of all scatter plots
-	QList<QList<iAScatterPlot*>> m_visiblePlots; //!< matrix of visible scatter plots
-	std::vector<bool> m_paramVisibility;         //!< array of individual parameter visibility
+	std::vector<std::vector<iAScatterPlot*> > m_matrix; //!< cache for all scatter plots
+	std::vector<std::vector<iAScatterPlot*> > m_visiblePlots; //!< matrix of visible scatter plots
+	std::vector<char> m_paramVisibility;         //!< array of individual parameter visibility
 	std::vector<int> m_visibleIndices;           //!< stores mapping from visible plot index to parameter index
 	QSharedPointer<iALookupTable> m_lut;         //!< lookup table, shared with individual scatter plots
 	size_t m_colorLookupParam;                   //!< index of the column to use for color lookup
