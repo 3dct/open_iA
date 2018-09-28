@@ -150,9 +150,6 @@ private:
 	virtual void drawAfterPlots(QPainter& painter);
 	virtual void drawXAxis(QPainter &painter);
 	virtual void drawYAxis(QPainter &painter);
-	void updateBounds();
-	void updateXBounds();
-	void updateYBounds();
 	double visibleXStart() const;
 	double visibleXEnd() const;
 
