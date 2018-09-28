@@ -61,7 +61,7 @@ iAFeatureScoutSPLOM::~iAFeatureScoutSPLOM()
 	delete matrix;
 }
 
-void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvTable, std::vector<bool> const & columnVisibility)
+void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvTable, std::vector<char> const & columnVisibility)
 {
 	if (matrix)
 		delete matrix;
@@ -69,10 +69,9 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	matrix->setSelectionMode(iAScatterPlot::Rectangle);
 	auto spInput = createSPLOMData(csvTable);
 	container->setWidget(matrix);
-	matrix->setData(spInput);
+	matrix->setData(spInput, columnVisibility);
 	matrix->setSelectionColor(QColor(255, 40, 0, 1));
 	matrix->enableSelection(selectionEnabled);
-	matrix->setParameterVisibility(columnVisibility);
 	matrix->showDefaultMaxizimedPlot();
 	matrix->settings.enableColorSettings = true;
 	connect(matrix, &iAQSplom::selectionModified, this, &iAFeatureScoutSPLOM::selectionModified);
@@ -96,7 +95,7 @@ void iAFeatureScoutSPLOM::multiClassRendering(QList<QColor> const & colors)
 	matrix->setLookupTable(lookupTable, matrix->data()->numParams()-1 );
 }
 
-void iAFeatureScoutSPLOM::updateColumnVisibility(std::vector<bool> const & columnVisibility)
+void iAFeatureScoutSPLOM::updateColumnVisibility(std::vector<char> const & columnVisibility)
 {
 	if (matrix)
 		matrix->setParameterVisibility(columnVisibility);
