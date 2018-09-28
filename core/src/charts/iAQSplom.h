@@ -213,7 +213,7 @@ private:
 	void updateHistogram(size_t paramIndex);                         //!< Updates the histogram of the given parameter
 	void setColorScheme(ColorScheme colorScheme);                    //!< Set color scheme (method how points are colored)
 	void applyLookupTable();                                         //!< Apply lookup table to all the scatter plots.
-	void setScatterPlotVisible(iAScatterPlot* s, size_t y, size_t x);
+	void createScatterPlot(size_t y, size_t x, bool initial);        //!< Creates a single scatter plot at location y, y
 private slots:
 	void selectionUpdated();                                         //!< When selection of data points is modified.
 	void transformUpdated( double scale, QPointF deltaOffset );      //!< When transform of scatter plots is modified.
@@ -272,8 +272,8 @@ public:
 	};
 	Settings settings;
 protected:
-	QList<QList<iAScatterPlot*>> m_matrix;       //!< matrix of all scatter plots
-	QList<QList<iAScatterPlot*>> m_visiblePlots; //!< matrix of visible scatter plots
+	std::vector<std::vector<iAScatterPlot*> > m_matrix; //!< cache for all scatter plots
+	std::vector<std::vector<iAScatterPlot*> > m_visiblePlots; //!< matrix of visible scatter plots
 	std::vector<char> m_paramVisibility;         //!< array of individual parameter visibility
 	std::vector<int> m_visibleIndices;           //!< stores mapping from visible plot index to parameter index
 	QSharedPointer<iALookupTable> m_lut;         //!< lookup table, shared with individual scatter plots

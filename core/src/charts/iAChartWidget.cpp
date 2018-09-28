@@ -253,19 +253,19 @@ int iAChartWidget::leftMargin() const
 		MarginLeft + m_fontHeight + m_yMaxTickLabelWidth + TickWidth;
 }
 
-iAPlotData::DataType iAChartWidget::minYDataValue() const
+iAPlotData::DataType iAChartWidget::minYDataValue(size_t startPlot) const
 {
 	iAPlotData::DataType minVal = std::numeric_limits<iAPlotData::DataType>::max();
-	for (auto plot : m_plots)
-		minVal = std::min(plot->data()->YBounds()[0], minVal);
+	for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
+		minVal = std::min(m_plots[curPlot]->data()->YBounds()[0], minVal);
 	return minVal;
 }
 
-iAPlotData::DataType iAChartWidget::maxYDataValue() const
+iAPlotData::DataType iAChartWidget::maxYDataValue(size_t startPlot) const
 {
 	iAPlotData::DataType maxVal = std::numeric_limits<iAPlotData::DataType>::lowest();
-	for (auto plot : m_plots)
-		maxVal = std::max(plot->data()->YBounds()[1], maxVal);
+	for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
+		maxVal = std::max(m_plots[curPlot]->data()->YBounds()[1], maxVal);
 	return maxVal;
 }
 
@@ -508,16 +508,22 @@ void iAChartWidget::resetYBounds()
 	updateYBounds();
 }
 
-void iAChartWidget::updateYBounds()
+void iAChartWidget::updateYBounds(size_t startPlot)
 {
 	if (m_customYBounds)
 		return;
-	m_yBounds[0] = (m_plots.empty()) ? 0 : minYDataValue();
-	m_yBounds[1] = (m_plots.empty()) ? 1 : maxYDataValue();
+	m_yBounds[0] = (m_plots.empty()) ? 0 :
+		((startPlot != 0)
+			? std::min(m_yBounds[0], minYDataValue(startPlot)) // partial update
+			: minYDataValue(startPlot) );                      // full update
+	m_yBounds[1] = (m_plots.empty()) ? 1 :
+		((startPlot != 0)
+			? std::max(m_yBounds[1], maxYDataValue(startPlot)) // partial update
+			: maxYDataValue(startPlot) );                      // full update
 	ensureNonZeroRange(m_yBounds);
 }
 
-void iAChartWidget::updateXBounds()
+void iAChartWidget::updateXBounds(size_t startPlot)
 {
 	if (m_customXBounds)
 		return;
@@ -528,27 +534,30 @@ void iAChartWidget::updateXBounds()
 		m_maxXAxisSteps = AxisTicksXDefault;
 	}
 	else
-	{
-		m_xBounds[0] = m_xTickBounds[0] = std::numeric_limits<double>::max();
-		m_xBounds[1] = m_xTickBounds[1] = std::numeric_limits<double>::lowest();
+	{                             // update   partial            full
+		m_xBounds[0]     = (startPlot != 0) ? m_xBounds[0]     : std::numeric_limits<double>::max();
+		m_xBounds[1]     = (startPlot != 0) ? m_xBounds[1]     : std::numeric_limits<double>::lowest();
+		m_xTickBounds[0] = (startPlot != 0) ? m_xTickBounds[0] : std::numeric_limits<double>::max();
+		m_xTickBounds[1] = (startPlot != 0) ? m_xTickBounds[1] : std::numeric_limits<double>::lowest();
 		m_maxXAxisSteps = 0;
-		for (auto plot : m_plots)
+		for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
 		{
-			m_xBounds[0] = std::min(m_xBounds[0], plot->data()->XBounds()[0] - ((plot->data()->GetRangeType() == Discrete) ? 0.5 : 0) );
-			m_xBounds[1] = std::max(m_xBounds[1], plot->data()->XBounds()[1] + ((plot->data()->GetRangeType() == Discrete) ? 0.5 : 0) );
-			m_xTickBounds[0] = std::min(m_xTickBounds[0], plot->data()->XBounds()[0]);
-			m_xTickBounds[1] = std::max(m_xTickBounds[1], plot->data()->XBounds()[1]);
-			m_maxXAxisSteps = std::max(m_maxXAxisSteps, plot->data()->GetNumBin() );
+			auto d = m_plots[curPlot]->data();
+			m_xBounds[0] = std::min(m_xBounds[0], d->XBounds()[0] - ((d->GetRangeType() == Discrete) ? 0.5 : 0) );
+			m_xBounds[1] = std::max(m_xBounds[1], d->XBounds()[1] + ((d->GetRangeType() == Discrete) ? 0.5 : 0) );
+			m_xTickBounds[0] = std::min(m_xTickBounds[0], d->XBounds()[0]);
+			m_xTickBounds[1] = std::max(m_xTickBounds[1], d->XBounds()[1]);
+			m_maxXAxisSteps = std::max(m_maxXAxisSteps, d->GetNumBin() );
 		}
 		ensureNonZeroRange(m_xBounds);
 		ensureNonZeroRange(m_xTickBounds);
 	}
 }
 
-void iAChartWidget::updateBounds()
+void iAChartWidget::updateBounds(size_t startPlot)
 {
-	updateXBounds();
-	updateYBounds();
+	updateXBounds(startPlot);
+	updateYBounds(startPlot);
 }
 
 void iAChartWidget::drawBackground(QPainter &painter)
@@ -635,20 +644,22 @@ void iAChartWidget::addPlot(QSharedPointer<iAPlot> plot)
 	if (!plot)
 		return;
 	m_plots.push_back(plot);
-	updateBounds();
+	updateBounds(m_plots.size()-1);
 }
 
 void iAChartWidget::removePlot(QSharedPointer<iAPlot> plot)
 {
 	if (!plot)
 		return;
-	int idx = m_plots.indexOf(plot);
-	if (idx != -1)
-		m_plots.remove(idx);
-	updateBounds();
+	auto it = std::find(m_plots.begin(), m_plots.end(), plot);
+	if (it != m_plots.end())
+	{
+		m_plots.erase(it);
+		updateBounds();
+	}
 }
 
-QVector<QSharedPointer<iAPlot> > const & iAChartWidget::plots()
+std::vector<QSharedPointer<iAPlot> > const & iAChartWidget::plots()
 {
 	return m_plots;
 }
@@ -694,7 +705,7 @@ void iAChartWidget::drawPlots(QPainter &painter)
 		return;
 	}
 	double xStart = visibleXStart(), xEnd = visibleXEnd();
-	for (auto it = m_plots.constBegin(); it != m_plots.constEnd(); ++it)
+	for (auto it = m_plots.begin(); it != m_plots.end(); ++it)
 	{
 		if ((*it)->visible())
 		{
