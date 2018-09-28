@@ -695,6 +695,9 @@ void dlg_FeatureScout::setupConnections()
 	connect( this->load_class, SIGNAL( released() ), this, SLOT( ClassLoadButton() ) );
 	connect( this->delete_class, SIGNAL( clicked() ), this, SLOT( ClassDeleteButton() ) );
 	connect( this->wisetex_save, SIGNAL( released() ), this, SLOT( WisetexSaveButton() ) );
+	connect(this->export_class, SIGNAL(clicked()), this, SLOT(ExportClassButton() ) ) ;
+
+
 	connect( this->csv_dv, SIGNAL( released() ), this, SLOT( CsvDVSaveButton() ) );
 
 	connect( this->elementTableModel, SIGNAL( itemChanged( QStandardItem * ) ), this, SLOT( updateVisibility( QStandardItem * ) ) );
@@ -1969,6 +1972,11 @@ void dlg_FeatureScout::WisetexSaveButton()
 	writeWisetex( &stream );
 	stream.writeEndElement();
 	stream.writeEndDocument();
+}
+
+void dlg_FeatureScout::ExportClassButton()
+{
+	QMessageBox::warning(this, "FeatureScout", "ClassExport not yet implemented.");
 }
 
 void dlg_FeatureScout::ClassSaveButton()

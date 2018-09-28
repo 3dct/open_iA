@@ -116,6 +116,8 @@ private slots:
 	void ClassLoadButton();
 	void ClassDeleteButton();
 	void WisetexSaveButton();
+	void ExportClassButton(); //!< The export classes to MDH File.
+
 	void CsvDVSaveButton();
 	void RenderOrientation();
 	void classClicked(const QModelIndex &index);
