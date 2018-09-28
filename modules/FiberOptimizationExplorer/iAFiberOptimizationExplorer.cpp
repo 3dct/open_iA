@@ -306,9 +306,9 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		resultsListLayout->addWidget(uiData.vtkWidget, resultID, 3);
 
 		uiData.mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
-				uiData.vtkWidget, d.table, d.mapping, getResultColor(resultID)));
+			uiData.vtkWidget, d.table, d.mapping, getResultColor(resultID)));
 		uiData.main3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
-				uiData.vtkWidget, d.table, d.mapping, getResultColor(resultID)));
+			m_mainRenderer, d.table, d.mapping, getResultColor(resultID)));
 		uiData.mini3DVis->setColor(getResultColor(resultID));
 		uiData.mini3DVis->show();
 		ren->ResetCamera();
