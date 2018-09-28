@@ -66,7 +66,7 @@ protected:
 	std::vector<QString> m_paramNames;                //!< list of parameter names
 	std::vector<std::vector<double>> m_dataPoints;    //!< lists containing data points
 	std::vector<std::vector<double> > m_ranges;       //!< ranges of all parameters
-	std::vector<bool> m_inverted;                     //!< whether to invert a feature
+	std::vector<char> m_inverted;                     //!< whether to invert a feature
 private:
 	void updateRangeInternal(size_t paramIndex);      //!< Update internal range data for parameter paramIndex
 	std::vector<std::pair<int,  double> > m_filters;  //!< collection of filters: each column index/value pair is linked via OR

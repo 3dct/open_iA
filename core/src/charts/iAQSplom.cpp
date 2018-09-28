@@ -345,13 +345,14 @@ iAQSplom::~iAQSplom()
 void iAQSplom::setData( const QTableWidget * data )
 {
 	m_splomData->import( data );
-	dataChanged();
+	std::vector<char> allVisible(m_splomData->numParams(), true);
+	dataChanged(allVisible);
 }
 
-void iAQSplom::setData( QSharedPointer<iASPLOMData> data )
+void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility )
 {
 	m_splomData = data;
-	dataChanged();
+	dataChanged(visibility);
 }
 
 QSharedPointer<iASPLOMData> iAQSplom::data()
@@ -359,9 +360,19 @@ QSharedPointer<iASPLOMData> iAQSplom::data()
 	return m_splomData;
 }
 
-void iAQSplom::dataChanged()
+void iAQSplom::setScatterPlotVisible(iAScatterPlot* s, size_t y, size_t x)
+{
+	if (!m_paramVisibility[y] || !m_paramVisibility[x])
+		return;
+	s->setData(x, y, m_splomData);
+	s->setSelectionColor(settings.selectionColor);
+	s->setPointRadius(settings.pointRadius);
+}
+
+void iAQSplom::dataChanged(std::vector<char> visibleParams)
 {
 	clear();
+	m_paramVisibility = visibleParams;
 	m_columnPickMenu->clear();
 	unsigned long numParams = m_splomData->numParams();
 
@@ -376,17 +387,13 @@ void iAQSplom::dataChanged()
 	m_settingsDlg->cbColorParameter->clear();
 	for( unsigned long y = 0; y < numParams; ++y )
 	{
-		m_paramVisibility.push_back( true );
 		QList<iAScatterPlot*> row;
 		for( unsigned long x = 0; x < numParams; ++x )
 		{
 			iAScatterPlot * s = new iAScatterPlot(this, this);
 			connect( s, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
 			connect( s, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
-
-			s->setData( x, y, m_splomData ); //we want first plot in lower left corner of the SPLOM
-			s->setSelectionColor(settings.selectionColor);
-			s->setPointRadius(settings.pointRadius);
+			setScatterPlotVisible(s, y, x);
 			row.push_back( s );
 		}
 		m_matrix.push_back( row );
@@ -397,7 +404,6 @@ void iAQSplom::dataChanged()
 		m_columnPickMenu->addAction(a);
 		connect(a, &QAction::toggled, this, &iAQSplom::parameterVisibilityToggled);
 
-		//QCheckBox * checkBox = new QCheckBox(columnName);
 		QListWidgetItem * item = new QListWidgetItem(m_splomData->parameterName(y), m_settingsDlg->parametersList);
 		item->setFlags(item->flags() | Qt::ItemIsUserCheckable); // set checkable flag
 		item->setCheckState(Qt::Checked); // AND initialize check state
@@ -443,16 +449,22 @@ void iAQSplom::setParameterVisibility( const QString & paramName, bool isVisible
 
 void iAQSplom::setParameterVisibility( size_t paramIndex, bool isVisible )
 {
-	if( paramIndex < 0 || paramIndex >= m_paramVisibility.size() || m_paramVisibility[paramIndex] == isVisible )
+	if( paramIndex < 0 || paramIndex >= m_paramVisibility.size() || static_cast<bool>(m_paramVisibility[paramIndex]) == isVisible )
 		return;
 	m_paramVisibility[paramIndex] = isVisible;
 	if (settings.histogramVisible)
 		updateHistogram(paramIndex);
+	for (size_t p = 0; p < m_splomData->numParams(); ++p)
+	{
+		setScatterPlotVisible(m_matrix[p][paramIndex], p, paramIndex);
+		if (p != paramIndex)
+			setScatterPlotVisible(m_matrix[paramIndex][p], paramIndex, p);
+	}
 	updateVisiblePlots();
 	update();
 }
 
-void iAQSplom::setParameterVisibility(std::vector<bool> const & visibility)
+void iAQSplom::setParameterVisibility(std::vector<char> const & visibility)
 {
 	if (visibility.size() != m_paramVisibility.size())
 	{
@@ -460,6 +472,10 @@ void iAQSplom::setParameterVisibility(std::vector<bool> const & visibility)
 		return;
 	}
 	m_paramVisibility = visibility;
+	for (size_t y = 0; y < m_splomData->numParams(); ++y)
+		for (size_t x = 0; x < m_splomData->numParams(); ++x)
+			setScatterPlotVisible(m_matrix[y][x], y, x);
+
 	updateVisiblePlots();
 	updateHistograms();
 	update();

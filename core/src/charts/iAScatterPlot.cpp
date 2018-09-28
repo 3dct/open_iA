@@ -23,7 +23,7 @@
 #include "iAConsole.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
-#include "iAQSplom.h"
+#include "iAScatterPlotSelectionHandler.h"
 #include "iASPLOMData.h"
 
 #include <QAbstractTextDocumentLayout>
@@ -109,14 +109,10 @@ iAScatterPlot::~iAScatterPlot() {}
 
 void iAScatterPlot::setData( int x, int y, QSharedPointer<iASPLOMData> &splomData )
 {
-	m_paramIndices[0] = x; m_paramIndices[1] = y;
-
-	assert(!m_splomData);
-		
 	if (m_splomData)
-	{
-		disconnect(m_splomData.data(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
-	}
+		return;
+
+	m_paramIndices[0] = x; m_paramIndices[1] = y;
 	m_splomData = splomData;
 	connect(m_splomData.data(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
 	m_pcc = pearsonsCorrelationCoefficient(m_splomData->paramData(m_paramIndices[0]), m_splomData->paramData(m_paramIndices[1]));
