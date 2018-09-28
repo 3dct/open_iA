@@ -41,7 +41,7 @@
 #include "iALookupTable.h"
 #include "iALUT.h"
 #include "iAModuleDispatcher.h"
-#include "iAPerformanceHelper.h"
+//#include "iAPerformanceHelper.h"
 #include "iARendererManager.h"
 #include "mainwindow.h"
 #include "mdichild.h"
@@ -147,10 +147,10 @@ void iAFiberOptimizationExplorer::resultsLoadFailed(QString const & path)
 
 void iAFiberOptimizationExplorer::resultsLoaded()
 {
-	iATimeGuard perfGUI("Creating GUI");
+//	iATimeGuard perfGUI("Creating GUI");
 	
-	iAPerformanceHelper perfGUImain;
-	perfGUImain.start("Main GUI initialization");
+//	iAPerformanceHelper perfGUImain;
+//	perfGUImain.start("Main GUI initialization");
 	QGridLayout* resultsListLayout = new QGridLayout();
 
 	m_mainRenderer = new iAVtkWidgetClass();
@@ -266,10 +266,9 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	optimizationSteps->layout()->addWidget(timeSteps);
 	optimizationSteps->layout()->addWidget(playControls);
 	
-	perfGUImain.stop();
-
-	iAPerformanceHelper perfGUIresult;
-	perfGUIresult.start("Per-result GUI initialization");
+//	perfGUImain.stop();
+//	iAPerformanceHelper perfGUIresult;
+//	perfGUIresult.start("Per-result GUI initialization");
 
 	int resultID = 0;
 	m_defaultButtonGroup = new QButtonGroup();
@@ -316,8 +315,8 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 
 		if (!d.projectionError.empty())
 		{
-			iAPerformanceHelper perfGUIcharts;
-			perfGUIcharts.start(QString("Charts for result %1").arg(resultID).toStdString());
+//			iAPerformanceHelper perfGUIcharts;
+//			perfGUIcharts.start(QString("Charts for result %1").arg(resultID).toStdString());
 			uiData.startPlotIdx = m_timeStepChart->plots().size();
 
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
@@ -326,7 +325,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 				plotData->setXDataType(Discrete);
 				m_timeStepChart->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
 			}
-			perfGUIcharts.stop();
+//			perfGUIcharts.stop();
 		}
 		else
 			uiData.startPlotIdx = NoPlotsIdx;
@@ -339,11 +338,10 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		m_resultUIs.push_back(uiData);
 	}
 	m_selection.resize(resultID);
-	perfGUIresult.stop();
 
-
-	iAPerformanceHelper perfGUIfinal;
-	perfGUIfinal.start("Finalizing GUI...");
+//	perfGUIresult.stop();
+//	iAPerformanceHelper perfGUIfinal;
+//	perfGUIfinal.start("Finalizing GUI...");
 
 	for (int i = 0; i < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1; ++i)
 	{
@@ -375,7 +373,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
 //	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
 	
-	perfGUIfinal.stop();
+//	perfGUIfinal.stop();
 
 	loadStateAndShow();
 }
@@ -394,8 +392,8 @@ iAFiberOptimizationExplorer::~iAFiberOptimizationExplorer()
 
 void iAFiberOptimizationExplorer::loadStateAndShow()
 {
-	iAPerformanceHelper perfGUIstate;
-	perfGUIstate.start("Restoring state...");
+//	iAPerformanceHelper perfGUIstate;
+//	perfGUIstate.start("Restoring state...");
 	QSettings settings;
 	if (settings.value(ModuleSettingsKey + "/maximized", true).toBool())
 		showMaximized();
@@ -406,10 +404,11 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 		qobject_cast<QWidget*>(parent())->setGeometry(newGeometry);
 	}
 	restoreState(settings.value(ModuleSettingsKey + "/state", saveState()).toByteArray());
-	perfGUIstate.stop();
 
-	iAPerformanceHelper perfGUIsplom;
-	perfGUIsplom.start("Initializing SPLOM...");
+//	perfGUIstate.stop();
+//	iAPerformanceHelper perfGUIsplom;
+//	perfGUIsplom.start("Initializing SPLOM...");
+
 	// splom needs an active OpenGL Context (it must be visible when setData is called):
 	m_splom->setMinimumWidth(200);
 	m_splom->setSelectionColor(SPLOMSelectionColor);
@@ -437,7 +436,8 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	m_splom->settings.enableColorSettings = true;
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiberOptimizationExplorer::selectionSPLOMChanged);
 	connect(m_splom, &iAQSplom::lookupTableChanged, this, &iAFiberOptimizationExplorer::splomLookupTableChanged);
-	perfGUIsplom.stop();
+
+//	perfGUIsplom.stop();
 }
 
 QColor iAFiberOptimizationExplorer::getResultColor(int resultID)

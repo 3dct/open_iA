@@ -27,7 +27,7 @@
 
 #include "charts/iASPLOMData.h"
 #include "iAConsole.h"
-#include "iAPerformanceHelper.h"
+//#include "iAPerformanceHelper.h"
 #include "io/iAFileUtils.h" // for FindFiles
 
 #include <vtkFloatArray.h>
@@ -139,7 +139,7 @@ iAFiberResultsCollection::iAFiberResultsCollection():
 
 bool iAFiberResultsCollection::loadData(QString const & path, QString const & configName, iAProgress * progress)
 {
-	iATimeGuard perfLoad("Loading data...");
+//	iATimeGuard perfLoad("Loading data...");
 	minFiberNumber = iARefDistCompute::MaxNumberOfCloseFibers;
 	QStringList filters;
 	filters << "*.csv";
