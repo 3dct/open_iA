@@ -413,7 +413,12 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	// splom needs an active OpenGL Context (it must be visible when setData is called):
 	m_splom->setMinimumWidth(200);
 	m_splom->setSelectionColor(SPLOMSelectionColor);
-	m_splom->setData(m_results->splomData);
+	auto np = m_results->splomData->numParams();
+	std::vector<char> v(m_results->splomData->numParams(), false);
+	auto & map = *m_results->results[0].mapping.data();
+	v[map[iACsvConfig::StartX]] = v[map[iACsvConfig::StartY]] = v[map[iACsvConfig::StartZ]]
+		= v[np - 7] = v[np - 6] = v[np - 5] = v[np - 4] = v[np - 3] = v[np - 2] = true;
+	m_splom->setData(m_results->splomData, v);
 	iALookupTable lut;
 	int numOfResults = m_results->results.size();
 	lut.setRange(0, numOfResults - 1);
@@ -422,15 +427,6 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 		lut.setColor(i, m_colorTheme->GetColor(i));
 	m_splom->setLookupTable(lut, m_results->splomData->numParams() - 1);
 	m_splom->setSelectionMode(iAScatterPlot::Rectangle);
-	if (m_results->results.size() > 0)
-	{
-		auto np = m_results->splomData->numParams();
-		std::vector<bool> v(m_results->splomData->numParams(), false);
-		auto & map = *m_results->results[0].mapping.data();
-		v[map[iACsvConfig::StartX]] = v[map[iACsvConfig::StartY]] = v[map[iACsvConfig::StartZ]]
-			= v[np-7] = v[np-6] = v[np-5] = v[np-4] = v[np-3] = v[np-2] = true;
-		m_splom->setParameterVisibility(v);
-	}
 	m_splom->showDefaultMaxizimedPlot();
 	m_splom->setSelectionColor("black");
 	m_splom->setPointRadius(2.5);
