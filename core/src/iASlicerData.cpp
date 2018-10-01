@@ -233,7 +233,6 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	transform = vtkTransform::New();
 }
 
-
 iASlicerData::~iASlicerData(void)
 {
 	disconnect();
@@ -506,7 +505,6 @@ void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	update();
 }
 
-
 void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf,
 	bool showIsoLines, bool showPolygon)
 {
@@ -549,7 +547,6 @@ void iASlicerData::setupColorMapper()
 	colormapper->Update();
 }
 
-
 void iASlicerData::SetROIVisible(bool visible)
 {
 	if (!m_decorations)
@@ -557,7 +554,6 @@ void iASlicerData::SetROIVisible(bool visible)
 	roiActive = visible;
 	roiActor->SetVisibility(visible);
 }
-
 
 void iASlicerData::UpdateROI(int const roi[6])
 {
@@ -594,7 +590,6 @@ void iASlicerData::UpdateROI(int const roi[6])
 	interactor->Render();
 }
 
-
 void iASlicerData::setup(iASingleSlicerSettings const & settings)
 {
 	imageActor->SetInterpolate(settings.LinearInterpolation);
@@ -620,7 +615,6 @@ void iASlicerData::setup(iASingleSlicerSettings const & settings)
 	}
 }
 
-
 void iASlicerData::setResliceAxesOrigin( double x, double y, double z )
 {
 	if (interactor->GetEnabled())
@@ -630,7 +624,6 @@ void iASlicerData::setResliceAxesOrigin( double x, double y, double z )
 		interactor->Render();
 	}
 }
-
 
 void iASlicerData::update()
 {
@@ -649,7 +642,6 @@ void iASlicerData::update()
 	emit updateSignal();
 }
 
-
 void iASlicerData::setPositionMarkerCenter(double x, double y)
 {
 	if (!m_decorations)
@@ -665,18 +657,15 @@ void iASlicerData::setPositionMarkerCenter(double x, double y)
 	}
 }
 
-
 void iASlicerData::disableInteractor()
 {
 	interactor->Disable(); disabled = true;
 }
 
-
 void iASlicerData::enableInteractor()
 {
 	interactor->ReInitialize(); disabled = false;
 }
-
 
 void iASlicerData::showIsolines(bool s)
 {
@@ -687,7 +676,6 @@ void iASlicerData::showIsolines(bool s)
 	cActor->SetVisibility(s);
 }
 
-
 void iASlicerData::showPosition(bool s)
 {
 	if (!m_decorations)
@@ -696,7 +684,6 @@ void iASlicerData::showPosition(bool s)
 	}
 	m_showPositionMarker = s;
 }
-
 
 void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 {
@@ -803,7 +790,6 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	return;
 }
 
-
 void iASlicerData::changeImageData( vtkImageData *idata )
 {
 	imageData = idata;
@@ -822,7 +808,6 @@ void iASlicerData::changeImageData( vtkImageData *idata )
 
 	interactor->Initialize( );
 }
-
 
 void iASlicerData::saveAsImage() const
 {
@@ -880,7 +865,6 @@ void iASlicerData::saveAsImage() const
 	}
 	WriteSingleSliceImage(fileName, img);
 }
-
 
 void iASlicerData::saveImageStack()
 {
@@ -1015,7 +999,6 @@ void iASlicerData::setStatisticalExtent( int statExt )
 	}
 }
 
-
 void iASlicerData::setMode( const iASlicerMode mode )
 {
 	m_mode = mode;
@@ -1024,7 +1007,6 @@ void iASlicerData::setMode( const iASlicerMode mode )
 	colormapper->Update();
 	UpdateBackground();
 }
-
 
 void iASlicerData::UpdateResliceAxesDirectionCosines()
 {
@@ -1045,7 +1027,6 @@ void iASlicerData::UpdateResliceAxesDirectionCosines()
 		break;
 	}
 }
-
 
 void iASlicerData::UpdateBackground()
 {
@@ -1418,7 +1399,6 @@ void iASlicerData::defaultOutput()
 	interactor->Render();
 }
 
-
 void iASlicerData::snapToHighGradient(double &x, double &y)
 {
 	double range[2];
@@ -1669,18 +1649,15 @@ void iASlicerData::reInitializeChannel( iAChannelID id, iAChannelVisualizationDa
 	GetOrCreateChannel(id).ReInit(chData);
 }
 
-
 void iASlicerData::initializeChannel( iAChannelID id, iAChannelVisualizationData * chData )
 {
 	GetOrCreateChannel(id).Init(chData, m_mode);
 }
 
-
 void iASlicerData::removeChannel(iAChannelID id)
 {
 	m_channels.remove(id);
 }
-
 
 void iASlicerData::setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z )
 {
@@ -1778,7 +1755,6 @@ void iASlicerData::setMagicLensInput(iAChannelID id)
 		m_magicLensExternal->AddInput(data->reslicer, data->GetLookupTable(), data->GetName());
 	}
 }
-
 
 vtkGenericOpenGLRenderWindow* iASlicerData::GetRenderWindow()
 {
@@ -1943,7 +1919,6 @@ int iASlicerData::getSliceNumber() const
 {
 	return m_sliceNumber;
 }
-
 
 void iASlicerData::SetRightButtonDragZoomEnabled(bool enabled)
 {

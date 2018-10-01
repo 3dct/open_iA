@@ -138,13 +138,11 @@ void iAQSplom::showAllPlots(const bool enableAllPlotsVisible)
 void iAQSplom::setSelectionColor(QColor color)
 {
 	settings.selectionColor = color;
-	foreach(QList<iAScatterPlot*> row, m_matrix)
-	{
-		foreach(iAScatterPlot* s, row)
-		{
-			s->setSelectionColor(color);
-		}
-	}
+	for (auto & row : m_matrix)
+		for (auto s : row)
+			if (s)
+				s->setSelectionColor(color);
+
 	if (m_maximizedPlot)
 		m_maximizedPlot->setSelectionColor(color);
 }
@@ -319,8 +317,8 @@ void iAQSplom::resetFilter()
 
 void iAQSplom::updateFilter()
 {
-	foreach(const QList<iAScatterPlot*> & row, m_visiblePlots)
-		foreach(iAScatterPlot * s, row)
+	for(auto & row: m_visiblePlots)
+		for(iAScatterPlot * s: row)
 			if (s)
 				s->updatePoints();
 	if (m_maximizedPlot)
@@ -360,13 +358,44 @@ QSharedPointer<iASPLOMData> iAQSplom::data()
 	return m_splomData;
 }
 
-void iAQSplom::setScatterPlotVisible(iAScatterPlot* s, size_t y, size_t x)
+void iAQSplom::createScatterPlot(size_t y, size_t x, bool initial)
 {
-	if (!m_paramVisibility[y] || !m_paramVisibility[x])
+	if (!m_paramVisibility[y] || !m_paramVisibility[x] || (m_mode == UPPER_HALF && x >= y)
+		|| (m_matrix.size() > y && m_matrix[y][x]))
 		return;
+	iAScatterPlot * s = new iAScatterPlot(this, this);
+	connect(s, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
+	connect(s, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
 	s->setData(x, y, m_splomData);
 	s->setSelectionColor(settings.selectionColor);
 	s->setPointRadius(settings.pointRadius);
+	s->settings.showPCC = settings.showPCC;
+	if (!initial)
+	{
+		s->setLookupTable(m_lut, m_colorLookupParam);
+		QPointF offset;
+		double scale = 1.0;
+		size_t curPoint = iAScatterPlot::NoPointIndex;
+		for (size_t p = 0; p < m_splomData->numParams(); ++p)
+			if (m_matrix[p][x])
+			{
+				offset.setX(m_matrix[p][x]->getOffset().x());
+				scale = m_matrix[p][x]->getScale();
+				curPoint = m_matrix[p][x]->getCurrentPoint();
+				break;
+			}
+		for (size_t p = 0; p < m_splomData->numParams(); ++p)
+			if (m_matrix[y][p])
+			{
+				offset.setY(m_matrix[y][p]->getOffset().y());
+				scale = m_matrix[y][p]->getScale();
+				curPoint = m_matrix[y][p]->getCurrentPoint();
+				break;
+			}
+		s->setTransform(scale, offset);
+		s->setCurrentPoint(curPoint);
+	}
+	m_matrix[y][x] = s;
 }
 
 void iAQSplom::dataChanged(std::vector<char> visibleParams)
@@ -385,18 +414,13 @@ void iAQSplom::dataChanged(std::vector<char> visibleParams)
 	QSignalBlocker colorSignals(m_settingsDlg->cbColorParameter);
 	m_settingsDlg->parametersList->clear();
 	m_settingsDlg->cbColorParameter->clear();
+	m_matrix.resize(numParams);
 	for( unsigned long y = 0; y < numParams; ++y )
 	{
-		QList<iAScatterPlot*> row;
-		for( unsigned long x = 0; x < numParams; ++x )
-		{
-			iAScatterPlot * s = new iAScatterPlot(this, this);
-			connect( s, &iAScatterPlot::transformModified, this, &iAQSplom::transformUpdated);
-			connect( s, &iAScatterPlot::currentPointModified, this, &iAQSplom::currentPointUpdated);
-			setScatterPlotVisible(s, y, x);
-			row.push_back( s );
-		}
-		m_matrix.push_back( row );
+		m_matrix[y].resize(numParams, nullptr);
+		for (unsigned long x = 0; x < numParams; ++x)
+			createScatterPlot(y, x, true);
+
 		m_histograms.push_back(new iAChartWidget(this, m_splomData->parameterName(y), ""));
 
 		QAction * a = new QAction(m_splomData->parameterName(y), nullptr);
@@ -456,9 +480,8 @@ void iAQSplom::setParameterVisibility( size_t paramIndex, bool isVisible )
 		updateHistogram(paramIndex);
 	for (size_t p = 0; p < m_splomData->numParams(); ++p)
 	{
-		setScatterPlotVisible(m_matrix[p][paramIndex], p, paramIndex);
-		if (p != paramIndex)
-			setScatterPlotVisible(m_matrix[paramIndex][p], paramIndex, p);
+		createScatterPlot(p, paramIndex, false);
+		createScatterPlot(paramIndex, p, false);
 	}
 	updateVisiblePlots();
 	update();
@@ -474,7 +497,7 @@ void iAQSplom::setParameterVisibility(std::vector<char> const & visibility)
 	m_paramVisibility = visibility;
 	for (size_t y = 0; y < m_splomData->numParams(); ++y)
 		for (size_t x = 0; x < m_splomData->numParams(); ++x)
-			setScatterPlotVisible(m_matrix[y][x], y, x);
+			createScatterPlot(y, x, false);
 
 	updateVisiblePlots();
 	updateHistograms();
@@ -487,13 +510,15 @@ void iAQSplom::setParameterInverted( size_t paramIndex, bool isInverted )
 	unsigned long numParams = m_splomData->numParams();
 	for (unsigned long row = 0; row < numParams; ++row)
 	{
-		if (m_paramVisibility[row])
-			m_matrix[row][paramIndex]->updatePoints();
+		auto s = m_matrix[row][paramIndex];
+		if (s)
+			s->updatePoints();
 	}
 	for (unsigned long col = 0; col < numParams; ++col)
 	{  // avoid double updated of row==col plot
-		if (col != paramIndex && m_paramVisibility[col])
-			m_matrix[paramIndex][col]->updatePoints();
+		auto s = m_matrix[paramIndex][col];
+		if (s && col != paramIndex)
+			s->updatePoints();
 	}
 	update();
 }
@@ -592,12 +617,15 @@ void iAQSplom::clear()
 {
 	removeMaximizedPlot();
 	m_activePlot = 0;
-	foreach( QList<iAScatterPlot*> row, m_matrix )
+	for (auto & row: m_matrix)
 	{
-		foreach( iAScatterPlot* s, row )
+		for (auto s: row)
 		{
-			s->disconnect();
-			delete s;
+			if (s)
+			{
+				s->disconnect();
+				delete s;
+			}
 		}
 		row.clear();
 	}
@@ -629,11 +657,11 @@ void iAQSplom::transformUpdated( double scale, QPointF deltaOffset )
 	}
 
 	const int * ind = sender->getIndices();
-	foreach( QList<iAScatterPlot*> row, m_matrix )
+	for ( auto & row: m_matrix )
 	{
-		foreach( iAScatterPlot* s, row )
+		for ( auto s: row )
 		{
-			if( s != sender )
+			if( s && s != sender )
 			{
 				if( s->getIndices()[0] == ind[0] )
 					s->setTransformDelta( scale, QPointF( deltaOffset.x(), 0.0f ) );
@@ -650,11 +678,11 @@ void iAQSplom::transformUpdated( double scale, QPointF deltaOffset )
 
 void iAQSplom::currentPointUpdated( size_t index )
 {
-	foreach( QList<iAScatterPlot*> row, m_matrix )
+	for (auto & row : m_matrix)
 	{
-		foreach( iAScatterPlot* s, row )
+		for (auto s : row)
 		{
-			if( s != QObject::sender() )
+			if( s && s != QObject::sender() )
 			{
 				s->setCurrentPoint( index );
 			}
@@ -709,7 +737,7 @@ void iAQSplom::removeHighlightedPoint( size_t index )
 
 void iAQSplom::showDefaultMaxizimedPlot()
 {
-	if (this->m_visiblePlots.isEmpty())
+	if (m_visiblePlots.empty())
 		return;
 	// maximize plot in upper left corner:
 	this->maximizeSelectedPlot(m_visiblePlots.at(getVisibleParametersCount() - 1).at(0));
@@ -747,9 +775,10 @@ void iAQSplom::setShowPCC(bool showPCC)
 	settings.showPCC = showPCC;
 	QSignalBlocker sb(m_settingsDlg->cbShowCorrelationCoefficient);
 	m_settingsDlg->cbShowCorrelationCoefficient->setChecked(showPCC);
-	foreach(QList<iAScatterPlot*> row, m_matrix)
-		foreach(iAScatterPlot* s, row)
-			s->settings.showPCC = showPCC;
+	for (auto row : m_matrix)
+		for (auto s : row)
+			if (s)
+				s->settings.showPCC = showPCC;
 	if (m_maximizedPlot)
 		m_maximizedPlot->settings.showPCC = showPCC;
 	update();
@@ -912,14 +941,11 @@ void iAQSplom::paintEvent( QPaintEvent * event )
 	drawVisibleParameters(painter);
 
 	drawTicks( painter, ticksX, ticksY, textX, textY );
-	foreach( const QList<iAScatterPlot*> & row, m_visiblePlots )
-	{
-		foreach( iAScatterPlot * s, row )
-		{
+	for( auto & row: m_visiblePlots )
+		for( iAScatterPlot * s: row )
 			if( s )
 				s->paintOnParent( painter );
-		}
-	}
+
 	if( m_maximizedPlot )
 		m_maximizedPlot->paintOnParent( painter );
 	drawPopup( painter );
@@ -991,7 +1017,7 @@ bool iAQSplom::drawPopup( QPainter& painter )
 
 iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 {
-	if( m_visiblePlots.isEmpty() )
+	if( m_visiblePlots.empty() )
 		return nullptr;
 	QPoint offsetPos = pos - settings.tickOffsets;
 	QPoint grid( m_scatPlotSize.x() + settings.plotsSpacing, m_scatPlotSize.y() + settings.plotsSpacing );
@@ -1093,10 +1119,10 @@ void iAQSplom::updateSPLOMLayout()
 	updatePlotGridParams();
 	for( int yind = 0; yind < visParamCnt; ++yind )
 	{
-		QList<iAScatterPlot*> * row = &m_visiblePlots[yind];
-		for( int xind = 0; xind < row->size(); ++xind )
+		auto & row = m_visiblePlots[yind];
+		for( int xind = 0; xind < row.size(); ++xind )
 		{
-			iAScatterPlot * s = m_visiblePlots[yind][xind];
+			iAScatterPlot * s = row[xind];
 			if( s )
 				s->setRect( getPlotRectByIndex( xind, yind ) );
 		}
@@ -1109,6 +1135,8 @@ void iAQSplom::updateSPLOMLayout()
 
 void iAQSplom::updateVisiblePlots()
 {
+	if (!m_splomData)
+		return;
 	m_visibleIndices.clear();
 	removeMaxPlotIfHidden();
 	m_visiblePlots.clear();
@@ -1121,14 +1149,12 @@ void iAQSplom::updateVisiblePlots()
 		if( !m_paramVisibility[y] )
 			continue;
 
-		QList<iAScatterPlot*> row;
+		std::vector<iAScatterPlot*> row;
 		for( size_t x = 0; x < m_splomData->numParams(); ++x )
 		{
 			if( !m_paramVisibility[x] )
 				continue;
-			iAScatterPlot * plot = m_matrix[y][x];
-			if( m_mode == UPPER_HALF && ((x > y) || (x == y)) ) // hide lower triangle and diagonal elements
-				plot = 0;
+			iAScatterPlot * plot = (m_mode == UPPER_HALF && x >= y) ? nullptr : m_matrix[y][x];
 			row.push_back( plot );
 		}
 		m_visiblePlots.push_back( row );
@@ -1149,13 +1175,11 @@ void iAQSplom::removeMaxPlotIfHidden()
 
 void iAQSplom::resetTransform()
 {
-	foreach( const QList<iAScatterPlot*> & row, m_matrix )
-	{
-		foreach( iAScatterPlot * s, row )
-		{
-			s->setTransform( 1.0, QPointF( 0.0f, 0.0f ) );
-		}
-	}
+	for( auto & row: m_matrix )
+		for( auto s: row )
+			if (s)
+				s->setTransform( 1.0, QPointF( 0.0f, 0.0f ) );
+
 	if(m_maximizedPlot)
 		m_maximizedPlot->setTransform( 1.0, QPointF( 0.0f, 0.0f ) );
 	update();
@@ -1216,6 +1240,8 @@ void iAQSplom::keyPressEvent( QKeyEvent * event )
 void iAQSplom::mouseDoubleClickEvent( QMouseEvent * event )
 {
 	iAScatterPlot * s = getScatterplotAt(event->pos());
+	if (!s)
+		return;
 	if (m_maximizedPlot &&
 		m_maximizedPlot->getIndices()[0] == s->getIndices()[0] &&
 		m_maximizedPlot->getIndices()[1] == s->getIndices()[1])
@@ -1397,17 +1423,14 @@ void iAQSplom::applyLookupTable()
 {
 	QSignalBlocker colorChoiceBlock(m_settingsDlg->cbColorParameter);
 	m_settingsDlg->cbColorParameter->setCurrentIndex(m_colorLookupParam);
-	foreach(QList<iAScatterPlot*> row, m_matrix)
-	{
-		foreach(iAScatterPlot* s, row)
-		{
-			s->setLookupTable(m_lut, m_colorLookupParam);
-		}
-	}
+	for (auto & row : m_matrix)
+		for (auto s : row)
+			if (s)
+				s->setLookupTable(m_lut, m_colorLookupParam);
+
 	if (m_maximizedPlot)
-	{
 		m_maximizedPlot->setLookupTable(m_lut, m_colorLookupParam);
-	}
+
 	update();
 }
 
@@ -1415,13 +1438,11 @@ void iAQSplom::pointRadiusChanged(int newValue)
 {
 	settings.pointRadius = newValue / PointRadiusFractions;
 	m_settingsDlg->lbPointSizeValue->setText(QString::number(settings.pointRadius));
-	foreach(QList<iAScatterPlot*> row, m_matrix)
-	{
-		foreach(iAScatterPlot* s, row)
-		{
-			s->setPointRadius(settings.pointRadius);
-		}
-	}
+	for (auto & row : m_matrix)
+		for (auto s : row)
+			if (s)
+				s->setPointRadius(settings.pointRadius);
+
 	if (m_maximizedPlot)
 		m_maximizedPlot->setPointRadius(settings.pointRadius);
 	update();

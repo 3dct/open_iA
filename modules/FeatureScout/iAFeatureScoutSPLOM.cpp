@@ -69,6 +69,7 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	matrix->setSelectionMode(iAScatterPlot::Rectangle);
 	auto spInput = createSPLOMData(csvTable);
 	container->setWidget(matrix);
+	matrix->showAllPlots(false);
 	matrix->setData(spInput, columnVisibility);
 	matrix->setSelectionColor(QColor(255, 40, 0, 1));
 	matrix->enableSelection(selectionEnabled);
@@ -111,9 +112,8 @@ void iAFeatureScoutSPLOM::setFilter(int classID)
 {
 	if (!matrix)
 		return;
-	if (classID == -1)
-		matrix->resetFilter();
-	else
+	matrix->resetFilter();
+	if (classID != -1)
 		matrix->addFilter(matrix->data()->numParams() - 1, classID);
 	matrix->update();
 }

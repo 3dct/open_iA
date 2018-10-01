@@ -49,6 +49,7 @@ class open_iA_Core_API iAChartWidget : public QGLWidget
 {
 	Q_OBJECT
 public:
+	static const size_t MaxPossiblePlot = std::numeric_limits<size_t>::max();
 	enum Mode { NO_MODE, MOVE_VIEW_MODE, X_ZOOM_MODE, Y_ZOOM_MODE };
 	enum AxisMappingType { Linear, Logarithmic };
 	iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
@@ -61,8 +62,8 @@ public:
 	virtual int leftMargin() const;
 	virtual int activeWidth()  const;
 	virtual int activeHeight() const;
-	iAPlotData::DataType minYDataValue() const;
-	iAPlotData::DataType maxYDataValue() const;
+	iAPlotData::DataType minYDataValue(size_t startPlot = 0) const;
+	iAPlotData::DataType maxYDataValue(size_t startPlot = 0) const;
 	iAMapper const & xMapper() const;
 	iAMapper const & yMapper() const;
 	virtual iAPlotData::DataType const * yBounds() const;
@@ -85,13 +86,16 @@ public:
 	void setShowXAxisLabel(bool show);
 	void addPlot(QSharedPointer<iAPlot> plot);
 	void removePlot(QSharedPointer<iAPlot> plot);
-	QVector< QSharedPointer< iAPlot > > const & plots();
+	std::vector< QSharedPointer< iAPlot > > const & plots();
 	bool isDrawnDiscrete() const;
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
 	void removeImageOverlay(QImage * imgOverlay);
 	void addXMarker(double xPos, QColor const & color);
 	void removeXMarker(double xPos);
 	void clearMarkers();
+	void updateBounds(size_t startPlot = 0);
+	void updateXBounds(size_t startPlot = 0);
+	void updateYBounds(size_t startPlot = 0);
 public slots:
 	void resetView();
 signals:
@@ -146,13 +150,10 @@ private:
 	virtual void drawAfterPlots(QPainter& painter);
 	virtual void drawXAxis(QPainter &painter);
 	virtual void drawYAxis(QPainter &painter);
-	void updateBounds();
-	void updateXBounds();
-	void updateYBounds();
 	double visibleXStart() const;
 	double visibleXEnd() const;
 
-	QVector< QSharedPointer< iAPlot > >	m_plots;
+	std::vector< QSharedPointer< iAPlot > >	m_plots;
 	QList< QSharedPointer< QImage > > m_overlays;
 	QMenu* m_contextMenu;
 	QPoint m_contextPos;
