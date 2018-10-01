@@ -1187,6 +1187,7 @@ void MainWindow::renderSettings()
 		<< tr("$Parallel projection")
 		<< tr("#Background top")
 		<< tr("#Background bottom")
+		<< tr("$Use FXAA")
 		<< tr("$Linear interpolation")
 		<< tr("$Shading")
 		<< tr("#Sample distance")
@@ -1205,6 +1206,7 @@ void MainWindow::renderSettings()
 		<< (renderSettings.ParallelProjection ? t : f)
 		<< tr("%1").arg(renderSettings.BackgroundTop)
 		<< tr("%1").arg(renderSettings.BackgroundBottom)
+		<< (renderSettings.UseFXAA ? t : f)
 		<< (volumeSettings.LinearInterpolation ? t : f)
 		<< (volumeSettings.Shading ? t : f)
 		<< tr("%1").arg(volumeSettings.SampleDistance)
@@ -1225,15 +1227,16 @@ void MainWindow::renderSettings()
 		defaultRenderSettings.ParallelProjection = dlg.getCheckValue(4) != 0;
 		defaultRenderSettings.BackgroundTop = dlg.getText(5);
 		defaultRenderSettings.BackgroundBottom = dlg.getText(6);
+		defaultRenderSettings.UseFXAA = dlg.getCheckValue(7) !=0;
 
-		defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(7) != 0;
-		defaultVolumeSettings.Shading = dlg.getCheckValue(8) != 0;
-		defaultVolumeSettings.SampleDistance = dlg.getDblValue(9);
-		defaultVolumeSettings.AmbientLighting = dlg.getDblValue(10);
-		defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(11);
-		defaultVolumeSettings.SpecularLighting = dlg.getDblValue(12);
-		defaultVolumeSettings.SpecularPower = dlg.getDblValue(13);
-		defaultVolumeSettings.RenderMode = MapRenderModeToEnum(dlg.getComboBoxValue(14));
+		defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(8) != 0;
+		defaultVolumeSettings.Shading = dlg.getCheckValue(9) != 0;
+		defaultVolumeSettings.SampleDistance = dlg.getDblValue(10);
+		defaultVolumeSettings.AmbientLighting = dlg.getDblValue(11);
+		defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(12);
+		defaultVolumeSettings.SpecularLighting = dlg.getDblValue(13);
+		defaultVolumeSettings.SpecularPower = dlg.getDblValue(14);
+		defaultVolumeSettings.RenderMode = MapRenderModeToEnum(dlg.getComboBoxValue(15));
 
 		if (activeMdiChild() && activeMdiChild()->editRendererSettings(
 			defaultRenderSettings,
