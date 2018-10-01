@@ -1980,27 +1980,19 @@ void dlg_FeatureScout::WisetexSaveButton()
 void dlg_FeatureScout::ExportClassButton()
 {
 
-	//Wo kommt das image her
-	QMessageBox::warning(this, "FeatureScout", "ClassExport not yet implemented.");
-	
 	QString fileName = QFileDialog::getSaveFileName(this,
 		tr("Save Classes..."), "",
 		tr("mhd (*.mhd)"));
 
+	//itk to vtk conversion
 
-	//create map of all ids
 	iAConnector* con = new iAConnector();
-	
-
-	
-	//über vtk
-	
 	typedef itk::Image<unsigned char, 3> UChar_Image; 
 	UChar_Image::SizeType u_size;
 	vtkSmartPointer < vtkImageData > img_data = activeChild->getImagePointer();
 
 	if (img_data) {
-		//img_data->GetScalarComponentAsDouble()
+		
 		for (int i=0; i<DIM; ++i)
 			u_size[i] = img_data->GetDimensions()[i];
 		const UChar_Image::SpacingType& sp = img_data->GetSpacing();
@@ -2019,45 +2011,43 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<ClassIDType, DIM>   OutputImageType;
 	OutputImageType::SizeType OutputImageSize; 
-
-	/*InputImageType::RegionType region_in;*/
-	/*OutputImageType::RegionType region_out; */
+		
 	size_t labelID = 0; 
-	
 	QMap<size_t, ClassIDType> currentEntries;
 
 	if (!con)
 		return;
 
-	//create nd-map of all ids:  
+	//create map of labelid <-> classes:  
 
 	if (classTreeModel->invisibleRootItem()->hasChildren()) {
-			for (int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); i++) {
-				
+
+
+		//Skip first
+			for (int i = 1; i < classTreeModel->invisibleRootItem()->rowCount(); i++) {
+		
+				auto x = classTreeModel->invisibleRootItem()->rowCount();
 				//classes, start with 1, 0 would be uncategorized class
-				QStandardItem *item = classTreeModel->invisibleRootItem()->child(i, 1);
+				
+				QStandardItem *item = classTreeModel->invisibleRootItem()->child(i);
 				//objects in classes
+
+				auto x1 = item->rowCount();
 
 				for (int j = 0; j < item->rowCount(); j++) {
 
-
 					size_t labelID = item->child(j)->text().toULongLong();
-					
 					currentEntries.insert(labelID, i);
 				
 				}
 			}
-
-
 	}
 
 	
 	auto in_img = dynamic_cast<InputImageType*>  (con->GetITKImage());
 	auto region_in = in_img->GetLargestPossibleRegion();
 	const OutputImageType::SpacingType outSpacing = in_img ->GetSpacing();
-	
 	auto out_img = CreateImage<OutputImageType>(region_in.GetSize(), outSpacing);
-	
 	itk::ImageRegionConstIterator<InputImageType> in(in_img, region_in);
 	itk::ImageRegionIterator<OutputImageType> out(out_img, region_in);
 	bool found = false; 
@@ -2065,15 +2055,14 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 
 	while (!in.IsAtEnd()) {
 
-		//gehe übe jedes pixel
+		//gehe ueber jedes pixel
 		labelID = (size_t) in.Get();
 		out.Set(static_cast<ClassIDType>(currentEntries[labelID]));
 		++in;
 		++out;
 	}
 
-
-	//ten write the image
+	//then write the image
 
 	if (!fOutPath.isEmpty()) {
 		DEBUG_LOG("Store Classied Image");
@@ -2081,7 +2070,6 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 		DEBUG_LOG("Finished store image");
 		
 	}
-
 	
 }
 

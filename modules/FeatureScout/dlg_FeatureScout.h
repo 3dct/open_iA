@@ -117,7 +117,7 @@ private slots:
 	void ClassLoadButton();
 	void ClassDeleteButton();
 	void WisetexSaveButton();
-	void ExportClassButton(); //!< The export classes to MDH File.
+	void ExportClassButton(); //!< The export defined classes to MDH File.
 
 	
 
@@ -150,6 +150,7 @@ private slots:
 	void updateMarProgress(int i);
 private:
 	
+	//create labelled output image based on defined classes
 	template <class T> void CreateLabelledOutputMask(iAConnector *con, const QString fOutPath);
 
 	void showScatterPlot();
