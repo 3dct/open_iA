@@ -34,6 +34,8 @@
 #include <QGLWidget>
 #endif
 
+#include <QMap>
+
 class iAPlot;
 class iAMapper;
 
@@ -47,6 +49,7 @@ class open_iA_Core_API iAChartWidget : public QGLWidget
 {
 	Q_OBJECT
 public:
+	static const size_t MaxPossiblePlot = std::numeric_limits<size_t>::max();
 	enum Mode { NO_MODE, MOVE_VIEW_MODE, X_ZOOM_MODE, Y_ZOOM_MODE };
 	enum AxisMappingType { Linear, Logarithmic };
 	iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
@@ -59,15 +62,15 @@ public:
 	virtual int leftMargin() const;
 	virtual int activeWidth()  const;
 	virtual int activeHeight() const;
-	iAPlotData::DataType getMaxYDataValue() const;
-	QSharedPointer<iAMapper> const yMapper() const;
+	iAPlotData::DataType minYDataValue(size_t startPlot = 0) const;
+	iAPlotData::DataType maxYDataValue(size_t startPlot = 0) const;
+	iAMapper const & xMapper() const;
+	iAMapper const & yMapper() const;
 	virtual iAPlotData::DataType const * yBounds() const;
 	virtual double const * xBounds() const;
-	virtual size_t maxXAxisSteps() const;
 	bool categoricalAxis() const;
 	double xRange() const;
 	double maxXZoom() const;
-	int diagram2PaintX(double x) const;
 	long screenX2DataBin(int x) const;
 	int  dataBin2ScreenX(long x) const;
 	bool isContextMenuVisible() const;
@@ -77,15 +80,22 @@ public:
 	void setYBounds(iAPlotData::DataType minVal, iAPlotData::DataType maxVal);
 	void resetYBounds();
 	void setXCaption(QString const & caption);
+	void setYCaption(QString const & caption);
 	void setYMappingMode(AxisMappingType drawMode);
 	void setCaptionPosition(QFlags<Qt::AlignmentFlag>);
 	void setShowXAxisLabel(bool show);
 	void addPlot(QSharedPointer<iAPlot> plot);
 	void removePlot(QSharedPointer<iAPlot> plot);
-	QVector< QSharedPointer< iAPlot > > const & plots();
+	std::vector< QSharedPointer< iAPlot > > const & plots();
 	bool isDrawnDiscrete() const;
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
 	void removeImageOverlay(QImage * imgOverlay);
+	void addXMarker(double xPos, QColor const & color);
+	void removeXMarker(double xPos);
+	void clearMarkers();
+	void updateBounds(size_t startPlot = 0);
+	void updateXBounds(size_t startPlot = 0);
+	void updateYBounds(size_t startPlot = 0);
 public slots:
 	void resetView();
 signals:
@@ -106,11 +116,12 @@ protected:
 	int dragStartPosX;
 	int dragStartPosY;
 	int mode;
-	QSharedPointer<iAMapper> m_yConverter;
+	//! Main mappers from diagram coordinates to pixel coordinates, for each axis:
+	QSharedPointer<iAMapper> m_xMapper, m_yMapper;
 	AxisMappingType m_yMappingMode;
 	bool m_contextMenuVisible;
 
-	virtual void drawPlots(QPainter& painter, size_t startBin, size_t endBin);
+	virtual void drawPlots(QPainter& painter);
 	virtual void drawAxes(QPainter& painter);
 	virtual QString getXAxisTickMarkLabel(double value, double stepWidth);
 
@@ -134,16 +145,15 @@ private slots:
 	void exportData();
 private:
 	virtual void addContextMenuEntries(QMenu* contextMenu);
-	void createYConverter();
+	void createMappers();
 	void drawImageOverlays(QPainter &painter);
 	virtual void drawAfterPlots(QPainter& painter);
 	virtual void drawXAxis(QPainter &painter);
 	virtual void drawYAxis(QPainter &painter);
-	void updateBounds();
-	void updateXBounds();
-	void updateYBounds();
+	double visibleXStart() const;
+	double visibleXEnd() const;
 
-	QVector< QSharedPointer< iAPlot > >	m_plots;
+	std::vector< QSharedPointer< iAPlot > >	m_plots;
 	QList< QSharedPointer< QImage > > m_overlays;
 	QMenu* m_contextMenu;
 	QPoint m_contextPos;
@@ -152,6 +162,8 @@ private:
 	int  m_fontHeight;
 	int  m_yMaxTickLabelWidth;
 	bool m_customXBounds, m_customYBounds;
-	double m_xBounds[2], m_yBounds[2];
+	double m_xBounds[2], m_yBounds[2], m_xTickBounds[2];
 	QFlags<Qt::AlignmentFlag> m_captionPosition;
+	QMap<double, QColor> m_xMarker;
+	size_t m_maxXAxisSteps;
 };

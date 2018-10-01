@@ -31,7 +31,7 @@
 
 
 iAHistogramData::iAHistogramData()
-	: m_binCount(0), rawData(nullptr), accSpacing(0)
+	: m_binCount(0), rawData(nullptr), accSpacing(0), m_type(Continuous)
 {
 	xBounds[0] = xBounds[1] = 0;
 	yBounds[0] = yBounds[1] = 0;
@@ -121,7 +121,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(
 	return result;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataType>& histData, size_t binCount)
+QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataType>& histData, size_t binCount, iAValueType type)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
 	DataType minValue = std::numeric_limits<DataType>::max();
@@ -133,18 +133,26 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataTy
 		if (d > maxValue)
 			maxValue = d;
 	}
-	result->rawData = new DataType[binCount];
-	result->m_binCount = binCount;
-	result->accSpacing = (maxValue - minValue) / binCount;
 	result->xBounds[0] = minValue;
 	result->xBounds[1] = maxValue;
-	std::fill(result->rawData, result->rawData + binCount, 0.0);
-	//double factor = 1 / result->accSpacing;
-	for (DataType d : histData)
+	result->m_type = type;
+	if (dblApproxEqual(minValue, maxValue))
+	{   // if min == max, there is only one bin - one in which all values are contained!
+		result->m_binCount = 1;
+		result->rawData = new DataType[result->m_binCount];
+		result->rawData[0] = histData.size();
+	}
+	else
 	{
-		//int bin = clamp(static_cast<size_t>(0), binCount-1, static_cast<int>(((d - minValue) * factor) ));	 // potentially faster but less readable
-		int bin = clamp(static_cast<size_t>(0), binCount-1, mapValue(minValue, maxValue, static_cast<size_t>(0), binCount, d));
-		++result->rawData[bin];
+		result->m_binCount = binCount;
+		result->rawData = new DataType[binCount];
+		result->accSpacing = (maxValue - minValue) / binCount;
+		std::fill(result->rawData, result->rawData + binCount, 0.0);
+		for (DataType d : histData)
+		{
+			int bin = clamp(static_cast<size_t>(0), binCount - 1, mapValue(minValue, maxValue, static_cast<size_t>(0), binCount, d));
+			++result->rawData[bin];
+		}
 	}
 	result->SetMaxFreq();
 	return result;

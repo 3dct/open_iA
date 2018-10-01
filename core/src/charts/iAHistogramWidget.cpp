@@ -43,7 +43,7 @@ iAHistogramWidget::iAHistogramWidget(QWidget *parent,
 {
 	setTransferFunctions(cTF, oTF);
 	datatypehistograminitialize(histData, reset, dataMin, dataMax, bins, space);
-	addPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(m_data, QColor(70, 70, 70, 255))));
+	addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(m_data, QColor(70, 70, 70, 255))));
 }
 
 

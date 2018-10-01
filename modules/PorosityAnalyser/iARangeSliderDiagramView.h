@@ -30,7 +30,7 @@
 
 
 class iARangeSliderDiagramData;
-class iABarGraphDrawer;
+class iABarGraphPlot;
 class iARangeSliderDiagramWidget;
 
 class QTableWidget;
@@ -66,7 +66,7 @@ signals:
 
 private:
 	QSharedPointer<iARangeSliderDiagramData>			m_rangeSliderData;
-	QSharedPointer<iABarGraphDrawer>					m_rangeSliderDiagramDrawer;
+	QSharedPointer<iABarGraphPlot>					m_rangeSliderDiagramDrawer;
 	QList<double>										m_data;
 	QList<vtkSmartPointer<vtkPiecewiseFunction> >		m_oTFList;
 	QList<vtkSmartPointer<vtkColorTransferFunction> >	m_cTFList;

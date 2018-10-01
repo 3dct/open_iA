@@ -58,7 +58,7 @@ iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChi
 	filterListener(filterListener)
 {
 	setTransferFunctions(cTF, oTF);
-	addPlot(QSharedPointer<iAPlot>(new iAStepFunctionDrawer(m_data, QColor(70, 70, 70, 255))));
+	addPlot(QSharedPointer<iAPlot>(new iAStepFunctionPlot(m_data, QColor(70, 70, 70, 255))));
 	selectionRubberBand->hide();
 	setAllowTrfReset(false);
 	setEnableAdditionalFunctions(false);
@@ -109,8 +109,8 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 		selectionRubberBand->hide();
 		QRect diagramRect;
 		QRect selectionRect(selectionRubberBand->geometry());     // height-y because we are drawing reversed from actual y direction
-		diagramRect.setTop(    yMapper()->DestToSrc(activeHeight() - selectionRect.bottom()) );
-		diagramRect.setBottom( yMapper()->DestToSrc(activeHeight() - selectionRect.top()   ) );
+		diagramRect.setTop(    yMapper().dstToSrc(activeHeight() - selectionRect.bottom()) );
+		diagramRect.setBottom( yMapper().dstToSrc(activeHeight() - selectionRect.top()   ) );
 		diagramRect.setLeft(   screenX2DataBin(selectionRect.left()  ) );
 		diagramRect.setRight(  screenX2DataBin(selectionRect.right() ) );
 		diagramRect = diagramRect.normalized();
@@ -120,9 +120,9 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 			diagramRect.setTop(0);
 		}
 
-		if (diagramRect.bottom() > plots()[0]->GetData()->YBounds()[1])
+		if (diagramRect.bottom() > yBounds()[1])
 		{
-			diagramRect.setBottom(plots()[0]->GetData()->YBounds()[1]);
+			diagramRect.setBottom(yBounds()[1]);
 		}
 
 		// .width() and .height() counter-intuitively report 1 if x1=x2/y1=y2
@@ -161,8 +161,8 @@ void iAEnergySpectrumWidget::drawAfterPlots(QPainter& painter)
 	for (int i=0; i<selectionRects.size(); ++i)
 	{
 		QRect drawRect;
-		drawRect.setTop(   yMapper()->SrcToDest(selectionRects[i].top()));
-		drawRect.setBottom(yMapper()->SrcToDest(selectionRects[i].bottom())-1);
+		drawRect.setTop(   yMapper().srcToDst(selectionRects[i].top()));
+		drawRect.setBottom(yMapper().srcToDst(selectionRects[i].bottom())-1);
 		drawRect.setLeft(  dataBin2ScreenX(selectionRects[i].left()));
 		drawRect.setRight( dataBin2ScreenX(selectionRects[i].right())-2);
 		drawRect = drawRect.normalized();
@@ -180,13 +180,13 @@ void iAEnergySpectrumWidget::drawAfterPlots(QPainter& painter)
 		int drawnLines = 0;
 		for (int j=0; j<element->energies.size(); ++j)
 		{
-			QLine line;
-			QRect diagram = geometry();
 			double elementkEV = element->energies[j]/1000.0;
 			if (elementkEV >= xBounds()[0] &&
 				elementkEV <= xBounds()[1])
 			{
-				double pos = diagram2PaintX(elementkEV);
+				QLine line;
+				QRect diagram = geometry();
+				double pos = m_xMapper->srcToDst(elementkEV);
 				line.setP1(QPoint(pos, 0));
 				line.setP2(QPoint(pos, diagram.height()-bottomMargin()));
 				painter.drawLine(line);

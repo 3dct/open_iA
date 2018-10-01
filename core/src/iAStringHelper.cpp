@@ -106,7 +106,7 @@ QString DblToStringWithUnits(double value)
 		else if (value > 1000)
 			return QString::number(value / 1000, 'f', (value < 10000) ? 2 : ((value < 100000) ? 1 : 0)) + "K";
 		else
-			return QString::number((int)value, 10);
+			return QString::number(value, 'g', 3);
 }
 
 QString GreatestCommonPrefix(QString const & str1, QString const & str2)

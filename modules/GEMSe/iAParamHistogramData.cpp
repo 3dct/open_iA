@@ -119,10 +119,6 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNod
 	iAChartAttributeMapper const & chartAttrMap,
 	int numBin)
 {
-	if (rangeType == iAValueType::Discrete || rangeType == iAValueType::Categorical)
-	{
-		max = max+1;
-	}
 	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(numBin, min, max, log, rangeType));
 	VisitNode(tree, result, chartID, chartAttrMap);
 	return result;
@@ -136,10 +132,6 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNod
 	iAChartFilter const & attributeFilter,
 	int numBin)
 {
-	if (rangeType == iAValueType::Discrete || rangeType == iAValueType::Categorical)
-	{
-		max = max+1;
-	}
 	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(numBin, min, max, log, rangeType));
 	VisitNode(tree, result, chartID, chartAttrMap, attributeFilter);
 	if (attributeFilter.HasFilter(chartID))

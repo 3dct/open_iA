@@ -24,6 +24,7 @@
 #include "iATypedCallHelper.h"
 
 #include <itkExtractImageFilter.h>
+#include <itkStatisticsImageFilter.h>
 
 itk::ImageIOBase::IOComponentType GetITKScalarPixelType(iAITKIO::ImagePointer image)
 {
@@ -298,4 +299,24 @@ iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const ind
 	iAITKIO::ImagePointer outImg;
 	ITK_TYPED_CALL(InternalExtractImage, GetITKScalarPixelType(inImg), inImg, indexArr, sizeArr, outImg);
 	return outImg;
+}
+
+template <typename T>
+void internalGetStatistics(iAITKIO::ImagePointer img, double* min, double* max, double* mean, double* stddev, double* vari, double* sum)
+{
+	typedef itk::Image< T, iAITKIO::m_DIM > ImageType;
+	auto statisticsImageFilter = itk::StatisticsImageFilter<ImageType>::New();
+	statisticsImageFilter->SetInput(dynamic_cast<ImageType*>(img.GetPointer()));
+	statisticsImageFilter->Update();
+	if (min)    *min = statisticsImageFilter->GetMinimum();
+	if (max)    *max = statisticsImageFilter->GetMaximum();
+	if (mean)   *mean = statisticsImageFilter->GetMean();
+	if (stddev) *stddev = statisticsImageFilter->GetSigma();
+	if (vari)   *vari = statisticsImageFilter->GetVariance();
+	if (sum)    *sum = statisticsImageFilter->GetVariance();
+}
+
+void getStatistics(iAITKIO::ImagePointer img, double* min, double* max, double* mean, double* stddev, double* variance, double * sum)
+{
+	ITK_TYPED_CALL(internalGetStatistics, GetITKScalarPixelType(img), img, min, max, mean, stddev, variance, sum);
 }

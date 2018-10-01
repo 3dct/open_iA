@@ -52,10 +52,6 @@ class vtkPiecewiseFunction;
 class vtkScalarBarActor;
 
 class iAEnergySpectrumWidget;
-class iAMultipleFunctionDrawer;
-class iAPlot;
-class iAPlotData;
-class iAStepFunctionDrawer;
 class iAWidgetAddHelper;
 
 class dlg_periodicTable;
@@ -67,9 +63,13 @@ class iAElementConcentrations;
 class iAEnergySpectrumDiagramData;
 class iAPieChartWidget;
 class iAReferenceSpectraLibrary;
-class iASelectedBinDrawer;
 class iAPeriodicTableListener;
 class iAXRFData;
+
+class iAPlot;
+class iAPlotCollection;
+class iASelectedBinPlot;
+class iAStepFunctionPlot;
 
 class dlg_XRF : public dlg_xrfContainer, public iASpectrumFilterListener
 {
@@ -175,17 +175,17 @@ private:
 	QSharedPointer<iAEnergySpectrumDiagramData>				m_voxelEnergy;
 	QSharedPointer<iAAccumulatedXRFData>					m_accumulatedXRF;
 
-	QMap<int, QSharedPointer<iAStepFunctionDrawer> >		m_refSpectraDrawers;
+	QMap<int, QSharedPointer<iAStepFunctionPlot> >		m_refSpectraDrawers;
 	QSharedPointer<iAReferenceSpectraLibrary>				m_refSpectraLib;
 	
-	QSharedPointer<iAMultipleFunctionDrawer>				m_spectraLinesDrawer;
+	QSharedPointer<iAPlotCollection>						m_spectraLinesDrawer;
 	QSharedPointer<iAPlot>									m_voxelSpectrumDrawer;
 
 	QSharedPointer<iAElementConcentrations>					m_elementConcentrations;
 	QSharedPointer<iADecompositionCalculator>				m_decompositionCalculator;
 
-	QSharedPointer<iASelectedBinDrawer>						m_selectedBinXDrawer;
-	QSharedPointer<iASelectedBinDrawer>						m_selectedBinYDrawer;
+	QSharedPointer<iASelectedBinPlot>						m_selectedBinXDrawer;
+	QSharedPointer<iASelectedBinPlot>						m_selectedBinYDrawer;
 
 
 	QVector<int>											m_decomposeSelectedElements;

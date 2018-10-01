@@ -67,7 +67,7 @@ void iAProfileWidget::showDataTooltip(QMouseEvent *event)
 	emit binSelected(nthBin);
 }
 
-void iAProfileWidget::drawPlots(QPainter &painter, size_t startBin, size_t endBin)
+void iAProfileWidget::drawPlots(QPainter &painter)
 {
 	if (!scalars)
 		return;

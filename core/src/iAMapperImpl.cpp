@@ -20,114 +20,104 @@
 * ************************************************************************************/
 #include "iAMapperImpl.h"
 
+#include "iAConsole.h"
 #include "iAMathUtility.h"
 
+#include <typeinfo>    // for typeid
+
+// iAMapper
 
 iAMapper::~iAMapper() {}
 
-bool iAMapper::equals(QSharedPointer<iAMapper> other) const
+bool iAMapper::equals(iAMapper const & other) const
 {
 	return false;
 }
 
-
-
-iALinearMapper::iALinearMapper(double yZoom, double yMin, double yMax, int height)
+bool operator==(iAMapper const & a, iAMapper const & b)
 {
-	iALinearMapper::update(yZoom, yMax, yMin, height);
+	return typeid(a) == typeid(b) // Allow only to compare instances of the same dynamic type
+		&& a.equals(b);
 }
 
-double iALinearMapper::SrcToDest(double y) const
-{
-	return (y - yMin) * yScaleFactor;
-}
 
-double iALinearMapper::DestToSrc(double y) const
-{
-	return y / yScaleFactor + yMin;
-}
+// iALinearMapper
 
-bool iALinearMapper::equals(QSharedPointer<iAMapper> other) const
-{
-	iALinearMapper* linearOther = dynamic_cast<iALinearMapper*>(other.data());
-	return (linearOther != 0 && yScaleFactor == linearOther->yScaleFactor);
-}
-
-QSharedPointer<iAMapper> iALinearMapper::clone()
-{
-	return QSharedPointer<iAMapper>(new iALinearMapper(*this));
-}
-
-void iALinearMapper::update(double yZoom, double yMax, double yMin, int height)
-{
-	this->yMin = yMin;
-	if (yMax)
-		yScaleFactor = (double)(height - 1) / (yMax - yMin) *yZoom;
-	else
-		yScaleFactor = 1;
-}
-
-iALinearMapper::iALinearMapper(iALinearMapper const & other) :
-	yScaleFactor(other.yScaleFactor),
-	yMin(other.yMin)
+iALinearMapper::iALinearMapper():
+	m_srcMin(0), m_dstMin(0), m_scaleFactor(1)
 {}
 
-
-
-iALogarithmicMapper::iALogarithmicMapper(double yZoom, double yMax, double yMinValueBiggerThanZero, int height)
+iALinearMapper::iALinearMapper(double srcMin, double srcMax, double dstMin, double dstMax)
 {
-	iALogarithmicMapper::update(yZoom, yMax, yMinValueBiggerThanZero, height);
+	iALinearMapper::update(srcMin, srcMax, dstMin, dstMax);
 }
 
-double iALogarithmicMapper::SrcToDest(double y) const
+double iALinearMapper::srcToDst(double srcVal) const
 {
-	if (y <= 0)
+	return ((srcVal - m_srcMin) * m_scaleFactor) + m_dstMin;
+}
+
+double iALinearMapper::dstToSrc(double dstVal) const
+{
+	return ((dstVal - m_dstMin) / m_scaleFactor) + m_srcMin;
+}
+
+bool iALinearMapper::equals(iAMapper const & other) const
+{
+	// same type check already done in operator== above
+	iALinearMapper const & linearOther = dynamic_cast<iALinearMapper const &>(other);
+	return (m_scaleFactor == linearOther.m_scaleFactor &&
+		m_srcMin == linearOther.m_srcMin && m_dstMin == linearOther.m_dstMin);
+}
+
+void iALinearMapper::update(double srcMin, double srcMax, double dstMin, double dstMax)
+{
+	assert ( srcMin != srcMax && dstMin != dstMax );
+	m_srcMin = srcMin;
+	m_dstMin = dstMin;
+	m_scaleFactor = (dstMax - m_dstMin) / (srcMax - m_srcMin);
+}
+
+
+// iALogarithmicMapper
+
+iALogarithmicMapper::iALogarithmicMapper(double srcMin, double srcMax, double dstMin, double dstMax)
+{
+	iALogarithmicMapper::update(srcMin, srcMax, dstMin, dstMax);
+}
+
+double iALogarithmicMapper::srcToDst(double srcVal) const
+{
+	if (srcVal <= 0)
+	{
+		DEBUG_LOG(QString("Value %1 cannot be logarithmically mapped as it is <= 0!").arg(srcVal));
 		return 0;
-
-	double yLog = LogFunc(y);
-
-	yLog = clamp(yMinLog, yMaxLog, yLog);
-
-	return mapValue(
-		yMinLog, yMaxLog,
-		0.0, static_cast<double>(height * yZoom),
-		yLog
-	);
+	}
+	double srcLog = clamp(m_srcMinLog, m_srcMaxLog, LogFunc(srcVal));
+	return m_internalMapper.srcToDst(srcLog);
 }
 
-double iALogarithmicMapper::DestToSrc(double y) const
+double iALogarithmicMapper::dstToSrc(double dstVal) const
 {
-	double yLog = mapValue(
-		0.0, static_cast<double>(height * yZoom),
-		yMinLog, yMaxLog,
-		y
-	);
-	return std::pow(LogBase, yLog);
+	double srcLog = m_internalMapper.dstToSrc(dstVal);
+	return std::pow(LogBase, srcLog);
 }
-bool iALogarithmicMapper::equals(QSharedPointer<iAMapper> other) const
+bool iALogarithmicMapper::equals(iAMapper const & other) const
 {
-	iALogarithmicMapper* logOther = dynamic_cast<iALogarithmicMapper*>(other.data());
-	return (logOther && yZoom == logOther->yZoom &&
-		yMaxLog == logOther->yMaxLog && yMinLog == logOther->yMinLog &&
-		height == logOther->height);
+	// same type check already done in operator== above
+	iALogarithmicMapper const & logOther = dynamic_cast<iALogarithmicMapper const &>(other);
+	return (m_srcMinLog == logOther.m_srcMinLog && m_srcMaxLog == logOther.m_srcMaxLog &&
+		m_internalMapper.equals(logOther.m_internalMapper));
 }
 
-QSharedPointer<iAMapper> iALogarithmicMapper::clone()
+void iALogarithmicMapper::update(double srcMin, double srcMax, double dstMin, double dstMax)
 {
-	return QSharedPointer<iAMapper>(new iALogarithmicMapper(*this));
+	if (srcMin <= 0 || srcMax <= 0)
+	{
+		DEBUG_LOG(QString("Invalid logarithmic mapping, can only map values > 0 (was given range [%1, %2])").arg(srcMin).arg(srcMax));
+		return;
+	}
+	m_srcMinLog = LogFunc(srcMin);
+	m_srcMaxLog = LogFunc(srcMax);
+	m_internalMapper.update(m_srcMinLog, m_srcMaxLog, dstMin, dstMax);
 }
-
-void iALogarithmicMapper::update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height)
-{
-	this->yZoom = yZoom;
-	yMaxLog = LogFunc(yMax);
-	yMinLog = LogFunc(yMinValueBiggerThanZero) - 1;
-	this->height = height;
-}
-
-iALogarithmicMapper::iALogarithmicMapper(iALogarithmicMapper const & other) :
-	yZoom(other.yZoom),
-	yMaxLog(other.yMaxLog),
-	yMinLog(other.yMinLog),
-	height(other.height)
-{}

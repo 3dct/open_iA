@@ -229,3 +229,5 @@ iAITKIO::ImagePointer RescaleImageTo(iAITKIO::ImagePointer img, double min, doub
 		return InternalRescaleImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	}
 }
+
+open_iA_Core_API void getStatistics(iAITKIO::ImagePointer img, double* min, double* max = nullptr, double* mean = nullptr, double* stddev = nullptr, double* variance = nullptr, double * sum = nullptr);
