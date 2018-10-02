@@ -41,7 +41,6 @@
 #include "iALookupTable.h"
 #include "iALUT.h"
 #include "iAModuleDispatcher.h"
-#include "iAPerformanceHelper.h"
 #include "iARendererManager.h"
 #include "mainwindow.h"
 #include "mdichild.h"
@@ -111,7 +110,8 @@ iAFiberOptimizationExplorer::iAFiberOptimizationExplorer(MainWindow* mainWnd) :
 	m_splom(new iAQSplom()),
 	m_referenceID(NoResult),
 	m_playTimer(new QTimer(this)),
-	m_refDistCompute(nullptr)
+	m_refDistCompute(nullptr),
+	m_renderManager(new iARendererManager())
 {
 	setDockOptions(AllowNestedDocks | AllowTabbedDocks);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -147,9 +147,9 @@ void iAFiberOptimizationExplorer::resultsLoadFailed(QString const & path)
 
 void iAFiberOptimizationExplorer::resultsLoaded()
 {
-	iATimeGuard perfGUI("Creating GUI");
-	
-	QGridLayout* resultsListLayout = new QGridLayout();
+	m_resultUIs.resize(m_results->results.size());
+	m_selection.resize(m_results->results.size());
+	// Main 3D View:
 
 	m_mainRenderer = new iAVtkWidgetClass();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
@@ -160,8 +160,6 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	ren->SetMaximumNumberOfPeels(1000);
 	renWin->AddRenderer(ren);
 	m_mainRenderer->SetRenderWindow(renWin);
-
-	m_renderManager = QSharedPointer<iARendererManager>(new iARendererManager());
 	m_renderManager->addToBundle(ren);
 
 	QWidget* showReferenceWidget = new QWidget();
@@ -224,13 +222,41 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	m_style->assignToRenderWindow(renWin);
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiberOptimizationExplorer::selection3DChanged);
 
+
+	// Optimization/Time Steps View:
+
 	QWidget* optimizationSteps = new QWidget();
 	m_timeStepChart = new iAChartWidget(optimizationSteps, "Time Step", "Projection Error");
 	m_timeStepChart->setMinimumHeight(200);
 	m_timeStepChart->setSelectionMode(iAChartWidget::SelectPlot);
+	m_timeStepChart->addXMarker(m_results->timeStepMax-1, TimeMarkerColor);
+	for (int resultID=0; resultID<m_results->results.size(); ++resultID)
+	{
+		auto & d = m_results->results[resultID];
+		if (!d.projectionError.empty())
+		{
+			m_resultUIs[resultID].startPlotIdx = m_timeStepChart->plots().size();
+
+			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
+			{
+				QSharedPointer<iAVectorPlotData> plotData(new iAVectorPlotData(d.projectionError[fiberID]));
+				plotData->setXDataType(Discrete);
+				m_timeStepChart->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
+			}
+		}
+		else
+			m_resultUIs[resultID].startPlotIdx = NoPlotsIdx;
+	}
 	connect(m_timeStepChart, &iAChartWidget::plotsSelected, this, &iAFiberOptimizationExplorer::selectionTimeStepChartChanged);
 
 	QComboBox* dataChooser = new QComboBox();
+	for (int i = 0; i < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1; ++i)
+	{
+		dataChooser->addItem(m_results->splomData->parameterName(m_results->splomData->numParams() -
+			(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns) + i));
+	}
+	dataChooser->setCurrentIndex(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount);
+	connect(dataChooser, SIGNAL(currentIndexChanged(int)), this, SLOT(timeErrorDataChanged(int)));
 
 	QWidget* playControls = new QWidget();
 	playControls->setLayout(new QHBoxLayout());
@@ -254,9 +280,12 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	QWidget* timeSteps = new QWidget();
 	m_timeStepSlider = new QSlider(Qt::Horizontal);
 	m_timeStepSlider->setMinimum(0);
-	connect(m_timeStepSlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::timeSliderChanged);
+	m_timeStepSlider->setMaximum(m_results->timeStepMax - 1);
+	m_timeStepSlider->setValue(m_results->timeStepMax - 1);
 	m_currentTimeStepLabel = new QLabel("");
 	timeSteps->setLayout(new QHBoxLayout());
+	m_currentTimeStepLabel->setText(QString::number(m_results->timeStepMax - 1));
+	connect(m_timeStepSlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::timeSliderChanged);
 	timeSteps->layout()->addWidget(m_timeStepSlider);
 	timeSteps->layout()->addWidget(m_currentTimeStepLabel);
 	timeSteps->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -264,16 +293,14 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	optimizationSteps->layout()->addWidget(timeSteps);
 	optimizationSteps->layout()->addWidget(playControls);
 
-	iAPerformanceHelper perfGUIresult;
-	perfGUIresult.start("Per-result GUI initialization");
 
-	int resultID = 0;
+	// Results List View
 	m_defaultButtonGroup = new QButtonGroup();
-
-	for (resultID=0; resultID<m_results->results.size(); ++resultID)
+	QGridLayout* resultsListLayout = new QGridLayout();
+	for (int resultID=0; resultID<m_results->results.size(); ++resultID)
 	{
 		auto & d = m_results->results.at(resultID);
-		iAFiberCharUIData uiData;
+		auto & uiData = m_resultUIs[resultID];
 
 		uiData.vtkWidget  = new iAVtkWidgetClass();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
@@ -310,64 +337,30 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		uiData.mini3DVis->show();
 		ren->ResetCamera();
 
-		if (!d.projectionError.empty())
-		{
-			uiData.startPlotIdx = m_timeStepChart->plots().size();
-
-			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
-			{
-				QSharedPointer<iAVectorPlotData> plotData(new iAVectorPlotData(d.projectionError[fiberID]));
-				plotData->setXDataType(Discrete);
-				m_timeStepChart->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
-			}
-		}
-		else
-			uiData.startPlotIdx = NoPlotsIdx;
-
 		connect(uiData.vtkWidget, &iAVtkWidgetClass::mouseEvent, this, &iAFiberOptimizationExplorer::miniMouseEvent);
 		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleVis);
 		connect(toggleReference, &QRadioButton::toggled, this, &iAFiberOptimizationExplorer::referenceToggled);
 		connect(uiData.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleBoundingBox);
-
-		m_resultUIs.push_back(uiData);
 	}
-	m_selection.resize(resultID);
-	perfGUIresult.stop();
-
-	for (int i = 0; i < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1; ++i)
-	{
-		dataChooser->addItem(m_results->splomData->parameterName(m_results->splomData->numParams() -
-			(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns) + i));
-	}
-	dataChooser->setCurrentIndex(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount);
-	connect(dataChooser, SIGNAL(currentIndexChanged(int)), this, SLOT(timeErrorDataChanged(int)));
-
-	m_timeStepSlider->setMaximum(m_results->timeStepMax - 1);
-	m_timeStepSlider->setValue(m_results->timeStepMax - 1);
-	m_timeStepChart->addXMarker(m_results->timeStepMax-1, TimeMarkerColor);
-	m_currentTimeStepLabel->setText(QString::number(m_results->timeStepMax - 1));
-
 	QWidget* resultList = new QWidget();
 	resultList->setLayout(resultsListLayout);
 
-	iADockWidgetWrapper* main3DView = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
-	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultList, "Result list", "foeResultList");
-	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(optimizationSteps, "Time Steps", "foeTimeSteps");
-	iADockWidgetWrapper* splomWidget = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
+
+	// List Overview / LineUp View:
 
 	m_browser = new QWebEngineView();
 	iADockWidgetWrapper* browserWidget = new iADockWidgetWrapper(m_browser, "LineUp", "foeLineUp");
 
-	iAPerformanceHelper perfGUIfinal6;
-	perfGUIfinal6.start("Setting up DockWidgets...");
-	
+	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultList, "Result list", "foeResultList");
+	iADockWidgetWrapper* main3DView = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
+	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(optimizationSteps, "Time Steps", "foeTimeSteps");
+	iADockWidgetWrapper* splomWidget = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
+
 	splitDockWidget(m_jobDockWidget, resultListDockWidget, Qt::Vertical);
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
 	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
-
-	perfGUIfinal6.stop();
 
 	loadStateAndShow();
 }
@@ -386,8 +379,6 @@ iAFiberOptimizationExplorer::~iAFiberOptimizationExplorer()
 
 void iAFiberOptimizationExplorer::loadStateAndShow()
 {
-	iAPerformanceHelper perfGUIstate;
-	perfGUIstate.start("Showing and restoring state...");
 	QSettings settings;
 	if (settings.value(ModuleSettingsKey + "/maximized", true).toBool())
 		showMaximized();
@@ -398,10 +389,7 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 		qobject_cast<QWidget*>(parent())->setGeometry(newGeometry);
 	}
 	restoreState(settings.value(ModuleSettingsKey + "/state", saveState()).toByteArray());
-	perfGUIstate.stop();
 
-	iAPerformanceHelper perfGUIsplom;
-	perfGUIsplom.start("Initializing SPLOM...");
 	// splom needs an active OpenGL Context (it must be visible when setData is called):
 	m_splom->setMinimumWidth(200);
 	m_splom->setSelectionColor(SPLOMSelectionColor);
@@ -426,7 +414,6 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	m_splom->settings.enableColorSettings = true;
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiberOptimizationExplorer::selectionSPLOMChanged);
 	connect(m_splom, &iAQSplom::lookupTableChanged, this, &iAFiberOptimizationExplorer::splomLookupTableChanged);
-	perfGUIsplom.stop();
 }
 
 QColor iAFiberOptimizationExplorer::getResultColor(int resultID)
