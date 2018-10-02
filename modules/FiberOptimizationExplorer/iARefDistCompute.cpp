@@ -274,10 +274,10 @@ namespace
 		return distance;
 	}
 
-	void getBestMatches(iAFiberData const & fiber, QMap<uint, uint> const & mapping, vtkTable* reference,
+	void getBestMatches(iAFiberData const & fiber, QMap<uint, uint> const & mapping, vtkTable* refTable,
 		std::vector<std::vector<iAFiberDistance> > & bestMatches, double diagonalLength, double maxLength)
 	{
-		size_t refFiberCount = reference->GetNumberOfRows();
+		size_t refFiberCount = refTable->GetNumberOfRows();
 		bestMatches.resize(iARefDistCompute::DistanceMetricCount);
 		for (int d = 0; d<iARefDistCompute::DistanceMetricCount; ++d)
 		{
@@ -285,12 +285,12 @@ namespace
 			if (d < 3)
 			{
 				distances.resize(refFiberCount);
-				for (size_t fiberID = 0; fiberID < refFiberCount; ++fiberID)
+				for (size_t refFiberID = 0; refFiberID < refFiberCount; ++refFiberID)
 				{
-					iAFiberData refFiber(reference, fiberID, mapping);
-					distances[fiberID].index = fiberID;
+					iAFiberData refFiber(refTable, refFiberID, mapping);
+					distances[refFiberID].index = refFiberID;
 					double curDistance = getDistance(fiber, refFiber, d, diagonalLength, maxLength);
-					distances[fiberID].distance = curDistance;
+					distances[refFiberID].distance = curDistance;
 				}
 			}
 			else
@@ -299,7 +299,7 @@ namespace
 				for (size_t bestMatchID = 0; bestMatchID < bestMatches[1].size(); ++bestMatchID)
 				{
 
-					iAFiberData refFiber(reference, distances[bestMatchID].index, mapping);
+					iAFiberData refFiber(refTable, distances[bestMatchID].index, mapping);
 					distances[bestMatchID].index = bestMatches[1][bestMatchID].index;
 					double curDistance = getDistance(fiber, refFiber, d, diagonalLength, maxLength);
 					distances[bestMatchID].distance = curDistance;
@@ -389,7 +389,7 @@ void iARefDistCompute::run()
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			// find the best-matching fibers in reference & compute difference:
-			iAFiberData fiber(ref.table, fiberID, mapping);
+			iAFiberData fiber(d.table, fiberID, mapping);
 			getBestMatches(fiber, mapping, ref.table,
 				d.refDiffFiber[fiberID].dist, diagLength, maxLength);
 		}
@@ -425,7 +425,7 @@ void iARefDistCompute::run()
 				for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 				{
 					diffs[diffID] = d.timeValues[timeStep][fiberID][diffID]
-						- m_resultData[m_referenceID].table->GetValue(d.refDiffFiber[fiberID].dist[0][0].index, diffCols[diffID]).ToDouble();
+						- ref.table->GetValue(d.refDiffFiber[fiberID].dist[0][0].index, diffCols[diffID]).ToDouble();
 				}
 				for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
 				{
