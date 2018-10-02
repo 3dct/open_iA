@@ -93,7 +93,7 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	m_curInd( NoPointIndex ),
 	m_prevInd( NoPointIndex ),
 	m_prevPtInd( NoPointIndex ),
-	m_pointsBuffer( 0 ),
+	m_pointsBuffer( nullptr ),
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false ),
 	m_colInd( 0 ),
@@ -105,7 +105,10 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	initGrid();
 }
 
-iAScatterPlot::~iAScatterPlot() {}
+iAScatterPlot::~iAScatterPlot()
+{
+	delete m_pointsBuffer;
+}
 
 void iAScatterPlot::setData( int x, int y, QSharedPointer<iASPLOMData> &splomData )
 {
