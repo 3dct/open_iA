@@ -67,9 +67,9 @@
 
 const double impInitValue = 0.025;
 const double offsetY = 1000;
-const int rangeSwitchValue = 500;
+const int rangeSwitchValue = 1000;
 
-void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
+void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
 {
 	auto *r = static_cast<vtkRenderer*>(caller);
@@ -80,7 +80,7 @@ void winModCallback(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	r->GetActors2D()->GetLastActor2D()->SetPosition(r_centerX, r_centerY);
 }
 
-dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget * parent /*= 0*/, QDir datasetsDir, Qt::WindowFlags f /*= 0 */) :
+dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget *parent /*= 0*/, QDir datasetsDir, Qt::WindowFlags f /*= 0 */) :
 	DynamicVolumeLinesConnector(parent, f),
 	m_mdiChild(static_cast<MdiChild*>(parent)),
 	m_datasetsDir(datasetsDir),
@@ -115,7 +115,7 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget * parent /*= 0*/, QDir da
 dlg_DynamicVolumeLines::~dlg_DynamicVolumeLines()
 {}
 
-void dlg_DynamicVolumeLines::setupScaledPlot(QCustomPlot* qcp)
+void dlg_DynamicVolumeLines::setupScaledPlot(QCustomPlot *qcp)
 {
 	qcp->axisRect()->setAutoMargins(QCP::msNone);
 	qcp->axisRect()->setMargins(QMargins(58, 1, 3, 32));
@@ -136,7 +136,7 @@ void dlg_DynamicVolumeLines::setupScaledPlot(QCustomPlot* qcp)
 	qcp->xAxis->setSubTicks(false);	 // set to 'false if too many ticks
 	qcp->xAxis->setNumberFormat("f");
 	qcp->xAxis->setNumberPrecision(0);
-	qcp->yAxis->setLabel("Gray values");
+	qcp->yAxis->setLabel("Intensities");
 	qcp->yAxis->grid()->setSubGridVisible(false);
 	qcp->yAxis->grid()->setVisible(false);
 	qcp->xAxis2->setVisible(true);
@@ -163,13 +163,13 @@ void dlg_DynamicVolumeLines::setupScaledPlot(QCustomPlot* qcp)
 	PlotsContainer_verticalLayout->addWidget(qcp);
 }
 
-bool dlg_DynamicVolumeLines::eventFilter(QObject* o, QEvent* e)
+bool dlg_DynamicVolumeLines::eventFilter(QObject *o, QEvent *e)
 {
 	if (e->type() == QEvent::KeyPress)
 	{
-		QKeyEvent *k = (QKeyEvent *)e;
+		QKeyEvent *k = (QKeyEvent*)e;
 		QString keyStr = QKeySequence(k->key()).toString();
-		QCustomPlot* plot = qobject_cast<QCustomPlot*>(o);
+		QCustomPlot *plot = qobject_cast<QCustomPlot*>(o);
 		if (keyStr == "r" || keyStr == "R")
 		{
 			plot->rescaleAxes();
@@ -192,7 +192,7 @@ void dlg_DynamicVolumeLines::setupScalingWidget()
 	PlotsContainer_verticalLayout->addWidget(m_scalingWidget);
 }
 
-void dlg_DynamicVolumeLines::setupPlotConnections(QCustomPlot* qcp)
+void dlg_DynamicVolumeLines::setupPlotConnections(QCustomPlot *qcp)
 {
 	if (qcp->objectName().contains("nonlinear"))
 	{
@@ -319,27 +319,31 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 
 void dlg_DynamicVolumeLines::generateHilbertIdx()
 {
-	QThread* thread = new QThread;
-	iAIntensityMapper * im = new iAIntensityMapper(m_datasetsDir, PathNameToId[cb_Paths->currentText()],
+	QThread *thread = new QThread;
+	iAIntensityMapper *im = new iAIntensityMapper(m_datasetsDir, PathNameToId[cb_Paths->currentText()],
 		m_DatasetIntensityMap, m_imgDataList, m_minEnsembleIntensity, m_maxEnsembleIntensity);
 	im->moveToThread(thread);
 	connect(thread, SIGNAL(started()), im, SLOT(process()));
 	connect(im, SIGNAL(finished()), thread, SLOT(quit()));
 	connect(im, SIGNAL(finished()), im, SLOT(deleteLater()));
 	connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-	//connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));		// Debug
+	connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));		// Debug
 	connect(thread, SIGNAL(finished()), this, SLOT(visualize()));
 	thread->start();
 }
 
 void dlg_DynamicVolumeLines::visualizePath()
 {
+	double *spacing = m_imgDataList[0]->GetSpacing();
 	auto pts = vtkSmartPointer<vtkPoints>::New();
 	auto pathSteps = m_DatasetIntensityMap.at(0).second.size();
 	QList<icData>  data = m_DatasetIntensityMap.at(0).second;
+	double point[3];
 	for (unsigned int i = 0; i < pathSteps; ++i)
 	{
-		double point[3] = { (double)data[i].x, (double)data[i].y, (double)data[i].z };
+		point[0] = data[i].x * spacing[0];
+		point[1] = data[i].y * spacing[1];
+		point[2] = data[i].z * spacing[2];
 		pts->InsertNextPoint(point);
 	}
 
@@ -355,6 +359,11 @@ void dlg_DynamicVolumeLines::visualizePath()
 	}
 	linesPolyData->SetLines(lines);
 	m_mdiChild->getRenderer()->setPolyData(linesPolyData);
+	m_mdiChild->getRenderer()->GetPolyActor()->GetProperty()->SetInterpolationToFlat();
+	m_mdiChild->getRenderer()->GetPolyActor()->GetProperty()->SetOpacity(1.0);
+	m_mdiChild->getRenderer()->GetPolyActor()->GetProperty()->SetColor(1.0, 0.0, 0.0);
+	m_mdiChild->getRenderer()->GetPolyActor()->GetProperty()->SetLineWidth(4);
+	m_mdiChild->getRenderer()->GetPolyActor()->GetProperty()->SetRenderLinesAsTubes(true);
 	m_mdiChild->getRenderer()->update();
 }
 
@@ -507,8 +516,8 @@ void dlg_DynamicVolumeLines::visualize()
 	}
 	//showCompressionLevel();
 
-	/*m_debugPlot->rescaleAxes();	// Debug
-	m_debugPlot->replot();*/	// Debug
+	//m_debugPlot->rescaleAxes();	// Debug
+	//m_debugPlot->replot();	// Debug
 	m_linearScaledPlot->rescaleAxes();
 	m_linearScaledPlot->replot();
 	m_nonlinearScaledPlot->rescaleAxes();
@@ -1113,13 +1122,13 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 
 		if (*minDist >= 0 && *minDist < 2.0 && plot->graph(idx)->visible())
 		{
-			m_nonlinearDataPointInfo->setText(QString("%1\nHilbertIdx: %2\nGrayValue: %3")
+			m_nonlinearDataPointInfo->setText(QString("%1\nHilbertIdx: %2\nIntensity: %3")
 				.arg(m_nonlinearScaledPlot->graph(idx)->name())
 				.arg(hilbertIdx).arg((int)y));
 		}
 		else
 		{
-			m_nonlinearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2")
+			m_nonlinearDataPointInfo->setText(QString("HilbertIdx: %1\nIntensity: %2")
 				.arg(hilbertIdx).arg((int)y));
 		}
 
@@ -1135,7 +1144,7 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 		m_linearDataPointInfo->position->setPixelPosition(QPointF(m_linearScaledPlot->xAxis->coordToPixel(
 			hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)) + 5,
 			m_linearScaledPlot->yAxis->coordToPixel(y) - 15));
-		m_linearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2").arg(hilbertIdx).arg((int)y));
+		m_linearDataPointInfo->setText(QString("HilbertIdx: %1\nIntensity: %2").arg(hilbertIdx).arg((int)y));
 
 		m_scalingWidget->setCursorPos(m_linearScaledPlot->xAxis->coordToPixel(
 			hilbertIdx + (currNonlinearDist / nonlinearVecPosDist)), e->pos().x());
@@ -1145,17 +1154,17 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 		m_linearIdxLine->point1->setCoords(x, 0.0);
 		m_linearIdxLine->point2->setCoords(x, 1.0);
 		m_linearDataPointInfo->position->setPixelPosition(QPointF(e->pos().x() + 5, e->pos().y() - 15));
-		m_linearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2").arg(int(x)).arg((int)y));
+		m_linearDataPointInfo->setText(QString("HilbertIdx: %1\nIntensity: %2").arg(int(x)).arg((int)y));
 
 		if (*minDist >= 0 && *minDist < 2.0 && plot->graph(idx)->visible())
 		{
-			m_linearDataPointInfo->setText(QString("%1\nHilbertIdx: %2\nGrayValue: %3")
+			m_linearDataPointInfo->setText(QString("%1\nHilbertIdx: %2\nIntensity: %3")
 				.arg(m_linearScaledPlot->graph(idx)->name())
 				.arg(int(x)).arg((int)y));
 		}
 		else
 		{
-			m_nonlinearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2")
+			m_nonlinearDataPointInfo->setText(QString("HilbertIdx: %1\nIntensity: %2")
 				.arg(int(x)).arg((int)y));
 		}
 
@@ -1169,7 +1178,7 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 			m_nonlinearScaledPlot->xAxis->pixelToCoord(
 				m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord) + 5),
 			m_nonlinearScaledPlot->yAxis->pixelToCoord(e->pos().y() - 15));
-		m_nonlinearDataPointInfo->setText(QString("HilbertIdx: %1\nGrayValue: %2").arg(int(x)).arg((int)y));
+		m_nonlinearDataPointInfo->setText(QString("HilbertIdx: %1\nIntensity: %2").arg(int(x)).arg((int)y));
 
 		m_scalingWidget->setCursorPos(e->pos().x(), 
 			m_nonlinearScaledPlot->xAxis->coordToPixel(nonlinearXCoord));

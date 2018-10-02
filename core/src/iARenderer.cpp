@@ -854,8 +854,8 @@ void iARenderer::setSlicePlane(int planeID, double originX, double originY, doub
 
 void iARenderer::ApplySettings(iARenderSettings & settings)
 {
+	ren->SetUseFXAA(settings.UseFXAA);
 	cam->SetParallelProjection(settings.ParallelProjection);
-
 	QColor bgTop(settings.BackgroundTop);
 	QColor bgBottom(settings.BackgroundBottom);
 	if (!bgTop.isValid()) {
@@ -871,6 +871,7 @@ void iARenderer::ApplySettings(iARenderSettings & settings)
 	showHelpers(settings.ShowHelpers);
 	showRPosition(settings.ShowRPosition);
 	showSlicePlanes(settings.ShowSlicePlanes);
+	renWin->Render();
 }
 
 void iARenderer::emitSelectedCells(vtkUnstructuredGrid* selectedCells)
