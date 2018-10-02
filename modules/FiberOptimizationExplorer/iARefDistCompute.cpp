@@ -48,19 +48,6 @@ namespace
 		return std::sqrt(sqDistSum);
 	}
 
-	void setPoints(vtkVariantArray* fiber, QMap<uint, uint> const & mapping, double points[3][3])
-	{
-		points[0][0] = fiber->GetValue(mapping[iACsvConfig::StartX]).ToDouble();
-		points[0][1] = fiber->GetValue(mapping[iACsvConfig::StartY]).ToDouble();
-		points[0][2] = fiber->GetValue(mapping[iACsvConfig::StartZ]).ToDouble();
-		points[1][0] = fiber->GetValue(mapping[iACsvConfig::CenterX]).ToDouble();
-		points[1][1] = fiber->GetValue(mapping[iACsvConfig::CenterY]).ToDouble();
-		points[1][2] = fiber->GetValue(mapping[iACsvConfig::CenterZ]).ToDouble();
-		points[2][0] = fiber->GetValue(mapping[iACsvConfig::EndX]).ToDouble();
-		points[2][1] = fiber->GetValue(mapping[iACsvConfig::EndY]).ToDouble();
-		points[2][2] = fiber->GetValue(mapping[iACsvConfig::EndZ]).ToDouble();
-	}
-
 	// great points about floating point equals: https://stackoverflow.com/a/41405501/671366
 	template<typename T1, typename T2>
 	static bool isApproxEqual(T1 a, T2 b, T1 tolerance = std::numeric_limits<T1>::epsilon())
@@ -91,22 +78,57 @@ namespace
 			radius * std::cos(phi));
 	}
 
+	enum {
+		PtStart = 0,
+		PtCenter,
+		PtEnd
+	};
+
+	struct iAFiberData
+	{
+		double phi, theta, length, diameter;
+		Vec3D pts[3];
+		iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping)
+		{
+			pts[PtStart] = Vec3D(
+				table->GetValue(fiberID, mapping[iACsvConfig::StartX]).ToDouble(),
+				table->GetValue(fiberID, mapping[iACsvConfig::StartY]).ToDouble(),
+				table->GetValue(fiberID, mapping[iACsvConfig::StartZ]).ToDouble());
+			pts[PtCenter] = Vec3D(
+				table->GetValue(fiberID, mapping[iACsvConfig::CenterX]).ToDouble(),
+				table->GetValue(fiberID, mapping[iACsvConfig::CenterY]).ToDouble(),
+				table->GetValue(fiberID, mapping[iACsvConfig::CenterZ]).ToDouble());
+			pts[PtEnd] = Vec3D(
+				table->GetValue(fiberID, mapping[iACsvConfig::EndX]).ToDouble(),
+				table->GetValue(fiberID, mapping[iACsvConfig::EndY]).ToDouble(),
+				table->GetValue(fiberID, mapping[iACsvConfig::EndZ]).ToDouble());
+			phi = table->GetValue(fiberID, mapping[iACsvConfig::Phi]).ToDouble();
+			theta = table->GetValue(fiberID, mapping[iACsvConfig::Theta]).ToDouble();
+			length = table->GetValue(fiberID, mapping[iACsvConfig::Length]).ToDouble();
+			diameter = table->GetValue(fiberID, mapping[iACsvConfig::Diameter]).ToDouble();
+		}
+		iAFiberData(std::vector<double> const & data)
+		{
+			pts[PtStart] = Vec3D(data[0], data[1], data[2]);
+			pts[PtEnd] = Vec3D(data[3], data[4], data[5]);
+			pts[PtCenter] = Vec3D(data[6], data[7], data[8]);
+			phi = data[9];
+			theta = data[10];
+			length = data[11];
+			diameter = data[12];
+		}
+	};
+
 	const int CylinderSamplePoints = 200;
 
-	void samplePoints(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, std::vector<Vec3D > & result, size_t numSamples)
+	void samplePoints(iAFiberData const & fiber, std::vector<Vec3D > & result, size_t numSamples)
 	{
 		std::default_random_engine generator; // deterministic, will always produce the same "random" numbers; might be exchanged for another generator to check the spread we still get
 		std::uniform_real_distribution<double> radiusRnd(0, 1);
 		std::uniform_real_distribution<double> posRnd(0, 1);
 
-		Vec3D fiberStart(fiberInfo->GetValue(mapping[iACsvConfig::StartX]).ToDouble(),
-			fiberInfo->GetValue(mapping[iACsvConfig::StartY]).ToDouble(),
-			fiberInfo->GetValue(mapping[iACsvConfig::StartZ]).ToDouble());
-		Vec3D fiberEnd(fiberInfo->GetValue(mapping[iACsvConfig::EndX]).ToDouble(),
-			fiberInfo->GetValue(mapping[iACsvConfig::EndY]).ToDouble(),
-			fiberInfo->GetValue(mapping[iACsvConfig::EndZ]).ToDouble());
-		Vec3D fiberDir = fiberEnd - fiberStart;
-		double fiberRadius = fiberInfo->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2;
+		Vec3D fiberDir = fiber.pts[PtEnd] - fiber.pts[PtStart];
+		double fiberRadius = fiber.diameter / 2;
 		/*
 		DEBUG_LOG(QString("Sampling fiber (%1, %2, %3) - (%4, %5, %6), radius = %7")
 		.arg(fiberStart[0]).arg(fiberStart[1]).arg(fiberStart[2])
@@ -138,7 +160,7 @@ namespace
 			int angleIdx = angleRnd(generator);
 			double radius = fiberRadius * std::sqrt(radiusRnd(generator));
 			double t = posRnd(generator);
-			result[i] = fiberStart + fiberDir * t + perpDirs[angleIdx] * radius;
+			result[i] = fiber.pts[PtStart] + fiberDir * t + perpDirs[angleIdx] * radius;
 			//DEBUG_LOG(QString("    Sampled point: (%1, %2, %3)").arg(result[i][0]).arg(result[i][1]).arg(result[i][2]));
 		}
 	}
@@ -154,40 +176,34 @@ namespace
 		return linePoint + normLineDir * dist;
 	}
 
-	bool pointContainedInFiber(Vec3D const & point, vtkVariantArray* fiber, QMap<uint, uint> const & mapping)
+	bool pointContainedInFiber(Vec3D const & point, iAFiberData const & fiber)
 	{
-		Vec3D start(fiber->GetValue(mapping[iACsvConfig::StartX]).ToDouble(),
-			fiber->GetValue(mapping[iACsvConfig::StartY]).ToDouble(),
-			fiber->GetValue(mapping[iACsvConfig::StartZ]).ToDouble());
-		Vec3D end(fiber->GetValue(mapping[iACsvConfig::EndX]).ToDouble(),
-			fiber->GetValue(mapping[iACsvConfig::EndY]).ToDouble(),
-			fiber->GetValue(mapping[iACsvConfig::EndZ]).ToDouble());
-		Vec3D dir = end - start;
+		Vec3D dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
 		double dist;
-		Vec3D ptOnLine = nearestPointOnLine(start, dir, point, dist);
+		Vec3D ptOnLine = nearestPointOnLine(fiber.pts[PtStart], dir, point, dist);
 		if (dist > 0 && dist < dir.length())  // check whether point is between start and end
 		{
-			double radius = fiber->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2.0;
+			double radius = fiber.diameter / 2.0;
 			double distance = (ptOnLine - point).length();
 			return distance < radius;
 		}
 		return false;
 	}
 
-	double getOverlap(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vtkVariantArray* fiber2)
+	double getOverlap(iAFiberData const & fiber1, iAFiberData const & fiber2)
 	{
 		// leave out pi in volume, as we only need relation of the volumes!
-		double fiber1Vol = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble() + std::pow(fiber1->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2, 2);
-		double fiber2Vol = fiber2->GetValue(mapping[iACsvConfig::Length]).ToDouble() + std::pow(fiber2->GetValue(mapping[iACsvConfig::Diameter]).ToDouble() / 2, 2);
+		double fiber1Vol = fiber1.length + std::pow(fiber1.diameter / 2, 2);
+		double fiber2Vol = fiber2.length + std::pow(fiber2.diameter / 2, 2);
 		// TODO: also map fiber volume (currently not mapped!
-		vtkVariantArray* shorterFiber = (fiber1Vol < fiber2Vol) ? fiber1 : fiber2;
-		vtkVariantArray* longerFiber = (fiber1Vol > fiber2Vol) ? fiber1 : fiber2;
+		iAFiberData const & shorterFiber = (fiber1Vol < fiber2Vol) ? fiber1 : fiber2;
+		iAFiberData const & longerFiber = (fiber1Vol > fiber2Vol) ? fiber1 : fiber2;
 		std::vector<Vec3D > sampledPoints;
-		samplePoints(shorterFiber, mapping, sampledPoints, CylinderSamplePoints);
+		samplePoints(shorterFiber, sampledPoints, CylinderSamplePoints);
 		size_t containedPoints = 0;
 		for (Vec3D pt : sampledPoints)
 		{
-			if (pointContainedInFiber(pt, longerFiber, mapping))
+			if (pointContainedInFiber(pt, longerFiber))
 				++containedPoints;
 		}
 		double distance = static_cast<double>(containedPoints) / CylinderSamplePoints;
@@ -196,7 +212,7 @@ namespace
 	}
 
 	// currently: L2 norm (euclidean distance). other measures?
-	double getDistance(vtkVariantArray* fiber1, QMap<uint, uint> const & mapping, vtkVariantArray* fiber2,
+	double getDistance(iAFiberData const & fiber1, iAFiberData const & fiber2,
 		int distanceMeasure, double diagonalLength, double maxLength)
 	{
 		double distance = 0;
@@ -205,64 +221,21 @@ namespace
 		default:
 		case 0: // mid-point, angle, length
 		{
-			const int Dist1ValueCount = 6;
-			double val1[Dist1ValueCount], val2[Dist1ValueCount];
-			val1[0] = fiber1->GetValue(mapping[iACsvConfig::Phi]).ToDouble();
-			val1[1] = fiber1->GetValue(mapping[iACsvConfig::Theta]).ToDouble();
-			val1[2] = fiber1->GetValue(mapping[iACsvConfig::CenterX]).ToDouble();
-			val1[3] = fiber1->GetValue(mapping[iACsvConfig::CenterY]).ToDouble();
-			val1[4] = fiber1->GetValue(mapping[iACsvConfig::CenterZ]).ToDouble();
-			val1[5] = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble();
-
-			val2[0] = fiber2->GetValue(mapping[iACsvConfig::Phi]).ToDouble();
-			val2[1] = fiber2->GetValue(mapping[iACsvConfig::Theta]).ToDouble();
-			val2[2] = fiber2->GetValue(mapping[iACsvConfig::CenterX]).ToDouble();
-			val2[3] = fiber2->GetValue(mapping[iACsvConfig::CenterY]).ToDouble();
-			val2[4] = fiber2->GetValue(mapping[iACsvConfig::CenterZ]).ToDouble();
-			val2[5] = fiber2->GetValue(mapping[iACsvConfig::Length]).ToDouble();
-
-			// TODO: opposite direction treatment! -> phi/theta reversed?
-			double radius = 1; //< radius doesn't matter here, we're only interested in the direction
-			Vec3D dir1 = fromSpherical(val1[0], val1[1], radius);
-			Vec3D dir2 = fromSpherical(val2[0], val2[1], radius);
-			double fiberAngle = angle(dir1, dir2);
-			if (fiberAngle > vtkMath::Pi() / 2) // if angle larger than 90°
-			{
-				val1[0] += (val1[0] < vtkMath::Pi()) ? vtkMath::Pi() : -vtkMath::Pi();
-				val1[1] += (val1[1] < 0) ? vtkMath::Pi() / 2 : -vtkMath::Pi() / 2;
-				// just to check if now angles are ok...
-				dir1 = fromSpherical(val1[0], val1[1], radius);
-				dir2 = fromSpherical(val2[0], val2[1], radius);
-				fiberAngle = angle(dir1, dir2);
-				if (fiberAngle > vtkMath::Pi() / 2) // still larger than 90° ? Then my calculations are wrong!
-				{
-					DEBUG_LOG(QString("Wrong angle computation: phi1=%1, theta1=%2, phi2=%3, theta2=%4")
-						.arg(val1[0]).arg(val1[1]).arg(val2[0]).arg(val2[1]))
-				}
-			}
-
 			distance =
-				(std::abs(val2[0] - val1[0]) / (vtkMath::Pi() / 2)) +  // phi diff.
-				(std::abs(val2[1] - val1[1]) / (vtkMath::Pi() / 4)) +  // theta diff.
-				(l2dist(val1 + 2, val2 + 2, 3) / diagonalLength) +  // center diff.
-				(std::abs(val2[5] - val1[5]) / maxLength);
+				(std::abs(fiber2.phi - fiber1.phi) / (vtkMath::Pi() / 2)) +  // phi diff.
+				(std::abs(fiber2.theta - fiber1.theta) / (vtkMath::Pi() / 4)) +  // theta diff.
+				((fiber2.pts[PtCenter] - fiber1.pts[PtCenter]).length() / diagonalLength) +  // center diff.
+				(std::abs(fiber2.length - fiber1.length) / maxLength);
 			break;
 		}
 		case 1: // start/end/center
 		{
-			double points1[3][3];
-			double points2[3][3];
-			setPoints(fiber1, mapping, points1);
-			setPoints(fiber2, mapping, points2);
-			double fiber1Len = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble();
-			double fiber2Len = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble();
+			double dist1StartTo2Start = (fiber2.pts[PtStart] - fiber1.pts[PtStart]).length();
+			double dist1StartTo2End   = (fiber2.pts[PtEnd]   - fiber1.pts[PtStart]).length();
+			double dist1EndTo2Start   = (fiber2.pts[PtStart] - fiber1.pts[PtEnd])  .length();
+			double dist1EndTo2End     = (fiber2.pts[PtEnd]   - fiber1.pts[PtEnd])  .length();
 
-			double dist1StartTo2Start = l2dist(points1[0], points2[0], 3);
-			double dist1StartTo2End = l2dist(points1[0], points2[2], 3);
-			double dist1EndTo2Start = l2dist(points1[2], points2[0], 3);
-			double dist1EndTo2End = l2dist(points1[2], points2[2], 3);
-
-			distance = l2dist(points1[1], points2[1], 3);
+			distance = (fiber2.pts[PtCenter] - fiber1.pts[PtCenter]).length();
 			// switch start and end of second fiber if distance from start of first to end of second is smaller:
 			if (dist1StartTo2Start > dist1StartTo2End && dist1EndTo2End > dist1EndTo2Start)
 				distance += dist1StartTo2End + dist1EndTo2Start;
@@ -274,18 +247,10 @@ namespace
 		}
 		case 2: // distances between all 9 pairs of the 3 points of each fiber:
 		{
-
-			double points1[3][3];
-			double points2[3][3];
-			setPoints(fiber1, mapping, points1);
-			setPoints(fiber2, mapping, points2);
-			double fiber1Len = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble();
-			double fiber2Len = fiber1->GetValue(mapping[iACsvConfig::Length]).ToDouble();
-
-			for (int i = 0; i<3; ++i)
-				for (int j = 0; j<3; ++j)
-					distance += l2dist(points1[i], points2[j], 3);
-			distance /= fiber1Len;
+			for (int i = 0; i < 3; ++i)
+				for (int j = 0; j < 3; ++j)
+					distance += (fiber2.pts[j] - fiber1.pts[i]).length();
+			distance /= fiber1.length;
 			break;
 		}
 		case 3: // overlap between the cylinder volumes, sampled through CylinderSamplePoints from the shorter fiber
@@ -302,14 +267,14 @@ namespace
 			//        - one random variable for distance from center (0.. fiber radius); make sure to use sqrt of random variable to avoid clustering points in center (http://mathworld.wolfram.com/DiskPointPicking.html)
 			//    - pseudorandom?
 			//        --> no idea at the moment
-			distance = 1 - getOverlap(fiber1, mapping, fiber2);
+			distance = 1 - getOverlap(fiber1, fiber2);
 			break;
 		}
 		}
 		return distance;
 	}
 
-	void getBestMatches(vtkVariantArray* fiberInfo, QMap<uint, uint> const & mapping, vtkTable* reference,
+	void getBestMatches(iAFiberData const & fiber, QMap<uint, uint> const & mapping, vtkTable* reference,
 		std::vector<std::vector<iAFiberDistance> > & bestMatches, double diagonalLength, double maxLength)
 	{
 		size_t refFiberCount = reference->GetNumberOfRows();
@@ -322,8 +287,9 @@ namespace
 				distances.resize(refFiberCount);
 				for (size_t fiberID = 0; fiberID < refFiberCount; ++fiberID)
 				{
+					iAFiberData refFiber(reference, fiberID, mapping);
 					distances[fiberID].index = fiberID;
-					double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(fiberID), d, diagonalLength, maxLength);
+					double curDistance = getDistance(fiber, refFiber, d, diagonalLength, maxLength);
 					distances[fiberID].distance = curDistance;
 				}
 			}
@@ -332,8 +298,10 @@ namespace
 				distances.resize(bestMatches[1].size());
 				for (size_t bestMatchID = 0; bestMatchID < bestMatches[1].size(); ++bestMatchID)
 				{
+
+					iAFiberData refFiber(reference, distances[bestMatchID].index, mapping);
 					distances[bestMatchID].index = bestMatches[1][bestMatchID].index;
-					double curDistance = getDistance(fiberInfo, mapping, reference->GetRow(distances[bestMatchID].index), d, diagonalLength, maxLength);
+					double curDistance = getDistance(fiber, refFiber, d, diagonalLength, maxLength);
 					distances[bestMatchID].distance = curDistance;
 				}
 			}
@@ -421,9 +389,9 @@ void iARefDistCompute::run()
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			// find the best-matching fibers in reference & compute difference:
-			getBestMatches(d.table->GetRow(fiberID),
-				mapping, ref.table,
-				d.refDiffFiber[fiberID].dist, maxLength, diagLength);
+			iAFiberData fiber(ref.table, fiberID, mapping);
+			getBestMatches(fiber, mapping, ref.table,
+				d.refDiffFiber[fiberID].dist, diagLength, maxLength);
 		}
 	}
 	perfRefComp.stop();
@@ -461,8 +429,9 @@ void iARefDistCompute::run()
 				}
 				for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
 				{
-					// double dist = getDistance(d.m_timeValues[timeStep][fiberID], )
-					double dist = 0; // TODO compute distance measure from vector instead of vtkTable!
+					iAFiberData refFiber(ref.table, d.refDiffFiber[fiberID].dist[0][0].index, mapping);
+					iAFiberData fiber(d.timeValues[timeStep][fiberID]);
+					double dist = getDistance(fiber, refFiber, distID, diagLength, maxLength);
 					diffs[iAFiberCharData::FiberValueCount + distID] = dist;
 				}
 			}
