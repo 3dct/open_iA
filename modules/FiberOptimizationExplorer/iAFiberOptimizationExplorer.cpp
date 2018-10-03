@@ -21,6 +21,7 @@
 #include "iAFiberOptimizationExplorer.h"
 
 #include "iAFiberCharData.h"
+#include "iAFiberData.h"     // for samplePoints
 #include "iAJobListView.h"
 #include "iARefDistCompute.h"
 
@@ -148,6 +149,8 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 {
 	m_resultUIs.resize(m_results->results.size());
 	m_selection.resize(m_results->results.size());
+
+
 	// Main 3D View:
 
 	m_mainRenderer = new iAVtkWidgetClass();
@@ -209,12 +212,20 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	contextOpacityWidget->layout()->addWidget(m_contextOpacityLabel);
 	contextOpacityWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
+	QWidget* moreButtons = new QWidget();
+	moreButtons->setLayout(new QHBoxLayout());
+	auto showSampledCylinder = new QPushButton("Sample Fiber");
+	connect(showSampledCylinder, &QPushButton::pressed, this, &iAFiberOptimizationExplorer::visualizeCylinderSamplePoints);
+	moreButtons->layout()->addWidget(showSampledCylinder);
+	moreButtons->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
 	QWidget* mainRendererContainer = new QWidget();
 	mainRendererContainer->setLayout(new QVBoxLayout());
 	mainRendererContainer->layout()->addWidget(m_mainRenderer);
 	mainRendererContainer->layout()->addWidget(showReferenceWidget);
 	mainRendererContainer->layout()->addWidget(defaultOpacityWidget);
 	mainRendererContainer->layout()->addWidget(contextOpacityWidget);
+	mainRendererContainer->layout()->addWidget(moreButtons);
 
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->setSelectionProvider(this);
@@ -931,6 +942,67 @@ void iAFiberOptimizationExplorer::playTimer()
 void iAFiberOptimizationExplorer::playDelayChanged(int newInterval)
 {
 	m_playTimer->setInterval(newInterval);
+}
+
+void iAFiberOptimizationExplorer::visualizeCylinderSamplePoints()
+{
+	size_t resultID, fiberID = NoPlotsIdx;
+	for (resultID = 0; resultID < m_selection.size(); ++resultID)
+	{
+		if (m_selection[resultID].size() > 0)
+		{
+			fiberID = m_selection[resultID][0];
+			break;
+		}
+	}
+	if (fiberID == NoPlotsIdx)
+		return;
+	if (m_sampleActor)
+		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
+
+	auto & d = m_results->results[resultID];
+	auto const & mapping = *d.mapping.data();
+	std::vector<Vec3D> sampledPoints;
+	iAFiberData sampleFiber(d.table, fiberID, mapping);
+	samplePoints(sampleFiber, sampledPoints);
+	auto sampleData = vtkSmartPointer<vtkPolyData>::New();
+	auto points = vtkSmartPointer<vtkPoints>::New();
+	for (size_t s = 0; s < sampledPoints.size(); ++s)
+	{
+		double pt[3];
+		for (int i = 0; i < 3; ++i)
+		pt[i] = sampledPoints[s][i];
+		points->InsertNextPoint(pt);
+	}
+	sampleData->SetPoints(points);
+	auto vertexFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
+	vertexFilter->SetInputData(sampleData);
+	vertexFilter->Update();
+
+	// For color:
+	auto polydata = vtkSmartPointer<vtkPolyData>::New();
+	polydata->DeepCopy(vertexFilter->GetOutput());
+	auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	colors->SetNumberOfComponents(3);
+	colors->SetName ("Colors");
+	unsigned char blue[3] = {0, 0, 255};
+	for (size_t s = 0; s < sampledPoints.size(); ++s)
+#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
+		colors->InsertNextTupleValue(blue);
+#else
+		colors->InsertNextTypedTuple(blue);
+#endif
+	polydata->GetPointData()->SetScalars(colors);
+
+	auto sampleMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	m_sampleActor = vtkSmartPointer<vtkActor>::New();
+	sampleMapper->SetInputData(polydata);
+	m_sampleActor->SetMapper(sampleMapper);
+	sampleMapper->Update();
+	m_sampleActor->GetProperty()->SetPointSize(2);
+	m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
+	m_mainRenderer->GetRenderWindow()->Render();
+	m_mainRenderer->update();
 }
 
 void iAFiberOptimizationExplorer::timeErrorDataChanged(int colIndex)

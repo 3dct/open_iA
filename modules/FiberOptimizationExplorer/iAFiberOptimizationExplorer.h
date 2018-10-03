@@ -92,6 +92,7 @@ private slots:
 	void timeErrorDataChanged(int);
 	void resultsLoaded();
 	void resultsLoadFailed(QString const & path);
+	void visualizeCylinderSamplePoints();
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
@@ -127,8 +128,6 @@ private:
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
-	vtkSmartPointer<vtkPolyData> m_sampleData;
-	vtkSmartPointer<vtkPolyDataMapper> m_sampleMapper;
 	vtkSmartPointer<vtkActor> m_sampleActor;
 	QString m_configName;
 	QTimer * m_playTimer;
