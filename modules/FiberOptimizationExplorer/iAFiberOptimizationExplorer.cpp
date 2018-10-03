@@ -549,6 +549,7 @@ void iAFiberOptimizationExplorer::sortCurrentSelection()
 
 void iAFiberOptimizationExplorer::showCurrentSelectionInPlot()
 {
+	bool anythingSelected = isAnythingSelected();
 	for (size_t resultID = 0; resultID < m_results->results.size(); ++resultID)
 	{
 		if (m_resultUIs[resultID].startPlotIdx != NoPlotsIdx)
@@ -562,7 +563,7 @@ void iAFiberOptimizationExplorer::showCurrentSelectionInPlot()
 					color.setAlpha(SelectionOpacity);
 					++curSelIdx;
 				}
-				else if (m_selection[resultID].size() > 0)
+				else if (anythingSelected)
 				{
 					color.setAlpha(ContextOpacity);
 				}

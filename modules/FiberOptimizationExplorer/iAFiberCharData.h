@@ -65,7 +65,7 @@ class iARefDiffFiberData
 public:
 	//! differences to reference fiber, stored per timestep
 	std::vector<iARefDiffFiberTimeData> timeStep;
-	//! dist to ref fibers in order of ascending difference
+	//! dist to ref fibers: for each distance measure, in order of ascending difference
 	std::vector<std::vector<iAFiberDistance> > dist;
 };
 
