@@ -460,10 +460,9 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	for (int i = 0; i <= stepNumber; ++i)
 	{
 		double pos = step * i;
-		double yValue = (m_yMappingMode == Linear) ? pos * m_yBounds[1] :
-			/* Log: */ std::pow(LogBase, logMax / yZoom - (AxisTicksYMax - i));
-		QString text = DblToStringWithUnits(yValue);
 		int y = -static_cast<int>(pos * aheight * yZoom) - 1;
+		double yValue = m_yMapper->dstToSrc(-y-1);
+		QString text = DblToStringWithUnits(yValue);
 		painter.drawLine(static_cast<int>(-TickWidth), y, 0, y);	// indicator line
 		painter.drawText( - ( fm.width(text) + TickWidth),
 			(i == stepNumber) ? y + 0.75*m_fontHeight // write the text top aligned to the indicator line
