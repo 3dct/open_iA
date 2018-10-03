@@ -78,7 +78,6 @@ iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAF
 		result.pts[PtEnd] = source.pts[PtStart];
 		result.diameter = source.diameter;
 		result.length = source.length;
-		/*
 		Vec3D dir = result.pts[PtStart] - source.pts[PtEnd];
 		if (dir.z() < 0)
 		dir = result.pts[PtEnd] - source.pts[PtStart];
@@ -103,9 +102,8 @@ iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAF
 				result.phi = result.phi + 360.0;
 			}
 		}
-		*/
-		result.phi = source.phi;
-		result.theta = source.theta;
+		//result.phi = source.phi;
+		//result.theta = source.theta;
 		return result;
 	}
 	else
@@ -249,6 +247,7 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	case 0: // mid-point, angle, length
 	{
 		iAFiberData fiber1 = iAFiberData::getOrientationCorrected(fiber1raw, fiber2);
+		/*
 		Vec3D dir1 = fromSpherical(fiber1.phi, fiber1.theta, 1);
 		Vec3D dir2 = fromSpherical(fiber2.phi, fiber2.theta, 1);
 		double fiberAngle = angle(dir1, dir2);
@@ -257,9 +256,10 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 			DEBUG_LOG(QString("Wrong angle computation: phi1=%1, theta1=%2, phi2=%3, theta2=%4 => angle=%5")
 				.arg(fiber1.phi).arg(fiber1.theta).arg(fiber2.phi).arg(fiber2.theta).arg(fiberAngle));
 		}
+		*/
 		distance =
-			(std::abs(fiber2.phi - fiber1.phi) / (vtkMath::Pi() / 2)) +  // phi diff.
-			(std::abs(fiber2.theta - fiber1.theta) / (vtkMath::Pi() / 4)) +  // theta diff.
+			(std::abs(fiber2.phi - fiber1.phi) / 180) +  // phi diff.
+			(std::abs(fiber2.theta - fiber1.theta) / 90) +  // theta diff.
 			((fiber2.pts[PtCenter] - fiber1.pts[PtCenter]).length() / diagonalLength) +  // center diff.
 			(std::abs(fiber2.length - fiber1.length) / maxLength);
 		break;
