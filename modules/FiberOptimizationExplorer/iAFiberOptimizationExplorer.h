@@ -59,7 +59,7 @@ class QButtonGroup;
 class QCheckBox;
 class QComboBox;
 class QLabel;
-class QWebEngineView;
+//class QWebEngineView;
 class QSlider;
 class QSpinBox;
 class QTimer;
@@ -135,7 +135,7 @@ private:
 	QSlider* m_timeStepSlider;
 	iARefDistCompute* m_refDistCompute;
 
-	QWebEngineView*  m_browser;
+//	QWebEngineView*  m_browser;
 	QString m_html;
 	iAJobListView * m_jobs;
 	QDockWidget* m_jobDockWidget;

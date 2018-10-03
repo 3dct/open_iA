@@ -70,7 +70,6 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QTimer>
-#include <QWebEngineView>
 
 #include <QtGlobal> // for QT_VERSION
 
@@ -348,8 +347,8 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 
 	// List Overview / LineUp View:
 
-	m_browser = new QWebEngineView();
-	iADockWidgetWrapper* browserWidget = new iADockWidgetWrapper(m_browser, "LineUp", "foeLineUp");
+//	m_browser = new QWebEngineView();
+//	iADockWidgetWrapper* browserWidget = new iADockWidgetWrapper(m_browser, "LineUp", "foeLineUp");
 
 	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultList, "Result list", "foeResultList");
 	iADockWidgetWrapper* main3DView = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
@@ -360,7 +359,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
-	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
+//	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
 
 	loadStateAndShow();
 }
@@ -754,6 +753,7 @@ void iAFiberOptimizationExplorer::refDistAvailable()
 	delete m_refDistCompute;
 	m_refDistCompute = nullptr;
 
+/*
 	 // include lineup following https://github.com/Caleydo/lineupjs
 	m_html = "<!DOCTYPE html>\n"
 	         "<html lang=\"en\">\n"
@@ -813,6 +813,7 @@ void iAFiberOptimizationExplorer::refDistAvailable()
 	DEBUG_LOG(QString("HTML: %1").arg(m_html));
 	m_browser->setHtml(m_html);
 	m_browser->show();
+*/
 }
 
 void iAFiberOptimizationExplorer::splomLookupTableChanged()
