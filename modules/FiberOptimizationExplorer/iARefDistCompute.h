@@ -35,6 +35,7 @@ class iARefDistCompute : public QThread
 	Q_OBJECT
 public:
 	static const int DistanceMetricCount = 4;
+	static const int BestDistanceMetric = 3;
 	static const int EndColumns = 2;
 	static int MaxNumberOfCloseFibers;
 	iARefDistCompute(std::vector<iAFiberCharData> & results, iASPLOMData & splomData, int referenceID);

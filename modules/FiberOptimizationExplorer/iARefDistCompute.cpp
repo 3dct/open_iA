@@ -141,15 +141,16 @@ void iARefDistCompute::run()
 			{
 				// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
 				auto & diffs = timeSteps[timeStep].diff;
-				size_t refFiberID = d.refDiffFiber[fiberID].dist[0][0].index;
 				diffs.resize(iAFiberCharData::FiberValueCount+DistanceMetricCount);
 				for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 				{
+					size_t refFiberID = d.refDiffFiber[fiberID].dist[BestDistanceMetric][0].index;
 					diffs[diffID] = d.timeValues[timeStep][fiberID][diffID]
 						- ref.table->GetValue(refFiberID, diffCols[diffID]).ToDouble();
 				}
 				for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
 				{
+					size_t refFiberID = d.refDiffFiber[fiberID].dist[distID][0].index;
 					iAFiberData refFiber(ref.table, refFiberID, mapping);
 					iAFiberData fiber(d.timeValues[timeStep][fiberID]);
 					double dist = getDistance(fiber, refFiber, distID, diagLength, maxLength);
