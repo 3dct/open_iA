@@ -227,23 +227,26 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			}
 			if (m_csvConfig.computeAngles)
 			{
-				phi = asin(dy / sqrt(dx*dx + dy*dy));
-				theta = acos(dz / sqrt(dx*dx + dy*dy + dz*dz));
-				phi = vtkMath::DegreesFromRadians(phi);
-				theta = vtkMath::DegreesFromRadians(theta);
-				// locate the phi value to quadrant
-				if (dx < 0)
-				{
-					phi = 180.0 - phi;
-				}
-				if (phi < 0.0)
-				{
-					phi = phi + 360.0;
-				}
 				if (dx == 0 && dy == 0)
 				{
 					phi = 0.0;
 					theta = 0.0;
+				}
+				else
+				{
+					phi = asin(dy / sqrt(dx*dx + dy * dy));
+					theta = acos(dz / sqrt(dx*dx + dy * dy + dz * dz));
+					phi = vtkMath::DegreesFromRadians(phi);
+					theta = vtkMath::DegreesFromRadians(theta);
+					// locate the phi value to quadrant
+					if (dx < 0)
+					{
+						phi = 180.0 - phi;
+					}
+					if (phi < 0.0)
+					{
+						phi = phi + 360.0;
+					}
 				}
 				entries.append(DblToString(phi));
 				entries.append(DblToString(theta));
