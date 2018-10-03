@@ -61,19 +61,19 @@ open_iA_Core_API QString StripHTML(QString const & html);
 //! returns the value converted to string, with units (K, M, G, T, P) applied for every 10³ factor over 1000
 open_iA_Core_API QString DblToStringWithUnits(double value);
 
-//! join a vector of numeric types T to string, using the given string as item separator
+//! join an iterable collection of numeric elements to a string
 //!
-//! works similar t QString::join, but on arbitrary QVector types which can be converted to QString
-//! via QString::number.
-//! @param vec the vector to be joined
+//! works similar to QString::join, but on arbitrary iterable collection types
+//! containing items which can be converted to QString via QString::number.
+//! @param vec the collection of elements to be joined
 //! @param joinStr the string to be used in between the elements of the string
-//! @return a string joining all elements of the given vector together
-template <typename T>
-QString Join(QVector<T> const & vec, QString const & joinStr)
+//! @return a string joining all elements of the given collection together
+template <template <typename...> class Container, typename Element>
+QString Join(Container<Element> const & vec, QString const & joinStr)
 {
 	QString result;
 	bool first = true;
-	for (T elem : vec)
+	for (Element elem : vec)
 	{
 		if (!first)
 			result += joinStr;
