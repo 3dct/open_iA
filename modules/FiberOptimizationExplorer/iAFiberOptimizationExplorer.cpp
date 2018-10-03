@@ -1020,20 +1020,24 @@ void iAFiberOptimizationExplorer::timeErrorDataChanged(int colIndex)
 		if (ui.startPlotIdx == NoPlotsIdx)
 			continue;
 		size_t fiberCount = d.table->GetNumberOfRows();
+		DEBUG_LOG(QString("Result %1").arg(resultID));
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			auto & timeSteps = d.refDiffFiber[fiberID].timeStep;
 			auto plotData = static_cast<iAVectorPlotData*>(m_timeStepChart->plots()[ui.startPlotIdx + fiberID]->data().data());
 			size_t timeStepCount = std::min(std::min(timeSteps.size(), d.timeValues.size()), plotData->GetNumBin());
+			DEBUG_LOG(QString("  Fiber %1").arg(fiberID));
 			for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
 			{
 				if (colIndex >= 0 && colIndex < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount)
 				{
 					plotData->data()[timeStep] = timeSteps[timeStep].diff[colIndex];
+					DEBUG_LOG(QString("    Time Step %1: value(col=%2): %3").arg(timeStep).arg(colIndex).arg(timeSteps[timeStep].diff[colIndex]));
 				}
 				else if (d.projectionError.size() > 0)
 				{
 					plotData->data()[timeStep] = d.projectionError[fiberID][timeStep];
+					DEBUG_LOG(QString("    Time Step %1: proj.error.red: %2").arg(timeStep).arg(d.projectionError[fiberID][timeStep]));
 				}
 			}
 			plotData->updateBounds();
