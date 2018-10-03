@@ -854,6 +854,8 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 
 void iAChartWidget::paintEvent(QPaintEvent * e)
 {
+	if (geometry().width() <= 1 || geometry().height() <= 1)
+		return;
 	QPainter painter(this);
 	if (!m_xMapper || !m_yMapper)
 		createMappers();
