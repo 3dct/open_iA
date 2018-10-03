@@ -149,8 +149,6 @@ void iAFiberOptimizationExplorer::resultsLoadFailed(QString const & path)
 
 void iAFiberOptimizationExplorer::resultsLoaded()
 {
-	addInteraction(QString("Loaded %1 results in folder %2").arg(m_results->results.size()).arg(m_results->folder));
-
 	m_resultUIs.resize(m_results->results.size());
 	m_selection.resize(m_results->results.size());
 
@@ -405,6 +403,7 @@ iAFiberOptimizationExplorer::~iAFiberOptimizationExplorer()
 
 void iAFiberOptimizationExplorer::loadStateAndShow()
 {
+	addInteraction(QString("Loaded %1 results in folder %2").arg(m_results->results.size()).arg(m_results->folder));
 	QSettings settings;
 	if (settings.value(ModuleSettingsKey + "/maximized", true).toBool())
 		showMaximized();
