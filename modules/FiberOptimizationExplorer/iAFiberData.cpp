@@ -84,24 +84,24 @@ iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAF
 		dir = result.pts[PtEnd] - source.pts[PtStart];
 		if (dir.x() == 0 && dir.y() == 0)
 		{
-		result.phi = 0.0;
-		result.theta = 0.0;
+			result.phi = 0.0;
+			result.theta = 0.0;
 		}
 		else
 		{
-		result.phi = asin(dir.y() / sqrt(dir.x()*dir.x() + dir.y() * dir.y()));
-		result.theta = acos(dir.z() / sqrt(dir.x()*dir.x() + dir.y() * dir.y() + dir.z() * dir.z()));
-		result.phi = vtkMath::DegreesFromRadians(result.phi);
-		result.theta = vtkMath::DegreesFromRadians(result.theta);
-		// locate the phi value to quadrant
-		if (dir.x() < 0)
-		{
-		result.phi = 180.0 - result.phi;
-		}
-		if (result.phi < 0.0)
-		{
-		result.phi = result.phi + 360.0;
-		}
+			result.phi = asin(dir.y() / sqrt(dir.x()*dir.x() + dir.y() * dir.y()));
+			result.theta = acos(dir.z() / sqrt(dir.x()*dir.x() + dir.y() * dir.y() + dir.z() * dir.z()));
+			result.phi = vtkMath::DegreesFromRadians(result.phi);
+			result.theta = vtkMath::DegreesFromRadians(result.theta);
+			// locate the phi value to quadrant
+			if (dir.x() < 0)
+			{
+				result.phi = 180.0 - result.phi;
+			}
+			if (result.phi < 0.0)
+			{
+				result.phi = result.phi + 360.0;
+			}
 		}
 		*/
 		result.phi = source.phi;
@@ -179,7 +179,7 @@ namespace
 		double fiber2Vol = fiber2.length + std::pow(fiber2.diameter / 2, 2);
 		// TODO: also map fiber volume (currently not mapped!
 		iAFiberData const & shorterFiber = (fiber1Vol < fiber2Vol) ? fiber1 : fiber2;
-		iAFiberData const & longerFiber = (fiber1Vol < fiber2Vol) ? fiber2 : fiber1;
+		iAFiberData const & longerFiber  = (fiber1Vol < fiber2Vol) ? fiber2 : fiber1;
 		std::vector<Vec3D > sampledPoints;
 		samplePoints(shorterFiber, sampledPoints, DefaultSamplePoints);
 		size_t containedPoints = 0;

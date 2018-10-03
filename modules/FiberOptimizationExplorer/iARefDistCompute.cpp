@@ -38,7 +38,6 @@
 
 namespace
 {
-
 	void getBestMatches(iAFiberData const & fiber, QMap<uint, uint> const & mapping, vtkTable* refTable,
 		std::vector<std::vector<iAFiberDistance> > & bestMatches, double diagonalLength, double maxLength)
 	{
@@ -63,9 +62,9 @@ namespace
 				distances.resize(bestMatches[1].size());
 				for (size_t bestMatchID = 0; bestMatchID < bestMatches[1].size(); ++bestMatchID)
 				{
-
-					iAFiberData refFiber(refTable, distances[bestMatchID].index, mapping);
-					distances[bestMatchID].index = bestMatches[1][bestMatchID].index;
+					size_t refFiberID = bestMatches[1][bestMatchID].index;
+					iAFiberData refFiber(refTable, refFiberID, mapping);
+					distances[bestMatchID].index = refFiberID;
 					double curDistance = getDistance(fiber, refFiber, d, diagonalLength, maxLength);
 					distances[bestMatchID].distance = curDistance;
 				}
@@ -142,15 +141,16 @@ void iARefDistCompute::run()
 			{
 				// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
 				auto & diffs = timeSteps[timeStep].diff;
+				size_t refFiberID = d.refDiffFiber[fiberID].dist[0][0].index;
 				diffs.resize(iAFiberCharData::FiberValueCount+DistanceMetricCount);
 				for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 				{
 					diffs[diffID] = d.timeValues[timeStep][fiberID][diffID]
-						- ref.table->GetValue(d.refDiffFiber[fiberID].dist[0][0].index, diffCols[diffID]).ToDouble();
+						- ref.table->GetValue(refFiberID, diffCols[diffID]).ToDouble();
 				}
 				for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
 				{
-					iAFiberData refFiber(ref.table, d.refDiffFiber[fiberID].dist[0][0].index, mapping);
+					iAFiberData refFiber(ref.table, refFiberID, mapping);
 					iAFiberData fiber(d.timeValues[timeStep][fiberID]);
 					double dist = getDistance(fiber, refFiber, distID, diagLength, maxLength);
 					diffs[iAFiberCharData::FiberValueCount + distID] = dist;
@@ -160,8 +160,6 @@ void iARefDistCompute::run()
 	}
 	perfDistComp.stop();
 	size_t splomID = 0;
-	iAPerformanceHelper perfSPLOMUpdate;
-	perfSPLOMUpdate.start("SPLOM Update");
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
 		iAFiberCharData& d = m_resultData[resultID];
@@ -189,7 +187,6 @@ void iARefDistCompute::run()
 			++splomID;
 		}
 	}
-	perfSPLOMUpdate.stop();
 }
 
 iAProgress* iARefDistCompute::progress()
