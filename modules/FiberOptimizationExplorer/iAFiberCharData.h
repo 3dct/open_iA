@@ -100,6 +100,7 @@ public:
 	QSharedPointer<iASPLOMData> splomData;
 	size_t minFiberNumber;
 	int timeStepMax;
+	QString folder;
 	bool loadData(QString const & path, QString const & configName, iAProgress * progress);
 };
 

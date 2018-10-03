@@ -62,7 +62,9 @@ class QLabel;
 //class QWebEngineView;
 class QSlider;
 class QSpinBox;
+class QStandardItemModel;
 class QTimer;
+class QTreeView;
 
 class iAFiberOptimizationExplorer : public QMainWindow, public iASelectionProvider
 {
@@ -93,6 +95,9 @@ private slots:
 	void resultsLoaded();
 	void resultsLoadFailed(QString const & path);
 	void visualizeCylinderSamplePoints();
+	void showReferenceToggled();
+	void showReferenceCountChanged(int);
+	void showReferenceMeasureChanged(int);
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
@@ -103,6 +108,7 @@ private:
 	void showCurrentSelectionInSPLOM();
 	bool isAnythingSelected() const;
 	void loadStateAndShow();
+	void addInteraction(QString const & interaction);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_results;
@@ -138,4 +144,6 @@ private:
 	QString m_html;
 	iAJobListView * m_jobs;
 	QDockWidget* m_jobDockWidget;
+	QTreeView* m_interactionProtocolView;
+	QStandardItemModel* m_interactionProtocolModel;
 };

@@ -70,7 +70,9 @@
 #include <QSettings>
 #include <QSlider>
 #include <QSpinBox>
+#include <QStandardItemModel>
 #include <QTimer>
+#include <QTreeView>
 
 #include <QtGlobal> // for QT_VERSION
 
@@ -147,6 +149,8 @@ void iAFiberOptimizationExplorer::resultsLoadFailed(QString const & path)
 
 void iAFiberOptimizationExplorer::resultsLoaded()
 {
+	addInteraction(QString("Loaded %1 results in folder %2").arg(m_results->results.size()).arg(m_results->folder));
+
 	m_resultUIs.resize(m_results->results.size());
 	m_selection.resize(m_results->results.size());
 
@@ -177,9 +181,9 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	m_cmbboxDistanceMeasure->addItem("Dist3 (all 9 pairs Start-/Center-/Endpoint)");
 	m_cmbboxDistanceMeasure->addItem("Dist4 (Overlap % in relation to Volume Ratio)");
 	m_cmbboxDistanceMeasure->setCurrentIndex(1);
-	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::changeReferenceDisplay);
-	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(changeReferenceDisplay()));
-	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(changeReferenceDisplay()));
+	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::showReferenceToggled);
+	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(showReferenceCountChanged(int)));
+	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
 	showReferenceWidget->layout()->addWidget(m_chkboxShowReference);
 	showReferenceWidget->layout()->addWidget(m_spnboxReferenceCount);
 	showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers, distance metric:"));
@@ -355,24 +359,36 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	QWidget* resultList = new QWidget();
 	resultList->setLayout(resultsListLayout);
 
+	// Interaction Protocol:
+	//QWidget* protocolWidget = new QWidget();
+	m_interactionProtocolView = new QTreeView();
+	m_interactionProtocolModel = new QStandardItemModel();
+	//protocolWidget->setLayout(new QHBoxLayout());
+	m_interactionProtocolView->setModel(m_interactionProtocolModel);
 
 	// List Overview / LineUp View:
-
 //	m_browser = new QWebEngineView();
 //	iADockWidgetWrapper* browserWidget = new iADockWidgetWrapper(m_browser, "LineUp", "foeLineUp");
 
 	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultList, "Result list", "foeResultList");
 	iADockWidgetWrapper* main3DView = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
-	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(optimizationSteps, "Time Steps", "foeTimeSteps");
+	iADockWidgetWrapper* timeSliderWidget = new iADockWidgetWrapper(optimizationSteps, "Optimization Steps", "foeTimeSteps");
 	iADockWidgetWrapper* splomWidget = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
+	iADockWidgetWrapper* interactionProtocolWidget = new iADockWidgetWrapper(m_interactionProtocolView, "Interaction Protocol", "foeInteractions");
 
 	splitDockWidget(m_jobDockWidget, resultListDockWidget, Qt::Vertical);
 	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
 	splitDockWidget(resultListDockWidget, timeSliderWidget, Qt::Vertical);
 	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
 //	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
+	splitDockWidget(resultListDockWidget, interactionProtocolWidget, Qt::Vertical);
 
 	loadStateAndShow();
+}
+
+void iAFiberOptimizationExplorer::addInteraction(QString const & interaction)
+{
+	m_interactionProtocolModel->invisibleRootItem()->appendRow(new QStandardItem(interaction));
 }
 
 iAFiberOptimizationExplorer::~iAFiberOptimizationExplorer()
@@ -447,6 +463,7 @@ namespace
 void iAFiberOptimizationExplorer::toggleVis(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
+	addInteraction(QString("Toggle Visibility of result %1").arg(resultID));
 	iAFiberCharData & data = m_results->results[resultID];
 	iAFiberCharUIData & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
@@ -501,6 +518,7 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 void iAFiberOptimizationExplorer::toggleBoundingBox(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
+	addInteraction(QString("Toggle Bounding Box of result %1").arg(resultID));
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 		ui.main3DVis->showBoundingBox();
@@ -534,17 +552,13 @@ std::vector<std::vector<size_t> > & iAFiberOptimizationExplorer::selection()
 void iAFiberOptimizationExplorer::clearSelection()
 {
 	for (size_t resultID=0; resultID<m_selection.size(); ++resultID)
-	{
 		m_selection[resultID].clear();
-	}
 }
 
 void iAFiberOptimizationExplorer::sortCurrentSelection()
 {
-	for (size_t resultID = 0; resultID < m_results->results.size(); ++resultID)
-	{
+	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
 		std::sort(m_selection[resultID].begin(), m_selection[resultID].end());
-	}
 }
 
 void iAFiberOptimizationExplorer::showCurrentSelectionInPlot()
@@ -592,7 +606,6 @@ void iAFiberOptimizationExplorer::showCurrentSelectionIn3DViews()
 		ui.mini3DVis->setSelection(m_selection[resultID], anythingSelected);
 		if (ui.main3DVis->visible())
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
-
 	}
 }
 
@@ -600,9 +613,7 @@ void iAFiberOptimizationExplorer::showCurrentSelectionInSPLOM()
 {
 	size_t splomSelectionSize = 0;
 	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
-	{
 		splomSelectionSize += m_selection[resultID].size();
-	}
 	std::vector<size_t> splomSelection;
 	splomSelection.reserve(splomSelectionSize);
 	size_t splomIDStart = 0;
@@ -620,6 +631,10 @@ void iAFiberOptimizationExplorer::showCurrentSelectionInSPLOM()
 
 void iAFiberOptimizationExplorer::selection3DChanged()
 {
+	size_t selSize = 0;
+	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
+		selSize += m_selection[resultID].size();
+	addInteraction(QString("Selected %1 fibers in scatter plot matrix.").arg(selSize));
 	sortCurrentSelection();
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInPlot();
@@ -629,6 +644,7 @@ void iAFiberOptimizationExplorer::selection3DChanged()
 
 void iAFiberOptimizationExplorer::selectionSPLOMChanged(std::vector<size_t> const & selection)
 {
+	addInteraction(QString("Selected %1 fibers in scatter plot matrix.").arg(selection.size()));
 	// map from SPLOM index to (resultID, fiberID) pairs
 	clearSelection();
 	size_t resultID, fiberID;
@@ -645,6 +661,7 @@ void iAFiberOptimizationExplorer::selectionSPLOMChanged(std::vector<size_t> cons
 
 void iAFiberOptimizationExplorer::selectionTimeStepChartChanged(std::vector<size_t> const & selection)
 {
+	addInteraction(QString("Selected %1 fibers in optimization step chart.").arg(selection.size()));
 	size_t curSelectionIndex = 0;
 	clearSelection();
 	// map from plot IDs to (resultID, fiberID) pairs
@@ -674,6 +691,7 @@ void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
 	if (ev->buttons() == Qt::RightButton && ev->type() == QEvent::MouseButtonPress)
 	{
 		int resultID = QObject::sender()->property("resultID").toInt();
+		addInteraction(QString("Started FiberScout for result %1.").arg(resultID));
 		iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 		MdiChild* newChild = m_mainWnd->createMdiChild(false);
 		iACsvConfig config = getCsvConfig(m_results->results[resultID].fileName, m_configName);
@@ -684,6 +702,7 @@ void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
 
 void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
 {
+	addInteraction(QString("Set Optimization Step slider to result %1.").arg(timeStep));
 	m_timeStepChart->clearMarkers();
 	m_timeStepChart->addXMarker(timeStep, TimeMarkerColor);
 	m_timeStepChart->update();
@@ -699,6 +718,7 @@ void iAFiberOptimizationExplorer::timeSliderChanged(int timeStep)
 
 void iAFiberOptimizationExplorer::mainOpacityChanged(int opacity)
 {
+	addInteraction(QString("Set main opacity to %1.").arg(opacity));
 	m_defaultOpacityLabel->setText(QString::number(opacity));
 	SelectionOpacity = opacity;
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
@@ -716,6 +736,7 @@ void iAFiberOptimizationExplorer::mainOpacityChanged(int opacity)
 
 void iAFiberOptimizationExplorer::contextOpacityChanged(int opacity)
 {
+	addInteraction(QString("Set context opacity to %1.").arg(opacity));
 	m_contextOpacityLabel->setText(QString::number(opacity));
 	ContextOpacity = opacity;
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
@@ -745,6 +766,7 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 		if (button != sender)
 			button->setText("");
 	m_referenceID = sender->property("resultID").toULongLong();
+	addInteraction(QString("Reference set to ID %1").arg(m_referenceID));
 	m_refDistCompute = new iARefDistCompute(m_results->results, *m_results->splomData.data(), m_referenceID);
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiberOptimizationExplorer::refDistAvailable);
 	m_jobs->addJob("Computing Reference Distances", m_refDistCompute->progress(), m_refDistCompute);
@@ -839,6 +861,26 @@ void iAFiberOptimizationExplorer::splomLookupTableChanged()
 			m_resultUIs[resultID].main3DVis->setLookupTable(lut, colorLookupParam);
 	}
 }
+
+void iAFiberOptimizationExplorer::showReferenceToggled()
+{
+	bool showRef = m_chkboxShowReference->isChecked();
+	addInteraction(QString("Show Reference fibers toggled to %1").arg(showRef?"on":"off"));
+	changeReferenceDisplay();
+}
+
+void iAFiberOptimizationExplorer::showReferenceCountChanged(int count)
+{
+	addInteraction(QString("Reference fibers count changed to %1").arg(count));
+	changeReferenceDisplay();
+}
+
+void iAFiberOptimizationExplorer::showReferenceMeasureChanged(int index)
+{
+	addInteraction(QString("Selected reference match measure #%1").arg(index));
+	changeReferenceDisplay();
+}
+
 void iAFiberOptimizationExplorer::changeReferenceDisplay()
 {
 	size_t distanceMeasure = m_cmbboxDistanceMeasure->currentIndex();
@@ -924,11 +966,13 @@ void iAFiberOptimizationExplorer::playPauseTimeSteps()
 	QPushButton* btn = qobject_cast<QPushButton*>(sender());
 	if (m_playTimer->isActive())
 	{
+		addInteraction(QString("Stopped optimization step animation"));
 		m_playTimer->stop();
 		btn->setText("Play");
 	}
 	else
 	{
+		addInteraction(QString("Started optimization step animation"));
 		m_playTimer->start();
 		btn->setText("Pause");
 	}
@@ -942,6 +986,7 @@ void iAFiberOptimizationExplorer::playTimer()
 
 void iAFiberOptimizationExplorer::playDelayChanged(int newInterval)
 {
+	addInteraction(QString("Changed optimization step animation delay to %1").arg(newInterval));
 	m_playTimer->setInterval(newInterval);
 }
 
@@ -956,6 +1001,7 @@ void iAFiberOptimizationExplorer::visualizeCylinderSamplePoints()
 			break;
 		}
 	}
+	addInteraction(QString("Visualized cylinder sampling for fiber %1 in result %2").arg(fiberID).arg(resultID));
 	if (fiberID == NoPlotsIdx)
 		return;
 	if (m_sampleActor)
@@ -1011,8 +1057,11 @@ void iAFiberOptimizationExplorer::timeErrorDataChanged(int colIndex)
 	if (m_referenceID == NoResult)
 	{
 		DEBUG_LOG("Please select a reference first!");
+		// TODO: set selected item back to projection error:
+		//QSignalBlocker block(dataChooser);dataChooser->setcurrentItem(...)
 		return;
 	}
+	addInteraction(QString("Chose distance/difference #%1 for display in optimization step chart").arg(colIndex));
 	for (size_t resultID = 0; resultID < m_results->results.size(); ++resultID)
 	{
 		auto & d = m_results->results[resultID];

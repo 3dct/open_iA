@@ -138,6 +138,7 @@ iAFiberResultsCollection::iAFiberResultsCollection():
 
 bool iAFiberResultsCollection::loadData(QString const & path, QString const & configName, iAProgress * progress)
 {
+	folder = path;
 	minFiberNumber = iARefDistCompute::MaxNumberOfCloseFibers;
 	QStringList filters;
 	filters << "*.csv";
