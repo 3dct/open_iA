@@ -187,7 +187,6 @@ void iARefDistCompute::run()
 		}
 	}
 
-	auto & ref = m_data->result[m_referenceID];
 	std::vector<double> refMatchError(ref.fiberCount);
 	std::vector<double> refMatchCount(ref.fiberCount);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
