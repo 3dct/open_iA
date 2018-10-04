@@ -41,6 +41,7 @@ public:
 	iARefDistCompute(std::vector<iAFiberCharData> & results, iASPLOMData & splomData, int referenceID);
 	void run() override;
 	iAProgress* progress();
+	size_t referenceID() const;
 private:
 	iAProgress m_progress;
 	iASPLOMData & m_splomData;

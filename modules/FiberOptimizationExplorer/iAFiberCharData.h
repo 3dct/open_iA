@@ -51,20 +51,20 @@ public:
 	friend bool operator<(iAFiberDistance const & a, iAFiberDistance const & b);
 };
 
-//! Comparison data to reference for a single timestep, fiber and result
+//! Comparison data to reference for a single result/fiber, for all time steps
 class iARefDiffFiberTimeData
 {
 public:
 	//! diff of fibervalues (+distances)
-	std::vector<double> diff;
+	std::vector<double> timestep;
 };
 
 //! Comparison data to reference for a single fiber in a result
 class iARefDiffFiberData
 {
 public:
-	//! differences to reference fiber, stored per timestep
-	std::vector<iARefDiffFiberTimeData> timeStep;
+	//! differences to reference fiber, one per diff/distance
+	std::vector<iARefDiffFiberTimeData> diff;
 	//! dist to ref fibers: for each distance measure, in order of ascending difference
 	std::vector<std::vector<iAFiberDistance> > dist;
 };

@@ -136,31 +136,33 @@ void iARefDistCompute::run()
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			size_t timeStepCount = d.timeValues.size();
-			auto & timeSteps = d.refDiffFiber[fiberID].timeStep;
-			timeSteps.resize(timeStepCount);
+			auto & diffs = d.refDiffFiber[fiberID].diff;
+			diffs.resize(iAFiberCharData::FiberValueCount+DistanceMetricCount);
 			DEBUG_LOG(QString("  Fiber %1").arg(fiberID));
-			for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
+			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{
-				// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
-				auto & diffs = timeSteps[timeStep].diff;
-				diffs.resize(iAFiberCharData::FiberValueCount+DistanceMetricCount);
-				for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+				auto & timeStepDiffs = diffs[diffID].timestep;
+				timeStepDiffs.resize(timeStepCount);
+				for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
 				{
+					// compute error (=difference - startx, starty, startz, endx, endy, endz, shiftx, shifty, shiftz, phi, theta, length, diameter)
 					size_t refFiberID = d.refDiffFiber[fiberID].dist[BestDistanceMetric][0].index;
-					diffs[diffID] = d.timeValues[timeStep][fiberID][diffID]
+					timeStepDiffs[timeStep] = d.timeValues[timeStep][fiberID][diffID]
 						- ref.table->GetValue(refFiberID, diffCols[diffID]).ToDouble();
 				}
-				for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
+			}
+			for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
+			{
+				auto & timeStepDiffs = diffs[iAFiberCharData::FiberValueCount + distID].timestep;
+				timeStepDiffs.resize(timeStepCount);
+				size_t refFiberID = d.refDiffFiber[fiberID].dist[distID][0].index;
+				iAFiberData refFiber(ref.table, refFiberID, mapping);
+				for (size_t timeStep = 0; timeStep < timeStepCount; ++timeStep)
 				{
-					size_t refFiberID = d.refDiffFiber[fiberID].dist[distID][0].index;
-					iAFiberData refFiber(ref.table, refFiberID, mapping);
 					iAFiberData fiber(d.timeValues[timeStep][fiberID]);
 					double dist = getDistance(fiber, refFiber, distID, diagLength, maxLength);
-					diffs[iAFiberCharData::FiberValueCount + distID] = dist;
+					timeStepDiffs[timeStep] = dist;
 				}
-				DEBUG_LOG(QString("    Time Step %1: RefFiber(bestMetric): %2; diffs+distances: %3").arg(timeStep)
-					.arg(d.refDiffFiber[fiberID].dist[BestDistanceMetric][0].index)
-					.arg(Join(diffs, ",")));
 			}
 		}
 	}
@@ -182,7 +184,7 @@ void iARefDistCompute::run()
 			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{
 				size_t tableColumnID = m_splomData.numParams() - (iAFiberCharData::FiberValueCount + DistanceMetricCount + EndColumns) + diffID;
-				m_splomData.data()[tableColumnID][splomID] = diffData.timeStep[d.timeValues.size()-1].diff[diffID];
+				m_splomData.data()[tableColumnID][splomID] = diffData.diff[diffID].timestep[d.timeValues.size()-1];
 				//d.table->SetValue(fiberID, tableColumnID, d.timeRefDiff[fiberID][d.m_timeValues.size()-1][diffID]);
 			}
 			for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
@@ -201,4 +203,9 @@ void iARefDistCompute::run()
 iAProgress* iARefDistCompute::progress()
 {
 	return &m_progress;
+}
+
+size_t iARefDistCompute::referenceID() const
+{
+	return m_referenceID;
 }

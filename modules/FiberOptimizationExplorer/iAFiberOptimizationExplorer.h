@@ -65,6 +65,7 @@ class QSpinBox;
 class QStandardItemModel;
 class QTimer;
 class QTreeView;
+class QVBoxLayout;
 
 class iAFiberOptimizationExplorer : public QMainWindow, public iASelectionProvider
 {
@@ -79,19 +80,19 @@ private slots:
 	void toggleBoundingBox(int);
 	void referenceToggled(bool);
 	void miniMouseEvent(QMouseEvent* ev);
-	void timeSliderChanged(int);
+	void optimStepSliderChanged(int);
 	void mainOpacityChanged(int);
 	void contextOpacityChanged(int);
 	void selection3DChanged();
 	void selectionSPLOMChanged(std::vector<size_t> const & selection);
-	void selectionTimeStepChartChanged(std::vector<size_t> const & selection);
+	void selectionOptimStepChartChanged(std::vector<size_t> const & selection);
 	void splomLookupTableChanged();
 	void changeReferenceDisplay();
-	void playPauseTimeSteps();
+	void playPauseOptimSteps();
 	void playTimer();
 	void playDelayChanged(int);
 	void refDistAvailable();
-	void timeErrorDataChanged(int);
+	void optimDataToggled(int);
 	void resultsLoaded();
 	void resultsLoadFailed(QString const & path);
 	void visualizeCylinderSamplePoints();
@@ -103,12 +104,14 @@ private:
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
 	void clearSelection();
 	void sortCurrentSelection();
-	void showCurrentSelectionInPlot();
+	void showCurrentSelectionInPlots();
+	void showCurrentSelectionInPlot(int chartID);
 	void showCurrentSelectionIn3DViews();
 	void showCurrentSelectionInSPLOM();
 	bool isAnythingSelected() const;
 	void loadStateAndShow();
 	void addInteraction(QString const & interaction);
+	void toggleOptimStepChart(int index, bool visible);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_results;
@@ -118,16 +121,25 @@ private:
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_colorTheme;
 	MainWindow* m_mainWnd;
-	int m_referenceID;
+	size_t m_referenceID;
 	std::vector<std::vector<size_t> > m_selection;
 	vtkSmartPointer<vtkTable> m_refVisTable;
 
 	iAVtkWidgetClass* m_mainRenderer;
-	QLabel* m_currentTimeStepLabel, * m_defaultOpacityLabel, * m_contextOpacityLabel;
+	QLabel * m_defaultOpacityLabel, * m_contextOpacityLabel;
 	QSlider* m_defaultOpacitySlider, * m_contextOpacitySlider;
+
 	QButtonGroup* m_defaultButtonGroup;
+
 	iAQSplom* m_splom;
-	iAChartWidget* m_timeStepChart;
+
+	QLabel* m_currentOptimStepLabel;
+	std::vector<iAChartWidget*> m_optimStepChart;
+	QSlider* m_optimStepSlider;
+	QWidget* m_optimStepPlotContainer;
+	QVBoxLayout* m_optimPlotLayout;
+	size_t ChartCount;
+
 	QCheckBox* m_chkboxShowReference;
 	QSpinBox* m_spnboxReferenceCount;
 	QComboBox* m_cmbboxDistanceMeasure;
@@ -137,11 +149,11 @@ private:
 	vtkSmartPointer<vtkActor> m_sampleActor;
 	QString m_configName;
 	QTimer * m_playTimer;
-	QSlider* m_timeStepSlider;
 	iARefDistCompute* m_refDistCompute;
 
 //	QWebEngineView*  m_browser;
-	QString m_html;
+//	QString m_html;
+
 	iAJobListView * m_jobs;
 	QDockWidget* m_jobDockWidget;
 	QTreeView* m_interactionProtocolView;
