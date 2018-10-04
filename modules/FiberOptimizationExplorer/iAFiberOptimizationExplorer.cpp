@@ -221,8 +221,11 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	QWidget* moreButtons = new QWidget();
 	moreButtons->setLayout(new QHBoxLayout());
 	auto showSampledCylinder = new QPushButton("Sample Fiber");
+	auto hideSampledCylinder = new QPushButton("Hide Sample Points");
 	connect(showSampledCylinder, &QPushButton::pressed, this, &iAFiberOptimizationExplorer::visualizeCylinderSamplePoints);
+	connect(hideSampledCylinder, &QPushButton::pressed, this, &iAFiberOptimizationExplorer::hideSamplePoints);
 	moreButtons->layout()->addWidget(showSampledCylinder);
+	moreButtons->layout()->addWidget(hideSampledCylinder);
 	moreButtons->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	QWidget* mainRendererContainer = new QWidget();
@@ -1191,8 +1194,7 @@ void iAFiberOptimizationExplorer::visualizeCylinderSamplePoints()
 	addInteraction(QString("Visualized cylinder sampling for fiber %1 in %2").arg(fiberID).arg(resultName(resultID)));
 	if (fiberID == NoPlotsIdx)
 		return;
-	if (m_sampleActor)
-		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
+	hideSamplePointsPrivate();
 
 	auto & d = m_data->result[resultID];
 	auto const & mapping = *d.mapping.data();
@@ -1237,6 +1239,23 @@ void iAFiberOptimizationExplorer::visualizeCylinderSamplePoints()
 	m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
 	m_mainRenderer->GetRenderWindow()->Render();
 	m_mainRenderer->update();
+}
+
+void iAFiberOptimizationExplorer::hideSamplePoints()
+{
+	if (!m_sampleActor)
+		return;
+	addInteraction("Hide cylinder sampling points");
+	hideSamplePointsPrivate();
+	m_mainRenderer->GetRenderWindow()->Render();
+	m_mainRenderer->update();
+	m_sampleActor = nullptr;
+}
+
+void iAFiberOptimizationExplorer::hideSamplePointsPrivate()
+{
+	if (m_sampleActor)
+		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
 }
 
 void iAFiberOptimizationExplorer::optimDataToggled(int state)

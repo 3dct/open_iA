@@ -99,6 +99,7 @@ private slots:
 	void resultsLoaded();
 	void resultsLoadFailed(QString const & path);
 	void visualizeCylinderSamplePoints();
+	void hideSamplePoints();
 	void showReferenceToggled();
 	void showReferenceCountChanged(int);
 	void showReferenceMeasureChanged(int);
@@ -123,6 +124,7 @@ private:
 	QString resultName(size_t resultID) const;
 	void setOptimStep(int optimStep);
 	void showCurrentSelectionDetail();
+	void hideSamplePointsPrivate();
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
