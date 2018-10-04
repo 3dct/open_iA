@@ -24,7 +24,6 @@
 #include "iAFiberData.h"
 
 #include "iACsvConfig.h"
-#include "iAPerformanceHelper.h"
 
 #include "charts/iASPLOMData.h"
 #include "iAConsole.h"
@@ -85,8 +84,6 @@ iARefDistCompute::iARefDistCompute(std::vector<iAFiberCharData> & results, iASPL
 
 void iARefDistCompute::run()
 {
-	iAPerformanceHelper perfRefComp;
-	perfRefComp.start("Reference Distance computation");
 	// "register" other datasets to reference:
 	auto & ref = m_resultData[m_referenceID];
 	auto const & mapping = *ref.mapping.data();
@@ -114,7 +111,6 @@ void iARefDistCompute::run()
 				d.refDiffFiber[fiberID].dist, diagLength, maxLength);
 		}
 	}
-	perfRefComp.stop();
 	std::array<size_t, iAFiberCharData::FiberValueCount> diffCols = {
 		mapping[iACsvConfig::StartX],  mapping[iACsvConfig::StartY],  mapping[iACsvConfig::StartZ],
 		mapping[iACsvConfig::EndX],    mapping[iACsvConfig::EndY],    mapping[iACsvConfig::EndZ],
@@ -123,8 +119,6 @@ void iARefDistCompute::run()
 		mapping[iACsvConfig::Length],
 		mapping[iACsvConfig::Diameter]
 	};
-	iAPerformanceHelper perfDistComp;
-	perfDistComp.start("Distance computation");
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
 		auto& d = m_resultData[resultID];
@@ -132,13 +126,11 @@ void iARefDistCompute::run()
 			continue;
 		size_t fiberCount = d.table->GetNumberOfRows();
 		d.refDiffFiber.resize(fiberCount);
-		DEBUG_LOG(QString("Result %1").arg(resultID));
 		for (size_t fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
 			size_t timeStepCount = d.timeValues.size();
 			auto & diffs = d.refDiffFiber[fiberID].diff;
 			diffs.resize(iAFiberCharData::FiberValueCount+DistanceMetricCount);
-			DEBUG_LOG(QString("  Fiber %1").arg(fiberID));
 			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{
 				auto & timeStepDiffs = diffs[diffID].timestep;
@@ -166,11 +158,9 @@ void iARefDistCompute::run()
 			}
 		}
 	}
-	perfDistComp.stop();
 	size_t splomID = 0;
 	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
 	{
-		DEBUG_LOG(QString("Result %1").arg(resultID));
 		iAFiberCharData& d = m_resultData[resultID];
 		if (resultID == m_referenceID)
 		{
@@ -179,7 +169,6 @@ void iARefDistCompute::run()
 		}
 		for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 		{
-			DEBUG_LOG(QString("  Fiber %1").arg(fiberID));
 			auto & diffData = d.refDiffFiber[fiberID];
 			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{
@@ -193,7 +182,6 @@ void iARefDistCompute::run()
 				size_t tableColumnID = m_splomData.numParams() - (DistanceMetricCount + EndColumns) + distID;
 				m_splomData.data()[tableColumnID][splomID] = dist;
 				//d.table->SetValue(fiberID, tableColumnID, dist);
-				DEBUG_LOG(QString("    SPLOM distance %1: %2").arg(distID).arg(dist));
 			}
 			++splomID;
 		}
