@@ -133,7 +133,7 @@ void addColumn(vtkSmartPointer<vtkTable> table, float value, char const * column
 
 iAFiberResultsCollection::iAFiberResultsCollection():
 	splomData(new iASPLOMData()),
-	timeStepMax(1)
+	optimStepMax(1)
 {}
 
 bool iAFiberResultsCollection::loadData(QString const & path, QString const & configName, iAProgress * progress)
@@ -319,14 +319,14 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 				}
 			}
 		}
-		if (thisResultTimeStepMax > timeStepMax)
+		if (thisResultTimeStepMax > optimStepMax)
 		{
-			if (timeStepMax > 1)
+			if (optimStepMax > 1)
 			{
 				DEBUG_LOG(QString("In result %1, the maximum number of timesteps changes from %2 to %3! This shouldn't be a problem, but support for it is currently untested.")
-					.arg(resultID).arg(timeStepMax).arg(thisResultTimeStepMax));
+					.arg(resultID).arg(optimStepMax).arg(thisResultTimeStepMax));
 			}
-			timeStepMax = thisResultTimeStepMax;
+			optimStepMax = thisResultTimeStepMax;
 		}
 		++resultID;
 		progress->EmitProgress(resultID / csvFileNames.size());

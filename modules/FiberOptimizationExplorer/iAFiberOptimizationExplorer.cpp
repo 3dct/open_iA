@@ -81,7 +81,7 @@
 namespace
 {
 	const int DefaultPlayDelay = 1000;
-	QColor TimeMarkerColor(192, 0, 0);
+	QColor OptimStepMarkerColor(192, 0, 0);
 
 	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
 	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
@@ -235,7 +235,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiberOptimizationExplorer::selection3DChanged);
 
 
-	// Optimization/Time Steps View:
+	// Optimization Steps View:
 
 	m_optimStepChart.resize(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1);
 
@@ -291,10 +291,10 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	plotPlusControls->setLayout(new QVBoxLayout());
 	m_optimStepSlider = new QSlider(Qt::Horizontal);
 	m_optimStepSlider->setMinimum(0);
-	m_optimStepSlider->setMaximum(m_results->timeStepMax - 1);
-	m_optimStepSlider->setValue(m_results->timeStepMax - 1);
+	m_optimStepSlider->setMaximum(m_results->optimStepMax - 1);
+	m_optimStepSlider->setValue(m_results->optimStepMax - 1);
 	m_currentOptimStepLabel = new QLabel("");
-	m_currentOptimStepLabel->setText(QString::number(m_results->timeStepMax - 1));
+	m_currentOptimStepLabel->setText(QString::number(m_results->optimStepMax - 1));
 	connect(m_optimStepSlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::optimStepSliderChanged);
 	QWidget* optimStepsCtrls = new QWidget();
 	optimStepsCtrls->setLayout(new QHBoxLayout());
@@ -502,7 +502,7 @@ void iAFiberOptimizationExplorer::toggleOptimStepChart(int chartID, bool visible
 		m_optimChartLayout->insertWidget(plotsBefore, m_optimStepChart[chartID]);
 		m_optimStepChart[chartID]->setMinimumHeight(100);
 		m_optimStepChart[chartID]->setSelectionMode(iAChartWidget::SelectPlot);
-		m_optimStepChart[chartID]->addXMarker(m_results->timeStepMax-1, TimeMarkerColor);
+		m_optimStepChart[chartID]->addXMarker(m_results->optimStepMax -1, OptimStepMarkerColor);
 		for (int resultID=0; resultID<m_results->results.size(); ++resultID)
 		{
 			auto & d = m_results->results[resultID];
@@ -524,7 +524,7 @@ void iAFiberOptimizationExplorer::toggleOptimStepChart(int chartID, bool visible
 	}
 	m_optimStepChart[chartID]->setVisible(true);
 	m_optimStepChart[chartID]->clearMarkers();
-	m_optimStepChart[chartID]->addXMarker(m_optimStepSlider->value(), TimeMarkerColor);
+	m_optimStepChart[chartID]->addXMarker(m_optimStepSlider->value(), OptimStepMarkerColor);
 
 	bool allVisible = noResultSelected(m_resultUIs);
 	for (size_t resultID=0; resultID<m_results->results.size(); ++resultID)
@@ -547,7 +547,7 @@ void iAFiberOptimizationExplorer::addInteraction(QString const & interaction)
 void iAFiberOptimizationExplorer::toggleVis(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
-	addInteraction(QString("Toggle Visibility of result %1").arg(resultID));
+	addInteraction(QString("Toggle visibility of result %1").arg(resultID));
 	iAFiberCharData & data = m_results->results[resultID];
 	iAFiberCharUIData & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
@@ -619,7 +619,7 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 void iAFiberOptimizationExplorer::toggleBoundingBox(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
-	addInteraction(QString("Toggle Bounding Box of result %1").arg(resultID));
+	addInteraction(QString("Toggle bounding box of result %1").arg(resultID));
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 		ui.main3DVis->showBoundingBox();
@@ -744,7 +744,7 @@ void iAFiberOptimizationExplorer::selection3DChanged()
 	size_t selSize = 0;
 	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
 		selSize += m_selection[resultID].size();
-	addInteraction(QString("Selected %1 fibers in scatter plot matrix.").arg(selSize));
+	addInteraction(QString("Selected %1 fibers in 3D view.").arg(selSize));
 	sortCurrentSelection();
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInPlots();
@@ -810,24 +810,29 @@ void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
 	}
 }
 
-void iAFiberOptimizationExplorer::optimStepSliderChanged(int timeStep)
+void iAFiberOptimizationExplorer::optimStepSliderChanged(int optimStep)
 {
-	addInteraction(QString("Set Optimization Step slider to result %1.").arg(timeStep));
-	m_currentOptimStepLabel->setText(QString::number(timeStep));
+	addInteraction(QString("Set optimization step slider to step %1.").arg(optimStep));
+	setOptimStep(optimStep);
+}
+
+void iAFiberOptimizationExplorer::setOptimStep(int optimStep)
+{
+	m_currentOptimStepLabel->setText(QString::number(optimStep));
 	for (size_t chartID= 0; chartID < ChartCount; ++chartID)
 	{
 		auto chart = m_optimStepChart[chartID];
 		if (!chart || !chart->isVisible())
 			continue;
 		chart->clearMarkers();
-		chart->addXMarker(timeStep, TimeMarkerColor);
+		chart->addXMarker(optimStep, OptimStepMarkerColor);
 		chart->update();
 		for (int resultID = 0; resultID < m_results->results.size(); ++resultID)
 		{
 			//m_resultData[resultID].m_mini3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
 			if (m_resultUIs[resultID].main3DVis->visible())
 				m_resultUIs[resultID].main3DVis->updateValues(m_results->results[resultID]
-					.timeValues[std::min(static_cast<size_t>(timeStep), m_results->results[resultID].timeValues.size()-1)]);
+					.timeValues[std::min(static_cast<size_t>(optimStep), m_results->results[resultID].timeValues.size()-1)]);
 		}
 	}
 }
@@ -985,7 +990,7 @@ void iAFiberOptimizationExplorer::splomLookupTableChanged()
 void iAFiberOptimizationExplorer::showReferenceToggled()
 {
 	bool showRef = m_chkboxShowReference->isChecked();
-	addInteraction(QString("Show Reference fibers toggled to %1").arg(showRef?"on":"off"));
+	addInteraction(QString("Show reference fibers toggled to %1").arg(showRef?"on":"off"));
 	changeReferenceDisplay();
 }
 
@@ -1100,8 +1105,10 @@ void iAFiberOptimizationExplorer::playPauseOptimSteps()
 
 void iAFiberOptimizationExplorer::playTimer()
 {
-	m_optimStepSlider->setValue((m_optimStepSlider->value() + 1) % (m_optimStepSlider->maximum() + 1));
-	// update of 3D vis is automatically done through signal on slider change!
+	QSignalBlocker block(m_optimStepSlider);
+	int newStep = (m_optimStepSlider->value() + 1) % (m_optimStepSlider->maximum() + 1);
+	m_optimStepSlider->setValue(newStep);
+	setOptimStep(newStep);
 }
 
 void iAFiberOptimizationExplorer::playDelayChanged(int newInterval)
@@ -1181,13 +1188,6 @@ QString iAFiberOptimizationExplorer::diffName(int chartID) const
 
 void iAFiberOptimizationExplorer::optimDataToggled(int state)
 {
-	if (m_referenceID == NoResult)
-	{
-		DEBUG_LOG("Please select a reference first!");
-		// TODO: set selected item back to projection error:
-		//QSignalBlocker block(dataChooser);dataChooser->setcurrentItem(...)
-		return;
-	}
 	int chartID = QObject::sender()->property("chartID").toInt();
 	addInteraction(QString("Toggled visibility of %1 vs. optimization step chart.").arg(diffName(chartID)));
 	toggleOptimStepChart(chartID, state == Qt::Checked);

@@ -113,6 +113,7 @@ private:
 	void addInteraction(QString const & interaction);
 	void toggleOptimStepChart(int index, bool visible);
 	QString diffName(int chartID) const;
+	void setOptimStep(int optimStep);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_results;

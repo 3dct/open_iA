@@ -99,7 +99,7 @@ public:
 	std::vector<iAFiberCharData> results;
 	QSharedPointer<iASPLOMData> splomData;
 	size_t minFiberNumber;
-	int timeStepMax;
+	int optimStepMax;
 	QString folder;
 	bool loadData(QString const & path, QString const & configName, iAProgress * progress);
 };
