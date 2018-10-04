@@ -706,12 +706,15 @@ void iAFiberOptimizationExplorer::sortCurrentSelection(QString const & source)
 
 void iAFiberOptimizationExplorer::newSelection(QString const & source)
 {
+	size_t selSize = selectionSize();
+	if (selSize == 0 || (m_selections.size() > 0 && m_selection == m_selections[m_selections.size()-1]))
+		return;
 	size_t resultCount = 0;
 	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
 		resultCount += (m_selection[resultID].size() > 0) ? 1 : 0;
 	m_selections.push_back(m_selection);
 	m_selectionListModel->appendRow(new QStandardItem(QString("%1 fibers in %2 results (%3)")
-		.arg(selectionSize()).arg(resultCount).arg(source)));
+		.arg(selSize).arg(resultCount).arg(source)));
 	showCurrentSelectionDetail();
 }
 
