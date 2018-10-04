@@ -77,6 +77,8 @@ iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(iAVtkWidgetClass* widget, vtk
 
 void iA3DColoredPolyObjectVis::show()
 {
+	if (m_visible)
+		return;
 	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_actor);
 	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->ResetCamera();
 	m_visible = true;
@@ -84,6 +86,8 @@ void iA3DColoredPolyObjectVis::show()
 
 void iA3DColoredPolyObjectVis::hide()
 {
+	if (!m_visible)
+		return;
 	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_actor);
 	m_visible = false;
 }
