@@ -123,7 +123,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_yMaxTickLabelWidth(0),
 	m_selectionMode(SelectionDisabled),
 	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this)),
-	m_drawXAxisAtZero(false),
+	m_drawXAxisAtZero(false)
 {
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	QSurfaceFormat fmt = format();
