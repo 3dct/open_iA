@@ -857,9 +857,11 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 
 void iAChartWidget::paintEvent(QPaintEvent * e)
 {
-	if (geometry().width() <= 1 || geometry().height() <= 1)
-		return;
 	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing);
+	drawBackground(painter);
+	if (activeWidth() <= 1 || activeHeight() <= 1)
+		return;
 	if (!m_xMapper || !m_yMapper)
 		createMappers();
 	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, xZoom*(activeWidth()-1));
@@ -867,8 +869,6 @@ void iAChartWidget::paintEvent(QPaintEvent * e)
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
 	m_yMaxTickLabelWidth = fm.width("4.44M");
-	painter.setRenderHint(QPainter::Antialiasing);
-	drawBackground(painter);
 	painter.translate(translationX + leftMargin(), -bottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom
