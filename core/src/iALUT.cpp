@@ -28,14 +28,16 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
 
-const QStringList colormaps = QStringList()\
-<< "Diverging blue-gray-red"\
-<< "Black Body"\
-<< "Extended Black Body"\
-<< "Kindlmann"\
-<< "Kindlmann Extended"\
-<< "ColorBrewer single hue 5-class oranges"\
-<< "ColorBrewer single hue 5-class grays";
+const QStringList colormaps = QStringList()
+	<< "Diverging blue-gray-red"
+	<< "Black Body"
+	<< "Extended Black Body"
+	<< "Kindlmann"
+	<< "Kindlmann Extended"
+	<< "ColorBrewer single hue 5-class oranges"
+	<< "ColorBrewer single hue 5-class grays"
+	<< "ColorBrewer single hue 5-class oranges inv"
+	<< "ColorBrewer single hue 5-class red inv";
 
 const QStringList& iALUT::GetColorMapNames()
 {
@@ -105,7 +107,7 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, QS
 		break;
 
 	case 5:
-		// ColorBrewer single hue 5-class oranges
+		// ColorBrewer single hue 5-class oranges (from orange to neutral)
 		c.setRgb(166, 54, 3);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(230, 85, 13);	 ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(253, 141, 60);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
@@ -121,7 +123,26 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, QS
 		c.setRgb(204, 204, 204); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(247, 247, 247); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
 		break;
+
+	case 7:
+		// ColorBrewer single hue 5-class oranges (from neutral to orange)
+		c.setRgb(254, 237, 222); ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(253, 190, 133); ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(253, 141, 60);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(230, 85, 13);	 ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(166, 54, 3);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+		break;
+
+	case 8:
+		// ColorBrewer single hue 5-class reds (from neutral to red)
+		c.setRgb(254, 229, 217); ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(252, 174, 145); ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(251, 106, 74);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(222, 45, 38);	 ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(165, 15, 21);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+		break;
 	}
+
 	pLUT->SetRange( lutRange );
 	pLUT->SetTableRange( lutRange );
 	pLUT->SetNumberOfColors( numCols );
