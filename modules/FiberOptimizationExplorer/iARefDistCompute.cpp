@@ -173,15 +173,16 @@ void iARefDistCompute::run()
 			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{
 				size_t tableColumnID = m_splomData.numParams() - (iAFiberCharData::FiberValueCount + DistanceMetricCount + EndColumns) + diffID;
-				m_splomData.data()[tableColumnID][splomID] = diffData.diff[diffID].timestep[d.timeValues.size()-1];
-				//d.table->SetValue(fiberID, tableColumnID, d.timeRefDiff[fiberID][d.m_timeValues.size()-1][diffID]);
+				double lastValue = diffData.diff[diffID].timestep[d.timeValues.size() - 1];
+				m_splomData.data()[tableColumnID][splomID] = lastValue;
+				d.table->SetValue(fiberID, tableColumnID, lastValue); // required for coloring 3D view by these diffs!
 			}
 			for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
 			{
 				double dist = diffData.dist[distID][0].distance;
 				size_t tableColumnID = m_splomData.numParams() - (DistanceMetricCount + EndColumns) + distID;
 				m_splomData.data()[tableColumnID][splomID] = dist;
-				//d.table->SetValue(fiberID, tableColumnID, dist);
+				d.table->SetValue(fiberID, tableColumnID, dist); // required for coloring 3D view by these distances!
 			}
 			++splomID;
 		}
