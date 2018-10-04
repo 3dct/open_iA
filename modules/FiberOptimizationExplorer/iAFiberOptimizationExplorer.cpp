@@ -222,10 +222,13 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	moreButtons->setLayout(new QHBoxLayout());
 	auto showSampledCylinder = new QPushButton("Sample Fiber");
 	auto hideSampledCylinder = new QPushButton("Hide Sample Points");
+	auto spatialOverviewButton = new QPushButton("Spatial Overview");
 	connect(showSampledCylinder, &QPushButton::pressed, this, &iAFiberOptimizationExplorer::visualizeCylinderSamplePoints);
 	connect(hideSampledCylinder, &QPushButton::pressed, this, &iAFiberOptimizationExplorer::hideSamplePoints);
+	connect(spatialOverviewButton, &QPushButton::pressed, this, &iAFiberOptimizationExplorer::showSpatialOverviewButton);
 	moreButtons->layout()->addWidget(showSampledCylinder);
 	moreButtons->layout()->addWidget(hideSampledCylinder);
+	moreButtons->layout()->addWidget(spatialOverviewButton);
 	moreButtons->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	QWidget* mainRendererContainer = new QWidget();
@@ -973,6 +976,7 @@ void iAFiberOptimizationExplorer::refDistAvailable()
 	for (size_t chartID=0; chartID<ChartCount-1; ++chartID)
 		m_chartCB[chartID]->setEnabled(true);
 
+	showSpatialOverview();
 /*
 	 // include lineup following https://github.com/Caleydo/lineupjs
 	m_html = "<!DOCTYPE html>\n"
@@ -1034,6 +1038,26 @@ void iAFiberOptimizationExplorer::refDistAvailable()
 	m_browser->setHtml(m_html);
 	m_browser->show();
 */
+}
+
+void iAFiberOptimizationExplorer::showSpatialOverviewButton()
+{
+	addInteraction("Showing Spatial Overview");
+	showSpatialOverview();
+}
+
+void iAFiberOptimizationExplorer::showSpatialOverview()
+{
+	if (m_referenceID == NoResult)
+		return;
+	double range[2] = {-1.0, 1.0};
+	QSharedPointer<iALookupTable> lut(new iALookupTable());
+	*lut = iALUT::Build(range, "Diverging red-gray-blue", 255, SelectionOpacity);
+	auto ref3D = m_resultUIs[m_referenceID].main3DVis;
+	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns()-1;
+	ref3D->setLookupTable(lut, colID);
+	ref3D->updateColorSelectionRendering();
+	ref3D->show();
 }
 
 void iAFiberOptimizationExplorer::splomLookupTableChanged()
@@ -1286,13 +1310,13 @@ void iAFiberOptimizationExplorer::showCurrentSelectionDetail()
 		if (m_selection[resultID].size() == 0)
 			continue;
 		auto resultItem = new QStandardItem(resultName(resultID));
-		resultItem->setData(resultID, Qt::UserRole);
+		resultItem->setData(static_cast<unsigned long long>(resultID), Qt::UserRole);
 		m_selectionDetailModel->appendRow(resultItem);
 		for (size_t selID = 0; selID < m_selection[resultID].size(); ++selID)
 		{
 			size_t fiberID = m_selection[resultID][selID];
 			auto item = new QStandardItem(QString("%1").arg(fiberID));
-			item->setData(fiberID, Qt::UserRole);
+			item->setData(static_cast<unsigned long long>(fiberID), Qt::UserRole);
 			resultItem->appendRow(item);
 		}
 	}

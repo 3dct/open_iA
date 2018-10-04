@@ -105,6 +105,7 @@ private slots:
 	void showReferenceMeasureChanged(int);
 	void selectionFromListActivated(QModelIndex const &);
 	void selectionDetailsItemClicked(QModelIndex const &);
+	void showSpatialOverviewButton();
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
@@ -125,6 +126,7 @@ private:
 	void setOptimStep(int optimStep);
 	void showCurrentSelectionDetail();
 	void hideSamplePointsPrivate();
+	void showSpatialOverview();
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;

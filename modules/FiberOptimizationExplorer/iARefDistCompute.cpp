@@ -187,8 +187,8 @@ void iARefDistCompute::run()
 		}
 	}
 
-	std::vector<double> refMatchError(ref.fiberCount);
-	std::vector<double> refMatchCount(ref.fiberCount);
+	std::vector<double> refDistSum(ref.fiberCount, 0.0);
+	std::vector<double> refMatchCount(ref.fiberCount, 0.0);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		if (resultID == m_referenceID)
@@ -198,14 +198,18 @@ void iARefDistCompute::run()
 		{
 			auto & bestFiberBestDist = d.refDiffFiber[fiberID].dist[BestDistanceMetric][0];
 			size_t refFiberID = bestFiberBestDist.index;
-			refMatchError[refFiberID] += bestFiberBestDist.distance;
-			refMatchCount[refFiberID]++;
+			refDistSum[refFiberID] += bestFiberBestDist.distance;
+			refMatchCount[refFiberID] += 1;
 		}
 	}
+	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns();
+	addColumn(m_data->result[m_referenceID].table, 0, "AvgDistance", ref.fiberCount);
 	m_data->avgRefFiberMatch.resize(ref.fiberCount);
 	for (size_t fiberID = 0; fiberID < ref.fiberCount; ++fiberID)
 	{
-		m_data->avgRefFiberMatch[fiberID] = (refMatchCount[fiberID] == 0) ? -1 : refMatchError[fiberID] / refMatchCount[fiberID];
+		double value = (refMatchCount[fiberID] == 0) ? -1 : refDistSum[fiberID] / refMatchCount[fiberID];
+		m_data->avgRefFiberMatch[fiberID] = value;
+		m_data->result[m_referenceID].table->SetValue(fiberID, colID, value);
 	}
 }
 
