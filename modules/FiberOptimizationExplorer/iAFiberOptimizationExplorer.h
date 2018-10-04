@@ -103,6 +103,7 @@ private slots:
 	void showReferenceCountChanged(int);
 	void showReferenceMeasureChanged(int);
 	void selectionFromListActivated(QModelIndex const &);
+	void selectionDetailsItemClicked(QModelIndex const &);
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
@@ -119,6 +120,7 @@ private:
 	void addInteraction(QString const & interaction);
 	void toggleOptimStepChart(int index, bool visible);
 	QString diffName(int chartID) const;
+	QString resultName(size_t resultID) const;
 	void setOptimStep(int optimStep);
 	void showCurrentSelectionDetail();
 

@@ -389,15 +389,16 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	m_selectionListModel = new QStandardItemModel();
 	m_selectionList = new QListView();
 	m_selectionList->setModel(m_selectionListModel);
+	connect(m_selectionList, &QListView::clicked, this, &iAFiberOptimizationExplorer::selectionFromListActivated);
 	auto selectionListWrapper = new QWidget();
 	selectionListWrapper->setLayout(new QVBoxLayout());
 	selectionListWrapper->layout()->addWidget(new QLabel("Selections:"));
 	selectionListWrapper->layout()->addWidget(m_selectionList);
-	connect(m_selectionList, &QListView::clicked, this, &iAFiberOptimizationExplorer::selectionFromListActivated);
 	m_selectionDetailModel = new QStandardItemModel();
 	m_selectionDetailsTree = new QTreeView();
 	m_selectionDetailsTree->setHeaderHidden(true);
 	m_selectionDetailsTree->setModel(m_selectionDetailModel);
+	connect(m_selectionDetailsTree, &QTreeView::clicked, this, &iAFiberOptimizationExplorer::selectionDetailsItemClicked);
 	auto selectionDetailWrapper = new QWidget();
 	selectionDetailWrapper->setLayout(new QVBoxLayout());
 	selectionDetailWrapper->layout()->addWidget(new QLabel("Details:"));
@@ -585,7 +586,7 @@ void iAFiberOptimizationExplorer::addInteraction(QString const & interaction)
 void iAFiberOptimizationExplorer::toggleVis(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
-	addInteraction(QString("Toggle visibility of result %1").arg(resultID));
+	addInteraction(QString("Toggle visibility of %1").arg(resultName(resultID)));
 	iAFiberCharData & data = m_results->results[resultID];
 	iAFiberCharUIData & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
@@ -657,7 +658,7 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 void iAFiberOptimizationExplorer::toggleBoundingBox(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
-	addInteraction(QString("Toggle bounding box of result %1").arg(resultID));
+	addInteraction(QString("Toggle bounding box of %1").arg(resultName(resultID)));
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 		ui.main3DVis->showBoundingBox();
@@ -853,7 +854,7 @@ void iAFiberOptimizationExplorer::miniMouseEvent(QMouseEvent* ev)
 	if (ev->buttons() == Qt::RightButton && ev->type() == QEvent::MouseButtonPress)
 	{
 		int resultID = QObject::sender()->property("resultID").toInt();
-		addInteraction(QString("Started FiberScout for result %1.").arg(resultID));
+		addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
 		iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
 		MdiChild* newChild = m_mainWnd->createMdiChild(false);
 		iACsvConfig config = getCsvConfig(m_results->results[resultID].fileName, m_configName);
@@ -939,7 +940,7 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 		if (button != sender)
 			button->setText("");
 	size_t referenceID = sender->property("resultID").toULongLong();
-	addInteraction(QString("Reference set to ID %1").arg(referenceID));
+	addInteraction(QString("Reference set to %1").arg(resultName(referenceID)));
 	m_refDistCompute = new iARefDistCompute(m_results->results, *m_results->splomData.data(), referenceID);
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiberOptimizationExplorer::refDistAvailable);
 	m_jobs->addJob("Computing Reference Distances", m_refDistCompute->progress(), m_refDistCompute);
@@ -1180,7 +1181,7 @@ void iAFiberOptimizationExplorer::visualizeCylinderSamplePoints()
 			break;
 		}
 	}
-	addInteraction(QString("Visualized cylinder sampling for fiber %1 in result %2").arg(fiberID).arg(resultID));
+	addInteraction(QString("Visualized cylinder sampling for fiber %1 in %2").arg(fiberID).arg(resultName(resultID)));
 	if (fiberID == NoPlotsIdx)
 		return;
 	if (m_sampleActor)
@@ -1264,9 +1265,37 @@ void iAFiberOptimizationExplorer::showCurrentSelectionDetail()
 	{
 		if (m_selection[resultID].size() == 0)
 			continue;
-		auto resultItem = new QStandardItem(QString("Result %1").arg(resultID));
+		auto resultItem = new QStandardItem(resultName(resultID));
+		resultItem->setData(resultID, Qt::UserRole);
 		m_selectionDetailModel->appendRow(resultItem);
 		for (size_t selID = 0; selID < m_selection[resultID].size(); ++selID)
-			resultItem->appendRow(new QStandardItem(QString("%1").arg(m_selection[resultID][selID])));
+		{
+			size_t fiberID = m_selection[resultID][selID];
+			auto item = new QStandardItem(QString("%1").arg(fiberID));
+			item->setData(fiberID, Qt::UserRole);
+			resultItem->appendRow(item);
+		}
 	}
+}
+
+void iAFiberOptimizationExplorer::selectionDetailsItemClicked(QModelIndex const & index)
+{
+	auto item = m_selectionDetailModel->itemFromIndex(index);
+	if (!item->hasChildren())
+	{   // item text can be changed by users, so use internal data!
+		size_t resultID = item->parent()->data(Qt::UserRole).toULongLong();
+		size_t fiberID  = item->data(Qt::UserRole).toULongLong();
+		addInteraction(QString("Focus on fiber %1 in %2").arg(fiberID).arg(resultName(resultID)));
+		clearSelection();
+		m_selection[resultID].push_back(fiberID);
+		showCurrentSelectionIn3DViews();
+		showCurrentSelectionInPlots();
+		showCurrentSelectionInSPLOM();
+	}
+}
+
+
+QString iAFiberOptimizationExplorer::resultName(size_t resultID) const
+{
+	return QFileInfo(m_results->results[resultID].fileName).baseName();
 }
