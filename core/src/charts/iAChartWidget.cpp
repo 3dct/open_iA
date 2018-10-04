@@ -122,7 +122,8 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_fontHeight(0),
 	m_yMaxTickLabelWidth(0),
 	m_selectionMode(SelectionDisabled),
-	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this))
+	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this)),
+	m_drawXAxisAtZero(false),
 {
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	QSurfaceFormat fmt = format();
@@ -424,6 +425,8 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	//draw the x axis
 	painter.setPen(QWidget::palette().color(QPalette::Text));
 	painter.drawLine(-translationX, -1, -translationX + activeWidth(), -1);
+	if (m_drawXAxisAtZero && std::abs(-1.0-m_yMapper->srcToDst(0)) > 5) // if axis at bottom is at least 5 pixels away from zero point, draw additional line
+		painter.drawLine(-translationX, -m_yMapper->srcToDst(0), -translationX + activeWidth(), -m_yMapper->srcToDst(0));
 
 	if (m_showXAxisLabel)
 	{
@@ -1034,4 +1037,9 @@ void iAChartWidget::exportData()
 void iAChartWidget::showTooltip(bool toggled)
 {
 	m_showTooltip = toggled;
+}
+
+void iAChartWidget::setDrawXAxisAtZero(bool enable)
+{
+	m_drawXAxisAtZero = enable;
 }

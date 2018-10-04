@@ -102,6 +102,7 @@ public:
 	void updateXBounds(size_t startPlot = 0);
 	void updateYBounds(size_t startPlot = 0);
 	void resetView();
+	void setDrawXAxisAtZero(bool enable);
 signals:
 	void xAxisChanged();
 	void plotsSelected(std::vector<size_t> const & plotIDs);
@@ -175,4 +176,5 @@ private:
 	std::vector<size_t> m_selectedPlots;
 	QMap<double, QColor> m_xMarker;
 	size_t m_maxXAxisSteps;
+	bool m_drawXAxisAtZero;
 };
