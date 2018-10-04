@@ -112,6 +112,7 @@ private:
 	void loadStateAndShow();
 	void addInteraction(QString const & interaction);
 	void toggleOptimStepChart(int index, bool visible);
+	QString diffName(int chartID) const;
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_results;
@@ -136,8 +137,8 @@ private:
 	QLabel* m_currentOptimStepLabel;
 	std::vector<iAChartWidget*> m_optimStepChart;
 	QSlider* m_optimStepSlider;
-	QWidget* m_optimStepPlotContainer;
-	QVBoxLayout* m_optimPlotLayout;
+	QVBoxLayout* m_optimChartLayout;
+	std::vector<QCheckBox*> m_chartCB;
 	size_t ChartCount;
 
 	QCheckBox* m_chkboxShowReference;

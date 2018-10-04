@@ -242,15 +242,15 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	auto dataChooser = new QWidget();
 	dataChooser->setLayout(new QVBoxLayout());
 	ChartCount = iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1;
+	m_chartCB.resize(ChartCount);
 	for (int chartID = 0; chartID < ChartCount; ++chartID)
 	{
-		size_t splomCol = m_results->splomData->numParams() -
-				(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns) + chartID;
-		QCheckBox* cb = new QCheckBox(m_results->splomData->parameterName(splomCol));
-		cb->setChecked(chartID == ChartCount-1);
-		cb->setProperty("chartID", chartID);
-		connect(cb, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::optimDataToggled);
-		dataChooser->layout()->addWidget(cb);
+		m_chartCB[chartID] = new QCheckBox(diffName(chartID));
+		m_chartCB[chartID]->setChecked(chartID == ChartCount-1);
+		m_chartCB[chartID]->setEnabled(chartID == ChartCount-1);
+		m_chartCB[chartID]->setProperty("chartID", chartID);
+		connect(m_chartCB[chartID], &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::optimDataToggled);
+		dataChooser->layout()->addWidget(m_chartCB[chartID]);
 	}
 	size_t curPlotStart = 0;
 	for (int resultID=0; resultID<m_results->results.size(); ++resultID)
@@ -283,10 +283,10 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	connect(stepDelayInput, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
 	playControls->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-	m_optimStepPlotContainer = new QWidget();
-	m_optimPlotLayout = new QVBoxLayout();
-	m_optimStepPlotContainer->setLayout(m_optimPlotLayout);
-	m_optimStepPlotContainer->setSizeIncrement(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	auto chartContainer = new QWidget();
+	m_optimChartLayout = new QVBoxLayout();
+	chartContainer->setLayout(m_optimChartLayout);
+	chartContainer->setSizeIncrement(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	auto plotPlusControls = new QWidget();
 	plotPlusControls->setLayout(new QVBoxLayout());
 	m_optimStepSlider = new QSlider(Qt::Horizontal);
@@ -302,7 +302,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	optimStepsCtrls->layout()->addWidget(m_currentOptimStepLabel);
 	optimStepsCtrls->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-	plotPlusControls->layout()->addWidget(m_optimStepPlotContainer);
+	plotPlusControls->layout()->addWidget(chartContainer);
 	plotPlusControls->layout()->addWidget(optimStepsCtrls);
 	plotPlusControls->layout()->addWidget(playControls);
 
@@ -472,41 +472,37 @@ namespace
 	}
 }
 
-void iAFiberOptimizationExplorer::toggleOptimStepChart(int index, bool visible)
+void iAFiberOptimizationExplorer::toggleOptimStepChart(int chartID, bool visible)
 {
 	if (!visible)
 	{
-		if (!m_optimStepChart[index])
+		if (!m_optimStepChart[chartID])
 		{
-			DEBUG_LOG(QString("Optim Step chart %1 toggled invisible, but not created yet.").arg(index));
+			DEBUG_LOG(QString("Optim Step chart %1 toggled invisible, but not created yet.").arg(chartID));
 			return;
 		}
-		m_optimStepChart[index]->setVisible(false);
+		m_optimStepChart[chartID]->setVisible(false);
 		return;
 	}
-	if (!m_optimStepChart[index])
+	if (!m_optimStepChart[chartID])
 	{
-		if (index < ChartCount-1 && m_referenceID == NoResult)
+		if (chartID < ChartCount-1 && m_referenceID == NoResult)
 		{
 			DEBUG_LOG(QString("You need to set a reference first!"));
-			// TODO: set checkbox back to unchecked!
 			return;
 		}
-		size_t splomCol = m_results->splomData->numParams() -
-				(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns) + index;
-		m_optimStepChart[index] = new iAChartWidget(nullptr, "Optimization Step", m_results->splomData->parameterName(splomCol));
+		m_optimStepChart[chartID] = new iAChartWidget(nullptr, "Optimization Step", diffName(chartID));
 		size_t plotsBefore = 0, curIdx = 0;
-		while (curIdx < index)
+		while (curIdx < chartID)
 		{  // TODO: check invisible plots?
 			if (m_optimStepChart[curIdx])
 				++plotsBefore;
 			++curIdx;
 		}
-		m_optimPlotLayout->insertWidget(plotsBefore, m_optimStepChart[index]);
-		// TODO: order charts same as in checkbox list?
-		m_optimStepChart[index]->setMinimumHeight(100);
-		m_optimStepChart[index]->setSelectionMode(iAChartWidget::SelectPlot);
-		m_optimStepChart[index]->addXMarker(m_results->timeStepMax-1, TimeMarkerColor);
+		m_optimChartLayout->insertWidget(plotsBefore, m_optimStepChart[chartID]);
+		m_optimStepChart[chartID]->setMinimumHeight(100);
+		m_optimStepChart[chartID]->setSelectionMode(iAChartWidget::SelectPlot);
+		m_optimStepChart[chartID]->addXMarker(m_results->timeStepMax-1, TimeMarkerColor);
 		for (int resultID=0; resultID<m_results->results.size(); ++resultID)
 		{
 			auto & d = m_results->results[resultID];
@@ -515,20 +511,20 @@ void iAFiberOptimizationExplorer::toggleOptimStepChart(int index, bool visible)
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 			{
 				QSharedPointer<iAVectorPlotData> plotData;
-				if (index < ChartCount-1)
-					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[index].timestep));
+				if (chartID < ChartCount-1)
+					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].timestep));
 				else
 					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.projectionError[fiberID]));
 				plotData->setXDataType(Discrete);
-				m_optimStepChart[index]->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
+				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
 			}
 		}
-		connect(m_optimStepChart[index], &iAChartWidget::plotsSelected,
+		connect(m_optimStepChart[chartID], &iAChartWidget::plotsSelected,
 				this, &iAFiberOptimizationExplorer::selectionOptimStepChartChanged);
 	}
-	m_optimStepChart[index]->setVisible(true);
-	m_optimStepChart[index]->clearMarkers();
-	m_optimStepChart[index]->addXMarker(m_optimStepSlider->value(), TimeMarkerColor);
+	m_optimStepChart[chartID]->setVisible(true);
+	m_optimStepChart[chartID]->clearMarkers();
+	m_optimStepChart[chartID]->addXMarker(m_optimStepSlider->value(), TimeMarkerColor);
 
 	bool allVisible = noResultSelected(m_resultUIs);
 	for (size_t resultID=0; resultID<m_results->results.size(); ++resultID)
@@ -536,11 +532,11 @@ void iAFiberOptimizationExplorer::toggleOptimStepChart(int index, bool visible)
 		if (m_resultUIs[resultID].startPlotIdx == NoPlotsIdx)
 			continue;
 		for (size_t p = 0; p < m_results->results[resultID].fiberCount; ++p)
-			m_optimStepChart[index]->plots()[m_resultUIs[resultID].startPlotIdx+p]
+			m_optimStepChart[chartID]->plots()[m_resultUIs[resultID].startPlotIdx+p]
 					->setVisible(allVisible || resultSelected(m_resultUIs, resultID));
 	}
-	m_optimStepChart[index]->update();
-	showCurrentSelectionInPlot(index);
+	m_optimStepChart[chartID]->update();
+	showCurrentSelectionInPlot(chartID);
 }
 
 void iAFiberOptimizationExplorer::addInteraction(QString const & interaction)
@@ -908,6 +904,9 @@ void iAFiberOptimizationExplorer::refDistAvailable()
 	delete m_refDistCompute;
 	m_refDistCompute = nullptr;
 
+	for (size_t chartID=0; chartID<ChartCount-1; ++chartID)
+		m_chartCB[chartID]->setEnabled(true);
+
 /*
 	 // include lineup following https://github.com/Caleydo/lineupjs
 	m_html = "<!DOCTYPE html>\n"
@@ -1173,6 +1172,13 @@ void iAFiberOptimizationExplorer::visualizeCylinderSamplePoints()
 	m_mainRenderer->update();
 }
 
+QString iAFiberOptimizationExplorer::diffName(int chartID) const
+{
+	size_t splomCol = m_results->splomData->numParams() -
+		(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns) + chartID;
+	return m_results->splomData->parameterName(splomCol);
+}
+
 void iAFiberOptimizationExplorer::optimDataToggled(int state)
 {
 	if (m_referenceID == NoResult)
@@ -1183,6 +1189,6 @@ void iAFiberOptimizationExplorer::optimDataToggled(int state)
 		return;
 	}
 	int chartID = QObject::sender()->property("chartID").toInt();
-	addInteraction(QString("Toggled visibility of distance/difference vs. optimization step chart #%1.").arg(chartID));
+	addInteraction(QString("Toggled visibility of %1 vs. optimization step chart.").arg(diffName(chartID)));
 	toggleOptimStepChart(chartID, state == Qt::Checked);
 }
