@@ -170,14 +170,14 @@ namespace
 		return false;
 	}
 
-	double getOverlap(iAFiberData const & fiber1, iAFiberData const & fiber2)
+	double getOverlap(iAFiberData const & fiber1, iAFiberData const & fiber2, bool volRelation, bool shortFiberDet)
 	{
 		// leave out pi in volume, as we only need relation of the volumes!
 		double fiber1Vol = fiber1.length + std::pow(fiber1.diameter / 2, 2);
 		double fiber2Vol = fiber2.length + std::pow(fiber2.diameter / 2, 2);
 		// TODO: also map fiber volume (currently not mapped!
-		iAFiberData const & shorterFiber = (fiber1Vol < fiber2Vol) ? fiber1 : fiber2;
-		iAFiberData const & longerFiber  = (fiber1Vol < fiber2Vol) ? fiber2 : fiber1;
+		iAFiberData const & shorterFiber = (!shortFiberDet || fiber1Vol < fiber2Vol) ? fiber1 : fiber2;
+		iAFiberData const & longerFiber  = (!shortFiberDet || fiber1Vol < fiber2Vol) ? fiber2 : fiber1;
 		std::vector<Vec3D > sampledPoints;
 		samplePoints(shorterFiber, sampledPoints, DefaultSamplePoints);
 		size_t containedPoints = 0;
@@ -187,7 +187,8 @@ namespace
 				++containedPoints;
 		}
 		double distance = static_cast<double>(containedPoints) / DefaultSamplePoints;
-		distance *= (fiber1Vol < fiber2Vol) ? fiber1Vol / fiber2Vol : fiber2Vol / fiber1Vol;
+		if (volRelation)
+			distance *= (fiber1Vol < fiber2Vol) ? fiber1Vol / fiber2Vol : fiber2Vol / fiber1Vol;
 		return distance;
 	}
 }
@@ -297,9 +298,15 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		//        - one random variable for distance from center (0.. fiber radius); make sure to use sqrt of random variable to avoid clustering points in center (http://mathworld.wolfram.com/DiskPointPicking.html)
 		//    - pseudorandom?
 		//        --> no idea at the moment
-		distance = 1 - getOverlap(fiber1raw, fiber2);
+		distance = 1 - getOverlap(fiber1raw, fiber2, false, true);
 		break;
 	}
+	case 4:
+		distance = 1 - getOverlap(fiber1raw, fiber2, true, true);
+		break;
+	case 5:
+		distance = 1 - getOverlap(fiber1raw, fiber2, true, false);
+		break;
 	}
 	return distance;
 }
