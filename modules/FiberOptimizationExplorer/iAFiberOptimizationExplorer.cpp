@@ -1117,6 +1117,8 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 			}
 		}
 	}
+	if (referenceIDsToShow.empty())
+		return;
 
 	m_refVisTable->SetNumberOfRows(referenceIDsToShow.size());
 
@@ -1261,6 +1263,7 @@ void iAFiberOptimizationExplorer::selectionFromListActivated(QModelIndex const &
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInPlots();
 	showCurrentSelectionInSPLOM();
+	changeReferenceDisplay();
 }
 
 void iAFiberOptimizationExplorer::showCurrentSelectionDetail()
@@ -1296,6 +1299,7 @@ void iAFiberOptimizationExplorer::selectionDetailsItemClicked(QModelIndex const 
 		showCurrentSelectionIn3DViews();
 		showCurrentSelectionInPlots();
 		showCurrentSelectionInSPLOM();
+		changeReferenceDisplay();
 	}
 }
 
