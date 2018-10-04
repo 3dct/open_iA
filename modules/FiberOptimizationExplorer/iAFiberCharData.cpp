@@ -175,14 +175,14 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 		if (curData.fiberCount < minFiberNumber)
 			minFiberNumber = curData.fiberCount;
 
-		if (results.empty())
+		if (result.empty())
 			for (size_t h=0; h<io.getOutputHeaders().size(); ++h)
 				paramNames.push_back(io.getOutputHeaders()[h]);
 		else
 		{
 			// Check if output mapping is the same (it must be)!
-			for (auto key: results[0].mapping->keys())
-				if (curData.mapping->value(key) != results[0].mapping->value(key))
+			for (auto key: result[0].mapping->keys())
+				if (curData.mapping->value(key) != result[0].mapping->value(key))
 				{
 					DEBUG_LOG(QString("Mapping does not match for result %1, column %2!"));
 					return false;
@@ -330,9 +330,9 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 		}
 		++resultID;
 		progress->EmitProgress(resultID / csvFileNames.size());
-		results.push_back(curData);
+		result.push_back(curData);
 	}
-	if (results.size() == 0)
+	if (result.size() == 0)
 	{
 		DEBUG_LOG(QString("The specified folder %1 does not contain any valid csv files!").arg(path));
 		return false;
@@ -361,9 +361,9 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	splomData->setParameterNames(paramNames);
 	size_t numParams = splomData->numParams();
 	size_t splomStartIdx = 0;
-	for (resultID=0; resultID<results.size(); ++resultID)
+	for (resultID=0; resultID<result.size(); ++resultID)
 	{
-		auto & curData = results[resultID];
+		auto & curData = result[resultID];
 		size_t numTableColumns = curData.table->GetNumberOfColumns();
 		for (int i = (iARefDistCompute::DistanceMetricCount+iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns); i >= iARefDistCompute::EndColumns; --i)
 		{

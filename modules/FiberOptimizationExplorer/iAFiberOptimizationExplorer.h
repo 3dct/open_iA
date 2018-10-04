@@ -125,7 +125,7 @@ private:
 	void showCurrentSelectionDetail();
 
 	//! all data about the fiber characteristics optimization results that are analyzed
-	QSharedPointer<iAFiberResultsCollection> m_results;
+	QSharedPointer<iAFiberResultsCollection> m_data;
 	std::vector<iAFiberCharUIData> m_resultUIs;
 
 	QSharedPointer<iARendererManager> m_renderManager;

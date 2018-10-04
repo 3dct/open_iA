@@ -96,7 +96,7 @@ public:
 	static const QString LegacyFormat;
 	static const QString SimpleFormat;
 	iAFiberResultsCollection();
-	std::vector<iAFiberCharData> results;
+	std::vector<iAFiberCharData> result;
 	QSharedPointer<iASPLOMData> splomData;
 	size_t minFiberNumber;
 	int optimStepMax;
