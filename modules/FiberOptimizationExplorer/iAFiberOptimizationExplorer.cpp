@@ -492,6 +492,7 @@ void iAFiberOptimizationExplorer::toggleOptimStepChart(int chartID, bool visible
 			return;
 		}
 		m_optimStepChart[chartID] = new iAChartWidget(nullptr, "Optimization Step", diffName(chartID));
+		m_optimStepChart[chartID]->setDrawXAxisAtZero(true);
 		size_t plotsBefore = 0, curIdx = 0;
 		while (curIdx < chartID)
 		{  // TODO: check invisible plots?
