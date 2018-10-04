@@ -186,6 +186,28 @@ void iARefDistCompute::run()
 			++splomID;
 		}
 	}
+
+	auto & ref = m_data->result[m_referenceID];
+	std::vector<double> refMatchError(ref.fiberCount);
+	std::vector<double> refMatchCount(ref.fiberCount);
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	{
+		if (resultID == m_referenceID)
+			continue;
+		auto & d = m_data->result[resultID];
+		for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
+		{
+			auto & bestFiberBestDist = d.refDiffFiber[fiberID].dist[BestDistanceMetric][0];
+			size_t refFiberID = bestFiberBestDist.index;
+			refMatchError[refFiberID] += bestFiberBestDist.distance;
+			refMatchCount[refFiberID]++;
+		}
+	}
+	m_data->avgRefFiberMatch.resize(ref.fiberCount);
+	for (size_t fiberID = 0; fiberID < ref.fiberCount; ++fiberID)
+	{
+		m_data->avgRefFiberMatch[fiberID] = (refMatchCount[fiberID] == 0) ? -1 : refMatchError[fiberID] / refMatchCount[fiberID];
+	}
 }
 
 iAProgress* iARefDistCompute::progress()

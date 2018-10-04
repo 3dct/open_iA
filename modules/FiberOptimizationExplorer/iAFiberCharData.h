@@ -97,6 +97,7 @@ public:
 	static const QString SimpleFormat;
 	iAFiberResultsCollection();
 	std::vector<iAFiberCharData> result;
+	std::vector<double> avgRefFiberMatch;
 	QSharedPointer<iASPLOMData> splomData;
 	size_t minFiberNumber;
 	int optimStepMax;
