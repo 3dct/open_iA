@@ -22,13 +22,12 @@
 
 #include "iAProgress.h"
 
+#include <QSharedPointer>
 #include <QThread>
 
 #include <vector>
 
-class iAFiberCharData;
-class iASPLOMData;
-
+class iAFiberResultsCollection;
 
 class iARefDistCompute : public QThread
 {
@@ -38,13 +37,12 @@ public:
 	static const int BestDistanceMetric = 4;
 	static const int EndColumns = 2;
 	static int MaxNumberOfCloseFibers;
-	iARefDistCompute(std::vector<iAFiberCharData> & results, iASPLOMData & splomData, int referenceID);
+	iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, int referenceID);
 	void run() override;
 	iAProgress* progress();
 	size_t referenceID() const;
 private:
 	iAProgress m_progress;
-	iASPLOMData & m_splomData;
-	std::vector<iAFiberCharData> & m_resultData;
+	QSharedPointer<iAFiberResultsCollection> m_data;
 	int m_referenceID;
 };

@@ -949,7 +949,7 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 			button->setText("");
 	size_t referenceID = sender->property("resultID").toULongLong();
 	addInteraction(QString("Reference set to %1").arg(resultName(referenceID)));
-	m_refDistCompute = new iARefDistCompute(m_data->result, *m_data->splomData.data(), referenceID);
+	m_refDistCompute = new iARefDistCompute(m_data, referenceID);
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiberOptimizationExplorer::refDistAvailable);
 	m_jobs->addJob("Computing Reference Distances", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();

@@ -76,29 +76,28 @@ namespace
 
 int iARefDistCompute::MaxNumberOfCloseFibers = 25;
 
-iARefDistCompute::iARefDistCompute(std::vector<iAFiberCharData> & results, iASPLOMData & splomData, int referenceID):
-	m_splomData(splomData),
-	m_resultData(results),
+iARefDistCompute::iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, int referenceID):
+	m_data(data),
 	m_referenceID(referenceID)
 {}
 
 void iARefDistCompute::run()
 {
 	// "register" other datasets to reference:
-	auto & ref = m_resultData[m_referenceID];
+	auto & ref = m_data->result[m_referenceID];
 	auto const & mapping = *ref.mapping.data();
-	double const * cxr = m_splomData.paramRange(mapping[iACsvConfig::CenterX]),
-		*cyr = m_splomData.paramRange(mapping[iACsvConfig::CenterY]),
-		*czr = m_splomData.paramRange(mapping[iACsvConfig::CenterZ]);
+	double const * cxr = m_data->splomData->paramRange(mapping[iACsvConfig::CenterX]),
+		*cyr = m_data->splomData->paramRange(mapping[iACsvConfig::CenterY]),
+		*czr = m_data->splomData->paramRange(mapping[iACsvConfig::CenterZ]);
 	double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
 	double diagLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
-	double const * lengthRange = m_splomData.paramRange(mapping[iACsvConfig::Length]);
+	double const * lengthRange = m_data->splomData->paramRange(mapping[iACsvConfig::Length]);
 	double maxLength = lengthRange[1] - lengthRange[0];
 
-	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
+	for (size_t resultID = 0; resultID <  m_data->result.size(); ++resultID)
 	{
-		m_progress.EmitProgress(static_cast<int>(100.0 * resultID / m_resultData.size()));
-		auto & d = m_resultData[resultID];
+		m_progress.EmitProgress(static_cast<int>(100.0 * resultID / m_data->result.size()));
+		auto & d = m_data->result[resultID];
 		if (resultID == m_referenceID)
 			continue;
 		size_t fiberCount = d.table->GetNumberOfRows();
@@ -119,9 +118,9 @@ void iARefDistCompute::run()
 		mapping[iACsvConfig::Length],
 		mapping[iACsvConfig::Diameter]
 	};
-	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
-		auto& d = m_resultData[resultID];
+		auto& d = m_data->result[resultID];
 		if (resultID == m_referenceID)
 			continue;
 		size_t fiberCount = d.table->GetNumberOfRows();
@@ -159,9 +158,9 @@ void iARefDistCompute::run()
 		}
 	}
 	size_t splomID = 0;
-	for (size_t resultID = 0; resultID < m_resultData.size(); ++resultID)
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
-		iAFiberCharData& d = m_resultData[resultID];
+		auto & d = m_data->result[resultID];
 		if (resultID == m_referenceID)
 		{
 			splomID += d.fiberCount;
@@ -172,16 +171,16 @@ void iARefDistCompute::run()
 			auto & diffData = d.refDiffFiber[fiberID];
 			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{
-				size_t tableColumnID = m_splomData.numParams() - (iAFiberCharData::FiberValueCount + DistanceMetricCount + EndColumns) + diffID;
+				size_t tableColumnID = m_data->splomData->numParams() - (iAFiberCharData::FiberValueCount + DistanceMetricCount + EndColumns) + diffID;
 				double lastValue = diffData.diff[diffID].timestep[d.timeValues.size() - 1];
-				m_splomData.data()[tableColumnID][splomID] = lastValue;
+				m_data->splomData->data()[tableColumnID][splomID] = lastValue;
 				d.table->SetValue(fiberID, tableColumnID, lastValue); // required for coloring 3D view by these diffs!
 			}
 			for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
 			{
 				double dist = diffData.dist[distID][0].distance;
-				size_t tableColumnID = m_splomData.numParams() - (DistanceMetricCount + EndColumns) + distID;
-				m_splomData.data()[tableColumnID][splomID] = dist;
+				size_t tableColumnID = m_data->splomData->numParams() - (DistanceMetricCount + EndColumns) + distID;
+				m_data->splomData->data()[tableColumnID][splomID] = dist;
 				d.table->SetValue(fiberID, tableColumnID, dist); // required for coloring 3D view by these distances!
 			}
 			++splomID;
