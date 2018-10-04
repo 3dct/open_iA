@@ -65,6 +65,7 @@
 #include <QHBoxLayout>
 #include <QListView>
 #include <QMessageBox>
+#include <QModelIndex>
 #include <QMouseEvent>
 #include <QRadioButton>
 #include <QScrollArea>
@@ -392,6 +393,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	selectionListWrapper->setLayout(new QVBoxLayout());
 	selectionListWrapper->layout()->addWidget(new QLabel("Selections:"));
 	selectionListWrapper->layout()->addWidget(m_selectionList);
+	connect(m_selectionList, &QListView::clicked, this, &iAFiberOptimizationExplorer::selectionFromListActivated);
 	m_selectionDetailModel = new QStandardItemModel();
 	m_selectionDetailsTree = new QTreeView();
 	m_selectionDetailsTree->setHeaderHidden(true);
@@ -701,23 +703,13 @@ void iAFiberOptimizationExplorer::sortCurrentSelection(QString const & source)
 
 void iAFiberOptimizationExplorer::newSelection(QString const & source)
 {
-	m_selectionDetailModel->clear();
 	size_t resultCount = 0;
 	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
-	{
-		if (m_selection[resultID].size() == 0)
-			continue;
-		auto resultItem = new QStandardItem(QString("Result %1").arg(resultID));
-		m_selectionDetailModel->appendRow(resultItem);
-		for (size_t selID = 0; selID < m_selection[resultID].size(); ++selID)
-		{
-			resultItem->appendRow(new QStandardItem(QString("%1").arg(m_selection[resultID][selID])));
-		}
-		++resultCount;
-	}
+		resultCount += (m_selection[resultID].size() > 0) ? 1 : 0;
 	m_selections.push_back(m_selection);
 	m_selectionListModel->appendRow(new QStandardItem(QString("%1 fibers in %2 results (%3)")
 		.arg(selectionSize()).arg(resultCount).arg(source)));
+	showCurrentSelectionDetail();
 }
 
 size_t iAFiberOptimizationExplorer::selectionSize() const
@@ -1251,4 +1243,30 @@ void iAFiberOptimizationExplorer::optimDataToggled(int state)
 	int chartID = QObject::sender()->property("chartID").toInt();
 	addInteraction(QString("Toggled visibility of %1 vs. optimization step chart.").arg(diffName(chartID)));
 	toggleOptimStepChart(chartID, state == Qt::Checked);
+}
+
+void iAFiberOptimizationExplorer::selectionFromListActivated(QModelIndex const & index)
+{
+	auto item = m_selectionListModel->itemFromIndex(index);
+	int row = item->row();
+	addInteraction(QString("Switched to selection %1").arg(row));
+	m_selection = m_selections[row];
+	showCurrentSelectionDetail();
+	showCurrentSelectionIn3DViews();
+	showCurrentSelectionInPlots();
+	showCurrentSelectionInSPLOM();
+}
+
+void iAFiberOptimizationExplorer::showCurrentSelectionDetail()
+{
+	m_selectionDetailModel->clear();
+	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
+	{
+		if (m_selection[resultID].size() == 0)
+			continue;
+		auto resultItem = new QStandardItem(QString("Result %1").arg(resultID));
+		m_selectionDetailModel->appendRow(resultItem);
+		for (size_t selID = 0; selID < m_selection[resultID].size(); ++selID)
+			resultItem->appendRow(new QStandardItem(QString("%1").arg(m_selection[resultID][selID])));
+	}
 }

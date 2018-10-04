@@ -60,6 +60,7 @@ class QCheckBox;
 class QComboBox;
 class QLabel;
 class QListView;
+class QModelIndex;
 class QSlider;
 class QSpinBox;
 class QStandardItemModel;
@@ -101,6 +102,7 @@ private slots:
 	void showReferenceToggled();
 	void showReferenceCountChanged(int);
 	void showReferenceMeasureChanged(int);
+	void selectionFromListActivated(QModelIndex const &);
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
@@ -118,6 +120,7 @@ private:
 	void toggleOptimStepChart(int index, bool visible);
 	QString diffName(int chartID) const;
 	void setOptimStep(int optimStep);
+	void showCurrentSelectionDetail();
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_results;
