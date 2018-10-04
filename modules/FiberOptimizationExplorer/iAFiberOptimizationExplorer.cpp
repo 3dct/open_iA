@@ -63,6 +63,7 @@
 #include <QFileInfo>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QListView>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QRadioButton>
@@ -311,7 +312,9 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	optimStepsView->layout()->addWidget(plotPlusControls);
 	optimStepsView->layout()->addWidget(dataChooser);
 
+
 	// Results List View
+
 	m_defaultButtonGroup = new QButtonGroup();
 	QGridLayout* resultsListLayout = new QGridLayout();
 	for (int resultID=0; resultID<m_results->results.size(); ++resultID)
@@ -362,29 +365,61 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	QWidget* resultList = new QWidget();
 	resultList->setLayout(resultsListLayout);
 
+
 	// Interaction Protocol:
-	//QWidget* protocolWidget = new QWidget();
-	m_interactionProtocolView = new QTreeView();
+
+	m_interactionProtocol = new QTreeView();
+	m_interactionProtocol->setHeaderHidden(true);
 	m_interactionProtocolModel = new QStandardItemModel();
+	m_interactionProtocol->setModel(m_interactionProtocolModel);
+	//QWidget* protocolView = new QWidget();
 	//protocolWidget->setLayout(new QHBoxLayout());
-	m_interactionProtocolView->setModel(m_interactionProtocolModel);
+	//protocolWidget->layout()->addWidget(m_interactionProtocol);
+
 
 	// List Overview / LineUp View:
+
 //	m_browser = new QWebEngineView();
 //	iADockWidgetWrapper* browserWidget = new iADockWidgetWrapper(m_browser, "LineUp", "foeLineUp");
 
+
+	// Selection View:
+
+	m_selectionListModel = new QStandardItemModel();
+	m_selectionList = new QListView();
+	m_selectionList->setModel(m_selectionListModel);
+	auto selectionListWrapper = new QWidget();
+	selectionListWrapper->setLayout(new QVBoxLayout());
+	selectionListWrapper->layout()->addWidget(new QLabel("Selections:"));
+	selectionListWrapper->layout()->addWidget(m_selectionList);
+	m_selectionDetailModel = new QStandardItemModel();
+	m_selectionDetailsTree = new QTreeView();
+	m_selectionDetailsTree->setHeaderHidden(true);
+	m_selectionDetailsTree->setModel(m_selectionDetailModel);
+	auto selectionDetailWrapper = new QWidget();
+	selectionDetailWrapper->setLayout(new QVBoxLayout());
+	selectionDetailWrapper->layout()->addWidget(new QLabel("Details:"));
+	selectionDetailWrapper->layout()->addWidget(m_selectionDetailsTree);
+	auto selectionView = new QWidget();
+	selectionView->setLayout(new QHBoxLayout());
+	selectionView->layout()->addWidget(selectionListWrapper);
+	selectionView->layout()->addWidget(selectionDetailWrapper);
+
+
 	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultList, "Result list", "foeResultList");
-	iADockWidgetWrapper* main3DView = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
+	iADockWidgetWrapper* main3DWidget = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
 	iADockWidgetWrapper* optimStepWidget = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeTimeSteps");
 	iADockWidgetWrapper* splomWidget = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
-	iADockWidgetWrapper* interactionProtocolWidget = new iADockWidgetWrapper(m_interactionProtocolView, "Interaction Protocol", "foeInteractions");
+	iADockWidgetWrapper* interactionProtocolWidget = new iADockWidgetWrapper(m_interactionProtocol, "Interactions", "foeInteractions");
+	iADockWidgetWrapper* selectionWidget = new iADockWidgetWrapper(selectionView, "Selections", "foeSelections");
 
 	splitDockWidget(m_jobDockWidget, resultListDockWidget, Qt::Vertical);
-	splitDockWidget(resultListDockWidget, main3DView, Qt::Horizontal);
+	splitDockWidget(resultListDockWidget, main3DWidget, Qt::Horizontal);
 	splitDockWidget(resultListDockWidget, optimStepWidget, Qt::Vertical);
-	splitDockWidget(main3DView, splomWidget, Qt::Vertical);
+	splitDockWidget(main3DWidget, splomWidget, Qt::Horizontal);
 //	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
 	splitDockWidget(resultListDockWidget, interactionProtocolWidget, Qt::Vertical);
+	splitDockWidget(main3DWidget, selectionWidget, Qt::Vertical);
 
 	loadStateAndShow();
 }
@@ -657,10 +692,40 @@ void iAFiberOptimizationExplorer::clearSelection()
 		m_selection[resultID].clear();
 }
 
-void iAFiberOptimizationExplorer::sortCurrentSelection()
+void iAFiberOptimizationExplorer::sortCurrentSelection(QString const & source)
 {
 	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
 		std::sort(m_selection[resultID].begin(), m_selection[resultID].end());
+	newSelection(source);
+}
+
+void iAFiberOptimizationExplorer::newSelection(QString const & source)
+{
+	m_selectionDetailModel->clear();
+	size_t resultCount = 0;
+	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
+	{
+		if (m_selection[resultID].size() == 0)
+			continue;
+		auto resultItem = new QStandardItem(QString("Result %1").arg(resultID));
+		m_selectionDetailModel->appendRow(resultItem);
+		for (size_t selID = 0; selID < m_selection[resultID].size(); ++selID)
+		{
+			resultItem->appendRow(new QStandardItem(QString("%1").arg(m_selection[resultID][selID])));
+		}
+		++resultCount;
+	}
+	m_selections.push_back(m_selection);
+	m_selectionListModel->appendRow(new QStandardItem(QString("%1 fibers in %2 results (%3)")
+		.arg(selectionSize()).arg(resultCount).arg(source)));
+}
+
+size_t iAFiberOptimizationExplorer::selectionSize() const
+{
+	size_t selectionSize = 0;
+	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
+		selectionSize += m_selection[resultID].size();
+	return selectionSize;
 }
 
 void iAFiberOptimizationExplorer::showCurrentSelectionInPlots()
@@ -722,11 +787,8 @@ void iAFiberOptimizationExplorer::showCurrentSelectionIn3DViews()
 
 void iAFiberOptimizationExplorer::showCurrentSelectionInSPLOM()
 {
-	size_t splomSelectionSize = 0;
-	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
-		splomSelectionSize += m_selection[resultID].size();
 	std::vector<size_t> splomSelection;
-	splomSelection.reserve(splomSelectionSize);
+	splomSelection.reserve(selectionSize());
 	size_t splomIDStart = 0;
 	for (size_t resultID = 0; resultID<m_results->results.size(); ++resultID)
 	{
@@ -742,11 +804,8 @@ void iAFiberOptimizationExplorer::showCurrentSelectionInSPLOM()
 
 void iAFiberOptimizationExplorer::selection3DChanged()
 {
-	size_t selSize = 0;
-	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
-		selSize += m_selection[resultID].size();
-	addInteraction(QString("Selected %1 fibers in 3D view.").arg(selSize));
-	sortCurrentSelection();
+	addInteraction(QString("Selected %1 fibers in 3D view.").arg(selectionSize()));
+	sortCurrentSelection("3D view");
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInPlots();
 	showCurrentSelectionInSPLOM();
@@ -764,7 +823,7 @@ void iAFiberOptimizationExplorer::selectionSPLOMChanged(std::vector<size_t> cons
 		getResultFiberIDFromSplomID(splomID, resultID, fiberID);
 		m_selection[resultID].push_back(fiberID);
 	}
-	sortCurrentSelection();
+	sortCurrentSelection("SPLOM");
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInPlots();
 	changeReferenceDisplay();
@@ -790,7 +849,7 @@ void iAFiberOptimizationExplorer::selectionOptimStepChartChanged(std::vector<siz
 			}
 		}
 	}
-	sortCurrentSelection();
+	sortCurrentSelection("Chart");
 	showCurrentSelectionInPlots();
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInSPLOM();

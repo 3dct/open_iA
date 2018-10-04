@@ -59,18 +59,20 @@ class QButtonGroup;
 class QCheckBox;
 class QComboBox;
 class QLabel;
-//class QWebEngineView;
+class QListView;
 class QSlider;
 class QSpinBox;
 class QStandardItemModel;
 class QTimer;
 class QTreeView;
 class QVBoxLayout;
+//class QWebEngineView;
 
 class iAFiberOptimizationExplorer : public QMainWindow, public iASelectionProvider
 {
 	Q_OBJECT
 public:
+	typedef std::vector<std::vector<size_t> > SelectionType;
 	iAFiberOptimizationExplorer(MainWindow* mainWnd);
 	void start(QString const & path, QString const & configName);
 	~iAFiberOptimizationExplorer();
@@ -103,7 +105,9 @@ private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
 	void clearSelection();
-	void sortCurrentSelection();
+	void newSelection(QString const & source);
+	size_t selectionSize() const;
+	void sortCurrentSelection(QString const & source);
 	void showCurrentSelectionInPlots();
 	void showCurrentSelectionInPlot(int chartID);
 	void showCurrentSelectionIn3DViews();
@@ -124,27 +128,8 @@ private:
 	iAColorTheme const * m_colorTheme;
 	MainWindow* m_mainWnd;
 	size_t m_referenceID;
-	std::vector<std::vector<size_t> > m_selection;
+	SelectionType m_selection;
 	vtkSmartPointer<vtkTable> m_refVisTable;
-
-	iAVtkWidgetClass* m_mainRenderer;
-	QLabel * m_defaultOpacityLabel, * m_contextOpacityLabel;
-	QSlider* m_defaultOpacitySlider, * m_contextOpacitySlider;
-
-	QButtonGroup* m_defaultButtonGroup;
-
-	iAQSplom* m_splom;
-
-	QLabel* m_currentOptimStepLabel;
-	std::vector<iAChartWidget*> m_optimStepChart;
-	QSlider* m_optimStepSlider;
-	QVBoxLayout* m_optimChartLayout;
-	std::vector<QCheckBox*> m_chartCB;
-	size_t ChartCount;
-
-	QCheckBox* m_chkboxShowReference;
-	QSpinBox* m_spnboxReferenceCount;
-	QComboBox* m_cmbboxDistanceMeasure;
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
@@ -153,11 +138,45 @@ private:
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
 
+	// UI elements of the different views:
+
+	// Main Renderer:
+	iAVtkWidgetClass* m_mainRenderer;
+	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel;
+	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
+	QCheckBox* m_chkboxShowReference;
+	QSpinBox* m_spnboxReferenceCount;
+	QComboBox* m_cmbboxDistanceMeasure;
+
+	// Results List:
+	QButtonGroup* m_defaultButtonGroup;
+
+	// SPLOM:
+	iAQSplom* m_splom;
+
+	// Optimization Steps:
+	QLabel* m_currentOptimStepLabel;
+	std::vector<iAChartWidget*> m_optimStepChart;
+	QSlider* m_optimStepSlider;
+	QVBoxLayout* m_optimChartLayout;
+	std::vector<QCheckBox*> m_chartCB;
+	size_t ChartCount;
+
+	// Jobs:
+	QDockWidget* m_jobDockWidget;
+	iAJobListView * m_jobs;
+
+	// Interaction Protocol:
+	QTreeView* m_interactionProtocol;
+	QStandardItemModel* m_interactionProtocolModel;
+
+	// Selections:
+	QListView* m_selectionList;
+	QTreeView* m_selectionDetailsTree;
+	QStandardItemModel* m_selectionListModel;
+	QStandardItemModel* m_selectionDetailModel;
+	std::vector<SelectionType> m_selections;
+
 //	QWebEngineView*  m_browser;
 //	QString m_html;
-
-	iAJobListView * m_jobs;
-	QDockWidget* m_jobDockWidget;
-	QTreeView* m_interactionProtocolView;
-	QStandardItemModel* m_interactionProtocolModel;
 };
