@@ -1108,7 +1108,7 @@ void iAFiberOptimizationExplorer::changeReferenceDisplay()
 	//DEBUG_LOG("Showing reference fibers:");
 	for (size_t resultID=0; resultID < m_results->results.size(); ++resultID)
 	{
-		if (resultID == m_referenceID)
+		if (resultID == m_referenceID || !resultSelected(m_resultUIs, resultID))
 			continue;
 		for (size_t fiberIdx = 0; fiberIdx < m_selection[resultID].size(); ++fiberIdx)
 		{
