@@ -951,7 +951,11 @@ void iAScatterPlot::createAndFillVBO()
 	}
 	bool res = m_pointsBuffer->bind();
 	assert(res);
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	m_pointsBuffer->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+#else
+	m_pointsBuffer->setUsagePattern(QGLBuffer::DynamicDraw);
+#endif
 	m_pointsBuffer->allocate((CordDim + ColChan) * m_splomData->numPoints() * sizeof(GLfloat));
 	m_pointsBuffer->release();
 
