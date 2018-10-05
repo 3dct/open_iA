@@ -659,6 +659,7 @@ void iAFiberOptimizationExplorer::toggleVis(int state)
 	for (size_t c=0; c<ChartCount; ++c)
 		if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
 			m_optimStepChart[c]->update();
+	changeReferenceDisplay();
 	m_mainRenderer->GetRenderWindow()->Render();
 	m_mainRenderer->update();
 }
@@ -1058,6 +1059,8 @@ void iAFiberOptimizationExplorer::showSpatialOverview()
 	ref3D->setLookupTable(lut, colID);
 	ref3D->updateColorSelectionRendering();
 	ref3D->show();
+	m_mainRenderer->GetRenderWindow()->Render();
+	m_mainRenderer->update();
 }
 
 void iAFiberOptimizationExplorer::splomLookupTableChanged()
