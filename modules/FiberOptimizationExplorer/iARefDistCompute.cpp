@@ -210,6 +210,8 @@ void iARefDistCompute::run()
 		double value = (refMatchCount[fiberID] == 0) ? -1 : refDistSum[fiberID] / refMatchCount[fiberID];
 		m_data->avgRefFiberMatch[fiberID] = value;
 		m_data->result[m_referenceID].table->SetValue(fiberID, colID, value);
+		//DEBUG_LOG(QString("Fiber %1: matches=%2, distance sum=%3, average=%4")
+		//	.arg(fiberID).arg(refDistSum[fiberID]).arg(refMatchCount[fiberID]).arg(value));
 	}
 }
 
