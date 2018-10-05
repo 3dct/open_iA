@@ -88,12 +88,12 @@ namespace
 	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
 	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
+	const size_t NoResult = NoPlotsIdx;
 	const QString ModuleSettingsKey("FiberOptimizationExplorer");
 
 	QColor ProjectionErrorDefaultPlotColor(128, 128, 128, SelectionOpacity);
 	QColor SPLOMSelectionColor(255, 0, 0, ContextOpacity);
 
-	int NoResult = NoPlotsIdx;
 }
 
 //! UI elements for each result
