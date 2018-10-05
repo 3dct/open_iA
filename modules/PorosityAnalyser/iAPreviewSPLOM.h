@@ -20,15 +20,28 @@
 * ************************************************************************************/
 #pragma once
 
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QOpenGLWidget>
+#else
 #include <QGLWidget>
+#endif
 #include <QPixmap>
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+class iAPreviewSPLOM : public QOpenGLWidget
+#else
 class iAPreviewSPLOM : public QGLWidget
+#endif
 {
 	Q_OBJECT
 
 public:
-	iAPreviewSPLOM( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	iAPreviewSPLOM(QWidget * parent = 0, Qt::WindowFlags f = 0);
+#else
+	iAPreviewSPLOM(QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
+#endif
 	~iAPreviewSPLOM();
 	void SetPixmap( QPixmap * pxmp );
 	void SetMask( const QPixmap * mask );
@@ -37,12 +50,14 @@ public:
 	QRectF GetROI() const;
 
 protected:
-	virtual void paintEvent( QPaintEvent * event );				//!< Draws SPLOM. Re-implements QGLWidget.
-	void resizeEvent( QResizeEvent * event );
+	void paintEvent( QPaintEvent * event ) override;				//!< Draws SPLOM.
+	void resizeEvent( QResizeEvent * event ) override;
+	void mousePressEvent(QMouseEvent * event) override;
+	void mouseMoveEvent(QMouseEvent * event) override;
 
 	void roiFromLocal();
 
-	void mousePressEvent( QMouseEvent * event );
+
 	void CropPosByRect( QPoint & pos );
 	void UpdateROI();
 	void mouseReleaseEvent( QMouseEvent * event );
@@ -50,7 +65,6 @@ protected:
 
 	void updateLocRoi();
 
-	void mouseMoveEvent( QMouseEvent * event );
 	void Scale();
 	void updateOrigin();
 	void ScalePixmap();

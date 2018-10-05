@@ -21,6 +21,7 @@
 #include "iAPreviewSPLOM.h"
 
 #include <QMouseEvent>
+#include <QPainter>
 
 #include <cmath>
 
@@ -28,8 +29,13 @@ const double penWidth = 2.0;
 const QColor bgrCol( 50, 50, 50 );
 const QColor roiCol( 255, 0, 0, 240 );
 
-iAPreviewSPLOM::iAPreviewSPLOM( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ ) :
-	QGLWidget( parent, shareWidget, f ),
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+iAPreviewSPLOM::iAPreviewSPLOM(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
+	QOpenGLWidget(parent, f),
+#else
+iAPreviewSPLOM::iAPreviewSPLOM(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */) :
+	QGLWidget(parent, shareWidget, f),
+#endif
 	m_pxmp( 0 ),
 	m_mousePressed( false ),
 	m_maskPtrExt( 0 )

@@ -31,7 +31,6 @@
 
 class QWidget;
 class QFrame;
-class QGLWidget;
 
 class vtkCamera;
 class vtkScalarsToColors;
