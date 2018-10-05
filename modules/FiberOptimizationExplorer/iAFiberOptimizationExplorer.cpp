@@ -338,7 +338,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		m_renderManager->addToBundle(ren);
 		ren->SetBackground(1.0, 1.0, 1.0);
 		ren->SetUseDepthPeeling(true);
-		ren->SetMaximumNumberOfPeels(1000);
+		ren->SetMaximumNumberOfPeels(10);
 		renWin->AddRenderer(ren);
 		uiData.vtkWidget->SetRenderWindow(renWin);
 		uiData.vtkWidget->setProperty("resultID", resultID);
