@@ -121,17 +121,23 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(
 	return result;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataType>& histData, size_t binCount, iAValueType type)
+QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataType>& histData, size_t binCount, iAValueType type,
+	DataType minValue, DataType maxValue)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
-	DataType minValue = std::numeric_limits<DataType>::max();
-	DataType maxValue = std::numeric_limits<DataType>::lowest();
-	for (DataType d : histData)
+	if (std::isinf(minValue))
 	{
-		if (d < minValue)
-			minValue = d;
-		if (d > maxValue)
-			maxValue = d;
+		minValue = std::numeric_limits<DataType>::max();
+		for (DataType d : histData)
+			if (d < minValue)
+				minValue = d;
+	}
+	if (std::isinf(maxValue))
+	{
+		maxValue = std::numeric_limits<DataType>::lowest();
+		for (DataType d : histData)
+			if (d > maxValue)
+				maxValue = d;
 	}
 	result->xBounds[0] = minValue;
 	result->xBounds[1] = maxValue;
