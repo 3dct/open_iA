@@ -411,12 +411,14 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 
 		uiData.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
 		uiData.histoChart->setShowXAxisLabel(false);
+		auto range = m_data->splomData->paramRange((*d.mapping)[iACsvConfig::Length]);
+		uiData.histoChart->setXBounds(range[0], range[1]);
 		uiData.histoChart->setFixedWidth(HistogramWidth);
 		uiData.histoChart->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 		std::vector<double> fiberData(d.fiberCount);
 		for (size_t fiberID=0; fiberID<d.fiberCount; ++fiberID)
 			fiberData[fiberID] = d.table->GetValue(fiberID, (*d.mapping)[iACsvConfig::Length]).ToDouble();
-		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins);
+		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins, Continuous, range[0], range[1]);
 		auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, QColor(70, 70, 70, 255)));
 		uiData.histoChart->addPlot(histogramPlot);
 
@@ -1046,6 +1048,16 @@ void iAFiberOptimizationExplorer::refDistAvailable()
 
 	for (size_t chartID=0; chartID<ChartCount-1; ++chartID)
 		m_chartCB[chartID]->setEnabled(true);
+
+
+	auto refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
+
+	for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
+	{
+		QSharedPointer<iABarGraphPlot> newPlot(new iABarGraphPlot(refPlotData, QColor(70, 70, 70, 80)));
+		//if (m_resultUIs[resultID].histoChart->plots().size() > 1)
+		m_resultUIs[resultID].histoChart->addPlot(newPlot);
+	}
 
 	showSpatialOverview();
 /*
