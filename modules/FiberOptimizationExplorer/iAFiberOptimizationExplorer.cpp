@@ -32,6 +32,7 @@
 
 // Core:
 #include "charts/iAChartWidget.h"
+#include "charts/iAHistogramData.h"
 #include "charts/iAPlotTypes.h"
 #include "charts/iAScatterPlot.h" // for selection mode: iAScatterPlot::Rectangle
 #include "charts/iAQSplom.h"
@@ -96,6 +97,43 @@ namespace
 
 }
 
+class iAStackedHorizontalBarChart: public QWidget
+{
+public:
+	const int MaxBarHeight = 50;
+	const int TextPadding = 3;
+	iAStackedHorizontalBarChart(iAColorTheme const * theme): m_theme(theme)
+	{}
+	void addBar(QString const & name, int width, double value)
+	{
+		m_bars.push_back(std::make_tuple(name, width, value));
+	}
+	void setColorTheme(iAColorTheme const * theme)
+	{
+		m_theme = theme;
+	}
+private:
+	void paintEvent(QPaintEvent* ev) override
+	{
+		QPainter painter(this);
+		painter.setPen(QColor(0, 0, 0));
+		int accumulatedWidth = 0;
+		int barHeight = std::min(geometry().height(), MaxBarHeight);
+		int topY = geometry().height() / 2 - barHeight / 2;
+		for (size_t barID = 0; barID < m_bars.size(); ++barID)
+		{
+			QRect barRect(accumulatedWidth+TextPadding, topY, std::get<1>(m_bars[barID]), barHeight);
+			QBrush barBrush(m_theme->GetColor(barID));
+			painter.fillRect(barRect, barBrush);
+			painter.drawText(barRect, Qt::AlignVCenter,
+				std::get<0>(m_bars[barID])+": "+ QString::number(std::get<2>(m_bars[barID])));
+			accumulatedWidth += std::get<1>(m_bars[barID]);
+		}
+	}
+	std::vector<std::tuple<QString, int, double> > m_bars;
+	iAColorTheme const * m_theme;
+};
+
 //! UI elements for each result
 class iAFiberCharUIData
 {
@@ -104,6 +142,8 @@ public:
 	QSharedPointer<iA3DCylinderObjectVis> mini3DVis;
 	QSharedPointer<iA3DCylinderObjectVis> main3DVis;
 	QCheckBox* cbBoundingBox;
+	iAChartWidget* histoChart;
+	iAStackedHorizontalBarChart* stackedBars;
 	//! index where the plots for this result start
 	size_t startPlotIdx;
 };
@@ -321,10 +361,19 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	optimStepsView->layout()->addWidget(plotPlusControls);
 	optimStepsView->layout()->addWidget(dataChooser);
 
+	size_t maxFiberCount = 0;
+	for (int resultID=0; resultID<m_data->result.size(); ++resultID)
+	{
+		maxFiberCount = std::max(m_data->result[resultID].fiberCount, maxFiberCount);
+	}
+	const int StackedBarWidth = 150;
+	const int HistogramWidth = 150;
+	const int HistogramBins = 20;
 
 	// Results List View
 
 	m_defaultButtonGroup = new QButtonGroup();
+	QWidget* resultList = new QWidget();
 	QGridLayout* resultsListLayout = new QGridLayout();
 	for (int resultID=0; resultID<m_data->result.size(); ++resultID)
 	{
@@ -353,10 +402,30 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		toggleReference->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 		toggleReference->setProperty("resultID", resultID);
 		m_defaultButtonGroup->addButton(toggleReference);
+
+		uiData.stackedBars = new iAStackedHorizontalBarChart(iAColorThemeManager::GetInstance().GetTheme("Brewer Set3 (max. 12)"));
+		uiData.stackedBars->setFixedWidth(StackedBarWidth);
+		uiData.stackedBars->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+		int barWidth = (static_cast<double>(d.fiberCount)/maxFiberCount)*StackedBarWidth;
+		uiData.stackedBars->addBar("FiberCount", barWidth, d.fiberCount);
+
+		uiData.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
+		uiData.histoChart->setShowXAxisLabel(false);
+		uiData.histoChart->setFixedWidth(HistogramWidth);
+		uiData.histoChart->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+		std::vector<double> fiberData(d.fiberCount);
+		for (size_t fiberID=0; fiberID<d.fiberCount; ++fiberID)
+			fiberData[fiberID] = d.table->GetValue(fiberID, (*d.mapping)[iACsvConfig::Length]).ToDouble();
+		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins);
+		auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, QColor(70, 70, 70, 255)));
+		uiData.histoChart->addPlot(histogramPlot);
+
 		resultsListLayout->addWidget(toggleMainRender, resultID, 0);
 		resultsListLayout->addWidget(uiData.cbBoundingBox, resultID, 1);
 		resultsListLayout->addWidget(toggleReference, resultID, 2);
 		resultsListLayout->addWidget(uiData.vtkWidget, resultID, 3);
+		resultsListLayout->addWidget(uiData.stackedBars, resultID, 4);
+		resultsListLayout->addWidget(uiData.histoChart, resultID, 5);
 
 		uiData.mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
 			uiData.vtkWidget, d.table, d.mapping, getResultColor(resultID)));
@@ -366,12 +435,13 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		uiData.mini3DVis->show();
 		ren->ResetCamera();
 
+
+
 		connect(uiData.vtkWidget, &iAVtkWidgetClass::mouseEvent, this, &iAFiberOptimizationExplorer::miniMouseEvent);
 		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleVis);
 		connect(toggleReference, &QRadioButton::toggled, this, &iAFiberOptimizationExplorer::referenceToggled);
 		connect(uiData.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleBoundingBox);
 	}
-	QWidget* resultList = new QWidget();
 	resultList->setLayout(resultsListLayout);
 
 
