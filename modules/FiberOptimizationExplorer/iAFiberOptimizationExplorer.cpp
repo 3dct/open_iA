@@ -1057,6 +1057,7 @@ void iAFiberOptimizationExplorer::refDistAvailable()
 		QSharedPointer<iABarGraphPlot> newPlot(new iABarGraphPlot(refPlotData, QColor(70, 70, 70, 80)));
 		//if (m_resultUIs[resultID].histoChart->plots().size() > 1)
 		m_resultUIs[resultID].histoChart->addPlot(newPlot);
+		m_resultUIs[resultID].histoChart->update();
 	}
 
 	showSpatialOverview();
