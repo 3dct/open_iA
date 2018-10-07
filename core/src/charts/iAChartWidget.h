@@ -90,6 +90,7 @@ public:
 	void setShowXAxisLabel(bool show);
 	void addPlot(QSharedPointer<iAPlot> plot);
 	void removePlot(QSharedPointer<iAPlot> plot);
+	void clearPlots();
 	std::vector< QSharedPointer< iAPlot > > const & plots();
 	bool isDrawnDiscrete() const;
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay);

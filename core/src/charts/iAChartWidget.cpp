@@ -493,6 +493,8 @@ void iAChartWidget::setXBounds(double valMin, double valMax)
 	m_customXBounds = true;
 	m_xBounds[0] = valMin;
 	m_xBounds[1] = valMax;
+	m_xTickBounds[0] = valMin;
+	m_xTickBounds[1] = valMax;
 	ensureNonZeroRange(m_xBounds, true);
 }
 
@@ -659,6 +661,11 @@ void iAChartWidget::removePlot(QSharedPointer<iAPlot> plot)
 		m_plots.erase(it);
 		updateBounds();
 	}
+}
+
+void iAChartWidget::clearPlots()
+{
+	m_plots.clear();
 }
 
 std::vector<QSharedPointer<iAPlot> > const & iAChartWidget::plots()
