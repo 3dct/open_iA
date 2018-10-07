@@ -44,7 +44,9 @@ private slots:
 private:
 	void paintEvent(QPaintEvent* ev) override;
 	void contextMenuEvent(QContextMenuEvent *ev) override;
+	void mouseMoveEvent(QMouseEvent* ev) override;
 	std::vector<BarData> m_bars;
+	std::vector<int> m_dividers;
 	iAColorTheme const * m_theme;
 	QMenu* m_contextMenu;
 	bool m_header, m_stack;

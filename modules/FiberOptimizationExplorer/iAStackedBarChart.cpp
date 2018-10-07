@@ -26,6 +26,7 @@
 #include <QAction>
 #include <QMenu>
 #include <QPainter>
+#include <QToolTip>
 
 iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
 	m_theme(theme),
@@ -33,6 +34,7 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
 	m_header(header),
 	m_stack(true)
 {
+	setMouseTracking(true);
 	setContextMenuPolicy(Qt::DefaultContextMenu);
 	QAction* switchStack = new QAction("Switch Stacked Mode", nullptr);
 	switchStack->setCheckable(true);
@@ -80,6 +82,7 @@ void iAStackedBarChart::switchStackMode()
 
 void iAStackedBarChart::paintEvent(QPaintEvent* ev)
 {
+	m_dividers.clear();
 	DEBUG_LOG(QString("%1 x %2").arg(geometry().width()).arg(geometry().height()));
 	QPainter painter(this);
 	painter.setPen(QColor(0, 0, 0));
@@ -100,6 +103,7 @@ void iAStackedBarChart::paintEvent(QPaintEvent* ev)
 		barRect.adjust(TextPadding, 0, -TextPadding, 0);
 		painter.drawText(barRect, Qt::AlignVCenter,
 			(m_header ? std::get<0>(m_bars[barID]) : QString::number(std::get<1>(m_bars[barID]))));
+		m_dividers.push_back(accumulatedWidth+barWidth);
 		accumulatedWidth += m_stack ? barWidth : geometry().width() / m_bars.size();
 	}
 }
@@ -108,4 +112,28 @@ void iAStackedBarChart::contextMenuEvent(QContextMenuEvent *ev)
 {
 	if (m_header)
 		m_contextMenu->exec(ev->globalPos());
+}
+
+void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
+{
+	if (m_header)
+	{
+		const int DividerRange = 5;
+		int dividerWithinRange = -1;
+		for (size_t divID = 0; divID < m_dividers.size(); ++divID)
+			if ( abs(m_dividers[divID]- ev->x()) < DividerRange )
+				dividerWithinRange = divID;
+		this->setCursor( dividerWithinRange >= 0 ? Qt::SizeHorCursor : Qt::ArrowCursor );
+	}
+	else
+	{
+		int curBar = 0;
+		while (curBar < m_dividers.size() && ev->x() > m_dividers[curBar])
+			++curBar;
+		if (curBar < m_dividers.size())
+		{
+			auto & b = m_bars[curBar];
+			QToolTip::showText(ev->globalPos(), QString("%1: %2").arg(std::get<0>(b)).arg(std::get<1>(b)), this);
+		}
+	}
 }
