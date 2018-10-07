@@ -356,7 +356,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	{
 		commonSuffixLength = 0;
 	}
-	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme("Brewer Set3 (max. 12)");
+	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme("Material red (max. 10)");
 	m_defaultButtonGroup = new QButtonGroup();
 	QWidget* resultList = new QWidget();
 	QGridLayout* resultsListLayout = new QGridLayout();
@@ -1076,10 +1076,10 @@ void iAFiberOptimizationExplorer::setOptimStep(int optimStep)
 		chart->update();
 		for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
-			//m_resultData[resultID].m_mini3DVis->updateValues(m_resultData[resultID].m_timeValues[timeStep]);
-			if (m_resultUIs[resultID].main3DVis->visible())
-				m_resultUIs[resultID].main3DVis->updateValues(m_data->result[resultID]
-					.timeValues[std::min(static_cast<size_t>(optimStep), m_data->result[resultID].timeValues.size()-1)]);
+			auto main3DVis = m_resultUIs[resultID].main3DVis;
+			auto & timeValues = m_data->result[resultID].timeValues;
+			if (main3DVis->visible() && timeValues.size() > 0)
+				main3DVis->updateValues(timeValues[std::min(static_cast<size_t>(optimStep), timeValues.size()-1)]);
 		}
 	}
 }
