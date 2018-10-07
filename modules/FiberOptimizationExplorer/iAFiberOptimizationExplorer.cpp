@@ -85,6 +85,7 @@
 
 namespace
 {
+	const int HistogramMinWidth = 80;
 	const int StackedBarMinWidth = 70;
 	const int DefaultPlayDelay = 1000;
 	QColor OptimStepMarkerColor(192, 0, 0);
@@ -421,17 +422,19 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	{
 		commonSuffixLength = 0;
 	}
-	const int HistogramWidth = 150;
 	const int HistogramBins = 20;
 	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme("Brewer Set3 (max. 12)");
 	m_defaultButtonGroup = new QButtonGroup();
 	QWidget* resultList = new QWidget();
 	QGridLayout* resultsListLayout = new QGridLayout();
-	resultsListLayout->setSpacing(2);
+	resultsListLayout->setSpacing(5);
+	resultsListLayout->setColumnStretch(3, 1);
+	resultsListLayout->setColumnStretch(4, 1);
 
 	m_stackedBarsHeaders = new iAStackedHorizontalBarChart(colorTheme, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
-	m_stackedBarsHeaders->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	//m_stackedBarsHeaders->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	//m_stackedBarsHeaders->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	auto headerFiberCountAction = new QAction("Fiber Count", nullptr);
 	headerFiberCountAction->setProperty("colID", 0);
 	headerFiberCountAction->setCheckable(true);
@@ -458,7 +461,6 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	{
 		auto & d = m_data->result.at(resultID);
 		auto & uiData = m_resultUIs[resultID];
-
 
 		uiData.vtkWidget  = new iAVtkWidgetClass();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
@@ -492,14 +494,14 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 
 		uiData.stackedBars = new iAStackedHorizontalBarChart(colorTheme);
 		uiData.stackedBars->setMinimumWidth(StackedBarMinWidth);
-		uiData.stackedBars->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+		uiData.stackedBars->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 		uiData.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
 		uiData.histoChart->setShowXAxisLabel(false);
 		auto range = m_data->splomData->paramRange((*d.mapping)[iACsvConfig::Length]);
 		uiData.histoChart->setXBounds(range[0], range[1]);
-		uiData.histoChart->setFixedWidth(HistogramWidth);
-		uiData.histoChart->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+		uiData.histoChart->setMinimumWidth(HistogramMinWidth);
+		uiData.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		std::vector<double> fiberData(d.fiberCount);
 		for (size_t fiberID=0; fiberID<d.fiberCount; ++fiberID)
 			fiberData[fiberID] = d.table->GetValue(fiberID, (*d.mapping)[iACsvConfig::Length]).ToDouble();
@@ -668,7 +670,7 @@ void iAFiberOptimizationExplorer::addStackedBar(int index)
 		{
 			value = m_data->result[resultID].avgDifference.size() > 0 ?
 						m_data->result[resultID].avgDifference[index-1] : 0;
-			maxValue = m_data->maxDifference[index-1];
+			maxValue = m_data->maxAvgDifference[index-1];
 		}
 		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue);
 	}

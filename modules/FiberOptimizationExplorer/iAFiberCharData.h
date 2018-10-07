@@ -114,7 +114,7 @@ public:
 	//! for each fiber in the reference, the average match quality over all results (-1.. no match, otherwise 0..1 where 0 perfect match, 1..bad match)
 	std::vector<double> avgRefFiberMatch;
 	//! for each difference/distance measure, the maximum value over all results:
-	std::vector<double> maxDifference;
+	std::vector<double> maxAvgDifference;
 
 // Methods:
 	bool loadData(QString const & path, QString const & configName, iAProgress * progress);

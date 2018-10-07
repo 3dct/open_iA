@@ -216,7 +216,7 @@ void iARefDistCompute::run()
 
 	// compute average differences/distances:
 	size_t diffCount = iAFiberCharData::FiberValueCount+DistanceMetricCount;
-	m_data->maxDifference.resize(diffCount, std::numeric_limits<double>::min());
+	m_data->maxAvgDifference.resize(diffCount, std::numeric_limits<double>::min());
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		if (resultID == m_referenceID)
@@ -228,16 +228,17 @@ void iARefDistCompute::run()
 			for (size_t diffID = 0; diffID < diffCount; ++diffID)
 			{
 				size_t tableColumnID = m_data->splomData->numParams() - (iAFiberCharData::FiberValueCount + DistanceMetricCount + EndColumns) + diffID;
-				double value = d.table->GetValue(fiberID, tableColumnID).ToDouble();
+				double value = std::abs(d.table->GetValue(fiberID, tableColumnID).ToDouble());
 				d.avgDifference[diffID] += value;
-				if (value > m_data->maxDifference[diffID])
-					m_data->maxDifference[diffID] = value;
 			}
 		}
 		for (size_t diffID = 0; diffID < diffCount; ++diffID)
+		{
 			d.avgDifference[diffID] /= d.fiberCount;
+			if (d.avgDifference[diffID] > m_data->maxAvgDifference[diffID])
+				m_data->maxAvgDifference[diffID] = d.avgDifference[diffID];
+		}
 	}
-
 }
 
 iAProgress* iARefDistCompute::progress()
