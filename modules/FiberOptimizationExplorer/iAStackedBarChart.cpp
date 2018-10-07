@@ -83,7 +83,6 @@ void iAStackedBarChart::switchStackMode()
 void iAStackedBarChart::paintEvent(QPaintEvent* ev)
 {
 	m_dividers.clear();
-	DEBUG_LOG(QString("%1 x %2").arg(geometry().width()).arg(geometry().height()));
 	QPainter painter(this);
 	painter.setPen(QColor(0, 0, 0));
 	int accumulatedWidth = 0;
@@ -93,10 +92,6 @@ void iAStackedBarChart::paintEvent(QPaintEvent* ev)
 	for (size_t barID = 0; barID < m_bars.size(); ++barID)
 	{
 		int barWidth = (std::get<1>(m_bars[barID])/std::get<2>(m_bars[barID]))*geometry().width() / m_bars.size();
-		DEBUG_LOG(QString("    value=%1, maxValue=%2, barWidth=%3")
-				  .arg(std::get<1>(m_bars[barID]))
-				  .arg(std::get<2>(m_bars[barID]))
-				  .arg(barWidth));
 		QRect barRect(accumulatedWidth, topY, barWidth, barHeight);
 		QBrush barBrush(m_theme->GetColor(barID));
 		painter.fillRect(barRect, barBrush);

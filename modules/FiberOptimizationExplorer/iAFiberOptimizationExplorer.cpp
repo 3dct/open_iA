@@ -89,7 +89,10 @@ namespace
 	const int HistogramMinWidth = 80;
 	const int StackedBarMinWidth = 70;
 	const int DefaultPlayDelay = 1000;
-	QColor OptimStepMarkerColor(192, 0, 0);
+	const int HistogramBins = 20;
+	const QColor DistributionPlotColor(70, 70, 70, 255);
+	const QColor DistributionRefPlotColor(70, 70, 70, 80);
+	const QColor OptimStepMarkerColor(192, 0, 0);
 
 	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
 	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
@@ -329,6 +332,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	optimStepsView->layout()->addWidget(plotPlusControls);
 	optimStepsView->layout()->addWidget(dataChooser);
 
+
 	// Results List View
 
 	size_t commonPrefixLength = 0, commonSuffixLength = 0;
@@ -352,7 +356,6 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	{
 		commonSuffixLength = 0;
 	}
-	const int HistogramBins = 20;
 	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme("Brewer Set3 (max. 12)");
 	m_defaultButtonGroup = new QButtonGroup();
 	QWidget* resultList = new QWidget();
@@ -379,14 +382,25 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	actionsLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	auto previewLabel = new QLabel("Preview");
 	previewLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	auto distrLabel = new QLabel("Distribution");
-	distrLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	auto distrCmb = new QComboBox();
+	QStringList paramNames;
+	paramNames << "Start X" << "Start Y" << "Start Z"
+			   << "End X" << "End Y" << "End Z"
+			   << "Center X" << "Center Y" << "Center Z"
+			   << "Length" << "Diameter" << "Phi" << "Theta";
+	for (int curIdx=0; curIdx < paramNames.size(); ++curIdx)
+		paramNames[curIdx] += " Distribution";
+	distrCmb->addItems(paramNames);
+	distrCmb->setCurrentIndex(9);
+	connect(distrCmb, SIGNAL(currentIndexChanged(int)), this, SLOT(changeDistributionSource(int)));
+	//auto distrLabel = new QLabel("Distribution");
+	distrCmb->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
 	resultsListLayout->addWidget(nameLabel, 0, 0);
 	resultsListLayout->addWidget(actionsLabel, 0, 1);
 	resultsListLayout->addWidget(previewLabel, 0, 2);
 	resultsListLayout->addWidget(m_stackedBarsHeaders, 0, 3);
-	resultsListLayout->addWidget(distrLabel, 0, 4);
+	resultsListLayout->addWidget(distrCmb, 0, 4);
 
 	for (int resultID=0; resultID<m_data->result.size(); ++resultID)
 	{
@@ -429,16 +443,8 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 
 		uiData.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
 		uiData.histoChart->setShowXAxisLabel(false);
-		auto range = m_data->splomData->paramRange((*d.mapping)[iACsvConfig::Length]);
-		uiData.histoChart->setXBounds(range[0], range[1]);
 		uiData.histoChart->setMinimumWidth(HistogramMinWidth);
 		uiData.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		std::vector<double> fiberData(d.fiberCount);
-		for (size_t fiberID=0; fiberID<d.fiberCount; ++fiberID)
-			fiberData[fiberID] = d.table->GetValue(fiberID, (*d.mapping)[iACsvConfig::Length]).ToDouble();
-		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins, Continuous, range[0], range[1]);
-		auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, QColor(70, 70, 70, 255)));
-		uiData.histoChart->addPlot(histogramPlot);
 
 		QString name = QFileInfo(d.fileName).baseName();
 		name = name.mid(commonPrefixLength, name.size()-commonPrefixLength-commonSuffixLength);
@@ -464,7 +470,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	}
 	resultList->setLayout(resultsListLayout);
 	addStackedBar(0);
-
+	changeDistributionSource(iACsvConfig::Length);
 
 	// Interaction Protocol:
 
@@ -636,6 +642,33 @@ void iAFiberOptimizationExplorer::switchStackMode(bool stack)
 {
 	for (size_t resultID=0; resultID<m_resultUIs.size(); ++resultID)
 		m_resultUIs[resultID].stackedBars->setDoStack(stack);
+}
+
+void iAFiberOptimizationExplorer::changeDistributionSource(int index)
+{
+	QSharedPointer<iAPlotData> refPlotData;
+	if (m_referenceID != NoResult)
+		refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
+	for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
+	{
+		auto & d = m_data->result[resultID];
+		auto & chart = m_resultUIs[resultID].histoChart;
+		chart->clearPlots();
+		auto range = m_data->splomData->paramRange((*d.mapping)[index]);
+		chart->setXBounds(range[0], range[1]);
+		std::vector<double> fiberData(d.fiberCount);
+		for (size_t fiberID=0; fiberID<d.fiberCount; ++fiberID)
+			fiberData[fiberID] = d.table->GetValue(fiberID, (*d.mapping)[index]).ToDouble();
+		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins, Continuous, range[0], range[1]);
+		auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, DistributionPlotColor));
+		chart->addPlot(histogramPlot);
+		if (m_referenceID != NoResult)
+		{
+			QSharedPointer<iABarGraphPlot> refPlot(new iABarGraphPlot(refPlotData, DistributionRefPlotColor));
+			chart->addPlot(refPlot);
+		}
+		chart->update();
+	}
 }
 
 QColor iAFiberOptimizationExplorer::getResultColor(int resultID)

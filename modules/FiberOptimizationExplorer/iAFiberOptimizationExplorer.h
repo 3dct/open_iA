@@ -111,6 +111,7 @@ private slots:
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
+	void changeDistributionSource(int index);
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
