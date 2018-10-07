@@ -84,7 +84,10 @@ QString Join(Container<Element> const & vec, QString const & joinStr)
 	return result;
 }
 
-//! find the greatest common prefix of the two given strings
-//! example: str1 ="BaseMethod", str2="BaseMember"
-//!     result: "BaseMe"
+//! Find the (length of the) greatest common prefix of the two given strings.
+//! example: str1 ="BaseMethod", str2="BaseMember" => result: "BaseMe"
+open_iA_Core_API int GreatestCommonPrefixLength(QString const & str1, QString const & str2);
 open_iA_Core_API QString GreatestCommonPrefix(QString const & str1, QString const & str2);
+
+open_iA_Core_API int GreatestCommonSuffixLength(QString const & str1, QString const & str2);
+open_iA_Core_API QString GreatestCommonSuffix(QString const & str1, QString const & str2);
