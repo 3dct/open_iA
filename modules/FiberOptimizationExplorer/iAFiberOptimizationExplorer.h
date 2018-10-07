@@ -33,6 +33,7 @@
 class iAFiberResultsCollection;
 class iAFiberCharUIData;
 class iAJobListView;
+class iAStackedHorizontalBarChart;
 
 class iA3DCylinderObjectVis;
 
@@ -55,6 +56,7 @@ typedef QVTKWidget2 iAVtkWidgetClass;
 
 class vtkTable;
 
+class QActionGroup;
 class QButtonGroup;
 class QCheckBox;
 class QComboBox;
@@ -106,6 +108,8 @@ private slots:
 	void selectionFromListActivated(QModelIndex const &);
 	void selectionDetailsItemClicked(QModelIndex const &);
 	void showSpatialOverviewButton();
+	// result view:
+	void stackedColSelect();
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
@@ -123,6 +127,7 @@ private:
 	void toggleOptimStepChart(int index, bool visible);
 	QString diffName(int chartID) const;
 	QString resultName(size_t resultID) const;
+	QString stackedBarColName(int index) const;
 	void setOptimStep(int optimStep);
 	void showCurrentSelectionDetail();
 	void hideSamplePointsPrivate();
@@ -147,7 +152,7 @@ private:
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
 
-	// UI elements of the different views:
+	// Elements of the different views:
 
 	// Main Renderer:
 	iAVtkWidgetClass* m_mainRenderer;
@@ -158,7 +163,10 @@ private:
 	QComboBox* m_cmbboxDistanceMeasure;
 
 	// Results List:
+	void addStackedBar(int index);
+	void removeStackedBar(int index);
 	QButtonGroup* m_defaultButtonGroup;
+	iAStackedHorizontalBarChart* m_stackedBarsHeaders;
 
 	// SPLOM:
 	iAQSplom* m_splom;

@@ -174,14 +174,14 @@ void iARefDistCompute::run()
 				size_t tableColumnID = m_data->splomData->numParams() - (iAFiberCharData::FiberValueCount + DistanceMetricCount + EndColumns) + diffID;
 				double lastValue = diffData.diff[diffID].timestep[d.timeValues.size() - 1];
 				m_data->splomData->data()[tableColumnID][splomID] = lastValue;
-				d.table->SetValue(fiberID, tableColumnID, lastValue); // required for coloring 3D view by these diffs!
+				d.table->SetValue(fiberID, tableColumnID, lastValue); // required for coloring 3D view by these diffs + used below for average!
 			}
 			for (size_t distID = 0; distID < DistanceMetricCount; ++distID)
 			{
 				double dist = diffData.dist[distID][0].distance;
 				size_t tableColumnID = m_data->splomData->numParams() - (DistanceMetricCount + EndColumns) + distID;
 				m_data->splomData->data()[tableColumnID][splomID] = dist;
-				d.table->SetValue(fiberID, tableColumnID, dist); // required for coloring 3D view by these distances!
+				d.table->SetValue(fiberID, tableColumnID, dist); // required for coloring 3D view by these distances + used below for average!
 			}
 			++splomID;
 		}
@@ -213,6 +213,31 @@ void iARefDistCompute::run()
 		//DEBUG_LOG(QString("Fiber %1: matches=%2, distance sum=%3, average=%4")
 		//	.arg(fiberID).arg(refDistSum[fiberID]).arg(refMatchCount[fiberID]).arg(value));
 	}
+
+	// compute average differences/distances:
+	size_t diffCount = iAFiberCharData::FiberValueCount+DistanceMetricCount;
+	m_data->maxDifference.resize(diffCount, std::numeric_limits<double>::min());
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	{
+		if (resultID == m_referenceID)
+			continue;
+		auto & d = m_data->result[resultID];
+		d.avgDifference.resize(diffCount, 0.0);
+		for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
+		{
+			for (size_t diffID = 0; diffID < diffCount; ++diffID)
+			{
+				size_t tableColumnID = m_data->splomData->numParams() - (iAFiberCharData::FiberValueCount + DistanceMetricCount + EndColumns) + diffID;
+				double value = d.table->GetValue(fiberID, tableColumnID).ToDouble();
+				d.avgDifference[diffID] += value;
+				if (value > m_data->maxDifference[diffID])
+					m_data->maxDifference[diffID] = value;
+			}
+		}
+		for (size_t diffID = 0; diffID < diffCount; ++diffID)
+			d.avgDifference[diffID] /= d.fiberCount;
+	}
+
 }
 
 iAProgress* iARefDistCompute::progress()

@@ -44,6 +44,7 @@
 #include "iALUT.h"
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
+#include "iAStringHelper.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -65,6 +66,7 @@
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QListView>
+#include <QMenu>
 #include <QMessageBox>
 #include <QModelIndex>
 #include <QMouseEvent>
@@ -83,6 +85,7 @@
 
 namespace
 {
+	const int StackedBarMinWidth = 70;
 	const int DefaultPlayDelay = 1000;
 	QColor OptimStepMarkerColor(192, 0, 0);
 
@@ -100,17 +103,39 @@ namespace
 class iAStackedHorizontalBarChart: public QWidget
 {
 public:
-	const int MaxBarHeight = 50;
-	const int TextPadding = 3;
-	iAStackedHorizontalBarChart(iAColorTheme const * theme): m_theme(theme)
-	{}
-	void addBar(QString const & name, int width, double value)
+	typedef std::tuple<QString, double, double> BarData;
+	const int MaxBarHeight = 30;
+	const int TextPadding = 5;
+	iAStackedHorizontalBarChart(iAColorTheme const * theme, bool header = false):
+		m_theme(theme),
+		m_contextMenu(new QMenu(this)),
+		m_header(header),
+		m_stack(true)
 	{
-		m_bars.push_back(std::make_tuple(name, width, value));
+		setContextMenuPolicy(Qt::DefaultContextMenu);
+	}
+	void addBar(QString const & name, double value, double maxValue)
+	{
+		m_bars.push_back(std::make_tuple(name, value, maxValue));
+	}
+	void removeBar(QString const & name)
+	{
+		auto it = std::find_if(m_bars.begin(), m_bars.end(),
+			[name](BarData const & d){ return std::get<0>(d) == name; });
+		if (it != m_bars.end())
+			m_bars.erase(it);
 	}
 	void setColorTheme(iAColorTheme const * theme)
 	{
 		m_theme = theme;
+	}
+	QMenu* contextMenu()
+	{
+		return m_contextMenu;
+	}
+	void setDoStack(bool doStack)
+	{
+		m_stack = doStack;
 	}
 private:
 	void paintEvent(QPaintEvent* ev) override
@@ -120,18 +145,30 @@ private:
 		int accumulatedWidth = 0;
 		int barHeight = std::min(geometry().height(), MaxBarHeight);
 		int topY = geometry().height() / 2 - barHeight / 2;
+		QRect around(geometry());
+		//around.adjust(1, 1, -1, -1);
+		painter.fillRect(around, QBrush(QColor(40, 40, 40)));
 		for (size_t barID = 0; barID < m_bars.size(); ++barID)
 		{
-			QRect barRect(accumulatedWidth+TextPadding, topY, std::get<1>(m_bars[barID]), barHeight);
+			int barWidth = (std::get<1>(m_bars[barID])/std::get<2>(m_bars[barID]))*geometry().width() / m_bars.size();
+			QRect barRect(accumulatedWidth, topY, barWidth, barHeight);
 			QBrush barBrush(m_theme->GetColor(barID));
 			painter.fillRect(barRect, barBrush);
+			barRect.adjust(TextPadding, 0, -TextPadding, 0);
 			painter.drawText(barRect, Qt::AlignVCenter,
-				std::get<0>(m_bars[barID])+": "+ QString::number(std::get<2>(m_bars[barID])));
-			accumulatedWidth += std::get<1>(m_bars[barID]);
+				(m_header ? std::get<0>(m_bars[barID]) : QString::number(std::get<2>(m_bars[barID]))));
+			accumulatedWidth += m_stack ? barWidth : geometry().width() / m_bars.size();
 		}
 	}
-	std::vector<std::tuple<QString, int, double> > m_bars;
+	void contextMenuEvent(QContextMenuEvent *ev) override
+	{
+		if (m_header)
+			m_contextMenu->exec(ev->globalPos());
+	}
+	std::vector<BarData> m_bars;
 	iAColorTheme const * m_theme;
+	QMenu* m_contextMenu;
+	bool m_header, m_stack;
 };
 
 //! UI elements for each result
@@ -361,24 +398,67 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	optimStepsView->layout()->addWidget(plotPlusControls);
 	optimStepsView->layout()->addWidget(dataChooser);
 
-	size_t maxFiberCount = 0;
-	for (int resultID=0; resultID<m_data->result.size(); ++resultID)
-	{
-		maxFiberCount = std::max(m_data->result[resultID].fiberCount, maxFiberCount);
-	}
-	const int StackedBarWidth = 150;
-	const int HistogramWidth = 150;
-	const int HistogramBins = 20;
-
 	// Results List View
 
+	size_t commonPrefixLength = 0, commonSuffixLength = 0;
+	QString baseName0;
+	for (int resultID=0; resultID<m_data->result.size(); ++resultID)
+	{
+		QString baseName = QFileInfo(m_data->result[resultID].fileName).baseName();
+		if (resultID > 0)
+		{
+			commonPrefixLength = std::min(commonPrefixLength, static_cast<size_t>(GreatestCommonPrefixLength(baseName, baseName0)));
+			commonSuffixLength = std::min(commonSuffixLength, static_cast<size_t>(GreatestCommonSuffixLength(baseName, baseName0)));
+		}
+		else
+		{
+			commonPrefixLength = baseName.length();
+			commonSuffixLength = baseName.length();
+			baseName0 = baseName;
+		}
+	}
+	if (commonPrefixLength == commonSuffixLength)
+	{
+		commonSuffixLength = 0;
+	}
+	const int HistogramWidth = 150;
+	const int HistogramBins = 20;
+	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme("Brewer Set3 (max. 12)");
 	m_defaultButtonGroup = new QButtonGroup();
 	QWidget* resultList = new QWidget();
 	QGridLayout* resultsListLayout = new QGridLayout();
+	resultsListLayout->setSpacing(2);
+
+	m_stackedBarsHeaders = new iAStackedHorizontalBarChart(colorTheme, true);
+	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
+	m_stackedBarsHeaders->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	auto headerFiberCountAction = new QAction("Fiber Count", nullptr);
+	headerFiberCountAction->setProperty("colID", 0);
+	headerFiberCountAction->setCheckable(true);
+	headerFiberCountAction->setChecked(true);
+	connect(headerFiberCountAction, &QAction::triggered, this, &iAFiberOptimizationExplorer::stackedColSelect);
+	m_stackedBarsHeaders->contextMenu()->addAction(headerFiberCountAction);
+
+	auto nameLabel = new QLabel("Name");
+	nameLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	auto actionsLabel = new QLabel("Actions");
+	actionsLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	auto previewLabel = new QLabel("Preview");
+	previewLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	auto distrLabel = new QLabel("Distribution");
+	distrLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+	resultsListLayout->addWidget(nameLabel, 0, 0);
+	resultsListLayout->addWidget(actionsLabel, 0, 1);
+	resultsListLayout->addWidget(previewLabel, 0, 2);
+	resultsListLayout->addWidget(m_stackedBarsHeaders, 0, 3);
+	resultsListLayout->addWidget(distrLabel, 0, 4);
+
 	for (int resultID=0; resultID<m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result.at(resultID);
 		auto & uiData = m_resultUIs[resultID];
+
 
 		uiData.vtkWidget  = new iAVtkWidgetClass();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
@@ -392,22 +472,27 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		uiData.vtkWidget->SetRenderWindow(renWin);
 		uiData.vtkWidget->setProperty("resultID", resultID);
 
-		QCheckBox* toggleMainRender = new QCheckBox(QFileInfo(d.fileName).baseName());
-		toggleMainRender->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+		QCheckBox* toggleMainRender = new QCheckBox("Show");
+		toggleMainRender->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 		toggleMainRender->setProperty("resultID", resultID);
 		uiData.cbBoundingBox = new QCheckBox("Box");
-		uiData.cbBoundingBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+		uiData.cbBoundingBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 		uiData.cbBoundingBox->setProperty("resultID", resultID);
 		QRadioButton* toggleReference = new QRadioButton("");
-		toggleReference->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+		toggleReference->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 		toggleReference->setProperty("resultID", resultID);
 		m_defaultButtonGroup->addButton(toggleReference);
 
-		uiData.stackedBars = new iAStackedHorizontalBarChart(iAColorThemeManager::GetInstance().GetTheme("Brewer Set3 (max. 12)"));
-		uiData.stackedBars->setFixedWidth(StackedBarWidth);
+		QWidget* resultActions = new QWidget();
+		resultActions->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+		resultActions->setLayout(new QVBoxLayout());
+		resultActions->layout()->addWidget(toggleMainRender);
+		resultActions->layout()->addWidget(uiData.cbBoundingBox);
+		resultActions->layout()->addWidget(toggleReference);
+
+		uiData.stackedBars = new iAStackedHorizontalBarChart(colorTheme);
+		uiData.stackedBars->setMinimumWidth(StackedBarMinWidth);
 		uiData.stackedBars->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-		int barWidth = (static_cast<double>(d.fiberCount)/maxFiberCount)*StackedBarWidth;
-		uiData.stackedBars->addBar("FiberCount", barWidth, d.fiberCount);
 
 		uiData.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
 		uiData.histoChart->setShowXAxisLabel(false);
@@ -422,12 +507,14 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, QColor(70, 70, 70, 255)));
 		uiData.histoChart->addPlot(histogramPlot);
 
-		resultsListLayout->addWidget(toggleMainRender, resultID, 0);
-		resultsListLayout->addWidget(uiData.cbBoundingBox, resultID, 1);
-		resultsListLayout->addWidget(toggleReference, resultID, 2);
-		resultsListLayout->addWidget(uiData.vtkWidget, resultID, 3);
-		resultsListLayout->addWidget(uiData.stackedBars, resultID, 4);
-		resultsListLayout->addWidget(uiData.histoChart, resultID, 5);
+		QString name = QFileInfo(d.fileName).baseName();
+		name = name.mid(commonPrefixLength, name.size()-commonPrefixLength-commonSuffixLength);
+
+		resultsListLayout->addWidget(new QLabel(name), resultID+1, 0);
+		resultsListLayout->addWidget(resultActions, resultID+1, 1);
+		resultsListLayout->addWidget(uiData.vtkWidget, resultID+1, 2);
+		resultsListLayout->addWidget(uiData.stackedBars, resultID+1, 3);
+		resultsListLayout->addWidget(uiData.histoChart, resultID+1, 4);
 
 		uiData.mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
 			uiData.vtkWidget, d.table, d.mapping, getResultColor(resultID)));
@@ -437,14 +524,13 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		uiData.mini3DVis->show();
 		ren->ResetCamera();
 
-
-
 		connect(uiData.vtkWidget, &iAVtkWidgetClass::mouseEvent, this, &iAFiberOptimizationExplorer::miniMouseEvent);
 		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleVis);
 		connect(toggleReference, &QRadioButton::toggled, this, &iAFiberOptimizationExplorer::referenceToggled);
 		connect(uiData.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::toggleBoundingBox);
 	}
 	resultList->setLayout(resultsListLayout);
+	addStackedBar(0);
 
 
 	// Interaction Protocol:
@@ -559,6 +645,58 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	m_splom->settings.enableColorSettings = true;
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiberOptimizationExplorer::selectionSPLOMChanged);
 	connect(m_splom, &iAQSplom::lookupTableChanged, this, &iAFiberOptimizationExplorer::splomLookupTableChanged);
+}
+
+QString iAFiberOptimizationExplorer::stackedBarColName(int index) const
+{
+	return index == 0 ? "Fiber Count" : diffName(index-1);
+}
+
+void iAFiberOptimizationExplorer::addStackedBar(int index)
+{
+	QString title = stackedBarColName(index);
+	m_stackedBarsHeaders->addBar(title, 1, 1);
+	for (size_t resultID=0; resultID<m_resultUIs.size(); ++resultID)
+	{
+		double value, maxValue;
+		if (index == 0)
+		{
+			value = m_data->result[resultID].fiberCount;
+			maxValue = m_data->maxFiberCount;
+		}
+		else
+		{
+			value = m_data->result[resultID].avgDifference.size() > 0 ?
+						m_data->result[resultID].avgDifference[index-1] : 0;
+			maxValue = m_data->maxDifference[index-1];
+		}
+		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue);
+	}
+}
+
+void iAFiberOptimizationExplorer::removeStackedBar(int index)
+{
+	QString title = stackedBarColName(index);
+	m_stackedBarsHeaders->removeBar(title);
+	for (size_t resultID=0; resultID<m_resultUIs.size(); ++resultID)
+		m_resultUIs[resultID].stackedBars->removeBar(title);
+}
+
+void iAFiberOptimizationExplorer::stackedColSelect()
+{
+	auto source = qobject_cast<QAction*>(QObject::sender());
+	size_t colID = source->property("colID").toULongLong();
+	QString title = stackedBarColName(colID);
+	if (source->isChecked())
+	{
+		addInteraction(QString("Added %1 to stacked bar chart").arg(title));
+		addStackedBar(colID);
+	}
+	else
+	{
+		addInteraction(QString("Removed %1 from stacked bar chart").arg(title));
+		removeStackedBar(colID);
+	}
 }
 
 QColor iAFiberOptimizationExplorer::getResultColor(int resultID)
@@ -1033,11 +1171,11 @@ void iAFiberOptimizationExplorer::referenceToggled(bool)
 
 void iAFiberOptimizationExplorer::refDistAvailable()
 {
-	size_t endOfs = iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns;
+	size_t startIdx = m_data->splomData->numParams() - (iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns);
 	std::vector<size_t> changedSplomColumns;
 	for (size_t paramID = 0; paramID < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount; ++paramID)
 	{
-		size_t columnID = m_data->splomData->numParams() - endOfs + paramID;
+		size_t columnID = startIdx + paramID;
 		changedSplomColumns.push_back(columnID);
 	}
 	m_referenceID = m_refDistCompute->referenceID();
@@ -1055,9 +1193,22 @@ void iAFiberOptimizationExplorer::refDistAvailable()
 	for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
 	{
 		QSharedPointer<iABarGraphPlot> newPlot(new iABarGraphPlot(refPlotData, QColor(70, 70, 70, 80)));
-		//if (m_resultUIs[resultID].histoChart->plots().size() > 1)
+		auto & chart = m_resultUIs[resultID].histoChart;
+		if (chart->plots().size() > 1)
+			chart->removePlot(chart->plots()[1]);
 		m_resultUIs[resultID].histoChart->addPlot(newPlot);
 		m_resultUIs[resultID].histoChart->update();
+	}
+
+
+	for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount; ++diffID)
+	{
+		auto diffAvgAction = new QAction(m_data->splomData->parameterName(startIdx+diffID), nullptr);
+		diffAvgAction->setProperty("colID", static_cast<unsigned long long>(diffID+1));
+		diffAvgAction->setCheckable(true);
+		diffAvgAction->setChecked(false);
+		connect(diffAvgAction, &QAction::triggered, this, &iAFiberOptimizationExplorer::stackedColSelect);
+		m_stackedBarsHeaders->contextMenu()->addAction(diffAvgAction);
 	}
 
 	showSpatialOverview();
