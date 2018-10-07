@@ -33,7 +33,7 @@
 class iAFiberResultsCollection;
 class iAFiberCharUIData;
 class iAJobListView;
-class iAStackedHorizontalBarChart;
+class iAStackedBarChart;
 
 class iA3DCylinderObjectVis;
 
@@ -166,7 +166,7 @@ private:
 	void addStackedBar(int index);
 	void removeStackedBar(int index);
 	QButtonGroup* m_defaultButtonGroup;
-	iAStackedHorizontalBarChart* m_stackedBarsHeaders;
+	iAStackedBarChart* m_stackedBarsHeaders;
 
 	// SPLOM:
 	iAQSplom* m_splom;

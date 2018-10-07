@@ -24,6 +24,7 @@
 #include "iAFiberData.h"     // for samplePoints
 #include "iAJobListView.h"
 #include "iARefDistCompute.h"
+#include "iAStackedBarChart.h"
 
 // FeatureScout:
 #include "iACsvConfig.h"
@@ -101,77 +102,6 @@ namespace
 
 }
 
-class iAStackedHorizontalBarChart: public QWidget
-{
-public:
-	typedef std::tuple<QString, double, double> BarData;
-	const int MaxBarHeight = 30;
-	const int TextPadding = 5;
-	iAStackedHorizontalBarChart(iAColorTheme const * theme, bool header = false):
-		m_theme(theme),
-		m_contextMenu(new QMenu(this)),
-		m_header(header),
-		m_stack(true)
-	{
-		setContextMenuPolicy(Qt::DefaultContextMenu);
-	}
-	void addBar(QString const & name, double value, double maxValue)
-	{
-		m_bars.push_back(std::make_tuple(name, value, maxValue));
-	}
-	void removeBar(QString const & name)
-	{
-		auto it = std::find_if(m_bars.begin(), m_bars.end(),
-			[name](BarData const & d){ return std::get<0>(d) == name; });
-		if (it != m_bars.end())
-			m_bars.erase(it);
-	}
-	void setColorTheme(iAColorTheme const * theme)
-	{
-		m_theme = theme;
-	}
-	QMenu* contextMenu()
-	{
-		return m_contextMenu;
-	}
-	void setDoStack(bool doStack)
-	{
-		m_stack = doStack;
-	}
-private:
-	void paintEvent(QPaintEvent* ev) override
-	{
-		QPainter painter(this);
-		painter.setPen(QColor(0, 0, 0));
-		int accumulatedWidth = 0;
-		int barHeight = std::min(geometry().height(), MaxBarHeight);
-		int topY = geometry().height() / 2 - barHeight / 2;
-		QRect around(geometry());
-		//around.adjust(1, 1, -1, -1);
-		painter.fillRect(around, QBrush(QColor(40, 40, 40)));
-		for (size_t barID = 0; barID < m_bars.size(); ++barID)
-		{
-			int barWidth = (std::get<1>(m_bars[barID])/std::get<2>(m_bars[barID]))*geometry().width() / m_bars.size();
-			QRect barRect(accumulatedWidth, topY, barWidth, barHeight);
-			QBrush barBrush(m_theme->GetColor(barID));
-			painter.fillRect(barRect, barBrush);
-			barRect.adjust(TextPadding, 0, -TextPadding, 0);
-			painter.drawText(barRect, Qt::AlignVCenter,
-				(m_header ? std::get<0>(m_bars[barID]) : QString::number(std::get<2>(m_bars[barID]))));
-			accumulatedWidth += m_stack ? barWidth : geometry().width() / m_bars.size();
-		}
-	}
-	void contextMenuEvent(QContextMenuEvent *ev) override
-	{
-		if (m_header)
-			m_contextMenu->exec(ev->globalPos());
-	}
-	std::vector<BarData> m_bars;
-	iAColorTheme const * m_theme;
-	QMenu* m_contextMenu;
-	bool m_header, m_stack;
-};
-
 //! UI elements for each result
 class iAFiberCharUIData
 {
@@ -181,7 +111,7 @@ public:
 	QSharedPointer<iA3DCylinderObjectVis> main3DVis;
 	QCheckBox* cbBoundingBox;
 	iAChartWidget* histoChart;
-	iAStackedHorizontalBarChart* stackedBars;
+	iAStackedBarChart* stackedBars;
 	//! index where the plots for this result start
 	size_t startPlotIdx;
 };
@@ -431,7 +361,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	resultsListLayout->setColumnStretch(3, 1);
 	resultsListLayout->setColumnStretch(4, 1);
 
-	m_stackedBarsHeaders = new iAStackedHorizontalBarChart(colorTheme, true);
+	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
 	//m_stackedBarsHeaders->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	//m_stackedBarsHeaders->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
@@ -492,7 +422,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		resultActions->layout()->addWidget(uiData.cbBoundingBox);
 		resultActions->layout()->addWidget(toggleReference);
 
-		uiData.stackedBars = new iAStackedHorizontalBarChart(colorTheme);
+		uiData.stackedBars = new iAStackedBarChart(colorTheme);
 		uiData.stackedBars->setMinimumWidth(StackedBarMinWidth);
 		uiData.stackedBars->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
