@@ -172,7 +172,7 @@ void iARefDistCompute::run()
 			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
 			{
 				size_t tableColumnID = m_data->splomData->numParams() - (iAFiberCharData::FiberValueCount + DistanceMetricCount + EndColumns) + diffID;
-				double lastValue = diffData.diff[diffID].timestep[d.timeValues.size() - 1];
+				double lastValue = d.timeValues.size() > 0 ? diffData.diff[diffID].timestep[d.timeValues.size() - 1] : 0;
 				m_data->splomData->data()[tableColumnID][splomID] = lastValue;
 				d.table->SetValue(fiberID, tableColumnID, lastValue); // required for coloring 3D view by these diffs + used below for average!
 			}
