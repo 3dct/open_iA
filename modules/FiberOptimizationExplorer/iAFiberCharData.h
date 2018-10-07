@@ -84,10 +84,13 @@ public:
 	std::vector<std::vector<std::vector<double> > > timeValues;
 	//! projection error stored as fiber, timestep, global projection error
 	std::vector<std::vector<double > > projectionError;
-	//! comparison data to reference for each fiber
-	std::vector<iARefDiffFiberData> refDiffFiber;
 	//! number of fibers in the dataset:
 	size_t fiberCount;
+// Comparison to reference:
+	//! comparison data to reference for each fiber
+	std::vector<iARefDiffFiberData> refDiffFiber;
+	//! for each differnce/distance measure, the average over all fibers
+	std::vector<double> avgDifference;
 };
 
 class iAFiberResultsCollection
@@ -96,12 +99,24 @@ public:
 	static const QString LegacyFormat;
 	static const QString SimpleFormat;
 	iAFiberResultsCollection();
+
+	//! for each result, detailed data
 	std::vector<iAFiberCharData> result;
-	std::vector<double> avgRefFiberMatch;
+	//! SPM data
 	QSharedPointer<iASPLOMData> splomData;
-	size_t minFiberNumber;
+	//! min and max of fiber count over all results
+	size_t minFiberCount, maxFiberCount;
+	//! maximum of optimization steps in all results
 	int optimStepMax;
+	//! results folder
 	QString folder;
+// Comparison to reference:
+	//! for each fiber in the reference, the average match quality over all results (-1.. no match, otherwise 0..1 where 0 perfect match, 1..bad match)
+	std::vector<double> avgRefFiberMatch;
+	//! for each difference/distance measure, the maximum value over all results:
+	std::vector<double> maxDifference;
+
+// Methods:
 	bool loadData(QString const & path, QString const & configName, iAProgress * progress);
 };
 

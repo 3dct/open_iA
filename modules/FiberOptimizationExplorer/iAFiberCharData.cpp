@@ -133,13 +133,14 @@ void addColumn(vtkSmartPointer<vtkTable> table, float value, char const * column
 
 iAFiberResultsCollection::iAFiberResultsCollection():
 	splomData(new iASPLOMData()),
-	optimStepMax(1)
+	optimStepMax(1),
+	minFiberCount(std::numeric_limits<size_t>::max()),
+	maxFiberCount(0)
 {}
 
 bool iAFiberResultsCollection::loadData(QString const & path, QString const & configName, iAProgress * progress)
 {
 	folder = path;
-	minFiberNumber = iARefDistCompute::MaxNumberOfCloseFibers;
 	QStringList filters;
 	filters << "*.csv";
 	QStringList csvFileNames;
@@ -172,8 +173,10 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 		curData.fiberCount = curData.table->GetNumberOfRows();
 		curData.mapping = io.getOutputMapping();
 		curData.fileName = csvFile;
-		if (curData.fiberCount < minFiberNumber)
-			minFiberNumber = curData.fiberCount;
+		if (curData.fiberCount < minFiberCount)
+			minFiberCount = curData.fiberCount;
+		if (curData.fiberCount > maxFiberCount)
+			maxFiberCount = curData.fiberCount;
 
 		if (result.empty())
 			for (size_t h=0; h<io.getOutputHeaders().size(); ++h)
