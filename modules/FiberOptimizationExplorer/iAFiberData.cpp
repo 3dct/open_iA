@@ -281,7 +281,7 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		for (int i = 0; i < 3; ++i)
 			for (int j = 0; j < 3; ++j)
 				distance += (fiber2.pts[j] - fiber1raw.pts[i]).length();
-		distance /= fiber1raw.length;
+		distance /= (fiber1raw.length != 0.0) ? fiber1raw.length : 1;
 		break;
 	}
 	case 3: // overlap between the cylinder volumes, sampled through CylinderSamplePoints from the shorter fiber
@@ -308,5 +308,7 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		distance = 1 - getOverlap(fiber1raw, fiber2, true, false);
 		break;
 	}
+	if (std::isinf(distance))
+		distance = 0;
 	return distance;
 }
