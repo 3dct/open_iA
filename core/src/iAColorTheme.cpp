@@ -304,6 +304,7 @@ iAColorThemeManager::iAColorThemeManager()
 	sevenShadesOfBlue->AddColor(QColor(4, 52, 122));
 	sevenShadesOfBlue->AddColor(QColor(2, 26, 61));
 	m_themes.insert(sevenShadesOfBlue->GetName(), sevenShadesOfBlue);
+
 	iAVectorColorTheme* DVLColors = new iAVectorColorTheme("DVL-Metro Colors (max. 17)");
 	DVLColors->AddColor(QColor(164, 196, 0));
 	DVLColors->AddColor(QColor(96, 169, 23));
