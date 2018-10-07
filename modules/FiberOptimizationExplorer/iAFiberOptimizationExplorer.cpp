@@ -371,6 +371,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	headerFiberCountAction->setChecked(true);
 	connect(headerFiberCountAction, &QAction::triggered, this, &iAFiberOptimizationExplorer::stackedColSelect);
 	m_stackedBarsHeaders->contextMenu()->addAction(headerFiberCountAction);
+	connect(m_stackedBarsHeaders, &iAStackedBarChart::switchedStackMode, this, &iAFiberOptimizationExplorer::switchStackMode);
 
 	auto nameLabel = new QLabel("Name");
 	nameLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -629,6 +630,12 @@ void iAFiberOptimizationExplorer::stackedColSelect()
 		addInteraction(QString("Removed %1 from stacked bar chart").arg(title));
 		removeStackedBar(colID);
 	}
+}
+
+void iAFiberOptimizationExplorer::switchStackMode(bool stack)
+{
+	for (size_t resultID=0; resultID<m_resultUIs.size(); ++resultID)
+		m_resultUIs[resultID].stackedBars->setDoStack(stack);
 }
 
 QColor iAFiberOptimizationExplorer::getResultColor(int resultID)

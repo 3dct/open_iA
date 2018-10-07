@@ -75,6 +75,7 @@ void iAStackedBarChart::switchStackMode()
 	QAction* sender = qobject_cast<QAction*>(QObject::sender());
 	setDoStack(sender->isChecked());
 	update();
+	emit switchedStackMode(sender->isChecked());
 }
 
 void iAStackedBarChart::paintEvent(QPaintEvent* ev)
@@ -85,9 +86,7 @@ void iAStackedBarChart::paintEvent(QPaintEvent* ev)
 	int accumulatedWidth = 0;
 	int barHeight = std::min(geometry().height(), MaxBarHeight);
 	int topY = geometry().height() / 2 - barHeight / 2;
-	QRect around(geometry());
-	//around.adjust(1, 1, -1, -1);
-	painter.fillRect(around, QBrush(QColor(40, 40, 40)));
+	painter.fillRect(geometry(), QBrush(QWidget::palette().color(QWidget::backgroundRole())));
 	for (size_t barID = 0; barID < m_bars.size(); ++barID)
 	{
 		int barWidth = (std::get<1>(m_bars[barID])/std::get<2>(m_bars[barID]))*geometry().width() / m_bars.size();

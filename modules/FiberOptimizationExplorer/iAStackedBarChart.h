@@ -37,6 +37,8 @@ public:
 	void setColorTheme(iAColorTheme const * theme);
 	QMenu* contextMenu();
 	void setDoStack(bool doStack);
+signals:
+	void switchedStackMode(bool mode);
 private slots:
 	void switchStackMode();
 private:
