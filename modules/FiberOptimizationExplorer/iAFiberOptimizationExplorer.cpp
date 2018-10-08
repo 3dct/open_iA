@@ -260,8 +260,12 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 
 	m_optimStepChart.resize(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1);
 
-	auto dataChooser = new QWidget();
-	dataChooser->setLayout(new QVBoxLayout());
+	auto dataChooser = new QScrollArea();
+	dataChooser->setWidgetResizable(true);
+	auto comboBoxContainer = new QWidget();
+	dataChooser->setWidget(comboBoxContainer);
+	dataChooser->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+	comboBoxContainer->setLayout(new QVBoxLayout());
 	ChartCount = iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1;
 	m_chartCB.resize(ChartCount);
 	for (int chartID = 0; chartID < ChartCount; ++chartID)
@@ -271,7 +275,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		m_chartCB[chartID]->setEnabled(chartID == ChartCount-1);
 		m_chartCB[chartID]->setProperty("chartID", chartID);
 		connect(m_chartCB[chartID], &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::optimDataToggled);
-		dataChooser->layout()->addWidget(m_chartCB[chartID]);
+		comboBoxContainer->layout()->addWidget(m_chartCB[chartID]);
 	}
 	size_t curPlotStart = 0;
 	for (int resultID=0; resultID<m_data->result.size(); ++resultID)
@@ -358,8 +362,11 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	}
 	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme("Material red (max. 10)");
 	m_defaultButtonGroup = new QButtonGroup();
-	QWidget* resultList = new QWidget();
-	QGridLayout* resultsListLayout = new QGridLayout();
+	auto resultListScrollArea = new QScrollArea();
+	resultListScrollArea->setWidgetResizable(true);
+	auto resultList = new QWidget();
+	resultListScrollArea->setWidget(resultList);
+	auto resultsListLayout = new QGridLayout();
 	resultsListLayout->setSpacing(5);
 	resultsListLayout->setColumnStretch(3, 1);
 	resultsListLayout->setColumnStretch(4, 1);
@@ -514,7 +521,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	selectionView->layout()->addWidget(selectionDetailWrapper);
 
 
-	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultList, "Result list", "foeResultList");
+	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultListScrollArea, "Result list", "foeResultList");
 	iADockWidgetWrapper* main3DWidget = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
 	iADockWidgetWrapper* optimStepWidget = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeTimeSteps");
 	iADockWidgetWrapper* splomWidget = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
