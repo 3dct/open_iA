@@ -647,15 +647,12 @@ void iAFiberOptimizationExplorer::switchStackMode(bool stack)
 
 void iAFiberOptimizationExplorer::changeDistributionSource(int index)
 {
-	QSharedPointer<iAPlotData> refPlotData;
-	if (m_referenceID != NoResult)
-		refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
+	auto range = m_data->splomData->paramRange(index);
 	for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result[resultID];
 		auto & chart = m_resultUIs[resultID].histoChart;
 		chart->clearPlots();
-		auto range = m_data->splomData->paramRange(index);
 		chart->setXBounds(range[0], range[1]);
 		std::vector<double> fiberData(d.fiberCount);
 		for (size_t fiberID=0; fiberID<d.fiberCount; ++fiberID)
@@ -663,13 +660,20 @@ void iAFiberOptimizationExplorer::changeDistributionSource(int index)
 		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins, Continuous, range[0], range[1]);
 		auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, DistributionPlotColor));
 		chart->addPlot(histogramPlot);
-		if (m_referenceID != NoResult)
-		{
-			QSharedPointer<iABarGraphPlot> refPlot(new iABarGraphPlot(refPlotData, DistributionRefPlotColor));
-			chart->addPlot(refPlot);
-		}
-		chart->update();
 	}
+	if (m_referenceID != NoResult)
+	{
+		QSharedPointer<iAPlotData> refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
+		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+		{
+			if (resultID == m_referenceID)
+				continue;
+			QSharedPointer<iABarGraphPlot> refPlot(new iABarGraphPlot(refPlotData, DistributionRefPlotColor));
+			m_resultUIs[resultID].histoChart->addPlot(refPlot);
+		}
+	}
+	for (size_t resultID = 0; resultID<m_data->result.size(); ++resultID)
+		m_resultUIs[resultID].histoChart->update();
 }
 
 QColor iAFiberOptimizationExplorer::getResultColor(int resultID)
