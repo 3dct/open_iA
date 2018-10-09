@@ -26,6 +26,18 @@ class iAColorTheme;
 
 class QMenu;
 
+class iABarData
+{
+public:
+	iABarData(): name(""), value(0), maxValue(1), weight(1.0)
+	{}
+	iABarData(QString const & name, double value, double maxValue, double weight):
+		name(name), value(value), maxValue(maxValue), weight(weight)
+	{}
+	QString name;
+	double value, maxValue, weight;
+};
+
 class iAStackedBarChart: public QWidget
 {
 	Q_OBJECT
@@ -56,8 +68,8 @@ private:
 	const int DividerRange = 2;
 
 	int dividerWithinRange(int x) const;
-	double weightSum() const;
-	int barWidth(iABarData const & bar, double weightSum) const;
+	int barWidth(iABarData const & bar) const;
+	void normalizeWeights();
 
 	std::vector<iABarData> m_bars;
 	std::vector<int> m_dividers;
