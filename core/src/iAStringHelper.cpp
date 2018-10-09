@@ -109,12 +109,33 @@ QString DblToStringWithUnits(double value)
 			return QString::number(value, 'g', 3);
 }
 
-QString GreatestCommonPrefix(QString const & str1, QString const & str2)
+int GreatestCommonPrefixLength(QString const & str1, QString const & str2)
 {
 	int pos = 0;
 	while (pos < str1.size() && pos < str2.size() && str1.at(pos) == str2.at(pos))
 	{
 		++pos;
 	}
-	return str1.left(pos);
+	return pos;
+}
+
+int GreatestCommonSuffixLength(QString const & str1, QString const & str2)
+{
+	int pos = 0;
+	while (pos < str1.size() && pos < str2.size()
+		   && str1.at(str1.size()-1-pos) == str2.at(str2.size()-1-pos))
+	{
+		++pos;
+	}
+	return pos;
+}
+
+QString GreatestCommonPrefix(QString const & str1, QString const & str2)
+{
+	return str1.left(GreatestCommonPrefixLength(str1, str2));
+}
+
+QString GreatestCommonSuffix(QString const & str1, QString const & str2)
+{
+	return str1.right(GreatestCommonSuffixLength(str1, str2));
 }

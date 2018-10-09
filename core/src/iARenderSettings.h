@@ -28,17 +28,20 @@ public:
 		ShowSlicePlanes,
 		ShowHelpers,
 		ShowRPosition,
-		ParallelProjection;
+		ParallelProjection,
+		UseFXAA;
 	QString BackgroundTop,
 		BackgroundBottom;
 
-	iARenderSettings():
+
+	iARenderSettings() :
 		ShowSlicers(false),
 		ShowSlicePlanes(false),
 		ShowHelpers(true),
 		ShowRPosition(true),
 		ParallelProjection(false),
 		BackgroundTop("#7FAAFF"),
-		BackgroundBottom("#FFFFFF")
+		BackgroundBottom("#FFFFFF"),
+		UseFXAA(true)
 	{}
 };

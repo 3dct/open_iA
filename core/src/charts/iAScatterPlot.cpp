@@ -93,7 +93,7 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	m_curInd( NoPointIndex ),
 	m_prevInd( NoPointIndex ),
 	m_prevPtInd( NoPointIndex ),
-	m_pointsBuffer( 0 ),
+	m_pointsBuffer( nullptr ),
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false ),
 	m_colInd( 0 ),
@@ -105,7 +105,16 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	initGrid();
 }
 
-iAScatterPlot::~iAScatterPlot() {}
+iAScatterPlot::~iAScatterPlot()
+{
+	if (m_pointsBuffer)
+	{
+		m_pointsBuffer->bind();
+		m_pointsBuffer->destroy();
+		m_pointsBuffer->release();
+		delete m_pointsBuffer;
+	}
+}
 
 void iAScatterPlot::setData( int x, int y, QSharedPointer<iASPLOMData> &splomData )
 {
@@ -930,24 +939,23 @@ void iAScatterPlot::createAndFillVBO()
 	if (!m_splomData)
 		return;
 
-	//if ( m_pointsBuffer )
-	//{
-	//	m_pointsBuffer->release();
-	//	m_pointsBuffer->destroy();
-	//	delete m_pointsBuffer;
-	//}
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	m_pointsBuffer = new QOpenGLBuffer( QOpenGLBuffer::VertexBuffer );
 #else
 	m_pointsBuffer = new QGLBuffer( QGLBuffer::VertexBuffer );
 #endif
-	if (!m_pointsBuffer->create())//TODO: exceptions?
+	if (!m_pointsBuffer->create())
 	{
 		m_pointsBuffer = nullptr;
 		return;
 	}
 	bool res = m_pointsBuffer->bind();
 	assert(res);
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	m_pointsBuffer->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+#else
+	m_pointsBuffer->setUsagePattern(QGLBuffer::DynamicDraw);
+#endif
 	m_pointsBuffer->allocate((CordDim + ColChan) * m_splomData->numPoints() * sizeof(GLfloat));
 	m_pointsBuffer->release();
 

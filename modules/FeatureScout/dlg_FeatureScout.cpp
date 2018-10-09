@@ -239,8 +239,9 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	pcWidget = new QVTKOpenGLWidget();
 	auto pcWidgetRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	pcWidgetRenWin->SetLineSmoothing(true);
 	pcWidget->SetRenderWindow(pcWidgetRenWin);
-
+	
 	polarPlot = new QVTKOpenGLWidget();
 	auto polarPlotRenWin = vtkGenericOpenGLRenderWindow::New();
 	polarPlot->SetRenderWindow(polarPlotRenWin);

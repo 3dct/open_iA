@@ -77,8 +77,17 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 	iACsvConfig csvConfig = dlg.getConfig();
 	if (csvConfig.visType != iACsvConfig::UseVolume)
 	{
-		m_mdiChild = m_mainWnd->createMdiChild(false);
-		m_mdiChild->show();
+		if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FeatureScout",
+			"Load FeatureScout in currently active window (If you choose No, FeatureScout will be opened in a new window)?",
+			QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes)
+		{
+			m_mdiChild = m_mainWnd->activeMdiChild();
+		}
+		else
+		{
+			m_mdiChild = m_mainWnd->createMdiChild(false);
+			m_mdiChild->show();
+		}
 	}
 	else
 		m_mdiChild = m_mainWnd->activeMdiChild();

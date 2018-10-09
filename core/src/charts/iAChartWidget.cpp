@@ -119,7 +119,8 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_showXAxisLabel(true),
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
 	m_fontHeight(0),
-	m_yMaxTickLabelWidth(0)
+	m_yMaxTickLabelWidth(0),
+	m_drawXAxisAtZero(false)
 {
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 	QSurfaceFormat fmt = format();
@@ -420,6 +421,8 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	//draw the x axis
 	painter.setPen(QWidget::palette().color(QPalette::Text));
 	painter.drawLine(-translationX, -1, -translationX + activeWidth(), -1);
+	if (m_drawXAxisAtZero && std::abs(-1.0-m_yMapper->srcToDst(0)) > 5) // if axis at bottom is at least 5 pixels away from zero point, draw additional line
+		painter.drawLine(-translationX, -m_yMapper->srcToDst(0), -translationX + activeWidth(), -m_yMapper->srcToDst(0));
 
 	if (m_showXAxisLabel)
 	{
@@ -460,10 +463,9 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	for (int i = 0; i <= stepNumber; ++i)
 	{
 		double pos = step * i;
-		double yValue = (m_yMappingMode == Linear) ? pos * m_yBounds[1] :
-			/* Log: */ std::pow(LogBase, logMax / yZoom - (AxisTicksYMax - i));
-		QString text = DblToStringWithUnits(yValue);
 		int y = -static_cast<int>(pos * aheight * yZoom) - 1;
+		double yValue = m_yMapper->dstToSrc(-y-1);
+		QString text = DblToStringWithUnits(yValue);
 		painter.drawLine(static_cast<int>(-TickWidth), y, 0, y);	// indicator line
 		painter.drawText( - ( fm.width(text) + TickWidth),
 			(i == stepNumber) ? y + 0.75*m_fontHeight // write the text top aligned to the indicator line
@@ -487,6 +489,8 @@ void iAChartWidget::setXBounds(double valMin, double valMax)
 	m_customXBounds = true;
 	m_xBounds[0] = valMin;
 	m_xBounds[1] = valMax;
+	m_xTickBounds[0] = valMin;
+	m_xTickBounds[1] = valMax;
 	ensureNonZeroRange(m_xBounds, true);
 }
 
@@ -653,6 +657,11 @@ void iAChartWidget::removePlot(QSharedPointer<iAPlot> plot)
 		m_plots.erase(it);
 		updateBounds();
 	}
+}
+
+void iAChartWidget::clearPlots()
+{
+	m_plots.clear();
 }
 
 std::vector<QSharedPointer<iAPlot> > const & iAChartWidget::plots()
@@ -856,6 +865,10 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 void iAChartWidget::paintEvent(QPaintEvent * e)
 {
 	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing);
+	drawBackground(painter);
+	if (activeWidth() <= 1 || activeHeight() <= 1)
+		return;
 	if (!m_xMapper || !m_yMapper)
 		createMappers();
 	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, xZoom*(activeWidth()-1));
@@ -863,8 +876,6 @@ void iAChartWidget::paintEvent(QPaintEvent * e)
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
 	m_yMaxTickLabelWidth = fm.width("4.44M");
-	painter.setRenderHint(QPainter::Antialiasing);
-	drawBackground(painter);
 	painter.translate(translationX + leftMargin(), -bottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom
@@ -971,4 +982,9 @@ void iAChartWidget::exportData()
 void iAChartWidget::showTooltip(bool toggled)
 {
 	m_showTooltip = toggled;
+}
+
+void iAChartWidget::setDrawXAxisAtZero(bool enable)
+{
+	m_drawXAxisAtZero = enable;
 }
