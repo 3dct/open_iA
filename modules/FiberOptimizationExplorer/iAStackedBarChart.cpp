@@ -28,11 +28,29 @@
 #include <QPainter>
 #include <QToolTip>
 
-iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
+namespace
+{
+	double MinimumWeight = 0.01;
+	int MinimumPixelBarWidth = 1;
+}
+
+class iABarData
+{
+public:
+	iABarData(QString const & name, double value, double maxValue): 
+		name(name), value(value), maxValue(maxValue), weight(1.0)
+	{}
+	QString name;
+	double value, maxValue, weight;
+};
+
+iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header) :
 	m_theme(theme),
 	m_contextMenu(new QMenu(this)),
 	m_header(header),
-	m_stack(true)
+	m_stack(true),
+	m_resizeBar(-1),
+	m_resizeStartX(0)
 {
 	setMouseTracking(true);
 	setContextMenuPolicy(Qt::DefaultContextMenu);
@@ -45,15 +63,17 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
 
 void iAStackedBarChart::addBar(QString const & name, double value, double maxValue)
 {
-	m_bars.push_back(std::make_tuple(name, value, maxValue));
+	m_bars.push_back(iABarData(name, value, maxValue));
+	update();
 }
 
 void iAStackedBarChart::removeBar(QString const & name)
 {
 	auto it = std::find_if(m_bars.begin(), m_bars.end(),
-		[name](BarData const & d){ return std::get<0>(d) == name; });
+		[name](iABarData const & d){ return d.name == name; });
 	if (it != m_bars.end())
 		m_bars.erase(it);
+	update();
 }
 
 void iAStackedBarChart::setColorTheme(iAColorTheme const * theme)
@@ -89,17 +109,19 @@ void iAStackedBarChart::paintEvent(QPaintEvent* ev)
 	int barHeight = std::min(geometry().height(), MaxBarHeight);
 	int topY = geometry().height() / 2 - barHeight / 2;
 	painter.fillRect(geometry(), QBrush(QWidget::palette().color(QWidget::backgroundRole())));
+	double widthPerWeightFactor = widthPerWeight();
 	for (size_t barID = 0; barID < m_bars.size(); ++barID)
 	{
-		int barWidth = (std::get<1>(m_bars[barID])/std::get<2>(m_bars[barID]))*geometry().width() / m_bars.size();
-		QRect barRect(accumulatedWidth, topY, barWidth, barHeight);
+		auto & bar = m_bars[barID];
+		int bWidth = barWidth(bar, widthPerWeightFactor);
+		QRect barRect(accumulatedWidth, topY, bWidth, barHeight);
 		QBrush barBrush(m_theme->GetColor(barID));
 		painter.fillRect(barRect, barBrush);
 		barRect.adjust(TextPadding, 0, -TextPadding, 0);
 		painter.drawText(barRect, Qt::AlignVCenter,
-			(m_header ? std::get<0>(m_bars[barID]) : QString::number(std::get<1>(m_bars[barID]))));
-		m_dividers.push_back(accumulatedWidth+barWidth);
-		accumulatedWidth += m_stack ? barWidth : geometry().width() / m_bars.size();
+			(m_header ? bar.name : QString::number(bar.value)));
+		m_dividers.push_back(accumulatedWidth + bWidth);
+		accumulatedWidth += m_stack ? bWidth : geometry().width() / m_bars.size();
 	}
 }
 
@@ -109,26 +131,87 @@ void iAStackedBarChart::contextMenuEvent(QContextMenuEvent *ev)
 		m_contextMenu->exec(ev->globalPos());
 }
 
+int iAStackedBarChart::dividerWithinRange(int x) const
+{
+	for (size_t divID = 0; divID < m_dividers.size(); ++divID)
+		if (abs(m_dividers[divID] - x) < DividerRange)
+			return divID;
+	return -1;
+}
+
+double iAStackedBarChart::widthPerWeight() const
+{
+	double weightSum = 0;
+	for (auto & bar : m_bars)
+		weightSum += bar.weight;
+	return static_cast<double>(geometry().width()) / weightSum;
+}
+
+int iAStackedBarChart::barWidth(iABarData const & bar, double widthPerWeight) const
+{
+	return std::max(MinimumPixelBarWidth, static_cast<int>((bar.value / bar.maxValue) * bar.weight * widthPerWeight));
+}
+
 void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 {
 	if (m_header)
 	{
-		const int DividerRange = 5;
-		int dividerWithinRange = -1;
-		for (size_t divID = 0; divID < m_dividers.size(); ++divID)
-			if ( abs(m_dividers[divID]- ev->x()) < DividerRange )
-				dividerWithinRange = divID;
-		this->setCursor( dividerWithinRange >= 0 ? Qt::SizeHorCursor : Qt::ArrowCursor );
+		if (m_resizeBar != -1)
+		{
+			if (!(ev->buttons() & Qt::LeftButton))  // left button was released without being in the window?
+			{
+				DEBUG_LOG("iAStackedBarChart: resizedBar set but left button not pressed! Resetting...");
+				m_resizeBar = -1;
+			}
+			else
+			{
+				int xOfs = m_resizeStartX - ev->x();
+				double bw = barWidth(m_bars[m_resizeBar], widthPerWeight());
+				double  newBW = bw + xOfs;
+				m_resizeStartX = ev->x();
+				m_bars[m_resizeBar].weight = std::max(MinimumWeight, m_bars[m_resizeBar].weight * (bw/newBW));
+				DEBUG_LOG(QString("Bar %1: old width: %2, new width: %3, new weight: %4").arg(m_resizeBar).arg(bw).arg(newBW).arg(m_bars[m_resizeBar].weight));
+				update();
+			}
+		}
+		else
+		{
+			int barID = dividerWithinRange(ev->x());
+			this->setCursor(barID >= 0 ? Qt::SizeHorCursor : Qt::ArrowCursor);
+		}
 	}
 	else
 	{
 		int curBar = 0;
 		while (curBar < m_dividers.size() && ev->x() > m_dividers[curBar])
 			++curBar;
-		if (curBar < m_dividers.size())
+		if (curBar < m_bars.size())
 		{
 			auto & b = m_bars[curBar];
-			QToolTip::showText(ev->globalPos(), QString("%1: %2").arg(std::get<0>(b)).arg(std::get<1>(b)), this);
+			//QToolTip::showText(ev->globalPos(), QString("%1: %2 (weight: %3)").arg(b.name).arg(b.value).arg(b.weight), this);
+			setToolTip(QString("%1: %2 (weight: %3)").arg(b.name).arg(b.value).arg(b.weight));
 		}
+	}
+}
+
+void iAStackedBarChart::mousePressEvent(QMouseEvent* ev)
+{
+	if (m_header && (ev->button() & Qt::LeftButton))
+	{
+		int barID = dividerWithinRange(ev->x());
+		if (barID != -1)
+		{
+			m_resizeBar = barID;
+			m_resizeStartX = ev->x();
+		}
+	}
+}
+
+void iAStackedBarChart::mouseReleaseEvent(QMouseEvent* ev)
+{
+	if (m_resizeBar != -1)
+	{
+		emit weightChanged(m_resizeBar, m_bars[m_resizeBar].weight);
+		m_resizeBar = -1;
 	}
 }

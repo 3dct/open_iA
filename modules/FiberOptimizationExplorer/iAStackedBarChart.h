@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include <QWidget>
 
+class iABarData;
+
 class iAColorTheme;
 
 class QMenu;
@@ -28,8 +30,7 @@ class iAStackedBarChart: public QWidget
 {
 	Q_OBJECT
 public:
-	typedef std::tuple<QString, double, double> BarData;
-	const int MaxBarHeight = 30;
+	const int MaxBarHeight = 50;
 	const int TextPadding = 5;
 	iAStackedBarChart(iAColorTheme const * theme, bool header = false);
 	void addBar(QString const & name, double value, double maxValue);
@@ -39,15 +40,27 @@ public:
 	void setDoStack(bool doStack);
 signals:
 	void switchedStackMode(bool mode);
+	void weightChanged(size_t barIndex, double weight);
 private slots:
 	void switchStackMode();
 private:
+	//! @{ Event Handlers:
 	void paintEvent(QPaintEvent* ev) override;
 	void contextMenuEvent(QContextMenuEvent *ev) override;
+	void mousePressEvent(QMouseEvent* ev) override;
+	void mouseReleaseEvent(QMouseEvent* ev) override;
 	void mouseMoveEvent(QMouseEvent* ev) override;
-	std::vector<BarData> m_bars;
+	//! @}
+	const int DividerRange = 2;
+
+	int dividerWithinRange(int x) const;
+	double widthPerWeight() const;
+	int barWidth(iABarData const & bar, double widthPerWeight) const;
+	std::vector<iABarData> m_bars;
 	std::vector<int> m_dividers;
 	iAColorTheme const * m_theme;
 	QMenu* m_contextMenu;
 	bool m_header, m_stack;
+	int m_resizeBar;
+	int m_resizeStartX;
 };
