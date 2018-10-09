@@ -1991,14 +1991,11 @@ void dlg_FeatureScout::ExportClassButton()
 	UChar_Image::SizeType u_size;
 	vtkSmartPointer < vtkImageData > img_data = activeChild->getImagePointer();
 
-	if (img_data) {
-		
-		for (int i=0; i<DIM; ++i)
-			u_size[i] = img_data->GetDimensions()[i];
-		const UChar_Image::SpacingType& sp = img_data->GetSpacing();
-			
-			con->SetImage(img_data);
-	}
+	if (!img_data)
+		return;
+	
+	con->SetImage(img_data);
+	
 
 	ITK_TYPED_CALL(CreateLabelledOutputMask, con->GetITKScalarPixelType(),  con, fileName);
 
