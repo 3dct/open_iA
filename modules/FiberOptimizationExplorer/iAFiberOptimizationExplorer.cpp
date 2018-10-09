@@ -447,6 +447,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		uiData.stackedBars = new iAStackedBarChart(colorTheme);
 		uiData.stackedBars->setMinimumWidth(StackedBarMinWidth);
 		uiData.stackedBars->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		connect(m_stackedBarsHeaders, &iAStackedBarChart::weightsChanged, uiData.stackedBars, &iAStackedBarChart::setWeights);
 
 		uiData.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
 		uiData.histoChart->setShowXAxisLabel(false);

@@ -40,7 +40,9 @@ public:
 	void setDoStack(bool doStack);
 signals:
 	void switchedStackMode(bool mode);
-	void weightChanged(size_t barIndex, double weight);
+	void weightsChanged(std::vector<double> const & weights);
+public slots:
+	void setWeights(std::vector<double> const & weights);
 private slots:
 	void switchStackMode();
 private:
@@ -54,8 +56,9 @@ private:
 	const int DividerRange = 2;
 
 	int dividerWithinRange(int x) const;
-	double widthPerWeight() const;
-	int barWidth(iABarData const & bar, double widthPerWeight) const;
+	double weightSum() const;
+	int barWidth(iABarData const & bar, double weightSum) const;
+
 	std::vector<iABarData> m_bars;
 	std::vector<int> m_dividers;
 	iAColorTheme const * m_theme;
@@ -63,4 +66,6 @@ private:
 	bool m_header, m_stack;
 	int m_resizeBar;
 	int m_resizeStartX;
+	double m_resizeWidth, m_resizeFullWidth;
+	std::vector<iABarData> m_resizeBars;
 };

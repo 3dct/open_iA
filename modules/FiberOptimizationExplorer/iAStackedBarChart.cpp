@@ -22,6 +22,7 @@
 
 #include "iAColorTheme.h"
 #include "iAConsole.h"
+#include "iAMathUtility.h"
 
 #include <QAction>
 #include <QMenu>
@@ -37,14 +38,14 @@ namespace
 class iABarData
 {
 public:
-	iABarData(QString const & name, double value, double maxValue): 
+	iABarData(QString const & name, double value, double maxValue):
 		name(name), value(value), maxValue(maxValue), weight(1.0)
 	{}
 	QString name;
 	double value, maxValue, weight;
 };
 
-iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header) :
+iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
 	m_theme(theme),
 	m_contextMenu(new QMenu(this)),
 	m_header(header),
@@ -109,11 +110,11 @@ void iAStackedBarChart::paintEvent(QPaintEvent* ev)
 	int barHeight = std::min(geometry().height(), MaxBarHeight);
 	int topY = geometry().height() / 2 - barHeight / 2;
 	painter.fillRect(geometry(), QBrush(QWidget::palette().color(QWidget::backgroundRole())));
-	double widthPerWeightFactor = widthPerWeight();
+	double wSum = weightSum();
 	for (size_t barID = 0; barID < m_bars.size(); ++barID)
 	{
 		auto & bar = m_bars[barID];
-		int bWidth = barWidth(bar, widthPerWeightFactor);
+		int bWidth = barWidth(bar, wSum);
 		QRect barRect(accumulatedWidth, topY, bWidth, barHeight);
 		QBrush barBrush(m_theme->GetColor(barID));
 		painter.fillRect(barRect, barBrush);
@@ -139,17 +140,17 @@ int iAStackedBarChart::dividerWithinRange(int x) const
 	return -1;
 }
 
-double iAStackedBarChart::widthPerWeight() const
+double iAStackedBarChart::weightSum() const
 {
 	double weightSum = 0;
 	for (auto & bar : m_bars)
 		weightSum += bar.weight;
-	return static_cast<double>(geometry().width()) / weightSum;
+	return weightSum;
 }
 
-int iAStackedBarChart::barWidth(iABarData const & bar, double widthPerWeight) const
+int iAStackedBarChart::barWidth(iABarData const & bar, double wSum) const
 {
-	return std::max(MinimumPixelBarWidth, static_cast<int>((bar.value / bar.maxValue) * bar.weight * widthPerWeight));
+	return std::max(MinimumPixelBarWidth, static_cast<int>((bar.value / bar.maxValue) * (bar.weight / wSum) * geometry().width()) );
 }
 
 void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
@@ -165,12 +166,18 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 			}
 			else
 			{
-				int xOfs = m_resizeStartX - ev->x();
-				double bw = barWidth(m_bars[m_resizeBar], widthPerWeight());
-				double  newBW = bw + xOfs;
-				m_resizeStartX = ev->x();
-				m_bars[m_resizeBar].weight = std::max(MinimumWeight, m_bars[m_resizeBar].weight * (bw/newBW));
-				DEBUG_LOG(QString("Bar %1: old width: %2, new width: %3, new weight: %4").arg(m_resizeBar).arg(bw).arg(newBW).arg(m_bars[m_resizeBar].weight));
+				int xOfs = ev->x() - m_resizeStartX;
+				double newWidth = clamp(1.0, static_cast<double>(geometry().width() - m_bars.size() + 1), m_resizeWidth + xOfs);
+				double oldRestWidth = geometry().width() - m_resizeWidth;
+				double newRestWidth = geometry().width() - newWidth;
+				//DEBUG_LOG(QString("width: %1; resize bar: %2; old width: %3, newWidth: %4, old rest width: %5, new rest width: %6")
+				//	.arg(geometry().width()).arg(m_resizeBar).arg(m_resizeWidth).arg(newWidth).arg(oldRestWidth).arg(newRestWidth));
+				for (size_t barID = 0; barID < m_bars.size(); ++barID)
+				{
+					m_bars[barID].weight = std::max(MinimumWeight, m_resizeBars[barID].weight *
+						((barID == m_resizeBar)? (newWidth / m_resizeWidth) : (newRestWidth / oldRestWidth)) );
+					//DEBUG_LOG(QString("    Bar %1: %2").arg(barID).arg(m_bars[barID].weight));
+				}
 				update();
 			}
 		}
@@ -188,8 +195,7 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 		if (curBar < m_bars.size())
 		{
 			auto & b = m_bars[curBar];
-			//QToolTip::showText(ev->globalPos(), QString("%1: %2 (weight: %3)").arg(b.name).arg(b.value).arg(b.weight), this);
-			setToolTip(QString("%1: %2 (weight: %3)").arg(b.name).arg(b.value).arg(b.weight));
+			QToolTip::showText(ev->globalPos(), QString("%1: %2 (weight: %3)").arg(b.name).arg(b.value).arg(b.weight), this);
 		}
 	}
 }
@@ -203,6 +209,8 @@ void iAStackedBarChart::mousePressEvent(QMouseEvent* ev)
 		{
 			m_resizeBar = barID;
 			m_resizeStartX = ev->x();
+			m_resizeWidth = barWidth(m_bars[barID], weightSum());
+			m_resizeBars = m_bars;
 		}
 	}
 }
@@ -211,7 +219,17 @@ void iAStackedBarChart::mouseReleaseEvent(QMouseEvent* ev)
 {
 	if (m_resizeBar != -1)
 	{
-		emit weightChanged(m_resizeBar, m_bars[m_resizeBar].weight);
 		m_resizeBar = -1;
+		std::vector<double> weights(m_bars.size());
+		for (size_t b = 0; b < m_bars.size(); ++b)
+			weights[b] = m_bars[b].weight;
+		emit weightsChanged(weights);
 	}
+}
+
+void iAStackedBarChart::setWeights(std::vector<double> const & weights)
+{
+	for (size_t b = 0; b < m_bars.size(); ++b)
+		m_bars[b].weight = weights[b];
+	update();
 }
