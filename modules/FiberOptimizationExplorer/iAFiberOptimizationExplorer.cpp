@@ -373,8 +373,6 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
-	//m_stackedBarsHeaders->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-	//m_stackedBarsHeaders->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	auto headerFiberCountAction = new QAction("Fiber Count", nullptr);
 	headerFiberCountAction->setProperty("colID", 0);
 	headerFiberCountAction->setCheckable(true);
@@ -391,14 +389,9 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	previewLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	auto distrCmb = new QComboBox();
 	QStringList paramNames;
-	paramNames << "Start X" << "Start Y" << "Start Z"
-			   << "End X" << "End Y" << "End Z"
-			   << "Center X" << "Center Y" << "Center Z"
-			   << "Length" << "Diameter" << "Phi" << "Theta";
-	for (int curIdx=0; curIdx < paramNames.size(); ++curIdx)
-		paramNames[curIdx] += " Distribution";
+	for (int curIdx=0; curIdx < m_data->splomData->numParams() - 1; ++curIdx)
+		paramNames.push_back(QString("%1 Distribution").arg(m_data->splomData->parameterName(curIdx)));
 	distrCmb->addItems(paramNames);
-	distrCmb->setCurrentIndex(9);
 	connect(distrCmb, SIGNAL(currentIndexChanged(int)), this, SLOT(changeDistributionSource(int)));
 	//auto distrLabel = new QLabel("Distribution");
 	distrCmb->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -478,7 +471,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	}
 	resultList->setLayout(resultsListLayout);
 	addStackedBar(0);
-	changeDistributionSource(iACsvConfig::Length);
+	distrCmb->setCurrentIndex((*m_data->result[0].mapping)[iACsvConfig::Length]);
 
 	// Interaction Protocol:
 
@@ -662,11 +655,11 @@ void iAFiberOptimizationExplorer::changeDistributionSource(int index)
 		auto & d = m_data->result[resultID];
 		auto & chart = m_resultUIs[resultID].histoChart;
 		chart->clearPlots();
-		auto range = m_data->splomData->paramRange((*d.mapping)[index]);
+		auto range = m_data->splomData->paramRange(index);
 		chart->setXBounds(range[0], range[1]);
 		std::vector<double> fiberData(d.fiberCount);
 		for (size_t fiberID=0; fiberID<d.fiberCount; ++fiberID)
-			fiberData[fiberID] = d.table->GetValue(fiberID, (*d.mapping)[index]).ToDouble();
+			fiberData[fiberID] = d.table->GetValue(fiberID, index).ToDouble();
 		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins, Continuous, range[0], range[1]);
 		auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, DistributionPlotColor));
 		chart->addPlot(histogramPlot);
