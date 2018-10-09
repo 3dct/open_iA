@@ -26,6 +26,7 @@
 
 #include <QAction>
 #include <QMenu>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QToolTip>
 
