@@ -90,9 +90,6 @@ namespace
 	const int StackedBarMinWidth = 70;
 	const int DefaultPlayDelay = 1000;
 	const int HistogramBins = 20;
-	const QColor DistributionPlotColor(70, 70, 70, 255);
-	const QColor DistributionRefPlotColor(70, 70, 70, 80);
-	const QColor OptimStepMarkerColor(192, 0, 0);
 
 	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
 	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
@@ -100,8 +97,10 @@ namespace
 	const size_t NoResult = NoPlotsIdx;
 	const QString ModuleSettingsKey("FiberOptimizationExplorer");
 
-	QColor ProjectionErrorDefaultPlotColor(128, 128, 128, SelectionOpacity);
-	QColor SPLOMSelectionColor(255, 0, 0, ContextOpacity);
+	const QColor DistributionPlotColor(70, 70, 70, 255);
+	const QColor DistributionRefPlotColor(70, 70, 70, 80);
+	const QColor OptimStepMarkerColor(192, 0, 0);
+	const QColor SelectionColor(0, 0, 0);
 
 }
 
@@ -563,7 +562,6 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 
 	// splom needs an active OpenGL Context (it must be visible when setData is called):
 	m_splom->setMinimumWidth(200);
-	m_splom->setSelectionColor(SPLOMSelectionColor);
 	m_splom->showAllPlots(false);
 	auto np = m_data->splomData->numParams();
 	std::vector<char> v(m_data->splomData->numParams(), false);
@@ -580,7 +578,7 @@ void iAFiberOptimizationExplorer::loadStateAndShow()
 	m_splom->setLookupTable(lut, m_data->splomData->numParams() - 1);
 	m_splom->setSelectionMode(iAScatterPlot::Rectangle);
 	m_splom->showDefaultMaxizimedPlot();
-	m_splom->setSelectionColor("black");
+	m_splom->setSelectionColor(SelectionColor);
 	m_splom->setPointRadius(2.5);
 	m_splom->settings.enableColorSettings = true;
 	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiberOptimizationExplorer::selectionSPLOMChanged);
@@ -928,7 +926,6 @@ void iAFiberOptimizationExplorer::showCurrentSelectionInPlots()
 
 void iAFiberOptimizationExplorer::showCurrentSelectionInPlot(int chartID)
 {
-	bool anythingSelected = isAnythingSelected();
 	auto chart = m_optimStepChart[chartID];
 	if (!chart || !chart->isVisible())
 		return;
@@ -940,17 +937,17 @@ void iAFiberOptimizationExplorer::showCurrentSelectionInPlot(int chartID)
 			QColor color(getResultColor(resultID));
 			for (size_t fiberID=0; fiberID < m_data->result[resultID].fiberCount; ++fiberID)
 			{
+				auto plot = chart->plots()[m_resultUIs[resultID].startPlotIdx + fiberID];
+
 				if (curSelIdx < m_selection[resultID].size() && fiberID == m_selection[resultID][curSelIdx])
 				{
-					color.setAlpha(SelectionOpacity);
+					plot->setColor(SelectionColor);
 					++curSelIdx;
 				}
-				else if (anythingSelected)
+				else
 				{
-					color.setAlpha(ContextOpacity);
+					plot->setColor(color);
 				}
-				auto plot = chart->plots()[m_resultUIs[resultID].startPlotIdx + fiberID];
-				plot->setColor(color);
 			}
 		}
 	}
