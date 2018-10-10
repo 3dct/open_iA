@@ -2473,6 +2473,7 @@ int MainWindow::RunGUI(int argc, char * argv[], QString const & appName, QString
 	MainWindow::InitResources();
 	QApplication app(argc, argv);
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
+	app.setAttribute(Qt::AA_ShareOpenGLContexts);
 	iAGlobalLogger::SetLogger(iAConsole::GetInstance());
 	MainWindow mainWin(appName, version, splashPath);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());

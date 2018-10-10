@@ -41,6 +41,7 @@ class vtkPlaneSource;
 
 class QCheckBox;
 class QComboBox;
+class QLineEdit;
 
 class dlg_datatypeconversion : public QDialog, public Ui_DataTypeConversion
 {

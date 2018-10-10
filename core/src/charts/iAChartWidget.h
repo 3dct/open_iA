@@ -86,6 +86,7 @@ public:
 	void setShowXAxisLabel(bool show);
 	void addPlot(QSharedPointer<iAPlot> plot);
 	void removePlot(QSharedPointer<iAPlot> plot);
+	void clearPlots();
 	std::vector< QSharedPointer< iAPlot > > const & plots();
 	bool isDrawnDiscrete() const;
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
@@ -98,6 +99,7 @@ public:
 	void updateYBounds(size_t startPlot = 0);
 public slots:
 	void resetView();
+	void setDrawXAxisAtZero(bool enable);
 signals:
 	void xAxisChanged();
 protected:
@@ -166,4 +168,5 @@ private:
 	QFlags<Qt::AlignmentFlag> m_captionPosition;
 	QMap<double, QColor> m_xMarker;
 	size_t m_maxXAxisSteps;
+	bool m_drawXAxisAtZero;
 };

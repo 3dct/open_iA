@@ -44,7 +44,10 @@ public:
 
 	static QSharedPointer<iAHistogramData> Create(vtkImageData* img, size_t binCount, iAImageInfo* imageInfo = nullptr);
 	static QSharedPointer<iAHistogramData> Create(DataType* data, size_t binCount, double space, DataType min, DataType max);
-	static QSharedPointer<iAHistogramData> Create(const std::vector<DataType> &histData, size_t binCount, iAValueType type = Continuous);
+	static QSharedPointer<iAHistogramData> Create(const std::vector<DataType> &histData, size_t binCount,
+		iAValueType type = Continuous,
+		DataType minValue=std::numeric_limits<double>::infinity(),
+		DataType maxValue=std::numeric_limits<double>::infinity());
 private:
 	iAHistogramData();
 	void SetMaxFreq();
