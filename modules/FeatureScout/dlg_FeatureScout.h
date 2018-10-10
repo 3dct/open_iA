@@ -40,6 +40,7 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_IOVMO;
 class iA3DObjectVis;
 class iABlobCluster;
 class iABlobManager;
+class iAConnector;
 class iAFeatureScoutSPLOM;
 class iAMeanObjectTFView;
 class dlg_blobVisualization;
@@ -116,6 +117,11 @@ private slots:
 	void ClassLoadButton();
 	void ClassDeleteButton();
 	void WisetexSaveButton();
+	void ExportClassButton(); //!< The export defined classes to MDH File.
+
+	
+
+
 	void CsvDVSaveButton();
 	void RenderOrientation();
 	void classClicked(const QModelIndex &index);
@@ -143,6 +149,10 @@ private slots:
 	void updateStlProgress(int i);
 	void updateMarProgress(int i);
 private:
+	
+	//create labelled output image based on defined classes
+	template <class T> void CreateLabelledOutputMask(iAConnector *con, const QString fOutPath);
+
 	void showScatterPlot();
 	void setupModel();
 	void setupViews();
