@@ -41,11 +41,13 @@
 #include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkCornerAnnotation.h>
 #include <vtkImageData.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkLine.h>
 #include <vtkLookupTable.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -327,7 +329,7 @@ void dlg_DynamicVolumeLines::generateHilbertIdx()
 	connect(im, SIGNAL(finished()), thread, SLOT(quit()));
 	connect(im, SIGNAL(finished()), im, SLOT(deleteLater()));
 	connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-	connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));		// Debug
+	//connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));		// Debug
 	connect(thread, SIGNAL(finished()), this, SLOT(visualize()));
 	thread->start();
 }
@@ -1556,7 +1558,18 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			visSelGraphList[i]->pen().color().greenF(),
 			visSelGraphList[i]->pen().color().blueF());
 
-		iASimpleTransferFunction tf(m_mdiChild->getColorTransferFunction(), m_mdiChild->getPiecewiseFunction());
+		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
+		cTF->ShallowCopy(m_mdiChild->getColorTransferFunction());
+		int index = cTF->GetSize() - 1;
+		double val[6] = { 0, 0, 0, 0, 0, 0 };
+		cTF->GetNodeValue(index, val);
+		val[1] = 1.0;	val[2] = 0.0;	val[3] = 0.0;
+		cTF->SetNodeValue(index, val);
+		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
+		oTF->ShallowCopy(m_mdiChild->getPiecewiseFunction());
+
+		iASimpleTransferFunction tf(cTF, oTF);
+		//iASimpleTransferFunction tf(m_mdiChild->getColorTransferFunction(), m_mdiChild->getPiecewiseFunction());
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
 		ren->SetLayer(1);
 		ren->SetActiveCamera(m_mdiChild->getRenderer()->getCamera());
