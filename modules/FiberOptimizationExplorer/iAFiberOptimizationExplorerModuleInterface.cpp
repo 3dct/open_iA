@@ -67,3 +67,41 @@ void iAFiberOptimizationExplorerModuleInterface::FibreOptimizationExploration()
 	m_mainWnd->addSubWindow(explorer);
 	explorer->start(path, configName);
 }
+
+/*
+void iAFiberOptimizationExplorerModuleInterface::SetupToolBar()
+{
+	if (m_toolbar)
+	{
+		return;
+	}
+	m_toolbar = new iAUncertaintyToolbar("Uncertainty Exploration Toolbar");
+	connect(m_toolbar->action_ToggleTitleBar, SIGNAL(triggered()), this, SLOT(ToggleDockWidgetTitleBars()));
+	//m_toolbar->action_ToggleSettings->setCheckable(true);
+	//m_toolbar->action_ToggleSettings->setChecked(true);
+	//connect(m_toolbar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(ToggleSettings()));
+	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
+}
+
+void iAFiberOptimizationExplorerModuleInterface::ToggleDockWidgetTitleBars()
+{
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
+		return;
+	}
+	attach->ToggleDockWidgetTitleBars();
+}
+
+void iAFiberOptimizationExplorerModuleInterface::ToggleSettings()
+{
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	if (!attach)
+	{
+		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
+		return;
+	}
+	attach->ToggleSettings();
+}
+*/

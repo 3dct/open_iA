@@ -29,4 +29,5 @@ public:
 	void Initialize();
 private slots:
 	void FibreOptimizationExploration();
+//private:
 };
