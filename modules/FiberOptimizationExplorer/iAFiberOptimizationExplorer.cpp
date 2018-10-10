@@ -65,6 +65,7 @@
 #include <QComboBox>
 #include <QFileInfo>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QListView>
 #include <QMenu>
@@ -140,8 +141,9 @@ void iAFiberOptimizationExplorer::start(QString const & path, QString const & co
 {
 	m_configName = configName;
 	m_jobs = new iAJobListView();
-	m_jobDockWidget = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
-	addDockWidget(Qt::BottomDockWidgetArea, m_jobDockWidget);
+	m_views.resize(DockWidgetCount);
+	m_views[JobView] = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
+	addDockWidget(Qt::BottomDockWidgetArea, m_views[JobView]);
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, configName);
@@ -177,6 +179,10 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	renWin->AddRenderer(ren);
 	m_mainRenderer->SetRenderWindow(renWin);
 	m_renderManager->addToBundle(ren);
+	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
+	m_style->setSelectionProvider(this);
+	m_style->assignToRenderWindow(renWin);
+	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiberOptimizationExplorer::selection3DChanged);
 
 	QWidget* showReferenceWidget = new QWidget();
 	m_chkboxShowReference = new QCheckBox("Show ");
@@ -192,7 +198,7 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	m_cmbboxDistanceMeasure->addItem("Dist4 (Overlap % short fiber)");
 	m_cmbboxDistanceMeasure->addItem("Dist5 (Overlap % in relation to Volume Ratio, short fiber)");
 	m_cmbboxDistanceMeasure->addItem("Dist6 (Overlap % in relation to Volume Ratio,  directional)");
-	m_cmbboxDistanceMeasure->setCurrentIndex(1);
+	m_cmbboxDistanceMeasure->setCurrentIndex(iARefDistCompute::BestDistanceMetric);
 	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::showReferenceToggled);
 	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(showReferenceCountChanged(int)));
 	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
@@ -201,6 +207,14 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers, distance metric:"));
 	showReferenceWidget->layout()->addWidget(m_cmbboxDistanceMeasure);
 	showReferenceWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+	QWidget* mainRendererContainer = new QWidget();
+	mainRendererContainer->setLayout(new QVBoxLayout());
+	mainRendererContainer->layout()->addWidget(m_mainRenderer);
+	mainRendererContainer->layout()->addWidget(showReferenceWidget);
+
+
+	// Settings View
 
 	m_defaultOpacitySlider = new QSlider(Qt::Horizontal);
 	m_defaultOpacitySlider->setMinimum(0);
@@ -241,21 +255,25 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	moreButtons->layout()->addWidget(spatialOverviewButton);
 	moreButtons->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-	QWidget* mainRendererContainer = new QWidget();
-	mainRendererContainer->setLayout(new QVBoxLayout());
-	mainRendererContainer->layout()->addWidget(m_mainRenderer);
-	mainRendererContainer->layout()->addWidget(showReferenceWidget);
-	mainRendererContainer->layout()->addWidget(defaultOpacityWidget);
-	mainRendererContainer->layout()->addWidget(contextOpacityWidget);
-	mainRendererContainer->layout()->addWidget(moreButtons);
+	QGroupBox* main3DViewSettings = new QGroupBox("Main 3D View");
+	main3DViewSettings->setLayout(new QVBoxLayout());
+	main3DViewSettings->layout()->addWidget(defaultOpacityWidget);
+	main3DViewSettings->layout()->addWidget(contextOpacityWidget);
+	main3DViewSettings->layout()->addWidget(moreButtons);
 
-	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
-	m_style->setSelectionProvider(this);
-	m_style->assignToRenderWindow(renWin);
-	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiberOptimizationExplorer::selection3DChanged);
-
-
-	// Optimization Steps View:
+	QWidget* playControls = new QWidget();
+	playControls->setLayout(new QHBoxLayout());
+	QSpinBox* stepDelayInput = new QSpinBox();
+	stepDelayInput->setMinimum(100);
+	stepDelayInput->setMaximum(10000);
+	stepDelayInput->setSingleStep(100);
+	stepDelayInput->setValue(DefaultPlayDelay);
+	playControls->layout()->addWidget(new QLabel("Delay (ms)"));
+	playControls->layout()->addWidget(stepDelayInput);
+	m_playTimer->setInterval(DefaultPlayDelay);
+	connect(m_playTimer, &QTimer::timeout, this, &iAFiberOptimizationExplorer::playTimer);
+	connect(stepDelayInput, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
+	playControls->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	m_optimStepChart.resize(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1);
 
@@ -270,14 +288,14 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	for (int chartID = 0; chartID < ChartCount; ++chartID)
 	{
 		m_chartCB[chartID] = new QCheckBox(diffName(chartID));
-		m_chartCB[chartID]->setChecked(chartID == ChartCount-1);
-		m_chartCB[chartID]->setEnabled(chartID == ChartCount-1);
+		m_chartCB[chartID]->setChecked(chartID == ChartCount - 1);
+		m_chartCB[chartID]->setEnabled(chartID == ChartCount - 1);
 		m_chartCB[chartID]->setProperty("chartID", chartID);
 		connect(m_chartCB[chartID], &QCheckBox::stateChanged, this, &iAFiberOptimizationExplorer::optimDataToggled);
 		comboBoxContainer->layout()->addWidget(m_chartCB[chartID]);
 	}
 	size_t curPlotStart = 0;
-	for (int resultID=0; resultID<m_data->result.size(); ++resultID)
+	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result[resultID];
 		if (!d.projectionError.empty())
@@ -289,30 +307,23 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 			m_resultUIs[resultID].startPlotIdx = NoPlotsIdx;
 	}
 
-	QWidget* playControls = new QWidget();
-	playControls->setLayout(new QHBoxLayout());
-	QPushButton* playPauseButton = new QPushButton("Play");
-	QSpinBox* stepDelayInput = new QSpinBox();
-	stepDelayInput->setMinimum(100);
-	stepDelayInput->setMaximum(10000);
-	stepDelayInput->setSingleStep(100);
-	stepDelayInput->setValue(DefaultPlayDelay);
-	playControls->layout()->addWidget(new QLabel("Delay (ms)"));
-	playControls->layout()->addWidget(stepDelayInput);
-	playControls->layout()->addWidget(playPauseButton);
-	playControls->layout()->addWidget(dataChooser);
-	m_playTimer->setInterval(DefaultPlayDelay);
-	connect(m_playTimer, &QTimer::timeout, this, &iAFiberOptimizationExplorer::playTimer);
-	connect(playPauseButton, &QPushButton::pressed, this, &iAFiberOptimizationExplorer::playPauseOptimSteps);
-	connect(stepDelayInput, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
-	playControls->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	QGroupBox* optimStepSettings = new QGroupBox("Optimization Steps Animation");
+	optimStepSettings->setLayout(new QVBoxLayout());
+	optimStepSettings->layout()->addWidget(playControls);
+	optimStepSettings->layout()->addWidget(dataChooser);
+
+	QWidget* settingsView = new QWidget();
+	settingsView->setLayout(new QVBoxLayout());
+	settingsView->layout()->addWidget(main3DViewSettings);
+	settingsView->layout()->addWidget(optimStepSettings);
+
+
+	// Optimization Steps View:
 
 	auto chartContainer = new QWidget();
 	m_optimChartLayout = new QVBoxLayout();
 	chartContainer->setLayout(m_optimChartLayout);
 	chartContainer->setSizeIncrement(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	auto plotPlusControls = new QWidget();
-	plotPlusControls->setLayout(new QVBoxLayout());
 	m_optimStepSlider = new QSlider(Qt::Horizontal);
 	m_optimStepSlider->setMinimum(0);
 	m_optimStepSlider->setMaximum(m_data->optimStepMax - 1);
@@ -320,27 +331,27 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	m_currentOptimStepLabel = new QLabel("");
 	m_currentOptimStepLabel->setText(QString::number(m_data->optimStepMax - 1));
 	connect(m_optimStepSlider, &QSlider::valueChanged, this, &iAFiberOptimizationExplorer::optimStepSliderChanged);
+	QPushButton* playPauseButton = new QPushButton("Play");
+	connect(playPauseButton, &QPushButton::pressed, this, &iAFiberOptimizationExplorer::playPauseOptimSteps);
+	
 	QWidget* optimStepsCtrls = new QWidget();
 	optimStepsCtrls->setLayout(new QHBoxLayout());
 	optimStepsCtrls->layout()->addWidget(m_optimStepSlider);
 	optimStepsCtrls->layout()->addWidget(m_currentOptimStepLabel);
+	optimStepsCtrls->layout()->addWidget(playPauseButton);
 	optimStepsCtrls->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-	plotPlusControls->layout()->addWidget(chartContainer);
-	plotPlusControls->layout()->addWidget(optimStepsCtrls);
-	plotPlusControls->layout()->addWidget(playControls);
-
 	QWidget* optimStepsView = new QWidget();
-	optimStepsView->setLayout(new QHBoxLayout());
-	optimStepsView->layout()->addWidget(plotPlusControls);
-	optimStepsView->layout()->addWidget(dataChooser);
+	optimStepsView->setLayout(new QVBoxLayout());
+	optimStepsView->layout()->addWidget(chartContainer);
+	optimStepsView->layout()->addWidget(optimStepsCtrls);
 
 
 	// Results List View
 
 	size_t commonPrefixLength = 0, commonSuffixLength = 0;
 	QString baseName0;
-	for (int resultID=0; resultID<m_data->result.size(); ++resultID)
+	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		QString baseName = QFileInfo(m_data->result[resultID].fileName).baseName();
 		if (resultID > 0)
@@ -388,11 +399,10 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	previewLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	auto distrCmb = new QComboBox();
 	QStringList paramNames;
-	for (int curIdx=0; curIdx < m_data->splomData->numParams() - 1; ++curIdx)
+	for (int curIdx = 0; curIdx < m_data->splomData->numParams() - 1; ++curIdx)
 		paramNames.push_back(QString("%1 Distribution").arg(m_data->splomData->parameterName(curIdx)));
 	distrCmb->addItems(paramNames);
 	connect(distrCmb, SIGNAL(currentIndexChanged(int)), this, SLOT(changeDistributionSource(int)));
-	//auto distrLabel = new QLabel("Distribution");
 	distrCmb->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
 	resultsListLayout->addWidget(nameLabel, 0, 0);
@@ -401,12 +411,12 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	resultsListLayout->addWidget(m_stackedBarsHeaders, 0, 3);
 	resultsListLayout->addWidget(distrCmb, 0, 4);
 
-	for (int resultID=0; resultID<m_data->result.size(); ++resultID)
+	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result.at(resultID);
 		auto & uiData = m_resultUIs[resultID];
 
-		uiData.vtkWidget  = new iAVtkWidgetClass();
+		uiData.vtkWidget = new iAVtkWidgetClass();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		renWin->SetAlphaBitPlanes(1);
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
@@ -447,13 +457,13 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 		uiData.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
 		QString name = QFileInfo(d.fileName).baseName();
-		name = name.mid(commonPrefixLength, name.size()-commonPrefixLength-commonSuffixLength);
+		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
 
-		resultsListLayout->addWidget(new QLabel(name), resultID+1, 0);
-		resultsListLayout->addWidget(resultActions, resultID+1, 1);
-		resultsListLayout->addWidget(uiData.vtkWidget, resultID+1, 2);
-		resultsListLayout->addWidget(uiData.stackedBars, resultID+1, 3);
-		resultsListLayout->addWidget(uiData.histoChart, resultID+1, 4);
+		resultsListLayout->addWidget(new QLabel(name), resultID + 1, 0);
+		resultsListLayout->addWidget(resultActions, resultID + 1, 1);
+		resultsListLayout->addWidget(uiData.vtkWidget, resultID + 1, 2);
+		resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, 3);
+		resultsListLayout->addWidget(uiData.histoChart, resultID + 1, 4);
 
 		uiData.mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
 			uiData.vtkWidget, d.table, d.mapping, getResultColor(resultID)));
@@ -478,15 +488,9 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	m_interactionProtocol->setHeaderHidden(true);
 	m_interactionProtocolModel = new QStandardItemModel();
 	m_interactionProtocol->setModel(m_interactionProtocolModel);
-	//QWidget* protocolView = new QWidget();
-	//protocolWidget->setLayout(new QHBoxLayout());
-	//protocolWidget->layout()->addWidget(m_interactionProtocol);
-
-
-	// List Overview / LineUp View:
-
-//	m_browser = new QWebEngineView();
-//	iADockWidgetWrapper* browserWidget = new iADockWidgetWrapper(m_browser, "LineUp", "foeLineUp");
+	QWidget* protocolView = new QWidget();
+	protocolView->setLayout(new QHBoxLayout());
+	protocolView->layout()->addWidget(m_interactionProtocol);
 
 
 	// Selection View:
@@ -513,21 +517,22 @@ void iAFiberOptimizationExplorer::resultsLoaded()
 	selectionView->layout()->addWidget(selectionListWrapper);
 	selectionView->layout()->addWidget(selectionDetailWrapper);
 
+	m_views.resize(DockWidgetCount);
+	m_views[ResultListView] = new iADockWidgetWrapper(resultListScrollArea, "Result list", "foeResultList");
+	m_views[Main3DView]     = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
+	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeTimeSteps");
+	m_views[SPMView]        = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
+	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "Interactions", "foeInteractions");
+	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "Selections", "foeSelections");
+	m_views[SettingsView]   = new iADockWidgetWrapper(settingsView, "Settings", "foeSettings");
 
-	iADockWidgetWrapper* resultListDockWidget = new iADockWidgetWrapper(resultListScrollArea, "Result list", "foeResultList");
-	iADockWidgetWrapper* main3DWidget = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
-	iADockWidgetWrapper* optimStepWidget = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeTimeSteps");
-	iADockWidgetWrapper* splomWidget = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
-	iADockWidgetWrapper* interactionProtocolWidget = new iADockWidgetWrapper(m_interactionProtocol, "Interactions", "foeInteractions");
-	iADockWidgetWrapper* selectionWidget = new iADockWidgetWrapper(selectionView, "Selections", "foeSelections");
-
-	splitDockWidget(m_jobDockWidget, resultListDockWidget, Qt::Vertical);
-	splitDockWidget(resultListDockWidget, main3DWidget, Qt::Horizontal);
-	splitDockWidget(resultListDockWidget, optimStepWidget, Qt::Vertical);
-	splitDockWidget(main3DWidget, splomWidget, Qt::Horizontal);
-//	splitDockWidget(resultListDockWidget, browserWidget, Qt::Vertical);
-	splitDockWidget(resultListDockWidget, interactionProtocolWidget, Qt::Vertical);
-	splitDockWidget(main3DWidget, selectionWidget, Qt::Vertical);
+	splitDockWidget(m_views[JobView], m_views[ResultListView], Qt::Vertical);
+	splitDockWidget(m_views[ResultListView], m_views[Main3DView], Qt::Horizontal);
+	splitDockWidget(m_views[ResultListView], m_views[OptimStepChart], Qt::Vertical);
+	splitDockWidget(m_views[Main3DView], m_views[SPMView], Qt::Horizontal);
+	splitDockWidget(m_views[ResultListView], m_views[ProtocolView], Qt::Vertical);
+	splitDockWidget(m_views[Main3DView], m_views[SelectionView], Qt::Vertical);
+	splitDockWidget(m_views[Main3DView], m_views[SettingsView], Qt::Vertical);
 
 	loadStateAndShow();
 }
@@ -1186,67 +1191,6 @@ void iAFiberOptimizationExplorer::refDistAvailable()
 	}
 
 	showSpatialOverview();
-/*
-	 // include lineup following https://github.com/Caleydo/lineupjs
-	m_html = "<!DOCTYPE html>\n"
-	         "<html lang=\"en\">\n"
-	         "  <head>\n"
-	         "    <title>LineUp</title>\n"
-	         "    <meta charset=\"utf-8\">\n"
-	         "    <link href=\"https://unpkg.com/lineupjs/build/LineUpJS.css\" rel=\"stylesheet\">\n"
-	         "    <script src=\"https://unpkg.com/lineupjs/build/LineUpJS.js\"></script>\n"
-	         "    <script>\n"
-		     "      const arr = [];\n";
-	for (size_t resultID = 0; resultID < m_results->results.size(); ++resultID)
-	{
-		if (resultID == m_referenceID)
-			continue;
-		std::array<double, iAFiberCharData::FiberValueCount> avgError = { 0.0 };
-		std::array<double, iAFiberCharData::FiberValueCount> avgDist = { 0.0 };
-		auto& d = m_results->results[resultID];
-		for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
-		{
-			size_t lastTimeStepID = d.refDiffFiber[fiberID].timeStep.size() - 1;
-			for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
-			{
-				avgError[diffID] += d.refDiffFiber[fiberID].timeStep[lastTimeStepID].diff[diffID];
-			}
-			for (size_t distID = 0; distID < iARefDistCompute::DistanceMetricCount; ++distID)
-			{
-				avgDist[distID] += d.refDiffFiber[fiberID].dist[distID][0].distance;
-			}
-		}
-		for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
-			avgError[diffID] /= d.fiberCount;
-		for (size_t distID = 0; distID < iARefDistCompute::DistanceMetricCount; ++distID)
-			avgDist[distID] /= d.fiberCount;
-		m_html += "      arr.push({ "
-			"csv: '" + QFileInfo(d.fileName).baseName() + "', " +
-			"FiberCount: " + QString::number(d.fiberCount) + ", " +
-			"AvgLengthError:" + QString::number(avgError[11]) + ", " +
-			"AvgPhiError:" + QString::number(avgError[9]) + ", " +
-			"AvgThetaError:" + QString::number(avgError[10]) + ", ";
-		for (size_t distID = 0; distID < iARefDistCompute::DistanceMetricCount; ++distID)
-		{
-			m_html += QString("AvgDist%1:").arg(distID) + QString::number(avgDist[distID]);
-			if (distID < iARefDistCompute::DistanceMetricCount - 1)
-				m_html += ", ";
-		}
-		m_html += "});\n";
-	}
-	m_html +=
-		"    </script>\n"
-		"  </head>\n"
-		"  <body>\n"
-		"    <script>\n"
-		"      const lineup = LineUpJS.asLineUp(document.body, arr);\n"
-		"    </script>\n"
-		"  </body>\n"
-		"</html>";
-	DEBUG_LOG(QString("HTML: %1").arg(m_html));
-	m_browser->setHtml(m_html);
-	m_browser->show();
-*/
 }
 
 void iAFiberOptimizationExplorer::showSpatialOverviewButton()

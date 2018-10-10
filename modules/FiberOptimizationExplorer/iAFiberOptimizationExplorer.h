@@ -39,6 +39,7 @@ class iA3DCylinderObjectVis;
 
 class iAChartWidget;
 class iAColorTheme;
+class iADockWidgetWrapper;
 class iAQSplom;
 class iARendererManager;
 class iARefDistCompute;
@@ -155,7 +156,10 @@ private:
 	iARefDistCompute* m_refDistCompute;
 
 	// Elements of the different views:
-
+	std::vector<iADockWidgetWrapper*> m_views;
+	enum {
+		JobView, ResultListView, Main3DView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
+	};
 	// Main Renderer:
 	iAVtkWidgetClass* m_mainRenderer;
 	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel;
@@ -182,7 +186,6 @@ private:
 	size_t ChartCount;
 
 	// Jobs:
-	QDockWidget* m_jobDockWidget;
 	iAJobListView * m_jobs;
 
 	// Interaction Protocol:
