@@ -2023,6 +2023,12 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 
 		//if one class is present
 		singleClassification = (classTreeModel->invisibleRootItem()->rowCount() == 2); 
+		if (singleClassification && 
+			(QMessageBox::question(this, "FeatureScout", "Only one class selected, should we export LabelIds?", QMessageBox::Yes | QMessageBox::No)
+				== QMessageBox::No))
+		{
+			singleClassification = false; 
+		}
 		//Skip first
 			for (int i = 1; i < classTreeModel->invisibleRootItem()->rowCount(); i++) {
 				
