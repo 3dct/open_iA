@@ -2009,6 +2009,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<ClassIDType, DIM>   OutputImageType;
 	OutputImageType::SizeType OutputImageSize; 
+	bool singleClassification = false;
 		
 	size_t labelID = 0; 
 	QMap<size_t, ClassIDType> currentEntries;
@@ -2020,10 +2021,11 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 
 	if (classTreeModel->invisibleRootItem()->hasChildren()) {
 
-
+		//if one class is present
+		singleClassification = (classTreeModel->invisibleRootItem()->rowCount() == 2); 
 		//Skip first
 			for (int i = 1; i < classTreeModel->invisibleRootItem()->rowCount(); i++) {
-		
+				
 				auto x = classTreeModel->invisibleRootItem()->rowCount();
 				//classes, start with 1, 0 would be uncategorized class
 				
@@ -2055,7 +2057,23 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 
 		//gehe ueber jedes pixel
 		labelID = (size_t) in.Get();
-		out.Set(static_cast<ClassIDType>(currentEntries[labelID]));
+
+		if (singleClassification) 
+		{
+			if (currentEntries.contains(labelID))
+			{
+				out.Set(static_cast<ClassIDType>(labelID));
+			}
+			else {
+				out.Set(0);
+			}
+		}
+		
+		else {
+
+			out.Set(static_cast<ClassIDType>(currentEntries[labelID]));
+		}
+
 		++in;
 		++out;
 	}
