@@ -26,6 +26,7 @@
 #include <QVector>
 #include <QSharedPointer>
 
+class iALookupTable;
 class iAMapper;
 class iAPlotData;
 
@@ -45,7 +46,9 @@ class open_iA_Core_API iALinePlot: public iAPlot
 {
 public:
 	iALinePlot(QSharedPointer<iAPlotData> data, QColor const & color);
+	void setLineWidth(int width);
 private:
+	int m_lineWidth;
 	void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const override;
 };
 
@@ -67,9 +70,6 @@ private:
 	QColor getFillColor() const;
 };
 
-
-class iALookupTable;
-
 class open_iA_Core_API iABarGraphPlot: public iAPlot
 {
 public:
@@ -81,7 +81,6 @@ private:
 	int m_margin;
 
 };
-
 
 class open_iA_Core_API iAPlotCollection: public iAPlot
 {
