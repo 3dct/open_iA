@@ -90,9 +90,16 @@ namespace
 	}
 }
 
-iALinePlot::iALinePlot(QSharedPointer<iAPlotData> data, QColor const & color):
-	iAPlot(data, color)
+iALinePlot::iALinePlot(QSharedPointer<iAPlotData> data, QColor const & color) :
+	iAPlot(data, color),
+	m_lineWidth(1)
 {}
+
+
+void iALinePlot::setLineWidth(int width)
+{
+	m_lineWidth = width;
+}
 
 void iALinePlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
@@ -100,7 +107,7 @@ void iALinePlot::draw(QPainter& painter, double binWidth, size_t startBin, size_
 	if (!buildLinePolygon(poly, m_data->GetRawData(), startBin, endBin, xMapper, yMapper))
 		return;
 	QPen pen(painter.pen());
-	pen.setWidth(2);
+	pen.setWidth(m_lineWidth);
 	pen.setColor(getColor());
 	painter.setPen(pen);
 	painter.drawPolyline(poly);
