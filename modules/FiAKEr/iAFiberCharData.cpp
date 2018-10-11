@@ -132,7 +132,7 @@ void addColumn(vtkSmartPointer<vtkTable> table, float value, char const * column
 }
 
 iAFiberResultsCollection::iAFiberResultsCollection():
-	splomData(new iASPLOMData()),
+	spmData(new iASPLOMData()),
 	optimStepMax(1),
 	minFiberCount(std::numeric_limits<size_t>::max()),
 	maxFiberCount(0)
@@ -341,7 +341,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 		return false;
 	}
 
-	// create SPLOM data:
+	// create SPM data:
 	paramNames.push_back("StartXShift");
 	paramNames.push_back("StartYShift");
 	paramNames.push_back("StartZShift");
@@ -361,43 +361,43 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	}
 	paramNames.push_back("ProjectionErrorReduction");
 	paramNames.push_back("Result_ID");
-	splomData->setParameterNames(paramNames);
-	size_t numParams = splomData->numParams();
-	size_t splomStartIdx = 0;
+	spmData->setParameterNames(paramNames);
+	size_t numParams = spmData->numParams();
+	size_t spmStartIdx = 0;
 	for (resultID=0; resultID<result.size(); ++resultID)
 	{
 		auto & curData = result[resultID];
 		size_t numTableColumns = curData.table->GetNumberOfColumns();
 		for (int i = (iARefDistCompute::DistanceMetricCount+iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns); i >= iARefDistCompute::EndColumns; --i)
 		{
-			splomData->data()[numParams - i].resize(splomData->data()[numParams - i].size() + curData.fiberCount, 0);
+			spmData->data()[numParams - i].resize(spmData->data()[numParams - i].size() + curData.fiberCount, 0);
 		}
 		for (size_t fiberID = 0; fiberID < curData.fiberCount; ++fiberID)
 		{
 			for (vtkIdType col = 0; col < numTableColumns; ++col)
 			{
 				double value = curData.table->GetValue(fiberID, col).ToDouble();
-				splomData->data()[col].push_back(value);
+				spmData->data()[col].push_back(value);
 			}
-			splomData->data()[numParams-1].push_back(resultID);
+			spmData->data()[numParams-1].push_back(resultID);
 
 			double projErrorRed = curData.projectionError.size() > 0 ?
 				curData.projectionError[fiberID][0] - curData.projectionError[fiberID][curData.projectionError[fiberID].size() - 1]
 					: 0;
-			splomData->data()[numParams-2][splomStartIdx + fiberID] = projErrorRed;
+			spmData->data()[numParams-2][spmStartIdx + fiberID] = projErrorRed;
 			curData.table->SetValue(fiberID, numParams - 2, projErrorRed);
 		}
-		// TODO: reuse splomData also for 3d visualization?
+		// TODO: reuse spmData also for 3d visualization?
 		for (int col = 0; col < (iARefDistCompute::DistanceMetricCount+ iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns-1); ++col)
 		{
-			addColumn(curData.table, 0, splomData->parameterName(numTableColumns+col).toStdString().c_str(), curData.fiberCount);
+			addColumn(curData.table, 0, spmData->parameterName(numTableColumns+col).toStdString().c_str(), curData.fiberCount);
 		}
-		addColumn(curData.table, resultID, splomData->parameterName(numParams-1).toStdString().c_str(), curData.fiberCount);
+		addColumn(curData.table, resultID, spmData->parameterName(numParams-1).toStdString().c_str(), curData.fiberCount);
 
-		splomStartIdx += curData.fiberCount;
+		spmStartIdx += curData.fiberCount;
 	}
 
-	splomData->updateRanges();
+	spmData->updateRanges();
 
 	return true;
 }

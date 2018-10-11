@@ -103,7 +103,7 @@ public:
 	//! for each result, detailed data
 	std::vector<iAFiberCharData> result;
 	//! SPM data
-	QSharedPointer<iASPLOMData> splomData;
+	QSharedPointer<iASPLOMData> spmData;
 	//! min and max of fiber count over all results
 	size_t minFiberCount, maxFiberCount;
 	//! maximum of optimization steps in all results

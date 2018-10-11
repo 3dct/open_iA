@@ -90,9 +90,9 @@ private slots:
 	void mainOpacityChanged(int);
 	void contextOpacityChanged(int);
 	void selection3DChanged();
-	void selectionSPLOMChanged(std::vector<size_t> const & selection);
+	void selectionSPMChanged(std::vector<size_t> const & selection);
 	void selectionOptimStepChartChanged(std::vector<size_t> const & selection);
-	void splomLookupTableChanged();
+	void spmLookupTableChanged();
 	void changeReferenceDisplay();
 	void playPauseOptimSteps();
 	void playTimer();
@@ -115,7 +115,7 @@ private slots:
 	void changeDistributionSource(int index);
 private:
 	QColor getResultColor(int resultID);
-	void getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID);
+	void getResultFiberIDFromSpmID(size_t spmID, size_t & resultID, size_t & fiberID);
 	void clearSelection();
 	void newSelection(QString const & source);
 	size_t selectionSize() const;
@@ -123,7 +123,7 @@ private:
 	void showCurrentSelectionInPlots();
 	void showCurrentSelectionInPlot(int chartID);
 	void showCurrentSelectionIn3DViews();
-	void showCurrentSelectionInSPLOM();
+	void showCurrentSelectionInSPM();
 	bool isAnythingSelected() const;
 	void loadStateAndShow();
 	void addInteraction(QString const & interaction);
@@ -174,8 +174,8 @@ private:
 	QButtonGroup* m_defaultButtonGroup;
 	iAStackedBarChart* m_stackedBarsHeaders;
 
-	// SPLOM:
-	iAQSplom* m_splom;
+	// Scatter plot matrix:
+	iAQSplom* m_spm;
 
 	// Optimization Steps:
 	QLabel* m_currentOptimStepLabel;

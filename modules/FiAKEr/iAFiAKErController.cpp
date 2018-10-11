@@ -122,7 +122,7 @@ public:
 iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	m_colorTheme(iAColorThemeManager::GetInstance().GetTheme("Brewer Accent (max. 8)")),
 	m_mainWnd(mainWnd),
-	m_splom(new iAQSplom()),
+	m_spm(new iAQSplom()),
 	m_referenceID(NoResult),
 	m_playTimer(new QTimer(this)),
 	m_refDistCompute(nullptr),
@@ -399,8 +399,8 @@ void iAFiAKErController::resultsLoaded()
 	previewLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	auto distrCmb = new QComboBox();
 	QStringList paramNames;
-	for (int curIdx = 0; curIdx < m_data->splomData->numParams() - 1; ++curIdx)
-		paramNames.push_back(QString("%1 Distribution").arg(m_data->splomData->parameterName(curIdx)));
+	for (int curIdx = 0; curIdx < m_data->spmData->numParams() - 1; ++curIdx)
+		paramNames.push_back(QString("%1 Distribution").arg(m_data->spmData->parameterName(curIdx)));
 	distrCmb->addItems(paramNames);
 	connect(distrCmb, SIGNAL(currentIndexChanged(int)), this, SLOT(changeDistributionSource(int)));
 	distrCmb->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -521,7 +521,7 @@ void iAFiAKErController::resultsLoaded()
 	m_views[ResultListView] = new iADockWidgetWrapper(resultListScrollArea, "Result list", "foeResultList");
 	m_views[Main3DView]     = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
 	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeTimeSteps");
-	m_views[SPMView]        = new iADockWidgetWrapper(m_splom, "Scatter Plot Matrix", "foeSPLOM");
+	m_views[SPMView]        = new iADockWidgetWrapper(m_spm, "Scatter Plot Matrix", "foeSPM");
 	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "Interactions", "foeInteractions");
 	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "Selections", "foeSelections");
 	m_views[SettingsView]   = new iADockWidgetWrapper(settingsView, "Settings", "foeSettings");
@@ -565,29 +565,29 @@ void iAFiAKErController::loadStateAndShow()
 
 	restoreState(settings.value(ModuleSettingsKey + "/state", saveState()).toByteArray());
 
-	// splom needs an active OpenGL Context (it must be visible when setData is called):
-	m_splom->setMinimumWidth(200);
-	m_splom->showAllPlots(false);
-	auto np = m_data->splomData->numParams();
-	std::vector<char> v(m_data->splomData->numParams(), false);
+	// SPM needs an active OpenGL Context (it must be visible when setData is called):
+	m_spm->setMinimumWidth(200);
+	m_spm->showAllPlots(false);
+	auto np = m_data->spmData->numParams();
+	std::vector<char> v(m_data->spmData->numParams(), false);
 	auto & map = *m_data->result[0].mapping.data();
 	v[map[iACsvConfig::StartX]] = v[map[iACsvConfig::StartY]] = v[map[iACsvConfig::StartZ]]
 		= v[np - 7] = v[np - 6] = v[np - 5] = v[np - 4] = v[np - 3] = v[np - 2] = true;
-	m_splom->setData(m_data->splomData, v);
+	m_spm->setData(m_data->spmData, v);
 	iALookupTable lut;
 	int numOfResults = m_data->result.size();
 	lut.setRange(0, numOfResults - 1);
 	lut.allocate(numOfResults);
 	for (size_t i = 0; i < numOfResults; i++)
 		lut.setColor(i, m_colorTheme->GetColor(i));
-	m_splom->setLookupTable(lut, m_data->splomData->numParams() - 1);
-	m_splom->setSelectionMode(iAScatterPlot::Rectangle);
-	m_splom->showDefaultMaxizimedPlot();
-	m_splom->setSelectionColor(SelectionColor);
-	m_splom->setPointRadius(2.5);
-	m_splom->settings.enableColorSettings = true;
-	connect(m_splom, &iAQSplom::selectionModified, this, &iAFiAKErController::selectionSPLOMChanged);
-	connect(m_splom, &iAQSplom::lookupTableChanged, this, &iAFiAKErController::splomLookupTableChanged);
+	m_spm->setLookupTable(lut, m_data->spmData->numParams() - 1);
+	m_spm->setSelectionMode(iAScatterPlot::Rectangle);
+	m_spm->showDefaultMaxizimedPlot();
+	m_spm->setSelectionColor(SelectionColor);
+	m_spm->setPointRadius(2.5);
+	m_spm->settings.enableColorSettings = true;
+	connect(m_spm, &iAQSplom::selectionModified, this, &iAFiAKErController::selectionSPMChanged);
+	connect(m_spm, &iAQSplom::lookupTableChanged, this, &iAFiAKErController::spmLookupTableChanged);
 }
 
 QString iAFiAKErController::stackedBarColName(int index) const
@@ -650,7 +650,7 @@ void iAFiAKErController::switchStackMode(bool stack)
 
 void iAFiAKErController::changeDistributionSource(int index)
 {
-	auto range = m_data->splomData->paramRange(index);
+	auto range = m_data->spmData->paramRange(index);
 	for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result[resultID];
@@ -791,9 +791,9 @@ void iAFiAKErController::toggleVis(int state)
 	{
 		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
 		ui.main3DVis->setContextOpacity(ContextOpacity);
-		if (m_splom->colorScheme() == iAQSplom::ByParameter)
+		if (m_spm->colorScheme() == iAQSplom::ByParameter)
 		{
-			ui.main3DVis->setLookupTable(m_splom->lookupTable(), m_splom->colorLookupParam());
+			ui.main3DVis->setLookupTable(m_spm->lookupTable(), m_spm->colorLookupParam());
 			ui.main3DVis->updateColorSelectionRendering();
 		}
 		else
@@ -823,7 +823,7 @@ void iAFiAKErController::toggleVis(int state)
 		}
 		ui.main3DVis->show();
 		m_style->addInput( resultID, ui.main3DVis->getLinePolyData() );
-		m_splom->addFilter(m_data->splomData->numParams()-1, resultID);
+		m_spm->addFilter(m_data->spmData->numParams()-1, resultID);
 	}
 	else
 	{
@@ -844,7 +844,7 @@ void iAFiAKErController::toggleVis(int state)
 		}
 		ui.main3DVis->hide();
 		m_style->removeInput(resultID);
-		m_splom->removeFilter(m_data->splomData->numParams()-1, resultID);
+		m_spm->removeFilter(m_data->spmData->numParams()-1, resultID);
 	}
 	for (size_t c=0; c<ChartCount; ++c)
 		if (m_optimStepChart[c] && m_optimStepChart[c]->isVisible())
@@ -865,22 +865,22 @@ void iAFiAKErController::toggleBoundingBox(int state)
 		ui.main3DVis->hideBoundingBox();
 }
 
-void iAFiAKErController::getResultFiberIDFromSplomID(size_t splomID, size_t & resultID, size_t & fiberID)
+void iAFiAKErController::getResultFiberIDFromSpmID(size_t spmID, size_t & resultID, size_t & fiberID)
 {
 	size_t curStart = 0;
 	resultID = 0;
 	fiberID = 0;
-	while (splomID >= curStart + m_data->result[resultID].fiberCount && resultID < m_data->result.size())
+	while (spmID >= curStart + m_data->result[resultID].fiberCount && resultID < m_data->result.size())
 	{
 		curStart += m_data->result[resultID].fiberCount;
 		++resultID;
 	}
 	if (resultID == m_data->result.size())
 	{
-		DEBUG_LOG(QString("Invalid index in SPLOM: %1").arg(splomID));
+		DEBUG_LOG(QString("Invalid index in SPM: %1").arg(spmID));
 		return;
 	}
-	fiberID = splomID - curStart;
+	fiberID = spmID - curStart;
 }
 
 std::vector<std::vector<size_t> > & iAFiAKErController::selection()
@@ -979,21 +979,21 @@ void iAFiAKErController::showCurrentSelectionIn3DViews()
 	}
 }
 
-void iAFiAKErController::showCurrentSelectionInSPLOM()
+void iAFiAKErController::showCurrentSelectionInSPM()
 {
-	std::vector<size_t> splomSelection;
-	splomSelection.reserve(selectionSize());
-	size_t splomIDStart = 0;
+	std::vector<size_t> spmSelection;
+	spmSelection.reserve(selectionSize());
+	size_t spmIDStart = 0;
 	for (size_t resultID = 0; resultID<m_data->result.size(); ++resultID)
 	{
 		for (int fiberID = 0; fiberID < m_selection[resultID].size(); ++fiberID)
 		{
-			size_t splomID = splomIDStart + m_selection[resultID][fiberID];
-			splomSelection.push_back(splomID);
+			size_t spmID = spmIDStart + m_selection[resultID][fiberID];
+			spmSelection.push_back(spmID);
 		}
-		splomIDStart += m_data->result[resultID].fiberCount;
+		spmIDStart += m_data->result[resultID].fiberCount;
 	}
-	m_splom->setSelection(splomSelection);
+	m_spm->setSelection(spmSelection);
 }
 
 void iAFiAKErController::selection3DChanged()
@@ -1002,22 +1002,22 @@ void iAFiAKErController::selection3DChanged()
 	sortCurrentSelection("3D view");
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInPlots();
-	showCurrentSelectionInSPLOM();
+	showCurrentSelectionInSPM();
 	changeReferenceDisplay();
 }
 
-void iAFiAKErController::selectionSPLOMChanged(std::vector<size_t> const & selection)
+void iAFiAKErController::selectionSPMChanged(std::vector<size_t> const & selection)
 {
 	addInteraction(QString("Selected %1 fibers in scatter plot matrix.").arg(selection.size()));
-	// map from SPLOM index to (resultID, fiberID) pairs
+	// map from SPM index to (resultID, fiberID) pairs
 	clearSelection();
 	size_t resultID, fiberID;
-	for (size_t splomID: selection)
+	for (size_t spmID: selection)
 	{
-		getResultFiberIDFromSplomID(splomID, resultID, fiberID);
+		getResultFiberIDFromSpmID(spmID, resultID, fiberID);
 		m_selection[resultID].push_back(fiberID);
 	}
-	sortCurrentSelection("SPLOM");
+	sortCurrentSelection("SPM");
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInPlots();
 	changeReferenceDisplay();
@@ -1046,7 +1046,7 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 	sortCurrentSelection("Chart");
 	showCurrentSelectionInPlots();
 	showCurrentSelectionIn3DViews();
-	showCurrentSelectionInSPLOM();
+	showCurrentSelectionInSPM();
 	changeReferenceDisplay();
 }
 
@@ -1150,16 +1150,16 @@ void iAFiAKErController::referenceToggled(bool)
 
 void iAFiAKErController::refDistAvailable()
 {
-	size_t startIdx = m_data->splomData->numParams() - (iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns);
-	std::vector<size_t> changedSplomColumns;
+	size_t startIdx = m_data->spmData->numParams() - (iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns);
+	std::vector<size_t> changedSpmColumns;
 	for (size_t paramID = 0; paramID < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount; ++paramID)
 	{
 		size_t columnID = startIdx + paramID;
-		changedSplomColumns.push_back(columnID);
+		changedSpmColumns.push_back(columnID);
 	}
 	m_referenceID = m_refDistCompute->referenceID();
-	m_data->splomData->updateRanges(changedSplomColumns);
-	m_splom->update();
+	m_data->spmData->updateRanges(changedSpmColumns);
+	m_spm->update();
 	delete m_refDistCompute;
 	m_refDistCompute = nullptr;
 
@@ -1182,7 +1182,7 @@ void iAFiAKErController::refDistAvailable()
 
 	for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount; ++diffID)
 	{
-		auto diffAvgAction = new QAction(m_data->splomData->parameterName(startIdx+diffID), nullptr);
+		auto diffAvgAction = new QAction(m_data->spmData->parameterName(startIdx+diffID), nullptr);
 		diffAvgAction->setProperty("colID", static_cast<unsigned long long>(diffID+1));
 		diffAvgAction->setCheckable(true);
 		diffAvgAction->setChecked(false);
@@ -1215,10 +1215,10 @@ void iAFiAKErController::showSpatialOverview()
 	m_mainRenderer->update();
 }
 
-void iAFiAKErController::splomLookupTableChanged()
+void iAFiAKErController::spmLookupTableChanged()
 {
-	QSharedPointer<iALookupTable> lut = m_splom->lookupTable();
-	size_t colorLookupParam = m_splom->colorLookupParam();
+	QSharedPointer<iALookupTable> lut = m_spm->lookupTable();
+	size_t colorLookupParam = m_spm->colorLookupParam();
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		m_resultUIs[resultID].mini3DVis->setLookupTable(lut, colorLookupParam);
@@ -1320,7 +1320,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer, m_refVisTable,
 		m_data->result[m_referenceID].mapping, QColor(0,0,0) ) );
 	QSharedPointer<iALookupTable> lut(new iALookupTable);
-	*lut.data() = iALUT::Build(m_data->splomData->paramRange(m_data->splomData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::DistanceMetricCount+distanceMeasure),
+	*lut.data() = iALUT::Build(m_data->spmData->paramRange(m_data->spmData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::DistanceMetricCount+distanceMeasure),
 		"ColorBrewer single hue 5-class oranges", 256, SelectionOpacity);
 	m_nearestReferenceVis->show();
 	// ... and set up color coding by it!
@@ -1453,7 +1453,7 @@ void iAFiAKErController::selectionFromListActivated(QModelIndex const & index)
 	showCurrentSelectionDetail();
 	showCurrentSelectionIn3DViews();
 	showCurrentSelectionInPlots();
-	showCurrentSelectionInSPLOM();
+	showCurrentSelectionInSPM();
 	changeReferenceDisplay();
 }
 
@@ -1489,16 +1489,16 @@ void iAFiAKErController::selectionDetailsItemClicked(QModelIndex const & index)
 		m_selection[resultID].push_back(fiberID);
 		showCurrentSelectionIn3DViews();
 		showCurrentSelectionInPlots();
-		showCurrentSelectionInSPLOM();
+		showCurrentSelectionInSPM();
 		changeReferenceDisplay();
 	}
 }
 
 QString iAFiAKErController::diffName(int chartID) const
 {
-	size_t splomCol = m_data->splomData->numParams() -
+	size_t spmCol = m_data->spmData->numParams() -
 		(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns) + chartID;
-	return m_data->splomData->parameterName(splomCol);
+	return m_data->spmData->parameterName(spmCol);
 }
 
 QString iAFiAKErController::resultName(size_t resultID) const
