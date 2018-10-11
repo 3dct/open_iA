@@ -940,17 +940,20 @@ void iAFiAKErController::showSelectionInPlot(int chartID)
 		{
 			size_t curSelIdx = 0;
 			QColor color(getResultColor(resultID));
+			if (isAnythingSelected())
+				color.setAlpha(ContextOpacity);
 			for (size_t fiberID=0; fiberID < m_data->result[resultID].fiberCount; ++fiberID)
 			{
-				auto plot = chart->plots()[m_resultUIs[resultID].startPlotIdx + fiberID];
-
+				auto plot = dynamic_cast<iALinePlot*>(chart->plots()[m_resultUIs[resultID].startPlotIdx + fiberID].data());
 				if (curSelIdx < m_selection[resultID].size() && fiberID == m_selection[resultID][curSelIdx])
 				{
+					plot->setLineWidth(2);
 					plot->setColor(SelectionColor);
 					++curSelIdx;
 				}
 				else
 				{
+					plot->setLineWidth(1);
 					plot->setColor(color);
 				}
 			}
