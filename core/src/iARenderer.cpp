@@ -682,8 +682,7 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	movieWriter->SetInputConnection(w2if->GetOutputPort());
 	movieWriter->Start();
 
-	emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale()
-		.toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
+	emit msg(tr("MOVIE export started. Output: %1").arg(fileName));
 
 	int numRenderings = 360;//TODO
 	vtkSmartPointer<vtkTransform> rot = vtkSmartPointer<vtkTransform>::New();

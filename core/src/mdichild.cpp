@@ -542,8 +542,7 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 bool MdiChild::loadRaw(const QString &f)
 {
 	if (!QFile::exists(f))	return false;
-	addMsg(tr("%1  Loading file '%2', please wait...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
+	addMsg(tr("Loading file '%1', please wait...").arg(f));
 	setCurrentFile(f);
 	waitForPreviousIO();
 	ioThread = new iAIO(imageData, nullptr, m_logger, this);
@@ -580,8 +579,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 	if(!QFile::exists(f))
 		return false;
 
-	addMsg(tr("%1  Loading file '%2', please wait...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
+	addMsg(tr("Loading file '%1', please wait...").arg(f));
 	setCurrentFile(f);
 
 	waitForPreviousIO();
@@ -898,7 +896,7 @@ void MdiChild::waitForPreviousIO()
 {
 	if (ioThread)
 	{
-		addMsg(tr("%1  Waiting for I/O operation to complete...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		addMsg(tr("Waiting for I/O operation to complete..."));
 		ioThread->wait();
 		ioThread = nullptr;
 	}
@@ -975,7 +973,7 @@ bool MdiChild::setupSaveIO(QString const & f)
 				if (supportedPixelTypes.contains(ioID) &&
 					!supportedPixelTypes[ioID].contains(imageData->GetScalarType()))
 				{
-					addMsg(QString("%1  Writer only supports %2 input!")
+					addMsg(QString("Writer for %1 only supports %2 input!")
 						.arg(suffix)
 						.arg(GetSupportedPixelTypeString(supportedPixelTypes[ioID])));
 					return false;
@@ -1015,8 +1013,7 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 		return false;
 	}
 
-	addMsg(tr("%1  Saving file '%2', please wait...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
+	addMsg(tr("Saving file '%1', please wait...").arg(f));
 	ioThread->start();
 
 	return true;
@@ -1173,37 +1170,37 @@ void MdiChild::triggerInteractionXY()
 {
 	bool newState = slicer[iASlicerMode::XY]->changeInteractorState();
 	if (!newState)
-		addMsg(tr("%1  Slicer XY disabled.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		addMsg(tr("Slicer XY disabled."));
 	else
-		addMsg(tr("%1  Slicer XY enabled.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		addMsg(tr("Slicer XY enabled."));
 }
 
 void MdiChild::triggerInteractionXZ()
 {
 	bool newState = slicer[iASlicerMode::XZ]->changeInteractorState();
 	if (!newState)
-		addMsg(tr("%1  Slicer XZ disabled.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		addMsg(tr("Slicer XZ disabled."));
 	else
-		addMsg(tr("%1  Slicer XZ enabled.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		addMsg(tr("Slicer XZ enabled."));
 }
 
 void MdiChild::triggerInteractionYZ()
 {
 	bool newState = slicer[iASlicerMode::YZ]->changeInteractorState();
 	if (!newState)
-		addMsg(tr("%1  Slicer YZ disabled.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		addMsg(tr("Slicer YZ disabled."));
 	else
-		addMsg(tr("%1  Slicer YZ enabled.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		addMsg(tr("Slicer YZ enabled."));
 }
 
 void MdiChild::triggerInteractionRaycaster()
 {
 	if (Raycaster->GetInteractor()->GetEnabled()){
 		Raycaster->disableInteractor();
-		addMsg(tr("%1  Renderer disabled.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		addMsg(tr("Renderer disabled."));
 	} else {
 		Raycaster->enableInteractor();
-		addMsg(tr("%1  Renderer enabled.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		addMsg(tr("Renderer enabled."));
 	}
 }
 
@@ -2223,7 +2220,7 @@ int MdiChild::EvaluatePosition(int pos, int i, bool invert)
 
 void MdiChild::addMsg(QString txt)
 {
-	logs->listWidget->addItem(txt);
+	logs->listWidget->addItem(tr("%1  %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(txt));
 	logs->listWidget->scrollToBottom();
 	logs->listWidget->repaint();
 }
@@ -2858,8 +2855,7 @@ void MdiChild::SetHistogramModality(int modalityIdx)
 		displayHistogram(modalityIdx);
 		return;
 	}
-	addMsg(QString("%1  Computing statistics for modality %2...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+	addMsg(QString("Computing statistics for modality %1...")
 		.arg(GetModality(modalityIdx)->GetName()));
 	GetModality(modalityIdx)->GetTransfer()->Info().setComputing();
 	updateImageProperties();
@@ -2886,9 +2882,7 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 {
 	QString modalityName = GetModality(modalityIdx)->GetName();
 	m_currentHistogramModality = modalityIdx;
-	addMsg(QString("%1  Displaying histogram for modality %2.")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(modalityName));
+	addMsg(QString("Displaying histogram for modality %1.").arg(modalityName));
 	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iAPlot>(new
 		iABarGraphPlot(GetModality(modalityIdx)->GetHistogramData(),
@@ -2921,8 +2915,7 @@ void MdiChild::displayHistogram(int modalityIdx)
 		return;
 	}
 
-	addMsg(QString("%1  Computing histogram for modality %2...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+	addMsg(QString("Computing histogram for modality %1...")
 		.arg(GetModality(modalityIdx)->GetName()));
 	auto workerThread = new iAHistogramUpdater(modalityIdx,
 		GetModality(modalityIdx), newBinCount);
@@ -2978,8 +2971,7 @@ void MdiChild::saveProject(QString const & fileName)
 		ioFinished();
 		return;
 	}
-	addMsg(tr("%1  Saving file '%2', please wait...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	addMsg(tr("Saving file '%1', please wait...").arg(fileName));
 	ioThread->start();
 	// TODO: only set new project file name if saving succeeded
 	setCurrentFile(fileName);

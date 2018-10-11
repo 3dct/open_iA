@@ -65,8 +65,7 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, iAChildData childData ) 
 	if( !QFile::exists( f ) )
 		throw itk::ExceptionObject(__FILE__, __LINE__, "File does not exist");
 
-	mdiChild->addMsg(tr("%1  Loading file '%2', please wait...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
+	mdiChild->addMsg(tr("Loading file '%1', please wait...").arg(f));
 
 	dlgPeriodicTable = new dlg_periodicTable( mdiChild );
 	mdiChild->splitDockWidget( mdiChild->sXZ, dlgPeriodicTable, Qt::Horizontal );
@@ -149,7 +148,7 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 			!m_childData.child->GetChannelData(ch_XRF)->IsEnabled());
 	}
 	m_childData.child->updateSlicers();
-	m_childData.child->addMsg( tr( "%1  Spectral color image initialized." ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
+	m_childData.child->addMsg(tr("Spectral color image initialized."));
 }
 
 QObject* iAXRFAttachment::recalculateXRF()
@@ -244,7 +243,7 @@ void iAXRFAttachment::xrfLoadingDone()
 
 void iAXRFAttachment::xrfLoadingFailed()
 {
-	m_childData.child->addMsg( tr( "%1  XRF data loading has failed!" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
+	m_childData.child->addMsg( tr("XRF data loading has failed!"));
 	delete dlgXRF;
 	delete dlgPeriodicTable;
 	delete dlgRefSpectra;
@@ -283,7 +282,7 @@ bool iAXRFAttachment::filter_SimilarityMap()
 void iAXRFAttachment::initSlicerXRF( bool enableChannel )
 {
 	assert( !m_childData.child->GetChannelData( ch_XRF ) );
-	m_childData.child->addMsg( tr( "%1  Initializing Spectral Color Image. This may take a while..." ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
+	m_childData.child->addMsg(tr("Initializing Spectral Color Image. This may take a while..."));
 	QObject* calcThread = recalculateXRF();
 	if( enableChannel )
 	{

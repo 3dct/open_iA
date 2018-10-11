@@ -73,8 +73,7 @@ void iAAlgorithm::run()
 	}
 	catch (itk::ExceptionObject &excep)
 	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Error: %3; in File %4, Line %5. Elapsed time: %6 ms.")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		addMsg(tr("%1 terminated unexpectedly. Error: %2; in File %3, Line %4. Elapsed time: %5 ms.")
 			.arg(getFilterName())
 			.arg(excep.GetDescription())
 			.arg(excep.GetFile())
@@ -84,15 +83,13 @@ void iAAlgorithm::run()
 	}
 	catch (const std::exception& e)
 	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Error: %3. Elapsed time: %4 ms.")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		addMsg(tr("%1 terminated unexpectedly. Error: %2. Elapsed time: %3 ms.")
 			.arg(getFilterName())
 			.arg(e.what())
 			.arg(Stop()));
 		return;
 	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms.")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+	addMsg(tr("%1 finished. Elapsed time: %2 ms.")
 		.arg(getFilterName())
 		.arg(Stop()));
 	emit startUpdate();
@@ -101,7 +98,7 @@ void iAAlgorithm::run()
 
 void iAAlgorithm::performWork()
 {
-	addMsg(tr("  unknown filter type"));
+	addMsg(tr("Unknown filter type"));
 }
 
 

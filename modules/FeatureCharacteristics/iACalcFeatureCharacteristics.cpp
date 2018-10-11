@@ -268,7 +268,5 @@ void iACalcFeatureCharacteristics::performWork()
 	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
 	ITK_TYPED_CALL(calcFeatureCharacteristics_template, itkType,
 		getConnector(), ProgressObserver(), pathCSV, m_calculateFeretDiameter);
-	addMsg(tr("%1   Feature csv file created in: %2")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(pathCSV));
+	addMsg(tr("Feature csv file created in: %1").arg(pathCSV));
 }

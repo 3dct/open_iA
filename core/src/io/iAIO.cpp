@@ -525,7 +525,7 @@ void iAIO::run()
 				break;
 			case UNKNOWN_READER:
 			default:
-				addMsg(tr("  unknown reader type"));
+				addMsg(tr("Unknown reader type"));
 		}
 		if ((ioID == MHD_WRITER) || (ioID == STL_WRITER) || (ioID == TIF_STACK_WRITER)
 			|| (ioID == JPG_STACK_WRITER) || (ioID == PNG_STACK_WRITER)|| (ioID == BMP_STACK_WRITER) || (ioID ==DCM_WRITER) )
@@ -534,8 +534,7 @@ void iAIO::run()
 	}
 	catch (std::exception & e)
 	{
-		addMsg(tr("%1  IO operation failed: %3").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-			.arg(e.what()));
+		addMsg(tr("IO operation failed: %1").arg(e.what()));
 	}
 }
 
@@ -844,7 +843,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 #endif
 		case UNKNOWN_READER:
 		default:
-			addMsg(tr("  unknown IO type"));
+			addMsg(tr("Unknown IO type"));
 			return false;
 	}
 	return true;
@@ -950,7 +949,7 @@ void iAIO::readVolumeMHDStack()
 		int progress = (fileNameArray->GetMaxId() == 0) ? 100 : (m * 100) / fileNameArray->GetMaxId();
 		ProgressObserver()->EmitProgress(progress);
 	}
-	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("Loading volume stack completed."));
 	StoreIOSettings();
 }
 
@@ -970,7 +969,7 @@ void iAIO::readVolumeStack()
 		int progress = (m * 100) / fileNameArray->GetMaxId();
 		ProgressObserver()->EmitProgress(progress);
 	}
-	addMsg(tr("%1  Loading volume stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("Loading volume stack completed."));
 	StoreIOSettings();
 }
 
@@ -1018,7 +1017,7 @@ void iAIO::postImageReadActions()
 	getVtkImageData()->Initialize();
 	getVtkImageData()->DeepCopy(getConnector()->GetVTKImage());
 	getVtkImageData()->CopyInformationFromPipeline(getConnector()->GetVTKImage()->GetInformation());
-	addMsg(tr("%1  File loaded.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("File loaded."));
 }
 
 
@@ -1045,7 +1044,7 @@ void iAIO::readSTL( )
 	stlReader->SetOutput(getVtkPolyData());
 	stlReader->Update();
 	printSTLFileInfos();
-	addMsg(tr("%1  File loaded.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("File loaded."));
 }
 
 
@@ -1428,7 +1427,7 @@ void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fil
 	iAConnector::ITKPixelType itkPixelType = con.GetITKPixelType();
 	ITK_EXTENDED_TYPED_CALL(write_image_template, itkType, itkPixelType,
 		compression, fileName, ProgressObserver(), &con);
-	addMsg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	addMsg(tr("Saved as file '%1'.").arg(fileName));
 }
 
 
@@ -1440,7 +1439,7 @@ void iAIO::writeSTL( )
 	stlWriter->SetInputData(getVtkPolyData());
 	stlWriter->SetFileTypeToBinary();
 	stlWriter->Write();
-	addMsg(tr("%1  Saved as file '%2'.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(fileName));
+	addMsg(tr("Saved as file '%1'.").arg(fileName));
 	stlWriter->ReleaseDataFlagOn();
 }
 
@@ -1502,10 +1501,9 @@ void iAIO::writeImageStack( )
 	const PixelType imagePixelType = getConnector()->GetITKPixelType();
 	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
 		fileName, ProgressObserver(), getConnector(), compression);
-	addMsg(tr("%1  %2 Image Stack saved.")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(QFileInfo(fileName).completeSuffix().toUpper()));
-	addMsg("  Base Filename: " + fileName);
+	addMsg(tr("%1 Image Stack saved; base file name: %2")
+		.arg(QFileInfo(fileName).completeSuffix().toUpper())
+		.arg(fileName));
 }
 
 //****************************************************
@@ -1632,7 +1630,7 @@ void iAIO::readImageStack()
 	imgReader->SetDataSpacing(spacing);
 	imgReader->SetOutput(getVtkImageData());
 	imgReader->Update();
-	addMsg(tr("%1  Loading image stack completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	addMsg(tr("Loading image stack completed."));
 }
 
 

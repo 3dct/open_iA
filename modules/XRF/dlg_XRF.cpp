@@ -644,13 +644,13 @@ void dlg_XRF::decomposeElements()
 {
 	if (!m_refSpectraLib)
 	{
-		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("%1 Reference spectra have to be loaded!").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Reference spectra have to be loaded!"));
 		return;
 	}
 	if (m_decompositionCalculator)
 	{
 		m_decompositionCalculator->Stop();
-		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("%1 Decomposition was aborted by user.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Decomposition was aborted by user."));
 		return;
 	}
 	m_elementConcentrations = QSharedPointer<iAElementConcentrations>(new iAElementConcentrations());
@@ -670,7 +670,7 @@ void dlg_XRF::decomposeElements()
 	if (m_decompositionCalculator->ElementCount() == 0)
 	{
 		m_decompositionCalculator.clear();
-		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("%1 You have to select at least one element from the reference spectra list!").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("You have to select at least one element from the reference spectra list!"));
 		return;
 	}
 	pb_decompose->setText("Stop");
@@ -678,13 +678,13 @@ void dlg_XRF::decomposeElements()
 	connect(m_decompositionCalculator.data(), SIGNAL( finished() ), this, SLOT (decompositionFinished()) );
 	connect(m_decompositionCalculator.data(), SIGNAL( progress(int) ), dynamic_cast<MdiChild*>(parent()), SLOT(updateProgressBar(int)) );
 	m_decompositionCalculator->start();
-	(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("%1 Decomposition calculation started...").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Decomposition calculation started..."));
 }
 
 
 void dlg_XRF::decompositionSuccess()
 {
-	(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("%1 Decomposition calculation successful.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Decomposition calculation successful."));
 	decompositionAvailable();
 }
 
@@ -710,7 +710,7 @@ void dlg_XRF::loadDecomposition()
 {
 	if (!m_refSpectraLib)
 	{
-		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("%1 Reference spectra have to be loaded!").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Reference spectra have to be loaded!"));
 		return;
 	}
 	QString fileName = QFileDialog::getOpenFileName(

@@ -194,7 +194,7 @@ bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
 	}
 	catch( itk::ExceptionObject &excep )
 	{
-		child->addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
+		child->addMsg( tr("%1 in File %2, Line %3").arg( excep.GetDescription() )
 			.arg( excep.GetFile() )
 			.arg( excep.GetLine() ) );
 		return false;
