@@ -18,11 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFiberOptimizationExplorerModuleInterface.h"
+#include "iAFiAKErModuleInterface.h"
 
 #include "iACsvConfig.h"
 #include "iAFiberCharData.h"
-#include "iAFiberOptimizationExplorer.h"
+#include "iAFiAKErController.h"
 
 #include "dlg_commoninput.h"
 #include "mainwindow.h"
@@ -30,23 +30,23 @@
 #include <QAction>
 #include <QFileDialog>
 
-void iAFiberOptimizationExplorerModuleInterface::Initialize()
+void iAFiAKErModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QAction * actionFibreOptimizationExploration = new QAction( "Fiber Analytics", nullptr );
-	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreOptimizationExploration, false );
-	connect( actionFibreOptimizationExploration, &QAction::triggered, this, &iAFiberOptimizationExplorerModuleInterface::FibreOptimizationExploration );
+	QAction * actionFiAKEr = new QAction( "FiAKEr (Fiber Analytics)", nullptr );
+	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFiAKEr, false );
+	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::FiAKEr );
 }
 
-void iAFiberOptimizationExplorerModuleInterface::FibreOptimizationExploration()
+void iAFiAKErModuleInterface::FiAKEr()
 {
 	QString path = QFileDialog::getExistingDirectory(m_mainWnd, "Choose Folder containing Result csv", m_mainWnd->getPath());
 	if (path.isEmpty())
 		return;
 	
-	auto explorer = new iAFiberOptimizationExplorer(m_mainWnd);
+	auto explorer = new iAFiAKErController(m_mainWnd);
 	QStringList parameterNames = QStringList() << "+CSV Format";
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iAFiberResultsCollection::SimpleFormat))
@@ -69,7 +69,7 @@ void iAFiberOptimizationExplorerModuleInterface::FibreOptimizationExploration()
 }
 
 /*
-void iAFiberOptimizationExplorerModuleInterface::SetupToolBar()
+void iAFiAKErModuleInterface::SetupToolBar()
 {
 	if (m_toolbar)
 	{
@@ -83,7 +83,7 @@ void iAFiberOptimizationExplorerModuleInterface::SetupToolBar()
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 }
 
-void iAFiberOptimizationExplorerModuleInterface::ToggleDockWidgetTitleBars()
+void iAFiAKErModuleInterface::ToggleDockWidgetTitleBars()
 {
 	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
 	if (!attach)
@@ -94,7 +94,7 @@ void iAFiberOptimizationExplorerModuleInterface::ToggleDockWidgetTitleBars()
 	attach->ToggleDockWidgetTitleBars();
 }
 
-void iAFiberOptimizationExplorerModuleInterface::ToggleSettings()
+void iAFiAKErModuleInterface::ToggleSettings()
 {
 	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
 	if (!attach)

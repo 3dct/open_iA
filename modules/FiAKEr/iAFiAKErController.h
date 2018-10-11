@@ -72,14 +72,14 @@ class QTreeView;
 class QVBoxLayout;
 //class QWebEngineView;
 
-class iAFiberOptimizationExplorer : public QMainWindow, public iASelectionProvider
+class iAFiAKErController : public QMainWindow, public iASelectionProvider
 {
 	Q_OBJECT
 public:
 	typedef std::vector<std::vector<size_t> > SelectionType;
-	iAFiberOptimizationExplorer(MainWindow* mainWnd);
+	iAFiAKErController(MainWindow* mainWnd);
 	void start(QString const & path, QString const & configName);
-	~iAFiberOptimizationExplorer();
+	~iAFiAKErController();
 	std::vector<std::vector<size_t> > & selection() override;
 private slots:
 	void toggleVis(int);

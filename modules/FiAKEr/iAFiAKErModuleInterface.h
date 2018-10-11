@@ -22,12 +22,12 @@
 
 #include "iAModuleInterface.h"
 
-class iAFiberOptimizationExplorerModuleInterface : public iAModuleInterface
+class iAFiAKErModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize();
 private slots:
-	void FibreOptimizationExploration();
+	void FiAKEr();
 //private:
 };
