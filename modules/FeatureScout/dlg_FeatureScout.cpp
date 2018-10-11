@@ -2010,7 +2010,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 		// if only one class exists
 		singleClassification = (classTreeModel->invisibleRootItem()->rowCount() == 2);
 		if (singleClassification &&
-			(QMessageBox::question(this, "FeatureScout", "Only one class selected, should we export LabelIds?", QMessageBox::Yes | QMessageBox::No)
+			(QMessageBox::question(this, "FeatureScout", "Only one class selected, should we export LabelIds (If you select No, all fibers will be labelled with the class ID)?", QMessageBox::Yes | QMessageBox::No)
 				== QMessageBox::No))
 		{
 			singleClassification = false;
@@ -2057,7 +2057,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 	if (!fOutPath.isEmpty())
 	{
 		StoreImage<OutputImageType>(out_img, fOutPath, true);
-		DEBUG_LOG("Stored image of of classes.");
+		activeChild->addMsg("Stored image of of classes.");
 	}
 }
 
