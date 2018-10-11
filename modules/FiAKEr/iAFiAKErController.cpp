@@ -773,7 +773,7 @@ void iAFiAKErController::toggleOptimStepChart(int chartID, bool visible)
 					->setVisible(allVisible || resultSelected(m_resultUIs, resultID));
 	}
 	m_optimStepChart[chartID]->update();
-	showCurrentSelectionInPlot(chartID);
+	showSelectionInPlot(chartID);
 }
 
 void iAFiAKErController::addInteraction(QString const & interaction)
@@ -894,7 +894,7 @@ void iAFiAKErController::clearSelection()
 		m_selection[resultID].clear();
 }
 
-void iAFiAKErController::sortCurrentSelection(QString const & source)
+void iAFiAKErController::sortSelection(QString const & source)
 {
 	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
 		std::sort(m_selection[resultID].begin(), m_selection[resultID].end());
@@ -912,7 +912,7 @@ void iAFiAKErController::newSelection(QString const & source)
 	m_selections.push_back(m_selection);
 	m_selectionListModel->appendRow(new QStandardItem(QString("%1 fibers in %2 results (%3)")
 		.arg(selSize).arg(resultCount).arg(source)));
-	showCurrentSelectionDetail();
+	showSelectionDetail();
 }
 
 size_t iAFiAKErController::selectionSize() const
@@ -923,13 +923,13 @@ size_t iAFiAKErController::selectionSize() const
 	return selectionSize;
 }
 
-void iAFiAKErController::showCurrentSelectionInPlots()
+void iAFiAKErController::showSelectionInPlots()
 {
 	for (size_t chartID=0; chartID<ChartCount; ++chartID)
-		showCurrentSelectionInPlot(chartID);
+		showSelectionInPlot(chartID);
 }
 
-void iAFiAKErController::showCurrentSelectionInPlot(int chartID)
+void iAFiAKErController::showSelectionInPlot(int chartID)
 {
 	auto chart = m_optimStepChart[chartID];
 	if (!chart || !chart->isVisible())
@@ -967,7 +967,7 @@ bool iAFiAKErController::isAnythingSelected() const
 	return false;
 }
 
-void iAFiAKErController::showCurrentSelectionIn3DViews()
+void iAFiAKErController::showSelectionIn3DViews()
 {
 	bool anythingSelected = isAnythingSelected();
 	for (size_t resultID = 0; resultID<m_resultUIs.size(); ++resultID)
@@ -979,7 +979,7 @@ void iAFiAKErController::showCurrentSelectionIn3DViews()
 	}
 }
 
-void iAFiAKErController::showCurrentSelectionInSPM()
+void iAFiAKErController::showSelectionInSPM()
 {
 	std::vector<size_t> spmSelection;
 	spmSelection.reserve(selectionSize());
@@ -999,10 +999,10 @@ void iAFiAKErController::showCurrentSelectionInSPM()
 void iAFiAKErController::selection3DChanged()
 {
 	addInteraction(QString("Selected %1 fibers in 3D view.").arg(selectionSize()));
-	sortCurrentSelection("3D view");
-	showCurrentSelectionIn3DViews();
-	showCurrentSelectionInPlots();
-	showCurrentSelectionInSPM();
+	sortSelection("3D view");
+	showSelectionIn3DViews();
+	showSelectionInPlots();
+	showSelectionInSPM();
 	changeReferenceDisplay();
 }
 
@@ -1017,9 +1017,9 @@ void iAFiAKErController::selectionSPMChanged(std::vector<size_t> const & selecti
 		getResultFiberIDFromSpmID(spmID, resultID, fiberID);
 		m_selection[resultID].push_back(fiberID);
 	}
-	sortCurrentSelection("SPM");
-	showCurrentSelectionIn3DViews();
-	showCurrentSelectionInPlots();
+	sortSelection("SPM");
+	showSelectionIn3DViews();
+	showSelectionInPlots();
 	changeReferenceDisplay();
 }
 
@@ -1043,10 +1043,10 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 			}
 		}
 	}
-	sortCurrentSelection("Chart");
-	showCurrentSelectionInPlots();
-	showCurrentSelectionIn3DViews();
-	showCurrentSelectionInSPM();
+	sortSelection("Chart");
+	showSelectionInPlots();
+	showSelectionIn3DViews();
+	showSelectionInSPM();
 	changeReferenceDisplay();
 }
 
@@ -1125,7 +1125,7 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 			vis.main3DVis->updateColorSelectionRendering();
 		}
 	}
-	showCurrentSelectionInPlots();
+	showSelectionInPlots();
 }
 
 void iAFiAKErController::referenceToggled(bool)
@@ -1450,14 +1450,14 @@ void iAFiAKErController::selectionFromListActivated(QModelIndex const & index)
 	int row = item->row();
 	addInteraction(QString("Switched to selection %1").arg(row));
 	m_selection = m_selections[row];
-	showCurrentSelectionDetail();
-	showCurrentSelectionIn3DViews();
-	showCurrentSelectionInPlots();
-	showCurrentSelectionInSPM();
+	showSelectionDetail();
+	showSelectionIn3DViews();
+	showSelectionInPlots();
+	showSelectionInSPM();
 	changeReferenceDisplay();
 }
 
-void iAFiAKErController::showCurrentSelectionDetail()
+void iAFiAKErController::showSelectionDetail()
 {
 	m_selectionDetailModel->clear();
 	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
@@ -1487,9 +1487,9 @@ void iAFiAKErController::selectionDetailsItemClicked(QModelIndex const & index)
 		addInteraction(QString("Focus on fiber %1 in %2").arg(fiberID).arg(resultName(resultID)));
 		clearSelection();
 		m_selection[resultID].push_back(fiberID);
-		showCurrentSelectionIn3DViews();
-		showCurrentSelectionInPlots();
-		showCurrentSelectionInSPM();
+		showSelectionIn3DViews();
+		showSelectionInPlots();
+		showSelectionInSPM();
 		changeReferenceDisplay();
 	}
 }

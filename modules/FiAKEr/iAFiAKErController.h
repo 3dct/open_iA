@@ -119,11 +119,11 @@ private:
 	void clearSelection();
 	void newSelection(QString const & source);
 	size_t selectionSize() const;
-	void sortCurrentSelection(QString const & source);
-	void showCurrentSelectionInPlots();
-	void showCurrentSelectionInPlot(int chartID);
-	void showCurrentSelectionIn3DViews();
-	void showCurrentSelectionInSPM();
+	void sortSelection(QString const & source);
+	void showSelectionInPlots();
+	void showSelectionInPlot(int chartID);
+	void showSelectionIn3DViews();
+	void showSelectionInSPM();
 	bool isAnythingSelected() const;
 	void loadStateAndShow();
 	void addInteraction(QString const & interaction);
@@ -132,7 +132,7 @@ private:
 	QString resultName(size_t resultID) const;
 	QString stackedBarColName(int index) const;
 	void setOptimStep(int optimStep);
-	void showCurrentSelectionDetail();
+	void showSelectionDetail();
 	void hideSamplePointsPrivate();
 	void showSpatialOverview();
 
