@@ -32,33 +32,65 @@
 
 const char* iACsvIO::ColNameAutoID = "Auto_ID";
 const char* iACsvIO::ColNameClassID = "Class_ID";
-const char* iACsvIO::ColNamePhi = "Phi[°]";
-const char* iACsvIO::ColNameTheta = "Theta[°]";
-const char* iACsvIO::ColNameA11 = "a11";
-const char* iACsvIO::ColNameA22 = "a22";
-const char* iACsvIO::ColNameA33 = "a33";
-const char* iACsvIO::ColNameA12 = "a12";
-const char* iACsvIO::ColNameA13 = "a13";
-const char* iACsvIO::ColNameA23 = "a23";
-const char* iACsvIO::ColNameCenterX = "Xm[µm]";
-const char* iACsvIO::ColNameCenterY = "Ym[µm]";
-const char* iACsvIO::ColNameCenterZ = "Zm[µm]";
-const char* iACsvIO::ColNameLength = "StraightLength[µm]";
+namespace
+{
+	const char* ColNamePhi = "Phi[°]";
+	const char* ColNameTheta = "Theta[°]";
+	const char* ColNameA11 = "a11";
+	const char* ColNameA22 = "a22";
+	const char* ColNameA33 = "a33";
+	const char* ColNameA12 = "a12";
+	const char* ColNameA13 = "a13";
+	const char* ColNameA23 = "a23";
+	const char* ColNameCenterX = "Xm[µm]";
+	const char* ColNameCenterY = "Ym[µm]";
+	const char* ColNameCenterZ = "Zm[µm]";
+	const char* ColNameLength = "StraightLength[µm]";
+	const char* ColNameStartX = "X1";
+	const char* ColNameStartY = "Y1";
+	const char* ColNameStartZ = "Z1";
+	const char* ColNameEndX = "X2";
+	const char* ColNameEndY = "Y2";
+	const char* ColNameEndZ = "Z2";
+	const char* ColNameDiameter = "Diameter";
+}
 
 namespace
 {
-	double getValueAsDouble(QStringList const & values, int index, QString const & decimalSeparator)
+	QString DblToString(double value)
+	{
+		return QString::number(value, 'f', 10);
+	}
+	QString transformValue(QString value, int idx, iACsvConfig const & config)
+	{
+		if (config.offset[0] != 0 && (
+			(config.columnMapping.contains(iACsvConfig::CenterX) && idx == config.columnMapping[iACsvConfig::CenterX]) ||
+			(config.columnMapping.contains(iACsvConfig::StartX) && idx == config.columnMapping[iACsvConfig::StartX]) ||
+			(config.columnMapping.contains(iACsvConfig::EndX) && idx == config.columnMapping[iACsvConfig::EndX])))
+			return DblToString(value.toDouble() + config.offset[0]);
+		else if (config.offset[1] != 0 && (
+			(config.columnMapping.contains(iACsvConfig::CenterY) && idx == config.columnMapping[iACsvConfig::CenterY]) ||
+			(config.columnMapping.contains(iACsvConfig::StartY) && idx == config.columnMapping[iACsvConfig::StartY]) ||
+			(config.columnMapping.contains(iACsvConfig::EndY) && idx == config.columnMapping[iACsvConfig::EndY])))
+			return DblToString(value.toDouble() + config.offset[1]);
+		else if (config.offset[2] != 0 && (
+			(config.columnMapping.contains(iACsvConfig::CenterZ) && idx == config.columnMapping[iACsvConfig::CenterZ]) ||
+			(config.columnMapping.contains(iACsvConfig::StartZ) && idx == config.columnMapping[iACsvConfig::StartZ]) ||
+			(config.columnMapping.contains(iACsvConfig::EndZ) && idx == config.columnMapping[iACsvConfig::EndZ])))
+			return DblToString(value.toDouble() + config.offset[2]);
+		else if (config.columnMapping.contains(iACsvConfig::Theta) && idx == config.columnMapping[iACsvConfig::Theta] && value.toDouble() < 0)
+			return DblToString(2 * vtkMath::Pi() + value.toDouble());
+		else
+			return value;
+	}
+	double getValueAsDouble(QStringList const & values, int index, iACsvConfig const & config)
 	{
 		if (index >= values.size())
 			return 0;
 		QString value = values[index];
-		if (decimalSeparator != ".")
-			value = value.replace(decimalSeparator, ".");
-		return value.toDouble();
-	}
-	QString DblToString(double value)
-	{
-		return QString::number(value, 'f', 10);
+		if (config.decimalSeparator != ".")
+			value = value.replace(config.decimalSeparator, ".");
+		return transformValue(value, index, config).toDouble();
 	}
 }
 
@@ -116,7 +148,9 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		auto values = line.split(m_csvConfig.columnSeparator);
 		if (values.size() < m_csvConfig.currentHeaders.size())
 		{
-			DEBUG_LOG(QString("Line only contains %1 entries, expected %2. Skipping...").arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
+			DEBUG_LOG(QString("Line %1 in file '%2' only contains %3 entries, expected %4. Skipping...")
+				.arg(row + m_csvConfig.skipLinesStart + (m_csvConfig.containsHeader?0:1) ).arg(m_csvConfig.fileName)
+				.arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
 			continue;
 		}
 		if (!m_csvConfig.addAutoID && values[0].toInt() != (row + 1))
@@ -135,16 +169,39 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			QString value = values[valIdx];
 			if (m_csvConfig.decimalSeparator != ".")
 				value = value.replace(m_csvConfig.decimalSeparator, ".");
-			entries.append(value);
+			entries.append(transformValue(value, valIdx, m_csvConfig) );
 		}
-		if (m_csvConfig.computeLength || m_csvConfig.computeAngles || m_csvConfig.computeTensors || m_csvConfig.computeCenter)
+		if (m_csvConfig.computeStartEnd)
 		{
-			double x1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartX], m_csvConfig.decimalSeparator);
-			double y1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartY], m_csvConfig.decimalSeparator);
-			double z1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartZ], m_csvConfig.decimalSeparator);
-			double x2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndX], m_csvConfig.decimalSeparator);
-			double y2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndY], m_csvConfig.decimalSeparator);
-			double z2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndZ], m_csvConfig.decimalSeparator);
+			double center[3];
+			center[0] = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::CenterX], m_csvConfig);
+			center[1] = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::CenterY], m_csvConfig);
+			center[2] = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::CenterZ], m_csvConfig);
+			double phi = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Phi], m_csvConfig);
+			double theta = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Theta], m_csvConfig);
+			double radius = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Length], m_csvConfig) * 0.5;
+			double dir[3];
+			dir[0] = radius * std::sin(phi) * std::cos(theta);
+			dir[1] = radius * std::sin(phi) * std::sin(theta);
+			dir[2] = radius * std::cos(phi);
+			for (int i = 0; i < 3; ++i)
+				entries.append(DblToString(center[i] + dir[i])); // start
+			for (int i = 0; i < 3; ++i)
+				entries.append(DblToString(center[i] - dir[i])); // end
+		}
+		if (m_csvConfig.isDiameterFixed)
+		{
+			entries.append(DblToString(m_csvConfig.fixedDiameterValue));
+		}
+		double phi, theta;
+		if (m_csvConfig.computeLength || m_csvConfig.computeAngles || m_csvConfig.computeCenter)
+		{
+			double x1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartX], m_csvConfig);
+			double y1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartY], m_csvConfig);
+			double z1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartZ], m_csvConfig);
+			double x2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndX], m_csvConfig);
+			double y2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndY], m_csvConfig);
+			double z2 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::EndZ], m_csvConfig);
 			double dx = x1 - x2;
 			double dy = y1 - y2;
 			double dz = z1 - z2;
@@ -168,52 +225,62 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 				entries.append(DblToString(ym));
 				entries.append(DblToString(zm));
 			}
-			if (m_csvConfig.computeAngles || m_csvConfig.computeTensors)
+			if (m_csvConfig.computeAngles)
 			{
-				double phi = asin(dy / sqrt(dx*dx + dy*dy));
-				double theta = acos(dz / sqrt(dx*dx + dy*dy + dz*dz));
-				double a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
-				double a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
-				double a33 = cos(theta)*cos(theta);
-				double a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
-				double a13 = cos(phi)*sin(theta)*cos(theta);
-				double a23 = sin(phi)*sin(theta)*cos(theta);
-				phi = vtkMath::DegreesFromRadians(phi);
-				theta = vtkMath::DegreesFromRadians(theta);
-				// locate the phi value to quadrant
-				if (dx < 0)
-				{
-					phi = 180.0 - phi;
-				}
-				if (phi < 0.0)
-				{
-					phi = phi + 360.0;
-				}
 				if (dx == 0 && dy == 0)
 				{
 					phi = 0.0;
 					theta = 0.0;
-					a11 = 0.0;
-					a22 = 0.0;
-					a12 = 0.0;
-					a13 = 0.0;
-					a23 = 0.0;
 				}
-				if (m_csvConfig.computeAngles)
+				else
 				{
-					entries.append(DblToString(phi));
-					entries.append(DblToString(theta));
+					phi = asin(dy / sqrt(dx*dx + dy * dy));
+					theta = acos(dz / sqrt(dx*dx + dy * dy + dz * dz));
+					phi = vtkMath::DegreesFromRadians(phi);
+					theta = vtkMath::DegreesFromRadians(theta);
+					// locate the phi value to quadrant
+					if (dx < 0)
+					{
+						phi = 180.0 - phi;
+					}
+					if (phi < 0.0)
+					{
+						phi = phi + 360.0;
+					}
 				}
-				if (m_csvConfig.computeTensors)
-				{
-					entries.append(DblToString(a11));
-					entries.append(DblToString(a22));
-					entries.append(DblToString(a33));
-					entries.append(DblToString(a12));
-					entries.append(DblToString(a13));
-					entries.append(DblToString(a23));
-				}
+				entries.append(DblToString(phi));
+				entries.append(DblToString(theta));
 			}
+		}
+		if (m_csvConfig.computeTensors)
+		{
+			if (!m_csvConfig.computeAngles)
+			{
+				double phi = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Phi], m_csvConfig);
+				double theta = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Theta], m_csvConfig);
+			}
+			double a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
+			double a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
+			double a33 = cos(theta)*cos(theta);
+			double a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
+			double a13 = cos(phi)*sin(theta)*cos(theta);
+			double a23 = sin(phi)*sin(theta)*cos(theta);
+			/*
+			if (dx == 0 && dy == 0)
+			{
+				a11 = 0.0;
+				a22 = 0.0;
+				a12 = 0.0;
+				a13 = 0.0;
+				a23 = 0.0;
+			}
+			*/
+			entries.append(DblToString(a11));
+			entries.append(DblToString(a22));
+			entries.append(DblToString(a33));
+			entries.append(DblToString(a12));
+			entries.append(DblToString(a13));
+			entries.append(DblToString(a23));
 		}
 		entries.append("0"); // class ID
 		dstTbl.addRow(resultRowID-1, entries);
@@ -252,35 +319,56 @@ void iACsvIO::determineOutputHeaders(QVector<int> const & selectedCols)
 	for (int i=0; i<selectedCols.size(); ++i)
 		m_outputHeaders.append(m_fileHeaders[selectedCols[i]]);
 
+	if (m_csvConfig.computeStartEnd)
+	{
+		m_outputMapping->insert(iACsvConfig::StartX, m_outputHeaders.size());
+		m_outputHeaders.append(ColNameStartX);
+		m_outputMapping->insert(iACsvConfig::StartY, m_outputHeaders.size());
+		m_outputHeaders.append(ColNameStartY);
+		m_outputMapping->insert(iACsvConfig::StartZ, m_outputHeaders.size());
+		m_outputHeaders.append(ColNameStartZ);
+		m_outputMapping->insert(iACsvConfig::EndX, m_outputHeaders.size());
+		m_outputHeaders.append(ColNameEndX);
+		m_outputMapping->insert(iACsvConfig::EndY, m_outputHeaders.size());
+		m_outputHeaders.append(ColNameEndY);
+		m_outputMapping->insert(iACsvConfig::EndZ, m_outputHeaders.size());
+		m_outputHeaders.append(ColNameEndZ);
+	}
+	if (m_csvConfig.isDiameterFixed)
+	{
+		m_outputMapping->insert(iACsvConfig::Diameter, m_outputHeaders.size());
+		m_outputHeaders.append(ColNameDiameter);
+	}
+
 	if (m_csvConfig.computeLength)
 	{
 		m_outputMapping->insert(iACsvConfig::Length, m_outputHeaders.size());
-		m_outputHeaders.append(iACsvIO::ColNameLength);
+		m_outputHeaders.append(ColNameLength);
 	}
 	if (m_csvConfig.computeCenter)
 	{
 		m_outputMapping->insert(iACsvConfig::CenterX, m_outputHeaders.size());
-		m_outputHeaders.append(iACsvIO::ColNameCenterX);
+		m_outputHeaders.append(ColNameCenterX);
 		m_outputMapping->insert(iACsvConfig::CenterY, m_outputHeaders.size());
-		m_outputHeaders.append(iACsvIO::ColNameCenterY);
+		m_outputHeaders.append(ColNameCenterY);
 		m_outputMapping->insert(iACsvConfig::CenterZ, m_outputHeaders.size());
-		m_outputHeaders.append(iACsvIO::ColNameCenterZ);
+		m_outputHeaders.append(ColNameCenterZ);
 	}
 	if (m_csvConfig.computeAngles)
 	{
 		m_outputMapping->insert(iACsvConfig::Phi, m_outputHeaders.size());
-		m_outputHeaders.append(iACsvIO::ColNamePhi);
+		m_outputHeaders.append(ColNamePhi);
 		m_outputMapping->insert(iACsvConfig::Theta, m_outputHeaders.size());
-		m_outputHeaders.append(iACsvIO::ColNameTheta);
+		m_outputHeaders.append(ColNameTheta);
 	}
 	if (m_csvConfig.computeTensors)
 	{
-		m_outputHeaders.append(iACsvIO::ColNameA11);
-		m_outputHeaders.append(iACsvIO::ColNameA22);
-		m_outputHeaders.append(iACsvIO::ColNameA33);
-		m_outputHeaders.append(iACsvIO::ColNameA12);
-		m_outputHeaders.append(iACsvIO::ColNameA13);
-		m_outputHeaders.append(iACsvIO::ColNameA23);
+		m_outputHeaders.append(ColNameA11);
+		m_outputHeaders.append(ColNameA22);
+		m_outputHeaders.append(ColNameA33);
+		m_outputHeaders.append(ColNameA12);
+		m_outputHeaders.append(ColNameA13);
+		m_outputHeaders.append(ColNameA23);
 	}
 	m_outputHeaders.append(iACsvIO::ColNameClassID);
 }

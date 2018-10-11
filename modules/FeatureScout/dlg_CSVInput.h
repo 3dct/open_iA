@@ -33,8 +33,6 @@ class dlg_CSVInput : public QDialog, public Ui_CsvInput
 {
 Q_OBJECT
 public:
-	static const QString LegacyFiberFormat;
-	static const QString LegacyVoidFormat;
 	//! Create a new dialog, all parameters are optional
 	dlg_CSVInput(bool volumeDataAvailable, QWidget * parent = 0, Qt::WindowFlags f = 0);
 	//! Set the internal path (used when choosing a csv file) to the one given as parameter
@@ -72,8 +70,10 @@ private slots:
 	void computeAngleChanged();
 	//! called when Compute Center checkbox check state changed
 	void computeCenterChanged();
-	//! called when combobox selecting whether csv provides "start and end" or "center" changes
-	void cmbboxColSelectionChanged();
+	//! called when Compute Start/End checkbox check state changed
+	void computeStartEndChanged();
+	//! called when Fixed Diameter checkbox state changed
+	void fixedDiameterChanged();
 	//! called when the Advanced Mode checkbox is checked or unchecked
 	void advancedModeToggled();
 	//! called when the export button is clicked
@@ -87,20 +87,18 @@ private:
 	void updateAngleEditEnabled();
 	//! switch center mapping choices enabled if start/end is selected and compute center is not checked
 	void updateCenterEditEnabled();
+	//! switch diameter choices and fixed diameter spin box enabled based on whether "add fixed diameter" is checked or not
+	void updateDiameterInputEnabled();
 	//! initialize GUI elements
 	void initParameters();
 	//! connect signals and slots of all dialog controls
 	void connectSignals();
-	//! List all csv format entries, returned list is empty if no format definitions in registry
-	QStringList getFormatListFromRegistry() const;
 	//! Load a general setting, such as the name of format loaded last time, or whether advanced mode was shown
 	QVariant loadGeneralSetting(QString const & settingName) const;
 	//! Save a general setting, such as the name of format to be loaded next time dialog is opened or whether advanced mode is shown
 	void saveGeneralSetting(QString const & settinName, QVariant value);
 	//! Save the currently configured format in registry
 	void saveFormatToRegistry(const QString & formatName);
-	//! Save the currently configured format in a given settings object
-	void saveFormat(QSettings & settings, const QString & formatName);
 	//! Loads settings from registry for a given format name, into default config object
 	bool loadFormatFromRegistry(const QString & formatName);
 	//! Loads settings from registry for a given format name, into a given config object
@@ -126,8 +124,9 @@ private:
 	bool loadFilePreview();
 	//! Clears the preview table (so that it doesn't contain any rows or columns
 	void clearPreviewTable();
-	//! sets the name of the current format
-	void setCurrentFormat(QString const & name);
+
+	//! Catches events from list view to be able  to react on delete key event
+	bool eventFilter(QObject *obj, QEvent *event) override;
 
 	iACsvConfig m_confParams;
 	QString m_path;

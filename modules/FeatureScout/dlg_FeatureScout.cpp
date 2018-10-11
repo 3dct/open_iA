@@ -267,6 +267,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
 	}
 	m_3dvis->show();
+	parent->getRenderer()->GetRenderer()->ResetCamera();
 	blobVisDialog = new dlg_blobVisualization();
 	blobManager->SetRenderers(blobRen, this->raycaster->GetLabelRenderer());
 	blobManager->SetBounds(m_3dvis->bounds());

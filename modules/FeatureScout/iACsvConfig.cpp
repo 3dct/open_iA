@@ -21,6 +21,7 @@
 #include "iACsvConfig.h"
 
 #include <QFile>
+#include <QSettings>
 
 namespace
 {
@@ -32,6 +33,37 @@ namespace
 		"Ellipses",
 		"No Visualization"
 	};
+}
+
+const QString iACsvConfig::LegacyFiberFormat("Legacy Fiber csv");
+const QString iACsvConfig::LegacyVoidFormat("Legacy Pore csv");
+
+namespace csvRegKeys
+{
+	static const QString SettingsName("FeatureScout");
+	static const QString FormatKeyName("CSVFormats");
+	static const QString SelectedHeaders = "SelectedHeaders";
+	static const QString AllHeaders = "AllHeaders";
+	static const QString SkipLinesStart = "SkipLinesStart";
+	static const QString SkipLinesEnd = "SkipLinesEnd";
+	static const QString ColSeparator = "ColumnSeparator";
+	static const QString DecimalSeparator = "DecimalSeparator";
+	static const QString Spacing = "Spacing";
+	static const QString Unit = "Unit";
+	static const QString ObjectType = "ObjectType";
+	static const QString AddAutoID = "AddAutoID";
+	static const QString Encoding = "Encoding";
+	static const QString ComputeLength = "ComputeLength";
+	static const QString ComputeAngles = "ComputeAngles";
+	static const QString ComputeTensors = "ComputeTensors";
+	static const QString ComputeCenter = "ComputeCenter";
+	static const QString ComputeStartEnd = "ComputeStartEnd";
+	static const QString ContainsHeader = "ContainsHeader";
+	static const QString VisualizationType = "VisualizationType";
+	static const QString ColumnMappings = "ColumnMappings";
+	static const QString Offset = "Offset";
+	static const QString IsDiameterFixed = "IsDiameterFixed";
+	static const QString FixedDiameterValue = "FixedDiameterValue";
 }
 
 QString MapVisType2Str(iACsvConfig::VisualizationType visType)
@@ -64,9 +96,14 @@ iACsvConfig::iACsvConfig() :
 	computeAngles(false),
 	computeTensors(false),
 	computeCenter(false),
+	computeStartEnd(false),
 	containsHeader(true),
-	visType(UseVolume)
-{}
+	visType(UseVolume),
+	isDiameterFixed(false),
+	fixedDiameterValue(0.0)
+{
+	std::fill(offset, offset + 3, 0.0);
+}
 
 bool iACsvConfig::isValid(QString & errorMsg) const
 {
@@ -82,7 +119,19 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		return false;
 	}
 	file.close();
-	if ((computeLength || computeAngles || computeTensors || computeCenter) && (
+	if (computeStartEnd && (
+		!columnMapping.contains(iACsvConfig::CenterX) ||
+		!columnMapping.contains(iACsvConfig::CenterY) ||
+		!columnMapping.contains(iACsvConfig::CenterZ) ||
+		!columnMapping.contains(iACsvConfig::Phi) ||
+		!columnMapping.contains(iACsvConfig::Theta) ||
+		!columnMapping.contains(iACsvConfig::Length)))
+	{
+		errorMsg = "Cannot compute start/end without center position, phi, theta and length! "
+			"Please specify a mapping to the columns containing these values!";
+		return false;
+	}
+	if ((computeLength || computeAngles || computeCenter) && (
 		!columnMapping.contains(iACsvConfig::StartX) ||
 		!columnMapping.contains(iACsvConfig::StartY) ||
 		!columnMapping.contains(iACsvConfig::StartZ) ||
@@ -90,24 +139,32 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 		!columnMapping.contains(iACsvConfig::EndY) ||
 		!columnMapping.contains(iACsvConfig::EndZ)))
 	{
-		errorMsg = "Cannot compute length/angles/tensors/center without fully defined start and end position! "
+		errorMsg = "Cannot compute length/angles/center without fully defined start and end position! "
 			"Please specify a mapping to the column containing start (x, y, z) and end (x, y, z) coordinate!";
-			return false;
+		return false;
+	}
+	if (computeTensors && (!computeAngles && (!columnMapping.contains(iACsvConfig::Phi) || !columnMapping.contains(iACsvConfig::Theta))))
+	{
+		errorMsg = "Cannot compute tensors without angles. Either enable to compute them, or specify where to find them!";
+		return false;
 	}
 	if ((visType == Lines || visType == Cylinders) && (
-		!columnMapping.contains(iACsvConfig::StartX) ||
-		!columnMapping.contains(iACsvConfig::StartY) ||
-		!columnMapping.contains(iACsvConfig::StartZ) ||
-		!columnMapping.contains(iACsvConfig::EndX) ||
-		!columnMapping.contains(iACsvConfig::EndY) ||
-		!columnMapping.contains(iACsvConfig::EndZ)))
+		!computeStartEnd && (
+			!columnMapping.contains(iACsvConfig::StartX) ||
+			!columnMapping.contains(iACsvConfig::StartY) ||
+			!columnMapping.contains(iACsvConfig::StartZ) ||
+			!columnMapping.contains(iACsvConfig::EndX) ||
+			!columnMapping.contains(iACsvConfig::EndY) ||
+			!columnMapping.contains(iACsvConfig::EndZ)
+		)))
 	{
 		errorMsg = "Visualization as Lines or Cylinders requires start and end position column, please specify where to find these!";
 		return false;
 	}
-	if (visType == Cylinders && !columnMapping.contains(iACsvConfig::Diameter))
+	if (visType == Cylinders &&
+		(!columnMapping.contains(iACsvConfig::Diameter) && !isDiameterFixed) )
 	{
-		errorMsg = "Visualization as Cylinders requires a diameter column, please specify where to find it!";
+		errorMsg = "Visualization as Cylinders requires start- and end-position as well as a diameter, please specify where to find these!";
 		return false;
 	}
 	if (visType == Ellipses && (
@@ -145,6 +202,8 @@ iACsvConfig const & iACsvConfig::getLegacyFiberFormat(QString const & fileName)
 	LegacyFormat.computeAngles = true;
 	LegacyFormat.computeTensors = true;
 	LegacyFormat.computeCenter = true;
+	LegacyFormat.computeStartEnd = false;
+	std::fill(LegacyFormat.offset, LegacyFormat.offset + 3, 0.0);
 	LegacyFormat.visType = UseVolume;
 	LegacyFormat.currentHeaders = QStringList() << "Label"
 		<< "X1[µm]"
@@ -189,6 +248,8 @@ iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 	LegacyFormat.computeAngles = false;
 	LegacyFormat.computeTensors = false;
 	LegacyFormat.computeCenter = false;
+	LegacyFormat.computeStartEnd = false;
+	std::fill(LegacyFormat.offset, LegacyFormat.offset + 3, 0.0);
 	LegacyFormat.visType = UseVolume;
 	LegacyFormat.currentHeaders = QStringList()
 		<< "Label Id"
@@ -225,4 +286,89 @@ iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 	LegacyFormat.columnMapping.insert(Diameter, 23);
 	LegacyFormat.columnMapping.insert(Length,   28);
 	return LegacyFormat;
+}
+
+QString iACsvConfig::getFormatKey(QString const & formatName)
+{
+	return csvRegKeys::SettingsName + "/" + csvRegKeys::FormatKeyName + "/" + formatName;
+}
+
+QStringList iACsvConfig::getListFromRegistry()
+{
+	QSettings settings;
+	settings.beginGroup(getFormatKey(""));
+	return settings.childGroups();
+}
+
+void iACsvConfig::save(QSettings & settings, QString const & formatName)
+{
+	settings.beginGroup(iACsvConfig::getFormatKey(formatName));
+	settings.setValue(csvRegKeys::SkipLinesStart, static_cast<qulonglong>(skipLinesStart));
+	settings.setValue(csvRegKeys::SkipLinesEnd, static_cast<qulonglong>(skipLinesEnd));
+	settings.setValue(csvRegKeys::ColSeparator, columnSeparator);
+	settings.setValue(csvRegKeys::DecimalSeparator, decimalSeparator);
+	settings.setValue(csvRegKeys::ObjectType, MapObjectTypeToString(objectType));
+	settings.setValue(csvRegKeys::AddAutoID, addAutoID);
+	settings.setValue(csvRegKeys::Unit, unit);
+	settings.setValue(csvRegKeys::Spacing, spacing);
+	settings.setValue(csvRegKeys::Encoding, encoding);
+	settings.setValue(csvRegKeys::ComputeLength, computeLength);
+	settings.setValue(csvRegKeys::ComputeAngles, computeAngles);
+	settings.setValue(csvRegKeys::ComputeTensors, computeTensors);
+	settings.setValue(csvRegKeys::ComputeCenter, computeCenter);
+	settings.setValue(csvRegKeys::ComputeStartEnd, computeStartEnd);
+	settings.setValue(csvRegKeys::ContainsHeader, containsHeader);
+	settings.setValue(csvRegKeys::IsDiameterFixed, isDiameterFixed);
+	settings.setValue(csvRegKeys::FixedDiameterValue, fixedDiameterValue);
+	settings.setValue(csvRegKeys::VisualizationType, MapVisType2Str(visType));
+	for (int i=0; i<3; ++i)
+		settings.setValue(csvRegKeys::Offset+QString::number(i), offset[i]);
+	// save column mappings:
+	QStringList columnMappings;
+	for (auto key : columnMapping.keys())
+		columnMappings.append(QString("%1:%2").arg(key).arg(columnMapping[key]));
+	settings.setValue(csvRegKeys::ColumnMappings, columnMappings);
+	settings.setValue(csvRegKeys::SelectedHeaders, selectedHeaders);
+	settings.setValue(csvRegKeys::AllHeaders, currentHeaders);
+	settings.endGroup();
+}
+
+bool iACsvConfig::load(QSettings & settings, const QString & formatName)
+{
+	settings.beginGroup(iACsvConfig::getFormatKey(formatName));
+	QStringList allEntries = settings.allKeys();
+	iACsvConfig defaultConfig;
+	skipLinesStart = settings.value(csvRegKeys::SkipLinesStart, static_cast<qulonglong>(defaultConfig.skipLinesStart)).toULongLong();
+	skipLinesEnd = settings.value(csvRegKeys::SkipLinesEnd, static_cast<qulonglong>(defaultConfig.skipLinesEnd)).toULongLong();
+	columnSeparator = settings.value(csvRegKeys::ColSeparator, defaultConfig.columnSeparator).toString();
+	decimalSeparator = settings.value(csvRegKeys::DecimalSeparator, defaultConfig.decimalSeparator).toString();
+	objectType = MapStringToObjectType(settings.value(csvRegKeys::ObjectType, MapObjectTypeToString(defaultConfig.objectType)).toString());
+	addAutoID = settings.value(csvRegKeys::AddAutoID, defaultConfig.addAutoID).toBool();
+	computeLength = settings.value(csvRegKeys::ComputeLength, defaultConfig.computeLength).toBool();
+	computeAngles = settings.value(csvRegKeys::ComputeAngles, defaultConfig.computeAngles).toBool();
+	computeTensors = settings.value(csvRegKeys::ComputeTensors, defaultConfig.computeTensors).toBool();
+	computeCenter = settings.value(csvRegKeys::ComputeCenter, defaultConfig.computeCenter).toBool();
+	computeStartEnd = settings.value(csvRegKeys::ComputeStartEnd, defaultConfig.computeStartEnd).toBool();
+	containsHeader = settings.value(csvRegKeys::ContainsHeader, defaultConfig.containsHeader).toBool();
+	isDiameterFixed = settings.value(csvRegKeys::IsDiameterFixed, defaultConfig.isDiameterFixed).toBool();
+	fixedDiameterValue = settings.value(csvRegKeys::FixedDiameterValue, defaultConfig.fixedDiameterValue).toDouble();
+	visType = MapStr2VisType(settings.value(csvRegKeys::VisualizationType, MapVisType2Str(defaultConfig.visType)).toString());
+	for (int i = 0; i<3; ++i)
+		offset[i] = settings.value(csvRegKeys::Offset + QString::number(i), defaultConfig.offset[i]).toDouble();
+	unit = settings.value(csvRegKeys::Unit, defaultConfig.unit).toString();
+	spacing = settings.value(csvRegKeys::Spacing, defaultConfig.spacing).toDouble();
+	encoding = settings.value(csvRegKeys::Encoding, defaultConfig.encoding).toString();
+	selectedHeaders = settings.value(csvRegKeys::SelectedHeaders, defaultConfig.currentHeaders).toStringList();
+	currentHeaders = settings.value(csvRegKeys::AllHeaders, defaultConfig.currentHeaders).toStringList();
+	// load column mappings:
+	columnMapping.clear();
+	QStringList columnMappings = settings.value(csvRegKeys::ColumnMappings).toStringList();
+	for (QString mapping : columnMappings)
+	{
+		uint columnKey = mapping.section(":", 0, 0).toInt();
+		uint columnNumber = mapping.section(":", 1).toInt();
+		columnMapping.insert(columnKey, columnNumber);
+	}
+	settings.endGroup();
+	return !allEntries.isEmpty();
 }

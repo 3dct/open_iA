@@ -67,7 +67,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 			dlg.setFileName(testCSVFileName);
 			auto type = guessFeatureType(testCSVFileName);
 			if (type != InvalidObjectType)
-				dlg.setFormat(type == Voids ? dlg_CSVInput::LegacyVoidFormat : dlg_CSVInput::LegacyFiberFormat);
+				dlg.setFormat(type == Voids ? iACsvConfig::LegacyVoidFormat : iACsvConfig::LegacyFiberFormat);
 		}
 		else
 			dlg.setPath(mdi->getFilePath());
@@ -165,6 +165,12 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	FS_VolumeSettings.SpecularLighting = 0.0;
 	FS_VolumeSettings.RenderMode = vtkSmartVolumeMapper::RayCastRenderMode;
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
+}
+
+void iAFeatureScoutModuleInterface::LoadFeatureScout(iACsvConfig const & csvConfig, MdiChild * mdiChild)
+{
+	m_mdiChild = mdiChild;
+	startFeatureScout(csvConfig);
 }
 
 bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvConfig)

@@ -23,6 +23,7 @@
 #include "iACsvConfig.h"
 
 #include <vtkDoubleArray.h>
+#include <vtkOutlineFilter.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPointData.h>
@@ -53,4 +54,6 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidgetClass* widget, vtkTable
 	tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
 	tubeFilter->Update();
 	m_mapper->SetInputConnection(tubeFilter->GetOutputPort());
+
+	m_outlineFilter->SetInputConnection(tubeFilter->GetOutputPort());
 }

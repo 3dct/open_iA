@@ -34,8 +34,6 @@
 #include <vtkGenericOpenGLRenderWindow.h>
 #endif
 
-#include <QColor>
-
 namespace
 {
 	const int TransparentAlpha = 32;
@@ -47,7 +45,13 @@ iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(iAVtkWidgetClass* widget, vtk
 	iA3DObjectVis(widget, objectTable, columnMapping),
 	m_colors(vtkSmartPointer<vtkUnsignedCharArray>::New()),
 	m_mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_pointsPerObject(pointsPerObject)
+	m_pointsPerObject(pointsPerObject),
+	m_contextAlpha(DefaultContextOpacity),
+	m_selectionAlpha(DefaultSelectionOpacity),
+	m_selectionColor(SelectedColor),
+	m_baseColor(128, 128, 128),
+	m_actor(vtkSmartPointer<vtkActor>::New()),
+	m_visible(false)
 {
 	m_colors->SetNumberOfComponents(4);
 	m_colors->SetName("Colors");
@@ -56,29 +60,36 @@ iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(iAVtkWidgetClass* widget, vtk
 	c[1] = color.green();
 	c[2] = color.blue();
 	c[3] = color.alpha();
-	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
+	size_t colorCount = m_objectTable->GetNumberOfRows()*pointsPerObject;
+	for (size_t row = 0; row < colorCount; ++row)
 	{
-		for (size_t point = 0; point < pointsPerObject; ++point)
-		{
 #if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
-			m_colors->InsertNextTupleValue(c);
+		m_colors->InsertNextTupleValue(c);
 #else
-			m_colors->InsertNextTypedTuple(c);
+		m_colors->InsertNextTypedTuple(c);
 #endif
-		}
 	}
 	m_mapper->SelectColorArray("Colors");
 	m_mapper->SetScalarModeToUsePointFieldData();
 	m_mapper->ScalarVisibilityOn();
+	m_actor->SetMapper(m_mapper);
 }
 
 void iA3DColoredPolyObjectVis::show()
 {
-	auto actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(m_mapper);
-	auto renWin = m_widget->GetRenderWindow();
-	renWin->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-	renWin->GetRenderers()->GetFirstRenderer()->ResetCamera();
+	if (m_visible)
+		return;
+	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_actor);
+	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->ResetCamera();
+	m_visible = true;
+}
+
+void iA3DColoredPolyObjectVis::hide()
+{
+	if (!m_visible)
+		return;
+	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_actor);
+	m_visible = false;
 }
 
 void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* activeClassItem)
@@ -176,4 +187,19 @@ void iA3DColoredPolyObjectVis::updatePolyMapper()
 	m_colors->Modified();
 	m_mapper->Update();
 	updateRenderer();
+}
+
+bool iA3DColoredPolyObjectVis::visible() const
+{
+	return m_visible;
+}
+
+void iA3DColoredPolyObjectVis::setSelectionOpacity(int selectionAlpha)
+{
+	m_selectionAlpha = selectionAlpha;
+}
+
+void iA3DColoredPolyObjectVis::setContextOpacity(int contextAlpha)
+{
+	m_contextAlpha = contextAlpha;
 }

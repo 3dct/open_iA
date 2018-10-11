@@ -24,24 +24,38 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QColor>
+
+class vtkActor;
 class vtkPolyDataMapper;
 class vtkUnsignedCharArray;
 
-class iA3DColoredPolyObjectVis : public iA3DObjectVis
+class FeatureScout_API iA3DColoredPolyObjectVis : public iA3DObjectVis
 {
 public:
+	static const int DefaultContextOpacity = 8;
+	static const int DefaultSelectionOpacity = 128;
 	iA3DColoredPolyObjectVis(iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor, size_t pointsPerObject );
 	void show() override;
+	void hide();
 	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
 	void renderSingle(int labelID, int classID, QColor const & classColors, QStandardItem* activeClassItem) override;
 	void multiClassRendering(QList<QColor> const & colors, QStandardItem* rootItem, double alpha) override;
 	void renderOrientationDistribution(vtkImageData* oi) override;
 	void renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range) override;
+	void setSelectionOpacity(int selectionAlpha);
+	void setContextOpacity(int contextAlpha);
+	bool visible() const;
 protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
+	vtkSmartPointer<vtkActor> m_actor;
 	size_t m_pointsPerObject;
-private:
+	bool m_visible;
+	int m_contextAlpha;
+	int m_selectionAlpha;
+	QColor m_baseColor;
+	QColor m_selectionColor;
 	void setPolyPointColor(int ptIdx, QColor const & qcolor);
 	void updatePolyMapper();
 };
