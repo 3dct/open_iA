@@ -193,7 +193,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		{
 			entries.append(DblToString(m_csvConfig.fixedDiameterValue));
 		}
-		double phi, theta;
+		double phi = 0.0, theta = 0.0;
 		if (m_csvConfig.computeLength || m_csvConfig.computeAngles || m_csvConfig.computeCenter)
 		{
 			double x1 = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::StartX], m_csvConfig);
@@ -256,8 +256,8 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		{
 			if (!m_csvConfig.computeAngles)
 			{
-				double phi = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Phi], m_csvConfig);
-				double theta = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Theta], m_csvConfig);
+				phi = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Phi], m_csvConfig);
+				theta = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Theta], m_csvConfig);
 			}
 			double a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
 			double a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
