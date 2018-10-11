@@ -34,6 +34,7 @@
 #include "dlg_commoninput.h"
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
+#include "iAConnector.h"
 #include "iAConsole.h"
 #include "iADockWidgetWrapper.h"
 #include "iAmat4.h"
@@ -41,6 +42,7 @@
 #include "iAMovieHelper.h"
 #include "iAProgress.h"
 #include "iARenderer.h"
+#include "iAToolsITK.h"
 #include "mdichild.h"
 
 #include <itkAddImageFilter.h>
@@ -697,6 +699,7 @@ void dlg_FeatureScout::setupConnections()
 	connect( this->load_class, SIGNAL( released() ), this, SLOT( ClassLoadButton() ) );
 	connect( this->delete_class, SIGNAL( clicked() ), this, SLOT( ClassDeleteButton() ) );
 	connect( this->wisetex_save, SIGNAL( released() ), this, SLOT( WisetexSaveButton() ) );
+	connect(this->export_class, SIGNAL(clicked()), this, SLOT(ExportClassButton() ) ) ;
 	connect( this->csv_dv, SIGNAL( released() ), this, SLOT( CsvDVSaveButton() ) );
 
 	connect( this->elementTableModel, SIGNAL( itemChanged( QStandardItem * ) ), this, SLOT( updateVisibility( QStandardItem * ) ) );
@@ -1971,6 +1974,92 @@ void dlg_FeatureScout::WisetexSaveButton()
 	writeWisetex( &stream );
 	stream.writeEndElement();
 	stream.writeEndDocument();
+}
+
+void dlg_FeatureScout::ExportClassButton()
+{
+	QString fileName = QFileDialog::getSaveFileName(this,
+		tr("Save Classes..."), "",
+		tr("mhd (*.mhd)"));
+	//itk to vtk conversion
+	iAConnector* con = new iAConnector();
+	typedef itk::Image<unsigned char, 3> UChar_Image;
+	UChar_Image::SizeType u_size;
+	vtkSmartPointer < vtkImageData > img_data = activeChild->getImagePointer();
+	if (!img_data)
+		return;
+	con->SetImage(img_data);
+	ITK_TYPED_CALL(CreateLabelledOutputMask, con->GetITKScalarPixelType(),  con, fileName);
+}
+
+template <class T>
+void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString fOutPath)
+{
+	typedef int ClassIDType;
+	typedef itk::Image<T, DIM>   InputImageType;
+	typedef itk::Image<ClassIDType, DIM>   OutputImageType;
+	OutputImageType::SizeType OutputImageSize;
+	bool singleClassification = false;
+	size_t labelID = 0;
+	QMap<size_t, ClassIDType> currentEntries;
+	if (!con)
+		return;
+
+	//create map of labelid <-> classes:
+	if (classTreeModel->invisibleRootItem()->hasChildren())
+	{
+		// if only one class exists
+		singleClassification = (classTreeModel->invisibleRootItem()->rowCount() == 2);
+		if (singleClassification &&
+			(QMessageBox::question(this, "FeatureScout", "Only one class selected, should we export LabelIds (If you select No, all fibers will be labelled with the class ID)?", QMessageBox::Yes | QMessageBox::No)
+				== QMessageBox::No))
+		{
+			singleClassification = false;
+		}
+		// Skip first, as classes start with 1, 0 is the uncategorized class
+		for (int i = 1; i < classTreeModel->invisibleRootItem()->rowCount(); i++)
+		{
+			auto x = classTreeModel->invisibleRootItem()->rowCount();
+			QStandardItem *item = classTreeModel->invisibleRootItem()->child(i);
+			for (int j = 0; j < item->rowCount(); j++)
+			{
+				size_t labelID = item->child(j)->text().toULongLong();
+				currentEntries.insert(labelID, i);
+			}
+		}
+	}
+	auto in_img = dynamic_cast<InputImageType*>  (con->GetITKImage());
+	auto region_in = in_img->GetLargestPossibleRegion();
+	const OutputImageType::SpacingType outSpacing = in_img ->GetSpacing();
+	auto out_img = CreateImage<OutputImageType>(region_in.GetSize(), outSpacing);
+	itk::ImageRegionConstIterator<InputImageType> in(in_img, region_in);
+	itk::ImageRegionIterator<OutputImageType> out(out_img, region_in);
+	while (!in.IsAtEnd())
+	{
+		labelID = static_cast<size_t>(in.Get());
+		if (singleClassification)
+		{
+			if (currentEntries.contains(labelID))
+			{
+				out.Set(static_cast<ClassIDType>(labelID));
+			}
+			else
+			{
+				out.Set(0);
+			}
+		}
+		else
+		{
+			out.Set(static_cast<ClassIDType>(currentEntries[labelID]));
+		}
+		++in;
+		++out;
+	}
+	if (!fOutPath.isEmpty())
+	{
+		StoreImage<OutputImageType>(out_img, fOutPath, true);
+		activeChild->addMsg("Stored image of of classes.");
+	}
 }
 
 void dlg_FeatureScout::ClassSaveButton()

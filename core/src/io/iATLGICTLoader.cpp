@@ -100,8 +100,7 @@ void iATLGICTLoader::start(MdiChild* child)
 	m_multiStepObserver = new iAMultiStepProgressObserver(m_subDirs.size());
 	m_child = child;
 	m_child->show();
-	m_child->addMsg(tr("%1  Loading TLGI-CT data, please wait...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	m_child->addMsg(tr("Loading TLGI-CT data, please wait..."));
 
 	connect(m_multiStepObserver, SIGNAL(progress(int)), m_child, SLOT(updateProgressBar(int)));
 	connect(this, SIGNAL(started()), m_child, SLOT(initProgressBar()));
@@ -259,7 +258,6 @@ void iATLGICTLoader::finishUp()
 {
 	m_child->setCurrentFile(m_baseDirectory);
 	m_child->SetModalities(m_modList);
-	m_child->addMsg(tr("%1  Loading sequence completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	m_child->addMsg("  Directory: " + m_baseDirectory);
+	m_child->addMsg(tr("Loading sequence completed; directory: %1.").arg(m_baseDirectory));
 	delete this;
 }

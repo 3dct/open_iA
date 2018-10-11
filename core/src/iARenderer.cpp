@@ -682,8 +682,7 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	movieWriter->SetInputConnection(w2if->GetOutputPort());
 	movieWriter->Start();
 
-	emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale()
-		.toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
+	emit msg(tr("MOVIE export started. Output: %1").arg(fileName));
 
 	int numRenderings = 360;//TODO
 	vtkSmartPointer<vtkTransform> rot = vtkSmartPointer<vtkTransform>::New();
@@ -854,7 +853,11 @@ void iARenderer::setSlicePlane(int planeID, double originX, double originY, doub
 
 void iARenderer::ApplySettings(iARenderSettings & settings)
 {
+#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 	ren->SetUseFXAA(settings.UseFXAA);
+#else
+	DEBUG_LOG("FXAA Anti-Aliasing is not support with your VTK version");
+#endif
 	cam->SetParallelProjection(settings.ParallelProjection);
 	QColor bgTop(settings.BackgroundTop);
 	QColor bgBottom(settings.BackgroundBottom);

@@ -723,8 +723,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	int* extent = imageData->GetExtent();
 	double* spacing = imageData->GetSpacing();
 
-	emit msg(tr("%1  MOVIE export started. Output: %2").arg(
-		QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
+	emit msg(tr("MOVIE export started. Output: %1").arg(fileName));
 
 	double oldResliceAxesOrigin[3];
 	reslicer->GetResliceAxesOrigin(oldResliceAxesOrigin);
@@ -785,7 +784,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	interactor->Enable();
 
 	if (movieWriter->GetError()) emit msg(tr("  MOVIE export failed."));
-	else emit msg(tr("  MOVIE export completed."));
+	else emit msg(tr("MOVIE export completed."));
 
 	return;
 }
@@ -971,8 +970,7 @@ void iASlicerData::saveImageStack()
 		WriteSingleSliceImage(newFileName.c_str(), img);
 	}
 	interactor->Enable();
-	emit msg(tr("%1  Image stack saved in folder: %2")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+	emit msg(tr("Image stack saved in folder: %1")
 		.arg(fileInfo.absoluteDir().absolutePath()));
 }
 

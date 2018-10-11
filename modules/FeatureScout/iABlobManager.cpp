@@ -663,7 +663,7 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 	movieWriter->SetInputConnection( w2if->GetOutputPort() );
 	movieWriter->Start();
 
-	//emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
+	//emit msg(tr("MOVIE export started. Output: %1").arg(fileName));
 
 	//vtkSmartPointer<vtkTransform> rot = vtkSmartPointer<vtkTransform>::New();
 	//double view[3];
