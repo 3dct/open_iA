@@ -872,7 +872,7 @@ void iAChartWidget::paintEvent(QPaintEvent * e)
 	if (!m_xMapper || !m_yMapper)
 		createMappers();
 	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, xZoom*(activeWidth()-1));
-	m_yMapper->update(m_yMappingMode == Linear || m_yBounds > 0 ? m_yBounds[0] : 1, m_yBounds[1], 0, yZoom*(activeHeight()-1));
+	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? 1 : m_yBounds[0], m_yBounds[1], 0, yZoom*(activeHeight()-1));
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
 	m_yMaxTickLabelWidth = fm.width("4.44M");
