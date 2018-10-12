@@ -1104,10 +1104,11 @@ void iAQSplom::updateMaxPlotRect()
 	QPoint topLeft(topLeftPlot.left() + (bottomRightPlot.right() - topLeftPlot.left() + settings.plotsSpacing) / 2,
 		topLeftPlot.top() + (bottomRightPlot.bottom() - topLeftPlot.top() + settings.plotsSpacing) / 2);
 	// make sure there is enough space for the labels:
-	topLeft += QPoint(std::max(0, settings.tickOffsets.x() - ((visParamCnt % 2) ? m_scatPlotSize.x() / 2 : m_scatPlotSize.x())),
-		std::max(0, settings.tickOffsets.y() - ((visParamCnt % 2) ? m_scatPlotSize.y() / 2 : m_scatPlotSize.y())));
+	double xofs = std::max(0, settings.tickOffsets.x() - ((visParamCnt % 2) ? m_scatPlotSize.x() / 2 : m_scatPlotSize.x()));
+	double yofs = std::max(0, settings.tickOffsets.y() - ((visParamCnt % 2) ? m_scatPlotSize.y() / 2 : m_scatPlotSize.y()));
+	topLeft += QPoint(xofs,yofs);
 	if (settings.histogramVisible)
-		topLeft += QPoint(m_scatPlotSize.x(), m_scatPlotSize.y());
+		topLeft += QPoint(m_scatPlotSize.x()/2, m_scatPlotSize.y()/2);
 	m_maximizedPlot->setRect( QRect(topLeft, bottomRightPlot.bottomRight()) );
 }
 
