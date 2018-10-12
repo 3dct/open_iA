@@ -62,7 +62,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 	oTF->AddPoint( 0, backAlpha, 0.5, 1.0 );
 	cTF->AddRGBPoint( 0, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 
-	int hid = 0, next_hid = 1, selectionIndex = 0, previous_selectionIndex = 0;
+	int hid = 0, next_hid = 1, prev_hid = -1, selectionIndex = 0, previous_selectionIndex = 0;
 	bool starting = false, hid_isASelection = false, previous_hid_isASelection = false;
 
 	int countClass = activeClassItem->rowCount();
@@ -73,7 +73,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 
 		if ( countSelection > 0 )
 		{
-			if ( j == sortedSelInds[selectionIndex] )
+			if (hid-1 == sortedSelInds[selectionIndex] )
 			{
 				hid_isASelection = true;
 				red = SelectedColor.redF(), green = SelectedColor.greenF(), blue = SelectedColor.blueF();
@@ -87,9 +87,9 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 				red = classRGB[0]; green = classRGB[1]; blue = classRGB[2];
 			}
 
-			if ( j > 0 )
+			if ( prev_hid > 0 )
 			{
-				if ( j - 1 == sortedSelInds[previous_selectionIndex])
+				if (prev_hid-1 == sortedSelInds[previous_selectionIndex])
 				{
 					previous_hid_isASelection = true;
 
@@ -209,6 +209,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 			cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
 			cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
+		prev_hid = hid;
 	}
 
 	if ( hid < m_objectTable->GetNumberOfRows() )	// Creates the very last points (for all objects)  if it's not created yet
