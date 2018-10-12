@@ -58,7 +58,6 @@ iAFeatureScoutSPLOM::iAFeatureScoutSPLOM():
 
 iAFeatureScoutSPLOM::~iAFeatureScoutSPLOM()
 {
-	delete matrix;
 }
 
 void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvTable, std::vector<char> const & columnVisibility)
