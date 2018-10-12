@@ -1525,6 +1525,11 @@ void dlg_FeatureScout::ClassAddButton()
 		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
 		return;
 	}
+	if (CountObject == activeClassItem->rowCount())
+	{
+		QMessageBox::warning(this, "FeatureScout", "All items in current class are selected. There is no need to create a new class out of them. Please select only a subset of items!");
+		return;
+	}
 	if (m_renderMode != rmSingleClass)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Cannot add a class while in a special rendering mode "
@@ -1605,12 +1610,6 @@ void dlg_FeatureScout::ClassAddButton()
 
 	// update statistics for activeClassItem
 	this->updateClassStatistics( this->activeClassItem );
-	if ( this->activeClassItem->rowCount() == 0 && this->activeClassItem->index().row() != 0 )
-	{
-		int cID = this->activeClassItem->index().row();
-		rootItem->removeRow( cID );
-		m_colorList.removeAt( cID );
-	}
 
 	this->setActiveClassItem( firstLevelItem.first(), 1 );
 	this->calculateElementTable();
