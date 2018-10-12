@@ -1559,6 +1559,7 @@ void iAQSplom::setColorTheme(QString const & themeName)
 void iAQSplom::rangeFromParameter()
 {
 	double const * range = m_splomData->paramRange(m_colorLookupParam);
+	QSignalBlocker sb(m_settingsDlg->sbMin);
 	m_settingsDlg->sbMin->setValue(range[0]);
 	m_settingsDlg->sbMax->setValue(range[1]);
 }
