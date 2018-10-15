@@ -51,6 +51,7 @@ public:
 	const RealType& operator[] (size_t index) const;
 	RealType& operator[] (size_t index);
 	RealType length() const;
+	RealType sum() const;
 	void normalize();
 	iAVec3T<RealType> normalized() const;
 	RealType const * data() const;
@@ -113,6 +114,12 @@ template <typename RealType>
 RealType iAVec3T<RealType>::length() const
 {
 	return std::sqrt(x()*x() + y() * y() + z() * z());
+}
+
+template <typename RealType>
+RealType iAVec3T<RealType>::sum() const
+{
+	return x() + y() + z();
 }
 
 template <typename RealType>
