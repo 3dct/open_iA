@@ -284,7 +284,18 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		distance /= (fiber1raw.length != 0.0) ? fiber1raw.length : 1;
 		break;
 	}
-	case 3: // overlap between the cylinder volumes, sampled through CylinderSamplePoints from the shorter fiber
+	case 3: // Fiber fragment distance:
+	{
+		auto aimaj = (fiber1raw.pts[PtStart] - fiber1raw.pts[PtEnd]);
+		auto bimbj = (fiber2.pts[PtStart] - fiber2.pts[PtEnd]);
+		double dist1 = (aimaj*aimaj).sum() + (bimbj*bimbj).sum() + (aimaj*bimbj).sum();
+		auto aimbj = (fiber1raw.pts[PtStart] - fiber2.pts[PtEnd]);
+		auto bimaj = (fiber2.pts[PtStart] - fiber1raw.pts[PtEnd]);
+		double dist2 = (aimbj*aimbj).sum() + (bimaj*bimaj).sum() + (aimbj*bimaj).sum();
+		distance = std::min(dist1, dist2);
+		break;
+	}
+	case 4: // overlap between the cylinder volumes, sampled through CylinderSamplePoints from the shorter fiber
 	{
 		// 1. sample points on the cylinder
 		//    -> regular?
@@ -301,10 +312,10 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		distance = 1 - getOverlap(fiber1raw, fiber2, false, true);
 		break;
 	}
-	case 4:
+	case 5:
 		distance = 1 - getOverlap(fiber1raw, fiber2, true, true);
 		break;
-	case 5:
+	case 6:
 		distance = 1 - getOverlap(fiber1raw, fiber2, true, false);
 		break;
 	}

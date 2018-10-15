@@ -33,8 +33,9 @@ class iARefDistCompute : public QThread
 {
 	Q_OBJECT
 public:
-	static const int DistanceMetricCount = 6;
-	static const int BestDistanceMetric = 4;
+	static const int DistanceMetricCount = 7;
+	static const int BestDistanceMetric = 6;
+	static const int OverlapMeasureStart = 4;
 	static const int EndColumns = 2;
 	static int MaxNumberOfCloseFibers;
 	iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, int referenceID);

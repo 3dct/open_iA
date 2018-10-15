@@ -195,10 +195,11 @@ void iAFiAKErController::resultsLoaded()
 	m_cmbboxDistanceMeasure = new QComboBox();
 	m_cmbboxDistanceMeasure->addItem("Dist1 (Midpoint, Angles, Length)");
 	m_cmbboxDistanceMeasure->addItem("Dist2 (Start-Start/Center-Center/End-End)");
-	m_cmbboxDistanceMeasure->addItem("Dist3 (all 9 pairs Start-/Center-/Endpoint)");
-	m_cmbboxDistanceMeasure->addItem("Dist4 (Overlap % short fiber)");
-	m_cmbboxDistanceMeasure->addItem("Dist5 (Overlap % in relation to Volume Ratio, short fiber)");
-	m_cmbboxDistanceMeasure->addItem("Dist6 (Overlap % in relation to Volume Ratio,  directional)");
+	m_cmbboxDistanceMeasure->addItem("Dist3 (All 9 pairs Start-/Center-/Endpoint)");
+	m_cmbboxDistanceMeasure->addItem("Dist4 (Min. Fiber Fragment Distance)");
+	m_cmbboxDistanceMeasure->addItem("Dist5 (Overlap % short fiber)");
+	m_cmbboxDistanceMeasure->addItem("Dist6 (Overlap % in relation to Volume Ratio, short fiber)");
+	m_cmbboxDistanceMeasure->addItem("Dist7 (Overlap % in relation to Volume Ratio,  directional)");
 	m_cmbboxDistanceMeasure->setCurrentIndex(iARefDistCompute::BestDistanceMetric);
 	m_chkboxShowLines = new QCheckBox("Connect");
 	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceToggled);
