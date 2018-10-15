@@ -1704,6 +1704,7 @@ bool MdiChild::editRendererSettings(iARenderSettings const & rs, iAVolumeSetting
 	ApplyVolumeSettings(false);
 	ApplyRenderSettings(Raycaster);
 	renderer->vtkWidgetRC->show();
+	renderer->vtkWidgetRC->GetRenderWindow()->Render();
 	emit renderSettingsChanged();
 	return true;
 }

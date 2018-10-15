@@ -441,7 +441,6 @@ void dlg_modalities::AddModality(vtkSmartPointer<vtkImageData> img, QString cons
 	modalities->Add(newModality);
 }
 
-
 void dlg_modalities::SetFileName(int modality, QString const & fileName)
 {
 	modalities->Get(modality)->SetFileName(fileName);

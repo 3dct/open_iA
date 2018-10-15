@@ -273,6 +273,7 @@ void iASlicer::setup( iASingleSlicerSettings const & settings )
 	{
 		m_widget->updateMagicLens();
 	}
+	m_widget->GetRenderWindow()->Render();
 }
 
 void iASlicer::initializeWidget( vtkImageData *imageData, vtkPoints *points /*= 0*/ )
