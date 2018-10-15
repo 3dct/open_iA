@@ -44,36 +44,25 @@ class open_iA_Core_API dlg_bezier : public dlg_function
 public:
 	dlg_bezier(iADiagramFctWidget *chart, QColor &color, bool reset = true);
 
-	int getType() { return BEZIER; }
+	int getType() override { return BEZIER; }
+	void draw(QPainter &painter) override;
+	void draw(QPainter &painter, QColor color, int lineWidth) override;
+	void drawOnTop(QPainter&) override {}
+	int selectPoint(QMouseEvent *event, int *x = NULL) override;
+	int getSelectedPoint() override { return selectedPoint; }
+	int addPoint(int x, int y) override;
+	void addColorPoint(int, double, double, double) override {}
+	void removePoint(int index) override;
+	void moveSelectedPoint(int x, int y) override;
+	void changeColor(QMouseEvent *) override{}
+	bool isColored() override { return false; }
+	bool isEndPoint(int index) override;
+	bool isDeletable(int index) override;
+	void reset() override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
 
-	// abstract functions
-	void draw(QPainter &painter);
-	void draw(QPainter &painter, QColor color, int lineWidth);
-	void drawOnTop(QPainter&) {}
-
-	int selectPoint(QMouseEvent *event, int *x = NULL);
-	int getSelectedPoint() { return selectedPoint; }
-	int addPoint(int x, int y);
-	void addColorPoint(int, double, double, double) {}
-	void removePoint(int index);
-	void moveSelectedPoint(int x, int y);
-	void changeColor(QMouseEvent *) {}
-
-	bool isColored() { return false; }
-	bool isEndPoint(int index);
-	bool isDeletable(int index);
-
-	void reset();
-
-	void mousePressEvent(QMouseEvent*) {}
-	void mouseMoveEvent(QMouseEvent*)  {}
-	void mouseReleaseEvent(QMouseEvent *event);
-	void mouseReleaseEventAfterNewPoint(QMouseEvent*) {}
-
-	// additional public functions
 	void push_back(double x, double y);
 	std::vector<QPointF> &getPoints() { return realPoints; }
-
 private:
 	bool isFunctionPoint(int point);
 	bool isControlPoint(int point);

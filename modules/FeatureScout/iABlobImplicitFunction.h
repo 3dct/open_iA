@@ -41,19 +41,19 @@ class iABlobImplicitFunction : public vtkImplicitFunction
 {
 public:
 	vtkTypeMacro (iABlobImplicitFunction, vtkImplicitFunction);
-	void PrintSelf (ostream& os, vtkIndent indent);
+	void PrintSelf (ostream& os, vtkIndent indent) override;
 
 	static iABlobImplicitFunction* New();
 
 	// Description:
 	// Evaluate function at position x-y-z and return value
-	double EvaluateFunction (double x[3]);
-	double EvaluateFunction (double x, double y, double z);
+	double EvaluateFunction (double x[3]) override;
+	double EvaluateFunction (double x, double y, double z) override;
 	double JustEvaluateFunction (double x[3]);
 
 	// Description:
 	// Evaluate function gradient at position x-y-z and pass back vector.
-	void EvaluateGradient (double x[3], double n[3]);
+	void EvaluateGradient (double x[3], double n[3]) override;
 
 	// Description:
 	// Add fiber to current cluster

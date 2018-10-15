@@ -25,5 +25,5 @@
 class iACastingDataconversionModuleInterface : public iAModuleInterface
 {
 public:
-	void Initialize();
+	void Initialize() override;
 };

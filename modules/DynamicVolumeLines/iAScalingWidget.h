@@ -52,8 +52,8 @@ public:
 		const QVector<double> &histBinImpFunctAvgVec, const QVector<double> &linearHistBinBoarderVec);
 
 protected:
-	virtual void initializeGL();
-	virtual void paintGL();
+	void initializeGL() override;
+	void paintGL() override;
 
 private:
 	QCPAxis *m_nonlinearAxis;

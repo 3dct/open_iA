@@ -39,8 +39,8 @@ public:
 	QSize sizeHint() const override;
 
 protected:
-	virtual void initializeGL();
-	virtual void paintGL();
+	virtual void initializeGL() override;
+	virtual void paintGL() override;
 
 private:
 	QCustomPlot *m_plot;

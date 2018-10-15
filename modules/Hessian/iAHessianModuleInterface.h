@@ -25,5 +25,5 @@
 class iAHessianModuleInterface : public iAModuleInterface
 {
 public:
-	void Initialize();
+	void Initialize() override;
 };

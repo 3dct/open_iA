@@ -26,9 +26,9 @@ class iAParameterExplorerModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
-	void Initialize();
+	void Initialize() override;
 protected:
-	virtual iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData);
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData) override;
 private slots:
 	bool StartParameterExplorer();
 	void ToggleDockWidgetTitleBars();

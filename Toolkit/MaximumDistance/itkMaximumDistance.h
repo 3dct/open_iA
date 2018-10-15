@@ -61,7 +61,7 @@ namespace itk {
 		itkTypeMacro(MaximumDistance, ImageToImageFilter);
 
 		/** Display */
-		void PrintSelf( std::ostream& os, Indent indent ) const;
+		void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 		//  Software Guide : BeginLatex
 		//
@@ -133,7 +133,7 @@ namespace itk {
 
 		//  Software Guide : EndCodeSnippet
 
-		void GenerateData();
+		void GenerateData() override;
 
 	private:
 

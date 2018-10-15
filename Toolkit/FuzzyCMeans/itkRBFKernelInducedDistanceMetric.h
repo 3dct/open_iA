@@ -112,15 +112,15 @@ public:
   itkSetMacro(Sigma, double);
 
   /** Gets the distance between the origin and x */
-  double Evaluate(const MeasurementVectorType &x) const;
+  double Evaluate(const MeasurementVectorType &x) const override;
 
   /** Gets the distance between x1 and x2 */
   double Evaluate( const MeasurementVectorType &x1,
-                   const MeasurementVectorType &x2 ) const;
+                   const MeasurementVectorType &x2 ) const override;
 
   /** Gets the coordinate distance between a and b. NOTE: a and b should be
    * type of component. */
-  double Evaluate(const ValueType &a, const ValueType &b) const;
+  double Evaluate(const ValueType &a, const ValueType &b) const override;
 
 
 protected:
@@ -133,7 +133,7 @@ protected:
 
   /** Write the name-value pairs of the class data members to the supplied
    * output stream. */
-  void PrintSelf(std::ostream &os, itk::Indent indent) const;
+  void PrintSelf(std::ostream &os, itk::Indent indent) const override;
 
 
 private:

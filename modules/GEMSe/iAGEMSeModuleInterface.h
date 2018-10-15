@@ -35,7 +35,7 @@ class iAGEMSeModuleInterface : public iAModuleInterface
 	Q_OBJECT
 public:
 	iAGEMSeModuleInterface();
-	void Initialize();
+	void Initialize() override;
 protected:
 	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData) override;
 private slots:

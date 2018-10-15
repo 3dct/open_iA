@@ -132,8 +132,8 @@ public:
 	void setPointRadius( double radius );                            //!< set the radius for scatter plot points
 	void setPointColor( QColor const & color );                      //!< set the color for all data points
 	void setPointOpacity( double opacity );                          //!< set the opacity for all data points
-	SelectionType & getSelection();                                  //!< Get const vector of indices of currently selected data points.
-	SelectionType const & getSelection() const;                      //!< Get vector of indices of currently selected data points.
+	SelectionType & getSelection() override;                         //!< Get const vector of indices of currently selected data points.
+	SelectionType const & getSelection() const override;             //!< Get vector of indices of currently selected data points.
 	SelectionType const & getFilteredSelection() const override;     //!< Get currently selected data points, as indices in the list of filtered data points. These indices are always sorted.
 	void setFilteredSelection(SelectionType const & filteredSelInds);//!< Set selected data points from indices within the filtered data points
 	void setSelection( SelectionType const & selInds );              //!< Set selected data points from a vector of indices.
@@ -141,12 +141,12 @@ public:
 	void setSelectionColor(QColor color);                            //!< set the color for selected points
 	void enableSelection(bool enable);                               //!< set whether selections are allowed or not
 	void getActivePlotIndices( int * inds_out );                     //!< Get X and Y parameter indices of currently active scatter plot.
-	int getVisibleParametersCount() const;                           //!< Get the number of parameters currently displayed
-	double getAnimIn() const { return m_animIn; }                    //!< Getter for animation in property
+	int getVisibleParametersCount() const override;                  //!< Get the number of parameters currently displayed
+	double getAnimIn() const override { return m_animIn; }           //!< Getter for animation in property
 	void setAnimIn( double anim );                                   //!< Setter for animation in property
-	double getAnimOut() const { return m_animOut; }                  //!< Getter for animation in property
+	double getAnimOut() const override { return m_animOut; }         //!< Getter for animation in property
 	void setAnimOut( double anim );                                  //!< Setter for animation in property
-	SelectionType const & getHighlightedPoints() const;              //!< get the list of highlighted points
+	SelectionType const & getHighlightedPoints() const override;     //!< get the list of highlighted points
 	void setSeparation(int idx);                                     //!< define an index at which a separation margin is inserted
 	void setBackgroundColorTheme(iAColorTheme const * theme);        //!< define the color theme to use for coloring the different separated regions
 	iAColorTheme const * getBackgroundColorTheme();                  //!< retrieve the theme for background colors for the separated regions
@@ -173,7 +173,7 @@ signals:
 protected:
 	void clear();                                                    //!< Clear all scatter plots in the SPLOM.
 	void initializeGL() override;                                    //!< overrides function inherited from base class.
-	void paintEvent( QPaintEvent * event ) override;                 //!< Draws SPLOM. Re-implemented from base class.
+	void paintEvent( QPaintEvent * event ) override;                 //!< Draws all scatter plots, tick labels and axes.
 	virtual bool drawPopup( QPainter& painter );                     //!< Draws popup on the splom
 	iAScatterPlot * getScatterplotAt( QPoint pos );                  //!< Get a scatter plot at mouse position.
 	void changeActivePlot( iAScatterPlot * s);

@@ -45,7 +45,7 @@ private:
 	vtkDataArray * scalars;
 	double yHeight;
 	void drawPlots(QPainter &painter) override;
-	void showDataTooltip(QMouseEvent *event);
+	void showDataTooltip(QMouseEvent *event) override;
 Q_SIGNALS:
 	void binSelected(int newBin);
 };

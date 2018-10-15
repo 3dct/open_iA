@@ -42,7 +42,7 @@ public:
   // Description:
   // Standard methods for the class.
   vtkTypeMacro(iARulerActor,vtkProp);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   void SetPosition(double *coord);
   void SetSize(double *coord);
 
@@ -125,13 +125,13 @@ public:
   vtkGetObjectMacro(LeftAxis,vtkAxisActor2D);
   vtkGetObjectMacro(BottomAxis,vtkAxisActor2D);
 
-  // Decsription:
+  // Description:
   // Standard methods supporting the rendering process.
   virtual void BuildRepresentation(vtkViewport *viewport);
-  virtual void GetActors2D(vtkPropCollection*);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOverlay(vtkViewport*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
+  void GetActors2D(vtkPropCollection*) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
 
 protected:
   iARulerActor();

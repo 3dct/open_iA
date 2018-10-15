@@ -25,5 +25,5 @@
 class iASmoothingModuleInterface : public iAModuleInterface
 {
 public:
-	void Initialize();
+	void Initialize() override;
 };

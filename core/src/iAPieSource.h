@@ -43,7 +43,7 @@ public:
 	}
 	vtkTypeMacro(iAPieSource, vtkPolyDataAlgorithm);
 
-	void PrintSelf(ostream& os, vtkIndent indent)
+	void PrintSelf(ostream& os, vtkIndent indent) override
 	{
 		this->Superclass::PrintSelf(os, indent);
 
@@ -84,7 +84,7 @@ protected:
 
 	int RequestData(vtkInformation *vtkNotUsed(request),
 					vtkInformationVector **vtkNotUsed(inputVector),
-					vtkInformationVector *outputVector)
+					vtkInformationVector *outputVector) override
 	{
 		//Get the info object
 		vtkInformation *outInfo = outputVector->GetInformationObject(0);

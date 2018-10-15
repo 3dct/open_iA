@@ -42,7 +42,7 @@ public:
 	static MouseInteractorStylePP* New( );
 	vtkTypeMacro( MouseInteractorStylePP, vtkInteractorStyleTrackballCamera );
 
-	virtual void OnLeftButtonDown( )
+	void OnLeftButtonDown( ) override
 	{
 		if( m_lCntrlIsPressed && m_rm )
 		{
@@ -59,7 +59,7 @@ public:
 		vtkInteractorStyleTrackballCamera::OnLeftButtonDown( );
 	}
 
-	virtual void OnKeyDown( )
+	void OnKeyDown( ) override
 	{
 		vtkRenderWindowInteractor *rwi = this->Interactor;
 		std::string key = rwi->GetKeySym( );
@@ -71,7 +71,7 @@ public:
 		vtkInteractorStyleTrackballCamera::OnKeyDown( );
 	}
 
-	virtual void OnKeyUp( )
+	void OnKeyUp( ) override
 	{
 		vtkRenderWindowInteractor *rwi = this->Interactor;
 		std::string key = rwi->GetKeySym( );

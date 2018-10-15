@@ -174,12 +174,12 @@ protected:
 
   /** Write the name-value pairs of the filter data members to the supplied
    * output stream. */
-  void PrintSelf(std::ostream &os, Indent indent) const;
+  void PrintSelf(std::ostream &os, Indent indent) const override;
 
 
   /** Standard pipeline method. Here is where the classification is
    * performed. */
-  virtual void GenerateData();
+  void GenerateData() override;
 
   /** This method computes the labeled map. */
   virtual void Classify();

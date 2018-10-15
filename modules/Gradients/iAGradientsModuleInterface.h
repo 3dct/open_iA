@@ -25,5 +25,5 @@
 class iAGradientsModuleInterface : public iAModuleInterface
 {
 public:
-	void Initialize();
+	void Initialize() override;
 };

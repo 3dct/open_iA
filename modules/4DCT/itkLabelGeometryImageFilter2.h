@@ -473,9 +473,9 @@ public:
 protected:
   LabelGeometryImageFilter2();
   ~LabelGeometryImageFilter2(){}
-  void PrintSelf(std::ostream & os, Indent indent) const;
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
-  void GenerateData();
+  void GenerateData() override;
 
 private:
   LabelGeometryImageFilter2(const Self &); //purposely not implemented

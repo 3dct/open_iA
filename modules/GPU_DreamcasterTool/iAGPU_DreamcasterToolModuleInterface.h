@@ -26,7 +26,7 @@ class iAGPU_DreamcasterToolModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
-	void Initialize();
+	void Initialize() override;
 private slots:
 	void dreamcasterOpenFile();
 };

@@ -153,7 +153,7 @@ public:
    * Superclass::SetNumberOfClasses(numOfClasses) and creates some variables
    * used for centroids calculations. This method also sets the size of the
    * vector of old centroids.*/
-  void SetNumberOfClasses(const unsigned int &numOfClasses);
+  void SetNumberOfClasses(const unsigned int &numOfClasses) override;
 
   /** Get penalty factor of the neighborhood. */
   itkGetConstMacro(Alpha, double);
@@ -188,11 +188,11 @@ protected:
 
   /** Write the name-value pairs of the class data members to the supplied
    * output stream. */
-  void PrintSelf(std::ostream &os, Indent indent) const;
+  void PrintSelf(std::ostream &os, Indent indent) const override;
 
   /** Check if the structuring element and the kernel function are
    * initialized.*/
-  virtual void Initialize();
+  virtual void Initialize() override;
 
   /** KFCMSClassifierInitializationImageFilter is implemented as a
    * multithreaded filter and needs to perform processing after the output
@@ -201,7 +201,7 @@ protected:
    * method is executed once per iteration of the KFCMS algorithm and will
    * store the old values of the centroids and initialize some variables used
    * internally. */
-  void BeforeThreadedGenerateData();
+  void BeforeThreadedGenerateData() override;
 
   /** KFCMSClassifierInitializationImageFilter is implemented as a
    * multithreaded filter. Therefore, this implementation provides a
@@ -220,7 +220,7 @@ protected:
 #endif
   void
     ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
-                             ThreadIdType threadId );
+                             ThreadIdType threadId ) override;
 
   /** KFCMSClassifierInitializationImageFilter is implemented as a
    * multithreaded filter and needs to perform processing after all processing
@@ -228,7 +228,7 @@ protected:
    * AfterThreadedGenerateData() method. This method is executed once per
    * iteration of the KFCMS algorithm and will update the centroids and
    * calculate the error. */
-  void AfterThreadedGenerateData();
+  void AfterThreadedGenerateData() override;
 
 
   /** Penalty factor of the neighborhood used in the membership and

@@ -34,12 +34,12 @@ protected:
 	
 	vtkIdType focusedVertex;
 
-	virtual vtkColor4ub VertexColor(vtkIdType vertex);
-	virtual float VertexSize(vtkIdType vertex);
-	virtual vtkColor4ub EdgeColor(vtkIdType line, vtkIdType point);
-	virtual float EdgeWidth(vtkIdType line, vtkIdType point);
-	virtual bool MouseButtonPressEvent(const vtkContextMouseEvent &event);
-	virtual bool MouseMoveEvent(const vtkContextMouseEvent &event);
-	virtual vtkStdString VertexTooltip(vtkIdType vertex);
-	virtual void PaintBuffers(vtkContext2D *painter);
+	vtkColor4ub VertexColor(vtkIdType vertex) override;
+	float VertexSize(vtkIdType vertex) override;
+	vtkColor4ub EdgeColor(vtkIdType line, vtkIdType point) override;
+	float EdgeWidth(vtkIdType line, vtkIdType point) override;
+	bool MouseButtonPressEvent(const vtkContextMouseEvent &event) override;
+	bool MouseMoveEvent(const vtkContextMouseEvent &event) override;
+	vtkStdString VertexTooltip(vtkIdType vertex) override;
+	void PaintBuffers(vtkContext2D *painter) override;
 };

@@ -42,8 +42,8 @@ class iAPorosityAnalyserModuleInterface : public iAModuleInterface
 	Q_OBJECT
 
 public:
-	void Initialize();
-	void SaveSettings() const;
+	void Initialize() override;
+	void SaveSettings() const override;
 	Ui::ComputeSegmentations * ui();
 	void log( QString text, bool appendToPrev = false );
 	QString DatasetFolder() const;
