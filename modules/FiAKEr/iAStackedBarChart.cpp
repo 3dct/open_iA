@@ -83,6 +83,7 @@ QMenu* iAStackedBarChart::contextMenu()
 void iAStackedBarChart::setDoStack(bool doStack)
 {
 	m_stack = doStack;
+	update();
 }
 
 void iAStackedBarChart::switchStackMode()
