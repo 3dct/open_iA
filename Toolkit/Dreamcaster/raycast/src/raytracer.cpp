@@ -355,12 +355,15 @@ bool Engine::RenderGPU(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const
 	curRender.avDipAngle = 0.f;
 	if (rasteriztion)
 	{
-		/*iAMat4 mrotx, mroty, mrotz;
+/*
+		iAMat4 mrotx, mroty, mrotz;
 		mroty = rotationY(rotY);
 		mrotx = rotation(mroty*iAVec3(1,0,0), rotX);
 		mrotz = rotation(mroty*iAVec3(0,0,1), rotZ);
-		iAMat4 rot_mat = mrotz*mrotx*mroty;*/
-		/*float 
+		iAMat4 rot_mat = mrotz*mrotx*mroty;
+*/
+/*
+		float
 			irotX = -rotX,
 			irotY = -rotY,
 			irotZ = -rotZ;
@@ -373,7 +376,8 @@ bool Engine::RenderGPU(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const
 		rot_mat.invert();
 		//TODO!!! add translation
 		iAVec3 origin = iAVec3( 0, 0, ORIGIN_Z );
-		cuda_rasterize(&origin, &PLANE_Z, &PLANE_H_W, &rot_mat, &RFRAME_W, &RFRAME_H, (int)GetScene()->getNrTriangles(), cuda_avpl_buff);/**/
+		cuda_rasterize(&origin, &PLANE_Z, &PLANE_H_W, &rot_mat, &RFRAME_W, &RFRAME_H, (int)GetScene()->getNrTriangles(), cuda_avpl_buff);
+*/
 	}
 	else
 		raycast_single(
