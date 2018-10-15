@@ -69,7 +69,7 @@ ENDIF()
 IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 ENDIF ()
-IF (CMAKE_COMPILER_IS_GNUCXX)
+IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	# see Ulrich Drepper - How to write Shared Libraries
 	#   - fPIC vs. fpic
 	#   - why fvisibility=hidden
