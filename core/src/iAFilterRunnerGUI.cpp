@@ -218,6 +218,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 		case Continuous:  value = dlg.getDblValue(idx);      break;
 		case Discrete:    value = dlg.getIntValue(idx);      break;
+		default:
 		case FilterName:
 		case FilterParameters:
 		case Text:

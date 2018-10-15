@@ -265,6 +265,11 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 			}
 			break;
 		}
+		case Invalid:
+			AddMsg(QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->Name()));
+			return false;
+		default:  // no checks
+			break;
 		}
 	}
 	return true;

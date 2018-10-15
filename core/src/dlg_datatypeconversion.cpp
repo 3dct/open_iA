@@ -66,6 +66,7 @@
 
 template<class T> void DataTypeConversion_template(QString const & m_filename, double* b, iAPlotData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
 {
+	// TODO: use itk methods instead?
 	typedef itk::Image< T, 3 >   InputImageType;
 
 	FILE * pFile;
