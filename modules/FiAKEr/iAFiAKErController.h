@@ -104,6 +104,7 @@ private slots:
 	void visualizeCylinderSamplePoints();
 	void hideSamplePoints();
 	void showReferenceToggled();
+	void showReferenceLinesToggled();
 	void showReferenceCountChanged(int);
 	void showReferenceMeasureChanged(int);
 	void selectionFromListActivated(QModelIndex const &);
@@ -165,8 +166,10 @@ private:
 	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel;
 	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
 	QCheckBox* m_chkboxShowReference;
+	QCheckBox* m_chkboxShowLines;
 	QSpinBox* m_spnboxReferenceCount;
 	QComboBox* m_cmbboxDistanceMeasure;
+	vtkSmartPointer<vtkActor> m_refLineActor;
 
 	// Results List:
 	void addStackedBar(int index);

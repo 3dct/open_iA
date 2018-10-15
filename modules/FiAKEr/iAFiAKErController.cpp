@@ -50,6 +50,7 @@
 #include "mdichild.h"
 
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkLine.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -199,13 +200,16 @@ void iAFiAKErController::resultsLoaded()
 	m_cmbboxDistanceMeasure->addItem("Dist5 (Overlap % in relation to Volume Ratio, short fiber)");
 	m_cmbboxDistanceMeasure->addItem("Dist6 (Overlap % in relation to Volume Ratio,  directional)");
 	m_cmbboxDistanceMeasure->setCurrentIndex(iARefDistCompute::BestDistanceMetric);
+	m_chkboxShowLines = new QCheckBox("Connect");
 	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceToggled);
 	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(showReferenceCountChanged(int)));
 	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
+	connect(m_chkboxShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceLinesToggled);
 	showReferenceWidget->layout()->addWidget(m_chkboxShowReference);
 	showReferenceWidget->layout()->addWidget(m_spnboxReferenceCount);
-	showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers, distance metric:"));
+	showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers, metric:"));
 	showReferenceWidget->layout()->addWidget(m_cmbboxDistanceMeasure);
+	showReferenceWidget->layout()->addWidget(m_chkboxShowLines);
 	showReferenceWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	QWidget* mainRendererContainer = new QWidget();
@@ -1249,6 +1253,13 @@ void iAFiAKErController::showReferenceMeasureChanged(int index)
 	changeReferenceDisplay();
 }
 
+void iAFiAKErController::showReferenceLinesToggled()
+{
+	bool showLines = m_chkboxShowLines->isChecked();
+	addInteraction(QString("Show lines to reference fibers toggled to %1").arg(showLines ? "on" : "off"));
+	changeReferenceDisplay();
+}
+
 void iAFiAKErController::changeReferenceDisplay()
 {
 	size_t distanceMeasure = m_cmbboxDistanceMeasure->currentIndex();
@@ -1289,7 +1300,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	range[0] = std::numeric_limits<double>::max();
 	range[1] = std::numeric_limits<double>::lowest();
 	//DEBUG_LOG("Showing reference fibers:");
-	for (size_t resultID=0; resultID < m_data->result.size(); ++resultID)
+	for (size_t resultID=0; resultID < m_selection.size(); ++resultID)
 	{
 		if (resultID == m_referenceID || !resultSelected(m_resultUIs, resultID))
 			continue;
@@ -1329,6 +1340,96 @@ void iAFiAKErController::changeReferenceDisplay()
 	// ... and set up color coding by it!
 	m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
 	// TODO: show distance color map somewhere!!!
+
+	// Lines from Fiber points to reference:
+	if (!m_chkboxShowLines->isChecked())
+		return;
+
+	auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	colors->SetNumberOfComponents(4);
+	colors->SetName("Colors");
+	QColor ConnectColor(128, 128, 128);
+	unsigned char c[4];
+	c[0] = ConnectColor.red();
+	c[1] = ConnectColor.green();
+	c[2] = ConnectColor.blue();
+	c[3] = ConnectColor.alpha();
+	size_t colorCount = m_refVisTable->GetNumberOfRows() * 4;
+	for (size_t row = 0; row < colorCount; ++row)
+	{
+#if (VTK_MAJOR_VERSION < 7) || (VTK_MAJOR_VERSION==7 && VTK_MINOR_VERSION==0)
+		m_colors->InsertNextTupleValue(c);
+#else
+		colors->InsertNextTypedTuple(c);
+#endif
+	}
+	auto points = vtkSmartPointer<vtkPoints>::New();
+	auto linePolyData = vtkSmartPointer<vtkPolyData>::New();
+	auto lines = vtkSmartPointer<vtkCellArray>::New();
+	size_t curFiber = 0;
+	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
+	{
+		if (resultID == m_referenceID || !resultSelected(m_resultUIs, resultID))
+			continue;
+		for (size_t fiberIdx = 0; fiberIdx < m_selection[resultID].size(); ++fiberIdx)
+		{
+			size_t fiberID = m_selection[resultID][fiberIdx];
+			for (int n = 0; n < refCount; ++n)
+			{
+				float first[3], end[3];
+				size_t refFiberID = m_data->result[resultID].refDiffFiber[fiberID].dist[distanceMeasure][n].index;
+				for (int i = 0; i < 3; ++i)
+				{
+					first[i] = m_data->result[resultID].table->GetValue(fiberID, m_data->result[resultID].mapping->value(iACsvConfig::StartX + i)).ToFloat();
+					end[i] = m_data->result[m_referenceID].table->GetValue(refFiberID, m_data->result[m_referenceID].mapping->value(iACsvConfig::StartX + i)).ToFloat();
+				}
+				points->InsertNextPoint(first);
+				points->InsertNextPoint(end);
+				auto line1 = vtkSmartPointer<vtkLine>::New();
+				line1->GetPointIds()->SetId(0, 4 * curFiber); // the index of line start point in pts
+				line1->GetPointIds()->SetId(1, 4 * curFiber + 1); // the index of line end point in pts
+				lines->InsertNextCell(line1);
+				for (int i = 0; i < 3; ++i)
+				{
+					first[i] = m_data->result[resultID].table->GetValue(fiberID, m_data->result[resultID].mapping->value(iACsvConfig::EndX + i)).ToFloat();
+					end[i] = m_data->result[m_referenceID].table->GetValue(refFiberID, m_data->result[m_referenceID].mapping->value(iACsvConfig::EndX + i)).ToFloat();
+				}
+				points->InsertNextPoint(first);
+				points->InsertNextPoint(end);
+				auto line2 = vtkSmartPointer<vtkLine>::New();
+				line2->GetPointIds()->SetId(0, 4 * curFiber + 2); // the index of line start point in pts
+				line2->GetPointIds()->SetId(1, 4 * curFiber + 3); // the index of line end point in pts
+				lines->InsertNextCell(line2);
+				++curFiber;
+			}
+		}
+	}
+	linePolyData->SetPoints(points);
+	linePolyData->SetLines(lines);
+	linePolyData->GetPointData()->AddArray(colors);
+
+	auto ids = vtkSmartPointer<vtkIdTypeArray>::New();
+	ids->SetName("OriginalIds");
+	ids->SetNumberOfTuples(points->GetNumberOfPoints());
+	for (vtkIdType id = 0; id < points->GetNumberOfPoints(); ++id)
+		ids->SetTuple1(id, id);
+	linePolyData->GetPointData()->AddArray(ids);
+
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+
+	mapper->SelectColorArray("Colors");
+	mapper->SetScalarModeToUsePointFieldData();
+	mapper->ScalarVisibilityOn();
+	mapper->SetInputData(linePolyData);
+
+	if (m_refLineActor)
+		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
+	m_refLineActor = vtkSmartPointer<vtkActor>::New();
+	m_refLineActor->SetMapper(mapper);
+	m_refLineActor->GetProperty()->SetLineWidth(2);
+	m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
+	m_mainRenderer->GetRenderWindow()->Render();
+	m_mainRenderer->update();
 }
 
 void iAFiAKErController::playPauseOptimSteps()
