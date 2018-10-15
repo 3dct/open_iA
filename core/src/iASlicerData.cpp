@@ -1209,7 +1209,8 @@ namespace
 
 void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zCoord)
 {
-	if (!m_decorations || 0 == m_ptMapped) return;
+	if (!m_decorations)
+		return;
 
 	vtkImageData * reslicerOutput = reslicer->GetOutput();
 	double const * const slicerSpacing = reslicerOutput->GetSpacing();

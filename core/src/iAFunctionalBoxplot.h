@@ -213,7 +213,7 @@ void createFunctionBands(
 	std::vector<iAFunction<ArgType, ValType> *> const & functions,
 	size_t size)
 {
-	iAFunctionBand<unsigned int, unsigned int> fb();
+	iAFunctionBand<unsigned int, unsigned int> fb;
 	for (size_t i = 0; i < functions.size()-size+1; ++i)
 	{
 		createFunctionBands(result, functions, fb, i, size);

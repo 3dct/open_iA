@@ -183,8 +183,8 @@ void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 	int xZoomBefore = xZoom;
 	int translationXBefore = translationX;
 	// don't do anything if we're already at the limit
-	if ( (deltaMode &&  (value < 0    && xZoom == 1.0) || (value > 0           && xZoom == maxXZoom())) ||
-		 (!deltaMode && (value <= 1.0 && xZoom == 1.0) || (value >= maxXZoom() && xZoom == maxXZoom())) )
+	if ( (deltaMode &&  ((value < 0    && xZoom == 1.0) || (value > 0           && xZoom == maxXZoom()))) ||
+		 (!deltaMode && ((value <= 1.0 && xZoom == 1.0) || (value >= maxXZoom() && xZoom == maxXZoom()))) )
 	{
 		return;
 	}

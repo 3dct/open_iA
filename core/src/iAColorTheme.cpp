@@ -26,6 +26,9 @@ iAColorTheme::iAColorTheme(QString const & name):
 	m_name(name)
 {}
 
+iAColorTheme::~iAColorTheme()
+{}
+
 QString const & iAColorTheme::GetName() const
 {
 	return m_name;

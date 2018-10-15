@@ -75,15 +75,15 @@ ValType iAFunction<ArgType, ValType>::operator[](ArgType idx) const
 	return m_data[idx];
 }
 
-/*
-template <typename ArgType, typename ValType>
-ValType & iAFunction<ArgType, ValType>::operator[](ArgType idx)
-{
-	assert (m_data);
-	assert (idx >= 0 && idx < m_size);
-	return m_data[idx];
-}
-* /
+
+//template <typename ArgType, typename ValType>
+//ValType & iAFunction<ArgType, ValType>::operator[](ArgType idx)
+//{
+//	assert (m_data);
+//	assert (idx >= 0 && idx < m_size);
+//	return m_data[idx];
+//}
+
 
 template <typename ArgType, typename ValType>
 ArgType iAFunction<ArgType, ValType>::size() const

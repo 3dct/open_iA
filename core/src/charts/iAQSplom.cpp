@@ -827,7 +827,6 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 					m_visiblePlots[y][x] = nullptr;
 	}
 
-	//create main plot
 	delete m_maximizedPlot;
 	m_maximizedPlot = new iAScatterPlot(this, this, 11, true);
 	connect(m_maximizedPlot, &iAScatterPlot::selectionModified, this, &iAQSplom::selectionUpdated);
@@ -839,24 +838,19 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 	const int * plotInds = selectedPlot->getIndices();
 	m_maximizedPlot->setData(plotInds[0], plotInds[1], m_splomData); //we want first plot in lower left corner of the SPLOM
 	m_maximizedPlot->setLookupTable(m_lut, m_colorLookupParam);
-
 	m_maximizedPlot->setSelectionColor(settings.selectionColor);
 	m_maximizedPlot->setPointRadius(settings.pointRadius);
 	m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(settings.selectionMode);
 	m_maximizedPlot->settings.selectionEnabled = settings.selectionEnabled;
 	m_maximizedPlot->settings.showPCC = settings.showPCC;
 	updateMaxPlotRect();
-	//transform
-	QPointF ofst = selectedPlot->getOffset();
-
-	//TODO height of max plot is 0 maximizeSelectedPlot;
-	if (!selectedPlot->getRect().height() == 0)
+	if (selectedPlot->getRect().height() > 0)
 	{
+		QPointF ofst = selectedPlot->getOffset();
 		double scl[2] = { ((double)m_maximizedPlot->getRect().width()) / selectedPlot->getRect().width(),
 			((double)m_maximizedPlot->getRect().height()) / selectedPlot->getRect().height() };
 		m_maximizedPlot->setTransform(selectedPlot->getScale(), QPointF(ofst.x() * scl[0], ofst.y() * scl[1]));
 	}
-	//final update
 	update();
 }
 
@@ -877,7 +871,6 @@ int iAQSplom::invert( int val ) const
 	return ( getVisibleParametersCount() - val - 1 );
 }
 
-//draws all scatter plots
 void iAQSplom::paintEvent( QPaintEvent * event )
 {
 	QPainter painter( this );
