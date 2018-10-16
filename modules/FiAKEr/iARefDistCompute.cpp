@@ -45,7 +45,7 @@ namespace
 		for (int d = 0; d<iARefDistCompute::DistanceMetricCount; ++d)
 		{
 			std::vector<iAFiberDistance> distances;
-			if (d < OverlapMeasureStart)
+			if (d < iARefDistCompute::OverlapMeasureStart)
 			{
 				distances.resize(refFiberCount);
 				for (size_t refFiberID = 0; refFiberID < refFiberCount; ++refFiberID)

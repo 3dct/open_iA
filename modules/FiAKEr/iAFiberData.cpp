@@ -288,10 +288,10 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	{
 		auto aimaj = (fiber1raw.pts[PtStart] - fiber1raw.pts[PtEnd]);
 		auto bimbj = (fiber2.pts[PtStart] - fiber2.pts[PtEnd]);
-		double dist1 = (aimaj*aimaj).sum() + (bimbj*bimbj).sum() + (aimaj*bimbj).sum();
+		double dist1 = std::sqrt((aimaj*aimaj).sum() + (bimbj*bimbj).sum() + (aimaj*bimbj).sum());
 		auto aimbj = (fiber1raw.pts[PtStart] - fiber2.pts[PtEnd]);
 		auto bimaj = (fiber2.pts[PtStart] - fiber1raw.pts[PtEnd]);
-		double dist2 = (aimbj*aimbj).sum() + (bimaj*bimaj).sum() + (aimbj*bimaj).sum();
+		double dist2 = std::sqrt((aimbj*aimbj).sum() + (bimaj*bimaj).sum() + (aimbj*bimaj).sum());
 		distance = std::min(dist1, dist2);
 		break;
 	}
