@@ -1272,6 +1272,9 @@ void iAFiAKErController::changeReferenceDisplay()
 		m_nearestReferenceVis->hide();
 		m_nearestReferenceVis.clear();
 	}
+
+	if (m_refLineActor)
+		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
 	if (!isAnythingSelected() || !showRef)
 	{
 		m_mainRenderer->GetRenderWindow()->Render();
@@ -1423,8 +1426,6 @@ void iAFiAKErController::changeReferenceDisplay()
 	mapper->ScalarVisibilityOn();
 	mapper->SetInputData(linePolyData);
 
-	if (m_refLineActor)
-		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
 	m_refLineActor = vtkSmartPointer<vtkActor>::New();
 	m_refLineActor->SetMapper(mapper);
 	m_refLineActor->GetProperty()->SetLineWidth(2);
