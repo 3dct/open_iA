@@ -87,7 +87,7 @@ public:
   itkTypeMacro( AdaptiveOtsuThresholdImageFilter, ImageToImageFilter );
 
   /** Display */
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   /** Image typedef support. */
   /** Convenient typedefs for simplifying declarations. */
@@ -188,7 +188,7 @@ protected:
   ~AdaptiveOtsuThresholdImageFilter() {}
 
   void ComputeRandomPointSet();
-  void GenerateData();
+  void GenerateData() override;
 
   InputSizeType m_Radius;
   unsigned int m_NumberOfHistogramBins;

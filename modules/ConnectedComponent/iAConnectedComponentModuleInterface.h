@@ -25,5 +25,5 @@
 class iAConnectedComponentModuleInterface : public iAModuleInterface
 {
 public:
-	void Initialize();
+	void Initialize() override;
 };

@@ -152,7 +152,7 @@ class iAFoamCharacterizationTable : public QTableWidget
 		void clear();
 		void execute();
 		void open(const QString& _sFilename);
-		void reset();
+		void reset() override;
 		void save(const QString& _sFilename);
 
 	private:
@@ -167,10 +167,10 @@ class iAFoamCharacterizationTable : public QTableWidget
 		vtkImageData* m_pImageData = nullptr;
 
 	protected:
-		virtual void dropEvent(QDropEvent* e) override;
-		virtual void keyPressEvent(QKeyEvent* e) override;
-		virtual void mouseDoubleClickEvent(QMouseEvent* e) override;
-		virtual void mousePressEvent(QMouseEvent* e) override;
-		virtual void mouseReleaseEvent(QMouseEvent* e) override;
-		virtual void resizeEvent(QResizeEvent* e) override;
+		void dropEvent(QDropEvent* e) override;
+		void keyPressEvent(QKeyEvent* e) override;
+		void mouseDoubleClickEvent(QMouseEvent* e) override;
+		void mousePressEvent(QMouseEvent* e) override;
+		void mouseReleaseEvent(QMouseEvent* e) override;
+		void resizeEvent(QResizeEvent* e) override;
 };

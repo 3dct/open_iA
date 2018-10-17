@@ -36,7 +36,7 @@ class iA4DCTModuleInterface : public iAModuleInterface
 public:
 						iA4DCTModuleInterface( );
 						~iA4DCTModuleInterface( );
-	void				Initialize( );
+	void				Initialize( ) override;
 
 private slots:
 	void				openProj( );

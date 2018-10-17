@@ -54,13 +54,13 @@ public:
 	void SetSelectionColor(QColor const & c);
 	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
 protected:
-	virtual void paintEvent(QPaintEvent * event);
-	virtual void resizeEvent(QResizeEvent* event);
-	virtual void wheelEvent(QWheelEvent * event);
-	virtual void mousePressEvent(QMouseEvent * event);
-	virtual void mouseReleaseEvent(QMouseEvent * event);
-	virtual void mouseMoveEvent(QMouseEvent * event);
-	virtual void keyPressEvent(QKeyEvent * event);
+	void paintEvent(QPaintEvent * event) override;
+	void resizeEvent(QResizeEvent* event) override;
+	void wheelEvent(QWheelEvent * event) override;
+	void mousePressEvent(QMouseEvent * event) override;
+	void mouseReleaseEvent(QMouseEvent * event) override;
+	void mouseMoveEvent(QMouseEvent * event) override;
+	void keyPressEvent(QKeyEvent * event) override;
 public:
 	iAScatterPlot* m_scatterplot;
 private:

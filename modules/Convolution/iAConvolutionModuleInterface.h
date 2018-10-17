@@ -25,5 +25,5 @@
 class iAConvolutionModuleInterface : public iAModuleInterface
 {
 public:
-	void Initialize();
+	void Initialize() override;
 };

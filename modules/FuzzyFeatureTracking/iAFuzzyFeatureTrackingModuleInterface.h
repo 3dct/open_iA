@@ -28,7 +28,7 @@ class iAFuzzyFeatureTrackingModuleInterface : public iAModuleInterface
 
 public:
 	iAFuzzyFeatureTrackingModuleInterface();
-	void Initialize();
+	void Initialize() override;
 
 private slots:
 	bool start_FuzzyFeatureTracking();

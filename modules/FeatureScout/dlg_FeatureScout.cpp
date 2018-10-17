@@ -1525,6 +1525,11 @@ void dlg_FeatureScout::ClassAddButton()
 		QMessageBox::warning(this, "FeatureScout", "No object was selected!");
 		return;
 	}
+	if (CountObject == activeClassItem->rowCount())
+	{
+		QMessageBox::warning(this, "FeatureScout", "All items in current class are selected. There is no need to create a new class out of them. Please select only a subset of items!");
+		return;
+	}
 	if (m_renderMode != rmSingleClass)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Cannot add a class while in a special rendering mode "
@@ -1605,12 +1610,6 @@ void dlg_FeatureScout::ClassAddButton()
 
 	// update statistics for activeClassItem
 	this->updateClassStatistics( this->activeClassItem );
-	if ( this->activeClassItem->rowCount() == 0 && this->activeClassItem->index().row() != 0 )
-	{
-		int cID = this->activeClassItem->index().row();
-		rootItem->removeRow( cID );
-		m_colorList.removeAt( cID );
-	}
 
 	this->setActiveClassItem( firstLevelItem.first(), 1 );
 	this->calculateElementTable();
@@ -1756,11 +1755,19 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	}
 
 	dlg_commoninput dlg( this, "DistributionViewCSVSaveDialog", inList, inPara, NULL );
-	if (dlg.exec() != QDialog::Accepted || (dlg.getCheckValue(0) != 2 && dlg.getCheckValue(1) != 2))
+	if (dlg.exec() != QDialog::Accepted)
 		return;
 
+	bool saveFile = dlg.getCheckValue(0) == 2;
+	bool showHistogram = dlg.getCheckValue(1) == 2;
+	if (!saveFile && !showHistogram)
+	{
+		QMessageBox::warning(this, "FeatureScout", "Please check either 'Save file' or 'Show histogram' (or both).");
+		return;
+	}
+
 	QString filename;
-	if ( dlg.getCheckValue(0) == 2 )
+	if (saveFile)
 	{
 		filename = QFileDialog::getSaveFileName( this, tr( "Save characteristic distributions" ), m_sourcePath, tr( "CSV Files (*.csv *.CSV)" ) );
 		if ( filename.isEmpty() )
@@ -1780,14 +1787,14 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		double range[2] = { 0.0, 0.0 };
 		vtkDataArray *length = vtkDataArray::SafeDownCast(
 			this->tableList[this->activeClassItem->index().row()]->GetColumn( rowList.at( row ) ) );
-		range[0] = dlg.getDblValue(4 * row + 3);
-		range[1] = dlg.getDblValue(4 * row + 4);
+		range[0] = dlg.getDblValue(3 * row + 2);
+		range[1] = dlg.getDblValue(3 * row + 3);
 		//length->GetRange(range);
 
 		if ( range[0] == range[1] )
 			range[1] = range[0] + 1.0;
 
-		int numberOfBins = dlg.getDblValue(4 * row + 5);
+		int numberOfBins = dlg.getDblValue(3 * row + 4);
 		//int numberOfBins = dlg.getDblValue(row+2);
 		//double inc = (range[1] - range[0]) / (numberOfBins) * 1.001; //test
 		double inc = ( range[1] - range[0] ) / ( numberOfBins );
@@ -1855,7 +1862,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		disTable->AddColumn( populations.GetPointer() );
 
 		//Writes csv file
-		if ( dlg.getCheckValue(0) == 2 )
+		if ( saveFile )
 		{
 			ofstream file( filename.toStdString().c_str(), std::ios::app );
 			if ( file.is_open() )
@@ -1893,7 +1900,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		}
 
 		//Creates chart for each selected characteristic
-		if ( dlg.getCheckValue(1) == 2 )
+		if ( showHistogram )
 		{
 			vtkChartXY* chart = vtkChartXY::SafeDownCast( distributionChartMatrix
 															->GetChart( vtkVector2i( row % ( rowList.count() < 3 ? rowList.count() % 3 : 3 ), row / 3 ) ) );
@@ -1911,7 +1918,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	}
 
 	//Renders the distributionMatrix in a new dockWidget
-	if ( dlg.getCheckValue(1) == 2 )
+	if ( showHistogram )
 	{
 		if ( !iovDV )
 		{

@@ -112,10 +112,10 @@ public:
 protected:
   RemovePeaksOtsuThresholdImageFilter();
   ~RemovePeaksOtsuThresholdImageFilter(){};
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf(std::ostream& os, Indent indent) const override;
 
-  void GenerateInputRequestedRegion();
-  void GenerateData ();
+  void GenerateInputRequestedRegion() override;
+  void GenerateData () override;
 
 private:
   RemovePeaksOtsuThresholdImageFilter(const Self&); //purposely not implemented

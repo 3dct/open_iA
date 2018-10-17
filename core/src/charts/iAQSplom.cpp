@@ -827,7 +827,6 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 					m_visiblePlots[y][x] = nullptr;
 	}
 
-	//create main plot
 	delete m_maximizedPlot;
 	m_maximizedPlot = new iAScatterPlot(this, this, 11, true);
 	connect(m_maximizedPlot, &iAScatterPlot::selectionModified, this, &iAQSplom::selectionUpdated);
@@ -839,24 +838,19 @@ void iAQSplom::maximizeSelectedPlot(iAScatterPlot *selectedPlot)
 	const int * plotInds = selectedPlot->getIndices();
 	m_maximizedPlot->setData(plotInds[0], plotInds[1], m_splomData); //we want first plot in lower left corner of the SPLOM
 	m_maximizedPlot->setLookupTable(m_lut, m_colorLookupParam);
-
 	m_maximizedPlot->setSelectionColor(settings.selectionColor);
 	m_maximizedPlot->setPointRadius(settings.pointRadius);
 	m_maximizedPlot->settings.selectionMode = static_cast<iAScatterPlot::SelectionMode>(settings.selectionMode);
 	m_maximizedPlot->settings.selectionEnabled = settings.selectionEnabled;
 	m_maximizedPlot->settings.showPCC = settings.showPCC;
 	updateMaxPlotRect();
-	//transform
-	QPointF ofst = selectedPlot->getOffset();
-
-	//TODO height of max plot is 0 maximizeSelectedPlot;
-	if (!selectedPlot->getRect().height() == 0)
+	if (selectedPlot->getRect().height() > 0)
 	{
+		QPointF ofst = selectedPlot->getOffset();
 		double scl[2] = { ((double)m_maximizedPlot->getRect().width()) / selectedPlot->getRect().width(),
 			((double)m_maximizedPlot->getRect().height()) / selectedPlot->getRect().height() };
 		m_maximizedPlot->setTransform(selectedPlot->getScale(), QPointF(ofst.x() * scl[0], ofst.y() * scl[1]));
 	}
-	//final update
 	update();
 }
 
@@ -877,7 +871,6 @@ int iAQSplom::invert( int val ) const
 	return ( getVisibleParametersCount() - val - 1 );
 }
 
-//draws all scatter plots
 void iAQSplom::paintEvent( QPaintEvent * event )
 {
 	QPainter painter( this );
@@ -1104,10 +1097,11 @@ void iAQSplom::updateMaxPlotRect()
 	QPoint topLeft(topLeftPlot.left() + (bottomRightPlot.right() - topLeftPlot.left() + settings.plotsSpacing) / 2,
 		topLeftPlot.top() + (bottomRightPlot.bottom() - topLeftPlot.top() + settings.plotsSpacing) / 2);
 	// make sure there is enough space for the labels:
-	topLeft += QPoint(std::max(0, settings.tickOffsets.x() - ((visParamCnt % 2) ? m_scatPlotSize.x() / 2 : m_scatPlotSize.x())),
-		std::max(0, settings.tickOffsets.y() - ((visParamCnt % 2) ? m_scatPlotSize.y() / 2 : m_scatPlotSize.y())));
+	double xofs = std::max(0, settings.tickOffsets.x() - ((visParamCnt % 2) ? m_scatPlotSize.x() / 2 : m_scatPlotSize.x()));
+	double yofs = std::max(0, settings.tickOffsets.y() - ((visParamCnt % 2) ? m_scatPlotSize.y() / 2 : m_scatPlotSize.y()));
+	topLeft += QPoint(xofs,yofs);
 	if (settings.histogramVisible)
-		topLeft += QPoint(m_scatPlotSize.x(), m_scatPlotSize.y());
+		topLeft += QPoint(m_scatPlotSize.x()/2, m_scatPlotSize.y()/2);
 	m_maximizedPlot->setRect( QRect(topLeft, bottomRightPlot.bottomRight()) );
 }
 
@@ -1558,6 +1552,7 @@ void iAQSplom::setColorTheme(QString const & themeName)
 void iAQSplom::rangeFromParameter()
 {
 	double const * range = m_splomData->paramRange(m_colorLookupParam);
+	QSignalBlocker sb(m_settingsDlg->sbMin);
 	m_settingsDlg->sbMin->setValue(range[0]);
 	m_settingsDlg->sbMax->setValue(range[1]);
 }

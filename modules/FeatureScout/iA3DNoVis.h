@@ -30,7 +30,7 @@ public:
 	void multiClassRendering(QList<QColor> const & classColors, QStandardItem* rootItem, double alpha) override;
 	void renderOrientationDistribution(vtkImageData* oi) override;
 	void renderLengthDistribution(vtkColorTransferFunction* cTFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range) override;
-	double const * bounds();
+	double const * bounds() override;
 private:
 	double m_dummyBounds[6];
 };

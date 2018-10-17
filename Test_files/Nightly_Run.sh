@@ -13,15 +13,20 @@ then
 	COMPILER=$5
 	echo "Compiler=$COMPILER!"
 fi
-TEST_FILES_DIR=$TEST_SRC_DIR/Test_files
+buildtool=make
 if [ -n "$6" ];
 then
-	TEST_FILES_DIR=$6
+	buildtool=$6
 fi
-MODULE_DIRS=$TEST_SRC_DIR/modules
+TEST_FILES_DIR=$TEST_SRC_DIR/Test_files
 if [ -n "$7" ];
 then
-	MODULE_DIRS=$7
+	TEST_FILES_DIR=$7
+fi
+MODULE_DIRS=$TEST_SRC_DIR/modules
+if [ -n "$8" ];
+then
+	MODULE_DIRS=$8
 fi
 
 TEST_CONFIG_DIR=$(mktemp --tmpdir=/tmp -d ctestconfigs.XXXXXXXXXX)
@@ -35,7 +40,7 @@ mkdir -p $TEST_BIN_DIR
 cd $TEST_BIN_DIR
 
 # Set up basic build environment
-make clean
+$buildtool clean
 cmake -C $CONFIG_FILE $TEST_SRC_DIR 2>&1
 
 # Create test configurations:
@@ -45,12 +50,12 @@ python $TEST_FILES_DIR/CreateTestConfigurations.py $TEST_SRC_DIR $GIT_BRANCH $TE
 
 # Run with all flags enabled:
 cmake -C $TEST_CONFIG_DIR/all_flags.cmake $TEST_SRC_DIR 2>&1
-make clean
+$buildtool clean
 ctest -D $CTEST_MODE
 
 # Run with no flags enabled:
 cmake -C $TEST_CONFIG_DIR/no_flags.cmake $TEST_SRC_DIR 2>&1
-make clean
+$buildtool clean
 ctest -D Experimental
 
 # iterate over module tests, run build&tests for each:
@@ -61,7 +66,7 @@ do
 	echo `basename $modulefile .cmake`
 	cmake -C ${TEST_CONFIG_DIR}/no_flags.cmake $TEST_SRC_DIR 2>&1
 	cmake -C $modulefile $TEST_SRC_DIR 2>&1
-	make clean
+	$buildtool clean
 	ctest -D Experimental
 done
 

@@ -27,7 +27,7 @@ class iA4DCTRegionMarkerModule : public iAVisModule
 {
 public:
 			iA4DCTRegionMarkerModule( );
-	void	show( );
-	void	hide( );
+	void	show( ) override;
+	void	hide( ) override;
 	void	addRegion( double* pos );
 };

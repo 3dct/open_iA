@@ -168,7 +168,8 @@ void dlg_CSVInput::okBtnClicked()
 	}
 	if (m_confParams.visType == iACsvConfig::UseVolume && !m_volumeDataAvailable)
 	{
-		QMessageBox::information(this, "FeatureScout", "You have selected to use volume data in FeatureScout, "
+		QMessageBox::information(this, "FeatureScout", "You have selected to use the 'Labelled Volume' Visualization. "
+			"This requires a volume dataset to be loaded which contains the labelled objects, "
 			"yet there is either no open window or the active window does not contain volume data!");
 		return;
 	}

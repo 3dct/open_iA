@@ -296,6 +296,7 @@ void MdiChild::connectSignalsToSlots()
 	connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(ModalityTFChanged()));
 
 	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
+	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateViews()));
 	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(ShowModality(int)));
 }
 
@@ -1700,9 +1701,10 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 bool MdiChild::editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs)
 {
 	setRenderSettings(rs, vs);
-	ApplyRenderSettings(Raycaster);
 	ApplyVolumeSettings(false);
+	ApplyRenderSettings(Raycaster);
 	renderer->vtkWidgetRC->show();
+	renderer->vtkWidgetRC->GetRenderWindow()->Render();
 	emit renderSettingsChanged();
 	return true;
 }

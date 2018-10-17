@@ -116,6 +116,31 @@ namespace
 				break;
 			case Categorical:
 				std::cout << " possible values=(" << p->DefaultValue().toStringList().join(",").toStdString() << ")";
+				break;
+			case FileNameOpen:
+				std::cout << " specify an existing file.";
+				break;
+			case FileNamesOpen:
+				std::cout << " specify a list of existing filenames.";
+				break;
+			case FileNameSave:
+				std::cout << " specify an output filename.";
+				break;
+			case Folder:
+				std::cout << " specify a folder.";
+				break;
+			case String: // intentional fall-through!
+			case Text:
+				std::cout << " text, see filter description for details.";
+				break;
+			case FilterName:
+				std::cout << " name of another filter.";
+				break;
+			case FilterParameters:
+				std::cout << " parameters of a filter.";
+				break;
+			default: // no more help text available
+				break;
 			}
 			std::cout << std::endl;
 		}

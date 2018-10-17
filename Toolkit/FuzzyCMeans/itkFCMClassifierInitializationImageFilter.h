@@ -149,7 +149,7 @@ public:
    * Superclass::SetNumberOfClasses(numOfClasses) and creates some variables
    * used for centroids calculations. This method also sets the size of the
    * vector of old centroids.*/
-  void SetNumberOfClasses(const unsigned int &numOfClasses);
+  void SetNumberOfClasses(const unsigned int &numOfClasses) override;
 
 
 protected:
@@ -162,7 +162,7 @@ protected:
 
   /** Write the name-value pairs of the class data members to the supplied
    * output stream. */
-  void PrintSelf(std::ostream &os, Indent indent) const;
+  void PrintSelf(std::ostream &os, Indent indent) const override;
 
 
   /** FCMClassifierInitializationImageFilter is implemented as a multithreaded
@@ -171,7 +171,7 @@ protected:
    * provides a BeforeThreadedGenerateData() method. This method is executed
    * once per iteration of the FCM algorithm and will store the old values of
    * the centroids and initialize some variables used internally. */
-  void BeforeThreadedGenerateData();
+  void BeforeThreadedGenerateData() override;
 
   /** FCMClassifierInitializationImageFilter is implemented as a multithreaded
    * filter. Therefore, this implementation provides a ThreadedGenerateData()
@@ -189,7 +189,7 @@ protected:
   typedef int ThreadIdType;
 #endif
   void ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
-                             ThreadIdType threadId );
+                             ThreadIdType threadId ) override;
 
   /** FCMClassifierInitializationImageFilter is implemented as a multithreaded
    * filter and needs to perform processing after all processing threads have
@@ -197,7 +197,7 @@ protected:
    * AfterThreadedGenerateData() method. This method is executed once per
    * iteration of the FCM algorithm and will update the centroids and calculate
    * the error. */
-  void AfterThreadedGenerateData();
+  void AfterThreadedGenerateData() override;
 
 
   /** Pointer to the distance metric to be used. */

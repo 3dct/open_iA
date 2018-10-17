@@ -149,9 +149,9 @@ void dlg_bezier::draw(QPainter &painter, QColor color, int lineWidth)
 			int radius, size;
 
 			int mod = selectedPoint % 3;
-			if (mod == 0 && (l == selectedPoint || l == selectedPoint -1 || l == selectedPoint +1) ||
-				mod == 1 && (l == selectedPoint || l == selectedPoint -1 || l == selectedPoint -2) ||
-				mod == 2 && (l == selectedPoint || l == selectedPoint +1 || l == selectedPoint +2))
+			if ((mod == 0 && (l == selectedPoint || l == selectedPoint -1 || l == selectedPoint +1)) ||
+				(mod == 1 && (l == selectedPoint || l == selectedPoint -1 || l == selectedPoint -2)) ||
+				(mod == 2 && (l == selectedPoint || l == selectedPoint +1 || l == selectedPoint +2)))
 			{
 				currentColor = redColor;
 				radius = iADiagramFctWidget::POINT_RADIUS;

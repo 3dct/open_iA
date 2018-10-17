@@ -25,5 +25,5 @@
 class iARandomWalkerModuleInterface : public iAModuleInterface
 {
 public:
-	void Initialize();
+	void Initialize() override;
 };

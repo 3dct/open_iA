@@ -30,7 +30,7 @@ class iARulerWidget : public vtkBorderWidget
 public:
   static iARulerWidget *New();
   vtkTypeMacro(iARulerWidget, vtkBorderWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   // Description:
   // Specify an instance of vtkWidgetRepresentation used to represent this
@@ -57,7 +57,7 @@ public:
 
   // Description:
   // Create the default widget representation if one is not set.
-  virtual void CreateDefaultRepresentation();
+  void CreateDefaultRepresentation() override;
 
 protected:
   iARulerWidget();
@@ -69,7 +69,7 @@ protected:
   static void MoveAction(vtkAbstractWidget*);
 
   // set the cursor to the correct shape based on State argument
-  virtual void SetCursor(int State);
+  void SetCursor(int State) override;
 
 private:
   iARulerWidget(const iARulerWidget&);  //Not implemented

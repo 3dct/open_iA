@@ -82,12 +82,12 @@ public:
 	void addGaussianFunction(double mean, double sigma, double multiplier);
 
 protected:
-	void mousePressEvent(QMouseEvent *event);
-	void mouseReleaseEvent(QMouseEvent *event);
-	void mouseMoveEvent(QMouseEvent *event);
-	void mouseDoubleClickEvent(QMouseEvent *event);
-	void enterEvent(QEvent *event);
-	void keyPressEvent(QKeyEvent *event);
+	void mousePressEvent(QMouseEvent *event) override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
+	void mouseMoveEvent(QMouseEvent *event) override;
+	void mouseDoubleClickEvent(QMouseEvent *event) override;
+	void enterEvent(QEvent *event) override;
+	void keyPressEvent(QKeyEvent *event) override;
 	void addContextMenuEntries(QMenu* contextMenu) override;
 	void changeMode(int newMode, QMouseEvent *event) override;
 

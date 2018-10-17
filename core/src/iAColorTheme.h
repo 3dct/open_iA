@@ -36,6 +36,7 @@ class open_iA_Core_API iAColorTheme
 {
 public:
 	iAColorTheme(QString const & name);
+	virtual ~iAColorTheme();
 	//! returns the number of colors in this theme
 	virtual size_t size() const =0;
 	//! returns the color with the given index in this theme

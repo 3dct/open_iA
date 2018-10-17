@@ -761,9 +761,10 @@ int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_o
 	// initialize m_positions depending on slice view
 	switch(m_slicerMode)
 	{
-	case 0: { xPos_out = m_xInd * spacing[0];	yPos_out = ptMapped[0];			zPos_out = ptMapped[1];			} break; //yz
-	case 1: { xPos_out = ptMapped[0];		yPos_out = ptMapped[1];			zPos_out = m_zInd * spacing[2];	} break; //xy
-	case 2: { xPos_out = ptMapped[0];		yPos_out = m_yInd * spacing[1];	zPos_out = ptMapped[1];			} break; //xz
+	default:
+	case iASlicerMode::YZ: { xPos_out = m_xInd * spacing[0]; yPos_out = ptMapped[0];         zPos_out = ptMapped[1];         } break;
+	case iASlicerMode::XY: { xPos_out = ptMapped[0];         yPos_out = ptMapped[1];         zPos_out = m_zInd * spacing[2]; } break;
+	case iASlicerMode::XZ: { xPos_out = ptMapped[0];         yPos_out = m_yInd * spacing[1]; zPos_out = ptMapped[1];         } break;
 	}
 
 	return 1;

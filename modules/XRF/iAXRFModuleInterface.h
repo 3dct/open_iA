@@ -26,7 +26,7 @@ class iAXRFModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
-	void Initialize();
+	void Initialize() override;
 Q_SIGNALS:
 	void xrfLoaded();
 private slots:

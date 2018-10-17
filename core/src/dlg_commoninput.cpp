@@ -366,6 +366,11 @@ void dlg_commoninput::SourceChildClosed()
 
 int dlg_commoninput::getIntValue(int index) const
 {
+	if (index < 0 || index >= widgetList.size())
+	{
+		DEBUG_LOG(QString("dlg_commoninput::getIntValue: index=%1 out of bounds(0..%2").arg(index).arg(widgetList.size() - 1));
+		return 0;
+	}
 	QSpinBox *t = qobject_cast<QSpinBox*>(widgetList[index]);
 	if (t)
 		return t->value();
@@ -379,6 +384,11 @@ int dlg_commoninput::getIntValue(int index) const
 
 double dlg_commoninput::getDblValue(int index) const
 {
+	if (index < 0 || index >= widgetList.size())
+	{
+		DEBUG_LOG(QString("dlg_commoninput::getDblValue: index=%1 out of bounds(0..%2").arg(index).arg(widgetList.size() - 1));
+		return 0.0;
+	}
 	QDoubleSpinBox *t = qobject_cast<QDoubleSpinBox*>(widgetList[index]);
 	if (t)
 		return t->value();
@@ -392,16 +402,26 @@ double dlg_commoninput::getDblValue(int index) const
 
 int dlg_commoninput::getCheckValue(int index) const
 {
+	if (index < 0 || index >= widgetList.size())
+	{
+		DEBUG_LOG(QString("dlg_commoninput::getCheckValue: index=%1 out of bounds(0..%2").arg(index).arg(widgetList.size() - 1));
+		return false;
+	}
 	QCheckBox *t = qobject_cast<QCheckBox*>(widgetList[index]);
 	if (t)
 		return t->checkState();
 	DEBUG_LOG(QString("dlg_commoninput::getCheckValue(%1) Not a CheckBox!").arg(index));
-	return 0;
+	return false;
 }
 
 
 QString dlg_commoninput::getComboBoxValue(int index) const
 {
+	if (index < 0 || index >= widgetList.size())
+	{
+		DEBUG_LOG(QString("dlg_commoninput::getComboBoxValue: index=%1 out of bounds(0..%2").arg(index).arg(widgetList.size() - 1));
+		return QString();
+	}
 	QComboBox *t = qobject_cast<QComboBox*>(widgetList[index]);
 	if (t)
 		return t->currentText();
@@ -422,6 +442,11 @@ int dlg_commoninput::getComboBoxIndex(int index) const
 
 QString dlg_commoninput::getText(int index) const
 {
+	if (index < 0 || index >= widgetList.size())
+	{
+		DEBUG_LOG(QString("dlg_commoninput::getText: index=%1 out of bounds(0..%2").arg(index).arg(widgetList.size() - 1));
+		return QString();
+	}
 	QLineEdit *t = qobject_cast<QLineEdit*>(widgetList[index]);
 	if (t)
 		return t->text();

@@ -25,5 +25,5 @@
 class iAIntensityModuleInterface : public iAModuleInterface
 {
 public:
-	void Initialize();
+	void Initialize() override;
 };

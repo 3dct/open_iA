@@ -40,11 +40,11 @@ public:
 };
 
 /**
-/* change a single pixel in the image
-/* don't forget to call Modified() on the image,
-/* and if the scalar range changed, to update the scalar range!
-/* (unfortunately that seems to require a dirty hack at the moment,
-/* see iAvtkImageData above)
+ * change a single pixel in the image
+ * don't forget to call Modified() on the image,
+ * and if the scalar range changed, to update the scalar range!
+ * (unfortunately that seems to require a dirty hack at the moment,
+ * see iAvtkImageData above)
  */
 template <typename T>
 void drawPixel(vtkImageData* img, int x, int y, int z, T c);

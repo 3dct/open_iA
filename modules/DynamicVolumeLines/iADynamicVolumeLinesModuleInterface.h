@@ -30,7 +30,7 @@ class iADynamicVolumeLinesModuleInterface : public iAModuleInterface
 	Q_OBJECT
 
 public:
-	void Initialize();
+	void Initialize() override;
 
 private slots:
 	void DynamicVolumeLines();

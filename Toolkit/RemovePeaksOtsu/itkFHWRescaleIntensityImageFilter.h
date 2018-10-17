@@ -172,10 +172,10 @@ public:
   //itkGetConstReferenceMacro(InputMaximum, InputPixelType);
 
   /** Process to execute before entering the multithreaded section */
-  void BeforeThreadedGenerateData(void);
+  void BeforeThreadedGenerateData(void) override;
 
   /** Print internal ivars */
-  void PrintSelf(std::ostream & os, Indent indent) const;
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
   itkSetMacro(InputMinimum, float);
   itkSetMacro(InputMaximum, float);

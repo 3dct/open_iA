@@ -25,5 +25,5 @@
 class iATransformationsModuleInterface : public iAModuleInterface
 {
 public:
-	void Initialize();
+	void Initialize() override;
 };

@@ -29,9 +29,9 @@ class iARedirectVtkOutput : public vtkOutputWindow
 {
 public:
 	vtkTypeMacro(iARedirectVtkOutput, vtkOutputWindow);
-	void PrintSelf(ostream& os, vtkIndent indent);
+	void PrintSelf(ostream& os, vtkIndent indent) override;
 	static iARedirectVtkOutput * New();
-	virtual void DisplayText(const char*);
+	void DisplayText(const char*) override;
 private:
 	iARedirectVtkOutput();
 	iARedirectVtkOutput(const iARedirectVtkOutput &) = delete;

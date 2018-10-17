@@ -22,12 +22,14 @@
 
 #include <QObject>
 
+#include "open_iA_Core_export.h"
+
 class QColor;
 class QMouseEvent;
 class QPainter;
 class iADiagramFctWidget;
 
-class dlg_function: public QObject
+class open_iA_Core_API dlg_function: public QObject
 {
 	Q_OBJECT
 public:
@@ -56,11 +58,8 @@ public:
 	virtual bool isDeletable(int index) = 0;
 
 	virtual void reset() = 0;
-
-	virtual void mousePressEvent(QMouseEvent *event) = 0;
-	virtual void mouseMoveEvent(QMouseEvent *event) = 0;
-	virtual void mouseReleaseEvent(QMouseEvent *event) = 0;
-	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) = 0;
+	virtual void mouseReleaseEvent(QMouseEvent *event) {}
+	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) {}
 
 	iADiagramFctWidget *chart;
 };

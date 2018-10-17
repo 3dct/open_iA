@@ -66,6 +66,7 @@
 
 template<class T> void DataTypeConversion_template(QString const & m_filename, double* b, iAPlotData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
 {
+	// TODO: use itk methods instead?
 	typedef itk::Image< T, 3 >   InputImageType;
 
 	FILE * pFile;
@@ -96,7 +97,8 @@ template<class T> void DataTypeConversion_template(QString const & m_filename, d
 
 	//calculation of minimum and maximum
 	fseek ( pFile , 0 , SEEK_SET );
-	while (result = fread (reinterpret_cast<char*>(&buffer),datatypesize,1,pFile))
+	const int elemCount = 1;
+	while ( (result = fread (reinterpret_cast<char*>(&buffer),datatypesize, elemCount, pFile)) == elemCount )
 	{
 		if (buffer < min)
 		{	min = buffer;	}
@@ -115,7 +117,8 @@ template<class T> void DataTypeConversion_template(QString const & m_filename, d
 	std::fill(histptr, histptr + static_cast<size_t>(b[7]), 0);
 	while (loop)
 	{
-		result = fread (reinterpret_cast<char*>(&buffer),datatypesize,1,pFile);
+		result = fread (reinterpret_cast<char*>(&buffer),datatypesize, elemCount, pFile);
+		// TODO: check result!
 		size_t binIdx = ((buffer-min)/discretization);
 		iter.Set(buffer);
 		++iter;
@@ -377,7 +380,8 @@ template<class T> void DataTypeConversionROI_template(QString const & m_filename
 
 	//calculation of minimum and maximum
 	fseek ( pFile , 0 , SEEK_SET );
-	while (result = (fread (reinterpret_cast<char*>(&buffer),sizeof(buffer),1,pFile)))
+	const int elemCount = 1;
+	while ( (result = (fread (reinterpret_cast<char*>(&buffer),sizeof(buffer), elemCount, pFile))) == elemCount )
 	{
 		if (buffer < min)
 		{	min = buffer;	}
@@ -390,8 +394,8 @@ template<class T> void DataTypeConversionROI_template(QString const & m_filename
 	fseek ( pFile , 0 , SEEK_SET );
 	while (loop)
 	{
-		result = fread (reinterpret_cast<char*>(&buffer),datatypesize,1,pFile);
-		if ( result )
+		result = fread (reinterpret_cast<char*>(&buffer),datatypesize, elemCount, pFile);
+		if ( result == elemCount )
 		{
 			iter.Set(buffer);
 			++iter;
