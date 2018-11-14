@@ -1,5 +1,5 @@
 ---
-title: 'open_iA: A tool for the visual analysis and processing of volumetric datasets, with a focus on industrial computed tomography.'
+title: 'open_iA: A tool for processing and visual analysis of industrial computed tomography datasets.'
 tags:
   - C++
   - computed tomography
@@ -12,16 +12,16 @@ authors:
   - name: Bernhard Froehler
     orcid: 0000-0003-1271-0838
     affiliation: "1, 2"
-  - name: Christoph Heinzl
-    orcid: 0000-0002-3173-8871
-    affiliation: "1"
-  - name: Marcel Schiwarth
-    orcid: 0000-xxxx-mmmm-nnnn
-    affiliation: "1"
   - name: Johannes Weissenboeck
     orcid: 0000-0001-8062-4590
     affiliation: "1, 3"
-affiliation:
+  - name: Johann Kastner
+    orcid: 0000-0002-3163-0916
+    affiliation: "1"
+  - name: Christoph Heinzl
+    orcid: 0000-0002-3173-8871
+    affiliation: "1"
+affiliations:
   - name: University of Applied Sciences Upper Austria, Research Group Computed Tomography
     index: 1
   - name: University of Vienna, Research Group Visualization and Data Analysis
@@ -44,7 +44,7 @@ open_iA is highly extensible through what we call modules, which makes it an ide
 - Fuzzy Feature Tracking [@Reh:2015] provides graphs for tracking the creation, continuation and merge of defects between different stages of fatigue testing.
 - GEMSe [@Froehler:2016] supports users in finding optimal parameters for their volume segmentation tasks without requiring a ground truth.
 - The PorosityAnalyzer [@Weissenboeck:2016] similarly supports users in finding the ideal segmentation algorithm and parameterization when they are determining porosity values for example in fiber-reinforced polymers.
-- InSpectr [@Amirkhanov:2014} makes it possible to analyze spectral data, for example from X-Ray fluorescence spectral tomography, alongside with data from computed tomography for the same specimen.
+- InSpectr [@Amirkhanov:2014] makes it possible to analyze spectral data, for example from X-Ray fluorescence spectral tomography, alongside with data from computed tomography for the same specimen.
 - Dynamic Volume Lines [@Weissenboeck:2019] facilitate the comparison of multiple slightly varying volumetric datasets, by mapping them to 1D and applying a nonlinear scaling to highlight regions with large differences.
 
 # Acknowledgements
