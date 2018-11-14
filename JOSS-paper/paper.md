@@ -9,10 +9,10 @@ tags:
   - volume visualization
   - visual analytics
 authors:
-  - name: Bernhard Froehler
+  - name: Bernhard Fröhler
     orcid: 0000-0003-1271-0838
     affiliation: "1, 2"
-  - name: Johannes Weissenboeck
+  - name: Johannes Weissenböck
     orcid: 0000-0001-8062-4590
     affiliation: "1, 3"
   - name: Johann Kastner
