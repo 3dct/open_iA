@@ -156,9 +156,6 @@ const QString PercentAttribute( "PERCENT" );
 const QString LabelAttribute( "Label" );
 const QString LabelAttributePore( "LabelId" );
 
-#define VTK_CREATE(type, name) \
-	vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
-
 void ColormapRGB( const double normal[3], double color_out[3] );
 void ColormapCMY( const double normal[3], double color_out[3] );
 void ColormapCMYNormalized( const double normal[3], double color_out[3] );
@@ -244,7 +241,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	pcWidget->SetRenderWindow(pcWidgetRenWin);
 	
 	polarPlot = new QVTKOpenGLWidget();
-	auto polarPlotRenWin = vtkGenericOpenGLRenderWindow::New();
+	auto polarPlotRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	polarPlot->SetRenderWindow(polarPlotRenWin);
 #else
 	pcWidget = new QVTKWidget();
@@ -291,7 +288,7 @@ dlg_FeatureScout::~dlg_FeatureScout()
 std::vector<size_t> dlg_FeatureScout::getPCSelection()
 {
 	std::vector<size_t> selectedIndices;
-	vtkSmartPointer<vtkIdTypeArray> pcSelection = pcChart->GetPlot(0)->GetSelection();
+	auto pcSelection = pcChart->GetPlot(0)->GetSelection();
 #if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
 	int countSelection = pcSelection->GetNumberOfValues();
 #else
@@ -445,7 +442,7 @@ void dlg_FeatureScout::setupViews()
 	this->classTreeView->setModel( classTreeModel );
 
 	// preparing chart and view for Parallel Coordinates
-	this->pcView = vtkContextView::New();
+	this->pcView = vtkSmartPointer<vtkContextView>::New();
 	pcView->SetRenderWindow( pcWidget->GetRenderWindow() );
 	pcView->SetInteractor( pcWidget->GetInteractor() );
 
@@ -479,10 +476,10 @@ void dlg_FeatureScout::calculateElementTable()
 	elementTable->Initialize();
 
 	double range[2] = { 0, 1 };
-	VTK_CREATE( vtkStringArray, nameArr );  // name of columns
-	VTK_CREATE( vtkFloatArray, v1Arr );	// minimum
-	VTK_CREATE( vtkFloatArray, v2Arr );	// maximal
-	VTK_CREATE( vtkFloatArray, v3Arr );	// average
+	auto nameArr = vtkSmartPointer<vtkStringArray>::New();  // name of columns
+	auto v1Arr   = vtkSmartPointer<vtkFloatArray >::New();	// minimum
+	auto v2Arr   = vtkSmartPointer<vtkFloatArray >::New();	// maximal
+	auto v3Arr   = vtkSmartPointer<vtkFloatArray >::New();	// average
 	nameArr->SetNumberOfValues( elementsCount );
 	v1Arr->SetNumberOfValues( elementsCount );
 	v2Arr->SetNumberOfValues( elementsCount );
@@ -639,17 +636,17 @@ void dlg_FeatureScout::PrintCSVTable(const QString &outputPath)
 void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>> &OutTableList,  QString &outputPath) const  {
 	QString FileName ="TableClass";
 	QString fID = "";
-	QString outPutFile = ""; 
+	QString outputFile = "";
 	
 	if (OutTableList.count() > 1)
 	{	
 		for (int i = 0; i < tableList.count(); i++)
 		{
 			fID = QString(i);
-			vtkSmartPointer<vtkTable> OutPutTable = OutTableList[i];
-			outPutFile = FileName + "_" + fID;
-			this->PrintVTKTable(OutPutTable, true, outputPath, &outPutFile);
-			OutPutTable = nullptr; 
+			auto outputTable = OutTableList[i];
+			outputFile = FileName + "_" + fID;
+			this->PrintVTKTable(outputTable, true, outputPath, &outputFile);
+			outputTable = nullptr;
 		}
 	}
 }
@@ -800,7 +797,7 @@ void dlg_FeatureScout::RenderMeanObject()
 	VTKToITKConnector::Pointer vtkToItkConverter = VTKToITKConnector::New();
 	if ( activeChild->getImagePointer()->GetScalarType() != 8 )	// long type
 	{
-		vtkSmartPointer<vtkImageCast> cast = vtkSmartPointer<vtkImageCast>::New();
+		auto cast = vtkSmartPointer<vtkImageCast>::New();
 		cast->SetInputData( activeChild->getImagePointer() );
 		cast->SetOutputScalarTypeToLong();
 		cast->Update();
@@ -954,7 +951,7 @@ void dlg_FeatureScout::RenderMeanObject()
 		ITKTOVTKConverterType::Pointer itkToVTKConverter = ITKTOVTKConverterType::New();
 		itkToVTKConverter->SetInput( caster->GetOutput() );
 		itkToVTKConverter->Update();
-		vtkSmartPointer<vtkImageData> meanObjectImage = vtkSmartPointer<vtkImageData>::New();
+		auto meanObjectImage = vtkSmartPointer<vtkImageData>::New();
 		meanObjectImage->DeepCopy( itkToVTKConverter->GetOutput() );
 		m_MOData.moImageDataList.append( meanObjectImage );
 
@@ -995,7 +992,7 @@ void dlg_FeatureScout::RenderMeanObject()
 		}
 
 		// Create the property and attach the transfer functions
-		vtkSmartPointer<vtkVolumeProperty> vProperty = vtkSmartPointer<vtkVolumeProperty>::New();
+		auto vProperty = vtkSmartPointer<vtkVolumeProperty>::New();
 		m_MOData.moVolumePropertyList.append( vProperty );
 		vProperty->SetColor( m_MOData.moHistogramList[currClass - 1]->getColorFunction() );
 		vProperty->SetScalarOpacity( m_MOData.moHistogramList[currClass - 1]->getOpacityFunction() );
@@ -1003,9 +1000,9 @@ void dlg_FeatureScout::RenderMeanObject()
 		vProperty->ShadeOff();
 
 		// Create volume and mapper and set input for mapper
-		vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
+		auto volume = vtkSmartPointer<vtkVolume>::New();
 		m_MOData.moVolumesList.append( volume );
-		vtkSmartPointer<vtkFixedPointVolumeRayCastMapper> mapper = vtkSmartPointer<vtkFixedPointVolumeRayCastMapper>::New();
+		auto mapper = vtkSmartPointer<vtkFixedPointVolumeRayCastMapper>::New();
 		m_MOData.moVolumeMapperList.append( mapper );
 		mapper->SetAutoAdjustSampleDistances( 1 );
 		mapper->SetSampleDistance( 1.0 );
@@ -1018,11 +1015,11 @@ void dlg_FeatureScout::RenderMeanObject()
 	}
 
 	// Create the outline for volume
-	vtkSmartPointer<vtkOutlineFilter> outline = vtkSmartPointer<vtkOutlineFilter>::New();
+	auto outline = vtkSmartPointer<vtkOutlineFilter>::New();
 	outline->SetInputData( m_MOData.moVolumesList[0]->GetMapper()->GetDataObjectInput() );
-	vtkSmartPointer<vtkPolyDataMapper> outlineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto outlineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	outlineMapper->SetInputConnection( outline->GetOutputPort() );
-	vtkSmartPointer<vtkActor> outlineActor = vtkSmartPointer<vtkActor>::New();
+	auto outlineActor = vtkSmartPointer<vtkActor>::New();
 	outlineActor->SetMapper( outlineMapper );
 	outlineActor->GetProperty()->SetColor( 0, 0, 0 );
 	outlineActor->GetProperty()->SetLineWidth( 1.0 );
@@ -1054,9 +1051,9 @@ void dlg_FeatureScout::RenderMeanObject()
 #endif
 		iovMO->verticalLayout->addWidget( meanObjectWidget );
 		meanObjectWidget->SetRenderWindow( m_meanObjectRenderWindow );
-		vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+		auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 		renderWindowInteractor->SetRenderWindow( m_meanObjectRenderWindow );
-		vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+		auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle( style );
 
 		iovMO->setWindowTitle( QString( "%1 Mean Object View" ).arg(MapObjectTypeToString(filterID)) );
@@ -1095,7 +1092,7 @@ void dlg_FeatureScout::RenderMeanObject()
 	// Set up viewports
 	for ( unsigned i = 0; i < viewportColumns * viewportRows; ++i )
 	{
-		vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+		auto renderer = vtkSmartPointer<vtkRenderer>::New();
 		m_MOData.moRendererList.append( renderer );
 		renderer->GetActiveCamera()->ParallelProjectionOn();
 		renderer->SetBackground( 1.0, 1.0, 1.0 );
@@ -1111,7 +1108,7 @@ void dlg_FeatureScout::RenderMeanObject()
 			renderer->SetActiveCamera( raycaster->GetRenderer()->GetActiveCamera() );
 			renderer->GetActiveCamera()->SetParallelScale( maxDim );	//use maxDim for right scaling to fit the data in the viewports
 
-			vtkSmartPointer<vtkCornerAnnotation> cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
+			auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
 			cornerAnnotation->SetLinearFontScaleFactor( 2 );
 			cornerAnnotation->SetNonlinearFontScaleFactor( 1 );
 			cornerAnnotation->SetMaximumFontSize( 25 );
@@ -1119,7 +1116,7 @@ void dlg_FeatureScout::RenderMeanObject()
 			cornerAnnotation->GetTextProperty()->SetColor( m_colorList.at( i + 1 ).redF(), m_colorList.at( i + 1 ).greenF(), m_colorList.at( i + 1 ).blueF() );
 			cornerAnnotation->GetTextProperty()->BoldOn();
 
-			vtkSmartPointer<vtkCubeAxesActor> cubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
+			auto cubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
 			cubeAxesActor->SetBounds( outlineActor->GetBounds() );
 			cubeAxesActor->SetCamera( renderer->GetActiveCamera() );
 			cubeAxesActor->SetFlyModeToOuterEdges();
@@ -1198,14 +1195,14 @@ void dlg_FeatureScout::saveStl()
 	connect( &marCubProgress, SIGNAL( progress( int ) ), this, SLOT( updateMarProgress( int ) ) );
 	connect( &stlWriProgress, SIGNAL( progress( int ) ), this, SLOT( updateStlProgress( int ) ) );
 
-	vtkSmartPointer<vtkMarchingCubes> moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
+	auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
 	marCubProgress.Observe(moSurface);
 	moSurface->SetInputData( m_MOData.moImageDataList[iovMO->cb_Classes->currentIndex()] );
 	moSurface->ComputeNormalsOn();
 	moSurface->ComputeGradientsOn();
 	moSurface->SetValue( 0, iovMO->dsb_IsoValue->value() );
 
-	vtkSmartPointer<vtkSTLWriter> stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	stlWriProgress.Observe(stlWriter);
 	stlWriter->SetFileName( iovMO->le_StlPath->text().toStdString().c_str() );
 	stlWriter->SetInputConnection( moSurface->GetOutputPort() );
@@ -1333,7 +1330,7 @@ void dlg_FeatureScout::RenderOrientation()
 	iovPP->setWindowTitle( "Orientation Distribution Color Map" );
 
 	// define color coding using hsv -> create color palette
-	VTK_CREATE( vtkImageData, oi );
+	auto oi = vtkSmartPointer<vtkImageData>::New();
 	oi->SetExtent( 0, 90, 0, 360, 0, 0 );
 	oi->AllocateScalars( VTK_DOUBLE, 3 );
 
@@ -1355,12 +1352,12 @@ void dlg_FeatureScout::RenderOrientation()
 	m_3dvis->renderOrientationDistribution( oi );
 
 	// prepare the delaunay triangles
-	VTK_CREATE( vtkDelaunay2D, del );
-	VTK_CREATE( vtkPoints, points );
+	auto del = vtkSmartPointer<vtkDelaunay2D>::New();
+	auto points = vtkSmartPointer<vtkPoints>::New();
 	double xx, yy, angle;
 
 	// color array to save the colors for each point
-	vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colors->SetNumberOfComponents( 3 );
 	colors->SetName( "Colors" );
 
@@ -1384,7 +1381,7 @@ void dlg_FeatureScout::RenderOrientation()
 		}
 	}
 
-	VTK_CREATE( vtkPolyData, inputPoly );
+	auto inputPoly = vtkSmartPointer<vtkPolyData>::New();
 	inputPoly->SetPoints( points );
 	del->SetInputData( inputPoly );
 	del->Update();
@@ -1393,13 +1390,13 @@ void dlg_FeatureScout::RenderOrientation()
 	outputPoly->GetPointData()->SetScalars( colors );
 
 	// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputData( outputPoly );
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper( mapper );
 
-	VTK_CREATE( vtkRenderer, renderer );
+	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground( 1, 1, 1 );
 	vtkRenderWindow* renW = polarPlot->GetRenderWindow();
 	renW->RemoveRenderer(renW->GetRenderers()->GetFirstRenderer());
@@ -1431,7 +1428,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	length = vtkDataArray::SafeDownCast(this->csvTable->GetColumn(m_columnMapping->value(iACsvConfig::Length)));
 	QString title = QString("%1 Frequency Distribution").arg(csvTable->GetColumnName(m_columnMapping->value(iACsvConfig::Length)));
 	iovPP->setWindowTitle(title);
-	numberOfBins = (this->filterID == iAFeatureScoutObjectType::Fibers) ? 8 : 3;
+	numberOfBins = (this->filterID == iAFeatureScoutObjectType::Fibers) ? 8 : 3;  // TODO: setting?
 
 	length->GetRange( range );
 	if ( range[0] == range[1] )
@@ -1440,7 +1437,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	double inc = ( range[1] - range[0] ) / (numberOfBins) * 1.001;
 	double halfInc = inc / 2.0;
 
-	VTK_CREATE( vtkFloatArray, extents );
+	auto extents = vtkSmartPointer<vtkFloatArray>::New();
 	extents->SetName( "Length [um]" );
 	extents->SetNumberOfTuples( numberOfBins );
 
@@ -1450,7 +1447,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	for ( int j = 0; j < numberOfBins; ++j )
 		extents->SetValue( j, min + j*inc );
 
-	VTK_CREATE( vtkIntArray, populations );
+	auto populations = vtkSmartPointer<vtkIntArray>::New();
 	populations->SetName( "Probability" );
 	populations->SetNumberOfTuples( numberOfBins );
 	int *pops = static_cast<int *>( populations->GetVoidPointer( 0 ) );
@@ -1473,12 +1470,12 @@ void dlg_FeatureScout::RenderLengthDistribution()
 		}
 	}
 
-	VTK_CREATE( vtkTable, fldTable );
+	auto fldTable = vtkSmartPointer<vtkTable>::New();
 	fldTable->AddColumn( extents.GetPointer() );
 	fldTable->AddColumn( populations.GetPointer() );
 
 	//Create a transfer function mapping scalar value to color
-	vtkSmartPointer<vtkColorTransferFunction> cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
+	auto cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
 	cTFun->SetColorSpaceToRGB();
 	if ( this->filterID == iAFeatureScoutObjectType::Fibers )
 	{
@@ -1502,10 +1499,10 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	this->drawScalarBar( cTFun, this->raycaster->GetRenderer(), 1 );
 
 	// plot length distribution
-	VTK_CREATE( vtkContextView, view );
-	VTK_CREATE( vtkChartXY, chart );
+	auto view = vtkSmartPointer<vtkContextView>::New();
+	auto chart = vtkSmartPointer<vtkChartXY>::New();
 	chart->SetTitle(title.toUtf8().constData());
-	chart->GetTitleProperties()->SetFontSize( (filterID == iAFeatureScoutObjectType::Fibers) ? 15 : 12 );
+	chart->GetTitleProperties()->SetFontSize( (filterID == iAFeatureScoutObjectType::Fibers) ? 15 : 12 ); // TODO: setting?
 	vtkPlot *plot = chart->AddPlot( vtkChartXY::BAR );
 	plot->SetInputData( fldTable, 0, 1 );
 	plot->GetXAxis()->SetTitle( "Length in microns" );
@@ -1608,18 +1605,15 @@ void dlg_FeatureScout::ClassAddButton()
 	for ( int i = 0; i < CountObject; i++ )
 		this->activeClassItem->removeRow( kIdx.value( i ) );
 
-	// update statistics for activeClassItem
-	this->updateClassStatistics( this->activeClassItem );
-
-	this->setActiveClassItem( firstLevelItem.first(), 1 );
-	this->calculateElementTable();
-	this->initElementTableModel();
-	this->setPCChartData();
-	this->classTreeView->collapseAll();
-	this->classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
-
-	this->updatePolarPlotColorScalar(chartTable);
-	this->SingleRendering();
+	updateClassStatistics( this->activeClassItem );
+	setActiveClassItem( firstLevelItem.first(), 1 );
+	calculateElementTable();
+	initElementTableModel();
+	setPCChartData();
+	classTreeView->collapseAll();
+	classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
+	updatePolarPlotColorScalar(chartTable);
+	SingleRendering();
 }
 
 void dlg_FeatureScout::writeWisetex(QXmlStreamWriter *writer)
@@ -1800,7 +1794,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		double inc = ( range[1] - range[0] ) / ( numberOfBins );
 		double halfInc = inc / 2.0;
 
-		VTK_CREATE( vtkFloatArray, extents );
+		auto extents = vtkSmartPointer<vtkFloatArray>::New();
 		extents->SetName( "Value" );
 		extents->SetNumberOfTuples( numberOfBins );
 
@@ -1811,7 +1805,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		for ( int j = 0; j < numberOfBins; ++j )
 			extents->SetValue( j, min + j * inc );;
 
-		VTK_CREATE( vtkIntArray, populations );
+		auto populations = vtkSmartPointer<vtkIntArray>::New();
 		populations->SetName( "Probability" );
 		populations->SetNumberOfTuples( numberOfBins );
 		int *pops = static_cast<int *>( populations->GetVoidPointer( 0 ) );
@@ -1857,7 +1851,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 			}
 		}
 
-		VTK_CREATE( vtkTable, disTable );
+		auto disTable = vtkSmartPointer<vtkTable>::New();
 		disTable->AddColumn( extents.GetPointer() );
 		disTable->AddColumn( populations.GetPointer() );
 
@@ -1992,7 +1986,7 @@ void dlg_FeatureScout::ExportClassButton()
 	iAConnector* con = new iAConnector();
 	typedef itk::Image<unsigned char, 3> UChar_Image;
 	UChar_Image::SizeType u_size;
-	vtkSmartPointer < vtkImageData > img_data = activeChild->getImagePointer();
+	auto img_data = activeChild->getImagePointer();
 	if (!img_data)
 		return;
 	con->SetImage(img_data);
@@ -2995,7 +2989,7 @@ int dlg_FeatureScout::calcOrientationProbability( vtkTable *t, vtkTable *ot )
 
 	for ( int i = 0; i < gThe; i++ )
 	{
-		vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
+		auto arr = vtkSmartPointer<vtkIntArray>::New();
 		arr->SetNumberOfValues( gPhi );
 		ot->AddColumn( arr );
 		for ( int j = 0; j < gPhi; j++ )
@@ -3032,9 +3026,9 @@ void dlg_FeatureScout::drawAnnotations( vtkRenderer *renderer )
 	vtkIdType numPoints = 12 + 6;
 	double re = 30.0;
 
-	VTK_CREATE( vtkPolyData, poly );
-	VTK_CREATE( vtkPoints, pts );
-	VTK_CREATE( vtkStringArray, nameArray );
+	auto poly = vtkSmartPointer<vtkPolyData>::New();
+	auto pts = vtkSmartPointer<vtkPoints>::New();
+	auto nameArray = vtkSmartPointer<vtkStringArray>::New();
 
 	nameArray->SetName( "name" );
 	pts->SetNumberOfPoints( numPoints );
@@ -3073,7 +3067,7 @@ void dlg_FeatureScout::drawAnnotations( vtkRenderer *renderer )
 	poly->SetPoints( pts );
 	poly->GetPointData()->AddArray( nameArray );
 
-	VTK_CREATE( vtkDynamic2DLabelMapper, mapper );
+	auto mapper = vtkSmartPointer<vtkDynamic2DLabelMapper>::New();
 	mapper->SetInputData( poly );
 	mapper->SetLabelFormat( "%s" );
 	mapper->SetLabelModeToLabelFieldData();
@@ -3081,14 +3075,14 @@ void dlg_FeatureScout::drawAnnotations( vtkRenderer *renderer )
 	mapper->GetLabelTextProperty()->SetColor( 0.0, 0.0, 0.0 );
 	mapper->GetLabelTextProperty()->SetFontSize( 16 );
 
-	VTK_CREATE( vtkActor2D, actor );
+	auto actor = vtkSmartPointer<vtkActor2D>::New();
 	actor->SetMapper( mapper );
 	renderer->AddActor( actor );
 }
 
 void dlg_FeatureScout::drawPolarPlotMesh( vtkRenderer *renderer )
 {
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 
 	double xx, yy;
 	double re = 15.0;
@@ -3201,10 +3195,10 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	double xx, yy, zz, phi;
 
 	// construct delaunay triangulation
-	delaunay = vtkDelaunay2D::New();
+	delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
 
 	// create point sets
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+	auto points = vtkSmartPointer<vtkPoints>::New();
 
 	// calculate object probability and save it to a table
 	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
@@ -3284,13 +3278,13 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	actor->SetMapper( mapper );
 	actor->GetProperty()->LightingOff();
 
-	VTK_CREATE( vtkRenderer, renderer );
+	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground( 1, 1, 1 );
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	VTK_CREATE( vtkGenericOpenGLRenderWindow, renW );
+	auto renW = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 #else
-	VTK_CREATE( vtkRenderWindow, renW );
+	auto renW = vtkSmartPointer<vtkRenderWindow>::New();
 #endif
 	renW->AddRenderer( renderer );
 	renderer->AddActor( actor );
@@ -3389,13 +3383,13 @@ void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 	actor->SetMapper( mapper );
 	actor->GetProperty()->LightingOff();
 
-	VTK_CREATE( vtkRenderer, renderer );
+	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground( 1, 1, 1 );
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	VTK_CREATE( vtkGenericOpenGLRenderWindow, renW );
+	auto renW = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 #else
-	VTK_CREATE( vtkRenderWindow, renW );
+	auto renW = vtkSmartPointer<vtkRenderWindow>::New();
 #endif
 	renW->AddRenderer( renderer );
 	renderer->AddActor( actor );

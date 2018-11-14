@@ -251,7 +251,7 @@ private:
 	//! @{ polar plot view
 	int gPhi, gThe;
 	float PolarPlotPhiResolution, PolarPlotThetaResolution;
-	vtkDelaunay2D *delaunay;
+	vtkSmartPointer<vtkDelaunay2D> delaunay;
 	vtkPolyData *PolarPlotPolyData;
 	vtkStructuredGrid *PolarPlotGrid;
 	//! @}
