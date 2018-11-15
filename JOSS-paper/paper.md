@@ -46,6 +46,7 @@ open_iA is highly extensible through what we call modules, which makes it an ide
 - The PorosityAnalyzer [@Weissenboeck:2016] similarly supports users in finding the ideal segmentation algorithm and parameterization when they are determining porosity values for example in fiber-reinforced polymers.
 - InSpectr [@Amirkhanov:2014] makes it possible to analyze spectral data, for example from X-Ray fluorescence spectral tomography, alongside with data from computed tomography for the same specimen.
 - Dynamic Volume Lines [@Weissenboeck:2019] facilitate the comparison of multiple slightly varying volumetric datasets, by mapping them to 1D and applying a nonlinear scaling to highlight regions with large differences.
+- With MetaTracts [@Bhattacharya:2015, @Bhattacharya:2017] one can characterize and analyze fiber bundles as well as weaving patterns in fiber-reinforced polymers.
 
 # Acknowledgements
 
