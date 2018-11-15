@@ -63,7 +63,6 @@ class vtkColorTransferFunction;
 class vtkCommand;
 class vtkContextView;
 class vtkDataArray;
-class vtkDelaunay2D;
 class vtkEventQtSlotConnect;
 class vtkFixedPointVolumeRayCastMapper;
 class vtkIdTypeArray;
@@ -156,8 +155,7 @@ private:
 	void initClassTreeModel();
 	void initFeatureScoutUI();
 	//! @{ polar plot / length distribution related methods:
-	void setupPolarPlotView(vtkTable *it);
-	void updatePolarPlotColorScalar(vtkTable *it);
+	void updatePolarPlotView(vtkTable *it);
 	void drawPolarPlotMesh(vtkRenderer *renderer);
 	void drawScalarBar(vtkScalarsToColors *lut, int RenderType = 0);
 	void drawAnnotations(vtkRenderer *renderer);
@@ -254,9 +252,6 @@ private:
 	//! @{ polar plot view
 	int gPhi, gThe;
 	float PolarPlotPhiResolution, PolarPlotThetaResolution;
-	vtkSmartPointer<vtkDelaunay2D> delaunay;
-	vtkPolyData *PolarPlotPolyData;
-	vtkStructuredGrid *PolarPlotGrid;
 	//! @}
 
 	dlg_blobVisualization *blobVisDialog;

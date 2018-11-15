@@ -474,7 +474,7 @@ void dlg_FeatureScout::setupViews()
 		SLOT( spBigChartMouseButtonPressed( vtkObject*, unsigned long, void*, void*, vtkCommand* ) ) );
 
 	setPCChartData(false);
-	this->setupPolarPlotView(chartTable);
+	updatePolarPlotView(chartTable);
 }
 
 void dlg_FeatureScout::calculateElementTable()
@@ -1610,7 +1610,7 @@ void dlg_FeatureScout::ClassAddButton()
 	setPCChartData();
 	classTreeView->collapseAll();
 	classTreeView->setCurrentIndex( firstLevelItem.first()->index() );
-	updatePolarPlotColorScalar(chartTable);
+	updatePolarPlotView(chartTable);
 	SingleRendering();
 }
 
@@ -2487,12 +2487,12 @@ void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 		//update Class_ID and lookupTable??
 	}
 
-	this->calculateElementTable();
-	this->initElementTableModel();
-	this->setPCChartData();
-	this->classTreeView->collapseAll();
-	this->SingleRendering();
-	this->updatePolarPlotColorScalar( chartTable );
+	calculateElementTable();
+	initElementTableModel();
+	setPCChartData();
+	classTreeView->collapseAll();
+	SingleRendering();
+	updatePolarPlotView( chartTable );
 
 	//Updates scatter plot matrix when a class is added.
 	// TODO SPM
@@ -2551,7 +2551,7 @@ void dlg_FeatureScout::hideLengthDistribution()
 	if (m_scalarWidgetFLD->GetEnabled())
 	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
-		this->updatePolarPlotColorScalar(chartTable);
+		updatePolarPlotView(chartTable);
 	}
 	if (m_lengthDistrWidget->isVisible())
 	{
@@ -2596,7 +2596,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		setActiveClassItem(classItem);
 		calculateElementTable();
 		setPCChartData();
-		updatePolarPlotColorScalar(chartTable);
+		updatePolarPlotView(chartTable);
 		if (item->hasChildren())  // has children => a class was selected
 		{
 			SingleRendering();
@@ -3190,7 +3190,7 @@ void dlg_FeatureScout::drawScalarBar( vtkScalarsToColors *lut, int RenderType )
 	}
 }
 
-void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
+void dlg_FeatureScout::updatePolarPlotView( vtkTable *it )
 {
 	if (!m_columnMapping->contains(iACsvConfig::Phi) || !m_columnMapping->contains(iACsvConfig::Theta))
 	{
@@ -3198,17 +3198,10 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 		return;
 	}
 	iovPP->setWindowTitle( "Orientation Distribution" );
-	double xx, yy, zz, phi;
-
-	// construct delaunay triangulation
-	delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
-
-	// create point sets
-	auto points = vtkSmartPointer<vtkPoints>::New();
 
 	// calculate object probability and save it to a table
 	auto table = vtkSmartPointer<vtkTable>::New();
-	int pcMaxC = this->calcOrientationProbability( it, table ); // maximal count of the object orientation
+	int maxCount = this->calcOrientationProbability( it, table ); // maximal count of the object orientation
 
 	// Create a transfer function mapping scalar value to color
 	auto cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
@@ -3216,30 +3209,31 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	//cold-warm-map
 	//cTFun->AddRGBPoint(   0, 1.0, 1.0, 1.0 );
 	//cTFun->AddRGBPoint(   1, 0.0, 1.0, 1.0 );
-	//cTFun->AddRGBPoint(  pcMaxC, 1.0, 0.0, 1.0 );
+	//cTFun->AddRGBPoint( maxCount, 1.0, 0.0, 1.0 );
 
 	//heatmap
 	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );					//gray
-	cTFun->AddRGBPoint( pcMaxC * 1 / 9.0, 0.0, 0.0, 1.0, 0.1, 0.0 );		//blue
-	cTFun->AddRGBPoint( pcMaxC * 4 / 9.0, 1.0, 0.0, 0.0, 0.1, 0.0 );		//red
-	cTFun->AddRGBPoint( pcMaxC * 9 / 9.0, 1.0, 1.0, 0.0, 0.1, 0.0 );		//yellow
-	//cTFun->AddRGBPoint(   pcMaxC, 1.0, 1.0, 1.0 );						//white
+	cTFun->AddRGBPoint( maxCount * 1 / 9.0, 0.0, 0.0, 1.0, 0.1, 0.0 );		//blue
+	cTFun->AddRGBPoint( maxCount * 4 / 9.0, 1.0, 0.0, 0.0, 0.1, 0.0 );		//red
+	cTFun->AddRGBPoint( maxCount * 9 / 9.0, 1.0, 1.0, 0.0, 0.1, 0.0 );		//yellow
+	//cTFun->AddRGBPoint( maxCount, 1.0, 1.0, 1.0 );						//white
 
 	// color array to save the colors for each point
 	auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colors->SetNumberOfComponents( 3 );
 	colors->SetName( "Colors" );
 
+	auto points = vtkSmartPointer<vtkPoints>::New();
 	for ( int x = 0; x < gThe; x++ )
 	{
 		double rx = x*PolarPlotThetaResolution;
 
 		for ( int y = 0; y < gPhi; y++ )
 		{
-			phi = y*PolarPlotPhiResolution*M_PI / 180.0;
-			xx = rx*cos( phi );
-			yy = rx*sin( phi );
-			zz = table->GetValue( y, x ).ToDouble();
+			double phi = y*PolarPlotPhiResolution*M_PI / 180.0;
+			double xx = rx*cos( phi );
+			double yy = rx*sin( phi );
+			double zz = table->GetValue( y, x ).ToDouble();
 
 			if ( this->draw3DPolarPlot )
 				points->InsertNextPoint( xx, yy, zz );
@@ -3267,19 +3261,15 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	inputPolyData->SetPoints( points );
 	inputPolyData->GetPointData()->SetScalars( colors );
 
-	// initialize and triagulate the grid points for one time
+	// initialize and triangulate the grid points for one time
 	// the triangulated net will be reused later to get the polydata
+	auto delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
 	delaunay->SetInputData( inputPolyData );
 	delaunay->Update();
-
 	vtkPolyData* outputPolyData = delaunay->GetOutput();
-
-	// Create a mapper and actor
 	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputData( outputPolyData );
-
 	mapper->SetLookupTable( cTFun );
-
 	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper( mapper );
 	actor->GetProperty()->LightingOff();
@@ -3291,112 +3281,12 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	auto ren = renW->GetRenderers()->GetFirstRenderer();
 	if (ren)
 		renW->RemoveRenderer(ren);
+	renderer->AddActor(actor);
 	renW->AddRenderer(renderer);
 
-	this->drawPolarPlotMesh( renderer );
-	this->drawAnnotations( renderer );
-	this->drawScalarBar( cTFun, 0 );
-	renderer->ResetCamera();
-	m_polarPlotWidget->GetRenderWindow()->Render();
-}
-
-void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
-{
-	if (!m_columnMapping->contains(iACsvConfig::Phi) || !m_columnMapping->contains(iACsvConfig::Theta))
-	{
-		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view.");
-		return;
-	}
-	iovPP->setWindowTitle( "Orientation Distribution" );
-	double xx, yy, zz, phi;
-
-	// calculate object probability and save it to a table
-	auto table = vtkSmartPointer<vtkTable>::New();
-	auto points = vtkSmartPointer<vtkPoints>::New();
-
-	int maxF = this->calcOrientationProbability( it, table );
-
-	// Create a transfer function mapping scalar value to color
-	auto cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
-	//cold-warm-map
-	//cTFun->AddRGBPoint(   0, 1.0, 1.0, 1.0 );
-	//cTFun->AddRGBPoint(   1, 0.0, 1.0, 1.0 );
-	//cTFun->AddRGBPoint(  maxF, 1.0, 0.0, 1.0 );
-
-	//heatmap
-	cTFun->AddRGBPoint( 0.0, 0.74, 0.74, 0.74, 0.1, 0.0 );				//gray
-	cTFun->AddRGBPoint( maxF*1.0 / 9.0, 0.0, 0.0, 1.0, 0.1, 0.0 );		//blue
-	cTFun->AddRGBPoint( maxF*4.0 / 9.0, 1.0, 0.0, 0.0, 0.1, 0.0 );		//red
-	cTFun->AddRGBPoint( maxF*9.0 / 9.0, 1.0, 1.0, 0.0, 0.1, 0.0 );		//yellow
-	//cTFun->AddRGBPoint(   maxF, 1.0, 1.0, 1.0 );						//white
-
-	// color array to save the colors for each point
-	auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	colors->SetNumberOfComponents( 3 );
-	colors->SetName( "Colors" );
-
-	for ( int x = 0; x < gThe; x++ )
-	{
-		double rx = x*PolarPlotThetaResolution;
-
-		for ( int y = 0; y < gPhi; y++ )
-		{
-			phi = y*PolarPlotPhiResolution*M_PI / 180.0;
-			xx = rx*cos( phi );
-			yy = rx*sin( phi );
-			zz = table->GetValue( y, x ).ToDouble();
-
-			points->InsertNextPoint( xx, yy, 0.0 );
-
-			double dcolor[3];
-			zz = table->GetValue( y, x ).ToDouble();
-
-			cTFun->GetColor( zz, dcolor );
-
-			unsigned char color[3];
-
-			for ( unsigned int j = 0; j < 3; j++ )
-				color[j] = static_cast<unsigned char>( 255.0 * dcolor[j] );
-
-#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
-			colors->InsertNextTypedTuple( color );
-#else
-			colors->InsertNextTupleValue( color );
-#endif
-		}
-	}
-
-	// Add the grid points to a polydata object
-	auto inputPolyData = vtkSmartPointer<vtkPolyData>::New();
-	inputPolyData->SetPoints( points );
-	inputPolyData->GetPointData()->SetScalars( colors );
-
-	delaunay->SetInputData( inputPolyData );
-	delaunay->Update();
-
-	vtkPolyData* outputPolyData = delaunay->GetOutput();
-
-	// Create a mapper and actor
-	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputData( outputPolyData );
-
-	auto actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper( mapper );
-	actor->GetProperty()->LightingOff();
-
-	auto renderer = vtkSmartPointer<vtkRenderer>::New();
-	renderer->SetBackground( 1, 1, 1 );
-
-	auto renW = m_polarPlotWidget->GetRenderWindow();
-	auto ren = renW->GetRenderers()->GetFirstRenderer();
-	if (ren)
-		renW->RemoveRenderer(ren);
-	renW->AddRenderer( renderer );
-	renderer->AddActor( actor );
-
-	this->drawPolarPlotMesh( renderer );
-	this->drawAnnotations( renderer );
-	this->drawScalarBar( cTFun );
+	drawPolarPlotMesh( renderer );
+	drawAnnotations( renderer );
+	drawScalarBar( cTFun, 0 );
 	renderer->ResetCamera();
 	m_polarPlotWidget->GetRenderWindow()->Render();
 }
