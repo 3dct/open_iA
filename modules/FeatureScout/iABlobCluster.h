@@ -41,8 +41,9 @@
 #include <QPen>
 #include <QVector>
 
-#include "iALabel3D.h"
 #include "iABlobImplicitFunction.h"
+
+class vtkCaptionActor2D;
 
 typedef struct {
 	double	x1, y1, z1,
@@ -69,13 +70,11 @@ public:
 	bool GetSilhouette() const;
 	void SilhouetteOn ();                     //!< Turn on drawing silhouette
 	void SilhouetteOff ();                    //!< Turn off drawing silhouette
-	void LabelOn ();                          //!< Turn on draw label
 	void SetLabel (bool isOn);                //! Turn on/off draw label
 	bool GetLabel () const;
-	void LabelOff ();                         //!< Turn off draw label
 	//! Set renderers which will be visualize blob and labels
 	void AttachRenderers( vtkSmartPointer<vtkRenderer> blobRen,
-												 vtkSmartPointer<vtkRenderer> labelRen );
+						  vtkSmartPointer<vtkRenderer> labelRen );
 	//! Get property from isosurface actor
 	vtkProperty* GetSurfaceProperty ();
 	// Get implicity function
@@ -88,6 +87,10 @@ public:
 	void Update ();
 	//! Set name for blob
 	void SetName (QString name);
+	//! Set color for blob
+	void SetBlobColor(QColor blobColor);
+	//! Get color for blob
+	QColor GetBlobColor();
 	//! Set object count and percentage
 	void SetStats (const double count, const double percentage);
 	void SetBlobManager (iABlobManager* blobManager);
@@ -98,8 +101,6 @@ public:
 	void ModifiedSampleFunction (void);
 	void SetSmoothing(bool isOn);
 	bool GetSmoothing() const;
-	void SetLabelScale(double labelScale);
-	double GetLabelScale() const;
 	void SetShowBlob(bool showBlob);
 	bool GetShowBlob() const;
 	void SetBlobOpacity(double blobOpacity);
@@ -118,11 +119,9 @@ private:
 	void ResetRenderers ();
 	void UpdateRenderer ();
 	void SetDefaultProperties ();
-	void DrawLabel ();
-	void RemoveLabel ();	// NOT IMPLEMENTED
 
-	iALabel3D m_label;
 	QString   m_name;
+	QColor	  m_blobColor;
 	double    m_count;
 	double    m_percentage;
 	QString   m_objectType;
@@ -136,7 +135,6 @@ private:
 	bool      m_isSmoothingOn;
 	bool      m_renderIndividually;
 	double    m_blurVariance;
-	double    m_labelScale;
 	double    m_blobOpacity;
 	double    m_silhouetteOpacity;
 
@@ -155,4 +153,5 @@ private:
 	vtkSmartPointer<vtkActor>                   m_silhouetteActor;
 	vtkSmartPointer<vtkImageData>               m_imageData;
 	iABlobManager*                              m_blobManager;
+	vtkSmartPointer<vtkCaptionActor2D>			m_captionActor;
 };

@@ -25,13 +25,16 @@
 #include <itkDiscreteGaussianImageFilter.h>
 
 #include <vtkPolyDataSilhouette.h>
+#include <vtkCaptionActor2D.h>
+#include <vtkTextProperty.h>
+#include <vtkProperty2D.h>
+#include <vtkTextActor.h>
+#include <vtkRenderWindow.h>
 
-#define DEFAULT_LABEL_SCALE 15
 #define DEFAULT_BLOB_OPACITY 0.3
 #define DEFAULT_SILHOUETTE_OPACITY 0.8
 
-iABlobCluster::iABlobCluster( void )
-	:
+iABlobCluster::iABlobCluster( void )	:
 	m_objectType( "Fibers" ),
 	m_count( 0.0 ),
 	m_percentage( 0.0 ),
@@ -41,16 +44,15 @@ iABlobCluster::iABlobCluster( void )
 	m_isSmoothingOn( true ),
 	m_renderIndividually( false ),
 	m_blurVariance( 1 ),
-	m_labelScale( DEFAULT_LABEL_SCALE ),
 	m_blobOpacity( DEFAULT_BLOB_OPACITY ),
 	m_silhouetteOpacity( DEFAULT_SILHOUETTE_OPACITY ),
 	m_blobRenderer( 0 ),
 	m_labelRenderer( 0 ),
-	m_blobManager( 0 )
+	m_blobManager( 0 ),
+	m_blobColor()
 {
 	// setup variables
 	m_countContours = 1;
-
 	m_range[0] = 0.025;
 	//m_range[1] = 0.5;
 
@@ -65,6 +67,7 @@ iABlobCluster::iABlobCluster( void )
 	m_silhouetteActor = vtkSmartPointer<vtkActor>::New();
 	m_smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
 	m_polyDataNormals = vtkSmartPointer<vtkPolyDataNormals>::New();
+	m_captionActor = vtkSmartPointer<vtkCaptionActor2D>::New();
 
 	SetDefaultProperties();
 }
@@ -78,10 +81,8 @@ void iABlobCluster::AttachRenderers( vtkSmartPointer<vtkRenderer> blobRen,
 									 vtkSmartPointer<vtkRenderer> labelRen )
 {
 	ResetRenderers();
-
 	m_blobRenderer = blobRen;
 	m_labelRenderer = labelRen;
-
 	UpdateRenderer();
 }
 
@@ -89,13 +90,13 @@ void iABlobCluster::ResetRenderers( void )
 {
 	if ( m_blobRenderer )
 	{
-		//		m_blobRenderer->RemoveAllViewProps();
 		m_blobRenderer->RemoveActor( m_contourActor );
 		m_blobRenderer->RemoveActor( m_silhouetteActor );
 	}
+	
 	if ( m_labelRenderer )
 	{
-		m_label.DetachActorsToRenderers( m_blobRenderer, m_labelRenderer );
+		m_labelRenderer->RemoveViewProp(m_captionActor);
 	}
 }
 
@@ -104,9 +105,8 @@ void iABlobCluster::UpdateRenderer( void )
 	ResetRenderers();
 
 	if ( !m_blobRenderer )
-	{
 		return;
-	}
+	
 	if ( m_renderIndividually )
 	{
 		if ( m_blobIsOn )
@@ -114,8 +114,19 @@ void iABlobCluster::UpdateRenderer( void )
 		if ( m_silhouetteIsOn )
 			m_blobRenderer->AddActor( m_silhouetteActor );
 	}
-	if ( m_labelIsOn )
-		m_label.AttachActorsToRenderers( m_blobRenderer, m_labelRenderer, m_blobRenderer->GetActiveCamera() );
+	
+	if (m_labelIsOn)
+	{
+		double centerPnt[3];
+		m_implicitFunction->GetCenter( centerPnt );
+		QString statsStr = QString::number(m_count) + " " + m_objectType + " (" + QString::number(m_percentage, 'f', 2) + "%)";
+		m_captionActor->SetCaption(statsStr.toStdString().c_str());
+		m_captionActor->SetPosition(80, 80);
+		//m_captionActor->SetPosition2(300, 300);
+		m_captionActor->SetAttachmentPoint(centerPnt[0], centerPnt[1], centerPnt[2]);
+		m_labelRenderer->AddViewProp(m_captionActor);
+	}
+	m_blobRenderer->Render();
 }
 
 void iABlobCluster::SilhouetteOn( void )
@@ -174,12 +185,9 @@ void iABlobCluster::SetCluster( QVector<FeatureInfo> objects ) const
 
 	for ( int i = 0; i < objects.size(); i++ )
 	{
-		m_implicitFunction->AddObjectInfo( objects[i].x1,
-			objects[i].y1,
-			objects[i].z1,
-			objects[i].x2,
-			objects[i].y2,
-			objects[i].z2,
+		m_implicitFunction->AddObjectInfo( 
+			objects[i].x1, objects[i].y1, objects[i].z1,
+			objects[i].x2, objects[i].y2, objects[i].z2,
 			objects[i].diameter );
 	}
 }
@@ -213,6 +221,20 @@ void iABlobCluster::SetDefaultProperties( void )
 
 	m_polyDataNormals->ComputePointNormalsOn();
 	m_polyDataNormals->ComputeCellNormalsOn();
+
+	m_captionActor->BorderOff();
+	m_captionActor->GetTextActor()->SetTextScaleModeToNone();
+	m_captionActor->ThreeDimensionalLeaderOn();
+	m_captionActor->LeaderOn();
+	m_captionActor->GetProperty()->SetColor(0.0, 0.0, 0.0);	// Leader color
+	m_captionActor->GetCaptionTextProperty()->SetFontSize(24);
+	m_captionActor->GetCaptionTextProperty()->BoldOff();
+	m_captionActor->GetCaptionTextProperty()->ItalicOff();
+	m_captionActor->GetCaptionTextProperty()->ShadowOff();
+	m_captionActor->GetCaptionTextProperty()->SetBackgroundOpacity(0.7);
+	m_captionActor->GetCaptionTextProperty()->FrameOff();
+	m_captionActor->GetCaptionTextProperty()->SetColor(0.0, 0.0, 0.0);
+	m_captionActor->GetCaptionTextProperty()->UseTightBoundingBoxOn();
 }
 
 void iABlobCluster::AddClippingPlane( vtkPlane* plane )
@@ -222,63 +244,35 @@ void iABlobCluster::AddClippingPlane( vtkPlane* plane )
 	m_silhouetteMapper->AddClippingPlane( plane );
 }
 
-void iABlobCluster::DrawLabel( void )
-{
-	double centerPnt[3];
-	m_implicitFunction->GetCenter( centerPnt );
-
-	double labeledPnt[3] = { centerPnt[0] + 2.0, centerPnt[1], centerPnt[2] };
-
-	m_label.SetDisplacement( 0.1 );
-
-	m_label.SetLabeledPoint( labeledPnt, centerPnt );
-
-	m_label.SetScale( m_labelScale );
-
-	m_label.qImage = QImage( 400, 100, QImage::Format_ARGB32 );
-	m_label.qImage.fill( QColor( 255, 255, 255, 100 ) );
-
-	QPainter painter( &m_label.qImage );
-	painter.setRenderHint( QPainter::Antialiasing );
-	//painter.fillRect (m_label.qImage.rect(), QColor (255, 255, 255, 100));
-
-	QPen pen( Qt::black );
-	pen.setWidthF( 500 );
-	pen.setCapStyle( Qt::RoundCap );
-
-	painter.setPen( pen );
-
-	QFont font = QApplication::font();
-	font.setPixelSize( 36 );
-	font.setWeight( QFont::DemiBold );
-	painter.setFont( font );
-
-	QRectF rectTop = m_label.qImage.rect();
-	rectTop.setHeight( rectTop.height()*0.5 );
-	QRectF rectBottom = QRectF( rectTop.left(), rectTop.bottom(), rectTop.width(), rectTop.height() );
-
-	painter.drawText( rectTop, Qt::AlignCenter, m_name );
-	QString statsStr = QString::number( m_count ) + " " + m_objectType + " (" + QString::number( m_percentage, 'f', 2 ) + "%)";
-	painter.drawText( rectBottom, Qt::AlignCenter, statsStr );
-
-	painter.end();
-
-	m_label.Update();
-}
-
 void iABlobCluster::Update( void )
 {
-	if ( m_labelIsOn )
-		DrawLabel();
-
 	UpdateRenderer();
-
 	UpdatePipeline();
 }
 
 void iABlobCluster::SetName( QString name )
 {
 	m_name = name;
+}
+
+void iABlobCluster::SetBlobColor(QColor blobColor)
+{
+	m_blobColor = blobColor;
+	
+	GetSurfaceProperty()->SetColor(
+		m_blobColor.redF(),
+		m_blobColor.greenF(),
+		m_blobColor.blueF());
+
+	m_captionActor->GetCaptionTextProperty()->SetBackgroundColor(
+		m_blobColor.redF(), 
+		m_blobColor.greenF(),
+		m_blobColor.blueF());
+}
+
+QColor iABlobCluster::GetBlobColor()
+{
+	return m_blobColor;
 }
 
 void iABlobCluster::SetLabel( bool isOn )
@@ -289,23 +283,6 @@ void iABlobCluster::SetLabel( bool isOn )
 bool iABlobCluster::GetLabel() const
 {
 	return m_labelIsOn;
-}
-
-void iABlobCluster::LabelOn( void )
-{
-	m_labelIsOn = true;
-	DrawLabel();
-}
-
-void iABlobCluster::LabelOff( void )
-{
-	m_labelIsOn = false;
-	RemoveLabel();
-}
-
-void iABlobCluster::RemoveLabel( void )
-{
-	// NOT IMPLEMENTED
 }
 
 void iABlobCluster::GetDimension( int dimens[3] ) const
@@ -407,16 +384,6 @@ bool iABlobCluster::GetSilhouette() const
 	return m_silhouetteIsOn;
 }
 
-void iABlobCluster::SetLabelScale( double labelScale )
-{
-	m_labelScale = labelScale;
-}
-
-double iABlobCluster::GetLabelScale() const
-{
-	return m_labelScale;
-}
-
 void iABlobCluster::SetShowBlob( bool showBlob )
 {
 	m_blobIsOn = showBlob;
@@ -476,13 +443,9 @@ void iABlobCluster::SetRenderIndividually( bool enabled )
 	{
 		m_renderIndividually = enabled;
 		if ( enabled )
-		{
 			UpdateRenderer();
-		}
 		else
-		{
 			ResetRenderers();
-		}
 	}
 }
 
