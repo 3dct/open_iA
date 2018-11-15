@@ -240,17 +240,20 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	pcWidgetRenWin->SetLineSmoothing(true);
 	pcWidget->SetRenderWindow(pcWidgetRenWin);
 	
-	polarPlot = new QVTKOpenGLWidget();
+	m_polarPlotWidget = new QVTKOpenGLWidget();
 	auto polarPlotRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	polarPlot->SetRenderWindow(polarPlotRenWin);
+	m_polarPlotWidget->SetRenderWindow(polarPlotRenWin);
+
+	m_lengthDistrWidget = new QVTKOpenGLWidget();
+	auto lengthDistrRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	m_lengthDistrWidget->SetRenderWindow(lengthDistrRenWin);
+	m_lengthDistrWidget->hide();
 #else
 	pcWidget = new QVTKWidget();
 	polarPlot = new QVTKWidget();
 #endif
 	iovPC->setWidget(pcWidget);
-	iovPP->verticalLayout->addWidget(polarPlot);
-	this->orientationColorMapSelection = iovPP->colorMapSelection;
-	this->orientColormap = iovPP->comboBox;
+	iovPP->legendLayout->addWidget(m_polarPlotWidget);
 
 	// Initialize the models for QtViews
 	initColumnVisibility();
@@ -445,6 +448,10 @@ void dlg_FeatureScout::setupViews()
 	this->pcView = vtkSmartPointer<vtkContextView>::New();
 	pcView->SetRenderWindow( pcWidget->GetRenderWindow() );
 	pcView->SetInteractor( pcWidget->GetInteractor() );
+
+	m_lengthDistrView = vtkSmartPointer<vtkContextView>::New();
+	m_lengthDistrView->SetRenderWindow( m_lengthDistrWidget->GetRenderWindow() );
+	m_lengthDistrView->SetInteractor( m_lengthDistrWidget->GetInteractor() );
 
 	// Creates a popup menu
 	QMenu* popup2 = new QMenu( pcWidget );
@@ -711,17 +718,13 @@ void dlg_FeatureScout::setupConnections()
 
 void dlg_FeatureScout::MultiClassRendering()
 {
-	m_renderMode = rmMultiClass;
-	if ( m_scalarWidgetFLD )
-	{   // Turns off FLD scalar bar, updates polar plot view
-		m_scalarWidgetFLD->Off();
-		this->updatePolarPlotColorScalar(chartTable);
-	}
+	hideLengthDistribution();
 	QStandardItem *rootItem = this->classTreeModel->invisibleRootItem();
 	int classCount = rootItem->rowCount();
 
 	if (classCount == 1)
 		return;
+	m_renderMode = rmMultiClass;
 
 	double alpha = this->calculateOpacity(rootItem);
 	m_splom->multiClassRendering( m_colorList );
@@ -749,13 +752,8 @@ void dlg_FeatureScout::SingleRendering( int labelID )
 
 void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 {
-	if ( m_scalarWidgetFLD )
-	{   // Turns off FLD scalar bar, updates polar plot view
-		m_scalarWidgetFLD->Off();
-		this->updatePolarPlotColorScalar( chartTable );
-	}
-	this->orientationColorMapSelection->hide();
-	this->orientColormap->hide();
+	hideLengthDistribution();
+	iovPP->colorMapSelection->hide();
 
 	if (activeClassItem->rowCount() <= 0)
 		return;
@@ -1318,11 +1316,7 @@ void ColormapRGBHalfSphere( const double normal[3], double color_out[3] )
 void dlg_FeatureScout::RenderOrientation()
 {
 	m_renderMode = rmOrientation;
-	if ( m_scalarWidgetFLD )
-	{   // Turns off FLD scalar bar, updates polar plot view
-		m_scalarWidgetFLD->Off();
-		this->updatePolarPlotColorScalar( chartTable );
-	}
+	hideLengthDistribution();
 	setPCChartData(true);
 	m_splom->enableSelection(false);
 	m_splom->setFilter(-1);
@@ -1345,7 +1339,7 @@ void dlg_FeatureScout::RenderOrientation()
 				cos( theta_rad ) };
 			double *p = static_cast<double *>( oi->GetScalarPointer( theta, phi, 0 ) );
 			vtkMath::Normalize( recCoord );
-			colormapsIndex[orientColormap->currentIndex()]( recCoord, p );
+			colormapsIndex[iovPP->orientationColorMap->currentIndex()]( recCoord, p );
 		}
 	}
 
@@ -1398,9 +1392,10 @@ void dlg_FeatureScout::RenderOrientation()
 
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground( 1, 1, 1 );
-	vtkRenderWindow* renW = polarPlot->GetRenderWindow();
-	renW->RemoveRenderer(renW->GetRenderers()->GetFirstRenderer());
-	renderer->AddActor( actor );
+	renderer->AddActor(actor);
+	vtkRenderWindow* renW = m_polarPlotWidget->GetRenderWindow();
+	auto ren = renW->GetRenderers()->GetFirstRenderer();
+	renW->RemoveRenderer(ren);
 	renW->AddRenderer(renderer);
 	renderer->ResetCamera();
 
@@ -1409,8 +1404,7 @@ void dlg_FeatureScout::RenderOrientation()
 	this->drawAnnotations( renderer );
 
 	activeChild->updateViews();
-	orientationColorMapSelection->show();
-	this->orientColormap->show();
+	iovPP->colorMapSelection->show();
 	renW->Render();
 }
 
@@ -1494,12 +1488,11 @@ void dlg_FeatureScout::RenderLengthDistribution()
 
 	m_3dvis->renderLengthDistribution( cTFun, extents, halfInc, filterID, range );
 
-	this->orientationColorMapSelection->hide();
-	this->orientColormap->hide();
-	this->drawScalarBar( cTFun, this->raycaster->GetRenderer(), 1 );
+	iovPP->colorMapSelection->hide();
+	this->drawScalarBar( cTFun, 1 );
+	this->raycaster->update();
 
 	// plot length distribution
-	auto view = vtkSmartPointer<vtkContextView>::New();
 	auto chart = vtkSmartPointer<vtkChartXY>::New();
 	chart->SetTitle(title.toUtf8().constData());
 	chart->GetTitleProperties()->SetFontSize( (filterID == iAFeatureScoutObjectType::Fibers) ? 15 : 12 ); // TODO: setting?
@@ -1507,10 +1500,15 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	plot->SetInputData( fldTable, 0, 1 );
 	plot->GetXAxis()->SetTitle( "Length in microns" );
 	plot->GetYAxis()->SetTitle( "Frequency" );
-	view->GetScene()->AddItem( chart );
-	view->SetRenderWindow( polarPlot->GetRenderWindow() );
-	view->GetRenderWindow()->Render();
-	polarPlot->update();
+	m_lengthDistrView->GetScene()->ClearItems();
+	m_lengthDistrView->GetScene()->AddItem( chart );
+
+	m_lengthDistrWidget->GetRenderWindow()->Render();
+	m_lengthDistrWidget->update();
+	iovPP->legendLayout->removeWidget(m_polarPlotWidget);
+	iovPP->legendLayout->addWidget(m_lengthDistrWidget);
+	m_polarPlotWidget->hide();
+	m_lengthDistrWidget->show();
 }
 
 void dlg_FeatureScout::ClassAddButton()
@@ -2548,15 +2546,26 @@ void dlg_FeatureScout::classDoubleClicked( const QModelIndex &index )
 	}
 }
 
-void dlg_FeatureScout::classClicked( const QModelIndex &index )
+void dlg_FeatureScout::hideLengthDistribution()
 {
-	if ( m_scalarWidgetFLD )
+	if (m_scalarWidgetFLD->GetEnabled())
 	{   // Turns off FLD scalar bar, updates polar plot view
 		m_scalarWidgetFLD->Off();
-		this->updatePolarPlotColorScalar( chartTable );
+		this->updatePolarPlotColorScalar(chartTable);
 	}
-	this->orientationColorMapSelection->hide();
-	this->orientColormap->hide();
+	if (m_lengthDistrWidget->isVisible())
+	{
+		iovPP->legendLayout->removeWidget(m_lengthDistrWidget);
+		iovPP->legendLayout->addWidget(m_polarPlotWidget);
+		m_lengthDistrWidget->hide();
+		m_polarPlotWidget->show();
+	}
+}
+
+void dlg_FeatureScout::classClicked( const QModelIndex &index )
+{
+	hideLengthDistribution();
+	iovPP->colorMapSelection->hide();
 
 	// Gets right Item from ClassTreeModel
 	QStandardItem *item;
@@ -3125,7 +3134,7 @@ void dlg_FeatureScout::drawPolarPlotMesh( vtkRenderer *renderer )
 	renderer->AddActor( actor );
 }
 
-void dlg_FeatureScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType )
+void dlg_FeatureScout::drawScalarBar( vtkScalarsToColors *lut, int RenderType )
 {
 	// Default: RenderTpye = 0
 	// 1		RenderFLD
@@ -3143,7 +3152,7 @@ void dlg_FeatureScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *rend
 			m_scalarBarPP->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
 			m_scalarBarPP->SetTitle( "Frequency" );
 			m_scalarBarPP->SetNumberOfLabels( 5 );
-			m_scalarWidgetPP->SetInteractor( polarPlot->GetInteractor() );
+			m_scalarWidgetPP->SetInteractor( m_polarPlotWidget->GetInteractor() );
 			m_scalarWidgetPP->SetScalarBarActor( m_scalarBarPP );
 			m_scalarWidgetPP->SetEnabled( true );
 			m_scalarWidgetPP->SetRepositionable( true );
@@ -3155,23 +3164,28 @@ void dlg_FeatureScout::drawScalarBar( vtkScalarsToColors *lut, vtkRenderer *rend
 			break;
 
 		case 1:
-			m_scalarWidgetFLD = vtkSmartPointer<vtkScalarBarWidget>::New();
-			m_scalarBarFLD = vtkSmartPointer<vtkScalarBarActor>::New();
-			m_scalarBarFLD->SetLookupTable( lut );
-			m_scalarBarFLD->GetLabelTextProperty()->SetColor( 0, 0, 0 );
-			m_scalarBarFLD->GetTitleTextProperty()->SetColor( 0, 0, 0 );
-			m_scalarBarFLD->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-			m_scalarBarFLD->SetTitle( "Length in microns" );
-			m_scalarBarFLD->SetNumberOfLabels( 9 );
-			m_scalarWidgetFLD->SetInteractor( raycaster->GetInteractor() );
-			m_scalarWidgetFLD->SetScalarBarActor( m_scalarBarFLD );
-			m_scalarWidgetFLD->SetEnabled( true );
-			m_scalarWidgetFLD->SetRepositionable( true );
-			m_scalarWidgetFLD->SetResizable( true );
-			m_scalarWidgetFLD->GetScalarBarActor()->SetTextPositionToSucceedScalarBar();
-			sbr = vtkScalarBarRepresentation::SafeDownCast( m_scalarWidgetFLD->GetRepresentation() );
-			sbr->SetPosition( 0.93, 0.20 );
-			sbr->SetPosition2( 0.07, 0.80 );
+			if (m_scalarWidgetFLD)
+				m_scalarWidgetFLD->On();
+			else
+			{
+				m_scalarWidgetFLD = vtkSmartPointer<vtkScalarBarWidget>::New();
+				m_scalarBarFLD = vtkSmartPointer<vtkScalarBarActor>::New();
+				m_scalarBarFLD->SetLookupTable( lut );
+				m_scalarBarFLD->GetLabelTextProperty()->SetColor( 0, 0, 0 );
+				m_scalarBarFLD->GetTitleTextProperty()->SetColor( 0, 0, 0 );
+				m_scalarBarFLD->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+				m_scalarBarFLD->SetTitle( "Length in microns" );
+				m_scalarBarFLD->SetNumberOfLabels( 9 );
+				m_scalarWidgetFLD->SetInteractor( raycaster->GetInteractor() );
+				m_scalarWidgetFLD->SetScalarBarActor( m_scalarBarFLD );
+				m_scalarWidgetFLD->SetEnabled( true );
+				m_scalarWidgetFLD->SetRepositionable( true );
+				m_scalarWidgetFLD->SetResizable( true );
+				m_scalarWidgetFLD->GetScalarBarActor()->SetTextPositionToSucceedScalarBar();
+				sbr = vtkScalarBarRepresentation::SafeDownCast( m_scalarWidgetFLD->GetRepresentation() );
+				sbr->SetPosition( 0.93, 0.20 );
+				sbr->SetPosition2( 0.07, 0.80 );
+				}
 			break;
 
 		default:
@@ -3183,7 +3197,7 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 {
 	if (!m_columnMapping->contains(iACsvConfig::Phi) || !m_columnMapping->contains(iACsvConfig::Theta))
 	{
-		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view");
+		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view.");
 		return;
 	}
 	iovPP->setWindowTitle( "Orientation Distribution" );
@@ -3276,29 +3290,24 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground( 1, 1, 1 );
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	auto renW = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-#else
-	auto renW = vtkSmartPointer<vtkRenderWindow>::New();
-#endif
-	renW->AddRenderer( renderer );
-	renderer->AddActor( actor );
-
-	vtkRenderWindowInteractor *renI = polarPlot->GetInteractor();
-	renI->SetRenderWindow( renW );
-	polarPlot->SetRenderWindow( renW );
+	auto renW = m_polarPlotWidget->GetRenderWindow();
+	auto ren = renW->GetRenderers()->GetFirstRenderer();
+	if (ren)
+		renW->RemoveRenderer(ren);
+	renW->AddRenderer(renderer);
 
 	this->drawPolarPlotMesh( renderer );
 	this->drawAnnotations( renderer );
-	this->drawScalarBar( cTFun, renderer, 0 );
-	polarPlot->GetRenderWindow()->Render();
+	this->drawScalarBar( cTFun, 0 );
+	renderer->ResetCamera();
+	m_polarPlotWidget->GetRenderWindow()->Render();
 }
 
 void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 {
 	if (!m_columnMapping->contains(iACsvConfig::Phi) || !m_columnMapping->contains(iACsvConfig::Theta))
 	{
-		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot scalar");
+		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view.");
 		return;
 	}
 	iovPP->setWindowTitle( "Orientation Distribution" );
@@ -3381,22 +3390,18 @@ void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground( 1, 1, 1 );
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	auto renW = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-#else
-	auto renW = vtkSmartPointer<vtkRenderWindow>::New();
-#endif
+	auto renW = m_polarPlotWidget->GetRenderWindow();
+	auto ren = renW->GetRenderers()->GetFirstRenderer();
+	if (ren)
+		renW->RemoveRenderer(ren);
 	renW->AddRenderer( renderer );
 	renderer->AddActor( actor );
 
-	vtkRenderWindowInteractor *renI = polarPlot->GetInteractor();
-	renI->SetRenderWindow( renW );
-	polarPlot->SetRenderWindow( renW );
-
 	this->drawPolarPlotMesh( renderer );
 	this->drawAnnotations( renderer );
-	this->drawScalarBar( cTFun, renderer );
-	polarPlot->GetRenderWindow()->Render();
+	this->drawScalarBar( cTFun );
+	renderer->ResetCamera();
+	m_polarPlotWidget->GetRenderWindow()->Render();
 }
 
 void dlg_FeatureScout::setupPolarPlotResolution( float grad )
@@ -3590,7 +3595,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	iovPP->colorMapSelection->hide();
 	if (this->filterID == iAFeatureScoutObjectType::Voids)
 		iovPP->hide();
-	connect(iovPP->comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
+	connect(iovPP->orientationColorMap, SIGNAL(currentIndexChanged(int)), this, SLOT(RenderOrientation()));
 
 	if (visualization == iACsvConfig::UseVolume)
 		activeChild->getImagePropertyDlg()->hide();

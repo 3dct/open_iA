@@ -155,13 +155,14 @@ private:
 	void initElementTableModel(int idx = -10000);
 	void initClassTreeModel();
 	void initFeatureScoutUI();
-	//! @{ polar plot related methods:
+	//! @{ polar plot / length distribution related methods:
 	void setupPolarPlotView(vtkTable *it);
 	void updatePolarPlotColorScalar(vtkTable *it);
 	void drawPolarPlotMesh(vtkRenderer *renderer);
-	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
+	void drawScalarBar(vtkScalarsToColors *lut, int RenderType = 0);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
+	void hideLengthDistribution();
 	//! @}
 	//! @{ parallel coordinate chart related methods:
 	void setPCChartData(bool lookupTable = false);
@@ -244,6 +245,8 @@ private:
 	static const int PCMinTicksCount; //!< minimum number of ticks
 	//! @}
 
+	vtkSmartPointer<vtkContextView> m_lengthDistrView;
+
 	iARenderer *raycaster;
 	iABlobManager *blobManager;
 	QMap <QString, iABlobCluster*> blobMap;
@@ -259,14 +262,12 @@ private:
 	dlg_blobVisualization *blobVisDialog;
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget *pcWidget, *polarPlot, *meanObjectWidget;
+	QVTKOpenGLWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_meanObjectRenderWindow;
 #else
-	QVTKWidget *pcWidget, *polarPlot, *meanObjectWidget;
+	QVTKWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
 	vtkSmartPointer<vtkRenderWindow> m_meanObjectRenderWindow;
 #endif
-	QWidget *orientationColorMapSelection;
-	QComboBox * orientColormap;
 
 	vtkSmartPointer<vtkContextView> m_dvContextView;
 
