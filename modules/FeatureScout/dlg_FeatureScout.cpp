@@ -2807,6 +2807,7 @@ void dlg_FeatureScout::EnableBlobRendering()
 {
 	if ( !OpenBlobVisDialog() )
 		return;
+	
 	iABlobCluster* blob = NULL;
 	// check if that class is already visualized; if yes, update the existing blob:
 	if ( blobMap.contains( this->activeClassItem->text() ) )
@@ -2819,13 +2820,8 @@ void dlg_FeatureScout::EnableBlobRendering()
 		blobManager->AddBlob( blob );
 		blobMap.insert( this->activeClassItem->text(), blob );
 	}
+	
 	blobManager->UpdateBlobSettings( blob );
-
-	// single class rendering to blob view
-	double const * bounds = m_3dvis->bounds();
-	double dims[3] = { bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4] };
-	double maxDim = dims[0] >= dims[1] ? dims[0] : dims[1];
-	maxDim = dims[2] >= maxDim ? dims[2] : maxDim;
 
 	QVector<FeatureInfo> objects;
 	for ( int i = 0; i < chartTable->GetNumberOfRows(); i++ )
@@ -2841,16 +2837,14 @@ void dlg_FeatureScout::EnableBlobRendering()
 		fi.diameter = chartTable->GetValue(i, m_columnMapping->value(iACsvConfig::Diameter)).ToDouble();
 		objects.append( fi );
 	}
-	blob->SetObjectType( MapObjectTypeToString(filterID) );
-	blob->SetLabelScale( 10.0 * maxDim / 100.0 );
-	blob->SetCluster( objects );
-
-	// set color
+	
 	QColor color = m_colorList.at( activeClassItem->index().row() );
-	blob->GetSurfaceProperty()->SetColor( color.redF(), color.greenF(), color.blueF() );
-	blob->SetName( activeClassItem->text() );
 	const double count = activeClassItem->rowCount();
 	const double percentage = 100.0*count / objectsCount;
+	blob->SetObjectType(MapObjectTypeToString(filterID));
+	blob->SetCluster(objects);
+	blob->SetName(activeClassItem->text());
+	blob->SetBlobColor(color);	
 	blob->SetStats( count, percentage );
 	blobManager->Update();
 }
