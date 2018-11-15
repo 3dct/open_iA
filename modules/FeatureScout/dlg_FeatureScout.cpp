@@ -2202,6 +2202,7 @@ void dlg_FeatureScout::ClassLoadButton()
 		for ( int i = 0; i < idxClass; i++ )
 			this->recalculateChartTable( rootItem->child( i ) );
 		this->setActiveClassItem( rootItem->child( 0 ), 0 );
+		MultiClassRendering();
 	}
 	else
 	{
