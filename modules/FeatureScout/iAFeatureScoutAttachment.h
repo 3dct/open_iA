@@ -45,8 +45,5 @@ private:
 	bool blobVisEnabled;
 	iABlobManager m_blobManager;
 	QList<iABlobCluster*> blobList;
-	vtkSmartPointer<vtkOpenGLRenderer> blobRen;
 	dlg_FeatureScout * imgFS;
-private slots:
-	void rendererSetCamera();
 };

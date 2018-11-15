@@ -33,24 +33,17 @@
 iAFeatureScoutAttachment::iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildData childData) :
 	iAModuleAttachmentToChild(mainWnd, childData)
 {
-	blobRen = vtkSmartPointer<vtkOpenGLRenderer>::New();
 	blobVisEnabled = false;
 }
 
 iAFeatureScoutAttachment::~iAFeatureScoutAttachment()
 {}
 
-void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType, QSharedPointer<QMap<uint, uint> > columnMapping)
+void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, 
+	int visType, QSharedPointer<QMap<uint, uint> > columnMapping)
 {
-	imgFS = new dlg_FeatureScout(m_childData.child, static_cast<iAFeatureScoutObjectType>(filterID), fileName, blobRen, csvtbl, visType, columnMapping);
-
-	blobRen->SetLayer(1);
-	blobRen->UseDepthPeelingOn();
-	blobRen->SetMaximumNumberOfPeels(12);
-
-	m_childData.child->getRenderer()->AddRenderer(blobRen);
-	blobRen->SetActiveCamera(m_childData.child->getRenderer()->getCamera());
-	connect(m_childData.child->getRenderer(), SIGNAL(onSetCamera()), this, SLOT(rendererSetCamera()));
+	imgFS = new dlg_FeatureScout(m_childData.child, static_cast<iAFeatureScoutObjectType>(filterID), 
+		fileName, m_childData.child->getRenderer()->GetRenderer(), csvtbl, visType, columnMapping);
 }
 
 void iAFeatureScoutAttachment::disableBlobVisualization()
@@ -74,12 +67,6 @@ void iAFeatureScoutAttachment::enableBlobVisualization()
 		imageData->GetBounds()[3] - imageData->GetBounds()[2],
 		imageData->GetBounds()[5] - imageData->GetBounds()[4]
 	};
-}
-
-
-void iAFeatureScoutAttachment::rendererSetCamera()
-{
-	blobRen->SetActiveCamera(m_childData.child->getRenderer()->getCamera());
 }
 
 void iAFeatureScoutAttachment::FeatureScout_Options(int idx)
