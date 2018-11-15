@@ -2347,7 +2347,7 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const & selInds)
 	QCoreApplication::processEvents();
 	auto sortedSelInds = m_splom->getFilteredSelection();
 	int countSelection = sortedSelInds.size();
-	vtkSmartPointer<vtkIdTypeArray> vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
+	auto vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
 	vtk_selInd->Allocate(countSelection);
 	vtk_selInd->SetNumberOfValues(countSelection);
 	int idx = 0;
@@ -2617,7 +2617,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		int sID = item->index().row();
 
 		// Fill selection with IDs
-		vtkSmartPointer<vtkIdTypeArray> testArr = vtkSmartPointer<vtkIdTypeArray>::New();
+		auto testArr = vtkSmartPointer<vtkIdTypeArray>::New();
 		testArr->SetName( "Label" );
 		testArr->InsertNextValue( sID );
 
@@ -2753,17 +2753,17 @@ void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 	if ( !item->hasChildren() )
 		return;
 
-	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
-	vtkSmartPointer<vtkIntArray> arr = vtkSmartPointer<vtkIntArray>::New();
+	auto table = vtkSmartPointer<vtkTable>::New();
+	auto arr = vtkSmartPointer<vtkIntArray>::New();
 	arr->SetName( chartTable->GetColumnName( 0 ) );
 	table->AddColumn( arr );
 	for ( int i = 1; i < elementsCount - 1; i++ )
 	{
-		vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+		auto arrX = vtkSmartPointer<vtkFloatArray>::New();
 		arrX->SetName( chartTable->GetColumnName( i ) );
 		table->AddColumn( arrX );
 	}
-	vtkSmartPointer<vtkIntArray> arrI = vtkSmartPointer<vtkIntArray>::New();
+	auto arrI = vtkSmartPointer<vtkIntArray>::New();
 	arrI->SetName( chartTable->GetColumnName( elementsCount - 1 ) );
 	table->AddColumn( arrI );
 
@@ -2774,7 +2774,7 @@ void dlg_FeatureScout::recalculateChartTable( QStandardItem *item )
 	for ( int j = 0; j < oCount; j++ )
 	{
 		csvID = item->child( j )->text().toInt();
-		vtkSmartPointer<vtkVariantArray> arr = vtkSmartPointer<vtkVariantArray>::New();
+		auto arr = vtkSmartPointer<vtkVariantArray>::New();
 		csvTable->GetRow( csvID - 1, arr );
 		table->SetRow( j, arr );
 	}
@@ -3093,11 +3093,11 @@ void dlg_FeatureScout::drawPolarPlotMesh( vtkRenderer *renderer )
 	int ap = 25;
 	int at = 7;
 
-	vtkSmartPointer<vtkStructuredGrid> sGrid = vtkSmartPointer<vtkStructuredGrid>::New();
+	auto sGrid = vtkSmartPointer<vtkStructuredGrid>::New();
 	sGrid->SetDimensions( at, ap, 1 );
 	int anzP = sGrid->GetNumberOfPoints();
 
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+	auto points = vtkSmartPointer<vtkPoints>::New();
 	points->Allocate( anzP );
 
 	for ( int i = 0; i < ap; i++ )
@@ -3116,12 +3116,9 @@ void dlg_FeatureScout::drawPolarPlotMesh( vtkRenderer *renderer )
 	// add points to grid
 	sGrid->SetPoints( points );
 
-	// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 
-	// using vtkStructuredGridGeometryFilter
-	vtkSmartPointer<vtkStructuredGridGeometryFilter> plane =
-		vtkSmartPointer<vtkStructuredGridGeometryFilter>::New();
+	auto plane = vtkSmartPointer<vtkStructuredGridGeometryFilter>::New();
 	plane->SetExtent( 0, at, 0, ap, 0, 0 );
 	plane->SetInputData( sGrid );
 	mapper->SetInputConnection( plane->GetOutputPort() );
@@ -3210,11 +3207,11 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	auto points = vtkSmartPointer<vtkPoints>::New();
 
 	// calculate object probability and save it to a table
-	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+	auto table = vtkSmartPointer<vtkTable>::New();
 	int pcMaxC = this->calcOrientationProbability( it, table ); // maximal count of the object orientation
 
 	// Create a transfer function mapping scalar value to color
-	vtkSmartPointer<vtkColorTransferFunction> cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
+	auto cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
 
 	//cold-warm-map
 	//cTFun->AddRGBPoint(   0, 1.0, 1.0, 1.0 );
@@ -3229,7 +3226,7 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	//cTFun->AddRGBPoint(   pcMaxC, 1.0, 1.0, 1.0 );						//white
 
 	// color array to save the colors for each point
-	vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colors->SetNumberOfComponents( 3 );
 	colors->SetName( "Colors" );
 
@@ -3266,7 +3263,7 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	}
 
 	// Add the grid points to a polydata object
-	vtkSmartPointer<vtkPolyData> inputPolyData = vtkSmartPointer<vtkPolyData>::New();
+	auto inputPolyData = vtkSmartPointer<vtkPolyData>::New();
 	inputPolyData->SetPoints( points );
 	inputPolyData->GetPointData()->SetScalars( colors );
 
@@ -3278,12 +3275,12 @@ void dlg_FeatureScout::setupPolarPlotView( vtkTable *it )
 	vtkPolyData* outputPolyData = delaunay->GetOutput();
 
 	// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputData( outputPolyData );
 
 	mapper->SetLookupTable( cTFun );
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper( mapper );
 	actor->GetProperty()->LightingOff();
 
@@ -3314,13 +3311,13 @@ void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 	double xx, yy, zz, phi;
 
 	// calculate object probability and save it to a table
-	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+	auto table = vtkSmartPointer<vtkTable>::New();
+	auto points = vtkSmartPointer<vtkPoints>::New();
 
 	int maxF = this->calcOrientationProbability( it, table );
 
 	// Create a transfer function mapping scalar value to color
-	vtkSmartPointer<vtkColorTransferFunction> cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
+	auto cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
 	//cold-warm-map
 	//cTFun->AddRGBPoint(   0, 1.0, 1.0, 1.0 );
 	//cTFun->AddRGBPoint(   1, 0.0, 1.0, 1.0 );
@@ -3334,7 +3331,7 @@ void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 	//cTFun->AddRGBPoint(   maxF, 1.0, 1.0, 1.0 );						//white
 
 	// color array to save the colors for each point
-	vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colors->SetNumberOfComponents( 3 );
 	colors->SetName( "Colors" );
 
@@ -3370,7 +3367,7 @@ void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 	}
 
 	// Add the grid points to a polydata object
-	vtkSmartPointer<vtkPolyData> inputPolyData = vtkSmartPointer<vtkPolyData>::New();
+	auto inputPolyData = vtkSmartPointer<vtkPolyData>::New();
 	inputPolyData->SetPoints( points );
 	inputPolyData->GetPointData()->SetScalars( colors );
 
@@ -3380,10 +3377,10 @@ void dlg_FeatureScout::updatePolarPlotColorScalar( vtkTable *it )
 	vtkPolyData* outputPolyData = delaunay->GetOutput();
 
 	// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputData( outputPolyData );
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	auto actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper( mapper );
 	actor->GetProperty()->LightingOff();
 
