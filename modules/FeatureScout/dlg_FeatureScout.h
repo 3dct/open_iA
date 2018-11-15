@@ -157,10 +157,11 @@ private:
 	//! @{ polar plot / length distribution related methods:
 	void updatePolarPlotView(vtkTable *it);
 	void drawPolarPlotMesh(vtkRenderer *renderer);
-	void drawScalarBar(vtkScalarsToColors *lut, int RenderType = 0);
+	void drawOrientationScalarBar(vtkScalarsToColors *lut);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
-	void hideLengthDistribution();
+	void showLengthDistribution(bool show, vtkScalarsToColors* lut = nullptr);
+	void showOrientationDistribution();
 	//! @}
 	//! @{ parallel coordinate chart related methods:
 	void setPCChartData(bool lookupTable = false);
@@ -218,7 +219,7 @@ private:
 	QList<vtkSmartPointer<vtkTable> > tableList;    //!< The data table for each class.
 	QList<QColor> m_colorList;                      //!< The color for each class.
 	std::vector<char> columnVisibility;             //!< Element(=column) visibility list
-	vtkSmartPointer<vtkLookupTable> lut;            //!< Color lookup table for multi-class rendering in parallel coordinate view
+	vtkSmartPointer<vtkLookupTable> m_multiClassLUT;//!< Color lookup table for multi-class rendering in parallel coordinate view
 	QTreeView* classTreeView;                       //!< Class tree view
 	QTableView* elementTableView;                   //!< Element(=column) table view
 	QStandardItemModel* elementTableModel;          //!< Model for element table
