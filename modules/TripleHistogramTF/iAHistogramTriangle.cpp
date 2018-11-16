@@ -458,8 +458,8 @@ void iAHistogramTriangle::paintHistograms(QPainter &p)
 	// LEFT
 	if (m_fRenderHistogram[0]) {
 		p.setTransform(m_transformHistograms[0]);
-		auto img = m_histograms[0]->grabFramebuffer();
-		img.save("C:\\test.png");
+		auto img = m_histograms[0]->drawOffscreen();
+		//img.save("C:\\test.png");
 		p.drawImage(0, 0, img);
 		//p.drawRect(m_histogramsRect);
 	}
@@ -467,7 +467,7 @@ void iAHistogramTriangle::paintHistograms(QPainter &p)
 	// RIGHT
 	if (m_fRenderHistogram[1]) {
 		p.setTransform(m_transformHistograms[1]);
-		auto img = m_histograms[1]->grabFramebuffer();
+		auto img = m_histograms[1]->drawOffscreen();
 		p.drawImage(0, 0, img);
 		//p.drawRect(m_histogramsRect);
 	}
@@ -475,7 +475,7 @@ void iAHistogramTriangle::paintHistograms(QPainter &p)
 	// BOTTOM
 	if (m_fRenderHistogram[2]) {
 		p.setTransform(m_transformHistograms[2]);
-		auto img = m_histograms[2]->grabFramebuffer();
+		auto img = m_histograms[2]->drawOffscreen();
 		p.drawImage(0, 0, img);
 		//p.drawRect(m_histogramsRect);
 	}

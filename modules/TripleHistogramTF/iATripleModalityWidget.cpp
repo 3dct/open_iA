@@ -352,8 +352,6 @@ void iATripleModalityWidget::updateModalities()
 		m_histograms[i]->addPlot(histogramPlot);
 		m_histograms[i]->setTransferFunctions(m_copyTFs[i]->getColorFunction(), m_copyTFs[i]->getOpacityFunction());
 		m_histograms[i]->updateTrf();
-		m_histograms[i]->show();
-		m_histograms[i]->hide();
 		// }
 
 		// Slicer {

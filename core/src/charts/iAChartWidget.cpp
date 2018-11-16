@@ -33,6 +33,8 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLPaintDevice>
 #include <QPainter>
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
 #include <QSurfaceFormat>
@@ -862,10 +864,45 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 	showDataTooltip(event);
 }
 
-void iAChartWidget::paintEvent(QPaintEvent * e)
+
+QImage iAChartWidget::drawOffscreen()
 {
+	//the context should be valid. make sure it is current for painting
+	makeCurrent();
+	/*
+	if (!m_isInitialized)
+	{
+		initializeGL();
+		resizeGL(width(), height());
+	}
+	*/
+	QOpenGLFramebufferObjectFormat format;
+	format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+	auto fbo = new QOpenGLFramebufferObject(width(), height(), format);
+	resizeGL(width(), height());
+	fbo->bind();
+	paintGL();
+	//You could now grab the content of the framebuffer we've rendered to
+	QImage image = fbo->toImage();
+	fbo->release();
+	//#2 --------------------------------------------------------------
+
+	//bind default framebuffer again. not sure if this necessary
+	//and isn't supposed to use defaultFramebuffer()...
+	// fbo->bindDefault();
+	delete fbo;
+	doneCurrent();
+	return image;
+	// unfortunately image is transparent...
+}
+
+void iAChartWidget::paintGL()
+{
+	//QOpenGLPaintDevice fboPaintDev(width(), height());
+	//QPainter painter(&fboPaintDev);
 	QPainter painter(this);
 	painter.setRenderHint(QPainter::Antialiasing);
+	//painter.beginNativePainting();
 	drawBackground(painter);
 	if (activeWidth() <= 1 || activeHeight() <= 1)
 		return;
@@ -900,6 +937,7 @@ void iAChartWidget::paintEvent(QPaintEvent * e)
 	painter.scale(1, -1);
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	drawAxes(painter);
+	painter.end();
 }
 
 void iAChartWidget::addXMarker(double xPos, QColor const & color)
