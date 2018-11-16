@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,49 +15,53 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include "open_iA_Core_export.h"
+#include "BCoord.h"
 
-#include <QSharedPointer>
-#include <QVector>
+#include "BarycentricTriangle.h"
 
-class iAModality;
-class iAProgress;
-class iAVolumeSettings;
-
-class vtkCamera;
-
-typedef QVector<QSharedPointer<iAModality> > ModalityCollection;
-
-
-class open_iA_Core_API iAModalityList : public QObject
+BCoord::BCoord(double alpha, double beta) :
+	m_alpha(alpha), m_beta(beta)
 {
-	Q_OBJECT
-public:
-	iAModalityList();
-	void Store(QString const & filename, vtkCamera* cam);
-	bool Load(QString const & filename, iAProgress& progress);
-	void ApplyCameraSettings(vtkCamera* cam);
+}
 
-	int size() const;
-	QSharedPointer<iAModality> Get(int idx);
-	QSharedPointer<iAModality const> Get(int idx) const;
-	void Add(QSharedPointer<iAModality> mod);
-	void Remove(int idx);
-	QString const & GetFileName() const;
-	static ModalityCollection Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
-	bool HasUnsavedModality() const;
-signals:
-	void Added(QSharedPointer<iAModality> mod);
-private:
-	bool ModalityExists(QString const & filename, int channel) const;
-	ModalityCollection m_modalitiesActive;
-	QString m_fileName;
-	bool m_camSettingsAvailable;
-	double camPosition[3], camFocalPoint[3], camViewUp[3];
-};
+BCoord::BCoord(BarycentricTriangle triangle, double x, double y)
+{
+	double x1, y1, x2, y2, x3, y3;
+	x1 = triangle.getXa();
+	y1 = triangle.getYa();
+	x2 = triangle.getXb();
+	y2 = triangle.getYb();
+	x3 = triangle.getXc();
+	y3 = triangle.getYc();
 
+	double x_x3 = x - x3;
+	double y_y3 = y - y3;
+	double det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+
+	m_alpha = ((y2 - y3) * x_x3 + (x3 - x2) * y_y3) / det;
+	m_beta = ((y3 - y1) * x_x3 + (x1 - x3) * y_y3) / det;
+}
+
+double BCoord::getAlpha() const
+{
+	return m_alpha;
+}
+
+double BCoord::getBeta() const
+{
+	return m_beta;
+}
+
+double BCoord::getGamma() const
+{
+	return 1 - m_alpha - m_beta;
+}
+
+bool BCoord::isInside() const
+{
+	return m_alpha >= 0 && m_beta >= 0 && m_alpha + m_beta <= 1;
+}

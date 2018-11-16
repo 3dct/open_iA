@@ -20,44 +20,52 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+//#include "ui_dlg_TripleHistogramTF.h"
+//#include "iAQTtoUIConnector.h"
+#include <QDockWidget>
 
-#include <QSharedPointer>
-#include <QVector>
+#include <vtkSmartPointer.h>
 
-class iAModality;
-class iAProgress;
-class iAVolumeSettings;
+class QStackedLayout;
+class QLabel;
 
-class vtkCamera;
+class MdiChild;
+class iABarycentricTriangleWidget;
+class iATripleModalityWidget;
+class BCoord;
 
-typedef QVector<QSharedPointer<iAModality> > ModalityCollection;
+class vtkSmartVolumeMapper;
+class vtkVolume;
+class vtkRenderer;
 
+//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
 
-class open_iA_Core_API iAModalityList : public QObject
+class dlg_TripleHistogramTF : public QDockWidget//public TripleHistogramTFConnector
 {
 	Q_OBJECT
+
 public:
-	iAModalityList();
-	void Store(QString const & filename, vtkCamera* cam);
-	bool Load(QString const & filename, iAProgress& progress);
-	void ApplyCameraSettings(vtkCamera* cam);
+	dlg_TripleHistogramTF(MdiChild* parent, Qt::WindowFlags f = 0);
+	~dlg_TripleHistogramTF();
 
-	int size() const;
-	QSharedPointer<iAModality> Get(int idx);
-	QSharedPointer<iAModality const> Get(int idx) const;
-	void Add(QSharedPointer<iAModality> mod);
-	void Remove(int idx);
-	QString const & GetFileName() const;
-	static ModalityCollection Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
-	bool HasUnsavedModality() const;
-signals:
-	void Added(QSharedPointer<iAModality> mod);
+public slots:
+	void updateTransferFunction();
+	void updateModalities();
+
+private slots:
+
 private:
-	bool ModalityExists(QString const & filename, int channel) const;
-	ModalityCollection m_modalitiesActive;
-	QString m_fileName;
-	bool m_camSettingsAvailable;
-	double camPosition[3], camFocalPoint[3], camViewUp[3];
-};
+	void updateDisabledLabel();
 
+	// TODO: is it really good to keep the mdiChild as a member variable?
+	MdiChild *m_mdiChild;
+
+	// Widgets and stuff
+	QStackedLayout *m_stackedLayout;
+	QLabel *m_disabledLabel;
+	iATripleModalityWidget *m_histogramStack;
+	
+	vtkSmartPointer<vtkSmartVolumeMapper> combinedVolMapper;
+	vtkSmartPointer<vtkRenderer> combinedVolRenderer;
+	vtkSmartPointer<vtkVolume> combinedVol;
+};

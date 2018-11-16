@@ -20,44 +20,39 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include <QWidget>
 
-#include <QSharedPointer>
-#include <QVector>
+#include "iATripleModalityWidget.h"
+//#include "mdichild.h"
+class MdiChild;
+class iADiagramFctWidget;
+class iASimpleSlicerWidget;
 
-class iAModality;
-class iAProgress;
-class iAVolumeSettings;
-
-class vtkCamera;
-
-typedef QVector<QSharedPointer<iAModality> > ModalityCollection;
-
-
-class open_iA_Core_API iAModalityList : public QObject
+class iAHistogramStackGrid : public QWidget
 {
-	Q_OBJECT
 public:
-	iAModalityList();
-	void Store(QString const & filename, vtkCamera* cam);
-	bool Load(QString const & filename, iAProgress& progress);
-	void ApplyCameraSettings(vtkCamera* cam);
-
-	int size() const;
-	QSharedPointer<iAModality> Get(int idx);
-	QSharedPointer<iAModality const> Get(int idx) const;
-	void Add(QSharedPointer<iAModality> mod);
-	void Remove(int idx);
-	QString const & GetFileName() const;
-	static ModalityCollection Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
-	bool HasUnsavedModality() const;
-signals:
-	void Added(QSharedPointer<iAModality> mod);
+	iAHistogramStackGrid(QWidget *parent, iADiagramFctWidget *histograms[3], iASimpleSlicerWidget *slicers[3], QLabel *labels[3], Qt::WindowFlags f = 0);
+	void adjustStretch() { adjustStretch(size().width()); }
+protected:
+	void resizeEvent(QResizeEvent* event);
 private:
-	bool ModalityExists(QString const & filename, int channel) const;
-	ModalityCollection m_modalitiesActive;
-	QString m_fileName;
-	bool m_camSettingsAvailable;
-	double camPosition[3], camFocalPoint[3], camViewUp[3];
+	void adjustStretch(int w);
+	QGridLayout *m_gridLayout;
 };
 
+class iAHistogramStack : public iATripleModalityWidget
+{
+public:
+	iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+
+	// OVERRIDES
+	void initialize() override;
+	bool isSlicerInteractionEnabled() override { return false; }
+	void setModalityLabel(QString label, int index) override;
+
+private:
+	QSplitter *m_splitter;
+	iAHistogramStackGrid *m_grid;
+	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };
+
+};

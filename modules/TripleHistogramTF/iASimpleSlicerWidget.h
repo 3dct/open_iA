@@ -20,44 +20,45 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include <QWidget>
+#include "iASimpleSlicerWidget.h"
+//#include "mdichild.h"
 
 #include <QSharedPointer>
-#include <QVector>
+#include "iAModality.h"
 
-class iAModality;
-class iAProgress;
-class iAVolumeSettings;
+#include "iASlicer.h"
+#include "vtkTransform.h"
 
-class vtkCamera;
-
-typedef QVector<QSharedPointer<iAModality> > ModalityCollection;
-
-
-class open_iA_Core_API iAModalityList : public QObject
+class iASimpleSlicerWidget : public QWidget
 {
 	Q_OBJECT
+
 public:
-	iAModalityList();
-	void Store(QString const & filename, vtkCamera* cam);
-	bool Load(QString const & filename, iAProgress& progress);
-	void ApplyCameraSettings(vtkCamera* cam);
+	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
+	~iASimpleSlicerWidget();
 
-	int size() const;
-	QSharedPointer<iAModality> Get(int idx);
-	QSharedPointer<iAModality const> Get(int idx) const;
-	void Add(QSharedPointer<iAModality> mod);
-	void Remove(int idx);
-	QString const & GetFileName() const;
-	static ModalityCollection Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
-	bool HasUnsavedModality() const;
+	void setSlicerMode(iASlicerMode slicerMode);
+	void setSliceNumber(int sliceNumber);
+
+	bool hasHeightForWidth();
+	int heightForWidth(int width);
+
+	void update();
+
+	void changeModality(QSharedPointer<iAModality> modality);
+
+	iASlicer* getSlicer() { return m_slicer; }
+
+public slots:
+
 signals:
-	void Added(QSharedPointer<iAModality> mod);
-private:
-	bool ModalityExists(QString const & filename, int channel) const;
-	ModalityCollection m_modalitiesActive;
-	QString m_fileName;
-	bool m_camSettingsAvailable;
-	double camPosition[3], camFocalPoint[3], camViewUp[3];
-};
 
+protected:
+
+private:
+	bool m_enableInteraction;
+	vtkTransform *m_slicerTransform;
+	iASlicer *m_slicer;
+	
+};
