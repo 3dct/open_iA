@@ -1396,6 +1396,8 @@ void iAQSplom::setParameterToColorCode(int paramIndex)
 
 void iAQSplom::updateLookupTable()
 {
+	if (m_splomData->numParams() == 0)
+		return;
 	double lutRange[2] = { m_settingsDlg->sbMin->value(), m_settingsDlg->sbMax->value() };
 	double alpha = static_cast<double>(m_settingsDlg->slPointOpacity->value()) / m_settingsDlg->slPointOpacity->maximum();
 	settings.pointColor.setAlpha(alpha*255);
