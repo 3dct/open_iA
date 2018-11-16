@@ -41,6 +41,7 @@
 #endif
 #include <QToolTip>
 #include <QWheelEvent>
+#include <QWindow>
 
 #include <fstream>
 
@@ -867,42 +868,44 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 
 QImage iAChartWidget::drawOffscreen()
 {
-	//the context should be valid. make sure it is current for painting
-	makeCurrent();
-	/*
-	if (!m_isInitialized)
-	{
-		initializeGL();
-		resizeGL(width(), height());
-	}
-	*/
-	QOpenGLFramebufferObjectFormat format;
-	format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
-	auto fbo = new QOpenGLFramebufferObject(width(), height(), format);
-	resizeGL(width(), height());
-	fbo->bind();
-	paintGL();
-	//You could now grab the content of the framebuffer we've rendered to
-	QImage image = fbo->toImage();
-	fbo->release();
-	//#2 --------------------------------------------------------------
-
-	//bind default framebuffer again. not sure if this necessary
-	//and isn't supposed to use defaultFramebuffer()...
-	// fbo->bindDefault();
-	delete fbo;
-	doneCurrent();
+	QSurfaceFormat format;
+	format.setMajorVersion(3);
+	format.setMinorVersion(3);
+	QWindow window;
+	window.setSurfaceType(QWindow::OpenGLSurface);
+	window.setFormat(format);
+	window.create();
+	QOpenGLContext context;
+	context.setFormat(format);
+	if (!context.create())
+		qFatal("Cannot create the requested OpenGL context!");
+	context.makeCurrent(&window);
+	const QSize drawRectSize(width(), height());
+	QOpenGLFramebufferObjectFormat fboFormat;
+	fboFormat.setSamples(4);
+	fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+	QOpenGLFramebufferObject fbo(drawRectSize, fboFormat);
+	fbo.bind();
+	QOpenGLPaintDevice device(drawRectSize);
+	QPainter p;
+	p.begin(&device);
+	drawAll(p);
+	p.end();
+	fbo.release();
+	QImage image = fbo.toImage();
+	context.doneCurrent();
 	return image;
-	// unfortunately image is transparent...
 }
 
 void iAChartWidget::paintGL()
 {
-	//QOpenGLPaintDevice fboPaintDev(width(), height());
-	//QPainter painter(&fboPaintDev);
-	QPainter painter(this);
+	QPainter p(this);
+	drawAll(p);
+}
+
+void iAChartWidget::drawAll(QPainter & painter)
+{
 	painter.setRenderHint(QPainter::Antialiasing);
-	//painter.beginNativePainting();
 	drawBackground(painter);
 	if (activeWidth() <= 1 || activeHeight() <= 1)
 		return;
@@ -937,7 +940,6 @@ void iAChartWidget::paintGL()
 	painter.scale(1, -1);
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	drawAxes(painter);
-	painter.end();
 }
 
 void iAChartWidget::addXMarker(double xPos, QColor const & color)

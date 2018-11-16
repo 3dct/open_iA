@@ -149,6 +149,7 @@ private slots:
 private:
 	virtual void addContextMenuEntries(QMenu* contextMenu);
 	void createMappers();
+	void drawAll(QPainter& painter);
 	void drawImageOverlays(QPainter &painter);
 	virtual void drawAfterPlots(QPainter& painter);
 	virtual void drawXAxis(QPainter &painter);
