@@ -292,7 +292,12 @@ void dlg_CSVInput::updateColumnMappingInputs()
 	cb_ComputeLength->setEnabled    (!computeStartEnd);
 	cb_ComputeAngles->setEnabled    (!computeStartEnd);
 	cb_ComputeCenter->setEnabled    (!computeStartEnd);
-
+	if (computeStartEnd)
+	{
+		cb_ComputeLength->setChecked(false);
+		cb_ComputeAngles->setChecked(false);
+		cb_ComputeCenter->setChecked(false);
+	}
 	updateAngleEditEnabled();
 	updateLengthEditEnabled();
 	updateCenterEditEnabled();

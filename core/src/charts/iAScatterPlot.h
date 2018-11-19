@@ -136,7 +136,7 @@ protected:
 	void drawMaximizedLabels( QPainter &painter );                   //!< Draws additional plot's labels (only maximized plot)
 	void drawSelectionPolygon( QPainter &painter );                  //!< Draws selection-lasso polygon
 	void drawPoints( QPainter &painter );                            //!< Draws plot's points (uses native OpenGL)
-	void createAndFillVBO();                                         //!< Creates and fills VBO with plot's 2D-points.
+	void createVBO();                                                //!< Creates and fills VBO with plot's 2D-points.
 	void fillVBO();                                                  //!< Fill existing VBO with plot's 2D-points.
 
 signals:
@@ -226,4 +226,5 @@ protected:
 	double m_pcc;                                                    //!< correlation coefficient between the two given data columns
 	size_t m_curVisiblePts;                                          //!< number of currently visible points
 	bool m_dragging;                                                 //!< indicates whether a drag operation is currently going on
+	bool m_pointsOutdated;                                           //!< indicates whether we need to fill the points buffer
 };

@@ -63,7 +63,6 @@ class vtkColorTransferFunction;
 class vtkCommand;
 class vtkContextView;
 class vtkDataArray;
-class vtkDelaunay2D;
 class vtkEventQtSlotConnect;
 class vtkFixedPointVolumeRayCastMapper;
 class vtkIdTypeArray;
@@ -155,13 +154,14 @@ private:
 	void initElementTableModel(int idx = -10000);
 	void initClassTreeModel();
 	void initFeatureScoutUI();
-	//! @{ polar plot related methods:
-	void setupPolarPlotView(vtkTable *it);
-	void updatePolarPlotColorScalar(vtkTable *it);
+	//! @{ polar plot / length distribution related methods:
+	void updatePolarPlotView(vtkTable *it);
 	void drawPolarPlotMesh(vtkRenderer *renderer);
-	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
+	void drawOrientationScalarBar(vtkScalarsToColors *lut);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
+	void showLengthDistribution(bool show, vtkScalarsToColors* lut = nullptr);
+	void showOrientationDistribution();
 	//! @}
 	//! @{ parallel coordinate chart related methods:
 	void setPCChartData(bool lookupTable = false);
@@ -219,7 +219,7 @@ private:
 	QList<vtkSmartPointer<vtkTable> > tableList;    //!< The data table for each class.
 	QList<QColor> m_colorList;                      //!< The color for each class.
 	std::vector<char> columnVisibility;             //!< Element(=column) visibility list
-	vtkSmartPointer<vtkLookupTable> lut;            //!< Color lookup table for multi-class rendering in parallel coordinate view
+	vtkSmartPointer<vtkLookupTable> m_multiClassLUT;//!< Color lookup table for multi-class rendering in parallel coordinate view
 	QTreeView* classTreeView;                       //!< Class tree view
 	QTableView* elementTableView;                   //!< Element(=column) table view
 	QStandardItemModel* elementTableModel;          //!< Model for element table
@@ -244,6 +244,8 @@ private:
 	static const int PCMinTicksCount; //!< minimum number of ticks
 	//! @}
 
+	vtkSmartPointer<vtkContextView> m_lengthDistrView;
+
 	iARenderer *raycaster;
 	iABlobManager *blobManager;
 	QMap <QString, iABlobCluster*> blobMap;
@@ -251,22 +253,17 @@ private:
 	//! @{ polar plot view
 	int gPhi, gThe;
 	float PolarPlotPhiResolution, PolarPlotThetaResolution;
-	vtkDelaunay2D *delaunay;
-	vtkPolyData *PolarPlotPolyData;
-	vtkStructuredGrid *PolarPlotGrid;
 	//! @}
 
 	dlg_blobVisualization *blobVisDialog;
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget *pcWidget, *polarPlot, *meanObjectWidget;
+	QVTKOpenGLWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_meanObjectRenderWindow;
 #else
-	QVTKWidget *pcWidget, *polarPlot, *meanObjectWidget;
+	QVTKWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
 	vtkSmartPointer<vtkRenderWindow> m_meanObjectRenderWindow;
 #endif
-	QWidget *orientationColorMapSelection;
-	QComboBox * orientColormap;
 
 	vtkSmartPointer<vtkContextView> m_dvContextView;
 

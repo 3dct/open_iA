@@ -154,6 +154,8 @@ inline void SetLookupTable( vtkPlotPoints * pp, vtkScalarsToColors * lut, const 
 
 void iASPMView::applyLookupTable()
 {
+	if (m_splom->data()->numParams() == 0)
+		return;
 	updateLUT();
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( m_splom->data()->parameterName(m_splom->colorLookupParam()).toStdString().c_str() );

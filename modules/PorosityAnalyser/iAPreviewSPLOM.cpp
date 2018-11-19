@@ -77,7 +77,7 @@ QRectF iAPreviewSPLOM::GetROI() const
 	return m_locRoi;
 }
 
-void iAPreviewSPLOM::paintEvent( QPaintEvent * event )
+void iAPreviewSPLOM::paintGL( )
 {
 	QPainter painter( this );
 	painter.setRenderHint( QPainter::Antialiasing );
@@ -88,7 +88,7 @@ void iAPreviewSPLOM::paintEvent( QPaintEvent * event )
 
 	painter.drawPixmap( m_origin, m_scaledPxmp );
 	if( m_maskPtrExt )
-		painter.drawPixmap( m_origin, m_scaledMask );;
+		painter.drawPixmap( m_origin, m_scaledMask );
 	QPen p( roiCol ); p.setWidthF( penWidth ); p.setJoinStyle( Qt::MiterJoin );
 	painter.setPen( p );
 	QRectF rect;
@@ -101,6 +101,7 @@ void iAPreviewSPLOM::paintEvent( QPaintEvent * event )
 
 void iAPreviewSPLOM::resizeEvent( QResizeEvent * event )
 {
+	QOpenGLWidget::resizeEvent(event);
 	if( !m_pxmp )
 		return;
 	Scale();

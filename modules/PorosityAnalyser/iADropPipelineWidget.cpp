@@ -262,7 +262,7 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 		{
 			QMessageBox msgBox;
 			msgBox.setText( "No dataset. First pipeline position must be a dataset." );
-			msgBox.setWindowTitle( "iAnalyse -- PorosityAnalyzer" );
+			msgBox.setWindowTitle( "FeatureAnalyzer" );
 			msgBox.exec();
 			return;
 		}

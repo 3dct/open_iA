@@ -50,7 +50,7 @@ public:
 	QRectF GetROI() const;
 
 protected:
-	void paintEvent( QPaintEvent * event ) override;				//!< Draws SPLOM.
+	void paintGL( ) override;				//!< Draws SPLOM.
 	void resizeEvent( QResizeEvent * event ) override;
 	void mousePressEvent(QMouseEvent * event) override;
 	void mouseMoveEvent(QMouseEvent * event) override;
