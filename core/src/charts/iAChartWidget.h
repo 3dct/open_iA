@@ -27,8 +27,9 @@
 #define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
 #define NOMINMAX
 
+#include <QtGlobal>
 #include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 #include <QOpenGLWidget>
 #else
 #include <QGLWidget>
@@ -44,7 +45,7 @@ class iAMapper;
 class QMenu;
 class QRubberBand;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class open_iA_Core_API iAChartWidget : public QOpenGLWidget
 #else
 class open_iA_Core_API iAChartWidget : public QGLWidget
@@ -102,6 +103,8 @@ public:
 	void updateBounds(size_t startPlot = 0);
 	void updateXBounds(size_t startPlot = 0);
 	void updateYBounds(size_t startPlot = 0);
+	QImage drawOffscreen();
+public slots:
 	void resetView();
 	void setDrawXAxisAtZero(bool enable);
 signals:
@@ -144,7 +147,7 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void wheelEvent(QWheelEvent *event) override;
 	void leaveEvent(QEvent *event) override;
-	void paintEvent(QPaintEvent *) override;
+	void paintGL() override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	void keyReleaseEvent(QKeyEvent *event) override;
 private slots:
@@ -153,6 +156,7 @@ private slots:
 private:
 	virtual void addContextMenuEntries(QMenu* contextMenu);
 	void createMappers();
+	void drawAll(QPainter& painter);
 	void drawImageOverlays(QPainter &painter);
 	virtual void drawAfterPlots(QPainter& painter);
 	virtual void drawXAxis(QPainter &painter);

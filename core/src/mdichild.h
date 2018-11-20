@@ -294,6 +294,7 @@ Q_SIGNALS:
 	void viewInitialized();
 	void TransferFunctionChanged();
 	void fileLoaded();
+	void histogramAvailable();
 
 private slots:
 	void maximizeRC();

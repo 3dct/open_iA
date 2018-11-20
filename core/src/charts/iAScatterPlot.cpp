@@ -99,7 +99,8 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* p
 	m_colInd( 0 ),
 	m_pcc( 0 ),
 	m_curVisiblePts ( 0 ),
-	m_dragging(false)
+	m_dragging(false),
+	m_pointsOutdated(true)
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
@@ -141,8 +142,7 @@ bool iAScatterPlot::hasData() const
 
 void iAScatterPlot::updatePoints()
 {
-	if(m_pointsBuffer)
-		fillVBO();
+	m_pointsOutdated = true;
 }
 
 void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, int colInd )
@@ -265,9 +265,11 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	if ( !hasData() )
 		return;
 	if (!m_pointsBuffer)
-		createAndFillVBO();
+		createVBO();
 	if (!m_pointsBuffer) // if still not initialized here, then we cannot draw
 		return;
+	if (m_pointsOutdated)
+		fillVBO();
 	painter.save();
 	painter.translate( m_globRect.x(), m_globRect.y());
 	painter.setBrush( settings.backgroundColor );
@@ -930,7 +932,7 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 	painter.restore();
 }
 
-void iAScatterPlot::createAndFillVBO()
+void iAScatterPlot::createVBO()
 {
 	if (!m_parentWidget->isVisible())
 		return;
@@ -958,15 +960,12 @@ void iAScatterPlot::createAndFillVBO()
 #endif
 	m_pointsBuffer->allocate((CordDim + ColChan) * m_splomData->numPoints() * sizeof(GLfloat));
 	m_pointsBuffer->release();
-
-	if ( m_lut->initialized() )
-		fillVBO();
 }
 
 void iAScatterPlot::fillVBO()
 {
 	//draw data points
-	if ( !hasData() )
+	if ( !hasData() || !m_lut->initialized())
 		return;
 
 	int elSz = CordDim + ColChan;
@@ -1005,6 +1004,7 @@ void iAScatterPlot::fillVBO()
 	bool res2 = m_pointsBuffer->unmap();
 	assert(res2);
 	m_pointsBuffer->release();
+	m_pointsOutdated = false;
 }
 
 void iAScatterPlot::setSelectionColor(QColor selCol)

@@ -30,6 +30,8 @@
 #include "ui_FeatureScoutMeanObjectView.h"
 
 #include <vtkSmartPointer.h>
+
+#include <QtGlobal>
 #include <vtkVersion.h>
 
 #include <vector>
@@ -50,7 +52,7 @@ class iAQSplom;
 class iARenderer;
 class MdiChild;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class QVTKOpenGLWidget;
 class vtkGenericOpenGLRenderWindow;
 #else
@@ -63,7 +65,6 @@ class vtkColorTransferFunction;
 class vtkCommand;
 class vtkContextView;
 class vtkDataArray;
-class vtkDelaunay2D;
 class vtkEventQtSlotConnect;
 class vtkFixedPointVolumeRayCastMapper;
 class vtkIdTypeArray;
@@ -146,7 +147,7 @@ private slots:
 	void updateMarProgress(int i);
 private:
 	//create labelled output image based on defined classes
-	template <class T> void CreateLabelledOutputMask(iAConnector *con, const QString fOutPath);
+	template <class T> void CreateLabelledOutputMask(iAConnector & con, const QString & fOutPath);
 	void showScatterPlot();
 	void setupModel();
 	void setupViews();
@@ -155,13 +156,14 @@ private:
 	void initElementTableModel(int idx = -10000);
 	void initClassTreeModel();
 	void initFeatureScoutUI();
-	//! @{ polar plot related methods:
-	void setupPolarPlotView(vtkTable *it);
-	void updatePolarPlotColorScalar(vtkTable *it);
+	//! @{ polar plot / length distribution related methods:
+	void updatePolarPlotView(vtkTable *it);
 	void drawPolarPlotMesh(vtkRenderer *renderer);
-	void drawScalarBar(vtkScalarsToColors *lut, vtkRenderer *renderer, int RenderType = 0);
+	void drawOrientationScalarBar(vtkScalarsToColors *lut);
 	void drawAnnotations(vtkRenderer *renderer);
 	void setupPolarPlotResolution(float grad);
+	void showLengthDistribution(bool show, vtkScalarsToColors* lut = nullptr);
+	void showOrientationDistribution();
 	//! @}
 	//! @{ parallel coordinate chart related methods:
 	void setPCChartData(bool lookupTable = false);
@@ -206,6 +208,7 @@ private:
 	iAFeatureScoutObjectType filterID;              //!< Type of objects that are shown
 	bool draw3DPolarPlot;                           //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
 	int m_renderMode;                               //!< Indicates what is currently shown: single classes, or special rendering (multi-class, orientation, ...)
+	bool m_singleObjectSelected;                    //!< Indicates whether a single object or a whole class is selected (if m_renderMode is rmSingleClass)
 	int visualization;                              //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
 	const QString m_sourcePath;                     //!< folder of file currently opened
 
@@ -219,7 +222,7 @@ private:
 	QList<vtkSmartPointer<vtkTable> > tableList;    //!< The data table for each class.
 	QList<QColor> m_colorList;                      //!< The color for each class.
 	std::vector<char> columnVisibility;             //!< Element(=column) visibility list
-	vtkSmartPointer<vtkLookupTable> lut;            //!< Color lookup table for multi-class rendering in parallel coordinate view
+	vtkSmartPointer<vtkLookupTable> m_multiClassLUT;//!< Color lookup table for multi-class rendering in parallel coordinate view
 	QTreeView* classTreeView;                       //!< Class tree view
 	QTableView* elementTableView;                   //!< Element(=column) table view
 	QStandardItemModel* elementTableModel;          //!< Model for element table
@@ -244,6 +247,8 @@ private:
 	static const int PCMinTicksCount; //!< minimum number of ticks
 	//! @}
 
+	vtkSmartPointer<vtkContextView> m_lengthDistrView;
+
 	iARenderer *raycaster;
 	iABlobManager *blobManager;
 	QMap <QString, iABlobCluster*> blobMap;
@@ -251,22 +256,17 @@ private:
 	//! @{ polar plot view
 	int gPhi, gThe;
 	float PolarPlotPhiResolution, PolarPlotThetaResolution;
-	vtkDelaunay2D *delaunay;
-	vtkPolyData *PolarPlotPolyData;
-	vtkStructuredGrid *PolarPlotGrid;
 	//! @}
 
 	dlg_blobVisualization *blobVisDialog;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget *pcWidget, *polarPlot, *meanObjectWidget;
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+	QVTKOpenGLWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_meanObjectRenderWindow;
 #else
-	QVTKWidget *pcWidget, *polarPlot, *meanObjectWidget;
+	QVTKWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
 	vtkSmartPointer<vtkRenderWindow> m_meanObjectRenderWindow;
 #endif
-	QWidget *orientationColorMapSelection;
-	QComboBox * orientColormap;
 
 	vtkSmartPointer<vtkContextView> m_dvContextView;
 

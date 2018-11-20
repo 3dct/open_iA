@@ -23,8 +23,9 @@
 #include "open_iA_Core_export.h"
 
 #include <QList>
+#include <QtGlobal>
 #include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 #include <QOpenGLWidget>
 #else
 #include <QGLWidget>
@@ -37,7 +38,7 @@ class iAScatterPlotSelectionHandler;
 class iASPLOMData;
 class QTableWidget;
 class QTimer;
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class QOpenGLBuffer;
 #else
 class QGLBuffer;
@@ -63,7 +64,7 @@ public:
 		Polygon
 	};
 	//!  Constructor: requires a parent SPLOM widget
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	iAScatterPlot(iAScatterPlotSelectionHandler * splom, QOpenGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 #else
 	iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
@@ -136,7 +137,7 @@ protected:
 	void drawMaximizedLabels( QPainter &painter );                   //!< Draws additional plot's labels (only maximized plot)
 	void drawSelectionPolygon( QPainter &painter );                  //!< Draws selection-lasso polygon
 	void drawPoints( QPainter &painter );                            //!< Draws plot's points (uses native OpenGL)
-	void createAndFillVBO();                                         //!< Creates and fills VBO with plot's 2D-points.
+	void createVBO();                                                //!< Creates and fills VBO with plot's 2D-points.
 	void fillVBO();                                                  //!< Fill existing VBO with plot's 2D-points.
 
 signals:
@@ -185,7 +186,7 @@ public:
 	// Members
 	Settings settings;
 protected:
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QOpenGLWidget* m_parentWidget;                                   //!< the parent widget
 	QOpenGLBuffer * m_pointsBuffer;                                  //!< OpenGL buffer used for points VBO
 #else
@@ -226,4 +227,5 @@ protected:
 	double m_pcc;                                                    //!< correlation coefficient between the two given data columns
 	size_t m_curVisiblePts;                                          //!< number of currently visible points
 	bool m_dragging;                                                 //!< indicates whether a drag operation is currently going on
+	bool m_pointsOutdated;                                           //!< indicates whether we need to fill the points buffer
 };

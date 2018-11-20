@@ -69,6 +69,7 @@
 #include <vtkRenderer.h>
 #include <vtkRenderPassCollection.h>
 #include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
 #include <vtkSequencePass.h>
 #include <vtkSphereSource.h>
 #include <vtkSTLReader.h>

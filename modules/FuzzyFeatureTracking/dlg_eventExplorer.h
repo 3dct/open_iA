@@ -41,8 +41,9 @@ class dlg_trackingGraph;
 class iAFeatureTracking;
 class iAVolumeStack;
 
+#include <QtGlobal>
 #include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class QVTKOpenGLWidget;
 #else
 class QVTKWidget;
@@ -93,7 +94,7 @@ private:
 	int m_propertyYId;
 	int m_rgb[5][3];
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	std::vector<QVTKOpenGLWidget*> m_widgets;
 #else
 	std::vector<QVTKWidget*> m_widgets;

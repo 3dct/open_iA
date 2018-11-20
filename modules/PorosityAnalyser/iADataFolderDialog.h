@@ -25,16 +25,13 @@
 class iADataFolderDialog : public QDialog, public Ui_dataFolderDialog
 {
 	Q_OBJECT
-
 public:
 	iADataFolderDialog( QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iADataFolderDialog();
 	QString ResultsFolderName();
 	QString DatasetsFolderName();
-
-protected slots:
+private slots:
 	void browseDataFolder();
 	void browseDatasetsFolder();
-	
-private:
+	void okBtnClicked();
 };
