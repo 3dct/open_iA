@@ -214,6 +214,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	m_sourcePath( parent->getFilePath() ),
 	m_columnMapping(columnMapping),
 	m_renderMode(rmSingleClass),
+	m_singleObjectSelected(false),
 	m_pcFontSize(15),
 	m_pcTickCount(10),
 	m_pcLineWidth(0.1),
@@ -768,12 +769,15 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 void dlg_FeatureScout::RenderMeanObject()
 {
 	if (visualization != iACsvConfig::UseVolume)
+	{
+		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labelled Volume visualization at the moment!");
 		return;
+	}
 	m_renderMode = rmMeanObject;
 	int classCount = classTreeModel->invisibleRootItem()->rowCount();
 	if ( classCount < 2 )	// unclassified class only
 	{
-		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class)." );
+		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!" );
 		return;
 	}
 	activeChild->initProgressBar();
@@ -1976,7 +1980,10 @@ void dlg_FeatureScout::ExportClassButton()
 	UChar_Image::SizeType u_size;
 	auto img_data = activeChild->getImagePointer();
 	if (!img_data)
+	{
+		QMessageBox::information(this, "FeatureScout", "Feature only available if volume data is loaded!");
 		return;
+	}
 	con->SetImage(img_data);
 	ITK_TYPED_CALL(CreateLabelledOutputMask, con->GetITKScalarPixelType(),  con, fileName);
 }
@@ -2602,7 +2609,8 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		return;
 	}
 	QStandardItem* classItem = item->hasChildren() ? item : item->parent();
-	if (classItem != activeClassItem || m_renderMode != rmSingleClass)
+	if (classItem != activeClassItem || m_renderMode != rmSingleClass ||
+		(m_singleObjectSelected && item->hasChildren()) )
 	{
 		int classID = classItem->index().row();
 		m_splom->setFilter(classID);
@@ -2617,6 +2625,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			m_splom->clearSelection();
 		}
 	}
+	m_singleObjectSelected = !item->hasChildren();
 	if (m_renderMode != rmSingleClass)  // special rendering was enabled before
 	{
 		m_renderMode = rmSingleClass;
