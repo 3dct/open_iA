@@ -263,10 +263,10 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupConnections();
 	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0));
 	if (vis != iACsvConfig::UseVolume)
-	{
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
-	}
+	else
+		SingleRendering();
 	m_3dvis->show();
 	parent->getRenderer()->GetRenderer()->ResetCamera();
 	blobVisDialog = new dlg_blobVisualization();
