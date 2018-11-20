@@ -259,7 +259,6 @@ void iASlicer::changeImageData( vtkImageData *idata )
 	m_widget->changeImageData(idata);
 }
 
-
 //iASlicerWidget: wrapping methods
 void iASlicer::setIndex( int x, int y, int z )
 {

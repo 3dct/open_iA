@@ -98,6 +98,7 @@ public:
 	void updateBounds(size_t startPlot = 0);
 	void updateXBounds(size_t startPlot = 0);
 	void updateYBounds(size_t startPlot = 0);
+	QImage drawOffscreen();
 public slots:
 	void resetView();
 	void setDrawXAxisAtZero(bool enable);
@@ -140,7 +141,7 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void wheelEvent(QWheelEvent *event) override;
 	void leaveEvent(QEvent *event) override;
-	void paintEvent(QPaintEvent *) override;
+	void paintGL() override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	void keyReleaseEvent(QKeyEvent *event) override;
 private slots:
@@ -149,6 +150,7 @@ private slots:
 private:
 	virtual void addContextMenuEntries(QMenu* contextMenu);
 	void createMappers();
+	void drawAll(QPainter& painter);
 	void drawImageOverlays(QPainter &painter);
 	virtual void drawAfterPlots(QPainter& painter);
 	virtual void drawXAxis(QPainter &painter);
