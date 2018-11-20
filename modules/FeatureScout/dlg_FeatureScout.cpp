@@ -773,13 +773,13 @@ void dlg_FeatureScout::RenderMeanObject()
 		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labelled Volume visualization at the moment!");
 		return;
 	}
-	m_renderMode = rmMeanObject;
 	int classCount = classTreeModel->invisibleRootItem()->rowCount();
 	if ( classCount < 2 )	// unclassified class only
 	{
 		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!" );
 		return;
 	}
+	m_renderMode = rmMeanObject;
 	activeChild->initProgressBar();
 
 	// Delete old mean object data lists
@@ -1976,6 +1976,12 @@ void dlg_FeatureScout::ExportClassButton()
 		QMessageBox::information(this, "FeatureScout", "Feature only available if labelled volume visualization is used!");
 		return;
 	}
+	int classCount = classTreeModel->invisibleRootItem()->rowCount();
+	if (classCount < 2)	// unclassified class only
+	{
+		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
+		return;
+	}
 	QString fileName = QFileDialog::getSaveFileName(this,
 		tr("Save Classes..."), "",
 		tr("mhd (*.mhd)"));
@@ -2000,7 +2006,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 	if (fiberIDLabelling &&
 		(QMessageBox::question(this, "FeatureScout", "Only one class selected, "
 			"should we export the individual fiber IDs? "
-			"If you select No, all fibers will be labelled with the class ID.",
+			"If you select No, all fibers in the class will be labelled with the class ID.",
 			QMessageBox::Yes | QMessageBox::No)
 			== QMessageBox::No))
 	{
