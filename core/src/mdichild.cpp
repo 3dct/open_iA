@@ -2900,6 +2900,7 @@ void MdiChild::HistogramDataAvailable(int modalityIdx)
 		tabifyDockWidget(logs, m_histogramContainer);
 		this->addProfile();
 	}
+	emit histogramAvailable();
 }
 
 void MdiChild::displayHistogram(int modalityIdx)
