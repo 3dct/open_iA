@@ -208,6 +208,7 @@ private:
 	iAFeatureScoutObjectType filterID;              //!< Type of objects that are shown
 	bool draw3DPolarPlot;                           //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
 	int m_renderMode;                               //!< Indicates what is currently shown: single classes, or special rendering (multi-class, orientation, ...)
+	bool m_singleObjectSelected;                    //!< Indicates whether a single object or a whole class is selected (if m_renderMode is rmSingleClass)
 	int visualization;                              //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
 	const QString m_sourcePath;                     //!< folder of file currently opened
 
