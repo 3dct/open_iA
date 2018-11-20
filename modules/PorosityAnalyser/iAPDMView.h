@@ -29,7 +29,7 @@
 #include <QDockWidget>
 #include <QList>
 #include <QMap>
-
+#include <QtGlobal>    // for QT_VERSION
 
 struct iABPMData;
 struct iAHMData;
@@ -37,7 +37,7 @@ struct iAHMData;
 class QCustomPlot;
 class QModelIndex;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class QVTKOpenGLWidget;
 #else
 class QVTKWidget;
@@ -96,7 +96,7 @@ protected:
 	QMap<QObject*, QModelIndex> m_indices;
 	QModelIndexList m_selectedIndices;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QVTKOpenGLWidget * m_sbWidget;
 #else
 	QVTKWidget * m_sbWidget;

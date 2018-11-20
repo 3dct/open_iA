@@ -23,7 +23,6 @@
 #include <QDockWidget>
 #include <vtkSmartPointer.h>
 #include <vtkVector.h>
-#include <vtkVersion.h>
 
 #include "ui_SPMView.h"
 #include "iAQTtoUIConnector.h"
@@ -33,7 +32,9 @@ class QCheckBox;
 class QTableWidget;
 class QVBoxLayout;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QtGlobal>
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class QVTKOpenGLWidget;
 #else
 class QVTKWidget;
@@ -107,7 +108,7 @@ protected:
 	iAPAQSplom * m_splom;
 	vtkSmartPointer<vtkIdTypeArray> m_SPLOMSelection;
 	vtkSmartPointer<vtkLookupTable> m_lut;
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QVTKOpenGLWidget * m_SBQVTKWidget;
 #else
 	QVTKWidget * m_SBQVTKWidget;

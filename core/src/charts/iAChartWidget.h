@@ -27,8 +27,9 @@
 #define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
 #define NOMINMAX
 
+#include <QtGlobal>
 #include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 #include <QOpenGLWidget>
 #else
 #include <QGLWidget>
@@ -41,7 +42,7 @@ class iAMapper;
 
 class QMenu;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class open_iA_Core_API iAChartWidget : public QOpenGLWidget
 #else
 class open_iA_Core_API iAChartWidget : public QGLWidget

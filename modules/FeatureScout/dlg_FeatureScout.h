@@ -30,6 +30,8 @@
 #include "ui_FeatureScoutMeanObjectView.h"
 
 #include <vtkSmartPointer.h>
+
+#include <QtGlobal>
 #include <vtkVersion.h>
 
 #include <vector>
@@ -50,7 +52,7 @@ class iAQSplom;
 class iARenderer;
 class MdiChild;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class QVTKOpenGLWidget;
 class vtkGenericOpenGLRenderWindow;
 #else
@@ -257,7 +259,7 @@ private:
 
 	dlg_blobVisualization *blobVisDialog;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QVTKOpenGLWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_meanObjectRenderWindow;
 #else
