@@ -820,6 +820,7 @@ void iASlicerWidget::resizeEvent( QResizeEvent * event )
 
 void iASlicerWidget::wheelEvent(QWheelEvent* event)
 {
+	event->accept();
 	if (event->modifiers().testFlag(Qt::ControlModifier) && receivers(SIGNAL(ctrlMouseWheel(int))) > 0)
 	{
 		emit ctrlMouseWheel(event->angleDelta().y() / 120.0);

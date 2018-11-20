@@ -20,60 +20,39 @@
 * ************************************************************************************/
 #pragma once
 
-// Qt
-#include <QDockWidget>
 #include <QWidget>
-// iA
-#include "ui_TrackingGraph.h"
-#include "iATrackingGraphItem.h"
-// VTK
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-#include <QVTKOpenGLWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#else
-#include <QVTKWidget.h>
-#include <vtkRenderWindow.h>
-#endif
-#include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkContextInteractorStyle.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkContextTransform.h>
-#include <vtkContextActor.h>
-#include <vtkMutableDirectedGraph.h>
-#include <vtkContextScene.h>
-// std
-#include <map>
 
-class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
+#include "iATripleModalityWidget.h"
+//#include "mdichild.h"
+class MdiChild;
+class iADiagramFctWidget;
+class iASimpleSlicerWidget;
+
+class iAHistogramStackGrid : public QWidget
 {
-	Q_OBJECT
-
 public:
-	dlg_trackingGraph(QWidget* parent);
+	iAHistogramStackGrid(QWidget *parent, iADiagramFctWidget *histograms[3], iASimpleSlicerWidget *slicers[3], QLabel *labels[3], Qt::WindowFlags f = 0);
+	void adjustStretch() { adjustStretch(size().width()); }
+protected:
+	void resizeEvent(QResizeEvent* event);
+private:
+	void adjustStretch(int w);
+	QGridLayout *m_gridLayout;
+};
 
-	void updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
+class iAHistogramStack : public iATripleModalityWidget
+{
+public:
+	iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+
+	// OVERRIDES
+	void initialize() override;
+	bool isSlicerInteractionEnabled() override { return false; }
+	void setModalityLabel(QString label, int index) override;
 
 private:
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-	QVTKOpenGLWidget* graphWidget;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renderWindow;
-#else
-	QVTKWidget*		graphWidget;
-	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
-#endif
+	QSplitter *m_splitter;
+	iAHistogramStackGrid *m_grid;
+	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };
 
-	vtkSmartPointer<vtkMutableDirectedGraph>	m_graph;
-	vtkSmartPointer<iATrackingGraphItem>		m_graphItem;
-	vtkSmartPointer<vtkContextActor>			m_actor;
-	vtkSmartPointer<vtkContextTransform>		m_trans;
-	vtkSmartPointer<vtkRenderer>				m_renderer;
-	vtkSmartPointer<vtkContextScene>			m_contextScene;
-	vtkSmartPointer<vtkContextInteractorStyle>	m_interactorStyle;
-	vtkSmartPointer<vtkRenderWindowInteractor>	m_interactor;
-
-	std::map<vtkIdType, int>					m_nodesToLayers;
-	std::map<int, std::map<vtkIdType, int>>		m_graphToTableId;
 };

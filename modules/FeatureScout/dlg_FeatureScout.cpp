@@ -214,6 +214,7 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	m_sourcePath( parent->getFilePath() ),
 	m_columnMapping(columnMapping),
 	m_renderMode(rmSingleClass),
+	m_singleObjectSelected(false),
 	m_pcFontSize(15),
 	m_pcTickCount(10),
 	m_pcLineWidth(0.1),
@@ -262,10 +263,10 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	setupConnections();
 	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0));
 	if (vis != iACsvConfig::UseVolume)
-	{
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(filterID)), nullptr, nullptr);
-	}
+	else
+		SingleRendering();
 	m_3dvis->show();
 	parent->getRenderer()->GetRenderer()->ResetCamera();
 	blobVisDialog = new dlg_blobVisualization();
@@ -768,14 +769,17 @@ void dlg_FeatureScout::RenderSelection( std::vector<size_t> const & selInds )
 void dlg_FeatureScout::RenderMeanObject()
 {
 	if (visualization != iACsvConfig::UseVolume)
+	{
+		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labelled Volume visualization at the moment!");
 		return;
-	m_renderMode = rmMeanObject;
+	}
 	int classCount = classTreeModel->invisibleRootItem()->rowCount();
 	if ( classCount < 2 )	// unclassified class only
 	{
-		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class)." );
+		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!" );
 		return;
 	}
+	m_renderMode = rmMeanObject;
 	activeChild->initProgressBar();
 
 	// Delete old mean object data lists
@@ -1967,57 +1971,64 @@ void dlg_FeatureScout::WisetexSaveButton()
 
 void dlg_FeatureScout::ExportClassButton()
 {
+	if ( visualization != iACsvConfig::UseVolume )
+	{
+		QMessageBox::information(this, "FeatureScout", "Feature only available if labelled volume visualization is used!");
+		return;
+	}
+	int classCount = classTreeModel->invisibleRootItem()->rowCount();
+	if (classCount < 2)	// unclassified class only
+	{
+		QMessageBox::warning(this, "FeatureScout", "No defined class (except the 'unclassified' class) - please create at least one class first!");
+		return;
+	}
 	QString fileName = QFileDialog::getSaveFileName(this,
 		tr("Save Classes..."), "",
 		tr("mhd (*.mhd)"));
-	//itk to vtk conversion
-	iAConnector* con = new iAConnector();
-	typedef itk::Image<unsigned char, 3> UChar_Image;
-	UChar_Image::SizeType u_size;
-	auto img_data = activeChild->getImagePointer();
-	if (!img_data)
+	if (fileName.isEmpty())
 		return;
-	con->SetImage(img_data);
-	ITK_TYPED_CALL(CreateLabelledOutputMask, con->GetITKScalarPixelType(),  con, fileName);
+	iAConnector con;
+	auto img_data = activeChild->getImagePointer();
+	con.SetImage(img_data);
+	ITK_TYPED_CALL(CreateLabelledOutputMask, con.GetITKScalarPixelType(), con, fileName);
 }
 
 template <class T>
-void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString fOutPath)
+void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString & fOutPath)
 {
 	typedef int ClassIDType;
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<ClassIDType, DIM>   OutputImageType;
 	OutputImageType::SizeType OutputImageSize;
-	bool singleClassification = false;
-	size_t labelID = 0;
-	QMap<size_t, ClassIDType> currentEntries;
-	if (!con)
-		return;
 
-	//create map of labelid <-> classes:
-	if (classTreeModel->invisibleRootItem()->hasChildren())
+	bool fiberIDLabelling = (classTreeModel->invisibleRootItem()->rowCount() >= 2 &&
+		(m_renderMode == rmSingleClass && activeClassItem->row() > 0));
+	if (fiberIDLabelling &&
+		(QMessageBox::question(this, "FeatureScout", "Only one class selected, "
+			"should we export the individual fiber IDs? "
+			"If you select No, all fibers in the class will be labelled with the class ID.",
+			QMessageBox::Yes | QMessageBox::No)
+			== QMessageBox::No))
 	{
-		// if only one class exists
-		singleClassification = (classTreeModel->invisibleRootItem()->rowCount() == 2);
-		if (singleClassification &&
-			(QMessageBox::question(this, "FeatureScout", "Only one class selected, should we export LabelIds (If you select No, all fibers will be labelled with the class ID)?", QMessageBox::Yes | QMessageBox::No)
-				== QMessageBox::No))
+		fiberIDLabelling = false;
+	}
+
+	QMap<size_t, ClassIDType> currentEntries;
+	// Skip first, as classes start with 1, 0 is the uncategorized class
+	for (int i = 1; i < classTreeModel->invisibleRootItem()->rowCount(); i++)
+	{
+		if (m_renderMode == rmSingleClass && i != activeClassItem->row())
+			continue;
+		auto x = classTreeModel->invisibleRootItem()->rowCount();
+		QStandardItem *item = classTreeModel->invisibleRootItem()->child(i);
+		for (int j = 0; j < item->rowCount(); j++)
 		{
-			singleClassification = false;
-		}
-		// Skip first, as classes start with 1, 0 is the uncategorized class
-		for (int i = 1; i < classTreeModel->invisibleRootItem()->rowCount(); i++)
-		{
-			auto x = classTreeModel->invisibleRootItem()->rowCount();
-			QStandardItem *item = classTreeModel->invisibleRootItem()->child(i);
-			for (int j = 0; j < item->rowCount(); j++)
-			{
-				size_t labelID = item->child(j)->text().toULongLong();
-				currentEntries.insert(labelID, i);
-			}
+			size_t labelID = item->child(j)->text().toULongLong();
+			currentEntries.insert(labelID, i);
 		}
 	}
-	auto in_img = dynamic_cast<InputImageType*>  (con->GetITKImage());
+
+	auto in_img = dynamic_cast<InputImageType*>(con.GetITKImage());
 	auto region_in = in_img->GetLargestPossibleRegion();
 	const OutputImageType::SpacingType outSpacing = in_img ->GetSpacing();
 	auto out_img = CreateImage<OutputImageType>(region_in.GetSize(), outSpacing);
@@ -2025,8 +2036,8 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 	itk::ImageRegionIterator<OutputImageType> out(out_img, region_in);
 	while (!in.IsAtEnd())
 	{
-		labelID = static_cast<size_t>(in.Get());
-		if (singleClassification)
+		size_t labelID = static_cast<size_t>(in.Get());
+		if (fiberIDLabelling)
 		{
 			if (currentEntries.contains(labelID))
 			{
@@ -2044,11 +2055,8 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 		++in;
 		++out;
 	}
-	if (!fOutPath.isEmpty())
-	{
-		StoreImage<OutputImageType>(out_img, fOutPath, true);
-		activeChild->addMsg("Stored image of of classes.");
-	}
+	StoreImage<OutputImageType>(out_img, fOutPath, activeChild->GetPreferences().Compression);
+	activeChild->addMsg("Stored image of of classes.");
 }
 
 void dlg_FeatureScout::ClassSaveButton()
@@ -2602,7 +2610,8 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 		return;
 	}
 	QStandardItem* classItem = item->hasChildren() ? item : item->parent();
-	if (classItem != activeClassItem || m_renderMode != rmSingleClass)
+	if (classItem != activeClassItem || m_renderMode != rmSingleClass ||
+		(m_singleObjectSelected && item->hasChildren()) )
 	{
 		int classID = classItem->index().row();
 		m_splom->setFilter(classID);
@@ -2617,6 +2626,7 @@ void dlg_FeatureScout::classClicked( const QModelIndex &index )
 			m_splom->clearSelection();
 		}
 	}
+	m_singleObjectSelected = !item->hasChildren();
 	if (m_renderMode != rmSingleClass)  // special rendering was enabled before
 	{
 		m_renderMode = rmSingleClass;

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,49 +15,19 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include "open_iA_Core_export.h"
+#include "iATripleBarycentricTransfer.h"
 
-#include <QSharedPointer>
-#include <QVector>
-
-class iAModality;
-class iAProgress;
-class iAVolumeSettings;
-
-class vtkCamera;
-
-typedef QVector<QSharedPointer<iAModality> > ModalityCollection;
-
-
-class open_iA_Core_API iAModalityList : public QObject
+iATripleBarycentricTransfer::iATripleBarycentricTransfer()
 {
-	Q_OBJECT
-public:
-	iAModalityList();
-	void Store(QString const & filename, vtkCamera* cam);
-	bool Load(QString const & filename, iAProgress& progress);
-	void ApplyCameraSettings(vtkCamera* cam);
 
-	int size() const;
-	QSharedPointer<iAModality> Get(int idx);
-	QSharedPointer<iAModality const> Get(int idx) const;
-	void Add(QSharedPointer<iAModality> mod);
-	void Remove(int idx);
-	QString const & GetFileName() const;
-	static ModalityCollection Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags);
-	bool HasUnsavedModality() const;
-signals:
-	void Added(QSharedPointer<iAModality> mod);
-private:
-	bool ModalityExists(QString const & filename, int channel) const;
-	ModalityCollection m_modalitiesActive;
-	QString m_fileName;
-	bool m_camSettingsAvailable;
-	double camPosition[3], camFocalPoint[3], camViewUp[3];
-};
+}
 
+
+iATripleBarycentricTransfer::~iATripleBarycentricTransfer()
+{
+
+}

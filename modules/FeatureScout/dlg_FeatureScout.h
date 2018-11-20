@@ -30,6 +30,8 @@
 #include "ui_FeatureScoutMeanObjectView.h"
 
 #include <vtkSmartPointer.h>
+
+#include <QtGlobal>
 #include <vtkVersion.h>
 
 #include <vector>
@@ -50,7 +52,7 @@ class iAQSplom;
 class iARenderer;
 class MdiChild;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class QVTKOpenGLWidget;
 class vtkGenericOpenGLRenderWindow;
 #else
@@ -145,7 +147,7 @@ private slots:
 	void updateMarProgress(int i);
 private:
 	//create labelled output image based on defined classes
-	template <class T> void CreateLabelledOutputMask(iAConnector *con, const QString fOutPath);
+	template <class T> void CreateLabelledOutputMask(iAConnector & con, const QString & fOutPath);
 	void showScatterPlot();
 	void setupModel();
 	void setupViews();
@@ -206,6 +208,7 @@ private:
 	iAFeatureScoutObjectType filterID;              //!< Type of objects that are shown
 	bool draw3DPolarPlot;                           //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
 	int m_renderMode;                               //!< Indicates what is currently shown: single classes, or special rendering (multi-class, orientation, ...)
+	bool m_singleObjectSelected;                    //!< Indicates whether a single object or a whole class is selected (if m_renderMode is rmSingleClass)
 	int visualization;                              //!< 3D visualization being used (a value out of iACsvConfig::VisualizationType
 	const QString m_sourcePath;                     //!< folder of file currently opened
 
@@ -257,7 +260,7 @@ private:
 
 	dlg_blobVisualization *blobVisDialog;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QVTKOpenGLWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_meanObjectRenderWindow;
 #else

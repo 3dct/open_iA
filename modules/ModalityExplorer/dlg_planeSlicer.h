@@ -21,14 +21,14 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
-#include <vtkVersion.h>
 
 #include "ui_planeSlicer.h"
 #include "iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_PlaneSlicer> dlg_planeSlicerUI;
 
-
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QtGlobal>
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class QVTKOpenGLWidget;
 #else
 class QVTKWidget2;
@@ -49,7 +49,7 @@ public:
 	void SetCuttingPlane(double pos[3], double n[3]);
 	void SetOpacity(int imageIdx, double opacity);
 private:
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QVTKOpenGLWidget* m_vtkWidget;
 #else
 	QVTKWidget2* m_vtkWidget;

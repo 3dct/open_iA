@@ -20,60 +20,52 @@
 * ************************************************************************************/
 #pragma once
 
-// Qt
+//#include "ui_dlg_TripleHistogramTF.h"
+//#include "iAQTtoUIConnector.h"
 #include <QDockWidget>
-#include <QWidget>
-// iA
-#include "ui_TrackingGraph.h"
-#include "iATrackingGraphItem.h"
-// VTK
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-#include <QVTKOpenGLWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#else
-#include <QVTKWidget.h>
-#include <vtkRenderWindow.h>
-#endif
-#include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkContextInteractorStyle.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkContextTransform.h>
-#include <vtkContextActor.h>
-#include <vtkMutableDirectedGraph.h>
-#include <vtkContextScene.h>
-// std
-#include <map>
 
-class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
+#include <vtkSmartPointer.h>
+
+class QStackedLayout;
+class QLabel;
+
+class MdiChild;
+class iABarycentricTriangleWidget;
+class iATripleModalityWidget;
+class BCoord;
+
+class vtkSmartVolumeMapper;
+class vtkVolume;
+class vtkRenderer;
+
+//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
+
+class dlg_TripleHistogramTF : public QDockWidget//public TripleHistogramTFConnector
 {
 	Q_OBJECT
 
 public:
-	dlg_trackingGraph(QWidget* parent);
+	dlg_TripleHistogramTF(MdiChild* parent, Qt::WindowFlags f = 0);
+	~dlg_TripleHistogramTF();
 
-	void updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
+public slots:
+	void updateTransferFunction();
+	void updateModalities();
+
+private slots:
 
 private:
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-	QVTKOpenGLWidget* graphWidget;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renderWindow;
-#else
-	QVTKWidget*		graphWidget;
-	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
-#endif
+	void updateDisabledLabel();
 
-	vtkSmartPointer<vtkMutableDirectedGraph>	m_graph;
-	vtkSmartPointer<iATrackingGraphItem>		m_graphItem;
-	vtkSmartPointer<vtkContextActor>			m_actor;
-	vtkSmartPointer<vtkContextTransform>		m_trans;
-	vtkSmartPointer<vtkRenderer>				m_renderer;
-	vtkSmartPointer<vtkContextScene>			m_contextScene;
-	vtkSmartPointer<vtkContextInteractorStyle>	m_interactorStyle;
-	vtkSmartPointer<vtkRenderWindowInteractor>	m_interactor;
+	// TODO: is it really good to keep the mdiChild as a member variable?
+	MdiChild *m_mdiChild;
 
-	std::map<vtkIdType, int>					m_nodesToLayers;
-	std::map<int, std::map<vtkIdType, int>>		m_graphToTableId;
+	// Widgets and stuff
+	QStackedLayout *m_stackedLayout;
+	QLabel *m_disabledLabel;
+	iATripleModalityWidget *m_histogramStack;
+	
+	vtkSmartPointer<vtkSmartVolumeMapper> combinedVolMapper;
+	vtkSmartPointer<vtkRenderer> combinedVolRenderer;
+	vtkSmartPointer<vtkVolume> combinedVol;
 };

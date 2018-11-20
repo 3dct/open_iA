@@ -28,8 +28,8 @@
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_PCView> PCViewConnector;
 
-
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#include <QtGlobal>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class QVTKOpenGLWidget;
 #else
 class QVTKWidget;
@@ -56,7 +56,7 @@ protected:
 protected:
 	vtkSmartPointer<vtkContextView> m_view;
 	vtkSmartPointer<vtkChartParallelCoordinates> m_chart;
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QVTKOpenGLWidget * m_widget;
 #else
 	QVTKWidget * m_widget;

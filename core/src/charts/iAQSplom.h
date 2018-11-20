@@ -24,8 +24,9 @@
 
 #include "iAScatterPlotSelectionHandler.h"
 
+#include <QtGlobal>
 #include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 #include <QOpenGLWidget>
 #else
 #include <QGLWidget>
@@ -89,7 +90,7 @@ class QTableWidget;
 		splom->setLookupTable( lut, 0 );
 */
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class open_iA_Core_API iAQSplom : public QOpenGLWidget, public iAScatterPlotSelectionHandler
 #else
 class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectionHandler
@@ -112,7 +113,7 @@ public:
 		Custom         //!< points are colored
 	};
 // Methods
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
 #else
 	iAQSplom( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );

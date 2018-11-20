@@ -20,60 +20,45 @@
 * ************************************************************************************/
 #pragma once
 
-// Qt
-#include <QDockWidget>
 #include <QWidget>
-// iA
-#include "ui_TrackingGraph.h"
-#include "iATrackingGraphItem.h"
-// VTK
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-#include <QVTKOpenGLWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#else
-#include <QVTKWidget.h>
-#include <vtkRenderWindow.h>
-#endif
-#include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkContextInteractorStyle.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkContextTransform.h>
-#include <vtkContextActor.h>
-#include <vtkMutableDirectedGraph.h>
-#include <vtkContextScene.h>
-// std
-#include <map>
+#include "iASimpleSlicerWidget.h"
+//#include "mdichild.h"
 
-class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
+#include <QSharedPointer>
+#include "iAModality.h"
+
+#include "iASlicer.h"
+#include "vtkTransform.h"
+
+class iASimpleSlicerWidget : public QWidget
 {
 	Q_OBJECT
 
 public:
-	dlg_trackingGraph(QWidget* parent);
+	iASimpleSlicerWidget(QWidget* parent = 0, bool enableInteraction = false, Qt::WindowFlags f = 0);
+	~iASimpleSlicerWidget();
 
-	void updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
+	void setSlicerMode(iASlicerMode slicerMode);
+	void setSliceNumber(int sliceNumber);
+
+	bool hasHeightForWidth();
+	int heightForWidth(int width);
+
+	void update();
+
+	void changeModality(QSharedPointer<iAModality> modality);
+
+	iASlicer* getSlicer() { return m_slicer; }
+
+public slots:
+
+signals:
+
+protected:
 
 private:
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-	QVTKOpenGLWidget* graphWidget;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renderWindow;
-#else
-	QVTKWidget*		graphWidget;
-	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
-#endif
-
-	vtkSmartPointer<vtkMutableDirectedGraph>	m_graph;
-	vtkSmartPointer<iATrackingGraphItem>		m_graphItem;
-	vtkSmartPointer<vtkContextActor>			m_actor;
-	vtkSmartPointer<vtkContextTransform>		m_trans;
-	vtkSmartPointer<vtkRenderer>				m_renderer;
-	vtkSmartPointer<vtkContextScene>			m_contextScene;
-	vtkSmartPointer<vtkContextInteractorStyle>	m_interactorStyle;
-	vtkSmartPointer<vtkRenderWindowInteractor>	m_interactor;
-
-	std::map<vtkIdType, int>					m_nodesToLayers;
-	std::map<int, std::map<vtkIdType, int>>		m_graphToTableId;
+	bool m_enableInteraction;
+	vtkTransform *m_slicerTransform;
+	iASlicer *m_slicer;
+	
 };
