@@ -28,6 +28,8 @@
 #include <QVTKWidget2.h>
 #endif
 
+#include <vtkSmartPointer.h>
+
 #include <QSharedPointer>
 
 class iAAttributes;
