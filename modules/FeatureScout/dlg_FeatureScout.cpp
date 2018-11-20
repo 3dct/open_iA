@@ -1998,32 +1998,33 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector *con, const QString 
 	bool singleClassification = false;
 	size_t labelID = 0;
 	QMap<size_t, ClassIDType> currentEntries;
-	if (!con)
-		return;
 
-	//create map of labelid <-> classes:
-	if (classTreeModel->invisibleRootItem()->hasChildren())
+
+	// if only one class exists
+	singleClassification = (classTreeModel->invisibleRootItem()->rowCount() >= 2 && 
+		(m_renderMode == rmSingleClass));
+	if (singleClassification &&
+		(QMessageBox::question(this, "FeatureScout", "Only one class selected, should we export the individual fiber IDs? "
+			"If you select No, all fibers will be labelled with the class ID.",
+			QMessageBox::Yes | QMessageBox::No)
+			== QMessageBox::No))
 	{
-		// if only one class exists
-		singleClassification = (classTreeModel->invisibleRootItem()->rowCount() == 2);
-		if (singleClassification &&
-			(QMessageBox::question(this, "FeatureScout", "Only one class selected, should we export LabelIds (If you select No, all fibers will be labelled with the class ID)?", QMessageBox::Yes | QMessageBox::No)
-				== QMessageBox::No))
+		singleClassification = false;
+	}
+	// Skip first, as classes start with 1, 0 is the uncategorized class
+	for (int i = 1; i < classTreeModel->invisibleRootItem()->rowCount(); i++)
+	{
+		if (m_renderMode == rmSingleClass && i != activeClassItem->row())
+			continue;
+		auto x = classTreeModel->invisibleRootItem()->rowCount();
+		QStandardItem *item = classTreeModel->invisibleRootItem()->child(i);
+		for (int j = 0; j < item->rowCount(); j++)
 		{
-			singleClassification = false;
-		}
-		// Skip first, as classes start with 1, 0 is the uncategorized class
-		for (int i = 1; i < classTreeModel->invisibleRootItem()->rowCount(); i++)
-		{
-			auto x = classTreeModel->invisibleRootItem()->rowCount();
-			QStandardItem *item = classTreeModel->invisibleRootItem()->child(i);
-			for (int j = 0; j < item->rowCount(); j++)
-			{
-				size_t labelID = item->child(j)->text().toULongLong();
-				currentEntries.insert(labelID, i);
-			}
+			size_t labelID = item->child(j)->text().toULongLong();
+			currentEntries.insert(labelID, i);
 		}
 	}
+
 	auto in_img = dynamic_cast<InputImageType*>  (con->GetITKImage());
 	auto region_in = in_img->GetLargestPossibleRegion();
 	const OutputImageType::SpacingType outSpacing = in_img ->GetSpacing();
