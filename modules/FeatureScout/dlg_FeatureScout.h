@@ -147,7 +147,7 @@ private slots:
 	void updateMarProgress(int i);
 private:
 	//create labelled output image based on defined classes
-	template <class T> void CreateLabelledOutputMask(iAConnector *con, const QString fOutPath);
+	template <class T> void CreateLabelledOutputMask(iAConnector & con, const QString & fOutPath);
 	void showScatterPlot();
 	void setupModel();
 	void setupViews();
