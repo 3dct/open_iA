@@ -22,9 +22,15 @@
 
 #include "iATripleModalityWidget.h"
 
-// TODO: should be removed in the future
-#include <QMouseEvent>
-#include <QWheelEvent>
+#include "BarycentricTriangle.h"
+
+#include <QPen>
+#include <QRect>
+
+class iASlicerWidget;
+
+class QMouseEvent;
+class QWheelEvent;
 
 class iAHistogramTriangle : public iATripleModalityWidget
 {

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+*                          J. WeissenbÃ¶ck, Artem & Alexander Amirkhanov, B. FrÃ¶hler   *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,20 +15,20 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
 #include "iABarycentricTriangleWidget.h"
 #include "iATriangleRenderer.h"
+
+#include <vtkMath.h>
 
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
 #include <QMouseEvent>
 #include <QString>
-#define _USE_MATH_DEFINES // necessary to use M_PI (with math.height)
-#include <math.h>
 
 // TODO: really necessary? (just to get the font()!)
 #include <QApplication>
@@ -37,7 +37,7 @@
 #include <QDebug>
 
 // Constants (more in the header file!)
-static const qreal RAD60 = M_PI / 3.0;
+static const qreal RAD60 = vtkMath::Pi() / 3.0;
 static const qreal SIN60 = sin(RAD60);
 static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
 static const qreal COS60 = 0.5;

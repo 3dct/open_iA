@@ -28,18 +28,6 @@
 #include <limits>  // for std::numeric_limits
 #include <vector>
 
-// consistently define isNaN/isInf:
-#if (defined(_MSC_VER) && _MSC_VER <= 1600)
-	#define isNaN(x) _isnan(x)
-	#define isInf(x) (!_finite(x))
-#elif (defined(__GNUG__))
-	#define isNaN(x) std::isnan(x)
-	#define isInf(x) std::isinf(x)
-#else
-	#define isNaN(x) isnan(x)
-	#define isInf(x) isinf(x)
-#endif
-
 /**
  * make sure the given value is inside the given interval
  * @param min the minimum value which should be returned

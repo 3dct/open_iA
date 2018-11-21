@@ -20,13 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iATripleModalityWidget.h"
+
 #include <QWidget>
 
-#include "iATripleModalityWidget.h"
-//#include "mdichild.h"
-class MdiChild;
 class iADiagramFctWidget;
 class iASimpleSlicerWidget;
+class MdiChild;
+
+class QGridLayout;
+class QSplitter;
 
 class iAHistogramStackGrid : public QWidget
 {
@@ -54,5 +57,4 @@ private:
 	QSplitter *m_splitter;
 	iAHistogramStackGrid *m_grid;
 	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };
-
 };

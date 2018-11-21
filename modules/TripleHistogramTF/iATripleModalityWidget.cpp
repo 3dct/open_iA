@@ -18,20 +18,33 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iATripleModalityWidget.h"
-#include "RightBorderLayout.h"
-#include "dlg_modalities.h"
-#include "iAChannelVisualizationData.h"
-#include "mdiChild.h"
-#include "iAModalityTransfer.h"
-#include "iAModalityList.h"
-#include "iABarycentricContextRenderer.h"
 
-#include "vtkImageData.h"
-#include "vtkColorTransferFunction.h"
-#include "vtkPiecewiseFunction.h"
-#include "vtkSmartPointer.h"
+#include "iABarycentricContextRenderer.h"
+#include "iABarycentricTriangleWidget.h"
+#include "iASimpleSlicerWidget.h"
+#include "RightBorderLayout.h"
+
+#include "charts/iADiagramFctWidget.h"
+#include "charts/iAHistogramData.h"
+#include "charts/iAPlotTypes.h"
+#include "charts/iAProfileWidget.h"
+#include "dlg_modalities.h"
+#include "dlg_transfer.h"
+#include "iAChannelVisualizationData.h"
+#include "iAModality.h"
+#include "iAModalityList.h"
+#include "iAModalityTransfer.h"
+#include "iAPreferences.h"
+#include "iASlicerData.h"
+#include "mdichild.h"
+
+#include <vtkCamera.h>
+#include <vtkImageActor.h>
+#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkSmartPointer.h>
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -39,21 +52,6 @@
 
 // Debug
 #include <QDebug>
-
-// Required for the histogram
-#include "iAModality.h"
-#include "charts/iAHistogramData.h"
-#include "charts/iADiagramFctWidget.h"
-#include "charts/iAPlotTypes.h"
-#include "charts/iAProfileWidget.h"
-#include "iAPreferences.h"
-#include "dlg_transfer.h"
-
-// Required to create slicer
-#include "vtkColorTransferFunction.h"
-#include "vtkCamera.h"
-#include "vtkImageActor.h"
-#include "iASlicerData.h"
 
 //static const char *WEIGHT_FORMAT = "%.10f";
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
