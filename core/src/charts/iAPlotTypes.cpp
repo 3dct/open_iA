@@ -166,7 +166,7 @@ void iAStepFunctionPlot::draw(QPainter& painter, double binWidth, size_t startBi
 		poly.push_back(QPoint(curX1, curY));
 		poly.push_back(QPoint(curX2, curY));
 	}
-	poly.push_back(QPoint(xMapper.srcToDst(endBin), 0));
+	poly.push_back(QPoint(xMapper.srcToDst(endBin + ((m_data->GetRangeType() == Discrete) ? 0.5 : 1)), 0));
 	tmpPath.addPolygon(poly);
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
