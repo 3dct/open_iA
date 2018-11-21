@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVectorDistanceImpl.h"
 
-#include "iAMathUtility.h"
+#include "iAMathUtility.h"  // required for clamp
 
 #include <QVector>
 
@@ -291,12 +291,12 @@ double iAKullbackLeiblerDivergence::GetDistance(QSharedPointer<iAVectorType cons
 	for(iAVectorType::IndexType i = 0; i<s1->size(); ++i)
 	{
 		double logTerm = (s2->get(i) == 0)? 0 : (s1->get(i) / s2->get(i));
-		if (isInf(logTerm) || isNaN(logTerm))
+		if (qIsInf(logTerm) || qIsNaN(logTerm))
 		{
 			logTerm = 0;
 		}
 		kldiv += (logTerm == 0)? 0 : (std::log(logTerm) * (s1->get(i)));
-		if (isInf(kldiv) || isNaN(kldiv))
+		if (qIsInf(kldiv) || qIsNaN(kldiv))
 		{
 			kldiv = 0;
 		}

@@ -25,7 +25,6 @@
 #include "iAImageTree.h"
 #include "iAImageTreeLeaf.h"
 #include "iAImageTreeInternalNode.h"
-#include "iAMathUtility.h"
 #include "iARepresentative.h"
 #include "iASingleResult.h"
 
@@ -86,7 +85,7 @@ double CalcDistance(ClusterImageType img1, ClusterImageType img2)
 		DEBUG_LOG(QString("itk Exception: %1\n").arg(e.GetDescription()));
 		return 0.0;
 	}
-	if (isNaN(meanOverlap))
+	if (qIsNaN(meanOverlap))
 	{
 		DEBUG_LOG("ERROR: CalcDistance -> NAN!");
 		return 1.0;
@@ -329,7 +328,7 @@ void iAImageClusterer::run()
 			{
 				distance = CalcDistance(img1, img2);
 			}
-			if (isNaN(distance))
+			if (qIsNaN(distance))
 			{
 				DEBUG_LOG(QString("ERROR: %1, %2 -> NAN!")
 					.arg(m_currImage)
