@@ -22,7 +22,6 @@
 #include "iABarycentricContextRenderer.h"
 #include "BarycentricTriangle.h"
 
-#include <math.h>
 #include <QPainter>
 #include <QImage>
 
@@ -109,9 +108,9 @@ void iABarycentricContextRenderer::calculateCoordinates(vtkSmartPointer<vtkImage
 				b = d2->GetScalarComponentAsDouble(x, y, z, 0);
 				c = d3->GetScalarComponentAsDouble(x, y, z, 0);
 
-				if (isnan(a)) a = 0; else a = (a - rangea[0]) / rangea[1];
-				if (isnan(b)) b = 0; else b = (b - rangeb[0]) / rangeb[1];
-				if (isnan(c)) c = 0; else c = (c - rangec[0]) / rangec[1];
+				if (qIsNaN(a)) a = 0; else a = (a - rangea[0]) / rangea[1];
+				if (qIsNaN(b)) b = 0; else b = (b - rangeb[0]) / rangeb[1];
+				if (qIsNaN(c)) c = 0; else c = (c - rangec[0]) / rangec[1];
 
 				sum = a + b + c;
 

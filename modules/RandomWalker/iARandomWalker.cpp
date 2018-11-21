@@ -28,7 +28,6 @@
 
 #include "defines.h"     // for DIM
 #include "iAConnector.h"
-#include "iAMathUtility.h"
 #include "iASeedType.h"
 #include "iATypedCallHelper.h"
 #include "iAToolsITK.h"
@@ -126,7 +125,7 @@ namespace
 			pixelIndex[0] = coord.x;
 			pixelIndex[1] = coord.y;
 			pixelIndex[2] = coord.z;
-			if (imgVal < 0 || imgVal > 1 || isInf(imgVal) || isNaN(imgVal))
+			if (imgVal < 0 || imgVal > 1 || qIsInf(imgVal) || qIsNaN(imgVal))
 			{
 				/*
 				AddMsg(QString("Invalid pixel value at (%1, %2, %3): %4")
