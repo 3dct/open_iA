@@ -18,13 +18,21 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
-#include <QSplitter>
-#include <QResizeEvent>
-
 #include "iAHistogramStack.h"
+
+#include "iABarycentricTriangleWidget.h"
+#include "iASimpleSlicerWidget.h"
+
 #include "iATransferFunction.h"
 #include "charts/iADiagramFctWidget.h"
+
+#include <QComboBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QSlider>
+#include <QSplitter>
+#include <QResizeEvent>
+#include <QVBoxLayout>
 
 iAHistogramStack::iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f)
 	: iATripleModalityWidget(parent, mdiChild, f)

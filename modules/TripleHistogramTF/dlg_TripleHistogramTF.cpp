@@ -21,19 +21,18 @@
  
 #include "dlg_TripleHistogramTF.h"
 
-#include <qsplitter.h>
-
-#include "dlg_modalities.h"
-#include "iAModalityList.h"
-#include "iARenderer.h"
-#include "iASlicerData.h"
 #include "iABarycentricContextRenderer.h"
-
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 
-#include "iAVolumeRenderer.h"
+#include "dlg_modalities.h"
+#include "iAModality.h"
+#include "iAModalityList.h"
 #include "iAModalityTransfer.h"
+#include "iARenderer.h"
+#include "iASlicerData.h"
+#include "iAVolumeRenderer.h"
+#include "mdichild.h"
 
 #include <vtkCamera.h>
 #include <vtkImageAppendComponents.h>
@@ -45,8 +44,11 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 
+#include <QLabel>
+#include <QSplitter>
+#include <QStackedLayout>
 // Debug
-#include "qdebug.h"
+#include <QDebug>
 
 const static QString DEFAULT_LABELS[3] = { "A", "B", "C" };
 

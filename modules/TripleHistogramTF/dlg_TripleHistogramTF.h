@@ -20,11 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-//#include "ui_dlg_TripleHistogramTF.h"
-//#include "iAQTtoUIConnector.h"
-#include <QDockWidget>
-
 #include <vtkSmartPointer.h>
+
+#include <QDockWidget>
 
 class QStackedLayout;
 class QLabel;

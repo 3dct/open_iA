@@ -18,18 +18,25 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAHistogramTriangle.h"
-#include "charts/iADiagramFctWidget.h"
 
+#include "iABarycentricTriangleWidget.h"
+#include "iASimpleSlicerWidget.h"
+
+#include "charts/iADiagramFctWidget.h"
+#include "iASlicerData.h"
+#include "iASlicerWidget.h"
+
+#include <QApplication>
+#include <QComboBox>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QResizeEvent>
+#include <QSlider>
 #include <QtMath>
 
 // Debug
 #include <QDebug>
-#include "iASlicerData.h"
-#include "iASlicerWidget.h"
 
 const static qreal RAD60 = qDegreesToRadians(60.0);
 const static qreal SIN60 = qSin(RAD60);
