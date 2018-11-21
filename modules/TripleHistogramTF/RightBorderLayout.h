@@ -71,11 +71,11 @@ public:
 	BorderLayoutItemWrapper(IBorderItem* rbi, QLayoutItem *layoutItem) : m_rbi(rbi), m_layoutItem(layoutItem) {}
 	BorderLayoutItemWrapper(IBorderWidget* rbw) : m_rbi(rbw), m_layoutItem(new QWidgetItem(rbw->widget())) {}
 	BorderLayoutItemWrapper(IBorderLayoutItem* rbli) : m_rbi(rbli), m_layoutItem(rbli->layoutItem()) {}
-	bool BorderLayoutItemWrapper::hasWidthForHeight() { return m_rbi->hasWidthForHeight(); }
-	int BorderLayoutItemWrapper::getWidthForHeight(int height) { return m_rbi->getWidthForHeight(height); }
-	bool BorderLayoutItemWrapper::hasHeightForWidth() { return m_rbi->hasHeightForWidth();  }
-	int BorderLayoutItemWrapper::getHeightForWidth(int width) { return m_rbi->getHeightForWidth(width); }
-	QLayoutItem* BorderLayoutItemWrapper::layoutItem() { return m_layoutItem; }
+	bool hasWidthForHeight() { return m_rbi->hasWidthForHeight(); }
+	int getWidthForHeight(int height) { return m_rbi->getWidthForHeight(height); }
+	bool hasHeightForWidth() { return m_rbi->hasHeightForWidth();  }
+	int getHeightForWidth(int width) { return m_rbi->getHeightForWidth(width); }
+	QLayoutItem* layoutItem() { return m_layoutItem; }
 
 private:
 	IBorderItem *m_rbi;
