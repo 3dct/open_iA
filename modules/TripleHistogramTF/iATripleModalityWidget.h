@@ -20,18 +20,29 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
-#include <QStackedLayout>
-#include <QComboBox>
-
-#include "mdichild.h"
 #include "BCoord.h"
-#include "iATransferFunction.h"
-#include "iABarycentricTriangleWidget.h"
-#include "iATriangleRenderer.h"
 
-// Slicer
-#include "iASimpleSlicerWidget.h"
+#include "iASlicerMode.h"
+
+#include <vtkSmartPointer.h>
+
+#include <QWidget>
+
+class iABarycentricTriangleWidget;
+class iASimpleSlicerWidget;
+class iATriangleRenderer;
+
+class iADiagramFctWidget;
+class iAModality;
+class iATransferFunction;
+class MdiChild;
+
+class vtkColorTransferFunction;
+class vtkPiecewiseFunction;
+
+class QComboBox;
+class QLabel;
+class QSlider;
 
 static const QString DEFAULT_MODALITY_LABELS[3] = { "A", "B", "C" };
 

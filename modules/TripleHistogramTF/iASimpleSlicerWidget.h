@@ -20,15 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
-#include "iASimpleSlicerWidget.h"
-//#include "mdichild.h"
+#include "iASlicerMode.h"
+
+#include <vtkTransform.h>
 
 #include <QSharedPointer>
-#include "iAModality.h"
+#include <QWidget>
 
-#include "iASlicer.h"
-#include "vtkTransform.h"
+class iAModality;
+class iASlicer;
 
 class iASimpleSlicerWidget : public QWidget
 {
