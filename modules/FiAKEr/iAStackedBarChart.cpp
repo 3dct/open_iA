@@ -86,6 +86,11 @@ void iAStackedBarChart::setDoStack(bool doStack)
 	update();
 }
 
+size_t iAStackedBarChart::numberOfBars() const
+{
+	return m_bars.size();
+}
+
 void iAStackedBarChart::switchStackMode()
 {
 	// TODO: Log interaction

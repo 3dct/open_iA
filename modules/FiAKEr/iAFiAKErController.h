@@ -61,6 +61,7 @@ class QActionGroup;
 class QButtonGroup;
 class QCheckBox;
 class QComboBox;
+class QGridLayout;
 class QLabel;
 class QListView;
 class QModelIndex;
@@ -178,6 +179,7 @@ private:
 	void removeStackedBar(int index);
 	QButtonGroup* m_defaultButtonGroup;
 	iAStackedBarChart* m_stackedBarsHeaders;
+	QGridLayout* m_resultsListLayout;
 
 	// Scatter plot matrix:
 	iAQSplom* m_spm;

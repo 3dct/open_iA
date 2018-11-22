@@ -50,6 +50,7 @@ public:
 	void setColorTheme(iAColorTheme const * theme);
 	QMenu* contextMenu();
 	void setDoStack(bool doStack);
+	size_t numberOfBars() const;
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const & weights);

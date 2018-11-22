@@ -387,10 +387,11 @@ void iAFiAKErController::resultsLoaded()
 	resultListScrollArea->setWidgetResizable(true);
 	auto resultList = new QWidget();
 	resultListScrollArea->setWidget(resultList);
-	auto resultsListLayout = new QGridLayout();
-	resultsListLayout->setSpacing(5);
-	resultsListLayout->setColumnStretch(3, 1);
-	resultsListLayout->setColumnStretch(4, 1);
+	m_resultsListLayout = new QGridLayout();
+	m_resultsListLayout->setSpacing(5);
+	m_resultsListLayout->setColumnStretch(2, 1);
+	m_resultsListLayout->setColumnStretch(3, 1);
+	m_resultsListLayout->setColumnStretch(4, 2);
 
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
@@ -407,7 +408,7 @@ void iAFiAKErController::resultsLoaded()
 	auto actionsLabel = new QLabel("Actions");
 	actionsLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	auto previewLabel = new QLabel("Preview");
-	previewLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	previewLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	auto distrCmb = new QComboBox();
 	QStringList paramNames;
 	for (int curIdx = 0; curIdx < m_data->spmData->numParams() - 1; ++curIdx)
@@ -416,11 +417,11 @@ void iAFiAKErController::resultsLoaded()
 	connect(distrCmb, SIGNAL(currentIndexChanged(int)), this, SLOT(changeDistributionSource(int)));
 	distrCmb->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-	resultsListLayout->addWidget(nameLabel, 0, 0);
-	resultsListLayout->addWidget(actionsLabel, 0, 1);
-	resultsListLayout->addWidget(previewLabel, 0, 2);
-	resultsListLayout->addWidget(m_stackedBarsHeaders, 0, 3);
-	resultsListLayout->addWidget(distrCmb, 0, 4);
+	m_resultsListLayout->addWidget(nameLabel, 0, 0);
+	m_resultsListLayout->addWidget(actionsLabel, 0, 1);
+	m_resultsListLayout->addWidget(previewLabel, 0, 2);
+	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, 3);
+	m_resultsListLayout->addWidget(distrCmb, 0, 4);
 
 	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -469,12 +470,12 @@ void iAFiAKErController::resultsLoaded()
 
 		QString name = QFileInfo(d.fileName).baseName();
 		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
-
-		resultsListLayout->addWidget(new QLabel(name), resultID + 1, 0);
-		resultsListLayout->addWidget(resultActions, resultID + 1, 1);
-		resultsListLayout->addWidget(uiData.vtkWidget, resultID + 1, 2);
-		resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, 3);
-		resultsListLayout->addWidget(uiData.histoChart, resultID + 1, 4);
+		
+		m_resultsListLayout->addWidget(new QLabel(name), resultID + 1, 0);
+		m_resultsListLayout->addWidget(resultActions, resultID + 1, 1);
+		m_resultsListLayout->addWidget(uiData.vtkWidget, resultID + 1, 2);
+		m_resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, 3);
+		m_resultsListLayout->addWidget(uiData.histoChart, resultID + 1, 4);
 
 		uiData.mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
 			uiData.vtkWidget, d.table, d.mapping, getResultColor(resultID)));
@@ -489,7 +490,7 @@ void iAFiAKErController::resultsLoaded()
 		connect(toggleReference, &QRadioButton::toggled, this, &iAFiAKErController::referenceToggled);
 		connect(uiData.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
 	}
-	resultList->setLayout(resultsListLayout);
+	resultList->setLayout(m_resultsListLayout);
 	addStackedBar(0);
 	distrCmb->setCurrentIndex((*m_data->result[0].mapping)[iACsvConfig::Length]);
 
@@ -628,6 +629,7 @@ void iAFiAKErController::addStackedBar(int index)
 		}
 		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue);
 	}
+	m_resultsListLayout->setColumnStretch(3, m_stackedBarsHeaders->numberOfBars());
 }
 
 void iAFiAKErController::removeStackedBar(int index)
@@ -636,6 +638,7 @@ void iAFiAKErController::removeStackedBar(int index)
 	m_stackedBarsHeaders->removeBar(title);
 	for (size_t resultID=0; resultID<m_resultUIs.size(); ++resultID)
 		m_resultUIs[resultID].stackedBars->removeBar(title);
+	m_resultsListLayout->setColumnStretch(3, m_stackedBarsHeaders->numberOfBars());
 }
 
 void iAFiAKErController::stackedColSelect()
