@@ -23,6 +23,7 @@
 #include "iAConsole.h"
 
 #include <vtkAreaPicker.h>
+#include <vtkCellPicker.h>
 #include <vtkExtractGeometry.h>
 #include <vtkIdTypeArray.h>
 #include <vtkPlane.h>
@@ -50,7 +51,8 @@ vtkStandardNewMacro(iASelectionInteractorStyle);
 
 iASelectionInteractorStyle::iASelectionInteractorStyle():
 	m_selectionProvider(nullptr),
-	m_showModeActor(vtkSmartPointer<vtkTextActor>::New())
+	m_showModeActor(vtkSmartPointer<vtkTextActor>::New()),
+	m_selectionMode(smDrag)
 {
 	m_showModeActor->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
 	m_showModeActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
@@ -79,6 +81,8 @@ void iASelectionInteractorStyle::OnChar()
 
 void iASelectionInteractorStyle::Pick()
 {
+	if (m_selectionMode != smDrag)
+		return;
 	if (!m_selectionProvider)
 	{
 		DEBUG_LOG("No selection provider given!");
@@ -94,12 +98,12 @@ void iASelectionInteractorStyle::Pick()
 		if (!GetInteractor()->GetAltKey() && !GetInteractor()->GetShiftKey())
 			resultSel.clear();
 
-		if (!m_resultPoints.contains(resultID))
+		if (!m_input.contains(resultID))
 			continue;
 
 		vtkSmartPointer<vtkExtractGeometry> extractGeometry = vtkSmartPointer<vtkExtractGeometry>::New();
 		extractGeometry->SetImplicitFunction(frustum);
-		extractGeometry->SetInputData(m_resultPoints[resultID]);
+		extractGeometry->SetInputData(m_input[resultID]);
 		extractGeometry->Update();
 
 		vtkSmartPointer<vtkVertexGlyphFilter> glyphFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
@@ -125,14 +129,54 @@ void iASelectionInteractorStyle::Pick()
 	emit selectionChanged();
 }
 
+void iASelectionInteractorStyle::OnLeftButtonDown()
+{
+	vtkInteractorStyleRubberBandPick::OnLeftButtonDown();
+	if (m_selectionMode != smClick)
+	{
+		return;
+	}
+	if (!m_cellRenderer)
+	{
+		DEBUG_LOG("Cell renderer not set!");
+		return;
+	}
+
+	// Get the location of the click (in window coordinates)
+	int* pos = this->GetInteractor()->GetEventPosition();
+
+	auto picker = vtkSmartPointer<vtkCellPicker>::New();
+	picker->SetTolerance(0.0005);
+
+	// Pick from this location.
+	picker->Pick(pos[0], pos[1], 0, m_cellRenderer);
+
+	double* worldPosition = picker->GetPickPosition();
+	DEBUG_LOG(QString("Cell id is: %1").arg(picker->GetCellId()));
+
+	if(picker->GetCellId() != -1)
+	{
+		size_t objectID = (picker->GetCellId()) / 14;
+		DEBUG_LOG(QString("Pick position is (%1, %2, %3), object: %4")
+				  .arg(worldPosition[0]).arg(worldPosition[1])
+				  .arg(worldPosition[2]).arg(objectID));
+		for (int i=0; i<m_selectionProvider->selection().size(); ++i)
+			m_selectionProvider->selection()[i].clear();
+		m_selectionProvider->selection()[lastResultID].push_back(objectID);
+		emit selectionChanged();
+	}
+
+}
+
 void iASelectionInteractorStyle::addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points)
 {
-	m_resultPoints.insert(resultID, points);
+	lastResultID = resultID;
+	m_input.insert(resultID, points);
 }
 
 void iASelectionInteractorStyle::removeInput(size_t resultID)
 {
-	m_resultPoints.remove(resultID);
+	m_input.remove(resultID);
 }
 
 void iASelectionInteractorStyle::assignToRenderWindow(vtkSmartPointer<vtkRenderWindow> renWin)
@@ -143,4 +187,15 @@ void iASelectionInteractorStyle::assignToRenderWindow(vtkSmartPointer<vtkRenderW
 	m_renWin->GetInteractor()->SetInteractorStyle(this);
 	m_renWin->GetRenderers()->GetFirstRenderer()->AddActor2D(m_showModeActor);
 	m_showModeActor->SetInput("To select something, press 'r' while this window has focus.");
+}
+
+void iASelectionInteractorStyle::setSelectionMode(SelectionMode mode)
+{
+	m_selectionMode = mode;
+	CurrentMode = m_selectionMode == smDrag ? VTKISRBP_SELECT : VTKISRBP_ORIENT;
+}
+
+void iASelectionInteractorStyle::setRenderer(vtkRenderer* renderer)
+{
+	m_cellRenderer = renderer;
 }

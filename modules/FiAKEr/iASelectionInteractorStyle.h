@@ -43,20 +43,31 @@ class iASelectionInteractorStyle : public QObject, public vtkInteractorStyleRubb
 {
 	Q_OBJECT
 public:
+	enum SelectionMode
+	{
+		smDrag,
+		smClick
+	};
 	iASelectionInteractorStyle();
 	static iASelectionInteractorStyle* New();
 	vtkTypeMacro(iASelectionInteractorStyle, vtkInteractorStyleRubberBandPick);
-	void setSelectionProvider(iASelectionProvider * selectionProvider);
 	void Pick() override;
 	void OnChar() override;
+	void OnLeftButtonDown() override;
+	void setSelectionProvider(iASelectionProvider * selectionProvider);
 	void addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points);
 	void removeInput(size_t resultID);
 	void assignToRenderWindow(vtkSmartPointer<vtkRenderWindow> renWin);
+	void setSelectionMode(SelectionMode mode);
+	void setRenderer(vtkRenderer* renderer);
 signals:
 	void selectionChanged();
 private:
-	QMap<int, vtkSmartPointer<vtkPolyData> > m_resultPoints;
+	QMap<int, vtkSmartPointer<vtkPolyData> > m_input;
 	iASelectionProvider * m_selectionProvider;
 	vtkSmartPointer<vtkTextActor> m_showModeActor;
 	vtkSmartPointer<vtkRenderWindow> m_renWin;
+	SelectionMode m_selectionMode;
+	vtkRenderer* m_cellRenderer;
+	size_t lastResultID;
 };

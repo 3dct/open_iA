@@ -183,6 +183,7 @@ void iAFiAKErController::resultsLoaded()
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->setSelectionProvider(this);
 	m_style->assignToRenderWindow(renWin);
+	m_style->setRenderer(ren);
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiAKErController::selection3DChanged);
 
 	QWidget* showReferenceWidget = new QWidget();
@@ -252,12 +253,17 @@ void iAFiAKErController::resultsLoaded()
 	auto showSampledCylinder = new QPushButton("Sample Fiber");
 	auto hideSampledCylinder = new QPushButton("Hide Sample Points");
 	auto spatialOverviewButton = new QPushButton("Spatial Overview");
+	auto selectionModeChoice = new QComboBox();
+	selectionModeChoice->addItem("Rubberband Rectangle (Endpoints)");
+	selectionModeChoice->addItem("Single Fiber Click");
 	connect(showSampledCylinder, &QPushButton::pressed, this, &iAFiAKErController::visualizeCylinderSamplePoints);
 	connect(hideSampledCylinder, &QPushButton::pressed, this, &iAFiAKErController::hideSamplePoints);
 	connect(spatialOverviewButton, &QPushButton::pressed, this, &iAFiAKErController::showSpatialOverviewButton);
+	connect(selectionModeChoice, SIGNAL(currentIndexChanged(int)), this, SLOT(selectionModeChanged(int)));
 	moreButtons->layout()->addWidget(showSampledCylinder);
 	moreButtons->layout()->addWidget(hideSampledCylinder);
 	moreButtons->layout()->addWidget(spatialOverviewButton);
+	moreButtons->layout()->addWidget(selectionModeChoice);
 	moreButtons->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	QGroupBox* main3DViewSettings = new QGroupBox("Main 3D View");
@@ -1205,6 +1211,11 @@ void iAFiAKErController::showSpatialOverviewButton()
 {
 	addInteraction("Showing Spatial Overview");
 	showSpatialOverview();
+}
+
+void iAFiAKErController::selectionModeChanged(int mode)
+{
+	m_style->setSelectionMode(static_cast<iASelectionInteractorStyle::SelectionMode>(mode));
 }
 
 void iAFiAKErController::showSpatialOverview()

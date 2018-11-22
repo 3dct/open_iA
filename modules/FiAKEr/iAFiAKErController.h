@@ -110,6 +110,7 @@ private slots:
 	void selectionFromListActivated(QModelIndex const &);
 	void selectionDetailsItemClicked(QModelIndex const &);
 	void showSpatialOverviewButton();
+	void selectionModeChanged(int);
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
