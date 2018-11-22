@@ -171,6 +171,7 @@ private:
 	QSpinBox* m_spnboxReferenceCount;
 	QComboBox* m_cmbboxDistanceMeasure;
 	vtkSmartPointer<vtkActor> m_refLineActor;
+	QWidget* m_showReferenceWidget;
 
 	// Results List:
 	void addStackedBar(int index);
@@ -202,7 +203,4 @@ private:
 	QStandardItemModel* m_selectionListModel;
 	QStandardItemModel* m_selectionDetailModel;
 	std::vector<SelectionType> m_selections;
-
-//	QWebEngineView*  m_browser;
-//	QString m_html;
 };

@@ -186,13 +186,13 @@ void iAFiAKErController::resultsLoaded()
 	m_style->setRenderer(ren);
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiAKErController::selection3DChanged);
 
-	QWidget* showReferenceWidget = new QWidget();
+	m_showReferenceWidget = new QWidget();
 	m_chkboxShowReference = new QCheckBox("Show ");
 	m_spnboxReferenceCount = new QSpinBox();
 	m_spnboxReferenceCount->setValue(1);
 	m_spnboxReferenceCount->setMinimum(1);
 	m_spnboxReferenceCount->setMaximum(iARefDistCompute::MaxNumberOfCloseFibers);
-	showReferenceWidget->setLayout(new QHBoxLayout());
+	m_showReferenceWidget->setLayout(new QHBoxLayout());
 	m_cmbboxDistanceMeasure = new QComboBox();
 	m_cmbboxDistanceMeasure->addItem("Dist1 (Midpoint, Angles, Length)");
 	m_cmbboxDistanceMeasure->addItem("Dist2 (Start-Start/Center-Center/End-End)");
@@ -207,17 +207,17 @@ void iAFiAKErController::resultsLoaded()
 	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(showReferenceCountChanged(int)));
 	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
 	connect(m_chkboxShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceLinesToggled);
-	showReferenceWidget->layout()->addWidget(m_chkboxShowReference);
-	showReferenceWidget->layout()->addWidget(m_spnboxReferenceCount);
-	showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers, metric:"));
-	showReferenceWidget->layout()->addWidget(m_cmbboxDistanceMeasure);
-	showReferenceWidget->layout()->addWidget(m_chkboxShowLines);
-	showReferenceWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	m_showReferenceWidget->layout()->addWidget(m_chkboxShowReference);
+	m_showReferenceWidget->layout()->addWidget(m_spnboxReferenceCount);
+	m_showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers, metric:"));
+	m_showReferenceWidget->layout()->addWidget(m_cmbboxDistanceMeasure);
+	m_showReferenceWidget->layout()->addWidget(m_chkboxShowLines);
+	m_showReferenceWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	QWidget* mainRendererContainer = new QWidget();
 	mainRendererContainer->setLayout(new QVBoxLayout());
 	mainRendererContainer->layout()->addWidget(m_mainRenderer);
-	mainRendererContainer->layout()->addWidget(showReferenceWidget);
+	mainRendererContainer->layout()->addWidget(m_showReferenceWidget);
 
 
 	// Settings View
@@ -581,9 +581,7 @@ void iAFiAKErController::loadStateAndShow()
 	m_spm->showAllPlots(false);
 	auto np = m_data->spmData->numParams();
 	std::vector<char> v(m_data->spmData->numParams(), false);
-	auto & map = *m_data->result[0].mapping.data();
-	v[map[iACsvConfig::StartX]] = v[map[iACsvConfig::StartY]] = v[map[iACsvConfig::StartZ]]
-		= v[np - 7] = v[np - 6] = v[np - 5] = v[np - 4] = v[np - 3] = v[np - 2] = true;
+	v[np - 7] = v[np - 6] = v[np - 5] = v[np - 4] = v[np - 3] = v[np - 2] = true;
 	m_spm->setData(m_data->spmData, v);
 	iALookupTable lut;
 	int numOfResults = m_data->result.size();
@@ -599,6 +597,10 @@ void iAFiAKErController::loadStateAndShow()
 	m_spm->settings.enableColorSettings = true;
 	connect(m_spm, &iAQSplom::selectionModified, this, &iAFiAKErController::selectionSPMChanged);
 	connect(m_spm, &iAQSplom::lookupTableChanged, this, &iAFiAKErController::spmLookupTableChanged);
+	m_views[SettingsView]->hide();
+	m_views[ProtocolView]->hide();
+	m_views[SelectionView]->hide();
+	m_views[JobView]->hide();
 }
 
 QString iAFiAKErController::stackedBarColName(int index) const
@@ -984,6 +986,7 @@ bool iAFiAKErController::isAnythingSelected() const
 void iAFiAKErController::showSelectionIn3DViews()
 {
 	bool anythingSelected = isAnythingSelected();
+	m_showReferenceWidget->setVisible(anythingSelected);
 	for (size_t resultID = 0; resultID<m_resultUIs.size(); ++resultID)
 	{
 		auto & ui = m_resultUIs[resultID];
@@ -1018,6 +1021,8 @@ void iAFiAKErController::selection3DChanged()
 	showSelectionInPlots();
 	showSelectionInSPM();
 	changeReferenceDisplay();
+	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
+		m_views[SelectionView]->show();
 }
 
 void iAFiAKErController::selectionSPMChanged(std::vector<size_t> const & selection)
@@ -1035,6 +1040,8 @@ void iAFiAKErController::selectionSPMChanged(std::vector<size_t> const & selecti
 	showSelectionIn3DViews();
 	showSelectionInPlots();
 	changeReferenceDisplay();
+	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
+		m_views[SelectionView]->show();
 }
 
 void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> const & selection)
@@ -1062,6 +1069,8 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 	showSelectionIn3DViews();
 	showSelectionInSPM();
 	changeReferenceDisplay();
+	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
+		m_views[SelectionView]->show();
 }
 
 void iAFiAKErController::miniMouseEvent(QMouseEvent* ev)
@@ -1158,6 +1167,7 @@ void iAFiAKErController::referenceToggled(bool)
 	addInteraction(QString("Reference set to %1").arg(resultName(referenceID)));
 	m_refDistCompute = new iARefDistCompute(m_data, referenceID);
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
+	m_views[JobView]->show();
 	m_jobs->addJob("Computing Reference Distances", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();
 }
@@ -1205,6 +1215,8 @@ void iAFiAKErController::refDistAvailable()
 	}
 
 	showSpatialOverview();
+
+	m_views[JobView]->hide();
 }
 
 void iAFiAKErController::showSpatialOverviewButton()
