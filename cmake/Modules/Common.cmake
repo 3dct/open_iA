@@ -334,7 +334,7 @@ ELSEIF (UNIX AND NOT FLATPAK_BUILD)
 		INSTALL (FILES ${ITK_LIB_DIR}/lib${ITK_LIBF}-${ITK_VER}.so.1 DESTINATION .)
 	ENDFOREACH(ITK_LIB)
 
-ELSE()
+ELSEIF (NOT FLATPAK_BUILD)
 	MESSAGE(WARNING "Installation procedure for your operating system is not yet implemented!")
 ENDIF()
 
