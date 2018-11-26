@@ -30,6 +30,7 @@
 #include "iACsvConfig.h"
 #include "iAFeatureScoutModuleInterface.h"
 #include "iAVectorPlotData.h"
+#include "qthelper/iAFixedAspectWidget.h"
 
 // Core:
 #include "charts/iAChartWidget.h"
@@ -389,9 +390,9 @@ void iAFiAKErController::resultsLoaded()
 	resultListScrollArea->setWidget(resultList);
 	m_resultsListLayout = new QGridLayout();
 	m_resultsListLayout->setSpacing(5);
-	m_resultsListLayout->setColumnStretch(2, 1);
-	m_resultsListLayout->setColumnStretch(3, 1);
-	m_resultsListLayout->setColumnStretch(4, 2);
+	m_resultsListLayout->setColumnStretch(2, 2);
+	m_resultsListLayout->setColumnStretch(3, 3);
+	m_resultsListLayout->setColumnStretch(4, 4);
 
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
@@ -428,7 +429,8 @@ void iAFiAKErController::resultsLoaded()
 		auto & d = m_data->result.at(resultID);
 		auto & uiData = m_resultUIs[resultID];
 
-		uiData.vtkWidget = new iAVtkWidgetClass();
+		auto w = new iAFixedAspectWidget();
+		uiData.vtkWidget = w->vtkWidget();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		renWin->SetAlphaBitPlanes(1);
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
@@ -473,7 +475,7 @@ void iAFiAKErController::resultsLoaded()
 		
 		m_resultsListLayout->addWidget(new QLabel(name), resultID + 1, 0);
 		m_resultsListLayout->addWidget(resultActions, resultID + 1, 1);
-		m_resultsListLayout->addWidget(uiData.vtkWidget, resultID + 1, 2);
+		m_resultsListLayout->addWidget(w, resultID + 1, 2);
 		m_resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, 3);
 		m_resultsListLayout->addWidget(uiData.histoChart, resultID + 1, 4);
 
@@ -629,7 +631,7 @@ void iAFiAKErController::addStackedBar(int index)
 		}
 		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue);
 	}
-	m_resultsListLayout->setColumnStretch(3, m_stackedBarsHeaders->numberOfBars());
+	m_resultsListLayout->setColumnStretch(3, m_stackedBarsHeaders->numberOfBars()*3);
 }
 
 void iAFiAKErController::removeStackedBar(int index)
