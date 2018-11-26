@@ -40,7 +40,7 @@
 #include "charts/iASPLOMData.h"
 #include "iAColorTheme.h"
 #include "iAConsole.h"
-#include "iADockWidgetWrapper.h"
+#include "qthelper/iADockWidgetWrapper.h"
 #include "iALookupTable.h"
 #include "iALUT.h"
 #include "iAModuleDispatcher.h"
