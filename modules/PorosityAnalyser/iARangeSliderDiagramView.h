@@ -26,7 +26,7 @@
 #include <vtkSmartPointer.h>
 
 #include "ui_RangeSliderDiagramView.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 
 class iARangeSliderDiagramData;

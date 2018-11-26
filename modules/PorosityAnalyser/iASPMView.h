@@ -25,7 +25,7 @@
 #include <vtkVector.h>
 
 #include "ui_SPMView.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 class QAction;
 class QCheckBox;

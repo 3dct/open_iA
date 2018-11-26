@@ -26,7 +26,7 @@
 #include "charts/iAQSplom.h"
 #include "iAConsole.h"
 #include "iALUT.h"
-#include "iAQFlowLayout.h"
+#include "qthelper/iAQFlowLayout.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>

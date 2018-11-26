@@ -26,7 +26,7 @@
 #include "ui_XRF.h"
 
 #include "dlg_elementRenderer.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
 
 #include <vtkSmartPointer.h>

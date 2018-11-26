@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_SPMSettings.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 typedef iAQTtoUIConnector<QDialog, Ui_SPMSettings>  SPMSettingsContainer;
 class iASPMSettings : public SPMSettingsContainer

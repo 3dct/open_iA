@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_SSSettings.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 typedef iAQTtoUIConnector<QDialog, Ui_SSSettings>  SSSettingsConnector;
 

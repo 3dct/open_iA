@@ -24,7 +24,7 @@
 #include <QScopedPointer>
 
 #include "ui_PreviewSPLOM.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 class iAPreviewSPLOM;
 class QPixmap;

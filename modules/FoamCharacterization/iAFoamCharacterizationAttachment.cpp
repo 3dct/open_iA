@@ -27,7 +27,7 @@
 #include "iAFoamCharacterizationItemWatershed.h"
 #include "iAFoamCharacterizationTable.h"
 
-#include "iADockWidgetWrapper.h"
+#include "qthelper/iADockWidgetWrapper.h"
 #include "mdichild.h"
 #include "mainwindow.h"
 

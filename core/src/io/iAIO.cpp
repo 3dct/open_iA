@@ -697,7 +697,7 @@ bool IsHDF5ITKImage(hid_t file_id)
 
 }
 
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 #include "ui_OpenHDF5.h"
 typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 #endif

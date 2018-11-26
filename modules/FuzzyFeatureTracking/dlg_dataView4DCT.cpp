@@ -22,7 +22,7 @@
 
 #include "ui_DataView4DCT.h"
 
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
 #include "iATransferFunction.h"

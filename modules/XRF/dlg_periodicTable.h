@@ -24,7 +24,7 @@
 
 #include <QDockWidget>
 #include "ui_PeriodicTable.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_PeriodicTable> dlg_periodicTableContainer;
 
 class iAElementSelectionListener;

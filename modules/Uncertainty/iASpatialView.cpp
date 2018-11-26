@@ -26,7 +26,7 @@
 #include "iAChannelVisualizationData.h"
 #include "iAConsole.h"
 #include "iAChannelID.h"
-#include "iAQFlowLayout.h"
+#include "qthelper/iAQFlowLayout.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerMode.h"

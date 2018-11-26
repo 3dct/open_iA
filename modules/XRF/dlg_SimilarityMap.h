@@ -24,7 +24,7 @@
 #include <vtkSmartPointer.h>
 
 #include "ui_SimilarityMap.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 
 class iASimilarityMapWidget;

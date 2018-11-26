@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_PDMView.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkVersion.h>

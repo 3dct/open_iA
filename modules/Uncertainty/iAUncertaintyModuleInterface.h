@@ -22,7 +22,7 @@
 
 #include "iAChildData.h"
 #include "iAModuleInterface.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 #include "ui_UncertaintyToolBar.h"
 
 #include <QToolBar>

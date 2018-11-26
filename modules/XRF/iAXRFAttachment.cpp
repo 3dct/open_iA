@@ -30,7 +30,7 @@
 #include "iAChannelVisualizationData.h"
 #include "iASlicer.h"
 #include "iASlicerData.h"
-#include "iAWidgetAddHelper.h"
+#include "qthelper/iAWidgetAddHelper.h"
 #include "io/extension2id.h"
 #include "io/iAIO.h"
 #include "mainwindow.h"

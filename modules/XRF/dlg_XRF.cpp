@@ -43,11 +43,11 @@
 #include "iAChannelVisualizationData.h"
 #include "iAColorTheme.h"
 #include "iAConnector.h"
-#include "iADockWidgetWrapper.h"
+#include "qthelper/iADockWidgetWrapper.h"
 #include "iAFunctionalBoxplot.h"
 #include "iAMathUtility.h"
 #include "iARenderer.h"
-#include "iAWidgetAddHelper.h"
+#include "qthelper/iAWidgetAddHelper.h"
 #include "io/iAIO.h"
 #include "mdichild.h"
 
