@@ -22,7 +22,7 @@
 
 #include "defines.h"
 #include "iAChannelID.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"

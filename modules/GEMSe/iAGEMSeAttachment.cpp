@@ -34,7 +34,7 @@
 #include "iASlicer.h"
 #include "iASlicerData.h"
 #include "iASlicerWidget.h"
-#include "iAWidgetAddHelper.h"
+#include "qthelper/iAWidgetAddHelper.h"
 #include "mdichild.h"
 #include "mainwindow.h"
 

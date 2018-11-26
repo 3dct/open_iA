@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iADockWidgetWrapper.h"
+#include "qthelper/iADockWidgetWrapper.h"
 
 #include "iAFeatureScoutModuleInterface.h"
 #include "iAFeatureScoutObjectType.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 #include "ui_FeatureScoutClassExplorer.h"
 #include "ui_FeatureScoutPolarPlot.h"
 #include "ui_FeatureScoutMeanObjectView.h"

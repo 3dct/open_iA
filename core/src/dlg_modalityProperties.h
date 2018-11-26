@@ -25,7 +25,7 @@
 #include <QSharedPointer>
 
 #include "ui_modalityProperties.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDialog, Ui_modalityProperties> dlg_modalityPropertiesUI;
 
 class iAModality;

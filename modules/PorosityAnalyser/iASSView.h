@@ -26,7 +26,7 @@
 #include <vtkSmartPointer.h>
 
 #include "ui_SSView.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 #include "iAChannelID.h"
 
 class vtkTransform;

@@ -35,7 +35,7 @@
 #include "dlg_commoninput.h"
 #include "iAColorTheme.h"
 #include "iAConsole.h"
-#include "iADockWidgetWrapper.h"
+#include "qthelper/iADockWidgetWrapper.h"
 #include "iALookupTable.h"
 #include "iAToolsITK.h"
 #include "io/iAFileUtils.h"

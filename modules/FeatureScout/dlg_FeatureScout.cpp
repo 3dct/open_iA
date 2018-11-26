@@ -36,7 +36,7 @@
 #include "dlg_modalities.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
-#include "iADockWidgetWrapper.h"
+#include "qthelper/iADockWidgetWrapper.h"
 #include "iAmat4.h"
 #include "iAModalityTransfer.h"
 #include "iAMovieHelper.h"

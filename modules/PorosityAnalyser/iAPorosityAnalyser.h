@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_PorosityAnalyser.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 #include <QTableWidget>
 #include <QFileInfo>

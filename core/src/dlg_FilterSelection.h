@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_FilterSelection.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 
 typedef iAQTtoUIConnector<QDialog, Ui_FilterSelectionDlg> dlg_FilterSelectionConnector;

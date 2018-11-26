@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_progress.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_progress> dlg_progressUI;
 
 #include "iAAbortListener.h"

@@ -25,7 +25,7 @@
 #include "iAScalingWidget.h"
 #include "DynamicVolumeLinesHelpers.h"
 #include "ui_Multi3DView.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
 class QVTKOpenGLWidget;

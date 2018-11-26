@@ -24,7 +24,7 @@
 #include <QTableWidget>
 #include <QModelIndex>
 
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 #include "ui_TreeView.h"
 #include "PorosityAnalyserHelpers.h"
 #include "iABPMData.h"

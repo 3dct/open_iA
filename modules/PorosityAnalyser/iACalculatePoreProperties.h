@@ -40,7 +40,7 @@ protected:
 	QTableWidget * m_masks;
 };
 
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QWidget, Ui_calculatePoreProperties> PorePropertiesConnector;
 
 class iACalculatePoreProperties : public PorePropertiesConnector

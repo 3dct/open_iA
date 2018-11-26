@@ -21,7 +21,7 @@
 #pragma once
 
 #include "iAModuleInterface.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 #include "ui_GEMSeToolBar.h"
 
 #include <QToolBar>

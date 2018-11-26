@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_TFTable.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 #include <vtkSmartPointer.h>
 

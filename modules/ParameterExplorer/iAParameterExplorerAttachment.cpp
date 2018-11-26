@@ -24,7 +24,7 @@
 #include "iAParamSpatialView.h"
 #include "iAParamTableView.h"
 
-#include "iADockWidgetWrapper.h"
+#include "qthelper/iADockWidgetWrapper.h"
 #include "mdichild.h"
 
 #include <QFileDialog>

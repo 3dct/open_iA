@@ -22,7 +22,7 @@
 
 // iA
 #include "iA4DCTData.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 #include "ui_iA4DCTMainWin.h"
 // Qt
 #include <QMainWindow>

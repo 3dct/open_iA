@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_samplingSettings.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 #include <QMap>
 

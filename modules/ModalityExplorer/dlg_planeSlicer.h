@@ -23,7 +23,7 @@
 #include <vtkSmartPointer.h>
 
 #include "ui_planeSlicer.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_PlaneSlicer> dlg_planeSlicerUI;
 
 #include <QtGlobal>

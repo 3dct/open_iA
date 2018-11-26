@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_labels.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 
 #include "iALabelInfo.h"

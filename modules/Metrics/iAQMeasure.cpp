@@ -24,7 +24,7 @@
 #include "charts/iADiagramFctWidget.h"
 #include "charts/iASimpleHistogramData.h"
 #include "charts/iAPlotTypes.h"
-#include "iADockWidgetWrapper.h"
+#include "qthelper/iADockWidgetWrapper.h"
 #include "defines.h"    // for DIM
 #include "iAConnector.h"
 #include "iAConsole.h"

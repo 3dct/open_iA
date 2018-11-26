@@ -23,7 +23,7 @@
 // Ui
 #include "ui_iA4DCTVisWin.h"
 // iA
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 #include "iAVisModulesCollection.h"
 // vtk
 #include <vtkOrientationMarkerWidget.h>

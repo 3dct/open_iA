@@ -24,7 +24,7 @@
 #include <QToolBar>
 
 #include "ui_FeatureScoutToolBar.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 class iAFeatureScoutToolbar : public QToolBar, public Ui_FeatureScoutToolBar
 {

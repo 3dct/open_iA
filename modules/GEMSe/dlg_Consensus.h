@@ -23,7 +23,7 @@
 #include "ui_Consensus.h"
 
 #include "iAImageTreeNode.h"    // for LabelImagePointer
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 
 #include <vtkSmartPointer.h>
 

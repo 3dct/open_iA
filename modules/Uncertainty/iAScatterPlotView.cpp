@@ -24,7 +24,7 @@
 #include "charts/iAScatterPlotWidget.h"
 #include "charts/iASPLOMData.h"
 #include "iAConsole.h"
-#include "iAQFlowLayout.h"
+#include "qthelper/iAQFlowLayout.h"
 #include "iAToolsVTK.h"
 #include "iAUncertaintyColors.h"
 #include "iAVtkDraw.h"

@@ -21,7 +21,7 @@
 #pragma once
 
 #include "ui_samplings.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_samplings> dlgSamplingsUI;
 
 class iASamplingResults;
