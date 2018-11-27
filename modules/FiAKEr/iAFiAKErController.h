@@ -116,6 +116,7 @@ private slots:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
 	void changeDistributionSource(int index);
+	void colorByDistrToggled();
 private:
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSpmID(size_t spmID, size_t & resultID, size_t & fiberID);
@@ -179,8 +180,11 @@ private:
 	void removeStackedBar(int index);
 	iAStackedBarChart* m_stackedBarsHeaders;
 	QGridLayout* m_resultsListLayout;
+	QCheckBox* m_colorByDistribution;
+	QComboBox* m_distributionChoice;
 
 	// Scatter plot matrix:
+	void setSPMColorByResult();
 	iAQSplom* m_spm;
 
 	// Optimization Steps:

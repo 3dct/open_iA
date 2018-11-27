@@ -426,18 +426,26 @@ void iAFiAKErController::resultsLoaded()
 	nameActionsLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	auto previewLabel = new QLabel("Preview");
 	previewLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-	auto distrCmb = new QComboBox();
+	m_distributionChoice = new QComboBox();
 	QStringList paramNames;
 	for (int curIdx = 0; curIdx < m_data->spmData->numParams() - 1; ++curIdx)
 		paramNames.push_back(QString("%1 Distribution").arg(m_data->spmData->parameterName(curIdx)));
-	distrCmb->addItems(paramNames);
-	connect(distrCmb, SIGNAL(currentIndexChanged(int)), this, SLOT(changeDistributionSource(int)));
-	distrCmb->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	m_distributionChoice->addItems(paramNames);
+	connect(m_distributionChoice, SIGNAL(currentIndexChanged(int)), this, SLOT(changeDistributionSource(int)));
+	m_distributionChoice->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	m_colorByDistribution = new QCheckBox("Color by");
+	connect(m_colorByDistribution, &QCheckBox::stateChanged, this, &iAFiAKErController::colorByDistrToggled);
+
+	auto histHeader = new QWidget();
+	histHeader->setLayout(new QHBoxLayout());
+	histHeader->layout()->setContentsMargins(0, 0, 0, 0);
+	histHeader->layout()->addWidget(m_colorByDistribution);
+	histHeader->layout()->addWidget(m_distributionChoice);
 
 	m_resultsListLayout->addWidget(nameActionsLabel, 0, NameActionColumn);
 	m_resultsListLayout->addWidget(previewLabel, 0, PreviewColumn);
 	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, StackedBarColumn);
-	m_resultsListLayout->addWidget(distrCmb, 0, HistogramColumn);
+	m_resultsListLayout->addWidget(histHeader, 0, HistogramColumn);
 
 	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -522,7 +530,7 @@ void iAFiAKErController::resultsLoaded()
 	}
 	resultList->setLayout(m_resultsListLayout);
 	addStackedBar(0);
-	distrCmb->setCurrentIndex((*m_data->result[0].mapping)[iACsvConfig::Length]);
+	m_distributionChoice->setCurrentIndex((*m_data->result[0].mapping)[iACsvConfig::Length]);
 
 	// Interaction Protocol:
 
@@ -614,18 +622,12 @@ void iAFiAKErController::loadStateAndShow()
 	std::vector<char> v(m_data->spmData->numParams(), false);
 	v[np - 7] = v[np - 6] = v[np - 5] = v[np - 4] = v[np - 3] = v[np - 2] = true;
 	m_spm->setData(m_data->spmData, v);
-	iALookupTable lut;
-	int numOfResults = m_data->result.size();
-	lut.setRange(0, numOfResults - 1);
-	lut.allocate(numOfResults);
-	for (size_t i = 0; i < numOfResults; i++)
-		lut.setColor(i, m_colorTheme->GetColor(i));
-	m_spm->setLookupTable(lut, m_data->spmData->numParams() - 1);
 	m_spm->setSelectionMode(iAScatterPlot::Rectangle);
 	m_spm->showDefaultMaxizimedPlot();
 	m_spm->setSelectionColor(SelectionColor);
 	m_spm->setPointRadius(2.5);
 	m_spm->settings.enableColorSettings = true;
+	setSPMColorByResult();
 	connect(m_spm, &iAQSplom::selectionModified, this, &iAFiAKErController::selectionSPMChanged);
 	connect(m_spm, &iAQSplom::lookupTableChanged, this, &iAFiAKErController::spmLookupTableChanged);
 	m_views[SettingsView]->hide();
@@ -671,6 +673,17 @@ void iAFiAKErController::removeStackedBar(int index)
 	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_stackedBarsHeaders->numberOfBars()*m_data->result.size());
 }
 
+void iAFiAKErController::setSPMColorByResult()
+{
+	iALookupTable lut;
+	int numOfResults = m_data->result.size();
+	lut.setRange(0, numOfResults - 1);
+	lut.allocate(numOfResults);
+	for (size_t i = 0; i < numOfResults; i++)
+		lut.setColor(i, m_colorTheme->GetColor(i));
+	m_spm->setLookupTable(lut, m_data->spmData->numParams() - 1);
+}
+
 void iAFiAKErController::stackedColSelect()
 {
 	auto source = qobject_cast<QAction*>(QObject::sender());
@@ -696,6 +709,7 @@ void iAFiAKErController::switchStackMode(bool stack)
 
 void iAFiAKErController::changeDistributionSource(int index)
 {
+	addInteraction(QString("Changed histogram distribution source to %1.").arg(m_spm->data()->parameterName(index)));
 	auto range = m_data->spmData->paramRange(index);
 	for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
 	{
@@ -723,6 +737,24 @@ void iAFiAKErController::changeDistributionSource(int index)
 	}
 	for (size_t resultID = 0; resultID<m_data->result.size(); ++resultID)
 		m_resultUIs[resultID].histoChart->update();
+	
+	if (m_colorByDistribution->isChecked())
+		colorByDistrToggled();
+}
+
+void iAFiAKErController::colorByDistrToggled()
+{
+	addInteraction(QString("Toggled color by distribution %1.").arg(m_colorByDistribution->isChecked()?"on":"off"));
+	if (m_colorByDistribution->isChecked())
+	{
+		size_t colorLookupParam = m_distributionChoice->currentIndex();
+		m_spm->setColorParam(colorLookupParam);
+		m_spm->rangeFromParameter();
+	}
+	else
+	{
+		setSPMColorByResult();
+	}
 }
 
 QColor iAFiAKErController::getResultColor(int resultID)
