@@ -534,6 +534,7 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 	if(isStack)	ext2id = &extensionToIdStack;
 	if (ext2id->find(extension) == ext2id->end())
 	{
+		DEBUG_LOG(QString("Could not find loader for extension '%1' of file '%2'!").arg(extension).arg(f));
 		return false;
 	}
 	IOType id = ext2id->find( extension ).value();
@@ -577,8 +578,11 @@ namespace
 
 bool MdiChild::loadFile(const QString &f, bool isStack)
 {
-	if(!QFile::exists(f))
+	if (!QFile::exists(f))
+	{
+		DEBUG_LOG(QString("File '%1' does not exist!").arg(f));
 		return false;
+	}
 
 	addMsg(tr("Loading file '%1', please wait...").arg(f));
 	setCurrentFile(f);
