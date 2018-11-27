@@ -104,12 +104,14 @@ public:
 	void updateXBounds(size_t startPlot = 0);
 	void updateYBounds(size_t startPlot = 0);
 	QImage drawOffscreen();
+	void setBackgroundColor(QColor const & color);
 public slots:
 	void resetView();
 	void setDrawXAxisAtZero(bool enable);
 signals:
 	void xAxisChanged();
 	void plotsSelected(std::vector<size_t> const & plotIDs);
+	void dblClicked();
 protected:
 	QString xCaption, yCaption;
 	int zoomX;
@@ -145,6 +147,7 @@ protected:
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
+	void mouseDoubleClickEvent(QMouseEvent *event) override;
 	void wheelEvent(QWheelEvent *event) override;
 	void leaveEvent(QEvent *event) override;
 	void paintGL() override;
@@ -182,4 +185,5 @@ private:
 	QMap<double, QColor> m_xMarker;
 	size_t m_maxXAxisSteps;
 	bool m_drawXAxisAtZero;
+	QColor m_bgColor;
 };

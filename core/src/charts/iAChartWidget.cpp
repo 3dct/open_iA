@@ -455,10 +455,7 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	painter.save();
 	painter.translate(-translationX, 0);
 	QFontMetrics fm = painter.fontMetrics();
-
 	int aheight = activeHeight() - 1;
-	painter.fillRect(QRect(0, bottomMargin(), -leftMargin(), -(aheight + bottomMargin() + 1)),
-		QBrush(QWidget::palette().color(QWidget::backgroundRole())));
 	painter.setPen(QWidget::palette().color(QPalette::Text));
 
 	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
@@ -569,7 +566,9 @@ void iAChartWidget::updateBounds(size_t startPlot)
 
 void iAChartWidget::drawBackground(QPainter &painter)
 {
-	painter.fillRect( rect(), QWidget::palette().color(QWidget::backgroundRole()));
+	if (!m_bgColor.isValid())
+		m_bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	painter.fillRect( rect(), m_bgColor );
 }
 
 void iAChartWidget::resetView()
@@ -843,6 +842,11 @@ void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 	this->mode = NO_MODE;
 }
 
+void iAChartWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+	emit dblClicked();
+}
+
 void iAChartWidget::mousePressEvent(QMouseEvent *event)
 {
 	switch(event->button())
@@ -927,7 +931,6 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 	showDataTooltip(event);
 }
 
-
 QImage iAChartWidget::drawOffscreen()
 {
 	QSurfaceFormat format;
@@ -957,6 +960,12 @@ QImage iAChartWidget::drawOffscreen()
 	QImage image = fbo.toImage();
 	context.doneCurrent();
 	return image;
+}
+
+void iAChartWidget::setBackgroundColor(QColor const & color)
+{
+	m_bgColor = color;
+	update();
 }
 
 void iAChartWidget::paintGL()
