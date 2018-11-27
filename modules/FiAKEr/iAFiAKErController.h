@@ -113,6 +113,7 @@ private slots:
 	void showSpatialOverviewButton();
 	void selectionModeChanged(int);
 	void distributionChoiceChanged(int index);
+	void histogramBinsChanged(int value);
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);

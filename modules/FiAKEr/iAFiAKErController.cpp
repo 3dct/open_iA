@@ -93,7 +93,7 @@ namespace
 	const int HistogramMinWidth = 80;
 	const int StackedBarMinWidth = 70;
 	const int DefaultPlayDelay = 1000;
-	const int HistogramBins = 20;
+	int HistogramBins = 20;
 
 	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
 	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
@@ -343,10 +343,21 @@ void iAFiAKErController::resultsLoaded()
 	optimStepSettings->layout()->addWidget(playControls);
 	optimStepSettings->layout()->addWidget(dataChooser);
 
+	QGroupBox* resultListSettings = new QGroupBox("Result List");
+	resultListSettings->setLayout(new QHBoxLayout());
+	resultListSettings->layout()->addWidget(new QLabel("Histogram Bins:"));
+	auto histogramBinInput = new QSpinBox();
+	histogramBinInput->setMinimum(5);
+	histogramBinInput->setMaximum(1000);
+	histogramBinInput->setValue(HistogramBins);
+	resultListSettings->layout()->addWidget(histogramBinInput);
+	connect(histogramBinInput, SIGNAL(valueChanged(int)), this, SLOT(histogramBinsChanged(int)));
+
 	QWidget* settingsView = new QWidget();
 	settingsView->setLayout(new QVBoxLayout());
 	settingsView->layout()->addWidget(main3DViewSettings);
 	settingsView->layout()->addWidget(optimStepSettings);
+	settingsView->layout()->addWidget(resultListSettings);
 
 
 	// Optimization Steps View:
@@ -714,17 +725,25 @@ void iAFiAKErController::distributionChoiceChanged(int index)
 	changeDistributionSource(index);
 }
 
+void iAFiAKErController::histogramBinsChanged(int value)
+{
+	addInteraction(QString("Changed histogram bins to %1.").arg(value));
+	HistogramBins = value;
+	changeDistributionSource(m_distributionChoice->currentIndex());
+
+}
+
 void iAFiAKErController::changeDistributionSource(int index)
 {
 	auto range = m_data->spmData->paramRange(index);
-	for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
+	for (size_t resultID = 0; resultID<m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result[resultID];
 		auto & chart = m_resultUIs[resultID].histoChart;
 		chart->clearPlots();
 		chart->setXBounds(range[0], range[1]);
 		std::vector<double> fiberData(d.fiberCount);
-		for (size_t fiberID=0; fiberID<d.fiberCount; ++fiberID)
+		for (size_t fiberID = 0; fiberID<d.fiberCount; ++fiberID)
 			fiberData[fiberID] = d.table->GetValue(fiberID, index).ToDouble();
 		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins, Continuous, range[0], range[1]);
 		auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, DistributionPlotColor));
@@ -751,7 +770,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 
 void iAFiAKErController::updateHistogramColors()
 {
-	double range[2] = { 0, HistogramBins };
+	double range[2] = { 0.0, static_cast<double>(HistogramBins) };
 	auto lut = m_colorByDistribution->isChecked() ?
 		QSharedPointer<iALookupTable>(new iALookupTable(iALUT::Build(range, m_spm->settings.colorThemeName, 255, 1)))
 		: QSharedPointer<iALookupTable>();
@@ -762,7 +781,6 @@ void iAFiAKErController::updateHistogramColors()
 		chart->update();
 	}
 }
-
 
 void iAFiAKErController::colorByDistrToggled()
 {
