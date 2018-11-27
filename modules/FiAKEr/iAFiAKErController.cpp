@@ -127,6 +127,7 @@ public:
 	QSharedPointer<iA3DCylinderObjectVis> mini3DVis;
 	QSharedPointer<iA3DCylinderObjectVis> main3DVis;
 	QCheckBox* cbBoundingBox;
+	QCheckBox* cbShow;
 	iAChartWidget* histoChart;
 	iAStackedBarChart* stackedBars;
 	iAFixedAspectWidget* previewWidget;
@@ -442,6 +443,7 @@ void iAFiAKErController::resultsLoaded()
 	for (int curIdx = 0; curIdx < m_data->spmData->numParams() - 1; ++curIdx)
 		paramNames.push_back(QString("%1 Distribution").arg(m_data->spmData->parameterName(curIdx)));
 	m_distributionChoice->addItems(paramNames);
+	m_distributionChoice->addItem("Match Quality");
 	m_distributionChoice->setCurrentIndex((*m_data->result[0].mapping)[iACsvConfig::Length]);
 	connect(m_distributionChoice, SIGNAL(currentIndexChanged(int)), this, SLOT(distributionChoiceChanged(int)));
 	m_distributionChoice->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -477,9 +479,9 @@ void iAFiAKErController::resultsLoaded()
 		uiData.vtkWidget->SetRenderWindow(renWin);
 		uiData.vtkWidget->setProperty("resultID", resultID);
 
-		QCheckBox* toggleMainRender = new QCheckBox("Show");
-		toggleMainRender->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		toggleMainRender->setProperty("resultID", resultID);
+		uiData.cbShow = new QCheckBox("Show");
+		uiData.cbShow->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		uiData.cbShow->setProperty("resultID", resultID);
 		uiData.cbBoundingBox = new QCheckBox("Box");
 		uiData.cbBoundingBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		uiData.cbBoundingBox->setProperty("resultID", resultID);
@@ -501,7 +503,7 @@ void iAFiAKErController::resultsLoaded()
 		bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		uiData.nameActions->layout()->addWidget(topFiller);
 		uiData.nameActions->layout()->addWidget(uiData.nameLabel);
-		uiData.nameActions->layout()->addWidget(toggleMainRender);
+		uiData.nameActions->layout()->addWidget(uiData.cbShow);
 		uiData.nameActions->layout()->addWidget(uiData.cbBoundingBox);
 		uiData.nameActions->layout()->addWidget(bottomFiller);
 
@@ -537,7 +539,7 @@ void iAFiAKErController::resultsLoaded()
 		connect(uiData.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(uiData.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(uiData.vtkWidget, &iAVtkWidgetClass::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
-		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
+		connect(uiData.cbShow, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
 		connect(uiData.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
 	}
 	resultList->setLayout(m_resultsListLayout);
@@ -730,26 +732,44 @@ void iAFiAKErController::histogramBinsChanged(int value)
 	addInteraction(QString("Changed histogram bins to %1.").arg(value));
 	HistogramBins = value;
 	changeDistributionSource(m_distributionChoice->currentIndex());
-
 }
 
 void iAFiAKErController::changeDistributionSource(int index)
 {
-	auto range = m_data->spmData->paramRange(index);
+	bool matchQuality = (index >= m_data->spmData->numParams()-1);
+	if (matchQuality && m_referenceID == NoResult)
+	{
+		DEBUG_LOG(QString("You need to set a reference first!"));
+		return;
+	}
+	double range[2];
+	if (matchQuality)
+	{
+		range[0] = - 1.0;
+		range[1] = 1.0;
+	}
+	else
+	{
+		range[0] = m_data->spmData->paramRange(index)[0];
+		range[1] = m_data->spmData->paramRange(index)[1];
+	}
 	for (size_t resultID = 0; resultID<m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result[resultID];
 		auto & chart = m_resultUIs[resultID].histoChart;
 		chart->clearPlots();
 		chart->setXBounds(range[0], range[1]);
+		if (matchQuality && resultID != m_referenceID)
+			continue;
 		std::vector<double> fiberData(d.fiberCount);
 		for (size_t fiberID = 0; fiberID<d.fiberCount; ++fiberID)
-			fiberData[fiberID] = d.table->GetValue(fiberID, index).ToDouble();
+			fiberData[fiberID] = matchQuality ? m_data->avgRefFiberMatch[fiberID]
+					: d.table->GetValue(fiberID, index).ToDouble();
 		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins, Continuous, range[0], range[1]);
 		auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, DistributionPlotColor));
 		chart->addPlot(histogramPlot);
 	}
-	if (m_referenceID != NoResult)
+	if (m_referenceID != NoResult && !matchQuality)
 	{
 		QSharedPointer<iAPlotData> refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
 		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
@@ -760,8 +780,6 @@ void iAFiAKErController::changeDistributionSource(int index)
 			m_resultUIs[resultID].histoChart->addPlot(refPlot);
 		}
 	}
-	for (size_t resultID = 0; resultID<m_data->result.size(); ++resultID)
-		m_resultUIs[resultID].histoChart->update();
 	
 	if (m_colorByDistribution->isChecked())
 		colorByDistrToggled();
@@ -777,7 +795,8 @@ void iAFiAKErController::updateHistogramColors()
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & chart = m_resultUIs[resultID].histoChart;
-		dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data())->setLookupTable(lut);
+		if (chart->plots().size() > 0)
+			dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data())->setLookupTable(lut);
 		chart->update();
 	}
 }
@@ -788,8 +807,14 @@ void iAFiAKErController::colorByDistrToggled()
 	if (m_colorByDistribution->isChecked())
 	{
 		size_t colorLookupParam = m_distributionChoice->currentIndex();
-		m_spm->setColorParam(colorLookupParam);
-		m_spm->rangeFromParameter();
+		bool matchQuality = (colorLookupParam >= m_data->spmData->numParams()-1);
+		if (matchQuality)
+			showSpatialOverview();
+		else
+		{
+			m_spm->setColorParam(colorLookupParam);
+			m_spm->rangeFromParameter();
+		}
 	}
 	else
 	{
@@ -1338,7 +1363,7 @@ void iAFiAKErController::refDistAvailable()
 		m_stackedBarsHeaders->contextMenu()->addAction(diffAvgAction);
 	}
 
-	showSpatialOverview();
+	changeDistributionSource(m_data->spmData->numParams() - 1);
 
 	m_views[JobView]->hide();
 }
@@ -1360,8 +1385,10 @@ void iAFiAKErController::showSpatialOverview()
 		return;
 	double range[2] = {-1.0, 1.0};
 	QSharedPointer<iALookupTable> lut(new iALookupTable());
-	*lut = iALUT::Build(range, "Diverging red-gray-blue", 255, SelectionOpacity);
+	*lut = iALUT::Build(range, m_spm->settings.colorThemeName, 255, SelectionOpacity);
 	auto ref3D = m_resultUIs[m_referenceID].main3DVis;
+	QSignalBlocker cbBlock(m_resultUIs[m_referenceID].cbShow);
+	m_resultUIs[m_referenceID].cbShow->setChecked(true);
 	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns()-1;
 	ref3D->setLookupTable(lut, colID);
 	ref3D->updateColorSelectionRendering();
@@ -1430,7 +1457,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	}
 	if (m_referenceID == NoResult)
 	{
-		DEBUG_LOG("Please select a reference first!");
+		DEBUG_LOG(QString("You need to set a reference first!"));
 		return;
 	}
 	m_refVisTable = vtkSmartPointer<vtkTable>::New();
