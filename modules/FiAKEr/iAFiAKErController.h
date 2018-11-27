@@ -112,12 +112,14 @@ private slots:
 	void selectionDetailsItemClicked(QModelIndex const &);
 	void showSpatialOverviewButton();
 	void selectionModeChanged(int);
+	void distributionChoiceChanged(int index);
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
-	void changeDistributionSource(int index);
 	void colorByDistrToggled();
 private:
+	void changeDistributionSource(int index);
+	void updateHistogramColors();
 	QColor getResultColor(int resultID);
 	void getResultFiberIDFromSpmID(size_t spmID, size_t & resultID, size_t & fiberID);
 	void clearSelection();
