@@ -648,6 +648,7 @@ void iAFiAKErController::loadStateAndShow()
 	m_views[ProtocolView]->hide();
 	m_views[SelectionView]->hide();
 	m_views[JobView]->hide();
+	m_showReferenceWidget->hide();
 }
 
 QString iAFiAKErController::stackedBarColName(int index) const
