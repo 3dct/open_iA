@@ -843,6 +843,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 #endif
 		case UNKNOWN_READER:
 		default:
+			DEBUG_LOG(QString("Unknown IO type '%1' for file '%2'!").arg(ioID).arg(f));
 			addMsg(tr("Unknown IO type"));
 			return false;
 	}
@@ -1241,36 +1242,33 @@ bool iAIO::setupVolumeStackReader(QString f)
 		<< byteOrderStr);
 
 	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (true, parent, "RAW file specs", inList, inPara, NULL, f);
-	if (dlg->exec() == QDialog::Accepted){
+	if (dlg->exec() != QDialog::Accepted)
+		return false;
 
-		rawSizeX = dlg->getDblValue(5); rawSizeY = dlg->getDblValue(6); rawSizeZ = dlg->getDblValue(7);
-		extent[0] = 0; extent[2] = 0; extent[4] = 0;
-		extent[1] = rawSizeX; extent[3]= rawSizeY; extent[5] = rawSizeZ;
-		extent[1]--; extent[3]--; extent[5]--;
+	rawSizeX = dlg->getDblValue(5); rawSizeY = dlg->getDblValue(6); rawSizeZ = dlg->getDblValue(7);
+	extent[0] = 0; extent[2] = 0; extent[4] = 0;
+	extent[1] = rawSizeX; extent[3]= rawSizeY; extent[5] = rawSizeZ;
+	extent[1]--; extent[3]--; extent[5]--;
 
-		fileNamesBase = dlg->getText(0);
-		extension = dlg->getText(1);
-		digitsInIndex = dlg->getDblValue(2);
-		indexRange[0] = dlg->getDblValue(3); indexRange[1]= dlg->getDblValue(4);
-		spacing[0] = dlg->getDblValue(8); spacing[1]= dlg->getDblValue(9); spacing[2] = dlg->getDblValue(10);
-		origin[0] = dlg->getDblValue(11); origin[1]= dlg->getDblValue(12); origin[2] = dlg->getDblValue(13);
+	fileNamesBase = dlg->getText(0);
+	extension = dlg->getText(1);
+	digitsInIndex = dlg->getDblValue(2);
+	indexRange[0] = dlg->getDblValue(3); indexRange[1]= dlg->getDblValue(4);
+	spacing[0] = dlg->getDblValue(8); spacing[1]= dlg->getDblValue(9); spacing[2] = dlg->getDblValue(10);
+	origin[0] = dlg->getDblValue(11); origin[1]= dlg->getDblValue(12); origin[2] = dlg->getDblValue(13);
 
-		rawHeaderSize = dlg->getDblValue(15);
-		headersize = rawHeaderSize;
-		scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValue(14));
-		rawScalarType = scalarType;
+	rawHeaderSize = dlg->getDblValue(15);
+	headersize = rawHeaderSize;
+	scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValue(14));
+	rawScalarType = scalarType;
 
-		if (dlg->getComboBoxValue(16) == "Little Endian")
+	if (dlg->getComboBoxValue(16) == "Little Endian")
 		byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
-		else if (dlg->getComboBoxValue(16) == "Big Endian")
+	else if (dlg->getComboBoxValue(16) == "Big Endian")
 		byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
+	rawByteOrder = byteOrder;
 
-		rawByteOrder = byteOrder;
-
-		FillFileNameArray(indexRange, digitsInIndex);
-	}
-	else return false;
-
+	FillFileNameArray(indexRange, digitsInIndex);
 	return true;
 }
 
@@ -1298,34 +1296,31 @@ bool iAIO::setupRAWReader( QString f )
 		<< byteOrderStr);
 
 	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (false, parent, "RAW file specs", inList, inPara, NULL, f);
+	if (dlg->exec() != QDialog::Accepted)
+		return false;
 
-	if (dlg->exec() == QDialog::Accepted)
-	{
-		rawSizeX = dlg->getDblValue(0); rawSizeY = dlg->getDblValue(1); rawSizeZ = dlg->getDblValue(2);
-		extent[0] = 0; extent[2] = 0; extent[4] = 0;
-		extent[1] = rawSizeX; extent[3]= rawSizeY; extent[5] = rawSizeZ;
-		extent[1]--; extent[3]--; extent[5]--;
+	rawSizeX = dlg->getDblValue(0); rawSizeY = dlg->getDblValue(1); rawSizeZ = dlg->getDblValue(2);
+	extent[0] = 0; extent[2] = 0; extent[4] = 0;
+	extent[1] = rawSizeX; extent[3]= rawSizeY; extent[5] = rawSizeZ;
+	extent[1]--; extent[3]--; extent[5]--;
 
-		rawSpaceX = dlg->getDblValue(3); rawSpaceY = dlg->getDblValue(4); rawSpaceZ = dlg->getDblValue(5);
-		spacing[0] = rawSpaceX; spacing[1]= rawSpaceY; spacing[2] = rawSpaceZ;
+	rawSpaceX = dlg->getDblValue(3); rawSpaceY = dlg->getDblValue(4); rawSpaceZ = dlg->getDblValue(5);
+	spacing[0] = rawSpaceX; spacing[1]= rawSpaceY; spacing[2] = rawSpaceZ;
 
-		rawOriginX = dlg->getDblValue(6); rawOriginY = dlg->getDblValue(7); rawOriginZ = dlg->getDblValue(8);
-		origin[0] = rawOriginX; origin[1]= rawOriginY; origin[2] = rawOriginZ;
+	rawOriginX = dlg->getDblValue(6); rawOriginY = dlg->getDblValue(7); rawOriginZ = dlg->getDblValue(8);
+	origin[0] = rawOriginX; origin[1]= rawOriginY; origin[2] = rawOriginZ;
 
-		rawHeaderSize = dlg->getDblValue(9);
-		headersize = rawHeaderSize;
-		fileName = f;
-		scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValue(10));
-		rawScalarType = scalarType;
-		if (dlg->getComboBoxValue(11) == "Little Endian")
-			byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
-		else if (dlg->getComboBoxValue(11) == "Big Endian")
-			byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
+	rawHeaderSize = dlg->getDblValue(9);
+	headersize = rawHeaderSize;
+	fileName = f;
+	scalarType = MapVTKTypeStringToInt(dlg->getComboBoxValue(10));
+	rawScalarType = scalarType;
+	if (dlg->getComboBoxValue(11) == "Little Endian")
+		byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
+	else if (dlg->getComboBoxValue(11) == "Big Endian")
+		byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 
-		rawByteOrder = byteOrder;
-	}
-	else return false;
-
+	rawByteOrder = byteOrder;
 	return true;
 }
 
@@ -1345,7 +1340,8 @@ bool iAIO::setupPARSReader( QString f )
 
 	fileName = getParameterValues(f,"proj_filename_template_1:",0);
 	QFileInfo pars(f);
-	if(!QFile::exists(fileName))	{
+	if(!QFile::exists(fileName))
+	{
 		if ((fileName.lastIndexOf("\\") == -1) && (fileName.lastIndexOf("/") == -1))
 			fileName = pars.canonicalPath() + "/" + fileName;
 		else if (fileName.lastIndexOf("\\") > 0)
@@ -1357,7 +1353,11 @@ bool iAIO::setupPARSReader( QString f )
 	}
 	QFile file;
 	file.setFileName(fileName);
-	if(!file.open(QIODevice::ReadOnly))    return false;
+	if (!file.open(QIODevice::ReadOnly))
+	{
+		DEBUG_LOG(QString("PARS reader: Cannot open data file '%1'!").arg(fileName));
+		return false;
+	}
 	else file.close();
 
 	return true;
@@ -1369,12 +1369,17 @@ bool iAIO::setupVGIReader( QString f )
 	extent[1] =	getParameterValues(f,"size", 0, "[file1]", "=").toInt() ;
 	extent[3] = getParameterValues(f,"size", 1, "[file1]", "=").toInt() ;
 	extent[5] = getParameterValues(f,"size", 2, "[file1]", "=").toInt() ;
-	if ((extent[1] == 0) || (extent[3] == 0) || (extent[5] == 0)) {
+	if ((extent[1] == 0) || (extent[3] == 0) || (extent[5] == 0))
+	{
 		extent[1] = getParameterValues(f,"Size", 0, "[file1]", "=").toInt() ;
 		extent[3] = getParameterValues(f,"Size", 1, "[file1]", "=").toInt() ;
 		extent[5] = getParameterValues(f,"Size", 2, "[file1]", "=").toInt() ;
 	}
-	if ((extent[1] == 0) || (extent[3] == 0) || (extent[5] == 0))    return false;
+	if ((extent[1] == 0) || (extent[3] == 0) || (extent[5] == 0))
+	{
+		DEBUG_LOG("VGI reader: All 3 dimensions are 0!");
+		return false;
+	}
 	extent[1]--; extent[3]--; extent[5]--;
 
 	spacing[0] = getParameterValues(f,"resolution", 0, "[geometry]", "=").toDouble();
@@ -1385,7 +1390,11 @@ bool iAIO::setupVGIReader( QString f )
 
 	int elementSize = getParameterValues(f,"bitsperelement", 0, "[file1]", "=").toInt();
 	if (elementSize == 0) elementSize = getParameterValues(f,"BitsPerElement", 0, "[file1]", "=").toInt();
-	if (elementSize == 0)    return false;
+	if (elementSize == 0)
+	{
+		DEBUG_LOG("VGI reader: BitsPerElement is 0!");
+		return false;
+	}
 
 	if (elementSize == 8) scalarType = VTK_UNSIGNED_CHAR;
 	else if (elementSize == 16) scalarType = VTK_UNSIGNED_SHORT;
@@ -1413,7 +1422,11 @@ bool iAIO::setupVGIReader( QString f )
 
 	QFile file;
 	file.setFileName(fileName);
-	if(!file.open(QIODevice::ReadOnly))    return false;
+	if (!file.open(QIODevice::ReadOnly))
+	{
+		DEBUG_LOG(QString("VGI reader: Cannot open data file '%1'!").arg(fileName));
+		return false;
+	}
 	else file.close();
 
 	return true;
@@ -1594,11 +1607,9 @@ bool iAIO::setupStackReader( QString f )
 		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]));
 
 	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
-
 	if (dlg.exec() != QDialog::Accepted)
-	{
 		return false;
-	}
+
 	fileNamesBase = dlg.getText(0);
 	extension = dlg.getText(1);
 	digits = dlg.getDblValue(2);
