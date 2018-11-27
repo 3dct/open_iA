@@ -100,6 +100,7 @@ namespace
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
 	const size_t NoResult = NoPlotsIdx;
 	const QString ModuleSettingsKey("FiberOptimizationExplorer");
+	const QString RefMarker(" (Reference)");
 
 	const QColor DistributionPlotColor(70, 70, 70, 255);
 	const QColor DistributionRefPlotColor(70, 70, 70, 80);
@@ -130,6 +131,7 @@ public:
 	iAStackedBarChart* stackedBars;
 	iAFixedAspectWidget* previewWidget;
 	iASignallingWidget* nameActions;
+	QLabel* nameLabel;
 	//! index where the plots for this result start
 	size_t startPlotIdx;
 };
@@ -466,16 +468,14 @@ void iAFiAKErController::resultsLoaded()
 		uiData.nameActions->setLayout(new QVBoxLayout());
 		uiData.nameActions->layout()->setContentsMargins(0, 0, 0, 0);
 		uiData.nameActions->layout()->setSpacing(5);
-		auto nameLabel = new QLabel(name);
-		nameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		uiData.nameLabel = new QLabel(name);
+		uiData.nameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		auto topFiller = new QWidget();
 		topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		topFiller->setAutoFillBackground(false);
 		auto bottomFiller = new QWidget();
 		bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		bottomFiller->setAutoFillBackground(false);
 		uiData.nameActions->layout()->addWidget(topFiller);
-		uiData.nameActions->layout()->addWidget(new QLabel(name));
+		uiData.nameActions->layout()->addWidget(uiData.nameLabel);
 		uiData.nameActions->layout()->addWidget(toggleMainRender);
 		uiData.nameActions->layout()->addWidget(uiData.cbBoundingBox);
 		uiData.nameActions->layout()->addWidget(bottomFiller);
@@ -1187,6 +1187,7 @@ namespace
 		ui.previewWidget->setBackgroundColor(color);
 		ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
 			color.redF(), color.greenF(), color.blueF());
+		ui.vtkWidget->update();
 		ui.stackedBars->setBackgroundColor(color);
 		ui.histoChart->setBackgroundColor(color);
 	}
@@ -1197,7 +1198,8 @@ void iAFiAKErController::referenceToggled()
 	if (m_referenceID != NoResult)
 	{
 		auto & ui = m_resultUIs[m_referenceID];
-		setResultBackground(ui, QWidget::palette().color(QWidget::backgroundRole()));
+		setResultBackground(ui, m_mainRenderer->palette().color(QWidget::backgroundRole()));
+		ui.nameLabel->setText(ui.nameLabel->text().left(ui.nameLabel->text().length()-RefMarker.length()));
 	}
 	if (m_refDistCompute)
 	{
@@ -1230,6 +1232,7 @@ void iAFiAKErController::refDistAvailable()
 
 	auto & ui = m_resultUIs[m_referenceID];
 	setResultBackground(ui, ReferenceColor);
+	ui.nameLabel->setText(ui.nameLabel->text() + RefMarker);
 
 	for (size_t chartID=0; chartID<ChartCount-1; ++chartID)
 		m_chartCB[chartID]->setEnabled(true);
