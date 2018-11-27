@@ -1363,6 +1363,10 @@ void iAFiAKErController::refDistAvailable()
 		m_stackedBarsHeaders->contextMenu()->addAction(diffAvgAction);
 	}
 
+	QSignalBlocker cblock(m_distributionChoice);
+	m_distributionChoice->setCurrentIndex(m_data->spmData->numParams() - 1);
+	QSignalBlocker cbColorByBlock(m_colorByDistribution);
+	m_colorByDistribution->setChecked(true);
 	changeDistributionSource(m_data->spmData->numParams() - 1);
 
 	m_views[JobView]->hide();
