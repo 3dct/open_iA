@@ -105,6 +105,14 @@ namespace
 	const QColor OptimStepMarkerColor(192, 0, 0);
 	const QColor SelectionColor(0, 0, 0);
 
+	enum ResultListColumns
+	{
+		NameActionColumn,
+		PreviewColumn,
+		StackedBarColumn,
+		HistogramColumn
+	};
+
 }
 
 //! UI elements for each result
@@ -167,7 +175,6 @@ void iAFiAKErController::resultsLoaded()
 {
 	m_resultUIs.resize(m_data->result.size());
 	m_selection.resize(m_data->result.size());
-
 
 	// Main 3D View:
 
@@ -390,9 +397,9 @@ void iAFiAKErController::resultsLoaded()
 	resultListScrollArea->setWidget(resultList);
 	m_resultsListLayout = new QGridLayout();
 	m_resultsListLayout->setSpacing(5);
-	m_resultsListLayout->setColumnStretch(2, 2);
-	m_resultsListLayout->setColumnStretch(3, 3);
-	m_resultsListLayout->setColumnStretch(4, 4);
+	m_resultsListLayout->setColumnStretch(PreviewColumn, 1);
+	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_data->result.size());
+	m_resultsListLayout->setColumnStretch(HistogramColumn, 2 * m_data->result.size() );
 
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
@@ -404,10 +411,8 @@ void iAFiAKErController::resultsLoaded()
 	m_stackedBarsHeaders->contextMenu()->addAction(headerFiberCountAction);
 	connect(m_stackedBarsHeaders, &iAStackedBarChart::switchedStackMode, this, &iAFiAKErController::switchStackMode);
 
-	auto nameLabel = new QLabel("Name");
-	nameLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	auto actionsLabel = new QLabel("Actions");
-	actionsLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	auto nameActionsLabel = new QLabel("Name/Actions");
+	nameActionsLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	auto previewLabel = new QLabel("Preview");
 	previewLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	auto distrCmb = new QComboBox();
@@ -418,19 +423,18 @@ void iAFiAKErController::resultsLoaded()
 	connect(distrCmb, SIGNAL(currentIndexChanged(int)), this, SLOT(changeDistributionSource(int)));
 	distrCmb->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-	m_resultsListLayout->addWidget(nameLabel, 0, 0);
-	m_resultsListLayout->addWidget(actionsLabel, 0, 1);
-	m_resultsListLayout->addWidget(previewLabel, 0, 2);
-	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, 3);
-	m_resultsListLayout->addWidget(distrCmb, 0, 4);
+	m_resultsListLayout->addWidget(nameActionsLabel, 0, NameActionColumn);
+	m_resultsListLayout->addWidget(previewLabel, 0, PreviewColumn);
+	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, StackedBarColumn);
+	m_resultsListLayout->addWidget(distrCmb, 0, HistogramColumn);
 
 	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result.at(resultID);
 		auto & uiData = m_resultUIs[resultID];
 
-		auto w = new iAFixedAspectWidget();
-		uiData.vtkWidget = w->vtkWidget();
+		auto previewWidget = new iAFixedAspectWidget();
+		uiData.vtkWidget = previewWidget->vtkWidget();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		renWin->SetAlphaBitPlanes(1);
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
@@ -453,9 +457,13 @@ void iAFiAKErController::resultsLoaded()
 		toggleReference->setProperty("resultID", resultID);
 		m_defaultButtonGroup->addButton(toggleReference);
 
+		QString name = QFileInfo(d.fileName).baseName();
+		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
+
 		QWidget* resultActions = new QWidget();
 		resultActions->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 		resultActions->setLayout(new QVBoxLayout());
+		resultActions->layout()->addWidget(new QLabel(name));
 		resultActions->layout()->addWidget(toggleMainRender);
 		resultActions->layout()->addWidget(uiData.cbBoundingBox);
 		resultActions->layout()->addWidget(toggleReference);
@@ -470,14 +478,10 @@ void iAFiAKErController::resultsLoaded()
 		uiData.histoChart->setMinimumWidth(HistogramMinWidth);
 		uiData.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-		QString name = QFileInfo(d.fileName).baseName();
-		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
-		
-		m_resultsListLayout->addWidget(new QLabel(name), resultID + 1, 0);
-		m_resultsListLayout->addWidget(resultActions, resultID + 1, 1);
-		m_resultsListLayout->addWidget(w, resultID + 1, 2);
-		m_resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, 3);
-		m_resultsListLayout->addWidget(uiData.histoChart, resultID + 1, 4);
+		m_resultsListLayout->addWidget(resultActions, resultID + 1, NameActionColumn);
+		m_resultsListLayout->addWidget(previewWidget, resultID + 1, PreviewColumn);
+		m_resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, StackedBarColumn);
+		m_resultsListLayout->addWidget(uiData.histoChart, resultID + 1, HistogramColumn);
 
 		uiData.mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
 			uiData.vtkWidget, d.table, d.mapping, getResultColor(resultID)));
@@ -631,7 +635,7 @@ void iAFiAKErController::addStackedBar(int index)
 		}
 		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue);
 	}
-	m_resultsListLayout->setColumnStretch(3, m_stackedBarsHeaders->numberOfBars()*3);
+	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_stackedBarsHeaders->numberOfBars()* m_data->result.size() );
 }
 
 void iAFiAKErController::removeStackedBar(int index)
@@ -640,7 +644,7 @@ void iAFiAKErController::removeStackedBar(int index)
 	m_stackedBarsHeaders->removeBar(title);
 	for (size_t resultID=0; resultID<m_resultUIs.size(); ++resultID)
 		m_resultUIs[resultID].stackedBars->removeBar(title);
-	m_resultsListLayout->setColumnStretch(3, m_stackedBarsHeaders->numberOfBars());
+	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_stackedBarsHeaders->numberOfBars()*m_data->result.size());
 }
 
 void iAFiAKErController::stackedColSelect()
