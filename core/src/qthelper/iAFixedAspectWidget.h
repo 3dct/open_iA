@@ -22,15 +22,19 @@
 
 #include "open_iA_Core_export.h"
 
-#include <QWidget>
+#include "iASignallingWidget.h"
 
+class iAColoredWidget;
 class QVTKOpenGLWidget;
 
-class open_iA_Core_API iAFixedAspectWidget: public QWidget
+class open_iA_Core_API iAFixedAspectWidget: public iASignallingWidget
 {
+	Q_OBJECT
 public:
 	iAFixedAspectWidget(double aspect=1.0, Qt::Alignment verticalAlign = Qt::AlignVCenter);
 	QVTKOpenGLWidget* vtkWidget();
+	void setBackgroundColor(QColor const & color);
 private:
-	QVTKOpenGLWidget * m_widget;
+	QVTKOpenGLWidget* m_widget;
+	iAColoredWidget* m_fill1, * m_fill2;
 };

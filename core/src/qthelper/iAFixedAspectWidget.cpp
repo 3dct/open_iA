@@ -30,15 +30,19 @@
 class iAColoredWidget: public QWidget
 {
 public:
-	iAColoredWidget(QColor const & c):
-	    bgColor(c)
-	{
-	}
+	iAColoredWidget()
+	{}
 	void paintEvent(QPaintEvent* ev)
 	{
 		QPainter p(this);
-		QRect g(geometry());
-		p.fillRect(g, bgColor);
+		if (!bgColor.isValid())
+			bgColor = QWidget::palette().color(QWidget::backgroundRole());
+		p.fillRect(rect(), bgColor);
+	}
+	void setBGColor(QColor const & color)
+	{
+		bgColor = color;
+		update();
 	}
 private:
 	QColor bgColor;
@@ -49,8 +53,7 @@ class iAFixedAspectWidgetInternal: public QVTKOpenGLWidget
 public:
 	iAFixedAspectWidgetInternal(double aspect):
 		m_aspect(aspect)
-	{
-	}
+	{}
 	bool hasHeightForWidth() const override
 	{
 		return true;
@@ -58,36 +61,44 @@ public:
 	int heightForWidth(int w) const override
 	{
 		int newHeight = static_cast<int>(w*m_aspect);
-		DEBUG_LOG(QString("width x height: %1 x %2").arg(w).arg(newHeight));
 		return newHeight;
 	}
 private:
 	double m_aspect;
-	QWidget* m_child;
 };
 
-iAFixedAspectWidget::iAFixedAspectWidget(double aspect, Qt::Alignment verticalAlign)
+iAFixedAspectWidget::iAFixedAspectWidget(double aspect, Qt::Alignment verticalAlign):
+	m_fill1(nullptr),
+	m_fill2(nullptr)
 {
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
 	layout()->setContentsMargins(0, 0, 0, 0);
 	if (verticalAlign != Qt::AlignTop)
 	{
-		iAColoredWidget* w = new iAColoredWidget(QColor(255, 0, 0, 50));
-		w->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		layout()->addWidget(w);
+		m_fill1 = new iAColoredWidget();
+		m_fill1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		layout()->addWidget(m_fill1);
 	}
 	m_widget = new iAFixedAspectWidgetInternal(aspect);
 	layout()->addWidget(m_widget);
 	if (verticalAlign != Qt::AlignBottom)
 	{
-		iAColoredWidget* filler = new iAColoredWidget(QColor(0, 255, 0, 50));
-		filler->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		layout()->addWidget(filler);
+		m_fill2 = new iAColoredWidget();
+		m_fill2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		layout()->addWidget(m_fill2);
 	}
 }
 
 QVTKOpenGLWidget* iAFixedAspectWidget::vtkWidget()
 {
 	return m_widget;
+}
+
+void iAFixedAspectWidget::setBackgroundColor(QColor const & color)
+{
+	if (m_fill1)
+		m_fill1->setBGColor(color);
+	if (m_fill2)
+		m_fill2->setBGColor(color);
 }
