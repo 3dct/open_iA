@@ -208,24 +208,13 @@ void iAFiAKErController::resultsLoaded()
 	m_spnboxReferenceCount->setMinimum(1);
 	m_spnboxReferenceCount->setMaximum(iARefDistCompute::MaxNumberOfCloseFibers);
 	m_showReferenceWidget->setLayout(new QHBoxLayout());
-	m_cmbboxDistanceMeasure = new QComboBox();
-	m_cmbboxDistanceMeasure->addItem("Dist1 (Midpoint, Angles, Length)");
-	m_cmbboxDistanceMeasure->addItem("Dist2 (Start-Start/Center-Center/End-End)");
-	m_cmbboxDistanceMeasure->addItem("Dist3 (All 9 pairs Start-/Center-/Endpoint)");
-	m_cmbboxDistanceMeasure->addItem("Dist4 (Min. Fiber Fragment Distance)");
-	m_cmbboxDistanceMeasure->addItem("Dist5 (Overlap % short fiber)");
-	m_cmbboxDistanceMeasure->addItem("Dist6 (Overlap % in relation to Volume Ratio, short fiber)");
-	m_cmbboxDistanceMeasure->addItem("Dist7 (Overlap % in relation to Volume Ratio,  directional)");
-	m_cmbboxDistanceMeasure->setCurrentIndex(iARefDistCompute::BestDistanceMetric);
 	m_chkboxShowLines = new QCheckBox("Connect");
 	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceToggled);
 	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(showReferenceCountChanged(int)));
-	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
 	connect(m_chkboxShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceLinesToggled);
 	m_showReferenceWidget->layout()->addWidget(m_chkboxShowReference);
 	m_showReferenceWidget->layout()->addWidget(m_spnboxReferenceCount);
-	m_showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers, metric:"));
-	m_showReferenceWidget->layout()->addWidget(m_cmbboxDistanceMeasure);
+	m_showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers"));
 	m_showReferenceWidget->layout()->addWidget(m_chkboxShowLines);
 	m_showReferenceWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
@@ -233,7 +222,6 @@ void iAFiAKErController::resultsLoaded()
 	mainRendererContainer->setLayout(new QVBoxLayout());
 	mainRendererContainer->layout()->addWidget(m_mainRenderer);
 	mainRendererContainer->layout()->addWidget(m_showReferenceWidget);
-
 
 	// Settings View
 
@@ -281,11 +269,28 @@ void iAFiAKErController::resultsLoaded()
 	moreButtons->layout()->addWidget(selectionModeChoice);
 	moreButtons->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
+	auto metricLabel = new QLabel("Metric");
+	m_cmbboxDistanceMeasure = new QComboBox();
+	m_cmbboxDistanceMeasure->addItem("Dist1 (Midpoint, Angles, Length)");
+	m_cmbboxDistanceMeasure->addItem("Dist2 (Start-Start/Center-Center/End-End)");
+	m_cmbboxDistanceMeasure->addItem("Dist3 (All 9 pairs Start-/Center-/Endpoint)");
+	m_cmbboxDistanceMeasure->addItem("Dist4 (Min. Fiber Fragment Distance)");
+	m_cmbboxDistanceMeasure->addItem("Dist5 (Overlap % short fiber)");
+	m_cmbboxDistanceMeasure->addItem("Dist6 (Overlap % in relation to Volume Ratio, short fiber)");
+	m_cmbboxDistanceMeasure->addItem("Dist7 (Overlap % in relation to Volume Ratio,  directional)");
+	m_cmbboxDistanceMeasure->setCurrentIndex(iARefDistCompute::BestDistanceMetric);
+	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
+	auto metricChoice = new QWidget();
+	metricChoice->setLayout(new QHBoxLayout());
+	metricChoice->layout()->addWidget(metricLabel);
+	metricChoice->layout()->addWidget(m_cmbboxDistanceMeasure);
+
 	QGroupBox* main3DViewSettings = new QGroupBox("Main 3D View");
 	main3DViewSettings->setLayout(new QVBoxLayout());
 	main3DViewSettings->layout()->addWidget(defaultOpacityWidget);
 	main3DViewSettings->layout()->addWidget(contextOpacityWidget);
 	main3DViewSettings->layout()->addWidget(moreButtons);
+	main3DViewSettings->layout()->addWidget(metricChoice);
 
 	QWidget* playControls = new QWidget();
 	playControls->setLayout(new QHBoxLayout());
