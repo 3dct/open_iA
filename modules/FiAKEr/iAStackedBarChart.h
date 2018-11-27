@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include <QWidget>
+#include "qthelper/iASignallingWidget.h"
 
 class iABarData;
 
@@ -38,7 +38,7 @@ public:
 	double value, maxValue, weight;
 };
 
-class iAStackedBarChart: public QWidget
+class iAStackedBarChart: public iASignallingWidget
 {
 	Q_OBJECT
 public:
@@ -51,6 +51,7 @@ public:
 	QMenu* contextMenu();
 	void setDoStack(bool doStack);
 	size_t numberOfBars() const;
+	void setBackgroundColor(QColor const & color);
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const & weights);
@@ -81,4 +82,5 @@ private:
 	int m_resizeStartX;
 	double m_resizeWidth, m_resizeFullWidth;
 	std::vector<iABarData> m_resizeBars;
+	QColor m_bgColor;
 };

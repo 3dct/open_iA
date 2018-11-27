@@ -85,7 +85,7 @@ public:
 private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);
-	void referenceToggled(bool);
+	void referenceToggled();
 	void miniMouseEvent(QMouseEvent* ev);
 	void optimStepSliderChanged(int);
 	void mainOpacityChanged(int);
@@ -177,7 +177,6 @@ private:
 	// Results List:
 	void addStackedBar(int index);
 	void removeStackedBar(int index);
-	QButtonGroup* m_defaultButtonGroup;
 	iAStackedBarChart* m_stackedBarsHeaders;
 	QGridLayout* m_resultsListLayout;
 

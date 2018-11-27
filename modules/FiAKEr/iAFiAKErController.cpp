@@ -31,6 +31,7 @@
 #include "iAFeatureScoutModuleInterface.h"
 #include "iAVectorPlotData.h"
 #include "qthelper/iAFixedAspectWidget.h"
+#include "qthelper/iASignallingWidget.h"
 
 // Core:
 #include "charts/iAChartWidget.h"
@@ -104,6 +105,8 @@ namespace
 	const QColor DistributionRefPlotColor(70, 70, 70, 80);
 	const QColor OptimStepMarkerColor(192, 0, 0);
 	const QColor SelectionColor(0, 0, 0);
+	const QColor ReferenceColor(225, 225, 225);
+	QColor StandardBackgroundColor;
 
 	enum ResultListColumns
 	{
@@ -125,6 +128,8 @@ public:
 	QCheckBox* cbBoundingBox;
 	iAChartWidget* histoChart;
 	iAStackedBarChart* stackedBars;
+	iAFixedAspectWidget* previewWidget;
+	iASignallingWidget* nameActions;
 	//! index where the plots for this result start
 	size_t startPlotIdx;
 };
@@ -390,7 +395,6 @@ void iAFiAKErController::resultsLoaded()
 		commonSuffixLength = 0;
 	}
 	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme("Material red (max. 10)");
-	m_defaultButtonGroup = new QButtonGroup();
 	auto resultListScrollArea = new QScrollArea();
 	resultListScrollArea->setWidgetResizable(true);
 	auto resultList = new QWidget();
@@ -433,8 +437,8 @@ void iAFiAKErController::resultsLoaded()
 		auto & d = m_data->result.at(resultID);
 		auto & uiData = m_resultUIs[resultID];
 
-		auto previewWidget = new iAFixedAspectWidget();
-		uiData.vtkWidget = previewWidget->vtkWidget();
+		uiData.previewWidget = new iAFixedAspectWidget();
+		uiData.vtkWidget = uiData.previewWidget->vtkWidget();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 		renWin->SetAlphaBitPlanes(1);
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
@@ -447,26 +451,34 @@ void iAFiAKErController::resultsLoaded()
 		uiData.vtkWidget->setProperty("resultID", resultID);
 
 		QCheckBox* toggleMainRender = new QCheckBox("Show");
-		toggleMainRender->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+		toggleMainRender->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		toggleMainRender->setProperty("resultID", resultID);
 		uiData.cbBoundingBox = new QCheckBox("Box");
-		uiData.cbBoundingBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+		uiData.cbBoundingBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		uiData.cbBoundingBox->setProperty("resultID", resultID);
-		QRadioButton* toggleReference = new QRadioButton("");
-		toggleReference->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-		toggleReference->setProperty("resultID", resultID);
-		m_defaultButtonGroup->addButton(toggleReference);
 
 		QString name = QFileInfo(d.fileName).baseName();
 		name = name.mid(commonPrefixLength, name.size() - commonPrefixLength - commonSuffixLength);
 
-		QWidget* resultActions = new QWidget();
-		resultActions->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-		resultActions->setLayout(new QVBoxLayout());
-		resultActions->layout()->addWidget(new QLabel(name));
-		resultActions->layout()->addWidget(toggleMainRender);
-		resultActions->layout()->addWidget(uiData.cbBoundingBox);
-		resultActions->layout()->addWidget(toggleReference);
+		uiData.nameActions = new iASignallingWidget();
+		uiData.nameActions->setAutoFillBackground(true);
+		uiData.nameActions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		uiData.nameActions->setLayout(new QVBoxLayout());
+		uiData.nameActions->layout()->setContentsMargins(0, 0, 0, 0);
+		uiData.nameActions->layout()->setSpacing(5);
+		auto nameLabel = new QLabel(name);
+		nameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		auto topFiller = new QWidget();
+		topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		topFiller->setAutoFillBackground(false);
+		auto bottomFiller = new QWidget();
+		bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		bottomFiller->setAutoFillBackground(false);
+		uiData.nameActions->layout()->addWidget(topFiller);
+		uiData.nameActions->layout()->addWidget(new QLabel(name));
+		uiData.nameActions->layout()->addWidget(toggleMainRender);
+		uiData.nameActions->layout()->addWidget(uiData.cbBoundingBox);
+		uiData.nameActions->layout()->addWidget(bottomFiller);
 
 		uiData.stackedBars = new iAStackedBarChart(colorTheme);
 		uiData.stackedBars->setMinimumWidth(StackedBarMinWidth);
@@ -478,8 +490,8 @@ void iAFiAKErController::resultsLoaded()
 		uiData.histoChart->setMinimumWidth(HistogramMinWidth);
 		uiData.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-		m_resultsListLayout->addWidget(resultActions, resultID + 1, NameActionColumn);
-		m_resultsListLayout->addWidget(previewWidget, resultID + 1, PreviewColumn);
+		m_resultsListLayout->addWidget(uiData.nameActions, resultID + 1, NameActionColumn);
+		m_resultsListLayout->addWidget(uiData.previewWidget, resultID + 1, PreviewColumn);
 		m_resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, StackedBarColumn);
 		m_resultsListLayout->addWidget(uiData.histoChart, resultID + 1, HistogramColumn);
 
@@ -491,9 +503,16 @@ void iAFiAKErController::resultsLoaded()
 		uiData.mini3DVis->show();
 		ren->ResetCamera();
 
+		uiData.previewWidget->setProperty("resultID", resultID);
+		uiData.stackedBars->setProperty("resultID", resultID);
+		uiData.histoChart->setProperty("resultID", resultID);
+		uiData.nameActions->setProperty("resultID", resultID);
+		connect(uiData.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+		connect(uiData.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
+		connect(uiData.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+		connect(uiData.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(uiData.vtkWidget, &iAVtkWidgetClass::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
 		connect(toggleMainRender, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
-		connect(toggleReference, &QRadioButton::toggled, this, &iAFiAKErController::referenceToggled);
 		connect(uiData.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
 	}
 	resultList->setLayout(m_resultsListLayout);
@@ -1160,19 +1179,32 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 	showSelectionInPlots();
 }
 
-void iAFiAKErController::referenceToggled(bool)
+namespace
 {
+	void setResultBackground(iAFiberCharUIData & ui, QColor const & color)
+	{
+		ui.nameActions->setBackgroundColor(color);
+		ui.previewWidget->setBackgroundColor(color);
+		ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
+			color.redF(), color.greenF(), color.blueF());
+		ui.stackedBars->setBackgroundColor(color);
+		ui.histoChart->setBackgroundColor(color);
+	}
+}
+
+void iAFiAKErController::referenceToggled()
+{
+	if (m_referenceID != NoResult)
+	{
+		auto & ui = m_resultUIs[m_referenceID];
+		setResultBackground(ui, QWidget::palette().color(QWidget::backgroundRole()));
+	}
 	if (m_refDistCompute)
 	{
 		DEBUG_LOG("Another reference computation is currently running, please let that finish first!");
 		return;
 	}
-	QRadioButton* sender = qobject_cast<QRadioButton*>(QObject::sender());
-	sender->setText("reference");
-	for (auto button : m_defaultButtonGroup->buttons())
-		if (button != sender)
-			button->setText("");
-	size_t referenceID = sender->property("resultID").toULongLong();
+	size_t referenceID = QObject::sender()->property("resultID").toULongLong();
 	addInteraction(QString("Reference set to %1").arg(resultName(referenceID)));
 	m_refDistCompute = new iARefDistCompute(m_data, referenceID);
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
@@ -1196,9 +1228,11 @@ void iAFiAKErController::refDistAvailable()
 	delete m_refDistCompute;
 	m_refDistCompute = nullptr;
 
+	auto & ui = m_resultUIs[m_referenceID];
+	setResultBackground(ui, ReferenceColor);
+
 	for (size_t chartID=0; chartID<ChartCount-1; ++chartID)
 		m_chartCB[chartID]->setEnabled(true);
-
 
 	auto refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
 

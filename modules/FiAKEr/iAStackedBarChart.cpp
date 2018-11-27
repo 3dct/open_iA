@@ -91,6 +91,12 @@ size_t iAStackedBarChart::numberOfBars() const
 	return m_bars.size();
 }
 
+void iAStackedBarChart::setBackgroundColor(QColor const & color)
+{
+	m_bgColor = color;
+	update();
+}
+
 void iAStackedBarChart::switchStackMode()
 {
 	// TODO: Log interaction
@@ -108,7 +114,9 @@ void iAStackedBarChart::paintEvent(QPaintEvent* ev)
 	int accumulatedWidth = 0;
 	int barHeight = std::min(geometry().height(), MaxBarHeight);
 	int topY = geometry().height() / 2 - barHeight / 2;
-	painter.fillRect(geometry(), QBrush(QWidget::palette().color(QWidget::backgroundRole())));
+	if (!m_bgColor.isValid())
+		m_bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	painter.fillRect(rect(), QBrush(m_bgColor));
 	for (size_t barID = 0; barID < m_bars.size(); ++barID)
 	{
 		auto & bar = m_bars[barID];
