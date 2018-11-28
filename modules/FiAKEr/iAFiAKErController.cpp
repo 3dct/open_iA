@@ -1351,18 +1351,23 @@ namespace
 
 void iAFiAKErController::referenceToggled()
 {
-	if (m_referenceID != NoResult)
-	{
-		auto & ui = m_resultUIs[m_referenceID];
-		setResultBackground(ui, m_mainRenderer->palette().color(QWidget::backgroundRole()));
-		ui.nameLabel->setText(ui.nameLabel->text().left(ui.nameLabel->text().length()-RefMarker.length()));
-	}
 	if (m_refDistCompute)
 	{
 		DEBUG_LOG("Another reference computation is currently running, please let that finish first!");
 		return;
 	}
 	size_t referenceID = QObject::sender()->property("resultID").toULongLong();
+	if (referenceID == m_referenceID)
+	{
+		DEBUG_LOG(QString("The selected result (%1) is already set as reference!").arg(referenceID));
+		return;
+	}
+	if (m_referenceID != NoResult)
+	{
+		auto & ui = m_resultUIs[m_referenceID];
+		setResultBackground(ui, m_mainRenderer->palette().color(QWidget::backgroundRole()));
+		ui.nameLabel->setText(ui.nameLabel->text().left(ui.nameLabel->text().length()-RefMarker.length()));
+	}
 	addInteraction(QString("Reference set to %1").arg(resultName(referenceID)));
 	m_refDistCompute = new iARefDistCompute(m_data, referenceID);
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
