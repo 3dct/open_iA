@@ -41,9 +41,10 @@ void iAJobData::jobFinished()
 
 
 
-iAJobListView::iAJobListView()
+iAJobListView::iAJobListView(int margin)
 {
 	setLayout(new QVBoxLayout());
+	layout()->setContentsMargins(margin, margin, margin, margin);
 }
 
 void iAJobListView::addJob(QString name, iAProgress * p, QThread * t)

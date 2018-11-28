@@ -42,7 +42,7 @@ class iAJobListView : public QWidget
 {
 	Q_OBJECT
 public:
-	iAJobListView();
+	iAJobListView(int margin);
 	void addJob(QString name, iAProgress * p, QThread * t);
 private:
 	QMap<iAProgress*, iAJobData> m_jobData;

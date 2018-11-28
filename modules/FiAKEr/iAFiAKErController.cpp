@@ -90,6 +90,9 @@
 
 namespace
 {
+	const int DockWidgetMargin = 3;
+	const int SettingSpacing = 4;
+
 	const int HistogramMinWidth = 80;
 	const int StackedBarMinWidth = 70;
 	const int DefaultPlayDelay = 1000;
@@ -159,7 +162,7 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 void iAFiAKErController::start(QString const & path, QString const & configName)
 {
 	m_configName = configName;
-	m_jobs = new iAJobListView();
+	m_jobs = new iAJobListView(DockWidgetMargin);
 	m_views.resize(DockWidgetCount);
 	m_views[JobView] = new iADockWidgetWrapper(m_jobs, "Jobs", "foeJobs");
 	addDockWidget(Qt::BottomDockWidgetArea, m_views[JobView]);
@@ -210,6 +213,8 @@ void iAFiAKErController::resultsLoaded()
 	m_spnboxReferenceCount->setMinimum(1);
 	m_spnboxReferenceCount->setMaximum(iARefDistCompute::MaxNumberOfCloseFibers);
 	m_showReferenceWidget->setLayout(new QHBoxLayout());
+	m_showReferenceWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	m_showReferenceWidget->layout()->setSpacing(SettingSpacing);
 	m_chkboxShowLines = new QCheckBox("Connect");
 	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceToggled);
 	connect(m_spnboxReferenceCount, SIGNAL(valueChanged(int)), this, SLOT(showReferenceCountChanged(int)));
@@ -222,8 +227,10 @@ void iAFiAKErController::resultsLoaded()
 
 	QWidget* mainRendererContainer = new QWidget();
 	mainRendererContainer->setLayout(new QVBoxLayout());
+	mainRendererContainer->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	mainRendererContainer->layout()->addWidget(m_mainRenderer);
 	mainRendererContainer->layout()->addWidget(m_showReferenceWidget);
+
 
 	// Settings View
 
@@ -233,12 +240,6 @@ void iAFiAKErController::resultsLoaded()
 	m_defaultOpacitySlider->setValue(SelectionOpacity);
 	connect(m_defaultOpacitySlider, &QSlider::valueChanged, this, &iAFiAKErController::mainOpacityChanged);
 	m_defaultOpacityLabel = new QLabel(QString::number(SelectionOpacity));
-	QWidget* defaultOpacityWidget = new QWidget();
-	defaultOpacityWidget->setLayout(new QHBoxLayout());
-	defaultOpacityWidget->layout()->addWidget(new QLabel("Main Opacity"));
-	defaultOpacityWidget->layout()->addWidget(m_defaultOpacitySlider);
-	defaultOpacityWidget->layout()->addWidget(m_defaultOpacityLabel);
-	defaultOpacityWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	m_contextOpacitySlider = new QSlider(Qt::Horizontal);
 	m_contextOpacitySlider->setMinimum(0);
@@ -246,15 +247,24 @@ void iAFiAKErController::resultsLoaded()
 	m_contextOpacitySlider->setValue(ContextOpacity);
 	connect(m_contextOpacitySlider, &QSlider::valueChanged, this, &iAFiAKErController::contextOpacityChanged);
 	m_contextOpacityLabel = new QLabel(QString::number(ContextOpacity));
-	QWidget* contextOpacityWidget = new QWidget();
-	contextOpacityWidget->setLayout(new QHBoxLayout());
-	contextOpacityWidget->layout()->addWidget(new QLabel("Context Opacity"));
-	contextOpacityWidget->layout()->addWidget(m_contextOpacitySlider);
-	contextOpacityWidget->layout()->addWidget(m_contextOpacityLabel);
-	contextOpacityWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+	QWidget* opacityWidget = new QWidget();
+	auto opacityWidgetLayout = new QGridLayout();
+	opacityWidget->setLayout(opacityWidgetLayout);
+	opacityWidgetLayout->setContentsMargins(0, 0, 0, 0);
+	opacityWidgetLayout->setSpacing(SettingSpacing);
+	opacityWidgetLayout->addWidget(new QLabel("Main Opacity"), 0, 0);
+	opacityWidgetLayout->addWidget(m_defaultOpacitySlider, 0, 1);
+	opacityWidgetLayout->addWidget(m_defaultOpacityLabel, 0, 2);
+	opacityWidgetLayout->addWidget(new QLabel("Context Opacity"), 1, 0);
+	opacityWidgetLayout->addWidget(m_contextOpacitySlider, 1, 1);
+	opacityWidgetLayout->addWidget(m_contextOpacityLabel, 1, 2);
+	opacityWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	QWidget* moreButtons = new QWidget();
 	moreButtons->setLayout(new QHBoxLayout());
+	moreButtons->layout()->setContentsMargins(0, 0, 0, 0);
+	moreButtons->layout()->setSpacing(SettingSpacing);
 	auto showSampledCylinder = new QPushButton("Sample Fiber");
 	auto hideSampledCylinder = new QPushButton("Hide Sample Points");
 	auto spatialOverviewButton = new QPushButton("Spatial Overview");
@@ -284,18 +294,23 @@ void iAFiAKErController::resultsLoaded()
 	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
 	auto metricChoice = new QWidget();
 	metricChoice->setLayout(new QHBoxLayout());
+	metricChoice->layout()->setContentsMargins(0, 0, 0, 0);
+	metricChoice->layout()->setSpacing(SettingSpacing);
 	metricChoice->layout()->addWidget(metricLabel);
 	metricChoice->layout()->addWidget(m_cmbboxDistanceMeasure);
 
 	QGroupBox* main3DViewSettings = new QGroupBox("Main 3D View");
 	main3DViewSettings->setLayout(new QVBoxLayout());
-	main3DViewSettings->layout()->addWidget(defaultOpacityWidget);
-	main3DViewSettings->layout()->addWidget(contextOpacityWidget);
+	main3DViewSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
+	main3DViewSettings->layout()->setSpacing(SettingSpacing);
+	main3DViewSettings->layout()->addWidget(opacityWidget);
 	main3DViewSettings->layout()->addWidget(moreButtons);
 	main3DViewSettings->layout()->addWidget(metricChoice);
 
 	QWidget* playControls = new QWidget();
 	playControls->setLayout(new QHBoxLayout());
+	playControls->layout()->setContentsMargins(0, 0, 0, 0);
+	playControls->layout()->setSpacing(SettingSpacing);
 	QSpinBox* stepDelayInput = new QSpinBox();
 	stepDelayInput->setMinimum(100);
 	stepDelayInput->setMaximum(10000);
@@ -342,21 +357,27 @@ void iAFiAKErController::resultsLoaded()
 
 	QGroupBox* optimStepSettings = new QGroupBox("Optimization Steps Animation");
 	optimStepSettings->setLayout(new QVBoxLayout());
+	optimStepSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
+	optimStepSettings->layout()->setSpacing(SettingSpacing);
 	optimStepSettings->layout()->addWidget(playControls);
 	optimStepSettings->layout()->addWidget(dataChooser);
 
-	QGroupBox* resultListSettings = new QGroupBox("Result List");
-	resultListSettings->setLayout(new QHBoxLayout());
-	resultListSettings->layout()->addWidget(new QLabel("Histogram Bins:"));
 	auto histogramBinInput = new QSpinBox();
 	histogramBinInput->setMinimum(5);
 	histogramBinInput->setMaximum(1000);
 	histogramBinInput->setValue(HistogramBins);
-	resultListSettings->layout()->addWidget(histogramBinInput);
 	connect(histogramBinInput, SIGNAL(valueChanged(int)), this, SLOT(histogramBinsChanged(int)));
+
+	QGroupBox* resultListSettings = new QGroupBox("Result List");
+	resultListSettings->setLayout(new QHBoxLayout());
+	resultListSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
+	resultListSettings->layout()->setSpacing(SettingSpacing);
+	resultListSettings->layout()->addWidget(new QLabel("Histogram Bins:"));
+	resultListSettings->layout()->addWidget(histogramBinInput);
 
 	QWidget* settingsView = new QWidget();
 	settingsView->setLayout(new QVBoxLayout());
+	settingsView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	settingsView->layout()->addWidget(main3DViewSettings);
 	settingsView->layout()->addWidget(optimStepSettings);
 	settingsView->layout()->addWidget(resultListSettings);
@@ -387,6 +408,7 @@ void iAFiAKErController::resultsLoaded()
 
 	QWidget* optimStepsView = new QWidget();
 	optimStepsView->setLayout(new QVBoxLayout());
+	optimStepsView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	optimStepsView->layout()->addWidget(chartContainer);
 	optimStepsView->layout()->addWidget(optimStepsCtrls);
 
@@ -421,6 +443,7 @@ void iAFiAKErController::resultsLoaded()
 	resultListScrollArea->setWidget(resultList);
 	m_resultsListLayout = new QGridLayout();
 	m_resultsListLayout->setSpacing(2);
+	m_resultsListLayout->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	m_resultsListLayout->setColumnStretch(PreviewColumn, 1);
 	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_data->result.size());
 	m_resultsListLayout->setColumnStretch(HistogramColumn, 2 * m_data->result.size() );
@@ -555,6 +578,7 @@ void iAFiAKErController::resultsLoaded()
 	m_interactionProtocol->setModel(m_interactionProtocolModel);
 	QWidget* protocolView = new QWidget();
 	protocolView->setLayout(new QHBoxLayout());
+	protocolView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	protocolView->layout()->addWidget(m_interactionProtocol);
 
 
@@ -579,6 +603,7 @@ void iAFiAKErController::resultsLoaded()
 	selectionDetailWrapper->layout()->addWidget(m_selectionDetailsTree);
 	auto selectionView = new QWidget();
 	selectionView->setLayout(new QHBoxLayout());
+	selectionView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	selectionView->layout()->addWidget(selectionListWrapper);
 	selectionView->layout()->addWidget(selectionDetailWrapper);
 
