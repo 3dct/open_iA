@@ -66,6 +66,7 @@
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -104,6 +105,10 @@ namespace
 	const size_t NoResult = NoPlotsIdx;
 	const QString ModuleSettingsKey("FIAKER");
 	const QString RefMarker(" (Reference)");
+
+	const QString ProjectFileFolder("Folder");
+	const QString ProjectFileFormat("Format");
+	const QString ProjectFileReference("Reference");
 
 	const QColor DistributionPlotColor(70, 70, 70, 255);
 	const QColor DistributionRefPlotColor(70, 70, 70, 80);
@@ -381,16 +386,34 @@ void iAFiAKErController::resultsLoaded()
 	resultListSettings->layout()->addWidget(new QLabel("Histogram Bins:"));
 	resultListSettings->layout()->addWidget(histogramBinInput);
 
-	QGroupBox* globalSettings = new QGroupBox("Global Settings");
-	globalSettings->setLayout(new QHBoxLayout());
-	globalSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
-	globalSettings->layout()->setSpacing(SettingSpacing);
-	globalSettings->layout()->addWidget(new QLabel("Color Theme"));
 	auto colorThemeChoice = new QComboBox();
 	colorThemeChoice->addItems(iALUT::GetColorMapNames());
 	colorThemeChoice->setCurrentIndex(0);
-	globalSettings->layout()->addWidget(colorThemeChoice);
 	connect(colorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(colorThemeChanged(QString const &)));
+	auto colorThemeChoiceWidget = new QWidget();
+	colorThemeChoiceWidget->setLayout(new QHBoxLayout());
+	colorThemeChoiceWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	colorThemeChoiceWidget->layout()->setSpacing(SettingSpacing);
+	colorThemeChoiceWidget->layout()->addWidget(new QLabel("Color Theme"));
+	colorThemeChoiceWidget->layout()->addWidget(colorThemeChoice);
+
+	QWidget* saveLoadAnalysisWidget = new QWidget();
+	saveLoadAnalysisWidget->setLayout(new QHBoxLayout());
+	saveLoadAnalysisWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	saveLoadAnalysisWidget->layout()->setSpacing(SettingSpacing);
+	auto saveAnalysisButton = new QPushButton("Save Analysis");
+	connect(saveAnalysisButton, &QPushButton::pressed, this, &iAFiAKErController::saveAnalysisClick);
+	auto loadAnalysisButton = new QPushButton("Load Analysis");
+	connect(loadAnalysisButton, &QPushButton::pressed, this, &iAFiAKErController::loadAnalysisClick);
+	saveLoadAnalysisWidget->layout()->addWidget(saveAnalysisButton);
+	saveLoadAnalysisWidget->layout()->addWidget(loadAnalysisButton);
+
+	QGroupBox* globalSettings = new QGroupBox("Global Settings");
+	globalSettings->setLayout(new QVBoxLayout());
+	globalSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
+	globalSettings->layout()->setSpacing(SettingSpacing);
+	globalSettings->layout()->addWidget(colorThemeChoiceWidget);
+	globalSettings->layout()->addWidget(saveLoadAnalysisWidget);
 
 	QWidget* leftSettingsWidget = new QWidget();
 	leftSettingsWidget->setLayout(new QVBoxLayout());
@@ -703,6 +726,8 @@ void iAFiAKErController::loadStateAndShow()
 	m_views[SelectionView]->hide();
 	m_views[JobView]->hide();
 	m_showReferenceWidget->hide();
+
+	emit setupFinished();
 }
 
 QString iAFiAKErController::stackedBarColName(int index) const
@@ -1369,6 +1394,11 @@ void iAFiAKErController::referenceToggled()
 		return;
 	}
 	size_t referenceID = QObject::sender()->property("resultID").toULongLong();
+	setReference(referenceID);
+}
+
+void iAFiAKErController::setReference(size_t referenceID)
+{
 	if (referenceID == m_referenceID)
 	{
 		DEBUG_LOG(QString("The selected result (%1) is already set as reference!").arg(referenceID));
@@ -1861,4 +1891,44 @@ QString iAFiAKErController::diffName(int chartID) const
 QString iAFiAKErController::resultName(size_t resultID) const
 {
 	return QFileInfo(m_data->result[resultID].fileName).baseName();
+}
+
+void iAFiAKErController::saveAnalysisClick()
+{
+	QString fileName = QFileDialog::getSaveFileName(this, ModuleSettingsKey, m_data->folder, "FIAKER Project file (*.fpf);;");
+	if (fileName.isEmpty())
+		return;
+	addInteraction(QString("Save Analysis as '%1'").arg(fileName));
+	QSettings projectFile(fileName, QSettings::IniFormat);
+	projectFile.setValue(ProjectFileFolder, m_data->folder);
+	projectFile.setValue(ProjectFileFormat, m_configName);
+	if (m_referenceID != NoResult)
+		projectFile.setValue(ProjectFileReference, m_referenceID);
+}
+
+void iAFiAKErController::loadAnalysisClick()
+{
+	addInteraction(QString("Loading Analysis (in new window!)"));
+	loadAnalysis(m_mainWnd, m_data->folder);
+}
+
+void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folder)
+{
+	QString fileName = QFileDialog::getOpenFileName(mainWnd, ModuleSettingsKey, folder, "FIAKER Project file (*.fpf);;");
+	if (fileName.isEmpty())
+		return;
+	QSettings projectFile(fileName, QSettings::IniFormat);
+	auto dataFolder  = projectFile.value(ProjectFileFolder, "").toString();
+	auto configName  = projectFile.value(ProjectFileFormat, "").toString();
+
+	auto explorer = new iAFiAKErController(mainWnd);
+	explorer->m_projectReferenceID = projectFile.value(ProjectFileReference, NoResult).toULongLong();
+	mainWnd->addSubWindow(explorer);
+	connect(explorer, &iAFiAKErController::setupFinished, explorer, &iAFiAKErController::setProjectReference);
+	explorer->start(dataFolder, configName);
+}
+
+void iAFiAKErController::setProjectReference()
+{
+	setReference(m_projectReferenceID);
 }

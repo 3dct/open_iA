@@ -35,9 +35,12 @@ void iAFiAKErModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QAction * actionFiAKEr = new QAction( "FiAKEr (Fiber Analytics)", nullptr );
+	QAction * actionFiAKEr = new QAction( "FiAKEr (Folder)", nullptr );
 	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFiAKEr, false );
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::FiAKEr );
+	QAction * actionFiAKErProject = new QAction("FiAKEr (Project)", nullptr);
+	AddActionToMenuAlphabeticallySorted(toolsMenu, actionFiAKErProject, false);
+	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::FiAKErProject);
 }
 
 void iAFiAKErModuleInterface::FiAKEr()
@@ -66,6 +69,11 @@ void iAFiAKErModuleInterface::FiAKEr()
 	//cmbbox_Format->addItems(formatEntries);
 	m_mainWnd->addSubWindow(explorer);
 	explorer->start(path, configName);
+}
+
+void iAFiAKErModuleInterface::FiAKErProject()
+{
+	iAFiAKErController::loadAnalysis(m_mainWnd, m_mainWnd->getPath());
 }
 
 /*

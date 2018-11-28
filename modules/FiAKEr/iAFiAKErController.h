@@ -82,6 +82,9 @@ public:
 	void start(QString const & path, QString const & configName);
 	~iAFiAKErController();
 	std::vector<std::vector<size_t> > & selection() override;
+	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
+signals:
+	void setupFinished();
 private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);
@@ -115,10 +118,13 @@ private slots:
 	void distributionChoiceChanged(int index);
 	void histogramBinsChanged(int value);
 	void colorThemeChanged(QString const & colorThemeName);
+	void saveAnalysisClick();
+	void loadAnalysisClick();
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
 	void colorByDistrToggled();
+	void setProjectReference();
 private:
 	void changeDistributionSource(int index);
 	void updateHistogramColors();
@@ -143,6 +149,7 @@ private:
 	void showSelectionDetail();
 	void hideSamplePointsPrivate();
 	void showSpatialOverview();
+	void setReference(size_t referenceID);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
@@ -179,6 +186,8 @@ private:
 	QComboBox* m_cmbboxDistanceMeasure;
 	vtkSmartPointer<vtkActor> m_refLineActor;
 	QWidget* m_showReferenceWidget;
+
+	size_t m_projectReferenceID;
 
 	// Results List:
 	void addStackedBar(int index);
