@@ -114,6 +114,7 @@ private slots:
 	void selectionModeChanged(int);
 	void distributionChoiceChanged(int index);
 	void histogramBinsChanged(int value);
+	void colorThemeChanged(QString const & colorThemeName);
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
@@ -149,7 +150,7 @@ private:
 
 	QSharedPointer<iARendererManager> m_renderManager;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
-	iAColorTheme const * m_colorTheme;
+	iAColorTheme const * m_resultColorTheme;
 	MainWindow* m_mainWnd;
 	size_t m_referenceID;
 	SelectionType m_selection;
@@ -161,6 +162,7 @@ private:
 	QString m_configName;
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
+	QString m_colorByThemeName;
 
 	// Elements of the different views:
 	std::vector<iADockWidgetWrapper*> m_views;

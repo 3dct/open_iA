@@ -142,13 +142,14 @@ public:
 };
 
 iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
-	m_colorTheme(iAColorThemeManager::GetInstance().GetTheme("Brewer Accent (max. 8)")),
+	m_resultColorTheme(iAColorThemeManager::GetInstance().GetTheme("Brewer Accent (max. 8)")),
 	m_mainWnd(mainWnd),
 	m_spm(new iAQSplom()),
 	m_referenceID(NoResult),
 	m_playTimer(new QTimer(this)),
 	m_refDistCompute(nullptr),
-	m_renderManager(new iARendererManager())
+	m_renderManager(new iARendererManager()),
+	m_colorByThemeName(iALUT::GetColorMapNames()[0])
 {
 	setDockOptions(AllowNestedDocks | AllowTabbedDocks);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -375,12 +376,24 @@ void iAFiAKErController::resultsLoaded()
 	resultListSettings->layout()->addWidget(new QLabel("Histogram Bins:"));
 	resultListSettings->layout()->addWidget(histogramBinInput);
 
+	QGroupBox* globalSettings = new QGroupBox("Global Settings");
+	globalSettings->setLayout(new QHBoxLayout());
+	globalSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
+	globalSettings->layout()->setSpacing(SettingSpacing);
+	globalSettings->layout()->addWidget(new QLabel("Color Theme"));
+	auto colorThemeChoice = new QComboBox();
+	colorThemeChoice->addItems(iALUT::GetColorMapNames());
+	colorThemeChoice->setCurrentIndex(0);
+	globalSettings->layout()->addWidget(colorThemeChoice);
+	connect(colorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(colorThemeChanged(QString const &)));
+
 	QWidget* settingsView = new QWidget();
 	settingsView->setLayout(new QVBoxLayout());
 	settingsView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	settingsView->layout()->addWidget(main3DViewSettings);
 	settingsView->layout()->addWidget(optimStepSettings);
 	settingsView->layout()->addWidget(resultListSettings);
+	settingsView->layout()->addWidget(globalSettings);
 
 
 	// Optimization Steps View:
@@ -724,7 +737,7 @@ void iAFiAKErController::setSPMColorByResult()
 	lut.setRange(0, numOfResults - 1);
 	lut.allocate(numOfResults);
 	for (size_t i = 0; i < numOfResults; i++)
-		lut.setColor(i, m_colorTheme->GetColor(i));
+		lut.setColor(i, m_resultColorTheme->GetColor(i));
 	m_spm->setLookupTable(lut, m_data->spmData->numParams() - 1);
 }
 
@@ -762,6 +775,14 @@ void iAFiAKErController::histogramBinsChanged(int value)
 	addInteraction(QString("Changed histogram bins to %1.").arg(value));
 	HistogramBins = value;
 	changeDistributionSource(m_distributionChoice->currentIndex());
+}
+
+void iAFiAKErController::colorThemeChanged(QString const & colorThemeName)
+{
+	addInteraction(QString("Changed color theme to '%1'.").arg(colorThemeName));
+	m_colorByThemeName = colorThemeName;
+	changeDistributionSource(m_distributionChoice->currentIndex());
+	m_spm->setColorTheme(colorThemeName);
 }
 
 void iAFiAKErController::changeDistributionSource(int index)
@@ -820,7 +841,7 @@ void iAFiAKErController::updateHistogramColors()
 {
 	double range[2] = { 0.0, static_cast<double>(HistogramBins) };
 	auto lut = m_colorByDistribution->isChecked() ?
-		QSharedPointer<iALookupTable>(new iALookupTable(iALUT::Build(range, m_spm->settings.colorThemeName, 255, 1)))
+		QSharedPointer<iALookupTable>(new iALookupTable(iALUT::Build(range, m_colorByThemeName, 255, 1)))
 		: QSharedPointer<iALookupTable>();
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -841,7 +862,7 @@ void iAFiAKErController::colorByDistrToggled()
 		if (matchQuality)
 			showSpatialOverview();
 		else
-		{
+		{   // this triggers also spmLookupTableChanged (which updates the 3D views)
 			m_spm->setColorParam(colorLookupParam);
 			m_spm->rangeFromParameter();
 		}
@@ -855,7 +876,7 @@ void iAFiAKErController::colorByDistrToggled()
 
 QColor iAFiAKErController::getResultColor(int resultID)
 {
-	QColor color = m_colorTheme->GetColor(resultID);
+	QColor color = m_resultColorTheme->GetColor(resultID);
 	color.setAlpha(SelectionOpacity);
 	return color;
 }
@@ -1437,6 +1458,9 @@ void iAFiAKErController::spmLookupTableChanged()
 {
 	QSharedPointer<iALookupTable> lut = m_spm->lookupTable();
 	size_t colorLookupParam = m_spm->colorLookupParam();
+	// TODO:
+	//     - select distribution in combobox?
+	//     - update color theme name if changed in SPM settings
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		m_resultUIs[resultID].mini3DVis->setLookupTable(lut, colorLookupParam);
