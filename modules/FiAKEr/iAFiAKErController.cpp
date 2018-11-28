@@ -269,18 +269,26 @@ void iAFiAKErController::resultsLoaded()
 	auto showSampledCylinder = new QPushButton("Sample Fiber");
 	auto hideSampledCylinder = new QPushButton("Hide Sample Points");
 	auto spatialOverviewButton = new QPushButton("Spatial Overview");
-	auto selectionModeChoice = new QComboBox();
-	selectionModeChoice->addItem("Rubberband Rectangle (Endpoints)");
-	selectionModeChoice->addItem("Single Fiber Click");
 	connect(showSampledCylinder, &QPushButton::pressed, this, &iAFiAKErController::visualizeCylinderSamplePoints);
 	connect(hideSampledCylinder, &QPushButton::pressed, this, &iAFiAKErController::hideSamplePoints);
 	connect(spatialOverviewButton, &QPushButton::pressed, this, &iAFiAKErController::showSpatialOverviewButton);
-	connect(selectionModeChoice, SIGNAL(currentIndexChanged(int)), this, SLOT(selectionModeChanged(int)));
 	moreButtons->layout()->addWidget(showSampledCylinder);
 	moreButtons->layout()->addWidget(hideSampledCylinder);
 	moreButtons->layout()->addWidget(spatialOverviewButton);
-	moreButtons->layout()->addWidget(selectionModeChoice);
 	moreButtons->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+	auto selectionModeChoice = new QComboBox();
+	selectionModeChoice->addItem("Rubberband Rectangle (Endpoints)");
+	selectionModeChoice->addItem("Single Fiber Click");
+	connect(selectionModeChoice, SIGNAL(currentIndexChanged(int)), this, SLOT(selectionModeChanged(int)));
+	moreButtons->layout()->addWidget(selectionModeChoice);
+
+	auto selectionModeWidget = new QWidget();
+	selectionModeWidget->setLayout(new QHBoxLayout());
+	selectionModeWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	selectionModeWidget->layout()->setSpacing(SettingSpacing);
+	selectionModeWidget->layout()->addWidget(new QLabel("Selection Mode:"));
+	selectionModeWidget->layout()->addWidget(selectionModeChoice);
 
 	auto metricLabel = new QLabel("Metric");
 	m_cmbboxDistanceMeasure = new QComboBox();
@@ -305,8 +313,9 @@ void iAFiAKErController::resultsLoaded()
 	main3DViewSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
 	main3DViewSettings->layout()->setSpacing(SettingSpacing);
 	main3DViewSettings->layout()->addWidget(opacityWidget);
-	main3DViewSettings->layout()->addWidget(moreButtons);
+	main3DViewSettings->layout()->addWidget(selectionModeWidget);
 	main3DViewSettings->layout()->addWidget(metricChoice);
+	main3DViewSettings->layout()->addWidget(moreButtons);
 
 	QWidget* playControls = new QWidget();
 	playControls->setLayout(new QHBoxLayout());
@@ -387,13 +396,20 @@ void iAFiAKErController::resultsLoaded()
 	globalSettings->layout()->addWidget(colorThemeChoice);
 	connect(colorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(colorThemeChanged(QString const &)));
 
+	QWidget* leftSettingsWidget = new QWidget();
+	leftSettingsWidget->setLayout(new QVBoxLayout());
+	leftSettingsWidget->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
+	leftSettingsWidget->layout()->setSpacing(SettingSpacing);
+	leftSettingsWidget->layout()->addWidget(main3DViewSettings);
+	leftSettingsWidget->layout()->addWidget(resultListSettings);
+	leftSettingsWidget->layout()->addWidget(globalSettings);
+
 	QWidget* settingsView = new QWidget();
-	settingsView->setLayout(new QVBoxLayout());
+	settingsView->setLayout(new QHBoxLayout());
 	settingsView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
-	settingsView->layout()->addWidget(main3DViewSettings);
+	settingsView->layout()->setSpacing(SettingSpacing);
+	settingsView->layout()->addWidget(leftSettingsWidget);
 	settingsView->layout()->addWidget(optimStepSettings);
-	settingsView->layout()->addWidget(resultListSettings);
-	settingsView->layout()->addWidget(globalSettings);
 
 
 	// Optimization Steps View:
