@@ -1904,7 +1904,7 @@ void iAFiAKErController::saveAnalysisClick()
 	projectFile.setValue(ProjectFileFolder, MakeRelative(QFileInfo(fileName).absolutePath(), m_data->folder));
 	projectFile.setValue(ProjectFileFormat, m_configName);
 	if (m_referenceID != NoResult)
-		projectFile.setValue(ProjectFileReference, m_referenceID);
+		projectFile.setValue(ProjectFileReference, static_cast<qulonglong>(m_referenceID));
 }
 
 void iAFiAKErController::loadAnalysisClick()
@@ -1921,11 +1921,11 @@ void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folde
 	QSettings projectFile(fileName, QSettings::IniFormat);
 	auto dataFolder  = MakeAbsolute(QFileInfo(fileName).absolutePath(), projectFile.value(ProjectFileFolder, "").toString());
 	auto configName  = projectFile.value(ProjectFileFormat, "").toString();
-
 	auto explorer = new iAFiAKErController(mainWnd);
-	explorer->m_projectReferenceID = projectFile.value(ProjectFileReference, NoResult).toULongLong();
+	explorer->m_projectReferenceID = projectFile.value(ProjectFileReference, static_cast<qulonglong>(NoResult)).toULongLong();
 	mainWnd->addSubWindow(explorer);
-	connect(explorer, &iAFiAKErController::setupFinished, explorer, &iAFiAKErController::setProjectReference);
+	if (explorer->m_projectReferenceID != NoResult)
+		connect(explorer, &iAFiAKErController::setupFinished, explorer, &iAFiAKErController::setProjectReference);
 	explorer->start(dataFolder, configName);
 }
 
