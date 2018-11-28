@@ -260,7 +260,6 @@ void iAFiAKErController::resultsLoaded()
 	opacityWidgetLayout->addWidget(new QLabel("Context Opacity"), 1, 0);
 	opacityWidgetLayout->addWidget(m_contextOpacitySlider, 1, 1);
 	opacityWidgetLayout->addWidget(m_contextOpacityLabel, 1, 2);
-	opacityWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	QWidget* moreButtons = new QWidget();
 	moreButtons->setLayout(new QHBoxLayout());
@@ -275,7 +274,6 @@ void iAFiAKErController::resultsLoaded()
 	moreButtons->layout()->addWidget(showSampledCylinder);
 	moreButtons->layout()->addWidget(hideSampledCylinder);
 	moreButtons->layout()->addWidget(spatialOverviewButton);
-	moreButtons->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	auto selectionModeChoice = new QComboBox();
 	selectionModeChoice->addItem("Rubberband Rectangle (Endpoints)");
@@ -331,7 +329,6 @@ void iAFiAKErController::resultsLoaded()
 	m_playTimer->setInterval(DefaultPlayDelay);
 	connect(m_playTimer, &QTimer::timeout, this, &iAFiAKErController::playTimer);
 	connect(stepDelayInput, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
-	playControls->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 	m_optimStepChart.resize(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1);
 
@@ -339,7 +336,6 @@ void iAFiAKErController::resultsLoaded()
 	dataChooser->setWidgetResizable(true);
 	auto comboBoxContainer = new QWidget();
 	dataChooser->setWidget(comboBoxContainer);
-	dataChooser->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	comboBoxContainer->setLayout(new QVBoxLayout());
 	ChartCount = iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1;
 	m_chartCB.resize(ChartCount);
