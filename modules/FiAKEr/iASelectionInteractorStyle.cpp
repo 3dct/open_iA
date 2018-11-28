@@ -147,25 +147,17 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 
 	auto picker = vtkSmartPointer<vtkCellPicker>::New();
 	picker->SetTolerance(0.0005);
-
-	// Pick from this location.
 	picker->Pick(pos[0], pos[1], 0, m_cellRenderer);
-
 	double* worldPosition = picker->GetPickPosition();
-	DEBUG_LOG(QString("Cell id is: %1").arg(picker->GetCellId()));
 
 	if(picker->GetCellId() != -1)
 	{
 		size_t objectID = (picker->GetCellId()) / 14;
-		DEBUG_LOG(QString("Pick position is (%1, %2, %3), object: %4")
-				  .arg(worldPosition[0]).arg(worldPosition[1])
-				  .arg(worldPosition[2]).arg(objectID));
 		for (int i=0; i<m_selectionProvider->selection().size(); ++i)
 			m_selectionProvider->selection()[i].clear();
 		m_selectionProvider->selection()[lastResultID].push_back(objectID);
 		emit selectionChanged();
 	}
-
 }
 
 void iASelectionInteractorStyle::addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points)

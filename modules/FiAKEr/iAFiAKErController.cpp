@@ -99,14 +99,14 @@ namespace
 	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
 	const size_t NoResult = NoPlotsIdx;
-	const QString ModuleSettingsKey("FiberOptimizationExplorer");
+	const QString ModuleSettingsKey("FIAKER");
 	const QString RefMarker(" (Reference)");
 
 	const QColor DistributionPlotColor(70, 70, 70, 255);
 	const QColor DistributionRefPlotColor(70, 70, 70, 80);
 	const QColor OptimStepMarkerColor(192, 0, 0);
 	const QColor SelectionColor(0, 0, 0);
-	const QColor ReferenceColor(225, 225, 225);
+	const QColor ReferenceColor(235, 235, 235);
 	QColor StandardBackgroundColor;
 
 	enum ResultListColumns
@@ -133,6 +133,7 @@ public:
 	iAFixedAspectWidget* previewWidget;
 	iASignallingWidget* nameActions;
 	QLabel* nameLabel;
+	QWidget* topFiller, * bottomFiller;
 	//! index where the plots for this result start
 	size_t startPlotIdx;
 };
@@ -419,7 +420,7 @@ void iAFiAKErController::resultsLoaded()
 	auto resultList = new QWidget();
 	resultListScrollArea->setWidget(resultList);
 	m_resultsListLayout = new QGridLayout();
-	m_resultsListLayout->setSpacing(5);
+	m_resultsListLayout->setSpacing(2);
 	m_resultsListLayout->setColumnStretch(PreviewColumn, 1);
 	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_data->result.size());
 	m_resultsListLayout->setColumnStretch(HistogramColumn, 2 * m_data->result.size() );
@@ -497,15 +498,15 @@ void iAFiAKErController::resultsLoaded()
 		uiData.nameActions->layout()->setSpacing(5);
 		uiData.nameLabel = new QLabel(name);
 		uiData.nameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		auto topFiller = new QWidget();
-		topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		auto bottomFiller = new QWidget();
-		bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		uiData.nameActions->layout()->addWidget(topFiller);
+		uiData.topFiller = new QWidget();
+		uiData.topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		uiData.bottomFiller = new QWidget();
+		uiData.bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		uiData.nameActions->layout()->addWidget(uiData.topFiller);
 		uiData.nameActions->layout()->addWidget(uiData.nameLabel);
 		uiData.nameActions->layout()->addWidget(uiData.cbShow);
 		uiData.nameActions->layout()->addWidget(uiData.cbBoundingBox);
-		uiData.nameActions->layout()->addWidget(bottomFiller);
+		uiData.nameActions->layout()->addWidget(uiData.bottomFiller);
 
 		uiData.stackedBars = new iAStackedBarChart(colorTheme);
 		uiData.stackedBars->setMinimumWidth(StackedBarMinWidth);
@@ -598,6 +599,8 @@ void iAFiAKErController::resultsLoaded()
 	splitDockWidget(m_views[Main3DView], m_views[SelectionView], Qt::Vertical);
 	splitDockWidget(m_views[Main3DView], m_views[SettingsView], Qt::Vertical);
 
+	int w = geometry().width();
+
 	loadStateAndShow();
 }
 
@@ -627,7 +630,8 @@ void iAFiAKErController::loadStateAndShow()
 	}
 	toggleOptimStepChart(ChartCount-1, true);
 
-	restoreState(settings.value(ModuleSettingsKey + "/state", saveState()).toByteArray());
+	if (settings.contains(ModuleSettingsKey + "/state"))
+		restoreState(settings.value(ModuleSettingsKey + "/state").toByteArray());
 
 	// SPM needs an active OpenGL Context (it must be visible when setData is called):
 	m_spm->setMinimumWidth(200);
@@ -1288,6 +1292,8 @@ namespace
 	void setResultBackground(iAFiberCharUIData & ui, QColor const & color)
 	{
 		ui.nameActions->setBackgroundColor(color);
+		ui.topFiller->setStyleSheet("background-color: " + color.name());
+		ui.bottomFiller->setStyleSheet("background-color: " + color.name());
 		ui.previewWidget->setBackgroundColor(color);
 		ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
 			color.redF(), color.greenF(), color.blueF());

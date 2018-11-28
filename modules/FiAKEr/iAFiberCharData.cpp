@@ -43,8 +43,8 @@ bool operator<(iAFiberDistance const & a, iAFiberDistance const & b)
 	return a.distance < b.distance;
 }
 
-const QString iAFiberResultsCollection::LegacyFormat("FiberOpt Legacy Format");
-const QString iAFiberResultsCollection::SimpleFormat("FiberOpt Simple Format");
+const QString iAFiberResultsCollection::LegacyFormat("FIAKER Legacy Format");
+const QString iAFiberResultsCollection::SimpleFormat("FIAKER Simple Format");
 
 namespace
 {
