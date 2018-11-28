@@ -32,6 +32,7 @@
 #include "iAVectorPlotData.h"
 #include "qthelper/iAFixedAspectWidget.h"
 #include "qthelper/iASignallingWidget.h"
+#include "io/iAFileUtils.h"
 
 // Core:
 #include "charts/iAChartWidget.h"
@@ -1900,7 +1901,7 @@ void iAFiAKErController::saveAnalysisClick()
 		return;
 	addInteraction(QString("Save Analysis as '%1'").arg(fileName));
 	QSettings projectFile(fileName, QSettings::IniFormat);
-	projectFile.setValue(ProjectFileFolder, m_data->folder);
+	projectFile.setValue(ProjectFileFolder, MakeRelative(QFileInfo(fileName).absolutePath(), m_data->folder));
 	projectFile.setValue(ProjectFileFormat, m_configName);
 	if (m_referenceID != NoResult)
 		projectFile.setValue(ProjectFileReference, m_referenceID);
@@ -1918,7 +1919,7 @@ void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folde
 	if (fileName.isEmpty())
 		return;
 	QSettings projectFile(fileName, QSettings::IniFormat);
-	auto dataFolder  = projectFile.value(ProjectFileFolder, "").toString();
+	auto dataFolder  = MakeAbsolute(QFileInfo(fileName).absolutePath(), projectFile.value(ProjectFileFolder, "").toString());
 	auto configName  = projectFile.value(ProjectFileFormat, "").toString();
 
 	auto explorer = new iAFiAKErController(mainWnd);
