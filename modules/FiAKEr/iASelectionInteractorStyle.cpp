@@ -103,7 +103,7 @@ void iASelectionInteractorStyle::Pick()
 
 		vtkSmartPointer<vtkExtractGeometry> extractGeometry = vtkSmartPointer<vtkExtractGeometry>::New();
 		extractGeometry->SetImplicitFunction(frustum);
-		extractGeometry->SetInputData(m_input[resultID]);
+		extractGeometry->SetInputData(m_input[resultID].first);
 		extractGeometry->Update();
 
 		vtkSmartPointer<vtkVertexGlyphFilter> glyphFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
@@ -152,18 +152,31 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 
 	if(picker->GetCellId() != -1)
 	{
+		size_t pickedResultID = std::numeric_limits<size_t>::max();
+		for (size_t curResultID : m_input.keys())
+		{
+			if (m_input[curResultID].second.GetPointer() == picker->GetActor())
+			{
+				pickedResultID = curResultID;
+				break;
+			}
+		}
+		if (pickedResultID == std::numeric_limits<size_t>::max())
+		{
+			DEBUG_LOG("Could not find picked result.");
+			return;
+		}
 		size_t objectID = (picker->GetCellId()) / 14;
 		for (int i=0; i<m_selectionProvider->selection().size(); ++i)
 			m_selectionProvider->selection()[i].clear();
-		m_selectionProvider->selection()[lastResultID].push_back(objectID);
+		m_selectionProvider->selection()[pickedResultID].push_back(objectID);
 		emit selectionChanged();
 	}
 }
 
-void iASelectionInteractorStyle::addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points)
+void iASelectionInteractorStyle::addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points, vtkSmartPointer<vtkActor> actor)
 {
-	lastResultID = resultID;
-	m_input.insert(resultID, points);
+	m_input.insert(resultID, std::make_pair(points, actor));
 }
 
 void iASelectionInteractorStyle::removeInput(size_t resultID)

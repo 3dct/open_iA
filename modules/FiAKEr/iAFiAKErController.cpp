@@ -1064,7 +1064,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 				std::min(data.timeValues.size() - 1, static_cast<size_t>(m_optimStepSlider->value()))]);
 		}
 		ui.main3DVis->show();
-		m_style->addInput( resultID, ui.main3DVis->getLinePolyData() );
+		m_style->addInput( resultID, ui.main3DVis->getLinePolyData(), ui.main3DVis->getActor() );
 		m_spm->addFilter(m_data->spmData->numParams()-1, resultID);
 	}
 	else

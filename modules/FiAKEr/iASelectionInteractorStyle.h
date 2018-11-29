@@ -55,7 +55,7 @@ public:
 	void OnChar() override;
 	void OnLeftButtonDown() override;
 	void setSelectionProvider(iASelectionProvider * selectionProvider);
-	void addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points);
+	void addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points, vtkSmartPointer<vtkActor> actor);
 	void removeInput(size_t resultID);
 	void assignToRenderWindow(vtkSmartPointer<vtkRenderWindow> renWin);
 	void setSelectionMode(SelectionMode mode);
@@ -63,11 +63,10 @@ public:
 signals:
 	void selectionChanged();
 private:
-	QMap<int, vtkSmartPointer<vtkPolyData> > m_input;
+	QMap<int, std::pair<vtkSmartPointer<vtkPolyData>, vtkSmartPointer<vtkActor> > > m_input;
 	iASelectionProvider * m_selectionProvider;
 	vtkSmartPointer<vtkTextActor> m_showModeActor;
 	vtkSmartPointer<vtkRenderWindow> m_renWin;
 	SelectionMode m_selectionMode;
 	vtkRenderer* m_cellRenderer;
-	size_t lastResultID;
 };
