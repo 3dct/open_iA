@@ -44,6 +44,7 @@ namespace Morphology {
 		
 	};
 	
+	const QString elem_type = "Structural ElementType";
 
 	template<class T> 
 	
@@ -58,6 +59,7 @@ namespace Morphology {
 	template<class T>
 	using FlatElement = itk::FlatStructuringElement<3>;
 
+
 	
 }; 
 
@@ -66,7 +68,7 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 {
 
 	using namespace Morphology;
-	std::string str_Input = params["Structuring ElementType"].toString().toStdString();
+	std::string str_Input = params[elem_type].toString().toStdString();
 
 	//default use ball
 
@@ -141,7 +143,7 @@ iADilation::iADilation() :
 {
 	Morphology::morphEl morph_text;
 	AddParameter("Radius", Discrete, 1, 1);
-	AddParameter("Structering ElementType", Categorical, morph_text.MorphOptions);
+	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 
 	//QStringList kernels; kernels
 	//	<< "Flat" << "Box" /*<< "RBF" << "Sigmoid"*/;
@@ -153,7 +155,7 @@ iADilation::iADilation() :
 template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	using namespace Morphology; 
-	std::string str_Input = params["Structuring ElementType"].toString().toStdString(); 
+	std::string str_Input = params[elem_type].toString().toStdString(); 
 	
 	//default ball; 
 	if (str_Input.compare("Ball") == 0) {
@@ -228,7 +230,7 @@ iAErosion::iAErosion() :
 {
 	Morphology::morphEl morph_text;
 	AddParameter("Radius", Discrete, 1, 1);
-	AddParameter("Structering ElementType", Categorical, morph_text.MorphOptions);
+	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 }
 
 
@@ -274,22 +276,59 @@ iAVesselEnhancement::iAVesselEnhancement() :
 //closing
 template<class T> void opening(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	/*itk::Open*/
-	typedef itk::Image< T, DIM> InputImageType;
-	typedef itk::BinaryBallStructuringElement<typename InputImageType::PixelType, 3> StructuringElementType;
-	//typedef itk::GrayscaleDilateImageFilter <InputImageType, InputImageType, StructuringElementType>
-	typedef itk::BinaryMorphologicalOpeningImageFilter<InputImageType, InputImageType, StructuringElementType>
-		GrayscaleOpeningImageFilterType;
+	using namespace Morphology;
+	std::string str_Input = params[elem_type].toString().toStdString();
 
-	StructuringElementType structuringElement;
-	structuringElement.SetRadius(params["Radius"].toUInt());
-	structuringElement.CreateStructuringElement();
-	auto openingFilter = GrayscaleOpeningImageFilterType::New(); //::New();
-	openingFilter->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
-	openingFilter->SetKernel(structuringElement);
-	filter->Progress()->Observe(openingFilter);
-	openingFilter->Update();
-	filter->AddOutput(openingFilter->GetOutput());
+	//default ball; 
+	if (str_Input.compare("Ball") == 0) {
+
+		//typedef itk::Image< T, DIM> InputImageType;
+		//typedef itk::BinaryBallStructuringElement<typename InputImageType<::PixelType, 3> StructuringElementType;
+		//typedef itk::GrayscaleDilateImageFilter <InputImageType, InputImageType, StructuringElementType>
+		typedef itk::BinaryMorphologicalOpeningImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>>
+			GrayscaleOpeningImageFilterType;
+
+		BallElement<T> structuringElement;
+		structuringElement.SetRadius(params["Radius"].toUInt());
+		structuringElement.CreateStructuringElement();
+		auto openingFilter = GrayscaleOpeningImageFilterType::New(); //::New();
+		openingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		openingFilter->SetKernel(structuringElement);
+		filter->Progress()->Observe(openingFilter);
+		openingFilter->Update();
+		filter->AddOutput(openingFilter->GetOutput());
+	}else {
+		
+		typedef itk::BinaryMorphologicalOpeningImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>>
+			GrayscaleOpeningImageFilterType;
+
+		//Create a box;
+
+		FlatElement <T> structuringElement;
+		FlatElement<T>::RadiusType elementRadius;
+		elementRadius.Fill(params["Radius"].toInt());
+
+		if (str_Input.compare("Box") == 0) {
+			/*FlatElement<T>*/ structuringElement = FlatElement<T>::Box(elementRadius);
+		}
+		else	if (str_Input.compare("Cross") == 0) {
+			structuringElement = FlatElement<T>::Cross(elementRadius);
+		}
+		else {
+			structuringElement = FlatElement<T>::Polygon(elementRadius, 2);
+		}
+
+
+		auto openingFilter = GrayscaleOpeningImageFilterType::New();
+		openingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		openingFilter->SetKernel(structuringElement);
+
+
+		filter->Progress()->Observe(openingFilter);
+		openingFilter->Update();
+		filter->AddOutput(openingFilter->GetOutput());
+	
+	}
 }
 
 void iAOpening::PerformWork(QMap<QString, QVariant> const & parameters)
@@ -315,8 +354,9 @@ iAOpening::iAOpening():
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
 		"Binary Ball Structuring Element</a> in the ITK documentation.")
 {
-
+	Morphology::morphEl morph_text;
 	AddParameter("Radius", Discrete, 1, 1);
+	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 	//QStringList kernels; kernels
 	//	<< "Flat" << "Box" /*<< "RBF" << "Sigmoid"*/;
 	//AddParameter("Structuring ElementType", Categorical, kernels);
@@ -328,7 +368,7 @@ iAOpening::iAOpening():
 //closing
 template<class T> void closing(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	/*itk::Open*/
+	
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::BinaryBallStructuringElement<typename InputImageType::PixelType, 3> StructuringElementType;
 	//typedef itk::GrayscaleDilateImageFilter <InputImageType, InputImageType, StructuringElementType>
