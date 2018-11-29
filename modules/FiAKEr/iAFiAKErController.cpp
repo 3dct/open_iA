@@ -942,7 +942,19 @@ void iAFiAKErController::colorByDistrToggled()
 		size_t colorLookupParam = m_distributionChoice->currentIndex();
 		bool matchQuality = (colorLookupParam >= m_data->spmData->numParams()-1);
 		if (matchQuality)
+		{
+			// set all currently shown main visualizations back to their result color
+			for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+			{
+				if (resultID == m_referenceID)
+					continue;
+				auto mainVis = m_resultUIs[resultID].main3DVis;
+				if (mainVis)
+					mainVis->setColor(m_resultColorTheme->GetColor(resultID));
+			}
+			setSPMColorByResult();
 			showSpatialOverview();
+		}
 		else
 		{   // this triggers also spmLookupTableChanged (which updates the 3D views)
 			m_spm->setColorParam(colorLookupParam);
@@ -1534,7 +1546,7 @@ void iAFiAKErController::showSpatialOverview()
 		return;
 	double range[2] = {-1.0, 1.0};
 	QSharedPointer<iALookupTable> lut(new iALookupTable());
-	*lut = iALUT::Build(range, m_spm->settings.colorThemeName, 255, SelectionOpacity);
+	*lut = iALUT::Build(range, m_colorByThemeName, 255, SelectionOpacity);
 	auto ref3D = m_resultUIs[m_referenceID].main3DVis;
 	QSignalBlocker cbBlock(m_resultUIs[m_referenceID].cbShow);
 	m_resultUIs[m_referenceID].cbShow->setChecked(true);
@@ -1555,7 +1567,6 @@ void iAFiAKErController::spmLookupTableChanged()
 	//     - update color theme name if changed in SPM settings
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
-		m_resultUIs[resultID].mini3DVis->setLookupTable(lut, colorLookupParam);
 		if (m_resultUIs[resultID].main3DVis->visible())
 			m_resultUIs[resultID].main3DVis->setLookupTable(lut, colorLookupParam);
 	}
