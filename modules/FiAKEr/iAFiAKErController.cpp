@@ -1018,13 +1018,22 @@ void iAFiAKErController::toggleVis(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
 	addInteraction(QString("Toggle visibility of %1").arg(resultName(resultID)));
+	showMainVis(resultID, state);
+}
+
+void iAFiAKErController::showMainVis(size_t resultID, int state)
+{
 	auto & data = m_data->result[resultID];
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 	{
 		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
 		ui.main3DVis->setContextOpacity(ContextOpacity);
-		if (m_spm->colorScheme() == iAQSplom::ByParameter)
+		size_t colorLookupParam = m_distributionChoice->currentIndex();
+		bool matchQuality = (colorLookupParam >= m_data->spmData->numParams()-1);
+		if (matchQuality)
+			showSpatialOverview();
+		else if (m_spm->colorScheme() == iAQSplom::ByParameter)
 		{
 			ui.main3DVis->setLookupTable(m_spm->lookupTable(), m_spm->colorLookupParam());
 			ui.main3DVis->updateColorSelectionRendering();
@@ -1468,6 +1477,7 @@ void iAFiAKErController::refDistAvailable()
 	m_distributionChoice->setCurrentIndex(m_data->spmData->numParams() - 1);
 	QSignalBlocker cbColorByBlock(m_colorByDistribution);
 	m_colorByDistribution->setChecked(true);
+	showMainVis(m_referenceID, Qt::Checked);
 	changeDistributionSource(m_data->spmData->numParams() - 1);
 
 	m_views[JobView]->hide();

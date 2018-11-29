@@ -150,6 +150,7 @@ private:
 	void hideSamplePointsPrivate();
 	void showSpatialOverview();
 	void setReference(size_t referenceID);
+	void showMainVis(size_t resultID, int state);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
