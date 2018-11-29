@@ -64,20 +64,61 @@ namespace Morphology {
 
 template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	typedef itk::Image< T, DIM> InputImageType;
-	typedef itk::BinaryBallStructuringElement<typename InputImageType::PixelType,3> StructuringElementType;
-	typedef itk::GrayscaleDilateImageFilter <InputImageType, InputImageType, StructuringElementType>
-		GrayscaleDilateImageFilterType;
 
-	StructuringElementType structuringElement;
-	structuringElement.SetRadius(params["Radius"].toUInt());
-	structuringElement.CreateStructuringElement();
-	auto dilateFilter = GrayscaleDilateImageFilterType::New();
-	dilateFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
-	dilateFilter->SetKernel(structuringElement);
-	filter->Progress()->Observe( dilateFilter );
-	dilateFilter->Update(); 
-	filter->AddOutput(dilateFilter->GetOutput());
+	using namespace Morphology;
+	std::string str_Input = params["Structuring ElementType"].toString().toStdString();
+
+	//default use ball
+
+	if (str_Input.compare("Ball") == 0) {
+
+		//typedef itk::Image< T, DIM> InputImageType;
+		//typedef itk::BinaryBallStructuringElement<typename InputImageType::PixelType, 3> StructuringElementType;
+		typedef itk::GrayscaleDilateImageFilter <InputImageType<T>, InputImageType<T>, BallElement<T>>
+			GrayscaleDilateImageFilterType;
+
+		BallElement<T> structuringElement;
+		structuringElement.SetRadius(params["Radius"].toUInt());
+		structuringElement.CreateStructuringElement();
+		auto dilateFilter = GrayscaleDilateImageFilterType::New();
+		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		dilateFilter->SetKernel(structuringElement);
+		filter->Progress()->Observe(dilateFilter);
+		dilateFilter->Update();
+		filter->AddOutput(dilateFilter->GetOutput());
+
+	}else {
+		typedef itk::GrayscaleDilateImageFilter <InputImageType<T>, InputImageType<T>, FlatElement<T>>
+			GrayscaleDilateImageFilterType;
+
+		//Create a box; 
+
+		FlatElement <T> structuringElement;
+		FlatElement<T>::RadiusType elementRadius;
+		elementRadius.Fill(params["Radius"].toInt());
+
+		if (str_Input.compare("Box") == 0) {
+			/*FlatElement<T>*/ structuringElement = FlatElement<T>::Box(elementRadius);
+		}
+		else	if (str_Input.compare("Cross") == 0) {
+			structuringElement = FlatElement<T>::Cross(elementRadius);
+		}
+		else {
+			structuringElement = FlatElement<T>::Polygon(elementRadius, 2);
+		}
+
+
+		auto dilateFilter = GrayscaleDilateImageFilterType::New();
+		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		dilateFilter->SetKernel(structuringElement);
+
+
+		filter->Progress()->Observe(dilateFilter);
+		dilateFilter->Update();
+		filter->AddOutput(dilateFilter->GetOutput());
+	
+	}
+	
 }
 
 void iADilation::PerformWork(QMap<QString, QVariant> const & parameters)
@@ -98,44 +139,37 @@ iADilation::iADilation() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
 		"Binary Ball Structuring Element</a> in the ITK documentation.")
 {
-
+	Morphology::morphEl morph_text;
 	AddParameter("Radius", Discrete, 1, 1);
+	AddParameter("Structering ElementType", Categorical, morph_text.MorphOptions);
+
 	//QStringList kernels; kernels
 	//	<< "Flat" << "Box" /*<< "RBF" << "Sigmoid"*/;
 	//AddParameter("Structuring ElementType", Categorical, kernels);
 }
 
-
+//end dilate
 
 template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	using namespace Morphology; 
-	/*BallElement<T> ball; */
 	std::string str_Input = params["Structuring ElementType"].toString().toStdString(); 
 	
-	
-
-
-
-	//default; 
+	//default ball; 
 	if (str_Input.compare("Ball") == 0) {
 		/*typedef itk::Image< T, DIM> InputImageType;
 		typedef itk::BinaryBallStructuringElement<typename InputImageType::PixelType,3> StructuringElementType;*/
 		typedef itk::GrayscaleErodeImageFilter <InputImageType<T>, InputImageType<T>, BallElement<T> /*StructuringElementType*/>
 			GrayscaleErodeImageFilterType;
 
-		BallElement<T>/*StructuringElementType*/ structuringElement;
-		//}
-
-
+		BallElement<T> structuringElement;
+		
 		structuringElement.SetRadius(params["Radius"].toInt());
 		structuringElement.CreateStructuringElement();
-
 		auto erodeFilter = GrayscaleErodeImageFilterType::New();
 		erodeFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
 		erodeFilter->SetKernel(structuringElement);
-
-
+		
 		filter->Progress()->Observe(erodeFilter);
 		erodeFilter->Update();
 		filter->AddOutput(erodeFilter->GetOutput());
