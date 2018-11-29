@@ -888,10 +888,10 @@ void iAFiAKErController::resultColorThemeChanged(QString const & colorThemeName)
 		m_optimStepChart[chartID]->update();
 	}
 
+	updateHistogramColors();
 	if (m_spm->colorScheme() == iAQSplom::ByParameter)
 		return;
 
-	updateHistogramColors();
 	setSPMColorByResult();
 	// main3DVis automatically updated through SPM
 }
@@ -956,10 +956,14 @@ void iAFiAKErController::updateHistogramColors()
 	{
 		auto & chart = m_resultUIs[resultID].histoChart;
 		if (chart->plots().size() > 0)
+		{
 			if (dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data()))
 				dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data())->setLookupTable(lut);
-			else
+			if (!lut)
 				chart->plots()[0]->setColor(getResultColor(resultID));
+		}
+		if (chart->plots().size() > 1)
+			chart->plots()[1]->setColor(getResultColor(m_referenceID));
 		chart->update();
 	}
 }
