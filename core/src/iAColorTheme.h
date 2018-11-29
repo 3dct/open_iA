@@ -79,7 +79,7 @@ public:
 	//! only every need one of those
 	static iAColorThemeManager const & GetInstance();
 	//! Get the list of all available themes
-	QList<QString> GetAvailableThemes() const;
+	QStringList GetAvailableThemes() const;
 	//! Get a theme by name
 	iAColorTheme const * GetTheme(QString const & name) const;
 private:

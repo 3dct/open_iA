@@ -138,14 +138,8 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(m_dlgSamplings, SIGNAL(AddSampling()), this, SLOT(LoadSampling()));
 	dlgLabels->hide();
 	m_simpleLabelInfo->SetColorTheme(colorTheme);
-	for (QString themeName : iAColorThemeManager::GetInstance().GetAvailableThemes())
-	{
-		cbColorThemes->addItem(themeName);
-		if (themeName == colorTheme->GetName())
-		{
-			cbColorThemes->setCurrentText(themeName);
-		}
-	}
+	cbColorThemes->addItems(iAColorThemeManager::GetInstance().GetAvailableThemes());
+	cbColorThemes->setCurrentText(colorTheme->GetName());
 
 	connect(pbSample,           SIGNAL(clicked()), this, SLOT(StartSampling()));
 	connect(pbSamplingLoad,     SIGNAL(clicked()), this, SLOT(LoadSampling()));

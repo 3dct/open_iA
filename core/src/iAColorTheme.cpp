@@ -358,7 +358,7 @@ iAColorTheme const * iAColorThemeManager::GetTheme(QString const & name) const
 	return *it;
 }
 
-QList<QString> iAColorThemeManager::GetAvailableThemes() const
+QStringList iAColorThemeManager::GetAvailableThemes() const
 {
-	return m_themes.keys();
+	return QStringList(m_themes.keys());
 }
