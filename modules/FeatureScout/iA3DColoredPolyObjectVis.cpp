@@ -203,3 +203,8 @@ void iA3DColoredPolyObjectVis::setContextOpacity(int contextAlpha)
 {
 	m_contextAlpha = contextAlpha;
 }
+
+vtkSmartPointer<vtkActor> iA3DColoredPolyObjectVis::getActor()
+{
+	return m_actor;
+}
