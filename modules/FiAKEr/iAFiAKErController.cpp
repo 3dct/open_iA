@@ -1564,6 +1564,12 @@ void iAFiAKErController::spmLookupTableChanged()
 	size_t colorLookupParam = m_spm->colorLookupParam();
 	// TODO:
 	//     - select distribution in combobox?
+	/*
+	if (colorLookupParam != m_distributionChoice->currentIndex())
+	{
+		QSignalBlocker
+	}
+	*/
 	//     - update color theme name if changed in SPM settings
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
