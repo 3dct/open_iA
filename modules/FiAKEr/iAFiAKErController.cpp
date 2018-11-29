@@ -111,8 +111,7 @@ namespace
 	const QString ProjectFileFormat("Format");
 	const QString ProjectFileReference("Reference");
 
-	const QColor DistributionPlotColor(70, 70, 70, 255);
-	const QColor DistributionRefPlotColor(70, 70, 70, 80);
+	const int DistributionRefAlpha = 80;
 	const QColor OptimStepMarkerColor(192, 0, 0);
 	const QColor SelectionColor(0, 0, 0);
 	const QColor ReferenceColor(235, 235, 235);
@@ -379,13 +378,36 @@ void iAFiAKErController::resultsLoaded()
 	histogramBinInput->setMaximum(1000);
 	histogramBinInput->setValue(HistogramBins);
 	connect(histogramBinInput, SIGNAL(valueChanged(int)), this, SLOT(histogramBinsChanged(int)));
+	auto histoBinInputWidget = new QWidget();
+	histoBinInputWidget->setLayout(new QHBoxLayout());
+	histoBinInputWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	histoBinInputWidget->layout()->setSpacing(SettingSpacing);
+	histoBinInputWidget->layout()->addWidget(new QLabel("Histogram Bins:"));
+	histoBinInputWidget->layout()->addWidget(histogramBinInput);
+
+	m_showReferenceInChart = new QCheckBox("Show Reference in Distributions");
+	m_showReferenceInChart->setChecked(true);
+	connect(m_showReferenceInChart, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
+
+	m_distributionChartType = new QComboBox();
+	m_distributionChartType->addItem("Bar Chart");
+	m_distributionChartType->addItem("Line Graph");
+
+	auto distributionChartTypeWidget = new QWidget();
+	distributionChartTypeWidget->setLayout(new QHBoxLayout());
+	distributionChartTypeWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	distributionChartTypeWidget->layout()->setSpacing(SettingSpacing);
+	distributionChartTypeWidget->layout()->addWidget(new QLabel("Distribution Plot Type:"));
+	distributionChartTypeWidget->layout()->addWidget(m_distributionChartType);
+	connect(m_distributionChartType, SIGNAL(currentIndexChanged(int)), this, SLOT(distributionChartTypeChanged(int)));
 
 	QGroupBox* resultListSettings = new QGroupBox("Result List");
-	resultListSettings->setLayout(new QHBoxLayout());
+	resultListSettings->setLayout(new QVBoxLayout());
 	resultListSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
 	resultListSettings->layout()->setSpacing(SettingSpacing);
-	resultListSettings->layout()->addWidget(new QLabel("Histogram Bins:"));
-	resultListSettings->layout()->addWidget(histogramBinInput);
+	resultListSettings->layout()->addWidget(histoBinInputWidget);
+	resultListSettings->layout()->addWidget(m_showReferenceInChart);
+	resultListSettings->layout()->addWidget(distributionChartTypeWidget);
 
 	auto colorThemeChoice = new QComboBox();
 	colorThemeChoice->addItems(iALUT::GetColorMapNames());
@@ -842,6 +864,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 		range[0] = m_data->spmData->paramRange(index)[0];
 		range[1] = m_data->spmData->paramRange(index)[1];
 	}
+	double yMax = 0;
 	for (size_t resultID = 0; resultID<m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result[resultID];
@@ -855,21 +878,19 @@ void iAFiAKErController::changeDistributionSource(int index)
 			fiberData[fiberID] = matchQuality ? m_data->avgRefFiberMatch[fiberID]
 					: d.table->GetValue(fiberID, index).ToDouble();
 		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins, Continuous, range[0], range[1]);
-		auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, DistributionPlotColor));
+		QSharedPointer<iAPlot> histogramPlot =
+			(m_distributionChartType->currentIndex() == 0) ?
+			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, m_resultColorTheme->GetColor(resultID)))
+			: QSharedPointer<iAPlot>(new iALinePlot(histogramData, m_resultColorTheme->GetColor(resultID)));
 		chart->addPlot(histogramPlot);
+		if (histogramData->YBounds()[1] > yMax)
+			yMax = histogramData->YBounds()[1];
 	}
-	if (m_referenceID != NoResult && !matchQuality)
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
-		QSharedPointer<iAPlotData> refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
-		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
-		{
-			if (resultID == m_referenceID)
-				continue;
-			QSharedPointer<iABarGraphPlot> refPlot(new iABarGraphPlot(refPlotData, DistributionRefPlotColor));
-			m_resultUIs[resultID].histoChart->addPlot(refPlot);
-		}
+		m_resultUIs[resultID].histoChart->setYBounds(0, yMax);
 	}
-	
+	updateRefDistPlots();
 	if (m_colorByDistribution->isChecked())
 		colorByDistrToggled();
 	updateHistogramColors();
@@ -884,8 +905,31 @@ void iAFiAKErController::updateHistogramColors()
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & chart = m_resultUIs[resultID].histoChart;
-		if (chart->plots().size() > 0)
+		if (chart->plots().size() > 0 && dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data()))
 			dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data())->setLookupTable(lut);
+		chart->update();
+	}
+}
+
+void iAFiAKErController::updateRefDistPlots()
+{
+	bool matchQuality = (m_distributionChoice->currentIndex() >= m_data->spmData->numParams() - 1);
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	{
+		auto & chart = m_resultUIs[resultID].histoChart;
+		if (chart->plots().size() > 1)
+			chart->removePlot(chart->plots()[1]);
+		if (m_referenceID != NoResult && resultID != m_referenceID && !matchQuality && m_showReferenceInChart->isChecked())
+		{
+			QColor refColor = m_resultColorTheme->GetColor(m_referenceID);
+			refColor.setAlpha(DistributionRefAlpha);
+			QSharedPointer<iAPlotData> refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
+			QSharedPointer<iAPlot> refPlot =
+				(m_distributionChartType->currentIndex() == 0) ?
+				QSharedPointer<iAPlot>(new iABarGraphPlot(refPlotData, refColor))
+				: QSharedPointer<iAPlot>(new iALinePlot(refPlotData, refColor));
+			chart->addPlot(refPlot);
+		}
 		chart->update();
 	}
 }
@@ -1341,6 +1385,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 				main3DVis->updateValues(timeValues[std::min(static_cast<size_t>(optimStep), timeValues.size()-1)]);
 		}
 	}
+	changeReferenceDisplay();
 }
 
 void iAFiAKErController::mainOpacityChanged(int opacity)
@@ -1450,18 +1495,7 @@ void iAFiAKErController::refDistAvailable()
 	for (size_t chartID=0; chartID<ChartCount-1; ++chartID)
 		m_chartCB[chartID]->setEnabled(true);
 
-	auto refPlotData = m_resultUIs[m_referenceID].histoChart->plots()[0]->data();
-
-	for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
-	{
-		QSharedPointer<iABarGraphPlot> newPlot(new iABarGraphPlot(refPlotData, QColor(70, 70, 70, 80)));
-		auto & chart = m_resultUIs[resultID].histoChart;
-		if (chart->plots().size() > 1)
-			chart->removePlot(chart->plots()[1]);
-		m_resultUIs[resultID].histoChart->addPlot(newPlot);
-		m_resultUIs[resultID].histoChart->update();
-	}
-
+	updateRefDistPlots();
 
 	for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount; ++diffID)
 	{
@@ -1663,8 +1697,11 @@ void iAFiAKErController::changeReferenceDisplay()
 	auto linePolyData = vtkSmartPointer<vtkPolyData>::New();
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
 	size_t curFiber = 0;
+	auto & ref = m_data->result[m_referenceID];
+	size_t timeStep = static_cast<size_t>(m_optimStepSlider->value());
 	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
 	{
+		auto & d = m_data->result[resultID];
 		if (resultID == m_referenceID || !resultSelected(m_resultUIs, resultID))
 			continue;
 		for (size_t fiberIdx = 0; fiberIdx < m_selection[resultID].size(); ++fiberIdx)
@@ -1673,11 +1710,14 @@ void iAFiAKErController::changeReferenceDisplay()
 			for (int n = 0; n < refCount; ++n)
 			{
 				float first[3], end[3];
-				size_t refFiberID = m_data->result[resultID].refDiffFiber[fiberID].dist[distanceMeasure][n].index;
+				size_t refFiberID = d.refDiffFiber[fiberID].dist[distanceMeasure][n].index;
 				for (int i = 0; i < 3; ++i)
 				{
-					first[i] = m_data->result[resultID].table->GetValue(fiberID, m_data->result[resultID].mapping->value(iACsvConfig::StartX + i)).ToFloat();
-					end[i] = m_data->result[m_referenceID].table->GetValue(refFiberID, m_data->result[m_referenceID].mapping->value(iACsvConfig::StartX + i)).ToFloat();
+					if (d.timeValues.size() > 0)
+						first[i] = d.timeValues[timeStep][fiberID][i];
+					else
+						first[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
+					end[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::StartX + i)).ToFloat();
 				}
 				points->InsertNextPoint(first);
 				points->InsertNextPoint(end);
@@ -1687,8 +1727,11 @@ void iAFiAKErController::changeReferenceDisplay()
 				lines->InsertNextCell(line1);
 				for (int i = 0; i < 3; ++i)
 				{
-					first[i] = m_data->result[resultID].table->GetValue(fiberID, m_data->result[resultID].mapping->value(iACsvConfig::EndX + i)).ToFloat();
-					end[i] = m_data->result[m_referenceID].table->GetValue(refFiberID, m_data->result[m_referenceID].mapping->value(iACsvConfig::EndX + i)).ToFloat();
+					if (d.timeValues.size() > 0)
+						first[i] = d.timeValues[timeStep][fiberID][3+i];
+					else
+						first[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
+					end[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::EndX + i)).ToFloat();
 				}
 				points->InsertNextPoint(first);
 				points->InsertNextPoint(end);
@@ -1942,4 +1985,18 @@ void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folde
 void iAFiAKErController::setProjectReference()
 {
 	setReference(m_projectReferenceID);
+}
+
+void iAFiAKErController::showReferenceInChartToggled()
+{
+	addInteraction(QString("Toggled showing of reference in distribution charts in result list to %1")
+		.arg(m_showReferenceInChart->isChecked()?"on":"off"));
+	updateRefDistPlots();
+}
+
+void iAFiAKErController::distributionChartTypeChanged(int idx)
+{
+	addInteraction(QString("Distribution chart plot type switched to %1")
+		.arg(m_distributionChartType->itemText(idx)));
+	changeDistributionSource(m_distributionChoice->currentIndex());
 }

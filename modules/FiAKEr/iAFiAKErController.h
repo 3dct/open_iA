@@ -120,6 +120,8 @@ private slots:
 	void colorThemeChanged(QString const & colorThemeName);
 	void saveAnalysisClick();
 	void loadAnalysisClick();
+	void showReferenceInChartToggled();
+	void distributionChartTypeChanged(int);
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
@@ -151,6 +153,7 @@ private:
 	void showSpatialOverview();
 	void setReference(size_t referenceID);
 	void showMainVis(size_t resultID, int state);
+	void updateRefDistPlots();
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
@@ -197,6 +200,9 @@ private:
 	QGridLayout* m_resultsListLayout;
 	QCheckBox* m_colorByDistribution;
 	QComboBox* m_distributionChoice;
+	QCheckBox* m_showReferenceInChart;
+	QComboBox* m_distributionChartType;
+	QComboBox* m_resultColorThemeChoice;
 
 	// Scatter plot matrix:
 	void setSPMColorByResult();
