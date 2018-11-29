@@ -110,6 +110,8 @@ namespace
 	const QString ProjectFileFolder("Folder");
 	const QString ProjectFileFormat("Format");
 	const QString ProjectFileReference("Reference");
+	
+	const QString DefaultResultColorTheme("Brewer Accent (max. 8)");
 
 	const int DistributionRefAlpha = 80;
 	const QColor OptimStepMarkerColor(192, 0, 0);
@@ -147,7 +149,7 @@ public:
 };
 
 iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
-	m_resultColorTheme(iAColorThemeManager::GetInstance().GetTheme("Brewer Accent (max. 8)")),
+	m_resultColorTheme(iAColorThemeManager::GetInstance().GetTheme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
 	m_spm(new iAQSplom()),
 	m_referenceID(NoResult),
@@ -259,10 +261,10 @@ void iAFiAKErController::resultsLoaded()
 	opacityWidget->setLayout(opacityWidgetLayout);
 	opacityWidgetLayout->setContentsMargins(0, 0, 0, 0);
 	opacityWidgetLayout->setSpacing(SettingSpacing);
-	opacityWidgetLayout->addWidget(new QLabel("Main Opacity"), 0, 0);
+	opacityWidgetLayout->addWidget(new QLabel("Main Opacity:"), 0, 0);
 	opacityWidgetLayout->addWidget(m_defaultOpacitySlider, 0, 1);
 	opacityWidgetLayout->addWidget(m_defaultOpacityLabel, 0, 2);
-	opacityWidgetLayout->addWidget(new QLabel("Context Opacity"), 1, 0);
+	opacityWidgetLayout->addWidget(new QLabel("Context Opacity:"), 1, 0);
 	opacityWidgetLayout->addWidget(m_contextOpacitySlider, 1, 1);
 	opacityWidgetLayout->addWidget(m_contextOpacityLabel, 1, 2);
 
@@ -293,7 +295,7 @@ void iAFiAKErController::resultsLoaded()
 	selectionModeWidget->layout()->addWidget(new QLabel("Selection Mode:"));
 	selectionModeWidget->layout()->addWidget(selectionModeChoice);
 
-	auto metricLabel = new QLabel("Metric");
+	auto metricLabel = new QLabel("Metric:");
 	m_cmbboxDistanceMeasure = new QComboBox();
 	m_cmbboxDistanceMeasure->addItem("Dist1 (Midpoint, Angles, Length)");
 	m_cmbboxDistanceMeasure->addItem("Dist2 (Start-Start/Center-Center/End-End)");
@@ -385,7 +387,7 @@ void iAFiAKErController::resultsLoaded()
 	histoBinInputWidget->layout()->addWidget(new QLabel("Histogram Bins:"));
 	histoBinInputWidget->layout()->addWidget(histogramBinInput);
 
-	m_showReferenceInChart = new QCheckBox("Show Reference in Distributions");
+	m_showReferenceInChart = new QCheckBox("Show Reference in Distribution Histograms");
 	m_showReferenceInChart->setChecked(true);
 	connect(m_showReferenceInChart, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
 
@@ -409,16 +411,27 @@ void iAFiAKErController::resultsLoaded()
 	resultListSettings->layout()->addWidget(m_showReferenceInChart);
 	resultListSettings->layout()->addWidget(distributionChartTypeWidget);
 
-	auto colorThemeChoice = new QComboBox();
-	colorThemeChoice->addItems(iALUT::GetColorMapNames());
-	colorThemeChoice->setCurrentIndex(0);
-	connect(colorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(colorThemeChanged(QString const &)));
-	auto colorThemeChoiceWidget = new QWidget();
-	colorThemeChoiceWidget->setLayout(new QHBoxLayout());
-	colorThemeChoiceWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	colorThemeChoiceWidget->layout()->setSpacing(SettingSpacing);
-	colorThemeChoiceWidget->layout()->addWidget(new QLabel("Color Theme"));
-	colorThemeChoiceWidget->layout()->addWidget(colorThemeChoice);
+	auto distrColorThemeChoice = new QComboBox();
+	distrColorThemeChoice->addItems(iALUT::GetColorMapNames());
+	distrColorThemeChoice->setCurrentIndex(0);
+	connect(distrColorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(distributionColorThemeChanged(QString const &)));
+	auto distrColorThemeChoiceWidget = new QWidget();
+	distrColorThemeChoiceWidget->setLayout(new QHBoxLayout());
+	distrColorThemeChoiceWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	distrColorThemeChoiceWidget->layout()->setSpacing(SettingSpacing);
+	distrColorThemeChoiceWidget->layout()->addWidget(new QLabel("Distribution Color Theme:"));
+	distrColorThemeChoiceWidget->layout()->addWidget(distrColorThemeChoice);
+
+	auto resultColorThemeChoice = new QComboBox();
+	resultColorThemeChoice->addItems(iAColorThemeManager::GetInstance().GetAvailableThemes());
+	resultColorThemeChoice->setCurrentText(DefaultResultColorTheme);
+	connect(resultColorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(resultColorThemeChanged(QString const &)));
+	auto resultColorThemeChoiceWidget = new QWidget();
+	resultColorThemeChoiceWidget->setLayout(new QHBoxLayout());
+	resultColorThemeChoiceWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	resultColorThemeChoiceWidget->layout()->setSpacing(SettingSpacing);
+	resultColorThemeChoiceWidget->layout()->addWidget(new QLabel("Result Color Theme:"));
+	resultColorThemeChoiceWidget->layout()->addWidget(resultColorThemeChoice);
 
 	QWidget* saveLoadAnalysisWidget = new QWidget();
 	saveLoadAnalysisWidget->setLayout(new QHBoxLayout());
@@ -435,7 +448,8 @@ void iAFiAKErController::resultsLoaded()
 	globalSettings->setLayout(new QVBoxLayout());
 	globalSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
 	globalSettings->layout()->setSpacing(SettingSpacing);
-	globalSettings->layout()->addWidget(colorThemeChoiceWidget);
+	globalSettings->layout()->addWidget(resultColorThemeChoiceWidget);
+	globalSettings->layout()->addWidget(distrColorThemeChoiceWidget);
 	globalSettings->layout()->addWidget(saveLoadAnalysisWidget);
 
 	QWidget* leftSettingsWidget = new QWidget();
@@ -837,24 +851,60 @@ void iAFiAKErController::histogramBinsChanged(int value)
 	changeDistributionSource(m_distributionChoice->currentIndex());
 }
 
-void iAFiAKErController::colorThemeChanged(QString const & colorThemeName)
+void iAFiAKErController::distributionColorThemeChanged(QString const & colorThemeName)
 {
-	addInteraction(QString("Changed color theme to '%1'.").arg(colorThemeName));
+	addInteraction(QString("Changed distribution color theme to '%1'.").arg(colorThemeName));
 	m_colorByThemeName = colorThemeName;
 	changeDistributionSource(m_distributionChoice->currentIndex());
 	m_spm->setColorTheme(colorThemeName);
 }
 
+bool iAFiAKErController::matchQualityVisActive() const
+{
+	size_t colorLookupParam = m_distributionChoice->currentIndex();
+	return (colorLookupParam >= m_data->spmData->numParams() - 1);
+}
+
+void iAFiAKErController::resultColorThemeChanged(QString const & colorThemeName)
+{
+	addInteraction(QString("Changed result color theme to '%1'.").arg(colorThemeName));
+	m_resultColorTheme = iAColorThemeManager::GetInstance().GetTheme(colorThemeName);
+
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+		m_resultUIs[resultID].mini3DVis->setColor(getResultColor(resultID));
+
+	// recolor the optimization step plots:
+	for (size_t chartID = 0; chartID < m_optimStepChart.size(); ++chartID)
+	{
+		if (!m_optimStepChart[chartID])
+			continue;
+		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+		{
+			if (m_resultUIs[resultID].startPlotIdx == NoPlotsIdx)
+				continue;
+			for (size_t p = 0; p < m_data->result[resultID].fiberCount; ++p)
+				m_optimStepChart[chartID]->plots()[m_resultUIs[resultID].startPlotIdx + p]->setColor(getResultColor(resultID));
+		}
+		m_optimStepChart[chartID]->update();
+	}
+
+	if (m_spm->colorScheme() == iAQSplom::ByParameter)
+		return;
+
+	updateHistogramColors();
+	setSPMColorByResult();
+	// main3DVis automatically updated through SPM
+}
+
 void iAFiAKErController::changeDistributionSource(int index)
 {
-	bool matchQuality = (index >= m_data->spmData->numParams()-1);
-	if (matchQuality && m_referenceID == NoResult)
+	if (matchQualityVisActive() && m_referenceID == NoResult)
 	{
 		DEBUG_LOG(QString("You need to set a reference first!"));
 		return;
 	}
 	double range[2];
-	if (matchQuality)
+	if (matchQualityVisActive())
 	{
 		range[0] = - 1.0;
 		range[1] = 1.0;
@@ -871,11 +921,11 @@ void iAFiAKErController::changeDistributionSource(int index)
 		auto & chart = m_resultUIs[resultID].histoChart;
 		chart->clearPlots();
 		chart->setXBounds(range[0], range[1]);
-		if (matchQuality && resultID != m_referenceID)
+		if (matchQualityVisActive() && resultID != m_referenceID)
 			continue;
 		std::vector<double> fiberData(d.fiberCount);
 		for (size_t fiberID = 0; fiberID<d.fiberCount; ++fiberID)
-			fiberData[fiberID] = matchQuality ? m_data->avgRefFiberMatch[fiberID]
+			fiberData[fiberID] = matchQualityVisActive() ? m_data->avgRefFiberMatch[fiberID]
 					: d.table->GetValue(fiberID, index).ToDouble();
 		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins, Continuous, range[0], range[1]);
 		QSharedPointer<iAPlot> histogramPlot =
@@ -905,21 +955,23 @@ void iAFiAKErController::updateHistogramColors()
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & chart = m_resultUIs[resultID].histoChart;
-		if (chart->plots().size() > 0 && dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data()))
-			dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data())->setLookupTable(lut);
+		if (chart->plots().size() > 0)
+			if (dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data()))
+				dynamic_cast<iABarGraphPlot*>(chart->plots()[0].data())->setLookupTable(lut);
+			else
+				chart->plots()[0]->setColor(getResultColor(resultID));
 		chart->update();
 	}
 }
 
 void iAFiAKErController::updateRefDistPlots()
 {
-	bool matchQuality = (m_distributionChoice->currentIndex() >= m_data->spmData->numParams() - 1);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & chart = m_resultUIs[resultID].histoChart;
 		if (chart->plots().size() > 1)
 			chart->removePlot(chart->plots()[1]);
-		if (m_referenceID != NoResult && resultID != m_referenceID && !matchQuality && m_showReferenceInChart->isChecked())
+		if (m_referenceID != NoResult && resultID != m_referenceID && !matchQualityVisActive() && m_showReferenceInChart->isChecked())
 		{
 			QColor refColor = m_resultColorTheme->GetColor(m_referenceID);
 			refColor.setAlpha(DistributionRefAlpha);
@@ -940,8 +992,7 @@ void iAFiAKErController::colorByDistrToggled()
 	if (m_colorByDistribution->isChecked())
 	{
 		size_t colorLookupParam = m_distributionChoice->currentIndex();
-		bool matchQuality = (colorLookupParam >= m_data->spmData->numParams()-1);
-		if (matchQuality)
+		if (matchQualityVisActive())
 		{
 			// set all currently shown main visualizations back to their result color
 			for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
@@ -949,8 +1000,8 @@ void iAFiAKErController::colorByDistrToggled()
 				if (resultID == m_referenceID)
 					continue;
 				auto mainVis = m_resultUIs[resultID].main3DVis;
-				if (mainVis)
-					mainVis->setColor(m_resultColorTheme->GetColor(resultID));
+				if (mainVis->visible())
+					mainVis->setColor(getResultColor(resultID));
 			}
 			setSPMColorByResult();
 			showSpatialOverview();
@@ -1086,8 +1137,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
 		ui.main3DVis->setContextOpacity(ContextOpacity);
 		size_t colorLookupParam = m_distributionChoice->currentIndex();
-		bool matchQuality = (colorLookupParam >= m_data->spmData->numParams()-1);
-		if (matchQuality)
+		if (matchQualityVisActive())
 			showSpatialOverview();
 		else if (m_spm->colorScheme() == iAQSplom::ByParameter)
 		{
@@ -1573,7 +1623,7 @@ void iAFiAKErController::spmLookupTableChanged()
 	//     - update color theme name if changed in SPM settings
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
-		if (m_resultUIs[resultID].main3DVis->visible())
+		if (m_resultUIs[resultID].main3DVis->visible() && (!matchQualityVisActive() || resultID != m_referenceID) )
 			m_resultUIs[resultID].main3DVis->setLookupTable(lut, colorLookupParam);
 	}
 }

@@ -117,7 +117,8 @@ private slots:
 	void selectionModeChanged(int);
 	void distributionChoiceChanged(int index);
 	void histogramBinsChanged(int value);
-	void colorThemeChanged(QString const & colorThemeName);
+	void distributionColorThemeChanged(QString const & colorThemeName);
+	void resultColorThemeChanged(QString const & colorThemeName);
 	void saveAnalysisClick();
 	void loadAnalysisClick();
 	void showReferenceInChartToggled();
@@ -154,6 +155,7 @@ private:
 	void setReference(size_t referenceID);
 	void showMainVis(size_t resultID, int state);
 	void updateRefDistPlots();
+	bool matchQualityVisActive() const;
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
