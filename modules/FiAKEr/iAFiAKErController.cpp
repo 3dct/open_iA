@@ -1734,12 +1734,16 @@ void iAFiAKErController::changeReferenceDisplay()
 
 	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer, m_refVisTable,
 		m_data->result[m_referenceID].mapping, QColor(0,0,0) ) );
+	/*
 	QSharedPointer<iALookupTable> lut(new iALookupTable);
 	*lut.data() = iALUT::Build(m_data->spmData->paramRange(m_data->spmData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::DistanceMetricCount+distanceMeasure),
-		"ColorBrewer single hue 5-class oranges", 256, SelectionOpacity);
+		m_colorByThemeName, 256, SelectionOpacity);
+	*/
 	m_nearestReferenceVis->show();
+	// for now, color by reference result color:
+	m_nearestReferenceVis->setColor(getResultColor(m_referenceID));
 	// ... and set up color coding by it!
-	m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
+	//m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
 	// TODO: show distance color map somewhere!!!
 
 	// Lines from Fiber points to reference:
