@@ -61,7 +61,7 @@ iADilation::iADilation() :
 	iAFilter("Dilation", "Morphology",
 		"Dilate an image using grayscale morphology.<br/>"
 		"Dilation takes the maximum of all the pixels identified by the "
-		"structuring element (a ball with the given <em>Radius</em> in all directions).<br/>"
+		"Default structuring element (a ball with the given <em>Radius</em> in all directions).<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleDilateImageFilter.html\">"
 		"Grayscale Dilate Filter</a> and the "
@@ -69,6 +69,7 @@ iADilation::iADilation() :
 		"Binary Ball Structuring Element</a> in the ITK documentation.")
 {
 	AddParameter("Radius", Discrete, 1, 1);
+	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 }
 
 
@@ -102,7 +103,7 @@ iAErosion::iAErosion() :
 	iAFilter("Erosion", "Morphology",
 		"Erodes an image using grayscale morphology.<br/>"
 		"Erosion takes the maximum of all the pixels identified by the "
-		"structuring element. (a ball with the given <em>Radius</em> in all directions).<br/>"
+		"Default structuring element. (a ball with the given <em>Radius</em> in all directions).<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleErodeImageFilter.html\">"
 		"Grayscale Erode Filter</a> and the "
@@ -149,4 +150,171 @@ iAVesselEnhancement::iAVesselEnhancement() :
 		"Hessian 3D to Vesselness Measure Filter</a> in the ITK documentation.")
 {
 	AddParameter("Sigma", Continuous, 0);
+}
+
+#include <itkBinaryMorphologicalOpeningImageFilter.h>
+//closing
+template<class T> void opening(iAFilter* filter, QMap<QString, QVariant> const & params)
+{
+	using namespace Morphology;
+	std::string str_Input = params[elem_type].toString().toStdString();
+
+	//default ball; 
+	if (str_Input.compare("Ball") == 0) {
+
+		//typedef itk::Image< T, DIM> InputImageType;
+		//typedef itk::BinaryBallStructuringElement<typename InputImageType<::PixelType, 3> StructuringElementType;
+		//typedef itk::GrayscaleDilateImageFilter <InputImageType, InputImageType, StructuringElementType>
+		typedef itk::BinaryMorphologicalOpeningImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>>
+			GrayscaleOpeningImageFilterType;
+
+		BallElement<T> structuringElement;
+		structuringElement.SetRadius(params["Radius"].toUInt());
+		structuringElement.CreateStructuringElement();
+		auto openingFilter = GrayscaleOpeningImageFilterType::New(); //::New();
+		openingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		openingFilter->SetKernel(structuringElement);
+		filter->Progress()->Observe(openingFilter);
+		openingFilter->Update();
+		filter->AddOutput(openingFilter->GetOutput());
+	}else {
+		
+		typedef itk::BinaryMorphologicalOpeningImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>>
+			GrayscaleOpeningImageFilterType;
+
+		//Create a box;
+
+		FlatElement <T> structuringElement;
+		FlatElement<T>::RadiusType elementRadius;
+		elementRadius.Fill(params["Radius"].toInt());
+
+		if (str_Input.compare("Box") == 0) {
+			/*FlatElement<T>*/ structuringElement = FlatElement<T>::Box(elementRadius);
+		}
+		else	if (str_Input.compare("Cross") == 0) {
+			structuringElement = FlatElement<T>::Cross(elementRadius);
+		}
+		else {
+			structuringElement = FlatElement<T>::Polygon(elementRadius, 2);
+		}
+
+
+		auto openingFilter = GrayscaleOpeningImageFilterType::New();
+		openingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		openingFilter->SetKernel(structuringElement);
+
+
+		filter->Progress()->Observe(openingFilter);
+		openingFilter->Update();
+		filter->AddOutput(openingFilter->GetOutput());
+	
+	}
+}
+
+void iAOpening::PerformWork(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(opening, InputPixelType(), this, parameters);
+}
+
+IAFILTER_CREATE(iAOpening)
+
+
+//TBD Description anpassen
+
+
+//TBD Description anpassen
+iAOpening::iAOpening():
+	iAFilter("Opening", "Morphology",
+		"Opening an image using grayscale morphology.<br/>"
+		"Opening takes the maximum of all the pixels identified by the "
+		"Default structuring element (a ball with the given <em>Radius</em> in all directions).<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleDilateImageFilter.html\">"
+		"Grayscale Dilate Filter</a> and the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
+		"Binary Ball Structuring Element</a> in the ITK documentation.")
+{
+	Morphology::morphEl morph_text;
+	AddParameter("Radius", Discrete, 1, 1);
+	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
+	//QStringList kernels; kernels
+	//	<< "Flat" << "Box" /*<< "RBF" << "Sigmoid"*/;
+	//AddParameter("Structuring ElementType", Categorical, kernels);
+}
+
+//closing
+
+#include <itkBinaryMorphologicalOpeningImageFilter.h>
+//closing
+template<class T> void closing(iAFilter* filter, QMap<QString, QVariant> const & params)
+{
+
+	using namespace Morphology; 
+	std::string str_Input = params[elem_type].toString().toStdString();
+	if (str_Input.compare("Ball") == 0) {
+		/*typedef itk::Image< T, DIM> InputImageType;
+		typedef itk::BinaryBallStructuringElement<typename InputImageType::PixelType, 3> StructuringElementType;*/
+		//typedef itk::GrayscaleDilateImageFilter <InputImageType, InputImageType, StructuringElementType>
+		typedef itk::BinaryMorphologicalClosingImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>>
+			GrayscaleClosingImageFilterType;
+
+		BallElement<T> structuringElement;
+		structuringElement.SetRadius(params["Radius"].toUInt());
+		structuringElement.CreateStructuringElement();
+		auto openingFilter = GrayscaleClosingImageFilterType::New(); //::New();
+		openingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		openingFilter->SetKernel(structuringElement);
+		filter->Progress()->Observe(openingFilter);
+		openingFilter->Update();
+		filter->AddOutput(openingFilter->GetOutput());
+	}else {
+		typedef itk::BinaryMorphologicalClosingImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>>
+			GrayscaleClosingImageFilterType;
+
+		FlatElement <T> structuringElement;
+		FlatElement<T>::RadiusType elementRadius;
+		elementRadius.Fill(params["Radius"].toInt());
+
+		if (str_Input.compare("Box") == 0) {
+			/*FlatElement<T>*/ structuringElement = FlatElement<T>::Box(elementRadius);
+		}
+		else	if (str_Input.compare("Cross") == 0) {
+			structuringElement = FlatElement<T>::Cross(elementRadius);
+		}
+		else {
+			structuringElement = FlatElement<T>::Polygon(elementRadius, 2);
+		}
+
+
+		auto openingFilter = GrayscaleClosingImageFilterType::New();
+		openingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		openingFilter->SetKernel(structuringElement);
+	
+	}
+}
+
+void iAClosing::PerformWork(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(closing, InputPixelType(), this, parameters);
+}
+
+IAFILTER_CREATE(iAClosing)
+
+
+//TBD Description anpassen
+iAClosing::iAClosing() :
+	iAFilter("Closing", "Morphology",
+		"Closing an image using grayscale morphology.<br/>"
+		"Closing takes the maximum of all the pixels identified by the "
+		"Default structuring element (a ball with the given <em>Radius</em> in all directions).<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleDilateImageFilter.html\">"
+		"Grayscale Dilate Filter</a> and the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
+		"Binary Ball Structuring Element</a> in the ITK documentation.")
+{
+	Morphology::morphEl morph_text;
+	AddParameter("Radius", Discrete, 1, 1);
+	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
+	//QStringList kernels; kernels
 }
