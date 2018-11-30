@@ -59,6 +59,7 @@ namespace Morphology {
 	template<class T>
 	using FlatElement = itk::FlatStructuringElement<3>;
 
+	const unsigned int PolyLines = 7; // default for polygon
 
 	
 }; 
@@ -74,8 +75,7 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 
 	if (str_Input.compare("Ball") == 0) {
 
-		//typedef itk::Image< T, DIM> InputImageType;
-		//typedef itk::BinaryBallStructuringElement<typename InputImageType::PixelType, 3> StructuringElementType;
+		
 		typedef itk::GrayscaleDilateImageFilter <InputImageType<T>, InputImageType<T>, BallElement<T>>
 			GrayscaleDilateImageFilterType;
 
@@ -95,18 +95,18 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 
 		//Create a box; 
 
-		FlatElement <T> structuringElement;
+		FlatElement<T> structuringElement;
 		FlatElement<T>::RadiusType elementRadius;
 		elementRadius.Fill(params["Radius"].toInt());
 
 		if (str_Input.compare("Box") == 0) {
-			/*FlatElement<T>*/ structuringElement = FlatElement<T>::Box(elementRadius);
+			 structuringElement = FlatElement<T>::Box(elementRadius);
 		}
 		else	if (str_Input.compare("Cross") == 0) {
 			structuringElement = FlatElement<T>::Cross(elementRadius);
 		}
 		else {
-			structuringElement = FlatElement<T>::Polygon(elementRadius, 2);
+			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 		}
 
 
@@ -189,7 +189,7 @@ template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const &
 			structuringElement = FlatElement<T>::Cross(elementRadius);
 		}
 		else {
-			structuringElement = FlatElement<T>::Polygon(elementRadius, 2);
+			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 		}
 
 
@@ -221,7 +221,10 @@ iAErosion::iAErosion() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleErodeImageFilter.html\">"
 		"Grayscale Erode Filter</a> and the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
-		"Binary Ball Structuring Element</a> in the ITK documentation.")
+		"Binary Ball Structuring Element</a> in the ITK documentation."
+		"Other Structuring Elements are Box, Cross and Polygon referred as FlatStructuringElement. For further information see"
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlatStructuringElement.html\">"
+	)
 {
 	Morphology::morphEl morph_text;
 	AddParameter("Radius", Discrete, 1, 1);
@@ -308,7 +311,7 @@ template<class T> void opening(iAFilter* filter, QMap<QString, QVariant> const &
 			structuringElement = FlatElement<T>::Cross(elementRadius);
 		}
 		else {
-			structuringElement = FlatElement<T>::Polygon(elementRadius, 2);
+			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 		}
 
 
@@ -345,7 +348,10 @@ iAOpening::iAOpening():
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleDilateImageFilter.html\">"
 		"Grayscale Dilate Filter</a> and the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
-		"Binary Ball Structuring Element</a> in the ITK documentation.")
+		"Binary Ball Structuring Element</a> in the ITK documentation."
+		"Other Structuring Elements are Box, Cross and Polygon referred as FlatStructuringElement. For further information see"
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlatStructuringElement.html\">"
+	)
 {
 	Morphology::morphEl morph_text;
 	AddParameter("Radius", Discrete, 1, 1);
@@ -369,7 +375,7 @@ template<class T> void closing(iAFilter* filter, QMap<QString, QVariant> const &
 		BallElement<T> structuringElement;
 		structuringElement.SetRadius(params["Radius"].toUInt());
 		structuringElement.CreateStructuringElement();
-		auto openingFilter = GrayscaleClosingImageFilterType::New(); //::New();
+		auto openingFilter = GrayscaleClosingImageFilterType::New(); 
 		openingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
 		openingFilter->SetKernel(structuringElement);
 		filter->Progress()->Observe(openingFilter);
@@ -390,7 +396,7 @@ template<class T> void closing(iAFilter* filter, QMap<QString, QVariant> const &
 			structuringElement = FlatElement<T>::Cross(elementRadius);
 		}
 		else {
-			structuringElement = FlatElement<T>::Polygon(elementRadius, 2);
+			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 		}
 
 
@@ -419,7 +425,10 @@ iAClosing::iAClosing() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleDilateImageFilter.html\">"
 		"Grayscale Dilate Filter</a> and the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
-		"Binary Ball Structuring Element</a> in the ITK documentation.")
+		"Binary Ball Structuring Element</a> in the ITK documentation."
+		"Other Structuring Elements are Box, Cross and Polygon referred as FlatStructuringElement. For further information see"
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlatStructuringElement.html\">"
+	)
 {
 	Morphology::morphEl morph_text;
 	AddParameter("Radius", Discrete, 1, 1);
