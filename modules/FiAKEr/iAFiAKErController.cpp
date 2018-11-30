@@ -1784,32 +1784,40 @@ void iAFiAKErController::changeReferenceDisplay()
 			size_t fiberID = m_selection[resultID][fiberIdx];
 			for (int n = 0; n < refCount; ++n)
 			{
-				float first[3], end[3];
+				iAVec3 start1, start2, end1, end2;
 				size_t refFiberID = d.refDiffFiber[fiberID].dist[distanceMeasure][n].index;
 				for (int i = 0; i < 3; ++i)
 				{
 					if (d.timeValues.size() > 0)
-						first[i] = d.timeValues[timeStep][fiberID][i];
+						start1[i] = d.timeValues[timeStep][fiberID][i];
 					else
-						first[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
-					end[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::StartX + i)).ToFloat();
+						start1[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
+					end1[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::StartX + i)).ToFloat();
 				}
-				points->InsertNextPoint(first);
-				points->InsertNextPoint(end);
+				for (int i = 0; i < 3; ++i)
+				{
+					if (d.timeValues.size() > 0)
+						start2[i] = d.timeValues[timeStep][fiberID][3 + i];
+					else
+						start2[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
+					end2[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::EndX + i)).ToFloat();
+				}
+				/*
+				if ((start1 - start2).length() > (start1 - end2).length() && (end1 - end2).length() > (end1 - start2).length())
+				{
+					iAVec3 tmp = start1;
+					start1 = start2;
+					start2 = tmp;
+				}
+				*/
+				points->InsertNextPoint(start1.data());
+				points->InsertNextPoint(end1.data());
 				auto line1 = vtkSmartPointer<vtkLine>::New();
 				line1->GetPointIds()->SetId(0, 4 * curFiber); // the index of line start point in pts
 				line1->GetPointIds()->SetId(1, 4 * curFiber + 1); // the index of line end point in pts
 				lines->InsertNextCell(line1);
-				for (int i = 0; i < 3; ++i)
-				{
-					if (d.timeValues.size() > 0)
-						first[i] = d.timeValues[timeStep][fiberID][3+i];
-					else
-						first[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
-					end[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::EndX + i)).ToFloat();
-				}
-				points->InsertNextPoint(first);
-				points->InsertNextPoint(end);
+				points->InsertNextPoint(start2.data());
+				points->InsertNextPoint(end2.data());
 				auto line2 = vtkSmartPointer<vtkLine>::New();
 				line2->GetPointIds()->SetId(0, 4 * curFiber + 2); // the index of line start point in pts
 				line2->GetPointIds()->SetId(1, 4 * curFiber + 3); // the index of line end point in pts
