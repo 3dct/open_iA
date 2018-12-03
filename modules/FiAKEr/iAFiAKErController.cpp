@@ -112,6 +112,7 @@ namespace
 	const QString ProjectFileReference("Reference");
 	
 	const QString DefaultResultColorTheme("Brewer Accent (max. 8)");
+	const QString DefaultStackedBarColorTheme("Material red (max. 10)");
 
 	const int DistributionRefAlpha = 80;
 	const QColor OptimStepMarkerColor(192, 0, 0);
@@ -394,6 +395,7 @@ void iAFiAKErController::resultsLoaded()
 	m_distributionChartType = new QComboBox();
 	m_distributionChartType->addItem("Bar Chart");
 	m_distributionChartType->addItem("Line Graph");
+	connect(m_distributionChartType, SIGNAL(currentIndexChanged(int)), this, SLOT(distributionChartTypeChanged(int)));
 
 	auto distributionChartTypeWidget = new QWidget();
 	distributionChartTypeWidget->setLayout(new QHBoxLayout());
@@ -401,7 +403,18 @@ void iAFiAKErController::resultsLoaded()
 	distributionChartTypeWidget->layout()->setSpacing(SettingSpacing);
 	distributionChartTypeWidget->layout()->addWidget(new QLabel("Distribution Plot Type:"));
 	distributionChartTypeWidget->layout()->addWidget(m_distributionChartType);
-	connect(m_distributionChartType, SIGNAL(currentIndexChanged(int)), this, SLOT(distributionChartTypeChanged(int)));
+
+	auto stackedBarColorThemeChoice = new QComboBox();
+	stackedBarColorThemeChoice->addItems(iAColorThemeManager::GetInstance().GetAvailableThemes());
+	stackedBarColorThemeChoice->setCurrentText(DefaultStackedBarColorTheme);
+	connect(stackedBarColorThemeChoice, SIGNAL(currentIndexChanged(QString const &)), this, SLOT(stackedBarColorThemeChanged(QString const &)));
+
+	auto stackedBarColorThemeWidget = new QWidget();
+	stackedBarColorThemeWidget->setLayout(new QHBoxLayout());
+	stackedBarColorThemeWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	stackedBarColorThemeWidget->layout()->setSpacing(SettingSpacing);
+	stackedBarColorThemeWidget->layout()->addWidget(new QLabel("Stacked Bar Colors:"));
+	stackedBarColorThemeWidget->layout()->addWidget(stackedBarColorThemeChoice);
 
 	QGroupBox* resultListSettings = new QGroupBox("Result List");
 	resultListSettings->setLayout(new QVBoxLayout());
@@ -410,6 +423,7 @@ void iAFiAKErController::resultsLoaded()
 	resultListSettings->layout()->addWidget(histoBinInputWidget);
 	resultListSettings->layout()->addWidget(m_showReferenceInChart);
 	resultListSettings->layout()->addWidget(distributionChartTypeWidget);
+	resultListSettings->layout()->addWidget(stackedBarColorThemeWidget);
 
 	auto distrColorThemeChoice = new QComboBox();
 	distrColorThemeChoice->addItems(iALUT::GetColorMapNames());
@@ -521,7 +535,6 @@ void iAFiAKErController::resultsLoaded()
 	{
 		commonSuffixLength = 0;
 	}
-	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme("Material red (max. 10)");
 	auto resultListScrollArea = new QScrollArea();
 	resultListScrollArea->setWidgetResizable(true);
 	auto resultList = new QWidget();
@@ -533,6 +546,7 @@ void iAFiAKErController::resultsLoaded()
 	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_data->result.size());
 	m_resultsListLayout->setColumnStretch(HistogramColumn, 2 * m_data->result.size() );
 
+	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme(DefaultStackedBarColorTheme);
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
 	auto headerFiberCountAction = new QAction("Fiber Count", nullptr);
@@ -708,8 +722,6 @@ void iAFiAKErController::resultsLoaded()
 	splitDockWidget(m_views[ResultListView], m_views[ProtocolView], Qt::Vertical);
 	splitDockWidget(m_views[Main3DView], m_views[SelectionView], Qt::Vertical);
 	splitDockWidget(m_views[Main3DView], m_views[SettingsView], Qt::Vertical);
-
-	int w = geometry().width();
 
 	loadStateAndShow();
 }
@@ -894,6 +906,15 @@ void iAFiAKErController::resultColorThemeChanged(QString const & colorThemeName)
 
 	setSPMColorByResult();
 	// main3DVis automatically updated through SPM
+}
+
+void iAFiAKErController::stackedBarColorThemeChanged(QString const & colorThemeName)
+{
+	addInteraction(QString("Changed stacked bar color theme to '%1'.").arg(colorThemeName));
+	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme(colorThemeName);
+	m_stackedBarsHeaders->setColorTheme(colorTheme);
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+		m_resultUIs[resultID].stackedBars->setColorTheme(colorTheme);
 }
 
 void iAFiAKErController::changeDistributionSource(int index)

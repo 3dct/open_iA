@@ -73,6 +73,7 @@ void iAStackedBarChart::removeBar(QString const & name)
 void iAStackedBarChart::setColorTheme(iAColorTheme const * theme)
 {
 	m_theme = theme;
+	update();
 }
 
 QMenu* iAStackedBarChart::contextMenu()

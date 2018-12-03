@@ -119,6 +119,7 @@ private slots:
 	void histogramBinsChanged(int value);
 	void distributionColorThemeChanged(QString const & colorThemeName);
 	void resultColorThemeChanged(QString const & colorThemeName);
+	void stackedBarColorThemeChanged(QString const & colorThemeName);
 	void saveAnalysisClick();
 	void loadAnalysisClick();
 	void showReferenceInChartToggled();
