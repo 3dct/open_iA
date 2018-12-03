@@ -23,17 +23,6 @@
 #include <QMap>
 #include <QWidget>
 
-
-class iAJobData: public QObject
-{
-	Q_OBJECT
-public:
-	iAJobData();
-	QWidget* jobWidget;
-public slots:
-	void jobFinished();
-};
-
 class iAProgress;
 
 class QThread;
@@ -45,6 +34,6 @@ public:
 	iAJobListView(int margin);
 	void addJob(QString name, iAProgress * p, QThread * t);
 private:
-	QMap<iAProgress*, iAJobData> m_jobData;
+	//QMap<iAProgress*, iAJobData> m_jobData;
 	QMap<QThread*, iAProgress*> m_jobProgress;
 };

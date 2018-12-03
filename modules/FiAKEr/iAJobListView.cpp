@@ -30,16 +30,6 @@
 #include <QVBoxLayout>
 
 
-iAJobData::iAJobData() : jobWidget(nullptr)
-{}
-
-void iAJobData::jobFinished()
-{
-	delete jobWidget;
-	delete this;
-}
-
-
 
 iAJobListView::iAJobListView(int margin)
 {
@@ -49,15 +39,14 @@ iAJobListView::iAJobListView(int margin)
 
 void iAJobListView::addJob(QString name, iAProgress * p, QThread * t)
 {
-	iAJobData * jobdata = new iAJobData;
-	jobdata->jobWidget = new QWidget();
-	jobdata->jobWidget->setLayout(new QHBoxLayout());
+	auto jobWidget = new QWidget();
+	jobWidget->setLayout(new QHBoxLayout());
 	auto progressBar = new QProgressBar();
 	progressBar->setRange(0, 100);
 	progressBar->setValue(0);
-	jobdata->jobWidget->layout()->addWidget(new QLabel(name));
-	jobdata->jobWidget->layout()->addWidget(progressBar);
-	layout()->addWidget(jobdata->jobWidget);
+	jobWidget->layout()->addWidget(new QLabel(name));
+	jobWidget->layout()->addWidget(progressBar);
+	layout()->addWidget(jobWidget);
 	connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
-	connect(t, &QThread::finished, jobdata, &iAJobData::jobFinished);
+	connect(t, &QThread::finished, jobWidget, &QWidget::deleteLater);
 }
