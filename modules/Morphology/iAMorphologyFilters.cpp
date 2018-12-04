@@ -96,7 +96,7 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 		//Create a box; 
 
 		FlatElement<T> structuringElement;
-		FlatElement<T>::RadiusType elementRadius;
+		typename FlatElement<T>::RadiusType elementRadius;
 		elementRadius.Fill(params["Radius"].toInt());
 
 		if (str_Input.compare("Box") == 0) {
@@ -180,7 +180,7 @@ template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const &
 		//Create a box; 
 
 		FlatElement <T> structuringElement; 
-		FlatElement<T>::RadiusType elementRadius;
+		typename FlatElement<T>::RadiusType elementRadius;
 		elementRadius.Fill(params["Radius"].toInt());
 
 		if (str_Input.compare("Box") == 0) {
@@ -301,7 +301,7 @@ template<class T> void opening(iAFilter* filter, QMap<QString, QVariant> const &
 		//Create a box;
 
 		FlatElement <T> structuringElement;
-		FlatElement<T>::RadiusType elementRadius;
+		typename FlatElement<T>::RadiusType elementRadius;
 		elementRadius.Fill(params["Radius"].toInt());
 
 		if (str_Input.compare("Box") == 0) {
@@ -386,7 +386,7 @@ template<class T> void closing(iAFilter* filter, QMap<QString, QVariant> const &
 			GrayscaleClosingImageFilterType;
 
 		FlatElement <T> structuringElement;
-		FlatElement<T>::RadiusType elementRadius;
+		typename FlatElement<T>::RadiusType elementRadius;
 		elementRadius.Fill(params["Radius"].toInt());
 
 		if (str_Input.compare("Box") == 0) {
