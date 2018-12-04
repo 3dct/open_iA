@@ -95,7 +95,7 @@ void iACalculatePoreProperties::CalculatePoreProperties()
 		//(connect( m_calcThread[i], SIGNAL( totalProgress( int ) ), this, SLOT( totalProgressSlot( int ) ) );
 		m_calcThread[i]->start();
 	}
-	delete rowRange;
+	delete [] rowRange;
 }
 
 void iACalculatePoreProperties::totalProgressSlot( int progress )
