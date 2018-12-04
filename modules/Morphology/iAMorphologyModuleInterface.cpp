@@ -31,6 +31,5 @@ void iAMorphologyModuleInterface::Initialize()
 	REGISTER_FILTER(iAVesselEnhancement);
 	REGISTER_FILTER(iAOpening);
 	REGISTER_FILTER(iAClosing);
-
 }
 
