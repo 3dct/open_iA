@@ -635,7 +635,6 @@ void DreamCaster::OpenSetFile(QString const & fileName)
 void DreamCaster::RenderViewsSlot()
 {
 	ui.simulationProgress->setValue(0);
-	qWarning( "DCForm::RenderViewSlot()" );
 	isStopped = false;
 	if(!modelOpened) return;
 	
@@ -1272,8 +1271,8 @@ void DreamCaster::UpdateHistogramSlot()
 
 void DreamCaster::RenderSingleViewSlot()
 {
-	qWarning( "DCForm::StartSlot()" );
-	if(!modelOpened) return;
+	if (!modelOpened)
+		return;
 	// go
 	float pos[3] ={
 		static_cast<float>(ui.sb_posx_2->value()/stngs.SCALE_COEF),
@@ -1333,7 +1332,6 @@ void DreamCaster::RenderSingleViewSlot()
 
 void DreamCaster::UpdateSlot()
 {
-	qWarning( "DCForm::Start UpdateSlot()" );
 	QImage img((uchar*)scrBuffer->GetBuffer(), stngs.RFRAME_W, stngs.RFRAME_H, QImage::Format_RGB32); 
 	formPainter->begin(renderPxmp);
 		formPainter->drawImage(QRect(0,0,img.width(),img.height()), img);
@@ -1350,7 +1348,6 @@ void DreamCaster::UpdateSlot()
 }
 void DreamCaster::SaveSlot()
 {
-	qWarning( "DCForm::SaveSlot()" );
 }
 
 void DreamCaster::readRenderFromBinaryFile(unsigned int x, unsigned int y, unsigned int z, RenderFromPosition *rend)
