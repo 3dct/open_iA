@@ -34,6 +34,7 @@ iAOrientationWidget::iAOrientationWidget(QWidget* parent) : QOpenGLWidget(parent
 	QSurfaceFormat format = QSurfaceFormat();
 	format.setSamples(4);
 	this->setFormat(format);
+	this->setToolTip("The Orientation Widget shows the visible plot area\nin blue (the rest in gray)");
 }
 
 QSize iAOrientationWidget::sizeHint() const

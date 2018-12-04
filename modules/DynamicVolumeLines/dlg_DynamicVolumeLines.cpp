@@ -69,7 +69,6 @@
 
 const double impInitValue = 0.025;
 const double offsetY = 1000;
-const int rangeSwitchValue = 1000;
 
 void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -245,7 +244,7 @@ void dlg_DynamicVolumeLines::setupGUIElements()
 	histBarWidget->setLayout(hist_lutLayoutHB);
 
 	m_orientationWidget = new iAOrientationWidget(this);
-	horizontalLayout_3->addWidget(m_orientationWidget);
+	orientationWidgetLayout->addWidget(m_orientationWidget);
 	m_orientationWidget->update(m_linearScaledPlot, 0, m_nonlinearMappingVec.size() - 1,
 		m_minEnsembleIntensity - offsetY, m_maxEnsembleIntensity + offsetY);
 }
@@ -272,7 +271,6 @@ void dlg_DynamicVolumeLines::setupGUIConnections()
 	connect(sb_subHistBinCnt, SIGNAL(valueChanged(int)), this, SLOT(setSubHistBinCntFlag()));
 	connect(sb_UpperCompLevelThr, SIGNAL(valueChanged(double)), this, SLOT(compLevelRangeChanged()));
 	connect(sb_LowerCompLevelThr, SIGNAL(valueChanged(double)), this, SLOT(compLevelRangeChanged()));
-
 	connect(m_mdiChild->getRenderer(), SIGNAL(cellsSelected(vtkPoints*)),
 		this, SLOT(setSelectionForPlots(vtkPoints*)));
 	connect(m_mdiChild->getRenderer(), SIGNAL(noCellsSelected()),
@@ -839,7 +837,7 @@ void dlg_DynamicVolumeLines::showBkgrdThrRanges(QCustomPlot* qcp)
 
 void  dlg_DynamicVolumeLines::checkHistVisMode(int lowerIdx, int upperIdx)
 {
-	if ((upperIdx - lowerIdx) <= rangeSwitchValue && m_histVisMode)	// TODO: remove magic number; better strategy
+	if ((upperIdx - lowerIdx) <= sb_RngSwtVal->value() && m_histVisMode)	// TODO: remove magic number; better strategy
 	{
 		m_histVisMode = false;
 		switchLevelOfDetail(m_histVisMode, cb_showFBP, cb_FBPView, sl_FBPTransparency,
@@ -856,7 +854,7 @@ void  dlg_DynamicVolumeLines::checkHistVisMode(int lowerIdx, int upperIdx)
 				m_selGraphList[i]->setVisible(true);
 		}
 	}
-	else if ((upperIdx - lowerIdx) > rangeSwitchValue && !m_histVisMode)
+	else if ((upperIdx - lowerIdx) > sb_RngSwtVal->value() && !m_histVisMode)
 	{
 		m_histVisMode = true;
 		switchLevelOfDetail(m_histVisMode, cb_showFBP, cb_FBPView, sl_FBPTransparency,
