@@ -534,8 +534,8 @@ IF (MSVC)
 ENDIF (MSVC)
 IF (CMAKE_COMPILER_IS_GNUCXX)
 
-	# sets the c++14 standard (or the next lower one which is available on the compiler)
-	SET(CMAKE_CXX_STANDARD 14)
+	# sets the c++17 standard (or the next lower one which is available on the compiler)
+	SET(CMAKE_CXX_STANDARD 17)
 	SET(CMAKE_CXX_EXTENSIONS OFF)
 	# Make sure at least C++ 0x is supported:
 	INCLUDE (CheckCXXCompilerFlag)
