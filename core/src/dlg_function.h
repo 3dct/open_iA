@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <QObject>
 
 class QColor;
@@ -27,7 +29,7 @@ class QMouseEvent;
 class QPainter;
 class iADiagramFctWidget;
 
-class dlg_function: public QObject
+class open_iA_Core_API dlg_function: public QObject
 {
 	Q_OBJECT
 public:
