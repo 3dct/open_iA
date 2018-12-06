@@ -73,7 +73,7 @@ bool iALinearColorGradientBar::event(QEvent *event)
 	if (event->type() == QEvent::ToolTip && m_modifiable)
 	{
 		QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
-		QToolTip::showText(helpEvent->globalPos(), "Double mouse-click to open colormap dialog.");
+		QToolTip::showText(helpEvent->globalPos(), "Double-click to change the colormap of the Histogram Heatmap.");
 		return true;
 	}
 	return QWidget::event(event);
