@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <QObject>
 
 #include "open_iA_Core_export.h"
