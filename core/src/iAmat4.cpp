@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAmat4.h"
 
+#include <utility>
 #include <cmath>
 
 iAMat4::iAMat4 ( float v )
