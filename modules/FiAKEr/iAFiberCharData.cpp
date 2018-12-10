@@ -355,10 +355,18 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	paramNames.push_back("ThetaDiff");
 	paramNames.push_back("LengthDiff");
 	paramNames.push_back("DiameterDiff");
-	for (int i=0; i<iARefDistCompute::DistanceMetricCount; ++i)
-	{
-		paramNames.push_back(QString("MinDist%1").arg(i+1));
-	}
+
+	paramNames.push_back("d_c¹");
+	paramNames.push_back("d_c²");
+
+	paramNames.push_back("d_p¹");
+	paramNames.push_back("d_p²");
+	paramNames.push_back("d_p³");
+
+	paramNames.push_back("d_o¹");
+	paramNames.push_back("d_o²");
+	paramNames.push_back("d_o³");
+
 	paramNames.push_back("ProjectionErrorReduction");
 	paramNames.push_back("Result_ID");
 	spmData->setParameterNames(paramNames);

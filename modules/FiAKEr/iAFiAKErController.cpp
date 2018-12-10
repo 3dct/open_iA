@@ -46,6 +46,7 @@
 #include "qthelper/iADockWidgetWrapper.h"
 #include "iALookupTable.h"
 #include "iALUT.h"
+#include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
 #include "iAStringHelper.h"
@@ -1681,7 +1682,7 @@ void iAFiAKErController::showReferenceLinesToggled()
 
 void iAFiAKErController::changeReferenceDisplay()
 {
-	size_t distanceMeasure = m_cmbboxDistanceMeasure->currentIndex();
+	size_t distanceMeasure = clamp(0, iARefDistCompute::DistanceMetricCount, m_cmbboxDistanceMeasure->currentIndex());
 	bool showRef = m_chkboxShowReference->isChecked();
 	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
 

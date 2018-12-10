@@ -191,6 +191,15 @@ namespace
 			distance *= (fiber1Vol < fiber2Vol) ? fiber1Vol / fiber2Vol : fiber2Vol / fiber1Vol;
 		return distance;
 	}
+
+	//! computes the Euclidean distance between two vectors in R^cnt
+	double dist(double* vec1, double* vec2, size_t cnt)
+	{
+		double sqdiffsum = 0;
+		for (size_t cur=0; cur<cnt; ++cur)
+			sqdiffsum += std::pow(vec2 - vec1, 2);
+		return sqrt(sqdiffsum);
+	}
 }
 
 void samplePoints(iAFiberData const & fiber, std::vector<Vec3D > & result, size_t numSamples)
@@ -245,7 +254,25 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	switch (distanceMeasure)
 	{
 	default:
-	case 0: // mid-point, angle, length
+	case 0: // Euclidean distance R^6 (midpoint, angle, length)
+	{
+		iAFiberData fiber1 = iAFiberData::getOrientationCorrected(fiber1raw, fiber2);
+		double vec1[6], vec2[6];
+		for (int i=0; i<3; ++i)
+		{
+			vec1[i] = fiber1.pts[PtCenter].data()[i];
+			vec2[i] = fiber1.pts[PtCenter].data()[i];
+		}
+		vec1[3] = fiber1.length;
+		vec2[3] = fiber2.length;
+		vec1[4] = fiber1.phi;
+		vec2[4] = fiber2.phi;
+		vec1[5] = fiber1.theta;
+		vec2[5] = fiber2.theta;
+		distance = dist(vec1, vec2, 6);
+		break;
+	}
+	case 1: // weighted mid-point, angle, length
 	{
 		iAFiberData fiber1 = iAFiberData::getOrientationCorrected(fiber1raw, fiber2);
 		/*
@@ -258,14 +285,15 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 				.arg(fiber1.phi).arg(fiber1.theta).arg(fiber2.phi).arg(fiber2.theta).arg(fiberAngle));
 		}
 		*/
-		distance =
+		distance = 0.25 * (
 			(std::abs(fiber2.phi - fiber1.phi) / 180) +  // phi diff.
 			(std::abs(fiber2.theta - fiber1.theta) / 90) +  // theta diff.
 			((fiber2.pts[PtCenter] - fiber1.pts[PtCenter]).length() / diagonalLength) +  // center diff.
-			(std::abs(fiber2.length - fiber1.length) / maxLength);
+			(std::abs(fiber2.length - fiber1.length) / maxLength)
+		);
 		break;
 	}
-	case 1: // start/end/center
+	case 2: // start/end/center
 	{
 		iAFiberData fiber1 = iAFiberData::getOrientationCorrected(fiber1raw, fiber2);
 		distance =
@@ -276,7 +304,7 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 
 		break;
 	}
-	case 2: // distances between all 9 pairs of the 3 points of each fiber:
+	case 3: // distances between all 9 pairs of the 3 points of each fiber:
 	{
 		for (int i = 0; i < 3; ++i)
 			for (int j = 0; j < 3; ++j)
@@ -284,18 +312,18 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		distance /= (fiber1raw.length != 0.0) ? fiber1raw.length : 1;
 		break;
 	}
-	case 3: // Fiber fragment distance:
+	case 4: // Fiber fragment distance:
 	{
-		auto aimaj = (fiber1raw.pts[PtStart] - fiber1raw.pts[PtEnd]);
-		auto bimbj = (fiber2.pts[PtStart] - fiber2.pts[PtEnd]);
+		auto aimaj = (fiber1raw.pts[PtStart] - fiber2.pts[PtStart]);
+		auto bimbj = (fiber1raw.pts[PtEnd]   - fiber2.pts[PtEnd]);
 		double dist1 = std::sqrt((aimaj*aimaj).sum() + (bimbj*bimbj).sum() + (aimaj*bimbj).sum());
 		auto aimbj = (fiber1raw.pts[PtStart] - fiber2.pts[PtEnd]);
-		auto bimaj = (fiber2.pts[PtStart] - fiber1raw.pts[PtEnd]);
+		auto bimaj = (fiber1raw.pts[PtEnd]   - fiber2.pts[PtStart]);
 		double dist2 = std::sqrt((aimbj*aimbj).sum() + (bimaj*bimaj).sum() + (aimbj*bimaj).sum());
 		distance = std::min(dist1, dist2);
 		break;
 	}
-	case 4: // overlap between the cylinder volumes, sampled through CylinderSamplePoints from the shorter fiber
+	case 5: // overlap between the cylinder volumes, sampled through CylinderSamplePoints from the shorter fiber
 	{
 		// 1. sample points on the cylinder
 		//    -> regular?
@@ -312,10 +340,10 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		distance = 1 - getOverlap(fiber1raw, fiber2, false, true);
 		break;
 	}
-	case 5:
+	case 6:
 		distance = 1 - getOverlap(fiber1raw, fiber2, true, true);
 		break;
-	case 6:
+	case 7:
 		distance = 1 - getOverlap(fiber1raw, fiber2, true, false);
 		break;
 	}
