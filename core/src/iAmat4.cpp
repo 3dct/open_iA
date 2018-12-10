@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #include "iAmat4.h"
 
+#include <utility>
 #include <cmath>
 
-iAMat4 :: iAMat4 ( float v )
+iAMat4::iAMat4 ( float v )
 {
 	for ( int i = 0; i < 4; i++)
 		for ( int j = 0; j < 4; j++)
@@ -31,9 +32,9 @@ iAMat4 :: iAMat4 ( float v )
 	x [3][3] = 1;
 }
 
-void	iAMat4 :: invert ()
+void iAMat4::invert ()
 {
-	iAMat4	out ( 1 );
+	iAMat4 out ( 1 );
 
 	for ( int i = 0; i < 4; i++ )
 	{
@@ -69,50 +70,44 @@ void	iAMat4 :: invert ()
 	*this = out;
 }
 
-void	iAMat4 :: transpose ()
+void iAMat4::transpose()
 {
-	float	t;
-
-	for ( register int i = 0; i < 4; i++ )
-		for ( register int j = i; j < 4; j++ )
+	for ( int i = 0; i < 4; i++ )
+		for ( int j = i; j < 4; j++ )
 			if ( i != j )
-			{
-				t        = x [i][j];
-				x [i][j] = x [j][i];
-				x [j][i] = t;
-			}
+				std::swap(x[i][j], x[j][i]);
 }
 
-iAMat4&	iAMat4 :: operator += ( const iAMat4& a )
+iAMat4& iAMat4::operator += ( const iAMat4& a )
 {
-	for ( register int i = 0; i < 4; i++ )
-		for ( register int j = 0; j < 4; j++ )
+	for ( int i = 0; i < 4; i++ )
+		for ( int j = 0; j < 4; j++ )
 			x [i][j] += a.x [i][j];
 
 	return *this;
 }
 
-iAMat4&	iAMat4 :: operator -= ( const iAMat4& a )
+iAMat4& iAMat4::operator -= ( const iAMat4& a )
 {
-	for ( register int i = 0; i < 4; i++ )
-		for ( register int j = 0; j < 4; j++ )
+	for ( int i = 0; i < 4; i++ )
+		for ( int j = 0; j < 4; j++ )
 			x [i][j] -= a.x [i][j];
 
 	return *this;
 }
 
-iAMat4&	iAMat4 :: operator *= ( float v )
+iAMat4& iAMat4::operator *= ( float v )
 {
-	for ( register int i = 0; i < 4; i++ )
-		for ( register int j = 0; j < 4; j++ )
+	for ( int i = 0; i < 4; i++ )
+		for ( int j = 0; j < 4; j++ )
 			x [i][j] *= v;
 
 	return *this;
 }
 
-iAMat4&	iAMat4 :: operator *= ( const iAMat4& a )
+iAMat4& iAMat4::operator *= ( const iAMat4& a )
 {
-	iAMat4	res ( *this );
+	iAMat4 res ( *this );
 	for ( int i = 0; i < 4; i++ )
 		for ( int j = 0; j < 4; j++ )
 		{
@@ -124,61 +119,54 @@ iAMat4&	iAMat4 :: operator *= ( const iAMat4& a )
 	return *this;
 }
 
-iAMat4	operator + ( const iAMat4& a, const iAMat4& b )
+iAMat4 operator + ( const iAMat4& a, const iAMat4& b )
 {
-	iAMat4	res;
-
-	for ( register int i = 0; i < 4; i++ )
-		for ( register int j = 0; j < 4; j++ )
+	iAMat4 res;
+	for ( int i = 0; i < 4; i++ )
+		for ( int j = 0; j < 4; j++ )
 			res.x [i][j] = a.x [i][j] + b.x [i][j];
-
 	return res;
 }
 
-iAMat4	operator - ( const iAMat4& a, const iAMat4& b )
+iAMat4 operator - ( const iAMat4& a, const iAMat4& b )
 {
-	iAMat4	res;
-
-	for ( register int i = 0; i < 4; i++ )
-		for ( register int j = 0; j < 4; j++ )
+	iAMat4 res;
+	for ( int i = 0; i < 4; i++ )
+		for ( int j = 0; j < 4; j++ )
 			res.x [i][j] = a.x [i][j] - b.x [i][j];
-
 	return res;
 }
 
-iAMat4	operator * ( const iAMat4& a, const iAMat4& b )
+iAMat4 operator * ( const iAMat4& a, const iAMat4& b )
 {
-	iAMat4	res;
-	for ( register int i = 0; i < 4; i++ )
-		for ( register int j = 0; j < 4; j++ )
+	iAMat4 res;
+	for ( int i = 0; i < 4; i++ )
+		for ( int j = 0; j < 4; j++ )
 		{
 			float sum = 0;
-			for ( register int k = 0; k < 4; k++ )
+			for ( int k = 0; k < 4; k++ )
 				sum += a.x [i][k] * b.x [k][j];
 			res.x [i][j] = sum;
 		}
 	return res;
 }
 
-iAMat4	operator * ( const iAMat4& a, float v )
+iAMat4 operator * ( const iAMat4& a, float v )
 {
-	iAMat4	res;
-
-	for ( register int i = 0; i < 4; i++ )
-		for ( register int j = 0; j < 4; j++ )
+	iAMat4 res;
+	for ( int i = 0; i < 4; i++ )
+		for ( int j = 0; j < 4; j++ )
 			res.x [i][j] = a.x [i][j] * v;
 
 	return res;
 }
 
-iAMat4	operator * ( float v, const iAMat4& a )
+iAMat4 operator * ( float v, const iAMat4& a )
 {
-	iAMat4	res;
-
-	for ( register int i = 0; i < 4; i++ )
-		for ( register int j = 0; j < 4; j++ )
+	iAMat4 res;
+	for ( int i = 0; i < 4; i++ )
+		for ( int j = 0; j < 4; j++ )
 			res.x [i][j] = a.x [i][j] * v;
-
 	return res;
 }
 
@@ -199,29 +187,25 @@ iAVec3 operator * ( const iAMat4& m, const iAVec3& v )
 
 //////////////////////// Derived functions /////////////////////////////
 
-iAMat4	translate ( const iAVec3& loc )
+iAMat4 translate ( const iAVec3& loc )
 {
-	iAMat4	res ( 1 );
-
+	iAMat4 res ( 1 );
 	res.x [0][3] = loc.x();
 	res.x [1][3] = loc.y();
 	res.x [2][3] = loc.z();
-
 	return res;
 }
 
-iAMat4	scale ( const iAVec3& v )
+iAMat4 scale ( const iAVec3& v )
 {
-	iAMat4	res ( 1 );
-
+	iAMat4 res ( 1 );
 	res.x [0][0] = v.x();
 	res.x [1][1] = v.y();
 	res.x [2][2] = v.z();
-
 	return res;
 }
 
-iAMat4	rotateX ( float angle )
+iAMat4 rotateX ( float angle )
 {
 	iAMat4 res ( 1 );
 	float  cosine = cos ( angle );
@@ -235,7 +219,7 @@ iAMat4	rotateX ( float angle )
 	return res;
 }
 
-iAMat4	rotateY ( float angle )
+iAMat4 rotateY ( float angle )
 {
 	iAMat4 res ( 1 );
 	float  cosine = cos ( angle );
@@ -249,7 +233,7 @@ iAMat4	rotateY ( float angle )
 	return res;
 }
 
-iAMat4	rotateZ ( float angle )
+iAMat4 rotateZ ( float angle )
 {
 	iAMat4 res ( 1 );
 	float  cosine = cos ( angle );
@@ -263,7 +247,7 @@ iAMat4	rotateZ ( float angle )
 	return res;
 }
 
-iAMat4	rotation ( const iAVec3& axis, float angle )
+iAMat4 rotation ( const iAVec3& axis, float angle )
 {
 	iAMat4 res ( 1 );
 	float  cosine = cos ( angle );
@@ -292,97 +276,85 @@ iAMat4	rotation ( const iAVec3& axis, float angle )
 	return res;
 }
 
-iAMat4	rotationX ( float angle )
+iAMat4 rotationX ( float angle )
 {
 	iAVec3 axis = iAVec3(1,0,0);
 	return rotation(axis, angle);
 }
 
-iAMat4	rotationY ( float angle )
+iAMat4 rotationY ( float angle )
 {
 	iAVec3 axis = iAVec3(0,1,0);
 	return rotation(axis, angle);
 }
 
-iAMat4	rotationZ ( float angle )
+iAMat4 rotationZ ( float angle )
 {
 	iAVec3 axis = iAVec3(0,0,1);
 	return rotation(axis, angle);
 }
 
-iAMat4	mirrorX ()
+iAMat4 mirrorX ()
 {
-	iAMat4	res ( 1 );
-
+	iAMat4 res ( 1 );
 	res.x [0][0] = -1;
-
 	return res;
 }
 
-iAMat4	mirrorY ()
+iAMat4 mirrorY ()
 {
-	iAMat4	res ( 1 );
-
+	iAMat4 res ( 1 );
 	res.x [1][1] = -1;
-
 	return res;
 }
 
-iAMat4	mirrorZ ()
+iAMat4 mirrorZ ()
 {
-	iAMat4	res ( 1 );
-
+	iAMat4 res ( 1 );
 	res.x [2][2] = -1;
-
 	return res;
 }
 
-iAMat4	orthoProjectYZ ()
+iAMat4 orthoProjectYZ ()
 {
-	iAMat4	res ( 1 );
-
+	iAMat4 res ( 1 );
 	res.x [0][0] = 0;
-
 	return res;
 }
 
-iAMat4	orthoProjectXY ()
+iAMat4 orthoProjectXY ()
 {
-	iAMat4	res ( 1 );
-
+	iAMat4 res ( 1 );
 	res.x [2][2] = 0;
-
 	return res;
 }
 
-iAMat4	orthoProjectXZ ()
+iAMat4 orthoProjectXZ ()
 {
-	iAMat4	res ( 1 );
-
+	iAMat4 res ( 1 );
 	res.x [1][1] = 0;
-
 	return res;
 }
 
-iAMat4	axProjectYZ (iAVec3& v)
+iAMat4 axProjectYZ (iAVec3& v)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x [2][2] = v.z()/v.x();
 	res.x [1][2] = v.y()/v.x();
 	return res;
 }
 
-iAMat4	axProjectXY (iAVec3& v)
+iAMat4 axProjectXY (iAVec3& v)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x [0][2] = v.x()/v.z();
 	res.x [1][2] = v.y()/v.z();
 	return res;
 }
 
-iAMat4	axProjectXZ (iAVec3& v)
+iAMat4 axProjectXZ (iAVec3& v)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x [0][2] = v.x()/v.y();
 	res.x [2][2] = v.z()/v.y();
 	return res;
@@ -390,21 +362,21 @@ iAMat4	axProjectXZ (iAVec3& v)
 
 iAMat4 frProjectXY1(float focus)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x[2][2] = 0;
 	res.x[3][2] = -1/focus;
 	return res;
 }
 iAMat4 frProjectYZ1(float focus)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x [0][0] = 0;
 	res.x[3][2] = -1/focus;
 	return res;
 }
 iAMat4 frProjectXZ1(float focus)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x [1][1] = 0;
 	res.x[3][2] = -1/focus;
 	return res;
@@ -412,7 +384,7 @@ iAMat4 frProjectXZ1(float focus)
 
 iAMat4 frProjectXY2(float focus)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x[2][2] = 0;
 	res.x[3][1] = -1/focus;
 	res.x[3][2] = -1/focus;
@@ -420,7 +392,7 @@ iAMat4 frProjectXY2(float focus)
 }
 iAMat4 frProjectYZ2(float focus)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x [0][0] = 0;
 	res.x[3][1] = -1/focus;
 	res.x[3][2] = -1/focus;
@@ -428,7 +400,7 @@ iAMat4 frProjectYZ2(float focus)
 }
 iAMat4 frProjectXZ2(float focus)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x [1][1] = 0;
 	res.x[3][1] = -1/focus;
 	res.x[3][2] = -1/focus;
@@ -437,25 +409,27 @@ iAMat4 frProjectXZ2(float focus)
 
 iAMat4 frProjectXY3(float focus)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x[2][2] = 0;
 	res.x[3][0] = -1/focus;
 	res.x[3][1] = -1/focus;
 	res.x[3][2] = -1/focus;
 	return res;
 }
+
 iAMat4 frProjectYZ3(float focus)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x [0][0] = 0;
 	res.x[3][0] = -1/focus;
 	res.x[3][1] = -1/focus;
 	res.x[3][2] = -1/focus;
 	return res;
 }
+
 iAMat4 frProjectXZ3(float focus)
 {
-	iAMat4	res ( 1 );
+	iAMat4 res ( 1 );
 	res.x [1][1] = 0;
 	res.x[3][0] = -1/focus;
 	res.x[3][1] = -1/focus;

@@ -63,6 +63,8 @@
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSphereSource.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 #include <vtkTransform.h>
 #include <vtkUnstructuredGrid.h>
 #include <vtkWindowToImageFilter.h>
@@ -92,11 +94,17 @@ public:
 		{
 		case 's':
 		case 'S':
+		{
 			if (this->CurrentMode == VTKISRBP_ORIENT)
+			{
 				this->CurrentMode = VTKISRBP_SELECT;
+			}
 			else
+			{
 				this->CurrentMode = VTKISRBP_ORIENT;
+			}
 			break;
+		}
 		case 'p':
 		case 'P':
 		{
@@ -116,6 +124,18 @@ public:
 	}
 };
 vtkStandardNewMacro(MouseInteractorStyle);
+
+void KeyPressCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
+	void* clientData, void* vtkNotUsed(callData))
+{
+	iARenderer *ren = static_cast<iARenderer*>(clientData);
+	if( ren->GetInteractor()->GetKeyCode() == 's' ||
+		ren->GetInteractor()->GetKeyCode() == 'S')
+	{
+		ren->GetTxtActor()->SetVisibility(!ren->GetTxtActor()->GetVisibility());
+		ren->update();
+	}
+}
 
 void PickCallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId),
 	void* clientData, void* vtkNotUsed(callData))
@@ -234,6 +254,14 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	plane1 = vtkSmartPointer<vtkPlane>::New();
 	plane2 = vtkSmartPointer<vtkPlane>::New();
 	plane3 = vtkSmartPointer<vtkPlane>::New();
+
+	txtActor = vtkSmartPointer<vtkTextActor>::New();
+	txtActor->SetInput("Selection mode");
+	txtActor->GetTextProperty()->SetFontSize(24);
+	txtActor->GetTextProperty()->SetColor(1.0, 0.0, 0.0);
+	txtActor->GetTextProperty()->SetJustificationToLeft();
+	txtActor->GetTextProperty()->SetVerticalJustificationToBottom();
+	txtActor->VisibilityOff();
 
 	cellLocator = vtkSmartPointer<vtkCellLocator>::New();
 
@@ -417,6 +445,12 @@ void iARenderer::setAreaPicker()
 	interactor->SetPicker(areaPicker);
 	auto style = vtkSmartPointer<MouseInteractorStyle>::New();
 	interactor->SetInteractorStyle(style);
+
+	auto keyPressCallback = vtkSmartPointer<vtkCallbackCommand>::New();
+	keyPressCallback->SetCallback(KeyPressCallbackFunction);
+	keyPressCallback->SetClientData(this);
+	interactor->AddObserver(vtkCommand::KeyReleaseEvent, keyPressCallback, 1.0);
+
 	auto pickCallback = vtkSmartPointer<vtkCallbackCommand>::New();
 	pickCallback->SetCallback(PickCallbackFunction);
 	pickCallback->SetClientData(this);
@@ -434,7 +468,6 @@ void iARenderer::setAreaPicker()
 	selectedActor->GetProperty()->EdgeVisibilityOn();
 	selectedActor->GetProperty()->SetEdgeColor(c.redF(), c.greenF(), c.blueF());
 	selectedActor->GetProperty()->SetLineWidth(3);
-
 }
 
 void iARenderer::setPointPicker()
@@ -522,6 +555,7 @@ void iARenderer::setupRenderer()
 	polyActor->SetMapper(polyMapper);
 
 	ren->GradientBackgroundOn();
+	ren->AddActor2D(txtActor);
 	ren->AddActor(polyActor);
 	ren->AddActor(cActor);
 	ren->AddActor(axesActor);
@@ -833,6 +867,7 @@ vtkOpenGLRenderer * iARenderer::GetRenderer() { return ren; };
 vtkActor* iARenderer::GetPolyActor() { return polyActor; };
 vtkOpenGLRenderer * iARenderer::GetLabelRenderer(void) { return labelRen; }
 vtkPolyDataMapper* iARenderer::GetPolyMapper() const { return polyMapper; }
+vtkTextActor* iARenderer::GetTxtActor() { return txtActor; }
 
 void iARenderer::setSlicePlane(int planeID, double originX, double originY, double originZ)
 {

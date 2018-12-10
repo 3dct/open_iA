@@ -60,6 +60,7 @@ class vtkQImageToImageSource;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
 class vtkSphereSource;
+class vtkTextActor;
 class vtkTransform;
 class vtkUnstructuredGrid;
 
@@ -128,6 +129,7 @@ public:
 	vtkTransform* getCoordinateSystemTransform();
 	vtkOpenGLRenderer * GetLabelRenderer ();
 	vtkPolyDataMapper* GetPolyMapper() const;
+	vtkTextActor* GetTxtActor();
 
 	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
 	iARenderObserver * getRenderObserver(){ return renderObserver; }
@@ -162,6 +164,10 @@ private:
 	vtkSmartPointer<vtkLogoRepresentation> logoRep;
 	vtkSmartPointer<vtkLogoWidget> logoWidget;
 	vtkSmartPointer<vtkQImageToImageSource> logoImage;
+	//! @}
+
+	//! @{ Text actor, e.g., to show the selection mode
+	vtkSmartPointer<vtkTextActor> txtActor;
 	//! @}
 
 	//! @{ position marker cube

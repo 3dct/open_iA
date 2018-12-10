@@ -29,7 +29,7 @@
 
 // Resource: http://codeforces.com/blog/entry/18051
 
-iASegmentTree::iASegmentTree(const vector<int> &input, int binCnt, int lowerBnd, int upperBnd) :
+iASegmentTree::iASegmentTree(const std::vector<int> &input, int binCnt, int lowerBnd, int upperBnd) :
 	m_inputElemCnt(0)
 {
 	//NOTE: Currently only hist is needed, others can be disabled
@@ -44,8 +44,8 @@ iASegmentTree::iASegmentTree(const vector<int> &input, int binCnt, int lowerBnd,
 		/*m_avg[m_inputElemCnt + i] = input[i];
 		m_min[m_inputElemCnt + i] = input[i];
 		m_max[m_inputElemCnt + i] = input[i];*/
-		vector<int> v(binCnt);
-		fill(v.begin(), v.end(), 0);
+		std::vector<int> v(binCnt);
+		std::fill(v.begin(), v.end(), 0);
 		v[clamp(0, binCnt - 1, mapValue(lowerBnd, upperBnd, 0, binCnt, input[i]))]++;
 		m_hist[m_inputElemCnt + i] = v;
 	}
@@ -63,8 +63,8 @@ iASegmentTree::~iASegmentTree()
 void iASegmentTree::hist_build()
 {
 	for (int i = m_inputElemCnt - 1; i > 0; --i)
-		transform(m_hist[i << 1].begin(), m_hist[i << 1].end(), m_hist[i << 1 | 1].begin(),
-			back_inserter(m_hist[i]), plus<int>());
+		std::transform(m_hist[i << 1].begin(), m_hist[i << 1].end(), m_hist[i << 1 | 1].begin(),
+			std::back_inserter(m_hist[i]), std::plus<int>());
 }
 
 void iASegmentTree::sum_build()
@@ -76,35 +76,35 @@ void iASegmentTree::sum_build()
 void iASegmentTree::min_build()
 {  
 	for (int i = m_inputElemCnt - 1; i > 0; --i)
-		m_min[i] = min(m_min[i << 1], m_min[i << 1 | 1]);
+		m_min[i] = std::min(m_min[i << 1], m_min[i << 1 | 1]);
 }
 
 void iASegmentTree::max_build()
 { 
 	for (int i = m_inputElemCnt - 1; i > 0; --i)
-		m_max[i] = max(m_max[i << 1], m_max[i << 1 | 1]);
+		m_max[i] = std::max(m_max[i << 1], m_max[i << 1 | 1]);
 }
 
-vector<int> iASegmentTree::hist_query(int l, int r)
+std::vector<int> iASegmentTree::hist_query(int l, int r)
 {
-	vector<int> histVec(m_hist.back().size());
-	fill(histVec.begin(), histVec.end(), 0);
+	std::vector<int> histVec(m_hist.back().size());
+	std::fill(histVec.begin(), histVec.end(), 0);
 	for (l += m_inputElemCnt, r += m_inputElemCnt; l < r; l >>= 1, r >>= 1)
 	{
 		if (l & 1)
 		{
-			vector<int> a; vector<int> b; vector<int> c;
+			std::vector<int> a; std::vector<int> b; std::vector<int> c;
 			a = m_hist[l++];
 			b = histVec;
-			transform(a.begin(), a.end(), b.begin(), back_inserter(c), plus<int>());
+			std::transform(a.begin(), a.end(), b.begin(), std::back_inserter(c), std::plus<int>());
 			histVec = c;
 		}
 		if (r & 1)
 		{
-			vector<int> a; vector<int> b; vector<int> c;
+			std::vector<int> a; std::vector<int> b; std::vector<int> c;
 			a = m_hist[--r];
 			b = histVec;
-			transform(a.begin(), a.end(), b.begin(), back_inserter(c), plus<int>());
+			std::transform(a.begin(), a.end(), b.begin(), std::back_inserter(c), std::plus<int>());
 			histVec = c;
 		}
 	}
@@ -131,9 +131,9 @@ int iASegmentTree::min_query(int l, int r)
 	for (l += m_inputElemCnt, r += m_inputElemCnt; l < r; l >>= 1, r >>= 1)
 	{
 		if (l & 1)
-			minVal = min(minVal, m_min[l++]);
+			minVal = std::min(minVal, m_min[l++]);
 		if (r & 1)
-			minVal = min(m_min[--r], minVal);
+			minVal = std::min(m_min[--r], minVal);
 	}
 	return minVal;
 }
@@ -144,9 +144,9 @@ int iASegmentTree::max_query(int l, int r)
 	for (l += m_inputElemCnt, r += m_inputElemCnt; l < r; l >>= 1, r >>= 1)
 	{
 		if (l & 1)
-			maxVal = max(maxVal, m_max[l++]);
+			maxVal = std::max(maxVal, m_max[l++]);
 		if (r & 1)
-			maxVal = max(m_max[--r], maxVal);
+			maxVal = std::max(m_max[--r], maxVal);
 	}
 	return maxVal;
 }

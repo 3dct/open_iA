@@ -22,28 +22,26 @@
 
 #include <vector>
 
-using namespace std;
-
 // Resource: http://codeforces.com/blog/entry/18051
 
 class iASegmentTree
 {
 //TODO: to unsigned int or other more general type
 public:
-	iASegmentTree(const vector<int> &input, int binCnt, int lowerBnd, int upperBnd);
+	iASegmentTree(const std::vector<int> &input, int binCnt, int lowerBnd, int upperBnd);
 	~iASegmentTree();
-	vector<int> hist_query(int l, int r);
+	std::vector<int> hist_query(int l, int r);
 	double avg_query(int l, int r);
 	int min_query(int l, int r);
 	int max_query(int l, int r);
 
 private:
 	int m_inputElemCnt;
-	vector<int> m_input;
-	vector<vector<int>> m_hist;
-	vector<double> m_avg;
-	vector<int> m_min;
-	vector<int> m_max;
+	std::vector<int> m_input;
+	std::vector<std::vector<int>> m_hist;
+	std::vector<double> m_avg;
+	std::vector<int> m_min;
+	std::vector<int> m_max;
 	void hist_build();
 	void sum_build();
 	void min_build();
