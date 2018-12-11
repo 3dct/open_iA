@@ -186,10 +186,10 @@ namespace
 			if (pointContainedInFiber(pt, longerFiber))
 				++containedPoints;
 		}
-		double distance = static_cast<double>(containedPoints) / DefaultSamplePoints;
+		double similarity = static_cast<double>(containedPoints) / DefaultSamplePoints;
 		if (volRelation)
-			distance *= (fiber1Vol < fiber2Vol) ? fiber1Vol / fiber2Vol : fiber2Vol / fiber1Vol;
-		return distance;
+			similarity *= (fiber1Vol < fiber2Vol) ? fiber1Vol / fiber2Vol : fiber2Vol / fiber1Vol;
+		return similarity;
 	}
 
 	//! computes the Euclidean distance between two vectors in R^cnt
@@ -247,11 +247,11 @@ void samplePoints(iAFiberData const & fiber, std::vector<Vec3D > & result, size_
 }
 
 // currently: L2 norm (euclidean distance). other measures?
-double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
-	int distanceMeasure, double diagonalLength, double maxLength)
+double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
+	int measureID, double diagonalLength, double maxLength)
 {
-	double distance = 0;
-	switch (distanceMeasure)
+	double similarity = 0;
+	switch (measureID)
 	{
 	default:
 	case 0: // Euclidean distance R^6 (midpoint, angle, length)
@@ -269,7 +269,7 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		vec2[4] = fiber2.phi;
 		vec1[5] = fiber1.theta;
 		vec2[5] = fiber2.theta;
-		distance = dist(vec1, vec2, 6);
+		similarity = dist(vec1, vec2, 6);
 		break;
 	}
 	case 1: // weighted mid-point, angle, length
@@ -285,7 +285,7 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 				.arg(fiber1.phi).arg(fiber1.theta).arg(fiber2.phi).arg(fiber2.theta).arg(fiberAngle));
 		}
 		*/
-		distance = 0.25 * (
+		similarity = 0.25 * (
 			(std::abs(fiber2.phi - fiber1.phi) / 180) +  // phi diff.
 			(std::abs(fiber2.theta - fiber1.theta) / 90) +  // theta diff.
 			((fiber2.pts[PtCenter] - fiber1.pts[PtCenter]).length() / diagonalLength) +  // center diff.
@@ -296,11 +296,11 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	case 2: // start/end/center
 	{
 		iAFiberData fiber1 = iAFiberData::getOrientationCorrected(fiber1raw, fiber2);
-		distance =
+		similarity =
 			(fiber2.pts[PtStart] - fiber1.pts[PtStart]).length() +
 			(fiber2.pts[PtCenter] - fiber1.pts[PtCenter]).length() +
 			(fiber2.pts[PtEnd] - fiber1.pts[PtEnd]).length();
-		distance /= (3 * diagonalLength);
+		similarity /= (3 * diagonalLength);
 
 		break;
 	}
@@ -308,8 +308,8 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	{
 		for (int i = 0; i < 3; ++i)
 			for (int j = 0; j < 3; ++j)
-				distance += (fiber2.pts[j] - fiber1raw.pts[i]).length();
-		distance /= (fiber1raw.length != 0.0) ? fiber1raw.length : 1;
+				similarity += (fiber2.pts[j] - fiber1raw.pts[i]).length();
+		similarity /= (fiber1raw.length != 0.0) ? fiber1raw.length : 1;
 		break;
 	}
 	case 4: // Fiber fragment distance:
@@ -320,7 +320,7 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		auto aimbj = (fiber1raw.pts[PtStart] - fiber2.pts[PtEnd]);
 		auto bimaj = (fiber1raw.pts[PtEnd]   - fiber2.pts[PtStart]);
 		double dist2 = std::sqrt((aimbj*aimbj).sum() + (bimaj*bimaj).sum() + (aimbj*bimaj).sum());
-		distance = std::min(dist1, dist2);
+		similarity = std::min(dist1, dist2);
 		break;
 	}
 	case 5: // overlap between the cylinder volumes, sampled through CylinderSamplePoints from the shorter fiber
@@ -337,17 +337,17 @@ double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 		//        - one random variable for distance from center (0.. fiber radius); make sure to use sqrt of random variable to avoid clustering points in center (http://mathworld.wolfram.com/DiskPointPicking.html)
 		//    - pseudorandom?
 		//        --> no idea at the moment
-		distance = 1 - getOverlap(fiber1raw, fiber2, false, true);
+		similarity = 1 - getOverlap(fiber1raw, fiber2, false, true);
 		break;
 	}
 	case 6:
-		distance = 1 - getOverlap(fiber1raw, fiber2, true, true);
+		similarity = 1 - getOverlap(fiber1raw, fiber2, true, true);
 		break;
 	case 7:
-		distance = 1 - getOverlap(fiber1raw, fiber2, true, false);
+		similarity = 1 - getOverlap(fiber1raw, fiber2, true, false);
 		break;
 	}
-	if (std::isinf(distance))
-		distance = 0;
-	return distance;
+	if (std::isinf(similarity))
+		similarity = 0;
+	return similarity;
 }

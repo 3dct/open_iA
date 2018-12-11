@@ -298,22 +298,18 @@ void iAFiAKErController::resultsLoaded()
 	selectionModeWidget->layout()->addWidget(selectionModeChoice);
 
 	auto metricLabel = new QLabel("Metric:");
-	m_cmbboxDistanceMeasure = new QComboBox();
-	m_cmbboxDistanceMeasure->addItem("Dist1 (Midpoint, Angles, Length)");
-	m_cmbboxDistanceMeasure->addItem("Dist2 (Start-Start/Center-Center/End-End)");
-	m_cmbboxDistanceMeasure->addItem("Dist3 (All 9 pairs Start-/Center-/Endpoint)");
-	m_cmbboxDistanceMeasure->addItem("Dist4 (Min. Fiber Fragment Distance)");
-	m_cmbboxDistanceMeasure->addItem("Dist5 (Overlap % short fiber)");
-	m_cmbboxDistanceMeasure->addItem("Dist6 (Overlap % in relation to Volume Ratio, short fiber)");
-	m_cmbboxDistanceMeasure->addItem("Dist7 (Overlap % in relation to Volume Ratio,  directional)");
-	m_cmbboxDistanceMeasure->setCurrentIndex(iARefDistCompute::BestDistanceMetric);
-	connect(m_cmbboxDistanceMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
+	m_cmbboxSimilarityMeasure = new QComboBox();
+	auto similarityMeasures = iARefDistCompute::getSimilarityMeasureNames();
+	for (auto name: similarityMeasures)
+		m_cmbboxSimilarityMeasure->addItem(name);
+	m_cmbboxSimilarityMeasure->setCurrentIndex(iARefDistCompute::BestSimilarityMeasure);
+	connect(m_cmbboxSimilarityMeasure, SIGNAL(currentIndexChanged(int)), this, SLOT(showReferenceMeasureChanged(int)));
 	auto metricChoice = new QWidget();
 	metricChoice->setLayout(new QHBoxLayout());
 	metricChoice->layout()->setContentsMargins(0, 0, 0, 0);
 	metricChoice->layout()->setSpacing(SettingSpacing);
 	metricChoice->layout()->addWidget(metricLabel);
-	metricChoice->layout()->addWidget(m_cmbboxDistanceMeasure);
+	metricChoice->layout()->addWidget(m_cmbboxSimilarityMeasure);
 
 	QGroupBox* main3DViewSettings = new QGroupBox("Main 3D View");
 	main3DViewSettings->setLayout(new QVBoxLayout());
@@ -339,14 +335,14 @@ void iAFiAKErController::resultsLoaded()
 	connect(m_playTimer, &QTimer::timeout, this, &iAFiAKErController::playTimer);
 	connect(stepDelayInput, SIGNAL(valueChanged(int)), this, SLOT(playDelayChanged(int)));
 
-	m_optimStepChart.resize(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1);
+	m_optimStepChart.resize(iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + 1);
 
 	auto dataChooser = new QScrollArea();
 	dataChooser->setWidgetResizable(true);
 	auto comboBoxContainer = new QWidget();
 	dataChooser->setWidget(comboBoxContainer);
 	comboBoxContainer->setLayout(new QVBoxLayout());
-	ChartCount = iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + 1;
+	ChartCount = iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + 1;
 	m_chartCB.resize(ChartCount);
 	for (int chartID = 0; chartID < ChartCount; ++chartID)
 	{
@@ -1557,15 +1553,15 @@ void iAFiAKErController::setReference(size_t referenceID)
 	m_refDistCompute = new iARefDistCompute(m_data, referenceID);
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
 	m_views[JobView]->show();
-	m_jobs->addJob("Computing Reference Distances", m_refDistCompute->progress(), m_refDistCompute);
+	m_jobs->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();
 }
 
 void iAFiAKErController::refDistAvailable()
 {
-	size_t startIdx = m_data->spmData->numParams() - (iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns);
+	size_t startIdx = m_data->spmData->numParams() - (iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + iARefDistCompute::EndColumns);
 	std::vector<size_t> changedSpmColumns;
-	for (size_t paramID = 0; paramID < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount; ++paramID)
+	for (size_t paramID = 0; paramID < iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount; ++paramID)
 	{
 		size_t columnID = startIdx + paramID;
 		changedSpmColumns.push_back(columnID);
@@ -1585,7 +1581,7 @@ void iAFiAKErController::refDistAvailable()
 
 	updateRefDistPlots();
 
-	for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount; ++diffID)
+	for (size_t diffID = 0; diffID < iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount; ++diffID)
 	{
 		auto diffAvgAction = new QAction(m_data->spmData->parameterName(startIdx+diffID), nullptr);
 		diffAvgAction->setProperty("colID", static_cast<unsigned long long>(diffID+1));
@@ -1682,7 +1678,7 @@ void iAFiAKErController::showReferenceLinesToggled()
 
 void iAFiAKErController::changeReferenceDisplay()
 {
-	size_t distanceMeasure = clamp(0, iARefDistCompute::DistanceMetricCount, m_cmbboxDistanceMeasure->currentIndex());
+	size_t similarityMeasure = clamp(0, iARefDistCompute::SimilarityMeasureCount, m_cmbboxSimilarityMeasure->currentIndex());
 	bool showRef = m_chkboxShowReference->isChecked();
 	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
 
@@ -1717,7 +1713,7 @@ void iAFiAKErController::changeReferenceDisplay()
 		addColumn(m_refVisTable, 0, m_data->result[m_referenceID].table->GetColumnName(col), 0);
 	}
 
-	std::vector<iAFiberDistance> referenceIDsToShow;
+	std::vector<iAFiberSimilarity> referenceIDsToShow;
 
 	double range[2];
 	range[0] = std::numeric_limits<double>::max();
@@ -1732,7 +1728,7 @@ void iAFiAKErController::changeReferenceDisplay()
 			size_t fiberID = m_selection[resultID][fiberIdx];
 			for (int n=0; n<refCount; ++n)
 			{
-				referenceIDsToShow.push_back(m_data->result[resultID].refDiffFiber[fiberID].dist[distanceMeasure][n]);
+				referenceIDsToShow.push_back(m_data->result[resultID].refDiffFiber[fiberID].dist[similarityMeasure][n]);
 			}
 		}
 	}
@@ -1745,20 +1741,20 @@ void iAFiAKErController::changeReferenceDisplay()
 	for (size_t fiberIdx=0; fiberIdx<referenceIDsToShow.size(); ++fiberIdx)
 	{
 		size_t refFiberID = referenceIDsToShow[fiberIdx].index;
-		double distance = referenceIDsToShow[fiberIdx].distance;
+		double similarity = referenceIDsToShow[fiberIdx].similarity;
 		for (int colIdx = 0; colIdx < refTable->GetNumberOfColumns(); ++colIdx)
 		{
 			m_refVisTable->SetValue(fiberIdx, colIdx, refTable->GetValue(refFiberID, colIdx));
 		}
-		// set projection error value to distance...
-		m_refVisTable->SetValue(fiberIdx, refTable->GetNumberOfColumns()-2, distance);
+		// set projection error value to similarity...
+		m_refVisTable->SetValue(fiberIdx, refTable->GetNumberOfColumns()-2, similarity);
 	}
 
 	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer, m_refVisTable,
 		m_data->result[m_referenceID].mapping, QColor(0,0,0) ) );
 	/*
 	QSharedPointer<iALookupTable> lut(new iALookupTable);
-	*lut.data() = iALUT::Build(m_data->spmData->paramRange(m_data->spmData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::DistanceMetricCount+distanceMeasure),
+	*lut.data() = iALUT::Build(m_data->spmData->paramRange(m_data->spmData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::SimilarityMeasureCount+similarityMeasure),
 		m_colorByThemeName, 256, SelectionOpacity);
 	*/
 	m_nearestReferenceVis->show();
@@ -1766,7 +1762,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	m_nearestReferenceVis->setColor(getResultColor(m_referenceID));
 	// ... and set up color coding by it!
 	//m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
-	// TODO: show distance color map somewhere!!!
+	// TODO: show similarity color map somewhere!!!
 
 	// Lines from Fiber points to reference:
 	if (!m_chkboxShowLines->isChecked())
@@ -1807,7 +1803,7 @@ void iAFiAKErController::changeReferenceDisplay()
 			for (int n = 0; n < refCount; ++n)
 			{
 				iAVec3 start1, start2, end1, end2;
-				size_t refFiberID = d.refDiffFiber[fiberID].dist[distanceMeasure][n].index;
+				size_t refFiberID = d.refDiffFiber[fiberID].dist[similarityMeasure][n].index;
 				for (int i = 0; i < 3; ++i)
 				{
 					if (d.timeValues.size() > 0)
@@ -2043,7 +2039,7 @@ void iAFiAKErController::selectionDetailsItemClicked(QModelIndex const & index)
 QString iAFiAKErController::diffName(int chartID) const
 {
 	size_t spmCol = m_data->spmData->numParams() -
-		(iAFiberCharData::FiberValueCount + iARefDistCompute::DistanceMetricCount + iARefDistCompute::EndColumns) + chartID;
+		(iAFiberCharData::FiberValueCount + iARefDistCompute::SimilarityMeasureCount + iARefDistCompute::EndColumns) + chartID;
 	return m_data->spmData->parameterName(spmCol);
 }
 

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAFiberCharData.h"
 
-#include "iARefDistCompute.h" // only for DistanceMetricCount!
+#include "iARefDistCompute.h" // only for SimilarityMeasureCount!
 
 #include "iACsvIO.h"
 #include "iACsvVtkTableCreator.h"
@@ -38,9 +38,9 @@
 
 #include <algorithm> // for std::fill
 
-bool operator<(iAFiberDistance const & a, iAFiberDistance const & b)
+bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b)
 {
-	return a.distance < b.distance;
+	return a.similarity < b.similarity;
 }
 
 const QString iAFiberResultsCollection::LegacyFormat("FIAKER Legacy Format");
@@ -356,16 +356,9 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	paramNames.push_back("LengthDiff");
 	paramNames.push_back("DiameterDiff");
 
-	paramNames.push_back("dc₁");
-	paramNames.push_back("dc₂");
-
-	paramNames.push_back("dp₁");
-	paramNames.push_back("dp₂");
-	paramNames.push_back("dp₃");
-
-	paramNames.push_back("do₁");
-	paramNames.push_back("do₂");
-	paramNames.push_back("do₃");
+	auto similarityMeasures = iARefDistCompute::getSimilarityMeasureNames();
+	for (auto name: similarityMeasures)
+		paramNames.push_back(name);
 
 	paramNames.push_back("ProjectionErrorReduction");
 	paramNames.push_back("Result_ID");
@@ -376,7 +369,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	{
 		auto & curData = result[resultID];
 		size_t numTableColumns = curData.table->GetNumberOfColumns();
-		for (int i = (iARefDistCompute::DistanceMetricCount+iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns); i >= iARefDistCompute::EndColumns; --i)
+		for (int i = (iARefDistCompute::SimilarityMeasureCount+iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns); i >= iARefDistCompute::EndColumns; --i)
 		{
 			spmData->data()[numParams - i].resize(spmData->data()[numParams - i].size() + curData.fiberCount, 0);
 		}
@@ -396,7 +389,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 			curData.table->SetValue(fiberID, numParams - 2, projErrorRed);
 		}
 		// TODO: reuse spmData also for 3d visualization?
-		for (int col = 0; col < (iARefDistCompute::DistanceMetricCount+ iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns-1); ++col)
+		for (int col = 0; col < (iARefDistCompute::SimilarityMeasureCount+ iAFiberCharData::FiberValueCount+iARefDistCompute::EndColumns-1); ++col)
 		{
 			addColumn(curData.table, 0, spmData->parameterName(numTableColumns+col).toStdString().c_str(), curData.fiberCount);
 		}

@@ -190,7 +190,7 @@ private:
 	QCheckBox* m_chkboxShowReference;
 	QCheckBox* m_chkboxShowLines;
 	QSpinBox* m_spnboxReferenceCount;
-	QComboBox* m_cmbboxDistanceMeasure;
+	QComboBox* m_cmbboxSimilarityMeasure;
 	vtkSmartPointer<vtkActor> m_refLineActor;
 	QWidget* m_showReferenceWidget;
 

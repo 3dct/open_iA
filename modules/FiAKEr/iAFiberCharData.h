@@ -42,20 +42,20 @@ class QCheckBox;
 
 //! fibervalues layout unless otherwise specified : (start[x, y, z], end[x, y, z], center[x, y, z], phi, theta, length, diameter)
 
-//! Class for holding data about the distances from one result to another fiber in a different dataset
-class iAFiberDistance
+//! Class for holding data about the similarity from one result to another fiber in a different dataset
+class iAFiberSimilarity
 {
 public:
 	size_t index;
-	double distance;
-	friend bool operator<(iAFiberDistance const & a, iAFiberDistance const & b);
+	double similarity;
+	friend bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b);
 };
 
 //! Comparison data to reference for a single result/fiber, for all time steps
 class iARefDiffFiberTimeData
 {
 public:
-	//! diff of fibervalues (+distances)
+	//! diff of fibervalues (+similarity measures)
 	std::vector<double> timestep;
 };
 
@@ -63,10 +63,10 @@ public:
 class iARefDiffFiberData
 {
 public:
-	//! differences to reference fiber, one per diff/distance
+	//! differences to reference fiber, one per diff/similarity measure
 	std::vector<iARefDiffFiberTimeData> diff;
-	//! dist to ref fibers: for each distance measure, in order of ascending difference
-	std::vector<std::vector<iAFiberDistance> > dist;
+	//! dist to ref fibers: for each similarity measure, in order of ascending difference
+	std::vector<std::vector<iAFiberSimilarity> > dist;
 };
 
 //! Data for a single fiber characterization result
@@ -89,7 +89,7 @@ public:
 // Comparison to reference:
 	//! comparison data to reference for each fiber
 	std::vector<iARefDiffFiberData> refDiffFiber;
-	//! for each differnce/distance measure, the average over all fibers
+	//! for each similarity measure, the average over all fibers
 	std::vector<double> avgDifference;
 };
 
@@ -113,7 +113,7 @@ public:
 // Comparison to reference:
 	//! for each fiber in the reference, the average match quality over all results (-1.. no match, otherwise 0..1 where 0 perfect match, 1..bad match)
 	std::vector<double> avgRefFiberMatch;
-	//! for each difference/distance measure, the maximum value over all results:
+	//! for each difference/similarity measure, the maximum value over all results:
 	std::vector<double> maxAvgDifference;
 
 // Methods:

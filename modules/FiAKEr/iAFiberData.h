@@ -48,5 +48,5 @@ struct iAFiberData
 };
 
 void samplePoints(iAFiberData const & fiber, std::vector<Vec3D> & result, size_t numSamples=DefaultSamplePoints);
-double getDistance(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
-	int distanceMeasure, double diagonalLength, double maxLength);
+double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
+	int measureID, double diagonalLength, double maxLength);
