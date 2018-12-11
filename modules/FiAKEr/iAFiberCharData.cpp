@@ -356,16 +356,16 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	paramNames.push_back("LengthDiff");
 	paramNames.push_back("DiameterDiff");
 
-	paramNames.push_back("d_c¹");
-	paramNames.push_back("d_c²");
+	paramNames.push_back("dc₁");
+	paramNames.push_back("dc₂");
 
-	paramNames.push_back("d_p¹");
-	paramNames.push_back("d_p²");
-	paramNames.push_back("d_p³");
+	paramNames.push_back("dp₁");
+	paramNames.push_back("dp₂");
+	paramNames.push_back("dp₃");
 
-	paramNames.push_back("d_o¹");
-	paramNames.push_back("d_o²");
-	paramNames.push_back("d_o³");
+	paramNames.push_back("do₁");
+	paramNames.push_back("do₂");
+	paramNames.push_back("do₃");
 
 	paramNames.push_back("ProjectionErrorReduction");
 	paramNames.push_back("Result_ID");
