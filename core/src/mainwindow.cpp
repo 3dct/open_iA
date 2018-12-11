@@ -1088,6 +1088,23 @@ void MainWindow::enableInteraction()
 	}
 }
 
+void MainWindow::toggleFullScreen()
+{
+	bool fullScreen = actionFullScreenMode->isChecked();
+	if (fullScreen)
+		this->showFullScreen();
+	else
+		this->showNormal();
+}
+
+void MainWindow::toggleMenu()
+{
+	bool showMenu = actionShowMenu->isChecked();
+	if (showMenu)
+		menubar->show();
+	else
+		menubar->hide();
+}
 
 void MainWindow::prefs()
 {
@@ -1763,6 +1780,15 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionLink_views, SIGNAL(triggered()), this, SLOT(linkViews()));
 	connect(actionLink_mdis, SIGNAL(triggered()), this, SLOT(linkMDIs()));
 	connect(actionEnableInteraction, SIGNAL(triggered()), this, SLOT(enableInteraction()));
+	connect(actionFullScreenMode, &QAction::triggered, this, &MainWindow::toggleFullScreen);
+	actionFullScreenMode->setShortcut(Qt::CTRL | Qt::Key_F);
+	actionFullScreenMode->setShortcutContext(Qt::ApplicationShortcut);
+	addAction(actionFullScreenMode);
+	connect(actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
+	actionShowMenu->setShortcut(Qt::CTRL | Qt::Key_M);
+	actionShowMenu->setShortcutContext(Qt::ApplicationShortcut);
+	addAction(actionShowMenu);
+
 	connect(actionPreferences, SIGNAL(triggered()), this, SLOT(prefs()));
 	connect(actionRendererSettings, SIGNAL(triggered()), this, SLOT(renderSettings()));
 	connect(actionSlicerSettings, SIGNAL(triggered()), this, SLOT(slicerSettings()));

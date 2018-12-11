@@ -138,6 +138,8 @@ private slots:
 	void linkViews();
 	void linkMDIs();
 	void enableInteraction();
+	void toggleFullScreen();
+	void toggleMenu();
 	void renderSettings();
 	void slicerSettings();
 	void loadTransferFunction();
