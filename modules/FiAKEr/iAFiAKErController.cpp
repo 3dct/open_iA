@@ -1818,7 +1818,7 @@ void iAFiAKErController::changeReferenceDisplay()
 				for (int i = 0; i < 3; ++i)
 				{
 					if (d.timeValues.size() > 0)
-						start1[i] = d.timeValues[timeStep][fiberID][i];
+						start1[i] = d.timeValues[std::min(timeStep, d.timeValues.size()-1)][fiberID][i];
 					else
 						start1[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
 					end1[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::StartX + i)).ToFloat();
@@ -1826,7 +1826,7 @@ void iAFiAKErController::changeReferenceDisplay()
 				for (int i = 0; i < 3; ++i)
 				{
 					if (d.timeValues.size() > 0)
-						start2[i] = d.timeValues[timeStep][fiberID][3 + i];
+						start2[i] = d.timeValues[std::min(timeStep, d.timeValues.size()-1)][fiberID][3 + i];
 					else
 						start2[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
 					end2[i] = ref.table->GetValue(refFiberID, ref.mapping->value(iACsvConfig::EndX + i)).ToFloat();
