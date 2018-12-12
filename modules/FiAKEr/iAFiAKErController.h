@@ -85,6 +85,8 @@ public:
 	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
 signals:
 	void setupFinished();
+public slots:
+	void toggleFullScreen();
 private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);

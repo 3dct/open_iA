@@ -167,6 +167,17 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	setMinimumSize(600, 400);
 	setCentralWidget(nullptr);
 	setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
+	connect(mainWnd, &MainWindow::fullScreenToggled, this, &iAFiAKErController::toggleFullScreen);
+}
+
+void iAFiAKErController::toggleFullScreen()
+{
+	QWidget* mdiSubWin = qobject_cast<QWidget*>(parent());
+	if (m_mainWnd->isFullScreen())
+		mdiSubWin->setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+	else
+		mdiSubWin->setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
+	mdiSubWin->show();
 }
 
 void iAFiAKErController::start(QString const & path, QString const & configName)
