@@ -441,7 +441,7 @@ void iAFiAKErController::resultsLoaded()
 	distrColorThemeChoiceWidget->setLayout(new QHBoxLayout());
 	distrColorThemeChoiceWidget->layout()->setContentsMargins(0, 0, 0, 0);
 	distrColorThemeChoiceWidget->layout()->setSpacing(SettingSpacing);
-	distrColorThemeChoiceWidget->layout()->addWidget(new QLabel("Distribution Color Theme:"));
+	distrColorThemeChoiceWidget->layout()->addWidget(new QLabel("Distribution Colors:"));
 	distrColorThemeChoiceWidget->layout()->addWidget(distrColorThemeChoice);
 
 	auto resultColorThemeChoice = new QComboBox();
@@ -452,7 +452,7 @@ void iAFiAKErController::resultsLoaded()
 	resultColorThemeChoiceWidget->setLayout(new QHBoxLayout());
 	resultColorThemeChoiceWidget->layout()->setContentsMargins(0, 0, 0, 0);
 	resultColorThemeChoiceWidget->layout()->setSpacing(SettingSpacing);
-	resultColorThemeChoiceWidget->layout()->addWidget(new QLabel("Result Color Theme:"));
+	resultColorThemeChoiceWidget->layout()->addWidget(new QLabel("Result Colors:"));
 	resultColorThemeChoiceWidget->layout()->addWidget(resultColorThemeChoice);
 
 	QWidget* saveLoadAnalysisWidget = new QWidget();
