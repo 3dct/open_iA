@@ -360,7 +360,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	for (auto name: similarityMeasures)
 		paramNames.push_back(name);
 
-	paramNames.push_back("ProjectionErrorReduction");
+	paramNames.push_back("Proj. Error Red.");
 	paramNames.push_back("Result_ID");
 	spmData->setParameterNames(paramNames);
 	size_t numParams = spmData->numParams();
