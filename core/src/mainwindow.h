@@ -186,6 +186,7 @@ public slots:
 
 signals:
 	void StyleChanged();
+	void fullScreenToggled();
 private:
 	void connectSignalsToSlots();
 	void readSettings();

@@ -1092,9 +1092,10 @@ void MainWindow::toggleFullScreen()
 {
 	bool fullScreen = actionFullScreenMode->isChecked();
 	if (fullScreen)
-		this->showFullScreen();
+		showFullScreen();
 	else
-		this->showNormal();
+		showNormal();
+	emit fullScreenToggled();
 }
 
 void MainWindow::toggleMenu()
