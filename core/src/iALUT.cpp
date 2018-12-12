@@ -35,10 +35,10 @@ const QStringList colormaps = QStringList()
 	<< "Extended Black Body"
 	<< "Kindlmann"
 	<< "Kindlmann Extended"
-	<< "ColorBrewer single hue 5-class oranges"
-	<< "ColorBrewer single hue 5-class grays"
-	<< "ColorBrewer single hue 5-class oranges inv"
-	<< "ColorBrewer single hue 5-class red inv";
+	<< "Brewer single hue 5c oranges"
+	<< "Brewer single hue 5c grays"
+	<< "Brewer single hue 5c oranges inv"
+	<< "Brewer single hue 5c red inv";
 
 const QStringList& iALUT::GetColorMapNames()
 {
