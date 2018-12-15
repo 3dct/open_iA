@@ -512,20 +512,6 @@ IF (ASTRA_TOOLBOX_FOUND)
 ENDIF()
 
 
-# HDF5
-IF (HDF5_FOUND)
-	# Todo: Determine whether HDF5 was linked statically or dynmically in Windows?
-	#       in Linux, we force static linking, as otherwise, there can be conflicts with libz!
-	IF (WIN32)
-		SET (HDF5_LIBRARIES hdf5 szip zlib)
-		STRING(REGEX REPLACE "/cmake" "" HDF5_BASE_DIR ${HDF5_DIR})
-		SET (HDF5_BIN_DIR ${HDF5_BASE_DIR}/bin)
-		FOREACH(HDF5_LIB ${HDF5_LIBRARIES})
-			INSTALL(FILES "${HDF5_BIN_DIR}/${HDF5_LIB}.dll" DESTINATION .)
-		ENDFOREACH()
-	ENDIF ()
-ENDIF()
-
 #-------------------------
 # Compiler Flags
 #-------------------------

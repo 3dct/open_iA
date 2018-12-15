@@ -22,7 +22,6 @@ TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${QT_LIBRARIES} ${VTK_LIBRARIE
 IF (HDF5_FOUND)
 	# as HDF5 is required only in core, we could link privately, but under Linux this leads
 	# to gui and cmd also requiring linking to it separately, it's easier to link PUBLIC here:
-	MESSAGE(STATUS "HDF5: ${HDF5_LIBRARY}")
 	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${HDF5_LIBRARY})
 	# make sure HDF5 is included before itk (which brings its own hdf5 libraries in a different version):
 	TARGET_INCLUDE_DIRECTORIES(${CORE_LIBRARY_NAME} BEFORE PRIVATE ${HDF5_INCLUDE_DIR})
