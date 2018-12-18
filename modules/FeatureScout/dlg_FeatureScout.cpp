@@ -153,6 +153,7 @@ const QString NameAttribute( "NAME" );
 const QString ColorAttribute( "COLOR" );
 const QString CountAttribute( "COUNT" );
 const QString PercentAttribute( "PERCENT" );
+const QString IDColumnAttribute( "IDColumn" );
 const QString LabelAttribute( "Label" );
 const QString LabelAttributePore( "LabelId" );
 
@@ -2085,6 +2086,7 @@ void dlg_FeatureScout::ClassSaveButton()
 	stream.writeStartElement( IFVTag );
 	stream.writeAttribute( VersionAttribute, "1.0" );
 	stream.writeAttribute( CountAllAttribute, QString( "%1" ).arg( objectsCount ) );
+	stream.writeAttribute( IDColumnAttribute, csvTable->GetColumnName(0) ); // store name of ID  -> TODO: ID mapping!
 
 	for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); i++ )
 	{
@@ -2111,8 +2113,9 @@ void dlg_FeatureScout::ClassLoadButton()
 
 	// checking xml file correctness
 	QXmlStreamReader checker( &file );
-	checker.readNext();
-	checker.readNext();
+	checker.readNext(); // skip xml tag?
+	checker.readNext(); // read IFV_Class_Tree element
+	QString IDColumnName = (filterID == iAFeatureScoutObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
 	if ( checker.name() == IFVTag )
 	{
 		// if the object number is not correct, stop the load process
@@ -2121,6 +2124,10 @@ void dlg_FeatureScout::ClassLoadButton()
 			QMessageBox::warning(this, "FeatureScout", "Class load error: Incorrect xml file for current dataset, please check." );
 			checker.clear();
 			return;
+		}
+		if (checker.attributes().hasAttribute(IDColumnAttribute))
+		{
+			IDColumnName = checker.attributes().value(IDColumnAttribute).toString();
 		}
 	}
 	else // incompatible xml file
@@ -2160,8 +2167,7 @@ void dlg_FeatureScout::ClassLoadButton()
 		{
 			if ( reader.name() == ObjectTag )
 			{
-				QString label = reader.attributes().value(
-					(filterID == iAFeatureScoutObjectType::Fibers) ? LabelAttribute : LabelAttributePore ).toString();
+				QString label = reader.attributes().value( IDColumnName ).toString();
 				QStandardItem *item = new QStandardItem( label );
 
 				// add objects to firstLevelClassItem
