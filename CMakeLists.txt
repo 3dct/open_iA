@@ -116,7 +116,7 @@ IF (MSVC)
 	ENDIF()
 	
 	IF (HDF5_FOUND)
-		STRING(REGEX REPLACE "/cmake" "" HDF5_BASE_DIR ${HDF5_DIR})
+		STRING(REGEX REPLACE "/cmake/hdf5" "" HDF5_BASE_DIR ${HDF5_DIR})
 		STRING(REGEX REPLACE "/" "\\\\" HDF5_BASE_DIR ${HDF5_BASE_DIR})
 		IF (EXISTS "${HDF5_BASE_DIR}\\bin\\Release")
 			SET (RelWithDebInfoLibraryPaths "${HDF5_BASE_DIR}\\bin\\RelWithDebInfo;${RelWithDebInfoLibraryPaths}")

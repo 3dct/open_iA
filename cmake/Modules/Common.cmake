@@ -207,42 +207,28 @@ ENDIF(EIGEN3_FOUND)
 
 
 # HDF5
-# FIND_PACKAGE(HDF5) does not behave properly:
-#     - always uses first installed version without allowing to override
-#     - if not installed, reports missing HDF5_DIR and unsets it even when set to directory having same structure as install
-#   => skip? for now, allow overriding with HDF5_DIR_OVERRIDE
 FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C NO_MODULE QUIET)
-IF (HDF5_DIR_OVERRIDE AND NOT "${HDF5_DIR_OVERRIDE}" STREQUAL "${HDF5_DIR}")
-	SET(HDF5_DIR "${HDF5_DIR_OVERRIDE}" CACHE PATH "" FORCE)
-	SET(HDF5_FOUND "true")
-	MESSAGE(STATUS "HDF5: Overriding found HDF5_DIR=${HDF5_DIR} with HDF5_DIR_OVERRIDE=${HDF5_DIR_OVERRIDE}")
-ENDIF()
 
 IF (HDF5_FOUND)
-        if (WIN32)
-                SET (HDF5_CORE_LIB_NAME hdf5.lib)
-                SET (HDF5_Z_LIB_NAME z.lib)
-                SET (HDF5_SZIP_LIB_NAME szip.lib)
-        else()
-                SET (HDF5_CORE_LIB_NAME libhdf5.a)
-                SET (HDF5_Z_LIB_NAME libz.a)
-                SET (HDF5_SZIP_LIB_NAME libszip.a)
-        endif()
-        FIND_LIBRARY(HDF5_CORE_LIB ${HDF5_CORE_LIB_NAME} PATHS ${HDF5_DIR}/../bin ${HDF5_DIR}/../../lib ${HDF5_DIR}/../lib)
-        FIND_PATH(HDF5_INCLUDE_OVERWRITE_DIR hdf5.h PATHS "${HDF5_DIR}/../include" "${HDF5_DIR}/../../include")
-        SET(HDF5_INCLUDE_DIR "${HDF5_INCLUDE_OVERWRITE_DIR}" CACHE PATH "" FORCE)
-        UNSET(HDF5_INCLUDE_OVERWRITE_DIR CACHE)
-        IF (CMAKE_COMPILER_IS_GNUCXX)
-                FIND_LIBRARY(HDF5_Z_LIB ${HDF5_Z_LIB_NAME} PATHS ${HDF5_DIR}/../../lib NO_DEFAULT_PATH NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH)
-                FIND_LIBRARY(HDF5_SZIP_LIB ${HDF5_SZIP_LIB_NAME} PATHS ${HDF5_DIR}/../../lib)
-                SET (HDF5_LIBRARY ${HDF5_CORE_LIB} ${HDF5_SZIP_LIB} ${HDF5_Z_LIB} CACHE STRING "" FORCE)
-                UNSET(HDF5_Z_LIB CACHE)
-                UNSET(HDF5_SZIP_LIB CACHE)
-        ELSE()
-                SET (HDF5_LIBRARY ${HDF5_CORE_LIB} CACHE STRING "" FORCE)
-        ENDIF()
-        UNSET(HDF5_CORE_LIB CACHE)
-        MESSAGE(STATUS "Found HDF5: ${HDF5_DIR}")
+	if (WIN32)
+		SET (HDF5_CORE_LIB_NAME libhdf5.lib)
+		SET (HDF5_Z_LIB_NAME libzlib.lib)
+		SET (HDF5_SZIP_LIB_NAME libszip.lib)
+	else()
+		SET (HDF5_CORE_LIB_NAME libhdf5.a)
+		SET (HDF5_Z_LIB_NAME libz.a)
+		SET (HDF5_SZIP_LIB_NAME libszip.a)
+	endif()
+	FIND_PATH(HDF5_INCLUDE_OVERWRITE_DIR hdf5.h PATHS "${HDF5_DIR}/../../include" "${HDF5_DIR}/../../../include")
+	SET(HDF5_INCLUDE_DIR "${HDF5_INCLUDE_OVERWRITE_DIR}" CACHE PATH "" FORCE)
+	UNSET(HDF5_INCLUDE_OVERWRITE_DIR CACHE)
+	FIND_LIBRARY(HDF5_CORE_LIB ${HDF5_CORE_LIB_NAME} PATHS ${HDF5_DIR}/../../lib ${HDF5_DIR}/../../../lib)
+	FIND_LIBRARY(HDF5_Z_LIB ${HDF5_Z_LIB_NAME} PATHS ${HDF5_DIR}/../../lib ${HDF5_DIR}/../../../lib NO_DEFAULT_PATH NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH)
+	FIND_LIBRARY(HDF5_SZIP_LIB ${HDF5_SZIP_LIB_NAME} PATHS ${HDF5_DIR}/../../lib ${HDF5_DIR}/../../../lib)
+	SET (HDF5_LIBRARY ${HDF5_CORE_LIB} ${HDF5_CORE_HL_LIB} ${HDF5_TOOL_LIB} ${HDF5_SZIP_LIB} ${HDF5_Z_LIB} CACHE STRING "" FORCE)
+	UNSET(HDF5_Z_LIB CACHE)
+	UNSET(HDF5_SZIP_LIB CACHE)
+	UNSET(HDF5_CORE_LIB CACHE)
 ENDIF()
 
 
@@ -471,7 +457,7 @@ IF (OPENCL_FOUND)
 			SET (OPENCL_DLL "C:/Program Files/NVIDIA Corporation/OpenCL/OpenCL.dll") # installed along with NVidia driver
 		ENDIF()
 		IF (NOT EXISTS "${OPENCL_DLL}")
-			MESSAGE(WARNING "OpenCL.dll was not found. You can continue building, but the program might not run (or it might fail to run when installed/cpacked).")
+			MESSAGE(STATUS "OpenCL.dll was not found. You can continue building, but the program might not run (or it might fail to run when installed/cpacked).")
 		ELSE()
 			INSTALL (FILES ${OPENCL_DLL} DESTINATION .)
 		ENDIF()
@@ -511,20 +497,6 @@ IF (ASTRA_TOOLBOX_FOUND)
 	ENDIF ()
 ENDIF()
 
-
-# HDF5
-IF (HDF5_FOUND)
-	# Todo: Determine whether HDF5 was linked statically or dynmically in Windows?
-	#       in Linux, we force static linking, as otherwise, there can be conflicts with libz!
-	IF (WIN32)
-		SET (HDF5_LIBRARIES hdf5 szip zlib)
-		STRING(REGEX REPLACE "/cmake" "" HDF5_BASE_DIR ${HDF5_DIR})
-		SET (HDF5_BIN_DIR ${HDF5_BASE_DIR}/bin)
-		FOREACH(HDF5_LIB ${HDF5_LIBRARIES})
-			INSTALL(FILES "${HDF5_BIN_DIR}/${HDF5_LIB}.dll" DESTINATION .)
-		ENDFOREACH()
-	ENDIF ()
-ENDIF()
 
 #-------------------------
 # Compiler Flags
