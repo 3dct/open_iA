@@ -113,8 +113,6 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
 	{
 		m_fontHeight = fm.height();
 		m_maxTickLabelWidth = fm.width("0.99");
-		QResizeEvent *ev(nullptr);
-		resizeEvent(ev);
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
 	painter.setRenderHint(QPainter::HighQualityAntialiasing);
@@ -158,7 +156,7 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
 	painter.restore();
 }
 
-void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
+void iAScatterPlotWidget::adjustScatterPlotSize()
 {
 	QRect size(geometry());
 	size.moveTop(0);
@@ -168,6 +166,16 @@ void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
 	{
 		m_scatterplot->setRect(size);
 	}
+}
+
+void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
+{
+	adjustScatterPlotSize();
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+	QOpenGLWidget::resizeEvent( event );
+#else
+	QGLWidget::resizeEvent( event );
+#endif
 }
 
 int iAScatterPlotWidget::PaddingLeft()
