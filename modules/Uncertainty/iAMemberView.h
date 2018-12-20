@@ -24,10 +24,13 @@
 
 class iAEnsemble;
 class iAMember;
+
 class QCustomPlot;
 class QCPBars;
 class QCPRange;
 class QCPDataSelection;
+
+class QWheelEvent;
 
 class iAMemberView: public QWidget
 {
@@ -40,6 +43,7 @@ signals:
 	void MemberSelected(int memberIdx);
 public slots:
 	void StyleChanged();
+	void mouseWheel(QWheelEvent*);
 private:
 	QSharedPointer<iAEnsemble> m_ensemble;
 	QCustomPlot* m_plot;
