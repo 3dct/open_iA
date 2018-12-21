@@ -15,6 +15,9 @@ authors:
   - name: Johannes Weissenböck
     orcid: 0000-0001-8062-4590
     affiliation: "1, 3"
+  - name: Marcel Schiwarth
+    orcid: 0000-0003-2339-1879
+    affiliation: "1"
   - name: Johann Kastner
     orcid: 0000-0002-3163-0916
     affiliation: "1"
@@ -28,7 +31,7 @@ affiliations:
     index: 2
   - name: TU Wien, Visualization Working Group
     index: 3
-date: November 20, 2018
+date: December 21, 2018
 bibliography: paper.bib
 ---
 # Summary 
