@@ -1,5 +1,5 @@
 ---
-title: 'open\_iA: A tool for processing and visual analysis of industrial computed tomography datasets.'
+title: 'open\_iA: A tool for processing and visual analysis of industrial computed tomography datasets'
 tags:
   - C++
   - computed tomography
