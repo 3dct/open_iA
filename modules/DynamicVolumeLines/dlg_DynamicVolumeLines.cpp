@@ -69,6 +69,7 @@
 
 const double impInitValue = 0.025;
 const double offsetY = 1000;
+const QString plotColor = "DVL-Metro Colors (max. 17)";	// Brewer Qualitaive 1 (max. 8) // DVL-Metro Colors (max. 17)
 
 void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -388,7 +389,7 @@ void dlg_DynamicVolumeLines::visualize()
 			m_linearScaledPlot->graph()->setVisible(false);
 			m_linearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 			m_linearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
-				m_DatasetIntensityMap.size(), 2, "DVL-Metro Colors (max. 17)"));
+				m_DatasetIntensityMap.size(), 2, plotColor));
 			m_linearScaledPlot->graph()->setName(it->first);
 			QCPScatterStyle scatter;
 			scatter.setShape(QCPScatterStyle::ssNone);	 // Check ssDisc/ssDot to show single selected points
@@ -447,7 +448,7 @@ void dlg_DynamicVolumeLines::visualize()
 		m_nonlinearScaledPlot->graph()->setVisible(false);
 		m_nonlinearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 		m_nonlinearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
-			m_DatasetIntensityMap.size(), 2, "DVL-Metro Colors (max. 17)"));
+			m_DatasetIntensityMap.size(), 2, plotColor));
 		m_nonlinearScaledPlot->graph()->setName(it->first);
 		QCPScatterStyle scatter;
 		scatter.setShape(QCPScatterStyle::ssNone);	 // Check ssDisc/ssDot to show single selected points
