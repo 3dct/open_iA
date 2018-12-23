@@ -70,7 +70,7 @@ iAScatterPlot::Settings::Settings() :
 	backgroundColor( QColor( 255, 255, 255 ) ),
 	selectionColor( QColor(0, 0, 0) ),
 	selectionMode(Polygon),
-	selectionEnabled(true),
+	selectionEnabled(false),
 	showPCC(false)
 {}
 
@@ -334,7 +334,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		emit transformModified( m_scale, deltaOffset );
 	}
 
-	else if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled ) // selection
+	else if ( event->buttons()&Qt::LeftButton && settings.selectionEnabled ) // selection
 	{
 		if (settings.selectionMode == Polygon)
 		{
@@ -363,7 +363,7 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 	{
 		m_dragging = true;
 	}
-	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled)//selection
+	if ( event->buttons()&Qt::LeftButton && settings.selectionEnabled)
 	{
 		if (settings.selectionMode == Rectangle)
 		{
@@ -382,7 +382,7 @@ void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 	{
 		m_dragging = false;
 	}
-	else if (m_isMaximizedPlot && event->button() == Qt::LeftButton && settings.selectionEnabled)//selection
+	else if ( event->button() == Qt::LeftButton && settings.selectionEnabled)
 	{
 		bool append = ( event->modifiers() & Qt::ShiftModifier ) ? true : false;
 		bool remove = ( event->modifiers() & Qt::AltModifier ) ? true : false;
