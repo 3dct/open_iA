@@ -275,7 +275,7 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	painter.setBrush( settings.backgroundColor );
 	drawTicks( painter );
 	drawPoints( painter );
-	if (m_isMaximizedPlot)
+	if (settings.selectionEnabled)
 		drawSelectionPolygon( painter );
 	drawBorder( painter );
 	if (settings.showPCC)
