@@ -337,8 +337,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	InitObserver();
 
 	QImage img;
-	if( QDate::currentDate().dayOfYear() >= 340 )img.load(":/images/Xmas.png");
-	else img.load(":/images/fhlogo.png");
+	img.load(":/images/fhlogo.png");
 	logoImage->SetQImage(&img);
 	logoImage->Update();
 	logoRep->SetImage(logoImage->GetOutput( ));

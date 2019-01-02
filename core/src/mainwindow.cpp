@@ -2481,9 +2481,9 @@ int MainWindow::RunGUI(int argc, char * argv[], QString const & appName, QString
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
-	if (QDate::currentDate().dayOfYear() >= 340)
+	if (QDate::currentDate().dayOfYear() >= 350)
 	{
-		mainWin.setWindowTitle("Merry X-Mas and a happy new year!");
+		mainWin.setWindowTitle("Merry Christmas and a Happy New Year!");
 		mainWin.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 	}

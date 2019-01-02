@@ -323,8 +323,7 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		roiSource->SetPoint2(0, -3, 0);
 
 		QImage img;
-		if( QDate::currentDate().dayOfYear() >= 340 )img.load(":/images/Xmas.png");
-		else img.load(":/images/fhlogo.png");
+		img.load(":/images/fhlogo.png");
 		logoImage->SetQImage(&img);
 		logoImage->Update();
 		logoRep->SetImage(logoImage->GetOutput( ));
