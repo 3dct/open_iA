@@ -23,17 +23,11 @@
 #include "ui_dlg_DynamicVolumeLines.h"
 #include "mdichild.h"
 #include "iAScalingWidget.h"
+#include "iAVtkWidgetFwd.h"
 #include "DynamicVolumeLinesHelpers.h"
 #include "ui_Multi3DView.h"
 #include "qthelper/iAQTtoUIConnector.h"
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-class QVTKOpenGLWidget;
-class vtkGenericOpenGLRenderWindow;
-#else
-class QVTKWidget;
-class vtkRenderWindow;
-#endif
 
 class iAVolumeRenderer;
 class iANonLinearAxisTicker;
@@ -42,7 +36,6 @@ class iASegmentTree;
 class vtkRenderWindow;
 class vtkTextActor;
 class vtkPoints;
-class QVTKWidget;
 class vtkRenderer;
 class vtkLookupTable;
 class vtkScalarBarActor;
@@ -122,11 +115,7 @@ private:
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-	QVTKOpenGLWidget *wgtContainer;
-#else
-	QVTKWidget *wgtContainer;
-#endif
+	iAVtkOldWidget* wgtContainer;
 
 	vtkSmartPointer<vtkRenderer> m_mrvBGRen;
 	vtkSmartPointer<vtkTextActor> m_mrvTxtAct;

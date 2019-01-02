@@ -18,22 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "dlg_DynamicVolumeLines.h"
+#include "iAIntensityMapper.h"
+#include "iALinearColorGradientBar.h"
+#include "iANonLinearAxisTicker.h"
+#include "iAOrientationWidget.h"
+#include "iASegmentTree.h"
+
+#include "charts/iAHistogramWidget.h"
 #include "iAColorTheme.h"
 #include "iAFunction.h"
 #include "iAFunctionalBoxplot.h"
-#include "charts/iAHistogramWidget.h"
-#include "iAIntensityMapper.h"
-#include "iANonLinearAxisTicker.h"
+#include "iALUT.h"
 #include "iARenderer.h"
 #include "iATransferFunction.h"
 #include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
-#include "iALUT.h"
-#include "iALinearColorGradientBar.h"
-#include "iAOrientationWidget.h"
-#include "iASegmentTree.h"
+#include "iAVtkWidget.h"
 
 #include <vtkAbstractVolumeMapper.h>
 #include <vtkActor.h>
@@ -58,14 +59,6 @@
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h> 
 #include <vtkVolumeProperty.h>
-
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-#include <QVTKOpenGLWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#else
-#include <QVTKWidget.h>
-#include <vtkRenderWindow.h>
-#endif
 
 const double impInitValue = 0.025;
 const double offsetY = 1000;
@@ -302,14 +295,8 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	m_mrvBGRen->SetBackground(1.0, 1.0, 1.0);
 	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
 	
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-	wgtContainer = new QVTKOpenGLWidget();
-	auto mrvRenWin = vtkGenericOpenGLRenderWindow::New();
-	wgtContainer->SetRenderWindow(mrvRenWin);
-#else
-	wgtContainer = new QVTKWidget();
+	CREATE_OLDVTKWIDGET(wgtContainer);
 	auto mrvRenWin = wgtContainer->GetRenderWindow();
-#endif
 	mrvRenWin->SetNumberOfLayers(2);
 	mrvRenWin->AddRenderer(m_mrvBGRen);
 	mrvRenWin->Render();

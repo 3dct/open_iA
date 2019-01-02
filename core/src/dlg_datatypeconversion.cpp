@@ -26,6 +26,7 @@
 #include "iAToolsVTK.h"
 #include "iATransferFunction.h"    // for GetDefault... functions
 #include "iATypedCallHelper.h"
+#include "iAVtkWidget.h"
 
 #include <itkChangeInformationImageFilter.h>
 #include <itkExtractImageFilter.h>
@@ -33,11 +34,6 @@
 #include <itkNormalizeImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#else
-#include <QVTKWidget2.h>
-#endif
 #include <vtkColorTransferFunction.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageAccumulate.h>
@@ -470,11 +466,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xylabel->setMinimumWidth(50);
 	xylabel->setText("XY IMAGE");
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	vtkWidgetXY = new QVTKOpenGLWidget(this);
-#else
-	vtkWidgetXY = new QVTKWidget2(this);
-#endif
+	vtkWidgetXY = new iAVtkWidget(this);
 	vtkWidgetXY->setMinimumHeight(c[0]*0.1);
 	vtkWidgetXY->setMinimumWidth(c[1]*0.1);
 	vtkWidgetXY->setWindowTitle("XY Plane");
@@ -489,11 +481,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	xzlabel->setMinimumWidth(50);
 	xzlabel->setText("XZ IMAGE");
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	vtkWidgetXZ = new QVTKOpenGLWidget(this);
-#else
-	vtkWidgetXZ = new QVTKWidget2(this);
-#endif
+	vtkWidgetXZ = new iAVtkWidget(this);
 	vtkWidgetXZ->setMinimumHeight(c[0]*0.1);
 	vtkWidgetXZ->setMinimumWidth(c[1]*0.1);
 	vtkWidgetXZ->setWindowTitle("XZ Plane");
@@ -678,11 +666,7 @@ void dlg_datatypeconversion::histogramdrawing(iAPlotData::DataType* histbinlist,
 	verticalLayout->addWidget(imgHistogram);
 }
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-void SetupSliceWidget(vtkSmartPointer<vtkImageMapToColors> color, QVTKOpenGLWidget* vtkWidget, vtkSmartPointer<vtkPlaneSource> roiSource)
-#else
-void SetupSliceWidget(vtkSmartPointer<vtkImageMapToColors> color, QVTKWidget2* vtkWidget, vtkSmartPointer<vtkPlaneSource> roiSource)
-#endif
+void SetupSliceWidget(vtkSmartPointer<vtkImageMapToColors> color, iAVtkWidget* vtkWidget, vtkSmartPointer<vtkPlaneSource> roiSource)
 {
 	auto actor = vtkSmartPointer<vtkImageActor>::New();
 	actor->SetInputData(color->GetOutput());

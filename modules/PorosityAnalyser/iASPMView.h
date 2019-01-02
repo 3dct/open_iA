@@ -20,25 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
+#include "ui_SPMView.h"
+
+#include "iAVtkWidgetFwd.h"
+#include "qthelper/iAQTtoUIConnector.h"
+
 #include <vtkSmartPointer.h>
 #include <vtkVector.h>
 
-#include "ui_SPMView.h"
-#include "qthelper/iAQTtoUIConnector.h"
+#include <QDockWidget>
+
 
 class QAction;
 class QCheckBox;
 class QTableWidget;
 class QVBoxLayout;
 
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-class QVTKOpenGLWidget;
-#else
-class QVTKWidget;
-#endif
 class vtkColorTransferFunction;
 class vtkCommand;
 class vtkContextView;
@@ -108,11 +105,7 @@ protected:
 	iAPAQSplom * m_splom;
 	vtkSmartPointer<vtkIdTypeArray> m_SPLOMSelection;
 	vtkSmartPointer<vtkLookupTable> m_lut;
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	QVTKOpenGLWidget * m_SBQVTKWidget;
-#else
-	QVTKWidget * m_SBQVTKWidget;
-#endif
+	iAVtkOldWidget * m_SBQVTKWidget;
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;
 };

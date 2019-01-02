@@ -21,15 +21,13 @@
 #pragma once
 
 #include "ui_PDMView.h"
+#include "iAVtkWidgetFwd.h"
 #include "qthelper/iAQTtoUIConnector.h"
 
 #include <vtkSmartPointer.h>
-#include <vtkVersion.h>
-
 #include <QDockWidget>
 #include <QList>
 #include <QMap>
-#include <QtGlobal>    // for QT_VERSION
 
 struct iABPMData;
 struct iAHMData;
@@ -37,11 +35,6 @@ struct iAHMData;
 class QCustomPlot;
 class QModelIndex;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-class QVTKOpenGLWidget;
-#else
-class QVTKWidget;
-#endif
 class vtkChartBox;
 class vtkContextView;
 class vtkLookupTable;
@@ -95,12 +88,7 @@ protected:
 	const QMap<QString, double> * m_gtPorosityMap;
 	QMap<QObject*, QModelIndex> m_indices;
 	QModelIndexList m_selectedIndices;
-
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	QVTKOpenGLWidget * m_sbWidget;
-#else
-	QVTKWidget * m_sbWidget;
-#endif
+	iAVtkOldWidget * m_sbWidget;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;

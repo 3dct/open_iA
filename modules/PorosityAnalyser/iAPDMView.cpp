@@ -23,16 +23,11 @@
 #include "iABPMData.h"
 #include "iAHMData.h"
 
-#include "defines.h"
 #include "charts/qcustomplot.h"
+#include "defines.h"
 #include "iALUT.h"
+#include "iAVtkWidget.h"
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#else
-#include <QVTKWidget.h>
-#endif
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h> 
 #include <vtkScalarBarActor.h>
@@ -52,18 +47,11 @@ void SetWidgetSelectionStyle(QWidget * w, bool isSelected)
 
 iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: PorosityAnalyzerPDMConnector( parent, f ),
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	m_sbWidget( new QVTKOpenGLWidget( this ) ),
-#else
-	m_sbWidget( new QVTKWidget( this ) ),
-#endif
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
 	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() )
 {
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	m_sbWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
-#endif
+	CREATE_OLDVTKWIDGET(m_sbWidget);
 	QSettings settings( organisationName, applicationName );
 	this->dsbCMRange->setValue( settings.value( "PorosityAnalyser/GUI/CMRange", 2.0 ).toDouble() );
 

@@ -32,15 +32,10 @@
 #include "StabilityWidget.h"
 #include "dlg_histogram_simple.h"
 
+#include "iAVtkWidget.h"
+
 #include <itkMacro.h>
 
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#else
-#include <QVTKWidget.h>
-#endif
 #include <vtkActor.h>
 #include <vtkAppendPolyData.h>
 #include <vtkCallbackCommand.h>
@@ -196,21 +191,10 @@ DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 
 	ren = vtkRenderer::New();
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	qvtkWidget = new QVTKOpenGLWidget();
-	auto qvtkWidgetRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	qvtkWidget->SetRenderWindow(qvtkWidgetRenWin);
-	qvtkPlot3d = new QVTKOpenGLWidget();
-	auto qvtkPlot3dRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	qvtkPlot3d->SetRenderWindow(qvtkPlot3dRenWin);
-	qvtkWeighing = new QVTKOpenGLWidget();
-	auto qvtkWeighingRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	qvtkWeighing->SetRenderWindow(qvtkWeighingRenWin);
-#else
-	qvtkWidget = new QVTKWidget();
-	qvtkPlot3d = new QVTKWidget();
-	qvtkWeighing = new QVTKWidget();
-#endif
+	CREATE_OLDVTKWIDGET(qvtkWidget);
+	CREATE_OLDVTKWIDGET(qvtkPlot3d);
+	CREATE_OLDVTKWIDGET(qvtkWeighing);
+
 	qvtkWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	qvtkWidget->setMinimumSize(100, 250);
 	qvtkWidget->setAutoFillBackground(true);

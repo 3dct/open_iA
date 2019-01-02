@@ -29,7 +29,7 @@ const double penWidth = 2.0;
 const QColor bgrCol( 50, 50, 50 );
 const QColor roiCol( 255, 0, 0, 240 );
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 iAPreviewSPLOM::iAPreviewSPLOM(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	QOpenGLWidget(parent, f),
 #else

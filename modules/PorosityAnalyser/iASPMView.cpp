@@ -28,13 +28,8 @@
 
 #include "charts/iASPLOMData.h"
 #include "iALookupTable.h"
+#include "iAVtkWidget.h"
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#else
-#include <QVTKWidget.h>
-#endif
 #include <vtkAnnotationLink.h>
 #include <vtkChart.h>
 #include <vtkColor.h>
@@ -62,12 +57,14 @@
 #include <vtkSelectionNode.h>
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
+#include <vtkVersion.h>
 
 #include <QCheckBox>
 #include <QDebug>
 #include <QHBoxLayout>
 #include <QMenu>
 #include <QTableWidget>
+#include <QtGlobal>
 #include <QVBoxLayout>
 
 
@@ -77,18 +74,11 @@ const int popupWidthRange[2] = { 80, 300 };
 iASPMView::iASPMView(MainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : PorosityAnalyzerSPMConnector( parent, f ),
 	m_SPLOMSelection( vtkSmartPointer<vtkIdTypeArray>::New() ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	m_SBQVTKWidget( new QVTKOpenGLWidget( this ) ),
-#else
-	m_SBQVTKWidget( new QVTKWidget( this ) ),
-#endif
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
 	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() ),
 	m_splom( new iAPAQSplom(mWnd, parent) )
 {
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	m_SBQVTKWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
-#endif
+	CREATE_OLDVTKWIDGET(m_SBQVTKWidget);
 	QHBoxLayout *layoutHB2 = new QHBoxLayout( this );
 	layoutHB2->setMargin( 0 );
 	layoutHB2->setSpacing( 0 );

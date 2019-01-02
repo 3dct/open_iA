@@ -27,11 +27,8 @@
 #include "iA3DNoVis.h"
 #include "iA3DEllipseObjectVis.h"
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#else
-#include <QVTKWidget2.h>
-#endif
+#include "iAVtkWidget.h"
+
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkGenericOpenGLRenderWindow.h>
@@ -40,7 +37,7 @@
 #include <QColor>
 #include <QtMath>
 
-iA3DObjectVis::iA3DObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping ):
+iA3DObjectVis::iA3DObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping ):
 	m_widget(widget),
 	m_objectTable(objectTable),
 	m_columnMapping(columnMapping)
@@ -95,6 +92,5 @@ QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi
 			return QSharedPointer<iA3DObjectVis>(new iA3DEllipseObjectVis(mdi->renderer->vtkWidgetRC, table, columnMapping, color));
 		case iACsvConfig::NoVis:
 			return QSharedPointer<iA3DObjectVis>(new iA3DNoVis());
-
 	}
 }

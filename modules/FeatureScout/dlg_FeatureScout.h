@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "qthelper/iADockWidgetWrapper.h"
-
 #include "iAFeatureScoutModuleInterface.h"
 #include "iAFeatureScoutObjectType.h"
 #include "qthelper/iAQTtoUIConnector.h"
@@ -29,10 +27,10 @@
 #include "ui_FeatureScoutPolarPlot.h"
 #include "ui_FeatureScoutMeanObjectView.h"
 
-#include <vtkSmartPointer.h>
+#include "iAVtkWidgetFwd.h"
+#include "qthelper/iADockWidgetWrapper.h"
 
-#include <QtGlobal>
-#include <vtkVersion.h>
+#include <vtkSmartPointer.h>
 
 #include <vector>
 
@@ -52,13 +50,6 @@ class iAQSplom;
 class iARenderer;
 class MdiChild;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-class QVTKOpenGLWidget;
-class vtkGenericOpenGLRenderWindow;
-#else
-class QVTKWidget;
-class vtkRenderWindow;
-#endif
 class vtkAxis;
 class vtkChartParallelCoordinates;
 class vtkColorTransferFunction;
@@ -260,13 +251,7 @@ private:
 
 	dlg_blobVisualization *blobVisDialog;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	QVTKOpenGLWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_meanObjectRenderWindow;
-#else
-	QVTKWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
-	vtkSmartPointer<vtkRenderWindow> m_meanObjectRenderWindow;
-#endif
+	iAVtkOldWidget *pcWidget, *m_polarPlotWidget, *meanObjectWidget, *m_lengthDistrWidget;
 
 	vtkSmartPointer<vtkContextView> m_dvContextView;
 

@@ -21,6 +21,7 @@
 #pragma once
 
 #include "charts/iAPlotData.h"
+#include "iAVtkWidgetFwd.h"
 #include "ui_DataTypeConversion.h"
 
 #include <vtkSmartPointer.h>
@@ -30,13 +31,6 @@
 
 class iAConnector;
 
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-class QVTKOpenGLWidget;
-#else
-class QVTKWidget2;
-#endif
 class vtkImageData;
 class vtkPlaneSource;
 
@@ -93,11 +87,7 @@ private:
 	iAPlotData::DataType * m_histbinlist;
 	float m_min, m_max, m_dis;
 	vtkImageData* m_testxyimage, * m_testxzimage, * m_testyzimage, * m_roiimage;
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	QVTKOpenGLWidget* vtkWidgetXY, *vtkWidgetXZ, *vtkWidgetYZ;
-#else
-	QVTKWidget2* vtkWidgetXY, *vtkWidgetXZ, *vtkWidgetYZ;
-#endif
+	iAVtkWidget* vtkWidgetXY, *vtkWidgetXZ, *vtkWidgetYZ;
 
 	iAConnector* xyconvertimage, * xzconvertimage, * yzconvertimage;
 
