@@ -74,11 +74,7 @@ PickedData	pickedData;
 
 
 iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * widget_container, bool decorations)
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	: QVTKOpenGLWidget(widget_container),
-#else
-	: QVTKWidget2(widget_container),
-#endif
+	: iAVtkWidget(widget_container),
 	m_magicLensExternal(slicerMaster->magicLens()),
 	m_slicerMode(slicerMaster->m_mode),
 	m_slicerDataExternal(slicerMaster->m_data),
@@ -325,11 +321,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 
 	if(!m_isInitialized && !fisheyeLensActivated)
 	{
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-		QVTKOpenGLWidget::keyPressEvent(event);
-#else
-		QVTKWidget2::keyPressEvent(event);
-#endif
+		iAVtkWidget::keyPressEvent(event);
 		return;
 	}
 	// if not in snake m_viewMode
@@ -346,11 +338,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 		// let other slice views know that slice view m_viewMode changed
 		emit switchedMode(m_viewMode);
 	}
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget::keyPressEvent(event);
-#else
-	QVTKWidget2::keyPressEvent(event);
-#endif
+	iAVtkWidget::keyPressEvent(event);
 }
 
 
@@ -358,11 +346,7 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 {
 	if(!m_isInitialized && !fisheyeLensActivated)
 	{
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-		QVTKOpenGLWidget::mousePressEvent(event);
-#else
-		QVTKWidget2::mousePressEvent(event);
-#endif
+		iAVtkWidget::mousePressEvent(event);
 		return;
 	}
 
@@ -371,11 +355,7 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 	int indxs[3];
 	if( !pickPoint(pos, result, indxs) )
 	{
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-		QVTKOpenGLWidget::mousePressEvent(event);
-#else
-		QVTKWidget2::mousePressEvent(event);
-#endif
+		iAVtkWidget::mousePressEvent(event);
 		return;
 	}
 
@@ -416,21 +396,13 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 	{
 		emit Clicked();
 	}
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget::mousePressEvent(event);
-#else
-	QVTKWidget2::mousePressEvent(event);
-#endif
+	iAVtkWidget::mousePressEvent(event);
 }
 
 
 void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 {
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget::mouseMoveEvent(event);
-#else
-	QVTKWidget2::mouseMoveEvent(event);
-#endif
+	iAVtkWidget::mouseMoveEvent(event);
 	if(!m_isInitialized && !fisheyeLensActivated)
 		return;
 
@@ -537,11 +509,7 @@ void iASlicerWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if(!m_isInitialized && !fisheyeLensActivated)
 	{
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-		QVTKOpenGLWidget::mouseReleaseEvent(event);
-#else
-		QVTKWidget2::mouseReleaseEvent(event);
-#endif
+		iAVtkWidget::mouseReleaseEvent(event);
 		return;
 	}
 
@@ -550,11 +518,7 @@ void iASlicerWidget::mouseReleaseEvent(QMouseEvent *event)
 		m_snakeSpline->deselectPoint();
 	}
 	emit deselectedPoint();  // let other slice views know that the point was deselected
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget::mouseReleaseEvent(event);
-#else
-	QVTKWidget2::mouseReleaseEvent(event);
-#endif
+	iAVtkWidget::mouseReleaseEvent(event);
 }
 
 void iASlicerWidget::mouseDoubleClickEvent(QMouseEvent* event)
@@ -569,11 +533,7 @@ void iASlicerWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	if(!m_isInitialized)
 	{
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-		QVTKOpenGLWidget::contextMenuEvent(event);
-#else
-		QVTKWidget2::contextMenuEvent(event);
-#endif
+		iAVtkWidget::contextMenuEvent(event);
 		return;
 	}
 	// is m_viewMode spline drawing m_viewMode?
@@ -810,11 +770,7 @@ void iASlicerWidget::setPieGlyphsOn( bool isOn )
 void iASlicerWidget::resizeEvent( QResizeEvent * event )
 {
 	updateMagicLens();
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget::resizeEvent(event);
-#else
-	QVTKWidget2::resizeEvent(event);
-#endif
+	iAVtkWidget::resizeEvent(event);
 }
 
 
@@ -835,11 +791,7 @@ void iASlicerWidget::wheelEvent(QWheelEvent* event)
 	}
 	else
 	{
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-		QVTKOpenGLWidget::wheelEvent(event);
-#else
-		QVTKWidget2::wheelEvent(event);
-#endif
+		iAVtkWidget::wheelEvent(event);
 		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 	}
 	updateMagicLens();

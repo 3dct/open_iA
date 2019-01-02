@@ -47,6 +47,7 @@
 #include "iAFunctionalBoxplot.h"
 #include "iAMathUtility.h"
 #include "iARenderer.h"
+#include "iAVtkWidget.h"
 #include "qthelper/iAWidgetAddHelper.h"
 #include "io/iAIO.h"
 #include "mdichild.h"
@@ -63,11 +64,6 @@
 #include <itkExtractImageFilter.h>
 #include <itkImageMaskSpatialObject.h>
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#else
-#include <QVTKWidget.h>
-#endif
 #include <vtkColorTransferFunction.h>
 #include <vtkDiscretizableColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -210,14 +206,7 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_colormapRen = vtkSmartPointer<vtkRenderer>::New();
 	m_colormapRen->SetBackground(1.0, 1.0, 1.0);
 
-
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	colormapWidget = new QVTKOpenGLWidget();
-	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	colormapWidget->SetRenderWindow(renWin);
-#else
-	colormapWidget = new QVTKWidget();
-#endif
+	CREATE_OLDVTKWIDGET(colormapWidget);
 	horizontalLayout_8->insertWidget(0, colormapWidget);
 	colormapWidget->GetRenderWindow()->AddRenderer(m_colormapRen);
 	vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();

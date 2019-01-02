@@ -43,6 +43,7 @@
 #include "iAProgress.h"
 #include "iARenderer.h"
 #include "iAToolsITK.h"
+#include "iAVtkWidget.h"
 #include "mdichild.h"
 
 #include <itkAddImageFilter.h>
@@ -55,12 +56,6 @@
 #include <itkPasteImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#else
-#include <QVTKWidget.h>
-#include <vtkRenderWindow.h>
-#endif
 #include <vtkActor.h>
 #include <vtkActor2D.h>
 #include <vtkAnnotationLink.h>
@@ -236,24 +231,10 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	tableList.push_back( chartTable );
 
 	initFeatureScoutUI();
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	pcWidget = new QVTKOpenGLWidget();
-	auto pcWidgetRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	pcWidgetRenWin->SetLineSmoothing(true);
-	pcWidget->SetRenderWindow(pcWidgetRenWin);
-	
-	m_polarPlotWidget = new QVTKOpenGLWidget();
-	auto polarPlotRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	m_polarPlotWidget->SetRenderWindow(polarPlotRenWin);
-
-	m_lengthDistrWidget = new QVTKOpenGLWidget();
-	auto lengthDistrRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	m_lengthDistrWidget->SetRenderWindow(lengthDistrRenWin);
+	CREATE_OLDVTKWIDGET(pcWidget);
+	CREATE_OLDVTKWIDGET(m_polarPlotWidget);
+	CREATE_OLDVTKWIDGET(m_lengthDistrWidget);
 	m_lengthDistrWidget->hide();
-#else
-	pcWidget = new QVTKWidget();
-	polarPlot = new QVTKWidget();
-#endif
 	iovPC->setWidget(pcWidget);
 	iovPP->legendLayout->addWidget(m_polarPlotWidget);
 
@@ -1044,17 +1025,11 @@ void dlg_FeatureScout::RenderMeanObject()
 		connect( iovMO->tb_SaveStl, SIGNAL( clicked() ), this, SLOT( saveStl() ) );
 
 		// Create a render window and an interactor for all the MObjects
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-		m_meanObjectRenderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-		meanObjectWidget = new QVTKOpenGLWidget();
-#else
-		m_meanObjectRenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-		meanObjectWidget = new QVTKWidget();
-#endif
+		CREATE_OLDVTKWIDGET(meanObjectWidget);
+
 		iovMO->verticalLayout->addWidget( meanObjectWidget );
-		meanObjectWidget->SetRenderWindow( m_meanObjectRenderWindow );
 		auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-		renderWindowInteractor->SetRenderWindow( m_meanObjectRenderWindow );
+		renderWindowInteractor->SetRenderWindow( meanObjectWidget->GetRenderWindow() );
 		auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle( style );
 
@@ -1098,7 +1073,7 @@ void dlg_FeatureScout::RenderMeanObject()
 		m_MOData.moRendererList.append( renderer );
 		renderer->GetActiveCamera()->ParallelProjectionOn();
 		renderer->SetBackground( 1.0, 1.0, 1.0 );
-		m_meanObjectRenderWindow->AddRenderer( m_MOData.moRendererList[i] );
+		meanObjectWidget->GetRenderWindow()->AddRenderer( m_MOData.moRendererList[i] );
 		renderer->SetViewport( fmod( i, viewportColumns ) * fieldLengthX,
 							   1 - ( ceil( ( i + 1.0 ) / viewportColumns ) / viewportRows ),
 							   fmod( i, viewportColumns ) * fieldLengthX + fieldLengthX,
@@ -1153,7 +1128,7 @@ void dlg_FeatureScout::RenderMeanObject()
 			renderer->AddActor( cubeAxesActor );
 			renderer->AddActor( outlineActor );
 		}
-		m_meanObjectRenderWindow->Render();
+		meanObjectWidget->GetRenderWindow()->Render();
 	}
 }
 
@@ -1910,12 +1885,9 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		if ( !iovDV )
 		{
 			iovDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-			auto dvqvtkWidget = new QVTKOpenGLWidget();
-			dvqvtkWidget->SetRenderWindow(vtkGenericOpenGLRenderWindow::New());
-#else
-			auto dvqvtkWidget = new QVTKWidget();
-#endif
+
+			iAVtkOldWidget* dvqvtkWidget;
+			CREATE_OLDVTKWIDGET(dvqvtkWidget);
 			iovDV->setWidget(dvqvtkWidget);
 			m_dvContextView->SetRenderWindow( dvqvtkWidget->GetRenderWindow() );
 			m_dvContextView->SetInteractor( dvqvtkWidget->GetInteractor() );

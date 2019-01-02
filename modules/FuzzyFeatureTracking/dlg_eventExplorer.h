@@ -20,11 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QtGui>
-#include <QObject>
-#include <QList>
-
 #include "ui_EventExplorer.h"
+
+#include "iAVtkWidgetFwd.h"
 
 #include <vtkChartXY.h>
 #include <vtkContextView.h>
@@ -35,19 +33,16 @@
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
 
+#include <QtGui>
+#include <QObject>
+#include <QList>
+
 #include <vector>
 
 class dlg_trackingGraph;
 class iAFeatureTracking;
 class iAVolumeStack;
 
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-class QVTKOpenGLWidget;
-#else
-class QVTKWidget;
-#endif
 class vtkEventQtSlotConnect;
 
 class dlg_eventExplorer : public QDockWidget, private Ui_EventExplorer
@@ -94,11 +89,7 @@ private:
 	int m_propertyYId;
 	int m_rgb[5][3];
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	std::vector<QVTKOpenGLWidget*> m_widgets;
-#else
-	std::vector<QVTKWidget*> m_widgets;
-#endif
+	std::vector<iAVtkOldWidget*> m_widgets;
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY>> m_charts;
 	std::vector<vtkSmartPointer<vtkPlot>> m_plots;

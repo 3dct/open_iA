@@ -25,14 +25,9 @@
 
 #include "iAConsole.h"
 #include "iAVolumeStack.h"
+#include "iAVtkWidget.h"
 #include "mdichild.h"
 
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#else
-#include <QVTKWidget.h>
-#endif
 #include <vtkAxis.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkDataSetAttributes.h>
@@ -139,11 +134,10 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 
 	for(int i=0; i<numberOfCharts; i++)
 	{
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-		m_widgets.push_back(new QVTKOpenGLWidget());
-#else
-		m_widgets.push_back(new QVTKWidget());
-#endif
+		iAVtkOldWidget* vtkWidget;
+		CREATE_OLDVTKWIDGET(vtkWidget);
+		m_widgets.push_back(vtkWidget);
+
 		this->horizontalLayout->addWidget(m_widgets.at(i));
 
 		m_contextViews.push_back(vtkSmartPointer<vtkContextView>::New());

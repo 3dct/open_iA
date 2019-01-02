@@ -40,7 +40,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkTable.h>
 
-iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color ):
+iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color ):
 	iA3DColoredPolyObjectVis(widget, objectTable, columnMapping, color, 2),
 	m_selectionActive(false),
 	m_outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),

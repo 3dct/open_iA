@@ -43,7 +43,7 @@
 #include <QtMath>
 #include <QMenu>
 #include <QMessageBox>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 #include <QSurfaceFormat>
 #include <QPainter>
 #endif
@@ -174,7 +174,7 @@ void iAQSplom::selectionModeRectangle()
 	setSelectionMode(iAScatterPlot::Rectangle);
 }
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f)
 	:QOpenGLWidget(parent, f),
 #else
@@ -203,7 +203,7 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	setFocusPolicy( Qt::StrongFocus );
 	setBackgroundRole(QPalette::Base);
 	setAutoFillBackground(true);
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QSurfaceFormat format = QSurfaceFormat();
 	format.setSamples(4);
 	setFormat(format);
@@ -1049,7 +1049,7 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 void iAQSplom::resizeEvent( QResizeEvent * event )
 {
 	updateSPLOMLayout();
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QOpenGLWidget::resizeEvent( event );
 #else
 	QGLWidget::resizeEvent( event );
