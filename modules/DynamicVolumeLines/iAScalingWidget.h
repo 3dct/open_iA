@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QOpenGLWidget>
-
-#include <qcustomplot.h>
+#include <charts/qcustomplot.h>
 
 #include <vtkSmartPointer.h>
+
+#include <QOpenGLWidget>
 
 class vtkLookupTable;
 
