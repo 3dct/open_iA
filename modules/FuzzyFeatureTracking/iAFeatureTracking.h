@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include <string>
-#include <vector>
+#include "iAFeatureTrackingCorrespondence.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
 #include <vtkVariantArray.h>
 
-#include "iAFeatureTrackingCorrespondence.h"
+#include <string>
+#include <vector>
 
 class iAFeatureTracking
 {

@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <itkImage.h>
 #include "iAITKIO.h" // TODO: replace?
+
+#include <itkImage.h>
 
 #include <vtkSmartPointer.h>
 

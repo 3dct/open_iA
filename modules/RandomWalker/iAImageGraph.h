@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vector>
-
 #include "iAImageCoordinate.h"
 #include "iAImageGraphTypes.h"
+
+#include <vector>
+
 
 class WeightCalculator
 {
