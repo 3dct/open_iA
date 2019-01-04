@@ -30,16 +30,16 @@
 #include "iASpatialView.h"
 #include "iAUncertaintyColors.h"
 
-#include "charts/iASimpleHistogramData.h"
-#include "dlg_imageproperty.h"
-#include "iAChildData.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "qthelper/iADockWidgetWrapper.h"
-#include "iALookupTable.h"
-#include "iAStringHelper.h"
-#include "mdichild.h"
-#include "mainwindow.h"
+#include <charts/iASimpleHistogramData.h>
+#include <dlg_imageproperty.h>
+#include <iAChildData.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iALookupTable.h>
+#include <iAStringHelper.h>
+#include <mdichild.h>
+#include <mainwindow.h>
+#include <qthelper/iADockWidgetWrapper.h>
 
 #include <vtkLookupTable.h>
 

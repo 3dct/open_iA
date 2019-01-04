@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #include "iAGPUEdgePreservingSmoothing.h"
 
-#include "defines.h"          // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iAToolsITK.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>          // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iAToolsITK.h>
+#include <iATypedCallHelper.h>
 
 #include <itkGPUImage.h>
 #include <itkGPUKernelManager.h>

@@ -20,8 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASlicerMode.h"
+#include <iASlicerMode.h>
+
 #include <vtkSmartPointer.h>
+
 #include <QScopedPointer>
 #include <QString>
 

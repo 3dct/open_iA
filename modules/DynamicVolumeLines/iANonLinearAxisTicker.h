@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/qcustomplot.h"
+#include <charts/qcustomplot.h>
 
 class iANonLinearAxisTicker : public QCPAxisTicker
 {

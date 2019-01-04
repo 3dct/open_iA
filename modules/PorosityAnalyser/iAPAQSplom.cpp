@@ -24,11 +24,11 @@
 
 #include "iAFeatureScoutModuleInterface.h"
 
-#include "charts/iASPLOMData.h"
-#include "charts/iAScatterPlot.h"
-#include "iAConsole.h"
-#include "iAMathUtility.h"
-#include "iAModuleDispatcher.h"
+#include <charts/iASPLOMData.h>
+#include <charts/iAScatterPlot.h>
+#include <iAConsole.h>
+#include <iAMathUtility.h>
+#include <iAModuleDispatcher.h>
 
 #include <QDir>
 #include <QKeyEvent>

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAParamTableView.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
 
 #include <QFile>
 #include <QHBoxLayout>

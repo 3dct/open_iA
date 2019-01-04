@@ -20,11 +20,12 @@
 * ************************************************************************************/
 #include "iAImageTree.h"
 
-#include "iAConsole.h"
 #include "iAImageTreeInternalNode.h"
 #include "iAImageTreeLeaf.h"
 #include "iASamplingResults.h"
 #include "iASingleResult.h"
+
+#include <iAConsole.h>
 
 #include <QDir>
 #include <QFile>

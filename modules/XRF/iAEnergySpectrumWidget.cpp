@@ -24,8 +24,8 @@
 #include "iACharacteristicEnergy.h"
 #include "iASpectrumFilter.h"
 
-#include "charts/iAPlotTypes.h"
-#include "iAMapper.h"
+#include <charts/iAPlotTypes.h>
+#include <iAMapper.h>
 
 #include <QFontMetrics>
 #include <QMap>

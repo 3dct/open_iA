@@ -21,13 +21,14 @@
 #include "dlg_samplingSettings.h"
 
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
-#include "iAConsole.h"
-#include "iAListNameMapper.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iANameMapper.h"
 #include "iAParameterGeneratorImpl.h"
+
+#include <iAAttributeDescriptor.h>
+#include <iAConsole.h>
+#include <iAListNameMapper.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iANameMapper.h>
 
 #include <QCheckBox>
 #include <QDropEvent>

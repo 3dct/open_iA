@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAImageCoordinate.h"
 #include "iAVectorArray.h"
 #include "iAVectorType.h"
 #include "iAVectorTypeImpl.h"
+
+#include <iAImageCoordinate.h>
 
 #include <itkImage.h>
 

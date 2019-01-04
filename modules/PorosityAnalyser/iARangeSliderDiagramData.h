@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iAPlotData.h"
+#include <charts/iAPlotData.h>
 
 #include <QSharedPointer>
 

@@ -19,7 +19,8 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
-#include "iAImageCoordinate.h"	// for iAVoxelIndexType
+
+#include <iAImageCoordinate.h>	// for iAVoxelIndexType
 
 #include <QVector>
 

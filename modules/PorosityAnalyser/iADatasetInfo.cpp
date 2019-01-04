@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #include "iADatasetInfo.h"
 
+#include "iAPorosityAnalyserModuleInterface.h"
 #include "PorosityAnalyserHelpers.h"
 
-#include "iAToolsITK.h"
-#include "io/iAITKIO.h"
+#include <iAToolsITK.h>
+#include <io/iAITKIO.h>
 
 #include <itkExtractImageFilter.h>
 #include <itkImageDuplicator.h>

@@ -20,11 +20,12 @@
 * ************************************************************************************/
 #include "iAEntropy.h"
 
-#include "EntropyImageFilter.h"
+// in Toolkit/Ensemble
+#include <EntropyImageFilter.h>
 
-#include "defines.h"    // for DIM
-#include "iAConnector.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
+#include <iATypedCallHelper.h>
 
 iAEntropy::iAEntropy() :
 	iAFilter("Entropy", "Uncertainty",

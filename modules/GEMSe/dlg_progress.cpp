@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_progress.h"
 
-#include "iAPerformanceHelper.h"
+#include <iAPerformanceHelper.h>
 
 #include <QDateTime>
 

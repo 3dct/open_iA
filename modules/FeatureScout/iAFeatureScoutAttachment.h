@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
 #include "iABlobManager.h"
+
+#include <iAModuleAttachmentToChild.h>
 
 #include <QList>
 

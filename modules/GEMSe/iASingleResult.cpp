@@ -20,15 +20,15 @@
 * ************************************************************************************/
 #include "iASingleResult.h"
 
-#include "iAAttributeDescriptor.h"
 #include "iAAttributes.h"
-#include "iANameMapper.h"
 #include "iASamplingResults.h"
 
-#include "iAConsole.h"
-#include "iAToolsITK.h"
-#include "io/iAFileUtils.h"
-#include "io/iAITKIO.h"
+#include <iAAttributeDescriptor.h>
+#include <iAConsole.h>
+#include <iANameMapper.h>
+#include <iAToolsITK.h>
+#include <io/iAFileUtils.h>
+#include <io/iAITKIO.h>
 
 #include <QFile>
 #include <QFileInfo>

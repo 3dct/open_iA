@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #include "iAExampleImageWidget.h"
 
-#include "iAConsole.h"
 #include "iAImageTreeLeaf.h"
 #include "iAImagePreviewWidget.h"
-#include "iAMathUtility.h"
 #include "iAQtCaptionWidget.h"
 #include "iAPreviewWidgetPool.h"
 #include "iAGEMSeConstants.h"
+
+#include <iAConsole.h>
+#include <iAMathUtility.h>
 
 #include <QGridLayout>
 #include <QPainter>

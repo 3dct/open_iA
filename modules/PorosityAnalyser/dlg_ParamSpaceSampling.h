@@ -20,16 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
+#include "ui_ParamSpaceSampling.h"
+
+#include <charts/qcustomplot.h>
+
 #include <QDialog>
 #include <QString>
 #include <QStringList>
 #include <QList>
 #include <QTextDocument>
 #include <QTextEdit>
-
-#include "charts/qcustomplot.h"
-
-#include "ui_ParamSpaceSampling.h"
 
 class QWidget;
 class QErrorMessage;

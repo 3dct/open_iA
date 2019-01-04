@@ -23,20 +23,30 @@
 #include "dlg_trackingGraph.h"
 #include "iAFeatureTracking.h"
 
-#include "iAConsole.h"
-#include "iAVolumeStack.h"
-#include "iAVtkWidget.h"
-#include "mdichild.h"
+#include <iAConsole.h>
+#include <iAVolumeStack.h>
+#include <iAVtkWidget.h>
+#include <mdichild.h>
 
 #include <vtkAxis.h>
+#include <vtkChartXY.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkContextScene.h>
+#include <vtkContextView.h>
 #include <vtkDataSetAttributes.h>
 #include <vtkDoubleArray.h>
 #include <vtkEventQtSlotConnect.h>
 #include <vtkFloatArray.h>
+#include <vtkIdTypeArray.h>
+#include <vtkIntArray.h>
+#include <vtkMutableDirectedGraph.h>
 #include <vtkPen.h>
 #include <vtkPiecewiseFunction.h>
+#include <vtkPlot.h>
 #include <vtkStringArray.h>
+#include <vtkTable.h>
+#include <vtkVariantArray.h>
+
 
 #include <sstream>
 

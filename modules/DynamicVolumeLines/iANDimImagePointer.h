@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>
-#include <memory>
 #include <itkIndex.h>
+
 #include <unordered_map>
+#include <vector>
 
 struct Key
 {

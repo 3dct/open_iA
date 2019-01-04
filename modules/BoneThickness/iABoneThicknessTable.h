@@ -18,35 +18,30 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #pragma once
-// iA
-#include <QTableView>
 
-#include <vtkType.h>
+#include <vtkType.h>    // for vtkIdType
+
+#include <QTableView>
 
 class iABoneThickness;
 class iABoneThicknessChartBar;
 
 class iABoneThicknessTable : public QTableView
 {
-		Q_OBJECT
+	Q_OBJECT
+public:
+	explicit iABoneThicknessTable(QWidget* _pParent = nullptr);
+	int selected() const;
+	void set(iABoneThickness* _pBoneThickness, iABoneThicknessChartBar* _pBoneThicknessChartBar);
+	void setSelected(const vtkIdType& _idSelected);
 
-	public:
-		explicit iABoneThicknessTable(QWidget* _pParent = nullptr);
+private:
+	iABoneThickness* m_pBoneThickness = nullptr;
+	iABoneThicknessChartBar* m_pBoneThicknessChartBar = nullptr;
 
-		int selected() const;
-
-		void set(iABoneThickness* _pBoneThickness, iABoneThicknessChartBar* _pBoneThicknessChartBar);
-		void setSelected(const vtkIdType& _idSelected);
-
-	private:
-		iABoneThickness* m_pBoneThickness = nullptr;
-		iABoneThicknessChartBar* m_pBoneThicknessChartBar = nullptr;
-
-	protected:
-		virtual QSize minimumSizeHint() const override;
-		virtual void mousePressEvent(QMouseEvent* e) override;
-		virtual void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
-
+protected:
+	QSize minimumSizeHint() const override;
+	void mousePressEvent(QMouseEvent* e) override;
+	void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
 };

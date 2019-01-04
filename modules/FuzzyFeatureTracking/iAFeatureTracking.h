@@ -23,11 +23,12 @@
 #include "iAFeatureTrackingCorrespondence.h"
 
 #include <vtkSmartPointer.h>
-#include <vtkTable.h>
-#include <vtkVariantArray.h>
 
 #include <string>
 #include <vector>
+
+class vtkTable;
+class vtkVariantArray;
 
 class iAFeatureTracking
 {

@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #include "iASimpleSlicerWidget.h"
 
-#include "iAModality.h"
-#include "iAModalityTransfer.h"
-#include "iASlicer.h"
-#include "iASlicerData.h"
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iASlicer.h>
+#include <iASlicerData.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>

@@ -25,9 +25,8 @@
 #include "dlg_trackingGraph.h"
 #include "iAFeatureTracking.h"
 
-#include "iAVolumeStack.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <iAVolumeStack.h>
+#include <mdichild.h>
 
 #include <itkMacro.h>
 

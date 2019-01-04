@@ -20,18 +20,19 @@
 * ************************************************************************************/
 #include "iASSView.h"
 
-#include "iAChannelVisualizationData.h"
-#include "PorosityAnalyserHelpers.h"
-#include "defines.h"
-#include "iACSVToQTableWidgetConverter.h"
-#include "iASSViewSetings.h"
-#include "iABoxPlotData.h"
-#include "iASSSlicer.h"
-#include "iASlicer.h"
 #include "iASegm3DView.h"
-#include "iAChanData.h"
-#include "iARenderer.h"
-#include "iAVTKRendererManager.h"
+#include "iASSSlicer.h"
+#include "iASSViewSetings.h"
+#include "PorosityAnalyserHelpers.h"
+
+#include <iAChannelVisualizationData.h>
+#include <defines.h>
+#include <iACSVToQTableWidgetConverter.h>
+#include <iABoxPlotData.h>
+#include <iASlicer.h>
+#include <iAChanData.h>
+#include <iARenderer.h>
+#include <iAVTKRendererManager.h>
 
 #include <vtkTransform.h>
 #include <vtkColorTransferFunction.h>

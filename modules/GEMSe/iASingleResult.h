@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "io/iAITKIO.h" // TODO: replace?
+#include <io/iAITKIO.h> // TODO: replace?
 
 #include <QSharedPointer>
 #include <QString>

@@ -23,21 +23,21 @@
 #include "dlg_GEMSeControl.h"
 #include "dlg_GEMSe.h"
 #include "dlg_labels.h"
-#include "dlg_modalities.h"
 #include "dlg_samplings.h"
-#include "iAChildData.h"
-#include "iAConsole.h"
-#include "iAColorTheme.h"
-#include "iALogger.h"
-#include "iAModality.h"
-#include "iARenderer.h"
-#include "iASlicer.h"
-#include "iASlicerData.h"
-#include "iASlicerWidget.h"
-#include "qthelper/iAWidgetAddHelper.h"
-#include "mdichild.h"
-#include "mainwindow.h"
 
+#include <dlg_modalities.h>
+#include <iAChildData.h>
+#include <iAConsole.h>
+#include <iAColorTheme.h>
+#include <iALogger.h>
+#include <iAModality.h>
+#include <iARenderer.h>
+#include <iASlicer.h>
+#include <iASlicerData.h>
+#include <iASlicerWidget.h>
+#include <mdichild.h>
+#include <mainwindow.h>
+#include <qthelper/iAWidgetAddHelper.h>
 
 iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData),

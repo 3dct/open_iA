@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iALabelOverlayThread.h"
 
-#include "iAColorTheme.h"
-#include "iAVtkDraw.h"
+#include <iAColorTheme.h>
+#include <iAVtkDraw.h>
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>

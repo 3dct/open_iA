@@ -21,7 +21,8 @@
 #pragma once
 
 #include <charts/qcustomplot.h>
-#include "iAColorTheme.h"
+#include <defines.h>   // for DIM
+#include <iAColorTheme.h>
 
 #include <itkImageBase.h>
 #include <itkImage.h>

@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-class iAAttributes;
-
 #include <QSharedPointer>
 #include <QVector>
+
+class iAAttributes;
 
 typedef QVector<double> ParameterSet;
 typedef QVector<ParameterSet> ParameterSets;

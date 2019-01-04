@@ -20,17 +20,16 @@
 * ************************************************************************************/
 #include "iATransformations.h"
 
-#include "defines.h"    // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "mdichild.h"
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
+#include <mdichild.h>
 
 #include <itkResampleImageFilter.h>
 #include <itkAffineTransform.h>
 #include <itkPermuteAxesImageFilter.h>
 #include <itkFlipImageFilter.h>
-
-#include "iATypedCallHelper.h"
 
 template <class TImageType>
 static typename TImageType::PointType image_center(TImageType * image)

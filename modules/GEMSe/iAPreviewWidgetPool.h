@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASlicerMode.h"
+#include <iASlicerMode.h>
 
 #include <QVector>
 #include <QWidget>

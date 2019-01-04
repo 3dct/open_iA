@@ -27,21 +27,21 @@
 #include "iASingleResult.h"
 
 // LabelVoting:
-#include "MaskingLabelOverlapMeasuresImageFilter.h"
-#include "ParametrizableLabelVotingImageFilter.h"
-#include "ProbabilisticVotingImageFilter.h"
-#include "UndecidedPixelClassifierImageFilter.h"
+#include <MaskingLabelOverlapMeasuresImageFilter.h>
+#include <ParametrizableLabelVotingImageFilter.h>
+#include <ProbabilisticVotingImageFilter.h>
+#include <UndecidedPixelClassifierImageFilter.h>
 
-#include "dlg_commoninput.h"
-#include "iAColorTheme.h"
-#include "iAConsole.h"
-#include "qthelper/iADockWidgetWrapper.h"
-#include "iALookupTable.h"
-#include "iAToolsITK.h"
-#include "iAVtkWidget.h"
-#include "io/iAFileUtils.h"
-#include "io/iAIOProvider.h"
-#include "mdichild.h"
+#include <dlg_commoninput.h>
+#include <iAColorTheme.h>
+#include <iAConsole.h>
+#include <iALookupTable.h>
+#include <iAToolsITK.h>
+#include <iAVtkWidget.h>
+#include <io/iAFileUtils.h>
+#include <io/iAIOProvider.h>
+#include <mdichild.h>
+#include <qthelper/iADockWidgetWrapper.h>
 
 #include <vtkAxis.h>
 #include <vtkChartXY.h>

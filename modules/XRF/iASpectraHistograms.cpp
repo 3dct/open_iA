@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #include "iASpectraHistograms.h"
 
-#include "iATypedCallHelper.h"
 #include "iAXRFData.h"
+
+#include <iATypedCallHelper.h>
 
 #include <vtkImageData.h>
 

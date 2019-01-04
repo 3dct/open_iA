@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #include "iAMorphologyFilters.h"
 
-#include "defines.h"    // for DIM
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
 
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryMorphologicalClosingImageFilter.h>

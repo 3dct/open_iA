@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include <iAModuleAttachmentToChild.h>
 
 class dlg_modalitySPLOM;
 

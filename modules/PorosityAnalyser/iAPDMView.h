@@ -21,10 +21,12 @@
 #pragma once
 
 #include "ui_PDMView.h"
-#include "iAVtkWidgetFwd.h"
-#include "qthelper/iAQTtoUIConnector.h"
+
+#include <iAVtkWidgetFwd.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
+
 #include <QDockWidget>
 #include <QList>
 #include <QMap>

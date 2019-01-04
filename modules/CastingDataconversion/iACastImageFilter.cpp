@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #include "iACastImageFilter.h"
 
-#include "defines.h"          // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iAToolsITK.h"    // for CastImageTo
-#include "iAToolsVTK.h"    // for VTKDataTypeList
-#include "iATypedCallHelper.h"
+#include <defines.h>          // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iAToolsITK.h>    // for CastImageTo
+#include <iAToolsVTK.h>    // for VTKDataTypeList
+#include <iATypedCallHelper.h>
 #include <itkFHWRescaleIntensityImageFilter.h>
 
 #include <itkCastImageFilter.h>

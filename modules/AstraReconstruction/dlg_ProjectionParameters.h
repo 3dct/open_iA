@@ -37,7 +37,7 @@ public:
 	void fillProjInputMapping(int detRowDim, int detColDim, int projAngleDim, const int dim[3]);
 	void fillAlgorithmValues(int algorithmType, int numberOfIterations);
 	void fillCorrectionValues(bool correctCenterOfRotation, double correctCenterOfRotationOffset);
-	virtual int exec();
+	int exec() override;
 private slots:
 	void algorithmChanged(int idx);
 	void centerOfRotationEnabled(int);

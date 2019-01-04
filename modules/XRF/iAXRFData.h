@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vector>
+#include <vtkSmartPointer.h>
 
 #include <QObject>
 #include <QVector>
 
-#include <vtkSmartPointer.h>
+#include <vector>
 
 class vtkColorTransferFunction;
 class vtkDiscretizableColorTransferFunction;

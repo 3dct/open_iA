@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAVtkWidget.h"
+#include <iAVtkWidget.h>
 
 #include <vtkSmartPointer.h>
 

@@ -20,6 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include <iAFilter.h>
 
 IAFILTER_DEFAULT_CLASS(iACastImageFilter);

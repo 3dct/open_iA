@@ -22,9 +22,9 @@
 
 #include "iACalcFeatureCharacteristics.h"
 
-#include "dlg_commoninput.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <dlg_commoninput.h>
+#include <mainwindow.h>
+#include <mdichild.h>
 
 #include <QFileDialog>
 #include <QMessageBox>

@@ -21,7 +21,8 @@
 #include "iABoneThicknessModuleInterface.h"
 
 #include "iABoneThicknessAttachment.h"
-#include "mainwindow.h"
+
+#include <mainwindow.h>
 
 void iABoneThicknessModuleInterface::Initialize( )
 {

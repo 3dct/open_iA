@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #include "iAGeometricTransformations.h"
 
-#include "defines.h"          // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iAToolsITK.h"
-#include "iATypedCallHelper.h"
-#include "mdichild.h"
+#include <defines.h>          // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iAToolsITK.h>
+#include <iATypedCallHelper.h>
+#include <mdichild.h>
 
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkChangeInformationImageFilter.h>

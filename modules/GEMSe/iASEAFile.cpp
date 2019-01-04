@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iASEAFile.h"
 
-#include "iAConsole.h"
-#include "io/iAFileUtils.h"
+#include <iAConsole.h>
+#include <io/iAFileUtils.h>
 
 #include <QFile>
 #include <QFileInfo>

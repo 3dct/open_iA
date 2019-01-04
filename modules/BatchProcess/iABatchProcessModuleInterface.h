@@ -20,13 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include <iAModuleInterface.h>
 
 class iABatchProcessModuleInterface : public iAModuleInterface
 {
-	//Q_OBJECT
 public:
 	void Initialize() override;
-//private slots:
-	//void ShowSampleDialog();
 };

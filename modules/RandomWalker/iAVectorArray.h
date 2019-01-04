@@ -22,9 +22,9 @@
 
 #include "iAVectorType.h"  // for iAVectorDataType
 
-#include <cstddef> // for size_t
-
 #include <QSharedPointer>
+
+#include <cstddef> // for size_t
 
 //! abstract base class for access to multi-channel/vector data, arranged as array
 class iAVectorArray

@@ -22,7 +22,7 @@
 
 #include "iAIntensity.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iAIntensityModuleInterface::Initialize()
 {

@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #include "iAThresholding.h"
 
-#include "defines.h"    // for DIM
-#include "iAAttributeDescriptor.h"
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>    // for DIM
+#include <iAAttributeDescriptor.h>
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
 
-#include "itkMaximumDistance.h"
+// from Toolkit/MaximumDistance
+#include <itkMaximumDistance.h>
 
 #include <itkAdaptiveOtsuThresholdImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>

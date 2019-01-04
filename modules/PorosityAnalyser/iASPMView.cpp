@@ -20,15 +20,15 @@
 * ************************************************************************************/
 #include "iASPMView.h"
 
-#include "iAQtVTKBindings.h"
-#include "PorosityAnalyserHelpers.h"
-#include "iASelection.h"
-#include "iALUT.h"
 #include "iAPAQSplom.h"
+#include "iASelection.h"
+#include "PorosityAnalyserHelpers.h"
 
-#include "charts/iASPLOMData.h"
-#include "iALookupTable.h"
-#include "iAVtkWidget.h"
+#include <charts/iASPLOMData.h>
+#include <iALookupTable.h>
+#include <iALUT.h>
+#include <iAQtVTKBindings.h>
+#include <iAVtkWidget.h>
 
 #include <vtkAnnotationLink.h>
 #include <vtkChart.h>

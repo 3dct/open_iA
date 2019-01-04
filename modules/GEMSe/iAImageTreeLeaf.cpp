@@ -23,7 +23,8 @@
 #include "iAChartAttributeMapper.h"
 #include "iAChartFilter.h"
 #include "iASingleResult.h"
-#include "iAToolsITK.h"
+
+#include <iAToolsITK.h>
 
 iAImageTreeLeaf::iAImageTreeLeaf(QSharedPointer<iASingleResult> img, int labelCount) :
 	m_singleResult(img),

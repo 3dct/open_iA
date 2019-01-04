@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iADataFolderDialog.h"
 
-#include "defines.h"
-#include "mainwindow.h"
+#include <defines.h>
+#include <mainwindow.h>
 
 #include <QFileDialog>
 #include <QMessageBox>

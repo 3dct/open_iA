@@ -30,32 +30,32 @@ class iAFoamCharacterizationItemBinarization;
 
 class iAFoamCharacterizationItemWatershed : public iAFoamCharacterizationItem
 {
-		Q_OBJECT
+	Q_OBJECT
 
-	public:
-		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
-		explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed);
+public:
+	explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
+	explicit iAFoamCharacterizationItemWatershed(iAFoamCharacterizationItemWatershed* _pWatershed);
 
-		void executeFloat(iAConnector* _pConnector);
-		void executeUnsignedShort(iAConnector* _pConnector);
+	void executeFloat(iAConnector* _pConnector);
+	void executeUnsignedShort(iAConnector* _pConnector);
 
-		int itemMask() const;
+	int itemMask() const;
 
-		double level() const;
-		double threshold() const;
+	double level() const;
+	double threshold() const;
 
-		void setItemMask(const int& _iItemMask);
-		void setLevel(const double& _dLevel);
-		void setThreshold(const double& _dThreshold);
+	void setItemMask(const int& _iItemMask);
+	void setLevel(const double& _dLevel);
+	void setThreshold(const double& _dThreshold);
 
-		virtual void dialog() override;
-		virtual void execute() override;
-		virtual void open(QFile* _pFileOpen) override;
-		virtual void save(QFile* _pFileSave) override;
+	virtual void dialog() override;
+	virtual void execute() override;
+	virtual void open(QFile* _pFileOpen) override;
+	virtual void save(QFile* _pFileSave) override;
 
-	private:
-		double m_dLevel = 0.4;
-		double m_dThreshold = 0.1;
+private:
+	double m_dLevel = 0.4;
+	double m_dThreshold = 0.1;
 
-		int m_iItemMask = -1;
+	int m_iItemMask = -1;
 };

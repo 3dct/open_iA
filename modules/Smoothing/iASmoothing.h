@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include <iAFilter.h>
 
 // Blurring
 IAFILTER_DEFAULT_CLASS(iADiscreteGaussian);

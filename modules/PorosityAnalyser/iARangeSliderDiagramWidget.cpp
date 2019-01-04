@@ -20,10 +20,9 @@
 * ************************************************************************************/
 #include "iARangeSliderDiagramWidget.h"
 
-#include "iACSVToQTableWidgetConverter.h"
-
-#include "dlg_function.h"
-#include "dlg_transfer.h"
+#include <dlg_function.h>
+#include <dlg_transfer.h>
+#include <iACSVToQTableWidgetConverter.h>
 
 iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChild *mdiChild,
 							vtkPiecewiseFunction* oTF,

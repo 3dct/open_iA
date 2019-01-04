@@ -21,12 +21,12 @@
 #include "iASamplingResults.h"
 
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
 #include "iAGEMSeConstants.h"
 #include "iASingleResult.h"
 
-#include "iAConsole.h"
-#include "io/iAFileUtils.h"
+#include <iAAttributeDescriptor.h>
+#include <iAConsole.h>
+#include <io/iAFileUtils.h>
 
 #include <QFile>
 #include <QTextStream>

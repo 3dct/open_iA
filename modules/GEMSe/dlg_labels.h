@@ -21,10 +21,10 @@
 #pragma once
 
 #include "ui_labels.h"
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 
 #include "iALabelInfo.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
@@ -44,6 +44,8 @@ class vtkPiecewiseFunction;
 class iALabelOverlayThread;
 
 struct iAImageCoordinate;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
 
 class dlg_labels : public dlg_labelUI, public iALabelInfo
 {

@@ -20,19 +20,20 @@
 * ************************************************************************************/
 #include "dlg_labels.h"
 
-#include "dlg_commoninput.h"
-#include "iAColorTheme.h"
-#include "iAConsole.h"
 #include "iAImageCoordinate.h"
-#include "iAChannelID.h"
-#include "iAChannelVisualizationData.h"
 #include "iALabelOverlayThread.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iAToolsVTK.h"
-#include "iAVtkDraw.h"
-#include "io/iAFileUtils.h"
-#include "mdichild.h"
+
+#include <dlg_commoninput.h>
+#include <iAChannelID.h>
+#include <iAChannelVisualizationData.h>
+#include <iAColorTheme.h>
+#include <iAConsole.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAToolsVTK.h>
+#include <iAVtkDraw.h>
+#include <io/iAFileUtils.h>
+#include <mdichild.h>
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>

@@ -20,16 +20,20 @@
 * ************************************************************************************/
 #include "dlg_trackingGraph.h"
 
-#include "iAVtkGraphDrawer.h"
-#include "iAVtkWidget.h"
+#include <iAVtkGraphDrawer.h>
+#include <iAVtkWidget.h>
 
+#include <vtkContextActor.h>
+#include <vtkContextInteractorStyle.h>
+#include <vtkContextScene.h>
+#include <vtkContextTransform.h>
 #include <vtkGraphItem.h>
+#include <vtkMutableDirectedGraph.h>
 #include <vtkObjectFactory.h>
 #include <vtkPoints.h>
-
-#ifdef _MSC_VER
-#include <windows.h>
-#endif
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
 
 const int MAX_ITERATIONS		= 24;
 const double BACKGROUND[3]		= {1, 1, 1};

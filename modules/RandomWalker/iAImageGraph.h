@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAImageCoordinate.h"
 #include "iAImageGraphTypes.h"
+
+#include <iAImageCoordinate.h>
 
 #include <vector>
 

@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iAExtractSurfaceModuleInterface.h"
 
-#include "iAFilterRegistry.h"
-
 #include "iAExtractSurfaceFilters.h"
+
+#include <iAFilterRegistry.h>
 
 void iAExtractSurfaceModuleInterface::Initialize()
 {

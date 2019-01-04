@@ -30,8 +30,8 @@
 */
 
 // iASlicer-based solution:
-#include "iASlicerSettings.h"
-#include "iASlicer.h"
+#include <iASlicerSettings.h>
+#include <iASlicer.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>

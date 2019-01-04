@@ -22,12 +22,12 @@
 
 #include "iAEnergySpectrum.h"
 
-#include <vector>
+#include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
 #include <QVector>
 
-#include <vtkSmartPointer.h>
+#include <vector>
 
 class vtkImageData;
 

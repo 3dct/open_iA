@@ -21,14 +21,15 @@
 #pragma once
 
 #include "ui_PorosityAnalyser.h"
-#include "qthelper/iAQTtoUIConnector.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
+
+#include <vtkSmartPointer.h>
 
 #include <QTableWidget>
 #include <QFileInfo>
 #include <QMap>
 #include <QList>
-
-#include <vtkSmartPointer.h>
 
 
 typedef iAQTtoUIConnector<QMainWindow, Ui_PorosityAnalyser> PorosityAnalyserConnector;

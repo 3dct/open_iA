@@ -19,11 +19,12 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iAAccumulatedXRFData.h"
+
 #include "iASpectraHistograms.h"
 #include "iAXRFData.h"
 
-#include "iAFunctionalBoxplot.h"
-#include "iATypedCallHelper.h"
+#include <iAFunctionalBoxplot.h>
+#include <iATypedCallHelper.h>
 
 #include <vtkImageData.h>
 #include <vtkImageResample.h>

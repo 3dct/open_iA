@@ -22,7 +22,7 @@
 
 #include "iAModuleAttachmentToChild.h"
 
-#include "io/iAITKIO.h"
+#include <io/iAITKIO.h>
 
 #include <vtkSmartPointer.h>
 

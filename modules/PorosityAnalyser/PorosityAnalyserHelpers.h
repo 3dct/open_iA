@@ -20,27 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QMap>
-#include <QList>
-#include <QStringList>
-#include <QString>
-#include <QRegularExpression>
-#include <QTableWidget>
-#include <QDebug>
-#include <QFile>
-#include <QFileInfo>
-
-#include <numeric>
-
-#include <itkImageBase.h>
 #include <itkImage.h>
+#include <itkImageBase.h>
 #include <itkImageIOBase.h>
 
-#include <vtkSmartPointer.h>
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
 #include <vtkIntArray.h>
 #include <vtkMathUtilities.h>
+#include <vtkSmartPointer.h>
+
+#include <QDebug>
+#include <QFile>
+#include <QFileInfo>
+#include <QList>
+#include <QMap>
+#include <QRegularExpression>
+#include <QString>
+#include <QStringList>
+#include <QTableWidget>
+
+#include <numeric>
 
 const int imgDim = 3;
 typedef itk::ImageBase< imgDim > ImageBaseType;

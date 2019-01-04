@@ -22,8 +22,8 @@
 #ifndef __vtkEllipsoidSource_h
 #define __vtkEllipsoidSource_h
 
-#include "vtkPolyDataAlgorithm.h"
-#include "vtkSmartPointer.h"
+#include <vtkPolyDataAlgorithm.h>
+#include <vtkSmartPointer.h>
 
 class vtkTransform;
 class vtkSphereSource;

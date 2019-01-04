@@ -22,9 +22,10 @@
 
 #include "iAClusterAttribChart.h"
 #include "iAChartAttributeMapper.h"
-#include "iAConsole.h"
 #include "iAImageTreeLeaf.h"
-#include "iAMathUtility.h"
+
+#include <iAConsole.h>
+#include <iAMathUtility.h>
 
 #include <QFile>
 #include <QTextStream>

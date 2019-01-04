@@ -22,13 +22,12 @@
 
 #include "iAFeatureScoutModuleInterface.h"
 #include "iAFeatureScoutObjectType.h"
-#include "qthelper/iAQTtoUIConnector.h"
 #include "ui_FeatureScoutClassExplorer.h"
 #include "ui_FeatureScoutPolarPlot.h"
 #include "ui_FeatureScoutMeanObjectView.h"
 
-#include "iAVtkWidgetFwd.h"
-#include "qthelper/iADockWidgetWrapper.h"
+#include <iAVtkWidgetFwd.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
@@ -41,6 +40,7 @@ class iA3DObjectVis;
 class iABlobCluster;
 class iABlobManager;
 class iAConnector;
+class iADockWidgetWrapper;
 class iAFeatureScoutSPLOM;
 class iAMeanObjectTFView;
 class dlg_blobVisualization;

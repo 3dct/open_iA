@@ -22,9 +22,9 @@
 
 #include "iAModalityExplorerAttachment.h"
 
-#include "iAConsole.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <iAConsole.h>
+#include <mainwindow.h>
+#include <mdichild.h>
 
 void iAModalityExplorerModuleInterface::Initialize()
 {

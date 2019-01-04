@@ -21,7 +21,8 @@
 #pragma once
 
 #include "iAGEMSeConstants.h"
-#include "iAImageCoordinate.h"
+
+#include <iAImageCoordinate.h>
 
 #include <QMap>
 

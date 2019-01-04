@@ -23,10 +23,10 @@
 #include "iAParamTableView.h"
 #include "iAImageWidget.h"
 
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iASlicerMode.h"
-#include "io/iAFileUtils.h"
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iASlicerMode.h>
+#include <io/iAFileUtils.h>
 
 #include <vtkImageData.h>
 

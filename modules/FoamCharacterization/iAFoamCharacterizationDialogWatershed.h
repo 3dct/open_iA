@@ -28,17 +28,17 @@ class iAFoamCharacterizationItemWatershed;
 
 class iAFoamCharacterizationDialogWatershed : public iAFoamCharacterizationDialog
 {
-		Q_OBJECT
+	Q_OBJECT
 
-	public:
-		explicit iAFoamCharacterizationDialogWatershed(iAFoamCharacterizationItemWatershed* _pItem, QWidget* _pParent = nullptr);
+public:
+	explicit iAFoamCharacterizationDialogWatershed(iAFoamCharacterizationItemWatershed* _pItem, QWidget* _pParent = nullptr);
 
-	private:
-		iAFoamCharacterizationItemWatershed* m_pItemWatershed = nullptr;
+private:
+	iAFoamCharacterizationItemWatershed* m_pItemWatershed = nullptr;
 
-		QDoubleSpinBox* m_pDoubleSpinBoxLevel = nullptr;
-		QDoubleSpinBox* m_pDoubleSpinBoxTreshold = nullptr;
+	QDoubleSpinBox* m_pDoubleSpinBoxLevel = nullptr;
+	QDoubleSpinBox* m_pDoubleSpinBoxTreshold = nullptr;
 
-	protected slots:
-		virtual void slotPushButtonOk() override;
+protected slots:
+	virtual void slotPushButtonOk() override;
 };

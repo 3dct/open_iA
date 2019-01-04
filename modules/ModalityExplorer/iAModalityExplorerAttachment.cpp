@@ -21,8 +21,9 @@
 #include "iAModalityExplorerAttachment.h"
 
 #include "dlg_modalitySPLOM.h"
-#include "iAModality.h"
-#include "mdichild.h"
+
+#include <iAModality.h>
+#include <mdichild.h>
 
 iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd, iAChildData childData):
 	iAModuleAttachmentToChild(mainWnd, childData)

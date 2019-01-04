@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #include "iAGPU_DreamcasterToolModuleInterface.h"
 
-#include "mainwindow.h"
-#include "mdichild.h"
 #include "dreamcaster.h"
+
+#include <mainwindow.h>
+#include <mdichild.h>
 
 #include <QFileDialog>
 

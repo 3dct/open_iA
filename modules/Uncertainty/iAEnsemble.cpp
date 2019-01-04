@@ -24,12 +24,12 @@
 #include "iAMember.h"
 #include "iASamplingResults.h"
 
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAMathUtility.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iAToolsITK.h"
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAMathUtility.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAToolsITK.h>
 
 #include <itkConstNeighborhoodIterator.h>
 

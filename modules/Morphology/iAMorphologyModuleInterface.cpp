@@ -22,7 +22,7 @@
 
 #include "iAMorphologyFilters.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iAMorphologyModuleInterface::Initialize()
 {

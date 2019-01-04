@@ -20,13 +20,13 @@
 * ************************************************************************************/
 #include "iACSVtoMHD.h"
 
-#include "defines.h"          // for DIM
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAProgress.h"
-#include "iAToolsVTK.h"
-#include "iAVtkDraw.h"
-#include "mdichild.h"
+#include <defines.h>          // for DIM
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAProgress.h>
+#include <iAToolsVTK.h>
+#include <iAVtkDraw.h>
+#include <mdichild.h>
 
 #include <vtkImageData.h>
 

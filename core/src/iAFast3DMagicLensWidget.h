@@ -30,13 +30,12 @@ public:
 	iAFast3DMagicLensWidget( QWidget * parent = 0 );
 	~iAFast3DMagicLensWidget( );
 protected:
-	virtual void	updateLens( );
-	virtual void	resizeEvent( QResizeEvent * event );
-	virtual void	mouseReleaseEvent(QMouseEvent * event);
+	void updateLens( ) override;
+	void resizeEvent( QResizeEvent * event ) override;
+	void mouseReleaseEvent(QMouseEvent * event) override;
 private:
-	double			m_viewAngle;
-	double			calculateZ( double viewAngle );
-
+	double m_viewAngle;
+	double calculateZ( double viewAngle );
 Q_SIGNALS:
 	void rightButtonReleasedSignal();
 	void leftButtonReleasedSignal();

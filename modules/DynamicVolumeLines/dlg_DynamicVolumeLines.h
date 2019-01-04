@@ -20,25 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_dlg_DynamicVolumeLines.h"
-#include "mdichild.h"
 #include "iAScalingWidget.h"
-#include "iAVtkWidgetFwd.h"
 #include "DynamicVolumeLinesHelpers.h"
+#include "ui_dlg_DynamicVolumeLines.h"
 #include "ui_Multi3DView.h"
-#include "qthelper/iAQTtoUIConnector.h"
 
+#include <iAVtkWidgetFwd.h>
+#include <mdichild.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
-class iAVolumeRenderer;
 class iANonLinearAxisTicker;
 class iAOrientationWidget;
 class iASegmentTree;
-class vtkRenderWindow;
-class vtkTextActor;
+
+class iAVolumeRenderer;
+
+class vtkLookupTable;
 class vtkPoints;
 class vtkRenderer;
-class vtkLookupTable;
+class vtkRenderWindow;
 class vtkScalarBarActor;
+class vtkTextActor;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DynamicVolumeLines>  DynamicVolumeLinesConnector;
 typedef iAQTtoUIConnector<QDockWidget, Ui_Multi3DRendererView> multi3DRendererView;

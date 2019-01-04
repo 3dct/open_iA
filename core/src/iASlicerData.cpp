@@ -44,7 +44,7 @@
 #include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
 #include <vtkCamera.h>
-#include <vtkScalarsToColors.h>
+#include <vtkCommand.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDiskSource.h>
 #include <vtkGenericMovieWriter.h>
@@ -53,11 +53,11 @@
 #include <vtkImageBlend.h>
 #include <vtkImageCast.h>
 #include <vtkImageChangeInformation.h>
+#include <vtkImageData.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageMapToColors.h>
 #include <vtkImageMapToWindowLevelColors.h>
 #include <vtkImageReslice.h>
-#include <vtkImageData.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
@@ -65,8 +65,8 @@
 #include <vtkLookupTable.h>
 #include <vtkMarchingContourFilter.h>
 #include <vtkPlaneSource.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkPointPicker.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
 #include <vtkRenderer.h>
@@ -74,6 +74,7 @@
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarBarWidget.h>
+#include <vtkScalarsToColors.h>
 #include <vtkSmartPointer.h>
 #include <vtkTextActor3D.h>
 #include <vtkTextMapper.h>
@@ -81,7 +82,6 @@
 #include <vtkTransform.h>
 #include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
-#include <vtkCommand.h>
 
 #include <QBitmap>
 #include <QDate>

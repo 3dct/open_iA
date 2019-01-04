@@ -23,8 +23,8 @@
 #include "iABarycentricTriangleWidget.h"
 #include "iASimpleSlicerWidget.h"
 
-#include "iATransferFunction.h"
-#include "charts/iADiagramFctWidget.h"
+#include <iATransferFunction.h>
+#include <charts/iADiagramFctWidget.h>
 
 #include <QComboBox>
 #include <QHBoxLayout>

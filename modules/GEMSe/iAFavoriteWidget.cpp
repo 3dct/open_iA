@@ -20,12 +20,13 @@
 * ************************************************************************************/
 #include "iAFavoriteWidget.h"
 
-#include "iAConsole.h"
 #include "iAImagePreviewWidget.h"
 #include "iAImageTree.h"
 #include "iAPreviewWidgetPool.h"
 #include "iAQtCaptionWidget.h"
 #include "iAGEMSeConstants.h"
+
+#include <iAConsole.h>
 
 #include <QVBoxLayout>
 

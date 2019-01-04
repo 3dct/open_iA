@@ -22,7 +22,7 @@
 
 #include "iAConnectedComponentFilters.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iAConnectedComponentModuleInterface::Initialize()
 {

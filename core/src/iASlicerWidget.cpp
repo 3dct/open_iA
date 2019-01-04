@@ -38,7 +38,6 @@
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageResample.h>
 #include <vtkMath.h>

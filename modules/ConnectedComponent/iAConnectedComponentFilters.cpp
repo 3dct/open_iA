@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #include "iAConnectedComponentFilters.h"
 
-#include "iAConnector.h"
-#include "defines.h" // for DIM
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h> // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
 
 #include <itkConnectedComponentImageFilter.h>
 #include <itkScalarConnectedComponentImageFilter.h>

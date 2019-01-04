@@ -23,10 +23,10 @@
 #include "iAParamTableView.h"
 #include "iAParamSpatialView.h"
 
-#include "charts/iAQSplom.h"
-#include "iAConsole.h"
-#include "iALUT.h"
-#include "qthelper/iAQFlowLayout.h"
+#include <charts/iAQSplom.h>
+#include <iAConsole.h>
+#include <iALUT.h>
+#include <qthelper/iAQFlowLayout.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>

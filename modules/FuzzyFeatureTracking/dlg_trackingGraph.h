@@ -20,25 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-// Fuzzy Feature Tracking
 #include "ui_TrackingGraph.h"
 #include "iATrackingGraphItem.h"
-// iA core
-#include "iAVtkWidgetFwd.h"
-// VTK
+
+#include <iAVtkWidgetFwd.h>
+
 #include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkContextInteractorStyle.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkContextTransform.h>
-#include <vtkContextActor.h>
-#include <vtkMutableDirectedGraph.h>
-#include <vtkContextScene.h>
-// Qt
+
 #include <QDockWidget>
 #include <QWidget>
-// std
+
 #include <map>
+
+class vtkRenderer;
+class vtkContextInteractorStyle;
+class vtkRenderWindowInteractor;
+class vtkContextTransform;
+class vtkContextActor;
+class vtkMutableDirectedGraph;
+class vtkContextScene;
+
 
 class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
 {

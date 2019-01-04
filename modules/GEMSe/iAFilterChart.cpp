@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #include "iAFilterChart.h"
 
-#include "charts/iAPlotTypes.h"
 #include "iAParamHistogramData.h"
-#include "iAMathUtility.h"
-#include "iANameMapper.h"
+
+#include <charts/iAPlotTypes.h>
+#include <iAMathUtility.h>
+#include <iANameMapper.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>

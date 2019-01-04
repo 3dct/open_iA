@@ -22,20 +22,17 @@
 
 #include "ui_DataView4DCT.h"
 
-#include "qthelper/iAQTtoUIConnector.h"
-#include "iAModalityTransfer.h"
-#include "iARenderer.h"
-#include "iATransferFunction.h"
-#include "iAVolumeRenderer.h"
-#include "iAVolumeStack.h"
-#include "mdichild.h"
-#include "QVTKWidgetMouseReleaseWorkaround.h"
+#include <iAModalityTransfer.h>
+#include <iARenderer.h>
+#include <iATransferFunction.h>
+#include <iAVolumeRenderer.h>
+#include <iAVolumeStack.h>
+#include <mdichild.h>
+#include <qthelper/iAQTtoUIConnector.h>
+#include <QVTKWidgetMouseReleaseWorkaround.h>
 
-#include <vtkCamera.h>
 #include <vtkImageData.h>
-#include <vtkPolyData.h>
 #include <vtkOpenGLRenderer.h>
-#include <vtkRendererCollection.h>
 #include <vtkTransform.h>
 
 const double	FOURDCT_BACGROUND[3]	= {1, 1, 1};

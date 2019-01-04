@@ -30,21 +30,21 @@
 #include "iAFeatureScoutObjectType.h"
 #include "iAMeanObjectTFView.h"
 
-#include "charts/iADiagramFctWidget.h"
-#include "dlg_commoninput.h"
-#include "dlg_imageproperty.h"
-#include "dlg_modalities.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "qthelper/iADockWidgetWrapper.h"
-#include "iAmat4.h"
-#include "iAModalityTransfer.h"
-#include "iAMovieHelper.h"
-#include "iAProgress.h"
-#include "iARenderer.h"
-#include "iAToolsITK.h"
-#include "iAVtkWidget.h"
-#include "mdichild.h"
+#include <charts/iADiagramFctWidget.h>
+#include <dlg_commoninput.h>
+#include <dlg_imageproperty.h>
+#include <dlg_modalities.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAmat4.h>
+#include <iAModalityTransfer.h>
+#include <iAMovieHelper.h>
+#include <iAProgress.h>
+#include <iARenderer.h>
+#include <iAToolsITK.h>
+#include <iAVtkWidget.h>
+#include <mdichild.h>
+#include <qthelper/iADockWidgetWrapper.h>
 
 #include <itkAddImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
@@ -95,6 +95,7 @@
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindowInteractor.h>

@@ -20,15 +20,15 @@
 * ************************************************************************************/
 #include "iASegm3DView.h"
 
-#include "defines.h"
-#include "iAFast3DMagicLensWidget.h"
-#include "iARenderer.h"
-#include "iARendererManager.h"
-#include "iALUT.h"
-#include "iARenderSettings.h"
-#include "iATransferFunction.h"
-#include "iAVolumeRenderer.h"
-#include "iAVolumeSettings.h"
+#include <defines.h>
+#include <iAFast3DMagicLensWidget.h>
+#include <iARenderer.h>
+#include <iARendererManager.h>
+#include <iALUT.h>
+#include <iARenderSettings.h>
+#include <iATransferFunction.h>
+#include <iAVolumeRenderer.h>
+#include <iAVolumeSettings.h>
 
 #include <vtkActor.h>
 #include <vtkCamera.h>

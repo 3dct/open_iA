@@ -21,7 +21,8 @@
 #pragma once
 
 #include "ui_Segm3DView.h"
-#include "qthelper/iAQTtoUIConnector.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 

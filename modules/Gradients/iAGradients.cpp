@@ -22,10 +22,10 @@
 
 #include "itkHigerOrderAccurateGradient/itkHigherOrderAccurateDerivativeImageFilter.h"
 
-#include "defines.h" // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h> // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
 
 #include <itkCastImageFilter.h>
 #include <itkDerivativeImageFilter.h>

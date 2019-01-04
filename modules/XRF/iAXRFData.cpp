@@ -21,8 +21,9 @@
 #include "iAXRFData.h"
 
 #include "iASpectrumFilter.h"
-#include "iAMathUtility.h"
-#include "iATypedCallHelper.h"
+
+#include <iAMathUtility.h>
+#include <iATypedCallHelper.h>
 
 #include <vtkDiscretizableColorTransferFunction.h>
 #include <vtkImageData.h>

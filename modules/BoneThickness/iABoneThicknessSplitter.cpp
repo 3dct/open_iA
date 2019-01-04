@@ -23,6 +23,5 @@
 iABoneThicknessSplitter::iABoneThicknessSplitter(QWidget* _pParent) : QSplitter(_pParent)
 {
 	const QColor cColor(palette().color(QPalette::WindowText));
-
 	setStyleSheet("QSplitter::handle{background: " + cColor.name() + ";}");
 }

@@ -22,8 +22,8 @@
 
 #include "iACSVToQTableWidgetConverter.h"
 
-#include "defines.h"
-#include "io/iAITKIO.h"
+#include <defines.h>
+#include <io/iAITKIO.h>
 
 #include <itkConnectedComponentImageFilter.h>
 #include <itkImageBase.h>

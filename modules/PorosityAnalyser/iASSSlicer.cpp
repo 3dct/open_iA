@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #include "iASSSlicer.h"
 
-#include "iAChanData.h"
-#include "iAChannelVisualizationData.h"
-#include "iAConnector.h"
-#include "iASlicer.h"
-#include "iASlicerSettings.h"
 #include "PorosityAnalyserHelpers.h"
-#include "io/iAITKIO.h"
+
+#include <iAChanData.h>
+#include <iAChannelVisualizationData.h>
+#include <iAConnector.h>
+#include <iASlicer.h>
+#include <iASlicerSettings.h>
+#include <io/iAITKIO.h>
 
 #include <itkAddImageFilter.h>
 #include <itkCastImageFilter.h>

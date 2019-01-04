@@ -20,16 +20,16 @@
 * ************************************************************************************/
 #include "iAPCView.h"
 
-#include "iAQtVTKBindings.h"
-#include "iAVtkWidget.h"
+#include <iAQtVTKBindings.h>
+#include <iAVtkWidget.h>
 
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkChartParallelCoordinates.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkPlot.h>
 #include <vtkRenderWindow.h>
 #include <vtkTable.h>
-#include <vtkPlot.h>
 
 #include <QTableWidget>
 

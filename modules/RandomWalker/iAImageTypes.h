@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAITKIO.h" // TODO: replace?
+#include <iAITKIO.h> // TODO: replace?
 
 #include <itkImage.h>
 

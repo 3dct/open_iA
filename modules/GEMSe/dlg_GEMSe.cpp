@@ -22,10 +22,8 @@
 
 #include "iAAttributes.h"
 #include "iAAttitudes.h"
-#include "iAAttributeDescriptor.h"
 #include "iACameraWidget.h"
 #include "iAClusterAttribChart.h"
-#include "iAConsole.h"
 #include "iADetailView.h"
 #include "iAExampleImageWidget.h"
 #include "iAFakeTreeNode.h"
@@ -36,8 +34,6 @@
 #include "iAImagePreviewWidget.h"
 #include "iAImageTreeLeaf.h"
 #include "iAImageTreeView.h"
-#include "iALogger.h"
-#include "iAMathUtility.h"
 #include "iAMeasures.h"
 #include "iAParamHistogramData.h"
 #include "iAPreviewWidgetPool.h"
@@ -45,7 +41,12 @@
 #include "iAQtCaptionWidget.h"
 #include "iASamplingResults.h"
 #include "iASingleResult.h"
-#include "iAToolsITK.h"
+
+#include <iAAttributeDescriptor.h>
+#include <iAConsole.h>
+#include <iALogger.h>
+#include <iAMathUtility.h>
+#include <iAToolsITK.h>
 
 #include <vtkImageData.h>
 

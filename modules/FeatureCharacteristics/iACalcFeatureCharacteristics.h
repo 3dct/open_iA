@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
-#include "mdichild.h"
+#include <iAAlgorithm.h>
+
+class MdiChild;
 
 class iACalcFeatureCharacteristics : public iAAlgorithm
 {

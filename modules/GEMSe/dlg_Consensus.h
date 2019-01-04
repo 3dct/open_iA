@@ -23,11 +23,10 @@
 #include "ui_Consensus.h"
 
 #include "iAImageTreeNode.h"    // for LabelImagePointer
-#include "qthelper/iAQTtoUIConnector.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_Consensus>   dlg_ConsensusUI;
 
 struct ChartWidgetData;
 class dlg_GEMSe;
@@ -44,6 +43,8 @@ class vtkPlot;
 class vtkTable;
 
 class QCheckBox;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_Consensus>   dlg_ConsensusUI;
 
 class dlg_Consensus : public dlg_ConsensusUI
 {

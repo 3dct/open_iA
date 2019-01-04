@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iACommandRunner.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
 
 #include <QFileInfo>
 

@@ -23,7 +23,7 @@
 #include "dlg_XRF.h"
 #include "iASimilarityMapWidget.h"
 
-#include "mdichild.h"
+#include <mdichild.h>
 
 #include <QFileDialog>
 

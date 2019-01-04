@@ -22,20 +22,11 @@
 
 #include "ui_EventExplorer.h"
 
-#include "iAVtkWidgetFwd.h"
+#include <iAVtkWidgetFwd.h>
 
-#include <vtkChartXY.h>
-#include <vtkContextView.h>
-#include <vtkIdTypeArray.h>
-#include <vtkIntArray.h>
-#include <vtkMutableDirectedGraph.h>
-#include <vtkPlot.h>
 #include <vtkSmartPointer.h>
-#include <vtkTable.h>
 
-#include <QtGui>
-#include <QObject>
-#include <QList>
+#include <QDockWidget>
 
 #include <vector>
 
@@ -44,6 +35,14 @@ class iAFeatureTracking;
 class iAVolumeStack;
 
 class vtkEventQtSlotConnect;
+class vtkChartXY;
+class vtkContextView;
+class vtkDoubleArray;
+class vtkIntArray;
+class vtkMutableDirectedGraph;
+class vtkPlot;
+class vtkStringArray;
+class vtkTable;
 
 class dlg_eventExplorer : public QDockWidget, private Ui_EventExplorer
 {

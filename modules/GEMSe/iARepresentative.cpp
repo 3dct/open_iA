@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iARepresentative.h"
 
-#include "iAToolsITK.h"
+#include <iAToolsITK.h>
 
 #include <QVector>
 

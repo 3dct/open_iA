@@ -20,9 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAPorosityAnalyserModuleInterface.h"
+#include "PorosityAnalyserHelpers.h"    // for ImagePointer
 
 #include <QThread>
+
+class iAPorosityAnalyserModuleInterface;
 
 class iADatasetInfo : public QThread
 {

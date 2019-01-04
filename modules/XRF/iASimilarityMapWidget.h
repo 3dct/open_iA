@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
+#include <vtkSmartPointer.h>
+
 #include <QSharedPointer>
 #include <QVector>
-#include <vtkSmartPointer.h>
+#include <QWidget>
 
 class vtkImageData;
 class QImage;

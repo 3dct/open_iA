@@ -21,10 +21,10 @@
 #include "iAParameterGeneratorImpl.h"
 
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
 
-#include "iAConsole.h"
-#include "iAMathUtility.h"
+#include <iAAttributeDescriptor.h>
+#include <iAConsole.h>
+#include <iAMathUtility.h>
 
 #include <cmath>
 #include <random>

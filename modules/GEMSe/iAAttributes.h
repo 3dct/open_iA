@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAttributeDescriptor.h"
-#include "iAValueType.h"
+#include <iAAttributeDescriptor.h>
+#include <iAValueType.h>
 
 #include <QVector>
 #include <QSharedPointer>

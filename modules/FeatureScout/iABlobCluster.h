@@ -20,30 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkActor.h>
-#include <vtkContourFilter.h>
-#include <vtkFeatureEdges.h>
-#include <vtkOutlineFilter.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkSampleFunction.h>
 #include <vtkSmartPointer.h>
-#include <vtkStripper.h>
-#include <vtkStructuredPoints.h>
-#include <vtkWindowedSincPolyDataFilter.h>
 
-#include <QApplication>
-#include <QFont>
-#include <QImage>
-#include <QPainter>
-#include <QPen>
+#include <QColor>
 #include <QVector>
 
-#include "iABlobImplicitFunction.h"
+class iABlobImplicitFunction;
+class iABlobManager;
 
+class vtkActor;
 class vtkCaptionActor2D;
+class vtkContourFilter;
+class vtkImageData;
+class vtkPlane;
+class vtkPolyData;
+class vtkPolyDataMapper;
+class vtkPolyDataNormals;
+class vtkProperty;
+class vtkRenderer;
+class vtkSampleFunction;
+class vtkWindowedSincPolyDataFilter;
 
 typedef struct {
 	double	x1, y1, z1,

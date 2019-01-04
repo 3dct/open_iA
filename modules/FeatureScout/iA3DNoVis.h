@@ -19,9 +19,10 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
+
 #include "iA3DObjectVis.h"
-class iA3DNoVis :
-	public iA3DObjectVis
+
+class iA3DNoVis : public iA3DObjectVis
 {
 public:
 	iA3DNoVis();

@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
-
 #include "iAGEMSeConstants.h"
+
+#include <QWidget>
 
 class iAQtCaptionWidget : public QWidget
 {

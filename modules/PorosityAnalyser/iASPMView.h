@@ -22,8 +22,8 @@
 
 #include "ui_SPMView.h"
 
-#include "iAVtkWidgetFwd.h"
-#include "qthelper/iAQTtoUIConnector.h"
+#include <iAVtkWidgetFwd.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 #include <vtkVector.h>

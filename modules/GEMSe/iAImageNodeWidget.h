@@ -22,7 +22,8 @@
 
 #include "iAImageTree.h"
 #include "iAImageTreeNode.h"		// for LabelImagePointer
-#include "iASlicerMode.h"
+
+#include <iASlicerMode.h>
 
 #include <vtkSmartPointer.h>
 

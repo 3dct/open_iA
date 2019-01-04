@@ -20,16 +20,27 @@
 * ************************************************************************************/
 #include "iABlobCluster.h"
 
+#include "iABlobImplicitFunction.h"
+
 #include <itkImageToVTKImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
 #include <itkDiscreteGaussianImageFilter.h>
 
-#include <vtkPolyDataSilhouette.h>
+#include <vtkActor.h>
 #include <vtkCaptionActor2D.h>
-#include <vtkTextProperty.h>
+#include <vtkContourFilter.h>
+#include <vtkImageData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkPolyDataSilhouette.h>
+#include <vtkProperty.h>
 #include <vtkProperty2D.h>
-#include <vtkTextActor.h>
+#include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
+#include <vtkSampleFunction.h>
+#include <vtkWindowedSincPolyDataFilter.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 
 #define DEFAULT_BLOB_OPACITY 0.3
 #define DEFAULT_SILHOUETTE_OPACITY 0.8

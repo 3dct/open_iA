@@ -22,8 +22,8 @@
 
 #include "iAXRFAttachment.h"
 
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <mainwindow.h>
+#include <mdichild.h>
 
 void iAXRFModuleInterface::Initialize()
 {

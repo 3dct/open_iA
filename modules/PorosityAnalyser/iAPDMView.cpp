@@ -23,10 +23,10 @@
 #include "iABPMData.h"
 #include "iAHMData.h"
 
-#include "charts/qcustomplot.h"
-#include "defines.h"
-#include "iALUT.h"
-#include "iAVtkWidget.h"
+#include <charts/qcustomplot.h>
+#include <defines.h>
+#include <iALUT.h>
+#include <iAVtkWidget.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h> 

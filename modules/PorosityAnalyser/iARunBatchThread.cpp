@@ -20,12 +20,13 @@
 * ************************************************************************************/
 #include "iARunBatchThread.h"
 
-#include "CPUID.h"
-#include "defines.h"
 #include "iACSVToQTableWidgetConverter.h"
 #include "iAPorosityAnalyserModuleInterface.h"
-#include "iATypedCallHelper.h"
-#include "io/iAITKIO.h"
+
+#include <CPUID.h>
+#include <defines.h>
+#include <iATypedCallHelper.h>
+#include <io/iAITKIO.h>
 
 // from Maximum Distance Toolkit
 #include <itkMaximumDistance.h>

@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iAExtractSurfaceFilters.h"
 
-#include "iAConnector.h"
-#include "iAProgress.h"
+#include <iAConnector.h>
+#include <iAProgress.h>
 
 #include <vtkDecimatePro.h>
 #include <vtkFlyingEdges3D.h>

@@ -296,7 +296,7 @@ public:
 	{
 		m_fPtr = new astra::float32[size];
 	}
-	virtual ~CPPAstraCustomMemory() override
+	~CPPAstraCustomMemory()
 	{
 		delete [] m_fPtr;
 	}

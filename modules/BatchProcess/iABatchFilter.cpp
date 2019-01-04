@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #include "iABatchFilter.h"
 
-#include "iAAttributeDescriptor.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAFilterRegistry.h"
-#include "iAProgress.h"
-#include "iAStringHelper.h"
-#include "io/iAITKIO.h"
-#include "io/iAFileUtils.h"
+#include <iAAttributeDescriptor.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAFilterRegistry.h>
+#include <iAProgress.h>
+#include <iAStringHelper.h>
+#include <io/iAITKIO.h>
+#include <io/iAFileUtils.h>
 
 #include <QDir>
 #include <QFile>

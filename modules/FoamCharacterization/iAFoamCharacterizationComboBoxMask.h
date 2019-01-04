@@ -26,17 +26,14 @@ class iAFoamCharacterizationTable;
 
 class iAFoamCharacterizationComboBoxMask : public QComboBox
 {
-		Q_OBJECT
+	Q_OBJECT
 
-	public:
-		explicit iAFoamCharacterizationComboBoxMask(iAFoamCharacterizationTable* _pTable, QWidget* _pParent = nullptr);
+public:
+	explicit iAFoamCharacterizationComboBoxMask(iAFoamCharacterizationTable* _pTable, QWidget* _pParent = nullptr);
+	int itemMask() const;
+	void setItemMask(const int& _iItemMask);
 
-		int itemMask() const;
-
-		void setItemMask(const int& _iItemMask);
-
-	private:
-		iAFoamCharacterizationTable* m_pTable = nullptr;
-
-		QVector<int> m_vItemMask;
+private:
+	iAFoamCharacterizationTable* m_pTable = nullptr;
+	QVector<int> m_vItemMask;
 };

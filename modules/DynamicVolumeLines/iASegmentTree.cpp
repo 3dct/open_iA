@@ -19,7 +19,8 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iASegmentTree.h"
-#include "iAMathUtility.h"
+
+#include <iAMathUtility.h>
 
 #include <itkImage.h>
 #include <itkImportImageFilter.h>

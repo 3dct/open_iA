@@ -22,7 +22,7 @@
 
 #include "iANoiseFilters.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iANoiseModuleInterface::Initialize()
 {

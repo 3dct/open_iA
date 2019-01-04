@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
-
-#include "iAVtkWidgetFwd.h"
 #include "ui_planeSlicer.h"
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_PlaneSlicer> dlg_planeSlicerUI;
+
+#include <iAVtkWidgetFwd.h>
+#include <qthelper/iAQTtoUIConnector.h>
+
+#include <vtkSmartPointer.h>
 
 class vtkCamera;
 class vtkColorTransferFunction;
@@ -33,6 +33,8 @@ class vtkImageData;
 class vtkImageSlice;
 class vtkPlane;
 class vtkOpenGLRenderer;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_PlaneSlicer> dlg_planeSlicerUI;
 
 class dlg_planeSlicer : public dlg_planeSlicerUI
 {

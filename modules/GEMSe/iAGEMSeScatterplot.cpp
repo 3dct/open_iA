@@ -21,11 +21,12 @@
 #include "iAGEMSeScatterplot.h"
 
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
 #include "iAChartAttributeMapper.h"
 #include "iAChartFilter.h"
 #include "iAImageTreeLeaf.h"
 #include "iAImageTreeNode.h"
+
+#include <iAAttributeDescriptor.h>
 
 #include <vtkAxis.h>
 #include <vtkFloatArray.h>

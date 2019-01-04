@@ -37,20 +37,20 @@
 #include "iAXRFData.h"
 #include "iAXRFOverlay.h"
 
-#include "charts/iAPlotTypes.h"
-#include "charts/iAMappingDiagramData.h"
-#include "dlg_transfer.h"
-#include "iAChannelVisualizationData.h"
-#include "iAColorTheme.h"
-#include "iAConnector.h"
-#include "qthelper/iADockWidgetWrapper.h"
-#include "iAFunctionalBoxplot.h"
-#include "iAMathUtility.h"
-#include "iARenderer.h"
-#include "iAVtkWidget.h"
-#include "qthelper/iAWidgetAddHelper.h"
-#include "io/iAIO.h"
-#include "mdichild.h"
+#include <charts/iAPlotTypes.h>
+#include <charts/iAMappingDiagramData.h>
+#include <dlg_transfer.h>
+#include <iAChannelVisualizationData.h>
+#include <iAColorTheme.h>
+#include <iAConnector.h>
+#include <iAFunctionalBoxplot.h>
+#include <iAMathUtility.h>
+#include <iARenderer.h>
+#include <iAVtkWidget.h>
+#include <qthelper/iAWidgetAddHelper.h>
+#include <io/iAIO.h>
+#include <mdichild.h>
+#include <qthelper/iADockWidgetWrapper.h>
 
 #include <itkLabelStatisticsImageFilter.h>
 #include <itkImageBase.h>

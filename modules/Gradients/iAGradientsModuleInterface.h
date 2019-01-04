@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include <iAModuleInterface.h>
 
 class iAGradientsModuleInterface : public iAModuleInterface
 {

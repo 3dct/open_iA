@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-class iAXRFData;
-
 #include "iAEnergySpectrum.h"
 
 #include <QSharedPointer>
+
+class iAXRFData;
 
 class iASpectraHistograms
 {

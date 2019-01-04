@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASlicerMode.h"
 #include "iAImageTreeNode.h"
 
+#include <iASlicerMode.h>
+
 #include <QVector>
-//#include <QSharedPointer>
 #include <QWidget>
 
 class iAImagePreviewWidget;

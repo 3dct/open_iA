@@ -22,8 +22,8 @@
 
 #include "iAFuzzyFeatureTrackingAttachment.h"
 
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <mainwindow.h>
+#include <mdichild.h>
 
 iAFuzzyFeatureTrackingModuleInterface::iAFuzzyFeatureTrackingModuleInterface() {}
 

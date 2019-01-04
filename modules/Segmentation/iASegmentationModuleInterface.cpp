@@ -25,7 +25,7 @@
 #include "iAThresholding.h"
 #include "iAWatershedSegmentation.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iASegmentationModuleInterface::Initialize()
 {

@@ -22,9 +22,9 @@
 
 #include "iAParameterExplorerAttachment.h"
 
-#include "iAConsole.h"
-#include "iAChildData.h"
-#include "mainwindow.h"
+#include <iAConsole.h>
+#include <iAChildData.h>
+#include <mainwindow.h>
 
 void iAParameterExplorerModuleInterface::Initialize()
 {

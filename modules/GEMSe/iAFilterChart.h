@@ -20,9 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iAChartWidget.h"
-
-#include "iAValueType.h"
+#include <charts/iAChartWidget.h>
+#include <iAValueType.h>
 
 class iAParamHistogramData;
 class iANameMapper;

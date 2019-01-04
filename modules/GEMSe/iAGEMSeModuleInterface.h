@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
-#include "qthelper/iAQTtoUIConnector.h"
 #include "ui_GEMSeToolBar.h"
+
+#include <iAModuleInterface.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <QToolBar>
 

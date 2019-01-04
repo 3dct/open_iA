@@ -20,7 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFunction.h"
+#include <iAFunction.h>
+
 #include <cstddef> // for size_t
 
 typedef iAFunction<size_t, unsigned int> iASpectrumFunction;

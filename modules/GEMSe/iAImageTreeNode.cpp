@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAImageTreeNode.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
 
 iAImageTreeNode::iAImageTreeNode() :
 	m_attitude(NoPreference)

@@ -27,14 +27,14 @@
 #include "iAElementConcentrations.h"
 #include "iAXRFData.h"
 
-#include "iAChannelVisualizationData.h"
-#include "iASlicer.h"
-#include "iASlicerData.h"
-#include "qthelper/iAWidgetAddHelper.h"
-#include "io/extension2id.h"
-#include "io/iAIO.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <iAChannelVisualizationData.h>
+#include <iASlicer.h>
+#include <iASlicerData.h>
+#include <io/extension2id.h>
+#include <io/iAIO.h>
+#include <mainwindow.h>
+#include <mdichild.h>
+#include <qthelper/iAWidgetAddHelper.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>

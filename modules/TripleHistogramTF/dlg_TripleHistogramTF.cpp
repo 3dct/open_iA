@@ -18,21 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "dlg_TripleHistogramTF.h"
 
 #include "iABarycentricContextRenderer.h"
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 
-#include "dlg_modalities.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iAModalityTransfer.h"
-#include "iARenderer.h"
-#include "iASlicerData.h"
-#include "iAVolumeRenderer.h"
-#include "mdichild.h"
+#include <dlg_modalities.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAModalityTransfer.h>
+#include <iARenderer.h>
+#include <iASlicerData.h>
+#include <iAVolumeRenderer.h>
+#include <mdichild.h>
 
 #include <vtkCamera.h>
 #include <vtkImageAppendComponents.h>

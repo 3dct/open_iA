@@ -24,20 +24,20 @@
 
 #include "iASpectrumFilter.h"
 #include "iASpectrumFunction.h"
-#include "iARendererManager.h"
-#include "iAVtkWidgetFwd.h"
+#include "ui_XRF.h"
+
+#include <iARendererManager.h>
+#include <iAVtkWidgetFwd.h>
+#include <qthelper/iAQTtoUIConnector.h>
+
+#include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
 #include <QStandardItemModel>
 
-#include "ui_XRF.h"
-
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
-
-#include <vtkSmartPointer.h>
-
 #include <vector>
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
 
 class QDockWidget;
 class vtkColorTransferFunction;

@@ -28,26 +28,26 @@ class iAFoamCharacterizationItemBinarization;
 
 class iAFoamCharacterizationItemDistanceTransform : public iAFoamCharacterizationItem
 {
-		Q_OBJECT
+	Q_OBJECT
 
-	public:
-		explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
-		explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationItemDistanceTransform* _pDistanceTransform);
+public:
+	explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
+	explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationItemDistanceTransform* _pDistanceTransform);
 
-		int itemMask() const;
+	int itemMask() const;
 
-		void setItemMask(const int& _iItemMask);
-		void setUseImageSpacing(const bool& _bImageSpacing);
+	void setItemMask(const int& _iItemMask);
+	void setUseImageSpacing(const bool& _bImageSpacing);
 
-		bool useImageSpacing() const;
+	bool useImageSpacing() const;
 
-		virtual void dialog() override;
-		virtual void execute() override;
-		virtual void open(QFile* _pFileOpen) override;
-		virtual void save(QFile* _pFileSave) override;
+	virtual void dialog() override;
+	virtual void execute() override;
+	virtual void open(QFile* _pFileOpen) override;
+	virtual void save(QFile* _pFileSave) override;
 
-	private:
-		bool m_bImageSpacing = true;
+private:
+	bool m_bImageSpacing = true;
 
-		int m_iItemMask = -1;
+	int m_iItemMask = -1;
 };

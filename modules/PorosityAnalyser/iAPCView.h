@@ -22,8 +22,8 @@
 
 #include "ui_PCView.h"
 
-#include "iAVtkWidgetFwd.h"
-#include "qthelper/iAQTtoUIConnector.h"
+#include <iAVtkWidgetFwd.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 

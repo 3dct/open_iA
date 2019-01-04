@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #include "iAClusterAttribChart.h"
 
-#include "charts/iAPlotTypes.h"
-#include "iAMathUtility.h"
 #include "iAFilterChart.h"
 #include "iAParamHistogramData.h"
+
+#include <charts/iAPlotTypes.h>
+#include <iAMathUtility.h>
 
 #include <QCheckBox>
 #include <QLabel>

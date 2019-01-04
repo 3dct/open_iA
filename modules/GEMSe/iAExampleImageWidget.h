@@ -20,10 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASlicerMode.h"
-
-#include "io/iAITKIO.h" // TODO: replace?
-typedef iAITKIO::ImagePointer ClusterImageType;
+#include <iASlicerMode.h>
+#include <io/iAITKIO.h> // TODO: replace?
 
 #include <QGridLayout>
 #include <QSharedPointer>
@@ -38,6 +36,8 @@ class iAPreviewWidgetPool;
 class ExampleGrid;
 
 class vtkCamera;
+
+typedef iAITKIO::ImagePointer ClusterImageType;
 
 class iAExampleImageWidget: public QWidget
 {

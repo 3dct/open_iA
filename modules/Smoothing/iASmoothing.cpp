@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #include "iASmoothing.h"
 
-#include "iAConnector.h"
-#include "defines.h" // for DIM
-#include "iAProgress.h"
-#include "iAToolsITK.h"
-#include "iATypedCallHelper.h"
+#include <iAConnector.h>
+#include <defines.h> // for DIM
+#include <iAProgress.h>
+#include <iAToolsITK.h>
+#include <iATypedCallHelper.h>
 
 #include <itkBilateralImageFilter.h>
 #include <itkCurvatureAnisotropicDiffusionImageFilter.h>
