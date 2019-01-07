@@ -384,8 +384,8 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		ftF = trackedFeaturesForwards.at(t);
 		ftB = trackedFeaturesBackwards.at(t);
 
-		vtkTable *u = ftB->getU();
-		vtkTable *v = ftF->getV();
+		auto u = ftB->getU();
+		auto v = ftF->getV();
 
 		DEBUG_LOG(QString("%1:   %2 rows in u, %3 rows in v").arg(t).arg(u->GetNumberOfRows()).arg(v->GetNumberOfRows()));
 

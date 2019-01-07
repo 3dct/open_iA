@@ -74,7 +74,7 @@ void iABoneThicknessChartBar::draw()
 	{
 		iAxisW = qMax(iAxisW, fomAxis.width(pAxisYString));
 	}
-	
+
 	const QFontMetrics fomTitle(m_foTitle);
 	const int iTitle (fomTitle.height());
 
@@ -291,10 +291,10 @@ void iABoneThicknessChartBar::setData(vtkDoubleArray* _daThickness)
 	{
 		m_dThicknessMean += m_daThickness->GetValue(i);
 	}
-	
+
 	const vtkIdType dIdThickness((double)idThickness);
 	m_dThicknessMean /= dIdThickness;
-	
+
 	double pRange[2];
 	_daThickness->GetRange(pRange);
 

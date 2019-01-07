@@ -24,6 +24,8 @@
 
 #include <QWidget>
 
+#include <memory>    // for unique_ptr
+
 class vtkDoubleArray;
 
 class iABoneThickness;

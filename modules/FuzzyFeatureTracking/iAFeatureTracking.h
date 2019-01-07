@@ -36,8 +36,7 @@ private:
 	std::string file1;
 	std::string file2;
 	int lineOffset;
-	vtkTable *u;
-	vtkTable *v;
+	vtkSmartPointer<vtkTable> u, v;
 	float dissipationThreshold;
 	float overlapThreshold;
 	float volumeThreshold;
@@ -50,7 +49,7 @@ private:
 	std::string outputFilename;
 	std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems);
 	std::vector<std::string> split(const std::string &s, char delim);
-	vtkTable &readTableFromFile(const std::string &filename, int dataLineOffset);
+	vtkSmartPointer<vtkTable> readTableFromFile(const std::string &filename, int dataLineOffset);
 	void sortCorrespondencesByOverlap(std::vector<iAFeatureTrackingCorrespondence> &correspondences);
 	std::vector<iAFeatureTrackingCorrespondence>& getCorrespondences(const vtkVariantArray &row, vtkTable &table, int maxSearchValue, bool useZ);
 	void ComputeOverallMatchingPercentage();
@@ -65,6 +64,6 @@ public:
 		
 	size_t getNumberOfEventsInU();
 	size_t getNumberOfEventsInV();
-	vtkTable* getU();
-	vtkTable* getV();
+	vtkSmartPointer<vtkTable> getU();
+	vtkSmartPointer<vtkTable> getV();
 };
