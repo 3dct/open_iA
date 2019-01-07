@@ -20,13 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include <iAModuleInterface.h>
 
 class iAFeatureCharacteristicsModuleInterface : public iAModuleInterface
 {
-	Q_OBJECT
-public:
 	void Initialize() override;
-private slots:
-	void calcFeatureCharacteristics();
 };
