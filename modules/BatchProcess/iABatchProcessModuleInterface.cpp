@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iABatchProcessModuleInterface.h"
 
-#include "iABatchFilter.h""
+#include "iABatchFilter.h"
 #include "iAStackReaderFilter.h"
 
 #include <iAFilterRegistry.h>
