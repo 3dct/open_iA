@@ -158,7 +158,7 @@ void iACalculatePorePropertiesThread::run()
 
 			// Writing pore csv file 
 			double spacing = image->GetSpacing()[0];
-			ofstream fout( masksName.append( ".csv" ).toStdString().c_str(), std::ofstream::out );
+			ofstream fout( getLocalEncodingFileName(masksName.append( ".csv" )).c_str(), std::ofstream::out );
 
 			// Header of pore csv file
 			fout << "Spacing" << ',' << spacing << '\n'

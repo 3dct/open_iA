@@ -123,7 +123,7 @@ void iAStackReaderFilter::PerformWork(QMap<QString, QVariant> const & parameters
 	for (int i = indexRange[0]; i <= indexRange[1]; i++)
 	{
 		QString temp = fileNamesBase + QString("%1").arg(i, digits, 10, QChar('0')) + extension;
-		fileNameArray->InsertNextValue(temp.toLatin1());
+		fileNameArray->InsertNextValue(getLocalEncodingFileName(temp));
 	}
 	imgReader->SetFileNames(fileNameArray);
 	double origin[3];

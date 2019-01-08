@@ -38,13 +38,16 @@ iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow *
 	m_volumeStack = childData.child->getVolumeStack();
 	connect( childData.child, SIGNAL( updatedViews() ), this, SLOT( updateViews() ) );
 
-	if( !create4DCTDataViewWidget() ) {
+	if( !create4DCTDataViewWidget() )
+	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "create4DCTDataViewWidget failed");
 	}
-	if( !create4DCTTrackingGraphWidget() ) {
+	if( !create4DCTTrackingGraphWidget() )
+	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "create4DCTTrackingGraphWidget failed");
 	}
-	if( !create4DCTEventExplorerWidget() ) {
+	if( !create4DCTEventExplorerWidget() )
+	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "create4DCTEventExplorerWidget failed");
 	}
 }
@@ -75,7 +78,8 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTDataViewWidget()
 
 bool iAFuzzyFeatureTrackingAttachment::create4DCTTrackingGraphWidget()
 {
-	if( m_dlgTrackingGraph ) {
+	if( m_dlgTrackingGraph )
+	{
 		m_childData.child->addMsg( tr( "The Tracking Graph widget is already exist!" ) );
 		return false;
 	}
@@ -90,12 +94,14 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTTrackingGraphWidget()
 
 bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 {
-	if( m_dlgEventExplorer ) {
+	if( m_dlgEventExplorer )
+	{
 		m_childData.child->addMsg( tr( "The Event Explorer widget is already exist!" ) );
 		return false;
 	}
 
-	if( !m_dlgTrackingGraph ) {
+	if( !m_dlgTrackingGraph )
+	{
 		m_childData.child->addMsg( tr( "The Tracking Graph widget is missing. It is required for creating the Event Explorer widget" ) );
 		return false;
 	}
@@ -103,7 +109,8 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 	std::vector<iAFeatureTracking*> trackedFeaturesForwards;
 	std::vector<iAFeatureTracking*> trackedFeaturesBackwards;
 
-	for( int i = 0; i < m_volumeStack->GetFileNames()->size(); i++ ) {
+	for( int i = 0; i < m_volumeStack->GetFileNames()->size(); i++ )
+	{
 		QString file[2];
 
 		const QString csvExt = QString( ".csv" );
@@ -116,11 +123,13 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 		}
 		file[1] = m_volumeStack->getFileName( i ) + csvExt;
 
-		if( !file[0].isEmpty() && !QFile::exists( file[0] ) ) {
+		if( !file[0].isEmpty() && !QFile::exists( file[0] ) )
+		{
 			m_childData.child->addMsg( QString( "The file \"" ) + file[0] + QString( "\" is missing" ) );
 			return false;
 		}
-		if( !QFile::exists( file[1] ) ) {
+		if( !QFile::exists( file[1] ) )
+		{
 			m_childData.child->addMsg( QString( "The file \"" ) + file[1] + QString( "\" is missing" ) );
 			return false;
 		}
@@ -134,13 +143,11 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 		const int	maxSearchValue = 0;
 		const int	lineOffset = 4;
 
-		trackedFeaturesForwards.push_back( new iAFeatureTracking( file[0].toStdString(), file[1].toStdString(), lineOffset, outputFileName.toStdString(), dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue ) );
-		if( i == 0 ) {
-			trackedFeaturesBackwards.push_back( new iAFeatureTracking( file[0].toStdString(), file[1].toStdString(), lineOffset, outputFileName.toStdString(), dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue ) );
-		}
-		else {
-			trackedFeaturesBackwards.push_back( new iAFeatureTracking( file[1].toStdString(), file[0].toStdString(), lineOffset, outputFileName.toStdString(), dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue ) );
-		}
+		trackedFeaturesForwards.push_back( new iAFeatureTracking( file[0], file[1], lineOffset, outputFileName, dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue ) );
+		if( i == 0 )
+			trackedFeaturesBackwards.push_back( new iAFeatureTracking( file[0], file[1], lineOffset, outputFileName, dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue ) );
+		else
+			trackedFeaturesBackwards.push_back( new iAFeatureTracking( file[1], file[0], lineOffset, outputFileName, dissipationThreshold, overlapThreshold, volumeThreshold, maxSearchValue ) );
 	}
 
 	// 		AllocConsole();

@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAFeatureTracking.h"
 
+#include <io/iAFileUtils.h>
+
 #include <vtkTable.h>
 #include <vtkTypeUInt32Array.h>
 #include <vtkVariantArray.h>
@@ -47,7 +49,7 @@ std::vector<std::string> iAFeatureTracking::split(const std::string &s, char del
 	return elems;
 }
 
-vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const std::string &filename, int dataLineOffset)
+vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const QString &filename, int dataLineOffset)
 {
 	auto t = vtkSmartPointer<vtkTable>::New();
 
@@ -68,10 +70,10 @@ vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const std::string
 	VTK_CREATE(vtkTypeUInt32Array, dimZVxArray);
 	dimZVxArray->SetName("dimZ");
 
-	if(filename != "")
+	if (filename != "")
 	{
 		std::string line;
-		ifstream inputStream(filename);
+		ifstream inputStream(getLocalEncodingFileName(filename));
 		if(inputStream.is_open())
 		{
 			for(int i = 0; i < dataLineOffset; i++)
@@ -237,7 +239,7 @@ std::vector<iAFeatureTrackingCorrespondence>& iAFeatureTracking::getCorresponden
 
 
 // public methods
-iAFeatureTracking::iAFeatureTracking(std::string fileName1, std::string fileName2, int lineOffset, std::string outputFilename,
+iAFeatureTracking::iAFeatureTracking(QString const & fileName1, QString const &fileName2, int lineOffset, QString const & outputFilename,
 								 float dissipationThreshold, float overlapThreshold, float volumeThreshold,
 								 int maxSearchValue)
 {
@@ -609,7 +611,7 @@ void iAFeatureTracking::TrackFeatures()
 	if(outputFilename != "")
 	{
 		ofstream out;
-		out.open(outputFilename);
+		out.open(getLocalEncodingFileName(outputFilename));
 		out << "Dissipation" << endl;
 		for (auto p = dissipated->begin(); p != dissipated->end(); p++)
 		{

@@ -21,8 +21,9 @@
 #pragma once
 
 #include "scene.h"
-
 #include "../../dreamcaster.h"
+
+#include <io/iAFileUtils.h>
 
 #include <algorithm>
 #include <cassert>
@@ -39,21 +40,12 @@ extern DreamCaster * dcast;
 class BSPNode
 {
 public:
-	/**
-	* BSPNode constructor.
-	* @param a_aabb axis-aligned bounding box of node.
-	* @see BSPNode()
-	*/
 	BSPNode()
 	{
 		internal1=0; 
 		internal2=0; 
 		masked_vars=0;
 	}
-	/**
-	* BSPNode constructor.
-	* @see BSPNode(aabb& a_aabb)
-	*/
 	~BSPNode()
 	{
 	}
@@ -66,7 +58,7 @@ public:
 	* @param l_aabb [out]left child's aabb
 	* @param r_aabb [out]right child's aabb
 	* @param nodes vector of tree nodes
-	* @return 1 if successful
+	* @return 1 if successful, 0 otherwise
 	*/
 	int Split(aabb &p_aabb, aabb &l_aabb, aabb &r_aabb)
 	{
@@ -473,8 +465,6 @@ public:
 	}
 	~BSPTree()
 	{
-		//if(root)
-		//	delete root;
 		for (unsigned int i=0; i<nodes.size(); i++)
 		{
 			delete nodes[i];
@@ -497,7 +487,6 @@ public:
 		nodes.push_back(root);
 		//root->Split(0, splitLevel-1);
 		dcast->log("done",true);
-		printf("done\n");
 		return 1;
 	}
 	/**
@@ -509,14 +498,12 @@ public:
 	int FillTree(std::vector<TriPrim*>& triangles)
 	{
 		m_triangles = &triangles;
-		printf("Fill BSP-tree with data..........");
 		dcast->log("Fill BSP-tree with data..........");
 		int int_null = 0;
 		if(dcast->stngs.USE_SAH != 0)
 			root->DistributePrimsSAH(int_null, splitLevel, m_aabb, nodes, tri_ind, /*prims,*/ triangles,0);
 		else
 			root->DistributePrims(int_null, splitLevel, m_aabb, nodes, tri_ind, /*prims,*/ triangles,0);
-		printf("done\n");
 		dcast->log("done",true);
 		return 1;
 	}
@@ -629,11 +616,11 @@ public:
 	* @param filename filename of ouput file
 	* @return 1 if succed , 0 - otherwise
 	*/
-	int SaveTree(const char * filename)
+	int SaveTree(QString const & filename)
 	{
 		FILE *fptr;
 		//fopen_s( &fptr, filename, "wb" );
-		fptr = fopen(filename, "wb" );
+		fptr = fopen( getLocalEncodingFileName(filename).c_str(), "wb" );
 		if(!fptr)
 		{
 			dcast->log("failed(cannot open file)\n",true);
@@ -670,9 +657,9 @@ public:
 	* @param filename filename of input file
 	* @return 1 if succed , 0 - otherwise
 	*/
-	int LoadTree(const char * filename)
+	int LoadTree(QString const & filename)
 	{
-		FILE *fptr = fopen(filename,"rb");
+		FILE *fptr = fopen( getLocalEncodingFileName(filename).c_str(),"rb");
 		if(!fptr)
 		{
 			dcast->log("failed to open file",true);

@@ -20,7 +20,8 @@
 * ************************************************************************************/
 #include "iAAmiraMeshIO.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
+#include <io/iAFileUtils.h>
 
 #include <vtkImageData.h>
 
@@ -96,7 +97,7 @@ namespace
 
 vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 {
-	FILE* fp = fopen(fileName.toStdString().c_str(), "rb");
+	FILE* fp = fopen( getLocalEncodingFileName(fileName).c_str(), "rb");
 	if (!fp)
 	{
 		DEBUG_LOG(QString("Could not open file '%1'.").arg(fileName));

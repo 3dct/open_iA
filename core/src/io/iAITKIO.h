@@ -50,7 +50,7 @@ namespace iAITKIO
 		{
 			reader->ReleaseDataFlagOn();
 		}
-		reader->SetFileName( f.toLatin1().data() );
+		reader->SetFileName( getLocalEncodingFileName(f) );
 		reader->Update();
 		image = reader->GetOutput();
 		image->Modified();
@@ -77,15 +77,15 @@ namespace iAITKIO
 	inline ImagePointer readFile (QString const & fileName, ScalarPixelType & pixelType, bool releaseFlag)
 	{
 		itk::ImageIOBase::Pointer imageIO =
-		itk::ImageIOFactory::CreateImageIO( fileName.toLatin1(), itk::ImageIOFactory::ReadMode );
+		itk::ImageIOFactory::CreateImageIO( getLocalEncodingFileName(fileName).c_str(), itk::ImageIOFactory::ReadMode );
 
 		if (!imageIO)
 		{
-			throw itk::ExceptionObject( __FILE__, __LINE__, QString("iAITKIO: Could not open file %1, aborting loading.").arg(fileName).toLatin1().data() );
+			throw itk::ExceptionObject( __FILE__, __LINE__, QString("iAITKIO: Could not open file %1, aborting loading.").arg(fileName).toStdString().c_str() );
 			return ImagePointer();
 		}
 
-		imageIO->SetFileName(fileName.toLatin1());
+		imageIO->SetFileName( getLocalEncodingFileName(fileName) );
 		imageIO->ReadImageInformation();
 		pixelType = imageIO->GetComponentType();
 		ImagePointer image;

@@ -2399,38 +2399,44 @@ void MainWindow::OpenWithDataTypeConversion()
 	double convPara[11];
 	convPara[0] = owdtcmin;   convPara[1] = owdtcmax;  convPara[2] = owdtcoutmin; convPara[3] = owdtcoutmax; convPara[4] = owdtcdov; convPara[5] = owdtcxori;
 	convPara[6] = owdtcxsize; convPara[7] = owdtcyori; convPara[8] = owdtcysize;  convPara[9] = owdtczori;   convPara[10] = owdtczsize;
-	dlg_datatypeconversion* conversionwidget = new dlg_datatypeconversion( this, imageData, file.toStdString().c_str(), MapVTKTypeStringToInt(owdtcintype), para, winsize, convPara );
-	if (conversionwidget->exec() != QDialog::Accepted)
+	try
 	{
-		return;
-	}
-	QString outDataType = conversionwidget->getDataType();
-	owdtcmin = conversionwidget->getRangeLower(); owdtcmax = conversionwidget->getRangeUpper();
-	owdtcoutmin = conversionwidget->getOutputMin(); owdtcoutmax = conversionwidget->getOutputMax();
-	owdtcdov = conversionwidget->getConvertROI();
-	owdtcxori = conversionwidget->getXOrigin(); owdtcxsize = conversionwidget->getXSize();
-	owdtcyori = conversionwidget->getYOrigin(); owdtcysize = conversionwidget->getYSize();
-	owdtczori = conversionwidget->getZOrigin(); owdtczsize = conversionwidget->getZSize();
+		dlg_datatypeconversion* conversionwidget = new dlg_datatypeconversion(this, imageData, file, MapVTKTypeStringToInt(owdtcintype), para, winsize, convPara);
+		if (conversionwidget->exec() != QDialog::Accepted)
+			return;
 
-	double roi[6];
-	roi[0] = owdtcxori; roi[1] = owdtcxsize;
-	roi[2] = owdtcyori; roi[3] = owdtcysize;
-	roi[4] = owdtczori; roi[5] = owdtczsize;
+		QString outDataType = conversionwidget->getDataType();
+		owdtcmin = conversionwidget->getRangeLower(); owdtcmax = conversionwidget->getRangeUpper();
+		owdtcoutmin = conversionwidget->getOutputMin(); owdtcoutmax = conversionwidget->getOutputMax();
+		owdtcdov = conversionwidget->getConvertROI();
+		owdtcxori = conversionwidget->getXOrigin(); owdtcxsize = conversionwidget->getXSize();
+		owdtcyori = conversionwidget->getYOrigin(); owdtcysize = conversionwidget->getYSize();
+		owdtczori = conversionwidget->getZOrigin(); owdtczsize = conversionwidget->getZSize();
 
-	if ( owdtcdov == 0 )
-	{
-		testfinalfilename = conversionwidget->coreconversionfunction(file, finalfilename, para,
-			MapVTKTypeStringToInt(owdtcintype),
-			MapVTKTypeStringToInt(outDataType),
-			owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov  );
+		double roi[6];
+		roi[0] = owdtcxori; roi[1] = owdtcxsize;
+		roi[2] = owdtcyori; roi[3] = owdtcysize;
+		roi[4] = owdtczori; roi[5] = owdtczsize;
+
+		if (owdtcdov == 0)
+		{
+			testfinalfilename = conversionwidget->coreconversionfunction(file, finalfilename, para,
+				MapVTKTypeStringToInt(owdtcintype),
+				MapVTKTypeStringToInt(outDataType),
+				owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov);
+		}
+		else
+		{
+			testfinalfilename = conversionwidget->coreconversionfunctionforroi(file, finalfilename, para,
+				MapVTKTypeStringToInt(outDataType),
+				owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov, roi);
+		}
+		LoadFile(testfinalfilename, false);
 	}
-	else
+	catch (std::exception & e)
 	{
-		testfinalfilename = conversionwidget->coreconversionfunctionforroi(file, finalfilename, para,
-			MapVTKTypeStringToInt(outDataType),
-			owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov, roi  );
+		DEBUG_LOG(QString("Open with datatype conversion: %1").arg(e.what()));
 	}
-	LoadFile(testfinalfilename, false);
 }
 
 

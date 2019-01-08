@@ -22,7 +22,7 @@
      <item>
       <widget class="QPushButton" name="pb_Save">
        <property name="text">
-        <string>Save to results.txt</string>
+        <string>Save to .result file</string>
        </property>
       </widget>
      </item>

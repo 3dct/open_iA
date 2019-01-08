@@ -26,6 +26,7 @@
 #include "iAModalityList.h"
 #include "iAMultiStepProgressObserver.h"
 #include "iAStringHelper.h"
+#include "io/iAFileUtils.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -205,7 +206,7 @@ void iATLGICTLoader::run()
 		{
 			QString temp = fileNameBase + QString("%1").arg(i, digits, 10, QChar('0')) + "." + ext;
 			temp = temp.replace("/", "\\");
-			fileNames->InsertNextValue(temp.toLatin1());
+			fileNames->InsertNextValue(getLocalEncodingFileName(temp));
 		}
 
 		// load image stack // TODO: put to common location and use from iAIO!

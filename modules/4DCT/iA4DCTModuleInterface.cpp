@@ -183,9 +183,9 @@ void iA4DCTModuleInterface::defectClassification()
 	params.NeighborhoodDistP = dlg.ui.dsbNeighborhoodDistanceP->value( );
 	params.NeighborhoodDistFF = dlg.ui.dsbNeighborhoodDistanceFF->value( );
 	params.BigVolumeThreshold = dlg.ui.dsbBigVolumeThreshold->value( );
-	params.FibersFile = dlg.ui.Fibers->ui.Path->text( ).toStdString( );
-	params.FeaturesFile = dlg.ui.Defects->ui.Path->text( ).toStdString( );
-	params.OutputDir = dlg.ui.Output->ui.Path->text( ).toStdString( );
+	params.FibersFile = dlg.ui.Fibers->ui.Path->text( );
+	params.FeaturesFile = dlg.ui.Defects->ui.Path->text( );
+	params.OutputDir = dlg.ui.Output->ui.Path->text( );
 
 	df.run( params );
 }

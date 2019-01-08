@@ -24,6 +24,7 @@
 #include <iAConnector.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
+#include <io/iAFileUtils.h>
 
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkLabelGeometryImageFilter.h>
@@ -47,7 +48,7 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 
 	// Writing pore csv file 
 	double spacing = longImage->GetSpacing()[0];
-	ofstream fout( pathCSV.toStdString(), std::ofstream::out );
+	ofstream fout( getLocalEncodingFileName(pathCSV), std::ofstream::out );
 
 	// Header of pore csv file
 	fout << "Spacing" << ',' << spacing << '\n'

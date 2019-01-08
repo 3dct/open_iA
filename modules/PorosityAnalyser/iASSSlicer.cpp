@@ -93,10 +93,10 @@ const QList<QColor> brewer_RdPu = QList<QColor>() \
 << QColor( "#7a0177" ) \
 << QColor( "#49006a" );
 
-extern void loadImageData( const char * fileName, vtkSmartPointer<vtkImageData> & imgData )
+void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & imgData )
 {
 	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New();
-	reader->SetFileName( fileName );
+	reader->SetFileName( getLocalEncodingFileName(fileName).c_str() );
 	reader->Update();
 	imgData = reader->GetOutput();
 }
@@ -197,7 +197,7 @@ void iASSSlicer::initializeChannel( iAChanData * chData )
 	slicer->initializeChannel( chData->id, chData->visData.data() );
 }
 
-void iASSSlicer::initBPDChans( const char * minFile, const char * medFile, const char * maxFile )
+void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile, QString const & maxFile )
 {
 	loadImageData( minFile, minChan->imgData );
 	loadImageData( medFile, medChan->imgData );
@@ -292,7 +292,7 @@ void iASSSlicer::initializeMasks( QStringList & masks )
 	masksChan->scalarBarWgt->SetEnabled( true );
 }
 
-void iASSSlicer::initializeGT( const char * fileName )
+void iASSSlicer::initializeGT( QString const & fileName )
 {
 	loadImageData( fileName, gtChan->imgData );
 	initializeChannel( gtChan.data() );

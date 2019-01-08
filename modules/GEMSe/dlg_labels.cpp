@@ -516,7 +516,7 @@ void dlg_labels::StoreImage()
 		return;
 	}
 	vtkMetaImageWriter *metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName(fileName.toStdString().c_str());
+	metaImageWriter->SetFileName( getLocalEncodingFileName(fileName).c_str() );
 	metaImageWriter->SetInputData(m_labelOverlayImg);
 	metaImageWriter->SetCompression( false );
 	metaImageWriter->Write();

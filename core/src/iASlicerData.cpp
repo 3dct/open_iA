@@ -873,14 +873,9 @@ void iASlicerData::saveImageStack()
 		"", iAIOProvider::GetSupportedImageFormats() );
 	if (file.isEmpty())
 		return;
-
-	std::string current_file = file.toLocal8Bit().constData();
-	size_t dotpos = current_file.find_last_of(".");
-	assert( dotpos != std::string::npos );
-	if ( dotpos == std::string::npos )
-		return;
-
-	current_file.erase(dotpos,4);
+	
+	QFileInfo fileInfo(file);
+	QString baseName = fileInfo.canonicalPath() + "/" + fileInfo.baseName();
 
 	int const * arr = imageData->GetDimensions();
 	double const * spacing = imageData->GetSpacing();
@@ -898,7 +893,7 @@ void iASlicerData::saveImageStack()
 		<<  tr("#To Slice Number:") );
 	QList<QVariant> inPara = ( QList<QVariant>() << (saveNative ? tr("true") : tr("false"))<<tr("%1")
 		.arg(sliceFirst) <<tr("%1").arg(sliceLast) );
-	QFileInfo fileInfo(file);
+
 	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
 		(QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
 	{
@@ -958,15 +953,8 @@ void iASlicerData::saveImageStack()
 
 		emit progress(100 * slice / sliceLast);
 
-		//append slice number to filename
-		std::stringstream ss;
-		ss << slice;
-		std::string appendFile(ss.str());
-		std::string newFileName(current_file);
-		newFileName.append(appendFile);
-		newFileName.append(".");
-		newFileName.append(fileInfo.suffix().toStdString());
-		WriteSingleSliceImage(newFileName.c_str(), img);
+		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
+		WriteSingleSliceImage(newFileName, img);
 	}
 	interactor->Enable();
 	emit msg(tr("Image stack saved in folder: %1")
@@ -1115,16 +1103,11 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
-
 		double result[4];
 		double xCoord, yCoord, zCoord;
 		GetMouseCoord(xCoord, yCoord, zCoord, result);
-
 		double mouseCoord[3] = { result[0], result[1], result[2] };
-
 		//updateFisheyeTransform(mouseCoord, reslicer, 50.0);
-
-
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);
@@ -1274,7 +1257,8 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 		if (mdi_parent->getLinkedMDIs())
 		{
 			QList<MdiChild*> mdiwindows = mdi_parent->getMainWnd()->MdiChildList();
-			for (int i = 0; i < mdiwindows.size(); i++) {
+			for (int i = 0; i < mdiwindows.size(); i++)
+			{
 				MdiChild *tmpChild = mdiwindows.at(i);
 				if (tmpChild != mdi_parent) {
 					double * const tmpSpacing = tmpChild->getImagePointer()->GetSpacing();
@@ -1327,7 +1311,8 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	}
 
 	// if requested calculate distance and show actor
-	if (pLineActor->GetVisibility()) {
+	if (pLineActor->GetVisibility())
+	{
 		double distance = sqrt(	pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) +
 			pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2) );
 		// ORIENTATION / ROTATION FIX: pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1]);

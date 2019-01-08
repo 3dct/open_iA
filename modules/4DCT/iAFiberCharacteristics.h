@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include <io/iAFileUtils.h>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -42,13 +44,13 @@ public:
 	bool			isSeparated;
 	bool			isCurved;
 
-	static FibersData ReadFromCSV(std::string fileName, double spacing)
+	static FibersData ReadFromCSV(QString const & fileName, double spacing)
 	{
 		std::vector<Fiber> result;
 
 		const int numRows = 14;
 		const int skipRows = 5;
-		std::ifstream fileStream(fileName);
+		std::ifstream fileStream( getLocalEncodingFileName(fileName) );
 		std::string line;
 
 		// row skipping

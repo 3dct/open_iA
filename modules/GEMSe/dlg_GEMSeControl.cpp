@@ -567,7 +567,7 @@ void dlg_GEMSeControl::ExportIDs()
 		return;
 	}
 	QSharedPointer<iAImageTreeNode> cluster = m_dlgGEMSe->GetCurrentCluster();
-	std::ofstream out(fileName.toStdString());
+	std::ofstream out( getLocalEncodingFileName(fileName) );
 	ExportClusterIDs(cluster, out);
 }
 

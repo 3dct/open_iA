@@ -24,6 +24,7 @@
 #include <iAConnector.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
+#include <io/iAFileUtils.h>
 
 #include <itkConnectedComponentImageFilter.h>
 #include <itkScalarConnectedComponentImageFilter.h>
@@ -115,7 +116,7 @@ void SimpleRelabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant>
 	{
 		long int no_of_Objects = rccFilter->GetNumberOfObjects();
 		ofstream myfile;
-		myfile.open(parameters["Label file"].toString().toStdString());
+		myfile.open(getLocalEncodingFileName(parameters["Label file"].toString()));
 		myfile << " Total Objects " << "," << no_of_Objects << endl;
 		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)" << endl;
 		for ( int i = 0; i < no_of_Objects; i++ )

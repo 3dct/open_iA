@@ -26,6 +26,7 @@
 #include "iAPlot.h"
 #include "iAPlotData.h"
 #include "iAStringHelper.h"
+#include "io/iAFileUtils.h"
 
 #include <vtkMath.h>
 
@@ -1000,7 +1001,7 @@ void iAChartWidget::exportData()
 	{
 		return;
 	}
-	std::ofstream out(fileName.toStdString());
+	std::ofstream out( getLocalEncodingFileName(fileName));
 	out << tr("Start of Bin").toStdString();
 	for (int p = 0; p < m_plots.size(); ++p)
 	{

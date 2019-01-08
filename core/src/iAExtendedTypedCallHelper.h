@@ -81,7 +81,7 @@
 			default:														\
 				throw itk::ExceptionObject( __FILE__, __LINE__,				\
 					QString( "Typed Call: Unknown scalar pixel type." ).	\
-					toLatin1().data() );									\
+					toStdString().c_str() );									\
 		}																	\
 	}																		\
 	else if (itk_image_type == itk::ImageIOBase::RGB)						\

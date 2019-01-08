@@ -47,8 +47,9 @@
 #include <iAMathUtility.h>
 #include <iARenderer.h>
 #include <iAVtkWidget.h>
-#include <qthelper/iAWidgetAddHelper.h>
+#include <io/iAFileUtils.h>
 #include <io/iAIO.h>
+#include <qthelper/iAWidgetAddHelper.h>
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>
 
@@ -1286,7 +1287,7 @@ void dlg_XRF::computeSimilarityMap()
 		vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
 		writer->SetCompression(false);
 		writer->SetInputData(similarityImageData);
-		writer->SetFileName(fileName.toLatin1().constData());
+		writer->SetFileName( getLocalEncodingFileName(fileName).c_str() );
 		writer->Write();
 		writer->Update();
 	}

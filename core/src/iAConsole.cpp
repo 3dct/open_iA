@@ -23,6 +23,7 @@
 #include "dlg_console.h"
 #include "iARedirectVtkOutput.h"
 #include "iARedirectItkOutput.h"
+#include "io/iAFileUtils.h"
 
 #include <QDateTime>
 
@@ -64,7 +65,7 @@ void iAConsole::LogSlot(QString const & text)
 	}
 	if (m_logToFile)
 	{
-		std::ofstream logfile(m_logFileName.toStdString().c_str(), std::ofstream::out | std::ofstream::app);
+		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
 		logfile << QString("%1 %2\n")
 			.arg(QLocale().toString(
 				QDateTime::currentDateTime(),

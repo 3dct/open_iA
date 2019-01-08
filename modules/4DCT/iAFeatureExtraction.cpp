@@ -22,6 +22,8 @@
 
 #include "iAFeature.h"
 
+#include <io/iAFileUtils.h>
+
 #include <itkImage.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageFileReader.h>
@@ -40,7 +42,7 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 
 	typedef itk::ImageFileReader<ImageType> ImageReaderType;
 	ImageReaderType::Pointer labelReader = ImageReaderType::New();
-	labelReader->SetFileName(inputImgPath.toStdString());
+	labelReader->SetFileName( getLocalEncodingFileName(inputImgPath) );
 	labelReader->Update();
  
 	labelImage = labelReader->GetOutput();
@@ -128,7 +130,7 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 	}
 
 	std::ofstream file;
-	file.open(outputImgPath.toStdString());
+	file.open( getLocalEncodingFileName(outputImgPath).c_str() );
 	for (auto f : features)
 	{
 		file << f;

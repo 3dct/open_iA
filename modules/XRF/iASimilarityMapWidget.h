@@ -37,7 +37,7 @@ public:
 	~iASimilarityMapWidget( );
 	void setImageData( vtkImageData * image );
 	void setWindowing( double lowerVal, double upperVal );
-	void load( const char* filename );
+	void load( QString const & filename );
 	typedef double ImageScalarType;
 protected:
 	void paintEvent(QPaintEvent * );

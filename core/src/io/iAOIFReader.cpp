@@ -38,8 +38,7 @@ void Reader::read(QString const & filename, iAConnector* con, int channel,
 	std::vector<vtkSmartPointer<vtkImageData> > * volumes)
 {
 	OIFReader* reader = new OIFReader();
-	std::string fnStr(filename.toStdString());
-	reader->SetFile(fnStr);
+	reader->SetFile(filename.toStdWString());
 	reader->SetSliceSeq(false);
 	std::wstring timeId(L"_T");
 	reader->SetTimeId(timeId);

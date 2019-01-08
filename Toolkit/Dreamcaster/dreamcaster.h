@@ -222,7 +222,7 @@ public slots:
 	virtual void ShowResultsSlot();
 	//! Show logs window
 	virtual void ShowLogsSlot();
-	//! Save results to file "results.txt" in working dir
+	//! Save results to .result file in same directory as data stl file
 	virtual void SaveResultsSlot();
 	//! Slot that shows colors object, corresponding to angles btw tri's norm and ray to middle of tri
 	virtual void ShowDipAnglesSlot();

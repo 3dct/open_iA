@@ -1552,7 +1552,7 @@ void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMas
 	// Save features characteristics in csv file 
 	double spacing = mask->GetSpacing()[0];
 	double totalFeatureVol = 0, totalPhi = 0, totalTheta = 0, totalRoundness = 0, totalLength = 0;
-	ofstream fout(currMaskFilePath.append(".csv").toStdString().c_str(), std::ofstream::out);
+	ofstream fout( getLocalEncodingFileName(currMaskFilePath.append(".csv")).c_str(), std::ofstream::out);
 
 	// Header of pore csv file
 	fout << "Spacing" << ',' << spacing << '\n'

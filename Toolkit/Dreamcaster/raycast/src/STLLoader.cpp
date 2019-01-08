@@ -20,8 +20,14 @@
 * ************************************************************************************/
 #include "../include/STLLoader.h"
 #include "../../dreamcaster.h"
-#include <fstream>
+
+#include <io/iAFileUtils.h>
+
 #include <vtksys/SystemTools.hxx>
+
+#include <QString>
+
+#include <fstream>
 
 extern DreamCaster * dcast;
 
@@ -124,7 +130,7 @@ struct Tri
 	float vertex3X;        float vertex3Y;        float vertex3Z;
 };
 
-int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3*> & vertices, aabb & box)
+int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3*> & vertices, aabb & box)
 {
 	float scale_coef;///< loaded mesh's scale coefficient
 	float translate3f[3];///< loaded mesh's axes offsets
@@ -145,20 +151,18 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 	}
 	stlMesh.clear();
 	//
-	if( !filename.empty() )
-		reader.open( filename.c_str() );
+	if( !filename.isEmpty() )
+		reader.open( getLocalEncodingFileName(filename).c_str() );
 	else
 	{
-		printf("Error! Cannot open an .STL file.\n");
-		dcast->log("Error! Cannot open an .STL file.");
+		dcast->log("Error! Cannot open .STL file, no file name given.");
 		return 1;
 	}
 		
 	// safety check to ensure that the file pointer opened is valid
 	if (!reader.is_open())
 	{
-		printf("Error! Cannot open an .STL file.\n");
-		dcast->log("Error! Cannot open an .STL file.");
+		dcast->log(QString("Error! Opening .STL file %1 failed.").arg(filename));
 		return 2; 
 	}
 
@@ -205,7 +209,7 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 	//Determine the type of the file
 	int type;
 	vtksys::SystemTools::FileTypeEnum ft =
-		vtksys::SystemTools::DetectFileType(filename.c_str());
+		vtksys::SystemTools::DetectFileType(getLocalEncodingFileName(filename).c_str());
 	switch(ft)
 	{
 	case vtksys::SystemTools::FileTypeBinary:
@@ -270,20 +274,18 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 	else
 	{
 		struct Tri item;
-		FILE *fptr = fopen(filename.c_str(),"rb");
+		FILE *fptr = fopen(getLocalEncodingFileName(filename).c_str(),"rb");
 		if(!fptr)	return 1;
 		unsigned char header[80];
 		if (fread(&header, sizeof(char), 80, fptr) != 80)
 		{
-			printf("Error! Cannot read .STL file header.\n");
-			dcast->log("Error! Cannot read .STL file header.\n");
+			dcast->log(QString("Error! Cannot read .STL file header of %1.\n").arg(filename));
 			return 4;
 		}
 		unsigned long noOfFacets;
 		if (fread(&noOfFacets, sizeof(unsigned long), 1, fptr) != 1)
 		{
-			printf("Error! Cannot read .STL file header.\n");
-			dcast->log("Error! Cannot read .STL file header.\n");
+			dcast->log(QString("Error! Cannot read .STL file header of %1.\n").arg(filename));
 			return 4;
 		}
 
@@ -295,8 +297,7 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 			if ((fread(&item,sizeof(item),1,fptr) != 1) ||				// reads triangle
 				(fread(&zero,sizeof(unsigned short),1,fptr) != 1))		// reads an unsigned short present after every triangle
 			{
-				printf("Error! Problem reading .STL file content.\n");
-				dcast->log("Error! Cannot read .STL file content.\n");
+				dcast->log(QString("Error! Cannot read .STL file content of %1.\n").arg(filename));
 				return 4;
 			}
 

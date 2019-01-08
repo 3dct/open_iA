@@ -43,6 +43,7 @@
 #include <iARenderer.h>
 #include <iAToolsITK.h>
 #include <iAVtkWidget.h>
+#include <io/iAFileUtils.h>
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>
 
@@ -579,14 +580,14 @@ void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, c
 	ofstream debugfile;
 	std::string OutfileName = "";
 	if (fileName)
-		OutfileName = fileName->toStdString(); 
+		OutfileName = getLocalEncodingFileName(*fileName);
 	else
 		OutfileName = "debugFile";
 
 	if (!QDir(outputPath).exists() || !anyTable)
 		return;
 
-	debugfile.open(outputPath.toStdString() + OutfileName + ".csv");
+	debugfile.open(getLocalEncodingFileName(outputPath) + OutfileName + ".csv");
 	if (!debugfile.is_open())
 		return;
 
@@ -1182,7 +1183,7 @@ void dlg_FeatureScout::saveStl()
 
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	stlWriProgress.Observe(stlWriter);
-	stlWriter->SetFileName( iovMO->le_StlPath->text().toStdString().c_str() );
+	stlWriter->SetFileName( getLocalEncodingFileName(iovMO->le_StlPath->text()).c_str() );
 	stlWriter->SetInputConnection( moSurface->GetOutputPort() );
 	stlWriter->Write();
 }
@@ -1827,7 +1828,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		//Writes csv file
 		if ( saveFile )
 		{
-			ofstream file( filename.toStdString().c_str(), std::ios::app );
+			ofstream file( getLocalEncodingFileName(filename).c_str(), std::ios::app );
 			if ( file.is_open() )
 			{
 				vtkVariant tColNb, tRowNb, tVal;

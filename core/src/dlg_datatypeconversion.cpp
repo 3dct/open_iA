@@ -60,14 +60,26 @@
 #include <QStringList>
 #include <QVariant>
 
-template<class T> void DataTypeConversion_template(QString const & m_filename, double* b, iAPlotData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
+namespace
+{
+	FILE* openFile(QString const & filename)
+	{
+		FILE * pFile = fopen(getLocalEncodingFileName(filename).c_str(), "rb");
+		if (pFile == NULL)
+		{
+			QString msg(QString("Failed to open file %1!").arg(filename));
+			throw std::runtime_error(msg.toStdString());
+		}
+		return pFile;
+	}
+}
+
+template<class T> void DataTypeConversion_template(QString const & filename, double* b, iAPlotData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
 {
 	// TODO: use itk methods instead?
 	typedef itk::Image< T, 3 >   InputImageType;
 
-	FILE * pFile;
-	pFile = fopen( m_filename.toStdString().c_str(), "rb" );
-	if (pFile==NULL) {fputs ("File error",stderr); exit (1);}
+	FILE * pFile = openFile(filename);
 
 	typename InputImageType::Pointer itkimage = InputImageType::New();
 
@@ -318,22 +330,20 @@ template<class T> void DataTypeConversion_template(QString const & m_filename, d
 	metaImageWriter->Write();
 }
 
-void dlg_datatypeconversion::DataTypeConversion(QString const & m_filename, double* b)
+void dlg_datatypeconversion::DataTypeConversion(QString const & filename, double* b)
 {
-	VTK_TYPED_CALL(DataTypeConversion_template, m_intype, m_filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage);
+	VTK_TYPED_CALL(DataTypeConversion_template, m_intype, filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage);
 	m_testxyimage = xyconvertimage->GetVTKImage();
 	m_testxzimage = xzconvertimage->GetVTKImage();
 	m_testyzimage = yzconvertimage->GetVTKImage();
 }
 
 //roi conversion
-template<class T> void DataTypeConversionROI_template(QString const & m_filename, double* b, double* roi, float* m_min, float* m_max, float* m_dis, iAConnector* m_roiconvertimage)
+template<class T> void DataTypeConversionROI_template(QString const & filename, double* b, double* roi, float* m_min, float* m_max, float* m_dis, iAConnector* m_roiconvertimage)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
 
-	FILE * pFile;
-	pFile = fopen( m_filename.toStdString().c_str(), "rb" );
-	if (pFile==NULL) {fputs ("File error",stderr); exit (1);}
+	FILE * pFile = openFile(filename);
 
 	typename InputImageType::Pointer itkimage = InputImageType::New();
 
@@ -416,13 +426,13 @@ template<class T> void DataTypeConversionROI_template(QString const & m_filename
 	m_roiconvertimage->Modified();
 }
 
-void dlg_datatypeconversion::DataTypeConversionROI(QString const & m_filename, double* b, double *roi)
+void dlg_datatypeconversion::DataTypeConversionROI(QString const & filename, double* b, double *roi)
 {
-	VTK_TYPED_CALL(DataTypeConversionROI_template, m_intype, m_filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage);
+	VTK_TYPED_CALL(DataTypeConversionROI_template, m_intype, filename, b, roi, &m_min, &m_max, &m_dis, m_roiconvertimage);
 	m_roiimage = m_roiconvertimage->GetVTKImage();
 }
 
-dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* input, const char* filename, int intype, double* b, double* c, double* inPara) : QDialog (parent)
+dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* input, QString const & filename, int intype, double* b, double* c, double* inPara) : QDialog (parent)
 {
 	setupUi(this);
 
@@ -451,13 +461,12 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* in
 	m_spacing[0] = b[4]; m_spacing[1] = b[5];	m_spacing[2] = b[6];
 	m_bins = b[7];
 	m_intype = intype;
-	m_filename = filename;
 	m_min = 0; m_max = 0; m_dis = 0;
 	m_roi[0]= 0; m_roi[1] = 0; m_roi[2]= 0; m_roi[3]= m_insizex; m_roi[4] = m_insizey; m_roi[5] = m_insizez;
 
 	m_histbinlist = new iAPlotData::DataType[m_bins];
 
-	DataTypeConversion(m_filename, b);
+	DataTypeConversion(filename, b);
 
 	histogramdrawing (m_histbinlist, m_min, m_max, m_bins, m_dis);
 
@@ -789,9 +798,7 @@ QString dlg_datatypeconversion::coreconversionfunction( QString filename, QStrin
 		scale = 0.0;
 	}
 	float shift = ( minout - minrange ) * scale;
-	FILE * pFile;
-	pFile = fopen ( filename.toStdString().c_str(), "rb" );
-	if (pFile==NULL) {fputs ("File error",stderr); exit (1);}
+	FILE * pFile = openFile(filename);
 	vtkImageData* imageData = vtkImageData::New();
 	// Setup the image
 	imageData->SetDimensions(para[1], para[2], para[3]);
@@ -802,7 +809,7 @@ QString dlg_datatypeconversion::coreconversionfunction( QString filename, QStrin
 	filename.chop(4);
 	filename.append("-DT.mhd");
 	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName(filename.toStdString().c_str());
+	metaImageWriter->SetFileName(getLocalEncodingFileName(filename).c_str());
 	metaImageWriter->SetInputData(imageData);
 	metaImageWriter->Write();
 	finalfilename = filename;
@@ -811,7 +818,6 @@ QString dlg_datatypeconversion::coreconversionfunction( QString filename, QStrin
 
 QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, QString & finalfilename, double* para, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi)
 {
-
 	DataTypeConversionROI(filename, m_bptr, roi);
 	float m_Scale = 0;
 	//scale and shift calculator
@@ -825,9 +831,7 @@ QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, Q
 
 	float m_Shift = ( minout - minrange ) * m_Scale;
 
-	FILE * pFile;
-	pFile = fopen( filename.toStdString().c_str(), "rb" );
-	if (pFile==NULL) {fputs ("File error",stderr); exit (1);}
+	FILE * pFile = openFile(filename);
 	fclose(pFile);
 
 	vtkImageData* imageData = vtkImageData::New();
@@ -853,7 +857,7 @@ QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, Q
 	filename.chop(4);
 	filename.append("-DT-roi.mhd");
 	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName(filename.toStdString().c_str());
+	metaImageWriter->SetFileName( getLocalEncodingFileName(filename).c_str());
 	metaImageWriter->SetInputData(imageData);
 	metaImageWriter->Write();
 	finalfilename = filename;

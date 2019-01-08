@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAExtractSurfaceFilters.h"
 
+#include "io/iAFileUtils.h"
+
 #include <iAConnector.h>
 #include <iAProgress.h>
 
@@ -106,7 +108,7 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	*/
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	Progress()->Observe(stlWriter);
-	stlWriter->SetFileName(parameters["STL output filename"].toString().toStdString().c_str());
+	stlWriter->SetFileName( getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{
 		stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());

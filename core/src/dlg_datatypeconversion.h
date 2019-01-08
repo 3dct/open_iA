@@ -43,11 +43,11 @@ class dlg_datatypeconversion : public QDialog, public Ui_DataTypeConversion
 	Q_OBJECT
 
 public:
-	dlg_datatypeconversion ( QWidget *parent, vtkImageData* input, const char* filename, int intype, double* b, double* c, double* inPara );
+	dlg_datatypeconversion ( QWidget *parent, vtkImageData* input, QString const & filename, int intype, double* b, double* c, double* inPara );
 	~dlg_datatypeconversion();
 
-	void DataTypeConversion(QString const & m_filename, double* b);
-	void DataTypeConversionROI(QString const & m_filename, double* b, double *roi);
+	void DataTypeConversion(QString const & filename, double* b);
+	void DataTypeConversionROI(QString const & filename, double* b, double *roi);
 	void histogramdrawing(iAPlotData::DataType* histbinlist, float min, float max, int m_bins, double discretization);
 
 	void xyprojectslices();
@@ -70,8 +70,9 @@ public:
 
 	QString getDataType();
 	int getConvertROI();
-	private slots:
-		void update(QString a);
+
+private slots:
+	void update(QString a);
 
 private:
 	QString text11;
@@ -83,7 +84,6 @@ private:
 	vtkImageData* imageData;
 	int m_intype;
 	double m_sliceskip, m_insizex,	m_insizey, m_insizez, m_inspacex, m_inspacey, m_inspacez;
-	QString m_filename;
 	iAPlotData::DataType * m_histbinlist;
 	float m_min, m_max, m_dis;
 	vtkImageData* m_testxyimage, * m_testxzimage, * m_testyzimage, * m_roiimage;

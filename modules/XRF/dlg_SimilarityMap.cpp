@@ -74,7 +74,7 @@ void dlg_SimilarityMap::loadMap()
 		tr("MetaImages (*.mhd *.mha );;") );
 	if(mapFileName == "")
 		return;
-	m_similarityMapWidget->load(mapFileName.toStdString().c_str());
+	m_similarityMapWidget->load(mapFileName);
 }
 
 

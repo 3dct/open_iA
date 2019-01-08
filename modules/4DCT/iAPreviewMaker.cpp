@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAPreviewMaker.h"
 
+#include <io/iAFileUtils.h>
+
 #include <itkImage.h>
 #include <itkImageFileReader.h>
 #include <itkExtractImageFilter.h>
@@ -32,12 +34,12 @@ void iAPreviewMaker::makeUsingType( QString fileName, QString thumbFileName )
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 
 	itk::ImageIOBase::Pointer imageIO;
-	imageIO = itk::ImageIOFactory::CreateImageIO( fileName.toStdString( ).c_str( ), itk::ImageIOFactory::ReadMode );
+	imageIO = itk::ImageIOFactory::CreateImageIO( getLocalEncodingFileName(fileName).c_str( ), itk::ImageIOFactory::ReadMode );
 	if( !imageIO ) {
 		//std::cerr << "Could not CreateImageIO for: " << inputFilename << std::endl;
 		return;
 	}
-	imageIO->SetFileName( fileName.toStdString( ).c_str( ) );
+	imageIO->SetFileName( getLocalEncodingFileName(fileName) );
 	imageIO->ReadImageInformation( );
 
 	const ScalarPixelType pixelType = imageIO->GetComponentType( );
@@ -68,7 +70,7 @@ void iAPreviewMaker::makeUsingType( QString filename, QString thumbFileName )
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
 	typename ReaderType::Pointer reader = ReaderType::New( );
 
-	reader->SetFileName( filename.toStdString( ) );
+	reader->SetFileName( getLocalEncodingFileName(filename) );
 	reader->Update( );
 	typename InputImageType::Pointer image = reader->GetOutput( );
 
@@ -94,7 +96,7 @@ void iAPreviewMaker::makeUsingType( QString filename, QString thumbFileName )
 	// write
 	typedef itk::ImageFileWriter<OutputImageType> WriterType;
 	typename WriterType::Pointer writer = WriterType::New( );
-	writer->SetFileName( thumbFileName.toStdString( ) );
+	writer->SetFileName( getLocalEncodingFileName(thumbFileName) );
 	writer->SetInput( output );
 	writer->Update( );
 }

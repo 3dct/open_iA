@@ -55,9 +55,9 @@ public:
 	void initialize( vtkSmartPointer<vtkImageData> img, 
 		vtkSmartPointer<vtkTransform> transform, 
 		vtkSmartPointer<vtkColorTransferFunction> tf );
-	void initBPDChans( const char * minFile, const char * medFile, const char * maxFile );
+	void initBPDChans( QString const & minFile, QString const & medFile, QString const & maxFile );
 	void initializeMasks( QStringList & masks );
-	void initializeGT( const char * fileName );
+	void initializeGT( QString const & fileName );
 	vtkPolyData * GetDeviationPolyData( int deviationMode );
 	vtkPolyData * GetMedPolyData();
 	QString getSlicerName();

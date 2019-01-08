@@ -383,7 +383,7 @@ ModalityCollection iAModalityList::Load(QString const & filename, QString const 
 	iAIO io(img, 0, 0, 0, &volumes);
 	if (filename.endsWith(iAIO::VolstackExtension))
 	{
-		io.setupIO(VOLUME_STACK_VOLSTACK_READER, filename.toLatin1().data());
+		io.setupIO(VOLUME_STACK_VOLSTACK_READER, filename);
 	}
 	else
 	{

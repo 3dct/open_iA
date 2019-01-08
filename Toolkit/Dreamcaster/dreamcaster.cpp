@@ -32,7 +32,8 @@
 #include "StabilityWidget.h"
 #include "dlg_histogram_simple.h"
 
-#include "iAVtkWidget.h"
+#include <iAVtkWidget.h>
+#include <io/iAFileUtils.h>
 
 #include <itkMacro.h>
 
@@ -447,7 +448,7 @@ void DreamCaster::initRaycast()
 	else
 	{
 		QString treefilename=modelFileName+".kdtree";
-		if(!tracer->GetScene()->initScene(mdata, &stngs, treefilename.toLatin1().constData()))
+		if(!tracer->GetScene()->initScene(mdata, &stngs, treefilename))
 			return;
 	}
 	PositionSpecimen();
@@ -565,7 +566,7 @@ void DreamCaster::OpenModelSlot()
 		return;
 	modelFileName = res;
 	log("Opening new model:");
-	log(modelFileName.toLatin1().constData(),true);
+	log(modelFileName, true);
 	initRaycast();
 	log("Opened model size (triangles):");
 	log(QString::number(mdata.stlMesh.size()),true);
@@ -596,7 +597,7 @@ void DreamCaster::NewSetSlot()
 	setFileName = res;
 	ui.l_setName->setText(setFileName);
 	log("Created new set:");
-	log(setFileName.toLatin1().constData(),true);
+	log(setFileName, true);
 }
 
 void DreamCaster::OpenSetSlot()
@@ -611,7 +612,7 @@ void DreamCaster::OpenSetFile(QString const & fileName)
 	setFileName = fileName;
 	ui.l_setName->setText(setFileName);
 	log("Opening new set:");
-	log(setFileName.toLatin1().constData(), true);
+	log(setFileName, true);
 	UpdatePlotSlot();
 	datasetOpened = true;
 }
@@ -654,8 +655,7 @@ void DreamCaster::RenderViewsSlot()
 	float deltaY = 2*M_PI/cntY;
 	float deltaZ = (maxValZ-minValZ)/cntZ;
 	//open file for writing in binary mode and write header
-	FILE *fptr = 0;
-	fptr = fopen(setFileName.toLatin1().constData(),"wb");
+	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str(),"wb");
 	if(!fptr)
 	{
 		log("Error! Cannot open set file for writing.");
@@ -1336,7 +1336,7 @@ void DreamCaster::SaveSlot()
 
 void DreamCaster::readRenderFromBinaryFile(unsigned int x, unsigned int y, unsigned int z, RenderFromPosition *rend)
 {
-	FILE *fptr = fopen(setFileName.toLatin1().constData(),"rb");
+	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str() ,"rb");
 	if(!fptr)
 	{
 		log("Error! Cannot open set file for reading.");
@@ -1455,7 +1455,7 @@ void DreamCaster::closeEvent ( QCloseEvent * event )
 void DreamCaster::loadModel()
 {
 	dcast = this;//for correct logging when there are several DC childs open
-	readSTLFile(std::string(modelFileName.toLatin1().constData()), mdata.stlMesh, mdata.vertices, mdata.box);
+	readSTLFile(modelFileName, mdata.stlMesh, mdata.vertices, mdata.box);
 }
 void DreamCaster::setup3DView()
 {
@@ -1854,7 +1854,7 @@ void DreamCaster::pbGrab3DSlot()
 
 void DreamCaster::UpdatePlotSlot()
 {
-	FILE *fptr = fopen(setFileName.toLatin1().constData(),"rb");
+	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str(),"rb");
 	if(!fptr)
 	{
 		log("Error! Cannot open set file for reading.");
@@ -2163,7 +2163,7 @@ void DreamCaster::SaveTree()
 {
 	log("Saving current KD-tree...............");
 	QString treefilename=modelFileName+".kdtree";
-	tracer->GetScene()->getBSPTree()->SaveTree(treefilename.toLatin1().constData());
+	tracer->GetScene()->getBSPTree()->SaveTree(treefilename);
 }
 void DreamCaster::RenderFrameMouseReleasedSlot()
 {
@@ -2263,7 +2263,7 @@ void DreamCaster::ShowResultsSlot()
 
 void DreamCaster::SaveResultsSlot()
 {
-	QFile file("results.txt");
+	QFile file(modelFileName+".result");
 	if (!file.open(QIODevice::WriteOnly)) 
 	{
 		log("Error: Cannot open file results.txt for writing!");
@@ -3722,10 +3722,10 @@ void DreamCaster::loadFile(const QString filename)
 {
 	modelFileName = filename;
 	log("Opening new model:");
-	log(modelFileName.toLatin1().constData(),true);
+	log(modelFileName, true);
 	initRaycast();
 	log("Opened model size (triangles):");
-	log(QString::number(mdata.stlMesh.size()),true);
+	log(QString::number(mdata.stlMesh.size()), true);
 	///ui.l_modelName->setText(modelFileName);
 	modelOpened = true;
 	for (int i=0; i<cutFigList->count(); i++)
