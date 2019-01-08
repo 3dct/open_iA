@@ -149,7 +149,7 @@ template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itk
 			}
 		//	break;
 		//}
-		++curSlice;
+		//++curSlice;
 		SliceIter.NextSlice();
 	}
 
@@ -201,7 +201,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, dou
 	int numsliceread = 0;
 	long totalsize = b[1]*b[2]*b[3]*datatypesize;
 
-	getFileMinMax<InputImageType::PixelType>(pFile, minVal, maxVal);
+	getFileMinMax<typename InputImageType::PixelType>(pFile, minVal, maxVal);
 	discretization = (maxVal - minVal) / b[7];
 
 	// copy the file into the buffer and create histogram:
@@ -235,9 +235,9 @@ template<class T> void DataTypeConversion_template(QString const & filename, dou
 	}
 	fclose(pFile);
 
-	extractSliceImage<InputImageType::PixelType>(itkimage, 0, 1/*, itkimage->GetLargestPossibleRegion().GetSize()[2] / 2*/, xyimage); // XY plane - along z axis
-	extractSliceImage<InputImageType::PixelType>(itkimage, 0, 2/*, itkimage->GetLargestPossibleRegion().GetSize()[1] / 2*/, xzimage); // XZ plane - along y axis
-	extractSliceImage<InputImageType::PixelType>(itkimage, 1, 2/*, itkimage->GetLargestPossibleRegion().GetSize()[0] / 2*/, yzimage); // YZ plane - along x axis
+	extractSliceImage<typename InputImageType::PixelType>(itkimage, 0, 1/*, itkimage->GetLargestPossibleRegion().GetSize()[2] / 2*/, xyimage); // XY plane - along z axis
+	extractSliceImage<typename InputImageType::PixelType>(itkimage, 0, 2/*, itkimage->GetLargestPossibleRegion().GetSize()[1] / 2*/, xzimage); // XZ plane - along y axis
+	extractSliceImage<typename InputImageType::PixelType>(itkimage, 1, 2/*, itkimage->GetLargestPossibleRegion().GetSize()[0] / 2*/, yzimage); // YZ plane - along x axis
 }
 
 void dlg_datatypeconversion::DataTypeConversion(QString const & filename, double* b)
@@ -275,7 +275,7 @@ template<class T> void DataTypeConversionROI_template(QString const & filename, 
 	iteratortype iter (itkimage, itkimage->GetRequestedRegion());
 	iter.GoToBegin();
 
-	getFileMinMax<InputImageType::PixelType>(pFile, minVal, maxVal);
+	getFileMinMax<typename InputImageType::PixelType>(pFile, minVal, maxVal);
 
 	bool loop = true;
 	typename InputImageType::PixelType buffer;
