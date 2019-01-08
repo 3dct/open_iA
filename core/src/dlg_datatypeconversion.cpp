@@ -90,6 +90,92 @@ template<class T> void getFileMinMax(FILE* pFile, double& minVal, double& maxVal
 	}
 }
 
+template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itkimage, int firstDir, int secondDir, /*int sliceNr, projectionMethod[=SUM], */iAConnector* image)
+{
+	typedef typename itk::Image<T, 3> InputImageType;
+	typedef typename itk::Image<double, 3> TwoDInputImageType;
+
+	typename TwoDInputImageType::RegionType extractregion;
+	typename TwoDInputImageType::IndexType extractindex; extractindex.Fill(0);	extractregion.SetIndex(extractindex);
+	typename TwoDInputImageType::PointType extractpoint; extractpoint.Fill(0);
+	typename TwoDInputImageType::SpacingType extractspacing;
+	extractspacing[0] = itkimage->GetSpacing()[firstDir];
+	extractspacing[1] = itkimage->GetSpacing()[secondDir];
+	extractspacing[2] = 1;
+
+	typename TwoDInputImageType::SizeType extractsize;
+	extractsize[0] = itkimage->GetLargestPossibleRegion().GetSize()[firstDir];
+	extractsize[1] = itkimage->GetLargestPossibleRegion().GetSize()[secondDir];
+	extractsize[2] = 1;
+	extractregion.SetSize(extractsize);
+
+	typename TwoDInputImageType::Pointer twodimage = TwoDInputImageType::New();
+	twodimage->SetRegions(extractregion);
+	twodimage->SetSpacing(extractspacing);
+	twodimage->SetOrigin(extractpoint);
+	twodimage->Allocate();
+	twodimage->FillBuffer(0);
+
+	typedef itk::ImageRegionIterator<TwoDInputImageType> twoditeratortype;
+	twoditeratortype iter(twodimage, twodimage->GetRequestedRegion());
+
+	//create slice iterator
+	typedef itk::ImageSliceConstIteratorWithIndex<InputImageType> SliceIteratorType;
+	SliceIteratorType SliceIter(itkimage, itkimage->GetRequestedRegion());
+
+	//set direction
+	SliceIter.SetFirstDirection(firstDir);
+	SliceIter.SetSecondDirection(secondDir);
+
+	SliceIter.GoToBegin();
+	//int curSlice = 0;
+	while (!SliceIter.IsAtEnd())
+	{
+		//if (curSlice == sliceNr)
+		//{
+			iter.GoToBegin();
+			while (!SliceIter.IsAtEndOfSlice())
+			{
+				while (!SliceIter.IsAtEndOfLine())
+				{
+					typename InputImageType::PixelType value = SliceIter.Get();
+					typename InputImageType::IndexType index = SliceIter.GetIndex();
+					typename TwoDInputImageType::PixelType pix = iter.Get() + value;  // sum projection
+					iter.Set(pix);
+					++iter;
+					++SliceIter;
+				}
+				SliceIter.NextLine();
+			}
+		//	break;
+		//}
+		++curSlice;
+		SliceIter.NextSlice();
+	}
+
+	typedef itk::NormalizeImageFilter<TwoDInputImageType, TwoDInputImageType> NIFTYpe;
+	typename NIFTYpe::Pointer normalizefilter = NIFTYpe::New();
+	normalizefilter->SetInput(twodimage);
+	normalizefilter->Update();
+
+	typedef itk::RescaleIntensityImageFilter<TwoDInputImageType, TwoDInputImageType> RIIFType;
+	typename RIIFType::Pointer rescalefilter = RIIFType::New();
+	rescalefilter->SetInput(normalizefilter->GetOutput());
+	rescalefilter->SetOutputMinimum(0);
+	rescalefilter->SetOutputMaximum(65535);
+	rescalefilter->Update();
+
+	image->SetImage(rescalefilter->GetOutput());
+	image->Modified();
+
+	// DEBUG:
+	//vtkSmartPointer<vtkMetaImageWriter> metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
+	//metaImageWriter->SetFileName("xyimage.mhd");
+	//metaImageWriter->SetInputData(xyconvertimage->GetVTKImage());
+	//metaImageWriter->SetCompression(0);
+	//metaImageWriter->Write();
+}
+
 template<class T> void DataTypeConversion_template(QString const & filename, double* b, iAPlotData::DataType * histptr, double & minVal, double & maxVal, double & discretization, iAConnector* xyimage, iAConnector* xzimage, iAConnector* yzimage)
 {
 	// TODO: use itk methods instead?
@@ -149,197 +235,9 @@ template<class T> void DataTypeConversion_template(QString const & filename, dou
 	}
 	fclose(pFile);
 
-	// creating projection image
-	typedef typename itk::Image<double,3> TwoDInputImageType;
-	typename TwoDInputImageType::Pointer xytwodimage = TwoDInputImageType::New();
-
-	typename TwoDInputImageType::RegionType extractregion;
-	typename TwoDInputImageType::IndexType extractindex; extractindex.Fill(0);	extractregion.SetIndex(extractindex);
-	typename TwoDInputImageType::PointType extractpoint; extractpoint.Fill(0);
-	typename TwoDInputImageType::SpacingType extractspacing; extractspacing[0] = b[4];	extractspacing[1] = b[5];	extractspacing[2] = b[6];
-
-
-	// XY plane - along z axis
-
-	typename TwoDInputImageType::SizeType extractsize;	extractsize[0] = b[1]; extractsize[1] = b[2];	extractsize[2] = 1;
-	extractregion.SetSize(extractsize);
-
-	xytwodimage->SetRegions(extractregion);
-	xytwodimage->SetSpacing(extractspacing);
-	xytwodimage->SetOrigin(extractpoint);
-	xytwodimage->Allocate();
-	xytwodimage->FillBuffer(0);
-
-	typedef itk::ImageRegionIterator<TwoDInputImageType> twoditeratortype;
-	twoditeratortype xyiter (xytwodimage, xytwodimage->GetRequestedRegion());
-
-	//create slice iterator
-	typedef itk::ImageSliceConstIteratorWithIndex<InputImageType> SliceIteratorType;
-	SliceIteratorType SliceIter ( itkimage, itkimage->GetRequestedRegion() );
-
-	//set direction
-	SliceIter.SetFirstDirection(0);
-	SliceIter.SetSecondDirection(1);
-
-	SliceIter.GoToBegin();
-	while ( !SliceIter.IsAtEnd() )
-	{
-		xyiter.GoToBegin();
-		while ( !SliceIter.IsAtEndOfSlice() )
-		{
-			while ( !SliceIter.IsAtEndOfLine() )
-			{
-				typename InputImageType::PixelType value = SliceIter.Get();
-				typename InputImageType::IndexType index = SliceIter.GetIndex();
-				typename TwoDInputImageType::PixelType xypix = xyiter.Get() + value;
-				xyiter.Set(xypix);
-				++xyiter;
-				++SliceIter;
-			}
-			SliceIter.NextLine();
-		}
-		SliceIter.NextSlice();
-	}
-
-	typedef itk::NormalizeImageFilter<TwoDInputImageType,TwoDInputImageType> NIFTYpe;
-	typename NIFTYpe::Pointer xynormalizefilter = NIFTYpe::New();
-	xynormalizefilter->SetInput(xytwodimage);
-	xynormalizefilter->Update();
-
-	typedef itk::RescaleIntensityImageFilter<TwoDInputImageType,TwoDInputImageType> RIIFType;
-	typename RIIFType::Pointer xyrescalefilter = RIIFType::New();
-	xyrescalefilter->SetInput(xynormalizefilter->GetOutput());
-	xyrescalefilter->SetOutputMinimum(0);
-	xyrescalefilter->SetOutputMaximum(65535);
-	xyrescalefilter->Update();
-
-	xyimage->SetImage(xyrescalefilter->GetOutput());
-	xyimage->Modified();
-
-	// DEBUG:
-	//vtkSmartPointer<vtkMetaImageWriter> metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
-	//metaImageWriter->SetFileName("xyimage.mhd");
-	//metaImageWriter->SetInputData(xyconvertimage->GetVTKImage());
-	//metaImageWriter->SetCompression(0);
-	//metaImageWriter->Write();
-
-	
-	// XZ plane - along y axis
-
-	extractsize[0] = b[1]; extractsize[1] = b[3];	extractsize[2] = 1;
-	extractregion.SetSize(extractsize);
-
-	typename TwoDInputImageType::Pointer xztwodimage = TwoDInputImageType::New();
-	xztwodimage->SetRegions(extractregion);
-	xztwodimage->SetSpacing(extractspacing);
-	xztwodimage->SetOrigin(extractpoint);
-	xztwodimage->Allocate();
-	xztwodimage->FillBuffer(0);
-
-	twoditeratortype xziter (xztwodimage, xztwodimage->GetRequestedRegion());
-
-	//set direction
-	SliceIter.SetFirstDirection(0);
-	SliceIter.SetSecondDirection(2);
-
-	SliceIter.GoToBegin();
-	while ( !SliceIter.IsAtEnd() )
-	{
-		xziter.GoToBegin();
-		while ( !SliceIter.IsAtEndOfSlice() )
-		{
-			while ( !SliceIter.IsAtEndOfLine() )
-			{
-				typename InputImageType::PixelType value = SliceIter.Get();
-				typename InputImageType::IndexType index = SliceIter.GetIndex();
-				typename TwoDInputImageType::PixelType xypix = xziter.Get() + value;
-				xziter.Set(xypix);
-				++xziter;
-				++SliceIter;
-			}
-			SliceIter.NextLine();
-		}
-		SliceIter.NextSlice();
-	}
-
-	typename NIFTYpe::Pointer xznormalizefilter = NIFTYpe::New();
-	xznormalizefilter->SetInput(xztwodimage);
-	xznormalizefilter->Update();
-
-	typename RIIFType::Pointer xzrescalefilter = RIIFType::New();
-	xzrescalefilter->SetInput(xznormalizefilter->GetOutput());
-	xzrescalefilter->SetOutputMinimum(0);
-	xzrescalefilter->SetOutputMaximum(65535);
-	xzrescalefilter->Update();
-
-	xzimage->SetImage(xzrescalefilter->GetOutput());
-	xzimage->Modified();
-
-	// DEBUG:
-	//metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
-	//metaImageWriter->SetFileName("xzimage.mhd");
-	//metaImageWriter->SetInputData(xzconvertimage->GetVTKImage());
-	//metaImageWriter->SetCompression(0);
-	//metaImageWriter->Write();
-
-
-	// YZ plane - along x axis
-
-	extractsize[0] = b[2]; extractsize[1] = b[3];	extractsize[2] = 1;
-	extractregion.SetSize(extractsize);
-
-	typename TwoDInputImageType::Pointer yztwodimage = TwoDInputImageType::New();
-	yztwodimage->SetRegions(extractregion);
-	yztwodimage->SetSpacing(extractspacing);
-	yztwodimage->SetOrigin(extractpoint);
-	yztwodimage->Allocate();
-	yztwodimage->FillBuffer(0);
-
-	twoditeratortype yziter (yztwodimage, yztwodimage->GetRequestedRegion());
-
-	//set direction
-	SliceIter.SetFirstDirection(1);
-	SliceIter.SetSecondDirection(2);
-
-	SliceIter.GoToBegin();
-	while ( !SliceIter.IsAtEnd() )
-	{
-		yziter.GoToBegin();
-		while ( !SliceIter.IsAtEndOfSlice() )
-		{
-			while ( !SliceIter.IsAtEndOfLine() )
-			{
-				typename InputImageType::PixelType value = SliceIter.Get();
-				typename InputImageType::IndexType index = SliceIter.GetIndex();
-				typename TwoDInputImageType::PixelType xypix = yziter.Get() + value;
-				yziter.Set(xypix);
-				++yziter;
-				++SliceIter;
-			}
-			SliceIter.NextLine();
-		}
-		SliceIter.NextSlice();
-	}
-
-	typename NIFTYpe::Pointer yznormalizefilter = NIFTYpe::New();
-	yznormalizefilter->SetInput(yztwodimage);
-	yznormalizefilter->Update();
-
-	typename RIIFType::Pointer yzrescalefilter = RIIFType::New();
-	yzrescalefilter->SetInput(yznormalizefilter->GetOutput());
-	yzrescalefilter->SetOutputMinimum(0);
-	yzrescalefilter->SetOutputMaximum(65535);
-	yzrescalefilter->Update();
-
-	yzimage->SetImage(yznormalizefilter->GetOutput());
-	yzimage->Modified();
-
-	// DEBUG:
-	//metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
-	//metaImageWriter->SetFileName("yzimage.mhd");
-	//metaImageWriter->SetInputData(yzconvertimage->GetVTKImage());
-	//metaImageWriter->SetCompression(0);
-	//metaImageWriter->Write();
+	extractSliceImage<InputImageType::PixelType>(itkimage, 0, 1/*, itkimage->GetLargestPossibleRegion().GetSize()[2] / 2*/, xyimage); // XY plane - along z axis
+	extractSliceImage<InputImageType::PixelType>(itkimage, 0, 2/*, itkimage->GetLargestPossibleRegion().GetSize()[1] / 2*/, xzimage); // XZ plane - along y axis
+	extractSliceImage<InputImageType::PixelType>(itkimage, 1, 2/*, itkimage->GetLargestPossibleRegion().GetSize()[0] / 2*/, yzimage); // YZ plane - along x axis
 }
 
 void dlg_datatypeconversion::DataTypeConversion(QString const & filename, double* b)
