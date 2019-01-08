@@ -226,7 +226,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, dou
 	
 	// XZ plane - along y axis
 
-	extractsize[0] = b[1]; extractsize[1] = 1;	extractsize[2] = b[3];
+	extractsize[0] = b[1]; extractsize[1] = b[3];	extractsize[2] = 1;
 	extractregion.SetSize(extractsize);
 
 	typename TwoDInputImageType::Pointer xztwodimage = TwoDInputImageType::New();
@@ -285,7 +285,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, dou
 
 	// YZ plane - along x axis
 
-	extractsize[0] = 1; extractsize[1] = b[2];	extractsize[2] = b[3];
+	extractsize[0] = b[2]; extractsize[1] = b[3];	extractsize[2] = 1;
 	extractregion.SetSize(extractsize);
 
 	typename TwoDInputImageType::Pointer yztwodimage = TwoDInputImageType::New();
@@ -463,6 +463,7 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 	roiRenderer->AddActor(roiActor);
 	roiRenderer->SetInteractive(false);
 	roiRenderer->SetActiveCamera(imageRenderer->GetActiveCamera());
+	imageRenderer->ResetCamera();
 
 	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	window->SetNumberOfLayers(2);
@@ -505,6 +506,8 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	auto xyboxlayout = setupSliceWidget(m_xyWidget, m_xyroiSource, m_xyimage, "XY");
 	auto xzboxlayout = setupSliceWidget(m_xzWidget, m_xzroiSource, m_xzimage, "XZ");
 	auto yzboxlayout = setupSliceWidget(m_yzWidget, m_yzroiSource, m_yzimage, "YZ");
+
+	updateROI();
 
 	QHBoxLayout *hboxlayout = new QHBoxLayout();
 	hboxlayout->addLayout(xyboxlayout);
