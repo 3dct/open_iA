@@ -20,7 +20,8 @@
 * ************************************************************************************/
 #include "dlg_datatypeconversion.h"
 
-#include "charts/iAHistogramWidget.h"
+#include "charts/iAHistogramData.h"
+#include "charts/iAPlotTypes.h"
 #include "iAConnector.h"
 #include "iAToolsITK.h"
 #include "iAToolsVTK.h"
@@ -74,7 +75,7 @@ namespace
 	}
 }
 
-template<class T> void DataTypeConversion_template(QString const & filename, double* b, iAPlotData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage, iAConnector* yzconvertimage)
+template<class T> void DataTypeConversion_template(QString const & filename, double* b, iAPlotData::DataType * histptr, float* m_min, float* m_max, float* m_dis, iAConnector* xyconvertimage, iAConnector* xzconvertimage/*, iAConnector* yzconvertimage*/)
 {
 	// TODO: use itk methods instead?
 	typedef itk::Image< T, 3 >   InputImageType;
@@ -109,9 +110,9 @@ template<class T> void DataTypeConversion_template(QString const & filename, dou
 	while ( (result = fread (reinterpret_cast<char*>(&buffer),datatypesize, elemCount, pFile)) == elemCount )
 	{
 		if (buffer < min)
-		{	min = buffer;	}
+			min = buffer;
 		if (buffer > max)
-		{	max = buffer;	}
+			max = buffer;
 	}
 
 	float discretization = (float)((max-min)/(b[7]));
@@ -155,7 +156,10 @@ template<class T> void DataTypeConversion_template(QString const & filename, dou
 	typename TwoDInputImageType::IndexType extractindex; extractindex.Fill(0);	extractregion.SetIndex(extractindex);
 	typename TwoDInputImageType::PointType extractpoint; extractpoint.Fill(0);
 	typename TwoDInputImageType::SpacingType extractspacing; extractspacing[0] = b[4];	extractspacing[1] = b[5];	extractspacing[2] = b[6];
-	// along z axis - xy plane
+
+
+	// XY plane - along z axis
+
 	typename TwoDInputImageType::SizeType extractsize;	extractsize[0] = b[1]; extractsize[1] = b[2];	extractsize[2] = 1;
 	extractregion.SetSize(extractsize);
 
@@ -211,13 +215,16 @@ template<class T> void DataTypeConversion_template(QString const & filename, dou
 	xyconvertimage->SetImage(xyrescalefilter->GetOutput());
 	xyconvertimage->Modified();
 
-	vtkSmartPointer<vtkMetaImageWriter> metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
-	metaImageWriter->SetFileName("xyimage.mhd");
-	metaImageWriter->SetInputData(xyconvertimage->GetVTKImage());
-	metaImageWriter->SetCompression(0);
-	metaImageWriter->Write();
+	// DEBUG:
+	//vtkSmartPointer<vtkMetaImageWriter> metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
+	//metaImageWriter->SetFileName("xyimage.mhd");
+	//metaImageWriter->SetInputData(xyconvertimage->GetVTKImage());
+	//metaImageWriter->SetCompression(0);
+	//metaImageWriter->Write();
 
-	//xz plane - along y axis
+	
+	// XZ plane - along y axis
+
 	extractsize[0] = b[1]; extractsize[1] = 1;	extractsize[2] = b[3];
 	extractregion.SetSize(extractsize);
 
@@ -267,13 +274,16 @@ template<class T> void DataTypeConversion_template(QString const & filename, dou
 	xzconvertimage->SetImage(xzrescalefilter->GetOutput());
 	xzconvertimage->Modified();
 
-	metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
-	metaImageWriter->SetFileName("xzimage.mhd");
-	metaImageWriter->SetInputData(xzconvertimage->GetVTKImage());
-	metaImageWriter->SetCompression(0);
-	metaImageWriter->Write();
+	// DEBUG:
+	//metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
+	//metaImageWriter->SetFileName("xzimage.mhd");
+	//metaImageWriter->SetInputData(xzconvertimage->GetVTKImage());
+	//metaImageWriter->SetCompression(0);
+	//metaImageWriter->Write();
 
-	//yz plane - along x axis
+
+	// YZ plane - along x axis
+	/*
 	extractsize[0] = 1; extractsize[1] = b[2];	extractsize[2] = b[3];
 	extractregion.SetSize(extractsize);
 
@@ -322,20 +332,22 @@ template<class T> void DataTypeConversion_template(QString const & filename, dou
 
 	yzconvertimage->SetImage(yznormalizefilter->GetOutput());
 	yzconvertimage->Modified();
+	*/
 
-	metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
-	metaImageWriter->SetFileName("yzimage.mhd");
-	metaImageWriter->SetInputData(yzconvertimage->GetVTKImage());
-	metaImageWriter->SetCompression(0);
-	metaImageWriter->Write();
+	// DEBUG:
+	//metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
+	//metaImageWriter->SetFileName("yzimage.mhd");
+	//metaImageWriter->SetInputData(yzconvertimage->GetVTKImage());
+	//metaImageWriter->SetCompression(0);
+	//metaImageWriter->Write();
 }
 
 void dlg_datatypeconversion::DataTypeConversion(QString const & filename, double* b)
 {
-	VTK_TYPED_CALL(DataTypeConversion_template, m_intype, filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage, yzconvertimage);
+	VTK_TYPED_CALL(DataTypeConversion_template, m_intype, filename, b, m_histbinlist, &m_min, &m_max, &m_dis, xyconvertimage, xzconvertimage/*, yzconvertimage*/);
 	m_testxyimage = xyconvertimage->GetVTKImage();
 	m_testxzimage = xzconvertimage->GetVTKImage();
-	m_testyzimage = yzconvertimage->GetVTKImage();
+	//m_testyzimage = yzconvertimage->GetVTKImage();
 }
 
 //roi conversion
@@ -432,43 +444,44 @@ void dlg_datatypeconversion::DataTypeConversionROI(QString const & filename, dou
 	m_roiimage = m_roiconvertimage->GetVTKImage();
 }
 
-dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, vtkImageData* input, QString const & filename, int intype, double* b, double* c, double* inPara) : QDialog (parent)
+dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & filename, int intype, double* b, double* c, double* inPara) : QDialog (parent)
 {
-	setupUi(this);
 
+	setupUi(this);
+	/*
 	imageData = vtkImageData::New();
 	m_testxyimage =  vtkImageData::New();
 	m_testxzimage =  vtkImageData::New();
 	m_testyzimage =  vtkImageData::New();
 	m_roiimage =  vtkImageData::New();
+	*/
 
 	m_roiconvertimage = new iAConnector();
 	xyconvertimage = new iAConnector();
 	xzconvertimage = new iAConnector();
-	yzconvertimage = new iAConnector();
+	//yzconvertimage = new iAConnector();
 
 	xyroiSource = vtkSmartPointer<vtkPlaneSource>::New();
 	xzroiSource = vtkSmartPointer<vtkPlaneSource>::New();
 
 	this->setWindowTitle("DatatypeConversion");
-	this->setMinimumWidth(c[0]*0.5);
-	this->setMinimumHeight(c[0]*0.5);
+	//this->setMinimumWidth(c[0]*0.5);
+	//this->setMinimumHeight(c[0]*0.5);
 
 	//read raw file
 	m_bptr = b;
-	m_sliceskip = b[0];
-	m_insizex = b[1];	m_insizey = b[2]; m_insizez = b[3];
 	m_spacing[0] = b[4]; m_spacing[1] = b[5];	m_spacing[2] = b[6];
-	m_bins = b[7];
+	m_insizez = b[3];
+	int numBins = b[7];
 	m_intype = intype;
 	m_min = 0; m_max = 0; m_dis = 0;
-	m_roi[0]= 0; m_roi[1] = 0; m_roi[2]= 0; m_roi[3]= m_insizex; m_roi[4] = m_insizey; m_roi[5] = m_insizez;
+	m_roi[0]= 0; m_roi[1] = 0; m_roi[2]= 0; m_roi[3] = b[1]; m_roi[4] = b[2]; m_roi[5] = b[3];
 
-	m_histbinlist = new iAPlotData::DataType[m_bins];
+	m_histbinlist = new iAPlotData::DataType[numBins];
 
 	DataTypeConversion(filename, b);
 
-	histogramdrawing (m_histbinlist, m_min, m_max, m_bins, m_dis);
+	histogramdrawing (m_histbinlist, m_min, m_max, numBins, m_dis);
 
 	QVBoxLayout *xyboxlayout = new QVBoxLayout();
 	QLabel *xylabel = new QLabel(this, 0);
@@ -662,17 +675,13 @@ void dlg_datatypeconversion::updatevalues(double* inPara)
 	leZSize->setText(str[10].toString());
 }
 
-void dlg_datatypeconversion::histogramdrawing(iAPlotData::DataType* histbinlist, float min, float max, int m_bins, double discretization )
+void dlg_datatypeconversion::histogramdrawing(iAPlotData::DataType* histbinlist, float min, float max, int bins, double discretization )
 {
-	vtkImageAccumulate* imageAccumulate = vtkImageAccumulate::New();
-	vtkPiecewiseFunction* piecewiseFunction = vtkPiecewiseFunction::New();
-	vtkColorTransferFunction* colorTransferFunction = vtkColorTransferFunction::New();
-
-	iAHistogramWidget *imgHistogram = new iAHistogramWidget(this, (MdiChild*)parent(), piecewiseFunction, colorTransferFunction,
-		histbinlist, min, max , m_bins, discretization, "Histogram (Intensities)");
-	imgHistogram->updateTrf();
-	imgHistogram->update();
-	verticalLayout->addWidget(imgHistogram);
+	iAChartWidget* chart = new iAChartWidget(nullptr, "Histogram (Intensities)", "Frequency");
+	auto data = iAHistogramData::Create(histbinlist, bins, discretization, min, max);
+	chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(data, QColor(70, 70, 70, 255))));
+	chart->update();
+	verticalLayout->addWidget(chart);
 }
 
 void SetupSliceWidget(vtkSmartPointer<vtkImageMapToColors> color, iAVtkWidget* vtkWidget, vtkSmartPointer<vtkPlaneSource> roiSource)
@@ -762,6 +771,8 @@ void dlg_datatypeconversion::xzprojectslices()
 	SetupSliceWidget(color, vtkWidgetXZ, xzroiSource);
 }
 
+// read binary and perform shift+scale
+// TODO: implement with itk filters - benefits: parallelized; probably better reading than in chunks of 1 voxel
 template <typename T>
 void loadBinary(FILE* pFile, vtkImageData* imageData, float shift, float scale, double &minout, double &maxout)
 {

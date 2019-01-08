@@ -2350,8 +2350,6 @@ iAModuleDispatcher & MainWindow::getModuleDispatcher() const
 
 void MainWindow::OpenWithDataTypeConversion()
 {
-	// Create an image data
-	vtkImageData* imageData = vtkImageData::New();
 	QString finalfilename;
 	QString testfinalfilename;
 
@@ -2361,9 +2359,8 @@ void MainWindow::OpenWithDataTypeConversion()
 		iAIOProvider::GetSupportedLoadFormats()
 	);
 	if (file.isEmpty())
-	{
 		return;
-	}
+
 	QStringList inList = (QStringList()
 		<< tr("+Data Type")
 		<< tr("#Slice sample rate")
@@ -2401,7 +2398,7 @@ void MainWindow::OpenWithDataTypeConversion()
 	convPara[6] = owdtcxsize; convPara[7] = owdtcyori; convPara[8] = owdtcysize;  convPara[9] = owdtczori;   convPara[10] = owdtczsize;
 	try
 	{
-		dlg_datatypeconversion* conversionwidget = new dlg_datatypeconversion(this, imageData, file, MapVTKTypeStringToInt(owdtcintype), para, winsize, convPara);
+		dlg_datatypeconversion* conversionwidget = new dlg_datatypeconversion(this, file, MapVTKTypeStringToInt(owdtcintype), para, winsize, convPara);
 		if (conversionwidget->exec() != QDialog::Accepted)
 			return;
 

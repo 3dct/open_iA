@@ -43,7 +43,7 @@ class dlg_datatypeconversion : public QDialog, public Ui_DataTypeConversion
 	Q_OBJECT
 
 public:
-	dlg_datatypeconversion ( QWidget *parent, vtkImageData* input, QString const & filename, int intype, double* b, double* c, double* inPara );
+	dlg_datatypeconversion ( QWidget *parent, QString const & filename, int intype, double* b, double* c, double* inPara );
 	~dlg_datatypeconversion();
 
 	void DataTypeConversion(QString const & filename, double* b);
@@ -80,18 +80,16 @@ private:
 	iAConnector* m_roiconvertimage;
 
 	double * m_bptr;
-	int m_bins;
-	vtkImageData* imageData;
 	int m_intype;
-	double m_sliceskip, m_insizex,	m_insizey, m_insizez, m_inspacex, m_inspacey, m_inspacez;
+	double m_insizez;
 	iAPlotData::DataType * m_histbinlist;
 	float m_min, m_max, m_dis;
-	vtkImageData* m_testxyimage, * m_testxzimage, * m_testyzimage, * m_roiimage;
-	iAVtkWidget* vtkWidgetXY, *vtkWidgetXZ, *vtkWidgetYZ;
+	vtkImageData* m_testxyimage, * m_testxzimage, //* m_testyzimage,
+		, * m_roiimage;
+	iAVtkWidget* vtkWidgetXY, *vtkWidgetXZ;
 
-	iAConnector* xyconvertimage, * xzconvertimage, * yzconvertimage;
-
-	int m_xstart, m_xend, m_ystart, m_yend, m_zstart, m_zend;
+	iAConnector* xyconvertimage, * xzconvertimage //, * yzconvertimage
+		;
 	QLineEdit* leRangeLower, *leRangeUpper, *leOutputMin,*leOutputMax, *leXOrigin, *leXSize, *leYOrigin, *leYSize, *leZOrigin, *leZSize;
 	QComboBox* cbDataType;
 	QCheckBox* chConvertROI
@@ -100,5 +98,6 @@ private:
 	double m_roi[6];
 	double m_spacing[3];
 
-	vtkSmartPointer<vtkPlaneSource> xyroiSource, xzroiSource;
+	vtkSmartPointer<vtkPlaneSource> xyroiSource, xzroiSource //, yzroiSource
+		;
 };

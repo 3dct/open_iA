@@ -850,7 +850,7 @@
   </action>
   <action name="actionOpen_With_DataTypeConversion">
    <property name="text">
-    <string>Open With DataTypeConversion</string>
+    <string>Open with datatpe conversion...</string>
    </property>
   </action>
   <action name="actionOpen_Volume_Stack">
