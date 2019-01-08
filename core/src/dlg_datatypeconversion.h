@@ -48,56 +48,41 @@ public:
 
 	void DataTypeConversion(QString const & filename, double* b);
 	void DataTypeConversionROI(QString const & filename, double* b, double *roi);
-	void histogramdrawing(iAPlotData::DataType* histbinlist, float min, float max, int m_bins, double discretization);
+	void createHistogram(iAPlotData::DataType* histbinlist, double minVal, double maxVal, int m_bins, double discretization);
 
-	void xyprojectslices();
-	void xzprojectslices();
 	QString coreconversionfunction(QString filename, QString & finalfilename, double* para, int indatatype, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check);
 	QString coreconversionfunctionforroi(QString filename, QString & finalfilename, double* para, int outdatatype, double minrange, double maxrange, double minout, double maxout, int check, double* roi);
 	void updatevalues(double* inPara);
-	void updateroi( );
+	void updateROI( );
 
-	double getRangeLower();
-	double getRangeUpper();
-	double getOutputMin();
-	double getOutputMax();
-	double getXOrigin();
-	double getXSize();
-	double getYOrigin();
-	double getYSize();
-	double getZOrigin();
-	double getZSize();
-
-	QString getDataType();
-	int getConvertROI();
+	double getRangeLower() const;
+	double getRangeUpper() const;
+	double getOutputMin() const;
+	double getOutputMax() const;
+	double getXOrigin() const;
+	double getXSize() const;
+	double getYOrigin() const;
+	double getYSize() const;
+	double getZOrigin() const;
+	double getZSize() const;
+	QString getDataType() const;
+	int getConvertROI() const;
 
 private slots:
 	void update(QString a);
 
 private:
-	QString text11;
-
-	iAConnector* m_roiconvertimage;
-
 	double * m_bptr;
 	int m_intype;
 	double m_insizez;
 	iAPlotData::DataType * m_histbinlist;
-	float m_min, m_max, m_dis;
-	vtkImageData* m_testxyimage, * m_testxzimage, //* m_testyzimage,
-		, * m_roiimage;
-	iAVtkWidget* vtkWidgetXY, *vtkWidgetXZ;
-
-	iAConnector* xyconvertimage, * xzconvertimage //, * yzconvertimage
-		;
+	double m_min, m_max, m_dis;
+	vtkSmartPointer<vtkPlaneSource> m_xyroiSource, m_xzroiSource, m_yzroiSource;
+	iAConnector *m_roiimage, *m_xyimage, *m_xzimage, *m_yzimage;
+	iAVtkWidget* m_xyWidget, *m_xzWidget, *m_yzWidget;
 	QLineEdit* leRangeLower, *leRangeUpper, *leOutputMin,*leOutputMax, *leXOrigin, *leXSize, *leYOrigin, *leYSize, *leZOrigin, *leZSize;
 	QComboBox* cbDataType;
-	QCheckBox* chConvertROI
-		// , *chUseMaxDatatypeRange
-	;
+	QCheckBox* chConvertROI;
 	double m_roi[6];
 	double m_spacing[3];
-
-	vtkSmartPointer<vtkPlaneSource> xyroiSource, xzroiSource //, yzroiSource
-		;
 };

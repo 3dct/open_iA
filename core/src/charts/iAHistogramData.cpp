@@ -57,7 +57,6 @@ iAHistogramData::DataType const * iAHistogramData::GetRawData() const
 	return rawData;
 }
 
-
 QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, size_t binCount,
 	iAImageInfo* info)
 {
