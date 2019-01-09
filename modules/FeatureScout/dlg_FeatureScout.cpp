@@ -1154,7 +1154,7 @@ void dlg_FeatureScout::updateMOView()
 
 void dlg_FeatureScout::browseFolderDialog()
 {
-	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), m_sourcePath, tr( "CSV Files (*.stl *.STL)" ) );
+	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), m_sourcePath, tr( "STL Files (*.stl)" ) );
 	if ( filename.isEmpty() )
 		return;
 	iovMO->le_StlPath->setText( filename );
