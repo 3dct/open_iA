@@ -117,6 +117,8 @@ void iAStackReaderFilter::PerformWork(QMap<QString, QVariant> const & parameters
 		imgReader = vtkSmartPointer<vtkPNGReader>::New();
 	else if (extension.toUpper() == ".BMP")
 		imgReader = vtkSmartPointer<vtkBMPReader>::New();
+	else
+		throw std::runtime_error(QString("Unknown filetype of extension %1").arg(extension).toStdString());
 	Progress()->Observe(imgReader);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	auto fileNameArray = vtkSmartPointer<vtkStringArray>::New();
