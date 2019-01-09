@@ -870,12 +870,12 @@ void iASlicerData::saveImageStack()
 	if(!mdi_parent)
 		return;
 	QString file = QFileDialog::getSaveFileName(mdi_parent, tr("Save Image Stack"),
-		"", iAIOProvider::GetSupportedImageFormats() );
+		mdi_parent->getFilePath(), iAIOProvider::GetSupportedImageFormats() );
 	if (file.isEmpty())
 		return;
 	
 	QFileInfo fileInfo(file);
-	QString baseName = fileInfo.canonicalPath() + "/" + fileInfo.baseName();
+	QString baseName = fileInfo.absolutePath() + "/" + fileInfo.baseName();
 
 	int const * arr = imageData->GetDimensions();
 	double const * spacing = imageData->GetSpacing();
