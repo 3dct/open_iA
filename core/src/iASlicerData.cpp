@@ -448,18 +448,8 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 	setupColorMapper();
 	imageActor->SetInputData(colormapper->GetOutput());
 	imageActor->GetMapper()->BorderOn();
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	double orientation[3] = {
-		180,
-		0,
-		0
-	};
-	imageActor->SetOrientation(orientation);
-*/
-	ren->AddActor(imageActor);
 
+	ren->AddActor(imageActor);
 	ren->SetActiveCamera(m_camera);
 	ren->ResetCamera();
 }
@@ -1068,11 +1058,6 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 	m_ptMapped[1] += 0.5*spacing[1];
 	m_ptMapped[2] += 0.5*spacing[2];
 
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	m_ptMapped[1] = -m_ptMapped[1];
-*/
 	switch(eventId)
 	{
 	case vtkCommand::LeftButtonPressEvent:
@@ -1315,7 +1300,6 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	{
 		double distance = sqrt(	pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) +
 			pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2) );
-		// ORIENTATION / ROTATION FIX: pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1]);
 		pLineSource->SetPoint2(m_ptMapped[0]-(0.5*slicerSpacing[0]), m_ptMapped[1] - (0.5*slicerSpacing[1]), 0.0);
 		pDiskSource->SetOuterRadius(distance);
 		pDiskSource->SetInnerRadius(distance);
@@ -1326,11 +1310,6 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	// Update the info text with pixel coordinates/value if requested.
 	textInfo->GetActor()->SetPosition(interactor->GetEventPosition()[0]+10, interactor->GetEventPosition()[1]+10);
 	textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	setPositionMarkerCenter(m_ptMapped[0], -m_ptMapped[1], 1);//m_planeSrc->SetCenter(m_ptMapped[0], m_ptMapped[1]);
-*/
 	m_positionMarkerMapper->Update();
 }
 

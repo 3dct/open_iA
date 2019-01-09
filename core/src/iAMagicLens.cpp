@@ -117,11 +117,6 @@ iALensData::iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacit
 	m_imageActor->GetMapper()->BorderOn();
 	m_imageActor->SetOpacity(opacity);
 	SetInterpolate(interpolate);
-/*
-	// ORIENTATION / ROTATION FIX:
-	double orientation[3] = {180, 0, 0};
-	m_imageActor->SetOrientation(orientation);
-*/
 	m_imageRenderer->InteractiveOff();
 	m_imageRenderer->AddActor(m_imageActor);
 	m_imageRenderer->SetLayer(1);

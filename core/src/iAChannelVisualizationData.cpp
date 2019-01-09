@@ -73,16 +73,6 @@ void iAChannelSlicerData::SetResliceAxesOrigin(double x, double y, double z)
 	colormapper->Update();
 	imageActor->SetInputData(colormapper->GetOutput());
 	imageActor->GetMapper()->BorderOn();
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	double orientation[3] = {
-		180,
-		0,
-		0
-	};
-	imageActor->SetOrientation(orientation);
-*/
 }
 
 void iAChannelSlicerData::Assign(vtkSmartPointer<vtkImageData> imageData, QColor const &col)
