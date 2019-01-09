@@ -46,7 +46,7 @@
 #include <itkImageIOBase.h>
 #include <itkImageSeriesReader.h>
 #include <itkImageSeriesWriter.h>
-#include <itkNrrdImageIO.h>
+//#include <itkNrrdImageIO.h>
 #include <itkNumericSeriesFileNames.h>
 #include <itkRawImageIO.h>
 
@@ -451,8 +451,8 @@ void iAIO::run()
 				readImageStack(); break;
 			case DCM_READER:
 				readDCM(); break;
-			case NRRD_READER:
-				readNRRD(); break;
+			//case NRRD_READER:
+			//	readNRRD(); break;
 			case OIF_READER: {
 				IO::OIF::Reader r;
 				r.read(getFileName(), getConnector(), m_channel, m_volumes);
@@ -745,7 +745,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		case BMP_STACK_WRITER:
 		case DCM_READER:
 		case DCM_WRITER:
-		case NRRD_READER:
+		//case NRRD_READER:
 		case OIF_READER:
 		case AM_READER:
 		case AM_WRITER:
@@ -847,7 +847,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 	return true;
 }
 
-
+/*
 void iAIO::readNRRD()
 {
 	typedef itk::Vector<signed short, 2>	VectorType;
@@ -865,6 +865,7 @@ void iAIO::readNRRD()
 	postImageReadActions();
 	StoreIOSettings();
 }
+*/
 
 
 /**

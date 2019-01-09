@@ -40,7 +40,8 @@ static mapQString2int fill_extensionToId()
 	m["PARS"] = PARS_READER;
 	m["VGI"] = VGI_READER;
 	m["DCM"] = DCM_READER;
-	m["NRRD"] = NRRD_READER;
+//	m["NRRD"] = NRRD_READER; see iAIOProvider.cpp why this is commented out
+//	m["NHDR"] = NRRD_READER;
 	m["TIF"] = MHD_READER;
 	m["TIFF"] = MHD_READER;
 	m["JPG"] = MHD_READER;

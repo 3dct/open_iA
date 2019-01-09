@@ -33,7 +33,7 @@ namespace
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
-		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.nrrd *.oif *.am "
+		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.oif *.am "
 #ifdef USE_HDF5
 		"*.hdf5 *.h5 *.he5 *.mat "
 #endif
@@ -44,7 +44,7 @@ QString iAIOProvider::GetSupportedLoadFormats()
 		"RAW files (*.raw *.rec *.vol *.pro);;"
 		"PARS files (*.pars);;"
 		"Dicom Series (*.dcm);;"
-		"NRRD files (*.nrrd);;"
+//		"NRRD files (*.nrrd *.nhdr);;"	// currently not supported as it reads as a itk::VectorImage, which we cannot convert to vtkImageData at the moment
 		"Olympus FluoView (*.oif);;"
 		"AmiraMesh (*.am);;"
 #ifdef USE_HDF5

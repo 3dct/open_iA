@@ -83,7 +83,7 @@ private:
 	void readMetaImage( );
 	void readSTL( );
 	void readDCM( );
-	void readNRRD( );
+	//void readNRRD( );	 // see iAIOProvider.cpp why this is commented out
 	void readHDF5File();
 	void readProject();
 
