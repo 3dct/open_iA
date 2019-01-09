@@ -9,10 +9,6 @@ IF(Module_GPU_DreamcasterTool)
 		MESSAGE(SEND_ERROR "Dreamcaster requires OpenCL_FOUND to be true!")
 	ENDIF()
 
-	IF(open_iA_GPU_USING_CUDA)
-		INCLUDE(${CMAKE_ROOT}/Modules/FindCUDA.cmake)
-	ENDIF(open_iA_GPU_USING_CUDA)
-
 	#.cpp sources
 	SET( DREAMCASTER_SRCS
 		Dreamcaster/dreamcaster.cpp
