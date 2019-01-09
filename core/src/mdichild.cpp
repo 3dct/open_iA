@@ -3017,7 +3017,7 @@ vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 
 void MdiChild::SaveFinished()
 {
-	if (m_storedModalityNr < GetModalities()->size())
+	if (m_storedModalityNr < GetModalities()->size() && ioThread->getIOID() != STL_WRITER)
 		m_dlgModalities->SetFileName(m_storedModalityNr, ioThread->getFileName());
 	setWindowModified(GetModalities()->HasUnsavedModality());
 }

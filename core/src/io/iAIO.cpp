@@ -1712,3 +1712,8 @@ QSharedPointer<iAModalityList> iAIO::GetModalities()
 {
 	return m_modalities;
 }
+
+int iAIO::getIOID() const
+{
+	return ioID;
+}

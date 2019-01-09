@@ -55,6 +55,7 @@ public:
 	QString getAdditionalInfo();
 	QString getFileName();
 	QSharedPointer<iAModalityList> GetModalities();
+	int getIOID() const;
 
 Q_SIGNALS:
 	void done(bool active = false);
