@@ -56,7 +56,6 @@
 #include <vtkImageData.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageMapToColors.h>
-#include <vtkImageMapToWindowLevelColors.h>
 #include <vtkImageReslice.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkLineSource.h>
