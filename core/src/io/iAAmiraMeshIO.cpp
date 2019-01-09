@@ -25,8 +25,10 @@
 
 #include <vtkImageData.h>
 
+#include <QFile>
 #include <QString>
 #include <QStringList>
+#include <QTextStream>
 
 #include <cstdio>
 #include <cstring>
@@ -100,35 +102,29 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	FILE* fp = fopen( getLocalEncodingFileName(fileName).c_str(), "rb");
 	if (!fp)
 	{
-		DEBUG_LOG(QString("Could not open file '%1'.").arg(fileName));
-		return vtkSmartPointer<vtkImageData>();
+		throw std::runtime_error(QString("Could not open file '%1'.").arg(fileName).toStdString());
 	}
-
-	//DEBUG_LOG(QString("Reading %1").arg(fileName));
 
 	//We read the first 2k bytes into memory to parse the header.
 	//The fixed buffer size looks a bit like a hack, and it is one, but it gets the job done.
-	// TODO: use proper parser!
-	const size_t MAX_HEADER_SIZE = 2047;
+	const size_t MaxHeaderSize = 2047;
+	char buffer[MaxHeaderSize +1];
+	size_t readBytes = fread(buffer, sizeof(char), MaxHeaderSize, fp);
 
-	char buffer[MAX_HEADER_SIZE+1];
-	size_t readBytes = fread(buffer, sizeof(char), MAX_HEADER_SIZE, fp);
-	if (readBytes != MAX_HEADER_SIZE)
+	if (readBytes == 0 || ferror(fp) != 0)
 	{
-		DEBUG_LOG(QString("Could not read first %1 bytes of Avizo/AmiraMesh file %2.").arg(MAX_HEADER_SIZE).arg(fileName));
 		fclose(fp);
-		return vtkSmartPointer<vtkImageData>();
+		throw std::runtime_error(QString("Could not read header of Avizo/AmiraMesh file %1.").arg(MaxHeaderSize).arg(fileName).toStdString());
 	}
-	buffer[MAX_HEADER_SIZE-1] = '\0'; //The following string routines prefer null-terminated strings
+	buffer[readBytes-1] = '\0'; //The following string routines prefer null-terminated strings
 
 	QString header(buffer);
 
 	if (!header.startsWith(AmiraMeshFileTag) &&
 		!header.startsWith(AvizoFileTag))
 	{
-		DEBUG_LOG(QString("Not a proper Avizo/AmiraMesh file: %1.").arg(fileName));
 		fclose(fp);
-		return vtkSmartPointer<vtkImageData>();
+		throw std::runtime_error(QString("File %1 is not a proper Avizo/AmiraMesh file, it is missing the initial file tag.").arg(fileName).toStdString());
 	}
 
 	//Find the Lattice definition, i.e., the dimensions of the uniform grid
@@ -172,12 +168,13 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	else if (dataTypeStr.startsWith(FloatType))
 	{
 		//A field with more than one component, i.e., a vector field
+		dataType = VTK_FLOAT;
 		sscanf(FindAndJump(buffer, "Lattice { float["), "%d", &NumComponents);
 	}
 	else
 	{
-		DEBUG_LOG(QString("Unknown pixel type '%1' (not yet implemented).").arg(dataTypeStr));
-		return vtkSmartPointer<vtkImageData>();
+		fclose(fp);
+		throw std::runtime_error(QString("Unknown pixel type '%1' (not yet implemented). Supported pixel types: byte (unsigned char), float.").arg(dataTypeStr).toStdString());
 	}
 	const QString RLEMarker("HxByteRLE");
 	bool rleEncoded = latticeLine.contains(RLEMarker);
@@ -188,7 +185,6 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 		if (latticeTokens.size() < 6)
 		{
 			DEBUG_LOG(QString("Expected at least 6 tokens in lattice line, only found %1.").arg(latticeTokens.size()));
-			return vtkSmartPointer<vtkImageData>();
 		}
 		int pos = latticeTokens[5].indexOf(RLEMarker);
 		int latticeLength = latticeTokens[5].length();
@@ -209,29 +205,26 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 		|| xmin > xmax || ymin > ymax || zmin > zmax
 		|| !bIsUniform || NumComponents <= 0)
 	{
-		DEBUG_LOG("Something went wrong (dimensions smaller or equal 0, [xyz]min > [xyz]max, not uniform or numComponents <= 0).");
 		fclose(fp);
-		return 	vtkSmartPointer<vtkImageData>();
+		throw std::runtime_error("Something went wrong (dimensions smaller or equal 0, [xyz]min > [xyz]max, not uniform or numComponents <= 0).");
 	}
 	//Find the beginning of the data section
 	const long idxStartData = strstr(buffer, "# Data section follows") - buffer;
 	if (idxStartData <= 0)
 	{
-		DEBUG_LOG("Data section not found!");
 		fclose(fp);
-		return 	vtkSmartPointer<vtkImageData>();
+		throw std::runtime_error("Data section not found!");
 	}
 	//Set the file pointer to the beginning of "# Data section follows"
-	fseek(fp, idxStartData, SEEK_SET);
+	bool err = fseek(fp, idxStartData, SEEK_SET) != 0;
 	//Consume this line, which is "# Data section follows"
-	bool err = fgets(buffer, MAX_HEADER_SIZE, fp) != 0;
+	err |= fgets(buffer, MaxHeaderSize, fp) == 0;
 	//Consume the next line, which is "@1"
-	err &= fgets(buffer, MAX_HEADER_SIZE, fp) != 0;
+	err |= fgets(buffer, MaxHeaderSize, fp) == 0;
 	if (err)
 	{
-		DEBUG_LOG("A read error occured while seeking data section!");
 		fclose(fp);
-		return 	vtkSmartPointer<vtkImageData>();
+		throw std::runtime_error("A read error occured while seeking data section!");
 	}
 
 	//Read the data
@@ -258,19 +251,18 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 
 	if (!rawData)
 	{
-		DEBUG_LOG(QString("Could not allocate memory (%1 bytes)!").arg(rawDataSize));
-		return vtkSmartPointer<vtkImageData>();
+		fclose(fp);
+		throw std::runtime_error(QString("Could not allocate memory (%1 bytes)!").arg(rawDataSize).toStdString());
 	}
 	size_t actRead = fread(
 		(void*)rawData, rawDataTypeSize, rawDataSize, fp);
 
 	if (rawDataSize != actRead)
 	{
-		DEBUG_LOG(QString("Wanted to read %1 but got %2 bytes while reading the binary data section."
-			" Premature end of file?").arg(rawDataSize).arg(actRead));
 		delete [] rawData;
 		fclose(fp);
-		return vtkSmartPointer<vtkImageData>();
+		throw std::runtime_error(QString("Wanted to read %1 but got %2 bytes while reading the binary data section."
+			" Premature end of file?").arg(rawDataSize).arg(actRead).toStdString());
 	}
 
 	if (rleEncoded)
@@ -281,10 +273,9 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 
 		if (actRead != dataMemorySize)
 		{
-			DEBUG_LOG(QString("RLE decode: Wanted to get %1 but got %2 bytes while decoding. Wrong data type?").arg(dataMemorySize).arg(actRead));
 			delete[] output;
 			fclose(fp);
-			return vtkSmartPointer<vtkImageData>();
+			throw std::runtime_error(QString("RLE decode: Wanted to get %1 but got %2 bytes while decoding. Wrong data type?").arg(dataMemorySize).arg(actRead).toStdString());
 		}
 
 		rawDataSize = dataMemorySize;
@@ -292,7 +283,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	}
 
 	//Note: Data runs x-fastest, i.e., the loop over the x-axis is the innermost
-	int Idx(0);
+	size_t Idx(0);
 	for (int z = 0; z<zDim; z++)
 	{
 		for (int y = 0; y<yDim; y++)
@@ -326,9 +317,6 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	return imageData;
 }
 
-#include <QTextStream>
-#include <QFile>
-
 void iAAmiraMeshIO::Write(QString const & filename, vtkImageData* img)
 {
 	int extent[6];
@@ -352,7 +340,7 @@ void iAAmiraMeshIO::Write(QString const & filename, vtkImageData* img)
 		amiraTypeDesc = "Data";
 		break;
 	default:
-		throw std::runtime_error("Avizo/AmiraMesh: (Currently) unsupported data type!");
+		throw std::runtime_error("Avizo/AmiraMesh: (Currently) unsupported data type! Supported data types: label image (unsigned char), float.");
 	}
 
 	QFile file(filename);

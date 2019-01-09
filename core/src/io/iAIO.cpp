@@ -464,10 +464,6 @@ void iAIO::run()
 			}
 			case AM_READER: {
 				vtkSmartPointer<vtkImageData> img = iAAmiraMeshIO::Load(getFileName());
-				if (!img)
-				{
-					break;
-				}
 				getConnector()->SetImage(img);
 				getConnector()->Modified();
 				postImageReadActions();
