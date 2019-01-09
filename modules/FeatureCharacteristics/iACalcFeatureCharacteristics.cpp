@@ -265,7 +265,7 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 		"Label Image to Shape Label Map Filter </a> "
 		"in the ITK documentation.", 1, 0)
 {
-	AddParameter("Output CSV filename", FileNameSave);
+	AddParameter("Output CSV filename", FileNameSave, "");
 	AddParameter("Calculate Feret Diameter", Boolean, false);
 }
 
