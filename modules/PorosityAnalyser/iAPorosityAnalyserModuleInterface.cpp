@@ -53,7 +53,7 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	qsrand(QTime::currentTime().msec());
-	//Add the module to iAnalyse Tools' menu
+
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QMenu * menuPorosityAnalyser = getMenuWithTitle( toolsMenu, QString( "FeatureAnalyzer" ), false );
 
