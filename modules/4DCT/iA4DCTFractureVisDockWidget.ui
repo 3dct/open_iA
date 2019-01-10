@@ -62,7 +62,7 @@
           <string>Save</string>
          </property>
          <property name="icon">
-          <iconset resource="../../iAnalyse.qrc">
+          <iconset resource="../../core/open_iA.qrc">
            <normaloff>:/images/4DCT_SaveFractureView.png</normaloff>:/images/4DCT_SaveFractureView.png</iconset>
          </property>
          <property name="iconSize">
@@ -85,7 +85,7 @@
           <string>Colorize</string>
          </property>
          <property name="icon">
-          <iconset resource="../../iAnalyse.qrc">
+          <iconset resource="../../core/open_iA.qrc">
            <normaloff>:/images/4DCT_ColorMapping.png</normaloff>:/images/4DCT_ColorMapping.png</iconset>
          </property>
          <property name="iconSize">
@@ -210,7 +210,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../iAnalyse.qrc"/>
+  <include location="../../core/open_iA.qrc"/>
  </resources>
  <connections/>
 </ui>
