@@ -934,7 +934,7 @@ void iAIO::readVolumeMHDStack()
 
 	for (int m=0; m<=fileNameArray->GetMaxId(); m++)
 	{
-		fileName.fromLocal8Bit(fileNameArray->GetValue(m).c_str());
+		fileName = QString::fromLocal8Bit(fileNameArray->GetValue(m).c_str());
 		loadMetaImageFile(fileName);
 		if (m_volumes)
 		{
