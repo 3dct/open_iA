@@ -52,7 +52,6 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QSettings>
 #include <QTextStream>
 
 class iASimpleLabelInfo : public iALabelInfo

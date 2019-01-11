@@ -87,6 +87,7 @@ iASEAFile::iASEAFile(QString const & fileName):
 		return;
 	}
 	QSettings metaFile(fileName, QSettings::IniFormat );
+	metaFile.setIniCodec("UTF-8");
 	if (metaFile.status() != QSettings::NoError)
 	{
 		DEBUG_LOG(QString("Load precalculated GEMSe data: Reading file '%1' failed!").arg(fileName));
@@ -193,6 +194,7 @@ iASEAFile::iASEAFile(
 void iASEAFile::Store(QString const & fileName)
 {
 	QSettings metaFile(fileName, QSettings::IniFormat);
+	metaFile.setIniCodec("UTF-8");
 	metaFile.setValue(FileVersionKey, FileVersionValue);
 	
 	m_SEAFileName = fileName;

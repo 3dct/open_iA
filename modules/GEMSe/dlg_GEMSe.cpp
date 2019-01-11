@@ -51,9 +51,6 @@
 #include <vtkImageData.h>
 
 #include <QApplication>
-#include <QFile>
-#include <QMessageBox>
-#include <QTextStream>
 
 dlg_GEMSe::dlg_GEMSe(
 	QWidget *parent,

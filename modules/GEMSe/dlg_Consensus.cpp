@@ -738,6 +738,7 @@ void dlg_Consensus::StoreConfig()
 	QFileInfo fi(fileName);
 	QString basePath(fi.absolutePath());
 	QSettings s(fileName, QSettings::IniFormat);
+	s.setIniCodec("UTF-8");
 	s.setValue(FileFormatKey, FileVersion);
 	s.setValue(LabelsKey, m_labelCount);
 
@@ -861,6 +862,7 @@ void dlg_Consensus::LoadConfig()
 	}
 	QFileInfo fi(fileName);
 	QSettings s(fileName, QSettings::IniFormat);
+	s.setIniCodec("UTF-8");
 	if (s.value(FileFormatKey) != FileVersion)
 	{
 		QMessageBox::warning(this, "GEMSe",

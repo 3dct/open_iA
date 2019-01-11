@@ -31,9 +31,6 @@
 #include <mdichild.h>
 
 #include <QFileDialog>
-#include <QList>
-#include <QSettings>
-#include <QTextDocument>
 
 #include <cassert>
 
