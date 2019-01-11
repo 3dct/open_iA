@@ -72,7 +72,6 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 	m_interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	m_interactor->SetInteractorStyle(m_interactorStyle);
 	m_interactor->SetRenderWindow(graphWidget->GetRenderWindow());
-	m_interactor->Start();
 
 	graphWidget->GetRenderWindow()->Render();
 }
