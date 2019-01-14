@@ -1683,7 +1683,6 @@ void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
 	m_linearScaledPlot->replot();
-
 }
 
 void dlg_DynamicVolumeLines::compLevelRangeChanged()
