@@ -23,6 +23,7 @@
 #include "iAParamHistogramData.h"
 
 #include <charts/iAPlotTypes.h>
+#include <iAMapper.h>
 #include <iAMathUtility.h>
 #include <iANameMapper.h>
 
@@ -82,7 +83,7 @@ QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramD
 
 void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)
 {
-	double diagX = value2X(markerLocation)-translationX;
+	double diagX = xMapper().srcToDst(markerLocation)-translationX;
 	QPolygon poly;
 	const int MarkerTop = 0;
 	poly.append(QPoint(diagX, MarkerTop));
@@ -178,20 +179,6 @@ void iAFilterChart::contextMenuEvent(QContextMenuEvent *event)
 	// disable context menu
 }
 
-int iAFilterChart::value2X(double value) const
-{
-	double bin = mapValueToBin(value);
-	int xPos = mapValue(0.0, static_cast<double>(m_data->GetNumBin()), 0, static_cast<int>(activeWidth()*xZoom), bin) + translationX;
-	return xPos;
-}
-
-double iAFilterChart::x2value(int x) const
-{
-	double bin = mapValue(0, static_cast<int>(activeWidth()*xZoom), 0.0, static_cast<double>(m_data->GetNumBin()), x-translationX);
-	double value = mapBinToValue(bin);
-	return value;
-}
-
 void iAFilterChart::mousePressEvent( QMouseEvent *event )
 {
 	if ( event->button() == Qt::LeftButton )
@@ -211,8 +198,8 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 			// check if we hit min or max handle:
 			int x = event->x() - leftMargin();
 
-			int minX = value2X(m_minSliderPos);
-			int maxX = value2X(m_maxSliderPos);
+			int minX = xMapper().srcToDst(m_minSliderPos);
+			int maxX = xMapper().srcToDst(m_maxSliderPos);
 			if ( abs(x-minX) <= MarkerTriangleWidthHalf)
 			{
 				m_selectedHandle = 0;
@@ -254,7 +241,7 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 		{
 			return;
 		}
-		double value = x2value(x);
+		double value = xMapper().dstToSrc(x);
 
 		// snap to next valid value
 		if (GetRangeType() == Categorical)

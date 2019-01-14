@@ -296,11 +296,6 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 		}
 		int attributeID = m_chartAttributeMapper.GetAttributeID(chartID, node->GetDatasetID());
 		double value = node->GetAttribute(attributeID);
-		if (m_chartAttributes->at(chartID)->ValueType() == Discrete ||
-			m_chartAttributes->at(chartID)->ValueType() == Categorical)
-		{
-			value += 0.5;
-		}
 		m_histogramContainer->SetMarker(chartID, value);
 		m_probingWidget->SetSelectedNode(node);
 	}
