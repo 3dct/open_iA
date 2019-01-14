@@ -45,7 +45,7 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 	QSharedPointer<iANameMapper> nameMapper,
 	bool showCaption)
 :
-	iAChartWidget(parent, 0, caption),
+	iAChartWidget(parent, caption, ""),
 	m_data(data),
 	m_markedLocation(InvalidMarker),
 	m_nameMapper(nameMapper),
