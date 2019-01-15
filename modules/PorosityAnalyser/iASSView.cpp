@@ -187,7 +187,7 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 	if( datasetGTs[data->item( 0, datasetColInd )->text()] != "" )
 	{
 		QString gtSegmFile = m_datasetFolder + "/" + datasetGTs[data->item( 0, datasetColInd )->text()];
-		slicer->initializeGT( getLocalEncodingFileName(gtSegmFile).c_str() );
+		slicer->initializeGT( gtSegmFile );
 	}
 
 	//contours
