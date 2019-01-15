@@ -71,7 +71,6 @@
 #include <vtkInteractorStyleImage.h>
 #include <vtkLookupTable.h>
 #include <vtkMath.h>
-#include <vtkMetaImageReader.h>
 #include <vtkMetaImageWriter.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
