@@ -56,7 +56,7 @@ iAClusterAttribChart::iAClusterAttribChart(
 	mainLayout->addWidget(m_checkbox);
 	connect(m_checkbox, SIGNAL(toggled(bool)), this, SIGNAL(Toggled(bool)));
 
-	m_charts = new iAFilterChart(this, "", data, nameMapper);
+	m_charts = new iAFilterChart(this, caption, data, nameMapper);
 	m_charts->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	mainLayout->addWidget(m_charts);
 
