@@ -111,7 +111,7 @@ void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData)
 		DEBUG_LOG("Could not write image: Filename has an unknown extension!");
 		return;
 	}
-	writer->SetFileName(filename.toLatin1());
+	writer->SetFileName( getLocalEncodingFileName(filename).c_str() );
 	writer->SetInputData(imageData);
 	writer->Write();
 }

@@ -22,14 +22,15 @@
 
 #include "iAAttitudes.h"
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
 #include "iAChartAttributeMapper.h"
 #include "iAChartFilter.h"
 #include "iAClusterAttribChart.h"
-#include "iAConsole.h"
 #include "iAImageTree.h"
 #include "iAParamHistogramData.h"
 #include "iAQtCaptionWidget.h"
+
+#include <iAAttributeDescriptor.h>
+#include <iAConsole.h>
 
 #include <QCheckBox>
 #include <QDialogButtonBox>

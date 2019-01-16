@@ -22,7 +22,7 @@
 
 #include "iAUncertaintyImages.h"  // for vtkImagePointer
 
-#include "iAImageCoordinate.h"
+#include <iAImageCoordinate.h>
 
 #include <QMap>
 #include <QWidget>

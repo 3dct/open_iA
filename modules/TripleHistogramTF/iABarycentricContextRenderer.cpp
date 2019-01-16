@@ -18,14 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iABarycentricContextRenderer.h"
+
 #include "BarycentricTriangle.h"
+
+#include <vtkVersion.h>
 
 #include <QPainter>
 #include <QImage>
-
-#include <vtkVersion.h>
 
 static const QImage::Format IMAGE_FORMAT = QImage::Format::Format_ARGB32;
 static const int ONE_DIV_THREE = 1.0 / 3.0;

@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iAEnsembleDescriptorFile.h"
 
-#include "iAConsole.h"
-#include "iAStringHelper.h"
-#include "io/iAFileUtils.h"
+#include <iAConsole.h>
+#include <iAStringHelper.h>
+#include <io/iAFileUtils.h>
 
 #include <QFile>
 #include <QFileInfo>

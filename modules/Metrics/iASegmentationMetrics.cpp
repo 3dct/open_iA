@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iASegmentationMetrics.h"
 
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iATypedCallHelper.h"
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iATypedCallHelper.h>
 
 #include <itkLabelOverlapMeasuresImageFilter.h>
 

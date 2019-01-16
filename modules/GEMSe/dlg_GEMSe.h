@@ -21,14 +21,14 @@
 #pragma once
 
 #include "ui_GEMSe.h"
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSe> dlg_GEMSeUI;
 
 #include "iAChartAttributeMapper.h"
 #include "iAChartFilter.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTreeNode.h"
-#include "iASlicerMode.h"
+
+#include <iASlicerMode.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
@@ -55,6 +55,8 @@ class iASamplingResults;
 class iASingleResult;
 
 class vtkImageData;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSe> dlg_GEMSeUI;
 
 class dlg_GEMSe: public dlg_GEMSeUI
 {

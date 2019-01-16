@@ -28,9 +28,9 @@
 #include "iAModalityList.h"
 #include "ui_CsvInput.h"
 
-#include "iAConsole.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <iAConsole.h>
+#include <mainwindow.h>
+#include <mdichild.h>
 
 #include <vtkTable.h>
 #include <vtkSmartVolumeMapper.h>

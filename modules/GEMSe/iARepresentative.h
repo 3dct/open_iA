@@ -20,6 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "io/iAITKIO.h"
+#include <io/iAITKIO.h>
 
 iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> imgs, int differenceMarkerValue);

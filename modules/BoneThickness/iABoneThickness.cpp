@@ -24,7 +24,7 @@
 #include "iABoneThicknessTable.h"
 #include "iABoneThicknessMouseInteractor.h"
 
-#include "iARenderer.h"
+#include <iARenderer.h>
 
 #include <QFile>
 #include <QStandardItemModel>
@@ -34,18 +34,16 @@
 #include <vtkDoubleArray.h>
 #include <vtkLineSource.h>
 #include <vtkMath.h>
-#include <vtkObjectFactory.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPCAStatistics.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPointLocator.h>
 #include <vtkProperty.h>
+#include <vtkRenderWindowInteractor.h>
 #include <vtkSphereSource.h>
 #include <vtkTable.h>
 #include <vtkTubeFilter.h>
-
-vtkStandardNewMacro(iABoneThicknessMouseInteractor);
 
 
 iABoneThickness::iABoneThickness()

@@ -29,18 +29,18 @@ class iAFoamCharacterizationItemDistanceTransform;
 
 class iAFoamCharacterizationDialogDistanceTransform : public iAFoamCharacterizationDialog
 {
-		Q_OBJECT
+	Q_OBJECT
 
-	public:
-		explicit iAFoamCharacterizationDialogDistanceTransform
-		                                       (iAFoamCharacterizationItemDistanceTransform* _pItem, QWidget* _pParent = nullptr);
+public:
+	explicit iAFoamCharacterizationDialogDistanceTransform
+		                                    (iAFoamCharacterizationItemDistanceTransform* _pItem, QWidget* _pParent = nullptr);
 
-	private:
-		iAFoamCharacterizationItemDistanceTransform* m_pItemDistanceTransform = nullptr;
+private:
+	iAFoamCharacterizationItemDistanceTransform* m_pItemDistanceTransform = nullptr;
 
-		QCheckBox* m_pCheckBoxImageSpacing = nullptr;
-		iAFoamCharacterizationComboBoxMask* m_pComboBoxMask = nullptr;
+	QCheckBox* m_pCheckBoxImageSpacing = nullptr;
+	iAFoamCharacterizationComboBoxMask* m_pComboBoxMask = nullptr;
 
-	protected slots:
-		virtual void slotPushButtonOk() override;
+protected slots:
+	virtual void slotPushButtonOk() override;
 };

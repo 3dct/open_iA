@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
-#include "dlg_DynamicVolumeLines.h"
+#include <iAModuleInterface.h>
+
+class dlg_DynamicVolumeLines;
 
 class MdiChild;
 

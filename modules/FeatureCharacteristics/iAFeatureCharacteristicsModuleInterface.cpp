@@ -22,53 +22,9 @@
 
 #include "iACalcFeatureCharacteristics.h"
 
-#include "dlg_commoninput.h"
-#include "mainwindow.h"
-#include "mdichild.h"
-
-#include <QFileDialog>
-#include <QMessageBox>
+#include <iAFilterRegistry.h>
 
 void iAFeatureCharacteristicsModuleInterface::Initialize()
 {
-	if (!m_mainWnd)
-		return;
-	QMenu * filtersMenu = m_mainWnd->getFiltersMenu();
-	QMenu * menuPorosity = getMenuWithTitle( filtersMenu, QString( "Feature Characteristics" ) );
-	QAction * actionCalcFeatureCharacteristics = new QAction( QApplication::translate( "MainWindow", "Calculate Feature Characteristics", 0 ), m_mainWnd );
-	menuPorosity->addAction( actionCalcFeatureCharacteristics );
-	connect( actionCalcFeatureCharacteristics, SIGNAL( triggered() ), this, SLOT( calcFeatureCharacteristics() ) );
-}
-
-void iAFeatureCharacteristicsModuleInterface::calcFeatureCharacteristics()
-{
-	//prepare
-	QString filterName = tr( "Calculate Feature Characteristics" );
-	PrepareActiveChild();
-	m_mdiChild->addStatusMsg( filterName );
-	QString filename = QFileDialog::getSaveFileName( 0, tr( "Save pore csv file" ),
-		m_mainWnd->getPath(), tr( "csv Files (*.csv *.CSV)" ) );
-	if ( filename.isEmpty() )
-	{
-		QMessageBox msgBox;
-		msgBox.setText( "No destination file was specified!" );
-		msgBox.setWindowTitle( "Calculate Feature Characteristics" );
-		msgBox.exec();
-		return;
-	}
-
-	QStringList inList = (QStringList() << tr("$Calculate Feret Diameter"));
-	QList<QVariant> inPara = QList<QVariant>() << "false";
-	dlg_commoninput dlg(m_mainWnd, tr("Calculate Feature Characteristics"), inList, inPara, NULL);
-	if (dlg.exec() != QDialog::Accepted)
-		return;
-
-	bool feretDiameter = dlg.getCheckValue(0) != 0;
-
-	//execute
-	iACalcFeatureCharacteristics* thread = new iACalcFeatureCharacteristics( filterName,
-		 m_childData.imgData, m_childData.polyData, m_mdiChild->getLogger(), m_mdiChild, filename, feretDiameter);
-	m_mdiChild->connectAlgorithmSignalsToChildSlots( thread );
-	thread->start();
-	m_mainWnd->statusBar()->showMessage( filterName, 5000 );
+	REGISTER_FILTER(iACalcFeatureCharacteristics);
 }

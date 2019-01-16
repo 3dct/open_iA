@@ -34,7 +34,7 @@ class vtkPolyData;
 class FeatureScout_API iA3DLineObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
-	iA3DLineObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color );
+	iA3DLineObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color );
 	void updateValues( std::vector<std::vector<double> > const & values );
 	vtkPolyData* getLinePolyData();
 	void setLookupTable( QSharedPointer<iALookupTable> lut, size_t paramIndex );

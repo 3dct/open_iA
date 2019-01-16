@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include "iABoneThickness.h"
+
+#include <iAModuleAttachmentToChild.h>
 
 #include <QDoubleSpinBox>
 #include <QScopedPointer>
-
-#include "iABoneThickness.h"
 
 class iABoneThicknessChartBar;
 class iABoneThicknessTable;

@@ -22,7 +22,7 @@
 
 #include "iAHessianEigenanalysis.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iAHessianModuleInterface::Initialize()
 {

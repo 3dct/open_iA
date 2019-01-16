@@ -70,10 +70,13 @@ public:
 	void allocConnectors(int size);
 
 	iAProgress* ProgressObserver();
+
+	// TODO: Find out if used somewhere / move somewhere else:
+	// {
 	void vtkPolydata_itkMesh ( vtkPolyData* polyData, MeshType::Pointer mesh );
 	void itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* polyData );
+	// }
 	virtual void SafeTerminate();
-
 
 public slots:
 	void updateVtkImageData(int ch);

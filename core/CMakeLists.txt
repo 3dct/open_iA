@@ -11,6 +11,11 @@ QT5_ADD_RESOURCES( open_iA_core_SRCS ${open_iA_core_QRC} )
 
 SET (LIB_TYPE SHARED)
 
+#get_cmake_property(_variableNames VARIABLES)
+#foreach (_variableName ${_variableNames})
+#    message(STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
+
 # Generate core dll file / shared object:
 add_library(${CORE_LIBRARY_NAME} ${LIB_TYPE} ${open_iA_core_SRCS} ${open_iA_core_QRC} )
 TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${QT_LIBRARIES} ${VTK_LIBRARIES} ${ITK_LIBRARIES})
@@ -20,7 +25,7 @@ IF (HDF5_FOUND)
 	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${HDF5_LIBRARY})
 	# make sure HDF5 is included before itk (which brings its own hdf5 libraries in a different version):
 	TARGET_INCLUDE_DIRECTORIES(${CORE_LIBRARY_NAME} BEFORE PRIVATE ${HDF5_INCLUDE_DIR})
-	ADD_DEFINITIONS(-DH5_BUILT_AS_DYNAMIC_LIB -DUSE_HDF5)
+	ADD_DEFINITIONS(-DUSE_HDF5)
 ENDIF()
 IF (WIN32)
 	# apparently required for VS 2015, and doesn't hurt for VS2013:

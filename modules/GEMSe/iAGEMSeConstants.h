@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QBrush>
 #include <QColor>
 #include <QPen>
-#include <QBrush>
 
 // TODO: make configurable?
 

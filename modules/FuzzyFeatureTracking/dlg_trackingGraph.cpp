@@ -20,15 +20,20 @@
 * ************************************************************************************/
 #include "dlg_trackingGraph.h"
 
-#include "iAVtkGraphDrawer.h"
+#include <iAVtkGraphDrawer.h>
+#include <iAVtkWidget.h>
 
+#include <vtkContextActor.h>
+#include <vtkContextInteractorStyle.h>
+#include <vtkContextScene.h>
+#include <vtkContextTransform.h>
 #include <vtkGraphItem.h>
+#include <vtkMutableDirectedGraph.h>
 #include <vtkObjectFactory.h>
 #include <vtkPoints.h>
-
-#ifdef _MSC_VER
-#include <windows.h>
-#endif
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindowInteractor.h>
 
 const int MAX_ITERATIONS		= 24;
 const double BACKGROUND[3]		= {1, 1, 1};
@@ -36,13 +41,6 @@ const double BACKGROUND[3]		= {1, 1, 1};
 dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 {
 	setupUi(this);
-
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	graphWidget = new QVTKOpenGLWidget();
-#else
-	graphWidget = new QVTKWidget();
-#endif
-	this->horizontalLayout->addWidget(graphWidget);
 
 	// create graph
 	m_graph = vtkSmartPointer<vtkMutableDirectedGraph>::New();
@@ -64,24 +62,18 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 	m_renderer->SetBackground(BACKGROUND[0], BACKGROUND[1], BACKGROUND[2]);
 	m_renderer->AddActor(m_actor);
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	m_renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-#else
-	m_renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-#endif
-	m_renderWindow->AddRenderer(m_renderer);
-
-	graphWidget->SetRenderWindow(m_renderWindow);
+	CREATE_OLDVTKWIDGET(graphWidget);
+	this->horizontalLayout->addWidget(graphWidget);
+	graphWidget->GetRenderWindow()->AddRenderer(m_renderer);
 
 	m_interactorStyle = vtkSmartPointer<vtkContextInteractorStyle>::New();
 	m_interactorStyle->SetScene(m_contextScene);
 
 	m_interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	m_interactor->SetInteractorStyle(m_interactorStyle);
-	m_interactor->SetRenderWindow(m_renderWindow);
-	m_interactor->Start();
+	m_interactor->SetRenderWindow(graphWidget->GetRenderWindow());
 
-	m_renderWindow->Render();
+	graphWidget->GetRenderWindow()->Render();
 }
 
 void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId)
@@ -94,10 +86,10 @@ void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, int nunRanks, st
 	vtkNew<vtkPoints> points;	
 	iAVtkGraphDrawer graphDrawer;
 	//graphDrawer.setMaxIteration(MAX_ITERATIONS);
-	graphDrawer.createLayout(points.GetPointer(), m_graph, m_renderWindow->GetSize(), nunRanks);
+	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->GetRenderWindow()->GetSize(), nunRanks);
 	m_graph->SetPoints(points.GetPointer());
 	
 	m_graphItem->SetGraph(m_graph);
 	m_graphItem->Update();
-	m_renderWindow->Render();
+	graphWidget->GetRenderWindow()->Render();
 }

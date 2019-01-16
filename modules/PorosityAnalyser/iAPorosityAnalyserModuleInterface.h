@@ -20,20 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include <itkImageIOBase.h>
-#include <QWidget>
-#include "iAModuleInterface.h"
-#include "defines.h"
 #include "ui_ComputeSegmentations.h"
-#include "PorosityAnalyserHelpers.h"
-#include "iADragFilterWidget.h"
-#include "iADropPipelineWidget.h"
 
-#include <QPushButton>
-#include <QGroupBox>
-#include <QTextEdit>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
+#include <defines.h>
+#include <iAModuleInterface.h>
 
 class iAPorosityAnalyser;
 

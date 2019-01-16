@@ -20,14 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
-#include <QColor>
+#include "ui_SSView.h"
+
+#include <iAChannelID.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
-#include "ui_SSView.h"
-#include "qthelper/iAQTtoUIConnector.h"
-#include "iAChannelID.h"
+#include <QDockWidget>
+#include <QColor>
 
 class vtkTransform;
 class vtkColorTransferFunction;

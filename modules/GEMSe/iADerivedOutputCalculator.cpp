@@ -20,12 +20,15 @@
 * ************************************************************************************/
 #include "iADerivedOutputCalculator.h"
 
-#include "EntropyImageFilter.h"
 #include "iAAttributes.h"
-#include "iAConsole.h"
 #include "iAImageTreeNode.h"
 #include "iASingleResult.h"
-#include "iAToolsITK.h"
+
+// Toolkit/Entropy
+#include <EntropyImageFilter.h>
+
+#include <iAConsole.h>
+#include <iAToolsITK.h>
 
 #include <itkImageFileWriter.h>
 #include <itkRelabelComponentImageFilter.h>
@@ -98,7 +101,7 @@ void iADerivedOutputCalculator::run()
 	}
 	/*
 	itk::ImageFileWriter<OutputImageType>::Pointer writer = itk::ImageFileWriter<OutputImageType>::New();
-	writer->SetFileName(debugCount.toStdString() );
+	writer->SetFileName( getLocalEncodingFileName(labelOutputFileName) );
 	writer->SetUseCompression(true);
 	writer->SetInput(relabel->GetOutput() );
 	writer->Update();

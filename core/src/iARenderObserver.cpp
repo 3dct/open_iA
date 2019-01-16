@@ -376,8 +376,6 @@ void iARenderObserver::PickVolume(double point[3])
 		point[0] = m_pProbe->GetOutput()->GetPoint(maxindex)[0];
 		point[1] = m_pProbe->GetOutput()->GetPoint(maxindex)[1];
 		point[2] = m_pProbe->GetOutput()->GetPoint(maxindex)[2];
-
-
 	}
 }
 

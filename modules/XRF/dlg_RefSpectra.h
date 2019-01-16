@@ -21,7 +21,9 @@
 #pragma once
 
 #include "ui_RefSpectra.h"
-#include "qthelper/iAQTtoUIConnector.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
+
 typedef iAQTtoUIConnector<QDockWidget, Ui_RefSpectra> dlg_RefSpectraContainer;
 
 class dlg_RefSpectra: public dlg_RefSpectraContainer

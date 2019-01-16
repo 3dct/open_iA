@@ -20,11 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include <utility> // for std::pair
+#include <iAImageCoordinate.h>	// for iAVoxelIndexType
 
 #include <QVector>
 
-#include "iAImageCoordinate.h"	// for iAVoxelIndexType
+#include <utility> // for std::pair
+
+
 
 typedef unsigned int iAEdgeIndexType;
 typedef unsigned int iAVertexIndexType;

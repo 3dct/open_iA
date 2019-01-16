@@ -20,11 +20,12 @@
 * ************************************************************************************/
 #include "iACameraWidget.h"
 
-#include "iAColorTheme.h"
-#include "iAConsole.h"
 #include "iAImagePreviewWidget.h"
 #include "iAGEMSeConstants.h"
 #include "iAQtCaptionWidget.h"
+
+#include <iAColorTheme.h>
+#include <iAConsole.h>
 
 #include <vtkImageData.h>
 

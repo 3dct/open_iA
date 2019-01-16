@@ -20,18 +20,20 @@
 * ************************************************************************************/
 #include "iASSView.h"
 
-#include "iAChannelVisualizationData.h"
-#include "PorosityAnalyserHelpers.h"
-#include "defines.h"
-#include "iACSVToQTableWidgetConverter.h"
-#include "iASSViewSetings.h"
-#include "iABoxPlotData.h"
-#include "iASSSlicer.h"
-#include "iASlicer.h"
 #include "iASegm3DView.h"
-#include "iAChanData.h"
-#include "iARenderer.h"
-#include "iAVTKRendererManager.h"
+#include "iASSSlicer.h"
+#include "iASSViewSetings.h"
+#include "PorosityAnalyserHelpers.h"
+
+#include <iAChannelVisualizationData.h>
+#include <defines.h>
+#include <iACSVToQTableWidgetConverter.h>
+#include <iABoxPlotData.h>
+#include <iASlicer.h>
+#include <iAChanData.h>
+#include <iARenderer.h>
+#include <iAVTKRendererManager.h>
+#include <io/iAFileUtils.h>
 
 #include <vtkTransform.h>
 #include <vtkColorTransferFunction.h>
@@ -56,7 +58,7 @@ inline double NormalizedSliderValue(QSlider * slider)
 	return (double)slider->value() / ( slider->maximum() - slider->minimum() );
 }
 
-extern void loadImageData( const char * fileName, vtkSmartPointer<vtkImageData> & imgData );
+void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & imgData );
 
 iASSView::iASSView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: PorosityAnalyzerSSConnector( parent, f ),
@@ -165,7 +167,7 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 {
 	//data itself
 	m_datasetFile = m_datasetFolder + "/" + data->item( 0, datasetColInd )->text();
-	loadImageData( m_datasetFile.toStdString().c_str(), m_imgData );
+	loadImageData( m_datasetFile, m_imgData );
 	BuildDefaultTF( m_imgData, m_slicerTF );
 	slicer->initialize( m_imgData, m_slicerTransform, m_slicerTF );
 
@@ -185,7 +187,7 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 	if( datasetGTs[data->item( 0, datasetColInd )->text()] != "" )
 	{
 		QString gtSegmFile = m_datasetFolder + "/" + datasetGTs[data->item( 0, datasetColInd )->text()];
-		slicer->initializeGT( gtSegmFile.toStdString().c_str() );
+		slicer->initializeGT( gtSegmFile );
 	}
 
 	//contours
@@ -207,7 +209,7 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 				inds[j] = i;
 			}
 	}
-	slicer->initBPDChans( masks[inds[0]].toStdString().c_str(), masks[inds[1]].toStdString().c_str(), masks[inds[2]].toStdString().c_str() );
+	slicer->initBPDChans( masks[inds[0]], masks[inds[1]], masks[inds[2]] );
 
 	//finally
 	InitializeGUI();

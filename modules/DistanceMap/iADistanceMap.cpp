@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iADistanceMap.h"
 
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
 
 #include <itkDanielssonDistanceMapImageFilter.h>
 #include <itkImageRegionIterator.h>

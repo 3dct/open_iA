@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iAPlotData.h"
 #include "iAGEMSeConstants.h"
+
+#include <charts/iAPlotData.h>
 
 #include <QSharedPointer>
 

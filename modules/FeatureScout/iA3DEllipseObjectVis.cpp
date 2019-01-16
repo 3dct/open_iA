@@ -32,7 +32,7 @@
 #include <vtkPointData.h>
 #include <vtkTable.h>
 
-iA3DEllipseObjectVis::iA3DEllipseObjectVis(iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+iA3DEllipseObjectVis::iA3DEllipseObjectVis(iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, int phiRes, int thetaRes) :
 	iA3DColoredPolyObjectVis(widget, objectTable, columnMapping, color, (phiRes - 2) * thetaRes + 2)
 {

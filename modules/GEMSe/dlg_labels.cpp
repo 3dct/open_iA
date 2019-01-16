@@ -20,19 +20,20 @@
 * ************************************************************************************/
 #include "dlg_labels.h"
 
-#include "dlg_commoninput.h"
-#include "iAColorTheme.h"
-#include "iAConsole.h"
 #include "iAImageCoordinate.h"
-#include "iAChannelID.h"
-#include "iAChannelVisualizationData.h"
 #include "iALabelOverlayThread.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iAToolsVTK.h"
-#include "iAVtkDraw.h"
-#include "io/iAFileUtils.h"
-#include "mdichild.h"
+
+#include <dlg_commoninput.h>
+#include <iAChannelID.h>
+#include <iAChannelVisualizationData.h>
+#include <iAColorTheme.h>
+#include <iAConsole.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAToolsVTK.h>
+#include <iAVtkDraw.h>
+#include <io/iAFileUtils.h>
+#include <mdichild.h>
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
@@ -515,7 +516,7 @@ void dlg_labels::StoreImage()
 		return;
 	}
 	vtkMetaImageWriter *metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName(fileName.toStdString().c_str());
+	metaImageWriter->SetFileName( getLocalEncodingFileName(fileName).c_str() );
 	metaImageWriter->SetInputData(m_labelOverlayImg);
 	metaImageWriter->SetCompression( false );
 	metaImageWriter->Write();

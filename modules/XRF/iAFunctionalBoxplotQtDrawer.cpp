@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAFunctionalBoxplotQtDrawer.h"
 
-#include "iAFunctionalBoxplot.h"
+#include <iAFunctionalBoxplot.h>
 
 #include <QColor>
 #include <QImage>

@@ -23,9 +23,8 @@
 #include <QList>
 #include <QObject>
 
-#include <vector>
-
 #include <cstddef>    // for size_t
+#include <vector>
 
 class iAQSplom;
 

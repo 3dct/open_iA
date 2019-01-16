@@ -22,7 +22,7 @@
 
 #include "iACastImageFilter.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iACastingDataconversionModuleInterface::Initialize()
 {

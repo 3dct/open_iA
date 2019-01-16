@@ -899,21 +899,21 @@ void MainWindow::saveRenderSettings(QDomDocument &doc)
 
 	// add new camera node
 	QDomElement renderSettingsElement = doc.createElement("renderSettings");
-	renderSettingsElement.setAttribute("showSlicers", tr("%1").arg(defaultRenderSettings.ShowSlicers));
-	renderSettingsElement.setAttribute("showSlicePlanes", tr("%1").arg(defaultRenderSettings.ShowSlicePlanes));
-	renderSettingsElement.setAttribute("showHelpers", tr("%1").arg(defaultRenderSettings.ShowHelpers));
-	renderSettingsElement.setAttribute("showRPosition", tr("%1").arg(defaultRenderSettings.ShowRPosition));
-	renderSettingsElement.setAttribute("parallelProjection", tr("%1").arg(defaultRenderSettings.ParallelProjection));
-	renderSettingsElement.setAttribute("backgroundTop", tr("%1").arg(defaultRenderSettings.BackgroundTop.toLatin1().constData()));
-	renderSettingsElement.setAttribute("backgroundBottom", tr("%1").arg(defaultRenderSettings.BackgroundBottom.toLatin1().constData()));
-	renderSettingsElement.setAttribute("linearInterpolation", tr("%1").arg(defaultVolumeSettings.LinearInterpolation));
-	renderSettingsElement.setAttribute("shading", tr("%1").arg(defaultVolumeSettings.Shading));
-	renderSettingsElement.setAttribute("sampleDistance", tr("%1").arg(defaultVolumeSettings.SampleDistance));
-	renderSettingsElement.setAttribute("ambientLighting", tr("%1").arg(defaultVolumeSettings.AmbientLighting));
-	renderSettingsElement.setAttribute("diffuseLighting", tr("%1").arg(defaultVolumeSettings.DiffuseLighting));
-	renderSettingsElement.setAttribute("specularLighting", tr("%1").arg(defaultVolumeSettings.SpecularLighting));
-	renderSettingsElement.setAttribute("specularPower", tr("%1").arg(defaultVolumeSettings.SpecularPower));
-	renderSettingsElement.setAttribute("renderMode", tr("%1").arg(defaultVolumeSettings.RenderMode));
+	renderSettingsElement.setAttribute("showSlicers", defaultRenderSettings.ShowSlicers);
+	renderSettingsElement.setAttribute("showSlicePlanes", defaultRenderSettings.ShowSlicePlanes);
+	renderSettingsElement.setAttribute("showHelpers", defaultRenderSettings.ShowHelpers);
+	renderSettingsElement.setAttribute("showRPosition",defaultRenderSettings.ShowRPosition);
+	renderSettingsElement.setAttribute("parallelProjection", defaultRenderSettings.ParallelProjection);
+	renderSettingsElement.setAttribute("backgroundTop", defaultRenderSettings.BackgroundTop);
+	renderSettingsElement.setAttribute("backgroundBottom", defaultRenderSettings.BackgroundBottom);
+	renderSettingsElement.setAttribute("linearInterpolation", defaultVolumeSettings.LinearInterpolation);
+	renderSettingsElement.setAttribute("shading", defaultVolumeSettings.Shading);
+	renderSettingsElement.setAttribute("sampleDistance", defaultVolumeSettings.SampleDistance);
+	renderSettingsElement.setAttribute("ambientLighting", defaultVolumeSettings.AmbientLighting);
+	renderSettingsElement.setAttribute("diffuseLighting", defaultVolumeSettings.DiffuseLighting);
+	renderSettingsElement.setAttribute("specularLighting", defaultVolumeSettings.SpecularLighting);
+	renderSettingsElement.setAttribute("specularPower", defaultVolumeSettings.SpecularPower);
+	renderSettingsElement.setAttribute("renderMode", defaultVolumeSettings.RenderMode);
 
 	doc.documentElement().appendChild(renderSettingsElement);
 }
@@ -952,18 +952,18 @@ void MainWindow::saveSlicerSettings(QDomDocument &doc)
 
 	// add new camera node
 	QDomElement slicerSettingsElement = doc.createElement("slicerSettings");
-	slicerSettingsElement.setAttribute("linkViews", tr("%1").arg(defaultSlicerSettings.LinkViews));
-	slicerSettingsElement.setAttribute("showIsolines", tr("%1").arg(defaultSlicerSettings.SingleSlicer.ShowIsoLines));
-	slicerSettingsElement.setAttribute("showPosition", tr("%1").arg(defaultSlicerSettings.SingleSlicer.ShowPosition));
-	slicerSettingsElement.setAttribute("showAxesCaption", tr("%1").arg(defaultSlicerSettings.SingleSlicer.ShowAxesCaption));
-	slicerSettingsElement.setAttribute("numberOfIsolines", tr("%1").arg(defaultSlicerSettings.SingleSlicer.NumberOfIsoLines));
-	slicerSettingsElement.setAttribute("minIsovalue", tr("%1").arg(defaultSlicerSettings.SingleSlicer.MinIsoValue));
-	slicerSettingsElement.setAttribute("maxIsovalue", tr("%1").arg(defaultSlicerSettings.SingleSlicer.MaxIsoValue));
-	slicerSettingsElement.setAttribute("linearInterpolation", tr("%1").arg(defaultSlicerSettings.SingleSlicer.LinearInterpolation));
-	slicerSettingsElement.setAttribute("snakeSlices", tr("%1").arg(defaultSlicerSettings.SnakeSlices));
-	slicerSettingsElement.setAttribute("linkMDIs", tr("%1").arg(defaultSlicerSettings.LinkMDIs));
-	slicerSettingsElement.setAttribute("cursorMode", tr( "%1" ).arg( defaultSlicerSettings.SingleSlicer.CursorMode));
-	slicerSettingsElement.setAttribute("toolTipFontSize", tr("%1").arg(defaultSlicerSettings.SingleSlicer.ToolTipFontSize));
+	slicerSettingsElement.setAttribute("linkViews", defaultSlicerSettings.LinkViews);
+	slicerSettingsElement.setAttribute("showIsolines", defaultSlicerSettings.SingleSlicer.ShowIsoLines);
+	slicerSettingsElement.setAttribute("showPosition", defaultSlicerSettings.SingleSlicer.ShowPosition);
+	slicerSettingsElement.setAttribute("showAxesCaption", defaultSlicerSettings.SingleSlicer.ShowAxesCaption);
+	slicerSettingsElement.setAttribute("numberOfIsolines", defaultSlicerSettings.SingleSlicer.NumberOfIsoLines);
+	slicerSettingsElement.setAttribute("minIsovalue", defaultSlicerSettings.SingleSlicer.MinIsoValue);
+	slicerSettingsElement.setAttribute("maxIsovalue", defaultSlicerSettings.SingleSlicer.MaxIsoValue);
+	slicerSettingsElement.setAttribute("linearInterpolation", defaultSlicerSettings.SingleSlicer.LinearInterpolation);
+	slicerSettingsElement.setAttribute("snakeSlices", defaultSlicerSettings.SnakeSlices);
+	slicerSettingsElement.setAttribute("linkMDIs", defaultSlicerSettings.LinkMDIs);
+	slicerSettingsElement.setAttribute("cursorMode", defaultSlicerSettings.SingleSlicer.CursorMode);
+	slicerSettingsElement.setAttribute("toolTipFontSize", defaultSlicerSettings.SingleSlicer.ToolTipFontSize);
 
 	doc.documentElement().appendChild(slicerSettingsElement);
 }
@@ -2377,8 +2377,6 @@ iAModuleDispatcher & MainWindow::getModuleDispatcher() const
 
 void MainWindow::OpenWithDataTypeConversion()
 {
-	// Create an image data
-	vtkImageData* imageData = vtkImageData::New();
 	QString finalfilename;
 	QString testfinalfilename;
 
@@ -2388,9 +2386,8 @@ void MainWindow::OpenWithDataTypeConversion()
 		iAIOProvider::GetSupportedLoadFormats()
 	);
 	if (file.isEmpty())
-	{
 		return;
-	}
+
 	QStringList inList = (QStringList()
 		<< tr("+Data Type")
 		<< tr("#Slice sample rate")
@@ -2426,38 +2423,44 @@ void MainWindow::OpenWithDataTypeConversion()
 	double convPara[11];
 	convPara[0] = owdtcmin;   convPara[1] = owdtcmax;  convPara[2] = owdtcoutmin; convPara[3] = owdtcoutmax; convPara[4] = owdtcdov; convPara[5] = owdtcxori;
 	convPara[6] = owdtcxsize; convPara[7] = owdtcyori; convPara[8] = owdtcysize;  convPara[9] = owdtczori;   convPara[10] = owdtczsize;
-	dlg_datatypeconversion* conversionwidget = new dlg_datatypeconversion( this, imageData, file.toStdString().c_str(), MapVTKTypeStringToInt(owdtcintype), para, winsize, convPara );
-	if (conversionwidget->exec() != QDialog::Accepted)
+	try
 	{
-		return;
-	}
-	QString outDataType = conversionwidget->getDataType();
-	owdtcmin = conversionwidget->getRangeLower(); owdtcmax = conversionwidget->getRangeUpper();
-	owdtcoutmin = conversionwidget->getOutputMin(); owdtcoutmax = conversionwidget->getOutputMax();
-	owdtcdov = conversionwidget->getConvertROI();
-	owdtcxori = conversionwidget->getXOrigin(); owdtcxsize = conversionwidget->getXSize();
-	owdtcyori = conversionwidget->getYOrigin(); owdtcysize = conversionwidget->getYSize();
-	owdtczori = conversionwidget->getZOrigin(); owdtczsize = conversionwidget->getZSize();
+		dlg_datatypeconversion* conversionwidget = new dlg_datatypeconversion(this, file, MapVTKTypeStringToInt(owdtcintype), para, winsize, convPara);
+		if (conversionwidget->exec() != QDialog::Accepted)
+			return;
 
-	double roi[6];
-	roi[0] = owdtcxori; roi[1] = owdtcxsize;
-	roi[2] = owdtcyori; roi[3] = owdtcysize;
-	roi[4] = owdtczori; roi[5] = owdtczsize;
+		QString outDataType = conversionwidget->getDataType();
+		owdtcmin = conversionwidget->getRangeLower(); owdtcmax = conversionwidget->getRangeUpper();
+		owdtcoutmin = conversionwidget->getOutputMin(); owdtcoutmax = conversionwidget->getOutputMax();
+		owdtcdov = conversionwidget->getConvertROI();
+		owdtcxori = conversionwidget->getXOrigin(); owdtcxsize = conversionwidget->getXSize();
+		owdtcyori = conversionwidget->getYOrigin(); owdtcysize = conversionwidget->getYSize();
+		owdtczori = conversionwidget->getZOrigin(); owdtczsize = conversionwidget->getZSize();
 
-	if ( owdtcdov == 0 )
-	{
-		testfinalfilename = conversionwidget->coreconversionfunction(file, finalfilename, para,
-			MapVTKTypeStringToInt(owdtcintype),
-			MapVTKTypeStringToInt(outDataType),
-			owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov  );
+		double roi[6];
+		roi[0] = owdtcxori; roi[1] = owdtcxsize;
+		roi[2] = owdtcyori; roi[3] = owdtcysize;
+		roi[4] = owdtczori; roi[5] = owdtczsize;
+
+		if (owdtcdov == 0)
+		{
+			testfinalfilename = conversionwidget->coreconversionfunction(file, finalfilename, para,
+				MapVTKTypeStringToInt(owdtcintype),
+				MapVTKTypeStringToInt(outDataType),
+				owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov);
+		}
+		else
+		{
+			testfinalfilename = conversionwidget->coreconversionfunctionforroi(file, finalfilename, para,
+				MapVTKTypeStringToInt(outDataType),
+				owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov, roi);
+		}
+		LoadFile(testfinalfilename, false);
 	}
-	else
+	catch (std::exception & e)
 	{
-		testfinalfilename = conversionwidget->coreconversionfunctionforroi(file, finalfilename, para,
-			MapVTKTypeStringToInt(outDataType),
-			owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov, roi  );
+		DEBUG_LOG(QString("Open with datatype conversion: %1").arg(e.what()));
 	}
-	LoadFile(testfinalfilename, false);
 }
 
 
@@ -2508,9 +2511,9 @@ int MainWindow::RunGUI(int argc, char * argv[], QString const & appName, QString
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
-	if (QDate::currentDate().dayOfYear() >= 340)
+	if (QDate::currentDate().dayOfYear() >= 350)
 	{
-		mainWin.setWindowTitle("Merry X-Mas and a happy new year!");
+		mainWin.setWindowTitle("Merry Christmas and a Happy New Year!");
 		mainWin.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 	}

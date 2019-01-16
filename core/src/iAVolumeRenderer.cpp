@@ -152,11 +152,11 @@ void iAVolumeRenderer::SetPosition(double* position)
 	outlineActor->SetPosition(position);
 }
 
-void iAVolumeRenderer::AddTo(vtkRenderer* w)
+void iAVolumeRenderer::AddTo(vtkRenderer* r)
 {
 	if (currentRenderer)
 	{
-		if (currentRenderer != w)
+		if (currentRenderer != r)
 		{
 			Remove();
 		}
@@ -167,8 +167,8 @@ void iAVolumeRenderer::AddTo(vtkRenderer* w)
 	}
 	if (m_isFlat)
 		return;
-	w->AddVolume(volume);
-	currentRenderer = w;
+	r->AddVolume(volume);
+	currentRenderer = r;
 }
 
 void iAVolumeRenderer::Remove()

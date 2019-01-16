@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAPerformanceHelper.h"
+#include <iAPerformanceHelper.h>
 
 #include <QProcess>
 #include <QThread>

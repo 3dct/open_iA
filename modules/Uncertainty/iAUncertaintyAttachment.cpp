@@ -30,16 +30,16 @@
 #include "iASpatialView.h"
 #include "iAUncertaintyColors.h"
 
-#include "charts/iASimpleHistogramData.h"
-#include "dlg_imageproperty.h"
-#include "iAChildData.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "qthelper/iADockWidgetWrapper.h"
-#include "iALookupTable.h"
-#include "iAStringHelper.h"
-#include "mdichild.h"
-#include "mainwindow.h"
+#include <charts/iASimpleHistogramData.h>
+#include <dlg_imageproperty.h>
+#include <iAChildData.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iALookupTable.h>
+#include <iAStringHelper.h>
+#include <mdichild.h>
+#include <mainwindow.h>
+#include <qthelper/iADockWidgetWrapper.h>
 
 #include <vtkLookupTable.h>
 
@@ -196,7 +196,7 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	m_scatterplotView->SetDatasets(ensemble);
 	m_memberView->SetEnsemble(ensemble);
 	m_labelDistributionView->Clear();
-	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount(), Discrete);
+	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount()-1, Discrete);
 	double lutRange[2];
 	lutRange[0] = 0;
 	lutRange[1] = m_currentEnsemble->LabelCount();

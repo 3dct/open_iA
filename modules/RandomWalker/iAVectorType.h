@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-typedef double iAVectorDataType;
-
 #include <QSharedPointer>
+
+typedef double iAVectorDataType;
 
 //! abstract base class for an arbitrary-sized vector
 class iAVectorType

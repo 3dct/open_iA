@@ -20,9 +20,8 @@
 * ************************************************************************************/
 #include "iASeedType.h"
 
+#include "iAConsole.h"
 #include "iAImageCoordinate.h"
-
-#include <QMessageBox>
 
 #include <utility>     // for std::make_pair
 
@@ -83,7 +82,7 @@ QSharedPointer<iASeedVector> ExtractSeedVector(QString const & seedString, int w
 	}
 	if (parseErrors.size() > 0)
 	{
-		QMessageBox::warning(0, "Random Walker", "Error(s) in seed file: \n"+parseErrors);
+		DEBUG_LOG(QString("Error(s) in seed file: %1").arg(parseErrors));
 	}
 	return result;
 }

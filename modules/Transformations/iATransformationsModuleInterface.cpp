@@ -22,7 +22,7 @@
 
 #include "iATransformations.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iATransformationsModuleInterface::Initialize()
 {

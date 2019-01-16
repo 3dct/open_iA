@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #include "iADatasetInfo.h"
 
+#include "iAPorosityAnalyserModuleInterface.h"
 #include "PorosityAnalyserHelpers.h"
 
-#include "iAToolsITK.h"
-#include "io/iAITKIO.h"
+#include <iAToolsITK.h>
+#include <io/iAITKIO.h>
 
 #include <itkExtractImageFilter.h>
 #include <itkImageDuplicator.h>
@@ -72,7 +73,7 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	typename ImageToHistogramFilterType::HistogramType* histogram = imageToHistogramFilter->GetOutput();
 	
 	//Write info to dataset info file
-	ofstream fout( QString( datasetPath + "/" + datasetName + ".info" ).toStdString().c_str(), std::ofstream::out );
+	ofstream fout( getLocalEncodingFileName( datasetPath + "/" + datasetName + ".info" ).c_str(), std::ofstream::out );
 	fout << "Datasetname:" << QString( datasetName ).toStdString() << '\n'
 		<< "Min:" << minIntensity << '\n'
 		<< "Max:" << maxIntensity << '\n'
@@ -152,7 +153,7 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 // 	extracter->SetInput( rescaler->GetOutput() );
 // 	typedef itk::ImageFileWriter< OutputImageType > WriterType;
 // 	WriterType::Pointer writer = WriterType::New();
-// 	writer->SetFileName( fileName.toStdString() );
+// 	writer->SetFileName( getLocalEncodingFileName(fileName) );
 // 	writer->SetInput( extracter->GetOutput() );
 // 	writer->Update();
 }

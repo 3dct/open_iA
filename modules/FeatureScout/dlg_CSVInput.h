@@ -52,6 +52,8 @@ private slots:
 	void loadSelectedFormatSettings(const QString &formatName);
 	//! show file preview (triggered on any update to the format settings and when Update Preview button is clicked)
 	void updatePreview();
+	//! exports complete preview table
+	void exportTable();
 	//! switch Object Type Fiber / Pores
 	void switchObjectType(const QString &inputType);
 	//! Add format to the list of known formats

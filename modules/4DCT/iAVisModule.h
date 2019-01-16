@@ -34,10 +34,8 @@ public:
 	virtual void		enable( );
 	virtual void		disable( );
 
-
 protected:
 	vtkRenderer *		m_renderer;
-
 
 private:
 	virtual void		show( ) = 0;

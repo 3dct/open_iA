@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #include "iAConnectedComponentFilters.h"
 
-#include "iAConnector.h"
-#include "defines.h" // for DIM
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h> // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
+#include <io/iAFileUtils.h>
 
 #include <itkConnectedComponentImageFilter.h>
 #include <itkScalarConnectedComponentImageFilter.h>
@@ -115,7 +116,7 @@ void SimpleRelabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant>
 	{
 		long int no_of_Objects = rccFilter->GetNumberOfObjects();
 		ofstream myfile;
-		myfile.open(parameters["Label file"].toString().toStdString());
+		myfile.open(getLocalEncodingFileName(parameters["Label file"].toString()));
 		myfile << " Total Objects " << "," << no_of_Objects << endl;
 		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)" << endl;
 		for ( int i = 0; i < no_of_Objects; i++ )
@@ -144,13 +145,13 @@ iASimpleRelabelConnectedComponents::iASimpleRelabelConnectedComponents() :
 		"background and is left unaltered by the relabeling.<br/>"
 		"If the user sets a <em>Minimum object size</em>, all objects with fewer pixels than "
 		"the minimum will be discarded, so that the number of objects reported "
-		"will be only those remaining. Enabling the option <em>Write labels to file</em>"
-		"will save details of each object to the file specified under <em>Label file.<br/>"
+		"will be only those remaining. Enabling the option <em>Write labels to file</em> "
+		"will save details of each object to the file specified under <em>Label file</em>.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RelabelComponentImageFilter.html\">"
 		"Relabel Component Filter</a> in the ITK documentation.")
 {
 	AddParameter("Minimum object size", Discrete, 1, 1);
 	AddParameter("Write labels to file", Boolean, false);
-	AddParameter("Label file", String /* should be FileName choice! */, "");
+	AddParameter("Label file", FileNameSave, "");
 }

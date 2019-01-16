@@ -29,13 +29,8 @@
 
 #include "raycast/include/common.h"
 
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-class QVTKOpenGLWidget;
-#else
-class QVTKWidget;
-#endif
+#include "iAVtkWidgetFwd.h"
+
 class vtkActor;
 class vtkDataSetMapper;
 class vtkDepthSortPolyData;
@@ -143,11 +138,7 @@ private:
 	Plot3DVtk * plot3d;
 	Plot3DVtk * plot3dWeighting;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	QVTKOpenGLWidget *qvtkWidget, *qvtkPlot3d, *qvtkWeighing;
-#else
-	QVTKWidget *qvtkWidget, *qvtkPlot3d, *qvtkWeighing;
-#endif
+	iAVtkOldWidget *qvtkWidget, *qvtkPlot3d, *qvtkWeighing;
 	void  Pick(int pickPos[2]);
 	//! Update all the views and labels corresponding to the picked placement
 	void setPickedPlacement(int indX, int indY, int indZ);
@@ -231,7 +222,7 @@ public slots:
 	virtual void ShowResultsSlot();
 	//! Show logs window
 	virtual void ShowLogsSlot();
-	//! Save results to file "results.txt" in working dir
+	//! Save results to .result file in same directory as data stl file
 	virtual void SaveResultsSlot();
 	//! Slot that shows colors object, corresponding to angles btw tri's norm and ray to middle of tri
 	virtual void ShowDipAnglesSlot();

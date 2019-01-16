@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #include "iAHessianEigenanalysis.h"
 
-#include "defines.h"          // for DIM
-#include "iAConnector.h"
-#include "iAPixelAccessors.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>          // for DIM
+#include <iAConnector.h>
+#include <iAPixelAccessors.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
 
 #include <itkCastImageFilter.h>
 #include <itkHessianRecursiveGaussianImageFilter.h>

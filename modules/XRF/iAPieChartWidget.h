@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QVector>
 #include <QWidget>
-#include <QMap>
 
 class QPaintEvent;
 

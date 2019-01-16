@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAValueType.h"
+#include <iAValueType.h>
 
 #include <QWidget>
 

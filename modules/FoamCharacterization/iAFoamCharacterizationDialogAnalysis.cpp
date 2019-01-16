@@ -22,7 +22,7 @@
 
 #include "iAFoamCharacterizationTableAnalysis.h"
 
-#include "iAConnector.h"
+#include <iAConnector.h>
 
 #include <itkLabelMap.h>
 #include <itkLabelGeometryImageFilter.h>

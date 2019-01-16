@@ -24,6 +24,7 @@
 
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 
 iAFoamCharacterizationDialogWatershed::iAFoamCharacterizationDialogWatershed

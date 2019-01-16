@@ -22,8 +22,9 @@
 
 #include "iAFeatureScoutObjectType.h"
 #include "FeatureScout_export.h"
-#include "iAModuleInterface.h"
 #include "iACsvConfig.h"
+
+#include <iAModuleInterface.h>
 
 class dlg_FeatureScout;
 class iAFeatureScoutToolbar;

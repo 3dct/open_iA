@@ -20,15 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
+#include "ui_TreeView.h"
+#include "iABPMData.h"
+#include "iAHMData.h"
+#include "PorosityAnalyserHelpers.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
+
 #include <QWidget>
 #include <QTableWidget>
 #include <QModelIndex>
 
-#include "qthelper/iAQTtoUIConnector.h"
-#include "ui_TreeView.h"
-#include "PorosityAnalyserHelpers.h"
-#include "iABPMData.h"
-#include "iAHMData.h"
 
 class QContextMenuEvent;
 class QMenu;

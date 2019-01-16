@@ -136,7 +136,7 @@ const char * OkcData::read_till(FILE *fp,
 
 	return str;
 }
-
+/*
 bool OkcData::read(const char *fname){
 	string ext = strrchr(fname, '.');
 
@@ -159,13 +159,9 @@ bool OkcData::read(const char *fname){
 	} else if(ext==".csv"){
 		return readCSV(fname);
 	}
-
-
-
 	return false;
-
 }
-
+*/
 
 // count the number of appearing of one substing in the string
 int OkcData::strstr_cnt(const char *string, const char *substring) {
@@ -233,7 +229,7 @@ char* OkcData::fgetcsvline(vector<string> &csv_databuf, FILE *fhead) {
 
     return ret_stat;
 }
-
+/*
 bool OkcData::readCSV(const char *fname){
 	char str_temp[500];
 	FILE *fp = fopen(fname, "r");
@@ -474,6 +470,7 @@ bool OkcData::writeOKC(const char *fname){
 	return true;
 }
 
+*/
 
 // if return value > 0, means time_a is later than time_b
 int OkcData::cmpTime(const struct tm* time_a, const struct tm* time_b){
@@ -503,6 +500,7 @@ int OkcData::cmpTime(const struct tm* time_a, const struct tm* time_b){
 // minimum maximum cardinality for each dimension (double double int)
 // data_samples (doubles)
 //
+/*
 OkcData::ReadOkcResult OkcData::readOKC(const char *fname)
 {
 	bool success = true;
@@ -692,6 +690,7 @@ OkcData::ReadOkcResult OkcData::readOKC(const char *fname)
 
 	return OkcData::ReadOkcResult( success, outOfRange, newOkcFileName, logFileName );
 }
+*/
 
 int OkcData::getOrigDataSize() {
 	return data_size;

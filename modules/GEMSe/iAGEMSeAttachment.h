@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include <iAModuleAttachmentToChild.h>
+
+#include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
-#include <vtkSmartPointer.h>
 
 class dlg_GEMSe;
 class dlg_GEMSeControl;

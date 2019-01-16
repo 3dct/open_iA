@@ -24,11 +24,11 @@
 #include "iALabelInfo.h"
 #include "iAParamHistogramData.h"
 
-#include "charts/iAChartWidget.h"
-#include "charts/iAPlotTypes.h"
-#include "iAConsole.h"
-#include "iAMathUtility.h"
-#include "iASlicerMode.h"
+#include <charts/iAChartWidget.h>
+#include <charts/iAPlotTypes.h>
+#include <iAConsole.h>
+#include <iAMathUtility.h>
+#include <iASlicerMode.h>
 
 #include <QLabel>
 #include <QVBoxLayout>

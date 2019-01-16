@@ -20,32 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-// Qt
-#include <QDockWidget>
-#include <QWidget>
-// iA
 #include "ui_TrackingGraph.h"
 #include "iATrackingGraphItem.h"
-// VTK
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-#include <QVTKOpenGLWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#else
-#include <QVTKWidget.h>
-#include <vtkRenderWindow.h>
-#endif
+
+#include <iAVtkWidgetFwd.h>
+
 #include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkContextInteractorStyle.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkContextTransform.h>
-#include <vtkContextActor.h>
-#include <vtkMutableDirectedGraph.h>
-#include <vtkContextScene.h>
-// std
+
+#include <QDockWidget>
+#include <QWidget>
+
 #include <map>
+
+class vtkRenderer;
+class vtkContextInteractorStyle;
+class vtkRenderWindowInteractor;
+class vtkContextTransform;
+class vtkContextActor;
+class vtkMutableDirectedGraph;
+class vtkContextScene;
+
 
 class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
 {
@@ -57,13 +51,7 @@ public:
 	void updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
 
 private:
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-	QVTKOpenGLWidget* graphWidget;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renderWindow;
-#else
-	QVTKWidget*		graphWidget;
-	vtkSmartPointer<vtkRenderWindow> m_renderWindow;
-#endif
+	iAVtkOldWidget* graphWidget;
 
 	vtkSmartPointer<vtkMutableDirectedGraph>	m_graph;
 	vtkSmartPointer<iATrackingGraphItem>		m_graphItem;

@@ -20,11 +20,17 @@
 * ************************************************************************************/
 #include "iAFoamCharacterizationDialog.h"
 
+#include "iAFoamCharacterizationItem.h"
+
 #include <QApplication>
+#include <QCheckBox>
+#include <QDialogButtonBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
-#include <QStyle>
+#include <QLineEdit>
 #include <QPushButton>
+#include <QStyle>
 
 iAFoamCharacterizationDialog::iAFoamCharacterizationDialog(iAFoamCharacterizationItem* _pItem, QWidget* _pParent)
 																							 : QDialog(_pParent), m_pItem (_pItem)

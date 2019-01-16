@@ -32,7 +32,7 @@
 
 #include <QStandardItem>
 
-iA3DLabelledVolumeVis::iA3DLabelledVolumeVis( iAVtkWidgetClass* widget, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
+iA3DLabelledVolumeVis::iA3DLabelledVolumeVis( iAVtkWidget* widget, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
 		vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, double const * bounds ):
 	iA3DObjectVis(widget, objectTable, columnMapping),
 	cTF(color),

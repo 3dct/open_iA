@@ -22,7 +22,7 @@
 
 #include "BCoord.h"
 
-#include "iASlicerMode.h"
+#include <iASlicerMode.h>
 
 #include <vtkSmartPointer.h>
 

@@ -23,25 +23,30 @@
 #include "dlg_trackingGraph.h"
 #include "iAFeatureTracking.h"
 
-#include "iAConsole.h"
-#include "iAVolumeStack.h"
-#include "mdichild.h"
+#include <iAConsole.h>
+#include <iAVolumeStack.h>
+#include <iAVtkWidget.h>
+#include <mdichild.h>
 
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#else
-#include <QVTKWidget.h>
-#endif
 #include <vtkAxis.h>
+#include <vtkChartXY.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkContextScene.h>
+#include <vtkContextView.h>
 #include <vtkDataSetAttributes.h>
 #include <vtkDoubleArray.h>
 #include <vtkEventQtSlotConnect.h>
 #include <vtkFloatArray.h>
+#include <vtkIdTypeArray.h>
+#include <vtkIntArray.h>
+#include <vtkMutableDirectedGraph.h>
 #include <vtkPen.h>
 #include <vtkPiecewiseFunction.h>
+#include <vtkPlot.h>
 #include <vtkStringArray.h>
+#include <vtkTable.h>
+#include <vtkVariantArray.h>
+
 
 #include <sstream>
 
@@ -139,11 +144,10 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 
 	for(int i=0; i<numberOfCharts; i++)
 	{
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-		m_widgets.push_back(new QVTKOpenGLWidget());
-#else
-		m_widgets.push_back(new QVTKWidget());
-#endif
+		iAVtkOldWidget* vtkWidget;
+		CREATE_OLDVTKWIDGET(vtkWidget);
+		m_widgets.push_back(vtkWidget);
+
 		this->horizontalLayout->addWidget(m_widgets.at(i));
 
 		m_contextViews.push_back(vtkSmartPointer<vtkContextView>::New());
@@ -380,8 +384,8 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, int numberOfCharts, int nu
 		ftF = trackedFeaturesForwards.at(t);
 		ftB = trackedFeaturesBackwards.at(t);
 
-		vtkTable *u = ftB->getU();
-		vtkTable *v = ftF->getV();
+		auto u = ftB->getU();
+		auto v = ftF->getV();
 
 		DEBUG_LOG(QString("%1:   %2 rows in u, %3 rows in v").arg(t).arg(u->GetNumberOfRows()).arg(v->GetNumberOfRows()));
 

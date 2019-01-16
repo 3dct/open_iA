@@ -21,7 +21,8 @@
 #pragma once
 
 #include "ui_FeatureScoutMOTFView.h"
-#include "qthelper/iAQTtoUIConnector.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
 
 typedef iAQTtoUIConnector<QDialog, Ui_MOTFView>  iAMeanObjectTFViewConnector;
 

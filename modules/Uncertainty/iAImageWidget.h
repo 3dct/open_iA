@@ -21,6 +21,7 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
+
 #include <QWidget>
 
 class iASlicer;

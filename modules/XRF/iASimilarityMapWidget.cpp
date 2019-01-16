@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iASimilarityMapWidget.h"
 
+#include <io/iAFileUtils.h>
+
 #include <vtkImageData.h>
 #include <vtkMetaImageReader.h>
 
@@ -82,10 +84,10 @@ iASimilarityMapWidget::iASimilarityMapWidget( QWidget *parent /*= 0 */ )
 	setMouseTracking( true );
 }
 
-void iASimilarityMapWidget::load( const char* filename )
+void iASimilarityMapWidget::load( QString const & filename )
 {
 	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New();
-	reader->SetFileName(filename);
+	reader->SetFileName( getLocalEncodingFileName(filename).c_str() );
 	reader->Update();
 	setImageData( reader->GetOutput() );
 }

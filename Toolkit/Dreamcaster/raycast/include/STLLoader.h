@@ -22,8 +22,9 @@
 
 #include "../include/common.h"
 
-#include <string>
 #include <vector>
+
+class QString;
 
 //using namespace Raytracer;
 
@@ -32,4 +33,4 @@
 * @param filename file name of stl file
 * @return 0 if succed, error code else
 */
-int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3*> & vertices, aabb & box);
+int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3*> & vertices, aabb & box);

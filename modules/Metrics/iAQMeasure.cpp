@@ -20,20 +20,20 @@
 * ************************************************************************************/
 #include "iAQMeasure.h"
 
-#include "charts/iAChartWidget.h"
-#include "charts/iADiagramFctWidget.h"
-#include "charts/iASimpleHistogramData.h"
-#include "charts/iAPlotTypes.h"
-#include "qthelper/iADockWidgetWrapper.h"
-#include "defines.h"    // for DIM
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAMathUtility.h"
-#include "iAProgress.h"
-#include "iAToolsITK.h"
-#include "iAToolsVTK.h"
-#include "iATypedCallHelper.h"
-#include "mdichild.h"
+#include <charts/iAChartWidget.h>
+#include <charts/iADiagramFctWidget.h>
+#include <charts/iASimpleHistogramData.h>
+#include <charts/iAPlotTypes.h>
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAMathUtility.h>
+#include <iAProgress.h>
+#include <iAToolsITK.h>
+#include <iAToolsVTK.h>
+#include <iATypedCallHelper.h>
+#include <mdichild.h>
+#include <qthelper/iADockWidgetWrapper.h>
 
 #include <itkImage.h>
 #include <itkImageToHistogramFilter.h>

@@ -50,7 +50,6 @@ iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALog
 	connect(m_progressObserver, SIGNAL( progress(int) ), this, SIGNAL( aprogress(int) ));
 }
 
-
 iAAlgorithm::~iAAlgorithm()
 {
 	foreach(iAConnector* c, m_connectors)
@@ -58,7 +57,6 @@ iAAlgorithm::~iAAlgorithm()
 	m_connectors.clear();
 	delete m_progressObserver;
 }
-
 
 void iAAlgorithm::run()
 {
@@ -95,12 +93,10 @@ void iAAlgorithm::run()
 	emit startUpdate();
 }
 
-
 void iAAlgorithm::performWork()
 {
 	addMsg(tr("Unknown filter type"));
 }
-
 
 void iAAlgorithm::setImageData(vtkImageData* imgData)
 {
@@ -115,7 +111,6 @@ QDateTime iAAlgorithm::Start()
 	return QDateTime::currentDateTime();
 }
 
-
 int iAAlgorithm::Stop()
 {
 	if (m_isRunning)
@@ -125,7 +120,6 @@ int iAAlgorithm::Stop()
 	}
 	return m_elapsed;
 }
-
 
 void iAAlgorithm::setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l)
 {
@@ -200,7 +194,6 @@ void iAAlgorithm::allocConnectors(int size)
 		m_connectors.push_back(new iAConnector());
 }
 
-
 iAProgress* iAAlgorithm::ProgressObserver()
 {
 	return m_progressObserver;
@@ -217,7 +210,6 @@ void iAAlgorithm::updateVtkImageData(int ch)
 	m_image->CopyInformationFromPipeline(m_connectors[ch]->GetVTKImage()->GetInformation());
 	m_image->Modified();
 }
-
 
 void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* polyData )
 {

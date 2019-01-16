@@ -21,11 +21,13 @@
 #pragma once
 
 #include "ui_progress.h"
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_progress> dlg_progressUI;
 
 #include "iAAbortListener.h"
 #include "iADurationEstimator.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_progress> dlg_progressUI;
 
 class dlg_progress : public dlg_progressUI
 {

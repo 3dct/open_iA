@@ -27,27 +27,22 @@
 #include "iASingleResult.h"
 
 // LabelVoting:
-#include "MaskingLabelOverlapMeasuresImageFilter.h"
-#include "ParametrizableLabelVotingImageFilter.h"
-#include "ProbabilisticVotingImageFilter.h"
-#include "UndecidedPixelClassifierImageFilter.h"
+#include <MaskingLabelOverlapMeasuresImageFilter.h>
+#include <ParametrizableLabelVotingImageFilter.h>
+#include <ProbabilisticVotingImageFilter.h>
+#include <UndecidedPixelClassifierImageFilter.h>
 
-#include "dlg_commoninput.h"
-#include "iAColorTheme.h"
-#include "iAConsole.h"
-#include "qthelper/iADockWidgetWrapper.h"
-#include "iALookupTable.h"
-#include "iAToolsITK.h"
-#include "io/iAFileUtils.h"
-#include "io/iAIOProvider.h"
-#include "mdichild.h"
+#include <dlg_commoninput.h>
+#include <iAColorTheme.h>
+#include <iAConsole.h>
+#include <iALookupTable.h>
+#include <iAToolsITK.h>
+#include <iAVtkWidget.h>
+#include <io/iAFileUtils.h>
+#include <io/iAIOProvider.h>
+#include <mdichild.h>
+#include <qthelper/iADockWidgetWrapper.h>
 
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#else
-#include <QVTKWidget2.h>
-#endif
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
@@ -105,11 +100,7 @@
 
 struct ChartWidgetData
 {
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget* vtkWidget;
-#else
-	QVTKWidget2* vtkWidget;
-#endif
+	iAVtkWidget* vtkWidget;
 	vtkSmartPointer<vtkChartXY> chart;
 };
 
@@ -117,11 +108,8 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 		MdiChild* mdiChild)
 {
 	ChartWidgetData result;
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	result.vtkWidget = new QVTKOpenGLWidget();
-#else
-	result.vtkWidget = new QVTKWidget2();
-#endif
+	result.vtkWidget = new iAVtkWidget();
+	result.vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	auto contextView = vtkSmartPointer<vtkContextView>::New();
 	contextView->SetRenderWindow(result.vtkWidget->GetRenderWindow());
 	result.chart = vtkSmartPointer<vtkChartXY>::New();
@@ -750,6 +738,7 @@ void dlg_Consensus::StoreConfig()
 	QFileInfo fi(fileName);
 	QString basePath(fi.absolutePath());
 	QSettings s(fileName, QSettings::IniFormat);
+	s.setIniCodec("UTF-8");
 	s.setValue(FileFormatKey, FileVersion);
 	s.setValue(LabelsKey, m_labelCount);
 
@@ -873,6 +862,7 @@ void dlg_Consensus::LoadConfig()
 	}
 	QFileInfo fi(fileName);
 	QSettings s(fileName, QSettings::IniFormat);
+	s.setIniCodec("UTF-8");
 	if (s.value(FileFormatKey) != FileVersion)
 	{
 		QMessageBox::warning(this, "GEMSe",

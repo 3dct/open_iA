@@ -24,10 +24,10 @@
 #include "iACSVtoMHD.h"
 #include "iAUncertaintyAttachment.h"
 
-#include "iAConsole.h"
-#include "iAFilterRegistry.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <iAConsole.h>
+#include <iAFilterRegistry.h>
+#include <mainwindow.h>
+#include <mdichild.h>
 
 #include <QFileDialog>
 

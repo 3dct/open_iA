@@ -21,8 +21,8 @@
 #pragma once
 
 #include "ui_ElementRenderer.h"
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_elementRenderer>   dlg_elemRendererContainer;
+
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
@@ -37,6 +37,8 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPolyData;
 class vtkTransform;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_elementRenderer>   dlg_elemRendererContainer;
 
 class dlg_elementRenderer : public dlg_elemRendererContainer
 {

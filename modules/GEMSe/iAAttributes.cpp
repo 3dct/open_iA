@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAAttributes.h"
 
-#include "iAAttributeDescriptor.h"
+#include <iAAttributeDescriptor.h>
 
 #include <QTextStream>
 

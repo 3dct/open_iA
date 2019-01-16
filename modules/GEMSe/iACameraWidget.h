@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASlicerMode.h"
-
-#include <QWidget>
+#include <iASlicerMode.h>
 
 #include <vtkSmartPointer.h>
+
+#include <QWidget>
 
 class vtkCamera;
 class vtkImageData;

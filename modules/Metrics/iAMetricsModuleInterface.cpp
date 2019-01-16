@@ -24,7 +24,7 @@
 #include "iAQMeasure.h"
 #include "iASegmentationMetrics.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iAMetricsModuleInterface::Initialize()
 {

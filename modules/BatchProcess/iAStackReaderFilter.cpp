@@ -1,11 +1,31 @@
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
+*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
 #include "iAStackReaderFilter.h"
 
-#include "iAConsole.h"
-#include "iAExceptionThrowingErrorObserver.h"
-#include "io/iAFileUtils.h"
-#include "iAProgress.h"
-#include "iAStringHelper.h"
-#include "iAToolsVTK.h"
+#include <iAConsole.h>
+#include <iAExceptionThrowingErrorObserver.h>
+#include <io/iAFileUtils.h>
+#include <iAProgress.h>
+#include <iAStringHelper.h>
+#include <iAToolsVTK.h>
 
 #include <vtkCommand.h>
 #include <vtkImageReader2.h>
@@ -97,13 +117,15 @@ void iAStackReaderFilter::PerformWork(QMap<QString, QVariant> const & parameters
 		imgReader = vtkSmartPointer<vtkPNGReader>::New();
 	else if (extension.toUpper() == ".BMP")
 		imgReader = vtkSmartPointer<vtkBMPReader>::New();
+	else
+		throw std::runtime_error(QString("Unknown filetype of extension %1").arg(extension).toStdString());
 	Progress()->Observe(imgReader);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	auto fileNameArray = vtkSmartPointer<vtkStringArray>::New();
 	for (int i = indexRange[0]; i <= indexRange[1]; i++)
 	{
 		QString temp = fileNamesBase + QString("%1").arg(i, digits, 10, QChar('0')) + extension;
-		fileNameArray->InsertNextValue(temp.toLatin1());
+		fileNameArray->InsertNextValue(getLocalEncodingFileName(temp));
 	}
 	imgReader->SetFileNames(fileNameArray);
 	double origin[3];

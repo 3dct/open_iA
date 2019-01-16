@@ -23,6 +23,8 @@
 #include "iACSVToQTableWidgetConverter.h"
 #include "iASelection.h"
 
+#include <iAConsole.h>
+
 #include <vtkIdTypeArray.h>
 
 #include <QAbstractItemView>
@@ -30,8 +32,6 @@
 #include <QMenu>
 #include <QTreeWidget>
 #include <QPair>
-
-#include <iAConsole.h>
 
 iATreeView::iATreeView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) 
     : TreeViewConnector( parent, f ),

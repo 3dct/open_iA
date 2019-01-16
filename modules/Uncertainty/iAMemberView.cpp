@@ -24,7 +24,7 @@
 #include "iAEnsemble.h"
 #include "iAMember.h"
 
-#include "charts/qcustomplot.h"
+#include <charts/qcustomplot.h>
 
 #include <QHBoxLayout>
 
@@ -44,7 +44,6 @@ std::vector<size_t> sort_indices_desc(const std::vector<T> &v) {
 	return idx;
 }
 
-
 iAMemberView::iAMemberView():
 	m_plot(new QCustomPlot())
 {
@@ -56,6 +55,7 @@ iAMemberView::iAMemberView():
 	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
 	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(ChartMousePress(QMouseEvent *)));
+	connect(m_plot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel(QWheelEvent*)));
 }
 
 void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
@@ -128,7 +128,6 @@ void iAMemberView::ChangedRange(QCPRange const & newRange)
 	}
 }
 
-
 void iAMemberView::ChartMousePress(QMouseEvent *)
 {
 	if (QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
@@ -164,7 +163,6 @@ QVector<int > iAMemberView::SelectedMemberIDs() const
 	return result;
 }
 
-
 void iAMemberView::StyleChanged()
 {
 	QColor bg(QWidget::palette().color(QPalette::Background));
@@ -179,4 +177,17 @@ void iAMemberView::StyleChanged()
 		a->setTickPen(fg);
 	}
 	m_plot->replot();
+}
+
+void iAMemberView::mouseWheel(QWheelEvent* e)
+{
+	switch (e->modifiers())
+	{
+	case Qt::AltModifier:
+		m_plot->axisRect()->setRangeZoom(Qt::Vertical);
+		break;
+	default:
+		m_plot->axisRect()->setRangeZoom(Qt::Horizontal);
+		break;
+	}
 }

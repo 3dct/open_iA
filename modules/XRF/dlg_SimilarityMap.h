@@ -20,12 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QScopedPointer>
+#include "ui_SimilarityMap.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
+
 #include <vtkSmartPointer.h>
 
-#include "ui_SimilarityMap.h"
-#include "qthelper/iAQTtoUIConnector.h"
-
+#include <QScopedPointer>
 
 class iASimilarityMapWidget;
 class dlg_XRF;

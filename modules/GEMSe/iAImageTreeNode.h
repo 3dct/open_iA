@@ -21,7 +21,8 @@
 #pragma once
 
 #include "iAChartFilter.h"	// try to avoid - but iAResultFilter is a template
-#include "io/iAITKIO.h" // TODO: replace?
+
+#include <io/iAITKIO.h> // TODO: replace?
 
 #include <itkImage.h>
 #include <itkSmartPointer.h>

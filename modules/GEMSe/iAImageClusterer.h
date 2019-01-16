@@ -22,7 +22,8 @@
 
 #include "iAAbortListener.h"
 #include "iADurationEstimator.h"
-#include "iAPerformanceHelper.h"
+
+#include <iAPerformanceHelper.h>
 
 #include <QSharedPointer>
 #include <QVector>

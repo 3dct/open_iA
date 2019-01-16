@@ -23,9 +23,7 @@
 #include "iABatchFilter.h"
 #include "iAStackReaderFilter.h"
 
-#include "iAFilterRegistry.h"
-
-//#include "mainwindow.h"
+#include <iAFilterRegistry.h>
 
 void iABatchProcessModuleInterface::Initialize()
 {

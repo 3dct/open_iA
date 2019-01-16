@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #include "iAPorosityAnalyser.h"
 
-#include "iACSVToQTableWidgetConverter.h"
-#include "io/iAITKIO.h"
 //#include "iAPCView.h"
 #include "iAPDMView.h"
 #include "iAPreviewSPLOMView.h"
@@ -33,18 +31,21 @@
 #include "iATreeView.h"
 #include "PorosityAnalyserHelpers.h"
 
+#include <iACSVToQTableWidgetConverter.h>
+#include <io/iAITKIO.h>
+
 #include <vtkIdTypeArray.h>
 #include <vtkSelection.h>
 
-#include <QDir>
 #include <QCheckBox>
+#include <QDir>
+#include <QDirIterator>
+#include <QDockWidget>
 #include <QGroupBox>
 #include <QMenu>
-#include <QDockWidget>
-#include <QDirIterator>
 #include <QSettings>
-#include <QTreeWidget>
 #include <QStatusBar>
+#include <QTreeWidget>
 
 const int treeViewIndex = 0;
 const int overviewIndex = 1;

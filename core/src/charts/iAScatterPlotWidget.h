@@ -65,6 +65,7 @@ protected:
 public:
 	iAScatterPlot* m_scatterplot;
 private:
+	void adjustScatterPlotSize();
 	QSharedPointer<iASPLOMData> m_data;
 	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
 	int m_fontHeight, m_maxTickLabelWidth;

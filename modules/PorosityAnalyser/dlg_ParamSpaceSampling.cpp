@@ -22,7 +22,7 @@
 
 #include "PorosityAnalyserHelpers.h"
 
-#include "mdichild.h"
+#include <mdichild.h>
 
 #include <itkImage.h>
 #include <itkImageRegionIterator.h>

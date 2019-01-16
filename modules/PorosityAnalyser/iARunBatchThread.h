@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include "PorosityAnalyserHelpers.h"
+
 #include <QList>
 #include <QString>
 #include <QTableWidget>
 #include <QThread>
-
-#include "PorosityAnalyserHelpers.h"
 
 class iAPorosityAnalyserModuleInterface;
 struct RunInfo;

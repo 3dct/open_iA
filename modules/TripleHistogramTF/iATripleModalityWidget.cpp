@@ -25,19 +25,19 @@
 #include "iASimpleSlicerWidget.h"
 #include "RightBorderLayout.h"
 
-#include "charts/iADiagramFctWidget.h"
-#include "charts/iAHistogramData.h"
-#include "charts/iAPlotTypes.h"
-#include "charts/iAProfileWidget.h"
-#include "dlg_modalities.h"
-#include "dlg_transfer.h"
-#include "iAChannelVisualizationData.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iAModalityTransfer.h"
-#include "iAPreferences.h"
-#include "iASlicerData.h"
-#include "mdichild.h"
+#include <charts/iADiagramFctWidget.h>
+#include <charts/iAHistogramData.h>
+#include <charts/iAPlotTypes.h>
+#include <charts/iAProfileWidget.h>
+#include <dlg_modalities.h>
+#include <dlg_transfer.h>
+#include <iAChannelVisualizationData.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAModalityTransfer.h>
+#include <iAPreferences.h>
+#include <iASlicerData.h>
+#include <mdichild.h>
 
 #include <vtkCamera.h>
 #include <vtkImageActor.h>

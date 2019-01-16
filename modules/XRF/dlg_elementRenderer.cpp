@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "dlg_elementRenderer.h"
 
-#include "iARenderer.h"
-#include "iATransferFunction.h"
-#include "iAVolumeRenderer.h"
+#include <iARenderer.h>
+#include <iATransferFunction.h>
+#include <iAVolumeRenderer.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>

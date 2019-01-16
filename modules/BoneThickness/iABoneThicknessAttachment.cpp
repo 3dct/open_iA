@@ -24,20 +24,17 @@
 #include "iABoneThicknessSplitter.h"
 #include "iABoneThicknessTable.h"
 
-#include "qthelper/iADockWidgetWrapper.h"
-#include "iARenderer.h"
-#include "mdichild.h"
-#include "mainwindow.h"
+#include <qthelper/iADockWidgetWrapper.h>
+#include <iARenderer.h>
+#include <mdichild.h>
+#include <mainwindow.h>
 
-#include <QApplication>
 #include <QCheckBox>
-#include <QComboBox>
+#include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
-#include <QFileDialog>
 #include <QLabel>
 #include <QPushButton>
-#include <QSplitter>
 
 iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData):
 	iAModuleAttachmentToChild(_pMainWnd, _iaChildData)

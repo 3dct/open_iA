@@ -18,19 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #pragma once
-// iA
 
 #include <QSplitter>
 
-#include <QShowEvent>
-
 class iABoneThicknessSplitter : public QSplitter
 {
-		Q_OBJECT
-
-	public:
-		explicit iABoneThicknessSplitter(QWidget* _pParent = nullptr);
-
+	Q_OBJECT
+public:
+	explicit iABoneThicknessSplitter(QWidget* _pParent = nullptr);
 };

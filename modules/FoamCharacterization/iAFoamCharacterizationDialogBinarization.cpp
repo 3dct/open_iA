@@ -24,6 +24,7 @@
 
 #include <QCheckBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QSpinBox>
 

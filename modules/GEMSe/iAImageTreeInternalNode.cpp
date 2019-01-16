@@ -20,11 +20,12 @@
 * ************************************************************************************/
 #include "iAImageTreeInternalNode.h"
 
-#include "iAConsole.h"
 #include "iAGEMSeConstants.h" // for iARepresentativeType -> move to iARepresentative?
-#include "iAMathUtility.h"
 #include "iARepresentative.h"
-#include "iAToolsITK.h"
+
+#include <iAConsole.h>
+#include <iAMathUtility.h>
+#include <iAToolsITK.h>
 
 #include <QFileInfo>
 

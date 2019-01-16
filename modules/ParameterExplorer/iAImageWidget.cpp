@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iAImageWidget.h"
 
-#include "iASlicerSettings.h"
-#include "iASlicer.h"
-#include "iATransferFunction.h"
+#include <iASlicerSettings.h>
+#include <iASlicer.h>
+#include <iATransferFunction.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>

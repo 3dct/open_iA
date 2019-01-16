@@ -20,34 +20,25 @@
 * ************************************************************************************/
 #include "iAPCView.h"
 
-#include "iAQtVTKBindings.h"
+#include <iAQtVTKBindings.h>
+#include <iAVtkWidget.h>
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#else
-#include <QVTKWidget.h>
-#endif
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkChartParallelCoordinates.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkPlot.h>
 #include <vtkRenderWindow.h>
 #include <vtkTable.h>
-#include <vtkPlot.h>
 
 #include <QTableWidget>
 
 iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: PCViewConnector( parent, f ),
 	m_view( vtkSmartPointer<vtkContextView>::New() ),
-	m_chart( vtkSmartPointer<vtkChartParallelCoordinates>::New() ),
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	m_widget( new QVTKOpenGLWidget( this ) )
-#else
-	m_widget( new QVTKWidget( this ) )
-#endif
+	m_chart( vtkSmartPointer<vtkChartParallelCoordinates>::New() )
 {
-	m_widget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
+	CREATE_OLDVTKWIDGET(m_widget);
 	QHBoxLayout *layoutHB = new QHBoxLayout( this );
 	layoutHB->setMargin( 0 );
 	layoutHB->addWidget( m_widget );

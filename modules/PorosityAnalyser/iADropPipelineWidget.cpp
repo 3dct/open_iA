@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #include "iADropPipelineWidget.h"
 
+#include "dlg_ParamSpaceSampling.h"
 #include "PorosityAnalyserHelpers.h"
 
-#include "defines.h"
-#include "dlg_ParamSpaceSampling.h"
+#include <defines.h>
 
 #include <QDrag>
 #include <QDragEnterEvent>

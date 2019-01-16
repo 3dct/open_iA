@@ -21,7 +21,8 @@
 #pragma once
 
 #include "ui_samplingSettings.h"
-#include "qthelper/iAQTtoUIConnector.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <QMap>
 
@@ -32,6 +33,8 @@ class iAParameterGenerator;
 
 class QCheckBox;
 class QShortcut;
+
+typedef iAQTtoUIConnector<QDialog, Ui_samplingSettings> dlg_samplingSettingsUI;
 
 class ParameterInputs
 {
@@ -80,8 +83,6 @@ public:
 private:
 	virtual void DeleteGUIComponents();
 };
-
-typedef iAQTtoUIConnector<QDialog, Ui_samplingSettings> dlg_samplingSettingsUI;
 
 class dlg_samplingSettings : public dlg_samplingSettingsUI
 {

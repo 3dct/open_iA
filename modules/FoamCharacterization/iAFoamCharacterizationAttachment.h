@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleAttachmentToChild.h"
+#include <iAModuleAttachmentToChild.h>
 
 #include <vtkSmartPointer.h>
 
@@ -33,26 +33,26 @@ class iAFoamCharacterizationAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 
-	public:
-		iAFoamCharacterizationAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
+public:
+	iAFoamCharacterizationAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
 
-	private:
-		vtkImageData* m_pImageData = nullptr;
-		vtkSmartPointer<vtkImageData> m_pImageRestore;
+private:
+	vtkImageData* m_pImageData = nullptr;
+	vtkSmartPointer<vtkImageData> m_pImageRestore;
 
-		iAFoamCharacterizationTable* m_pTable = nullptr;
+	iAFoamCharacterizationTable* m_pTable = nullptr;
 
-		QPushButton* m_pPushButtonAnalysis = nullptr;
+	QPushButton* m_pPushButtonAnalysis = nullptr;
 
-	private slots:
-		void slotPushButtonAnalysis();
-		void slotPushButtonBinarization();
-		void slotPushButtonClear();
-		void slotPushButtonDistanceTransform();
-		void slotPushButtonExecute();
-		void slotPushButtonFilter();
-		void slotPushButtonOpen();
-		void slotPushButtonRestore();
-		void slotPushButtonSave();
-		void slotPushButtonWatershed();
+private slots:
+	void slotPushButtonAnalysis();
+	void slotPushButtonBinarization();
+	void slotPushButtonClear();
+	void slotPushButtonDistanceTransform();
+	void slotPushButtonExecute();
+	void slotPushButtonFilter();
+	void slotPushButtonOpen();
+	void slotPushButtonRestore();
+	void slotPushButtonSave();
+	void slotPushButtonWatershed();
 };

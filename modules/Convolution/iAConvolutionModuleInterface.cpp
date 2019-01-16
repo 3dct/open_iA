@@ -22,7 +22,7 @@
 
 #include "iAConvolutionFilter.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iAConvolutionModuleInterface::Initialize()
 {

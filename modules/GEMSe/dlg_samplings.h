@@ -21,12 +21,14 @@
 #pragma once
 
 #include "ui_samplings.h"
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_samplings> dlgSamplingsUI;
+
+#include <qthelper/iAQTtoUIConnector.h>
 
 class iASamplingResults;
 
 class QStandardItemModel;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_samplings> dlgSamplingsUI;
 
 class dlg_samplings : public dlgSamplingsUI
 {

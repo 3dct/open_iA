@@ -862,6 +862,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="btn_ExportTable">
+           <property name="text">
+            <string>Export Table</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>

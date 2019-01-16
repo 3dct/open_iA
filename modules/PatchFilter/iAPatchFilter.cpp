@@ -20,16 +20,16 @@
 * ************************************************************************************/
 #include "iAPatchFilter.h"
 
-#include "defines.h"    // for DIM
-#include "iAAttributeDescriptor.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAFilterRegistry.h"
-#include "iAProgress.h"
-#include "iAStringHelper.h"
-#include "iAToolsITK.h"
-#include "iATypedCallHelper.h"
-#include "io/iAITKIO.h"
+#include <defines.h>    // for DIM
+#include <iAAttributeDescriptor.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAFilterRegistry.h>
+#include <iAProgress.h>
+#include <iAStringHelper.h>
+#include <iAToolsITK.h>
+#include <iATypedCallHelper.h>
+#include <io/iAITKIO.h>
 
 #include <itkImage.h>
 

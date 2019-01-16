@@ -22,7 +22,8 @@
 
 #include "iASelection.h"
 #include "ui_Selections.h"
-#include "qthelper/iAQTtoUIConnector.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <QList>
 #include <QModelIndex>

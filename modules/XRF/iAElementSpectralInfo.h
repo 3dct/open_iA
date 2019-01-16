@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAEnergySpectrum.h"
+
 #include <QFileInfo>
 #include <QStringList>
 #include <QTextStream>
-
-#include "iAEnergySpectrum.h"
 
 #define LINES_IN_HEADER 11
 

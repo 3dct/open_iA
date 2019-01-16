@@ -56,6 +56,8 @@ DEALINGS IN THE SOFTWARE.
 
 #include <itkImage.h>
 
+class QString;
+
 class OIFReader
 {
 public:
@@ -144,7 +146,7 @@ public:
 	ResultImgPtr GetResult(int chanIdx);
 private:
 	void Read(int t, int c, bool get_max);
-	TiffImgPtr ReadTiffImage(std::string file_name);
+	TiffImgPtr ReadTiffImage(const QString & file_name);
 
 	std::vector<ResultImgPtr> m_result;
 

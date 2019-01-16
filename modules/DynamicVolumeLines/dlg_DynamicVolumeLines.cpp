@@ -18,22 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "dlg_DynamicVolumeLines.h"
+#include "iAIntensityMapper.h"
+#include "iALinearColorGradientBar.h"
+#include "iANonLinearAxisTicker.h"
+#include "iAOrientationWidget.h"
+#include "iASegmentTree.h"
+
+#include "charts/iADiagramFctWidget.h"
 #include "iAColorTheme.h"
 #include "iAFunction.h"
 #include "iAFunctionalBoxplot.h"
-#include "charts/iAHistogramWidget.h"
-#include "iAIntensityMapper.h"
-#include "iANonLinearAxisTicker.h"
+#include "iALUT.h"
 #include "iARenderer.h"
 #include "iATransferFunction.h"
 #include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
-#include "iALUT.h"
-#include "iALinearColorGradientBar.h"
-#include "iAOrientationWidget.h"
-#include "iASegmentTree.h"
+#include "iAVtkWidget.h"
 
 #include <vtkAbstractVolumeMapper.h>
 #include <vtkActor.h>
@@ -59,16 +60,9 @@
 #include <vtkTextProperty.h> 
 #include <vtkVolumeProperty.h>
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-#include <QVTKOpenGLWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#else
-#include <QVTKWidget.h>
-#include <vtkRenderWindow.h>
-#endif
-
 const double impInitValue = 0.025;
 const double offsetY = 1000;
+const QString plotColor = "DVL-Metro Colors (max. 17)";	// Brewer Qualitaive 1 (max. 8) // DVL-Metro Colors (max. 17)
 
 void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 	void* vtkNotUsed(client), void* vtkNotUsed(callData))
@@ -301,14 +295,8 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	m_mrvBGRen->SetBackground(1.0, 1.0, 1.0);
 	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
 	
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-	wgtContainer = new QVTKOpenGLWidget();
-	auto mrvRenWin = vtkGenericOpenGLRenderWindow::New();
-	wgtContainer->SetRenderWindow(mrvRenWin);
-#else
-	wgtContainer = new QVTKWidget();
+	CREATE_OLDVTKWIDGET(wgtContainer);
 	auto mrvRenWin = wgtContainer->GetRenderWindow();
-#endif
 	mrvRenWin->SetNumberOfLayers(2);
 	mrvRenWin->AddRenderer(m_mrvBGRen);
 	mrvRenWin->Render();
@@ -388,7 +376,7 @@ void dlg_DynamicVolumeLines::visualize()
 			m_linearScaledPlot->graph()->setVisible(false);
 			m_linearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 			m_linearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
-				m_DatasetIntensityMap.size(), 2, "DVL-Metro Colors (max. 17)"));
+				m_DatasetIntensityMap.size(), 2, plotColor));
 			m_linearScaledPlot->graph()->setName(it->first);
 			QCPScatterStyle scatter;
 			scatter.setShape(QCPScatterStyle::ssNone);	 // Check ssDisc/ssDot to show single selected points
@@ -447,7 +435,7 @@ void dlg_DynamicVolumeLines::visualize()
 		m_nonlinearScaledPlot->graph()->setVisible(false);
 		m_nonlinearScaledPlot->graph()->setSelectable(QCP::stMultipleDataRanges);
 		m_nonlinearScaledPlot->graph()->setPen(getDatasetPen(it - m_DatasetIntensityMap.begin(),
-			m_DatasetIntensityMap.size(), 2, "DVL-Metro Colors (max. 17)"));
+			m_DatasetIntensityMap.size(), 2, plotColor));
 		m_nonlinearScaledPlot->graph()->setName(it->first);
 		QCPScatterStyle scatter;
 		scatter.setShape(QCPScatterStyle::ssNone);	 // Check ssDisc/ssDot to show single selected points
@@ -1695,7 +1683,6 @@ void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
 	m_linearScaledPlot->replot();
-
 }
 
 void dlg_DynamicVolumeLines::compLevelRangeChanged()

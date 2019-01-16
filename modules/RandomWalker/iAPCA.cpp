@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iAPCA.h"
 
-#include "defines.h"    // for DIM
-#include "iAConnector.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
+#include <iATypedCallHelper.h>
 
 #include <itkImage.h>
 #include <itkMultiplyImageFilter.h>

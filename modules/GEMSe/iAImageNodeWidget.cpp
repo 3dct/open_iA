@@ -20,12 +20,13 @@
 * ************************************************************************************/
 #include "iAImageNodeWidget.h"
 
-#include "iAConsole.h"
 #include "iAImagePreviewWidget.h"
 #include "iAImageTreeNode.h"
 #include "iAPreviewWidgetPool.h"
 #include "iAGEMSeConstants.h"
 #include "iATriangleButton.h"
+
+#include <iAConsole.h>
 
 #include <QLabel>
 #include <QMouseEvent>

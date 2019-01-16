@@ -18,23 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iABarycentricTriangleWidget.h"
+
 #include "iATriangleRenderer.h"
 
 #include <vtkMath.h>
 
+#include <QApplication>    // TODO: really necessary? (just to get the font()!)
+#include <QDebug>    // Debug
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
 #include <QMouseEvent>
 #include <QString>
 
-// TODO: really necessary? (just to get the font()!)
-#include <QApplication>
-
-// Debug
-#include <QDebug>
 
 // Constants (more in the header file!)
 static const qreal RAD60 = vtkMath::Pi() / 3.0;

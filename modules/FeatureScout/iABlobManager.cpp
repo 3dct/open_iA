@@ -22,9 +22,9 @@
 
 #include "iABlobCluster.h"
 
-#include "iAMovieHelper.h"
-#include "iARenderer.h"
-#include "mdichild.h"
+#include <iAMovieHelper.h>
+#include <iARenderer.h>
+#include <mdichild.h>
 
 #include <itkImage.h>
 #include <itkImageFileReader.h>
@@ -32,17 +32,19 @@
 #include <itkGaussianBlurImageFunction.h>
 #include <itkImageRegionIterator.h>
 
+#include <vtkActor.h>
 #include <vtkAppendPolyData.h>
 #include <vtkCamera.h>
-#include <vtkCellData.h>
 #include <vtkDepthSortPolyData.h>
 #include <vtkGenericMovieWriter.h>
 #include <vtkLookupTable.h>
 #include <vtkPlane.h>
 #include <vtkPointData.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkPolyDataSilhouette.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
-#include <vtkTransform.h>
 #include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
 

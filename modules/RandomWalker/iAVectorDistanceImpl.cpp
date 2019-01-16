@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVectorDistanceImpl.h"
 
-#include "iAMathUtility.h"  // required for clamp
+#include <iAMathUtility.h>  // required for clamp
 
 #include <QVector>
 

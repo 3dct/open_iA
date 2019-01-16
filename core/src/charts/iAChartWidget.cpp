@@ -26,6 +26,7 @@
 #include "iAPlot.h"
 #include "iAPlotData.h"
 #include "iAStringHelper.h"
+#include "io/iAFileUtils.h"
 
 #include <vtkMath.h>
 
@@ -37,7 +38,7 @@
 #include <QOpenGLPaintDevice>
 #include <QPainter>
 #include <QRubberBand>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 #include <QSurfaceFormat>
 #endif
 #include <QToolTip>
@@ -97,7 +98,7 @@ namespace
 }
 
 iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel):
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QOpenGLWidget(parent),
 #else
 	QGLWidget(parent),
@@ -128,7 +129,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this)),
 	m_drawXAxisAtZero(false)
 {
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QSurfaceFormat fmt = format();
 	fmt.setSamples(8);
 	setFormat(fmt);
@@ -1071,7 +1072,7 @@ void iAChartWidget::exportData()
 	{
 		return;
 	}
-	std::ofstream out(fileName.toStdString());
+	std::ofstream out( getLocalEncodingFileName(fileName));
 	out << tr("Start of Bin").toStdString();
 	for (int p = 0; p < m_plots.size(); ++p)
 	{

@@ -30,22 +30,20 @@ class iAFoamCharacterizationTableAnalysis;
 
 class iAFoamCharacterizationDialogAnalysis : public QDialog
 {
-		Q_OBJECT
-	public:
-		explicit iAFoamCharacterizationDialogAnalysis(vtkImageData* _pImageData, QWidget* _pParent = nullptr);
+	Q_OBJECT
 
-	private:
-		vtkImageData* m_pImageData = nullptr;
+public:
+	explicit iAFoamCharacterizationDialogAnalysis(vtkImageData* _pImageData, QWidget* _pParent = nullptr);
 
-		QLabel* m_pLabel12 = nullptr;
+private:
+	vtkImageData* m_pImageData = nullptr;
+	QLabel* m_pLabel12 = nullptr;
+	iAFoamCharacterizationTableAnalysis* m_pTable = nullptr;
+	void analyse();
 
-		iAFoamCharacterizationTableAnalysis* m_pTable = nullptr;
+private slots:
+	void slotPushButtonOk();
 
-		void analyse();
-
-	private slots:
-		void slotPushButtonOk();
-
-	protected:
-		virtual QSize sizeHint() const override;
+protected:
+	virtual QSize sizeHint() const override;
 };

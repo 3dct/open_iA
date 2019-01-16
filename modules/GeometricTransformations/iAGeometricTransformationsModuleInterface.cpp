@@ -22,7 +22,7 @@
 
 #include "iAGeometricTransformations.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iAGeometricTransformationsModuleInterface::Initialize()
 {

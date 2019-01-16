@@ -22,7 +22,7 @@
 
 #include "iADistanceMap.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iADistanceMapModuleInterface::Initialize()
 {

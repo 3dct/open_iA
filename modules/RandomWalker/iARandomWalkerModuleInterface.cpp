@@ -23,7 +23,7 @@
 #include "iAPCA.h"
 #include "iARandomWalker.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iARandomWalkerModuleInterface::Initialize()
 {

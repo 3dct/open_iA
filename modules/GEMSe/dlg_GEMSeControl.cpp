@@ -20,38 +20,38 @@
 * ************************************************************************************/
 #include "dlg_GEMSeControl.h"
 
-#include "dlg_commoninput.h"
 #include "dlg_GEMSe.h"
 #include "dlg_labels.h"
 #include "dlg_Consensus.h"
-#include "dlg_modalities.h"
 #include "dlg_progress.h"
 #include "dlg_samplings.h"
 #include "dlg_samplingSettings.h"
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
-#include "iAColorTheme.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
 #include "iAImageTreeLeaf.h" // for VisitLeafs
 #include "iAImageSampler.h"
-#include "iAToolsITK.h"
 #include "iALabelInfo.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
 #include "iAImageClusterer.h"
 #include "iASamplingResults.h"
 #include "iASEAFile.h"
-#include "io/iAIOProvider.h"
-#include "mdichild.h"
+
+#include <dlg_commoninput.h>
+#include <dlg_modalities.h>
+#include <iAAttributeDescriptor.h>
+#include <iAColorTheme.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAToolsITK.h>
+#include <io/iAIOProvider.h>
+#include <mdichild.h>
 
 #include <vtkImageData.h>
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QSettings>
 #include <QTextStream>
 
 class iASimpleLabelInfo : public iALabelInfo
@@ -560,7 +560,7 @@ void dlg_GEMSeControl::ExportIDs()
 		return;
 	}
 	QSharedPointer<iAImageTreeNode> cluster = m_dlgGEMSe->GetCurrentCluster();
-	std::ofstream out(fileName.toStdString());
+	std::ofstream out( getLocalEncodingFileName(fileName) );
 	ExportClusterIDs(cluster, out);
 }
 

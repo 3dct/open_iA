@@ -23,9 +23,9 @@
 #include "iABarycentricTriangleWidget.h"
 #include "iASimpleSlicerWidget.h"
 
-#include "charts/iADiagramFctWidget.h"
-#include "iASlicerData.h"
-#include "iASlicerWidget.h"
+#include <charts/iADiagramFctWidget.h>
+#include <iASlicerData.h>
+#include <iASlicerWidget.h>
 
 #include <QApplication>
 #include <QComboBox>

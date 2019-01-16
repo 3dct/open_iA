@@ -22,7 +22,7 @@
 
 #include "iAGPUEdgePreservingSmoothing.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iAGPU_GradientAnisotropicDiffusionModuleInterface::Initialize()
 {

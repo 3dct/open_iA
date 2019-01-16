@@ -20,14 +20,15 @@
 * ************************************************************************************/
 #include "iAImagePreviewWidget.h"
 
-#include "iAColorTheme.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
 #include "iAGEMSeConstants.h"
 #include "iASlicerSettings.h"
-#include "iASlicer.h"
-#include "iASlicerData.h"
-#include "iASlicerWidget.h"
+
+#include <iAColorTheme.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iASlicer.h>
+#include <iASlicerData.h>
+#include <iASlicerWidget.h>
 
 #include <vtkDiscretizableColorTransferFunction.h>
 #include <vtkImageActor.h>

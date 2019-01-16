@@ -21,12 +21,12 @@
 #include "iASamplingResults.h"
 
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
 #include "iAGEMSeConstants.h"
 #include "iASingleResult.h"
 
-#include "iAConsole.h"
-#include "io/iAFileUtils.h"
+#include <iAAttributeDescriptor.h>
+#include <iAConsole.h>
+#include <io/iAFileUtils.h>
 
 #include <QFile>
 #include <QTextStream>
@@ -90,6 +90,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::Load(QString const & smpFil
 	}
 	// TODO: replace with QSettings?
 	QTextStream in(&file);
+	in.setCodec("UTF-8");
 	QFileInfo fileInfo(file);
 	if (in.atEnd())
 	{
@@ -149,6 +150,7 @@ bool iASamplingResults::Store(QString const & fileName,
 		return false;
 	}
 	QTextStream out(&paramRangeFile);
+	out.setCodec("UTF-8");
 	QFileInfo fi(paramRangeFile);
 	out << SMPFileFormatVersion << endl;
 	out << "Name" << Output::NameSeparator << m_name << endl;

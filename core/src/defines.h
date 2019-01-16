@@ -60,7 +60,7 @@ enum IOType
 	VOLUME_STACK_VOLSTACK_WRITER,
 	DCM_READER,
 	DCM_WRITER,
-	NRRD_READER,
+//	NRRD_READER,     // see iAIOProvider.cpp why this is commented out
 	OIF_READER,
 	AM_READER,
 	AM_WRITER,

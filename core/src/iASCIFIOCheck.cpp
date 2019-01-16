@@ -50,7 +50,7 @@ void CheckSCIFIO(QString const & applicationPath)
 #endif
 	QString scifioPathAssign(QString(SCIFIO_PATH) + "=" + scifioPath);
 #ifdef _MSC_VER
-	_putenv(scifioPathAssign.toStdString().c_str());
+	_putenv(scifioPathAssign.toStdString().c_str()); // TODO: use _wputenv?
 #else
 	static char * scifioPathBuffer = new char[scifioPathAssign.length() + 1];
 	strcpy(scifioPathBuffer, scifioPathAssign.toStdString().c_str());

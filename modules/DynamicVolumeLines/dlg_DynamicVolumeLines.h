@@ -20,32 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_dlg_DynamicVolumeLines.h"
-#include "mdichild.h"
 #include "iAScalingWidget.h"
 #include "DynamicVolumeLinesHelpers.h"
+#include "ui_dlg_DynamicVolumeLines.h"
 #include "ui_Multi3DView.h"
-#include "qthelper/iAQTtoUIConnector.h"
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-class QVTKOpenGLWidget;
-class vtkGenericOpenGLRenderWindow;
-#else
-class QVTKWidget;
-class vtkRenderWindow;
-#endif
+#include <iAVtkWidgetFwd.h>
+#include <mdichild.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
-class iAVolumeRenderer;
 class iANonLinearAxisTicker;
 class iAOrientationWidget;
 class iASegmentTree;
-class vtkRenderWindow;
-class vtkTextActor;
-class vtkPoints;
-class QVTKWidget;
-class vtkRenderer;
+
+class iAVolumeRenderer;
+
 class vtkLookupTable;
+class vtkPoints;
+class vtkRenderer;
+class vtkRenderWindow;
 class vtkScalarBarActor;
+class vtkTextActor;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DynamicVolumeLines>  DynamicVolumeLinesConnector;
 typedef iAQTtoUIConnector<QDockWidget, Ui_Multi3DRendererView> multi3DRendererView;
@@ -122,11 +117,7 @@ private:
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND))
-	QVTKOpenGLWidget *wgtContainer;
-#else
-	QVTKWidget *wgtContainer;
-#endif
+	iAVtkOldWidget* wgtContainer;
 
 	vtkSmartPointer<vtkRenderer> m_mrvBGRen;
 	vtkSmartPointer<vtkTextActor> m_mrvTxtAct;

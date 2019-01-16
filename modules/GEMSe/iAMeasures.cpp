@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAMeasures.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
 
 #include <itkImageRegionConstIterator.h>
 #include <itkLabelOverlapMeasuresImageFilter.h>

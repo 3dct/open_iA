@@ -18,13 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #pragma once
 
-#include <QToolBar>
-
 #include "ui_FeatureScoutToolBar.h"
-#include "qthelper/iAQTtoUIConnector.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
+
+#include <QToolBar>
 
 class iAFeatureScoutToolbar : public QToolBar, public Ui_FeatureScoutToolBar
 {

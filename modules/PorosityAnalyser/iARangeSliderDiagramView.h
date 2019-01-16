@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
-#include <QSharedPointer>
+#include "ui_RangeSliderDiagramView.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
-#include "ui_RangeSliderDiagramView.h"
-#include "qthelper/iAQTtoUIConnector.h"
+#include <QDockWidget>
+#include <QSharedPointer>
 
 
 class iARangeSliderDiagramData;

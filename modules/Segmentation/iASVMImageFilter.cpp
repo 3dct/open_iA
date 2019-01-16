@@ -22,15 +22,15 @@
 
 #include "svm.h"
 
-#include "defines.h"    // for DIM
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAImageCoordinate.h"
-#include "iAProgress.h"
-#include "iASeedType.h"
-#include "iAVtkDraw.h"
-#include "iAToolsVTK.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAImageCoordinate.h>
+#include <iAProgress.h>
+#include <iASeedType.h>
+#include <iAVtkDraw.h>
+#include <iAToolsVTK.h>
+#include <iATypedCallHelper.h>
 
 #include <itkScalarImageKmeansImageFilter.h>
 

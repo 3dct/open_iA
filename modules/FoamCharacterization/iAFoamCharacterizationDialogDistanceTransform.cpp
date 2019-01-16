@@ -27,6 +27,7 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 
 iAFoamCharacterizationDialogDistanceTransform::iAFoamCharacterizationDialogDistanceTransform

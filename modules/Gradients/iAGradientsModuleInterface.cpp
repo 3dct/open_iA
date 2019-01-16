@@ -22,7 +22,7 @@
 
 #include "iAGradients.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iAGradientsModuleInterface::Initialize()
 {

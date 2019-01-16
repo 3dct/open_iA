@@ -28,6 +28,7 @@
 #include "iAConsole.h"
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAExtendedTypedCallHelper.h"
+#include "iAFileUtils.h"
 #include "iAModalityList.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
@@ -45,7 +46,7 @@
 #include <itkImageIOBase.h>
 #include <itkImageSeriesReader.h>
 #include <itkImageSeriesWriter.h>
-#include <itkNrrdImageIO.h>
+//#include <itkNrrdImageIO.h>
 #include <itkNumericSeriesFileNames.h>
 #include <itkRawImageIO.h>
 
@@ -91,7 +92,7 @@ void read_raw_image_template (unsigned long headerSize,
 {
 	typedef itk::RawImageIO<T, DIM> RawImageIOType;
 	auto io = RawImageIOType::New();
-	io->SetFileName(fileName.toLatin1().data());
+	io->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	io->SetHeaderSize(headerSize);
 	for(int i=0; i<DIM; i++)
 	{
@@ -108,7 +109,7 @@ void read_raw_image_template (unsigned long headerSize,
 	typedef itk::Image< T, DIM>   InputImageType;
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
 	auto reader = ReaderType::New();
-	reader->SetFileName(fileName.toLatin1().data());
+	reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	reader->SetImageIO(io);
 	progress->Observe( reader );
 	reader->Modified();
@@ -125,7 +126,7 @@ void read_image_template(QString const & fileName, iAProgress* progress, iAConne
 	typedef itk::Image< T, DIM>   InputImageType;
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
 	auto reader = ReaderType::New();
-	reader->SetFileName(fileName.toLatin1().data());
+	reader->SetFileName( getLocalEncodingFileName(fileName) );
 	progress->Observe( reader );
 	reader->Update();
 	image->SetImage(reader->GetOutput());
@@ -141,7 +142,7 @@ void write_image_template(bool compression, QString const & fileName,
 	typedef itk::Image< T, DIM>   InputImageType;
 	typedef itk::ImageFileWriter<InputImageType> WriterType;
 	auto writer = WriterType::New();
-	writer->SetFileName(fileName.toLatin1().data());
+	writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	writer->SetInput( dynamic_cast< InputImageType * > ( image->GetITKImage() ) );
 	writer->SetUseCompression(compression);
 	progress->Observe( writer );
@@ -317,7 +318,7 @@ void iAIO::readHDF5File()
 	{
 		throw std::runtime_error("HDF5 file: Insufficient path length.");
 	}
-	hid_t file = H5Fopen(fileName.toStdString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+	hid_t file = H5Fopen( getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 	m_hdf5Path.removeLast();
 	hid_t loc_id = file;
 	QStack<hid_t> openGroups;
@@ -325,7 +326,7 @@ void iAIO::readHDF5File()
 	{
 		QString name = m_hdf5Path.last();
 		m_hdf5Path.removeLast();
-		loc_id = H5Gopen(file, name.toStdString().c_str(), H5P_DEFAULT);
+		loc_id = H5Gopen(file, name.toStdString().c_str(), H5P_DEFAULT);  // TODO: check which encoding HDF5 internal strings have!
 		openGroups.push(loc_id);
 	}
 
@@ -450,8 +451,8 @@ void iAIO::run()
 				readImageStack(); break;
 			case DCM_READER:
 				readDCM(); break;
-			case NRRD_READER:
-				readNRRD(); break;
+			//case NRRD_READER:
+			//	readNRRD(); break;
 			case OIF_READER: {
 				IO::OIF::Reader r;
 				r.read(getFileName(), getConnector(), m_channel, m_volumes);
@@ -463,10 +464,6 @@ void iAIO::run()
 			}
 			case AM_READER: {
 				vtkSmartPointer<vtkImageData> img = iAAmiraMeshIO::Load(getFileName());
-				if (!img)
-				{
-					break;
-				}
 				getConnector()->SetImage(img);
 				getConnector()->Modified();
 				postImageReadActions();
@@ -480,7 +477,7 @@ void iAIO::run()
 				// TODO: write more than one modality!
 				auto img = getVtkImageData();
 				int numberOfComponents = img->GetNumberOfScalarComponents();
-				std::ofstream out(getFileName().toStdString());
+				std::ofstream out( getLocalEncodingFileName(getFileName()));
 				FOR_VTKIMG_PIXELS(img, x, y, z)
 				{
 					for (int c = 0; c < numberOfComponents; ++c)
@@ -498,7 +495,7 @@ void iAIO::run()
 			}
 			case VTI_READER: {
 				vtkSmartPointer<vtkXMLImageDataReader> reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
-				reader->SetFileName(getFileName().toStdString().c_str());
+				reader->SetFileName( getLocalEncodingFileName(getFileName()).c_str() );
 				reader->Update();
 				getConnector()->SetImage(reader->GetOutput());
 				getConnector()->Modified();
@@ -748,7 +745,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		case BMP_STACK_WRITER:
 		case DCM_READER:
 		case DCM_WRITER:
-		case NRRD_READER:
+		//case NRRD_READER:
 		case OIF_READER:
 		case AM_READER:
 		case AM_WRITER:
@@ -759,7 +756,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		case HDF5_READER:
 		{
 			fileName = f;
-			hid_t file_id = H5Fopen(fileName.toStdString().c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+			hid_t file_id = H5Fopen( getLocalEncodingFileName(fileName).c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 			if (file_id < 0)
 			{
 				printHDF5ErrorsToConsole();
@@ -850,7 +847,7 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 	return true;
 }
 
-
+/*
 void iAIO::readNRRD()
 {
 	typedef itk::Vector<signed short, 2>	VectorType;
@@ -858,7 +855,7 @@ void iAIO::readNRRD()
 	typedef DiffusionImageType::Pointer		DiffusionImagePointer;
 	typedef itk::ImageFileReader<DiffusionImageType> FileReaderType;
 	auto reader = FileReaderType::New();
-	reader->SetFileName(fileName.toStdString());
+	reader->SetFileName( getLocalEncodingFileName(fileName) );
 	reader->Update();
 	itk::NrrdImageIO::Pointer io = itk::NrrdImageIO::New();
 	io->SetFileType( itk::ImageIOBase::ASCII);
@@ -868,6 +865,7 @@ void iAIO::readNRRD()
 	postImageReadActions();
 	StoreIOSettings();
 }
+*/
 
 
 /**
@@ -885,7 +883,7 @@ void iAIO::readDCM()
 	typedef itk::GDCMSeriesFileNames NamesGeneratorType;
 	NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
 	nameGenerator->SetUseSeriesDetails(true);
-	nameGenerator->SetDirectory(f_dir.canonicalPath().toStdString());
+	nameGenerator->SetDirectory(getLocalEncodingFileName(f_dir.canonicalPath()));
 	typedef std::vector<std::string> SeriesIdContainer;
 
 	const SeriesIdContainer & seriesUID = nameGenerator->GetSeriesUIDs();
@@ -917,10 +915,10 @@ void iAIO::loadMetaImageFile(QString const & fileName)
 {
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 	typedef itk::ImageIOBase::IOPixelType PixelType;
-	auto imageIO = itk::ImageIOFactory::CreateImageIO(fileName.toLatin1(), itk::ImageIOFactory::ReadMode);
+	auto imageIO = itk::ImageIOFactory::CreateImageIO(getLocalEncodingFileName(fileName).c_str(), itk::ImageIOFactory::ReadMode);
 	if (!imageIO)
 		throw std::invalid_argument("Could not find a reader that could handle the format of the specified file!");
-	imageIO->SetFileName(fileName.toLatin1());
+	imageIO->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	imageIO->ReadImageInformation();
 	const ScalarPixelType pixelType = imageIO->GetComponentType();
 	const PixelType imagePixelType = imageIO->GetPixelType();
@@ -936,7 +934,7 @@ void iAIO::readVolumeMHDStack()
 
 	for (int m=0; m<=fileNameArray->GetMaxId(); m++)
 	{
-		fileName=(fileNameArray->GetValue(m));
+		fileName = QString::fromLocal8Bit(fileNameArray->GetValue(m).c_str());
 		loadMetaImageFile(fileName);
 		if (m_volumes)
 		{
@@ -1041,7 +1039,7 @@ void iAIO::readSTL( )
 {
 	auto stlReader = vtkSmartPointer<vtkSTLReader>::New();
 	ProgressObserver()->Observe(stlReader);
-	stlReader->SetFileName(fileName.toLatin1());
+	stlReader->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	stlReader->SetOutput(getVtkPolyData());
 	stlReader->Update();
 	printSTLFileInfos();
@@ -1175,7 +1173,7 @@ void iAIO::FillFileNameArray(int * indexRange, int digitsInIndex, int stepSize)
 	for (int i=indexRange[0]; i<=indexRange[1]; i += stepSize)
 	{
 		QString temp = fileNamesBase + QString("%1").arg(i, digitsInIndex, 10, QChar('0')) + extension;
-		fileNameArray->InsertNextValue(temp.toLatin1());
+		fileNameArray->InsertNextValue(getLocalEncodingFileName(temp).c_str());
 	}
 }
 
@@ -1448,7 +1446,7 @@ void iAIO::writeSTL( )
 {
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	ProgressObserver()->Observe(stlWriter);
-	stlWriter->SetFileName(fileName.toLatin1());
+	stlWriter->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	stlWriter->SetInputData(getVtkPolyData());
 	stlWriter->SetFileTypeToBinary();
 	stlWriter->Write();
@@ -1496,7 +1494,7 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 	}
 
 	QString format(fi.absolutePath() + "/" + fi.baseName() + "%d." + fi.completeSuffix());
-	nameGenerator->SetSeriesFormat(format.toStdString().c_str());
+	nameGenerator->SetSeriesFormat( getLocalEncodingFileName(format).c_str());
 	writer->SetFileNames(nameGenerator->GetFileNames());
 	writer->SetInput(dynamic_cast< InputImageType * > (con->GetITKImage()));
 	writer->SetUseCompression(comp);
@@ -1713,4 +1711,9 @@ QString iAIO::getFileName()
 QSharedPointer<iAModalityList> iAIO::GetModalities()
 {
 	return m_modalities;
+}
+
+int iAIO::getIOID() const
+{
+	return ioID;
 }

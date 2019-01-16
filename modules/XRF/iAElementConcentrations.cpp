@@ -23,8 +23,9 @@
 #include "iAAccumulatedXRFData.h"
 #include "iAElementalDecomposition.h"
 #include "iAElementSpectralInfo.h"
-#include "iAMathUtility.h"
 #include "iAXRFData.h"
+
+#include <iAMathUtility.h>
 
 #include <vtkImageData.h>
 #include <vtkVersion.h>

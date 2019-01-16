@@ -23,14 +23,14 @@
 #include "iAUncertaintyColors.h"
 #include "iAImageWidget.h"
 
-#include "iAChannelVisualizationData.h"
-#include "iAConsole.h"
-#include "iAChannelID.h"
-#include "qthelper/iAQFlowLayout.h"
-#include "iASlicer.h"
-#include "iASlicerData.h"
-#include "iASlicerMode.h"
-#include "iATransferFunction.h"
+#include <iAChannelVisualizationData.h>
+#include <iAConsole.h>
+#include <iAChannelID.h>
+#include <iASlicer.h>
+#include <iASlicerData.h>
+#include <iASlicerMode.h>
+#include <iATransferFunction.h>
+#include <qthelper/iAQFlowLayout.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>

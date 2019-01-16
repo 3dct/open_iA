@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
 #include <QMap>
+#include <QWidget>
 
 #include <vtkSmartPointer.h>
 #include <vtkLookupTable.h>

@@ -19,10 +19,11 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
+
 #include "iARangeSliderDiagramData.h"
 
-#include "charts/iADiagramFctWidget.h"
-#include "charts/iAPlotTypes.h"
+#include <charts/iADiagramFctWidget.h>
+#include <charts/iAPlotTypes.h>
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>

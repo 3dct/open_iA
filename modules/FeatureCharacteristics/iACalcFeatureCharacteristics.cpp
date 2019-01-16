@@ -20,18 +20,17 @@
 * ************************************************************************************/
 #include "iACalcFeatureCharacteristics.h"
 
-#include "defines.h"          // for DIM
-#include "iAConnector.h"
-#include "iATypedCallHelper.h"
-#include "iAProgress.h"
+#include <defines.h>          // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
+#include <io/iAFileUtils.h>
 
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkLabelGeometryImageFilter.h>
 
 #include <vtkImageData.h>
 #include <vtkMath.h>
-
-#include <QLocale>
 
 template<class T> void calcFeatureCharacteristics_template( iAConnector *image, iAProgress* progress, QString pathCSV, bool feretDiameter )
 {
@@ -49,7 +48,7 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 
 	// Writing pore csv file 
 	double spacing = longImage->GetSpacing()[0];
-	ofstream fout( pathCSV.toStdString(), std::ofstream::out );
+	ofstream fout( getLocalEncodingFileName(pathCSV), std::ofstream::out );
 
 	// Header of pore csv file
 	fout << "Spacing" << ',' << spacing << '\n'
@@ -252,21 +251,30 @@ template<class T> void calcFeatureCharacteristics_template( iAConnector *image, 
 	fout.close();
 }
 
-iACalcFeatureCharacteristics::iACalcFeatureCharacteristics( QString fn,
-	vtkImageData* i, vtkPolyData* p, iALogger* logger, MdiChild* parent, QString path,
-	bool calculateFeretDiameter)
-:
-	iAAlgorithm( fn, i, p, logger, parent ),
-	image(i),
-	pathCSV(path),
-	m_calculateFeretDiameter(calculateFeretDiameter),
-	m_mdiChild(parent)
-{}
-
-void iACalcFeatureCharacteristics::performWork()
+iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
+	iAFilter("Calculate Feature Characteristics", "Feature Characteristics",
+		"Compute characteristics of the objects in a labelled dataset.<br/>"
+		"This filter takes a labelled image as input, and writes a table of the "
+		"characteristics of each of the features (=objects) in this image to  csv file with the given <em>Output CSV filename</em>."
+		"If you need a precise diameter, enable <em>Calculate Feret Diameter</em> "
+		"(but note that this increases computation time significantly!).<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1LabelGeometryImageFilter.html\">"
+		"Label Geometry Image Filter</a> and the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1LabelImageToShapeLabelMapFilter.html\">"
+		"Label Image to Shape Label Map Filter </a> "
+		"in the ITK documentation.", 1, 0)
 {
-	iAConnector::ITKScalarPixelType itkType = getConnector()->GetITKScalarPixelType();
-	ITK_TYPED_CALL(calcFeatureCharacteristics_template, itkType,
-		getConnector(), ProgressObserver(), pathCSV, m_calculateFeretDiameter);
-	addMsg(tr("Feature csv file created in: %1").arg(pathCSV));
+	AddParameter("Output CSV filename", FileNameSave, "");
+	AddParameter("Calculate Feret Diameter", Boolean, false);
+}
+
+IAFILTER_CREATE(iACalcFeatureCharacteristics)
+
+void iACalcFeatureCharacteristics::PerformWork(QMap<QString, QVariant> const & parameters)
+{
+	QString pathCSV = parameters["Output CSV filename"].toString();
+	ITK_TYPED_CALL(calcFeatureCharacteristics_template, InputPixelType(), Input()[0], Progress(), pathCSV,
+		parameters["Calculate Feret Diameter"].toBool());
+	AddMsg(QString("Feature csv file created in: %1").arg(pathCSV));
 }

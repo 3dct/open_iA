@@ -21,7 +21,8 @@
 #pragma once
 
 #include "iAImageNodeWidget.h"
-#include "iASlicerMode.h"
+
+#include <iASlicerMode.h>
 
 #include <QMap>
 #include <QRect>

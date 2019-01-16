@@ -20,12 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
-#include <string>
-#include <vector>
-#include "iAFeature.h"
+#include <iAVec3.h>
+
 #include <QVector>
 
-#include "iAFiberCharacteristics.h"
+#include <string>
+#include <vector>
+
+class Fiber;
+typedef std::vector<Fiber> FibersData;
+class iAFeature;
 
 class iADefectClassifier
 {
@@ -82,9 +86,9 @@ public:
 		double NeighborhoodDistP;
 		double NeighborhoodDistFF;
 		double BigVolumeThreshold;
-		std::string FibersFile;
-		std::string FeaturesFile;
-		std::string OutputDir;
+		QString FibersFile;
+		QString FeaturesFile;
+		QString OutputDir;
 	};
 
 
@@ -97,7 +101,7 @@ public:
 
 
 private:
-	FeatureList			readDefects( std::string defectFile ) const;
+	FeatureList			readDefects( QString const & defectFile ) const;
 	void				classify( FibersData* fibers, FeatureList* defects );
 	void				save( ) const;
 	void				calcStatistic( FeatureList* defects );

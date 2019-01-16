@@ -55,6 +55,7 @@ public:
 	QString getAdditionalInfo();
 	QString getFileName();
 	QSharedPointer<iAModalityList> GetModalities();
+	int getIOID() const;
 
 Q_SIGNALS:
 	void done(bool active = false);
@@ -83,7 +84,7 @@ private:
 	void readMetaImage( );
 	void readSTL( );
 	void readDCM( );
-	void readNRRD( );
+	//void readNRRD( );	 // see iAIOProvider.cpp why this is commented out
 	void readHDF5File();
 	void readProject();
 

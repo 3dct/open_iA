@@ -20,11 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkAlgorithm.h>
 #include <vtkImplicitFunction.h>
-#include <vtkPoints.h>
-#include <vtkDoubleArray.h>
-#include <vtkPlaneCollection.h>
 
 class iABlobManager;
 class iABlobCluster;

@@ -6,15 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1266</width>
-    <height>400</height>
+    <width>100</width>
+    <height>50</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>1266</width>
-    <height>95</height>
-   </size>
   </property>
   <property name="features">
    <set>QDockWidget::DockWidgetFeatureMask</set>
@@ -91,7 +85,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../../iAnalyse.qrc">
+          <iconset resource="../../core/open_iA.qrc">
            <normaloff>:/images/update.png</normaloff>:/images/update.png</iconset>
          </property>
          <property name="iconSize">
@@ -163,7 +157,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../iAnalyse.qrc"/>
+  <include location="../../core/open_iA.qrc"/>
  </resources>
  <connections/>
 </ui>

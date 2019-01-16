@@ -30,6 +30,7 @@
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QSettings>
+#include <QTextStream>
 
 namespace csvRegKeys
 {
@@ -132,6 +133,7 @@ void dlg_CSVInput::connectSignals()
 	connect(btn_SaveFormat, &QPushButton::clicked, this, &dlg_CSVInput::saveFormatBtnClicked);
 	connect(btn_DeleteFormat, &QPushButton::clicked, this, &dlg_CSVInput::deleteFormatBtnClicked);
 	connect(btn_UpdatePreview, &QPushButton::clicked, this, &dlg_CSVInput::updatePreview);
+	connect(btn_ExportTable, &QPushButton::clicked, this, &dlg_CSVInput::exportTable);
 	connect(btn_ApplyFormatColumnSelection, &QPushButton::clicked, this, &dlg_CSVInput::applyFormatColumnSelection);
 	connect(btn_ExportFormat, &QPushButton::clicked, this, &dlg_CSVInput::exportButtonClicked);
 	connect(btn_ImportFormat, &QPushButton::clicked, this, &dlg_CSVInput::importButtonClicked);
@@ -198,6 +200,73 @@ void dlg_CSVInput::updatePreview()
 	if (!loadFilePreview())
 		return;
 	showSelectedCols();
+}
+
+void dlg_CSVInput::exportTable()
+{
+	iACsvIO io;
+	QTableWidget tw;
+	iACsvQTableCreator creator(&tw);
+	if (!io.loadCSV(creator, m_confParams, std::numeric_limits<size_t>::max()))
+	{
+		DEBUG_LOG("Error loading csv file.");
+		return;
+	}
+
+	QString origCSVFileName = m_confParams.fileName;
+	QFile origCSV(origCSVFileName);
+	if (!origCSV.open(QIODevice::ReadOnly))
+	{
+		DEBUG_LOG("Error loading csv file, file does not exist.");
+		return;
+	}
+
+	size_t sls = m_confParams.skipLinesStart;
+	QStringList origCSVInfo;
+	QTextStream in(&origCSV);
+	//TODO: Skip Header problem for arbitrary file format (see getOutputHeaders below)
+	for (int r = 0; r < sls-1; ++r)
+		origCSVInfo.append(in.readLine());
+	QString exportCSVFileName = QFileDialog::getSaveFileName(this, tr("Export CSV file"),
+		m_path, "CSV file (*.csv);;");
+	if (exportCSVFileName.isEmpty())
+	{
+		DEBUG_LOG("Error, file name is empty.");
+		return;
+	}
+
+	QFile csvExport(exportCSVFileName);
+	if (!csvExport.open(QIODevice::WriteOnly | QIODevice::Text))
+	{
+		DEBUG_LOG("Error loading csv file, file does not exist.");
+		return;
+	}
+
+	QTextStream ts(&csvExport);
+	for (int i = 0; i < origCSVInfo.size(); ++i)
+		ts << origCSVInfo[i] + "\n";
+	QStringList outputHeaders = io.getOutputHeaders();
+	outputHeaders.removeLast();	// without ClassID
+	ts << outputHeaders.join(",") + ",\n";
+	QStringList strList;
+	for (int r = 0; r < tw.rowCount(); ++r)
+	{
+		strList.clear();
+		for (int c = 0; c < tw.columnCount()-1; ++c)
+		{
+			if (tw.item(r, c))
+				strList << tw.item(r, c)->text();
+		}
+		ts << strList.join(",") + (r == tw.rowCount() - 1 ? "," : ",\n");
+	}
+	csvExport.close();
+
+	QMessageBox msgBox;
+	msgBox.setIcon(QMessageBox::Icon::Information);
+	msgBox.setText(QString("CSV file successfully saved under: %1").arg(exportCSVFileName));
+	msgBox.setWindowTitle("FeatureScout");
+	msgBox.exec();
+	return;
 }
 
 void dlg_CSVInput::switchObjectType(const QString &ObjectInputType)

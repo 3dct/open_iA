@@ -22,12 +22,15 @@
 
 #include "iAPeriodicTableWidget.h"
 
-#include <QDockWidget>
 #include "ui_PeriodicTable.h"
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_PeriodicTable> dlg_periodicTableContainer;
+
+#include <qthelper/iAQTtoUIConnector.h>
+
+#include <QDockWidget>
 
 class iAElementSelectionListener;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_PeriodicTable> dlg_periodicTableContainer;
 
 class dlg_periodicTable : public dlg_periodicTableContainer
 {

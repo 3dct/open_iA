@@ -226,7 +226,7 @@ Scene::~Scene()
 		delete m_bsp;
 }
 
-int Scene::initScene(ModelData & mdata, SETTINGS * s, const char * filename)
+int Scene::initScene(ModelData & mdata, SETTINGS * s, QString const & filename)
 {
 	unsigned int i=0;
 	TriPrim* pr;
@@ -236,7 +236,7 @@ int Scene::initScene(ModelData & mdata, SETTINGS * s, const char * filename)
 		m_tris.push_back(pr);
 	}/**/
 	m_bsp = new BSPTree;
-	if(filename==0)
+	if (filename.isEmpty())
 	{
 		if(m_tris.size()>(unsigned int)s->TREE_SPLIT2)
 			m_bsp->BuildTree(s->TREE_L3, mdata.box);

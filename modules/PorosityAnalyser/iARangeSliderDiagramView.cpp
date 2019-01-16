@@ -26,10 +26,10 @@
 
 #include <vtkIdTypeArray.h>
 
-#include <QTableWidget>
 #include <QComboBox>
-#include <QLabel>
 #include <QFrame>
+#include <QLabel>
+#include <QTableWidget>
 
 iARangeSliderDiagramView::iARangeSliderDiagramView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: RangeSliderDiagramViewConnector( parent, f ), 

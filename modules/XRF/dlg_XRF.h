@@ -20,32 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QSharedPointer>
-#include <QStandardItemModel>
-
-#include "ui_XRF.h"
-
 #include "dlg_elementRenderer.h"
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
-
-#include <vtkSmartPointer.h>
 
 #include "iASpectrumFilter.h"
 #include "iASpectrumFunction.h"
-#include "iARendererManager.h"
+#include "ui_XRF.h"
+
+#include <iARendererManager.h>
+#include <iAVtkWidgetFwd.h>
+#include <qthelper/iAQTtoUIConnector.h>
+
+#include <vtkSmartPointer.h>
+
+#include <QSharedPointer>
+#include <QStandardItemModel>
 
 #include <vector>
 
-class QDockWidget;
+typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
 
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-class QVTKOpenGLWidget;
-#else
-class QVTKWidget;
-#endif
+class QDockWidget;
 class vtkColorTransferFunction;
 class vtkImageData;
 class vtkLookupTable;
@@ -212,9 +206,5 @@ private:
 	QVector<iACharacteristicEnergy>							m_characteristicEnergies;
 	QDockWidget*											m_pieChartContainer;
 	QSharedPointer<iAPeriodicTableListener>					m_periodicTableListener;
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	QVTKOpenGLWidget* colormapWidget;
-#else
-	QVTKWidget* colormapWidget;
-#endif
+	iAVtkOldWidget* colormapWidget;
 };

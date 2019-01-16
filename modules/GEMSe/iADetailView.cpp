@@ -21,10 +21,6 @@
 #include "iADetailView.h"
 
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
-#include "iAChannelVisualizationData.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
 #include "iAFakeTreeNode.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageCoordinate.h"
@@ -33,15 +29,20 @@
 #include "iAImagePreviewWidget.h"
 #include "iALabelInfo.h"
 #include "iALabelOverlayThread.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iAModalityTransfer.h"
-#include "iANameMapper.h"
-#include "iASlicerData.h"
-#include "iASlicerWidget.h"
-#include "iAVtkDraw.h"
-#include "iAToolsITK.h"
-#include "iAToolsVTK.h"
+
+#include <iAAttributeDescriptor.h>
+#include <iAChannelVisualizationData.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAModalityTransfer.h>
+#include <iANameMapper.h>
+#include <iASlicerData.h>
+#include <iASlicerWidget.h>
+#include <iAVtkDraw.h>
+#include <iAToolsITK.h>
+#include <iAToolsVTK.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>

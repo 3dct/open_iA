@@ -793,6 +793,8 @@ void MdiChild::updateSliceIndicators()
 
 int MdiChild::chooseModalityNr(QString const & caption)
 {
+	if (!IsVolumeDataLoaded())
+		return 0;
 	if (GetModalities()->size() == 1)
 	{
 		return 0;
@@ -814,40 +816,32 @@ int MdiChild::chooseModalityNr(QString const & caption)
 
 int MdiChild::chooseComponentNr(int modalityNr)
 {
+	if (!IsVolumeDataLoaded())
+		return 0;
 	int nrOfComponents = GetModality(modalityNr)->GetImage()->GetNumberOfScalarComponents();
 	if (nrOfComponents == 1)
-	{
 		return 0;
-	}
 	QStringList parameters = (QStringList() << tr("+Component"));
 	QStringList components;
 	for (int i = 0; i < nrOfComponents; ++i)
-	{
 		components << QString::number(i);
-	}
 	components << "All components";
 	QList<QVariant> values = (QList<QVariant>() << components);
 	dlg_commoninput componentChoice(this, "Choose Component", parameters, values, nullptr);
 	if (componentChoice.exec() != QDialog::Accepted)
-	{
 		return -1;
-	}
 	return componentChoice.getComboBoxIndex(0);
 }
 
 bool MdiChild::save()
 {
 	if (isUntitled)
-	{
 		return saveAs();
-	}
 	else
 	{
 		int modalityNr = chooseModalityNr();
 		if (modalityNr == -1)
-		{
 			return false;
-		}
 		/*
 		// choice: save single modality, or modality stack!
 		if (GetModality(modalityNr)->ComponentCount() > 1)
@@ -856,9 +850,7 @@ bool MdiChild::save()
 		*/
 		int componentNr = chooseComponentNr(modalityNr);
 		if (componentNr == -1)
-		{
 			return false;
-		}
 
 		return saveFile(GetModality(modalityNr)->GetFileName(), modalityNr, componentNr);
 	}
@@ -869,9 +861,7 @@ bool MdiChild::saveAs()
 	// TODO: unify with saveFile second part
 	int modalityNr = chooseModalityNr();
 	if (modalityNr == -1)
-	{
 		return false;
-	}
 	return saveAs(modalityNr);
 }
 
@@ -879,21 +869,16 @@ bool MdiChild::saveAs(int modalityNr)
 {
 	int componentNr = chooseComponentNr(modalityNr);
 	if (componentNr == -1)
-	{
 		return false;
-	}
-	QString filePath = QFileInfo(GetModality(modalityNr)->GetFileName()).absolutePath();
+	QString filePath = (GetModalities()->size() > 0) ? QFileInfo(GetModality(modalityNr)->GetFileName()).absolutePath() : path;
 	QString f = QFileDialog::getSaveFileName(
 		this,
 		tr("Save As"),
 		filePath,
 		iAIOProvider::GetSupportedSaveFormats() +
 		tr(";;TIFF stack (*.tif);; PNG stack (*.png);; BMP stack (*.bmp);; JPEG stack (*.jpg);; DICOM serie (*.dcm)"));
-
 	if (f.isEmpty())
-	{
 		return false;
-	}
 	return saveFile(f, modalityNr, componentNr);
 }
 
@@ -998,15 +983,18 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 {
 	waitForPreviousIO();
 
-	tmpSaveImg = GetModality(modalityNr)->GetImage();
-	if (tmpSaveImg->GetNumberOfScalarComponents() > 1 &&
-		componentNr != tmpSaveImg->GetNumberOfScalarComponents())
+	if (IsVolumeDataLoaded())
 	{
-		auto imgExtract = vtkSmartPointer<vtkImageExtractComponents>::New();
-		imgExtract->SetInputData(tmpSaveImg);
-		imgExtract->SetComponents(componentNr);
-		imgExtract->Update();
-		tmpSaveImg = imgExtract->GetOutput();
+		tmpSaveImg = GetModality(modalityNr)->GetImage();
+		if (tmpSaveImg->GetNumberOfScalarComponents() > 1 &&
+			componentNr != tmpSaveImg->GetNumberOfScalarComponents())
+		{
+			auto imgExtract = vtkSmartPointer<vtkImageExtractComponents>::New();
+			imgExtract->SetInputData(tmpSaveImg);
+			imgExtract->SetComponents(componentNr);
+			imgExtract->Update();
+			tmpSaveImg = imgExtract->GetOutput();
+		}
 	}
 
 	ioThread = new iAIO(tmpSaveImg, polyData, m_logger, this);
@@ -3029,7 +3017,8 @@ vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 
 void MdiChild::SaveFinished()
 {
-	m_dlgModalities->SetFileName(m_storedModalityNr, ioThread->getFileName());
+	if (m_storedModalityNr < GetModalities()->size() && ioThread->getIOID() != STL_WRITER)
+		m_dlgModalities->SetFileName(m_storedModalityNr, ioThread->getFileName());
 	setWindowModified(GetModalities()->HasUnsavedModality());
 }
 

@@ -19,6 +19,7 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iAFast3DMagicLensWidget.h"
+
 #include "iAConsole.h"
 
 #include <QVTKInteractor.h>
@@ -89,11 +90,7 @@ void iAFast3DMagicLensWidget::updateLens()
 
 void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 {
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget::resizeEvent( event );
-#else
-	QVTKWidget2::resizeEvent( event );
-#endif
+	iAVtkWidget::resizeEvent( event );
 
 	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
 		return;
@@ -117,9 +114,5 @@ void iAFast3DMagicLensWidget::mouseReleaseEvent( QMouseEvent * event )
 		emit rightButtonReleasedSignal( );
 	else if( Qt::LeftButton == event->button( ) )
 		emit leftButtonReleasedSignal( );
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	QVTKOpenGLWidget::mouseReleaseEvent( event );
-#else
-	QVTKWidget2::mouseReleaseEvent( event );
-#endif
+	iAVtkWidget::mouseReleaseEvent( event );
 }

@@ -24,10 +24,11 @@
 #include "iABlobCluster.h"
 #include "iAFeatureScoutObjectType.h"
 
-#include "iARenderer.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <iARenderer.h>
+#include <mainwindow.h>
+#include <mdichild.h>
 
+#include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 
 iAFeatureScoutAttachment::iAFeatureScoutAttachment(MainWindow* mainWnd, iAChildData childData) :

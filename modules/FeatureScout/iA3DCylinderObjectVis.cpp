@@ -31,7 +31,7 @@
 #include <vtkTubeFilter.h>
 
 
-iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidgetClass* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, int numberOfCylinderSides ):
 	iA3DLineObjectVis( widget, objectTable, columnMapping, color )
 {

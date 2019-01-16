@@ -20,15 +20,19 @@
 * ************************************************************************************/
 #include "iAPorosityAnalyserModuleInterface.h"
 
-#include "CPUID.h"
-#include "defines.h"
-#include "iACSVToQTableWidgetConverter.h"
 #include "iACalculatePoreProperties.h"
 #include "iADataFolderDialog.h"
 #include "iADatasetInfo.h"
+#include "iADragFilterWidget.h"
+#include "iADropPipelineWidget.h"
+//#include "PorosityAnalyserHelpers.h"
 #include "iAPorosityAnalyser.h"
 #include "iARunBatchThread.h"
-#include "mainwindow.h"
+
+#include <CPUID.h>
+#include <defines.h>
+#include <iACSVToQTableWidgetConverter.h>
+#include <mainwindow.h>
 
 #include <QDebug>
 #include <QFileDialog>
@@ -36,6 +40,7 @@
 #include <QScopedPointer>
 #include <QScrollArea>
 #include <QSettings>
+#include <QTextEdit>
 #include <QTime>
 
 
@@ -48,7 +53,7 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	qsrand(QTime::currentTime().msec());
-	//Add the module to iAnalyse Tools' menu
+
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QMenu * menuPorosityAnalyser = getMenuWithTitle( toolsMenu, QString( "FeatureAnalyzer" ), false );
 

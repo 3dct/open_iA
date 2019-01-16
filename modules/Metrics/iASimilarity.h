@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
+#include <iAFilter.h>
+#include <iAFilterRunnerGUI.h>
 
 IAFILTER_DEFAULT_CLASS(iASimilarity);
 

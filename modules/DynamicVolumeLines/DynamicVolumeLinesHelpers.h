@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "qcustomplot.h"
-#include "iAColorTheme.h"
+#include <charts/qcustomplot.h>
+#include <defines.h>   // for DIM
+#include <iAColorTheme.h>
 
 #include <itkImageBase.h>
 #include <itkImage.h>

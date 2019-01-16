@@ -44,7 +44,7 @@
 #include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
 #include <vtkCamera.h>
-#include <vtkScalarsToColors.h>
+#include <vtkCommand.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDiskSource.h>
 #include <vtkGenericMovieWriter.h>
@@ -53,11 +53,10 @@
 #include <vtkImageBlend.h>
 #include <vtkImageCast.h>
 #include <vtkImageChangeInformation.h>
+#include <vtkImageData.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageMapToColors.h>
-#include <vtkImageMapToWindowLevelColors.h>
 #include <vtkImageReslice.h>
-#include <vtkImageData.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
@@ -65,8 +64,8 @@
 #include <vtkLookupTable.h>
 #include <vtkMarchingContourFilter.h>
 #include <vtkPlaneSource.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkPointPicker.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
 #include <vtkRenderer.h>
@@ -74,6 +73,7 @@
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarBarWidget.h>
+#include <vtkScalarsToColors.h>
 #include <vtkSmartPointer.h>
 #include <vtkTextActor3D.h>
 #include <vtkTextMapper.h>
@@ -81,7 +81,6 @@
 #include <vtkTransform.h>
 #include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
-#include <vtkCommand.h>
 
 #include <QBitmap>
 #include <QDate>
@@ -323,8 +322,7 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		roiSource->SetPoint2(0, -3, 0);
 
 		QImage img;
-		if( QDate::currentDate().dayOfYear() >= 340 )img.load(":/images/Xmas.png");
-		else img.load(":/images/fhlogo.png");
+		img.load(":/images/fhlogo.png");
 		logoImage->SetQImage(&img);
 		logoImage->Update();
 		logoRep->SetImage(logoImage->GetOutput( ));
@@ -449,18 +447,8 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 	setupColorMapper();
 	imageActor->SetInputData(colormapper->GetOutput());
 	imageActor->GetMapper()->BorderOn();
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	double orientation[3] = {
-		180,
-		0,
-		0
-	};
-	imageActor->SetOrientation(orientation);
-*/
-	ren->AddActor(imageActor);
 
+	ren->AddActor(imageActor);
 	ren->SetActiveCamera(m_camera);
 	ren->ResetCamera();
 }
@@ -871,17 +859,12 @@ void iASlicerData::saveImageStack()
 	if(!mdi_parent)
 		return;
 	QString file = QFileDialog::getSaveFileName(mdi_parent, tr("Save Image Stack"),
-		"", iAIOProvider::GetSupportedImageFormats() );
+		mdi_parent->getFilePath(), iAIOProvider::GetSupportedImageFormats() );
 	if (file.isEmpty())
 		return;
-
-	std::string current_file = file.toLocal8Bit().constData();
-	size_t dotpos = current_file.find_last_of(".");
-	assert( dotpos != std::string::npos );
-	if ( dotpos == std::string::npos )
-		return;
-
-	current_file.erase(dotpos,4);
+	
+	QFileInfo fileInfo(file);
+	QString baseName = fileInfo.absolutePath() + "/" + fileInfo.baseName();
 
 	int const * arr = imageData->GetDimensions();
 	double const * spacing = imageData->GetSpacing();
@@ -899,7 +882,7 @@ void iASlicerData::saveImageStack()
 		<<  tr("#To Slice Number:") );
 	QList<QVariant> inPara = ( QList<QVariant>() << (saveNative ? tr("true") : tr("false"))<<tr("%1")
 		.arg(sliceFirst) <<tr("%1").arg(sliceLast) );
-	QFileInfo fileInfo(file);
+
 	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
 		(QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
 	{
@@ -959,15 +942,8 @@ void iASlicerData::saveImageStack()
 
 		emit progress(100 * slice / sliceLast);
 
-		//append slice number to filename
-		std::stringstream ss;
-		ss << slice;
-		std::string appendFile(ss.str());
-		std::string newFileName(current_file);
-		newFileName.append(appendFile);
-		newFileName.append(".");
-		newFileName.append(fileInfo.suffix().toStdString());
-		WriteSingleSliceImage(newFileName.c_str(), img);
+		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
+		WriteSingleSliceImage(newFileName, img);
 	}
 	interactor->Enable();
 	emit msg(tr("Image stack saved in folder: %1")
@@ -1081,11 +1057,6 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 	m_ptMapped[1] += 0.5*spacing[1];
 	m_ptMapped[2] += 0.5*spacing[2];
 
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	m_ptMapped[1] = -m_ptMapped[1];
-*/
 	switch(eventId)
 	{
 	case vtkCommand::LeftButtonPressEvent:
@@ -1116,16 +1087,11 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
-
 		double result[4];
 		double xCoord, yCoord, zCoord;
 		GetMouseCoord(xCoord, yCoord, zCoord, result);
-
 		double mouseCoord[3] = { result[0], result[1], result[2] };
-
 		//updateFisheyeTransform(mouseCoord, reslicer, 50.0);
-
-
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);
@@ -1275,7 +1241,8 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 		if (mdi_parent->getLinkedMDIs())
 		{
 			QList<MdiChild*> mdiwindows = mdi_parent->getMainWnd()->MdiChildList();
-			for (int i = 0; i < mdiwindows.size(); i++) {
+			for (int i = 0; i < mdiwindows.size(); i++)
+			{
 				MdiChild *tmpChild = mdiwindows.at(i);
 				if (tmpChild != mdi_parent) {
 					double * const tmpSpacing = tmpChild->getImagePointer()->GetSpacing();
@@ -1328,10 +1295,10 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	}
 
 	// if requested calculate distance and show actor
-	if (pLineActor->GetVisibility()) {
+	if (pLineActor->GetVisibility())
+	{
 		double distance = sqrt(	pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) +
 			pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2) );
-		// ORIENTATION / ROTATION FIX: pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1]);
 		pLineSource->SetPoint2(m_ptMapped[0]-(0.5*slicerSpacing[0]), m_ptMapped[1] - (0.5*slicerSpacing[1]), 0.0);
 		pDiskSource->SetOuterRadius(distance);
 		pDiskSource->SetInnerRadius(distance);
@@ -1342,11 +1309,6 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	// Update the info text with pixel coordinates/value if requested.
 	textInfo->GetActor()->SetPosition(interactor->GetEventPosition()[0]+10, interactor->GetEventPosition()[1]+10);
 	textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	setPositionMarkerCenter(m_ptMapped[0], -m_ptMapped[1], 1);//m_planeSrc->SetCenter(m_ptMapped[0], m_ptMapped[1]);
-*/
 	m_positionMarkerMapper->Update();
 }
 

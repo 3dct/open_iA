@@ -25,11 +25,11 @@
 #include <QMap>
 #include <QWidget>
 
+#include <utility> // for std::pair
+
 class QColor;
 class QPainter;
 class QPaintEvent;
-
-#include <utility> // for std::pair
 
 class iAPeriodicTableWidget: public QWidget
 {

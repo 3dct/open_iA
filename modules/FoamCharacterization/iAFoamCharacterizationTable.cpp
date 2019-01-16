@@ -30,6 +30,106 @@
 #include <QDropEvent>
 #include <QHeaderView>
 #include <QMessageBox>
+#include <QPainter>
+
+iAFoamCharacterizationTable::iAFoamCharacterizationTableDelegate::iAFoamCharacterizationTableDelegate(iAFoamCharacterizationTable* _pTable, QObject* _pParent)
+	: QItemDelegate(_pParent)
+	, m_pTable(_pTable)
+{
+	m_iMargin = 100 * m_pTable->logicalDpiX() / 254;
+}
+
+void iAFoamCharacterizationTable::iAFoamCharacterizationTableDelegate::paint(QPainter* _pPainter, const QStyleOptionViewItem& _sovItem, const QModelIndex& _miItem) const
+{
+	const int iRow(_miItem.row());
+
+	QModelIndexList mlIndex(m_pTable->selectedIndexes());
+
+	if ((mlIndex.size()) && (m_pTable->hasFocus()))
+	{
+		const int iRowSelected(mlIndex.at(0).row());
+
+		if (iRow == iRowSelected)
+		{
+			drawItemRect(_pPainter, _sovItem.rect, m_pTable->palette().color(QPalette::Highlight));
+			_pPainter->setPen(m_pTable->palette().color(QPalette::BrightText));
+		}
+		else
+		{
+			drawItemRect(_pPainter, _sovItem.rect, m_pTable->palette().color(QPalette::Window));
+			_pPainter->setPen(m_pTable->palette().color(QPalette::WindowText));
+		}
+	}
+	else
+	{
+		drawItemRect(_pPainter, _sovItem.rect, m_pTable->palette().color(QPalette::Window));
+		_pPainter->setPen(m_pTable->palette().color(QPalette::WindowText));
+	}
+
+	iAFoamCharacterizationItem* pItem((iAFoamCharacterizationItem*)m_pTable->item(iRow, 0));
+
+	const QRect rText(_sovItem.rect.adjusted(m_iMargin, 0, -m_iMargin, 0));
+
+	QIcon iItemIcon(pItem->icon());
+
+	const QSize sItemIcon(_sovItem.decorationSize);
+
+	_pPainter->drawPixmap((rText.left() - sItemIcon.width()) / 2
+		, rText.top() + (rText.height() - sItemIcon.height()) / 2
+		, iItemIcon.pixmap(sItemIcon.width(), sItemIcon.height())
+	);
+
+	_pPainter->setFont(pItem->font());
+
+	_pPainter->drawText
+	(rText.adjusted(m_iMargin / 4, 0, 0, 0), Qt::AlignLeft | Qt::AlignVCenter, _miItem.data().toString());
+
+	if (pItem->executing())
+	{
+		const int iProgress(pItem->progress());
+
+		if (iProgress > 0)
+		{
+			const QRect rProgress(_sovItem.rect.width() - 3 * m_iMargin
+				, _sovItem.rect.top() + _sovItem.rect.height() / 4
+				, 2 * m_iMargin, _sovItem.rect.height() / 2
+			);
+
+			_pPainter->drawRect(rProgress);
+
+			QRect rBar(rProgress.adjusted(1, 1, 0, 0));
+			rBar.setWidth(rBar.width() * iProgress / 100);
+
+			QLinearGradient lg(rBar.topLeft(), rBar.topRight());
+			lg.setColorAt(0.0, Qt::black);
+			lg.setColorAt(1.0, pItem->itemIconColor());
+
+			_pPainter->fillRect(rBar, QBrush(lg));
+		}
+	}
+	else
+	{
+		const QString sTime(pItem->executeTimeString());
+
+		_pPainter->setPen((pItem->modified()) ? colorModified(_pPainter->pen().color()) : _pPainter->pen().color());
+		_pPainter->drawText(rText, Qt::AlignRight | Qt::AlignVCenter, sTime);
+	}
+}
+
+QColor iAFoamCharacterizationTable::iAFoamCharacterizationTableDelegate::colorModified(const QColor& _cColor) const
+{
+	return ((_cColor.lightness() > 200) ? _cColor.darker(125) : Qt::gray);
+}
+
+void iAFoamCharacterizationTable::iAFoamCharacterizationTableDelegate::drawItemRect(QPainter* _pPainter, const QRect& _rItem, const QColor& _cColor) const
+{
+	_pPainter->setBrush(colorModified(_cColor));
+	_pPainter->setPen(_cColor);
+	_pPainter->drawRect(_rItem.adjusted(0, 0, m_iMargin - _rItem.width(), -1));
+	_pPainter->fillRect(_rItem.adjusted(m_iMargin, 0, 0, 0), _cColor);
+}
+
+
 
 iAFoamCharacterizationTable::iAFoamCharacterizationTable(vtkImageData* _pImageData, QWidget* _pParent)
 																			  : QTableWidget(_pParent), m_pImageData (_pImageData)

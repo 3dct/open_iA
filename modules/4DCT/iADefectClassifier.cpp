@@ -21,7 +21,10 @@
 #include "iADefectClassifier.h"
 
 #include "iAFeature.h"
+#include "iAFiberCharacteristics.h"
 #include "iA4DCTDefects.h"
+
+#include <io/iAFileUtils.h>
 
 #include <vtkMath.h>
 
@@ -61,11 +64,11 @@ void iADefectClassifier::run( Parameters params )
 	std::cout << "Defect classification finished" << std::endl;
 }
 
-iADefectClassifier::FeatureList iADefectClassifier::readDefects( std::string defectFile ) const
+iADefectClassifier::FeatureList iADefectClassifier::readDefects( QString const & defectFile ) const
 {
 	FeatureList result;
 	std::ifstream file;
-	file.open( defectFile );
+	file.open( getLocalEncodingFileName(defectFile) );
 	iAFeature f;
 	while( file >> f ) result.push_back( f );
 	return result;
@@ -235,14 +238,14 @@ void iADefectClassifier::save( ) const
 {
 	std::cout << "Saving results......\n";
 
-	QString qOutputDir = QString::fromStdString( m_param.OutputDir ) + '\\';
+	QString qOutputDir(m_param.OutputDir + '\\');
 	iA4DCTDefects::save( m_classification.Fractures, qOutputDir + "ids_matrix_fractures.txt" );
 	iA4DCTDefects::save( m_classification.Pullouts, qOutputDir + "ids_fiber_pull_outs.txt" );
 	iA4DCTDefects::save( m_classification.Debondings, qOutputDir + "ids_fiber_matrix_debondings.txt" );
 	iA4DCTDefects::save( m_classification.Breakages, qOutputDir + "ids_fiber_fractures.txt" );
 
 	std::ofstream ofs;
-	ofs.open( ( qOutputDir + "statistics.txt" ).toStdString( ) );
+	ofs.open( getLocalEncodingFileName( qOutputDir + "statistics.txt" ).c_str() );
 	ofs << "Parameters:\n";
 	ofs << "Spacing = " << m_param.Spacing << std::endl;
 	ofs << "Fiber fracture angle = " << m_param.AngleB << std::endl;

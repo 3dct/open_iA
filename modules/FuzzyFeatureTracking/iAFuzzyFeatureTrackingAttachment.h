@@ -20,8 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
-#include "iAModuleAttachmentToChild.h"
+#include <iAModuleAttachmentToChild.h>
 
 class dlg_trackingGraph;
 class dlg_dataView4DCT;

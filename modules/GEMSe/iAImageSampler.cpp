@@ -21,18 +21,19 @@
 #include "iAImageSampler.h"
 
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
-#include "iAConsole.h"
 #include "iACommandRunner.h"
 #include "iADerivedOutputCalculator.h"
-#include "iAImageCoordinate.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iANameMapper.h"
 #include "iAParameterGenerator.h"
 #include "iASingleResult.h"
-#include "iAStringHelper.h"
 #include "iASamplingResults.h"
+
+#include <iAAttributeDescriptor.h>
+#include <iAConsole.h>
+#include <iAImageCoordinate.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iANameMapper.h>
+#include <iAStringHelper.h>
 
 #include <QDir>
 #include <QMap>

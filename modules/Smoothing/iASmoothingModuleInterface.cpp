@@ -22,7 +22,7 @@
 
 #include "iASmoothing.h"
 
-#include "iAFilterRegistry.h"
+#include <iAFilterRegistry.h>
 
 void iASmoothingModuleInterface::Initialize()
 {

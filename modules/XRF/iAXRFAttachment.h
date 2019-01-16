@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
-#include "iAModuleAttachmentToChild.h"
+#include <iAModuleInterface.h>
+#include <iAModuleAttachmentToChild.h>
 
 #include <vtkSmartPointer.h>
 

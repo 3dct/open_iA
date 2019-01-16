@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iAPlotData.h"
 #include "iAEnergySpectrum.h"
 #include "iASpectrumFunction.h"
 
-#include <vector>
+#include <charts/iAPlotData.h>
 
 #include <QSharedPointer>
+
+#include <vector>
 
 class iAXRFData;
 class iASpectraHistograms;

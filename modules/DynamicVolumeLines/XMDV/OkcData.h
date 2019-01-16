@@ -134,18 +134,19 @@ public:
 	// This function overrides the virtual function in the base class
 	QStringList toStringList();
 
+	/*
+	// apparently these functions are not used!
 	// read the data file and write to data member
 	bool read(const char *fname);
-
 	// read csv file format data file
 	bool readCSV(const char *fname);
 	// read okc file format data file
 	OkcData::ReadOkcResult readOKC(const char *fname);
 	// create a new okc file when reading csv file
 	bool createOKC(const char *fname);
-
 	// write the okc data into an okc fie; if the okc file exists, erase all contents and write
 	bool writeOKC(const char *fname);
+	*/
 
 	// Get the number of data points in the original data_buf
 	int getOrigDataSize();

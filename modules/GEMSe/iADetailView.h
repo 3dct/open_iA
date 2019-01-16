@@ -20,15 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
-#include "io/iAITKIO.h" // TODO: replace?
-typedef iAITKIO::ImagePointer ClusterImageType;
-
 #include "iAChartFilter.h"   // for iAResultFilter
 #include "iAImageTreeNode.h" // for LabelImagePointer
+
+#include <io/iAITKIO.h> // TODO: replace?
 
 #include <vtkSmartPointer.h>
 
 #include <QWidget>
+
+typedef iAITKIO::ImagePointer ClusterImageType;
 
 class QLabel;
 class QPushButton;

@@ -20,11 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include "ui_PreviewSPLOM.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
+
 #include <QDockWidget>
 #include <QScopedPointer>
-
-#include "ui_PreviewSPLOM.h"
-#include "qthelper/iAQTtoUIConnector.h"
 
 class iAPreviewSPLOM;
 class QPixmap;

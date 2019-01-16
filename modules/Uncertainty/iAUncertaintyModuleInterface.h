@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAChildData.h"
-#include "iAModuleInterface.h"
-#include "qthelper/iAQTtoUIConnector.h"
 #include "ui_UncertaintyToolBar.h"
+
+#include <iAChildData.h>
+#include <iAModuleInterface.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <QToolBar>
 

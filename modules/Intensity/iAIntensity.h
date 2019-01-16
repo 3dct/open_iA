@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include <iAFilter.h>
 
 // Filters requiring 1 input image:
 IAFILTER_DEFAULT_CLASS(iAAdaptiveHistogramEqualization);

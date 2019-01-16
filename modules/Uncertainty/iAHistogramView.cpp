@@ -22,9 +22,9 @@
 
 #include "iAEnsemble.h"
 
-#include "charts/iAChartWidget.h"
-#include "charts/iAPlotTypes.h"
-#include "charts/iASimpleHistogramData.h"
+#include <charts/iAChartWidget.h>
+#include <charts/iAPlotTypes.h>
+#include <charts/iASimpleHistogramData.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>

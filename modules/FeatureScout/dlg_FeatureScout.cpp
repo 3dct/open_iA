@@ -30,20 +30,22 @@
 #include "iAFeatureScoutObjectType.h"
 #include "iAMeanObjectTFView.h"
 
-#include "charts/iADiagramFctWidget.h"
-#include "dlg_commoninput.h"
-#include "dlg_imageproperty.h"
-#include "dlg_modalities.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "qthelper/iADockWidgetWrapper.h"
-#include "iAmat4.h"
-#include "iAModalityTransfer.h"
-#include "iAMovieHelper.h"
-#include "iAProgress.h"
-#include "iARenderer.h"
-#include "iAToolsITK.h"
-#include "mdichild.h"
+#include <charts/iADiagramFctWidget.h>
+#include <dlg_commoninput.h>
+#include <dlg_imageproperty.h>
+#include <dlg_modalities.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAmat4.h>
+#include <iAModalityTransfer.h>
+#include <iAMovieHelper.h>
+#include <iAProgress.h>
+#include <iARenderer.h>
+#include <iAToolsITK.h>
+#include <iAVtkWidget.h>
+#include <io/iAFileUtils.h>
+#include <mdichild.h>
+#include <qthelper/iADockWidgetWrapper.h>
 
 #include <itkAddImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
@@ -55,12 +57,6 @@
 #include <itkPasteImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-#include <QVTKOpenGLWidget.h>
-#else
-#include <QVTKWidget.h>
-#include <vtkRenderWindow.h>
-#endif
 #include <vtkActor.h>
 #include <vtkActor2D.h>
 #include <vtkAnnotationLink.h>
@@ -100,6 +96,7 @@
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindowInteractor.h>
@@ -153,6 +150,7 @@ const QString NameAttribute( "NAME" );
 const QString ColorAttribute( "COLOR" );
 const QString CountAttribute( "COUNT" );
 const QString PercentAttribute( "PERCENT" );
+const QString IDColumnAttribute( "IDColumn" );
 const QString LabelAttribute( "Label" );
 const QString LabelAttributePore( "LabelId" );
 
@@ -235,24 +233,10 @@ dlg_FeatureScout::dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType f
 	tableList.push_back( chartTable );
 
 	initFeatureScoutUI();
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-	pcWidget = new QVTKOpenGLWidget();
-	auto pcWidgetRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	pcWidgetRenWin->SetLineSmoothing(true);
-	pcWidget->SetRenderWindow(pcWidgetRenWin);
-	
-	m_polarPlotWidget = new QVTKOpenGLWidget();
-	auto polarPlotRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	m_polarPlotWidget->SetRenderWindow(polarPlotRenWin);
-
-	m_lengthDistrWidget = new QVTKOpenGLWidget();
-	auto lengthDistrRenWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	m_lengthDistrWidget->SetRenderWindow(lengthDistrRenWin);
+	CREATE_OLDVTKWIDGET(pcWidget);
+	CREATE_OLDVTKWIDGET(m_polarPlotWidget);
+	CREATE_OLDVTKWIDGET(m_lengthDistrWidget);
 	m_lengthDistrWidget->hide();
-#else
-	pcWidget = new QVTKWidget();
-	polarPlot = new QVTKWidget();
-#endif
 	iovPC->setWidget(pcWidget);
 	iovPP->legendLayout->addWidget(m_polarPlotWidget);
 
@@ -596,14 +580,14 @@ void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, c
 	ofstream debugfile;
 	std::string OutfileName = "";
 	if (fileName)
-		OutfileName = fileName->toStdString(); 
+		OutfileName = getLocalEncodingFileName(*fileName);
 	else
 		OutfileName = "debugFile";
 
 	if (!QDir(outputPath).exists() || !anyTable)
 		return;
 
-	debugfile.open(outputPath.toStdString() + OutfileName + ".csv");
+	debugfile.open(getLocalEncodingFileName(outputPath) + OutfileName + ".csv");
 	if (!debugfile.is_open())
 		return;
 
@@ -1043,17 +1027,11 @@ void dlg_FeatureScout::RenderMeanObject()
 		connect( iovMO->tb_SaveStl, SIGNAL( clicked() ), this, SLOT( saveStl() ) );
 
 		// Create a render window and an interactor for all the MObjects
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-		m_meanObjectRenderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-		meanObjectWidget = new QVTKOpenGLWidget();
-#else
-		m_meanObjectRenderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-		meanObjectWidget = new QVTKWidget();
-#endif
+		CREATE_OLDVTKWIDGET(meanObjectWidget);
+
 		iovMO->verticalLayout->addWidget( meanObjectWidget );
-		meanObjectWidget->SetRenderWindow( m_meanObjectRenderWindow );
 		auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-		renderWindowInteractor->SetRenderWindow( m_meanObjectRenderWindow );
+		renderWindowInteractor->SetRenderWindow( meanObjectWidget->GetRenderWindow() );
 		auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle( style );
 
@@ -1097,7 +1075,7 @@ void dlg_FeatureScout::RenderMeanObject()
 		m_MOData.moRendererList.append( renderer );
 		renderer->GetActiveCamera()->ParallelProjectionOn();
 		renderer->SetBackground( 1.0, 1.0, 1.0 );
-		m_meanObjectRenderWindow->AddRenderer( m_MOData.moRendererList[i] );
+		meanObjectWidget->GetRenderWindow()->AddRenderer( m_MOData.moRendererList[i] );
 		renderer->SetViewport( fmod( i, viewportColumns ) * fieldLengthX,
 							   1 - ( ceil( ( i + 1.0 ) / viewportColumns ) / viewportRows ),
 							   fmod( i, viewportColumns ) * fieldLengthX + fieldLengthX,
@@ -1152,7 +1130,7 @@ void dlg_FeatureScout::RenderMeanObject()
 			renderer->AddActor( cubeAxesActor );
 			renderer->AddActor( outlineActor );
 		}
-		m_meanObjectRenderWindow->Render();
+		meanObjectWidget->GetRenderWindow()->Render();
 	}
 }
 
@@ -1176,7 +1154,7 @@ void dlg_FeatureScout::updateMOView()
 
 void dlg_FeatureScout::browseFolderDialog()
 {
-	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), m_sourcePath, tr( "CSV Files (*.stl *.STL)" ) );
+	QString filename = QFileDialog::getSaveFileName( this, tr( "Save STL File" ), m_sourcePath, tr( "STL Files (*.stl)" ) );
 	if ( filename.isEmpty() )
 		return;
 	iovMO->le_StlPath->setText( filename );
@@ -1205,7 +1183,7 @@ void dlg_FeatureScout::saveStl()
 
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	stlWriProgress.Observe(stlWriter);
-	stlWriter->SetFileName( iovMO->le_StlPath->text().toStdString().c_str() );
+	stlWriter->SetFileName( getLocalEncodingFileName(iovMO->le_StlPath->text()).c_str() );
 	stlWriter->SetInputConnection( moSurface->GetOutputPort() );
 	stlWriter->Write();
 }
@@ -1850,7 +1828,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		//Writes csv file
 		if ( saveFile )
 		{
-			ofstream file( filename.toStdString().c_str(), std::ios::app );
+			ofstream file( getLocalEncodingFileName(filename).c_str(), std::ios::app );
 			if ( file.is_open() )
 			{
 				vtkVariant tColNb, tRowNb, tVal;
@@ -1909,12 +1887,9 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		if ( !iovDV )
 		{
 			iovDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-			auto dvqvtkWidget = new QVTKOpenGLWidget();
-			dvqvtkWidget->SetRenderWindow(vtkGenericOpenGLRenderWindow::New());
-#else
-			auto dvqvtkWidget = new QVTKWidget();
-#endif
+
+			iAVtkOldWidget* dvqvtkWidget;
+			CREATE_OLDVTKWIDGET(dvqvtkWidget);
 			iovDV->setWidget(dvqvtkWidget);
 			m_dvContextView->SetRenderWindow( dvqvtkWidget->GetRenderWindow() );
 			m_dvContextView->SetInteractor( dvqvtkWidget->GetInteractor() );
@@ -2085,6 +2060,7 @@ void dlg_FeatureScout::ClassSaveButton()
 	stream.writeStartElement( IFVTag );
 	stream.writeAttribute( VersionAttribute, "1.0" );
 	stream.writeAttribute( CountAllAttribute, QString( "%1" ).arg( objectsCount ) );
+	stream.writeAttribute( IDColumnAttribute, csvTable->GetColumnName(0) ); // store name of ID  -> TODO: ID mapping!
 
 	for ( int i = 0; i < classTreeModel->invisibleRootItem()->rowCount(); i++ )
 	{
@@ -2111,8 +2087,9 @@ void dlg_FeatureScout::ClassLoadButton()
 
 	// checking xml file correctness
 	QXmlStreamReader checker( &file );
-	checker.readNext();
-	checker.readNext();
+	checker.readNext(); // skip xml tag?
+	checker.readNext(); // read IFV_Class_Tree element
+	QString IDColumnName = (filterID == iAFeatureScoutObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
 	if ( checker.name() == IFVTag )
 	{
 		// if the object number is not correct, stop the load process
@@ -2121,6 +2098,10 @@ void dlg_FeatureScout::ClassLoadButton()
 			QMessageBox::warning(this, "FeatureScout", "Class load error: Incorrect xml file for current dataset, please check." );
 			checker.clear();
 			return;
+		}
+		if (checker.attributes().hasAttribute(IDColumnAttribute))
+		{
+			IDColumnName = checker.attributes().value(IDColumnAttribute).toString();
 		}
 	}
 	else // incompatible xml file
@@ -2160,8 +2141,7 @@ void dlg_FeatureScout::ClassLoadButton()
 		{
 			if ( reader.name() == ObjectTag )
 			{
-				QString label = reader.attributes().value(
-					(filterID == iAFeatureScoutObjectType::Fibers) ? LabelAttribute : LabelAttributePore ).toString();
+				QString label = reader.attributes().value( IDColumnName ).toString();
 				QStandardItem *item = new QStandardItem( label );
 
 				// add objects to firstLevelClassItem

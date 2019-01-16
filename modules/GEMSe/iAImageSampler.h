@@ -20,15 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAAbortListener.h"
+#include "iADurationEstimator.h"
+#include "iAParameterGenerator.h"
+
+#include <iAPerformanceHelper.h>
+
 #include <QMap>
 #include <QMutex>
 #include <QSharedPointer>
 #include <QThread>
-
-#include "iAAbortListener.h"
-#include "iADurationEstimator.h"
-#include "iAParameterGenerator.h"
-#include "iAPerformanceHelper.h"
 
 class iAAttributes;
 class iAModalityList;

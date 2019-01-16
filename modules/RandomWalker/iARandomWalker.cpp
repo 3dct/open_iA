@@ -26,11 +26,11 @@
 #include "iAVectorArrayImpl.h"
 #include "iAVectorDistanceImpl.h"
 
-#include "defines.h"     // for DIM
-#include "iAConnector.h"
-#include "iASeedType.h"
-#include "iATypedCallHelper.h"
-#include "iAToolsITK.h"
+#include <defines.h>     // for DIM
+#include <iAConnector.h>
+#include <iASeedType.h>
+#include <iATypedCallHelper.h>
+#include <iAToolsITK.h>
 
 #include <vtkImageData.h>
 

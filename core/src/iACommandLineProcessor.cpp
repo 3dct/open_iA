@@ -177,18 +177,19 @@ namespace
 			<< "         List available filters" << std::endl
 			<< "     -h FilterName" << std::endl
 			<< "         Print help on a specific filter" << std::endl
-			<< "     -r FilterName -i Input -o Output -p Parameters [-q] [-c] [-f]" << std::endl
+			<< "     -r FilterName -i Input -o Output -p Parameters [-q] [-c] [-f] [-s n]" << std::endl
 			<< "         Run the filter given by FilterName with Parameters on given Input, write to Output" << std::endl
 			<< "           -q   quiet - no output except for error messages" << std::endl
 			<< "           -c   compress output" << std::endl
 			<< "           -f   overwrite output if it exists" << std::endl
+			<< "           -s n separate input starts at nth filename given under -i" << std::endl // (required for some filters, e.g. Extended Random Walker)
 			<< "         Note: Only image output is written to the filename(s) specified after -o," << std::endl
 			<< "           filters returning one or more output values write those values to the command line." << std::endl
 			<< "     -p FilterName" << std::endl
 			<< "         Output the Parameter Descriptor for the given filter (required for sampling)." << std::endl;
 	}
 
-	enum ParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite};
+	enum ParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite, InputSeparation};
 
 	ParseMode GetMode(QString arg)
 	{
@@ -198,6 +199,7 @@ namespace
 		else if (arg == "-q") return Quiet;
 		else if (arg == "-c") return Compress;
 		else if (arg == "-f") return Overwrite;
+		else if (arg == "-s") return InputSeparation;
 		else return InvalidParameter;
 	}
 
@@ -228,6 +230,19 @@ namespace
 			case Overwrite:
 				mode = GetMode(args[a]);
 				break;
+			case InputSeparation: {
+				bool ok;
+				int inputSeparation = args[a].toInt(&ok);
+				if (!ok)
+				{
+					std::cout << "Invalid value '" << args[a].toStdString()
+						<< "' for input separation, expected a int!" << std::endl;
+					return 1;
+				}
+				filter->SetFirstInputChannels(inputSeparation);
+				mode = None;
+				break;
+			}
 			case Input:
 			case Output:
 			case Parameter:

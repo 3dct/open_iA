@@ -23,17 +23,14 @@
 #include "iAGEMSeAttachment.h"
 #include "iASEAFile.h"
 
-#include "dlg_modalities.h"
-#include "iAConsole.h"
-#include "iAModality.h"
-#include "iAModuleDispatcher.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <dlg_modalities.h>
+#include <iAConsole.h>
+#include <iAModality.h>
+#include <iAModuleDispatcher.h>
+#include <mainwindow.h>
+#include <mdichild.h>
 
 #include <QFileDialog>
-#include <QList>
-#include <QSettings>
-#include <QTextDocument>
 
 #include <cassert>
 

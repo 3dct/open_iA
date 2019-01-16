@@ -20,19 +20,19 @@
 * ************************************************************************************/
 #include "iAFuzzyCMeans.h"
 
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
+#include <io/iAITKIO.h>
+
 #include <itkFCMClassifierInitializationImageFilter.h>
 #include <itkFuzzyClassifierImageFilter.h>
 #include <itkKFCMSClassifierInitializationImageFilter.h>
 #include <itkMSKFCMClassifierInitializationImageFilter.h>
 #include <itkVectorImage.h>
 #include <itkVectorIndexSelectionCastImageFilter.h>
-
-#include "defines.h"    // for DIM
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
-#include "io/iAITKIO.h"
 
 #include <vtkImageData.h>
 

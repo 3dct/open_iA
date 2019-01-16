@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QList>
-#include <QModelIndex>
 #include <vtkSmartPointer.h>
 #include <vtkVector.h>
+
+#include <QList>
+#include <QModelIndex>
 
 class vtkIdTypeArray;
 class QTreeWidgetItem;

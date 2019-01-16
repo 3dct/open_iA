@@ -22,7 +22,7 @@
 
 #include "iAImagePreviewWidget.h"
 
-#include "iAConsole.h"
+#include <iAConsole.h>
 
 iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASlicerMode slicerMode, int labelCount, iAColorTheme const * colorTheme)
 	: m_slicerMode(slicerMode),

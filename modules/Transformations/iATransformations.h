@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFilter.h"
+#include <iAFilter.h>
 
 IAFILTER_DEFAULT_CLASS(iARotate);
 IAFILTER_DEFAULT_CLASS(iAPermuteAxes);

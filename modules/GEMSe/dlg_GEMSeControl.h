@@ -24,12 +24,11 @@
 
 #include "iAImageTreeNode.h"    // for LabelImagePointer
 
+#include <qthelper/iAQTtoUIConnector.h>
+
 #include <vtkSmartPointer.h>
 
 #include <QMap>
-
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 
 class iAImageClusterer;
 class iAImageSampler;
@@ -46,6 +45,8 @@ class iASimpleLabelInfo;
 class iASamplingResults;
 
 class vtkImageData;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 
 class dlg_GEMSeControl: public dlg_GEMSeControlUI
 {

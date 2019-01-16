@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iAEdgeDetectionModuleInterface.h"
 
-#include "iAFilterRegistry.h"
-
 #include "iAEdgeDetectionFilters.h"
+
+#include <iAFilterRegistry.h>
 
 void iAEdgeDetectionModuleInterface::Initialize()
 {

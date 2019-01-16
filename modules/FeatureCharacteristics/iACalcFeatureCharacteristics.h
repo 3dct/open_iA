@@ -20,19 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAAlgorithm.h"
-#include "mdichild.h"
+#include <iAFilter.h>
 
-class iACalcFeatureCharacteristics : public iAAlgorithm
-{
-public:
-	iACalcFeatureCharacteristics( QString fn, vtkImageData* i, vtkPolyData* p, iALogger* logger,
-		MdiChild *parent, QString path, bool calculateFeretDiameter );
-protected:
-	virtual void performWork();
-private:
-	vtkImageData *image;
-	QString pathCSV;
-	MdiChild* m_mdiChild;
-	bool m_calculateFeretDiameter;
-};
+IAFILTER_DEFAULT_CLASS(iACalcFeatureCharacteristics);

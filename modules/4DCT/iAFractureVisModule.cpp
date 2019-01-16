@@ -22,6 +22,8 @@
 
 #include "iA4DCTVisWin.h"
 
+#include <io/iAFileUtils.h>
+
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
@@ -75,7 +77,7 @@ void iAFractureVisModule::load( QString fileName )
 	// load heightmap from the input file
 	typedef itk::ImageFileReader<MapType> ReaderType;
 	ReaderType::Pointer reader = ReaderType::New( );
-	reader->SetFileName( fileName.toStdString( ) );
+	reader->SetFileName( getLocalEncodingFileName(fileName) );
 	reader->Update( );
 	m_heightmap = reader->GetOutput( );
 	// visualize
@@ -92,7 +94,7 @@ void iAFractureVisModule::save( QString fileName )
 	typedef itk::ImageFileWriter<MapType> WriterType;
 	WriterType::Pointer writer = WriterType::New( );
 	writer->SetInput( m_heightmap );
-	writer->SetFileName( fileName.toStdString( ) );
+	writer->SetFileName( getLocalEncodingFileName(fileName) );
 	writer->Update( );
 }
 
@@ -192,7 +194,7 @@ void iAFractureVisModule::calculateMap( MapType* map, QString fileName, MapName 
 	typedef itk::ImageFileReader<ImageType>			ReaderType;
 
 	ReaderType::Pointer reader = ReaderType::New( );
-	reader->SetFileName( fileName.toStdString( ) );
+	reader->SetFileName( getLocalEncodingFileName(fileName) );
 	reader->Update( );
 
 	ImageType::Pointer image = reader->GetOutput( );

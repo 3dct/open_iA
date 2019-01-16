@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAImageClusterer.h"
 
-#include "iAConsole.h"
 #include "iAGEMSeConstants.h" // for iARepresentativeType
 #include "iAImageTree.h"
 #include "iAImageTreeLeaf.h"
@@ -28,7 +27,8 @@
 #include "iARepresentative.h"
 #include "iASingleResult.h"
 
-#include "iAImageComparisonMetrics.h"
+#include <iAConsole.h>
+#include <iAImageComparisonMetrics.h>
 
 #include <itkLabelOverlapMeasuresImageFilter.h>
 

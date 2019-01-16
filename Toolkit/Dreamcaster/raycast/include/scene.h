@@ -290,7 +290,7 @@ public:
 	/**
 	* Inits scene. BSP tree is created and build on current loaded mesh's data.
 	*/
-	int initScene(ModelData & mdata, SETTINGS * s, const char * filename = 0);
+	int initScene(ModelData & mdata, SETTINGS * s, QString const & filename = QString());
 	/**
 	* Get number of primitives in scene.
 	*/

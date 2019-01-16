@@ -26,14 +26,15 @@
 #include "iAScatterPlotSelectionHandler.h"
 #include "iASPLOMData.h"
 
-#include <QAbstractTextDocumentLayout>
-#include <QColor>
-#include <QDebug>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 #include <QOpenGLBuffer>
 #else
 #include <QGLBuffer>
 #endif
+
+#include <QAbstractTextDocumentLayout>
+#include <QColor>
+#include <QDebug>
 #include <qmath.h>
 #include <QPainter>
 #include <QPen>
@@ -70,13 +71,13 @@ iAScatterPlot::Settings::Settings() :
 	backgroundColor( QColor( 255, 255, 255 ) ),
 	selectionColor( QColor(0, 0, 0) ),
 	selectionMode(Polygon),
-	selectionEnabled(true),
+	selectionEnabled(false),
 	showPCC(false)
 {}
 
 size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QOpenGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
 #else
 iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
@@ -275,7 +276,7 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	painter.setBrush( settings.backgroundColor );
 	drawTicks( painter );
 	drawPoints( painter );
-	if (m_isMaximizedPlot)
+	if (settings.selectionEnabled)
 		drawSelectionPolygon( painter );
 	drawBorder( painter );
 	if (settings.showPCC)
@@ -334,7 +335,7 @@ void iAScatterPlot::SPLOMMouseMoveEvent( QMouseEvent * event )
 		emit transformModified( m_scale, deltaOffset );
 	}
 
-	else if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled ) // selection
+	else if ( event->buttons()&Qt::LeftButton && settings.selectionEnabled ) // selection
 	{
 		if (settings.selectionMode == Polygon)
 		{
@@ -363,7 +364,7 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 	{
 		m_dragging = true;
 	}
-	if ( m_isMaximizedPlot && event->buttons()&Qt::LeftButton && settings.selectionEnabled)//selection
+	if ( event->buttons()&Qt::LeftButton && settings.selectionEnabled)
 	{
 		if (settings.selectionMode == Rectangle)
 		{
@@ -382,7 +383,7 @@ void iAScatterPlot::SPLOMMouseReleaseEvent( QMouseEvent * event )
 	{
 		m_dragging = false;
 	}
-	else if (m_isMaximizedPlot && event->button() == Qt::LeftButton && settings.selectionEnabled)//selection
+	else if ( event->button() == Qt::LeftButton && settings.selectionEnabled)
 	{
 		bool append = ( event->modifiers() & Qt::ShiftModifier ) ? true : false;
 		bool remove = ( event->modifiers() & Qt::AltModifier ) ? true : false;
@@ -941,7 +942,7 @@ void iAScatterPlot::createVBO()
 	if (!m_splomData)
 		return;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	m_pointsBuffer = new QOpenGLBuffer( QOpenGLBuffer::VertexBuffer );
 #else
 	m_pointsBuffer = new QGLBuffer( QGLBuffer::VertexBuffer );
@@ -953,7 +954,7 @@ void iAScatterPlot::createVBO()
 	}
 	bool res = m_pointsBuffer->bind();
 	assert(res);
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	m_pointsBuffer->setUsagePattern(QOpenGLBuffer::DynamicDraw);
 #else
 	m_pointsBuffer->setUsagePattern(QGLBuffer::DynamicDraw);
@@ -972,7 +973,7 @@ void iAScatterPlot::fillVBO()
 	bool res = m_pointsBuffer->bind();
 	assert(res);
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(QOpenGLBuffer::ReadWrite));
 #else
 	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(QGLBuffer::ReadWrite));
