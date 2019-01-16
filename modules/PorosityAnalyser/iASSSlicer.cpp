@@ -25,6 +25,7 @@
 #include <iAChanData.h>
 #include <iAChannelVisualizationData.h>
 #include <iAConnector.h>
+#include <iAConsole.h>
 #include <iASlicer.h>
 #include <iASlicerSettings.h>
 #include <io/iAITKIO.h>
@@ -99,6 +100,8 @@ void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & im
 	reader->SetFileName( getLocalEncodingFileName(fileName).c_str() );
 	reader->Update();
 	imgData = reader->GetOutput();
+	if (!imgData)
+		DEBUG_LOG("Image data is NULL!");
 }
 
 iASSSlicer::iASSSlicer( const QString slicerName ) :

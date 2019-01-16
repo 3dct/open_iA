@@ -21,6 +21,7 @@
 #include "iASegm3DView.h"
 
 #include <defines.h>
+#include <iAConsole.h>
 #include <iAFast3DMagicLensWidget.h>
 #include <iARenderer.h>
 #include <iARendererManager.h>
@@ -61,6 +62,9 @@ iASegm3DView::iASegm3DView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */
 
 void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPolyData*> polyData, QList<vtkPiecewiseFunction*> otf, QList<vtkColorTransferFunction*> ctf, QStringList slicerNames )
 {
+	for (auto i: imgData)
+		if (!i)
+			DEBUG_LOG("Image data is NULL!");
 	m_range = 0.0;
 	m_renMgr->removeAll();
 	foreach( iASegm3DViewData* sd, m_data )
@@ -222,6 +226,8 @@ void iASegm3DViewData::removeObserver()
 
 void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
+	if (!imgData)
+		DEBUG_LOG("Image data is NULL!");
 	iASimpleTransferFunction tf(ctf, otf);
 	if( !m_rendInitialized )
 	{
