@@ -42,6 +42,7 @@ namespace
 	{
 		size_t refFiberCount = refTable->GetNumberOfRows();
 		bestMatches.resize(iARefDistCompute::SimilarityMeasureCount);
+		size_t maxNumberOfCloseFibers = std::min(iARefDistCompute::MaxNumberOfCloseFibers, refFiberCount);
 		for (int d = 0; d<iARefDistCompute::SimilarityMeasureCount; ++d)
 		{
 			std::vector<iAFiberSimilarity> similarities;
@@ -70,12 +71,12 @@ namespace
 				}
 			}
 			std::sort(similarities.begin(), similarities.end());
-			std::copy(similarities.begin(), similarities.begin() + iARefDistCompute::MaxNumberOfCloseFibers, std::back_inserter(bestMatches[d]));
+			std::copy(similarities.begin(), similarities.begin() + maxNumberOfCloseFibers, std::back_inserter(bestMatches[d]));
 		}
 	}
 }
 
-int iARefDistCompute::MaxNumberOfCloseFibers = 25;
+size_t iARefDistCompute::MaxNumberOfCloseFibers = 25;
 
 iARefDistCompute::iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, int referenceID):
 	m_data(data),

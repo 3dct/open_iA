@@ -193,7 +193,8 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 			// (though actually same mapping should be guaranteed by using same config)
 		}
 
-		QFileInfo timeInfo(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).baseName());
+		QString timeInfoPath(QFileInfo(csvFile).absolutePath() + "/" + QFileInfo(csvFile).baseName());
+		QFileInfo timeInfo(timeInfoPath);
 
 		// TODO: in case reading gets inefficient, look at pre-reserving the required amount of fields
 		//       and using std::vector::swap to assign the sub-vectors!

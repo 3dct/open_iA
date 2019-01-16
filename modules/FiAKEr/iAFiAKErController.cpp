@@ -232,7 +232,7 @@ void iAFiAKErController::resultsLoaded()
 	m_spnboxReferenceCount = new QSpinBox();
 	m_spnboxReferenceCount->setValue(1);
 	m_spnboxReferenceCount->setMinimum(1);
-	m_spnboxReferenceCount->setMaximum(iARefDistCompute::MaxNumberOfCloseFibers);
+	m_spnboxReferenceCount->setMaximum(1);
 	m_showReferenceWidget->setLayout(new QHBoxLayout());
 	m_showReferenceWidget->layout()->setContentsMargins(0, 0, 0, 0);
 	m_showReferenceWidget->layout()->setSpacing(SettingSpacing);
@@ -1578,6 +1578,7 @@ void iAFiAKErController::refDistAvailable()
 		changedSpmColumns.push_back(columnID);
 	}
 	m_referenceID = m_refDistCompute->referenceID();
+	m_spnboxReferenceCount->setMaximum(std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_data->result[m_referenceID].fiberCount));
 	m_data->spmData->updateRanges(changedSpmColumns);
 	m_spm->update();
 	delete m_refDistCompute;
@@ -1691,7 +1692,7 @@ void iAFiAKErController::changeReferenceDisplay()
 {
 	size_t similarityMeasure = clamp(0, iARefDistCompute::SimilarityMeasureCount, m_cmbboxSimilarityMeasure->currentIndex());
 	bool showRef = m_chkboxShowReference->isChecked();
-	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
+	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<size_t>(m_spnboxReferenceCount->value()));
 
 	if (m_nearestReferenceVis)
 	{

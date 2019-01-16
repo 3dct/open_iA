@@ -39,7 +39,7 @@ public:
 	static const int OverlapMeasureStart = SimilarityMeasureCount-OverlapMeasureCount;
 	static const int EndColumns = 2;
 	static const int BestMeasureWithoutOverlap = 2;
-	static int MaxNumberOfCloseFibers;
+	static size_t MaxNumberOfCloseFibers;
 	iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, int referenceID);
 	void run() override;
 	iAProgress* progress();
