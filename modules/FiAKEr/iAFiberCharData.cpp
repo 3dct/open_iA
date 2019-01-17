@@ -48,7 +48,7 @@ const QString iAFiberResultsCollection::SimpleFormat("FIAKER Simple Format");
 
 namespace
 {
-	const double CoordinateShift = 74.5;
+	const double CoordinateShift = 0;
 
 	iACsvConfig getLegacyConfig()
 	{

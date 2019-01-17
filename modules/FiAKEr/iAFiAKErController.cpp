@@ -1238,10 +1238,15 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 void iAFiAKErController::toggleBoundingBox(int state)
 {
 	int resultID = QObject::sender()->property("resultID").toInt();
-	addInteraction(QString("Toggle bounding box of %1").arg(resultName(resultID)));
+	addInteraction(QString("Toggle bounding box of result %1.")
+		.arg(resultName(resultID)));
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
+	{
+		const double * b = ui.main3DVis->bounds();
+		DEBUG_LOG(QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)").arg(b[0]).arg(b[1]).arg(b[2]).arg(b[3]).arg(b[4]).arg(b[5]));
 		ui.main3DVis->showBoundingBox();
+	}
 	else
 		ui.main3DVis->hideBoundingBox();
 }
