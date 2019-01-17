@@ -2067,6 +2067,7 @@ void iAFiAKErController::saveAnalysisClick()
 		return;
 	addInteraction(QString("Save Analysis as '%1'").arg(fileName));
 	QSettings projectFile(fileName, QSettings::IniFormat);
+	projectFile.setIniCodec("UTF-8");
 	projectFile.setValue(ProjectFileFolder, MakeRelative(QFileInfo(fileName).absolutePath(), m_data->folder));
 	projectFile.setValue(ProjectFileFormat, m_configName);
 	if (m_referenceID != NoResult)
@@ -2085,6 +2086,7 @@ void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folde
 	if (fileName.isEmpty())
 		return;
 	QSettings projectFile(fileName, QSettings::IniFormat);
+	projectFile.setIniCodec("UTF-8");
 	auto dataFolder  = MakeAbsolute(QFileInfo(fileName).absolutePath(), projectFile.value(ProjectFileFolder, "").toString());
 	auto configName  = projectFile.value(ProjectFileFormat, "").toString();
 	auto explorer = new iAFiAKErController(mainWnd);
