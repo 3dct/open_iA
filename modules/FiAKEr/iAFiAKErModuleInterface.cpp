@@ -35,11 +35,12 @@ void iAFiAKErModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QAction * actionFiAKEr = new QAction( "FiAKEr (Folder)", nullptr );
-	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFiAKEr, false );
+	QMenu * fiakerMenu = getMenuWithTitle(toolsMenu, tr("FiAKEr"), false);
+	QAction * actionFiAKEr = new QAction( "Open Results Folder", nullptr );
+	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKEr, false );
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::FiAKEr );
-	QAction * actionFiAKErProject = new QAction("FiAKEr (Project)", nullptr);
-	AddActionToMenuAlphabeticallySorted(toolsMenu, actionFiAKErProject, false);
+	QAction * actionFiAKErProject = new QAction("Load Project", nullptr);
+	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKErProject, false);
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::FiAKErProject);
 }
 
