@@ -44,6 +44,7 @@
 #include <iAToolsITK.h>
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
+#include <iAModalityList.h>
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>
 
@@ -1946,10 +1947,18 @@ void dlg_FeatureScout::WisetexSaveButton()
 
 void dlg_FeatureScout::ExportClassButton()
 {
+	// if no volume loaded, then exit
 	if ( visualization != iACsvConfig::UseVolume )
 	{
-		QMessageBox::information(this, "FeatureScout", "Feature only available if labelled volume visualization is used!");
-		return;
+		if (activeChild->GetModalities()->size() == 0)
+		{
+			QMessageBox::information(this, "FeatureScout", "Feature only available if labeled volume is loaded!");
+			return;
+		}
+		else if (QMessageBox::question(this, "FeatureScout", "A labeled volume is required."
+			"You are not using labeled volume visualization - are you sure a labeled volume is loaded?",
+			QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
+			return;
 	}
 	int classCount = classTreeModel->invisibleRootItem()->rowCount();
 	if (classCount < 2)	// unclassified class only
