@@ -53,6 +53,7 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 
+#include <vtkCubeSource.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkLine.h>
 #include <vtkPointData.h>
@@ -294,6 +295,14 @@ void iAFiAKErController::resultsLoaded()
 	sliderWidgetLayout->addWidget(diameterFactorSlider, 2, 1);
 	sliderWidgetLayout->addWidget(m_diameterFactorLabel, 2, 2);
 
+	QCheckBox* fiberContextWidget = new QCheckBox("Show selected fiber context");
+	connect(fiberContextWidget, &QCheckBox::stateChanged, this, &iAFiAKErController::showFiberContextChanged);
+	/*
+	QWidget* fiberContextWidget = new QWidget();
+	auto fiberContextLayout = new QHBoxLayout();
+	fiberContextWidget
+	*/
+
 	QWidget* moreButtons = new QWidget();
 	moreButtons->setLayout(new QHBoxLayout());
 	moreButtons->layout()->setContentsMargins(0, 0, 0, 0);
@@ -312,8 +321,6 @@ void iAFiAKErController::resultsLoaded()
 	selectionModeChoice->addItem("Rubberband Rectangle (Endpoints)");
 	selectionModeChoice->addItem("Single Fiber Click");
 	connect(selectionModeChoice, SIGNAL(currentIndexChanged(int)), this, SLOT(selectionModeChanged(int)));
-	moreButtons->layout()->addWidget(selectionModeChoice);
-
 	auto selectionModeWidget = new QWidget();
 	selectionModeWidget->setLayout(new QHBoxLayout());
 	selectionModeWidget->layout()->setContentsMargins(0, 0, 0, 0);
@@ -340,6 +347,7 @@ void iAFiAKErController::resultsLoaded()
 	main3DViewSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
 	main3DViewSettings->layout()->setSpacing(SettingSpacing);
 	main3DViewSettings->layout()->addWidget(sliderWidget);
+	main3DViewSettings->layout()->addWidget(fiberContextWidget);
 	main3DViewSettings->layout()->addWidget(selectionModeWidget);
 	main3DViewSettings->layout()->addWidget(metricChoice);
 	main3DViewSettings->layout()->addWidget(moreButtons);
@@ -1551,6 +1559,48 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 		if (vis.main3DVis->visible())
 			vis.main3DVis->setDiameterFactor(DiameterFactor);
 	}
+}
+
+void iAFiAKErController::showFiberContextChanged()
+{
+	for (auto actor: m_contextActors)
+		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
+	m_contextActors.clear();
+	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	{
+		auto & d = m_data->result[resultID];
+		for (int selectionID = 0; selectionID < m_selection[resultID].size(); ++selectionID)
+		{
+			size_t fiberID = m_selection[resultID][selectionID];
+			double start[3], end[3], center[3];
+			double diameter = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::Diameter)).ToFloat();
+			for (int i = 0; i < 3; ++i)
+			{
+				start[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
+				center[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::CenterX + i)).ToFloat();
+				end[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
+			}
+			auto cube = vtkSmartPointer<vtkCubeSource>::New();
+			cube->SetXLength( abs(start[0] - end[0]) + diameter);
+			cube->SetYLength( abs(start[1] - end[1]) + diameter);
+			cube->SetZLength( abs(start[2] - end[2]) + diameter);
+			auto mapper =	vtkSmartPointer<vtkPolyDataMapper>::New();
+			mapper->SetInputConnection(cube->GetOutputPort());
+			auto actor = vtkSmartPointer<vtkActor>::New();
+			actor->SetPosition(center);
+			actor->GetProperty()->SetRepresentationToWireframe();
+			actor->SetMapper(mapper);
+			m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+			m_contextActors.push_back(actor);
+			DEBUG_LOG(QString("Fiber %1, bounding box (x: %2..%3, y: %4..%5, z: %6..%7), center (%8, %9, %10)").arg(fiberID)
+				.arg(start[0]).arg(end[0])
+				.arg(start[1]).arg(end[1])
+				.arg(start[2]).arg(end[2])
+				.arg(center[0]).arg(center[1]).arg(center[2]));
+		}
+	}
+	m_mainRenderer->GetRenderWindow()->Render();
+	m_mainRenderer->update();
 }
 
 namespace

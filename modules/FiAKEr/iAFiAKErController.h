@@ -127,6 +127,7 @@ private slots:
 	void showReferenceInChartToggled();
 	void distributionChartTypeChanged(int);
 	void diameterFactorChanged(int);
+	void showFiberContextChanged();
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
@@ -196,6 +197,7 @@ private:
 	QComboBox* m_cmbboxSimilarityMeasure;
 	vtkSmartPointer<vtkActor> m_refLineActor;
 	QWidget* m_showReferenceWidget;
+	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
 
 	size_t m_projectReferenceID;
 
