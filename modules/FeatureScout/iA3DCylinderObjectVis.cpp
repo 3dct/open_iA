@@ -46,14 +46,31 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* obj
 	}
 	m_linePolyData->GetPointData()->AddArray(tubeRadius);
 	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
-	auto tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
-	tubeFilter->SetInputData(m_linePolyData);
-	tubeFilter->CappingOn();
-	tubeFilter->SidesShareVerticesOff();
-	tubeFilter->SetNumberOfSides(numberOfCylinderSides);
-	tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
-	tubeFilter->Update();
-	m_mapper->SetInputConnection(tubeFilter->GetOutputPort());
+	m_tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
+	m_tubeFilter->SetRadiusFactor(1.0);
+	m_tubeFilter->SetInputData(m_linePolyData);
+	m_tubeFilter->CappingOn();
+	m_tubeFilter->SidesShareVerticesOff();
+	m_tubeFilter->SetNumberOfSides(numberOfCylinderSides);
+	m_tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
+	m_tubeFilter->Update();
+	m_mapper->SetInputConnection(m_tubeFilter->GetOutputPort());
 
-	m_outlineFilter->SetInputConnection(tubeFilter->GetOutputPort());
+	m_outlineFilter->SetInputConnection(m_tubeFilter->GetOutputPort());
+}
+
+void iA3DCylinderObjectVis::setDiameterFactor(double diameterFactor)
+{
+	// NOTE: this requires modifying the vtkTubeFilter.cxx:
+	/*
+		else if ( inScalars &&
+			this->VaryRadius == VTK_VARY_RADIUS_BY_ABSOLUTE_SCALAR )
+		{
+			- sFactor = inScalars->GetComponent(pts[j],0);
+			+ sFactor = inScalars->GetComponent(pts[j],0) * this->RadiusFactor;
+	*/
+	m_tubeFilter->SetRadiusFactor(diameterFactor);
+	m_tubeFilter->Modified();
+	m_tubeFilter->Update();
+	updateRenderer();
 }

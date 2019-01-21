@@ -126,6 +126,7 @@ private slots:
 	void loadAnalysisClick();
 	void showReferenceInChartToggled();
 	void distributionChartTypeChanged(int);
+	void diameterFactorChanged(int);
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
@@ -187,7 +188,7 @@ private:
 	};
 	// Main Renderer:
 	iAVtkWidgetClass* m_mainRenderer;
-	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel;
+	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel;
 	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
 	QCheckBox* m_chkboxShowReference;
 	QCheckBox* m_chkboxShowLines;

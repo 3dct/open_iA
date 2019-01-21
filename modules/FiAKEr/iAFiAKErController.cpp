@@ -101,8 +101,11 @@ namespace
 	const int DefaultPlayDelay = 1000;
 	int HistogramBins = 20;
 
+	const int DefaultDiameterFactorSliderValue = 10; // = 1, value is divided / 10
+
 	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
 	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
+	double DiameterFactor = 1.0;
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
 	const size_t NoResult = NoPlotsIdx;
 	const QString ModuleSettingsKey("FIAKER");
@@ -269,17 +272,27 @@ void iAFiAKErController::resultsLoaded()
 	connect(m_contextOpacitySlider, &QSlider::valueChanged, this, &iAFiAKErController::contextOpacityChanged);
 	m_contextOpacityLabel = new QLabel(QString::number(ContextOpacity));
 
-	QWidget* opacityWidget = new QWidget();
-	auto opacityWidgetLayout = new QGridLayout();
-	opacityWidget->setLayout(opacityWidgetLayout);
-	opacityWidgetLayout->setContentsMargins(0, 0, 0, 0);
-	opacityWidgetLayout->setSpacing(SettingSpacing);
-	opacityWidgetLayout->addWidget(new QLabel("Main Opacity:"), 0, 0);
-	opacityWidgetLayout->addWidget(m_defaultOpacitySlider, 0, 1);
-	opacityWidgetLayout->addWidget(m_defaultOpacityLabel, 0, 2);
-	opacityWidgetLayout->addWidget(new QLabel("Context Opacity:"), 1, 0);
-	opacityWidgetLayout->addWidget(m_contextOpacitySlider, 1, 1);
-	opacityWidgetLayout->addWidget(m_contextOpacityLabel, 1, 2);
+	auto diameterFactorSlider = new QSlider(Qt::Horizontal);
+	diameterFactorSlider->setMinimum(1);
+	diameterFactorSlider->setMaximum(100);
+	diameterFactorSlider->setValue(DefaultDiameterFactorSliderValue);
+	connect(diameterFactorSlider, &QSlider::valueChanged, this, &iAFiAKErController::diameterFactorChanged);
+	m_diameterFactorLabel = new QLabel(QString::number(1.0));
+
+	QWidget* sliderWidget = new QWidget();
+	auto sliderWidgetLayout = new QGridLayout();
+	sliderWidget->setLayout(sliderWidgetLayout);
+	sliderWidgetLayout->setContentsMargins(0, 0, 0, 0);
+	sliderWidgetLayout->setSpacing(SettingSpacing);
+	sliderWidgetLayout->addWidget(new QLabel("Main Opacity:"), 0, 0);
+	sliderWidgetLayout->addWidget(m_defaultOpacitySlider, 0, 1);
+	sliderWidgetLayout->addWidget(m_defaultOpacityLabel, 0, 2);
+	sliderWidgetLayout->addWidget(new QLabel("Context Opacity:"), 1, 0);
+	sliderWidgetLayout->addWidget(m_contextOpacitySlider, 1, 1);
+	sliderWidgetLayout->addWidget(m_contextOpacityLabel, 1, 2);
+	sliderWidgetLayout->addWidget(new QLabel("Diameter mod. factor:"), 2, 0);
+	sliderWidgetLayout->addWidget(diameterFactorSlider, 2, 1);
+	sliderWidgetLayout->addWidget(m_diameterFactorLabel, 2, 2);
 
 	QWidget* moreButtons = new QWidget();
 	moreButtons->setLayout(new QHBoxLayout());
@@ -326,7 +339,7 @@ void iAFiAKErController::resultsLoaded()
 	main3DViewSettings->setLayout(new QVBoxLayout());
 	main3DViewSettings->layout()->setContentsMargins(SettingSpacing, SettingSpacing, SettingSpacing, SettingSpacing);
 	main3DViewSettings->layout()->setSpacing(SettingSpacing);
-	main3DViewSettings->layout()->addWidget(opacityWidget);
+	main3DViewSettings->layout()->addWidget(sliderWidget);
 	main3DViewSettings->layout()->addWidget(selectionModeWidget);
 	main3DViewSettings->layout()->addWidget(metricChoice);
 	main3DViewSettings->layout()->addWidget(moreButtons);
@@ -1169,6 +1182,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 	{
 		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
 		ui.main3DVis->setContextOpacity(ContextOpacity);
+		ui.main3DVis->setDiameterFactor(DiameterFactor);
 		size_t colorLookupParam = m_distributionChoice->currentIndex();
 		if (matchQualityVisActive())
 			showSpatialOverview();
@@ -1523,6 +1537,20 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 		}
 	}
 	showSelectionInPlots();
+}
+
+void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
+{
+	DiameterFactor = diameterFactorInt / 10.0;
+	addInteraction(QString("Set diameter modification factor to %1.").arg(DiameterFactor));
+	m_diameterFactorLabel->setText(QString::number(DiameterFactor));
+	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	{
+		auto & vis = m_resultUIs[resultID];
+		vis.mini3DVis->setDiameterFactor(DiameterFactor);
+		if (vis.main3DVis->visible())
+			vis.main3DVis->setDiameterFactor(DiameterFactor);
+	}
 }
 
 namespace

@@ -22,11 +22,17 @@
 
 #include "iA3DLineObjectVis.h"
 
+class vtkTubeFilter;
+
 class FeatureScout_API iA3DCylinderObjectVis: public iA3DLineObjectVis
 {
+private:
+	double m_diameterFactor = 1;
+	vtkSmartPointer<vtkTubeFilter> m_tubeFilter;
 public:
 	static const int DefaultNumberOfCylinderSides = 12;
 	iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 		QColor const & color, int numberOfCylinderSides = DefaultNumberOfCylinderSides);
+	void setDiameterFactor(double diameterFactor);
 };
 
