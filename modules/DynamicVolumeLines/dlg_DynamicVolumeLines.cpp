@@ -90,6 +90,7 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget *parent /*= 0*/, QDir dat
 	m_nonlinearScaledPlot(new QCustomPlot(dockWidgetContents)),
 	m_linearScaledPlot(new QCustomPlot(dockWidgetContents))
 {
+	connect(&m_iMProgress, SIGNAL(progress(int)), this, SLOT(updateIntensityMapperProgress(int)));
 	m_mdiChild->getRenderer()->setAreaPicker();
 	
 	m_nonlinearScaledPlot->setObjectName("nonlinear");
@@ -307,8 +308,9 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 
 void dlg_DynamicVolumeLines::generateHilbertIdx()
 {
+	m_mdiChild->initProgressBar();
 	QThread *thread = new QThread;
-	iAIntensityMapper *im = new iAIntensityMapper(m_datasetsDir, PathNameToId[cb_Paths->currentText()],
+	iAIntensityMapper *im = new iAIntensityMapper(m_iMProgress, m_datasetsDir, PathNameToId[cb_Paths->currentText()],
 		m_DatasetIntensityMap, m_imgDataList, m_minEnsembleIntensity, m_maxEnsembleIntensity);
 	im->moveToThread(thread);
 	connect(thread, SIGNAL(started()), im, SLOT(process()));
@@ -318,6 +320,11 @@ void dlg_DynamicVolumeLines::generateHilbertIdx()
 	//connect(thread, SIGNAL(finished()), this, SLOT(visualizePath()));		// Debug
 	connect(thread, SIGNAL(finished()), this, SLOT(visualize()));
 	thread->start();
+}
+
+void dlg_DynamicVolumeLines::updateIntensityMapperProgress(int progress)
+{
+	m_mdiChild->updateProgressBar(progress);
 }
 
 void dlg_DynamicVolumeLines::visualizePath()
@@ -357,6 +364,8 @@ void dlg_DynamicVolumeLines::visualizePath()
 
 void dlg_DynamicVolumeLines::visualize()
 {
+	m_mdiChild->hideProgressBar();
+
 	//TODO: refactor!?
 	m_nonlinearScaledPlot->clearGraphs();
 	m_nonlinearScaledPlot->clearItems();

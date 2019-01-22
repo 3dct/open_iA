@@ -30,7 +30,7 @@
 
 
 template<class T>
-void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensityList, 
+void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList<icData> &intensityList, 
 	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList, QList<double> &minEnsembleIntensityList, 
 	QList<double> &maxEnsembleIntensityList, QList<QVector<unsigned int>> &coordList)
 {
@@ -72,6 +72,7 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 				
 					delete[] coordPtr;
 					coordList.append(coord);
+					imp.EmitProgress((h + 1) * 100 / HilbertCnt);
 				}
 			}
 			
@@ -103,12 +104,13 @@ void getIntensities(PathID m_pathID, ImagePointer &image, QList<icData> &intensi
 	itkToVTKConverter->ReleaseDataFlagOn();
 }
 
-iAIntensityMapper::iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString,
+iAIntensityMapper::iAIntensityMapper(iAProgress &iMProgress, QDir datasetsDir, PathID pathID, QList<QPair<QString,
 	QList<icData>>> &datasetIntensityMap, QList<vtkSmartPointer<vtkImageData>> &imgDataList,
 	double &minEnsembleIntensity, double &maxEnsembleIntensity) :
-	m_DatasetIntensityMap(datasetIntensityMap),
+	m_iMProgress(iMProgress),
 	m_datasetsDir(datasetsDir),
 	m_pathID(pathID),
+	m_DatasetIntensityMap(datasetIntensityMap),
 	m_imgDataList(imgDataList),
 	m_minEnsembleIntensity(minEnsembleIntensity),
 	m_maxEnsembleIntensity(maxEnsembleIntensity)
@@ -129,7 +131,7 @@ void iAIntensityMapper::process()
 		QString dataset = m_datasetsDir.filePath(datasetsList.at(i));
 		ScalarPixelType pixelType;
 		ImagePointer image = iAITKIO::readFile(dataset, pixelType, true);
-		ITK_TYPED_CALL(getIntensities, pixelType, m_pathID, image, intensityList,
+		ITK_TYPED_CALL(getIntensities, pixelType, m_iMProgress, m_pathID, image, intensityList,
 			m_imgDataList, minEnsembleIntensityList, maxEnsembleIntensityList, coordList);
 		m_DatasetIntensityMap.push_back(qMakePair(datasetsList.at(i), intensityList));
 	}

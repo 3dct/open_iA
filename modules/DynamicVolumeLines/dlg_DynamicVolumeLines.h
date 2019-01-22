@@ -28,6 +28,7 @@
 #include <iAVtkWidgetFwd.h>
 #include <mdichild.h>
 #include <qthelper/iAQTtoUIConnector.h>
+#include <iAProgress.h>
 
 class iANonLinearAxisTicker;
 class iAOrientationWidget;
@@ -79,6 +80,7 @@ public slots:
 	void setSubHistBinCntFlag();
 	void updateHistColorMap(vtkSmartPointer<vtkLookupTable> LUT);
 	void compLevelRangeChanged();
+	void updateIntensityMapperProgress(int);
 
 signals:
 	void compLevelRangeChanged(QVector<double> compRange);
@@ -113,6 +115,7 @@ private:
 	QVector<double> m_histBinImpFunctAvgVec;
 	QVector<double> m_linearHistBinBoarderVec;
 	double m_stepSize;
+	iAProgress m_iMProgress;
 
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
