@@ -51,7 +51,7 @@ void iAFiAKErModuleInterface::FiAKEr()
 		return;
 	
 	auto explorer = new iAFiAKErController(m_mainWnd);
-	QStringList parameterNames = QStringList() << "+CSV Format";
+	QStringList parameterNames = QStringList() << "+CSV Format" << "#Step Coordinate Shift";
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iAFiberResultsCollection::SimpleFormat))
 		formatEntries.append(iAFiberResultsCollection::SimpleFormat);
@@ -62,14 +62,15 @@ void iAFiAKErModuleInterface::FiAKEr()
 	if (!formatEntries.contains(iACsvConfig::LegacyVoidFormat))
 		formatEntries.append(iACsvConfig::LegacyVoidFormat);
 	QList<QVariant> values;
-	values << formatEntries;
+	values << formatEntries << 0;
 	dlg_commoninput dlg(m_mainWnd, "Choose CSV Format", parameterNames, values);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
 	QString configName = dlg.getComboBoxValue(0);
+	double stepShift = dlg.getDblValue(1);
 	//cmbbox_Format->addItems(formatEntries);
 	m_mainWnd->addSubWindow(explorer);
-	explorer->start(path, configName);
+	explorer->start(path, configName, stepShift);
 }
 
 void iAFiAKErModuleInterface::FiAKErProject()

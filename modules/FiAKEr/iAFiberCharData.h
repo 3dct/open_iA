@@ -117,14 +117,14 @@ public:
 	std::vector<double> maxAvgDifference;
 
 // Methods:
-	bool loadData(QString const & path, QString const & configName, iAProgress * progress);
+	bool loadData(QString const & path, QString const & configName, double stepShift, iAProgress * progress);
 };
 
 class iAFiberResultsLoader: public QThread
 {
 	Q_OBJECT
 public:
-	iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results, QString const & path, QString const & configName);
+	iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results, QString const & path, QString const & configName, double stepShift);
 	void run() override;
 	iAProgress* progress();
 signals:
@@ -134,6 +134,7 @@ private:
 	QSharedPointer<iAFiberResultsCollection> m_results;
 	QString m_path;
 	QString m_configName;
+	double m_stepShift;
 };
 
 // helper functions:

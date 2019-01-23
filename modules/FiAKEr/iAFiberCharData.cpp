@@ -48,7 +48,7 @@ const QString iAFiberResultsCollection::SimpleFormat("FIAKER Simple Format");
 
 namespace
 {
-	const double CoordinateShift = 0;
+	const double SimpleConfigCoordShift = 74.5;
 
 	iACsvConfig getLegacyConfig()
 	{
@@ -75,7 +75,7 @@ namespace
 		config.computeTensors = false;
 		config.computeCenter = false;
 		config.computeStartEnd = true;
-		std::fill_n(config.offset, 3, CoordinateShift);
+		std::fill_n(config.offset, 3, SimpleConfigCoordShift);
 		config.visType = iACsvConfig::Cylinders;
 		config.currentHeaders = QStringList() <<
 			"ID" << "CenterX" << "CenterY" << "CenterZ" << "Phi" << "Theta" << "Length";
@@ -138,7 +138,7 @@ iAFiberResultsCollection::iAFiberResultsCollection():
 	maxFiberCount(0)
 {}
 
-bool iAFiberResultsCollection::loadData(QString const & path, QString const & configName, iAProgress * progress)
+bool iAFiberResultsCollection::loadData(QString const & path, QString const & configName, double stepShift, iAProgress * progress)
 {
 	folder = path;
 	QStringList filters;
@@ -270,7 +270,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 					}
 					double middlePoint[3];
 					for (int i = 0; i < 3; ++i)
-						middlePoint[i] = values[i].toDouble() + CoordinateShift; // middle point positions are shifted!
+						middlePoint[i] = values[i].toDouble() + stepShift; // middle point positions are shifted!
 					double theta = values[4].toDouble();
 					if (theta < 0)  // theta is encoded in -Pi, Pi instead of 0..Pi as we expect
 						theta = 2*vtkMath::Pi() + theta;
@@ -404,15 +404,16 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	return true;
 }
 
-iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results, QString const & path, QString const & configName):
+iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results, QString const & path, QString const & configName, double stepShift):
 	m_results(results),
 	m_path(path),
-	m_configName(configName)
+	m_configName(configName),
+	m_stepShift(stepShift)
 {}
 
 void iAFiberResultsLoader::run()
 {
-	if (!m_results->loadData(m_path, m_configName, &m_progress))
+	if (!m_results->loadData(m_path, m_configName, m_stepShift, &m_progress))
 		emit failed(m_path);
 }
 

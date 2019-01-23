@@ -115,6 +115,7 @@ namespace
 	const QString ProjectFileFolder("Folder");
 	const QString ProjectFileFormat("Format");
 	const QString ProjectFileReference("Reference");
+	const QString ProjectFileStepShift("StepShift");
 	
 	const QString DefaultResultColorTheme("Brewer Accent (max. 8)");
 	const QString DefaultStackedBarColorTheme("Material red (max. 10)");
@@ -184,7 +185,7 @@ void iAFiAKErController::toggleFullScreen()
 	mdiSubWin->show();
 }
 
-void iAFiAKErController::start(QString const & path, QString const & configName)
+void iAFiAKErController::start(QString const & path, QString const & configName, double stepShift)
 {
 	m_configName = configName;
 	m_jobs = new iAJobListView(DockWidgetMargin);
@@ -193,7 +194,7 @@ void iAFiAKErController::start(QString const & path, QString const & configName)
 	addDockWidget(Qt::BottomDockWidgetArea, m_views[JobView]);
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
-	auto resultsLoader = new iAFiberResultsLoader(m_data, path, configName);
+	auto resultsLoader = new iAFiberResultsLoader(m_data, path, configName, stepShift);
 	connect(resultsLoader, SIGNAL(finished()), this, SLOT(resultsLoaded()));
 	connect(resultsLoader, SIGNAL(failed(QString const &)), this, SLOT(resultsLoadFailed(QString const &)));
 	m_jobs->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
@@ -2172,12 +2173,13 @@ void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folde
 	projectFile.setIniCodec("UTF-8");
 	auto dataFolder  = MakeAbsolute(QFileInfo(fileName).absolutePath(), projectFile.value(ProjectFileFolder, "").toString());
 	auto configName  = projectFile.value(ProjectFileFormat, "").toString();
+	auto stepShift   = projectFile.value(ProjectFileStepShift, 0).toDouble();
 	auto explorer = new iAFiAKErController(mainWnd);
 	explorer->m_projectReferenceID = projectFile.value(ProjectFileReference, static_cast<qulonglong>(NoResult)).toULongLong();
 	mainWnd->addSubWindow(explorer);
 	if (explorer->m_projectReferenceID != NoResult)
 		connect(explorer, &iAFiAKErController::setupFinished, explorer, &iAFiAKErController::setProjectReference);
-	explorer->start(dataFolder, configName);
+	explorer->start(dataFolder, configName, stepShift);
 }
 
 void iAFiAKErController::setProjectReference()
