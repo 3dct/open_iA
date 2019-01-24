@@ -163,7 +163,10 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd) :
 	m_playTimer(new QTimer(this)),
 	m_refDistCompute(nullptr),
 	m_renderManager(new iARendererManager()),
-	m_colorByThemeName(iALUT::GetColorMapNames()[0])
+	m_colorByThemeName(iALUT::GetColorMapNames()[0]),
+	m_showFiberContext(false),
+	m_mergeContextBoxes(false),
+	m_contextSpacing(0.0)
 {
 	setDockOptions(AllowNestedDocks | AllowTabbedDocks);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -296,13 +299,30 @@ void iAFiAKErController::resultsLoaded()
 	sliderWidgetLayout->addWidget(diameterFactorSlider, 2, 1);
 	sliderWidgetLayout->addWidget(m_diameterFactorLabel, 2, 2);
 
-	QCheckBox* fiberContextWidget = new QCheckBox("Show selected fiber context");
-	connect(fiberContextWidget, &QCheckBox::stateChanged, this, &iAFiAKErController::showFiberContextChanged);
-	/*
 	QWidget* fiberContextWidget = new QWidget();
-	auto fiberContextLayout = new QHBoxLayout();
-	fiberContextWidget
-	*/
+	auto fiberContextLayout = new QVBoxLayout();
+	fiberContextWidget->setLayout(fiberContextLayout);
+	fiberContextLayout->setContentsMargins(0, 0, 0, 0);
+	fiberContextLayout->setSpacing(SettingSpacing);
+	QCheckBox* cbShowFiberContext = new QCheckBox("Show selected fiber context");
+	connect(cbShowFiberContext, &QCheckBox::stateChanged, this, &iAFiAKErController::showFiberContextChanged);
+	fiberContextLayout->addWidget(cbShowFiberContext);
+	QCheckBox* cbMergeFiberContextBoxes = new QCheckBox("Merge fiber context boxes");
+	connect(cbMergeFiberContextBoxes, &QCheckBox::stateChanged, this, &iAFiAKErController::mergeFiberContextBoxesChanged);
+	fiberContextLayout->addWidget(cbMergeFiberContextBoxes);
+	QWidget* fiberContextSpacingWidget = new QWidget();
+	auto fiberContextSpacingLayout = new QHBoxLayout();
+	fiberContextSpacingWidget->setLayout(fiberContextSpacingLayout);
+	fiberContextSpacingLayout->setContentsMargins(0, 0, 0, 0);
+	fiberContextSpacingLayout->setSpacing(SettingSpacing);
+	QDoubleSpinBox* sbContextSpacing = new QDoubleSpinBox();
+	sbContextSpacing->setRange(0.0, 1000.0);
+	sbContextSpacing->setValue(0.0);
+	fiberContextSpacingLayout->addWidget(new QLabel("Context Spacing"));
+	fiberContextSpacingLayout->addWidget(sbContextSpacing);
+	fiberContextLayout->addWidget(fiberContextSpacingWidget);
+	connect(sbContextSpacing, SIGNAL(valueChanged(double)), this, SLOT(contextSpacingChanged(double)));
+
 
 	QWidget* moreButtons = new QWidget();
 	moreButtons->setLayout(new QHBoxLayout());
@@ -1562,43 +1582,100 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 	}
 }
 
-void iAFiAKErController::showFiberContextChanged()
+void iAFiAKErController::showFiberContextChanged(int newState)
 {
-	for (auto actor: m_contextActors)
+	m_showFiberContext = (newState == Qt::Checked);
+	updateFiberContext();
+}
+
+void iAFiAKErController::mergeFiberContextBoxesChanged(int newState)
+{
+	m_mergeContextBoxes = (newState == Qt::Checked);
+	updateFiberContext();
+}
+
+void iAFiAKErController::contextSpacingChanged(double value)
+{
+	m_contextSpacing = value;
+	updateFiberContext();
+}
+
+namespace
+{
+	vtkSmartPointer<vtkActor> getCubeActor(iAVec3T<double> const & start, iAVec3T<double> const & end)
+	{
+		auto cube = vtkSmartPointer<vtkCubeSource>::New();
+		cube->SetXLength(abs(start[0] - end[0]));
+		cube->SetYLength(abs(start[1] - end[1]));
+		cube->SetZLength(abs(start[2] - end[2]));
+		auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		mapper->SetInputConnection(cube->GetOutputPort());
+		auto actor = vtkSmartPointer<vtkActor>::New();
+		actor->SetPosition( ((end-start)/2).data() );
+		actor->GetProperty()->SetRepresentationToWireframe();
+		actor->SetMapper(mapper);
+		return actor;
+	}
+}
+
+void iAFiAKErController::updateFiberContext()
+{
+	for (auto actor : m_contextActors)
 		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
 	m_contextActors.clear();
+	if (!m_showFiberContext)
+		return;
+	
+	iAVec3T<double> minCoord(std::numeric_limits<double>::max()), maxCoord(std::numeric_limits<double>::lowest());
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & d = m_data->result[resultID];
 		for (int selectionID = 0; selectionID < m_selection[resultID].size(); ++selectionID)
 		{
 			size_t fiberID = m_selection[resultID][selectionID];
-			double start[3], end[3], center[3];
 			double diameter = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::Diameter)).ToFloat();
+			double radius = diameter / 2;
+			if (!m_mergeContextBoxes)
+			{
+				minCoord = std::numeric_limits<double>::max();
+				maxCoord = std::numeric_limits<double>::lowest();
+			}
 			for (int i = 0; i < 3; ++i)
 			{
-				start[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
-				center[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::CenterX + i)).ToFloat();
-				end[i] = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
+				double startI = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
+				double endI = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
+
+				if ((startI - radius - m_contextSpacing) < minCoord[i])
+					minCoord[i] = startI - radius - m_contextSpacing;
+				if ((endI - radius - m_contextSpacing) < minCoord[i])
+					minCoord[i] = endI - radius - m_contextSpacing;
+
+				if ((startI + radius + m_contextSpacing) > maxCoord[i])
+					maxCoord[i] = startI + radius + m_contextSpacing;
+				if ((endI - radius - m_contextSpacing) < maxCoord[i])
+					maxCoord[i] = endI + radius + m_contextSpacing;
 			}
-			auto cube = vtkSmartPointer<vtkCubeSource>::New();
-			cube->SetXLength( abs(start[0] - end[0]) + diameter);
-			cube->SetYLength( abs(start[1] - end[1]) + diameter);
-			cube->SetZLength( abs(start[2] - end[2]) + diameter);
-			auto mapper =	vtkSmartPointer<vtkPolyDataMapper>::New();
-			mapper->SetInputConnection(cube->GetOutputPort());
-			auto actor = vtkSmartPointer<vtkActor>::New();
-			actor->SetPosition(center);
-			actor->GetProperty()->SetRepresentationToWireframe();
-			actor->SetMapper(mapper);
-			m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-			m_contextActors.push_back(actor);
-			DEBUG_LOG(QString("Fiber %1, bounding box (x: %2..%3, y: %4..%5, z: %6..%7), center (%8, %9, %10)").arg(fiberID)
-				.arg(start[0]).arg(end[0])
-				.arg(start[1]).arg(end[1])
-				.arg(start[2]).arg(end[2])
-				.arg(center[0]).arg(center[1]).arg(center[2]));
+			if (!m_mergeContextBoxes)
+			{
+				auto actor = getCubeActor(minCoord, maxCoord);
+				m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+				m_contextActors.push_back(actor);
+				DEBUG_LOG(QString("Fiber %1, bounding box (x: %2..%3, y: %4..%5, z: %6..%7)").arg(fiberID)
+					.arg(minCoord[0]).arg(maxCoord[0])
+					.arg(minCoord[1]).arg(maxCoord[1])
+					.arg(minCoord[2]).arg(maxCoord[2]));
+			}
 		}
+	}
+	if (m_mergeContextBoxes)
+	{
+		auto actor = getCubeActor(minCoord, maxCoord);
+		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+		m_contextActors.push_back(actor);
+		DEBUG_LOG(QString("Bounding box (x: %1..%2, y: %3..%4, z: %5..%6)")
+			.arg(minCoord[0]).arg(maxCoord[0])
+			.arg(minCoord[1]).arg(maxCoord[1])
+			.arg(minCoord[2]).arg(maxCoord[2]));
 	}
 	m_mainRenderer->GetRenderWindow()->Render();
 	m_mainRenderer->update();

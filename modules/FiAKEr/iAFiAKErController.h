@@ -127,7 +127,8 @@ private slots:
 	void showReferenceInChartToggled();
 	void distributionChartTypeChanged(int);
 	void diameterFactorChanged(int);
-	void showFiberContextChanged();
+	void showFiberContextChanged(int);
+	void mergeFiberContextBoxesChanged(int);
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
@@ -161,6 +162,8 @@ private:
 	void showMainVis(size_t resultID, int state);
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
+	void updateFiberContext();
+	void contextSpacingChanged(double value);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
@@ -181,6 +184,9 @@ private:
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
 	QString m_colorByThemeName;
+
+	bool m_showFiberContext, m_mergeContextBoxes;
+	double m_contextSpacing;
 
 	// Elements of the different views:
 	std::vector<iADockWidgetWrapper*> m_views;
