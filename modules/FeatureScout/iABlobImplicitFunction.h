@@ -44,7 +44,6 @@ public:
 	// Description:
 	// Evaluate function at position x-y-z and return value
 	double EvaluateFunction (double x[3]) override;
-	double EvaluateFunction (double x, double y, double z) override;
 	double JustEvaluateFunction (double x[3]);
 
 	// Description:

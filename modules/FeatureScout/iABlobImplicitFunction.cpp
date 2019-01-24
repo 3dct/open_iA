@@ -164,14 +164,6 @@ double iABlobImplicitFunction::EvaluateFunction (double x[3])
 	return value;
 }
 
-double iABlobImplicitFunction::EvaluateFunction (double x,
-												 double y,
-												 double z)
-{
-	double pos[3] = {x, y, z};
-	return EvaluateFunction (pos);
-}
-
 // Evaluate sphere gradient.
 void iABlobImplicitFunction::EvaluateGradient (double x[3], double n[3])
 {

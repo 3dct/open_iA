@@ -198,9 +198,11 @@ void iALabel3D::AttachActorsToRenderers( vtkRenderer * ren, vtkRenderer * labelR
 	captionActor->GetCaptionTextProperty()->ShadowOff();
 	captionActor->GetCaptionTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
 	captionActor->GetCaptionTextProperty()->SetBackgroundOpacity(0.3);
-	captionActor->GetCaptionTextProperty()->FrameOff();
 	captionActor->GetCaptionTextProperty()->SetColor(1.0, 0.0, 0.0);
+#if (VTK_MAJOR_VERSION >= 8)
+	captionActor->GetCaptionTextProperty()->FrameOff();
 	captionActor->GetCaptionTextProperty()->UseTightBoundingBoxOn();
+#endif
 	ren->AddViewProp(captionActor);
 
 	// Create the actor

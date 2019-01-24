@@ -15,7 +15,7 @@
 		typedef QVTKOpenGLWidget iAVtkOldWidget;
 	#else
 		class QVTKWidget;
-		class QVKTWidget2;
+		class QVTKWidget2;
 		typedef QVTKWidget2 iAVtkWidget;
 		typedef QVTKWidget iAVtkOldWidget;
 	#endif
