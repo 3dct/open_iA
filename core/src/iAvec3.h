@@ -41,6 +41,7 @@ public:
 	RealType z() const { return values[2]; }
 
 	template <typename ParamType> iAVec3T<RealType>& operator= (const iAVec3T<ParamType>& v);
+	template <typename ParamType> iAVec3T<RealType>& operator= (ParamType d);
 	iAVec3T<RealType> operator+ () const;
 	iAVec3T<RealType> operator- () const;
 	template <typename ParamType> iAVec3T<RealType>& operator+= (const iAVec3T<ParamType>& v);
@@ -54,7 +55,7 @@ public:
 	RealType sum() const;
 	void normalize();
 	iAVec3T<RealType> normalized() const;
-	RealType const * data() const;
+	RealType * data();
 private:
 	RealType values[3];
 };
@@ -107,6 +108,15 @@ iAVec3T<RealType>& iAVec3T<RealType>::operator= (const iAVec3T<ParamType>& v)
 {
 	for (int i = 0; i<3; ++i)
 		values[i] = static_cast<RealType>(v.values[i]);
+	return *this;
+}
+
+template <typename RealType>
+template <typename ParamType>
+iAVec3T<RealType>& iAVec3T<RealType>::operator= (ParamType d)
+{
+	for (int i = 0; i < 3; ++i)
+		values[i] = static_cast<RealType>(d);
 	return *this;
 }
 
@@ -205,7 +215,7 @@ iAVec3T<RealType> iAVec3T<RealType>::normalized() const
 }
 
 template <typename RealType>
-RealType const * iAVec3T<RealType>::data() const
+RealType * iAVec3T<RealType>::data()
 {
 	return values;
 }
@@ -242,10 +252,22 @@ iAVec3T<T1> operator + (const iAVec3T<T1>& u, const iAVec3T<T2>& v)
 	return iAVec3T<T1>(u.x() + static_cast<T1>(v.x()), u.y() + static_cast<T1>(v.y()), u.z() + static_cast<T1>(v.z()));
 }
 
+template <typename T1>
+iAVec3T<T1> operator + (const iAVec3T<T1>& u, T1 d)
+{
+	return iAVec3T<T1>(u.x() + d, u.y() + d, u.z() + d);
+}
+
 template <typename T1, typename T2>
 iAVec3T<T1> operator - (const iAVec3T<T1>& u, const iAVec3T<T2>& v)
 {
 	return iAVec3T<T1>(u.x() - static_cast<T1>(v.x()), u.y() - static_cast<T1>(v.y()), u.z() - static_cast<T1>(v.z()));
+}
+
+template <typename T1>
+iAVec3T<T1> operator - (const iAVec3T<T1>& u, T1 d)
+{
+	return iAVec3T<T1>(u.x() - d, u.y() - d, u.z() - d);
 }
 
 template <typename T1, typename T2>
