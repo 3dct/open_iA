@@ -26,6 +26,7 @@
 #include "PorosityAnalyserHelpers.h"
 
 #include <iAChannelVisualizationData.h>
+#include <iAConsole.h>
 #include <defines.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iABoxPlotData.h>
@@ -140,6 +141,8 @@ void iASSView::updateSettings()
 
 void iASSView::BuildDefaultTF( vtkSmartPointer<vtkImageData> & imgData, vtkSmartPointer<vtkColorTransferFunction> & tf, QColor color )
 {
+	if (!imgData)
+		DEBUG_LOG("Image data is NULL!");
 	tf->RemoveAllPoints();
 	tf->AddRGBPoint( imgData->GetScalarRange()[0], 0.0, 0.0, 0.0 );
 	tf->AddRGBPoint( imgData->GetScalarRange()[1], color.redF(), color.greenF(), color.blueF() );

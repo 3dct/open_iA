@@ -21,7 +21,7 @@
 #include "iA3DColoredPolyObjectVis.h"
 
 #include "iAVtkWidget.h"
-
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkActor.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkRendererCollection.h>

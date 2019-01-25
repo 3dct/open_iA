@@ -27,7 +27,7 @@ class iAIntensityMapper : public QObject
 	Q_OBJECT
 
 public:
-	iAIntensityMapper(QDir datasetsDir, PathID pathID, QList<QPair<QString, QList<icData>>> &datasetIntensityMap,
+	iAIntensityMapper(iAProgress &iMProgress, QDir datasetsDir, PathID pathID, QList<QPair<QString, QList<icData>>> &datasetIntensityMap,
 		QList<vtkSmartPointer<vtkImageData>> &m_imgDataList, double &minEnsembleIntensity, double &maxEnsembleIntensity);
 	~iAIntensityMapper();
 
@@ -39,6 +39,7 @@ signals:
 	void error(QString err);
 
 private:
+	iAProgress &m_iMProgress;
 	QDir m_datasetsDir;
 	PathID m_pathID;
 	QList<QPair<QString, QList<icData>>> &m_DatasetIntensityMap;

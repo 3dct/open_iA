@@ -44,6 +44,7 @@
 #include <iAToolsITK.h>
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
+#include <iAModalityList.h>
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>
 
@@ -1946,10 +1947,18 @@ void dlg_FeatureScout::WisetexSaveButton()
 
 void dlg_FeatureScout::ExportClassButton()
 {
+	// if no volume loaded, then exit
 	if ( visualization != iACsvConfig::UseVolume )
 	{
-		QMessageBox::information(this, "FeatureScout", "Feature only available if labelled volume visualization is used!");
-		return;
+		if (activeChild->GetModalities()->size() == 0)
+		{
+			QMessageBox::information(this, "FeatureScout", "Feature only available if labeled volume is loaded!");
+			return;
+		}
+		else if (QMessageBox::question(this, "FeatureScout", "A labeled volume is required."
+			"You are not using labeled volume visualization - are you sure a labeled volume is loaded?",
+			QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
+			return;
 	}
 	int classCount = classTreeModel->invisibleRootItem()->rowCount();
 	if (classCount < 2)	// unclassified class only
@@ -1976,31 +1985,45 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 	typedef itk::Image<ClassIDType, DIM>   OutputImageType;
 	OutputImageType::SizeType OutputImageSize;
 
-	bool fiberIDLabelling = (classTreeModel->invisibleRootItem()->rowCount() >= 2 &&
-		(m_renderMode == rmSingleClass && activeClassItem->row() > 0));
-	if (fiberIDLabelling &&
-		(QMessageBox::question(this, "FeatureScout", "Only one class selected, "
-			"should we export the individual fiber IDs? "
-			"If you select No, all fibers in the class will be labelled with the class ID.",
-			QMessageBox::Yes | QMessageBox::No)
-			== QMessageBox::No))
-	{
-		fiberIDLabelling = false;
-	}
-
 	QMap<size_t, ClassIDType> currentEntries;
+
+	QString mode1 = "Export all classes";
+	QString mode2 = "Export single selected class";
+	QStringList modes = (QStringList() << tr(mode1.toStdString().c_str()) << tr(mode2.toStdString().c_str()));
+	QStringList inList = (QStringList() << tr("+Classification"));
+	QList<QVariant> inPara = (QList<QVariant>() << modes);
+	dlg_commoninput dlg(this, "Save classification options", inList, inPara, NULL);
+	if (dlg.exec() != QDialog::Accepted)
+		return;
+	QString mode = dlg.getComboBoxValue(0);
+	bool exportAllClassified = (mode.compare(mode1) == 0); //if export all selected else single class export
+
 	// Skip first, as classes start with 1, 0 is the uncategorized class
 	for (int i = 1; i < classTreeModel->invisibleRootItem()->rowCount(); i++)
 	{
-		if (m_renderMode == rmSingleClass && i != activeClassItem->row())
+	
+		if (!exportAllClassified && i != activeClassItem->row())
 			continue;
-		auto x = classTreeModel->invisibleRootItem()->rowCount();
+		
 		QStandardItem *item = classTreeModel->invisibleRootItem()->child(i);
 		for (int j = 0; j < item->rowCount(); j++)
 		{
 			size_t labelID = item->child(j)->text().toULongLong();
 			currentEntries.insert(labelID, i);
 		}
+	}
+
+	//export class ID or fiber labels for single class
+	bool fiberIDLabelling = (classTreeModel->invisibleRootItem()->rowCount() >= 2 &&
+		(m_renderMode == rmSingleClass && activeClassItem->row() > 0) && (!exportAllClassified ));
+	if (fiberIDLabelling &&
+		(QMessageBox::question(this, "FeatureScout", "Only one class selected, "
+			"should we export the individual fiber IDs? "
+			"If you select No, all fibers in the class will be labeled with the class ID.",
+			QMessageBox::Yes | QMessageBox::No)
+			== QMessageBox::No))
+	{
+		fiberIDLabelling = false;
 	}
 
 	auto in_img = dynamic_cast<InputImageType*>(con.GetITKImage());
