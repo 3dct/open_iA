@@ -1,4 +1,6 @@
-# open_iA
+# open\_iA
+
+[![status](http://joss.theoj.org/papers/efb86983da60c89c5e7ef74479be45c6/status.svg)](http://joss.theoj.org/papers/efb86983da60c89c5e7ef74479be45c6)
 
 A tool for the visual analysis and processing of volumetric datasets, with a focus on industrial computed tomography datasets.
 
