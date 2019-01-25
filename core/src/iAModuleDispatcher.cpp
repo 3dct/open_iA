@@ -176,13 +176,13 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 	MODULE_HANDLE handle = LoadModule(fi, logger);
 	if (!handle)
 	{
-		return NULL;
+		return nullptr;
 	}
 	iAModuleInterface * m = LoadModuleInterface(handle);
 	if (!m)
 	{
 		logger->Log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
-		return NULL;
+		return nullptr;
 	}
 	InitializeModuleInterface(m);
 	m_loadedModules.push_back(iALoadedModule(fi.completeBaseName(), handle, m));
@@ -192,10 +192,18 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 void iAModuleDispatcher::InitializeModules(iALogger* logger)
 {
 	QFileInfoList fList = GetLibraryList(m_rootPath);
-	for (QFileInfo fi : fList)
+	QFileInfoList failed;
+	bool someNewLoaded = true;
+	do
 	{
-		LoadModuleAndInterface(fi, logger);
-	}
+		for (QFileInfo fi : fList)
+		{
+			if (!LoadModuleAndInterface(fi, logger))
+				failed.push_back(fi);
+		}
+		someNewLoaded = failed.size() < fList.size();
+		fList = failed;
+	} while (fList.size() != 0 && someNewLoaded);
 	if (!m_mainWnd)	// all non-GUI related stuff already done
 	{
 		return;
