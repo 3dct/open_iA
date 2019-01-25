@@ -1410,6 +1410,7 @@ void iAFiAKErController::showSelectionIn3DViews()
 		if (ui.main3DVis->visible())
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
 	}
+	// TODO: prevent multiple render window / widget updates?
 }
 
 void iAFiAKErController::showSelectionInSPM()
@@ -1437,6 +1438,7 @@ void iAFiAKErController::selection3DChanged()
 	showSelectionInPlots();
 	showSelectionInSPM();
 	changeReferenceDisplay();
+	updateFiberContext();
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 		m_views[SelectionView]->show();
 }
@@ -1456,6 +1458,7 @@ void iAFiAKErController::selectionSPMChanged(std::vector<size_t> const & selecti
 	showSelectionIn3DViews();
 	showSelectionInPlots();
 	changeReferenceDisplay();
+	updateFiberContext();
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 		m_views[SelectionView]->show();
 }
@@ -1485,6 +1488,7 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 	showSelectionIn3DViews();
 	showSelectionInSPM();
 	changeReferenceDisplay();
+	updateFiberContext();
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 		m_views[SelectionView]->show();
 }
@@ -1611,7 +1615,13 @@ namespace
 		auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		mapper->SetInputConnection(cube->GetOutputPort());
 		auto actor = vtkSmartPointer<vtkActor>::New();
-		actor->SetPosition( ((end-start)/2).data() );
+		auto pos = (start + end) / 2;
+		DEBUG_LOG(QString("Bounding box (x: %1..%2, y: %3..%4, z: %5..%6), center: (%7, %8, %9)")
+			.arg(start[0]).arg(end[0])
+			.arg(start[1]).arg(end[1])
+			.arg(start[2]).arg(end[2])
+			.arg(pos[0]).arg(pos[1]).arg(pos[2]));
+		actor->SetPosition( pos.data() );
 		actor->GetProperty()->SetRepresentationToWireframe();
 		actor->SetMapper(mapper);
 		return actor;
@@ -1623,59 +1633,51 @@ void iAFiAKErController::updateFiberContext()
 	for (auto actor : m_contextActors)
 		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
 	m_contextActors.clear();
-	if (!m_showFiberContext)
-		return;
-	
-	iAVec3T<double> minCoord(std::numeric_limits<double>::max()), maxCoord(std::numeric_limits<double>::lowest());
-	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
+	if (m_showFiberContext)
 	{
-		auto & d = m_data->result[resultID];
-		for (int selectionID = 0; selectionID < m_selection[resultID].size(); ++selectionID)
+		iAVec3T<double> minCoord(std::numeric_limits<double>::max()), maxCoord(std::numeric_limits<double>::lowest());
+		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
-			size_t fiberID = m_selection[resultID][selectionID];
-			double diameter = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::Diameter)).ToFloat();
-			double radius = diameter / 2;
-			if (!m_mergeContextBoxes)
+			auto & d = m_data->result[resultID];
+			for (int selectionID = 0; selectionID < m_selection[resultID].size(); ++selectionID)
 			{
-				minCoord = std::numeric_limits<double>::max();
-				maxCoord = std::numeric_limits<double>::lowest();
-			}
-			for (int i = 0; i < 3; ++i)
-			{
-				double startI = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
-				double endI = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
+				size_t fiberID = m_selection[resultID][selectionID];
+				double diameter = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::Diameter)).ToFloat();
+				double radius = diameter / 2;
+				if (!m_mergeContextBoxes)
+				{
+					minCoord = std::numeric_limits<double>::max();
+					maxCoord = std::numeric_limits<double>::lowest();
+				}
+				for (int i = 0; i < 3; ++i)
+				{
+					double startI = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
+					double endI = d.table->GetValue(fiberID, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
 
-				if ((startI - radius - m_contextSpacing) < minCoord[i])
-					minCoord[i] = startI - radius - m_contextSpacing;
-				if ((endI - radius - m_contextSpacing) < minCoord[i])
-					minCoord[i] = endI - radius - m_contextSpacing;
+					if ((startI - radius - m_contextSpacing) < minCoord[i])
+						minCoord[i] = startI - radius - m_contextSpacing;
+					if ((endI - radius - m_contextSpacing) < minCoord[i])
+						minCoord[i] = endI - radius - m_contextSpacing;
 
-				if ((startI + radius + m_contextSpacing) > maxCoord[i])
-					maxCoord[i] = startI + radius + m_contextSpacing;
-				if ((endI - radius - m_contextSpacing) < maxCoord[i])
-					maxCoord[i] = endI + radius + m_contextSpacing;
-			}
-			if (!m_mergeContextBoxes)
-			{
-				auto actor = getCubeActor(minCoord, maxCoord);
-				m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-				m_contextActors.push_back(actor);
-				DEBUG_LOG(QString("Fiber %1, bounding box (x: %2..%3, y: %4..%5, z: %6..%7)").arg(fiberID)
-					.arg(minCoord[0]).arg(maxCoord[0])
-					.arg(minCoord[1]).arg(maxCoord[1])
-					.arg(minCoord[2]).arg(maxCoord[2]));
+					if ((startI + radius + m_contextSpacing) > maxCoord[i])
+						maxCoord[i] = startI + radius + m_contextSpacing;
+					if ((endI + radius + m_contextSpacing) > maxCoord[i])
+						maxCoord[i] = endI + radius + m_contextSpacing;
+				}
+				if (!m_mergeContextBoxes)
+				{
+					auto actor = getCubeActor(minCoord, maxCoord);
+					m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+					m_contextActors.push_back(actor);
+				}
 			}
 		}
-	}
-	if (m_mergeContextBoxes)
-	{
-		auto actor = getCubeActor(minCoord, maxCoord);
-		m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-		m_contextActors.push_back(actor);
-		DEBUG_LOG(QString("Bounding box (x: %1..%2, y: %3..%4, z: %5..%6)")
-			.arg(minCoord[0]).arg(maxCoord[0])
-			.arg(minCoord[1]).arg(maxCoord[1])
-			.arg(minCoord[2]).arg(maxCoord[2]));
+		if (m_mergeContextBoxes)
+		{
+			auto actor = getCubeActor(minCoord, maxCoord);
+			m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+			m_contextActors.push_back(actor);
+		}
 	}
 	m_mainRenderer->GetRenderWindow()->Render();
 	m_mainRenderer->update();
