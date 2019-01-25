@@ -91,6 +91,11 @@ void iADerivedOutputCalculator::run()
 			entropyFilter->Update();
 			double avgEntropy;
 			getStatistics(entropyFilter->GetOutput(), nullptr, nullptr, &avgEntropy);
+			if (qIsInf(avgEntropy))
+			{
+				DEBUG_LOG("AverageEntropy was infinity! Setting to -1")
+				avgEntropy = -1;
+			}
 			m_result->SetAttribute(m_avgUncIdx, avgEntropy);
 			m_result->DiscardProbability();
 		}
