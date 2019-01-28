@@ -165,6 +165,13 @@ private:
 	void updateFiberContext();
 	void contextSpacingChanged(double value);
 
+	QWidget* setupMain3DView();
+	QWidget* setupSettingsView();
+	QWidget* setupOptimStepView();
+	QWidget* setupResultListView();
+	QWidget* setupProtocolView();
+	QWidget* setupSelectionView();
+
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
 	std::vector<iAFiberCharUIData> m_resultUIs;

@@ -217,8 +217,47 @@ void iAFiAKErController::resultsLoaded()
 	m_resultUIs.resize(m_data->result.size());
 	m_selection.resize(m_data->result.size());
 
-	// Main 3D View:
+	auto main3DView = setupMain3DView();
+	auto settingsView = setupSettingsView();
+	auto optimStepsView = setupOptimStepView();
+	auto resultListView = setupResultListView();
+	auto protocolView = setupProtocolView();
+	auto selectionView = setupSelectionView();
 
+	m_views.resize(DockWidgetCount);
+	m_views[ResultListView] = new iADockWidgetWrapper(resultListView, "Result list", "foeResultList");
+	m_views[Main3DView]     = new iADockWidgetWrapper(main3DView, "3D view", "foe3DView");
+	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeTimeSteps");
+	m_views[SPMView]        = new iADockWidgetWrapper(m_spm, "Scatter Plot Matrix", "foeSPM");
+	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "Interactions", "foeInteractions");
+	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "Selections", "foeSelections");
+	m_views[SettingsView]   = new iADockWidgetWrapper(settingsView, "Settings", "foeSettings");
+
+	splitDockWidget(m_views[JobView], m_views[ResultListView], Qt::Vertical);
+	splitDockWidget(m_views[ResultListView], m_views[Main3DView], Qt::Horizontal);
+	splitDockWidget(m_views[ResultListView], m_views[OptimStepChart], Qt::Vertical);
+	splitDockWidget(m_views[Main3DView], m_views[SPMView], Qt::Horizontal);
+	splitDockWidget(m_views[ResultListView], m_views[ProtocolView], Qt::Vertical);
+	splitDockWidget(m_views[Main3DView], m_views[SelectionView], Qt::Vertical);
+	splitDockWidget(m_views[Main3DView], m_views[SettingsView], Qt::Vertical);
+
+	loadStateAndShow();
+}
+
+iAFiAKErController::~iAFiAKErController()
+{
+	if (parent())
+	{
+		QSettings settings;
+		settings.setValue(ModuleSettingsKey + "/maximized", isMaximized());
+		if (!isMaximized())
+			settings.setValue(ModuleSettingsKey + "/geometry", qobject_cast<QWidget*>(parent())->geometry());
+		settings.setValue(ModuleSettingsKey + "/state", saveState());
+	}
+}
+
+QWidget * iAFiAKErController::setupMain3DView()
+{
 	m_mainRenderer = new iAVtkWidgetClass();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	auto ren = vtkSmartPointer<vtkRenderer>::New();
@@ -259,10 +298,11 @@ void iAFiAKErController::resultsLoaded()
 	mainRendererContainer->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	mainRendererContainer->layout()->addWidget(m_mainRenderer);
 	mainRendererContainer->layout()->addWidget(m_showReferenceWidget);
+	return mainRendererContainer;
+}
 
-
-	// Settings View
-
+QWidget* iAFiAKErController::setupSettingsView()
+{
 	m_defaultOpacitySlider = new QSlider(Qt::Horizontal);
 	m_defaultOpacitySlider->setMinimum(0);
 	m_defaultOpacitySlider->setMaximum(255);
@@ -531,9 +571,11 @@ void iAFiAKErController::resultsLoaded()
 	settingsView->layout()->addWidget(leftSettingsWidget);
 	settingsView->layout()->addWidget(optimStepSettings);
 
+	return settingsView;
+}
 
-	// Optimization Steps View:
-
+QWidget* iAFiAKErController::setupOptimStepView()
+{
 	auto chartContainer = new QWidget();
 	m_optimChartLayout = new QVBoxLayout();
 	chartContainer->setLayout(m_optimChartLayout);
@@ -547,7 +589,7 @@ void iAFiAKErController::resultsLoaded()
 	connect(m_optimStepSlider, &QSlider::valueChanged, this, &iAFiAKErController::optimStepSliderChanged);
 	QPushButton* playPauseButton = new QPushButton("Play");
 	connect(playPauseButton, &QPushButton::pressed, this, &iAFiAKErController::playPauseOptimSteps);
-	
+
 	QWidget* optimStepsCtrls = new QWidget();
 	optimStepsCtrls->setLayout(new QHBoxLayout());
 	optimStepsCtrls->layout()->addWidget(m_optimStepSlider);
@@ -560,10 +602,11 @@ void iAFiAKErController::resultsLoaded()
 	optimStepsView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	optimStepsView->layout()->addWidget(chartContainer);
 	optimStepsView->layout()->addWidget(optimStepsCtrls);
+	return optimStepsView;
+}
 
-
-	// Results List View
-
+QWidget* iAFiAKErController::setupResultListView()
+{
 	size_t commonPrefixLength = 0, commonSuffixLength = 0;
 	QString baseName0;
 	for (int resultID = 0; resultID < m_data->result.size(); ++resultID)
@@ -594,7 +637,7 @@ void iAFiAKErController::resultsLoaded()
 	m_resultsListLayout->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	m_resultsListLayout->setColumnStretch(PreviewColumn, 1);
 	m_resultsListLayout->setColumnStretch(StackedBarColumn, m_data->result.size());
-	m_resultsListLayout->setColumnStretch(HistogramColumn, 2 * m_data->result.size() );
+	m_resultsListLayout->setColumnStretch(HistogramColumn, 2 * m_data->result.size());
 
 	auto colorTheme = iAColorThemeManager::GetInstance().GetTheme(DefaultStackedBarColorTheme);
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
@@ -718,9 +761,11 @@ void iAFiAKErController::resultsLoaded()
 	resultList->setLayout(m_resultsListLayout);
 	addStackedBar(0);
 	changeDistributionSource((*m_data->result[0].mapping)[iACsvConfig::Length]);
+	return resultListScrollArea;
+}
 
-	// Interaction Protocol:
-
+QWidget * iAFiAKErController::setupProtocolView()
+{
 	m_interactionProtocol = new QTreeView();
 	m_interactionProtocol->setHeaderHidden(true);
 	m_interactionProtocolModel = new QStandardItemModel();
@@ -729,10 +774,11 @@ void iAFiAKErController::resultsLoaded()
 	protocolView->setLayout(new QHBoxLayout());
 	protocolView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	protocolView->layout()->addWidget(m_interactionProtocol);
+	return protocolView;
+}
 
-
-	// Selection View:
-
+QWidget * iAFiAKErController::setupSelectionView()
+{
 	m_selectionListModel = new QStandardItemModel();
 	m_selectionList = new QListView();
 	m_selectionList->setModel(m_selectionListModel);
@@ -755,37 +801,7 @@ void iAFiAKErController::resultsLoaded()
 	selectionView->layout()->setContentsMargins(DockWidgetMargin, DockWidgetMargin, DockWidgetMargin, DockWidgetMargin);
 	selectionView->layout()->addWidget(selectionListWrapper);
 	selectionView->layout()->addWidget(selectionDetailWrapper);
-
-	m_views.resize(DockWidgetCount);
-	m_views[ResultListView] = new iADockWidgetWrapper(resultListScrollArea, "Result list", "foeResultList");
-	m_views[Main3DView]     = new iADockWidgetWrapper(mainRendererContainer, "3D view", "foe3DView");
-	m_views[OptimStepChart] = new iADockWidgetWrapper(optimStepsView, "Optimization Steps", "foeTimeSteps");
-	m_views[SPMView]        = new iADockWidgetWrapper(m_spm, "Scatter Plot Matrix", "foeSPM");
-	m_views[ProtocolView]   = new iADockWidgetWrapper(protocolView, "Interactions", "foeInteractions");
-	m_views[SelectionView]  = new iADockWidgetWrapper(selectionView, "Selections", "foeSelections");
-	m_views[SettingsView]   = new iADockWidgetWrapper(settingsView, "Settings", "foeSettings");
-
-	splitDockWidget(m_views[JobView], m_views[ResultListView], Qt::Vertical);
-	splitDockWidget(m_views[ResultListView], m_views[Main3DView], Qt::Horizontal);
-	splitDockWidget(m_views[ResultListView], m_views[OptimStepChart], Qt::Vertical);
-	splitDockWidget(m_views[Main3DView], m_views[SPMView], Qt::Horizontal);
-	splitDockWidget(m_views[ResultListView], m_views[ProtocolView], Qt::Vertical);
-	splitDockWidget(m_views[Main3DView], m_views[SelectionView], Qt::Vertical);
-	splitDockWidget(m_views[Main3DView], m_views[SettingsView], Qt::Vertical);
-
-	loadStateAndShow();
-}
-
-iAFiAKErController::~iAFiAKErController()
-{
-	if (parent())
-	{
-		QSettings settings;
-		settings.setValue(ModuleSettingsKey + "/maximized", isMaximized());
-		if (!isMaximized())
-			settings.setValue(ModuleSettingsKey + "/geometry", qobject_cast<QWidget*>(parent())->geometry());
-		settings.setValue(ModuleSettingsKey + "/state", saveState());
-	}
+	return selectionView;
 }
 
 void iAFiAKErController::loadStateAndShow()
