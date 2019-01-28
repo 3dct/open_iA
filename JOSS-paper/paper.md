@@ -35,10 +35,21 @@ date: December 21, 2018
 bibliography: paper.bib
 ---
 # Summary 
-open\_iA is a platform for visual analysis and processing of volumetric datasets. The main driver behind its development is to provide a common framework for performing visual analytics on industrial Computed Tomography (CT) data. It currently provides a variety of image processing filters, e.g. for noise reduction, segmentation, data type conversion, convolution, geometric transformations, and morphological operations. open\_iA is written in C++ using Qt, VKT and ITK, as well as some other open source libraries. open\_iA is continuously improved and extended. It is open source and available on GitHub under https://github.com/3dct/open\_iA.
-The core of open\_iA provides functionality for loading and displaying volumetric datasets in several file formats, as well as support for loading polygonal datasets. A comparison of volumes is facilitated through a magic lens as well as optional position indicators in all open child windows. In addition, it provides a view for showing the image histogram, where also the transfer function used for the slicer views and the 3D renderer is configured.
+open\_iA is a platform for visual analysis and processing of volumetric datasets.
+The main driver behind its development is to provide a common framework for performing visual analytics on industrial Computed Tomography (CT) data.
+In contrast to general volume visualization or processing software, it offers specialized tools, which address domain-specific analysis scenarios such as porosity determination, fiber characterization and image processing parameter space analysis.
+The wide range of building blocks, which these tools consist of, facilitate the development of new research prototypes in this application domain.
+It currently provides a variety of image processing filters, e.g. for noise reduction, segmentation, data type conversion, convolution, geometric transformations, and morphological operations.
+open\_iA is written in C++ using Qt, VKT and ITK, as well as some other open source libraries.
+open\_iA is continuously improved and extended. It is open source and available on GitHub under https://github.com/3dct/open_iA.
+The core of open\_iA provides functionality for loading and displaying volumetric datasets in several file formats, as well as support for loading polygonal datasets.
+A comparison of volumes is facilitated through a magic lens as well as optional position indicators in all open child windows.
+In addition, it provides a view for showing the image histogram, where also the transfer function used for the slicer views and the 3D renderer is configured.
 
-open\_iA is highly extensible through what we call modules, which makes it an ideal platform for research prototypes and tools. These modules can contain anything from simple image processing filters to complex visual analytics tools.  Several publications so far were already based on modules implemented in the open\_iA framework. The modules in the following list are included in the open\_iA repository:
+open\_iA is highly extensible through what we call modules, which makes it an ideal platform for research prototypes and tools.
+These modules can contain anything from simple image processing filters to complex visual analytics tools.
+Several publications so far were already based on modules implemented in the open\_iA framework.
+The modules in the following list are included in the open\_iA repository:
 
 - DreamCaster [@Amirkhanov:2010] is a tool for finding the best scanning parameters in a CT device for a given specimen.
 - FiberScout [@Weissenboeck:2014], later extended to FeatureScout, is a tool for analyzing the properties of collections of similar objects.
