@@ -50,6 +50,7 @@
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
 #include "iAStringHelper.h"
+#include "iAVtkWidget.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
@@ -139,7 +140,7 @@ namespace
 class iAFiberCharUIData
 {
 public:
-	iAVtkWidgetClass* vtkWidget;
+	iAVtkWidget* vtkWidget;
 	QSharedPointer<iA3DCylinderObjectVis> mini3DVis;
 	QSharedPointer<iA3DCylinderObjectVis> main3DVis;
 	QCheckBox* cbBoundingBox;
@@ -257,7 +258,7 @@ iAFiAKErController::~iAFiAKErController()
 
 QWidget * iAFiAKErController::setupMain3DView()
 {
-	m_mainRenderer = new iAVtkWidgetClass();
+	m_mainRenderer = new iAVtkWidget();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	auto ren = vtkSmartPointer<vtkRenderer>::New();
 	ren->SetBackground(1.0, 1.0, 1.0);

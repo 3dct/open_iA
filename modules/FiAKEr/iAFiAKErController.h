@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
+#include "iAVtkWidgetFwd.h"
 
 #include <vtkSmartPointer.h>
 
@@ -45,15 +46,6 @@ class iARendererManager;
 class iARefDistCompute;
 class iASPLOMData;
 class MainWindow;
-
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) )
-class QVTKOpenGLWidget;
-typedef QVTKOpenGLWidget iAVtkWidgetClass;
-#else
-class QVTKWidget2;
-typedef QVTKWidget2 iAVtkWidgetClass;
-#endif
 
 class vtkTable;
 
@@ -202,7 +194,7 @@ private:
 		JobView, ResultListView, Main3DView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
 	};
 	// Main Renderer:
-	iAVtkWidgetClass* m_mainRenderer;
+	iAVtkWidget* m_mainRenderer;
 	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel, *m_contextDiameterFactorLabel;
 	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
 	QCheckBox* m_chkboxShowReference;
