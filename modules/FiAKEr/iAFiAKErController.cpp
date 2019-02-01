@@ -546,6 +546,9 @@ QWidget* iAFiAKErController::setupSettingsView()
 	resultColorThemeChoiceWidget->layout()->addWidget(new QLabel("Result Colors:"));
 	resultColorThemeChoiceWidget->layout()->addWidget(resultColorThemeChoice);
 
+	auto volumeDatasetWidget = new QWidget();
+
+
 	QWidget* saveLoadAnalysisWidget = new QWidget();
 	saveLoadAnalysisWidget->setLayout(new QHBoxLayout());
 	saveLoadAnalysisWidget->layout()->setContentsMargins(0, 0, 0, 0);
@@ -563,6 +566,7 @@ QWidget* iAFiAKErController::setupSettingsView()
 	globalSettings->layout()->setSpacing(SettingSpacing);
 	globalSettings->layout()->addWidget(resultColorThemeChoiceWidget);
 	globalSettings->layout()->addWidget(distrColorThemeChoiceWidget);
+	globalSettings->layout()->addWidget(volumeDatasetWidget);
 	globalSettings->layout()->addWidget(saveLoadAnalysisWidget);
 
 	QWidget* leftSettingsWidget = new QWidget();
