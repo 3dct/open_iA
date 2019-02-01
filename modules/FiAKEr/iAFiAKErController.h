@@ -127,6 +127,7 @@ private slots:
 	void showReferenceInChartToggled();
 	void distributionChartTypeChanged(int);
 	void diameterFactorChanged(int);
+	void contextDiameterFactorChanged(int);
 	void showFiberContextChanged(int);
 	void mergeFiberContextBoxesChanged(int);
 	// result view:
@@ -202,7 +203,7 @@ private:
 	};
 	// Main Renderer:
 	iAVtkWidgetClass* m_mainRenderer;
-	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel;
+	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel, *m_contextDiameterFactorLabel;
 	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
 	QCheckBox* m_chkboxShowReference;
 	QCheckBox* m_chkboxShowLines;

@@ -101,12 +101,11 @@ namespace
 	const int StackedBarMinWidth = 70;
 	const int DefaultPlayDelay = 1000;
 	int HistogramBins = 20;
-
-	const int DefaultDiameterFactorSliderValue = 10; // = 1, value is divided / 10
-
 	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
 	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
 	double DiameterFactor = 1.0;
+	double ContextDiameterFactor = 1.0;
+	const double DiameterFactorDivisor = 10; // = 1, value is divided / 10
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
 	const size_t NoResult = NoPlotsIdx;
 	const QString ModuleSettingsKey("FIAKER");
@@ -319,10 +318,17 @@ QWidget* iAFiAKErController::setupSettingsView()
 
 	auto diameterFactorSlider = new QSlider(Qt::Horizontal);
 	diameterFactorSlider->setMinimum(1);
-	diameterFactorSlider->setMaximum(100);
-	diameterFactorSlider->setValue(DefaultDiameterFactorSliderValue);
+	diameterFactorSlider->setMaximum(static_cast<int>(DiameterFactorDivisor*DiameterFactorDivisor));
+	diameterFactorSlider->setValue(static_cast<int>(DiameterFactor * DiameterFactorDivisor));
 	connect(diameterFactorSlider, &QSlider::valueChanged, this, &iAFiAKErController::diameterFactorChanged);
 	m_diameterFactorLabel = new QLabel(QString::number(1.0));
+	
+	auto contextDiameterFactorSlider = new QSlider(Qt::Horizontal);
+	contextDiameterFactorSlider->setMinimum(1);
+	contextDiameterFactorSlider->setMaximum(static_cast<int>(DiameterFactorDivisor*DiameterFactorDivisor));
+	contextDiameterFactorSlider->setValue(static_cast<int>(ContextDiameterFactor * DiameterFactorDivisor);
+	connect(contextDiameterFactorSlider, &QSlider::valueChanged, this, &iAFiAKErController::contextDiameterFactorChanged);
+	m_contextDiameterFactorLabel = new QLabel(QString::number(1.0));
 
 	QWidget* sliderWidget = new QWidget();
 	auto sliderWidgetLayout = new QGridLayout();
@@ -335,9 +341,12 @@ QWidget* iAFiAKErController::setupSettingsView()
 	sliderWidgetLayout->addWidget(new QLabel("Context Opacity:"), 1, 0);
 	sliderWidgetLayout->addWidget(m_contextOpacitySlider, 1, 1);
 	sliderWidgetLayout->addWidget(m_contextOpacityLabel, 1, 2);
-	sliderWidgetLayout->addWidget(new QLabel("Diameter mod. factor:"), 2, 0);
+	sliderWidgetLayout->addWidget(new QLabel("General diameter mod. factor:"), 2, 0);
 	sliderWidgetLayout->addWidget(diameterFactorSlider, 2, 1);
 	sliderWidgetLayout->addWidget(m_diameterFactorLabel, 2, 2);
+	sliderWidgetLayout->addWidget(new QLabel("Context diameter mod. factor:"), 2, 0);
+	sliderWidgetLayout->addWidget(contextDiameterFactorSlider, 2, 1);
+	sliderWidgetLayout->addWidget(m_contextDiameterFactorLabel, 2, 2);
 
 	QWidget* fiberContextWidget = new QWidget();
 	auto fiberContextLayout = new QVBoxLayout();
@@ -1599,6 +1608,20 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 		vis.mini3DVis->setDiameterFactor(DiameterFactor);
 		if (vis.main3DVis->visible())
 			vis.main3DVis->setDiameterFactor(DiameterFactor);
+	}
+}
+
+void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorInt)
+{
+	ContextDiameterFactor = contextDiameterFactorInt / 10.0;
+	addInteraction(QString("Set context diameter modification factor to %1.").arg(ContextDiameterFactor));
+	m_contextDiameterFactorLabel->setText(QString::number(ContextDiameterFactor));
+	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	{
+		//auto & vis = m_resultUIs[resultID];
+		//vis.mini3DVis->setContextDiameterFactor(DiameterFactor);
+		//if (vis.main3DVis->visible())
+			//vis.main3DVis->setContextDiameterFactor(DiameterFactor);
 	}
 }
 
