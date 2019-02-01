@@ -74,3 +74,7 @@ void iA3DCylinderObjectVis::setDiameterFactor(double diameterFactor)
 	m_tubeFilter->Update();
 	updateRenderer();
 }
+
+void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFactor)
+{
+}

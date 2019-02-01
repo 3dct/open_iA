@@ -34,5 +34,6 @@ public:
 	iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 		QColor const & color, int numberOfCylinderSides = DefaultNumberOfCylinderSides);
 	void setDiameterFactor(double diameterFactor);
+	void setContextDiameterFactor(double contextDiameterFactor);
 };
 
