@@ -768,7 +768,7 @@ QWidget* iAFiAKErController::setupResultListView()
 		connect(uiData.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(uiData.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(uiData.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-		connect(uiData.vtkWidget, &iAVtkWidgetClass::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
+		connect(uiData.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
 		connect(uiData.cbShow, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
 		connect(uiData.cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
 	}
