@@ -326,8 +326,8 @@ QWidget* iAFiAKErController::setupSettingsView()
 	
 	auto contextDiameterFactorSlider = new QSlider(Qt::Horizontal);
 	contextDiameterFactorSlider->setMinimum(1);
-	contextDiameterFactorSlider->setMaximum(static_cast<int>(DiameterFactorDivisor*DiameterFactorDivisor));
-	contextDiameterFactorSlider->setValue(static_cast<int>(ContextDiameterFactor * DiameterFactorDivisor);
+	contextDiameterFactorSlider->setMaximum(static_cast<int>(DiameterFactorDivisor * DiameterFactorDivisor));
+	contextDiameterFactorSlider->setValue(static_cast<int>(ContextDiameterFactor * DiameterFactorDivisor));
 	connect(contextDiameterFactorSlider, &QSlider::valueChanged, this, &iAFiAKErController::contextDiameterFactorChanged);
 	m_contextDiameterFactorLabel = new QLabel(QString::number(1.0));
 
