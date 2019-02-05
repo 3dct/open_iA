@@ -45,6 +45,7 @@ class iAFeatureScoutSPLOM;
 class iAMeanObjectTFView;
 class dlg_blobVisualization;
 
+class iALookupTable;
 class iAModalityTransfer;
 class iAQSplom;
 class iARenderer;
@@ -81,8 +82,6 @@ class QStandardItemModel;
 class QTreeView;
 class QTableView;
 class QXmlStreamWriter;
-
-class iAQSPLOM;
 
 struct moData
 {
@@ -136,6 +135,7 @@ private slots:
 	void saveStl();
 	void updateStlProgress(int i);
 	void updateMarProgress(int i);
+	void renderLUTChanges(iALookupTable const &lut, int colInd);
 private:
 	//create labelled output image based on defined classes
 	template <class T> void CreateLabelledOutputMask(iAConnector & con, const QString & fOutPath);

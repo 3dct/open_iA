@@ -26,6 +26,7 @@
 #include <cstddef>    // for size_t
 #include <vector>
 
+class iALookupTable;
 class iAQSplom;
 
 class vtkTable;
@@ -58,7 +59,10 @@ signals:
 	void selectionModified(std::vector<size_t>);
 	void parameterVisibilityChanged(size_t paramIndex, bool visible);
 	void addClass();
+	void renderLUTChanges(iALookupTable const &lut, int colInd);
 private:
 	iAQSplom * matrix;
 	bool selectionEnabled;
+private slots:
+	void lookupTableChanged();
 };
