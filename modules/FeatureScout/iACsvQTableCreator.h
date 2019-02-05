@@ -20,11 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iACsvVtkTableCreator.h"
+#include "iACsvIO.h"
+
+#include "FeatureScout_export.h"
 
 class QTableWidget;
 
-class iACsvQTableCreator : public iACsvTableCreator
+class FeatureScout_API iACsvQTableCreator : public iACsvTableCreator
 {
 public:
 	iACsvQTableCreator(QTableWidget* tblWidget);
