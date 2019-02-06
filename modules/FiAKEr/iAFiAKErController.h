@@ -41,6 +41,7 @@ class iA3DCylinderObjectVis;
 class iAChartWidget;
 class iAColorTheme;
 class iADockWidgetWrapper;
+class iAMapper;
 class iAQSplom;
 class iARendererManager;
 class iARefDistCompute;
@@ -206,8 +207,8 @@ private:
 	vtkSmartPointer<vtkActor> m_refLineActor;
 	QWidget* m_showReferenceWidget;
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
-
 	size_t m_projectReferenceID;
+	iAMapper* m_diameterFactorMapper;
 
 	// Results List:
 	void addStackedBar(int index);

@@ -29,11 +29,15 @@ class FeatureScout_API iA3DCylinderObjectVis: public iA3DLineObjectVis
 private:
 	double m_diameterFactor = 1;
 	vtkSmartPointer<vtkTubeFilter> m_tubeFilter;
+	float* m_contextFactors;
+	size_t m_objectCount;
+	float m_contextDiameterFactor;
 public:
 	static const int DefaultNumberOfCylinderSides = 12;
 	iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 		QColor const & color, int numberOfCylinderSides = DefaultNumberOfCylinderSides);
 	void setDiameterFactor(double diameterFactor);
 	void setContextDiameterFactor(double contextDiameterFactor);
+	void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive) override;
 };
 
