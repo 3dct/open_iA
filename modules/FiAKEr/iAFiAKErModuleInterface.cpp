@@ -29,6 +29,7 @@
 
 #include <QAction>
 #include <QFileDialog>
+#include <QMdiSubWindow>
 
 void iAFiAKErModuleInterface::Initialize()
 {
@@ -38,14 +39,15 @@ void iAFiAKErModuleInterface::Initialize()
 	QMenu * fiakerMenu = getMenuWithTitle(toolsMenu, tr("FiAKEr"), false);
 	QAction * actionFiAKEr = new QAction( "Open Results Folder", nullptr );
 	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKEr, false );
-	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::FiAKEr );
+	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
 	QAction * actionFiAKErProject = new QAction("Load Project", nullptr);
 	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKErProject, false);
-	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::FiAKErProject);
+	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
 }
 
-void iAFiAKErModuleInterface::FiAKEr()
+void iAFiAKErModuleInterface::startFiAKEr()
 {
+	setupToolBar();
 	QString path = QFileDialog::getExistingDirectory(m_mainWnd, "Choose Folder containing Result csv", m_mainWnd->getPath());
 	if (path.isEmpty())
 		return;
@@ -73,45 +75,43 @@ void iAFiAKErModuleInterface::FiAKEr()
 	explorer->start(path, configName, stepShift);
 }
 
-void iAFiAKErModuleInterface::FiAKErProject()
+void iAFiAKErModuleInterface::loadFiAKErProject()
 {
+	setupToolBar();
 	iAFiAKErController::loadAnalysis(m_mainWnd, m_mainWnd->getPath());
 }
 
-/*
-void iAFiAKErModuleInterface::SetupToolBar()
+void iAFiAKErModuleInterface::setupToolBar()
 {
 	if (m_toolbar)
-	{
 		return;
-	}
-	m_toolbar = new iAUncertaintyToolbar("Uncertainty Exploration Toolbar");
-	connect(m_toolbar->action_ToggleTitleBar, SIGNAL(triggered()), this, SLOT(ToggleDockWidgetTitleBars()));
-	//m_toolbar->action_ToggleSettings->setCheckable(true);
-	//m_toolbar->action_ToggleSettings->setChecked(true);
-	//connect(m_toolbar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(ToggleSettings()));
+	m_toolbar = new iAFiAKErToolBar("FiAKEr Toolbar");
+	connect(m_toolbar->action_ToggleTitleBar, SIGNAL(triggered()), this, SLOT(toggleDockWidgetTitleBars()));
+	connect(m_toolbar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(toggleSettings()));
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 }
 
-void iAFiAKErModuleInterface::ToggleDockWidgetTitleBars()
+namespace
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
-	if (!attach)
+	iAFiAKErController* getActiveFiAKEr(MainWindow* mainWnd)
 	{
-		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
-		return;
+		auto curWnd = mainWnd->mdiArea->currentSubWindow();
+		return (curWnd) ? qobject_cast<iAFiAKErController*>(curWnd->widget()) : nullptr;
 	}
-	attach->ToggleDockWidgetTitleBars();
 }
 
-void iAFiAKErModuleInterface::ToggleSettings()
+void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
-	if (!attach)
-	{
-		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
+	auto fiakerController = getActiveFiAKEr(m_mainWnd);
+	if (!fiakerController)
 		return;
-	}
-	attach->ToggleSettings();
+	fiakerController->toggleDockWidgetTitleBars();
 }
-*/
+
+void iAFiAKErModuleInterface::toggleSettings()
+{
+	auto fiakerController = getActiveFiAKEr(m_mainWnd);
+	if (!fiakerController)
+		return;
+	fiakerController->toggleSettings();
+}

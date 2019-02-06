@@ -20,7 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include "ui_FiAKErToolBar.h"
+
 #include "iAModuleInterface.h"
+#include "qthelper/iAQTtoUIConnector.h"
+
+typedef iAQTtoUIConnector<QToolBar, Ui_FiAKErToolBar> iAFiAKErToolBar;
 
 class iAFiAKErModuleInterface : public iAModuleInterface
 {
@@ -28,6 +33,11 @@ class iAFiAKErModuleInterface : public iAModuleInterface
 public:
 	void Initialize();
 private slots:
-	void FiAKEr();
-	void FiAKErProject();
+	void startFiAKEr();
+	void loadFiAKErProject();
+	void toggleDockWidgetTitleBars();
+	void toggleSettings();
+private:
+	void setupToolBar();
+	iAFiAKErToolBar* m_toolbar = nullptr;
 };

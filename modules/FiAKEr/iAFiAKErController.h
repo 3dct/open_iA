@@ -75,6 +75,8 @@ public:
 	~iAFiAKErController();
 	std::vector<std::vector<size_t> > & selection() override;
 	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
+	void toggleDockWidgetTitleBars();
+	void toggleSettings();
 signals:
 	void setupFinished();
 public slots:

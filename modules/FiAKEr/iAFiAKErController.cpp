@@ -2323,3 +2323,14 @@ void iAFiAKErController::distributionChartTypeChanged(int idx)
 		.arg(m_distributionChartType->itemText(idx)));
 	changeDistributionSource(m_distributionChoice->currentIndex());
 }
+
+void iAFiAKErController::toggleDockWidgetTitleBars()
+{
+	for (auto w : m_views)
+		w->toggleTitleBar();
+}
+
+void iAFiAKErController::toggleSettings()
+{
+	m_views[SettingsView]->setVisible(!m_views[SettingsView]->isVisible());
+}
