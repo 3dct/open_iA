@@ -49,5 +49,5 @@ private slots:
 private:
 	void LoadEnsemble(QString const & ensembleFileName);
 	void SetupToolBar();
-	iAUncertaintyToolbar * m_toolbar;
+	iAUncertaintyToolbar * m_toolbar = nullptr;
 };
