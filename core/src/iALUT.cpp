@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -38,7 +38,10 @@ const QStringList colormaps = QStringList()
 	<< "Brewer single hue 5c oranges"
 	<< "Brewer single hue 5c grays"
 	<< "Brewer single hue 5c oranges inv"
-	<< "Brewer single hue 5c red inv";
+	<< "Brewer single hue 5c red inv"
+	<< "Brewer qualitative 12c Set3"
+	<< "Brewer qualitative 9c Set1"
+	<< "Brewer qualitative 12c Paired";
 
 const QStringList& iALUT::GetColorMapNames()
 {
@@ -138,7 +141,7 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRan
 		c.setRgb(253, 190, 133); ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(253, 141, 60);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(230, 85, 13);	 ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(166, 54, 3);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(166, 54, 3);	 ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
 		break;
 
 	case 9:
@@ -147,7 +150,52 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRan
 		c.setRgb(252, 174, 145); ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(251, 106, 74);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(222, 45, 38);	 ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(165, 15, 21);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(165, 15, 21);	 ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
+		break;
+
+	case 10:
+		// ColorBrewer qualitative 12-class Set3
+		c.setRgb(141, 211, 199); ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(255, 255, 179); ctf->AddRGBPoint(0.09, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(190, 186, 218); ctf->AddRGBPoint(0.18, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(251, 128, 114); ctf->AddRGBPoint(0.27, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(128, 177, 211); ctf->AddRGBPoint(0.36, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(253, 180, 98);  ctf->AddRGBPoint(0.45, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(179, 222, 105); ctf->AddRGBPoint(0.54, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(252, 205, 229); ctf->AddRGBPoint(0.63, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(217, 217, 217); ctf->AddRGBPoint(0.72, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(188, 128, 189); ctf->AddRGBPoint(0.81, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(204, 235, 197); ctf->AddRGBPoint(0.90, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(255, 237, 111); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
+		break;
+
+	case 11:
+		// ColorBrewer qualitative 9-class Set1
+		c.setRgb(228, 26, 28);   ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(55, 126, 184);  ctf->AddRGBPoint(0.125, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(77, 175, 74);   ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(152, 78, 163);  ctf->AddRGBPoint(0.375, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(255, 127, 0);   ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(255, 255, 51);  ctf->AddRGBPoint(0.625, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(166, 86, 40);   ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(247, 129, 191); ctf->AddRGBPoint(0.875, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(153, 153, 153); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
+		break;
+
+	case 12:
+		// ColorBrewer qualitative 12-class Paired
+		c.setRgb(166, 206, 227); ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(31, 120, 180); ctf->AddRGBPoint(0.09, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(178, 223, 138); ctf->AddRGBPoint(0.18, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(51, 160, 44); ctf->AddRGBPoint(0.27, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(251, 154, 153); ctf->AddRGBPoint(0.36, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(227, 26, 28);  ctf->AddRGBPoint(0.45, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(253, 191, 111); ctf->AddRGBPoint(0.54, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(255, 127, 0); ctf->AddRGBPoint(0.63, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(202, 178, 214); ctf->AddRGBPoint(0.72, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(106, 61, 154); ctf->AddRGBPoint(0.81, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(255, 255, 153); ctf->AddRGBPoint(0.90, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(177, 89, 40); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
 		break;
 	}
 

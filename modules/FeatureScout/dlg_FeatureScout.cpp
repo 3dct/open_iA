@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include "dlg_blobVisualization.h"
 #include "dlg_editPCClass.h"
-#include "iA3DObjectVis.h"
+#include "iA3DLineObjectVis.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
 #include "iACsvIO.h"
@@ -36,6 +36,7 @@
 #include <dlg_modalities.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
+#include <iALookupTable.h>
 #include <iAmat4.h>
 #include <iAModalityTransfer.h>
 #include <iAMovieHelper.h>
@@ -341,6 +342,16 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 {
 	elementTableModel->item(paramIndex, 0)->setCheckState( enabled ? Qt::Checked : Qt::Unchecked );
 	// itemChanged signal from elementTableModel takes care about updating PC (see updatePCColumnValues slot)
+}
+
+void dlg_FeatureScout::renderLUTChanges(iALookupTable const &lut, int colInd)
+{
+	iA3DLineObjectVis *lov = dynamic_cast<iA3DLineObjectVis *>(m_3dvis.data());
+	if (lov)
+	{
+		QSharedPointer<iALookupTable> l(new iALookupTable(lut));
+		lov->setLookupTable(l, colInd);
+	}
 }
 
 void dlg_FeatureScout::updatePCColumnVisibility()
@@ -700,6 +711,7 @@ void dlg_FeatureScout::setupConnections()
 	connect( m_splom.data(), &iAFeatureScoutSPLOM::selectionModified, this, &dlg_FeatureScout::spSelInformsPCChart );
 	connect( m_splom.data(), &iAFeatureScoutSPLOM::addClass, this, &dlg_FeatureScout::ClassAddButton );
 	connect( m_splom.data(), &iAFeatureScoutSPLOM::parameterVisibilityChanged, this, &dlg_FeatureScout::spParameterVisibilityChanged);
+	connect(m_splom.data(), &iAFeatureScoutSPLOM::renderLUTChanges, this, &dlg_FeatureScout::renderLUTChanges);
 }
 
 void dlg_FeatureScout::MultiClassRendering()
