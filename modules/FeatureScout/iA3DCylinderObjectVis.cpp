@@ -19,6 +19,7 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iA3DCylinderObjectVis.h"
+#include "iAvtkTubeFilter.h"
 
 #include "iACsvConfig.h"
 
@@ -28,7 +29,6 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkPointData.h>
 #include <vtkTable.h>
-#include <vtkTubeFilter.h>
 
 
 iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
@@ -49,7 +49,7 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* obj
 	}
 	m_linePolyData->GetPointData()->AddArray(tubeRadius);
 	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
-	m_tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
+	m_tubeFilter = vtkSmartPointer<iAvtkTubeFilter>::New();
 	m_tubeFilter->SetRadiusFactor(1.0);
 	m_tubeFilter->SetInputData(m_linePolyData);
 	m_tubeFilter->CappingOn();

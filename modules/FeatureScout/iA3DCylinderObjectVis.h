@@ -22,13 +22,13 @@
 
 #include "iA3DLineObjectVis.h"
 
-class vtkTubeFilter;
+class iAvtkTubeFilter;
 
 class FeatureScout_API iA3DCylinderObjectVis: public iA3DLineObjectVis
 {
 private:
 	double m_diameterFactor = 1;
-	vtkSmartPointer<vtkTubeFilter> m_tubeFilter;
+	vtkSmartPointer<iAvtkTubeFilter> m_tubeFilter;
 	float* m_contextFactors;
 	size_t m_objectCount;
 	float m_contextDiameterFactor;
