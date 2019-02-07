@@ -105,8 +105,8 @@ namespace
 	int HistogramBins = 20;
 	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
 	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
-	const double MinDiameterFactor = 0.01;
-	const double MaxDiameterFactor = 1.5;
+	const double MinDiameterFactor = 0.02;
+	const double MaxDiameterFactor = 2;
 	const int MinFactorSliderVal = 1;
 	const int MaxFactorSliderVal = 100;
 	double DiameterFactor = 1.0;
@@ -312,29 +312,31 @@ QWidget* iAFiAKErController::setupSettingsView()
 	m_defaultOpacitySlider->setMaximum(255);
 	m_defaultOpacitySlider->setValue(SelectionOpacity);
 	connect(m_defaultOpacitySlider, &QSlider::valueChanged, this, &iAFiAKErController::mainOpacityChanged);
-	m_defaultOpacityLabel = new QLabel(QString::number(SelectionOpacity));
+	m_defaultOpacityLabel = new QLabel(QString::number(SelectionOpacity, 'f', 2));
 
 	m_contextOpacitySlider = new QSlider(Qt::Horizontal);
 	m_contextOpacitySlider->setMinimum(0);
 	m_contextOpacitySlider->setMaximum(255);
 	m_contextOpacitySlider->setValue(ContextOpacity);
 	connect(m_contextOpacitySlider, &QSlider::valueChanged, this, &iAFiAKErController::contextOpacityChanged);
-	m_contextOpacityLabel = new QLabel(QString::number(ContextOpacity));
+	m_contextOpacityLabel = new QLabel(QString::number(ContextOpacity, 'f', 2));
 
-	m_diameterFactorMapper = new iALogarithmicMapper(MinDiameterFactor, MaxDiameterFactor, 1, 100);
+	m_diameterFactorMapper = new iALinearMapper(MinDiameterFactor, MaxDiameterFactor, MinFactorSliderVal, MaxFactorSliderVal);
 	auto diameterFactorSlider = new QSlider(Qt::Horizontal);
 	diameterFactorSlider->setMinimum(MinFactorSliderVal);
 	diameterFactorSlider->setMaximum(MaxFactorSliderVal);
-	diameterFactorSlider->setValue(static_cast<int>(m_diameterFactorMapper->srcToDst(DiameterFactor)));
+	int factorSliderValue = static_cast<int>(m_diameterFactorMapper->srcToDst(DiameterFactor));
+	diameterFactorSlider->setValue(factorSliderValue);
 	connect(diameterFactorSlider, &QSlider::valueChanged, this, &iAFiAKErController::diameterFactorChanged);
-	m_diameterFactorLabel = new QLabel(QString::number(DiameterFactor));
+	m_diameterFactorLabel = new QLabel(QString::number(m_diameterFactorMapper->dstToSrc(factorSliderValue), 'f', 2));
 	
 	auto contextDiameterFactorSlider = new QSlider(Qt::Horizontal);
 	contextDiameterFactorSlider->setMinimum(MinFactorSliderVal);
 	contextDiameterFactorSlider->setMaximum(MaxFactorSliderVal);
-	contextDiameterFactorSlider->setValue(static_cast<int>(m_diameterFactorMapper->srcToDst(ContextDiameterFactor)));
+	int contextFactorSlider = static_cast<int>(m_diameterFactorMapper->srcToDst(ContextDiameterFactor));
+	contextDiameterFactorSlider->setValue(contextFactorSlider);
 	connect(contextDiameterFactorSlider, &QSlider::valueChanged, this, &iAFiAKErController::contextDiameterFactorChanged);
-	m_contextDiameterFactorLabel = new QLabel(QString::number(ContextDiameterFactor));
+	m_contextDiameterFactorLabel = new QLabel(QString::number(m_diameterFactorMapper->dstToSrc(contextFactorSlider), 'f', 2));
 
 	QWidget* sliderWidget = new QWidget();
 	auto sliderWidgetLayout = new QGridLayout();
@@ -1574,7 +1576,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 void iAFiAKErController::mainOpacityChanged(int opacity)
 {
 	addInteraction(QString("Set main opacity to %1.").arg(opacity));
-	m_defaultOpacityLabel->setText(QString::number(opacity));
+	m_defaultOpacityLabel->setText(QString::number(opacity, 'f', 2));
 	SelectionOpacity = opacity;
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
@@ -1592,7 +1594,7 @@ void iAFiAKErController::mainOpacityChanged(int opacity)
 void iAFiAKErController::contextOpacityChanged(int opacity)
 {
 	addInteraction(QString("Set context opacity to %1.").arg(opacity));
-	m_contextOpacityLabel->setText(QString::number(opacity));
+	m_contextOpacityLabel->setText(QString::number(opacity, 'f', 2));
 	ContextOpacity = opacity;
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
@@ -1612,7 +1614,7 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 {
 	DiameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
 	addInteraction(QString("Set diameter modification factor to %1.").arg(DiameterFactor));
-	m_diameterFactorLabel->setText(QString::number(DiameterFactor));
+	m_diameterFactorLabel->setText(QString::number(DiameterFactor, 'f', 2));
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto & vis = m_resultUIs[resultID];
@@ -1626,7 +1628,7 @@ void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorI
 {
 	ContextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
 	addInteraction(QString("Set context diameter modification factor to %1.").arg(ContextDiameterFactor));
-	m_contextDiameterFactorLabel->setText(QString::number(ContextDiameterFactor));
+	m_contextDiameterFactorLabel->setText(QString::number(ContextDiameterFactor, 'f', 2));
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto & vis = m_resultUIs[resultID];
