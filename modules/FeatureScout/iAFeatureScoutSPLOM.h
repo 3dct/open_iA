@@ -59,7 +59,7 @@ signals:
 	void selectionModified(std::vector<size_t>);
 	void parameterVisibilityChanged(size_t paramIndex, bool visible);
 	void addClass();
-	void renderLUTChanges(iALookupTable const &lut, int colInd);
+	void renderLUTChanges(QSharedPointer<iALookupTable> lut, int colInd);
 private:
 	iAQSplom * matrix;
 	bool selectionEnabled;
