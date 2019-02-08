@@ -29,7 +29,8 @@ void iAMorphologyModuleInterface::Initialize()
 	REGISTER_FILTER(iADilation);
 	REGISTER_FILTER(iAErosion);
 	REGISTER_FILTER(iAVesselEnhancement);
-	REGISTER_FILTER(iAOpening);
-	REGISTER_FILTER(iAClosing);
+	REGISTER_FILTER(iAMorphOpening);
+	REGISTER_FILTER(iAMorphClosing);
+	REGISTER_FILTER(iAFillHole);
 }
 

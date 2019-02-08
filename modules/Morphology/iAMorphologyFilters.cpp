@@ -27,12 +27,17 @@
 #include <iATypedCallHelper.h>
 
 #include <itkBinaryBallStructuringElement.h>
-#include <itkBinaryMorphologicalClosingImageFilter.h>
-#include <itkBinaryMorphologicalOpeningImageFilter.h>
 #include <itkGrayscaleDilateImageFilter.h>
 #include <itkGrayscaleErodeImageFilter.h>
+#include <itkGrayscaleFillholeImageFilter.h>
+#include <itkGrayscaleMorphologicalClosingImageFilter.h>
+#include <itkGrayscaleMorphologicalOpeningImageFilter.h>
 #include <itkHessian3DToVesselnessMeasureImageFilter.h>
 #include <itkHessianRecursiveGaussianImageFilter.h>
+
+// NOTE: The 'binary' versions of the dilation (e.g., itkBinaryDilateImageFilter), erode, fill hole, opening,
+// and closing filters have been replaced by the 'grayscale' versions of these filters 
+// (e.g., itkGrayscaleDilateImageFilter), because of convince (data types) and performance (parallelization).
 
 namespace Morphology
 {
@@ -53,15 +58,14 @@ namespace Morphology
 
 	//alias for ball BallStructingElement
 	template<class T>
-	using BallElement = itk::BinaryBallStructuringElement<typename InputImageType<T>::PixelType, 3>;
+	using BallElement = itk::BinaryBallStructuringElement<typename InputImageType<T>::PixelType, DIM>;
 
 	//alias for Flat Structing element;
 	template<class T>
-	using FlatElement = itk::FlatStructuringElement<3>;
+	using FlatElement = itk::FlatStructuringElement<DIM>;
 
 	const unsigned int PolyLines = 7; // default for polygon
 }
-
 
 
 template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const & params)
@@ -72,11 +76,11 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 	if (str_Input.compare("Ball") == 0)
 	{
 		typedef itk::GrayscaleDilateImageFilter <InputImageType<T>, InputImageType<T>, BallElement<T>>
-			GrayscaleDilateImageFilterType;
+			DilateImageFilterType;
 		BallElement<T> structuringElement;
 		structuringElement.SetRadius(params["Radius"].toUInt());
 		structuringElement.CreateStructuringElement();
-		auto dilateFilter = GrayscaleDilateImageFilterType::New();
+		auto dilateFilter = DilateImageFilterType::New();
 		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
 		dilateFilter->SetKernel(structuringElement);
 		filter->Progress()->Observe(dilateFilter);
@@ -86,11 +90,11 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 	else
 	{
 		typedef itk::GrayscaleDilateImageFilter <InputImageType<T>, InputImageType<T>, FlatElement<T>>
-			GrayscaleDilateImageFilterType;
+			DilateImageFilterType;
 
 		FlatElement<T> structuringElement;
 		typename FlatElement<T>::RadiusType elementRadius;
-		elementRadius.Fill(params["Radius"].toInt());
+		elementRadius.Fill(params["Radius"].toUInt());
 		if (str_Input.compare("Box") == 0)
 			 structuringElement = FlatElement<T>::Box(elementRadius);
 		else if (str_Input.compare("Cross") == 0)
@@ -98,10 +102,9 @@ template<class T> void dilation(iAFilter* filter, QMap<QString, QVariant> const 
 		else
 			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 
-		auto dilateFilter = GrayscaleDilateImageFilterType::New();
+		auto dilateFilter = DilateImageFilterType::New();
 		dilateFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
 		dilateFilter->SetKernel(structuringElement);
-
 		filter->Progress()->Observe(dilateFilter);
 		dilateFilter->Update();
 		filter->AddOutput(dilateFilter->GetOutput());
@@ -134,8 +137,6 @@ iADilation::iADilation() :
 	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 }
 
-//end dilate
-
 template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	using namespace Morphology;
@@ -144,12 +145,12 @@ template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const &
 	if (str_Input.compare("Ball") == 0)
 	{
 		typedef itk::GrayscaleErodeImageFilter <InputImageType<T>, InputImageType<T>, BallElement<T> >
-			GrayscaleErodeImageFilterType;
+			ErodeImageFilterType;
 
 		BallElement<T> structuringElement;
-		structuringElement.SetRadius(params["Radius"].toInt());
+		structuringElement.SetRadius(params["Radius"].toUInt());
 		structuringElement.CreateStructuringElement();
-		auto erodeFilter = GrayscaleErodeImageFilterType::New();
+		auto erodeFilter = ErodeImageFilterType::New();
 		erodeFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
 		erodeFilter->SetKernel(structuringElement);
 
@@ -160,11 +161,11 @@ template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const &
 	else
 	{
 		typedef itk::GrayscaleErodeImageFilter <InputImageType<T>, InputImageType<T>, FlatElement<T> /*StructuringElementType*/>
-			GrayscaleErodeImageFilterType;
+			ErodeImageFilterType;
 
 		FlatElement <T> structuringElement;
 		typename FlatElement<T>::RadiusType elementRadius;
-		elementRadius.Fill(params["Radius"].toInt());
+		elementRadius.Fill(params["Radius"].toUInt());
 
 		if (str_Input.compare("Box") == 0)
 			 structuringElement = FlatElement<T>::Box(elementRadius);
@@ -173,10 +174,9 @@ template<class T> void erosion(iAFilter* filter, QMap<QString, QVariant> const &
 		else
 			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 
-		auto erodeFilter = GrayscaleErodeImageFilterType::New();
+		auto erodeFilter = ErodeImageFilterType::New();
 		erodeFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
 		erodeFilter->SetKernel(structuringElement);
-
 		filter->Progress()->Observe(erodeFilter);
 		erodeFilter->Update();
 		filter->AddOutput(erodeFilter->GetOutput());
@@ -208,8 +208,6 @@ iAErosion::iAErosion() :
 	AddParameter("Radius", Discrete, 1, 1);
 	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 }
-
-
 
 template<class T> void vesselEnhancement(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
@@ -248,33 +246,33 @@ iAVesselEnhancement::iAVesselEnhancement() :
 	AddParameter("Sigma", Continuous, 0);
 }
 
-template<class T> void opening(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void morphOpening(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	using namespace Morphology;
 	std::string str_Input = params[elem_type].toString().toStdString();
 
 	if (str_Input.compare("Ball") == 0)
 	{
-		typedef itk::BinaryMorphologicalOpeningImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>>
-			GrayscaleOpeningImageFilterType;
+		typedef itk::GrayscaleMorphologicalOpeningImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>>
+			MorphOpeningImageFilterType;
 		BallElement<T> structuringElement;
 		structuringElement.SetRadius(params["Radius"].toUInt());
 		structuringElement.CreateStructuringElement();
-		auto openingFilter = GrayscaleOpeningImageFilterType::New(); //::New();
-		openingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
-		openingFilter->SetKernel(structuringElement);
-		filter->Progress()->Observe(openingFilter);
-		openingFilter->Update();
-		filter->AddOutput(openingFilter->GetOutput());
+		auto morphOpeningFilter = MorphOpeningImageFilterType::New(); //::New();
+		morphOpeningFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		morphOpeningFilter->SetKernel(structuringElement);
+		filter->Progress()->Observe(morphOpeningFilter);
+		morphOpeningFilter->Update();
+		filter->AddOutput(morphOpeningFilter->GetOutput());
 	}
 	else
 	{
-		typedef itk::BinaryMorphologicalOpeningImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>>
-			GrayscaleOpeningImageFilterType;
+		typedef itk::GrayscaleMorphologicalOpeningImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>>
+			MorphOpeningImageFilterType;
 
 		FlatElement <T> structuringElement;
 		typename FlatElement<T>::RadiusType elementRadius;
-		elementRadius.Fill(params["Radius"].toInt());
+		elementRadius.Fill(params["Radius"].toUInt());
 		if (str_Input.compare("Box") == 0)
 			 structuringElement = FlatElement<T>::Box(elementRadius);
 		else if (str_Input.compare("Cross") == 0)
@@ -282,70 +280,62 @@ template<class T> void opening(iAFilter* filter, QMap<QString, QVariant> const &
 		else
 			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 
-		auto openingFilter = GrayscaleOpeningImageFilterType::New();
-		openingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
-		openingFilter->SetKernel(structuringElement);
-
-		filter->Progress()->Observe(openingFilter);
-		openingFilter->Update();
-		filter->AddOutput(openingFilter->GetOutput());
+		auto morphOpeningFilter = MorphOpeningImageFilterType::New();
+		morphOpeningFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		morphOpeningFilter->SetKernel(structuringElement);
+		filter->Progress()->Observe(morphOpeningFilter);
+		morphOpeningFilter->Update();
+		filter->AddOutput(morphOpeningFilter->GetOutput());
 	}
 }
 
-void iAOpening::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAMorphOpening::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(opening, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(morphOpening, InputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAOpening)
+IAFILTER_CREATE(iAMorphOpening)
 
-iAOpening::iAOpening():
-	iAFilter("Opening", "Morphology",
-		"Opening an image using grayscale morphology.<br/>"
-		"Opening takes the maximum of all the pixels identified by the "
-		"<em>Structuring Element</em>, a ball, box, cross or polygon with the given <em>Radius</em> in all directions.<br/>"
+iAMorphOpening::iAMorphOpening():
+	iAFilter("Morphological Opening", "Morphology",
+		"The morphological opening of an image 'f' is defined as: Opening(f) = Dilatation(Erosion(f)).<br/>"
+		"The structuring element is assumed to be composed of binary values (zero or one). Only elements of the "
+		"structuring element having values > 0 are candidates for affecting the center pixel.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleMorphologicalOpeningImageFilter.html\">"
-		"Grayscale Morphological Opening Filter</a> and the "
-		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
-		"Binary Ball Structuring Element</a>, as well as the "
-		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlatStructuringElement.html\">"
-		"FlatStructuringElement (Box, Cross and Polygon)</a> "
-		"in the ITK documentation.")
+		"Grayscale Morphological Opening Filter</a>")
 {
 	Morphology::morphEl morph_text;
 	AddParameter("Radius", Discrete, 1, 1);
 	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
 }
 
-
-
-template<class T> void closing(iAFilter* filter, QMap<QString, QVariant> const & params)
+template<class T> void morphClosing(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	using namespace Morphology;
 	std::string str_Input = params[elem_type].toString().toStdString();
 	if (str_Input.compare("Ball") == 0)
 	{
-		typedef itk::BinaryMorphologicalClosingImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>>
-			GrayscaleClosingImageFilterType;
+		typedef itk::GrayscaleMorphologicalClosingImageFilter<InputImageType<T>, InputImageType<T>, BallElement<T>>
+			MorphClosingImageFilterType;
 		BallElement<T> structuringElement;
 		structuringElement.SetRadius(params["Radius"].toUInt());
 		structuringElement.CreateStructuringElement();
-		auto openingFilter = GrayscaleClosingImageFilterType::New();
-		openingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
-		openingFilter->SetKernel(structuringElement);
-		filter->Progress()->Observe(openingFilter);
-		openingFilter->Update();
-		filter->AddOutput(openingFilter->GetOutput());
+		auto morphClosingFilter = MorphClosingImageFilterType::New();
+		morphClosingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		morphClosingFilter->SetKernel(structuringElement);
+		filter->Progress()->Observe(morphClosingFilter);
+		morphClosingFilter->Update();
+		filter->AddOutput(morphClosingFilter->GetOutput());
 	}
 	else
 	{
-		typedef itk::BinaryMorphologicalClosingImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>>
-			GrayscaleClosingImageFilterType;
+		typedef itk::GrayscaleMorphologicalClosingImageFilter<InputImageType<T>, InputImageType<T>, FlatElement<T>>
+			MorphClosingImageFilterType;
 
 		FlatElement <T> structuringElement;
 		typename FlatElement<T>::RadiusType elementRadius;
-		elementRadius.Fill(params["Radius"].toInt());
+		elementRadius.Fill(params["Radius"].toUInt());
 		if (str_Input.compare("Box") == 0)
 			 structuringElement = FlatElement<T>::Box(elementRadius);
 		else if (str_Input.compare("Cross") == 0)
@@ -353,34 +343,64 @@ template<class T> void closing(iAFilter* filter, QMap<QString, QVariant> const &
 		else
 			structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 
-		auto openingFilter = GrayscaleClosingImageFilterType::New();
-		openingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
-		openingFilter->SetKernel(structuringElement);
+		auto morphClosingFilter = MorphClosingImageFilterType::New();
+		morphClosingFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+		morphClosingFilter->SetKernel(structuringElement);
+		filter->Progress()->Observe(morphClosingFilter);
+		morphClosingFilter->Update();
+		filter->AddOutput(morphClosingFilter->GetOutput());
 	}
 }
 
-void iAClosing::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAMorphClosing::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(closing, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(morphClosing, InputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAClosing)
+IAFILTER_CREATE(iAMorphClosing)
 
-iAClosing::iAClosing() :
-	iAFilter("Closing", "Morphology",
-		"Closing an image using grayscale morphology.<br/>"
-		"Closing takes the maximum of all the pixels identified by the "
-		"<em>Structuring Element</em>, a ball, box, cross or polygon with the given <em>Radius</em> in all directions.<br/>"
+iAMorphClosing::iAMorphClosing() :
+	iAFilter("Morphological Closing", "Morphology",
+		"The morphological closing of an image 'f' is defined as: Closing(f) = Erosion(Dilation(f)).<br/>"
+		"The structuring element is assumed to be composed of binary values (zero or one). Only elements of the "
+		"structuring element having values > 0 are candidates for affecting the center pixel.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleMorphologicalClosingImageFilter.html\">"
-		"Grayscale Morphological Closing Filter</a> and the "
-		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
-		"Binary Ball Structuring Element</a>, as well as the "
-		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlatStructuringElement.html\">"
-		"FlatStructuringElement (Box, Cross and Polygon)</a> "
-		"in the ITK documentation.")
+		"Grayscale Morphological Closing Filter</a>")
 {
 	Morphology::morphEl morph_text;
 	AddParameter("Radius", Discrete, 1, 1);
 	AddParameter(Morphology::elem_type, Categorical, morph_text.MorphOptions);
+}
+
+template<class T> void fillHole(iAFilter* filter, QMap<QString, QVariant> const & params)
+{
+	using namespace Morphology;
+	typedef itk::GrayscaleFillholeImageFilter <InputImageType<T>, InputImageType<T>> FillHoleImageFilterType;
+	FillHoleImageFilterType::Pointer fillHoleFilter = FillHoleImageFilterType::New();
+	fillHoleFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
+	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
+	filter->Progress()->Observe(fillHoleFilter);
+	fillHoleFilter->Update();
+	filter->AddOutput(fillHoleFilter->GetOutput());
+}
+
+void iAFillHole::PerformWork(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(fillHole, InputPixelType(), this, parameters);
+}
+
+IAFILTER_CREATE(iAFillHole)
+
+iAFillHole::iAFillHole() :
+	iAFilter("Fill Hole", "Morphology",
+		"Remove local minima not connected to the boundary of the image.<br/>"
+		"GrayscaleFillholeImageFilter fills holes in a grayscale image. "
+		"Holes are local minima in the grayscale topography that are not connected "
+		"to boundaries of the image. Gray level values adjacent to a hole are extrapolated across the hole.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleFillholeImageFilter.html\">"
+		"GrayscaleFillholeImageFilter</a>")
+{
+	AddParameter("Fully Connected", Boolean, false);
 }

@@ -28,6 +28,7 @@
 #ifdef VTK_USE_OGGTHEORA_ENCODER
 #include <vtkOggTheoraWriter.h>
 #endif
+#include <vtkGenericMovieWriter.h>
 
 #include <QString>
 
