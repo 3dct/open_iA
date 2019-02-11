@@ -303,7 +303,12 @@ iAMorphOpening::iAMorphOpening():
 		"structuring element having values > 0 are candidates for affecting the center pixel.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleMorphologicalOpeningImageFilter.html\">"
-		"Grayscale Morphological Opening Filter</a>")
+		"Grayscale Morphological Opening Filter</a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
+		"Binary Ball Structuring Element</a>, as well as the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlatStructuringElement.html\">"
+		"FlatStructuringElement (Box, Cross and Polygon)</a> "
+		"in the ITK documentation.")
 {
 	Morphology::morphEl morph_text;
 	AddParameter("Radius", Discrete, 1, 1);
@@ -366,7 +371,12 @@ iAMorphClosing::iAMorphClosing() :
 		"structuring element having values > 0 are candidates for affecting the center pixel.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleMorphologicalClosingImageFilter.html\">"
-		"Grayscale Morphological Closing Filter</a>")
+		"Grayscale Morphological Closing Filter</a>, the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryBallStructuringElement.html\">"
+		"Binary Ball Structuring Element</a>, as well as the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlatStructuringElement.html\">"
+		"FlatStructuringElement (Box, Cross and Polygon)</a> "
+		"in the ITK documentation.")
 {
 	Morphology::morphEl morph_text;
 	AddParameter("Radius", Discrete, 1, 1);
@@ -377,7 +387,7 @@ template<class T> void fillHole(iAFilter* filter, QMap<QString, QVariant> const 
 {
 	using namespace Morphology;
 	typedef itk::GrayscaleFillholeImageFilter <InputImageType<T>, InputImageType<T>> FillHoleImageFilterType;
-	FillHoleImageFilterType::Pointer fillHoleFilter = FillHoleImageFilterType::New();
+	typename FillHoleImageFilterType::Pointer fillHoleFilter = FillHoleImageFilterType::New();
 	fillHoleFilter->SetInput(dynamic_cast<InputImageType<T> *>(filter->Input()[0]->GetITKImage()));
 	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
 	filter->Progress()->Observe(fillHoleFilter);
