@@ -42,6 +42,7 @@
 #include "charts/iAQSplom.h"
 #include "charts/iASPLOMData.h"
 #include "iAColorTheme.h"
+#include "iAConnector.h"
 #include "iAConsole.h"
 #include "qthelper/iADockWidgetWrapper.h"
 #include "iALookupTable.h"
@@ -51,13 +52,20 @@
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
 #include "iAStringHelper.h"
+#include "io/iAITKIO.h"
+#include "iATransferFunction.h"
+#include "iAVolumeRenderer.h"
 #include "iAVtkWidget.h"
+#include "io/iAFileChooserWidget.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 
+#include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkImageData.h>
 #include <vtkLine.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -554,8 +562,14 @@ QWidget* iAFiAKErController::setupSettingsView()
 	resultColorThemeChoiceWidget->layout()->addWidget(new QLabel("Result Colors:"));
 	resultColorThemeChoiceWidget->layout()->addWidget(resultColorThemeChoice);
 
+	auto fileChooser = new iAFileChooserWidget(this, iAFileChooserWidget::FileNameOpen);
+	connect(fileChooser, &iAFileChooserWidget::fileNameChanged, this, &iAFiAKErController::loadVolume);
 	auto volumeDatasetWidget = new QWidget();
-
+	volumeDatasetWidget->setLayout(new QHBoxLayout());
+	volumeDatasetWidget->layout()->setContentsMargins(0, 0, 0, 0);
+	volumeDatasetWidget->layout()->setSpacing(SettingSpacing);
+	volumeDatasetWidget->layout()->addWidget(new QLabel("Reference Volume:"));
+	volumeDatasetWidget->layout()->addWidget(fileChooser);
 
 	QWidget* saveLoadAnalysisWidget = new QWidget();
 	saveLoadAnalysisWidget->setLayout(new QHBoxLayout());
@@ -2316,6 +2330,26 @@ void iAFiAKErController::loadAnalysis(MainWindow* mainWnd, QString const & folde
 void iAFiAKErController::setProjectReference()
 {
 	setReference(m_projectReferenceID);
+}
+
+void iAFiAKErController::loadVolume(QString const & fileName)
+{
+	addInteraction(QString("Loading reference volume '%1'").arg(fileName));
+	iAConnector con;
+	iAITKIO::ScalarPixelType pixelType;
+	iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
+	con.SetImage(img);
+	m_refImg = vtkSmartPointer<vtkImageData>::New();
+	m_refImg->DeepCopy(con.GetVTKImage());
+	double rng[2]; m_refImg->GetScalarRange(rng);
+	m_refCF = GetDefaultColorTransferFunction(rng);
+	m_refOF = GetDefaultPiecewiseFunction(rng, true);
+	iASimpleTransferFunction tf(
+		m_refCF.GetPointer(),
+		m_refOF.GetPointer()
+	);
+	m_refRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_refImg));
+	m_refRenderer->AddTo(m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 }
 
 void iAFiAKErController::showReferenceInChartToggled()

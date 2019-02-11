@@ -46,8 +46,12 @@ class iAQSplom;
 class iARendererManager;
 class iARefDistCompute;
 class iASPLOMData;
+class iAVolumeRenderer;
 class MainWindow;
 
+class vtkColorTransferFunction;
+class vtkPiecewiseFunction;
+class vtkImageData;
 class vtkTable;
 
 class QActionGroup;
@@ -130,6 +134,7 @@ private slots:
 	void switchStackMode(bool mode);
 	void colorByDistrToggled();
 	void setProjectReference();
+	void loadVolume(QString const & fileName);
 private:
 	void changeDistributionSource(int index);
 	void updateHistogramColors();
@@ -209,6 +214,10 @@ private:
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
 	size_t m_projectReferenceID;
 	iAMapper* m_diameterFactorMapper;
+	QSharedPointer<iAVolumeRenderer> m_refRenderer;
+	vtkSmartPointer<vtkImageData> m_refImg;
+	vtkSmartPointer<vtkColorTransferFunction> m_refCF;
+	vtkSmartPointer<vtkPiecewiseFunction> m_refOF;
 
 	// Results List:
 	void addStackedBar(int index);
