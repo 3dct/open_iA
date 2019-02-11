@@ -259,12 +259,14 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 				phi = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Phi], m_csvConfig);
 				theta = getValueAsDouble(values, m_csvConfig.columnMapping[iACsvConfig::Theta], m_csvConfig);
 			}
-			double a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
-			double a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
-			double a33 = cos(theta)*cos(theta);
-			double a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
-			double a13 = cos(phi)*sin(theta)*cos(theta);
-			double a23 = sin(phi)*sin(theta)*cos(theta);
+			double rad_phi = vtkMath::RadiansFromDegrees(phi);
+			double rad_theta = vtkMath::RadiansFromDegrees(theta);
+			double a11 = cos(rad_phi)*cos(rad_phi)*sin(rad_theta)*sin(rad_theta);
+			double a22 = sin(rad_phi)*sin(rad_phi)*sin(rad_theta)*sin(rad_theta);
+			double a33 = cos(rad_theta)*cos(rad_theta);
+			double a12 = cos(rad_phi)*sin(rad_theta)*sin(rad_theta)*sin(rad_phi);
+			double a13 = cos(rad_phi)*sin(rad_theta)*cos(rad_theta);
+			double a23 = sin(rad_phi)*sin(rad_theta)*cos(rad_theta);
 			/*
 			if (dx == 0 && dy == 0)
 			{
@@ -286,7 +288,6 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		dstTbl.addRow(resultRowID-1, entries);
 		++resultRowID;
 	}
-
 	if (file.isOpen())
 		file.close();
 	return true;
