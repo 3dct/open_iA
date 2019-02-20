@@ -593,8 +593,10 @@ void iARenderer::showRPosition(bool s)
 
 void iARenderer::showSlicePlanes(bool show)
 {
-	for (int s = 0; s < 3; ++s)
+	for (int s = 0; s < 3; ++s) {
 		m_slicePlaneActor[s]->SetVisibility(show);
+		m_slicePlaneActor[s]->GetProperty()->SetOpacity(0.5);
+	}
 }
 
 void iARenderer::setPlaneNormals( vtkTransform *tr )
