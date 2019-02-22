@@ -109,7 +109,7 @@ namespace
 				}
 				if (p->Max() != std::numeric_limits<double>::max())
 				{
-					std::cout << " max=" << p->Min();
+					std::cout << " max=" << p->Max();
 				}
 			case Boolean:		// intentional fall-through!
 				std::cout << " default=" << p->DefaultValue().toString().toStdString();
