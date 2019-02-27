@@ -75,14 +75,6 @@ inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range
 		return 1;
 	}
 
-
-	void normalize(iAVec3& u)
-	{
-		float len = u.length();
-		if(len>0)
-			u = u / u.length();
-	}
-
 	iAMat4 ScaleAndCentreBBox(aabb &box, float *scale_coef_out, float* translate3f_out)
 	{
 		float scale_coeff = 1.0f;
@@ -95,35 +87,35 @@ inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range
 				translate3f_out[i] = -box.center()[i];
 			}
 			
-		return scale(iAVec3(scale_coeff,scale_coeff,scale_coeff))*translate(-box.center());
+		return scale(iAVec3f(scale_coeff,scale_coeff,scale_coeff))*translate(-box.center());
 	}
 
-	iAVec3 projectPtOnLine(iAVec3 &o, iAVec3 &dir, iAVec3& pt)
+	iAVec3f projectPtOnLine(iAVec3f & o, iAVec3f & dir, iAVec3f & pt)
 	{
-		iAVec3 o2pt = pt - o;
+		iAVec3f o2pt = pt - o;
 		float o2ptLen = o2pt.length();
-		normalize(o2pt);
-		normalize(dir);
+		o2pt.normalize();
+		dir.normalize();
 		float cos_dir_o2pt = o2pt & dir;
-		iAVec3 ptproj = o + dir*o2ptLen*cos_dir_o2pt;
+		iAVec3f ptproj = o + dir*o2ptLen*cos_dir_o2pt;
 		return ptproj;
 	}
 
-	float distPointToLine( iAVec3 &o, iAVec3 &dir, iAVec3& pt )
+	float distPointToLine( iAVec3f & o, iAVec3f & dir, iAVec3f & pt )
 	{
-		iAVec3 o2pt = pt - o;
+		iAVec3f o2pt = pt - o;
 		float o2ptLen = o2pt.length();
-		normalize(o2pt);
-		normalize(dir);
+		o2pt.normalize();
+		dir.normalize();
 		float cos_dir_o2pt = o2pt & dir;
-		iAVec3 ptproj = o + dir*o2ptLen*cos_dir_o2pt;
+		iAVec3f ptproj = o + dir*o2ptLen*cos_dir_o2pt;
 		return (pt-ptproj).length();
 	}
 
-	float distLineToLine( iAVec3 & o1, iAVec3 & d1, iAVec3 & o2, iAVec3 & d2 )
+	float distLineToLine( iAVec3f & o1, iAVec3f & d1, iAVec3f & o2, iAVec3f & d2 )
 	{
-		iAVec3 perpendicular = (d1^d2);
-		normalize(perpendicular);
+		iAVec3f perpendicular = (d1^d2);
+		perpendicular.normalize();
 		return fabs((o1-o2)&perpendicular);
 		//return (projectPtOnLine(o1, d1, o2) - o2).length();
 		//return (projectPtOnLine(o2, d2, o1) - o1).length();
@@ -177,17 +169,17 @@ inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range
 		z2=el.z2;
 	}
 
-	iAVec3 aabb::center() const
+	iAVec3f aabb::center() const
 	{
-		return iAVec3((x2+x1)*0.5f, (y2+y1)*0.5f, (z2+z1)*0.5f );
+		return iAVec3f((x2+x1)*0.5f, (y2+y1)*0.5f, (z2+z1)*0.5f );
 	}
 
-	iAVec3 aabb::half_size() const
+	iAVec3f aabb::half_size() const
 	{
 		#ifdef _DEBUG
 			assert( x2>=x1 && y2>=y1 && z2>=z1);
 		#endif
-		return iAVec3( (x2-x1)*0.5f, (y2-y1)*0.5f, (z2-z1)*0.5f );
+		return iAVec3f( (x2-x1)*0.5f, (y2-y1)*0.5f, (z2-z1)*0.5f );
 	}
 
 	int aabb::mainDim()

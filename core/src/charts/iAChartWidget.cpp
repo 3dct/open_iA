@@ -37,6 +37,7 @@
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
 #include <QPainter>
+#include <QRubberBand>
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 #include <QSurfaceFormat>
 #endif
@@ -124,6 +125,8 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
 	m_fontHeight(0),
 	m_yMaxTickLabelWidth(0),
+	m_selectionMode(SelectionDisabled),
+	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this)),
 	m_drawXAxisAtZero(false)
 {
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
@@ -135,6 +138,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
 	setAutoFillBackground(false);
+	m_selectionBand->hide();
 }
 
 iAChartWidget::~iAChartWidget()
@@ -452,10 +456,7 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	painter.save();
 	painter.translate(-translationX, 0);
 	QFontMetrics fm = painter.fontMetrics();
-
 	int aheight = activeHeight() - 1;
-	painter.fillRect(QRect(0, bottomMargin(), -leftMargin(), -(aheight + bottomMargin() + 1)),
-		QBrush(QWidget::palette().color(QWidget::backgroundRole())));
 	painter.setPen(QWidget::palette().color(QPalette::Text));
 
 	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
@@ -566,7 +567,9 @@ void iAChartWidget::updateBounds(size_t startPlot)
 
 void iAChartWidget::drawBackground(QPainter &painter)
 {
-	painter.fillRect( rect(), QWidget::palette().color(QWidget::backgroundRole()));
+	if (!m_bgColor.isValid())
+		m_bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	painter.fillRect( rect(), m_bgColor );
 }
 
 void iAChartWidget::resetView()
@@ -699,6 +702,11 @@ void iAChartWidget::removeImageOverlay(QImage * imgOverlay)
 	}
 }
 
+void iAChartWidget::setSelectionMode(SelectionMode mode)
+{
+	m_selectionMode = mode;
+}
+
 void iAChartWidget::drawPlots(QPainter &painter)
 {
 	if (m_plots.empty())
@@ -757,6 +765,8 @@ void iAChartWidget::showDataTooltip(QMouseEvent *event)
 	else
 		toolTip = QString("%1: %2\n%3: ").arg(xCaption).arg(getXAxisTickMarkLabel(binStart, stepWidth)).arg(yCaption);
 	bool more = false;
+	const int MaxToolTipDataCount = 5;
+	int curTooltipDataCount = 1;
 	for (auto plot : m_plots)
 	{
 		auto data = plot->data();
@@ -767,6 +777,12 @@ void iAChartWidget::showDataTooltip(QMouseEvent *event)
 		else
 			more = true;
 		toolTip += QString::number(data->GetRawData()[nthBin], 'g', 15);
+		++curTooltipDataCount;
+		if (curTooltipDataCount > MaxToolTipDataCount)
+		{
+			toolTip += "...";
+			break;
+		}
 	}
 	QToolTip::showText(event->globalPos(), toolTip, this);
 }
@@ -789,8 +805,47 @@ void iAChartWidget::changeMode(int newMode, QMouseEvent *event)
 void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton)
+	{
+		if (m_selectionBand->isVisible())
+		{
+			m_selectionBand->hide();
+			QRectF diagramRect;
+			QRectF selectionRect(m_selectionBand->geometry());     // height-y because we are drawing reversed from actual y direction
+			diagramRect.setTop(    yMapper().dstToSrc(activeHeight() - selectionRect.bottom()) );
+			diagramRect.setBottom( yMapper().dstToSrc(activeHeight() - selectionRect.top()   ) );
+			diagramRect.setLeft(   screenX2DataBin(selectionRect.left()  ) );
+			diagramRect.setRight(  screenX2DataBin(selectionRect.right() ) );
+			diagramRect = diagramRect.normalized();
+			if (diagramRect.top() < yBounds()[0])
+				diagramRect.setTop(yBounds()[0]);
+			if (diagramRect.bottom() > yBounds()[1])
+				diagramRect.setBottom(yBounds()[1]);
+			m_selectedPlots.clear();
+			double yMin = diagramRect.top(), yMax = diagramRect.bottom();
+			for (int plotIdx=0; plotIdx<m_plots.size(); ++plotIdx)
+			{
+				if (!m_plots[plotIdx]->visible())
+					continue;
+				for (int bin=diagramRect.left(); bin <= diagramRect.right(); ++bin)
+				{
+					double binYValue = m_plots[plotIdx]->data()->GetRawData()[bin];
+					if (yMin < binYValue && binYValue < yMax)
+					{
+						m_selectedPlots.push_back(plotIdx);
+						break;
+					}
+				}
+			}
+			emit plotsSelected(m_selectedPlots);
+		}
 		update();
+	}
 	this->mode = NO_MODE;
+}
+
+void iAChartWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+	emit dblClicked();
 }
 
 void iAChartWidget::mousePressEvent(QMouseEvent *event)
@@ -820,6 +875,12 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 			translationStartY = translationY;
 			changeMode(MOVE_VIEW_MODE, event);
 		}
+		else if (m_selectionMode == SelectPlot)
+		{
+			m_selectionOrigin = event->pos();
+			m_selectionBand->setGeometry(QRect(m_selectionOrigin, QSize()));
+			m_selectionBand->show();
+		}
 		break;
 	case Qt::RightButton:
 		update();
@@ -838,7 +899,12 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	switch(mode)
 	{
-	case NO_MODE: /* do nothing */ break;
+	case NO_MODE:
+		if (m_selectionBand->isVisible())
+		{
+			m_selectionBand->setGeometry(QRect(m_selectionOrigin, event->pos()).normalized());
+		}
+		/* do nothing */ break;
 	case MOVE_VIEW_MODE:
 		translationX = clamp(-static_cast<int>(activeWidth() * (xZoom-1)), 0,
 			translationStartX + event->x() - dragStartPosX);
@@ -865,7 +931,6 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 	}
 	showDataTooltip(event);
 }
-
 
 QImage iAChartWidget::drawOffscreen()
 {
@@ -896,6 +961,12 @@ QImage iAChartWidget::drawOffscreen()
 	QImage image = fbo.toImage();
 	context.doneCurrent();
 	return image;
+}
+
+void iAChartWidget::setBackgroundColor(QColor const & color)
+{
+	m_bgColor = color;
+	update();
 }
 
 void iAChartWidget::paintGL()

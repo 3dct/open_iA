@@ -344,13 +344,12 @@ void dlg_FeatureScout::spParameterVisibilityChanged(size_t paramIndex, bool enab
 	// itemChanged signal from elementTableModel takes care about updating PC (see updatePCColumnValues slot)
 }
 
-void dlg_FeatureScout::renderLUTChanges(iALookupTable const &lut, int colInd)
+void dlg_FeatureScout::renderLUTChanges(QSharedPointer<iALookupTable> lut, int colInd)
 {
 	iA3DLineObjectVis *lov = dynamic_cast<iA3DLineObjectVis *>(m_3dvis.data());
 	if (lov)
 	{
-		QSharedPointer<iALookupTable> l(new iALookupTable(lut));
-		lov->setLookupTable(l, colInd);
+		lov->setLookupTable(lut, colInd);
 	}
 }
 

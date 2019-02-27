@@ -1469,9 +1469,9 @@ size_t iAQSplom::colorLookupParam() const
 	return m_colorLookupParam;
 }
 
-iALookupTable const & iAQSplom::lookupTable() const
+QSharedPointer<iALookupTable> iAQSplom::lookupTable() const
 {
-	return *m_lut.data();
+	return m_lut;
 }
 
 iAQSplom::ColorScheme iAQSplom::colorScheme() const
@@ -1482,6 +1482,11 @@ iAQSplom::ColorScheme iAQSplom::colorScheme() const
 void iAQSplom::setColorParam(const QString & paramName)
 {
 	size_t colorLookupParam = m_splomData->paramIndex(paramName);
+	setColorParam(colorLookupParam);
+}
+
+void iAQSplom::setColorParam(size_t colorLookupParam)
+{
 	if (colorLookupParam == std::numeric_limits<size_t>::max())
 		return;
 	m_colorLookupParam = colorLookupParam;

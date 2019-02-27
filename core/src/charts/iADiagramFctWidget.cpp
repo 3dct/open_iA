@@ -191,7 +191,7 @@ void iADiagramFctWidget::mouseDoubleClickEvent(QMouseEvent *event)
 	{
 		changeColor(event);
 	}
-	emit dblClicked();
+	iAChartWidget::mouseDoubleClickEvent(event);
 }
 
 void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)

@@ -217,7 +217,7 @@ void dlg_DynamicVolumeLines::setupGUIElements()
 	cb_FBPView->setEnabled(false);
 
 	iALinearColorGradientBar *compLvl_colorBar = new iALinearColorGradientBar(this,
-		"ColorBrewer single hue 5-class grays", false);
+		"Brewer single hue 5c grays", false);
 	m_compLvlLUT = compLvl_colorBar->getLut();
 	connect(this, SIGNAL(compLevelRangeChanged(QVector<double>)),
 		compLvl_colorBar, SLOT(compLevelRangeChanged(QVector<double>)));

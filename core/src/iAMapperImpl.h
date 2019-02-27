@@ -22,9 +22,11 @@
 
 #include "iAMapper.h"
 
+#include "open_iA_Core_export.h"
+
 #include <cmath>
 
-class iALinearMapper : public iAMapper
+class open_iA_Core_API iALinearMapper : public iAMapper
 {
 public:
 	iALinearMapper();
@@ -38,7 +40,7 @@ private:
 };
 
 
-class iALogarithmicMapper : public iAMapper
+class open_iA_Core_API iALogarithmicMapper : public iAMapper
 {
 public:
 	iALogarithmicMapper(double srcMin, double srcMax, double dstMin, double dstMax);

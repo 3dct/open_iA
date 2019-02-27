@@ -18,140 +18,65 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAvec3.h"
+#include "iAVectorPlotData.h"
 
-#include <cmath>
+iAVectorPlotData::iAVectorPlotData(std::vector<double> const & data):
+	m_data(data)
+{
+	m_xBounds[0] = 0;
+	m_xBounds[1] = m_data.size()-1;
 
-iAVec3::iAVec3()
-{
-	x = 0;
-	y = 0;
-	z = 0;
-}
-iAVec3::iAVec3(float px, float py, float pz)
-{
-	x = px;
-	y = py;
-	z = pz;
-}
-iAVec3::iAVec3(float val)
-{
-	x = val;
-	y = val;
-	z = val;
-}
-iAVec3::iAVec3(float data[3])
-{
-	x = data[0];
-	y = data[1];
-	z = data[2];
-}
-iAVec3::iAVec3(const iAVec3& v)
-{
-	x = v.x;
-	y = v.y;
-	z = v.z;
+	updateBounds();
 }
 
-float iAVec3::length() const
+iAVectorPlotData::DataType const * iAVectorPlotData::GetRawData() const
 {
-	return (float)sqrt(x*x + y*y + z*z);
+	return m_data.data();
 }
 
-float iAVec3::angle(iAVec3 const & a, iAVec3 const & b)
+size_t iAVectorPlotData::GetNumBin() const
 {
-	return std::acos((a & b) / (a.length() * b.length()));
+	return m_data.size();
 }
 
-iAVec3& iAVec3::operator= (const iAVec3& v)
+double iAVectorPlotData::GetSpacing() const
 {
-	x = v.x;
-	y = v.y;
-	z = v.z;
-	return *this;
+	return 1.0;
 }
 
-iAVec3 iAVec3::operator+ () const
+double const * iAVectorPlotData::XBounds() const
 {
-	return *this;
+	return m_xBounds;
 }
 
-iAVec3 iAVec3::operator- () const
+iAVectorPlotData::DataType const * iAVectorPlotData::YBounds() const
 {
-	return iAVec3(-x, -y, -z);
+	return m_yBounds;
 }
 
-iAVec3& iAVec3::operator+= (const iAVec3& v)
+iAValueType iAVectorPlotData::GetRangeType() const
 {
-	x += v.x;
-	y += v.y;
-	z += v.z;
-	return *this;
+	return m_xDataType;
 }
 
-iAVec3& iAVec3::operator-= (const iAVec3& v)
-{
-	x -= v.x;
-	y -= v.y;
-	z -= v.z;
-	return *this;
+void iAVectorPlotData::setXDataType(iAValueType xDataType)
+{	m_xDataType = xDataType;
 }
 
-iAVec3& iAVec3::operator*= (const iAVec3& v)
+std::vector<double> & iAVectorPlotData::data()
 {
-	x *= v.x;
-	y *= v.y;
-	z *= v.z;
-	return *this;
+	return m_data;
 }
 
-iAVec3& iAVec3::operator*= (float f)
+void iAVectorPlotData::updateBounds()
 {
-	x *= f;
-	y *= f;
-	z *= f;
-	return *this;
-}
-
-iAVec3& iAVec3::operator/= (const iAVec3& v)
-{
-	x /= v.x;
-	y /= v.y;
-	z /= v.z;
-	return *this;
-}
-
-const float& iAVec3::operator[] (int index) const
-{
-	return *(index + &x);
-}
-
-float& iAVec3::operator[] (int index)
-{
-	return *(index + &x);
-}
-
-int iAVec3::operator== (const iAVec3& v) const
-{
-	return x == v.x && y == v.y && z == v.z;
-}
-
-int	iAVec3::operator!= (const iAVec3& v) const
-{
-	return x != v.x || y != v.y || z != v.z;
-}
-
-int	iAVec3::operator<  (const iAVec3& v) const
-{
-	return (x < v.x) || ((x == v.x) && (y < v.y));
-}
-
-int	iAVec3::operator>  (const iAVec3& v) const
-{
-	return (x > v.x) || ((x == v.x) && (y > v.y));
-}
-
-iAVec3 iAVec3::normalize() const
-{
-	return (*this) / this->length();
+	m_yBounds[0] = std::numeric_limits<double>::max();
+	m_yBounds[1] = std::numeric_limits<double>::lowest();
+	for (size_t i = 0; i < m_data.size(); ++i)
+	{
+		if (m_data[i] < m_yBounds[0])
+			m_yBounds[0] = m_data[i];
+		if (m_data[i] > m_yBounds[1])
+			m_yBounds[1] = m_data[i];
+	}
 }

@@ -144,10 +144,10 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 					min[1] = std::min( neighborFibersFF[j].startPoint[2], neighborFibersFF[j].endPoint[2] );
 					if( min[0] < max[1] && min[1] < max[0] ) continue;	// fibers are overlapped
 
-					Vec3d dir[2];
-					dir[0] = Vec3d( neighborFibersFF[i].endPoint ) - Vec3d( neighborFibersFF[i].startPoint );
-					dir[1] = Vec3d( neighborFibersFF[j].endPoint ) - Vec3d( neighborFibersFF[j].startPoint );
-					double angle = Vec3d::angle( dir[0], dir[1] );
+					iAVec3d dir[2];
+					dir[0] = iAVec3d( neighborFibersFF[i].endPoint ) - iAVec3d( neighborFibersFF[i].startPoint );
+					dir[1] = iAVec3d( neighborFibersFF[j].endPoint ) - iAVec3d( neighborFibersFF[j].startPoint );
+					double angle = angleBetween( dir[0], dir[1] );
 					angle = angle > (vtkMath::Pi()/2) ? vtkMath::Pi() - angle : angle;
 					if( minAngle > angle ) minAngle = angle;
 				}
@@ -199,7 +199,7 @@ iADefectClassifier::ExtendedDefectInfo iADefectClassifier::calcExtendedDefectInf
 {
 	ExtendedDefectInfo defInfo;
 	defInfo.Direction = def.eigenvectors[2].normalized( );
-	double angle = Vec3d::angle( defInfo.Direction, Vec3d( 0, 0, 1 ) );
+	double angle = angleBetween( defInfo.Direction, iAVec3d( 0, 0, 1 ) );
 	if( angle > vtkMath::Pi()/2) angle = vtkMath::Pi() - angle;
 	defInfo.Angle = angle;
 	defInfo.Elongation = def.obbSize[0] / def.obbSize[1];
@@ -213,9 +213,9 @@ FibersData iADefectClassifier::findNeighboringFibers( FibersData& fibers, Extend
 	FibersData neighborFibers;
 	for( auto fib : fibers )
 	{
-		Vec3d fibEndpoints[2];
-		fibEndpoints[0] = Vec3d( fib.startPoint );
-		fibEndpoints[1] = Vec3d( fib.endPoint );
+		iAVec3d fibEndpoints[2];
+		fibEndpoints[0] = iAVec3d( fib.startPoint );
+		fibEndpoints[1] = iAVec3d( fib.endPoint );
 		bool isNeighbor = false;
 		for( int i = 0; i < 2; i++ )
 		{

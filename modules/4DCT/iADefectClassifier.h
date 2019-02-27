@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAVec3.h>
+#include <iAvec3.h>
 
 #include <QVector>
 
@@ -66,10 +66,10 @@ private:
 
 	struct ExtendedDefectInfo
 	{
-		Vec3d Direction;
+		iAVec3d Direction;
 		double Angle;
 		double Elongation;
-		Vec3d Endpoints[2];
+		iAVec3d Endpoints[2];
 	};
 
 public:

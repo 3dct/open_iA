@@ -52,17 +52,17 @@ public:
 	friend	iAMat4   operator * ( const iAMat4&, float );
 	friend  iAMat4   operator * ( float,         const iAMat4& );
 	friend	open_iA_Core_API iAMat4   operator * ( const iAMat4&, const iAMat4& );
-	friend	open_iA_Core_API iAVec3 operator * ( const iAMat4&, const iAVec3& );
+	friend	open_iA_Core_API iAVec3f operator * ( const iAMat4&, const iAVec3f& );
 };
 
-//iAVec3 operator * (const iAMat4&, const iAVec3&);
+//iAVec3f operator * (const iAMat4 &, const iAVec3f &);
 
-open_iA_Core_API iAMat4	translate ( const iAVec3& );
-open_iA_Core_API iAMat4	scale     ( const iAVec3& );
+open_iA_Core_API iAMat4	translate ( const iAVec3f& );
+open_iA_Core_API iAMat4	scale     ( const iAVec3f& );
 iAMat4	rotateX   ( float );
 iAMat4	rotateY   ( float );
 iAMat4	rotateZ   ( float );
-open_iA_Core_API iAMat4	rotation  ( const iAVec3& v, float );
+open_iA_Core_API iAMat4	rotation  ( const iAVec3f& v, float );
 iAMat4	rotateX   ( float );
 iAMat4	rotateY   ( float );
 iAMat4	rotateZ   ( float );
@@ -75,9 +75,9 @@ iAMat4	mirrorZ   ();
 iAMat4	orthoProjectYZ();
 iAMat4	orthoProjectXZ();
 iAMat4	orthoProjectXY();
-iAMat4	axProjectYZ(iAVec3& );
-iAMat4	axProjectXZ(iAVec3& );
-iAMat4	axProjectXY(iAVec3& );
+iAMat4	axProjectYZ(iAVec3f& );
+iAMat4	axProjectXZ(iAVec3f& );
+iAMat4	axProjectXY(iAVec3f& );
 iAMat4  frProjectXY1(float);
 iAMat4  frProjectXZ1(float);
 iAMat4  frProjectYZ1(float);

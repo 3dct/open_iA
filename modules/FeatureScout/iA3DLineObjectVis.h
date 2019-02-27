@@ -38,7 +38,7 @@ public:
 	void updateValues( std::vector<std::vector<double> > const & values );
 	vtkPolyData* getLinePolyData();
 	void setLookupTable( QSharedPointer<iALookupTable> lut, size_t paramIndex );
-	void setSelection ( std::vector<size_t> const & sortedSelInds, bool selectionActive );
+	virtual void setSelection ( std::vector<size_t> const & sortedSelInds, bool selectionActive );
 	void updateColorSelectionRendering();
 	void setColor(QColor const & color);
 	void showBoundingBox();
@@ -51,10 +51,10 @@ protected:
 	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
 	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
 	vtkSmartPointer<vtkActor> m_outlineActor;
+	std::vector<size_t> m_selection;
 private:
 	QSharedPointer<iALookupTable> m_lut;
 	size_t m_colorParamIdx;
-	std::vector<size_t> m_selection;
 	bool m_selectionActive;
 };
 

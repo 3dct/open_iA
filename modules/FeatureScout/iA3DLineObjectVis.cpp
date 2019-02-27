@@ -22,9 +22,10 @@
 
 #include "iACsvConfig.h"
 
-#include "iALookupTable.h"
-#include "iARenderer.h"
-#include "mdichild.h"
+#include <iAConsole.h>
+#include <iALookupTable.h>
+#include <iARenderer.h>
+#include <mdichild.h>
 
 #include <vtkActor.h>
 #include <vtkCellArray.h>

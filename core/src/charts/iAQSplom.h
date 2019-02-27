@@ -125,7 +125,8 @@ public:
 	QSharedPointer<iASPLOMData> data();                              //! retrieve SPLOM data
 	void setLookupTable( vtkLookupTable * lut, const QString & paramName ); //!< Set lookup table from VTK (vtkLookupTable) given the name of a parameter to color-code.
 	void setLookupTable( iALookupTable &lut, size_t paramIndex );    //!< Set lookup table given the index of a parameter to color-code.
-	void setColorParam( const QString & paramName );                 //!< Set the parameter to color code, lookup table will be auto-determined (perceptually uniform, divergent)
+	void setColorParam( const QString & paramName );                 //!< Set the parameter to color code, lookup table will be auto-determined (By Parameter)
+	void setColorParam(size_t colorLookupParam);                     //!< Set the parameter to color code, lookup table will be auto-determined (By Parameter)
 	void setParameterVisibility(std::vector<char> const & visibility);//!< Adapt visibility of all parameters at once.
 	void setParameterVisibility( size_t paramIndex, bool isVisible );//!< Show/hide scatter plots of a parameter given parameter's index.
 	void setParameterVisibility( const QString & paramName, bool isVisible ); //!< Show/hide scatter plots of a parameter given parameter's name.
@@ -158,7 +159,7 @@ public:
 	void resetFilter();                                              //!< reset filter on data; after calling this method, all data points will be shown again
 	void addContextMenuAction(QAction* action);                      //!< add an additional option to the context menu
 	size_t colorLookupParam() const;                                 //!< parameter currently used for color lookup
-	iALookupTable const & lookupTable() const;                       //!< get lookup table
+	QSharedPointer<iALookupTable> lookupTable() const;               //!< get lookup table
 	ColorScheme colorScheme() const;                                 //!< get current color scheme
 public slots:
 	void setHistogramVisible(bool visible);                          //!< set visibility of histograms
@@ -166,6 +167,7 @@ public slots:
 	void showSettings();                                             //!< Show the settings dialog
 	void setSelectionMode(int mode);                                 //!< set selection mode to either rectangle or polygon mode
 	void setColorTheme(QString const & themeName);                   //!< Call to adapt color theme used for coloring by a parameter
+	void rangeFromParameter();                                       //!< Call when color range should be determined from parameter
 signals:
 	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
@@ -230,7 +232,6 @@ private slots:
 	void pointOpacityChanged(int);                                   //!< Called from settings dialog when opacity slider changes
 	void colorSchemeChanged(int colorScheme);                        //!< Called from settings dialog when the color scheme is changed
 	void changePointColor();                                         //!< Called from settings dialog when the point color is clicked
-	void rangeFromParameter();                                       //!< Called from settings dialog when color range should be determined from parameter
 
 // Members:
 public:

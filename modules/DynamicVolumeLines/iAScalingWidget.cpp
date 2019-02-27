@@ -69,7 +69,7 @@ void iAScalingWidget::setNonlinearScalingVec(const QVector<double> &nlsv, const 
 {
 	m_nonlinearScalingVec = nlsv;
 	m_impFunctVec = impfv;
-	iALUT::BuildLUT(m_lut, 0.0, 1.0, "ColorBrewer single hue 5-class grays");
+	iALUT::BuildLUT(m_lut, 0.0, 1.0, "Brewer single hue 5c grays");
 }
 
 void iAScalingWidget::setCursorPos(double lcp, double nlcp)

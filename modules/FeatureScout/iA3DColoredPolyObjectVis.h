@@ -46,6 +46,7 @@ public:
 	void setSelectionOpacity(int selectionAlpha);
 	void setContextOpacity(int contextAlpha);
 	bool visible() const;
+	vtkSmartPointer<vtkActor> getActor();
 protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;

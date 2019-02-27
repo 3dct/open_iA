@@ -164,21 +164,21 @@ void iASPMView::selectionUpdated( std::vector<size_t> const & selInds )
 
 void iASPMView::updateLUT()
 {
-	if (m_splom->lookupTable().numberOfValues() < m_lut->GetNumberOfTableValues())
+	if (m_splom->lookupTable()->numberOfValues() < m_lut->GetNumberOfTableValues())
 		return;
 	double rgba[4];
 	vtkIdType lutColCnt = m_lut->GetNumberOfTableValues();
 #if (VTK_MAJOR_VERSION > 8 || (VTK_MAJOR_VERSION == 8 && VTK_MINOR_VERSION > 0))
-	m_lut->SetRange(m_splom->lookupTable().getRange());
+	m_lut->SetRange(m_splom->lookupTable()->getRange());
 #else
 	double range[2];
-	range[0] = m_splom->lookupTable().getRange()[0];
-	range[1] = m_splom->lookupTable().getRange()[1];
+	range[0] = m_splom->lookupTable()->getRange()[0];
+	range[1] = m_splom->lookupTable()->getRange()[1];
 	m_lut->SetRange(range);
 #endif
 	for( vtkIdType i = 0; i < lutColCnt; i++ )
 	{
-		m_splom->lookupTable().getTableValue(i, rgba);
+		m_splom->lookupTable()->getTableValue(i, rgba);
 		m_lut->SetTableValue( i, rgba );
 	}
 	m_lut->Build();

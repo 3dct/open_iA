@@ -35,12 +35,15 @@
 #include <QGLWidget>
 #endif
 
+#include <vector>
+
 #include <QMap>
 
 class iAPlot;
 class iAMapper;
 
 class QMenu;
+class QRubberBand;
 
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class open_iA_Core_API iAChartWidget : public QOpenGLWidget
@@ -52,6 +55,7 @@ class open_iA_Core_API iAChartWidget : public QGLWidget
 public:
 	static const size_t MaxPossiblePlot = std::numeric_limits<size_t>::max();
 	enum Mode { NO_MODE, MOVE_VIEW_MODE, X_ZOOM_MODE, Y_ZOOM_MODE };
+	enum SelectionMode { SelectionDisabled, SelectPlot };
 	enum AxisMappingType { Linear, Logarithmic };
 	iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
 	virtual ~iAChartWidget();
@@ -92,6 +96,7 @@ public:
 	bool isDrawnDiscrete() const;
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
 	void removeImageOverlay(QImage * imgOverlay);
+	void setSelectionMode(SelectionMode mode);
 	void addXMarker(double xPos, QColor const & color);
 	void removeXMarker(double xPos);
 	void clearMarkers();
@@ -99,11 +104,14 @@ public:
 	void updateXBounds(size_t startPlot = 0);
 	void updateYBounds(size_t startPlot = 0);
 	QImage drawOffscreen();
+	void setBackgroundColor(QColor const & color);
 public slots:
 	void resetView();
 	void setDrawXAxisAtZero(bool enable);
 signals:
 	void xAxisChanged();
+	void plotsSelected(std::vector<size_t> const & plotIDs);
+	void dblClicked();
 protected:
 	QString xCaption, yCaption;
 	int zoomX;
@@ -139,6 +147,7 @@ protected:
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
+	void mouseDoubleClickEvent(QMouseEvent *event) override;
 	void wheelEvent(QWheelEvent *event) override;
 	void leaveEvent(QEvent *event) override;
 	void paintGL() override;
@@ -169,7 +178,12 @@ private:
 	bool m_customXBounds, m_customYBounds;
 	double m_xBounds[2], m_yBounds[2], m_xTickBounds[2];
 	QFlags<Qt::AlignmentFlag> m_captionPosition;
+	SelectionMode m_selectionMode;
+	QRubberBand* m_selectionBand;
+	QPoint m_selectionOrigin;
+	std::vector<size_t> m_selectedPlots;
 	QMap<double, QColor> m_xMarker;
 	size_t m_maxXAxisSteps;
 	bool m_drawXAxisAtZero;
+	QColor m_bgColor;
 };

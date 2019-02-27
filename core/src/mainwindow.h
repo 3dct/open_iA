@@ -138,6 +138,8 @@ private slots:
 	void linkViews();
 	void linkMDIs();
 	void enableInteraction();
+	void toggleFullScreen();
+	void toggleMenu();
 	void renderSettings();
 	void slicerSettings();
 	void loadTransferFunction();
@@ -184,6 +186,7 @@ public slots:
 
 signals:
 	void StyleChanged();
+	void fullScreenToggled();
 private:
 	void connectSignalsToSlots();
 	void readSettings();

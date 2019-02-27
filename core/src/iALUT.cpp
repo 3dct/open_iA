@@ -35,20 +35,20 @@ const QStringList colormaps = QStringList()
 	<< "Extended Black Body"
 	<< "Kindlmann"
 	<< "Kindlmann Extended"
-	<< "ColorBrewer single hue 5-class oranges"
-	<< "ColorBrewer single hue 5-class grays"
-	<< "ColorBrewer single hue 5-class oranges inv"
-	<< "ColorBrewer single hue 5-class red inv"
-	<< "ColorBrewer qualitative 12-class Set3"
-	<< "ColorBrewer qualitative 9-class Set1"
-	<< "ColorBrewer qualitative 12-class Paired";
+	<< "Brewer single hue 5c oranges"
+	<< "Brewer single hue 5c grays"
+	<< "Brewer single hue 5c oranges inv"
+	<< "Brewer single hue 5c red inv"
+	<< "Brewer qualitative 12c Set3"
+	<< "Brewer qualitative 9c Set1"
+	<< "Brewer qualitative 12c Paired";
 
 const QStringList& iALUT::GetColorMapNames()
 {
 	return colormaps;
 }
 
-int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double * lutRange, QString colorMap, int numCols /*= 256 */)
+int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols /*= 256 */)
 {
 	auto ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
 	ctf->SetColorSpaceToLab();
@@ -218,7 +218,7 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, dou
 	return BuildLUT( pLUT, lutRange, colorMap, numCols);
 }
 
-iALookupTable open_iA_Core_API iALUT::Build(double * lutRange, QString colorMap, int numCols, double alpha)
+iALookupTable open_iA_Core_API iALUT::Build(double const * lutRange, QString colorMap, int numCols, double alpha)
 {
 	vtkSmartPointer<vtkLookupTable> vtkLUT(vtkSmartPointer<vtkLookupTable>::New());
 	BuildLUT(vtkLUT, lutRange, colorMap, numCols);

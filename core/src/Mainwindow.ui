@@ -27,31 +27,27 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QMdiArea" name="mdiArea">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>681</width>
-      <height>431</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string/>
-    </property>
-    <property name="styleSheet">
-     <string notr="true"/>
-    </property>
-    <property name="background">
-     <brush brushstyle="SolidPattern">
-      <color alpha="255">
-       <red>40</red>
-       <green>40</green>
-       <blue>40</blue>
-      </color>
-     </brush>
-    </property>
-   </widget>
+   <layout class="QFormLayout" name="formLayout">
+    <item row="0" column="0">
+     <widget class="QMdiArea" name="mdiArea">
+      <property name="toolTip">
+       <string/>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="background">
+       <brush brushstyle="SolidPattern">
+        <color alpha="255">
+         <red>40</red>
+         <green>40</green>
+         <blue>40</blue>
+        </color>
+       </brush>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -59,7 +55,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="toolTipDuration">
@@ -129,6 +125,8 @@
     <addaction name="actionEnableInteraction"/>
     <addaction name="action_MainWindowStatusBar"/>
     <addaction name="actionShowToolbar"/>
+    <addaction name="actionFullScreenMode"/>
+    <addaction name="actionShowMenu"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -1037,6 +1035,31 @@
    </property>
    <property name="toolTip">
     <string>Opens a link to the open_iA bug tracker in your default web browser</string>
+   </property>
+  </action>
+  <action name="actionFullScreenMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Full Screen Mode</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionShowMenu">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Menu</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
    </property>
   </action>
  </widget>

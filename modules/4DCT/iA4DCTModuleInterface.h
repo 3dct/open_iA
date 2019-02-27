@@ -47,7 +47,7 @@ private slots:
 	//void				enableDensityMap();
 
 private:
-	//float				distBetweenFiberAndPoint(FiberCharacteristics* f, iAVec3 p);
+	//float				distBetweenFiberAndPoint(FiberCharacteristics* f, iAVec3f const & p);
 
 	vtkImageData*		m_fracture;
 	int					m_labeImageChildInd;

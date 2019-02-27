@@ -19,6 +19,7 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iA3DCylinderObjectVis.h"
+#include "iAvtkTubeFilter.h"
 
 #include "iACsvConfig.h"
 
@@ -28,12 +29,14 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkPointData.h>
 #include <vtkTable.h>
-#include <vtkTubeFilter.h>
 
 
 iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, int numberOfCylinderSides ):
-	iA3DLineObjectVis( widget, objectTable, columnMapping, color )
+	iA3DLineObjectVis( widget, objectTable, columnMapping, color ),
+	m_objectCount(objectTable->GetNumberOfRows()),
+	m_contextFactors(nullptr),
+	m_contextDiameterFactor(1.0)
 {
 	auto tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
 	tubeRadius->SetName("TubeRadius");
@@ -46,14 +49,67 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* obj
 	}
 	m_linePolyData->GetPointData()->AddArray(tubeRadius);
 	m_linePolyData->GetPointData()->SetActiveScalars("TubeRadius");
-	auto tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
-	tubeFilter->SetInputData(m_linePolyData);
-	tubeFilter->CappingOn();
-	tubeFilter->SidesShareVerticesOff();
-	tubeFilter->SetNumberOfSides(numberOfCylinderSides);
-	tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
-	tubeFilter->Update();
-	m_mapper->SetInputConnection(tubeFilter->GetOutputPort());
+	m_tubeFilter = vtkSmartPointer<iAvtkTubeFilter>::New();
+	m_tubeFilter->SetRadiusFactor(1.0);
+	m_tubeFilter->SetInputData(m_linePolyData);
+	m_tubeFilter->CappingOn();
+	m_tubeFilter->SidesShareVerticesOff();
+	m_tubeFilter->SetNumberOfSides(numberOfCylinderSides);
+	m_tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
+	m_tubeFilter->Update();
+	m_mapper->SetInputConnection(m_tubeFilter->GetOutputPort());
 
-	m_outlineFilter->SetInputConnection(tubeFilter->GetOutputPort());
+	m_outlineFilter->SetInputConnection(m_tubeFilter->GetOutputPort());
+}
+
+void iA3DCylinderObjectVis::setDiameterFactor(double diameterFactor)
+{
+	// NOTE: this requires modifying the vtkTubeFilter.cxx:
+	/*
+		else if ( inScalars &&
+			this->VaryRadius == VTK_VARY_RADIUS_BY_ABSOLUTE_SCALAR )
+		{
+			- sFactor = inScalars->GetComponent(pts[j],0);
+			+ sFactor = inScalars->GetComponent(pts[j],0) * this->RadiusFactor;
+	*/
+	m_tubeFilter->SetRadiusFactor(diameterFactor);
+	m_tubeFilter->Modified();
+	m_tubeFilter->Update();
+	updateRenderer();
+}
+
+void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFactor)
+{
+	if (contextDiameterFactor == 1.0)
+	{
+		if (m_contextFactors)
+			delete m_contextFactors;
+		m_contextFactors = nullptr;
+	}
+	else
+	{
+		if (!m_contextFactors)
+			m_contextFactors = new float[2 * m_objectCount];
+		m_contextDiameterFactor = contextDiameterFactor;
+		size_t selIdx = 0;
+		for (vtkIdType row = 0; row < m_objectCount; ++row)
+		{
+			bool isSelected = selIdx < m_selection.size() && (m_selection[selIdx] == row);
+			if (isSelected)
+				++selIdx;
+			float diameter = (!isSelected) ? m_contextDiameterFactor : 1.0;
+			m_contextFactors[2 * row] = diameter;
+			m_contextFactors[2 * row + 1] = diameter;
+		}
+	}
+	m_tubeFilter->SetIndividualFactors(m_contextFactors);
+	m_tubeFilter->Modified();
+	m_tubeFilter->Update();
+	updateRenderer();
+}
+
+void iA3DCylinderObjectVis::setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive)
+{
+	iA3DLineObjectVis::setSelection(sortedSelInds, selectionActive);
+	setContextDiameterFactor(m_contextDiameterFactor);
 }

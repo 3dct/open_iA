@@ -101,7 +101,6 @@ signals:
 	void endPointSelected();
 	void active();
 	void applyTFForAll();
-	void dblClicked();
 	void updateTFTable();
 
 public slots:

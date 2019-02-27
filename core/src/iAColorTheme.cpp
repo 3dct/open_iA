@@ -189,7 +189,7 @@ iAColorThemeManager::iAColorThemeManager()
 	m_themes.insert(few->GetName(), few);
 
 
-	iAVectorColorTheme* grayScale17 = new iAVectorColorTheme("Grayscale (best for 1,2,3,5,9,17 labels; max. 17)");
+	iAVectorColorTheme* grayScale17 = new iAVectorColorTheme("Grayscale (max. 17)");
 	grayScale17->AddColor(QColor(  0,  0,  0));
 	grayScale17->AddColor(QColor(255,255,255));
 	grayScale17->AddColor(QColor(128,128,128));
@@ -358,7 +358,7 @@ iAColorTheme const * iAColorThemeManager::GetTheme(QString const & name) const
 	return *it;
 }
 
-QList<QString> iAColorThemeManager::GetAvailableThemes() const
+QStringList iAColorThemeManager::GetAvailableThemes() const
 {
-	return m_themes.keys();
+	return QStringList(m_themes.keys());
 }

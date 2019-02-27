@@ -25,7 +25,7 @@
 #include <QVector>
 
 //forward declaration
-class iARenderer;
+class vtkRenderer;
 class vtkObject;
 class vtkCamera;
 
@@ -38,8 +38,8 @@ public:
 // 		return instance;
 // 	}
 				iARendererManager();
-	void		addToBundle(iARenderer* renderer);
-	bool		removeFromBundle(iARenderer* renderer);
+	void		addToBundle(vtkRenderer* renderer);
+	bool		removeFromBundle(vtkRenderer* renderer);
 	void		removeAll();
 
 private:
@@ -51,7 +51,7 @@ private:
 												 long unsigned int eventId,
 												 void* callData);
 
-	QVector<iARenderer*>	m_renderers;
+	QVector<vtkRenderer*>	m_renderers;
 	int						m_isRedrawn;
 	vtkCamera*				m_commonCamera;
 };

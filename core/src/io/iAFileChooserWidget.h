@@ -20,15 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QWidget>
 
-class iAFileChooserWidget : public QWidget
+class open_iA_Core_API iAFileChooserWidget : public QWidget
 {
 	Q_OBJECT
+signals:
+	void fileNameChanged(QString const & fileName);
 public:
 	enum ChoiceType
 	{
@@ -50,6 +54,7 @@ public:
 		layout()->addWidget(m_browseButton);
 		m_browseButton->setFixedHeight(16);
 		connect(m_browseButton, &QPushButton::clicked, this, &iAFileChooserWidget::BrowseClicked);
+		connect(m_textEdit, &QLineEdit::editingFinished, this, &iAFileChooserWidget::emitChangedFileName);
 	}
 	void BrowseClicked()
 	{
@@ -63,7 +68,10 @@ public:
 			case Folder: choice = QFileDialog::getExistingDirectory(this, "Choose Folder", m_textEdit->text());	break;
 		}
 		if (!choice.isEmpty())
+		{
 			m_textEdit->setText(choice);
+			emit fileNameChanged(choice);
+		}
 	}
 	QString text() const
 	{
@@ -76,4 +84,9 @@ public:
 	QLineEdit* m_textEdit;
 	QPushButton* m_browseButton;
 	ChoiceType m_choiceType;
+private slots:
+	void emitChangedFileName()
+	{
+		emit fileNameChanged(m_textEdit->text());
+	}
 };

@@ -49,7 +49,7 @@ float* getTranslate(void) {return translate3f;}*/
 #define BINARY_FILE 0
 #define ASCII_FILE 1
 
-inline void computeBBox(std::vector<triangle*> & stlMesh, std::vector<iAVec3*> & vertices, aabb & box, float & scale_coef, float * translate3f)
+inline void computeBBox(std::vector<triangle*> & stlMesh, std::vector<iAVec3f*> & vertices, aabb & box, float & scale_coef, float * translate3f)
 {
 	float x1=vertices[0]->operator[](0), x2=vertices[0]->operator[](0),\
 		  y1=vertices[0]->operator[](1), y2=vertices[0]->operator[](1),\
@@ -130,7 +130,7 @@ struct Tri
 	float vertex3X;        float vertex3Y;        float vertex3Z;
 };
 
-int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3*> & vertices, aabb & box)
+int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3f*> & vertices, aabb & box)
 {
 	float scale_coef;///< loaded mesh's scale coefficient
 	float translate3f[3];///< loaded mesh's axes offsets
@@ -138,7 +138,7 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 	//clear prev model data
 	for (unsigned int i=0; i<vertices.size(); i++)
 	{
-		iAVec3* vert = vertices[i];
+		iAVec3f* vert = vertices[i];
 		if(vert) 
 			delete vert;
 	}
@@ -224,7 +224,7 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 	// text file
 	if (type == ASCII_FILE)
 	{	
-		iAVec3 helper_vec3;
+		iAVec3f helper_vec3;
 		for(unsigned int i = 0; i < Word.size(); i++)
 		{
 			if(Word[i] == "solid")
@@ -239,17 +239,17 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 				//copy->m_N = iAVec3( (float)atof(Word[i+2].c_str()),					// THIS NORMAL CAN BE WRONG :)
 				//				  (float)atof(Word[i+3].c_str()),
 				//				  (float)atof(Word[i+4].c_str()) );
-				copy->vertices[0] = new iAVec3((float)atof(Word[i+8].c_str()),
+				copy->vertices[0] = new iAVec3f((float)atof(Word[i+8].c_str()),
 											(float)atof(Word[i+9].c_str()),
 											(float)atof(Word[i+10].c_str())	);
 				vertices.push_back(copy->vertices[0]);
 
-				copy->vertices[1] = new iAVec3((float)atof(Word[i+12].c_str()),
+				copy->vertices[1] = new iAVec3f((float)atof(Word[i+12].c_str()),
 											(float)atof(Word[i+13].c_str()),
 											(float)atof(Word[i+14].c_str())	);
 				vertices.push_back(copy->vertices[1]);
 
-				copy->vertices[2] = new iAVec3((float)atof(Word[i+16].c_str()),
+				copy->vertices[2] = new iAVec3f((float)atof(Word[i+16].c_str()),
 											(float)atof(Word[i+17].c_str()),
 											(float)atof(Word[i+18].c_str())	);
 				vertices.push_back(copy->vertices[2]);
@@ -257,7 +257,7 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 				// IN THE FOLLOWINGF LINES OF CODE WE REEVALUATE THE NORMAL AS THE ABOVE NORMAL IS PROBLEM SOME
 				copy->N =  (*copy->vertices[2]-*copy->vertices[1])
 					        ^(*copy->vertices[0]-*copy->vertices[2]);
-				normalize(copy->N);// RESETTING THE NORMAL HERE
+				copy->N.normalize();// RESETTING THE NORMAL HERE
 	
 				//counter++;
 				stlMesh.push_back( copy );
@@ -303,25 +303,24 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 
 			copy = new triangle;
 
-			copy->N = iAVec3(item.normal1, item.normal2, item.normal3 );
+			copy->N = iAVec3f(item.normal1, item.normal2, item.normal3 );
 
-			iAVec3 helper_vec3;
-			helper_vec3 = iAVec3(item.vertex1X, item.vertex1Y, item.vertex1Z );
-			copy->vertices[0] = new iAVec3(helper_vec3);
+			iAVec3f helper_vec3(item.vertex1X, item.vertex1Y, item.vertex1Z );
+			copy->vertices[0] = new iAVec3f(helper_vec3);
 			vertices.push_back(copy->vertices[0]);
 			
-			helper_vec3 = iAVec3(item.vertex2X, item.vertex2Y, item.vertex2Z );
-			copy->vertices[1] = new iAVec3(helper_vec3);
+			helper_vec3 = iAVec3f(item.vertex2X, item.vertex2Y, item.vertex2Z );
+			copy->vertices[1] = new iAVec3f(helper_vec3);
 			vertices.push_back(copy->vertices[1]);
 
-			helper_vec3 = iAVec3(item.vertex3X, item.vertex3Y, item.vertex3Z );
-			copy->vertices[2] = new iAVec3(helper_vec3);
+			helper_vec3 = iAVec3f(item.vertex3X, item.vertex3Y, item.vertex3Z );
+			copy->vertices[2] = new iAVec3f(helper_vec3);
 			vertices.push_back(copy->vertices[2]);
 			
 			// RESETTING THE NORMAL HERE
 			copy->N =  (*copy->vertices[2]-*copy->vertices[1])
 						^(*copy->vertices[0]-*copy->vertices[2]);
-			normalize(copy->N);
+			copy->N.normalize();
 
 			count++;
 

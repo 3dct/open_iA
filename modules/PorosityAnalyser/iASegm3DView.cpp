@@ -100,7 +100,7 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 		sd->GetWidget()->setParent( container );
 		sd->SetDataToVisualize( imgData[i], polyData[i], otf[i], ctf[i] );
 		m_data.push_back( sd );
-		m_renMgr->addToBundle( sd->GetRenderer() );
+		m_renMgr->addToBundle( sd->GetRenderer()->GetRenderer() );
 
 		m_layout->addWidget( container );
 	}
