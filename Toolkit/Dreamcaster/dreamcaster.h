@@ -175,11 +175,11 @@ private:
 	//! Calculate percentage of bad surface, using Radon space analysis
 	double RandonSpaceAnalysis();
 	//! Init raytracer engine and clear screen buffer
-	void InitRender(iAVec3 * vp_corners, iAVec3 * vp_delta, iAVec3 * o);
+	void InitRender(iAVec3f * vp_corners, iAVec3f * vp_delta, iAVec3f * o);
 	//! Position the specimen according to the
 	void PositionSpecimen();
 	//! Render single frame
-	void Render(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iAVec3 * o, bool saveData);
+	void Render(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool saveData);
 	//! opens the result set file with the given fileName
 	void OpenSetFile(QString const & fileName);
 protected:

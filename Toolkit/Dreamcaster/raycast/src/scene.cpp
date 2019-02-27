@@ -69,7 +69,7 @@ TriPrim::TriPrim( triangle *a_Tri, unsigned int index) :m_Tri(a_Tri->vertices[0]
 	m_index = index;
 	precompute();
 }
-TriPrim::TriPrim( iAVec3* a_V1, iAVec3* a_V2, iAVec3* a_V3, unsigned int index ) :m_Tri(a_V1, a_V2, a_V3)
+TriPrim::TriPrim( iAVec3f* a_V1, iAVec3f* a_V2, iAVec3f* a_V3, unsigned int index ) :m_Tri(a_V1, a_V2, a_V3)
 {
 	m_index = index;
 	precompute();
@@ -80,7 +80,7 @@ int TriPrim::Intersect( Ray& a_Ray, float& a_Dist ) const
 {
 	#define ku modulo[m_WaldTri.k + 1]
 	#define kv modulo[m_WaldTri.k + 2]
-	iAVec3 O = a_Ray.GetOrigin(), D = a_Ray.GetDirection();
+	iAVec3f O = a_Ray.GetOrigin(), D = a_Ray.GetDirection();
 	const float lnd = 1.0f / (D[m_WaldTri.k] + m_WaldTri.nu * D[ku] + m_WaldTri.nv * D[kv]);
 	const float t = (m_WaldTri.nd - O[m_WaldTri.k] - m_WaldTri.nu * O[ku] - m_WaldTri.nv * O[kv]) * lnd;
 	if (!(a_Dist > t && t > 0)) return MISS;
@@ -95,9 +95,9 @@ int TriPrim::Intersect( Ray& a_Ray, float& a_Dist ) const
 	return ((D&m_WaldTri.m_N ) > 0)? INPRIM : HIT;
 }
 
-bool PlaneBoxOverlap( iAVec3& a_Normal, iAVec3& a_Vert, iAVec3& a_MaxBox )
+bool PlaneBoxOverlap( iAVec3f & a_Normal, iAVec3f & a_Vert, iAVec3f & a_MaxBox )
 {
-	iAVec3 vmin, vmax;
+	iAVec3f vmin, vmax;
 	for( int q = 0; q < 3; q++ )
 	{
 		float v = a_Vert[q];
@@ -116,13 +116,13 @@ bool PlaneBoxOverlap( iAVec3& a_Normal, iAVec3& a_Vert, iAVec3& a_MaxBox )
 	if (( a_Normal&vmax) >= 0.0f) return true;
 	return false;
 }
-int TriPrim::Intersect(aabb &a_aabb, iAVec3 & a_BoxCentre, iAVec3 & a_BoxHalfsize) const
+int TriPrim::Intersect(aabb &a_aabb, iAVec3f & a_BoxCentre, iAVec3f & a_BoxHalfsize) const
 {
-	iAVec3 * a_V0 = m_Tri.vertices[0];
-	iAVec3 * a_V1 = m_Tri.vertices[1];
-	iAVec3 * a_V2 = m_Tri.vertices[2];
+	iAVec3f * a_V0 = m_Tri.vertices[0];
+	iAVec3f * a_V1 = m_Tri.vertices[1];
+	iAVec3f * a_V2 = m_Tri.vertices[2];
 	
-	iAVec3 v0, v1, v2, normal, e0, e1, e2;
+	iAVec3f v0, v1, v2, normal, e0, e1, e2;
 	float min, max, p0, p1, p2, rad, fex, fey, fez;
 	v0 = *a_V0 - a_BoxCentre;
 	v1 = *a_V1 - a_BoxCentre;
@@ -161,11 +161,11 @@ void TriPrim::precompute()
 {
 	// init precomp
 	//normal
-	iAVec3 A = *m_Tri.vertices[0];
-	iAVec3 B = *m_Tri.vertices[1];
-	iAVec3 C = *m_Tri.vertices[2];
-	iAVec3 c = B - A;
-	iAVec3 b = C - A;
+	iAVec3f A = *m_Tri.vertices[0];
+	iAVec3f B = *m_Tri.vertices[1];
+	iAVec3f C = *m_Tri.vertices[2];
+	iAVec3f c = B - A;
+	iAVec3f b = C - A;
 	m_Tri.N = b^c;
 	int u, v;
 	if (fabsf( m_Tri.N.x() ) > fabsf( m_Tri.N.y()))
@@ -206,7 +206,7 @@ int TriPrim::CenterInside( aabb &a_aabb ) const
 	return (int)(center[0]>a_aabb.x1 && center[0]<a_aabb.x2 && center[1]>a_aabb.y1 && center[1]<a_aabb.y2 && center[2]>a_aabb.z1 && center[2]<a_aabb.z2);
 }
 
-void TriPrim::recalculateD( iAVec3 *translate )
+void TriPrim::recalculateD( iAVec3f *translate )
 {
 	m_d = (m_Tri.N) & ((*m_Tri.vertices[0]) - (*translate));
 }
@@ -272,7 +272,7 @@ int Scene::initScene(ModelData & mdata, SETTINGS * s, QString const & filename)
 	return 1;
 }
 
-void Scene::recalculateD( iAVec3 *translate )
+void Scene::recalculateD( iAVec3f *translate )
 {
 	for (unsigned int i = 0; i < m_tris.size(); i++)
 	{
@@ -282,10 +282,10 @@ void Scene::recalculateD( iAVec3 *translate )
 
 int IntersectCyl(const Ray & ray, const aabb& box, float &tmin, float&tmax, int ind)
 {
-	iAVec3 ro = ray.GetOrigin();
-	iAVec3 rd = ray.GetDirection();
-	iAVec3 bcenter = box.center();
-	iAVec3 cylDir = iAVec3(0,0,1);
+	iAVec3f ro = ray.GetOrigin();
+	iAVec3f rd = ray.GetDirection();
+	iAVec3f bcenter = box.center();
+	iAVec3f cylDir = iAVec3f(0,0,1);
 	//cylDir[ind] = 1;
 	float cylRad = max_macro(max_macro(box.half_size()[0], box.half_size()[1]), box.half_size()[2]);
 	float l2ldist = distLineToLine(ro, rd, bcenter, cylDir);
@@ -302,7 +302,7 @@ int IntersectCyl(const Ray & ray, const aabb& box, float &tmin, float&tmax, int 
 	if((z[0]>box.z1 && z[0]<box.z2) || (z[1]>box.z1 && z[1]<box.z2))
 		return 1;
 	//first cap
-	iAVec3 A = bcenter - cylDir*box.half_size()[2];
+	iAVec3f A = bcenter - cylDir*box.half_size()[2];
 	float h = (ro-A)&cylDir; 
 	float dist = (A - ro + rd*h/(rd&cylDir)).length();
 	if(dist<=cylRad)

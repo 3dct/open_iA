@@ -170,9 +170,9 @@ iAMat4 operator * ( float v, const iAMat4& a )
 	return res;
 }
 
-iAVec3 operator * ( const iAMat4& m, const iAVec3& v )
+iAVec3f operator * ( const iAMat4& m, const iAVec3f & v )
 {
-	iAVec3 res(
+	iAVec3f res(
 		m.x[0][0] * v.x() + m.x[0][1] * v.y() + m.x[0][2] * v.z() + m.x[0][3],
 		m.x[1][0] * v.x() + m.x[1][1] * v.y() + m.x[1][2] * v.z() + m.x[1][3],
 		m.x[2][0] * v.x() + m.x[2][1] * v.y() + m.x[2][2] * v.z() + m.x[2][3]
@@ -187,7 +187,7 @@ iAVec3 operator * ( const iAMat4& m, const iAVec3& v )
 
 //////////////////////// Derived functions /////////////////////////////
 
-iAMat4 translate ( const iAVec3& loc )
+iAMat4 translate ( const iAVec3f & loc )
 {
 	iAMat4 res ( 1 );
 	res.x [0][3] = loc.x();
@@ -196,7 +196,7 @@ iAMat4 translate ( const iAVec3& loc )
 	return res;
 }
 
-iAMat4 scale ( const iAVec3& v )
+iAMat4 scale ( const iAVec3f & v )
 {
 	iAMat4 res ( 1 );
 	res.x [0][0] = v.x();
@@ -247,7 +247,7 @@ iAMat4 rotateZ ( float angle )
 	return res;
 }
 
-iAMat4 rotation ( const iAVec3& axis, float angle )
+iAMat4 rotation ( const iAVec3f & axis, float angle )
 {
 	iAMat4 res ( 1 );
 	float  cosine = cos ( angle );
@@ -278,19 +278,19 @@ iAMat4 rotation ( const iAVec3& axis, float angle )
 
 iAMat4 rotationX ( float angle )
 {
-	iAVec3 axis = iAVec3(1,0,0);
+	iAVec3f axis(1,0,0);
 	return rotation(axis, angle);
 }
 
 iAMat4 rotationY ( float angle )
 {
-	iAVec3 axis = iAVec3(0,1,0);
+	iAVec3f axis(0,1,0);
 	return rotation(axis, angle);
 }
 
 iAMat4 rotationZ ( float angle )
 {
-	iAVec3 axis = iAVec3(0,0,1);
+	iAVec3f axis(0,0,1);
 	return rotation(axis, angle);
 }
 
@@ -336,7 +336,7 @@ iAMat4 orthoProjectXZ ()
 	return res;
 }
 
-iAMat4 axProjectYZ (iAVec3& v)
+iAMat4 axProjectYZ (iAVec3f & v)
 {
 	iAMat4 res ( 1 );
 	res.x [2][2] = v.z()/v.x();
@@ -344,7 +344,7 @@ iAMat4 axProjectYZ (iAVec3& v)
 	return res;
 }
 
-iAMat4 axProjectXY (iAVec3& v)
+iAMat4 axProjectXY (iAVec3f & v)
 {
 	iAMat4 res ( 1 );
 	res.x [0][2] = v.x()/v.z();
@@ -352,7 +352,7 @@ iAMat4 axProjectXY (iAVec3& v)
 	return res;
 }
 
-iAMat4 axProjectXZ (iAVec3& v)
+iAMat4 axProjectXZ (iAVec3f & v)
 {
 	iAMat4 res ( 1 );
 	res.x [0][2] = v.x()/v.y();

@@ -113,20 +113,20 @@ namespace
 				i*(qDegreesToRadians(parameters[ProjAngleEnd].toDouble())
 					- qDegreesToRadians(parameters[ProjAngleStart].toDouble())) /
 				(projAngleCnt - 1);
-			iAVec3 sourcePos(
+			iAVec3f sourcePos(
 				sin(curAngle) * parameters[DstOrigSrc].toDouble(),
 				-cos(curAngle) * parameters[DstOrigSrc].toDouble(),
 				0);
-			iAVec3 detectorCenter(
+			iAVec3f detectorCenter(
 				-sin(curAngle) * parameters[DstOrigDet].toDouble(),
 				cos(curAngle) * parameters[DstOrigDet].toDouble(),
 				0);
-			iAVec3 detectorPixelHorizVec(				// vector from detector pixel(0, 0) to(0, 1)
+			iAVec3f detectorPixelHorizVec(				// vector from detector pixel(0, 0) to(0, 1)
 				cos(curAngle) * parameters[DetSpcX].toDouble(),
 				sin(curAngle) * parameters[DetSpcX].toDouble(),
 				0);
-			iAVec3 detectorPixelVertVec(0, 0, parameters[DetSpcY].toDouble()); // vector from detector pixel(0, 0) to(1, 0)
-			iAVec3 shiftVec = detectorPixelHorizVec.normalized() * parameters[CenterOfRotOfs].toDouble();
+			iAVec3f detectorPixelVertVec(0, 0, parameters[DetSpcY].toDouble()); // vector from detector pixel(0, 0) to(1, 0)
+			iAVec3f shiftVec = detectorPixelHorizVec.normalized() * parameters[CenterOfRotOfs].toDouble();
 			sourcePos += shiftVec;
 			detectorCenter += shiftVec;
 

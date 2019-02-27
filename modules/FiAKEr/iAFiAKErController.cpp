@@ -2043,7 +2043,7 @@ void iAFiAKErController::changeReferenceDisplay()
 			size_t fiberID = m_selection[resultID][fiberIdx];
 			for (int n = 0; n < refCount; ++n)
 			{
-				iAVec3 start1, start2, end1, end2;
+				iAVec3f start1, start2, end1, end2;
 				size_t refFiberID = d.refDiffFiber[fiberID].dist[similarityMeasure][n].index;
 				for (int i = 0; i < 3; ++i)
 				{
@@ -2064,7 +2064,7 @@ void iAFiAKErController::changeReferenceDisplay()
 				/*
 				if ((start1 - start2).length() > (start1 - end2).length() && (end1 - end2).length() > (end1 - start2).length())
 				{
-					iAVec3 tmp = start1;
+					iAVec3f tmp = start1;
 					start1 = start2;
 					start2 = tmp;
 				}

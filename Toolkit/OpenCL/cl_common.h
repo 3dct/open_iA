@@ -132,7 +132,7 @@ inline int generateEmbeddableSource(QString src_filename, QString output_filenam
 	return 1;
 }
 
-inline cl_float4 Vec3_to_cl_float4(const iAVec3 & v)
+inline cl_float4 Vec3_to_cl_float4(const iAVec3f & v)
 {
 	cl_float4 res = {v.x(), v.y(), v.z(), 0.0f};
 	return res;

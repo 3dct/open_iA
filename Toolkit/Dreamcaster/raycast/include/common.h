@@ -170,9 +170,9 @@ inline float Rand( float a_Range );
 		t[1] = (mins % 10) + '0';
 		t[0] = ((mins / 10) % 10) + '0';
 	}
-	iAVec3 projectPtOnLine(iAVec3 &o, iAVec3 &dir, iAVec3& pt);
-	float distPointToLine(iAVec3 &o, iAVec3 &dir, iAVec3& pt);
-	float distLineToLine( iAVec3 & o1, iAVec3 & d1, iAVec3 & o2, iAVec3 & d2 );
+	iAVec3f projectPtOnLine(iAVec3f & o, iAVec3f & dir, iAVec3f & pt);
+	float distPointToLine(iAVec3f & o, iAVec3f & dir, iAVec3f & pt);
+	float distLineToLine( iAVec3f & o1, iAVec3f & d1, iAVec3f & o2, iAVec3f & d2 );
 	/**	\struct arotation_tabb.
 	\brief Structure representing combination of parameters in single placement.
 	*/
@@ -244,7 +244,7 @@ inline float Rand( float a_Range );
 		* @note if point is on bound it considered to be inside AABB
 		* @return 1 if inside, 0 otherwise
 		*/
-		inline int isInside(iAVec3& v) const
+		inline int isInside(iAVec3f& v) const
 		{
 			if (v.x()<=x2 && v.x()>=x1 &&
 			    v.y()<=y2 && v.y()>=y1 &&
@@ -257,11 +257,11 @@ inline float Rand( float a_Range );
 		/**
 		* Calculate center vector of bb.
 		*/
-		iAVec3 center() const;
+		iAVec3f center() const;
 		/**
 		* Calculate half size vector of bb.
 		*/
-		iAVec3 half_size() const;
+		iAVec3f half_size() const;
 		/**
 		* Calculates mainDim member (index of maximum dimension).
 		*/
@@ -276,17 +276,17 @@ inline float Rand( float a_Range );
 	{
 	public:
 		Vertex() {};
-		Vertex( iAVec3 a_Pos ) : m_Pos( a_Pos ) {};
+		Vertex( iAVec3f a_Pos ) : m_Pos( a_Pos ) {};
 		//float GetU() { return m_U; }
 		//float GetV() { return m_V; }
-		iAVec3& GetNormal() { return m_Normal; }
-		iAVec3& GetPos() { return m_Pos; }
+		iAVec3f & GetNormal() { return m_Normal; }
+		iAVec3f & GetPos() { return m_Pos; }
 		//void SetUV( float a_U, float a_V ) { m_U = a_U; m_V = a_V; }
-		void SetPos( iAVec3& a_Pos ) { m_Pos = a_Pos; }
-		void SetNormal( iAVec3& a_N ) { m_Normal = a_N; }
+		void SetPos( iAVec3f& a_Pos ) { m_Pos = a_Pos; }
+		void SetNormal( iAVec3f& a_N ) { m_Normal = a_N; }
 	private:
-		iAVec3 m_Pos;
-		iAVec3 m_Normal;
+		iAVec3f m_Pos;
+		iAVec3f m_Normal;
 	};
 	/**	\struct triangle.
 		\brief Class representing triangle in 3d space.
@@ -295,7 +295,7 @@ inline float Rand( float a_Range );
 	*/
 	struct triangle
 	{
-		triangle( iAVec3* a_V1, iAVec3* a_V2, iAVec3* a_V3)
+		triangle( iAVec3f* a_V1, iAVec3f* a_V2, iAVec3f* a_V3)
 		{
 			vertices[0] = a_V1;
 			vertices[1] = a_V2;
@@ -307,24 +307,24 @@ inline float Rand( float a_Range );
 			vertices[1] = 0;
 			vertices[2] = 0;
 		};
-		iAVec3 N;
-		iAVec3 *vertices[3];// 12
+		iAVec3f N;
+		iAVec3f *vertices[3];// 12
 	};
 
 	struct wald_tri
 	{
-		iAVec3 m_N;
-		iAVec3 m_A;
+		iAVec3f m_N;
+		iAVec3f m_A;
 		float nu, nv, nd;
 		unsigned int k;	
 		float bnu, bnv;
 		float cnu, cnv;	
 	};
 	struct ct_state{
-		iAVec3 o;///< rays origin
-		iAVec3 c;///< corner of plate
-		iAVec3 dx;///< dx of plane in 3d
-		iAVec3 dy;///< dy of plane in 3d
+		iAVec3f o;///< rays origin
+		iAVec3f c;///< corner of plate
+		iAVec3f dx;///< dx of plane in 3d
+		iAVec3f dy;///< dy of plane in 3d
 	};
 	/**	\struct plane.
 	\brief Class representing plane in 3d space.
@@ -335,14 +335,14 @@ inline float Rand( float a_Range );
 	{
 	public:
 		plane() : N( 0, 0, 0 ), D( 0 ) {};
-		plane( iAVec3 a_Normal, float a_D ) : N( a_Normal ), D( a_D ) {};
-		iAVec3 N;
+		plane( iAVec3f a_Normal, float a_D ) : N( a_Normal ), D( a_D ) {};
+		iAVec3f N;
 		float D;
 	};
 
 	struct ModelData 
 	{
 		std::vector<triangle*>		stlMesh; ///< loaded mesh's triangles vector
-		std::vector<iAVec3*>		vertices;///< loaded mesh's vertices vector
+		std::vector<iAVec3f*>		vertices;///< loaded mesh's vertices vector
 		aabb box;///< loaded mesh's aabb
 	};

@@ -109,7 +109,7 @@ inline int IntersectAABB(const Ray &ray, const aabb& box, float &tmin, float&tma
 	1 - if ray intersects AABB
 	0 - otherwise
 */
-inline int Intersect(iAVec3& ro, iAVec3 rd, const aabb& box)
+inline int Intersect(iAVec3f & ro, iAVec3f rd, const aabb& box)
 {
 	float txmin, txmax, tymin, tymax;
 	float ddx = 1.0f/(ro.x()-rd.x());
@@ -195,11 +195,11 @@ class TriPrim
 {
 public:
 	inline unsigned int GetIndex() {return m_index;}
-	TriPrim( iAVec3* a_V1, iAVec3* a_V2, iAVec3* a_V3, unsigned int index=0 );
+	TriPrim( iAVec3f* a_V1, iAVec3f* a_V2, iAVec3f* a_V3, unsigned int index=0 );
 	TriPrim( triangle *a_Tri, unsigned int index=0);
-	iAVec3& normal() { return m_Tri.N; }
+	iAVec3f& normal() { return m_Tri.N; }
 	float &surface() {return m_Surface;}
-	inline iAVec3 * getVertex(int i)
+	inline iAVec3f * getVertex(int i)
 	{
 		if(i>=0 && i<3)
 			return m_Tri.vertices[i];
@@ -207,14 +207,14 @@ public:
 	}
 	float &d() {return m_d;}
 	virtual int Intersect( Ray& a_Ray, float& a_Dist ) const;
-	virtual int Intersect(aabb &a_aabb, iAVec3 & a_BoxCentre, iAVec3 & a_BoxHalfsize) const;
+	virtual int Intersect(aabb &a_aabb, iAVec3f & a_BoxCentre, iAVec3f & a_BoxHalfsize) const;
 	int CenterInside(aabb &a_aabb) const;
 	inline float GetAngleCos(Ray& a_Ray){ return a_Ray.GetDirection()&m_Tri.N; }
 	wald_tri GetWaldTri() {return m_WaldTri;}
 	/**
 	* recalculate d coefficient when translation vector is given
 	*/
-	void recalculateD(iAVec3 *translate);
+	void recalculateD(iAVec3f *translate);
 	inline float getMinX() const
 	{
 		return min_macro( m_Tri.vertices[0]->x(), min_macro(m_Tri.vertices[1]->x(), m_Tri.vertices[2]->x()) );
@@ -306,7 +306,7 @@ public:
 	/**
 	* recalculate d coefficient when translation vector is given for every triangle
 	*/
-	void recalculateD( iAVec3 *translate );
+	void recalculateD( iAVec3f *translate );
 private:
 	std::vector<TriPrim*> m_tris;///< list of all scene's primitives
 	BSPTree *m_bsp;///< scene's BSP-tree

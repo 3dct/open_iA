@@ -36,12 +36,12 @@ static const char * clDreamcaster_Source[] = {
 
 //namespace Raytracer {
 
-Ray::Ray( iAVec3& a_Origin, iAVec3& a_Dir ) : 
+Ray::Ray( iAVec3f & a_Origin, iAVec3f & a_Dir ) :
 	m_Origin( a_Origin ), 
 	m_Direction( a_Dir )
 {}
 
-Ray::Ray(const iAVec3 * a_Origin, iAVec3& a_Dir ) : 
+Ray::Ray(const iAVec3f * a_Origin, iAVec3f & a_Dir ) :
 	m_Origin( *a_Origin ), 
 	m_Direction( a_Dir )
 {}
@@ -116,12 +116,12 @@ bool intersectionCompare( intersection *e1, intersection *e2 )
 	return e1->dist < e2->dist;
 }
 
-int Engine::DepthRaytrace( Ray& a_Ray, iAVec3& a_Acc, int a_Depth, float a_RIndex, float& a_Dist, RayPenetration * ray_p, std::vector<Intersection*> &vecIntersections, traverse_stack * stack, bool dipAsColor )
+int Engine::DepthRaytrace( Ray& a_Ray, iAVec3f & a_Acc, int a_Depth, float a_RIndex, float& a_Dist, RayPenetration * ray_p, std::vector<Intersection*> &vecIntersections, traverse_stack * stack, bool dipAsColor )
 {
 	if (a_Depth > s->TRACEDEPTH) return 0;
 	// trace primary ray
 	a_Dist = 1000000.0f;
-	iAVec3 pi;
+	iAVec3f pi;
 	std::vector<intersection*> intersections;
 	// find intersections
 	unsigned int cutAABBListSize;
@@ -201,13 +201,13 @@ int Engine::DepthRaytrace( Ray& a_Ray, iAVec3& a_Acc, int a_Depth, float a_RInde
 	float coef = penetrationDepth*s->COLORING_COEF;
 	if(dipAsColor)
 	{
-		a_Acc = iAVec3((s->COL_RANGE_MIN_R+s->COL_RANGE_DR*(1-ray_p->avDipAng))/255.0, 
+		a_Acc = iAVec3f((s->COL_RANGE_MIN_R+s->COL_RANGE_DR*(1-ray_p->avDipAng))/255.0,
 			(s->COL_RANGE_MIN_G+s->COL_RANGE_DG*(1-ray_p->avDipAng))/255.0,
 			(s->COL_RANGE_MIN_B+s->COL_RANGE_DB*(1-ray_p->avDipAng))/255.0);
 	}
 	else
 	{
-		a_Acc = iAVec3(coef, coef, coef);
+		a_Acc = iAVec3f(coef, coef, coef);
 	}
 	// return pointer to primitive hit by primary ray
 	return 1;
@@ -217,30 +217,30 @@ int Engine::DepthRaytrace( Ray& a_Ray, iAVec3& a_Acc, int a_Depth, float a_RInde
 // Initializes the renderer, by resetting the line / tile
 // counters and precalculating some values
 // -----------------------------------------------------------
-void Engine::InitRender(iAVec3 * vp_corners, iAVec3 * vp_delta, iAVec3 * o)
+void Engine::InitRender(iAVec3f * vp_corners, iAVec3f * vp_delta, iAVec3f * o)
 {
 	//!@note rotations and translations are inversed, because we rotating plane and origin instead of object
 	float 
 		irotX = -rotX,
 		irotY = -rotY,
 		irotZ = -rotZ;
-	iAVec3 iposition = -position;
+	iAVec3f iposition = -position;
 	iAMat4 mrotx, mroty, mrotz;
 	mrotz = rotationZ(irotZ);
-	mroty = rotation(mrotz*iAVec3(0,1,0), irotY);
-	mrotx = rotation(mrotz*iAVec3(1,0,0), irotX);
+	mroty = rotation(mrotz*iAVec3f(0,1,0), irotY);
+	mrotx = rotation(mrotz*iAVec3f(1,0,0), irotX);
 	iAMat4 rot_mat = mrotx*mroty*mrotz;
 	//iAMat4 rot_mat = rotationX(irotX)*rotationY(irotY)*rotationZ(irotZ);
 	//if plate rotation is desired, should do translation after rotation
-	vp_corners[0] = rot_mat*(iAVec3(m_WX1, m_WY1, m_PLANE_Z)+iposition);
-	vp_corners[1] = rot_mat*(iAVec3(m_WX2, m_WY2, m_PLANE_Z)+iposition);
-	(*o) = rot_mat*(iAVec3( 0, 0, m_ORIGIN_Z )+iposition);
+	vp_corners[0] = rot_mat*(iAVec3f(m_WX1, m_WY1, m_PLANE_Z)+iposition);
+	vp_corners[1] = rot_mat*(iAVec3f(m_WX2, m_WY2, m_PLANE_Z)+iposition);
+	(*o) = rot_mat*(iAVec3f( 0, 0, m_ORIGIN_Z )+iposition);
 	//no translations here
-	vp_delta[0] = rot_mat*iAVec3(m_DX, 0, 0);
-	vp_delta[1] = rot_mat*iAVec3(0, m_DY, 0);
+	vp_delta[0] = rot_mat*iAVec3f(m_DX, 0, 0);
+	vp_delta[1] = rot_mat*iAVec3f(0, m_DY, 0);
 }
 
-bool Engine::Render(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iAVec3 * o,  bool rememberData, bool dipAsColor, bool cuda_enabled, bool rasterization )
+bool Engine::Render(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o,  bool rememberData, bool dipAsColor, bool cuda_enabled, bool rasterization )
 {
 	if(cuda_enabled)
 		return RenderGPU(vp_corners, vp_delta, o, rememberData, dipAsColor, rasterization);
@@ -251,7 +251,7 @@ bool Engine::Render(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iA
 // Engine::RenderCPU
 // Render scene
 // -----------------------------------------------------------
-bool Engine::RenderCPU(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iAVec3 * o, bool rememberData, bool dipAsColor )
+bool Engine::RenderCPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool rememberData, bool dipAsColor )
 {
 	curRender.clear();
 	curRender.rotX = rotX;
@@ -342,7 +342,7 @@ bool Engine::RenderCPU(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const
 // Engine::RenderCPU
 // Render scene
 // -----------------------------------------------------------
-bool Engine::RenderGPU(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iAVec3 * o, bool rememberData, bool dipAsColor, bool rasteriztion )
+bool Engine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool rememberData, bool dipAsColor, bool rasteriztion )
 {
 	curRender.clear();
 	curRender.rotX = rotX;
@@ -358,8 +358,8 @@ bool Engine::RenderGPU(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const
 /*
 		iAMat4 mrotx, mroty, mrotz;
 		mroty = rotationY(rotY);
-		mrotx = rotation(mroty*iAVec3(1,0,0), rotX);
-		mrotz = rotation(mroty*iAVec3(0,0,1), rotZ);
+		mrotx = rotation(mroty*iAVec3f(1,0,0), rotX);
+		mrotz = rotation(mroty*iAVec3f(0,0,1), rotZ);
 		iAMat4 rot_mat = mrotz*mrotx*mroty;
 */
 /*
@@ -367,15 +367,15 @@ bool Engine::RenderGPU(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const
 			irotX = -rotX,
 			irotY = -rotY,
 			irotZ = -rotZ;
-		//iAVec3 iposition = -position;
+		//iAVec3f iposition = -position;
 		iAMat4 mrotx, mroty, mrotz;
 		mrotz = rotationZ(irotZ);
-		mroty = rotation(mrotz*iAVec3(0,1,0), irotY);
-		mrotx = rotation(mrotz*iAVec3(1,0,0), irotX);
+		mroty = rotation(mrotz*iAVec3f(0,1,0), irotY);
+		mrotx = rotation(mrotz*iAVec3f(1,0,0), irotX);
 		iAMat4 rot_mat = mrotx*mroty*mrotz;
 		rot_mat.invert();
 		//TODO!!! add translation
-		iAVec3 origin = iAVec3( 0, 0, ORIGIN_Z );
+		iAVec3f origin = iAVec3f( 0, 0, ORIGIN_Z );
 		cuda_rasterize(&origin, &PLANE_Z, &PLANE_H_W, &rot_mat, &RFRAME_W, &RFRAME_H, (int)GetScene()->getNrTriangles(), cuda_avpl_buff);
 */
 	}
@@ -476,7 +476,7 @@ bool Engine::RenderGPU(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const
 	return true;
 }
 
-bool Engine::RenderBatchGPU( unsigned int batchSize, iAVec3 *os, iAVec3 * corns, iAVec3 * deltaxs, iAVec3 * deltays, float * rotsX, float * rotsY, float * rotsZ, bool rememberData /*= true*/, bool dipAsColor /*= false*/)
+bool Engine::RenderBatchGPU( unsigned int batchSize, iAVec3f *os, iAVec3f * corns, iAVec3f * deltaxs, iAVec3f * deltays, float * rotsX, float * rotsY, float * rotsZ, bool rememberData /*= true*/, bool dipAsColor /*= false*/)
 {
 	for (unsigned int batch=0; batch<batchSize; batch++)
 	{
@@ -593,18 +593,18 @@ bool Engine::RenderBatchGPU( unsigned int batchSize, iAVec3 *os, iAVec3 * corns,
 	return true;
 }
 
-void Engine::Transform( iAVec3 * vec )
+void Engine::Transform( iAVec3f * vec )
 {
 	//!@note rotations and translations are inversed, because we rotating plane and origin instead of object
 	float 
 		irotX = -rotX,
 		irotY = -rotY,
 		irotZ = -rotZ;
-	iAVec3 iposition = -position;
+	iAVec3f iposition = -position;
 	iAMat4 mrotx, mroty, mrotz;
 	mrotz = rotationZ(irotZ);
-	mroty = rotation(mrotz*iAVec3(0,1,0), irotY);
-	mrotx = rotation(mrotz*iAVec3(1,0,0), irotX);
+	mroty = rotation(mrotz*iAVec3f(0,1,0), irotY);
+	mrotx = rotation(mrotz*iAVec3f(1,0,0), irotX);
 	iAMat4 rot_mat = mrotx*mroty*mrotz;
 	//if plate rotation is desired, should do translation after rotation
 	(*vec) = rot_mat*((*vec)+iposition);
@@ -814,8 +814,8 @@ void RaycastingThread::run()
 			rays[rayInd].m_Y=y;
 			rays[rayInd].totalPenetrLen=0.0f;
 			// fire primary ray
-			iAVec3 acc( 0, 0, 0 );
-			iAVec3 dir = (m_vp_corners[0] + x*m_vp_delta[0] + y*m_vp_delta[1]) - (*m_o);
+			iAVec3f acc( 0, 0, 0 );
+			iAVec3f dir = (m_vp_corners[0] + x*m_vp_delta[0] + y*m_vp_delta[1]) - (*m_o);
 			dir.normalize();
 			Ray r( m_o, dir );
 			float dist;

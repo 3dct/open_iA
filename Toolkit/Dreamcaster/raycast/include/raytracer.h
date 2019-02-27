@@ -27,35 +27,27 @@
 
 #include "cl_common.h"
 
-/**	\class Ray.
-	\brief Class representing ray in 3D.
-
-	Detailed description.	
-*/
+//! Class representing a ray in 3D.
 class Ray
 {
 public:
-	Ray() : m_Origin( iAVec3( 0, 0, 0 ) ), m_Direction( iAVec3( 0, 0, 0 ) ) {};
-	Ray( iAVec3& a_Origin, iAVec3& a_Dir );
-	Ray( const iAVec3 * a_Origin, iAVec3& a_Dir );
-	void SetOrigin( iAVec3& a_Origin ) { m_Origin = a_Origin; }
-	void SetDirection( iAVec3& a_Direction ) { m_Direction = a_Direction; }
-	inline const iAVec3& GetOrigin() const { return m_Origin; }
-	inline const iAVec3& GetDirection() const { return m_Direction; }
+	Ray() : m_Origin( iAVec3f( 0, 0, 0 ) ), m_Direction( iAVec3f( 0, 0, 0 ) ) {};
+	Ray( iAVec3f & a_Origin, iAVec3f & a_Dir );
+	Ray( const iAVec3f * a_Origin, iAVec3f & a_Dir );
+	void SetOrigin( iAVec3f & a_Origin ) { m_Origin = a_Origin; }
+	void SetDirection( iAVec3f & a_Direction ) { m_Direction = a_Direction; }
+	inline const iAVec3f & GetOrigin() const { return m_Origin; }
+	inline const iAVec3f & GetDirection() const { return m_Direction; }
 private:
-	iAVec3 m_Origin;		///< ray origin's position
-	iAVec3 m_Direction;	///< ray direction vector
+	iAVec3f m_Origin;		///< ray origin's position
+	iAVec3f m_Direction;	///< ray direction vector
 };
-
 
 class Scene;
 class RaycastingThread;
 struct traverse_stack;
-/**	\class Engine.
-	\brief A class is in charge with raycasting process.
 
-	Is used to init render system, start rendering process. Also contains all scene data.	
-*/
+//! Class in charge of the raycasting process; it is used to init the render system, start the rendering process and contains all scene data.	
 class Engine
 {
 	friend class RaycastingThread;
@@ -78,7 +70,7 @@ public:
 	* Raytrace single ray. 
 	* @note not used (using thread->DepthRaytrace(...) instead)
 	*/
-	int DepthRaytrace ( Ray& a_Ray, iAVec3& a_Acc, int a_Depth, float a_RIndex, float& a_Dist, RayPenetration * ray_p, std::vector<Intersection*> &vecIntersections, traverse_stack * stack, bool dipAsColor=false ); 
+	int DepthRaytrace ( Ray& a_Ray, iAVec3f & a_Acc, int a_Depth, float a_RIndex, float& a_Dist, RayPenetration * ray_p, std::vector<Intersection*> &vecIntersections, traverse_stack * stack, bool dipAsColor=false );
 	/**
 	* Initializes the renderer, by resetting render parameters and precalculating some values.
 	* Prepares transformation matrix which is applied to origin and screen plane.
@@ -86,11 +78,11 @@ public:
 	* @param vp_delta [out] plane's x and y axes' directions in 3D
 	* @param o [out] ray's origin point in world coordinates
 	*/
-	void InitRender(iAVec3 * vp_corners, iAVec3 * vp_delta, iAVec3 * o);
+	void InitRender(iAVec3f * vp_corners, iAVec3f * vp_delta, iAVec3f * o);
 	/**
 	* Transforms vector corresponding to rotation and position
 	*/
-	void Transform(iAVec3 * vec);
+	void Transform(iAVec3f * vec);
 	/**
 	* Render engine's scene.
 	* @param rememberData remember data.
@@ -98,10 +90,10 @@ public:
 	* @param cuda_enabled use cuda based code for rendering
 	* @return true
 	*/
-	bool Render(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iAVec3 * o, bool rememberData = true, bool dipAsColor = false, bool cuda_enabled=false, bool rasterization = false);
-	bool RenderCPU(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iAVec3 * o, bool rememberData = true, bool dipAsColor = false);
-	bool RenderGPU(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iAVec3 * o, bool rememberData = true, bool dipAsColor = false, bool rasterization = false);
-	bool RenderBatchGPU(unsigned int batchSize, iAVec3 *os, iAVec3 * corns, iAVec3 * deltaxs, iAVec3 * deltays, float * rotsX, float * rotsY, float * rotsZ, bool rememberData = true, bool dipAsColor = false);
+	bool Render(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool rememberData = true, bool dipAsColor = false, bool cuda_enabled=false, bool rasterization = false);
+	bool RenderCPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool rememberData = true, bool dipAsColor = false);
+	bool RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool rememberData = true, bool dipAsColor = false, bool rasterization = false);
+	bool RenderBatchGPU(unsigned int batchSize, iAVec3f *os, iAVec3f * corns, iAVec3f * deltaxs, iAVec3f * deltays, float * rotsX, float * rotsY, float * rotsZ, bool rememberData = true, bool dipAsColor = false);
 	/**
 	* Get ray traced image pixel buffer.
 	*/
@@ -180,7 +172,7 @@ protected:
 	float rotX;		///< camera's rotation about x axis
 	float rotY;		///< camera's rotation about y axis
 	float rotZ;		///< camera's rotation about z axis
-	iAVec3 position;	///< object's position
+	iAVec3f position;	///< object's position
 	float m_lastAvPenetrLen;///< last rendering's av. penetration length
 	float m_lastAvDipAngle;	///< last rendering's av. dip angle
 	unsigned int m_batchSize;
@@ -189,7 +181,7 @@ protected:
 	SETTINGS * s;
 
 /**
-* Prpoperties and methods for OpenCL raycasting
+* Properties and methods for OpenCL raycasting
 */
 private://properties
 	//OpenCL
@@ -243,12 +235,8 @@ private:
 		float * out_dip_res );
 };
 
-/**	\class RaycastingThread.
-\brief A class is in charge with raycasting process.
-  Class ingerited from QThread. Executes raycastring on tile prescribed by X,Y screen coordinates ranges(in pixels).
-
-  Used directly for rendering process. Has a pointer on parent Engine class, which is used to obtain scene data and to store some results.	
-*/
+//! Class in charge of raycasting process. Executes raycastring on tile prescribed by X,Y screen coordinates ranges(in pixels).
+//! Used directly for rendering process. Has a pointer on parent Engine class, which is used to obtain scene data and to store some results.
 class RaycastingThread : public QThread 
 { 
 public: 
@@ -263,47 +251,35 @@ public:
 		//if(rays)
 		//	delete[]rays;
 	}; 
-	/**
-	* Sets parent Engine pointer.
-	*/
+	//! Sets parent Engine pointer.
 	inline void setEngine(Engine* a_e)
 	{
 		e=a_e;
 	}
-	/**
-	* Sets position of plane and ray's origin.
-	*/
-	inline void setPlaneAndOrigin( const iAVec3 *vp_corners, const iAVec3 *vp_delta, const iAVec3 *o)
+	//! Sets position of plane and ray's origin.
+	inline void setPlaneAndOrigin( const iAVec3f *vp_corners, const iAVec3f *vp_delta, const iAVec3f *o)
 	{
 		m_o = o;
 		m_vp_corners = vp_corners;
 		m_vp_delta = vp_delta;
 	}
-	/**
-	* Gets rays' penetrations data.
-	*/
+	//! Gets rays' penetrations data.
 	inline RayPenetration * getRays()
 	{
 		return rays;
 	}
-	/**
-	* Gets intersections data.
-	*/
+	//! Gets intersections data.
 	inline std::vector<Intersection*> * getIntersections()
 	{
 		return &intersections;
 	}
-	/**
-	* Runs thread, executes raycasting of thread's tile.
-	*/
+	//! Runs thread, executes raycasting of thread's tile.
 	void run();
 	void stop()
 	{
 		stopped = true;
 	}
-	/**
-	* Free memory that have been allocated for rays and intersections.
-	*/
+	//! Free memory that has been allocated for rays and intersections.
 	void clearMemory()
 	{
 		if(rays)
@@ -315,9 +291,9 @@ public:
 	int rayCount;  ///< number of casted rays
 	bool dipAsColor;  ///< image colored corresponding to dip angles
 private: 
-	const iAVec3 *m_o; ///< rays' origin point
-	const iAVec3 *m_vp_corners;///< plane's corners in 3d
-	const iAVec3 *m_vp_delta;///< plane's x and y axes' directions in 3D
+	const iAVec3f *m_o; ///< rays' origin point
+	const iAVec3f *m_vp_corners;///< plane's corners in 3d
+	const iAVec3f *m_vp_delta;///< plane's x and y axes' directions in 3D
 	Engine* e; ///< parent Engine 
 	RayPenetration * rays; ///< rays' penetrations data
 	std::vector<Intersection*> intersections; ///< intersections data

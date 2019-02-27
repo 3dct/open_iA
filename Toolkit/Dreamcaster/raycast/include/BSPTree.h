@@ -136,7 +136,7 @@ public:
 		nodes.push_back(new BSPNode());
 		set_has_right(true);
 
-		iAVec3 center = m_aabb.center(), h_size = m_aabb.half_size();
+		iAVec3f center = m_aabb.center(), h_size = m_aabb.half_size();
 		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();//get_left(nodes)->set_tri_start(tri_ind.size());//left node
 		//unsigned int counter=0;
 		std::vector<TriPrim*> l_tris, r_tris;
@@ -255,8 +255,8 @@ public:
 					l_counter=0; r_counter=0;
 					cur_bound = ((TriPrim*)parent_tris[i])->getAxisBound(cur_axis_ind, is_maximum);
 					SplitSAH(m_aabb, l_aabb, r_aabb, cur_axis_ind, cur_bound );
-					iAVec3 l_center = l_aabb.center(), l_h_size = l_aabb.half_size();
-					iAVec3 r_center = r_aabb.center(), r_h_size = r_aabb.half_size();
+					iAVec3f l_center = l_aabb.center(), l_h_size = l_aabb.half_size();
+					iAVec3f r_center = r_aabb.center(), r_h_size = r_aabb.half_size();
 					for (unsigned int i2=0; i2<primSz; i2++)
 					{
 						//if( ((TriPrim*)parent_tris[i])->CenterInside( l_aabb) )
@@ -308,7 +308,7 @@ public:
 		
 		std::vector<TriPrim*> l_tris, r_tris;
 		int cntr;
-		iAVec3 center = m_aabb.center(), h_size = m_aabb.half_size();
+		iAVec3f center = m_aabb.center(), h_size = m_aabb.half_size();
 		for (unsigned int i=0; i<primSz; i++)
 		{
 			cntr=0;
@@ -530,7 +530,7 @@ public:
 	*/
 	int GetIntersectionsNR(Ray & ray, std::vector<intersection*>& intersections, traverse_stack * tr_stack) const
 	{
-		iAVec3 ro, rd;
+		iAVec3f ro, rd;
 		float tmin=0, tmax=100000.f, t=tmin;
 		if(!IntersectAABB(ray, m_aabb, tmin, tmax)) return 0;
 		traverse_stack::trace_t cur_t;

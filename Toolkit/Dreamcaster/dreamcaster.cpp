@@ -692,7 +692,7 @@ void DreamCaster::RenderViewsSlot()
 	set_pos[1] = ui.sb_posy->value()/stngs.SCALE_COEF;
 	set_pos[2] = ui.sb_posz->value()/stngs.SCALE_COEF;
 	tracer->setPositon(set_pos);
-	iAVec3 transl = -iAVec3(set_pos);
+	iAVec3f transl = -iAVec3f(set_pos);
 	tracer->GetScene()->recalculateD(&transl);
 	int paramIndex = ui.cb_rangeParameter->currentIndex();
 	tracer->SetCutAABBList(&cutFigList->aabbs);
@@ -700,9 +700,9 @@ void DreamCaster::RenderViewsSlot()
 	int totalRends = cntX*cntY*cntZ;
 	if(ui.cb_RadonSA->currentIndex() == 2)//do only Radon space analysis
 	{
-		iAVec3 l_o; // rays' origin point
-		iAVec3 l_vp_corners[2];// plane's corners in 3d
-		iAVec3 l_vp_delta[2];// plane's x and y axes' directions in 3D
+		iAVec3f l_o; // rays' origin point
+		iAVec3f l_vp_corners[2];// plane's corners in 3d
+		iAVec3f l_vp_delta[2];// plane's x and y axes' directions in 3D
 		int counter = 0;
 		for (int x=0; x<cntX; x++)
 		{
@@ -767,18 +767,18 @@ void DreamCaster::RenderViewsSlot()
 		int counter = 0;
 		unsigned int batch_counter=0;
 		//batch parameters for every render
-		iAVec3 * s1_o = new iAVec3[stngs.BATCH_SIZE]; 
-		iAVec3 * corners = new iAVec3[stngs.BATCH_SIZE];
-		iAVec3 * dxs = new iAVec3[stngs.BATCH_SIZE];
-		iAVec3 * dys = new iAVec3[stngs.BATCH_SIZE];
+		iAVec3f * s1_o = new iAVec3f[stngs.BATCH_SIZE]; 
+		iAVec3f * corners = new iAVec3f[stngs.BATCH_SIZE];
+		iAVec3f * dxs = new iAVec3f[stngs.BATCH_SIZE];
+		iAVec3f * dys = new iAVec3f[stngs.BATCH_SIZE];
 		unsigned int * xs = new unsigned int[stngs.BATCH_SIZE];//prev skipped positions when batching
 		unsigned int * ys = new unsigned int[stngs.BATCH_SIZE];//prev skipped positions when batching
 		unsigned int * zs = new unsigned int[stngs.BATCH_SIZE];//prev skipped positions when batching
 		float * rotsX = new float[stngs.BATCH_SIZE];
 		float * rotsY = new float[stngs.BATCH_SIZE]; 
 		float * rotsZ = new float[stngs.BATCH_SIZE]; 
-		iAVec3 s1_vp_corners[2];
-		iAVec3 s1_vp_delta[2];
+		iAVec3f s1_vp_corners[2];
+		iAVec3f s1_vp_delta[2];
 		unsigned int s1_x = 0;
 		unsigned int s1_y = 0;
 		unsigned int s1_z = 0;
@@ -949,9 +949,9 @@ void DreamCaster::RenderViewsSlot()
 	}//GPU
 	else//using CPU
 	{
-		iAVec3 o; // rays' origin point
-		iAVec3 vp_corners[2];// plane's corners in 3d
-		iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+		iAVec3f o; // rays' origin point
+		iAVec3f vp_corners[2];// plane's corners in 3d
+		iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 		int counter = 0;
 		for (int x=0; x<cntX; x++)
 		{
@@ -1217,14 +1217,14 @@ void DreamCaster::UpdateHistogramSlot()
 		// obtain rays data for current rendering
 		float pos[3] ={readRender->pos[0], readRender->pos[1], readRender->pos[2]};
 		tracer->setPositon(pos);
-		iAVec3 transl = -iAVec3(pos);
+		iAVec3f transl = -iAVec3f(pos);
 		tracer->GetScene()->recalculateD(&transl);
 		tracer->setRotations(readRender->rotX, readRender->rotY, readRender->rotZ);
 		//tracer->setRotations(((2*M_PI)/ui.sb_countX->value())*ui.sb_curX->value(), 
 		//	((2*M_PI)/ui.sb_countY->value())*ui.sb_curY->value());
-		iAVec3 o; // rays' origin point
-		iAVec3 vp_corners[2];// plane's corners in 3d
-		iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+		iAVec3f o; // rays' origin point
+		iAVec3f vp_corners[2];// plane's corners in 3d
+		iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 		InitRender(vp_corners, vp_delta, &o);
 
 		if(ui.cudaEnabled->isChecked())
@@ -1264,14 +1264,14 @@ void DreamCaster::RenderSingleViewSlot()
 		static_cast<float>(ui.sb_posz_2->value()/stngs.SCALE_COEF)
 	};
 	tracer->setPositon(pos);
-	iAVec3 transl = -iAVec3(pos);
+	iAVec3f transl = -iAVec3f(pos);
 	tracer->GetScene()->recalculateD(&transl);
 	tracer->setRotations(DEG2RAD*ui.sb_curX->value(), DEG2RAD*ui.sb_curY->value(), DEG2RAD*ui.sb_curZ->value());
 	//tracer->setRotations(((2*M_PI)/ui.sb_countX->value())*ui.sb_curX->value(), 
 	//	((2*M_PI)/ui.sb_countY->value())*ui.sb_curY->value());
-	iAVec3 o; // rays' origin point
-	iAVec3 vp_corners[2];// plane's corners in 3d
-	iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+	iAVec3f o; // rays' origin point
+	iAVec3f vp_corners[2];// plane's corners in 3d
+	iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 	InitRender(vp_corners, vp_delta, &o);
 	/*ct_state state;
 	state.o = tracer->o;
@@ -1622,14 +1622,14 @@ void DreamCaster::ShowRangeRays()
 	// obtain rays data for current rendering
 	float pos[3] ={curRender->pos[0], curRender->pos[1], curRender->pos[2]};
 	tracer->setPositon(pos);
-	iAVec3 transl = -iAVec3(pos);
+	iAVec3f transl = -iAVec3f(pos);
 	tracer->GetScene()->recalculateD(&transl);
 	tracer->setRotations(curRender->rotX, curRender->rotY, curRender->rotZ);
 	//tracer->setRotations(((2*M_PI)/ui.sb_countX->value())*ui.sb_curX->value(), 
 	//	((2*M_PI)/ui.sb_countY->value())*ui.sb_curY->value());
-	iAVec3 o; // rays' origin point
-	iAVec3 vp_corners[2];// plane's corners in 3d
-	iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+	iAVec3f o; // rays' origin point
+	iAVec3f vp_corners[2];// plane's corners in 3d
+	iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 	InitRender(vp_corners, vp_delta, &o);
 	
 	if(ui.cudaEnabled->isChecked())
@@ -2310,15 +2310,15 @@ void DreamCaster::ShowDipAnglesSlot()
 	float abscos;
 	unsigned int tri_ind;
 	//
-	iAVec3 pos =iAVec3(curRender->m_pos[0],curRender->m_pos[1],curRender->m_pos[2]);
+	iAVec3f pos =iAVec3f(curRender->m_pos[0],curRender->m_pos[1],curRender->m_pos[2]);
 	Mat4 mat = rotationX(curRender->m_rotX)*rotationY(curRender->m_rotY);
 	mat = mat*translate(pos);
 	//
 	for (unsigned int i = 0; i < numTris; i++ )
 	{
-		iAVec3 tri_center = mat*((*triangles[i]->m_Vertex[0]+*triangles[i]->m_Vertex[1]+*triangles[i]->m_Vertex[2])/3);
-		iAVec3 tri_norm = mat*triangles[i]->m_N;
-		iAVec3 ray = tri_center - tracer->o;
+		iAVec3f tri_center = mat*((*triangles[i]->m_Vertex[0]+*triangles[i]->m_Vertex[1]+*triangles[i]->m_Vertex[2])/3);
+		iAVec3f tri_norm = mat*triangles[i]->m_N;
+		iAVec3f ray = tri_center - tracer->o;
 		ray.normalize();
 		abscos = abs(ray&tri_norm);
 		if(abscos>=rmin && abscos<=rmax)
@@ -2687,9 +2687,9 @@ void DreamCaster::UpdateView()
 	// go
 	tracer->setPositon(set_pos);
 	tracer->setRotations(M_PI*rotations[curIndX][curIndY][curIndZ].rotX, M_PI*rotations[curIndX][curIndY][curIndZ].rotY, M_PI*rotations[curIndX][curIndY][curIndZ].rotZ);
-	iAVec3 o; // rays' origin point
-	iAVec3 vp_corners[2];// plane's corners in 3d
-	iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+	iAVec3f o; // rays' origin point
+	iAVec3f vp_corners[2];// plane's corners in 3d
+	iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 	InitRender(vp_corners, vp_delta, &o);
 	//unsigned int tri_cnt = tracer->GetScene()->GetNrPrimitives();
 	long ftime;//fstart,
@@ -3376,11 +3376,11 @@ void DreamCaster::ColorBadAngles()
 	}
 	//
 	const unsigned int numTriangles = tracer->GetScene()->getNrTriangles();//curRender->intersections.size();
-	iAVec3 o; // rays' origin point
-	iAVec3 vp_corners[2];// plane's corners in 3d
-	iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+	iAVec3f o; // rays' origin point
+	iAVec3f vp_corners[2];// plane's corners in 3d
+	iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 	tracer->InitRender(vp_corners, vp_delta, &o);
-	iAVec3 rotAxis = iAVec3(0.f, 1.f, 0.f);
+	iAVec3f rotAxis(0.f, 1.f, 0.f);
 	tracer->Transform(&rotAxis);
 	rotAxis.normalize();
 
@@ -3389,7 +3389,7 @@ void DreamCaster::ColorBadAngles()
 	float bad_area=0; float good_area=0;
 
 	TriPrim* tri; 
-	iAVec3 triNorm;
+	iAVec3f triNorm;
 	float d;
 	float torusRadius = fabs(0.5f*stngs.ORIGIN_Z);
 	for (unsigned int i = 0; i < numTriangles; i++ )
@@ -3418,8 +3418,8 @@ void DreamCaster::ColorBadAngles()
 	{
 		const triangle* tri = tracer->GetScene()->getTriangle((int)i)->getTri();
 		cur_area = 0.5f*((*tri->vertices[1]-*tri->vertices[0])^(*tri->vertices[2]-*tri->vertices[0])).length();
-		iAVec3 tri_center = (*tri->vertices[0]+*tri->vertices[1]+*tri->vertices[2])/3.0f;
-		iAVec3 o2tri_center = tri_center-o; o2tri_center.normalize();
+		iAVec3f tri_center = (*tri->vertices[0]+*tri->vertices[1]+*tri->vertices[2])/3.0f;
+		iAVec3f o2tri_center = tri_center-o; o2tri_center.normalize();
 		abscos = abs( tri->N & o2tri_center);
 		if(abscos<badCos)
 		{
@@ -3455,11 +3455,11 @@ double DreamCaster::RandonSpaceAnalysis()
 	const int numTriangles = (int)trisInsideAoI.size();
 	float abscos;
 	//unsigned int tri_ind;
-	iAVec3 rotAxis = iAVec3(0.f, 1.f, 0.f);
+	iAVec3f rotAxis(0.f, 1.f, 0.f);
 	tracer->Transform(&rotAxis);
 	rotAxis.normalize();
 	TriPrim* tri; 
-	iAVec3 triNorm;
+	iAVec3f triNorm;
 	float d;
 	float torusRadius = fabs(0.5f*stngs.ORIGIN_Z);
 	float bad_area = 0.f; 
@@ -3754,7 +3754,7 @@ void DreamCaster::loadFile(const QString filename)
 	}
 }
 
-void DreamCaster::InitRender( iAVec3 * vp_corners, iAVec3 * vp_delta, iAVec3 * o )
+void DreamCaster::InitRender( iAVec3f * vp_corners, iAVec3f * vp_delta, iAVec3f * o )
 {
 	scrBuffer->Clear();
 	tracer->InitRender(vp_corners, vp_delta, o);
@@ -3772,7 +3772,7 @@ void DreamCaster::PositionSpecimen()
 	ui.detectorZ->setText(QString::number(stngs.PLANE_Z));
 }
 
-void DreamCaster::Render(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iAVec3 * o, bool rememberData)
+void DreamCaster::Render(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool rememberData)
 {
 	try
 	{

@@ -33,4 +33,4 @@ class QString;
 * @param filename file name of stl file
 * @return 0 if succed, error code else
 */
-int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3*> & vertices, aabb & box);
+int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3f*> & vertices, aabb & box);
