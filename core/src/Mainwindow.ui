@@ -1044,9 +1044,6 @@
    <property name="text">
     <string>Full Screen Mode</string>
    </property>
-   <property name="shortcutVisibleInContextMenu">
-    <bool>true</bool>
-   </property>
   </action>
   <action name="actionShowMenu">
    <property name="checkable">
