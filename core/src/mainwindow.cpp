@@ -1784,14 +1784,15 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionFullScreenMode, &QAction::triggered, this, &MainWindow::toggleFullScreen);
 	actionFullScreenMode->setShortcut(Qt::CTRL | Qt::Key_F);
 	actionFullScreenMode->setShortcutContext(Qt::ApplicationShortcut);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-	actionFullScreenMode->setShortcutVisibleInContextMenu(true);
-#endif
 	addAction(actionFullScreenMode);
 	connect(actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
 	actionShowMenu->setShortcut(Qt::CTRL | Qt::Key_M);
 	actionShowMenu->setShortcutContext(Qt::ApplicationShortcut);
 	addAction(actionShowMenu);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+	actionFullScreenMode->setShortcutVisibleInContextMenu(true);
+	actionShowMenu->setShortcutVisibleInContextMenu(true);
+#endif
 
 	connect(actionPreferences, SIGNAL(triggered()), this, SLOT(prefs()));
 	connect(actionRendererSettings, SIGNAL(triggered()), this, SLOT(renderSettings()));
