@@ -29,6 +29,7 @@
 
 #include <set>
 #include <vector>
+#include "iAConsole.h"
 
 class iAChannelVisualizationData;
 class iAChannelRenderData;
@@ -104,6 +105,17 @@ public:
 	*/
 	void getCamPosition ( double * camOptions );
 	void setStatExt( int s ) { ext = s; };
+
+	/*sets transparency of the slicing planes*/
+	void setSlicePlaneOpacity(float opc) {
+		if ((opc > 1.0) || (opc < 0.0f))
+		{
+			DEBUG_LOG(QString("Invalid slice plane opacity %1").arg(opc));
+			return; 
+		}
+
+		m_DefaultOpacity = opc;
+	}
 
 	void setAreaPicker();
 	void setPointPicker();
@@ -206,6 +218,8 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
 	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
 	//! @}
+
+	float m_DefaultOpacity; //Slice Plane Opacity
 
 public slots:
 	void mouseRightButtonReleasedSlot();

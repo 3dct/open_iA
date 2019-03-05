@@ -1213,7 +1213,9 @@ void MainWindow::renderSettings()
 		<< tr("#Diffuse lighting")
 		<< tr("#Specular lighting")
 		<< tr("#Specular power")
-		<< tr("+Renderer type");
+		<< tr("+Renderer type")
+		<< tr("#Slice plane transparency");
+
 	QList<QVariant> inPara;
 	iARenderSettings const & renderSettings = child->GetRenderSettings();
 	iAVolumeSettings const & volumeSettings = child->GetVolumeSettings();
@@ -1232,7 +1234,8 @@ void MainWindow::renderSettings()
 		<< tr("%1").arg(volumeSettings.DiffuseLighting)
 		<< tr("%1").arg(volumeSettings.SpecularLighting)
 		<< tr("%1").arg(volumeSettings.SpecularPower)
-		<< renderTypes;
+		<< renderTypes
+		<< tr("%1").arg(renderSettings.PlaneOpacity);
 
 	dlg_commoninput dlg(this, "Renderer settings", inList, inPara, NULL);
 
@@ -1255,6 +1258,8 @@ void MainWindow::renderSettings()
 		defaultVolumeSettings.SpecularLighting = dlg.getDblValue(13);
 		defaultVolumeSettings.SpecularPower = dlg.getDblValue(14);
 		defaultVolumeSettings.RenderMode = MapRenderModeToEnum(dlg.getComboBoxValue(15));
+
+		defaultRenderSettings.PlaneOpacity = dlg.getDblValue(16);
 
 		if (activeMdiChild() && activeMdiChild()->editRendererSettings(
 			defaultRenderSettings,

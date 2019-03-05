@@ -32,7 +32,7 @@ public:
 		UseFXAA;
 	QString BackgroundTop,
 		BackgroundBottom;
-
+	float PlaneOpacity; 
 
 	iARenderSettings() :
 		ShowSlicers(false),
@@ -42,6 +42,7 @@ public:
 		ParallelProjection(false),
 		BackgroundTop("#7FAAFF"),
 		BackgroundBottom("#FFFFFF"),
-		UseFXAA(true)
+		UseFXAA(true),
+		PlaneOpacity(0.8f)
 	{}
 };
