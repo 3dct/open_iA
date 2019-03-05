@@ -709,6 +709,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 
 	int i;
 	int* extent = imageData->GetExtent();
+	double* origin = imageData->GetOrigin();
 	double* spacing = imageData->GetSpacing();
 
 	emit msg(tr("MOVIE export started. Output: %1").arg(fileName));
@@ -720,7 +721,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	{
 		for ( i = extent[0]; i < extent[1]; i++ )
 		{
-			reslicer->SetResliceAxesOrigin( i * spacing[0], 0, 0 );
+			reslicer->SetResliceAxesOrigin( origin[0] + i * spacing[0], origin[1], origin[2] );
 			update();
 			w2if->Modified();
 
@@ -736,7 +737,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	{
 		for ( i = extent[4]; i < extent[5]; i++ )
 		{
-			reslicer->SetResliceAxesOrigin( 0, 0, i * spacing[2] );
+			reslicer->SetResliceAxesOrigin( origin[0], origin[1], origin[2] + i * spacing[2] );
 			update();
 			w2if->Modified();
 			movieWriter->Write();
@@ -751,7 +752,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	{
 		for ( i = extent[2]; i < extent[3]; i++ )
 		{
-			reslicer->SetResliceAxesOrigin( 0, i * spacing[1], 0 );
+			reslicer->SetResliceAxesOrigin( origin[0], origin[1] + i * spacing[1], origin[2]);
 			update();
 			w2if->Modified();
 			movieWriter->Write();
@@ -908,15 +909,16 @@ void iASlicerData::saveImageStack()
 	}
 	interactor->Disable();
 	vtkImageData* img;
+	double* origin = imageData->GetOrigin();
 	for(int slice=sliceFirst; slice<=sliceLast; slice++)
 	{
 		//Determine which axis
 		if (m_mode == 0) //yz
-			setResliceAxesOrigin(slice * spacing[0], 0, 0);
+			setResliceAxesOrigin(origin[0] + slice * spacing[0], origin[1], origin[2]);
 		else if (m_mode == 1)  //xy
-			setResliceAxesOrigin(0, 0, slice * spacing[2]);
+			setResliceAxesOrigin(origin[0], origin[1], origin[2] + slice * spacing[2]);
 		else if (m_mode == 2)  //xz
-			setResliceAxesOrigin(0, slice * spacing[1], 0);
+			setResliceAxesOrigin(origin[0], origin[1] + slice * spacing[1], origin[2]);
 		update();
 
 		vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -1132,9 +1134,10 @@ void iASlicerData::GetMouseCoord(double & xCoord, double & yCoord, double & zCoo
 	resliceAxes->Delete();
 
 	double * imageSpacing = imageData->GetSpacing();	// +/- 0.5 to correct for BorderOn
-	xCoord = (result[0] / imageSpacing[0]);	if (m_mode == YZ) xCoord -= 0.5;
-	yCoord = (result[1] / imageSpacing[1]);	if (m_mode == XZ) yCoord += 0.5; // not sure yet why +0.5 required here...
-	zCoord = (result[2] / imageSpacing[2]);	if (m_mode == XY) zCoord -= 0.5;
+	double * origin = imageData->GetOrigin();
+	xCoord = ((result[0] - origin[0]) / imageSpacing[0]);	if (m_mode == YZ) xCoord -= 0.5;
+	yCoord = ((result[1] - origin[1]) / imageSpacing[1]);	if (m_mode == XZ) yCoord += 0.5; // not sure yet why +0.5 required here...
+	zCoord = ((result[2] - origin[2]) / imageSpacing[2]);	if (m_mode == XY) zCoord -= 0.5;
 
 	// TODO: check for negative origin images!
 	int* extent = imageData->GetExtent();
@@ -1659,10 +1662,11 @@ void iASlicerData::setSliceNumber( int sliceNumber )
 	if (roiActive)
 		roiActor->SetVisibility(roiSlice[0] <= m_sliceNumber && m_sliceNumber < (roiSlice[1]));
 	double * spacing = imageData->GetSpacing();
+	double * origin = imageData->GetOrigin();
 	//also apply to enabled channels
 	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
-		ch->SetResliceAxesOrigin( xyz[0] * spacing[0], xyz[1] * spacing[1], xyz[2] * spacing[2] );
-	setResliceAxesOrigin( xyz[0] * spacing[0], xyz[1] * spacing[1], xyz[2] * spacing[2] );
+		ch->SetResliceAxesOrigin( origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2] );
+	setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2] );
 }
 
 void iASlicerData::setSlabThickness(int thickness)

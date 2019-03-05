@@ -2670,9 +2670,11 @@ void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice)
 		slicer[s]->SetMagicLensInput(id);
 	if (initReslice)
 	{
-		slicer[iASlicerMode::YZ]->setResliceChannelAxesOrigin(id, static_cast<double>(sYZ->spinBoxYZ->value()) * imageData->GetSpacing()[0], 0, 0);
-		slicer[iASlicerMode::XZ]->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sXZ->spinBoxXZ->value()) * imageData->GetSpacing()[1], 0);
-		slicer[iASlicerMode::XY]->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sXY->spinBoxXY->value()) * imageData->GetSpacing()[2]);
+		double * spc = imageData->GetSpacing();
+		double * origin = imageData->GetOrigin();
+		slicer[iASlicerMode::YZ]->setResliceChannelAxesOrigin(id, origin[0] + static_cast<double>(sYZ->spinBoxYZ->value()) * spc[0], origin[1], origin[2]);
+		slicer[iASlicerMode::XZ]->setResliceChannelAxesOrigin(id, origin[0], origin[1] + static_cast<double>(sXZ->spinBoxXZ->value()) * spc[1], origin[2]);
+		slicer[iASlicerMode::XY]->setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2] + static_cast<double>(sXY->spinBoxXY->value()) * spc[2]);
 	}
 }
 

@@ -285,11 +285,13 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 	slicer->removeChannel(removedID);
 	slicer->initializeChannel(id, &magicLensData);
 	int sliceNr = m_previewWidget->GetSliceNumber();
+	double * spc = img->GetSpacing();
+	double * origin = img->GetOrigin();
 	switch (slicer->GetMode())
 	{
-	case YZ: slicer->setResliceChannelAxesOrigin(id, static_cast<double>(sliceNr) * img->GetSpacing()[0], 0, 0); break;
-	case XY: slicer->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sliceNr) * img->GetSpacing()[2]); break;
-	case XZ: slicer->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sliceNr) * img->GetSpacing()[1], 0); break;
+	case YZ: slicer->setResliceChannelAxesOrigin(id, origin[0] + static_cast<double>(sliceNr) * spc[0], origin[1], origin[2]); break;
+	case XY: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2] + static_cast<double>(sliceNr) * spc[2]); break;
+	case XZ: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1] + static_cast<double>(sliceNr) * spc[1], origin[2]); break;
 	}
 	slicer->SetMagicLensInput(id);
 	slicer->update();
