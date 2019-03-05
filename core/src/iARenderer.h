@@ -80,8 +80,8 @@ public:
 
 	void disableInteractor();
 	void enableInteractor();
-	void setAxesTransform(vtkTransform *transform) { axesTransform = transform; }
-	vtkTransform * getAxesTransform(void) { return axesTransform; }
+	void setAxesTransform(vtkTransform *transform) { moveableAxesTransform = transform; }
+	vtkTransform * getAxesTransform(void) { return moveableAxesTransform; }
 
 	void setPlaneNormals( vtkTransform *tr ) ;
 	void setCubeCenter( int x, int y, int z );
@@ -202,7 +202,7 @@ private:
 
 	//! @{ movable axes
 	// TODO: check what the movable axes are useful for!
-	vtkTransform* axesTransform;
+	vtkTransform* moveableAxesTransform;
 	vtkSmartPointer<vtkAxesActor> moveableAxesActor;
 	//! @}
 	

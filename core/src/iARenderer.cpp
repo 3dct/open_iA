@@ -553,9 +553,9 @@ void iARenderer::setupAxes(double spacing[3])
 	moveableAxesActor->SetShaftTypeToCylinder();
 	moveableAxesActor->SetTotalLength(15, 15, 15);
 
-	axesTransform->Scale(spacing[0]*3, spacing[1]*3, spacing[2]*3);
+	moveableAxesTransform->Scale(spacing[0]*3, spacing[1]*3, spacing[2]*3);
 
-	moveableAxesActor->SetUserTransform(axesTransform);
+	moveableAxesActor->SetUserTransform(moveableAxesTransform);
 }
 
 void iARenderer::setupOrientationMarker()
