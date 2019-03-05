@@ -114,7 +114,7 @@ public:
 			return; 
 		}
 
-		m_DefaultOpacity = opc;
+		m_SlicePlaneOpacity = opc;
 	}
 
 	void setAreaPicker();
@@ -219,7 +219,7 @@ private:
 	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
 	//! @}
 
-	float m_DefaultOpacity; //Slice Plane Opacity
+	float m_SlicePlaneOpacity; //Slice Plane Opacity
 
 public slots:
 	void mouseRightButtonReleasedSlot();

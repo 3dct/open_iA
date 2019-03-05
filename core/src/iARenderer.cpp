@@ -225,7 +225,7 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	interactor(0),
 	renderObserver(0),
-    m_DefaultOpacity(0.8)
+    m_SlicePlaneOpacity(0.8)
 {
 	renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();		// TODO: move out of here?
 	renWin->AlphaBitPlanesOn();
@@ -596,7 +596,7 @@ void iARenderer::showSlicePlanes(bool show)
 {
 	for (int s = 0; s < 3; ++s) {
 		m_slicePlaneActor[s]->SetVisibility(show);
-		m_slicePlaneActor[s]->GetProperty()->SetOpacity(m_DefaultOpacity);
+		m_slicePlaneActor[s]->GetProperty()->SetOpacity(m_SlicePlaneOpacity);
 	}
 }
 
