@@ -257,6 +257,10 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	plane2 = vtkSmartPointer<vtkPlane>::New();
 	plane3 = vtkSmartPointer<vtkPlane>::New();
 
+	m_slicingCube = vtkSmartPointer<vtkCubeSource>::New();
+	m_sliceCubeMapper = vtkSmartPointer<vtkPolyDataMapper>::New(); 
+	m_sliceCubeActor = vtkSmartPointer<vtkActor>::New(); 
+
 	txtActor = vtkSmartPointer<vtkTextActor>::New();
 	txtActor->SetInput("Selection mode");
 	txtActor->GetTextProperty()->SetFontSize(24);
@@ -384,7 +388,22 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	m_profileLineEndPointSource->SetRadius(2 * spacing[0]);
 	m_profileLineStartPointActor->GetProperty()->SetColor(1.0, 0.65, 0.0);
 	m_profileLineEndPointActor->GetProperty()->SetColor(0.0, 0.65, 1.0);
-	setArbitraryProfileOn(false);
+
+
+	 //slicing cube settings for surface extraction
+	 m_sliceCubeMapper->SetInputConnection(m_slicingCube->GetOutputPort());
+	 m_sliceCubeActor->SetMapper(m_sliceCubeMapper);
+	 m_sliceCubeActor->GetProperty()->SetColor(1.0, 0, 0);
+	 m_sliceCubeActor->GetProperty()->SetRepresentationToWireframe();
+	 m_sliceCubeActor->GetProperty()->SetOpacity(1); 
+	 m_sliceCubeActor->GetProperty()->SetLineWidth(2.3); 	 
+	 m_sliceCubeActor->GetProperty()->SetAmbient(1.0);
+	 m_sliceCubeActor->GetProperty()->SetDiffuse(0.0);
+	 m_sliceCubeActor->GetProperty()->SetSpecular(0.0);
+	 
+	 m_sliceCubeActor->SetVisibility(false);
+
+	 this->	setArbitraryProfileOn(false);
 
 	double center[3], origin[3];
 	const int * dim = imageData->GetDimensions();
@@ -564,6 +583,7 @@ void iARenderer::setupRenderer()
 	ren->AddActor(m_profileLineActor);
 	ren->AddActor(m_profileLineStartPointActor);
 	ren->AddActor(m_profileLineEndPointActor);
+	ren->AddActor(m_sliceCubeActor); 
 	for (int s = 0; s < 3; ++s)
 		ren->AddActor(m_slicePlaneActor[s]);
 	emit onSetupRenderer();
@@ -871,6 +891,28 @@ vtkActor* iARenderer::GetPolyActor() { return polyActor; };
 vtkOpenGLRenderer * iARenderer::GetLabelRenderer(void) { return labelRen; }
 vtkPolyDataMapper* iARenderer::GetPolyMapper() const { return polyMapper; }
 vtkTextActor* iARenderer::GetTxtActor() { return txtActor; }
+
+//spacing is an array of 3 
+void iARenderer::setSlicingBounds(const int roi[6], const double * spacing)
+{
+	double x_min, xMax, yMin, yMax, zMin, zMax; 
+	/* roi[6]:  xmin, xsize, ymin, ysize, zmin, zSize;
+	*	roi[0] : x; roi[1]: y, roi[2]-> z; roy[3] -> xzise, roi[4] ysize, roi[5] -> zSize
+	*/
+	
+	x_min = roi[0] *  spacing[0]; yMin = roi[1] * spacing[1]; zMin = roi[2] *spacing[2];
+	xMax = x_min + roi[3] * spacing[0]; 
+	yMax = yMin + roi[4] * spacing[1]; 
+	zMax = zMin + roi[5] * spacing[2];
+	m_slicingCube->SetBounds(x_min, xMax, yMin, yMax, zMin, zMax);
+	this->update(); 
+
+}
+
+void iARenderer::setCubeVisible(bool visible)
+{
+	m_sliceCubeActor->SetVisibility(visible);
+}
 
 void iARenderer::setSlicePlane(int planeID, double originX, double originY, double originZ)
 {

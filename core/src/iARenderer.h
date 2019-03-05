@@ -65,6 +65,7 @@ class vtkTextActor;
 class vtkTransform;
 class vtkUnstructuredGrid;
 
+
 class open_iA_Core_API iARenderer: public QObject
 {
 	Q_OBJECT
@@ -106,7 +107,7 @@ public:
 	void getCamPosition ( double * camOptions );
 	void setStatExt( int s ) { ext = s; };
 
-	/*sets transparency of the slicing planes*/
+	/*sets opacity of the slicing planes*/
 	void setSlicePlaneOpacity(float opc) {
 		if ((opc > 1.0) || (opc < 0.0f))
 		{
@@ -143,6 +144,11 @@ public:
 	vtkPolyDataMapper* GetPolyMapper() const;
 	vtkTextActor* GetTxtActor();
 
+	//sets bounds of the slicing volume, using the spacing of image
+	void setSlicingBounds(const int roi[6], const double *spacing);
+	
+	void setCubeVisible(bool visible); //Visibility of the slice cube
+	
 	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
 	iARenderObserver * getRenderObserver(){ return renderObserver; }
 	void AddRenderer(vtkRenderer* renderer);
@@ -218,6 +224,12 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
 	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
 	//! @}
+
+	 
+
+	vtkSmartPointer<vtkCubeSource> m_slicingCube;
+	vtkSmartPointer<vtkPolyDataMapper> m_sliceCubeMapper;
+	vtkSmartPointer<vtkActor> m_sliceCubeActor;
 
 	float m_SlicePlaneOpacity; //Slice Plane Opacity
 

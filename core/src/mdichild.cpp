@@ -2233,12 +2233,18 @@ void MdiChild::UpdateROI(int const roi[6])
 {
 	for (int s = 0; s<3; ++s)
 		slicer[s]->UpdateROI(roi);
+
+	const double* spacing = GetModality(0)->GetSpacing(); 
+	getRenderer()->setSlicingBounds(roi, spacing);
+
+
 }
 
 void MdiChild::SetROIVisible(bool visible)
 {
 	for (int s = 0; s<3; ++s)
 		slicer[s]->SetROIVisible(visible);
+	getRenderer()->setCubeVisible(visible);
 }
 
 QString MdiChild::userFriendlyCurrentFile()
