@@ -114,7 +114,9 @@ public:
 	void closeMdiChild(MdiChild* child);
 
 protected:
-	void closeEvent(QCloseEvent *event);
+	void closeEvent(QCloseEvent *event) override;
+	void dragEnterEvent(QDragEnterEvent *e) override;
+	void dropEvent(QDropEvent *e) override;
 
 private slots:
 	void timeout();

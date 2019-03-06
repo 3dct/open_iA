@@ -43,12 +43,16 @@
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
+#include <vtkSmartVolumeMapper.h>
 #include <vtkVersion.h>
 
 #include <QCloseEvent>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QMdiSubWindow>
 #include <QSettings>
 #include <QSignalMapper>
@@ -65,6 +69,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_gitVersion(version)
 {
 	setupUi(this);
+	setAcceptDrops(true);
 
 	// restore geometry and state
 	QCoreApplication::setOrganizationName("FHW");
@@ -129,7 +134,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	statusBar()->showMessage(tr("Ready"));
 }
 
-
 MainWindow::~MainWindow()
 {
 	// save geometry and state
@@ -142,13 +146,11 @@ MainWindow::~MainWindow()
 	windowMapper = 0;
 }
 
-
 void MainWindow::timeout()
 {
 	splashScreen->finish(this);
 	delete timer;
 }
-
 
 bool MainWindow::KeepOpen()
 {
@@ -173,7 +175,6 @@ bool MainWindow::KeepOpen()
 	return false;
 }
 
-
 void MainWindow::closeEvent(QCloseEvent *event)
 {
 	if (KeepOpen())
@@ -191,6 +192,22 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	}
 }
 
+void MainWindow::dragEnterEvent(QDragEnterEvent *e)
+{
+	if (e->mimeData()->hasUrls())
+	{
+		e->acceptProposedAction();
+	}
+}
+
+void MainWindow::dropEvent(QDropEvent *e)
+{
+	for(const QUrl &url: e->mimeData()->urls())
+	{
+		QString fileName = url.toLocalFile();
+		LoadFile(fileName);
+	}
+}
 
 void MainWindow::CloseAllSubWindows()
 {
@@ -199,7 +216,6 @@ void MainWindow::CloseAllSubWindows()
 		mdiArea->closeAllSubWindows();
 	}
 }
-
 
 void MainWindow::Open()
 {
@@ -212,7 +228,6 @@ void MainWindow::Open()
 		)
 	);
 }
-
 
 void MainWindow::OpenRaw()
 {
@@ -240,7 +255,6 @@ void MainWindow::OpenRaw()
 	}
 }
 
-
 void MainWindow::OpenImageStack()
 {
 	LoadFile(
@@ -252,7 +266,6 @@ void MainWindow::OpenImageStack()
 		), true
 	);
 }
-
 
 void MainWindow::OpenVolumeStack()
 {
@@ -266,7 +279,6 @@ void MainWindow::OpenVolumeStack()
 	);
 }
 
-
 void MainWindow::OpenRecentFile()
 {
 	QAction *action = qobject_cast<QAction *>(sender());
@@ -276,7 +288,6 @@ void MainWindow::OpenRecentFile()
 	QString fileName = action->data().toString();
 	LoadFile(fileName);
 }
-
 
 void MainWindow::LoadFile(QString const & fileName)
 {
@@ -290,7 +301,6 @@ void MainWindow::LoadFile(QString const & fileName)
 		LoadFile(fileName, fileName.endsWith(".volstack"));
 	}
 }
-
 
 void MainWindow::LoadFile(QString fileName, bool isStack)
 {
@@ -339,7 +349,6 @@ void MainWindow::LoadFile(QString fileName, bool isStack)
 	}
 }
 
-
 void MainWindow::LoadFiles(QStringList fileNames)
 {
 	for (int i = 0; i < fileNames.length(); i++)
@@ -348,20 +357,17 @@ void MainWindow::LoadFiles(QStringList fileNames)
 	}
 }
 
-
 void MainWindow::save()
 {
 	if (activeMdiChild())
 		activeMdiChild()->save();
 }
 
-
 void MainWindow::saveAs()
 {
 	if (activeMdiChild())
 		activeMdiChild()->saveAs();
 }
-
 
 QDomDocument MainWindow::loadSettingsFile(QString filename)
 {
@@ -397,7 +403,6 @@ QDomDocument MainWindow::loadSettingsFile(QString filename)
 	return doc;
 }
 
-
 void MainWindow::saveSettingsFile(QDomDocument &doc, QString filename)
 {
 	QFile file(filename);
@@ -407,7 +412,6 @@ void MainWindow::saveSettingsFile(QDomDocument &doc, QString filename)
 
 	file.close();
 }
-
 
 bool MainWindow::saveSettings()
 {
@@ -457,10 +461,8 @@ bool MainWindow::saveSettings()
 			saveSettingsFile(doc, fileName);
 		}
 	}
-
 	return true;
 }
-
 
 bool MainWindow::loadSettings()
 {
@@ -558,10 +560,8 @@ bool MainWindow::loadSettings()
 			}
 		}
 	}
-
 	return true;
 }
-
 
 void MainWindow::saveCamera(QDomDocument &doc)
 {
@@ -573,7 +573,6 @@ void MainWindow::saveCamera(QDomDocument &doc)
 	doc.documentElement().appendChild(cameraElement);
 }
 
-
 void MainWindow::loadCamera(QDomNode &cameraNode)
 {
 	vtkCamera *camera = activeMdiChild()->getRenderer()->GetRenderer()->GetActiveCamera();
@@ -583,7 +582,6 @@ void MainWindow::loadCamera(QDomNode &cameraNode)
 	activeMdiChild()->getRenderer()->GetRenderer()->ComputeVisiblePropBounds( allBounds );
 	activeMdiChild()->getRenderer()->GetRenderer()->ResetCameraClippingRange( allBounds );
 }
-
 
 void MainWindow::saveSliceViews(QDomDocument &doc)
 {
@@ -615,7 +613,6 @@ void MainWindow::saveSliceViews(QDomDocument &doc)
 	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataXZ()->GetRenderer(), "XZ");
 }
 
-
 void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, char const *elemStr)
 {
 	// get parameters of slice views
@@ -629,7 +626,6 @@ void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkR
 
 	sliceViewsNode.appendChild(cameraElement);
 }
-
 
 void MainWindow::loadCamera(QDomNode const & node, vtkCamera* camera)
 {
@@ -701,7 +697,6 @@ void MainWindow::loadSliceViews(QDomNode &sliceViewsNode)
 	}
 }
 
-
 void MainWindow::saveTransferFunction(QDomDocument &doc, dlg_transfer* transferFunction)
 {
 	// does functions node exist
@@ -736,7 +731,6 @@ void MainWindow::saveTransferFunction(QDomDocument &doc, dlg_transfer* transferF
 
 	functionsNode.appendChild(transferElement);
 }
-
 
 void MainWindow::saveProbabilityFunctions(QDomDocument &doc)
 {
@@ -808,7 +802,6 @@ void MainWindow::saveProbabilityFunctions(QDomDocument &doc)
 	}
 }
 
-
 void MainWindow::loadProbabilityFunctions(QDomNode &functionsNode)
 {
 	double value, fktValue, sigma, mean, multiplier;
@@ -853,7 +846,6 @@ void MainWindow::loadProbabilityFunctions(QDomNode &functionsNode)
 	}
 }
 
-
 void MainWindow::savePreferences(QDomDocument &doc)
 {
 	// remove preferences node if there is one
@@ -872,7 +864,6 @@ void MainWindow::savePreferences(QDomDocument &doc)
 	doc.documentElement().appendChild(preferencesElement);
 }
 
-
 void MainWindow::loadPreferences(QDomNode &preferencesNode)
 {
 	QDomNamedNodeMap attributes = preferencesNode.attributes();
@@ -889,7 +880,6 @@ void MainWindow::loadPreferences(QDomNode &preferencesNode)
 
 	activeMdiChild()->editPrefs(defaultPreferences);
 }
-
 
 void MainWindow::saveRenderSettings(QDomDocument &doc)
 {
@@ -918,7 +908,6 @@ void MainWindow::saveRenderSettings(QDomDocument &doc)
 	doc.documentElement().appendChild(renderSettingsElement);
 }
 
-
 void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
 {
 	QDomNamedNodeMap attributes = renderSettingsNode.attributes();
@@ -942,7 +931,6 @@ void MainWindow::loadRenderSettings(QDomNode &renderSettingsNode)
 
 	activeMdiChild()->editRendererSettings(defaultRenderSettings, defaultVolumeSettings);
 }
-
 
 void MainWindow::saveSlicerSettings(QDomDocument &doc)
 {
@@ -968,7 +956,6 @@ void MainWindow::saveSlicerSettings(QDomDocument &doc)
 	doc.documentElement().appendChild(slicerSettingsElement);
 }
 
-
 void MainWindow::loadSlicerSettings(QDomNode &slicerSettingsNode)
 {
 	QDomNamedNodeMap attributes = slicerSettingsNode.attributes();
@@ -989,7 +976,6 @@ void MainWindow::loadSlicerSettings(QDomNode &slicerSettingsNode)
 	activeMdiChild()->editSlicerSettings(defaultSlicerSettings);
 }
 
-
 void MainWindow::removeNode(QDomNode &rootNode, char const *str)
 {
 	QDomNodeList list = rootNode.childNodes();
@@ -1004,13 +990,11 @@ void MainWindow::removeNode(QDomNode &rootNode, char const *str)
 	}
 }
 
-
 void MainWindow::maxXY()
 {
 	if (activeMdiChild() && activeMdiChild()->xyview())
 		statusBar()->showMessage(tr("XY View"), 5000);
 }
-
 
 QList<QString> MainWindow::mdiWindowTitles()
 {
@@ -1020,13 +1004,11 @@ QList<QString> MainWindow::mdiWindowTitles()
 	return windowTitles;
 }
 
-
 void MainWindow::maxXZ()
 {
 	if (activeMdiChild() && activeMdiChild()->xzview())
 		statusBar()->showMessage(tr("XZ View"), 5000);
 }
-
 
 void MainWindow::maxYZ()
 {
@@ -1034,20 +1016,17 @@ void MainWindow::maxYZ()
 		statusBar()->showMessage(tr("YZ View"), 5000);
 }
 
-
 void MainWindow::maxRC()
 {
 	if (activeMdiChild() && activeMdiChild()->rcview())
 		statusBar()->showMessage(tr("Raycasting"), 5000);
 }
 
-
 void MainWindow::multi()
 {
 	if (activeMdiChild() && activeMdiChild()->multiview())
 		statusBar()->showMessage(tr("Multiple Views"), 5000);
 }
-
 
 void MainWindow::linkViews()
 {
@@ -1072,7 +1051,6 @@ void MainWindow::linkMDIs()
 			statusBar()->showMessage(tr("Link MDIs"), 5000);
 	}
 }
-
 
 void MainWindow::enableInteraction()
 {
@@ -1181,8 +1159,6 @@ void MainWindow::prefs()
 	}
 }
 
-#include "vtkSmartVolumeMapper.h"
-
 void MainWindow::renderSettings()
 {
 	MdiChild *child = activeMdiChild();
@@ -1270,7 +1246,6 @@ void MainWindow::renderSettings()
 	}
 }
 
-
 void MainWindow::slicerSettings()
 {
 	MdiChild *child = activeMdiChild();
@@ -1340,7 +1315,6 @@ void MainWindow::slicerSettings()
 	}
 }
 
-
 void MainWindow::loadTransferFunction()
 {
 	if (activeMdiChild())
@@ -1351,7 +1325,6 @@ void MainWindow::loadTransferFunction()
 			statusBar()->showMessage(tr("Loading transfer function failed"), 5000);
 	}
 }
-
 
 void MainWindow::saveTransferFunction()
 {
@@ -1364,7 +1337,6 @@ void MainWindow::saveTransferFunction()
 	}
 }
 
-
 void MainWindow::deletePoint()
 {
 	if (activeMdiChild())
@@ -1374,13 +1346,11 @@ void MainWindow::deletePoint()
 	}
 }
 
-
 void MainWindow::changeColor()
 {
 	if (activeMdiChild())
 		activeMdiChild()->changeColor();
 }
-
 
 void MainWindow::resetView()
 {
@@ -1388,13 +1358,11 @@ void MainWindow::resetView()
 		activeMdiChild()->resetView();
 }
 
-
 void MainWindow::resetTrf()
 {
 	if (activeMdiChild())
 		activeMdiChild()->resetTrf();
 }
-
 
 void MainWindow::toggleSnakeSlicer(bool isChecked)
 {
@@ -1418,31 +1386,36 @@ void MainWindow::raycasterCamPX()
 {
 	if (activeMdiChild()) activeMdiChild()->camPX();
 }
+
 void MainWindow::raycasterCamPY()
 {
 	if (activeMdiChild()) activeMdiChild()->camPY();
 }
+
 void MainWindow::raycasterCamPZ()
 {
 	if (activeMdiChild()) activeMdiChild()->camPZ();
 }
+
 void MainWindow::raycasterCamMX()
 {
 	if (activeMdiChild()) activeMdiChild()->camMX();
 }
+
 void MainWindow::raycasterCamMY()
 {
 	if (activeMdiChild()) activeMdiChild()->camMY();
 }
+
 void MainWindow::raycasterCamMZ()
 {
 	if (activeMdiChild()) activeMdiChild()->camMZ();
 }
+
 void MainWindow::raycasterCamIso()
 {
 	if (activeMdiChild()) activeMdiChild()->camIso();
 }
-
 
 void MainWindow::raycasterAssignIso()
 {
@@ -1462,7 +1435,6 @@ void MainWindow::raycasterAssignIso()
 	}
 }
 
-
 void MainWindow::raycasterSaveCameraSettings()
 {
 	QString filePath = activeMdiChild()->currentFile();
@@ -1475,7 +1447,6 @@ void MainWindow::raycasterSaveCameraSettings()
 		saveSettingsFile(doc, fileName);
 	}
 }
-
 
 void MainWindow::raycasterLoadCameraSettings()
 {
@@ -1514,7 +1485,6 @@ void MainWindow::raycasterLoadCameraSettings()
 	raycasterAssignIso();
 }
 
-
 MdiChild* MainWindow::GetResultChild(MdiChild* oldChild, QString const & title)
 {
 	if (oldChild->getResultInNewWindow())
@@ -1532,7 +1502,6 @@ MdiChild* MainWindow::GetResultChild(MdiChild* oldChild, QString const & title)
 	oldChild->PrepareForResult();
 	return oldChild;
 }
-
 
 void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 {
@@ -1567,25 +1536,21 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 	}
 }
 
-
 MdiChild * MainWindow::GetResultChild( QString const & title )
 {
 	return GetResultChild(activeMdiChild(), title);
 }
-
 
 MdiChild * MainWindow::GetResultChild( int childInd, QString const & f )
 {
 	return GetResultChild(MdiChildList().at(childInd), f);
 }
 
-
 void MainWindow::about()
 {
 	splashScreen->show();
 	splashScreen->showMessage(tr("\n      Version: %1").arg (m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
 }
-
 
 void MainWindow::wiki()
 {
@@ -1602,7 +1567,6 @@ void MainWindow::wiki()
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/issues"));
 }
 
-
 void MainWindow::createRecentFileActions()
 {
 	separatorAct = menu_File->addSeparator();
@@ -1613,7 +1577,6 @@ void MainWindow::createRecentFileActions()
 	}
 	updateRecentFileActions();
 }
-
 
 void MainWindow::updateMenus()
 {
@@ -1696,7 +1659,6 @@ void MainWindow::updateMenus()
 	}
 }
 
-
 void MainWindow::updateWindowMenu()
 {
 	QList<MdiChild *> windows = MdiChildList();
@@ -1719,7 +1681,6 @@ void MainWindow::updateWindowMenu()
 		windowMapper->setMapping(action, windows.at(i));
 	}
 }
-
 
 MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 {
@@ -1844,7 +1805,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionOpen_TLGI_CT_Data, SIGNAL(triggered()), this, SLOT(OpenTLGICTData()));
 }
 
-
 void MainWindow::readSettings()
 {
 	QSettings settings;
@@ -1945,7 +1905,6 @@ void MainWindow::readSettings()
 	}
 }
 
-
 void MainWindow::writeSettings()
 {
 	QSettings settings;
@@ -2029,7 +1988,6 @@ void MainWindow::writeSettings()
 	settings.setValue("OpenWithDataTypeConversion/owdtczsize", owdtczsize);
 }
 
-
 void MainWindow::setCurrentFile(const QString &fileName)
 {
 	if (fileName.isEmpty())
@@ -2054,7 +2012,6 @@ void MainWindow::setCurrentFile(const QString &fileName)
 			mainWin->updateRecentFileActions();
 	}
 }
-
 
 void MainWindow::updateRecentFileActions()
 {
@@ -2084,7 +2041,6 @@ void MainWindow::updateRecentFileActions()
 	separatorAct->setVisible(numRecentFiles > 0);
 }
 
-
 MdiChild* MainWindow::activeMdiChild()
 {
 	int subWndCnt = MdiChildList().size();
@@ -2092,7 +2048,6 @@ MdiChild* MainWindow::activeMdiChild()
 		return MdiChildList(QMdiArea::ActivationHistoryOrder).last();
 	return 0;
 }
-
 
 MdiChild* MainWindow::findMdiChild(const QString &fileName)
 {
@@ -2104,7 +2059,6 @@ MdiChild* MainWindow::findMdiChild(const QString &fileName)
 	return 0;
 }
 
-
 void MainWindow::setActiveSubWindow(QWidget *window)
 {
 	if (!window)
@@ -2112,13 +2066,11 @@ void MainWindow::setActiveSubWindow(QWidget *window)
 	mdiArea->setActiveSubWindow(qobject_cast<QMdiSubWindow *>(window));
 }
 
-
 void MainWindow::pointSelected()
 {
 	actionChange_color->setEnabled(true);
 	actionDelete_point->setEnabled(true);
 }
-
 
 void MainWindow::noPointSelected()
 {
@@ -2126,13 +2078,11 @@ void MainWindow::noPointSelected()
 	actionDelete_point->setEnabled(false);
 }
 
-
 void MainWindow::endPointSelected()
 {
 	actionChange_color->setEnabled(true);
 	actionDelete_point->setEnabled(false);
 }
-
 
 void MainWindow::setHistogramFocus()
 {
@@ -2140,12 +2090,10 @@ void MainWindow::setHistogramFocus()
 		activeMdiChild()->setHistogramFocus();
 }
 
-
 QString MainWindow::strippedName(const QString &fullFileName)
 {
 	return QFileInfo(fullFileName).fileName();
 }
-
 
 QList<MdiChild*> MainWindow::MdiChildList(QMdiArea::WindowOrder order)
 {
@@ -2159,7 +2107,6 @@ QList<MdiChild*> MainWindow::MdiChildList(QMdiArea::WindowOrder order)
 	return res;
 }
 
-
 void MainWindow::childActivatedSlot(QMdiSubWindow *wnd)
 {
 	MdiChild * activeChild = activeMdiChild();
@@ -2171,7 +2118,6 @@ void MainWindow::childActivatedSlot(QMdiSubWindow *wnd)
 		actionMagicLens->setChecked(activeChild->isMagicLensToggled());
 	}
 }
-
 
 void MainWindow::applyQSS()
 {
@@ -2186,7 +2132,6 @@ void MainWindow::applyQSS()
 		emit StyleChanged();
 	}
 }
-
 
 void MainWindow::saveLayout()
 {
@@ -2229,7 +2174,6 @@ void MainWindow::saveLayout()
 	}
 }
 
-
 void MainWindow::loadLayout()
 {
 	MdiChild *child = activeMdiChild();
@@ -2240,7 +2184,6 @@ void MainWindow::loadLayout()
 	}
 	child->LoadLayout(layout->currentText());
 }
-
 
 void MainWindow::deleteLayout()
 {
@@ -2254,24 +2197,20 @@ void MainWindow::deleteLayout()
 	}
 }
 
-
 void MainWindow::resetLayout()
 {
 	activeMdiChild()->resetLayout();
 }
-
 
 QMenu * MainWindow::getToolsMenu()
 {
 	return this->menu_Tools;
 }
 
-
 void MainWindow::ToggleMainWindowStatusBar()
 {
 	statusBar()->setVisible(action_MainWindowStatusBar->isChecked());
 }
-
 
 void MainWindow::ToggleToolbar()
 {
@@ -2283,7 +2222,6 @@ void MainWindow::ToggleToolbar()
 	}
 }
 
-
 void MainWindow::ToggleChildStatusBar()
 {
 	if (!activeMdiChild())
@@ -2293,36 +2231,30 @@ void MainWindow::ToggleChildStatusBar()
 	activeMdiChild()->statusBar()->setVisible(action_ChildStatusBar->isChecked());
 }
 
-
 QMenu * MainWindow::getFiltersMenu()
 {
 	return this->menu_Filters;
 }
-
 
 QMdiSubWindow* MainWindow::addSubWindow( QWidget * child )
 {
 	return mdiArea->addSubWindow( child );
 }
 
-
 QMenu * MainWindow::getHelpMenu()
 {
 	return this->menu_Help;
 }
-
 
 QMenu * MainWindow::getFileMenu()
 {
 	return this->menu_File;
 }
 
-
 void MainWindow::SetModuleActionsEnabled( bool isEnabled )
 {
 	m_moduleDispatcher->SetModuleActionsEnabled(isEnabled);
 }
-
 
 void MainWindow::childClosed()
 {
@@ -2341,7 +2273,6 @@ void MainWindow::childClosed()
 	}
 }
 
-
 void MainWindow::LoadProject()
 {
 	QString fileName = QFileDialog::getOpenFileName(
@@ -2352,7 +2283,6 @@ void MainWindow::LoadProject()
 	LoadFile(fileName);
 }
 
-
 void MainWindow::SaveProject()
 {
 	MdiChild * activeChild = activeMdiChild();
@@ -2361,14 +2291,12 @@ void MainWindow::SaveProject()
 	activeChild->StoreProject();
 }
 
-
 void MainWindow::LoadArguments(int argc, char** argv)
 {
 	QStringList files;
 	for (int a = 1; a < argc; ++a) files << argv[a];
 	LoadFiles(files);
 }
-
 
 iAPreferences const & MainWindow::GetDefaultPreferences() const
 {
@@ -2382,7 +2310,6 @@ iAModuleDispatcher & MainWindow::getModuleDispatcher() const
 
 
 // Move to other places (modules?):
-
 
 void MainWindow::OpenWithDataTypeConversion()
 {
@@ -2472,7 +2399,6 @@ void MainWindow::OpenWithDataTypeConversion()
 	}
 }
 
-
 void MainWindow::OpenTLGICTData()
 {
 	QString baseDirectory = QFileDialog::getExistingDirectory(
@@ -2483,7 +2409,6 @@ void MainWindow::OpenTLGICTData()
 	LoadTLGICTData(baseDirectory);
 }
 
-
 void MainWindow::LoadTLGICTData(QString const & baseDirectory)
 {
 	iATLGICTLoader* tlgictLoader = new iATLGICTLoader();
@@ -2493,18 +2418,15 @@ void MainWindow::LoadTLGICTData(QString const & baseDirectory)
 	// tlgictLoader will delete itself when finished!
 }
 
-
 #include "iAConsole.h"
 #include "iASCIFIOCheck.h"
 #include <QApplication>
 #include <QDate>
 
-
 void MainWindow::InitResources()
 {
 	Q_INIT_RESOURCE(open_iA);
 }
-
 
 int MainWindow::RunGUI(int argc, char * argv[], QString const & appName, QString const & version,
 	QString const & splashPath, QString const & iconPath)

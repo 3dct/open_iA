@@ -31,7 +31,6 @@
 #include <iANameMapper.h>
 
 #include <QCheckBox>
-#include <QDropEvent>
 #include <QFileDialog>
 #include <QMimeData>
 #include <QShortcut>
