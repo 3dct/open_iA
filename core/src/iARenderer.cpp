@@ -452,7 +452,7 @@ void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	polyMapper->SetInputData(polyData);
 
 	renderObserver->ReInitialize( ren, labelRen, interactor, pointPicker,
-		axesTransform, ds,
+		moveableAxesTransform, ds,
 		plane1, plane2, plane3, cellLocator );
 	interactor->ReInitialize();
 	emit reInitialized();
@@ -846,7 +846,7 @@ void iARenderer::setArbitraryProfileOn(bool isOn)
 void iARenderer::InitObserver()
 {
 	renderObserver = iARenderObserver::New(ren, labelRen, interactor, pointPicker,
-		axesTransform, imageData,
+		moveableAxesTransform, imageData,
 		plane1, plane2, plane3, cellLocator);
 
 	interactor->AddObserver(vtkCommand::KeyPressEvent, renderObserver, 0.0);
@@ -876,7 +876,7 @@ vtkPolyData* iARenderer::getPolyData()
 void iARenderer::disableInteractor() { interactor->Disable(); }
 void iARenderer::enableInteractor() { interactor->ReInitialize(); }
 
-vtkTransform* iARenderer::getCoordinateSystemTransform() { axesTransform->Update(); return axesTransform; }
+vtkTransform* iARenderer::getCoordinateSystemTransform() { moveableAxesTransform->Update(); return moveableAxesTransform; }
 
 void iARenderer::AddRenderer(vtkRenderer* renderer)
 {
