@@ -35,7 +35,7 @@ public:
 		double projAngleStart, double projAngleEnd, double distOrigDet, double distOrigSource);
 	void fillVolumeGeometryValues(int dim[3], double spacing[3]);
 	void fillProjInputMapping(int detRowDim, int detColDim, int projAngleDim, const int dim[3]);
-	void fillAlgorithmValues(int algorithmType, int numberOfIterations);
+	void fillAlgorithmValues(int algorithmType, int numberOfIterations, bool initWithFDK);
 	void fillCorrectionValues(bool correctCenterOfRotation, double correctCenterOfRotationOffset);
 	int exec() override;
 private slots:
