@@ -491,14 +491,15 @@ void iAASTRAReconstruct::PerformWork(QMap<QString, QVariant> const & parameters)
 	projector->initialize(projectorConfig);
 	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), projBuf);
 	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry(), 0.0f);
-	if (parameters[InitWithFDK].toBool())
+	int algo = MapAlgoStringToIndex(parameters[AlgoType].toString());
+	if ((algo == SIRT3D || SIRT3D == CGLS3D) && parameters[InitWithFDK].toBool())
 	{
 		astra::CCudaFDKAlgorithm3D* fdkalgo = new astra::CCudaFDKAlgorithm3D();
 		fdkalgo->initialize(projector, projectionData, volumeData);
 		fdkalgo->run();
 		delete fdkalgo;
 	}
-	switch (MapAlgoStringToIndex(parameters[AlgoType].toString()))
+	switch (algo)
 	{
 		case BP3D: {
 			astra::CCudaBackProjectionAlgorithm3D* bp3dalgo = new astra::CCudaBackProjectionAlgorithm3D();
