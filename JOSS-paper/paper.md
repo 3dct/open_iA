@@ -41,7 +41,7 @@ In contrast to general volume visualization or processing software, it offers sp
 The wide range of building blocks, which these tools consist of, facilitate the development of new research prototypes in this application domain.
 It currently provides a variety of image processing filters, e.g. for noise reduction, segmentation, data type conversion, convolution, geometric transformations, and morphological operations.
 open\_iA is written in C++ using Qt, VKT and ITK, as well as some other open source libraries.
-open\_iA is continuously improved and extended. It is open source and available [on GitHub](https://github.com/3dct/open_iA).
+open\_iA is continuously improved and extended.
 The core of open\_iA provides functionality for loading and displaying volumetric datasets in several file formats, as well as support for loading polygonal datasets.
 A comparison of volumes is facilitated through a magic lens as well as optional position indicators in all open child windows.
 In addition, it provides a view for showing the image histogram, where also the transfer function used for the slicer views and the 3D renderer is configured.
