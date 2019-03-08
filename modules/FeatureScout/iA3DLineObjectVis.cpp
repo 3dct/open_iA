@@ -23,30 +23,18 @@
 #include "iACsvConfig.h"
 
 #include <iAConsole.h>
-#include <iALookupTable.h>
 #include <iARenderer.h>
 #include <mdichild.h>
 
 #include <vtkActor.h>
-#include <vtkCellArray.h>
-#include <vtkIdFilter.h>
 #include <vtkLine.h>
-#include <vtkOutlineFilter.h>
 #include <vtkPointData.h>
-#include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkRendererCollection.h>
-#include <vtkRenderWindow.h>
 #include <vtkTable.h>
 
 iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color ):
-	iA3DColoredPolyObjectVis(widget, objectTable, columnMapping, color, 2),
-	m_selectionActive(false),
-	m_outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
-	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_outlineActor(vtkSmartPointer<vtkActor>::New())
+	iA3DColoredPolyObjectVis(widget, objectTable, columnMapping, color, 2)
 {
 	m_points = vtkSmartPointer<vtkPoints>::New();
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -69,23 +57,11 @@ iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidget* widget, vtkTable* objectTable
 	m_linePolyData->SetPoints(m_points);
 	m_linePolyData->SetLines(lines);
 	m_linePolyData->GetPointData()->AddArray(m_colors);
-
-	auto ids = vtkSmartPointer<vtkIdTypeArray>::New();
-	ids->SetName("OriginalIds");
-	vtkIdType numPoints = objectTable->GetNumberOfRows() * 2;
-	ids->SetNumberOfTuples(numPoints);
-	for (vtkIdType id = 0; id < numPoints; ++id)
-		ids->SetTuple1(id, id);
-	m_linePolyData->GetPointData()->AddArray(ids);
+	setupBoundingBox();
+	setupOriginalIds();
 
 	m_mapper->SetInputData(m_linePolyData);
 	m_actor->SetMapper(m_mapper);
-
-	m_outlineFilter->SetInputData(m_linePolyData);
-	m_outlineMapper->SetInputConnection(m_outlineFilter->GetOutputPort());
-	m_outlineActor->GetProperty()->SetColor(0, 0, 0);
-	m_outlineActor->PickableOff();
-	m_outlineActor->SetMapper(m_outlineMapper);
 }
 
 void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & values)
@@ -99,74 +75,7 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 	updatePolyMapper();
 }
 
-void iA3DLineObjectVis::showBoundingBox()
-{
-	m_outlineMapper->Update();
-	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_outlineActor);
-	updateRenderer();
-}
-
-void iA3DLineObjectVis::hideBoundingBox()
-{
-	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_outlineActor);
-	updateRenderer();
-}
-vtkPolyData* iA3DLineObjectVis::getLinePolyData()
+vtkPolyData* iA3DLineObjectVis::getPolyData()
 {
 	return m_linePolyData;
-}
-
-void iA3DLineObjectVis::setColor(QColor const &color)
-{
-	m_baseColor = color;
-	m_colorParamIdx = -1;
-	m_lut.clear();
-	updateColorSelectionRendering();
-}
-
-void iA3DLineObjectVis::setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex)
-{
-	m_lut = lut;
-	m_colorParamIdx = paramIndex;
-	updateColorSelectionRendering();
-}
-
-void iA3DLineObjectVis::setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive)
-{
-	m_selection = sortedSelInds;
-	m_selectionActive = selectionActive;
-	updateColorSelectionRendering();
-}
-
-void iA3DLineObjectVis::updateColorSelectionRendering()
-{
-	size_t curSelIdx = 0;
-	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
-	{
-		QColor color = m_baseColor;
-		if (m_lut)
-		{
-			double curValue = m_objectTable->GetValue(objID, m_colorParamIdx).ToDouble();
-			color = m_lut->getQColor(curValue);
-		}
-		if (m_selectionActive)
-		{
-			if (curSelIdx < m_selection.size() && objID == m_selection[curSelIdx])
-			{
-				color.setAlpha(m_selectionAlpha);
-				++curSelIdx;
-			}
-			else
-				color.setAlpha(m_contextAlpha);
-		}
-		else
-			color.setAlpha(m_selectionAlpha);
-		setPolyPointColor(objID, color);
-	}
-	updatePolyMapper();
-}
-
-double const * iA3DLineObjectVis::bounds()
-{
-	return m_linePolyData->GetBounds();
 }

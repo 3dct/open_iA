@@ -26,7 +26,11 @@
 
 #include <QColor>
 
+class iALookupTable;
+
 class vtkActor;
+class vtkOutlineFilter;
+class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkUnsignedCharArray;
 
@@ -47,6 +51,16 @@ public:
 	void setContextOpacity(int contextAlpha);
 	bool visible() const;
 	vtkSmartPointer<vtkActor> getActor();
+	virtual vtkPolyData* getPolyData() =0;
+	//!  @{ bounding box / bounds
+	void showBoundingBox();
+	void hideBoundingBox();
+	double const * bounds() override;
+	//! @}
+	virtual void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive);
+	void setColor(QColor const & color);
+	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex);
+	void updateColorSelectionRendering();
 protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
@@ -57,6 +71,18 @@ protected:
 	int m_selectionAlpha;
 	QColor m_baseColor;
 	QColor m_selectionColor;
+	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
+	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
+	vtkSmartPointer<vtkActor> m_outlineActor;
+	std::vector<size_t> m_selection;
+
 	void setPolyPointColor(int ptIdx, QColor const & qcolor);
 	void updatePolyMapper();
+	void setupBoundingBox();
+	void setupOriginalIds();
+
+private:
+	QSharedPointer<iALookupTable> m_lut;
+	size_t m_colorParamIdx;
+	bool m_selectionActive;
 };

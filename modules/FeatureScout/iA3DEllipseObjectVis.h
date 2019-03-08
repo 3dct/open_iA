@@ -26,7 +26,7 @@
 
 class vtkPolyData;
 
-class iA3DEllipseObjectVis: public iA3DColoredPolyObjectVis
+class FeatureScout_API iA3DEllipseObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
 	static const int DefaultPhiRes = 10;
@@ -34,6 +34,7 @@ public:
 	iA3DEllipseObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 		QColor const & color, int phiRes = DefaultPhiRes, int thetaRes = DefaultThetaRes);
 	double const * bounds() override;
+	vtkPolyData* getPolyData() override;
 private:
 	vtkSmartPointer<vtkPolyData> m_fullPoly;
 };

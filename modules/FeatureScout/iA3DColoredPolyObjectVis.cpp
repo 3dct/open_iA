@@ -20,10 +20,17 @@
 * ************************************************************************************/
 #include "iA3DColoredPolyObjectVis.h"
 
-#include "iAVtkWidget.h"
-#include <vtkGenericOpenGLRenderWindow.h>
+#include <iALookupTable.h>
+#include <iAVtkWidget.h>
+
 #include <vtkActor.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkOutlineFilter.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
 #include <vtkTable.h>
 #include <vtkUnsignedCharArray.h>
@@ -46,7 +53,11 @@ iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(iAVtkWidget* widget, vtkTable
 	m_selectionColor(SelectedColor),
 	m_baseColor(128, 128, 128),
 	m_actor(vtkSmartPointer<vtkActor>::New()),
-	m_visible(false)
+	m_visible(false),
+	m_selectionActive(false),
+	m_outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
+	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_outlineActor(vtkSmartPointer<vtkActor>::New())
 {
 	m_colors->SetNumberOfComponents(4);
 	m_colors->SetName("Colors");
@@ -203,3 +214,94 @@ vtkSmartPointer<vtkActor> iA3DColoredPolyObjectVis::getActor()
 {
 	return m_actor;
 }
+
+void iA3DColoredPolyObjectVis::setupBoundingBox()
+{
+	m_outlineFilter->SetInputData(getPolyData());
+	m_outlineMapper->SetInputConnection(m_outlineFilter->GetOutputPort());
+	m_outlineActor->GetProperty()->SetColor(0, 0, 0);
+	m_outlineActor->PickableOff();
+	m_outlineActor->SetMapper(m_outlineMapper);
+}
+
+
+void iA3DColoredPolyObjectVis::setupOriginalIds()
+{
+	auto ids = vtkSmartPointer<vtkIdTypeArray>::New();
+	ids->SetName("OriginalIds");
+	vtkIdType numPoints = m_objectTable->GetNumberOfRows() * m_pointsPerObject;
+	ids->SetNumberOfTuples(numPoints);
+	for (vtkIdType id = 0; id < m_objectTable->GetNumberOfRows(); ++id)
+		for (vtkIdType objectPoints = 0; objectPoints < m_pointsPerObject; ++objectPoints)
+		ids->SetTuple1(id*m_pointsPerObject + objectPoints, id);
+	getPolyData()->GetPointData()->AddArray(ids);
+}
+
+void iA3DColoredPolyObjectVis::showBoundingBox()
+{
+	m_outlineMapper->Update();
+	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_outlineActor);
+	updateRenderer();
+}
+
+void iA3DColoredPolyObjectVis::hideBoundingBox()
+{
+	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_outlineActor);
+	updateRenderer();
+}
+
+double const * iA3DColoredPolyObjectVis::bounds()
+{
+	return getPolyData()->GetBounds();
+}
+
+void iA3DColoredPolyObjectVis::setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive)
+{
+	m_selection = sortedSelInds;
+	m_selectionActive = selectionActive;
+	updateColorSelectionRendering();
+}
+
+void iA3DColoredPolyObjectVis::setColor(QColor const &color)
+{
+	m_baseColor = color;
+	m_colorParamIdx = -1;
+	m_lut.clear();
+	updateColorSelectionRendering();
+}
+
+void iA3DColoredPolyObjectVis::setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex)
+{
+	m_lut = lut;
+	m_colorParamIdx = paramIndex;
+	updateColorSelectionRendering();
+}
+
+void iA3DColoredPolyObjectVis::updateColorSelectionRendering()
+{
+	size_t curSelIdx = 0;
+	for (size_t objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	{
+		QColor color = m_baseColor;
+		if (m_lut)
+		{
+			double curValue = m_objectTable->GetValue(objID, m_colorParamIdx).ToDouble();
+			color = m_lut->getQColor(curValue);
+		}
+		if (m_selectionActive)
+		{
+			if (curSelIdx < m_selection.size() && objID == m_selection[curSelIdx])
+			{
+				color.setAlpha(m_selectionAlpha);
+				++curSelIdx;
+			}
+			else
+				color.setAlpha(m_contextAlpha);
+		}
+		else
+			color.setAlpha(m_selectionAlpha);
+		setPolyPointColor(objID, color);
+	}
+	updatePolyMapper();
+}
+

@@ -64,14 +64,6 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* obj
 
 void iA3DCylinderObjectVis::setDiameterFactor(double diameterFactor)
 {
-	// NOTE: this requires modifying the vtkTubeFilter.cxx:
-	/*
-		else if ( inScalars &&
-			this->VaryRadius == VTK_VARY_RADIUS_BY_ABSOLUTE_SCALAR )
-		{
-			- sFactor = inScalars->GetComponent(pts[j],0);
-			+ sFactor = inScalars->GetComponent(pts[j],0) * this->RadiusFactor;
-	*/
 	m_tubeFilter->SetRadiusFactor(diameterFactor);
 	m_tubeFilter->Modified();
 	m_tubeFilter->Update();
@@ -110,6 +102,6 @@ void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFacto
 
 void iA3DCylinderObjectVis::setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive)
 {
-	iA3DLineObjectVis::setSelection(sortedSelInds, selectionActive);
+	iA3DColoredPolyObjectVis::setSelection(sortedSelInds, selectionActive);
 	setContextDiameterFactor(m_contextDiameterFactor);
 }

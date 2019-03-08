@@ -24,37 +24,16 @@
 
 #include <vtkSmartPointer.h>
 
-class iALookupTable;
-
-class vtkActor;
-class vtkOutlineFilter;
 class vtkPoints;
-class vtkPolyData;
 
 class FeatureScout_API iA3DLineObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
 	iA3DLineObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color );
 	void updateValues( std::vector<std::vector<double> > const & values );
-	vtkPolyData* getLinePolyData();
-	void setLookupTable( QSharedPointer<iALookupTable> lut, size_t paramIndex );
-	virtual void setSelection ( std::vector<size_t> const & sortedSelInds, bool selectionActive );
-	void updateColorSelectionRendering();
-	void setColor(QColor const & color);
-	void showBoundingBox();
-	void hideBoundingBox();
-	double const * bounds() override;
+	vtkPolyData* getPolyData() override;
 protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPoints> m_points;
-
-	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
-	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
-	vtkSmartPointer<vtkActor> m_outlineActor;
-	std::vector<size_t> m_selection;
-private:
-	QSharedPointer<iALookupTable> m_lut;
-	size_t m_colorParamIdx;
-	bool m_selectionActive;
 };
 

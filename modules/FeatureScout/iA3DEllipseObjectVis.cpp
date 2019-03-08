@@ -61,10 +61,16 @@ iA3DEllipseObjectVis::iA3DEllipseObjectVis(iAVtkWidget* widget, vtkTable* object
 	m_fullPoly->GetPointData()->AddArray(m_colors);
 	assert ( m_pointsPerObject*objectTable->GetNumberOfRows() == fullPolySource->GetOutput()->GetNumberOfPoints() );
 	m_mapper->SetInputData(m_fullPoly);
+	setupBoundingBox();
+	setupOriginalIds();
 }
-
 
 double const * iA3DEllipseObjectVis::bounds()
 {
 	return m_fullPoly->GetBounds();
+}
+
+vtkPolyData* iA3DEllipseObjectVis::getPolyData()
+{
+	return m_fullPoly;
 }
