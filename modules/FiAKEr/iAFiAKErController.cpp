@@ -27,12 +27,11 @@
 #include "iAStackedBarChart.h"
 
 // FeatureScout:
+#include "iA3DCylinderObjectVis.h"
+#include "iA3DEllipseObjectVis.h"
 #include "iACsvConfig.h"
 #include "iAFeatureScoutModuleInterface.h"
 #include "iAVectorPlotData.h"
-#include "qthelper/iAFixedAspectWidget.h"
-#include "qthelper/iASignallingWidget.h"
-#include "io/iAFileUtils.h"
 
 // Core:
 #include "charts/iAChartWidget.h"
@@ -44,7 +43,6 @@
 #include "iAColorTheme.h"
 #include "iAConnector.h"
 #include "iAConsole.h"
-#include "qthelper/iADockWidgetWrapper.h"
 #include "iALookupTable.h"
 #include "iALUT.h"
 #include "iAMapperImpl.h"
@@ -52,13 +50,17 @@
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
 #include "iAStringHelper.h"
-#include "io/iAITKIO.h"
 #include "iATransferFunction.h"
 #include "iAVolumeRenderer.h"
 #include "iAVtkWidget.h"
+#include "io/iAITKIO.h"
 #include "io/iAFileChooserWidget.h"
+#include "io/iAFileUtils.h"
 #include "mainwindow.h"
 #include "mdichild.h"
+#include "qthelper/iADockWidgetWrapper.h"
+#include "qthelper/iAFixedAspectWidget.h"
+#include "qthelper/iASignallingWidget.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
@@ -153,8 +155,8 @@ class iAFiberCharUIData
 {
 public:
 	iAVtkWidget* vtkWidget;
-	QSharedPointer<iA3DCylinderObjectVis> mini3DVis;
-	QSharedPointer<iA3DCylinderObjectVis> main3DVis;
+	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
+	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
 	QCheckBox* cbBoundingBox;
 	QCheckBox* cbShow;
 	iAChartWidget* histoChart;
@@ -640,6 +642,20 @@ QWidget* iAFiAKErController::setupOptimStepView()
 	return optimStepsView;
 }
 
+namespace
+{
+	QSharedPointer<iA3DColoredPolyObjectVis> create3DVis(iAVtkWidget* vtkWidget,
+		vtkSmartPointer<vtkTable> table, QSharedPointer<QMap<uint, uint> > mapping, QColor const & color, int objectType)
+	{
+		switch (objectType)
+		{
+		case iACsvConfig::Ellipses:  return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DEllipseObjectVis(vtkWidget, table, mapping, color));
+		default:
+		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(vtkWidget, table, mapping, color));
+		}
+	}
+}
+
 QWidget* iAFiAKErController::setupResultListView()
 {
 	size_t commonPrefixLength = 0, commonSuffixLength = 0;
@@ -773,10 +789,8 @@ QWidget* iAFiAKErController::setupResultListView()
 		m_resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, StackedBarColumn);
 		m_resultsListLayout->addWidget(uiData.histoChart, resultID + 1, HistogramColumn);
 
-		uiData.mini3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
-			uiData.vtkWidget, d.table, d.mapping, getResultColor(resultID)));
-		uiData.main3DVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(
-			m_mainRenderer, d.table, d.mapping, getResultColor(resultID)));
+		uiData.mini3DVis = create3DVis(uiData.vtkWidget, d.table, d.mapping, getResultColor(resultID), m_data->objectType);
+		uiData.main3DVis = create3DVis(m_mainRenderer, d.table, d.mapping, getResultColor(resultID), m_data->objectType);
 		uiData.mini3DVis->setColor(getResultColor(resultID));
 		uiData.mini3DVis->show();
 		ren->ResetCamera();
@@ -1262,15 +1276,22 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 	{
 		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
 		ui.main3DVis->setContextOpacity(ContextOpacity);
-		ui.main3DVis->setDiameterFactor(DiameterFactor);
-		ui.mini3DVis->setContextDiameterFactor(ContextDiameterFactor);
+		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.get());
+		if (vis)
+		{
+			vis->setDiameterFactor(DiameterFactor);
+			vis->setContextDiameterFactor(ContextDiameterFactor);
+		}
 		size_t colorLookupParam = m_distributionChoice->currentIndex();
 		if (matchQualityVisActive())
 			showSpatialOverview();
 		else if (m_spm->colorScheme() == iAQSplom::ByParameter)
 		{
-			ui.main3DVis->setLookupTable(m_spm->lookupTable(), m_spm->colorLookupParam());
-			ui.main3DVis->updateColorSelectionRendering();
+			if (vis)
+			{
+				vis->setLookupTable(m_spm->lookupTable(), m_spm->colorLookupParam());
+				vis->updateColorSelectionRendering();
+			}
 		}
 		else
 		{
@@ -1294,11 +1315,15 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
 		if (data.timeValues.size() > 0)
 		{
-			ui.main3DVis->updateValues(data.timeValues[
-				std::min(data.timeValues.size() - 1, static_cast<size_t>(m_optimStepSlider->value()))]);
+			if (m_data->objectType == iACsvConfig::Cylinders)
+			{
+				auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.get());
+				vis->updateValues(data.timeValues[
+					std::min(data.timeValues.size() - 1, static_cast<size_t>(m_optimStepSlider->value()))]);
+			}
 		}
 		ui.main3DVis->show();
-		m_style->addInput( resultID, ui.main3DVis->getLinePolyData(), ui.main3DVis->getActor() );
+		m_style->addInput( resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
 		m_spm->addFilter(m_data->spmData->numParams()-1, resultID);
 	}
 	else
@@ -1581,7 +1606,11 @@ void iAFiAKErController::setOptimStep(int optimStep)
 			auto main3DVis = m_resultUIs[resultID].main3DVis;
 			auto & timeValues = m_data->result[resultID].timeValues;
 			if (main3DVis->visible() && timeValues.size() > 0)
-				main3DVis->updateValues(timeValues[std::min(static_cast<size_t>(optimStep), timeValues.size()-1)]);
+				if (m_data->objectType == iACsvConfig::Cylinders)
+				{
+					auto vis = dynamic_cast<iA3DCylinderObjectVis*>(main3DVis.get());
+					vis->updateValues(timeValues[std::min(static_cast<size_t>(optimStep), timeValues.size() - 1)]);
+				}
 		}
 	}
 	changeReferenceDisplay();
@@ -1626,29 +1655,33 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 
 void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 {
+	if (m_data->objectType != iACsvConfig::Cylinders)
+		return;
 	DiameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
 	addInteraction(QString("Set diameter modification factor to %1.").arg(DiameterFactor));
 	m_diameterFactorLabel->setText(QString::number(DiameterFactor, 'f', 2));
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto & vis = m_resultUIs[resultID];
-		vis.mini3DVis->setDiameterFactor(DiameterFactor);
+		(dynamic_cast<iA3DCylinderObjectVis*>(vis.mini3DVis.get()))->setDiameterFactor(DiameterFactor);
 		if (vis.main3DVis->visible())
-			vis.main3DVis->setDiameterFactor(DiameterFactor);
+			(dynamic_cast<iA3DCylinderObjectVis*>(vis.main3DVis.get()))->setDiameterFactor(DiameterFactor);
 	}
 }
 
 void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorInt)
 {
+	if (m_data->objectType != iACsvConfig::Cylinders)
+		return;
 	ContextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
 	addInteraction(QString("Set context diameter modification factor to %1.").arg(ContextDiameterFactor));
 	m_contextDiameterFactorLabel->setText(QString::number(ContextDiameterFactor, 'f', 2));
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto & vis = m_resultUIs[resultID];
-		vis.mini3DVis->setContextDiameterFactor(ContextDiameterFactor);
+		(dynamic_cast<iA3DCylinderObjectVis*>(vis.mini3DVis.get()))->setContextDiameterFactor(ContextDiameterFactor);
 		if (vis.main3DVis->visible())
-			vis.main3DVis->setContextDiameterFactor(ContextDiameterFactor);
+			(dynamic_cast<iA3DCylinderObjectVis*>(vis.main3DVis.get()))->setContextDiameterFactor(ContextDiameterFactor);
 	}
 }
 

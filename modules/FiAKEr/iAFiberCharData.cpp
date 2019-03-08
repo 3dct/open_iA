@@ -160,6 +160,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 	for (QString csvFile : csvFileNames)
 	{
 		iACsvConfig config = getCsvConfig(csvFile, configName);
+		objectType = config.visType;
 		iACsvIO io;
 		iACsvVtkTableCreator tableCreator;
 		if (!io.loadCSV(tableCreator, config))

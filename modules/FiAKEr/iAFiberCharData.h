@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iA3DCylinderObjectVis.h"
-
 #include "iAProgress.h"
 
 #include <vtkSmartPointer.h>
@@ -115,6 +113,8 @@ public:
 	std::vector<double> avgRefFiberMatch;
 	//! for each difference/similarity measure, the maximum value over all results:
 	std::vector<double> maxAvgDifference;
+	//! type of objects (typically fibers, see iACsvConfig::VisualizationType)
+	int objectType;
 
 // Methods:
 	bool loadData(QString const & path, QString const & configName, double stepShift, iAProgress * progress);

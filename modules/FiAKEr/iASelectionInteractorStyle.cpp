@@ -118,7 +118,7 @@ void iASelectionInteractorStyle::Pick()
 
 		for (vtkIdType i = 0; i < ids->GetNumberOfTuples(); i++)
 		{
-			size_t objID = ids->GetValue(i) / 2;
+			size_t objID = ids->GetValue(i);
 			auto it = std::find(resultSel.begin(), resultSel.end(), objID);
 			if (it != resultSel.end() && GetInteractor()->GetAltKey())
 				resultSel.erase( it );
