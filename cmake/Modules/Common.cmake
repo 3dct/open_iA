@@ -338,15 +338,15 @@ ENDIF()
 # VTK
 SET (VTK_VER "${VTK_VERSION_MAJOR}.${VTK_VERSION_MINOR}")
 SET (VTK_EXTRA_LIBS
-	vtkalglib                vtkCommonColor      vtkCommonComputationalGeometry  vtkCommonDataModel
+	vtkCommonColor           vtkCommonComputationalGeometry  vtkCommonDataModel
 	vtkCommonExecutionModel  vtkCommonMath       vtkCommonMisc                   vtkCommonSystem
-	vtkCommonTransforms      vtkexoIIc           vtkexpat                        vtkFiltersExtraction
+	vtkCommonTransforms      vtkexpat            vtkFiltersExtraction
 	vtkFiltersGeneral        vtkFiltersGeometry  vtkFiltersImaging               vtkFiltersSources
 	vtkFiltersStatistics     vtkFiltersTexture   vtkfreetype                     vtkhdf5
 	vtkImagingColor          vtkImagingFourier   vtkImagingGeneral               vtkImagingHybrid
 	vtkImagingSources        vtkInfovisLayout    vtkInteractionStyle             vtkInteractionWidgets
 	vtkIOImage               vtkIOLegacy         vtkIOXMLParser                  vtkjpeg
-	vtklibxml2               vtkmetaio           vtkoggtheora                    vtkpng
+	vtklibxml2               vtkmetaio           vtkpng
 	vtkRenderingLabel        vtkRenderingVolume  vtktiff                         vtkverdict
 	vtkViewsInfovis          vtkzlib)
 IF (${VTK_MAJOR_VERSION} LESS 7 AND ${VTK_MINOR_VERSION} LESS 3)
@@ -367,19 +367,27 @@ IF (${VTK_MAJOR_VERSION} GREATER 7)
 		ENDIF ()
 	ENDIF()
 ENDIF()
+IF (${VTK_MAJOR_VERSION} GREATER 8 OR (${VTK_MAJOR_VERSION} EQUAL 8 AND ${VTK_MINOR_VERSION} GREATER 1))
+	SET (VTK_EXTRA_LIBS ${VTK_EXTRA_LIBS} vtkogg vtktheora vtklzma vtkdoubleconversion)
+ELSE()
+	SET (VTK_EXTRA_LIBS ${VTK_EXTRA_LIBS} vtkalglib vtkexoIIc vtkoggtheora)
+	IF (WIN32)
+		INSTALL(FILES ${VTK_LIB_DIR}/QVTKWidgetPlugin.dll DESTINATION .)
+	ELSE()
+		INSTALL(FILES ${VTK_LIB_DIR}/libQVTKWidgetPlugin.so DESTINATION .)
+	ENDIF()
+ENDIF()
 SET (VTK_ALL_LIBS ${VTK_LIBRARIES} ${VTK_EXTRA_LIBS})
 IF (WIN32)
 	SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
 	FOREACH(VTK_LIB ${VTK_ALL_LIBS})
 		INSTALL (FILES ${VTK_LIB_DIR}/${VTK_LIB}-${VTK_VER}.dll DESTINATION .)
 	ENDFOREACH(VTK_LIB)
-	INSTALL(FILES ${VTK_LIB_DIR}/QVTKWidgetPlugin.dll DESTINATION .)
 ELSEIF (UNIX AND NOT FLATPAK_BUILD)
 	SET (VTK_LIB_DIR "${VTK_DIR}/lib")
 	FOREACH(VTK_LIB ${VTK_ALL_LIBS})
 		INSTALL (FILES ${VTK_LIB_DIR}/lib${VTK_LIB}-${VTK_VER}.so.1 DESTINATION .)
 	ENDFOREACH(VTK_LIB)
-	INSTALL(FILES ${VTK_LIB_DIR}/libQVTKWidgetPlugin.so DESTINATION .)
 ENDIF()
 
 

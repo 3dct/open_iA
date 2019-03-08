@@ -98,10 +98,11 @@ void dlg_ProjectionParameters::fillProjInputMapping(int detRowDim, int detColDim
 }
 
 
-void dlg_ProjectionParameters::fillAlgorithmValues(int algorithmType, int numberOfIterations)
+void dlg_ProjectionParameters::fillAlgorithmValues(int algorithmType, int numberOfIterations, bool initWithFDK)
 {
 	AlgorithmType->setCurrentIndex(algorithmType);
 	AlgorithmIterations->setValue(numberOfIterations);
+	InitWithFDK->setChecked(initWithFDK);
 	algorithmChanged(algorithmType);
 }
 
@@ -139,6 +140,7 @@ void dlg_ProjectionParameters::algorithmChanged(int idx)
 {
 	AlgorithmIterations->setVisible(idx > 1); // depends on the order of algorithms!
 	AlgorithmIterationsLabel->setVisible(idx > 1);
+	InitWithFDK->setVisible(idx > 1);
 	checkCenterOfRotationCorrection(idx, CorrectionCenterOfRotation->isChecked());
 }
 

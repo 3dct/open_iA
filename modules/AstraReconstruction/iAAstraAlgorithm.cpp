@@ -66,6 +66,7 @@ namespace
 	QString DstOrigSrc = "Distance Origin-Source";
 	QString CenterOfRotCorr = "Center of Rotation Correction";
 	QString CenterOfRotOfs = "Center of Rotation Offset";
+	QString InitWithFDK = "Initialize with FDK";
 	QString VolDimX = "Volume Dimension X";
 	QString VolDimY = "Volume Dimension Y";
 	QString VolDimZ = "Volume Dimension Z";
@@ -397,6 +398,7 @@ iAASTRAReconstruct::iAASTRAReconstruct() :
 	AddParameter(NumberOfIterations, Discrete, 100, 0);
 	AddParameter(CenterOfRotCorr, Boolean, false);
 	AddParameter(CenterOfRotOfs, Continuous, 0.0);
+	AddParameter(InitWithFDK, Boolean, true);
 }
 
 
@@ -489,7 +491,15 @@ void iAASTRAReconstruct::PerformWork(QMap<QString, QVariant> const & parameters)
 	projector->initialize(projectorConfig);
 	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), projBuf);
 	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry(), 0.0f);
-	switch (MapAlgoStringToIndex(parameters[AlgoType].toString()))
+	int algo = MapAlgoStringToIndex(parameters[AlgoType].toString());
+	if ((algo == SIRT3D || SIRT3D == CGLS3D) && parameters[InitWithFDK].toBool())
+	{
+		astra::CCudaFDKAlgorithm3D* fdkalgo = new astra::CCudaFDKAlgorithm3D();
+		fdkalgo->initialize(projector, projectionData, volumeData);
+		fdkalgo->run();
+		delete fdkalgo;
+	}
+	switch (algo)
 	{
 		case BP3D: {
 			astra::CCudaBackProjectionAlgorithm3D* bp3dalgo = new astra::CCudaBackProjectionAlgorithm3D();
@@ -628,7 +638,8 @@ bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap
 		if (parameters[AlgoType].toString().isEmpty())
 			parameters[AlgoType] = AlgorithmStrings()[1];
 		dlg.fillAlgorithmValues(MapAlgoStringToIndex(parameters[AlgoType].toString()),
-			parameters[NumberOfIterations].toUInt());
+			parameters[NumberOfIterations].toUInt(),
+			parameters[InitWithFDK].toBool());
 		dlg.fillCorrectionValues(parameters[CenterOfRotCorr].toBool(),
 			parameters[CenterOfRotOfs].toDouble());
 	}
@@ -661,6 +672,7 @@ bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap
 		parameters[VolSpcZ] = dlg.VolGeomSpacingZ->value();
 		parameters[AlgoType] = MapAlgoIndexToString(dlg.AlgorithmType->currentIndex());
 		parameters[NumberOfIterations] = dlg.AlgorithmIterations->value();
+		parameters[InitWithFDK] = dlg.InitWithFDK->isChecked();
 		parameters[CenterOfRotCorr] = dlg.CorrectionCenterOfRotation->isChecked();
 		parameters[CenterOfRotOfs] = dlg.CorrectionCenterOfRotationOffset->value();
 		if ((detColDim % 3) == (detRowDim % 3) || (detColDim % 3) == (projAngleDim % 3) || (detRowDim % 3) == (projAngleDim % 3))
