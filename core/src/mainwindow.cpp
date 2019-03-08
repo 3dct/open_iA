@@ -1190,7 +1190,7 @@ void MainWindow::renderSettings()
 		<< tr("#Specular lighting")
 		<< tr("#Specular power")
 		<< tr("+Renderer type")
-		<< tr("#Slice plane transparency");
+		<< tr("#Slice plane opacity");
 
 	QList<QVariant> inPara;
 	iARenderSettings const & renderSettings = child->GetRenderSettings();
