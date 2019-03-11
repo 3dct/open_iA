@@ -1276,7 +1276,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 	{
 		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
 		ui.main3DVis->setContextOpacity(ContextOpacity);
-		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.get());
+		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 		if (vis)
 		{
 			vis->setDiameterFactor(DiameterFactor);
@@ -1317,7 +1317,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		{
 			if (m_data->objectType == iACsvConfig::Cylinders)
 			{
-				auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.get());
+				auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 				vis->updateValues(data.timeValues[
 					std::min(data.timeValues.size() - 1, static_cast<size_t>(m_optimStepSlider->value()))]);
 			}
@@ -1608,7 +1608,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 			if (main3DVis->visible() && timeValues.size() > 0)
 				if (m_data->objectType == iACsvConfig::Cylinders)
 				{
-					auto vis = dynamic_cast<iA3DCylinderObjectVis*>(main3DVis.get());
+					auto vis = dynamic_cast<iA3DCylinderObjectVis*>(main3DVis.data());
 					vis->updateValues(timeValues[std::min(static_cast<size_t>(optimStep), timeValues.size() - 1)]);
 				}
 		}
@@ -1663,9 +1663,9 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto & vis = m_resultUIs[resultID];
-		(dynamic_cast<iA3DCylinderObjectVis*>(vis.mini3DVis.get()))->setDiameterFactor(DiameterFactor);
+		(dynamic_cast<iA3DCylinderObjectVis*>(vis.mini3DVis.data()))->setDiameterFactor(DiameterFactor);
 		if (vis.main3DVis->visible())
-			(dynamic_cast<iA3DCylinderObjectVis*>(vis.main3DVis.get()))->setDiameterFactor(DiameterFactor);
+			(dynamic_cast<iA3DCylinderObjectVis*>(vis.main3DVis.data()))->setDiameterFactor(DiameterFactor);
 	}
 }
 
@@ -1679,9 +1679,9 @@ void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorI
 	for (int resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto & vis = m_resultUIs[resultID];
-		(dynamic_cast<iA3DCylinderObjectVis*>(vis.mini3DVis.get()))->setContextDiameterFactor(ContextDiameterFactor);
+		(dynamic_cast<iA3DCylinderObjectVis*>(vis.mini3DVis.data()))->setContextDiameterFactor(ContextDiameterFactor);
 		if (vis.main3DVis->visible())
-			(dynamic_cast<iA3DCylinderObjectVis*>(vis.main3DVis.get()))->setContextDiameterFactor(ContextDiameterFactor);
+			(dynamic_cast<iA3DCylinderObjectVis*>(vis.main3DVis.data()))->setContextDiameterFactor(ContextDiameterFactor);
 	}
 }
 
