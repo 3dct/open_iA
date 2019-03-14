@@ -368,8 +368,7 @@ void iABoneThickness::set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABo
 	vtkRenderWindowInteractor* pWindowInteractor(m_iARenderer->GetInteractor());
 	pWindowInteractor->SetInteractorStyle(pMouseInteractor);
 
-	pWindowInteractor->Initialize();
-	pWindowInteractor->Start();
+	//pWindowInteractor->Initialize();
 }
 
 void iABoneThickness::setChart(iABoneThicknessChartBar* _pBoneThicknessChartBar)
