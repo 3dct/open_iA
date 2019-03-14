@@ -127,6 +127,7 @@ private slots:
 	void distributionChartTypeChanged(int);
 	void diameterFactorChanged(int);
 	void contextDiameterFactorChanged(int);
+	void contextSpacingChanged(double value);
 	void showFiberContextChanged(int);
 	void mergeFiberContextBoxesChanged(int);
 	// result view:
@@ -164,7 +165,6 @@ private:
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
-	void contextSpacingChanged(double value);
 
 	QWidget* setupMain3DView();
 	QWidget* setupSettingsView();
