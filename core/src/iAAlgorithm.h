@@ -63,8 +63,12 @@ public:
 	QString getFilterName() const;
 	vtkImageData* getVtkImageData();
 	vtkPolyData* getVtkPolyData();
+
+	//! return first element of the connectors
 	iAConnector* getConnector() const;
 	void AddImage(vtkImageData* i);
+
+	//! get all connectors
 	QVector<iAConnector*> const & Connectors() const;
 	bool deleteConnector(iAConnector* c);
 	void allocConnectors(int size);
