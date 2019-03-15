@@ -27,10 +27,7 @@
 #include <QWidget>
 #include <QStyleOption>
 
-/**
- * \brief	QWidgetToolbar has different looks, thats all folks.
- */
-
+//! QWidgetToolbar has different looks.
 class open_iA_Core_API QWidgetToolbar : public QWidget
 {
 	Q_OBJECT

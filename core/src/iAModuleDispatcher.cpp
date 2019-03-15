@@ -320,7 +320,7 @@ QMenu * iAModuleDispatcher::getMenuWithTitle(QMenu * parentMenu, QString const &
 	for (int i = 0; i < submenus.size(); ++i)
 	{
 		if (submenus.at(i)->title() == title)
-			return  submenus.at(i);
+			return submenus.at(i);
 	}
 	QMenu * result = new QMenu(parentMenu);
 	result->setTitle(title);

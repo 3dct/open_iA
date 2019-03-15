@@ -29,9 +29,9 @@
 
 #include <QMessageBox>
 
-void iAModuleInterface::PrepareResultChild( QString const & wndTitle )
+void iAModuleInterface::PrepareResultChild( QString const & title )
 {
-	m_mdiChild = m_mainWnd->GetResultChild( wndTitle + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
+	m_mdiChild = m_mainWnd->GetResultChild( title + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
 	if( !m_mdiChild )
 	{
 		m_mainWnd->statusBar()->showMessage( "Cannot get result child from main window!", 5000 );
