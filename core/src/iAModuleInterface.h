@@ -39,7 +39,6 @@ class QMenu;
 class QAction;
 
 //! Base class for a module interface.
-//!
 //! A class derived from this class, and having a name in the form iA<ModuleName>ModuleInterface needs to be part of each module.
 //! E.g. the XRF module needs to contain a class iAXRFModuleInterface.
 //! At least the Initialize method needs to be overriden in order to add the custom code of the module to open_iA.
@@ -54,48 +53,47 @@ public:
 	void SetMainWindow( MainWindow * mainWnd );
 	//! Called by the module dispatcher on module initialization. There should be no need to call this method from user code
 	void SetDispatcher( iAModuleDispatcher * dispatcher );
-	//! Override to add references to the module in the core code, for example menu entries
+	//! Override to add references to the module in the core code, for example menu entries.
 	virtual void Initialize() = 0;		// TODO: split up into GUI part and other?
-	//! Override to store custom settings of this module; called when program is shut down
+	//! Override to store custom settings of this module; called when program is shut down.
 	virtual void SaveSettings() const;
 	//! Retrieve the data of the currently active child widget.
 	//! @deprecated do not use this function, instead directly access e.g. activeChild from main window
 	iAChildData GetChildData() const;
-	//! Called whenever an MdiChild object is created. Override to react on this
+	//! Called whenever an MdiChild object is created. Override to react on this.
 	virtual void ChildCreated(MdiChild* child);
 protected:
-	//! Create a new result child, with a title made from the given title + the previous title of the active child
+	//! Create a new result child, with a title made from the given title + the previous title of the active child.
 	void PrepareResultChild( QString const & title);
-	//! Create a new result child at the given index in the MdiChild list with the given title
+	//! Create a new result child at the given index in the MdiChild list with the given title.
 	void PrepareResultChild( int childInd, QString const & title );
-	//! Set the currently active child as "current" and update references to it in m_childData
+	//! Set the currently active child as "current" and update references to it in m_childData.
 	void PrepareActiveChild();
-	//! Call this to update the child data after you have changed m_mdiChild member
+	//! Call this to update the child data after you have changed m_mdiChild member.
 	void UpdateChildData();
 	//! Provides access to a second loaded mdi child, if such is available.
-	//!
 	//! Will throw an error if none is available or more than two are loaded
 	//! @deprecated instead of this method, in filters, use the facilities
 	//!     provided in iAFilter (via the requiredInputs parameter to the constructor) to specify multiple inputs
 	MdiChild * GetSecondNonActiveChild() const;
-	//! Retrieve the menu with the given title (or creates it if it doesn't exist yet)
+	//! Retrieve the menu with the given title (or creates it if it doesn't exist yet).
 	QMenu * getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable = true);
-	//! Return true if attached to current mdi child
+	//! Return true if attached to current mdi child.
 	//! @note: current mdi child is determined through m_mdiChild member
 	//!       which is _not_ automatically updated to the active mdi child!
 	bool isAttached();
-	//! Add an action to a given menu ensuring alphabetic order
+	//! Add an action to a given menu ensuring alphabetic order.
 	//! @param menu the menu to add the entry to (see e.g. MainWindow::getToolMenu())
 	//! @param action the action to add to the menu
 	//! @param isDisablable whether the action should be disabled when no child is currently open
 	void AddActionToMenuAlphabeticallySorted( QMenu * menu, QAction * action, bool isDisablable = true );
-	//! Create a new attachment for the given child
+	//! Create a new attachment for the given child.
 	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData );
-	//! Get an attachment of the current mdi child
-	//! note: current mdi child is determined through m_mdiChild member
-	//!       which is _not_ automatically updated to the active mdi child!
+	//! Get an attachment of the current mdi child.
+	//! @note current mdi child is determined through m_mdiChild member
+	//!       which is _not_ automatically updated to the active mdi child, see m_mdiChild member!
 	template <class T> T* GetAttachment();
-	//! sets up a new attachment for the given MdiChild via CreateAttachment and links the two
+	//! Sets up a new attachment for the given MdiChild via CreateAttachment and links the two.
 	bool AttachToMdiChild( MdiChild * child );
 
 protected:
