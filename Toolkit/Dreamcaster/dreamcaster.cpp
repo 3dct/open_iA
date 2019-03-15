@@ -809,14 +809,14 @@ void DreamCaster::RenderViewsSlot()
 				placementsParams[s1_x][s1_z] = parameters_t();
 			}
 			actor->SetOrientation(0,0,0);
-			actor->RotateWXYZ( rad2deg(minValX) + rad2deg(deltaX)*s1_x	,1,0,0 );//degrees
-			actor->RotateWXYZ( rad2deg(deltaY)*s1_y						,0,1,0 );
-			actor->RotateZ(    rad2deg(minValZ) + rad2deg(deltaZ)*s1_z);
+			actor->RotateWXYZ( vtkMath::DegreesFromRadians(minValX) + vtkMath::DegreesFromRadians(deltaX)*s1_x	,1,0,0 );//degrees
+			actor->RotateWXYZ( vtkMath::DegreesFromRadians(deltaY)*s1_y						,0,1,0 );
+			actor->RotateZ(    vtkMath::DegreesFromRadians(minValZ) + vtkMath::DegreesFromRadians(deltaZ)*s1_z);
 			actor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 			cutAABActor->SetOrientation(0,0,0);
-			cutAABActor->RotateWXYZ( rad2deg(minValX) + rad2deg(deltaX)*s1_x	,1,0,0 );//degrees
-			cutAABActor->RotateWXYZ( rad2deg(deltaY)*s1_y						,0,1,0 );
-			cutAABActor->RotateZ(    rad2deg(minValZ) + rad2deg(deltaZ)*s1_z);
+			cutAABActor->RotateWXYZ( vtkMath::DegreesFromRadians(minValX) + vtkMath::DegreesFromRadians(deltaX)*s1_x	,1,0,0 );//degrees
+			cutAABActor->RotateWXYZ( vtkMath::DegreesFromRadians(deltaY)*s1_y						,0,1,0 );
+			cutAABActor->RotateZ(    vtkMath::DegreesFromRadians(minValZ) + vtkMath::DegreesFromRadians(deltaZ)*s1_z);
 			cutAABActor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 			double bottom = actor->GetBounds()[2];
 			plateActor->SetPosition(0.0, bottom-0.5*PLATE_HEIGHT, 0.0);
@@ -963,14 +963,14 @@ void DreamCaster::RenderViewsSlot()
 					if(isStopped)
 						return;
 					actor->SetOrientation(0,0,0);
-					actor->RotateWXYZ( rad2deg(minValX) + rad2deg(deltaX)*x	,1,0,0 );//degrees
-					actor->RotateWXYZ(                    rad2deg(deltaY)*y	,0,1,0 );
-					actor->RotateZ   ( rad2deg(minValZ) + rad2deg(deltaZ)*z);
+					actor->RotateWXYZ( vtkMath::DegreesFromRadians(minValX) + vtkMath::DegreesFromRadians(deltaX)*x	,1,0,0 );//degrees
+					actor->RotateWXYZ(                    vtkMath::DegreesFromRadians(deltaY)*y	,0,1,0 );
+					actor->RotateZ   ( vtkMath::DegreesFromRadians(minValZ) + vtkMath::DegreesFromRadians(deltaZ)*z);
 					actor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 					cutAABActor->SetOrientation(0,0,0);
-					cutAABActor->RotateWXYZ( rad2deg(minValX) + rad2deg(deltaX)*x	,1,0,0 );//degrees
-					cutAABActor->RotateWXYZ(                    rad2deg(deltaY)*y	,0,1,0 );
-					cutAABActor->RotateZ   ( rad2deg(minValZ) + rad2deg(deltaZ)*z);
+					cutAABActor->RotateWXYZ( vtkMath::DegreesFromRadians(minValX) + vtkMath::DegreesFromRadians(deltaX)*x	,1,0,0 );//degrees
+					cutAABActor->RotateWXYZ(                    vtkMath::DegreesFromRadians(deltaY)*y	,0,1,0 );
+					cutAABActor->RotateZ   ( vtkMath::DegreesFromRadians(minValZ) + vtkMath::DegreesFromRadians(deltaZ)*z);
 					cutAABActor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 					float rx = minValX + deltaX*x;
 					float ry =         + deltaY*y;
@@ -1301,14 +1301,14 @@ void DreamCaster::RenderSingleViewSlot()
 	ui.TimeLabel->setText(t);
 
 	actor->SetOrientation(0,0,0);
-	actor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
-	actor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f );
-	actor->RotateZ(rad2deg(DEG2RAD*ui.sb_curZ->value()));
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f );
+	actor->RotateZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curZ->value()));
 	actor->SetPosition(pos[0], pos[1], pos[2]);
 	cutAABActor->SetOrientation(0,0,0);
-	cutAABActor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
-	cutAABActor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f );
-	cutAABActor->RotateZ(rad2deg(DEG2RAD*ui.sb_curZ->value()));
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f );
+	cutAABActor->RotateZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curZ->value()));
 	cutAABActor->SetPosition(pos[0], pos[1], pos[2]);
 	UpdateSlot();
 	//UpdateHistogramSlot();
@@ -1609,14 +1609,14 @@ void DreamCaster::ShowRangeRays()
 	readRenderFromBinaryFile(curIndX, curIndY, curIndZ,curRender);//ui.sb_xind->value(), ui.sb_yind->value(), curRender);
 	//orient model, so it correspond to analyzed rendering 
 	actor->SetOrientation(0,0,0);
-	actor->RotateWXYZ(rad2deg(curRender->rotX), 1.0f, 0.0f, 0.0f );//degrees
-	actor->RotateWXYZ(rad2deg(curRender->rotY), 0.0f, 1.0f, 0.0f);
-	actor->RotateZ(rad2deg(curRender->rotZ));
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->rotX), 1.0f, 0.0f, 0.0f );//degrees
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->rotY), 0.0f, 1.0f, 0.0f);
+	actor->RotateZ(vtkMath::DegreesFromRadians(curRender->rotZ));
 	actor->SetPosition(curRender->pos[0], curRender->pos[1], curRender->pos[2]);
 	cutAABActor->SetOrientation(0,0,0);
-	cutAABActor->RotateWXYZ(rad2deg(curRender->rotX), 1.0f, 0.0f, 0.0f );//degrees
-	cutAABActor->RotateWXYZ(rad2deg(curRender->rotY), 0.0f, 1.0f, 0.0f);
-	cutAABActor->RotateZ(rad2deg(curRender->rotZ));
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->rotX), 1.0f, 0.0f, 0.0f );//degrees
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->rotY), 0.0f, 1.0f, 0.0f);
+	cutAABActor->RotateZ(vtkMath::DegreesFromRadians(curRender->rotZ));
 	cutAABActor->SetPosition(curRender->pos[0], curRender->pos[1], curRender->pos[2]);
 	//////////////////////////////////////////////////////////////////////////
 	// obtain rays data for current rendering
@@ -1843,13 +1843,13 @@ void DreamCaster::pbGrab3DSlot()
 	ui.sb_curX->setValue(rot[0]*DEG_IN_PI);
 	ui.sb_curY->setValue(rot[1]*DEG_IN_PI);
 	actor->SetOrientation(0, 0, 0);
-	actor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
-	actor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f);
-	actor->RotateZ(rad2deg(DEG2RAD*ui.sb_curZ->value()));
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f);
+	actor->RotateZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curZ->value()));
 	cutAABActor->SetOrientation(0, 0, 0);
-	cutAABActor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
-	cutAABActor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f);
-	cutAABActor->RotateZ(rad2deg(DEG2RAD*ui.sb_curZ->value()));
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f);
+	cutAABActor->RotateZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curZ->value()));
 }
 
 void DreamCaster::UpdatePlotSlot()
@@ -2285,8 +2285,8 @@ void DreamCaster::ShowDipAnglesSlot()
 	readRenderFromBinaryFile(ui.sb_xind->value(), ui.sb_yind->value(), curRender);
 	//orient model, so it correspond to analyzed rendering 
 	actor->SetOrientation(0,0,0);
-	actor->RotateWXYZ(rad2deg(curRender->m_rotX), 1.0f, 0.0f, 0.0f );//degrees
-	actor->RotateWXYZ(rad2deg(curRender->m_rotY), 0.0f, 1.0f, 0.0f);
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->m_rotX), 1.0f, 0.0f, 0.0f );//degrees
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->m_rotY), 0.0f, 1.0f, 0.0f);
 	actor->SetPosition(curRender->m_pos[0], curRender->m_pos[1], curRender->m_pos[2]);
 	
 	//clear prev scalars
@@ -2712,14 +2712,14 @@ void DreamCaster::UpdateView()
 	ui.TimeLabel->setText(t);
 
 	actor->SetOrientation(0,0,0);
-	actor->RotateWXYZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotX), 1.0f, 0.0f, 0.0f );//degrees
-	actor->RotateWXYZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotY), 0.0f, 1.0f, 0.0f);
-	actor->RotateZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotZ));
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotX), 1.0f, 0.0f, 0.0f );//degrees
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotY), 0.0f, 1.0f, 0.0f);
+	actor->RotateZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotZ));
 	actor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 	cutAABActor->SetOrientation(0,0,0);
-	cutAABActor->RotateWXYZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotX), 1.0f, 0.0f, 0.0f );//degrees
-	cutAABActor->RotateWXYZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotY), 0.0f, 1.0f, 0.0f);
-	cutAABActor->RotateZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotZ));
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotX), 1.0f, 0.0f, 0.0f );//degrees
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotY), 0.0f, 1.0f, 0.0f);
+	cutAABActor->RotateZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotZ));
 	cutAABActor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 	UpdateSlot();
 }
@@ -2731,9 +2731,9 @@ void DreamCaster::UpdateInfoLabels()
 	ui.lb_rendX->setText(QString::number(curIndX));
 	ui.lb_rendY->setText(QString::number(curIndY));
 	ui.lb_rendZ->setText(QString::number(curIndZ));
-	ui.lb_rotX->setText(QString::number(rad2deg(rotations[curIndX][curIndY][curIndZ].rotX)*M_PI));
-	ui.lb_rotY->setText(QString::number(rad2deg(rotations[curIndX][curIndY][curIndZ].rotY)*M_PI));
-	ui.lb_rotZ->setText(QString::number(rad2deg(rotations[curIndX][curIndY][curIndZ].rotZ)*M_PI));
+	ui.lb_rotX->setText(QString::number(vtkMath::DegreesFromRadians(rotations[curIndX][curIndY][curIndZ].rotX)*M_PI));
+	ui.lb_rotY->setText(QString::number(vtkMath::DegreesFromRadians(rotations[curIndX][curIndY][curIndZ].rotY)*M_PI));
+	ui.lb_rotZ->setText(QString::number(vtkMath::DegreesFromRadians(rotations[curIndX][curIndY][curIndZ].rotZ)*M_PI));
 	ui.lb_posx->setText(QString::number(set_pos[0]));
 	ui.lb_posy->setText(QString::number(set_pos[1]));
 	ui.lb_posz->setText(QString::number(set_pos[2]));

@@ -138,24 +138,7 @@ inline float Rand( float a_Range );
 	//! Parses config (from local config store). Initializes some variables.
 	//! @param settings struct where the options will be stored
 	int ParseConfigFile(SETTINGS * settings);
-	/**
-	* Converts radians in degrees.
-	* @param rad radians value.
-	* @return degrees value
-	*/
-	inline double rad2deg(float rad)
-	{
-		return rad*180/M_PI;
-	}
-	/**
-	* Converts degrees in radians .
-	* @param degrees value.
-	* @return rads value
-	*/
-	inline double deg2rad(float deg)
-	{
-		return (deg/180.0f)*M_PI;
-	}
+
 	inline void Time2Char(int ftime, char *t)
 	{
 		t[6] = (ftime / 100) % 10 + '0';
