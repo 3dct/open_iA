@@ -210,7 +210,7 @@ void TriPrim::recalculateD( iAVec3f *translate )
 {
 	m_d = (m_Tri.N) & ((*m_Tri.vertices[0]) - (*translate));
 }
-/**/
+
 // -----------------------------------------------------------
 // Scene class implementation
 // -----------------------------------------------------------

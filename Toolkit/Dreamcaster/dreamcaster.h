@@ -57,12 +57,12 @@ class DreamCaster : public QMainWindow
 public:
 	//! A DreamCaster consturctor.
 	//! @param parent parent widget pointer. Default is 0.
+	//! @param flags window flags
 	DreamCaster(QWidget *parent = 0, Qt::WindowFlags flags = 0);
-	//! A DreamCaster destructor.
 	~DreamCaster();
 	//! Loging function. Adds string to log window.
 	//! @param text string containing logging message.
-	//! @param text appendToPrev Append message to previous string or add as new string.
+	//! @param appendToPrev Append message to previous string or add as new string.
 	void log(QString text, bool appendToPrev=false);
 	//! Recreates rendering surface and rendering engine. Loads object. Prepares renderer.
 	void initRaycast();

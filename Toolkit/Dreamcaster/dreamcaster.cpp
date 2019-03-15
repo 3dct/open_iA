@@ -94,14 +94,14 @@ namespace
 	const QString SettingsWindowStateKey = "DreamCaster/windowState";
 }
 
-///#include "enable_memleak.h"
+//#include "enable_memleak.h"
 const int CutAABSkipedSize = CutAAB::getSkipedSizeInFile();
 const int RenderFromPositionSkipedSize = RenderFromPosition::getSkipedSizeInFile();
 
 #define PLATE_HEIGHT 20./stngs.SCALE_COEF
 extern QApplication * app;
 
-DreamCaster* dcast;///< used just for logging, to call log() method
+DreamCaster* dcast;//!< used just for logging, to call log() method
 
 const QColor qcolBlack = QColor(0, 0, 0);
 const QColor qcolYellow = QColor(255, 255, 0);

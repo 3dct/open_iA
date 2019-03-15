@@ -55,7 +55,7 @@ open_iA_Core_API QString PadOrTruncate(QString const & str, int size);
 
 //! strip HTML tags from the given string
 //! @param html a string potentially containing HTML tags
-//! @return the input string with all HTML tags (<xyz>, </xyz>, <xyz/>) removed
+//! @return the input string with all HTML tags (\<xyz\>, \</xyz\>, \<xyz/\>) removed
 open_iA_Core_API QString StripHTML(QString const & html);
 
 //! returns the value converted to string, with units (K, M, G, T, P) applied for every 10³ factor over 1000

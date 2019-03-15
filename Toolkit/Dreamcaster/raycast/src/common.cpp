@@ -182,7 +182,7 @@ inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range
 		return iAVec3f( (x2-x1)*0.5f, (y2-y1)*0.5f, (z2-z1)*0.5f );
 	}
 
-	int aabb::mainDim()
+	int aabb::mainDim() const
 	{
 		if(fabs(x2-x1)>=fabs(y2-y1))
 		{

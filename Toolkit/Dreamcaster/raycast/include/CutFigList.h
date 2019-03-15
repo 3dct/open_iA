@@ -24,12 +24,7 @@
 
 #include <vector>
 
-//using namespace Raytracer;
-/**	\class CutAAB.
-\brief Axis aligned box.
-
-Used for selecting some area on specimen in order to calculate only that area.	
-*/
+//! Axis aligned box. Used for selecting some area on specimen in order to calculate only that area.
 class CutAAB
 {
 public:
@@ -61,22 +56,20 @@ public:
 		slidersValues[4] = v5;
 		slidersValues[5] = v6;
 	}
-	/**
-	* Write aabb data in file
-	*/
+	//! Write aabb data in file
 	inline void Write2File(FILE *fptr)
 	{	
 		fwrite(&box, sizeof(aabb), 1, fptr);
 		fwrite(slidersValues, sizeof(slidersValues), 1, fptr);
 	}
-	aabb box; //< bounds of 3D box
-	int slidersValues[6];//<corresponding values of sliders
+	aabb box; //!< bounds of 3D box
+	int slidersValues[6];//!< corresponding values of sliders
 	static const int getSkipedSizeInFile()
 	{
-		return (sizeof(aabb)+sizeof(int[6]));//box+slidersValues
+		return (sizeof(aabb)+sizeof(int[6])); // box+slidersValues
 	}
 private:
-	QString m_name;//<name of box
+	QString m_name; //! <name of box
 };
 
 class CutFigList

@@ -164,23 +164,21 @@ protected:
 	void executeKeyPressEvent();
 	void defaultOutput();
 
-	/**
-	* \brief	This function is used to check whether any agreeable maximum gradient is near the given point.
-	*	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.
-	*
-	* \detail	Input is the cursor point. Calculate the gradient magnitude for varying "x" value with "y" constant.
-	*	The maximum gradient value is taken as H_maxCoord. If there are two same gradient magnitude values, the point
-	*	closer to the cursor point is taken as H_maxCoord. Apply the above procedure for constant "x" and varying "y"
-	*	to calculate V_maxCoord. Check whether H_maxCoord gradient magnitude and V_maxCoord gradient magnitude are
-	*	higher than an gradient threshold value (5% of max intensity in the image). If H_maxCoord gradient magnitude
-	*	is higher and V_maxCoord gradient magnitude is lesser than the threshold, take H_maxCoord as the closet
-	*	gradient to cursor point. And if it is vice versa take V_maxCoord take as closest gradient to the cursor point.
-	*	If point are higher than threshold, the point closest to the cursor point is take as the next point.
-	*
-	* \param [in,out]	x	The x coordinate.
-	* \param [in,out]	y	The y coordinate.
-	*/
+	//!	This function is used to check whether any agreeable maximum gradient is near the given point.
+	//!	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.
+	//!
+	//! Input is the cursor point. Calculate the gradient magnitude for varying "x" value with "y" constant.
+	//! The maximum gradient value is taken as H_maxCoord. If there are two same gradient magnitude values, the point
+	//! closer to the cursor point is taken as H_maxCoord. Apply the above procedure for constant "x" and varying "y"
+	//! to calculate V_maxCoord. Check whether H_maxCoord gradient magnitude and V_maxCoord gradient magnitude are
+	//! higher than an gradient threshold value (5% of max intensity in the image). If H_maxCoord gradient magnitude
+	//! is higher and V_maxCoord gradient magnitude is lesser than the threshold, take H_maxCoord as the closet
+	//! gradient to cursor point. And if it is vice versa take V_maxCoord take as closest gradient to the cursor point.
+	//! If point are higher than threshold, the point closest to the cursor point is take as the next point.
+	//! @param [in,out]	x	The x coordinate.
+	//! @param [in,out]	y	The y coordinate.
 	void snapToHighGradient(double &x, double &y);
+
 	void InitReslicerWithImageData();
 	void UpdateReslicer();
 Q_SIGNALS:

@@ -30,13 +30,8 @@
 #include <vector>
 
 extern DreamCaster * dcast;
-//namespace Raytracer{
 
-/**	\class BSPNode.
-	\brief Class representing a BSP-tree node.
-
-	AABB specified BSP-tree node.	
-*/
+//! Class representing a BSP-tree node. AABB specified BSP-tree node.
 class BSPNode
 {
 public:
@@ -49,18 +44,12 @@ public:
 	~BSPNode()
 	{
 	}
-	/**
-	* Splits current node's AABB by maximum dimension.
-	* Creates two child-nodes with derived AABBs.
-	* Stops if maximum level is reached.
-	* @param level level of current node.
-	* @param max_level nodes with max_level are leafs and therefore not divided.
-	* @param l_aabb [out]left child's aabb
-	* @param r_aabb [out]right child's aabb
-	* @param nodes vector of tree nodes
-	* @return 1 if successful, 0 otherwise
-	*/
-	int Split(aabb &p_aabb, aabb &l_aabb, aabb &r_aabb)
+	//! Splits current node's AABB by maximum dimension. Creates two child-nodes with derived AABBs.
+	//! @param[in]  p_aabb parent's aabb
+	//! @param[out] l_aabb left child's aabb
+	//! @param[out] r_aabb right child's aabb
+	//! @return 1 if successful, 0 otherwise
+	int Split(aabb const &p_aabb, aabb &l_aabb, aabb &r_aabb)
 	{
 		float bound;
 		int mainDim = p_aabb.mainDim();
@@ -90,20 +79,17 @@ public:
 		set_splitCoord(bound);
 		return 1;
 	}
-	/**
-	* Splits current node's AABB. Creates two child-nodes with derived AABBs and distributes primitives from 
-	* current node primitives vector among two child-nodes.
-	* Recursively called for child-nodes. 
-	* Stops if maximum level is reached.
-	* @note If current node does not have any primitives recursion is stopped.
-	* @param level level of current node.
-	* @param max_level nodes with max_level are leafs.
-	* @param m_aabb node's aabb
-	* @param nodes vector of all tree nodes
-	* @param tri_ind vector of index-triangle mapping array
-	* @param prims vector of all tree primitives
-	* @return 1 if successful
-	*/
+	//! Splits current node's AABB. Creates two child-nodes with derived AABBs and distributes primitives from 
+	//! current node primitives vector among two child-nodes. Recursively called for child-nodes. Stops if
+	//! maximum level is reached. If current node does not have any primitives, recursion is stopped.
+	//! @param level level of current node.
+	//! @param max_level nodes with max_level are leafs.
+	//! @param m_aabb node's aabb
+	//! @param nodes vector of all tree nodes
+	//! @param tri_ind vector of index-triangle mapping array
+	//! @param parent_tris
+	//! @param tri_start_ind
+	//! @return 1 if successful
 	int DistributePrims(int &level, int &max_level, aabb &m_aabb, std::vector<BSPNode*> &nodes,
 						std::vector<unsigned int> &tri_ind, /*std::vector<Primitive*> &prims,*/ 
 						std::vector<TriPrim*> &parent_tris, unsigned int tri_start_ind)
@@ -167,7 +153,7 @@ public:
 		//get_right(nodes)->set_tri_count(counter);//left node
 		int nxtLvl = level+1;
 
-		///order matters, else if left before right will try to access empty element 
+		// order matters, else if left before right will try to access empty element
 		if(r_tris.size()==0)//if(get_right(nodes)->tri_count()==0)
 		{
 			delete get_right(nodes);
@@ -326,7 +312,7 @@ public:
 		//get_right(nodes)->set_tri_count(counter);//left node
 		int nxtLvl = level+1;
 
-		///order matters, else if left before right will try to access empty element 
+		// order matters, else if left before right will try to access empty element
 		if(r_tris.size()==0)//if(get_right(nodes)->tri_count()==0)
 		{
 			delete get_right(nodes);
@@ -383,9 +369,9 @@ public:
 		masked_vars&=0xdf;//off
 		if(has) masked_vars|=0x20;//on
 	}
-	//
-	unsigned int internal1, internal2;///< shared data, depends if node is leaf or not
-	unsigned int masked_vars; ///< Is this node a leaf-node first bit -- is leaf, has left, has right, else -- axis index
+
+	unsigned int internal1, internal2; //!< shared data, depends if node is leaf or not
+	unsigned int masked_vars;          //!< Is this node a leaf-node first bit -- is leaf, has left, has right, else -- axis index
 	inline unsigned int tri_start() {return internal1;}
 	inline unsigned int tri_count() {return internal2;}
 	inline unsigned int offset()    {return internal1;}
@@ -451,11 +437,8 @@ protected:
 	int index;
 	trace_t * t;
 };
-/**	\class BSPTree.
-\brief Class representing a BSP-tree
 
-Assigned with root node, level and AABB.	
-*/
+//! Class representing a BSP-tree. Assigned with root node, level and AABB.
 class BSPTree
 {
 public:
@@ -470,15 +453,12 @@ public:
 			delete nodes[i];
 		}
 	}
-	/**
-	* Assigning split level and AABB to tree.
-	* @note only root node is created here, child nodes are not defined yet. Nodes are splited in FillTree function
-	* @see FillTree()
-	* @param a_splitLevel split level of tree.
-	* @param a_aabb AABB of tree.
-	* @return 1
-	*/
-	int BuildTree(int a_splitLevel, aabb& a_aabb)
+	//! Assigning split level and AABB to tree.
+	//! @note only root node is created here, child nodes are not defined yet. Nodes are splited in FillTree function
+	//! @see FillTree()
+	//! @param a_splitLevel split level of tree.
+	//! @param a_aabb AABB of tree.
+	void BuildTree(int a_splitLevel, aabb& a_aabb)
 	{
 		dcast->log("Building BSP-tree("+QString::number(a_splitLevel)+")................");
 		m_aabb.setData(a_aabb);
@@ -487,15 +467,11 @@ public:
 		nodes.push_back(root);
 		//root->Split(0, splitLevel-1);
 		dcast->log("done",true);
-		return 1;
+
 	}
-	/**
-	* Fills empty tree with primitives.
-	* @note new nodes are created and divided here
-	* @param prims primitives.
-	* @return 1
-	*/
-	int FillTree(std::vector<TriPrim*>& triangles)
+	//! Fills empty tree with primitives. New nodes are created and divided here
+	//! @param triangles primitives.
+	void FillTree(std::vector<TriPrim*>& triangles)
 	{
 		m_triangles = &triangles;
 		dcast->log("Fill BSP-tree with data..........");
@@ -505,29 +481,23 @@ public:
 		else
 			root->DistributePrims(int_null, splitLevel, m_aabb, nodes, tri_ind, /*prims,*/ triangles,0);
 		dcast->log("done",true);
-		return 1;
 	}
-	/**
-	* Fills already created tree with primitives.
-	* @param a descr.
-	* @param prims primitives.
-	* @return 1
-	*/
-	int FillLoadedTree(std::vector<TriPrim*>& triangles)
+	//! Fills already created tree with primitives.
+	//! @param triangles primitives.
+	void FillLoadedTree(std::vector<TriPrim*>& triangles)
 	{
 		m_triangles = &triangles;
 		dcast->log("Fill BSP-tree with data..........");
 		dcast->log("done\n",true);
-		return 1;
 	}
-	/**
-	* Finds all intersections between ray and primitives of tree.
-	* @note non recursive (stack based) tree traversal version
-	* @note rd = 100000.f*ray.GetDirection()+ro;
-	* @param ray ray instance.
-	* @param[out] intersections vector where obtained intersections are placed.
-	* @return 1 if intersect tree AABB , 0 - otherwise
-	*/
+
+	//! Finds all intersections between ray and primitives of tree.
+	//! @note non recursive (stack based) tree traversal version
+	//! @note rd = 100000.f*ray.GetDirection()+ro;
+	//! @param ray ray instance.
+	//! @param[out] intersections vector where obtained intersections are placed.
+	//! @param tr_stack
+	//! @return 1 if intersect tree AABB , 0 - otherwise
 	int GetIntersectionsNR(Ray & ray, std::vector<intersection*>& intersections, traverse_stack * tr_stack) const
 	{
 		iAVec3f ro, rd;
@@ -610,12 +580,10 @@ public:
 		}
 		return 1;
 	}
-	/**
-	* Saves tree in file specified by filename.
-	* @note tree in file [splitLevel][aabb][num nodes][n0...nN][num tri inds][ti1...tiN]
-	* @param filename filename of ouput file
-	* @return 1 if succed , 0 - otherwise
-	*/
+	//! Saves tree in file specified by filename.
+	//! @note tree in file [splitLevel][aabb][num nodes][n0...nN][num tri inds][ti1...tiN]
+	//! @param filename filename of ouput file
+	//! @return 1 if succed , 0 - otherwise
 	int SaveTree(QString const & filename)
 	{
 		FILE *fptr;
@@ -651,12 +619,10 @@ public:
 		dcast->log("Tree saved under filename:"+QString(filename));
 		return 1;
 	}
-	/**
-	* Loads tree from file specified by filename.
-	* @note tree in file [splitLevel][aabb][num nodes][n0...nN][num tri inds][ti1...tiN]
-	* @param filename filename of input file
-	* @return 1 if succed , 0 - otherwise
-	*/
+	//! Loads tree from file specified by filename.
+	//! @note tree in file [splitLevel][aabb][num nodes][n0...nN][num tri inds][ti1...tiN]
+	//! @param filename filename of input file
+	//! @return 1 if succed , 0 - otherwise
 	int LoadTree(QString const & filename)
 	{
 		FILE *fptr = fopen( getLocalEncodingFileName(filename).c_str(),"rb");
@@ -717,12 +683,11 @@ public:
 		dcast->log("done\n",true);
 		return 1;
 	}
-	BSPNode *root;	///< root node
-	int splitLevel;	///< tree split level
-	aabb m_aabb;	///< tree AABB
+	BSPNode *root;	//!< root node
+	int splitLevel;	//!< tree split level
+	aabb m_aabb;	//!< tree AABB
 	std::vector<unsigned int> tri_ind;
 	std::vector<BSPNode*> nodes;
 protected:
 	std::vector<TriPrim*>* m_triangles;
 };
-//};//raytracer

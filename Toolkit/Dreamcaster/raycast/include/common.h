@@ -135,10 +135,8 @@ inline float Rand( float a_Range );
 		unsigned int USE_SAH;
 		//#define SQRDISTANCE(A,B) ((A.x-B.x)*(A.x-B.x)+(A.y-B.y)*(A.y-B.y)+(A.z-B.z)*(A.z-B.z))
 	};
-	/**
-	* Parses config (from local config store). Initializes some variables.
-	* @param a cfg_filename filename of config file.
-	*/
+	//! Parses config (from local config store). Initializes some variables.
+	//! @param settings struct where the options will be stored
 	int ParseConfigFile(SETTINGS * settings);
 	/**
 	* Converts radians in degrees.
@@ -173,9 +171,8 @@ inline float Rand( float a_Range );
 	iAVec3f projectPtOnLine(iAVec3f & o, iAVec3f & dir, iAVec3f & pt);
 	float distPointToLine(iAVec3f & o, iAVec3f & dir, iAVec3f & pt);
 	float distLineToLine( iAVec3f & o1, iAVec3f & d1, iAVec3f & o2, iAVec3f & d2 );
-	/**	\struct arotation_tabb.
-	\brief Structure representing combination of parameters in single placement.
-	*/
+	
+	//! Structure representing combination of parameters in single placement.
 	struct parameters_t
 	{
 		parameters_t(double a_av_pen_len, double a_av_dip_ang, double a_max_pen_len, double a_badSurfPrcnt) :
@@ -220,30 +217,24 @@ inline float Rand( float a_Range );
 		double badAreaPercentage;
 	};
 
-	/**	\struct rotation_t.
-	\brief Structure representing rotations of rendering about x, y, z axes in radians.
-	*/
+	//! Structure representing rotations of rendering about x, y, z axes in radians.
 	struct rotation_t
 	{
 		rotation_t() :rotX(0), rotY(0), rotZ(0) {}
 		rotation_t(float a_rotX, float a_rotY, float a_rotZ) :rotX(a_rotX), rotY(a_rotY), rotZ(a_rotZ) {}
 		float rotX, rotY, rotZ;
 	};
-	/**	\struct aabb.
-		\brief Structure representing axis aligned bounding box.
 
-		Has ranges of each of 3 axes values, center coordinates, half-dimensions, index of maximum dimension.	
-	*/
+	//! Structure representing axis aligned bounding box.
+	//! Has ranges of each of 3 axes values, center coordinates, half-dimensions, index of maximum dimension.	
 	struct aabb
 	{
 		aabb();
 		aabb(aabb& el);
 		aabb(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2);
-		/**
-		* Determines if v is inside AABB.
-		* @note if point is on bound it considered to be inside AABB
-		* @return 1 if inside, 0 otherwise
-		*/
+		//! Determines if v is inside AABB.
+		//! @note if point is on bound it considered to be inside AABB
+		//! @return 1 if inside, 0 otherwise
 		inline int isInside(iAVec3f& v) const
 		{
 			if (v.x()<=x2 && v.x()>=x1 &&
@@ -254,18 +245,12 @@ inline float Rand( float a_Range );
 		}
 		void setData(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2);
 		void setData(const aabb & el);
-		/**
-		* Calculate center vector of bb.
-		*/
+		//! Calculate center vector of bb.
 		iAVec3f center() const;
-		/**
-		* Calculate half size vector of bb.
-		*/
+		//! Calculate half size vector of bb.
 		iAVec3f half_size() const;
-		/**
-		* Calculates mainDim member (index of maximum dimension).
-		*/
-		int mainDim();
+		//! Calculates index of maximum dimension.
+		int mainDim() const;
 		float surfaceArea();
 
 		float x1,x2,y1,y2,z1,z2;
@@ -288,11 +273,7 @@ inline float Rand( float a_Range );
 		iAVec3f m_Pos;
 		iAVec3f m_Normal;
 	};
-	/**	\struct triangle.
-		\brief Class representing triangle in 3d space.
-
-		Containing all parameters needed for triangle description.	
-	*/
+	//! Class representing triangle in 3d space, containing all parameters needed for triangle description.
 	struct triangle
 	{
 		triangle( iAVec3f* a_V1, iAVec3f* a_V2, iAVec3f* a_V3)
@@ -326,11 +307,7 @@ inline float Rand( float a_Range );
 		iAVec3f dx;///< dx of plane in 3d
 		iAVec3f dy;///< dy of plane in 3d
 	};
-	/**	\struct plane.
-	\brief Class representing plane in 3d space.
-
-	Containing all parameters needed for plane description.	
-	*/
+	//! Class representing plane in 3d space, containing all parameters needed for plane description.
 	class plane
 	{
 	public:
@@ -342,7 +319,7 @@ inline float Rand( float a_Range );
 
 	struct ModelData 
 	{
-		std::vector<triangle*>		stlMesh; ///< loaded mesh's triangles vector
-		std::vector<iAVec3f*>		vertices;///< loaded mesh's vertices vector
-		aabb box;///< loaded mesh's aabb
+		std::vector<triangle*> stlMesh; //!< loaded mesh's triangles vector
+		std::vector<iAVec3f*> vertices; //!< loaded mesh's vertices vector
+		aabb box;                       //!< loaded mesh's aabb
 	};
