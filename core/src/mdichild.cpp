@@ -2562,8 +2562,14 @@ void MdiChild::demaximizeDockWidget( QDockWidget * dw )
 
 void MdiChild::resizeDockWidget( QDockWidget * dw )
 {
-	if( m_isSmthMaximized && dw == m_whatMaximized )
-		demaximizeDockWidget(dw);
+	if (m_isSmthMaximized)
+		if (m_whatMaximized == dw)
+			demaximizeDockWidget(dw);
+		else
+		{
+			demaximizeDockWidget(m_whatMaximized);
+			maximizeDockWidget(dw);
+		}
 	else
 		maximizeDockWidget(dw);
 }
