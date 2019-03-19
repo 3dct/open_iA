@@ -167,8 +167,6 @@
     <addaction name="actionDelete_point"/>
     <addaction name="actionReset_view"/>
     <addaction name="actionReset_function"/>
-    <addaction name="separator"/>
-    <addaction name="actionSnake_Slicer"/>
    </widget>
    <widget class="QMenu" name="menu_Filters">
     <property name="title">
@@ -676,11 +674,6 @@
     <string>Save Screen...</string>
    </property>
   </action>
-  <action name="LicenceUpdateAct">
-   <property name="text">
-    <string>Licence Update</string>
-   </property>
-  </action>
   <action name="loadSettingsAct">
    <property name="text">
     <string>Load Settings...</string>
@@ -962,6 +955,12 @@
    <property name="text">
     <string>Main Window Status Bar</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+S</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
   </action>
   <action name="actionOpen_TLGI_CT_Data">
    <property name="text">
@@ -992,6 +991,12 @@
    </property>
    <property name="text">
     <string>Show Toolbars</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+T</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="userGuideCoreAct">
@@ -1044,6 +1049,12 @@
    <property name="text">
     <string>Full Screen Mode</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+F</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
   </action>
   <action name="actionShowMenu">
    <property name="checkable">
@@ -1054,6 +1065,12 @@
    </property>
    <property name="text">
     <string>Show Menu</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+M</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
  </widget>

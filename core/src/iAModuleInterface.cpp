@@ -31,7 +31,7 @@
 
 void iAModuleInterface::PrepareResultChild( QString const & title )
 {
-	m_mdiChild = m_mainWnd->GetResultChild( title + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
+	m_mdiChild = m_mainWnd->getResultChild( title + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
 	if( !m_mdiChild )
 	{
 		m_mainWnd->statusBar()->showMessage( "Cannot get result child from main window!", 5000 );
@@ -42,7 +42,7 @@ void iAModuleInterface::PrepareResultChild( QString const & title )
 
 void iAModuleInterface::PrepareResultChild( int childInd, QString const & title )
 {
-	m_mdiChild = m_mainWnd->GetResultChild( childInd, title );
+	m_mdiChild = m_mainWnd->getResultChild( childInd, title );
 	if( !m_mdiChild )
 	{
 		m_mainWnd->statusBar()->showMessage( "Cannot get result child from main window!", 5000 );
@@ -80,7 +80,7 @@ void iAModuleInterface::PrepareActiveChild()
 
 MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
 {
-	QList<MdiChild *> mdiwindows = m_mainWnd->MdiChildList();
+	QList<MdiChild *> mdiwindows = m_mainWnd->mdiChildList();
 	if( mdiwindows.size() > 2 )
 	{
 		QMessageBox::warning( m_mainWnd, tr( "Warning" ),

@@ -130,7 +130,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	this->layoutToolbar->insertWidget(this->actionSave_Layout, layout);
 
 	m_moduleDispatcher->InitializeModules(iAConsoleLogger::Get());
-	SetModuleActionsEnabled( false );
+	setModuleActionsEnabled( false );
 	statusBar()->showMessage(tr("Ready"));
 }
 
@@ -152,10 +152,10 @@ void MainWindow::timeout()
 	delete timer;
 }
 
-bool MainWindow::KeepOpen()
+bool MainWindow::keepOpen()
 {
 	bool childHasChanges = false;
-	for (MdiChild* mdiChild: MdiChildList())
+	for (MdiChild* mdiChild: mdiChildList())
 		childHasChanges |= mdiChild->isWindowModified();
 	if (childHasChanges)
 	{
@@ -168,7 +168,7 @@ bool MainWindow::KeepOpen()
 		}
 		else
 		{ // avoid individual questions for each window
-			for (MdiChild* mdiChild: MdiChildList())
+			for (MdiChild* mdiChild: mdiChildList())
 				mdiChild->setWindowModified(false);
 		}
 	}
@@ -177,7 +177,7 @@ bool MainWindow::KeepOpen()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-	if (KeepOpen())
+	if (keepOpen())
 	{
 		event->ignore();
 		return;
@@ -205,21 +205,21 @@ void MainWindow::dropEvent(QDropEvent *e)
 	for(const QUrl &url: e->mimeData()->urls())
 	{
 		QString fileName = url.toLocalFile();
-		LoadFile(fileName);
+		loadFile(fileName);
 	}
 }
 
-void MainWindow::CloseAllSubWindows()
+void MainWindow::closeAllSubWindows()
 {
-	if (!KeepOpen())
+	if (!keepOpen())
 	{
 		mdiArea->closeAllSubWindows();
 	}
 }
 
-void MainWindow::Open()
+void MainWindow::open()
 {
-	LoadFiles(
+	loadFiles(
 		QFileDialog::getOpenFileNames(
 			this,
 			tr("Open Files"),
@@ -229,7 +229,7 @@ void MainWindow::Open()
 	);
 }
 
-void MainWindow::OpenRaw()
+void MainWindow::openRaw()
 {
 	QString fileName = QFileDialog::getOpenFileName(
 		this,
@@ -255,9 +255,9 @@ void MainWindow::OpenRaw()
 	}
 }
 
-void MainWindow::OpenImageStack()
+void MainWindow::openImageStack()
 {
-	LoadFile(
+	loadFile(
 		QFileDialog::getOpenFileName(
 			this,
 			tr("Open File"),
@@ -267,9 +267,9 @@ void MainWindow::OpenImageStack()
 	);
 }
 
-void MainWindow::OpenVolumeStack()
+void MainWindow::openVolumeStack()
 {
-	LoadFile(
+	loadFile(
 		QFileDialog::getOpenFileName(
 			this,
 			tr("Open File"),
@@ -279,30 +279,30 @@ void MainWindow::OpenVolumeStack()
 	);
 }
 
-void MainWindow::OpenRecentFile()
+void MainWindow::openRecentFile()
 {
 	QAction *action = qobject_cast<QAction *>(sender());
 	if (!action)
 		return;
 
 	QString fileName = action->data().toString();
-	LoadFile(fileName);
+	loadFile(fileName);
 }
 
-void MainWindow::LoadFile(QString const & fileName)
+void MainWindow::loadFile(QString const & fileName)
 {
 	QFileInfo fi(fileName);
 	if (fi.isDir())
 	{
-		LoadTLGICTData(fileName);
+		loadTLGICTData(fileName);
 	}
 	else
 	{
-		LoadFile(fileName, fileName.endsWith(".volstack"));
+		loadFile(fileName, fileName.endsWith(".volstack"));
 	}
 }
 
-void MainWindow::LoadFile(QString fileName, bool isStack)
+void MainWindow::loadFile(QString fileName, bool isStack)
 {
 	if (fileName.isEmpty())
 		return;
@@ -349,11 +349,11 @@ void MainWindow::LoadFile(QString fileName, bool isStack)
 	}
 }
 
-void MainWindow::LoadFiles(QStringList fileNames)
+void MainWindow::loadFiles(QStringList fileNames)
 {
 	for (int i = 0; i < fileNames.length(); i++)
 	{
-		LoadFile(fileNames[i]);
+		loadFile(fileNames[i]);
 	}
 }
 
@@ -999,7 +999,7 @@ void MainWindow::maxXY()
 QList<QString> MainWindow::mdiWindowTitles()
 {
 	QList<QString> windowTitles;
-	for (MdiChild* mdiChild: MdiChildList())
+	for (MdiChild* mdiChild: mdiChildList())
 		windowTitles.append(mdiChild->windowTitle());
 	return windowTitles;
 }
@@ -1326,7 +1326,7 @@ void MainWindow::loadTransferFunction()
 	}
 }
 
-void MainWindow::saveTransferFunction()
+void MainWindow::saveTransferFunctionSlot()
 {
 	if (activeMdiChild())
 	{
@@ -1419,7 +1419,7 @@ void MainWindow::raycasterCamIso()
 
 void MainWindow::raycasterAssignIso()
 {
-	QList<MdiChild *> mdiwindows = MdiChildList();
+	QList<MdiChild *> mdiwindows = mdiChildList();
 	int sizeMdi = mdiwindows.size();
 	if (sizeMdi > 1)
 	{
@@ -1485,7 +1485,7 @@ void MainWindow::raycasterLoadCameraSettings()
 	raycasterAssignIso();
 }
 
-MdiChild* MainWindow::GetResultChild(MdiChild* oldChild, QString const & title)
+MdiChild* MainWindow::getResultChild(MdiChild* oldChild, QString const & title)
 {
 	if (oldChild->getResultInNewWindow())
 	{
@@ -1536,14 +1536,14 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 	}
 }
 
-MdiChild * MainWindow::GetResultChild( QString const & title )
+MdiChild * MainWindow::getResultChild( QString const & title )
 {
-	return GetResultChild(activeMdiChild(), title);
+	return getResultChild(activeMdiChild(), title);
 }
 
-MdiChild * MainWindow::GetResultChild( int childInd, QString const & f )
+MdiChild * MainWindow::getResultChild( int childInd, QString const & f )
 {
-	return GetResultChild(MdiChildList().at(childInd), f);
+	return getResultChild(mdiChildList().at(childInd), f);
 }
 
 void MainWindow::about()
@@ -1661,7 +1661,7 @@ void MainWindow::updateMenus()
 
 void MainWindow::updateWindowMenu()
 {
-	QList<MdiChild *> windows = MdiChildList();
+	QList<MdiChild *> windows = mdiChildList();
 
 	for (int i = 0; i < windows.size(); ++i) {
 		MdiChild *child = windows.at(i);
@@ -1701,7 +1701,7 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	connect( child, SIGNAL( active() ), this, SLOT( setHistogramFocus() ) );
 	connect( child, SIGNAL( closed() ), this, SLOT( childClosed() ) );
 
-	SetModuleActionsEnabled( true );
+	setModuleActionsEnabled( true );
 
 	m_moduleDispatcher->ChildCreated(child);
 	return child;
@@ -1717,92 +1717,98 @@ void MainWindow::closeMdiChild(MdiChild* child)
 
 void MainWindow::connectSignalsToSlots()
 {
-	connect(openAct, SIGNAL(triggered()), this, SLOT(Open()));
-	connect(actionOpen_Raw, SIGNAL(triggered()), this, SLOT(OpenRaw()));
-	connect(actionOpen_Image_Stack, SIGNAL(triggered()), this, SLOT(OpenImageStack()));
-	connect(actionOpen_Volume_Stack, SIGNAL(triggered()), this, SLOT(OpenVolumeStack()));
-	connect(actionOpen_With_DataTypeConversion, SIGNAL(triggered()), this, SLOT(OpenWithDataTypeConversion()));
-	connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
-	connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
-	connect(loadSettingsAct, SIGNAL(triggered()), this, SLOT(loadSettings()));
-	connect(saveSettingsAct, SIGNAL(triggered()), this, SLOT(saveSettings()));
-	connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
-	connect(closeAct, SIGNAL(triggered()), mdiArea, SLOT(closeActiveSubWindow()));
-	connect(closeAllAct, SIGNAL(triggered()), this, SLOT(CloseAllSubWindows()));
-	connect(tileAct, SIGNAL(triggered()), mdiArea, SLOT(tileSubWindows()));
-	connect(cascadeAct, SIGNAL(triggered()), mdiArea, SLOT(cascadeSubWindows()));
-	connect(nextAct, SIGNAL(triggered()), mdiArea, SLOT(activateNextSubWindow()));
-	connect(previousAct, SIGNAL(triggered()), mdiArea, SLOT(activatePreviousSubWindow()));
-	connect(userGuideCoreAct, SIGNAL(triggered()), this, SLOT(wiki()));
-	connect(userGuideFiltersAct, SIGNAL(triggered()), this, SLOT(wiki()));
-	connect(userGuideToolsAct, SIGNAL(triggered()), this, SLOT(wiki()));
-	connect(releasesAct, SIGNAL(triggered()), this, SLOT(wiki()));
-	connect(bugAct, SIGNAL(triggered()), this, SLOT(wiki()));
-	connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
-	connect(xyAct, SIGNAL(triggered()), this, SLOT(maxXY()));
-	connect(xzAct, SIGNAL(triggered()), this, SLOT(maxXZ()));
-	connect(yzAct, SIGNAL(triggered()), this, SLOT(maxYZ()));
-	connect(rcAct, SIGNAL(triggered()), this, SLOT(maxRC()));
-	connect(multiAct, SIGNAL(triggered()), this, SLOT(multi()));
-	connect(actionLink_views, SIGNAL(triggered()), this, SLOT(linkViews()));
-	connect(actionLink_mdis, SIGNAL(triggered()), this, SLOT(linkMDIs()));
-	connect(actionEnableInteraction, SIGNAL(triggered()), this, SLOT(enableInteraction()));
+	// "File menu entries:
+	connect(openAct, &QAction::triggered, this, &MainWindow::open);
+	connect(actionOpen_Raw, &QAction::triggered, this, &MainWindow::openRaw);
+	connect(actionOpen_Image_Stack, &QAction::triggered, this, &MainWindow::openImageStack);
+	connect(actionOpen_Volume_Stack, &QAction::triggered, this, &MainWindow::openVolumeStack);
+	connect(actionOpen_With_DataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
+	connect(actionOpen_TLGI_CT_Data, &QAction::triggered, this, &MainWindow::openTLGICTData);
+	connect(saveAct, &QAction::triggered, this, &MainWindow::save);
+	connect(saveAsAct, &QAction::triggered, this, &MainWindow::saveAs);
+	connect(actionOpen_Project, &QAction::triggered, this, &MainWindow::loadProject);
+	connect(actionSave_Project, &QAction::triggered, this, &MainWindow::saveProject);
+	connect(loadSettingsAct, &QAction::triggered, this, &MainWindow::loadSettings);
+	connect(saveSettingsAct, &QAction::triggered, this, &MainWindow::saveSettings);
+	connect(exitAct, &QAction::triggered, qApp, &QApplication::closeAllWindows);
+	for (int i = 0; i < MaxRecentFiles; ++i)
+		connect(recentFileActs[i], &QAction::triggered, this, &MainWindow::openRecentFile);
+
+	// "Edit" menu entries:
+	connect(actionPreferences, &QAction::triggered, this, &MainWindow::prefs);
+	connect(actionRendererSettings, &QAction::triggered, this, &MainWindow::renderSettings);
+	connect(actionSlicerSettings, &QAction::triggered, this, &MainWindow::slicerSettings);
+	connect(actionLoad_transfer_function, &QAction::triggered, this, &MainWindow::loadTransferFunction);
+	connect(actionSave_transfer_function, &QAction::triggered, this, &MainWindow::saveTransferFunctionSlot);
+	connect(actionChange_color, &QAction::triggered, this, &MainWindow::changeColor);
+	connect(actionDelete_point, &QAction::triggered, this, &MainWindow::deletePoint);
+	connect(actionReset_view, &QAction::triggered, this, &MainWindow::resetView);
+	connect(actionReset_function, &QAction::triggered, this, &MainWindow::resetTrf);
+
+	// "Views" menu entries:
+	connect(xyAct, &QAction::triggered, this, &MainWindow::maxXY);
+	connect(xzAct, &QAction::triggered, this, &MainWindow::maxXZ);
+	connect(yzAct, &QAction::triggered, this, &MainWindow::maxYZ);
+	connect(rcAct, &QAction::triggered, this, &MainWindow::maxRC);
+	connect(multiAct, &QAction::triggered, this, &MainWindow::multi);
+	connect(actionLink_views, &QAction::triggered, this, &MainWindow::linkViews);
+	connect(actionLink_mdis, &QAction::triggered, this, &MainWindow::linkMDIs);
+	connect(actionEnableInteraction, &QAction::triggered, this, &MainWindow::enableInteraction);
 	connect(actionFullScreenMode, &QAction::triggered, this, &MainWindow::toggleFullScreen);
-	actionFullScreenMode->setShortcut(Qt::CTRL | Qt::Key_F);
-	actionFullScreenMode->setShortcutContext(Qt::ApplicationShortcut);
-	addAction(actionFullScreenMode);
 	connect(actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
-	actionShowMenu->setShortcut(Qt::CTRL | Qt::Key_M);
-	actionShowMenu->setShortcutContext(Qt::ApplicationShortcut);
+	connect(actionShowToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
+	connect(action_MainWindowStatusBar, &QAction::triggered, this, &MainWindow::toggleMainWindowStatusBar);
+	// Enable these actions also when menu not visible:
+	addAction(actionFullScreenMode);
 	addAction(actionShowMenu);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-	actionFullScreenMode->setShortcutVisibleInContextMenu(true);
-	actionShowMenu->setShortcutVisibleInContextMenu(true);
-#endif
+	addAction(action_MainWindowStatusBar);
+	addAction(actionShowToolbar);
 
-	connect(actionPreferences, SIGNAL(triggered()), this, SLOT(prefs()));
-	connect(actionRendererSettings, SIGNAL(triggered()), this, SLOT(renderSettings()));
-	connect(actionSlicerSettings, SIGNAL(triggered()), this, SLOT(slicerSettings()));
-	connect(actionLoad_transfer_function, SIGNAL(triggered()), this, SLOT(loadTransferFunction()));
-	connect(actionSave_transfer_function, SIGNAL(triggered()), this, SLOT(saveTransferFunction()));
-	connect(actionDelete_point, SIGNAL(triggered()), this, SLOT(deletePoint()));
-	connect(actionChange_color, SIGNAL(triggered()), this, SLOT(changeColor()));
-	//connect(actionUpdate_3D_view, SIGNAL(triggered()), this, SLOT(update3DView()));
-	connect(actionSnake_Slicer, SIGNAL(toggled(bool)), this, SLOT(toggleSnakeSlicer(bool)));
-	connect(actionMagicLens, SIGNAL(toggled(bool)), this, SLOT(toggleMagicLens(bool)));
-	connect(actionView_X_direction_in_raycaster, SIGNAL(triggered()), this, SLOT(raycasterCamPX()));
-	connect(actionView_mX_direction_in_raycaster, SIGNAL(triggered()), this, SLOT(raycasterCamMX()));
-	connect(actionView_Y_direction_in_raycaster, SIGNAL(triggered()), this, SLOT(raycasterCamPY()));
-	connect(actionView_mY_direction_in_raycaster, SIGNAL(triggered()), this, SLOT(raycasterCamMY()));
-	connect(actionView_Z_direction_in_raycaster, SIGNAL(triggered()), this, SLOT(raycasterCamPZ()));
-	connect(actionView_mZ_direction_in_raycaster, SIGNAL(triggered()), this, SLOT(raycasterCamMZ()));
-	connect(actionIsometric_view_in_raycaster, SIGNAL(triggered()), this, SLOT(raycasterCamIso()));
-	connect(actionAssignView, SIGNAL(triggered()), this, SLOT(raycasterAssignIso()));
-	connect(actionSave_Camera_Settings, SIGNAL(triggered()), this, SLOT(raycasterSaveCameraSettings()));
-	connect(actionLoad_Camera_Settings, SIGNAL(triggered()), this, SLOT(raycasterLoadCameraSettings()));
-	connect(actionReset_view, SIGNAL(triggered()), this, SLOT(resetView()));
-	connect(actionReset_function, SIGNAL(triggered()), this, SLOT(resetTrf()));
-	connect(mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow *)), this, SLOT(updateMenus()));
-	connect(windowMapper, SIGNAL(mapped(QWidget *)), this, SLOT(setActiveSubWindow(QWidget *)));
+	// "Window" menu entries:
+	connect(closeAct, &QAction::triggered, mdiArea, &QMdiArea::closeActiveSubWindow);
+	connect(closeAllAct, &QAction::triggered, this, &MainWindow::closeAllSubWindows);
+	connect(tileAct, &QAction::triggered, mdiArea, &QMdiArea::tileSubWindows);
+	connect(cascadeAct, &QAction::triggered, mdiArea, &QMdiArea::cascadeSubWindows);
+	connect(nextAct, &QAction::triggered, mdiArea, &QMdiArea::activateNextSubWindow);
+	connect(previousAct, &QAction::triggered, mdiArea, &QMdiArea::activatePreviousSubWindow);
+	connect(action_ChildStatusBar, &QAction::triggered, this, &MainWindow::toggleChildStatusBar);
 
-	connect(actionRawProfile, SIGNAL(toggled(bool)), this, SLOT(toggleSliceProfile(bool)));
+	// "Help" menu entries:
+	connect(userGuideCoreAct, &QAction::triggered, this, &MainWindow::wiki);
+	connect(userGuideFiltersAct, &QAction::triggered, this, &MainWindow::wiki);
+	connect(userGuideToolsAct, &QAction::triggered, this, &MainWindow::wiki);
+	connect(releasesAct, &QAction::triggered, this, &MainWindow::wiki);
+	connect(bugAct, &QAction::triggered, this, &MainWindow::wiki);
+	connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
 
-	connect(actionSave_Layout, SIGNAL(triggered()), this, SLOT(saveLayout()));
-	connect(actionLoad_Layout, SIGNAL(triggered()), this, SLOT(loadLayout()));
-	connect(actionDelete_Layout, SIGNAL(triggered()), this, SLOT(deleteLayout()));
-	connect(actionResetLayout, SIGNAL(triggered()), this, SLOT(resetLayout()));
-	connect(actionShowToolbar, SIGNAL(triggered()), this, SLOT(ToggleToolbar()));
-	connect(action_MainWindowStatusBar, SIGNAL(triggered()), this, SLOT(ToggleMainWindowStatusBar()));
-	connect(action_ChildStatusBar, SIGNAL(triggered()), this, SLOT(ToggleChildStatusBar()));
+	// Renderer toolbar:
+	connect(actionView_X_direction_in_raycaster,  &QAction::triggered, this,  &MainWindow::raycasterCamPX);
+	connect(actionView_mX_direction_in_raycaster, &QAction::triggered, this,  &MainWindow::raycasterCamMX);
+	connect(actionView_Y_direction_in_raycaster,  &QAction::triggered, this,  &MainWindow::raycasterCamPY);
+	connect(actionView_mY_direction_in_raycaster, &QAction::triggered, this,  &MainWindow::raycasterCamMY);
+	connect(actionView_Z_direction_in_raycaster,  &QAction::triggered, this,  &MainWindow::raycasterCamPZ);
+	connect(actionView_mZ_direction_in_raycaster, &QAction::triggered, this,  &MainWindow::raycasterCamMZ);
+	connect(actionIsometric_view_in_raycaster, &QAction::triggered, this, &MainWindow::raycasterCamIso);
 
-	connect(mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(childActivatedSlot(QMdiSubWindow*)));
-	for (int i = 0; i < MaxRecentFiles; ++i) {
-		connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(OpenRecentFile()));
-	}
+	// Camera toolbar:
+	connect(actionAssignView, &QAction::triggered, this, &MainWindow::raycasterAssignIso);
+	connect(actionSave_Camera_Settings, &QAction::triggered, this, &MainWindow::raycasterSaveCameraSettings);
+	connect(actionLoad_Camera_Settings, &QAction::triggered, this, &MainWindow::raycasterLoadCameraSettings);
 
-	connect(actionOpen_Project, SIGNAL(triggered()), this, SLOT(LoadProject()));
-	connect(actionSave_Project, SIGNAL(triggered()), this, SLOT(SaveProject()));
-	connect(actionOpen_TLGI_CT_Data, SIGNAL(triggered()), this, SLOT(OpenTLGICTData()));
+	// Snake slicer toolbar
+	connect(actionSnake_Slicer, &QAction::toggled, this, &MainWindow::toggleSnakeSlicer);
+	connect(actionRawProfile, &QAction::toggled, this, &MainWindow::toggleSliceProfile);
+	connect(actionMagicLens, &QAction::toggled, this, &MainWindow::toggleMagicLens);
+
+	// Layout toolbar menu entries
+	connect(actionSave_Layout, &QAction::triggered, this, &MainWindow::saveLayout);
+	connect(actionLoad_Layout, &QAction::triggered, this, &MainWindow::loadLayout);
+	connect(actionDelete_Layout, &QAction::triggered, this, &MainWindow::deleteLayout);
+	connect(actionResetLayout, &QAction::triggered, this, &MainWindow::resetLayout);
+
+	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::childActivatedSlot);
+	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::updateMenus);
+	connect(windowMapper, SIGNAL(mapped(QWidget*)), this, SLOT(setActiveSubWindow(QWidget*)));
 }
 
 void MainWindow::readSettings()
@@ -2043,9 +2049,9 @@ void MainWindow::updateRecentFileActions()
 
 MdiChild* MainWindow::activeMdiChild()
 {
-	int subWndCnt = MdiChildList().size();
+	int subWndCnt = mdiChildList().size();
 	if(subWndCnt>0)
-		return MdiChildList(QMdiArea::ActivationHistoryOrder).last();
+		return mdiChildList(QMdiArea::ActivationHistoryOrder).last();
 	return 0;
 }
 
@@ -2053,7 +2059,7 @@ MdiChild* MainWindow::findMdiChild(const QString &fileName)
 {
 	QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
 
-	for (MdiChild* mdiChild: MdiChildList())
+	for (MdiChild* mdiChild: mdiChildList())
 		if (mdiChild->currentFile() == canonicalFilePath)
 			return mdiChild;
 	return 0;
@@ -2095,7 +2101,7 @@ QString MainWindow::strippedName(const QString &fullFileName)
 	return QFileInfo(fullFileName).fileName();
 }
 
-QList<MdiChild*> MainWindow::MdiChildList(QMdiArea::WindowOrder order)
+QList<MdiChild*> MainWindow::mdiChildList(QMdiArea::WindowOrder order)
 {
 	QList<MdiChild*> res;
 	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
@@ -2129,7 +2135,7 @@ void MainWindow::applyQSS()
 		QString style = styleIn.readAll();
 		styleFile.close();
 		qApp->setStyleSheet(style);
-		emit StyleChanged();
+		emit styleChanged();
 	}
 }
 
@@ -2207,12 +2213,12 @@ QMenu * MainWindow::getToolsMenu()
 	return this->menu_Tools;
 }
 
-void MainWindow::ToggleMainWindowStatusBar()
+void MainWindow::toggleMainWindowStatusBar()
 {
 	statusBar()->setVisible(action_MainWindowStatusBar->isChecked());
 }
 
-void MainWindow::ToggleToolbar()
+void MainWindow::toggleToolbar()
 {
 	bool visible = actionShowToolbar->isChecked();
 	QList<QToolBar *> toolbars = findChildren<QToolBar *>();
@@ -2222,7 +2228,7 @@ void MainWindow::ToggleToolbar()
 	}
 }
 
-void MainWindow::ToggleChildStatusBar()
+void MainWindow::toggleChildStatusBar()
 {
 	if (!activeMdiChild())
 	{
@@ -2251,7 +2257,7 @@ QMenu * MainWindow::getFileMenu()
 	return this->menu_File;
 }
 
-void MainWindow::SetModuleActionsEnabled( bool isEnabled )
+void MainWindow::setModuleActionsEnabled( bool isEnabled )
 {
 	m_moduleDispatcher->SetModuleActionsEnabled(isEnabled);
 }
@@ -2269,21 +2275,21 @@ void MainWindow::childClosed()
 		if(!child)
 			return;
 		if( child == sender )
-			SetModuleActionsEnabled( false );
+			setModuleActionsEnabled( false );
 	}
 }
 
-void MainWindow::LoadProject()
+void MainWindow::loadProject()
 {
 	QString fileName = QFileDialog::getOpenFileName(
 		QApplication::activeWindow(),
 		tr("Open Input File"),
 		path,
 		iAIOProvider::ProjectFileTypeFilter);
-	LoadFile(fileName);
+	loadFile(fileName);
 }
 
-void MainWindow::SaveProject()
+void MainWindow::saveProject()
 {
 	MdiChild * activeChild = activeMdiChild();
 	if (!activeChild)
@@ -2291,14 +2297,14 @@ void MainWindow::SaveProject()
 	activeChild->StoreProject();
 }
 
-void MainWindow::LoadArguments(int argc, char** argv)
+void MainWindow::loadArguments(int argc, char** argv)
 {
 	QStringList files;
 	for (int a = 1; a < argc; ++a) files << argv[a];
-	LoadFiles(files);
+	loadFiles(files);
 }
 
-iAPreferences const & MainWindow::GetDefaultPreferences() const
+iAPreferences const & MainWindow::getDefaultPreferences() const
 {
 	return defaultPreferences;
 }
@@ -2311,7 +2317,7 @@ iAModuleDispatcher & MainWindow::getModuleDispatcher() const
 
 // Move to other places (modules?):
 
-void MainWindow::OpenWithDataTypeConversion()
+void MainWindow::openWithDataTypeConversion()
 {
 	QString finalfilename;
 	QString testfinalfilename;
@@ -2391,7 +2397,7 @@ void MainWindow::OpenWithDataTypeConversion()
 				MapVTKTypeStringToInt(outDataType),
 				owdtcmin, owdtcmax, owdtcoutmin, owdtcoutmax, owdtcdov, roi);
 		}
-		LoadFile(testfinalfilename, false);
+		loadFile(testfinalfilename, false);
 	}
 	catch (std::exception & e)
 	{
@@ -2399,17 +2405,17 @@ void MainWindow::OpenWithDataTypeConversion()
 	}
 }
 
-void MainWindow::OpenTLGICTData()
+void MainWindow::openTLGICTData()
 {
 	QString baseDirectory = QFileDialog::getExistingDirectory(
 		this,
 		tr("Open Talbot-Lau Grating Interferometer CT Dataset"),
 		getPath(),
 		QFileDialog::ShowDirsOnly);
-	LoadTLGICTData(baseDirectory);
+	loadTLGICTData(baseDirectory);
 }
 
-void MainWindow::LoadTLGICTData(QString const & baseDirectory)
+void MainWindow::loadTLGICTData(QString const & baseDirectory)
 {
 	iATLGICTLoader* tlgictLoader = new iATLGICTLoader();
 	if (!tlgictLoader->setup(baseDirectory, this))
@@ -2438,7 +2444,7 @@ int MainWindow::RunGUI(int argc, char * argv[], QString const & appName, QString
 	iAGlobalLogger::SetLogger(iAConsole::GetInstance());
 	MainWindow mainWin(appName, version, splashPath);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
-	mainWin.LoadArguments(argc, argv);
+	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));

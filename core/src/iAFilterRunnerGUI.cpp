@@ -154,7 +154,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	QStringList dlgParamNames;
 	QList<QVariant> dlgParamValues;
 	QVector<MdiChild*> otherMdis;
-	for (auto mdi : mainWnd->MdiChildList())
+	for (auto mdi : mainWnd->mdiChildList())
 	{
 		if (mdi != sourceMdi)
 			otherMdis.push_back(mdi);
@@ -276,7 +276,7 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	QString oldTitle(sourceMdi->windowTitle());
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	auto mdiChild = filter->OutputCount() > 0 ?
-		mainWnd->GetResultChild(sourceMdi, filter->Name() + " " + oldTitle) :
+		mainWnd->getResultChild(sourceMdi, filter->Name() + " " + oldTitle) :
 		sourceMdi;
 	if (!mdiChild)
 	{
