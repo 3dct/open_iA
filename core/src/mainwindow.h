@@ -65,9 +65,9 @@ public:
 	static int RunGUI(int argc, char * argv[], QString const & appName, QString const & version,
 		QString const & splashPath, QString const & iconPath);
 	static void InitResources();
+
 	void setCurrentFile(const QString &fileName);
 	void updateRecentFileActions();
-
 	void setPath(QString p) { path = p; };
 	QString getPath() { return path; };
 
@@ -91,13 +91,14 @@ public:
 	void loadRenderSettings(QDomNode &renderSettingsNode);
 	void saveSlicerSettings(QDomDocument &doc);
 	void loadSlicerSettings(QDomNode &slicerSettingsNode);
-
-	void removeNode(QDomNode &node, char const *str);
-
-	QMenu * getToolsMenu();
-	QMenu * getFiltersMenu();
-	QMenu * getHelpMenu();
+	//! get the File menu (can be used by modules to append entries to it)
 	QMenu * getFileMenu();
+	//! get the Filters menu (can be used by modules to append entries to it)
+	QMenu * getFiltersMenu();
+	//! get the Tools menu (can be used by modules to append entries to it)
+	QMenu * getToolsMenu();
+	//! get the Help menu (can be used by modules to append entries to it)
+	QMenu * getHelpMenu();
 	MdiChild *getResultChild( QString const & title );
 	MdiChild *getResultChild( int childInd, QString const & title );
 	MdiChild *getResultChild( MdiChild* oldChild, QString const & title );

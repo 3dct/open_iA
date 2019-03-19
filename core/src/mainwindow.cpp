@@ -96,8 +96,8 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	splashScreen->showMessage("\n      Setup UI...", Qt::AlignTop, QColor(255, 255, 255));
 	applyQSS();
-	actionLink_views->setChecked(defaultSlicerSettings.LinkViews);//removed from readSettings, if is needed at all?
-	actionLink_mdis->setChecked(defaultSlicerSettings.LinkMDIs);
+	actionLinkViews->setChecked(defaultSlicerSettings.LinkViews);//removed from readSettings, if is needed at all?
+	actionLinkMdis->setChecked(defaultSlicerSettings.LinkMDIs);
 	setCentralWidget(mdiArea);
 
 	windowMapper = new QSignalMapper(this);
@@ -107,11 +107,11 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	updateMenus();
 	slicerToolsGroup = new QActionGroup(this);
 	slicerToolsGroup->setExclusive(false);
-	slicerToolsGroup->addAction(actionSnake_Slicer);
+	slicerToolsGroup->addAction(actionSnakeSlicer);
 	slicerToolsGroup->addAction(actionRawProfile);
 
-	actionDelete_point->setEnabled(false);
-	actionChange_color->setEnabled(false);
+	actionDeletePoint->setEnabled(false);
+	actionChangeColor->setEnabled(false);
 
 	splashScreen->showMessage(tr("\n      Version: %1").arg (m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
 
@@ -127,7 +127,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	this->layout->setStyleSheet("padding: 0");
 	this->layout->resize(this->layout->geometry().width(), 100);
 	this->layout->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-	this->layoutToolbar->insertWidget(this->actionSave_Layout, layout);
+	this->layoutToolbar->insertWidget(this->actionSaveLayout, layout);
 
 	m_moduleDispatcher->InitializeModules(iAConsoleLogger::Get());
 	setModuleActionsEnabled( false );
@@ -563,6 +563,23 @@ bool MainWindow::loadSettings()
 	return true;
 }
 
+namespace
+{
+	void removeNode(QDomNode &rootNode, char const *str)
+	{
+		QDomNodeList list = rootNode.childNodes();
+		for (int n = 0; n < int(list.length()); n++)
+		{
+			QDomNode node = list.item(n);
+			if (node.nodeName() == str)
+			{
+				rootNode.removeChild(node);
+				break;
+			}
+		}
+	}
+}
+
 void MainWindow::saveCamera(QDomDocument &doc)
 {
 	vtkCamera *camera = activeMdiChild()->getRenderer()->GetRenderer()->GetActiveCamera();
@@ -976,20 +993,6 @@ void MainWindow::loadSlicerSettings(QDomNode &slicerSettingsNode)
 	activeMdiChild()->editSlicerSettings(defaultSlicerSettings);
 }
 
-void MainWindow::removeNode(QDomNode &rootNode, char const *str)
-{
-	QDomNodeList list = rootNode.childNodes();
-	for (int n = 0; n < int(list.length()); n++)
-	{
-		QDomNode node = list.item(n);
-		if (node.nodeName() == str)
-		{
-			rootNode.removeChild(node);
-			break;
-		}
-	}
-}
-
 void MainWindow::maxXY()
 {
 	if (activeMdiChild() && activeMdiChild()->xyview())
@@ -1032,7 +1035,7 @@ void MainWindow::linkViews()
 {
 	if (activeMdiChild())
 	{
-		defaultSlicerSettings.LinkViews = actionLink_views->isChecked();
+		defaultSlicerSettings.LinkViews = actionLinkViews->isChecked();
 		activeMdiChild()->linkViews(defaultSlicerSettings.LinkViews);
 
 		if (defaultSlicerSettings.LinkViews)
@@ -1044,7 +1047,7 @@ void MainWindow::linkMDIs()
 {
 	if (activeMdiChild())
 	{
-		defaultSlicerSettings.LinkMDIs = actionLink_mdis->isChecked();
+		defaultSlicerSettings.LinkMDIs = actionLinkMdis->isChecked();
 		activeMdiChild()->linkMDIs(defaultSlicerSettings.LinkMDIs);
 
 		if (defaultSlicerSettings.LinkViews)
@@ -1569,11 +1572,11 @@ void MainWindow::wiki()
 
 void MainWindow::createRecentFileActions()
 {
-	separatorAct = menu_File->addSeparator();
+	separatorAct = menuFile->addSeparator();
 	for (int i = 0; i < MaxRecentFiles; ++i) {
 		recentFileActs[i] = new QAction(this);
 		recentFileActs[i]->setVisible(false);
-		menu_File->addAction(recentFileActs[i]);
+		menuFile->addAction(recentFileActs[i]);
 	}
 	updateRecentFileActions();
 }
@@ -1582,52 +1585,52 @@ void MainWindow::updateMenus()
 {
 	bool hasMdiChild = (activeMdiChild() != 0);
 
-	saveAct->setEnabled(hasMdiChild);
-	saveAsAct->setEnabled(hasMdiChild);
-	actionSave_Image_Stack->setEnabled(hasMdiChild);
-	loadSettingsAct->setEnabled(hasMdiChild);
-	saveSettingsAct->setEnabled(hasMdiChild);
-	closeAct->setEnabled(hasMdiChild);
-	closeAllAct->setEnabled(hasMdiChild);
-	tileAct->setEnabled(hasMdiChild);
-	cascadeAct->setEnabled(hasMdiChild);
-	nextAct->setEnabled(hasMdiChild);
-	previousAct->setEnabled(hasMdiChild);
-	actionSave_Project->setEnabled(hasMdiChild);
+	actionSave->setEnabled(hasMdiChild);
+	actionSaveAs->setEnabled(hasMdiChild);
+	actionSaveImageStack->setEnabled(hasMdiChild);
+	actionSaveProject->setEnabled(hasMdiChild);
+	actionLoadSettings->setEnabled(hasMdiChild);
+	actionSaveSettings->setEnabled(hasMdiChild);
+	actionClose->setEnabled(hasMdiChild);
+	actionCloseAll->setEnabled(hasMdiChild);
 
-	xyAct->setEnabled(hasMdiChild);
-	xzAct->setEnabled(hasMdiChild);
-	yzAct->setEnabled(hasMdiChild);
-	rcAct->setEnabled(hasMdiChild);
-	multiAct->setEnabled(hasMdiChild);
-	tabAct->setEnabled(hasMdiChild);
-	actionLink_views->setEnabled(hasMdiChild);
-	actionLink_mdis->setEnabled(hasMdiChild);
+	actionTile->setEnabled(hasMdiChild);
+	actionCascade->setEnabled(hasMdiChild);
+	actionNextWindow->setEnabled(hasMdiChild);
+	actionPrevWindow->setEnabled(hasMdiChild);
+
+	actionXY->setEnabled(hasMdiChild);
+	actionXZ->setEnabled(hasMdiChild);
+	actionYZ->setEnabled(hasMdiChild);
+	action3D->setEnabled(hasMdiChild);
+	actionMultiViews->setEnabled(hasMdiChild);
+	actionLinkViews->setEnabled(hasMdiChild);
+	actionLinkMdis->setEnabled(hasMdiChild);
 	actionEnableInteraction->setEnabled(hasMdiChild);
 	actionRendererSettings->setEnabled(hasMdiChild);
 	actionSlicerSettings->setEnabled(hasMdiChild);
-	actionLoad_transfer_function->setEnabled(hasMdiChild);
-	actionSave_transfer_function->setEnabled(hasMdiChild);
-	actionSnake_Slicer->setEnabled(hasMdiChild);
+	actionLoadTransferFunction->setEnabled(hasMdiChild);
+	actionSaveTransferFunction->setEnabled(hasMdiChild);
+	actionSnakeSlicer->setEnabled(hasMdiChild);
 	actionMagicLens->setEnabled(hasMdiChild);
-	actionView_X_direction_in_raycaster->setEnabled(hasMdiChild);
-	actionView_mX_direction_in_raycaster->setEnabled(hasMdiChild);
-	actionView_Y_direction_in_raycaster->setEnabled(hasMdiChild);
-	actionView_mY_direction_in_raycaster->setEnabled(hasMdiChild);
-	actionView_Z_direction_in_raycaster->setEnabled(hasMdiChild);
-	actionView_mZ_direction_in_raycaster->setEnabled(hasMdiChild);
-	actionIsometric_view_in_raycaster->setEnabled(hasMdiChild);
+	actionViewXDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmXDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewYDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmYDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewZDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionViewmZDirectionInRaycaster->setEnabled(hasMdiChild);
+	actionIsometricViewInRaycaster->setEnabled(hasMdiChild);
 	actionAssignView->setEnabled(hasMdiChild);
-	actionLoad_Camera_Settings->setEnabled(hasMdiChild);
-	actionSave_Camera_Settings->setEnabled(hasMdiChild);
-	actionReset_view->setEnabled(hasMdiChild);
-	actionReset_function->setEnabled(hasMdiChild);
+	actionLoadCameraSettings->setEnabled(hasMdiChild);
+	actionSaveCameraSettings->setEnabled(hasMdiChild);
+	actionResetView->setEnabled(hasMdiChild);
+	actionResetFunction->setEnabled(hasMdiChild);
 	actionRawProfile->setEnabled(hasMdiChild);
-	actionLoad_Layout->setEnabled(hasMdiChild);
-	actionSave_Layout->setEnabled(hasMdiChild);
+	actionLoadLayout->setEnabled(hasMdiChild);
+	actionSaveLayout->setEnabled(hasMdiChild);
 	actionResetLayout->setEnabled(hasMdiChild);
-	actionDelete_Layout->setEnabled(hasMdiChild);
-	action_ChildStatusBar->setEnabled(hasMdiChild);
+	actionDeleteLayout->setEnabled(hasMdiChild);
+	actionChildStatusBar->setEnabled(hasMdiChild);
 
 	updateRecentFileActions();
 
@@ -1636,26 +1639,26 @@ void MainWindow::updateMenus()
 		int selectedFuncPoint = activeMdiChild()->getSelectedFuncPoint();
 		if (selectedFuncPoint == -1)
 		{
-			actionDelete_point->setEnabled(false);
-			actionChange_color->setEnabled(false);
+			actionDeletePoint->setEnabled(false);
+			actionChangeColor->setEnabled(false);
 		}
 		else if (activeMdiChild()->isFuncEndPoint(selectedFuncPoint))
 		{
-			actionDelete_point->setEnabled(false);
-			actionChange_color->setEnabled(true);
+			actionDeletePoint->setEnabled(false);
+			actionChangeColor->setEnabled(true);
 		}
 		else
 		{
-			actionDelete_point->setEnabled(true);
-			actionChange_color->setEnabled(true);
+			actionDeletePoint->setEnabled(true);
+			actionChangeColor->setEnabled(true);
 		}
 		//??if (activeMdiChild())
 		//	histogramToolbar->setEnabled(activeMdiChild()->getTabIndex() == 1 && !activeMdiChild()->isMaximized());
 	}
 	else
 	{
-		actionDelete_point->setEnabled(false);
-		actionChange_color->setEnabled(false);
+		actionDeletePoint->setEnabled(false);
+		actionChangeColor->setEnabled(false);
 	}
 }
 
@@ -1674,9 +1677,9 @@ void MainWindow::updateWindowMenu()
 			text = tr("%1 %2").arg(i + 1)
 				.arg(child->userFriendlyCurrentFile());
 		}
-		QAction *action  = menu_Window->addAction(text);
+		QAction *action  = menuWindow->addAction(text);
 		action->setCheckable(true);
-		action ->setChecked(child == activeMdiChild());
+		action->setChecked(child == activeMdiChild());
 		connect(action, SIGNAL(triggered()), windowMapper, SLOT(map()));
 		windowMapper->setMapping(action, windows.at(i));
 	}
@@ -1718,19 +1721,19 @@ void MainWindow::closeMdiChild(MdiChild* child)
 void MainWindow::connectSignalsToSlots()
 {
 	// "File menu entries:
-	connect(openAct, &QAction::triggered, this, &MainWindow::open);
-	connect(actionOpen_Raw, &QAction::triggered, this, &MainWindow::openRaw);
-	connect(actionOpen_Image_Stack, &QAction::triggered, this, &MainWindow::openImageStack);
-	connect(actionOpen_Volume_Stack, &QAction::triggered, this, &MainWindow::openVolumeStack);
-	connect(actionOpen_With_DataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
-	connect(actionOpen_TLGI_CT_Data, &QAction::triggered, this, &MainWindow::openTLGICTData);
-	connect(saveAct, &QAction::triggered, this, &MainWindow::save);
-	connect(saveAsAct, &QAction::triggered, this, &MainWindow::saveAs);
-	connect(actionOpen_Project, &QAction::triggered, this, &MainWindow::loadProject);
-	connect(actionSave_Project, &QAction::triggered, this, &MainWindow::saveProject);
-	connect(loadSettingsAct, &QAction::triggered, this, &MainWindow::loadSettings);
-	connect(saveSettingsAct, &QAction::triggered, this, &MainWindow::saveSettings);
-	connect(exitAct, &QAction::triggered, qApp, &QApplication::closeAllWindows);
+	connect(actionOpen, &QAction::triggered, this, &MainWindow::open);
+	connect(actionOpenRaw, &QAction::triggered, this, &MainWindow::openRaw);
+	connect(actionOpenImageStack, &QAction::triggered, this, &MainWindow::openImageStack);
+	connect(actionOpenVolumeStack, &QAction::triggered, this, &MainWindow::openVolumeStack);
+	connect(actionOpenWithDataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
+	connect(actionOpenTLGICTData, &QAction::triggered, this, &MainWindow::openTLGICTData);
+	connect(actionSave, &QAction::triggered, this, &MainWindow::save);
+	connect(actionSaveAs, &QAction::triggered, this, &MainWindow::saveAs);
+	connect(actionOpenProject, &QAction::triggered, this, &MainWindow::loadProject);
+	connect(actionSaveProject, &QAction::triggered, this, &MainWindow::saveProject);
+	connect(actionLoadSettings, &QAction::triggered, this, &MainWindow::loadSettings);
+	connect(actionSaveSettings, &QAction::triggered, this, &MainWindow::saveSettings);
+	connect(actionExit, &QAction::triggered, qApp, &QApplication::closeAllWindows);
 	for (int i = 0; i < MaxRecentFiles; ++i)
 		connect(recentFileActs[i], &QAction::triggered, this, &MainWindow::openRecentFile);
 
@@ -1738,72 +1741,72 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionPreferences, &QAction::triggered, this, &MainWindow::prefs);
 	connect(actionRendererSettings, &QAction::triggered, this, &MainWindow::renderSettings);
 	connect(actionSlicerSettings, &QAction::triggered, this, &MainWindow::slicerSettings);
-	connect(actionLoad_transfer_function, &QAction::triggered, this, &MainWindow::loadTransferFunction);
-	connect(actionSave_transfer_function, &QAction::triggered, this, &MainWindow::saveTransferFunctionSlot);
-	connect(actionChange_color, &QAction::triggered, this, &MainWindow::changeColor);
-	connect(actionDelete_point, &QAction::triggered, this, &MainWindow::deletePoint);
-	connect(actionReset_view, &QAction::triggered, this, &MainWindow::resetView);
-	connect(actionReset_function, &QAction::triggered, this, &MainWindow::resetTrf);
+	connect(actionLoadTransferFunction, &QAction::triggered, this, &MainWindow::loadTransferFunction);
+	connect(actionSaveTransferFunction, &QAction::triggered, this, &MainWindow::saveTransferFunctionSlot);
+	connect(actionChangeColor, &QAction::triggered, this, &MainWindow::changeColor);
+	connect(actionDeletePoint, &QAction::triggered, this, &MainWindow::deletePoint);
+	connect(actionResetView, &QAction::triggered, this, &MainWindow::resetView);
+	connect(actionResetFunction, &QAction::triggered, this, &MainWindow::resetTrf);
 
 	// "Views" menu entries:
-	connect(xyAct, &QAction::triggered, this, &MainWindow::maxXY);
-	connect(xzAct, &QAction::triggered, this, &MainWindow::maxXZ);
-	connect(yzAct, &QAction::triggered, this, &MainWindow::maxYZ);
-	connect(rcAct, &QAction::triggered, this, &MainWindow::maxRC);
-	connect(multiAct, &QAction::triggered, this, &MainWindow::multi);
-	connect(actionLink_views, &QAction::triggered, this, &MainWindow::linkViews);
-	connect(actionLink_mdis, &QAction::triggered, this, &MainWindow::linkMDIs);
+	connect(actionXY, &QAction::triggered, this, &MainWindow::maxXY);
+	connect(actionXZ, &QAction::triggered, this, &MainWindow::maxXZ);
+	connect(actionYZ, &QAction::triggered, this, &MainWindow::maxYZ);
+	connect(action3D, &QAction::triggered, this, &MainWindow::maxRC);
+	connect(actionMultiViews, &QAction::triggered, this, &MainWindow::multi);
+	connect(actionLinkViews, &QAction::triggered, this, &MainWindow::linkViews);
+	connect(actionLinkMdis, &QAction::triggered, this, &MainWindow::linkMDIs);
 	connect(actionEnableInteraction, &QAction::triggered, this, &MainWindow::enableInteraction);
 	connect(actionFullScreenMode, &QAction::triggered, this, &MainWindow::toggleFullScreen);
 	connect(actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
 	connect(actionShowToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
-	connect(action_MainWindowStatusBar, &QAction::triggered, this, &MainWindow::toggleMainWindowStatusBar);
+	connect(actionMainWindowStatusBar, &QAction::triggered, this, &MainWindow::toggleMainWindowStatusBar);
 	// Enable these actions also when menu not visible:
 	addAction(actionFullScreenMode);
 	addAction(actionShowMenu);
-	addAction(action_MainWindowStatusBar);
 	addAction(actionShowToolbar);
+	addAction(actionMainWindowStatusBar);
 
 	// "Window" menu entries:
-	connect(closeAct, &QAction::triggered, mdiArea, &QMdiArea::closeActiveSubWindow);
-	connect(closeAllAct, &QAction::triggered, this, &MainWindow::closeAllSubWindows);
-	connect(tileAct, &QAction::triggered, mdiArea, &QMdiArea::tileSubWindows);
-	connect(cascadeAct, &QAction::triggered, mdiArea, &QMdiArea::cascadeSubWindows);
-	connect(nextAct, &QAction::triggered, mdiArea, &QMdiArea::activateNextSubWindow);
-	connect(previousAct, &QAction::triggered, mdiArea, &QMdiArea::activatePreviousSubWindow);
-	connect(action_ChildStatusBar, &QAction::triggered, this, &MainWindow::toggleChildStatusBar);
+	connect(actionClose, &QAction::triggered, mdiArea, &QMdiArea::closeActiveSubWindow);
+	connect(actionCloseAll, &QAction::triggered, this, &MainWindow::closeAllSubWindows);
+	connect(actionTile, &QAction::triggered, mdiArea, &QMdiArea::tileSubWindows);
+	connect(actionCascade, &QAction::triggered, mdiArea, &QMdiArea::cascadeSubWindows);
+	connect(actionNextWindow, &QAction::triggered, mdiArea, &QMdiArea::activateNextSubWindow);
+	connect(actionPrevWindow, &QAction::triggered, mdiArea, &QMdiArea::activatePreviousSubWindow);
+	connect(actionChildStatusBar, &QAction::triggered, this, &MainWindow::toggleChildStatusBar);
 
 	// "Help" menu entries:
-	connect(userGuideCoreAct, &QAction::triggered, this, &MainWindow::wiki);
-	connect(userGuideFiltersAct, &QAction::triggered, this, &MainWindow::wiki);
-	connect(userGuideToolsAct, &QAction::triggered, this, &MainWindow::wiki);
-	connect(releasesAct, &QAction::triggered, this, &MainWindow::wiki);
-	connect(bugAct, &QAction::triggered, this, &MainWindow::wiki);
-	connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
+	connect(actionUserGuideCore, &QAction::triggered, this, &MainWindow::wiki);
+	connect(actionUserGuideFilters, &QAction::triggered, this, &MainWindow::wiki);
+	connect(actionUserGuideTools, &QAction::triggered, this, &MainWindow::wiki);
+	connect(actionReleases, &QAction::triggered, this, &MainWindow::wiki);
+	connect(actionBug, &QAction::triggered, this, &MainWindow::wiki);
+	connect(actionAbout, &QAction::triggered, this, &MainWindow::about);
 
 	// Renderer toolbar:
-	connect(actionView_X_direction_in_raycaster,  &QAction::triggered, this,  &MainWindow::raycasterCamPX);
-	connect(actionView_mX_direction_in_raycaster, &QAction::triggered, this,  &MainWindow::raycasterCamMX);
-	connect(actionView_Y_direction_in_raycaster,  &QAction::triggered, this,  &MainWindow::raycasterCamPY);
-	connect(actionView_mY_direction_in_raycaster, &QAction::triggered, this,  &MainWindow::raycasterCamMY);
-	connect(actionView_Z_direction_in_raycaster,  &QAction::triggered, this,  &MainWindow::raycasterCamPZ);
-	connect(actionView_mZ_direction_in_raycaster, &QAction::triggered, this,  &MainWindow::raycasterCamMZ);
-	connect(actionIsometric_view_in_raycaster, &QAction::triggered, this, &MainWindow::raycasterCamIso);
+	connect(actionViewXDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::raycasterCamPX);
+	connect(actionViewmXDirectionInRaycaster, &QAction::triggered, this, &MainWindow::raycasterCamMX);
+	connect(actionViewYDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::raycasterCamPY);
+	connect(actionViewmYDirectionInRaycaster, &QAction::triggered, this, &MainWindow::raycasterCamMY);
+	connect(actionViewZDirectionInRaycaster,  &QAction::triggered, this, &MainWindow::raycasterCamPZ);
+	connect(actionViewmZDirectionInRaycaster, &QAction::triggered, this, &MainWindow::raycasterCamMZ);
+	connect(actionIsometricViewInRaycaster,   &QAction::triggered, this, &MainWindow::raycasterCamIso);
 
 	// Camera toolbar:
 	connect(actionAssignView, &QAction::triggered, this, &MainWindow::raycasterAssignIso);
-	connect(actionSave_Camera_Settings, &QAction::triggered, this, &MainWindow::raycasterSaveCameraSettings);
-	connect(actionLoad_Camera_Settings, &QAction::triggered, this, &MainWindow::raycasterLoadCameraSettings);
+	connect(actionSaveCameraSettings, &QAction::triggered, this, &MainWindow::raycasterSaveCameraSettings);
+	connect(actionLoadCameraSettings, &QAction::triggered, this, &MainWindow::raycasterLoadCameraSettings);
 
 	// Snake slicer toolbar
-	connect(actionSnake_Slicer, &QAction::toggled, this, &MainWindow::toggleSnakeSlicer);
+	connect(actionSnakeSlicer, &QAction::toggled, this, &MainWindow::toggleSnakeSlicer);
 	connect(actionRawProfile, &QAction::toggled, this, &MainWindow::toggleSliceProfile);
 	connect(actionMagicLens, &QAction::toggled, this, &MainWindow::toggleMagicLens);
 
 	// Layout toolbar menu entries
-	connect(actionSave_Layout, &QAction::triggered, this, &MainWindow::saveLayout);
-	connect(actionLoad_Layout, &QAction::triggered, this, &MainWindow::loadLayout);
-	connect(actionDelete_Layout, &QAction::triggered, this, &MainWindow::deleteLayout);
+	connect(actionSaveLayout, &QAction::triggered, this, &MainWindow::saveLayout);
+	connect(actionLoadLayout, &QAction::triggered, this, &MainWindow::loadLayout);
+	connect(actionDeleteLayout, &QAction::triggered, this, &MainWindow::deleteLayout);
 	connect(actionResetLayout, &QAction::triggered, this, &MainWindow::resetLayout);
 
 	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::childActivatedSlot);
@@ -2074,20 +2077,20 @@ void MainWindow::setActiveSubWindow(QWidget *window)
 
 void MainWindow::pointSelected()
 {
-	actionChange_color->setEnabled(true);
-	actionDelete_point->setEnabled(true);
+	actionChangeColor->setEnabled(true);
+	actionDeletePoint->setEnabled(true);
 }
 
 void MainWindow::noPointSelected()
 {
-	actionChange_color->setEnabled(false);
-	actionDelete_point->setEnabled(false);
+	actionChangeColor->setEnabled(false);
+	actionDeletePoint->setEnabled(false);
 }
 
 void MainWindow::endPointSelected()
 {
-	actionChange_color->setEnabled(true);
-	actionDelete_point->setEnabled(false);
+	actionChangeColor->setEnabled(true);
+	actionDeletePoint->setEnabled(false);
 }
 
 void MainWindow::setHistogramFocus()
@@ -2208,14 +2211,29 @@ void MainWindow::resetLayout()
 	activeMdiChild()->resetLayout();
 }
 
+QMenu * MainWindow::getFileMenu()
+{
+	return this->menuFile;
+}
+
+QMenu * MainWindow::getFiltersMenu()
+{
+	return this->menuFilters;
+}
+
 QMenu * MainWindow::getToolsMenu()
 {
-	return this->menu_Tools;
+	return this->menuTools;
+}
+
+QMenu * MainWindow::getHelpMenu()
+{
+	return this->menuHelp;
 }
 
 void MainWindow::toggleMainWindowStatusBar()
 {
-	statusBar()->setVisible(action_MainWindowStatusBar->isChecked());
+	statusBar()->setVisible(actionMainWindowStatusBar->isChecked());
 }
 
 void MainWindow::toggleToolbar()
@@ -2234,27 +2252,12 @@ void MainWindow::toggleChildStatusBar()
 	{
 		return;
 	}
-	activeMdiChild()->statusBar()->setVisible(action_ChildStatusBar->isChecked());
-}
-
-QMenu * MainWindow::getFiltersMenu()
-{
-	return this->menu_Filters;
+	activeMdiChild()->statusBar()->setVisible(actionChildStatusBar->isChecked());
 }
 
 QMdiSubWindow* MainWindow::addSubWindow( QWidget * child )
 {
 	return mdiArea->addSubWindow( child );
-}
-
-QMenu * MainWindow::getHelpMenu()
-{
-	return this->menu_Help;
-}
-
-QMenu * MainWindow::getFileMenu()
-{
-	return this->menu_File;
 }
 
 void MainWindow::setModuleActionsEnabled( bool isEnabled )
