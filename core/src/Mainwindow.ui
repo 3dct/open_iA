@@ -109,7 +109,7 @@
    </widget>
    <widget class="QMenu" name="menuFilters">
     <property name="title">
-     <string>&amp;Filters</string>
+     <string>F&amp;ilters</string>
     </property>
     <property name="toolTipsVisible">
      <bool>true</bool>
