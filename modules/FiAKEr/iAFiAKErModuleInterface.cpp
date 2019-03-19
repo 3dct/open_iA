@@ -38,9 +38,11 @@ void iAFiAKErModuleInterface::Initialize()
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QMenu * fiakerMenu = getMenuWithTitle(toolsMenu, tr("FiAKEr"), false);
 	QAction * actionFiAKEr = new QAction( "Open Results Folder", nullptr );
+	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
 	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKEr, false );
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
 	QAction * actionFiAKErProject = new QAction("Load Project", nullptr);
+	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
 	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKErProject, false);
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
 }
