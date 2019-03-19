@@ -993,12 +993,6 @@ void MainWindow::loadSlicerSettings(QDomNode &slicerSettingsNode)
 	activeMdiChild()->editSlicerSettings(defaultSlicerSettings);
 }
 
-void MainWindow::maxXY()
-{
-	if (activeMdiChild() && activeMdiChild()->xyview())
-		statusBar()->showMessage(tr("XY View"), 5000);
-}
-
 QList<QString> MainWindow::mdiWindowTitles()
 {
 	QList<QString> windowTitles;
@@ -1007,28 +1001,34 @@ QList<QString> MainWindow::mdiWindowTitles()
 	return windowTitles;
 }
 
+void MainWindow::maxXY()
+{
+	if (activeMdiChild())
+		activeMdiChild()->maximizeXY();
+}
+
 void MainWindow::maxXZ()
 {
-	if (activeMdiChild() && activeMdiChild()->xzview())
-		statusBar()->showMessage(tr("XZ View"), 5000);
+	if (activeMdiChild())
+		activeMdiChild()->maximizeXZ();
 }
 
 void MainWindow::maxYZ()
 {
-	if (activeMdiChild() && activeMdiChild()->yzview())
-		statusBar()->showMessage(tr("YZ View"), 5000);
+	if (activeMdiChild())
+		activeMdiChild()->maximizeYZ();
 }
 
 void MainWindow::maxRC()
 {
-	if (activeMdiChild() && activeMdiChild()->rcview())
-		statusBar()->showMessage(tr("Raycasting"), 5000);
+	if (activeMdiChild())
+		activeMdiChild()->maximizeRC();
 }
 
 void MainWindow::multi()
 {
-	if (activeMdiChild() && activeMdiChild()->multiview())
-		statusBar()->showMessage(tr("Multiple Views"), 5000);
+	if (activeMdiChild())
+		activeMdiChild()->multiview();
 }
 
 void MainWindow::linkViews()

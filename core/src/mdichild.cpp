@@ -1513,12 +1513,12 @@ void MdiChild::setRotationXZ(double a)
 	Raycaster->setPlaneNormals( slicerTransform );
 }
 
-void MdiChild::link( bool l)
+void MdiChild::linkViews( bool l)
 {
 	slicerSettings.LinkViews = l;
 }
 
-void MdiChild::linkM(bool lm)
+void MdiChild::linkMDIs(bool lm)
 {
 	slicerSettings.LinkMDIs = lm;
 }
