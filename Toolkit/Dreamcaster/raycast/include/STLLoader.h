@@ -26,11 +26,10 @@
 
 class QString;
 
-//using namespace Raytracer;
-
-/**
-* Load mesh from stl file by its file name.
-* @param filename file name of stl file
-* @return 0 if succed, error code else
-*/
+//! Load mesh from stl file by its file name.
+//! @param filename file name of stl file
+//! @param stlMesh the triangles of the mesh
+//! @param vertices the vertices of the mesh
+//! @param box the bounding box of the mesh
+//! @return 0 if reading succeeded, otherwise an error code
 int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3f*> & vertices, aabb & box);

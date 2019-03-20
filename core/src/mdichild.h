@@ -115,13 +115,7 @@ public:
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
 	void updateLayout();
 
-	bool multiview() { changeVisibility(MULTI); return true; };
-	bool xyview() { maximizeXY(); return true; };
-	bool xzview() { maximizeXZ(); return true; };
-	bool yzview() { maximizeYZ(); return true; };
-	bool rcview() { maximizeRC(); return true; };
-	bool linkViews( bool l ) { link(l); return true; }
-	bool linkMDIs( bool l ) { linkM(l); return true; }
+	void multiview() { changeVisibility(MULTI);};
 	bool editPrefs(iAPreferences const & p);
 	void ApplyViewerPreferences();
 	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
@@ -129,18 +123,12 @@ public:
 	bool loadTransferFunction();
 	bool saveTransferFunction();
 
-	/**
-	* Provides the possibility to save a slice movie of the given slice view.
-	*
-	* \param [in]	slicer	the VTK slicer the moview shall be exported from.
-	*/
+	//! Provides the possibility to save a slice movie of the given slice view.
+	//! @param [in] slicer the VTK slicer the movie shall be exported from.
 	void saveMovie(iASlicer * slicer);
 
-	/**
-	* Provides the possibility to save a raycaster movie of the given raycaster view.
-	*
-	* \param [in]	raycaster the VTK raycaster, the movie shall be exported from.
-	*/
+	//! Provides the possibility to save a raycaster movie of the given raycaster view.
+	//! @param [in] raycaster the VTK raycaster the movie shall be exported from.
 	void saveMovie(iARenderer& raycaster);
 	int deletePoint();
 	void changeColor();
@@ -260,10 +248,10 @@ public:
 	QString GetLayoutName() const;
 	void LoadLayout(QString const & layout);
 
-	//! if more than one modality loaded, ask user to choose one of them
+	//! If more than one modality loaded, ask user to choose one of them.
 	//! (currently used for determining which modality to save)
 	int chooseModalityNr(QString const & caption = "Choose Channel");
-	//! if given modality has more than one component, ask user to choose one of them
+	//! If given modality has more than one component, ask user to choose one of them.
 	//! (currently used for determining which modality to save)
 	int chooseComponentNr(int modalityNr);
 
@@ -271,14 +259,20 @@ public:
 	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
 	void SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
 
-	//! checks whether the main image data in this child is fully loaded
+	//! Checks whether the main image data in this child is fully loaded.
 	bool IsFullyLoaded() const;
 
-	//! save all currently loaded files into a project with the given file name
+	//! Save all currently loaded files into a project with the given file name.
 	void saveProject(QString const & fileName);
 
-	//! whether volume data is loaded (only checks filename and volume dimensions)
+	//! Whether volume data is loaded (only checks filename and volume dimensions).
 	bool IsVolumeDataLoaded() const;
+
+	//! Enable or disable linked views (slicers/3D renderer) for this MDI child.
+	void linkViews(bool l);
+	
+	//! Enable or disable linked MDI windows for this MDI child.
+	void linkMDIs(bool lm);
 
 Q_SIGNALS:
 	void rendererDeactivated(int c);
@@ -295,12 +289,12 @@ Q_SIGNALS:
 	void TransferFunctionChanged();
 	void fileLoaded();
 	void histogramAvailable();
-
-private slots:
+public slots:
 	void maximizeRC();
 	void maximizeXY();
 	void maximizeXZ();
 	void maximizeYZ();
+private slots:
 	void saveRC();
 	void saveXY();
 	void saveXZ();
@@ -316,8 +310,6 @@ private slots:
 	void triggerInteractionXZ();
 	void triggerInteractionYZ();
 	void triggerInteractionRaycaster();
-	void link( bool l );
-	void linkM( bool lm );
 	void setSliceXY(int s);
 	void setSliceYZ(int s);
 	void setSliceXZ(int s);
@@ -397,8 +389,7 @@ private:
 	int EvaluatePosition(int pos, int i, bool invert = false);
 
 	//! Changes the display of views from full to multi screen or multi screen to fullscreen.
-	//!
-	//! \param mode	how the views should be arranged.
+	//! @param mode how the views should be arranged.
 	void changeVisibility(unsigned char mode);
 	int getVisibility() const;
 	void hideVolumeWidgets();

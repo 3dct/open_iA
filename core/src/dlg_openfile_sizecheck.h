@@ -27,20 +27,19 @@ class dlg_openfile_sizecheck : public dlg_commoninput
 	Q_OBJECT
 
 public:
-	/**
-	* constructor function for the class.
-	*
-	* \param [in,out]	parent	If non-null, the parent.
-	* \param	winTitle		The window title.
-	* \param	inList			List of ins.
-	* \param	inPara			The in para.
-	* \param	fileName		File name of the RAW file.
-	* \param	extentIndex1	Index of the line edit with  X extent.
-	* \param	extentIndex2	Index of the line edit with  Y extent.
-	* \param	extentIndex3	Index of the line edit with  Z extent.
-	* \param	datatypeIndex	Index of the check box with  datatype stored in file.
-	*/
-	dlg_openfile_sizecheck (bool isVolumeStack, QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *text, QString fileName,
+	//! constructor
+	//! @param isVolumeStack   whether we are opening a volume stack (true) or a single file (false)
+	//! @param [in,out]	parent If non-null, the parent.
+	//! @param winTitle        The window title.
+	//! @param inList          List of input parameter names.
+	//! @param inPara          List of input parameter values.
+	//! @param text            The description text shown in the top of the dialog.
+	//! @param fileName        File name of the RAW file.
+	//! @param extentIndex1    Index of the line edit with X extent.
+	//! @param extentIndex2    Index of the line edit with Y extent.
+	//! @param extentIndex3    Index of the line edit with Z extent.
+	//! @param datatypeIndex   Index of the check box with datatype stored in file.
+	dlg_openfile_sizecheck (bool isVolumeStack, QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *text, QString fileName,
 		int extentIndex1 = 0, int extentIndex2 = 1, int extentIndex3 = 2, int datatypeIndex = 10);
 private:
 	qint64 fileSize;
@@ -50,9 +49,6 @@ private:
 	bool isVolumeStack;
 
 private slots:
-
-/**
-* \brief	Check if parameters fit actual file size.
-*/
+	//! Check if current parameters fit the actual file size
 	void CheckFileSize();
 };

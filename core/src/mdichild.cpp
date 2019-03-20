@@ -1517,12 +1517,12 @@ void MdiChild::setRotationXZ(double a)
 	Raycaster->setPlaneNormals( slicerTransform );
 }
 
-void MdiChild::link( bool l)
+void MdiChild::linkViews( bool l)
 {
 	slicerSettings.LinkViews = l;
 }
 
-void MdiChild::linkM(bool lm)
+void MdiChild::linkMDIs(bool lm)
 {
 	slicerSettings.LinkMDIs = lm;
 }
@@ -2566,8 +2566,14 @@ void MdiChild::demaximizeDockWidget( QDockWidget * dw )
 
 void MdiChild::resizeDockWidget( QDockWidget * dw )
 {
-	if( m_isSmthMaximized && dw == m_whatMaximized )
-		demaximizeDockWidget(dw);
+	if (m_isSmthMaximized)
+		if (m_whatMaximized == dw)
+			demaximizeDockWidget(dw);
+		else
+		{
+			demaximizeDockWidget(m_whatMaximized);
+			maximizeDockWidget(dw);
+		}
 	else
 		maximizeDockWidget(dw);
 }

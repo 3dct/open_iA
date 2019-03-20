@@ -224,7 +224,7 @@ void iAFeatureScoutModuleInterface::onChildClose()
 {
 	if (!tlbFeatureScout)
 		return;
-	auto mdis = m_mainWnd->MdiChildList();
+	auto mdis = m_mainWnd->mdiChildList();
 	for (auto mdi : mdis)
 	{
 		m_mdiChild = mdi;

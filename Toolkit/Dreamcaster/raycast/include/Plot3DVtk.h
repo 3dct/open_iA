@@ -88,8 +88,8 @@ private:
 	vtkCubeAxesActor2D *m_cubeAxes;;
 	vtkPolyDataMapper *m_pickedMapper;
 	vtkActor *m_pickedActor;
-	double m_Smin;//ìèíèìàëüíîå çíà÷åíèå èç ìàññèâà ñêàëÿðîâ
-	double m_Smax;//ìàêñèìàëüíîå çíà÷åíèå èç ìàññèâà ñêàëÿðîâ
+	double m_Smin;
+	double m_Smax;
 	double MinX,MaxX;
 	double MinY,MaxY;
 	double MinZ,MaxZ;

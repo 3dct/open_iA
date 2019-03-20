@@ -1243,7 +1243,7 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 		}
 		if (mdi_parent->getLinkedMDIs())
 		{
-			QList<MdiChild*> mdiwindows = mdi_parent->getMainWnd()->MdiChildList();
+			QList<MdiChild*> mdiwindows = mdi_parent->getMainWnd()->mdiChildList();
 			for (int i = 0; i < mdiwindows.size(); i++)
 			{
 				MdiChild *tmpChild = mdiwindows.at(i);

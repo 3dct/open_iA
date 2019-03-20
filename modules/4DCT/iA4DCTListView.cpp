@@ -83,7 +83,7 @@ void iA4DCTListView::openFile( )
 	}
 
 	if( win != NULL ) {
-		win->LoadFile( m_data->at( indexes[0].row( ) ).Path, false );
+		win->loadFile( m_data->at( indexes[0].row( ) ).Path, false );
 	}
 }
 

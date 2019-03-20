@@ -92,8 +92,7 @@ public:
 	/**
 	 * Construction & calculation of functional boxplot data
 	 * @param functions functions for which to calculate band depth
-	 * @param argMin the minimum argument to be used as function parameter for all functions
-	 * @param argMax the maximum argument to be used as function parameter for all functions
+	 * @param measure the measure to use to compute the depth (see SimpleDepthMeasure and ModifiedDepthMeasure)
 	 * @param maxBandSize the maximum band size to consider for band depth calculation (i.e. how
 	 *    many functions at most should be combined to bands). Band depth will be calculated
 	 *    as a combination of all band sizes from 2 to maxBandSize
