@@ -2938,6 +2938,14 @@ void MdiChild::displayHistogram(int modalityIdx)
 	workerThread->start();
 }
 
+void MdiChild::clearHistogram()
+{
+	m_histogram->removePlot(m_histogramPlot);
+	m_histogramPlot = nullptr;
+	m_histogram->setTransferFunctions(nullptr, nullptr);
+	m_histogram->update();
+}
+
 void MdiChild::StatisticsAvailable(int modalityIdx)
 {
 	displayHistogram(modalityIdx);

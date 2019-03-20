@@ -274,6 +274,9 @@ public:
 	//! Enable or disable linked MDI windows for this MDI child.
 	void linkMDIs(bool lm);
 
+	//! clear current histogram (i.e. don't show it anymore)
+	void clearHistogram();
+
 Q_SIGNALS:
 	void rendererDeactivated(int c);
 	void pointSelected();

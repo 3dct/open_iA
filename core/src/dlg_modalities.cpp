@@ -206,6 +206,7 @@ void dlg_modalities::RemoveClicked()
 		DEBUG_LOG(QString("Index out of range (%1)").arg(idx));
 		return;
 	}
+	m_mdiChild->clearHistogram();
 	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(idx)->GetRenderer();
 	if (modalities->Get(idx)->hasRenderFlag(iAModality::MainRenderer) ||
 		modalities->Get(idx)->hasRenderFlag(iAModality::MagicLens))
@@ -218,6 +219,7 @@ void dlg_modalities::RemoveClicked()
 	}
 	modalities->Remove(idx);
 	delete lwModalities->takeItem(idx);
+	lwModalities->setCurrentRow(-1);
 	EnableButtons();
 
 	m_mainRenderer->GetRenderWindow()->Render();
