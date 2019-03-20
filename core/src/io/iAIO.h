@@ -78,6 +78,8 @@ private:
 	void readImageStack();
 	void readRawImage();
 	void loadMetaImageFile(QString const & fileName);
+	void readVTKFile(); 
+
 	void readVolumeStack( );
 	void readVolumeMHDStack( );
 	void readImageData( );

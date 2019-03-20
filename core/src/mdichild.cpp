@@ -526,6 +526,10 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 	if (QString::compare(fileInfo.suffix(), "STL", Qt::CaseInsensitive) == 0)
 	{
 		return ioThread->setupIO(STL_READER, f);
+	}else
+	if (QString::compare(fileInfo.suffix(), "VTK", Qt::CaseInsensitive) == 0)
+	{
+		return ioThread->setupIO(VTK_READER, f);
 	}
 	imageData->ReleaseData();
 	QString extension = fileInfo.suffix();
@@ -2740,6 +2744,7 @@ bool MdiChild::IsVolumeDataLoaded() const
 	QString suffix = getFileInfo().suffix();
 	int * extent = imageData->GetExtent();
 	return QString::compare(suffix, "STL", Qt::CaseInsensitive) != 0 &&
+		QString::compare(suffix, "VTK", Qt::CaseInsensitive) != 0 &&
 		QString::compare(suffix, "FEM", Qt::CaseInsensitive) != 0 &&
 		extent[1] >= 0 && extent[3] >= 0 && extent[5] >= 0;
 }

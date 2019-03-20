@@ -58,6 +58,7 @@ enum IOType
 	VOLUME_STACK_MHD_READER,
 	VOLUME_STACK_VOLSTACK_READER,
 	VOLUME_STACK_VOLSTACK_WRITER,
+	VTK_READER,  //new for VTK Input
 	DCM_READER,
 	DCM_WRITER,
 //	NRRD_READER,     // see iAIOProvider.cpp why this is commented out

@@ -25,6 +25,8 @@
 const QString iAIOProvider::ProjectFileExtension(".mod");
 const QString iAIOProvider::ProjectFileTypeFilter("open_iA project file (*"+ProjectFileExtension+");;All files (*.*)");
 const QString iAIOProvider::MetaImages("Meta Images (*.mhd *.mha);;");
+const QString iAIOProvider::VTKFiles("VTK Files (*.vtk);;");
+
 namespace
 {
 	const QString ImageFormatExtensions("*.bmp *.jpg *.jpeg *.png *.tif *.tiff");
@@ -33,12 +35,12 @@ namespace
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
-		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.oif *.am "
+		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.oif *.am *.vtk "
 #ifdef USE_HDF5
 		"*.hdf5 *.h5 *.he5 *.mat "
 #endif
 		"*.vti "+ImageFormatExtensions+");;"
-		+ MetaImages +
+		+ MetaImages + VTKFiles +
 		"STL files (*.stl);;"
 		"VG Studio Scenes (*.vgi);;"
 		"RAW files (*.raw *.rec *.vol *.pro);;"

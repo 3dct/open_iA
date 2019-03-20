@@ -62,6 +62,9 @@
 #include <vtkTIFFReader.h>
 #include <vtkVersion.h>
 #include <vtkXMLImageDataReader.h>
+#include <vtkGenericDataObjectReader.h>
+#include <vtkRectilinearGrid.h>
+#include <vtkPointData.h>
 
 #include <QDateTime>
 #include <QFileDialog>
@@ -435,6 +438,8 @@ void iAIO::run()
 				readMetaImage(); break;
 			case STL_READER:
 				readSTL(); break;
+			case VTK_READER:
+					readVTKFile(); break; 
 			case RAW_READER:
 			case PARS_READER:
 			case VGI_READER:
@@ -717,6 +722,8 @@ bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
 		case MHD_READER:
 		case STL_READER:
 			fileName = f; compression = c; break;
+		case VTK_READER:
+			fileName = f; compression = c; break;
 		case RAW_READER:
 			return setupRAWReader(f);
 		case PARS_READER:
@@ -926,6 +933,55 @@ void iAIO::loadMetaImageFile(QString const & fileName)
 		fileName, ProgressObserver(), getConnector());
 }
 
+
+void iAIO::readVTKFile()
+{
+	// Get all data from the file
+		vtkSmartPointer<vtkGenericDataObjectReader> reader =
+		vtkSmartPointer<vtkGenericDataObjectReader>::New();
+		reader->SetFileName(getLocalEncodingFileName(fileName).c_str());
+		reader->Update();				
+		
+		// All of the standard data types can be checked and obtained like this:
+		if (reader->IsFilePolyData())
+		{
+			DEBUG_LOG("output is a polydata");
+						
+			getVtkPolyData()->DeepCopy(reader->GetPolyDataOutput());
+			printSTLFileInfos();
+						
+		}if (reader->IsFileRectilinearGrid()) {
+			addMsg(tr("output is reclinearGrid, to be implemented later"));
+			
+			//stuff below is more or less experimental		
+			/*
+			getVtkImageData()->ReleaseData();
+			getVtkImageData()->Initialize();
+			auto data =  reader->GetRectilinearGridOutput(); 
+			auto scalars = data->GetPointData()->GetAbstractArray("POINT_DATA");
+
+			getVtkImageData()->ShallowCopy(data);
+			getVtkImageData()->CopyInformationFromPipeline(data->GetInformation());
+			*/
+
+		}
+		else {
+			addMsg("This type of vtk format is currently not supported"); 
+		}
+
+
+	/*	else {
+			vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New(); 
+			reader->getOut
+		}*/
+
+
+
+		addMsg(tr("File loaded."));
+
+		
+
+}
 
 void iAIO::readVolumeMHDStack()
 {
