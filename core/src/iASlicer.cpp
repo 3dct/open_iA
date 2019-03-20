@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iASlicer.h"
 
+#include "defines.h"    // for NotExistingChannel
 #include "iAConsole.h"
 #include "iAMagicLens.h"
 #include "iAMovieHelper.h"
@@ -40,7 +41,7 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 
 		QObject(parent),
 		m_mode(mode),
-		m_magicLensInput(ch_None)
+		m_magicLensInput(NotExistingChannel)
 {
 	if (magicLensAvailable)
 	{
@@ -132,12 +133,12 @@ void iASlicer::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToCol
 	m_data->reInitialize(ds, tr, ctf, sil, sp);
 }
 
-void iASlicer::reInitializeChannel(iAChannelID id, iAChannelVisualizationData * chData )
+void iASlicer::reInitializeChannel(uint id, iAChannelVisualizationData * chData )
 {
 	m_data->reInitializeChannel(id, chData);
 }
 
-void iASlicer::setResliceChannelAxesOrigin(iAChannelID id, double x, double y, double z )
+void iASlicer::setResliceChannelAxesOrigin(uint id, double x, double y, double z )
 {
 	m_data->setResliceChannelAxesOrigin(id, x, y, z);
 	if (m_magicLens)
@@ -341,7 +342,7 @@ void iASlicer::SetMagicLensCount(int count)
 	widget()->updateMagicLens();
 }
 
-void iASlicer::SetMagicLensInput(iAChannelID id)
+void iASlicer::setMagicLensInput(uint id)
 {
 	if (!m_magicLens)
 	{
@@ -384,17 +385,17 @@ iASlicerMode iASlicer::GetMode() const
 	return m_mode;
 }
 
-void iASlicer::initializeChannel(iAChannelID id,  iAChannelVisualizationData * chData)
+void iASlicer::initializeChannel(uint id,  iAChannelVisualizationData * chData)
 {
 	m_data->initializeChannel(id, chData);
 }
 
-void iASlicer::removeChannel(iAChannelID id)
+void iASlicer::removeChannel(uint id)
 {
 	m_data->removeChannel(id);
 }
 
-iAChannelID iASlicer::getMagicLensInput() const
+uint iASlicer::getMagicLensInput() const
 {
 	return m_magicLensInput;
 }
@@ -432,22 +433,22 @@ void iASlicer::rotateSlice( double angle )
 	m_data->rotateSlice( angle );
 }
 
-void iASlicer::setChannelOpacity( iAChannelID id, double opacity )
+void iASlicer::setChannelOpacity(uint id, double opacity )
 {
 	m_data->setChannelOpacity( id, opacity );
 }
 
-void iASlicer::enableChannel( iAChannelID id, bool enabled, double x, double y, double z )
+void iASlicer::enableChannel( uint id, bool enabled, double x, double y, double z )
 {
 	m_data->enableChannel( id, enabled, x, y, z );
 }
 
-void iASlicer::enableChannel( iAChannelID id, bool enabled )
+void iASlicer::enableChannel( uint id, bool enabled )
 {
 	m_data->enableChannel( id, enabled );
 }
 
-void iASlicer::switchContourSourceToChannel( iAChannelID id )
+void iASlicer::switchContourSourceToChannel( uint id )
 {
 	m_data->switchContourSourceToChannel( id );
 }
@@ -467,11 +468,10 @@ void iASlicer::setContours( int n, double * contourValues )
 	m_data->setContours( n, contourValues );
 }
 
-iAChannelSlicerData * iASlicer::GetChannel( iAChannelID id )
+iAChannelSlicerData * iASlicer::getChannel( uint id )
 {
-	return m_data->GetChannel( id );
+	return m_data->getChannel( id );
 }
-
 
 void iASlicer::SetBackground(double r, double g, double b)
 {

@@ -21,7 +21,6 @@
 #pragma once
 
 #include "defines.h"
-#include "iAChannelID.h"
 #include "qthelper/iAQTtoUIConnector.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
@@ -206,13 +205,17 @@ public:
 	QSpinBox * getSpinBoxXZ();
 
 	//! @{ Multi-Channel rendering
-	void SetChannelRenderingEnabled(iAChannelID, bool enabled);
-	void InsertChannelData(iAChannelID id, iAChannelVisualizationData * channelData);
-	iAChannelVisualizationData * GetChannelData(iAChannelID id);
-	iAChannelVisualizationData const * GetChannelData(iAChannelID id) const;
-	void UpdateChannelSlicerOpacity(iAChannelID id, double opacity);
-	void InitChannelRenderer(iAChannelID id, bool use3D, bool enableChannel = true);
-	void reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+	//! create a new channel, return its ID
+	uint createChannel();
+	//! update the data of the given channel ID
+	void updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+	//! update opacity of the given channel ID
+	void updateChannelOpacity(uint id, double opacity);
+	
+	void SetChannelRenderingEnabled(uint, bool enabled);
+	iAChannelVisualizationData * getChannelData(uint id);
+	iAChannelVisualizationData const * getChannelData(uint id) const;
+	void InitChannelRenderer(uint id, bool use3D, bool enableChannel = true);
 	void updateChannelMappers();
 	//! @}
 
@@ -226,9 +229,9 @@ public:
 	//! @{ Magic Lens
 	void toggleMagicLens(bool isEnabled);
 	bool isMagicLensToggled(void) const;
-	void SetMagicLensInput(iAChannelID id, bool initReslicer);
+	void SetMagicLensInput(uint id, bool initReslicer);
 	void SetMagicLensEnabled(bool isOn);
-	void reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+	void reInitMagicLens(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
 	int  GetMagicLensSize() const { return preferences.MagicLensSize; }
 	int  GetMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }
 	//! @}
@@ -480,7 +483,9 @@ private:
 
 	std::vector<iAAlgorithm*> workingAlgorithms;
 
-	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> > m_channels;
+	QMap<uint, QSharedPointer<iAChannelVisualizationData> > m_channels;
+	uint m_nextChannelID;
+	uint m_magicLensChannel;
 
 	bool updateSliceIndicator;
 	int numberOfVolumes;

@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAModality.h"
 
+#include "defines.h"  // for NotExistingChannel
 #include "iAImageCoordinate.h"
 #include "iAModalityTransfer.h"
 #include "iASettings.h"
@@ -40,7 +41,8 @@ iAModality::iAModality(QString const & name, QString const & filename, int chann
 	renderFlags(renderFlags),
 	m_channel(channel),
 	m_imgs(1),
-	m_VolSettingsSavedStatus(false)
+	m_VolSettingsSavedStatus(false),
+	m_channelID(NotExistingChannel)
 {
 	SetData(imgData);
 }
@@ -286,7 +288,15 @@ const iAVolumeSettings &iAModality::getVolumeSettings() const
 	return this->m_volSettings;
 }
 
+uint iAModality::channelID() const
+{
+	return m_channelID;
+}
 
+void iAModality::setChannelID(uint channelID)
+{
+	m_channelID = channelID;
+}
 
 // iAStatisticsUpdater
 

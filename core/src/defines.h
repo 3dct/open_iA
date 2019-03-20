@@ -82,3 +82,5 @@ const int DefaultHistogramBins = 2048;
 
 // define preset colors
 open_iA_Core_API QColor * PredefinedColors();
+
+const uint NotExistingChannel = std::numeric_limits<uint>::max();

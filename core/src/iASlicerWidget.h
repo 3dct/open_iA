@@ -63,7 +63,6 @@ protected:
 	viewModeEnum				m_viewMode;						// current edit mode
 	bool						m_isSliceProfEnabled;			//if slice profile mode is enabled
 	bool						m_isArbProfEnabled;				//if arbitrary profile mode is enabled
-	bool						m_pieGlyphsEnabled;				//if slice pie glyphs for xrf are enabled
 	iASlicerMode				m_slicerMode;					// which slice viewer
 	int							m_xInd, m_yInd, m_zInd;
 
@@ -74,6 +73,8 @@ protected:
 	iAArbitraryProfileOnSlicer	* m_arbProfile;
 	iASlicerData				* m_slicerDataExternal;
 
+	// TODO: move to XRF module
+	bool						m_pieGlyphsEnabled;				//if slice pie glyphs for xrf are enabled
 	QVector<QSharedPointer<iAPieChartGlyph> >	m_pieGlyphs;
 	double										m_pieGlyphMagFactor;
 	double										m_pieGlyphSpacing;
@@ -93,8 +94,11 @@ public:
 	void	setIndex( int x, int y, int z ) { m_xInd = x; m_yInd = y; m_zInd = z; };
 	void	setMode(iASlicerMode slicerMode);
 	void	updateMagicLens();
+	// {
+	// TODO: Move to XRF module!
 	void	computeGlyphs();
 	void	setPieGlyphParameters( double opacity, double spacing, double magFactor );
+	// }
 	void	showBorder(bool show);
 protected:
 	void	updateProfile();
@@ -136,6 +140,8 @@ public slots:
 	void switchMode(int mode);
 	void setSliceProfileOn(bool isOn);
 	void setArbitraryProfileOn(bool isOn);
+
+	// TODO: Move to XRF module!
 	void setPieGlyphsOn(bool isOn);
 
 	//! Adds a new spline point to the end of the spline curve.

@@ -103,7 +103,9 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	preferences(prefs),
 	m_currentModality(0),
 	m_currentComponent(0),
-	m_currentHistogramModality(-1)
+	m_currentHistogramModality(-1),
+	m_magicLensChannel(NotExistingChannel),
+	m_nextChannelID(0)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
@@ -399,23 +401,19 @@ void MdiChild::enableRenderWindows()	// = image data available
 	else
 		updateSliceIndicator = true;
 
-	QList<iAChannelID> keys = m_channels.keys();
-	for (QList<iAChannelID>::iterator it = keys.begin();
-		it != keys.end();
-		++it)
+	for (auto channelID: m_channels.keys())
 	{
-		iAChannelID key = *it;
-		iAChannelVisualizationData * chData = m_channels.value(key).data();
+		iAChannelVisualizationData * chData = m_channels.value(channelID).data();
 		if (chData->IsEnabled()
 			|| (isMagicLensEnabled && (
-				key == slicer[iASlicerMode::XY]->getMagicLensInput() ||
-				key == slicer[iASlicerMode::XZ]->getMagicLensInput() ||
-				key == slicer[iASlicerMode::YZ]->getMagicLensInput()
+				channelID == slicer[iASlicerMode::XY]->getMagicLensInput() ||
+				channelID == slicer[iASlicerMode::XZ]->getMagicLensInput() ||
+				channelID == slicer[iASlicerMode::YZ]->getMagicLensInput()
 				))
 			)
 		{
 			for (int s = 0; s<3; ++s)
-				slicer[s]->reInitializeChannel(key, chData);
+				slicer[s]->reInitializeChannel(channelID, chData);
 		}
 	}
 	m_dlgModalities->EnableUI();
@@ -2336,9 +2334,9 @@ void MdiChild::updateSlicer(int index)
 	slicer[index]->update();
 }
 
-void MdiChild::InitChannelRenderer(iAChannelID id, bool use3D, bool enableChannel)
+void MdiChild::InitChannelRenderer(uint id, bool use3D, bool enableChannel)
 {
-	iAChannelVisualizationData * data = GetChannelData(id);
+	iAChannelVisualizationData * data = getChannelData(id);
 	assert(data);
 	if (!data)
 	{
@@ -2374,9 +2372,9 @@ void MdiChild::SetPieGlyphParameters( double opacity, double spacing, double mag
 		slicer[s]->setPieGlyphParameters(opacity, spacing, magFactor);
 }
 
-iAChannelVisualizationData * MdiChild::GetChannelData(iAChannelID id)
+iAChannelVisualizationData * MdiChild::getChannelData(uint id)
 {
-	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> >::const_iterator it = m_channels.find(id);
+	auto it = m_channels.find(id);
 	if (it == m_channels.end())
 	{
 		return nullptr;
@@ -2384,9 +2382,9 @@ iAChannelVisualizationData * MdiChild::GetChannelData(iAChannelID id)
 	return it->data();
 }
 
-iAChannelVisualizationData const * MdiChild::GetChannelData(iAChannelID id) const
+iAChannelVisualizationData const * MdiChild::getChannelData(uint id) const
 {
-	QMap<iAChannelID, QSharedPointer<iAChannelVisualizationData> >::const_iterator it = m_channels.find(id);
+	auto it = m_channels.find(id);
 	if (it == m_channels.end())
 	{
 		return nullptr;
@@ -2394,11 +2392,14 @@ iAChannelVisualizationData const * MdiChild::GetChannelData(iAChannelID id) cons
 	return it->data();
 }
 
-void MdiChild::InsertChannelData(iAChannelID id, iAChannelVisualizationData * channelData)
+uint MdiChild::createChannel()
 {
-	assert(m_channels.find(id) == m_channels.end());
-	m_channels.insert(id, QSharedPointer<iAChannelVisualizationData>(channelData));
+	uint newChannelID = m_nextChannelID;
+	++m_nextChannelID;
+	m_channels.insert(newChannelID, QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData()));
+	return newChannelID;
 }
+
 
 void MdiChild::updateSlicers()
 {
@@ -2406,21 +2407,21 @@ void MdiChild::updateSlicers()
 		slicer[s]->update();
 }
 
-void MdiChild::UpdateChannelSlicerOpacity(iAChannelID id, double opacity)
+void MdiChild::updateChannelOpacity(uint id, double opacity)
 {
-	if (!GetChannelData(id))
+	if (!getChannelData(id))
 	{
 		return;
 	}
-	GetChannelData(id)->SetOpacity(opacity);
+	getChannelData(id)->SetOpacity(opacity);
 	for (int s = 0; s<3; ++s)
 		slicer[s]->GetSlicerData()->setChannelOpacity(id, opacity);
 	updateSlicers();
 }
 
-void MdiChild::SetChannelRenderingEnabled(iAChannelID id, bool enabled)
+void MdiChild::SetChannelRenderingEnabled(uint id, bool enabled)
 {
-	iAChannelVisualizationData * data = GetChannelData(id);
+	iAChannelVisualizationData * data = getChannelData(id);
 	if (!data || data->IsEnabled() == enabled)
 	{
 		// the channel with the given ID doesn't exist or hasn't changed
@@ -2674,10 +2675,10 @@ void MdiChild::check2DMode()
 	}
 }
 
-void MdiChild::SetMagicLensInput(iAChannelID id, bool initReslice)
+void MdiChild::SetMagicLensInput(uint id, bool initReslice)
 {
 	for (int s = 0; s<3; ++s)
-		slicer[s]->SetMagicLensInput(id);
+		slicer[s]->setMagicLensInput(id);
 	if (initReslice)
 	{
 		double * spc = imageData->GetSpacing();
@@ -2694,13 +2695,11 @@ void MdiChild::SetMagicLensEnabled(bool isOn)
 		slicer[s]->SetMagicLensEnabled( isOn );
 }
 
-void MdiChild::reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
+void MdiChild::updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
-	iAChannelVisualizationData * chData = GetChannelData( id );
+	iAChannelVisualizationData * chData = getChannelData( id );
 	if (!chData)
-	{
 		return;
-	}
 	chData->SetImage( imgData );
 	chData->SetColorTF( ctf );
 	chData->SetOpacityTF( otf );
@@ -2708,7 +2707,7 @@ void MdiChild::reInitChannel(iAChannelID id, vtkSmartPointer<vtkImageData> imgDa
 		slicer[s]->reInitializeChannel( id, chData );
 }
 
-void MdiChild::reInitMagicLens(iAChannelID id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
+void MdiChild::reInitMagicLens(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
 	if (!isMagicLensEnabled)
 	{
@@ -2769,17 +2768,14 @@ void MdiChild::ChangeMagicLensModality(int chg)
 		m_currentModality = 0;
 		return;
 	}
-	iAChannelVisualizationData chData;
+	if (m_magicLensChannel == NotExistingChannel)
+		m_magicLensChannel = createChannel();
 	vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetComponent(m_currentComponent);
-	chData.SetImage(img);
-	chData.SetColorTF(m_dlgModalities->GetCTF(m_currentModality));
-	chData.SetOpacityTF(m_dlgModalities->GetOTF(m_currentModality));
-	chData.SetOpacity(0.5);
+	getChannelData(m_magicLensChannel)->SetOpacity(0.5);
 	QString name(GetModality(m_currentModality)->GetImageName(m_currentComponent));
-	chData.SetName(name);
-	for (int s = 0; s<3; ++s)
-		slicer[s]->initializeChannel(ch_SlicerMagicLens, &chData);
-	SetMagicLensInput(ch_SlicerMagicLens, true);
+	getChannelData(m_magicLensChannel)->SetName(name);
+	updateChannel(m_magicLensChannel, img, m_dlgModalities->GetCTF(m_currentModality), m_dlgModalities->GetOTF(m_currentModality));
+	SetMagicLensInput(m_magicLensChannel, true);
 	SetHistogramModality(m_currentModality);	// TODO: don't change histogram, just read/create min/max and transfer function?
 }
 

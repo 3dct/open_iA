@@ -79,6 +79,10 @@ public:
 	QString GetImageName(int componentIdx);
 	//! return statistical information about the image
 	iAImageInfo const & Info() const;
+	//! return ID of channel used in mdichild to represent this modality in slicer
+	uint channelID() const;
+	//! set ID of channel used in mdichild to represent this modality in slicer
+	void setChannelID(uint id);
 
 	QString GetOrientationString();
 	QString GetPositionString();
@@ -129,6 +133,7 @@ private:
 	QString m_filename;
 	int     m_channel;     //!< in case the file contains multiple channels, the channel no. for this modality
 	int     renderFlags;
+	uint    m_channelID;
 	QSharedPointer<iAImageCoordConverter> m_converter;
 	QSharedPointer<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;
@@ -139,7 +144,6 @@ private:
 	QString positionSettings;
 	QString orientationSettings;
 	QString tfFileName;
-
 };
 
 

@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAChannelID.h"
 #include "open_iA_Core_export.h"
 #include "iASlicerMode.h"
 
@@ -78,18 +77,18 @@ public:
 	iASlicerData( iASlicer const * slicerMaster, QObject * parent = 0, bool decorations=true);
 	virtual ~iASlicerData();
 
-	void initialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
-	void reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool showisolines = false, bool showpolygon = false);
+	void initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
+	void reInitialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool showisolines = false, bool showpolygon = false);
 	void changeImageData(vtkImageData *idata);
 	void setup(iASingleSlicerSettings const & settings);
 
-	void initializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
-	void removeChannel(iAChannelID id);
-	void reInitializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
-	void setChannelOpacity(iAChannelID, double opacity );
-	void enableChannel(iAChannelID id, bool enabled, double x, double y, double z);
-	void enableChannel( iAChannelID id, bool enabled );
-	void setResliceChannelAxesOrigin(iAChannelID id, double x, double y, double z);
+	void initializeChannel(uint id, iAChannelVisualizationData * chData);
+	void removeChannel(uint id);
+	void reInitializeChannel(uint id, iAChannelVisualizationData * chData);
+	void setChannelOpacity(uint id, double opacity );
+	void enableChannel(uint id, bool enabled, double x, double y, double z);
+	void enableChannel(uint id, bool enabled );
+	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 
 	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
@@ -137,13 +136,13 @@ public:
 
 	virtual void Execute(vtkObject * caller, unsigned long eventId, void * callData);
 
-	void setMagicLensInput(iAChannelID id);
-	iAChannelSlicerData * GetChannel(iAChannelID id);
+	void setMagicLensInput(uint id);
+	iAChannelSlicerData * getChannel(uint id);
 	size_t GetEnabledChannels();
 
 	void updateChannelMappers();
 	void rotateSlice( double angle );
-	void switchContourSourceToChannel( iAChannelID id );
+	void switchContourSourceToChannel( uint id );
 
 	void SetManualBackground(double r, double g, double b);
 
@@ -211,7 +210,7 @@ private:
 	vtkImageActor* imageActor;
 	vtkPointPicker* pointPicker;
 
-	QMap<iAChannelID, QSharedPointer<iAChannelSlicerData> > m_channels;
+	QMap<uint, QSharedPointer<iAChannelSlicerData> > m_channels;
 
 	vtkSmartPointer<vtkScalarBarWidget> scalarBarWidget;
 	vtkSmartPointer<vtkTextProperty> textProperty;
@@ -275,7 +274,7 @@ private:
 	double m_ptMapped[3];
 	double m_startMeasurePoint[2];
 
-	iAChannelSlicerData & GetOrCreateChannel(iAChannelID id);
+	iAChannelSlicerData & getOrCreateChannel(uint id);
 	void GetMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
 	void UpdatePositionMarkerExtent();
 

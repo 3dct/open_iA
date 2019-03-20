@@ -581,10 +581,9 @@ void iASlicerData::UpdateROI(int const roi[6])
 void iASlicerData::setup(iASingleSlicerSettings const & settings)
 {
 	imageActor->SetInterpolate(settings.LinearInterpolation);
-	QList<iAChannelID> idList = m_channels.keys();
-	for (QList<iAChannelID>::const_iterator it = idList.begin(); it != idList.end(); ++it)
+	for (uint channelID: m_channels.keys())
 	{
-		m_channels[*it]->imageActor->SetInterpolate(settings.LinearInterpolation);
+		m_channels[channelID]->imageActor->SetInterpolate(settings.LinearInterpolation);
 	}
 	if (m_magicLensExternal)
 	{
@@ -619,7 +618,7 @@ void iASlicerData::update()
 		return;
 
 	colormapper->Update();
-	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
+	for(auto ch: m_channels)
 		ch->updateMapper();
 	UpdateReslicer();
 	reslicer->UpdateWholeExtent();
@@ -986,7 +985,7 @@ void iASlicerData::setMode( const iASlicerMode mode )
 
 void iASlicerData::UpdateResliceAxesDirectionCosines()
 {
-	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
+	for(auto ch: m_channels)
 		ch->UpdateResliceAxesDirectionCosines( m_mode );
 	switch(m_mode)
 	{
@@ -1567,7 +1566,7 @@ void iASlicerData::InitReslicerWithImageData()
 void iASlicerData::UpdateReslicer()
 {
 	reslicer->Update();
-	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
+	for(auto ch: m_channels)
 		ch->updateReslicer();
 }
 
@@ -1580,61 +1579,61 @@ void iASlicerData::setShowText( bool isVisible )
 	textInfo->Show(isVisible);
 }
 
-void iASlicerData::enableChannel(iAChannelID id, bool enabled, double x, double y, double z)
+void iASlicerData::enableChannel(uint id, bool enabled, double x, double y, double z)
 {
 	if (enabled)
 		setResliceChannelAxesOrigin(id, x, y, z);
 	enableChannel( id, enabled );
 }
 
-void iASlicerData::enableChannel( iAChannelID id, bool enabled )
+void iASlicerData::enableChannel( uint id, bool enabled )
 {
 	// TODO: move into channeldata!
 	if( enabled )
 	{
-		ren->AddActor(GetOrCreateChannel(id).imageActor );
+		ren->AddActor(getOrCreateChannel(id).imageActor );
 		if (m_decorations)
 		{
-			ren->AddActor(GetOrCreateChannel(id).cActor);
+			ren->AddActor(getOrCreateChannel(id).cActor);
 		}
 	}
 	else
 	{
-		ren->RemoveActor(GetOrCreateChannel(id).imageActor);
+		ren->RemoveActor(getOrCreateChannel(id).imageActor);
 		if (m_decorations)
 		{
-			ren->RemoveActor(GetOrCreateChannel(id).cActor);
+			ren->RemoveActor(getOrCreateChannel(id).cActor);
 		}
 	}
 }
 
-void iASlicerData::reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData )
+void iASlicerData::reInitializeChannel( uint id, iAChannelVisualizationData * chData )
 {
-	GetOrCreateChannel(id).ReInit(chData);
+	getOrCreateChannel(id).ReInit(chData);
 }
 
-void iASlicerData::initializeChannel( iAChannelID id, iAChannelVisualizationData * chData )
+void iASlicerData::initializeChannel( uint id, iAChannelVisualizationData * chData )
 {
-	GetOrCreateChannel(id).Init(chData, m_mode);
+	getOrCreateChannel(id).Init(chData, m_mode);
 }
 
-void iASlicerData::removeChannel(iAChannelID id)
+void iASlicerData::removeChannel(uint id)
 {
 	m_channels.remove(id);
 }
 
-void iASlicerData::setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z )
+void iASlicerData::setResliceChannelAxesOrigin( uint id, double x, double y, double z )
 {
 	if (interactor->GetEnabled())
 	{
-		iAChannelSlicerData & chSD = GetOrCreateChannel(id);
+		iAChannelSlicerData & chSD = getOrCreateChannel(id);
 		chSD.SetResliceAxesOrigin(x, y, z);
 	}
 }
 
-void iASlicerData::setChannelOpacity(iAChannelID id, double opacity )
+void iASlicerData::setChannelOpacity(uint id, double opacity )
 {
-	 GetOrCreateChannel(id).imageActor->SetOpacity(opacity);
+	 getOrCreateChannel(id).imageActor->SetOpacity(opacity);
 }
 
 void iASlicerData::setSliceNumber( int sliceNumber )
@@ -1664,7 +1663,7 @@ void iASlicerData::setSliceNumber( int sliceNumber )
 	double * spacing = imageData->GetSpacing();
 	double * origin = imageData->GetOrigin();
 	//also apply to enabled channels
-	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
+	for(auto ch: m_channels)
 		ch->SetResliceAxesOrigin( origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2] );
 	setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2] );
 }
@@ -1681,7 +1680,7 @@ void iASlicerData::setSlabCompositeMode(int compositeMode)
 	update();
 }
 
-iAChannelSlicerData & iASlicerData::GetOrCreateChannel(iAChannelID id)
+iAChannelSlicerData & iASlicerData::getOrCreateChannel(uint id)
 {
 	if (!m_channels.contains(id))
 	{
@@ -1693,7 +1692,7 @@ iAChannelSlicerData & iASlicerData::GetOrCreateChannel(iAChannelID id)
 	return **m_channels.find(id);
 }
 
-iAChannelSlicerData * iASlicerData::GetChannel(iAChannelID id)
+iAChannelSlicerData * iASlicerData::getChannel(uint id)
 {
 	if (!m_channels.contains(id))
 	{
@@ -1707,9 +1706,9 @@ size_t iASlicerData::GetEnabledChannels()
 	return m_channels.size();
 }
 
-void iASlicerData::setMagicLensInput(iAChannelID id)
+void iASlicerData::setMagicLensInput(uint id)
 {
-	iAChannelSlicerData * data = GetChannel(id);
+	iAChannelSlicerData * data = getChannel(id);
 	assert ( data );
 	if (!data)
 	{
@@ -1754,12 +1753,8 @@ void iASlicerData::ResetCamera()
 
 void iASlicerData::updateChannelMappers()
 {
-	QList<iAChannelID> keys = m_channels.keys();
-	for (QList<iAChannelID>::iterator it = keys.begin();
-		it != keys.end();
-		++it)
+	for (uint key: m_channels.keys())
 	{
-		iAChannelID key = *it;
 		iAChannelSlicerData * chData = m_channels.value(key).data();
 		chData->UpdateLUT();
 		chData->updateMapper();
@@ -1813,13 +1808,13 @@ void iASlicerData::rotateSlice( double angle )
 	update();
 }
 
-void iASlicerData::switchContourSourceToChannel( iAChannelID id )
+void iASlicerData::switchContourSourceToChannel(uint id )
 {
 	if (!m_decorations)
 	{
 		return;
 	}
-	iAChannelSlicerData & chan =  GetOrCreateChannel( id );
+	iAChannelSlicerData & chan =  getOrCreateChannel( id );
 	cFilter->SetInputConnection( chan.reslicer->GetOutputPort() );
 }
 

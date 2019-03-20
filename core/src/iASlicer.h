@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAChannelID.h"
 #include "open_iA_Core_export.h"
 #include "iASlicerMode.h"
 
@@ -80,9 +79,9 @@ public:
 	int GetMagicLensSize() const;
 	void SetMagicLensFrameWidth(int newWidth);
 	void SetMagicLensCount(int count);
-	void SetMagicLensInput( iAChannelID id );
-	void AddMagicLensInput(iAChannelID id);
-	iAChannelID getMagicLensInput() const;
+	void setMagicLensInput(uint id);
+	void addMagicLensInput(uint id);
+	uint getMagicLensInput() const;
 	void SetMagicLensOpacity(double opacity);
 	double GetMagicLensOpacity() const;
 	void UpdateMagicLensColors();
@@ -97,10 +96,10 @@ public:
 						bool sil = false,
 						bool sp = false );
 
-	void initializeChannel( iAChannelID id, iAChannelVisualizationData * chData );
-	void removeChannel(iAChannelID id);
-	void reInitializeChannel( iAChannelID id, iAChannelVisualizationData * chData );
-	void setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z);
+	void initializeChannel(uint id, iAChannelVisualizationData * chData );
+	void removeChannel(uint id);
+	void reInitializeChannel(uint id, iAChannelVisualizationData * chData );
+	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 
 	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
@@ -124,15 +123,15 @@ public:
 	void initializeWidget(vtkImageData *imageData, vtkPoints *points = 0);//also connects to mdichild slots
 	void show();
 	void setPieGlyphsOn(bool isOn);
-	void setPieGlyphParameters( double opacity, double spacing, double magFactor );
-	void setChannelOpacity( iAChannelID id, double opacity );
-	void enableChannel( iAChannelID id, bool enabled, double x, double y, double z );
-	void enableChannel( iAChannelID id, bool enabled );
-	void switchContourSourceToChannel( iAChannelID id );
+	void setPieGlyphParameters(double opacity, double spacing, double magFactor );
+	void setChannelOpacity( uint id, double opacity );
+	void enableChannel( uint id, bool enabled, double x, double y, double z );
+	void enableChannel( uint id, bool enabled );
+	void switchContourSourceToChannel( uint id );
 	void showIsolines( bool s );
 	void setContours( int n, double mi, double ma );
 	void setContours( int n, double * contourValues );
-	iAChannelSlicerData * GetChannel( iAChannelID id );
+	iAChannelSlicerData * getChannel( uint id );
 	vtkCamera* GetCamera();
 	void SetCamera(vtkCamera*, bool owner=true);
 
@@ -153,7 +152,7 @@ protected:
 	iASlicerWidget * m_widget;
 
 	iASlicerMode m_mode;
-	iAChannelID m_magicLensInput;
+	uint m_magicLensInput;
 
 private:
 	QSharedPointer<iAMagicLens> m_magicLens;

@@ -429,7 +429,7 @@ void dlg_volumePlayer::enableMultiChannelVisualization() {
 	}
 
 	for(int i = 0; i < CHANNELS_COUNT; i++)
-		m_mdiChild->SetChannelRenderingEnabled(static_cast<iAChannelID>(ch_VolumePlayer0 + i), true);
+		m_mdiChild->SetChannelRenderingEnabled(m_channelID[i], true);
 }
 
 void dlg_volumePlayer::disableMultiChannelVisualization() {
@@ -438,36 +438,33 @@ void dlg_volumePlayer::disableMultiChannelVisualization() {
 	}
 
 	for(int i = 0; i < CHANNELS_COUNT; i++)
-		m_mdiChild->SetChannelRenderingEnabled(static_cast<iAChannelID>(ch_VolumePlayer0 + i), false);
+		m_mdiChild->SetChannelRenderingEnabled(m_channelID[i], false);
 }
 
-void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volumeIndex2, double blendingCoeff) {
-	if (m_mdiChild == NULL) {
+void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volumeIndex2, double blendingCoeff)
+{
+	if (!m_mdiChild)
 		return;
-	}
 
 	int volumeIndex[] = { volumeIndex1, volumeIndex2 };
 	double opacity[] = { 1., blendingCoeff };
 
-	for(int i = 0; i < CHANNELS_COUNT; i++) {
-		iAChannelID id = static_cast<iAChannelID>(ch_VolumePlayer0 + i);
-
-		iAChannelVisualizationData* chData;
-		if(!m_multiChannelIsInitialized) {
-			chData = new iAChannelVisualizationData();
-			m_mdiChild->InsertChannelData(id, chData);
-		} else {
-			chData = m_mdiChild->GetChannelData(id);
-		}
-
+	if (!m_multiChannelIsInitialized)
+		for (int i = 0; i < CHANNELS_COUNT; i++)
+			m_channelID.push_back(m_mdiChild->createChannel());
+	for(int i = 0; i < CHANNELS_COUNT; i++)
+	{
+		iAChannelVisualizationData* chData = m_mdiChild->getChannelData(m_channelID[i]);
 		vtkImageData* imageData = m_volumeStack->getVolume(volumeIndex[i]);
 		vtkColorTransferFunction* ctf = m_volumeStack->getColorTransferFunction(volumeIndex[i]);
-		if(!m_multiChannelIsInitialized) {
+		if(!m_multiChannelIsInitialized)
+		{
 			m_otf[i] = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		}
 		m_otf[i]->ShallowCopy(m_volumeStack->getPiecewiseFunction(volumeIndex[i]));
 
-		for(int j = 0; j < m_otf[i]->GetSize(); j++) {
+		for(int j = 0; j < m_otf[i]->GetSize(); j++)
+		{
 			double val[4];
 			m_otf[i]->GetNodeValue(j, val);
 			val[1] *= opacity[i];
@@ -476,13 +473,13 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 
 		ResetChannel(chData, imageData, ctf, m_otf[i]);
 
-		if(!m_multiChannelIsInitialized) {
-			m_mdiChild->InitChannelRenderer(id, true);
+		if(!m_multiChannelIsInitialized)
+		{
+			m_mdiChild->InitChannelRenderer(m_channelID[i], true);
 			// TODO: VOLUME: rewrite!
 			// m_mdiChild->getRenderer()->showMainVolumeWithChannels(false);
 		}
-
-		m_mdiChild->UpdateChannelSlicerOpacity(id, opacity[i]);
+		m_mdiChild->updateChannelOpacity(m_channelID[i], opacity[i]);
 	}
 
 	if(!m_multiChannelIsInitialized) m_multiChannelIsInitialized = true;

@@ -1092,6 +1092,7 @@ void iASlicerWidget::updateMagicLens()
 
 void iASlicerWidget::computeGlyphs()
 {
+	/*
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 	bool hasPieGlyphs = (m_pieGlyphs.size() > 0);
 	if(hasPieGlyphs)
@@ -1168,6 +1169,7 @@ void iASlicerWidget::computeGlyphs()
 		}
 	}
 	GetRenderWindow()->GetInteractor()->Render();
+	*/
 }
 
 void iASlicerWidget::setPieGlyphParameters( double opacity, double spacing, double magFactor )
