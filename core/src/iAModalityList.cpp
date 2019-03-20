@@ -130,6 +130,8 @@ QString GetRenderFlagString(QSharedPointer<iAModality> mod)
 	if (mod->hasRenderFlag(iAModality::MagicLens)) result += "L";
 	if (mod->hasRenderFlag(iAModality::MainRenderer)) result += "R";
 	if (mod->hasRenderFlag(iAModality::BoundingBox)) result += "B";
+	if (mod->hasRenderFlag(iAModality::Slicer)) result += "S";
+
 	return result;
 }
 
@@ -284,7 +286,8 @@ bool iAModalityList::Load(QString const & filename, iAProgress& progress)
 		{
 			int renderFlags = (modalityRenderFlags.contains("R") ? iAModality::MainRenderer : 0) |
 				(modalityRenderFlags.contains("L") ? iAModality::MagicLens : 0) |
-				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0);
+				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0) |
+				(modalityRenderFlags.contains("S") ? iAModality::Slicer : 0);
 
 			ModalityCollection mod = iAModalityList::Load(modalityFile, modalityName, channel, false, renderFlags);
 			if (mod.size() != 1) // we expect to load exactly one modality

@@ -47,7 +47,8 @@ public:
 		NoRenderer = 0x0,
 		MainRenderer = 0x01,
 		MagicLens = 0x02,
-		BoundingBox = 0x04 // TODO: check if that is a good idea or whether that should go somewhere else (VolumeRenderer)?
+		BoundingBox = 0x04,	// TODO: check if that is a good idea or whether that should go somewhere else (VolumeRenderer)?
+		Slicer = 0x08
 	};
 	//! create modality from name, file and image data
 	iAModality(QString const & name, QString const & filename, int channelNo, vtkSmartPointer<vtkImageData> imgData, int renderFlags);

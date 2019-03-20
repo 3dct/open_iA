@@ -47,6 +47,7 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 
 	cbMagicLens->setChecked(modality->hasRenderFlag(iAModality::MagicLens));
 	cbBoundingBox->setChecked(modality->hasRenderFlag(iAModality::BoundingBox));
+	cbShowInSlicer->setChecked(modality->hasRenderFlag(iAModality::Slicer));
 
 	double const * orientation = modality->GetRenderer()->GetOrientation();
 	double const * position = modality->GetRenderer()->GetPosition();
@@ -93,10 +94,12 @@ double getValueAndCheck(QLineEdit * le, QString const & caption, QStringList & n
 void dlg_modalityProperties::OKButtonClicked()
 {
 	m_modality->SetName(edName->text());
+	bool hasRenderFlag = m_modality->hasRenderFlag(iAModality::MainRenderer);
 	m_modality->SetRenderFlag(
 		(cbMagicLens->isChecked() ? iAModality::MagicLens : 0) |
-		iAModality::MainRenderer |
-		(cbBoundingBox->isChecked() ? iAModality::BoundingBox : 0)
+		(hasRenderFlag ? iAModality::MainRenderer : 0) |
+		(cbBoundingBox->isChecked() ? iAModality::BoundingBox : 0) |
+		(cbShowInSlicer->isChecked() ? iAModality::Slicer : 0)
 	);
 	double orientation[3];
 	double position[3];

@@ -23,19 +23,18 @@
 #include "dlg_commoninput.h"
 #include "dlg_modalityProperties.h"
 #include "dlg_transfer.h"
+#include "iAChannelVisualizationData.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
-#include "iASlicer.h"
-#include "iASlicerData.h"
 #include "iAVolumeRenderer.h"
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "io/extension2id.h"
-#include "mainwindow.h"
+#include "mdichild.h"
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
@@ -51,11 +50,12 @@
 #include <cassert>
 
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
-	vtkRenderer* mainRenderer, int numBin) :
+	vtkRenderer* mainRenderer, int numBin, MdiChild* mdiChild) :
 
 	modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),
 	m_mainRenderer(mainRenderer),
+	m_mdiChild(mdiChild),
 	m_showSlicers(false),
 	m_plane1(nullptr),
 	m_plane2(nullptr),
@@ -278,6 +278,25 @@ void dlg_modalities::EditClicked()
 		&& editModality->hasRenderFlag(iAModality::MagicLens))
 	{
 		renderer->AddTo(m_magicLensWidget->getLensRenderer());
+	}
+	if ((renderFlagsBefore & iAModality::Slicer) == iAModality::Slicer
+		&& !editModality->hasRenderFlag(iAModality::Slicer))
+	{
+		m_mdiChild->SetChannelRenderingEnabled(ch_Concentration0, false);
+	}
+	if ((renderFlagsBefore & iAModality::Slicer) == 0
+		&& editModality->hasRenderFlag(iAModality::Slicer))
+	{
+		iAChannelVisualizationData* chData = m_mdiChild->GetChannelData(ch_Concentration0);
+		if (!chData)
+		{
+			chData = new iAChannelVisualizationData();
+			m_mdiChild->InsertChannelData(ch_Concentration0, chData);
+		}
+		ResetChannel(chData, editModality->GetImage(), editModality->GetTransfer()->getColorFunction(), editModality->GetTransfer()->getOpacityFunction());
+		m_mdiChild->InitChannelRenderer(ch_Concentration0, false);
+		m_mdiChild->UpdateChannelSlicerOpacity(ch_Concentration0, 1);
+		m_mdiChild->updateViews();
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
 	emit ModalitiesChanged();

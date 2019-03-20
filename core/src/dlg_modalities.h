@@ -38,6 +38,7 @@ class iAModalityList;
 class iAVolumeRenderer;
 class iAVolumeSettings;
 class iAModalityTransfer;
+class MdiChild;
 
 class vtkActor;
 class vtkColorTransferFunction;
@@ -52,7 +53,7 @@ class open_iA_Core_API dlg_modalities : public dlg_modalitiesUI
 {
 	Q_OBJECT
 public:
-	dlg_modalities(iAFast3DMagicLensWidget* renderer, vtkRenderer* mainRenderer, int numBin);
+	dlg_modalities(iAFast3DMagicLensWidget* renderer, vtkRenderer* mainRenderer, int numBin, MdiChild* mdiChild);
 	void SetModalities(QSharedPointer<iAModalityList> modalities);
 	QSharedPointer<iAModalityList const> GetModalities() const;
 	QSharedPointer<iAModalityList> GetModalities();
@@ -99,6 +100,7 @@ private:
 	bool m_showSlicers;
 	vtkPlane *m_plane1, *m_plane2, *m_plane3;
 	vtkRenderer* m_mainRenderer;
+	MdiChild* m_mdiChild;
 
 	void AddToList(QSharedPointer<iAModality> mod);
 	//! initialize a modality's transfer function
