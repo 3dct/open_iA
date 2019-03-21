@@ -27,14 +27,15 @@
 dlg_console::dlg_console()
 {
 	setupUi(this);
-}
-
-dlg_console::~dlg_console()
-{
+	connect(pbClearLog, &QPushButton::clicked, this, &dlg_console::clear);
 }
 
 void dlg_console::Log(QString text)
 {
-	ConsoleWidget->append(text);
+	consoleTextEdit->append(text);
 }
 
+void dlg_console::clear()
+{
+	consoleTextEdit->clear();
+}
