@@ -22,6 +22,6 @@
 
 #include <iAFilter.h>
 
-IAFILTER_DEFAULT_CLASS(iASimpleConnectedComponents);
+IAFILTER_DEFAULT_CLASS(iAConnectedComponents);
 IAFILTER_DEFAULT_CLASS(iAScalarConnectedComponents);
-IAFILTER_DEFAULT_CLASS(iASimpleRelabelConnectedComponents);
+IAFILTER_DEFAULT_CLASS(iARelabelComponents);
