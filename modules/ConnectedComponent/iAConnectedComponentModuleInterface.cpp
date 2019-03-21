@@ -26,7 +26,7 @@
 
 void iAConnectedComponentModuleInterface::Initialize()
 {
-	REGISTER_FILTER(iASimpleConnectedComponents);
+	REGISTER_FILTER(iAConnectedComponents);
 	REGISTER_FILTER(iAScalarConnectedComponents);
-	REGISTER_FILTER(iASimpleRelabelConnectedComponents);
+	REGISTER_FILTER(iARelabelComponents);
 }

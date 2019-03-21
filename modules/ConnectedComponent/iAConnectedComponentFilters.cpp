@@ -34,7 +34,7 @@
 #include <QMessageBox>
 
 template<class T> 
-void SimpleConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void connectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
@@ -48,14 +48,14 @@ void SimpleConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> co
 	filter->AddOutput(ccFilter->GetOutput());
 }
 
-void iASimpleConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(SimpleConnectedComponentFilter, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(connectedComponentFilter, InputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iASimpleConnectedComponents)
+IAFILTER_CREATE(iAConnectedComponents)
 
-iASimpleConnectedComponents::iASimpleConnectedComponents() :
+iAConnectedComponents::iAConnectedComponents() :
 	iAFilter("Connected Component Filter", "Connected Component Filters",
 		"Assigns each distinct object in a binary image a unique label.<br/>"
 		"Non-zero pixels are considered to be objects, zero-valued pixels are "
@@ -69,7 +69,7 @@ iASimpleConnectedComponents::iASimpleConnectedComponents() :
 
 
 template<class T> 
-void ScalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void scalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
@@ -86,7 +86,7 @@ IAFILTER_CREATE(iAScalarConnectedComponents)
 
 void iAScalarConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(ScalarConnectedComponentFilter, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(scalarConnectedComponentFilter, InputPixelType(), this, parameters);
 }
 
 iAScalarConnectedComponents::iAScalarConnectedComponents() :
@@ -102,7 +102,7 @@ iAScalarConnectedComponents::iAScalarConnectedComponents() :
 
 
 template<class T> 
-void SimpleRelabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
@@ -126,18 +126,18 @@ void SimpleRelabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant>
 	filter->AddOutput(rccFilter->GetOutput());
 }
 
-IAFILTER_CREATE(iASimpleRelabelConnectedComponents)
+IAFILTER_CREATE(iARelabelComponents)
 
-void iASimpleRelabelConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
+void iARelabelComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(SimpleRelabelComponentImageFilter, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(relabelComponentImageFilter, InputPixelType(), this, parameters);
 }
 
-iASimpleRelabelConnectedComponents::iASimpleRelabelConnectedComponents() :
+iARelabelComponents::iARelabelComponents() :
 	iAFilter("Relabel Components", "Connected Component Filters",
 		"Remaps the labels associated with the objects in an image such that the "
 		"label numbers are consecutive with no gaps.<br/>"
-		"The input could for example be the output of the Simple Connected "
+		"The input could for example be the output of the Connected "
 		"Component Filter. By default, the relabeling will also sort the labels "
 		"based on the size of the object: the largest object will have label #1, "
 		"the second largest will have label #2, etc. If two labels have the same "
