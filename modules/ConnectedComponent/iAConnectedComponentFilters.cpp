@@ -56,7 +56,7 @@ void iAConnectedComponents::PerformWork(QMap<QString, QVariant> const & paramete
 IAFILTER_CREATE(iAConnectedComponents)
 
 iAConnectedComponents::iAConnectedComponents() :
-	iAFilter("Connected Component Filter", "Connected Component Filters",
+	iAFilter("Connected Component Filter", "Connected Components",
 		"Assigns each distinct object in a binary image a unique label.<br/>"
 		"Non-zero pixels are considered to be objects, zero-valued pixels are "
 		"considered to be background).<br/>"
@@ -90,7 +90,7 @@ void iAScalarConnectedComponents::PerformWork(QMap<QString, QVariant> const & pa
 }
 
 iAScalarConnectedComponents::iAScalarConnectedComponents() :
-	iAFilter("Scalar Connected Component Filter", "Connected Component Filters",
+	iAFilter("Scalar Connected Component Filter", "Connected Components",
 		"Labels the objects in an arbitrary image.<br/>"
 		"Two pixels are similar if they are within <em>Distance Threshold</em> of each other.<br/>"
 		"For more information, see the "
@@ -134,7 +134,7 @@ void iARelabelComponents::PerformWork(QMap<QString, QVariant> const & parameters
 }
 
 iARelabelComponents::iARelabelComponents() :
-	iAFilter("Relabel Components", "Connected Component Filters",
+	iAFilter("Relabel Components", "Connected Components",
 		"Remaps the labels associated with the objects in an image such that the "
 		"label numbers are consecutive with no gaps.<br/>"
 		"The input could for example be the output of the Connected "
