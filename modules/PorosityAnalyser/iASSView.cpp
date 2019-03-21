@@ -48,12 +48,6 @@
 const iASlicerMode mode[3] = { XY, YZ, XZ };
 const int extentIndices[3][2] = { { 4, 5 }, { 0, 1 }, { 2, 3 } };
 
-extern const iAChannelID MasksChanID;
-extern const iAChannelID GTChanID;
-extern const iAChannelID minChanID;
-extern const iAChannelID medChanID;
-extern const iAChannelID maxChanID;
-
 inline double NormalizedSliderValue(QSlider * slider)
 {
 	return (double)slider->value() / ( slider->maximum() - slider->minimum() );

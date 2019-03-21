@@ -29,7 +29,7 @@
 #include <vtkScalarBarWidget.h>
 #include <vtkTransform.h>
 
-iAChanData::iAChanData( const QList<QColor> & colors, iAChannelID chanId ) :
+iAChanData::iAChanData( const QList<QColor> & colors, uint chanId ) :
 	visData( new iAChannelVisualizationData ),
 	imgData( vtkSmartPointer<vtkImageData>::New() ),
 	tf( vtkSmartPointer<vtkColorTransferFunction>::New() ),
@@ -40,7 +40,7 @@ iAChanData::iAChanData( const QList<QColor> & colors, iAChannelID chanId ) :
 	scalarBarWgt( vtkSmartPointer<vtkScalarBarWidget>::New() )
 {}
 
-iAChanData::iAChanData( QColor c1, QColor c2, iAChannelID chanId ) :
+iAChanData::iAChanData( QColor c1, QColor c2, uint chanId ) :
 	visData( new iAChannelVisualizationData ),
 	imgData( vtkSmartPointer<vtkImageData>::New() ),
 	tf( vtkSmartPointer<vtkColorTransferFunction>::New() ),

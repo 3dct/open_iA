@@ -273,9 +273,9 @@ void iADetailView::ChangeModality(int offset)
 
 void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, QString const & name)
 {
-	iAChannelID removedID = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID - m_magicLensCount);
+	uint removedID = (m_nextChannelID - m_magicLensCount);
 
-	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0 + m_nextChannelID);
+	uint id = m_nextChannelID;
 	m_nextChannelID = (m_nextChannelID + 1) % 8;
 	iAChannelVisualizationData magicLensData;
 	ResetChannel(&magicLensData, img, ctf, otf);
@@ -293,7 +293,7 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 	case XY: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2] + static_cast<double>(sliceNr) * spc[2]); break;
 	case XZ: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1] + static_cast<double>(sliceNr) * spc[1], origin[2]); break;
 	}
-	slicer->SetMagicLensInput(id);
+	slicer->setMagicLensInput(id);
 	slicer->update();
 }
 
@@ -457,12 +457,10 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 	UpdateComparisonNumbers();
 }
 
-
 bool iADetailView::IsShowingCluster() const
 {
 	return m_showingClusterRepresentative;
 }
-
 
 void iADetailView::SetMagicLensOpacity(double opacity)
 {
@@ -470,6 +468,10 @@ void iADetailView::SetMagicLensOpacity(double opacity)
 	slicer->SetMagicLensOpacity(opacity);
 }
 
+namespace
+{
+	const uint ResultFilterChannelID = 9;
+}
 
 void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme const * colorTheme)
 {
@@ -494,7 +496,7 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
 		ResetChannel(m_resultFilterChannel.data(), m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		iASlicer* slicer = m_previewWidget->GetSlicer();
-		slicer->reInitializeChannel(ch_LabelOverlay, m_resultFilterChannel.data());
+		slicer->reInitializeChannel(ResultFilterChannelID, m_resultFilterChannel.data());
 		slicer->update();
 	}
 }
@@ -682,21 +684,19 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 	m_resultFilterImg->SetScalarRange(0, m_labelCount);
 	m_resultFilter.append(QPair<iAImageCoordinate, int>(iAImageCoordinate(x, y, z), label));
 
-	iAChannelID id = static_cast<iAChannelID>(ch_LabelOverlay);
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	if (!m_resultFilterChannel)
 	{
 		m_resultFilterChannel = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
 		m_resultFilterChannel->SetName("Result Filter");
 		ResetChannel(m_resultFilterChannel.data(), m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
-		slicer->initializeChannel(id, m_resultFilterChannel.data());
-
+		slicer->initializeChannel(ResultFilterChannelID, m_resultFilterChannel.data());
 		int sliceNr = m_previewWidget->GetSliceNumber();
 		switch (slicer->GetMode())
 		{
-		case YZ: slicer->GetSlicerData()->enableChannel(id, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
-		case XY: slicer->GetSlicerData()->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
-		case XZ: slicer->GetSlicerData()->enableChannel(id, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
+		case YZ: slicer->GetSlicerData()->enableChannel(ResultFilterChannelID, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
+		case XY: slicer->GetSlicerData()->enableChannel(ResultFilterChannelID, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
+		case XZ: slicer->GetSlicerData()->enableChannel(ResultFilterChannelID, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
 		}
 	}
 	slicer->update();

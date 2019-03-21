@@ -41,7 +41,8 @@ dlg_modalitySPLOM::dlg_modalitySPLOM():
 	m_splom(new iAQSplom(this)),
 	m_voxelData(new QTableWidget()),
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
-	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New())
+	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
+	m_SPLOMSelectionChannelID(NotExistingChannel)
 {
 	m_selection_ctf->AddRGBPoint(0, 0, 0, 0);
 	m_selection_ctf->AddRGBPoint(1, 1.0, 0.0, 0.0);
@@ -93,21 +94,18 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	if (!m_selected)
 	{
-		mdiChild->SetChannelRenderingEnabled(ch_ModSPLOMSelection, false);
+		mdiChild->SetChannelRenderingEnabled(m_SPLOMSelectionChannelID, false);
 		m_selected = true;
 		return;
 	}
 	
-	iAChannelVisualizationData* chData = mdiChild->GetChannelData(ch_ModSPLOMSelection);
-	if (!chData)
-	{
-		chData = new iAChannelVisualizationData();
-		mdiChild->InsertChannelData(ch_ModSPLOMSelection, chData);
-	}
+	if (m_SPLOMSelectionChannelID == NotExistingChannel)
+		m_SPLOMSelectionChannelID = mdiChild->createChannel();
+	auto chData = mdiChild->getChannelData(m_SPLOMSelectionChannelID);
 	ResetChannel(chData, result, m_selection_ctf, m_selection_otf);
 
-	mdiChild->InitChannelRenderer(ch_ModSPLOMSelection, true);
-	mdiChild->UpdateChannelSlicerOpacity(ch_ModSPLOMSelection, 0.5);
+	mdiChild->InitChannelRenderer(m_SPLOMSelectionChannelID, false);
+	mdiChild->updateChannelOpacity(m_SPLOMSelectionChannelID, 0.5);
 	mdiChild->updateViews();
 }
 

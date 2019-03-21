@@ -134,4 +134,5 @@ private:
 	// TODO: another pointer to MdiChild... is this really optimal?
 	MdiChild *m_mdiChild;
 	
+	uint m_channelIDs[3];
 };

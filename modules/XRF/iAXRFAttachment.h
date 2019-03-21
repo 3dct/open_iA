@@ -73,4 +73,5 @@ protected:
 	dlg_XRF * dlgXRF;
 	iAIO * ioThread;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
+	uint m_xrfChannelID;
 };
