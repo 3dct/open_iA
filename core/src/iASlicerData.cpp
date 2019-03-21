@@ -58,6 +58,7 @@
 #include <vtkImageMapToColors.h>
 #include <vtkImageReslice.h>
 #include <vtkInteractorStyleImage.h>
+#include "vtkInteractorStyleSwitch.h"
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
@@ -89,36 +90,37 @@
 #include <QString>
 #include <QThread>
 
+
 namespace
 {
 	const double PickTolerance = 100.0;
 }
 
-class iAInteractorStyleImage : public vtkInteractorStyleImage
+class iAInteractorStyleImage : public vtkInteractorStyleSwitch/* vtkInteractorStyleImage*/
 {
 public:
 	static iAInteractorStyleImage *New();
-	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage);
+	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleSwitch);
 
 	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
 	void OnLeftButtonDown() override
 	{
 		if (!this->Interactor->GetShiftKey())
 			return;
-		vtkInteractorStyleImage::OnLeftButtonDown();
+		vtkInteractorStyleSwitch::OnLeftButtonDown();
 	}
 	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
 	void OnMouseWheelForward() override
 	{
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
 			return;
-		vtkInteractorStyleImage::OnMouseWheelForward();
+		vtkInteractorStyleSwitch::OnMouseWheelForward();
 	}
 	void OnMouseWheelBackward() override
 	{
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
 			return;
-		vtkInteractorStyleImage::OnMouseWheelBackward();
+		vtkInteractorStyleSwitch::OnMouseWheelBackward();
 	}
 	//! @}
 	//! @{ Conditionally disable zooming via right button dragging
@@ -126,7 +128,7 @@ public:
 	{
 		if (!m_rightButtonDragZoomEnabled)
 			return;
-		vtkInteractorStyleImage::OnRightButtonDown();
+		vtkInteractorStyleSwitch::OnRightButtonDown();
 	}
 	void SetRightButtonDragZoomEnabled(bool enabled)
 	{

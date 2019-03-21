@@ -30,6 +30,8 @@
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
+#include "iASlicer.h"
+#include "iASlicerData.h"
 #include "iAVolumeRenderer.h"
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
@@ -299,6 +301,7 @@ void dlg_modalities::EditClicked()
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
 	emit ModalitiesChanged();
+	
 }
 
 void dlg_modalities::EnableButtons()
@@ -311,18 +314,62 @@ void dlg_modalities::EnableButtons()
 void dlg_modalities::ManualRegistration()
 {
 	vtkInteractorStyleSwitch* interactSwitch = dynamic_cast<vtkInteractorStyleSwitch*>(m_magicLensWidget->GetInteractor()->GetInteractorStyle());
-	if (!interactSwitch)
+
+	m_mdiChild->getSlicerXY()->GetSlicerData()->enableInteractor();
+	vtkInteractorStyleSwitch* interactSwitch_XY = 
+		dynamic_cast<vtkInteractorStyleSwitch*>(m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->GetInteractorStyle());
+	
+	vtkInteractorStyleSwitch* interactSwitch_YZ =
+		dynamic_cast<vtkInteractorStyleSwitch*>(m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->GetInteractorStyle());
+
+	vtkInteractorStyleSwitch* interactSwitch_XZ =
+		dynamic_cast<vtkInteractorStyleSwitch*>(m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->GetInteractorStyle());
+
+
+	if (!interactSwitch  /*| (!interactSwitch_XZ) ||(!interactSwitch_YZ) */)
 	{
 		return;
 	}
 	if (cbManualRegistration->isChecked())
 	{
 		interactSwitch->SetCurrentStyleToTrackballActor();
+
+		//interactor nulll
+		//no update of slice window; 
+		//background black not transparent
+	
+		if (!interactSwitch_XY) { DEBUG_LOG("XY Interactor null") };
+		if (!interactSwitch_YZ) { DEBUG_LOG("YZ Interactor null") };
+		if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null") };
+
+
+		//Muss ich über die Orientierung machen sonst wird der Slicer nicht verschoben; 
+		interactSwitch_XY->SetCurrentStyleToTrackballActor();
+		
+		
+		//Slicer in Physische Koordinaten umrechnen; Hintergrund
+		interactSwitch_YZ->SetCurrentStyleToTrackballActor();
+		interactSwitch_XZ->SetCurrentStyleToTrackballActor();
+		
+
 	}
 	else
 	{
+
+
+		interactSwitch_XY->SetCurrentStyleToTrackballCamera();
+		interactSwitch_YZ->SetCurrentStyleToTrackballCamera();
+		interactSwitch_XZ->SetCurrentStyleToTrackballCamera();
 		interactSwitch->SetCurrentStyleToTrackballCamera();
+		/*m_mdiChild->updateViews();
+		emit ModalitiesChanged();*/
 	}
+
+	//TODO set this for every region
+	//umrechnen in physischen Koordinaten
+	
+
+	
 }
 
 void dlg_modalities::ListClicked(QListWidgetItem* item)
