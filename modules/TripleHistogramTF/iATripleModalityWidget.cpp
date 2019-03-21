@@ -316,10 +316,10 @@ void iATripleModalityWidget::updateModalities()
 		}
 	} else {
 		int i = 0;
-		for (; i < 3 && i < m_mdiChild->GetModalities()->size(); ++i) {
+		for (; i < ModalityNumber && i < m_mdiChild->GetModalities()->size(); ++i) {
 			m_modalitiesActive[i] = m_mdiChild->GetModality(i);
 		}
-		for (; i < 3; i++) {
+		for (; i < ModalityNumber; i++) { // Loop is not executed - and probably not intended to be?
 			m_modalitiesActive[i] = nullptr;
 			//if (m_weightLabels[i]) delete m_weightLabels[i];
 			//if (m_modalityLabels[i]) delete m_modalityLabels[i];
@@ -330,7 +330,7 @@ void iATripleModalityWidget::updateModalities()
 	}
 
 	// Initialize modalities being added
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < ModalityNumber; ++i)
 	{
 		m_modalitiesActive[i] = m_mdiChild->GetModality(i);
 
@@ -503,7 +503,7 @@ void iATripleModalityWidget::updateOriginalTransferFunction(int index)
 void iATripleModalityWidget::applyWeights()
 {
 	if (isReady()) {
-		for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < ModalityNumber; ++i)
 		{
 			vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
 			vtkPiecewiseFunction *copy = m_copyTFs[i]->getOpacityFunction();

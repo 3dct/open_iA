@@ -44,7 +44,8 @@ class QComboBox;
 class QLabel;
 class QSlider;
 
-static const QString DEFAULT_MODALITY_LABELS[3] = { "A", "B", "C" };
+static const size_t ModalityNumber = 3;
+static const QString DEFAULT_MODALITY_LABELS[ModalityNumber] = { "A", "B", "C" };
 
 class iATripleModalityWidget : public QWidget
 {
@@ -97,8 +98,8 @@ signals:
 	void sliceNumberChanged(int sliceNumber);
 
 protected:
-	iADiagramFctWidget* m_histograms[3] = { nullptr, nullptr, nullptr };
-	iASimpleSlicerWidget *m_slicerWidgets[3] = { nullptr, nullptr, nullptr };
+	iADiagramFctWidget* m_histograms[ModalityNumber] = { nullptr, nullptr, nullptr };
+	iASimpleSlicerWidget *m_slicerWidgets[ModalityNumber] = { nullptr, nullptr, nullptr };
 	QComboBox *m_slicerModeComboBox;
 	QSlider *m_sliceSlider;
 	iABarycentricTriangleWidget *m_triangleWidget;
@@ -115,7 +116,7 @@ private:
 	void setSlicerModePrivate(iASlicerMode slicerMode);
 	void setSliceNumberPrivate(int sliceNumber);
 
-	QSharedPointer<iAModality> m_modalitiesActive[3];
+	QSharedPointer<iAModality> m_modalitiesActive[ModalityNumber];
 
 	iATriangleRenderer *m_triangleRenderer;
 
@@ -125,7 +126,7 @@ private:
 	int getSliceNumber();
 
 	// Background stuff
-	iATransferFunction *m_copyTFs[3] = { nullptr, nullptr, nullptr };
+	iATransferFunction *m_copyTFs[ModalityNumber] = { nullptr, nullptr, nullptr };
 	iATransferFunction* createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacity);
 
 	// Widgets and stuff
@@ -134,5 +135,5 @@ private:
 	// TODO: another pointer to MdiChild... is this really optimal?
 	MdiChild *m_mdiChild;
 	
-	uint m_channelIDs[3];
+	uint m_channelIDs[ModalityNumber];
 };
