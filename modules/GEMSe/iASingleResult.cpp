@@ -46,7 +46,7 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 	int id = tokens[0].toInt(&ok);
 	if (!ok)
 	{
-		DEBUG_LOG(QString("Invalid result ID: %1").arg(id));
+		DEBUG_LOG(QString("Invalid result ID: %1").arg(tokens[0]));
 		return QSharedPointer<iASingleResult>();
 	}
 	QSharedPointer<iASingleResult> result(new iASingleResult(

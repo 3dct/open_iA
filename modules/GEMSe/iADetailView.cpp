@@ -675,11 +675,11 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 		m_resultFilterImg->SetDimensions(m_dimensions);
 		m_resultFilterImg->AllocateScalars(VTK_INT, 1);
 		m_resultFilterImg->SetSpacing(m_spacing);
-		clearImage(m_resultFilterImg, m_labelCount);
+		clearImage(m_resultFilterImg, 0);
 		m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
 		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
 	}
-	drawPixel(m_resultFilterImg, x, y, z, label);
+	drawPixel(m_resultFilterImg, x, y, z, label+1);
 	m_resultFilterImg->Modified();
 	m_resultFilterImg->SetScalarRange(0, m_labelCount);
 	m_resultFilter.append(QPair<iAImageCoordinate, int>(iAImageCoordinate(x, y, z), label));
@@ -707,7 +707,7 @@ void iADetailView::ResetResultFilter()
 {
 	if (m_resultFilterImg)
 	{
-		clearImage(m_resultFilterImg, m_labelCount);
+		clearImage(m_resultFilterImg, 0);
 		m_resultFilterImg->Modified();
 		iASlicer* slicer = m_previewWidget->GetSlicer();
 		slicer->update();
