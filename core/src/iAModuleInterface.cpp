@@ -172,7 +172,7 @@ void iAModuleInterface::AddActionToMenuAlphabeticallySorted( QMenu * menu, QActi
 
 iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
 {
-	return 0;
+	return nullptr;
 }
 
 bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
