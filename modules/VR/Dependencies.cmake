@@ -1,0 +1,3 @@
+SET( DEPENDENCIES_CMAKE
+	vtkRenderingOpenVR_LOADED
+)
