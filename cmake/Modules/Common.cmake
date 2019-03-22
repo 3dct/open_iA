@@ -54,6 +54,7 @@ ENDIF()
 FIND_PACKAGE(ITK)
 IF(ITK_FOUND)
 	INCLUDE(${ITK_USE_FILE})
+	MESSAGE(STATUS "ITK: ${ITK_VERSION} in ${ITK_DIR}")
 ELSE(ITK_FOUND)
 	MESSAGE(FATAL_ERROR "Cannot build without ITK.  Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
@@ -117,7 +118,7 @@ IF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 	# SCIFIO only available in ITK >= 4.5?
 	IF (SCIFIO_LOADED)
 		ADD_DEFINITIONS(-DUSE_SCIFIO)
-		MESSAGE(STATUS "ITK has SCIFIO support enabled.\n\
+		MESSAGE(STATUS "    SCIFIO support enabled!\n\
     Notice that in order to run a build with this library on another machine\n\
     than the one you built it, the environment variable SCIFIO_PATH\n\
     has to be set to the path containing the SCIFIO jar files!\n\
@@ -145,17 +146,16 @@ ENDIF(ITK_VERSION_MAJOR GREATER 4 OR ITK_VERSION_MINOR GREATER 4)
 FIND_PACKAGE(VTK)
 IF(VTK_FOUND)
 	INCLUDE(${VTK_USE_FILE})
+	MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}")
 ELSE()
 	MESSAGE(FATAL_ERROR "Cannot build without VTK. Please set VTK_DIR.")
 ENDIF()
 IF(VTK_VERSION_MAJOR LESS 7)
 	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 7.0")
 ENDIF()
+MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-	MESSAGE(STATUS "VTK is using OpenGL2 Backend!")
 	ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
-ELSE()
-	MESSAGE(STATUS "VTK is using OpenGL Backend.")
 ENDIF()
 SET (VTK_LIBRARIES
 	vtkCommonCore
@@ -179,10 +179,16 @@ IF (VTK_VERSION_MAJOR GREATER 7 OR (VTK_VERSION_MAJOR EQUAL 7 AND VTK_VERSION_MI
 	ENDIF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 ENDIF()
 IF (vtkoggtheora_LOADED OR vtkogg_LOADED)
-	MESSAGE(STATUS "Video: Ogg Theora Encoder available")
+	MESSAGE(STATUS "    Video: Ogg Theora Encoder available")
 	ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
 ELSE()
-	MESSAGE(WARNING "No video encoder available! You will not be able to record videos.")
+	MESSAGE(WARNING "    Video: No encoder available! You will not be able to record videos.")
+ENDIF()
+IF (vtkRenderingOpenVR_LOADED)
+	MESSAGE(STATUS "    OpenVR: available")
+	SET (VTK_LIBRARIES ${VTK_LIBRARIES} vtkRenderingOpenVR)
+ELSE()
+	MESSAGE(STATUS "    OpenVR: NOT available! Enable Module_vtkRenderingOpenVR in VTK to make it available.")
 ENDIF()
 
 
