@@ -74,6 +74,8 @@ public:
 	void ChangeMode(const iASlicerMode mode);
 	iASlicerMode GetMode() const;
 	void changeImageData(vtkImageData *idata);
+
+	//! @{ Magic Lens methods
 	void SetMagicLensEnabled( bool isEnabled );
 	void SetMagicLensSize(int newSize);
 	int GetMagicLensSize() const;
@@ -85,6 +87,7 @@ public:
 	void SetMagicLensOpacity(double opacity);
 	double GetMagicLensOpacity() const;
 	void UpdateMagicLensColors();
+	//! @}
 
 	//iASlicerData: wrapping methods--------------------------
 	void disableInteractor();

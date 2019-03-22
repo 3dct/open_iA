@@ -131,7 +131,7 @@ private:
 	int m_magicLensCount;
 	iAColorTheme const * m_colorTheme;
 
-	int m_nextChannelID;
+	uint m_nextChannelID;
 
 	vtkSmartPointer<iAvtkImageData> m_resultFilterImg;
 	vtkSmartPointer<vtkLookupTable> m_resultFilterOverlayLUT;

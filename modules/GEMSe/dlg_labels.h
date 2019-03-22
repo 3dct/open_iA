@@ -91,4 +91,5 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOverlayOTF;
 	MdiChild* m_mdiChild;
 	bool m_newOverlay;
+	uint m_labelChannelID;
 };

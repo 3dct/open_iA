@@ -101,7 +101,8 @@ dlg_XRF::dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
 	m_periodicTableListener(new iAPeriodicTableListener(this)),
-	m_refSpectra(dlgRefSpectra)
+	m_refSpectra(dlgRefSpectra),
+	m_spectrumSelectionChannelID(NotExistingChannel)
 {
 	spectrumVisWidget->hide();
 
@@ -207,11 +208,11 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_colormapRen = vtkSmartPointer<vtkRenderer>::New();
 	m_colormapRen->SetBackground(1.0, 1.0, 1.0);
 
-	CREATE_OLDVTKWIDGET(colormapWidget);
-	horizontalLayout_8->insertWidget(0, colormapWidget);
-	colormapWidget->GetRenderWindow()->AddRenderer(m_colormapRen);
+	CREATE_OLDVTKWIDGET(m_colormapWidget);
+	horizontalLayout_8->insertWidget(0, m_colormapWidget);
+	m_colormapWidget->GetRenderWindow()->AddRenderer(m_colormapRen);
 	vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
-	colormapWidget->GetInteractor()->SetInteractorStyle(style);
+	m_colormapWidget->GetInteractor()->SetInteractorStyle(style);
 
 	m_colormapLUT = vtkSmartPointer<vtkColorTransferFunction>::New();
 	m_colormapLUT->SetColorSpaceToRGB();
@@ -233,7 +234,7 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_colormapScalarBarActor->SetPosition2(1.0, 0.93);
 
 	m_colormapRen->AddActor2D(m_colormapScalarBarActor);
-	colormapWidget->GetRenderWindow()->Render();
+	m_colormapWidget->GetRenderWindow()->Render();
 
 	m_refSpectra->cb_showRefSpectra->setEnabled(true);
 	m_refSpectra->cb_showRefLines->setEnabled(true);
@@ -448,7 +449,7 @@ void dlg_XRF::initSpectraOverlay()
 		numBin,
 		sensVal, sensMax, threshVal, threshMax, smoothFade);
 	m_spectrumDiagram->addImageOverlay(m_spectraHistogramImage);
-	colormapWidget->GetRenderWindow()->Render();
+	m_colormapWidget->GetRenderWindow()->Render();
 }
 
 
@@ -798,7 +799,7 @@ void dlg_XRF::combinedElementMaps(int show)
 	{
 		for (int i=0; i<m_enabledChannels; ++i)
 		{
-			mdiChild->SetChannelRenderingEnabled(static_cast<iAChannelID>(ch_Concentration0+i), false);
+			mdiChild->SetChannelRenderingEnabled(m_channelIDs[i], false);
 		}
 		m_enabledChannels = 0;
 		cb_pieChartGlyphs->setEnabled(false);
@@ -817,13 +818,9 @@ void dlg_XRF::combinedElementMaps(int show)
 			m_refSpectraLib->setElementChannel(i, -1);
 			continue;
 		}
-		iAChannelID id = static_cast<iAChannelID>(ch_Concentration0+m_enabledChannels);
-		iAChannelVisualizationData* chData = mdiChild->GetChannelData(id);
-		if (!chData)
-		{
-			chData = new iAChannelVisualizationData();
-			mdiChild->InsertChannelData(id, chData);
-		}
+		if (m_channelIDs.size() <= i)
+			m_channelIDs.push_back(mdiChild->createChannel());
+		auto chData = mdiChild->getChannelData(m_channelIDs[i]);
 		vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(i));
 		QColor color = m_refSpectraLib->getElementColor(i);
 		float h, s, v;
@@ -844,9 +841,8 @@ void dlg_XRF::combinedElementMaps(int show)
 
 		chData->SetColor(color);
 		ResetChannel(chData, chImgData, m_ctf[m_enabledChannels], m_otf[m_enabledChannels]);
-
-		mdiChild->InitChannelRenderer(id, false);
-		mdiChild->UpdateChannelSlicerOpacity(id, 1);
+		mdiChild->InitChannelRenderer(m_channelIDs[i], false);
+		mdiChild->updateChannelOpacity(m_channelIDs[i], 1);
 
 		// set channel index in model data for reference:
 		m_refSpectraLib->setElementOpacity(i, 10);
@@ -941,22 +937,18 @@ void dlg_XRF::updateSelection()
 
 	if (m_activeFilter.empty())
 	{
-		mdiChild->SetChannelRenderingEnabled(ch_SpectrumSelection, false);
+		mdiChild->SetChannelRenderingEnabled(m_spectrumSelectionChannelID, false);
 		return;
 	}
 	
 	vtkSmartPointer<vtkImageData> result = m_xrfData->FilterSpectrum(m_activeFilter, static_cast<iAFilterMode>(comB_spectrumSelectionMode->currentIndex()));
 	
-	iAChannelVisualizationData* chData = mdiChild->GetChannelData(ch_SpectrumSelection);
-	if (!chData)
-	{
-		chData = new iAChannelVisualizationData();
-		mdiChild->InsertChannelData(ch_SpectrumSelection, chData);
-	}
+	if (m_spectrumSelectionChannelID == NotExistingChannel)
+		m_spectrumSelectionChannelID = mdiChild->createChannel();
+	auto chData = mdiChild->getChannelData(m_spectrumSelectionChannelID);
 	ResetChannel(chData, result, m_selection_ctf, m_selection_otf);
-
-	mdiChild->InitChannelRenderer(ch_SpectrumSelection, true);
-	mdiChild->UpdateChannelSlicerOpacity(ch_SpectrumSelection, 0.5);
+	mdiChild->InitChannelRenderer(m_spectrumSelectionChannelID, true);
+	mdiChild->updateChannelOpacity(m_spectrumSelectionChannelID, 0.5);
 
 	if (cb_spectraLines->isChecked())
 	{
@@ -1064,9 +1056,8 @@ void dlg_XRF::updatePieGlyphParameters( int newVal )
 void dlg_XRF::updateConcentrationOpacity(int newVal)
 {
 	if (cb_combinedElementMaps->checkState() != Qt::Checked)
-	{
 		return;
-	}
+
 	QModelIndexList indices = m_refSpectra->refSpectraListView->selectionModel()->selectedIndexes();
 	if (indices.empty())
 	{
@@ -1074,13 +1065,12 @@ void dlg_XRF::updateConcentrationOpacity(int newVal)
 	}
 	m_refSpectraLib->setElementOpacity(indices[0], newVal);
 	int channelIdx = m_refSpectraLib->getElementChannel(indices[0]);
-	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0+channelIdx);
 	double opacity = (double)newVal / sl_concentrationOpacity->maximum();
 	m_otf[channelIdx]->RemoveAllPoints();
 	m_otf[channelIdx]->AddPoint(0.0, 0.0);
 	m_otf[channelIdx]->AddPoint(1.0, opacity);
 	vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(channelIdx);
-	(dynamic_cast<MdiChild*>(parent()))->reInitChannel(id, chImgData, m_ctf[channelIdx], m_otf[channelIdx]);
+	(dynamic_cast<MdiChild*>(parent()))->updateChannel(m_channelIDs[channelIdx], chImgData, m_ctf[channelIdx], m_otf[channelIdx]);
 	(dynamic_cast<MdiChild*>(parent()))->updateViews();
 }
 

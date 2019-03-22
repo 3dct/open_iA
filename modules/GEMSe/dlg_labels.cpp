@@ -24,7 +24,6 @@
 #include "iALabelOverlayThread.h"
 
 #include <dlg_commoninput.h>
-#include <iAChannelID.h>
 #include <iAChannelVisualizationData.h>
 #include <iAColorTheme.h>
 #include <iAConsole.h>
@@ -54,7 +53,8 @@ dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	m_itemModel(new QStandardItemModel()),
 	m_colorTheme(colorTheme),
 	m_mdiChild(mdiChild),
-	m_maxColor(0)
+	m_maxColor(0),
+	m_labelChannelID(mdiChild->createChannel())
 {
 	connect(pbAdd, SIGNAL(clicked()), this, SLOT(Add()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(Remove()));
@@ -175,12 +175,6 @@ int dlg_labels::AddLabelItem(QString const & labelText)
 		m_labelOverlayImg->SetSpacing(m_mdiChild->getImagePointer()->GetSpacing());
 		m_labelOverlayImg->AllocateScalars(VTK_INT, 1);
 		clearImage(m_labelOverlayImg, 0);
-		iAChannelVisualizationData* chData = m_mdiChild->GetChannelData(ch_LabelOverlay);
-		if (!chData)
-		{
-			chData = new iAChannelVisualizationData();
-			m_mdiChild->InsertChannelData(ch_LabelOverlay, chData);
-		}
 	}
 	QStandardItem* newItem = new QStandardItem(labelText);
 	QStandardItem* newItemCount = new QStandardItem("0");
@@ -213,8 +207,8 @@ void dlg_labels::UpdateChannel()
 {
 	m_labelOverlayImg->Modified();
 	m_labelOverlayImg->SetScalarRange(0, count());
-	m_mdiChild->reInitChannel(ch_LabelOverlay, m_labelOverlayImg, m_labelOverlayLUT, m_labelOverlayOTF);
-	m_mdiChild->InitChannelRenderer(ch_LabelOverlay, false);
+	m_mdiChild->updateChannel(m_labelChannelID, m_labelOverlayImg, m_labelOverlayLUT, m_labelOverlayOTF);
+	m_mdiChild->InitChannelRenderer(m_labelChannelID, false);
 	m_mdiChild->updateViews();
 }
 

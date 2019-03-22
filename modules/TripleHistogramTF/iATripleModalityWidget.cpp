@@ -316,10 +316,10 @@ void iATripleModalityWidget::updateModalities()
 		}
 	} else {
 		int i = 0;
-		for (; i < 3 && i < m_mdiChild->GetModalities()->size(); ++i) {
+		for (; i < ModalityNumber && i < m_mdiChild->GetModalities()->size(); ++i) {
 			m_modalitiesActive[i] = m_mdiChild->GetModality(i);
 		}
-		for (; i < 3; i++) {
+		for (; i < ModalityNumber; i++) { // Loop is not executed - and probably not intended to be?
 			m_modalitiesActive[i] = nullptr;
 			//if (m_weightLabels[i]) delete m_weightLabels[i];
 			//if (m_modalityLabels[i]) delete m_modalityLabels[i];
@@ -330,7 +330,8 @@ void iATripleModalityWidget::updateModalities()
 	}
 
 	// Initialize modalities being added
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < ModalityNumber; ++i)
+	{
 		m_modalitiesActive[i] = m_mdiChild->GetModality(i);
 
 		// Histogram {
@@ -358,14 +359,13 @@ void iATripleModalityWidget::updateModalities()
 		m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 		// }
 
-		iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
-		iAChannelVisualizationData* chData = new iAChannelVisualizationData();
-		m_mdiChild->InsertChannelData(id, chData);
+		m_channelIDs[i] = m_mdiChild->createChannel();
+		iAChannelVisualizationData* chData = m_mdiChild->getChannelData(m_channelIDs[i]);
 		vtkImageData* imageData = m_modalitiesActive[i]->GetImage();
 		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->GetTransfer()->getColorFunction();
 		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
 		ResetChannel(chData, imageData, ctf, otf);
-		m_mdiChild->InitChannelRenderer(id, false, true);
+		m_mdiChild->InitChannelRenderer(m_channelIDs[i], false, true);
 	}
 
 	m_triangleWidget->setModalities(getModality(0)->GetImage(), getModality(1)->GetImage(), getModality(2)->GetImage());
@@ -503,7 +503,7 @@ void iATripleModalityWidget::updateOriginalTransferFunction(int index)
 void iATripleModalityWidget::applyWeights()
 {
 	if (isReady()) {
-		for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < ModalityNumber; ++i)
 		{
 			vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
 			vtkPiecewiseFunction *copy = m_copyTFs[i]->getOpacityFunction();
@@ -517,8 +517,7 @@ void iATripleModalityWidget::applyWeights()
 			}
 			m_histograms[i]->update();
 
-			iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
-			//m_mdiChild->UpdateChannelSlicerOpacity(id, m_weightCur[i]);
+			//m_mdiChild->updateChannelOpacity(m_channelIDs[i], m_weightCur[i]);
 			m_mdiChild->getSlicerDataXY()->updateChannelMappers();
 			m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
 			m_mdiChild->getSlicerDataYZ()->updateChannelMappers();

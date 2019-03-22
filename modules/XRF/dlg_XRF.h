@@ -153,58 +153,49 @@ private:
 	void InitElementRenderer(dlg_elementRenderer * elemRend, size_t index);
 	void InitCommonGUI(iAWidgetAddHelper & widgetAddHelper);
 
-	QSharedPointer<QImage>									m_spectraHistogramImage;
-	QImage													m_spectraHistogramColormap;
-	QSharedPointer<QImage>									m_functionalBoxplotImage;
-
-	bool													m_initialized;
-	bool													m_ctfChanged;
-	bool													m_decompositionLoaded;
-	iAEnergySpectrumWidget									* m_spectrumDiagram;
-	iAPieChartWidget										* m_pieChart;
-	QGridLayout												* m_accumulatedGridLayout;
-	QGridLayout												* m_pieChartGridLayout;
-	vtkSmartPointer<vtkPiecewiseFunction>					m_oTF;
-	vtkSmartPointer<vtkColorTransferFunction>				m_cTF;
-	QSharedPointer<iAXRFData>								m_xrfData;
-	QSharedPointer<iAEnergySpectrumDiagramData>				m_voxelEnergy;
-	QSharedPointer<iAAccumulatedXRFData>					m_accumulatedXRF;
-
-	QMap<int, QSharedPointer<iAStepFunctionPlot> >		m_refSpectraDrawers;
-	QSharedPointer<iAReferenceSpectraLibrary>				m_refSpectraLib;
-	
-	QSharedPointer<iAPlotCollection>						m_spectraLinesDrawer;
-	QSharedPointer<iAPlot>									m_voxelSpectrumDrawer;
-
-	QSharedPointer<iAElementConcentrations>					m_elementConcentrations;
-	QSharedPointer<iADecompositionCalculator>				m_decompositionCalculator;
-
-	QSharedPointer<iASelectedBinPlot>						m_selectedBinXDrawer;
-	QSharedPointer<iASelectedBinPlot>						m_selectedBinYDrawer;
-
-
-	QVector<int>											m_decomposeSelectedElements;
-	int														m_enabledChannels;
-	vtkSmartPointer<vtkLookupTable>							m_ctf[3];
-	vtkSmartPointer<vtkPiecewiseFunction>					m_otf[3];
-	dlg_periodicTable*										m_periodicTable;
-	vtkSmartPointer<vtkColorTransferFunction>				m_selection_ctf;
-	vtkSmartPointer<vtkPiecewiseFunction>					m_selection_otf;
-
-	//Spectra Histogram colormap
-	vtkSmartPointer<vtkRenderer>							m_colormapRen;
-	vtkSmartPointer<vtkScalarBarActor>						m_colormapScalarBarActor;
-	vtkSmartPointer<vtkColorTransferFunction>				m_colormapLUT;
-
-	//Individual element renderers
-	QVector<dlg_elementRenderer*>							m_elementRenderers;
-
-	QVector<iASpectrumFilter>								m_activeFilter;
-	dlg_RefSpectra*											m_refSpectra;
-
-	iARendererManager										m_rendererManager;
-	QVector<iACharacteristicEnergy>							m_characteristicEnergies;
-	QDockWidget*											m_pieChartContainer;
-	QSharedPointer<iAPeriodicTableListener>					m_periodicTableListener;
-	iAVtkOldWidget* colormapWidget;
+	QSharedPointer<QImage>                         m_spectraHistogramImage;
+	QImage                                         m_spectraHistogramColormap;
+	QSharedPointer<QImage>                         m_functionalBoxplotImage;
+	bool                                           m_initialized;
+	bool                                           m_ctfChanged;
+	bool                                           m_decompositionLoaded;
+	iAEnergySpectrumWidget *                       m_spectrumDiagram;
+	iAPieChartWidget *                             m_pieChart;
+	QGridLayout *                                  m_accumulatedGridLayout;
+	QGridLayout *                                  m_pieChartGridLayout;
+	vtkSmartPointer<vtkPiecewiseFunction>          m_oTF;
+	vtkSmartPointer<vtkColorTransferFunction>      m_cTF;
+	QSharedPointer<iAXRFData>                      m_xrfData;
+	QSharedPointer<iAEnergySpectrumDiagramData>    m_voxelEnergy;
+	QSharedPointer<iAAccumulatedXRFData>           m_accumulatedXRF;
+	QMap<int, QSharedPointer<iAStepFunctionPlot> > m_refSpectraDrawers;
+	QSharedPointer<iAReferenceSpectraLibrary>      m_refSpectraLib;
+	QSharedPointer<iAPlotCollection>               m_spectraLinesDrawer;
+	QSharedPointer<iAPlot>                         m_voxelSpectrumDrawer;
+	QSharedPointer<iAElementConcentrations>        m_elementConcentrations;
+	QSharedPointer<iADecompositionCalculator>      m_decompositionCalculator;
+	QSharedPointer<iASelectedBinPlot>              m_selectedBinXDrawer;
+	QSharedPointer<iASelectedBinPlot>              m_selectedBinYDrawer;
+	QVector<int>                                   m_decomposeSelectedElements;
+	int                                            m_enabledChannels;
+	std::vector<uint>                              m_channelIDs;
+	uint                                           m_spectrumSelectionChannelID;
+	vtkSmartPointer<vtkLookupTable>                m_ctf[3];
+	vtkSmartPointer<vtkPiecewiseFunction>          m_otf[3];
+	dlg_periodicTable *                            m_periodicTable;
+	vtkSmartPointer<vtkColorTransferFunction>      m_selection_ctf;
+	vtkSmartPointer<vtkPiecewiseFunction>          m_selection_otf;
+	//! @{ Spectra Histogram colormap
+	vtkSmartPointer<vtkRenderer>                   m_colormapRen;
+	vtkSmartPointer<vtkScalarBarActor>             m_colormapScalarBarActor;
+	vtkSmartPointer<vtkColorTransferFunction>      m_colormapLUT;
+	//! @}
+	QVector<dlg_elementRenderer*>                  m_elementRenderers; 	//!< Individual element renderers
+	QVector<iASpectrumFilter>                      m_activeFilter;
+	dlg_RefSpectra *                               m_refSpectra;
+	iARendererManager                              m_rendererManager;
+	QVector<iACharacteristicEnergy>                m_characteristicEnergies;
+	QDockWidget *                                  m_pieChartContainer;
+	QSharedPointer<iAPeriodicTableListener>        m_periodicTableListener;
+	iAVtkOldWidget *                               m_colormapWidget;
 };

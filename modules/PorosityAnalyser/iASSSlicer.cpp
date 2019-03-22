@@ -53,12 +53,6 @@
 #include <QVBoxLayout>
 #include <QLabel>
 
-extern const iAChannelID MasksChanID = ch_Concentration0;
-extern const iAChannelID GTChanID = ch_Concentration1;
-
-extern const iAChannelID minChanID = ch_Concentration2;
-extern const iAChannelID medChanID = ch_Concentration3;
-extern const iAChannelID maxChanID = ch_Concentration4;
 const double contourValue = 0.99999;
 
 const QList<QColor> brewer_YlOrRd = QList<QColor>() \
@@ -104,12 +98,21 @@ void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & im
 		DEBUG_LOG("Image data is NULL!");
 }
 
+namespace
+{
+	const uint MasksChanID = 0;
+	const uint GTChanID    = 1;
+	const uint MinChanID   = 2;
+	const uint MedChanID   = 3;
+	const uint MaxChanID   = 4;
+}
+
 iASSSlicer::iASSSlicer( const QString slicerName ) :
 	masksChan( new iAChanData( brewer_RdPu, MasksChanID ) ),
 	gtChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 255, 255, 0 ), GTChanID ) ),
-	minChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 80, 80, 80 ), minChanID ) ),
-	medChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 160, 160, 160 ), medChanID ) ),
-	maxChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 240, 240, 240 ), maxChanID ) ),
+	minChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 80, 80, 80 ), MinChanID ) ),
+	medChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 160, 160, 160 ), MedChanID ) ),
+	maxChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 240, 240, 240 ), MaxChanID ) ),
 	medContour( vtkSmartPointer<vtkMarchingContourFilter>::New() ),
 	minContour( vtkSmartPointer<vtkMarchingContourFilter>::New() ),
 	maxContour( vtkSmartPointer<vtkMarchingContourFilter>::New() ),
@@ -217,8 +220,8 @@ void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile,
 		slicer->enableChannel( contourChans[i]->id, true );
 		slicer->setChannelOpacity( contourChans[i]->id, 0.0 );
 
-		iAChannelSlicerData * chanSData = slicer->GetChannel( contourChans[i]->id );
-		chanSData = slicer->GetChannel( contourChans[i]->id );
+		iAChannelSlicerData * chanSData = slicer->getChannel( contourChans[i]->id );
+		chanSData = slicer->getChannel( contourChans[i]->id );
 		chanSData->SetContourLineParams( lineWidths[i] );
 		chanSData->SetContoursColor( contRGBs[i] );
 		chanSData->SetContoursOpacity( 0.8 );
@@ -306,7 +309,7 @@ void iASSSlicer::enableContours( bool isEnabled )
 	iAChanData * contourChans[3] = { minChan.data(), maxChan.data(), medChan.data() };
 	for( int i = 0; i < 3; ++i )
 	{
-		iAChannelSlicerData * contourChan = slicer->GetChannel( contourChans[i]->id );
+		iAChannelSlicerData * contourChan = slicer->getChannel( contourChans[i]->id );
 		contourChan->SetShowContours( isEnabled );
 		slicer->enableChannel( contourChans[i]->id, isEnabled );
 	}

@@ -25,7 +25,6 @@
 
 #include <iAChannelVisualizationData.h>
 #include <iAConsole.h>
-#include <iAChannelID.h>
 #include <iASlicer.h>
 #include <iASlicerData.h>
 #include <iASlicerMode.h>
@@ -163,22 +162,24 @@ QToolButton* iASpatialView::AddImage(QString const & caption, vtkImagePointer im
 	return button;
 }
 
-void InitializeChannel(ImageGUIElements & gui, QSharedPointer<iAChannelVisualizationData> selectionData)
+namespace
 {
-	iASlicer* slicer = gui.imageWidget->GetSlicer();
-	iAChannelID id = static_cast<iAChannelID>(ch_Concentration0);
-	selectionData->SetName("Scatterplot Selection");
-	slicer->initializeChannel(id, selectionData.data());
-	int sliceNr = slicer->GetSlicerData()->getSliceNumber();
-	switch (slicer->GetMode())
+	void InitializeChannel(ImageGUIElements & gui, QSharedPointer<iAChannelVisualizationData> selectionData)
 	{
-	case YZ: slicer->enableChannel(id, true, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[0], 0, 0); break;
-	case XY: slicer->enableChannel(id, true, 0, 0, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[2]); break;
-	case XZ: slicer->enableChannel(id, true, 0, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[1], 0); break;
+		iASlicer* slicer = gui.imageWidget->GetSlicer();
+		const uint SelectionChannelID = 0;
+		selectionData->SetName("Scatterplot Selection");
+		slicer->initializeChannel(SelectionChannelID, selectionData.data());
+		int sliceNr = slicer->GetSlicerData()->getSliceNumber();
+		switch (slicer->GetMode())
+		{
+		case YZ: slicer->enableChannel(SelectionChannelID, true, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[0], 0, 0); break;
+		case XY: slicer->enableChannel(SelectionChannelID, true, 0, 0, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[2]); break;
+		case XZ: slicer->enableChannel(SelectionChannelID, true, 0, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[1], 0); break;
+		}
+		gui.m_selectionChannelInitialized = true;
 	}
-	gui.m_selectionChannelInitialized = true;
 }
-
 
 void iASpatialView::AddImageDisplay(int idx)
 {

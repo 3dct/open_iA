@@ -91,7 +91,7 @@ vtkSmartPointer<vtkImageData> iALabelOverlayThread::drawImage()
 	result->SetExtent(m_imageExtent);
 	result->SetSpacing(m_imageSpacing);
 	result->AllocateScalars(VTK_INT, 1);
-	clearImage(result, m_labelCount);
+	clearImage(result, 0);
 
 	for (int l = 0; l<m_itemModel->rowCount(); ++l)
 	{

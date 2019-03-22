@@ -21,7 +21,6 @@
 #include "iARenderer.h"
 
 #include "defines.h"
-#include "iAChannelID.h"
 #include "iAConsole.h"
 #include "iAChannelVisualizationData.h"
 #include "iAMovieHelper.h"
