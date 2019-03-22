@@ -89,6 +89,7 @@
 #include <QMessageBox>
 #include <QString>
 #include <QThread>
+#include "vtkInteractorStyleTrackballActor.h"
 
 
 namespace
@@ -96,7 +97,7 @@ namespace
 	const double PickTolerance = 100.0;
 }
 
-class iAInteractorStyleImage : public vtkInteractorStyleSwitch/* vtkInteractorStyleImage*/
+class iAInteractorStyleImage : public vtkInteractorStyleSwitch /*vtkInteractorStyleImage*/
 {
 public:
 	static iAInteractorStyleImage *New();
@@ -149,12 +150,15 @@ public:
 		}
 	}
 	*/
+
+	
+
+
 private:
 	bool m_rightButtonDragZoomEnabled = true;
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);
-
 
 iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 0 */,
 		bool decorations/*=true*/) : QObject( parent ),

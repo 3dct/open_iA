@@ -37,6 +37,7 @@
 #include "io/iAIOProvider.h"
 #include "io/extension2id.h"
 #include "mdichild.h"
+#include "CustomInteractorStyles.h"
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
@@ -50,6 +51,7 @@
 #include <QSettings>
 
 #include <cassert>
+
 
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	vtkRenderer* mainRenderer, int numBin, MdiChild* mdiChild) :
@@ -315,7 +317,7 @@ void dlg_modalities::ManualRegistration()
 {
 	vtkInteractorStyleSwitch* interactSwitch = dynamic_cast<vtkInteractorStyleSwitch*>(m_magicLensWidget->GetInteractor()->GetInteractorStyle());
 
-	m_mdiChild->getSlicerXY()->GetSlicerData()->enableInteractor();
+	//m_mdiChild->getSlicerXY()->GetSlicerData()->enableInteractor();
 	vtkInteractorStyleSwitch* interactSwitch_XY = 
 		dynamic_cast<vtkInteractorStyleSwitch*>(m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->GetInteractorStyle());
 	
@@ -325,51 +327,41 @@ void dlg_modalities::ManualRegistration()
 	vtkInteractorStyleSwitch* interactSwitch_XZ =
 		dynamic_cast<vtkInteractorStyleSwitch*>(m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->GetInteractorStyle());
 
+	vtkSmartPointer<iACustomInterActorStyleTrackBall> style =vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
 
-	if (!interactSwitch  /*| (!interactSwitch_XZ) ||(!interactSwitch_YZ) */)
+	if (!interactSwitch)
 	{
 		return;
 	}
 	if (cbManualRegistration->isChecked())
 	{
 		interactSwitch->SetCurrentStyleToTrackballActor();
-
-		//interactor nulll
+				
 		//no update of slice window; 
 		//background black not transparent
 	
-		if (!interactSwitch_XY) { DEBUG_LOG("XY Interactor null") };
-		if (!interactSwitch_YZ) { DEBUG_LOG("YZ Interactor null") };
-		if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null") };
+		if (!interactSwitch_XY) {DEBUG_LOG("XY Interactor null"); return; };
+		if (!interactSwitch_YZ) { DEBUG_LOG("YZ Interactor null"); return; };
+		if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };
 
-
+		//m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle()
 		//Muss ich über die Orientierung machen sonst wird der Slicer nicht verschoben; 
 		interactSwitch_XY->SetCurrentStyleToTrackballActor();
-		
-		
+				
 		//Slicer in Physische Koordinaten umrechnen; Hintergrund
 		interactSwitch_YZ->SetCurrentStyleToTrackballActor();
 		interactSwitch_XZ->SetCurrentStyleToTrackballActor();
 		
-
 	}
 	else
 	{
-
 
 		interactSwitch_XY->SetCurrentStyleToTrackballCamera();
 		interactSwitch_YZ->SetCurrentStyleToTrackballCamera();
 		interactSwitch_XZ->SetCurrentStyleToTrackballCamera();
 		interactSwitch->SetCurrentStyleToTrackballCamera();
-		/*m_mdiChild->updateViews();
-		emit ModalitiesChanged();*/
 	}
 
-	//TODO set this for every region
-	//umrechnen in physischen Koordinaten
-	
-
-	
 }
 
 void dlg_modalities::ListClicked(QListWidgetItem* item)
