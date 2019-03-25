@@ -84,6 +84,7 @@ void iACustomInterActorStyleTrackBall::FindPickedActor(int x, int y)
 {
 
 	this->InteractionPicker->Pick(x, y, 0.0, this->CurrentRenderer);
+	//Image actor
 	vtkProp *prop = this->InteractionPicker->GetViewProp();
 	if (prop != nullptr)
 	{

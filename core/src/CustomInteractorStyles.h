@@ -22,12 +22,12 @@
 
 
 
-class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamera
+class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 {
 	public:
 
 	static iACustomInterActorStyleTrackBall *New();
-	vtkTypeMacro(iACustomInterActorStyleTrackBall, vtkInteractorStyleTrackballCamera);
+	vtkTypeMacro(iACustomInterActorStyleTrackBall, vtkInteractorStyleTrackballActor);
 
   // Event bindings controlling the effects of pressing mouse buttons
   // or moving the mouse.
@@ -53,7 +53,7 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamer
 
 		if (!this->Interactor->GetShiftKey())
 			return;
-		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+		vtkInteractorStyleTrackballActor::OnLeftButtonDown();
 	}
 
 	virtual void OnLeftButtonUp(); 
@@ -66,7 +66,7 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamer
 	{
 		if (!m_rightButtonDragZoomEnabled)
 			return;
-		vtkInteractorStyleTrackballCamera::OnRightButtonDown();
+		vtkInteractorStyleTrackballActor::OnRightButtonDown();
 	}
 	
 	void SetRightButtonDragZoomEnabled(bool enabled)
