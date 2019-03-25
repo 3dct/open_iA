@@ -183,9 +183,6 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 	// and 1 for the normals.
 	// also have a string to indentify the keyword
 	std::string name;
-	//cVector dummy1, dummy2, dummy3;
-	//vector3 v1, v2;
-	// THE CODE IN THIS IF READS THE ASCII FILE
 	triangle*	copy;
 
 	//Determine the type of the file
@@ -237,8 +234,7 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 				copy->N =  (*copy->vertices[2]-*copy->vertices[1])
 					        ^(*copy->vertices[0]-*copy->vertices[2]);
 				copy->N.normalize();// RESETTING THE NORMAL HERE
-	
-				//counter++;
+
 				stlMesh.push_back( copy );
 			}
 		}

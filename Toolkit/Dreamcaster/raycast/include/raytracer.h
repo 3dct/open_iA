@@ -122,23 +122,9 @@ public:
 	}
 	RenderFromPosition curRender; //!< statistical data about current(last) scene render
 	RenderFromPosition * curBatchRenders; //!< statistical data about current(last) scene render
-	//std::vector<RenderFromPosition*> * renders;
-// 	float WX1()   {return m_WX1;}
-// 	float WY1()   {return m_WY1;}
-// 	float Z()     {return m_Z;}
-// 	float DX()    {return m_DX;}
-// 	float DY()    {return m_DY;}
-// 	int   Width() {return m_Width;}
-// 	int   Height(){return m_Height;}
-	//iAVec3f o; ///< rays' origin point
-	//iAVec3f vp_corners[2];///< plane's corners in 3d
-	//iAVec3f vp_delta[2];///< plane's x and y axes' directions in 3D
 protected:
 	// renderer data
 	float m_WX1, m_WY1, m_WX2, m_WY2, m_DX, m_DY, m_PLANE_Z, m_ORIGIN_Z;//, m_SX, m_SY;
-	//
-	//Mat4 rot_mat;  //!< rotations matrix
-	//
 	//TODO: merge
 	std::vector<aabb*> * m_cutAABBList;
 	unsigned int m_cutAABBListSize;
