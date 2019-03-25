@@ -97,11 +97,11 @@ namespace
 	const double PickTolerance = 100.0;
 }
 
-class iAInteractorStyleImage : public vtkInteractorStyleSwitch
+class iAInteractorStyleImage : public vtkInteractorStyleImage
 {
 public:
 	static iAInteractorStyleImage *New();
-	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleSwitch);
+	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage);
 
 	//void OnMouseMove() override{
 	//	return; GetInteractor()-> 
@@ -112,20 +112,20 @@ public:
 	{
 		if (!this->Interactor->GetShiftKey())
 			return;
-		vtkInteractorStyleSwitch::OnLeftButtonDown();
+		vtkInteractorStyleImage::OnLeftButtonDown();
 	}
 	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
 	void OnMouseWheelForward() override
 	{
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
 			return;
-		vtkInteractorvtkInteractorStyleSwitch:OnMouseWheelForward();
+		vtkInteractorStyleImage::OnMouseWheelForward();
 	}
 	void OnMouseWheelBackward() override
 	{
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
 			return;
-		vtkInteractorStyleSwitch::OnMouseWheelBackward();
+		vtkInteractorStyleImage::OnMouseWheelBackward();
 	}
 	//! @}
 	//! @{ Conditionally disable zooming via right button dragging
@@ -133,12 +133,14 @@ public:
 	{
 		if (!m_rightButtonDragZoomEnabled)
 			return;
-		vtkInteractorStyleSwitch::OnRightButtonDown();
+		vtkInteractorStyleImage::OnRightButtonDown();
 	}
 	void SetRightButtonDragZoomEnabled(bool enabled)
 	{
 		m_rightButtonDragZoomEnabled = enabled;
 	}
+
+
 
 
 	//! @}
