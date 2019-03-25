@@ -2,8 +2,9 @@
 #include "vtkInteractorStyleTrackballActor.h"
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkRenderWindowInteractor.h"
-
+#include "vtkProp3D.h"
 #include "vtkObjectFactory.h"
+#include "vtkCellPicker.h"
 
 
 // Motion flags
@@ -21,18 +22,15 @@
 
 class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamera
 {
-	
 	public:
 
 	static iACustomInterActorStyleTrackBall *New();
 	vtkTypeMacro(iACustomInterActorStyleTrackBall, vtkInteractorStyleTrackballCamera);
-	//iACustomInterActorStyle();
-	// Description:
+
   // Event bindings controlling the effects of pressing mouse buttons
   // or moving the mouse.
 	virtual void OnMouseMove();
-
-
+	
 	//we need the shift key to 
 	virtual void OnLeftButtonDown() {
 
@@ -51,10 +49,11 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamer
 		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 	}
 
+	virtual void OnLeftButtonUp(); 
 
-	/*virtual void OnLeftButtonUp();
-	virtual void OnMiddleButtonDown();
-	virtual void OnMiddleButtonUp();*/
+	void OnMiddleButtonUp() override;
+	
+	void OnRightButtonUp() override;
 
 	//! @}
 	//! @{ Conditionally disable zooming via right button dragging
@@ -65,11 +64,6 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamer
 		vtkInteractorStyleTrackballCamera::OnRightButtonDown();
 	}
 	
-	
-	/*virtual void OnRightButtonUp();
-	virtual void OnMouseWheelForward();
-	virtual void OnMouseWheelBackward();*/
-
 	void SetRightButtonDragZoomEnabled(bool enabled)
 	{
 		m_rightButtonDragZoomEnabled = enabled;
@@ -91,20 +85,23 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamer
 	void SetInteractionModeToImage2D() {
 		this->SetInteractionMode(VTKIS_IMAGE2D);
 	}
-
+	
 	vtkSetClampMacro(InteractionMode, int, VTKIS_IMAGE2D, VTKIS_IMAGE_SLICING);
 	vtkGetMacro(InteractionMode, int);
 
 protected:
 	iACustomInterActorStyleTrackBall();
-	~iACustomInterActorStyleTrackBall() override;
-	//	~iACustomInterActorStyle();
-	//
-		/*double MotionFactor;*/
+	//~iACustomInterActorStyleTrackBall() override;
+	void FindPickedActor(int x, int y);
 
-		/*virtual void Dolly(double factor);*/
+	vtkCellPicker *InteractionPicker;
+	vtkProp3D *InteractionProp;
+	
 
 private:
+
+	/*vtkInteractorStyleTrackballActor(const iACustomInterActorStyleTrackBall&) = delete;*/
+	void operator=(const iACustomInterActorStyleTrackBall&) = delete;
 
 	/*iACustomInterActorStyle(const iACustomInterActorStyle&);*/
 	bool m_rightButtonDragZoomEnabled = false;
@@ -122,6 +119,6 @@ private:
 };
 
 
-vtkStandardNewMacro(iACustomInterActorStyleTrackBall);
+//vtkStandardNewMacro(iACustomInterActorStyleTrackBall);
 
 

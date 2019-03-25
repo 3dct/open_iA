@@ -1,7 +1,15 @@
 #include "CustomInterActorStyles.h"
 
 
-//vtkStandardNewMacro(iACustomInterActorStyleTrackBall);
+vtkStandardNewMacro(iACustomInterActorStyleTrackBall);
+
+iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall() {
+
+	InteractionMode = 0;
+	this->InteractionProp = nullptr;
+	this->InteractionPicker = vtkCellPicker::New();
+	this->InteractionPicker->SetTolerance(0.001);
+}
 
 void iACustomInterActorStyleTrackBall::OnMouseMove()
 {
@@ -36,7 +44,52 @@ void iACustomInterActorStyleTrackBall::OnMouseMove()
 
 }
 
-iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall(){
+void iACustomInterActorStyleTrackBall::OnLeftButtonUp()
+{
+	switch (this->State)
+	{
+	case VTKIS_PAN:
+		this->EndPan();
+		break;
 
-	InteractionMode = 0; 
+	case VTKIS_SPIN:
+		this->EndSpin();
+		break;
+
+	case VTKIS_ROTATE:
+		this->EndRotate();
+		break;
+	}
+
+	if (this->Interactor)
+	{
+		this->ReleaseFocus();
+	}
+}
+
+
+
+void iACustomInterActorStyleTrackBall::OnMiddleButtonUp()
+{
+
+}
+
+void iACustomInterActorStyleTrackBall::OnRightButtonUp()
+{
+
+}
+
+void iACustomInterActorStyleTrackBall::FindPickedActor(int x, int y)
+{
+
+	this->InteractionPicker->Pick(x, y, 0.0, this->CurrentRenderer);
+	vtkProp *prop = this->InteractionPicker->GetViewProp();
+	if (prop != nullptr)
+	{
+		this->InteractionProp = vtkProp3D::SafeDownCast(prop);
+	}
+	else
+	{
+		this->InteractionProp = nullptr;
+	}
 }
