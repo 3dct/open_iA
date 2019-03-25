@@ -315,7 +315,7 @@ void dlg_modalities::EnableButtons()
 
 void dlg_modalities::ManualRegistration()
 {
-	vtkInteractorStyleSwitch* interactSwitch = dynamic_cast<vtkInteractorStyleSwitch*>(m_magicLensWidget->GetInteractor()->GetInteractorStyle());
+	vtkInteractorStyleSwitch* interactSwitch3D = dynamic_cast<vtkInteractorStyleSwitch*>(m_magicLensWidget->GetInteractor()->GetInteractorStyle());
 
 	////m_mdiChild->getSlicerXY()->GetSlicerData()->enableInteractor();
 	//vtkInteractorStyleSwitch* interactSwitch_XY = 
@@ -328,18 +328,18 @@ void dlg_modalities::ManualRegistration()
 	//	dynamic_cast<vtkInteractorStyleSwitch*>(m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->GetInteractorStyle());
 
 	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy =vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
-	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_Xz = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xz = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
 	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_yz = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
 	/*vtkSmartPointer<iAInteractorStyleImage> ImageStyle = vtkSmartPointer<iAInteractorStyleImage>::New(); */
 
-	if (!interactSwitch)
+	if (!interactSwitch3D)
 	{
 		DEBUG_LOG("Unable to use interact switch"); 
 		return;
 	}
 	if (cbManualRegistration->isChecked())
 	{
-		interactSwitch->SetCurrentStyleToTrackballActor();
+		interactSwitch3D->SetCurrentStyleToTrackballActor();
 				
 		//no update of slice window; 
 		//background black not transparent
@@ -350,18 +350,25 @@ void dlg_modalities::ManualRegistration()
 		/*m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->SetInteractorStyle(nullptr);
 		m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(nullptr);
 		m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(nullptr);*/
-		
+
+		int slizeZ = m_mdiChild->getSlicerXY()->GetSlicerData()->getSliceNumber();
+		int slizeX = m_mdiChild->getSlicerXZ()->GetSlicerData()->getSliceNumber();
+		int sliceY = m_mdiChild->getSlicerYZ()->GetSlicerData()->getSliceNumber();
+		iASlicerMode modeXY = m_mdiChild->getSlicerXY()->GetSlicerData()->getMode();
+		iASlicerMode modeXZ = m_mdiChild->getSlicerXZ()->GetSlicerData()->getMode();
+		iASlicerMode modeYZ = m_mdiChild->getSlicerYZ()->GetSlicerData()->getMode();
+
 		m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xy);
-		m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_Xz);
-		m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_yz);
-				
+		m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xz);
+		m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_yz);
+					
 	}
 	else
 	{	
 		m_mdiChild->getSlicerXY()->GetSlicerData()->setDefaultInteractor();
 		m_mdiChild->getSlicerYZ()->GetSlicerData()->setDefaultInteractor(); 
 		m_mdiChild->getSlicerXZ()->GetSlicerData()->setDefaultInteractor();
-		interactSwitch->SetCurrentStyleToTrackballCamera();
+		interactSwitch3D->SetCurrentStyleToTrackballCamera();
 	}
 
 }

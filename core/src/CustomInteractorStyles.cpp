@@ -6,7 +6,11 @@ vtkStandardNewMacro(iACustomInterActorStyleTrackBall);
 iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall() {
 
 	InteractionMode = 0;
-	this->InteractionProp = nullptr;
+	this->PropCurrentSlicer = nullptr;
+	this->Prop3DSlicer = nullptr; 
+	this->propSlicer1 = nullptr;
+	this->propSlicer2 = nullptr; 
+
 	this->InteractionPicker = vtkCellPicker::New();
 	/*PickTolerance = 100.0;*/
 	this->InteractionPicker->SetTolerance(100.0);
@@ -88,10 +92,10 @@ void iACustomInterActorStyleTrackBall::FindPickedActor(int x, int y)
 	vtkProp *prop = this->InteractionPicker->GetViewProp();
 	if (prop != nullptr)
 	{
-		this->InteractionProp = vtkProp3D::SafeDownCast(prop);
+		this->PropCurrentSlicer = vtkProp3D::SafeDownCast(prop);
 	}
 	else
 	{
-		this->InteractionProp = nullptr;
+		this->PropCurrentSlicer = nullptr;
 	}
 }
