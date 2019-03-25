@@ -112,6 +112,7 @@ public:
 	iAModuleDispatcher& getModuleDispatcher() const; 
 	MdiChild *createMdiChild(bool unsavedChanges);
 	void closeMdiChild(MdiChild* child);
+	void closeAllSubWindows();
 
 protected:
 	void closeEvent(QCloseEvent *event) override;
@@ -168,7 +169,6 @@ private slots:
 	void toggleMainWindowStatusBar();
 	void toggleChildStatusBar();
 	void toggleToolbar();
-	void closeAllSubWindows();
 	void about();
 	void wiki();
 	void saveLayout();
