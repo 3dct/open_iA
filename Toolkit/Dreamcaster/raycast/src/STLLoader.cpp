@@ -31,21 +31,6 @@
 
 extern DreamCaster * dcast;
 
-/*std::vector<triangle*>		stlMesh; ///< loaded mesh's triangles vector
-std::vector<iAVec3*>		vertices;///< loaded mesh's vertices vector
-float scale_coef;///< loaded mesh's scale coefficient
-float translate3f[3];///< loaded mesh's axes offsets
-aabb box;///< loaded mesh's AABB*/
-
-/*std::vector<triangle*>& getLoadedMesh(){return stlMesh;}
-std::vector<iAVec3*>& getLoadedVertices(){return vertices;}
-aabb& getBBox()
-{
-	return box;
-}
-float getScaleCoef(void) {return scale_coef;}
-float* getTranslate(void) {return translate3f;}*/
-
 #define BINARY_FILE 0
 #define ASCII_FILE 1
 
@@ -114,11 +99,8 @@ inline void computeBBox(std::vector<triangle*> & stlMesh, std::vector<iAVec3f*> 
 	eps = 0.15f/dcast->stngs.SCALE_COEF;
 	box.setData(x1-eps,x2+eps,y1-eps,y2+eps,z1-eps,z2+eps);
 }
-/**	\class Tri.
-	\brief Structure representing triangle of stl file.
 
-	Just a container. Nothing special. Contains data about triangle's normal and 3 vetrices.	
-*/
+//! Structure representing triangle of stl file. Just a container. Nothing special. Contains data about triangle's normal and 3 vetrices.
 struct Tri
 {
 	float normal1;
@@ -236,9 +218,6 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 				// create a fresh pointer to triangle
 				copy = new triangle;
 
-				//copy->m_N = iAVec3( (float)atof(Word[i+2].c_str()),					// THIS NORMAL CAN BE WRONG :)
-				//				  (float)atof(Word[i+3].c_str()),
-				//				  (float)atof(Word[i+4].c_str()) );
 				copy->vertices[0] = new iAVec3f((float)atof(Word[i+8].c_str()),
 											(float)atof(Word[i+9].c_str()),
 											(float)atof(Word[i+10].c_str())	);

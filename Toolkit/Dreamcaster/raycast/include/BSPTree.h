@@ -91,7 +91,7 @@ public:
 	//! @param tri_start_ind
 	//! @return 1 if successful
 	int DistributePrims(int &level, int &max_level, aabb &m_aabb, std::vector<BSPNode*> &nodes,
-						std::vector<unsigned int> &tri_ind, /*std::vector<Primitive*> &prims,*/ 
+						std::vector<unsigned int> &tri_ind,
 						std::vector<TriPrim*> &parent_tris, unsigned int tri_start_ind)
 	{
 		unsigned int trisSz = (unsigned int) parent_tris.size();
@@ -123,44 +123,33 @@ public:
 		set_has_right(true);
 
 		iAVec3f center = m_aabb.center(), h_size = m_aabb.half_size();
-		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();//get_left(nodes)->set_tri_start(tri_ind.size());//left node
-		//unsigned int counter=0;
+		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();
 		std::vector<TriPrim*> l_tris, r_tris;
 		for (unsigned int i=0; i<trisSz; i++)
 		{
 			if(parent_tris[i]->Intersect( l_aabb, center, h_size))
 			{
-				//tri_ind.push_back(parent_prims[i]->GetIndex());
 				l_tris.push_back(parent_tris[i]);
-				//counter++;
 			}
 		}
-		//get_left(nodes)->set_tri_count(counter);
-
-		unsigned int r_tri_start_ind = (unsigned int) tri_ind.size();//get_right(nodes)->set_tri_start(tri_ind.size());
-		//counter=0;
-		//center = r_aabb.center(); h_size = r_aabb.half_size();
-		//center = r_aabb.center(); h_size = r_aabb.half_size();
+		unsigned int r_tri_start_ind = (unsigned int) tri_ind.size();
 		for (unsigned int i=0; i<trisSz; i++)
 		{
 			if(parent_tris[i]->Intersect( r_aabb, center, h_size))
 			{
-				//tri_ind.push_back(parent_prims[i]->GetIndex());
 				r_tris.push_back(parent_tris[i]);
-				//counter++;
 			}	
 		}
-		//get_right(nodes)->set_tri_count(counter);//left node
 		int nxtLvl = level+1;
 
 		// order matters, else if left before right will try to access empty element
-		if(r_tris.size()==0)//if(get_right(nodes)->tri_count()==0)
+		if(r_tris.size()==0)
 		{
 			delete get_right(nodes);
 			nodes.erase(nodes.begin()+offset()+1);
 			set_has_right(false);
 		}
-		if(l_tris.size()==0)//if(get_left(nodes)->tri_count()==0)
+		if(l_tris.size()==0)
 		{
 			delete get_left(nodes);
 			nodes.erase(nodes.begin()+offset());
@@ -202,7 +191,7 @@ public:
 	}
 	
 	int DistributePrimsSAH(int &level, int &max_level, aabb &m_aabb, std::vector<BSPNode*> &nodes,
-		std::vector<unsigned int> &tri_ind, /*std::vector<Primitive*> &prims,*/ 
+		std::vector<unsigned int> &tri_ind,
 		std::vector<TriPrim*> &parent_tris, unsigned int tri_start_ind)
 	{
 		unsigned int primSz = (unsigned int) parent_tris.size();
@@ -245,10 +234,8 @@ public:
 					iAVec3f r_center = r_aabb.center(), r_h_size = r_aabb.half_size();
 					for (unsigned int i2=0; i2<primSz; i2++)
 					{
-						//if( ((TriPrim*)parent_tris[i])->CenterInside( l_aabb) )
 						if( ((TriPrim*)parent_tris[i2])->Intersect( l_aabb, l_center, l_h_size))
 							l_counter++;
-						//if( ((TriPrim*)parent_tris[i])->CenterInside( r_aabb) )
 						if( ((TriPrim*)parent_tris[i2])->Intersect( r_aabb, r_center, r_h_size))
 							r_counter++;
 					}
@@ -264,24 +251,8 @@ public:
 				}
 			}
 		}
-		/*switch(axis_ind)
-		{
-		case 0:
-			if(bound<m_aabb.x1) bound = m_aabb.x1;
-			if(bound>m_aabb.x2) bound = m_aabb.x2;
-			break;
-		case 1:
-			if(bound<m_aabb.y1) bound = m_aabb.y1;
-			if(bound>m_aabb.y2) bound = m_aabb.y2;
-		    break;
-		case 2:
-			if(bound<m_aabb.z1) bound = m_aabb.z1;
-			if(bound>m_aabb.z2) bound = m_aabb.z2;
-		    break;
-		}*/
 		this->setAxisInd(axis_ind);
 		this->set_splitCoord(bound);
-		//Split(m_aabb, l_aabb, r_aabb);
 		SplitSAH(m_aabb, l_aabb, r_aabb, axis_ind, bound);
 		set_offset( (unsigned int) nodes.size() );
 		nodes.push_back(new BSPNode());
@@ -289,8 +260,8 @@ public:
 		nodes.push_back(new BSPNode());
 		set_has_right(true);
 
-		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();//get_left(nodes)->set_tri_start(tri_ind.size());//left node
-		unsigned int r_tri_start_ind = (unsigned int) tri_ind.size();//get_right(nodes)->set_tri_start(tri_ind.size());
+		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();
+		unsigned int r_tri_start_ind = (unsigned int) tri_ind.size();
 		
 		std::vector<TriPrim*> l_tris, r_tris;
 		int cntr;
@@ -308,18 +279,17 @@ public:
 				r_tris.push_back(parent_tris[i]);
 				cntr++;
 			}
-		}				
-		//get_right(nodes)->set_tri_count(counter);//left node
+		}
 		int nxtLvl = level+1;
 
 		// order matters, else if left before right will try to access empty element
-		if(r_tris.size()==0)//if(get_right(nodes)->tri_count()==0)
+		if(r_tris.size()==0)
 		{
 			delete get_right(nodes);
 			nodes.erase(nodes.begin()+offset()+1);
 			set_has_right(false);
 		}
-		if(l_tris.size()==0)//if(get_left(nodes)->tri_count()==0)
+		if(l_tris.size()==0)
 		{
 			delete get_left(nodes);
 			nodes.erase(nodes.begin()+offset());
@@ -465,7 +435,6 @@ public:
 		splitLevel=a_splitLevel;
 		root = new BSPNode();
 		nodes.push_back(root);
-		//root->Split(0, splitLevel-1);
 		dcast->log("done",true);
 
 	}
@@ -477,9 +446,9 @@ public:
 		dcast->log("Fill BSP-tree with data..........");
 		int int_null = 0;
 		if(dcast->stngs.USE_SAH != 0)
-			root->DistributePrimsSAH(int_null, splitLevel, m_aabb, nodes, tri_ind, /*prims,*/ triangles,0);
+			root->DistributePrimsSAH(int_null, splitLevel, m_aabb, nodes, tri_ind, triangles,0);
 		else
-			root->DistributePrims(int_null, splitLevel, m_aabb, nodes, tri_ind, /*prims,*/ triangles,0);
+			root->DistributePrims(int_null, splitLevel, m_aabb, nodes, tri_ind, triangles,0);
 		dcast->log("done",true);
 	}
 	//! Fills already created tree with primitives.
@@ -507,7 +476,6 @@ public:
 		cur_t = traverse_stack::trace_t(0,tmin,tmax);
 		tr_stack->push(cur_t);
 		BSPNode * cur_node;
-		//int intersects;
 		unsigned int sign = 0;
 		while (tr_stack->numElements()>0)
 		{
@@ -518,16 +486,13 @@ public:
 			{
 				for (unsigned int i=0; i<cur_node->tri_count(); i++)
 				{
-					//int res;
 					float a_Dist = 1000000.0f;
 					if ((*m_triangles)[tri_ind[cur_node->tri_start()+i]]->Intersect( ray, a_Dist )) 
 					{
-						//iAVec3 isec = ray.GetOrigin()+ray.GetDirection()*a_Dist;			
-						intersections.push_back(new intersection((*m_triangles)[tri_ind[cur_node->tri_start()+i]], a_Dist));//checked
+						intersections.push_back(new intersection((*m_triangles)[tri_ind[cur_node->tri_start()+i]], a_Dist));
 					}
 				}
 			}
-			//cur_node->GetIntersectionsNR(ray, ro, rd, intersections);
 			else switch(GetIntersectionState(ray, tmin, tmax, cur_node->splitCoord(), cur_node->axisInd(),t))
 			{
 			case 1://right only
@@ -587,7 +552,6 @@ public:
 	int SaveTree(QString const & filename)
 	{
 		FILE *fptr;
-		//fopen_s( &fptr, filename, "wb" );
 		fptr = fopen( getLocalEncodingFileName(filename).c_str(), "wb" );
 		if(!fptr)
 		{
