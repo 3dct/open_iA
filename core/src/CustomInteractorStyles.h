@@ -35,11 +35,23 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamer
 
 	//we need the shift key to 
 	virtual void OnLeftButtonDown() {
+
+		int x = this->Interactor->GetEventPosition()[0];
+		int y = this->Interactor->GetEventPosition()[1];
+
+		this->FindPokedRenderer(x, y);
+		this->FindPickedActor(x, y);
+		if (this->CurrentRenderer == nullptr || this->InteractionProp == nullptr)
+		{
+			return;
+		}
+
 		if (!this->Interactor->GetShiftKey())
 			return;
 		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
-
 	}
+
+
 	/*virtual void OnLeftButtonUp();
 	virtual void OnMiddleButtonDown();
 	virtual void OnMiddleButtonUp();*/
@@ -69,6 +81,19 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamer
 		return; 
 	}
 
+
+	void iACustomInterActorStyleTrackBall::Pick()
+	{
+		this->InvokeEvent(vtkCommand::PickEvent, this);
+	}
+
+
+	void SetInteractionModeToImage2D() {
+		this->SetInteractionMode(VTKIS_IMAGE2D);
+	}
+
+	vtkSetClampMacro(InteractionMode, int, VTKIS_IMAGE2D, VTKIS_IMAGE_SLICING);
+	vtkGetMacro(InteractionMode, int);
 
 protected:
 	iACustomInterActorStyleTrackBall();
