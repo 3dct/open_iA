@@ -97,11 +97,15 @@ namespace
 	const double PickTolerance = 100.0;
 }
 
-class iAInteractorStyleImage : public vtkInteractorStyleSwitch /*vtkInteractorStyleImage*/
+class iAInteractorStyleImage : public vtkInteractorStyleSwitch
 {
 public:
 	static iAInteractorStyleImage *New();
 	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleSwitch);
+
+	//void OnMouseMove() override{
+	//	return; GetInteractor()-> 
+	//}
 
 	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
 	void OnLeftButtonDown() override
@@ -115,7 +119,7 @@ public:
 	{
 		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
 			return;
-		vtkInteractorStyleSwitch::OnMouseWheelForward();
+		vtkInteractorvtkInteractorStyleSwitch:OnMouseWheelForward();
 	}
 	void OnMouseWheelBackward() override
 	{
@@ -135,6 +139,8 @@ public:
 	{
 		m_rightButtonDragZoomEnabled = enabled;
 	}
+
+
 	//! @}
 	/*
 	virtual void OnChar()
@@ -156,6 +162,7 @@ public:
 
 private:
 	bool m_rightButtonDragZoomEnabled = true;
+	bool m_rotionEnabled = false; 
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);

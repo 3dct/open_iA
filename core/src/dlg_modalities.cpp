@@ -327,7 +327,7 @@ void dlg_modalities::ManualRegistration()
 	vtkInteractorStyleSwitch* interactSwitch_XZ =
 		dynamic_cast<vtkInteractorStyleSwitch*>(m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->GetInteractorStyle());
 
-	vtkSmartPointer<iACustomInterActorStyleTrackBall> style =vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle =vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
 
 	if (!interactSwitch)
 	{
@@ -340,17 +340,23 @@ void dlg_modalities::ManualRegistration()
 		//no update of slice window; 
 		//background black not transparent
 	
-		if (!interactSwitch_XY) {DEBUG_LOG("XY Interactor null"); return; };
+	/*	if (!interactSwitch_XY) {DEBUG_LOG("XY Interactor null"); return; };
 		if (!interactSwitch_YZ) { DEBUG_LOG("YZ Interactor null"); return; };
-		if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };
-
-		//m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle()
-		//Muss ich über die Orientierung machen sonst wird der Slicer nicht verschoben; 
-		interactSwitch_XY->SetCurrentStyleToTrackballActor();
-				
-		//Slicer in Physische Koordinaten umrechnen; Hintergrund
-		interactSwitch_YZ->SetCurrentStyleToTrackballActor();
-		interactSwitch_XZ->SetCurrentStyleToTrackballActor();
+		if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };*/
+		m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(nullptr);
+		m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(nullptr);
+		m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(nullptr);
+		
+		m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle);
+		m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle);
+		m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle);
+		
+		////Muss ich über die Orientierung machen sonst wird der Slicer nicht verschoben; 
+		//interactSwitch_XY->SetCurrentStyleToTrackballActor();
+		//		
+		////Slicer in Physische Koordinaten umrechnen; Hintergrund
+		//interactSwitch_YZ->SetCurrentStyleToTrackballActor();
+		//interactSwitch_XZ->SetCurrentStyleToTrackballActor();
 		
 	}
 	else
