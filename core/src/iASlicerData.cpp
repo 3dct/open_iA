@@ -303,8 +303,8 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 	colorTransferFunction = ctf;
 
 	renWin->AddRenderer(ren);
-	interactor = renWin->GetInteractor();
-	interactor->SetInteractorStyle(interactorStyle);
+	setDefaultInteractor();
+
 	interactor->SetPicker(pointPicker);
 	interactor->Initialize( );
 	interactorStyle->SetDefaultRenderer(ren);
@@ -466,6 +466,12 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 	ren->AddActor(imageActor);
 	ren->SetActiveCamera(m_camera);
 	ren->ResetCamera();
+}
+
+void iASlicerData::setDefaultInteractor()
+{
+	interactor = renWin->GetInteractor();
+	interactor->SetInteractorStyle(interactorStyle);
 }
 
 void iASlicerData::AddImageActor(vtkSmartPointer<vtkImageActor> imgActor)

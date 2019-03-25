@@ -78,6 +78,9 @@ public:
 	virtual ~iASlicerData();
 
 	void initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
+
+	void setDefaultInteractor();
+
 	void reInitialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool showisolines = false, bool showpolygon = false);
 	void changeImageData(vtkImageData *idata);
 	void setup(iASingleSlicerSettings const & settings);
