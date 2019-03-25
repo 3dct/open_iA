@@ -5,6 +5,8 @@
 #include "vtkProp3D.h"
 #include "vtkObjectFactory.h"
 #include "vtkCellPicker.h"
+#include "QString"
+#include "iAConsole.h"
 
 
 // Motion flags
@@ -38,11 +40,16 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamer
 		int y = this->Interactor->GetEventPosition()[1];
 
 		this->FindPokedRenderer(x, y);
+		this->Interactor->GetPicker()->Pick(x, y, 0, this->GetCurrentRenderer());
 		this->FindPickedActor(x, y);
 		if (this->CurrentRenderer == nullptr || this->InteractionProp == nullptr)
 		{
 			return;
 		}
+
+		double picked[3];
+		this->Interactor->GetPicker()->GetPickPosition(picked);
+		DEBUG_LOG(QString("Picked 1% \t %2 \t %3").arg(picked[0]).arg(picked[1]).arg(picked[2])); 
 
 		if (!this->Interactor->GetShiftKey())
 			return;
@@ -50,9 +57,7 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamer
 	}
 
 	virtual void OnLeftButtonUp(); 
-
-	void OnMiddleButtonUp() override;
-	
+	void OnMiddleButtonUp() override;	
 	void OnRightButtonUp() override;
 
 	//! @}
@@ -74,8 +79,9 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballCamer
 	{
 		return; 
 	}
-
-
+	void Spin() override { return;  }
+	
+	
 	void iACustomInterActorStyleTrackBall::Pick()
 	{
 		this->InvokeEvent(vtkCommand::PickEvent, this);

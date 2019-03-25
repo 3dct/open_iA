@@ -83,6 +83,10 @@ private slots:
 	void AddClicked();
 	void RemoveClicked();
 	void EditClicked();
+
+	/*Manual movement of one object to another,
+	* this can be also seen in the slicer
+	*/
 	void ManualRegistration();
 	void MagicLens();
 	//void CuttingPlane();

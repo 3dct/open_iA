@@ -328,9 +328,11 @@ void dlg_modalities::ManualRegistration()
 		dynamic_cast<vtkInteractorStyleSwitch*>(m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->GetInteractorStyle());
 
 	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle =vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+	/*vtkSmartPointer<iAInteractorStyleImage> ImageStyle = vtkSmartPointer<iAInteractorStyleImage>::New(); */
 
 	if (!interactSwitch)
 	{
+		DEBUG_LOG("Unable to use interact switch"); 
 		return;
 	}
 	if (cbManualRegistration->isChecked())
@@ -340,14 +342,14 @@ void dlg_modalities::ManualRegistration()
 		//no update of slice window; 
 		//background black not transparent
 	
-	/*	if (!interactSwitch_XY) {DEBUG_LOG("XY Interactor null"); return; };
+		if (!interactSwitch_XY) {DEBUG_LOG("XY Interactor null"); return; };
 		if (!interactSwitch_YZ) { DEBUG_LOG("YZ Interactor null"); return; };
-		if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };*/
+		if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };
+		m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->SetInteractorStyle(nullptr);
+		m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(nullptr);
 		m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(nullptr);
-		m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(nullptr);
-		m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(nullptr);
 		
-		m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle);
+		m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle);
 		m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle);
 		m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle);
 		
@@ -361,10 +363,11 @@ void dlg_modalities::ManualRegistration()
 	}
 	else
 	{
+	
+		m_mdiChild->getSlicerXY()->GetSlicerData()->setDefaultInteractor();
+		m_mdiChild->getSlicerYZ()->GetSlicerData()->setDefaultInteractor(); 
+		m_mdiChild->getSlicerXZ()->GetSlicerData()->setDefaultInteractor();
 
-		interactSwitch_XY->SetCurrentStyleToTrackballCamera();
-		interactSwitch_YZ->SetCurrentStyleToTrackballCamera();
-		interactSwitch_XZ->SetCurrentStyleToTrackballCamera();
 		interactSwitch->SetCurrentStyleToTrackballCamera();
 	}
 

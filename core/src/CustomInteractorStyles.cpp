@@ -8,7 +8,8 @@ iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall() {
 	InteractionMode = 0;
 	this->InteractionProp = nullptr;
 	this->InteractionPicker = vtkCellPicker::New();
-	this->InteractionPicker->SetTolerance(0.001);
+	/*PickTolerance = 100.0;*/
+	this->InteractionPicker->SetTolerance(100.0);
 }
 
 void iACustomInterActorStyleTrackBall::OnMouseMove()
