@@ -42,6 +42,7 @@ iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, iAChildData childData )
 	MdiChild * mdiChild = m_childData.child;
 	
 	m_renderWindow->AddRenderer(m_renderer);
+
 	m_interactor->SetRenderWindow(m_renderWindow);
 	m_renderer->SetActiveCamera(m_camera);
 

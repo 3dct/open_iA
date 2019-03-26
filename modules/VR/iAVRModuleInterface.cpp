@@ -22,23 +22,68 @@
 
 #include "iAVRAttachment.h"
 
+#include <iAConsole.h>
 #include <mainwindow.h>
 #include <mdichild.h>
+
+#include <openvr.h>
+
+#include <QMessageBox>
 
 void iAVRModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QAction * actionVR = new QAction( "Virtual Reality", nullptr );
-	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionVR );
-	connect(actionVR, SIGNAL(triggered()), this, SLOT(startVR()));
+	QMenu* vrMenu = getMenuWithTitle(toolsMenu, tr("VR"), false);
+
+	QAction * actionVRRender = new QAction(tr("Rendering"), nullptr);
+	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRRender, true);
+	connect(actionVRRender, &QAction::triggered, this, &iAVRModuleInterface::render);
+
+	QAction * actionVRInfo = new QAction(tr("Info"), nullptr);
+	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRInfo, false);
+	connect(actionVRInfo, &QAction::triggered, this, &iAVRModuleInterface::info);
 }
 
-void iAVRModuleInterface::startVR()
+void iAVRModuleInterface::render()
 {
+	if (!vr::VR_IsHmdPresent())
+	{
+		QMessageBox::information(m_mainWnd, "VR", "No VR device found. Make sure you have installed Steam and SteamVR! You can use 'VR Info' option to get more information.");
+		return;
+	}
 	PrepareActiveChild();
 	AttachToMdiChild( m_mdiChild );
+}
+
+void iAVRModuleInterface::info()
+{
+	DEBUG_LOG(QString("VR Information:"));
+	DEBUG_LOG(QString("    Head-mounted display present: %1").arg(vr::VR_IsHmdPresent() ? "yes" : "no"));
+	DEBUG_LOG(QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
+	DEBUG_LOG(QString("    OpenVR runtime path: %1").arg(vr::VR_RuntimePath()));
+
+	vr::EVRInitError eError = vr::VRInitError_None;
+	auto pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
+	if (eError != vr::VRInitError_None)
+	{
+		DEBUG_LOG(QString("    Unable to init VR runtime: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
+	}
+	else
+	{
+		if (pHMD)
+		{
+			uint32_t width, height;
+			pHMD->GetRecommendedRenderTargetSize(&width, &height);
+			DEBUG_LOG(QString("    Head-mounted display present, recommended render target size: %1x%2 ").arg(width).arg(height));
+		}
+		else
+		{
+			DEBUG_LOG(QString("    Head-mounted display could not be initialized: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
+		}
+	}
+	vr::VR_Shutdown();
 }
 
 iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )

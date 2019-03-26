@@ -30,5 +30,6 @@ public:
 private:
 	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
 private slots:
-	void startVR();
+	void render();
+	void info();
 };

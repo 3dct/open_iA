@@ -185,10 +185,10 @@ ELSE()
 	MESSAGE(WARNING "    Video: No encoder available! You will not be able to record videos.")
 ENDIF()
 IF (vtkRenderingOpenVR_LOADED)
-	MESSAGE(STATUS "    OpenVR: available")
+	MESSAGE(STATUS "    RenderingOpenVR: available")
 	SET (VTK_LIBRARIES ${VTK_LIBRARIES} vtkRenderingOpenVR)
 ELSE()
-	MESSAGE(STATUS "    OpenVR: NOT available! Enable Module_vtkRenderingOpenVR in VTK to make it available.")
+	MESSAGE(STATUS "    RenderingOpenVR: NOT available! Enable Module_vtkRenderingOpenVR in VTK to make it available.")
 ENDIF()
 
 
