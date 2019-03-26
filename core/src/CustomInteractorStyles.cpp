@@ -1,4 +1,5 @@
 #include "CustomInterActorStyles.h"
+#include <limits>
 
 
 vtkStandardNewMacro(iACustomInterActorStyleTrackBall);
@@ -14,6 +15,9 @@ iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall() {
 	this->InteractionPicker = vtkCellPicker::New();
 	/*PickTolerance = 100.0;*/
 	this->InteractionPicker->SetTolerance(100.0);
+	m_currentPos[0] = std::numeric_limits<double>::min();
+	m_currentPos[1] = std::numeric_limits<double>::min();
+	m_currentPos[2] = std::numeric_limits<double>::min();
 }
 
 void iACustomInterActorStyleTrackBall::OnMouseMove()
