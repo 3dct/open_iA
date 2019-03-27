@@ -23,7 +23,10 @@ ENDIF()
 
 # Windows-specific configuration
 IF (MSVC)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+	IF (MSVC_VERSION GREATER_EQUAL 1910)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
+	ENDIF()
 
 	IF (NOT EXISTS ${CMAKE_BINARY_DIR}/ALL_BUILD.vcxproj.user 
 	OR NOT EXISTS ${CMAKE_BINARY_DIR}/gui/open_iA.vcxproj.user 
