@@ -32,6 +32,7 @@
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
 #include "iASlicer.h"
+#include "iAChannelSlicerData.h"
 #include "iASlicerSettings.h"
 #include "iAStringHelper.h"
 #include "iAToolsITK.h"
