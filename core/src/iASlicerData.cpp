@@ -485,6 +485,12 @@ void iASlicerData::RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 	ren->RemoveActor(imgActor);
 }
 
+vtkImageActor *iASlicerData::getActor(uint channelId)
+{
+	if (channelId > m_channels.size()) throw std::invalid_argument(QString("Invalid channel id %1").arg(channelId).toStdString()); 
+	return m_channels[channelId]->imageActor; 
+}
+
 void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	double opacity, double * range)
 {

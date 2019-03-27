@@ -95,6 +95,7 @@ public:
 
 	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
+	vtkImageActor *getActor(uint channelId);
 
 	void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
 

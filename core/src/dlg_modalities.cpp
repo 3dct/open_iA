@@ -41,6 +41,7 @@
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkInteractorStyleSwitch.h>
 #include <vtkPiecewiseFunction.h>
@@ -315,87 +316,114 @@ void dlg_modalities::EnableButtons()
 
 void dlg_modalities::ManualRegistration()
 {
-	vtkInteractorStyleSwitch* interactSwitch3D = dynamic_cast<vtkInteractorStyleSwitch*>(m_magicLensWidget->GetInteractor()->GetInteractorStyle());
-	
-	//int idx = lwModalities->currentRow();
 
-	//for testing
-	
-	int idx = lwModalities->currentRow();
-	if (idx < 0 || idx >= modalities->size())
-	{
-		DEBUG_LOG(QString("Index out of range (%1).").arg(idx));
-		return;
+	try {
+		vtkInteractorStyleSwitch* interactSwitch3D = dynamic_cast<vtkInteractorStyleSwitch*>(m_magicLensWidget->GetInteractor()->GetInteractorStyle());
+
+		//int idx = lwModalities->currentRow();
+
+		//for testing
+
+		int idx = lwModalities->currentRow();
+		if (idx < 0 || idx >= modalities->size())
+		{
+			DEBUG_LOG(QString("Index out of range (%1).").arg(idx));
+			return;
+		}
+		QSharedPointer<iAModality> editModality(modalities->Get(idx));
+
+
+
+		if (!editModality->GetRenderer())
+		{
+			DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
+			return;
+		}
+
+
+		//channel id auf max warum? 
+		vtkProp3D *vol_3d = editModality->GetRenderer()->GetVolume().Get();
+		uint chID = editModality->channelID();
+		if (chID == NotExistingChannel) {
+			m_mdiChild->getLogger()->Log("Error: Modality must be added to slicer before registration"); 
+			return; 
+		}
+		
+
+		//properties of slicer for channelID
+		vtkProp3D *propXY = dynamic_cast<vtkProp3D*>(m_mdiChild->getSlicerDataXY()->getActor(chID));
+		vtkProp3D *propXZ = dynamic_cast<vtkProp3D*>(m_mdiChild->getSlicerDataXZ()->getActor(chID));
+		vtkProp3D *propYZ = dynamic_cast<vtkProp3D*>(m_mdiChild->getSlicerDataYZ()->getActor(chID));
+
+
+		if (!propXY) { DEBUG_LOG("prop xy is null"); }
+		if (!propXZ) { DEBUG_LOG("prop xz is null"); }
+		if (!propYZ) { DEBUG_LOG("prop yz is null"); }
+
+
+
+		//editModality->GetRenderer()
+
+		//remove this later
+		//props aus den channels rausholen
+
+		////m_mdiChild->getSlicerXY()->GetSlicerData()->enableInteractor();
+		//vtkInteractorStyleSwitch* interactSwitch_XY = 
+		//	dynamic_cast<vtkInteractorStyleSwitch*>(m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->GetInteractorStyle());
+
+		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xz = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_yz = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+
+
+
+
+		//TODO actors setzen
+		Customstyle_xy->initializeActors(vol_3d, propXZ, propYZ);
+		Customstyle_xz->initializeActors(vol_3d, propXY, propYZ);
+		Customstyle_yz->initializeActors(vol_3d, propXY, propXZ);
+
+
+		if (!interactSwitch3D)
+		{
+			DEBUG_LOG("Unable to use interact switch");
+			return;
+		}
+		if (cbManualRegistration->isChecked())
+		{
+			interactSwitch3D->SetCurrentStyleToTrackballActor();
+			//interactSwitch3D->GetInteractor()->getPro	
+			//no update of slice window; 
+			//background black not transparent
+
+			/*if (!interactSwitch_XY) {DEBUG_LOG("XY Interactor null"); return; };
+			if (!interactSwitch_YZ) { DEBUG_LOG("YZ Interactor null"); return; };
+			if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };*/
+
+
+
+			int slizeZ = m_mdiChild->getSlicerXY()->GetSlicerData()->getSliceNumber();
+			int slizeX = m_mdiChild->getSlicerXZ()->GetSlicerData()->getSliceNumber();
+			int sliceY = m_mdiChild->getSlicerYZ()->GetSlicerData()->getSliceNumber();
+			iASlicerMode modeXY = m_mdiChild->getSlicerXY()->GetSlicerData()->getMode();
+			iASlicerMode modeXZ = m_mdiChild->getSlicerXZ()->GetSlicerData()->getMode();
+			iASlicerMode modeYZ = m_mdiChild->getSlicerYZ()->GetSlicerData()->getMode();
+
+			m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xy);
+			m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xz);
+			m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_yz);
+
+		}
+		else
+		{
+			m_mdiChild->getSlicerXY()->GetSlicerData()->setDefaultInteractor();
+			m_mdiChild->getSlicerYZ()->GetSlicerData()->setDefaultInteractor();
+			m_mdiChild->getSlicerXZ()->GetSlicerData()->setDefaultInteractor();
+			interactSwitch3D->SetCurrentStyleToTrackballCamera();
+		}
 	}
-	QSharedPointer<iAModality> editModality(modalities->Get(idx));
-	
-
-
-	if (!editModality->GetRenderer())
-	{
-		DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
-		return;
-	}
-
-	vtkProp3D *vol_3d = editModality->GetRenderer()->GetVolume().Get(); 
-	//remove this later
-
-	
-	////m_mdiChild->getSlicerXY()->GetSlicerData()->enableInteractor();
-	//vtkInteractorStyleSwitch* interactSwitch_XY = 
-	//	dynamic_cast<vtkInteractorStyleSwitch*>(m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->GetInteractorStyle());
-
-	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy =vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
-	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xz = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
-	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_yz = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
-	
-	vtkProp3D * propXY = Customstyle_xy->getCurrentSlicerProp(); 
-	vtkProp3D * propXZ = Customstyle_xz->getCurrentSlicerProp(); 
-	vtkProp3D * propYZ = Customstyle_yz->getCurrentSlicerProp(); 
-	
-
-	//TODO actors setzen
-	/*Customstyle_xy->initializeActors(vol_3d, propXZ, propYZ);
-	Customstyle_xz->initializeActors(vol_3d, propXY, propYZ);
-	Customstyle_yz->initializeActors(vol_3d, propXY, propXZ);*/
-
-
-	if (!interactSwitch3D)
-	{
-		DEBUG_LOG("Unable to use interact switch"); 
-		return;
-	}
-	if (cbManualRegistration->isChecked())
-	{
-		interactSwitch3D->SetCurrentStyleToTrackballActor();
-		//interactSwitch3D->GetInteractor()->getPro	
-		//no update of slice window; 
-		//background black not transparent
-	
-		/*if (!interactSwitch_XY) {DEBUG_LOG("XY Interactor null"); return; };
-		if (!interactSwitch_YZ) { DEBUG_LOG("YZ Interactor null"); return; };
-		if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };*/
-	
-
-
-		int slizeZ = m_mdiChild->getSlicerXY()->GetSlicerData()->getSliceNumber();
-		int slizeX = m_mdiChild->getSlicerXZ()->GetSlicerData()->getSliceNumber();
-		int sliceY = m_mdiChild->getSlicerYZ()->GetSlicerData()->getSliceNumber();
-		iASlicerMode modeXY = m_mdiChild->getSlicerXY()->GetSlicerData()->getMode();
-		iASlicerMode modeXZ = m_mdiChild->getSlicerXZ()->GetSlicerData()->getMode();
-		iASlicerMode modeYZ = m_mdiChild->getSlicerYZ()->GetSlicerData()->getMode();
-
-		m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xy);
-		m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xz);
-		m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_yz);
-					
-	}
-	else
-	{	
-		m_mdiChild->getSlicerXY()->GetSlicerData()->setDefaultInteractor();
-		m_mdiChild->getSlicerYZ()->GetSlicerData()->setDefaultInteractor(); 
-		m_mdiChild->getSlicerXZ()->GetSlicerData()->setDefaultInteractor();
-		interactSwitch3D->SetCurrentStyleToTrackballCamera();
+	catch (std::invalid_argument &ivae) {
+		DEBUG_LOG(ivae.what()); 
 	}
 
 }
