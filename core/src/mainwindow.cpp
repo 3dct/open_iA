@@ -625,9 +625,9 @@ void MainWindow::saveSliceViews(QDomDocument &doc)
 		root.appendChild(sliceViewsNode);
 	}
 
-	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataXY()->GetRenderer(), "XY");
-	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataYZ()->GetRenderer(), "YZ");
-	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataXZ()->GetRenderer(), "XZ");
+	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataXY()->getRenderer(), "XY");
+	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataYZ()->getRenderer(), "YZ");
+	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataXZ()->getRenderer(), "XZ");
 }
 
 void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, char const *elemStr)
@@ -707,9 +707,9 @@ void MainWindow::loadSliceViews(QDomNode &sliceViewsNode)
 	{
 		QDomNode node = list.item(n);
 		vtkCamera *camera;
-		if (node.nodeName() == "XY") camera = activeMdiChild()->getSlicerDataXY()->GetCamera();
-		else if (node.nodeName() == "YZ") camera = activeMdiChild()->getSlicerDataYZ()->GetCamera();
-		else camera = activeMdiChild()->getSlicerDataXZ()->GetCamera();
+		if      (node.nodeName() == "XY") camera = activeMdiChild()->getSlicerDataXY()->getCamera();
+		else if (node.nodeName() == "YZ") camera = activeMdiChild()->getSlicerDataYZ()->getCamera();
+		else                              camera = activeMdiChild()->getSlicerDataXZ()->getCamera();
 		loadCamera(node, camera);
 	}
 }

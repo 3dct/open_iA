@@ -155,7 +155,7 @@ void iAChannelSlicerData::reInit(iAChannelVisualizationData * chData)
 	setupOutput(chData->getCTF(), chData->getOTF());
 }
 
-bool iAChannelSlicerData::isInitialized()
+bool iAChannelSlicerData::isInitialized() const
 {
 	return m_isInitialized;
 }
@@ -175,9 +175,10 @@ QColor iAChannelSlicerData::getColor() const
 	return m_color;
 }
 
-void iAChannelSlicerData::assignTransform(vtkTransform * transform)
+void iAChannelSlicerData::setTransform(vtkAbstractTransform * transform)
 {
 	reslicer->SetResliceTransform(transform);
+	reslicer->UpdateWholeExtent();
 }
 
 void iAChannelSlicerData::updateReslicer()

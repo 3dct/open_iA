@@ -83,7 +83,7 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 
 	if (!m_enableInteraction) {
 		vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
-		m_slicer->GetSlicerData()->GetInteractor()->SetInteractorStyle(dummyStyle);
+		m_slicer->data()->getInteractor()->SetInteractorStyle(dummyStyle);
 	}
 
 	double* origin = imageData->GetOrigin();
@@ -95,7 +95,7 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 	double xd = (extent[1] - extent[0] + 1)*spacing[0];
 	double yd = (extent[3] - extent[2] + 1)*spacing[1];
 
-	vtkCamera *camera = m_slicer->GetCamera();
+	vtkCamera *camera = m_slicer->getCamera();
 	double d = camera->GetDistance();
 
 	camera->SetParallelScale(0.5*yd);

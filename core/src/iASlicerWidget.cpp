@@ -22,6 +22,7 @@
 
 #include "iAArbitraryProfileOnSlicer.h"
 #include "iAChannelVisualizationData.h"
+#include "iAChannelSlicerData.h"
 #include "iAConsole.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
@@ -146,7 +147,8 @@ void iASlicerWidget::initialize(vtkPoints *snakeSlicerPoints )
 
 	if (m_decorations)
 	{
-		m_snakeSpline->initialize(ren, imageData->GetSpacing()[0]);
+		// TODO: fix snake spline with non-fixed slicer images
+		//m_snakeSpline->initialize(ren, imageData->GetSpacing()[0]);
 		m_sliceProfile->initialize(ren);
 		m_arbProfile->initialize(ren);
 	}
@@ -177,23 +179,24 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 	if (event->key() == Qt::Key_O)
 	{
 		pickPoint( pickedData.pos, pickedData.res, pickedData.ind );
-
+		// TODO: fisheye lens on all channels???
+		if (!m_slicerDataExternal->getChannel(0))
+			return;
+		auto reslicer = m_slicerDataExternal->getChannel(0)->reslicer;
 		if (!fisheyeLensActivated)
 		{
 			fisheyeLensActivated = true;
-			m_slicerDataExternal->GetReslicer()->SetAutoCropOutput
-				( !m_slicerDataExternal->GetReslicer()->GetAutoCropOutput() );
+			reslicer->SetAutoCropOutput	( !reslicer->GetAutoCropOutput() );
 			ren->SetWorldPoint( pickedData.res[SlicerXInd( m_slicerMode )], pickedData.res[SlicerYInd( m_slicerMode )], 0, 1 );
 
-			initializeFisheyeLens( m_slicerDataExternal->GetReslicer() );
+			initializeFisheyeLens(reslicer);
 
-			updateFisheyeTransform( ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+			updateFisheyeTransform( ren->GetWorldPoint(), m_slicerDataExternal, reslicer, fisheyeRadius, innerFisheyeRadius);
 		}
 		else
 		{
 			fisheyeLensActivated = false;
-			m_slicerDataExternal->GetReslicer()->SetAutoCropOutput
-				( !m_slicerDataExternal->GetReslicer()->GetAutoCropOutput() );
+			reslicer->SetAutoCropOutput( !reslicer->GetAutoCropOutput() );
 
 			// Clear outdated circles and actors (not needed for final version)
 			for ( int i = 0; i < circle1ActList.length(); ++i )
@@ -210,7 +213,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 
 			// No fisheye transform
 			double bounds[6];
-			m_slicerDataExternal->GetReslicer()->GetInformationInput()->GetBounds( bounds );
+			reslicer->GetInformationInput()->GetBounds( bounds );
 			p_target->SetNumberOfPoints( 4 );
 			p_source->SetNumberOfPoints( 4 );
 			p_target->SetPoint( 0, bounds[0], bounds[2], 0 ); //x_min, y_min, bottom left
@@ -224,7 +227,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 
 			fisheyeTransform->SetSourceLandmarks( p_source );
 			fisheyeTransform->SetTargetLandmarks( p_target );
-			m_slicerDataExternal->GetReslicer()->SetResliceTransform( fisheyeTransform );
+			reslicer->SetResliceTransform( fisheyeTransform );
 			m_slicerDataExternal->update();
 		}
 	}
@@ -234,20 +237,23 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 
 		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 		ren->SetWorldPoint(pickedData.res[SlicerXInd(m_slicerMode)], pickedData.res[SlicerYInd(m_slicerMode)], 0, 1);
-
+		if (!m_slicerDataExternal->getChannel(0))
+			return;
+		// TODO: fisheye lens on all channels???
+		auto reslicer = m_slicerDataExternal->getChannel(0)->reslicer;
 		if (event->modifiers().testFlag(Qt::ControlModifier)) {
 			if (event->key() == Qt::Key_Minus) {
 
 				if (fisheyeRadius <= 20 && innerFisheyeRadius + 1.0 <= 20.0) {
 					innerFisheyeRadius = innerFisheyeRadius + 1.0;
-					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, reslicer, fisheyeRadius, innerFisheyeRadius);
 
 				}
 
 				else {
 					if ((innerFisheyeRadius + 2.0) <= fisheyeRadius) {
 						innerFisheyeRadius = innerFisheyeRadius + 2.0;
-						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, reslicer, fisheyeRadius, innerFisheyeRadius);
 					}
 
 				}
@@ -256,13 +262,13 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 
 				if (fisheyeRadius <= 20 && innerFisheyeRadius - 1.0 >= 1.0) {
 					innerFisheyeRadius = innerFisheyeRadius - 1.0;
-					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, reslicer, fisheyeRadius, innerFisheyeRadius);
 
 				}
 				else {
 					if ((innerFisheyeRadius - 2.0) >= (innerFisheyeMinRadius)) {
 						innerFisheyeRadius = innerFisheyeRadius - 2.0;
-						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, reslicer, fisheyeRadius, innerFisheyeRadius);
 
 				}
 				}
@@ -274,7 +280,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 				if (fisheyeRadius + 1.0 <= 20.0) {
 					fisheyeRadius = fisheyeRadius + 1.0;
 					innerFisheyeRadius = innerFisheyeRadius + 1.0;
-					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, reslicer, fisheyeRadius, innerFisheyeRadius);
 
 				}
 				else {
@@ -282,7 +288,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 						fisheyeRadius = fisheyeRadius + 10.0;
 						innerFisheyeRadius = innerFisheyeRadius + 10.0;
 						innerFisheyeMinRadius = innerFisheyeMinRadius + 8;
-						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+						updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, reslicer, fisheyeRadius, innerFisheyeRadius);
 
 					}
 				}
@@ -295,7 +301,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 					if (innerFisheyeMinRadius > 1.0)
 						innerFisheyeMinRadius = 1.0;
 
-					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+					updateFisheyeTransform(ren->GetWorldPoint(), m_slicerDataExternal, reslicer, fisheyeRadius, innerFisheyeRadius);
 
 				}
 				else {
@@ -308,7 +314,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 						if (innerFisheyeRadius < innerFisheyeMinRadius)
 							innerFisheyeRadius = innerFisheyeMinRadius;
 
-						updateFisheyeTransform(ren->GetWorldPoint() /*pickedData.pos*/, m_slicerDataExternal, fisheyeRadius, innerFisheyeRadius);
+						updateFisheyeTransform(ren->GetWorldPoint() /*pickedData.pos*/, m_slicerDataExternal, reslicer, fisheyeRadius, innerFisheyeRadius);
 					}
 				}
 			}
@@ -406,9 +412,13 @@ void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 
 	if ( fisheyeLensActivated )
 	{
+		if (!m_slicerDataExternal->getChannel(0))
+			return;
+		// TODO: fisheye lens on all channels???
+		auto reslicer = m_slicerDataExternal->getChannel(0)->reslicer;
 		vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 		ren->SetWorldPoint( pickedData.res[SlicerXInd( m_slicerMode )], pickedData.res[SlicerYInd( m_slicerMode )], 0, 1 );
-		updateFisheyeTransform( ren->GetWorldPoint(), m_slicerDataExternal , fisheyeRadius, innerFisheyeRadius);
+		updateFisheyeTransform( ren->GetWorldPoint(), m_slicerDataExternal, reslicer, fisheyeRadius, innerFisheyeRadius);
 	}
 
 	if (!event->modifiers().testFlag(Qt::ShiftModifier))
@@ -586,7 +596,11 @@ void iASlicerWidget::addPoint(double xPos, double yPos, double zPos)
 
 void iASlicerWidget::setSliceProfile(double Pos[3])
 {
-	vtkImageData * reslicedImgData = m_slicerDataExternal->GetReslicer()->GetOutput();
+	if (!m_slicerDataExternal->getChannel(0))
+		return;
+	// TODO: slice profile on selected/current channel
+	auto reslicer = m_slicerDataExternal->getChannel(0)->reslicer;
+	vtkImageData * reslicedImgData = reslicer->GetOutput();
 	double PosY = Pos[SlicerYInd(m_slicerMode)];
 	if (!m_sliceProfile->updatePosition(PosY, reslicedImgData))
 		return;
@@ -599,18 +613,23 @@ bool iASlicerWidget::setArbitraryProfile(int pointInd, double * Pos, bool doClam
 {
 	if (!m_decorations)
 		return false;
+	if (!m_slicerDataExternal->getChannel(0))
+		return false;
+	// TODO: slice profile on selected/current channel
+	auto reslicer  = m_slicerDataExternal->getChannel(0)->reslicer;
+	auto imageData = m_slicerDataExternal->getChannel(0)->image;
 	if (doClamp)
 	{
-		double * spacing = m_imageData->GetSpacing();
-		double * origin = m_imageData->GetOrigin();
-		int * dimensions = m_imageData->GetDimensions();
+		double * spacing = imageData->GetSpacing();
+		double * origin  = imageData->GetOrigin();
+		int * dimensions = imageData->GetDimensions();
 		for (int i = 0; i < 3; ++i)
 		{
 			Pos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], Pos[i]);
 		}
 	}
 	double profileCoord2d[2] = {Pos[ SlicerXInd(m_slicerMode) ], Pos[ SlicerYInd(m_slicerMode) ]};
-	if( !m_arbProfile->setup(pointInd, Pos, profileCoord2d, m_slicerDataExternal->GetReslicer()->GetOutput()) )
+	if( !m_arbProfile->setup(pointInd, Pos, profileCoord2d, reslicer->GetOutput()) )
 		return false;
 	GetRenderWindow()->GetInteractor()->Render();
 	return true;
@@ -701,11 +720,17 @@ int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_o
 	vtkIdType total_points = pointPicker->GetPickedPositions()->GetNumberOfPoints();
 	pointPicker->GetPickedPositions()->GetPoint(total_points-1, ptMapped );
 
+	if (!m_slicerDataExternal->getChannel(0))
+		return 0;
+	// TODO: slice profile on selected/current channel
+	auto reslicer = m_slicerDataExternal->getChannel(0)->reslicer;
+	auto imageData = m_slicerDataExternal->getChannel(0)->image;
+
 	// get image spacing to be able to select a point independent of zoom level
 	double spacing[3];
-	m_imageData->GetSpacing(spacing);
+	imageData->GetSpacing(spacing);
 
-	vtkMatrix4x4 * resliceAxes = m_slicerDataExternal->GetReslicer()->GetResliceAxes();
+	vtkMatrix4x4 * resliceAxes = reslicer->GetResliceAxes();
 	double point[4] = { ptMapped[0], ptMapped[1], 0, 1 }; // We have to set the physical z-coordinate which requires us to get the volume spacing.
 	resliceAxes->MultiplyPoint(point, result_out);
 
@@ -879,14 +904,14 @@ void iASlicerWidget::initializeFisheyeLens(vtkImageReslice* reslicer)
 
 void iASlicerWidget::updateFisheyeTransform(double focalPt[3], iASlicerData* slicerData, vtkImageReslice* reslicer, double lensRadius, double innerLensRadius)
 {
-	vtkImageData * reslicedImgData = slicerData->GetReslicer()->GetOutput();
+	vtkImageData * reslicedImgData = reslicer->GetOutput();
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 
 	double * spacing = reslicedImgData->GetSpacing();
 	double * origin = reslicedImgData->GetOrigin();
 
 	double bounds[6];
-	m_slicerDataExternal->GetReslicer()->GetInformationInput()->GetBounds( bounds );
+	reslicer->GetInformationInput()->GetBounds( bounds );
 
 	p_target->SetNumberOfPoints( 32 ); // already set above!
 	p_source->SetNumberOfPoints( 32 );
@@ -1038,13 +1063,13 @@ void iASlicerWidget::updateFisheyeTransform(double focalPt[3], iASlicerData* sli
 	}
 
 	fisheye->SetCenter( focalPt[0], focalPt[1], 0.0 );
-	fisheye->SetRadius( lensRadius * slicerData->GetReslicer()->GetOutput()->GetSpacing()[0] );
+	fisheye->SetRadius( lensRadius * reslicer->GetOutput()->GetSpacing()[0] );
 
 	fisheyeTransform->SetSourceLandmarks(p_source); // red
 	fisheyeTransform->SetTargetLandmarks(p_target);  // green
 
-	slicerData->GetReslicer()->SetResliceTransform( fisheyeTransform );
-	slicerData->GetReslicer()->Update();
+	reslicer->SetResliceTransform( fisheyeTransform );
+	reslicer->Update();
 	slicerData->update();
 }
 

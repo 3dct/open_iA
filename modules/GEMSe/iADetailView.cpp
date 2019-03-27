@@ -210,10 +210,10 @@ iADetailView::iADetailView(
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(dblClicked()), this, SLOT(DblClicked()));
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
-	connect(m_previewWidget->GetSlicer()->getSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
-	connect(m_previewWidget->GetSlicer()->getSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
-	connect(m_previewWidget->GetSlicer()->getSlicerData(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
-	connect(m_previewWidget->GetSlicer()->getSlicerData(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
+	connect(m_previewWidget->GetSlicer()->data(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
+	connect(m_previewWidget->GetSlicer()->data(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
+	connect(m_previewWidget->GetSlicer()->data(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
+	connect(m_previewWidget->GetSlicer()->data(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
 }
 
 
@@ -319,7 +319,7 @@ int iADetailView::GetSliceNumber() const
 
 void iADetailView::UpdateMagicLensColors()
 {
-	m_previewWidget->GetSlicer()->getSlicerData()->updateChannelMappers();
+	m_previewWidget->GetSlicer()->data()->updateChannelMappers();
 	m_previewWidget->GetSlicer()->updateMagicLensColors();
 	m_previewWidget->GetSlicer()->update();
 
@@ -694,9 +694,9 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 		int sliceNr = m_previewWidget->GetSliceNumber();
 		switch (slicer->getMode())
 		{
-		case YZ: slicer->getSlicerData()->enableChannel(ResultFilterChannelID, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
-		case XY: slicer->getSlicerData()->enableChannel(ResultFilterChannelID, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
-		case XZ: slicer->getSlicerData()->enableChannel(ResultFilterChannelID, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
+		case YZ: slicer->data()->enableChannel(ResultFilterChannelID, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
+		case XY: slicer->data()->enableChannel(ResultFilterChannelID, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
+		case XZ: slicer->data()->enableChannel(ResultFilterChannelID, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
 		}
 	}
 	slicer->update();

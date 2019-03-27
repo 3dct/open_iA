@@ -102,7 +102,7 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	if (m_SPLOMSelectionChannelID == NotExistingChannel)
 		m_SPLOMSelectionChannelID = mdiChild->createChannel();
 	auto chData = mdiChild->getChannelData(m_SPLOMSelectionChannelID);
-	ResetChannel(chData, result, m_selection_ctf, m_selection_otf);
+	chData->setData(result, m_selection_ctf, m_selection_otf);
 
 	mdiChild->InitChannelRenderer(m_SPLOMSelectionChannelID, false);
 	mdiChild->updateChannelOpacity(m_SPLOMSelectionChannelID, 0.5);

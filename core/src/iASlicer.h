@@ -31,12 +31,12 @@
 class QWidget;
 class QFrame;
 
+class vtkAbstractTransform;
 class vtkCamera;
 class vtkGenericOpenGLRenderWindow;
 class vtkImageActor;
 class vtkPoints;
 class vtkRenderer;
-class vtkTransform;
 
 class iAChannelVisualizationData;
 class iAChannelSlicerData;
@@ -63,7 +63,8 @@ class open_iA_Core_API iASlicer : public QObject
 public:
 	iASlicer(QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations = true, bool magicLensAvailable = true);
 	~iASlicer();
-	void initialize(vtkTransform *tr);
+	void initialize(vtkAbstractTransform *tr);
+	void setTransform(vtkAbstractTransform *tr);
 	//! update all internal 
 	void update();
 
@@ -129,7 +130,7 @@ public:
 	void setChannelOpacity( uint id, double opacity );
 	void enableChannel( uint id, bool enabled, double x, double y, double z );
 	void enableChannel( uint id, bool enabled );
-	void switchContourSourceToChannel( uint id );
+	//void switchContourSourceToChannel( uint id );
 	void showIsolines( bool s );
 	void setContours( int n, double mi, double ma );
 	void setContours( int n, double * contourValues );

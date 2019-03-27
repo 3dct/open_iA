@@ -23,6 +23,8 @@
 #include "iAGEMSeConstants.h"
 #include "iASlicerSettings.h"
 
+#include <iAChannelVisualizationData.h>
+#include <iAChannelSlicerData.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
@@ -86,20 +88,22 @@ void iAImagePreviewWidget::InitializeSlicer()
 	BuildCTF();
 	
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->initializeData(m_imageData, m_slicerTransform, m_ctf);
-	m_slicer->initializeWidget(m_imageData);
+	m_slicer->initialize(m_slicerTransform);
+	iAChannelVisualizationData chData;
+	chData.setData(m_imageData, m_ctf, nullptr);
+	m_slicer->addChannel(0, &chData);
 	m_slicer->SetBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
 	
 	// TODO: disable interaction in slicer
 	// adapt initial zoom
 	if (m_sliceNumber == SliceNumberNotSet)
 	{
-		m_sliceNumber = GetMiddleSliceNumber(m_imageData, m_slicer->GetMode());
+		m_sliceNumber = GetMiddleSliceNumber(m_imageData, m_slicer->getMode());
 	}
 	m_slicer->setSliceNumber(m_sliceNumber);
 	if (m_commonCamera)
 	{
-		m_slicer->SetCamera(m_commonCamera, false);
+		m_slicer->setCamera(m_commonCamera, false);
 	}
 	m_slicer->update();
 
@@ -108,10 +112,10 @@ void iAImagePreviewWidget::InitializeSlicer()
 		m_slicer->disableInteractor();
 	}
 	
-	connect( m_slicer->GetSlicerData(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
-	connect( m_slicer->GetSlicerData(), SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
-	connect( m_slicer->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
-	connect( m_slicer->GetSlicerData(), SIGNAL(UserInteraction()), this, SIGNAL(Updated()));
+	connect( m_slicer->data(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
+	connect( m_slicer->data(), SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
+	connect( m_slicer->data(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
+	connect( m_slicer->data(), SIGNAL(UserInteraction()), this, SIGNAL(Updated()));
 }
 
 void iAImagePreviewWidget::SlicerClicked(int x, int y, int z)
@@ -160,31 +164,32 @@ void iAImagePreviewWidget::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCame
 	m_sliceNumber = sliceNr;
 	if (m_slicerTransform)
 	{
-		m_slicer->ChangeMode(mode);
+		m_slicer->changeMode(mode);
 		m_slicer->setSliceNumber(m_sliceNumber);
-		m_slicer->SetCamera(camera, false);
+		m_slicer->setCamera(camera, false);
 	}
 }
 
 iASlicerMode iAImagePreviewWidget::GetSlicerMode() const
 {
-	return m_slicer->GetMode();
+	return m_slicer->getMode();
 }
 
 vtkCamera* iAImagePreviewWidget::GetCamera()
 {
-	return m_slicer->GetCamera();
+	return m_slicer->getCamera();
 }
 
 void iAImagePreviewWidget::SetCamera(vtkCamera* camera)
 {
-	m_slicer->SetCamera(camera, false);
+	m_slicer->setCamera(camera, false);
 	m_slicer->update();
 }
 
 vtkImageData * iAImagePreviewWidget::GetImage() const
 {
-	return m_slicer->GetImageData();
+	return m_imageData;
+	//return m_slicer->GetImageData();
 }
 
 void iAImagePreviewWidget::SetImage(vtkSmartPointer<vtkImageData> img, bool empty, bool isLabelImg)
@@ -197,7 +202,7 @@ void iAImagePreviewWidget::SetImage(vtkSmartPointer<vtkImageData> img, bool empt
 	double w = extent[1]-extent[0]+1;
 	double h = extent[3]-extent[2]+1;
 	double d = extent[5]-extent[4]+1;
-	switch (m_slicer->GetMode())
+	switch (m_slicer->getMode())
 	{
 		case XZ: m_aspectRatio = d / w; break;
 		case YZ: m_aspectRatio = d / h; break;
@@ -231,12 +236,12 @@ void iAImagePreviewWidget::AddNoMapperChannel(vtkSmartPointer<vtkImageData> img)
 	if (m_addChannelImgActor)
 	{
 		DEBUG_LOG("Failsafe Remove Actor required");
-		m_slicer->RemoveImageActor(m_addChannelImgActor);
+		m_slicer->removeImageActor(m_addChannelImgActor);
 	}
 	m_addChannelImgActor = vtkSmartPointer<vtkImageActor>::New();
 	m_addChannelImgActor->GetMapper()->BorderOn();
 	m_addChannelImgActor->SetInputData(img);
-	m_slicer->AddImageActor(m_addChannelImgActor);
+	m_slicer->addImageActor(m_addChannelImgActor);
 	m_slicer->update();
 }
 
@@ -244,7 +249,7 @@ void iAImagePreviewWidget::RemoveChannel()
 {
 	if (m_addChannelImgActor)
 	{
-		m_slicer->RemoveImageActor(m_addChannelImgActor);
+		m_slicer->removeImageActor(m_addChannelImgActor);
 		m_slicer->update();
 	}
 	m_addChannelImgActor = nullptr;
@@ -293,8 +298,9 @@ void iAImagePreviewWidget::UpdateImage()
 {
 	if (!BuildCTF())
 		return;
-	m_slicer->reInitialize(m_imageData, m_slicerTransform, m_ctf);
-	m_slicer->changeImageData(m_imageData);
+	iAChannelVisualizationData chData;
+	chData.setData(m_imageData, m_ctf, nullptr);
+	m_slicer->getChannel(0)->reInit(&chData);
 	UpdateView();
 }
 

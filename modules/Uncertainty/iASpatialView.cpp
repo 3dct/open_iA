@@ -168,14 +168,14 @@ namespace
 	{
 		iASlicer* slicer = gui.imageWidget->GetSlicer();
 		const uint SelectionChannelID = 0;
-		selectionData->SetName("Scatterplot Selection");
+		selectionData->setName("Scatterplot Selection");
 		slicer->initializeChannel(SelectionChannelID, selectionData.data());
-		int sliceNr = slicer->GetSlicerData()->getSliceNumber();
-		switch (slicer->GetMode())
+		int sliceNr = slicer->data()->getSliceNumber();
+		switch (slicer->getMode())
 		{
-		case YZ: slicer->enableChannel(SelectionChannelID, true, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[0], 0, 0); break;
-		case XY: slicer->enableChannel(SelectionChannelID, true, 0, 0, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[2]); break;
-		case XZ: slicer->enableChannel(SelectionChannelID, true, 0, static_cast<double>(sliceNr) * selectionData->GetImage()->GetSpacing()[1], 0); break;
+		case YZ: slicer->enableChannel(SelectionChannelID, true, static_cast<double>(sliceNr) * selectionData->getImage()->GetSpacing()[0], 0, 0); break;
+		case XY: slicer->enableChannel(SelectionChannelID, true, 0, 0, static_cast<double>(sliceNr) * selectionData->getImage()->GetSpacing()[2]); break;
+		case XZ: slicer->enableChannel(SelectionChannelID, true, 0, static_cast<double>(sliceNr) * selectionData->getImage()->GetSpacing()[1], 0); break;
 		}
 		gui.m_selectionChannelInitialized = true;
 	}

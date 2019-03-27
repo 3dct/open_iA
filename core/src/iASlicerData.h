@@ -30,6 +30,7 @@
 #include <QMap>
 #include <QSharedPointer>
 
+class vtkAbstractTransform;
 class vtkActor;
 class vtkAlgorithmOutput;
 class vtkCamera;
@@ -78,13 +79,14 @@ public:
 	iASlicerData( iASlicer * slicerMaster, QObject * parent = 0, bool decorations=true);
 	virtual ~iASlicerData();
 
-	void initialize(vtkTransform *tr);
+	void initialize(vtkAbstractTransform * tr);
+	void setTransform(vtkAbstractTransform * tr);
 
 	void setDefaultInteractor();
 
 	void setup(iASingleSlicerSettings const & settings);
 
-	void addChannel(uint id, iAChannelVisualizationData * chData);
+	void addChannel(uint id, iAChannelVisualizationData* chData);
 	void removeChannel(uint id);
 	void reInitializeChannel(uint id, iAChannelVisualizationData * chData);
 	void setChannelOpacity(uint id, double opacity );
@@ -118,11 +120,11 @@ public:
 	void updateROI(int const r[6]);
 	void setROIVisible(bool visible);
 
-	vtkRenderWindowInteractor* getInteractor();
-	vtkGenericOpenGLRenderWindow* getRenderWindow();
-	vtkRenderer* getRenderer();
-	vtkCamera* getCamera();
-	void setCamera(vtkCamera* camera, bool camOwner=true);
+	vtkRenderWindowInteractor * getInteractor();
+	vtkGenericOpenGLRenderWindow * getRenderWindow();
+	vtkRenderer * getRenderer();
+	vtkCamera * getCamera();
+	void setCamera(vtkCamera * camera, bool camOwner=true);
 	void resetCamera();
 
 	iASlicerMode getMode() const { return m_mode; }
@@ -142,7 +144,7 @@ public:
 
 	void updateChannelMappers();
 	void rotateSlice( double angle );
-	void switchContourSourceToChannel( uint id );
+	//void switchContourSourceToChannel( uint id );
 
 	void setManualBackground(double r, double g, double b);
 
@@ -191,19 +193,15 @@ Q_SIGNALS:
 	void Pick();
 private:
 	iAMagicLens * m_magicLensExternal;
-	vtkRenderWindowInteractor* m_interactor;
-	iAInteractorStyleImage* m_interactorStyle;
+	vtkRenderWindowInteractor * m_interactor;
+	iAInteractorStyleImage * m_interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
 	vtkSmartPointer<vtkRenderer> m_ren;
-	vtkCamera* m_camera; // smart pointer?
+	vtkCamera * m_camera; // TODO: smart pointer?
 	bool m_cameraOwner;
-
-	vtkTransform *m_transform;
-
-	vtkPointPicker* m_pointPicker;
-
+	vtkAbstractTransform * m_transform; // TODO: smart pointer?
+	vtkPointPicker * m_pointPicker;
 	QMap<uint, QSharedPointer<iAChannelSlicerData> > m_channels;
-
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
 	vtkSmartPointer<vtkTextProperty> m_textProperty;
 
@@ -213,7 +211,7 @@ private:
 	vtkSmartPointer<vtkQImageToImageSource> m_logoImage;
 
 	vtkSmartPointer<iAWrapperText> m_textInfo;
-	vtkSmartPointer < iARulerWidget> m_rulerWidget;
+	vtkSmartPointer<iARulerWidget> m_rulerWidget;
 
 	// position marker / statistical extent
 	vtkSmartPointer<vtkPlaneSource> m_positionMarkerSrc;
@@ -224,10 +222,6 @@ private:
 	iASingleSlicerSettings m_settings;
 	int m_slabThickness;       //! current slab thickness (default = 1, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
 	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
-
-	//vtkMarchingContourFilter *cFilter;
-	//vtkPolyDataMapper *cMapper;
-	//vtkActor *cActor;
 
 	vtkSmartPointer<vtkLineSource> pLineSource;
 	vtkSmartPointer<vtkPolyDataMapper> pLineMapper;

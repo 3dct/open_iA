@@ -32,6 +32,7 @@
 #include "dlg_volumePlayer.h"
 #include "iAAlgorithm.h"
 #include "iAChannelVisualizationData.h"
+#include "iAChannelSlicerData.h"
 #include "iAChildData.h"
 #include "iAConsole.h"
 #include "qthelper/iADockWidgetWrapper.h"
@@ -378,8 +379,10 @@ void MdiChild::enableRenderWindows()	// = image data available
 			QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
 			for (int s = 0; s < 3; ++s)
 			{
-				slicer[s]->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->getColorFunction());
-				slicer[s]->GetSlicerData()->ResetCamera();
+				iAChannelVisualizationData chData;
+				chData.setData(GetModality(0)->GetImage(), modTrans->getColorFunction(), nullptr);
+				slicer[s]->addChannel(0, &chData);
+				slicer[s]->data()->resetCamera();
 			}
 		}
 	}
@@ -404,7 +407,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 	for (auto channelID: m_channels.keys())
 	{
 		iAChannelVisualizationData * chData = m_channels.value(channelID).data();
-		if (chData->IsEnabled()
+		if (chData->isEnabled()
 			|| (isMagicLensEnabled && (
 				channelID == slicer[iASlicerMode::XY]->getMagicLensInput() ||
 				channelID == slicer[iASlicerMode::XZ]->getMagicLensInput() ||
@@ -423,7 +426,7 @@ void MdiChild::ModalityTFChanged()
 {
 	updateChannelMappers();
 	for (int s = 0; s<3; ++s)
-		slicer[s]->UpdateMagicLensColors();
+		slicer[s]->updateMagicLensColors();
 	emit TransferFunctionChanged();
 }
 
@@ -667,8 +670,13 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 	SetHistogramModality(0);
 
 	Raycaster->reInitialize(imageData, polyData);
-	for (int s = 0; s<3; ++s)
-		slicer[s]->reInitialize(imageData, slicerTransform, colorTransferFunction);
+	for (int s = 0; s < 3; ++s)
+	{
+		// TODO: check how to update s:
+		iAChannelVisualizationData chData;
+		chData.setData(imageData, colorTransferFunction, nullptr);
+		slicer[s]->getChannel(0)->reInit(&chData);
+	}
 	updateViews();
 
 	if (CheckedList.at(updateIndex)!=0) {
@@ -710,8 +718,12 @@ void MdiChild::setupStackView(bool active)
 	addVolumePlayer(volumeStack.data());
 
 	Raycaster->reInitialize(imageData, polyData);
-	for (int s = 0; s<3; ++s)
-		slicer[s]->reInitialize(imageData, slicerTransform, modTrans->getColorFunction());
+	for (int s = 0; s < 3; ++s)
+	{
+		iAChannelVisualizationData chData;
+		chData.setData(imageData, modTrans->getColorFunction(), nullptr);
+		slicer[s]->getChannel(0)->reInit(&chData);
+	}
 	updateViews();
 
 	Raycaster->update();
@@ -1361,8 +1373,7 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		final_transform->Update();
 	}
 
-	slicer->GetReslicer()->SetResliceTransform(final_transform);
-	slicer->GetReslicer()->UpdateWholeExtent();
+	slicer->setTransform(final_transform);
 	slicer->setSliceNumber(point1[ptIndex]);
 }
 
@@ -1555,8 +1566,8 @@ void MdiChild::ApplyViewerPreferences()
 {
 	for (int s = 0; s < 3; ++s)
 	{
-		slicer[s]->SetMagicLensFrameWidth(preferences.MagicLensFrameWidth);
-		slicer[s]->SetMagicLensSize(preferences.MagicLensSize);
+		slicer[s]->setMagicLensFrameWidth(preferences.MagicLensFrameWidth);
+		slicer[s]->setMagicLensSize(preferences.MagicLensSize);
 		slicer[s]->setStatisticalExtent(preferences.StatisticalExtent);
 	}
 	renderer->vtkWidgetRC->setLensSize(preferences.MagicLensSize, preferences.MagicLensSize);
@@ -1636,7 +1647,7 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 	{
 		//this initializes the snake slicer
 		for (int s = 0; s<3; ++s)
-			slicer[s]->initializeWidget(worldSnakePoints);
+			slicer[s]->widget()->initialize(worldSnakePoints);
 
 		updateSliceIndicators();
 
@@ -1869,6 +1880,8 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 
 void MdiChild::toggleSnakeSlicer(bool isChecked)
 {
+	/*
+	TODO: slicer remove first image - check snake slicer!
 	snakeSlicer = isChecked;
 
 	if (snakeSlicer)
@@ -1898,31 +1911,32 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		slicer[iASlicerMode::XY]->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);
 		slicer[iASlicerMode::XY]->GetReslicer()->SetResliceTransform(SlicerXY_Transform);
 		slicer[iASlicerMode::XY]->GetReslicer()->SetOutputExtentToDefault();
-		slicer[iASlicerMode::XY]->GetRenderer()->ResetCamera();
-		slicer[iASlicerMode::XY]->GetRenderer()->Render();
+		slicer[iASlicerMode::XY]->getRenderer()->ResetCamera();
+		slicer[iASlicerMode::XY]->getRenderer()->Render();
 
 		sXZ->spinBoxXZ->setValue(imageData->GetDimensions()[1]>>1);
 		slicer[iASlicerMode::XZ]->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,0,1,  0,-1,0);
 		slicer[iASlicerMode::XZ]->GetReslicer()->SetResliceTransform(SlicerXZ_Transform);
 		slicer[iASlicerMode::XZ]->GetReslicer()->SetOutputExtentToDefault();
-		slicer[iASlicerMode::XZ]->GetRenderer()->ResetCamera();
-		slicer[iASlicerMode::XZ]->GetRenderer()->Render();
+		slicer[iASlicerMode::XZ]->getRenderer()->ResetCamera();
+		slicer[iASlicerMode::XZ]->getRenderer()->Render();
 
 		sYZ->spinBoxYZ->setValue(imageData->GetDimensions()[0]>>1);
 		slicer[iASlicerMode::YZ]->GetReslicer()->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);
 		slicer[iASlicerMode::YZ]->GetReslicer()->SetResliceTransform(SlicerYZ_Transform);
 		slicer[iASlicerMode::YZ]->GetReslicer()->SetOutputExtentToDefault();
-		slicer[iASlicerMode::YZ]->GetRenderer()->ResetCamera();
-		slicer[iASlicerMode::YZ]->GetRenderer()->Render();
+		slicer[iASlicerMode::YZ]->getRenderer()->ResetCamera();
+		slicer[iASlicerMode::YZ]->getRenderer()->Render();
 
 		/*
 		// TODO: VOLUME: VolumeManager
 		if (renderSettings.ShowSlicers)
 			Raycaster->showSlicers(true);
-		*/
+		* /
 		for (int s = 0; s<3; ++s)
 			slicer[s]->widget()->switchMode(iASlicerWidget::DEFINE_SPLINE);
 	}
+	*/
 }
 
 bool MdiChild::isSnakeSlicerToggled() const
@@ -1961,6 +1975,7 @@ bool MdiChild::isMagicLensToggled(void) const
 	return isMagicLensEnabled;
 }
 
+/*
 void MdiChild::updateReslicer(double point[3], double normal[3], int mode)
 {
 	//translation to origin
@@ -2064,6 +2079,8 @@ void MdiChild::updateReslicer(double point[3], double normal[3], int mode)
 		slicer[iASlicerMode::XZ]->GetReslicer()->SetResliceAxes(sagittal_transformation_matrix);
 	}
 }
+*/
+
 
 void MdiChild::getSnakeNormal(int index, double point[3], double normal[3])
 {
@@ -2137,7 +2154,7 @@ bool MdiChild::initView( QString const & title )
 	vtkColorTransferFunction* colorFunction = (GetModalities()->size() > 0)
 		? GetModality(0)->GetTransfer()->getColorFunction() : vtkColorTransferFunction::New();
 	for (int s = 0; s<3; ++s)
-		slicer[s]->initializeData(imageData, slicerTransform, colorFunction);
+		slicer[s]->initialize(slicerTransform);
 
 	renderer->stackedWidgetRC->setCurrentIndex(0);
 	updateSliceIndicators();
@@ -2234,7 +2251,7 @@ bool MdiChild::isMaximized()
 void MdiChild::UpdateROI(int const roi[6])
 {
 	for (int s = 0; s<3; ++s)
-		slicer[s]->UpdateROI(roi);
+		slicer[s]->updateROI(roi);
 
 	const double* spacing = GetModality(0)->GetSpacing(); 
 	getRenderer()->setSlicingBounds(roi, spacing);
@@ -2245,7 +2262,7 @@ void MdiChild::UpdateROI(int const roi[6])
 void MdiChild::SetROIVisible(bool visible)
 {
 	for (int s = 0; s<3; ++s)
-		slicer[s]->SetROIVisible(visible);
+		slicer[s]->setROIVisible(visible);
 	getRenderer()->setCubeVisible(visible);
 }
 
@@ -2354,8 +2371,8 @@ void MdiChild::InitChannelRenderer(uint id, bool use3D, bool enableChannel)
 	*/
 	if (use3D)
 	{
-		data->Set3D(true);
-		m_dlgModalities->AddModality(data->GetImage(), QString("Channel %1").arg(id));
+		data->set3D(true);
+		m_dlgModalities->AddModality(data->getImage(), QString("Channel %1").arg(id));
 	}
 	SetChannelRenderingEnabled(id, enableChannel);
 }
@@ -2413,21 +2430,21 @@ void MdiChild::updateChannelOpacity(uint id, double opacity)
 	{
 		return;
 	}
-	getChannelData(id)->SetOpacity(opacity);
+	getChannelData(id)->setOpacity(opacity);
 	for (int s = 0; s<3; ++s)
-		slicer[s]->GetSlicerData()->setChannelOpacity(id, opacity);
+		slicer[s]->data()->setChannelOpacity(id, opacity);
 	updateSlicers();
 }
 
 void MdiChild::SetChannelRenderingEnabled(uint id, bool enabled)
 {
 	iAChannelVisualizationData * data = getChannelData(id);
-	if (!data || data->IsEnabled() == enabled)
+	if (!data || data->isEnabled() == enabled)
 	{
 		// the channel with the given ID doesn't exist or hasn't changed
 		return;
 	}
-	data->SetEnabled(enabled);
+	data->setEnabled(enabled);
 	getSlicerDataXY()->enableChannel(id, enabled, 0, 0, static_cast<double>(sXY->spinBoxXY->value()) * imageData->GetSpacing()[2]);
 	getSlicerDataXZ()->enableChannel(id, enabled, 0, static_cast<double>(sXZ->spinBoxXZ->value()) * imageData->GetSpacing()[1], 0);
 	getSlicerDataYZ()->enableChannel(id, enabled, static_cast<double>(sYZ->spinBoxYZ->value()) * imageData->GetSpacing()[0], 0, 0);
@@ -2598,17 +2615,17 @@ void MdiChild::ioFinished()
 
 iASlicerData* MdiChild::getSlicerDataXZ()
 {
-	return slicer[iASlicerMode::XZ]->GetSlicerData();
+	return slicer[iASlicerMode::XZ]->data();
 }
 
 iASlicerData* MdiChild::getSlicerDataXY()
 {
-	return slicer[iASlicerMode::XY]->GetSlicerData();
+	return slicer[iASlicerMode::XY]->data();
 }
 
 iASlicerData* MdiChild::getSlicerDataYZ()
 {
-	return slicer[iASlicerMode::YZ]->GetSlicerData();
+	return slicer[iASlicerMode::YZ]->data();
 }
 
 iASlicer* MdiChild::getSlicerXZ()
@@ -2692,7 +2709,7 @@ void MdiChild::SetMagicLensInput(uint id, bool initReslice)
 void MdiChild::SetMagicLensEnabled(bool isOn)
 {
 	for (int s = 0; s<3; ++s)
-		slicer[s]->SetMagicLensEnabled( isOn );
+		slicer[s]->setMagicLensEnabled( isOn );
 }
 
 void MdiChild::updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
@@ -2700,9 +2717,7 @@ void MdiChild::updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtk
 	iAChannelVisualizationData * chData = getChannelData( id );
 	if (!chData)
 		return;
-	chData->SetImage( imgData );
-	chData->SetColorTF( ctf );
-	chData->SetOpacityTF( otf );
+	chData->setData( imgData, ctf, otf );
 	for (int s = 0; s<3; ++s)
 		slicer[s]->reInitializeChannel( id, chData );
 }
@@ -2714,9 +2729,7 @@ void MdiChild::reInitMagicLens(uint id, vtkSmartPointer<vtkImageData> imgData, v
 		return;
 	}
 	iAChannelVisualizationData chData;
-	chData.SetImage(imgData);
-	chData.SetColorTF(ctf);
-	chData.SetOpacityTF(otf);
+	chData.setData(imgData, ctf, otf);
 	for (int s = 0; s<3; ++s)
 		slicer[s]->reInitializeChannel(id, &chData);
 	SetMagicLensInput( id, true);
@@ -2726,7 +2739,7 @@ void MdiChild::reInitMagicLens(uint id, vtkSmartPointer<vtkImageData> imgData, v
 void MdiChild::updateChannelMappers()
 {
 	for (int s = 0; s<3; ++s)
-		slicer[s]->GetSlicerData()->updateChannelMappers();
+		slicer[s]->data()->updateChannelMappers();
 }
 
 QString MdiChild::getFilePath() const
@@ -2771,9 +2784,9 @@ void MdiChild::ChangeMagicLensModality(int chg)
 	if (m_magicLensChannel == NotExistingChannel)
 		m_magicLensChannel = createChannel();
 	vtkSmartPointer<vtkImageData> img = GetModality(m_currentModality)->GetComponent(m_currentComponent);
-	getChannelData(m_magicLensChannel)->SetOpacity(0.5);
+	getChannelData(m_magicLensChannel)->setOpacity(0.5);
 	QString name(GetModality(m_currentModality)->GetImageName(m_currentComponent));
-	getChannelData(m_magicLensChannel)->SetName(name);
+	getChannelData(m_magicLensChannel)->setName(name);
 	updateChannel(m_magicLensChannel, img, m_dlgModalities->GetCTF(m_currentModality), m_dlgModalities->GetOTF(m_currentModality));
 	SetMagicLensInput(m_magicLensChannel, true);
 	SetHistogramModality(m_currentModality);	// TODO: don't change histogram, just read/create min/max and transfer function?
@@ -2782,7 +2795,7 @@ void MdiChild::ChangeMagicLensModality(int chg)
 void MdiChild::ChangeMagicLensOpacity(int chg)
 {
 	for (int s=0; s<3; ++s)
-		slicer[s]->SetMagicLensOpacity(slicer[s]->GetMagicLensOpacity() + (chg*0.05));
+		slicer[s]->setMagicLensOpacity(slicer[s]->getMagicLensOpacity() + (chg*0.05));
 }
 
 void MdiChild::ChangeMagicLensSize(int chg)
@@ -2795,8 +2808,8 @@ void MdiChild::ChangeMagicLensSize(int chg)
 	int newSize = std::max(MinimumMagicLensSize, static_cast<int>(preferences.MagicLensSize * sizeFactor));
 	for (int s = 0; s < 3; ++s)
 	{
-		slicer[s]->SetMagicLensSize(newSize);
-		newSize = std::min(slicer[s]->GetMagicLensSize(), newSize);
+		slicer[s]->setMagicLensSize(newSize);
+		newSize = std::min(slicer[s]->getMagicLensSize(), newSize);
 	}
 	preferences.MagicLensSize = newSize;
 	updateSlicers();
@@ -2952,8 +2965,10 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 		QSharedPointer<iAModalityTransfer> modTrans = GetModality(0)->GetTransfer();
 		for (int s = 0; s < 3; ++s)
 		{
-			slicer[s]->reInitialize(GetModality(0)->GetImage(), slicerTransform, modTrans->getColorFunction());
-			slicer[s]->GetSlicerData()->ResetCamera();
+			iAChannelVisualizationData chData;
+			chData.setData(GetModality(0)->GetImage(), modTrans->getColorFunction(), nullptr);
+			slicer[s]->addChannel(0, &chData);
+			slicer[s]->data()->resetCamera();
 		}
 	}
 	ModalityTFChanged();

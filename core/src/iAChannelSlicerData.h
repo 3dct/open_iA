@@ -18,27 +18,27 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-
-
 #pragma once
+
 #include "open_iA_Core_export.h"
+
 #include <vtkSmartPointer.h>
-#include "vtkScalarsToColors.h"
+
 #include <QColor>
 
+class iAChannelVisualizationData;
 
-class iAChannelVisualizationData; 
-class vtkTransform;
+class vtkAbstractTransform;
+class vtkActor;
 class vtkImageActor;
 class vtkImageData;
+class vtkImageMapToColors;
 class vtkImageReslice;
+class vtkLookupTable;
 class vtkMarchingContourFilter;
 class vtkPolyDataMapper;
-class vtkActor; 
 class vtkPiecewiseFunction;
-class vtkImageMapToColors;
-class vtkLookupTable;
+class vtkScalarsToColors;
 
 
 class open_iA_Core_API iAChannelSlicerData
@@ -51,11 +51,11 @@ public:
 	void setResliceAxesOrigin(double x, double y, double z);
 	vtkScalarsToColors* getLookupTable();
 
-	bool isInitialized();
+	bool isInitialized() const;
 	void updateMapper();
 	QColor getColor() const;  //! get "color" of this channel (TODO: used only for pie charts in XRF module -> move there?)
 	void updateResliceAxesDirectionCosines(int mode);
-	void assignTransform(vtkTransform * transform);
+	void setTransform(vtkAbstractTransform * transform);
 	void updateReslicer();
 	void updateLUT();
 

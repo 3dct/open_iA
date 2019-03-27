@@ -470,7 +470,7 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 			m_otf[i]->SetNodeValue(j, val);
 		}
 
-		ResetChannel(chData, imageData, ctf, m_otf[i]);
+		chData->setData(imageData, ctf, m_otf[i]);
 
 		if(!m_multiChannelIsInitialized)
 		{

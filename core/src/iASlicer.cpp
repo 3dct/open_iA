@@ -37,11 +37,11 @@
 
 #include <cassert>
 
-iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations /*= true*/, bool magicLensAvailable /*= true*/) :
-
-		QObject(parent),
-		m_mode(mode),
-		m_magicLensInput(NotExistingChannel)
+iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container,
+	bool decorations /*= true*/, bool magicLensAvailable /*= true*/) :
+	QObject(parent),
+	m_mode(mode),
+	m_magicLensInput(NotExistingChannel)
 {
 	if (magicLensAvailable)
 	{
@@ -232,9 +232,14 @@ vtkRenderer * iASlicer::getRenderer() const
 	return m_data->getRenderer();
 }
 
-void iASlicer::initialize(vtkTransform *tr)
+void iASlicer::initialize(vtkAbstractTransform *tr)
 {
 	m_data->initialize(tr);
+}
+
+void iASlicer::setTransform(vtkAbstractTransform *tr)
+{
+	m_data->setTransform(tr);
 }
 
 void iASlicer::updateROI(int const roi[6])
@@ -430,10 +435,12 @@ void iASlicer::enableChannel( uint id, bool enabled )
 	m_data->enableChannel( id, enabled );
 }
 
+/*
 void iASlicer::switchContourSourceToChannel( uint id )
 {
 	m_data->switchContourSourceToChannel( id );
 }
+*/
 
 void iASlicer::showIsolines( bool s )
 {

@@ -51,23 +51,21 @@
 #include <vtkGenericMovieWriter.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageActor.h>
-#include <vtkImageBlend.h>
+//#include <vtkImageBlend.h>
 #include <vtkImageCast.h>
 #include <vtkImageChangeInformation.h>
 #include <vtkImageData.h>
 #include <vtkImageMapper3D.h>
-#include <vtkImageMapToColors.h>
 #include <vtkImageReslice.h>
 #include <vtkInteractorStyleImage.h>
-#include "vtkInteractorStyleSwitch.h"
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
-#include <vtkLookupTable.h>
+//#include <vtkLookupTable.h>
 #include <vtkMarchingContourFilter.h>
 #include <vtkPlaneSource.h>
 #include <vtkPointPicker.h>
-#include <vtkPolyDataMapper.h>
+//#include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
 #include <vtkRenderer.h>
@@ -75,7 +73,7 @@
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarBarWidget.h>
-#include <vtkScalarsToColors.h>
+//#include <vtkScalarsToColors.h>
 #include <vtkSmartPointer.h>
 #include <vtkTextActor3D.h>
 #include <vtkTextMapper.h>
@@ -183,8 +181,6 @@ iASlicerData::iASlicerData( iASlicer * slicerMaster, QObject * parent /*= 0 */,
 	m_interactor(0),
 	m_sliceNumber(0),
 	m_showPositionMarker(false),
-	m_isolines(false),
-	m_poly(false),
 	m_roiActive(false),
 	m_interactorStyle(iAInteractorStyleImage::New()),
 	m_cameraOwner(true),
@@ -267,8 +263,9 @@ private:
 };
 
 
-void iASlicerData::initialize(vtkTransform *tr)
+void iASlicerData::initialize(vtkAbstractTransform *tr)
 {
+	m_transform = tr;
 	m_renWin->AddRenderer(m_ren);
 	setDefaultInteractor();
 
@@ -397,6 +394,13 @@ void iASlicerData::initialize(vtkTransform *tr)
 	}
 	m_ren->SetActiveCamera(m_camera);
 	m_ren->ResetCamera();
+}
+
+void iASlicerData::setTransform(vtkAbstractTransform * tr)
+{
+	m_transform = tr;
+	for(auto ch: m_channels)
+		ch->setTransform(m_transform);
 }
 
 void iASlicerData::setDefaultInteractor()
@@ -1576,11 +1580,6 @@ void iASlicerData::addChannel( uint id, iAChannelVisualizationData * chData )
 	}
 }
 
-void iASlicerData::removeChannel(uint id)
-{
-	m_channels.remove(id);
-}
-
 void iASlicerData::setResliceChannelAxesOrigin( uint id, double x, double y, double z )
 {
 	getChannel(id)->setResliceAxesOrigin(x, y, z);
@@ -1645,7 +1644,7 @@ QSharedPointer<iAChannelSlicerData> iASlicerData::createChannel(uint id)
 	newData->imageActor->SetInterpolate(m_settings.LinearInterpolation);
 	newData->reslicer->SetSlabNumberOfSlices(m_slabThickness);
 	newData->reslicer->SetSlabMode(m_slabCompositeMode);
-	newData->assignTransform( m_transform );
+	newData->setTransform(m_transform);
 	m_channels.insert(id, newData);
 	return newData;
 }
@@ -1653,10 +1652,13 @@ QSharedPointer<iAChannelSlicerData> iASlicerData::createChannel(uint id)
 iAChannelSlicerData * iASlicerData::getChannel(uint id)
 {
 	if (!m_channels.contains(id))
-	{
-		return 0;
-	}
+		return nullptr;
 	return m_channels.find(id)->data();
+}
+
+void iASlicerData::removeChannel(uint id)
+{
+	m_channels.remove(id);
 }
 
 size_t iASlicerData::GetEnabledChannels()
@@ -1763,11 +1765,13 @@ void iASlicerData::rotateSlice( double angle )
 	vtkTransform *t3 = vtkTransform::New();
 	t3->Translate(center[0], center[1], center[2]);
 
-	m_transform->Identity();
-	m_transform->PostMultiply();
-	m_transform->Concatenate(t1);
-	m_transform->Concatenate(t2);
-	m_transform->Concatenate(t3);
+	auto transform = vtkTransform::New();
+	transform->Identity();
+	transform->PostMultiply();
+	transform->Concatenate(t1);
+	transform->Concatenate(t2);
+	transform->Concatenate(t3);
+	setTransform(transform);
 
 	update();
 }
