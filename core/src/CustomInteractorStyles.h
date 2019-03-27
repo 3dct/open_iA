@@ -22,6 +22,47 @@
 #define VTKIS_IMAGE_SLICING 4
 
 
+namespace propDefs {
+	
+	struct sliceProp {
+		vtkProp3D *prop; 
+		iASlicerMode mode;
+	};
+
+	struct SliceDefs {
+		double fixedCoord;
+		double x; 
+		double y;
+		double z; 
+	};
+
+	
+	class PropModifier
+	{
+	public:
+
+		 void updateProp(vtkProp3D *prop, iASlicerMode mode, const SliceDefs &sl_defs) {
+			switch (mode)
+			{
+			case YZ:
+				prop->SetPosition(sl_defs.fixedCoord, sl_defs.y, sl_defs.z);
+				break;
+			case XY:
+				prop->SetPosition(sl_defs.x, sl_defs.y, sl_defs.fixedCoord);
+				break;
+			case XZ:
+				prop->SetPosition(sl_defs.x,sl_defs.fixedCoord, sl_defs.z); 
+				break;
+			case SlicerModeCount:
+				throw std::invalid_argument("invalid slicer mode"); 			
+			}
+		
+		}
+		
+	};
+
+}
+
 
 class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 {
@@ -75,26 +116,22 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 			return;
 		vtkInteractorStyleTrackballActor::OnRightButtonDown();
 	}
-	
 	void SetRightButtonDragZoomEnabled(bool enabled)
 	{
 		m_rightButtonDragZoomEnabled = enabled;
 	}
-
 	void Rotate() override
 	{
 		return; 
 	}
 	void Spin() override { return;  }
-	
-	
+
 	void iACustomInterActorStyleTrackBall::Pick()
 	{
 		printProbOrigin();
 		printPropPosistion();
 		this->InvokeEvent(vtkCommand::PickEvent, this);
 	}
-
 	void SetInteractionModeToImage2D() {
 		this->SetInteractionMode(VTKIS_IMAGE2D);
 	}
@@ -106,9 +143,14 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 		return this->m_PropCurrentSlicer; 
 	}
 	
-	//TODO miteinander verknüpfen
 
+	//one of them is coordinate of current slicer
+	void initCoordinates(double x, double y, double z){
+		sliceX = x; 
+		sliceY = y;
+		sliceZ = z; 
 	
+	}
 	void initializeActors(vtkProp3D *propSlicer3D, vtkProp3D *propSlicer1, vtkProp3D *propSlicer2) {
 		
 		
@@ -122,7 +164,15 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 		this->setSlicer1(propSlicer1);
 		this->setSlicer2(propSlicer2);
 	}
-	void setActiveSlicer(vtkProp3D *currentActor, iASlicerMode slice, int SliceNumber); 
+	
+
+	//modes of other two slicers
+	void initModes(iASlicerMode mode_slice1, iASlicerMode mode_slice2); 
+	//currentSlicer
+	void setActiveSlicer(vtkProp3D *currentActor, iASlicerMode slice/*, int SliceNumber*/); 
+
+	//identify which slicer is used
+	void updateSlicer(); 
 
 protected:
 	
@@ -133,42 +183,56 @@ protected:
 	void FindPickedActor(int x, int y);
 	vtkCellPicker *InteractionPicker;
 
-	
 	void printProbOrigin(){
 		double *pos = m_PropCurrentSlicer->GetOrigin(); 
 		DEBUG_LOG(QString("\nOrigin x %1 y %2 z %3").arg(pos[0]).arg(pos[1]).arg(pos[2])); 
 	}
-
 	void printPropPosistion() {
 		double *pos = m_PropCurrentSlicer->GetPosition();
 		DEBUG_LOG(QString("\nPosition %1 %2 %3").arg(pos[0]).arg(pos[1]).arg(pos[2])); 
 	}
-
 	void printProbOrientation() {
 		double *pos = m_PropCurrentSlicer->GetOrientation();
 		DEBUG_LOG(QString("\nPosition x %1 y %2 z %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
 	}
 
 private:
-	
+	/*void synchronizes()*/
 
 	//setting to null
 	void resetProps() {
-		propSlicer1 = nullptr;
-		propSlicer2 = nullptr;
+		propSlicer1.prop = nullptr;
+		propSlicer2.prop = nullptr;
 		Prop3DSlicer = nullptr;
 	}
 
+	void setModeSlicer1(iASlicerMode mode) {
+		propSlicer1.mode = mode;
+	}
+
+	void setModeSlicer2(iASlicerMode mode) {
+		propSlicer2.mode = mode; 
+	}
+
+	void setPropSlicer1(double x, double y, double z) {
+		propSlicer1.prop->SetPosition(x, y, z);
+	}
+	void setPropSlicer2(double x, double y, double z){
+		propSlicer2.prop->SetPosition(x, y, z);
+	}
+
 	iASlicerMode activeSliceMode; 
+
 	//Prop of the current slicer
 	vtkProp3D *m_PropCurrentSlicer;
 
 	//3d slicer prop
 	vtkProp3D *Prop3DSlicer;
 
-	//3d slicer prop
-	vtkProp3D *propSlicer1;
-	vtkProp3D *propSlicer2;
+
+	propDefs::sliceProp propSlicer1; 
+	propDefs::sliceProp propSlicer2;
+		
 
 
 	//koordinate of slices
@@ -185,13 +249,13 @@ private:
 	//+ set coordinate of slicer 1
 	void setSlicer1(vtkProp3D * prop1) {
 		/*if (!prop1) { DEBUG_LOG("prop sli1 is null") };*/
-		propSlicer1 = prop1;
+		propSlicer1.prop = prop1;
 
 	}
 
 	void setSlicer2(vtkProp3D * prop2) {
 		/*if (!prop2) { DEBUG_LOG("prop sli2 is null") };*/
-		propSlicer2 = prop2;
+		propSlicer2.prop = prop2;
 	}
 
 
@@ -213,7 +277,5 @@ private:
 	//void operator=(const iACustomInterActorStyle&);  // Not implemented.
 };
 
-
-//vtkStandardNewMacro(iACustomInterActorStyleTrackBall);
 
 

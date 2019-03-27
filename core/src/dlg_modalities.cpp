@@ -339,10 +339,8 @@ void dlg_modalities::ManualRegistration()
 			DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
 			return;
 		}
-
-
-		//channel id auf max warum? 
-		vtkProp3D *vol_3d = editModality->GetRenderer()->GetVolume().Get();
+ 		
+		vtkProp3D *PropVol_3d = editModality->GetRenderer()->GetVolume().Get();
 		uint chID = editModality->channelID();
 		if (chID == NotExistingChannel) {
 			m_mdiChild->getLogger()->Log("Error: Modality must be added to slicer before registration"); 
@@ -362,16 +360,16 @@ void dlg_modalities::ManualRegistration()
 
 
 
-		//editModality->GetRenderer()
 
-		//remove this later
 		//props aus den channels rausholen
 		
-		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
-		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xz = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
-		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_yz = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
-
-		
+		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy = 
+			vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xz =
+			vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_yz =
+			vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+				
 
 
 		if (!interactSwitch3D)
@@ -389,7 +387,9 @@ void dlg_modalities::ManualRegistration()
 			/*if (!interactSwitch_XY) {DEBUG_LOG("XY Interactor null"); return; };
 			if (!interactSwitch_YZ) { DEBUG_LOG("YZ Interactor null"); return; };
 			if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };*/
-
+			
+			//global position of the 3D thing
+			double *pos = PropVol_3d->GetPosition(); 
 
 			int slizeZ = m_mdiChild->getSlicerXY()->GetSlicerData()->getSliceNumber();
 			int slizeX = m_mdiChild->getSlicerXZ()->GetSlicerData()->getSliceNumber();
@@ -400,15 +400,24 @@ void dlg_modalities::ManualRegistration()
 			iASlicerMode modeXY = m_mdiChild->getSlicerXY()->GetSlicerData()->getMode();
 			iASlicerMode modeXZ = m_mdiChild->getSlicerXZ()->GetSlicerData()->getMode();
 			
-			Customstyle_xy->setActiveSlicer(propXY, modeXY, slizeZ); //xy, slice z;
-			Customstyle_xy->initializeActors(vol_3d, propXZ, propYZ);
 
-			Customstyle_xz->initializeActors(vol_3d, propXY, propYZ); 
-			Customstyle_xz->setActiveSlicer(propXZ, modeXZ, sliceY); //xz, slice y;
+			//setting the two other volums + 3d
+			//coordinates with on as current slice plane
+			Customstyle_xy->setActiveSlicer(propXY, modeXY/*, slizeZ*/); //plane xy, slice z;
+			Customstyle_xy->initializeActors(PropVol_3d, propXZ, propYZ);
+			Customstyle_xy->initCoordinates(pos[0], pos[1], slizeZ); 
+			Customstyle_xy->initModes(iASlicerMode::XZ, iASlicerMode::YZ);
+
+			Customstyle_xz->initializeActors(PropVol_3d, propXY, propYZ); 
+			Customstyle_xz->setActiveSlicer(propXZ, modeXZ /*sliceY*/); //plane xy, slice y;
+			Customstyle_xz->initCoordinates(pos[0], sliceY, pos[2]);
+			Customstyle_xz->initModes(iASlicerMode::XY, iASlicerMode::YZ);
+						
+			Customstyle_yz->initializeActors(PropVol_3d, propXY, propXZ); //plane xy, slice x;
+			Customstyle_yz->setActiveSlicer(propYZ, modeYZ/*, slizeZ*/); 
+			Customstyle_yz->initCoordinates(slizeX, pos[1], pos[2]); 
+			Customstyle_yz->initModes(iASlicerMode::XY, iASlicerMode::XZ);
 			
-			Customstyle_yz->initializeActors(vol_3d, propXY, propXZ); //xy, slice z;
-			Customstyle_yz->setActiveSlicer(propYZ, modeYZ, slizeZ); 
-
 
 			m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xy);
 			m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xz);
