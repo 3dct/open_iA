@@ -32,6 +32,8 @@
 typedef iAQTtoUIConnector<QDockWidget, Ui_modalities> dlg_modalitiesUI;
 
 class dlg_planeSlicer;
+
+class iACustomInterActorStyleTrackBall;
 class iAFast3DMagicLensWidget;
 class iAModality;
 class iAModalityList;
@@ -88,6 +90,10 @@ private slots:
 	* this can be also seen in the slicer
 	*/
 	void ManualRegistration();
+
+
+	
+
 	void MagicLens();
 	//void CuttingPlane();
 	void RendererMouseMoved();
@@ -97,6 +103,13 @@ private slots:
 	void ShowChecked(QListWidgetItem* item);
 
 private:
+
+	//connects styles of the 3 slicer to each other
+	void configureSlicerStyles(QSharedPointer<iAModality> editModality,
+		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy,
+		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xz,
+		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_yz);
+
 	// TODO: move modalities out of here (mdichild? common data repository?)
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;

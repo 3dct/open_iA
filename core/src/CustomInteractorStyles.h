@@ -39,9 +39,10 @@ namespace propDefs {
 	
 	class PropModifier
 	{
-	public:
+		public:
 
-		 void updateProp(vtkProp3D *prop, iASlicerMode mode, const SliceDefs &sl_defs) {
+		//update the position while keeping one coordinate fixed, based on slicer mode
+		 void updatePropPosition(vtkProp3D *prop, iASlicerMode mode, const SliceDefs &sl_defs) {
 			switch (mode)
 			{
 			case YZ:
@@ -58,7 +59,21 @@ namespace propDefs {
 			}
 		
 		}
+
+		 void updatePropOrientation(vtkProp3D *prop, double angle_x, double angle_y, double angle_z){
+			 prop->SetOrientation(angle_x, angle_y, angle_z); 
+		 }
 		
+
+		 static void printProp(vtkProp3D *prop) {
+			 if (!prop) { return;  }
+			 
+			 const double *orientation=prop->GetOrientation(); 
+			 const double *position = prop->GetPosition();
+
+			 DEBUG_LOG(QString("Orientation %1 %2 %3").arg(orientation[0]).arg(orientation[1]).arg(orientation[2])); 
+
+		 }
 	};
 
 }
