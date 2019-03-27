@@ -56,8 +56,8 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 		DEBUG_LOG("Slicer: Could not allocate iASlicerWidget!");
 		return;
 	}
-	ConnectWidgetAndData();
-	ConnectToMdiChildSlots();
+	connectWidgetAndData();
+	connectToMdiChildSlots();
 
 	if (m_magicLens)
 	{
@@ -71,13 +71,13 @@ iASlicer::~iASlicer()
 	delete m_widget;
 }
 
-void iASlicer::ConnectWidgetAndData()
+void iASlicer::connectWidgetAndData()
 {
-	m_widget->SetRenderWindow(m_data->GetRenderWindow());
+	m_widget->SetRenderWindow(m_data->getRenderWindow());
 	connect(m_data, SIGNAL(updateSignal()), m_widget, SLOT(slicerUpdatedSlot()));
 }
 
-void iASlicer::ConnectToMdiChildSlots()
+void iASlicer::connectToMdiChildSlots()
 {
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if(!mdi_parent)
@@ -89,34 +89,32 @@ void iASlicer::ConnectToMdiChildSlots()
 	connect( m_data, SIGNAL(progress(int)), mdi_parent, SLOT(updateProgressBar(int))) ;
 }
 
-iASlicerData * iASlicer::GetSlicerData()
+iASlicerData * iASlicer::data()
 {
 	return m_data;
 }
 
-bool iASlicer::changeInteractorState()
-{
-	if (m_data->GetInteractor()->GetEnabled())
-		m_data->disableInteractor();
-	else
-		m_data->enableInteractor();
-	return m_data->GetInteractor()->GetEnabled();
-}
-
-iASlicerWidget * iASlicer::widget() const
+iASlicerWidget * iASlicer::widget()
 {
 	return m_widget;
 }
 
-void iASlicer::ChangeMode( const iASlicerMode mode )
+bool iASlicer::changeInteractorState()
+{
+	if (m_data->getInteractor()->GetEnabled())
+		m_data->disableInteractor();
+	else
+		m_data->enableInteractor();
+	return m_data->getInteractor()->GetEnabled();
+}
+
+void iASlicer::changeMode( const iASlicerMode mode )
 {
 	m_mode = mode;
 	m_data->setMode(m_mode);
 	m_widget->setMode(m_mode);
 }
 
-
-//iASlicerData: wrapping methods
 void iASlicer::disableInteractor()
 {
 	m_data->disableInteractor();
@@ -126,11 +124,6 @@ void iASlicer::enableInteractor()
 {
 	m_data->enableInteractor();
 	m_widget->update();
-}
-
-void iASlicer::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool sil /*= false*/, bool sp /*= false */ )
-{
-	m_data->reInitialize(ds, tr, ctf, sil, sp);
 }
 
 void iASlicer::reInitializeChannel(uint id, iAChannelVisualizationData * chData )
@@ -219,7 +212,7 @@ void iASlicer::setResliceAxesOrigin( double x, double y, double z )
 void iASlicer::setSliceNumber( int sliceNumber )
 {
 	m_data->setSliceNumber(sliceNumber);
-	UpdateMagicLensColors();
+	updateMagicLensColors();
 	m_widget->computeGlyphs();
 	update();
 }
@@ -234,30 +227,24 @@ void iASlicer::setSlabCompositeMode(int compositeMode)
 	m_data->setSlabCompositeMode(compositeMode);
 }
 
-vtkRenderer * iASlicer::GetRenderer() const
+vtkRenderer * iASlicer::getRenderer() const
 {
-	return m_data->GetRenderer();
+	return m_data->getRenderer();
 }
 
-void iASlicer::initializeData( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf)
+void iASlicer::initialize(vtkTransform *tr)
 {
-	m_data->initialize(ds, tr, ctf);
+	m_data->initialize(tr);
 }
 
-void iASlicer::UpdateROI(int const roi[6])
+void iASlicer::updateROI(int const roi[6])
 {
-	m_data->UpdateROI(roi);
+	m_data->updateROI(roi);
 }
 
-void iASlicer::SetROIVisible(bool isVisible)
+void iASlicer::setROIVisible(bool isVisible)
 {
-	m_data->SetROIVisible(isVisible);
-}
-
-void iASlicer::changeImageData( vtkImageData *idata )
-{
-	m_data->changeImageData(idata);
-	m_widget->changeImageData(idata);
+	m_data->setROIVisible(isVisible);
 }
 
 //iASlicerWidget: wrapping methods
@@ -276,11 +263,6 @@ void iASlicer::setup( iASingleSlicerSettings const & settings )
 	m_widget->GetRenderWindow()->Render();
 }
 
-void iASlicer::initializeWidget( vtkImageData *imageData, vtkPoints *points /*= 0*/ )
-{
-	m_widget->initialize(imageData, points);
-}
-
 void iASlicer::show()
 {
 	m_widget->show();
@@ -291,7 +273,7 @@ void iASlicer::setStatisticalExtent( int statExt )
 	m_data->setStatisticalExtent(statExt);
 }
 
-void iASlicer::SetMagicLensEnabled( bool isEnabled )
+void iASlicer::setMagicLensEnabled( bool isEnabled )
 {
 	if (!m_magicLens)
 	{
@@ -299,12 +281,17 @@ void iASlicer::SetMagicLensEnabled( bool isEnabled )
 		return;
 	}
 	m_magicLens->SetEnabled(isEnabled);
-	m_data->SetRightButtonDragZoomEnabled(!isEnabled);
+	m_data->setRightButtonDragZoomEnabled(!isEnabled);
 	m_data->setShowText(!isEnabled);
 	widget()->updateMagicLens();
 }
 
-void iASlicer::SetMagicLensSize(int newSize)
+iAMagicLens * iASlicer::magicLens()
+{
+	return m_magicLens.data();
+}
+
+void iASlicer::setMagicLensSize(int newSize)
 {
 	if (!m_magicLens)
 	{
@@ -315,12 +302,12 @@ void iASlicer::SetMagicLensSize(int newSize)
 	widget()->updateMagicLens();
 }
 
-int iASlicer::GetMagicLensSize() const
+int iASlicer::getMagicLensSize() const
 {
 	return m_magicLens ? m_magicLens->GetSize() : 0;
 }
 
-void iASlicer::SetMagicLensFrameWidth(int newWidth)
+void iASlicer::setMagicLensFrameWidth(int newWidth)
 {
 	if (!m_magicLens)
 	{
@@ -331,7 +318,7 @@ void iASlicer::SetMagicLensFrameWidth(int newWidth)
 	widget()->updateMagicLens();
 }
 
-void iASlicer::SetMagicLensCount(int count)
+void iASlicer::setMagicLensCount(int count)
 {
 	if (!m_magicLens)
 	{
@@ -354,7 +341,12 @@ void iASlicer::setMagicLensInput(uint id)
 	update();
 }
 
-void iASlicer::SetMagicLensOpacity(double opacity)
+uint iASlicer::getMagicLensInput() const
+{
+	return m_magicLensInput;
+}
+
+void iASlicer::setMagicLensOpacity(double opacity)
 {
 	if (!m_magicLens)
 	{
@@ -365,29 +357,24 @@ void iASlicer::SetMagicLensOpacity(double opacity)
 	update();
 }
 
-double iASlicer::GetMagicLensOpacity() const
+double iASlicer::getMagicLensOpacity() const
 {
 	return (m_magicLens) ? m_magicLens->GetOpacity() : 0;
 }
 
-vtkGenericOpenGLRenderWindow * iASlicer::GetRenderWindow() const
+vtkGenericOpenGLRenderWindow * iASlicer::getRenderWindow() const
 {
-	return m_data->GetRenderWindow();
+	return m_data->getRenderWindow();
 }
 
-vtkImageData* iASlicer::GetImageData() const
-{
-	return m_data->GetImageData();
-}
-
-iASlicerMode iASlicer::GetMode() const
+iASlicerMode iASlicer::getMode() const
 {
 	return m_mode;
 }
 
 void iASlicer::addChannel(uint id,  iAChannelVisualizationData * chData)
 {
-	m_data->initializeChannel(id, chData);
+	m_data->addChannel(id, chData);
 }
 
 void iASlicer::removeChannel(uint id)
@@ -395,22 +382,17 @@ void iASlicer::removeChannel(uint id)
 	m_data->removeChannel(id);
 }
 
-uint iASlicer::getMagicLensInput() const
+void iASlicer::addImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 {
-	return m_magicLensInput;
+	m_data->addImageActor(imgActor);
 }
 
-void iASlicer::AddImageActor(vtkSmartPointer<vtkImageActor> imgActor)
+void iASlicer::removeImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 {
-	m_data->AddImageActor(imgActor);
+	m_data->removeImageActor(imgActor);
 }
 
-void iASlicer::RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor)
-{
-	m_data->RemoveImageActor(imgActor);
-}
-
-void iASlicer::UpdateMagicLensColors()
+void iASlicer::updateMagicLensColors()
 {
 	if (m_magicLens)
 	{
@@ -475,17 +457,17 @@ iAChannelSlicerData * iASlicer::getChannel( uint id )
 
 void iASlicer::SetBackground(double r, double g, double b)
 {
-	m_data->SetManualBackground(r, g, b);
+	m_data->setManualBackground(r, g, b);
 }
 
-vtkCamera* iASlicer::GetCamera()
+vtkCamera* iASlicer::getCamera()
 {
-	return m_data->GetCamera();
+	return m_data->getCamera();
 }
 
-void iASlicer::SetCamera(vtkCamera* camera, bool owner /*=true*/ )
+void iASlicer::setCamera(vtkCamera* camera, bool owner /*=true*/ )
 {
-	m_data->SetCamera(camera, owner);
+	m_data->setCamera(camera, owner);
 }
 
 // declaration in iASlicerMode.h

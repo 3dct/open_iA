@@ -23,7 +23,7 @@
 #include "PorosityAnalyserHelpers.h"
 
 #include <iAChanData.h>
-#include <iAChannelVisualizationData.h>
+#include <iAChannelSlicerData.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iASlicer.h>
@@ -192,15 +192,16 @@ void iASSSlicer::changeMode( iASlicerMode mode )
 void iASSSlicer::initialize( vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkTransform> transform, vtkSmartPointer<vtkColorTransferFunction> tf )
 {
 	slicer->setup( iASingleSlicerSettings() );
-	slicer->initializeData(img, transform, tf);
-	slicer->initializeWidget( img );
+	slicer->initialize(transform);
+	// slicer->addChannel(0, ) ?
+	//slicer->initializeWidget( img );
 	slicer->update();
 }
 
 void iASSSlicer::initializeChannel( iAChanData * chData )
 {
 	chData->InitTFs();
-	slicer->initializeChannel( chData->id, chData->visData.data() );
+	slicer->addChannel( chData->id, chData->visData.data() );
 }
 
 void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile, QString const & maxFile )

@@ -21,6 +21,7 @@
 #pragma once
 
 #include "open_iA_Core_export.h"
+#include "iASlicerSettings.h"    // for iASingleSlicerSettings
 #include "iASlicerMode.h"
 
 #include <vtkSmartPointer.h>
@@ -74,15 +75,13 @@ class open_iA_Core_API iASlicerData :  public QObject
 {
 	Q_OBJECT
 public:
-	iASlicerData( iASlicer const * slicerMaster, QObject * parent = 0, bool decorations=true);
+	iASlicerData( iASlicer * slicerMaster, QObject * parent = 0, bool decorations=true);
 	virtual ~iASlicerData();
 
-	void initialize(vtkTransform *tr/*vtkImageData *ds, vtkScalarsToColors* ctf*/);
+	void initialize(vtkTransform *tr);
 
 	void setDefaultInteractor();
 
-	//void reInitialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool showisolines = false, bool showpolygon = false);
-	//void changeImageData(vtkImageData *idata);
 	void setup(iASingleSlicerSettings const & settings);
 
 	void addChannel(uint id, iAChannelVisualizationData * chData);
@@ -93,19 +92,19 @@ public:
 	void enableChannel(uint id, bool enabled );
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 
-	void AddImageActor(vtkSmartPointer<vtkImageActor> imgActor);
-	void RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor);
+	void addImageActor(vtkSmartPointer<vtkImageActor> imgActor);
+	void removeImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 
-	void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
+	//void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
 
 	void setResliceAxesOrigin(double x, double y, double z);
 	void setSliceNumber(int sliceNumber);
 	int getSliceNumber() const;
 	//! set the position of the position marker (in slicer coordinates)
 	void setPositionMarkerCenter(double x, double y);
-	void setContours(int n, double mi, double ma);
-	void setContours( int n, double * contourValues );
-	void setMeasurementStartPoint(int x, int y) { measureStart[0] = x; measureStart[1] = y; };
+	void setContours(int numberOfContours, double contourMin, double contourMax);
+	void setContours(int numberOfContours, double * contourValues );
+	//void setMeasurementStartPoint(int x, int y);
 	void setShowText(bool isVisible);
 	void setMouseCursor( QString s );
 
@@ -116,36 +115,26 @@ public:
 	void saveMovie(QString& fileName, int qual = 2);
 	void update();
 
-	void UpdateROI(int const r[6]);
-	void SetROIVisible(bool visible);
+	void updateROI(int const r[6]);
+	void setROIVisible(bool visible);
 
-
-	vtkRenderWindowInteractor* GetInteractor() { return interactor; };
-	vtkGenericOpenGLRenderWindow* GetRenderWindow();
-	vtkRenderer* GetRenderer();
-	vtkCamera* GetCamera();
-	void SetCamera(vtkCamera* camera, bool camOwner=true);
-	void ResetCamera();
-
-
-
-	//vtkImageData* GetImageData() const { return imageData; };
-	//vtkImageReslice *GetReslicer() { return reslicer; }
-	//vtkImageActor* GetImageActor();
-	//vtkScalarsToColors * GetColorTransferFunction();
-
-
+	vtkRenderWindowInteractor* getInteractor();
+	vtkGenericOpenGLRenderWindow* getRenderWindow();
+	vtkRenderer* getRenderer();
+	vtkCamera* getCamera();
+	void setCamera(vtkCamera* camera, bool camOwner=true);
+	void resetCamera();
 
 	iASlicerMode getMode() const { return m_mode; }
 	void setMode(const iASlicerMode mode);
 
-	/**	Provides the possibility to save an png image of the image viewer native resolution or the current view. */
+	//! Provides the possibility to save an png image of the image viewer native resolution or the current view.
 	void saveAsImage() const;
-	/** Provides the possibility to save an image stack of the current view. */
+	//! Provides the possibility to save an image stack of the current view.
 	void saveImageStack();
 	void setStatisticalExtent(int statExt);
 
-	virtual void Execute(vtkObject * caller, unsigned long eventId, void * callData);
+	void execute(vtkObject * caller, unsigned long eventId, void * callData);
 
 	void setMagicLensInput(uint id);
 	iAChannelSlicerData * getChannel(uint id);
@@ -155,23 +144,22 @@ public:
 	void rotateSlice( double angle );
 	void switchContourSourceToChannel( uint id );
 
-	void SetManualBackground(double r, double g, double b);
+	void setManualBackground(double r, double g, double b);
 
-	vtkScalarBarWidget * GetScalarBarWidget();
+	vtkScalarBarWidget * getScalarBarWidget();
 	
 	QCursor getMouseCursor();
 	
-
-	void SetRightButtonDragZoomEnabled(bool enabled);
+	void setRightButtonDragZoomEnabled(bool enabled);
 	void setSlabThickness(int thickness);
 	void setSlabCompositeMode(int compositeMode);
 protected:
-	void UpdateResliceAxesDirectionCosines();
-	void UpdateBackground();
-	//mouse move
+	void updateResliceAxesDirectionCosines();
+	void updateBackground();
 	void printVoxelInformation(double xCoord, double yCoord, double zCoord);
 	void executeKeyPressEvent();
 	void defaultOutput();
+	void updateReslicer();
 
 	//!	This function is used to check whether any agreeable maximum gradient is near the given point.
 	//!	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.
@@ -186,12 +174,7 @@ protected:
 	//! If point are higher than threshold, the point closest to the cursor point is take as the next point.
 	//! @param [in,out]	x	The x coordinate.
 	//! @param [in,out]	y	The y coordinate.
-	void snapToHighGradient(double &x, double &y);
-
-	/*void InitReslicerWithImageData();*/
-	
-	
-	void UpdateReslicer();
+	//void snapToHighGradient(double &x, double &y);
 Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);
@@ -208,35 +191,29 @@ Q_SIGNALS:
 	void Pick();
 private:
 	iAMagicLens * m_magicLensExternal;
-	vtkRenderWindowInteractor* interactor;
-	iAInteractorStyleImage* interactorStyle;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> renWin;
-	vtkSmartPointer<vtkRenderer> ren;
+	vtkRenderWindowInteractor* m_interactor;
+	iAInteractorStyleImage* m_interactorStyle;
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
+	vtkSmartPointer<vtkRenderer> m_ren;
 	vtkCamera* m_camera; // smart pointer?
 	bool m_cameraOwner;
 
-	/*vtkImageReslice* reslicer;
-	vtkImageData* imageData;
-	vtkScalarsToColors* colorTransferFunction;
-	vtkImageMapToColors* colormapper;
-	vtkImageActor* imageActor;
-*/
-	vtkTransform *transform;
+	vtkTransform *m_transform;
 
-
-	vtkPointPicker* pointPicker;
+	vtkPointPicker* m_pointPicker;
 
 	QMap<uint, QSharedPointer<iAChannelSlicerData> > m_channels;
 
-	vtkSmartPointer<vtkScalarBarWidget> scalarBarWidget;
-	vtkSmartPointer<vtkTextProperty> textProperty;
+	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
+	vtkSmartPointer<vtkTextProperty> m_textProperty;
 
 	// TODO: extract/ unify with iARenderer
-	vtkSmartPointer<vtkLogoWidget> logoWidget;
-	vtkSmartPointer<vtkLogoRepresentation> logoRep;
-	vtkSmartPointer<vtkQImageToImageSource> logoImage;
+	vtkSmartPointer<vtkLogoWidget> m_logoWidget;
+	vtkSmartPointer<vtkLogoRepresentation> m_logoRep;
+	vtkSmartPointer<vtkQImageToImageSource> m_logoImage;
 
-	iAWrapperText* textInfo;
+	vtkSmartPointer<iAWrapperText> m_textInfo;
+	vtkSmartPointer < iARulerWidget> m_rulerWidget;
 
 	// position marker / statistical extent
 	vtkSmartPointer<vtkPlaneSource> m_positionMarkerSrc;
@@ -244,9 +221,13 @@ private:
 	vtkSmartPointer<vtkActor> m_positionMarkerActor;
 	bool m_showPositionMarker;
 
-	vtkMarchingContourFilter *cFilter;
-	vtkPolyDataMapper *cMapper;
-	vtkActor *cActor;
+	iASingleSlicerSettings m_settings;
+	int m_slabThickness;       //! current slab thickness (default = 1, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
+	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
+
+	//vtkMarchingContourFilter *cFilter;
+	//vtkPolyDataMapper *cMapper;
+	//vtkActor *cActor;
 
 	vtkSmartPointer<vtkLineSource> pLineSource;
 	vtkSmartPointer<vtkPolyDataMapper> pLineMapper;
@@ -255,33 +236,27 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> pDiskMapper;
 	vtkSmartPointer<vtkActor> pDiskActor;
 
-	vtkSmartPointer<vtkPlaneSource> roiSource;
-	vtkSmartPointer<vtkPolyDataMapper> roiMapper;
-	vtkSmartPointer<vtkActor> roiActor;
-	bool roiActive;
-	int roiSlice[2];
+	vtkSmartPointer<vtkPlaneSource> m_roiSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;
+	vtkSmartPointer<vtkActor> m_roiActor;
+	bool m_roiActive;
+	int m_roiSlice[2];
 
-	vtkSmartPointer<vtkTransform> axisTransform[2];
-	vtkSmartPointer<vtkTextActor3D> axisTextActor[2];
+	vtkSmartPointer<vtkTransform> m_axisTransform[2];
+	vtkSmartPointer<vtkTextActor3D> m_axisTextActor[2];
 
-	iARulerWidget *rulerWidget;
-
-	bool isolines;
-	bool poly;
+	bool m_isolines;
+	bool m_poly;
 
 	bool m_decorations;
 	iASlicerMode m_mode;
 	int m_ext;
-	bool disabled;
-	int no;
-	double contourMin, contourMax;
+	bool m_disabled;
 
-	int measureStart[2];
-	double angleX, angleY, angleZ;
+	double m_angleX, m_angleY, m_angleZ;
 
 	bool m_userSetBackground;
-	double rgb[3];
-
+	double m_backgroundRGB[3];
 
 	int m_sliceNumber; // for fisheye transformation
 
@@ -289,11 +264,11 @@ private:
 	double m_ptMapped[3];
 	double m_startMeasurePoint[2];
 
-	iAChannelSlicerData & getOrCreateChannel(uint id);
+	QCursor m_mouseCursor;
+
+	QSharedPointer<iAChannelSlicerData> createChannel(uint id);
 	void GetMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
 	void UpdatePositionMarkerExtent();
-
-	QCursor m_mouseCursor;
 
 	void setupColorMapper();
 };

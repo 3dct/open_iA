@@ -36,6 +36,7 @@ class iAMagicLens;
 class iAPieChartGlyph;
 
 class vtkActor;
+class vtkImageReslice;
 class vtkParametricFunctionSource;
 class vtkPoints;
 class vtkPolyDataMapper;
@@ -60,37 +61,36 @@ protected:
 	QMenu						* m_contextMenu;
 
 	bool						m_isInitialized;
-	viewModeEnum				m_viewMode;						// current edit mode
-	bool						m_isSliceProfEnabled;			//if slice profile mode is enabled
-	bool						m_isArbProfEnabled;				//if arbitrary profile mode is enabled
-	iASlicerMode				m_slicerMode;					// which slice viewer
+	viewModeEnum				m_viewMode;						//!< current edit mode
+	bool						m_isSliceProfEnabled;			//!< if slice profile mode is enabled
+	bool						m_isArbProfEnabled;				//!< if arbitrary profile mode is enabled
+	iASlicerMode				m_slicerMode;					//!< which slice viewer
 	int							m_xInd, m_yInd, m_zInd;
 
-	vtkImageData				* m_imageData;
 	iASnakeSpline				* m_snakeSpline;
 	vtkPoints					* m_worldSnakePointsExternal;
-	iASlicerProfile				* m_sliceProfile;				//necessary vtk classes for the slice profile
+	iASlicerProfile				* m_sliceProfile;				//!< necessary vtk classes for the slice profile
 	iAArbitraryProfileOnSlicer	* m_arbProfile;
 	iASlicerData				* m_slicerDataExternal;
 
-	// TODO: move to XRF module
-	bool						m_pieGlyphsEnabled;				//if slice pie glyphs for xrf are enabled
+	// { TODO: move to XRF module
+	bool						m_pieGlyphsEnabled;				//!< if slice pie glyphs for xrf are enabled
 	QVector<QSharedPointer<iAPieChartGlyph> >	m_pieGlyphs;
 	double										m_pieGlyphMagFactor;
 	double										m_pieGlyphSpacing;
 	double										m_pieGlyphOpacity;
+	// }
 
 	static const int			RADIUS = 5;
 	QGridLayout * m_layout;
 
 public:
-	iASlicerWidget(iASlicer const * slicerMaster, QWidget * parent = NULL, bool decorations = true);
+	iASlicerWidget(iASlicer * slicerMaster, QWidget * parent = NULL, bool decorations = true);
 	~iASlicerWidget();
 
 	static const int BorderWidth = 3;
 	
-	void	initialize(vtkImageData * imageData, vtkPoints * points);
-	void    changeImageData(vtkImageData * imageData);
+	void	initialize(vtkPoints * snakeSlicerPoints = nullptr);
 	void	setIndex( int x, int y, int z ) { m_xInd = x; m_yInd = y; m_zInd = z; };
 	void	setMode(iASlicerMode slicerMode);
 	void	updateMagicLens();
@@ -116,10 +116,6 @@ protected:			//overloaded events of QWidget
 	virtual void contextMenuEvent ( QContextMenuEvent * event );
 	virtual void resizeEvent ( QResizeEvent * event );
 	virtual void wheelEvent(QWheelEvent*);
-
-private:
-	void initializeFisheyeLens(vtkImageReslice* reslicer);
-	void updateFisheyeTransform( double focalPt[3], iASlicerData *slicerData, double lensRadius, double innerLensRadius);
 
 public slots:
 
@@ -166,11 +162,15 @@ signals:
 	void shiftMouseWheel(int angle);
 	void altMouseWheel(int angle);
 	void ctrlMouseWheel(int angle);
-	void Clicked();
-	void DblClicked();
+	void clicked();
+	void dblClicked();
 
 private:
 	bool m_decorations;
+
+	//! @{ fish-eye lens
+	void initializeFisheyeLens(vtkImageReslice* reslicer);
+	void updateFisheyeTransform(double focalPt[3], iASlicerData *slicerData, vtkImageReslice* reslicer, double lensRadius, double innerLensRadius);
 
 	bool fisheyeLensActivated;
 	double fisheyeRadius = 80.0; // 110.0;
@@ -194,4 +194,5 @@ private:
 	QList<vtkSmartPointer<vtkActor>> circle1ActList;
 	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle2List;
 	QList<vtkSmartPointer<vtkActor>> circle2ActList;
+	//! @}
 };

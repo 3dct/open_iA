@@ -1636,7 +1636,7 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 	{
 		//this initializes the snake slicer
 		for (int s = 0; s<3; ++s)
-			slicer[s]->initializeWidget(imageData, worldSnakePoints);
+			slicer[s]->initializeWidget(worldSnakePoints);
 
 		updateSliceIndicators();
 

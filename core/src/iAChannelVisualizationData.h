@@ -53,46 +53,45 @@ public:
 	iAChannelVisualizationData();
 	virtual ~iAChannelVisualizationData();
 
-	virtual void Reset();
+	virtual void reset();
+	void setData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
 
-	void SetOpacity(double opacity);
-	double GetOpacity() const;
+	void setOpacity(double opacity);
+	double getOpacity() const;
 
-	bool IsEnabled() const;
-	void SetEnabled(bool enabled);
+	bool isEnabled() const;
+	void setEnabled(bool enabled);
 
-	bool Uses3D() const;
-	void Set3D(bool enabled);
+	bool uses3D() const;
+	void set3D(bool enabled);
 
-	void SetImage(vtkSmartPointer<vtkImageData> image);
-	void SetColorTF(vtkScalarsToColors* cTF);
-	void SetOpacityTF(vtkPiecewiseFunction* oTF);
+	void setImage(vtkSmartPointer<vtkImageData> image);
+	void setColorTF(vtkScalarsToColors* cTF);
+	void setOpacityTF(vtkPiecewiseFunction* oTF);
 
-	void SetName(QString name);
-	QString GetName() const;
+	void setName(QString name);
+	QString getName() const;
 
 	// check if this can be somehow refactored (not needed for each kind of channel):
 	// begin
-	void SetColor(QColor const & col);
-	QColor GetColor() const;
+	void setColor(QColor const & col);
+	QColor getColor() const;
 
-	bool IsSimilarityRenderingEnabled() const;
-	void SetSimilarityRenderingEnabled(bool enabled);
+	bool isSimilarityRenderingEnabled() const;
+	void setSimilarityRenderingEnabled(bool enabled);
 	// end
 
-	vtkSmartPointer<vtkImageData> GetImage();
-	vtkPiecewiseFunction * GetOTF();
-	vtkScalarsToColors* GetCTF();
+	vtkSmartPointer<vtkImageData> getImage();
+	vtkPiecewiseFunction * getOTF();
+	vtkScalarsToColors* getCTF();
 private:
-	bool enabled;
-	double opacity;
-	bool threeD;
-	QColor color;
-	bool similarityRenderingEnabled;
-	vtkSmartPointer<vtkImageData>       image;
-	vtkPiecewiseFunction*               piecewiseFunction;
-	vtkScalarsToColors*                 colorTransferFunction;
+	bool m_enabled;
+	double m_opacity;
+	bool m_threeD;
+	QColor m_color; // TODO: only used in XRF module, move there!
+	bool m_similarityRenderingEnabled;
+	vtkSmartPointer<vtkImageData>       m_image;
+	vtkPiecewiseFunction*               m_piecewiseFunction;
+	vtkScalarsToColors*                 m_colorTransferFunction;
 	QString                             m_name;
 };
-
-void open_iA_Core_API ResetChannel(iAChannelVisualizationData* chData, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);

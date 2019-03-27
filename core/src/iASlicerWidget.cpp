@@ -72,16 +72,15 @@ struct PickedData
 PickedData	pickedData;
 
 
-iASlicerWidget::iASlicerWidget( iASlicer const * slicerMaster, QWidget * widget_container, bool decorations)
+iASlicerWidget::iASlicerWidget( iASlicer * slicerMaster, QWidget * widget_container, bool decorations)
 	: iAVtkWidget(widget_container),
 	m_magicLensExternal(slicerMaster->magicLens()),
-	m_slicerMode(slicerMaster->m_mode),
-	m_slicerDataExternal(slicerMaster->m_data),
+	m_slicerMode(slicerMaster->getMode()),
+	m_slicerDataExternal(slicerMaster->data()),
 	m_decorations(decorations)
 {
 	setFocusPolicy(Qt::StrongFocus);		// to receive the KeyPress Event!
 	setMouseTracking(true);					// to receive the Mouse Move Event
-	m_imageData = NULL;
 	m_viewMode = NORMAL; // standard m_viewMode
 	m_xInd = m_yInd = m_zInd = 0;
 	m_isInitialized = false;
@@ -138,9 +137,9 @@ void iASlicerWidget::showBorder(bool show)
 }
 
 
-void iASlicerWidget::initialize( vtkImageData *imageData, vtkPoints *points )
+void iASlicerWidget::initialize(vtkPoints *snakeSlicerPoints )
 {
-	this->m_worldSnakePointsExternal = points;
+	m_worldSnakePointsExternal = snakeSlicerPoints;
 	GetRenderWindow()->SetNumberOfLayers(3);
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 	ren->GetActiveCamera()->SetParallelProjection(true);
@@ -151,8 +150,6 @@ void iASlicerWidget::initialize( vtkImageData *imageData, vtkPoints *points )
 		m_sliceProfile->initialize(ren);
 		m_arbProfile->initialize(ren);
 	}
-
-	changeImageData(imageData);
 	m_isInitialized = true;
 }
 
@@ -393,7 +390,7 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 	}
 	else
 	{
-		emit Clicked();
+		emit clicked();
 	}
 	iAVtkWidget::mousePressEvent(event);
 }
@@ -524,7 +521,7 @@ void iASlicerWidget::mouseDoubleClickEvent(QMouseEvent* event)
 {
 	if (event->button() == Qt::LeftButton)
 	{
-		emit DblClicked();
+		emit dblClicked();
 	}
 }
 
@@ -687,8 +684,7 @@ int iASlicerWidget::pickPoint( double *pos_out, double *result_out, int * ind_ou
 
 
 int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_out,
-	double *result_out,
-	int &xInd_out, int &yInd_out, int &zInd_out)
+	double *result_out,	int &xInd_out, int &yInd_out, int &zInd_out)
 {
 	// Do a pick. It will return a non-zero value if we intersected the image.
 	vtkPointPicker* pointPicker = (vtkPointPicker*)GetInteractor()->GetPicker();
@@ -733,7 +729,7 @@ int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_o
 void iASlicerWidget::slicerUpdatedSlot()
 {
 	setCursor( m_slicerDataExternal->getMouseCursor() );
-	if(m_isSliceProfEnabled)
+	if (m_isSliceProfEnabled)
 		updateProfile();
 }
 
@@ -758,20 +754,17 @@ void iASlicerWidget::setArbitraryProfileOn( bool isOn )
 	GetRenderWindow()->GetInteractor()->Render();
 }
 
-
 void iASlicerWidget::setPieGlyphsOn( bool isOn )
 {
 	m_pieGlyphsEnabled = isOn;
 	computeGlyphs();
 }
 
-
 void iASlicerWidget::resizeEvent( QResizeEvent * event )
 {
 	updateMagicLens();
 	iAVtkWidget::resizeEvent(event);
 }
-
 
 void iASlicerWidget::wheelEvent(QWheelEvent* event)
 {
@@ -796,19 +789,10 @@ void iASlicerWidget::wheelEvent(QWheelEvent* event)
 	updateMagicLens();
 }
 
-
 void iASlicerWidget::setMode( iASlicerMode slicerMode )
 {
 	m_slicerMode = slicerMode;
 }
-
-
-void iASlicerWidget::changeImageData( vtkImageData * imageData )
-{
-	m_imageData = imageData;
-	m_isInitialized = true;
-}
-
 
 void iASlicerWidget::menuCenteredMagicLens()
 {
@@ -817,14 +801,12 @@ void iASlicerWidget::menuCenteredMagicLens()
 	updateMagicLens();
 }
 
-
 void iASlicerWidget::menuOffsetMagicLens()
 {
 	if (!m_magicLensExternal) return;
 	m_magicLensExternal->SetViewMode(iAMagicLens::OFFSET);
 	updateMagicLens();
 }
-
 
 void iASlicerWidget::initializeFisheyeLens(vtkImageReslice* reslicer)
 {
@@ -895,7 +877,7 @@ void iASlicerWidget::initializeFisheyeLens(vtkImageReslice* reslicer)
 	}
 }
 
-void iASlicerWidget::updateFisheyeTransform( double focalPt[3], iASlicerData* slicerData , double lensRadius, double innerLensRadius)
+void iASlicerWidget::updateFisheyeTransform(double focalPt[3], iASlicerData* slicerData, vtkImageReslice* reslicer, double lensRadius, double innerLensRadius)
 {
 	vtkImageData * reslicedImgData = slicerData->GetReslicer()->GetOutput();
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();

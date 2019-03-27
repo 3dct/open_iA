@@ -45,118 +45,118 @@
 
 
 iAChannelVisualizationData::iAChannelVisualizationData():
-	piecewiseFunction(NULL),
-	colorTransferFunction(NULL),
-	enabled(false),
-	opacity(1.0),
-	threeD(false),
-	similarityRenderingEnabled(false)
+	m_piecewiseFunction(nullptr),
+	m_colorTransferFunction(nullptr),
+	m_enabled(false),
+	m_opacity(1.0),
+	m_threeD(false),
+	m_similarityRenderingEnabled(false)
 {}
 
 iAChannelVisualizationData::~iAChannelVisualizationData()
 {
-	Reset();
+	reset();
 }
 
-void iAChannelVisualizationData::Reset()
+void iAChannelVisualizationData::reset()
 {
-	enabled = false;
+	m_enabled = false;
 }
 
-bool iAChannelVisualizationData::IsEnabled() const
+void iAChannelVisualizationData::setData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
-	return enabled;
+	setImage(image);
+	setColorTF(ctf);
+	setOpacityTF(otf);
 }
 
-bool iAChannelVisualizationData::Uses3D() const
+bool iAChannelVisualizationData::isEnabled() const
 {
-	return threeD;
+	return m_enabled;
 }
 
-void iAChannelVisualizationData::Set3D(bool enabled)
+bool iAChannelVisualizationData::uses3D() const
 {
-	threeD = enabled;
+	return m_threeD;
 }
 
-void iAChannelVisualizationData::SetEnabled(bool enabled)
+void iAChannelVisualizationData::set3D(bool enabled)
 {
-	this->enabled = enabled;
+	m_threeD = enabled;
 }
 
-void iAChannelVisualizationData::SetOpacity(double opacity)
+void iAChannelVisualizationData::setEnabled(bool enabled)
 {
-	this->opacity = opacity;
+	m_enabled = enabled;
 }
 
-double iAChannelVisualizationData::GetOpacity() const
+void iAChannelVisualizationData::setOpacity(double opacity)
 {
-	return opacity;
+	m_opacity = opacity;
 }
 
-void iAChannelVisualizationData::SetImage( vtkSmartPointer<vtkImageData> img )
+double iAChannelVisualizationData::getOpacity() const
 {
-	image = img;
+	return m_opacity;
 }
 
-void iAChannelVisualizationData::SetColorTF( vtkScalarsToColors* cTF )
+void iAChannelVisualizationData::setImage( vtkSmartPointer<vtkImageData> img )
 {
-	colorTransferFunction = cTF;
+	m_image = img;
 }
 
-void iAChannelVisualizationData::SetOpacityTF(vtkPiecewiseFunction* oTF)
+void iAChannelVisualizationData::setColorTF( vtkScalarsToColors* cTF )
 {
-	piecewiseFunction = oTF;
+	m_colorTransferFunction = cTF;
+}
+
+void iAChannelVisualizationData::setOpacityTF(vtkPiecewiseFunction* oTF)
+{
+	m_piecewiseFunction = oTF;
 }
 
 
-void iAChannelVisualizationData::SetName(QString name)
+void iAChannelVisualizationData::setName(QString name)
 {
 	m_name = name;
 }
 
-void iAChannelVisualizationData::SetColor(QColor const & col)
-{
-	color = col;
-}
-
-QColor iAChannelVisualizationData::GetColor() const
-{
-	return color;
-}
-
-bool iAChannelVisualizationData::IsSimilarityRenderingEnabled() const
-{
-	return similarityRenderingEnabled;
-}
-
-void iAChannelVisualizationData::SetSimilarityRenderingEnabled(bool enabled)
-{
-	similarityRenderingEnabled = enabled;
-}
-
-vtkPiecewiseFunction * iAChannelVisualizationData::GetOTF()
-{
-	return piecewiseFunction;
-}
-
-vtkScalarsToColors * iAChannelVisualizationData::GetCTF()
-{
-	return colorTransferFunction;
-}
-
-vtkSmartPointer<vtkImageData> iAChannelVisualizationData::GetImage()
-{
-	return image;
-}
-
-void ResetChannel(iAChannelVisualizationData* chData, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
-{
-	chData->SetImage(image);
-	chData->SetColorTF(ctf);
-	chData->SetOpacityTF(otf);
-}
-
-QString iAChannelVisualizationData::GetName() const
+QString iAChannelVisualizationData::getName() const
 {
 	return m_name;
+}
+
+void iAChannelVisualizationData::setColor(QColor const & col)
+{
+	m_color = col;
+}
+
+QColor iAChannelVisualizationData::getColor() const
+{
+	return m_color;
+}
+
+bool iAChannelVisualizationData::isSimilarityRenderingEnabled() const
+{
+	return m_similarityRenderingEnabled;
+}
+
+void iAChannelVisualizationData::setSimilarityRenderingEnabled(bool enabled)
+{
+	m_similarityRenderingEnabled = enabled;
+}
+
+vtkPiecewiseFunction * iAChannelVisualizationData::getOTF()
+{
+	return m_piecewiseFunction;
+}
+
+vtkScalarsToColors * iAChannelVisualizationData::getCTF()
+{
+	return m_colorTransferFunction;
+}
+
+vtkSmartPointer<vtkImageData> iAChannelVisualizationData::getImage()
+{
+	return m_image;
 }

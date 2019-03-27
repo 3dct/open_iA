@@ -97,7 +97,7 @@ signals:
 protected:
 	virtual void paintEvent(QPaintEvent * );
 private slots:
-	void DblClicked();
+	void dblClicked();
 	void ChangeModality(int);
 	void ChangeMagicLensOpacity(int);
 	void SlicerClicked(int, int, int);
