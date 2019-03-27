@@ -43,7 +43,7 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 		this->FindPokedRenderer(x, y);
 		this->Interactor->GetPicker()->Pick(x, y, 0, this->GetCurrentRenderer());
 		this->FindPickedActor(x, y);
-		if (this->CurrentRenderer == nullptr || this->PropCurrentSlicer == nullptr)
+		if (this->CurrentRenderer == nullptr || this->m_PropCurrentSlicer == nullptr)
 		{
 			return;
 		}
@@ -103,22 +103,16 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 	vtkGetMacro(InteractionMode, int);
 
 	vtkProp3D * getCurrentSlicerProp() const{
-		return this->PropCurrentSlicer; 
+		return this->m_PropCurrentSlicer; 
 	}
 	
 	//TODO miteinander verknüpfen
 
-	void setActiveSlicer(iASlicerMode slice, int SliceNumber) {
-		switch (slice) {
-		case iASlicerMode::XY: sliceZ = SliceNumber; break;
-		case iASlicerMode::XZ: sliceY = SliceNumber; break;
-		case iASlicerMode::YZ: sliceX = SliceNumber; break;
-		default: throw std::invalid_argument("Invalid slice option"); break; 
-				
-		}
-	}
 	
 	void initializeActors(vtkProp3D *propSlicer3D, vtkProp3D *propSlicer1, vtkProp3D *propSlicer2) {
+		
+		
+		
 		if (!propSlicer3D || !propSlicer1 || propSlicer2) {
 		
 			DEBUG_LOG("props are null"); 
@@ -128,7 +122,7 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 		this->setSlicer1(propSlicer1);
 		this->setSlicer2(propSlicer2);
 	}
-
+	void setActiveSlicer(vtkProp3D *currentActor, iASlicerMode slice, int SliceNumber); 
 
 protected:
 	
@@ -141,30 +135,22 @@ protected:
 
 	
 	void printProbOrigin(){
-		double *pos = PropCurrentSlicer->GetOrigin(); 
+		double *pos = m_PropCurrentSlicer->GetOrigin(); 
 		DEBUG_LOG(QString("\nOrigin x %1 y %2 z %3").arg(pos[0]).arg(pos[1]).arg(pos[2])); 
 	}
 
 	void printPropPosistion() {
-		double *pos = PropCurrentSlicer->GetPosition();
+		double *pos = m_PropCurrentSlicer->GetPosition();
 		DEBUG_LOG(QString("\nPosition %1 %2 %3").arg(pos[0]).arg(pos[1]).arg(pos[2])); 
 	}
 
 	void printProbOrientation() {
-		double *pos = PropCurrentSlicer->GetOrientation();
+		double *pos = m_PropCurrentSlicer->GetOrientation();
 		DEBUG_LOG(QString("\nPosition x %1 y %2 z %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
 	}
 
 private:
 	
-	/*void getOrientation(double *values, vtkProp3D *visprop) const { 
-		values = visprop->GetOrientation();
-	}
-
-	void getPosition(double *values, vtkProp3D *visprop) const {
-		values = visprop->GetPosition();
-	}*/
-
 
 	//setting to null
 	void resetProps() {
@@ -173,9 +159,9 @@ private:
 		Prop3DSlicer = nullptr;
 	}
 
-	iASlicerMode activeSlicer; 
+	iASlicerMode activeSliceMode; 
 	//Prop of the current slicer
-	vtkProp3D *PropCurrentSlicer;
+	vtkProp3D *m_PropCurrentSlicer;
 
 	//3d slicer prop
 	vtkProp3D *Prop3DSlicer;

@@ -366,22 +366,12 @@ void dlg_modalities::ManualRegistration()
 
 		//remove this later
 		//props aus den channels rausholen
-
-		////m_mdiChild->getSlicerXY()->GetSlicerData()->enableInteractor();
-		//vtkInteractorStyleSwitch* interactSwitch_XY = 
-		//	dynamic_cast<vtkInteractorStyleSwitch*>(m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->GetInteractorStyle());
-
+		
 		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
 		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xz = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
 		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_yz = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
 
-
-
-
-		//TODO actors setzen
-		Customstyle_xy->initializeActors(vol_3d, propXZ, propYZ);
-		Customstyle_xz->initializeActors(vol_3d, propXY, propYZ);
-		Customstyle_yz->initializeActors(vol_3d, propXY, propXZ);
+		
 
 
 		if (!interactSwitch3D)
@@ -401,13 +391,24 @@ void dlg_modalities::ManualRegistration()
 			if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };*/
 
 
-
 			int slizeZ = m_mdiChild->getSlicerXY()->GetSlicerData()->getSliceNumber();
 			int slizeX = m_mdiChild->getSlicerXZ()->GetSlicerData()->getSliceNumber();
 			int sliceY = m_mdiChild->getSlicerYZ()->GetSlicerData()->getSliceNumber();
+			
+
+			iASlicerMode modeYZ = m_mdiChild->getSlicerYZ()->GetSlicerData()->getMode();
 			iASlicerMode modeXY = m_mdiChild->getSlicerXY()->GetSlicerData()->getMode();
 			iASlicerMode modeXZ = m_mdiChild->getSlicerXZ()->GetSlicerData()->getMode();
-			iASlicerMode modeYZ = m_mdiChild->getSlicerYZ()->GetSlicerData()->getMode();
+			
+			Customstyle_xy->setActiveSlicer(propXY, modeXY, slizeZ); //xy, slice z;
+			Customstyle_xy->initializeActors(vol_3d, propXZ, propYZ);
+
+			Customstyle_xz->initializeActors(vol_3d, propXY, propYZ); 
+			Customstyle_xz->setActiveSlicer(propXZ, modeXZ, sliceY); //xz, slice y;
+			
+			Customstyle_yz->initializeActors(vol_3d, propXY, propXZ); //xy, slice z;
+			Customstyle_yz->setActiveSlicer(propYZ, modeYZ, slizeZ); 
+
 
 			m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xy);
 			m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xz);

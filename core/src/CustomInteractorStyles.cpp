@@ -7,7 +7,7 @@ vtkStandardNewMacro(iACustomInterActorStyleTrackBall);
 iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall() {
 
 	InteractionMode = 0;
-	this->PropCurrentSlicer = nullptr;
+	this->m_PropCurrentSlicer = nullptr;
 	this->Prop3DSlicer = nullptr; 
 	this->propSlicer1 = nullptr;
 	this->propSlicer2 = nullptr; 
@@ -96,10 +96,29 @@ void iACustomInterActorStyleTrackBall::FindPickedActor(int x, int y)
 	vtkProp *prop = this->InteractionPicker->GetViewProp();
 	if (prop != nullptr)
 	{
-		this->PropCurrentSlicer = vtkProp3D::SafeDownCast(prop);
+		this->m_PropCurrentSlicer = vtkProp3D::SafeDownCast(prop);
 	}
 	else
 	{
-		this->PropCurrentSlicer = nullptr;
+		this->m_PropCurrentSlicer = nullptr;
 	}
+}
+
+void iACustomInterActorStyleTrackBall::setActiveSlicer(vtkProp3D *currentSlicer, iASlicerMode sliceMode, int SliceNumber)
+{
+	if (!currentSlicer) {
+		throw std::invalid_argument("slice actor is null");
+	}
+
+	m_PropCurrentSlicer = currentSlicer; 
+
+	switch (sliceMode) {
+		case iASlicerMode::XY: sliceZ = SliceNumber; break;
+		case iASlicerMode::XZ: sliceY = SliceNumber; break;
+		case iASlicerMode::YZ: sliceX = SliceNumber; break;
+		default: throw std::invalid_argument("Invalid slice option"); break;
+
+	}
+
+	activeSliceMode = sliceMode; 
 }
