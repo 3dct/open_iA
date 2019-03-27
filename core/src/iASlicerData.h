@@ -77,15 +77,15 @@ public:
 	iASlicerData( iASlicer const * slicerMaster, QObject * parent = 0, bool decorations=true);
 	virtual ~iASlicerData();
 
-	void initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
+	void initialize(vtkTransform *tr/*vtkImageData *ds, vtkScalarsToColors* ctf*/);
 
 	void setDefaultInteractor();
 
-	void reInitialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool showisolines = false, bool showpolygon = false);
-	void changeImageData(vtkImageData *idata);
+	//void reInitialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool showisolines = false, bool showpolygon = false);
+	//void changeImageData(vtkImageData *idata);
 	void setup(iASingleSlicerSettings const & settings);
 
-	void initializeChannel(uint id, iAChannelVisualizationData * chData);
+	void addChannel(uint id, iAChannelVisualizationData * chData);
 	void removeChannel(uint id);
 	void reInitializeChannel(uint id, iAChannelVisualizationData * chData);
 	void setChannelOpacity(uint id, double opacity );
@@ -119,14 +119,22 @@ public:
 	void UpdateROI(int const r[6]);
 	void SetROIVisible(bool visible);
 
-	vtkImageReslice *GetReslicer() { return reslicer; }
+
 	vtkRenderWindowInteractor* GetInteractor() { return interactor; };
 	vtkGenericOpenGLRenderWindow* GetRenderWindow();
 	vtkRenderer* GetRenderer();
 	vtkCamera* GetCamera();
 	void SetCamera(vtkCamera* camera, bool camOwner=true);
 	void ResetCamera();
-	vtkImageData* GetImageData() const { return imageData; };
+
+
+
+	//vtkImageData* GetImageData() const { return imageData; };
+	//vtkImageReslice *GetReslicer() { return reslicer; }
+	//vtkImageActor* GetImageActor();
+	//vtkScalarsToColors * GetColorTransferFunction();
+
+
 
 	iASlicerMode getMode() const { return m_mode; }
 	void setMode(const iASlicerMode mode);
@@ -150,10 +158,9 @@ public:
 	void SetManualBackground(double r, double g, double b);
 
 	vtkScalarBarWidget * GetScalarBarWidget();
-	vtkImageActor* GetImageActor();
+	
 	QCursor getMouseCursor();
-
-	vtkScalarsToColors * GetColorTransferFunction();
+	
 
 	void SetRightButtonDragZoomEnabled(bool enabled);
 	void setSlabThickness(int thickness);
@@ -181,7 +188,9 @@ protected:
 	//! @param [in,out]	y	The y coordinate.
 	void snapToHighGradient(double &x, double &y);
 
-	void InitReslicerWithImageData();
+	/*void InitReslicerWithImageData();*/
+	
+	
 	void UpdateReslicer();
 Q_SIGNALS:
 	void msg(QString s);
@@ -206,11 +215,15 @@ private:
 	vtkCamera* m_camera; // smart pointer?
 	bool m_cameraOwner;
 
-	vtkImageReslice* reslicer;
+	/*vtkImageReslice* reslicer;
 	vtkImageData* imageData;
 	vtkScalarsToColors* colorTransferFunction;
 	vtkImageMapToColors* colormapper;
 	vtkImageActor* imageActor;
+*/
+	vtkTransform *transform;
+
+
 	vtkPointPicker* pointPicker;
 
 	QMap<uint, QSharedPointer<iAChannelSlicerData> > m_channels;
@@ -253,7 +266,6 @@ private:
 
 	iARulerWidget *rulerWidget;
 
-	vtkTransform *transform;
 	bool isolines;
 	bool poly;
 

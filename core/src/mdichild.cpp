@@ -2343,7 +2343,7 @@ void MdiChild::InitChannelRenderer(uint id, bool use3D, bool enableChannel)
 		return;
 	}
 	for (int s = 0; s<3; ++s)
-		slicer[s]->initializeChannel(id, data);
+		slicer[s]->addChannel(id, data);
 	/*
 	// TODO: VOLUME: rewrite using separate volume
 	if (use3D)

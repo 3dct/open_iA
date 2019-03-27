@@ -293,15 +293,16 @@ private:
 	}
 	iASlicerData* m_redirect;
 };
+
 vtkScalarsToColors * iASlicerData::GetColorTransferFunction() {
 	return colorTransferFunction;
 }
 
-void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf)
+void iASlicerData::initialize(vtkTransform *tr/*vtkImageData *ds, , vtkScalarsToColors* ctf*/)
 {
-	imageData = ds;
-	transform = tr;
-	colorTransferFunction = ctf;
+	//imageData = ds;
+	//transform = tr;
+	//colorTransferFunction = ctf;
 
 	renWin->AddRenderer(ren);
 	setDefaultInteractor();
@@ -375,12 +376,12 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		m_positionMarkerActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
 		m_positionMarkerActor->SetVisibility(false);
 
-		cFilter->SetInputConnection( reslicer->GetOutputPort() );
-		cFilter->UseScalarTreeOn( );
-		cFilter->SetComputeGradients( false );
-		cFilter->SetComputeNormals( false );
-		cFilter->GenerateValues( 0, 0, 0 );
-		cMapper->SetInputConnection( cFilter->GetOutputPort() );
+		//cFilter->SetInputConnection( reslicer->GetOutputPort() );
+		//cFilter->UseScalarTreeOn( );
+		//cFilter->SetComputeGradients( false );
+		//cFilter->SetComputeNormals( false );
+		//cFilter->GenerateValues( 0, 0, 0 );
+		//cMapper->SetInputConnection( cFilter->GetOutputPort() );
 
 		cMapper->SetResolveCoincidentTopology( VTK_RESOLVE_POLYGON_OFFSET );
 		cActor->SetMapper( cMapper );
@@ -459,12 +460,12 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		ren->AddActor(roiActor);
 	}
 
-	colormapper->SetInputConnection(reslicer->GetOutputPort());
-	setupColorMapper();
-	imageActor->SetInputData(colormapper->GetOutput());
-	imageActor->GetMapper()->BorderOn();
+	//colormapper->SetInputConnection(reslicer->GetOutputPort());
+	//setupColorMapper();
+	//imageActor->SetInputData(colormapper->GetOutput());
+	//imageActor->GetMapper()->BorderOn();
 
-	ren->AddActor(imageActor);
+	//ren->AddActor(imageActor);
 	ren->SetActiveCamera(m_camera);
 	ren->ResetCamera();
 }
@@ -1571,23 +1572,23 @@ void iASlicerData::snapToHighGradient(double &x, double &y)
 	}
 }
 
-void iASlicerData::InitReslicerWithImageData()
-{
-	reslicer->SetInputData( imageData );
-	reslicer->SetInformationInput( imageData );
-	reslicer->SetResliceTransform( transform );
-	reslicer->SetOutputDimensionality( 2 );
-	reslicer->SetInterpolationModeToCubic();
-	reslicer->InterpolateOn();
-	reslicer->AutoCropOutputOn();
-	reslicer->SetNumberOfThreads(QThread::idealThreadCount());
-	reslicer->UpdateWholeExtent();
-	UpdateReslicer();
-}
+//void iASlicerData::InitReslicerWithImageData()
+//{
+//	reslicer->SetInputData( imageData );
+//	reslicer->SetInformationInput( imageData );
+//	reslicer->SetResliceTransform( transform );
+//	reslicer->SetOutputDimensionality( 2 );
+//	reslicer->SetInterpolationModeToCubic();
+//	reslicer->InterpolateOn();
+//	reslicer->AutoCropOutputOn();
+//	reslicer->SetNumberOfThreads(QThread::idealThreadCount());
+//	reslicer->UpdateWholeExtent();
+//	UpdateReslicer();
+//}
 
 void iASlicerData::UpdateReslicer()
 {
-	reslicer->Update();
+	//reslicer->Update();
 	for(auto ch: m_channels)
 		ch->updateReslicer();
 }
@@ -1634,7 +1635,7 @@ void iASlicerData::reInitializeChannel( uint id, iAChannelVisualizationData * ch
 	getOrCreateChannel(id).ReInit(chData);
 }
 
-void iASlicerData::initializeChannel( uint id, iAChannelVisualizationData * chData )
+void iASlicerData::addChannel( uint id, iAChannelVisualizationData * chData )
 {
 	getOrCreateChannel(id).Init(chData, m_mode);
 }

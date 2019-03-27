@@ -206,10 +206,10 @@ void iASlicer::saveImageStack()
 	m_data->saveImageStack();
 }
 
-vtkImageReslice * iASlicer::GetReslicer() const
-{
-	return m_data->GetReslicer();
-}
+//vtkImageReslice * iASlicer::GetReslicer() const
+//{
+//	return m_data->GetReslicer();
+//}
 
 void iASlicer::setResliceAxesOrigin( double x, double y, double z )
 {
@@ -385,7 +385,7 @@ iASlicerMode iASlicer::GetMode() const
 	return m_mode;
 }
 
-void iASlicer::initializeChannel(uint id,  iAChannelVisualizationData * chData)
+void iASlicer::addChannel(uint id,  iAChannelVisualizationData * chData)
 {
 	m_data->initializeChannel(id, chData);
 }

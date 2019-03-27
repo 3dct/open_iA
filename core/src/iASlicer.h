@@ -92,14 +92,14 @@ public:
 	//iASlicerData: wrapping methods--------------------------
 	void disableInteractor();
 	void enableInteractor(); //also updates widget
-	void initializeData( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
+	/*void initializeData( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf);
 	void reInitialize(	vtkImageData *ds,
 						vtkTransform *tr,
 						vtkScalarsToColors* ctf,
 						bool sil = false,
-						bool sp = false );
+						bool sp = false );*/
 
-	void initializeChannel(uint id, iAChannelVisualizationData * chData );
+	void addChannel(uint id, iAChannelVisualizationData * chData );
 	void removeChannel(uint id);
 	void reInitializeChannel(uint id, iAChannelVisualizationData * chData );
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
@@ -113,12 +113,12 @@ public:
 	void update();
 	void saveMovie(QString& fileName, int qual = 2);
 	void saveImageStack();
-	vtkImageReslice * GetReslicer() const;
+	//vtkImageReslice * GetReslicer() const;
 	void setResliceAxesOrigin(double x, double y, double z);
 	void setup(iASingleSlicerSettings const & settings);
 	vtkRenderer * GetRenderer() const;
 	vtkGenericOpenGLRenderWindow * GetRenderWindow() const;
-	vtkImageData* GetImageData() const;
+	//vtkImageData* GetImageData() const;
 	void setStatisticalExtent(int statExt);
 
 	//iASlicerWidget: wrapping methods-----------------------
