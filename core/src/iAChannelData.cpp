@@ -140,6 +140,21 @@ QColor iAChannelData::getColor() const
 	return m_color;
 }
 
+vtkPiecewiseFunction * iAChannelData::getOTF() const
+{
+	return m_piecewiseFunction;
+}
+
+vtkScalarsToColors * iAChannelData::getCTF() const
+{
+	return m_colorTransferFunction;
+}
+
+vtkSmartPointer<vtkImageData> iAChannelData::getImage() const
+{
+	return m_image;
+}
+
 bool iAChannelData::isSimilarityRenderingEnabled() const
 {
 	return m_similarityRenderingEnabled;
@@ -148,19 +163,4 @@ bool iAChannelData::isSimilarityRenderingEnabled() const
 void iAChannelData::setSimilarityRenderingEnabled(bool enabled)
 {
 	m_similarityRenderingEnabled = enabled;
-}
-
-vtkPiecewiseFunction * iAChannelData::getOTF()
-{
-	return m_piecewiseFunction;
-}
-
-vtkScalarsToColors * iAChannelData::getCTF()
-{
-	return m_colorTransferFunction;
-}
-
-vtkSmartPointer<vtkImageData> iAChannelData::getImage()
-{
-	return m_image;
 }

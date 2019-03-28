@@ -110,11 +110,11 @@ void iAChannelSlicerData::updateLUT()
 	m_lut->Build();
 }
 
-void iAChannelSlicerData::init(iAChannelData * chData, int mode)
+void iAChannelSlicerData::init(iAChannelData const & chData, int mode)
 {
 	m_isInitialized = true;
-	assign(chData->getImage(), chData->getColor());
-	m_name = chData->getName();
+	assign(chData.getImage(), chData.getColor());
+	m_name = chData.getName();
 
 	reslicer->SetOutputDimensionality(2);
 	reslicer->SetInterpolationModeToCubic();
@@ -122,8 +122,18 @@ void iAChannelSlicerData::init(iAChannelData * chData, int mode)
 	reslicer->AutoCropOutputOn();
 	reslicer->SetNumberOfThreads(QThread::idealThreadCount());
 	updateResliceAxesDirectionCosines(mode);
-	setupOutput(chData->getCTF(), chData->getOTF());
+	setupOutput(chData.getCTF(), chData.getOTF());
 	initContours();
+}
+
+void iAChannelSlicerData::reInit(iAChannelData const & chData)
+{
+	assign(chData.getImage(), chData.getColor());
+	m_name = chData.getName();
+	reslicer->UpdateWholeExtent();
+	reslicer->Update();
+
+	setupOutput(chData.getCTF(), chData.getOTF());
 }
 
 void iAChannelSlicerData::updateResliceAxesDirectionCosines(int mode)
@@ -142,17 +152,6 @@ void iAChannelSlicerData::updateResliceAxesDirectionCosines(int mode)
 	default:
 		break;
 	}
-}
-
-void iAChannelSlicerData::reInit(iAChannelData * chData)
-{
-	assign(chData->getImage(), chData->getColor());
-	m_name = chData->getName();
-
-	reslicer->UpdateWholeExtent();
-	reslicer->Update();
-
-	setupOutput(chData->getCTF(), chData->getOTF());
 }
 
 bool iAChannelSlicerData::isInitialized() const

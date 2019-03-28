@@ -89,8 +89,7 @@ void iAImagePreviewWidget::InitializeSlicer()
 	
 	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->initialize(m_slicerTransform);
-	iAChannelData chData(m_imageData, m_ctf);
-	m_slicer->addChannel(0, &chData);
+	m_slicer->addChannel(0, iAChannelData(m_imageData, m_ctf));
 	m_slicer->setBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
 	
 	// TODO: disable interaction in slicer
@@ -297,8 +296,7 @@ void iAImagePreviewWidget::UpdateImage()
 {
 	if (!BuildCTF())
 		return;
-	iAChannelData chData(m_imageData, m_ctf);
-	m_slicer->updateChannel(0, &chData);
+	m_slicer->updateChannel(0, iAChannelData(m_imageData, m_ctf));
 	UpdateView();
 }
 

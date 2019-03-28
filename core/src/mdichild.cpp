@@ -379,8 +379,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 			QSharedPointer<iAModalityTransfer> modTrans = getModality(0)->GetTransfer();
 			for (int s = 0; s < 3; ++s)
 			{
-				iAChannelData chData(getModality(0)->GetImage(), modTrans->getColorFunction());
-				slicer[s]->addChannel(0, &chData);
+				slicer[s]->addChannel(0, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()));
 				slicer[s]->data()->resetCamera();
 			}
 		}
@@ -415,7 +414,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 			)
 		{
 			for (int s = 0; s<3; ++s)
-				slicer[s]->updateChannel(channelID, chData);
+				slicer[s]->updateChannel(channelID, *chData);
 		}
 	}
 	m_dlgModalities->EnableUI();
@@ -672,8 +671,7 @@ bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 	for (int s = 0; s < 3; ++s)
 	{
 		// TODO: check how to update s:
-		iAChannelData chData(imageData, colorTransferFunction);
-		slicer[s]->updateChannel(0, &chData);
+		slicer[s]->updateChannel(0, iAChannelData(imageData, colorTransferFunction));
 	}
 	updateViews();
 
@@ -718,8 +716,7 @@ void MdiChild::setupStackView(bool active)
 	Raycaster->reInitialize(imageData, polyData);
 	for (int s = 0; s < 3; ++s)
 	{
-		iAChannelData chData(imageData, modTrans->getColorFunction());
-		slicer[s]->updateChannel(0, &chData);
+		slicer[s]->updateChannel(0, iAChannelData(imageData, modTrans->getColorFunction()));
 	}
 	updateViews();
 
@@ -2354,7 +2351,7 @@ void MdiChild::initChannelRenderer(uint id, bool use3D, bool enableChannel)
 		return;
 	}
 	for (int s = 0; s < 3; ++s)
-		slicer[s]->addChannel(id, data);
+		slicer[s]->addChannel(id, *data);
 	/*
 	// TODO: VOLUME: rewrite using separate volume
 	if (use3D)
@@ -2713,7 +2710,7 @@ void MdiChild::updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtk
 		return;
 	chData->setData( imgData, ctf, otf );
 	for (int s = 0; s<3; ++s)
-		slicer[s]->updateChannel( id, chData );
+		slicer[s]->updateChannel( id, *chData );
 }
 
 void MdiChild::reInitMagicLens(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
@@ -2724,7 +2721,7 @@ void MdiChild::reInitMagicLens(uint id, vtkSmartPointer<vtkImageData> imgData, v
 	// TODO: check - magic lens should probably not use otf!
 	iAChannelData chData(imgData, ctf, otf);
 	for (int s = 0; s<3; ++s)
-		slicer[s]->updateChannel(id, &chData);
+		slicer[s]->updateChannel(id, chData);
 	setMagicLensInput( id, true);
 	updateSlicers();
 }
@@ -2958,8 +2955,7 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 		QSharedPointer<iAModalityTransfer> modTrans = getModality(0)->GetTransfer();
 		for (int s = 0; s < 3; ++s)
 		{
-			iAChannelData chData(getModality(0)->GetImage(), modTrans->getColorFunction());
-			slicer[s]->addChannel(0, &chData);
+			slicer[s]->addChannel(0, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()));
 			slicer[s]->enableChannel(0, true);
 			slicer[s]->data()->resetCamera();
 		}

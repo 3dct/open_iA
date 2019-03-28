@@ -194,8 +194,7 @@ void iASSSlicer::initialize( vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 {
 	slicer->setup( iASingleSlicerSettings() );
 	slicer->initialize(transform);
-	iAChannelData chData(img, tf);
-	slicer->addChannel(0, &chData);
+	slicer->addChannel(0, iAChannelData(img, tf));
 	slicer->enableChannel(0, true);
 	slicer->update();
 }
@@ -203,7 +202,7 @@ void iASSSlicer::initialize( vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 void iASSSlicer::initializeChannel( iAChanData * chData )
 {
 	chData->InitTFs();
-	slicer->addChannel( chData->id, chData->visData.data() );
+	slicer->addChannel( chData->id, *chData->visData.data() );
 	slicer->enableChannel(chData->id, true);
 }
 

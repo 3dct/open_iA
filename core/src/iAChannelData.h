@@ -71,9 +71,9 @@ public:
 	void setSimilarityRenderingEnabled(bool enabled);
 	// end
 
-	vtkSmartPointer<vtkImageData> getImage();
-	vtkPiecewiseFunction * getOTF();
-	vtkScalarsToColors* getCTF();
+	vtkSmartPointer<vtkImageData> getImage() const;
+	vtkPiecewiseFunction * getOTF() const;
+	vtkScalarsToColors * getCTF() const;
 private:
 	bool m_enabled;
 	double m_opacity;

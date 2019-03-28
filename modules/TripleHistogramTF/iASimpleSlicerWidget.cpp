@@ -81,8 +81,7 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 	m_slicerTransform = vtkTransform::New();
 	m_slicer->initialize(m_slicerTransform);
 	m_slicer->widget()->initialize();
-	iAChannelData chData(imageData, colorFunction);
-	m_slicer->addChannel(0, &chData);
+	m_slicer->addChannel(0, iAChannelData(imageData, colorFunction));
 	m_slicer->enableChannel(0, true);
 	m_slicer->disableInteractor();
 

@@ -39,8 +39,7 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
 	m_slicer->initialize(m_transform);
 	m_slicer->widget()->initialize();
-	iAChannelData chData(img, m_ctf);
-	m_slicer->addChannel(0, &chData);
+	m_slicer->addChannel(0, iAChannelData(img, m_ctf));
 	StyleChanged();
 }
 
@@ -77,8 +76,7 @@ int iAImageWidget::GetSliceCount() const
 void iAImageWidget::SetImage(vtkSmartPointer<vtkImageData> img)
 {
 	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
-	iAChannelData chData(img, m_ctf);
-	m_slicer->updateChannel(0, &chData);
+	m_slicer->updateChannel(0, iAChannelData(img, m_ctf));
 	m_slicer->update();
 }
 

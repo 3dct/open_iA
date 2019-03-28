@@ -86,9 +86,9 @@ public:
 
 	void setup(iASingleSlicerSettings const & settings);
 
-	void addChannel(uint id, iAChannelData* chData);
+	void addChannel(uint id, iAChannelData const & chData);
 	void removeChannel(uint id);
-	void updateChannel(uint id, iAChannelData * chData);
+	void updateChannel(uint id, iAChannelData const & chData);
 	void setChannelOpacity(uint id, double opacity );
 	void enableChannel(uint id, bool enabled, double x, double y, double z);
 	void enableChannel(uint id, bool enabled );

@@ -1539,21 +1539,21 @@ void iASlicerData::enableChannel( uint id, bool enabled )
 	}
 }
 
-void iASlicerData::updateChannel( uint id, iAChannelData * chData )
+void iASlicerData::updateChannel( uint id, iAChannelData const & chData )
 {
 	getChannel(id)->reInit(chData);
 }
 
-void iASlicerData::addChannel( uint id, iAChannelData * chData )
+void iASlicerData::addChannel( uint id, iAChannelData const & chData )
 {
 	assert(!m_channels.contains(id));
 	// TODO: Which color transfer function to use in scalar bar widget?
-	m_scalarBarWidget->GetScalarBarActor()->SetLookupTable(chData->getCTF());
+	m_scalarBarWidget->GetScalarBarActor()->SetLookupTable(chData.getCTF());
 	bool updateSpacing = m_channels.empty();
 	auto chSlicerData = createChannel(id);
 	chSlicerData->init(chData, m_mode);
 	double curTol = m_pointPicker->GetTolerance();
-	double newTol = chData->getImage()->GetSpacing()[0] / 3;
+	double newTol = chData.getImage()->GetSpacing()[0] / 3;
 	if (newTol < curTol)
 		m_pointPicker->SetTolerance(newTol);
 	if (updateSpacing)

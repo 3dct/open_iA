@@ -367,7 +367,7 @@ iASlicerMode iASlicer::getMode() const
 	return m_mode;
 }
 
-void iASlicer::addChannel(uint id,  iAChannelData * chData)
+void iASlicer::addChannel(uint id, iAChannelData & chData)
 {
 	m_data->addChannel(id, chData);
 }
@@ -377,7 +377,7 @@ void iASlicer::removeChannel(uint id)
 	m_data->removeChannel(id);
 }
 
-void iASlicer::updateChannel(uint id, iAChannelData * chData)
+void iASlicer::updateChannel(uint id, iAChannelData & chData)
 {
 	m_data->updateChannel(id, chData);
 }

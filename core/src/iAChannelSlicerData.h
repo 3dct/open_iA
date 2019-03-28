@@ -46,8 +46,8 @@ class open_iA_Core_API iAChannelSlicerData
 public:
 	iAChannelSlicerData();
 	~iAChannelSlicerData();
-	void init(iAChannelData * chData, int mode);
-	void reInit(iAChannelData * chData);
+	void init(iAChannelData const & chData, int mode);
+	void reInit(iAChannelData const & chData);
 	void setResliceAxesOrigin(double x, double y, double z);
 	//! Get lookup table (combined color transfer function + piecewise function for opacity)
 	//vtkScalarsToColors* getLookupTable();

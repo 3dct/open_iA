@@ -89,9 +89,9 @@ public:
 	void disableInteractor();
 	void enableInteractor(); //also updates widget
 
-	void addChannel(uint id, iAChannelData * chData );
+	void addChannel(uint id, iAChannelData & chData );
 	void removeChannel(uint id);
-	void updateChannel(uint id, iAChannelData * chData );
+	void updateChannel(uint id, iAChannelData & chData );
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 
 	// { TODO: check whether these can be removed somehow!
