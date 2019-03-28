@@ -414,7 +414,6 @@ private:
 	void setVisibility(QList<QWidget*> widgets, bool show);
 	void cleanWorkingAlgorithms();
 
-	int  profileWidgetIndex;
 	QByteArray m_beforeMaximizeState;
 	bool m_isSmthMaximized;
 	QDockWidget * m_whatMaximized;

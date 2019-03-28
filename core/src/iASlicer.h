@@ -61,7 +61,7 @@ class open_iA_Core_API iASlicer : public QObject
 public:
 	iASlicer(QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations = true, bool magicLensAvailable = true);
 	~iASlicer();
-	void initialize(vtkAbstractTransform *tr);
+	void initialize(vtkAbstractTransform *tr, vtkPoints* snakeSlicerPoints = nullptr);
 	void update();
 
 	iASlicerWidget * widget();

@@ -151,6 +151,13 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	axesTransform = vtkTransform::New();
 	slicerTransform = vtkTransform::New();
 
+	snakeSlicer = false;
+	isSliceProfileEnabled = false;
+	isArbProfileEnabled = false;
+	worldSnakePoints = vtkPoints::New();
+	parametricSpline = iAParametricSpline::New();
+	parametricSpline->SetPoints(worldSnakePoints);
+
 	slicer[iASlicerMode::YZ] = new iASlicer(this, iASlicerMode::YZ, sYZ->sliceWidget);
 	slicer[iASlicerMode::XY] = new iASlicer(this, iASlicerMode::XY, sXY->sliceWidget);
 	slicer[iASlicerMode::XZ] = new iASlicer(this, iASlicerMode::XZ, sXZ->sliceWidget);
@@ -173,15 +180,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	setRenderWindows();
 	connectSignalsToSlots();
 	pbar->setValue(100);
-
-	snakeSlicer = false;
-	isSliceProfileEnabled = false;
-	isArbProfileEnabled = false;
-
-	profileWidgetIndex = -1;
-	worldSnakePoints = vtkPoints::New();
-	parametricSpline = iAParametricSpline::New();
-	parametricSpline->SetPoints(worldSnakePoints);
 
 	sXY->spinBoxXY->setRange(-8192, 8192);
 	sXZ->spinBoxXZ->setRange(-8192,8192);
@@ -1639,10 +1637,6 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 
 	if (init)
 	{
-		//this initializes the snake slicer
-		for (int s = 0; s<3; ++s)
-			slicer[s]->widget()->initialize(worldSnakePoints);
-
 		updateSliceIndicators();
 
 		//Adding new point to the parametric spline for snake slicer
@@ -2146,8 +2140,9 @@ bool MdiChild::initView( QString const & title )
 	}
 	vtkColorTransferFunction* colorFunction = (getModalities()->size() > 0)
 		? getModality(0)->GetTransfer()->getColorFunction() : vtkColorTransferFunction::New();
+	// TODO: check if this is only called once?
 	for (int s = 0; s<3; ++s)
-		slicer[s]->initialize(slicerTransform);
+		slicer[s]->initialize(slicerTransform, worldSnakePoints);
 
 	renderer->stackedWidgetRC->setCurrentIndex(0);
 	updateSliceIndicators();

@@ -38,7 +38,6 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 	m_slicer->setup(iASingleSlicerSettings());
 	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
 	m_slicer->initialize(m_transform);
-	m_slicer->widget()->initialize();
 	m_slicer->addChannel(0, iAChannelData(img, m_ctf));
 	StyleChanged();
 }

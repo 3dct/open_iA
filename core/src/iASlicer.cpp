@@ -65,6 +65,12 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 	}
 }
 
+void iASlicer::initialize(vtkAbstractTransform *tr, vtkPoints* snakeSlicerPoints)
+{
+	m_data->initialize(tr);
+	m_widget->initialize(snakeSlicerPoints);
+}
+
 iASlicer::~iASlicer()
 {
 	delete m_data;
@@ -225,11 +231,6 @@ void iASlicer::setSlabCompositeMode(int compositeMode)
 vtkRenderer * iASlicer::getRenderer() const
 {
 	return m_data->getRenderer();
-}
-
-void iASlicer::initialize(vtkAbstractTransform *tr)
-{
-	m_data->initialize(tr);
 }
 
 void iASlicer::updateROI(int const roi[6])
