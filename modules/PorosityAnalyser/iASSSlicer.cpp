@@ -193,16 +193,14 @@ void iASSSlicer::changeMode( iASlicerMode mode )
 void iASSSlicer::initialize( vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkColorTransferFunction> tf )
 {
 	slicer->setup( iASingleSlicerSettings() );
-	slicer->addChannel(0, iAChannelData(img, tf));
-	slicer->enableChannel(0, true);
+	slicer->addChannel(0, iAChannelData(img, tf), true);
 	slicer->update();
 }
 
 void iASSSlicer::initializeChannel( iAChanData * chData )
 {
 	chData->InitTFs();
-	slicer->addChannel( chData->id, *chData->visData.data() );
-	slicer->enableChannel(chData->id, true);
+	slicer->addChannel( chData->id, *chData->visData.data(), true);
 }
 
 void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile, QString const & maxFile )

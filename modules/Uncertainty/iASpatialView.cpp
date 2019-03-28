@@ -169,7 +169,7 @@ namespace
 		iASlicer* slicer = gui.imageWidget->GetSlicer();
 		const uint SelectionChannelID = 0;
 		selectionData->setName("Scatterplot Selection");
-		slicer->addChannel(SelectionChannelID, *selectionData.data());
+		slicer->addChannel(SelectionChannelID, *selectionData.data(), false);
 		int sliceNr = slicer->data()->getSliceNumber();
 		switch (slicer->getMode())
 		{

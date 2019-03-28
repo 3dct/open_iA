@@ -380,7 +380,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 			QSharedPointer<iAModalityTransfer> modTrans = getModality(0)->GetTransfer();
 			for (int s = 0; s < 3; ++s)
 			{
-				slicer[s]->addChannel(0, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()));
+				slicer[s]->addChannel(0, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()), false);
 				slicer[s]->data()->resetCamera();
 			}
 		}
@@ -2346,7 +2346,7 @@ void MdiChild::initChannelRenderer(uint id, bool use3D, bool enableChannel)
 		return;
 	}
 	for (int s = 0; s < 3; ++s)
-		slicer[s]->addChannel(id, *data);
+		slicer[s]->addChannel(id, *data, false);
 	/*
 	// TODO: VOLUME: rewrite using separate volume
 	if (use3D)
@@ -2960,8 +2960,7 @@ void MdiChild::statisticsAvailable(int modalityIdx)
 		QSharedPointer<iAModalityTransfer> modTrans = getModality(0)->GetTransfer();
 		for (int s = 0; s < 3; ++s)
 		{
-			slicer[s]->addChannel(0, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()));
-			slicer[s]->enableChannel(0, true);
+			slicer[s]->addChannel(0, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()), true);
 			slicer[s]->data()->resetCamera();
 		}
 	}

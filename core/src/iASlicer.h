@@ -88,11 +88,15 @@ public:
 	void enableInteractor(); //also updates widget
 
 	//! @{ management of channels - each channel represents one "layer"
-	void addChannel(uint id, iAChannelData & chData );
+	void addChannel(uint id, iAChannelData & chData, bool enable);
 	void removeChannel(uint id);
 	void updateChannel(uint id, iAChannelData & chData );
 	iAChannelSlicerData * getChannel(uint id);
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
+	void setChannelOpacity(uint id, double opacity);
+	void enableChannel(uint id, bool enabled, double x, double y, double z);
+	void enableChannel(uint id, bool enabled);
+	//void switchContourSourceToChannel( uint id );
 	//! @}
 
 	// { TODO: check whether these can be removed somehow!
@@ -124,10 +128,6 @@ public:
 	void setPieGlyphParameters(double opacity, double spacing, double magFactor );
 	// }
 
-	void setChannelOpacity( uint id, double opacity );
-	void enableChannel( uint id, bool enabled, double x, double y, double z );
-	void enableChannel( uint id, bool enabled );
-	//void switchContourSourceToChannel( uint id );
 	void showIsolines( bool s );
 	void setContours( int n, double mi, double ma );
 	void setContours( int n, double * contourValues );
