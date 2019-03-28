@@ -27,7 +27,7 @@
 #include "iAElementConcentrations.h"
 #include "iAXRFData.h"
 
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iASlicer.h>
 #include <iASlicerData.h>
 #include <io/extension2id.h>
@@ -127,14 +127,14 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 		m_xrfChannelID = m_childData.child->createChannel();
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
 	auto chData = m_childData.child->getChannelData(m_xrfChannelID);
-	chData->SetImage( img );
+	chData->setImage( img );
 	m_otf = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	m_otf->AddPoint(img->GetScalarRange()[0], 1);
 	m_otf->AddPoint(img->GetScalarRange()[1], 1);
-	chData->SetColorTF( dlgXRF->GetColorTransferFunction() );
-	chData->SetOpacityTF(m_otf);
-	chData->SetName("Spectral Color Image");
-	m_childData.child->InitChannelRenderer(m_xrfChannelID, false, enableChannel );
+	chData->setColorTF( dlgXRF->GetColorTransferFunction() );
+	chData->setOpacityTF(m_otf);
+	chData->setName("Spectral Color Image");
+	m_childData.child->initChannelRenderer(m_xrfChannelID, false, enableChannel );
 	bool isMagicLensEnabled = m_childData.child->isMagicLensToggled();
 	if( enableChannel )
 	{
@@ -142,8 +142,8 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 	}
 	else if (isMagicLensEnabled)
 	{
-		m_childData.child->SetMagicLensInput(m_xrfChannelID,
-			!m_childData.child->getChannelData(m_xrfChannelID)->IsEnabled());
+		m_childData.child->setMagicLensInput(m_xrfChannelID,
+			!m_childData.child->getChannelData(m_xrfChannelID)->isEnabled());
 	}
 	m_childData.child->updateSlicers();
 	m_childData.child->addMsg(tr("Spectral color image initialized."));
@@ -261,8 +261,8 @@ void iAXRFAttachment::updateSlicerXRFOpacity()
 
 void iAXRFAttachment::updateXRFOpacity( int value )
 {
-	iAChannelVisualizationData * data = m_childData.child->getChannelData(m_xrfChannelID);
-	if( data && data->IsEnabled() )
+	iAChannelData * data = m_childData.child->getChannelData(m_xrfChannelID);
+	if( data && data->isEnabled() )
 	{
 		dlgXRF->sl_peakOpacity->repaint();
 		updateSlicerXRFOpacity();
@@ -295,13 +295,13 @@ void iAXRFAttachment::initSlicerXRF( bool enableChannel )
 void iAXRFAttachment::visualizeXRF( int isOn )
 {
 	bool enabled = (isOn != 0);
-	iAChannelVisualizationData * chData = m_childData.child->getChannelData(m_xrfChannelID);
+	iAChannelData * chData = m_childData.child->getChannelData(m_xrfChannelID);
 	if( !chData && enabled )
 	{
 		initSlicerXRF( true );
 		return;
 	}
-	m_childData.child->SetChannelRenderingEnabled(m_xrfChannelID, enabled );
+	m_childData.child->setChannelRenderingEnabled(m_xrfChannelID, enabled );
 	if( enabled )
 	{
 		updateSlicerXRFOpacity();
@@ -310,9 +310,9 @@ void iAXRFAttachment::visualizeXRF( int isOn )
 
 void iAXRFAttachment::updateXRF()
 {
-	iAChannelVisualizationData * chData = m_childData.child->getChannelData(m_xrfChannelID);
+	iAChannelData * chData = m_childData.child->getChannelData(m_xrfChannelID);
 	bool isMagicLensEnabled = m_childData.child->isMagicLensToggled();
-	if( !chData || (!chData->IsEnabled() && !isMagicLensEnabled) )
+	if( !chData || (!chData->isEnabled() && !isMagicLensEnabled) )
 	{
 		return;
 	}

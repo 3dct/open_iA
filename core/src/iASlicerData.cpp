@@ -21,7 +21,7 @@
 #include "iASlicerData.h"
 
 #include "dlg_commoninput.h"
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
 #include "iAConnector.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
@@ -1140,9 +1140,9 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if (mdi_parent)
 	{
-		for (int m=0; m < mdi_parent->GetModalities()->size(); ++m)
+		for (int m=0; m < mdi_parent->getModalities()->size(); ++m)
 		{
-			auto mod = mdi_parent->GetModality(m);
+			auto mod = mdi_parent->getModality(m);
 			strDetails += PadOrTruncate(mod->GetName(), 12)+" ";
 			for (int c = 0; c < mod->ComponentCount(); ++c)
 			{
@@ -1539,13 +1539,14 @@ void iASlicerData::enableChannel( uint id, bool enabled )
 	}
 }
 
-void iASlicerData::reInitializeChannel( uint id, iAChannelVisualizationData * chData )
+void iASlicerData::updateChannel( uint id, iAChannelData * chData )
 {
 	getChannel(id)->reInit(chData);
 }
 
-void iASlicerData::addChannel( uint id, iAChannelVisualizationData * chData )
+void iASlicerData::addChannel( uint id, iAChannelData * chData )
 {
+	assert(!m_channels.contains(id));
 	// TODO: Which color transfer function to use in scalar bar widget?
 	m_scalarBarWidget->GetScalarBarActor()->SetLookupTable(chData->getCTF());
 	bool updateSpacing = m_channels.empty();
@@ -1559,8 +1560,8 @@ void iASlicerData::addChannel( uint id, iAChannelVisualizationData * chData )
 	{
 		updatePositionMarkerExtent();
 		// TODO: update required for new channels other than to export? export all channels?
-		auto imageData = m_channels[m_channels.keys()[0]]->image;
-		auto reslicer = m_channels[m_channels.keys()[0]]->reslicer;
+		auto imageData = m_channels[id]->image;
+		auto reslicer = m_channels[id]->reslicer;
 		double const * const imgSpc = imageData->GetSpacing();
 		double unitSpacing = std::max(std::max(imgSpc[0], imgSpc[1]), imgSpc[2]);
 		double const * const spc = reslicer->GetOutput()->GetSpacing();

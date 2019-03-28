@@ -21,7 +21,7 @@
 #include "dlg_modalitySPLOM.h"
 
 #include <charts/iAQSplom.h>
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAPerformanceHelper.h>
@@ -94,7 +94,7 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	if (!m_selected)
 	{
-		mdiChild->SetChannelRenderingEnabled(m_SPLOMSelectionChannelID, false);
+		mdiChild->setChannelRenderingEnabled(m_SPLOMSelectionChannelID, false);
 		m_selected = true;
 		return;
 	}
@@ -104,7 +104,7 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	auto chData = mdiChild->getChannelData(m_SPLOMSelectionChannelID);
 	chData->setData(result, m_selection_ctf, m_selection_otf);
 
-	mdiChild->InitChannelRenderer(m_SPLOMSelectionChannelID, false);
+	mdiChild->initChannelRenderer(m_SPLOMSelectionChannelID, false);
 	mdiChild->updateChannelOpacity(m_SPLOMSelectionChannelID, 0.5);
 	mdiChild->updateViews();
 }

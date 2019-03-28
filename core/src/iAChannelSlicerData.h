@@ -26,7 +26,7 @@
 
 #include <QColor>
 
-class iAChannelVisualizationData;
+class iAChannelData;
 
 class vtkAbstractTransform;
 class vtkActor;
@@ -46,8 +46,8 @@ class open_iA_Core_API iAChannelSlicerData
 public:
 	iAChannelSlicerData();
 	~iAChannelSlicerData();
-	void init(iAChannelVisualizationData * chData, int mode);
-	void reInit(iAChannelVisualizationData * chData);
+	void init(iAChannelData * chData, int mode);
+	void reInit(iAChannelData * chData);
 	void setResliceAxesOrigin(double x, double y, double z);
 	//! Get lookup table (combined color transfer function + piecewise function for opacity)
 	//vtkScalarsToColors* getLookupTable();
@@ -56,12 +56,11 @@ public:
 
 	bool isInitialized() const;
 	void updateMapper();
-	QColor getColor() const;  //! get "color" of this channel (TODO: used only for pie charts in XRF module -> move there?)
+	QColor getColor() const;  //!< get "color" of this channel (TODO: used only for pie charts in XRF module -> move there?)
 	void updateResliceAxesDirectionCosines(int mode);
 	void setTransform(vtkAbstractTransform * transform);
 	void updateReslicer();
 	void updateLUT();
-
 	QString getName() const;
 
 	vtkImageActor*                imageActor;

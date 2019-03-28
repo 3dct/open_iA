@@ -31,8 +31,6 @@
 #include <vector>
 #include "iAConsole.h"
 
-class iAChannelVisualizationData;
-class iAChannelRenderData;
 class iARenderSettings;
 class iARenderObserver;
 

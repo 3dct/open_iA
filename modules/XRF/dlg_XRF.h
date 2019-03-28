@@ -71,7 +71,6 @@ class dlg_XRF : public dlg_xrfContainer, public iASpectrumFilterListener
 	Q_OBJECT
 public:
 	dlg_XRF(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra);
-	~dlg_XRF();
 	void init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 		iAWidgetAddHelper& widgetAddHelper);
 	void InitElementMaps(iAWidgetAddHelper & widgetAddHelper);

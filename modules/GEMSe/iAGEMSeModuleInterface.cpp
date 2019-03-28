@@ -136,7 +136,7 @@ void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
 	}
 	if (m_seaFile->GetLayoutName() != "")
 	{
-		m_mdiChild->LoadLayout(m_seaFile->GetLayoutName());
+		m_mdiChild->loadLayout(m_seaFile->GetLayoutName());
 	}
 	if (m_seaFile->GetReferenceImage() != "")
 	{

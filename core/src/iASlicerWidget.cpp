@@ -21,7 +21,7 @@
 #include "iASlicerWidget.h"
 
 #include "iAArbitraryProfileOnSlicer.h"
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iAConsole.h"
 #include "iAMagicLens.h"

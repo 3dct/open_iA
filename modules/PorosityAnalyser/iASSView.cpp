@@ -25,14 +25,14 @@
 #include "iASSViewSetings.h"
 #include "PorosityAnalyserHelpers.h"
 
-#include <iAChannelVisualizationData.h>
-#include <iAConsole.h>
 #include <defines.h>
-#include <iACSVToQTableWidgetConverter.h>
 #include <iABoxPlotData.h>
-#include <iASlicer.h>
 #include <iAChanData.h>
+#include <iAChannelData.h>
+#include <iAConsole.h>
+#include <iACSVToQTableWidgetConverter.h>
 #include <iARenderer.h>
+#include <iASlicer.h>
 #include <iAVTKRendererManager.h>
 #include <io/iAFileUtils.h>
 
@@ -257,7 +257,7 @@ void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * d
 	SetDataTo3D();
 	
 	foreach( iASSSlicer *sv, m_slicerViews )
-		m_sliceMgr->addToBundle( sv->slicer->GetRenderer() );
+		m_sliceMgr->addToBundle( sv->slicer->getRenderer() );
 }
 
 void iASSView::setSlicerDirection( int cbIndex )

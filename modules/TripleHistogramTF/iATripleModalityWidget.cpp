@@ -31,7 +31,8 @@
 #include <charts/iAProfileWidget.h>
 #include <dlg_modalities.h>
 #include <dlg_transfer.h>
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
+#include <iAChannelSlicerData.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
@@ -66,9 +67,14 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	m_disabledLabel->setAlignment(Qt::AlignCenter);
 	m_disabledLabel->setStyleSheet("background-color: " + DISABLED_BACKGROUND_COLOR + "; color: " + DISABLED_TEXT_COLOR);
 
+	/*
 	mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(0.0);
 	mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
 	mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
+	*/
+	mdiChild->getSlicerDataXY()->getChannel(0)->imageActor->SetOpacity(0.0);
+	mdiChild->getSlicerDataXZ()->getChannel(0)->imageActor->SetOpacity(0.0);
+	mdiChild->getSlicerDataYZ()->getChannel(0)->imageActor->SetOpacity(0.0);
 
 	//setStyleSheet("background-color:red"); // test spacing/padding/margin
 
@@ -307,17 +313,17 @@ double iATripleModalityWidget::getWeight(int index)
 // When new modalities are added/removed
 void iATripleModalityWidget::updateModalities()
 {
-	if (m_mdiChild->GetModalities()->size() >= 3) {
-		if (containsModality(m_mdiChild->GetModality(0)) &&
-			containsModality(m_mdiChild->GetModality(1)) &&
-			containsModality(m_mdiChild->GetModality(2))) {
+	if (m_mdiChild->getModalities()->size() >= 3) {
+		if (containsModality(m_mdiChild->getModality(0)) &&
+			containsModality(m_mdiChild->getModality(1)) &&
+			containsModality(m_mdiChild->getModality(2))) {
 
 			return;
 		}
 	} else {
 		int i = 0;
-		for (; i < ModalityNumber && i < m_mdiChild->GetModalities()->size(); ++i) {
-			m_modalitiesActive[i] = m_mdiChild->GetModality(i);
+		for (; i < ModalityNumber && i < m_mdiChild->getModalities()->size(); ++i) {
+			m_modalitiesActive[i] = m_mdiChild->getModality(i);
 		}
 		for (; i < ModalityNumber; i++) { // Loop is not executed - and probably not intended to be?
 			m_modalitiesActive[i] = nullptr;
@@ -332,13 +338,13 @@ void iATripleModalityWidget::updateModalities()
 	// Initialize modalities being added
 	for (int i = 0; i < ModalityNumber; ++i)
 	{
-		m_modalitiesActive[i] = m_mdiChild->GetModality(i);
+		m_modalitiesActive[i] = m_mdiChild->getModality(i);
 
 		// Histogram {
-		if (!m_modalitiesActive[i]->GetHistogramData() || m_modalitiesActive[i]->GetHistogramData()->GetNumBin() != m_mdiChild->GetPreferences().HistogramBins)
+		if (!m_modalitiesActive[i]->GetHistogramData() || m_modalitiesActive[i]->GetHistogramData()->GetNumBin() != m_mdiChild->getPreferences().HistogramBins)
 		{
 			m_modalitiesActive[i]->ComputeImageStatistics();
-			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->GetPreferences().HistogramBins);
+			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->getPreferences().HistogramBins);
 		}
 
 		vtkColorTransferFunction *colorFuncCopy = vtkColorTransferFunction::New(); // TODO delete?
@@ -360,12 +366,12 @@ void iATripleModalityWidget::updateModalities()
 		// }
 
 		m_channelIDs[i] = m_mdiChild->createChannel();
-		iAChannelVisualizationData* chData = m_mdiChild->getChannelData(m_channelIDs[i]);
+		iAChannelData* chData = m_mdiChild->getChannelData(m_channelIDs[i]);
 		vtkImageData* imageData = m_modalitiesActive[i]->GetImage();
 		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->GetTransfer()->getColorFunction();
 		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
-		ResetChannel(chData, imageData, ctf, otf);
-		m_mdiChild->InitChannelRenderer(m_channelIDs[i], false, true);
+		chData->setData(imageData, ctf, otf);
+		m_mdiChild->initChannelRenderer(m_channelIDs[i], false, true);
 	}
 
 	m_triangleWidget->setModalities(getModality(0)->GetImage(), getModality(1)->GetImage(), getModality(2)->GetImage());
@@ -410,7 +416,7 @@ iATransferFunction* iATripleModalityWidget::createCopyTf(int index, vtkSmartPoin
 
 void iATripleModalityWidget::originalHistogramChanged()
 {
-	QSharedPointer<iAModality> selected = m_mdiChild->GetModalitiesDlg()->GetModalities()->Get(m_mdiChild->GetModalitiesDlg()->GetSelected());
+	QSharedPointer<iAModality> selected = m_mdiChild->getModalities()->Get(m_mdiChild->getModalitiesDlg()->GetSelected());
 	int index;
 	if (selected == m_modalitiesActive[0]) {
 		index = 0;

@@ -23,7 +23,7 @@
 #include "PorosityAnalyserHelpers.h"
 
 #include <iAChanData.h>
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
@@ -194,8 +194,7 @@ void iASSSlicer::initialize( vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 {
 	slicer->setup( iASingleSlicerSettings() );
 	slicer->initialize(transform);
-	iAChannelVisualizationData chData;
-	chData.setData(img, tf, nullptr);
+	iAChannelData chData(img, tf);
 	slicer->addChannel(0, &chData);
 	slicer->enableChannel(0, true);
 	slicer->update();

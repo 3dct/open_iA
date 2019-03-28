@@ -26,32 +26,22 @@
 
 #include <vtkSmartPointer.h>
 
-class QWidget;
+
 class QString;
 
-class vtkImageActor;
 class vtkImageData;
-class vtkImageMapToColors;
-class vtkImageReslice;
 class vtkPiecewiseFunction;
 class vtkScalarsToColors;
-class vtkTransform;
-class vtkLookupTable;
-class vtkMarchingContourFilter;
-class vtkPolyDataMapper;
-class vtkActor;
-
-class iAChannelVisualizationData;
 
 
-
-class open_iA_Core_API iAChannelVisualizationData
+class open_iA_Core_API iAChannelData
 {
 public:
 	static const size_t Maximum3DChannels = 3;
 
-	iAChannelVisualizationData();
-	virtual ~iAChannelVisualizationData();
+	iAChannelData();
+	iAChannelData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf=nullptr);
+	virtual ~iAChannelData();
 
 	virtual void reset();
 	void setData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);

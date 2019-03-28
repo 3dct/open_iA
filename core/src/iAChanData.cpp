@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAChanData.h"
 
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -30,7 +30,7 @@
 #include <vtkTransform.h>
 
 iAChanData::iAChanData( const QList<QColor> & colors, uint chanId ) :
-	visData( new iAChannelVisualizationData ),
+	visData( new iAChannelData ),
 	imgData( vtkSmartPointer<vtkImageData>::New() ),
 	tf( vtkSmartPointer<vtkColorTransferFunction>::New() ),
 	otf( vtkSmartPointer<vtkPiecewiseFunction>::New() ),
@@ -41,7 +41,7 @@ iAChanData::iAChanData( const QList<QColor> & colors, uint chanId ) :
 {}
 
 iAChanData::iAChanData( QColor c1, QColor c2, uint chanId ) :
-	visData( new iAChannelVisualizationData ),
+	visData( new iAChannelData ),
 	imgData( vtkSmartPointer<vtkImageData>::New() ),
 	tf( vtkSmartPointer<vtkColorTransferFunction>::New() ),
 	otf( vtkSmartPointer<vtkPiecewiseFunction>::New() ),

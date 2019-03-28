@@ -1119,7 +1119,7 @@ void MainWindow::prefs()
 			looks.append(key);
 		}
 	}
-	iAPreferences p = child ? child->GetPreferences() : defaultPreferences;
+	iAPreferences p = child ? child->getPreferences() : defaultPreferences;
 	QTextDocument *fDescr = nullptr;
 	if (iAConsole::GetInstance()->IsFileLogError())
 	{
@@ -1169,7 +1169,7 @@ void MainWindow::renderSettings()
 	QString t = tr("true");
 	QString f = tr("false");
 
-	int currentRenderMode = child->GetRenderMode();
+	int currentRenderMode = child->getRenderMode();
 
 	QStringList renderTypes;
 	for (int mode : RenderModeMap().keys())
@@ -1196,8 +1196,8 @@ void MainWindow::renderSettings()
 		<< tr("#Slice plane opacity");
 
 	QList<QVariant> inPara;
-	iARenderSettings const & renderSettings = child->GetRenderSettings();
-	iAVolumeSettings const & volumeSettings = child->GetVolumeSettings();
+	iARenderSettings const & renderSettings = child->getRenderSettings();
+	iAVolumeSettings const & volumeSettings = child->getVolumeSettings();
 	inPara << (renderSettings.ShowSlicers ? t : f)
 		<< (renderSettings.ShowSlicePlanes ? t : f)
 		<< (renderSettings.ShowHelpers ? t : f)
@@ -1276,7 +1276,7 @@ void MainWindow::slicerSettings()
 		<< tr("$Show Tooltip")
 		);
 
-	iASlicerSettings const & slicerSettings = child->GetSlicerSettings();
+	iASlicerSettings const & slicerSettings = child->getSlicerSettings();
 	QStringList mouseCursorTypes;
 	foreach( QString mode, mouseCursorModes )
 		mouseCursorTypes << ( ( mode == slicerSettings.SingleSlicer.CursorMode ) ? QString( "!" ) : QString() ) + mode;
@@ -1502,7 +1502,7 @@ MdiChild* MainWindow::getResultChild(MdiChild* oldChild, QString const & title)
 		copyFunctions(oldChild, newChild);
 		return newChild;
 	}
-	oldChild->PrepareForResult();
+	oldChild->prepareForResult();
 	return oldChild;
 }
 
@@ -2191,7 +2191,7 @@ void MainWindow::loadLayout()
 	{
 		return;
 	}
-	child->LoadLayout(layout->currentText());
+	child->loadLayout(layout->currentText());
 }
 
 void MainWindow::deleteLayout()
@@ -2271,7 +2271,7 @@ void MainWindow::childClosed()
 	if (!sender)
 		return;
 	// magic lens size can be modified in the slicers as well; make sure to store this change:
-	defaultPreferences.MagicLensSize = sender->GetMagicLensSize();
+	defaultPreferences.MagicLensSize = sender->getMagicLensSize();
 	if( mdiArea->subWindowList().size() == 1 )
 	{
 		MdiChild * child = dynamic_cast<MdiChild*> ( mdiArea->subWindowList().at( 0 )->widget() );
@@ -2297,7 +2297,7 @@ void MainWindow::saveProject()
 	MdiChild * activeChild = activeMdiChild();
 	if (!activeChild)
 		return;
-	activeChild->StoreProject();
+	activeChild->storeProject();
 }
 
 void MainWindow::loadArguments(int argc, char** argv)

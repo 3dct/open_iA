@@ -23,7 +23,7 @@
 #include "iAGEMSeConstants.h"
 #include "iASlicerSettings.h"
 
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
@@ -89,10 +89,9 @@ void iAImagePreviewWidget::InitializeSlicer()
 	
 	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->initialize(m_slicerTransform);
-	iAChannelVisualizationData chData;
-	chData.setData(m_imageData, m_ctf, nullptr);
+	iAChannelData chData(m_imageData, m_ctf);
 	m_slicer->addChannel(0, &chData);
-	m_slicer->SetBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
+	m_slicer->setBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
 	
 	// TODO: disable interaction in slicer
 	// adapt initial zoom
@@ -298,9 +297,8 @@ void iAImagePreviewWidget::UpdateImage()
 {
 	if (!BuildCTF())
 		return;
-	iAChannelVisualizationData chData;
-	chData.setData(m_imageData, m_ctf, nullptr);
-	m_slicer->getChannel(0)->reInit(&chData);
+	iAChannelData chData(m_imageData, m_ctf);
+	m_slicer->updateChannel(0, &chData);
 	UpdateView();
 }
 

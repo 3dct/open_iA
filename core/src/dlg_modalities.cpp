@@ -23,7 +23,7 @@
 #include "dlg_commoninput.h"
 #include "dlg_modalityProperties.h"
 #include "dlg_transfer.h"
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAModality.h"
@@ -289,7 +289,7 @@ void dlg_modalities::EditClicked()
 		&& !editModality->hasRenderFlag(iAModality::Slicer))
 	{
 		if (editModality->channelID() != NotExistingChannel)
-			m_mdiChild->SetChannelRenderingEnabled(editModality->channelID(), false);
+			m_mdiChild->setChannelRenderingEnabled(editModality->channelID(), false);
 	}
 	if ((renderFlagsBefore & iAModality::Slicer) == 0
 		&& editModality->hasRenderFlag(iAModality::Slicer))
@@ -297,7 +297,7 @@ void dlg_modalities::EditClicked()
 		if (editModality->channelID() == NotExistingChannel)
 			editModality->setChannelID(m_mdiChild->createChannel());
 		m_mdiChild->updateChannel(editModality->channelID(), editModality->GetImage(), editModality->GetTransfer()->getColorFunction(), editModality->GetTransfer()->getOpacityFunction());
-		m_mdiChild->InitChannelRenderer(editModality->channelID(), false);
+		m_mdiChild->initChannelRenderer(editModality->channelID(), false);
 		m_mdiChild->updateChannelOpacity(editModality->channelID(), 1);
 		m_mdiChild->updateViews();
 	}

@@ -31,7 +31,7 @@
 #include "iALabelOverlayThread.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iAModality.h>
@@ -277,7 +277,7 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 
 	uint id = m_nextChannelID;
 	m_nextChannelID = (m_nextChannelID + 1) % 8;
-	iAChannelVisualizationData magicLensData;
+	iAChannelData magicLensData;
 	magicLensData.setData(img, ctf, otf);
 	magicLensData.setName(name);
 
@@ -496,7 +496,7 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
 		m_resultFilterChannel->setData(m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		iASlicer* slicer = m_previewWidget->GetSlicer();
-		slicer->reInitializeChannel(ResultFilterChannelID, m_resultFilterChannel.data());
+		slicer->updateChannel(ResultFilterChannelID, m_resultFilterChannel.data());
 		slicer->update();
 	}
 }
@@ -687,9 +687,8 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	if (!m_resultFilterChannel)
 	{
-		m_resultFilterChannel = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
+		m_resultFilterChannel = QSharedPointer<iAChannelData>(new iAChannelData(m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF));
 		m_resultFilterChannel->setName("Result Filter");
-		m_resultFilterChannel->setData(m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		slicer->addChannel(ResultFilterChannelID, m_resultFilterChannel.data());
 		int sliceNr = m_previewWidget->GetSliceNumber();
 		switch (slicer->getMode())

@@ -38,7 +38,7 @@ class vtkImageActor;
 class vtkPoints;
 class vtkRenderer;
 
-class iAChannelVisualizationData;
+class iAChannelData;
 class iAChannelSlicerData;
 class iAMagicLens;
 class iAMultiChannelVisualization;
@@ -58,14 +58,10 @@ static const int MODE_TO_Z_IND[3]	= { 0, 2, 1 };
 class open_iA_Core_API iASlicer : public QObject
 {
 	Q_OBJECT
-	//friend class iASlicerData;
-	//friend class iASlicerWidget;
 public:
 	iASlicer(QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations = true, bool magicLensAvailable = true);
 	~iASlicer();
 	void initialize(vtkAbstractTransform *tr);
-	void setTransform(vtkAbstractTransform *tr);
-	//! update all internal 
 	void update();
 
 	iASlicerWidget * widget();
@@ -93,9 +89,9 @@ public:
 	void disableInteractor();
 	void enableInteractor(); //also updates widget
 
-	void addChannel(uint id, iAChannelVisualizationData * chData );
+	void addChannel(uint id, iAChannelData * chData );
 	void removeChannel(uint id);
-	void reInitializeChannel(uint id, iAChannelVisualizationData * chData );
+	void updateChannel(uint id, iAChannelData * chData );
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 
 	// { TODO: check whether these can be removed somehow!
@@ -138,8 +134,7 @@ public:
 	vtkCamera* getCamera();
 	void setCamera(vtkCamera*, bool owner=true);
 
-
-	void SetBackground(double r, double g, double b);
+	void setBackground(double r, double g, double b);
 
 public slots:
 	void saveAsImage() const;

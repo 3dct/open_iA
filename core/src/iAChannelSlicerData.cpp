@@ -20,7 +20,7 @@
 * ************************************************************************************/
 
 #include "iAChannelSlicerData.h"
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
 #include "iASlicerMode.h"
 
 #include <vtkActor.h>
@@ -110,7 +110,7 @@ void iAChannelSlicerData::updateLUT()
 	m_lut->Build();
 }
 
-void iAChannelSlicerData::init(iAChannelVisualizationData * chData, int mode)
+void iAChannelSlicerData::init(iAChannelData * chData, int mode)
 {
 	m_isInitialized = true;
 	assign(chData->getImage(), chData->getColor());
@@ -144,7 +144,7 @@ void iAChannelSlicerData::updateResliceAxesDirectionCosines(int mode)
 	}
 }
 
-void iAChannelSlicerData::reInit(iAChannelVisualizationData * chData)
+void iAChannelSlicerData::reInit(iAChannelData * chData)
 {
 	assign(chData->getImage(), chData->getColor());
 	m_name = chData->getName();

@@ -94,7 +94,7 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	//Connect
 	connect(m_histogramStack, SIGNAL(transferFunctionChanged()), this, SLOT(updateTransferFunction()));
-	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(updateModalities()));
+	connect(mdiChild->getModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(updateModalities()));
 	// }
 
 	updateDisabledLabel();

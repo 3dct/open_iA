@@ -65,7 +65,7 @@ class dlg_periodicTable;
 class dlg_profile;
 class dlg_volumePlayer;
 class iAAlgorithm;
-class iAChannelVisualizationData;
+class iAChannelData;
 class iADiagramFctWidget;
 class iADockWidgetWrapper;
 class iAIO;
@@ -108,7 +108,7 @@ public:
 	bool loadFile(const QString &f, bool isStack);
 	bool loadRaw(const QString &f);
 	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr);
-	void PrepareForResult();
+	void prepareForResult();
 	bool save();
 	bool saveAs();
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
@@ -116,7 +116,7 @@ public:
 
 	void multiview() { changeVisibility(MULTI);};
 	bool editPrefs(iAPreferences const & p);
-	void ApplyViewerPreferences();
+	void applyViewerPreferences();
 	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	bool editSlicerSettings(iASlicerSettings const & slicerSettings);
 	bool loadTransferFunction();
@@ -129,7 +129,7 @@ public:
 	//! Provides the possibility to save a raycaster movie of the given raycaster view.
 	//! @param [in] raycaster the VTK raycaster the movie shall be exported from.
 	void saveMovie(iARenderer& raycaster);
-	int deletePoint();
+	int  deletePoint();
 	void changeColor();
 	void resetView();
 	void resetTrf();
@@ -142,10 +142,10 @@ public:
 	void setupSlicers(iASlicerSettings const & ss, bool init);
 	void check2DMode();
 	iALogger * getLogger();
-	iARenderSettings const & GetRenderSettings() const;
-	iAVolumeSettings const & GetVolumeSettings() const;
-	iASlicerSettings const & GetSlicerSettings() const;
-	iAPreferences    const & GetPreferences()    const;
+	iARenderSettings const & getRenderSettings() const;
+	iAVolumeSettings const & getVolumeSettings() const;
+	iASlicerSettings const & getSlicerSettings() const;
+	iAPreferences    const & getPreferences()    const;
 	iAVolumeStack * getVolumeStack();
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread);
 	void connectIOThreadSignals(iAIO* thread);
@@ -189,8 +189,8 @@ public:
 	void setHistogramFocus();
 	bool isMaximized();
 
-	void UpdateROI(int const roi[6]);
-	void SetROIVisible(bool visible);
+	void updateROI(int const roi[6]);
+	void setROIVisible(bool visible);
 
 	void setCurrentFile(const QString &f);
 	QString userFriendlyCurrentFile();
@@ -212,16 +212,16 @@ public:
 	//! update opacity of the given channel ID
 	void updateChannelOpacity(uint id, double opacity);
 	
-	void SetChannelRenderingEnabled(uint, bool enabled);
-	iAChannelVisualizationData * getChannelData(uint id);
-	iAChannelVisualizationData const * getChannelData(uint id) const;
-	void InitChannelRenderer(uint id, bool use3D, bool enableChannel = true);
+	void setChannelRenderingEnabled(uint, bool enabled);
+	iAChannelData * getChannelData(uint id);
+	iAChannelData const * getChannelData(uint id) const;
+	void initChannelRenderer(uint id, bool use3D, bool enableChannel = true);
 	void updateChannelMappers();
 	//! @}
 
 	//! @{ slicer pie glyphs - move to XRF module!
-	void SetSlicerPieGlyphsEnabled(bool isOn);
-	void SetPieGlyphParameters(double opacity, double spacing, double magFactor);
+	void setSlicerPieGlyphsEnabled(bool isOn);
+	void setPieGlyphParameters(double opacity, double spacing, double magFactor);
 	//! @}
 
 	QString getFilePath() const;
@@ -229,14 +229,14 @@ public:
 	//! @{ Magic Lens
 	void toggleMagicLens(bool isEnabled);
 	bool isMagicLensToggled(void) const;
-	void SetMagicLensInput(uint id, bool initReslicer);
-	void SetMagicLensEnabled(bool isOn);
+	void setMagicLensInput(uint id, bool initReslicer);
+	void setMagicLensEnabled(bool isOn);
 	void reInitMagicLens(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
-	int  GetMagicLensSize() const { return preferences.MagicLensSize; }
-	int  GetMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }
+	int  getMagicLensSize() const { return preferences.MagicLensSize; }
+	int  getMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }
 	//! @}
 
-	int GetRenderMode();
+	int getRenderMode() const;
 
 	int getXCoord() const { return xCoord; }
 	int getYCoord() const { return yCoord; }
@@ -245,11 +245,11 @@ public:
 	MainWindow* getMainWnd();
 	void HideHistogram();
 	//! apply current rendering settings of this mdi child to the given iARenderer
-	void ApplyRenderSettings(iARenderer* raycaster);
+	void applyRenderSettings(iARenderer* raycaster);
 	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
-	void ApplyVolumeSettings(const bool loadSavedVolumeSettings);
-	QString GetLayoutName() const;
-	void LoadLayout(QString const & layout);
+	void applyVolumeSettings(const bool loadSavedVolumeSettings);
+	QString getLayoutName() const;
+	void loadLayout(QString const & layout);
 
 	//! If more than one modality loaded, ask user to choose one of them.
 	//! (currently used for determining which modality to save)
@@ -260,16 +260,16 @@ public:
 
 	//! workaround for bug in splitDockWidget (see https://bugreports.qt.io/browse/QTBUG-60093)
 	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
-	void SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
+	void splitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
 
 	//! Checks whether the main image data in this child is fully loaded.
-	bool IsFullyLoaded() const;
+	bool isFullyLoaded() const;
 
 	//! Save all currently loaded files into a project with the given file name.
 	void saveProject(QString const & fileName);
 
 	//! Whether volume data is loaded (only checks filename and volume dimensions).
-	bool IsVolumeDataLoaded() const;
+	bool isVolumeDataLoaded() const;
 
 	//! Enable or disable linked views (slicers/3D renderer) for this MDI child.
 	void linkViews(bool l);
@@ -279,6 +279,12 @@ public:
 
 	//! clear current histogram (i.e. don't show it anymore)
 	void clearHistogram();
+
+	void setModalities(QSharedPointer<iAModalityList> modList);
+	QSharedPointer<iAModalityList> getModalities();
+	QSharedPointer<iAModality> getModality(int idx);
+	dlg_modalities* getModalitiesDlg();
+	void storeProject();
 
 Q_SIGNALS:
 	void rendererDeactivated(int c);
@@ -300,6 +306,42 @@ public slots:
 	void maximizeXY();
 	void maximizeXZ();
 	void maximizeYZ();
+	void updateProgressBar(int i);
+	void hideProgressBar();
+	void initProgressBar();
+	void disableRenderWindows(int ch);
+	void enableRenderWindows();
+	void updateSlicer(int index);
+	void updateSlicers();
+	void updateViews();
+	void addMsg(QString txt);
+	void addStatusMsg(QString txt);
+	void setupView(bool active = false);
+	void setupStackView(bool active = false);
+	void setupProject(bool active = false);
+	bool updateVolumePlayerView(int updateIndex, bool isApplyForAll);
+	void removeFinishedAlgorithms();
+	void camPX();
+	void camPY();
+	void camPZ();
+	void camMX();
+	void camMY();
+	void camMZ();
+	void camIso();
+
+	//! Calls the getCamPosition function of iARenderer (described there in more detail).
+	//!
+	//! \param camOptions	All informations of the camera stored in a double array
+	void getCamPosition(double * camOptions);
+
+	//! Calls the setCamPosition function of iARenderer (described there in more detail).
+	//!
+	//! \param camOptions	All informations of the camera stored in a double array
+	//! \param rsParallelProjection	boolean variable to determine if parallel projection option on.
+	void setCamPosition(double * camOptions, bool rsParallelProjection);
+	void UpdateProbe(int ptIndex, double * newPos);
+	void resetLayout();
+
 private slots:
 	void saveRC();
 	void saveXY();
@@ -347,61 +389,32 @@ private slots:
 	void ModalityTFChanged();
 	void HistogramDataAvailable(int modalityIdx);
 	void StatisticsAvailable(int modalityIdx);
+	void ChangeMagicLensModality(int chg);
+	void ChangeMagicLensOpacity(int chg);
+	void ChangeMagicLensSize(int chg);
+	void ShowModality(int modIdx);
+	void SaveFinished();
+	void ModalityAdded(int modalityIdx);
 
-public slots:
-	void updateProgressBar(int i);
-	void hideProgressBar();
-	void initProgressBar();
-	void disableRenderWindows(int ch);
-	void enableRenderWindows();
-	void updateSlicer(int index);
-	void updateSlicers();
-	void updateViews();
-	void addMsg(QString txt);
-	void addStatusMsg(QString txt);
-	void setupView(bool active = false);
-	void setupStackView(bool active = false);
-	void setupProject(bool active = false);
-	bool updateVolumePlayerView(int updateIndex, bool isApplyForAll);
-	void removeFinishedAlgorithms();
-	void camPX();
-	void camPY();
-	void camPZ();
-	void camMX();
-	void camMY();
-	void camMZ();
-	void camIso();
-
-	//! Calls the getCamPosition function of iARenderer (described there in more detail).
-	//!
-	//! \param camOptions	All informations of the camera stored in a double array
-	void getCamPosition(double * camOptions);
-
-	//! Calls the setCamPosition function of iARenderer (described there in more detail).
-	//!
-	//! \param camOptions	All informations of the camera stored in a double array
-	//! \param rsParallelProjection	boolean variable to determine if parallel projection option on.
-	void setCamPosition(double * camOptions, bool rsParallelProjection);
-	void UpdateProbe(int ptIndex, double * newPos);
-	void resetLayout();
 private:
 	void closeEvent(QCloseEvent *event);
 	void addImageProperty( );
 	bool addVolumePlayer(iAVolumeStack *volumeStack);
 	void addProfile();
-	void UpdateProfile();
+	void updateProfile();
 	bool saveAs(int modalityNr);
 	bool initView(QString const & title);
-	int EvaluatePosition(int pos, int i, bool invert = false);
+	int  evaluatePosition(int pos, int i, bool invert = false);
 
 	//! Changes the display of views from full to multi screen or multi screen to fullscreen.
 	//! @param mode how the views should be arranged.
 	void changeVisibility(unsigned char mode);
-	int getVisibility() const;
+	int  getVisibility() const;
 	void hideVolumeWidgets();
 	void setVisibility(QList<QWidget*> widgets, bool show);
 	void cleanWorkingAlgorithms();
-	int profileWidgetIndex;
+
+	int  profileWidgetIndex;
 	QByteArray m_beforeMaximizeState;
 	bool m_isSmthMaximized;
 	QDockWidget * m_whatMaximized;
@@ -411,7 +424,7 @@ private:
 	void resizeDockWidget(QDockWidget * dw);
 
 	void connectSignalsToSlots();
-	void SetRenderWindows();
+	void setRenderWindows();
 	void getSnakeNormal(int index, double point[3], double normal[3]);
 	//void updateReslicer(double point[3], double normal[3], int mode);
 	void updateSliceIndicators();
@@ -483,7 +496,7 @@ private:
 
 	std::vector<iAAlgorithm*> workingAlgorithms;
 
-	QMap<uint, QSharedPointer<iAChannelVisualizationData> > m_channels;
+	QMap<uint, QSharedPointer<iAChannelData> > m_channels;
 	uint m_nextChannelID;
 	uint m_magicLensChannel;
 
@@ -500,31 +513,16 @@ private:
 	QString m_layout;
 	vtkSmartPointer<vtkImageData> tmpSaveImg;	//< TODO: get rid of this (by introducing smart pointer in iAIO/ iAlgorithm?
 
-	//! @{ previously "Modality Explorer":
 	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
 	int m_currentComponent;
 	int m_currentHistogramModality;
 	bool m_initVolumeRenderers;
-	int m_storedModalityNr;		// modality nr being stored
-private slots:
-	void ChangeMagicLensModality(int chg);
-	void ChangeMagicLensOpacity(int chg);
-	void ChangeMagicLensSize(int chg);
-	void ShowModality(int modIdx);
-	void SaveFinished();
-	void ModalityAdded(int modalityIdx);
-private:
-	void SetHistogramModality(int modalityIdx);
+	int m_storedModalityNr;		//!< modality nr being stored
+
+	void setHistogramModality(int modalityIdx);
 	void displayHistogram(int modalityIdx);
-	int GetCurrentModality() const;
-	void InitModalities();
-	void InitVolumeRenderers();
-public:
-	void SetModalities(QSharedPointer<iAModalityList> modList);
-	QSharedPointer<iAModalityList> GetModalities();
-	QSharedPointer<iAModality> GetModality(int idx);
-	dlg_modalities* GetModalitiesDlg();
-	void StoreProject();
-	//! @}
+	int  getCurrentModality() const;
+	void initModalities();
+	void initVolumeRenderers();
 };

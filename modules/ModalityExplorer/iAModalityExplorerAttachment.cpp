@@ -29,7 +29,7 @@ iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd,
 	iAModuleAttachmentToChild(mainWnd, childData)
 {
 	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
-	m_dlgModalitySPLOM->SetData(childData.child->GetModalities());
+	m_dlgModalitySPLOM->SetData(childData.child->getModalities());
 	childData.child->tabifyDockWidget(m_childData.logs, m_dlgModalitySPLOM);
 	/*
 	dlg_planeSlicer* planeSlicer = new dlg_planeSlicer();

@@ -1576,7 +1576,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		ren->AddViewProp(cornerAnnotation);
 		ren->ResetCamera();
 		m_volRen = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_imgDataList[datasetIdx]));
-		m_volRen->ApplySettings(m_mdiChild->GetVolumeSettings());
+		m_volRen->ApplySettings(m_mdiChild->getVolumeSettings());
 		m_volRen->AddTo(ren);
 		m_volRen->AddBoundingBoxTo(ren);
 		wgtContainer->GetRenderWindow()->AddRenderer(ren);

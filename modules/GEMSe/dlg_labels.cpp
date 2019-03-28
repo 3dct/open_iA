@@ -24,7 +24,7 @@
 #include "iALabelOverlayThread.h"
 
 #include <dlg_commoninput.h>
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iAColorTheme.h>
 #include <iAConsole.h>
 #include <iAModality.h>
@@ -208,7 +208,7 @@ void dlg_labels::UpdateChannel()
 	m_labelOverlayImg->Modified();
 	m_labelOverlayImg->SetScalarRange(0, count());
 	m_mdiChild->updateChannel(m_labelChannelID, m_labelOverlayImg, m_labelOverlayLUT, m_labelOverlayOTF);
-	m_mdiChild->InitChannelRenderer(m_labelChannelID, false);
+	m_mdiChild->initChannelRenderer(m_labelChannelID, false);
 	m_mdiChild->updateViews();
 }
 
@@ -405,7 +405,7 @@ bool dlg_labels::Store(QString const & filename, bool extendedFormat)
 	stream.writeStartDocument();
 	stream.writeStartElement("Labels");
 
-	auto modalities = m_mdiChild->GetModalities();
+	auto modalities = m_mdiChild->getModalities();
 	for (int l=0; l<m_itemModel->rowCount(); ++l)
 	{
 		QStandardItem * labelItem = m_itemModel->item(l);
@@ -534,7 +534,7 @@ bool haveAllSeeds(QVector<int> const & label2SeedCounts, std::vector<int> const 
 void dlg_labels::Sample()
 {
 	int gt = m_mdiChild->chooseModalityNr("Choose Ground Truth");
-	vtkSmartPointer<vtkImageData> img = m_mdiChild->GetModality(gt)->GetImage();
+	vtkSmartPointer<vtkImageData> img = m_mdiChild->getModality(gt)->GetImage();
 	int labelCount = img->GetScalarRange()[1]+1;
 	if (labelCount > 50)
 	{

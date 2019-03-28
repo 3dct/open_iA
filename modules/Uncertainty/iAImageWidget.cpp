@@ -30,8 +30,11 @@
 */
 
 // iASlicer-based solution:
+#include <iAChannelData.h>
+#include <iAChannelSlicerData.h>
 #include <iASlicerSettings.h>
 #include <iASlicer.h>
+#include <iASlicerWidget.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -71,8 +74,11 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 	*/
 	m_slicer = new iASlicer(this, iASlicerMode::XY, this, false, true);
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->initializeData(img, m_transform, m_lut);
-	m_slicer->initializeWidget(img);
+	iAChannelData chData(img, m_lut);
+	m_slicer->initialize(m_transform);
+	m_slicer->widget()->initialize();
+	m_slicer->addChannel(0, &chData);
+	m_slicer->enableChannel(0, true);
 	StyleChanged();
 }
 
@@ -82,13 +88,13 @@ void iAImageWidget::StyleChanged()
 	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
 	
 	//m_renderer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
-	m_slicer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
+	m_slicer->setBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
 }
 
 
 void iAImageWidget::SetMode(int slicerMode)
 {
-	m_slicer->ChangeMode(static_cast<iASlicerMode>(slicerMode));
+	m_slicer->changeMode(static_cast<iASlicerMode>(slicerMode));
 	m_slicer->update();
 }
 
@@ -100,8 +106,8 @@ void iAImageWidget::SetSlice(int sliceNumber)
 
 int iAImageWidget::GetSliceCount() const
 {
-	int * ext = m_slicer->GetImageData()->GetExtent();
-	switch (m_slicer->GetMode())
+	int * ext = m_slicer->getChannel(0)->image->GetExtent();
+	switch (m_slicer->getMode())
 	{
 		case XZ: return ext[3] - ext[2] + 1;
 		case YZ: return ext[1] - ext[0] + 1;

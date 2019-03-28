@@ -21,7 +21,7 @@
 #include "dlg_volumePlayer.h"
 
 #include "dlg_commoninput.h"
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
 #include "iARenderer.h"
 #include "iASlicerData.h"
 #include "iAVolumeStack.h"
@@ -428,7 +428,7 @@ void dlg_volumePlayer::enableMultiChannelVisualization() {
 	}
 
 	for(int i = 0; i < CHANNELS_COUNT; i++)
-		m_mdiChild->SetChannelRenderingEnabled(m_channelID[i], true);
+		m_mdiChild->setChannelRenderingEnabled(m_channelID[i], true);
 }
 
 void dlg_volumePlayer::disableMultiChannelVisualization() {
@@ -437,7 +437,7 @@ void dlg_volumePlayer::disableMultiChannelVisualization() {
 	}
 
 	for(int i = 0; i < CHANNELS_COUNT; i++)
-		m_mdiChild->SetChannelRenderingEnabled(m_channelID[i], false);
+		m_mdiChild->setChannelRenderingEnabled(m_channelID[i], false);
 }
 
 void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volumeIndex2, double blendingCoeff)
@@ -453,7 +453,7 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 			m_channelID.push_back(m_mdiChild->createChannel());
 	for(int i = 0; i < CHANNELS_COUNT; i++)
 	{
-		iAChannelVisualizationData* chData = m_mdiChild->getChannelData(m_channelID[i]);
+		iAChannelData* chData = m_mdiChild->getChannelData(m_channelID[i]);
 		vtkImageData* imageData = m_volumeStack->getVolume(volumeIndex[i]);
 		vtkColorTransferFunction* ctf = m_volumeStack->getColorTransferFunction(volumeIndex[i]);
 		if(!m_multiChannelIsInitialized)
@@ -474,7 +474,7 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 
 		if(!m_multiChannelIsInitialized)
 		{
-			m_mdiChild->InitChannelRenderer(m_channelID[i], true);
+			m_mdiChild->initChannelRenderer(m_channelID[i], true);
 			// TODO: VOLUME: rewrite!
 			// m_mdiChild->getRenderer()->showMainVolumeWithChannels(false);
 		}

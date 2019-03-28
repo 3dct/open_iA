@@ -20,9 +20,11 @@
 * ************************************************************************************/
 #include "iASimpleSlicerWidget.h"
 
+#include <iAChannelData.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
 #include <iASlicer.h>
+#include <iASlicerWidget.h>
 #include <iASlicerData.h>
 
 #include <vtkCamera.h>
@@ -48,7 +50,7 @@ iASimpleSlicerWidget::~iASimpleSlicerWidget()
 
 void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
 {
-	m_slicer->ChangeMode(slicerMode);
+	m_slicer->changeMode(slicerMode);
 }
 
 void iASimpleSlicerWidget::setSliceNumber(int sliceNumber)
@@ -77,8 +79,11 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 
 	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->getColorFunction();
 	m_slicerTransform = vtkTransform::New();
-	m_slicer->initializeData(imageData, m_slicerTransform, colorFunction);
-	m_slicer->initializeWidget(imageData);
+	m_slicer->initialize(m_slicerTransform);
+	m_slicer->widget()->initialize();
+	iAChannelData chData(imageData, colorFunction);
+	m_slicer->addChannel(0, &chData);
+	m_slicer->enableChannel(0, true);
 	m_slicer->disableInteractor();
 
 	if (!m_enableInteraction) {

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAImageWidget.h"
 
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iASlicerSettings.h>
 #include <iASlicer.h>
@@ -39,8 +39,7 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
 	m_slicer->initialize(m_transform);
 	m_slicer->widget()->initialize();
-	iAChannelVisualizationData chData;
-	chData.setData(img, m_ctf, nullptr);
+	iAChannelData chData(img, m_ctf);
 	m_slicer->addChannel(0, &chData);
 	StyleChanged();
 }
@@ -48,7 +47,7 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 void iAImageWidget::StyleChanged()
 {
 	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
-	m_slicer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
+	m_slicer->setBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
 }
 
 void iAImageWidget::SetMode(int slicerMode)
@@ -78,9 +77,8 @@ int iAImageWidget::GetSliceCount() const
 void iAImageWidget::SetImage(vtkSmartPointer<vtkImageData> img)
 {
 	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
-	iAChannelVisualizationData chData;
-	chData.setData(img, m_ctf, nullptr);
-	m_slicer->getChannel(0)->reInit(&chData);
+	iAChannelData chData(img, m_ctf);
+	m_slicer->updateChannel(0, &chData);
 	m_slicer->update();
 }
 

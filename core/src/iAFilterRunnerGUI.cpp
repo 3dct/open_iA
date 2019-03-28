@@ -238,9 +238,9 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		for (int i = 0; i < filter->RequiredInputs()-1; ++i)
 		{
 			int mdiIdx = dlg.getComboBoxIndex(idx);
-			for (int m = 0; m < otherMdis[mdiIdx]->GetModalities()->size(); ++m)
+			for (int m = 0; m < otherMdis[mdiIdx]->getModalities()->size(); ++m)
 			{
-				m_additionalInput.push_back(otherMdis[mdiIdx]->GetModality(m)->GetImage());
+				m_additionalInput.push_back(otherMdis[mdiIdx]->getModality(m)->GetImage());
 			}
 			++idx;
 
@@ -256,7 +256,7 @@ void iAFilterRunnerGUI::FilterGUIPreparations(QSharedPointer<iAFilter> filter, M
 void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
 {
 	MdiChild* sourceMdi = mainWnd->activeMdiChild();
-	if (filter->RequiredInputs() > 0 && (!sourceMdi || !sourceMdi->IsFullyLoaded()))
+	if (filter->RequiredInputs() > 0 && (!sourceMdi || !sourceMdi->isFullyLoaded()))
 	{
 		mainWnd->statusBar()->showMessage("Please wait until file is fully loaded!");
 		return;
@@ -291,11 +291,11 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 		return;
 	}
 	// TODO: move all image adding here?
-	for (int m = 1; m < sourceMdi->GetModalities()->size(); ++m)
+	for (int m = 1; m < sourceMdi->getModalities()->size(); ++m)
 	{
-		thread->AddImage(sourceMdi->GetModality(m)->GetImage());
+		thread->AddImage(sourceMdi->getModality(m)->GetImage());
 	}
-	filter->SetFirstInputChannels(sourceMdi->GetModalities()->size());
+	filter->SetFirstInputChannels(sourceMdi->getModalities()->size());
 	for (auto img : m_additionalInput)
 	{
 		thread->AddImage(img);
@@ -334,9 +334,9 @@ void iAFilterRunnerGUI::FilterFinished()
 			// so let's copy it to be on the safe side!
 			img->DeepCopy(thread->Filter()->Output()[p]->GetVTKImage());
 			QSharedPointer<iAModality> mod(new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0));
-			mdiChild->GetModalities()->Add(mod);
+			mdiChild->getModalities()->Add(mod);
 			// signal to add it to list automatically is created to late to be effective here, we have to add it to list ourselves:
-			mdiChild->GetModalitiesDlg()->ModalityAdded(mod);
+			mdiChild->getModalitiesDlg()->ModalityAdded(mod);
 		}
 	}
 	for (auto outputValue : thread->Filter()->OutputValues())

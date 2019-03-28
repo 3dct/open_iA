@@ -126,11 +126,6 @@ void iASlicer::enableInteractor()
 	m_widget->update();
 }
 
-void iASlicer::reInitializeChannel(uint id, iAChannelVisualizationData * chData )
-{
-	m_data->reInitializeChannel(id, chData);
-}
-
 void iASlicer::setResliceChannelAxesOrigin(uint id, double x, double y, double z )
 {
 	m_data->setResliceChannelAxesOrigin(id, x, y, z);
@@ -235,11 +230,6 @@ vtkRenderer * iASlicer::getRenderer() const
 void iASlicer::initialize(vtkAbstractTransform *tr)
 {
 	m_data->initialize(tr);
-}
-
-void iASlicer::setTransform(vtkAbstractTransform *tr)
-{
-	m_data->setTransform(tr);
 }
 
 void iASlicer::updateROI(int const roi[6])
@@ -377,7 +367,7 @@ iASlicerMode iASlicer::getMode() const
 	return m_mode;
 }
 
-void iASlicer::addChannel(uint id,  iAChannelVisualizationData * chData)
+void iASlicer::addChannel(uint id,  iAChannelData * chData)
 {
 	m_data->addChannel(id, chData);
 }
@@ -385,6 +375,11 @@ void iASlicer::addChannel(uint id,  iAChannelVisualizationData * chData)
 void iASlicer::removeChannel(uint id)
 {
 	m_data->removeChannel(id);
+}
+
+void iASlicer::updateChannel(uint id, iAChannelData * chData)
+{
+	m_data->updateChannel(id, chData);
 }
 
 void iASlicer::addImageActor(vtkSmartPointer<vtkImageActor> imgActor)
@@ -462,7 +457,7 @@ iAChannelSlicerData * iASlicer::getChannel( uint id )
 	return m_data->getChannel( id );
 }
 
-void iASlicer::SetBackground(double r, double g, double b)
+void iASlicer::setBackground(double r, double g, double b)
 {
 	m_data->setManualBackground(r, g, b);
 }

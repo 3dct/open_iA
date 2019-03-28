@@ -140,14 +140,14 @@ void iAUncertaintyAttachment::ContinueEnsembleLoading()
 	m_childData.child->getImagePropertyDlg()->hide();
 	if (!m_ensembleFile->LayoutName().isEmpty())
 	{
-		m_childData.child->LoadLayout(m_ensembleFile->LayoutName());
+		m_childData.child->loadLayout(m_ensembleFile->LayoutName());
 	}
 }
 
 
 void iAUncertaintyAttachment::WriteFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties)
 {
-	m_currentEnsemble->WriteFullDataFile(fileName, writeIntensities, writeMemberLabels, writeMemberProbabilities, writeEnsembleUncertainties, m_childData.child->GetModalities());
+	m_currentEnsemble->WriteFullDataFile(fileName, writeIntensities, writeMemberLabels, writeMemberProbabilities, writeEnsembleUncertainties, m_childData.child->getModalities());
 }
 
 

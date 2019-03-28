@@ -258,7 +258,7 @@ void iATLGICTLoader::run()
 void iATLGICTLoader::finishUp()
 {
 	m_child->setCurrentFile(m_baseDirectory);
-	m_child->SetModalities(m_modList);
+	m_child->setModalities(m_modList);
 	m_child->addMsg(tr("Loading sequence completed; directory: %1.").arg(m_baseDirectory));
 	delete this;
 }

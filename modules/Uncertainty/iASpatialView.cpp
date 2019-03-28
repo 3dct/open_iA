@@ -23,7 +23,7 @@
 #include "iAUncertaintyColors.h"
 #include "iAImageWidget.h"
 
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iAConsole.h>
 #include <iASlicer.h>
 #include <iASlicerData.h>
@@ -164,12 +164,12 @@ QToolButton* iASpatialView::AddImage(QString const & caption, vtkImagePointer im
 
 namespace
 {
-	void InitializeChannel(ImageGUIElements & gui, QSharedPointer<iAChannelVisualizationData> selectionData)
+	void InitializeChannel(ImageGUIElements & gui, QSharedPointer<iAChannelData> selectionData)
 	{
 		iASlicer* slicer = gui.imageWidget->GetSlicer();
 		const uint SelectionChannelID = 0;
 		selectionData->setName("Scatterplot Selection");
-		slicer->initializeChannel(SelectionChannelID, selectionData.data());
+		slicer->addChannel(SelectionChannelID, selectionData.data());
 		int sliceNr = slicer->data()->getSliceNumber();
 		switch (slicer->getMode())
 		{
@@ -299,8 +299,8 @@ void iASpatialView::SetupSelection(vtkImagePointer selectionImg)
 {
 	m_ctf = BuildLabelOverlayLUT();
 	m_otf = BuildLabelOverlayOTF();
-	m_selectionData = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
-	ResetChannel(m_selectionData.data(), selectionImg, m_ctf, m_otf);
+	m_selectionData = QSharedPointer<iAChannelData>(new iAChannelData);
+	m_selectionData->setData(selectionImg, m_ctf, m_otf);
 }
 
 

@@ -38,7 +38,7 @@ class QStandardItemModel;
 class QTextEdit;
 
 class iAAttributes;
-class iAChannelVisualizationData;
+class iAChannelData;
 class iAChartAttributeMapper;
 class iAColorTheme;
 class iAImageCoordinate;
@@ -137,7 +137,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_resultFilterOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_resultFilterOverlayOTF;
 	iAResultFilter m_resultFilter;
-	QSharedPointer<iAChannelVisualizationData> m_resultFilterChannel;
+	QSharedPointer<iAChannelData> m_resultFilterChannel;
 	int m_lastResultFilterX, m_lastResultFilterY, m_lastResultFilterZ;
 	iATimedEvent* m_resultFilterTriggerThread;
 	bool m_MouseButtonDown;
