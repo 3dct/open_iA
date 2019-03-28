@@ -31,13 +31,12 @@
 #include <vtkImageData.h>
 #include <vtkTransform.h>
 
-iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
+iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img):
+	m_transform(vtkSmartPointer<vtkTransform>::New())
 {
-	m_slicer = new iASlicer(this, iASlicerMode::XY, this, false, true);
-	m_transform = vtkSmartPointer<vtkTransform>::New();
+	m_slicer = new iASlicer(this, iASlicerMode::XY, this, false, true, m_transform);
 	m_slicer->setup(iASingleSlicerSettings());
 	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
-	m_slicer->initialize(m_transform);
 	m_slicer->addChannel(0, iAChannelData(img, m_ctf));
 	StyleChanged();
 }

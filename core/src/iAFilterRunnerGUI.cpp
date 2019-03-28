@@ -336,7 +336,7 @@ void iAFilterRunnerGUI::FilterFinished()
 			QSharedPointer<iAModality> mod(new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0));
 			mdiChild->getModalities()->Add(mod);
 			// signal to add it to list automatically is created to late to be effective here, we have to add it to list ourselves:
-			mdiChild->getModalitiesDlg()->ModalityAdded(mod);
+			mdiChild->getModalitiesDlg()->modalityAdded(mod);
 		}
 	}
 	for (auto outputValue : thread->Filter()->OutputValues())

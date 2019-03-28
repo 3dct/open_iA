@@ -108,7 +108,7 @@ namespace
 	const uint MaxChanID   = 4;
 }
 
-iASSSlicer::iASSSlicer( const QString slicerName ) :
+iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> transform) :
 	masksChan( new iAChanData( brewer_RdPu, MasksChanID ) ),
 	gtChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 255, 255, 0 ), GTChanID ) ),
 	minChan( new iAChanData( QColor( 0, 0, 0 ), QColor( 80, 80, 80 ), MinChanID ) ),
@@ -131,7 +131,7 @@ iASSSlicer::iASSSlicer( const QString slicerName ) :
 	selTextLabel->setStyleSheet( "font-weight: bold;" );
 
 	wgt = new QWidget(container);
-	slicer = new iASlicer( wgt, iASlicerMode::XY, wgt );
+	slicer = new iASlicer( wgt, iASlicerMode::XY, wgt, true, true, transform);
 
 	medContour->SetNumberOfContours( 1 );
 	medContour->SetValue( 0, contourValue );
@@ -190,10 +190,9 @@ void iASSSlicer::changeMode( iASlicerMode mode )
 	slicer->update();
 }
 
-void iASSSlicer::initialize( vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkTransform> transform, vtkSmartPointer<vtkColorTransferFunction> tf )
+void iASSSlicer::initialize( vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkColorTransferFunction> tf )
 {
 	slicer->setup( iASingleSlicerSettings() );
-	slicer->initialize(transform);
 	slicer->addChannel(0, iAChannelData(img, tf));
 	slicer->enableChannel(0, true);
 	slicer->update();

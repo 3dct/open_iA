@@ -301,7 +301,7 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	mrvRenWin->SetNumberOfLayers(2);
 	mrvRenWin->AddRenderer(m_mrvBGRen);
 	mrvRenWin->Render();
-	m_mdiChild->tabifyDockWidget(m_mdiChild->renderer, m_MultiRendererView);
+	m_mdiChild->tabifyDockWidget(m_mdiChild->getRendererDlg(), m_MultiRendererView);
 	m_MultiRendererView->verticalLayout->addWidget(wgtContainer);
 	m_MultiRendererView->show();
 }

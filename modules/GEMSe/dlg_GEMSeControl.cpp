@@ -163,7 +163,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(cbCorrectnessUncertainty, SIGNAL(stateChanged(int)), this, SLOT(SetCorrectnessUncertainty(int)));
 
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	connect(mdiChild, SIGNAL(TransferFunctionChanged()), this, SLOT(DataTFChanged()));
+	connect(mdiChild, SIGNAL(transferFunctionChanged()), this, SLOT(DataTFChanged()));
 	
 	DataAvailable();
 }

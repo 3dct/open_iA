@@ -98,8 +98,8 @@ protected:
 	virtual void paintEvent(QPaintEvent * );
 private slots:
 	void dblClicked();
-	void ChangeModality(int);
-	void ChangeMagicLensOpacity(int);
+	void changeModality(int);
+	void changeMagicLensOpacity(int);
 	void SlicerClicked(int, int, int);
 	void SlicerMouseMove(int x, int y, int z, int c);
 	void SlicerReleased(int x, int y, int z);

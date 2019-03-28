@@ -40,7 +40,7 @@ class iAXRFAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 
 public:
-	iAXRFAttachment( MainWindow * mainWnd, iAChildData childData );
+	iAXRFAttachment( MainWindow * mainWnd, MdiChild * child );
 	~iAXRFAttachment();
 
 Q_SIGNALS:

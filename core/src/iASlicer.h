@@ -59,11 +59,9 @@ class open_iA_Core_API iASlicer : public QObject
 {
 	Q_OBJECT
 public:
-	iASlicer(QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations = true, bool magicLensAvailable = true);
-	~iASlicer();
-	void initialize(vtkAbstractTransform *tr, vtkPoints* snakeSlicerPoints = nullptr);
-	void update();
+	iASlicer(QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations = true, bool magicLensAvailable = true, vtkAbstractTransform *tr = nullptr, vtkPoints* snakeSlicerPoints = nullptr);
 
+	void update();
 	iASlicerWidget * widget();
 	iASlicerData * data();
 	void changeMode(const iASlicerMode mode);
@@ -89,10 +87,13 @@ public:
 	void disableInteractor();
 	void enableInteractor(); //also updates widget
 
+	//! @{ management of channels - each channel represents one "layer"
 	void addChannel(uint id, iAChannelData & chData );
 	void removeChannel(uint id);
 	void updateChannel(uint id, iAChannelData & chData );
+	iAChannelSlicerData * getChannel(uint id);
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
+	//! @}
 
 	// { TODO: check whether these can be removed somehow!
 	void addImageActor(vtkSmartPointer<vtkImageActor> imgActor);
@@ -130,10 +131,8 @@ public:
 	void showIsolines( bool s );
 	void setContours( int n, double mi, double ma );
 	void setContours( int n, double * contourValues );
-	iAChannelSlicerData * getChannel( uint id );
 	vtkCamera* getCamera();
 	void setCamera(vtkCamera*, bool owner=true);
-
 	void setBackground(double r, double g, double b);
 
 public slots:
@@ -145,17 +144,12 @@ public slots:
 	void setSlabCompositeMode(int compositeMode);
 
 private:
-	QSharedPointer<iAMagicLens> m_magicLens;
-
-protected:
-	void connectWidgetAndData();
-	void connectToMdiChildSlots();
-
-	iASlicerData * m_data;
-	iASlicerWidget * m_widget;
-
+	QSharedPointer<iASlicerData> m_data;
+	QSharedPointer<iASlicerWidget> m_widget;
 	iASlicerMode m_mode;
+
 	uint m_magicLensInput;
+	QSharedPointer<iAMagicLens> m_magicLens;
 };
 
 //Get index of slicer X screen coordinate in global 3D coordinate system

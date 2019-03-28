@@ -3486,11 +3486,11 @@ void dlg_FeatureScout::initFeatureScoutUI()
 
 	if (visualization == iACsvConfig::UseVolume)
 		activeChild->getImagePropertyDlg()->hide();
-	activeChild->HideHistogram();
-	activeChild->logs->hide();
-	activeChild->sYZ->hide();
-	activeChild->sXZ->hide();
-	activeChild->sXY->hide();
+	activeChild->hideHistogram();
+	activeChild->getLogDlg()->hide();
+	activeChild->getSlicerDlgXY()->hide();
+	activeChild->getSlicerDlgXZ()->hide();
+	activeChild->getSlicerDlgXY()->hide();
 	activeChild->getModalitiesDlg()->hide();
 }
 

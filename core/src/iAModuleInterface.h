@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAChildData.h"
 #include "iAModuleAttachmentToChild.h"
 #include "open_iA_Core_export.h"
 
@@ -57,9 +56,6 @@ public:
 	virtual void Initialize() = 0;		// TODO: split up into GUI part and other?
 	//! Override to store custom settings of this module; called when program is shut down.
 	virtual void SaveSettings() const;
-	//! Retrieve the data of the currently active child widget.
-	//! @deprecated do not use this function, instead directly access e.g. activeChild from main window
-	iAChildData GetChildData() const;
 	//! Called whenever an MdiChild object is created. Override to react on this.
 	virtual void ChildCreated(MdiChild* child);
 protected:
@@ -69,8 +65,6 @@ protected:
 	void PrepareResultChild( int childInd, QString const & title );
 	//! Set the currently active child as "current" and update references to it in m_childData.
 	void PrepareActiveChild();
-	//! Call this to update the child data after you have changed m_mdiChild member.
-	void UpdateChildData();
 	//! Provides access to a second loaded mdi child, if such is available.
 	//! Will throw an error if none is available or more than two are loaded
 	//! @deprecated instead of this method, in filters, use the facilities
@@ -88,7 +82,7 @@ protected:
 	//! @param isDisablable whether the action should be disabled when no child is currently open
 	void AddActionToMenuAlphabeticallySorted( QMenu * menu, QAction * action, bool isDisablable = true );
 	//! Create a new attachment for the given child.
-	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData );
+	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * childData );
 	//! Get an attachment of the current mdi child.
 	//! @note current mdi child is determined through m_mdiChild member
 	//!       which is _not_ automatically updated to the active mdi child, see m_mdiChild member!
@@ -102,9 +96,6 @@ protected:
 	//! "current" mdi child
 	//! @deprecated use direct access via MainWindow methods
 	MdiChild * m_mdiChild;
-	//! access to data of "current" mdi child.
-	//! @deprecated use direct access via MainWindow methods
-	iAChildData m_childData;
 	//! attachments of this module
 	QVector<iAModuleAttachmentToChild*> m_attachments;
 private:
@@ -122,7 +113,7 @@ T* iAModuleInterface::GetAttachment()
 	static_assert(std::is_base_of<iAModuleAttachmentToChild, T>::value, "GetAttachment: given type must inherit from iAModuleAttachmentToChild!");
 	for (int i = 0; i < m_attachments.size(); ++i)
 	{
-		if (m_attachments[i]->GetMdiChild() == m_mdiChild &&
+		if (m_attachments[i]->getMdiChild() == m_mdiChild &&
 			dynamic_cast<T*>(m_attachments[i]) != 0)
 		{
 			return dynamic_cast<T*>(m_attachments[i]);

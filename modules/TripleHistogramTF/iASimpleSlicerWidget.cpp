@@ -35,12 +35,13 @@
 #include <vtkRenderer.h>
 
 iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enableInteraction /*= false*/, Qt::WindowFlags f /*= 0 */) :
-	QWidget(parent, f), m_enableInteraction(enableInteraction)
+	QWidget(parent, f), m_enableInteraction(enableInteraction),
+	m_slicerTransform(vtkTransform::New())
 {
 	m_slicer = new iASlicer(this, iASlicerMode::XY, this,
 		// TODO: do this in a better way?
 		/*Qt::WindowFlags f = */f,
-		/*bool decorations = */false); // Hide everything except the slice itself
+		/*bool decorations = */false, m_slicerTransform); // Hide everything except the slice itself
 }
 
 iASimpleSlicerWidget::~iASimpleSlicerWidget()
@@ -78,8 +79,6 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 	vtkImageData *imageData = modality->GetImage().GetPointer();
 
 	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->getColorFunction();
-	m_slicerTransform = vtkTransform::New();
-	m_slicer->initialize(m_slicerTransform);
 	m_slicer->addChannel(0, iAChannelData(imageData, colorFunction));
 	m_slicer->enableChannel(0, true);
 	m_slicer->disableInteractor();

@@ -33,7 +33,6 @@
 #include "iAAlgorithm.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
-#include "iAChildData.h"
 #include "iAConsole.h"
 #include "qthelper/iADockWidgetWrapper.h"
 #include "iALogger.h"
@@ -158,9 +157,9 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	parametricSpline = iAParametricSpline::New();
 	parametricSpline->SetPoints(worldSnakePoints);
 
-	slicer[iASlicerMode::YZ] = new iASlicer(this, iASlicerMode::YZ, sYZ->sliceWidget);
-	slicer[iASlicerMode::XY] = new iASlicer(this, iASlicerMode::XY, sXY->sliceWidget);
-	slicer[iASlicerMode::XZ] = new iASlicer(this, iASlicerMode::XZ, sXZ->sliceWidget);
+	slicer[iASlicerMode::YZ] = new iASlicer(this, iASlicerMode::YZ, sYZ->sliceWidget, slicerTransform, worldSnakePoints);
+	slicer[iASlicerMode::XY] = new iASlicer(this, iASlicerMode::XY, sXY->sliceWidget, slicerTransform, worldSnakePoints);
+	slicer[iASlicerMode::XZ] = new iASlicer(this, iASlicerMode::XZ, sXZ->sliceWidget, slicerTransform, worldSnakePoints);
 	
 	sYZ->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(255, 0  , 0  ) } ").arg(iASlicerWidget::BorderWidth));
 	sXY->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(0  , 0  , 255) } ").arg(iASlicerWidget::BorderWidth));
@@ -284,9 +283,13 @@ void MdiChild::connectSignalsToSlots()
 
 	for (int s = 0; s < 3; ++s)
 	{
-		connect(slicer[s]->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeMagicLensModality(int)));
-		connect(slicer[s]->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
-		connect(slicer[s]->widget(), SIGNAL(ctrlMouseWheel(int)), this, SLOT(ChangeMagicLensSize(int)));
+		connect(slicer[s]->widget(), &iASlicerWidget::shiftMouseWheel, this, &MdiChild::changeMagicLensModality);
+		connect(slicer[s]->widget(), &iASlicerWidget::altMouseWheel,   this, &MdiChild::changeMagicLensOpacity);
+		connect(slicer[s]->widget(), &iASlicerWidget::ctrlMouseWheel,  this, &MdiChild::changeMagicLensSize);
+
+		connect(slicer[s]->data(), &iASlicerData::oslicerPos, this, &MdiChild::updatePositionMarker);
+		connect(slicer[s]->data(), &iASlicerData::msg, this, &MdiChild::addMsg);
+		connect(slicer[s]->data(), &iASlicerData::progress, this, &MdiChild::updateProgressBar);
 	}
 
 	connect(m_histogram, SIGNAL(updateViews()), this, SLOT(updateViews()));
@@ -294,11 +297,11 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, SIGNAL(noPointSelected()), this, SIGNAL(noPointSelected()));
 	connect(m_histogram, SIGNAL(endPointSelected()), this, SIGNAL(endPointSelected()));
 	connect(m_histogram, SIGNAL(active()), this, SIGNAL(active()));
-	connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(ModalityTFChanged()));
+	connect((dlg_transfer*)(m_histogram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(modalityTFChanged()));
 
 	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateImageProperties()));
 	connect(m_dlgModalities, SIGNAL(ModalitiesChanged()), this, SLOT(updateViews()));
-	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(ShowModality(int)));
+	connect(m_dlgModalities, SIGNAL(ModalitySelected(int)), this, SLOT(showModality(int)));
 }
 
 void MdiChild::connectThreadSignalsToChildSlots( iAAlgorithm* thread )
@@ -418,12 +421,12 @@ void MdiChild::enableRenderWindows()	// = image data available
 	m_dlgModalities->EnableUI();
 }
 
-void MdiChild::ModalityTFChanged()
+void MdiChild::modalityTFChanged()
 {
 	updateChannelMappers();
 	for (int s = 0; s<3; ++s)
 		slicer[s]->updateMagicLensColors();
-	emit TransferFunctionChanged();
+	emit transferFunctionChanged();
 }
 
 void MdiChild::updateProgressBar(int i)
@@ -432,7 +435,7 @@ void MdiChild::updateProgressBar(int i)
 	pbar->setValue(i);
 }
 
-void MdiChild::updateRenderers(int x, int y, int z, int mode)
+void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
 {
 	double spacing[3];
 	imageData->GetSpacing(spacing);
@@ -606,7 +609,7 @@ bool MdiChild::loadFile(const QString &f, bool isStack)
 		connect(ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	}
 	connectIOThreadSignals(ioThread);
-	connect(m_dlgModalities, SIGNAL(ModalityAvailable(int)), this, SLOT(ModalityAdded(int)));
+	connect(m_dlgModalities, SIGNAL(ModalityAvailable(int)), this, SLOT(modalityAdded(int)));
 	connect(ioThread, SIGNAL(done()), this, SIGNAL(fileLoaded()));
 
 	polyData->ReleaseData();
@@ -1005,7 +1008,7 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 
 	ioThread = new iAIO(tmpSaveImg, polyData, m_logger, this);
 	connectIOThreadSignals(ioThread);
-	connect(ioThread, SIGNAL(done()), this, SLOT(SaveFinished()));
+	connect(ioThread, SIGNAL(done()), this, SLOT(saveFinished()));
 	m_storedModalityNr = modalityNr;
 	if (!setupSaveIO(f)) {
 		ioFinished();
@@ -1658,13 +1661,13 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 		//Changing arbitrary profile positioning
 		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::YZ]->widget(), SLOT(setArbitraryProfile(int, double*)));
 		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::XZ]->widget(), SLOT(setArbitraryProfile(int, double*)));
-		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(UpdateProbe(int, double*)));
+		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(updateProbe(int, double*)));
 		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::XY]->widget(), SLOT(setArbitraryProfile(int, double*)));
 		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::XZ]->widget(), SLOT(setArbitraryProfile(int, double*)));
-		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(UpdateProbe(int, double*)));
+		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(updateProbe(int, double*)));
 		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::XY]->widget(), SLOT(setArbitraryProfile(int, double*)));
 		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), slicer[iASlicerMode::YZ]->widget(), SLOT(setArbitraryProfile(int, double*)));
-		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(UpdateProbe(int, double*)));
+		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this,		 SLOT(updateProbe(int, double*)));
 		connect(slicer[iASlicerMode::XY]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), Raycaster, SLOT(setArbitraryProfile(int, double*)));
 		connect(slicer[iASlicerMode::YZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), Raycaster, SLOT(setArbitraryProfile(int, double*)));
 		connect(slicer[iASlicerMode::XZ]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), Raycaster, SLOT(setArbitraryProfile(int, double*)));
@@ -2096,7 +2099,7 @@ void MdiChild::toggleMagicLens( bool isEnabled )
 
 	if (isEnabled)
 	{
-		ChangeMagicLensModality(0);
+		changeMagicLensModality(0);
 	}
 	setMagicLensEnabled(isEnabled);
 	updateSlicers();
@@ -2140,9 +2143,6 @@ bool MdiChild::initView( QString const & title )
 	}
 	vtkColorTransferFunction* colorFunction = (getModalities()->size() > 0)
 		? getModality(0)->GetTransfer()->getColorFunction() : vtkColorTransferFunction::New();
-	// TODO: check if this is only called once?
-	for (int s = 0; s<3; ++s)
-		slicer[s]->initialize(slicerTransform, worldSnakePoints);
 
 	renderer->stackedWidgetRC->setCurrentIndex(0);
 	updateSliceIndicators();
@@ -2159,7 +2159,7 @@ bool MdiChild::initView( QString const & title )
 	else
 	{	//Polygonal mesh is loaded
 		showPoly();
-		HideHistogram();
+		hideHistogram();
 	}
 
 	//Load the layout to the child
@@ -2168,7 +2168,7 @@ bool MdiChild::initView( QString const & title )
 	return true;
 }
 
-void MdiChild::HideHistogram()
+void MdiChild::hideHistogram()
 {
 	m_histogramContainer->hide();
 }
@@ -2310,7 +2310,7 @@ void MdiChild::changeVisibility(unsigned char mode)
 
 	logs->setVisible(tab);
 	if (isVolumeDataLoaded())
-	{	// TODO: check redundancy with HideHistogram calls?
+	{	// TODO: check redundancy with hideHistogram calls?
 		m_histogramContainer->setVisible(tab);
 	}
 }
@@ -2503,7 +2503,7 @@ void MdiChild::toggleArbitraryProfile( bool isChecked )
 	Raycaster->setArbitraryProfileOn(isArbProfileEnabled);
 }
 
-void MdiChild::UpdateProbe( int ptIndex, double * newPos )
+void MdiChild::updateProbe( int ptIndex, double * newPos )
 {
 	if (imageData->GetNumberOfScalarComponents() != 1) //No profile for rgb, rgba or vector pixel type images
 		return;
@@ -2654,6 +2654,16 @@ dlg_imageproperty * MdiChild::getImagePropertyDlg()
 	return imgProperty;
 }
 
+dlg_profile * MdiChild::getProfileDlg()
+{
+	return imgProfile;
+}
+
+dlg_logs * MdiChild::getLogDlg()
+{
+	return logs;
+}
+
 vtkTransform* MdiChild::getSlicerTransform()
 {
 	return slicerTransform;
@@ -2752,7 +2762,7 @@ bool MdiChild::isVolumeDataLoaded() const
 		extent[1] >= 0 && extent[3] >= 0 && extent[5] >= 0;
 }
 
-void MdiChild::ChangeMagicLensModality(int chg)
+void MdiChild::changeMagicLensModality(int chg)
 {
 	m_currentComponent = (m_currentComponent + chg);
 	if (m_currentComponent < 0 || m_currentComponent >= getModality(m_currentModality)->ComponentCount())
@@ -2777,13 +2787,13 @@ void MdiChild::ChangeMagicLensModality(int chg)
 	setHistogramModality(m_currentModality);	// TODO: don't change histogram, just read/create min/max and transfer function?
 }
 
-void MdiChild::ChangeMagicLensOpacity(int chg)
+void MdiChild::changeMagicLensOpacity(int chg)
 {
 	for (int s=0; s<3; ++s)
 		slicer[s]->setMagicLensOpacity(slicer[s]->getMagicLensOpacity() + (chg*0.05));
 }
 
-void MdiChild::ChangeMagicLensSize(int chg)
+void MdiChild::changeMagicLensSize(int chg)
 {
 	if (!isMagicLensToggled())
 		return;
@@ -2805,7 +2815,7 @@ int MdiChild::getCurrentModality() const
 	return m_currentModality;
 }
 
-void MdiChild::ShowModality(int modIdx)
+void MdiChild::showModality(int modIdx)
 {
 	if (m_currentModality == modIdx)
 		return;
@@ -2867,12 +2877,12 @@ void MdiChild::setHistogramModality(int modalityIdx)
 	getModality(modalityIdx)->GetTransfer()->Info().setComputing();
 	updateImageProperties();
 	auto workerThread = new iAStatisticsUpdater(modalityIdx, getModality(modalityIdx));
-	connect(workerThread, &iAStatisticsUpdater::StatisticsReady, this, &MdiChild::StatisticsAvailable);
+	connect(workerThread, &iAStatisticsUpdater::StatisticsReady, this, &MdiChild::statisticsAvailable);
 	connect(workerThread, &iAStatisticsUpdater::finished, workerThread, &QObject::deleteLater);
 	workerThread->start();
 }
 
-void MdiChild::ModalityAdded(int modalityIdx)
+void MdiChild::modalityAdded(int modalityIdx)
 {
 	if (getModality(modalityIdx)->GetImage()->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
 	{
@@ -2885,7 +2895,7 @@ void MdiChild::ModalityAdded(int modalityIdx)
 	}
 }
 
-void MdiChild::HistogramDataAvailable(int modalityIdx)
+void MdiChild::histogramDataAvailable(int modalityIdx)
 {
 	QString modalityName = getModality(modalityIdx)->GetName();
 	m_currentHistogramModality = modalityIdx;
@@ -2919,7 +2929,7 @@ void MdiChild::displayHistogram(int modalityIdx)
 	if (histData &&	histData->GetNumBin() == newBinCount)
 	{
 		if (modalityIdx != m_currentHistogramModality)
-			HistogramDataAvailable(modalityIdx);
+			histogramDataAvailable(modalityIdx);
 		return;
 	}
 
@@ -2927,7 +2937,7 @@ void MdiChild::displayHistogram(int modalityIdx)
 		.arg(getModality(modalityIdx)->GetName()));
 	auto workerThread = new iAHistogramUpdater(modalityIdx,
 		getModality(modalityIdx), newBinCount);
-	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::HistogramDataAvailable);
+	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::histogramDataAvailable);
 	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
 	workerThread->start();
 }
@@ -2940,7 +2950,7 @@ void MdiChild::clearHistogram()
 	m_histogram->update();
 }
 
-void MdiChild::StatisticsAvailable(int modalityIdx)
+void MdiChild::statisticsAvailable(int modalityIdx)
 {
 	displayHistogram(modalityIdx);
 	// TODO: only initialize volume renderer of modalityIdx modality here!
@@ -2955,7 +2965,7 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 			slicer[s]->data()->resetCamera();
 		}
 	}
-	ModalityTFChanged();
+	modalityTFChanged();
 	updateViews();
 }
 
@@ -2974,7 +2984,7 @@ void MdiChild::initVolumeRenderers()
 	}
 	applyVolumeSettings(true);
 	connect(getModalities().data(), SIGNAL(Added(QSharedPointer<iAModality>)),
-		m_dlgModalities, SLOT(ModalityAdded(QSharedPointer<iAModality>)));
+		m_dlgModalities, SLOT(modalityAdded(QSharedPointer<iAModality>)));
 	Raycaster->GetRenderer()->ResetCamera();
 }
 
@@ -3037,7 +3047,7 @@ vtkColorTransferFunction * MdiChild::getColorTransferFunction()
 	return getModality(0)->GetTransfer()->getColorFunction();
 }
 
-void MdiChild::SaveFinished()
+void MdiChild::saveFinished()
 {
 	if (m_storedModalityNr < getModalities()->size() && ioThread->getIOID() != STL_WRITER)
 		m_dlgModalities->SetFileName(m_storedModalityNr, ioThread->getFileName());

@@ -31,5 +31,5 @@ Q_SIGNALS:
 	void xrfLoaded();
 private slots:
 	bool XRF_Visualization();
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
+	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child ) override;
 };

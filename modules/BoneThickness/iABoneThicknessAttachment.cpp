@@ -36,8 +36,8 @@
 #include <QLabel>
 #include <QPushButton>
 
-iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData):
-	iAModuleAttachmentToChild(_pMainWnd, _iaChildData)
+iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChild * child):
+	iAModuleAttachmentToChild(mainWnd, child)
 {
 	QWidget* pWidget(new QWidget());
 
@@ -45,7 +45,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	m_pBoneThicknessChartBar = new iABoneThicknessChartBar(pWidget);
 	m_pBoneThicknessTable = new iABoneThicknessTable(pWidget);
 	
-	m_pBoneThickness->set(m_childData.child->getRenderer(), m_childData.polyData, m_pBoneThicknessChartBar, m_pBoneThicknessTable);
+	m_pBoneThickness->set(m_child->getRenderer(), m_child->getPolyData(), m_pBoneThicknessChartBar, m_pBoneThicknessTable);
 	m_pBoneThicknessChartBar->set(m_pBoneThickness.data(), m_pBoneThicknessTable);
 	m_pBoneThicknessTable->set(m_pBoneThickness.data(), m_pBoneThicknessChartBar);
 
@@ -128,7 +128,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pGridLayout->addWidget(pGroupBoxSettings, 3, 0, 1, 2);
 
 	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Bone thickness"), "BoneThickness"));
-	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, pDockWidgetWrapper);
+	m_child->tabifyDockWidget(m_child->getLogDlg(), pDockWidgetWrapper);
 
 	pDockWidgetWrapper->adjustSize();
 	m_pBoneThicknessChartBar->resize(pBoneThicknessSplitter->width() / 2, pBoneThicknessSplitter->height());
@@ -138,7 +138,7 @@ void iABoneThicknessAttachment::slotCheckBoxShowThickness(const bool& _bChecked)
 {
 	m_pBoneThickness->setShowThickness(_bChecked);
 	m_pBoneThickness->setWindowSpheres();
-	m_childData.child->getRenderer()->update();
+	m_child->getRenderer()->update();
 }
 
 void iABoneThicknessAttachment::slotCheckBoxTransparency(const bool& _bChecked)
@@ -158,7 +158,7 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius()
 		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindowSpheres();
-		m_childData.child->getRenderer()->update();
+		m_child->getRenderer()->update();
 		qApp->restoreOverrideCursor();
 	}
 }

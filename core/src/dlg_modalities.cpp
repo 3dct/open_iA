@@ -183,7 +183,7 @@ void dlg_modalities::AddListItem(QSharedPointer<iAModality> mod)
 	EnableButtons();
 }
 
-void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
+void dlg_modalities::modalityAdded(QSharedPointer<iAModality> mod)
 {
 	AddListItem(mod);
 	InitDisplay(mod);

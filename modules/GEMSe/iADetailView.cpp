@@ -208,8 +208,8 @@ iADetailView::iADetailView(
 	connect(m_previewWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 
 	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(dblClicked()), this, SLOT(DblClicked()));
-	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
+	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(changeModality(int)));
+	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(changeMagicLensOpacity(int)));
 	connect(m_previewWidget->GetSlicer()->data(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
 	connect(m_previewWidget->GetSlicer()->data(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
 	connect(m_previewWidget->GetSlicer()->data(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
@@ -243,16 +243,16 @@ void iADetailView::dblClicked()
 	m_magicLensEnabled = !m_magicLensEnabled;
 	if (m_magicLensEnabled)
 	{
-		ChangeModality(0);
+		changeModality(0);
 	}
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	slicer->setMagicLensEnabled(m_magicLensEnabled);
 }
 
 
-void iADetailView::ChangeModality(int offset)
+void iADetailView::changeModality(int offset)
 {
-	// TOOD: refactor to remove duplication between here and MdiChild::ChangeModality!
+	// TOOD: refactor to remove duplication between here and MdiChild::changeModality!
 	m_magicLensCurrentComponent = (m_magicLensCurrentComponent + offset);
 	if (m_magicLensCurrentComponent < 0 || m_magicLensCurrentComponent >= m_modalities->Get(m_magicLensCurrentModality)->ComponentCount())
 	{
@@ -297,7 +297,7 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 }
 
 
-void iADetailView::ChangeMagicLensOpacity(int chg)
+void iADetailView::changeMagicLensOpacity(int chg)
 {
 	m_previewWidget->GetSlicer()->setMagicLensOpacity(m_previewWidget->GetSlicer()->getMagicLensOpacity() + (chg*0.05));
 }

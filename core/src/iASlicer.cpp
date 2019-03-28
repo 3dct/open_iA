@@ -38,71 +38,39 @@
 #include <cassert>
 
 iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container,
-	bool decorations /*= true*/, bool magicLensAvailable /*= true*/) :
+	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkAbstractTransform *tr, vtkPoints* snakeSlicerPoints) :
 	QObject(parent),
 	m_mode(mode),
-	m_magicLensInput(NotExistingChannel)
+	m_magicLensInput(NotExistingChannel),
+	m_data(new iASlicerData(this, parent, decorations)),
+	m_widget(new iASlicerWidget(this, widget_container, decorations))
 {
-	if (magicLensAvailable)
-	{
-		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
-	}
-	m_data		= new iASlicerData(this, parent, decorations);
-	m_widget	= new iASlicerWidget(this, widget_container, decorations);
-
 	assert(m_widget);
 	if (!m_widget)
 	{
 		DEBUG_LOG("Slicer: Could not allocate iASlicerWidget!");
 		return;
 	}
-	connectWidgetAndData();
-	connectToMdiChildSlots();
+	m_widget->SetRenderWindow(m_data->getRenderWindow());
+	connect(m_data.data(), SIGNAL(updateSignal()), m_widget.data(), SLOT(slicerUpdatedSlot()));
 
-	if (m_magicLens)
+	if (magicLensAvailable)
 	{
+		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
 		m_magicLens->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_widget->GetRenderWindow()));
 	}
-}
-
-void iASlicer::initialize(vtkAbstractTransform *tr, vtkPoints* snakeSlicerPoints)
-{
 	m_data->initialize(tr);
 	m_widget->initialize(snakeSlicerPoints);
 }
 
-iASlicer::~iASlicer()
-{
-	delete m_data;
-	delete m_widget;
-}
-
-void iASlicer::connectWidgetAndData()
-{
-	m_widget->SetRenderWindow(m_data->getRenderWindow());
-	connect(m_data, SIGNAL(updateSignal()), m_widget, SLOT(slicerUpdatedSlot()));
-}
-
-void iASlicer::connectToMdiChildSlots()
-{
-	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
-	if(!mdi_parent)
-		return;//TODO: exceptions?
-	// enable linked view (similarity rendering for metadata visualization
-	connect( m_data, SIGNAL( oslicerPos(int, int, int, int) ),	mdi_parent,	SLOT( updateRenderers(int, int, int, int) ) );
-
-	connect( m_data, SIGNAL(msg(QString)),  mdi_parent, SLOT(addMsg(QString)));
-	connect( m_data, SIGNAL(progress(int)), mdi_parent, SLOT(updateProgressBar(int))) ;
-}
-
 iASlicerData * iASlicer::data()
 {
-	return m_data;
+	return m_data.data();
 }
 
 iASlicerWidget * iASlicer::widget()
 {
-	return m_widget;
+	return m_widget.data();
 }
 
 bool iASlicer::changeInteractorState()
@@ -146,12 +114,12 @@ void iASlicer::setPositionMarkerCenter(double x, double y)
 
 void iASlicer::update()
 {
-	if (m_widget->isVisible())
-	{
-		m_data->update();
-		if (m_magicLens)
-			m_magicLens->Render();
-	}}
+	if (!m_widget->isVisible())
+		return;
+	m_data->update();
+	if (m_magicLens)
+		m_magicLens->Render();
+}
 
 void iASlicer::saveAsImage() const
 {

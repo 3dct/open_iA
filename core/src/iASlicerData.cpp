@@ -720,8 +720,10 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 
 	m_interactor->Enable();
 
-	if (movieWriter->GetError()) emit msg(tr("  MOVIE export failed."));
-	else emit msg(tr("MOVIE export completed."));
+	if (movieWriter->GetError())
+		emit msg(tr("  MOVIE export failed."));
+	else
+		emit msg(tr("MOVIE export completed."));
 
 	return;
 }

@@ -237,7 +237,7 @@ void iAFeatureScoutModuleInterface::onChildClose()
 	tlbFeatureScout = nullptr;
 }
 
-iAModuleAttachmentToChild * iAFeatureScoutModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
+iAModuleAttachmentToChild * iAFeatureScoutModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
 {
-	return new iAFeatureScoutAttachment( mainWnd, childData );
+	return new iAFeatureScoutAttachment( mainWnd, child );
 }

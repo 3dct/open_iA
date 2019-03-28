@@ -43,7 +43,7 @@ void iATripleHistogramTFModuleInterface::MenuItemSelected()
 	thtf = new dlg_TripleHistogramTF(m_mdiChild);
 
 	//m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, thtf);
-	m_mdiChild->tabifyDockWidget(m_mdiChild->logs, thtf);
+	m_mdiChild->tabifyDockWidget(m_mdiChild->getLogDlg(), thtf);
 
 	thtf->show();
 	thtf->raise();

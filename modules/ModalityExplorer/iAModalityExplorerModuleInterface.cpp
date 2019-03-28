@@ -39,9 +39,9 @@ void iAModalityExplorerModuleInterface::Initialize()
 }
 
 
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, childData);
+	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, child);
 	return result;
 }
 
@@ -49,7 +49,6 @@ iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(M
 void iAModalityExplorerModuleInterface::ModalitySPLOM()
 {
 	PrepareActiveChild();
-	UpdateChildData();
 	bool result = AttachToMdiChild(m_mdiChild);
 	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
 	if (!result || !attach)

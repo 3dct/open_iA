@@ -70,9 +70,10 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_sliceNumber(SliceNumberNotSet),
 	m_mode(mode),
 	m_aspectRatio(1.0),
-	m_colorTheme(nullptr)
+	m_colorTheme(nullptr),
+	m_slicerTransform(vtkTransform::New())
 {
-	m_slicer = new iASlicer(this, mode, this, false, magicLens);
+	m_slicer = new iASlicer(this, mode, this, false, magicLens, m_slicerTransform);
 }
 
 iAImagePreviewWidget::~iAImagePreviewWidget()
@@ -83,12 +84,9 @@ iAImagePreviewWidget::~iAImagePreviewWidget()
 
 void iAImagePreviewWidget::InitializeSlicer()
 {
-	m_slicerTransform = vtkTransform::New();
-
 	BuildCTF();
 	
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->initialize(m_slicerTransform);
 	m_slicer->addChannel(0, iAChannelData(m_imageData, m_ctf));
 	m_slicer->setBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
 	

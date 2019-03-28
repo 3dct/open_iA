@@ -91,15 +91,7 @@ class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild
 {
 	Q_OBJECT
 public:
-	dlg_renderer * renderer;
-	dlg_sliceXY * sXY;
-	dlg_sliceXZ * sXZ;
-	dlg_sliceYZ * sYZ;
-	dlg_logs * logs;
 	QProgressBar * pbar;
-
-	/** waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit */
-	void waitForPreviousIO();
 
 	MdiChild(MainWindow * mainWnd, iAPreferences const & preferences, bool unsavedChanges);
 	~MdiChild();
@@ -113,6 +105,9 @@ public:
 	bool saveAs();
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
 	void updateLayout();
+
+	//! waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit
+	void waitForPreviousIO();
 
 	void multiview() { changeVisibility(MULTI);};
 	bool editPrefs(iAPreferences const & p);
@@ -150,17 +145,22 @@ public:
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread);
 	void connectIOThreadSignals(iAIO* thread);
 	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
-	vtkPiecewiseFunction * getPiecewiseFunction();
-	vtkColorTransferFunction * getColorTransferFunction();
-	void setReInitializeRenderWindows( bool reInit ) { reInitializeRenderWindows = reInit; }
 
-	//! deprecated; use getImagePointer instead!
+	//! access the opacity function of the "main image" of this child
+	//! @deprecated all access to images should proceed via modalities (getModality / setModalities /...)
+	vtkPiecewiseFunction * getPiecewiseFunction();
+	//! access the color transfer function of the "main image" of this child
+	//! @deprecated all access to images should proceed via modalities (getModality / setModalities /...)
+	vtkColorTransferFunction * getColorTransferFunction();
+	//! @deprecated retrieve images via the modalities (getModality etc.) instead!
 	vtkImageData* getImageData();
-	//! function to retrieve main image data object of this MDI child
+	//! @deprecated retrieve images via the modalities (getModality etc.) instead!
 	vtkSmartPointer<vtkImageData> getImagePointer() { return imageData; }
-	//! deprecated; use the version with smart pointer instead!
+	//! @deprecated all access to images should proceed via modalities (getModality / setModalities /...)
 	void setImageData(vtkImageData * iData);
+	//! @deprecated all access to images should proceed via modalities (getModality / setModalities /...)
 	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
+	//! access to "main" polydata object visualized in this child (if any)
 	vtkPolyData* getPolyData() { return polyData; };
 	iARenderer* getRenderer() { return Raycaster; };
 	iASlicerData* getSlicerDataXZ();
@@ -169,18 +169,23 @@ public:
 	iASlicer* getSlicerXZ();
 	iASlicer* getSlicerXY();
 	iASlicer* getSlicerYZ();
+	//! @{ access to dock widgets
 	dlg_sliceXY * getSlicerDlgXY();
 	dlg_sliceXZ	* getSlicerDlgXZ();
 	dlg_sliceYZ	* getSlicerDlgYZ();
 	dlg_renderer * getRendererDlg();
 	dlg_imageproperty * getImagePropertyDlg();
+	dlg_profile * getProfileDlg();
+	dlg_logs * getLogDlg();
+	//! @}
+
+	void setReInitializeRenderWindows(bool reInit) { reInitializeRenderWindows = reInit; }
 	vtkTransform* getSlicerTransform();
 	bool getResultInNewWindow() const { return preferences.ResultInNewWindow; }
 	bool getLinkedMDIs() const { return slicerSettings.LinkMDIs; }
 	bool getLinkedViews() const { return slicerSettings.LinkViews; }
 	std::vector<dlg_function*> &getFunctions();
 	void redrawHistogram();
-	dlg_profile *getProfile() { return imgProfile; }
 	iADiagramFctWidget* getHistogram();
 	iADockWidgetWrapper* getHistogramDockWidget();
 
@@ -236,19 +241,25 @@ public:
 	int  getMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }
 	//! @}
 
+	//! Returns the currently active renderer (Default / Raycaster / GPU)
 	int getRenderMode() const;
 
+	//! @{ Current "position" (defined by the respective slice number in the slice views)
 	int getXCoord() const { return xCoord; }
 	int getYCoord() const { return yCoord; }
 	int getZCoord() const { return zCoord; }
+	//! @}
 
 	MainWindow* getMainWnd();
-	void HideHistogram();
+	//! Hides the histogram dockwidget
+	void hideHistogram();
 	//! apply current rendering settings of this mdi child to the given iARenderer
 	void applyRenderSettings(iARenderer* raycaster);
 	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
 	void applyVolumeSettings(const bool loadSavedVolumeSettings);
+	//! Returns the name of the layout currently applied to this child window
 	QString getLayoutName() const;
+	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration on this child
 	void loadLayout(QString const & layout);
 
 	//! If more than one modality loaded, ask user to choose one of them.
@@ -298,7 +309,7 @@ Q_SIGNALS:
 	void renderSettingsChanged();
 	void preferencesChanged();
 	void viewInitialized();
-	void TransferFunctionChanged();
+	void transferFunctionChanged();
 	void fileLoaded();
 	void histogramAvailable();
 public slots:
@@ -339,7 +350,7 @@ public slots:
 	//! \param camOptions	All informations of the camera stored in a double array
 	//! \param rsParallelProjection	boolean variable to determine if parallel projection option on.
 	void setCamPosition(double * camOptions, bool rsParallelProjection);
-	void UpdateProbe(int ptIndex, double * newPos);
+	void updateProbe(int ptIndex, double * newPos);
 	void resetLayout();
 
 private slots:
@@ -381,20 +392,20 @@ private slots:
 	void updateSlabCompositeModeXZ(int compositeMode);
 	void updateSlabCompositeModeYZ(int compositeMode);
 	void updateRenderWindows(int channels);
-	void updateRenderers(int x, int y, int z, int mode);
+	void updatePositionMarker(int x, int y, int z, int mode);
 	void toggleArbitraryProfile(bool isChecked);
 	void ioFinished();
 	void updateImageProperties();
 	void clearLogs();
-	void ModalityTFChanged();
-	void HistogramDataAvailable(int modalityIdx);
-	void StatisticsAvailable(int modalityIdx);
-	void ChangeMagicLensModality(int chg);
-	void ChangeMagicLensOpacity(int chg);
-	void ChangeMagicLensSize(int chg);
-	void ShowModality(int modIdx);
-	void SaveFinished();
-	void ModalityAdded(int modalityIdx);
+	void modalityTFChanged();
+	void histogramDataAvailable(int modalityIdx);
+	void statisticsAvailable(int modalityIdx);
+	void changeMagicLensModality(int chg);
+	void changeMagicLensOpacity(int chg);
+	void changeMagicLensSize(int chg);
+	void showModality(int modIdx);
+	void saveFinished();
+	void modalityAdded(int modalityIdx);
 
 private:
 	void closeEvent(QCloseEvent *event);
@@ -413,17 +424,13 @@ private:
 	void hideVolumeWidgets();
 	void setVisibility(QList<QWidget*> widgets, bool show);
 	void cleanWorkingAlgorithms();
-
-	QByteArray m_beforeMaximizeState;
-	bool m_isSmthMaximized;
-	QDockWidget * m_whatMaximized;
-	int m_pbarMaxVal;
 	void maximizeDockWidget(QDockWidget * dw);
 	void demaximizeDockWidget(QDockWidget * dw);
 	void resizeDockWidget(QDockWidget * dw);
 
 	void connectSignalsToSlots();
 	void setRenderWindows();
+	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void getSnakeNormal(int index, double point[3], double normal[3]);
 	//void updateReslicer(double point[3], double normal[3], int mode);
 	void updateSliceIndicators();
@@ -439,6 +446,19 @@ private:
 
 	// adds an algorithm to the list of currently running jobs
 	void addAlgorithm(iAAlgorithm* thread);
+
+	void setupViewInternal(bool active);
+
+	void setHistogramModality(int modalityIdx);
+	void displayHistogram(int modalityIdx);
+	int  getCurrentModality() const;
+	void initModalities();
+	void initVolumeRenderers();
+
+	QByteArray m_beforeMaximizeState;
+	bool m_isSmthMaximized;
+	QDockWidget * m_whatMaximized;
+	int m_pbarMaxVal;
 
 	QFileInfo fileInfo;
 
@@ -471,9 +491,6 @@ private:
 	bool isArbProfileEnabled;   //!< arbitrary profile, shown in profile widget
 	bool isMagicLensEnabled;    //!< magic lens exploration
 
-	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
-	void setupViewInternal(bool active);
-
 	vtkSmartPointer<vtkImageData> imageData;		// TODO: remove - use modality data instead!
 	vtkPolyData* polyData;
 	vtkTransform* axesTransform;
@@ -486,12 +503,20 @@ private:
 	iAIO* ioThread;
 
 	iADiagramFctWidget* m_histogram;
-	iADockWidgetWrapper* m_histogramContainer;
 	QSharedPointer<iAPlot> m_histogramPlot;
 
+	//! @{ dock widgets
+	iADockWidgetWrapper* m_histogramContainer;
 	dlg_imageproperty* imgProperty;
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
+	dlg_sliceXY * sXY;
+	dlg_sliceXZ * sXZ;
+	dlg_sliceYZ * sYZ;
+	dlg_modalities * m_dlgModalities;
+	dlg_renderer * renderer;
+	dlg_logs * logs;
+	//! @}
 
 	std::vector<iAAlgorithm*> workingAlgorithms;
 
@@ -512,16 +537,9 @@ private:
 	QString m_layout;
 	vtkSmartPointer<vtkImageData> tmpSaveImg;	//< TODO: get rid of this (by introducing smart pointer in iAIO/ iAlgorithm?
 
-	dlg_modalities * m_dlgModalities;
 	int m_currentModality;
 	int m_currentComponent;
 	int m_currentHistogramModality;
 	bool m_initVolumeRenderers;
 	int m_storedModalityNr;		//!< modality nr being stored
-
-	void setHistogramModality(int modalityIdx);
-	void displayHistogram(int modalityIdx);
-	int  getCurrentModality() const;
-	void initModalities();
-	void initVolumeRenderers();
 };

@@ -166,7 +166,7 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 	m_datasetFile = m_datasetFolder + "/" + data->item( 0, datasetColInd )->text();
 	loadImageData( m_datasetFile, m_imgData );
 	BuildDefaultTF( m_imgData, m_slicerTF );
-	slicer->initialize( m_imgData, m_slicerTransform, m_slicerTF );
+	slicer->initialize( m_imgData, m_slicerTF );
 
 	//masks channel
 	QStringList masks;
@@ -222,7 +222,7 @@ void iASSView::SetData( const QTableWidget * data, QString selText )
 	}
 	m_slicerViews.clear();
 
-	iASSSlicer * view = new iASSSlicer( selText );
+	iASSSlicer * view = new iASSSlicer( selText, m_slicerTransform);
 	m_slicerViewsLayout->addWidget( view->container );
 	connect( sbRot, SIGNAL( valueChanged( double ) ), view->slicer, SLOT( rotateSlice( double ) ) );
 	connect( pushSave, SIGNAL( clicked() ), view->slicer, SLOT( saveAsImage() ) );
@@ -245,7 +245,7 @@ void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * d
 
 	for ( int i = 0; i < dataList->size(); ++i )
 	{
-		iASSSlicer * view = new iASSSlicer( (*dataList)[i].second ) ;
+		iASSSlicer * view = new iASSSlicer( (*dataList)[i].second, m_slicerTransform ) ;
 		m_slicerViewsLayout->addWidget( view->container );
 		connect( sbRot, SIGNAL( valueChanged( double ) ), view->slicer, SLOT( rotateSlice( double ) ) );
 		connect( pushSave, SIGNAL( clicked() ), view->slicer, SLOT( saveAsImage() ) );

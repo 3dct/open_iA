@@ -189,9 +189,9 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
 	InitCommonGUI(widgetAddHelper);
-	widgetAddHelper.m_mdiChild->logs->show();
-	widgetAddHelper.SplitWidget(spectrumChartContainer, widgetAddHelper.m_mdiChild->logs, Qt::Vertical);
-	widgetAddHelper.m_mdiChild->logs->hide();
+	widgetAddHelper.m_mdiChild->getLogDlg()->show();
+	widgetAddHelper.SplitWidget(spectrumChartContainer, widgetAddHelper.m_mdiChild->getLogDlg(), Qt::Vertical);
+	widgetAddHelper.m_mdiChild->getLogDlg()->hide();
 	widgetAddHelper.SplitWidget(m_pieChartContainer, spectrumChartContainer);
 
 	m_ctfChanged  = true;
@@ -952,7 +952,7 @@ void dlg_XRF::showLinkedElementMaps( int show )
 		m_rendererManager.addToBundle(elemRend->GetRenderer()->GetRenderer());
 		m_elementRenderers.push_back( elemRend );
 		if(isFirst)
-			mdiChild->splitDockWidget(mdiChild->renderer, elemRend, Qt::Horizontal);
+			mdiChild->splitDockWidget(mdiChild->getRendererDlg(), elemRend, Qt::Horizontal);
 		else
 			mdiChild->splitDockWidget(m_elementRenderers[m_elementRenderers.size()-2], elemRend, Qt::Vertical);
 		isFirst = false;

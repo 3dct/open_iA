@@ -32,7 +32,6 @@
 
 #include <charts/iASimpleHistogramData.h>
 #include <dlg_imageproperty.h>
-#include <iAChildData.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iALookupTable.h>
@@ -47,8 +46,8 @@
 
 const int EntropyBinCount = 100;
 
-iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData):
-	iAModuleAttachmentToChild(mainWnd, childData),
+iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild * child):
+	iAModuleAttachmentToChild(mainWnd, child),
 	m_newSubEnsembleID(1),
 	m_labelLut(vtkSmartPointer<vtkLookupTable>::New())
 {
@@ -73,9 +72,9 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildDa
 }
 
 
-iAUncertaintyAttachment* iAUncertaintyAttachment::Create(MainWindow * mainWnd, iAChildData childData)
+iAUncertaintyAttachment* iAUncertaintyAttachment::Create(MainWindow * mainWnd, MdiChild * child)
 {
-	iAUncertaintyAttachment * newAttachment = new iAUncertaintyAttachment(mainWnd, childData);
+	iAUncertaintyAttachment * newAttachment = new iAUncertaintyAttachment(mainWnd, child);
 	return newAttachment;
 }
 
@@ -104,8 +103,8 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 		DEBUG_LOG("Ensemble: Given data file could not be read.");
 		return false;
 	}
-	connect(GetMdiChild(), SIGNAL(fileLoaded()), this, SLOT(ContinueEnsembleLoading()));
-	if (!GetMdiChild()->loadFile(m_ensembleFile->ModalityFileName(), false))
+	connect(m_child, SIGNAL(fileLoaded()), this, SLOT(ContinueEnsembleLoading()));
+	if (!m_child->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
 		DEBUG_LOG(QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
 		return false;
@@ -129,25 +128,25 @@ void iAUncertaintyAttachment::ContinueEnsembleLoading()
 		m_spatialView->SetupSelection(m_scatterplotView->GetSelectionImage());
 	}
 	m_mainWnd->showMaximized();
-	m_childData.child->showMaximized();
-	m_childData.child->splitDockWidget(m_childData.child->getSlicerDlgXY(), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
-	m_childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Horizontal);	// ScatterPlot View
-	m_childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[5], Qt::Vertical);	// Ensemble View
-	m_childData.child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);	// Label Distribution View
-	m_childData.child->splitDockWidget(m_dockWidgets[3], m_dockWidgets[4], Qt::Vertical);	// Uncertainty Distribution View
-	m_childData.child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
-	m_childData.child->getSlicerDlgXY()->hide();
-	m_childData.child->getImagePropertyDlg()->hide();
+	m_child->showMaximized();
+	m_child->splitDockWidget(m_child->getSlicerDlgXY(), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
+	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Horizontal);	// ScatterPlot View
+	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[5], Qt::Vertical);	// Ensemble View
+	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);	// Label Distribution View
+	m_child->splitDockWidget(m_dockWidgets[3], m_dockWidgets[4], Qt::Vertical);	// Uncertainty Distribution View
+	m_child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
+	m_child->getSlicerDlgXY()->hide();
+	m_child->getImagePropertyDlg()->hide();
 	if (!m_ensembleFile->LayoutName().isEmpty())
 	{
-		m_childData.child->loadLayout(m_ensembleFile->LayoutName());
+		m_child->loadLayout(m_ensembleFile->LayoutName());
 	}
 }
 
 
 void iAUncertaintyAttachment::WriteFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties)
 {
-	m_currentEnsemble->WriteFullDataFile(fileName, writeIntensities, writeMemberLabels, writeMemberProbabilities, writeEnsembleUncertainties, m_childData.child->getModalities());
+	m_currentEnsemble->WriteFullDataFile(fileName, writeIntensities, writeMemberLabels, writeMemberProbabilities, writeEnsembleUncertainties, m_child->getModalities());
 }
 
 

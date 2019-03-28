@@ -44,7 +44,7 @@ class QVBoxLayout;
 class iASSSlicer
 {
 public:
-	iASSSlicer( const QString slicerName );
+	iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> transform);
 	~iASSSlicer();
 	void enableMasksChannel( bool isEnabled );
 	void enableGTChannel( bool isEnabled );
@@ -53,7 +53,6 @@ public:
 	void setGTOpacity( double opacity );
 	void changeMode( iASlicerMode mode );
 	void initialize( vtkSmartPointer<vtkImageData> img, 
-		vtkSmartPointer<vtkTransform> transform, 
 		vtkSmartPointer<vtkColorTransferFunction> tf );
 	void initBPDChans( QString const & minFile, QString const & medFile, QString const & maxFile );
 	void initializeMasks( QStringList & masks );

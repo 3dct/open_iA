@@ -26,7 +26,6 @@
 #include "dlg_samplings.h"
 
 #include <dlg_modalities.h>
-#include <iAChildData.h>
 #include <iAConsole.h>
 #include <iAColorTheme.h>
 #include <iALogger.h>
@@ -39,46 +38,45 @@
 #include <mainwindow.h>
 #include <qthelper/iAWidgetAddHelper.h>
 
-iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, iAChildData childData):
-	iAModuleAttachmentToChild(mainWnd, childData),
+iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child):
+	iAModuleAttachmentToChild(mainWnd, child),
 	m_dummyTitleWidget(new QWidget())
 {
 }
 
-iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, iAChildData childData)
+iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * child)
 {
-	MdiChild * mdiChild = childData.child;
-	iAGEMSeAttachment * newAttachment = new iAGEMSeAttachment(mainWnd, childData);
+	iAGEMSeAttachment * newAttachment = new iAGEMSeAttachment(mainWnd, child);
 
-	newAttachment->m_widgetAddHelper = QSharedPointer<iAWidgetAddHelper>(new iAWidgetAddHelper(mdiChild, childData.logs));
+	newAttachment->m_widgetAddHelper = QSharedPointer<iAWidgetAddHelper>(new iAWidgetAddHelper(child, child->getLogDlg()));
 	
 	QString defaultThemeName("Brewer Set3 (max. 12)");
 	iAColorTheme const * colorTheme = iAColorThemeManager::GetInstance().GetTheme(defaultThemeName);
 	
-	newAttachment->m_dlgGEMSe = new dlg_GEMSe(mdiChild, mdiChild->getLogger(), colorTheme);
+	newAttachment->m_dlgGEMSe = new dlg_GEMSe(child, child->getLogger(), colorTheme);
 	
-	newAttachment->m_dlgLabels = new dlg_labels(mdiChild, colorTheme);
+	newAttachment->m_dlgLabels = new dlg_labels(child, colorTheme);
 	newAttachment->m_dlgSamplings = new dlg_samplings();
 	newAttachment->m_dlgGEMSeControl = new dlg_GEMSeControl(
-		childData.child,
+		child,
 		newAttachment->m_dlgGEMSe,
-		childData.child->getModalitiesDlg(),
+		child->getModalitiesDlg(),
 		newAttachment->m_dlgLabels,
 		newAttachment->m_dlgSamplings,
 		colorTheme
 	);
-	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSe, Qt::Vertical);
-	mdiChild->splitDockWidget(childData.logs, newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
-	mdiChild->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
-	mdiChild->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
+	child->splitDockWidget(child->getLogDlg(), newAttachment->m_dlgGEMSe, Qt::Vertical);
+	child->splitDockWidget(child->getLogDlg(), newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
+	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
+	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
 
 	//connect(mdiChild->getRenderer(),     SIGNAL(Clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(RendererClicked(int, int, int)));
-	connect(mdiChild->getSlicerDataXY(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
-	connect(mdiChild->getSlicerDataXZ(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
-	connect(mdiChild->getSlicerDataYZ(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
-	connect(mdiChild->getSlicerDataXY(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
-	connect(mdiChild->getSlicerDataXZ(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
-	connect(mdiChild->getSlicerDataYZ(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
+	connect(child->getSlicerDataXY(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
+	connect(child->getSlicerDataXZ(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
+	connect(child->getSlicerDataYZ(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
+	connect(child->getSlicerDataXY(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
+	connect(child->getSlicerDataXZ(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
+	connect(child->getSlicerDataYZ(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
 
 
 	return newAttachment;

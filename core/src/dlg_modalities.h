@@ -72,7 +72,7 @@ public:
 	void SetFileName(int modality, QString const & fileName);
 public slots:
 	//! add modality to list, create transfer function, add volume to renderers
-	void ModalityAdded(QSharedPointer<iAModality> mod);
+	void modalityAdded(QSharedPointer<iAModality> mod);
 	void InteractorModeSwitched(int newMode);
 signals:
 	void ModalityAvailable(int modalityIdx);
