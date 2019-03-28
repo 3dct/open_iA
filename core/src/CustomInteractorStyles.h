@@ -8,6 +8,7 @@
 #include "QString"
 #include "iAConsole.h"
 #include "iASlicerMode.h"
+#include <assert.h>
 
 
 // Motion flags
@@ -27,9 +28,13 @@ namespace propDefs {
 	struct sliceProp {
 		vtkProp3D *prop; 
 		iASlicerMode mode;
+		
+		//ex slice xy -> z is fixed
+		double fixedCoord; 
 	};
 
 	struct SliceDefs {
+		
 		double fixedCoord;
 		double x; 
 		double y;
@@ -42,36 +47,61 @@ namespace propDefs {
 		public:
 
 		//update the position while keeping one coordinate fixed, based on slicer mode
-		 void updatePropPosition(vtkProp3D *prop, iASlicerMode mode, const SliceDefs &sl_defs) {
+		static void updateSlicerPosition(vtkProp3D *prop, iASlicerMode mode, const SliceDefs &sl_defs, QString text) {
+			assert(prop && "object is null"); 
+			if (!prop) {
+				DEBUG_LOG("update Prop failed");
+				throw std::invalid_argument("nullpointer of prop"); 
+
+			}	
+
+			double *pos = prop->GetPosition();
+
 			switch (mode)
 			{
 			case YZ:
-				prop->SetPosition(sl_defs.fixedCoord, sl_defs.y, sl_defs.z);
+				//x is fixed
+				pos[0] = sl_defs.fixedCoord; //keep 
+				pos[1] += sl_defs.y;
+				pos[2] += sl_defs.z;
+				prop->SetPosition(pos);
 				break;
 			case XY:
-				prop->SetPosition(sl_defs.x, sl_defs.y, sl_defs.fixedCoord);
+				//z is fixed
+				pos[0] = sl_defs.x; 
+				pos[1] += sl_defs.y;
+				pos[2] += sl_defs.fixedCoord;//keep 
+				prop->SetPosition(pos);			
 				break;
 			case XZ:
+				//y fixed
+				pos[0] = sl_defs.x; 
+				pos[1] += sl_defs.fixedCoord;//keep 
+				pos[2] += sl_defs.z;
+				prop->SetPosition(pos);
+				break;
 				prop->SetPosition(sl_defs.x,sl_defs.fixedCoord, sl_defs.z); 
 				break;
 			case SlicerModeCount:
 				throw std::invalid_argument("invalid slicer mode"); 			
 			}
+
+			PropModifier::printProp(prop, text);
 		
 		}
-
-		 void updatePropOrientation(vtkProp3D *prop, double angle_x, double angle_y, double angle_z){
+				
+		static void updatePropOrientation(vtkProp3D *prop, double angle_x, double angle_y, double angle_z){
 			 prop->SetOrientation(angle_x, angle_y, angle_z); 
 		 }
 		
 
-		 static void printProp(vtkProp3D *prop) {
+		 static void printProp(vtkProp3D *prop, QString Text) {
 			 if (!prop) { return;  }
 			 
 			 const double *orientation=prop->GetOrientation(); 
 			 const double *position = prop->GetPosition();
 
-			 DEBUG_LOG(QString("Orientation %1 %2 %3").arg(orientation[0]).arg(orientation[1]).arg(orientation[2])); 
+			 DEBUG_LOG(Text + QString("Printing prop pos %1 %2 %3").arg(position[0]).arg(position[1]).arg(position[2]));
 
 		 }
 	};
@@ -99,21 +129,33 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 		this->FindPokedRenderer(x, y);
 		this->Interactor->GetPicker()->Pick(x, y, 0, this->GetCurrentRenderer());
 		this->FindPickedActor(x, y);
-		if (this->CurrentRenderer == nullptr || this->m_PropCurrentSlicer == nullptr)
+		if (this->CurrentRenderer == nullptr || this->m_PropCurrentSlicer.prop == nullptr 
+			|| this->m_propSlicer1.prop == nullptr || this->m_propSlicer2.prop == nullptr )
 		{
+			DEBUG_LOG("Either renderer or props are null"); 
 			return;
 		}
 
 		double picked[3];
 		this->Interactor->GetPicker()->GetPickPosition(picked);
-		
+		DEBUG_LOG(QString("Picked 1% \t %2 \t %3").arg(picked[0]).arg(picked[1]).arg(picked[2]));
+
 		//connect the components; 
 		printProbOrientation();
 		printPropPosistion();
 		printProbOrigin(); 
-		
-		DEBUG_LOG(QString("Picked 1% \t %2 \t %3").arg(picked[0]).arg(picked[1]).arg(picked[2])); 
 
+		//hier sind die Props noch drin
+
+
+		assert(this->m_Prop3DSlicer && "prop 3D slicer null");
+		assert(this->m_propSlicer1.prop && "prop Slicer 1 null");
+		assert(this->m_propSlicer2.prop && "prop Slicer 2 null");
+
+		DEBUG_LOG("uiiii"); 
+		updateSlicer(); 
+		
+		
 		if (!this->Interactor->GetShiftKey())
 			return;
 		vtkInteractorStyleTrackballActor::OnLeftButtonDown();
@@ -155,7 +197,7 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 	vtkGetMacro(InteractionMode, int);
 
 	vtkProp3D * getCurrentSlicerProp() const{
-		return this->m_PropCurrentSlicer; 
+		return this->m_PropCurrentSlicer.prop; 
 	}
 	
 
@@ -164,8 +206,11 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 		sliceX = x; 
 		sliceY = y;
 		sliceZ = z; 
-	
+		//m_PropCurrentSlicer
+
 	}
+
+
 	void initializeActors(vtkProp3D *propSlicer3D, vtkProp3D *propSlicer1, vtkProp3D *propSlicer2) {
 		
 		
@@ -180,15 +225,15 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 		this->setSlicer2(propSlicer2);
 	}
 	
-
 	//modes of other two slicers
 	void initModes(iASlicerMode mode_slice1, iASlicerMode mode_slice2); 
 	//currentSlicer
-	void setActiveSlicer(vtkProp3D *currentActor, iASlicerMode slice/*, int SliceNumber*/); 
+	void setActiveSlicer(vtkProp3D *currentActor, iASlicerMode slice, int activeSliceNr); 
 
 	//identify which slicer is used
 	void updateSlicer(); 
 
+	//void setSetcurrentSlicer();
 protected:
 	
 	double m_currentPos[3] ;
@@ -199,15 +244,15 @@ protected:
 	vtkCellPicker *InteractionPicker;
 
 	void printProbOrigin(){
-		double *pos = m_PropCurrentSlicer->GetOrigin(); 
+		double *pos = m_PropCurrentSlicer.prop->GetOrigin(); 
 		DEBUG_LOG(QString("\nOrigin x %1 y %2 z %3").arg(pos[0]).arg(pos[1]).arg(pos[2])); 
 	}
 	void printPropPosistion() {
-		double *pos = m_PropCurrentSlicer->GetPosition();
+		double *pos = m_PropCurrentSlicer.prop->GetPosition();
 		DEBUG_LOG(QString("\nPosition %1 %2 %3").arg(pos[0]).arg(pos[1]).arg(pos[2])); 
 	}
 	void printProbOrientation() {
-		double *pos = m_PropCurrentSlicer->GetOrientation();
+		double *pos = m_PropCurrentSlicer.prop->GetOrientation();
 		DEBUG_LOG(QString("\nPosition x %1 y %2 z %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
 	}
 
@@ -216,40 +261,39 @@ private:
 
 	//setting to null
 	void resetProps() {
-		propSlicer1.prop = nullptr;
-		propSlicer2.prop = nullptr;
-		Prop3DSlicer = nullptr;
+		m_propSlicer1.prop = nullptr;
+		m_propSlicer2.prop = nullptr;
+		m_Prop3DSlicer = nullptr;
 	}
 
 	void setModeSlicer1(iASlicerMode mode) {
-		propSlicer1.mode = mode;
+		m_propSlicer1.mode = mode;
 	}
 
 	void setModeSlicer2(iASlicerMode mode) {
-		propSlicer2.mode = mode; 
+		m_propSlicer2.mode = mode; 
 	}
 
 	void setPropSlicer1(double x, double y, double z) {
-		propSlicer1.prop->SetPosition(x, y, z);
+		m_propSlicer1.prop->SetPosition(x, y, z);
 	}
 	void setPropSlicer2(double x, double y, double z){
-		propSlicer2.prop->SetPosition(x, y, z);
+		m_propSlicer2.prop->SetPosition(x, y, z);
 	}
 
-	iASlicerMode activeSliceMode; 
+	//iASlicerMode activeSliceMode; 
 
 	//Prop of the current slicer
-	vtkProp3D *m_PropCurrentSlicer;
+	propDefs::sliceProp/*vtkProp3D*/ /***/m_PropCurrentSlicer;
 
 	//3d slicer prop
-	vtkProp3D *Prop3DSlicer;
+	vtkProp3D *m_Prop3DSlicer;
 
 
-	propDefs::sliceProp propSlicer1; 
-	propDefs::sliceProp propSlicer2;
+	propDefs::sliceProp m_propSlicer1; 
+	propDefs::sliceProp m_propSlicer2;
 		
-
-
+	
 	//koordinate of slices
 	int sliceX;
 	int sliceY;
@@ -258,19 +302,19 @@ private:
 
 	void set3DProp(vtkProp3D * prop3D) {
 		/*if (!prop3D) { DEBUG_LOG("prop3d is null") };*/
-		Prop3DSlicer = prop3D;
+		m_Prop3DSlicer = prop3D;
 	}
 
 	//+ set coordinate of slicer 1
 	void setSlicer1(vtkProp3D * prop1) {
 		/*if (!prop1) { DEBUG_LOG("prop sli1 is null") };*/
-		propSlicer1.prop = prop1;
+		m_propSlicer1.prop = prop1;
 
 	}
 
 	void setSlicer2(vtkProp3D * prop2) {
 		/*if (!prop2) { DEBUG_LOG("prop sli2 is null") };*/
-		propSlicer2.prop = prop2;
+		m_propSlicer2.prop = prop2;
 	}
 
 

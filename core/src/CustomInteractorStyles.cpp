@@ -7,13 +7,12 @@ vtkStandardNewMacro(iACustomInterActorStyleTrackBall);
 iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall() {
 
 	InteractionMode = 0;
-	this->m_PropCurrentSlicer = nullptr;
-	this->Prop3DSlicer = nullptr; 
-	this->propSlicer1.prop = nullptr;
-	this->propSlicer2.prop = nullptr; 
+	this->m_PropCurrentSlicer.prop = nullptr;
+	this->m_Prop3DSlicer = nullptr; 
+	this->m_propSlicer1.prop = nullptr;
+	this->m_propSlicer2.prop = nullptr; 
 
 	this->InteractionPicker = vtkCellPicker::New();
-	/*PickTolerance = 100.0;*/
 	this->InteractionPicker->SetTolerance(100.0);
 	m_currentPos[0] = std::numeric_limits<double>::min();
 	m_currentPos[1] = std::numeric_limits<double>::min();
@@ -96,11 +95,11 @@ void iACustomInterActorStyleTrackBall::FindPickedActor(int x, int y)
 	vtkProp *prop = this->InteractionPicker->GetViewProp();
 	if (prop != nullptr)
 	{
-		this->m_PropCurrentSlicer = vtkProp3D::SafeDownCast(prop);
+		this->m_PropCurrentSlicer.prop = vtkProp3D::SafeDownCast(prop);
 	}
 	else
 	{
-		this->m_PropCurrentSlicer = nullptr;
+		this->m_PropCurrentSlicer.prop = nullptr;
 	}
 }
 
@@ -110,35 +109,48 @@ void iACustomInterActorStyleTrackBall::initModes(iASlicerMode mode_slice1, iASli
 	setModeSlicer2(mode_slice2); 
 }
 
-void iACustomInterActorStyleTrackBall::setActiveSlicer(vtkProp3D *currentSlicer, iASlicerMode sliceMode/*, int SliceNumber*/)
+void iACustomInterActorStyleTrackBall::setActiveSlicer(vtkProp3D *currentActor, iASlicerMode slice, int activeSliceNr)
 {
-	if (!currentSlicer) {
+	if (!currentActor) {
 		throw std::invalid_argument("slice actor is null");
 	}
 
-	m_PropCurrentSlicer = currentSlicer; 
-	activeSliceMode = sliceMode; 
+	m_PropCurrentSlicer.prop = currentActor; 
+	m_PropCurrentSlicer.fixedCoord = activeSliceNr; 
+	m_PropCurrentSlicer.mode = slice; 
 
-	//switch (sliceMode) {
-	//	case iASlicerMode::XY: sliceZ = SliceNumber; break;
-	//	case iASlicerMode::XZ: sliceY = SliceNumber; break;
-	//	case iASlicerMode::YZ: sliceX = SliceNumber; break;
-	//	default: throw std::invalid_argument("Invalid slice option"); break;
+}
 
-	//}
+void iACustomInterActorStyleTrackBall::updateSlicer()
+{
 
+	//position;-> 2 mal die propdefs
+	propDefs::sliceProp propSlice1; 
+	propDefs::sliceProp propSlice2;
+	propDefs::SliceDefs sl_defs; 
+	
+	//coords
+	const double *pos = m_PropCurrentSlicer.prop->GetPosition();
+	
+	sl_defs.fixedCoord = m_PropCurrentSlicer.fixedCoord; 
+	sl_defs.x = pos[0];
+	sl_defs.y = pos[1];
+	sl_defs.z = pos[2]; 
+
+	DEBUG_LOG(QString("New positins %1 %2 %3, Fixed %4").arg(sl_defs.x).arg(sl_defs.y).arg(sl_defs.y).arg(sl_defs.fixedCoord));
+
+	//zb current slice mode xy -> z is fixed
+
+	//update slicer 1 - props are null why??? 
+	propDefs::PropModifier::updateSlicerPosition(m_propSlicer1.prop, m_PropCurrentSlicer.mode, sl_defs, "Slicer1"); 
+	//update slicer 2; 
+	propDefs::PropModifier::updateSlicerPosition(m_propSlicer2.prop, m_PropCurrentSlicer.mode, sl_defs, "Slicer2");
+	//update slicer 3D; 
+	
+	propDefs::PropModifier::updateSlicerPosition(m_Prop3DSlicer, m_PropCurrentSlicer.mode, sl_defs, "Slicer3d");
 	
 }
 
-//void iACustomInterActorStyleTrackBall::updateSlicer(double x,double y, double z)
-//{
-//	////switch (activeSliceMode) {
-//
-//	//case iASlicerMode::XY: 
-//	//	{
-//	//		//setPosition
-//
-//	//	}
-//
-//	//}
-//}
+
+
+

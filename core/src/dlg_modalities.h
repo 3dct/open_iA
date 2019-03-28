@@ -105,10 +105,7 @@ private slots:
 private:
 
 	//connects styles of the 3 slicer to each other
-	void configureSlicerStyles(QSharedPointer<iAModality> editModality,
-		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy,
-		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xz,
-		vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_yz);
+	void configureSlicerStyles(QSharedPointer<iAModality> editModality);
 
 	// TODO: move modalities out of here (mdichild? common data repository?)
 	QSharedPointer<iAModalityList> modalities;
@@ -118,6 +115,8 @@ private:
 	vtkPlane *m_plane1, *m_plane2, *m_plane3;
 	vtkRenderer* m_mainRenderer;
 	MdiChild* m_mdiChild;
+
+	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy, Customstyle_xz, Customstyle_yz;
 
 	void AddToList(QSharedPointer<iAModality> mod);
 	//! initialize a modality's transfer function
