@@ -2359,7 +2359,7 @@ void MdiChild::InitChannelRenderer(uint id, bool use3D, bool enableChannel)
 	{
 		return;
 	}
-	for (int s = 0; s<3; ++s)
+	for (int s = 0; s < 3; ++s)
 		slicer[s]->addChannel(id, data);
 	/*
 	// TODO: VOLUME: rewrite using separate volume
@@ -2968,6 +2968,7 @@ void MdiChild::StatisticsAvailable(int modalityIdx)
 			iAChannelVisualizationData chData;
 			chData.setData(GetModality(0)->GetImage(), modTrans->getColorFunction(), nullptr);
 			slicer[s]->addChannel(0, &chData);
+			slicer[s]->enableChannel(0, true);
 			slicer[s]->data()->resetCamera();
 		}
 	}

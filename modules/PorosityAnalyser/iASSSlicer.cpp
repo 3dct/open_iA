@@ -23,6 +23,7 @@
 #include "PorosityAnalyserHelpers.h"
 
 #include <iAChanData.h>
+#include <iAChannelVisualizationData.h>
 #include <iAChannelSlicerData.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
@@ -185,7 +186,7 @@ iASSSlicer::~iASSSlicer()
 
 void iASSSlicer::changeMode( iASlicerMode mode )
 {
-	slicer->ChangeMode( mode );
+	slicer->changeMode( mode );
 	slicer->update();
 }
 
@@ -193,8 +194,10 @@ void iASSSlicer::initialize( vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 {
 	slicer->setup( iASingleSlicerSettings() );
 	slicer->initialize(transform);
-	// slicer->addChannel(0, ) ?
-	//slicer->initializeWidget( img );
+	iAChannelVisualizationData chData;
+	chData.setData(img, tf, nullptr);
+	slicer->addChannel(0, &chData);
+	slicer->enableChannel(0, true);
 	slicer->update();
 }
 
@@ -202,6 +205,7 @@ void iASSSlicer::initializeChannel( iAChanData * chData )
 {
 	chData->InitTFs();
 	slicer->addChannel( chData->id, chData->visData.data() );
+	slicer->enableChannel(chData->id, true);
 }
 
 void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile, QString const & maxFile )
@@ -223,11 +227,11 @@ void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile,
 
 		iAChannelSlicerData * chanSData = slicer->getChannel( contourChans[i]->id );
 		chanSData = slicer->getChannel( contourChans[i]->id );
-		chanSData->SetContourLineParams( lineWidths[i] );
-		chanSData->SetContoursColor( contRGBs[i] );
-		chanSData->SetContoursOpacity( 0.8 );
-		chanSData->SetContours( 1, &contourValue );
-		chanSData->SetShowContours( true );
+		chanSData->setContourLineParams( lineWidths[i] );
+		chanSData->setContoursColor( contRGBs[i] );
+		chanSData->setContoursOpacity( 0.8 );
+		chanSData->setContours( 1, &contourValue );
+		chanSData->setShowContours( true );
 	}
 	medContour->SetInputData( medChan->imgData );
 	minContour->SetInputData( minChan->imgData );
@@ -295,7 +299,7 @@ void iASSSlicer::initializeMasks( QStringList & masks )
 	sbw->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue( 0.06, 0.75 );
 	sbw->GetScalarBarActor()->SetTitle( "Mask count" );
 	sbw->GetScalarBarActor()->SetNumberOfLabels( 4 );
-	sbw->SetInteractor( slicer->GetRenderWindow()->GetInteractor() );
+	sbw->SetInteractor( slicer->getRenderWindow()->GetInteractor() );
 	masksChan->scalarBarWgt->SetEnabled( true );
 }
 
@@ -311,7 +315,7 @@ void iASSSlicer::enableContours( bool isEnabled )
 	for( int i = 0; i < 3; ++i )
 	{
 		iAChannelSlicerData * contourChan = slicer->getChannel( contourChans[i]->id );
-		contourChan->SetShowContours( isEnabled );
+		contourChan->setShowContours( isEnabled );
 		slicer->enableChannel( contourChans[i]->id, isEnabled );
 	}
 	update();

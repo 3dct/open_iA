@@ -261,8 +261,8 @@ private:
 	QCursor m_mouseCursor;
 
 	QSharedPointer<iAChannelSlicerData> createChannel(uint id);
-	void GetMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
-	void UpdatePositionMarkerExtent();
+	void getMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
+	void updatePositionMarkerExtent();
 
 	void setupColorMapper();
 };

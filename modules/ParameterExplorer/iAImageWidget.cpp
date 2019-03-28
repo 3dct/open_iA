@@ -20,8 +20,11 @@
 * ************************************************************************************/
 #include "iAImageWidget.h"
 
+#include <iAChannelVisualizationData.h>
+#include <iAChannelSlicerData.h>
 #include <iASlicerSettings.h>
 #include <iASlicer.h>
+#include <iASlicerWidget.h>
 #include <iATransferFunction.h>
 
 #include <vtkColorTransferFunction.h>
@@ -34,8 +37,11 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 	m_transform = vtkSmartPointer<vtkTransform>::New();
 	m_slicer->setup(iASingleSlicerSettings());
 	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
-	m_slicer->initializeData(img, m_transform, m_ctf);
-	m_slicer->initializeWidget(img);
+	m_slicer->initialize(m_transform);
+	m_slicer->widget()->initialize();
+	iAChannelVisualizationData chData;
+	chData.setData(img, m_ctf, nullptr);
+	m_slicer->addChannel(0, &chData);
 	StyleChanged();
 }
 
@@ -47,7 +53,7 @@ void iAImageWidget::StyleChanged()
 
 void iAImageWidget::SetMode(int slicerMode)
 {
-	m_slicer->ChangeMode(static_cast<iASlicerMode>(slicerMode));
+	m_slicer->changeMode(static_cast<iASlicerMode>(slicerMode));
 	m_slicer->update();
 }
 
@@ -59,8 +65,8 @@ void iAImageWidget::SetSlice(int sliceNumber)
 
 int iAImageWidget::GetSliceCount() const
 {
-	int * ext = m_slicer->GetImageData()->GetExtent();
-	switch (m_slicer->GetMode())
+	int * ext = m_slicer->getChannel(0)->image->GetExtent();
+	switch (m_slicer->getMode())
 	{
 		case XZ: return ext[3] - ext[2] + 1;
 		case YZ: return ext[1] - ext[0] + 1;
@@ -72,7 +78,9 @@ int iAImageWidget::GetSliceCount() const
 void iAImageWidget::SetImage(vtkSmartPointer<vtkImageData> img)
 {
 	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
-	m_slicer->reInitialize(img, m_transform, m_ctf);
+	iAChannelVisualizationData chData;
+	chData.setData(img, m_ctf, nullptr);
+	m_slicer->getChannel(0)->reInit(&chData);
 	m_slicer->update();
 }
 

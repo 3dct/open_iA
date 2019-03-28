@@ -235,12 +235,6 @@ iASlicerData::~iASlicerData(void)
 	m_interactorStyle->Delete();
 	m_pointPicker->Delete();
 
-	if (m_decorations)
-	{
-		m_textInfo->Delete();
-		m_rulerWidget->Delete();
-	}
-
 	if (m_cameraOwner)
 	{
 		m_camera->Delete();
@@ -326,7 +320,6 @@ void iASlicerData::initialize(vtkAbstractTransform *tr)
 		m_scalarBarWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.06, 0.75);
 		m_scalarBarWidget->GetScalarBarActor()->SetTitle("Range");
 
-		UpdatePositionMarkerExtent();
 		m_positionMarkerMapper->SetInputConnection( m_positionMarkerSrc->GetOutputPort() );
 		m_positionMarkerActor->SetMapper( m_positionMarkerMapper );
 		m_positionMarkerActor->GetProperty()->SetColor( 0,1,0 );
@@ -895,10 +888,12 @@ void iASlicerData::saveImageStack()
 		.arg(fileInfo.absoluteDir().absolutePath()));
 }
 
-void iASlicerData::UpdatePositionMarkerExtent()
+void iASlicerData::updatePositionMarkerExtent()
 {
 	// TODO: how to choose spacing? currently fixed from first image? export all channels?
-	auto imageData = m_channels[m_channels.keys()[0]]->image;
+	if (m_channels.empty())
+		return;
+	auto imageData = m_channels[0]->image;
 	double spacing[2] = {
 		imageData->GetSpacing()[SlicerXInd(m_mode)],
 		imageData->GetSpacing()[SlicerYInd(m_mode)]
@@ -915,7 +910,7 @@ void iASlicerData::setStatisticalExtent( int statExt )
 	{
 		double center[3];
 		m_positionMarkerSrc->GetCenter(center);
-		UpdatePositionMarkerExtent();
+		updatePositionMarkerExtent();
 		m_positionMarkerSrc->SetCenter(center);
 	}
 }
@@ -997,7 +992,7 @@ void iASlicerData::execute( vtkObject * caller, unsigned long eventId, void * ca
 	{
 		double result[4];
 		double x, y, z;
-		GetMouseCoord(x, y, z, result);
+		getMouseCoord(x, y, z, result);
 		emit clicked(x, y, z);
 		emit UserInteraction();
 		break;
@@ -1006,7 +1001,7 @@ void iASlicerData::execute( vtkObject * caller, unsigned long eventId, void * ca
 	{
 		double result[4];
 		double x, y, z;
-		GetMouseCoord(x, y, z, result);
+		getMouseCoord(x, y, z, result);
 		emit released(x, y, z);
 		emit UserInteraction();
 		break;
@@ -1015,7 +1010,7 @@ void iASlicerData::execute( vtkObject * caller, unsigned long eventId, void * ca
 	{
 		double result[4];
 		double x, y, z;
-		GetMouseCoord(x, y, z, result);
+		getMouseCoord(x, y, z, result);
 		emit rightClicked(x, y, z);
 		break;
 	}
@@ -1023,7 +1018,7 @@ void iASlicerData::execute( vtkObject * caller, unsigned long eventId, void * ca
 	{
 		double result[4];
 		double xCoord, yCoord, zCoord;
-		GetMouseCoord(xCoord, yCoord, zCoord, result);
+		getMouseCoord(xCoord, yCoord, zCoord, result);
 		double mouseCoord[3] = { result[0], result[1], result[2] };
 		//updateFisheyeTransform(mouseCoord, reslicer, 50.0);
 		if (m_decorations)
@@ -1054,7 +1049,7 @@ void iASlicerData::execute( vtkObject * caller, unsigned long eventId, void * ca
 	m_interactor->Render();
 }
 
-void iASlicerData::GetMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result)
+void iASlicerData::getMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result)
 {
 	result[0] = result[1] = result[2] = result[3] = 0;
 	double point[4] = { m_ptMapped[0], m_ptMapped[1], m_ptMapped[2], 1 };
@@ -1287,7 +1282,7 @@ void iASlicerData::executeKeyPressEvent()
 			pDiskActor->SetVisibility(true);
 			double result[4];
 			double xCoord, yCoord, zCoord;
-			GetMouseCoord(xCoord, yCoord, zCoord, result);
+			getMouseCoord(xCoord, yCoord, zCoord, result);
 			printVoxelInformation(xCoord, yCoord, zCoord);
 		}
 		break;
@@ -1562,6 +1557,7 @@ void iASlicerData::addChannel( uint id, iAChannelVisualizationData * chData )
 		m_pointPicker->SetTolerance(newTol);
 	if (updateSpacing)
 	{
+		updatePositionMarkerExtent();
 		// TODO: update required for new channels other than to export? export all channels?
 		auto imageData = m_channels[m_channels.keys()[0]]->image;
 		auto reslicer = m_channels[m_channels.keys()[0]]->reslicer;
@@ -1676,7 +1672,7 @@ void iASlicerData::setMagicLensInput(uint id)
 	}
 	if (m_magicLensExternal)
 	{
-		m_magicLensExternal->AddInput(data->reslicer, data->getLookupTable(), data->getName());
+		m_magicLensExternal->AddInput(data->reslicer, data->getColorTransferFunction(), data->getName());
 	}
 }
 

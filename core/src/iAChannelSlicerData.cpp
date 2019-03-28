@@ -160,9 +160,16 @@ bool iAChannelSlicerData::isInitialized() const
 	return m_isInitialized;
 }
 
+/*
 vtkScalarsToColors* iAChannelSlicerData::getLookupTable()
 {
 	return m_colormapper->GetLookupTable();
+}
+*/
+
+vtkScalarsToColors* iAChannelSlicerData::getColorTransferFunction()
+{
+	return m_ctf;
 }
 
 void iAChannelSlicerData::updateMapper()

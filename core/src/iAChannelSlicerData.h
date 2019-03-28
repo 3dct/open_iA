@@ -49,7 +49,10 @@ public:
 	void init(iAChannelVisualizationData * chData, int mode);
 	void reInit(iAChannelVisualizationData * chData);
 	void setResliceAxesOrigin(double x, double y, double z);
-	vtkScalarsToColors* getLookupTable();
+	//! Get lookup table (combined color transfer function + piecewise function for opacity)
+	//vtkScalarsToColors* getLookupTable();
+	//! Get color transfer function (only the colors, fully opaque)
+	vtkScalarsToColors* getColorTransferFunction();
 
 	bool isInitialized() const;
 	void updateMapper();
