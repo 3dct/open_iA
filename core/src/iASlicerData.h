@@ -147,7 +147,8 @@ public:
 
 	void setManualBackground(double r, double g, double b);
 
-	vtkScalarBarWidget * getScalarBarWidget();
+	//vtkScalarBarWidget * getScalarBarWidget();
+	void setScalarBarTF(vtkScalarsToColors* ctf);
 	
 	QCursor getMouseCursor();
 	

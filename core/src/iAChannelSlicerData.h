@@ -45,7 +45,6 @@ class open_iA_Core_API iAChannelSlicerData
 {
 public:
 	iAChannelSlicerData();
-	~iAChannelSlicerData();
 	void init(iAChannelData const & chData, int mode);
 	void reInit(iAChannelData const & chData);
 	void setResliceAxesOrigin(double x, double y, double z);
@@ -63,9 +62,9 @@ public:
 	void updateLUT();
 	QString getName() const;
 
-	vtkImageActor*                imageActor;
-	vtkSmartPointer<vtkImageData> image;
-	vtkImageReslice*              reslicer;
+	vtkSmartPointer<vtkImageActor> imageActor;
+	vtkImageData * image;
+	vtkSmartPointer<vtkImageReslice> reslicer;
 
 	// TODO: contour functionality should be moved into separate class:
 	// {
@@ -87,11 +86,11 @@ private:
 	void assign(vtkSmartPointer<vtkImageData> imageData, QColor const & col);
 	void setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
 
-	vtkImageMapToColors*            m_colormapper;
-	bool                            m_isInitialized;
+	vtkSmartPointer<vtkImageMapToColors> m_colormapper;
 	vtkSmartPointer<vtkLookupTable> m_lut;
-	vtkScalarsToColors*             m_ctf;
-	vtkPiecewiseFunction*           m_otf;
+	bool                            m_isInitialized;
+	vtkScalarsToColors *            m_ctf;
+	vtkPiecewiseFunction *          m_otf;
 	QString                         m_name;
 	QColor                          m_color;  //! color of this channel (TODO: used only for pie charts in XRF module -> move there?)
 };

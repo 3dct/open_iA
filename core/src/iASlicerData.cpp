@@ -309,17 +309,16 @@ void iASlicerData::initialize(vtkAbstractTransform *tr)
 		m_textProperty->SetJustification(VTK_TEXT_CENTERED);
 		m_textProperty->SetVerticalJustification(VTK_TEXT_CENTERED);
 		m_textProperty->SetOrientation(1);
-		m_scalarBarWidget->SetInteractor(m_interactor);
 		m_scalarBarWidget->GetScalarBarActor()->SetLabelFormat("%.2f");
 		m_scalarBarWidget->GetScalarBarActor()->SetTitleTextProperty(m_textProperty);
 		m_scalarBarWidget->GetScalarBarActor()->SetLabelTextProperty(m_textProperty);
-		m_scalarBarWidget->SetEnabled( true );
-		m_scalarBarWidget->SetRepositionable( true );
-		m_scalarBarWidget->SetResizable( true );
 		m_scalarBarWidget->GetScalarBarRepresentation()->SetOrientation(1);
 		m_scalarBarWidget->GetScalarBarRepresentation()->GetPositionCoordinate()->SetValue(0.92,0.2);
 		m_scalarBarWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.06, 0.75);
 		m_scalarBarWidget->GetScalarBarActor()->SetTitle("Range");
+		m_scalarBarWidget->SetRepositionable(true);
+		m_scalarBarWidget->SetResizable(true);
+		m_scalarBarWidget->SetInteractor(m_interactor);
 
 		m_positionMarkerMapper->SetInputConnection( m_positionMarkerSrc->GetOutputPort() );
 		m_positionMarkerActor->SetMapper( m_positionMarkerMapper );
@@ -1501,8 +1500,6 @@ void iASlicerData::updateChannel( uint id, iAChannelData const & chData )
 void iASlicerData::addChannel( uint id, iAChannelData const & chData )
 {
 	assert(!m_channels.contains(id));
-	// TODO: Which color transfer function to use in scalar bar widget?
-	m_scalarBarWidget->GetScalarBarActor()->SetLookupTable(chData.getCTF());
 	bool updateSpacing = m_channels.empty();
 	auto chSlicerData = createChannel(id);
 	chSlicerData->init(chData, m_mode);
@@ -1512,6 +1509,7 @@ void iASlicerData::addChannel( uint id, iAChannelData const & chData )
 		m_pointPicker->SetTolerance(newTol);
 	if (updateSpacing)
 	{
+		setScalarBarTF(chData.getCTF());
 		updatePositionMarkerExtent();
 		// TODO: update required for new channels other than to export? export all channels?
 		auto imageData = m_channels[id]->image;
@@ -1792,10 +1790,18 @@ void iASlicerData::setMouseCursor( QString s )
 	emit updateSignal();
 }
 
+/*
 vtkScalarBarWidget * iASlicerData::getScalarBarWidget()
 {
 	assert(m_decorations);
 	return m_scalarBarWidget;
+}
+*/
+
+void iASlicerData::setScalarBarTF(vtkScalarsToColors* ctf)
+{
+	m_scalarBarWidget->GetScalarBarActor()->SetLookupTable(ctf);
+	m_scalarBarWidget->SetEnabled(ctf != nullptr);
 }
 
 QCursor iASlicerData::getMouseCursor()

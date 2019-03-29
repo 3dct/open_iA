@@ -171,11 +171,6 @@ void iASlicer::saveImageStack()
 	m_data->saveImageStack();
 }
 
-//vtkImageReslice * iASlicer::GetReslicer() const
-//{
-//	return m_data->GetReslicer();
-//}
-
 void iASlicer::setResliceAxesOrigin( double x, double y, double z )
 {
 	m_data->setResliceAxesOrigin(x, y, z);
@@ -214,7 +209,6 @@ void iASlicer::setROIVisible(bool isVisible)
 	m_data->setROIVisible(isVisible);
 }
 
-//iASlicerWidget: wrapping methods
 void iASlicer::setIndex( int x, int y, int z )
 {
 	m_widget->setIndex(x, y, z);

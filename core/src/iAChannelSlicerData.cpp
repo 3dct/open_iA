@@ -39,26 +39,18 @@
 #include <QThread>
 
 iAChannelSlicerData::iAChannelSlicerData() :
-	image(NULL),
-	reslicer(vtkImageReslice::New()),
-	m_colormapper(vtkImageMapToColors::New()),
-	imageActor(vtkImageActor::New()),
-	m_isInitialized(false),
+	reslicer(vtkSmartPointer<vtkImageReslice>::New()),
+	m_colormapper(vtkSmartPointer<vtkImageMapToColors>::New()),
+	imageActor(vtkSmartPointer<vtkImageActor>::New()),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
 	cFilter(vtkSmartPointer<vtkMarchingContourFilter>::New()),
 	cMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	cActor(vtkSmartPointer<vtkActor>::New()),
+	image(nullptr),
 	m_ctf(nullptr),
-	m_otf(nullptr)
+	m_otf(nullptr),
+	m_isInitialized(false)
 {}
-
-iAChannelSlicerData::~iAChannelSlicerData()
-{
-	m_colormapper->Delete();
-	imageActor->Delete();
-	reslicer->ReleaseDataFlagOn();
-	reslicer->Delete();
-}
 
 void iAChannelSlicerData::setResliceAxesOrigin(double x, double y, double z)
 {
@@ -184,7 +176,8 @@ QColor iAChannelSlicerData::getColor() const
 void iAChannelSlicerData::setTransform(vtkAbstractTransform * transform)
 {
 	reslicer->SetResliceTransform(transform);
-	reslicer->UpdateWholeExtent();
+	if (image)
+		reslicer->UpdateWholeExtent(); // TODO: check if we need this here
 }
 
 void iAChannelSlicerData::updateReslicer()
