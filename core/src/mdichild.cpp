@@ -2868,9 +2868,12 @@ void MdiChild::statisticsAvailable(int modalityIdx)
 	if (modalityIdx == 0)
 	{
 		QSharedPointer<iAModalityTransfer> modTrans = getModality(0)->GetTransfer();
+		uint channelID = createChannel();
+		assert(channelID == 0); // first modality we create, there shouldn't be another channel yet!
+		getModality(0)->setChannelID(channelID);
 		for (int s = 0; s < 3; ++s)
 		{
-			m_slicer[s]->addChannel(0, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()), true);
+			m_slicer[s]->addChannel(channelID, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()), true);
 			m_slicer[s]->data()->resetCamera();
 		}
 	}
