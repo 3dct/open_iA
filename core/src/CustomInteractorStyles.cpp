@@ -71,7 +71,7 @@ iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall() {
 
 void iACustomInterActorStyleTrackBall::OnMouseMove()
 {
-	int x = this->Interactor->GetEventPosition()[0];
+	/*int x = this->Interactor->GetEventPosition()[0];
 	int y = this->Interactor->GetEventPosition()[1];
 
 	switch (this->State)
@@ -82,6 +82,45 @@ void iACustomInterActorStyleTrackBall::OnMouseMove()
 		this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
 		break;
 	}
+*/
+	vtkInteractorStyleTrackballActor::OnMouseMove();
+	//if (!this->Interactor->GetShiftKey())
+	//	return;
+
+
+	//int x = this->Interactor->GetEventPosition()[0];
+	//int y = this->Interactor->GetEventPosition()[1];
+
+	//this->FindPokedRenderer(x, y);
+	//this->Interactor->GetPicker()->Pick(x, y, 0, this->GetCurrentRenderer());
+	//this->FindPickedActor(x, y);
+	if (this->CurrentRenderer == nullptr || this->m_PropCurrentSlicer.prop == nullptr
+		|| this->m_propSlicer1.prop == nullptr || this->m_propSlicer2.prop == nullptr)
+	{
+		DEBUG_LOG("Either renderer or props are null");
+		return;
+	}
+
+	double picked[3];
+	this->Interactor->GetPicker()->GetPickPosition(picked);
+	DEBUG_LOG(QString("Picked 1% \t %2 \t %3").arg(picked[0]).arg(picked[1]).arg(picked[2]));
+
+	//connect the components; 
+	printProbOrientation();
+	printPropPosistion();
+	printProbOrigin();
+
+	assert(this->m_volumeRenderer && "prop 3D slicer null");
+	assert(this->m_propSlicer1.prop && "prop Slicer 1 null");
+	assert(this->m_propSlicer2.prop && "prop Slicer 2 null");
+
+
+
+	updateSlicer();
+
+	
+	
+
 }
 
 //	int x = this->Interactor->GetEventPosition()[0];
@@ -224,6 +263,24 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 	updatePropPosition(m_propSlicer2.prop, m_PropCurrentSlicer.mode, sl_defs, "Slicer2");
 	//update slicer 3D; 
 	
+	const double *pos3d = m_volumeRenderer->GetVolume().Get()->GetPosition();
+
+	
+	//assing 3rd of the 3d thing coordinate to a slicer
+	switch (m_PropCurrentSlicer.mode) {
+	
+	case(iASlicerMode::YZ):
+		sl_defs.fixedCoord = pos3d[0];
+		break;
+	case (iASlicerMode::XZ): 
+		sl_defs.fixedCoord = pos3d[1];
+		break; 
+	case (iASlicerMode::XY):
+		sl_defs.fixedCoord = pos3d[2]; 
+		break;	
+	}
+
+	//here muss noch die richtige dritte coordinate rein
 	updatePropPosition(m_volumeRenderer->GetVolume().Get(), m_PropCurrentSlicer.mode, sl_defs, "Slicer3d");
 	if (this->m_mdiChild)
 	{
