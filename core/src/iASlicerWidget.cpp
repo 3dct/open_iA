@@ -140,7 +140,6 @@ void iASlicerWidget::initialize(vtkPoints *snakeSlicerPoints )
 	m_isInitialized = true;
 }
 
-
 iASlicerWidget::~iASlicerWidget()
 {
 	if (m_decorations)
@@ -151,7 +150,6 @@ iASlicerWidget::~iASlicerWidget()
 		delete m_arbProfile;
 	}
 }
-
 
 void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 {
@@ -165,7 +163,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 	{
 		pickPoint( pickedData.pos, pickedData.res, pickedData.ind );
 		// TODO: fisheye lens on all channels???
-		if (!m_slicerDataExternal->getChannel(0))
+		if (!m_slicerDataExternal->hasChannel(0))
 			return;
 		auto reslicer = m_slicerDataExternal->getChannel(0)->reslicer;
 		if (!fisheyeLensActivated)
@@ -222,7 +220,7 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 
 		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 		ren->SetWorldPoint(pickedData.res[SlicerXInd(m_slicerMode)], pickedData.res[SlicerYInd(m_slicerMode)], 0, 1);
-		if (!m_slicerDataExternal->getChannel(0))
+		if (!m_slicerDataExternal->hasChannel(0))
 			return;
 		// TODO: fisheye lens on all channels???
 		auto reslicer = m_slicerDataExternal->getChannel(0)->reslicer;
@@ -328,7 +326,6 @@ void iASlicerWidget::keyPressEvent(QKeyEvent *event)
 	iAVtkWidget::keyPressEvent(event);
 }
 
-
 void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 {
 	if(!m_isInitialized && !fisheyeLensActivated)
@@ -386,7 +383,6 @@ void iASlicerWidget::mousePressEvent(QMouseEvent *event)
 	iAVtkWidget::mousePressEvent(event);
 }
 
-
 void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	iAVtkWidget::mouseMoveEvent(event);
@@ -397,7 +393,7 @@ void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 
 	if ( fisheyeLensActivated )
 	{
-		if (!m_slicerDataExternal->getChannel(0))
+		if (!m_slicerDataExternal->hasChannel(0))
 			return;
 		// TODO: fisheye lens on all channels???
 		auto reslicer = m_slicerDataExternal->getChannel(0)->reslicer;
@@ -485,7 +481,6 @@ void iASlicerWidget::mouseMoveEvent(QMouseEvent *event)
 	}
 }
 
-
 void iASlicerWidget::deselectPoint()
 {
 	if (!m_decorations)
@@ -494,7 +489,6 @@ void iASlicerWidget::deselectPoint()
 	}
 	m_snakeSpline->deselectPoint();
 }
-
 
 void iASlicerWidget::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -535,7 +529,6 @@ void iASlicerWidget::contextMenuEvent(QContextMenuEvent *event)
 		m_magicLensContextMenu->exec(event->globalPos());
 }
 
-
 void iASlicerWidget::switchMode(int mode)
 {
 	if (!m_decorations)
@@ -560,7 +553,6 @@ void iASlicerWidget::switchMode(int mode)
 	GetRenderWindow()->GetInteractor()->Render();
 }
 
-
 void iASlicerWidget::addPoint(double xPos, double yPos, double zPos)
 {
 	if (!m_decorations)
@@ -578,10 +570,9 @@ void iASlicerWidget::addPoint(double xPos, double yPos, double zPos)
 	GetRenderWindow()->GetInteractor()->Render();
 }
 
-
 void iASlicerWidget::setSliceProfile(double Pos[3])
 {
-	if (!m_slicerDataExternal->getChannel(0))
+	if (!m_slicerDataExternal->hasChannel(0))
 		return;
 	// TODO: slice profile on selected/current channel
 	auto reslicer = m_slicerDataExternal->getChannel(0)->reslicer;
@@ -593,12 +584,9 @@ void iASlicerWidget::setSliceProfile(double Pos[3])
 	GetRenderWindow()->GetInteractor()->Render();
 }
 
-
 bool iASlicerWidget::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
 {
-	if (!m_decorations)
-		return false;
-	if (!m_slicerDataExternal->getChannel(0))
+	if (!m_decorations || !m_slicerDataExternal->hasChannel(0))
 		return false;
 	// TODO: slice profile on selected/current channel
 	auto reslicer  = m_slicerDataExternal->getChannel(0)->reslicer;
@@ -619,7 +607,6 @@ bool iASlicerWidget::setArbitraryProfile(int pointInd, double * Pos, bool doClam
 	GetRenderWindow()->GetInteractor()->Render();
 	return true;
 }
-
 
 void iASlicerWidget::movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos)
 {
@@ -642,13 +629,11 @@ void iASlicerWidget::movePoint(size_t selectedPointIndex, double xPos, double yP
 	}
 }
 
-
 void iASlicerWidget::menuDeleteSnakeLine()
 {
 	deleteSnakeLine();
 	emit deletedSnakeLine();
 }
-
 
 void iASlicerWidget::deleteSnakeLine()
 {
@@ -666,7 +651,6 @@ void iASlicerWidget::deleteSnakeLine()
 	GetRenderWindow()->GetInteractor()->Render();
 }
 
-
 void iASlicerWidget::setSliceProfileOn( bool isOn )
 {
 	m_isSliceProfEnabled = isOn;
@@ -674,18 +658,10 @@ void iASlicerWidget::setSliceProfileOn( bool isOn )
 	GetRenderWindow()->GetInteractor()->Render();
 }
 
-
-void iASlicerWidget::clearProfileData()
-{
-
-}
-
-
 int iASlicerWidget::pickPoint( double *pos_out, double *result_out, int * ind_out )
 {
 	return pickPoint(pos_out[0], pos_out[1], pos_out[2], result_out, ind_out[0], ind_out[1], ind_out[2]);
 }
-
 
 int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_out,
 	double *result_out,	int &xInd_out, int &yInd_out, int &zInd_out)
@@ -705,7 +681,7 @@ int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_o
 	vtkIdType total_points = pointPicker->GetPickedPositions()->GetNumberOfPoints();
 	pointPicker->GetPickedPositions()->GetPoint(total_points-1, ptMapped );
 
-	if (!m_slicerDataExternal->getChannel(0))
+	if (!m_slicerDataExternal->hasChannel(0))
 		return 0;
 	// TODO: slice profile on selected/current channel
 	auto reslicer = m_slicerDataExternal->getChannel(0)->reslicer;
@@ -735,14 +711,12 @@ int iASlicerWidget::pickPoint(double &xPos_out, double &yPos_out, double &zPos_o
 	return 1;
 }
 
-
 void iASlicerWidget::slicerUpdatedSlot()
 {
 	setCursor( m_slicerDataExternal->getMouseCursor() );
 	if (m_isSliceProfEnabled)
 		updateProfile();
 }
-
 
 void iASlicerWidget::updateProfile()
 {
@@ -751,7 +725,6 @@ void iASlicerWidget::updateProfile()
 	double pos[3] = {oldPos[1], oldPos[1], oldPos[1]};
 	setSliceProfile(pos);
 }
-
 
 void iASlicerWidget::setArbitraryProfileOn( bool isOn )
 {
@@ -1080,7 +1053,6 @@ void iASlicerWidget::updateMagicLens()
 	double const * worldP = ren->GetWorldPoint();
 	m_magicLensExternal->UpdatePosition(GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera(), worldP, mousePos);
 }
-
 
 void iASlicerWidget::computeGlyphs()
 {

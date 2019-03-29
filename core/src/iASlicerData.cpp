@@ -1610,6 +1610,7 @@ QSharedPointer<iAChannelSlicerData> iASlicerData::createChannel(uint id)
 
 iAChannelSlicerData * iASlicerData::getChannel(uint id)
 {
+	assert(m_channels.contains(id));
 	if (!m_channels.contains(id))
 		return nullptr;
 	return m_channels.find(id)->data();
@@ -1620,9 +1621,14 @@ void iASlicerData::removeChannel(uint id)
 	m_channels.remove(id);
 }
 
-size_t iASlicerData::GetEnabledChannels()
+size_t iASlicerData::channelCount() const
 {
 	return m_channels.size();
+}
+
+bool iASlicerData::hasChannel(uint id) const
+{
+	return m_channels.contains(id);
 }
 
 void iASlicerData::setMagicLensInput(uint id)

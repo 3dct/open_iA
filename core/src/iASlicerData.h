@@ -91,6 +91,9 @@ public:
 	void updateChannel(uint id, iAChannelData const & chData);
 	void setChannelOpacity(uint id, double opacity );
 	void enableChannel(uint id, bool enabled );
+	iAChannelSlicerData * getChannel(uint id);
+	size_t channelCount() const;
+	bool hasChannel(uint id) const;
 
 	void addImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 	void removeImageActor(vtkSmartPointer<vtkImageActor> imgActor);
@@ -137,8 +140,6 @@ public:
 	void execute(vtkObject * caller, unsigned long eventId, void * callData);
 
 	void setMagicLensInput(uint id);
-	iAChannelSlicerData * getChannel(uint id);
-	size_t GetEnabledChannels();
 
 	void updateChannelMappers();
 	void rotateSlice( double angle );
@@ -184,7 +185,7 @@ Q_SIGNALS:
 	void rightClicked(int x, int y, int z);
 	void released(int x, int y, int z);
 	void UserInteraction();
-	//mouse move
+	//! signal triggered on mouse move
 	void oslicerPos(int x, int y, int z, int mode);
 	void oslicerCol(double cl, double cw, int mode);
 	//key press

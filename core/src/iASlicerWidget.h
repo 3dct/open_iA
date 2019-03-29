@@ -143,8 +143,6 @@ public slots:
 	void deleteSnakeLine();
 	//! Called when the delete snake line menu is clicked.
 	void menuDeleteSnakeLine();
-
-	void clearProfileData();
 	void slicerUpdatedSlot();
 	void menuCenteredMagicLens();
 	void menuOffsetMagicLens();

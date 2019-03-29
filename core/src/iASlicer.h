@@ -93,9 +93,7 @@ public:
 	void updateChannel(uint id, iAChannelData & chData );
 	iAChannelSlicerData * getChannel(uint id);
 	void setChannelOpacity(uint id, double opacity);
-	void enableChannel(uint id, bool enabled, double x, double y, double z);
 	void enableChannel(uint id, bool enabled);
-	//void switchContourSourceToChannel( uint id );
 	//! @}
 
 	// { TODO: check whether these can be removed somehow!
@@ -119,7 +117,6 @@ public:
 
 	//iASlicerWidget: wrapping methods-----------------------
 	void setIndex( int x, int y, int z );
-	//void initializeWidget(vtkImageData *imageData, vtkPoints *points = 0);//also connects to mdichild slots
 	void show();
 
 	// { TODO: Move to XRF

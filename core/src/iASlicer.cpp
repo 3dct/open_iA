@@ -361,22 +361,10 @@ void iASlicer::setChannelOpacity(uint id, double opacity)
 	m_data->setChannelOpacity(id, opacity);
 }
 
-void iASlicer::enableChannel(uint id, bool enabled, double x, double y, double z)
-{
-	m_data->enableChannel(id, enabled, x, y, z);
-}
-
 void iASlicer::enableChannel(uint id, bool enabled)
 {
 	m_data->enableChannel(id, enabled);
 }
-
-/*
-void iASlicer::switchContourSourceToChannel( uint id )
-{
-	m_data->switchContourSourceToChannel( id );
-}
-*/
 
 void iASlicer::addImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 {
