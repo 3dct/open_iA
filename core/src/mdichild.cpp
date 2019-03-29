@@ -2624,8 +2624,13 @@ void MdiChild::updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtk
 	if (!chData)
 		return;
 	chData->setData( imgData, ctf, otf );
-	for (int s = 0; s<3; ++s)
-		m_slicer[s]->updateChannel( id, *chData );
+	for (uint s = 0; s < 3; ++s)
+	{
+		if (m_slicer[s]->data()->hasChannel(s))
+			m_slicer[s]->updateChannel(id, *chData);
+		else
+			m_slicer[s]->addChannel(id, *chData, false);
+	}
 }
 
 void MdiChild::reInitMagicLens(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
