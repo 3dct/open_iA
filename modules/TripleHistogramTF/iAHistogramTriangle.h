@@ -27,7 +27,7 @@
 #include <QPen>
 #include <QRect>
 
-class iASlicerWidget;
+class iASlicer;
 
 class QMouseEvent;
 class QWheelEvent;
@@ -64,7 +64,7 @@ private:
 	void forwardContextMenuEvent(QContextMenuEvent *event);
 	iADiagramFctWidget* onHistogram(QPoint p, QPoint &transformed, int &index);
 	bool onTriangle(QPoint p);
-	iASlicerWidget* onSlicer(QPoint p, QPoint &transformed, int &index);
+	iASlicer* onSlicer(QPoint p, QPoint &transformed, int &index);
 
 	QPainterPath m_clipPath;
 	QPen m_clipPathPen;

@@ -31,7 +31,6 @@
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
-#include "iASlicerData.h"
 #include "iAVolumeRenderer.h"
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
@@ -368,15 +367,15 @@ void dlg_modalities::ManualRegistration()
 	if (cbManualRegistration->isChecked())
 	{
 		interactSwitch3D->SetCurrentStyleToTrackballActor();
-		m_mdiChild->slicerData(iASlicerMode::XY)->getInteractor()->SetInteractorStyle(Customstyle_xy);
-		m_mdiChild->slicerData(iASlicerMode::XZ)->getInteractor()->SetInteractorStyle(Customstyle_xz);
-		m_mdiChild->slicerData(iASlicerMode::YZ)->getInteractor()->SetInteractorStyle(Customstyle_yz);
+		m_mdiChild->slicer(iASlicerMode::XY)->getInteractor()->SetInteractorStyle(Customstyle_xy);
+		m_mdiChild->slicer(iASlicerMode::XZ)->getInteractor()->SetInteractorStyle(Customstyle_xz);
+		m_mdiChild->slicer(iASlicerMode::YZ)->getInteractor()->SetInteractorStyle(Customstyle_yz);
 	}
 	else
 	{
-		m_mdiChild->slicerData(iASlicerMode::XY)->setDefaultInteractor();
-		m_mdiChild->slicerData(iASlicerMode::XZ)->setDefaultInteractor();
-		m_mdiChild->slicerData(iASlicerMode::YZ)->setDefaultInteractor();
+		m_mdiChild->slicer(iASlicerMode::XY)->setDefaultInteractor();
+		m_mdiChild->slicer(iASlicerMode::XZ)->setDefaultInteractor();
+		m_mdiChild->slicer(iASlicerMode::YZ)->setDefaultInteractor();
 		interactSwitch3D->SetCurrentStyleToTrackballCamera();
 	}
 }

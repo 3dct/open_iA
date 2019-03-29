@@ -22,50 +22,84 @@
 
 #include "open_iA_Core_export.h"
 #include "iASlicerMode.h"
+#include "iASlicerSettings.h"    // for iASingleSlicerSettings
+#include "iAVtkWidget.h"
 
 #include <vtkSmartPointer.h>
 
-#include <QObject>
+#include <QCursor>
+#include <QMap>
 #include <QSharedPointer>
 
-class QWidget;
-class QFrame;
 
-class vtkAbstractTransform;
-class vtkCamera;
-class vtkGenericOpenGLRenderWindow;
-class vtkImageActor;
-class vtkPoints;
-class vtkRenderer;
-
+struct iASlicerProfile;
+struct iAArbitraryProfileOnSlicer;
+struct PickedData;
 class iAChannelData;
 class iAChannelSlicerData;
+class iAInteractorStyleImage;
 class iAMagicLens;
-class iAMultiChannelVisualization;
+class iAPieChartGlyph;
+class iARulerWidget;
 class iASingleSlicerSettings;
-class iASlicerData;
-class iASlicerWidget;
+class iASlicer;
+class iASnakeSpline;
+class iAWrapperText;
+
+
+class vtkAbstractTransform;
+class vtkActor;
+class vtkAlgorithmOutput;
+class vtkCamera;
+class vtkScalarsToColors;
+class vtkDiskSource;
+class vtkGenericOpenGLRenderWindow;
+class vtkImageActor;
+class vtkImageData;
+class vtkImageMapToColors;
+class vtkImageReslice;
+class vtkInteractorStyle;
+class vtkLineSource;
+class vtkLogoWidget;
+class vtkLogoRepresentation;
+class vtkMarchingContourFilter;
+class vtkObject;
+class vtkPlaneSource;
+class vtkPointPicker;
+class vtkPoints;
+class vtkQImageToImageSource;
+class vtkPolyDataMapper;
+class vtkRegularPolygonSource;
+class vtkRenderer;
+class vtkRenderWindowInteractor;
+class vtkScalarBarWidget;
+class vtkTextProperty;
+class vtkTextActor3D;
+class vtkThinPlateSplineTransform;
+class vtkTransform;
+
+class QMenu;
+class QWidget;
+
 
 static const int MODE_TO_X_IND[3]	= { 1, 0, 0 };
 static const int MODE_TO_Y_IND[3]	= { 2, 1, 2 };
 static const int MODE_TO_Z_IND[3]	= { 0, 2, 1 };
 
-//! A container which combines widget and vtk classes for a slicer.
-//!
-//! This class keeps all the functionality of the slicer
-//! and is responsible for linking all the parts together
-//! and managing all the communication and dependencies.
-class open_iA_Core_API iASlicer : public QObject
+//! vtk slicer widget
+class open_iA_Core_API iASlicer : public iAVtkWidget
 {
 	Q_OBJECT
 public:
-	iASlicer(QWidget * parent, const iASlicerMode mode, bool decorations = true, bool magicLensAvailable = true, vtkAbstractTransform *tr = nullptr, vtkPoints* snakeSlicerPoints = nullptr);
-
+	enum InteractionMode {
+		NORMAL = 0,
+		DEFINE_SPLINE = 1,
+		SHOW = 2
+	};
+	iASlicer(QWidget * parent, const iASlicerMode mode, bool decorations = true, bool magicLensAvailable = true,
+		vtkAbstractTransform *transform = nullptr, vtkPoints* snakeSlicerPoints = nullptr);
+	virtual ~iASlicer();
 	void update();
-	iASlicerWidget * widget();
-	iASlicerData * data();
-	void changeMode(const iASlicerMode mode);
-	iASlicerMode getMode() const;
 
 	//! @{ Magic Lens methods
 	void setMagicLensEnabled( bool isEnabled );
@@ -79,21 +113,24 @@ public:
 	void setMagicLensOpacity(double opacity);
 	double getMagicLensOpacity() const;
 	void updateMagicLensColors();
+	void updateMagicLens();
 	iAMagicLens * magicLens();
 	//! @}
 
 	bool changeInteractorState();
-	//iASlicerData: wrapping methods--------------------------
+
 	void disableInteractor();
 	void enableInteractor(); //also updates widget
 
 	//! @{ management of channels - each channel represents one "layer"
-	void addChannel(uint id, iAChannelData & chData, bool enable);
+	void addChannel(uint id, iAChannelData const & chData, bool enable);
 	void removeChannel(uint id);
-	void updateChannel(uint id, iAChannelData & chData );
+	void updateChannel(uint id, iAChannelData const & chData );
 	iAChannelSlicerData * getChannel(uint id);
 	void setChannelOpacity(uint id, double opacity);
 	void enableChannel(uint id, bool enabled);
+	//size_t channelCount() const;
+	bool hasChannel(uint id) const;
 	//! @}
 
 	// { TODO: check whether these can be removed somehow!
@@ -106,46 +143,291 @@ public:
 	void updateROI(int const roi[6]);
 	//! @}
 
-	void setPositionMarkerCenter(double x, double y);
-	void saveMovie(QString& fileName, int qual = 2);
-	void saveImageStack();
 	void setResliceAxesOrigin(double x, double y, double z);
 	void setup(iASingleSlicerSettings const & settings);
-	vtkRenderer * getRenderer() const;
-	vtkGenericOpenGLRenderWindow * getRenderWindow() const;
+	vtkRenderer * getRenderer();
+	vtkGenericOpenGLRenderWindow * getRenderWindow();
+	vtkRenderWindowInteractor * getInteractor();
+	vtkCamera * getCamera();
+
+	iASlicerMode mode() const;
+	//! Sets the slice mode (which axis-aligned slice-plane to use for slicing)
+	void setMode(const iASlicerMode mode);
+
 	void setStatisticalExtent(int statExt);
 
-	//iASlicerWidget: wrapping methods-----------------------
-	void setIndex( int x, int y, int z );
-	void show();
+	void setCamera(vtkCamera * camera, bool camOwner = true);
+	void resetCamera();
 
-	// { TODO: Move to XRF
-	void setPieGlyphsOn(bool isOn);
-	void setPieGlyphParameters(double opacity, double spacing, double magFactor );
-	// }
-
-	void showIsolines( bool s );
-	void setContours( int n, double mi, double ma );
-	void setContours( int n, double * contourValues );
-	vtkCamera* getCamera();
-	void setCamera(vtkCamera*, bool owner=true);
 	void setBackground(double r, double g, double b);
 
+	void setTransform(vtkAbstractTransform * tr);
+
+	void setDefaultInteractor();
+
+	//void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
+	int sliceNumber() const;
+	//! set the position of the position marker (in slicer coordinates)
+	void setPositionMarkerCenter(double x, double y);
+
+	//! enable/disable contour lines
+	void showIsolines(bool s);
+	//! @{ set contour line parameters
+	void setContours(int numberOfContours, double contourMin, double contourMax);
+	void setContours(int numberOfContours, double * contourValues);
+	//! @}
+	//void setMeasurementStartPoint(int x, int y);
+	void setShowText(bool isVisible);
+	void setMouseCursor(QString s);
+
+	void showPosition(bool s);
+	void saveMovie(QString& fileName, int qual = 2);
+
+	void execute(vtkObject * caller, unsigned long eventId, void * callData);
+
+	void updateChannelMappers();
+	//void switchContourSourceToChannel( uint id );
+
+	//vtkScalarBarWidget * getScalarBarWidget();
+	void setScalarBarTF(vtkScalarsToColors* ctf);
+
+	QCursor getMouseCursor();
+
+	void setRightButtonDragZoomEnabled(bool enabled);
+
+	void setIndex(int x, int y, int z);
+
+	// { TODO: Move to XRF
+	void computeGlyphs();
+	void setPieGlyphParameters(double opacity, double spacing, double magFactor);
+	// }
 public slots:
+	//! Save an image of the image viewer native resolution or the current view.
 	void saveAsImage() const;
+	//! Save an image stack of the current view.
+	void saveImageStack();
 	void setSliceNumber( int sliceNumber );
+	//! Save a movie of a full slice-through of the specimen from top to bottom
 	void saveMovie();
 	void rotateSlice( double angle );
 	void setSlabThickness(int thickness);
 	void setSlabCompositeMode(int compositeMode);
 
+	//! Sets a profile line.
+	void setSliceProfile(double Pos[3]);
+
+	//! Sets coordinates for line profile
+	bool setArbitraryProfile(int pointInd, double * Pos, bool doClamp = false);
+
+	//! Moves a point of the snake slicer to a new position.
+	void movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
+
+	//! Function to deselect points in snake slicer (necessary to avoid endless loops with signals and slots).
+	void deselectPoint();
+
+	//! Switches between interaction modi (normal, snake slicer view or editing)
+	//! @param mode mode which should be switched to  (see InteractionMode enum)
+	void switchInteractionMode(int mode);
+	void setSliceProfileOn(bool isOn);
+	void setArbitraryProfileOn(bool isOn);
+
+	void setPieGlyphsOn(bool isOn);  // TODO: Move to XRF module!
+
+	//! Adds a new spline point to the end of the spline curve.
+	void addPoint(double x, double y, double z);
+	//! Deletes the current spline curve.
+	void deleteSnakeLine();
+	//! Called when the delete snake line menu is clicked.
+	void menuDeleteSnakeLine();
+	void slicerUpdatedSlot();
+	void menuCenteredMagicLens();
+	void menuOffsetMagicLens();
+
+protected:
+	QMenu *         m_magicLensContextMenu;
+	QMenu *         m_contextMenu;
+	InteractionMode m_interactionMode;          //!< current edit mode
+	bool            m_isSliceProfEnabled;       //!< if slice profile mode is enabled
+	bool            m_isArbProfEnabled;         //!< if arbitrary profile mode is enabled
+	int             m_xInd, m_yInd, m_zInd;
+	iASnakeSpline * m_snakeSpline;
+	vtkPoints *     m_worldSnakePoints;
+	iASlicerProfile	* m_sliceProfile;            //!< necessary vtk classes for the slice profile
+	iAArbitraryProfileOnSlicer * m_arbProfile;
+
+	// { TODO: move to XRF module
+	bool            m_pieGlyphsEnabled;         //!< if slice pie glyphs for xrf are enabled
+	QVector<QSharedPointer<iAPieChartGlyph> > m_pieGlyphs;
+	double          m_pieGlyphMagFactor;
+	double          m_pieGlyphSpacing;
+	double          m_pieGlyphOpacity;
+	// }
+
+	static const int RADIUS = 5;
+
+	void updateProfile();
+	int pickPoint(double * pos_out, double * result_out, int * ind_out);
+	int pickPoint(double & xPos_out, double & yPos_out, double & zPos_out,
+			double * result_out, int & xInd_out, int &yInd_out, int &zInd_out);
+	void keyPressEvent(QKeyEvent * event) override;
+	void mousePressEvent(QMouseEvent * event) override;
+	void mouseMoveEvent(QMouseEvent * event) override;
+	void mouseReleaseEvent(QMouseEvent * event) override;
+	void mouseDoubleClickEvent(QMouseEvent* event) override;
+	void contextMenuEvent(QContextMenuEvent * event) override;
+	void resizeEvent(QResizeEvent * event) override;
+	void wheelEvent(QWheelEvent*) override;
+
+	void updateResliceAxesDirectionCosines();
+	void updateBackground();
+	void printVoxelInformation(double xCoord, double yCoord, double zCoord);
+	void executeKeyPressEvent();
+	void defaultOutput();
+	void updateReslicer();
+
+	//!	This function is used to check whether any agreeable maximum gradient is near the given point.
+	//!	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.
+	//!
+	//! Input is the cursor point. Calculate the gradient magnitude for varying "x" value with "y" constant.
+	//! The maximum gradient value is taken as H_maxCoord. If there are two same gradient magnitude values, the point
+	//! closer to the cursor point is taken as H_maxCoord. Apply the above procedure for constant "x" and varying "y"
+	//! to calculate V_maxCoord. Check whether H_maxCoord gradient magnitude and V_maxCoord gradient magnitude are
+	//! higher than an gradient threshold value (5% of max intensity in the image). If H_maxCoord gradient magnitude
+	//! is higher and V_maxCoord gradient magnitude is lesser than the threshold, take H_maxCoord as the closet
+	//! gradient to cursor point. And if it is vice versa take V_maxCoord take as closest gradient to the cursor point.
+	//! If point are higher than threshold, the point closest to the cursor point is take as the next point.
+	//! @param [in,out]	x	The x coordinate.
+	//! @param [in,out]	y	The y coordinate.
+	//void snapToHighGradient(double &x, double &y);
+signals:
+	void addedPoint(double x, double y, double z);
+	void movedPoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
+	void arbitraryProfileChanged(int pointInd, double * Pos);
+	void deselectedPoint();
+	void switchedMode(int mode);
+	void deletedSnakeLine();
+	void shiftMouseWheel(int angle);
+	void altMouseWheel(int angle);
+	void ctrlMouseWheel(int angle);
+	void clicked();
+	void dblClicked();
+	void msg(QString s);
+	void progress(int);
+	void updateSignal();
+	void clicked(int x, int y, int z);
+	void rightClicked(int x, int y, int z);
+	void released(int x, int y, int z);
+	void UserInteraction();
+	//! signal triggered on mouse move
+	void oslicerPos(int x, int y, int z, int mode);
+	void oslicerCol(double cl, double cw, int mode);
+	//key press
+	void Pick();
+
 private:
-	QSharedPointer<iASlicerData> m_data;
-	iASlicerWidget* m_widget;
-	iASlicerMode m_mode;
+	iASlicerMode m_mode;            //!< the (axis-aligned) slice plane this slicer views
+
+	bool m_decorations;             //!< whether "decorations" will be shown, i.e. scalar bar widget, text on hover, ...   
+	bool m_isolines;                //!< whether contours/isolines are shown
+	bool m_userSetBackground;       //!< whether the user has set a background
+	bool m_showPositionMarker;      //!< whether the position marker is shown in the slicer
 
 	uint m_magicLensInput;
 	QSharedPointer<iAMagicLens> m_magicLens;
+
+	//! @{ fish-eye lens
+	void initializeFisheyeLens(vtkImageReslice* reslicer);
+	void updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslicer, double lensRadius, double innerLensRadius);
+
+	bool fisheyeLensActivated;
+	double fisheyeRadius = 80.0; // 110.0;
+	double fisheyeRadiusDefault = 80.0;
+	double minFisheyeRadius = 2.0;
+	double maxFisheyeRadius = 220.0;
+	double innerFisheyeRadius = 70.0; // 86
+	double innerFisheyeRadiusDefault = 70.0;
+	double innerFisheyeMinRadius = 58; // for default radius 70.0
+
+	// variables for transformation
+	vtkSmartPointer<vtkThinPlateSplineTransform> fisheyeTransform;
+	vtkSmartPointer<vtkPoints> p_source;
+	vtkSmartPointer<vtkPoints> p_target;
+	// variables for lens appearance
+	vtkSmartPointer<vtkRegularPolygonSource> fisheye;
+	vtkSmartPointer<vtkPolyDataMapper> fisheyeMapper;
+	vtkSmartPointer<vtkActor> fisheyeActor;
+
+	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle1List;
+	QList<vtkSmartPointer<vtkActor>> circle1ActList;
+	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle2List;
+	QList<vtkSmartPointer<vtkActor>> circle2ActList;
+	//! @}
+
+	vtkRenderWindowInteractor * m_interactor;
+	iAInteractorStyleImage * m_interactorStyle;
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
+	vtkSmartPointer<vtkRenderer> m_ren;
+	vtkCamera * m_camera; // TODO: smart pointer?
+	bool m_cameraOwner;
+	vtkAbstractTransform * m_transform; // TODO: smart pointer?
+	vtkSmartPointer<vtkPointPicker> m_pointPicker;
+	QMap<uint, QSharedPointer<iAChannelSlicerData> > m_channels;
+	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
+	vtkSmartPointer<vtkTextProperty> m_textProperty;
+
+	// TODO: extract/ unify with iARenderer
+	vtkSmartPointer<vtkLogoWidget> m_logoWidget;
+	vtkSmartPointer<vtkLogoRepresentation> m_logoRep;
+	vtkSmartPointer<vtkQImageToImageSource> m_logoImage;
+
+	vtkSmartPointer<iAWrapperText> m_textInfo;
+	vtkSmartPointer<iARulerWidget> m_rulerWidget;
+
+	// position marker / statistical extent
+	vtkSmartPointer<vtkPlaneSource> m_positionMarkerSrc;
+	vtkSmartPointer<vtkPolyDataMapper> m_positionMarkerMapper;
+	vtkSmartPointer<vtkActor> m_positionMarkerActor;
+
+	iASingleSlicerSettings m_settings;
+	int m_slabThickness;       //! current slab thickness (default = 1, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
+	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
+
+	vtkSmartPointer<vtkLineSource> pLineSource;
+	vtkSmartPointer<vtkPolyDataMapper> pLineMapper;
+	vtkSmartPointer<vtkActor> pLineActor;
+	vtkSmartPointer<vtkDiskSource> pDiskSource;
+	vtkSmartPointer<vtkPolyDataMapper> pDiskMapper;
+	vtkSmartPointer<vtkActor> pDiskActor;
+
+	vtkSmartPointer<vtkPlaneSource> m_roiSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;
+	vtkSmartPointer<vtkActor> m_roiActor;
+	bool m_roiActive;
+	int m_roiSlice[2];
+
+	vtkSmartPointer<vtkTransform> m_axisTransform[2];
+	vtkSmartPointer<vtkTextActor3D> m_axisTextActor[2];
+
+
+	int m_ext;
+
+	double m_angleX, m_angleY, m_angleZ;
+
+	double m_backgroundRGB[3];
+
+	int m_sliceNumber; // for fisheye transformation
+
+	//mouse move
+	double m_ptMapped[3];
+	double m_startMeasurePoint[2];
+
+	QCursor m_mouseCursor;
+
+	QSharedPointer<iAChannelSlicerData> createChannel(uint id);
+	void getMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
+	void updatePositionMarkerExtent();
+	void setupColorMapper();
+	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 };
 
 //Get index of slicer X screen coordinate in global 3D coordinate system

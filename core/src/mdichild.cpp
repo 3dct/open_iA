@@ -50,8 +50,6 @@
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
 #include "iASlicer.h"
-#include "iASlicerData.h"
-#include "iASlicerWidget.h"
 #include "iAToolsVTK.h"
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
@@ -126,7 +124,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	for (int i = 0; i < 3; ++i)
 	{
 		m_slicer[i] = new iASlicer(this, static_cast<iASlicerMode>(i), true, true, slicerTransform, worldSnakePoints);
-		m_dlgSlicer[i] = new dlg_slicer(static_cast<iASlicerMode>(i), m_slicer[i]->widget());
+		m_dlgSlicer[i] = new dlg_slicer(static_cast<iASlicerMode>(i), m_slicer[i]);
 	}
 
 	pbar = new QProgressBar(this);
@@ -257,13 +255,13 @@ void MdiChild::connectSignalsToSlots()
 
 	for (int s = 0; s < 3; ++s)
 	{
-		connect(m_slicer[s]->widget(), &iASlicerWidget::shiftMouseWheel, this, &MdiChild::changeMagicLensModality);
-		connect(m_slicer[s]->widget(), &iASlicerWidget::altMouseWheel,   this, &MdiChild::changeMagicLensOpacity);
-		connect(m_slicer[s]->widget(), &iASlicerWidget::ctrlMouseWheel,  this, &MdiChild::changeMagicLensSize);
+		connect(m_slicer[s], &iASlicer::shiftMouseWheel, this, &MdiChild::changeMagicLensModality);
+		connect(m_slicer[s], &iASlicer::altMouseWheel,   this, &MdiChild::changeMagicLensOpacity);
+		connect(m_slicer[s], &iASlicer::ctrlMouseWheel,  this, &MdiChild::changeMagicLensSize);
 
-		connect(m_slicer[s]->data(), &iASlicerData::oslicerPos, this, &MdiChild::updatePositionMarker);
-		connect(m_slicer[s]->data(), &iASlicerData::msg, this, &MdiChild::addMsg);
-		connect(m_slicer[s]->data(), &iASlicerData::progress, this, &MdiChild::updateProgressBar);
+		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
+		connect(m_slicer[s], &iASlicer::msg, this, &MdiChild::addMsg);
+		connect(m_slicer[s], &iASlicer::progress, this, &MdiChild::updateProgressBar);
 	}
 
 	connect(m_histogram, SIGNAL(updateViews()), this, SLOT(updateViews()));
@@ -355,7 +353,7 @@ void MdiChild::enableRenderWindows()	// = image data available
 			for (int s = 0; s < 3; ++s)
 			{
 				m_slicer[s]->addChannel(0, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()), false);
-				m_slicer[s]->data()->resetCamera();
+				m_slicer[s]->resetCamera();
 			}
 		}
 	}
@@ -1342,7 +1340,7 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		final_transform->Update();
 	}
 
-	slicer->data()->setTransform(final_transform);
+	slicer->setTransform(final_transform);
 	slicer->setSliceNumber(point1[ptIndex]);
 }
 
@@ -1619,22 +1617,22 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 		// connect signals for making slicers update other views in snake slicers mode:
 		for (int i = 0; i < 3; ++i)
 		{
-			connect(m_slicer[i]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), this, SLOT(updateProbe(int, double*)));
-			connect(m_slicer[i]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), Raycaster, SLOT(setArbitraryProfile(int, double*)));
+			connect(m_slicer[i], SIGNAL(arbitraryProfileChanged(int, double*)), this, SLOT(updateProbe(int, double*)));
+			connect(m_slicer[i], SIGNAL(arbitraryProfileChanged(int, double*)), Raycaster, SLOT(setArbitraryProfile(int, double*)));
 			for (int j = 0; j < 3; ++j)
 			{
 				if (i != j)	// connect each slicer's signals to the other slicer's slots, except for its own:
 				{
 					//Adding new point to the parametric spline for snake slicer
-					connect(m_slicer[i]->widget(), SIGNAL(addedPoint(double, double, double)), m_slicer[j]->widget(), SLOT(addPoint(double, double, double)));
+					connect(m_slicer[i], SIGNAL(addedPoint(double, double, double)), m_slicer[j], SLOT(addPoint(double, double, double)));
 					//Moving point
-					connect(m_slicer[i]->widget(), SIGNAL(movedPoint(size_t, double, double, double)), m_slicer[j]->widget(), SLOT(movePoint(size_t, double, double, double)));
+					connect(m_slicer[i], SIGNAL(movedPoint(size_t, double, double, double)), m_slicer[j], SLOT(movePoint(size_t, double, double, double)));
 					//Changing arbitrary profile positioning
-					connect(m_slicer[i]->widget(), SIGNAL(arbitraryProfileChanged(int, double*)), m_slicer[j]->widget(), SLOT(setArbitraryProfile(int, double*)));
+					connect(m_slicer[i], SIGNAL(arbitraryProfileChanged(int, double*)), m_slicer[j], SLOT(setArbitraryProfile(int, double*)));
 
-					connect(m_slicer[i]->widget(), SIGNAL(switchedMode(int)), m_slicer[j]->widget(), SLOT(switchMode(int)));
-					connect(m_slicer[i]->widget(), SIGNAL(deletedSnakeLine()), m_slicer[j]->widget(), SLOT(deleteSnakeLine()));
-					connect(m_slicer[i]->widget(), SIGNAL(deselectedPoint()), m_slicer[j]->widget(), SLOT(deselectPoint()));
+					connect(m_slicer[i], SIGNAL(switchedMode(int)),  m_slicer[j], SLOT(switchInteractionMode(int)));
+					connect(m_slicer[i], SIGNAL(deletedSnakeLine()), m_slicer[j], SLOT(deleteSnakeLine()));
+					connect(m_slicer[i], SIGNAL(deselectedPoint()),  m_slicer[j], SLOT(deselectPoint()));
 				}
 			}
 		}
@@ -1839,7 +1837,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		m_dlgSlicer[iASlicerMode::YZ]->spinBoxYZ->setValue(0);//set initial value
 
 		for (int s = 0; s<3; ++s)
-			m_slicer[s]->widget()->switchMode(iASlicerWidget::NORMAL);
+			m_slicer[s]->switchInteractionMode(iASlicer::NORMAL);
 	}
 	else
 	{
@@ -1872,7 +1870,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 			Raycaster->showSlicers(true);
 		* /
 		for (int s = 0; s<3; ++s)
-			m_slicer[s]->widget()->switchMode(iASlicerWidget::DEFINE_SPLINE);
+			m_slicer[s]->switchInteractionMode(iASlicer::DEFINE_SPLINE);
 	}
 	*/
 }
@@ -2032,7 +2030,7 @@ void MdiChild::toggleSliceProfile(bool isChecked)
 {
 	isSliceProfileEnabled = isChecked;
 	for (int s = 0; s<3; ++s)
-		m_slicer[s]->widget()->setSliceProfileOn(isSliceProfileEnabled);
+		m_slicer[s]->setSliceProfileOn(isSliceProfileEnabled);
 }
 
 bool MdiChild::isSliceProfileToggled(void) const
@@ -2365,7 +2363,7 @@ void MdiChild::updateChannelOpacity(uint id, double opacity)
 	}
 	getChannelData(id)->setOpacity(opacity);
 	for (int s = 0; s<3; ++s)
-		m_slicer[s]->data()->setChannelOpacity(id, opacity);
+		m_slicer[s]->setChannelOpacity(id, opacity);
 	updateSlicers();
 }
 
@@ -2379,7 +2377,7 @@ void MdiChild::setChannelRenderingEnabled(uint id, bool enabled)
 	}
 	data->setEnabled(enabled);
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
-		slicerData(iASlicerMode::XY)->enableChannel(id, enabled);
+		slicer(iASlicerMode::XY)->enableChannel(id, enabled);
 	/*
 	// TODO: VOLUME: rewrite using volume manager:
 	if (data->Uses3D())
@@ -2428,8 +2426,8 @@ void MdiChild::addProfile()
 		end[i] = start[i] + (dim[i] - 1) * spacing[i];
 	for (int s = 0; s < 3; ++s)
 	{
-		m_slicer[s]->widget()->setArbitraryProfile(0, start);
-		m_slicer[s]->widget()->setArbitraryProfile(1, end);
+		m_slicer[s]->setArbitraryProfile(0, start);
+		m_slicer[s]->setArbitraryProfile(1, end);
 	}
 	Raycaster->setArbitraryProfile(0, start);
 	Raycaster->setArbitraryProfile(1, end);
@@ -2445,7 +2443,7 @@ void MdiChild::toggleArbitraryProfile( bool isChecked )
 {
 	isArbProfileEnabled = (bool)isChecked;
 	for (int s = 0; s<3; ++s)
-		m_slicer[s]->widget()->setArbitraryProfileOn(isArbProfileEnabled);
+		m_slicer[s]->setArbitraryProfileOn(isArbProfileEnabled);
 	Raycaster->setArbitraryProfileOn(isArbProfileEnabled);
 }
 
@@ -2545,11 +2543,6 @@ void MdiChild::ioFinished()
 	tmpSaveImg = nullptr;
 }
 
-iASlicerData* MdiChild::slicerData(int mode)
-{
-	return slicer(mode)->data();
-}
-
 iASlicer* MdiChild::slicer(int mode)
 {
 	assert(0 <= mode && mode < iASlicerMode::SlicerCount);
@@ -2626,7 +2619,7 @@ void MdiChild::updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtk
 	chData->setData( imgData, ctf, otf );
 	for (uint s = 0; s < 3; ++s)
 	{
-		if (m_slicer[s]->data()->hasChannel(s))
+		if (m_slicer[s]->hasChannel(s))
 			m_slicer[s]->updateChannel(id, *chData);
 		else
 			m_slicer[s]->addChannel(id, *chData, false);
@@ -2649,7 +2642,7 @@ void MdiChild::reInitMagicLens(uint id, vtkSmartPointer<vtkImageData> imgData, v
 void MdiChild::updateChannelMappers()
 {
 	for (int s = 0; s<3; ++s)
-		m_slicer[s]->data()->updateChannelMappers();
+		m_slicer[s]->updateChannelMappers();
 }
 
 QString MdiChild::getFilePath() const
@@ -2879,7 +2872,7 @@ void MdiChild::statisticsAvailable(int modalityIdx)
 		for (int s = 0; s < 3; ++s)
 		{
 			m_slicer[s]->addChannel(channelID, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()), true);
-			m_slicer[s]->data()->resetCamera();
+			m_slicer[s]->resetCamera();
 		}
 	}
 	modalityTFChanged();

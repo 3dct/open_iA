@@ -32,8 +32,6 @@
 #include <iAModality.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
-#include <iASlicerData.h>
-#include <iASlicerWidget.h>
 #include <mdichild.h>
 #include <mainwindow.h>
 #include <qthelper/iAWidgetAddHelper.h>
@@ -73,8 +71,8 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * ch
 	//connect(mdiChild->getRenderer(),     SIGNAL(Clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(RendererClicked(int, int, int)));
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
-		connect(child->slicerData(i), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
-		connect(child->slicerData(i), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
+		connect(child->slicer(i), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
+		connect(child->slicer(i), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
 	}
 	return newAttachment;
 }

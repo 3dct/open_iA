@@ -30,7 +30,6 @@
 #include <dlg_slicer.h>
 #include <iAChannelData.h>
 #include <iASlicer.h>
-#include <iASlicerData.h>
 #include <io/extension2id.h>
 #include <io/iAIO.h>
 #include <mainwindow.h>
@@ -50,7 +49,7 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 {
 	connect( m_child, SIGNAL( magicLensToggled( bool ) ), this, SLOT( magicLensToggled( bool ) ) );
 	for (int i=0; i<3; ++i)
-		connect( m_child->slicerData(i), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
+		connect( m_child->slicer(i), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
 	//TODO: move
 	if( !filter_SimilarityMap() )
 		throw itk::ExceptionObject(__FILE__, __LINE__, "filter_SimilarityMap failed");

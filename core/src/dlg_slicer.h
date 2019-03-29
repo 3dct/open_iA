@@ -25,13 +25,13 @@
 
 #include <QDockWidget>
 
-class iASlicerWidget;
+class iASlicer;
 
 class dlg_slicer : public QDockWidget, public Ui_slicer
 {
 public:
 	static const int BorderWidth;
 	static QColor slicerColor(iASlicerMode mode);
-	dlg_slicer(iASlicerMode mode, iASlicerWidget* slicerWidget);
+	dlg_slicer(iASlicerMode mode, iASlicer* slicer);
 	void showBorder(bool show);
 };

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_slicer.h"
 
-#include "iASlicerWidget.h"
+#include "iASlicer.h"
 
 const int dlg_slicer::BorderWidth = 3;
 
@@ -35,7 +35,7 @@ QColor dlg_slicer::slicerColor(iASlicerMode mode)
 	}
 }
 
-dlg_slicer::dlg_slicer(iASlicerMode mode, iASlicerWidget* slicerWidget)
+dlg_slicer::dlg_slicer(iASlicerMode mode, iASlicer* slicer)
 {
 	setupUi(this);
 	QString slicePlaneName = getSlicerModeString(mode);
@@ -46,7 +46,7 @@ dlg_slicer::dlg_slicer(iASlicerMode mode, iASlicerWidget* slicerWidget)
 	lbTitle->setText(slicePlaneName);
 	lbSlice->setText(QString("Slice # %1").arg(sliceAxis));
 	lbRotation->setText(QString("Rot %1").arg(sliceAxis));
-	sliceContainerLayout->addWidget(slicerWidget);
+	sliceContainerLayout->addWidget(slicer);
 	sliceContainer->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(%2, %3, %4) } ")
 		.arg(BorderWidth).arg(color.red()).arg(color.green()).arg(color.blue()));
 	sbSlice->setRange(-8192, 8192);

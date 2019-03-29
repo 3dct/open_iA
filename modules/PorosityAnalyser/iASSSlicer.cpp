@@ -28,7 +28,6 @@
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iASlicer.h>
-#include <iASlicerWidget.h>
 #include <iASlicerSettings.h>
 #include <io/iAITKIO.h>
 
@@ -152,7 +151,7 @@ iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> 
 	maxContour->SetComputeNormals( false );
 
 	containerLayout->addWidget( selTextLabel );
-	containerLayout->addWidget( slicer->widget() );
+	containerLayout->addWidget( slicer );
 }
 
 void iASSSlicer::enableMasksChannel( bool isEnabled )
@@ -186,7 +185,7 @@ iASSSlicer::~iASSSlicer()
 
 void iASSSlicer::changeMode( iASlicerMode mode )
 {
-	slicer->changeMode( mode );
+	slicer->setMode( mode );
 	slicer->update();
 }
 

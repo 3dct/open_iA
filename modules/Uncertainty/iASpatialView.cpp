@@ -26,7 +26,6 @@
 #include <iAChannelData.h>
 #include <iAConsole.h>
 #include <iASlicer.h>
-#include <iASlicerData.h>
 #include <iASlicerMode.h>
 #include <iATransferFunction.h>
 #include <qthelper/iAQFlowLayout.h>

@@ -75,7 +75,6 @@ class iAPlot;
 struct iAProfileProbe;
 class iARenderer;
 class iASlicer;
-class iASlicerData;
 class iAVolumeStack;
 class MainWindow;
 
@@ -159,8 +158,6 @@ public:
 	// TODO: move out of mdi child, into something like an iAModality
 	vtkPolyData* getPolyData() { return polyData; };
 	iARenderer* getRenderer() { return Raycaster; };
-	//! access slicer data for given mode (use iASlicerMode enum for mode values)
-	iASlicerData* slicerData(int mode);
 	//! access slicer for given mode (use iASlicerMode enum for mode values)
 	iASlicer* slicer(int mode);
 	//! @{ access to dock widgets

@@ -32,7 +32,7 @@
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iARenderer.h"
-#include "iASlicerData.h"
+#include "iASlicer.h"
 #include "iAToolsVTK.h"
 #include "io/iAIOProvider.h"
 #include "io/iATLGICTLoader.h"
@@ -626,7 +626,7 @@ void MainWindow::saveSliceViews(QDomDocument &doc)
 	}
 
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
-		saveSliceView(doc, sliceViewsNode, activeMdiChild()->slicerData(i)->getRenderer(), getSlicerModeString(i));
+		saveSliceView(doc, sliceViewsNode, activeMdiChild()->slicer(i)->getRenderer(), getSlicerModeString(i));
 }
 
 void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, QString const & elemStr)
@@ -705,9 +705,9 @@ void MainWindow::loadSliceViews(QDomNode &sliceViewsNode)
 	{
 		QDomNode node = list.item(n);
 		vtkCamera *camera;
-		if      (node.nodeName() == "XY") camera = activeMdiChild()->slicerData(iASlicerMode::XY)->getCamera();
-		else if (node.nodeName() == "YZ") camera = activeMdiChild()->slicerData(iASlicerMode::YZ)->getCamera();
-		else                              camera = activeMdiChild()->slicerData(iASlicerMode::XZ)->getCamera();
+		if      (node.nodeName() == "XY") camera = activeMdiChild()->slicer(iASlicerMode::XY)->getCamera();
+		else if (node.nodeName() == "YZ") camera = activeMdiChild()->slicer(iASlicerMode::YZ)->getCamera();
+		else                              camera = activeMdiChild()->slicer(iASlicerMode::XZ)->getCamera();
 		loadCamera(node, camera);
 	}
 }

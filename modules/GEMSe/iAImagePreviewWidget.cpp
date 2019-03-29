@@ -28,15 +28,16 @@
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iASlicer.h>
-#include <iASlicerData.h>
 #include <iASlicerSettings.h>
-#include <iASlicerWidget.h>
 
 #include <vtkDiscretizableColorTransferFunction.h>
 #include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageMapper3D.h>
 #include <vtkTransform.h>
+
+#include <QHBoxLayout>
+#include <QSizePolicy>
 
 namespace
 {
@@ -54,8 +55,6 @@ namespace
 }
 
 const int iAImagePreviewWidget::SliceNumberNotSet = -1;
-
-#include <QSizePolicy>
 
 iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* parent, bool isLabel, vtkCamera* commonCamera,
 	iASlicerMode mode, int labelCount, bool magicLens):
@@ -76,7 +75,7 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_slicer = new iASlicer(this, mode, false, magicLens, m_slicerTransform);
 	setLayout(new QHBoxLayout);
 	layout()->setSpacing(0);
-	layout()->addWidget(m_slicer->widget());
+	layout()->addWidget(m_slicer);
 }
 
 iAImagePreviewWidget::~iAImagePreviewWidget()
@@ -97,7 +96,7 @@ void iAImagePreviewWidget::InitializeSlicer()
 	// adapt initial zoom
 	if (m_sliceNumber == SliceNumberNotSet)
 	{
-		m_sliceNumber = GetMiddleSliceNumber(m_imageData, m_slicer->getMode());
+		m_sliceNumber = GetMiddleSliceNumber(m_imageData, m_slicer->mode());
 	}
 	m_slicer->setSliceNumber(m_sliceNumber);
 	if (m_commonCamera)
@@ -111,10 +110,10 @@ void iAImagePreviewWidget::InitializeSlicer()
 		m_slicer->disableInteractor();
 	}
 	
-	connect( m_slicer->data(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
-	connect( m_slicer->data(), SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
-	connect( m_slicer->data(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
-	connect( m_slicer->data(), SIGNAL(UserInteraction()), this, SIGNAL(Updated()));
+	connect( m_slicer, SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
+	connect( m_slicer, SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
+	connect( m_slicer, SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
+	connect( m_slicer, SIGNAL(UserInteraction()), this, SIGNAL(Updated()));
 }
 
 void iAImagePreviewWidget::SlicerClicked(int x, int y, int z)
@@ -163,7 +162,7 @@ void iAImagePreviewWidget::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCame
 	m_sliceNumber = sliceNr;
 	if (m_slicerTransform)
 	{
-		m_slicer->changeMode(mode);
+		m_slicer->setMode(mode);
 		m_slicer->setSliceNumber(m_sliceNumber);
 		m_slicer->setCamera(camera, false);
 	}
@@ -171,7 +170,7 @@ void iAImagePreviewWidget::SetSlicerMode(iASlicerMode mode, int sliceNr, vtkCame
 
 iASlicerMode iAImagePreviewWidget::GetSlicerMode() const
 {
-	return m_slicer->getMode();
+	return m_slicer->mode();
 }
 
 vtkCamera* iAImagePreviewWidget::GetCamera()
@@ -201,7 +200,7 @@ void iAImagePreviewWidget::SetImage(vtkSmartPointer<vtkImageData> img, bool empt
 	double w = extent[1]-extent[0]+1;
 	double h = extent[3]-extent[2]+1;
 	double d = extent[5]-extent[4]+1;
-	switch (m_slicer->getMode())
+	switch (m_slicer->mode())
 	{
 		case XZ: m_aspectRatio = d / w; break;
 		case YZ: m_aspectRatio = d / h; break;

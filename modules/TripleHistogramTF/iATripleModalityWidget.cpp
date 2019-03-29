@@ -38,7 +38,7 @@
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iAPreferences.h>
-#include <iASlicerData.h>
+#include <iASlicer.h>
 #include <mdichild.h>
 
 #include <vtkCamera.h>
@@ -75,7 +75,7 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
 	*/
 	for (int i=0; i<3; ++i)
-		mdiChild->slicerData(i)->getChannel(0)->imageActor->SetOpacity(0.0);
+		mdiChild->slicer(i)->getChannel(0)->imageActor->SetOpacity(0.0);
 
 	//setStyleSheet("background-color:red"); // test spacing/padding/margin
 
@@ -220,7 +220,7 @@ void iATripleModalityWidget::setSlicerModePrivate(iASlicerMode slicerMode)
 		m_slicerWidgets[2]->setSlicerMode(slicerMode);
 
 		int dimensionIndex = getSlicerDimension(slicerMode);
-		int sliceNumber    = m_mdiChild->slicerData(slicerMode)->sliceNumber();
+		int sliceNumber    = m_mdiChild->slicer(slicerMode)->sliceNumber();
 		int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
 		m_sliceSlider->setMaximum(dimensionLength - 1);
 		if (!setSliceNumber(sliceNumber)) {
@@ -490,7 +490,7 @@ void iATripleModalityWidget::applyWeights()
 
 			//m_mdiChild->updateChannelOpacity(m_channelIDs[i], m_weightCur[i]);
 			for (int i=0; i<3; ++i)
-				m_mdiChild->slicerData(i)->updateChannelMappers();
+				m_mdiChild->slicer(i)->updateChannelMappers();
 			m_mdiChild->updateSlicers();
 		}
 	}

@@ -23,7 +23,7 @@
 #include "dlg_commoninput.h"
 #include "iAChannelData.h"
 #include "iARenderer.h"
-#include "iASlicerData.h"
+#include "iASlicer.h"
 #include "iAVolumeStack.h"
 #include "mdichild.h"
 
@@ -517,7 +517,7 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 
 //	m_mdiChild->getRenderer()->updateChannelImages();
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
-		m_mdiChild->slicerData(i)->updateChannelMappers();
+		m_mdiChild->slicer(i)->updateChannelMappers();
 	m_mdiChild->updateViews();
 }
 

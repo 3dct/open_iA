@@ -38,8 +38,6 @@
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iANameMapper.h>
-#include <iASlicerData.h>
-#include <iASlicerWidget.h>
 #include <iAVtkDraw.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
@@ -207,13 +205,13 @@ iADetailView::iADetailView(
 	connect(m_compareWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 	connect(m_previewWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 
-	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(dblClicked()), this, SLOT(DblClicked()));
-	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(changeModality(int)));
-	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(changeMagicLensOpacity(int)));
-	connect(m_previewWidget->GetSlicer()->data(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
-	connect(m_previewWidget->GetSlicer()->data(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
-	connect(m_previewWidget->GetSlicer()->data(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
-	connect(m_previewWidget->GetSlicer()->data(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(dblClicked()), this, SLOT(DblClicked()));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(shiftMouseWheel(int)), this, SLOT(changeModality(int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(altMouseWheel(int)), this, SLOT(changeMagicLensOpacity(int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
 }
 
 
@@ -309,7 +307,7 @@ int iADetailView::GetSliceNumber() const
 
 void iADetailView::UpdateMagicLensColors()
 {
-	m_previewWidget->GetSlicer()->data()->updateChannelMappers();
+	m_previewWidget->GetSlicer()->updateChannelMappers();
 	m_previewWidget->GetSlicer()->updateMagicLensColors();
 	m_previewWidget->GetSlicer()->update();
 
