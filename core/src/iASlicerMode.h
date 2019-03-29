@@ -22,6 +22,8 @@
 
 #include "open_iA_Core_export.h"
 
+#include <QString>
+
 enum iASlicerMode{
 	YZ,
 	XY, // TODO: for logical reasons, XY and XZ should be swapped (then index would
@@ -29,4 +31,8 @@ enum iASlicerMode{
 	SlicerModeCount
 };
 
-open_iA_Core_API const char* GetSlicerModeString(int mode);
+//! retrieve the "name" of the given slicer mode (i.e. the slicer plane, "XY" for iASlicerMode XY)
+open_iA_Core_API QString getSlicerModeString(int mode);
+
+//! return the name of axis along which the given slicer mode cuts (i.e. "Z" for slice mode "XY")
+open_iA_Core_API QString getSliceAxis(int mode);

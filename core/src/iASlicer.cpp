@@ -37,7 +37,7 @@
 
 #include <cassert>
 
-iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container,
+iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode,
 	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkAbstractTransform *tr, vtkPoints* snakeSlicerPoints) :
 	QObject(parent),
 	m_mode(mode),
@@ -55,7 +55,7 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 	// widget and data creation both access magic lens created above, so don't move that up to init list (unless restructuring slicer)
 	m_data.reset(new iASlicerData(this, parent, decorations));
 	// widget requires data
-	m_widget = new iASlicerWidget(this, widget_container, decorations);
+	m_widget = new iASlicerWidget(this, decorations);
 	m_widget->SetRenderWindow(m_data->getRenderWindow());
 	if (magicLensAvailable)
 		m_magicLens->SetRenderWindow(m_data->getRenderWindow());
@@ -443,10 +443,24 @@ void iASlicer::setCamera(vtkCamera* camera, bool owner /*=true*/ )
 }
 
 // declaration in iASlicerMode.h
-const char* GetSlicerModeString(int mode)
+QString getSlicerModeString(int mode)
 {
-	return (mode == YZ) ? "YZ"
-		: (mode == XY) ? "XY"
-		: (mode == XZ) ? "XZ"
-		: "??";
+	switch (mode)
+	{
+		case YZ: return "YZ";
+		case XZ: return "XZ";
+		case XY: return "XY";
+		default: return "??";
+	}
+}
+
+QString getSliceAxis(int mode)
+{
+	switch (mode)
+	{
+		case YZ: return "X";
+		case XZ: return "Y";
+		case XY: return "Z";
+		default: return "?";
+	}
 }

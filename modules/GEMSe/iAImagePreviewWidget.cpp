@@ -21,7 +21,6 @@
 #include "iAImagePreviewWidget.h"
 
 #include "iAGEMSeConstants.h"
-#include "iASlicerSettings.h"
 
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
@@ -30,6 +29,7 @@
 #include <iAConsole.h>
 #include <iASlicer.h>
 #include <iASlicerData.h>
+#include <iASlicerSettings.h>
 #include <iASlicerWidget.h>
 
 #include <vtkDiscretizableColorTransferFunction.h>
@@ -73,7 +73,10 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_colorTheme(nullptr),
 	m_slicerTransform(vtkTransform::New())
 {
-	m_slicer = new iASlicer(this, mode, this, false, magicLens, m_slicerTransform);
+	m_slicer = new iASlicer(this, mode, false, magicLens, m_slicerTransform);
+	setLayout(new QHBoxLayout);
+	layout()->setSpacing(0);
+	layout()->addWidget(m_slicer->widget());
 }
 
 iAImagePreviewWidget::~iAImagePreviewWidget()

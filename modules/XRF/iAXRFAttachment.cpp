@@ -27,6 +27,7 @@
 #include "iAElementConcentrations.h"
 #include "iAXRFData.h"
 
+#include <dlg_slicer.h>
 #include <iAChannelData.h>
 #include <iASlicer.h>
 #include <iASlicerData.h>
@@ -68,10 +69,9 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 	m_child->addMsg(tr("Loading file '%1', please wait...").arg(f));
 
 	dlgPeriodicTable = new dlg_periodicTable( m_child );
-	m_child->splitDockWidget( m_child->getSlicerDlgXY(), dlgPeriodicTable, Qt::Horizontal );
-
 	dlgRefSpectra = new dlg_RefSpectra( m_child );
-	m_child->splitDockWidget(m_child->getSlicerDlgXY(), dlgRefSpectra, Qt::Horizontal);
+	m_child->splitDockWidget(m_child->slicerDlg(iASlicerMode::XY), dlgPeriodicTable, Qt::Horizontal);
+	m_child->splitDockWidget(m_child->slicerDlg(iASlicerMode::XY), dlgRefSpectra, Qt::Horizontal);
 	
 	dlgXRF = new dlg_XRF( m_child, dlgPeriodicTable, dlgRefSpectra );
 

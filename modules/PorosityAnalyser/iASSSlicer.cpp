@@ -28,6 +28,7 @@
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iASlicer.h>
+#include <iASlicerWidget.h>
 #include <iASlicerSettings.h>
 #include <io/iAITKIO.h>
 
@@ -130,8 +131,7 @@ iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> 
 	selTextLabel->setFixedHeight( 15 );
 	selTextLabel->setStyleSheet( "font-weight: bold;" );
 
-	wgt = new QWidget(container);
-	slicer = new iASlicer( wgt, iASlicerMode::XY, wgt, true, true, transform);
+	slicer = new iASlicer( wgt, iASlicerMode::XY, true, true, transform);
 
 	medContour->SetNumberOfContours( 1 );
 	medContour->SetValue( 0, contourValue );
@@ -152,7 +152,7 @@ iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> 
 	maxContour->SetComputeNormals( false );
 
 	containerLayout->addWidget( selTextLabel );
-	containerLayout->addWidget( wgt );
+	containerLayout->addWidget( slicer->widget() );
 }
 
 void iASSSlicer::enableMasksChannel( bool isEnabled )

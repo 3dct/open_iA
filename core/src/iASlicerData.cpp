@@ -21,6 +21,7 @@
 #include "iASlicerData.h"
 
 #include "dlg_commoninput.h"
+#include "dlg_slicer.h"
 #include "iAChannelData.h"
 #include "iAConnector.h"
 #include "iAMagicLens.h"
@@ -1197,33 +1198,33 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 					case iASlicerMode::XY://XY
 						tmpChild->getSlicerDataXY()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1]);
 						tmpChild->getSlicerXY()->setIndex(tmpX, tmpY, tmpZ);
-						tmpChild->getSlicerDlgXY()->spinBoxXY->setValue(tmpZ);
+						tmpChild->slicerDlg(iASlicerMode::XY)->sbSlice->setValue(tmpZ);
 
 						tmpChild->getSlicerDataXY()->update();
 						tmpChild->getSlicerXY()->update();
-						tmpChild->getSlicerDlgYZ()->update();
+						tmpChild->slicerDlg(iASlicerMode::XY)->update();
 
 						strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXY(), tmpX, tmpY, tmpZ, m_mode);
 						break;
 					case iASlicerMode::YZ://YZ
 						tmpChild->getSlicerDataYZ()->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
 						tmpChild->getSlicerYZ()->setIndex(tmpX, tmpY, tmpZ);
-						tmpChild->getSlicerDlgYZ()->spinBoxYZ->setValue(tmpX);
+						tmpChild->slicerDlg(iASlicerMode::YZ)->sbSlice->setValue(tmpX);
 
 						tmpChild->getSlicerDataYZ()->update();
 						tmpChild->getSlicerYZ()->update();
-						tmpChild->getSlicerDlgYZ()->update();
+						tmpChild->slicerDlg(iASlicerMode::YZ)->update();
 
 						strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataYZ(), tmpY, tmpZ, tmpX, m_mode);
 						break;
 					case iASlicerMode::XZ://XZ
 						tmpChild->getSlicerDataXZ()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
 						tmpChild->getSlicerXZ()->setIndex(tmpX, tmpY, tmpZ);
-						tmpChild->getSlicerDlgXZ()->spinBoxXZ->setValue(tmpY);
+						tmpChild->slicerDlg(iASlicerMode::XZ)->sbSlice->setValue(tmpY);
 
 						tmpChild->getSlicerDataXZ()->update();
 						tmpChild->getSlicerXZ()->update();
-						tmpChild->getSlicerDlgXZ()->update();
+						tmpChild->slicerDlg(iASlicerMode::XZ)->update();
 
 						strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXZ(), tmpX, tmpZ, tmpY, m_mode);
 						break;

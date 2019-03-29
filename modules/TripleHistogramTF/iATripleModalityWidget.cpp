@@ -30,6 +30,7 @@
 #include <charts/iAPlotTypes.h>
 #include <charts/iAProfileWidget.h>
 #include <dlg_modalities.h>
+#include <dlg_slicer.h>
 #include <dlg_transfer.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
@@ -47,6 +48,7 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkSmartPointer.h>
 
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QString>
@@ -97,13 +99,12 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxIndexChanged(int)));
 	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 
-	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
-	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
-	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
-
-	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(sliderPressed()), this, SLOT(setSliceXYScrollBar()));
-	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
-	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
+	connect(mdiChild->slicerDlg(iASlicerMode::XY)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
+	connect(mdiChild->slicerDlg(iASlicerMode::XZ)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
+	connect(mdiChild->slicerDlg(iASlicerMode::YZ)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
+	connect(mdiChild->slicerDlg(iASlicerMode::XY)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceXYScrollBar()));
+	connect(mdiChild->slicerDlg(iASlicerMode::XZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
+	connect(mdiChild->slicerDlg(iASlicerMode::YZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
 }
 
 iATripleModalityWidget::~iATripleModalityWidget()
@@ -261,24 +262,7 @@ void iATripleModalityWidget::setSliceNumberPrivate(int sliceNumber)
 
 void iATripleModalityWidget::updateScrollBars(int newValue)
 {
-	switch (getSlicerMode())
-	{
-	case iASlicerMode::YZ:
-		m_mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ->setValue(newValue);
-		//m_mdiChild->getSlicerYZ()->setSliceNumber(sliceNumber); // Not necessary because setting the scrollbar already does this
-		break;
-	case iASlicerMode::XZ:
-		m_mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ->setValue(newValue);
-		//m_mdiChild->getSlicerXZ()->setSliceNumber(sliceNumber);
-		break;
-	case iASlicerMode::XY:
-		m_mdiChild->getSlicerDlgXY()->verticalScrollBarXY->setValue(newValue);
-		//m_mdiChild->getSlicerXY()->setSliceNumber(sliceNumber);
-		break;
-	default:
-		// TODO exception
-		return;
-	}
+	m_mdiChild->slicerDlg(getSlicerMode())->verticalScrollBar->setValue(newValue);
 }
 
 void iATripleModalityWidget::updateTransferFunction(int index)

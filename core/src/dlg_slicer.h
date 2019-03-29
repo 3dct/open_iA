@@ -18,70 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAImageWidget.h"
+#pragma once
 
-#include <iAChannelData.h>
-#include <iAChannelSlicerData.h>
-#include <iASlicerSettings.h>
-#include <iASlicer.h>
-#include <iASlicerWidget.h>
-#include <iATransferFunction.h>
+#include "iASlicerMode.h"
+#include "ui_slicer.h"
 
-#include <vtkColorTransferFunction.h>
-#include <vtkImageData.h>
-#include <vtkTransform.h>
+#include <QDockWidget>
 
-iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img):
-	m_transform(vtkSmartPointer<vtkTransform>::New())
+class iASlicerWidget;
+
+class dlg_slicer : public QDockWidget, public Ui_slicer
 {
-	m_slicer = new iASlicer(this, iASlicerMode::XY, false, true, m_transform);
-	setLayout(new QHBoxLayout());
-	layout()->setSpacing(0);
-	layout()->addWidget(m_slicer->widget());
-	m_slicer->setup(iASingleSlicerSettings());
-	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
-	m_slicer->addChannel(0, iAChannelData(img, m_ctf));
-	StyleChanged();
-}
-
-void iAImageWidget::StyleChanged()
-{
-	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
-	m_slicer->setBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
-}
-
-void iAImageWidget::SetMode(int slicerMode)
-{
-	m_slicer->changeMode(static_cast<iASlicerMode>(slicerMode));
-	m_slicer->update();
-}
-
-void iAImageWidget::SetSlice(int sliceNumber)
-{
-	m_slicer->setSliceNumber(sliceNumber);
-	m_slicer->update();
-}
-
-int iAImageWidget::GetSliceCount() const
-{
-	int * ext = m_slicer->getChannel(0)->image->GetExtent();
-	switch (m_slicer->getMode())
-	{
-		case XZ: return ext[3] - ext[2] + 1;
-		case YZ: return ext[1] - ext[0] + 1;
-		default:
-		case XY: return ext[5] - ext[4] + 1;
-	}
-}
-
-void iAImageWidget::SetImage(vtkSmartPointer<vtkImageData> img)
-{
-	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());
-	m_slicer->updateChannel(0, iAChannelData(img, m_ctf));
-	m_slicer->update();
-}
-
-iASlicer* iAImageWidget::GetSlicer()
-{
-	return m_slicer;
-}
+public:
+	static const int BorderWidth;
+	static QColor slicerColor(iASlicerMode mode);
+	dlg_slicer(iASlicerMode mode, iASlicerWidget* slicerWidget);
+	void showBorder(bool show);
+};

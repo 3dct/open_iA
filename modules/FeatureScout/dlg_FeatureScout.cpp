@@ -34,6 +34,7 @@
 #include <dlg_commoninput.h>
 #include <dlg_imageproperty.h>
 #include <dlg_modalities.h>
+#include <dlg_slicer.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iALookupTable.h>
@@ -3488,9 +3489,8 @@ void dlg_FeatureScout::initFeatureScoutUI()
 		activeChild->getImagePropertyDlg()->hide();
 	activeChild->hideHistogram();
 	activeChild->getLogDlg()->hide();
-	activeChild->getSlicerDlgXY()->hide();
-	activeChild->getSlicerDlgXZ()->hide();
-	activeChild->getSlicerDlgXY()->hide();
+	for (int i=0; i<3; ++i)
+		activeChild->slicerDlg(i)->hide();
 	activeChild->getModalitiesDlg()->hide();
 }
 

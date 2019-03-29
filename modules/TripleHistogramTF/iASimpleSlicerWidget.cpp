@@ -38,10 +38,10 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enable
 	QWidget(parent, f), m_enableInteraction(enableInteraction),
 	m_slicerTransform(vtkTransform::New())
 {
-	m_slicer = new iASlicer(this, iASlicerMode::XY, this,
-		// TODO: do this in a better way?
-		/*Qt::WindowFlags f = */f,
-		/*bool decorations = */false, m_slicerTransform); // Hide everything except the slice itself
+	m_slicer = new iASlicer(this, iASlicerMode::XY, /* magicLens = */ false, /*bool decorations = */false, m_slicerTransform); // Hide everything except the slice itself
+	setLayout(new QHBoxLayout);
+	layout()->setSpacing(0);
+	layout()->addWidget(m_slicer->widget());
 }
 
 iASimpleSlicerWidget::~iASimpleSlicerWidget()

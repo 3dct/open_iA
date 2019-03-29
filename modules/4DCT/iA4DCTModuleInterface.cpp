@@ -22,15 +22,12 @@
 
 #include "iA4DCTMainWin.h"
 #include "iA4DCTSettings.h"
-#include "iAConsole.h"
-#include "iASlicer.h"
-#include "iASlicerWidget.h"
-#include "mainwindow.h"
-#include "mdichild.h"
 #include "iAFeatureExtraction.h"
 #include "iAFeatureExtractionDialog.h"
 #include "iADefectClassifier.h"
 #include "iAClassifyDefectsDialog.h"
+
+#include <mainwindow.h>
 
 #include <vtkMath.h>
 

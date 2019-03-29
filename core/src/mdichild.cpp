@@ -28,6 +28,7 @@
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
 #include "dlg_profile.h"
+#include "dlg_slicer.h"
 #include "dlg_transfer.h"
 #include "dlg_volumePlayer.h"
 #include "iAAlgorithm.h"
@@ -90,6 +91,7 @@
 #include <QToolButton>
 #include <QtGlobal> // for QT_VERSION
 
+
 MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsavedChanges) :
 	m_isSmthMaximized(false),
 	volumeStack(new iAVolumeStack),
@@ -105,7 +107,9 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_currentComponent(0),
 	m_currentHistogramModality(-1),
 	m_magicLensChannel(NotExistingChannel),
-	m_nextChannelID(0)
+	m_nextChannelID(0),
+	slicerTransform(vtkTransform::New()),
+	worldSnakePoints(vtkPoints::New())
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
@@ -119,23 +123,25 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 
 	//insert default dock widgets and arrange them in a simple layout
 	renderer = new dlg_renderer(this);
-	sXY = new dlg_sliceXY(this);
-	sXZ = new dlg_sliceXZ(this);
-	sYZ = new dlg_sliceYZ(this);
+	for (int i = 0; i < 3; ++i)
+	{
+		slicer[i] = new iASlicer(this, static_cast<iASlicerMode>(i), true, true, slicerTransform, worldSnakePoints);
+		m_dlgSlicer[i] = new dlg_slicer(static_cast<iASlicerMode>(i), slicer[i]->widget());
+	}
 
 	pbar = new QProgressBar(this);
 	pbar->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 	pbar->setMaximumSize(350, 17);
 	this->statusBar()->addPermanentWidget(pbar);
 	m_pbarMaxVal = pbar->maximum();
-	logs = new dlg_logs(this);
+	m_dlgLog = new dlg_logs(this);
 	addDockWidget(Qt::LeftDockWidgetArea, renderer);
 	m_initialLayoutState = saveState();
 
-	splitDockWidget(renderer, logs, Qt::Vertical);
-	splitDockWidget(renderer, sXZ, Qt::Horizontal);
-	splitDockWidget(renderer, sYZ, Qt::Vertical);
-	splitDockWidget(sXZ, sXY, Qt::Vertical);
+	splitDockWidget(renderer, m_dlgLog, Qt::Vertical);
+	splitDockWidget(renderer, m_dlgSlicer[iASlicerMode::XZ], Qt::Horizontal);
+	splitDockWidget(renderer, m_dlgSlicer[iASlicerMode::YZ], Qt::Vertical);
+	splitDockWidget(m_dlgSlicer[iASlicerMode::XZ], m_dlgSlicer[iASlicerMode::XY], Qt::Vertical);
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -148,22 +154,12 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	polyData = vtkPolyData::New();
 
 	axesTransform = vtkTransform::New();
-	slicerTransform = vtkTransform::New();
 
 	snakeSlicer = false;
 	isSliceProfileEnabled = false;
 	isArbProfileEnabled = false;
-	worldSnakePoints = vtkPoints::New();
 	parametricSpline = iAParametricSpline::New();
 	parametricSpline->SetPoints(worldSnakePoints);
-
-	slicer[iASlicerMode::YZ] = new iASlicer(this, iASlicerMode::YZ, sYZ->sliceWidget, true, true, slicerTransform, worldSnakePoints);
-	slicer[iASlicerMode::XY] = new iASlicer(this, iASlicerMode::XY, sXY->sliceWidget, true, true, slicerTransform, worldSnakePoints);
-	slicer[iASlicerMode::XZ] = new iASlicer(this, iASlicerMode::XZ, sXZ->sliceWidget, true, true, slicerTransform, worldSnakePoints);
-	
-	sYZ->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(255, 0  , 0  ) } ").arg(iASlicerWidget::BorderWidth));
-	sXY->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(0  , 0  , 255) } ").arg(iASlicerWidget::BorderWidth));
-	sXZ->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(0  , 255, 0  ) } ").arg(iASlicerWidget::BorderWidth));
 	
 	Raycaster = new iARenderer(this);
 	Raycaster->setAxesTransform(axesTransform);
@@ -171,7 +167,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_dlgModalities = new dlg_modalities(renderer->vtkWidgetRC, Raycaster->GetRenderer(), preferences.HistogramBins, this);
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	setModalities(modList);
-	splitDockWidget(logs, m_dlgModalities, Qt::Horizontal);
+	splitDockWidget(m_dlgLog, m_dlgModalities, Qt::Horizontal);
 	m_dlgModalities->SetSlicePlanes(Raycaster->getPlane1(), Raycaster->getPlane2(), Raycaster->getPlane3());
 	applyViewerPreferences();
 	imgProperty = nullptr;
@@ -179,21 +175,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	setRenderWindows();
 	connectSignalsToSlots();
 	pbar->setValue(100);
-
-	sXY->spinBoxXY->setRange(-8192, 8192);
-	sXZ->spinBoxXZ->setRange(-8192,8192);
-	sYZ->spinBoxYZ->setRange(-8192,8192);
-
-	sXY->sbinBoxSlabThicknessXY->hide();
-	sXY->labelSlabThicknessXY->hide();
-	sXZ->sbinBoxSlabThicknessXZ->hide();
-	sXZ->labelSlabThicknessXZ->hide();
-	sYZ->sbinBoxSlabThicknessYZ->hide();
-	sYZ->labelSlabThicknessYZ->hide();
-
-	sXY->comboBoxSlabCompositeModeXY->hide();
-	sXZ->comboBoxSlabCompositeModeXZ->hide();
-	sYZ->comboBoxSlabCompositeModeYZ->hide();
 
 	worldProfilePoints = vtkPoints::New();
 	worldProfilePoints->Allocate(2);
@@ -221,14 +202,41 @@ MdiChild::~MdiChild()
 
 void MdiChild::connectSignalsToSlots()
 {
-	connect(renderer->pushMaxRC, SIGNAL(clicked()), this, SLOT(maximizeRC()));
-	connect(sXY->pushMaxXY, SIGNAL(clicked()), this, SLOT(maximizeXY()));
-	connect(sXZ->pushMaxXZ, SIGNAL(clicked()), this, SLOT(maximizeXZ()));
-	connect(sYZ->pushMaxYZ, SIGNAL(clicked()), this, SLOT(maximizeYZ()));
+	connect(m_dlgSlicer[iASlicerMode::XY]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeXY()));
+	connect(m_dlgSlicer[iASlicerMode::XZ]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeXZ()));
+	connect(m_dlgSlicer[iASlicerMode::YZ]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeYZ()));
+	connect(m_dlgSlicer[iASlicerMode::XY]->pbStop, SIGNAL(clicked()), this, SLOT(triggerInteractionXY()));
+	connect(m_dlgSlicer[iASlicerMode::XZ]->pbStop, SIGNAL(clicked()), this, SLOT(triggerInteractionXZ()));
+	connect(m_dlgSlicer[iASlicerMode::YZ]->pbStop, SIGNAL(clicked()), this, SLOT(triggerInteractionYZ()));
+	connect(m_dlgSlicer[iASlicerMode::XY]->pbSave, SIGNAL(clicked()), this, SLOT(saveXY()));
+	connect(m_dlgSlicer[iASlicerMode::XZ]->pbSave, SIGNAL(clicked()), this, SLOT(saveXZ()));
+	connect(m_dlgSlicer[iASlicerMode::YZ]->pbSave, SIGNAL(clicked()), this, SLOT(saveYZ()));
+	connect(m_dlgSlicer[iASlicerMode::XY]->pbSaveStack, SIGNAL(clicked()), this, SLOT(saveStackXY()));
+	connect(m_dlgSlicer[iASlicerMode::XZ]->pbSaveStack, SIGNAL(clicked()), this, SLOT(saveStackXZ()));
+	connect(m_dlgSlicer[iASlicerMode::YZ]->pbSaveStack, SIGNAL(clicked()), this, SLOT(saveStackYZ()));
+	connect(m_dlgSlicer[iASlicerMode::XY]->pbMov, SIGNAL(clicked()), this, SLOT(saveMovXY()));
+	connect(m_dlgSlicer[iASlicerMode::XZ]->pbMov, SIGNAL(clicked()), this, SLOT(saveMovXZ()));
+	connect(m_dlgSlicer[iASlicerMode::YZ]->pbMov, SIGNAL(clicked()), this, SLOT(saveMovYZ()));
+	connect(m_dlgSlicer[iASlicerMode::XY]->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYSpinBox(int)));
+	connect(m_dlgSlicer[iASlicerMode::XZ]->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZSpinBox(int)));
+	connect(m_dlgSlicer[iASlicerMode::YZ]->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZSpinBox(int)));
+	connect(m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
+	connect(m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
+	connect(m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
+	connect(m_dlgSlicer[iASlicerMode::XY]->dsbRotation, SIGNAL(valueChanged(double)), this, SLOT(setRotationXY(double)));
+	connect(m_dlgSlicer[iASlicerMode::XZ]->dsbRotation, SIGNAL(valueChanged(double)), this, SLOT(setRotationXZ(double)));
+	connect(m_dlgSlicer[iASlicerMode::YZ]->dsbRotation, SIGNAL(valueChanged(double)), this, SLOT(setRotationYZ(double)));
+	connect(m_dlgSlicer[iASlicerMode::XY]->cbSlabMode, SIGNAL(toggled(bool)), this, SLOT(setSlabModeXY(bool)));
+	connect(m_dlgSlicer[iASlicerMode::XZ]->cbSlabMode, SIGNAL(toggled(bool)), this, SLOT(setSlabModeXZ(bool)));
+	connect(m_dlgSlicer[iASlicerMode::YZ]->cbSlabMode, SIGNAL(toggled(bool)), this, SLOT(setSlabModeYZ(bool)));
+	connect(m_dlgSlicer[iASlicerMode::XY]->sbSlabThickness, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessXY(int)));
+	connect(m_dlgSlicer[iASlicerMode::XZ]->sbSlabThickness, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessXZ(int)));
+	connect(m_dlgSlicer[iASlicerMode::YZ]->sbSlabThickness, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessYZ(int)));
+	connect(m_dlgSlicer[iASlicerMode::XY]->cbSlabCompositeMode, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeModeXY(int)));
+	connect(m_dlgSlicer[iASlicerMode::XZ]->cbSlabCompositeMode, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeModeXZ(int)));
+	connect(m_dlgSlicer[iASlicerMode::YZ]->cbSlabCompositeMode, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeModeYZ(int)));
 
-	connect(sXY->pushStopXY, SIGNAL(clicked()), this, SLOT(triggerInteractionXY()));
-	connect(sXZ->pushStopXZ, SIGNAL(clicked()), this, SLOT(triggerInteractionXZ()));
-	connect(sYZ->pushStopYZ, SIGNAL(clicked()), this, SLOT(triggerInteractionYZ()));
+	connect(renderer->pushMaxRC, SIGNAL(clicked()), this, SLOT(maximizeRC()));
 	connect(renderer->pushStopRC, SIGNAL(clicked()), this, SLOT(triggerInteractionRaycaster()));
 
 	connect(renderer->pushPX, SIGNAL(clicked()), this, SLOT(camPX()));
@@ -239,47 +247,13 @@ void MdiChild::connectSignalsToSlots()
 	connect(renderer->pushMZ, SIGNAL(clicked()), this, SLOT(camMZ()));
 	connect(renderer->pushIso, SIGNAL(clicked()), this, SLOT(camIso()));
 	connect(renderer->pushSaveRC, SIGNAL(clicked()), this, SLOT(saveRC()));
-	connect(sXY->pushSaveXY, SIGNAL(clicked()), this, SLOT(saveXY()));
-	connect(sXZ->pushSaveXZ, SIGNAL(clicked()), this, SLOT(saveXZ()));
-	connect(sYZ->pushSaveYZ, SIGNAL(clicked()), this, SLOT(saveYZ()));
-
-	connect(sXY->pushSaveStackXY, SIGNAL(clicked()), this, SLOT(saveStackXY()));
-	connect(sXZ->pushSaveStackXZ, SIGNAL(clicked()), this, SLOT(saveStackXZ()));
-	connect(sYZ->pushSaveStackYZ, SIGNAL(clicked()), this, SLOT(saveStackYZ()));
-
-	connect(sXY->pushMovXY, SIGNAL(clicked()), this, SLOT(saveMovXY()));
-	connect(sXZ->pushMovXZ, SIGNAL(clicked()), this, SLOT(saveMovXZ()));
-	connect(sYZ->pushMovYZ, SIGNAL(clicked()), this, SLOT(saveMovYZ()));
 	connect(renderer->pushMovRC, SIGNAL(clicked()), this, SLOT(saveMovRC()));
 
-	connect(logs->pushClearLogs, SIGNAL(clicked()), this, SLOT(clearLogs()));
+	connect(m_dlgLog->pushClearLogs, SIGNAL(clicked()), this, SLOT(clearLogs()));
 
 	connect(renderer->vtkWidgetRC, SIGNAL(rightButtonReleasedSignal()), Raycaster, SLOT(mouseRightButtonReleasedSlot()));
 	connect(renderer->vtkWidgetRC, SIGNAL(leftButtonReleasedSignal()), Raycaster, SLOT(mouseLeftButtonReleasedSlot()));
 	connect(renderer->spinBoxRC, SIGNAL(valueChanged(int)), this, SLOT(setChannel(int)));
-
-	connect(sXY->spinBoxXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYSpinBox(int)));
-	connect(sXZ->spinBoxXZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZSpinBox(int)));
-	connect(sYZ->spinBoxYZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZSpinBox(int)));
-
-	connect(sXY->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
-	connect(sXZ->verticalScrollBarXZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
-	connect(sYZ->verticalScrollBarYZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
-
-	connect(sXY->doubleSpinBoxXY, SIGNAL(valueChanged(double)), this, SLOT(setRotationXY(double)));
-	connect(sXZ->doubleSpinBoxXZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationXZ(double)));
-	connect(sYZ->doubleSpinBoxYZ, SIGNAL(valueChanged(double)), this, SLOT(setRotationYZ(double)));
-
-	connect(sXY->checkBoxSlabModeXY, SIGNAL(toggled(bool)), this, SLOT(setSlabModeXY(bool)));
-	connect(sXY->sbinBoxSlabThicknessXY, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessXY(int)));
-	connect(sXZ->checkBoxSlabModeXZ, SIGNAL(toggled(bool)), this, SLOT(setSlabModeXZ(bool)));
-	connect(sXZ->sbinBoxSlabThicknessXZ, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessXZ(int)));
-	connect(sYZ->checkBoxSlabModeYZ, SIGNAL(toggled(bool)), this, SLOT(setSlabModeYZ(bool)));
-	connect(sYZ->sbinBoxSlabThicknessYZ, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThicknessYZ(int)));
-
-	connect(sXY->comboBoxSlabCompositeModeXY, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeModeXY(int)));
-	connect(sXZ->comboBoxSlabCompositeModeXZ, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeModeXZ(int)));
-	connect(sYZ->comboBoxSlabCompositeModeYZ, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeModeYZ(int)));
 
 	for (int s = 0; s < 3; ++s)
 	{
@@ -440,26 +414,28 @@ void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
 	double spacing[3];
 	imageData->GetSpacing(spacing);
 //TODO: improve using iASlicer stuff
-	if (slicerSettings.LinkViews) {
+	if (slicerSettings.LinkViews)
+	{
 		xCoord = x; yCoord = y; zCoord = z;
-		if (mode != iASlicerMode::XZ) {
-			if (slicerSettings.SingleSlicer.ShowPosition) {
+		if (mode != iASlicerMode::XZ)
+		{
+			if (slicerSettings.SingleSlicer.ShowPosition)
 				slicer[iASlicerMode::XZ]->setPositionMarkerCenter(x*spacing[0], z*spacing[2]);
-			}
-			slicer[iASlicerMode::XZ]->setIndex(x,y,z);
-			sXZ->spinBoxXZ->setValue(y);
+			slicer[iASlicerMode::XZ]->setIndex(x, y, z);
+			m_dlgSlicer[iASlicerMode::XZ]->sbSlice->setValue(y);
 		}
-		if (mode != iASlicerMode::YZ) {
+		if (mode != iASlicerMode::YZ)
+		{
 			if (slicerSettings.SingleSlicer.ShowPosition)
 				slicer[iASlicerMode::YZ]->setPositionMarkerCenter(y*spacing[1], z*spacing[2]);
 			slicer[iASlicerMode::YZ]->setIndex(x,y,z);
-			sYZ->spinBoxYZ->setValue(x);
+			m_dlgSlicer[iASlicerMode::YZ]->sbSlice->setValue(x);
 		}
 		if (mode != iASlicerMode::XY) {
 			if (slicerSettings.SingleSlicer.ShowPosition)
 				slicer[iASlicerMode::XY]->setPositionMarkerCenter(x*spacing[0], y*spacing[1]);
 			slicer[iASlicerMode::XY]->setIndex(x,y,z);
-			sXY->spinBoxXY->setValue(z);
+			m_dlgSlicer[iASlicerMode::XY]->sbSlice->setValue(z);
 		}
 		if (renderSettings.ShowRPosition)
 			Raycaster->setCubeCenter(x, y, z);
@@ -779,23 +755,23 @@ void MdiChild::setupProject(bool active)
 void MdiChild::updateSliceIndicators()
 {
 	int val;
-	sXY->spinBoxXY->setRange(imageData->GetExtent()[4],imageData->GetExtent()[5]);
-	sXY->verticalScrollBarXY->setRange(imageData->GetExtent()[4],imageData->GetExtent()[5]);
-	val = (imageData->GetExtent()[5]-imageData->GetExtent()[4]) / 2 + imageData->GetExtent()[4];
-	sXY->spinBoxXY->setValue(val);
-	sXY->verticalScrollBarXY->setValue(val);
+	val = (imageData->GetExtent()[5] - imageData->GetExtent()[4]) / 2 + imageData->GetExtent()[4];
+	m_dlgSlicer[iASlicerMode::XY]->sbSlice->setRange(imageData->GetExtent()[4],imageData->GetExtent()[5]);
+	m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar->setRange(imageData->GetExtent()[4],imageData->GetExtent()[5]);
+	m_dlgSlicer[iASlicerMode::XY]->sbSlice->setValue(val);
+	m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar->setValue(val);
 
-	sYZ->spinBoxYZ->setRange(imageData->GetExtent()[0],imageData->GetExtent()[1]);
-	sYZ->verticalScrollBarYZ->setRange(imageData->GetExtent()[0],imageData->GetExtent()[1]);
-	val = (imageData->GetExtent()[1]-imageData->GetExtent()[0] ) / 2 + imageData->GetExtent()[0];
-	sYZ->spinBoxYZ->setValue(val);
-	sYZ->verticalScrollBarYZ->setValue(val);
+	val = (imageData->GetExtent()[1] - imageData->GetExtent()[0]) / 2 + imageData->GetExtent()[0];
+	m_dlgSlicer[iASlicerMode::YZ]->sbSlice->setRange(imageData->GetExtent()[0], imageData->GetExtent()[1]);
+	m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar->setRange(imageData->GetExtent()[0], imageData->GetExtent()[1]);
+	m_dlgSlicer[iASlicerMode::YZ]->sbSlice->setValue(val);
+	m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar->setValue(val);
 
-	sXZ->spinBoxXZ->setRange(imageData->GetExtent()[2],imageData->GetExtent()[3]);
-	sXZ->verticalScrollBarXZ->setRange(imageData->GetExtent()[2],imageData->GetExtent()[3]);
-	val = (imageData->GetExtent()[3]-imageData->GetExtent()[2] ) / 2 + imageData->GetExtent()[2];
-	sXZ->spinBoxXZ->setValue(val);
-	sXZ->verticalScrollBarXZ->setValue(val);
+	val = (imageData->GetExtent()[3] - imageData->GetExtent()[2]) / 2 + imageData->GetExtent()[2];
+	m_dlgSlicer[iASlicerMode::XZ]->sbSlice->setRange(imageData->GetExtent()[2], imageData->GetExtent()[3]);
+	m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar->setRange(imageData->GetExtent()[2], imageData->GetExtent()[3]);
+	m_dlgSlicer[iASlicerMode::XZ]->sbSlice->setValue(val);
+	m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar->setValue(val);
 }
 
 int MdiChild::chooseModalityNr(QString const & caption)
@@ -1035,22 +1011,22 @@ int MdiChild::getVisibility() const
 
 void MdiChild::clearLogs()
 {
-	logs->listWidget->clear();
+	m_dlgLog->listWidget->clear();
 }
 
 void MdiChild::maximizeXY()
 {
-	resizeDockWidget(sXY);
+	resizeDockWidget(m_dlgSlicer[iASlicerMode::XY]);
 }
 
 void MdiChild::maximizeXZ()
 {
-	resizeDockWidget(sXZ);
+	resizeDockWidget(m_dlgSlicer[iASlicerMode::XZ]);
 }
 
 void MdiChild::maximizeYZ()
 {
-	resizeDockWidget(sYZ);
+	resizeDockWidget(m_dlgSlicer[iASlicerMode::YZ]);
 }
 
 void MdiChild::maximizeRC()
@@ -1207,18 +1183,18 @@ void MdiChild::triggerInteractionRaycaster()
 void MdiChild::setSliceXYSpinBox(int s)
 {
 	setSliceXY(s);
-	QSignalBlocker block(sXY->verticalScrollBarXY);
-	sXY->verticalScrollBarXY->setValue(s);
+	QSignalBlocker block(m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar);
+	m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar->setValue(s);
 }
 
 void MdiChild::setSlabModeXY(bool slabMode)
 {
-	sXY->labelSlabThicknessXY->setVisible(slabMode);
-	sXY->sbinBoxSlabThicknessXY->setVisible(slabMode);
-	sXY->comboBoxSlabCompositeModeXY->setVisible(slabMode);
+	m_dlgSlicer[iASlicerMode::XY]->lbSlabThickness->setVisible(slabMode);
+	m_dlgSlicer[iASlicerMode::XY]->sbSlabThickness->setVisible(slabMode);
+	m_dlgSlicer[iASlicerMode::XY]->cbSlabCompositeMode->setVisible(slabMode);
 
 	slabMode == true ?
-		updateSlabThicknessXY(sXY->sbinBoxSlabThicknessXY->value()) :
+		updateSlabThicknessXY(m_dlgSlicer[iASlicerMode::XY]->sbSlabThickness->value()) :
 		updateSlabThicknessXY(0);
 }
 
@@ -1234,11 +1210,11 @@ void MdiChild::updateSlabCompositeModeXY(int mode)
 
 void MdiChild::setSliceXYScrollBar(int s)
 {
-	sXY->spinBoxXY->repaint();
-	sXY->verticalScrollBarXY->repaint();
+	m_dlgSlicer[iASlicerMode::XY]->sbSlice->repaint();
+	m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar->repaint();
 	setSliceXY(s);
-	QSignalBlocker block(sXY->spinBoxXY);
-	sXY->spinBoxXY->setValue(s);
+	QSignalBlocker block(m_dlgSlicer[iASlicerMode::XY]->sbSlice);
+	m_dlgSlicer[iASlicerMode::XY]->sbSlice->setValue(s);
 }
 
 void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s)
@@ -1374,7 +1350,7 @@ void MdiChild::setSliceXY(int s)
 {
 	if (snakeSlicer)
 	{
-		updateSnakeSlicer(sXY->spinBoxXY, slicer[iASlicerMode::XY], 2, s);
+		updateSnakeSlicer(m_dlgSlicer[iASlicerMode::XY]->sbSlice, slicer[iASlicerMode::XY], 2, s);
 	}
 	else
 	{
@@ -1390,18 +1366,18 @@ void MdiChild::setSliceXY(int s)
 void MdiChild::setSliceYZSpinBox(int s)
 {
 	setSliceYZ(s);
-	QSignalBlocker block(sYZ->verticalScrollBarYZ);
-	sYZ->verticalScrollBarYZ->setValue(s);
+	QSignalBlocker block(m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar);
+	m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar->setValue(s);
 }
 
 void MdiChild::setSlabModeYZ(bool slabMode)
 {
-	sYZ->labelSlabThicknessYZ->setVisible(slabMode);
-	sYZ->sbinBoxSlabThicknessYZ->setVisible(slabMode);
-	sYZ->comboBoxSlabCompositeModeYZ->setVisible(slabMode);
+	m_dlgSlicer[iASlicerMode::YZ]->lbSlabThickness->setVisible(slabMode);
+	m_dlgSlicer[iASlicerMode::YZ]->sbSlabThickness->setVisible(slabMode);
+	m_dlgSlicer[iASlicerMode::YZ]->cbSlabCompositeMode->setVisible(slabMode);
 
 	slabMode == true ?
-		updateSlabThicknessYZ(sYZ->sbinBoxSlabThicknessYZ->value()) :
+		updateSlabThicknessYZ(m_dlgSlicer[iASlicerMode::YZ]->sbSlabThickness->value()) :
 		updateSlabThicknessYZ(0);
 }
 
@@ -1417,18 +1393,18 @@ void MdiChild::updateSlabCompositeModeYZ(int mode)
 
 void MdiChild::setSliceYZScrollBar(int s)
 {
-	sYZ->spinBoxYZ->repaint();
-	sYZ->verticalScrollBarYZ->repaint();
+	m_dlgSlicer[iASlicerMode::YZ]->sbSlice->repaint();
+	m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar->repaint();
 	setSliceYZ(s);
-	QSignalBlocker block(sYZ->spinBoxYZ);
-	sYZ->spinBoxYZ->setValue(s);
+	QSignalBlocker block(m_dlgSlicer[iASlicerMode::YZ]->sbSlice);
+	m_dlgSlicer[iASlicerMode::YZ]->sbSlice->setValue(s);
 }
 
 void MdiChild::setSliceYZ(int s)
 {
 	if (snakeSlicer)
 	{
-		updateSnakeSlicer(sYZ->spinBoxYZ, slicer[iASlicerMode::YZ], 0, s);
+		updateSnakeSlicer(m_dlgSlicer[iASlicerMode::YZ]->sbSlice, slicer[iASlicerMode::YZ], 0, s);
 	}
 	else
 	{
@@ -1444,18 +1420,18 @@ void MdiChild::setSliceYZ(int s)
 void MdiChild::setSliceXZSpinBox(int s)
 {
 	setSliceXZ(s);
-	QSignalBlocker block(sXZ->verticalScrollBarXZ);
-	sXZ->verticalScrollBarXZ->setValue(s);
+	QSignalBlocker block(m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar);
+	m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar->setValue(s);
 }
 
 void MdiChild::setSlabModeXZ(bool slabMode)
 {
-	sXZ->labelSlabThicknessXZ->setVisible(slabMode);
-	sXZ->sbinBoxSlabThicknessXZ->setVisible(slabMode);
-	sXZ->comboBoxSlabCompositeModeXZ->setVisible(slabMode);
+	m_dlgSlicer[iASlicerMode::XZ]->lbSlabThickness->setVisible(slabMode);
+	m_dlgSlicer[iASlicerMode::XZ]->sbSlabThickness->setVisible(slabMode);
+	m_dlgSlicer[iASlicerMode::XZ]->cbSlabCompositeMode->setVisible(slabMode);
 
 	slabMode == true ?
-		updateSlabThicknessXZ(sXZ->sbinBoxSlabThicknessXZ->value()) :
+		updateSlabThicknessXZ(m_dlgSlicer[iASlicerMode::XZ]->sbSlabThickness->value()) :
 		updateSlabThicknessXZ(0);
 }
 
@@ -1471,18 +1447,18 @@ void MdiChild::updateSlabCompositeModeXZ(int mode)
 
 void MdiChild::setSliceXZScrollBar(int s)
 {
-	sXZ->spinBoxXZ->repaint();
-	sXZ->verticalScrollBarXZ->repaint();
+	m_dlgSlicer[iASlicerMode::XZ]->sbSlice->repaint();
+	m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar->repaint();
 	setSliceXZ(s);
-	QSignalBlocker block(sXZ->spinBoxXZ);
-	sXZ->spinBoxXZ->setValue(s);
+	QSignalBlocker block(m_dlgSlicer[iASlicerMode::XZ]->sbSlice);
+	m_dlgSlicer[iASlicerMode::XZ]->sbSlice->setValue(s);
 }
 
 void MdiChild::setSliceXZ(int s)
 {
 	if (snakeSlicer)
 	{
-		updateSnakeSlicer(sXZ->spinBoxXZ, slicer[iASlicerMode::XZ], 1, s);
+		updateSnakeSlicer(m_dlgSlicer[iASlicerMode::XZ]->sbSlice, slicer[iASlicerMode::XZ], 1, s);
 	}
 	else
 	{
@@ -1581,7 +1557,7 @@ void MdiChild::applyRenderSettings(iARenderer* raycaster)
 void MdiChild::applyVolumeSettings(const bool loadSavedVolumeSettings)
 {
 	for (int i = 0; i < 3; ++i)
-		slicer[i]->widget()->showBorder(renderSettings.ShowSlicePlanes);
+		m_dlgSlicer[i]->showBorder(renderSettings.ShowSlicePlanes);
 	m_dlgModalities->ShowSlicers(renderSettings.ShowSlicers);
 	m_dlgModalities->ChangeRenderSettings(volumeSettings, loadSavedVolumeSettings);
 }
@@ -1624,10 +1600,11 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 
 	if (snakeSlicer)
 	{
-		int prevMax = sXY->spinBoxXY->maximum();
-		int prevValue = sXY->spinBoxXY->value();
-		sXY->spinBoxXY->setRange(0, ss.SnakeSlices-1);
-		sXY->spinBoxXY->setValue((double)prevValue/prevMax*(ss.SnakeSlices-1));
+		// TODO: check why only XY slice here?
+		int prevMax   = m_dlgSlicer[iASlicerMode::XY]->sbSlice->maximum();
+		int prevValue = m_dlgSlicer[iASlicerMode::XY]->sbSlice->value();
+		m_dlgSlicer[iASlicerMode::XY]->sbSlice->setRange(0, ss.SnakeSlices-1);
+		m_dlgSlicer[iASlicerMode::XY]->sbSlice->setValue((double)prevValue/prevMax*(ss.SnakeSlices-1));
 	}
 
 	linkViews(ss.LinkViews);
@@ -1885,9 +1862,9 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		double emptyp[3]; emptyp[0] = 0; emptyp[1] = 0; emptyp[2] = 0;
 		parametricSpline->Evaluate(emptyper, emptyp, nullptr);
 
-		sXY->spinBoxXY->setValue(0);//set initial value
-		sXZ->spinBoxXZ->setValue(0);//set initial value
-		sYZ->spinBoxYZ->setValue(0);//set initial value
+		m_dlgSlicer[iASlicerMode::XY]->spinBoxXY->setValue(0);//set initial value
+		m_dlgSlicer[iASlicerMode::XZ]->spinBoxXZ->setValue(0);//set initial value
+		m_dlgSlicer[iASlicerMode::YZ]->spinBoxYZ->setValue(0);//set initial value
 
 		for (int s = 0; s<3; ++s)
 			slicer[s]->widget()->switchMode(iASlicerWidget::NORMAL);
@@ -1896,21 +1873,21 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 	{
 		renderSettings.ShowSlicers = false;
 
-		sXY->spinBoxXY->setValue(imageData->GetDimensions()[2]>>1);
+		m_dlgSlicer[iASlicerMode::XY]->spinBoxXY->setValue(imageData->GetDimensions()[2]>>1);
 		slicer[iASlicerMode::XY]->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);
 		slicer[iASlicerMode::XY]->GetReslicer()->SetResliceTransform(SlicerXY_Transform);
 		slicer[iASlicerMode::XY]->GetReslicer()->SetOutputExtentToDefault();
 		slicer[iASlicerMode::XY]->getRenderer()->ResetCamera();
 		slicer[iASlicerMode::XY]->getRenderer()->Render();
 
-		sXZ->spinBoxXZ->setValue(imageData->GetDimensions()[1]>>1);
+		m_dlgSlicer[iASlicerMode::XZ]->spinBoxXZ->setValue(imageData->GetDimensions()[1]>>1);
 		slicer[iASlicerMode::XZ]->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,0,1,  0,-1,0);
 		slicer[iASlicerMode::XZ]->GetReslicer()->SetResliceTransform(SlicerXZ_Transform);
 		slicer[iASlicerMode::XZ]->GetReslicer()->SetOutputExtentToDefault();
 		slicer[iASlicerMode::XZ]->getRenderer()->ResetCamera();
 		slicer[iASlicerMode::XZ]->getRenderer()->Render();
 
-		sYZ->spinBoxYZ->setValue(imageData->GetDimensions()[0]>>1);
+		m_dlgSlicer[iASlicerMode::YZ]->spinBoxYZ->setValue(imageData->GetDimensions()[0]>>1);
 		slicer[iASlicerMode::YZ]->GetReslicer()->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);
 		slicer[iASlicerMode::YZ]->GetReslicer()->SetResliceTransform(SlicerYZ_Transform);
 		slicer[iASlicerMode::YZ]->GetReslicer()->SetOutputExtentToDefault();
@@ -2150,7 +2127,7 @@ bool MdiChild::initView( QString const & title )
 		this->addImageProperty();
 		if (imageData->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
 		{
-			tabifyDockWidget(logs, m_histogramContainer);
+			tabifyDockWidget(m_dlgLog, m_histogramContainer);
 			this->addProfile();
 		}
 	}
@@ -2176,7 +2153,7 @@ void MdiChild::addImageProperty()
 	if (imgProperty)
 		return;
 	imgProperty = new dlg_imageproperty(this);
-	tabifyDockWidget(logs, imgProperty);
+	tabifyDockWidget(m_dlgLog, imgProperty);
 }
 
 void MdiChild::updateImageProperties()
@@ -2201,7 +2178,7 @@ void MdiChild::updateImageProperties()
 bool MdiChild::addVolumePlayer(iAVolumeStack* volumeStack)
 {
 	volumePlayer = new dlg_volumePlayer(this, volumeStack);
-	tabifyDockWidget(logs, volumePlayer);
+	tabifyDockWidget(m_dlgLog, volumePlayer);
 	for (int id=0; id<volumeStack->getNumberOfVolumes(); id++) {
 		CheckedList.append(0);
 	}
@@ -2219,9 +2196,9 @@ int MdiChild::evaluatePosition(int pos, int i, bool invert)
 
 void MdiChild::addMsg(QString txt)
 {
-	logs->listWidget->addItem(tr("%1  %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(txt));
-	logs->listWidget->scrollToBottom();
-	logs->listWidget->repaint();
+	m_dlgLog->listWidget->addItem(tr("%1  %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(txt));
+	m_dlgLog->listWidget->scrollToBottom();
+	m_dlgLog->listWidget->repaint();
 }
 
 void MdiChild::addStatusMsg(QString txt)
@@ -2302,11 +2279,11 @@ void MdiChild::changeVisibility(unsigned char mode)
 	bool  xz = (mode & XZ)  == XZ;
 	bool tab = (mode & TAB) == TAB;
 	renderer->setVisible(rc);
-	sXY->setVisible(xy);
-	sYZ->setVisible(yz);
-	sXZ->setVisible(xz);
+	m_dlgSlicer[iASlicerMode::XY]->setVisible(xy);
+	m_dlgSlicer[iASlicerMode::YZ]->setVisible(yz);
+	m_dlgSlicer[iASlicerMode::XZ]->setVisible(xz);
 
-	logs->setVisible(tab);
+	m_dlgLog->setVisible(tab);
 	if (isVolumeDataLoaded())
 	{	// TODO: check redundancy with hideHistogram calls?
 		m_histogramContainer->setVisible(tab);
@@ -2315,7 +2292,7 @@ void MdiChild::changeVisibility(unsigned char mode)
 
 void MdiChild::hideVolumeWidgets()
 {
-	setVisibility(QList<QWidget*>() << sXY << sXZ << sYZ << renderer, false);
+	setVisibility(QList<QWidget*>() << m_dlgSlicer[iASlicerMode::XY] << m_dlgSlicer[iASlicerMode::XZ] << m_dlgSlicer[iASlicerMode::YZ] << renderer, false);
 	this->update();
 }
 
@@ -2429,9 +2406,9 @@ void MdiChild::setChannelRenderingEnabled(uint id, bool enabled)
 		return;
 	}
 	data->setEnabled(enabled);
-	getSlicerDataXY()->enableChannel(id, enabled, 0, 0, static_cast<double>(sXY->spinBoxXY->value()) * imageData->GetSpacing()[2]);
-	getSlicerDataXZ()->enableChannel(id, enabled, 0, static_cast<double>(sXZ->spinBoxXZ->value()) * imageData->GetSpacing()[1], 0);
-	getSlicerDataYZ()->enableChannel(id, enabled, static_cast<double>(sYZ->spinBoxYZ->value()) * imageData->GetSpacing()[0], 0, 0);
+	getSlicerDataXY()->enableChannel(id, enabled, 0, 0, static_cast<double>(m_dlgSlicer[iASlicerMode::XY]->sbSlice->value()) * imageData->GetSpacing()[2]);
+	getSlicerDataXZ()->enableChannel(id, enabled, 0, static_cast<double>(m_dlgSlicer[iASlicerMode::XZ]->sbSlice->value()) * imageData->GetSpacing()[1], 0);
+	getSlicerDataYZ()->enableChannel(id, enabled, static_cast<double>(m_dlgSlicer[iASlicerMode::YZ]->sbSlice->value()) * imageData->GetSpacing()[0], 0, 0);
 	/*
 	// TODO: VOLUME: rewrite using volume manager:
 	if (data->Uses3D())
@@ -2489,7 +2466,7 @@ void MdiChild::addProfile()
 	profileProbe->UpdateProbe(1, end);
 	profileProbe->UpdateData();
 	imgProfile = new dlg_profile(this, profileProbe->profileData, profileProbe->GetRayLength());
-	tabifyDockWidget(logs, imgProfile);
+	tabifyDockWidget(m_dlgLog, imgProfile);
 	connect(imgProfile->profileMode, SIGNAL(toggled(bool)), this, SLOT(toggleArbitraryProfile(bool)));
 }
 
@@ -2518,32 +2495,32 @@ void MdiChild::updateProfile()
 
 int MdiChild::getSliceXY()
 {
-	return sXY->spinBoxXY->value();
+	return m_dlgSlicer[iASlicerMode::XY]->sbSlice->value();
 }
 
 int MdiChild::getSliceYZ()
 {
-	return sYZ->spinBoxYZ->value();
+	return m_dlgSlicer[iASlicerMode::YZ]->sbSlice->value();
 }
 
 int MdiChild::getSliceXZ()
 {
-	return sXZ->spinBoxXZ->value();
+	return m_dlgSlicer[iASlicerMode::XZ]->sbSlice->value();
 }
 
 QSpinBox * MdiChild::getSpinBoxXY()
 {
-	return sXY->spinBoxXY;
+	return m_dlgSlicer[iASlicerMode::XY]->sbSlice;
 }
 
 QSpinBox * MdiChild::getSpinBoxYZ()
 {
-	return sYZ->spinBoxYZ;
+	return m_dlgSlicer[iASlicerMode::YZ]->sbSlice;
 }
 
 QSpinBox * MdiChild::getSpinBoxXZ()
 {
-	return sXZ->spinBoxXZ;
+	return m_dlgSlicer[iASlicerMode::XZ]->sbSlice;
 }
 
 void MdiChild::maximizeDockWidget( QDockWidget * dw )
@@ -2627,19 +2604,10 @@ iASlicer* MdiChild::getSlicerYZ()
 	return slicer[iASlicerMode::YZ];
 }
 
-dlg_sliceXY * MdiChild::getSlicerDlgXY()
+dlg_slicer * MdiChild::slicerDlg(int mode)
 {
-	return sXY;
-}
-
-dlg_sliceXZ	* MdiChild::getSlicerDlgXZ()
-{
-	return sXZ;
-}
-
-dlg_sliceYZ	* MdiChild::getSlicerDlgYZ()
-{
-	return sYZ;
+	assert(0 >= mode && mode < 3);
+	return m_dlgSlicer[mode];
 }
 
 dlg_renderer * MdiChild::getRendererDlg()
@@ -2659,7 +2627,7 @@ dlg_profile * MdiChild::getProfileDlg()
 
 dlg_logs * MdiChild::getLogDlg()
 {
-	return logs;
+	return m_dlgLog;
 }
 
 vtkTransform* MdiChild::getSlicerTransform()
@@ -2694,9 +2662,9 @@ void MdiChild::setMagicLensInput(uint id, bool initReslice)
 	{
 		double * spc = imageData->GetSpacing();
 		double * origin = imageData->GetOrigin();
-		slicer[iASlicerMode::YZ]->setResliceChannelAxesOrigin(id, origin[0] + static_cast<double>(sYZ->spinBoxYZ->value()) * spc[0], origin[1], origin[2]);
-		slicer[iASlicerMode::XZ]->setResliceChannelAxesOrigin(id, origin[0], origin[1] + static_cast<double>(sXZ->spinBoxXZ->value()) * spc[1], origin[2]);
-		slicer[iASlicerMode::XY]->setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2] + static_cast<double>(sXY->spinBoxXY->value()) * spc[2]);
+		slicer[iASlicerMode::YZ]->setResliceChannelAxesOrigin(id, origin[0] + static_cast<double>(m_dlgSlicer[iASlicerMode::YZ]->sbSlice->value()) * spc[0], origin[1], origin[2]);
+		slicer[iASlicerMode::XZ]->setResliceChannelAxesOrigin(id, origin[0], origin[1] + static_cast<double>(m_dlgSlicer[iASlicerMode::XZ]->sbSlice->value()) * spc[1], origin[2]);
+		slicer[iASlicerMode::XY]->setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2] + static_cast<double>(m_dlgSlicer[iASlicerMode::XY]->sbSlice->value()) * spc[2]);
 	}
 }
 
@@ -2910,7 +2878,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	updateImageProperties();
 	if (!findChild<iADockWidgetWrapper*>("Histogram"))
 	{
-		tabifyDockWidget(logs, m_histogramContainer);
+		tabifyDockWidget(m_dlgLog, m_histogramContainer);
 		this->addProfile();
 	}
 	emit histogramAvailable();

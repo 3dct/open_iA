@@ -85,10 +85,8 @@ protected:
 	QGridLayout * m_layout;
 
 public:
-	iASlicerWidget(iASlicer * slicerMaster, QWidget * parent = NULL, bool decorations = true);
+	iASlicerWidget(iASlicer * slicerMaster, bool decorations = true);
 	~iASlicerWidget();
-
-	static const int BorderWidth = 3;
 	
 	void	initialize(vtkPoints * snakeSlicerPoints = nullptr);
 	void	setIndex( int x, int y, int z ) { m_xInd = x; m_yInd = y; m_zInd = z; };
@@ -99,7 +97,6 @@ public:
 	void	computeGlyphs();
 	void	setPieGlyphParameters( double opacity, double spacing, double magFactor );
 	// }
-	void	showBorder(bool show);
 protected:
 	void	updateProfile();
 	int		pickPoint( double * pos_out, double * result_out, int * ind_out);

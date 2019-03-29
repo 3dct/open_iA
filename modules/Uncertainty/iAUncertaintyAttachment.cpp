@@ -32,9 +32,11 @@
 
 #include <charts/iASimpleHistogramData.h>
 #include <dlg_imageproperty.h>
+#include <dlg_slicer.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iALookupTable.h>
+#include <iASlicerMode.h>
 #include <iAStringHelper.h>
 #include <mdichild.h>
 #include <mainwindow.h>
@@ -129,13 +131,13 @@ void iAUncertaintyAttachment::ContinueEnsembleLoading()
 	}
 	m_mainWnd->showMaximized();
 	m_child->showMaximized();
-	m_child->splitDockWidget(m_child->getSlicerDlgXY(), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
+	m_child->splitDockWidget(m_child->slicerDlg(iASlicerMode::XY), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
 	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Horizontal);	// ScatterPlot View
 	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[5], Qt::Vertical);	// Ensemble View
 	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);	// Label Distribution View
 	m_child->splitDockWidget(m_dockWidgets[3], m_dockWidgets[4], Qt::Vertical);	// Uncertainty Distribution View
 	m_child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
-	m_child->getSlicerDlgXY()->hide();
+	m_child->slicerDlg(iASlicerMode::XY)->hide();
 	m_child->getImagePropertyDlg()->hide();
 	if (!m_ensembleFile->LayoutName().isEmpty())
 	{

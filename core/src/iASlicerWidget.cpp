@@ -73,8 +73,7 @@ struct PickedData
 PickedData	pickedData;
 
 
-iASlicerWidget::iASlicerWidget( iASlicer * slicerMaster, QWidget * widget_container, bool decorations)
-	: iAVtkWidget(widget_container),
+iASlicerWidget::iASlicerWidget( iASlicer * slicerMaster, bool decorations):
 	m_magicLensExternal(slicerMaster->magicLens()),
 	m_slicerMode(slicerMaster->getMode()),
 	m_slicerDataExternal(slicerMaster->data()),
@@ -106,12 +105,6 @@ iASlicerWidget::iASlicerWidget( iASlicer * slicerMaster, QWidget * widget_contai
 		m_arbProfile->SetVisibility(false);
 	}
 
-	m_layout = new QGridLayout();
-	m_layout->setSpacing(0);
-	showBorder(false);
-	m_layout->addWidget(this);
-	widget_container->setLayout( m_layout );
-
 	//setup context menu for the magic lens view options
 	if (m_magicLensExternal)
 	{
@@ -129,14 +122,6 @@ iASlicerWidget::iASlicerWidget( iASlicer * slicerMaster, QWidget * widget_contai
 
 	setAutoFillBackground(false);
 }
-
-
-void iASlicerWidget::showBorder(bool show)
-{
-	int borderWidth = show ? BorderWidth : 0;
-	m_layout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
-}
-
 
 void iASlicerWidget::initialize(vtkPoints *snakeSlicerPoints )
 {

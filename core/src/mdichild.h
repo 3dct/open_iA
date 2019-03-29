@@ -30,9 +30,6 @@
 #include "ui_logs.h"
 #include "ui_Mdichild.h"
 #include "ui_renderer.h"
-#include "ui_sliceXY.h"
-#include "ui_sliceXZ.h"
-#include "ui_sliceYZ.h"
 
 #include <vtkSmartPointer.h>
 
@@ -63,6 +60,7 @@ class dlg_imageproperty;
 class dlg_modalities;
 class dlg_periodicTable;
 class dlg_profile;
+class dlg_slicer;
 class dlg_volumePlayer;
 class iAAlgorithm;
 class iAChannelData;
@@ -81,9 +79,6 @@ class iASlicerData;
 class iAVolumeStack;
 class MainWindow;
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXY>   dlg_sliceXY;
-typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXZ>   dlg_sliceXZ;
-typedef iAQTtoUIConnector<QDockWidget, Ui_sliceYZ>   dlg_sliceYZ;
 typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
@@ -171,9 +166,8 @@ public:
 	iASlicer* getSlicerXY();
 	iASlicer* getSlicerYZ();
 	//! @{ access to dock widgets
-	dlg_sliceXY * getSlicerDlgXY();
-	dlg_sliceXZ	* getSlicerDlgXZ();
-	dlg_sliceYZ	* getSlicerDlgYZ();
+	//! access slicer dialog for the given mode (use iASlicerMode enum)
+	dlg_slicer * slicerDlg(int mode);
 	dlg_renderer * getRendererDlg();
 	dlg_imageproperty * getImagePropertyDlg();
 	dlg_profile * getProfileDlg();
@@ -510,12 +504,10 @@ private:
 	dlg_imageproperty* imgProperty;
 	dlg_volumePlayer* volumePlayer;
 	dlg_profile* imgProfile;
-	dlg_sliceXY * sXY;
-	dlg_sliceXZ * sXZ;
-	dlg_sliceYZ * sYZ;
+	dlg_slicer * m_dlgSlicer[3];
 	dlg_modalities * m_dlgModalities;
 	dlg_renderer * renderer;
-	dlg_logs * logs;
+	dlg_logs * m_dlgLog;
 	//! @}
 
 	std::vector<iAAlgorithm*> workingAlgorithms;
