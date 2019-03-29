@@ -25,8 +25,8 @@ namespace
 		case YZ:
 			//x is fixed
 			pos[0] = sl_defs.fixedCoord; //keep 
-			pos[1] = sl_defs.y;
-			pos[2] = sl_defs.z;
+			pos[1] = sl_defs.x;
+			pos[2] = sl_defs.y;
 			prop->SetPosition(pos);
 			break;
 		case XY:
@@ -40,11 +40,9 @@ namespace
 			//y fixed
 			pos[0] = sl_defs.x;
 			pos[1] = sl_defs.fixedCoord;//keep 
-			pos[2] = sl_defs.z;
+			pos[2] = sl_defs.y;
 			prop->SetPosition(pos);
 			break;
-			/*prop->SetPosition(sl_defs.x,sl_defs.fixedCoord, sl_defs.z);
-			break;*/
 		case SlicerModeCount:
 			throw std::invalid_argument("invalid slicer mode");
 		}
@@ -208,7 +206,7 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 	propDefs::sliceProp propSlice2;
 	propDefs::SliceDefs sl_defs; 
 	
-	//coords
+	//coords // dritte immer null in 2d; 
 	const double *pos = m_PropCurrentSlicer.prop->GetPosition();
 	
 	sl_defs.fixedCoord = m_PropCurrentSlicer.fixedCoord; 
@@ -216,7 +214,7 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 	sl_defs.y = pos[1];
 	sl_defs.z = pos[2];
 
-	DEBUG_LOG(QString("New positins %1 %2 %3, Fixed %4").arg(sl_defs.x).arg(sl_defs.y).arg(sl_defs.y).arg(sl_defs.fixedCoord));
+	DEBUG_LOG(QString("New positoins \t%1 \t%2 \t%3, Fixed %4").arg(sl_defs.x).arg(sl_defs.y).arg(sl_defs.z).arg(sl_defs.fixedCoord));
 
 	//zb current slice mode xy -> z is fixed
 

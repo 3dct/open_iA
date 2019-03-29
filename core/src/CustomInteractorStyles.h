@@ -87,6 +87,7 @@ public:
 	//we need the shift key to 
 	virtual void OnLeftButtonDown() {
 
+		
 		int x = this->Interactor->GetEventPosition()[0];
 		int y = this->Interactor->GetEventPosition()[1];
 
@@ -113,13 +114,13 @@ public:
 		assert(this->m_propSlicer1.prop && "prop Slicer 1 null");
 		assert(this->m_propSlicer2.prop && "prop Slicer 2 null");
 
+		
 
 		updateSlicer();
 
-
 		if (!this->Interactor->GetShiftKey())
 			return;
-		vtkInteractorStyleTrackballActor::OnLeftButtonDown();
+			vtkInteractorStyleTrackballActor::OnLeftButtonDown();
 
 	}
 
