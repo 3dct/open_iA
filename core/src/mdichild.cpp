@@ -157,9 +157,9 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	parametricSpline = iAParametricSpline::New();
 	parametricSpline->SetPoints(worldSnakePoints);
 
-	slicer[iASlicerMode::YZ] = new iASlicer(this, iASlicerMode::YZ, sYZ->sliceWidget, slicerTransform, worldSnakePoints);
-	slicer[iASlicerMode::XY] = new iASlicer(this, iASlicerMode::XY, sXY->sliceWidget, slicerTransform, worldSnakePoints);
-	slicer[iASlicerMode::XZ] = new iASlicer(this, iASlicerMode::XZ, sXZ->sliceWidget, slicerTransform, worldSnakePoints);
+	slicer[iASlicerMode::YZ] = new iASlicer(this, iASlicerMode::YZ, sYZ->sliceWidget, true, true, slicerTransform, worldSnakePoints);
+	slicer[iASlicerMode::XY] = new iASlicer(this, iASlicerMode::XY, sXY->sliceWidget, true, true, slicerTransform, worldSnakePoints);
+	slicer[iASlicerMode::XZ] = new iASlicer(this, iASlicerMode::XZ, sXZ->sliceWidget, true, true, slicerTransform, worldSnakePoints);
 	
 	sYZ->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(255, 0  , 0  ) } ").arg(iASlicerWidget::BorderWidth));
 	sXY->sliceWidget->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(0  , 0  , 255) } ").arg(iASlicerWidget::BorderWidth));
@@ -720,8 +720,6 @@ void MdiChild::setupStackView(bool active)
 		slicer[s]->updateChannel(0, iAChannelData(imageData, modTrans->getColorFunction()));
 	}
 	updateViews();
-
-	Raycaster->update();
 }
 
 void MdiChild::setupViewInternal(bool active)
@@ -1025,7 +1023,7 @@ void MdiChild::updateViews()
 {
 	updateSlicers();
 	Raycaster->update();
-	emit updatedViews();
+	emit viewsUpdated();
 }
 
 int MdiChild::getVisibility() const
@@ -3054,6 +3052,7 @@ void MdiChild::saveFinished()
 	setWindowModified(getModalities()->HasUnsavedModality());
 }
 
+/*
 void MdiChild::splitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation)
 {
 	QList<QDockWidget*> tabified = m_mainWnd->tabifiedDockWidgets(ref);
@@ -3066,6 +3065,7 @@ void MdiChild::splitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Ori
 		splitDockWidget(ref, newWidget, orientation);
 	}
 }
+*/
 
 bool MdiChild::isFullyLoaded() const
 {

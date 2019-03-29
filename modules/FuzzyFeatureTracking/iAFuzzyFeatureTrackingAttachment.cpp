@@ -36,7 +36,7 @@ iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow *
 	trackingGraph( 0 ), m_dlgDataView4DCT( 0 ), m_dlgTrackingGraph( 0 ), m_dlgEventExplorer( 0 ), m_volumeStack( 0 )
 {
 	m_volumeStack = child->getVolumeStack();
-	connect( child, SIGNAL( updatedViews() ), this, SLOT( updateViews() ) );
+	connect( child, SIGNAL( viewsUpdated() ), this, SLOT( updateViews() ) );
 
 	if( !create4DCTDataViewWidget() )
 	{

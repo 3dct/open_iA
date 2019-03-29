@@ -41,9 +41,7 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkAbstractTransform *tr, vtkPoints* snakeSlicerPoints) :
 	QObject(parent),
 	m_mode(mode),
-	m_magicLensInput(NotExistingChannel),
-	m_data(new iASlicerData(this, parent, decorations)),
-	m_widget(new iASlicerWidget(this, widget_container, decorations))
+	m_magicLensInput(NotExistingChannel)
 {
 	assert(m_widget);
 	if (!m_widget)
@@ -51,14 +49,17 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 		DEBUG_LOG("Slicer: Could not allocate iASlicerWidget!");
 		return;
 	}
-	m_widget->SetRenderWindow(m_data->getRenderWindow());
-	connect(m_data.data(), SIGNAL(updateSignal()), m_widget.data(), SLOT(slicerUpdatedSlot()));
 
 	if (magicLensAvailable)
-	{
 		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
-		m_magicLens->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_widget->GetRenderWindow()));
-	}
+	// widget and data creation both access magic lens created above, so don't move that up to init list (unless restructuring slicer)
+	m_data.reset(new iASlicerData(this, parent, decorations));
+	// widget requires data
+	m_widget = new iASlicerWidget(this, widget_container, decorations);
+	m_widget->SetRenderWindow(m_data->getRenderWindow());
+	if (magicLensAvailable)
+		m_magicLens->SetRenderWindow(m_data->getRenderWindow());
+	connect(m_data.data(), SIGNAL(updateSignal()), m_widget, SLOT(slicerUpdatedSlot()));
 	m_data->initialize(tr);
 	m_widget->initialize(snakeSlicerPoints);
 }
@@ -70,7 +71,7 @@ iASlicerData * iASlicer::data()
 
 iASlicerWidget * iASlicer::widget()
 {
-	return m_widget.data();
+	return m_widget;
 }
 
 bool iASlicer::changeInteractorState()

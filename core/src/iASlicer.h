@@ -145,7 +145,7 @@ public slots:
 
 private:
 	QSharedPointer<iASlicerData> m_data;
-	QSharedPointer<iASlicerWidget> m_widget;
+	iASlicerWidget* m_widget;
 	iASlicerMode m_mode;
 
 	uint m_magicLensInput;

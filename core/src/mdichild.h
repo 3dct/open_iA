@@ -161,6 +161,7 @@ public:
 	//! @deprecated all access to images should proceed via modalities (getModality / setModalities /...)
 	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
 	//! access to "main" polydata object visualized in this child (if any)
+	// TODO: move out of mdi child, into something like an iAModality
 	vtkPolyData* getPolyData() { return polyData; };
 	iARenderer* getRenderer() { return Raycaster; };
 	iASlicerData* getSlicerDataXZ();
@@ -201,6 +202,7 @@ public:
 	QString userFriendlyCurrentFile();
 	QString currentFile() const { return curFile; }
 	QFileInfo getFileInfo() const { return fileInfo; }
+	QString getFilePath() const;
 
 	int getSliceXY();
 	int getSliceYZ();
@@ -228,8 +230,6 @@ public:
 	void setSlicerPieGlyphsEnabled(bool isOn);
 	void setPieGlyphParameters(double opacity, double spacing, double magFactor);
 	//! @}
-
-	QString getFilePath() const;
 
 	//! @{ Magic Lens
 	void toggleMagicLens(bool isEnabled);
@@ -271,7 +271,7 @@ public:
 
 	//! workaround for bug in splitDockWidget (see https://bugreports.qt.io/browse/QTBUG-60093)
 	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
-	void splitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
+	//void splitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
 
 	//! Checks whether the main image data in this child is fully loaded.
 	bool isFullyLoaded() const;
@@ -305,7 +305,7 @@ Q_SIGNALS:
 	void active();
 	void magicLensToggled( bool isToggled );
 	void closed();
-	void updatedViews();
+	void viewsUpdated();
 	void renderSettingsChanged();
 	void preferencesChanged();
 	void viewInitialized();
