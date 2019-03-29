@@ -443,48 +443,6 @@ void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	InitReslicerWithImageData();
 	update();
 }
-
-void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf,
-	bool showIsoLines, bool showPolygon)
-{
-	imageData = ds;
-	transform = tr;
-	colorTransferFunction = ctf;
-	isolines = showIsoLines;
-	poly = showPolygon;
-
-	interactor->ReInitialize( );
-
-	InitReslicerWithImageData();
-
-	pointPicker->SetTolerance(PickTolerance);
-
-	if (m_decorations)
-	{
-		scalarBarWidget->GetScalarBarActor()->SetLookupTable( colorTransferFunction );
-	}
-
-	setupColorMapper();
-}
-
-void iASlicerData::setupColorMapper()
-{
-	if (imageData->GetNumberOfScalarComponents() == 1)
-	{
-		colormapper->SetLookupTable(colorTransferFunction);
-	}
-	else
-	{
-		colormapper->SetLookupTable(0);
-		if (imageData->GetNumberOfScalarComponents() == 3)
-		{
-			colormapper->SetOutputFormatToRGB();		// default is RGBA
-		}
-	}
-	if (m_decorations)
-		scalarBarWidget->GetRepresentation()->SetVisibility(imageData->GetNumberOfScalarComponents() == 1);
-	colormapper->Update();
-}
 */
 
 void iASlicerData::setROIVisible(bool visible)
@@ -1196,37 +1154,37 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 					switch (m_mode)
 					{
 					case iASlicerMode::XY://XY
-						tmpChild->getSlicerDataXY()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1]);
-						tmpChild->getSlicerXY()->setIndex(tmpX, tmpY, tmpZ);
+						tmpChild->slicerData(iASlicerMode::XY)->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1]);
+						tmpChild->slicer(iASlicerMode::XY)->setIndex(tmpX, tmpY, tmpZ);
 						tmpChild->slicerDlg(iASlicerMode::XY)->sbSlice->setValue(tmpZ);
 
-						tmpChild->getSlicerDataXY()->update();
-						tmpChild->getSlicerXY()->update();
+						tmpChild->slicerData(iASlicerMode::XY)->update();
+						tmpChild->slicer(iASlicerMode::XY)->update();
 						tmpChild->slicerDlg(iASlicerMode::XY)->update();
 
-						strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXY(), tmpX, tmpY, tmpZ, m_mode);
+						strDetails += GetFilePixel(tmpChild, tmpChild->slicerData(iASlicerMode::XY), tmpX, tmpY, tmpZ, m_mode);
 						break;
 					case iASlicerMode::YZ://YZ
-						tmpChild->getSlicerDataYZ()->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
-						tmpChild->getSlicerYZ()->setIndex(tmpX, tmpY, tmpZ);
+						tmpChild->slicerData(iASlicerMode::YZ)->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
+						tmpChild->slicer(iASlicerMode::YZ)->setIndex(tmpX, tmpY, tmpZ);
 						tmpChild->slicerDlg(iASlicerMode::YZ)->sbSlice->setValue(tmpX);
 
-						tmpChild->getSlicerDataYZ()->update();
-						tmpChild->getSlicerYZ()->update();
+						tmpChild->slicerData(iASlicerMode::YZ)->update();
+						tmpChild->slicer(iASlicerMode::YZ)->update();
 						tmpChild->slicerDlg(iASlicerMode::YZ)->update();
 
-						strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataYZ(), tmpY, tmpZ, tmpX, m_mode);
+						strDetails += GetFilePixel(tmpChild, tmpChild->slicerData(iASlicerMode::YZ), tmpY, tmpZ, tmpX, m_mode);
 						break;
 					case iASlicerMode::XZ://XZ
-						tmpChild->getSlicerDataXZ()->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
-						tmpChild->getSlicerXZ()->setIndex(tmpX, tmpY, tmpZ);
+						tmpChild->slicerData(iASlicerMode::XZ)->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
+						tmpChild->slicer(iASlicerMode::XZ)->setIndex(tmpX, tmpY, tmpZ);
 						tmpChild->slicerDlg(iASlicerMode::XZ)->sbSlice->setValue(tmpY);
 
-						tmpChild->getSlicerDataXZ()->update();
-						tmpChild->getSlicerXZ()->update();
+						tmpChild->slicerData(iASlicerMode::XZ)->update();
+						tmpChild->slicer(iASlicerMode::XZ)->update();
 						tmpChild->slicerDlg(iASlicerMode::XZ)->update();
 
-						strDetails += GetFilePixel(tmpChild, tmpChild->getSlicerDataXZ(), tmpX, tmpZ, tmpY, m_mode);
+						strDetails += GetFilePixel(tmpChild, tmpChild->slicerData(iASlicerMode::XZ), tmpX, tmpZ, tmpY, m_mode);
 						break;
 					default://ERROR
 						break;
@@ -1514,19 +1472,12 @@ void iASlicerData::setShowText( bool isVisible )
 	m_textInfo->Show(isVisible);
 }
 
-void iASlicerData::enableChannel(uint id, bool enabled, double x, double y, double z)
-{
-	if (enabled)
-		setResliceChannelAxesOrigin(id, x, y, z);
-	enableChannel( id, enabled );
-}
-
 void iASlicerData::enableChannel( uint id, bool enabled )
 {
 	// TODO: move into channeldata!
-	if( enabled )
+	if (enabled)
 	{
-		m_ren->AddActor(getChannel(id)->imageActor );
+		m_ren->AddActor(getChannel(id)->imageActor);
 		if (m_decorations)
 		{
 			m_ren->AddActor(getChannel(id)->cActor);
@@ -1577,6 +1528,14 @@ void iASlicerData::addChannel( uint id, iAChannelData const & chData )
 		// "* 10 / unitSpacing" adjusts for scaling (see above)
 		m_axisTextActor[0]->SetPosition(xHalf * 10 / unitSpacing, -20.0, 0);
 		m_axisTextActor[1]->SetPosition(-20.0, yHalf * 10 / unitSpacing, 0);
+	}
+	double * spc = getChannel(id)->image->GetSpacing();
+	double * origin = getChannel(id)->image->GetOrigin();
+	switch (m_mode)
+	{
+		case YZ: setResliceChannelAxesOrigin(id, origin[0] + static_cast<double>(sliceNumber()) * spc[0], origin[1], origin[2]); break;
+		case XY: setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2] + static_cast<double>(sliceNumber()) * spc[2]); break;
+		case XZ: setResliceChannelAxesOrigin(id, origin[0], origin[1] + static_cast<double>(sliceNumber()) * spc[1], origin[2]); break;
 	}
 }
 
@@ -1838,7 +1797,7 @@ QCursor iASlicerData::getMouseCursor()
 	return m_mouseCursor;
 }
 
-int iASlicerData::getSliceNumber() const
+int iASlicerData::sliceNumber() const
 {
 	return m_sliceNumber;
 }

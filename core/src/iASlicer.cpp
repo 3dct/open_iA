@@ -101,12 +101,14 @@ void iASlicer::enableInteractor()
 	m_widget->update();
 }
 
+/*
 void iASlicer::setResliceChannelAxesOrigin(uint id, double x, double y, double z )
 {
 	m_data->setResliceChannelAxesOrigin(id, x, y, z);
 	if (m_magicLens)
 		m_magicLens->UpdateColors();
 }
+*/
 
 void iASlicer::setPositionMarkerCenter(double x, double y)
 {
@@ -390,11 +392,6 @@ void iASlicer::setChannelOpacity(uint id, double opacity )
 	m_data->setChannelOpacity( id, opacity );
 }
 
-void iASlicer::enableChannel( uint id, bool enabled, double x, double y, double z )
-{
-	m_data->enableChannel( id, enabled, x, y, z );
-}
-
 void iASlicer::enableChannel( uint id, bool enabled )
 {
 	m_data->enableChannel( id, enabled );
@@ -462,5 +459,16 @@ QString getSliceAxis(int mode)
 		case XZ: return "Y";
 		case XY: return "Z";
 		default: return "?";
+	}
+}
+
+int getSlicerDimension(int mode)
+{
+	switch (mode)
+	{
+		case YZ: return 0;
+		case XZ: return 1;
+		case XY: return 2;
+		default: return -1;
 	}
 }

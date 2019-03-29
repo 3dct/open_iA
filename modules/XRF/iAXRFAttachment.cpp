@@ -49,9 +49,8 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 	m_xrfChannelID(NotExistingChannel)
 {
 	connect( m_child, SIGNAL( magicLensToggled( bool ) ), this, SLOT( magicLensToggled( bool ) ) );
-	connect( m_child->getSlicerDataXY(), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
-	connect( m_child->getSlicerDataXZ(), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
-	connect( m_child->getSlicerDataYZ(), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
+	for (int i=0; i<3; ++i)
+		connect( m_child->slicerData(i), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
 	//TODO: move
 	if( !filter_SimilarityMap() )
 		throw itk::ExceptionObject(__FILE__, __LINE__, "filter_SimilarityMap failed");

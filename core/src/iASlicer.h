@@ -92,7 +92,6 @@ public:
 	void removeChannel(uint id);
 	void updateChannel(uint id, iAChannelData & chData );
 	iAChannelSlicerData * getChannel(uint id);
-	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 	//! @}
 
 	// { TODO: check whether these can be removed somehow!
@@ -125,7 +124,6 @@ public:
 	// }
 
 	void setChannelOpacity( uint id, double opacity );
-	void enableChannel( uint id, bool enabled, double x, double y, double z );
 	void enableChannel( uint id, bool enabled );
 	//void switchContourSourceToChannel( uint id );
 	void showIsolines( bool s );

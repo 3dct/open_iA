@@ -90,9 +90,7 @@ public:
 	void removeChannel(uint id);
 	void updateChannel(uint id, iAChannelData const & chData);
 	void setChannelOpacity(uint id, double opacity );
-	void enableChannel(uint id, bool enabled, double x, double y, double z);
 	void enableChannel(uint id, bool enabled );
-	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 
 	void addImageActor(vtkSmartPointer<vtkImageActor> imgActor);
 	void removeImageActor(vtkSmartPointer<vtkImageActor> imgActor);
@@ -101,7 +99,7 @@ public:
 
 	void setResliceAxesOrigin(double x, double y, double z);
 	void setSliceNumber(int sliceNumber);
-	int getSliceNumber() const;
+	int sliceNumber() const;
 	//! set the position of the position marker (in slicer coordinates)
 	void setPositionMarkerCenter(double x, double y);
 	void setContours(int numberOfContours, double contourMin, double contourMax);
@@ -263,6 +261,6 @@ private:
 	QSharedPointer<iAChannelSlicerData> createChannel(uint id);
 	void getMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
 	void updatePositionMarkerExtent();
-
 	void setupColorMapper();
+	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 };

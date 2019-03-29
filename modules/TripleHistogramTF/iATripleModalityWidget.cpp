@@ -74,9 +74,8 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
 	mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
 	*/
-	mdiChild->getSlicerDataXY()->getChannel(0)->imageActor->SetOpacity(0.0);
-	mdiChild->getSlicerDataXZ()->getChannel(0)->imageActor->SetOpacity(0.0);
-	mdiChild->getSlicerDataYZ()->getChannel(0)->imageActor->SetOpacity(0.0);
+	for (int i=0; i<3; ++i)
+		mdiChild->slicerData(i)->getChannel(0)->imageActor->SetOpacity(0.0);
 
 	//setStyleSheet("background-color:red"); // test spacing/padding/margin
 
@@ -214,32 +213,14 @@ void iATripleModalityWidget::setWeightPrivate(BCoord bCoord)
 }
 void iATripleModalityWidget::setSlicerModePrivate(iASlicerMode slicerMode)
 {
-	if (isReady()) {
+	if (isReady())
+	{
 		m_slicerWidgets[0]->setSlicerMode(slicerMode);
 		m_slicerWidgets[1]->setSlicerMode(slicerMode);
 		m_slicerWidgets[2]->setSlicerMode(slicerMode);
 
-		int dimensionIndex;
-		int sliceNumber;
-		switch (slicerMode)
-		{
-		case iASlicerMode::YZ:
-			dimensionIndex = 0; // X length is in position 0 in the dimensions array
-			sliceNumber = m_mdiChild->getSlicerDataYZ()->getSliceNumber();
-			break;
-		case iASlicerMode::XZ:
-			dimensionIndex = 1; // Y length is in position 1 in the dimensions array
-			sliceNumber = m_mdiChild->getSlicerDataXZ()->getSliceNumber();
-			break;
-		case iASlicerMode::XY:
-			dimensionIndex = 2; // Z length is in position 2 in the dimensions array
-			sliceNumber = m_mdiChild->getSlicerDataXY()->getSliceNumber();
-			break;
-		default:
-			// TODO exception
-			return;
-		}
-
+		int dimensionIndex = getSlicerDimension(slicerMode);
+		int sliceNumber    = m_mdiChild->slicerData(slicerMode)->sliceNumber();
 		int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
 		m_sliceSlider->setMaximum(dimensionLength - 1);
 		if (!setSliceNumber(sliceNumber)) {
@@ -508,9 +489,8 @@ void iATripleModalityWidget::applyWeights()
 			m_histograms[i]->update();
 
 			//m_mdiChild->updateChannelOpacity(m_channelIDs[i], m_weightCur[i]);
-			m_mdiChild->getSlicerDataXY()->updateChannelMappers();
-			m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
-			m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
+			for (int i=0; i<3; ++i)
+				m_mdiChild->slicerData(i)->updateChannelMappers();
 			m_mdiChild->updateSlicers();
 		}
 	}

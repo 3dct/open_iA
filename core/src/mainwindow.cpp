@@ -565,7 +565,7 @@ bool MainWindow::loadSettings()
 
 namespace
 {
-	void removeNode(QDomNode &rootNode, char const *str)
+	void removeNode(QDomNode &rootNode, QString const & str)
 	{
 		QDomNodeList list = rootNode.childNodes();
 		for (int n = 0; n < int(list.length()); n++)
@@ -625,12 +625,11 @@ void MainWindow::saveSliceViews(QDomDocument &doc)
 		root.appendChild(sliceViewsNode);
 	}
 
-	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataXY()->getRenderer(), "XY");
-	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataYZ()->getRenderer(), "YZ");
-	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataXZ()->getRenderer(), "XZ");
+	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
+		saveSliceView(doc, sliceViewsNode, activeMdiChild()->slicerData(i)->getRenderer(), getSlicerModeString(i));
 }
 
-void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, char const *elemStr)
+void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, QString const & elemStr)
 {
 	// get parameters of slice views
 	vtkCamera *camera = ren->GetActiveCamera();
@@ -701,15 +700,14 @@ void MainWindow::saveCamera(QDomElement &cameraElement, vtkCamera* camera)
 
 void MainWindow::loadSliceViews(QDomNode &sliceViewsNode)
 {
-
 	QDomNodeList list = sliceViewsNode.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
 	{
 		QDomNode node = list.item(n);
 		vtkCamera *camera;
-		if      (node.nodeName() == "XY") camera = activeMdiChild()->getSlicerDataXY()->getCamera();
-		else if (node.nodeName() == "YZ") camera = activeMdiChild()->getSlicerDataYZ()->getCamera();
-		else                              camera = activeMdiChild()->getSlicerDataXZ()->getCamera();
+		if      (node.nodeName() == "XY") camera = activeMdiChild()->slicerData(iASlicerMode::XY)->getCamera();
+		else if (node.nodeName() == "YZ") camera = activeMdiChild()->slicerData(iASlicerMode::YZ)->getCamera();
+		else                              camera = activeMdiChild()->slicerData(iASlicerMode::XZ)->getCamera();
 		loadCamera(node, camera);
 	}
 }

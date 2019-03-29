@@ -368,36 +368,17 @@ void dlg_modalities::ManualRegistration()
 	if (cbManualRegistration->isChecked())
 	{
 		interactSwitch3D->SetCurrentStyleToTrackballActor();
-		//interactSwitch3D->GetInteractor()->getPro	
-		//no update of slice window; 
-		//background black not transparent
-	
-		/*if (!interactSwitch_XY) {DEBUG_LOG("XY Interactor null"); return; };
-		if (!interactSwitch_YZ) { DEBUG_LOG("YZ Interactor null"); return; };
-		if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };*/
-	
-
-
-		int slizeZ = m_mdiChild->getSlicerXY()->data()->getSliceNumber();
-		int slizeX = m_mdiChild->getSlicerXZ()->data()->getSliceNumber();
-		int sliceY = m_mdiChild->getSlicerYZ()->data()->getSliceNumber();
-		iASlicerMode modeXY = m_mdiChild->getSlicerXY()->data()->getMode();
-		iASlicerMode modeXZ = m_mdiChild->getSlicerXZ()->data()->getMode();
-		iASlicerMode modeYZ = m_mdiChild->getSlicerYZ()->data()->getMode();
-
-		m_mdiChild->getSlicerXY()->data()->getInteractor()->SetInteractorStyle(Customstyle_xy);
-		m_mdiChild->getSlicerXZ()->data()->getInteractor()->SetInteractorStyle(Customstyle_xz);
-		m_mdiChild->getSlicerYZ()->data()->getInteractor()->SetInteractorStyle(Customstyle_yz);
-					
+		m_mdiChild->slicerData(iASlicerMode::XY)->getInteractor()->SetInteractorStyle(Customstyle_xy);
+		m_mdiChild->slicerData(iASlicerMode::XZ)->getInteractor()->SetInteractorStyle(Customstyle_xz);
+		m_mdiChild->slicerData(iASlicerMode::YZ)->getInteractor()->SetInteractorStyle(Customstyle_yz);
 	}
 	else
-	{	
-		m_mdiChild->getSlicerXY()->data()->setDefaultInteractor();
-		m_mdiChild->getSlicerYZ()->data()->setDefaultInteractor();
-		m_mdiChild->getSlicerXZ()->data()->setDefaultInteractor();
+	{
+		m_mdiChild->slicerData(iASlicerMode::XY)->setDefaultInteractor();
+		m_mdiChild->slicerData(iASlicerMode::XZ)->setDefaultInteractor();
+		m_mdiChild->slicerData(iASlicerMode::YZ)->setDefaultInteractor();
 		interactSwitch3D->SetCurrentStyleToTrackballCamera();
 	}
-
 }
 
 void dlg_modalities::ListClicked(QListWidgetItem* item)

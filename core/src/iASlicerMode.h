@@ -24,11 +24,12 @@
 
 #include <QString>
 
-enum iASlicerMode{
+enum iASlicerMode
+{
 	YZ,
 	XY, // TODO: for logical reasons, XY and XZ should be swapped (then index would
 	XZ, // represent the index of the axis normal to the cutting plane)
-	SlicerModeCount
+	SlicerCount
 };
 
 //! retrieve the "name" of the given slicer mode (i.e. the slicer plane, "XY" for iASlicerMode XY)
@@ -36,3 +37,5 @@ open_iA_Core_API QString getSlicerModeString(int mode);
 
 //! return the name of axis along which the given slicer mode cuts (i.e. "Z" for slice mode "XY")
 open_iA_Core_API QString getSliceAxis(int mode);
+
+open_iA_Core_API int getSlicerDimension(int mode);

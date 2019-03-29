@@ -516,9 +516,8 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 	if(!m_multiChannelIsInitialized) m_multiChannelIsInitialized = true;
 
 //	m_mdiChild->getRenderer()->updateChannelImages();
-	m_mdiChild->getSlicerDataXY()->updateChannelMappers();
-	m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
-	m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
+	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
+		m_mdiChild->slicerData(i)->updateChannelMappers();
 	m_mdiChild->updateViews();
 }
 

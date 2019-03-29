@@ -901,7 +901,7 @@ void iASlicerWidget::updateFisheyeTransform(double focalPt[3], iASlicerData* sli
 	p_target->SetNumberOfPoints( 32 ); // already set above!
 	p_source->SetNumberOfPoints( 32 );
 	iASlicerMode mode = slicerData->getMode();
-	int sn = slicerData->getSliceNumber();
+	int sn = slicerData->sliceNumber();
 
 	std::cout << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5] << std::endl;
 	std::cout << focalPt[0] << " " << focalPt[1] << " " << focalPt[2] << std::endl;

@@ -159,12 +159,10 @@ public:
 	// TODO: move out of mdi child, into something like an iAModality
 	vtkPolyData* getPolyData() { return polyData; };
 	iARenderer* getRenderer() { return Raycaster; };
-	iASlicerData* getSlicerDataXZ();
-	iASlicerData* getSlicerDataXY();
-	iASlicerData* getSlicerDataYZ();
-	iASlicer* getSlicerXZ();
-	iASlicer* getSlicerXY();
-	iASlicer* getSlicerYZ();
+	//! access slicer data for given mode (use iASlicerMode enum for mode values)
+	iASlicerData* slicerData(int mode);
+	//! access slicer for given mode (use iASlicerMode enum for mode values)
+	iASlicer* slicer(int mode);
 	//! @{ access to dock widgets
 	//! access slicer dialog for the given mode (use iASlicerMode enum)
 	dlg_slicer * slicerDlg(int mode);
@@ -491,7 +489,7 @@ private:
 	vtkTransform* slicerTransform;
 	vtkAbstractTransform *SlicerYZ_Transform, *SlicerXY_Transform, *SlicerXZ_Transform;
 	iARenderer* Raycaster;
-	iASlicer * slicer[3];
+	iASlicer * m_slicer[3];
 	QSharedPointer<iAProfileProbe> profileProbe;
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;

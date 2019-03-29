@@ -80,7 +80,7 @@ public:
 	void saveCamera(QDomDocument &doc);
 	void loadCamera(QDomNode &cameraNode);
 	void saveSliceViews(QDomDocument &doc);
-	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, char const *elemStr);
+	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, QString const & elemStr);
 	void loadSliceViews(QDomNode &sliceViewsNode);
 	void saveTransferFunction(QDomDocument &doc, dlg_transfer* transferFunction);
 	void saveProbabilityFunctions(QDomDocument &doc);

@@ -283,15 +283,6 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	slicer->removeChannel(removedID);
 	slicer->addChannel(id, magicLensData);
-	int sliceNr = m_previewWidget->GetSliceNumber();
-	double * spc = img->GetSpacing();
-	double * origin = img->GetOrigin();
-	switch (slicer->getMode())
-	{
-	case YZ: slicer->setResliceChannelAxesOrigin(id, origin[0] + static_cast<double>(sliceNr) * spc[0], origin[1], origin[2]); break;
-	case XY: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2] + static_cast<double>(sliceNr) * spc[2]); break;
-	case XZ: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1] + static_cast<double>(sliceNr) * spc[1], origin[2]); break;
-	}
 	slicer->setMagicLensInput(id);
 	slicer->update();
 }
@@ -688,14 +679,7 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 	{
 		m_resultFilterChannel = QSharedPointer<iAChannelData>(new iAChannelData(m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF));
 		m_resultFilterChannel->setName("Result Filter");
-		slicer->addChannel(ResultFilterChannelID, *m_resultFilterChannel.data());
-		int sliceNr = m_previewWidget->GetSliceNumber();
-		switch (slicer->getMode())
-		{
-		case YZ: slicer->data()->enableChannel(ResultFilterChannelID, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
-		case XY: slicer->data()->enableChannel(ResultFilterChannelID, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
-		case XZ: slicer->data()->enableChannel(ResultFilterChannelID, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
-		}
+		slicer->addChannel(ResultFilterChannelID, *m_resultFilterChannel.data(), true);
 	}
 	slicer->update();
 }

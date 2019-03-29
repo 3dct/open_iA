@@ -71,14 +71,11 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * ch
 	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
 
 	//connect(mdiChild->getRenderer(),     SIGNAL(Clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(RendererClicked(int, int, int)));
-	connect(child->getSlicerDataXY(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
-	connect(child->getSlicerDataXZ(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
-	connect(child->getSlicerDataYZ(), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
-	connect(child->getSlicerDataXY(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
-	connect(child->getSlicerDataXZ(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
-	connect(child->getSlicerDataYZ(), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
-
-
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+	{
+		connect(child->slicerData(i), SIGNAL(clicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerClicked(int, int, int)));
+		connect(child->slicerData(i), SIGNAL(rightClicked(int, int, int)), newAttachment->m_dlgLabels, SLOT(SlicerRightClicked(int, int, int)));
+	}
 	return newAttachment;
 }
 
