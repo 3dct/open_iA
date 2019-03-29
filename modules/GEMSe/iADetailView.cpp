@@ -282,7 +282,7 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	slicer->removeChannel(removedID);
-	slicer->addChannel(id, magicLensData);
+	slicer->addChannel(id, magicLensData, false);
 	slicer->setMagicLensInput(id);
 	slicer->update();
 }

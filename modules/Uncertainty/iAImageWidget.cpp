@@ -77,8 +77,7 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 	layout()->setSpacing(0);
 	layout()->addWidget(m_slicer->widget());
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->addChannel(0, iAChannelData(img, m_lut));
-	m_slicer->enableChannel(0, true);
+	m_slicer->addChannel(0, iAChannelData(img, m_lut), true);
 	StyleChanged();
 }
 

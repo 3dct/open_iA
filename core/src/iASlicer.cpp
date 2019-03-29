@@ -339,9 +339,11 @@ iASlicerMode iASlicer::getMode() const
 	return m_mode;
 }
 
-void iASlicer::addChannel(uint id, iAChannelData & chData)
+void iASlicer::addChannel(uint id, iAChannelData & chData, bool enable)
 {
 	m_data->addChannel(id, chData);
+	if (enable)
+		m_data->enableChannel(0, true);
 }
 
 void iASlicer::removeChannel(uint id)
@@ -353,6 +355,28 @@ void iASlicer::updateChannel(uint id, iAChannelData & chData)
 {
 	m_data->updateChannel(id, chData);
 }
+
+void iASlicer::setChannelOpacity(uint id, double opacity)
+{
+	m_data->setChannelOpacity(id, opacity);
+}
+
+void iASlicer::enableChannel(uint id, bool enabled, double x, double y, double z)
+{
+	m_data->enableChannel(id, enabled, x, y, z);
+}
+
+void iASlicer::enableChannel(uint id, bool enabled)
+{
+	m_data->enableChannel(id, enabled);
+}
+
+/*
+void iASlicer::switchContourSourceToChannel( uint id )
+{
+	m_data->switchContourSourceToChannel( id );
+}
+*/
 
 void iASlicer::addImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 {
@@ -386,23 +410,6 @@ void iASlicer::rotateSlice( double angle )
 {
 	m_data->rotateSlice( angle );
 }
-
-void iASlicer::setChannelOpacity(uint id, double opacity )
-{
-	m_data->setChannelOpacity( id, opacity );
-}
-
-void iASlicer::enableChannel( uint id, bool enabled )
-{
-	m_data->enableChannel( id, enabled );
-}
-
-/*
-void iASlicer::switchContourSourceToChannel( uint id )
-{
-	m_data->switchContourSourceToChannel( id );
-}
-*/
 
 void iASlicer::showIsolines( bool s )
 {
