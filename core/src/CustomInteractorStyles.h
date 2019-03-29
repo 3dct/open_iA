@@ -1,15 +1,22 @@
 #pragma once
-#include "vtkInteractorStyleTrackballActor.h"
-#include "vtkInteractorStyleTrackballCamera.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkProp3D.h"
-#include "vtkObjectFactory.h"
-#include "vtkCellPicker.h"
-#include "QString"
+
 #include "iAConsole.h"
 #include "iASlicerMode.h"
+#include "mdichild.h"
+
+#include <vtkInteractorStyleTrackballActor.h>
+#include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkProp3D.h>
+#include <vtkObjectFactory.h>
+#include <vtkCellPicker.h>
+
+#include <QString>
+
 #include <assert.h>
 
+
+class iAVolumeRenderer;
 
 // Motion flags
 
@@ -44,51 +51,7 @@ namespace propDefs {
 	
 	class PropModifier
 	{
-		public:
-
-		//update the position while keeping one coordinate fixed, based on slicer mode
-		static void updateSlicerPosition(vtkProp3D *prop, iASlicerMode mode, const SliceDefs &sl_defs, QString text) {
-			assert(prop && "object is null"); 
-			if (!prop) {
-				DEBUG_LOG("update Prop failed");
-				throw std::invalid_argument("nullpointer of prop"); 
-
-			}	
-
-			double *pos = prop->GetPosition();
-
-			switch (mode)
-			{
-			case YZ:
-				//x is fixed
-				pos[0] = sl_defs.fixedCoord; //keep 
-				pos[1] += sl_defs.y;
-				pos[2] += sl_defs.z;
-				prop->SetPosition(pos);
-				break;
-			case XY:
-				//z is fixed
-				pos[0] = sl_defs.x; 
-				pos[1] += sl_defs.y;
-				pos[2] += sl_defs.fixedCoord;//keep 
-				prop->SetPosition(pos);			
-				break;
-			case XZ:
-				//y fixed
-				pos[0] = sl_defs.x; 
-				pos[1] += sl_defs.fixedCoord;//keep 
-				pos[2] += sl_defs.z;
-				prop->SetPosition(pos);
-				break;
-				prop->SetPosition(sl_defs.x,sl_defs.fixedCoord, sl_defs.z); 
-				break;
-			case SlicerModeCount:
-				throw std::invalid_argument("invalid slicer mode"); 			
-			}
-
-			PropModifier::printProp(prop, text);
-		
-		}
+	public:
 				
 		static void updatePropOrientation(vtkProp3D *prop, double angle_x, double angle_y, double angle_z){
 			 prop->SetOrientation(angle_x, angle_y, angle_z); 
@@ -109,9 +72,10 @@ namespace propDefs {
 }
 
 
-class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
+class iACustomInterActorStyleTrackBall : public QObject, public vtkInteractorStyleTrackballActor
 {
-	public:
+	Q_OBJECT
+public:
 
 	static iACustomInterActorStyleTrackBall *New();
 	vtkTypeMacro(iACustomInterActorStyleTrackBall, vtkInteractorStyleTrackballActor);
@@ -129,10 +93,10 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 		this->FindPokedRenderer(x, y);
 		this->Interactor->GetPicker()->Pick(x, y, 0, this->GetCurrentRenderer());
 		this->FindPickedActor(x, y);
-		if (this->CurrentRenderer == nullptr || this->m_PropCurrentSlicer.prop == nullptr 
-			|| this->m_propSlicer1.prop == nullptr || this->m_propSlicer2.prop == nullptr )
+		if (this->CurrentRenderer == nullptr || this->m_PropCurrentSlicer.prop == nullptr
+			|| this->m_propSlicer1.prop == nullptr || this->m_propSlicer2.prop == nullptr)
 		{
-			DEBUG_LOG("Either renderer or props are null"); 
+			DEBUG_LOG("Either renderer or props are null");
 			return;
 		}
 
@@ -143,22 +107,20 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 		//connect the components; 
 		printProbOrientation();
 		printPropPosistion();
-		printProbOrigin(); 
+		printProbOrigin();
 
-		//hier sind die Props noch drin
-
-
-		assert(this->m_Prop3DSlicer && "prop 3D slicer null");
+		assert(this->m_volumeRenderer && "prop 3D slicer null");
 		assert(this->m_propSlicer1.prop && "prop Slicer 1 null");
 		assert(this->m_propSlicer2.prop && "prop Slicer 2 null");
 
-		DEBUG_LOG("uiiii"); 
-		updateSlicer(); 
-		
-		
+
+		updateSlicer();
+
+
 		if (!this->Interactor->GetShiftKey())
 			return;
 		vtkInteractorStyleTrackballActor::OnLeftButtonDown();
+
 	}
 
 	virtual void OnLeftButtonUp(); 
@@ -211,16 +173,16 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 	}
 
 
-	void initializeActors(vtkProp3D *propSlicer3D, vtkProp3D *propSlicer1, vtkProp3D *propSlicer2) {
+	void initializeActors(iAVolumeRenderer *volRend, vtkProp3D *propSlicer1, vtkProp3D *propSlicer2) {
 		
 		
 		
-		if (!propSlicer3D || !propSlicer1 || propSlicer2) {
+		if (!volRend || !propSlicer1 || propSlicer2) {
 		
 			DEBUG_LOG("props are null"); 
 		}
 		
-		this->set3DProp(propSlicer3D);
+		this->set3DProp(volRend);
 		this->setSlicer1(propSlicer1);
 		this->setSlicer2(propSlicer2);
 	}
@@ -233,10 +195,17 @@ class iACustomInterActorStyleTrackBall : public vtkInteractorStyleTrackballActor
 	//identify which slicer is used
 	void updateSlicer(); 
 
+	void setMDIChild(MdiChild *mdiChild) {
+		m_mdiChild = mdiChild; 
+	};
+
 	//void setSetcurrentSlicer();
+signals:
+	void actorsUpdated();
 protected:
 	
 	double m_currentPos[3] ;
+	MdiChild *m_mdiChild; 
 
 	iACustomInterActorStyleTrackBall();
 	//~iACustomInterActorStyleTrackBall() override;
@@ -263,7 +232,7 @@ private:
 	void resetProps() {
 		m_propSlicer1.prop = nullptr;
 		m_propSlicer2.prop = nullptr;
-		m_Prop3DSlicer = nullptr;
+		m_volumeRenderer = nullptr;
 	}
 
 	void setModeSlicer1(iASlicerMode mode) {
@@ -286,8 +255,8 @@ private:
 	//Prop of the current slicer
 	propDefs::sliceProp/*vtkProp3D*/ /***/m_PropCurrentSlicer;
 
-	//3d slicer prop
-	vtkProp3D *m_Prop3DSlicer;
+	//3d renderer prop
+	iAVolumeRenderer *m_volumeRenderer;
 
 
 	propDefs::sliceProp m_propSlicer1; 
@@ -300,9 +269,9 @@ private:
 	int sliceZ; 
 
 
-	void set3DProp(vtkProp3D * prop3D) {
+	void set3DProp(iAVolumeRenderer * renderer) {
 		/*if (!prop3D) { DEBUG_LOG("prop3d is null") };*/
-		m_Prop3DSlicer = prop3D;
+		m_volumeRenderer = renderer;
 	}
 
 	//+ set coordinate of slicer 1
@@ -317,10 +286,6 @@ private:
 		m_propSlicer2.prop = prop2;
 	}
 
-
-	/*vtkInteractorStyleTrackballActor(const iACustomInterActorStyleTrackBall&) = delete;*/
-	void operator=(const iACustomInterActorStyleTrackBall&) = delete;
-
 	/*iACustomInterActorStyle(const iACustomInterActorStyle&);*/
 	bool m_rightButtonDragZoomEnabled = false;
 	int InteractionMode;
@@ -333,7 +298,8 @@ private:
 	double ZViewUpVector[3];
 */
 	// Not implemented.
-	//void operator=(const iACustomInterActorStyle&);  // Not implemented.
+	void operator=(const iACustomInterActorStyleTrackBall&) = delete;  // Not implemented.
+	iACustomInterActorStyleTrackBall(const iACustomInterActorStyleTrackBall &) = delete;
 };
 
 

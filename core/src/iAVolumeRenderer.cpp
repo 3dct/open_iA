@@ -227,7 +227,9 @@ void iAVolumeRenderer::Update()
 {
 	if (m_isFlat)
 		return;
+	volume->Modified();
 	volume->Update();
+	volMapper->Modified();
 	volMapper->Update();
 	outlineMapper->Update();
 }

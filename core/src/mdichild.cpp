@@ -1017,7 +1017,11 @@ bool MdiChild::saveFile(const QString &f, int modalityNr, int componentNr)
 void MdiChild::updateViews()
 {
 	updateSlicers();
+
 	Raycaster->update();
+	Raycaster->GetRenderWindow()->GetInteractor()->Modified();
+	Raycaster->GetRenderWindow()->GetInteractor()->Render();
+	renderer->vtkWidgetRC->update();
 	emit updatedViews();
 }
 

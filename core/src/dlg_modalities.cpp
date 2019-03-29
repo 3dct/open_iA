@@ -69,6 +69,9 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	Customstyle_xz(vtkSmartPointer<iACustomInterActorStyleTrackBall>::New()),
 	Customstyle_yz(vtkSmartPointer<iACustomInterActorStyleTrackBall>::New())
 {
+	connect(Customstyle_xy, SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
+	connect(Customstyle_xz, SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
+	connect(Customstyle_yz, SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
 	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
 	connect(pbEdit,   SIGNAL(clicked()), this, SLOT(EditClicked()));
@@ -385,7 +388,8 @@ void dlg_modalities::ManualRegistration()
 
 void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModality)
 {
-	vtkProp3D *PropVol_3d = editModality->GetRenderer()->GetVolume().Get();
+	iAVolumeRenderer* volRend = editModality->GetRenderer().data();
+	vtkProp3D *PropVol_3d = volRend->GetVolume().Get();
 	uint chID = editModality->channelID();
 	if (chID == NotExistingChannel) {
 		m_mdiChild->getLogger()->Log("Error: Modality must be added to slicer before registration");
@@ -418,21 +422,24 @@ void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModali
 	//setting the two other slicer + 3d
 	//coordinates with on as current slice plane
 	
-	Customstyle_xy->initializeActors(PropVol_3d, propXZ, propYZ);
+	Customstyle_xy->initializeActors(volRend, propXZ, propYZ);
 	Customstyle_xy->setActiveSlicer(propXY, modeXY, slizeZ); //plane xy, slice z;
 	Customstyle_xy->initCoordinates(pos[0], pos[1], slizeZ);
 	Customstyle_xy->initModes(iASlicerMode::XZ, iASlicerMode::YZ);
+	Customstyle_xy->setMDIChild(m_mdiChild); 
 		
 
-	Customstyle_xz->initializeActors(PropVol_3d, propXY, propYZ);
+	Customstyle_xz->initializeActors(volRend, propXY, propYZ);
 	Customstyle_xz->setActiveSlicer(propXZ, modeXZ, sliceY); //plane xy, slice y;
 	Customstyle_xz->initCoordinates(pos[0], sliceY, pos[2]);
 	Customstyle_xz->initModes(iASlicerMode::XY, iASlicerMode::YZ);
+	Customstyle_xz->setMDIChild(m_mdiChild);
 
-	Customstyle_yz->initializeActors(PropVol_3d, propXY, propXZ); //plane xy, slice x;
+	Customstyle_yz->initializeActors(volRend, propXY, propXZ); //plane xy, slice x;
 	Customstyle_yz->setActiveSlicer(propYZ, modeYZ, slizeX);
 	Customstyle_yz->initCoordinates(slizeX, pos[1], pos[2]);
 	Customstyle_yz->initModes(iASlicerMode::XY, iASlicerMode::XZ);
+	Customstyle_yz->setMDIChild(m_mdiChild);
 }
 
 void dlg_modalities::ListClicked(QListWidgetItem* item)

@@ -594,6 +594,7 @@ void iARenderer::update()
 	{
 		polyMapper->Update();
 	}
+	ren->Render();
 	renWin->Render();
 }
 
