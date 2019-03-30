@@ -53,9 +53,6 @@
 #include "mdichild.h"
 #include "mainwindow.h"
 
-
-#include <QVTKInteractorAdapter.h>
-#include <QVTKInteractor.h>
 #include <vtkActor.h>
 //#include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
@@ -453,13 +450,18 @@ iASlicer::~iASlicer()
 	}
 }
 
-bool iASlicer::changeInteractorState()
+void iASlicer::toggleInteractorState()
 {
 	if (m_interactor->GetEnabled())
+	{
 		disableInteractor();
+		emit msg(tr("Slicer %1 disabled.").arg(getSlicerModeString(m_mode)));
+	}
 	else
+	{
 		enableInteractor();
-	return m_interactor->GetEnabled();
+		emit msg(tr("Slicer %1 enabled.").arg(getSlicerModeString(m_mode)));
+	}
 }
 
 void iASlicer::setMode( const iASlicerMode mode )
@@ -472,6 +474,11 @@ void iASlicer::setMode( const iASlicerMode mode )
 iASlicerMode iASlicer::mode() const
 {
 	return m_mode;
+}
+
+void iASlicer::disableInteractor()
+{
+	m_interactor->Disable();
 }
 
 void iASlicer::enableInteractor()
@@ -532,12 +539,12 @@ void iASlicer::saveMovie()
 		saveDir = fileInfo.absolutePath() + "/" + fileInfo.baseName();
 	}
 
+	// Show standard save file dialog using available movie file types:
 	QString fileName = QFileDialog::getSaveFileName( parentWidget,
 		tr( "Export as a movie" ),
 		saveDir,
 		movie_file_types );
-	// Show standard save file dialog using available movie file types.
-	saveMovie( fileName );
+	saveSliceMovie( fileName );
 }
 
 void iASlicer::setSliceNumber( int sliceNumber )
@@ -886,11 +893,6 @@ void iASlicer::setPositionMarkerCenter(double x, double y)
 	}
 }
 
-void iASlicer::disableInteractor()
-{
-	m_interactor->Disable();
-}
-
 void iASlicer::showIsolines(bool s)
 {
 	if (!m_decorations)
@@ -906,7 +908,7 @@ void iASlicer::showPosition(bool s)
 	m_showPositionMarker = s;
 }
 
-void iASlicer::saveMovie(QString& fileName, int qual /*= 2*/)
+void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 {
 	QString movie_file_types = GetAvailableMovieFormats();
 
@@ -1247,7 +1249,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	if (eventId == vtkCommand::MouseWheelForwardEvent ||
 		eventId == vtkCommand::MouseWheelBackwardEvent)
 	{
-		emit UserInteraction();
+		emit userInteraction();
 	}
 	// Do the pick. It will return a non-zero value if we intersected the image.
 	int * epos = m_interactor->GetEventPosition();
@@ -1275,7 +1277,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 		double x, y, z;
 		getMouseCoord(x, y, z, result);
 		emit clicked(x, y, z);
-		emit UserInteraction();
+		emit userInteraction();
 		break;
 	}
 	case vtkCommand::LeftButtonReleaseEvent:
@@ -1284,7 +1286,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 		double x, y, z;
 		getMouseCoord(x, y, z, result);
 		emit released(x, y, z);
-		emit UserInteraction();
+		emit userInteraction();
 		break;
 	}
 	case vtkCommand::RightButtonPressEvent:
@@ -1308,7 +1310,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 			printVoxelInformation(xCoord, yCoord, zCoord);
 		}
 		emit oslicerPos(xCoord, yCoord, zCoord, m_mode);
-		emit UserInteraction();
+		emit userInteraction();
 		break;
 	}
 	case vtkCommand::KeyPressEvent:
@@ -1319,11 +1321,11 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 		break;
 	case vtkCommand::KeyReleaseEvent:
 		if (m_interactor->GetKeyCode() == 'p')
-			emit Pick();
+			emit pick();
 		break;
 	default:
 		if (m_interactor->GetKeyCode() == 'p')
-			emit Pick();
+			emit pick();
 		break;
 	}
 
@@ -1989,7 +1991,7 @@ void iASlicer::setContours(int n, double * contourValues)
 	}
 }
 
-void iASlicer::setMouseCursor(QString s)
+void iASlicer::setMouseCursor(QString const & s)
 {
 	QString color = s.section(' ', -1);
 	if (color != "default")

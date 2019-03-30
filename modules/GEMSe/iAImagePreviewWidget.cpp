@@ -113,7 +113,7 @@ void iAImagePreviewWidget::InitializeSlicer()
 	connect( m_slicer, SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
 	connect( m_slicer, SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
 	connect( m_slicer, SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
-	connect( m_slicer, SIGNAL(UserInteraction()), this, SIGNAL(Updated()));
+	connect( m_slicer, SIGNAL(userInteraction()), this, SIGNAL(Updated()));
 }
 
 void iAImagePreviewWidget::SlicerClicked(int x, int y, int z)

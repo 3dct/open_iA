@@ -111,10 +111,6 @@ public:
 	bool loadTransferFunction();
 	bool saveTransferFunction();
 
-	//! Provides the possibility to save a slice movie of the given slice view.
-	//! @param [in] slicer the VTK slicer the movie shall be exported from.
-	void saveMovie(iASlicer * slicer);
-
 	//! Provides the possibility to save a raycaster movie of the given raycaster view.
 	//! @param [in] raycaster the VTK raycaster the movie shall be exported from.
 	void saveMovie(iARenderer& raycaster);
@@ -160,6 +156,8 @@ public:
 	iARenderer* getRenderer() { return Raycaster; };
 	//! access slicer for given mode (use iASlicerMode enum for mode values)
 	iASlicer* slicer(int mode);
+	//! Get current slice number in the respective slicer
+	int sliceNumber(int mode) const;
 	//! @{ access to dock widgets
 	//! access slicer dialog for the given mode (use iASlicerMode enum)
 	dlg_slicer * slicerDlg(int mode);
@@ -192,13 +190,6 @@ public:
 	QString currentFile() const { return curFile; }
 	QFileInfo getFileInfo() const { return fileInfo; }
 	QString getFilePath() const;
-
-	int getSliceXY();
-	int getSliceYZ();
-	int getSliceXZ();
-	QSpinBox * getSpinBoxXY();
-	QSpinBox * getSpinBoxYZ();
-	QSpinBox * getSpinBoxXZ();
 
 	//! @{ Multi-Channel rendering
 	//! create a new channel, return its ID
@@ -344,19 +335,7 @@ public slots:
 
 private slots:
 	void saveRC();
-	void saveXY();
-	void saveXZ();
-	void saveYZ();
-	void saveStackXY();
-	void saveStackXZ();
-	void saveStackYZ();
-	void saveMovXY();
-	void saveMovXZ();
-	void saveMovYZ();
 	void saveMovRC();
-	void triggerInteractionXY();
-	void triggerInteractionXZ();
-	void triggerInteractionYZ();
 	void triggerInteractionRaycaster();
 	void setSliceXY(int s);
 	void setSliceYZ(int s);

@@ -203,18 +203,6 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dlgSlicer[iASlicerMode::XY]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeXY()));
 	connect(m_dlgSlicer[iASlicerMode::XZ]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeXZ()));
 	connect(m_dlgSlicer[iASlicerMode::YZ]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeYZ()));
-	connect(m_dlgSlicer[iASlicerMode::XY]->pbStop, SIGNAL(clicked()), this, SLOT(triggerInteractionXY()));
-	connect(m_dlgSlicer[iASlicerMode::XZ]->pbStop, SIGNAL(clicked()), this, SLOT(triggerInteractionXZ()));
-	connect(m_dlgSlicer[iASlicerMode::YZ]->pbStop, SIGNAL(clicked()), this, SLOT(triggerInteractionYZ()));
-	connect(m_dlgSlicer[iASlicerMode::XY]->pbSave, SIGNAL(clicked()), this, SLOT(saveXY()));
-	connect(m_dlgSlicer[iASlicerMode::XZ]->pbSave, SIGNAL(clicked()), this, SLOT(saveXZ()));
-	connect(m_dlgSlicer[iASlicerMode::YZ]->pbSave, SIGNAL(clicked()), this, SLOT(saveYZ()));
-	connect(m_dlgSlicer[iASlicerMode::XY]->pbSaveStack, SIGNAL(clicked()), this, SLOT(saveStackXY()));
-	connect(m_dlgSlicer[iASlicerMode::XZ]->pbSaveStack, SIGNAL(clicked()), this, SLOT(saveStackXZ()));
-	connect(m_dlgSlicer[iASlicerMode::YZ]->pbSaveStack, SIGNAL(clicked()), this, SLOT(saveStackYZ()));
-	connect(m_dlgSlicer[iASlicerMode::XY]->pbMov, SIGNAL(clicked()), this, SLOT(saveMovXY()));
-	connect(m_dlgSlicer[iASlicerMode::XZ]->pbMov, SIGNAL(clicked()), this, SLOT(saveMovXZ()));
-	connect(m_dlgSlicer[iASlicerMode::YZ]->pbMov, SIGNAL(clicked()), this, SLOT(saveMovYZ()));
 	connect(m_dlgSlicer[iASlicerMode::XY]->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYSpinBox(int)));
 	connect(m_dlgSlicer[iASlicerMode::XZ]->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZSpinBox(int)));
 	connect(m_dlgSlicer[iASlicerMode::YZ]->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZSpinBox(int)));
@@ -1045,51 +1033,6 @@ void MdiChild::saveRC()
 	WriteSingleSliceImage(file, filter->GetOutput());
 }
 
-void MdiChild::saveXY()
-{
-	m_slicer[iASlicerMode::XY]->saveAsImage();
-}
-
-void MdiChild::saveXZ()
-{
-	m_slicer[iASlicerMode::XZ]->saveAsImage();
-}
-
-void MdiChild::saveYZ()
-{
-	m_slicer[iASlicerMode::YZ]->saveAsImage();
-}
-
-void MdiChild::saveStackXY()
-{
-	m_slicer[iASlicerMode::XY]->saveImageStack();
-}
-
-void MdiChild::saveStackXZ()
-{
-	m_slicer[iASlicerMode::XZ]->saveImageStack();
-}
-
-void MdiChild::saveStackYZ()
-{
-	m_slicer[iASlicerMode::YZ]->saveImageStack();
-}
-
-void MdiChild::saveMovXY()
-{
-	saveMovie(m_slicer[iASlicerMode::XY]);
-}
-
-void MdiChild::saveMovXZ()
-{
-	saveMovie(m_slicer[iASlicerMode::XZ]);
-}
-
-void MdiChild::saveMovYZ()
-{
-	saveMovie(m_slicer[iASlicerMode::YZ]);
-}
-
 void MdiChild::saveMovRC()
 {
 	saveMovie(*Raycaster);
@@ -1138,33 +1081,6 @@ void MdiChild::getCamPosition(double * camOptions)
 void MdiChild::setCamPosition(double * camOptions, bool rsParallelProjection)
 {
 	Raycaster->setCamPosition(camOptions, rsParallelProjection);
-}
-
-void MdiChild::triggerInteractionXY()
-{
-	bool newState = m_slicer[iASlicerMode::XY]->changeInteractorState();
-	if (!newState)
-		addMsg(tr("Slicer XY disabled."));
-	else
-		addMsg(tr("Slicer XY enabled."));
-}
-
-void MdiChild::triggerInteractionXZ()
-{
-	bool newState = m_slicer[iASlicerMode::XZ]->changeInteractorState();
-	if (!newState)
-		addMsg(tr("Slicer XZ disabled."));
-	else
-		addMsg(tr("Slicer XZ enabled."));
-}
-
-void MdiChild::triggerInteractionYZ()
-{
-	bool newState = m_slicer[iASlicerMode::YZ]->changeInteractorState();
-	if (!newState)
-		addMsg(tr("Slicer YZ disabled."));
-	else
-		addMsg(tr("Slicer YZ enabled."));
 }
 
 void MdiChild::triggerInteractionRaycaster()
@@ -1770,11 +1686,6 @@ iADiagramFctWidget* MdiChild::getHistogram()
 iADockWidgetWrapper* MdiChild::getHistogramDockWidget()
 {
 	return m_histogramContainer;
-}
-
-void MdiChild::saveMovie(iASlicer * slicer)
-{
-	slicer->saveMovie();
 }
 
 void MdiChild::saveMovie(iARenderer& raycaster)
@@ -2462,34 +2373,10 @@ void MdiChild::updateProfile()
 	imgProfile->profileWidget->update();
 }
 
-int MdiChild::getSliceXY()
+int MdiChild::sliceNumber(int mode) const
 {
-	return m_dlgSlicer[iASlicerMode::XY]->sbSlice->value();
-}
-
-int MdiChild::getSliceYZ()
-{
-	return m_dlgSlicer[iASlicerMode::YZ]->sbSlice->value();
-}
-
-int MdiChild::getSliceXZ()
-{
-	return m_dlgSlicer[iASlicerMode::XZ]->sbSlice->value();
-}
-
-QSpinBox * MdiChild::getSpinBoxXY()
-{
-	return m_dlgSlicer[iASlicerMode::XY]->sbSlice;
-}
-
-QSpinBox * MdiChild::getSpinBoxYZ()
-{
-	return m_dlgSlicer[iASlicerMode::YZ]->sbSlice;
-}
-
-QSpinBox * MdiChild::getSpinBoxXZ()
-{
-	return m_dlgSlicer[iASlicerMode::XZ]->sbSlice;
+	assert(0 <= mode && mode < iASlicerMode::SlicerCount);
+	return m_slicer[mode]->sliceNumber();
 }
 
 void MdiChild::maximizeDockWidget( QDockWidget * dw )

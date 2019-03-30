@@ -53,6 +53,11 @@ dlg_slicer::dlg_slicer(iASlicerMode mode, iASlicer* slicer)
 	sbSlabThickness->hide();
 	lbSlabThickness->hide();
 	cbSlabCompositeMode->hide();
+	
+	connect(pbSave, &QToolButton::clicked, slicer, &iASlicer::saveAsImage);
+	connect(pbSaveStack, &QToolButton::clicked, slicer, &iASlicer::saveImageStack);
+	connect(pbMov, &QToolButton::clicked, slicer, &iASlicer::saveMovie);
+	connect(pbStop, &QToolButton::clicked, slicer, &iASlicer::toggleInteractorState);
 }
 
 void dlg_slicer::showBorder(bool show)

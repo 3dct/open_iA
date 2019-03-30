@@ -117,8 +117,6 @@ public:
 	iAMagicLens * magicLens();
 	//! @}
 
-	bool changeInteractorState();
-
 	void disableInteractor();
 	void enableInteractor(); //also updates widget
 
@@ -178,10 +176,10 @@ public:
 	//! @}
 	//void setMeasurementStartPoint(int x, int y);
 	void setShowText(bool isVisible);
-	void setMouseCursor(QString s);
+	void setMouseCursor(QString const & s);
 
 	void showPosition(bool s);
-	void saveMovie(QString& fileName, int qual = 2);
+	void saveSliceMovie(QString const & fileName, int qual = 2);
 
 	void execute(vtkObject * caller, unsigned long eventId, void * callData);
 
@@ -206,9 +204,11 @@ public slots:
 	void saveAsImage() const;
 	//! Save an image stack of the current view.
 	void saveImageStack();
-	void setSliceNumber( int sliceNumber );
 	//! Save a movie of a full slice-through of the specimen from top to bottom
 	void saveMovie();
+	//! Toggle interactor state of this slicer between enabled/disabled
+	void toggleInteractorState();
+	void setSliceNumber(int sliceNumber);
 	void rotateSlice( double angle );
 	void setSlabThickness(int thickness);
 	void setSlabCompositeMode(int compositeMode);
@@ -240,8 +240,32 @@ public slots:
 	//! Called when the delete snake line menu is clicked.
 	void menuDeleteSnakeLine();
 	void slicerUpdatedSlot();
+
+private slots:
 	void menuCenteredMagicLens();
 	void menuOffsetMagicLens();
+
+signals:
+	void addedPoint(double x, double y, double z);
+	void movedPoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
+	void arbitraryProfileChanged(int pointInd, double * Pos);
+	void deselectedPoint();
+	void switchedMode(int mode);
+	void deletedSnakeLine();
+	void shiftMouseWheel(int angle);
+	void altMouseWheel(int angle);
+	void ctrlMouseWheel(int angle);
+	void clicked();
+	void dblClicked();
+	void msg(QString s);
+	void progress(int);
+	void updateSignal();
+	void clicked(int x, int y, int z);
+	void rightClicked(int x, int y, int z);
+	void released(int x, int y, int z);
+	void userInteraction();
+	void oslicerPos(int x, int y, int z, int mode);   	//!< signal triggered on mouse move
+	void pick();
 
 protected:
 	QMenu *         m_magicLensContextMenu;
@@ -262,8 +286,6 @@ protected:
 	double          m_pieGlyphSpacing;
 	double          m_pieGlyphOpacity;
 	// }
-
-	static const int RADIUS = 5;
 
 	void updateProfile();
 	int pickPoint(double * pos_out, double * result_out, int * ind_out);
@@ -299,30 +321,6 @@ protected:
 	//! @param [in,out]	x	The x coordinate.
 	//! @param [in,out]	y	The y coordinate.
 	//void snapToHighGradient(double &x, double &y);
-signals:
-	void addedPoint(double x, double y, double z);
-	void movedPoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
-	void arbitraryProfileChanged(int pointInd, double * Pos);
-	void deselectedPoint();
-	void switchedMode(int mode);
-	void deletedSnakeLine();
-	void shiftMouseWheel(int angle);
-	void altMouseWheel(int angle);
-	void ctrlMouseWheel(int angle);
-	void clicked();
-	void dblClicked();
-	void msg(QString s);
-	void progress(int);
-	void updateSignal();
-	void clicked(int x, int y, int z);
-	void rightClicked(int x, int y, int z);
-	void released(int x, int y, int z);
-	void UserInteraction();
-	//! signal triggered on mouse move
-	void oslicerPos(int x, int y, int z, int mode);
-	void oslicerCol(double cl, double cw, int mode);
-	//key press
-	void Pick();
 
 private:
 	iASlicerMode m_mode;            //!< the (axis-aligned) slice plane this slicer views
@@ -408,13 +406,9 @@ private:
 	vtkSmartPointer<vtkTransform> m_axisTransform[2];
 	vtkSmartPointer<vtkTextActor3D> m_axisTextActor[2];
 
-
 	int m_ext;
-
 	double m_angleX, m_angleY, m_angleZ;
-
 	double m_backgroundRGB[3];
-
 	int m_sliceNumber; // for fisheye transformation
 
 	//mouse move
@@ -426,7 +420,6 @@ private:
 	QSharedPointer<iAChannelSlicerData> createChannel(uint id);
 	void getMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
 	void updatePositionMarkerExtent();
-	void setupColorMapper();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 };
 
