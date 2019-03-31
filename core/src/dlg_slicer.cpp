@@ -60,6 +60,8 @@ dlg_slicer::dlg_slicer(iASlicer* slicer):
 	connect(pbMov, &QToolButton::clicked, slicer, &iASlicer::saveMovie);
 	connect(pbStop, &QToolButton::clicked, slicer, &iASlicer::toggleInteractorState);
 	connect(dsbRotation, SIGNAL(valueChanged(double)), slicer, SLOT(rotateSlice(double)));
+	connect(sbSlice, SIGNAL(valueChanged(int)), this, SLOT(setSliceSpinBox(int)));
+	connect(verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceScrollBar(int)));
 	connect(cbSlabMode, &QCheckBox::toggled, this, &dlg_slicer::setSlabMode);
 	connect(sbSlabThickness, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThickness(int)));
 	connect(cbSlabCompositeMode, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeMode(int)));
@@ -69,6 +71,20 @@ void dlg_slicer::showBorder(bool show)
 {
 	int borderWidth = show ? BorderWidth : 0;
 	sliceContainerLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
+}
+
+void dlg_slicer::setSliceSpinBox(int s)
+{
+	QSignalBlocker block(verticalScrollBar);
+	verticalScrollBar->setValue(s);
+	m_slicer->setSliceNumber(s);
+}
+
+void dlg_slicer::setSliceScrollBar(int s)
+{
+	QSignalBlocker block(sbSlice);
+	sbSlice->setValue(s);
+	m_slicer->setSliceNumber(s);
 }
 
 void dlg_slicer::setSlabMode(bool slabMode)

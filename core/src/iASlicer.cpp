@@ -577,6 +577,7 @@ void iASlicer::setSliceNumber( int sliceNumber )
 	updateMagicLensColors();
 	computeGlyphs();
 	update();
+	emit sliceNumberChanged( m_mode, sliceNumber );
 }
 
 void iASlicer::setup( iASingleSlicerSettings const & settings )

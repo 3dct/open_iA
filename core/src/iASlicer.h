@@ -264,9 +264,13 @@ signals:
 	void rightClicked(int x, int y, int z);
 	void released(int x, int y, int z);
 	void userInteraction();
-	void oslicerPos(int x, int y, int z, int mode);   	//!< signal triggered on mouse move
+	void oslicerPos(int x, int y, int z, int mode); //!< triggered on mouse move
 	void pick();
-	void sliceRotated();
+	void sliceRotated(); //!< triggered when slice was rotated
+	//! triggered when slice number changed.
+	//! @param mode slicer mode (=plane)
+	//! @param sliceNumber number of the slice that was switched to
+	void sliceNumberChanged(int mode, int sliceNumber);
 
 protected:
 	QMenu *         m_magicLensContextMenu;

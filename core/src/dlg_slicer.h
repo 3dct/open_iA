@@ -37,6 +37,8 @@ public:
 	dlg_slicer(iASlicer* slicer);
 	void showBorder(bool show);
 private slots:
+	void setSliceSpinBox(int s);
+	void setSliceScrollBar(int s);
 	void setSlabMode(bool slabMode);
 	void updateSlabThickness(int thickness);
 	void updateSlabCompositeMode(int compositeMode);

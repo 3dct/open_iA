@@ -342,16 +342,7 @@ private slots:
 	void saveRC();
 	void saveMovRC();
 	void triggerInteractionRaycaster();
-	void setSliceXY(int s);
-	void setSliceYZ(int s);
-	void setSliceXZ(int s);
 	void setSlice(int mode, int s);
-	void setSliceXYScrollBar(int s);
-	void setSliceYZScrollBar(int s);
-	void setSliceXZScrollBar(int s);
-	void setSliceXYSpinBox(int s);
-	void setSliceYZSpinBox(int s);
-	void setSliceXZSpinBox(int s);
 	void slicerRotationChanged();
 	void setChannel(int ch);
 	void updateRenderWindows(int channels);

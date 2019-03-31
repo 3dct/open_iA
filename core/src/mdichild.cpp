@@ -200,15 +200,6 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dlgSlicer[iASlicerMode::XY]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeXY()));
 	connect(m_dlgSlicer[iASlicerMode::XZ]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeXZ()));
 	connect(m_dlgSlicer[iASlicerMode::YZ]->pbMax, SIGNAL(clicked()), this, SLOT(maximizeYZ()));
-	connect(m_dlgSlicer[iASlicerMode::XY]->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYSpinBox(int)));
-	connect(m_dlgSlicer[iASlicerMode::XZ]->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZSpinBox(int)));
-	connect(m_dlgSlicer[iASlicerMode::YZ]->sbSlice, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZSpinBox(int)));
-	connect(m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
-	connect(m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
-	connect(m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
-	connect(m_dlgSlicer[iASlicerMode::XY]->dsbRotation, SIGNAL(valueChanged(double)), this, SLOT(setRotationXY(double)));
-	connect(m_dlgSlicer[iASlicerMode::XZ]->dsbRotation, SIGNAL(valueChanged(double)), this, SLOT(setRotationXZ(double)));
-	connect(m_dlgSlicer[iASlicerMode::YZ]->dsbRotation, SIGNAL(valueChanged(double)), this, SLOT(setRotationYZ(double)));
 
 	connect(renderer->pushMaxRC, SIGNAL(clicked()), this, SLOT(maximizeRC()));
 	connect(renderer->pushStopRC, SIGNAL(clicked()), this, SLOT(triggerInteractionRaycaster()));
@@ -235,6 +226,7 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::altMouseWheel, this, &MdiChild::changeMagicLensOpacity);
 		connect(m_slicer[s], &iASlicer::ctrlMouseWheel, this, &MdiChild::changeMagicLensSize);
 		connect(m_slicer[s], &iASlicer::sliceRotated, this, &MdiChild::slicerRotationChanged);
+		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 
 		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
 		connect(m_slicer[s], &iASlicer::msg, this, &MdiChild::addMsg);
@@ -1079,21 +1071,6 @@ void MdiChild::triggerInteractionRaycaster()
 	}
 }
 
-void MdiChild::setSliceXY(int s)
-{
-	setSlice(iASlicerMode::XY, s);
-}
-
-void MdiChild::setSliceYZ(int s)
-{
-	setSlice(iASlicerMode::YZ, s);
-}
-
-void MdiChild::setSliceXZ(int s)
-{
-	setSlice(iASlicerMode::XZ, s);
-}
-
 void MdiChild::setSlice(int mode, int s)
 {
 	int sliceAxis = getSlicerDimension(mode);
@@ -1104,7 +1081,6 @@ void MdiChild::setSlice(int mode, int s)
 	else
 	{
 		m_position[mode] = s;
-		m_slicer[mode]->setSliceNumber(s);
 		if (renderSettings.ShowSlicers || renderSettings.ShowSlicePlanes)
 		{
 			double plane[3];
@@ -1113,54 +1089,6 @@ void MdiChild::setSlice(int mode, int s)
 			Raycaster->setSlicePlane(sliceAxis, plane[0], plane[1], plane[2]);
 		}
 	}
-}
-
-void MdiChild::setSliceXYSpinBox(int s)
-{
-	setSliceXY(s);
-	QSignalBlocker block(m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar);
-	m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar->setValue(s);
-}
-
-void MdiChild::setSliceYZSpinBox(int s)
-{
-	setSliceYZ(s);
-	QSignalBlocker block(m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar);
-	m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar->setValue(s);
-}
-
-void MdiChild::setSliceXZSpinBox(int s)
-{
-	setSliceXZ(s);
-	QSignalBlocker block(m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar);
-	m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar->setValue(s);
-}
-
-void MdiChild::setSliceXYScrollBar(int s)
-{
-	m_dlgSlicer[iASlicerMode::XY]->sbSlice->repaint();
-	m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar->repaint();
-	setSliceXY(s);
-	QSignalBlocker block(m_dlgSlicer[iASlicerMode::XY]->sbSlice);
-	m_dlgSlicer[iASlicerMode::XY]->sbSlice->setValue(s);
-}
-
-void MdiChild::setSliceYZScrollBar(int s)
-{
-	m_dlgSlicer[iASlicerMode::YZ]->sbSlice->repaint();
-	m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar->repaint();
-	setSliceYZ(s);
-	QSignalBlocker block(m_dlgSlicer[iASlicerMode::YZ]->sbSlice);
-	m_dlgSlicer[iASlicerMode::YZ]->sbSlice->setValue(s);
-}
-
-void MdiChild::setSliceXZScrollBar(int s)
-{
-	m_dlgSlicer[iASlicerMode::XZ]->sbSlice->repaint();
-	m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar->repaint();
-	setSliceXZ(s);
-	QSignalBlocker block(m_dlgSlicer[iASlicerMode::XZ]->sbSlice);
-	m_dlgSlicer[iASlicerMode::XZ]->sbSlice->setValue(s);
 }
 
 void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s)
