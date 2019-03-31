@@ -29,6 +29,8 @@ class iASlicer;
 
 class dlg_slicer : public QDockWidget, public Ui_slicer
 {
+Q_OBJECT
+
 public:
 	static const int BorderWidth;
 	static QColor slicerColor(iASlicerMode mode);
