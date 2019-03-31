@@ -266,6 +266,7 @@ signals:
 	void userInteraction();
 	void oslicerPos(int x, int y, int z, int mode);   	//!< signal triggered on mouse move
 	void pick();
+	void sliceRotated();
 
 protected:
 	QMenu *         m_magicLensContextMenu;

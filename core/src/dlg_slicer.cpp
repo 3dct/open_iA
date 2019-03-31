@@ -59,6 +59,7 @@ dlg_slicer::dlg_slicer(iASlicer* slicer):
 	connect(pbSaveStack, &QToolButton::clicked, slicer, &iASlicer::saveImageStack);
 	connect(pbMov, &QToolButton::clicked, slicer, &iASlicer::saveMovie);
 	connect(pbStop, &QToolButton::clicked, slicer, &iASlicer::toggleInteractorState);
+	connect(dsbRotation, SIGNAL(valueChanged(double)), slicer, SLOT(rotateSlice(double)));
 	connect(cbSlabMode, &QCheckBox::toggled, this, &dlg_slicer::setSlabMode);
 	connect(sbSlabThickness, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThickness(int)));
 	connect(cbSlabCompositeMode, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeMode(int)));

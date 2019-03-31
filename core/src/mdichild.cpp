@@ -232,8 +232,9 @@ void MdiChild::connectSignalsToSlots()
 	for (int s = 0; s < 3; ++s)
 	{
 		connect(m_slicer[s], &iASlicer::shiftMouseWheel, this, &MdiChild::changeMagicLensModality);
-		connect(m_slicer[s], &iASlicer::altMouseWheel,   this, &MdiChild::changeMagicLensOpacity);
-		connect(m_slicer[s], &iASlicer::ctrlMouseWheel,  this, &MdiChild::changeMagicLensSize);
+		connect(m_slicer[s], &iASlicer::altMouseWheel, this, &MdiChild::changeMagicLensOpacity);
+		connect(m_slicer[s], &iASlicer::ctrlMouseWheel, this, &MdiChild::changeMagicLensSize);
+		connect(m_slicer[s], &iASlicer::sliceRotated, this, &MdiChild::slicerRotationChanged);
 
 		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
 		connect(m_slicer[s], &iASlicer::msg, this, &MdiChild::addMsg);
@@ -1297,21 +1298,8 @@ void MdiChild::setChannel(int c)
 	enableRenderWindows();
 }
 
-void MdiChild::setRotationXY(double a)
+void MdiChild::slicerRotationChanged()
 {
-	m_slicer[iASlicerMode::XY]->rotateSlice( a );
-	Raycaster->setPlaneNormals( slicerTransform );
-}
-
-void MdiChild::setRotationYZ(double a)
-{
-	m_slicer[iASlicerMode::YZ]->rotateSlice( a );
-	Raycaster->setPlaneNormals( slicerTransform );
-}
-
-void MdiChild::setRotationXZ(double a)
-{
-	m_slicer[iASlicerMode::XZ]->rotateSlice( a );
 	Raycaster->setPlaneNormals( slicerTransform );
 }
 

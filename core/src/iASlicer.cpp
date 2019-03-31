@@ -1959,6 +1959,7 @@ void iASlicer::rotateSlice(double angle)
 	setTransform(transform);
 
 	update();
+	emit sliceRotated();
 }
 
 /*

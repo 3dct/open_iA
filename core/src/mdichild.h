@@ -296,6 +296,7 @@ Q_SIGNALS:
 	void transferFunctionChanged();
 	void fileLoaded();
 	void histogramAvailable();
+
 public slots:
 	void maximizeRC();
 	void maximizeXY();
@@ -351,10 +352,8 @@ private slots:
 	void setSliceXYSpinBox(int s);
 	void setSliceYZSpinBox(int s);
 	void setSliceXZSpinBox(int s);
+	void slicerRotationChanged();
 	void setChannel(int ch);
-	void setRotationXY(double a);
-	void setRotationYZ(double a);
-	void setRotationXZ(double a);
 	void updateRenderWindows(int channels);
 	void updatePositionMarker(int x, int y, int z, int mode);
 	void toggleArbitraryProfile(bool isChecked);
