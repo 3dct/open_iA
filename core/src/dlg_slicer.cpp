@@ -35,12 +35,13 @@ QColor dlg_slicer::slicerColor(iASlicerMode mode)
 	}
 }
 
-dlg_slicer::dlg_slicer(iASlicerMode mode, iASlicer* slicer)
+dlg_slicer::dlg_slicer(iASlicer* slicer):
+	m_slicer(slicer)
 {
 	setupUi(this);
-	QString slicePlaneName = getSlicerModeString(mode);
-	QString sliceAxis = getSliceAxis(mode);
-	QColor color(slicerColor(mode));
+	QString slicePlaneName = getSlicerModeString(slicer->mode());
+	QString sliceAxis = getSliceAxis(slicer->mode());
+	QColor color(slicerColor(slicer->mode()));
 	setObjectName(QString("slice%1").arg(slicePlaneName));
 	setWindowTitle(QString("Slice %1").arg(slicePlaneName));
 	lbTitle->setText(slicePlaneName);
@@ -58,10 +59,33 @@ dlg_slicer::dlg_slicer(iASlicerMode mode, iASlicer* slicer)
 	connect(pbSaveStack, &QToolButton::clicked, slicer, &iASlicer::saveImageStack);
 	connect(pbMov, &QToolButton::clicked, slicer, &iASlicer::saveMovie);
 	connect(pbStop, &QToolButton::clicked, slicer, &iASlicer::toggleInteractorState);
+	connect(cbSlabMode, &QCheckBox::toggled, this, &dlg_slicer::setSlabMode);
+	connect(sbSlabThickness, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThickness(int)));
+	connect(cbSlabCompositeMode, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeMode(int)));
 }
 
 void dlg_slicer::showBorder(bool show)
 {
 	int borderWidth = show ? BorderWidth : 0;
 	sliceContainerLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
+}
+
+void dlg_slicer::setSlabMode(bool slabMode)
+{
+	lbSlabThickness->setVisible(slabMode);
+	sbSlabThickness->setVisible(slabMode);
+	cbSlabCompositeMode->setVisible(slabMode);
+	slabMode == true ?
+		updateSlabThickness(sbSlabThickness->value()) :
+		updateSlabThickness(0);
+}
+
+void dlg_slicer::updateSlabThickness(int thickness)
+{
+	m_slicer->setSlabThickness(thickness);
+}
+
+void dlg_slicer::updateSlabCompositeMode(int mode)
+{
+	m_slicer->setSlabCompositeMode(mode);
 }

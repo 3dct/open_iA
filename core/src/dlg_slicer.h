@@ -32,6 +32,12 @@ class dlg_slicer : public QDockWidget, public Ui_slicer
 public:
 	static const int BorderWidth;
 	static QColor slicerColor(iASlicerMode mode);
-	dlg_slicer(iASlicerMode mode, iASlicer* slicer);
+	dlg_slicer(iASlicer* slicer);
 	void showBorder(bool show);
+private slots:
+	void setSlabMode(bool slabMode);
+	void updateSlabThickness(int thickness);
+	void updateSlabCompositeMode(int compositeMode);
+private:
+	iASlicer* m_slicer;
 };

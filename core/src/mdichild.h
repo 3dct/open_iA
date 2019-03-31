@@ -344,6 +344,7 @@ private slots:
 	void setSliceXY(int s);
 	void setSliceYZ(int s);
 	void setSliceXZ(int s);
+	void setSlice(int mode, int s);
 	void setSliceXYScrollBar(int s);
 	void setSliceYZScrollBar(int s);
 	void setSliceXZScrollBar(int s);
@@ -354,15 +355,6 @@ private slots:
 	void setRotationXY(double a);
 	void setRotationYZ(double a);
 	void setRotationXZ(double a);
-	void setSlabModeXY(bool slabMode);
-	void setSlabModeYZ(bool slabMode);
-	void setSlabModeXZ(bool slabMode);
-	void updateSlabThicknessXY(int thickness);
-	void updateSlabThicknessYZ(int thickness);
-	void updateSlabThicknessXZ(int thickness);
-	void updateSlabCompositeModeXY(int compositeMode);
-	void updateSlabCompositeModeXZ(int compositeMode);
-	void updateSlabCompositeModeYZ(int compositeMode);
 	void updateRenderWindows(int channels);
 	void updatePositionMarker(int x, int y, int z, int mode);
 	void toggleArbitraryProfile(bool isChecked);
