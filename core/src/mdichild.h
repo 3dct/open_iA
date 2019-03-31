@@ -103,7 +103,7 @@ public:
 	//! waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit
 	void waitForPreviousIO();
 
-	void multiview() { changeVisibility(MULTI);};
+	void multiview() { changeVisibility(MULTI); }
 	bool editPrefs(iAPreferences const & p);
 	void applyViewerPreferences();
 	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
@@ -136,36 +136,43 @@ public:
 	void connectIOThreadSignals(iAIO* thread);
 	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
 
-	//! access the opacity function of the "main image" of this child
+	//! Access the opacity function of the "main image"
 	//! @deprecated all access to images should proceed via modalities (getModality / setModalities /...)
 	vtkPiecewiseFunction * getPiecewiseFunction();
-	//! access the color transfer function of the "main image" of this child
+	//! Access the color transfer function of the "main image"
 	//! @deprecated all access to images should proceed via modalities (getModality / setModalities /...)
 	vtkColorTransferFunction * getColorTransferFunction();
+	//! Access to the "main image"
 	//! @deprecated retrieve images via the modalities (getModality etc.) instead!
 	vtkImageData* getImageData();
+	//! Access to the "main image"
 	//! @deprecated retrieve images via the modalities (getModality etc.) instead!
-	vtkSmartPointer<vtkImageData> getImagePointer() { return imageData; }
-	//! @deprecated all access to images should proceed via modalities (getModality / setModalities /...)
+	vtkSmartPointer<vtkImageData> getImagePointer();
+	//! Set "main image" - does not update views (see displayResult for a method that does)!
+	//! @deprecated all access to images should proceed via modalities (getModality / setModalities /...) or channels (addChannel/updateChannel)
 	void setImageData(vtkImageData * iData);
-	//! @deprecated all access to images should proceed via modalities (getModality / setModalities /...)
+	//! @deprecated all access to images should proceed via modalities (getModality / setModalities /...) or channels (addChannel/updateChannel)
 	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
-	//! access to "main" polydata object visualized in this child (if any)
+	//! Access to "main" polydata object (if any)
 	// TODO: move out of mdi child, into something like an iAModality
-	vtkPolyData* getPolyData() { return polyData; };
-	iARenderer* getRenderer() { return Raycaster; };
-	//! access slicer for given mode (use iASlicerMode enum for mode values)
+	vtkPolyData* getPolyData();
+	//! Access to the 3D renderer widget
+	iARenderer* getRenderer();
+	//! Access slicer for given mode (use iASlicerMode enum for mode values)
 	iASlicer* slicer(int mode);
 	//! Get current slice number in the respective slicer
 	int sliceNumber(int mode) const;
-	//! @{ access to dock widgets
-	//! access slicer dialog for the given mode (use iASlicerMode enum)
+	//! Access slicer dock widget for the given mode
+	//! @param mode slicer to access - use constants from iASlicerMode enum
 	dlg_slicer * slicerDlg(int mode);
+	//! Access 3D renderer dock widget
 	dlg_renderer * getRendererDlg();
+	//! Access image property dock widget
 	dlg_imageproperty * getImagePropertyDlg();
+	//! Access line profile dock widget
 	dlg_profile * getProfileDlg();
+	//! Access log message dock widget
 	dlg_logs * getLogDlg();
-	//! @}
 
 	void setReInitializeRenderWindows(bool reInit) { reInitializeRenderWindows = reInit; }
 	vtkTransform* getSlicerTransform();
@@ -192,11 +199,11 @@ public:
 	QString getFilePath() const;
 
 	//! @{ Multi-Channel rendering
-	//! create a new channel, return its ID
+	//! Create a new channel, return its ID.
 	uint createChannel();
-	//! update the data of the given channel ID
+	//! Update the data of the given channel ID.
 	void updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
-	//! update opacity of the given channel ID
+	//! Update opacity of the given channel ID.
 	void updateChannelOpacity(uint id, double opacity);
 	
 	void setChannelRenderingEnabled(uint, bool enabled);
@@ -221,25 +228,22 @@ public:
 	int  getMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }
 	//! @}
 
-	//! Returns the currently active renderer (Default / Raycaster / GPU)
+	//! Returns the currently active renderer (Default / Raycaster / GPU).
 	int getRenderMode() const;
 
-	//! @{ Current "position" (defined by the respective slice number in the slice views)
-	int getXCoord() const { return xCoord; }
-	int getYCoord() const { return yCoord; }
-	int getZCoord() const { return zCoord; }
-	//! @}
+	//! Current coordinate position (defined by the respective slice number in the slice views).
+	int const * position() const;
 
 	MainWindow* getMainWnd();
 	//! Hides the histogram dockwidget
 	void hideHistogram();
-	//! apply current rendering settings of this mdi child to the given iARenderer
+	//! Apply current rendering settings to the given iARenderer.
 	void applyRenderSettings(iARenderer* raycaster);
-	//! apply current volume settings of this mdi child to all modalities in the current list in dlg_modalities
+	//! Apply current volume settings to all modalities in the current list in dlg_modalities.
 	void applyVolumeSettings(const bool loadSavedVolumeSettings);
-	//! Returns the name of the layout currently applied to this child window
+	//! Returns the name of the layout currently applied to this child window.
 	QString getLayoutName() const;
-	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration on this child
+	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
 	void loadLayout(QString const & layout);
 
 	//! If more than one modality loaded, ask user to choose one of them.
@@ -253,7 +257,7 @@ public:
 	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
 	//void splitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
 
-	//! Checks whether the main image data in this child is fully loaded.
+	//! Checks whether the main image data is fully loaded.
 	bool isFullyLoaded() const;
 
 	//! Save all currently loaded files into a project with the given file name.
@@ -262,7 +266,7 @@ public:
 	//! Whether volume data is loaded (only checks filename and volume dimensions).
 	bool isVolumeDataLoaded() const;
 
-	//! Enable or disable linked views (slicers/3D renderer) for this MDI child.
+	//! Enable or disable linked slicers and 3D renderer.
 	void linkViews(bool l);
 	
 	//! Enable or disable linked MDI windows for this MDI child.
@@ -424,7 +428,6 @@ private:
 	void initVolumeRenderers();
 
 	QByteArray m_beforeMaximizeState;
-	bool m_isSmthMaximized;
 	QDockWidget * m_whatMaximized;
 	int m_pbarMaxVal;
 
@@ -443,9 +446,7 @@ private:
 	static const unsigned char MULTI = 0x1F;
 
 	QString curFile, path;
-	QPoint lastPoint;
-	bool isUntitled;
-	int xCoord, yCoord, zCoord;
+	int m_position[3];
 
 	iARenderSettings renderSettings;
 	iAVolumeSettings volumeSettings;
@@ -454,10 +455,14 @@ private:
 
 	unsigned char visibility;
 
+	bool m_isSmthMaximized;     //!< whether a single dock widget is currently maximized
+	bool isUntitled;            //!< whether current content is saved as a file already
 	bool snakeSlicer;           //!< whether snake slicer is enabled
-	bool isSliceProfileEnabled; //!< slice profile, shown in slices
-	bool isArbProfileEnabled;   //!< arbitrary profile, shown in profile widget
-	bool isMagicLensEnabled;    //!< magic lens exploration
+	bool isSliceProfileEnabled; //!< whether slice profile, shown in slices, is enabled
+	bool isArbProfileEnabled;   //!< whether arbitrary profile, shown in profile widget
+	bool isMagicLensEnabled;    //!< whether magic lens in slicers is enabled
+	bool reInitializeRenderWindows; //! whether render windows need to be reinitialized
+	bool raycasterInitialized;  //!< whether renderer is already initialized
 
 	vtkSmartPointer<vtkImageData> imageData;		// TODO: remove - use modality data instead!
 	vtkPolyData* polyData;
@@ -490,14 +495,10 @@ private:
 	uint m_nextChannelID;
 	uint m_magicLensChannel;
 
-	bool updateSliceIndicator;
 	int numberOfVolumes;
 	int previousIndexOfVolume;
 
 	QList <int> CheckedList;
-
-	bool reInitializeRenderWindows;
-	bool raycasterInitialized;
 	iALogger* m_logger;
 	QByteArray m_initialLayoutState;
 	QString m_layout;

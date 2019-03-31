@@ -92,14 +92,20 @@
 
 MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsavedChanges) :
 	m_isSmthMaximized(false),
-	volumeStack(new iAVolumeStack),
 	isMagicLensEnabled(false),
-	ioThread(nullptr),
 	reInitializeRenderWindows(true),
+	m_initVolumeRenderers(false),
+	isUntitled(true),
+	snakeSlicer(false),
+	isSliceProfileEnabled(false),
+	isArbProfileEnabled(false),
+	raycasterInitialized(false),
+	m_mainWnd(mainWnd),
+	volumeStack(new iAVolumeStack),
+	ioThread(nullptr),
 	m_logger(new MdiChildLogger(this)),
 	m_histogram(new iADiagramFctWidget(nullptr, this, " Histogram", "Frequency")),
 	m_histogramContainer(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
-	m_initVolumeRenderers(false),
 	preferences(prefs),
 	m_currentModality(0),
 	m_currentComponent(0),
@@ -113,7 +119,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
 #endif
 	setWindowModified(unsavedChanges);
-	m_mainWnd = mainWnd;
 	setupUi(this);
 	//prepare window for handling dock widgets
 	this->setCentralWidget(nullptr);
@@ -143,19 +148,14 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
-	isUntitled = true;
 	visibility = MULTI;
-	xCoord = 0, yCoord = 0, zCoord = 0;
+	std::fill(m_position, m_position + 3, 0);
 
 	imageData = vtkSmartPointer<vtkImageData>::New();
 	imageData->AllocateScalars(VTK_DOUBLE, 1);
 	polyData = vtkPolyData::New();
 
 	axesTransform = vtkTransform::New();
-
-	snakeSlicer = false;
-	isSliceProfileEnabled = false;
-	isArbProfileEnabled = false;
 	parametricSpline = iAParametricSpline::New();
 	parametricSpline->SetPoints(worldSnakePoints);
 	
@@ -176,9 +176,6 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 
 	worldProfilePoints = vtkPoints::New();
 	worldProfilePoints->Allocate(2);
-
-	updateSliceIndicator = true;
-	raycasterInitialized = false;
 }
 
 MdiChild::~MdiChild()
@@ -353,15 +350,10 @@ void MdiChild::enableRenderWindows()	// = image data available
 
 	if (!isVolumeDataLoaded())
 		return;
-	if (updateSliceIndicator)
-	{
-		updateSliceIndicators();
-		camIso();
-		vtkCamera* cam = Raycaster->getCamera();
-		getModalities()->ApplyCameraSettings(cam);
-	}
-	else
-		updateSliceIndicator = true;
+	updateSliceIndicators();
+	camIso();
+	vtkCamera* cam = Raycaster->getCamera();
+	getModalities()->ApplyCameraSettings(cam);
 
 	for (auto channelID: m_channels.keys())
 	{
@@ -402,7 +394,7 @@ void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
 //TODO: improve using iASlicer stuff
 	if (slicerSettings.LinkViews)
 	{
-		xCoord = x; yCoord = y; zCoord = z;
+		m_position[0] = x; m_position[1] = y; m_position[2] = z;
 		if (mode != iASlicerMode::XZ)
 		{
 			if (slicerSettings.SingleSlicer.ShowPosition)
@@ -594,15 +586,16 @@ void MdiChild::setImageData(QString const & filename, vtkSmartPointer<vtkImageDa
 	enableRenderWindows();
 }
 
+vtkImageData*                 MdiChild::getImageData()    { return imageData; }
+vtkSmartPointer<vtkImageData> MdiChild::getImagePointer() { return imageData; }
+
 void MdiChild::setImageData(vtkImageData * iData)
 {
 	imageData = iData;		// potential for double free!
 }
 
-vtkImageData* MdiChild::getImageData()
-{
-	return imageData;
-}
+vtkPolyData* MdiChild::getPolyData() { return polyData; }
+iARenderer*  MdiChild::getRenderer() { return Raycaster; }
 
 bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 {
@@ -1268,7 +1261,7 @@ void MdiChild::setSliceXY(int s)
 	}
 	else
 	{
-		this->zCoord = s;
+		m_position[iASlicerMode::XY] = s;
 		m_slicer[iASlicerMode::XY]->setSliceNumber(s);
 		if (renderSettings.ShowSlicers || renderSettings.ShowSlicePlanes)
 		{
@@ -1322,7 +1315,7 @@ void MdiChild::setSliceYZ(int s)
 	}
 	else
 	{
-		this->xCoord = s;
+		m_position[iASlicerMode::YZ] = s;
 		m_slicer[iASlicerMode::YZ]->setSliceNumber(s);
 		if (renderSettings.ShowSlicers || renderSettings.ShowSlicePlanes)
 		{
@@ -1376,7 +1369,7 @@ void MdiChild::setSliceXZ(int s)
 	}
 	else
 	{
-		this->yCoord = s;
+		m_position[iASlicerMode::XZ] = s;
 		m_slicer[iASlicerMode::XZ]->setSliceNumber(s);
 		if (renderSettings.ShowSlicers || renderSettings.ShowSlicePlanes)
 		{
@@ -1506,6 +1499,11 @@ void MdiChild::resetLayout()
 int MdiChild::getRenderMode() const
 {
 	return volumeSettings.RenderMode;
+}
+
+int const * MdiChild::position() const
+{
+	return m_position;
 }
 
 void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
