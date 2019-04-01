@@ -207,6 +207,7 @@ public:
 	void updateChannelOpacity(uint id, double opacity);
 	
 	void setChannelRenderingEnabled(uint, bool enabled);
+	void setSlicerChannelEnabled(uint id, bool enabled);
 	iAChannelData * getChannelData(uint id);
 	iAChannelData const * getChannelData(uint id) const;
 	void initChannelRenderer(uint id, bool use3D, bool enableChannel = true);

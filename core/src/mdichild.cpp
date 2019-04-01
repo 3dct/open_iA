@@ -2114,8 +2114,7 @@ void MdiChild::setChannelRenderingEnabled(uint id, bool enabled)
 		return;
 	}
 	data->setEnabled(enabled);
-	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
-		slicer(iASlicerMode::XY)->enableChannel(id, enabled);
+	setSlicerChannelEnabled(id, enabled);
 	/*
 	// TODO: VOLUME: rewrite using volume manager:
 	if (data->Uses3D())
@@ -2124,6 +2123,12 @@ void MdiChild::setChannelRenderingEnabled(uint id, bool enabled)
 	}
 	*/
 	updateViews();
+}
+
+void MdiChild::setSlicerChannelEnabled(uint id, bool enabled)
+{
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+		slicer(iASlicerMode::XY)->enableChannel(id, enabled);
 }
 
 void MdiChild::removeFinishedAlgorithms()

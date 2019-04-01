@@ -296,7 +296,7 @@ void dlg_modalities::EditClicked()
 		&& !editModality->hasRenderFlag(iAModality::Slicer))
 	{
 		if (editModality->channelID() != NotExistingChannel)
-			m_mdiChild->setChannelRenderingEnabled(editModality->channelID(), false);
+			m_mdiChild->setSlicerChannelEnabled(editModality->channelID(), false);
 	}
 	if ((renderFlagsBefore & iAModality::Slicer) == 0
 		&& editModality->hasRenderFlag(iAModality::Slicer))
