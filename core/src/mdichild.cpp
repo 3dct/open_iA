@@ -63,6 +63,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkCornerAnnotation.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkImageActor.h>
 #include <vtkImageExtractComponents.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
@@ -2127,12 +2128,8 @@ void MdiChild::setChannelRenderingEnabled(uint id, bool enabled)
 
 void MdiChild::setSlicerChannelEnabled(uint id, bool enabled)
 {
-	//for (int i = 0; i < iASlicerMode::SlicerCount; ++i) {
-		slicer(iASlicerMode::XY)->enableChannel(id, enabled);
-
-		slicer(iASlicerMode::XZ)->enableChannel(id, enabled);
-		slicer(iASlicerMode::YZ)->enableChannel(id, enabled);
-	//}
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+		slicer(i)->enableChannel(id, enabled);
 }
 
 void MdiChild::removeFinishedAlgorithms()

@@ -429,7 +429,7 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 		return;
 	}
 	QSharedPointer<iAModality> currentData = modalities->Get(selectedRow);
-	QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
+	//QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
 	for (int i = 0; i<modalities->size(); ++i)
 	{
 		QSharedPointer<iAModality> mod = modalities->Get(i);
@@ -439,6 +439,14 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 			continue;
 		}
 		mod->GetRenderer()->SetMovable(mod == currentData);
+		for (int sl = 0; sl < iASlicerMode::SlicerCount; sl++) {
+			//slicer(i)->getChannel(modality_id)->imageActor->SetDragable(enabled);
+			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetDragable(currentData->channelID() == mod->channelID());
+			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetPickable(currentData->channelID() == mod->channelID());
+			/*slicer(i)->getChannel(modality_id)->acto*/
+			/*slicer(i)->getChannel(modality_id)->imageActor->SetPickable(enabled)*/;
+
+		}
 	}
 	emit ModalitySelected(selectedRow);
 }
