@@ -94,7 +94,7 @@ void iACustomInterActorStyleTrackBall::OnMouseMove()
 	//this->FindPokedRenderer(x, y);
 	//this->Interactor->GetPicker()->Pick(x, y, 0, this->GetCurrentRenderer());
 	//this->FindPickedActor(x, y);
-	if (this->CurrentRenderer == nullptr || this->m_PropCurrentSlicer.prop == nullptr
+	if (this->m_volumeRenderer == nullptr || this->m_PropCurrentSlicer.prop == nullptr
 		|| this->m_propSlicer1.prop == nullptr || this->m_propSlicer2.prop == nullptr)
 	{
 		DEBUG_LOG("Either renderer or props are null");
