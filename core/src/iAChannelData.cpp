@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
 
 #include <vtkActor.h>
 #include <vtkImageActor.h>
@@ -44,119 +44,123 @@
 
 
 
-iAChannelVisualizationData::iAChannelVisualizationData():
-	piecewiseFunction(NULL),
-	colorTransferFunction(NULL),
-	enabled(false),
-	opacity(1.0),
-	threeD(false),
-	similarityRenderingEnabled(false)
+iAChannelData::iAChannelData():
+	m_piecewiseFunction(nullptr),
+	m_colorTransferFunction(nullptr),
+	m_enabled(false),
+	m_opacity(1.0),
+	m_threeD(false),
+	m_similarityRenderingEnabled(false)
 {}
 
-iAChannelVisualizationData::~iAChannelVisualizationData()
+iAChannelData::iAChannelData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf):
+	m_image(image), m_colorTransferFunction(ctf), m_piecewiseFunction(otf)
+{}
+
+iAChannelData::~iAChannelData()
 {
-	Reset();
+	reset();
 }
 
-void iAChannelVisualizationData::Reset()
+void iAChannelData::reset()
 {
-	enabled = false;
+	m_enabled = false;
 }
 
-bool iAChannelVisualizationData::IsEnabled() const
+void iAChannelData::setData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
-	return enabled;
+	setImage(image);
+	setColorTF(ctf);
+	setOpacityTF(otf);
 }
 
-bool iAChannelVisualizationData::Uses3D() const
+bool iAChannelData::isEnabled() const
 {
-	return threeD;
+	return m_enabled;
 }
 
-void iAChannelVisualizationData::Set3D(bool enabled)
+bool iAChannelData::uses3D() const
 {
-	threeD = enabled;
+	return m_threeD;
 }
 
-void iAChannelVisualizationData::SetEnabled(bool enabled)
+void iAChannelData::set3D(bool enabled)
 {
-	this->enabled = enabled;
+	m_threeD = enabled;
 }
 
-void iAChannelVisualizationData::SetOpacity(double opacity)
+void iAChannelData::setEnabled(bool enabled)
 {
-	this->opacity = opacity;
+	m_enabled = enabled;
 }
 
-double iAChannelVisualizationData::GetOpacity() const
+void iAChannelData::setOpacity(double opacity)
 {
-	return opacity;
+	m_opacity = opacity;
 }
 
-void iAChannelVisualizationData::SetImage( vtkSmartPointer<vtkImageData> img )
+double iAChannelData::getOpacity() const
 {
-	image = img;
+	return m_opacity;
 }
 
-void iAChannelVisualizationData::SetColorTF( vtkScalarsToColors* cTF )
+void iAChannelData::setImage( vtkSmartPointer<vtkImageData> img )
 {
-	colorTransferFunction = cTF;
+	m_image = img;
 }
 
-void iAChannelVisualizationData::SetOpacityTF(vtkPiecewiseFunction* oTF)
+void iAChannelData::setColorTF( vtkScalarsToColors* cTF )
 {
-	piecewiseFunction = oTF;
+	m_colorTransferFunction = cTF;
+}
+
+void iAChannelData::setOpacityTF(vtkPiecewiseFunction* oTF)
+{
+	m_piecewiseFunction = oTF;
 }
 
 
-void iAChannelVisualizationData::SetName(QString name)
+void iAChannelData::setName(QString name)
 {
 	m_name = name;
 }
 
-void iAChannelVisualizationData::SetColor(QColor const & col)
-{
-	color = col;
-}
-
-QColor iAChannelVisualizationData::GetColor() const
-{
-	return color;
-}
-
-bool iAChannelVisualizationData::IsSimilarityRenderingEnabled() const
-{
-	return similarityRenderingEnabled;
-}
-
-void iAChannelVisualizationData::SetSimilarityRenderingEnabled(bool enabled)
-{
-	similarityRenderingEnabled = enabled;
-}
-
-vtkPiecewiseFunction * iAChannelVisualizationData::GetOTF()
-{
-	return piecewiseFunction;
-}
-
-vtkScalarsToColors * iAChannelVisualizationData::GetCTF()
-{
-	return colorTransferFunction;
-}
-
-vtkSmartPointer<vtkImageData> iAChannelVisualizationData::GetImage()
-{
-	return image;
-}
-
-void ResetChannel(iAChannelVisualizationData* chData, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
-{
-	chData->SetImage(image);
-	chData->SetColorTF(ctf);
-	chData->SetOpacityTF(otf);
-}
-
-QString iAChannelVisualizationData::GetName() const
+QString iAChannelData::getName() const
 {
 	return m_name;
+}
+
+void iAChannelData::setColor(QColor const & col)
+{
+	m_color = col;
+}
+
+QColor iAChannelData::getColor() const
+{
+	return m_color;
+}
+
+vtkPiecewiseFunction * iAChannelData::getOTF() const
+{
+	return m_piecewiseFunction;
+}
+
+vtkScalarsToColors * iAChannelData::getCTF() const
+{
+	return m_colorTransferFunction;
+}
+
+vtkSmartPointer<vtkImageData> iAChannelData::getImage() const
+{
+	return m_image;
+}
+
+bool iAChannelData::isSimilarityRenderingEnabled() const
+{
+	return m_similarityRenderingEnabled;
+}
+
+void iAChannelData::setSimilarityRenderingEnabled(bool enabled)
+{
+	m_similarityRenderingEnabled = enabled;
 }

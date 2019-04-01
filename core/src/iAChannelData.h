@@ -18,15 +18,70 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAChildData.h"
+#pragma once
 
-#include "mdichild.h"
+#include "open_iA_Core_export.h"
 
-iAChildData::iAChildData( MdiChild * a_child ) : child( a_child )
+#include <QColor>
+
+#include <vtkSmartPointer.h>
+
+
+class QString;
+
+class vtkImageData;
+class vtkPiecewiseFunction;
+class vtkScalarsToColors;
+
+
+class open_iA_Core_API iAChannelData
 {
-	imgData = child->getImageData();
-	polyData = child->getPolyData();
-	logs = child->logs;
-}
+public:
+	static const size_t Maximum3DChannels = 3;
 
-iAChildData::iAChildData() : child( 0 ), imgData( 0 ), polyData( 0 ), logs( 0 ) {}
+	iAChannelData();
+	iAChannelData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf=nullptr);
+	virtual ~iAChannelData();
+
+	virtual void reset();
+	void setData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+
+	void setOpacity(double opacity);
+	double getOpacity() const;
+
+	bool isEnabled() const;
+	void setEnabled(bool enabled);
+
+	bool uses3D() const;
+	void set3D(bool enabled);
+
+	void setImage(vtkSmartPointer<vtkImageData> image);
+	void setColorTF(vtkScalarsToColors* cTF);
+	void setOpacityTF(vtkPiecewiseFunction* oTF);
+
+	void setName(QString name);
+	QString getName() const;
+
+	// check if this can be somehow refactored (not needed for each kind of channel):
+	// begin
+	void setColor(QColor const & col);
+	QColor getColor() const;
+
+	bool isSimilarityRenderingEnabled() const;
+	void setSimilarityRenderingEnabled(bool enabled);
+	// end
+
+	vtkSmartPointer<vtkImageData> getImage() const;
+	vtkPiecewiseFunction * getOTF() const;
+	vtkScalarsToColors * getCTF() const;
+private:
+	bool m_enabled;
+	double m_opacity;
+	bool m_threeD;
+	QColor m_color; // TODO: only used in XRF module, move there!
+	bool m_similarityRenderingEnabled;
+	vtkSmartPointer<vtkImageData>       m_image;
+	vtkPiecewiseFunction*               m_piecewiseFunction;
+	vtkScalarsToColors*                 m_colorTransferFunction;
+	QString                             m_name;
+};

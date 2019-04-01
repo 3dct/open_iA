@@ -38,7 +38,7 @@ class QStandardItemModel;
 class QTextEdit;
 
 class iAAttributes;
-class iAChannelVisualizationData;
+class iAChannelData;
 class iAChartAttributeMapper;
 class iAColorTheme;
 class iAImageCoordinate;
@@ -97,9 +97,9 @@ signals:
 protected:
 	virtual void paintEvent(QPaintEvent * );
 private slots:
-	void DblClicked();
-	void ChangeModality(int);
-	void ChangeMagicLensOpacity(int);
+	void dblClicked();
+	void changeModality(int);
+	void changeMagicLensOpacity(int);
 	void SlicerClicked(int, int, int);
 	void SlicerMouseMove(int x, int y, int z, int c);
 	void SlicerReleased(int x, int y, int z);
@@ -137,7 +137,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_resultFilterOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_resultFilterOverlayOTF;
 	iAResultFilter m_resultFilter;
-	QSharedPointer<iAChannelVisualizationData> m_resultFilterChannel;
+	QSharedPointer<iAChannelData> m_resultFilterChannel;
 	int m_lastResultFilterX, m_lastResultFilterY, m_lastResultFilterZ;
 	iATimedEvent* m_resultFilterTriggerThread;
 	bool m_MouseButtonDown;

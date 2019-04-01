@@ -23,7 +23,6 @@
 #include "iAParameterExplorerAttachment.h"
 
 #include <iAConsole.h>
-#include <iAChildData.h>
 #include <mainwindow.h>
 
 void iAParameterExplorerModuleInterface::Initialize()
@@ -61,8 +60,8 @@ bool iAParameterExplorerModuleInterface::StartParameterExplorer()
 	return result;
 }
 
-iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	iAParameterExplorerAttachment* result = iAParameterExplorerAttachment::create( mainWnd, childData);
+	iAParameterExplorerAttachment* result = iAParameterExplorerAttachment::create( mainWnd, child);
 	return result;
 }

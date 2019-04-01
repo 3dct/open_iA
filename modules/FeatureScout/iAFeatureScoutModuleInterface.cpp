@@ -54,8 +54,8 @@ void iAFeatureScoutModuleInterface::Initialize()
 void iAFeatureScoutModuleInterface::FeatureScout()
 {
 	bool volumeDataAvailable = m_mainWnd->activeMdiChild() &&
-		m_mainWnd->activeMdiChild()->GetModalities()->size() > 0 &&
-		m_mainWnd->activeMdiChild()->IsVolumeDataLoaded();
+		m_mainWnd->activeMdiChild()->getModalities()->size() > 0 &&
+		m_mainWnd->activeMdiChild()->isVolumeDataLoaded();
 	dlg_CSVInput dlg(volumeDataAvailable);
 	if (m_mainWnd->activeMdiChild())
 	{
@@ -153,8 +153,8 @@ void iAFeatureScoutModuleInterface::SetupToolbar()
 
 void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 {
-	iARenderSettings FS_RenderSettings = m_mdiChild->GetRenderSettings();
-	iAVolumeSettings FS_VolumeSettings = m_mdiChild->GetVolumeSettings();
+	iARenderSettings FS_RenderSettings = m_mdiChild->getRenderSettings();
+	iAVolumeSettings FS_VolumeSettings = m_mdiChild->getVolumeSettings();
 	FS_RenderSettings.ParallelProjection = true;
 	FS_RenderSettings.ShowHelpers = true;
 	FS_RenderSettings.ShowRPosition = true;
@@ -237,7 +237,7 @@ void iAFeatureScoutModuleInterface::onChildClose()
 	tlbFeatureScout = nullptr;
 }
 
-iAModuleAttachmentToChild * iAFeatureScoutModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
+iAModuleAttachmentToChild * iAFeatureScoutModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
 {
-	return new iAFeatureScoutAttachment( mainWnd, childData );
+	return new iAFeatureScoutAttachment( mainWnd, child );
 }

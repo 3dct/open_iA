@@ -30,13 +30,15 @@
 #include <charts/iAPlotTypes.h>
 #include <charts/iAProfileWidget.h>
 #include <dlg_modalities.h>
+#include <dlg_slicer.h>
 #include <dlg_transfer.h>
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
+#include <iAChannelSlicerData.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iAPreferences.h>
-#include <iASlicerData.h>
+#include <iASlicer.h>
 #include <mdichild.h>
 
 #include <vtkCamera.h>
@@ -46,6 +48,7 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkSmartPointer.h>
 
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QString>
@@ -66,9 +69,13 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	m_disabledLabel->setAlignment(Qt::AlignCenter);
 	m_disabledLabel->setStyleSheet("background-color: " + DISABLED_BACKGROUND_COLOR + "; color: " + DISABLED_TEXT_COLOR);
 
+	/*
 	mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(0.0);
 	mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
 	mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
+	*/
+	for (int i=0; i<3; ++i)
+		mdiChild->slicer(i)->getChannel(0)->imageActor->SetOpacity(0.0);
 
 	//setStyleSheet("background-color:red"); // test spacing/padding/margin
 
@@ -91,13 +98,12 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxIndexChanged(int)));
 	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 
-	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
-	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
-	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
-
-	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(sliderPressed()), this, SLOT(setSliceXYScrollBar()));
-	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
-	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
+	connect(mdiChild->slicerDlg(iASlicerMode::XY)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
+	connect(mdiChild->slicerDlg(iASlicerMode::XZ)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
+	connect(mdiChild->slicerDlg(iASlicerMode::YZ)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
+	connect(mdiChild->slicerDlg(iASlicerMode::XY)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceXYScrollBar()));
+	connect(mdiChild->slicerDlg(iASlicerMode::XZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
+	connect(mdiChild->slicerDlg(iASlicerMode::YZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
 }
 
 iATripleModalityWidget::~iATripleModalityWidget()
@@ -207,32 +213,14 @@ void iATripleModalityWidget::setWeightPrivate(BCoord bCoord)
 }
 void iATripleModalityWidget::setSlicerModePrivate(iASlicerMode slicerMode)
 {
-	if (isReady()) {
+	if (isReady())
+	{
 		m_slicerWidgets[0]->setSlicerMode(slicerMode);
 		m_slicerWidgets[1]->setSlicerMode(slicerMode);
 		m_slicerWidgets[2]->setSlicerMode(slicerMode);
 
-		int dimensionIndex;
-		int sliceNumber;
-		switch (slicerMode)
-		{
-		case iASlicerMode::YZ:
-			dimensionIndex = 0; // X length is in position 0 in the dimensions array
-			sliceNumber = m_mdiChild->getSlicerDataYZ()->getSliceNumber();
-			break;
-		case iASlicerMode::XZ:
-			dimensionIndex = 1; // Y length is in position 1 in the dimensions array
-			sliceNumber = m_mdiChild->getSlicerDataXZ()->getSliceNumber();
-			break;
-		case iASlicerMode::XY:
-			dimensionIndex = 2; // Z length is in position 2 in the dimensions array
-			sliceNumber = m_mdiChild->getSlicerDataXY()->getSliceNumber();
-			break;
-		default:
-			// TODO exception
-			return;
-		}
-
+		int dimensionIndex = getSlicerDimension(slicerMode);
+		int sliceNumber    = m_mdiChild->slicer(slicerMode)->sliceNumber();
 		int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
 		m_sliceSlider->setMaximum(dimensionLength - 1);
 		if (!setSliceNumber(sliceNumber)) {
@@ -255,24 +243,7 @@ void iATripleModalityWidget::setSliceNumberPrivate(int sliceNumber)
 
 void iATripleModalityWidget::updateScrollBars(int newValue)
 {
-	switch (getSlicerMode())
-	{
-	case iASlicerMode::YZ:
-		m_mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ->setValue(newValue);
-		//m_mdiChild->getSlicerYZ()->setSliceNumber(sliceNumber); // Not necessary because setting the scrollbar already does this
-		break;
-	case iASlicerMode::XZ:
-		m_mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ->setValue(newValue);
-		//m_mdiChild->getSlicerXZ()->setSliceNumber(sliceNumber);
-		break;
-	case iASlicerMode::XY:
-		m_mdiChild->getSlicerDlgXY()->verticalScrollBarXY->setValue(newValue);
-		//m_mdiChild->getSlicerXY()->setSliceNumber(sliceNumber);
-		break;
-	default:
-		// TODO exception
-		return;
-	}
+	m_mdiChild->slicerDlg(getSlicerMode())->verticalScrollBar->setValue(newValue);
 }
 
 void iATripleModalityWidget::updateTransferFunction(int index)
@@ -307,17 +278,17 @@ double iATripleModalityWidget::getWeight(int index)
 // When new modalities are added/removed
 void iATripleModalityWidget::updateModalities()
 {
-	if (m_mdiChild->GetModalities()->size() >= 3) {
-		if (containsModality(m_mdiChild->GetModality(0)) &&
-			containsModality(m_mdiChild->GetModality(1)) &&
-			containsModality(m_mdiChild->GetModality(2))) {
+	if (m_mdiChild->getModalities()->size() >= 3) {
+		if (containsModality(m_mdiChild->getModality(0)) &&
+			containsModality(m_mdiChild->getModality(1)) &&
+			containsModality(m_mdiChild->getModality(2))) {
 
 			return;
 		}
 	} else {
 		int i = 0;
-		for (; i < ModalityNumber && i < m_mdiChild->GetModalities()->size(); ++i) {
-			m_modalitiesActive[i] = m_mdiChild->GetModality(i);
+		for (; i < ModalityNumber && i < m_mdiChild->getModalities()->size(); ++i) {
+			m_modalitiesActive[i] = m_mdiChild->getModality(i);
 		}
 		for (; i < ModalityNumber; i++) { // Loop is not executed - and probably not intended to be?
 			m_modalitiesActive[i] = nullptr;
@@ -332,13 +303,13 @@ void iATripleModalityWidget::updateModalities()
 	// Initialize modalities being added
 	for (int i = 0; i < ModalityNumber; ++i)
 	{
-		m_modalitiesActive[i] = m_mdiChild->GetModality(i);
+		m_modalitiesActive[i] = m_mdiChild->getModality(i);
 
 		// Histogram {
-		if (!m_modalitiesActive[i]->GetHistogramData() || m_modalitiesActive[i]->GetHistogramData()->GetNumBin() != m_mdiChild->GetPreferences().HistogramBins)
+		if (!m_modalitiesActive[i]->GetHistogramData() || m_modalitiesActive[i]->GetHistogramData()->GetNumBin() != m_mdiChild->getPreferences().HistogramBins)
 		{
 			m_modalitiesActive[i]->ComputeImageStatistics();
-			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->GetPreferences().HistogramBins);
+			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->getPreferences().HistogramBins);
 		}
 
 		vtkColorTransferFunction *colorFuncCopy = vtkColorTransferFunction::New(); // TODO delete?
@@ -360,12 +331,12 @@ void iATripleModalityWidget::updateModalities()
 		// }
 
 		m_channelIDs[i] = m_mdiChild->createChannel();
-		iAChannelVisualizationData* chData = m_mdiChild->getChannelData(m_channelIDs[i]);
+		iAChannelData* chData = m_mdiChild->getChannelData(m_channelIDs[i]);
 		vtkImageData* imageData = m_modalitiesActive[i]->GetImage();
 		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->GetTransfer()->getColorFunction();
 		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
-		ResetChannel(chData, imageData, ctf, otf);
-		m_mdiChild->InitChannelRenderer(m_channelIDs[i], false, true);
+		chData->setData(imageData, ctf, otf);
+		m_mdiChild->initChannelRenderer(m_channelIDs[i], false, true);
 	}
 
 	m_triangleWidget->setModalities(getModality(0)->GetImage(), getModality(1)->GetImage(), getModality(2)->GetImage());
@@ -410,7 +381,7 @@ iATransferFunction* iATripleModalityWidget::createCopyTf(int index, vtkSmartPoin
 
 void iATripleModalityWidget::originalHistogramChanged()
 {
-	QSharedPointer<iAModality> selected = m_mdiChild->GetModalitiesDlg()->GetModalities()->Get(m_mdiChild->GetModalitiesDlg()->GetSelected());
+	QSharedPointer<iAModality> selected = m_mdiChild->getModalities()->Get(m_mdiChild->getModalitiesDlg()->GetSelected());
 	int index;
 	if (selected == m_modalitiesActive[0]) {
 		index = 0;
@@ -518,9 +489,8 @@ void iATripleModalityWidget::applyWeights()
 			m_histograms[i]->update();
 
 			//m_mdiChild->updateChannelOpacity(m_channelIDs[i], m_weightCur[i]);
-			m_mdiChild->getSlicerDataXY()->updateChannelMappers();
-			m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
-			m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
+			for (int i=0; i<3; ++i)
+				m_mdiChild->slicer(i)->updateChannelMappers();
 			m_mdiChild->updateSlicers();
 		}
 	}

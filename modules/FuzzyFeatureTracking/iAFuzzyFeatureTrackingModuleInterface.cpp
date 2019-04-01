@@ -46,7 +46,7 @@ bool iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking()
 	return AttachToMdiChild( m_mdiChild );
 }
 
-iAModuleAttachmentToChild * iAFuzzyFeatureTrackingModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
+iAModuleAttachmentToChild * iAFuzzyFeatureTrackingModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
 {
-	return new iAFuzzyFeatureTrackingAttachment( mainWnd, childData );
+	return new iAFuzzyFeatureTrackingAttachment( mainWnd, child );
 }

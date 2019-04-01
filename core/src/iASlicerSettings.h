@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QString>
+
 class iASingleSlicerSettings
 {
 public:

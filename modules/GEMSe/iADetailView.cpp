@@ -31,15 +31,13 @@
 #include "iALabelOverlayThread.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAChannelVisualizationData.h>
+#include <iAChannelData.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iANameMapper.h>
-#include <iASlicerData.h>
-#include <iASlicerWidget.h>
 #include <iAVtkDraw.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
@@ -207,13 +205,13 @@ iADetailView::iADetailView(
 	connect(m_compareWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 	connect(m_previewWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 
-	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(DblClicked()), this, SLOT(DblClicked()));
-	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(shiftMouseWheel(int)), this, SLOT(ChangeModality(int)));
-	connect(m_previewWidget->GetSlicer()->widget(), SIGNAL(altMouseWheel(int)), this, SLOT(ChangeMagicLensOpacity(int)));
-	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
-	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
-	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
-	connect(m_previewWidget->GetSlicer()->GetSlicerData(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(dblClicked()), this, SLOT(DblClicked()));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(shiftMouseWheel(int)), this, SLOT(changeModality(int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(altMouseWheel(int)), this, SLOT(changeMagicLensOpacity(int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerMouseMove(int, int, int, int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(clicked(int, int, int)), this, SLOT(SlicerClicked(int, int, int)));
+	connect(m_previewWidget->GetSlicer(), SIGNAL(released(int, int, int)), this, SLOT(SlicerReleased(int, int, int)));
 }
 
 
@@ -238,21 +236,21 @@ vtkSmartPointer<vtkPiecewiseFunction> GetDefaultOTF(vtkSmartPointer<vtkImageData
 }
 
 
-void iADetailView::DblClicked()
+void iADetailView::dblClicked()
 {
 	m_magicLensEnabled = !m_magicLensEnabled;
 	if (m_magicLensEnabled)
 	{
-		ChangeModality(0);
+		changeModality(0);
 	}
 	iASlicer* slicer = m_previewWidget->GetSlicer();
-	slicer->SetMagicLensEnabled(m_magicLensEnabled);
+	slicer->setMagicLensEnabled(m_magicLensEnabled);
 }
 
 
-void iADetailView::ChangeModality(int offset)
+void iADetailView::changeModality(int offset)
 {
-	// TOOD: refactor to remove duplication between here and MdiChild::ChangeModality!
+	// TOOD: refactor to remove duplication between here and MdiChild::changeModality!
 	m_magicLensCurrentComponent = (m_magicLensCurrentComponent + offset);
 	if (m_magicLensCurrentComponent < 0 || m_magicLensCurrentComponent >= m_modalities->Get(m_magicLensCurrentModality)->ComponentCount())
 	{
@@ -277,30 +275,20 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 
 	uint id = m_nextChannelID;
 	m_nextChannelID = (m_nextChannelID + 1) % 8;
-	iAChannelVisualizationData magicLensData;
-	ResetChannel(&magicLensData, img, ctf, otf);
-	magicLensData.SetName(name);
+	iAChannelData magicLensData(img, ctf, otf);
+	magicLensData.setName(name);
 
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	slicer->removeChannel(removedID);
-	slicer->initializeChannel(id, &magicLensData);
-	int sliceNr = m_previewWidget->GetSliceNumber();
-	double * spc = img->GetSpacing();
-	double * origin = img->GetOrigin();
-	switch (slicer->GetMode())
-	{
-	case YZ: slicer->setResliceChannelAxesOrigin(id, origin[0] + static_cast<double>(sliceNr) * spc[0], origin[1], origin[2]); break;
-	case XY: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2] + static_cast<double>(sliceNr) * spc[2]); break;
-	case XZ: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1] + static_cast<double>(sliceNr) * spc[1], origin[2]); break;
-	}
+	slicer->addChannel(id, magicLensData, false);
 	slicer->setMagicLensInput(id);
 	slicer->update();
 }
 
 
-void iADetailView::ChangeMagicLensOpacity(int chg)
+void iADetailView::changeMagicLensOpacity(int chg)
 {
-	m_previewWidget->GetSlicer()->SetMagicLensOpacity(m_previewWidget->GetSlicer()->GetMagicLensOpacity() + (chg*0.05));
+	m_previewWidget->GetSlicer()->setMagicLensOpacity(m_previewWidget->GetSlicer()->getMagicLensOpacity() + (chg*0.05));
 }
 
 
@@ -319,8 +307,8 @@ int iADetailView::GetSliceNumber() const
 
 void iADetailView::UpdateMagicLensColors()
 {
-	m_previewWidget->GetSlicer()->GetSlicerData()->updateChannelMappers();
-	m_previewWidget->GetSlicer()->UpdateMagicLensColors();
+	m_previewWidget->GetSlicer()->updateChannelMappers();
+	m_previewWidget->GetSlicer()->updateMagicLensColors();
 	m_previewWidget->GetSlicer()->update();
 
 }
@@ -465,7 +453,7 @@ bool iADetailView::IsShowingCluster() const
 void iADetailView::SetMagicLensOpacity(double opacity)
 {
 	iASlicer* slicer = m_previewWidget->GetSlicer();
-	slicer->SetMagicLensOpacity(opacity);
+	slicer->setMagicLensOpacity(opacity);
 }
 
 namespace
@@ -494,9 +482,9 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 	{
 		m_resultFilterOverlayLUT = BuildLabelOverlayLUT(m_labelCount, m_colorTheme);
 		m_resultFilterOverlayOTF = BuildLabelOverlayOTF(m_labelCount);
-		ResetChannel(m_resultFilterChannel.data(), m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
+		m_resultFilterChannel->setData(m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		iASlicer* slicer = m_previewWidget->GetSlicer();
-		slicer->reInitializeChannel(ResultFilterChannelID, m_resultFilterChannel.data());
+		slicer->updateChannel(ResultFilterChannelID, *m_resultFilterChannel.data());
 		slicer->update();
 	}
 }
@@ -574,7 +562,7 @@ void iADetailView::SetMagicLensCount(int count)
 {
 	m_magicLensCount = count;
 	iASlicer* slicer = m_previewWidget->GetSlicer();
-	slicer->SetMagicLensCount(count);
+	slicer->setMagicLensCount(count);
 }
 
 
@@ -687,17 +675,9 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	if (!m_resultFilterChannel)
 	{
-		m_resultFilterChannel = QSharedPointer<iAChannelVisualizationData>(new iAChannelVisualizationData);
-		m_resultFilterChannel->SetName("Result Filter");
-		ResetChannel(m_resultFilterChannel.data(), m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
-		slicer->initializeChannel(ResultFilterChannelID, m_resultFilterChannel.data());
-		int sliceNr = m_previewWidget->GetSliceNumber();
-		switch (slicer->GetMode())
-		{
-		case YZ: slicer->GetSlicerData()->enableChannel(ResultFilterChannelID, true, static_cast<double>(sliceNr) * m_spacing[0], 0, 0); break;
-		case XY: slicer->GetSlicerData()->enableChannel(ResultFilterChannelID, true, 0, 0, static_cast<double>(sliceNr) * m_spacing[2]); break;
-		case XZ: slicer->GetSlicerData()->enableChannel(ResultFilterChannelID, true, 0, static_cast<double>(sliceNr) * m_spacing[1], 0); break;
-		}
+		m_resultFilterChannel = QSharedPointer<iAChannelData>(new iAChannelData(m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF));
+		m_resultFilterChannel->setName("Result Filter");
+		slicer->addChannel(ResultFilterChannelID, *m_resultFilterChannel.data(), true);
 	}
 	slicer->update();
 }

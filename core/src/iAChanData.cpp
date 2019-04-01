@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAChanData.h"
 
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -30,7 +30,7 @@
 #include <vtkTransform.h>
 
 iAChanData::iAChanData( const QList<QColor> & colors, uint chanId ) :
-	visData( new iAChannelVisualizationData ),
+	visData( new iAChannelData ),
 	imgData( vtkSmartPointer<vtkImageData>::New() ),
 	tf( vtkSmartPointer<vtkColorTransferFunction>::New() ),
 	otf( vtkSmartPointer<vtkPiecewiseFunction>::New() ),
@@ -41,7 +41,7 @@ iAChanData::iAChanData( const QList<QColor> & colors, uint chanId ) :
 {}
 
 iAChanData::iAChanData( QColor c1, QColor c2, uint chanId ) :
-	visData( new iAChannelVisualizationData ),
+	visData( new iAChannelData ),
 	imgData( vtkSmartPointer<vtkImageData>::New() ),
 	tf( vtkSmartPointer<vtkColorTransferFunction>::New() ),
 	otf( vtkSmartPointer<vtkPiecewiseFunction>::New() ),
@@ -73,6 +73,6 @@ void iAChanData::InitTFs()
 	vol_otf->AddPoint( imgData->GetScalarRange()[1] - 0.0002,	0.05 );
 	vol_otf->AddPoint( imgData->GetScalarRange()[1] - 0.0001,	1.0 );
 	vol_otf->AddPoint( imgData->GetScalarRange()[1],			1.0 );
-	visData->SetColor( cols[0] );
-	ResetChannel( visData.data(), imgData, tf, otf );
+	visData->setColor( cols[0] );
+	visData->setData(imgData, tf, otf );
 }

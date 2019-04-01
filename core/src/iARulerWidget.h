@@ -61,7 +61,6 @@ public:
 
 protected:
   iARulerWidget();
-  ~iARulerWidget();
 
   int Repositionable;
 

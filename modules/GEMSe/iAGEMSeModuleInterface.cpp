@@ -62,9 +62,9 @@ void iAGEMSeModuleInterface::StartGEMSe()
 	AttachToMdiChild(m_mdiChild);
 }
 
-iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	iAGEMSeAttachment* result = iAGEMSeAttachment::create( mainWnd, childData);
+	iAGEMSeAttachment* result = iAGEMSeAttachment::create( mainWnd, child);
 	if (result)
 	{
 		SetupToolbar();
@@ -112,8 +112,6 @@ void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
 
 void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
 {
-	UpdateChildData();
-
 	// load segmentation explorer:
 	bool result = AttachToMdiChild( m_mdiChild );
 	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
@@ -136,7 +134,7 @@ void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
 	}
 	if (m_seaFile->GetLayoutName() != "")
 	{
-		m_mdiChild->LoadLayout(m_seaFile->GetLayoutName());
+		m_mdiChild->loadLayout(m_seaFile->GetLayoutName());
 	}
 	if (m_seaFile->GetReferenceImage() != "")
 	{

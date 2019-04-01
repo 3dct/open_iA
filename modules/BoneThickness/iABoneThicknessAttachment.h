@@ -35,7 +35,7 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 
 	public:
-		iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
+		iABoneThicknessAttachment(MainWindow* mainWnd, MdiChild * child);
 
 	private:
 		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;

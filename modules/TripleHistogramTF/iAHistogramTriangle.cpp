@@ -24,8 +24,7 @@
 #include "iASimpleSlicerWidget.h"
 
 #include <charts/iADiagramFctWidget.h>
-#include <iASlicerData.h>
-#include <iASlicerWidget.h>
+#include <iASlicer.h>
 
 #include <QApplication>
 #include <QComboBox>
@@ -66,9 +65,9 @@ void iAHistogramTriangle::initialize()
 	QWidget *widget = new QWidget(this);
 	//temp->setVisible(false);
 	QLayout *layout = new QHBoxLayout(widget);
-	layout->addWidget(m_slicerWidgets[0]->getSlicer()->widget());
-	layout->addWidget(m_slicerWidgets[1]->getSlicer()->widget());
-	layout->addWidget(m_slicerWidgets[2]->getSlicer()->widget());
+	layout->addWidget(m_slicerWidgets[0]->getSlicer());
+	layout->addWidget(m_slicerWidgets[1]->getSlicer());
+	layout->addWidget(m_slicerWidgets[2]->getSlicer());
 	//layout->setGeometry(QRect(0, 0, 300, 300));
 	//layout->setMargin(300);
 
@@ -143,7 +142,7 @@ void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 {
 	QPoint transformed;
 	int index;
-	iASlicerWidget *target;
+	iASlicer * target;
 	if ((target = onSlicer(e->pos(), transformed, index))) {
 		QWheelEvent *newE = new QWheelEvent(transformed, e->globalPosF(), e->pixelDelta(), e->angleDelta(),
 			e->delta(), e->orientation(), e->buttons(),
@@ -187,13 +186,13 @@ bool iAHistogramTriangle::onTriangle(QPoint p)
 	return m_triangleWidget->getTriangle().contains(p.x(), p.y());
 }
 
-iASlicerWidget* iAHistogramTriangle::onSlicer(QPoint p, QPoint &transformed, int &index)
+iASlicer* iAHistogramTriangle::onSlicer(QPoint p, QPoint &transformed, int &index)
 {
 	for (int i = 0; i < 3; i++) {
 		if (m_slicerTriangles[i].contains(p.x(), p.y())) {
 			transformed = m_transformSlicers[i].inverted().map(p);
 			index = i;
-			return m_slicerWidgets[i]->getSlicer()->widget();
+			return m_slicerWidgets[i]->getSlicer();
 		}
 	}
 	index = -1;
@@ -304,9 +303,9 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_slicerWidgets[1]->setGeometry(rect);
 		m_slicerWidgets[2]->setGeometry(rect);
 		QSize size = QSize(w, h);
-		m_slicerWidgets[0]->getSlicer()->widget()->resize(size);
-		m_slicerWidgets[1]->getSlicer()->widget()->resize(size);
-		m_slicerWidgets[2]->getSlicer()->widget()->resize(size);
+		m_slicerWidgets[0]->getSlicer()->resize(size);
+		m_slicerWidgets[1]->getSlicer()->resize(size);
+		m_slicerWidgets[2]->getSlicer()->resize(size);
 	}
 
 	int histoLateral1_2Y = bottom - TRIANGLE_TOP;
@@ -443,7 +442,7 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 
 			p.setClipPath(m_slicerClipPaths[i]);
 			p.setTransform(m_transformSlicers[i]);
-			img = m_slicerWidgets[i]->getSlicer()->widget()->grabFramebuffer();
+			img = m_slicerWidgets[i]->getSlicer()->grabFramebuffer();
 			p.drawImage(0, 0, img);
 
 			p.resetTransform(); // otherwise, clip path in setClipPath will be transformed as well

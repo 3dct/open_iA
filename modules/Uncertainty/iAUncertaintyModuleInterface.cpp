@@ -46,9 +46,9 @@ void iAUncertaintyModuleInterface::Initialize()
 }
 
 
-iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	iAUncertaintyAttachment* result = iAUncertaintyAttachment::Create( mainWnd, childData);
+	iAUncertaintyAttachment* result = iAUncertaintyAttachment::Create( mainWnd, child);
 	return result;
 }
 
@@ -69,7 +69,6 @@ void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 {
 	SetupToolBar();
 	m_mdiChild = m_mainWnd->createMdiChild(false);
-	UpdateChildData();
 	bool result = AttachToMdiChild(m_mdiChild);
 	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
 	if (!result || !attach)

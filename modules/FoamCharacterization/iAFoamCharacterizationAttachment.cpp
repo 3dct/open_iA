@@ -39,9 +39,9 @@
 #include <QMessageBox>
 #include <QPushButton>
 
-iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData)
-																			  : iAModuleAttachmentToChild(_pMainWnd, _iaChildData)
-																			  , m_pImageData(_iaChildData.imgData)
+iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* mainWnd, MdiChild * child)
+																			  : iAModuleAttachmentToChild(mainWnd, child)
+																			  , m_pImageData(child->getImageData())
 {
 	m_pImageRestore = vtkImageData::New();
 	m_pImageRestore->DeepCopy(m_pImageData);
@@ -114,7 +114,7 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _
 	pGridLayout->addWidget(pGroupBox1);
 
 	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Foam characterization"), "FoamCharacterization"));
-	_iaChildData.child->tabifyDockWidget(_iaChildData.logs, pDockWidgetWrapper);
+	child->tabifyDockWidget(child->getLogDlg(), pDockWidgetWrapper);
 }
 
 void iAFoamCharacterizationAttachment::slotPushButtonAnalysis()
@@ -130,7 +130,7 @@ void iAFoamCharacterizationAttachment::slotPushButtonBinarization()
 
 void iAFoamCharacterizationAttachment::slotPushButtonClear()
 {
-	if ( QMessageBox::question ( m_childData.child, "Question", "Clear table? All items will be removed."
+	if ( QMessageBox::question ( m_child, "Question", "Clear table? All items will be removed."
 							   , QMessageBox::Yes, QMessageBox::No
 							   ) == QMessageBox::Yes
 	   )
@@ -146,14 +146,14 @@ void iAFoamCharacterizationAttachment::slotPushButtonDistanceTransform()
 
 void iAFoamCharacterizationAttachment::slotPushButtonExecute()
 {
-	if ( QMessageBox::question(m_childData.child, "Question", "Execute foam characterization pipeline?", QMessageBox::Yes, QMessageBox::No)
+	if ( QMessageBox::question(m_child, "Question", "Execute foam characterization pipeline?", QMessageBox::Yes, QMessageBox::No)
 	     == QMessageBox::Yes
 	   )
 	{
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		qApp->processEvents();
 		m_pTable->execute();
-		m_childData.child->enableRenderWindows();
+		m_child->enableRenderWindows();
 		qApp->restoreOverrideCursor();
 
 		m_pPushButtonAnalysis->setEnabled(true);
@@ -187,7 +187,7 @@ void iAFoamCharacterizationAttachment::slotPushButtonOpen()
 
 void iAFoamCharacterizationAttachment::slotPushButtonRestore()
 {
-	if ( QMessageBox::question(m_childData.child, "Question", "Restore original image?", QMessageBox::Yes, QMessageBox::No)
+	if ( QMessageBox::question(m_child, "Question", "Restore original image?", QMessageBox::Yes, QMessageBox::No)
 		 == QMessageBox::Yes
 	   )
 	{
@@ -195,7 +195,7 @@ void iAFoamCharacterizationAttachment::slotPushButtonRestore()
 		qApp->processEvents();
 		m_pImageData->DeepCopy(m_pImageRestore);
 		m_pTable->reset();
-		m_childData.child->enableRenderWindows();
+		m_child->enableRenderWindows();
 		qApp->restoreOverrideCursor();
 	}
 }

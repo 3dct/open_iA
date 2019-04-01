@@ -163,7 +163,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(cbCorrectnessUncertainty, SIGNAL(stateChanged(int)), this, SLOT(SetCorrectnessUncertainty(int)));
 
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	connect(mdiChild, SIGNAL(TransferFunctionChanged()), this, SLOT(DataTFChanged()));
+	connect(mdiChild, SIGNAL(transferFunctionChanged()), this, SLOT(DataTFChanged()));
 	
 	DataAvailable();
 }
@@ -499,7 +499,7 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName, QString const
 		m_simpleLabelInfo->count(),
 		samplingFilenames,
 		m_cltFile,
-		mdiChild->GetLayoutName(),
+		mdiChild->getLayoutName(),
 		leRefImage->text(),
 		hiddenCharts,
 		m_simpleLabelInfo->GetColorTheme()->GetName(),
@@ -520,7 +520,7 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 			m_dlgSamplings);
 		if (m_refImg)
 			m_dlgConsensus->SetGroundTruthImage(m_refImg);
-		mdiChild->SplitDockWidget(this, m_dlgConsensus, Qt::Vertical);
+		mdiChild->splitDockWidget(this, m_dlgConsensus, Qt::Vertical);
 	}
 }
 

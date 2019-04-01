@@ -23,7 +23,8 @@
 #include "dlg_commoninput.h"
 #include "dlg_modalityProperties.h"
 #include "dlg_transfer.h"
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
+#include "iAChannelSlicerData.h"
 #include "iAConsole.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAModality.h"
@@ -31,7 +32,6 @@
 #include "iAModalityTransfer.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
-#include "iASlicerData.h"
 #include "iAVolumeRenderer.h"
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
@@ -190,7 +190,7 @@ void dlg_modalities::AddListItem(QSharedPointer<iAModality> mod)
 	EnableButtons();
 }
 
-void dlg_modalities::ModalityAdded(QSharedPointer<iAModality> mod)
+void dlg_modalities::modalityAdded(QSharedPointer<iAModality> mod)
 {
 	AddListItem(mod);
 	InitDisplay(mod);
@@ -296,7 +296,7 @@ void dlg_modalities::EditClicked()
 		&& !editModality->hasRenderFlag(iAModality::Slicer))
 	{
 		if (editModality->channelID() != NotExistingChannel)
-			m_mdiChild->SetChannelRenderingEnabled(editModality->channelID(), false);
+			m_mdiChild->setChannelRenderingEnabled(editModality->channelID(), false);
 	}
 	if ((renderFlagsBefore & iAModality::Slicer) == 0
 		&& editModality->hasRenderFlag(iAModality::Slicer))
@@ -304,7 +304,7 @@ void dlg_modalities::EditClicked()
 		if (editModality->channelID() == NotExistingChannel)
 			editModality->setChannelID(m_mdiChild->createChannel());
 		m_mdiChild->updateChannel(editModality->channelID(), editModality->GetImage(), editModality->GetTransfer()->getColorFunction(), editModality->GetTransfer()->getOpacityFunction());
-		m_mdiChild->InitChannelRenderer(editModality->channelID(), false);
+		m_mdiChild->initChannelRenderer(editModality->channelID(), false);
 		m_mdiChild->updateChannelOpacity(editModality->channelID(), 1);
 		m_mdiChild->updateViews();
 	}
@@ -322,11 +322,10 @@ void dlg_modalities::EnableButtons()
 
 void dlg_modalities::ManualRegistration()
 {
-
-	try {
+	try
+	{
 		vtkInteractorStyleSwitch* interactSwitch3D = dynamic_cast<vtkInteractorStyleSwitch*>(m_magicLensWidget->GetInteractor()->GetInteractorStyle());
 
-		
 		//for testing
 
 		int idx = lwModalities->currentRow();
@@ -342,12 +341,8 @@ void dlg_modalities::ManualRegistration()
 			DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
 			return;
 		}
- 		
-		//props aus den channels rausholen
 		
-
-				
-
+		//props aus den channels rausholen
 
 		if (!interactSwitch3D)
 		{
@@ -365,25 +360,23 @@ void dlg_modalities::ManualRegistration()
 			if (!interactSwitch_YZ) { DEBUG_LOG("YZ Interactor null"); return; };
 			if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };*/
 			configureSlicerStyles(editModality);
-			
 
-			m_mdiChild->getSlicerXY()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xy);
-			m_mdiChild->getSlicerXZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_xz);
-			m_mdiChild->getSlicerYZ()->GetSlicerData()->GetInteractor()->SetInteractorStyle(Customstyle_yz);
-
+			m_mdiChild->slicer(iASlicerMode::XY)->GetInteractor()->SetInteractorStyle(Customstyle_xy);
+			m_mdiChild->slicer(iASlicerMode::XZ)->GetInteractor()->SetInteractorStyle(Customstyle_xz);
+			m_mdiChild->slicer(iASlicerMode::YZ)->GetInteractor()->SetInteractorStyle(Customstyle_yz);
 		}
 		else
 		{
-			m_mdiChild->getSlicerXY()->GetSlicerData()->setDefaultInteractor();
-			m_mdiChild->getSlicerYZ()->GetSlicerData()->setDefaultInteractor();
-			m_mdiChild->getSlicerXZ()->GetSlicerData()->setDefaultInteractor();
+			m_mdiChild->slicer(iASlicerMode::XY)->setDefaultInteractor();
+			m_mdiChild->slicer(iASlicerMode::YZ)->setDefaultInteractor();
+			m_mdiChild->slicer(iASlicerMode::XZ)->setDefaultInteractor();
 			interactSwitch3D->SetCurrentStyleToTrackballCamera();
 		}
 	}
-	catch (std::invalid_argument &ivae) {
+	catch (std::invalid_argument &ivae)
+	{
 		DEBUG_LOG(ivae.what()); 
 	}
-
 }
 
 void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModality)
@@ -391,52 +384,45 @@ void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModali
 	iAVolumeRenderer* volRend = editModality->GetRenderer().data();
 	vtkProp3D *PropVol_3d = volRend->GetVolume().Get();
 	uint chID = editModality->channelID();
-	if (chID == NotExistingChannel) {
+	if (chID == NotExistingChannel)
+	{
 		m_mdiChild->getLogger()->Log("Error: Modality must be added to slicer before registration");
 		return;
 	}
 
-
 	//properties of slicer for channelID
-	vtkProp3D *propXY = dynamic_cast<vtkProp3D*>(m_mdiChild->getSlicerDataXY()->getActor(chID));
-	vtkProp3D *propXZ = dynamic_cast<vtkProp3D*>(m_mdiChild->getSlicerDataXZ()->getActor(chID));
-	vtkProp3D *propYZ = dynamic_cast<vtkProp3D*>(m_mdiChild->getSlicerDataYZ()->getActor(chID));
-
+	vtkProp3D *propXY = m_mdiChild->slicer(iASlicerMode::XY)->getChannel(chID)->imageActor;
+	vtkProp3D *propXZ = m_mdiChild->slicer(iASlicerMode::XZ)->getChannel(chID)->imageActor;
+	vtkProp3D *propYZ = m_mdiChild->slicer(iASlicerMode::YZ)->getChannel(chID)->imageActor;
 
 	if (!propXY) { DEBUG_LOG("prop xy is null"); }
 	if (!propXZ) { DEBUG_LOG("prop xz is null"); }
 	if (!propYZ) { DEBUG_LOG("prop yz is null"); }
 
-
 	//global position of the 3D thing
 	double *pos = PropVol_3d->GetPosition();
 
-	int slizeZ = m_mdiChild->getSlicerXY()->GetSlicerData()->getSliceNumber();
-	int slizeX = m_mdiChild->getSlicerXZ()->GetSlicerData()->getSliceNumber();
-	int sliceY = m_mdiChild->getSlicerYZ()->GetSlicerData()->getSliceNumber();
+	int slizeZ = m_mdiChild->slicer(iASlicerMode::XY)->sliceNumber();
+	int slizeX = m_mdiChild->slicer(iASlicerMode::XZ)->sliceNumber();
+	int sliceY = m_mdiChild->slicer(iASlicerMode::YZ)->sliceNumber();
 
-	iASlicerMode modeYZ = m_mdiChild->getSlicerYZ()->GetSlicerData()->getMode();
-	iASlicerMode modeXY = m_mdiChild->getSlicerXY()->GetSlicerData()->getMode();
-	iASlicerMode modeXZ = m_mdiChild->getSlicerXZ()->GetSlicerData()->getMode();
-	
 	//setting the two other slicer + 3d
 	//coordinates with on as current slice plane
-	
+
 	Customstyle_xy->initializeActors(volRend, propXZ, propYZ);
-	Customstyle_xy->setActiveSlicer(propXY, modeXY, slizeZ); //plane xy, slice z;
+	Customstyle_xy->setActiveSlicer(propXY, iASlicerMode::XY, slizeZ); //plane xy, slice z;
 	Customstyle_xy->initCoordinates(pos[0], pos[1], slizeZ);
 	Customstyle_xy->initModes(iASlicerMode::XZ, iASlicerMode::YZ);
 	Customstyle_xy->setMDIChild(m_mdiChild); 
-		
 
 	Customstyle_xz->initializeActors(volRend, propXY, propYZ);
-	Customstyle_xz->setActiveSlicer(propXZ, modeXZ, sliceY); //plane xy, slice y;
+	Customstyle_xz->setActiveSlicer(propXZ, iASlicerMode::XZ, sliceY); //plane xy, slice y;
 	Customstyle_xz->initCoordinates(pos[0], sliceY, pos[2]);
 	Customstyle_xz->initModes(iASlicerMode::XY, iASlicerMode::YZ);
 	Customstyle_xz->setMDIChild(m_mdiChild);
 
 	Customstyle_yz->initializeActors(volRend, propXY, propXZ); //plane xy, slice x;
-	Customstyle_yz->setActiveSlicer(propYZ, modeYZ, slizeX);
+	Customstyle_yz->setActiveSlicer(propYZ, iASlicerMode::YZ, slizeX);
 	Customstyle_yz->initCoordinates(slizeX, pos[1], pos[2]);
 	Customstyle_yz->initModes(iASlicerMode::XY, iASlicerMode::XZ);
 	Customstyle_yz->setMDIChild(m_mdiChild);

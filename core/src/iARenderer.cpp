@@ -22,7 +22,7 @@
 
 #include "defines.h"
 #include "iAConsole.h"
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
 #include "iAMovieHelper.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"

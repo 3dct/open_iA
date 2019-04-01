@@ -32,7 +32,7 @@
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iARenderer.h"
-#include "iASlicerData.h"
+#include "iASlicer.h"
 #include "iAToolsVTK.h"
 #include "io/iAIOProvider.h"
 #include "io/iATLGICTLoader.h"
@@ -565,7 +565,7 @@ bool MainWindow::loadSettings()
 
 namespace
 {
-	void removeNode(QDomNode &rootNode, char const *str)
+	void removeNode(QDomNode &rootNode, QString const & str)
 	{
 		QDomNodeList list = rootNode.childNodes();
 		for (int n = 0; n < int(list.length()); n++)
@@ -625,12 +625,11 @@ void MainWindow::saveSliceViews(QDomDocument &doc)
 		root.appendChild(sliceViewsNode);
 	}
 
-	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataXY()->GetRenderer(), "XY");
-	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataYZ()->GetRenderer(), "YZ");
-	saveSliceView(doc, sliceViewsNode, activeMdiChild()->getSlicerDataXZ()->GetRenderer(), "XZ");
+	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
+		saveSliceView(doc, sliceViewsNode, activeMdiChild()->slicer(i)->getRenderer(), getSlicerModeString(i));
 }
 
-void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, char const *elemStr)
+void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, QString const & elemStr)
 {
 	// get parameters of slice views
 	vtkCamera *camera = ren->GetActiveCamera();
@@ -701,15 +700,14 @@ void MainWindow::saveCamera(QDomElement &cameraElement, vtkCamera* camera)
 
 void MainWindow::loadSliceViews(QDomNode &sliceViewsNode)
 {
-
 	QDomNodeList list = sliceViewsNode.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
 	{
 		QDomNode node = list.item(n);
 		vtkCamera *camera;
-		if (node.nodeName() == "XY") camera = activeMdiChild()->getSlicerDataXY()->GetCamera();
-		else if (node.nodeName() == "YZ") camera = activeMdiChild()->getSlicerDataYZ()->GetCamera();
-		else camera = activeMdiChild()->getSlicerDataXZ()->GetCamera();
+		if      (node.nodeName() == "XY") camera = activeMdiChild()->slicer(iASlicerMode::XY)->getCamera();
+		else if (node.nodeName() == "YZ") camera = activeMdiChild()->slicer(iASlicerMode::YZ)->getCamera();
+		else                              camera = activeMdiChild()->slicer(iASlicerMode::XZ)->getCamera();
 		loadCamera(node, camera);
 	}
 }
@@ -1119,7 +1117,7 @@ void MainWindow::prefs()
 			looks.append(key);
 		}
 	}
-	iAPreferences p = child ? child->GetPreferences() : defaultPreferences;
+	iAPreferences p = child ? child->getPreferences() : defaultPreferences;
 	QTextDocument *fDescr = nullptr;
 	if (iAConsole::GetInstance()->IsFileLogError())
 	{
@@ -1169,7 +1167,7 @@ void MainWindow::renderSettings()
 	QString t = tr("true");
 	QString f = tr("false");
 
-	int currentRenderMode = child->GetRenderMode();
+	int currentRenderMode = child->getRenderMode();
 
 	QStringList renderTypes;
 	for (int mode : RenderModeMap().keys())
@@ -1196,8 +1194,8 @@ void MainWindow::renderSettings()
 		<< tr("#Slice plane opacity");
 
 	QList<QVariant> inPara;
-	iARenderSettings const & renderSettings = child->GetRenderSettings();
-	iAVolumeSettings const & volumeSettings = child->GetVolumeSettings();
+	iARenderSettings const & renderSettings = child->getRenderSettings();
+	iAVolumeSettings const & volumeSettings = child->getVolumeSettings();
 	inPara << (renderSettings.ShowSlicers ? t : f)
 		<< (renderSettings.ShowSlicePlanes ? t : f)
 		<< (renderSettings.ShowHelpers ? t : f)
@@ -1276,7 +1274,7 @@ void MainWindow::slicerSettings()
 		<< tr("$Show Tooltip")
 		);
 
-	iASlicerSettings const & slicerSettings = child->GetSlicerSettings();
+	iASlicerSettings const & slicerSettings = child->getSlicerSettings();
 	QStringList mouseCursorTypes;
 	foreach( QString mode, mouseCursorModes )
 		mouseCursorTypes << ( ( mode == slicerSettings.SingleSlicer.CursorMode ) ? QString( "!" ) : QString() ) + mode;
@@ -1502,7 +1500,7 @@ MdiChild* MainWindow::getResultChild(MdiChild* oldChild, QString const & title)
 		copyFunctions(oldChild, newChild);
 		return newChild;
 	}
-	oldChild->PrepareForResult();
+	oldChild->prepareForResult();
 	return oldChild;
 }
 
@@ -2191,7 +2189,7 @@ void MainWindow::loadLayout()
 	{
 		return;
 	}
-	child->LoadLayout(layout->currentText());
+	child->loadLayout(layout->currentText());
 }
 
 void MainWindow::deleteLayout()
@@ -2271,7 +2269,7 @@ void MainWindow::childClosed()
 	if (!sender)
 		return;
 	// magic lens size can be modified in the slicers as well; make sure to store this change:
-	defaultPreferences.MagicLensSize = sender->GetMagicLensSize();
+	defaultPreferences.MagicLensSize = sender->getMagicLensSize();
 	if( mdiArea->subWindowList().size() == 1 )
 	{
 		MdiChild * child = dynamic_cast<MdiChild*> ( mdiArea->subWindowList().at( 0 )->widget() );
@@ -2297,7 +2295,7 @@ void MainWindow::saveProject()
 	MdiChild * activeChild = activeMdiChild();
 	if (!activeChild)
 		return;
-	activeChild->StoreProject();
+	activeChild->storeProject();
 }
 
 void MainWindow::loadArguments(int argc, char** argv)

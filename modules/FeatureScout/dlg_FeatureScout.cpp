@@ -34,6 +34,7 @@
 #include <dlg_commoninput.h>
 #include <dlg_imageproperty.h>
 #include <dlg_modalities.h>
+#include <dlg_slicer.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iALookupTable.h>
@@ -1961,7 +1962,7 @@ void dlg_FeatureScout::ExportClassButton()
 	// if no volume loaded, then exit
 	if ( visualization != iACsvConfig::UseVolume )
 	{
-		if (activeChild->GetModalities()->size() == 0)
+		if (activeChild->getModalities()->size() == 0)
 		{
 			QMessageBox::information(this, "FeatureScout", "Feature only available if labeled volume is loaded!");
 			return;
@@ -2064,7 +2065,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 		++in;
 		++out;
 	}
-	StoreImage<OutputImageType>(out_img, fOutPath, activeChild->GetPreferences().Compression);
+	StoreImage<OutputImageType>(out_img, fOutPath, activeChild->getPreferences().Compression);
 	activeChild->addMsg("Stored image of of classes.");
 }
 
@@ -3486,12 +3487,11 @@ void dlg_FeatureScout::initFeatureScoutUI()
 
 	if (visualization == iACsvConfig::UseVolume)
 		activeChild->getImagePropertyDlg()->hide();
-	activeChild->HideHistogram();
-	activeChild->logs->hide();
-	activeChild->sYZ->hide();
-	activeChild->sXZ->hide();
-	activeChild->sXY->hide();
-	activeChild->GetModalitiesDlg()->hide();
+	activeChild->hideHistogram();
+	activeChild->getLogDlg()->hide();
+	for (int i=0; i<3; ++i)
+		activeChild->slicerDlg(i)->hide();
+	activeChild->getModalitiesDlg()->hide();
 }
 
 void dlg_FeatureScout::changeFeatureScout_Options( int idx )

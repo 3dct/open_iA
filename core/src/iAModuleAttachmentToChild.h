@@ -22,23 +22,23 @@
 
 #include <QObject>
 
-#include "iAChildData.h"
 #include "open_iA_Core_export.h"
 
 class MainWindow;
+class MdiChild;
 
 class open_iA_Core_API iAModuleAttachmentToChild : public QObject
 {
 	Q_OBJECT
 
 public:
-	iAModuleAttachmentToChild( MainWindow * mainWnd, iAChildData childData ) : m_mainWnd(mainWnd), m_childData(childData) {}
+	iAModuleAttachmentToChild( MainWindow * mainWnd, MdiChild * child ) : m_mainWnd(mainWnd), m_child(child) {}
 	virtual ~iAModuleAttachmentToChild() {}
-	MdiChild * GetMdiChild() const { return m_childData.child; }
+	MdiChild * getMdiChild() const { return m_child; }
 Q_SIGNALS:
 	//! emit this signal if you want the attachment to be removed from the current mdichild
 	void detach();
 protected:
 	MainWindow * m_mainWnd;
-	iAChildData m_childData;
+	MdiChild * m_child;
 };

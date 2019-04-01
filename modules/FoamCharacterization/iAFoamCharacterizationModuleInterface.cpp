@@ -44,7 +44,7 @@ void iAFoamCharacterizationModuleInterface::slotFoamCharacterization()
 	}
 }
 
-iAModuleAttachmentToChild* iAFoamCharacterizationModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iAFoamCharacterizationModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	return new iAFoamCharacterizationAttachment(mainWnd, childData);
+	return new iAFoamCharacterizationAttachment(mainWnd, child);
 }

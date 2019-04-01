@@ -19,81 +19,74 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-
 #include "iAChannelSlicerData.h"
-#include "iAChannelVisualizationData.h"
+#include "iAChannelData.h"
+#include "iASlicerMode.h"
+
+#include <vtkActor.h>
 #include <vtkImageReslice.h>
 #include <vtkImageMapToColors.h>
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkProperty.h>
-#include <vtkActor.h>
-#include "vtkTransform.h"
 #include <vtkMarchingContourFilter.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkTransform.h>
+
 #include <QThread>
 
 iAChannelSlicerData::iAChannelSlicerData() :
-	image(NULL),
-	reslicer(vtkImageReslice::New()),
-	colormapper(vtkImageMapToColors::New()),
-	imageActor(vtkImageActor::New()),
-	m_isInitialized(false),
+	reslicer(vtkSmartPointer<vtkImageReslice>::New()),
+	m_colormapper(vtkSmartPointer<vtkImageMapToColors>::New()),
+	imageActor(vtkSmartPointer<vtkImageActor>::New()),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
 	cFilter(vtkSmartPointer<vtkMarchingContourFilter>::New()),
 	cMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	cActor(vtkSmartPointer<vtkActor>::New()),
+	image(nullptr),
 	m_ctf(nullptr),
-	m_otf(nullptr)
+	m_otf(nullptr),
+	m_isInitialized(false)
 {}
 
-
-iAChannelSlicerData::~iAChannelSlicerData()
-{
-	colormapper->Delete();
-	imageActor->Delete();
-	reslicer->ReleaseDataFlagOn();
-	reslicer->Delete();
-}
-
-
-void iAChannelSlicerData::SetResliceAxesOrigin(double x, double y, double z)
+void iAChannelSlicerData::setResliceAxesOrigin(double x, double y, double z)
 {
 	reslicer->SetResliceAxesOrigin(x, y, z);
 	reslicer->Update();
-	colormapper->Update();
-	imageActor->SetInputData(colormapper->GetOutput());
+	m_colormapper->Update();
+	imageActor->SetInputData(m_colormapper->GetOutput());
 	imageActor->GetMapper()->BorderOn();
 }
 
-void iAChannelSlicerData::Assign(vtkSmartPointer<vtkImageData> imageData, QColor const &col)
+void iAChannelSlicerData::assign(vtkSmartPointer<vtkImageData> imageData, QColor const &col)
 {
-	color = col;
+	m_color = col;
 	image = imageData;
 	reslicer->SetInputData(imageData);
 	reslicer->SetInformationInput(imageData);
 }
 
-
-void iAChannelSlicerData::SetupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
+void iAChannelSlicerData::setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
 	m_ctf = ctf;
 	m_otf = otf;
-	UpdateLUT();
-	colormapper->SetLookupTable(m_lut);//colormapper->SetLookupTable( ctf );
-	colormapper->PassAlphaToOutputOn();
-	colormapper->SetInputConnection(reslicer->GetOutputPort());
-	colormapper->Update();
-	imageActor->SetInputData(colormapper->GetOutput());
+	updateLUT();
+	m_colormapper->SetLookupTable( m_otf ? m_lut : m_ctf);//colormapper->SetLookupTable( ctf );
+	m_colormapper->PassAlphaToOutputOn();
+	m_colormapper->SetInputConnection(reslicer->GetOutputPort());
+	m_colormapper->Update();
+	imageActor->SetInputData(m_colormapper->GetOutput());
 }
 
-void iAChannelSlicerData::UpdateLUT()
+void iAChannelSlicerData::updateLUT()
 {
+	if (!m_otf)
+		return;
 	double rgb[3];
-	double range[2]; image->GetScalarRange(range);
+	double range[2];image->GetScalarRange(range);
 	m_lut->SetRange(range);
 	const int numCols = 1024;
 	m_lut->SetNumberOfTableValues(numCols);
@@ -109,75 +102,82 @@ void iAChannelSlicerData::UpdateLUT()
 	m_lut->Build();
 }
 
-void iAChannelSlicerData::Init(iAChannelVisualizationData * chData, int mode)
+void iAChannelSlicerData::init(iAChannelData const & chData, int mode)
 {
 	m_isInitialized = true;
-	Assign(chData->GetImage(), chData->GetColor());
-	m_name = chData->GetName();
+	assign(chData.getImage(), chData.getColor());
+	m_name = chData.getName();
 
 	reslicer->SetOutputDimensionality(2);
 	reslicer->SetInterpolationModeToCubic();
 	reslicer->InterpolateOn();
 	reslicer->AutoCropOutputOn();
 	reslicer->SetNumberOfThreads(QThread::idealThreadCount());
-	UpdateResliceAxesDirectionCosines(mode);
-	SetupOutput(chData->GetCTF(), chData->GetOTF());
-	InitContours();
+	updateResliceAxesDirectionCosines(mode);
+	setupOutput(chData.getCTF(), chData.getOTF());
+	initContours();
 }
 
-void iAChannelSlicerData::UpdateResliceAxesDirectionCosines(int mode)
+void iAChannelSlicerData::reInit(iAChannelData const & chData)
+{
+	assign(chData.getImage(), chData.getColor());
+	m_name = chData.getName();
+	reslicer->UpdateWholeExtent();
+	reslicer->Update();
+
+	setupOutput(chData.getCTF(), chData.getOTF());
+}
+
+void iAChannelSlicerData::updateResliceAxesDirectionCosines(int mode)
 {
 	switch (mode)
 	{
-	case 0:
-		reslicer->SetResliceAxesDirectionCosines(0, 1, 0, 0, 0, 1, 1, 0, 0);  //yz
+	case iASlicerMode::YZ:
+		reslicer->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);  //yz
 		break;
-	case 1:
-		reslicer->SetResliceAxesDirectionCosines(1, 0, 0, 0, 1, 0, 0, 0, 1);  //xy
+	case iASlicerMode::XY:
+		reslicer->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);  //xy
 		break;
-	case 2:
-		reslicer->SetResliceAxesDirectionCosines(1, 0, 0, 0, 0, 1, 0, -1, 0); //xz
+	case iASlicerMode::XZ:
+		reslicer->SetResliceAxesDirectionCosines(1,0,0,  0,0,1,  0,-1,0); //xz
 		break;
 	default:
 		break;
 	}
 }
 
-void iAChannelSlicerData::ReInit(iAChannelVisualizationData * chData)
-{
-	Assign(chData->GetImage(), chData->GetColor());
-	m_name = chData->GetName();
-
-	reslicer->UpdateWholeExtent();
-	reslicer->Update();
-
-	SetupOutput(chData->GetCTF(), chData->GetOTF());
-}
-
-bool iAChannelSlicerData::isInitialized()
+bool iAChannelSlicerData::isInitialized() const
 {
 	return m_isInitialized;
 }
 
-vtkScalarsToColors* iAChannelSlicerData::GetLookupTable()
+/*
+vtkScalarsToColors* iAChannelSlicerData::getLookupTable()
 {
-	return colormapper->GetLookupTable();
+	return m_colormapper->GetLookupTable();
+}
+*/
+
+vtkScalarsToColors* iAChannelSlicerData::getColorTransferFunction()
+{
+	return m_ctf;
 }
 
 void iAChannelSlicerData::updateMapper()
 {
-	colormapper->Update();
+	m_colormapper->Update();
 }
 
-
-QColor iAChannelSlicerData::GetColor() const
+QColor iAChannelSlicerData::getColor() const
 {
-	return color;
+	return m_color;
 }
 
-void iAChannelSlicerData::assignTransform(vtkTransform * transform)
+void iAChannelSlicerData::setTransform(vtkAbstractTransform * transform)
 {
 	reslicer->SetResliceTransform(transform);
+	if (image)
+		reslicer->UpdateWholeExtent(); // TODO: check if we need this here
 }
 
 void iAChannelSlicerData::updateReslicer()
@@ -185,7 +185,7 @@ void iAChannelSlicerData::updateReslicer()
 	reslicer->Update();
 }
 
-void iAChannelSlicerData::SetContours(int num, const double * contourVals)
+void iAChannelSlicerData::setContours(int num, const double * contourVals)
 {
 	cFilter->SetNumberOfContours(num);
 	for (int i = 0; i < num; ++i)
@@ -193,35 +193,34 @@ void iAChannelSlicerData::SetContours(int num, const double * contourVals)
 	cFilter->Update();
 }
 
-void iAChannelSlicerData::SetContoursColor(double * rgb)
+void iAChannelSlicerData::setContoursColor(double * rgb)
 {
 	cActor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
 }
 
-void iAChannelSlicerData::SetShowContours(bool show)
+void iAChannelSlicerData::setShowContours(bool show)
 {
 	cActor->SetVisibility(show);
 }
 
-void iAChannelSlicerData::SetContourLineParams(double lineWidth, bool dashed)
+void iAChannelSlicerData::setContourLineParams(double lineWidth, bool dashed)
 {
 	cActor->GetProperty()->SetLineWidth(lineWidth);
 	if (dashed)
 		cActor->GetProperty()->SetLineStipplePattern(0xff00);
 }
 
-void iAChannelSlicerData::SetContoursOpacity(double opacity)
+void iAChannelSlicerData::setContoursOpacity(double opacity)
 {
 	cActor->GetProperty()->SetOpacity(opacity);
 }
 
-
-QString iAChannelSlicerData::GetName() const
+QString iAChannelSlicerData::getName() const
 {
 	return m_name;
 }
 
-void iAChannelSlicerData::InitContours()
+void iAChannelSlicerData::initContours()
 {
 	cFilter->SetInputConnection(reslicer->GetOutputPort());
 	cFilter->UseScalarTreeOn();

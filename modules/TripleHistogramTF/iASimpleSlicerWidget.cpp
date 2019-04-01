@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #include "iASimpleSlicerWidget.h"
 
+#include <iAChannelData.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
 #include <iASlicer.h>
-#include <iASlicerData.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -32,13 +32,16 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 
+#include <QHBoxLayout>
+
 iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enableInteraction /*= false*/, Qt::WindowFlags f /*= 0 */) :
-	QWidget(parent, f), m_enableInteraction(enableInteraction)
+	QWidget(parent, f), m_enableInteraction(enableInteraction),
+	m_slicerTransform(vtkTransform::New())
 {
-	m_slicer = new iASlicer(this, iASlicerMode::XY, this,
-		// TODO: do this in a better way?
-		/*Qt::WindowFlags f = */f,
-		/*bool decorations = */false); // Hide everything except the slice itself
+	m_slicer = new iASlicer(this, iASlicerMode::XY, /* magicLens = */ false, /*bool decorations = */false, m_slicerTransform); // Hide everything except the slice itself
+	setLayout(new QHBoxLayout);
+	layout()->setSpacing(0);
+	layout()->addWidget(m_slicer);
 }
 
 iASimpleSlicerWidget::~iASimpleSlicerWidget()
@@ -48,7 +51,7 @@ iASimpleSlicerWidget::~iASimpleSlicerWidget()
 
 void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
 {
-	m_slicer->ChangeMode(slicerMode);
+	m_slicer->setMode(slicerMode);
 }
 
 void iASimpleSlicerWidget::setSliceNumber(int sliceNumber)
@@ -76,14 +79,12 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 	vtkImageData *imageData = modality->GetImage().GetPointer();
 
 	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->getColorFunction();
-	m_slicerTransform = vtkTransform::New();
-	m_slicer->initializeData(imageData, m_slicerTransform, colorFunction);
-	m_slicer->initializeWidget(imageData);
+	m_slicer->addChannel(0, iAChannelData(imageData, colorFunction), true);
 	m_slicer->disableInteractor();
 
 	if (!m_enableInteraction) {
 		vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
-		m_slicer->GetSlicerData()->GetInteractor()->SetInteractorStyle(dummyStyle);
+		m_slicer->getInteractor()->SetInteractorStyle(dummyStyle);
 	}
 
 	double* origin = imageData->GetOrigin();
@@ -95,7 +96,7 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 	double xd = (extent[1] - extent[0] + 1)*spacing[0];
 	double yd = (extent[3] - extent[2] + 1)*spacing[1];
 
-	vtkCamera *camera = m_slicer->GetCamera();
+	vtkCamera *camera = m_slicer->getCamera();
 	double d = camera->GetDistance();
 
 	camera->SetParallelScale(0.5*yd);

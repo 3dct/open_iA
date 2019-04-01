@@ -43,7 +43,7 @@ namespace
 			pos[2] = sl_defs.y;
 			prop->SetPosition(pos);
 			break;
-		case SlicerModeCount:
+		default:
 			throw std::invalid_argument("invalid slicer mode");
 		}
 

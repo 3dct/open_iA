@@ -29,7 +29,6 @@
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iARenderer.h>
-#include <iASlicerData.h>
 #include <iAVolumeRenderer.h>
 #include <mdichild.h>
 
@@ -94,7 +93,7 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	//Connect
 	connect(m_histogramStack, SIGNAL(transferFunctionChanged()), this, SLOT(updateTransferFunction()));
-	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(updateModalities()));
+	connect(mdiChild->getModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(updateModalities()));
 	// }
 
 	updateDisabledLabel();

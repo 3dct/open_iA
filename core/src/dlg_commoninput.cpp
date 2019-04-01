@@ -322,8 +322,8 @@ void dlg_commoninput::showROI()
 			UpdateROIPart(input->objectName(), input->text());
 		}
 	}
-	m_sourceMdiChild->SetROIVisible(true);
-	m_sourceMdiChild->UpdateROI(m_roi);
+	m_sourceMdiChild->setROIVisible(true);
+	m_sourceMdiChild->updateROI(m_roi);
 }
 
 
@@ -337,7 +337,7 @@ void dlg_commoninput::ROIUpdated(QString text)
 	if (m_roi[3] <= 0) m_roi[3] = 1;
 	if (m_roi[4] <= 0) m_roi[4] = 1;
 	if (m_roi[5] <= 0) m_roi[5] = 1;
-	m_sourceMdiChild->UpdateROI(m_roi);
+	m_sourceMdiChild->updateROI(m_roi);
 }
 
 
@@ -477,7 +477,7 @@ int dlg_commoninput::exec()
 	if (m_sourceMdiChild)
 	{
 		disconnect(m_sourceMdiChild, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
-		m_sourceMdiChild->SetROIVisible(false);
+		m_sourceMdiChild->setROIVisible(false);
 	}
 	return result;
 }

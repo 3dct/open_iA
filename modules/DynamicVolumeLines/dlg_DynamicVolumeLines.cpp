@@ -301,7 +301,7 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	mrvRenWin->SetNumberOfLayers(2);
 	mrvRenWin->AddRenderer(m_mrvBGRen);
 	mrvRenWin->Render();
-	m_mdiChild->tabifyDockWidget(m_mdiChild->renderer, m_MultiRendererView);
+	m_mdiChild->tabifyDockWidget(m_mdiChild->getRendererDlg(), m_MultiRendererView);
 	m_MultiRendererView->verticalLayout->addWidget(wgtContainer);
 	m_MultiRendererView->show();
 }
@@ -1576,7 +1576,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		ren->AddViewProp(cornerAnnotation);
 		ren->ResetCamera();
 		m_volRen = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_imgDataList[datasetIdx]));
-		m_volRen->ApplySettings(m_mdiChild->GetVolumeSettings());
+		m_volRen->ApplySettings(m_mdiChild->getVolumeSettings());
 		m_volRen->AddTo(ren);
 		m_volRen->AddBoundingBoxTo(ren);
 		wgtContainer->GetRenderWindow()->AddRenderer(ren);

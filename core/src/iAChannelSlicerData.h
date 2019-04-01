@@ -18,80 +18,80 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
-
-
 #pragma once
+
 #include "open_iA_Core_export.h"
+
 #include <vtkSmartPointer.h>
-#include "vtkScalarsToColors.h"
+
 #include <QColor>
 
+class iAChannelData;
 
-class iAChannelVisualizationData; 
-class vtkTransform;
+class vtkAbstractTransform;
+class vtkActor;
 class vtkImageActor;
 class vtkImageData;
+class vtkImageMapToColors;
 class vtkImageReslice;
+class vtkLookupTable;
 class vtkMarchingContourFilter;
 class vtkPolyDataMapper;
-class vtkActor; 
 class vtkPiecewiseFunction;
-class vtkImageMapToColors;
-class vtkLookupTable;
+class vtkScalarsToColors;
 
 
 class open_iA_Core_API iAChannelSlicerData
 {
 public:
 	iAChannelSlicerData();
-	~iAChannelSlicerData();
-	void Init(iAChannelVisualizationData * chData, int mode);
-	void ReInit(iAChannelVisualizationData * chData);
-	void SetResliceAxesOrigin(double x, double y, double z);
-	vtkScalarsToColors* GetLookupTable();
+	void init(iAChannelData const & chData, int mode);
+	void reInit(iAChannelData const & chData);
+	void setResliceAxesOrigin(double x, double y, double z);
+	//! Get lookup table (combined color transfer function + piecewise function for opacity)
+	//vtkScalarsToColors* getLookupTable();
+	//! Get color transfer function (only the colors, fully opaque)
+	vtkScalarsToColors* getColorTransferFunction();
 
-	bool isInitialized();
+	bool isInitialized() const;
 	void updateMapper();
-	QColor GetColor() const;
-	void UpdateResliceAxesDirectionCosines(int mode);
-	void assignTransform(vtkTransform * transform);
+	QColor getColor() const;  //!< get "color" of this channel (TODO: used only for pie charts in XRF module -> move there?)
+	void updateResliceAxesDirectionCosines(int mode);
+	void setTransform(vtkAbstractTransform * transform);
 	void updateReslicer();
-	void UpdateLUT();
+	void updateLUT();
+	QString getName() const;
 
-	vtkImageActor*						imageActor;
-	vtkSmartPointer<vtkImageData>		image;
-	vtkImageReslice*					reslicer;
-
-	QString GetName() const;
+	vtkSmartPointer<vtkImageActor> imageActor;
+	vtkImageData * image;
+	vtkSmartPointer<vtkImageReslice> reslicer;
 
 	// TODO: contour functionality should be moved into separate class:
 	// {
-	vtkSmartPointer<vtkMarchingContourFilter>	cFilter;
-	vtkSmartPointer<vtkPolyDataMapper>			cMapper;
-	vtkSmartPointer<vtkActor>					cActor;
-	void SetContours(int num, const double * contourVals);
-	void SetContoursColor(double * rgb);
-	void SetContoursOpacity(double opacity);
-	void SetShowContours(bool show);
-	void SetContourLineParams(double lineWidth, bool dashed = false);
+	vtkSmartPointer<vtkMarchingContourFilter> cFilter;
+	vtkSmartPointer<vtkPolyDataMapper>        cMapper;
+	vtkSmartPointer<vtkActor>                 cActor;
+	void setContours(int num, const double * contourVals);
+	void setContoursColor(double * rgb);
+	void setContoursOpacity(double opacity);
+	void setShowContours(bool show);
+	void setContourLineParams(double lineWidth, bool dashed = false);
 	// }
 private:
 	iAChannelSlicerData(iAChannelSlicerData const & other);
 
-	void InitContours();	// TODO: contour functionality should be moved into separate class
+	void initContours();    // TODO: contour functionality should be moved into separate class
 
 	iAChannelSlicerData& operator=(iAChannelSlicerData const & other);
-	void Assign(vtkSmartPointer<vtkImageData> imageData, QColor const & col);
-	void SetupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+	void assign(vtkSmartPointer<vtkImageData> imageData, QColor const & col);
+	void setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
 
-	vtkImageMapToColors*				colormapper;
-	bool								m_isInitialized;
-	QColor								color;
-	vtkSmartPointer<vtkLookupTable>		m_lut;
-
-	vtkScalarsToColors*					m_ctf;
-	vtkPiecewiseFunction*				m_otf;
-	QString                             m_name;
+	vtkSmartPointer<vtkImageMapToColors> m_colormapper;
+	vtkSmartPointer<vtkLookupTable> m_lut;
+	bool                            m_isInitialized;
+	vtkScalarsToColors *            m_ctf;
+	vtkPiecewiseFunction *          m_otf;
+	QString                         m_name;
+	QColor                          m_color;  //! color of this channel (TODO: used only for pie charts in XRF module -> move there?)
 };
 

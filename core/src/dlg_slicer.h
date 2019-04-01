@@ -20,18 +20,29 @@
 * ************************************************************************************/
 #pragma once
 
-class MdiChild;
-class vtkImageData;
-class vtkPolyData;
-class QDockWidget;
+#include "iASlicerMode.h"
+#include "ui_slicer.h"
 
-struct iAChildData
+#include <QDockWidget>
+
+class iASlicer;
+
+class dlg_slicer : public QDockWidget, public Ui_slicer
 {
-	iAChildData();
-	iAChildData( MdiChild * a_child );
+Q_OBJECT
 
-	MdiChild * child;
-	vtkImageData * imgData;
-	vtkPolyData * polyData;
-	QDockWidget * logs;
+public:
+	static const int BorderWidth;
+	static QColor slicerColor(iASlicerMode mode);
+	dlg_slicer(iASlicer* slicer);
+	void showBorder(bool show);
+private slots:
+	void setSliceSpinBox(int s);
+	void setSliceScrollBar(int s);
+	void setSlabMode(bool slabMode);
+	void updateSlabThickness(int thickness);
+	void updateSlabCompositeMode(int compositeMode);
+	void updateSliceControls(int minIdx, int maxIdx);
+private:
+	iASlicer* m_slicer;
 };

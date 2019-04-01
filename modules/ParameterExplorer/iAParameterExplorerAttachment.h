@@ -22,7 +22,6 @@
 
 #include <QVector>
 
-class iAChildData;
 class iADockWidgetWrapper;
 class iAParamSPLOMView;
 class iAParamSpatialView;
@@ -31,10 +30,10 @@ class iAParamTableView;
 class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
 {
 public:
-	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
+	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, MdiChild * child);
 	void ToggleDockWidgetTitleBars();
 private:
-	iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
+	iAParameterExplorerAttachment(MainWindow * mainWnd, MdiChild * child);
 	iAParamSPLOMView* m_SPLOMView;
 	iAParamSpatialView* m_spatialView;
 	iAParamTableView* m_tableView;

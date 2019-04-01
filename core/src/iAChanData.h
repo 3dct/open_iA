@@ -29,7 +29,7 @@
 class vtkImageData;
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
-class iAChannelVisualizationData;
+class iAChannelData;
 class vtkScalarBarWidget;
 
 struct open_iA_Core_API iAChanData
@@ -38,7 +38,7 @@ struct open_iA_Core_API iAChanData
 	iAChanData( const QList<QColor> & colors, uint chanId );
 	void InitTFs();
 
-	QScopedPointer<iAChannelVisualizationData> visData;
+	QScopedPointer<iAChannelData> visData;
 	vtkSmartPointer<vtkImageData> imgData;
 	vtkSmartPointer<vtkColorTransferFunction> tf;
 	vtkSmartPointer<vtkPiecewiseFunction> otf;

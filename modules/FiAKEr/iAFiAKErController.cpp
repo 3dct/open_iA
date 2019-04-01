@@ -1580,7 +1580,7 @@ void iAFiAKErController::miniMouseEvent(QMouseEvent* ev)
 		MdiChild* newChild = m_mainWnd->createMdiChild(false);
 		iACsvConfig config = getCsvConfig(m_data->result[resultID].fileName, m_configName);
 		featureScout->LoadFeatureScout(config, newChild);
-		newChild->LoadLayout("FeatureScout");
+		newChild->loadLayout("FeatureScout");
 	}
 }
 

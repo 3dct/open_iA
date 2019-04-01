@@ -45,7 +45,7 @@ void iABoneThicknessModuleInterface::slotBoneThickness()
 	}
 }
 
-iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	return new iABoneThicknessAttachment(mainWnd, childData);
+	return new iABoneThicknessAttachment(mainWnd, child);
 }
