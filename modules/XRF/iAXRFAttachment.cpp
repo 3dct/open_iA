@@ -102,10 +102,7 @@ iAXRFAttachment::~iAXRFAttachment()
 void iAXRFAttachment::reInitXRF()
 {	
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
-	m_otf = vtkSmartPointer<vtkPiecewiseFunction>::New();
-	m_otf->AddPoint(img->GetScalarRange()[0], 1);
-	m_otf->AddPoint(img->GetScalarRange()[1], 1);
-	m_child->reInitMagicLens(m_xrfChannelID, img, dlgXRF->GetColorTransferFunction(), m_otf);
+	m_child->reInitMagicLens(m_xrfChannelID, "Spectral Color Image", img, dlgXRF->GetColorTransferFunction());
 }
 
 void iAXRFAttachment::initXRF()
@@ -125,11 +122,7 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
 	auto chData = m_child->getChannelData(m_xrfChannelID);
 	chData->setImage( img );
-	m_otf = vtkSmartPointer<vtkPiecewiseFunction>::New();
-	m_otf->AddPoint(img->GetScalarRange()[0], 1);
-	m_otf->AddPoint(img->GetScalarRange()[1], 1);
 	chData->setColorTF( dlgXRF->GetColorTransferFunction() );
-	chData->setOpacityTF(m_otf);
 	chData->setName("Spectral Color Image");
 	// TODO: initialize channel?
 	m_child->initChannelRenderer(m_xrfChannelID, false, enableChannel );

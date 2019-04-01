@@ -40,7 +40,7 @@ public:
 	static const size_t Maximum3DChannels = 3;
 
 	iAChannelData();
-	iAChannelData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf=nullptr);
+	iAChannelData(QString const & name, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf=nullptr);
 	virtual ~iAChannelData();
 
 	virtual void reset();

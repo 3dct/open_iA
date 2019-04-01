@@ -45,7 +45,7 @@ class iASingleSlicerSettings;
 class iASlicer;
 class iASnakeSpline;
 class iAWrapperText;
-
+class MdiChild;
 
 class vtkAbstractTransform;
 class vtkActor;
@@ -199,9 +199,11 @@ public:
 	void computeGlyphs();
 	void setPieGlyphParameters(double opacity, double spacing, double magFactor);
 	// }
+
+	void setLinkedMdiChild(MdiChild* mdiChild);
 public slots:
 	//! Save an image of the image viewer native resolution or the current view.
-	void saveAsImage() const;
+	void saveAsImage();
 	//! Save an image stack of the current view.
 	void saveImageStack();
 	//! Save a movie of a full slice-through of the specimen from top to bottom
@@ -422,6 +424,8 @@ private:
 	double m_startMeasurePoint[2];
 
 	QCursor m_mouseCursor;
+
+	MdiChild* m_linkedMdiChild;  //! main window access for linked mdi childs feature - get rid of this somehow!
 
 	QSharedPointer<iAChannelSlicerData> createChannel(uint id);
 	void getMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);

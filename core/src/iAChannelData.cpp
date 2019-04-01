@@ -53,8 +53,9 @@ iAChannelData::iAChannelData():
 	m_similarityRenderingEnabled(false)
 {}
 
-iAChannelData::iAChannelData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf):
-	m_image(image), m_colorTransferFunction(ctf), m_piecewiseFunction(otf)
+iAChannelData::iAChannelData(QString const & name, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf):
+	m_image(image), m_colorTransferFunction(ctf), m_piecewiseFunction(otf),
+	m_name(name)
 {}
 
 iAChannelData::~iAChannelData()

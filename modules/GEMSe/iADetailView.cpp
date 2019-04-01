@@ -275,9 +275,7 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 
 	uint id = m_nextChannelID;
 	m_nextChannelID = (m_nextChannelID + 1) % 8;
-	iAChannelData magicLensData(img, ctf, otf);
-	magicLensData.setName(name);
-
+	iAChannelData magicLensData(name, img, ctf, otf);
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	slicer->removeChannel(removedID);
 	slicer->addChannel(id, magicLensData, false);
@@ -675,8 +673,7 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 	iASlicer* slicer = m_previewWidget->GetSlicer();
 	if (!m_resultFilterChannel)
 	{
-		m_resultFilterChannel = QSharedPointer<iAChannelData>(new iAChannelData(m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF));
-		m_resultFilterChannel->setName("Result Filter");
+		m_resultFilterChannel = QSharedPointer<iAChannelData>(new iAChannelData("Result Filter", m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF));
 		slicer->addChannel(ResultFilterChannelID, *m_resultFilterChannel.data(), true);
 	}
 	slicer->update();

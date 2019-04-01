@@ -228,7 +228,7 @@ public:
 	bool isMagicLensToggled(void) const;
 	void setMagicLensInput(uint id, bool initReslicer);
 	void setMagicLensEnabled(bool isOn);
-	void reInitMagicLens(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+	void reInitMagicLens(uint id, QString const & name, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf);
 	int  getMagicLensSize() const { return preferences.MagicLensSize; }
 	int  getMagicLensFrameWidth() const { return preferences.MagicLensFrameWidth; }
 	//! @}
