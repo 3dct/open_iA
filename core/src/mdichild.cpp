@@ -2127,8 +2127,12 @@ void MdiChild::setChannelRenderingEnabled(uint id, bool enabled)
 
 void MdiChild::setSlicerChannelEnabled(uint id, bool enabled)
 {
-	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+	//for (int i = 0; i < iASlicerMode::SlicerCount; ++i) {
 		slicer(iASlicerMode::XY)->enableChannel(id, enabled);
+
+		slicer(iASlicerMode::XZ)->enableChannel(id, enabled);
+		slicer(iASlicerMode::YZ)->enableChannel(id, enabled);
+	//}
 }
 
 void MdiChild::removeFinishedAlgorithms()

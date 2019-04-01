@@ -296,7 +296,10 @@ void dlg_modalities::EditClicked()
 		&& !editModality->hasRenderFlag(iAModality::Slicer))
 	{
 		if (editModality->channelID() != NotExistingChannel)
+		{
 			m_mdiChild->setSlicerChannelEnabled(editModality->channelID(), false);
+			editModality->setChannelID(NotExistingChannel); //reset id to not existing
+		}
 	}
 	if ((renderFlagsBefore & iAModality::Slicer) == 0
 		&& editModality->hasRenderFlag(iAModality::Slicer))
@@ -325,8 +328,7 @@ void dlg_modalities::ManualRegistration()
 	{
 		vtkInteractorStyleSwitch* interactSwitch3D = dynamic_cast<vtkInteractorStyleSwitch*>(m_magicLensWidget->GetInteractor()->GetInteractorStyle());
 
-		//for testing
-
+		
 		int idx = lwModalities->currentRow();
 		if (idx < 0 || idx >= modalities->size())
 		{
@@ -341,7 +343,6 @@ void dlg_modalities::ManualRegistration()
 			return;
 		}
 		
-
 		if (!interactSwitch3D)
 		{
 			DEBUG_LOG("Unable to use interact switch");
@@ -376,9 +377,9 @@ void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModali
 	iAVolumeRenderer* volRend = editModality->GetRenderer().data();
 	vtkProp3D *PropVol_3d = volRend->GetVolume().Get();
 	uint chID = editModality->channelID();
-	if (chID == NotExistingChannel)
+	if ((chID == NotExistingChannel) || !editModality->hasRenderFlag(iAModality::Slicer))
 	{
-		m_mdiChild->getLogger()->Log("Error: Modality must be added to slicer before registration");
+		m_mdiChild->getLogger()->Log("Modality must be added to slicer before registration");
 		return;
 	}
 
