@@ -2275,7 +2275,7 @@ iASlicer* MdiChild::slicer(int mode)
 
 dlg_slicer * MdiChild::slicerDlg(int mode)
 {
-	assert(0 >= mode && mode < 3);
+	assert(0 <= mode && mode < iASlicerMode::SlicerCount);
 	return m_dlgSlicer[mode];
 }
 
