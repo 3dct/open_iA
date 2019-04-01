@@ -1323,6 +1323,8 @@ void iASlicer::getMouseCoord(double & xCoord, double & yCoord, double & zCoord, 
 
 namespace
 {
+	const int MaxNameLength = 20;
+
 	QString GetSlicerCoordString(int coord1, int coord2, int coord3, int mode)
 	{
 		switch (mode) {
@@ -1346,8 +1348,8 @@ namespace
 			tmpPix = img->GetScalarComponentAsDouble(slicerX, slicerY, 0, 0);
 		}
 		QString file = tmpChild->getFileInfo().fileName();
-		return QString("%1 [%2]\t: %3\n")
-			.arg(file)
+		return QString("%1 [%2]: %3\n")
+			.arg(PadOrTruncate(file, MaxNameLength))
 			.arg(GetSlicerCoordString(slicerX, slicerY, thirdCoord, mode))
 			.arg(inRange ? QString::number(tmpPix) : "exceeds img. dim.");
 	}
@@ -1380,16 +1382,15 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 	}
 
 	// get index, coords and value to display
-	QString strDetails(QString("index        [ %1, %2, %3 ]\n")
-		.arg(static_cast<int>(xCoord)).arg(static_cast<int>(yCoord)).arg(static_cast<int>(zCoord)));
-
+	QString strDetails;
 	for (auto channel: m_channels)
 	{
-		strDetails += PadOrTruncate(channel->getName(), 12) + " ";
-		auto img = channel->image;
-		for (int i = 0; i < img->GetNumberOfScalarComponents(); i++)
+		QString valueStr;
+		for (int i = 0; i < channel->image->GetNumberOfScalarComponents(); i++)
 		{
-			// TODO: limit slab thickness
+			// TODO:
+			//   - consider different spacings in channels!
+			//   - consider slab thickness / print slab projection result
 			double value = -1.0;
 			switch (m_mode)
 			{
@@ -1407,10 +1408,13 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 				break;
 			}
 			if (i > 0)
-				strDetails += " ";
-			strDetails += QString::number(value);
+				valueStr += " ";
+			valueStr += QString::number(value);
 		}
-		strDetails += "\n";
+		strDetails += QString("%1 [%2 %3 %4]: %5\n")
+			.arg(PadOrTruncate(channel->getName(), MaxNameLength))
+			.arg(static_cast<int>(xCoord)).arg(static_cast<int>(yCoord)).arg(static_cast<int>(zCoord))
+			.arg(valueStr);
 	}
 	if (m_linkedMdiChild)
 	{
