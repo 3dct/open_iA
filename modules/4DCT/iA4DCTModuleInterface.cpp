@@ -66,48 +66,33 @@ void iA4DCTModuleInterface::Initialize( )
 	if (!m_mainWnd)
 		return;
 	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
+	QMenu* menu4DCT = getMenuWithTitle(toolsMenu, tr("4DCT"), false);
 
-	// ToFix: the menu should be added through the standard way of adding modules menus.
-	// But a new menu won't be enabled by the default till a mdichild is created or opened.
-	// This hack allows to be the menu enabled by the default.
-	QMenu* menu4DCT = new QMenu( toolsMenu );
-	menu4DCT->setTitle( tr( "4DCT" ) );
-	toolsMenu->addMenu( menu4DCT );
-
-	QAction * newProj = new QAction( m_mainWnd );
-	newProj->setText( QApplication::translate( "MainWindows", "New 4DCT project", 0 ) );
-	newProj->setShortcut( QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_N ) );
-	connect( newProj, SIGNAL( triggered( ) ), this, SLOT( newProj( ) ) );
+	QAction * newProj = new QAction(tr("New 4DCT project"), nullptr );
+	newProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_N ));
+	connect( newProj, SIGNAL( triggered() ), this, SLOT( newProj() ) );
 	menu4DCT->addAction( newProj );
 
-	QAction * openProj = new QAction( m_mainWnd );
-	openProj->setText( QApplication::translate( "MainWindows", "Open 4DCT project", 0 ) );
-	openProj->setShortcut( QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_O ) );
-	connect( openProj, SIGNAL( triggered( ) ), this, SLOT( openProj( ) ) );
+	QAction * openProj = new QAction(tr("Open 4DCT project"), nullptr );
+	openProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_O ));
+	connect( openProj, SIGNAL( triggered() ), this, SLOT( openProj() ) );
 	menu4DCT->addAction( openProj );
 
-	QAction* saveProj = new QAction( m_mainWnd );
-	saveProj->setText( QApplication::translate( "MainWindows", "Save 4DCT project", 0 ) );
-	saveProj->setShortcut( QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_S ) );
-	connect( saveProj, SIGNAL( triggered( ) ), this, SLOT( saveProj( ) ) );
+	QAction* saveProj = new QAction(tr("Save 4DCT project"), nullptr);
+	saveProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_S ));
+	connect( saveProj, SIGNAL( triggered() ), this, SLOT( saveProj() ) );
 	menu4DCT->addAction( saveProj );
 
-	QAction* featureExtraction = new QAction( m_mainWnd );
-	featureExtraction->setText( QApplication::translate( "MainWindows", "Extract features to file", 0 ) );
-	connect( featureExtraction, SIGNAL( triggered( ) ), this, SLOT( extractFeaturesToFile( ) ) );
+	QAction* featureExtraction = new QAction(tr("Extract features to file"), nullptr);
+	connect( featureExtraction, SIGNAL( triggered() ), this, SLOT( extractFeaturesToFile() ) );
 	menu4DCT->addAction( featureExtraction );
 
-	QAction* defectClassification = new QAction( m_mainWnd );
-	defectClassification->setText( QApplication::translate( "MainWindows", "Defect classification", 0 ) );
-	connect( defectClassification, SIGNAL( triggered( ) ), this, SLOT( defectClassification( ) ) );
+	QAction* defectClassification = new QAction(tr("Defect classification"), nullptr);
+	connect( defectClassification, SIGNAL( triggered() ), this, SLOT( defectClassification() ) );
 	menu4DCT->addAction( defectClassification );
 }
 
-/*============
-
-	Slots
-
-============*/
+/*============	Slots  ============*/
 
 void iA4DCTModuleInterface::openProj( )
 {

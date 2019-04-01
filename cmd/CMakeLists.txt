@@ -13,7 +13,10 @@ ENDIF()
 
 # Windows-specific configuration
 IF (MSVC)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+	IF (MSVC_VERSION GREATER_EQUAL 1910)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
+	ENDIF()
 
 	IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_CMD_DBG_ENV_PATH}")
 		# force cmake to copy the files:
