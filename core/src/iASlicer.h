@@ -279,7 +279,7 @@ protected:
 	InteractionMode m_interactionMode;          //!< current edit mode
 	bool            m_isSliceProfEnabled;       //!< if slice profile mode is enabled
 	bool            m_isArbProfEnabled;         //!< if arbitrary profile mode is enabled
-	int             m_xInd, m_yInd, m_zInd;
+	int             m_xInd, m_yInd, m_zInd;     //!< current position
 	iASnakeSpline * m_snakeSpline;
 	vtkPoints *     m_worldSnakePoints;
 	iASlicerProfile	* m_sliceProfile;            //!< necessary vtk classes for the slice profile
@@ -413,9 +413,9 @@ private:
 	vtkSmartPointer<vtkTextActor3D> m_axisTextActor[2];
 
 	int m_ext;
-	double m_angleX, m_angleY, m_angleZ;
-	double m_backgroundRGB[3];
-	int m_sliceNumber; // for fisheye transformation
+	double m_angle[3];          //!< current rotation angle
+	double m_backgroundRGB[3];  //!< manual background RGB
+	int m_sliceNumber;          //!< current slice
 
 	//mouse move
 	double m_ptMapped[3];

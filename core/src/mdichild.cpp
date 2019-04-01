@@ -310,12 +310,12 @@ void MdiChild::enableRenderWindows()	// = image data available
 			m_slicer[s]->enableInteractor();
 		updateViews();
 		updateImageProperties();
-		if (imageData->GetNumberOfScalarComponents() == 1) //No histogram/profile for rgb, rgba or vector pixel type images
+		if (imageData->GetNumberOfScalarComponents() == 1)
 		{
 			setHistogramModality(0);
 			updateProfile();
 		}
-		else
+		else  // No histogram/profile for rgb, rgba or vector pixel type images
 		{
 			initVolumeRenderers();
 			QSharedPointer<iAModalityTransfer> modTrans = getModality(0)->GetTransfer();
@@ -1810,6 +1810,15 @@ bool MdiChild::initView( QString const & title )
 			currentFile(), -1, imageData, iAModality::MainRenderer));
 		getModalities()->Add(mod);
 		m_dlgModalities->AddListItem(mod);
+		QSharedPointer<iAModalityTransfer> modTrans = getModality(0)->GetTransfer();
+		uint channelID = createChannel();
+		assert(channelID == 0); // first modality we create, there shouldn't be another channel yet!
+		getModality(0)->setChannelID(channelID);
+		for (int s = 0; s < 3; ++s)
+		{
+			m_slicer[s]->addChannel(channelID, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()), true);
+			m_slicer[s]->resetCamera();
+		}
 		m_initVolumeRenderers = true;
 	}
 	vtkColorTransferFunction* colorFunction = (getModalities()->size() > 0)
@@ -2564,18 +2573,6 @@ void MdiChild::statisticsAvailable(int modalityIdx)
 	displayHistogram(modalityIdx);
 	// TODO: only initialize volume renderer of modalityIdx modality here!
 	initVolumeRenderers();
-	if (modalityIdx == 0)
-	{
-		QSharedPointer<iAModalityTransfer> modTrans = getModality(0)->GetTransfer();
-		uint channelID = createChannel();
-		assert(channelID == 0); // first modality we create, there shouldn't be another channel yet!
-		getModality(0)->setChannelID(channelID);
-		for (int s = 0; s < 3; ++s)
-		{
-			m_slicer[s]->addChannel(channelID, iAChannelData(getModality(0)->GetImage(), modTrans->getColorFunction()), true);
-			m_slicer[s]->resetCamera();
-		}
-	}
 	modalityTFChanged();
 	updateViews();
 }

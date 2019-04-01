@@ -224,9 +224,9 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_mode(mode),
 	m_interactionMode(NORMAL), // standard m_viewMode
 	m_xInd(0), m_yInd(0), m_zInd(0),
-	m_angleX(0), m_angleY(0), m_angleZ(0),
 	m_sliceNumber(0)
 {
+	std::fill(m_angle, m_angle + 3, 0);
 	setAutoFillBackground(false);
 	setFocusPolicy(Qt::StrongFocus);		// to receive the KeyPress Event!
 	setMouseTracking(true);					// to receive the Mouse Move Event
@@ -1899,20 +1899,7 @@ void iASlicer::updateChannelMappers()
 
 void iASlicer::rotateSlice(double angle)
 {
-	switch (m_mode)
-	{
-	case iASlicerMode::XY://XY
-		m_angleZ = angle;
-		break;
-	case iASlicerMode::YZ://YZ
-		m_angleX = angle;
-		break;
-	case iASlicerMode::XZ://XZ
-		m_angleY = angle;
-		break;
-	default://ERROR
-		break;
-	}
+	m_angle[getSlicerDimension(m_mode)] = angle;
 
 	double center[3];
 
@@ -1929,9 +1916,9 @@ void iASlicer::rotateSlice(double angle)
 	t1->Translate(-center[0], -center[1], -center[2]);
 
 	vtkTransform *t2 = vtkTransform::New();
-	t2->RotateWXYZ(m_angleX, 1, 0, 0);
-	t2->RotateWXYZ(m_angleY, 0, 1, 0);
-	t2->RotateWXYZ(m_angleZ, 0, 0, 1);
+	t2->RotateWXYZ(m_angle[0], 1, 0, 0);
+	t2->RotateWXYZ(m_angle[1], 0, 1, 0);
+	t2->RotateWXYZ(m_angle[2], 0, 0, 1);
 
 	vtkTransform *t3 = vtkTransform::New();
 	t3->Translate(center[0], center[1], center[2]);
@@ -2564,13 +2551,13 @@ int iASlicer::pickPoint(double &xPos_out, double &yPos_out, double &zPos_out,
 	yInd_out = (int)(result_out[1] / spacing[1] + 0.5);
 	zInd_out = (int)(result_out[2] / spacing[2] + 0.5);
 
-	// initialize m_positions depending on slice view
+	// initialize positions depending on slice view
 	switch (m_mode)
 	{
 	default:
 	case iASlicerMode::YZ: { xPos_out = m_xInd * spacing[0]; yPos_out = ptMapped[0];         zPos_out = ptMapped[1];         } break;
-	case iASlicerMode::XY: { xPos_out = ptMapped[0];         yPos_out = ptMapped[1];         zPos_out = m_zInd * spacing[2]; } break;
 	case iASlicerMode::XZ: { xPos_out = ptMapped[0];         yPos_out = m_yInd * spacing[1]; zPos_out = ptMapped[1];         } break;
+	case iASlicerMode::XY: { xPos_out = ptMapped[0];         yPos_out = ptMapped[1];         zPos_out = m_zInd * spacing[2]; } break;
 	}
 
 	return 1;
