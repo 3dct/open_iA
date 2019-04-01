@@ -742,7 +742,7 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 	origin[axis] += static_cast<double>(sliceNumber()) * imgSpc[axis];
 	setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2]);
 	if (enable)
-		enableChannel(0, true);
+		enableChannel(id, true);
 }
 
 void iASlicer::updateMagicLensColors()
@@ -750,8 +750,6 @@ void iASlicer::updateMagicLensColors()
 	if (m_magicLens)
 		m_magicLens->UpdateColors();
 }
-
-
 
 void iASlicer::setTransform(vtkAbstractTransform * tr)
 {
@@ -1782,7 +1780,6 @@ void iASlicer::setShowText(bool isVisible)
 
 void iASlicer::enableChannel(uint id, bool enabled)
 {
-	// TODO: move into channeldata!
 	if (enabled)
 	{
 		m_ren->AddActor(getChannel(id)->imageActor);

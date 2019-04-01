@@ -207,8 +207,7 @@ void dlg_labels::UpdateChannel()
 {
 	m_labelOverlayImg->Modified();
 	m_labelOverlayImg->SetScalarRange(0, count());
-	m_mdiChild->updateChannel(m_labelChannelID, m_labelOverlayImg, m_labelOverlayLUT, m_labelOverlayOTF);
-	m_mdiChild->initChannelRenderer(m_labelChannelID, false);
+	m_mdiChild->updateChannel(m_labelChannelID, m_labelOverlayImg, m_labelOverlayLUT, m_labelOverlayOTF, true);
 	m_mdiChild->updateViews();
 }
 

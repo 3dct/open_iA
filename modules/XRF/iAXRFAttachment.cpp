@@ -131,6 +131,7 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 	chData->setColorTF( dlgXRF->GetColorTransferFunction() );
 	chData->setOpacityTF(m_otf);
 	chData->setName("Spectral Color Image");
+	// TODO: initialize channel?
 	m_child->initChannelRenderer(m_xrfChannelID, false, enableChannel );
 	bool isMagicLensEnabled = m_child->isMagicLensToggled();
 	if( enableChannel )

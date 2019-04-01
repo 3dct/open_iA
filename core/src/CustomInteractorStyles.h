@@ -53,12 +53,14 @@ namespace propDefs {
 	{
 	public:
 				
-		static void updatePropOrientation(vtkProp3D *prop, double angle_x, double angle_y, double angle_z){
+		static void updatePropOrientation(vtkProp3D *prop, double angle_x, double angle_y, double angle_z)
+		{
 			 prop->SetOrientation(angle_x, angle_y, angle_z); 
 		 }
 		
 
-		 static void printProp(vtkProp3D *prop, QString Text) {
+		 static void printProp(vtkProp3D *prop, QString Text)
+		 {
 			 if (!prop) { return;  }
 			 
 			 const double *orientation=prop->GetOrientation(); 
@@ -169,37 +171,34 @@ public:
 		printPropPosistion();
 		this->InvokeEvent(vtkCommand::PickEvent, this);
 	}
-	void SetInteractionModeToImage2D() {
+	void SetInteractionModeToImage2D()
+	{
 		this->SetInteractionMode(VTKIS_IMAGE2D);
 	}
 	
 	vtkSetClampMacro(InteractionMode, int, VTKIS_IMAGE2D, VTKIS_IMAGE_SLICING);
 	vtkGetMacro(InteractionMode, int);
 
-	vtkProp3D * getCurrentSlicerProp() const{
+	vtkProp3D * getCurrentSlicerProp() const
+	{
 		return this->m_PropCurrentSlicer.prop; 
 	}
 	
-
 	//one of them is coordinate of current slicer
-	void initCoordinates(double x, double y, double z){
+	void initCoordinates(double x, double y, double z)
+	{
 		sliceX = x; 
 		sliceY = y;
 		sliceZ = z; 
 		//m_PropCurrentSlicer
-
 	}
 
-
-	void initializeActors(iAVolumeRenderer *volRend, vtkProp3D *propSlicer1, vtkProp3D *propSlicer2) {
-		
-		
-		
-		if (!volRend || !propSlicer1 || propSlicer2) {
-		
+	void initializeActors(iAVolumeRenderer *volRend, vtkProp3D *propSlicer1, vtkProp3D *propSlicer2)
+	{
+		if (!volRend || !propSlicer1 || !propSlicer2)
+		{
 			DEBUG_LOG("props are null"); 
-		}
-		
+		}		
 		this->set3DProp(volRend);
 		this->setSlicer1(propSlicer1);
 		this->setSlicer2(propSlicer2);
@@ -319,6 +318,3 @@ private:
 	void operator=(const iACustomInterActorStyleTrackBall&) = delete;  // Not implemented.
 	iACustomInterActorStyleTrackBall(const iACustomInterActorStyleTrackBall &) = delete;
 };
-
-
-

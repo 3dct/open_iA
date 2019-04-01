@@ -336,6 +336,7 @@ void iATripleModalityWidget::updateModalities()
 		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->GetTransfer()->getColorFunction();
 		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
 		chData->setData(imageData, ctf, otf);
+		// TODO: initialize channel?
 		m_mdiChild->initChannelRenderer(m_channelIDs[i], false, true);
 	}
 

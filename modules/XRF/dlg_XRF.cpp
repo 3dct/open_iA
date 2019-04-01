@@ -802,6 +802,7 @@ void dlg_XRF::combinedElementMaps(int show)
 
 		chData->setColor(color);
 		chData->setData(chImgData, m_ctf[m_enabledChannels], m_otf[m_enabledChannels]);
+		// TODO: initialize channel?
 		mdiChild->initChannelRenderer(m_channelIDs[i], false);
 		mdiChild->updateChannelOpacity(m_channelIDs[i], 1);
 
@@ -899,6 +900,7 @@ void dlg_XRF::updateSelection()
 		m_spectrumSelectionChannelID = mdiChild->createChannel();
 	auto chData = mdiChild->getChannelData(m_spectrumSelectionChannelID);
 	chData->setData(result, m_selection_ctf, m_selection_otf);
+	// TODO: initialize channel?
 	mdiChild->initChannelRenderer(m_spectrumSelectionChannelID, true);
 	mdiChild->updateChannelOpacity(m_spectrumSelectionChannelID, 0.5);
 
