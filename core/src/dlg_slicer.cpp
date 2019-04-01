@@ -65,6 +65,7 @@ dlg_slicer::dlg_slicer(iASlicer* slicer):
 	connect(cbSlabMode, &QCheckBox::toggled, this, &dlg_slicer::setSlabMode);
 	connect(sbSlabThickness, SIGNAL(valueChanged(int)), this, SLOT(updateSlabThickness(int)));
 	connect(cbSlabCompositeMode, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSlabCompositeMode(int)));
+	connect(m_slicer, &iASlicer::firstChannelAdded, this, &dlg_slicer::updateSliceControls);
 }
 
 void dlg_slicer::showBorder(bool show)
@@ -105,4 +106,14 @@ void dlg_slicer::updateSlabThickness(int thickness)
 void dlg_slicer::updateSlabCompositeMode(int mode)
 {
 	m_slicer->setSlabCompositeMode(mode);
+}
+
+void dlg_slicer::updateSliceControls(int minIdx, int maxIdx)
+{
+	int val = (maxIdx - minIdx) / 2 + minIdx;
+	sbSlice->setRange(minIdx, maxIdx);
+	verticalScrollBar->setRange(minIdx, maxIdx);
+	sbSlice->setValue(val);  // updates the slicer as well via sbSlice's valueChanged signal
+	QSignalBlocker block(verticalScrollBar);
+	verticalScrollBar->setValue(val);
 }

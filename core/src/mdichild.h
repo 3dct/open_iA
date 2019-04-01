@@ -387,7 +387,6 @@ private:
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void getSnakeNormal(int index, double point[3], double normal[3]);
 	//void updateReslicer(double point[3], double normal[3], int mode);
-	void updateSliceIndicators();
 	QString strippedName(const QString &f);
 
 	//! sets up the IO thread for saving the correct file type for the given filename.

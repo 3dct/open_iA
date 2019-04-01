@@ -551,27 +551,13 @@ void iASlicer::setSliceNumber( int sliceNumber )
 {
 	m_sliceNumber = sliceNumber;
 	double xyz[3] = { 0.0, 0.0, 0.0 };
-	switch (m_mode)
-	{
-	case iASlicerMode::XY://XY
-		xyz[2] = sliceNumber;
-		break;
-	case iASlicerMode::YZ://YZ
-		xyz[0] = sliceNumber;
-		break;
-	case iASlicerMode::XZ://XZ
-		xyz[1] = sliceNumber;
-		break;
-	default://ERROR
-		break;
-	}
+	xyz[getSlicerDimension(m_mode)] = sliceNumber;
 	if (m_roiActive)
 		m_roiActor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < (m_roiSlice[1]));
 	if (m_channels.empty())
 		return;
 	double * spacing = m_channels[m_channels.keys()[0]]->image->GetSpacing();
 	double * origin = m_channels[m_channels.keys()[0]]->image->GetOrigin();
-	//also apply to enabled channels
 	for (auto ch : m_channels)
 		ch->setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2]);
 	updateMagicLensColors();
@@ -725,7 +711,10 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 	auto chSlicerData = createChannel(id);
 	chSlicerData->init(chData, m_mode);
 	double curTol = m_pointPicker->GetTolerance();
-	double newTol = chData.getImage()->GetSpacing()[0] / 3;
+	int axis = getSlicerDimension(m_mode);
+	auto image = chData.getImage();
+	double const * const imgSpc = image->GetSpacing();
+	double newTol = imgSpc[axis] / 3;
 	if (newTol < curTol)
 		m_pointPicker->SetTolerance(newTol);
 	if (updateSpacing)
@@ -733,9 +722,8 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 		setScalarBarTF(chData.getCTF());
 		updatePositionMarkerExtent();
 		// TODO: update required for new channels other than to export? export all channels?
-		auto imageData = m_channels[id]->image;
 		auto reslicer = m_channels[id]->reslicer;
-		double const * const imgSpc = imageData->GetSpacing();
+		int const * const imgExt = image->GetExtent();
 		double unitSpacing = std::max(std::max(imgSpc[0], imgSpc[1]), imgSpc[2]);
 		double const * const spc = reslicer->GetOutput()->GetSpacing();
 		int    const * const dim = reslicer->GetOutput()->GetDimensions();
@@ -747,15 +735,12 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 		// "* 10 / unitSpacing" adjusts for scaling (see above)
 		m_axisTextActor[0]->SetPosition(xHalf * 10 / unitSpacing, -20.0, 0);
 		m_axisTextActor[1]->SetPosition(-20.0, yHalf * 10 / unitSpacing, 0);
+		emit firstChannelAdded(imgExt[axis*2], imgExt[axis*2+1]);
 	}
-	double * spc = getChannel(id)->image->GetSpacing();
-	double * origin = getChannel(id)->image->GetOrigin();
-	switch (m_mode)
-	{
-	case YZ: setResliceChannelAxesOrigin(id, origin[0] + static_cast<double>(sliceNumber()) * spc[0], origin[1], origin[2]); break;
-	case XY: setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2] + static_cast<double>(sliceNumber()) * spc[2]); break;
-	case XZ: setResliceChannelAxesOrigin(id, origin[0], origin[1] + static_cast<double>(sliceNumber()) * spc[1], origin[2]); break;
-	}
+	double origin[3];
+	getChannel(id)->image->GetOrigin(origin);
+	origin[axis] += static_cast<double>(sliceNumber()) * imgSpc[axis];
+	setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2]);
 	if (enable)
 		enableChannel(0, true);
 }

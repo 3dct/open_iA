@@ -334,7 +334,6 @@ void MdiChild::enableRenderWindows()	// = image data available
 
 	if (!isVolumeDataLoaded())
 		return;
-	updateSliceIndicators();
 	camIso();
 	vtkCamera* cam = Raycaster->getCamera();
 	getModalities()->ApplyCameraSettings(cam);
@@ -713,28 +712,6 @@ void MdiChild::setupView(bool active )
 void MdiChild::setupProject(bool active)
 {
 	setModalities(ioThread->GetModalities());
-}
-
-void MdiChild::updateSliceIndicators()
-{
-	int val;
-	val = (imageData->GetExtent()[5] - imageData->GetExtent()[4]) / 2 + imageData->GetExtent()[4];
-	m_dlgSlicer[iASlicerMode::XY]->sbSlice->setRange(imageData->GetExtent()[4],imageData->GetExtent()[5]);
-	m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar->setRange(imageData->GetExtent()[4],imageData->GetExtent()[5]);
-	m_dlgSlicer[iASlicerMode::XY]->sbSlice->setValue(val);
-	m_dlgSlicer[iASlicerMode::XY]->verticalScrollBar->setValue(val);
-
-	val = (imageData->GetExtent()[1] - imageData->GetExtent()[0]) / 2 + imageData->GetExtent()[0];
-	m_dlgSlicer[iASlicerMode::YZ]->sbSlice->setRange(imageData->GetExtent()[0], imageData->GetExtent()[1]);
-	m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar->setRange(imageData->GetExtent()[0], imageData->GetExtent()[1]);
-	m_dlgSlicer[iASlicerMode::YZ]->sbSlice->setValue(val);
-	m_dlgSlicer[iASlicerMode::YZ]->verticalScrollBar->setValue(val);
-
-	val = (imageData->GetExtent()[3] - imageData->GetExtent()[2]) / 2 + imageData->GetExtent()[2];
-	m_dlgSlicer[iASlicerMode::XZ]->sbSlice->setRange(imageData->GetExtent()[2], imageData->GetExtent()[3]);
-	m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar->setRange(imageData->GetExtent()[2], imageData->GetExtent()[3]);
-	m_dlgSlicer[iASlicerMode::XZ]->sbSlice->setValue(val);
-	m_dlgSlicer[iASlicerMode::XZ]->verticalScrollBar->setValue(val);
 }
 
 int MdiChild::chooseModalityNr(QString const & caption)
@@ -1356,7 +1333,6 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 
 	if (init)
 	{
-		updateSliceIndicators();
 		// connect signals for making slicers update other views in snake slicers mode:
 		for (int i = 0; i < 3; ++i)
 		{
@@ -1616,46 +1592,52 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 /*
 void MdiChild::updateReslicer(double point[3], double normal[3], int mode)
 {
-	//translation to origin
-	double t_matrix[16] = {1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		-point[0], -point[1], -point[2], 1};
+	// translation to origin
+	double t_matrix[16] = {
+		        1,         0,         0, 0,
+		        0,         1,         0, 0,
+		        0,         0,         1, 0,
+		-point[0], -point[1], -point[2], 1
+	};
 	vtkMatrix4x4 * translation_matrix = vtkMatrix4x4::New();
 	translation_matrix->DeepCopy(t_matrix);
 
-	//rotation to make vector parallel to the z axis
+	// rotation to make vector parallel to the z axis
 	double diagonal = sqrt (pow(normal[0],2) + pow(normal[1],2) + pow(normal[2],2) );
 	double intermediate_dia = sqrt ( pow(normal[0],2) + pow(normal[1],2) );
 	double cos_theta = normal[2] / diagonal;
 	double sin_theta = intermediate_dia / diagonal;
-	double r_matrix[16] = {cos_theta, 0, sin_theta, 0,
-		0, 1, 0, 0,
+	double r_matrix[16] = {
+		 cos_theta, 0, sin_theta, 0,
+		         0, 1,         0, 0,
 		-sin_theta, 0, cos_theta, 0,
-		0, 0, 0, 1};
-
+		         0, 0,         0, 1
+	};
 	vtkMatrix4x4 * rotation_matrix = vtkMatrix4x4::New();
 	rotation_matrix->DeepCopy(r_matrix);
 
-	//rotation in Z axis by 180 degree
+	// rotation in Z axis by 180 degree
 	double cos_theta_z = cos(vtkMath::Pi());
 	double sin_theta_z = sin(vtkMath::Pi());
-	double r_matrix_z[16] = {	cos_theta_z, -sin_theta_z, 0, 0,
+	double r_matrix_z[16] = {
+		cos_theta_z, -sin_theta_z, 0, 0,
 		sin_theta_z,  cos_theta_z, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1};
+		          0,            0, 1, 0,
+		          0,            0, 0, 1
+	};
 	vtkMatrix4x4 * rotation_matrix_z = vtkMatrix4x4::New();
 	rotation_matrix_z->DeepCopy(r_matrix_z);
 
-	//translate back to object position
-	double bt_matrix[16] = {1, 0, 0, 0,
+	// translate back to object position
+	double bt_matrix[16] = {
+		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
 		point[0], point[1], point[2], 1};
 	vtkMatrix4x4 * backtranslation_matrix = vtkMatrix4x4::New();
 	backtranslation_matrix->DeepCopy(bt_matrix);
 
-	//get the final transformation matrix to apply on the image
+	// get the final transformation matrix to apply on the image
 	vtkMatrix4x4 * intermediate_transformation_1 = vtkMatrix4x4::New();
 	vtkMatrix4x4 * intermediate_transformation_2 = vtkMatrix4x4::New();
 	vtkMatrix4x4 * final_transformation_matrix = vtkMatrix4x4::New();
@@ -1663,12 +1645,14 @@ void MdiChild::updateReslicer(double point[3], double normal[3], int mode)
 	vtkMatrix4x4::Multiply4x4(intermediate_transformation_1, rotation_matrix_z, intermediate_transformation_2);
 	vtkMatrix4x4::Multiply4x4(intermediate_transformation_2, backtranslation_matrix, final_transformation_matrix);
 
-	if ( mode == 1 )
+	if ( mode == iASlicerMode::XY )
 	{
-		double a_matrix[16] = {1, 0, 0, 0,
+		double a_matrix[16] = {
+			1, 0, 0, 0,
 			0, 1, 0, 0,
 			0, 0, 1, 0,
-			0, 0, 0, 1};
+			0, 0, 0, 1
+		};
 		vtkMatrix4x4 * axial_matrix = vtkMatrix4x4::New();
 		axial_matrix->DeepCopy(a_matrix);
 		vtkMatrix4x4 * axial_transformation_matrix = vtkMatrix4x4::New();
@@ -1681,12 +1665,14 @@ void MdiChild::updateReslicer(double point[3], double normal[3], int mode)
 		m_slicer[iASlicerMode::XY]->GetReslicer()->SetResliceAxes(axial_transformation_matrix);
 	}
 
-	if ( mode == 0 )
+	if ( mode == iASlicerMode::YZ )
 	{
-		double c_matrix[16] = { 0, 0, 1, 0,
+		double c_matrix[16] = {
+			0, 0, 1, 0,
 			1, 0, 0, 0,
 			0, 1, 0, 0,
-			0, 0, 0, 1};
+			0, 0, 0, 1
+		};
 		vtkMatrix4x4 * coronial_matrix = vtkMatrix4x4::New();
 		coronial_matrix->DeepCopy(c_matrix);
 		vtkMatrix4x4 * coronial_transformation_matrix = vtkMatrix4x4::New();
@@ -1699,12 +1685,14 @@ void MdiChild::updateReslicer(double point[3], double normal[3], int mode)
 		m_slicer[iASlicerMode::YZ]->GetReslicer()->SetResliceAxes(coronial_transformation_matrix);
 	}
 
-	if ( mode == 2 )
+	if ( mode == iASlicerMode::XZ )
 	{
-		double s_matrix[16] = { 1, 0, 0, 0,
+		double s_matrix[16] = {
+			1, 0,  0, 0,
 			0, 0, -1, 0,
-			0, 1, 0, 0,
-			0, 0, 0, 1};
+			0, 1,  0, 0,
+			0, 0,  0, 1
+		};
 		vtkMatrix4x4 * sagittal_matrix = vtkMatrix4x4::New();
 		sagittal_matrix->DeepCopy(s_matrix);
 		vtkMatrix4x4 * sagittal_transformation_matrix = vtkMatrix4x4::New();
@@ -1828,7 +1816,6 @@ bool MdiChild::initView( QString const & title )
 		? getModality(0)->GetTransfer()->getColorFunction() : vtkColorTransferFunction::New();
 
 	renderer->stackedWidgetRC->setCurrentIndex(0);
-	updateSliceIndicators();
 
 	if (isVolumeDataLoaded())
 	{

@@ -42,6 +42,7 @@ private slots:
 	void setSlabMode(bool slabMode);
 	void updateSlabThickness(int thickness);
 	void updateSlabCompositeMode(int compositeMode);
+	void updateSliceControls(int minIdx, int maxIdx);
 private:
 	iASlicer* m_slicer;
 };

@@ -271,6 +271,7 @@ signals:
 	//! @param mode slicer mode (=plane)
 	//! @param sliceNumber number of the slice that was switched to
 	void sliceNumberChanged(int mode, int sliceNumber);
+	void firstChannelAdded(int minIdx, int maxIdx);
 
 protected:
 	QMenu *         m_magicLensContextMenu;
