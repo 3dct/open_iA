@@ -41,11 +41,14 @@ namespace propDefs {
 	};
 
 	struct SliceDefs {
-		
-		double fixedCoord;
+		double fixedCurrentSlicerCoord;
 		double x; 
 		double y;
 		double z; 
+
+		void print() {
+			DEBUG_LOG(QString("Coords %1 %2 %3").arg(x).arg(y).arg(z)); 
+		}
 	};
 
 	
@@ -205,7 +208,7 @@ public:
 	}
 	
 	//modes of other two slicers
-	void initModes(iASlicerMode mode_slice1, iASlicerMode mode_slice2); 
+	void initModes(iASlicerMode mode_slice1, double coordSlice1, iASlicerMode mode_slice2, double coordSlice2); 
 	//currentSlicer
 	void setActiveSlicer(vtkProp3D *currentActor, iASlicerMode slice, int activeSliceNr); 
 
@@ -252,12 +255,14 @@ private:
 		m_volumeRenderer = nullptr;
 	}
 
-	void setModeSlicer1(iASlicerMode mode) {
+	void setModeSlicer1(iASlicerMode mode, double coord) {
 		m_propSlicer1.mode = mode;
+		m_propSlicer1.fixedCoord = coord; 
 	}
 
-	void setModeSlicer2(iASlicerMode mode) {
+	void setModeSlicer2(iASlicerMode mode, double coord) {
 		m_propSlicer2.mode = mode; 
+		m_propSlicer2.fixedCoord = coord; 
 	}
 
 	void setPropSlicer1(double x, double y, double z) {

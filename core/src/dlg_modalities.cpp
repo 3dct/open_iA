@@ -405,19 +405,19 @@ void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModali
 	Customstyle_xy->initializeActors(volRend, propXZ, propYZ);
 	Customstyle_xy->setActiveSlicer(propXY, iASlicerMode::XY, slizeZ); //plane xy, slice z;
 	Customstyle_xy->initCoordinates(pos[0], pos[1], slizeZ);
-	Customstyle_xy->initModes(iASlicerMode::XZ, iASlicerMode::YZ);
+	Customstyle_xy->initModes(iASlicerMode::XZ, sliceY, iASlicerMode::YZ, sliceX);
 	Customstyle_xy->setMDIChild(m_mdiChild); 
 
 	Customstyle_xz->initializeActors(volRend, propXY, propYZ);
 	Customstyle_xz->setActiveSlicer(propXZ, iASlicerMode::XZ, sliceY); //plane xy, slice y;
 	Customstyle_xz->initCoordinates(pos[0], sliceY, pos[2]);
-	Customstyle_xz->initModes(iASlicerMode::XY, iASlicerMode::YZ);
+	Customstyle_xz->initModes(iASlicerMode::XY, slizeZ, iASlicerMode::YZ, sliceX);
 	Customstyle_xz->setMDIChild(m_mdiChild);
 
 	Customstyle_yz->initializeActors(volRend, propXY, propXZ); //plane xy, slice x;
 	Customstyle_yz->setActiveSlicer(propYZ, iASlicerMode::YZ, sliceX);
 	Customstyle_yz->initCoordinates(sliceX, pos[1], pos[2]);
-	Customstyle_yz->initModes(iASlicerMode::XY, iASlicerMode::XZ);
+	Customstyle_yz->initModes(iASlicerMode::XY, slizeZ, iASlicerMode::XZ, sliceY);
 	Customstyle_yz->setMDIChild(m_mdiChild);
 }
 
@@ -439,13 +439,13 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 			continue;
 		}
 		mod->GetRenderer()->SetMovable(mod == currentData);
-		for (int sl = 0; sl < iASlicerMode::SlicerCount; sl++) {
-			//slicer(i)->getChannel(modality_id)->imageActor->SetDragable(enabled);
+		//enable / disable dragging
+		for (int sl = 0; sl < iASlicerMode::SlicerCount; sl++)
+		{
+			if (mod->channelID() == NotExistingChannel)
+				continue;
 			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetDragable(currentData->channelID() == mod->channelID());
 			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetPickable(currentData->channelID() == mod->channelID());
-			/*slicer(i)->getChannel(modality_id)->acto*/
-			/*slicer(i)->getChannel(modality_id)->imageActor->SetPickable(enabled)*/;
-
 		}
 	}
 	emit ModalitySelected(selectedRow);
