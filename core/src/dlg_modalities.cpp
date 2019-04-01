@@ -341,7 +341,6 @@ void dlg_modalities::ManualRegistration()
 			return;
 		}
 		
-		//props aus den channels rausholen
 
 		if (!interactSwitch3D)
 		{
@@ -351,13 +350,7 @@ void dlg_modalities::ManualRegistration()
 		if (cbManualRegistration->isChecked())
 		{
 			interactSwitch3D->SetCurrentStyleToTrackballActor();
-			//interactSwitch3D->GetInteractor()->getPro	
-			//no update of slice window; 
-			//background black not transparent
 
-			/*if (!interactSwitch_XY) {DEBUG_LOG("XY Interactor null"); return; };
-			if (!interactSwitch_YZ) { DEBUG_LOG("YZ Interactor null"); return; };
-			if (!interactSwitch_XZ) { DEBUG_LOG("XZ Interactor null"); return; };*/
 			configureSlicerStyles(editModality);
 
 			m_mdiChild->slicer(iASlicerMode::XY)->GetInteractor()->SetInteractorStyle(Customstyle_xy);
@@ -402,8 +395,8 @@ void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModali
 	double *pos = PropVol_3d->GetPosition();
 
 	int slizeZ = m_mdiChild->slicer(iASlicerMode::XY)->sliceNumber();
-	int slizeX = m_mdiChild->slicer(iASlicerMode::XZ)->sliceNumber();
-	int sliceY = m_mdiChild->slicer(iASlicerMode::YZ)->sliceNumber();
+	int sliceY = m_mdiChild->slicer(iASlicerMode::XZ)->sliceNumber();
+	int sliceX = m_mdiChild->slicer(iASlicerMode::YZ)->sliceNumber();
 
 	//setting the two other slicer + 3d
 	//coordinates with on as current slice plane
@@ -421,8 +414,8 @@ void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModali
 	Customstyle_xz->setMDIChild(m_mdiChild);
 
 	Customstyle_yz->initializeActors(volRend, propXY, propXZ); //plane xy, slice x;
-	Customstyle_yz->setActiveSlicer(propYZ, iASlicerMode::YZ, slizeX);
-	Customstyle_yz->initCoordinates(slizeX, pos[1], pos[2]);
+	Customstyle_yz->setActiveSlicer(propYZ, iASlicerMode::YZ, sliceX);
+	Customstyle_yz->initCoordinates(sliceX, pos[1], pos[2]);
 	Customstyle_yz->initModes(iASlicerMode::XY, iASlicerMode::XZ);
 	Customstyle_yz->setMDIChild(m_mdiChild);
 }

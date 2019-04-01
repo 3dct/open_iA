@@ -10,7 +10,9 @@
 namespace
 {
 	//update the position while keeping one coordinate fixed, based on slicer mode
-	void updatePropPosition(vtkProp3D *prop, iASlicerMode mode, const propDefs::SliceDefs &sl_defs, QString text) {
+	void updatePropPosition(vtkProp3D *prop, iASlicerMode mode, const propDefs::SliceDefs &sl_defs, 
+		QString text, bool enablePrinting) 
+	{
 		assert(prop && "object is null");
 		if (!prop) {
 			DEBUG_LOG("update Prop failed");
@@ -47,7 +49,8 @@ namespace
 			throw std::invalid_argument("invalid slicer mode");
 		}
 
-		propDefs::PropModifier::printProp(prop, text);
+		if (enablePrinting); 
+			propDefs::PropModifier::printProp(prop, text);
 	}
 }
 
@@ -206,7 +209,7 @@ void iACustomInterActorStyleTrackBall::OnRightButtonUp()
 void iACustomInterActorStyleTrackBall::FindPickedActor(int x, int y)
 {
 
-	this->InteractionPicker->Pick(x, y, 0.0, this->CurrentRenderer);
+	this->InteractionPicker->Pick(x, y, 0.0, this->CurrentRenderer); 
 	//Image actor
 	vtkProp *prop = this->InteractionPicker->GetViewProp();
 	if (prop != nullptr)
@@ -239,8 +242,6 @@ void iACustomInterActorStyleTrackBall::setActiveSlicer(vtkProp3D *currentActor, 
 
 void iACustomInterActorStyleTrackBall::updateSlicer()
 {
-
-	//position;-> 2 mal die propdefs
 	propDefs::sliceProp propSlice1; 
 	propDefs::sliceProp propSlice2;
 	propDefs::SliceDefs sl_defs; 
@@ -253,14 +254,15 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 	sl_defs.y = pos[1];
 	sl_defs.z = pos[2];
 
-	DEBUG_LOG(QString("New positoins \t%1 \t%2 \t%3, Fixed %4").arg(sl_defs.x).arg(sl_defs.y).arg(sl_defs.z).arg(sl_defs.fixedCoord));
+	DEBUG_LOG(QString("New positoins \t%1 \t%2 \t%3, Fixed %4").arg(sl_defs.x).arg(sl_defs.y).
+		arg(sl_defs.z).arg(sl_defs.fixedCoord));
 
 	//zb current slice mode xy -> z is fixed
 
-	//update slicer 1 - props are null why??? 
-	updatePropPosition(m_propSlicer1.prop, m_PropCurrentSlicer.mode, sl_defs, "Slicer1"); 
+	//update slicer 1 
+	updatePropPosition(m_propSlicer1.prop, m_PropCurrentSlicer.mode, sl_defs, "Slicer1", true); 
 	//update slicer 2; 
-	updatePropPosition(m_propSlicer2.prop, m_PropCurrentSlicer.mode, sl_defs, "Slicer2");
+	updatePropPosition(m_propSlicer2.prop, m_PropCurrentSlicer.mode, sl_defs, "Slicer2", true);
 	//update slicer 3D; 
 	
 	const double *pos3d = m_volumeRenderer->GetVolume().Get()->GetPosition();
@@ -281,7 +283,7 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 	}
 
 	//here muss noch die richtige dritte coordinate rein
-	updatePropPosition(m_volumeRenderer->GetVolume().Get(), m_PropCurrentSlicer.mode, sl_defs, "Slicer3d");
+	updatePropPosition(m_volumeRenderer->GetVolume().Get(), m_PropCurrentSlicer.mode, sl_defs, "Slicer3d", true);
 	if (this->m_mdiChild)
 	{
 		m_volumeRenderer->Update();
