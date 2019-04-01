@@ -2325,7 +2325,7 @@ void MdiChild::setMagicLensEnabled(bool isOn)
 		m_slicer[s]->setMagicLensEnabled( isOn );
 }
 
-void MdiChild::updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
+void MdiChild::updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf,  bool enable)
 {
 	iAChannelData * chData = getChannelData( id );
 	if (!chData)
@@ -2333,10 +2333,10 @@ void MdiChild::updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtk
 	chData->setData( imgData, ctf, otf );
 	for (uint s = 0; s < 3; ++s)
 	{
-		if (m_slicer[s]->hasChannel(s))
+		if (m_slicer[s]->hasChannel(id))
 			m_slicer[s]->updateChannel(id, *chData);
 		else
-			m_slicer[s]->addChannel(id, *chData, false);
+			m_slicer[s]->addChannel(id, *chData, enable);
 	}
 }
 
@@ -2404,7 +2404,7 @@ void MdiChild::changeMagicLensModality(int chg)
 	getChannelData(m_magicLensChannel)->setOpacity(0.5);
 	QString name(getModality(m_currentModality)->GetImageName(m_currentComponent));
 	getChannelData(m_magicLensChannel)->setName(name);
-	updateChannel(m_magicLensChannel, img, m_dlgModalities->GetCTF(m_currentModality), m_dlgModalities->GetOTF(m_currentModality));
+	updateChannel(m_magicLensChannel, img, m_dlgModalities->GetCTF(m_currentModality), m_dlgModalities->GetOTF(m_currentModality), false);
 	setMagicLensInput(m_magicLensChannel, true);
 	setHistogramModality(m_currentModality);	// TODO: don't change histogram, just read/create min/max and transfer function?
 }

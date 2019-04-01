@@ -202,7 +202,7 @@ public:
 	//! Create a new channel, return its ID.
 	uint createChannel();
 	//! Update the data of the given channel ID.
-	void updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+	void updateChannel(uint id, vtkSmartPointer<vtkImageData> imgData, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf, bool enable);
 	//! Update opacity of the given channel ID.
 	void updateChannelOpacity(uint id, double opacity);
 	

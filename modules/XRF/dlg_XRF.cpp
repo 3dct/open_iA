@@ -1017,7 +1017,7 @@ void dlg_XRF::updateConcentrationOpacity(int newVal)
 	m_otf[channelIdx]->AddPoint(0.0, 0.0);
 	m_otf[channelIdx]->AddPoint(1.0, opacity);
 	vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(channelIdx);
-	(dynamic_cast<MdiChild*>(parent()))->updateChannel(m_channelIDs[channelIdx], chImgData, m_ctf[channelIdx], m_otf[channelIdx]);
+	(dynamic_cast<MdiChild*>(parent()))->updateChannel(m_channelIDs[channelIdx], chImgData, m_ctf[channelIdx], m_otf[channelIdx], true);
 	(dynamic_cast<MdiChild*>(parent()))->updateViews();
 }
 

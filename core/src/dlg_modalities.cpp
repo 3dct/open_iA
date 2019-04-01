@@ -303,8 +303,7 @@ void dlg_modalities::EditClicked()
 	{
 		if (editModality->channelID() == NotExistingChannel)
 			editModality->setChannelID(m_mdiChild->createChannel());
-		m_mdiChild->updateChannel(editModality->channelID(), editModality->GetImage(), editModality->GetTransfer()->getColorFunction(), editModality->GetTransfer()->getOpacityFunction());
-		m_mdiChild->initChannelRenderer(editModality->channelID(), false);
+		m_mdiChild->updateChannel(editModality->channelID(), editModality->GetImage(), editModality->GetTransfer()->getColorFunction(), editModality->GetTransfer()->getOpacityFunction(), true);
 		m_mdiChild->updateChannelOpacity(editModality->channelID(), 1);
 		m_mdiChild->updateViews();
 	}
