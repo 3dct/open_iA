@@ -74,29 +74,8 @@ iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall() {
 
 void iACustomInterActorStyleTrackBall::OnMouseMove()
 {
-	/*int x = this->Interactor->GetEventPosition()[0];
-	int y = this->Interactor->GetEventPosition()[1];
-
-	switch (this->State)
-
-	case VTKIS_PAN: {
-		this->FindPokedRenderer(x, y);
-		this->Pan();
-		this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
-		break;
-	}
-*/
 	vtkInteractorStyleTrackballActor::OnMouseMove();
-	//if (!this->Interactor->GetShiftKey())
-	//	return;
 
-
-	//int x = this->Interactor->GetEventPosition()[0];
-	//int y = this->Interactor->GetEventPosition()[1];
-
-	//this->FindPokedRenderer(x, y);
-	//this->Interactor->GetPicker()->Pick(x, y, 0, this->GetCurrentRenderer());
-	//this->FindPickedActor(x, y);
 	if (this->m_volumeRenderer == nullptr || this->m_PropCurrentSlicer.prop == nullptr
 		|| this->m_propSlicer1.prop == nullptr || this->m_propSlicer2.prop == nullptr)
 	{
@@ -260,9 +239,9 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 	//zb current slice mode xy -> z is fixed
 
 	//update slicer 1 
-	updatePropPosition(m_propSlicer1.prop, m_PropCurrentSlicer.mode, sl_defs, "Slicer1", true); 
+	updatePropPosition(m_propSlicer1.prop, m_PropCurrentSlicer.mode, sl_defs, "Slicer1", false); 
 	//update slicer 2; 
-	updatePropPosition(m_propSlicer2.prop, m_PropCurrentSlicer.mode, sl_defs, "Slicer2", true);
+	updatePropPosition(m_propSlicer2.prop, m_PropCurrentSlicer.mode, sl_defs, "Slicer2", false);
 	//update slicer 3D; 
 	
 	const double *pos3d = m_volumeRenderer->GetVolume().Get()->GetPosition();
@@ -283,7 +262,7 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 	}
 
 	//here muss noch die richtige dritte coordinate rein
-	updatePropPosition(m_volumeRenderer->GetVolume().Get(), m_PropCurrentSlicer.mode, sl_defs, "Slicer3d", true);
+	updatePropPosition(m_volumeRenderer->GetVolume().Get(), m_PropCurrentSlicer.mode, sl_defs, "Slicer3d", false);
 	if (this->m_mdiChild)
 	{
 		m_volumeRenderer->Update();
