@@ -41,7 +41,6 @@ namespace propDefs {
 	};
 
 	struct SliceDefs {
-		double fixedCurrentSlicerCoord;
 		double x; 
 		double y;
 		double z; 
@@ -114,57 +113,7 @@ public:
 	//we need the shift key to 
 	virtual void OnLeftButtonDown()
 	{
-		vtkInteractorStyleTrackballActor::OnLeftButtonDown();
-		/*int x = this->Interactor->GetEventPosition()[0];
-		int y = this->Interactor->GetEventPosition()[1];
-
-		this->FindPokedRenderer(x, y);
-		this->Interactor->GetPicker()->Pick(x, y, 0, this->GetCurrentRenderer());
-		this->FindPickedActor(x, y);
-		if (this->CurrentRenderer == nullptr || this->m_PropCurrentSlicer.prop == nullptr
-			|| this->m_propSlicer1.prop == nullptr || this->m_propSlicer2.prop == nullptr)
-		{
-			DEBUG_LOG("Either renderer or props are null");
-			return;
-		}
-
-		if (!this->Interactor->GetShiftKey())
-			return;*/
-
-		//
-		//int x = this->Interactor->GetEventPosition()[0];
-		//int y = this->Interactor->GetEventPosition()[1];
-
-		//this->FindPokedRenderer(x, y);
-		//this->Interactor->GetPicker()->Pick(x, y, 0, this->GetCurrentRenderer());
-		//this->FindPickedActor(x, y);
-		//if (this->CurrentRenderer == nullptr || this->m_PropCurrentSlicer.prop == nullptr
-		//	|| this->m_propSlicer1.prop == nullptr || this->m_propSlicer2.prop == nullptr)
-		//{
-		//	DEBUG_LOG("Either renderer or props are null");
-		//	return;
-		//}
-
-		//double picked[3];
-		//this->Interactor->GetPicker()->GetPickPosition(picked);
-		//DEBUG_LOG(QString("Picked 1% \t %2 \t %3").arg(picked[0]).arg(picked[1]).arg(picked[2]));
-
-		////connect the components; 
-		//printProbOrientation();
-		//printPropPosistion();
-		//printProbOrigin();
-
-		//assert(this->m_volumeRenderer && "prop 3D slicer null");
-		//assert(this->m_propSlicer1.prop && "prop Slicer 1 null");
-		//assert(this->m_propSlicer2.prop && "prop Slicer 2 null");
-
-		//
-
-		//updateSlicer();
-
-		//if (!this->Interactor->GetShiftKey())
-		//	return;
-		//	vtkInteractorStyleTrackballActor::OnLeftButtonDown();
+		vtkInteractorStyleTrackballActor::OnLeftButtonDown();		
 
 	}
 
@@ -215,7 +164,6 @@ public:
 		sliceX = x; 
 		sliceY = y;
 		sliceZ = z; 
-		//m_PropCurrentSlicer
 	}
 
 	void initializeActors(iAVolumeRenderer *volRend, vtkProp3D *propSlicer1, vtkProp3D *propSlicer2)

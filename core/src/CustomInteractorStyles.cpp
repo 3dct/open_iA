@@ -58,13 +58,14 @@ namespace
 	class slice_coords {
 	public:
 
-		slice_coords(double * pos)
+		slice_coords(double const * pos)
 		{
 			x = pos[0];
 			y = pos[1];
 			z = pos[2];
 		}
 
+		//convert position to coords
 		void toCoords(vtkProp3D *prop, iASlicerMode mode, bool update3D)
 		{	
 			double pos[3];
@@ -146,9 +147,9 @@ iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall() {
 	m_currentPos[0] = std::numeric_limits<double>::min();
 	m_currentPos[1] = std::numeric_limits<double>::min();
 	m_currentPos[2] = std::numeric_limits<double>::min();
-	m_PropCurrentSlicer.fixedCoord = std::numeric_limits<double>::min(); 
+	/*m_PropCurrentSlicer.fixedCoord = std::numeric_limits<double>::min(); 
 	m_propSlicer1.fixedCoord = std::numeric_limits<double>::min();
-	m_propSlicer2.fixedCoord = std::numeric_limits<double>::min(); 
+	m_propSlicer2.fixedCoord = std::numeric_limits<double>::min(); */
 
 }
 
