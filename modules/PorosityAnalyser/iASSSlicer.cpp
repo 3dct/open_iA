@@ -192,7 +192,7 @@ void iASSSlicer::changeMode( iASlicerMode mode )
 void iASSSlicer::initialize( vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkColorTransferFunction> tf )
 {
 	slicer->setup( iASingleSlicerSettings() );
-	slicer->addChannel(0, iAChannelData(img, tf), true);
+	slicer->addChannel(0, iAChannelData("", img, tf), true);
 	slicer->update();
 }
 

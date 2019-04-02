@@ -79,7 +79,7 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 	vtkImageData *imageData = modality->GetImage().GetPointer();
 
 	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->getColorFunction();
-	m_slicer->addChannel(0, iAChannelData(imageData, colorFunction), true);
+	m_slicer->addChannel(0, iAChannelData(modality->GetName(), imageData, colorFunction), true);
 	m_slicer->disableInteractor();
 
 	if (!m_enableInteraction) {
