@@ -46,8 +46,8 @@ namespace propDefs {
 		double y;
 		double z; 
 
-		void print() {
-			DEBUG_LOG(QString("Coords %1 %2 %3").arg(x).arg(y).arg(z)); 
+		void print(QString obj) {
+			DEBUG_LOG(obj + QString("Coords %1 %2 %3").arg(x).arg(y).arg(z)); 
 		}
 	};
 
@@ -55,7 +55,9 @@ namespace propDefs {
 	class PropModifier
 	{
 	public:
-				
+		
+		
+
 		static void updatePropOrientation(vtkProp3D *prop, double angle_x, double angle_y, double angle_z)
 		{
 			 prop->SetOrientation(angle_x, angle_y, angle_z); 
@@ -69,8 +71,28 @@ namespace propDefs {
 			 const double *orientation=prop->GetOrientation(); 
 			 const double *position = prop->GetPosition();
 
-			 DEBUG_LOG(Text + QString("Printing prop pos %1 %2 %3").arg(position[0]).arg(position[1]).arg(position[2]));
+			 DEBUG_LOG(Text + QString("x: %1 y: %2 z: %3").arg(position[0]).arg(position[1]).arg(position[2]));
 
+		 }
+
+		 static QString printMode(iASlicerMode mode) {
+			 QString tmp = "Slicer \t"; 
+			 switch (mode)
+			 {
+			 case YZ:
+				 tmp += "yz \t";
+				 break;
+			 case XY:
+				 tmp += "XY \t";
+				 break;
+			 case XZ:
+				 tmp += "xz \t";
+				 break;			
+			 default:
+				 break;
+			 }
+
+			 return tmp; 
 		 }
 	};
 

@@ -3,75 +3,131 @@
 #include "iAVolumeRenderer.h"
 
 #include <vtkVolume.h>
+#include <vtkProp3D.h>
 
 #include <limits>
 
 
 namespace
 {
-	//update the position while keeping one coordinate fixed, based on slicer mode
-	void updatePropPosition(vtkProp3D *prop, iASlicerMode mode, const propDefs::SliceDefs &sl_defs, 
-		QString text, bool enablePrinting) 
-	{
-		assert(prop && "object is null");
-		if (!prop) {
-			DEBUG_LOG("update Prop failed");
-			throw std::invalid_argument("null pointer of prop");
+	////update the position while keeping one coordinate fixed, based on slicer mode
+	//void updatePropPosition(vtkProp3D *prop, iASlicerMode mode, const propDefs::SliceDefs &sl_defs, 
+	//	QString text, bool enablePrinting) 
+	//{
+	//	assert(prop && "object is null");
+	//	if (!prop) {
+	//		DEBUG_LOG("update Prop failed");
+	//		throw std::invalid_argument("null pointer of prop");
 
-		}
+	//	}
 
-		double *pos = prop->GetPosition();
+	//	double *pos = prop->GetPosition();
 
-		switch (mode)
-		{
-		case YZ:
-			//x is fixed
-			pos[0] = sl_defs.fixedCurrentSlicerCoord; //keep 
-			pos[1] = sl_defs.x;
-			pos[2] = sl_defs.y;
-			prop->SetPosition(pos);
-			break;
-		case XY:
-			//z is fixed
-			pos[0] = sl_defs.x;
-			pos[1] = sl_defs.y;
-			pos[2] = sl_defs.fixedCurrentSlicerCoord;//keep 
-			prop->SetPosition(pos);
-			break;
-		case XZ:
-			//y fixed
-			pos[0] = sl_defs.x;
-			pos[1] = sl_defs.fixedCurrentSlicerCoord;//keep 
-			pos[2] = sl_defs.y;
-			prop->SetPosition(pos);
-			break;
-		default:
-			throw std::invalid_argument("invalid slicer mode");
-		}
+	//	switch (mode)
+	//	{
+	//	case YZ:
+	//		//x is fixed
+	//		pos[0] = sl_defs.fixedCurrentSlicerCoord; //keep 
+	//		pos[1] = sl_defs.x;
+	//		pos[2] = sl_defs.y;
+	//		prop->SetPosition(pos);
+	//		break;
+	//	case XY:
+	//		//z is fixed
+	//		pos[0] = sl_defs.x;
+	//		pos[1] = sl_defs.y;
+	//		pos[2] = sl_defs.fixedCurrentSlicerCoord;//keep 
+	//		prop->SetPosition(pos);
+	//		break;
+	//	case XZ:
+	//		//y fixed
+	//		pos[0] = sl_defs.x;
+	//		pos[1] = sl_defs.fixedCurrentSlicerCoord;//keep 
+	//		pos[2] = sl_defs.y;
+	//		prop->SetPosition(pos);
+	//		break;
+	//	default:
+	//		throw std::invalid_argument("invalid slicer mode");
+	//	}
 
-		if (enablePrinting); 
-			propDefs::PropModifier::printProp(prop, text);
-	}
+	//	if (enablePrinting); 
+	//		propDefs::PropModifier::printProp(prop, text);
+	//}
 
-
-	//replace one coordinate
-	void updateSliceDefs(propDefs::SliceDefs &sl_defs, const iASlicerMode mode, const double coord) {
-		switch (mode)
-		{
-		case YZ:
-			sl_defs.x = coord; 
-			break;
-		case XZ:
-			sl_defs.y = coord; 
-			break;
-		case XY:
-			sl_defs.z = coord; 
-			break;
-		default:
-			break;
-		}
 	
-	}
+	class slice_coords {
+	public:
+
+		slice_coords(double * pos)
+		{
+			x = pos[0];
+			y = pos[1];
+			z = pos[2];
+		}
+
+		void toCoords(vtkProp3D *prop, iASlicerMode mode, bool update3D)
+		{	
+			double pos[3];
+			prop->GetPosition(pos);
+			if (!update3D)
+			{
+				pos[2] = 0;
+				switch (mode) {
+				case iASlicerMode::XY:
+					pos[0] = x;
+					pos[1] = y;
+					break;
+				case iASlicerMode::YZ:
+					pos[0] = y;
+					pos[1] = z;
+					break;
+				case iASlicerMode::XZ:
+					pos[0] = x;
+					pos[1] = z;
+					break;
+				}
+			}
+			else
+			{
+				pos[0] = x;
+				pos[1] = y;
+				pos[2] = z;
+			}
+			prop->SetPosition(pos); 
+
+		}
+
+		void updateCoords(const double *pos, iASlicerMode mode) {
+			switch (mode)
+			{
+			case iASlicerMode::XY:
+				x = pos[0];
+				y = pos[1];
+				break;
+			case iASlicerMode::XZ:
+				x = pos[0];
+				z = pos[1];
+				break;
+			case iASlicerMode::YZ:
+				y = pos[0];
+				z = pos[1];
+			}
+		}
+
+		
+
+		QString toString() {
+			return QString("x %1 y %2 z %3").arg(x).arg(y).arg(z);
+
+		}
+
+	private:
+		slice_coords() = delete; 
+		double x;
+		double y;
+		double z;
+
+	};
 }
 
 vtkStandardNewMacro(iACustomInterActorStyleTrackBall);
@@ -200,68 +256,42 @@ void iACustomInterActorStyleTrackBall::setActiveSlicer(vtkProp3D *currentActor, 
 
 void iACustomInterActorStyleTrackBall::updateSlicer()
 {
-	propDefs::sliceProp propSlice1; 
-	propDefs::sliceProp propSlice2;
-	propDefs::SliceDefs slicer1_defs; 
-	propDefs::SliceDefs slicer2_defs;
-
+	//getting coords from 3d slicer
+	
+	//coords // !!dritte immer null in 2d; 
+	const double *posCurrentSlicer = m_PropCurrentSlicer.prop->GetPosition();
 
 	
-	//coords // dritte immer null in 2d; 
-	const double *pos = m_PropCurrentSlicer.prop->GetPosition();
+	iASlicerMode customYZ = iASlicerMode::YZ;
+	iASlicerMode customXZ= iASlicerMode::XZ;
+	iASlicerMode customXY = iASlicerMode::XY;
+
+
+	//test data for the slicers
+	//const double testPosYZ[3] = { 195.904, -112.318, 0 };// testPropYZ->GetPosition();
+	//const double testPosXZ[3] = { 163.221, -32.6442, 0 };
+	//const double testPosXY[3] = { -153.34, 4.79187, 0 };
+	//
+
+	//coords initialized from the current slicer; 
+	slice_coords coords(m_volumeRenderer->GetPosition());
+	coords.updateCoords(posCurrentSlicer, m_PropCurrentSlicer.mode);
+	coords.toCoords(m_propSlicer1.prop, m_propSlicer1.mode, false);
+	coords.toCoords(m_propSlicer2.prop, m_propSlicer2.mode, false);	
 	
-	slicer1_defs.fixedCurrentSlicerCoord = m_PropCurrentSlicer.fixedCoord; 
-	slicer1_defs.x = pos[0];
-	slicer1_defs.y = pos[1];
-	slicer1_defs.z = pos[2];
-
-	slicer2_defs = slicer1_defs; //copy
-
-	DEBUG_LOG(QString("New positions \t%1 \t%2 \t%3, Fixed %4").arg(slicer1_defs.x).arg(slicer1_defs.y).
-		arg(slicer1_defs.z).arg(slicer1_defs.fixedCurrentSlicerCoord));
-
-	
-	//zb current slice mode xy -> z is fixed
-	//others are 
-
-	//keeping 2 coordinates fixed, 1 ->die des aktuellen sliceviews
-
-
+	QString modeCurrent = propDefs::PropModifier::printMode(m_PropCurrentSlicer.mode);
+	DEBUG_LOG(QString("current slicer ")  + modeCurrent);
 
 	//getting coordinate and mode of the other slicer
-	
-		//update slicer 1 
-	updateSliceDefs(slicer1_defs, m_propSlicer1.mode, m_propSlicer1.fixedCoord);
-	slicer1_defs.print(); 
-	updatePropPosition(m_propSlicer1.prop, m_PropCurrentSlicer.mode, slicer1_defs, "Slicer1", true); 
-	
-	//update slicer 2; 
-	updateSliceDefs(slicer2_defs, m_propSlicer2.mode, m_propSlicer2.fixedCoord); 
+	QString str_mode1 = propDefs::PropModifier::printMode(m_propSlicer1.mode);
+	propDefs::PropModifier::printProp(m_propSlicer1.prop, str_mode1); 
+	QString str_mode2 = propDefs::PropModifier::printMode(m_propSlicer2.mode);
 
-	updatePropPosition(m_propSlicer2.prop, m_PropCurrentSlicer.mode, slicer2_defs, "Slicer2", true);
-	slicer2_defs.print(); 
-	
-	//update slicer 3D; 
-	
-	const double *pos3d = m_volumeRenderer->GetVolume().Get()->GetPosition();
-
-	
-	//assing 3rd of the 3d thing coordinate to a slicer
-	switch (m_PropCurrentSlicer.mode) {
-	
-	case(iASlicerMode::YZ):
-		slicer1_defs.fixedCurrentSlicerCoord = pos3d[0];
-		break;
-	case (iASlicerMode::XZ): 
-		slicer1_defs.fixedCurrentSlicerCoord = pos3d[1];
-		break; 
-	case (iASlicerMode::XY):
-		slicer1_defs.fixedCurrentSlicerCoord = pos3d[2]; 
-		break;	
-	}
-
-	//here muss noch die richtige dritte coordinate rein
-	updatePropPosition(m_volumeRenderer->GetVolume().Get(), m_PropCurrentSlicer.mode, slicer1_defs, "Slicer3d", false);
+	propDefs::PropModifier::printProp(m_propSlicer2.prop, str_mode2); 
+		
+	coords.toCoords(m_volumeRenderer->GetVolume(), m_PropCurrentSlicer.mode, true);
+	propDefs::PropModifier::printProp(m_volumeRenderer->GetVolume(), "3d renderer");
+		
 	if (this->m_mdiChild)
 	{
 		m_volumeRenderer->Update();
