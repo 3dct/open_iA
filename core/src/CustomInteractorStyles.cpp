@@ -136,29 +136,22 @@ vtkStandardNewMacro(iACustomInterActorStyleTrackBall);
 iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall() {
 
 	InteractionMode = 0;
-	this->m_PropCurrentSlicer.prop = nullptr;
 	this->m_volumeRenderer = nullptr; 
-	this->m_propSlicer1.prop = nullptr;
-	this->m_propSlicer2.prop = nullptr; 
+	std::fill(m_propSlicer, m_propSlicer + iASlicerMode::SlicerCount, nullptr);
 	this->m_mdiChild = nullptr; 
 
-	this->InteractionPicker = vtkCellPicker::New();
+	//this->InteractionPicker = vtkCellPicker::New();
+	// TODO : check how this is done in other places
 	this->InteractionPicker->SetTolerance(100.0);
-	m_currentPos[0] = std::numeric_limits<double>::min();
-	m_currentPos[1] = std::numeric_limits<double>::min();
-	m_currentPos[2] = std::numeric_limits<double>::min();
-	/*m_PropCurrentSlicer.fixedCoord = std::numeric_limits<double>::min(); 
-	m_propSlicer1.fixedCoord = std::numeric_limits<double>::min();
-	m_propSlicer2.fixedCoord = std::numeric_limits<double>::min(); */
-
+	enable3D = false; 
 }
 
 void iACustomInterActorStyleTrackBall::OnMouseMove()
 {
 	vtkInteractorStyleTrackballActor::OnMouseMove();
 
-	if (this->m_volumeRenderer == nullptr || this->m_PropCurrentSlicer.prop == nullptr
-		|| this->m_propSlicer1.prop == nullptr || this->m_propSlicer2.prop == nullptr)
+	if (this->m_volumeRenderer == nullptr || this->m_propSlicer[0] == nullptr
+		|| this->m_propSlicer[1] == nullptr || this->m_propSlicer[2] == nullptr)
 	{
 		DEBUG_LOG("Either renderer or props are null");
 		return;
@@ -172,18 +165,9 @@ void iACustomInterActorStyleTrackBall::OnMouseMove()
 	printProbOrientation();
 	printPropPosistion();
 	printProbOrigin();
-
-	assert(this->m_volumeRenderer && "prop 3D slicer null");
-	assert(this->m_propSlicer1.prop && "prop Slicer 1 null");
-	assert(this->m_propSlicer2.prop && "prop Slicer 2 null");
 	   
 	updateSlicer();
 }
-
-
-	
-
-
 
 
 void iACustomInterActorStyleTrackBall::OnLeftButtonUp()
@@ -221,9 +205,9 @@ void iACustomInterActorStyleTrackBall::OnRightButtonUp()
 
 }
 
+/*
 void iACustomInterActorStyleTrackBall::FindPickedActor(int x, int y)
 {
-
 	this->InteractionPicker->Pick(x, y, 0.0, this->CurrentRenderer); 
 	//Image actor
 	vtkProp *prop = this->InteractionPicker->GetViewProp();
@@ -236,23 +220,18 @@ void iACustomInterActorStyleTrackBall::FindPickedActor(int x, int y)
 		this->m_PropCurrentSlicer.prop = nullptr;
 	}
 }
+*/
 
-void iACustomInterActorStyleTrackBall::initModes(iASlicerMode mode_slice1, double coordSlice1, iASlicerMode mode_slice2, double coordSlice2)
+void iACustomInterActorStyleTrackBall::initialize(iAVolumeRenderer *volRend, vtkProp3D *propSlicer[3], int currentMode, MdiChild *mdiChild)
 {
-	setModeSlicer1(mode_slice1, coordSlice1);
-	setModeSlicer2(mode_slice2, coordSlice2); 
-}
-
-void iACustomInterActorStyleTrackBall::setActiveSlicer(vtkProp3D *currentActor, iASlicerMode slice, int activeSliceNr)
-{
-	if (!currentActor) {
-		throw std::invalid_argument("slice actor is null");
-	}
-
-	m_PropCurrentSlicer.prop = currentActor; 
-	m_PropCurrentSlicer.fixedCoord = activeSliceNr; 
-	m_PropCurrentSlicer.mode = slice; 
-
+	m_volumeRenderer = volRend;
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+		m_propSlicer[i] = propSlicer[i];
+	m_currentSliceMode = currentMode;
+	enable3D = (m_currentSliceMode == iASlicerMode::SlicerCount);
+	if (enable3D)
+		this->SetInteractionMode(VTKIS_IMAGE3D);
+	m_mdiChild = mdiChild;
 }
 
 void iACustomInterActorStyleTrackBall::updateSlicer()
@@ -260,13 +239,6 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 	//getting coords from 3d slicer
 	
 	//coords // !!dritte immer null in 2d; 
-	const double *posCurrentSlicer = m_PropCurrentSlicer.prop->GetPosition();
-
-	
-	iASlicerMode customYZ = iASlicerMode::YZ;
-	iASlicerMode customXZ= iASlicerMode::XZ;
-	iASlicerMode customXY = iASlicerMode::XY;
-
 
 	//test data for the slicers
 	//const double testPosYZ[3] = { 195.904, -112.318, 0 };// testPropYZ->GetPosition();
@@ -276,23 +248,27 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 
 	//coords initialized from the current slicer; 
 	slice_coords coords(m_volumeRenderer->GetPosition());
-	coords.updateCoords(posCurrentSlicer, m_PropCurrentSlicer.mode);
-	coords.toCoords(m_propSlicer1.prop, m_propSlicer1.mode, false);
-	coords.toCoords(m_propSlicer2.prop, m_propSlicer2.mode, false);	
-	
-	QString modeCurrent = propDefs::PropModifier::printMode(m_PropCurrentSlicer.mode);
-	DEBUG_LOG(QString("current slicer ")  + modeCurrent);
 
-	//getting coordinate and mode of the other slicer
-	QString str_mode1 = propDefs::PropModifier::printMode(m_propSlicer1.mode);
-	propDefs::PropModifier::printProp(m_propSlicer1.prop, str_mode1); 
-	QString str_mode2 = propDefs::PropModifier::printMode(m_propSlicer2.mode);
+	if (!enable3D)
+	{
+		const double *posCurrentSlicer = m_propSlicer[m_currentSliceMode]->GetPosition();
+		coords.updateCoords(posCurrentSlicer, static_cast<iASlicerMode>(m_currentSliceMode));
+	}
+	DEBUG_LOG(QString("Current Slicer: ") + getSlicerModeString(m_currentSliceMode));
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+	{
+		if (i != m_currentSliceMode)
+		{
+			coords.toCoords(m_propSlicer[i], static_cast<iASlicerMode>(i), false);
+			propDefs::PropModifier::printProp(m_propSlicer[i], getSlicerModeString(i));
+		}
+	}
+	if (!enable3D)
+	{
+		coords.toCoords(m_volumeRenderer->GetVolume(), static_cast<iASlicerMode>(m_currentSliceMode), true);
+		propDefs::PropModifier::printProp(m_volumeRenderer->GetVolume(), "3d renderer");
+	}
 
-	propDefs::PropModifier::printProp(m_propSlicer2.prop, str_mode2); 
-		
-	coords.toCoords(m_volumeRenderer->GetVolume(), m_PropCurrentSlicer.mode, true);
-	propDefs::PropModifier::printProp(m_volumeRenderer->GetVolume(), "3d renderer");
-		
 	if (this->m_mdiChild)
 	{
 		m_volumeRenderer->Update();
@@ -301,6 +277,24 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 	}
 }
 
+void iACustomInterActorStyleTrackBall::printProbOrigin()
+{
+	double const * const pos = m_currentSliceMode != iASlicerMode::SlicerCount ?
+		m_propSlicer[m_currentSliceMode]->GetOrigin() :
+		m_volumeRenderer->GetVolume()->GetOrigin();
+	DEBUG_LOG(QString("\nOrigin x %1 y %2 z %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
+}
 
+void iACustomInterActorStyleTrackBall::printPropPosistion() {
+	double const * const pos = m_currentSliceMode != iASlicerMode::SlicerCount ?
+		m_propSlicer[m_currentSliceMode]->GetPosition() :
+		m_volumeRenderer->GetVolume()->GetPosition();
+	DEBUG_LOG(QString("\nPosition %1 %2 %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
+}
 
-
+void iACustomInterActorStyleTrackBall::printProbOrientation() {
+	double const * const pos = m_currentSliceMode != iASlicerMode::SlicerCount ?
+		m_propSlicer[m_currentSliceMode]->GetOrientation() :
+		m_volumeRenderer->GetVolume()->GetOrientation();
+	DEBUG_LOG(QString("\nOrientation x %1 y %2 z %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
+}

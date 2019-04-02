@@ -118,6 +118,9 @@ private:
 
 	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy, Customstyle_xz, Customstyle_yz;
 
+	//if this works for 3D
+	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_3D;
+	
 	void AddToList(QSharedPointer<iAModality> mod);
 	//! initialize a modality's transfer function
 	void InitTransfer(QSharedPointer<iAModality> mod);
