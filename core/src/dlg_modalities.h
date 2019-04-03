@@ -86,7 +86,7 @@ private slots:
 	void RemoveClicked();
 	void EditClicked();
 
-	/*Manual movement of one object to another,
+	/*Manual movement / registration of one object to another,
 	* this can be also seen in the slicer
 	*/
 	void ManualRegistration();

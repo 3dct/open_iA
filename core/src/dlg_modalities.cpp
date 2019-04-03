@@ -387,9 +387,6 @@ void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editMo
 		}
 	};
 
-	//global position of the 3D thing
-	double *pos = PropVol_3d->GetPosition();
-
 	//intializse slicers and 3D interactor for registration
 	for (int i=0; i<= iASlicerMode::SlicerCount; ++i)
 		m_manualMoveStyle[i]->initialize(volRend, props, i, m_mdiChild);
@@ -419,8 +416,10 @@ void dlg_modalities::setModalitySelectionMovable(int selectedRow)
 			DEBUG_LOG(QString("Renderer for modality %1 not yet created. Please try again later!").arg(i));
 			continue;
 		}
-		mod->GetRenderer()->SetMovable(mod == currentData);
+
 		//enable / disable dragging
+		mod->GetRenderer()->SetMovable(mod == currentData);
+		
 		for (int sl = 0; sl < iASlicerMode::SlicerCount; sl++)
 		{
 			if (mod->channelID() == NotExistingChannel)
