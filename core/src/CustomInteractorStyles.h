@@ -82,28 +82,10 @@ public:
 	virtual void OnMouseMove();
 	
 	//we need the shift key to 
-	virtual void OnLeftButtonDown()
-	{
-		vtkInteractorStyleTrackballActor::OnLeftButtonDown();		
+		//! @}
 
-	}
-
-	virtual void OnLeftButtonUp(); 
-	void OnMiddleButtonUp() override;	
-	void OnRightButtonUp() override;
-
-	//! @}
 	//! @{ Conditionally disable zooming via right button dragging
-	void OnRightButtonDown() override
-	{
-		if (!m_rightButtonDragZoomEnabled)
-			return;
-		vtkInteractorStyleTrackballActor::OnRightButtonDown();
-	}
-	void SetRightButtonDragZoomEnabled(bool enabled)
-	{
-		m_rightButtonDragZoomEnabled = enabled;
-	}
+
 	void Rotate() override
 	{
 		if (enable3D) vtkInteractorStyleTrackballActor::Rotate();

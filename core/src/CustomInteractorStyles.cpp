@@ -170,40 +170,7 @@ void iACustomInterActorStyleTrackBall::OnMouseMove()
 }
 
 
-void iACustomInterActorStyleTrackBall::OnLeftButtonUp()
-{
-	switch (this->State)
-	{
-	case VTKIS_PAN:
-		this->EndPan();
-		break;
 
-	case VTKIS_SPIN:
-		this->EndSpin();
-		break;
-
-	case VTKIS_ROTATE:
-		this->EndRotate();
-		break;
-	}
-
-	if (this->Interactor)
-	{
-		this->ReleaseFocus();
-	}
-}
-
-
-
-void iACustomInterActorStyleTrackBall::OnMiddleButtonUp()
-{
-
-}
-
-void iACustomInterActorStyleTrackBall::OnRightButtonUp()
-{
-
-}
 
 /*
 void iACustomInterActorStyleTrackBall::FindPickedActor(int x, int y)

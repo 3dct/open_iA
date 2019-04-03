@@ -494,9 +494,12 @@ void iARenderer::setPointPicker()
 	pointPicker = vtkSmartPointer<vtkPicker>::New();
 	pointPicker->SetTolerance(0.00005);//spacing[0]/150);
 	interactor->SetPicker(pointPicker);
-	interactorStyle = vtkSmartPointer<vtkInteractorStyleSwitch>::New();
-	interactorStyle->SetCurrentStyleToTrackballCamera();
-	interactor->SetInteractorStyle(interactorStyle);
+	setDefaultInteractor();
+}
+
+void iARenderer::setDefaultInteractor()
+{
+	interactor->SetInteractorStyle(vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New());
 }
 
 void iARenderer::setupCutter()

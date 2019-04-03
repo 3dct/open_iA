@@ -327,9 +327,6 @@ void dlg_modalities::ManualRegistration()
 {
 	try
 	{
-		vtkInteractorStyleSwitch* interactSwitch3D = dynamic_cast<vtkInteractorStyleSwitch*>(m_magicLensWidget->GetInteractor()->GetInteractorStyle());
-
-		
 		int idx = lwModalities->currentRow();
 		if (idx < 0 || idx >= modalities->size())
 		{
@@ -344,27 +341,23 @@ void dlg_modalities::ManualRegistration()
 			return;
 		}
 		
-		if (!interactSwitch3D)
-		{
-			DEBUG_LOG("Unable to use interact switch");
-			return;
-		}
 		if (cbManualRegistration->isChecked())
 		{
-			interactSwitch3D->SetCurrentStyleToTrackballActor();
+		/*	interactSwitch3D->SetCurrentStyleToTrackballActor();*/
 
 			configureSlicerStyles(editModality);
 
+			m_mdiChild->getRenderer()->GetInteractor()->SetInteractorStyle(Customstyle_3D);
 			m_mdiChild->slicer(iASlicerMode::XY)->GetInteractor()->SetInteractorStyle(Customstyle_xy);
 			m_mdiChild->slicer(iASlicerMode::XZ)->GetInteractor()->SetInteractorStyle(Customstyle_xz);
 			m_mdiChild->slicer(iASlicerMode::YZ)->GetInteractor()->SetInteractorStyle(Customstyle_yz);
 		}
 		else
 		{
+			m_mdiChild->getRenderer()->setDefaultInteractor();
 			m_mdiChild->slicer(iASlicerMode::XY)->setDefaultInteractor();
 			m_mdiChild->slicer(iASlicerMode::YZ)->setDefaultInteractor();
 			m_mdiChild->slicer(iASlicerMode::XZ)->setDefaultInteractor();
-			interactSwitch3D->SetCurrentStyleToTrackballCamera();
 		}
 	}
 	catch (std::invalid_argument &ivae)
