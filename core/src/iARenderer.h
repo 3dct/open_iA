@@ -76,6 +76,7 @@ public:
 	void setPolyData( vtkPolyData* pd );
 	vtkPolyData* getPolyData();
 
+	void setDefaultInteractor();
 	void disableInteractor();
 	void enableInteractor();
 	void setAxesTransform(vtkTransform *transform) { moveableAxesTransform = transform; }
@@ -168,7 +169,6 @@ private:
 	vtkImageData* imageData;
 	//! @}
 
-	vtkSmartPointer<vtkInteractorStyleSwitch> interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> renWin;
 	vtkSmartPointer<vtkOpenGLRenderer> ren, labelRen;
 	vtkSmartPointer<vtkCamera> cam;

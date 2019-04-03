@@ -47,6 +47,7 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkVolume.h>
 
 #include <QFileDialog>
 #include <QSettings>
@@ -64,15 +65,13 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	m_showSlicers(false),
 	m_plane1(nullptr),
 	m_plane2(nullptr),
-	m_plane3(nullptr),
-	Customstyle_xy(vtkSmartPointer<iACustomInterActorStyleTrackBall>::New()),
-	Customstyle_xz(vtkSmartPointer<iACustomInterActorStyleTrackBall>::New()),
-	Customstyle_yz(vtkSmartPointer<iACustomInterActorStyleTrackBall>::New()),
-	Customstyle_3D(vtkSmartPointer<iACustomInterActorStyleTrackBall>::New())
+	m_plane3(nullptr)
 {
-	connect(Customstyle_xy, SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
-	connect(Customstyle_xz, SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
-	connect(Customstyle_yz, SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
+	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
+	{
+		m_manualMoveStyle[i] = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+		connect(m_manualMoveStyle[i], SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
+	}
 	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
 	connect(pbEdit,   SIGNAL(clicked()), this, SLOT(EditClicked()));
@@ -327,9 +326,6 @@ void dlg_modalities::ManualRegistration()
 {
 	try
 	{
-		vtkInteractorStyleSwitch* interactSwitch3D = dynamic_cast<vtkInteractorStyleSwitch*>(m_magicLensWidget->GetInteractor()->GetInteractorStyle());
-
-		
 		int idx = lwModalities->currentRow();
 		if (idx < 0 || idx >= modalities->size())
 		{
@@ -337,34 +333,29 @@ void dlg_modalities::ManualRegistration()
 			return;
 		}
 		QSharedPointer<iAModality> editModality(modalities->Get(idx));
-			   
+		
+		
+	
+		setModalitySelectionMovable(idx);
+
 		if (!editModality->GetRenderer())
 		{
 			DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
 			return;
 		}
 		
-		if (!interactSwitch3D)
-		{
-			DEBUG_LOG("Unable to use interact switch");
-			return;
-		}
 		if (cbManualRegistration->isChecked())
 		{
-			interactSwitch3D->SetCurrentStyleToTrackballActor();
-
-			configureSlicerStyles(editModality);
-
-			m_mdiChild->slicer(iASlicerMode::XY)->GetInteractor()->SetInteractorStyle(Customstyle_xy);
-			m_mdiChild->slicer(iASlicerMode::XZ)->GetInteractor()->SetInteractorStyle(Customstyle_xz);
-			m_mdiChild->slicer(iASlicerMode::YZ)->GetInteractor()->SetInteractorStyle(Customstyle_yz);
+			configureInterActorStyles(editModality);
+			m_mdiChild->getRenderer()->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
+			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+				m_mdiChild->slicer(i)->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[i]);
 		}
 		else
 		{
-			m_mdiChild->slicer(iASlicerMode::XY)->setDefaultInteractor();
-			m_mdiChild->slicer(iASlicerMode::YZ)->setDefaultInteractor();
-			m_mdiChild->slicer(iASlicerMode::XZ)->setDefaultInteractor();
-			interactSwitch3D->SetCurrentStyleToTrackballCamera();
+			m_mdiChild->getRenderer()->setDefaultInteractor();
+			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+				m_mdiChild->slicer(i)->setDefaultInteractor();
 		}
 	}
 	catch (std::invalid_argument &ivae)
@@ -373,43 +364,33 @@ void dlg_modalities::ManualRegistration()
 	}
 }
 
-void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModality)
+void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editModality)
 {
-	iAVolumeRenderer* volRend = editModality->GetRenderer().data();
-	vtkProp3D *PropVol_3d = volRend->GetVolume().Get();
-	if (!volRend || !PropVol_3d)
+	auto img = editModality->GetImage();
+	auto volRend = editModality->GetRenderer().data();
+	//vtkProp3D *PropVol_3d = volRend->GetVolume().Get();
+	if (!img)
 	{
-		DEBUG_LOG("3D volume renderer / prop is null!");
+		DEBUG_LOG("img is null!");
 		return;
 	}
 	uint chID = editModality->channelID();
-	if ((chID == NotExistingChannel) || !editModality->hasRenderFlag(iAModality::Slicer))
-	{
-		m_mdiChild->getLogger()->Log("Modality must be added to slicer before registration");
-		return;
-	}
 
 	//properties of slicer for channelID
-	vtkProp3D * props[3];
+	iAChannelSlicerData * props[3];
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
 	{
-		props[i] = m_mdiChild->slicer(i)->getChannel(chID)->imageActor;
-		if (!props[i])
-		{
-			DEBUG_LOG(QString("prop of slicer %1 is null").arg(getSlicerModeString(i)));
-			return;
+		if (!m_mdiChild->slicer(i)->hasChannel(chID)) {
+			props[i] = nullptr; 
+		}
+		else {
+			props[i] = m_mdiChild->slicer(i)->getChannel(chID);
 		}
 	};
 
-	//global position of the 3D thing
-	double *pos = PropVol_3d->GetPosition();
-
-	//setting the two other slicer + 3d
-	//coordinates with on as current slice plane
-	Customstyle_3D->initialize(volRend, props, iASlicerMode::SlicerCount, m_mdiChild);
-	Customstyle_xy->initialize(volRend, props, iASlicerMode::XY, m_mdiChild);
-	Customstyle_xz->initialize(volRend, props, iASlicerMode::XZ, m_mdiChild);
-	Customstyle_yz->initialize(volRend, props, iASlicerMode::YZ, m_mdiChild);
+	//intialize slicers and 3D interactor for registration
+	for (int i=0; i<= iASlicerMode::SlicerCount; ++i)
+		m_manualMoveStyle[i]->initialize(img, volRend, props, i, m_mdiChild);
 }
 
 void dlg_modalities::ListClicked(QListWidgetItem* item)
@@ -419,9 +400,17 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 	{
 		return;
 	}
+	setModalitySelectionMovable(selectedRow);
+	configureInterActorStyles(modalities->Get(selectedRow));
+
+	emit ModalitySelected(selectedRow);
+}
+
+void dlg_modalities::setModalitySelectionMovable(int selectedRow)
+{
 	QSharedPointer<iAModality> currentData = modalities->Get(selectedRow);
 	//QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
-	for (int i = 0; i<modalities->size(); ++i)
+	for (int i = 0; i < modalities->size(); ++i)
 	{
 		QSharedPointer<iAModality> mod = modalities->Get(i);
 		if (!mod->GetRenderer())
@@ -429,17 +418,20 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 			DEBUG_LOG(QString("Renderer for modality %1 not yet created. Please try again later!").arg(i));
 			continue;
 		}
-		mod->GetRenderer()->SetMovable(mod == currentData);
+
 		//enable / disable dragging
+		mod->GetRenderer()->SetMovable(mod == currentData);
+		
 		for (int sl = 0; sl < iASlicerMode::SlicerCount; sl++)
 		{
 			if (mod->channelID() == NotExistingChannel)
 				continue;
 			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetDragable(currentData->channelID() == mod->channelID());
 			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetPickable(currentData->channelID() == mod->channelID());
+
+
 		}
 	}
-	emit ModalitySelected(selectedRow);
 }
 
 void dlg_modalities::ShowChecked(QListWidgetItem* item)

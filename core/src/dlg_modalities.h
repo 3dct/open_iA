@@ -86,7 +86,7 @@ private slots:
 	void RemoveClicked();
 	void EditClicked();
 
-	/*Manual movement of one object to another,
+	/*Manual movement / registration of one object to another,
 	* this can be also seen in the slicer
 	*/
 	void ManualRegistration();
@@ -99,13 +99,19 @@ private slots:
 	void RendererMouseMoved();
 
 	void EnableButtons();
+
+	//enable dragging / picking of clicked modality
 	void ListClicked(QListWidgetItem* item);
+
+	//enable/ picking dragging of selected modality
+	void setModalitySelectionMovable(int selectedRow);
+
 	void ShowChecked(QListWidgetItem* item);
 
 private:
 
-	//connects styles of the 3 slicer to each other
-	void configureSlicerStyles(QSharedPointer<iAModality> editModality);
+	//connects interactor styles  slicer to each other and with 3D renderer 
+	void configureInterActorStyles(QSharedPointer<iAModality> editModality);
 
 	// TODO: move modalities out of here (mdichild? common data repository?)
 	QSharedPointer<iAModalityList> modalities;
@@ -116,10 +122,7 @@ private:
 	vtkRenderer* m_mainRenderer;
 	MdiChild* m_mdiChild;
 
-	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy, Customstyle_xz, Customstyle_yz;
-
-	//if this works for 3D
-	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_3D;
+	vtkSmartPointer<iACustomInterActorStyleTrackBall> m_manualMoveStyle[4];
 	
 	void AddToList(QSharedPointer<iAModality> mod);
 	//! initialize a modality's transfer function
