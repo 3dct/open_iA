@@ -23,41 +23,7 @@ namespace
 			y = pos[1];
 			z = pos[2];
 		}
-		/*
-		//convert current coords to the prop, update all for 3d
-		void toCoords(vtkProp3D *prop, iASlicerMode mode, bool update3D)
-		{	
-			double pos[3];
-			prop->GetPosition(pos);
-			if (!update3D)
-			{
-				pos[2] = 0;
-				switch (mode) {
-				case iASlicerMode::XY:
-					pos[0] = x;
-					pos[1] = y;
-					break;
-				case iASlicerMode::YZ:
-					pos[0] = y;
-					pos[1] = z;
-					break;
-				case iASlicerMode::XZ:
-					pos[0] = x;
-					pos[1] = z;
-					break;
-				}
-			}
-			else
-			{
-				pos[0] = x;
-				pos[1] = y;
-				pos[2] = z;
-			}
-			prop->SetPosition(pos); 
-
-		}
-		*/
-
+		
 		//set the coords based on a slicer mode, keep other one fixed
 		void updateCoords(const double *pos, iASlicerMode mode) {
 			switch (mode)
@@ -122,10 +88,7 @@ void iACustomInterActorStyleTrackBall::OnMouseMove()
 	//DEBUG_LOG(QString("Picked 1% \t %2 \t %3").arg(picked[0]).arg(picked[1]).arg(picked[2]));
 
 	//connect the components; 
-	//printProbOrientation();
-	//printPropPosistion();
-	//printProbOrigin();
-
+	
 	updateInteractors();
 }
 
@@ -176,12 +139,15 @@ void iACustomInterActorStyleTrackBall::updateInteractors()
 	//const double testPosXY[3] = { -153.34, 4.79187, 0 };
 	//
 
-	//coords initialized from the volume renderer;
+	//coords initialized from the image origin;
 	slice_coords coords(m_image->GetOrigin());
 
 	DEBUG_LOG(QString("Move: %1; InteractionMode: %2").arg(getSlicerModeString(m_currentSliceMode)).arg(InteractionMode) );
 	DEBUG_LOG(QString("  Old origin: %1, %2, %3").arg(coords.x).arg(coords.y).arg(coords.z));
-	//we have a current slicer, from this 2D-coords we take as reference coords for registration
+	
+	/*relative movement of object
+	*we  have a current slicer, from this 2D-coords we take as reference coords for registration
+	*reset the position of the image actor*/
 	if (!enable3D)
 	{
 		if (!m_propSlicer[m_currentSliceMode])
@@ -191,7 +157,7 @@ void iACustomInterActorStyleTrackBall::updateInteractors()
 		coords.updateCoords(posCurrentSlicer, static_cast<iASlicerMode>(m_currentSliceMode));
 		m_propSlicer[m_currentSliceMode]->imageActor->SetPosition(0, 0, 0);
 	}
-	else
+	else //in 3d case
 	{
 		double const * pos = m_volumeRenderer->GetPosition();
 		DEBUG_LOG(QString("  Pos 3D renderer: %1, %2, %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
@@ -200,27 +166,21 @@ void iACustomInterActorStyleTrackBall::updateInteractors()
 	}
 	DEBUG_LOG(QString("  New origin: %1, %2, %3").arg(coords.x).arg(coords.y).arg(coords.z));
 
+
+	//update image origin;
 	m_image->SetOrigin(coords.x, coords.y, coords.z );
 	
-	//update coords of slicers, based on slicer mode
+	//update slice planes
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		if (i != m_currentSliceMode && m_propSlicer[i])
 		{
 			m_propSlicer[i]->updateReslicer();
-			//coords.toCoords(m_propSlicer[i], static_cast<iASlicerMode>(i), false);
-			//propDefs::PropModifier::printProp(m_propSlicer[i], getSlicerModeString(i), false);
+			
 		}
 	}
 	
-
-	//update coords of  volume interactor when moving a slicer
-	if (!enable3D)
-	{
-		//coords.toCoords(m_volumeRenderer->GetVolume(), static_cast<iASlicerMode>(m_currentSliceMode), true);
-		//propDefs::PropModifier::printProp(m_volumeRenderer->GetVolume(), "3d renderer", false);
-	}
-
+		
 	m_volumeRenderer->Update();
 	emit actorsUpdated();
 }
