@@ -346,10 +346,7 @@ void dlg_modalities::ManualRegistration()
 		
 		if (cbManualRegistration->isChecked())
 		{
-		/*	interactSwitch3D->SetCurrentStyleToTrackballActor();*/
-
-			configureSlicerStyles(editModality);
-
+			configureInterActorStyles(editModality);
 			m_mdiChild->getRenderer()->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
 			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 				m_mdiChild->slicer(i)->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[i]);
@@ -367,7 +364,7 @@ void dlg_modalities::ManualRegistration()
 	}
 }
 
-void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModality)
+void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editModality)
 {
 	iAVolumeRenderer* volRend = editModality->GetRenderer().data();
 	vtkProp3D *PropVol_3d = volRend->GetVolume().Get();
@@ -393,8 +390,7 @@ void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModali
 	//global position of the 3D thing
 	double *pos = PropVol_3d->GetPosition();
 
-	//setting the two other slicer + 3d
-	//coordinates with on as current slice plane
+	//intializse slicers and 3D interactor for registration
 	for (int i=0; i<= iASlicerMode::SlicerCount; ++i)
 		m_manualMoveStyle[i]->initialize(volRend, props, i, m_mdiChild);
 }

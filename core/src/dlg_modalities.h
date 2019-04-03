@@ -99,16 +99,19 @@ private slots:
 	void RendererMouseMoved();
 
 	void EnableButtons();
+
+	//enable dragging / picking of clicked modality
 	void ListClicked(QListWidgetItem* item);
 
+	//enable/ picking dragging of selected modality
 	void setModalitySelectionMovable(int selectedRow);
 
 	void ShowChecked(QListWidgetItem* item);
 
 private:
 
-	//connects styles of the 3 slicer to each other
-	void configureSlicerStyles(QSharedPointer<iAModality> editModality);
+	//connects interactor styles  slicer to each other and with 3D renderer 
+	void configureInterActorStyles(QSharedPointer<iAModality> editModality);
 
 	// TODO: move modalities out of here (mdichild? common data repository?)
 	QSharedPointer<iAModalityList> modalities;
