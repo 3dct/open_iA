@@ -64,15 +64,13 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	m_showSlicers(false),
 	m_plane1(nullptr),
 	m_plane2(nullptr),
-	m_plane3(nullptr),
-	Customstyle_xy(vtkSmartPointer<iACustomInterActorStyleTrackBall>::New()),
-	Customstyle_xz(vtkSmartPointer<iACustomInterActorStyleTrackBall>::New()),
-	Customstyle_yz(vtkSmartPointer<iACustomInterActorStyleTrackBall>::New()),
-	Customstyle_3D(vtkSmartPointer<iACustomInterActorStyleTrackBall>::New())
+	m_plane3(nullptr)
 {
-	connect(Customstyle_xy, SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
-	connect(Customstyle_xz, SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
-	connect(Customstyle_yz, SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
+	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
+	{
+		m_manualMoveStyle[i] = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+		connect(m_manualMoveStyle[i], SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
+	}
 	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
 	connect(pbEdit,   SIGNAL(clicked()), this, SLOT(EditClicked()));
@@ -347,17 +345,15 @@ void dlg_modalities::ManualRegistration()
 
 			configureSlicerStyles(editModality);
 
-			m_mdiChild->getRenderer()->GetInteractor()->SetInteractorStyle(Customstyle_3D);
-			m_mdiChild->slicer(iASlicerMode::XY)->GetInteractor()->SetInteractorStyle(Customstyle_xy);
-			m_mdiChild->slicer(iASlicerMode::XZ)->GetInteractor()->SetInteractorStyle(Customstyle_xz);
-			m_mdiChild->slicer(iASlicerMode::YZ)->GetInteractor()->SetInteractorStyle(Customstyle_yz);
+			m_mdiChild->getRenderer()->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
+			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+				m_mdiChild->slicer(i)->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[i]);
 		}
 		else
 		{
 			m_mdiChild->getRenderer()->setDefaultInteractor();
-			m_mdiChild->slicer(iASlicerMode::XY)->setDefaultInteractor();
-			m_mdiChild->slicer(iASlicerMode::YZ)->setDefaultInteractor();
-			m_mdiChild->slicer(iASlicerMode::XZ)->setDefaultInteractor();
+			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+				m_mdiChild->slicer(i)->setDefaultInteractor();
 		}
 	}
 	catch (std::invalid_argument &ivae)
@@ -399,10 +395,8 @@ void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModali
 
 	//setting the two other slicer + 3d
 	//coordinates with on as current slice plane
-	Customstyle_3D->initialize(volRend, props, iASlicerMode::SlicerCount, m_mdiChild);
-	Customstyle_xy->initialize(volRend, props, iASlicerMode::XY, m_mdiChild);
-	Customstyle_xz->initialize(volRend, props, iASlicerMode::XZ, m_mdiChild);
-	Customstyle_yz->initialize(volRend, props, iASlicerMode::YZ, m_mdiChild);
+	for (int i=0; i<= iASlicerMode::SlicerCount; ++i)
+		m_manualMoveStyle[i]->initialize(volRend, props, i, m_mdiChild);
 }
 
 void dlg_modalities::ListClicked(QListWidgetItem* item)

@@ -116,10 +116,7 @@ private:
 	vtkRenderer* m_mainRenderer;
 	MdiChild* m_mdiChild;
 
-	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_xy, Customstyle_xz, Customstyle_yz;
-
-	//if this works for 3D
-	vtkSmartPointer<iACustomInterActorStyleTrackBall> Customstyle_3D;
+	vtkSmartPointer<iACustomInterActorStyleTrackBall> m_manualMoveStyle[4];
 	
 	void AddToList(QSharedPointer<iAModality> mod);
 	//! initialize a modality's transfer function

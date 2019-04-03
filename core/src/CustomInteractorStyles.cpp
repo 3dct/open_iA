@@ -198,6 +198,8 @@ void iACustomInterActorStyleTrackBall::initialize(iAVolumeRenderer *volRend, vtk
 	enable3D = (m_currentSliceMode == iASlicerMode::SlicerCount);
 	if (enable3D)
 		this->SetInteractionMode(VTKIS_IMAGE3D);
+	if (!mdiChild)
+		DEBUG_LOG("MdiChild not set!");
 	m_mdiChild = mdiChild;
 }
 
@@ -236,12 +238,8 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 		propDefs::PropModifier::printProp(m_volumeRenderer->GetVolume(), "3d renderer");
 	}
 
-	if (this->m_mdiChild)
-	{
-		m_volumeRenderer->Update();
-		emit actorsUpdated();
-		DEBUG_LOG("views updated");
-	}
+	m_volumeRenderer->Update();
+	emit actorsUpdated();
 }
 
 void iACustomInterActorStyleTrackBall::printProbOrigin()
