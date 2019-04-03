@@ -585,6 +585,11 @@ void iASlicer::setMagicLensEnabled( bool isEnabled )
 
 iAMagicLens * iASlicer::magicLens()
 {
+	if (!m_magicLens)
+	{
+		DEBUG_LOG("SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
+		return;
+	}
 	return m_magicLens.data();
 }
 
