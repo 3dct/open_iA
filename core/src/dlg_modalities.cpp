@@ -47,6 +47,7 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkVolume.h>
 
 #include <QFileDialog>
 #include <QSettings>
@@ -332,7 +333,11 @@ void dlg_modalities::ManualRegistration()
 			return;
 		}
 		QSharedPointer<iAModality> editModality(modalities->Get(idx));
-			   
+		
+		
+	
+		setModalitySelectionMovable(idx);
+
 		if (!editModality->GetRenderer())
 		{
 			DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
@@ -372,21 +377,16 @@ void dlg_modalities::configureSlicerStyles(QSharedPointer<iAModality> editModali
 		return;
 	}
 	uint chID = editModality->channelID();
-	if ((chID == NotExistingChannel) || !editModality->hasRenderFlag(iAModality::Slicer))
-	{
-		m_mdiChild->getLogger()->Log("Modality must be added to slicer before registration");
-		return;
-	}
 
 	//properties of slicer for channelID
 	vtkProp3D * props[3];
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
 	{
-		props[i] = m_mdiChild->slicer(i)->getChannel(chID)->imageActor;
-		if (!props[i])
-		{
-			DEBUG_LOG(QString("prop of slicer %1 is null").arg(getSlicerModeString(i)));
-			return;
+		if (!m_mdiChild->slicer(i)->hasChannel(chID)) {
+			props[i] = nullptr; 
+		}
+		else {
+			props[i] = m_mdiChild->slicer(i)->getChannel(chID)->imageActor;
 		}
 	};
 
@@ -406,9 +406,16 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 	{
 		return;
 	}
+	setModalitySelectionMovable(selectedRow);
+
+	emit ModalitySelected(selectedRow);
+}
+
+void dlg_modalities::setModalitySelectionMovable(int selectedRow)
+{
 	QSharedPointer<iAModality> currentData = modalities->Get(selectedRow);
 	//QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
-	for (int i = 0; i<modalities->size(); ++i)
+	for (int i = 0; i < modalities->size(); ++i)
 	{
 		QSharedPointer<iAModality> mod = modalities->Get(i);
 		if (!mod->GetRenderer())
@@ -424,9 +431,10 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 				continue;
 			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetDragable(currentData->channelID() == mod->channelID());
 			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetPickable(currentData->channelID() == mod->channelID());
+
+
 		}
 	}
-	emit ModalitySelected(selectedRow);
 }
 
 void dlg_modalities::ShowChecked(QListWidgetItem* item)

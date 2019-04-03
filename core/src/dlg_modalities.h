@@ -100,6 +100,9 @@ private slots:
 
 	void EnableButtons();
 	void ListClicked(QListWidgetItem* item);
+
+	void setModalitySelectionMovable(int selectedRow);
+
 	void ShowChecked(QListWidgetItem* item);
 
 private:

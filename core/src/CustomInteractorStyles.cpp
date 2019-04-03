@@ -10,50 +10,6 @@
 
 namespace
 {
-	////update the position while keeping one coordinate fixed, based on slicer mode
-	//void updatePropPosition(vtkProp3D *prop, iASlicerMode mode, const propDefs::SliceDefs &sl_defs, 
-	//	QString text, bool enablePrinting) 
-	//{
-	//	assert(prop && "object is null");
-	//	if (!prop) {
-	//		DEBUG_LOG("update Prop failed");
-	//		throw std::invalid_argument("null pointer of prop");
-
-	//	}
-
-	//	double *pos = prop->GetPosition();
-
-	//	switch (mode)
-	//	{
-	//	case YZ:
-	//		//x is fixed
-	//		pos[0] = sl_defs.fixedCurrentSlicerCoord; //keep 
-	//		pos[1] = sl_defs.x;
-	//		pos[2] = sl_defs.y;
-	//		prop->SetPosition(pos);
-	//		break;
-	//	case XY:
-	//		//z is fixed
-	//		pos[0] = sl_defs.x;
-	//		pos[1] = sl_defs.y;
-	//		pos[2] = sl_defs.fixedCurrentSlicerCoord;//keep 
-	//		prop->SetPosition(pos);
-	//		break;
-	//	case XZ:
-	//		//y fixed
-	//		pos[0] = sl_defs.x;
-	//		pos[1] = sl_defs.fixedCurrentSlicerCoord;//keep 
-	//		pos[2] = sl_defs.y;
-	//		prop->SetPosition(pos);
-	//		break;
-	//	default:
-	//		throw std::invalid_argument("invalid slicer mode");
-	//	}
-
-	//	if (enablePrinting); 
-	//		propDefs::PropModifier::printProp(prop, text);
-	//}
-
 	
 	class slice_coords {
 	public:
@@ -65,7 +21,7 @@ namespace
 			z = pos[2];
 		}
 
-		//convert position to coords
+		//convert current coords to the prop, update all for 3d
 		void toCoords(vtkProp3D *prop, iASlicerMode mode, bool update3D)
 		{	
 			double pos[3];
@@ -98,6 +54,8 @@ namespace
 
 		}
 
+
+		//return the coords based on a slicer mode
 		void updateCoords(const double *pos, iASlicerMode mode) {
 			switch (mode)
 			{
@@ -150,10 +108,9 @@ void iACustomInterActorStyleTrackBall::OnMouseMove()
 {
 	vtkInteractorStyleTrackballActor::OnMouseMove();
 
-	if (this->m_volumeRenderer == nullptr || this->m_propSlicer[0] == nullptr
-		|| this->m_propSlicer[1] == nullptr || this->m_propSlicer[2] == nullptr)
+	if (this->m_volumeRenderer == nullptr)
 	{
-		DEBUG_LOG("Either renderer or props are null");
+		DEBUG_LOG("renderer is null");
 		return;
 	}
 
@@ -220,13 +177,15 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 
 	if (!enable3D)
 	{
+		if (!m_propSlicer[m_currentSliceMode])
+			return;
 		const double *posCurrentSlicer = m_propSlicer[m_currentSliceMode]->GetPosition();
 		coords.updateCoords(posCurrentSlicer, static_cast<iASlicerMode>(m_currentSliceMode));
 	}
 	DEBUG_LOG(QString("Current Slicer: ") + getSlicerModeString(m_currentSliceMode));
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
-		if (i != m_currentSliceMode)
+		if (i != m_currentSliceMode && m_propSlicer[i])
 		{
 			coords.toCoords(m_propSlicer[i], static_cast<iASlicerMode>(i), false);
 			propDefs::PropModifier::printProp(m_propSlicer[i], getSlicerModeString(i));
@@ -244,20 +203,28 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 
 void iACustomInterActorStyleTrackBall::printProbOrigin()
 {
+	if (m_currentSliceMode != iASlicerMode::SlicerCount && !m_propSlicer[m_currentSliceMode])
+		return;
 	double const * const pos = m_currentSliceMode != iASlicerMode::SlicerCount ?
 		m_propSlicer[m_currentSliceMode]->GetOrigin() :
 		m_volumeRenderer->GetVolume()->GetOrigin();
 	DEBUG_LOG(QString("\nOrigin x %1 y %2 z %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
 }
 
-void iACustomInterActorStyleTrackBall::printPropPosistion() {
+void iACustomInterActorStyleTrackBall::printPropPosistion()
+{
+	if (m_currentSliceMode != iASlicerMode::SlicerCount && !m_propSlicer[m_currentSliceMode])
+		return;
 	double const * const pos = m_currentSliceMode != iASlicerMode::SlicerCount ?
 		m_propSlicer[m_currentSliceMode]->GetPosition() :
 		m_volumeRenderer->GetVolume()->GetPosition();
 	DEBUG_LOG(QString("\nPosition %1 %2 %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
 }
 
-void iACustomInterActorStyleTrackBall::printProbOrientation() {
+void iACustomInterActorStyleTrackBall::printProbOrientation()
+{
+	if (m_currentSliceMode != iASlicerMode::SlicerCount && !m_propSlicer[m_currentSliceMode])
+		return;
 	double const * const pos = m_currentSliceMode != iASlicerMode::SlicerCount ?
 		m_propSlicer[m_currentSliceMode]->GetOrientation() :
 		m_volumeRenderer->GetVolume()->GetOrientation();
