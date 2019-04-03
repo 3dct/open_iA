@@ -7,7 +7,7 @@
 #include <vtkInteractorStyleTrackballActor.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkProp3D.h>
+//#include <vtkProp3D.h>
 #include <vtkObjectFactory.h>
 #include <vtkCellPicker.h>
 
@@ -15,7 +15,7 @@
 
 #include <assert.h>
 
-
+class iAChannelSlicerData;
 class iAVolumeRenderer;
 
 // Motion flags
@@ -48,7 +48,7 @@ namespace propDefs
 	class PropModifier
 	{
 	public:
-		
+		/*
 		static void updatePropOrientation(vtkProp3D *prop, double angle_x, double angle_y, double angle_z)
 		{
 			 prop->SetOrientation(angle_x, angle_y, angle_z); 
@@ -70,6 +70,7 @@ namespace propDefs
 				 DEBUG_LOG(Text + QString("Origin X %1 y %2 z %3").arg(origin[0]).arg(origin[1]).arg(origin[1]));
 			 }
 		 }
+			*/
 	};
 }
 
@@ -100,8 +101,8 @@ public:
 
 	void iACustomInterActorStyleTrackBall::Pick()
 	{
-		printProbOrigin();
-		printPropPosistion();
+		//printProbOrigin();
+		//printPropPosistion();
 		this->InvokeEvent(vtkCommand::PickEvent, this);
 	}
 	void SetInteractionModeToImage2D()
@@ -113,7 +114,7 @@ public:
 	vtkSetClampMacro(InteractionMode, int, VTKIS_IMAGE2D, VTKIS_IMAGE_SLICING);
 	vtkGetMacro(InteractionMode, int);
 
-	void initialize(iAVolumeRenderer *volRend, vtkProp3D *propSlicer[3], int currentMode, MdiChild *mdiChild);
+	void initialize(vtkImageData *img, iAVolumeRenderer* volRend, iAChannelSlicerData *propSlicer[4], int currentMode, MdiChild *mdiChild);
 	
 	//identify which slicer is used
 	void updateInteractors(); 
@@ -124,15 +125,16 @@ signals:
 protected:
 
 	MdiChild *m_mdiChild; 
+	iAVolumeRenderer* m_volumeRenderer;
 
 	iACustomInterActorStyleTrackBall();
 	//~iACustomInterActorStyleTrackBall() override;
 	//void FindPickedActor(int x, int y);
 	//vtkCellPicker *InteractionPicker;
 
-	void printProbOrigin();
-	void printPropPosistion();
-	void printProbOrientation();
+	//void printProbOrigin();
+	//void printPropPosistion();
+	//void printProbOrientation();
 
 private:
 
@@ -142,10 +144,10 @@ private:
 	//iASlicerMode activeSliceMode; 
 
 	//3d renderer prop
-	iAVolumeRenderer *m_volumeRenderer;
+	vtkImageData *m_image;
 
 
-	vtkProp3D* m_propSlicer[3];
+	iAChannelSlicerData* m_propSlicer[3];
 	int m_currentSliceMode;
 
 	/*iACustomInterActorStyle(const iACustomInterActorStyle&);*/

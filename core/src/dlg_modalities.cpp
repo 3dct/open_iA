@@ -366,30 +366,31 @@ void dlg_modalities::ManualRegistration()
 
 void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editModality)
 {
-	iAVolumeRenderer* volRend = editModality->GetRenderer().data();
-	vtkProp3D *PropVol_3d = volRend->GetVolume().Get();
-	if (!volRend || !PropVol_3d)
+	auto img = editModality->GetImage();
+	auto volRend = editModality->GetRenderer().data();
+	//vtkProp3D *PropVol_3d = volRend->GetVolume().Get();
+	if (!img)
 	{
-		DEBUG_LOG("3D volume renderer / prop is null!");
+		DEBUG_LOG("img is null!");
 		return;
 	}
 	uint chID = editModality->channelID();
 
 	//properties of slicer for channelID
-	vtkProp3D * props[3];
+	iAChannelSlicerData * props[3];
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
 	{
 		if (!m_mdiChild->slicer(i)->hasChannel(chID)) {
 			props[i] = nullptr; 
 		}
 		else {
-			props[i] = m_mdiChild->slicer(i)->getChannel(chID)->imageActor;
+			props[i] = m_mdiChild->slicer(i)->getChannel(chID);
 		}
 	};
 
-	//intializse slicers and 3D interactor for registration
+	//intialize slicers and 3D interactor for registration
 	for (int i=0; i<= iASlicerMode::SlicerCount; ++i)
-		m_manualMoveStyle[i]->initialize(volRend, props, i, m_mdiChild);
+		m_manualMoveStyle[i]->initialize(img, volRend, props, i, m_mdiChild);
 }
 
 void dlg_modalities::ListClicked(QListWidgetItem* item)
@@ -400,6 +401,7 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 		return;
 	}
 	setModalitySelectionMovable(selectedRow);
+	configureInterActorStyles(modalities->Get(selectedRow));
 
 	emit ModalitySelected(selectedRow);
 }
