@@ -55,7 +55,7 @@ namespace
 		}
 
 
-		//return the coords based on a slicer mode
+		//set the coords based on a slicer mode, keep other one fixed
 		void updateCoords(const double *pos, iASlicerMode mode) {
 			switch (mode)
 			{
@@ -123,7 +123,7 @@ void iACustomInterActorStyleTrackBall::OnMouseMove()
 	printPropPosistion();
 	printProbOrigin();
 	   
-	updateSlicer();
+	updateInteractors();
 }
 
 
@@ -160,7 +160,7 @@ void iACustomInterActorStyleTrackBall::initialize(iAVolumeRenderer *volRend, vtk
 	m_mdiChild = mdiChild;
 }
 
-void iACustomInterActorStyleTrackBall::updateSlicer()
+void iACustomInterActorStyleTrackBall::updateInteractors()
 {
 	//getting coords from 3d slicer
 	
@@ -172,9 +172,10 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 	//const double testPosXY[3] = { -153.34, 4.79187, 0 };
 	//
 
-	//coords initialized from the current slicer; 
+	//coords initialized from the volume renderer; 
 	slice_coords coords(m_volumeRenderer->GetPosition());
 
+	//we have a current slicer this 2D-coords we take as reference coords for registration
 	if (!enable3D)
 	{
 		if (!m_propSlicer[m_currentSliceMode])
@@ -182,19 +183,23 @@ void iACustomInterActorStyleTrackBall::updateSlicer()
 		const double *posCurrentSlicer = m_propSlicer[m_currentSliceMode]->GetPosition();
 		coords.updateCoords(posCurrentSlicer, static_cast<iASlicerMode>(m_currentSliceMode));
 	}
+
+	//update coords of slicers, based on slicer mode
 	DEBUG_LOG(QString("Current Slicer: ") + getSlicerModeString(m_currentSliceMode));
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		if (i != m_currentSliceMode && m_propSlicer[i])
 		{
 			coords.toCoords(m_propSlicer[i], static_cast<iASlicerMode>(i), false);
-			propDefs::PropModifier::printProp(m_propSlicer[i], getSlicerModeString(i));
+			propDefs::PropModifier::printProp(m_propSlicer[i], getSlicerModeString(i), false);
 		}
 	}
+
+	//update coords of  volume interactor when moving a slicer
 	if (!enable3D)
 	{
 		coords.toCoords(m_volumeRenderer->GetVolume(), static_cast<iASlicerMode>(m_currentSliceMode), true);
-		propDefs::PropModifier::printProp(m_volumeRenderer->GetVolume(), "3d renderer");
+		propDefs::PropModifier::printProp(m_volumeRenderer->GetVolume(), "3d renderer", false);
 	}
 
 	m_volumeRenderer->Update();

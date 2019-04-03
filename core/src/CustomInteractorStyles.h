@@ -55,15 +55,20 @@ namespace propDefs
 		 }
 		
 
-		 static void printProp(vtkProp3D *prop, QString Text)
+		 static void printProp(vtkProp3D *prop, QString Text, bool printOtherInfo)
 		 {
 			 if (!prop) { return;  }
 			 
 			 const double *orientation=prop->GetOrientation(); 
 			 const double *position = prop->GetPosition();
+			 const double *origin = prop->GetOrigin();
 
-			 DEBUG_LOG(Text + QString("x: %1 y: %2 z: %3").arg(position[0]).arg(position[1]).arg(position[2]));
-
+			 DEBUG_LOG(Text + QString("Position  x: %1 y: %2 z: %3").arg(position[0]).arg(position[1]).arg(position[2]));
+			
+			 if (printOtherInfo) {
+				 DEBUG_LOG(Text + QString("Orientation x: %1, y: %2 , z: %3 ").arg(orientation[0]).arg(orientation[1]).arg(orientation[2]));
+				 DEBUG_LOG(Text + QString("Origin X %1 y %2 z %3").arg(origin[0]).arg(origin[1]).arg(origin[1]));
+			 }
 		 }
 	};
 }
@@ -111,7 +116,7 @@ public:
 	void initialize(iAVolumeRenderer *volRend, vtkProp3D *propSlicer[3], int currentMode, MdiChild *mdiChild);
 	
 	//identify which slicer is used
-	void updateSlicer(); 
+	void updateInteractors(); 
 
 	//void setSetcurrentSlicer();
 signals:
