@@ -1816,7 +1816,7 @@ bool MdiChild::initView( QString const & title )
 		// TODO: VOLUME: resolve indirect dependence of this call on the Raycaster->initialize method
 		// before, which adds the renderers which this call will use
 		QSharedPointer<iAModality> mod(new iAModality(name,
-			currentFile(), -1, imageData, iAModality::MainRenderer));
+			currentFile(), -1, imageData, iAModality::MainRenderer + iAModality::Slicer));
 		getModalities()->Add(mod);
 		m_dlgModalities->AddListItem(mod);
 		QSharedPointer<iAModalityTransfer> modTrans = getModality(0)->GetTransfer();
