@@ -71,19 +71,19 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 		m_manualMoveStyle[i] = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
 		connect(m_manualMoveStyle[i], SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
 	}
-	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
-	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
-	connect(pbEdit,   SIGNAL(clicked()), this, SLOT(EditClicked()));
-	connect(cbManualRegistration, SIGNAL(clicked()), this, SLOT(ManualRegistration()));
-	connect(cbShowMagicLens, SIGNAL(clicked()), this, SLOT(MagicLens()));
+	connect(pbAdd,    &QPushButton::clicked, this, &dlg_modalities::addClicked);
+	connect(pbRemove, &QPushButton::clicked, this, &dlg_modalities::removeClicked);
+	connect(pbEdit,   &QPushButton::clicked, this, &dlg_modalities::editClicked);
+	connect(cbManualRegistration, &QCheckBox::clicked, this, &dlg_modalities::manualRegistration);
+	connect(cbShowMagicLens, &QCheckBox::clicked, this, &dlg_modalities::magicLens);
 
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
-		this, SLOT(ListClicked(QListWidgetItem*)));
+		this, SLOT(listClicked(QListWidgetItem*)));
 
 	connect(lwModalities, SIGNAL(itemChanged(QListWidgetItem*)),
-		this, SLOT(ShowChecked(QListWidgetItem*)));
+		this, SLOT(showChecked(QListWidgetItem*)));
 
-	connect(magicLensWidget, SIGNAL(MouseMoved()), this, SLOT(RendererMouseMoved()));
+	connect(magicLensWidget, SIGNAL(MouseMoved()), this, SLOT(rendererMouseMoved()));
 }
 
 void dlg_modalities::setModalities(QSharedPointer<iAModalityList> modList)
