@@ -54,14 +54,14 @@ void iAFeatureScoutModuleInterface::Initialize()
 void iAFeatureScoutModuleInterface::FeatureScout()
 {
 	bool volumeDataAvailable = m_mainWnd->activeMdiChild() &&
-		m_mainWnd->activeMdiChild()->getModalities()->size() > 0 &&
+		m_mainWnd->activeMdiChild()->modalities()->size() > 0 &&
 		m_mainWnd->activeMdiChild()->isVolumeDataLoaded();
 	dlg_CSVInput dlg(volumeDataAvailable);
 	if (m_mainWnd->activeMdiChild())
 	{
 		auto mdi = m_mainWnd->activeMdiChild();
-		QString testCSVFileName = mdi->getFileInfo().canonicalPath() + "/" +
-				mdi->getFileInfo().completeBaseName() + ".csv";
+		QString testCSVFileName = mdi->fileInfo().canonicalPath() + "/" +
+				mdi->fileInfo().completeBaseName() + ".csv";
 		if (QFile(testCSVFileName).exists())
 		{
 			dlg.setFileName(testCSVFileName);
@@ -70,7 +70,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 				dlg.setFormat(type == Voids ? iACsvConfig::LegacyVoidFormat : iACsvConfig::LegacyFiberFormat);
 		}
 		else
-			dlg.setPath(mdi->getFilePath());
+			dlg.setPath(mdi->filePath());
 	}
 	if (dlg.exec() != QDialog::Accepted)
 		return;
@@ -153,8 +153,8 @@ void iAFeatureScoutModuleInterface::SetupToolbar()
 
 void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 {
-	iARenderSettings FS_RenderSettings = m_mdiChild->getRenderSettings();
-	iAVolumeSettings FS_VolumeSettings = m_mdiChild->getVolumeSettings();
+	iARenderSettings FS_RenderSettings = m_mdiChild->renderSettings();
+	iAVolumeSettings FS_VolumeSettings = m_mdiChild->volumeSettings();
 	FS_RenderSettings.ParallelProjection = true;
 	FS_RenderSettings.ShowHelpers = true;
 	FS_RenderSettings.ShowRPosition = true;

@@ -93,7 +93,7 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	//Connect
 	connect(m_histogramStack, SIGNAL(transferFunctionChanged()), this, SLOT(updateTransferFunction()));
-	connect(mdiChild->getModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(updateModalities()));
+	connect(mdiChild->modalitiesDockWidget(), SIGNAL(ModalitiesChanged()), this, SLOT(updateModalities()));
 	// }
 
 	updateDisabledLabel();
@@ -134,7 +134,7 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 		QSharedPointer<iAVolumeRenderer> renderer = m_histogramStack->getModality(i)->GetRenderer();
 		renderer->Remove();
 	}
-	mdiChild->getRenderer()->AddRenderer(combinedVolRenderer);
+	mdiChild->renderer()->addRenderer(combinedVolRenderer);
 }
 
 dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
@@ -145,7 +145,7 @@ dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
 void dlg_TripleHistogramTF::updateTransferFunction()
 {
 	m_mdiChild->redrawHistogram();
-	m_mdiChild->getRenderer()->update();
+	m_mdiChild->renderer()->update();
 }
 void dlg_TripleHistogramTF::updateModalities()
 {

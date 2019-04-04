@@ -34,6 +34,7 @@
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAToolsVTK.h"
+#include "io/iAFileUtils.h"    // for fileNameOnly
 #include "io/iAIOProvider.h"
 #include "io/iATLGICTLoader.h"
 #include "mdichild.h"
@@ -452,7 +453,7 @@ bool MainWindow::saveSettings()
 
 			if (spCamera) saveCamera(doc);
 			if (spSliceViews) saveSliceViews(doc);
-			if (spTransferFunction) saveTransferFunction(doc, (dlg_transfer*)activeMdiChild()->getFunctions()[0]);
+			if (spTransferFunction) saveTransferFunction(doc, (dlg_transfer*)activeMdiChild()->functions()[0]);
 			if (spProbabilityFunctions) saveProbabilityFunctions(doc);
 			if (spPreferences) savePreferences(doc);
 			if (spRenderSettings) saveRenderSettings(doc);
@@ -532,7 +533,7 @@ bool MainWindow::loadSettings()
 
 			if (lpProbabilityFunctions)
 			{
-				std::vector<dlg_function*> &functions = activeMdiChild()->getFunctions();
+				std::vector<dlg_function*> &functions = activeMdiChild()->functions();
 				for (unsigned int i = 1; i < functions.size(); i++)
 				{
 					delete functions.back();
@@ -550,7 +551,7 @@ bool MainWindow::loadSettings()
 				if (node.nodeName() == "sliceViews" && lpSliceViews) loadSliceViews(node);
 				if (node.nodeName() == "functions" && lpTransferFunction)
 				{
-					activeMdiChild()->getHistogram()->loadTransferFunction(node);
+					activeMdiChild()->histogram()->loadTransferFunction(node);
 					activeMdiChild()->redrawHistogram();
 				}
 				if (node.nodeName() == "functions" && lpProbabilityFunctions) loadProbabilityFunctions(node);
@@ -582,7 +583,7 @@ namespace
 
 void MainWindow::saveCamera(QDomDocument &doc)
 {
-	vtkCamera *camera = activeMdiChild()->getRenderer()->GetRenderer()->GetActiveCamera();
+	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
 	QDomNode node = doc.documentElement();
 	removeNode(node, "camera");
 	QDomElement cameraElement = doc.createElement("camera");
@@ -592,12 +593,12 @@ void MainWindow::saveCamera(QDomDocument &doc)
 
 void MainWindow::loadCamera(QDomNode &cameraNode)
 {
-	vtkCamera *camera = activeMdiChild()->getRenderer()->GetRenderer()->GetActiveCamera();
+	vtkCamera *camera = activeMdiChild()->renderer()->renderer()->GetActiveCamera();
 	loadCamera(cameraNode, camera);
 
 	double allBounds[6];
-	activeMdiChild()->getRenderer()->GetRenderer()->ComputeVisiblePropBounds( allBounds );
-	activeMdiChild()->getRenderer()->GetRenderer()->ResetCameraClippingRange( allBounds );
+	activeMdiChild()->renderer()->renderer()->ComputeVisiblePropBounds( allBounds );
+	activeMdiChild()->renderer()->renderer()->ResetCameraClippingRange( allBounds );
 }
 
 void MainWindow::saveSliceViews(QDomDocument &doc)
@@ -769,7 +770,7 @@ void MainWindow::saveProbabilityFunctions(QDomDocument &doc)
 	}
 
 	// add new function nodes
-	std::vector<dlg_function*> functions = activeMdiChild()->getFunctions();
+	std::vector<dlg_function*> const & functions = activeMdiChild()->functions();
 
 	for (unsigned int f = 1; f < functions.size(); f++)
 	{
@@ -828,7 +829,7 @@ void MainWindow::loadProbabilityFunctions(QDomNode &functionsNode)
 		QDomNode functionNode = list.item(n);
 		if (functionNode.nodeName() == "bezier")
 		{
-			dlg_bezier *bezier = new dlg_bezier(activeMdiChild()->getHistogram(), PredefinedColors()[colorIndex % 7], false);
+			dlg_bezier *bezier = new dlg_bezier(activeMdiChild()->histogram(), PredefinedColors()[colorIndex % 7], false);
 			QDomNodeList innerList = functionNode.childNodes();
 			for (int in = 0; in < innerList.length(); in++)
 			{
@@ -840,12 +841,12 @@ void MainWindow::loadProbabilityFunctions(QDomNode &functionsNode)
 
 				bezier->push_back(value, fktValue);
 			}
-			activeMdiChild()->getFunctions().push_back(bezier);
+			activeMdiChild()->functions().push_back(bezier);
 			colorIndex++;
 		}
 		else if (functionNode.nodeName() == "gaussian")
 		{
-			dlg_gaussian *gaussian = new dlg_gaussian(activeMdiChild()->getHistogram(), PredefinedColors()[colorIndex % 7], false);
+			dlg_gaussian *gaussian = new dlg_gaussian(activeMdiChild()->histogram(), PredefinedColors()[colorIndex % 7], false);
 
 			mean = functionNode.attributes().namedItem("mean").nodeValue().toDouble();
 			sigma = functionNode.attributes().namedItem("sigma").nodeValue().toDouble();
@@ -855,7 +856,7 @@ void MainWindow::loadProbabilityFunctions(QDomNode &functionsNode)
 			gaussian->setSigma(sigma);
 			gaussian->setMultiplier(multiplier);
 
-			activeMdiChild()->getFunctions().push_back(gaussian);
+			activeMdiChild()->functions().push_back(gaussian);
 			colorIndex++;
 		}
 	}
@@ -1117,7 +1118,7 @@ void MainWindow::prefs()
 			looks.append(key);
 		}
 	}
-	iAPreferences p = child ? child->getPreferences() : defaultPreferences;
+	iAPreferences p = child ? child->preferences() : defaultPreferences;
 	QTextDocument *fDescr = nullptr;
 	if (iAConsole::GetInstance()->IsFileLogError())
 	{
@@ -1167,11 +1168,12 @@ void MainWindow::renderSettings()
 	QString t = tr("true");
 	QString f = tr("false");
 
-	int currentRenderMode = child->getRenderMode();
+	iARenderSettings const & renderSettings = child->renderSettings();
+	iAVolumeSettings const & volumeSettings = child->volumeSettings();
 
 	QStringList renderTypes;
 	for (int mode : RenderModeMap().keys())
-		renderTypes << ((mode == currentRenderMode) ? QString("!") : QString()) + RenderModeMap().value(mode);
+		renderTypes << ((mode == volumeSettings.RenderMode) ? QString("!") : QString()) + RenderModeMap().value(mode);
 
 	QStringList inList;
 	inList
@@ -1194,8 +1196,6 @@ void MainWindow::renderSettings()
 		<< tr("#Slice plane opacity");
 
 	QList<QVariant> inPara;
-	iARenderSettings const & renderSettings = child->getRenderSettings();
-	iAVolumeSettings const & volumeSettings = child->getVolumeSettings();
 	inPara << (renderSettings.ShowSlicers ? t : f)
 		<< (renderSettings.ShowSlicePlanes ? t : f)
 		<< (renderSettings.ShowHelpers ? t : f)
@@ -1216,34 +1216,47 @@ void MainWindow::renderSettings()
 
 	dlg_commoninput dlg(this, "Renderer settings", inList, inPara, NULL);
 
-	if (dlg.exec() == QDialog::Accepted)
+	if (dlg.exec() != QDialog::Accepted)
+		return;
+
+	defaultRenderSettings.ShowSlicers = dlg.getCheckValue(0) != 0;
+	defaultRenderSettings.ShowSlicePlanes = dlg.getCheckValue(1) != 0;
+	defaultRenderSettings.ShowHelpers = dlg.getCheckValue(2) != 0;
+	defaultRenderSettings.ShowRPosition = dlg.getCheckValue(3) != 0;
+	defaultRenderSettings.ParallelProjection = dlg.getCheckValue(4) != 0;
+	defaultRenderSettings.BackgroundTop = dlg.getText(5);
+	defaultRenderSettings.BackgroundBottom = dlg.getText(6);
+	defaultRenderSettings.UseFXAA = dlg.getCheckValue(7) !=0;
+
+	QColor bgTop(defaultRenderSettings.BackgroundTop);
+	QColor bgBottom(defaultRenderSettings.BackgroundBottom);
+	if (!bgTop.isValid())
 	{
-		defaultRenderSettings.ShowSlicers = dlg.getCheckValue(0) != 0;
-		defaultRenderSettings.ShowSlicePlanes = dlg.getCheckValue(1) != 0;
-		defaultRenderSettings.ShowHelpers = dlg.getCheckValue(2) != 0;
-		defaultRenderSettings.ShowRPosition = dlg.getCheckValue(3) != 0;
-		defaultRenderSettings.ParallelProjection = dlg.getCheckValue(4) != 0;
-		defaultRenderSettings.BackgroundTop = dlg.getText(5);
-		defaultRenderSettings.BackgroundBottom = dlg.getText(6);
-		defaultRenderSettings.UseFXAA = dlg.getCheckValue(7) !=0;
+		bgTop.setRgbF(0.5, 0.666666666666666667, 1.0);
+		defaultRenderSettings.BackgroundTop = bgTop.name();
+	}
+	if (!bgBottom.isValid())
+	{
+		bgBottom.setRgbF(1.0, 1.0, 1.0);
+		defaultRenderSettings.BackgroundBottom = bgTop.name();
+	}
 
-		defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(8) != 0;
-		defaultVolumeSettings.Shading = dlg.getCheckValue(9) != 0;
-		defaultVolumeSettings.SampleDistance = dlg.getDblValue(10);
-		defaultVolumeSettings.AmbientLighting = dlg.getDblValue(11);
-		defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(12);
-		defaultVolumeSettings.SpecularLighting = dlg.getDblValue(13);
-		defaultVolumeSettings.SpecularPower = dlg.getDblValue(14);
-		defaultVolumeSettings.RenderMode = MapRenderModeToEnum(dlg.getComboBoxValue(15));
+	defaultVolumeSettings.LinearInterpolation = dlg.getCheckValue(8) != 0;
+	defaultVolumeSettings.Shading = dlg.getCheckValue(9) != 0;
+	defaultVolumeSettings.SampleDistance = dlg.getDblValue(10);
+	defaultVolumeSettings.AmbientLighting = dlg.getDblValue(11);
+	defaultVolumeSettings.DiffuseLighting = dlg.getDblValue(12);
+	defaultVolumeSettings.SpecularLighting = dlg.getDblValue(13);
+	defaultVolumeSettings.SpecularPower = dlg.getDblValue(14);
+	defaultVolumeSettings.RenderMode = MapRenderModeToEnum(dlg.getComboBoxValue(15));
 
-		defaultRenderSettings.PlaneOpacity = dlg.getDblValue(16);
+	defaultRenderSettings.PlaneOpacity = dlg.getDblValue(16);
 
-		if (activeMdiChild() && activeMdiChild()->editRendererSettings(
-			defaultRenderSettings,
-			defaultVolumeSettings))
-		{
-			statusBar()->showMessage(tr("Changed renderer settings"), 5000);
-		}
+	if (activeMdiChild() && activeMdiChild()->editRendererSettings(
+		defaultRenderSettings,
+		defaultVolumeSettings))
+	{
+		statusBar()->showMessage(tr("Changed renderer settings"), 5000);
 	}
 }
 
@@ -1274,7 +1287,7 @@ void MainWindow::slicerSettings()
 		<< tr("$Show Tooltip")
 		);
 
-	iASlicerSettings const & slicerSettings = child->getSlicerSettings();
+	iASlicerSettings const & slicerSettings = child->slicerSettings();
 	QStringList mouseCursorTypes;
 	foreach( QString mode, mouseCursorModes )
 		mouseCursorTypes << ( ( mode == slicerSettings.SingleSlicer.CursorMode ) ? QString( "!" ) : QString() ) + mode;
@@ -1287,7 +1300,7 @@ void MainWindow::slicerSettings()
 		<< tr("%1").arg(slicerSettings.SingleSlicer.MinIsoValue)
 		<< tr("%1").arg(slicerSettings.SingleSlicer.MaxIsoValue)
 		<< tr("%1").arg(slicerSettings.SnakeSlices)
-		<< (child->getLinkedMDIs() ? tr("true") : tr("false"))
+		<< (slicerSettings.LinkMDIs ? tr("true") : tr("false"))
 		<< mouseCursorTypes
 		<< (slicerSettings.SingleSlicer.ShowAxesCaption ? tr("true") : tr("false"))
 		<< QString("%1").arg(slicerSettings.SingleSlicer.ToolTipFontSize)
@@ -1425,7 +1438,8 @@ void MainWindow::raycasterAssignIso()
 	if (sizeMdi > 1)
 	{
 		double camOptions[10] = {0};
-		if (activeMdiChild())  activeMdiChild()->getCamPosition(camOptions);
+		if (activeMdiChild())
+			activeMdiChild()->camPosition(camOptions);
 		for(int i = 0; i < sizeMdi; i++)
 		{
 			MdiChild *tmpChild = mdiwindows.at(i);
@@ -1488,12 +1502,12 @@ void MainWindow::raycasterLoadCameraSettings()
 
 MdiChild* MainWindow::getResultChild(MdiChild* oldChild, QString const & title)
 {
-	if (oldChild->getResultInNewWindow())
+	if (oldChild->resultInNewWindow())
 	{
 		// TODO: copy all modality images, or don't copy anything here and use image from old child directly,
 		// or nothing at all until new image available!
 		// Note that filters currently get their input from this child already!
-		vtkSmartPointer<vtkImageData> imageData = oldChild->getImagePointer();
+		vtkSmartPointer<vtkImageData> imageData = oldChild->imagePointer();
 		MdiChild* newChild = createMdiChild(true);
 		newChild->show();
 		newChild->displayResult(title, imageData);
@@ -1506,7 +1520,7 @@ MdiChild* MainWindow::getResultChild(MdiChild* oldChild, QString const & title)
 
 void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 {
-	std::vector<dlg_function*> oldChildFunctions = oldChild->getFunctions();
+	std::vector<dlg_function*> const & oldChildFunctions = oldChild->functions();
 	for (unsigned int i = 1; i < oldChildFunctions.size(); ++i)
 	{
 		dlg_function *curFunc = oldChildFunctions[i];
@@ -1515,20 +1529,20 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 		case dlg_function::GAUSSIAN:
 		{
 			dlg_gaussian * oldGaussian = (dlg_gaussian*)curFunc;
-			dlg_gaussian * newGaussian = new dlg_gaussian(newChild->getHistogram(), PredefinedColors()[i % 7]);
+			dlg_gaussian * newGaussian = new dlg_gaussian(newChild->histogram(), PredefinedColors()[i % 7]);
 			newGaussian->setMean(oldGaussian->getMean());
 			newGaussian->setMultiplier(oldGaussian->getMultiplier());
 			newGaussian->setSigma(oldGaussian->getSigma());
-			newChild->getFunctions().push_back(newGaussian);
+			newChild->functions().push_back(newGaussian);
 		}
 		break;
 		case dlg_function::BEZIER:
 		{
 			dlg_bezier * oldBezier = (dlg_bezier*)curFunc;
-			dlg_bezier * newBezier = new dlg_bezier(newChild->getHistogram(), PredefinedColors()[i % 7]);
+			dlg_bezier * newBezier = new dlg_bezier(newChild->histogram(), PredefinedColors()[i % 7]);
 			for (unsigned int j = 0; j < oldBezier->getPoints().size(); ++j)
 				newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
-			newChild->getFunctions().push_back(newBezier);
+			newChild->functions().push_back(newBezier);
 		}
 		break;
 		default:	// unknown function type, do nothing
@@ -1634,7 +1648,7 @@ void MainWindow::updateMenus()
 
 	if (activeMdiChild())
 	{
-		int selectedFuncPoint = activeMdiChild()->getSelectedFuncPoint();
+		int selectedFuncPoint = activeMdiChild()->selectedFuncPoint();
 		if (selectedFuncPoint == -1)
 		{
 			actionDeletePoint->setEnabled(false);
@@ -2037,7 +2051,7 @@ void MainWindow::updateRecentFileActions()
 	int numRecentFiles = qMin(files.size(), (int)MaxRecentFiles);
 
 	for (int i = 0; i < numRecentFiles; ++i) {
-		QString text = tr("&%1 %2").arg(i + 1).arg(strippedName(files[i]));
+		QString text = tr("&%1 %2").arg(i + 1).arg(fileNameOnly(files[i]));
 		recentFileActs[i]->setText(text);
 		recentFileActs[i]->setData(files[i]);
 		recentFileActs[i]->setVisible(true);
@@ -2095,11 +2109,6 @@ void MainWindow::setHistogramFocus()
 {
 	if (activeMdiChild())
 		activeMdiChild()->setHistogramFocus();
-}
-
-QString MainWindow::strippedName(const QString &fullFileName)
-{
-	return QFileInfo(fullFileName).fileName();
 }
 
 QList<MdiChild*> MainWindow::mdiChildList(QMdiArea::WindowOrder order)
@@ -2269,7 +2278,7 @@ void MainWindow::childClosed()
 	if (!sender)
 		return;
 	// magic lens size can be modified in the slicers as well; make sure to store this change:
-	defaultPreferences.MagicLensSize = sender->getMagicLensSize();
+	defaultPreferences.MagicLensSize = sender->magicLensSize();
 	if( mdiArea->subWindowList().size() == 1 )
 	{
 		MdiChild * child = dynamic_cast<MdiChild*> ( mdiArea->subWindowList().at( 0 )->widget() );

@@ -305,7 +305,7 @@ QSharedPointer<iAFilterRunnerGUI> iASimilarityFilterRunner::Create()
 QMap<QString, QVariant> iASimilarityFilterRunner::LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
 {
 	auto params = iAFilterRunnerGUI::LoadParameters(filter, sourceMdi);
-	int const * dim = sourceMdi->getImagePointer()->GetDimensions();
+	int const * dim = sourceMdi->imagePointer()->GetDimensions();
 	if (params["Index X"].toUInt() >= dim[0])
 		params["Index X"] = 0;
 	if (params["Index Y"].toUInt() >= dim[1])

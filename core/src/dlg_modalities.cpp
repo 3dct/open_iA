@@ -346,13 +346,13 @@ void dlg_modalities::ManualRegistration()
 		if (cbManualRegistration->isChecked())
 		{
 			configureInterActorStyles(editModality);
-			m_mdiChild->getRenderer()->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
+			m_mdiChild->renderer()->interactor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
 			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 				m_mdiChild->slicer(i)->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[i]);
 		}
 		else
 		{
-			m_mdiChild->getRenderer()->setDefaultInteractor();
+			m_mdiChild->renderer()->setDefaultInteractor();
 			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 				m_mdiChild->slicer(i)->setDefaultInteractor();
 		}

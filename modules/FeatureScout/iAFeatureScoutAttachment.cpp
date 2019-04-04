@@ -44,7 +44,7 @@ void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkS
 	int visType, QSharedPointer<QMap<uint, uint> > columnMapping)
 {
 	imgFS = new dlg_FeatureScout(m_child, static_cast<iAFeatureScoutObjectType>(filterID),
-		fileName, m_child->getRenderer()->GetRenderer(), csvtbl, visType, columnMapping);
+		fileName, m_child->renderer()->renderer(), csvtbl, visType, columnMapping);
 }
 
 void iAFeatureScoutAttachment::disableBlobVisualization()
@@ -62,7 +62,7 @@ void iAFeatureScoutAttachment::enableBlobVisualization()
 	// we can't initialize blob vis twice
 	if (blobVisEnabled) return;
 	blobVisEnabled = true;
-	vtkSmartPointer<vtkImageData> imageData = m_child->getImagePointer();
+	vtkSmartPointer<vtkImageData> imageData = m_child->imagePointer();
 	double size[3] = {
 		imageData->GetBounds()[1] - imageData->GetBounds()[0],
 		imageData->GetBounds()[3] - imageData->GetBounds()[2],

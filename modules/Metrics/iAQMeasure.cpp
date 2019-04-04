@@ -222,7 +222,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	//	DEBUG_LOG(QString("Peak %1: mean=%2, variance=%3, stddev=%4").arg(p).arg(mean[p]).arg(variance[p]).arg(std::sqrt(variance[p])));
 	if (filter->m_mdiChild)
 		for (int p = 0; p < numberOfPeaks; ++p)
-			filter->m_mdiChild->getHistogram()->addGaussianFunction(mean[p], std::sqrt(variance[p]), 15);
+			filter->m_mdiChild->histogram()->addGaussianFunction(mean[p], std::sqrt(variance[p]), 15);
 
 	// find out which of the peaks is closest to 0 (air)
 	double minDistToZero = std::numeric_limits<double>::max();
@@ -410,7 +410,7 @@ void iAQMeasureRunner::FilterGUIPreparations(QSharedPointer<iAFilter> filter, Md
 {
 	iAChartWidget * chart = new iAChartWidget(mdiChild, "Intensity", "Frequency");
 	iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "TestHistogram", "TestHistogram");
-	mdiChild->splitDockWidget(mdiChild->getLogDlg(), wrapper, Qt::Horizontal);
+	mdiChild->splitDockWidget(mdiChild->logDockWidget(), wrapper, Qt::Horizontal);
 	iAQMeasure* qfilter = dynamic_cast<iAQMeasure*>(filter.data());
 	qfilter->SetupDebugGUI(chart, mdiChild);
 }

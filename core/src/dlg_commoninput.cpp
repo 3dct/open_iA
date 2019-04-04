@@ -311,7 +311,7 @@ void dlg_commoninput::showROI()
 	for (int i = 0; i < 3; ++i)
 	{
 		m_roi[i] = 0;
-		m_roi[i + 3] = m_sourceMdiChild->getImagePointer()->GetDimensions()[i];
+		m_roi[i + 3] = m_sourceMdiChild->imagePointer()->GetDimensions()[i];
 	}
 	for (int i = 0; i < children.size(); ++i)
 	{

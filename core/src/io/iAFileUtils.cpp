@@ -95,3 +95,8 @@ std::string getLocalEncodingFileName(QString const & fileName)
 	}
 	return std::string(fileNameEncoded.constData());
 }
+
+QString fileNameOnly(QString const & f)
+{
+	return QFileInfo(f).fileName();
+}

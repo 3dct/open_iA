@@ -330,7 +330,7 @@ bool dlg_GEMSeControl::LoadClustering(QString const & fileName)
 		return false;
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	vtkSmartPointer<vtkImageData> originalImage = mdiChild->getImageData();
+	vtkSmartPointer<vtkImageData> originalImage = mdiChild->imagePointer();
 	QSharedPointer<iAImageTree> tree = iAImageTree::Create(
 		fileName,
 		m_dlgSamplings->GetSamplings(),
@@ -417,7 +417,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 	delete m_dlgProgress;
 	m_dlgProgress = 0;
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	vtkSmartPointer<vtkImageData> originalImage = mdiChild->getImageData();
+	vtkSmartPointer<vtkImageData> originalImage = mdiChild->imagePointer();
 
 	QSharedPointer<iAImageTree> tree = m_clusterer->GetResult();
 	assert(m_dlgGEMSe);
@@ -499,7 +499,7 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName, QString const
 		m_simpleLabelInfo->count(),
 		samplingFilenames,
 		m_cltFile,
-		mdiChild->getLayoutName(),
+		mdiChild->layoutName(),
 		leRefImage->text(),
 		hiddenCharts,
 		m_simpleLabelInfo->GetColorTheme()->GetName(),

@@ -137,7 +137,7 @@ void iAAlgorithm::addMsg(QString txt)
 	}
 }
 
-iALogger* iAAlgorithm::getLogger() const
+iALogger* iAAlgorithm::logger() const
 {
 	return m_logger;
 }

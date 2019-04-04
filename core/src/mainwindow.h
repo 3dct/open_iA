@@ -202,7 +202,6 @@ private:
 	void loadTLGICTData(QString const & baseDirectory);
 	bool keepOpen();
 	MdiChild* findMdiChild(const QString &fileName);
-	QString strippedName(const QString &fullFileName);
 
 	QSplashScreen *splashScreen;
 	QAction *separatorAct;

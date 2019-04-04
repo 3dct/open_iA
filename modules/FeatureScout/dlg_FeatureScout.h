@@ -240,7 +240,7 @@ private:
 
 	vtkSmartPointer<vtkContextView> m_lengthDistrView;
 
-	iARenderer *raycaster;
+	iARenderer *m_renderer;
 	iABlobManager *blobManager;
 	QMap <QString, iABlobCluster*> blobMap;
 

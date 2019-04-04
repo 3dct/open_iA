@@ -485,7 +485,7 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 			m_channelID.push_back(m_mdiChild->createChannel());
 	for(int i = 0; i < CHANNELS_COUNT; i++)
 	{
-		iAChannelData* chData = m_mdiChild->getChannelData(m_channelID[i]);
+		iAChannelData* chData = m_mdiChild->channelData(m_channelID[i]);
 		vtkImageData* imageData = m_volumeStack->getVolume(volumeIndex[i]);
 		vtkColorTransferFunction* ctf = m_volumeStack->getColorTransferFunction(volumeIndex[i]);
 		if(!m_multiChannelIsInitialized)

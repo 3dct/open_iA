@@ -131,14 +131,14 @@ void iAUncertaintyAttachment::ContinueEnsembleLoading()
 	}
 	m_mainWnd->showMaximized();
 	m_child->showMaximized();
-	m_child->splitDockWidget(m_child->slicerDlg(iASlicerMode::XY), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
+	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
 	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Horizontal);	// ScatterPlot View
 	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[5], Qt::Vertical);	// Ensemble View
 	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);	// Label Distribution View
 	m_child->splitDockWidget(m_dockWidgets[3], m_dockWidgets[4], Qt::Vertical);	// Uncertainty Distribution View
 	m_child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
-	m_child->slicerDlg(iASlicerMode::XY)->hide();
-	m_child->getImagePropertyDlg()->hide();
+	m_child->slicerDockWidget(iASlicerMode::XY)->hide();
+	m_child->imagePropertyDockWidget()->hide();
 	if (!m_ensembleFile->LayoutName().isEmpty())
 	{
 		m_child->loadLayout(m_ensembleFile->LayoutName());
@@ -148,7 +148,7 @@ void iAUncertaintyAttachment::ContinueEnsembleLoading()
 
 void iAUncertaintyAttachment::WriteFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties)
 {
-	m_currentEnsemble->WriteFullDataFile(fileName, writeIntensities, writeMemberLabels, writeMemberProbabilities, writeEnsembleUncertainties, m_child->getModalities());
+	m_currentEnsemble->WriteFullDataFile(fileName, writeIntensities, writeMemberLabels, writeMemberProbabilities, writeEnsembleUncertainties, m_child->modalities());
 }
 
 

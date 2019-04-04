@@ -57,7 +57,7 @@ void iAUncertaintyModuleInterface::UncertaintyExploration()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Load Ensemble"),
-		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath(): QString(),
+		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath(): QString(),
 		tr("Image Analysis Ensemble (*.iae );;") );
 	if (!fileName.isEmpty())
 	{
@@ -144,7 +144,7 @@ void iAUncertaintyModuleInterface::WriteFullDataFile()
 	}
 	QString fileName = QFileDialog::getSaveFileName(m_mainWnd,
 		tr("Save Full Data file"),
-		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath() : QString(),
+		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath() : QString(),
 		tr("SVM file format (*.svm);;"));
 	if (fileName.isEmpty())
 		return;

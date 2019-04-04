@@ -706,7 +706,7 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 	//}
 	double pscale = cam->GetParallelScale();
 	double viewAngle = cam->GetViewAngle();
-	raycaster->getPlane2()->SetNormal( 0, -1, 0 );
+	raycaster->plane2()->SetNormal( 0, -1, 0 );
 	for ( size_t i = 0; i < numberOfFrames; ++i )
 	{
 		//double t = (double)i / (numberOfFrames-1);
@@ -748,7 +748,7 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 		//mdiChild->sXZ->spinBoxXZ->setValue( i );
 		//mdiChild->updateViews();
 
-		raycaster->getPlane2()->SetOrigin( 0, mdiChild->getImageData()->GetSpacing()[0] * ( mdiChild->getImageData()->GetDimensions()[1] - i ), 0 );
+		raycaster->plane2()->SetOrigin( 0, mdiChild->imageData()->GetSpacing()[0] * ( mdiChild->imageData()->GetDimensions()[1] - i ), 0 );
 		raycaster->update();
 		//mdiChild->updateViews();
 

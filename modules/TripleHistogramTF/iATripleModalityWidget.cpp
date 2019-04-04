@@ -98,12 +98,12 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxIndexChanged(int)));
 	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 
-	connect(mdiChild->slicerDlg(iASlicerMode::XY)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
-	connect(mdiChild->slicerDlg(iASlicerMode::XZ)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
-	connect(mdiChild->slicerDlg(iASlicerMode::YZ)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
-	connect(mdiChild->slicerDlg(iASlicerMode::XY)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceXYScrollBar()));
-	connect(mdiChild->slicerDlg(iASlicerMode::XZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
-	connect(mdiChild->slicerDlg(iASlicerMode::YZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XY)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceXZScrollBar(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSliceYZScrollBar(int)));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XY)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceXYScrollBar()));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
+	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->verticalScrollBar, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
 }
 
 iATripleModalityWidget::~iATripleModalityWidget()
@@ -221,7 +221,7 @@ void iATripleModalityWidget::setSlicerModePrivate(iASlicerMode slicerMode)
 
 		int dimensionIndex = getSlicerDimension(slicerMode);
 		int sliceNumber    = m_mdiChild->slicer(slicerMode)->sliceNumber();
-		int dimensionLength = m_mdiChild->getImageData()->GetDimensions()[dimensionIndex];
+		int dimensionLength = m_mdiChild->imageData()->GetDimensions()[dimensionIndex];
 		m_sliceSlider->setMaximum(dimensionLength - 1);
 		if (!setSliceNumber(sliceNumber)) {
 			sliderValueChanged(sliceNumber);
@@ -243,7 +243,7 @@ void iATripleModalityWidget::setSliceNumberPrivate(int sliceNumber)
 
 void iATripleModalityWidget::updateScrollBars(int newValue)
 {
-	m_mdiChild->slicerDlg(getSlicerMode())->verticalScrollBar->setValue(newValue);
+	m_mdiChild->slicerDockWidget(getSlicerMode())->verticalScrollBar->setValue(newValue);
 }
 
 void iATripleModalityWidget::updateTransferFunction(int index)
@@ -278,17 +278,17 @@ double iATripleModalityWidget::getWeight(int index)
 // When new modalities are added/removed
 void iATripleModalityWidget::updateModalities()
 {
-	if (m_mdiChild->getModalities()->size() >= 3) {
-		if (containsModality(m_mdiChild->getModality(0)) &&
-			containsModality(m_mdiChild->getModality(1)) &&
-			containsModality(m_mdiChild->getModality(2))) {
+	if (m_mdiChild->modalities()->size() >= 3) {
+		if (containsModality(m_mdiChild->modality(0)) &&
+			containsModality(m_mdiChild->modality(1)) &&
+			containsModality(m_mdiChild->modality(2))) {
 
 			return;
 		}
 	} else {
 		int i = 0;
-		for (; i < ModalityNumber && i < m_mdiChild->getModalities()->size(); ++i) {
-			m_modalitiesActive[i] = m_mdiChild->getModality(i);
+		for (; i < ModalityNumber && i < m_mdiChild->modalities()->size(); ++i) {
+			m_modalitiesActive[i] = m_mdiChild->modality(i);
 		}
 		for (; i < ModalityNumber; i++) { // Loop is not executed - and probably not intended to be?
 			m_modalitiesActive[i] = nullptr;
@@ -303,13 +303,13 @@ void iATripleModalityWidget::updateModalities()
 	// Initialize modalities being added
 	for (int i = 0; i < ModalityNumber; ++i)
 	{
-		m_modalitiesActive[i] = m_mdiChild->getModality(i);
+		m_modalitiesActive[i] = m_mdiChild->modality(i);
 
 		// Histogram {
-		if (!m_modalitiesActive[i]->GetHistogramData() || m_modalitiesActive[i]->GetHistogramData()->GetNumBin() != m_mdiChild->getPreferences().HistogramBins)
+		if (!m_modalitiesActive[i]->GetHistogramData() || m_modalitiesActive[i]->GetHistogramData()->GetNumBin() != m_mdiChild->preferences().HistogramBins)
 		{
 			m_modalitiesActive[i]->ComputeImageStatistics();
-			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->getPreferences().HistogramBins);
+			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->preferences().HistogramBins);
 		}
 
 		vtkColorTransferFunction *colorFuncCopy = vtkColorTransferFunction::New(); // TODO delete?
@@ -331,7 +331,7 @@ void iATripleModalityWidget::updateModalities()
 		// }
 
 		m_channelIDs[i] = m_mdiChild->createChannel();
-		iAChannelData* chData = m_mdiChild->getChannelData(m_channelIDs[i]);
+		iAChannelData* chData = m_mdiChild->channelData(m_channelIDs[i]);
 		vtkImageData* imageData = m_modalitiesActive[i]->GetImage();
 		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->GetTransfer()->getColorFunction();
 		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
@@ -351,7 +351,7 @@ void iATripleModalityWidget::updateModalities()
 	//setSliceNumber(getSliceNumber()); // Already called in setSlicerMode(iASlicerMode)
 	
 	applyWeights();
-	connect((dlg_transfer*)(m_mdiChild->getHistogram()->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
+	connect((dlg_transfer*)(m_mdiChild->histogram()->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
 
 	// Pure virtual method
 	initialize();
@@ -382,7 +382,7 @@ iATransferFunction* iATripleModalityWidget::createCopyTf(int index, vtkSmartPoin
 
 void iATripleModalityWidget::originalHistogramChanged()
 {
-	QSharedPointer<iAModality> selected = m_mdiChild->getModalities()->Get(m_mdiChild->getModalitiesDlg()->GetSelected());
+	QSharedPointer<iAModality> selected = m_mdiChild->modalities()->Get(m_mdiChild->modalitiesDockWidget()->GetSelected());
 	int index;
 	if (selected == m_modalitiesActive[0]) {
 		index = 0;

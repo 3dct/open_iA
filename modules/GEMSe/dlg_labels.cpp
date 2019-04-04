@@ -171,8 +171,8 @@ int dlg_labels::AddLabelItem(QString const & labelText)
 	if (!m_labelOverlayImg)
 	{
 		m_labelOverlayImg = vtkSmartPointer<iAvtkImageData>::New();
-		m_labelOverlayImg->SetExtent(m_mdiChild->getImagePointer()->GetExtent());
-		m_labelOverlayImg->SetSpacing(m_mdiChild->getImagePointer()->GetSpacing());
+		m_labelOverlayImg->SetExtent(m_mdiChild->imagePointer()->GetExtent());
+		m_labelOverlayImg->SetSpacing(m_mdiChild->imagePointer()->GetSpacing());
 		m_labelOverlayImg->AllocateScalars(VTK_INT, 1);
 		clearImage(m_labelOverlayImg, 0);
 	}
@@ -404,7 +404,7 @@ bool dlg_labels::Store(QString const & filename, bool extendedFormat)
 	stream.writeStartDocument();
 	stream.writeStartElement("Labels");
 
-	auto modalities = m_mdiChild->getModalities();
+	auto modalities = m_mdiChild->modalities();
 	for (int l=0; l<m_itemModel->rowCount(); ++l)
 	{
 		QStandardItem * labelItem = m_itemModel->item(l);
@@ -533,7 +533,7 @@ bool haveAllSeeds(QVector<int> const & label2SeedCounts, std::vector<int> const 
 void dlg_labels::Sample()
 {
 	int gt = m_mdiChild->chooseModalityNr("Choose Ground Truth");
-	vtkSmartPointer<vtkImageData> img = m_mdiChild->getModality(gt)->GetImage();
+	vtkSmartPointer<vtkImageData> img = m_mdiChild->modality(gt)->GetImage();
 	int labelCount = img->GetScalarRange()[1]+1;
 	if (labelCount > 50)
 	{

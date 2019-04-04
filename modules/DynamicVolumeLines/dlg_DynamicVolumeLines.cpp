@@ -91,7 +91,7 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget *parent /*= 0*/, QDir dat
 	m_linearScaledPlot(new QCustomPlot(dockWidgetContents))
 {
 	connect(&m_iMProgress, SIGNAL(progress(int)), this, SLOT(updateIntensityMapperProgress(int)));
-	m_mdiChild->getRenderer()->setAreaPicker();
+	m_mdiChild->renderer()->setAreaPicker();
 	
 	m_nonlinearScaledPlot->setObjectName("nonlinear");
 	m_linearScaledPlot->setObjectName("linear");
@@ -266,9 +266,9 @@ void dlg_DynamicVolumeLines::setupGUIConnections()
 	connect(sb_subHistBinCnt, SIGNAL(valueChanged(int)), this, SLOT(setSubHistBinCntFlag()));
 	connect(sb_UpperCompLevelThr, SIGNAL(valueChanged(double)), this, SLOT(compLevelRangeChanged()));
 	connect(sb_LowerCompLevelThr, SIGNAL(valueChanged(double)), this, SLOT(compLevelRangeChanged()));
-	connect(m_mdiChild->getRenderer(), SIGNAL(cellsSelected(vtkPoints*)),
+	connect(m_mdiChild->renderer(), SIGNAL(cellsSelected(vtkPoints*)),
 		this, SLOT(setSelectionForPlots(vtkPoints*)));
-	connect(m_mdiChild->getRenderer(), SIGNAL(noCellsSelected()),
+	connect(m_mdiChild->renderer(), SIGNAL(noCellsSelected()),
 		this, SLOT(setNoSelectionForPlots()));
 }
 
@@ -301,7 +301,7 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	mrvRenWin->SetNumberOfLayers(2);
 	mrvRenWin->AddRenderer(m_mrvBGRen);
 	mrvRenWin->Render();
-	m_mdiChild->tabifyDockWidget(m_mdiChild->getRendererDlg(), m_MultiRendererView);
+	m_mdiChild->tabifyDockWidget(m_mdiChild->renderDockWidget(), m_MultiRendererView);
 	m_MultiRendererView->verticalLayout->addWidget(wgtContainer);
 	m_MultiRendererView->show();
 }
@@ -353,13 +353,13 @@ void dlg_DynamicVolumeLines::visualizePath()
 		lines->InsertNextCell(line);
 	}
 	linesPolyData->SetLines(lines);
-	m_mdiChild->getRenderer()->setPolyData(linesPolyData);
-	m_mdiChild->getRenderer()->GetPolyActor()->GetProperty()->SetInterpolationToFlat();
-	m_mdiChild->getRenderer()->GetPolyActor()->GetProperty()->SetOpacity(1.0);
-	m_mdiChild->getRenderer()->GetPolyActor()->GetProperty()->SetColor(1.0, 0.0, 0.0);
-	m_mdiChild->getRenderer()->GetPolyActor()->GetProperty()->SetLineWidth(4);
-	m_mdiChild->getRenderer()->GetPolyActor()->GetProperty()->SetRenderLinesAsTubes(true);
-	m_mdiChild->getRenderer()->update();
+	m_mdiChild->renderer()->setPolyData(linesPolyData);
+	m_mdiChild->renderer()->polyActor()->GetProperty()->SetInterpolationToFlat();
+	m_mdiChild->renderer()->polyActor()->GetProperty()->SetOpacity(1.0);
+	m_mdiChild->renderer()->polyActor()->GetProperty()->SetColor(1.0, 0.0, 0.0);
+	m_mdiChild->renderer()->polyActor()->GetProperty()->SetLineWidth(4);
+	m_mdiChild->renderer()->polyActor()->GetProperty()->SetRenderLinesAsTubes(true);
+	m_mdiChild->renderer()->update();
 }
 
 void dlg_DynamicVolumeLines::visualize()
@@ -1241,9 +1241,9 @@ void dlg_DynamicVolumeLines::selectionChangedByUser()
 	else
 	{
 		m_mrvTxtAct->VisibilityOn();
-		iARenderer * ren = m_mdiChild->getRenderer();
-		vtkRenderWindow * renWin = ren->GetRenderWindow();
-		renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(ren->selectedActor);
+		iARenderer * ren = m_mdiChild->renderer();
+		vtkRenderWindow * renWin = ren->renderWindow();
+		renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(ren->selectedActor());
 		renWin->Render();
 		for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
 			plotP->graph(i)->setSelection(plotU->graph(i)->selection());
@@ -1514,7 +1514,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		}
 		else
 		{
-			double const *r = m_mdiChild->getHistogram()->xBounds();
+			double const *r = m_mdiChild->histogram()->xBounds();
 			for (unsigned int hIdx = 0; hIdx < pathSteps; ++hIdx)
 			{
 				bool showVoxel = false;
@@ -1554,20 +1554,20 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			visSelGraphList[i]->pen().color().blueF());
 
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
-		cTF->ShallowCopy(m_mdiChild->getColorTransferFunction());
+		cTF->ShallowCopy(m_mdiChild->colorTransferFunction());
 		int index = cTF->GetSize() - 1;
 		double val[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 		cTF->GetNodeValue(index, val);
 		val[1] = 1.0;	val[2] = 0.0;	val[3] = 0.0;
 		cTF->SetNodeValue(index, val);
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-		oTF->ShallowCopy(m_mdiChild->getPiecewiseFunction());
+		oTF->ShallowCopy(m_mdiChild->piecewiseFunction());
 
 		iASimpleTransferFunction tf(cTF, oTF);
 		//iASimpleTransferFunction tf(m_mdiChild->getColorTransferFunction(), m_mdiChild->getPiecewiseFunction());
 		auto ren = vtkSmartPointer<vtkRenderer>::New();
 		ren->SetLayer(1);
-		ren->SetActiveCamera(m_mdiChild->getRenderer()->getCamera());
+		ren->SetActiveCamera(m_mdiChild->renderer()->camera());
 		ren->GetActiveCamera()->ParallelProjectionOn();
 		ren->SetViewport(fmod(i, viewportCols) * fieldLengthX,
 			1 - (ceil((i + 1.0) / viewportCols) / viewportRows),
@@ -1576,7 +1576,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		ren->AddViewProp(cornerAnnotation);
 		ren->ResetCamera();
 		m_volRen = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_imgDataList[datasetIdx]));
-		m_volRen->ApplySettings(m_mdiChild->getVolumeSettings());
+		m_volRen->ApplySettings(m_mdiChild->volumeSettings());
 		m_volRen->AddTo(ren);
 		m_volRen->AddBoundingBoxTo(ren);
 		wgtContainer->GetRenderWindow()->AddRenderer(ren);

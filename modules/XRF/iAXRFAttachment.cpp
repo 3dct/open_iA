@@ -59,7 +59,7 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 	QString f = QFileDialog::getOpenFileName(
 		QApplication::activeWindow(),
 		tr( "Open File" ),
-		m_child->getFilePath(),
+		m_child->filePath(),
 		tr( "All supported types (*.mhd *.raw *.volstack);;MetaImages (*.mhd *.mha);;RAW files (*.raw);;Volume Stack (*.volstack)" ) );
 	if( !QFile::exists( f ) )
 		throw itk::ExceptionObject(__FILE__, __LINE__, "File does not exist");
@@ -68,12 +68,12 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 
 	dlgPeriodicTable = new dlg_periodicTable( m_child );
 	dlgRefSpectra = new dlg_RefSpectra( m_child );
-	m_child->splitDockWidget(m_child->slicerDlg(iASlicerMode::XY), dlgPeriodicTable, Qt::Horizontal);
-	m_child->splitDockWidget(m_child->slicerDlg(iASlicerMode::XY), dlgRefSpectra, Qt::Horizontal);
+	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), dlgPeriodicTable, Qt::Horizontal);
+	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), dlgRefSpectra, Qt::Horizontal);
 	
 	dlgXRF = new dlg_XRF( m_child, dlgPeriodicTable, dlgRefSpectra );
 
-	ioThread = new iAIO( m_child->getLogger(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
+	ioThread = new iAIO( m_child->logger(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
 	m_child->setReInitializeRenderWindows( false );
 	m_child->connectIOThreadSignals( ioThread );
 	connect( ioThread, SIGNAL( done() ), this, SLOT( xrfLoadingDone() ) );
@@ -120,7 +120,7 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 	if (m_xrfChannelID == NotExistingChannel)
 		m_xrfChannelID = m_child->createChannel();
 	vtkSmartPointer<vtkImageData> img = dlgXRF->GetCombinedVolume();
-	auto chData = m_child->getChannelData(m_xrfChannelID);
+	auto chData = m_child->channelData(m_xrfChannelID);
 	chData->setImage( img );
 	chData->setColorTF( dlgXRF->GetColorTransferFunction() );
 	chData->setName("Spectral Color Image");
@@ -134,7 +134,7 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 	else if (isMagicLensEnabled)
 	{
 		m_child->setMagicLensInput(m_xrfChannelID,
-			!m_child->getChannelData(m_xrfChannelID)->isEnabled());
+			!m_child->channelData(m_xrfChannelID)->isEnabled());
 	}
 	m_child->updateSlicers();
 	m_child->addMsg(tr("Spectral color image initialized."));
@@ -164,7 +164,7 @@ void iAXRFAttachment::updateXRFVoxelEnergy( int x, int y, int z, int mode )
 		}
 		vtkSmartPointer<vtkImageData> firstImg = *xrfData->begin();
 		double imgSpacing[3];
-		m_child->getImageData()->GetSpacing( imgSpacing );
+		m_child->imageData()->GetSpacing( imgSpacing );
 
 		double xrfSpacing[3];
 		firstImg->GetSpacing( xrfSpacing );
@@ -219,7 +219,7 @@ void iAXRFAttachment::xrfLoadingDone()
 			haveEnergyLevels = true;
 		}
 	}
-	iAWidgetAddHelper wdgtHelp(m_child, m_child->getLogDlg());
+	iAWidgetAddHelper wdgtHelp(m_child, m_child->logDockWidget());
 	dlgXRF->init( minEnergy, maxEnergy, haveEnergyLevels, wdgtHelp);
 	connect( dlgXRF->cb_spectralColorImage, SIGNAL( stateChanged( int ) ), this, SLOT( visualizeXRF( int ) ) );
 	connect( dlgXRF->sl_peakOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( updateXRFOpacity( int ) ) );
@@ -252,7 +252,7 @@ void iAXRFAttachment::updateSlicerXRFOpacity()
 
 void iAXRFAttachment::updateXRFOpacity( int value )
 {
-	iAChannelData * data = m_child->getChannelData(m_xrfChannelID);
+	iAChannelData * data = m_child->channelData(m_xrfChannelID);
 	if( data && data->isEnabled() )
 	{
 		dlgXRF->sl_peakOpacity->repaint();
@@ -263,14 +263,14 @@ void iAXRFAttachment::updateXRFOpacity( int value )
 bool iAXRFAttachment::filter_SimilarityMap()
 {
 	dlgSimilarityMap = new dlg_SimilarityMap( m_child );
-	m_child->tabifyDockWidget( m_child->getLogDlg(), dlgSimilarityMap );
+	m_child->tabifyDockWidget( m_child->logDockWidget(), dlgSimilarityMap );
 
 	return true;
 }
 
 void iAXRFAttachment::initSlicerXRF( bool enableChannel )
 {
-	assert( !m_child->getChannelData(m_xrfChannelID) );
+	assert( !m_child->channelData(m_xrfChannelID) );
 	m_child->addMsg(tr("Initializing Spectral Color Image. This may take a while..."));
 	QObject* calcThread = recalculateXRF();
 	if( enableChannel )
@@ -286,7 +286,7 @@ void iAXRFAttachment::initSlicerXRF( bool enableChannel )
 void iAXRFAttachment::visualizeXRF( int isOn )
 {
 	bool enabled = (isOn != 0);
-	iAChannelData * chData = m_child->getChannelData(m_xrfChannelID);
+	iAChannelData * chData = m_child->channelData(m_xrfChannelID);
 	if( !chData && enabled )
 	{
 		initSlicerXRF( true );
@@ -301,7 +301,7 @@ void iAXRFAttachment::visualizeXRF( int isOn )
 
 void iAXRFAttachment::updateXRF()
 {
-	iAChannelData * chData = m_child->getChannelData(m_xrfChannelID);
+	iAChannelData * chData = m_child->channelData(m_xrfChannelID);
 	bool isMagicLensEnabled = m_child->isMagicLensToggled();
 	if( !chData || (!chData->isEnabled() && !isMagicLensEnabled) )
 	{
@@ -317,7 +317,7 @@ void iAXRFAttachment::updateXRF()
 
 void iAXRFAttachment::magicLensToggled( bool isOn )
 {
-	if( dlgXRF && !m_child->getChannelData(m_xrfChannelID) )
+	if( dlgXRF && !m_child->channelData(m_xrfChannelID) )
 	{
 		initSlicerXRF( false );
 		return;

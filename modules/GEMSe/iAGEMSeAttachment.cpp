@@ -46,25 +46,25 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * ch
 {
 	iAGEMSeAttachment * newAttachment = new iAGEMSeAttachment(mainWnd, child);
 
-	newAttachment->m_widgetAddHelper = QSharedPointer<iAWidgetAddHelper>(new iAWidgetAddHelper(child, child->getLogDlg()));
+	newAttachment->m_widgetAddHelper = QSharedPointer<iAWidgetAddHelper>(new iAWidgetAddHelper(child, child->logDockWidget()));
 	
 	QString defaultThemeName("Brewer Set3 (max. 12)");
 	iAColorTheme const * colorTheme = iAColorThemeManager::GetInstance().GetTheme(defaultThemeName);
 	
-	newAttachment->m_dlgGEMSe = new dlg_GEMSe(child, child->getLogger(), colorTheme);
+	newAttachment->m_dlgGEMSe = new dlg_GEMSe(child, child->logger(), colorTheme);
 	
 	newAttachment->m_dlgLabels = new dlg_labels(child, colorTheme);
 	newAttachment->m_dlgSamplings = new dlg_samplings();
 	newAttachment->m_dlgGEMSeControl = new dlg_GEMSeControl(
 		child,
 		newAttachment->m_dlgGEMSe,
-		child->getModalitiesDlg(),
+		child->modalitiesDockWidget(),
 		newAttachment->m_dlgLabels,
 		newAttachment->m_dlgSamplings,
 		colorTheme
 	);
-	child->splitDockWidget(child->getLogDlg(), newAttachment->m_dlgGEMSe, Qt::Vertical);
-	child->splitDockWidget(child->getLogDlg(), newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
+	child->splitDockWidget(child->logDockWidget(), newAttachment->m_dlgGEMSe, Qt::Vertical);
+	child->splitDockWidget(child->logDockWidget(), newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
 	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
 	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
 

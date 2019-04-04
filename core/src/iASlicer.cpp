@@ -1357,7 +1357,7 @@ namespace
 		{
 			tmpPix = img->GetScalarComponentAsDouble(slicerX, slicerY, 0, 0);
 		}
-		QString file = tmpChild->getFileInfo().fileName();
+		QString file = tmpChild->fileInfo().fileName();
 		return QString("%1 [%2]: %3\n")
 			.arg(PadOrTruncate(file, MaxNameLength))
 			.arg(GetSlicerCoordString(slicerX, slicerY, thirdCoord, mode))
@@ -1426,13 +1426,13 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 	}
 	if (m_linkedMdiChild)
 	{
-		QList<MdiChild*> mdiwindows = m_linkedMdiChild->getMainWnd()->mdiChildList();
+		QList<MdiChild*> mdiwindows = m_linkedMdiChild->mainWnd()->mdiChildList();
 		for (int i = 0; i < mdiwindows.size(); i++)
 		{
 			MdiChild *tmpChild = mdiwindows.at(i);
 			if (m_linkedMdiChild == tmpChild)
 				continue;
-			double * const tmpSpacing = tmpChild->getImagePointer()->GetSpacing();
+			double * const tmpSpacing = tmpChild->imagePointer()->GetSpacing();
 			// TODO: check which spacing makes sense here!
 			auto imageData = m_channels[0]->input();
 			double const * origImgSpacing = imageData->GetSpacing();
@@ -1444,33 +1444,33 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 			case iASlicerMode::XY://XY
 				tmpChild->slicer(iASlicerMode::XY)->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1]);
 				tmpChild->slicer(iASlicerMode::XY)->setIndex(tmpX, tmpY, tmpZ);
-				tmpChild->slicerDlg(iASlicerMode::XY)->sbSlice->setValue(tmpZ);
+				tmpChild->slicerDockWidget(iASlicerMode::XY)->sbSlice->setValue(tmpZ);
 
 				tmpChild->slicer(iASlicerMode::XY)->update();
-				tmpChild->slicer(iASlicerMode::XY)->update();
-				tmpChild->slicerDlg(iASlicerMode::XY)->update();
+				//tmpChild->slicer(iASlicerMode::XY)->update();
+				//tmpChild->slicerDockWidget(iASlicerMode::XY)->update();
 
 				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::XY), tmpX, tmpY, tmpZ, m_mode);
 				break;
 			case iASlicerMode::YZ://YZ
 				tmpChild->slicer(iASlicerMode::YZ)->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
 				tmpChild->slicer(iASlicerMode::YZ)->setIndex(tmpX, tmpY, tmpZ);
-				tmpChild->slicerDlg(iASlicerMode::YZ)->sbSlice->setValue(tmpX);
+				tmpChild->slicerDockWidget(iASlicerMode::YZ)->sbSlice->setValue(tmpX);
 
 				tmpChild->slicer(iASlicerMode::YZ)->update();
-				tmpChild->slicer(iASlicerMode::YZ)->update();
-				tmpChild->slicerDlg(iASlicerMode::YZ)->update();
+				//tmpChild->slicer(iASlicerMode::YZ)->update();
+				//tmpChild->slicerDockWidget(iASlicerMode::YZ)->update();
 
 				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::YZ), tmpY, tmpZ, tmpX, m_mode);
 				break;
 			case iASlicerMode::XZ://XZ
 				tmpChild->slicer(iASlicerMode::XZ)->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
 				tmpChild->slicer(iASlicerMode::XZ)->setIndex(tmpX, tmpY, tmpZ);
-				tmpChild->slicerDlg(iASlicerMode::XZ)->sbSlice->setValue(tmpY);
+				tmpChild->slicerDockWidget(iASlicerMode::XZ)->sbSlice->setValue(tmpY);
 
 				tmpChild->slicer(iASlicerMode::XZ)->update();
-				tmpChild->slicer(iASlicerMode::XZ)->update();
-				tmpChild->slicerDlg(iASlicerMode::XZ)->update();
+				//tmpChild->slicer(iASlicerMode::XZ)->update();
+				//tmpChild->slicerDockWidget(iASlicerMode::XZ)->update();
 
 				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::XZ), tmpX, tmpZ, tmpY, m_mode);
 				break;
