@@ -48,7 +48,7 @@ dlg_slicer::dlg_slicer(iASlicer* slicer):
 	lbSlice->setText(QString("Slice # %1").arg(sliceAxis));
 	lbRotation->setText(QString("Rot %1").arg(sliceAxis));
 	sliceContainerLayout->addWidget(slicer);
-	sliceContainer->setStyleSheet(QString("#sliceWidget { border: %1px solid rgb(%2, %3, %4) } ")
+	sliceContainer->setStyleSheet(QString("#sliceContainer { border: %1px solid rgb(%2, %3, %4) } ")
 		.arg(BorderWidth).arg(color.red()).arg(color.green()).arg(color.blue()));
 	sbSlice->setRange(-8192, 8192);
 	sbSlabThickness->hide();
