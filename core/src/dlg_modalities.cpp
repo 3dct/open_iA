@@ -33,11 +33,11 @@
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAVolumeRenderer.h"
+#include "iAvtkInteractStyleActor.h"
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "io/extension2id.h"
 #include "mdichild.h"
-#include "CustomInteractorStyles.h"
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
@@ -68,7 +68,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 {
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
-		m_manualMoveStyle[i] = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+		m_manualMoveStyle[i] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
 		connect(m_manualMoveStyle[i], SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
 	}
 	connect(pbAdd,    &QPushButton::clicked, this, &dlg_modalities::addClicked);

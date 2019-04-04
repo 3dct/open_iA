@@ -33,7 +33,7 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_modalities> dlg_modalitiesUI;
 
 class dlg_planeSlicer;
 
-class iACustomInterActorStyleTrackBall;
+class iAvtkInteractStyleActor;
 class iAFast3DMagicLensWidget;
 class iAModality;
 class iAModalityList;
@@ -116,7 +116,7 @@ private:
 	vtkRenderer* m_mainRenderer;
 	MdiChild* m_mdiChild;
 
-	vtkSmartPointer<iACustomInterActorStyleTrackBall> m_manualMoveStyle[4];
+	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];
 	
 	void addToList(QSharedPointer<iAModality> mod);
 	//! initialize a modality's transfer function
