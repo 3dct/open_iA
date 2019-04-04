@@ -269,12 +269,16 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_txtActor->GetTextProperty()->SetJustificationToLeft();
 	m_txtActor->GetTextProperty()->SetVerticalJustificationToBottom();
 	m_txtActor->VisibilityOff();
+	m_txtActor->SetPickable(false);
+	m_txtActor->SetDragable(false);
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicePlaneSource[s] = vtkSmartPointer<vtkPlaneSource>::New();
 		m_slicePlaneMapper[s] = vtkSmartPointer<vtkPolyDataMapper>::New();
 		m_slicePlaneActor[s] = vtkSmartPointer<vtkActor>::New();
 		m_slicePlaneActor[s]->GetProperty()->LightingOff();
+		m_slicePlaneActor[s]->SetPickable(false);
+		m_slicePlaneActor[s]->SetDragable(false);
 	}
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
@@ -351,6 +355,8 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	m_cMapper->SetInputConnection(m_cSource->GetOutputPort());
 	m_cActor->SetMapper(m_cMapper);
 	m_cActor->GetProperty()->SetColor(1,0,0);
+	m_cActor->SetPickable(false);
+	m_cActor->SetDragable(false);
 
 	setupCutter();
 	setupCube();
@@ -364,15 +370,23 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 
 	m_profileLineMapper->SetInputConnection(m_profileLineSource->GetOutputPort());
 	m_profileLineActor->SetMapper(m_profileLineMapper);
+	m_profileLineActor->SetPickable(false);
+	m_profileLineActor->SetDragable(false);
 	m_profileLineStartPointMapper->SetInputConnection(m_profileLineStartPointSource->GetOutputPort());
 	m_profileLineStartPointActor->SetMapper(m_profileLineStartPointMapper);
+	m_profileLineStartPointActor->SetPickable(false);
+	m_profileLineStartPointActor->SetDragable(false);
 	m_profileLineEndPointMapper->SetInputConnection(m_profileLineEndPointSource->GetOutputPort());
 	m_profileLineEndPointActor->SetMapper(m_profileLineEndPointMapper);
+	m_profileLineEndPointActor->SetPickable(false);
+	m_profileLineEndPointActor->SetDragable(false);
 	m_profileLineActor->GetProperty()->SetColor(0.59, 0.73, 0.94);//ffa800//150, 186, 240
 	m_profileLineActor->GetProperty()->SetLineWidth(2.0);
 	m_profileLineActor->GetProperty()->SetLineStipplePattern(0x00ff);//0xf0f0
 	m_profileLineActor->GetProperty()->SetLineStippleRepeatFactor(1);
 	m_profileLineActor->GetProperty()->SetPointSize(2);
+	m_profileLineActor->SetPickable(false);
+	m_profileLineActor->SetDragable(false);
 	m_profileLineStartPointSource->SetRadius(2 * spacing[0]);
 	m_profileLineEndPointSource->SetRadius(2 * spacing[0]);
 	m_profileLineStartPointActor->GetProperty()->SetColor(1.0, 0.65, 0.0);
@@ -389,6 +403,8 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	 m_sliceCubeActor->GetProperty()->SetAmbient(1.0);
 	 m_sliceCubeActor->GetProperty()->SetDiffuse(0.0);
 	 m_sliceCubeActor->GetProperty()->SetSpecular(0.0);
+	 m_sliceCubeActor->SetPickable(false);
+	 m_sliceCubeActor->SetDragable(false);
 	 
 	 m_sliceCubeActor->SetVisibility(false);
 
@@ -544,6 +560,8 @@ void iARenderer::setupAxes(double spacing[3])
 	m_moveableAxesActor->AxisLabelsOff();
 	m_moveableAxesActor->SetShaftTypeToCylinder();
 	m_moveableAxesActor->SetTotalLength(15, 15, 15);
+	m_moveableAxesActor->SetPickable(false);
+	m_moveableAxesActor->SetDragable(false);
 
 	m_moveableAxesTransform->Scale(spacing[0]*3, spacing[1]*3, spacing[2]*3);
 
