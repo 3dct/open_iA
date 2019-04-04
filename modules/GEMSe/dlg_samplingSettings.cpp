@@ -45,9 +45,9 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	dlg_samplingSettingsUI(parentWidget)
 {
 	assert(modalities->size() > 0);
-	QSharedPointer<iAModality const> mod0 = modalities->Get(0);
+	QSharedPointer<iAModality const> mod0 = modalities->get(0);
 	m_modalityCount = modalities->size();
-	m_imagePixelCount = mod0->GetHeight() * mod0->GetWidth() * mod0->GetDepth();
+	m_imagePixelCount = mod0->height() * mod0->width() * mod0->depth();
 
 	// assemble modality parameter input on the fly:
 
@@ -60,7 +60,7 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	auto & paramGens = GetParameterGenerators();
 	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
 	{
-		cbSamplingMethod->addItem(paramGen->GetName());
+		cbSamplingMethod->addItem(paramGen->name());
 	}
 	cbSamplingMethod->setCurrentIndex(1);
 
@@ -442,7 +442,7 @@ QSharedPointer<ParameterInputs> CreateParameterLine(
 		QGridLayout* checkGridLay = new QGridLayout();
 		for (int categoryIdx = descriptor->Min(); categoryIdx <= descriptor->Max(); ++categoryIdx)
 		{
-			QCheckBox* checkBox = new QCheckBox(descriptor->NameMapper()->GetName(categoryIdx));
+			QCheckBox* checkBox = new QCheckBox(descriptor->NameMapper()->name(categoryIdx));
 			categoryInputs->m_features.push_back(checkBox);
 			checkGridLay->addWidget(checkBox, (categoryIdx - descriptor->Min()) / 3, static_cast<int>(categoryIdx - descriptor->Min()) % 3);
 		}

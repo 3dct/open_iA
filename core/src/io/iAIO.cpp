@@ -407,12 +407,12 @@ void iAIO::readHDF5File()
 void iAIO::readProject()
 {
 	m_modalities = QSharedPointer<iAModalityList>(new iAModalityList());
-	m_modalities->Load(fileName, *ProgressObserver());
+	m_modalities->load(fileName, *ProgressObserver());
 }
 
 void iAIO::writeProject()
 {
-	m_modalities->Store(fileName, m_camera);
+	m_modalities->store(fileName, m_camera);
 }
 
 void iAIO::run()

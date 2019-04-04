@@ -66,9 +66,9 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 		m_renderers[i]->setAxesTransform(m_axesTransform);
 		m_vtkWidgets[i]->SetRenderWindow(m_renderers[i]->renderWindow());
 		m_renderers[i]->initialize(m_volumeStack->getVolume(i), m_mdiChild->polyData());
-		m_volumeRenderer[i]->AddTo(m_renderers[i]->renderer());
+		m_volumeRenderer[i]->addTo(m_renderers[i]->renderer());
 		m_renderers[i]->applySettings( m_mdiChild->renderSettings() );
-		m_volumeRenderer[i]->ApplySettings(m_mdiChild->volumeSettings());
+		m_volumeRenderer[i]->applySettings(m_mdiChild->volumeSettings());
 		
 		// setup renderers
 		m_renderers[i]->showHelpers(SHOW_HELPERS);
@@ -93,6 +93,6 @@ void dlg_dataView4DCT::update()
 	{
 		m_renderers[i]->reInitialize(m_volumeStack->getVolume(i), m_mdiChild->polyData());
 		m_renderers[i]->update();
-		m_volumeRenderer[i]->Update(); // TODO: VOLUME: check if necessary!
+		m_volumeRenderer[i]->update(); // TODO: VOLUME: check if necessary!
 	}
 }

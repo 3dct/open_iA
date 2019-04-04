@@ -43,7 +43,7 @@ class iANoNormalizer: public iANormalizer
 public:
 	virtual iADistanceType Normalize(iADistanceType d) const;
 	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * const GetName() const;
+	virtual char const * const name() const;
 };
 
 class iALinearNormalizer: public iANormalizer
@@ -52,7 +52,7 @@ public:
 	iALinearNormalizer();
 	virtual iADistanceType Normalize(iADistanceType d) const;
 	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * const GetName() const;
+	virtual char const * const name() const;
 private:
 	iADistanceType m_normalizeFactor;
 };
@@ -63,7 +63,7 @@ public:
 	iAGaussianNormalizer();
 	virtual iADistanceType Normalize(iADistanceType d) const;
 	virtual void SetMaxValue(iADistanceType d);
-	virtual char const * const GetName() const;
+	virtual char const * const name() const;
 	void SetBeta(double beta);
 private:
 	double m_beta;

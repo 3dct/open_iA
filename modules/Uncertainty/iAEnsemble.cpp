@@ -595,9 +595,9 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 				{
 					for (int m = 0; m < modalities->size(); ++m)
 					{
-						for (int c = 0; c < modalities->Get(m)->ComponentCount(); ++c)
+						for (int c = 0; c < modalities->get(m)->componentCount(); ++c)
 						{
-							auto img = modalities->Get(m)->GetComponent(c);
+							auto img = modalities->get(m)->component(c);
 							line += QString::number(++curFeature) + ":" + QString::number(img->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
 						}
 					}

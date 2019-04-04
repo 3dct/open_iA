@@ -48,7 +48,7 @@ public:
 	void AddResult(QSharedPointer<iASingleResult> result);
 	QVector<QSharedPointer<iASingleResult> > const & GetResults() const;
 	QSharedPointer<iAAttributes> GetAttributes() const;
-	QString GetName() const;
+	QString name() const;
 	QString GetFileName() const;
 	QString GetPath(int id) const;
 	QString GetPath() const;

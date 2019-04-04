@@ -159,10 +159,10 @@ void iACustomInterActorStyleTrackBall::updateInteractors()
 	}
 	else //in 3d case
 	{
-		double const * pos = m_volumeRenderer->GetPosition();
+		double const * pos = m_volumeRenderer->position();
 		DEBUG_LOG(QString("  Pos 3D renderer: %1, %2, %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
 		coords.updateCoords(pos, static_cast<iASlicerMode>(m_currentSliceMode));
-		m_volumeRenderer->GetVolume()->SetPosition(0, 0, 0);
+		m_volumeRenderer->volume()->SetPosition(0, 0, 0);
 	}
 	DEBUG_LOG(QString("  New origin: %1, %2, %3").arg(coords.x).arg(coords.y).arg(coords.z));
 
@@ -176,7 +176,7 @@ void iACustomInterActorStyleTrackBall::updateInteractors()
 			m_slicerChannel[i]->updateReslicer();
 	
 		
-	m_volumeRenderer->Update();
+	m_volumeRenderer->update();
 	emit actorsUpdated();
 }
 /*

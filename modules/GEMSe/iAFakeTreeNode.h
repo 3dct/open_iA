@@ -28,7 +28,7 @@ private:
 	iAITKIO::ImagePointer m_img;
 public:
 	iAFakeTreeNode(iAITKIO::ImagePointer img, QString const & name);
-	QString const & GetName() const;
+	QString const & name() const;
 	virtual bool IsLeaf() const;
 	virtual int GetChildCount() const;
 	virtual double GetAttribute(int) const;

@@ -52,7 +52,7 @@ public:
 	void SetSlicerMode(iASlicerMode, int sliceNr, vtkCamera*);
 	vtkCamera* GetCamera();
 	void SetCamera(vtkCamera* camera);
-	vtkImageData * GetImage() const;
+	vtkImageData * image() const;
 	void SetColorTheme(iAColorTheme const * colorTheme);
 	int GetSliceNumber() const;
 	double GetAspectRatio() const;

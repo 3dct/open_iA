@@ -117,7 +117,7 @@ namespace
 		iASpectrumFunction *result = new iASpectrumFunction();
 		for (size_t i=0; i<xrfData->size(); ++i)
 		{
-			result->insert(std::make_pair(i, static_cast<unsigned int>(xrfData->GetImage(i)->GetScalarComponentAsFloat(x, y, z, 0))));
+			result->insert(std::make_pair(i, static_cast<unsigned int>(xrfData->image(i)->GetScalarComponentAsFloat(x, y, z, 0))));
 		}
 		return result;
 	}
@@ -201,7 +201,7 @@ void iAAccumulatedXRFData::calculateStatistics()
 
 void iAAccumulatedXRFData::createSpectrumFunctions()
 {
-	vtkSmartPointer<vtkImageData> img = m_xrfData->GetImage(0);
+	vtkSmartPointer<vtkImageData> img = m_xrfData->image(0);
 	int extent[6];
 	img->GetExtent(extent);
 	for (int x = extent[0]; x <= extent[1]; ++x)

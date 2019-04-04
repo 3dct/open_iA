@@ -191,7 +191,7 @@ void dlg_GEMSe::CreateMapper()
 	for (int samplingIdx=0; samplingIdx<m_samplings->size(); ++samplingIdx)
 	{
 		QSharedPointer<iASamplingResults> sampling = m_samplings->at(samplingIdx);
-		m_pipelineNames.push_back(sampling->GetName());
+		m_pipelineNames.push_back(sampling->name());
 		int datasetID = sampling->GetID();
 		QSharedPointer<iAAttributes> attributes = sampling->GetAttributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)

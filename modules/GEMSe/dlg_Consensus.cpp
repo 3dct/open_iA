@@ -992,7 +992,7 @@ void dlg_Consensus::LoadConfig()
 			iASEAFile::DefaultCHRFileName,
 			executable,
 			additionalParameters,
-			samplingResults->GetName(),
+			samplingResults->name(),
 			"label.mhd",
 			true,
 			true,

@@ -233,14 +233,14 @@ void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData *
 	{
 		m_renderer->initialize( imgData, polyData );
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, imgData));
-		m_volumeRenderer->AddTo(m_renderer->renderer());
-		m_volumeRenderer->AddBoundingBoxTo(m_renderer->renderer());
+		m_volumeRenderer->addTo(m_renderer->renderer());
+		m_volumeRenderer->addBoundingBoxTo(m_renderer->renderer());
 		m_rendInitialized = true;
 	}
 	else
 	{
 		m_renderer->reInitialize(imgData, polyData);
-		m_volumeRenderer->SetImage(&tf, imgData);
+		m_volumeRenderer->setImage(&tf, imgData);
 	}
 	m_wireMapper->SetInputData( polyData );
 	UpdateColorCoding();
@@ -300,14 +300,14 @@ void iASegm3DViewData::LoadAndApplySettings()
 	volumeSettings.RenderMode = settings.value("Renderer/rsRenderMode", 0).toInt();
 
 	m_renderer->applySettings(renderSettings);
-	m_volumeRenderer->ApplySettings(volumeSettings);
+	m_volumeRenderer->applySettings(volumeSettings);
 
 	// TODO: VOLUME: apply volume/bounding box vis.!
 	bool showBoundingBox = settings.value("Renderer/rsBoundingBox", true).toBool();
 	bool showVolume = settings.value("PorosityAnalyser/GUI/ShowVolume", false).toBool();
 	// m_renderer->GetOutlineActor()->SetVisibility(showBoundingBox);
-	m_volumeRenderer->ShowBoundingBox(showBoundingBox);
-	m_volumeRenderer->ShowVolume(showVolume);
+	m_volumeRenderer->showBoundingBox(showBoundingBox);
+	m_volumeRenderer->showVolume(showVolume);
 
 	m_renderer->polyActor()->SetVisibility( settings.value( "PorosityAnalyser/GUI/ShowSurface", false ).toBool() );
 	m_wireActor->SetVisibility( settings.value( "PorosityAnalyser/GUI/ShowWireframe", false ).toBool() );
@@ -338,7 +338,7 @@ iAFast3DMagicLensWidget * iASegm3DViewData::GetWidget()
 
 void iASegm3DViewData::ShowVolume( bool visible )
 {
-	m_volumeRenderer->ShowVolume(visible);
+	m_volumeRenderer->showVolume(visible);
 	volScalarBarWgt->SetEnabled( visible );
 	m_renderer->update();
 }

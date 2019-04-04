@@ -190,7 +190,7 @@ QString iAAttributeDescriptor::ToString() const
 			}
 			for (int i = Min(); i <= Max(); ++i)
 			{
-				result += m_nameMapper->GetName(i);
+				result += m_nameMapper->name(i);
 				if (i < m_nameMapper->size() - 1)
 				{
 					result += CategoricalValueSplitString;

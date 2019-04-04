@@ -42,7 +42,7 @@ public:
 	//! returns the color with the given index in this theme
 	virtual QColor const & GetColor(int idx) const =0;
 	//! get the name of the color theme
-	QString const & GetName() const;
+	QString const & name() const;
 private:
 	QString m_name;
 };

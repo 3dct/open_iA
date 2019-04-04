@@ -306,10 +306,10 @@ void iATripleModalityWidget::updateModalities()
 		m_modalitiesActive[i] = m_mdiChild->modality(i);
 
 		// Histogram {
-		if (!m_modalitiesActive[i]->GetHistogramData() || m_modalitiesActive[i]->GetHistogramData()->GetNumBin() != m_mdiChild->preferences().HistogramBins)
+		if (!m_modalitiesActive[i]->histogramData() || m_modalitiesActive[i]->histogramData()->GetNumBin() != m_mdiChild->preferences().HistogramBins)
 		{
-			m_modalitiesActive[i]->ComputeImageStatistics();
-			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->preferences().HistogramBins);
+			m_modalitiesActive[i]->computeImageStatistics();
+			m_modalitiesActive[i]->computeHistogramData(m_mdiChild->preferences().HistogramBins);
 		}
 
 		vtkColorTransferFunction *colorFuncCopy = vtkColorTransferFunction::New(); // TODO delete?
@@ -318,7 +318,7 @@ void iATripleModalityWidget::updateModalities()
 
 		m_histograms[i] = new iADiagramFctWidget(nullptr, m_mdiChild);
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
-			new	iABarGraphPlot(m_modalitiesActive[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
+			new	iABarGraphPlot(m_modalitiesActive[i]->histogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->addPlot(histogramPlot);
 		m_histograms[i]->setTransferFunctions(m_copyTFs[i]->getColorFunction(), m_copyTFs[i]->getOpacityFunction());
 		m_histograms[i]->updateTrf();
@@ -332,15 +332,15 @@ void iATripleModalityWidget::updateModalities()
 
 		m_channelIDs[i] = m_mdiChild->createChannel();
 		iAChannelData* chData = m_mdiChild->channelData(m_channelIDs[i]);
-		vtkImageData* imageData = m_modalitiesActive[i]->GetImage();
-		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->GetTransfer()->getColorFunction();
-		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
+		vtkImageData* imageData = m_modalitiesActive[i]->image();
+		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->transfer()->getColorFunction();
+		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->transfer()->getOpacityFunction();
 		chData->setData(imageData, ctf, otf);
 		// TODO: initialize channel?
 		m_mdiChild->initChannelRenderer(m_channelIDs[i], false, true);
 	}
 
-	m_triangleWidget->setModalities(getModality(0)->GetImage(), getModality(1)->GetImage(), getModality(2)->GetImage());
+	m_triangleWidget->setModalities(getModality(0)->image(), getModality(1)->image(), getModality(2)->image());
 	m_triangleWidget->update();
 
 	connect((dlg_transfer*)(m_histograms[0]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
@@ -375,14 +375,14 @@ int iATripleModalityWidget::getModalitiesCount()
 
 iATransferFunction* iATripleModalityWidget::createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacityFunction)
 {
-	colorTf->DeepCopy(m_modalitiesActive[index]->GetTransfer()->getColorFunction());
-	opacityFunction->DeepCopy(m_modalitiesActive[index]->GetTransfer()->getOpacityFunction());
+	colorTf->DeepCopy(m_modalitiesActive[index]->transfer()->getColorFunction());
+	opacityFunction->DeepCopy(m_modalitiesActive[index]->transfer()->getOpacityFunction());
 	return new iASimpleTransferFunction(colorTf, opacityFunction);
 }
 
 void iATripleModalityWidget::originalHistogramChanged()
 {
-	QSharedPointer<iAModality> selected = m_mdiChild->modalities()->Get(m_mdiChild->modalitiesDockWidget()->GetSelected());
+	QSharedPointer<iAModality> selected = m_mdiChild->modalities()->get(m_mdiChild->modalitiesDockWidget()->selected());
 	int index;
 	if (selected == m_modalitiesActive[0]) {
 		index = 0;
@@ -409,7 +409,7 @@ void iATripleModalityWidget::updateCopyTransferFunction(int index)
 		double weight = m_weightCur[index];
 
 		// newly set transfer function (set via the histogram)
-		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
+		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->transfer();
 
 		// copy of previous transfer function, to be updated in this method
 		iATransferFunction *copy = m_copyTFs[index];
@@ -446,7 +446,7 @@ void iATripleModalityWidget::updateOriginalTransferFunction(int index)
 		double weight = m_weightCur[index];
 
 		// newly set transfer function (set via the histogram)
-		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
+		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->transfer();
 
 		// copy of previous transfer function, to be updated in this method
 		iATransferFunction *copy = m_copyTFs[index];
@@ -477,7 +477,7 @@ void iATripleModalityWidget::applyWeights()
 	if (isReady()) {
 		for (int i = 0; i < ModalityNumber; ++i)
 		{
-			vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
+			vtkPiecewiseFunction *effective = m_modalitiesActive[i]->transfer()->getOpacityFunction();
 			vtkPiecewiseFunction *copy = m_copyTFs[i]->getOpacityFunction();
 
 			double pntVal[4];

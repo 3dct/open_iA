@@ -64,15 +64,15 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	{
 		m_renderer->initialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
-		m_volumeRenderer->AddTo(m_renderer->renderer());
+		m_volumeRenderer->addTo(m_renderer->renderer());
 		m_rendInitialized = true;
 	}
 	else
 	{
-		m_volumeRenderer->Remove();
+		m_volumeRenderer->remove();
 		m_renderer->reInitialize(imgData, polyData);
 		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
-		m_volumeRenderer->AddTo(m_renderer->renderer());
+		m_volumeRenderer->addTo(m_renderer->renderer());
 	}
 }
 
@@ -93,5 +93,5 @@ size_t dlg_elementRenderer::GetRefLibIndex()
 
 void dlg_elementRenderer::ApplyVolumeSettings(iAVolumeSettings const & vs)
 {
-	m_volumeRenderer->ApplySettings(vs);
+	m_volumeRenderer->applySettings(vs);
 }

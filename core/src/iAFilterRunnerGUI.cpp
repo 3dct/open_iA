@@ -240,7 +240,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			int mdiIdx = dlg.getComboBoxIndex(idx);
 			for (int m = 0; m < otherMdis[mdiIdx]->modalities()->size(); ++m)
 			{
-				m_additionalInput.push_back(otherMdis[mdiIdx]->modality(m)->GetImage());
+				m_additionalInput.push_back(otherMdis[mdiIdx]->modality(m)->image());
 			}
 			++idx;
 
@@ -293,7 +293,7 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	// TODO: move all image adding here?
 	for (int m = 1; m < sourceMdi->modalities()->size(); ++m)
 	{
-		thread->AddImage(sourceMdi->modality(m)->GetImage());
+		thread->AddImage(sourceMdi->modality(m)->image());
 	}
 	filter->SetFirstInputChannels(sourceMdi->modalities()->size());
 	for (auto img : m_additionalInput)
@@ -334,7 +334,7 @@ void iAFilterRunnerGUI::FilterFinished()
 			// so let's copy it to be on the safe side!
 			img->DeepCopy(thread->Filter()->Output()[p]->GetVTKImage());
 			QSharedPointer<iAModality> mod(new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0));
-			mdiChild->modalities()->Add(mod);
+			mdiChild->modalities()->add(mod);
 			// signal to add it to list automatically is created to late to be effective here, we have to add it to list ourselves:
 			mdiChild->modalitiesDockWidget()->modalityAdded(mod);
 		}

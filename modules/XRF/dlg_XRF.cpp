@@ -327,7 +327,7 @@ void dlg_XRF::updateComposition(QVector<double> const & concentration)
 		if (concentration[i] > 0.001)
 		{
 			QString caption = QString("%1: %2%")
-				.arg(m_refSpectraLib->spectra[m_decomposeSelectedElements[i]].GetName())
+				.arg(m_refSpectraLib->spectra[m_decomposeSelectedElements[i]].name())
 				.arg(concentration[i]*100, 0, 'g', 2);
 			QColor color = m_refSpectraLib->getElementColor(m_decomposeSelectedElements[i]);
 			m_pieChart->addPiece(caption,
@@ -728,7 +728,7 @@ void dlg_XRF::storeDecomposition()
 	QString elementInfo("elementNames: ");
 	for (int i=0;i<m_decomposeSelectedElements.size(); ++i)
 	{
-		elementInfo.append(m_refSpectraLib->spectra[m_decomposeSelectedElements[i]].GetName());
+		elementInfo.append(m_refSpectraLib->spectra[m_decomposeSelectedElements[i]].name());
 		if (i < m_decomposeSelectedElements.size()-1)
 		{
 			elementInfo.append(",");
@@ -977,7 +977,7 @@ void dlg_XRF::InitElementRenderer( dlg_elementRenderer * elemRend, size_t index 
 	chOTF->AddPoint(0.4, 0);
 	chOTF->AddPoint(1, 0.1);
 
-	QString chElemName = m_refSpectraLib->spectra[index].GetName();
+	QString chElemName = m_refSpectraLib->spectra[index].name();
 	vtkPolyData * chPolyData = mdiChild->polyData();
 
 	elemRend->setWindowTitle(chElemName);
@@ -1258,7 +1258,7 @@ void dlg_XRF::updateDecompositionGUI( QStringList elementsNames )
 	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme( "Brewer Set1 (max. 9)" );
 	for ( size_t i = 0; i < m_refSpectraLib->spectra.size(); ++i )
 	{
-		int pos = elementsNames.indexOf( m_refSpectraLib->spectra[i].GetName() );
+		int pos = elementsNames.indexOf( m_refSpectraLib->spectra[i].name() );
 		if ( pos != -1 )
 		{
 			m_decomposeSelectedElements[pos] = i;

@@ -169,7 +169,7 @@ QString iAFilterChart::getXAxisTickMarkLabel(double value, double stepWidth)
 {
 	if (plots().size() > 0 && plots()[0]->data()->GetRangeType() == Categorical)
 	{
-		return (m_nameMapper && value < m_nameMapper->size()) ? m_nameMapper->GetName(static_cast<int>(value)): "";
+		return (m_nameMapper && value < m_nameMapper->size()) ? m_nameMapper->name(static_cast<int>(value)): "";
 	}
 	return iAChartWidget::getXAxisTickMarkLabel(value, stepWidth);
 }

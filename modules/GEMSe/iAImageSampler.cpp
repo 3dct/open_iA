@@ -133,7 +133,7 @@ void iAImageSampler::run()
 
 	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(
 		m_parameters,
-		m_sampleGenerator->GetName(),
+		m_sampleGenerator->name(),
 		m_outputBaseDir,
 		m_executable,
 		m_additionalArguments,
@@ -171,7 +171,7 @@ void iAImageSampler::run()
 
 		for (int i = 0; i < m_modalities->size(); ++i)
 		{
-			argumentList << QString("%1").arg(m_modalities->Get(i)->GetFileName()) ;
+			argumentList << QString("%1").arg(m_modalities->get(i)->fileName()) ;
 		}
 
 		for (int i = 0; i < m_parameterCount; ++i)
@@ -186,14 +186,14 @@ void iAImageSampler::run()
 				value = QString::number(static_cast<long>(paramSet.at(i)));
 				break;
 			case Categorical:
-				value = m_parameters->at(i)->NameMapper()->GetName(static_cast<long>(paramSet.at(i)));
+				value = m_parameters->at(i)->NameMapper()->name(static_cast<long>(paramSet.at(i)));
 				break;
 			}
 			argumentList << value;
 		}
 		iACommandRunner* cmd = new iACommandRunner(m_executable, argumentList);
 		
-		QSharedPointer<iAModality const> mod0 = m_modalities->Get(0);
+		QSharedPointer<iAModality const> mod0 = m_modalities->get(0);
 		
 		m_runningComputation.insert(cmd, m_curLoop);
 		connect(cmd, SIGNAL(finished()), this, SLOT(computationFinished()) );

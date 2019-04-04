@@ -160,9 +160,9 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 	m_voxelData->clear();
 	m_voxelData->setColumnCount(3 + modalities->size()); // x,y,z coordinate + one value per modality
 
-	modalities->Get(0)->GetImage()->GetExtent(m_extent);
-	modalities->Get(0)->GetImage()->GetSpacing(m_spacing);
-	modalities->Get(0)->GetImage()->GetOrigin(m_origin);
+	modalities->get(0)->image()->GetExtent(m_extent);
+	modalities->get(0)->image()->GetSpacing(m_spacing);
+	modalities->get(0)->image()->GetOrigin(m_origin);
 
 	
 	// TODO: improve this very crude regular sampling. maybe random sampling is better?
@@ -191,7 +191,7 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 	{
 		m_voxelData->setItem(0, 3+imgIdx, new QTableWidgetItem(QString("Mod")+QString::number(imgIdx)));
 		voxelIdx = 1;
-		vtkSmartPointer<vtkImageData> img = modalities->Get(imgIdx)->GetImage();
+		vtkSmartPointer<vtkImageData> img = modalities->get(imgIdx)->image();
 		std::function<void (int[3], VoxelValueType)> pixelVisitor = [this, &imgIdx, &voxelIdx, &adder, &tableSize](int coord[3], VoxelValueType modalityValue)
 		{
 			assert (voxelIdx < tableSize);

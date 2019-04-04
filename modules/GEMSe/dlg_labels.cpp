@@ -269,7 +269,7 @@ int dlg_labels::count() const
 }
 
 
-QString dlg_labels::GetName(int idx) const
+QString dlg_labels::name(int idx) const
 {
 	QStandardItem * labelItem = m_itemModel->item(idx);
 	return labelItem->text();
@@ -425,10 +425,10 @@ bool dlg_labels::Store(QString const & filename, bool extendedFormat)
 			{
 				for (int m = 0; m < modalities->size(); ++m)
 				{
-					auto mod = modalities->Get(m);
-					for (int c = 0; c < mod->ComponentCount(); ++c)
+					auto mod = modalities->get(m);
+					for (int c = 0; c < mod->componentCount(); ++c)
 					{
-						double value = mod->GetComponent(c)->GetScalarComponentAsDouble(x, y, z, 0);
+						double value = mod->component(c)->GetScalarComponentAsDouble(x, y, z, 0);
 						stream.writeStartElement("Value");
 						stream.writeAttribute("modality", QString::number(m));
 						stream.writeAttribute("component", QString::number(c));
@@ -533,7 +533,7 @@ bool haveAllSeeds(QVector<int> const & label2SeedCounts, std::vector<int> const 
 void dlg_labels::Sample()
 {
 	int gt = m_mdiChild->chooseModalityNr("Choose Ground Truth");
-	vtkSmartPointer<vtkImageData> img = m_mdiChild->modality(gt)->GetImage();
+	vtkSmartPointer<vtkImageData> img = m_mdiChild->modality(gt)->image();
 	int labelCount = img->GetScalarRange()[1]+1;
 	if (labelCount > 50)
 	{
