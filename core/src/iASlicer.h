@@ -422,6 +422,7 @@ private:
 	double m_startMeasurePoint[2];
 
 	QCursor m_mouseCursor;
+	bool m_cursorSet;
 
 	MdiChild* m_linkedMdiChild;  //! main window access for linked mdi childs feature - get rid of this somehow!
 

@@ -207,6 +207,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_showPositionMarker(false),
 	m_userSetBackground(false),
 	m_cameraOwner(true),
+	m_cursorSet(false),
 	m_magicLensContextMenu(nullptr),
 	m_interactor(nullptr),
 	m_renWin(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),
@@ -1373,7 +1374,6 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 {
 	if (!m_decorations)
 		return;
-
 	// TODO: differentiate scene coordinates / each images pixel coordinates
 	if (!hasChannel(0))
 		return;
@@ -1392,7 +1392,8 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 	{
 		defaultOutput(); return;
 	}
-
+	if (m_cursorSet && cursor() != getMouseCursor())
+		setCursor(getMouseCursor());
 	// get index, coords and value to display
 	QString strDetails;
 	for (auto channel: m_channels)
@@ -1922,6 +1923,7 @@ void iASlicer::setMouseCursor(QString const & s)
 		m_mouseCursor = QCursor(Qt::CrossCursor);
 	}
 	setCursor(getMouseCursor());
+	m_cursorSet = true;
 }
 
 /*
