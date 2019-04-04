@@ -70,7 +70,7 @@ iACustomInterActorStyleTrackBall::iACustomInterActorStyleTrackBall() {
 
 	InteractionMode = 0;
 	this->m_volumeRenderer = nullptr; 
-	std::fill(m_propSlicer, m_propSlicer + iASlicerMode::SlicerCount, nullptr);
+	std::fill(m_slicerChannel, m_slicerChannel + iASlicerMode::SlicerCount, nullptr);
 	this->m_mdiChild = nullptr; 
 
 	//this->InteractionPicker = vtkCellPicker::New();
@@ -112,12 +112,12 @@ void iACustomInterActorStyleTrackBall::FindPickedActor(int x, int y)
 }
 */
 
-void iACustomInterActorStyleTrackBall::initialize(vtkImageData *img, iAVolumeRenderer* volRend, iAChannelSlicerData *propSlicer[3], int currentMode, MdiChild *mdiChild)
+void iACustomInterActorStyleTrackBall::initialize(vtkImageData *img, iAVolumeRenderer* volRend, iAChannelSlicerData *slicerChannel[3], int currentMode, MdiChild *mdiChild)
 {
 	m_image = img;
 	m_volumeRenderer = volRend;
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-		m_propSlicer[i] = propSlicer[i];
+		m_slicerChannel[i] = slicerChannel[i];
 	m_currentSliceMode = currentMode;
 	enable3D = (m_currentSliceMode == iASlicerMode::SlicerCount);
 	if (enable3D)
@@ -150,12 +150,12 @@ void iACustomInterActorStyleTrackBall::updateInteractors()
 	*reset the position of the image actor*/
 	if (!enable3D)
 	{
-		if (!m_propSlicer[m_currentSliceMode])
+		if (!m_slicerChannel[m_currentSliceMode])
 			return;
-		const double *posCurrentSlicer = m_propSlicer[m_currentSliceMode]->imageActor->GetPosition();
+		const double *posCurrentSlicer = m_slicerChannel[m_currentSliceMode]->actorPosition();
 		DEBUG_LOG(QString("  Pos %1 slicer: %2, %3, %4").arg(getSlicerModeString(m_currentSliceMode)).arg(posCurrentSlicer[0]).arg(posCurrentSlicer[1]).arg(posCurrentSlicer[2]));
 		coords.updateCoords(posCurrentSlicer, static_cast<iASlicerMode>(m_currentSliceMode));
-		m_propSlicer[m_currentSliceMode]->imageActor->SetPosition(0, 0, 0);
+		m_slicerChannel[m_currentSliceMode]->setActorPosition(0, 0, 0);
 	}
 	else //in 3d case
 	{
@@ -172,13 +172,8 @@ void iACustomInterActorStyleTrackBall::updateInteractors()
 	
 	//update slice planes
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-	{
-		if (i != m_currentSliceMode && m_propSlicer[i])
-		{
-			m_propSlicer[i]->updateReslicer();
-			
-		}
-	}
+		if (i != m_currentSliceMode && m_slicerChannel[i])
+			m_slicerChannel[i]->updateReslicer();
 	
 		
 	m_volumeRenderer->Update();
@@ -187,30 +182,30 @@ void iACustomInterActorStyleTrackBall::updateInteractors()
 /*
 void iACustomInterActorStyleTrackBall::printProbOrigin()
 {
-	if (m_currentSliceMode != iASlicerMode::SlicerCount && !m_propSlicer[m_currentSliceMode])
+	if (m_currentSliceMode != iASlicerMode::SlicerCount && !m_slicerChannel[m_currentSliceMode])
 		return;
 	double const * const pos = m_currentSliceMode != iASlicerMode::SlicerCount ?
-		m_propSlicer[m_currentSliceMode]->GetOrigin() :
+		m_slicerChannel[m_currentSliceMode]->GetOrigin() :
 		m_volumeRenderer->GetVolume()->GetOrigin();
 	DEBUG_LOG(QString("\nOrigin x %1 y %2 z %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
 }
 
 void iACustomInterActorStyleTrackBall::printPropPosistion()
 {
-	if (m_currentSliceMode != iASlicerMode::SlicerCount && !m_propSlicer[m_currentSliceMode])
+	if (m_currentSliceMode != iASlicerMode::SlicerCount && !m_slicerChannel[m_currentSliceMode])
 		return;
 	double const * const pos = m_currentSliceMode != iASlicerMode::SlicerCount ?
-		m_propSlicer[m_currentSliceMode]->GetPosition() :
+		m_slicerChannel[m_currentSliceMode]->GetPosition() :
 		m_volumeRenderer->GetVolume()->GetPosition();
 	DEBUG_LOG(QString("\nPosition %1 %2 %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
 }
 
 void iACustomInterActorStyleTrackBall::printProbOrientation()
 {
-	if (m_currentSliceMode != iASlicerMode::SlicerCount && !m_propSlicer[m_currentSliceMode])
+	if (m_currentSliceMode != iASlicerMode::SlicerCount && !m_slicerChannel[m_currentSliceMode])
 		return;
 	double const * const pos = m_currentSliceMode != iASlicerMode::SlicerCount ?
-		m_propSlicer[m_currentSliceMode]->GetOrientation() :
+		m_slicerChannel[m_currentSliceMode]->GetOrientation() :
 		m_volumeRenderer->GetVolume()->GetOrientation();
 	DEBUG_LOG(QString("\nOrientation x %1 y %2 z %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
 }

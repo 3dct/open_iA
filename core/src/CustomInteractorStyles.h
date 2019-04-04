@@ -114,7 +114,7 @@ public:
 	vtkSetClampMacro(InteractionMode, int, VTKIS_IMAGE2D, VTKIS_IMAGE_SLICING);
 	vtkGetMacro(InteractionMode, int);
 
-	void initialize(vtkImageData *img, iAVolumeRenderer* volRend, iAChannelSlicerData *propSlicer[4], int currentMode, MdiChild *mdiChild);
+	void initialize(vtkImageData *img, iAVolumeRenderer* volRend, iAChannelSlicerData *slicerChannel[4], int currentMode, MdiChild *mdiChild);
 	
 	//identify which slicer is used
 	void updateInteractors(); 
@@ -147,7 +147,7 @@ private:
 	vtkImageData *m_image;
 
 
-	iAChannelSlicerData* m_propSlicer[3];
+	iAChannelSlicerData* m_slicerChannel[3];
 	int m_currentSliceMode;
 
 	/*iACustomInterActorStyle(const iACustomInterActorStyle&);*/

@@ -93,9 +93,7 @@ void dlg_slicer::setSlabMode(bool slabMode)
 	lbSlabThickness->setVisible(slabMode);
 	sbSlabThickness->setVisible(slabMode);
 	cbSlabCompositeMode->setVisible(slabMode);
-	slabMode == true ?
-		updateSlabThickness(sbSlabThickness->value()) :
-		updateSlabThickness(0);
+	updateSlabThickness(slabMode == true ? sbSlabThickness->value() : 0);
 }
 
 void dlg_slicer::updateSlabThickness(int thickness)

@@ -41,7 +41,6 @@
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
-#include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkInteractorStyleSwitch.h>
 #include <vtkPiecewiseFunction.h>
@@ -426,10 +425,7 @@ void dlg_modalities::setModalitySelectionMovable(int selectedRow)
 		{
 			if (mod->channelID() == NotExistingChannel)
 				continue;
-			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetDragable(currentData->channelID() == mod->channelID());
-			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetPickable(currentData->channelID() == mod->channelID());
-
-
+			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->setMovable(currentData->channelID() == mod->channelID());
 		}
 	}
 }

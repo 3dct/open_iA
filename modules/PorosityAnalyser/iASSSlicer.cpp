@@ -225,7 +225,7 @@ void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile,
 		chanSData->setContoursColor( contRGBs[i] );
 		chanSData->setContoursOpacity( 0.8 );
 		chanSData->setContours( 1, &contourValue );
-		chanSData->setShowContours( true );
+		chanSData->setShowContours( slicer->getRenderer(), true );
 	}
 	medContour->SetInputData( medChan->imgData );
 	minContour->SetInputData( minChan->imgData );
@@ -309,7 +309,7 @@ void iASSSlicer::enableContours( bool isEnabled )
 	for( int i = 0; i < 3; ++i )
 	{
 		iAChannelSlicerData * contourChan = slicer->getChannel( contourChans[i]->id );
-		contourChan->setShowContours( isEnabled );
+		contourChan->setShowContours( slicer->getRenderer(), isEnabled );
 		slicer->enableChannel( contourChans[i]->id, isEnabled );
 	}
 	update();

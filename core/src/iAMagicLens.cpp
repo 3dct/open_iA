@@ -69,6 +69,7 @@ namespace
 }
 
 
+// rewrite utilizing iAChannelSlicerData - that has a vtkImageMapToColors and a vtkImageActor already!
 class iALensData
 {
 public:

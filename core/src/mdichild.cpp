@@ -1336,9 +1336,7 @@ void MdiChild::setupSlicers(iASlicerSettings const & ss, bool init)
 	linkMDIs(ss.LinkMDIs);
 
 	for (int s = 0; s < 3; ++s)
-	{
 		m_slicer[s]->setup(ss.SingleSlicer);
-	}
 
 	if (init)
 	{

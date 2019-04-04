@@ -267,7 +267,6 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		offsetLens->setCheckable(true);
 		actionGr->addAction(offsetLens);
 	}
-	connect(this, SIGNAL(updateSignal()), this, SLOT(slicerUpdatedSlot()));
 
 	if (decorations)
 	{
@@ -497,17 +496,14 @@ void iASlicer::update()
 		return;
 	for (auto ch : m_channels)
 		ch->updateMapper();
-	updateReslicer();
-	for (auto ch : m_channels)
-		ch->reslicer->UpdateWholeExtent();
-	m_interactor->ReInitialize();
 	m_interactor->Render();
-	m_ren->Render();
-	emit updateSignal();
-
-	iAVtkWidget::update();
 	if (m_magicLens)
 		m_magicLens->Render();
+	if (m_isSliceProfEnabled)
+		updateProfile();
+	iAVtkWidget::update();
+
+	emit updateSignal();
 }
 
 void iASlicer::saveMovie()
@@ -527,7 +523,9 @@ void iASlicer::saveMovie()
 
 void iASlicer::setSliceNumber( int sliceNumber )
 {
-	// TODO: set slice position (in scene coordinates) instead of number?
+	// TODO: set slice position (in scene coordinates) instead of number
+	//       then we wouldn'T need image spacing and origin below
+	//       (which don't make too much sense anyway, if it's not the same between loaded datasets)
 	if (!hasChannel(0))
 		return;
 	m_sliceNumber = sliceNumber;
@@ -535,8 +533,8 @@ void iASlicer::setSliceNumber( int sliceNumber )
 	xyz[getSlicerDimension(m_mode)] = sliceNumber;
 	if (m_roiActive)
 		m_roiActor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < (m_roiSlice[1]));
-	double * spacing = m_channels[0]->image->GetSpacing();
-	double * origin = m_channels[0]->image->GetOrigin();
+	double const * spacing = m_channels[0]->input()->GetSpacing();
+	double const * origin = m_channels[0]->input()->GetOrigin();
 	for (auto ch : m_channels)
 		ch->setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2]);
 	updateMagicLensColors();
@@ -550,7 +548,7 @@ void iASlicer::setup( iASingleSlicerSettings const & settings )
 	m_settings = settings;
 	for (auto channel: m_channels)
 	{
-		channel->imageActor->SetInterpolate(settings.LinearInterpolation);
+		channel->setInterpolate(settings.LinearInterpolation);
 	}
 	if (m_magicLens)
 		m_magicLens->SetInterpolate(settings.LinearInterpolation);
@@ -643,7 +641,7 @@ void iASlicer::setMagicLensInput(uint id)
 	if (!data)
 		return;
 	m_magicLensInput = id;
-	m_magicLens->AddInput(data->reslicer, data->getColorTransferFunction(), data->getName());
+	m_magicLens->AddInput(data->reslicer(), data->getColorTransferFunction(), data->getName());
 	update();
 }
 
@@ -692,12 +690,11 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 {
 	assert(!m_channels.contains(id));
 	bool updateSpacing = m_channels.empty();
-	auto chSlicerData = createChannel(id);
-	chSlicerData->init(chData, m_mode);
+	auto chSlicerData = createChannel(id, chData);
 	double curTol = m_pointPicker->GetTolerance();
 	int axis = getSlicerDimension(m_mode);
 	auto image = chData.getImage();
-	double const * const imgSpc = image->GetSpacing();
+	double const * imgSpc = image->GetSpacing();
 	double newTol = imgSpc[axis] / 3;
 	if (newTol < curTol)
 		m_pointPicker->SetTolerance(newTol);
@@ -706,11 +703,10 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 		setScalarBarTF(chData.getCTF());
 		updatePositionMarkerExtent();
 		// TODO: update required for new channels other than to export? export all channels?
-		auto reslicer = m_channels[id]->reslicer;
-		int const * const imgExt = image->GetExtent();
+		int const * imgExt = image->GetExtent();
 		double unitSpacing = std::max(std::max(imgSpc[0], imgSpc[1]), imgSpc[2]);
-		double const * const spc = reslicer->GetOutput()->GetSpacing();
-		int    const * const dim = reslicer->GetOutput()->GetDimensions();
+		double const * spc = m_channels[id]->output()->GetSpacing();
+		int    const * dim = m_channels[id]->output()->GetDimensions();
 		for (int i = 0; i < 2; ++i)
 			// scaling required to shrink the text to required size (because of large font size, see initialize method)
 			m_axisTransform[i]->Scale(unitSpacing / 10, unitSpacing / 10, unitSpacing / 10);
@@ -722,7 +718,7 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 		emit firstChannelAdded(imgExt[axis*2], imgExt[axis*2+1]);
 	}
 	double origin[3];
-	getChannel(id)->image->GetOrigin(origin);
+	image->GetOrigin(origin);
 	origin[axis] += static_cast<double>(sliceNumber()) * imgSpc[axis];
 	setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2]);
 	if (enable)
@@ -803,7 +799,7 @@ void iASlicer::updateROI(int const roi[6])
 	// TODO: ROI coordinates as scene coordinates?
 	if (!m_decorations || !m_roiActive || !hasChannel(0))
 		return;
-	double* spacing = m_channels[0]->reslicer->GetOutput()->GetSpacing();
+	double const * spacing = m_channels[0]->output()->GetSpacing();
 
 	// apparently, image actor starts output at -0,5spacing, -0.5spacing (probably a side effect of BorderOn)
 	// That's why we have to subtract 0.5 from the coordinates!
@@ -841,8 +837,7 @@ void iASlicer::setResliceAxesOrigin(double x, double y, double z)
 	if (m_interactor->GetEnabled())
 	{
 		for (auto ch : m_channels)
-			ch->reslicer->SetResliceAxesOrigin(x, y, z);
-		updateReslicer();
+			ch->setResliceAxesOrigin(x, y, z);
 		m_interactor->Render();
 	}
 }
@@ -866,7 +861,7 @@ void iASlicer::showIsolines(bool s)
 	if (!m_decorations)
 		return;
 	for (auto ch : m_channels)
-		ch->setShowContours(s);
+		ch->setShowContours(m_ren, s);
 }
 
 void iASlicer::showPosition(bool s)
@@ -906,22 +901,20 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 	movieWriter->SetInputConnection(w2if->GetOutputPort());
 	movieWriter->Start();
 
-	auto reslicer = m_channels[0]->reslicer;
-	auto img0 = reslicer->GetOutput();
-	int* extent = img0->GetExtent();
-	double* origin = img0->GetOrigin();
-	double* spacing = img0->GetSpacing();
+	int const * extent = m_channels[0]->output()->GetExtent();
+	double const * origin = m_channels[0]->output()->GetOrigin();
+	double const * spacing = m_channels[0]->output()->GetSpacing();
 
 	emit msg(tr("MOVIE export started. Output: %1").arg(fileName));
 
 	double oldResliceAxesOrigin[3];
-	reslicer->GetResliceAxesOrigin(oldResliceAxesOrigin);
+	m_channels[0]->resliceAxesOrigin(oldResliceAxesOrigin);
 
 	if (m_mode == iASlicerMode::YZ)      // YZ
 	{
 		for (int i = extent[0]; i < extent[1]; i++)
 		{
-			reslicer->SetResliceAxesOrigin(origin[0] + i * spacing[0], origin[1], origin[2]);
+			m_channels[0]->setResliceAxesOrigin(origin[0] + i * spacing[0], origin[1], origin[2]);
 			update();
 			w2if->Modified();
 			movieWriter->Write();
@@ -936,7 +929,7 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 	{
 		for (int i = extent[4]; i < extent[5]; i++)
 		{
-			reslicer->SetResliceAxesOrigin(origin[0], origin[1], origin[2] + i * spacing[2]);
+			m_channels[0]->setResliceAxesOrigin(origin[0], origin[1], origin[2] + i * spacing[2]);
 			update();
 			w2if->Modified();
 			movieWriter->Write();
@@ -951,7 +944,7 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 	{
 		for (int i = extent[2]; i < extent[3]; i++)
 		{
-			reslicer->SetResliceAxesOrigin(origin[0], origin[1] + i * spacing[1], origin[2]);
+			m_channels[0]->setResliceAxesOrigin(origin[0], origin[1] + i * spacing[1], origin[2]);
 			update();
 			w2if->Modified();
 			movieWriter->Write();
@@ -963,7 +956,7 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 		}
 	}
 
-	reslicer->SetResliceAxesOrigin(oldResliceAxesOrigin);
+	m_channels[0]->setResliceAxesOrigin(oldResliceAxesOrigin[0], oldResliceAxesOrigin[1], oldResliceAxesOrigin[2]);
 	update();
 	movieWriter->End();
 	movieWriter->ReleaseDataFlagOn();
@@ -981,7 +974,6 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 
 void iASlicer::saveAsImage()
 {
-	// TODO: select channel / for all channels?
 	if (!hasChannel(0))
 		return;
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save Image"),
@@ -991,8 +983,18 @@ void iASlicer::saveAsImage()
 		return;
 	bool saveNative = true;
 	bool output16Bit = false;
-	QStringList inList = (QStringList() << tr("$Save native image (intensity rescaled to output format)"));
-	QList<QVariant> inPara = (QList<QVariant>() << (saveNative ? tr("true") : tr("false")));
+
+	QStringList currentChannels;
+	for (auto ch : m_channels)
+		currentChannels << ch->getName();
+
+	QStringList inList = (QStringList()
+		<< tr("$Save native image (intensity rescaled to output format)"))
+		<< tr("+Channel (native only exports slice of what's selected here)");
+	QList<QVariant> inPara = (QList<QVariant>()
+		<< (saveNative ? tr("true") : tr("false")))
+		<< currentChannels;
+
 	QFileInfo fi(fileName);
 	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
 		(QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
@@ -1006,18 +1008,21 @@ void iASlicer::saveAsImage()
 		return;
 	}
 	saveNative = dlg.getCheckValue(0);
-	if (inList.size() > 1)
+	if (inList.size() > 2)
 	{
-		output16Bit = dlg.getCheckValue(1);
+		output16Bit = dlg.getCheckValue(2);
 	}
 	iAConnector con;
 	vtkSmartPointer<vtkImageData> img;
 
-	// TODO: allow selecting channel to export? export all channels?
-	auto reslicer = m_channels[0]->reslicer;
 	if (saveNative)
 	{
-		con.SetImage(reslicer->GetOutput());
+		int selectedChannelID = -1;
+		QString selectedChannelName = dlg.getComboBoxValue(1);
+		for (auto key : m_channels.keys())
+			if (m_channels[key]->getName() == selectedChannelName)
+				selectedChannelID = key;
+		con.SetImage(m_channels[selectedChannelID]->output());
 		iAITKIO::ImagePointer imgITK;
 		if (!output16Bit)
 		{
@@ -1045,7 +1050,7 @@ void iASlicer::saveImageStack()
 	// TODO: allow selecting channel to export? export all channels?
 	if (!hasChannel(0))
 		return;
-	auto imageData = m_channels[0]->image;
+	auto imageData = m_channels[0]->input();
 
 	QString file = QFileDialog::getSaveFileName(this, tr("Save Image Stack"),
 		"", // TODO: get directory of file?
@@ -1056,8 +1061,8 @@ void iASlicer::saveImageStack()
 	QFileInfo fileInfo(file);
 	QString baseName = fileInfo.absolutePath() + "/" + fileInfo.baseName();
 
-	int const * arr = imageData->GetDimensions();
-	double const * spacing = imageData->GetSpacing();
+	int const * arr = m_channels[0]->input()->GetDimensions();
+	double const * spacing = m_channels[0]->input()->GetSpacing();
 
 	//Determine index of number of slice in array
 	int nums[3] = { 0, 2, 1 };
@@ -1099,7 +1104,7 @@ void iASlicer::saveImageStack()
 	m_interactor->Disable();
 	vtkImageData* img;
 	double* origin = imageData->GetOrigin();
-	auto reslicer = m_channels[0]->reslicer;
+	auto reslicer = m_channels[0]->reslicer();
 	for (int slice = sliceFirst; slice <= sliceLast; slice++)
 	{
 		//Determine which axis
@@ -1147,7 +1152,7 @@ void iASlicer::updatePositionMarkerExtent()
 	// TODO: how to choose spacing? currently fixed from first image? export all channels?
 	if (m_channels.empty())
 		return;
-	auto imageData = m_channels[0]->image;
+	auto imageData = m_channels[0]->input();
 	double spacing[2] = {
 		imageData->GetSpacing()[SlicerXInd(m_mode)],
 		imageData->GetSpacing()[SlicerYInd(m_mode)]
@@ -1227,7 +1232,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	m_pointPicker->GetPickedPositions()->GetPoint(0, m_ptMapped);
 
 	// TODO: how to choose spacing? currently fixed from first image!
-	auto imageData = m_channels[0]->image;
+	auto imageData = m_channels[0]->input();
 	double* spacing = imageData->GetSpacing();
 	m_ptMapped[0] += 0.5*spacing[0];
 	m_ptMapped[1] += 0.5*spacing[1];
@@ -1304,8 +1309,8 @@ void iASlicer::getMouseCoord(double & xCoord, double & yCoord, double & zCoord, 
 	double point[4] = { m_ptMapped[0], m_ptMapped[1], m_ptMapped[2], 1 };
 
 	// TODO: find out what "mouseCoord" exactly means - pixel coordinates or image coordinates? differentiate scene coordinates / each images pixel coordinates
-	auto imageData = m_channels[0]->image;
-	auto reslicer = m_channels[0]->reslicer;
+	auto imageData = m_channels[0]->input();
+	auto reslicer = m_channels[0]->reslicer();
 
 	// get a shortcut to the pixel data.
 	vtkMatrix4x4 *resliceAxes = vtkMatrix4x4::New();
@@ -1343,7 +1348,7 @@ namespace
 	QString GetFilePixel(MdiChild* tmpChild, iASlicer* slicer, double slicerX, double slicerY, int thirdCoord, int mode)
 	{
 		// TODO: find out what "mouseCoord" exactly means - pixel coordinates or image coordinates? differentiate scene coordinates / each images pixel coordinates
-		auto reslicer = slicer->getChannel(0)->reslicer;
+		auto reslicer = slicer->getChannel(0)->reslicer();
 		vtkImageData* img = reslicer->GetOutput();
 		int const * dim = img->GetDimensions();
 		bool inRange = slicerX < dim[0] && slicerY < dim[1];
@@ -1368,11 +1373,9 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 	// TODO: differentiate scene coordinates / each images pixel coordinates
 	if (!hasChannel(0))
 		return;
-	auto reslicer = m_channels[0]->reslicer;
-	vtkImageData * reslicerOutput = reslicer->GetOutput();
-	double const * const slicerSpacing = reslicerOutput->GetSpacing();
-	int const * const slicerExtent = reslicerOutput->GetExtent();
-	double const * const slicerBounds = reslicerOutput->GetBounds();
+	double const * slicerSpacing = m_channels[0]->output()->GetSpacing();
+	int    const * slicerExtent = m_channels[0]->output()->GetExtent();
+	double const * slicerBounds = m_channels[0]->output()->GetBounds();
 
 	// We have to manually set the physical z-coordinate which requires us to get the volume spacing.
 	m_ptMapped[2] = 0;
@@ -1391,7 +1394,7 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 	for (auto channel: m_channels)
 	{
 		QString valueStr;
-		for (int i = 0; i < channel->image->GetNumberOfScalarComponents(); i++)
+		for (int i = 0; i < channel->input()->GetNumberOfScalarComponents(); i++)
 		{
 			// TODO:
 			//   - consider different spacings in channels!
@@ -1400,15 +1403,15 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 			switch (m_mode)
 			{
 			case iASlicerMode::XY:
-				value = reslicerOutput->GetScalarComponentAsDouble(
+				value = channel->output()->GetScalarComponentAsDouble(
 					static_cast<int>(xCoord), static_cast<int>(yCoord), 0, i);
 				break;
 			case iASlicerMode::YZ:
-				value = reslicerOutput->GetScalarComponentAsDouble(
+				value = channel->output()->GetScalarComponentAsDouble(
 					static_cast<int>(yCoord), static_cast<int>(zCoord), 0, i);
 				break;
 			case iASlicerMode::XZ:
-				value = reslicerOutput->GetScalarComponentAsDouble(
+				value = channel->output()->GetScalarComponentAsDouble(
 					static_cast<int>(xCoord), static_cast<int>(zCoord), 0, i);
 				break;
 			}
@@ -1431,8 +1434,8 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 				continue;
 			double * const tmpSpacing = tmpChild->getImagePointer()->GetSpacing();
 			// TODO: check which spacing makes sense here!
-			auto imageData = m_channels[0]->image;
-			double const * const origImgSpacing = imageData->GetSpacing();
+			auto imageData = m_channels[0]->input();
+			double const * origImgSpacing = imageData->GetSpacing();
 			int tmpX = xCoord * origImgSpacing[0] / tmpSpacing[0];
 			int tmpY = yCoord * origImgSpacing[1] / tmpSpacing[1];
 			int tmpZ = zCoord * origImgSpacing[2] / tmpSpacing[2];
@@ -1517,9 +1520,8 @@ void iASlicer::executeKeyPressEvent()
 
 		if (m_decorations && pLineSource && hasChannel(0))
 		{
-			// TODO: check which reslicer makes sense here!
-			auto reslicer = m_channels[0]->reslicer;
-			double * slicerSpacing = reslicer->GetOutput()->GetSpacing();
+			// TODO: check which channel makes sense here!
+			double * slicerSpacing = m_channels[0]->output()->GetSpacing();
 			pLineSource->SetPoint1(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 0.0);
 			pDiskActor->SetPosition(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 1.0);
 			pLineActor->SetVisibility(true);
@@ -1742,12 +1744,6 @@ void iASlicer::snapToHighGradient(double &x, double &y)
 }
 */
 
-void iASlicer::updateReslicer()
-{
-	for (auto ch : m_channels)
-		ch->updateReslicer();
-}
-
 void iASlicer::setShowText(bool isVisible)
 {
 	if (!m_decorations)
@@ -1757,27 +1753,12 @@ void iASlicer::setShowText(bool isVisible)
 
 void iASlicer::enableChannel(uint id, bool enabled)
 {
-	if (enabled)
-	{
-		m_ren->AddActor(getChannel(id)->imageActor);
-		if (m_decorations)
-		{
-			m_ren->AddActor(getChannel(id)->cActor);
-		}
-	}
-	else
-	{
-		m_ren->RemoveActor(getChannel(id)->imageActor);
-		if (m_decorations)
-		{
-			m_ren->RemoveActor(getChannel(id)->cActor);
-		}
-	}
+	getChannel(id)->setEnabled(m_ren, enabled);
 }
 
 void iASlicer::updateChannel(uint id, iAChannelData const & chData)
 {
-	getChannel(id)->reInit(chData);
+	getChannel(id)->update(chData);
 }
 
 void iASlicer::setResliceChannelAxesOrigin(uint id, double x, double y, double z)
@@ -1787,14 +1768,14 @@ void iASlicer::setResliceChannelAxesOrigin(uint id, double x, double y, double z
 
 void iASlicer::setChannelOpacity(uint id, double opacity)
 {
-	getChannel(id)->imageActor->SetOpacity(opacity);
+	getChannel(id)->setActorOpacity(opacity);
 }
 
 void iASlicer::setSlabThickness(int thickness)
 {
 	m_slabThickness = thickness;
 	for (auto ch : m_channels)
-		ch->reslicer->SetSlabNumberOfSlices(thickness);
+		ch->setSlabNumberOfSlices(thickness);
 	update();
 }
 
@@ -1802,19 +1783,19 @@ void iASlicer::setSlabCompositeMode(int slabCompositeMode)
 {
 	m_slabCompositeMode = slabCompositeMode;
 	for (auto ch : m_channels)
-		ch->reslicer->SetSlabMode(slabCompositeMode);
+		ch->setSlabMode(slabCompositeMode);
 	update();
 }
 
-QSharedPointer<iAChannelSlicerData> iASlicer::createChannel(uint id)
+QSharedPointer<iAChannelSlicerData> iASlicer::createChannel(uint id, iAChannelData const & chData)
 {
 	if (m_channels.contains(id))
 		throw std::runtime_error(QString("iASlicer: Channel with ID %1 already exists!").arg(id).toStdString());
 
-	QSharedPointer<iAChannelSlicerData> newData(new iAChannelSlicerData);
-	newData->imageActor->SetInterpolate(m_settings.LinearInterpolation);
-	newData->reslicer->SetSlabNumberOfSlices(m_slabThickness);
-	newData->reslicer->SetSlabMode(m_slabCompositeMode);
+	QSharedPointer<iAChannelSlicerData> newData(new iAChannelSlicerData(chData, m_mode));
+	newData->setInterpolate(m_settings.LinearInterpolation);
+	newData->setSlabNumberOfSlices(m_slabThickness);
+	newData->setSlabMode(m_slabCompositeMode);
 	newData->setTransform(m_transform);
 	m_channels.insert(id, newData);
 	return newData;
@@ -1832,13 +1813,6 @@ void iASlicer::removeChannel(uint id)
 {
 	m_channels.remove(id);
 }
-
-/*
-size_t iASlicer::channelCount() const
-{
-	return m_channels.size();
-}
-*/
 
 bool iASlicer::hasChannel(uint id) const
 {
@@ -1880,7 +1854,7 @@ void iASlicer::rotateSlice(double angle)
 	double center[3];
 
 	// TODO: allow selecting center for rotation? current: always use first image!
-	auto imageData = m_channels[0]->image;
+	auto imageData = m_channels[0]->input();
 	double* spacing = imageData->GetSpacing();
 	int* ext = imageData->GetExtent();
 
@@ -1926,19 +1900,15 @@ void iASlicer::setContours(int numberOfContours, double contourMin, double conto
 	if (!m_decorations)
 		return;
 	for (auto ch : m_channels)
-		ch->cFilter->GenerateValues(numberOfContours, contourMin, contourMax);
+		ch->setContours(numberOfContours, contourMin, contourMax);
 }
 
-void iASlicer::setContours(int n, double * contourValues)
+void iASlicer::setContours(int numberOfContours, double const * contourValues)
 {
 	if (!m_decorations)
 		return;
 	for (auto ch : m_channels)
-	{
-		ch->cFilter->SetNumberOfContours(n);
-		for (int i = 0; i < n; ++i)
-			ch->cFilter->SetValue(i, contourValues[i]);
-	}
+		ch->setContours(numberOfContours, contourValues);
 }
 
 void iASlicer::setMouseCursor(QString const & s)
@@ -1959,7 +1929,7 @@ void iASlicer::setMouseCursor(QString const & s)
 	{
 		m_mouseCursor = QCursor(Qt::CrossCursor);
 	}
-	emit updateSignal();
+	setCursor(getMouseCursor());
 }
 
 /*
@@ -2010,7 +1980,7 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 		// TODO: fisheye lens on all channels???
 		if (!hasChannel(0))
 			return;
-		auto reslicer = getChannel(0)->reslicer;
+		auto reslicer = getChannel(0)->reslicer();
 		if (!fisheyeLensActivated)
 		{
 			fisheyeLensActivated = true;
@@ -2068,7 +2038,7 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 		if (!hasChannel(0))
 			return;
 		// TODO: fisheye lens on all channels???
-		auto reslicer = getChannel(0)->reslicer;
+		auto reslicer = getChannel(0)->reslicer();
 		if (event->modifiers().testFlag(Qt::ControlModifier)) {
 			if (event->key() == Qt::Key_Minus) {
 
@@ -2239,7 +2209,7 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 		if (!hasChannel(0))
 			return;
 		// TODO: fisheye lens on all channels???
-		auto reslicer = getChannel(0)->reslicer;
+		auto reslicer = getChannel(0)->reslicer();
 		vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
 		ren->SetWorldPoint(pickedData.res[SlicerXInd(m_mode)], pickedData.res[SlicerYInd(m_mode)], 0, 1);
 		updateFisheyeTransform(ren->GetWorldPoint(), reslicer, fisheyeRadius, innerFisheyeRadius);
@@ -2404,8 +2374,7 @@ void iASlicer::setSliceProfile(double Pos[3])
 	if (!hasChannel(0))
 		return;
 	// TODO: slice profile on selected/current channel
-	auto reslicer = getChannel(0)->reslicer;
-	vtkImageData * reslicedImgData = reslicer->GetOutput();
+	vtkImageData * reslicedImgData = getChannel(0)->output();
 	double PosY = Pos[SlicerYInd(m_mode)];
 	if (!m_sliceProfile->updatePosition(PosY, reslicedImgData))
 		return;
@@ -2418,8 +2387,7 @@ bool iASlicer::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
 	if (!m_decorations || !hasChannel(0))
 		return false;
 	// TODO: slice profile on selected/current channel
-	auto reslicer = getChannel(0)->reslicer;
-	auto imageData = getChannel(0)->image;
+	auto imageData = getChannel(0)->input();
 	if (doClamp)
 	{
 		double * spacing = imageData->GetSpacing();
@@ -2431,7 +2399,7 @@ bool iASlicer::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
 		}
 	}
 	double profileCoord2d[2] = { Pos[SlicerXInd(m_mode)], Pos[SlicerYInd(m_mode)] };
-	if (!m_arbProfile->setup(pointInd, Pos, profileCoord2d, reslicer->GetOutput()))
+	if (!m_arbProfile->setup(pointInd, Pos, profileCoord2d, getChannel(0)->output()))
 		return false;
 	GetRenderWindow()->GetInteractor()->Render();
 	return true;
@@ -2512,8 +2480,8 @@ int iASlicer::pickPoint(double &xPos_out, double &yPos_out, double &zPos_out,
 	if (!hasChannel(0))
 		return 0;
 	// TODO: slice profile on selected/current channel
-	auto reslicer = getChannel(0)->reslicer;
-	auto imageData = getChannel(0)->image;
+	auto reslicer = getChannel(0)->reslicer();
+	auto imageData = getChannel(0)->input();
 
 	// get image spacing to be able to select a point independent of zoom level
 	double spacing[3];
@@ -2547,13 +2515,6 @@ void iASlicer::setIndex(int x, int y, int z)
 void iASlicer::setLinkedMdiChild(MdiChild* mdiChild)
 {
 	m_linkedMdiChild = mdiChild;
-}
-
-void iASlicer::slicerUpdatedSlot()
-{
-	setCursor(getMouseCursor());
-	if (m_isSliceProfEnabled)
-		updateProfile();
 }
 
 void iASlicer::updateProfile()

@@ -75,7 +75,7 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
 	*/
 	for (int i=0; i<3; ++i)
-		mdiChild->slicer(i)->getChannel(0)->imageActor->SetOpacity(0.0);
+		mdiChild->slicer(i)->getChannel(0)->setActorOpacity(0.0);
 
 	//setStyleSheet("background-color:red"); // test spacing/padding/margin
 

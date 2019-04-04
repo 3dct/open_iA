@@ -34,39 +34,53 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkRenderer.h>
 #include <vtkTransform.h>
 
 #include <QThread>
 
-iAChannelSlicerData::iAChannelSlicerData() :
-	reslicer(vtkSmartPointer<vtkImageReslice>::New()),
+iAChannelSlicerData::iAChannelSlicerData(iAChannelData const & chData, int mode):
+	m_reslicer(vtkSmartPointer<vtkImageReslice>::New()),
 	m_colormapper(vtkSmartPointer<vtkImageMapToColors>::New()),
-	imageActor(vtkSmartPointer<vtkImageActor>::New()),
+	m_imageActor(vtkSmartPointer<vtkImageActor>::New()),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
-	cFilter(vtkSmartPointer<vtkMarchingContourFilter>::New()),
-	cMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	cActor(vtkSmartPointer<vtkActor>::New()),
-	image(nullptr),
+	m_name(chData.getName()),
 	m_ctf(nullptr),
 	m_otf(nullptr),
-	m_isInitialized(false)
-{}
+	m_contourFilter(vtkSmartPointer<vtkMarchingContourFilter>::New()),
+	m_contourMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_contourActor(vtkSmartPointer<vtkActor>::New())
+{
+	m_reslicer->SetOutputDimensionality(2);
+	m_reslicer->SetInterpolationModeToCubic();
+	m_reslicer->InterpolateOn();
+	m_reslicer->AutoCropOutputOn();
+	m_reslicer->SetNumberOfThreads(QThread::idealThreadCount());
+	assign(chData.getImage(), chData.getColor());
+	m_imageActor->GetMapper()->BorderOn();
+	updateResliceAxesDirectionCosines(mode);
+	setupOutput(chData.getCTF(), chData.getOTF());
+	initContours();
+}
 
 void iAChannelSlicerData::setResliceAxesOrigin(double x, double y, double z)
 {
-	reslicer->SetResliceAxesOrigin(x, y, z);
-	reslicer->Update();
+	m_reslicer->SetResliceAxesOrigin(x, y, z);
+	m_reslicer->Update();
 	m_colormapper->Update();
-	imageActor->SetInputData(m_colormapper->GetOutput());
-	imageActor->GetMapper()->BorderOn();
+	m_imageActor->SetInputData(m_colormapper->GetOutput());
+}
+
+void iAChannelSlicerData::resliceAxesOrigin(double * origin)
+{
+	m_reslicer->GetResliceAxesOrigin(origin);
 }
 
 void iAChannelSlicerData::assign(vtkSmartPointer<vtkImageData> imageData, QColor const &col)
 {
 	m_color = col;
-	image = imageData;
-	reslicer->SetInputData(imageData);
-	reslicer->SetInformationInput(imageData);
+	m_reslicer->SetInputData(imageData);
+	m_reslicer->SetInformationInput(imageData);
 }
 
 void iAChannelSlicerData::setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
@@ -74,11 +88,11 @@ void iAChannelSlicerData::setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunct
 	m_ctf = ctf;
 	m_otf = otf;
 	updateLUT();
-	m_colormapper->SetLookupTable( m_otf ? m_lut : m_ctf);//colormapper->SetLookupTable( ctf );
+	m_colormapper->SetLookupTable( m_otf ? m_lut : m_ctf);
 	m_colormapper->PassAlphaToOutputOn();
-	m_colormapper->SetInputConnection(reslicer->GetOutputPort());
+	m_colormapper->SetInputConnection(m_reslicer->GetOutputPort());
 	m_colormapper->Update();
-	imageActor->SetInputData(m_colormapper->GetOutput());
+	m_imageActor->SetInputData(m_colormapper->GetOutput());  // TODO: check why we don't use port/connection here?
 }
 
 void iAChannelSlicerData::updateLUT()
@@ -86,7 +100,8 @@ void iAChannelSlicerData::updateLUT()
 	if (!m_otf)
 		return;
 	double rgb[3];
-	double range[2];image->GetScalarRange(range);
+	double range[2];
+	input()->GetScalarRange(range);
 	m_lut->SetRange(range);
 	const int numCols = 1024;
 	m_lut->SetNumberOfTableValues(numCols);
@@ -102,28 +117,12 @@ void iAChannelSlicerData::updateLUT()
 	m_lut->Build();
 }
 
-void iAChannelSlicerData::init(iAChannelData const & chData, int mode)
-{
-	m_isInitialized = true;
-	assign(chData.getImage(), chData.getColor());
-	m_name = chData.getName();
-
-	reslicer->SetOutputDimensionality(2);
-	reslicer->SetInterpolationModeToCubic();
-	reslicer->InterpolateOn();
-	reslicer->AutoCropOutputOn();
-	reslicer->SetNumberOfThreads(QThread::idealThreadCount());
-	updateResliceAxesDirectionCosines(mode);
-	setupOutput(chData.getCTF(), chData.getOTF());
-	initContours();
-}
-
-void iAChannelSlicerData::reInit(iAChannelData const & chData)
+void iAChannelSlicerData::update(iAChannelData const & chData)
 {
 	assign(chData.getImage(), chData.getColor());
 	m_name = chData.getName();
-	reslicer->UpdateWholeExtent();
-	reslicer->Update();
+	m_reslicer->UpdateWholeExtent();
+	m_reslicer->Update();
 
 	setupOutput(chData.getCTF(), chData.getOTF());
 }
@@ -133,28 +132,23 @@ void iAChannelSlicerData::updateResliceAxesDirectionCosines(int mode)
 	switch (mode)
 	{
 	case iASlicerMode::YZ:
-		reslicer->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);  //yz
+		m_reslicer->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);  //yz
 		break;
 	case iASlicerMode::XY:
-		reslicer->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);  //xy
+		m_reslicer->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);  //xy
 		break;
 	case iASlicerMode::XZ:
-		reslicer->SetResliceAxesDirectionCosines(1,0,0,  0,0,1,  0,-1,0); //xz
+		m_reslicer->SetResliceAxesDirectionCosines(1,0,0,  0,0,1,  0,-1,0); //xz
 		break;
 	default:
 		break;
 	}
 }
 
+/*
 bool iAChannelSlicerData::isInitialized() const
 {
 	return m_isInitialized;
-}
-
-/*
-vtkScalarsToColors* iAChannelSlicerData::getLookupTable()
-{
-	return m_colormapper->GetLookupTable();
 }
 */
 
@@ -175,44 +169,14 @@ QColor iAChannelSlicerData::getColor() const
 
 void iAChannelSlicerData::setTransform(vtkAbstractTransform * transform)
 {
-	reslicer->SetResliceTransform(transform);
-	if (image)
-		reslicer->UpdateWholeExtent(); // TODO: check if we need this here
+	m_reslicer->SetResliceTransform(transform);
+	if (input())
+		m_reslicer->UpdateWholeExtent(); // TODO: check if we need this here
 }
 
 void iAChannelSlicerData::updateReslicer()
 {
-	reslicer->Update();
-}
-
-void iAChannelSlicerData::setContours(int num, const double * contourVals)
-{
-	cFilter->SetNumberOfContours(num);
-	for (int i = 0; i < num; ++i)
-		cFilter->SetValue(i, contourVals[i]);
-	cFilter->Update();
-}
-
-void iAChannelSlicerData::setContoursColor(double * rgb)
-{
-	cActor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
-}
-
-void iAChannelSlicerData::setShowContours(bool show)
-{
-	cActor->SetVisibility(show);
-}
-
-void iAChannelSlicerData::setContourLineParams(double lineWidth, bool dashed)
-{
-	cActor->GetProperty()->SetLineWidth(lineWidth);
-	if (dashed)
-		cActor->GetProperty()->SetLineStipplePattern(0xff00);
-}
-
-void iAChannelSlicerData::setContoursOpacity(double opacity)
-{
-	cActor->GetProperty()->SetOpacity(opacity);
+	m_reslicer->Update();
 }
 
 QString iAChannelSlicerData::getName() const
@@ -220,15 +184,111 @@ QString iAChannelSlicerData::getName() const
 	return m_name;
 }
 
+vtkImageData * iAChannelSlicerData::input() const
+{
+	return dynamic_cast<vtkImageData*>(m_reslicer->GetInput());
+}
+
+vtkImageData * iAChannelSlicerData::output() const
+{
+	return m_reslicer->GetOutput();
+}
+
+vtkImageReslice * iAChannelSlicerData::reslicer() const
+{
+	return m_reslicer;
+}
+
+double const * iAChannelSlicerData::actorPosition() const
+{
+	return m_imageActor->GetPosition();
+}
+
+void iAChannelSlicerData::setActorPosition(double x, double y, double z)
+{
+	m_imageActor->SetPosition(x, y, z);
+}
+
+void iAChannelSlicerData::setActorOpacity(double opacity)
+{
+	m_imageActor->SetOpacity(opacity);
+}
+
+void iAChannelSlicerData::setMovable(bool movable)
+{
+	m_imageActor->SetPickable(movable);
+	m_imageActor->SetDragable(movable);
+}
+
+void iAChannelSlicerData::setInterpolate(bool interpolate)
+{
+	m_imageActor->SetInterpolate(interpolate);
+}
+
+void iAChannelSlicerData::setEnabled(vtkRenderer* ren, bool enable)
+{
+	if (enable)
+		ren->AddActor(m_imageActor);
+	else
+		ren->RemoveActor(m_imageActor);
+}
+
+void iAChannelSlicerData::setSlabNumberOfSlices(int slices)
+{
+	m_reslicer->SetSlabNumberOfSlices(slices);
+}
+
+void iAChannelSlicerData::setSlabMode(int mode)
+{
+	m_reslicer->SetSlabMode(mode);
+}
+
 void iAChannelSlicerData::initContours()
 {
-	cFilter->SetInputConnection(reslicer->GetOutputPort());
-	cFilter->UseScalarTreeOn();
-	cFilter->SetComputeGradients(false);
-	cFilter->SetComputeNormals(false);
-	cMapper->SetInputConnection(cFilter->GetOutputPort());
-	cMapper->SetResolveCoincidentTopology(VTK_RESOLVE_POLYGON_OFFSET);
-	cMapper->ScalarVisibilityOff();
-	cActor->SetMapper(cMapper);
-	cActor->SetVisibility(false);
+	m_contourFilter->SetInputConnection(m_reslicer->GetOutputPort());
+	m_contourFilter->UseScalarTreeOn();
+	m_contourFilter->SetComputeGradients(false);
+	m_contourFilter->SetComputeNormals(false);
+	m_contourMapper->SetInputConnection(m_contourFilter->GetOutputPort());
+	m_contourMapper->SetResolveCoincidentTopology(VTK_RESOLVE_POLYGON_OFFSET);
+	m_contourMapper->ScalarVisibilityOff();
+	m_contourActor->SetMapper(m_contourMapper);
+}
+
+void iAChannelSlicerData::setContours(int numberOfContours, double contourMin, double contourMax)
+{
+	m_contourFilter->GenerateValues(numberOfContours, contourMin, contourMax);
+}
+
+void iAChannelSlicerData::setContours(int numberOfContours, double const * contourValues)
+{
+	m_contourFilter->SetNumberOfContours(numberOfContours);
+	for (int i = 0; i < numberOfContours; ++i)
+		m_contourFilter->SetValue(i, contourValues[i]);
+	m_contourFilter->Update();
+}
+
+void iAChannelSlicerData::setShowContours(vtkRenderer* ren, bool enable)
+{
+	if (enable)
+		ren->AddActor(m_contourActor);
+	else
+		ren->RemoveActor(m_contourActor);
+}
+
+void iAChannelSlicerData::setContourLineParams(double lineWidth, bool dashed)
+{
+	m_contourActor->GetProperty()->SetLineWidth(lineWidth);
+	if (dashed)
+		m_contourActor->GetProperty()->SetLineStipplePattern(0xff00);
+}
+
+void iAChannelSlicerData::setContoursColor(double * rgb)
+{
+	m_contourActor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
+}
+
+void iAChannelSlicerData::setContoursOpacity(double opacity)
+{
+	m_contourActor->GetProperty()->SetOpacity(opacity);
 }

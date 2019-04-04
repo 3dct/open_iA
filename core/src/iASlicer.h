@@ -172,7 +172,7 @@ public:
 	void showIsolines(bool s);
 	//! @{ set contour line parameters
 	void setContours(int numberOfContours, double contourMin, double contourMax);
-	void setContours(int numberOfContours, double * contourValues);
+	void setContours(int numberOfContours, double const * contourValues);
 	//! @}
 	//void setMeasurementStartPoint(int x, int y);
 	void setShowText(bool isVisible);
@@ -241,7 +241,6 @@ public slots:
 	void deleteSnakeLine();
 	//! Called when the delete snake line menu is clicked.
 	void menuDeleteSnakeLine();
-	void slicerUpdatedSlot();
 
 private slots:
 	void menuCenteredMagicLens();
@@ -313,7 +312,6 @@ protected:
 	void printVoxelInformation(double xCoord, double yCoord, double zCoord);
 	void executeKeyPressEvent();
 	void defaultOutput();
-	void updateReslicer();
 
 	//!	This function is used to check whether any agreeable maximum gradient is near the given point.
 	//!	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.
@@ -427,7 +425,7 @@ private:
 
 	MdiChild* m_linkedMdiChild;  //! main window access for linked mdi childs feature - get rid of this somehow!
 
-	QSharedPointer<iAChannelSlicerData> createChannel(uint id);
+	QSharedPointer<iAChannelSlicerData> createChannel(uint id, iAChannelData const & chData);
 	void getMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
