@@ -26,6 +26,7 @@
 #include "iAMovieHelper.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
+#include "iASlicerMode.h"
 #include "mdichild.h"
 
 #include <vtkActor.h>
@@ -110,16 +111,16 @@ public:
 		{
 			vtkRenderWindowInteractor *rwi = this->Interactor;
 			int *eventPos = rwi->GetEventPosition();
-			this->FindPokedRenderer(eventPos[0], eventPos[1]);
-			this->StartPosition[0] = eventPos[0];
-			this->StartPosition[1] = eventPos[1];
-			this->EndPosition[0] = eventPos[0];
-			this->EndPosition[1] = eventPos[1];
-			this->Pick();
+			FindPokedRenderer(eventPos[0], eventPos[1]);
+			StartPosition[0] = eventPos[0];
+			StartPosition[1] = eventPos[1];
+			EndPosition[0] = eventPos[0];
+			EndPosition[1] = eventPos[1];
+			Pick();
 			break;
 		}
 		default:
-			this->Superclass::OnChar();
+			Superclass::OnChar();
 		}
 	}
 };
@@ -281,7 +282,7 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 		m_slicePlaneActor[s]->SetDragable(false);
 	}
 
-	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
+	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(parent());
 	if (mdi_parent)
 	{
 		connect(this, SIGNAL(msg(QString)), mdi_parent, SLOT(addMsg(QString)));
@@ -294,20 +295,6 @@ iARenderer::~iARenderer(void)
 	m_ren->RemoveAllObservers();
 	m_renWin->RemoveAllObservers();
 	if (m_renderObserver) m_renderObserver->Delete();
-}
-
-namespace
-{
-	int GetSliceAxis(int axis, int index)
-	{
-		switch (axis)
-		{
-		default: // note: switch case labels are currently NOT equal to iASlicerMode numbers, see note there!
-		case 0: return index == 0 ? 1 : 2; // YZ
-		case 1: return index == 0 ? 0 : 2; // XZ
-		case 2: return index == 0 ? 0 : 1; // YZ
-		}
-	}
 }
 
 void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
@@ -392,23 +379,21 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	m_profileLineStartPointActor->GetProperty()->SetColor(1.0, 0.65, 0.0);
 	m_profileLineEndPointActor->GetProperty()->SetColor(0.0, 0.65, 1.0);
 
+	//slicing cube settings for surface extraction
+	m_sliceCubeMapper->SetInputConnection(m_slicingCube->GetOutputPort());
+	m_sliceCubeActor->SetMapper(m_sliceCubeMapper);
+	m_sliceCubeActor->GetProperty()->SetColor(1.0, 0, 0);
+	m_sliceCubeActor->GetProperty()->SetRepresentationToWireframe();
+	m_sliceCubeActor->GetProperty()->SetOpacity(1); 
+	m_sliceCubeActor->GetProperty()->SetLineWidth(2.3);
+	m_sliceCubeActor->GetProperty()->SetAmbient(1.0);
+	m_sliceCubeActor->GetProperty()->SetDiffuse(0.0);
+	m_sliceCubeActor->GetProperty()->SetSpecular(0.0);
+	m_sliceCubeActor->SetPickable(false);
+	m_sliceCubeActor->SetDragable(false);
+	m_sliceCubeActor->SetVisibility(false);
 
-	 //slicing cube settings for surface extraction
-	 m_sliceCubeMapper->SetInputConnection(m_slicingCube->GetOutputPort());
-	 m_sliceCubeActor->SetMapper(m_sliceCubeMapper);
-	 m_sliceCubeActor->GetProperty()->SetColor(1.0, 0, 0);
-	 m_sliceCubeActor->GetProperty()->SetRepresentationToWireframe();
-	 m_sliceCubeActor->GetProperty()->SetOpacity(1); 
-	 m_sliceCubeActor->GetProperty()->SetLineWidth(2.3); 	 
-	 m_sliceCubeActor->GetProperty()->SetAmbient(1.0);
-	 m_sliceCubeActor->GetProperty()->SetDiffuse(0.0);
-	 m_sliceCubeActor->GetProperty()->SetSpecular(0.0);
-	 m_sliceCubeActor->SetPickable(false);
-	 m_sliceCubeActor->SetDragable(false);
-	 
-	 m_sliceCubeActor->SetVisibility(false);
-
-	 this->	setArbitraryProfileOn(false);
+	setArbitraryProfileOn(false);
 
 	double center[3], origin[3];
 	const int * dim = m_imageData->GetDimensions();
@@ -429,8 +414,8 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 			point1[j] = 0;
 			point2[j] = 0;
 		}
-		point1[GetSliceAxis(s, 0)] += 1.1 * dim[GetSliceAxis(s, 0)] * spc[GetSliceAxis(s, 0)];
-		point2[GetSliceAxis(s, 1)] += 1.1 * dim[GetSliceAxis(s, 1)] * spc[GetSliceAxis(s, 1)];
+		point1[getSliceAxis(s, 0)] += 1.1 * dim[getSliceAxis(s, 0)] * spc[getSliceAxis(s, 0)];
+		point2[getSliceAxis(s, 1)] += 1.1 * dim[getSliceAxis(s, 1)] * spc[getSliceAxis(s, 1)];
 		m_slicePlaneSource[s]->SetPoint1(point1);
 		m_slicePlaneSource[s]->SetPoint2(point2);
 		m_slicePlaneSource[s]->SetCenter(center);
@@ -438,7 +423,6 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 		m_slicePlaneActor[s]->SetMapper(m_slicePlaneMapper[s]);
 		m_slicePlaneActor[s]->GetProperty()->SetColor( (s == 0) ? 1:0, (s == 1) ? 1 : 0, (s == 2) ? 1 : 0);
 		m_slicePlaneActor[s]->GetProperty()->SetOpacity(1.0);
-		m_slicePlaneActor[s]->SetVisibility(false);
 		m_slicePlaneMapper[s]->Update();
 	}
 }
@@ -594,8 +578,6 @@ void iARenderer::setupRenderer()
 	m_ren->AddActor(m_profileLineStartPointActor);
 	m_ren->AddActor(m_profileLineEndPointActor);
 	m_ren->AddActor(m_sliceCubeActor); 
-	for (int s = 0; s < 3; ++s)
-		m_ren->AddActor(m_slicePlaneActor[s]);
 	emit onSetupRenderer();
 }
 
@@ -624,8 +606,12 @@ void iARenderer::showRPosition(bool s)
 
 void iARenderer::showSlicePlanes(bool show)
 {
-	for (int s = 0; s < 3; ++s) {
-		m_slicePlaneActor[s]->SetVisibility(show);
+	for (int s = 0; s < 3; ++s)
+	{
+		if (show)
+			m_ren->AddActor(m_slicePlaneActor[s]);
+		else
+			m_ren->RemoveActor(m_slicePlaneActor[s]);
 		m_slicePlaneActor[s]->GetProperty()->SetOpacity(m_slicePlaneOpacity);
 	}
 }
@@ -923,8 +909,7 @@ void iARenderer::setSlicingBounds(const int roi[6], const double * spacing)
 	yMax = yMin + roi[4] * spacing[1]; 
 	zMax = zMin + roi[5] * spacing[2];
 	m_slicingCube->SetBounds(x_min, xMax, yMin, yMax, zMin, zMax);
-	this->update(); 
-
+	update();
 }
 
 void iARenderer::setCubeVisible(bool visible)
@@ -936,10 +921,10 @@ void iARenderer::setSlicePlane(int planeID, double originX, double originY, doub
 {
 	switch (planeID)
 	{
-		default: // note: switch case labels are currently NOT equal to iASlicerMode numbers, see note there!
-		case 0: m_plane1->SetOrigin(originX, originY, originZ); break; // YZ
-		case 1: m_plane2->SetOrigin(originX, originY, originZ); break; // XZ
-		case 2: m_plane3->SetOrigin(originX, originY, originZ); break; // YZ
+		default:
+		case iASlicerMode::YZ: m_plane1->SetOrigin(originX, originY, originZ); break;
+		case iASlicerMode::XZ: m_plane2->SetOrigin(originX, originY, originZ); break;
+		case iASlicerMode::XY: m_plane3->SetOrigin(originX, originY, originZ); break;
 	}
 	double center[3];
 	m_slicePlaneSource[planeID]->GetCenter(center);

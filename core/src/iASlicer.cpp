@@ -2979,3 +2979,14 @@ int getSlicerDimension(int mode)
 	default: return -1;
 	}
 }
+
+int getSliceAxis(int axis, int index)
+{
+	switch (axis)
+	{
+	default:
+	case iASlicerMode::YZ: return index == 0 ? 1 : 2;
+	case iASlicerMode::XZ: return index == 0 ? 0 : 2;
+	case iASlicerMode::XY: return index == 0 ? 0 : 1;
+	}
+}
