@@ -1449,33 +1449,21 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 				tmpChild->slicer(iASlicerMode::XY)->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1]);
 				tmpChild->slicer(iASlicerMode::XY)->setIndex(tmpX, tmpY, tmpZ);
 				tmpChild->slicerDockWidget(iASlicerMode::XY)->sbSlice->setValue(tmpZ);
-
 				tmpChild->slicer(iASlicerMode::XY)->update();
-				//tmpChild->slicer(iASlicerMode::XY)->update();
-				//tmpChild->slicerDockWidget(iASlicerMode::XY)->update();
-
 				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::XY), tmpX, tmpY, tmpZ, m_mode);
 				break;
 			case iASlicerMode::YZ://YZ
 				tmpChild->slicer(iASlicerMode::YZ)->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
 				tmpChild->slicer(iASlicerMode::YZ)->setIndex(tmpX, tmpY, tmpZ);
 				tmpChild->slicerDockWidget(iASlicerMode::YZ)->sbSlice->setValue(tmpX);
-
 				tmpChild->slicer(iASlicerMode::YZ)->update();
-				//tmpChild->slicer(iASlicerMode::YZ)->update();
-				//tmpChild->slicerDockWidget(iASlicerMode::YZ)->update();
-
 				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::YZ), tmpY, tmpZ, tmpX, m_mode);
 				break;
 			case iASlicerMode::XZ://XZ
 				tmpChild->slicer(iASlicerMode::XZ)->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
 				tmpChild->slicer(iASlicerMode::XZ)->setIndex(tmpX, tmpY, tmpZ);
 				tmpChild->slicerDockWidget(iASlicerMode::XZ)->sbSlice->setValue(tmpY);
-
 				tmpChild->slicer(iASlicerMode::XZ)->update();
-				//tmpChild->slicer(iASlicerMode::XZ)->update();
-				//tmpChild->slicerDockWidget(iASlicerMode::XZ)->update();
-
 				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::XZ), tmpX, tmpZ, tmpY, m_mode);
 				break;
 			default://ERROR

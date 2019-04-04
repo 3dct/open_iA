@@ -38,7 +38,7 @@ namespace
 	//set the coords based on a slicer mode, keep other one fixed
 	void updateCoords(double* origin, double const *pos, int mode)
 	{
-		DEBUG_LOG(QString("  Pos: %1, %2, %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
+		//DEBUG_LOG(QString("  Pos: %1, %2, %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
 		switch (mode)
 		{
 		case iASlicerMode::XY:
@@ -59,7 +59,7 @@ namespace
 			origin[2] += pos[2];
 			break;
 		}
-		DEBUG_LOG(QString("  New origin: %1, %2, %3").arg(origin[0]).arg(origin[1]).arg(origin[2]));
+		//DEBUG_LOG(QString("  New origin: %1, %2, %3").arg(origin[0]).arg(origin[1]).arg(origin[2]));
 	}
 }
 
@@ -108,12 +108,12 @@ void iAvtkInteractStyleActor::initialize(vtkImageData *img, iAVolumeRenderer* vo
 
 void iAvtkInteractStyleActor::updateInteractors()
 {
-	DEBUG_LOG(QString("Move: %1").arg(enable3D ? "3D" : getSlicerModeString(m_currentSliceMode)));
+	// DEBUG_LOG(QString("Move: %1").arg(enable3D ? "3D" : getSlicerModeString(m_currentSliceMode)));
 
 	//coords initialized from the image origin;
 	double origin[3];
 	m_image->GetOrigin(origin);
-	DEBUG_LOG(QString("  Old origin: %1, %2, %3").arg(origin[0]).arg(origin[1]).arg(origin[2]));
+	// DEBUG_LOG(QString("  Old origin: %1, %2, %3").arg(origin[0]).arg(origin[1]).arg(origin[2]));
 	
 	// relative movement of object - we take the position the object was moved to
 	// add that to the origin of the image, and reset the position
