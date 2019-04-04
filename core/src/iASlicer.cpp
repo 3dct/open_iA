@@ -496,7 +496,11 @@ void iASlicer::update()
 		return;
 	for (auto ch : m_channels)
 		ch->updateMapper();
+	for (auto ch : m_channels)
+		ch->reslicer()->UpdateWholeExtent();
+	m_interactor->ReInitialize();
 	m_interactor->Render();
+	m_ren->Render();
 	if (m_magicLens)
 		m_magicLens->Render();
 	if (m_isSliceProfEnabled)

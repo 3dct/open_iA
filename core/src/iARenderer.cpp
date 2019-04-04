@@ -585,8 +585,8 @@ void iARenderer::update()
 {
 	if (m_polyData)
 		m_polyMapper->Update();
-	//m_ren->Render();
-	//m_renWin->Render();
+	m_ren->Render();
+	m_renWin->Render();
 	m_renWin->GetInteractor()->Render();
 }
 

@@ -1792,7 +1792,7 @@ bool MdiChild::initView( QString const & title )
 	if (!m_raycasterInitialized)
 	{
 		m_renderer->initialize(m_imageData, m_polyData);
-		connect(m_renderer->getRenderObserver(), SIGNAL(InteractorModeSwitched(int)), m_dwModalities, SLOT(InteractorModeSwitched(int)));
+		connect(m_renderer->getRenderObserver(), SIGNAL(InteractorModeSwitched(int)), m_dwModalities, SLOT(interactorModeSwitched(int)));
 		m_raycasterInitialized = true;
 	}
 	if (modalities()->size() == 0 && isVolumeDataLoaded())
