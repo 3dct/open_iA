@@ -54,9 +54,6 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	double const * spacing = modality->spacing();
 	double const * origin = modality->origin();
 
-	edPositionX   ->setText(QString::number(position[0]));
-	edPositionY   ->setText(QString::number(position[1]));
-	edPositionZ   ->setText(QString::number(position[2]));
 	edOrientationX->setText(QString::number(orientation[0]));
 	edOrientationY->setText(QString::number(orientation[1]));
 	edOrientationZ->setText(QString::number(orientation[2]));
@@ -102,13 +99,9 @@ void dlg_modalityProperties::OKButtonClicked()
 		(cbShowInSlicer->isChecked() ? iAModality::Slicer : 0)
 	);
 	double orientation[3];
-	double position[3];
 	double spacing[3];
 	double origin[3];
 	QStringList notOKValues;
-	position[0]    = getValueAndCheck(edPositionX   , "Position X"   , notOKValues);
-	position[1]    = getValueAndCheck(edPositionY   , "Position Y"   , notOKValues);
-	position[2]    = getValueAndCheck(edPositionZ   , "Position Z"   , notOKValues);
 	orientation[0] = getValueAndCheck(edOrientationX, "Orientation X", notOKValues);
 	orientation[1] = getValueAndCheck(edOrientationY, "Orientation Y", notOKValues);
 	orientation[2] = getValueAndCheck(edOrientationZ, "Orientation Z", notOKValues);
@@ -138,7 +131,6 @@ void dlg_modalityProperties::OKButtonClicked()
 	m_modality->setOrigin(origin);
 	m_modality->setSpacing(spacing);
 	m_modality->renderer()->setOrientation(orientation);
-	m_modality->renderer()->setPosition(position);
 	m_modality->renderer()->applySettings(m_volumeSettings);
 	done(QDialog::Accepted);
 }
