@@ -72,7 +72,7 @@ void dlg_transfer::draw(QPainter &painter, QColor color, int lineWidth)
 	painter.setBrush(QColor(128, 128, 128, 255));
 
 	QColor c;
-	double gradientWidth = chart->activeWidth()*chart->XZoom();
+	double gradientWidth = chart->activeWidth()*chart->xZoom();
 
 	gradient = QLinearGradient();
 	gradient.setStart(0, 0);
@@ -181,7 +181,7 @@ void dlg_transfer::drawOnTop(QPainter &painter)
 {
 	if ( opacityTF->GetSize() == colorTF->GetSize())
 	{
-		double gradientWidth = chart->activeWidth()*chart->XZoom();
+		double gradientWidth = chart->activeWidth()*chart->xZoom();
 
 		painter.fillRect( 0, 0, gradientWidth, -chart->bottomMargin(), gradient );
 	}
@@ -261,7 +261,7 @@ void dlg_transfer::addColorPoint(int x, double red, double green, double blue)
 	if (red < 0 || green < 0 || blue < 0)
 	{
 		QGradientStops stops = gradient.stops();
-		double gradientWidth = chart->activeWidth()*chart->XZoom();
+		double gradientWidth = chart->activeWidth()*chart->xZoom();
 		double pos = x /gradientWidth;
 
 		// find stops before and after pos
@@ -512,7 +512,7 @@ void dlg_transfer::setPointY(int selectedPoint, int y)
 // TODO: unify somewhere!
 double dlg_transfer::v2dX(int x)
 {
-	double dX = ((double)(x-chart->xShift()) / (double)chart->activeWidth() * chart->xRange()) /chart->XZoom() + chart->xBounds()[0];
+	double dX = ((double)(x-chart->xShift()) / (double)chart->activeWidth() * chart->xRange()) /chart->xZoom() + chart->xBounds()[0];
 	return clamp(chart->xBounds()[0], chart->xBounds()[1], dX);
 }
 
@@ -525,9 +525,9 @@ double dlg_transfer::v2dY(int y)
 int dlg_transfer::d2vX(double x, double oldDataRange0, double oldDataRange1)
 {
 	if (oldDataRange0 == -1 && oldDataRange1 == -1)
-		return (int)((x - chart->xBounds()[0]) * (double)chart->activeWidth() / chart->xRange()*chart->XZoom()) +chart->xShift();
+		return (int)((x - chart->xBounds()[0]) * (double)chart->activeWidth() / chart->xRange()*chart->xZoom()) +chart->xShift();
 	else
-		return (int)((x -oldDataRange0) * (double)chart->activeWidth() / (oldDataRange1 - oldDataRange0)*chart->XZoom()) +chart->xShift();
+		return (int)((x -oldDataRange0) * (double)chart->activeWidth() / (oldDataRange1 - oldDataRange0)*chart->xZoom()) +chart->xShift();
 
 }
 

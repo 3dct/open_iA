@@ -122,7 +122,7 @@ void iAProbingWidget::SetSelectedNode(iAImageTreeNode const * node)
 void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 {
 	// entropy chart:
-	m_entropyChartData->Reset();
+	m_entropyChartData->reset();
 	double limit = -std::log(1.0 / m_labelInfo->count());
 	double normalizeFactor = 1 / limit;
 	VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
@@ -137,13 +137,13 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 			}
 		}
 		entropy = clamp(0.0, 1.0, -entropy * normalizeFactor);
-		m_entropyChartData->AddValue(entropy);
+		m_entropyChartData->addValue(entropy);
 	});
 
 	// label distribution chart:
 	for (int l = 0; l < m_labelDistributionChartData.size(); ++l)
 	{
-		m_labelDistributionChartData[l]->Reset();
+		m_labelDistributionChartData[l]->reset();
 	}
 	itk::Index<3> idx;
 	idx[0] = x; idx[1] = y; idx[2] = z;
@@ -151,7 +151,7 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 	VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
 	{
 		int label = dynamic_cast<LabelImageType*>(leaf->GetLargeImage().GetPointer())->GetPixel(idx);
-		m_labelDistributionChartData[label]->AddValue(label);
+		m_labelDistributionChartData[label]->addValue(label);
 		valueCount++;
 	});
 	m_charts[1]->setYBounds(0, valueCount);
@@ -159,7 +159,7 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 	// find the NumOfChartsShown highest probabilities
 	for (int i = 0; i < m_probabilitiesChartData.size(); ++i)
 	{
-		m_probabilitiesChartData[i]->Reset();
+		m_probabilitiesChartData[i]->reset();
 	}
 	std::vector<std::pair<double, int> > probSumOfCharts;
 	for (int l = 0; l < m_labelInfo->count(); ++l)
@@ -186,7 +186,7 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 		VisitLeafs(m_selectedNode, [&](iAImageTreeLeaf const * leaf)
 		{
 			double probValue = leaf->GetProbabilityValue(labelValue, x, y, z);
-			m_probabilitiesChartData[i]->AddValue(probValue);
+			m_probabilitiesChartData[i]->addValue(probValue);
 		});
 		m_charts[m_probChartStart+i]->setXCaption(QString("Probability Distribution Label %1").arg(labelValue));
 		m_charts[m_probChartStart+i]->plots()[0]->setColor(m_labelInfo->GetColor(labelValue));

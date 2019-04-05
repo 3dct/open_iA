@@ -126,20 +126,20 @@ void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 				((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) &&
 				((event->modifiers() & Qt::AltModifier) == Qt::AltModifier))
 			{
-				zoomY = event->y();
+				m_zoomYPos = event->y();
 				changeMode(Y_ZOOM_MODE, event);
 			}
 			else if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
 				((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier))
 			{
-				zoomX = event->x();
-				zoomY = event->y();
-				xZoomStart = xZoom;
+				m_zoomXPos = event->x();
+				m_zoomYPos = event->y();
+				m_xZoomStart = m_xZoom;
 				changeMode(X_ZOOM_MODE, event);
 			}
 			else if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier)
 			{
-				translationStartX = translationX;
+				m_translationStartX = m_translationX;
 				changeMode(MOVE_VIEW_MODE, event);
 			}
 			else if (!isContextMenuVisible())
@@ -174,13 +174,13 @@ void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 	dlg_function *func = *(it + selectedFunction);
 	if (event->button() == Qt::LeftButton)
 	{
-		if (mode == MOVE_NEW_POINT_MODE)
+		if (m_mode == MOVE_NEW_POINT_MODE)
 			func->mouseReleaseEventAfterNewPoint(event);
 		update();
 		emit updateTFTable();
 		emit updateViews();
 	}
-	mode = NO_MODE;
+	m_mode = NO_MODE;
 	m_contextMenuVisible = false;
 	func->mouseReleaseEvent(event);
 }
@@ -196,7 +196,7 @@ void iADiagramFctWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
 void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	switch (mode)
+	switch (m_mode)
 	{
 		case MOVE_POINT_MODE:
 		case MOVE_NEW_POINT_MODE:
@@ -312,10 +312,10 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 				selectedPoint = func->addPoint(x, y);
 				func->addColorPoint(x);
 
-				mode = MOVE_NEW_POINT_MODE;
+				m_mode = MOVE_NEW_POINT_MODE;
 			}
 			else
-				mode = MOVE_POINT_MODE;
+				m_mode = MOVE_POINT_MODE;
 
 			update();
 
@@ -436,7 +436,7 @@ void iADiagramFctWidget::addBezierFunction()
 
 void iADiagramFctWidget::addGaussianFunction()
 {
-	addGaussianFunction(contextMenuPos().x(), geometry().width() / 6, (int)((activeHeight() - contextMenuPos().y())*YZoom()));
+	addGaussianFunction(contextMenuPos().x(), geometry().width() / 6, (int)((activeHeight() - contextMenuPos().y())*yZoom()));
 }
 
 void iADiagramFctWidget::addGaussianFunction(double mean, double sigma, double multiplier)

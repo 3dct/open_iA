@@ -52,9 +52,9 @@ void iAModalityTransfer::reset()
 
 void iAModalityTransfer::computeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
 {
-	if (imgData->GetNumberOfScalarComponents() != 1 || (m_histogramData && m_histogramData->GetNumBin() == binCount))
+	if (imgData->GetNumberOfScalarComponents() != 1 || (m_histogramData && m_histogramData->numBin() == binCount))
 		return;
-	m_histogramData = iAHistogramData::Create(imgData, binCount, &m_imageInfo);
+	m_histogramData = iAHistogramData::create(imgData, binCount, &m_imageInfo);
 }
 
 QSharedPointer<iAHistogramData> const iAModalityTransfer::getHistogramData() const

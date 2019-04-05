@@ -59,10 +59,10 @@ public:
 	enum AxisMappingType { Linear, Logarithmic };
 	iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
 	virtual ~iAChartWidget();
-	double XZoom()  const { return xZoom;        }
-	double YZoom()  const { return yZoom;        }
-	int    xShift() const { return translationX; }
-	int    yShift() const { return translationY; }
+	double xZoom()  const { return m_xZoom;        }
+	double yZoom()  const { return m_yZoom;        }
+	int    xShift() const { return m_translationX; }
+	int    yShift() const { return m_translationY; }
 	virtual int bottomMargin() const;
 	virtual int leftMargin() const;
 	virtual int activeWidth()  const;
@@ -113,21 +113,15 @@ signals:
 	void plotsSelected(std::vector<size_t> const & plotIDs);
 	void dblClicked();
 protected:
-	QString xCaption, yCaption;
-	int zoomX;
-	int zoomY;
-	double yZoom;
-	double yZoomStart;
-	double xZoom;
-	double xZoomStart;
+	QString m_xCaption, m_yCaption;
+	int m_zoomXPos, m_zoomYPos;
+	double m_xZoom, m_yZoom;
+	double m_xZoomStart, m_yZoomStart;
 
-	int translationX;
-	int translationY;
-	int translationStartX;
-	int translationStartY;
-	int dragStartPosX;
-	int dragStartPosY;
-	int mode;
+	int m_translationX, m_translationY;
+	int m_translationStartX, m_translationStartY;
+	int m_dragStartPosX, m_dragStartPosY;
+	int m_mode;
 	//! Main mappers from diagram coordinates to pixel coordinates, for each axis:
 	QSharedPointer<iAMapper> m_xMapper, m_yMapper;
 	AxisMappingType m_yMappingMode;
@@ -135,7 +129,7 @@ protected:
 
 	virtual void drawPlots(QPainter& painter);
 	virtual void drawAxes(QPainter& painter);
-	virtual QString getXAxisTickMarkLabel(double value, double stepWidth);
+	virtual QString xAxisTickMarkLabel(double value, double stepWidth);
 
 	void zoomAlongY(double value, bool deltaMode);
 	void zoomAlongX(double value, int x, bool deltaMode);

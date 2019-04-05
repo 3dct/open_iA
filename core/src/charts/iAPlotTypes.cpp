@@ -61,7 +61,7 @@ iASelectedBinPlot::iASelectedBinPlot(QSharedPointer<iAPlotData> proxyData, int p
 
 void iASelectedBinPlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
-	int x = xMapper.srcToDst(m_position) - ((m_data->GetRangeType() == Discrete) ? binWidth/2 : 0);
+	int x = xMapper.srcToDst(m_position) - ((m_data->valueType() == Discrete) ? binWidth/2 : 0);
 	int h = painter.device()->height();
 	painter.setPen(getColor());
 	painter.drawRect( QRect( x, 0, binWidth, h ) );
@@ -104,7 +104,7 @@ void iALinePlot::setLineWidth(int width)
 void iALinePlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
 	QPolygon poly;
-	if (!buildLinePolygon(poly, m_data->GetRawData(), startBin, endBin, xMapper, yMapper))
+	if (!buildLinePolygon(poly, m_data->rawData(), startBin, endBin, xMapper, yMapper))
 		return;
 	QPen pen(painter.pen());
 	pen.setWidth(m_lineWidth);
@@ -128,7 +128,7 @@ QColor iAFilledLinePlot::getFillColor() const
 void iAFilledLinePlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
 	QPolygon poly;
-	if (!buildLinePolygon(poly, m_data->GetRawData(), startBin, endBin, xMapper, yMapper))
+	if (!buildLinePolygon(poly, m_data->rawData(), startBin, endBin, xMapper, yMapper))
 		return;
 	poly.insert(0, QPoint(xMapper.srcToDst(startBin - (startBin > 0 ? 1 : 0)), 0));
 	poly.push_back(QPoint(xMapper.srcToDst(endBin), 0));
@@ -153,20 +153,20 @@ QColor iAStepFunctionPlot::getFillColor() const
 void iAStepFunctionPlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
 	QPainterPath tmpPath;
-	iAPlotData::DataType const * rawData = m_data->GetRawData();
+	iAPlotData::DataType const * rawData = m_data->rawData();
 	if (!rawData)
 		return;
 	QPolygon poly;
 	poly.push_back(QPoint(xMapper.srcToDst(startBin), 0));
 	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
 	{
-		int curX1 = xMapper.srcToDst(curBin - ((m_data->GetRangeType() == Discrete) ? 0.5 : 0));
-		int curX2 = xMapper.srcToDst(curBin + ((m_data->GetRangeType() == Discrete) ? 0.5 : 1));
+		int curX1 = xMapper.srcToDst(curBin - ((m_data->valueType() == Discrete) ? 0.5 : 0));
+		int curX2 = xMapper.srcToDst(curBin + ((m_data->valueType() == Discrete) ? 0.5 : 1));
 		int curY = yMapper.srcToDst(rawData[curBin]);
 		poly.push_back(QPoint(curX1, curY));
 		poly.push_back(QPoint(curX2, curY));
 	}
-	poly.push_back(QPoint(xMapper.srcToDst(endBin + ((m_data->GetRangeType() == Discrete) ? 0.5 : 1)), 0));
+	poly.push_back(QPoint(xMapper.srcToDst(endBin + ((m_data->valueType() == Discrete) ? 0.5 : 1)), 0));
 	tmpPath.addPolygon(poly);
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
@@ -180,14 +180,14 @@ iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const & c
 
 void iABarGraphPlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
-	iAPlotData::DataType const * rawData = m_data->GetRawData();
+	iAPlotData::DataType const * rawData = m_data->rawData();
 	if (!rawData)
 		return;
 	int barWidth = static_cast<int>(std::ceil(binWidth)) - m_margin;
 	QColor fillColor = getColor();
 	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
 	{
-		int x = xMapper.srcToDst(curBin) - ((m_data->GetRangeType() == Discrete || m_data->GetNumBin() == 1) ? barWidth/2 : 0);
+		int x = xMapper.srcToDst(curBin) - ((m_data->valueType() == Discrete || m_data->numBin() == 1) ? barWidth/2 : 0);
 		int h = yMapper.srcToDst(rawData[curBin]);
 		if (m_lut)
 		{
@@ -228,10 +228,10 @@ void iAPlotCollection::add(QSharedPointer<iAPlot> drawer)
 {
 	if (m_drawers.size() > 0)
 	{
-		if (m_drawers[0]->data()->XBounds()[0] != drawer->data()->XBounds()[0] ||
-			m_drawers[0]->data()->XBounds()[1] != drawer->data()->XBounds()[1] ||
-			m_drawers[0]->data()->GetNumBin() != drawer->data()->GetNumBin() ||
-			m_drawers[0]->data()->GetRangeType() != drawer->data()->GetRangeType())
+		if (m_drawers[0]->data()->xBounds()[0] != drawer->data()->xBounds()[0] ||
+			m_drawers[0]->data()->xBounds()[1] != drawer->data()->xBounds()[1] ||
+			m_drawers[0]->data()->numBin() != drawer->data()->numBin() ||
+			m_drawers[0]->data()->valueType() != drawer->data()->valueType())
 		{
 			DEBUG_LOG("iAPlotCollection::add - ERROR - Incompatible drawer added!");
 		}

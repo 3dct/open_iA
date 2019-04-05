@@ -25,34 +25,34 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 
-iASimpleHistogramData::DataType const * iASimpleHistogramData::GetRawData() const
+iASimpleHistogramData::DataType const * iASimpleHistogramData::rawData() const
 {
 	return m_data;
 }
 
-size_t iASimpleHistogramData::GetNumBin() const
+size_t iASimpleHistogramData::numBin() const
 {
 	return m_numBin;
 }
 
-double iASimpleHistogramData::GetSpacing() const
+double iASimpleHistogramData::spacing() const
 {						// check int type (see also iAHistogramData)
-	return (XBounds()[1] - XBounds()[0] + ((GetRangeType() == Discrete) ? 1 : 0)) / m_numBin;
+	return (m_xBounds[1] - m_xBounds[0] + ((valueType() == Discrete) ? 1 : 0)) / m_numBin;
 }
 
-double const * iASimpleHistogramData::XBounds() const
+double const * iASimpleHistogramData::xBounds() const
 {
 	return m_xBounds;
 }
 
-iASimpleHistogramData::DataType const * iASimpleHistogramData::YBounds() const
+iASimpleHistogramData::DataType const * iASimpleHistogramData::yBounds() const
 {
 	return m_yBounds;
 }
 
-iAValueType iASimpleHistogramData::GetRangeType() const
+iAValueType iASimpleHistogramData::valueType() const
 {
-	return m_xValueType;
+	return m_valueType;
 }
 
 
@@ -67,7 +67,7 @@ void iASimpleHistogramData::AddValue(DataType value)
 }
 */
 
-void iASimpleHistogramData::SetBin(size_t binIdx, DataType value)
+void iASimpleHistogramData::setBin(size_t binIdx, DataType value)
 {
 	m_data[binIdx] = value;
 	if (value > m_yBounds[1])
@@ -76,7 +76,7 @@ void iASimpleHistogramData::SetBin(size_t binIdx, DataType value)
 
 iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType) :
 	m_numBin(numBin),
-	m_xValueType(xValueType),
+	m_valueType(xValueType),
 	m_dataOwner(true)
 {
 	m_data = new DataType[numBin];
@@ -89,7 +89,7 @@ iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_
 
 iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, double* data, iAValueType xValueType) :
 	m_numBin(numBin),
-	m_xValueType(xValueType),
+	m_valueType(xValueType),
 	m_dataOwner(false)
 {
 	m_data = data;
@@ -116,17 +116,17 @@ iASimpleHistogramData::~iASimpleHistogramData()
 		delete[] m_data;
 }
 
-QSharedPointer<iASimpleHistogramData> iASimpleHistogramData::Create(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType)
+QSharedPointer<iASimpleHistogramData> iASimpleHistogramData::create(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType)
 {
 	return QSharedPointer<iASimpleHistogramData>(new iASimpleHistogramData(minX, maxX, numBin, xValueType));
 }
 
-QSharedPointer<iASimpleHistogramData> iASimpleHistogramData::Create(DataType minX, DataType maxX, size_t numBin, double * data, iAValueType xValueType)
+QSharedPointer<iASimpleHistogramData> iASimpleHistogramData::create(DataType minX, DataType maxX, size_t numBin, double * data, iAValueType xValueType)
 {
 	return QSharedPointer<iASimpleHistogramData>(new iASimpleHistogramData(minX, maxX, numBin, data, xValueType));
 }
 
-QSharedPointer<iASimpleHistogramData> iASimpleHistogramData::Create(DataType minX, DataType maxX, std::vector<double> const & data, iAValueType xValueType)
+QSharedPointer<iASimpleHistogramData> iASimpleHistogramData::create(DataType minX, DataType maxX, std::vector<double> const & data, iAValueType xValueType)
 {
 	double* dataArr = new double[data.size()];
 	for (size_t i=0; i<data.size(); ++i)

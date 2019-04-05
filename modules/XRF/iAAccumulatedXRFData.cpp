@@ -45,20 +45,20 @@ iAAccumulatedXRFData::iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, doubl
 	m_yBounds[1] = 0;
 	m_yBounds[0] = std::numeric_limits<double>::max();
 	calculateStatistics();
-	SetFct(fctDefault);
+	setFct(fctDefault);
 }
 
-double iAAccumulatedXRFData::GetSpacing() const
+double iAAccumulatedXRFData::spacing() const
 {
-	return (m_xBounds[1] - m_xBounds[0]) / GetNumBin();
+	return (m_xBounds[1] - m_xBounds[0]) / numBin();
 }
 
-double const * iAAccumulatedXRFData::XBounds() const
+double const * iAAccumulatedXRFData::xBounds() const
 {
 	return m_xBounds;
 }
 
-iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::GetRawData() const
+iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::rawData() const
 {
 	switch (m_accumulateFct)
 	{
@@ -72,39 +72,39 @@ iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::GetRawData() const
 	}
 }
 
-size_t iAAccumulatedXRFData::GetNumBin() const
+size_t iAAccumulatedXRFData::numBin() const
 {
 	return m_xrfData->size();
 }
 
-iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::YBounds() const
+iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::yBounds() const
 {
 	return m_yBounds;
 }
 
-CountType iAAccumulatedXRFData::GetSpectraHistogramMax() const
+CountType iAAccumulatedXRFData::spectraHistogramMax() const
 {
 	return m_spectraHistograms->maxValue();
 }
 
-void iAAccumulatedXRFData::SetFct(int fctIdx)
+void iAAccumulatedXRFData::setFct(int fctIdx)
 {
 	m_accumulateFct = static_cast<AccumulateFct>(fctIdx);
 }
 
-iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::GetAvgData() const
+iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::avgData() const
 {
 	return m_average;
 }
 
-void iAAccumulatedXRFData::ComputeSpectraHistograms( long numBins )
+void iAAccumulatedXRFData::computeSpectraHistograms( long numBins )
 {
 	m_spectraHistograms->compute(numBins, m_yBounds[1], m_yBounds[0]);
 }
 
-void iAAccumulatedXRFData::RetrieveHistData( long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out )
+void iAAccumulatedXRFData::retrieveHistData( long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out )
 {
-	ComputeSpectraHistograms(numBin_in);
+	computeSpectraHistograms(numBin_in);
 	data_out = m_spectraHistograms->histData();
 	numHist_out = m_spectraHistograms->numHist();
 	maxValue_out = m_spectraHistograms->maxValue();
@@ -218,7 +218,7 @@ void iAAccumulatedXRFData::createSpectrumFunctions()
 	size_t numSpectra = (extent[1] - extent[0] + 1) * (extent[3] - extent[2] + 1) * (extent[5] - extent[4] + 1);
 }
 
-std::vector<iAFunction<size_t, unsigned int> *> const & iAAccumulatedXRFData::GetSpectrumFunctions()
+std::vector<iAFunction<size_t, unsigned int> *> const & iAAccumulatedXRFData::spectrumFunctions()
 {
 	if (m_spectrumFunctions.size() == 0)
 	{
@@ -231,12 +231,12 @@ void iAAccumulatedXRFData::calculateFunctionBoxplots()
 {
 	assert(!m_functionalBoxplotData);
 	ModifiedDepthMeasure<size_t, unsigned int> measure;
-	std::vector<iAFunction<size_t, unsigned int> *> functions = GetSpectrumFunctions();
+	std::vector<iAFunction<size_t, unsigned int> *> functions = spectrumFunctions();
 	m_functionalBoxplotData = new iAFunctionalBoxplot<size_t, unsigned int>(
 		functions, &measure, 2);
 }
 
-FunctionalBoxPlot* const iAAccumulatedXRFData::GetFunctionalBoxPlot()
+FunctionalBoxPlot* const iAAccumulatedXRFData::functionalBoxPlot()
 {
 	if (!m_functionalBoxplotData)
 	{

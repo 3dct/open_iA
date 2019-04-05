@@ -109,7 +109,7 @@ void iAHistogramContainer::CreateCharts()
 			(attrib->ValueType() == iAValueType::Discrete || attrib->ValueType() == iAValueType::Categorical) ?
 			std::min(static_cast<size_t>(attrib->Max() - attrib->Min() + 1), maxBin) :
 			maxBin;
-		QSharedPointer<iAParamHistogramData> data = iAParamHistogramData::Create(
+		QSharedPointer<iAParamHistogramData> data = iAParamHistogramData::create(
 			m_root,
 			chartID,
 			attrib->ValueType(),
@@ -126,7 +126,7 @@ void iAHistogramContainer::CreateCharts()
 		}
 		if (attrib->AttribType() == iAAttributeDescriptor::Parameter)
 		{
-			maxValue = std::max(data->YBounds()[1], maxValue);
+			maxValue = std::max(data->yBounds()[1], maxValue);
 		}
 		m_charts.insert(chartID, new iAClusterAttribChart(attrib->Name(), chartID, data,
 			attrib->NameMapper()));
@@ -185,7 +185,7 @@ void iAHistogramContainer::UpdateClusterChartData(QVector<QSharedPointer<iAImage
 		foreach(QSharedPointer<iAImageTreeNode> const node, selection)
 		{
 			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
-			m_charts[chartID]->AddClusterData(iAParamHistogramData::Create(
+			m_charts[chartID]->AddClusterData(iAParamHistogramData::create(
 				node.data(), chartID,
 				attrib->ValueType(),
 				attrib->Min(),
@@ -217,7 +217,7 @@ void iAHistogramContainer::UpdateClusterFilteredChartData(
 		else
 		{
 			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
-			m_charts[chartID]->SetFilteredClusterData(iAParamHistogramData::Create(
+			m_charts[chartID]->SetFilteredClusterData(iAParamHistogramData::create(
 				selectedNode, chartID,
 				attrib->ValueType(),
 				attrib->Min(),
@@ -241,7 +241,7 @@ void iAHistogramContainer::UpdateFilteredChartData(iAChartFilter const & chartFi
 		}
 		assert(m_charts[chartID]);
 		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
-		m_charts[chartID]->SetFilteredData(iAParamHistogramData::Create(
+		m_charts[chartID]->SetFilteredData(iAParamHistogramData::create(
 			m_root, chartID,
 			attrib->ValueType(),
 			attrib->Min(),

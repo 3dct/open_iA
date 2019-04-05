@@ -60,16 +60,16 @@ void iAEnergySpectrumDiagramData::updateEnergyFunction(int x, int y, int z)
 	}
 }
 
-iAPlotData::DataType const * iAEnergySpectrumDiagramData::GetRawData() const
+iAPlotData::DataType const * iAEnergySpectrumDiagramData::rawData() const
 {
 	return m_energyFunction;
 }
 
-size_t iAEnergySpectrumDiagramData::GetNumBin() const
+size_t iAEnergySpectrumDiagramData::numBin() const
 {
 	return m_xrfData_ext->size();
 }
 
-double iAEnergySpectrumDiagramData::GetSpacing() const                    { return m_other->GetSpacing(); }
-double const * iAEnergySpectrumDiagramData::XBounds() const               { return m_other->XBounds();    }
-iAPlotData::DataType const * iAEnergySpectrumDiagramData::YBounds() const { return m_other->YBounds();    }
+double iAEnergySpectrumDiagramData::spacing() const                    { return m_other->spacing(); }
+double const * iAEnergySpectrumDiagramData::xBounds() const               { return m_other->xBounds();    }
+iAPlotData::DataType const * iAEnergySpectrumDiagramData::yBounds() const { return m_other->yBounds();    }

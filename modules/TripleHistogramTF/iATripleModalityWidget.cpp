@@ -306,7 +306,7 @@ void iATripleModalityWidget::updateModalities()
 		m_modalitiesActive[i] = m_mdiChild->modality(i);
 
 		// Histogram {
-		if (!m_modalitiesActive[i]->histogramData() || m_modalitiesActive[i]->histogramData()->GetNumBin() != m_mdiChild->preferences().HistogramBins)
+		if (!m_modalitiesActive[i]->histogramData() || m_modalitiesActive[i]->histogramData()->numBin() != m_mdiChild->preferences().HistogramBins)
 		{
 			m_modalitiesActive[i]->computeImageStatistics();
 			m_modalitiesActive[i]->computeHistogramData(m_mdiChild->preferences().HistogramBins);

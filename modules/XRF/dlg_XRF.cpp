@@ -371,7 +371,7 @@ void dlg_XRF::SpectrumTFChanged()
 
 void dlg_XRF::updateAccumulate(int fctIdx)
 {
-	m_accumulatedXRF->SetFct(fctIdx);
+	m_accumulatedXRF->setFct(fctIdx);
 	m_spectrumDiagram->update();
 }
 
@@ -505,9 +505,9 @@ void dlg_XRF::updateFunctionalBoxplot(int show)
 {
 	if (show)
 	{
-		m_functionalBoxplotImage = drawFunctionalBoxplot(m_accumulatedXRF->GetFunctionalBoxPlot(),
+		m_functionalBoxplotImage = drawFunctionalBoxplot(m_accumulatedXRF->functionalBoxPlot(),
 			m_xrfData->size(),
-			m_accumulatedXRF->YBounds()[1]);
+			m_accumulatedXRF->yBounds()[1]);
 		m_spectrumDiagram->addImageOverlay(m_functionalBoxplotImage);
 	}
 	else
@@ -1336,7 +1336,7 @@ void dlg_XRF::AddReferenceSpectrum(int modelIdx)
 		&m_refSpectraLib->spectra[modelIdx].GetCountsData()[0],
 		energies.size(), energies[0], energies[energies.size()-1],
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
-		m_accumulatedXRF->YBounds()[1]));
+		m_accumulatedXRF->yBounds()[1]));
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
 	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(data, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);

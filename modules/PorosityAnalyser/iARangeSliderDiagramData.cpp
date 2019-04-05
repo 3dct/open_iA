@@ -51,12 +51,12 @@ void iARangeSliderDiagramData::updateRangeSliderFunction()
 	}
 }
 
-iAPlotData::DataType const * iARangeSliderDiagramData::GetRawData() const
+iAPlotData::DataType const * iARangeSliderDiagramData::rawData() const
 {
 	return m_rangeSliderFunction;
 }
 
-size_t iARangeSliderDiagramData::GetNumBin() const
+size_t iARangeSliderDiagramData::numBin() const
 {
 	return m_rangeSliderData.size();
 }

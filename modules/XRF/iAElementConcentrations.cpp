@@ -44,12 +44,12 @@ bool iAElementConcentrations::calculateAverageConcentration(
 	QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > elements,
 	QSharedPointer<iAAccumulatedXRFData const> accumulatedXRF)
 {
-	int threshold = accumulatedXRF->YBounds()[1]/20;
+	int threshold = accumulatedXRF->yBounds()[1]/20;
 
 	iAEnergySpectrum unknownSpectrum;
-	for (size_t i=0; i<accumulatedXRF->GetNumBin(); ++i)
+	for (size_t i=0; i<accumulatedXRF->numBin(); ++i)
 	{
-		unknownSpectrum.push_back(accumulatedXRF->GetAvgData()[i]);
+		unknownSpectrum.push_back(accumulatedXRF->avgData()[i]);
 	}
 	return fitSpectrum(unknownSpectrum, elements, threshold, m_averageConcentration);
 }

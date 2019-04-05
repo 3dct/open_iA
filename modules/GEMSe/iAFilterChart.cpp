@@ -53,11 +53,11 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 	m_selectedHandle(-1)
 {
 	addPlot(GetDrawer(m_data, DefaultColors::AllDataChartColor));
-	m_minSliderPos = m_data->MapBinToValue(0);
-	m_maxSliderPos = m_data->MapBinToValue(m_data->GetNumBin());
+	m_minSliderPos = m_data->mapBinToValue(0);
+	m_maxSliderPos = m_data->mapBinToValue(m_data->numBin());
 	setCaptionPosition(Qt::AlignLeft | Qt::AlignTop);
 	setShowXAxisLabel(showCaption);
-	for (int i = 0; i < m_data->GetNumBin(); ++i)
+	for (int i = 0; i < m_data->numBin(); ++i)
 	{
 		m_binColors.push_back(QColor(0, 0, 0, 0));
 	}
@@ -65,25 +65,25 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 
 double iAFilterChart::mapBinToValue(double bin) const
 {
-	return m_data->MapBinToValue(bin);
+	return m_data->mapBinToValue(bin);
 }
 
 double iAFilterChart::mapValueToBin(double value) const
 {
-	return m_data->MapValueToBin(value);
+	return m_data->mapValueToBin(value);
 }
 
 QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> data, QColor color)
 {
-	return (data->GetRangeType() == Categorical ||
-		(data->GetRangeType() == Discrete && ((data->XBounds()[1]-data->XBounds()[0])  <= data->GetNumBin())))
+	return (data->valueType() == Categorical ||
+		(data->valueType() == Discrete && ((data->xBounds()[1]-data->xBounds()[0])  <= data->numBin())))
 		? QSharedPointer<iAPlot>(new iABarGraphPlot(data, color, 2))
 		: QSharedPointer<iAPlot>(new iAFilledLinePlot(data, color));
 }
 
 void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)
 {
-	double diagX = xMapper().srcToDst(markerLocation)-translationX;
+	double diagX = xMapper().srcToDst(markerLocation)-m_translationX;
 	QPolygon poly;
 	const int MarkerTop = 0;
 	poly.append(QPoint(diagX, MarkerTop));
@@ -107,14 +107,14 @@ void iAFilterChart::drawAxes(QPainter& painter)
 	{
 		double y1 =  0;
 		double y2 =  ChartColoringHeight;
-		int binWidth = std::ceil(mapValue(0.0, static_cast<double>(m_data->GetNumBin()), 0.0, activeWidth()*xZoom, static_cast<double>(1)));
-		for (int b = 0; b < m_data->GetNumBin(); ++b)
+		int binWidth = std::ceil(mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, activeWidth()*m_xZoom, static_cast<double>(1)));
+		for (int b = 0; b < m_data->numBin(); ++b)
 		{
 			if (m_binColors[b].alpha() == 0)
 			{
 				continue;
 			}
-			double x1 = mapValue(0.0, static_cast<double>(m_data->GetNumBin()), 0.0, activeWidth()*xZoom, static_cast<double>(b));
+			double x1 = mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, activeWidth()*m_xZoom, static_cast<double>(b));
 
 			QRect rect(x1, y1, binWidth, y2);
 			painter.fillRect(rect, m_binColors[b]);
@@ -133,7 +133,7 @@ void iAFilterChart::drawAxes(QPainter& painter)
 
 void iAFilterChart::SetBinColor(int bin, QColor const & color)
 {
-	assert(bin >= 0 && bin < m_data->GetNumBin());
+	assert(bin >= 0 && bin < m_data->numBin());
 	m_binColors[bin] = color;
 }
 
@@ -150,28 +150,28 @@ void iAFilterChart::RemoveMarker()
 
 iAValueType iAFilterChart::GetRangeType() const
 {
-	return m_data->GetRangeType();
+	return m_data->valueType();
 }
 
 double iAFilterChart::GetMinVisibleBin() const
 {
-	double minVisXBin = mapValue(0.0, activeWidth()*xZoom, 0.0, static_cast<double>(m_data->GetNumBin()), static_cast<double>(-translationX));
+	double minVisXBin = mapValue(0.0, activeWidth()*xZoom(), 0.0, static_cast<double>(m_data->numBin()), static_cast<double>(-m_translationX));
 	return minVisXBin;
 }
 
 double iAFilterChart::GetMaxVisibleBin() const
 {
-	double maxVisXBin = mapValue(0.0, activeWidth()*xZoom, 0.0, static_cast<double>(m_data->GetNumBin()), static_cast<double>(activeWidth()-translationX));
+	double maxVisXBin = mapValue(0.0, activeWidth()*xZoom(), 0.0, static_cast<double>(m_data->numBin()), static_cast<double>(activeWidth()-m_translationX));
 	return maxVisXBin;
 }
 
-QString iAFilterChart::getXAxisTickMarkLabel(double value, double stepWidth)
+QString iAFilterChart::xAxisTickMarkLabel(double value, double stepWidth)
 {
-	if (plots().size() > 0 && plots()[0]->data()->GetRangeType() == Categorical)
+	if (plots().size() > 0 && plots()[0]->data()->valueType() == Categorical)
 	{
 		return (m_nameMapper && value < m_nameMapper->size()) ? m_nameMapper->name(static_cast<int>(value)): "";
 	}
-	return iAChartWidget::getXAxisTickMarkLabel(value, stepWidth);
+	return iAChartWidget::xAxisTickMarkLabel(value, stepWidth);
 }
 
 void iAFilterChart::contextMenuEvent(QContextMenuEvent *event)
@@ -186,13 +186,13 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 		// horizontal + vertical panning:
 		if ( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier )
 		{
-			translationStartX = translationX;
-			translationStartY = translationY;
+			m_translationStartX = m_translationX;
+			m_translationStartY = m_translationY;
 			iAChartWidget::changeMode( MOVE_VIEW_MODE, event );
 			return;
 		}
 		
-		if ( event->y() > geometry().height() - bottomMargin() - translationY
+		if ( event->y() > geometry().height() - bottomMargin() - m_translationY
 			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
 			// check if we hit min or max handle:
@@ -232,12 +232,12 @@ void iAFilterChart::mouseReleaseEvent( QMouseEvent *event )
 void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 {
 	if (	( event->buttons() == Qt::LeftButton ) &&
-			( event->y() > geometry().height() - bottomMargin() - translationY			// mouse event below X-axis
+			( event->y() > geometry().height() - bottomMargin() - m_translationY			// mouse event below X-axis
 			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) ) &&	
 			  m_selectedHandle != -1)
 	{
 		int x = event->x() - leftMargin() + m_selectionOffset;
-		if (x < 0 || x-translationX > static_cast<int>(activeWidth()*xZoom) )
+		if (x < 0 || x-m_translationX > static_cast<int>(activeWidth()*xZoom()) )
 		{
 			return;
 		}
@@ -260,8 +260,8 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 		}
 		QString text( tr( "%1\n(data range: [%2..%3])" )
 				  .arg( value )
-				  .arg( m_data->XBounds()[0] )
-				  .arg( m_data->XBounds()[1] )
+				  .arg( m_data->xBounds()[0] )
+				  .arg( m_data->xBounds()[1] )
 		);
 		QToolTip::showText( event->globalPos(), text, this );
 		update();

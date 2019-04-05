@@ -115,7 +115,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	
 	if (filter->m_chart)
 	{
-		auto histoPlotData = iASimpleHistogramData::Create(minVal, maxVal, vecHist, Continuous);
+		auto histoPlotData = iASimpleHistogramData::create(minVal, maxVal, vecHist, Continuous);
 		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(histoPlotData, QColor(180, 90, 90, 127))));
 	}
 
@@ -125,7 +125,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	if (filter->m_chart)
 	{
-		auto smoothedHistoPlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHist, Continuous);
+		auto smoothedHistoPlotData = iASimpleHistogramData::create(minVal, maxVal, smoothedHist, Continuous);
 		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(smoothedHistoPlotData, QColor(90, 180, 90, 127))));
 	}
 
@@ -134,7 +134,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	auto smoothedDeriv = gaussianSmoothing(firstDeriv, derivSigma, 5);
 	if (filter->m_chart)
 	{
-		auto firstDerivPlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedDeriv, Continuous);
+		auto firstDerivPlotData = iASimpleHistogramData::create(minVal, maxVal, smoothedDeriv, Continuous);
 		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(firstDerivPlotData, QColor(90, 90, 180, 127))));
 	}
 
