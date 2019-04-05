@@ -189,9 +189,9 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
 	InitCommonGUI(widgetAddHelper);
-	widgetAddHelper.m_mdiChild->getLogDlg()->show();
-	widgetAddHelper.SplitWidget(spectrumChartContainer, widgetAddHelper.m_mdiChild->getLogDlg(), Qt::Vertical);
-	widgetAddHelper.m_mdiChild->getLogDlg()->hide();
+	widgetAddHelper.m_mdiChild->logDockWidget()->show();
+	widgetAddHelper.SplitWidget(spectrumChartContainer, widgetAddHelper.m_mdiChild->logDockWidget(), Qt::Vertical);
+	widgetAddHelper.m_mdiChild->logDockWidget()->hide();
 	widgetAddHelper.SplitWidget(m_pieChartContainer, spectrumChartContainer);
 
 	m_ctfChanged  = true;
@@ -327,7 +327,7 @@ void dlg_XRF::updateComposition(QVector<double> const & concentration)
 		if (concentration[i] > 0.001)
 		{
 			QString caption = QString("%1: %2%")
-				.arg(m_refSpectraLib->spectra[m_decomposeSelectedElements[i]].GetName())
+				.arg(m_refSpectraLib->spectra[m_decomposeSelectedElements[i]].name())
 				.arg(concentration[i]*100, 0, 'g', 2);
 			QColor color = m_refSpectraLib->getElementColor(m_decomposeSelectedElements[i]);
 			m_pieChart->addPiece(caption,
@@ -672,7 +672,7 @@ void dlg_XRF::loadDecomposition()
 	QString fileName = QFileDialog::getOpenFileName(
 		QApplication::activeWindow(),
 		tr("Load File"),
-		(dynamic_cast<MdiChild*>(parent()))->getFilePath(),
+		(dynamic_cast<MdiChild*>(parent()))->filePath(),
 		tr("Volstack files (*.volstack);;")
 	);
 	if (fileName.isEmpty())
@@ -689,7 +689,7 @@ void dlg_XRF::loadDecomposition()
 	}
 
 	iAIO io(
-		(dynamic_cast<MdiChild*>(parent()))->getLogger(),
+		(dynamic_cast<MdiChild*>(parent()))->logger(),
 		dynamic_cast<MdiChild*>(parent()),
 		m_elementConcentrations->getImageListPtr()
 	);
@@ -728,7 +728,7 @@ void dlg_XRF::storeDecomposition()
 	QString elementInfo("elementNames: ");
 	for (int i=0;i<m_decomposeSelectedElements.size(); ++i)
 	{
-		elementInfo.append(m_refSpectraLib->spectra[m_decomposeSelectedElements[i]].GetName());
+		elementInfo.append(m_refSpectraLib->spectra[m_decomposeSelectedElements[i]].name());
 		if (i < m_decomposeSelectedElements.size()-1)
 		{
 			elementInfo.append(",");
@@ -736,7 +736,7 @@ void dlg_XRF::storeDecomposition()
 	}
 
 	iAIO io(
-		(dynamic_cast<MdiChild*>(parent()))->getLogger(),
+		(dynamic_cast<MdiChild*>(parent()))->logger(),
 		dynamic_cast<MdiChild*>(parent()),
 		m_elementConcentrations->getImageListPtr());
 
@@ -781,7 +781,7 @@ void dlg_XRF::combinedElementMaps(int show)
 		}
 		if (m_channelIDs.size() <= i)
 			m_channelIDs.push_back(mdiChild->createChannel());
-		auto chData = mdiChild->getChannelData(m_channelIDs[i]);
+		auto chData = mdiChild->channelData(m_channelIDs[i]);
 		vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(i));
 		QColor color = m_refSpectraLib->getElementColor(i);
 		float h, s, v;
@@ -898,7 +898,7 @@ void dlg_XRF::updateSelection()
 	
 	if (m_spectrumSelectionChannelID == NotExistingChannel)
 		m_spectrumSelectionChannelID = mdiChild->createChannel();
-	auto chData = mdiChild->getChannelData(m_spectrumSelectionChannelID);
+	auto chData = mdiChild->channelData(m_spectrumSelectionChannelID);
 	chData->setData(result, m_selection_ctf, m_selection_otf);
 	// TODO: initialize channel?
 	mdiChild->initChannelRenderer(m_spectrumSelectionChannelID, true);
@@ -923,7 +923,7 @@ void dlg_XRF::showLinkedElementMaps( int show )
 	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
 
 	m_rendererManager.removeAll();
-	m_rendererManager.addToBundle(mdiChild->getRenderer()->GetRenderer());
+	m_rendererManager.addToBundle(mdiChild->renderer()->renderer());
 
 	if (!show)
 	{
@@ -949,12 +949,12 @@ void dlg_XRF::showLinkedElementMaps( int show )
 		dlg_elementRenderer *elemRend = new dlg_elementRenderer( mdiChild );
 		elemRend->SetRefLibIndex(i);
 		InitElementRenderer( elemRend, i );
-		mdiChild->applyRenderSettings( elemRend->GetRenderer() );
-		elemRend->ApplyVolumeSettings(mdiChild->getVolumeSettings());
-		m_rendererManager.addToBundle(elemRend->GetRenderer()->GetRenderer());
+		elemRend->GetRenderer()->applySettings(mdiChild->renderSettings());
+		elemRend->ApplyVolumeSettings(mdiChild->volumeSettings());
+		m_rendererManager.addToBundle(elemRend->GetRenderer()->renderer());
 		m_elementRenderers.push_back( elemRend );
 		if(isFirst)
-			mdiChild->splitDockWidget(mdiChild->getRendererDlg(), elemRend, Qt::Horizontal);
+			mdiChild->splitDockWidget(mdiChild->renderDockWidget(), elemRend, Qt::Horizontal);
 		else
 			mdiChild->splitDockWidget(m_elementRenderers[m_elementRenderers.size()-2], elemRend, Qt::Vertical);
 		isFirst = false;
@@ -977,8 +977,8 @@ void dlg_XRF::InitElementRenderer( dlg_elementRenderer * elemRend, size_t index 
 	chOTF->AddPoint(0.4, 0);
 	chOTF->AddPoint(1, 0.1);
 
-	QString chElemName = m_refSpectraLib->spectra[index].GetName();
-	vtkPolyData * chPolyData = mdiChild->getPolyData();
+	QString chElemName = m_refSpectraLib->spectra[index].name();
+	vtkPolyData * chPolyData = mdiChild->polyData();
 
 	elemRend->setWindowTitle(chElemName);
 	elemRend->SetDataToVisualize( chImgData, chPolyData, chOTF, chCTF );
@@ -1258,7 +1258,7 @@ void dlg_XRF::updateDecompositionGUI( QStringList elementsNames )
 	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme( "Brewer Set1 (max. 9)" );
 	for ( size_t i = 0; i < m_refSpectraLib->spectra.size(); ++i )
 	{
-		int pos = elementsNames.indexOf( m_refSpectraLib->spectra[i].GetName() );
+		int pos = elementsNames.indexOf( m_refSpectraLib->spectra[i].name() );
 		if ( pos != -1 )
 		{
 			m_decomposeSelectedElements[pos] = i;

@@ -184,7 +184,7 @@ void iAImagePreviewWidget::SetCamera(vtkCamera* camera)
 	m_slicer->update();
 }
 
-vtkImageData * iAImagePreviewWidget::GetImage() const
+vtkImageData * iAImagePreviewWidget::image() const
 {
 	return m_imageData;
 	//return m_slicer->GetImageData();

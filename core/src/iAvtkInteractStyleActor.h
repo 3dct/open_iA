@@ -18,28 +18,54 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAModalityExplorerAttachment.h"
+#pragma once
 
-#include "dlg_modalitySPLOM.h"
+#include <vtkInteractorStyleTrackballActor.h>
 
-#include <iAModality.h>
-#include <mdichild.h>
+#include <QObject>
 
-iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd, MdiChild * child):
-	iAModuleAttachmentToChild(mainWnd, child)
+class iAChannelSlicerData;
+class iAVolumeRenderer;
+class MdiChild;
+
+class vtkImageData;
+
+class iAvtkInteractStyleActor : public QObject, public vtkInteractorStyleTrackballActor
 {
-	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
-	m_dlgModalitySPLOM->SetData(child->modalities());
-	child->tabifyDockWidget(child->logDockWidget(), m_dlgModalitySPLOM);
-	/*
-	dlg_planeSlicer* planeSlicer = new dlg_planeSlicer();
-	mdiChild->splitDockWidget(renderWidget, planeSlicer, Qt::Horizontal);
-	planeSlicer->hide();
-	*/
-}
+	Q_OBJECT
+public:
 
-iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(MainWindow * mainWnd, MdiChild * child)
-{
-	iAModalityExplorerAttachment * newAttachment = new iAModalityExplorerAttachment(mainWnd, child);
-	return newAttachment;
-}
+	static iAvtkInteractStyleActor *New();
+	vtkTypeMacro(iAvtkInteractStyleActor, vtkInteractorStyleTrackballActor);
+
+	// override the mouse move, we add some behavior here
+	void OnMouseMove() override;
+
+	//! @{ Conditionally disable zooming via right button dragging
+	void Rotate() override;
+	void Spin() override;
+	//! @}
+
+	void initialize(vtkImageData *img, iAVolumeRenderer* volRend, iAChannelSlicerData *slicerChannel[4],
+		int currentMode, MdiChild *mdiChild);
+	void updateInteractors(); 
+
+signals:
+	void actorsUpdated();
+
+private:
+	iAvtkInteractStyleActor();
+
+	MdiChild *m_mdiChild; 
+	iAVolumeRenderer* m_volumeRenderer;
+	bool enable3D;
+	vtkImageData *m_image;
+	iAChannelSlicerData* m_slicerChannel[3];
+	int m_currentSliceMode;
+	bool m_rightButtonDragZoomEnabled = false;
+
+	//! @{ disable copying
+	void operator=(const iAvtkInteractStyleActor&) = delete;
+	iAvtkInteractStyleActor(const iAvtkInteractStyleActor &) = delete;
+	//! @}
+};

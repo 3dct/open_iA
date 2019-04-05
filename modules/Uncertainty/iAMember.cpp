@@ -122,7 +122,7 @@ QString iAMember::ToString(QSharedPointer<iAAttributes> attributes, int type)
 			}
 			if (attributes->at(i)->NameMapper())
 			{
-				result += attributes->at(i)->NameMapper()->GetName(m_attributeValues[i]);
+				result += attributes->at(i)->NameMapper()->name(m_attributeValues[i]);
 			}
 			else
 			{

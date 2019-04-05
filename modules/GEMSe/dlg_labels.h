@@ -58,7 +58,7 @@ public:
 	bool Store(QString const & filename, bool extendedFormat);
 	void SetColorTheme(iAColorTheme const *);
 	virtual int count() const;
-	virtual QString GetName(int idx) const;
+	virtual QString name(int idx) const;
 	virtual QColor GetColor(int idx) const;
 public slots:
 	void RendererClicked(int, int, int);

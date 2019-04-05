@@ -252,20 +252,20 @@ void iADetailView::changeModality(int offset)
 {
 	// TOOD: refactor to remove duplication between here and MdiChild::changeModality!
 	m_magicLensCurrentComponent = (m_magicLensCurrentComponent + offset);
-	if (m_magicLensCurrentComponent < 0 || m_magicLensCurrentComponent >= m_modalities->Get(m_magicLensCurrentModality)->ComponentCount())
+	if (m_magicLensCurrentComponent < 0 || m_magicLensCurrentComponent >= m_modalities->get(m_magicLensCurrentModality)->componentCount())
 	{
 		m_magicLensCurrentComponent = 0;
 		m_magicLensCurrentModality = (m_magicLensCurrentModality + offset + m_modalities->size()) % m_modalities->size();
 	}
-	QSharedPointer<iAModality> mod = m_modalities->Get(m_magicLensCurrentModality);
-	vtkSmartPointer<vtkImageData> imageData = mod->GetComponent(m_magicLensCurrentComponent);
-	vtkColorTransferFunction* ctf = (mod->GetName() == "Ground Truth") ?
+	QSharedPointer<iAModality> mod = m_modalities->get(m_magicLensCurrentModality);
+	vtkSmartPointer<vtkImageData> imageData = mod->component(m_magicLensCurrentComponent);
+	vtkColorTransferFunction* ctf = (mod->name() == "Ground Truth") ?
 		m_previewWidget->GetCTF().GetPointer() :
-		mod->GetTransfer()->getColorFunction();
-	vtkPiecewiseFunction* otf = (mod->GetName() == "Ground Truth") ?
+		mod->transfer()->getColorFunction();
+	vtkPiecewiseFunction* otf = (mod->name() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
-		mod->GetTransfer()->getOpacityFunction();
-	QString name(mod->GetImageName(m_magicLensCurrentComponent));
+		mod->transfer()->getOpacityFunction();
+	QString name(mod->imageName(m_magicLensCurrentComponent));
 	AddMagicLensInput(imageData, ctf, otf, name);
 }
 
@@ -343,7 +343,7 @@ QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int 
 	switch(attributes->at(id)->ValueType())
 	{
 		case Discrete:    return QString::number(static_cast<int>(value)); break;
-		case Categorical: return attributes->at(id)->NameMapper()->GetName(static_cast<int>(value)); break;
+		case Categorical: return attributes->at(id)->NameMapper()->name(static_cast<int>(value)); break;
 		default:          return QString::number(value); break;
 	}
 }
@@ -432,7 +432,7 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 	QString name;
 	if (dynamic_cast<iAFakeTreeNode const*>(node))
 	{
-		name = dynamic_cast<iAFakeTreeNode const*>(node)->GetName();
+		name = dynamic_cast<iAFakeTreeNode const*>(node)->name();
 	}
 	else
 	{
@@ -466,10 +466,10 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 	m_labelItemModel->clear();
 	for (int i=0; i<m_labelCount; ++i)
 	{
-		QStandardItem* item = new QStandardItem(labelInfo.GetName(i));
+		QStandardItem* item = new QStandardItem(labelInfo.name(i));
 		item->setData(labelInfo.GetColor(i), Qt::DecorationRole);
 		m_labelItemModel->appendRow(item);
-		item = new QStandardItem(labelInfo.GetName(i));
+		item = new QStandardItem(labelInfo.name(i));
 	}
 	QStandardItem* diffItem = new QStandardItem("Difference");
 	diffItem->setFlags(diffItem->flags() & ~Qt::ItemIsSelectable);
@@ -729,8 +729,8 @@ void iADetailView::UpdateComparisonNumbers()
 	{
 		return;
 	}
-	vtkImageData* left = m_previewWidget->GetImage();
-	vtkImageData* right = m_compareWidget->GetImage();
+	vtkImageData* left = m_previewWidget->image();
+	vtkImageData* right = m_compareWidget->image();
 
 	if (left->GetScalarType() != VTK_INT)
 	{

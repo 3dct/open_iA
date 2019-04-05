@@ -388,7 +388,7 @@ void iADiagramFctWidget::newTransferFunction()
 
 void iADiagramFctWidget::loadTransferFunction()
 {
-	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
+	QString filePath = (activeChild) ? activeChild->filePath() : "";
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
@@ -407,7 +407,7 @@ void iADiagramFctWidget::loadTransferFunction(QDomNode &functionsNode)
 void iADiagramFctWidget::saveTransferFunction()
 {
 	dlg_transfer *transferFunction = (dlg_transfer*)functions[0];
-	QString filePath = (activeChild) ? activeChild->getFilePath() : "";
+	QString filePath = (activeChild) ? activeChild->filePath() : "";
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
@@ -459,7 +459,7 @@ bool iADiagramFctWidget::loadFunctions()
 	{
 		return false;
 	}
-	QString filePath = activeChild->getFilePath();
+	QString filePath = activeChild->filePath();
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
@@ -492,7 +492,7 @@ bool iADiagramFctWidget::saveFunctions()
 	{
 		return false;
 	}
-	QString filePath = activeChild->getFilePath();
+	QString filePath = activeChild->filePath();
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{

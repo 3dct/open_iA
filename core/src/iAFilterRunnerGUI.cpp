@@ -50,7 +50,7 @@ class vtkImageData;
 
 
 iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, MdiChild* mdiChild) :
-	iAAlgorithm(filter->Name(), mdiChild->getImagePointer(), mdiChild->getPolyData(), mdiChild->getLogger(), mdiChild),
+	iAAlgorithm(filter->Name(), mdiChild->imagePointer(), mdiChild->polyData(), mdiChild->logger(), mdiChild),
 	m_filter(filter),
 	m_paramValues(paramValues)
 {}
@@ -238,9 +238,9 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		for (int i = 0; i < filter->RequiredInputs()-1; ++i)
 		{
 			int mdiIdx = dlg.getComboBoxIndex(idx);
-			for (int m = 0; m < otherMdis[mdiIdx]->getModalities()->size(); ++m)
+			for (int m = 0; m < otherMdis[mdiIdx]->modalities()->size(); ++m)
 			{
-				m_additionalInput.push_back(otherMdis[mdiIdx]->getModality(m)->GetImage());
+				m_additionalInput.push_back(otherMdis[mdiIdx]->modality(m)->image());
 			}
 			++idx;
 
@@ -262,7 +262,7 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 		return;
 	}
 
-	filter->SetLogger(sourceMdi->getLogger());
+	filter->SetLogger(sourceMdi->logger());
 	QMap<QString, QVariant> paramValues = LoadParameters(filter, sourceMdi);
 
 	if (!AskForParameters(filter, paramValues, sourceMdi, mainWnd, true))
@@ -291,11 +291,11 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 		return;
 	}
 	// TODO: move all image adding here?
-	for (int m = 1; m < sourceMdi->getModalities()->size(); ++m)
+	for (int m = 1; m < sourceMdi->modalities()->size(); ++m)
 	{
-		thread->AddImage(sourceMdi->getModality(m)->GetImage());
+		thread->AddImage(sourceMdi->modality(m)->image());
 	}
-	filter->SetFirstInputChannels(sourceMdi->getModalities()->size());
+	filter->SetFirstInputChannels(sourceMdi->modalities()->size());
 	for (auto img : m_additionalInput)
 	{
 		thread->AddImage(img);
@@ -334,9 +334,9 @@ void iAFilterRunnerGUI::FilterFinished()
 			// so let's copy it to be on the safe side!
 			img->DeepCopy(thread->Filter()->Output()[p]->GetVTKImage());
 			QSharedPointer<iAModality> mod(new iAModality(QString("Extra Out %1").arg(p), "", -1, img, 0));
-			mdiChild->getModalities()->Add(mod);
+			mdiChild->modalities()->add(mod);
 			// signal to add it to list automatically is created to late to be effective here, we have to add it to list ourselves:
-			mdiChild->getModalitiesDlg()->modalityAdded(mod);
+			mdiChild->modalitiesDockWidget()->modalityAdded(mod);
 		}
 	}
 	for (auto outputValue : thread->Filter()->OutputValues())

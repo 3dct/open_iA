@@ -31,7 +31,7 @@ public:
 	static double EPSILON;
 	virtual ~iAVectorDistance();
 	virtual char const * GetShortName() const =0;
-	virtual char const * GetName() const =0;
+	virtual char const * name() const =0;
 	virtual double GetDistance(QSharedPointer<iAVectorType const> spec1, QSharedPointer<iAVectorType const> spec2) const = 0;
 	virtual bool isSymmetric() const;
 };

@@ -46,7 +46,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 	m_mdiChild = dynamic_cast<MdiChild*>(parent);
 	m_volumeStack = volumeStack;
 
-	m_rendererManager.addToBundle(m_mdiChild->getRenderer()->GetRenderer());
+	m_rendererManager.addToBundle(m_mdiChild->renderer()->renderer());
 
 	// add widgets to window
 	int numOfVolumes = m_volumeStack->getNumberOfVolumes();
@@ -64,18 +64,18 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 		);
 		m_volumeRenderer[i] = new iAVolumeRenderer(&transferFunction, m_volumeStack->getVolume(i));
 		m_renderers[i]->setAxesTransform(m_axesTransform);
-		m_vtkWidgets[i]->SetRenderWindow(m_renderers[i]->GetRenderWindow());
-		m_renderers[i]->initialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData());
-		m_volumeRenderer[i]->AddTo(m_renderers[i]->GetRenderer());
-		m_mdiChild->applyRenderSettings(m_renderers[i]);
-		m_volumeRenderer[i]->ApplySettings(m_mdiChild->getVolumeSettings());
+		m_vtkWidgets[i]->SetRenderWindow(m_renderers[i]->renderWindow());
+		m_renderers[i]->initialize(m_volumeStack->getVolume(i), m_mdiChild->polyData());
+		m_volumeRenderer[i]->addTo(m_renderers[i]->renderer());
+		m_renderers[i]->applySettings( m_mdiChild->renderSettings() );
+		m_volumeRenderer[i]->applySettings(m_mdiChild->volumeSettings());
 		
 		// setup renderers
 		m_renderers[i]->showHelpers(SHOW_HELPERS);
-		m_renderers[i]->GetRenderer()->SetBackground(FOURDCT_BACGROUND[0], FOURDCT_BACGROUND[1], FOURDCT_BACGROUND[2]);
-		m_renderers[i]->GetRenderer()->SetBackground2(FOURDCT_BACGROUND2[0], FOURDCT_BACGROUND2[1], FOURDCT_BACGROUND2[2]);
+		m_renderers[i]->renderer()->SetBackground(FOURDCT_BACGROUND[0], FOURDCT_BACGROUND[1], FOURDCT_BACGROUND[2]);
+		m_renderers[i]->renderer()->SetBackground2(FOURDCT_BACGROUND2[0], FOURDCT_BACGROUND2[1], FOURDCT_BACGROUND2[2]);
 
-		m_rendererManager.addToBundle(m_renderers[i]->GetRenderer());
+		m_rendererManager.addToBundle(m_renderers[i]->renderer());
 		
 		this->dockWidgetContents->layout()->addWidget(m_vtkWidgets[i]);
 	}
@@ -91,8 +91,8 @@ void dlg_dataView4DCT::update()
 {
 	for(int i = 0; i < m_volumeStack->getNumberOfVolumes(); i++)
 	{
-		m_renderers[i]->reInitialize(m_volumeStack->getVolume(i), m_mdiChild->getPolyData());
+		m_renderers[i]->reInitialize(m_volumeStack->getVolume(i), m_mdiChild->polyData());
 		m_renderers[i]->update();
-		m_volumeRenderer[i]->Update(); // TODO: VOLUME: check if necessary!
+		m_volumeRenderer[i]->update(); // TODO: VOLUME: check if necessary!
 	}
 }

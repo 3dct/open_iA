@@ -38,7 +38,7 @@ iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWn
 	:iAModuleAttachmentToChild(mainWnd, child)
 {
 	QString csvFileName = QFileDialog::getOpenFileName(child,
-			tr( "Select CSV File" ), child->getFilePath(), tr( "CSV Files (*.csv);;" ) );
+			tr( "Select CSV File" ), child->filePath(), tr( "CSV Files (*.csv);;" ) );
 	if (csvFileName.isEmpty())
 		return;
 	m_tableView = new iAParamTableView(csvFileName);
@@ -47,7 +47,7 @@ iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWn
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "ParamSpatialView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix View", "ParamSPLOMView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_tableView, "Table View", "ParamTableView"));
-	child->splitDockWidget(child->getLogDlg(), m_dockWidgets[0], Qt::Horizontal);
+	child->splitDockWidget(child->logDockWidget(), m_dockWidgets[0], Qt::Horizontal);
 	child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
 	child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
 }

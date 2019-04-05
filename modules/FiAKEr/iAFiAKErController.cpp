@@ -2382,7 +2382,7 @@ void iAFiAKErController::loadVolume(QString const & fileName)
 		m_refOF.GetPointer()
 	);
 	m_refRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_refImg));
-	m_refRenderer->AddTo(m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+	m_refRenderer->addTo(m_mainRenderer->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 }
 
 void iAFiAKErController::showReferenceInChartToggled()

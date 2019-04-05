@@ -124,7 +124,7 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 	iADockWidgetWrapper * w(new iADockWidgetWrapper(result.vtkWidget,
 			QString("%1 vs. %2").arg(xTitle).arg(yTitle),
 			QString("%1%2").arg(xTitle).arg(yTitle).replace(" ", "") ));
-	mdiChild->splitDockWidget(mdiChild->getLogDlg(), w, Qt::Vertical);
+	mdiChild->splitDockWidget(mdiChild->logDockWidget(), w, Qt::Vertical);
 	return result;
 }
 
@@ -981,7 +981,7 @@ void dlg_Consensus::LoadConfig()
 			new iASelectionParameterGenerator(QString("Holdout Comparison, Algorithm %1").arg(s),
 				parameterSets));
 		auto sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
-			m_mdiChild->getModalities(),
+			m_mdiChild->modalities(),
 			samplingResults->GetAttributes(),
 			generator,
 			0,
@@ -992,7 +992,7 @@ void dlg_Consensus::LoadConfig()
 			iASEAFile::DefaultCHRFileName,
 			executable,
 			additionalParameters,
-			samplingResults->GetName(),
+			samplingResults->name(),
 			"label.mhd",
 			true,
 			true,

@@ -38,132 +38,132 @@ iAModality::iAModality(QString const & name, QString const & filename, int chann
 	vtkSmartPointer<vtkImageData> imgData, int renderFlags) :
 	m_name(name),
 	m_filename(filename),
-	renderFlags(renderFlags),
+	m_renderFlags(renderFlags),
 	m_channel(channel),
 	m_imgs(1),
 	m_VolSettingsSavedStatus(false),
 	m_channelID(NotExistingChannel)
 {
-	SetData(imgData);
+	setData(imgData);
 }
 
 iAModality::iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags) :
 	m_name(name),
 	m_filename(filename),
-	renderFlags(renderFlags),
+	m_renderFlags(renderFlags),
 	m_channel(-1),
 	m_imgs(imgs),
 	m_VolSettingsSavedStatus(false)
 {
-	SetData(imgs[0]);
+	setData(imgs[0]);
 }
 
-QString iAModality::GetName() const
+QString iAModality::name() const
 {
 	return m_name;
 }
 
-QString iAModality::GetFileName() const
+QString iAModality::fileName() const
 {
 	return m_filename;
 }
 
-int iAModality::GetChannel() const
+int iAModality::channel() const
 {
 	return m_channel;
 }
 
-int iAModality::ComponentCount() const
+int iAModality::componentCount() const
 {
 	return m_imgs.size();
 }
 
-vtkSmartPointer<vtkImageData> iAModality::GetComponent(int componentIdx) const
+vtkSmartPointer<vtkImageData> iAModality::component(int componentIdx) const
 {
 	return m_imgs[componentIdx];
 }
 
-QString iAModality::GetTransferFileName() const
+QString iAModality::transferFileName() const
 {
-	return tfFileName;
+	return m_tfFileName;
 }
 
-void iAModality::SetName(QString const & name)
+void iAModality::setName(QString const & name)
 {
 	m_name = name;
 	assert(m_transfer);
 }
 
-void iAModality::SetFileName(QString const & fileName)
+void iAModality::setFileName(QString const & fileName)
 {
 	m_filename = fileName;
 }
 
-void iAModality::SetRenderFlag(int renderFlags)
+void iAModality::setRenderFlag(int renderFlags)
 {
-	this->renderFlags = renderFlags;
+	m_renderFlags = renderFlags;
 }
 
-int iAModality::GetWidth() const
+int iAModality::width() const
 {
 	assert(m_converter);
 	return m_converter->GetWidth();
 }
 
-int iAModality::GetHeight() const
+int iAModality::height() const
 {
 	assert(m_converter);
 	return m_converter->GetHeight();
 }
 
-int iAModality::GetDepth() const
+int iAModality::depth() const
 {
 	assert(m_converter);
 	return m_converter->GetDepth();
 }
 
-double const * iAModality::GetSpacing() const
+double const * iAModality::spacing() const
 {
 	return m_imgs[0]->GetSpacing();
 }
 
-double const * iAModality::GetOrigin() const
+double const * iAModality::origin() const
 {
 	return m_imgs[0]->GetOrigin();
 }
 
-void iAModality::SetSpacing(double spacing[3])
+void iAModality::setSpacing(double spacing[3])
 {
 	m_imgs[0]->SetSpacing(spacing);
 }
 
-void iAModality::SetOrigin(double origin[3])
+void iAModality::setOrigin(double origin[3])
 {
 	m_imgs[0]->SetOrigin(origin);
 }
 
-iAImageCoordConverter const & iAModality::GetConverter() const
+iAImageCoordConverter const & iAModality::converter() const
 {
 	assert(m_converter);
 	return *m_converter;
 }
 
-vtkSmartPointer<vtkImageData> iAModality::GetImage() const
+vtkSmartPointer<vtkImageData> iAModality::image() const
 {
 	return m_imgs[0];
 }
 
-QString iAModality::GetImageName(int componentIdx)
+QString iAModality::imageName(int componentIdx)
 {
-	QString name(GetName());
-	if (ComponentCount() > 1)
+	QString name(name());
+	if (componentCount() > 1)
 	{
 		return QString("%1-%2").arg(name).arg(componentIdx);
 	}
 	return name;
 }
 
-iAImageInfo const & iAModality::Info() const
+iAImageInfo const & iAModality::info() const
 {
 	assert(m_transfer);
 	return m_transfer->Info();
@@ -171,53 +171,53 @@ iAImageInfo const & iAModality::Info() const
 
 bool iAModality::hasRenderFlag(RenderFlag loc) const
 {
-	return (renderFlags & loc) == loc;
+	return (m_renderFlags & loc) == loc;
 }
 
 
-int iAModality::RenderFlags() const
+int iAModality::renderFlags() const
 {
-	return renderFlags;
+	return m_renderFlags;
 }
 
-void iAModality::LoadTransferFunction()
+void iAModality::loadTransferFunction()
 {
-	iASettings s(tfFileName);
-	s.LoadTransferFunction(GetTransfer().data());
+	iASettings s(m_tfFileName);
+	s.LoadTransferFunction(transfer().data());
 }
 
-QSharedPointer<iAModalityTransfer> iAModality::GetTransfer()
+QSharedPointer<iAModalityTransfer> iAModality::transfer()
 {
 	assert(m_transfer);
 	return m_transfer;
 }
 
-void iAModality::SetRenderer(QSharedPointer<iAVolumeRenderer> renderer)
+void iAModality::setRenderer(QSharedPointer<iAVolumeRenderer> renderer)
 {
 	m_renderer = renderer;
-	if (orientationSettings.isEmpty() || positionSettings.isEmpty())
+	if (m_orientationSettings.isEmpty() || m_positionSettings.isEmpty())
 	{
 		return;
 	}
 	double position[3];
 	double orientation[3];
-	if (!Str2Vec3D(orientationSettings, orientation) ||
-		!Str2Vec3D(positionSettings, position))
+	if (!Str2Vec3D(m_orientationSettings, orientation) ||
+		!Str2Vec3D(m_positionSettings, position))
 	{
 		return;
 	}
-	renderer->SetPosition(position);
-	renderer->SetOrientation(orientation);
+	renderer->setPosition(position);
+	renderer->setOrientation(orientation);
 }
 
-QSharedPointer<iAVolumeRenderer> iAModality::GetRenderer()
+QSharedPointer<iAVolumeRenderer> iAModality::renderer()
 {
 	return m_renderer;
 }
 
-void iAModality::UpdateRenderer()
+void iAModality::updateRenderer()
 {
-	GetRenderer()->SetImage(GetTransfer().data(), GetImage());
+	renderer()->setImage(transfer().data(), image());
 }
 
 template <typename T>
@@ -227,7 +227,7 @@ void getTypeMinMaxRange(double & minR, double & maxR)
 	maxR = std::numeric_limits<T>::max();
 }
 
-void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
+void iAModality::setData(vtkSmartPointer<vtkImageData> imgData)
 {
 	assert(imgData);
 	m_imgs[0] = imgData;
@@ -240,52 +240,52 @@ void iAModality::SetData(vtkSmartPointer<vtkImageData> imgData)
 	m_transfer = QSharedPointer<iAModalityTransfer>(new iAModalityTransfer(maxRange));
 }
 
-void iAModality::SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile)
+void iAModality::setStringSettings(QString const & pos, QString const & ori, QString const & tfFile)
 {
-	positionSettings = pos;
-	orientationSettings = ori;
-	tfFileName = tfFile;
+	m_positionSettings = pos;
+	m_orientationSettings = ori;
+	m_tfFileName = tfFile;
 }
 
-QString iAModality::GetOrientationString()
+QString iAModality::orientationString()
 {
-	return m_renderer ? Vec3D2String(m_renderer->GetOrientation()) : QString();
+	return m_renderer ? Vec3D2String(m_renderer->orientation()) : QString();
 }
 
-QString iAModality::GetPositionString()
+QString iAModality::positionString()
 {
-	return m_renderer ? Vec3D2String(m_renderer->GetPosition()) : QString();
+	return m_renderer ? Vec3D2String(m_renderer->position()) : QString();
 }
 
-void iAModality::ComputeHistogramData(size_t numBin)
+void iAModality::computeHistogramData(size_t numBin)
 {
-	m_transfer->computeHistogramData(GetImage(), numBin);
+	m_transfer->computeHistogramData(image(), numBin);
 }
 
-void iAModality::ComputeImageStatistics()
+void iAModality::computeImageStatistics()
 {
-	m_transfer->computeStatistics(GetImage());
-	if (!tfFileName.isEmpty())
+	m_transfer->computeStatistics(image());
+	if (!m_tfFileName.isEmpty())
 	{
-		LoadTransferFunction();
-		tfFileName = "";
+		loadTransferFunction();
+		m_tfFileName = "";
 	}
 }
 
-QSharedPointer<iAHistogramData> const iAModality::GetHistogramData() const
+QSharedPointer<iAHistogramData> const iAModality::histogramData() const
 {
 	return m_transfer->getHistogramData();
 }
 
 void iAModality::setVolSettings(const iAVolumeSettings &volSettings)
 {
-	this->m_volSettings = volSettings;
-	this->m_VolSettingsSavedStatus = true;
+	m_volSettings = volSettings;
+	m_VolSettingsSavedStatus = true;
 }
 
-const iAVolumeSettings &iAModality::getVolumeSettings() const
+const iAVolumeSettings &iAModality::volumeSettings() const
 {
-	return this->m_volSettings;
+	return m_volSettings;
 }
 
 uint iAModality::channelID() const
@@ -302,7 +302,7 @@ void iAModality::setChannelID(uint channelID)
 
 void iAStatisticsUpdater::run()
 {
-	m_modality->ComputeImageStatistics();
+	m_modality->computeImageStatistics();
 	emit StatisticsReady(m_modalityIdx);
 }
 
@@ -316,7 +316,7 @@ iAStatisticsUpdater::iAStatisticsUpdater(int modalityIdx, QSharedPointer<iAModal
 
 void iAHistogramUpdater::run()
 {
-	m_modality->ComputeHistogramData(m_binCount);
+	m_modality->computeHistogramData(m_binCount);
 	emit HistogramReady(m_modalityIdx);
 }
 

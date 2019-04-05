@@ -33,15 +33,14 @@
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAVolumeRenderer.h"
+#include "iAvtkInteractStyleActor.h"
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "io/extension2id.h"
 #include "mdichild.h"
-#include "CustomInteractorStyles.h"
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
-#include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkInteractorStyleSwitch.h>
 #include <vtkPiecewiseFunction.h>
@@ -58,7 +57,7 @@
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	vtkRenderer* mainRenderer, int numBin, MdiChild* mdiChild) :
 
-	modalities(new iAModalityList),
+	m_modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),
 	m_mainRenderer(mainRenderer),
 	m_mdiChild(mdiChild),
@@ -69,39 +68,39 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 {
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
-		m_manualMoveStyle[i] = vtkSmartPointer<iACustomInterActorStyleTrackBall>::New();
+		m_manualMoveStyle[i] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
 		connect(m_manualMoveStyle[i], SIGNAL(actorsUpdated()), mdiChild, SLOT(updateViews()));
 	}
-	connect(pbAdd,    SIGNAL(clicked()), this, SLOT(AddClicked()));
-	connect(pbRemove, SIGNAL(clicked()), this, SLOT(RemoveClicked()));
-	connect(pbEdit,   SIGNAL(clicked()), this, SLOT(EditClicked()));
-	connect(cbManualRegistration, SIGNAL(clicked()), this, SLOT(ManualRegistration()));
-	connect(cbShowMagicLens, SIGNAL(clicked()), this, SLOT(MagicLens()));
+	connect(pbAdd,    &QPushButton::clicked, this, &dlg_modalities::addClicked);
+	connect(pbRemove, &QPushButton::clicked, this, &dlg_modalities::removeClicked);
+	connect(pbEdit,   &QPushButton::clicked, this, &dlg_modalities::editClicked);
+	connect(cbManualRegistration, &QCheckBox::clicked, this, &dlg_modalities::manualRegistration);
+	connect(cbShowMagicLens, &QCheckBox::clicked, this, &dlg_modalities::magicLens);
 
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
-		this, SLOT(ListClicked(QListWidgetItem*)));
+		this, SLOT(listClicked(QListWidgetItem*)));
 
 	connect(lwModalities, SIGNAL(itemChanged(QListWidgetItem*)),
-		this, SLOT(ShowChecked(QListWidgetItem*)));
+		this, SLOT(showChecked(QListWidgetItem*)));
 
-	connect(magicLensWidget, SIGNAL(MouseMoved()), this, SLOT(RendererMouseMoved()));
+	connect(magicLensWidget, SIGNAL(MouseMoved()), this, SLOT(rendererMouseMoved()));
 }
 
-void dlg_modalities::SetModalities(QSharedPointer<iAModalityList> modList)
+void dlg_modalities::setModalities(QSharedPointer<iAModalityList> modList)
 {
-	modalities = modList;
+	m_modalities = modList;
 	lwModalities->clear();
 }
 
-void dlg_modalities::SelectRow(int idx)
+void dlg_modalities::selectRow(int idx)
 {
 	lwModalities->setCurrentRow(idx);
 }
 
 QString GetCaption(iAModality const & mod)
 {
-	QFileInfo fi(mod.GetFileName());
-	return mod.GetName()+" ("+fi.fileName()+")";
+	QFileInfo fi(mod.fileName());
+	return mod.name()+" ("+fi.fileName()+")";
 }
 
 bool CanHaveMultipleChannels(QString const & fileName)
@@ -109,7 +108,7 @@ bool CanHaveMultipleChannels(QString const & fileName)
 	return fileName.endsWith(iAIO::VolstackExtension) || fileName.endsWith(".oif");
 }
 
-void dlg_modalities::AddClicked()
+void dlg_modalities::addClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
 		"",
@@ -137,15 +136,15 @@ void dlg_modalities::AddClicked()
 		}
 		split = splitInput.getCheckValue(0);
 	}
-	ModalityCollection mods = iAModalityList::Load(fileName, "", -1, split, DefaultRenderFlags);
+	ModalityCollection mods = iAModalityList::load(fileName, "", -1, split, DefaultRenderFlags);
 	for (auto mod : mods)
 	{
-		modalities->Add(mod);
+		m_modalities->add(mod);
 	}
-	emit ModalitiesChanged();
+	emit modalitiesChanged();
 }
 
-void dlg_modalities::MagicLens()
+void dlg_modalities::magicLens()
 {
 	if (cbShowMagicLens->isChecked())
 	{
@@ -157,25 +156,25 @@ void dlg_modalities::MagicLens()
 	}
 }
 
-void dlg_modalities::InitDisplay(QSharedPointer<iAModality> mod)
+void dlg_modalities::initDisplay(QSharedPointer<iAModality> mod)
 {
-	QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->GetTransfer().data(), mod->GetImage()));
-	mod->SetRenderer(renderer);
+	QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->transfer().data(), mod->image()));
+	mod->setRenderer(renderer);
 	if (mod->hasRenderFlag(iAModality::MainRenderer))
 	{
-		renderer->AddTo(m_mainRenderer);
+		renderer->addTo(m_mainRenderer);
 	}
 	if (mod->hasRenderFlag(iAModality::BoundingBox))
 	{
-		renderer->AddBoundingBoxTo(m_mainRenderer);
+		renderer->addBoundingBoxTo(m_mainRenderer);
 	}
 	if (mod->hasRenderFlag(iAModality::MagicLens))
 	{
-		renderer->AddTo(m_magicLensWidget->getLensRenderer());
+		renderer->addTo(m_magicLensWidget->getLensRenderer());
 	}
 }
 
-void dlg_modalities::AddToList(QSharedPointer<iAModality> mod)
+void dlg_modalities::addToList(QSharedPointer<iAModality> mod)
 {
 	QListWidgetItem* listItem = new QListWidgetItem(GetCaption(*mod));
 	lwModalities->addItem(listItem);
@@ -184,70 +183,70 @@ void dlg_modalities::AddToList(QSharedPointer<iAModality> mod)
 	listItem->setCheckState(Qt::Checked);
 }
 
-void dlg_modalities::AddListItem(QSharedPointer<iAModality> mod)
+void dlg_modalities::addListItem(QSharedPointer<iAModality> mod)
 {
-	AddToList(mod);
-	EnableButtons();
+	addToList(mod);
+	enableButtons();
 }
 
 void dlg_modalities::modalityAdded(QSharedPointer<iAModality> mod)
 {
-	AddListItem(mod);
-	InitDisplay(mod);
-	emit ModalityAvailable(lwModalities->count()-1);
+	addListItem(mod);
+	initDisplay(mod);
+	emit modalityAvailable(lwModalities->count()-1);
 }
 
-void dlg_modalities::InteractorModeSwitched(int newMode)
+void dlg_modalities::interactorModeSwitched(int newMode)
 {
 	cbManualRegistration->setChecked(newMode == 'a');
 }
 
-void dlg_modalities::EnableUI()
+void dlg_modalities::enableUI()
 {
 	pbAdd->setEnabled(true);
 	cbManualRegistration->setEnabled(true);
 	cbShowMagicLens->setEnabled(true);
 }
 
-void dlg_modalities::RemoveClicked()
+void dlg_modalities::removeClicked()
 {
 	int idx = lwModalities->currentRow();
-	if (idx < 0 || idx >= modalities->size())
+	if (idx < 0 || idx >= m_modalities->size())
 	{
 		DEBUG_LOG(QString("Index out of range (%1)").arg(idx));
 		return;
 	}
 	m_mdiChild->clearHistogram();
-	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(idx)->GetRenderer();
-	if (modalities->Get(idx)->hasRenderFlag(iAModality::MainRenderer) ||
-		modalities->Get(idx)->hasRenderFlag(iAModality::MagicLens))
+	QSharedPointer<iAVolumeRenderer> renderer = m_modalities->get(idx)->renderer();
+	if (m_modalities->get(idx)->hasRenderFlag(iAModality::MainRenderer) ||
+		m_modalities->get(idx)->hasRenderFlag(iAModality::MagicLens))
 	{
-		renderer->Remove();
+		renderer->remove();
 	}
-	if (modalities->Get(idx)->hasRenderFlag(iAModality::BoundingBox))
+	if (m_modalities->get(idx)->hasRenderFlag(iAModality::BoundingBox))
 	{
-		renderer->RemoveBoundingBox();
+		renderer->removeBoundingBox();
 	}
-	modalities->Remove(idx);
+	m_modalities->remove(idx);
 	delete lwModalities->takeItem(idx);
 	lwModalities->setCurrentRow(-1);
-	EnableButtons();
+	enableButtons();
 
 	m_mainRenderer->GetRenderWindow()->Render();
-	emit ModalitiesChanged();
+	emit modalitiesChanged();
 }
 
-void dlg_modalities::EditClicked()
+void dlg_modalities::editClicked()
 {
 	int idx = lwModalities->currentRow();
-	if (idx < 0 || idx >= modalities->size())
+	if (idx < 0 || idx >= m_modalities->size())
 	{
 		DEBUG_LOG(QString("Index out of range (%1).").arg(idx));
 		return;
 	}
-	int renderFlagsBefore = modalities->Get(idx)->RenderFlags();
-	QSharedPointer<iAModality> editModality(modalities->Get(idx));
-	if (!editModality->GetRenderer())
+	int renderFlagsBefore = m_modalities->get(idx)->renderFlags();
+	QSharedPointer<iAModality> editModality(m_modalities->get(idx));
+	if (!editModality->renderer())
 	{
 		DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
 		return;
@@ -257,7 +256,7 @@ void dlg_modalities::EditClicked()
 	{
 		return;
 	}
-	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(idx)->GetRenderer();
+	QSharedPointer<iAVolumeRenderer> renderer = m_modalities->get(idx)->renderer();
 	if (!renderer)
 	{
 		return;
@@ -265,32 +264,32 @@ void dlg_modalities::EditClicked()
 	if ((renderFlagsBefore & iAModality::MainRenderer) == iAModality::MainRenderer
 		&& !editModality->hasRenderFlag(iAModality::MainRenderer))
 	{
-		renderer->Remove();
+		renderer->remove();
 	}
 	if ((renderFlagsBefore & iAModality::MainRenderer) == 0
 		&& editModality->hasRenderFlag(iAModality::MainRenderer))
 	{
-		renderer->AddTo(m_mainRenderer);
+		renderer->addTo(m_mainRenderer);
 	}
 	if ((renderFlagsBefore & iAModality::BoundingBox) == iAModality::BoundingBox
 		&& !editModality->hasRenderFlag(iAModality::BoundingBox))
 	{
-		renderer->RemoveBoundingBox();
+		renderer->removeBoundingBox();
 	}
 	if ((renderFlagsBefore & iAModality::BoundingBox) == 0
 		&& editModality->hasRenderFlag(iAModality::BoundingBox))
 	{
-		renderer->AddBoundingBoxTo(m_mainRenderer);
+		renderer->addBoundingBoxTo(m_mainRenderer);
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == iAModality::MagicLens
 		&& !editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		renderer->Remove();
+		renderer->remove();
 	}
 	if ((renderFlagsBefore & iAModality::MagicLens) == 0
 		&& editModality->hasRenderFlag(iAModality::MagicLens))
 	{
-		renderer->AddTo(m_magicLensWidget->getLensRenderer());
+		renderer->addTo(m_magicLensWidget->getLensRenderer());
 	}
 	if ((renderFlagsBefore & iAModality::Slicer) == iAModality::Slicer
 		&& !editModality->hasRenderFlag(iAModality::Slicer))
@@ -306,39 +305,37 @@ void dlg_modalities::EditClicked()
 	{
 		if (editModality->channelID() == NotExistingChannel)
 			editModality->setChannelID(m_mdiChild->createChannel());
-		m_mdiChild->updateChannel(editModality->channelID(), editModality->GetImage(), editModality->GetTransfer()->getColorFunction(), editModality->GetTransfer()->getOpacityFunction(), true);
+		m_mdiChild->updateChannel(editModality->channelID(), editModality->image(), editModality->transfer()->getColorFunction(), editModality->transfer()->getOpacityFunction(), true);
 		m_mdiChild->updateChannelOpacity(editModality->channelID(), 1);
 		m_mdiChild->updateViews();
 	}
 	lwModalities->item(idx)->setText(GetCaption(*editModality));
-	emit ModalitiesChanged();
+	emit modalitiesChanged();
 	
 }
 
-void dlg_modalities::EnableButtons()
+void dlg_modalities::enableButtons()
 {
-	bool enable = modalities->size() > 0;
+	bool enable = m_modalities->size() > 0;
 	pbEdit->setEnabled(enable);
 	pbRemove->setEnabled(enable);
 }
 
-void dlg_modalities::ManualRegistration()
+void dlg_modalities::manualRegistration()
 {
 	try
 	{
 		int idx = lwModalities->currentRow();
-		if (idx < 0 || idx >= modalities->size())
+		if (idx < 0 || idx >= m_modalities->size())
 		{
 			DEBUG_LOG(QString("Index out of range (%1).").arg(idx));
 			return;
 		}
-		QSharedPointer<iAModality> editModality(modalities->Get(idx));
+		QSharedPointer<iAModality> editModality(m_modalities->get(idx));
 		
-		
-	
 		setModalitySelectionMovable(idx);
 
-		if (!editModality->GetRenderer())
+		if (!editModality->renderer())
 		{
 			DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
 			return;
@@ -347,13 +344,13 @@ void dlg_modalities::ManualRegistration()
 		if (cbManualRegistration->isChecked())
 		{
 			configureInterActorStyles(editModality);
-			m_mdiChild->getRenderer()->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
+			m_mdiChild->renderer()->interactor()->SetInteractorStyle(m_manualMoveStyle[iASlicerMode::SlicerCount]);
 			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 				m_mdiChild->slicer(i)->GetInteractor()->SetInteractorStyle(m_manualMoveStyle[i]);
 		}
 		else
 		{
-			m_mdiChild->getRenderer()->setDefaultInteractor();
+			m_mdiChild->renderer()->setDefaultInteractor();
 			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 				m_mdiChild->slicer(i)->setDefaultInteractor();
 		}
@@ -366,8 +363,8 @@ void dlg_modalities::ManualRegistration()
 
 void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editModality)
 {
-	auto img = editModality->GetImage();
-	auto volRend = editModality->GetRenderer().data();
+	auto img = editModality->image();
+	auto volRend = editModality->renderer().data();
 	//vtkProp3D *PropVol_3d = volRend->GetVolume().Get();
 	if (!img)
 	{
@@ -393,7 +390,7 @@ void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editMo
 		m_manualMoveStyle[i]->initialize(img, volRend, props, i, m_mdiChild);
 }
 
-void dlg_modalities::ListClicked(QListWidgetItem* item)
+void dlg_modalities::listClicked(QListWidgetItem* item)
 {
 	int selectedRow = lwModalities->row( item );
 	if (selectedRow < 0)
@@ -401,82 +398,79 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 		return;
 	}
 	setModalitySelectionMovable(selectedRow);
-	configureInterActorStyles(modalities->Get(selectedRow));
+	configureInterActorStyles(m_modalities->get(selectedRow));
 
-	emit ModalitySelected(selectedRow);
+	emit modalitySelected(selectedRow);
 }
 
 void dlg_modalities::setModalitySelectionMovable(int selectedRow)
 {
-	QSharedPointer<iAModality> currentData = modalities->Get(selectedRow);
-	//QSharedPointer<iAModalityTransfer> modTransfer = currentData->GetTransfer();
-	for (int i = 0; i < modalities->size(); ++i)
+	QSharedPointer<iAModality> currentData = m_modalities->get(selectedRow);
+	//QSharedPointer<iAModalityTransfer> modTransfer = currentData->transfer();
+	for (int i = 0; i < m_modalities->size(); ++i)
 	{
-		QSharedPointer<iAModality> mod = modalities->Get(i);
-		if (!mod->GetRenderer())
+		QSharedPointer<iAModality> mod = m_modalities->get(i);
+		if (!mod->renderer())
 		{
 			DEBUG_LOG(QString("Renderer for modality %1 not yet created. Please try again later!").arg(i));
 			continue;
 		}
 
 		//enable / disable dragging
-		mod->GetRenderer()->SetMovable(mod == currentData);
+		mod->renderer()->setMovable(mod == currentData);
 		
 		for (int sl = 0; sl < iASlicerMode::SlicerCount; sl++)
 		{
 			if (mod->channelID() == NotExistingChannel)
 				continue;
-			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetDragable(currentData->channelID() == mod->channelID());
-			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->imageActor->SetPickable(currentData->channelID() == mod->channelID());
-
-
+			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->setMovable(currentData->channelID() == mod->channelID());
 		}
 	}
 }
 
-void dlg_modalities::ShowChecked(QListWidgetItem* item)
+void dlg_modalities::showChecked(QListWidgetItem* item)
 {
 	int i = lwModalities->row(item);
-	QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();
+	QSharedPointer<iAVolumeRenderer> renderer = m_modalities->get(i)->renderer();
 	if (!renderer)
 	{
 		return;
 	}
 	bool isChecked = item->checkState() == Qt::Checked;
-	renderer->ShowVolume(isChecked);
+	renderer->showVolume(isChecked);
 	m_mainRenderer->GetRenderWindow()->Render();
 }
 
-QSharedPointer<iAModalityList const> dlg_modalities::GetModalities() const
+QSharedPointer<iAModalityList const> dlg_modalities::modalities() const
 {
-	return modalities;
+	return m_modalities;
 }
 
-QSharedPointer<iAModalityList> dlg_modalities::GetModalities()
+QSharedPointer<iAModalityList> dlg_modalities::modalities()
 {
-	return modalities;
+	return m_modalities;
 }
 
-int dlg_modalities::GetSelected() const
+int dlg_modalities::selected() const
 {
 	return lwModalities->currentRow();
 }
 
-vtkSmartPointer<vtkColorTransferFunction> dlg_modalities::GetCTF(int modality)
+vtkSmartPointer<vtkColorTransferFunction> dlg_modalities::cTF(int modality)
 {
-	return modalities->Get(modality)->GetTransfer()->getColorFunction();
+	return m_modalities->get(modality)->transfer()->getColorFunction();
 }
 
-vtkSmartPointer<vtkPiecewiseFunction> dlg_modalities::GetOTF(int modality)
+vtkSmartPointer<vtkPiecewiseFunction> dlg_modalities::oTF(int modality)
 {
-	return modalities->Get(modality)->GetTransfer()->getOpacityFunction();
+	return m_modalities->get(modality)->transfer()->getOpacityFunction();
 }
 
-void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings)
+void dlg_modalities::changeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings)
 {
-	for (int i = 0; i < modalities->size(); ++i)
+	for (int i = 0; i < m_modalities->size(); ++i)
 	{
-		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();
+		QSharedPointer<iAVolumeRenderer> renderer = m_modalities->get(i)->renderer();
 		if (!renderer)
 		{
 			DEBUG_LOG("ChangeRenderSettings: No Renderer set!");
@@ -486,37 +480,37 @@ void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs, const boo
 		//check if a volume setting is saved for a modality
 		//set saved status to false after loading
 		if (loadSavedVolumeSettings  &&
-			modalities->Get(i)->getVolSettingsSavedStatus())
+			m_modalities->get(i)->volSettingsSavedStatus())
 		{
-			renderer->ApplySettings(modalities->Get(i)->getVolumeSettings());
-			modalities->Get(i)->setVolSettingsSavedStatusFalse();
+			renderer->applySettings(m_modalities->get(i)->volumeSettings());
+			m_modalities->get(i)->setVolSettingsSavedStatusFalse();
 		}
 		//use default settings
 		else
 		{
-			renderer->ApplySettings(rs);
+			renderer->applySettings(rs);
 		}
 	}
 }
 
-void dlg_modalities::RendererMouseMoved()
+void dlg_modalities::rendererMouseMoved()
 {
-	for (int i = 0; i < modalities->size(); ++i)
+	for (int i = 0; i < m_modalities->size(); ++i)
 	{
-		if (!modalities->Get(i)->GetRenderer())
+		if (!m_modalities->get(i)->renderer())
 		{
 			return;
 		}
-		modalities->Get(i)->GetRenderer()->UpdateBoundingBox();
+		m_modalities->get(i)->renderer()->updateBoundingBox();
 	}
 }
 
-void dlg_modalities::ShowSlicers(bool enabled)
+void dlg_modalities::showSlicers(bool enabled)
 {
 	m_showSlicers = enabled;
-	for (int i = 0; i < modalities->size(); ++i)
+	for (int i = 0; i < m_modalities->size(); ++i)
 	{
-		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();
+		QSharedPointer<iAVolumeRenderer> renderer = m_modalities->get(i)->renderer();
 		if (!renderer)
 		{
 			DEBUG_LOG("ShowSlicePlanes: No Renderer set!");
@@ -524,30 +518,30 @@ void dlg_modalities::ShowSlicers(bool enabled)
 		}
 		if (enabled)
 		{
-			renderer->SetCuttingPlanes(m_plane1, m_plane2, m_plane3);
+			renderer->setCuttingPlanes(m_plane1, m_plane2, m_plane3);
 		}
 		else
 		{
-			renderer->RemoveCuttingPlanes();
+			renderer->removeCuttingPlanes();
 		}
 	}
 }
 
-void dlg_modalities::SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
+void dlg_modalities::setSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3)
 {
 	m_plane1 = plane1;
 	m_plane2 = plane2;
 	m_plane3 = plane3;
 }
 
-void dlg_modalities::AddModality(vtkSmartPointer<vtkImageData> img, QString const & name)
+void dlg_modalities::addModality(vtkSmartPointer<vtkImageData> img, QString const & name)
 {
 	QSharedPointer<iAModality> newModality(new iAModality(name, "", -1, img, iAModality::MainRenderer));
-	modalities->Add(newModality);
+	m_modalities->add(newModality);
 }
 
-void dlg_modalities::SetFileName(int modality, QString const & fileName)
+void dlg_modalities::setFileName(int modality, QString const & fileName)
 {
-	modalities->Get(modality)->SetFileName(fileName);
-	lwModalities->item(modality)->setText(GetCaption(*modalities->Get(modality).data()));
+	m_modalities->get(modality)->setFileName(fileName);
+	lwModalities->item(modality)->setText(GetCaption(*m_modalities->get(modality).data()));
 }

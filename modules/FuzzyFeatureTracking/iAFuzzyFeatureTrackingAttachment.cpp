@@ -35,7 +35,7 @@ const int FOURDCT_MIN_NUMBER_OF_VOLUMES = 1;
 iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ), 
 	trackingGraph( 0 ), m_dlgDataView4DCT( 0 ), m_dlgTrackingGraph( 0 ), m_dlgEventExplorer( 0 ), m_volumeStack( 0 )
 {
-	m_volumeStack = child->getVolumeStack();
+	m_volumeStack = child->volumeStack();
 	connect( child, SIGNAL( viewsUpdated() ), this, SLOT( updateViews() ) );
 
 	if( !create4DCTDataViewWidget() )
@@ -70,8 +70,8 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTDataViewWidget()
 
 	// create new dialog
 	m_dlgDataView4DCT = new dlg_dataView4DCT( m_child, m_volumeStack );
-	m_child->tabifyDockWidget( m_child->getLogDlg(), m_dlgDataView4DCT );
-	// test Raycaster->reInitialize (m_volumeStack->getVolume(1), polyData, m_volumeStack->getPiecewiseFunction(1),m_volumeStack->getColorTransferFunction(1));
+	m_child->tabifyDockWidget( m_child->logDockWidget(), m_dlgDataView4DCT );
+	// test m_renderer->reInitialize (m_volumeStack->getVolume(1), polyData, m_volumeStack->getPiecewiseFunction(1),m_volumeStack->getColorTransferFunction(1));
 
 	m_child->addMsg( tr( "The 4DCT Data View widget was successfully created" ) );
 
@@ -87,7 +87,7 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTTrackingGraphWidget()
 	}
 
 	m_dlgTrackingGraph = new dlg_trackingGraph( m_child );
-	m_child->tabifyDockWidget( m_child->getLogDlg(), m_dlgTrackingGraph );
+	m_child->tabifyDockWidget( m_child->logDockWidget(), m_dlgTrackingGraph );
 
 	m_child->addMsg( tr( "The Tracking Graph widget was successfully created" ) );
 
@@ -162,7 +162,7 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 	}
 
 	m_dlgEventExplorer = new dlg_eventExplorer( m_child, trackedFeaturesForwards.size(), 5, m_volumeStack, m_dlgTrackingGraph, trackedFeaturesForwards, trackedFeaturesBackwards );
-	m_child->tabifyDockWidget( m_child->getLogDlg(), m_dlgEventExplorer );
+	m_child->tabifyDockWidget( m_child->logDockWidget(), m_dlgEventExplorer );
 	m_child->addMsg( tr( "The Event Explorer widget was successfully created" ) );
 
 	return true;

@@ -595,7 +595,7 @@ bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap
 {
 	dlg_ProjectionParameters dlg;
 	dlg.setWindowTitle(filter->Name());
-	int const * inputDim = sourceMdi->getImageData()->GetDimensions();
+	int const * inputDim = sourceMdi->imageData()->GetDimensions();
 	if (filter->Name() == "ASTRA Forward Projection")
 	{
 		dlg.fillProjectionGeometryValues(

@@ -59,7 +59,7 @@ public:
 	void setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l );
 	void addMsg(QString txt);
 
-	iALogger* getLogger() const;
+	iALogger* logger() const;
 	QString getFilterName() const;
 	vtkImageData* getVtkImageData();
 	vtkPolyData* getVtkPolyData();

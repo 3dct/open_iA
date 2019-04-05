@@ -41,7 +41,7 @@
 
 iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* mainWnd, MdiChild * child)
 																			  : iAModuleAttachmentToChild(mainWnd, child)
-																			  , m_pImageData(child->getImageData())
+																			  , m_pImageData(child->imageData())
 {
 	m_pImageRestore = vtkImageData::New();
 	m_pImageRestore->DeepCopy(m_pImageData);
@@ -114,7 +114,7 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* m
 	pGridLayout->addWidget(pGroupBox1);
 
 	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Foam characterization"), "FoamCharacterization"));
-	child->tabifyDockWidget(child->getLogDlg(), pDockWidgetWrapper);
+	child->tabifyDockWidget(child->logDockWidget(), pDockWidgetWrapper);
 }
 
 void iAFoamCharacterizationAttachment::slotPushButtonAnalysis()

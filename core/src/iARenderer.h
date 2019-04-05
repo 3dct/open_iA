@@ -74,48 +74,32 @@ public:
 	void initialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
 	void reInitialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
 	void setPolyData( vtkPolyData* pd );
-	vtkPolyData* getPolyData();
 
 	void setDefaultInteractor();
 	void disableInteractor();
 	void enableInteractor();
-	void setAxesTransform(vtkTransform *transform) { moveableAxesTransform = transform; }
-	vtkTransform * getAxesTransform(void) { return moveableAxesTransform; }
+	void setAxesTransform(vtkTransform *transform);
+	vtkTransform * axesTransform(void);
 
 	void setPlaneNormals( vtkTransform *tr ) ;
 	void setCubeCenter( int x, int y, int z );
 	void setCamPosition ( int uvx, int uvy, int uvz, int px, int py, int pz );
 
-	/**
-	* \brief	Set viewup, position and focal point of a renderer from the information in a double array.
-	*
-	* This function is used to assign camera settings from one mdichild to others.
-	*
-	* \param	camOptions	All informations of the camera stored in a double array
-	* \param	rsParallelProjection	boolean variable to determine if parallel projection option is on.
-	*/
+	//! Set viewup, position and focal point of a renderer from the information in a double array.
+	//! @param camOptions All informations of the camera stored in a double array
+	//! @param rsParallelProjection boolean variable to determine if parallel projection option is on.
 	void setCamPosition( double * camOptions, bool rsParallelProjection  );
+	//! Returns viewup, position and focal point information of a renderer in a double array.
+	//! @param camOptions double array where all informations about the camera will be stored
+	void camPosition ( double * camOptions );
 	void setCamera(vtkCamera* c);
-	vtkCamera* getCamera();
+	vtkCamera* camera();
 
-	/**
-	* \brief	Returns viewup, position and focal point information of a renderer in a double array.
-	*
-	* \param	camOptions	double array where all informations about the camera will be stored
-	*/
-	void getCamPosition ( double * camOptions );
-	void setStatExt( int s ) { ext = s; };
+	//! set size of statistical extent
+	void setStatExt(int s);
 
-	/*sets opacity of the slicing planes*/
-	void setSlicePlaneOpacity(float opc) {
-		if ((opc > 1.0) || (opc < 0.0f))
-		{
-			DEBUG_LOG(QString("Invalid slice plane opacity %1").arg(opc));
-			return; 
-		}
-
-		m_SlicePlaneOpacity = opc;
-	}
+	//! sets opacity of the slicing planes
+	void setSlicePlaneOpacity(float opc);
 
 	void setAreaPicker();
 	void setPointPicker();
@@ -130,18 +114,26 @@ public:
 	void showRPosition(bool show);
 	void showSlicePlanes(bool show);
 
-	vtkPlane* getPlane1();
-	vtkPlane* getPlane2();
-	vtkPlane* getPlane3();
+	vtkPlane* plane1();
+	vtkPlane* plane2();
+	vtkPlane* plane3();
 	void setSlicePlane(int planeID, double originX, double originY, double originZ);
-	vtkRenderWindowInteractor* GetInteractor() { return interactor; }
-	vtkRenderWindow* GetRenderWindow() { return renWin;  }
-	vtkOpenGLRenderer * GetRenderer();
-	vtkActor* GetPolyActor();
-	vtkTransform* getCoordinateSystemTransform();
-	vtkOpenGLRenderer * GetLabelRenderer ();
-	vtkPolyDataMapper* GetPolyMapper() const;
-	vtkTextActor* GetTxtActor();
+	vtkRenderWindowInteractor* interactor();
+	vtkRenderWindow* renderWindow();
+	vtkOpenGLRenderer * renderer();
+	vtkTransform* coordinateSystemTransform();
+	vtkOpenGLRenderer * labelRenderer ();
+	vtkTextActor* txtActor();
+	//! @{ access to polydata rendering
+	//! TODO: remove from here! -> separate class similar to iAVolumeRenderer?
+	vtkPolyData* polyData();
+	vtkActor* polyActor();
+	vtkPolyDataMapper* polyMapper() const;
+	//! @}
+	//! @{ check for better way to get access to these in PickCallbackFunction
+	vtkActor* selectedActor();
+	vtkUnstructuredGrid* finalSelection();
+	vtkDataSetMapper* selectedMapper();
 
 	//sets bounds of the slicing volume, using the spacing of image
 	void setSlicingBounds(const int roi[6], const double *spacing);
@@ -149,62 +141,62 @@ public:
 	void setCubeVisible(bool visible); //Visibility of the slice cube
 	
 	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
-	iARenderObserver * getRenderObserver(){ return renderObserver; }
-	void AddRenderer(vtkRenderer* renderer);
-	void ApplySettings(iARenderSettings & settings);
+	iARenderObserver * getRenderObserver();
+	void addRenderer(vtkRenderer* renderer);
+	void applySettings(iARenderSettings const & settings);
 	
 	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
 	void emitNoSelectedCells();
-	vtkSmartPointer<vtkDataSetMapper> selectedMapper;
-	vtkSmartPointer<vtkActor> selectedActor;
-	vtkSmartPointer<vtkUnstructuredGrid> finalSelection;
-protected:
-	void InitObserver();
-	iARenderObserver *renderObserver;
 private:
-	//! @{ things that are set from the outside
-	vtkRenderWindowInteractor* interactor;
-	vtkPolyData* polyData;
-	// TODO: VOLUME: check if this can be removed:
-	vtkImageData* imageData;
-	//! @}
+	void initObserver();
 
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> renWin;
-	vtkSmartPointer<vtkOpenGLRenderer> ren, labelRen;
-	vtkSmartPointer<vtkCamera> cam;
-	vtkSmartPointer<vtkCellLocator> cellLocator;
-	vtkSmartPointer<vtkPolyDataMapper> polyMapper;
-	vtkSmartPointer<vtkActor> polyActor;
+	iARenderObserver *m_renderObserver;
+	//! @{ things that are set from the outside
+	vtkRenderWindowInteractor* m_interactor;
+	vtkPolyData* m_polyData;
+	// TODO: VOLUME: check if this can be removed:
+	vtkImageData* m_imageData;
+	//! @}
+	vtkSmartPointer<vtkDataSetMapper> m_selectedMapper;
+	vtkSmartPointer<vtkActor> m_selectedActor;
+	vtkSmartPointer<vtkUnstructuredGrid> m_finalSelection;
+
+	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
+	vtkSmartPointer<vtkOpenGLRenderer> m_ren, m_labelRen;
+	vtkSmartPointer<vtkCamera> m_cam;
+	vtkSmartPointer<vtkCellLocator> m_cellLocator;
+	vtkSmartPointer<vtkPolyDataMapper> m_polyMapper;
+	vtkSmartPointer<vtkActor> m_polyActor;
 
 	//! @{ Logo
-	vtkSmartPointer<vtkLogoRepresentation> logoRep;
-	vtkSmartPointer<vtkLogoWidget> logoWidget;
-	vtkSmartPointer<vtkQImageToImageSource> logoImage;
+	vtkSmartPointer<vtkLogoRepresentation> m_logoRep;
+	vtkSmartPointer<vtkLogoWidget> m_logoWidget;
+	vtkSmartPointer<vtkQImageToImageSource> m_logoImage;
 	//! @}
 
 	//! @{ Text actor, e.g., to show the selection mode
-	vtkSmartPointer<vtkTextActor> txtActor;
+	vtkSmartPointer<vtkTextActor> m_txtActor;
 	//! @}
 
 	//! @{ position marker cube
-	vtkSmartPointer<vtkCubeSource> cSource;
-	vtkSmartPointer<vtkPolyDataMapper> cMapper;
-	vtkSmartPointer<vtkActor> cActor;
+	vtkSmartPointer<vtkCubeSource> m_cSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_cMapper;
+	vtkSmartPointer<vtkActor> m_cActor;
 	//! @}
 
-	vtkSmartPointer<vtkAnnotatedCubeActor> annotatedCubeActor;
-	vtkSmartPointer<vtkAxesActor> axesActor;
-	vtkSmartPointer<vtkOrientationMarkerWidget> orientationMarkerWidget;
-	vtkSmartPointer<vtkPlane> plane1, plane2, plane3;
-	vtkSmartPointer<vtkPicker> pointPicker;
+	vtkSmartPointer<vtkAnnotatedCubeActor> m_annotatedCubeActor;
+	vtkSmartPointer<vtkAxesActor> m_axesActor;
+	vtkSmartPointer<vtkOrientationMarkerWidget> m_orientationMarkerWidget;
+	vtkSmartPointer<vtkPlane> m_plane1, m_plane2, m_plane3;
+	vtkSmartPointer<vtkPicker> m_pointPicker;
 
 	//! @{ movable axes
 	// TODO: check what the movable axes are useful for!
-	vtkTransform* moveableAxesTransform;
-	vtkSmartPointer<vtkAxesActor> moveableAxesActor;
+	vtkTransform* m_moveableAxesTransform;
+	vtkSmartPointer<vtkAxesActor> m_moveableAxesActor;
 	//! @}
 	
-	int ext; //!< statistical extent size
+	int m_ext; //!< statistical extent size
 	//! @{ Line profile
 	vtkSmartPointer<vtkLineSource>     m_profileLineSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_profileLineMapper;
@@ -229,7 +221,7 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> m_sliceCubeMapper;
 	vtkSmartPointer<vtkActor> m_sliceCubeActor;
 
-	float m_SlicePlaneOpacity; //Slice Plane Opacity
+	float m_slicePlaneOpacity; //Slice Plane Opacity
 
 public slots:
 	void mouseRightButtonReleasedSlot();
@@ -239,7 +231,6 @@ public slots:
 Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);
-	void Clicked(int, int, int);
 	void cellsSelected(vtkPoints* selCellPoints);
 	void noCellsSelected();
 	void reInitialized();

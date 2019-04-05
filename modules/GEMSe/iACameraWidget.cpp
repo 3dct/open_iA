@@ -111,7 +111,7 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 void iACameraWidget::UpdateScrollBar(int sliceNumber)
 {
 	int extent[6];
-	m_sliceViews[static_cast<int>(InitialSlicerMode)]->GetImage()->GetExtent(extent);
+	m_sliceViews[static_cast<int>(InitialSlicerMode)]->image()->GetExtent(extent);
 	int minIdx = (m_slicerMode == iASlicerMode::XY) ? 4 : (
 		(m_slicerMode == iASlicerMode::YZ) ? 0 : 2
 	);

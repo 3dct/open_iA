@@ -47,7 +47,7 @@ public:
 	Iterator end() const;
 	size_t size() const;
 	Container * GetDataPtr();
-	vtkSmartPointer<vtkImageData> const & GetImage(size_t idx) const;
+	vtkSmartPointer<vtkImageData> const & image(size_t idx) const;
 	void GetExtent(int extent[6]) const;
 	QObject* UpdateCombinedVolume(vtkSmartPointer<vtkColorTransferFunction> colorTransferEnergies);
 	vtkSmartPointer<vtkImageData> GetCombinedVolume();

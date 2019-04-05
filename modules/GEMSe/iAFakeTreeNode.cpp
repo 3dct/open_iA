@@ -25,7 +25,7 @@ iAFakeTreeNode::iAFakeTreeNode(iAITKIO::ImagePointer img, QString const & name) 
 	m_name(name)
 {}
 
-QString const & iAFakeTreeNode::GetName() const
+QString const & iAFakeTreeNode::name() const
 {
 	return m_name;
 }

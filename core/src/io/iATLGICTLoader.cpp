@@ -243,7 +243,7 @@ void iATLGICTLoader::run()
 		// add modality
 		QString modName = subDirFileInfo.baseName();
 		modName = modName.left(modName.length() - 4); // 4 => length of "_rec"
-		m_modList->Add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0)));
+		m_modList->add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0)));
 		m_multiStepObserver->SetCompletedSteps(++completedDirs);
 	}
 	if (m_modList->size() == 0)

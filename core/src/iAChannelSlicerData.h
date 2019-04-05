@@ -38,22 +38,22 @@ class vtkLookupTable;
 class vtkMarchingContourFilter;
 class vtkPolyDataMapper;
 class vtkPiecewiseFunction;
+class vtkRenderer;
 class vtkScalarsToColors;
 
 
 class open_iA_Core_API iAChannelSlicerData
 {
 public:
-	iAChannelSlicerData();
-	void init(iAChannelData const & chData, int mode);
-	void reInit(iAChannelData const & chData);
+	iAChannelSlicerData(iAChannelData const & chData, int mode);
+	void update(iAChannelData const & chData);
 	void setResliceAxesOrigin(double x, double y, double z);
+	void resliceAxesOrigin(double * origin);
 	//! Get lookup table (combined color transfer function + piecewise function for opacity)
 	//vtkScalarsToColors* getLookupTable();
 	//! Get color transfer function (only the colors, fully opaque)
 	vtkScalarsToColors* getColorTransferFunction();
 
-	bool isInitialized() const;
 	void updateMapper();
 	QColor getColor() const;  //!< get "color" of this channel (TODO: used only for pie charts in XRF module -> move there?)
 	void updateResliceAxesDirectionCosines(int mode);
@@ -61,37 +61,50 @@ public:
 	void updateReslicer();
 	void updateLUT();
 	QString getName() const;
-
-	vtkSmartPointer<vtkImageActor> imageActor;
-	vtkImageData * image;
-	vtkSmartPointer<vtkImageReslice> reslicer;
+	vtkImageData * input() const;  // TODO: returned vtkImageData should be const
+	vtkImageData * output() const; // TODO: returned vtkImageData should be const
+	vtkImageReslice * reslicer() const; // check if that can be kept private somehow
+	double const * actorPosition() const;
+	void setActorPosition(double x, double y, double z);
+	void setActorOpacity(double opacity);
+	void setMovable(bool movable);
+	void setInterpolate(bool interpolate);
+	void setEnabled(vtkRenderer* ren, bool enable);
+	void setSlabNumberOfSlices(int slices);
+	void setSlabMode(int mode);
 
 	// TODO: contour functionality should be moved into separate class:
 	// {
-	vtkSmartPointer<vtkMarchingContourFilter> cFilter;
-	vtkSmartPointer<vtkPolyDataMapper>        cMapper;
-	vtkSmartPointer<vtkActor>                 cActor;
-	void setContours(int num, const double * contourVals);
+	void setContours(int numberOfContours, double contourMin, double contourMax);
+	void setContours(int numberOfContours, double const * contourValues);
+	void setShowContours(vtkRenderer* ren, bool show);
+	void setContourLineParams(double lineWidth, bool dashed = false);
 	void setContoursColor(double * rgb);
 	void setContoursOpacity(double opacity);
-	void setShowContours(bool show);
-	void setContourLineParams(double lineWidth, bool dashed = false);
 	// }
 private:
-	iAChannelSlicerData(iAChannelSlicerData const & other);
+	//! @{ disable copy construction/assignment
+	iAChannelSlicerData(iAChannelSlicerData const & other) =delete;
+	iAChannelSlicerData& operator=(iAChannelSlicerData const & other) = delete;
+	//! @}
 
-	void initContours();    // TODO: contour functionality should be moved into separate class
-
-	iAChannelSlicerData& operator=(iAChannelSlicerData const & other);
 	void assign(vtkSmartPointer<vtkImageData> imageData, QColor const & col);
 	void setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
 
+	vtkSmartPointer<vtkImageActor>  m_imageActor;
+	vtkSmartPointer<vtkImageReslice> m_reslicer;
 	vtkSmartPointer<vtkImageMapToColors> m_colormapper;
-	vtkSmartPointer<vtkLookupTable> m_lut;
-	bool                            m_isInitialized;
-	vtkScalarsToColors *            m_ctf;
-	vtkPiecewiseFunction *          m_otf;
-	QString                         m_name;
-	QColor                          m_color;  //! color of this channel (TODO: used only for pie charts in XRF module -> move there?)
+	vtkSmartPointer<vtkLookupTable> m_lut;   //! used for combining given ctf and otf into a single transfer function for both color and opacity accepted by imageMapToColors
+	vtkScalarsToColors *            m_ctf;   //! the color transfer function - should be const (as soon as VTK supports it)
+	vtkPiecewiseFunction *          m_otf;   //! the opacity function - nullptr if not used - should be const (as soon as VTK supports it)
+	QString                         m_name;  //! name of the channel
+	QColor                          m_color; //! color of this channel (TODO: used only for pie charts in XRF module -> move there?)
+
+	//! @{ for contours / iso lines
+	void initContours();    // TODO: contour functionality should be moved into separate class
+	vtkSmartPointer<vtkMarchingContourFilter> m_contourFilter;
+	vtkSmartPointer<vtkPolyDataMapper> m_contourMapper;
+	vtkSmartPointer<vtkActor>       m_contourActor;
+	//! @}
 };
 

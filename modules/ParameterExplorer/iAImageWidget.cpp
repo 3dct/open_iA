@@ -65,7 +65,7 @@ void iAImageWidget::SetSlice(int sliceNumber)
 
 int iAImageWidget::GetSliceCount() const
 {
-	int * ext = m_slicer->getChannel(0)->image->GetExtent();
+	int const * ext = m_slicer->getChannel(0)->input()->GetExtent();
 	switch (m_slicer->mode())
 	{
 		case XZ: return ext[3] - ext[2] + 1;

@@ -278,7 +278,7 @@ QSharedPointer<iAAttributes> iASamplingResults::GetAttributes() const
 }
 
 
-QString iASamplingResults::GetName() const
+QString iASamplingResults::name() const
 {
 	return m_name;
 }

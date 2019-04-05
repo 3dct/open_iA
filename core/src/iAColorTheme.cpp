@@ -29,7 +29,7 @@ iAColorTheme::iAColorTheme(QString const & name):
 iAColorTheme::~iAColorTheme()
 {}
 
-QString const & iAColorTheme::GetName() const
+QString const & iAColorTheme::name() const
 {
 	return m_name;
 }
@@ -92,11 +92,11 @@ iAColorThemeManager::iAColorThemeManager()
 	// TODO: read from file?
 
 	iASingleColorTheme* white = new iASingleColorTheme("White", QColor(255, 255, 255));
-	m_themes.insert(white->GetName(), white);
+	m_themes.insert(white->name(), white);
 	iASingleColorTheme* gray = new iASingleColorTheme("Gray", QColor(127, 127, 127));
-	m_themes.insert(gray->GetName(), gray);
+	m_themes.insert(gray->name(), gray);
 	iASingleColorTheme* black = new iASingleColorTheme("Black", QColor(0, 0, 0));
-	m_themes.insert(black->GetName(), black);
+	m_themes.insert(black->name(), black);
 
 	// source: http://mkweb.bcgsc.ca/brewer/swatches/brewer.txt
 
@@ -109,7 +109,7 @@ iAColorThemeManager::iAColorThemeManager()
 	accent->AddColor(QColor(240,   2, 127));
 	accent->AddColor(QColor(191,  91,  23));
 	accent->AddColor(QColor(102, 102, 102));
-	m_themes.insert(accent->GetName(), accent);
+	m_themes.insert(accent->name(), accent);
 
 	iAVectorColorTheme* dark2 = new iAVectorColorTheme("Brewer Dark2 (max. 8)");
 	dark2->AddColor(QColor( 27,158,119));
@@ -120,7 +120,7 @@ iAColorThemeManager::iAColorThemeManager()
 	dark2->AddColor(QColor(230,171,  2));
 	dark2->AddColor(QColor(166,118, 29));
 	dark2->AddColor(QColor(102,102,102));
-	m_themes.insert(dark2->GetName(), dark2);
+	m_themes.insert(dark2->name(), dark2);
 
 	iAVectorColorTheme* paired = new iAVectorColorTheme("Brewer Paired (max. 12)");
 	paired->AddColor(QColor(166, 206, 227));
@@ -135,7 +135,7 @@ iAColorThemeManager::iAColorThemeManager()
 	paired->AddColor(QColor(106,  61, 154));
 	paired->AddColor(QColor(255, 255, 153));
 	paired->AddColor(QColor(177,  89,  40));
-	m_themes.insert(paired->GetName(), paired);
+	m_themes.insert(paired->name(), paired);
 
 	iAVectorColorTheme* set1 = new iAVectorColorTheme("Brewer Set1 (max. 9)");
 	set1->AddColor(QColor(228, 26, 28));
@@ -147,7 +147,7 @@ iAColorThemeManager::iAColorThemeManager()
 	set1->AddColor(QColor(166, 86, 40));
 	set1->AddColor(QColor(247,129,191));
 	set1->AddColor(QColor(153,153,153));
-	m_themes.insert(set1->GetName(), set1);
+	m_themes.insert(set1->name(), set1);
 
 	iAVectorColorTheme* set2 = new iAVectorColorTheme("Brewer Set2 (max. 8)");
 	set2->AddColor(QColor(102,194,165));
@@ -158,7 +158,7 @@ iAColorThemeManager::iAColorThemeManager()
 	set2->AddColor(QColor(255,217, 47));
 	set2->AddColor(QColor(229,196,148));
 	set2->AddColor(QColor(179,179,179));
-	m_themes.insert(set2->GetName(), set2);
+	m_themes.insert(set2->name(), set2);
 
 	iAVectorColorTheme* set3 = new iAVectorColorTheme("Brewer Set3 (max. 12)");
 	set3->AddColor(QColor(141, 211, 199));
@@ -173,7 +173,7 @@ iAColorThemeManager::iAColorThemeManager()
 	set3->AddColor(QColor(188, 128, 189));
 	set3->AddColor(QColor(204, 235, 197));
 	set3->AddColor(QColor(255, 237, 111));
-	m_themes.insert(set3->GetName(), set3);
+	m_themes.insert(set3->name(), set3);
 
 	// source: http://www.mulinblog.com/a-color-palette-optimized-for-data-visualization/
 	iAVectorColorTheme* few = new iAVectorColorTheme("Few (max. 9)");
@@ -186,7 +186,7 @@ iAColorThemeManager::iAColorThemeManager()
 	few->AddColor(QColor(178,118,178));
 	few->AddColor(QColor(222,207, 63));
 	few->AddColor(QColor(241, 88, 84));
-	m_themes.insert(few->GetName(), few);
+	m_themes.insert(few->name(), few);
 
 
 	iAVectorColorTheme* grayScale17 = new iAVectorColorTheme("Grayscale (max. 17)");
@@ -207,14 +207,14 @@ iAColorThemeManager::iAColorThemeManager()
 	grayScale17->AddColor(QColor(176,176,176));
 	grayScale17->AddColor(QColor(208,208,208));
 	grayScale17->AddColor(QColor(240,240,240));
-	m_themes.insert(grayScale17->GetName(), grayScale17);
+	m_themes.insert(grayScale17->name(), grayScale17);
 
 	iAVectorColorTheme* grayScale4 = new iAVectorColorTheme("Grayscale (ideal&max. 4)");
 	grayScale4->AddColor(QColor(  0,  0,  0));
 	grayScale4->AddColor(QColor( 85, 85, 85));
 	grayScale4->AddColor(QColor(170,170,170));
 	grayScale4->AddColor(QColor(255,255,255));
-	m_themes.insert(grayScale4->GetName(), grayScale4);
+	m_themes.insert(grayScale4->name(), grayScale4);
 
 	iAVectorColorTheme* grayScale6 = new iAVectorColorTheme("Grayscale (ideal&max. 6)");
 	grayScale6->AddColor(QColor(  0,  0,  0));
@@ -223,7 +223,7 @@ iAColorThemeManager::iAColorThemeManager()
 	grayScale6->AddColor(QColor(153,153,153));
 	grayScale6->AddColor(QColor(204,204,204));
 	grayScale6->AddColor(QColor(255,255,255));
-	m_themes.insert(grayScale6->GetName(), grayScale6);
+	m_themes.insert(grayScale6->name(), grayScale6);
 
 	// themes from https://www.materialui.co/colors
 	iAVectorColorTheme* materialRed = new iAVectorColorTheme("Material red (max. 10)");
@@ -237,7 +237,7 @@ iAColorThemeManager::iAColorThemeManager()
 	materialRed->AddColor(QColor(211, 47, 47));
 	materialRed->AddColor(QColor(198, 40, 40));
 	materialRed->AddColor(QColor(183, 28, 28));
-	m_themes.insert(materialRed->GetName(), materialRed);
+	m_themes.insert(materialRed->name(), materialRed);
 
 	iAVectorColorTheme* materialBlue = new iAVectorColorTheme("Material blue (max. 10)");
 	materialBlue->AddColor(QColor(227, 242, 253));
@@ -250,7 +250,7 @@ iAColorThemeManager::iAColorThemeManager()
 	materialBlue->AddColor(QColor(25, 118, 210));
 	materialBlue->AddColor(QColor(21, 101, 192));
 	materialBlue->AddColor(QColor(13, 71, 161));
-	m_themes.insert(materialBlue->GetName(), materialBlue);
+	m_themes.insert(materialBlue->name(), materialBlue);
 
 	iAVectorColorTheme* flatUI = new iAVectorColorTheme("Flat UI (max. 20)");
 	flatUI->AddColor(QColor(26, 188, 156));
@@ -273,7 +273,7 @@ iAColorThemeManager::iAColorThemeManager()
 	flatUI->AddColor(QColor(192, 57, 43));
 	flatUI->AddColor(QColor(189, 195, 199));
 	flatUI->AddColor(QColor(127, 140, 141));
-	m_themes.insert(flatUI->GetName(), flatUI);
+	m_themes.insert(flatUI->name(), flatUI);
 
 	iAVectorColorTheme* metroColors = new iAVectorColorTheme("Metro Colors (max. 20)");
 	metroColors->AddColor(QColor(164, 196, 0));
@@ -296,7 +296,7 @@ iAColorThemeManager::iAColorThemeManager()
 	metroColors->AddColor(QColor(100, 118, 135));
 	metroColors->AddColor(QColor(118, 96, 138));
 	metroColors->AddColor(QColor(160, 82, 45));
-	m_themes.insert(metroColors->GetName(), metroColors);
+	m_themes.insert(metroColors->name(), metroColors);
 
 	iAVectorColorTheme* sevenShadesOfBlue = new iAVectorColorTheme("Seven Shades of blue (max. 7)");
 	sevenShadesOfBlue->AddColor(QColor(193, 217, 252));
@@ -306,7 +306,7 @@ iAColorThemeManager::iAColorThemeManager()
 	sevenShadesOfBlue->AddColor(QColor(7, 78, 184));
 	sevenShadesOfBlue->AddColor(QColor(4, 52, 122));
 	sevenShadesOfBlue->AddColor(QColor(2, 26, 61));
-	m_themes.insert(sevenShadesOfBlue->GetName(), sevenShadesOfBlue);
+	m_themes.insert(sevenShadesOfBlue->name(), sevenShadesOfBlue);
 
 	iAVectorColorTheme* DVLColors = new iAVectorColorTheme("DVL-Metro Colors (max. 17)");
 	DVLColors->AddColor(QColor(164, 196, 0));
@@ -326,7 +326,7 @@ iAColorThemeManager::iAColorThemeManager()
 	DVLColors->AddColor(QColor(100, 118, 135));
 	DVLColors->AddColor(QColor(118, 96, 138));
 	DVLColors->AddColor(QColor(160, 82, 45));
-	m_themes.insert(DVLColors->GetName(), DVLColors);
+	m_themes.insert(DVLColors->name(), DVLColors);
 
 	iAVectorColorTheme* brewerQual1 = new iAVectorColorTheme("Brewer Qualitaive 1 (max. 8)");
 	brewerQual1->AddColor(QColor(27, 158, 119));
@@ -337,7 +337,7 @@ iAColorThemeManager::iAColorThemeManager()
 	brewerQual1->AddColor(QColor(230, 171, 2));
 	brewerQual1->AddColor(QColor(166, 118, 29));
 	brewerQual1->AddColor(QColor(102, 102, 102));
-	m_themes.insert(brewerQual1->GetName(), brewerQual1);
+	m_themes.insert(brewerQual1->name(), brewerQual1);
 }
 
 iAColorThemeManager::~iAColorThemeManager()

@@ -33,7 +33,7 @@ typedef iAQTtoUIConnector<QDockWidget, Ui_modalities> dlg_modalitiesUI;
 
 class dlg_planeSlicer;
 
-class iACustomInterActorStyleTrackBall;
+class iAvtkInteractStyleActor;
 class iAFast3DMagicLensWidget;
 class iAModality;
 class iAModalityList;
@@ -56,57 +56,51 @@ class open_iA_Core_API dlg_modalities : public dlg_modalitiesUI
 	Q_OBJECT
 public:
 	dlg_modalities(iAFast3DMagicLensWidget* renderer, vtkRenderer* mainRenderer, int numBin, MdiChild* mdiChild);
-	void SetModalities(QSharedPointer<iAModalityList> modalities);
-	QSharedPointer<iAModalityList const> GetModalities() const;
-	QSharedPointer<iAModalityList> GetModalities();
-	int GetSelected() const;
-	vtkSmartPointer<vtkColorTransferFunction> GetCTF(int modality);
-	vtkSmartPointer<vtkPiecewiseFunction> GetOTF(int modality);
-	void ChangeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings);
-	void ShowSlicers(bool enabled);
-	void SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
-	void AddListItem(QSharedPointer<iAModality> mod);
+	void setModalities(QSharedPointer<iAModalityList> modalities);
+	QSharedPointer<iAModalityList const> modalities() const;
+	QSharedPointer<iAModalityList> modalities();
+	int selected() const;
+	vtkSmartPointer<vtkColorTransferFunction> cTF(int modality);
+	vtkSmartPointer<vtkPiecewiseFunction> oTF(int modality);
+	void changeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings);
+	void showSlicers(bool enabled);
+	void setSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
+	void addListItem(QSharedPointer<iAModality> mod);
 	//! initialize a modality's display in renderers
-	void InitDisplay(QSharedPointer<iAModality> mod);
-	void AddModality(vtkSmartPointer<vtkImageData>, QString const & name);
-	void SelectRow(int idx);
-	void EnableUI();
-	void SetFileName(int modality, QString const & fileName);
+	void initDisplay(QSharedPointer<iAModality> mod);
+	void addModality(vtkSmartPointer<vtkImageData>, QString const & name);
+	void selectRow(int idx);
+	void enableUI();
+	void setFileName(int modality, QString const & fileName);
 public slots:
 	//! add modality to list, create transfer function, add volume to renderers
 	void modalityAdded(QSharedPointer<iAModality> mod);
-	void InteractorModeSwitched(int newMode);
+	void interactorModeSwitched(int newMode);
 signals:
-	void ModalityAvailable(int modalityIdx);
-	void ModalitySelected(int modalityIdx);
-	void ModalitiesChanged();
+	void modalityAvailable(int modalityIdx);
+	void modalitySelected(int modalityIdx);
+	void modalitiesChanged();
 
 private slots:
-	void AddClicked();
-	void RemoveClicked();
-	void EditClicked();
+	void addClicked();
+	void removeClicked();
+	void editClicked();
 
-	/*Manual movement / registration of one object to another,
-	* this can be also seen in the slicer
-	*/
-	void ManualRegistration();
+	//! toggle manual movement / registration of one object to another
+	void manualRegistration();
 
-
-	
-
-	void MagicLens();
+	void magicLens();
 	//void CuttingPlane();
-	void RendererMouseMoved();
+	void rendererMouseMoved();
+	void enableButtons();
 
-	void EnableButtons();
+	//! enable dragging / picking of clicked modality
+	void listClicked(QListWidgetItem* item);
 
-	//enable dragging / picking of clicked modality
-	void ListClicked(QListWidgetItem* item);
-
-	//enable/ picking dragging of selected modality
+	//! enable/ picking dragging of selected modality
 	void setModalitySelectionMovable(int selectedRow);
 
-	void ShowChecked(QListWidgetItem* item);
+	void showChecked(QListWidgetItem* item);
 
 private:
 
@@ -114,7 +108,7 @@ private:
 	void configureInterActorStyles(QSharedPointer<iAModality> editModality);
 
 	// TODO: move modalities out of here (mdichild? common data repository?)
-	QSharedPointer<iAModalityList> modalities;
+	QSharedPointer<iAModalityList> m_modalities;
 	QString m_FileName;
 	iAFast3DMagicLensWidget* m_magicLensWidget;
 	bool m_showSlicers;
@@ -122,9 +116,9 @@ private:
 	vtkRenderer* m_mainRenderer;
 	MdiChild* m_mdiChild;
 
-	vtkSmartPointer<iACustomInterActorStyleTrackBall> m_manualMoveStyle[4];
+	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];
 	
-	void AddToList(QSharedPointer<iAModality> mod);
+	void addToList(QSharedPointer<iAModality> mod);
 	//! initialize a modality's transfer function
-	void InitTransfer(QSharedPointer<iAModality> mod);
+	void initTransfer(QSharedPointer<iAModality> mod);
 };

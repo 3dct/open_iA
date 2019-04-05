@@ -177,7 +177,7 @@ QSharedPointer<RandomGenerator> CreateRand(bool log, double min, double max, iAV
 	}
 }
 
-QString iARandomParameterGenerator::GetName() const
+QString iARandomParameterGenerator::name() const
 {
 	return QString("Random");
 }
@@ -282,7 +282,7 @@ QSharedPointer<MyRange> CreateRange(bool log, double min, double max, int count,
 }
 
 
-QString iALatinHypercubeParameterGenerator::GetName() const
+QString iALatinHypercubeParameterGenerator::name() const
 {
 	return QString("Latin HyperCube");
 }
@@ -335,7 +335,7 @@ ParameterSetsPointer iALatinHypercubeParameterGenerator::GetParameterSets(QShare
 	return result;
 }
 
-QString iACartesianGridParameterGenerator::GetName() const
+QString iACartesianGridParameterGenerator::name() const
 {
 	return QString("Cartesian Grid");
 }
@@ -429,7 +429,7 @@ ParameterSetsPointer iASelectionParameterGenerator::GetParameterSets(QSharedPoin
 	return m_parameterSets;
 }
 
-QString iASelectionParameterGenerator::GetName() const
+QString iASelectionParameterGenerator::name() const
 {
 	return m_name;
 }

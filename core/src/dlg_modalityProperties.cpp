@@ -32,27 +32,27 @@
 dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality):
 	dlg_modalityPropertiesUI(parent), m_modality(modality)
 {
-	edName->setText(modality->GetName());
-	edFilename->setText(modality->GetFileName());
+	edName->setText(modality->name());
+	edFilename->setText(modality->fileName());
 
-	if (modality->ComponentCount() > 1)
+	if (modality->componentCount() > 1)
 	{
 		lbChannel->setText("Components");
-		edChannel->setText(QString("%1").arg(modality->ComponentCount()));
+		edChannel->setText(QString("%1").arg(modality->componentCount()));
 	}
 	else
 	{
-		edChannel->setText(QString("%1").arg(modality->GetChannel()));
+		edChannel->setText(QString("%1").arg(modality->channel()));
 	}
 
 	cbMagicLens->setChecked(modality->hasRenderFlag(iAModality::MagicLens));
 	cbBoundingBox->setChecked(modality->hasRenderFlag(iAModality::BoundingBox));
 	cbShowInSlicer->setChecked(modality->hasRenderFlag(iAModality::Slicer));
 
-	double const * orientation = modality->GetRenderer()->GetOrientation();
-	double const * position = modality->GetRenderer()->GetPosition();
-	double const * spacing = modality->GetSpacing();
-	double const * origin = modality->GetOrigin();
+	double const * orientation = modality->renderer()->orientation();
+	double const * position = modality->renderer()->position();
+	double const * spacing = modality->spacing();
+	double const * origin = modality->origin();
 
 	edPositionX   ->setText(QString::number(position[0]));
 	edPositionY   ->setText(QString::number(position[1]));
@@ -67,7 +67,7 @@ dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<
 	edSpacingY    ->setText(QString::number(spacing[1]));
 	edSpacingZ    ->setText(QString::number(spacing[2]));
 
-	iAVolumeSettings const & vs = m_modality->GetRenderer()->getVolumeSettings();
+	iAVolumeSettings const & vs = m_modality->renderer()->volumeSettings();
 	cb_LinearInterpolation->setChecked(vs.LinearInterpolation);
 	cb_Shading->setChecked(vs.Shading);
 	ed_SampleDistance->setText(QString::number(vs.SampleDistance));
@@ -93,9 +93,9 @@ double getValueAndCheck(QLineEdit * le, QString const & caption, QStringList & n
 
 void dlg_modalityProperties::OKButtonClicked()
 {
-	m_modality->SetName(edName->text());
+	m_modality->setName(edName->text());
 	bool hasRenderFlag = m_modality->hasRenderFlag(iAModality::MainRenderer);
-	m_modality->SetRenderFlag(
+	m_modality->setRenderFlag(
 		(cbMagicLens->isChecked() ? iAModality::MagicLens : 0) |
 		(hasRenderFlag ? iAModality::MainRenderer : 0) |
 		(cbBoundingBox->isChecked() ? iAModality::BoundingBox : 0) |
@@ -135,10 +135,10 @@ void dlg_modalityProperties::OKButtonClicked()
 		return;
 	}
 
-	m_modality->SetOrigin(origin);
-	m_modality->SetSpacing(spacing);
-	m_modality->GetRenderer()->SetOrientation(orientation);
-	m_modality->GetRenderer()->SetPosition(position);
-	m_modality->GetRenderer()->ApplySettings(m_volumeSettings);
+	m_modality->setOrigin(origin);
+	m_modality->setSpacing(spacing);
+	m_modality->renderer()->setOrientation(orientation);
+	m_modality->renderer()->setPosition(position);
+	m_modality->renderer()->applySettings(m_volumeSettings);
 	done(QDialog::Accepted);
 }

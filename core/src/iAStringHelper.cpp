@@ -70,7 +70,7 @@ bool Str2Vec3D(QString const & str, double vec[3])
 	return true;
 }
 
-QString Vec3D2String(double* vec)
+QString Vec3D2String(double const * vec)
 {
 	return QString("%1 %2 %3").arg(vec[0]).arg(vec[1]).arg(vec[2]);
 }
