@@ -317,16 +317,10 @@ void MdiChild::enableRenderWindows()	// = image data available
 			setHistogramModality(0);
 			updateProfile();
 		}
-		else  // No histogram/profile for rgb, rgba or vector pixel type images
-		{
-			initVolumeRenderers();
-			QSharedPointer<iAModalityTransfer> modTrans = modality(0)->transfer();
-			for (int s = 0; s < 3; ++s)
-			{
-				m_slicer[s]->addChannel(0, iAChannelData(modality(0)->name(), modality(0)->image(), modTrans->getColorFunction()), false);
-				m_slicer[s]->resetCamera();
-			}
-		}
+		else  // No histogram/profile for rgb, rgba or vector pixel type images,
+		{     // which means the present values are directly used for color anyway,
+			initVolumeRenderers();    // so initialize volume rendering
+		}     // (slicers already initialized before)
 	}
 	// set to true for next time, in case it is false now (i.e. default to always reinitialize,
 	// unless explicitly set otherwise)
