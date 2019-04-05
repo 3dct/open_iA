@@ -703,7 +703,7 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 	double newTol = imgSpc[axis] / 3;
 	if (newTol < curTol)
 		m_pointPicker->SetTolerance(newTol);
-	if (updateSpacing)
+	if (updateSpacing && m_decorations)
 	{
 		setScalarBarTF(chData.getCTF());
 		updatePositionMarkerExtent();
@@ -1155,7 +1155,7 @@ void iASlicer::saveImageStack()
 void iASlicer::updatePositionMarkerExtent()
 {
 	// TODO: how to choose spacing? currently fixed from first image? export all channels?
-	if (m_channels.empty())
+	if (m_channels.empty() || !m_positionMarkerSrc)
 		return;
 	auto imageData = m_channels[0]->input();
 	double spacing[2] = {
@@ -1936,6 +1936,8 @@ vtkScalarBarWidget * iASlicer::getScalarBarWidget()
 
 void iASlicer::setScalarBarTF(vtkScalarsToColors* ctf)
 {
+	if (!m_scalarBarWidget)
+		return;
 	m_scalarBarWidget->GetScalarBarActor()->SetLookupTable(ctf);
 	m_scalarBarWidget->SetEnabled(ctf != nullptr);
 }
