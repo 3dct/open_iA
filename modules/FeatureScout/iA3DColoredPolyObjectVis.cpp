@@ -42,9 +42,9 @@ namespace
 	const size_t NoPointIdx = std::numeric_limits<size_t>::max();
 }
 
-iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, size_t pointsPerObject) :
-	iA3DObjectVis(widget, objectTable, columnMapping),
+	iA3DObjectVis(ren, objectTable, columnMapping),
 	m_colors(vtkSmartPointer<vtkUnsignedCharArray>::New()),
 	m_mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_pointsPerObject(pointsPerObject),
@@ -85,8 +85,8 @@ void iA3DColoredPolyObjectVis::show()
 {
 	if (m_visible)
 		return;
-	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_actor);
-	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->ResetCamera();
+	m_ren->AddActor(m_actor);
+	m_ren->ResetCamera();
 	m_visible = true;
 }
 
@@ -94,7 +94,7 @@ void iA3DColoredPolyObjectVis::hide()
 {
 	if (!m_visible)
 		return;
-	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_actor);
+	m_ren->RemoveActor(m_actor);
 	m_visible = false;
 }
 
@@ -240,13 +240,13 @@ void iA3DColoredPolyObjectVis::setupOriginalIds()
 void iA3DColoredPolyObjectVis::showBoundingBox()
 {
 	m_outlineMapper->Update();
-	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_outlineActor);
+	m_ren->AddActor(m_outlineActor);
 	updateRenderer();
 }
 
 void iA3DColoredPolyObjectVis::hideBoundingBox()
 {
-	m_widget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_outlineActor);
+	m_ren->RemoveActor(m_outlineActor);
 	updateRenderer();
 }
 

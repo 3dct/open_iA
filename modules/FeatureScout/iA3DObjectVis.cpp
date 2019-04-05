@@ -27,18 +27,18 @@
 #include "iA3DNoVis.h"
 #include "iA3DEllipseObjectVis.h"
 
-#include "iAVtkWidget.h"
-
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
 #include <vtkTable.h>
 
 #include <QColor>
 #include <QtMath>
 
-iA3DObjectVis::iA3DObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping ):
-	m_widget(widget),
+iA3DObjectVis::iA3DObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping ):
+	m_ren(ren),
 	m_objectTable(objectTable),
 	m_columnMapping(columnMapping)
 {}
@@ -64,8 +64,7 @@ QColor iA3DObjectVis::getLengthColor( vtkColorTransferFunction* cTFun, size_t ob
 
 void iA3DObjectVis::updateRenderer()
 {
-	m_widget->GetRenderWindow()->Render();
-	m_widget->update();
+	m_ren->Render();
 }
 
 void iA3DObjectVis::show()
@@ -82,14 +81,14 @@ QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi
 	{
 		default:
 		case iACsvConfig::UseVolume:
-			return QSharedPointer<iA3DObjectVis>(new iA3DLabelledVolumeVis(mdi->renderer->vtkWidgetRC, mdi->getColorTransferFunction(),
+			return QSharedPointer<iA3DObjectVis>(new iA3DLabelledVolumeVis(mdi->renderer->vtkWidgetRC->GetRenderWindow()->GetRenderers()->GetFirstRenderer(), mdi->getColorTransferFunction(),
 				mdi->getPiecewiseFunction(), table, columnMapping, mdi->getImagePointer()->GetBounds()));
 		case iACsvConfig::Lines:
-			return QSharedPointer<iA3DObjectVis>(new iA3DLineObjectVis(mdi->renderer->vtkWidgetRC, table, columnMapping, color));
+			return QSharedPointer<iA3DObjectVis>(new iA3DLineObjectVis(mdi->renderer->vtkWidgetRC->GetRenderWindow()->GetRenderers()->GetFirstRenderer(), table, columnMapping, color));
 		case iACsvConfig::Cylinders:
-			return QSharedPointer<iA3DObjectVis>(new iA3DCylinderObjectVis(mdi->renderer->vtkWidgetRC, table, columnMapping, color));
+			return QSharedPointer<iA3DObjectVis>(new iA3DCylinderObjectVis(mdi->renderer->vtkWidgetRC->GetRenderWindow()->GetRenderers()->GetFirstRenderer(), table, columnMapping, color));
 		case iACsvConfig::Ellipses:
-			return QSharedPointer<iA3DObjectVis>(new iA3DEllipseObjectVis(mdi->renderer->vtkWidgetRC, table, columnMapping, color));
+			return QSharedPointer<iA3DObjectVis>(new iA3DEllipseObjectVis(mdi->renderer->vtkWidgetRC->GetRenderWindow()->GetRenderers()->GetFirstRenderer(), table, columnMapping, color));
 		case iACsvConfig::NoVis:
 			return QSharedPointer<iA3DObjectVis>(new iA3DNoVis());
 	}

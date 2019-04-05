@@ -31,9 +31,9 @@
 #include <vtkTable.h>
 
 
-iA3DCylinderObjectVis::iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, int numberOfCylinderSides ):
-	iA3DLineObjectVis( widget, objectTable, columnMapping, color ),
+	iA3DLineObjectVis( ren, objectTable, columnMapping, color ),
 	m_objectCount(objectTable->GetNumberOfRows()),
 	m_contextFactors(nullptr),
 	m_contextDiameterFactor(1.0)

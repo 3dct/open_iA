@@ -34,7 +34,7 @@ private:
 	float m_contextDiameterFactor;
 public:
 	static const int DefaultNumberOfCylinderSides = 12;
-	iA3DCylinderObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+	iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 		QColor const & color, int numberOfCylinderSides = DefaultNumberOfCylinderSides);
 	void setDiameterFactor(double diameterFactor);
 	void setContextDiameterFactor(double contextDiameterFactor);
