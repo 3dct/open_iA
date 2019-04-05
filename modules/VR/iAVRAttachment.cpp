@@ -24,6 +24,7 @@
 #include <iAModalityTransfer.h>
 #include <iAVolumeRenderer.h>
 
+#include <vtkNamedColors.h>
 #include <vtkOpenVRRenderer.h>
 #include <vtkOpenVRRenderWindow.h>
 #include <vtkOpenVRRenderWindowInteractor.h>
@@ -45,14 +46,21 @@ iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, iAChildData childData )
 
 	m_interactor->SetRenderWindow(m_renderWindow);
 	m_renderer->SetActiveCamera(m_camera);
+	auto colors = vtkSmartPointer<vtkNamedColors>::New();
+	m_renderer->SetBackground(colors->GetColor3d("ForestGreen").GetData());
 
 	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(mdiChild->GetModality(0)->GetTransfer().get(), mdiChild->GetModality(0)->GetImage()));
+	//iAVolumeSettings volSet;
+	//volSet.RenderMode = 2;
+	//m_volumeRenderer->ApplySettings(volSet);
 
 	m_volumeRenderer->AddTo(m_renderer);
+	m_volumeRenderer->AddBoundingBoxTo(m_renderer);
 
+	m_renderer->ResetCamera();
 
 	//iADockWidgetWrapper* wrapper = new iADockWidgetWrapper
 	m_renderWindow->Render();
-	//m_interactor->Start();
+	m_interactor->Start();
 }
 
