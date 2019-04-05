@@ -29,10 +29,14 @@
 class iAVolumeRenderer;
 class MainWindow;
 
+class iA3DCylinderObjectVis;
+
 class vtkOpenVRCamera;
 class vtkOpenVRRenderer;
 class vtkOpenVRRenderWindow;
 class vtkOpenVRRenderWindowInteractor;
+
+class vtkTable;
 
 class iAVRAttachment : public iAModuleAttachmentToChild
 {
@@ -45,4 +49,7 @@ private:
 	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
 	vtkSmartPointer<vtkOpenVRCamera>                 m_camera;
 	QSharedPointer<iAVolumeRenderer>                 m_volumeRenderer;
+
+	QSharedPointer<iA3DCylinderObjectVis> m_cylinderVis;
+	vtkSmartPointer<vtkTable> m_objectTable;
 };

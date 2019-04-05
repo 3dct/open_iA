@@ -20,6 +20,13 @@
 * ************************************************************************************/
 #include "iAVRAttachment.h"
 
+// FeatureScout - 3D cylinder visualization
+#include "dlg_CSVInput.h"
+#include "iA3DCylinderObjectVis.h"
+#include "iACsvConfig.h"
+#include "iACsvVtkTableCreator.h"
+
+#include <dlg_commoninput.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
 #include <iAVolumeRenderer.h>
@@ -30,8 +37,12 @@
 #include <vtkOpenVRRenderWindowInteractor.h>
 #include <vtkOpenVRCamera.h>
 
+#include <vtkFloatArray.h>
+#include <vtkTable.h>
+
 // must be after vtk includes, otherwise -> #error:  gl.h included before glew.h
 #include <mdichild.h>
+#include <mainwindow.h>
 
 iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, iAChildData childData )
 	: iAModuleAttachmentToChild( mainWnd, childData ), 
@@ -49,17 +60,33 @@ iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, iAChildData childData )
 	auto colors = vtkSmartPointer<vtkNamedColors>::New();
 	m_renderer->SetBackground(colors->GetColor3d("ForestGreen").GetData());
 
-	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(mdiChild->GetModality(0)->GetTransfer().get(), mdiChild->GetModality(0)->GetImage()));
+	// Volume rendering doesn't seem to work at the moment:
+	//m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(mdiChild->GetModality(0)->GetTransfer().get(), mdiChild->GetModality(0)->GetImage()));
 	//iAVolumeSettings volSet;
 	//volSet.RenderMode = 2;
 	//m_volumeRenderer->ApplySettings(volSet);
 
-	m_volumeRenderer->AddTo(m_renderer);
-	m_volumeRenderer->AddBoundingBoxTo(m_renderer);
+	//m_volumeRenderer->AddTo(m_renderer);
+	//m_volumeRenderer->AddBoundingBoxTo(m_renderer);
 
-	m_renderer->ResetCamera();
+	//m_renderer->ResetCamera();
 
-	//iADockWidgetWrapper* wrapper = new iADockWidgetWrapper
+	dlg_CSVInput dlg(false);
+	if (dlg.exec() != QDialog::Accepted)
+		return;
+	iACsvConfig csvConfig = dlg.getConfig();
+	if (csvConfig.visType == iACsvConfig::UseVolume)
+		return;
+
+	iACsvVtkTableCreator creator;
+	iACsvIO io;
+	if (!io.loadCSV(creator, csvConfig))
+		return;
+
+	m_objectTable = creator.getTable();
+	m_cylinderVis.reset(new iA3DCylinderObjectVis(m_renderer.Get(), m_objectTable, io.getOutputMapping(), QColor(255, 0, 0), 12));
+	m_cylinderVis->show();
+
 	m_renderWindow->Render();
 	m_interactor->Start();
 }
