@@ -199,9 +199,9 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			dlgParamValues << mdiChildrenNames;
 		}
 	}
-	QTextDocument *fDescr = new QTextDocument(0);
-	fDescr->setHtml(filter->Description());
-	dlg_commoninput dlg(mainWnd, filter->Name(), dlgParamNames, dlgParamValues, fDescr);
+	QTextDocument descr;
+	descr.setHtml(filter->Description());
+	dlg_commoninput dlg(mainWnd, filter->Name(), dlgParamNames, dlgParamValues, &descr);
 	dlg.setModal(false);
 	dlg.hide();	dlg.show(); // required to apply change in modality!
 	dlg.setSourceMdi(sourceMdi, mainWnd);

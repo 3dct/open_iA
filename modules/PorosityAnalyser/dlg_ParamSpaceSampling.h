@@ -28,13 +28,13 @@
 #include <QString>
 #include <QStringList>
 #include <QList>
-#include <QTextDocument>
-#include <QTextEdit>
 
 class QWidget;
 class QErrorMessage;
 class QLabel;
 class QScrollArea;
+class QTextDocument;
+class QTextEdit;
 
 const int MAX_PEAK = 8000;
 

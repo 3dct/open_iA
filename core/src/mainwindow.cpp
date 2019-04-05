@@ -58,6 +58,7 @@
 #include <QSettings>
 #include <QSignalMapper>
 #include <QSplashScreen>
+#include <QTextDocument>
 #include <QTextStream>
 #include <QTimer>
 #include <QtXml/QDomDocument>
@@ -1159,6 +1160,7 @@ void MainWindow::prefs()
 
 		iAConsole::GetInstance()->SetLogToFile(logToFile, logFileName, true);
 	}
+	delete fDescr;
 }
 
 void MainWindow::renderSettings()

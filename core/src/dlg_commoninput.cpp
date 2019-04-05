@@ -37,17 +37,18 @@
 #include <QErrorMessage>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPlainTextEdit>
 #include <QSpinBox>
 #include <QScrollArea>
 #include <QTextBrowser>
-#include <QPlainTextEdit>
+#include <QTextDocument>
 
 enum ContainerSize {
 	WIDTH=530, HEIGHT=600
 };
 
 
-dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr)
+dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & winTitle, QStringList const & inList, QList<QVariant> const & inPara, QTextDocument *fDescr)
 	: QDialog(parent),
 	m_sourceMdiChild(nullptr),
 	m_sourceMdiChildClosed(false),

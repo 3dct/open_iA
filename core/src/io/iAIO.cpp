@@ -70,6 +70,7 @@
 #include <QFileDialog>
 #include <QSettings>
 #include <QStringList>
+#include <QTextDocument>
 #include <QTextStream>
 
 #ifdef USE_HDF5
@@ -1660,7 +1661,9 @@ bool iAIO::setupStackReader( QString f )
 		<< tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
 		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]));
 
-	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, NULL);
+	QTextDocument descr;
+	descr.setHtml("Please check these automatically determined settings:");
+	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, &descr);
 	if (dlg.exec() != QDialog::Accepted)
 		return false;
 
