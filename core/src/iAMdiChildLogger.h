@@ -28,12 +28,12 @@ class MdiChild;
 
 //! simple wrapper class to decouple logging from the GUI
 //! regarding threads
-class MdiChildLogger : public QObject, public iALogger
+class iAMdiChildLogger : public QObject, public iALogger
 {
 	Q_OBJECT
 public:
-	MdiChildLogger(MdiChild* mdiChild);
-	virtual void Log(QString const & msg);
+	iAMdiChildLogger(MdiChild* mdiChild);
+	void log(QString const & msg) override;
 signals:
 	void logSignal(QString msg);
 };

@@ -156,7 +156,7 @@ iADetailView::iADetailView(
 	m_lvLegend->setStyleSheet("border: none; outline:none;");
 	m_detailText->setStyleSheet("border: none; outline:none;");
 
-	m_compareWidget->SetImage(m_nullImage, true, false);
+	m_compareWidget->setImage(m_nullImage, true, false);
 
 	QWidget* buttonBarStandin = new QWidget();
 	buttonBarStandin->setFixedHeight(25);
@@ -340,10 +340,10 @@ void iADetailView::UpdateLikeHate(bool isLike, bool isHate)
 
 QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int id)
 {
-	switch(attributes->at(id)->ValueType())
+	switch(attributes->at(id)->valueType())
 	{
 		case Discrete:    return QString::number(static_cast<int>(value)); break;
-		case Categorical: return attributes->at(id)->NameMapper()->name(static_cast<int>(value)); break;
+		case Categorical: return attributes->at(id)->nameMapper()->name(static_cast<int>(value)); break;
 		default:          return QString::number(value); break;
 	}
 }
@@ -354,7 +354,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 	iAChartAttributeMapper const & mapper)
 {
 	m_node = node;
-	SetImage();
+	setImage();
 	m_showingClusterRepresentative = !node->IsLeaf();
 	m_pbGoto->setVisible(node->IsLeaf());
 	update();
@@ -371,7 +371,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 			double value = node->GetAttribute(attributeID);
 			QString valueStr = attrValueStr(value, attributes, attributeID);
 
-			m_detailText->append(attributes->at(attributeID)->Name() + " = " + valueStr);
+			m_detailText->append(attributes->at(attributeID)->name() + " = " + valueStr);
 		}
 	}
 	else
@@ -386,7 +386,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 		{
 			for (int chartID = 0; chartID < allAttributes->size(); ++chartID)
 			{
-				if (allAttributes->at(chartID)->ValueType() != Categorical)
+				if (allAttributes->at(chartID)->valueType() != Categorical)
 				{
 					double min,	max;
 					GetClusterMinMax(node, chartID, min, max, mapper);
@@ -396,7 +396,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 						QString minStr = attrValueStr(min, allAttributes, chartID);
 						QString maxStr = attrValueStr(max, allAttributes, chartID);
 						QString rangeStr = (minStr == maxStr) ? minStr : "[" + minStr + ".." + maxStr + "]";
-						m_detailText->append(allAttributes->at(chartID)->Name() + ": " + rangeStr);
+						m_detailText->append(allAttributes->at(chartID)->name() + ": " + rangeStr);
 					}
 				}
 				// else { } // collect list of all categorical values used!
@@ -417,15 +417,15 @@ void iADetailView::SetCompareNode(iAImageTreeNode const * node)
 	{
 		return;
 	}
-	auto pixelType = GetITKScalarPixelType(img);
-	m_compareWidget->SetImage(img ?
+	auto pixelType = itkScalarPixelType(img);
+	m_compareWidget->setImage(img ?
 		img : m_nullImage,
 		!img,
 		(pixelType != itk::ImageIOBase::FLOAT && pixelType != itk::ImageIOBase::DOUBLE));
 
 	iAConnector con;
-	con.SetImage(img);
-	vtkSmartPointer<vtkImageData> vtkImg = con.GetVTKImage();
+	con.setImage(img);
+	vtkSmartPointer<vtkImageData> vtkImg = con.vtkImage();
 	// determine CTF/OTF from image / settings?
 	vtkColorTransferFunction* ctf = m_compareWidget->GetCTF().GetPointer();
 	vtkPiecewiseFunction* otf = GetDefaultOTF(vtkImg);
@@ -491,7 +491,7 @@ void iADetailView::SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme cons
 void iADetailView::SetRepresentativeType(int representativeType)
 {
 	m_representativeType = representativeType;
-	SetImage();
+	setImage();
 }
 
 
@@ -526,7 +526,7 @@ void iADetailView::SetRefImg(LabelImagePointer refImg)
 }
 
 
-void iADetailView::SetImage()
+void iADetailView::setImage()
 {
 	ClusterImageType img = m_node->GetRepresentativeImage(m_representativeType, m_refImg);
 	if (!img)
@@ -541,7 +541,7 @@ void iADetailView::SetImage()
 	itk::Index<3> idx = region.GetIndex();
 	m_dimensions[0] = size[0]; m_dimensions[1] = size[1]; m_dimensions[2] = size[2];
 	// }
-	m_previewWidget->SetImage(img ?
+	m_previewWidget->setImage(img ?
 		img : m_nullImage,
 		!img,
 		(m_node->IsLeaf() && m_representativeType != AverageEntropy) || m_representativeType == Difference || m_representativeType == AverageLabel);
@@ -742,8 +742,8 @@ void iADetailView::UpdateComparisonNumbers()
 		m_cmpDetailsLabel->setText("Right image is not of int type!");
 		return;
 	}
-	iAConnector leftCon;  leftCon.SetImage(left);  auto itkLeft = dynamic_cast<LabelImageType*>(leftCon.GetITKImage());
-	iAConnector rightCon; rightCon.SetImage(right); auto itkRight = dynamic_cast<LabelImageType*>(rightCon.GetITKImage());
+	iAConnector leftCon;  leftCon.setImage(left);  auto itkLeft = dynamic_cast<LabelImageType*>(leftCon.itkImage());
+	iAConnector rightCon; rightCon.setImage(right); auto itkRight = dynamic_cast<LabelImageType*>(rightCon.itkImage());
 
 	if (!itkLeft)
 	{

@@ -697,7 +697,7 @@ void dlg_XRF::loadDecomposition()
 	io.start();
 	io.wait();
 
-	QString elementNames = io.getAdditionalInfo();
+	QString elementNames = io.additionalInfo();
 	QStringList elements = elementNames.split(",");
 	
 	elements.replaceInStrings(QRegExp("^\\s+"), ""); // trim whitespaces
@@ -1129,9 +1129,9 @@ void dlg_XRF::computeSimilarityMap()
 	ImageType3D ** images = new ImageType3D*[numEBins];
 	for (int i=0; i<numEBins; ++i)
 	{
-		connectors[i].SetImage( ( *m_xrfData->GetDataPtr() )[i] ); 
-		connectors[i].Modified();
-		images[i] = dynamic_cast <ImageType3D*> ( connectors[i].GetITKImage() );
+		connectors[i].setImage( ( *m_xrfData->GetDataPtr() )[i] ); 
+		connectors[i].modified();
+		images[i] = dynamic_cast <ImageType3D*> ( connectors[i].itkImage() );
 	}
 	
 // 	//extract slice from 3D

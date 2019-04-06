@@ -1985,8 +1985,8 @@ void dlg_FeatureScout::ExportClassButton()
 		return;
 	iAConnector con;
 	auto img_data = activeChild->imagePointer();
-	con.SetImage(img_data);
-	ITK_TYPED_CALL(CreateLabelledOutputMask, con.GetITKScalarPixelType(), con, fileName);
+	con.setImage(img_data);
+	ITK_TYPED_CALL(CreateLabelledOutputMask, con.itkScalarPixelType(), con, fileName);
 }
 
 template <class T>
@@ -2038,10 +2038,10 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 		fiberIDLabelling = false;
 	}
 
-	auto in_img = dynamic_cast<InputImageType*>(con.GetITKImage());
+	auto in_img = dynamic_cast<InputImageType*>(con.itkImage());
 	auto region_in = in_img->GetLargestPossibleRegion();
 	const OutputImageType::SpacingType outSpacing = in_img ->GetSpacing();
-	auto out_img = CreateImage<OutputImageType>(region_in.GetSize(), outSpacing);
+	auto out_img = createImage<OutputImageType>(region_in.GetSize(), outSpacing);
 	itk::ImageRegionConstIterator<InputImageType> in(in_img, region_in);
 	itk::ImageRegionIterator<OutputImageType> out(out_img, region_in);
 	while (!in.IsAtEnd())
@@ -2065,7 +2065,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector & con, const QString
 		++in;
 		++out;
 	}
-	StoreImage<OutputImageType>(out_img, fOutPath, activeChild->preferences().Compression);
+	storeImage<OutputImageType>(out_img, fOutPath, activeChild->preferences().Compression);
 	activeChild->addMsg("Stored image of of classes.");
 }
 

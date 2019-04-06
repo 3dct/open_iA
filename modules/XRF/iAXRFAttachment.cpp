@@ -208,7 +208,7 @@ void iAXRFAttachment::xrfLoadingDone()
 	double minEnergy = 0;
 	double maxEnergy = dlgXRF->GetXRFData()->size();
 	bool haveEnergyLevels = false;
-	QString energyRange = ioThread->getAdditionalInfo();
+	QString energyRange = ioThread->additionalInfo();
 	if( !energyRange.isEmpty() )
 	{
 		QStringList energies = energyRange.split( ":" );

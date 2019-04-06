@@ -30,7 +30,7 @@ void iAParameterExplorerModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
 	QAction * actionExplore = new QAction( m_mainWnd );
 	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));

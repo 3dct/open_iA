@@ -190,7 +190,7 @@ vtkImageData * iAImagePreviewWidget::image() const
 	//return m_slicer->GetImageData();
 }
 
-void iAImagePreviewWidget::SetImage(vtkSmartPointer<vtkImageData> img, bool empty, bool isLabelImg)
+void iAImagePreviewWidget::setImage(vtkSmartPointer<vtkImageData> img, bool empty, bool isLabelImg)
 {
 	m_isLabelImage = isLabelImg;
 	m_empty = empty;
@@ -214,19 +214,19 @@ void iAImagePreviewWidget::SetImage(vtkSmartPointer<vtkImageData> img, bool empt
 	UpdateImage();
 }
 
-void iAImagePreviewWidget::SetImage(iAITKIO::ImagePointer const img, bool empty, bool isLabelImg)
+void iAImagePreviewWidget::setImage(iAITKIO::ImagePointer const img, bool empty, bool isLabelImg)
 {
 	if (!img)
 	{
-		DEBUG_LOG("iAImagePreviewWidget::SetImage called with NULL image!\n");
+		DEBUG_LOG("iAImagePreviewWidget::setImage called with NULL image!\n");
 		return;
 	}
 	if (!m_conn)
 	{
 		m_conn = new iAConnector;
 	}
-	m_conn->SetImage(img);
-	SetImage(m_conn->GetVTKImage(), empty, isLabelImg);
+	m_conn->setImage(img);
+	setImage(m_conn->vtkImage(), empty, isLabelImg);
 }
 
 void iAImagePreviewWidget::AddNoMapperChannel(vtkSmartPointer<vtkImageData> img)

@@ -32,29 +32,29 @@ class QString;
 class QStringList;
 
 // image creation:
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3]);
-open_iA_Core_API vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents);
+open_iA_Core_API vtkSmartPointer<vtkImageData> allocateImage(vtkSmartPointer<vtkImageData> img);
+open_iA_Core_API vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const dimensions[3], double const spacing[3]);
+open_iA_Core_API vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents);
 
 // image I/O (using ITK methods of iAITKIO)
-open_iA_Core_API void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
-open_iA_Core_API vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFlag);
+open_iA_Core_API void storeImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
+open_iA_Core_API vtkSmartPointer<vtkImageData> readImage(QString const & filename, bool releaseFlag);
 
-open_iA_Core_API void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData);
+open_iA_Core_API void writeSingleSliceImage(QString const & filename, vtkImageData* imageData);
 
-open_iA_Core_API int MapVTKTypeStringToInt(QString const & vtkTypeName);
+open_iA_Core_API int mapVTKTypeStringToInt(QString const & vtkTypeName);
 
-open_iA_Core_API int MapVTKTypeStringToSize(QString const & vtkTypeString);
+open_iA_Core_API int mapVTKTypeStringToSize(QString const & vtkTypeString);
 
-open_iA_Core_API vtkSmartPointer<vtkImageData> CastVTKImage(vtkSmartPointer<vtkImageData> img, int DestType);
+open_iA_Core_API vtkSmartPointer<vtkImageData> castVTKImage(vtkSmartPointer<vtkImageData> img, int DestType);
 
 open_iA_Core_API bool isVtkIntegerType(int type);
 
-open_iA_Core_API QStringList const & VTKDataTypeList();
+open_iA_Core_API QStringList const & vtkDataTypeList();
 
 open_iA_Core_API QMap<int, QString> const & RenderModeMap();
 
-open_iA_Core_API int MapRenderModeToEnum(QString const &);
+open_iA_Core_API int mapRenderModeToEnum(QString const &);
 
 #define FOR_VTKIMG_PIXELS(img, x, y, z) \
 for (int z = 0; z < img->GetDimensions()[2]; ++z) \

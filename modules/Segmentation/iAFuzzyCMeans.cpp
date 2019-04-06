@@ -43,44 +43,43 @@ typedef itk::Image<ProbabilityPixelType, DIM> ScalarProbabilityImageType;
 typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ScalarProbabilityImageType> IndexSelectionType;
 typedef itk::FuzzyClassifierImageFilter<VectorImageType, LabelPixelType> TLabelClassifier;
 
-
-void SetProbabilities(VectorImageType::Pointer vectorImg, iAFilter* filter)
-{
-	for (int p = 0; p < vectorImg->GetVectorLength(); ++p)
-	{
-		auto indexSelectionFilter = IndexSelectionType::New();
-		indexSelectionFilter->SetIndex(p);
-		indexSelectionFilter->SetInput(vectorImg);
-		indexSelectionFilter->Update();
-		filter->AddOutput(indexSelectionFilter->GetOutput());
-	}
-}
-
 namespace
 {
-	void AddFCMParameters(iAFilter & filter)
+	void setProbabilities(VectorImageType::Pointer vectorImg, iAFilter* filter)
 	{
-		filter.AddParameter("Maximum Iterations", Discrete, 500, 1);
-		filter.AddParameter("Maximum Error", Continuous, 0.0001);
-		filter.AddParameter("M", Continuous, 2, 1.0+std::numeric_limits<double>::epsilon());	// must be larger than 1.0, 1.0 would cause division by zero
-		filter.AddParameter("Number of Classes", Discrete, 2, 1);
-		filter.AddParameter("Centroids", String, "0 1");
-		filter.AddParameter("Ignore Background", Boolean, false);
-		filter.AddParameter("Background Value", Continuous, 0);
-		filter.AddParameter("Number of Threads", Discrete, 4, 1);
+		for (int p = 0; p < vectorImg->GetVectorLength(); ++p)
+		{
+			auto indexSelectionFilter = IndexSelectionType::New();
+			indexSelectionFilter->SetIndex(p);
+			indexSelectionFilter->SetInput(vectorImg);
+			indexSelectionFilter->Update();
+			filter->addOutput(indexSelectionFilter->GetOutput());
+		}
 	}
 
-	void AddKFCMParameters(iAFilter & filter)
+	void addFCMParameters(iAFilter & filter)
 	{
-		AddFCMParameters(filter);
-		filter.AddParameter("Alpha", Continuous, 1);
-		filter.AddParameter("Sigma", Continuous, 1);
-		filter.AddParameter("StructRadius X", Discrete, 1, 1);
-		filter.AddParameter("StructRadius Y", Discrete, 1, 1);
-		filter.AddParameter("StructRadius Z", Discrete, 1, 1);	// (Vector Type ? )
+		filter.addParameter("Maximum Iterations", Discrete, 500, 1);
+		filter.addParameter("Maximum Error", Continuous, 0.0001);
+		filter.addParameter("M", Continuous, 2, 1.0+std::numeric_limits<double>::epsilon());	// must be larger than 1.0, 1.0 would cause division by zero
+		filter.addParameter("Number of Classes", Discrete, 2, 1);
+		filter.addParameter("Centroids", String, "0 1");
+		filter.addParameter("Ignore Background", Boolean, false);
+		filter.addParameter("Background Value", Continuous, 0);
+		filter.addParameter("Number of Threads", Discrete, 4, 1);
 	}
 
-	bool ConvertStringToCentroids(QString centroidString, unsigned int numberOfClasses, QVector<double> & centroids)
+	void addKFCMParameters(iAFilter & filter)
+	{
+		addFCMParameters(filter);
+		filter.addParameter("Alpha", Continuous, 1);
+		filter.addParameter("Sigma", Continuous, 1);
+		filter.addParameter("StructRadius X", Discrete, 1, 1);
+		filter.addParameter("StructRadius Y", Discrete, 1, 1);
+		filter.addParameter("StructRadius Z", Discrete, 1, 1);	// (Vector Type ? )
+	}
+
+	bool convertStringToCentroids(QString centroidString, unsigned int numberOfClasses, QVector<double> & centroids)
 	{
 		auto centroidStringList = centroidString.split(" ");
 		if (centroidStringList.size() != numberOfClasses)
@@ -102,11 +101,11 @@ namespace
 		return true;
 	}
 
-	bool CheckFCMParameters(QMap<QString, QVariant> parameters)
+	bool checkFCMParameters(QMap<QString, QVariant> parameters)
 	{
 		unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 		QVector<double> centroids;
-		return ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
+		return convertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
 	}
 }
 
@@ -122,9 +121,9 @@ void fcm(iAFilter* filter, QMap<QString, QVariant> const & params)
 
 	unsigned int numberOfClasses = params["Number of Classes"].toUInt();
 	QVector<double> centroids;
-	ConvertStringToCentroids(params["Centroids"].toString(), numberOfClasses, centroids);
+	convertStringToCentroids(params["Centroids"].toString(), numberOfClasses, centroids);
 	auto classifier = TClassifierFCM::New();
-	filter->Progress()->Observe(classifier);
+	filter->progress()->Observe(classifier);
 	classifier->SetMaximumNumberOfIterations(params["Maximum Iterations"].toUInt());
 	classifier->SetMaximumError(params["Maximum Error"].toDouble());
 	classifier->SetM(params["M"].toDouble());
@@ -138,13 +137,13 @@ void fcm(iAFilter* filter, QMap<QString, QVariant> const & params)
 	classifier->SetCentroids(centroidsArray);
 	classifier->SetIgnoreBackgroundPixels(params["Ignore Background"].toBool());
 	classifier->SetBackgroundPixel(params["Background Value"].toDouble());
-	classifier->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
-	filter->AddOutput(labelClass->GetOutput());
-	SetProbabilities(probs, filter);
+	filter->addOutput(labelClass->GetOutput());
+	setProbabilities(probs, filter);
 }
 
 IAFILTER_CREATE(iAFCMFilter)
@@ -156,17 +155,17 @@ iAFCMFilter::iAFCMFilter() :
 		"c-means clustering algorithm\" (Computers & Geosciences, 10 (2), 191-203., "
 		"1984).")
 {
-	AddFCMParameters(*this);
+	addFCMParameters(*this);
 }
 
-bool iAFCMFilter::CheckParameters(QMap<QString, QVariant> & parameters)
+bool iAFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
 {
-	return iAFilter::CheckParameters(parameters) && CheckFCMParameters(parameters);
+	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }
 
-void iAFCMFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(fcm, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(fcm, inputPixelType(), this, parameters);
 }
 
 
@@ -181,12 +180,12 @@ iAKFCMFilter::iAKFCMFilter() :
 		"FCM with spatial constraints based on new kernel - induced distance measure\". Systems, Man, and "
 		"Cybernetics, Part B : Cybernetics, IEEE Transactions on, 34(4) : 1907–1916, 2004. 1, 2.2")
 {
-	AddKFCMParameters(*this);
+	addKFCMParameters(*this);
 }
 
-bool iAKFCMFilter::CheckParameters(QMap<QString, QVariant> & parameters)
+bool iAKFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
 {
-	return iAFilter::CheckParameters(parameters) && CheckFCMParameters(parameters);
+	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }
 
 template <typename InputPixelType>
@@ -194,7 +193,7 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QVector<double> centroids;
-	ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
+	convertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
 	unsigned int seRadius[3] = {
 		parameters["StructRadius X"].toUInt(),
 		parameters["StructRadius Y"].toUInt(),
@@ -209,7 +208,7 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	typedef itk::FlatStructuringElement<DIM> StructuringElementType;
 
 	auto classifier = TClassifierKFCMS::New();
-	filter->Progress()->Observe(classifier);
+	filter->progress()->Observe(classifier);
 	classifier->SetMaximumNumberOfIterations(parameters["Maximum Iterations"].toUInt());
 	classifier->SetMaximumError(parameters["Maximum Error"].toDouble());
 	classifier->SetM(parameters["M"].toDouble());
@@ -236,19 +235,19 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	classifier->SetStructuringElement(structuringElement);
 	classifier->SetIgnoreBackgroundPixels(parameters["Ignore Background"].toBool());
 	classifier->SetBackgroundPixel(parameters["Background Value"].toDouble());
-	classifier->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	labelClass->Update();
-	filter->AddOutput(labelClass->GetOutput());
-	SetProbabilities(probs, filter);
+	filter->addOutput(labelClass->GetOutput());
+	setProbabilities(probs, filter);
 }
 
-void iAKFCMFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(kfcm, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(kfcm, inputPixelType(), this, parameters);
 }
 
 
@@ -265,14 +264,14 @@ iAMSKFCMFilter::iAMSKFCMFilter() :
 		"kernelized - spatial fuzzy c-means algorithm\" (Proc. of 10th IEEE Int. Conf. "
 		"On Inf.Tech. and Appl.in Biom., Corfu, Greece, 2010).")
 {
-	AddKFCMParameters(*this);
-	AddParameter("P", Continuous, 2);
-	AddParameter("Q", Continuous, 1);
+	addKFCMParameters(*this);
+	addParameter("P", Continuous, 2);
+	addParameter("Q", Continuous, 1);
 }
 
-bool iAMSKFCMFilter::CheckParameters(QMap<QString, QVariant> & parameters)
+bool iAMSKFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
 {
-	return iAFilter::CheckParameters(parameters) && CheckFCMParameters(parameters);
+	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }
 
 template <typename InputPixelType>
@@ -285,14 +284,14 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 	unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 	QVector<double> centroids;
-	ConvertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
+	convertStringToCentroids(parameters["Centroids"].toString(), numberOfClasses, centroids);
 	unsigned int seRadius[3] = {
 		parameters["StructRadius X"].toUInt(),
 		parameters["StructRadius Y"].toUInt(),
 		parameters["StructRadius Z"].toUInt()
 	};
 	auto classifier = TClassifierMSKFCM::New();
-	filter->Progress()->Observe(classifier);
+	filter->progress()->Observe(classifier);
 	classifier->SetMaximumNumberOfIterations(parameters["Maximum Iterations"].toUInt());
 	classifier->SetMaximumError(parameters["Maximum Error"].toDouble());
 	classifier->SetM(parameters["M"].toDouble());
@@ -326,17 +325,17 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	classifier->SetStructuringElement(structuringElement);
 	classifier->SetIgnoreBackgroundPixels(parameters["Ignore Background"].toBool());
 	classifier->SetBackgroundPixel(parameters["Background Value"].toDouble());
-	classifier->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	auto labelClass = TLabelClassifier::New();
 	labelClass->SetInput(probs);
 	labelClass->Update();
-	filter->AddOutput(labelClass->GetOutput());
-	SetProbabilities(probs, filter);
+	filter->addOutput(labelClass->GetOutput());
+	setProbabilities(probs, filter);
 }
 
-void iAMSKFCMFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAMSKFCMFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(mskfcm, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(mskfcm, inputPixelType(), this, parameters);
 }

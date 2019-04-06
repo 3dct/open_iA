@@ -31,7 +31,7 @@ void iAGPU_DreamcasterToolModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionDreamcaster_Open_file = new QAction( m_mainWnd );
 	actionDreamcaster_Open_file->setText( QApplication::translate( "MainWindow", "Dreamcaster", 0 ) );
 	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionDreamcaster_Open_file, false );

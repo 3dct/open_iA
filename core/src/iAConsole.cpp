@@ -35,11 +35,11 @@
 iALogger* iAGlobalLogger::m_globalLogger(nullptr);
 
 
-void iAGlobalLogger::SetLogger(iALogger* logger)
+void iAGlobalLogger::setLogger(iALogger* logger)
 {
 	m_globalLogger = logger;
 }
-iALogger* iAGlobalLogger::Get()
+iALogger* iAGlobalLogger::get()
 {
 	return m_globalLogger;
 }
@@ -47,12 +47,12 @@ iALogger* iAGlobalLogger::Get()
 
 // iAConsole
 
-void iAConsole::Log(QString const & text)
+void iAConsole::log(QString const & text)
 {
-	emit LogSignal(text);
+	emit logSignal(text);
 }
 
-void iAConsole::LogSlot(QString const & text)
+void iAConsole::logSlot(QString const & text)
 {
 	// The log window prevents the whole application from shutting down
 	// if it is still open at the time the program should exit.
@@ -87,28 +87,28 @@ void iAConsole::LogSlot(QString const & text)
 	}
 }
 
-void iAConsole::SetLogToFile(bool value, QString const & fileName, bool verbose)
+void iAConsole::setLogToFile(bool value, QString const & fileName, bool verbose)
 {
 	if (verbose && m_logToFile != value)
 	{
-		LogSlot(QString("%1 logging to file '%2'...").arg(value ? "Enabling" : "Disabling").arg(m_logFileName));
+		logSlot(QString("%1 logging to file '%2'...").arg(value ? "Enabling" : "Disabling").arg(m_logFileName));
 	}
 	m_logToFile = value;
 	m_logFileName = fileName;
 }
 
-bool iAConsole::IsLogToFileOn() const
+bool iAConsole::isLogToFileOn() const
 {
 	return m_logToFile;
 }
 
 
-bool iAConsole::IsFileLogError() const
+bool iAConsole::isFileLogError() const
 {
 	return m_fileLogError;
 }
 
-QString iAConsole::GetLogFileName() const
+QString iAConsole::logFileName() const
 {
 	return m_logFileName;
 }
@@ -126,7 +126,7 @@ iAConsole::iAConsole() :
 	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
 	itk::OutputWindow::SetInstance(m_itkOutputWindow);
 
-	connect(this, SIGNAL(LogSignal(QString const &)), this, SLOT(LogSlot(QString const &)));
+	connect(this, SIGNAL(logSignal(QString const &)), this, SLOT(logSlot(QString const &)));
 }
 
 iAConsole::~iAConsole()
@@ -134,10 +134,10 @@ iAConsole::~iAConsole()
 	delete m_console;
 }
 
-iAConsole* iAConsole::GetInstance()
+iAConsole* iAConsole::instance()
 {
-	static iAConsole instance;
-	return &instance;
+	static iAConsole s_instance;
+	return &s_instance;
 }
 
 
@@ -148,9 +148,9 @@ void iAConsole::close()
 }
 
 
-void iAConsole::Close()
+void iAConsole::closeInstance()
 {
-	GetInstance()->close();
+	instance()->close();
 }
 
 
@@ -163,12 +163,12 @@ iALogger::~iALogger()
 
 // iAConsoleLogger
 
-void iAConsoleLogger::Log(QString const & msg)
+void iAConsoleLogger::log(QString const & msg)
 {
-	iAConsole::GetInstance()->Log(msg);
+	iAConsole::instance()->log(msg);
 }
 
-iAConsoleLogger * iAConsoleLogger::Get()
+iAConsoleLogger * iAConsoleLogger::get()
 {
 	static iAConsoleLogger GlobalConsoleLogger;
 	return &GlobalConsoleLogger;
@@ -181,12 +181,12 @@ iAConsoleLogger::iAConsoleLogger()
 
 // iAStdOutLogger
 
-void iAStdOutLogger::Log(QString const & msg)
+void iAStdOutLogger::log(QString const & msg)
 {
 	std::cout << msg.toStdString() << std::endl;
 }
 
-iAStdOutLogger * iAStdOutLogger::Get()
+iAStdOutLogger * iAStdOutLogger::get()
 {
 	static iAStdOutLogger GlobalStdOutLogger;
 	return &GlobalStdOutLogger;

@@ -202,25 +202,25 @@ void dlg_commoninput::SelectFilter()
 		if (idx < widgetList.size() - 1 && m_filterWithParameters.indexOf(idx) != -1 &&
 			m_sourceMdiChild)	// TODO: if possible, get rid of sourceMdi?
 		{
-			auto filter = iAFilterRegistry::Filter(filterName);
-			int filterID = iAFilterRegistry::FilterID(filterName);
-			auto runner = iAFilterRegistry::FilterRunner(filterID)->Create();
-			QMap<QString, QVariant> paramValues = runner->LoadParameters(filter, m_sourceMdiChild);
-			if (!runner->AskForParameters(filter, paramValues, m_sourceMdiChild, m_mainWnd, false))
+			auto filter = iAFilterRegistry::filter(filterName);
+			int filterID = iAFilterRegistry::filterID(filterName);
+			auto runner = iAFilterRegistry::filterRunner(filterID)->create();
+			QMap<QString, QVariant> paramValues = runner->loadParameters(filter, m_sourceMdiChild);
+			if (!runner->askForParameters(filter, paramValues, m_sourceMdiChild, m_mainWnd, false))
 				return;
 			QString paramStr;
-			for (auto param: filter->Parameters())
+			for (auto param: filter->parameters())
 			{
 				paramStr += (paramStr.isEmpty() ? "" : " ");
-				switch (param->ValueType())
+				switch (param->valueType())
 				{
 				case Boolean:
-					paramStr += paramValues[param->Name()].toBool() ? "true" : "false"; break;
+					paramStr += paramValues[param->name()].toBool() ? "true" : "false"; break;
 				case Discrete:
 				case Continuous:
-					paramStr += paramValues[param->Name()].toString(); break;
+					paramStr += paramValues[param->name()].toString(); break;
 				default:
-					paramStr += QuoteString(paramValues[param->Name()].toString()); break;
+					paramStr += QuoteString(paramValues[param->name()].toString()); break;
 				}
 
 			}

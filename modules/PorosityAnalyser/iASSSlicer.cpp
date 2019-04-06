@@ -277,8 +277,8 @@ void iASSSlicer::computeAggregatedImageData( const QStringList & filesList )
 	// 	imageToVTK->SetInput( input );
 	// 	imageToVTK->Update();
 	// 	imgData->DeepCopy( imageToVTK->GetOutput() );
-	iAConnector con; con.SetImage( input );
-	imgData->DeepCopy( con.GetVTKImage() );
+	iAConnector con; con.setImage( input );
+	imgData->DeepCopy( con.vtkImage() );
 }
 
 void iASSSlicer::initializeMasks( QStringList & masks )

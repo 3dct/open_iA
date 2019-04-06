@@ -38,7 +38,7 @@ void iAUncertaintyModuleInterface::Initialize()
 	REGISTER_FILTER(iACSVtoMHD);
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuSegmentation = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
 	QAction * actionUncertainty = new QAction(QApplication::translate("MainWindow", "Uncertainty Exploration", 0), m_mainWnd );
 	AddActionToMenuAlphabeticallySorted(menuSegmentation, actionUncertainty, false);

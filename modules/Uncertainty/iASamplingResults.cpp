@@ -218,7 +218,7 @@ bool iASamplingResults::Store(QString const & fileName,
 	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << endl;
 	out << "Executable" << Output::NameSeparator << m_executable << endl;
 	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << endl;
-	m_attributes->Store(out);
+	m_attributes->store(out);
 	paramRangeFile.close();
 
 	m_fileName = fileName;
@@ -282,7 +282,7 @@ QSharedPointer<iAAttributes> iASamplingResults::Attributes() const
 }
 
 
-QString iASamplingResults::Name() const
+QString iASamplingResults::name() const
 {
 	return m_name;
 }

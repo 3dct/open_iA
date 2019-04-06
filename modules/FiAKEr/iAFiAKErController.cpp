@@ -2371,9 +2371,9 @@ void iAFiAKErController::loadVolume(QString const & fileName)
 	iAConnector con;
 	iAITKIO::ScalarPixelType pixelType;
 	iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-	con.SetImage(img);
+	con.setImage(img);
 	m_refImg = vtkSmartPointer<vtkImageData>::New();
-	m_refImg->DeepCopy(con.GetVTKImage());
+	m_refImg->DeepCopy(con.vtkImage());
 	double rng[2]; m_refImg->GetScalarRange(rng);
 	m_refCF = GetDefaultColorTransferFunction(rng);
 	m_refOF = GetDefaultPiecewiseFunction(rng, true);

@@ -220,7 +220,7 @@ void iAScatterPlotView::SelectionUpdated()
 		buf++;
 	}
 	m_selectionImg->Modified();
-	//StoreImage(m_selectionImg, "C:/Users/p41143/selection.mhd", true);
+	//storeImage(m_selectionImg, "C:/Users/p41143/selection.mhd", true);
 	emit SelectionChanged();
 }
 

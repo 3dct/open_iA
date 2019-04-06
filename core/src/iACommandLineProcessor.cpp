@@ -75,47 +75,47 @@ namespace
 
 	void PrintListOfAvailableFilters()
 	{
-		auto filterFactories = iAFilterRegistry::FilterFactories();
+		auto filterFactories = iAFilterRegistry::filterFactories();
 		std::cout << "Available filters:" << std::endl;
 		for (auto factory : filterFactories)
 		{
-			auto filter = factory->Create();
-			std::cout << filter->Name().toStdString() << std::endl
-				<< "        " << StripHTML(AbbreviateDesc(filter->Description())).toStdString() << std::endl << std::endl;
+			auto filter = factory->create();
+			std::cout << filter->name().toStdString() << std::endl
+				<< "        " << StripHTML(AbbreviateDesc(filter->description())).toStdString() << std::endl << std::endl;
 		}
 	}
 
 	void PrintFilterHelp(QString filterName)
 	{
-		auto filter = iAFilterRegistry::Filter(filterName);
+		auto filter = iAFilterRegistry::filter(filterName);
 		if (!filter)
 		{
 			std::cout << "For a full list of all available filters, execute 'open_iA_cmd -l'" << std::endl;
 			return;
 		}
-		std::cout << filter->Name().toStdString() << ":" << std::endl
-			<< StripHTML(filter->Description().replace("<br/>", "\n")).toStdString() << std::endl;
+		std::cout << filter->name().toStdString() << ":" << std::endl
+			<< StripHTML(filter->description().replace("<br/>", "\n")).toStdString() << std::endl;
 		std::cout << "Parameters:" << std::endl;
-		for (auto p : filter->Parameters())
+		for (auto p : filter->parameters())
 		{
-			std::cout << "    " << p->Name().toStdString() << " " << ValueType2Str(p->ValueType()).toStdString();
-			switch (p->ValueType())
+			std::cout << "    " << p->name().toStdString() << " " << ValueType2Str(p->valueType()).toStdString();
+			switch (p->valueType())
 			{
 			case Continuous:
 			case Discrete:
-				if (p->Min() != std::numeric_limits<double>::lowest())
+				if (p->min() != std::numeric_limits<double>::lowest())
 				{
-					std::cout << " min=" << p->Min();
+					std::cout << " min=" << p->min();
 				}
-				if (p->Max() != std::numeric_limits<double>::max())
+				if (p->max() != std::numeric_limits<double>::max())
 				{
-					std::cout << " max=" << p->Max();
+					std::cout << " max=" << p->max();
 				}
 			case Boolean:		// intentional fall-through!
-				std::cout << " default=" << p->DefaultValue().toString().toStdString();
+				std::cout << " default=" << p->defaultValue().toString().toStdString();
 				break;
 			case Categorical:
-				std::cout << " possible values=(" << p->DefaultValue().toStringList().join(",").toStdString() << ")";
+				std::cout << " possible values=(" << p->defaultValue().toStringList().join(",").toStdString() << ")";
 				break;
 			case FileNameOpen:
 				std::cout << " specify an existing file.";
@@ -148,21 +148,21 @@ namespace
 
 	void PrintParameterDescriptor(QString filterName)
 	{
-		auto filter = iAFilterRegistry::Filter(filterName);
+		auto filter = iAFilterRegistry::filter(filterName);
 		if (!filter)
 		{
 			std::cout << "For a full list of all available filters, execute 'open_iA_cmd -l'" << std::endl;
 			return;
 		}
-		std::cout << filter->Name().toStdString() << ":" << std::endl;
-		for (auto p : filter->Parameters())
+		std::cout << filter->name().toStdString() << ":" << std::endl;
+		for (auto p : filter->parameters())
 		{
-			std::cout << p->Name().toStdString() << "\tParameter\t"
-					<< ValueType2Str(p->ValueType()).toStdString() << "\t";
-			if (p->ValueType() == Continuous || p->ValueType() == Discrete)
-				std::cout << p->Min() << "\t" << p->Max() << "\tLinear";
-			else if (p->ValueType() == Categorical)
-				std::cout << "\t" << p->DefaultValue().toStringList().join(",").toStdString();
+			std::cout << p->name().toStdString() << "\tParameter\t"
+					<< ValueType2Str(p->valueType()).toStdString() << "\t";
+			if (p->valueType() == Continuous || p->valueType() == Discrete)
+				std::cout << p->min() << "\t" << p->max() << "\tLinear";
+			else if (p->valueType() == Categorical)
+				std::cout << "\t" << p->defaultValue().toStringList().join(",").toStdString();
 			std::cout << std::endl;
 		}
 	}
@@ -206,7 +206,7 @@ namespace
 	int RunFilter(QStringList const & args)
 	{
 		QString filterName = args[0];
-		auto filter = iAFilterRegistry::Filter(filterName);
+		auto filter = iAFilterRegistry::filter(filterName);
 		if (!filter)
 		{
 			std::cout << QString("Filter '%1' does not exist!").arg(filterName).toStdString() << std::endl
@@ -239,7 +239,7 @@ namespace
 						<< "' for input separation, expected a int!" << std::endl;
 					return 1;
 				}
-				filter->SetFirstInputChannels(inputSeparation);
+				filter->setFirstInputChannels(inputSeparation);
 				mode = None;
 				break;
 			}
@@ -247,7 +247,7 @@ namespace
 			case Output:
 			case Parameter:
 				if (args[a].startsWith("-") &&
-					(mode != Parameter || parameters.size() >= filter->Parameters().size()))
+					(mode != Parameter || parameters.size() >= filter->parameters().size()))
 				{
 					mode = GetMode(args[a]);
 				}
@@ -260,16 +260,16 @@ namespace
 					case Parameter:
 						{
 							int paramIdx = parameters.size();
-							if (paramIdx >= filter->Parameters().size())
+							if (paramIdx >= filter->parameters().size())
 							{
 								std::cout << QString("More parameters (%1) given than expected(%2)!")
-									.arg(paramIdx + 1).arg(filter->Parameters().size()).toStdString() << std::endl;
+									.arg(paramIdx + 1).arg(filter->parameters().size()).toStdString() << std::endl;
 							}
 							else
 							{
-								QString paramName = filter->Parameters()[paramIdx]->Name();
+								QString paramName = filter->parameters()[paramIdx]->name();
 								QString value(args[a]);
-								if (filter->Parameters()[paramIdx]->ValueType() == Text)
+								if (filter->parameters()[paramIdx]->valueType() == Text)
 								{
 									QFile f(value);
 									if (!f.open(QFile::ReadOnly | QFile::Text))
@@ -313,16 +313,16 @@ namespace
 			std::cout << "Missing input files - please specify at least one after the -i parameter" << std::endl;
 			return 1;
 		}
-		if (outputFiles.size() < filter->OutputCount())
+		if (outputFiles.size() < filter->outputCount())
 		{
 			std::cout << "Missing output files - please specify at least one after the -o parameter" << std::endl;
 			return 1;
 		}
-		if (parameters.size() != filter->Parameters().size())
+		if (parameters.size() != filter->parameters().size())
 		{
 			std::cout << QString("Invalid number of parameters: %2 expected, %1 were given.")
 				.arg(parameters.size())
-				.arg(filter->Parameters().size()).toStdString()
+				.arg(filter->parameters().size()).toStdString()
 				<< std::endl;
 			return 1;
 		}
@@ -338,36 +338,36 @@ namespace
 				iAITKIO::ScalarPixelType pixelType;
 				iAITKIO::ImagePointer img = iAITKIO::readFile(inputFiles[i], pixelType, false);
 				iAConnector * con = new iAConnector();
-				con->SetImage(img);
-				filter->AddInput(con);
+				con->setImage(img);
+				filter->addInput(con);
 			}
 
 			if (!quiet)
 			{
-				std::cout << "Running filter '" << filter->Name().toStdString() << "' with parameters: " << std::endl;
+				std::cout << "Running filter '" << filter->name().toStdString() << "' with parameters: " << std::endl;
 				for (int p = 0; p < parameters.size(); ++p)
 				{
-					std::cout << "    " << filter->Parameters()[p]->Name().toStdString()
-						<< "=" << parameters[filter->Parameters()[p]->Name()].toString().toStdString() << std::endl;
+					std::cout << "    " << filter->parameters()[p]->name().toStdString()
+						<< "=" << parameters[filter->parameters()[p]->name()].toString().toStdString() << std::endl;
 				}
 			}
 			iAProgress progress;
 			iACommandLineProgressIndicator progressIndicator(50, quiet);
 			QObject::connect(&progress, SIGNAL(progress(int)), &progressIndicator, SLOT(Progress(int)));
-			filter->SetProgress(&progress);
-			if (!filter->CheckParameters(parameters))
+			filter->setProgress(&progress);
+			if (!filter->checkParameters(parameters))
 			{   // output already happened in CheckParameters via logger
 				return 1;
 			}
-			if (!filter->Run(parameters))
+			if (!filter->run(parameters))
 			{	// output already happened in Run via logger
 				return 1;
 			}
 			// write output file(s)
-			for (int o = 0; o < filter->Output().size(); ++o)
+			for (int o = 0; o < filter->output().size(); ++o)
 			{
 				QString outFileName;
-				if (filter->Output().size() == 1 ||  o < outputFiles.size()-1)
+				if (filter->output().size() == 1 ||  o < outputFiles.size()-1)
 				{
 					outFileName = outputFiles[o];
 				}
@@ -390,9 +390,9 @@ namespace
 						.arg(o).arg(outFileName).arg(compress ? "on" : "off").toStdString()
 						<< std::endl;
 				}
-				iAITKIO::writeFile(outFileName, filter->Output()[o]->GetITKImage(), filter->Output()[o]->GetITKScalarPixelType(), compress);
+				iAITKIO::writeFile(outFileName, filter->output()[o]->itkImage(), filter->output()[o]->itkScalarPixelType(), compress);
 			}
-			for (auto outputValue: filter->OutputValues())
+			for (auto outputValue: filter->outputValues())
 				std::cout << outputValue.first.toStdString() << ": "
 					<< outputValue.second.toString().toStdString() << std::endl;
 
@@ -409,7 +409,7 @@ namespace
 int ProcessCommandLine(int argc, char const * const * argv, const char * version)
 {
 	auto dispatcher = new iAModuleDispatcher(QFileInfo(argv[0]).absolutePath());
-	dispatcher->InitializeModules(iAStdOutLogger::Get());
+	dispatcher->InitializeModules(iAStdOutLogger::get());
 	if (argc > 1 && QString(argv[1]) == "-l")
 	{
 		PrintListOfAvailableFilters();

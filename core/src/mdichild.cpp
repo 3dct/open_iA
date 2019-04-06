@@ -108,7 +108,7 @@ MdiChild::MdiChild(MainWindow * mainWnd, iAPreferences const & prefs, bool unsav
 	m_ioThread(nullptr),
 	m_dwImgProperty(nullptr),
 	m_dwProfile(nullptr),
-	m_logger(new MdiChildLogger(this)),
+	m_logger(new iAMdiChildLogger(this)),
 	m_histogram(new iADiagramFctWidget(nullptr, this, " Histogram", "Frequency")),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_preferences(prefs),
@@ -711,7 +711,7 @@ void MdiChild::setupView(bool active )
 
 void MdiChild::setupProject(bool active)
 {
-	setModalities(m_ioThread->GetModalities());
+	setModalities(m_ioThread->modalities());
 }
 
 int MdiChild::chooseModalityNr(QString const & caption)
@@ -996,7 +996,7 @@ void MdiChild::saveRC()
 	vtkSmartPointer<vtkWindowToImageFilter> filter = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	filter->SetInput(m_renderer->renderWindow());
 	filter->Update();
-	WriteSingleSliceImage(file, filter->GetOutput());
+	writeSingleSliceImage(file, filter->GetOutput());
 }
 
 void MdiChild::saveMovRC()
@@ -2702,8 +2702,8 @@ vtkColorTransferFunction * MdiChild::colorTransferFunction()
 
 void MdiChild::saveFinished()
 {
-	if (m_storedModalityNr < modalities()->size() && m_ioThread->getIOID() != STL_WRITER)
-		m_dwModalities->setFileName(m_storedModalityNr, m_ioThread->getFileName());
+	if (m_storedModalityNr < modalities()->size() && m_ioThread->ioID() != STL_WRITER)
+		m_dwModalities->setFileName(m_storedModalityNr, m_ioThread->fileName());
 	setWindowModified(modalities()->hasUnsavedModality());
 }
 

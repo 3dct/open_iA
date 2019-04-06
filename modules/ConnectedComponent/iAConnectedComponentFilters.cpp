@@ -40,17 +40,17 @@ void connectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & 
 	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::ConnectedComponentImageFilter< InputImageType, OutputImageType > CCIFType;
 	typename CCIFType::Pointer ccFilter = CCIFType::New();
-	ccFilter->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()) );
+	ccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
 	ccFilter->SetBackgroundValue(0);
 	ccFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
-	filter->Progress()->Observe(ccFilter);
+	filter->progress()->Observe(ccFilter);
 	ccFilter->Update();
-	filter->AddOutput(ccFilter->GetOutput());
+	filter->addOutput(ccFilter->GetOutput());
 }
 
-void iAConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAConnectedComponents::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(connectedComponentFilter, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(connectedComponentFilter, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAConnectedComponents)
@@ -64,7 +64,7 @@ iAConnectedComponents::iAConnectedComponents() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ConnectedComponentImageFilter.html\">"
 		"Connected Component Filter</a> in the ITK documentation.")
 {
-	AddParameter("Fully Connected", Boolean, false);
+	addParameter("Fully Connected", Boolean, false);
 }
 
 
@@ -75,18 +75,18 @@ void scalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> co
 	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::ScalarConnectedComponentImageFilter< InputImageType, OutputImageType > SCCIFType;
 	typename SCCIFType::Pointer sccFilter = SCCIFType::New();
-	sccFilter->SetInput( dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()) );
+	sccFilter->SetInput( dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()) );
 	sccFilter->SetDistanceThreshold(parameters["Distance Threshold"].toDouble());
-	filter->Progress()->Observe(sccFilter);
+	filter->progress()->Observe(sccFilter);
 	sccFilter->Update();
-	filter->AddOutput(sccFilter->GetOutput());
+	filter->addOutput(sccFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iAScalarConnectedComponents)
 
-void iAScalarConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAScalarConnectedComponents::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(scalarConnectedComponentFilter, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(scalarConnectedComponentFilter, inputPixelType(), this, parameters);
 }
 
 iAScalarConnectedComponents::iAScalarConnectedComponents() :
@@ -97,7 +97,7 @@ iAScalarConnectedComponents::iAScalarConnectedComponents() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ScalarConnectedComponentImageFilter.html\">"
 		"Scalar Connected Component Filter</a> in the ITK documentation.")
 {
-	AddParameter("Distance Threshold", Continuous, 1);
+	addParameter("Distance Threshold", Continuous, 1);
 }
 
 
@@ -108,9 +108,9 @@ void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const
 	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::RelabelComponentImageFilter< InputImageType, OutputImageType > RCIFType;
 	typename RCIFType::Pointer rccFilter = RCIFType::New();
-	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()) );
+	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
 	rccFilter->SetMinimumObjectSize(parameters["Minimum object size"].toInt());
-	filter->Progress()->Observe(rccFilter);
+	filter->progress()->Observe(rccFilter);
 	rccFilter->Update();
 	if (parameters["Write labels to file"].toBool())
 	{
@@ -123,14 +123,14 @@ void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const
 			myfile << i << "," << rccFilter->GetSizeOfObjectsInPhysicalUnits()[i] << endl;
 		myfile.close();
 	}
-	filter->AddOutput(rccFilter->GetOutput());
+	filter->addOutput(rccFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iARelabelComponents)
 
-void iARelabelComponents::PerformWork(QMap<QString, QVariant> const & parameters)
+void iARelabelComponents::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(relabelComponentImageFilter, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(relabelComponentImageFilter, inputPixelType(), this, parameters);
 }
 
 iARelabelComponents::iARelabelComponents() :
@@ -151,7 +151,7 @@ iARelabelComponents::iARelabelComponents() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RelabelComponentImageFilter.html\">"
 		"Relabel Component Filter</a> in the ITK documentation.")
 {
-	AddParameter("Minimum object size", Discrete, 1, 1);
-	AddParameter("Write labels to file", Boolean, false);
-	AddParameter("Label file", FileNameSave, "");
+	addParameter("Minimum object size", Discrete, 1, 1);
+	addParameter("Write labels to file", Boolean, false);
+	addParameter("Label file", FileNameSave, "");
 }

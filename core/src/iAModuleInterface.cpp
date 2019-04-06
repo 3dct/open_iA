@@ -31,7 +31,7 @@
 
 void iAModuleInterface::PrepareResultChild( QString const & title )
 {
-	m_mdiChild = m_mainWnd->getResultChild( title + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
+	m_mdiChild = m_mainWnd->resultChild( title + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
 	if( !m_mdiChild )
 	{
 		m_mainWnd->statusBar()->showMessage( "Cannot get result child from main window!", 5000 );
@@ -41,7 +41,7 @@ void iAModuleInterface::PrepareResultChild( QString const & title )
 
 void iAModuleInterface::PrepareResultChild( int childInd, QString const & title )
 {
-	m_mdiChild = m_mainWnd->getResultChild( childInd, title );
+	m_mdiChild = m_mainWnd->resultChild( childInd, title );
 	if( !m_mdiChild )
 	{
 		m_mainWnd->statusBar()->showMessage( "Cannot get result child from main window!", 5000 );

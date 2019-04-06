@@ -120,7 +120,7 @@ void dlg_modalityProperties::OKButtonClicked()
 	m_volumeSettings.SpecularLighting = getValueAndCheck(ed_SpecularLighting, "SpecularLighting", notOKValues);
 	m_volumeSettings.SpecularPower = getValueAndCheck(ed_SpecularPower, "SpecularPower", notOKValues);
 	m_volumeSettings.ScalarOpacityUnitDistance = getValueAndCheck(ed_ScalarOpacityUnitDistance, "ScalarOpacityUnitDistance", notOKValues);
-	m_volumeSettings.RenderMode = MapRenderModeToEnum(cb_RenderMode->currentText());
+	m_volumeSettings.RenderMode = mapRenderModeToEnum(cb_RenderMode->currentText());
 
 	if (notOKValues.size() > 0)
 	{

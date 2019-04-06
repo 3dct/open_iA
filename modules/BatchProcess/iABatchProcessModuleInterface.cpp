@@ -32,7 +32,7 @@ void iABatchProcessModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	/*
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
 	QAction * actionSample = new QAction( m_mainWnd );
 	actionSample->setText(QApplication::translate("MainWindow", "Sample...", 0));

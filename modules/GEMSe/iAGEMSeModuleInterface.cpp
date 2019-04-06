@@ -42,7 +42,7 @@ void iAGEMSeModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
 	
 	QAction * actionGEMSe = new QAction( tr("GEMSe"), nullptr);

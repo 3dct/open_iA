@@ -60,7 +60,7 @@ dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
 	connect(pbRemove, SIGNAL(clicked()), this, SLOT(Remove()));
 	connect(pbStore, SIGNAL(clicked()), this, SLOT(Store()));
 	connect(pbLoad, SIGNAL(clicked()), this, SLOT(Load()));
-	connect(pbStoreImage, SIGNAL(clicked()), this, SLOT(StoreImage()));
+	connect(pbStoreImage, SIGNAL(clicked()), this, SLOT(storeImage()));
 	connect(pbSample, SIGNAL(clicked()), this, SLOT(Sample()));
 	connect(pbClear, SIGNAL(clicked()), this, SLOT(Clear()));
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
@@ -496,7 +496,7 @@ void dlg_labels::Store()
 }
 
 
-void dlg_labels::StoreImage()
+void dlg_labels::storeImage()
 {
 	QString fileName = QFileDialog::getSaveFileName(
 		QApplication::activeWindow(),

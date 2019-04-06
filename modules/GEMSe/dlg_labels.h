@@ -68,7 +68,7 @@ public slots:
 	void Remove();
 	void Store();
 	void Load();
-	void StoreImage();
+	void storeImage();
 	void Sample();
 	void Clear();
 	QString const & GetFileName();

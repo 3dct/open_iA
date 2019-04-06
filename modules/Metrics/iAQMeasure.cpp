@@ -78,7 +78,7 @@ template <typename T> void computeHistogram(iAFilter* filter, size_t binCount,
 	const int ChannelCount = 1;
 	auto histogramFilter = ImageHistogramFilterType::New();
 	histogramFilter->ReleaseDataFlagOff();
-	histogramFilter->SetInput(dynamic_cast<InputImageType*>(filter->Input()[0]->GetITKImage()));
+	histogramFilter->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
 	typename ImageHistogramFilterType::HistogramType::MeasurementVectorType	binMin(ChannelCount);
 	binMin.Fill(minVal);
 	typename ImageHistogramFilterType::HistogramType::MeasurementVectorType	binMax(ChannelCount);
@@ -90,7 +90,7 @@ template <typename T> void computeHistogram(iAFilter* filter, size_t binCount,
 	histogramFilter->SetAutoMinimumMaximum(false);
 	histogramFilter->SetHistogramSize(binCountMulti);
 	histogramFilter->Update();
-	filter->Progress()->Observe(histogramFilter);
+	filter->progress()->Observe(histogramFilter);
 	auto histogram = histogramFilter->GetOutput();
 	vecHist.clear();
 	for (auto it = histogram->Begin(); it != histogram->End(); ++it)
@@ -106,12 +106,12 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	double minVal = img->GetScalarRange()[0];
 	double maxVal = img->GetScalarRange()[1];
-	auto size =	filter->Input()[0]->GetITKImage()->GetLargestPossibleRegion().GetSize();
+	auto size =	filter->input()[0]->itkImage()->GetLargestPossibleRegion().GetSize();
 	size_t voxelCount = size[0] * size[1] * size[2];
 	size_t binCount = std::max(static_cast<size_t>(2), static_cast<size_t>(histogramBinFactor * std::sqrt(voxelCount)));
 	std::vector<double> vecHist;
 
-	ITK_TYPED_CALL(computeHistogram, filter->InputPixelType(), filter, binCount, minVal, maxVal, vecHist);
+	ITK_TYPED_CALL(computeHistogram, filter->inputPixelType(), filter, binCount, minVal, maxVal, vecHist);
 	
 	if (filter->m_chart)
 	{
@@ -161,8 +161,8 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		{
 			//DEBUG_LOG(QString("Cannot continue with less than 2 peaks!"));
 			if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
-				filter->AddOutputValue("Histogram-based SNR (highest non-air-peak)", 0);
-			filter->AddOutputValue("Q", 0);
+				filter->addOutputValue("Histogram-based SNR (highest non-air-peak)", 0);
+			filter->addOutputValue("Q", 0);
 			return;
 		}
 		numberOfPeaks = peaks.size();
@@ -252,7 +252,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	}
 	if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
 	{
-		filter->AddOutputValue("Histogram-based SNR (highest non-air-peak)", mean[highestNonAirPeakIdx] / std::sqrt(variance[highestNonAirPeakIdx]));
+		filter->addOutputValue("Histogram-based SNR (highest non-air-peak)", mean[highestNonAirPeakIdx] / std::sqrt(variance[highestNonAirPeakIdx]));
 	}
 	if (parameters["Q metric"].toBool())
 	{
@@ -280,15 +280,15 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 			QString peakName(i == minDistToZeroIdx ? "air" : "highest non-air");
 			if (i == minDistToZeroIdx || i == highestNonAirPeakIdx)
 			{
-				filter->AddOutputValue(QString("Mean (%1)").arg(peakName), mean[i]);
-				filter->AddOutputValue(QString("Sigma (%1)").arg(peakName), std::sqrt(variance[minDistToZeroIdx]));
-				filter->AddOutputValue(QString("Min (%1)").arg(peakName), mapValue(static_cast<size_t>(0), binCount, minVal, maxVal, thresholdIndices[i]));
-				filter->AddOutputValue(QString("Max (%1)").arg(peakName), mapValue(static_cast<size_t>(0), binCount, minVal, maxVal, thresholdIndices[i+1]));
+				filter->addOutputValue(QString("Mean (%1)").arg(peakName), mean[i]);
+				filter->addOutputValue(QString("Sigma (%1)").arg(peakName), std::sqrt(variance[minDistToZeroIdx]));
+				filter->addOutputValue(QString("Min (%1)").arg(peakName), mapValue(static_cast<size_t>(0), binCount, minVal, maxVal, thresholdIndices[i]));
+				filter->addOutputValue(QString("Max (%1)").arg(peakName), mapValue(static_cast<size_t>(0), binCount, minVal, maxVal, thresholdIndices[i+1]));
 			}
 		}
 		*/
 		double Q = calculateQ(mean[highestNonAirPeakIdx], mean[minDistToZeroIdx], variance[highestNonAirPeakIdx], variance[minDistToZeroIdx]);
-		filter->AddOutputValue("Q", Q);
+		filter->addOutputValue("Q", Q);
 	}
 }
 
@@ -303,17 +303,17 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 	double threshold_y = 2;						// one single voxel is no valid class
 
 	vtkSmartPointer<vtkImageData> floatImage;
-	if (filter->InputPixelType() == itk::ImageIOBase::FLOAT)
+	if (filter->inputPixelType() == itk::ImageIOBase::FLOAT)
 		floatImage = img;
 	else
-		floatImage = CastVTKImage(img, VTK_FLOAT);
+		floatImage = castVTKImage(img, VTK_FLOAT);
 
 	int const * dim = floatImage->GetDimensions();
 	double const * range = floatImage->GetScalarRange();
 	if (range[0] == range[1])
 	{
-		filter->AddOutputValue("Q (orig, equ 0)", 0);
-		filter->AddOutputValue("Q (orig, equ 1)", 0);
+		filter->addOutputValue("Q (orig, equ 0)", 0);
+		filter->addOutputValue("Q (orig, equ 1)", 0);
 		return;
 	}
 	float* fImage = static_cast<float*>(floatImage->GetScalarPointer());
@@ -329,8 +329,8 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 	std::vector<ClassMeasure> classMeasures;
 	double Q0 = (thresholds_IDX.size() == 0) ? 0.0 : curHist.CalcQ(thresholds_IDX, classMeasures, 0);
 	double Q1 = (thresholds_IDX.size() == 0) ? 0.0 : curHist.CalcQ(thresholds_IDX, classMeasures, 1);
-	filter->AddOutputValue("Q (orig, equ 0)", Q0);
-	filter->AddOutputValue("Q (orig, equ 1)", Q1);
+	filter->addOutputValue("Q (orig, equ 0)", Q0);
+	filter->addOutputValue("Q (orig, equ 1)", Q1);
 
 	/*
 	int classNr = 0;
@@ -339,11 +339,11 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 		QString peakName(c.UsedForQ == 1 ? "air" : "highest non-air");
 		if (c.UsedForQ == 1 || c.UsedForQ == 2)
 		{
-			filter->AddOutputValue(QString("Qorig Mean (%1)").arg(peakName), c.mean);
-			filter->AddOutputValue(QString("Qorig Sigma (%1)").arg(peakName), c.sigma);
-			filter->AddOutputValue(QString("Probability (%1)").arg(peakName), c.probability);
-			filter->AddOutputValue(QString("Min (%1)").arg(peakName), c.LowerThreshold);
-			filter->AddOutputValue(QString("Max (%1)").arg(peakName), c.UpperThreshold);
+			filter->addOutputValue(QString("Qorig Mean (%1)").arg(peakName), c.mean);
+			filter->addOutputValue(QString("Qorig Sigma (%1)").arg(peakName), c.sigma);
+			filter->addOutputValue(QString("Probability (%1)").arg(peakName), c.probability);
+			filter->addOutputValue(QString("Min (%1)").arg(peakName), c.LowerThreshold);
+			filter->addOutputValue(QString("Max (%1)").arg(peakName), c.UpperThreshold);
 		}
 		++classNr;
 	}
@@ -351,16 +351,16 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 }
 
 
-void iAQMeasure::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAQMeasure::performWork(QMap<QString, QVariant> const & parameters)
 {
 	size_t size[3], index[3];
 	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
 	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
-	auto extractImg = ExtractImage(Input()[0]->GetITKImage(), index, size);
+	auto extractImg = extractImage(input()[0]->itkImage(), index, size);
 	iAConnector extractCon;
-	extractCon.SetImage(extractImg);
-	computeQ(this, extractCon.GetVTKImage(), parameters);
-	computeOrigQ(this, extractCon.GetVTKImage(), parameters);
+	extractCon.setImage(extractImg);
+	computeQ(this, extractCon.vtkImage(), parameters);
+	computeOrigQ(this, extractCon.vtkImage(), parameters);
 }
 
 IAFILTER_CREATE(iAQMeasure)
@@ -376,28 +376,28 @@ iAQMeasure::iAQMeasure() :
 	m_chart(nullptr),
 	m_mdiChild(nullptr)
 {
-	AddParameter("Index X", Discrete, 0);
-	AddParameter("Index Y", Discrete, 0);
-	AddParameter("Index Z", Discrete, 0);
-	AddParameter("Size X", Discrete, 1);
-	AddParameter("Size Y", Discrete, 1);
-	AddParameter("Size Z", Discrete, 1);
-	AddParameter("Histogram-based SNR (highest non-air-peak)", Boolean, true);
-	AddParameter("Q metric", Boolean, true);
-	AddParameter("Number of peaks", Discrete, 2, 2);
-	AddParameter("Histogram bin factor"       , Continuous, 0.125, 0.0000001);
-	AddParameter("Derivative smoothing factor", Continuous,    64, 0.0000001);
-	AddParameter("Minima finding smoothing factor", Continuous, 8, 0.0000001);
+	addParameter("Index X", Discrete, 0);
+	addParameter("Index Y", Discrete, 0);
+	addParameter("Index Z", Discrete, 0);
+	addParameter("Size X", Discrete, 1);
+	addParameter("Size Y", Discrete, 1);
+	addParameter("Size Z", Discrete, 1);
+	addParameter("Histogram-based SNR (highest non-air-peak)", Boolean, true);
+	addParameter("Q metric", Boolean, true);
+	addParameter("Number of peaks", Discrete, 2, 2);
+	addParameter("Histogram bin factor"       , Continuous, 0.125, 0.0000001);
+	addParameter("Derivative smoothing factor", Continuous,    64, 0.0000001);
+	addParameter("Minima finding smoothing factor", Continuous, 8, 0.0000001);
 
-	AddParameter("OrigQ Histogram bins", Discrete, 512, 2);
+	addParameter("OrigQ Histogram bins", Discrete, 512, 2);
 
-	AddOutputValue("Histogram-based SNR (highest non-air-peak)");
-	AddOutputValue("Q");
-	AddOutputValue("Q (orig, equ 0)");
-	AddOutputValue("Q (orig, equ 1)");
+	addOutputValue("Histogram-based SNR (highest non-air-peak)");
+	addOutputValue("Q");
+	addOutputValue("Q (orig, equ 0)");
+	addOutputValue("Q (orig, equ 1)");
 }
 
-void iAQMeasure::SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
+void iAQMeasure::setupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
 {
 	m_chart = chart;
 	m_mdiChild = mdiChild;
@@ -406,13 +406,13 @@ void iAQMeasure::SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
 
 IAFILTER_RUNNER_CREATE(iAQMeasureRunner);
 
-void iAQMeasureRunner::FilterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd)
+void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd)
 {
 	iAChartWidget * chart = new iAChartWidget(mdiChild, "Intensity", "Frequency");
 	iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "TestHistogram", "TestHistogram");
 	mdiChild->splitDockWidget(mdiChild->logDockWidget(), wrapper, Qt::Horizontal);
 	iAQMeasure* qfilter = dynamic_cast<iAQMeasure*>(filter.data());
-	qfilter->SetupDebugGUI(chart, mdiChild);
+	qfilter->setupDebugGUI(chart, mdiChild);
 }
 
 IAFILTER_CREATE(iASNR)
@@ -421,24 +421,24 @@ iASNR::iASNR() :
 	iAFilter("Signal-to-Noise Ratio", "Metrics",
 		"Computes the Signal-to-noise ratio as (mean / stddev) of the given image region.<br/>", 1, 0)
 {
-	AddParameter("Index X", Discrete, 0);
-	AddParameter("Index Y", Discrete, 0);
-	AddParameter("Index Z", Discrete, 0);
-	AddParameter("Size X", Discrete, 1);
-	AddParameter("Size Y", Discrete, 1);
-	AddParameter("Size Z", Discrete, 1);
-	AddOutputValue("Signal-to-Noise Ratio");
+	addParameter("Index X", Discrete, 0);
+	addParameter("Index Y", Discrete, 0);
+	addParameter("Index Z", Discrete, 0);
+	addParameter("Size X", Discrete, 1);
+	addParameter("Size Y", Discrete, 1);
+	addParameter("Size Z", Discrete, 1);
+	addOutputValue("Signal-to-Noise Ratio");
 }
 
-void iASNR::PerformWork(QMap<QString, QVariant> const & parameters)
+void iASNR::performWork(QMap<QString, QVariant> const & parameters)
 {
 	size_t size[3], index[3];
 	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
 	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
-	auto extractImg = ExtractImage(Input()[0]->GetITKImage(), index, size);
+	auto extractImg = extractImage(input()[0]->itkImage(), index, size);
 	double mean, stddev;
 	getStatistics(extractImg, nullptr, nullptr, &mean, &stddev);
-	AddOutputValue("Signal-to-Noise Ratio", mean / stddev);
+	addOutputValue("Signal-to-Noise Ratio", mean / stddev);
 }
 
 IAFILTER_CREATE(iACNR)
@@ -449,32 +449,32 @@ iACNR::iACNR() :
 		"Region 1 should typically contain a homogeneous area of surroundings (air), "
 		"while region 2 should typically contain a homogeneous region of material", 1, 0)
 {
-	AddParameter("Region 1 Index X", Discrete, 0);
-	AddParameter("Region 1 Index Y", Discrete, 0);
-	AddParameter("Region 1 Index Z", Discrete, 0);
-	AddParameter("Region 1 Size X" , Discrete, 1);
-	AddParameter("Region 1 Size Y" , Discrete, 1);
-	AddParameter("Region 1 Size Z" , Discrete, 1);
-	AddParameter("Region 2 Index X", Discrete, 0);
-	AddParameter("Region 2 Index Y", Discrete, 0);
-	AddParameter("Region 2 Index Z", Discrete, 0);
-	AddParameter("Region 2 Size X" , Discrete, 1);
-	AddParameter("Region 2 Size Y" , Discrete, 1);
-	AddParameter("Region 2 Size Z" , Discrete, 1);
-	AddOutputValue("Contrast-to-Noise Ratio");
+	addParameter("Region 1 Index X", Discrete, 0);
+	addParameter("Region 1 Index Y", Discrete, 0);
+	addParameter("Region 1 Index Z", Discrete, 0);
+	addParameter("Region 1 Size X" , Discrete, 1);
+	addParameter("Region 1 Size Y" , Discrete, 1);
+	addParameter("Region 1 Size Z" , Discrete, 1);
+	addParameter("Region 2 Index X", Discrete, 0);
+	addParameter("Region 2 Index Y", Discrete, 0);
+	addParameter("Region 2 Index Z", Discrete, 0);
+	addParameter("Region 2 Size X" , Discrete, 1);
+	addParameter("Region 2 Size Y" , Discrete, 1);
+	addParameter("Region 2 Size Z" , Discrete, 1);
+	addOutputValue("Contrast-to-Noise Ratio");
 }
 
-void iACNR::PerformWork(QMap<QString, QVariant> const & parameters)
+void iACNR::performWork(QMap<QString, QVariant> const & parameters)
 {
 	size_t size[3], index[3];
 	size[0] = parameters["Region 1 Size X"].toUInt(); size[1] = parameters["Region 1 Size Y"].toUInt(); size[2] = parameters["Region 1 Size Z"].toUInt();
 	index[0] = parameters["Region 1 Index X"].toUInt(); index[1] = parameters["Region 1 Index Y"].toUInt(); index[2] = parameters["Region 1 Index Z"].toUInt();
-	auto extractImg1 = ExtractImage(Input()[0]->GetITKImage(), index, size);
+	auto extractImg1 = extractImage(input()[0]->itkImage(), index, size);
 	size[0] = parameters["Region 2 Size X"].toUInt(); size[1] = parameters["Region 2 Size Y"].toUInt(); size[2] = parameters["Region 2 Size Z"].toUInt();
 	index[0] = parameters["Region 2 Index X"].toUInt(); index[1] = parameters["Region 2 Index Y"].toUInt(); index[2] = parameters["Region 2 Index Z"].toUInt();
-	auto extractImg2 = ExtractImage(Input()[0]->GetITKImage(), index, size);
+	auto extractImg2 = extractImage(input()[0]->itkImage(), index, size);
 	double mean1, mean2, stddev2;
 	getStatistics(extractImg1, nullptr, nullptr, &mean1, nullptr);
 	getStatistics(extractImg2, nullptr, nullptr, &mean2, &stddev2);
-	AddOutputValue("Contrast-to-Noise Ratio", (mean2 - mean1) / stddev2);
+	addOutputValue("Contrast-to-Noise Ratio", (mean2 - mean1) / stddev2);
 }

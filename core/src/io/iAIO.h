@@ -52,10 +52,10 @@ public:
 	void init(QWidget *par);
 	bool setupIO( IOType type, QString f, bool comp = false, int channel=-1);
 	void setAdditionalInfo(QString const & additionalInfo);
-	QString getAdditionalInfo();
-	QString getFileName();
-	QSharedPointer<iAModalityList> GetModalities();
-	int getIOID() const;
+	QString additionalInfo();
+	QString fileName();
+	QSharedPointer<iAModalityList> modalities();
+	int ioID() const;
 
 Q_SIGNALS:
 	void done(bool active = false);
@@ -73,7 +73,7 @@ private:
 	bool setupVolumeStackMHDReader(QString f);
 	bool setupVolumeStackVolstackReader(QString f);
 	bool setupVolumeStackVolStackWriter(QString f);
-	void FillFileNameArray(int * indexRange, int digitsInIndex, int stepSize = 1);
+	void fillFileNameArray(int * indexRange, int digitsInIndex, int stepSize = 1);
 
 	void readImageStack();
 	void readRawImage();
@@ -98,31 +98,31 @@ private:
 
 	void postImageReadActions();
 	void printSTLFileInfos();
-	void StoreIOSettings();
-	void LoadIOSettings();
+	void storeIOSettings();
+	void loadIOSettings();
 
-	QWidget *parent;
-	QString fileName;
-	QDir f_dir;
+	QWidget *m_parent;
+	QString m_fileName;
+	QDir m_fileDir;
 
-	QString extension;
-	QString prefix;
-	QString fileNamesBase;
-	vtkStringArray* fileNameArray;
-	unsigned long headersize;
-	int scalarType;
-	int byteOrder;
-	int extent[6];
-	double spacing[3];
-	double origin[3];
-	bool compression;
+	QString m_extension;
+	QString m_prefix;
+	QString m_fileNamesBase;
+	vtkStringArray* m_fileNameArray;
+	unsigned long m_headersize;
+	int m_scalarType;
+	int m_byteOrder;
+	int m_extent[6];
+	double m_spacing[3];
+	double m_origin[3];
+	bool m_compression;
 
-	int rawSizeX,rawSizeY, rawSizeZ;
-	double rawSpaceX, rawSpaceY, rawSpaceZ;
-	double rawOriginX,rawOriginY, rawOriginZ;
-	unsigned int rawHeaderSize, rawByteOrder, rawScalarType;
+	int m_rawSizeX, m_rawSizeY, m_rawSizeZ;
+	double m_rawSpaceX, m_rawSpaceY, m_rawSpaceZ;
+	double m_rawOriginX, m_rawOriginY, m_rawOriginZ;
+	unsigned int m_rawHeaderSize, m_rawByteOrder, m_rawScalarType;
 
-	int ioID;
+	int m_ioID;
 	std::vector<vtkSmartPointer<vtkImageData> > * m_volumes;
 	std::vector<QString> * m_fileNames_volstack;
 

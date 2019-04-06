@@ -180,9 +180,9 @@ void iAUncertaintyAttachment::MemberSelected(int memberIdx)
 {
 	iAITKIO::ImagePointer itkImg = m_currentEnsemble->Member(memberIdx)->LabelImage();
 	iAConnector con;
-	con.SetImage(itkImg);
+	con.setImage(itkImg);
 	bool keep = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
-	m_spatialView->AddMemberImage(QString("Member #%1").arg(memberIdx), con.GetVTKImage(), keep);
+	m_spatialView->AddMemberImage(QString("Member #%1").arg(memberIdx), con.vtkImage(), keep);
 	if (!keep)
 	{
 		m_shownMembers.clear();

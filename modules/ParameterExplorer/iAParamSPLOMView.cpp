@@ -171,5 +171,5 @@ void iAParamSPLOMView::UpdateFeatVisibilty(int)
 
 void iAParamSPLOMView::PointHovered(size_t id)
 {
-	m_spatialView->SetImage(id+1);
+	m_spatialView->setImage(id+1);
 }

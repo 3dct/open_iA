@@ -54,7 +54,7 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 		return;
 	qsrand(QTime::currentTime().msec());
 
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuPorosityAnalyser = getMenuWithTitle( toolsMenu, QString( "FeatureAnalyzer" ), false );
 
 	QAction * actionComputeSegmentations = new QAction( m_mainWnd );

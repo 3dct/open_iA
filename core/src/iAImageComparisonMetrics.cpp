@@ -21,7 +21,7 @@
 #include "iAImageComparisonMetrics.h"
 
 #include "iATypedCallHelper.h"
-#include "iAToolsITK.h" // for GetITKScalarPixelType
+#include "iAToolsITK.h" // for itkScalarPixelType
 
 
 // TODO: check why this function is delivering bogus results for larger images!
@@ -54,6 +54,6 @@ void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAI
 iAImageComparisonResult CompareImages(iAITKIO::ImagePointer img, iAITKIO::ImagePointer reference)
 {
 	iAImageComparisonResult result;
-	ITK_TYPED_CALL(compareImg_tmpl, GetITKScalarPixelType(img), img, reference, result);
+	ITK_TYPED_CALL(compareImg_tmpl, itkScalarPixelType(img), img, reference, result);
 	return result;
 }

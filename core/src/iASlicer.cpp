@@ -1027,18 +1027,18 @@ void iASlicer::saveAsImage()
 		for (auto key : m_channels.keys())
 			if (m_channels[key]->getName() == selectedChannelName)
 				selectedChannelID = key;
-		con.SetImage(m_channels[selectedChannelID]->output());
+		con.setImage(m_channels[selectedChannelID]->output());
 		iAITKIO::ImagePointer imgITK;
 		if (!output16Bit)
 		{
-			imgITK = RescaleImageTo<unsigned char>(con.GetITKImage(), 0, 255);
+			imgITK = rescaleImageTo<unsigned char>(con.itkImage(), 0, 255);
 		}
 		else
 		{
-			imgITK = RescaleImageTo<unsigned short>(con.GetITKImage(), 0, 65535);
+			imgITK = rescaleImageTo<unsigned short>(con.itkImage(), 0, 65535);
 		}
-		con.SetImage(imgITK);
-		img = con.GetVTKImage();
+		con.setImage(imgITK);
+		img = con.vtkImage();
 	}
 	else
 	{
@@ -1047,7 +1047,7 @@ void iASlicer::saveAsImage()
 		wtif->Update();
 		img = wtif->GetOutput();
 	}
-	WriteSingleSliceImage(fileName, img);
+	writeSingleSliceImage(fileName, img);
 }
 
 void iASlicer::saveImageStack()
@@ -1125,14 +1125,14 @@ void iASlicer::saveImageStack()
 		iAConnector con;
 		if (saveNative)
 		{
-			con.SetImage(reslicer->GetOutput());
+			con.setImage(reslicer->GetOutput());
 			iAITKIO::ImagePointer imgITK;
 			if (!output16Bit)
-				imgITK = RescaleImageTo<unsigned char>(con.GetITKImage(), 0, 255);
+				imgITK = rescaleImageTo<unsigned char>(con.itkImage(), 0, 255);
 			else
-				imgITK = RescaleImageTo<unsigned short>(con.GetITKImage(), 0, 65535);
-			con.SetImage(imgITK);
-			img = con.GetVTKImage();
+				imgITK = rescaleImageTo<unsigned short>(con.itkImage(), 0, 65535);
+			con.setImage(imgITK);
+			img = con.vtkImage();
 		}
 		else
 		{
@@ -1145,7 +1145,7 @@ void iASlicer::saveImageStack()
 		emit progress(100 * slice / sliceLast);
 
 		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
-		WriteSingleSliceImage(newFileName, img);
+		writeSingleSliceImage(newFileName, img);
 	}
 	m_interactor->Enable();
 	emit msg(tr("Image stack saved in folder: %1")

@@ -39,7 +39,7 @@
 #include <QFileInfo>
 #include <QDir>
 
-void iAStackReaderFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
 	QString fullFileName = parameters["Folder name"].toString() + "/" + parameters["File name base"].toString();
 	QFileInfo fi(fullFileName);
@@ -119,7 +119,7 @@ void iAStackReaderFilter::PerformWork(QMap<QString, QVariant> const & parameters
 		imgReader = vtkSmartPointer<vtkBMPReader>::New();
 	else
 		throw std::runtime_error(QString("Unknown filetype of extension %1").arg(extension).toStdString());
-	Progress()->Observe(imgReader);
+	progress()->Observe(imgReader);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	auto fileNameArray = vtkSmartPointer<vtkStringArray>::New();
 	for (int i = indexRange[0]; i <= indexRange[1]; i++)
@@ -137,7 +137,7 @@ void iAStackReaderFilter::PerformWork(QMap<QString, QVariant> const & parameters
 	spacing[2] = parameters["Spacing Z"].toDouble();
 	imgReader->SetDataSpacing(spacing);
 	imgReader->Update();
-	AddOutput(imgReader->GetOutput());
+	addOutput(imgReader->GetOutput());
 }
 
 IAFILTER_CREATE(iAStackReaderFilter)
@@ -148,9 +148,9 @@ iAStackReaderFilter::iAStackReaderFilter() :
 		"Minimum and maximum index are automatically determined "
 		"from the given folder name, spacing and datatype can be adapted.", 0, 1)
 {
-	AddParameter("Folder name", String, "");
-	AddParameter("File name base", String, "");
-	AddParameter("Spacing X", Continuous, 1.0);
-	AddParameter("Spacing Y", Continuous, 1.0);
-	AddParameter("Spacing Z", Continuous, 1.0);
+	addParameter("Folder name", String, "");
+	addParameter("File name base", String, "");
+	addParameter("Spacing X", Continuous, 1.0);
+	addParameter("Spacing Y", Continuous, 1.0);
+	addParameter("Spacing Z", Continuous, 1.0);
 }

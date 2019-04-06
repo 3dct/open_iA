@@ -37,12 +37,12 @@ void signed_maurer_distancemap(iAFilter* filter, QMap<QString, QVariant> const &
 	typedef itk::Image< float, 3 > RealImageType;
 	typedef itk::SignedMaurerDistanceMapImageFilter< InputImageType, RealImageType > SDDMType;
 	auto distFilter = SDDMType::New();
-	distFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
+	distFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	distFilter->SetBackgroundValue(parameters["Background Value"].toDouble());
 	distFilter->SetUseImageSpacing(parameters["Use image spacing"].toBool());
 	distFilter->SetSquaredDistance(parameters["Squared distance"].toBool());
 	distFilter->SetInsideIsPositive(parameters["Inside positive"].toBool());
-	filter->Progress()->Observe(distFilter);
+	filter->progress()->Observe(distFilter);
 	distFilter->Update();
 	auto distanceImage = distFilter->GetOutput();
 	if (parameters["Remove negative values"].toBool())
@@ -57,12 +57,12 @@ void signed_maurer_distancemap(iAFilter* filter, QMap<QString, QVariant> const &
 			++iter;
 		}
 	}
-	filter->AddOutput( distanceImage );
+	filter->addOutput( distanceImage );
 }
 
-void iASignedMaurerDistanceMap::PerformWork(QMap<QString, QVariant> const & parameters)
+void iASignedMaurerDistanceMap::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(signed_maurer_distancemap, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(signed_maurer_distancemap, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iASignedMaurerDistanceMap)
@@ -76,11 +76,11 @@ iASignedMaurerDistanceMap::iASignedMaurerDistanceMap() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SignedMaurerDistanceMapImageFilter.html\">"
 		"Signed Maurer Distance Map Filter</a> in the ITK documentation.")
 {
-	AddParameter("Use image spacing", Boolean, true);
-	AddParameter("Squared distance", Boolean, false);
-	AddParameter("Inside positive", Boolean, false);
-	AddParameter("Remove negative values", Boolean, false);
-	AddParameter("Background Value", Continuous, 0);
+	addParameter("Use image spacing", Boolean, true);
+	addParameter("Squared distance", Boolean, false);
+	addParameter("Inside positive", Boolean, false);
+	addParameter("Remove negative values", Boolean, false);
+	addParameter("Background Value", Continuous, 0);
 }
 
 
@@ -95,13 +95,13 @@ void danielsson_distancemap(iAFilter* filter, QMap<QString, QVariant> const & pa
 
 	auto distFilter = danielssonDistFilterType::New();
 	distFilter->SetInputIsBinary(parameters["Input binary"].toBool());
-	distFilter->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage() ) );
-	filter->Progress()->Observe(distFilter);
+	distFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage() ) );
+	filter->progress()->Observe(distFilter);
 	distFilter->Update();
 
 	if (!parameters["Rescale to unsigned char"].toBool())
 	{
-		filter->AddOutput(distFilter->GetOutput());
+		filter->addOutput(distFilter->GetOutput());
 	}
 	else
 	{
@@ -111,13 +111,13 @@ void danielsson_distancemap(iAFilter* filter, QMap<QString, QVariant> const & pa
 		intensityRescaler->SetOutputMinimum( 0 );
 		intensityRescaler->SetOutputMaximum( 255 );
 		intensityRescaler->Update();
-		filter->AddOutput( intensityRescaler->GetOutput() );
+		filter->addOutput( intensityRescaler->GetOutput() );
 	}
 }
 
-void iADanielssonDistanceMap::PerformWork(QMap<QString, QVariant> const & parameters)
+void iADanielssonDistanceMap::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(danielsson_distancemap, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(danielsson_distancemap, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iADanielssonDistanceMap)
@@ -130,6 +130,6 @@ iADanielssonDistanceMap::iADanielssonDistanceMap() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1DanielssonDistanceMapImageFilter.html\">"
 		"Danielsson Distance Map Filter</a> in the ITK documentation.")
 {
-	AddParameter("Input binary", Boolean, true);
-	AddParameter("Rescale to unsigned char", Boolean, false);
+	addParameter("Input binary", Boolean, true);
+	addParameter("Rescale to unsigned char", Boolean, false);
 }

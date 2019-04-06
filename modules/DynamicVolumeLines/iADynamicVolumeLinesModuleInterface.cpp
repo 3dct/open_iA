@@ -32,7 +32,7 @@ void iADynamicVolumeLinesModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionDynamicVolumeLines = new QAction(QApplication::translate("MainWindow", "Dynamic Volume Lines", 0), m_mainWnd);
 	AddActionToMenuAlphabeticallySorted(toolsMenu, actionDynamicVolumeLines);
 	connect(actionDynamicVolumeLines, SIGNAL(triggered()), this, SLOT(DynamicVolumeLines()));

@@ -268,7 +268,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 		QString SpecularLighting = settings.value(GetModalityKey(currIdx, "SpecularLighting"), defaultSettings.SpecularLighting).toString();
 		QString SpecularPower = settings.value(GetModalityKey(currIdx, "SpecularPower"), defaultSettings.SpecularPower).toString();
 		QString ScalarOpacityUnitDistance = settings.value(GetModalityKey(currIdx, "ScalarOpacityUnitDistance"), defaultSettings.ScalarOpacityUnitDistance).toString();
-		volSettings.RenderMode = MapRenderModeToEnum(settings.value(GetModalityKey(currIdx, "RenderMode")).toString());
+		volSettings.RenderMode = mapRenderModeToEnum(settings.value(GetModalityKey(currIdx, "RenderMode")).toString());
 
 		//check if vol settings are ok / otherwise use default values
 		checkandSetVolumeSettings(volSettings, Shading, LinearInterpolation, SampleDistance, AmbientLighting,

@@ -32,7 +32,7 @@ iAFilter::iAFilter(QString const & name, QString const & category, QString const
 	m_name(name),
 	m_category(category),
 	m_description(description),
-	m_log(iAStdOutLogger::Get()),
+	m_log(iAStdOutLogger::get()),
 	m_requiredInputs(requiredInputs),
 	m_outputCount(outputCount),
 	m_firstInputChannels(1)
@@ -40,186 +40,186 @@ iAFilter::iAFilter(QString const & name, QString const & category, QString const
 
 iAFilter::~iAFilter()
 {
-	ClearOutput();
+	clearOutput();
 }
 
-QString iAFilter::Name() const
+QString iAFilter::name() const
 {
 	return m_name;
 }
 
-QString iAFilter::Category() const
+QString iAFilter::category() const
 {
 	int slashPos = m_category.indexOf("/");
 	return slashPos > 0 ? m_category.left(slashPos) : m_category;
 }
 
-QString iAFilter::FullCategory() const
+QString iAFilter::fullCategory() const
 {
 	return m_category;
 }
 
-QString iAFilter::Description() const
+QString iAFilter::description() const
 {
 	return m_description;
 }
 
-QVector<pParameter> const & iAFilter::Parameters() const
+QVector<pParameter> const & iAFilter::parameters() const
 {
 	return m_parameters;
 }
 
-unsigned int iAFilter::RequiredInputs() const
+unsigned int iAFilter::requiredInputs() const
 {
 	return m_requiredInputs;
 }
 
-unsigned int iAFilter::FirstInputChannels() const
+unsigned int iAFilter::firstInputChannels() const
 {
 	return m_firstInputChannels;
 }
 
-void iAFilter::SetFirstInputChannels(unsigned int c)
+void iAFilter::setFirstInputChannels(unsigned int c)
 {
 	m_firstInputChannels = c;
 }
 
-void iAFilter::AddOutputValue(QString const & name, QVariant value)
+void iAFilter::addOutputValue(QString const & name, QVariant value)
 {
 	m_outputValues.push_back(qMakePair(name, value));
 }
 
-QVector<QPair<QString, QVariant> > const & iAFilter::OutputValues() const
+QVector<QPair<QString, QVariant> > const & iAFilter::outputValues() const
 {
 	return m_outputValues;
 }
 
-void iAFilter::ClearOutput()
+void iAFilter::clearOutput()
 {
 	for (iAConnector* con: m_output)
 		delete con;
 	m_output.clear();
 }
 
-void iAFilter::AddOutput(itk::ImageBase<3>* itkImg)
+void iAFilter::addOutput(itk::ImageBase<3>* itkImg)
 {
 	iAConnector * con = new iAConnector();
-	con->SetImage(itkImg);
-	con->Modified();
+	con->setImage(itkImg);
+	con->modified();
 	m_output.push_back(con);
 }
 
-void iAFilter::AddOutput(vtkSmartPointer<vtkImageData> img)
+void iAFilter::addOutput(vtkSmartPointer<vtkImageData> img)
 {
 	iAConnector * con = new iAConnector();
-	con->SetImage(img);
-	con->Modified();
+	con->setImage(img);
+	con->modified();
 	m_output.push_back(con);
 }
 
-QVector<iAConnector*> const & iAFilter::Output()
+QVector<iAConnector*> const & iAFilter::output()
 {
 	return m_output;
 }
 
-int iAFilter::OutputCount()
+int iAFilter::outputCount()
 {
 	return m_outputCount;
 }
 
-void iAFilter::ClearInput()
+void iAFilter::clearInput()
 {
 	m_input.clear();
 }
 
-void iAFilter::AddInput(iAConnector* con)
+void iAFilter::addInput(iAConnector* con)
 {
 	m_input.push_back(con);
 }
 
-QVector<iAConnector*> const & iAFilter::Input()
+QVector<iAConnector*> const & iAFilter::input()
 {
 	return m_input;
 }
 
-itk::ImageIOBase::IOComponentType iAFilter::InputPixelType() const
+itk::ImageIOBase::IOComponentType iAFilter::inputPixelType() const
 {
-	return m_input[0]->GetITKScalarPixelType();
+	return m_input[0]->itkScalarPixelType();
 }
 
-void iAFilter::SetLogger(iALogger* log)
+void iAFilter::setLogger(iALogger* log)
 {
 	m_log = log;
 }
 
-void iAFilter::SetProgress(iAProgress* progress)
+void iAFilter::setProgress(iAProgress* progress)
 {
 	m_progress = progress;
 }
 
-bool iAFilter::Run(QMap<QString, QVariant> const & parameters)
+bool iAFilter::run(QMap<QString, QVariant> const & parameters)
 {
 	if (m_input.size() < m_requiredInputs)
 	{
-		AddMsg(QString("Not enough inputs specified. Filter %1 requires %2 input images, but only %3 given!").arg(m_name).arg(m_requiredInputs).arg(m_input.size()));
+		addMsg(QString("Not enough inputs specified. Filter %1 requires %2 input images, but only %3 given!").arg(m_name).arg(m_requiredInputs).arg(m_input.size()));
 		return false;
 	}
-	ClearOutput();
+	clearOutput();
 	m_outputValues.clear();
-	PerformWork(parameters);
+	performWork(parameters);
 	return true;
 }
 
-bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
+bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 {
 	bool ok;
 	for (auto param: m_parameters)
 	{
-		switch (param->ValueType())
+		switch (param->valueType())
 		{
 		case Discrete: {
-			long long value = parameters[param->Name()].toLongLong(&ok);
+			long long value = parameters[param->name()].toLongLong(&ok);
 			if (!ok)
 			{
-				AddMsg(QString("Parameter %1: Expected integer value, %2 given.").arg(param->Name()).arg(parameters[param->Name()].toString()));
+				addMsg(QString("Parameter %1: Expected integer value, %2 given.").arg(param->name()).arg(parameters[param->name()].toString()));
 				return false;
 			}
-			if (value < param->Min() || value > param->Max())
+			if (value < param->min() || value > param->max())
 			{
-				AddMsg(QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
-					.arg(param->Name())
-					.arg(parameters[param->Name()].toString())
-					.arg(param->Min()).arg(param->Max()));
+				addMsg(QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
+					.arg(param->name())
+					.arg(parameters[param->name()].toString())
+					.arg(param->min()).arg(param->max()));
 				return false;
 			}
 			break;
 		}
 		case Continuous:
 		{
-			double value = parameters[param->Name()].toDouble(&ok);
+			double value = parameters[param->name()].toDouble(&ok);
 			if (!ok)
 			{
-				AddMsg(QString("Parameter %1: Expected double value, %2 given.").arg(param->Name()).arg(parameters[param->Name()].toString()));
+				addMsg(QString("Parameter %1: Expected double value, %2 given.").arg(param->name()).arg(parameters[param->name()].toString()));
 				return false;
 			}
-			if (value < param->Min() || value > param->Max())
+			if (value < param->min() || value > param->max())
 			{
-				AddMsg(QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
-					.arg(param->Name())
-					.arg(parameters[param->Name()].toString())
-					.arg(param->Min()).arg(param->Max()));
+				addMsg(QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
+					.arg(param->name())
+					.arg(parameters[param->name()].toString())
+					.arg(param->min()).arg(param->max()));
 				return false;
 			}
 			break;
 		}
 		case Categorical:
 		{
-			QStringList values = param->DefaultValue().toStringList();
-			if (!values.contains(parameters[param->Name()].toString()))
+			QStringList values = param->defaultValue().toStringList();
+			if (!values.contains(parameters[param->name()].toString()))
 			{
-				AddMsg(QString("Parameter %1: Given value '%2' not in the list of valid values (%3).")
-					.arg(param->Name())
-					.arg(parameters[param->Name()].toString())
+				addMsg(QString("Parameter %1: Given value '%2' not in the list of valid values (%3).")
+					.arg(param->name())
+					.arg(parameters[param->name()].toString())
 					.arg(values.join(",")));
 				return false;
 			}
@@ -227,27 +227,27 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 		}
 		case FileNameOpen:
 		{
-			QFileInfo file(parameters[param->Name()].toString());
+			QFileInfo file(parameters[param->name()].toString());
 			if (!file.isFile() || !file.isReadable())
 			{
-				AddMsg(QString("Parameter %1: Given filename '%2' either doesn't reference a file, "
-					"the file does not exist, or it is not readable!").arg(param->Name()).arg(parameters[param->Name()].toString()));
+				addMsg(QString("Parameter %1: Given filename '%2' either doesn't reference a file, "
+					"the file does not exist, or it is not readable!").arg(param->name()).arg(parameters[param->name()].toString()));
 				return false;
 			}
 			break;
 		}
 		case FileNamesOpen:
 		{
-			QStringList files = SplitPossiblyQuotedString(parameters[param->Name()].toString());
+			QStringList files = SplitPossiblyQuotedString(parameters[param->name()].toString());
 			for (auto fileName : files)
 			{
 				QFileInfo file(fileName);
 				if (!file.isFile() || !file.isReadable())
 				{
-					AddMsg(QString("Parameter %1: Filename '%2' out of the given list '%3' either doesn't reference a file, "
-						"the file does not exist, or it is not readable!").arg(param->Name())
+					addMsg(QString("Parameter %1: Filename '%2' out of the given list '%3' either doesn't reference a file, "
+						"the file does not exist, or it is not readable!").arg(param->name())
 						.arg(fileName)
-						.arg(parameters[param->Name()].toString()));
+						.arg(parameters[param->name()].toString()));
 					return false;
 				}
 			}
@@ -256,17 +256,17 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 		case Folder:
 		{
 			// TODO: allow to specify whether the folder can be empty or not!
-			QFileInfo file(parameters[param->Name()].toString());
-			if (!parameters[param->Name()].toString().isEmpty() && !file.isDir())
+			QFileInfo file(parameters[param->name()].toString());
+			if (!parameters[param->name()].toString().isEmpty() && !file.isDir())
 			{
-				AddMsg(QString("Parameter '%1': Given value '%2' doesn't reference a folder!")
-					.arg(param->Name()).arg(parameters[param->Name()].toString()));
+				addMsg(QString("Parameter '%1': Given value '%2' doesn't reference a folder!")
+					.arg(param->name()).arg(parameters[param->name()].toString()));
 				return false;
 			}
 			break;
 		}
 		case Invalid:
-			AddMsg(QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->Name()));
+			addMsg(QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->name()));
 			return false;
 		default:  // no checks
 			break;
@@ -275,33 +275,33 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 	return true;
 }
 
-void iAFilter::AddMsg(QString msg)
+void iAFilter::addMsg(QString msg)
 {
-	m_log->Log(msg);
+	m_log->log(msg);
 }
 
-iAProgress* iAFilter::Progress()
+iAProgress* iAFilter::progress()
 {
 	return m_progress;
 }
 
-iALogger* iAFilter::Logger()
+iALogger* iAFilter::logger()
 {
 	return m_log;
 }
 
-void iAFilter::AddParameter(QString const & name, iAValueType valueType,
+void iAFilter::addParameter(QString const & name, iAValueType valueType,
 	QVariant defaultValue, double min, double max)
 {
-	m_parameters.push_back(iAAttributeDescriptor::CreateParam(name, valueType, defaultValue, min, max));
+	m_parameters.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
 }
 
-QVector<QString> const & iAFilter::OutputValueNames() const
+QVector<QString> const & iAFilter::outputValueNames() const
 {
 	return m_outputValueNames;
 }
 
-void iAFilter::AddOutputValue(QString const & name)
+void iAFilter::addOutputValue(QString const & name)
 {
 	m_outputValueNames.push_back(name);
 }

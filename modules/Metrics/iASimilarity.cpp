@@ -46,8 +46,8 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	size_t size[3], index[3];
 	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
 	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
-	auto activeExtract = ExtractImage(filter->Input()[0]->GetITKImage(), index, size);
-	auto nonActiveExtract = ExtractImage(filter->Input()[1]->GetITKImage(), index, size);
+	auto activeExtract = extractImage(filter->input()[0]->itkImage(), index, size);
+	auto nonActiveExtract = extractImage(filter->input()[1]->itkImage(), index, size);
 	ImageType* img = dynamic_cast<ImageType*>(activeExtract.GetPointer());
 	ImageType* ref = dynamic_cast<ImageType*>(nonActiveExtract.GetPointer());
 	typedef itk::TranslationTransform < double, DIM > TransformType;
@@ -57,7 +57,7 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	auto interpolator = InterpolatorType::New();
 	interpolator->SetInputImage(img);
 	typename TransformType::ParametersType params(transform->GetNumberOfParameters());
-	filter->AddMsg(QString("ROI[Origin_XYZ; SIZE_XYZ] = [%1, %2, %3; %4, %5, %6]")
+	filter->addMsg(QString("ROI[Origin_XYZ; SIZE_XYZ] = [%1, %2, %3; %4, %5, %6]")
 		.arg(index[0]).arg(index[1]).arg(index[2])
 		.arg(size[0]).arg(size[1]).arg(size[2]));
 	double range = 0, imgMean = 0, imgVar = 0, refMean = 0, refVar = 0, mse = 0;
@@ -86,17 +86,17 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 		msmetric->Initialize();
 		mse = msmetric->GetValue(params);
 		if (parameters["Mean Squared Error"].toBool())
-			filter->AddOutputValue("Mean Squared Error", mse);
+			filter->addOutputValue("Mean Squared Error", mse);
 		if (parameters["RMSE"].toBool())
-			filter->AddOutputValue("RMSE", std::sqrt(mse));
+			filter->addOutputValue("RMSE", std::sqrt(mse));
 		if (parameters["Normalized RMSE"].toBool())
-			filter->AddOutputValue("Normalized RMSE", std::sqrt(mse) / range);
+			filter->addOutputValue("Normalized RMSE", std::sqrt(mse) / range);
 
 	}
 	if (parameters["Peak Signal-to-Noise Ratio"].toBool())
 	{
 		double psnr = 20 * std::log10(range) - 10 * log10(mse);
-		filter->AddOutputValue("Peak Signal-to-Noise Ratio", psnr);
+		filter->addOutputValue("Peak Signal-to-Noise Ratio", psnr);
 	}
 	if (parameters["Mean Absolute Error"].toBool())
 	{
@@ -109,7 +109,7 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 			diffSum += std::abs(static_cast<double>(refIt.Get() - imgIt.Get()));
 			++imgIt; ++refIt; ++count;
 		}
-		filter->AddOutputValue("Mean Absolute Error", diffSum / count);
+		filter->addOutputValue("Mean Absolute Error", diffSum / count);
 	}
 	if (parameters["Normalized Correlation"].toBool())
 	{
@@ -123,7 +123,7 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 		params.Fill(0.0);
 		ncmetric->Initialize();
 		double ncVal = ncmetric->GetValue(params);
-		filter->AddOutputValue("Normalized Correlation Metric", ncVal);
+		filter->addOutputValue("Normalized Correlation Metric", ncVal);
 	}
 	if (parameters["Mutual Information"].toBool())
 	{
@@ -215,12 +215,12 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 		double mutInf = entr1 + entr2 - jointEntr;
 		double norMutInf1 = 2.0 * mutInf / (entr1 + entr2);
 		double norMutInf2 = (entr1 + entr2) / jointEntr;
-		filter->AddOutputValue("Image 1 Entropy", entr1);
-		filter->AddOutputValue("Image 2 Entropy", entr2);
-		filter->AddOutputValue("Joint Entropy", jointEntr);
-		filter->AddOutputValue("Mutual Information", mutInf);
-		filter->AddOutputValue("Normalized Mutual Information 1", norMutInf1);
-		filter->AddOutputValue("Normalized Mutual Information 2", norMutInf2);
+		filter->addOutputValue("Image 1 Entropy", entr1);
+		filter->addOutputValue("Image 2 Entropy", entr2);
+		filter->addOutputValue("Joint Entropy", jointEntr);
+		filter->addOutputValue("Mutual Information", mutInf);
+		filter->addOutputValue("Normalized Mutual Information 1", norMutInf1);
+		filter->addOutputValue("Normalized Mutual Information 2", norMutInf2);
 	}
 	if (parameters["Structural Similarity Index"].toBool())
 	{
@@ -238,7 +238,7 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 		double c2 = std::pow(parameters["Structural Similarity k2"].toDouble() * range, 2);
 		double ssim = ((2 * imgMean * refMean + c1) * (2 * covariance + c2)) /
 			((imgMean * imgMean + refMean * refMean + c1) * (imgVar + refVar + c2));
-		filter->AddOutputValue("Structural Similarity Index", ssim);
+		filter->addOutputValue("Structural Similarity Index", ssim);
 	}
 }
 
@@ -271,40 +271,40 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"the two parameters k1 and k2 are used exactly as defined there.",
 	2, 0)
 {
-	AddParameter("Index X", Discrete, 0);
-	AddParameter("Index Y", Discrete, 0);
-	AddParameter("Index Z", Discrete, 0);
-	AddParameter("Size X", Discrete, 1);
-	AddParameter("Size Y", Discrete, 1);
-	AddParameter("Size Z", Discrete, 1);
-	AddParameter("Mean Squared Error", Boolean, false);
-	AddParameter("RMSE", Boolean, true);
-	AddParameter("Normalized RMSE", Boolean, false);
-	AddParameter("Peak Signal-to-Noise Ratio", Boolean, true);
-	AddParameter("Mean Absolute Error", Boolean, true);
-	AddParameter("Normalized Correlation", Boolean, false);
-	AddParameter("Mutual Information", Boolean, false);
-	AddParameter("Histogram Bins", Discrete, 256, 2);
-	AddParameter("Structural Similarity Index", Boolean, true);
-	AddParameter("Structural Similarity k1", Continuous, 0.01);
-	AddParameter("Structural Similarity k2", Continuous, 0.03);
+	addParameter("Index X", Discrete, 0);
+	addParameter("Index Y", Discrete, 0);
+	addParameter("Index Z", Discrete, 0);
+	addParameter("Size X", Discrete, 1);
+	addParameter("Size Y", Discrete, 1);
+	addParameter("Size Z", Discrete, 1);
+	addParameter("Mean Squared Error", Boolean, false);
+	addParameter("RMSE", Boolean, true);
+	addParameter("Normalized RMSE", Boolean, false);
+	addParameter("Peak Signal-to-Noise Ratio", Boolean, true);
+	addParameter("Mean Absolute Error", Boolean, true);
+	addParameter("Normalized Correlation", Boolean, false);
+	addParameter("Mutual Information", Boolean, false);
+	addParameter("Histogram Bins", Discrete, 256, 2);
+	addParameter("Structural Similarity Index", Boolean, true);
+	addParameter("Structural Similarity k1", Continuous, 0.01);
+	addParameter("Structural Similarity k2", Continuous, 0.03);
 }
 
 IAFILTER_CREATE(iASimilarity)
 
-void iASimilarity::PerformWork(QMap<QString, QVariant> const & parameters)
+void iASimilarity::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(similarity_metrics, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(similarity_metrics, inputPixelType(), this, parameters);
 }
 
-QSharedPointer<iAFilterRunnerGUI> iASimilarityFilterRunner::Create()
+QSharedPointer<iAFilterRunnerGUI> iASimilarityFilterRunner::create()
 {
 	return QSharedPointer<iAFilterRunnerGUI>(new iASimilarityFilterRunner());
 }
 
-QMap<QString, QVariant> iASimilarityFilterRunner::LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+QMap<QString, QVariant> iASimilarityFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
 {
-	auto params = iAFilterRunnerGUI::LoadParameters(filter, sourceMdi);
+	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
 	int const * dim = sourceMdi->imagePointer()->GetDimensions();
 	if (params["Index X"].toUInt() >= dim[0])
 		params["Index X"] = 0;

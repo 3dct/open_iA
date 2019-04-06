@@ -65,7 +65,7 @@ void iA4DCTModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)
 		return;
-	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
+	QMenu* toolsMenu = m_mainWnd->toolsMenu( );
 	QMenu* menu4DCT = getMenuWithTitle(toolsMenu, tr("4DCT"), false);
 
 	QAction * newProj = new QAction(tr("New 4DCT project"), nullptr );

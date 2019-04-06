@@ -61,7 +61,7 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 	for (int i = 0; i < attributes->size(); ++i)
 	{
 		double value = -1;
-		int valueType = attributes->at(i)->ValueType();
+		int valueType = attributes->at(i)->valueType();
 		QString curToken = tokens[i + 1];
 		switch (valueType)
 		{
@@ -72,7 +72,7 @@ QSharedPointer<iASingleResult> iASingleResult::Create(
 				value = curToken.toInt(&ok);
 				break;
 			case Categorical:
-				value = attributes->at(i)->NameMapper()->GetIdx(curToken, ok);
+				value = attributes->at(i)->nameMapper()->GetIdx(curToken, ok);
 				break;
 		}
 		if (!ok)
@@ -116,19 +116,19 @@ QString iASingleResult::ToString(QSharedPointer<iAAttributes> attributes, int ty
 	}
 	for (int i = 0; i < m_attributeValues.size(); ++i)
 	{
-		if (attributes->at(i)->AttribType() == type)
+		if (attributes->at(i)->attribType() == type)
 		{
 			if (!result.isEmpty())
 			{
 				result += ValueSplitString;
 			}
-			if (attributes->at(i)->NameMapper())
+			if (attributes->at(i)->nameMapper())
 			{
-				result += attributes->at(i)->NameMapper()->name(m_attributeValues[i]);
+				result += attributes->at(i)->nameMapper()->name(m_attributeValues[i]);
 			}
 			else
 			{
-				result += (attributes->at(i)->ValueType() == iAValueType::Discrete) ?
+				result += (attributes->at(i)->valueType() == iAValueType::Discrete) ?
 					QString::number(static_cast<int>(m_attributeValues[i])) :
 					QString::number(m_attributeValues[i]);
 			}
@@ -174,7 +174,7 @@ bool iASingleResult::LoadLabelImage()
 	m_labelImg = iAITKIO::readFile(GetLabelPath(), pixelType, false);
 	if (pixelType != itk::ImageIOBase::INT)
 	{
-		m_labelImg = CastImageTo<int>(m_labelImg);
+		m_labelImg = castImageTo<int>(m_labelImg);
 	}
 	return (m_labelImg);
 }
