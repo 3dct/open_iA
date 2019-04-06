@@ -78,13 +78,13 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 {
 	vtkImageData *imageData = modality->image().GetPointer();
 
-	vtkColorTransferFunction* colorFunction = modality->transfer()->getColorFunction();
+	vtkColorTransferFunction* colorFunction = modality->transfer()->colorTF();
 	m_slicer->addChannel(0, iAChannelData(modality->name(), imageData, colorFunction), true);
 	m_slicer->disableInteractor();
 
 	if (!m_enableInteraction) {
 		vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
-		m_slicer->getInteractor()->SetInteractorStyle(dummyStyle);
+		m_slicer->interactor()->SetInteractorStyle(dummyStyle);
 	}
 
 	double* origin = imageData->GetOrigin();
@@ -96,7 +96,7 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 	double xd = (extent[1] - extent[0] + 1)*spacing[0];
 	double yd = (extent[3] - extent[2] + 1)*spacing[1];
 
-	vtkCamera *camera = m_slicer->getCamera();
+	vtkCamera *camera = m_slicer->camera();
 	double d = camera->GetDistance();
 
 	camera->SetParallelScale(0.5*yd);

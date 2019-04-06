@@ -627,7 +627,7 @@ void MainWindow::saveSliceViews(QDomDocument &doc)
 	}
 
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
-		saveSliceView(doc, sliceViewsNode, activeMdiChild()->slicer(i)->getRenderer(), getSlicerModeString(i));
+		saveSliceView(doc, sliceViewsNode, activeMdiChild()->slicer(i)->renderer(), slicerModeString(i));
 }
 
 void MainWindow::saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, QString const & elemStr)
@@ -706,9 +706,9 @@ void MainWindow::loadSliceViews(QDomNode &sliceViewsNode)
 	{
 		QDomNode node = list.item(n);
 		vtkCamera *camera;
-		if      (node.nodeName() == "XY") camera = activeMdiChild()->slicer(iASlicerMode::XY)->getCamera();
-		else if (node.nodeName() == "YZ") camera = activeMdiChild()->slicer(iASlicerMode::YZ)->getCamera();
-		else                              camera = activeMdiChild()->slicer(iASlicerMode::XZ)->getCamera();
+		if      (node.nodeName() == "XY") camera = activeMdiChild()->slicer(iASlicerMode::XY)->camera();
+		else if (node.nodeName() == "YZ") camera = activeMdiChild()->slicer(iASlicerMode::YZ)->camera();
+		else                              camera = activeMdiChild()->slicer(iASlicerMode::XZ)->camera();
 		loadCamera(node, camera);
 	}
 }
@@ -729,12 +729,12 @@ void MainWindow::saveTransferFunction(QDomDocument &doc, dlg_transfer* transferF
 	// add new function node
 	QDomElement transferElement = doc.createElement("transfer");
 
-	for (int i = 0; i < transferFunction->getOpacityFunction()->GetSize(); i++)
+	for (int i = 0; i < transferFunction->opacityTF()->GetSize(); i++)
 	{
 		double opacityTFValue[4];
 		double colorTFValue[6];
-		transferFunction->getOpacityFunction()->GetNodeValue(i, opacityTFValue);
-		transferFunction->getColorFunction()->GetNodeValue(i, colorTFValue);
+		transferFunction->opacityTF()->GetNodeValue(i, opacityTFValue);
+		transferFunction->colorTF()->GetNodeValue(i, colorTFValue);
 
 		QDomElement nodeElement = doc.createElement("node");
 		nodeElement.setAttribute("value",   tr("%1").arg(opacityTFValue[0]));

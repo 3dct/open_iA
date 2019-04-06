@@ -33,13 +33,13 @@ enum iASlicerMode
 };
 
 //! retrieve the "name" of the given slicer mode (i.e. the slicer plane, "XY" for iASlicerMode XY)
-open_iA_Core_API QString getSlicerModeString(int mode);
+open_iA_Core_API QString slicerModeString(int mode);
 
 //! return the name of axis along which the given slicer mode cuts (i.e. "Z" for slice mode "XY")
-open_iA_Core_API QString getSliceAxis(int mode);
+open_iA_Core_API QString sliceAxis(int mode);
 
 //! get the index of the dimension along which the given slicer mode cuts (0 for YZ, 1 for XZ, 2 for XY)
-open_iA_Core_API int getSlicerDimension(int mode);
+open_iA_Core_API int slicerDimension(int mode);
 
 //! get two axes of slicer - 0, 1 for XY; 0, 2 for XZ; 1, 2 for YZ
-open_iA_Core_API int getSliceAxis(int axis, int index);
+open_iA_Core_API int sliceAxis(int axis, int index);

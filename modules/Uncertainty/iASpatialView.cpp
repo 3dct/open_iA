@@ -119,7 +119,7 @@ void iASpatialView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs,
 {
 	m_labelImgLut = labelImgLut;
 	double uncertaintyRange[2] = {0.0, 1.0};
-	m_uncertaintyLut = GetDefaultColorTransferFunction(uncertaintyRange);
+	m_uncertaintyLut = defaultColorTF(uncertaintyRange);
 
 	newImgID = 0;
 	for (auto widget : m_imageBar->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))

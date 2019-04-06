@@ -49,7 +49,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 	m_rendererManager.addToBundle(m_mdiChild->renderer()->renderer());
 
 	// add widgets to window
-	int numOfVolumes = m_volumeStack->getNumberOfVolumes();
+	int numOfVolumes = m_volumeStack->numberOfVolumes();
 	m_vtkWidgets = new QVTKWidgetMouseReleaseWorkaround*[numOfVolumes];
 	m_renderers = new iARenderer*[numOfVolumes];
 	m_volumeRenderer = new iAVolumeRenderer*[numOfVolumes];
@@ -59,13 +59,13 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 		m_renderers[i] = new iARenderer(this);
 		// TODO: VOLUME: check if this is working!
 		iASimpleTransferFunction transferFunction(
-			m_volumeStack->getColorTransferFunction(i),
-			m_volumeStack->getPiecewiseFunction(i)
+			m_volumeStack->colorTF(i),
+			m_volumeStack->opacityTF(i)
 		);
-		m_volumeRenderer[i] = new iAVolumeRenderer(&transferFunction, m_volumeStack->getVolume(i));
+		m_volumeRenderer[i] = new iAVolumeRenderer(&transferFunction, m_volumeStack->volume(i));
 		m_renderers[i]->setAxesTransform(m_axesTransform);
 		m_vtkWidgets[i]->SetRenderWindow(m_renderers[i]->renderWindow());
-		m_renderers[i]->initialize(m_volumeStack->getVolume(i), m_mdiChild->polyData());
+		m_renderers[i]->initialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_volumeRenderer[i]->addTo(m_renderers[i]->renderer());
 		m_renderers[i]->applySettings( m_mdiChild->renderSettings() );
 		m_volumeRenderer[i]->applySettings(m_mdiChild->volumeSettings());
@@ -89,9 +89,9 @@ dlg_dataView4DCT::~dlg_dataView4DCT()
 
 void dlg_dataView4DCT::update()
 {
-	for(int i = 0; i < m_volumeStack->getNumberOfVolumes(); i++)
+	for(int i = 0; i < m_volumeStack->numberOfVolumes(); i++)
 	{
-		m_renderers[i]->reInitialize(m_volumeStack->getVolume(i), m_mdiChild->polyData());
+		m_renderers[i]->reInitialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_renderers[i]->update();
 		m_volumeRenderer[i]->update(); // TODO: VOLUME: check if necessary!
 	}

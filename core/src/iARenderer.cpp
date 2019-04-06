@@ -414,8 +414,8 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 			point1[j] = 0;
 			point2[j] = 0;
 		}
-		point1[getSliceAxis(s, 0)] += 1.1 * dim[getSliceAxis(s, 0)] * spc[getSliceAxis(s, 0)];
-		point2[getSliceAxis(s, 1)] += 1.1 * dim[getSliceAxis(s, 1)] * spc[getSliceAxis(s, 1)];
+		point1[sliceAxis(s, 0)] += 1.1 * dim[sliceAxis(s, 0)] * spc[sliceAxis(s, 0)];
+		point2[sliceAxis(s, 1)] += 1.1 * dim[sliceAxis(s, 1)] * spc[sliceAxis(s, 1)];
 		m_slicePlaneSource[s]->SetPoint1(point1);
 		m_slicePlaneSource[s]->SetPoint2(point2);
 		m_slicePlaneSource[s]->SetCenter(center);

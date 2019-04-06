@@ -45,8 +45,8 @@ public:
 
 dlg_TFTable::dlg_TFTable( iADiagramFctWidget * parent, dlg_function* func ) : dlg_TFTableWidgetConnector( parent ),
 	m_parent(parent),
-	m_oTF( dynamic_cast<dlg_transfer*>( func )->getOpacityFunction() ),
-	m_cTF( dynamic_cast<dlg_transfer*>( func )->getColorFunction() ),
+	m_oTF( dynamic_cast<dlg_transfer*>( func )->opacityTF() ),
+	m_cTF( dynamic_cast<dlg_transfer*>( func )->colorTF() ),
 	m_newPointColor( Qt::gray )
 {
 	Init();

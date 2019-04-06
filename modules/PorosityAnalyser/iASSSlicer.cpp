@@ -219,13 +219,13 @@ void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile,
 		slicer->enableChannel( contourChans[i]->id, true );
 		slicer->setChannelOpacity( contourChans[i]->id, 0.0 );
 
-		iAChannelSlicerData * chanSData = slicer->getChannel( contourChans[i]->id );
-		chanSData = slicer->getChannel( contourChans[i]->id );
+		iAChannelSlicerData * chanSData = slicer->channel( contourChans[i]->id );
+		chanSData = slicer->channel( contourChans[i]->id );
 		chanSData->setContourLineParams( lineWidths[i] );
 		chanSData->setContoursColor( contRGBs[i] );
 		chanSData->setContoursOpacity( 0.8 );
 		chanSData->setContours( 1, &contourValue );
-		chanSData->setShowContours( slicer->getRenderer(), true );
+		chanSData->setShowContours( slicer->renderer(), true );
 	}
 	medContour->SetInputData( medChan->imgData );
 	minContour->SetInputData( minChan->imgData );
@@ -293,7 +293,7 @@ void iASSSlicer::initializeMasks( QStringList & masks )
 	sbw->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue( 0.06, 0.75 );
 	sbw->GetScalarBarActor()->SetTitle( "Mask count" );
 	sbw->GetScalarBarActor()->SetNumberOfLabels( 4 );
-	sbw->SetInteractor( slicer->getRenderWindow()->GetInteractor() );
+	sbw->SetInteractor( slicer->renderWindow()->GetInteractor() );
 	masksChan->scalarBarWgt->SetEnabled( true );
 }
 
@@ -308,8 +308,8 @@ void iASSSlicer::enableContours( bool isEnabled )
 	iAChanData * contourChans[3] = { minChan.data(), maxChan.data(), medChan.data() };
 	for( int i = 0; i < 3; ++i )
 	{
-		iAChannelSlicerData * contourChan = slicer->getChannel( contourChans[i]->id );
-		contourChan->setShowContours( slicer->getRenderer(), isEnabled );
+		iAChannelSlicerData * contourChan = slicer->channel( contourChans[i]->id );
+		contourChan->setShowContours( slicer->renderer(), isEnabled );
 		slicer->enableChannel( contourChans[i]->id, isEnabled );
 	}
 	update();

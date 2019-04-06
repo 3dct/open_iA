@@ -104,14 +104,14 @@ public:
 	//! @{ Magic Lens methods
 	void setMagicLensEnabled( bool isEnabled );
 	void setMagicLensSize(int newSize);
-	int  getMagicLensSize() const;
+	int  magicLensSize() const;
 	void setMagicLensFrameWidth(int newWidth);
 	void setMagicLensCount(int count);
 	void setMagicLensInput(uint id);
 	void addMagicLensInput(uint id);
-	uint getMagicLensInput() const;
+	uint magicLensInput() const;
 	void setMagicLensOpacity(double opacity);
-	double getMagicLensOpacity() const;
+	double magicLensOpacity() const;
 	void updateMagicLensColors();
 	void updateMagicLens();
 	iAMagicLens * magicLens();
@@ -124,7 +124,7 @@ public:
 	void addChannel(uint id, iAChannelData const & chData, bool enable);
 	void removeChannel(uint id);
 	void updateChannel(uint id, iAChannelData const & chData );
-	iAChannelSlicerData * getChannel(uint id);
+	iAChannelSlicerData * channel(uint id);
 	void setChannelOpacity(uint id, double opacity);
 	void enableChannel(uint id, bool enabled);
 	//size_t channelCount() const;
@@ -143,10 +143,10 @@ public:
 
 	void setResliceAxesOrigin(double x, double y, double z);
 	void setup(iASingleSlicerSettings const & settings);
-	vtkRenderer * getRenderer();
-	vtkGenericOpenGLRenderWindow * getRenderWindow();
-	vtkRenderWindowInteractor * getInteractor();
-	vtkCamera * getCamera();
+	vtkRenderer * renderer();
+	vtkGenericOpenGLRenderWindow * renderWindow();
+	vtkRenderWindowInteractor * interactor();
+	vtkCamera * camera();
 
 	iASlicerMode mode() const;
 	//! Sets the slice mode (which axis-aligned slice-plane to use for slicing)
@@ -186,10 +186,10 @@ public:
 	void updateChannelMappers();
 	//void switchContourSourceToChannel( uint id );
 
-	//vtkScalarBarWidget * getScalarBarWidget();
+	//vtkScalarBarWidget * scalarBarWidget();
 	void setScalarBarTF(vtkScalarsToColors* ctf);
 
-	QCursor getMouseCursor();
+	QCursor mouseCursor();
 
 	void setRightButtonDragZoomEnabled(bool enabled);
 
@@ -343,28 +343,28 @@ private:
 	void initializeFisheyeLens(vtkImageReslice* reslicer);
 	void updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslicer, double lensRadius, double innerLensRadius);
 
-	bool fisheyeLensActivated;
-	double fisheyeRadius = 80.0; // 110.0;
-	double fisheyeRadiusDefault = 80.0;
-	double minFisheyeRadius = 2.0;
-	double maxFisheyeRadius = 220.0;
-	double innerFisheyeRadius = 70.0; // 86
-	double innerFisheyeRadiusDefault = 70.0;
-	double innerFisheyeMinRadius = 58; // for default radius 70.0
+	bool m_fisheyeLensActivated;
+	double m_fisheyeRadius = 80.0; // 110.0;
+	double m_fisheyeRadiusDefault = 80.0;
+	double m_minFisheyeRadius = 2.0;
+	double m_maxFisheyeRadius = 220.0;
+	double m_innerFisheyeRadius = 70.0; // 86
+	double m_innerFisheyeRadiusDefault = 70.0;
+	double m_innerFisheyeMinRadius = 58; // for default radius 70.0
 
 	// variables for transformation
-	vtkSmartPointer<vtkThinPlateSplineTransform> fisheyeTransform;
-	vtkSmartPointer<vtkPoints> p_source;
-	vtkSmartPointer<vtkPoints> p_target;
+	vtkSmartPointer<vtkThinPlateSplineTransform> m_fisheyeTransform;
+	vtkSmartPointer<vtkPoints> m_pointsSource;
+	vtkSmartPointer<vtkPoints> m_pointsTarget;
 	// variables for lens appearance
-	vtkSmartPointer<vtkRegularPolygonSource> fisheye;
-	vtkSmartPointer<vtkPolyDataMapper> fisheyeMapper;
-	vtkSmartPointer<vtkActor> fisheyeActor;
+	vtkSmartPointer<vtkRegularPolygonSource> m_fisheye;
+	vtkSmartPointer<vtkPolyDataMapper> m_fisheyeMapper;
+	vtkSmartPointer<vtkActor> m_fisheyeActor;
 
-	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle1List;
-	QList<vtkSmartPointer<vtkActor>> circle1ActList;
-	QList<vtkSmartPointer<vtkRegularPolygonSource>> circle2List;
-	QList<vtkSmartPointer<vtkActor>> circle2ActList;
+	QList<vtkSmartPointer<vtkRegularPolygonSource>> m_circle1List;
+	QList<vtkSmartPointer<vtkActor>> m_circle1ActList;
+	QList<vtkSmartPointer<vtkRegularPolygonSource>> m_circle2List;
+	QList<vtkSmartPointer<vtkActor>> m_circle2ActList;
 	//! @}
 
 	vtkRenderWindowInteractor * m_interactor;
@@ -396,12 +396,12 @@ private:
 	int m_slabThickness;       //! current slab thickness (default = 1, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
 	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
 
-	vtkSmartPointer<vtkLineSource> pLineSource;
-	vtkSmartPointer<vtkPolyDataMapper> pLineMapper;
-	vtkSmartPointer<vtkActor> pLineActor;
-	vtkSmartPointer<vtkDiskSource> pDiskSource;
-	vtkSmartPointer<vtkPolyDataMapper> pDiskMapper;
-	vtkSmartPointer<vtkActor> pDiskActor;
+	vtkSmartPointer<vtkLineSource> m_lineSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_lineMapper;
+	vtkSmartPointer<vtkActor> m_lineActor;
+	vtkSmartPointer<vtkDiskSource> m_diskSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_diskMapper;
+	vtkSmartPointer<vtkActor> m_diskActor;
 
 	vtkSmartPointer<vtkPlaneSource> m_roiSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;

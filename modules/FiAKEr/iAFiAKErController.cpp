@@ -2375,8 +2375,8 @@ void iAFiAKErController::loadVolume(QString const & fileName)
 	m_refImg = vtkSmartPointer<vtkImageData>::New();
 	m_refImg->DeepCopy(con.vtkImage());
 	double rng[2]; m_refImg->GetScalarRange(rng);
-	m_refCF = GetDefaultColorTransferFunction(rng);
-	m_refOF = GetDefaultPiecewiseFunction(rng, true);
+	m_refCF = defaultColorTF(rng);
+	m_refOF = defaultOpacityTF(rng, true);
 	iASimpleTransferFunction tf(
 		m_refCF.GetPointer(),
 		m_refOF.GetPointer()

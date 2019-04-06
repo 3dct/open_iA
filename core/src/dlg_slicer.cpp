@@ -39,14 +39,14 @@ dlg_slicer::dlg_slicer(iASlicer* slicer):
 	m_slicer(slicer)
 {
 	setupUi(this);
-	QString slicePlaneName = getSlicerModeString(slicer->mode());
-	QString sliceAxis = getSliceAxis(slicer->mode());
+	QString slicePlaneName = slicerModeString(slicer->mode());
+	QString sliceAxisString = sliceAxis(slicer->mode());
 	QColor color(slicerColor(slicer->mode()));
 	setObjectName(QString("slice%1").arg(slicePlaneName));
 	setWindowTitle(QString("Slice %1").arg(slicePlaneName));
 	lbTitle->setText(slicePlaneName);
-	lbSlice->setText(QString("Slice # %1").arg(sliceAxis));
-	lbRotation->setText(QString("Rot %1").arg(sliceAxis));
+	lbSlice->setText(QString("Slice # %1").arg(sliceAxisString));
+	lbRotation->setText(QString("Rot %1").arg(sliceAxisString));
 	sliceContainerLayout->addWidget(slicer);
 	sliceContainer->setStyleSheet(QString("#sliceContainer { border: %1px solid rgb(%2, %3, %4) } ")
 		.arg(BorderWidth).arg(color.red()).arg(color.green()).arg(color.blue()));

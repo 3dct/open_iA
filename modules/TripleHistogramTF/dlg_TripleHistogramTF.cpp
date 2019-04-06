@@ -108,12 +108,12 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	combinedVol = vtkSmartPointer<vtkVolume>::New();
 	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
 	combinedVolProp->SetInterpolationTypeToLinear();
-	combinedVolProp->SetColor(0, m_histogramStack->getModality(0)->transfer()->getColorFunction());
-	combinedVolProp->SetScalarOpacity(0, m_histogramStack->getModality(0)->transfer()->getOpacityFunction());
-	combinedVolProp->SetColor(1, m_histogramStack->getModality(1)->transfer()->getColorFunction());
-	combinedVolProp->SetScalarOpacity(1, m_histogramStack->getModality(1)->transfer()->getOpacityFunction());
-	combinedVolProp->SetColor(2, m_histogramStack->getModality(2)->transfer()->getColorFunction());
-	combinedVolProp->SetScalarOpacity(2, m_histogramStack->getModality(2)->transfer()->getOpacityFunction());
+	combinedVolProp->SetColor(0, m_histogramStack->getModality(0)->transfer()->colorTF());
+	combinedVolProp->SetScalarOpacity(0, m_histogramStack->getModality(0)->transfer()->opacityTF());
+	combinedVolProp->SetColor(1, m_histogramStack->getModality(1)->transfer()->colorTF());
+	combinedVolProp->SetScalarOpacity(1, m_histogramStack->getModality(1)->transfer()->opacityTF());
+	combinedVolProp->SetColor(2, m_histogramStack->getModality(2)->transfer()->colorTF());
+	combinedVolProp->SetScalarOpacity(2, m_histogramStack->getModality(2)->transfer()->opacityTF());
 	combinedVol->SetProperty(combinedVolProp);
 
 	combinedVolMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();

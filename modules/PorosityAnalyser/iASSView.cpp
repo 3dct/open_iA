@@ -257,7 +257,7 @@ void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * d
 	SetDataTo3D();
 	
 	foreach( iASSSlicer *sv, m_slicerViews )
-		m_sliceMgr->addToBundle( sv->slicer->getRenderer() );
+		m_sliceMgr->addToBundle( sv->slicer->renderer() );
 }
 
 void iASSView::setSlicerDirection( int cbIndex )

@@ -89,8 +89,8 @@ void iAVolumeRenderer::setImage(iATransferFunction * transfer, vtkSmartPointer<v
 			m_volSettings.ScalarOpacityUnitDistance = imgData->GetSpacing()[0];
 			m_volProp->SetScalarOpacityUnitDistance(imgData->GetSpacing()[0]);
 		}
-		m_volProp->SetColor(0, transfer->getColorFunction());
-		m_volProp->SetScalarOpacity(0, transfer->getOpacityFunction());
+		m_volProp->SetColor(0, transfer->colorTF());
+		m_volProp->SetScalarOpacity(0, transfer->opacityTF());
 	}
 	m_volProp->Modified();
 	m_outlineFilter->SetInputData(imgData);

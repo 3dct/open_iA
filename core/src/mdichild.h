@@ -136,10 +136,10 @@ public:
 
 	//! Access the opacity function of the "main image"
 	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...)
-	vtkPiecewiseFunction * piecewiseFunction();
+	vtkPiecewiseFunction * opacityTF();
 	//! Access the color transfer function of the "main image"
 	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...)
-	vtkColorTransferFunction * colorTransferFunction();
+	vtkColorTransferFunction * colorTF();
 	//! Access to the "main image"
 	//! @deprecated retrieve images via the modalities (modality(int) etc.) instead!
 	vtkImageData* imageData();

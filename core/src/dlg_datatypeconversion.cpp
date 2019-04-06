@@ -329,7 +329,7 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 	boxlayout->addWidget(widget);
 
 	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
-	auto table = GetDefaultColorTransferFunction(image->vtkImage()->GetScalarRange());
+	auto table = defaultColorTF(image->vtkImage()->GetScalarRange());
 	color->SetLookupTable(table);
 	color->SetInputData(image->vtkImage());
 	color->Update();

@@ -274,7 +274,7 @@ void iAModality::computeImageStatistics()
 
 QSharedPointer<iAHistogramData> const iAModality::histogramData() const
 {
-	return m_transfer->getHistogramData();
+	return m_transfer->histogramData();
 }
 
 void iAModality::setVolSettings(const iAVolumeSettings &volSettings)

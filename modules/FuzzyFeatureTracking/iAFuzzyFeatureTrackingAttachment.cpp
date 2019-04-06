@@ -60,18 +60,18 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTDataViewWidget()
 		return false;
 	}
 
-	if( !m_volumeStack || m_volumeStack->getNumberOfVolumes() <= FOURDCT_MIN_NUMBER_OF_VOLUMES )
+	if( !m_volumeStack || m_volumeStack->numberOfVolumes() <= FOURDCT_MIN_NUMBER_OF_VOLUMES )
 	{
 		m_child->addMsg( tr( "No volume stack loaded or it does not contain enough volumes (expected: %1, actual: %2)!" )
 			.arg(FOURDCT_MIN_NUMBER_OF_VOLUMES)
-			.arg(m_volumeStack->getNumberOfVolumes()) );
+			.arg(m_volumeStack->numberOfVolumes()) );
 		return false;
 	}
 
 	// create new dialog
 	m_dlgDataView4DCT = new dlg_dataView4DCT( m_child, m_volumeStack );
 	m_child->tabifyDockWidget( m_child->logDockWidget(), m_dlgDataView4DCT );
-	// test m_renderer->reInitialize (m_volumeStack->getVolume(1), polyData, m_volumeStack->getPiecewiseFunction(1),m_volumeStack->getColorTransferFunction(1));
+	// test m_renderer->reInitialize (m_volumeStack->volume(1), polyData, m_volumeStack->opacityTF(1),m_volumeStack->colorTF(1));
 
 	m_child->addMsg( tr( "The 4DCT Data View widget was successfully created" ) );
 
@@ -111,7 +111,7 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 	std::vector<iAFeatureTracking*> trackedFeaturesForwards;
 	std::vector<iAFeatureTracking*> trackedFeaturesBackwards;
 
-	for( int i = 0; i < m_volumeStack->GetFileNames()->size(); i++ )
+	for( int i = 0; i < m_volumeStack->fileNames()->size(); i++ )
 	{
 		QString file[2];
 
@@ -121,9 +121,9 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 			file[0] = QString();
 		}
 		else {
-			file[0] = m_volumeStack->getFileName( i - 1 ) + csvExt;
+			file[0] = m_volumeStack->fileName( i - 1 ) + csvExt;
 		}
-		file[1] = m_volumeStack->getFileName( i ) + csvExt;
+		file[1] = m_volumeStack->fileName( i ) + csvExt;
 
 		if( !file[0].isEmpty() && !QFile::exists( file[0] ) )
 		{

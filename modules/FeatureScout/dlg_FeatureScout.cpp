@@ -962,38 +962,38 @@ void dlg_FeatureScout::RenderMeanObject()
 		// Create MObject default Transfer Tunctions
 		if ( filterID == iAFeatureScoutObjectType::Fibers ) // Fibers
 		{
-			m_MOData.moHistogramList[currClass-1]->getColorFunction()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->getColorFunction()->AddRGBPoint( 0.01, 1.0, 1.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->getColorFunction()->AddRGBPoint( 0.095, 1.0, 1.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->getColorFunction()->AddRGBPoint( 0.1, 0.0, 0.0, 1.0 );
-			m_MOData.moHistogramList[currClass-1]->getColorFunction()->AddRGBPoint( 1.00, 0.0, 0.0, 1.0 );
-			m_MOData.moHistogramList[currClass-1]->getOpacityFunction()->AddPoint( 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass-1]->getOpacityFunction()->AddPoint( 0.01, 0.01 );
-			m_MOData.moHistogramList[currClass-1]->getOpacityFunction()->AddPoint( 0.095, 0.01 );
-			m_MOData.moHistogramList[currClass-1]->getOpacityFunction()->AddPoint( 0.1, 0.05 );
-			m_MOData.moHistogramList[currClass-1]->getOpacityFunction()->AddPoint( 1.00, 0.18 );
+			m_MOData.moHistogramList[currClass-1]->colorTF()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
+			m_MOData.moHistogramList[currClass-1]->colorTF()->AddRGBPoint( 0.01, 1.0, 1.0, 0.0 );
+			m_MOData.moHistogramList[currClass-1]->colorTF()->AddRGBPoint( 0.095, 1.0, 1.0, 0.0 );
+			m_MOData.moHistogramList[currClass-1]->colorTF()->AddRGBPoint( 0.1, 0.0, 0.0, 1.0 );
+			m_MOData.moHistogramList[currClass-1]->colorTF()->AddRGBPoint( 1.00, 0.0, 0.0, 1.0 );
+			m_MOData.moHistogramList[currClass-1]->opacityTF()->AddPoint( 0.0, 0.0 );
+			m_MOData.moHistogramList[currClass-1]->opacityTF()->AddPoint( 0.01, 0.01 );
+			m_MOData.moHistogramList[currClass-1]->opacityTF()->AddPoint( 0.095, 0.01 );
+			m_MOData.moHistogramList[currClass-1]->opacityTF()->AddPoint( 0.1, 0.05 );
+			m_MOData.moHistogramList[currClass-1]->opacityTF()->AddPoint( 1.00, 0.18 );
 		}
 		else // Voids
 		{
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 0.0001, 0.0, 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 0.001, 1.0, 1.0, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 0.18, 1.0, 1.0, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 0.2, 0.0, 0.0, 1.0 );
-			m_MOData.moHistogramList[currClass - 1]->getColorFunction()->AddRGBPoint( 1.0, 0.0, 0.0, 1.0 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 0.0, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 0.0001, 0.0 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 0.001, 0.005 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 0.18, 0.005 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 0.2, 0.08 );
-			m_MOData.moHistogramList[currClass - 1]->getOpacityFunction()->AddPoint( 1.0, 0.5 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 0.0, 0.0, 0.0, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 0.0001, 0.0, 0.0, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 0.001, 1.0, 1.0, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 0.18, 1.0, 1.0, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 0.2, 0.0, 0.0, 1.0 );
+			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint( 1.0, 0.0, 0.0, 1.0 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 0.0, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 0.0001, 0.0 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 0.001, 0.005 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 0.18, 0.005 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 0.2, 0.08 );
+			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint( 1.0, 0.5 );
 		}
 
 		// Create the property and attach the transfer functions
 		auto vProperty = vtkSmartPointer<vtkVolumeProperty>::New();
 		m_MOData.moVolumePropertyList.append( vProperty );
-		vProperty->SetColor( m_MOData.moHistogramList[currClass - 1]->getColorFunction() );
-		vProperty->SetScalarOpacity( m_MOData.moHistogramList[currClass - 1]->getOpacityFunction() );
+		vProperty->SetColor( m_MOData.moHistogramList[currClass - 1]->colorTF() );
+		vProperty->SetScalarOpacity( m_MOData.moHistogramList[currClass - 1]->opacityTF() );
 		vProperty->SetInterpolationTypeToLinear();
 		vProperty->ShadeOff();
 

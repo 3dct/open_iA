@@ -70,7 +70,7 @@ public:
 	void setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 
 	dlg_function *getSelectedFunction();
-	std::vector<dlg_function*> &getFunctions();
+	std::vector<dlg_function*> &functions();
 
 	void setAllowTrfReset(bool allow);
 	void setEnableAdditionalFunctions(bool enable);
@@ -91,9 +91,9 @@ protected:
 	void addContextMenuEntries(QMenu* contextMenu) override;
 	void changeMode(int newMode, QMouseEvent *event) override;
 
-	MdiChild*      activeChild;
-	std::vector<dlg_function*> functions;
-	unsigned int selectedFunction;
+	MdiChild* m_activeChild;
+	std::vector<dlg_function*> m_functions;
+	unsigned int m_selectedFunction;
 signals:
 	void updateViews();
 	void pointSelected();
@@ -126,7 +126,7 @@ protected:
 private:
 	bool m_allowTrfReset;
 	bool m_enableAdditionalFunctions;
-	dlg_TFTable* TFTable;
+	dlg_TFTable* m_TFTable;
 	void newTransferFunction();
 	void drawAfterPlots(QPainter& painter) override;
 };

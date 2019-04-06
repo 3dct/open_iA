@@ -52,7 +52,7 @@ public:
 	//! Get lookup table (combined color transfer function + piecewise function for opacity)
 	//vtkScalarsToColors* getLookupTable();
 	//! Get color transfer function (only the colors, fully opaque)
-	vtkScalarsToColors* getColorTransferFunction();
+	vtkScalarsToColors* cTF();
 
 	void updateMapper();
 	QColor getColor() const;  //!< get "color" of this channel (TODO: used only for pie charts in XRF module -> move there?)
@@ -60,7 +60,7 @@ public:
 	void setTransform(vtkAbstractTransform * transform);
 	void updateReslicer();
 	void updateLUT();
-	QString getName() const;
+	QString const & name() const;
 	vtkImageData * input() const;  // TODO: returned vtkImageData should be const
 	vtkImageData * output() const; // TODO: returned vtkImageData should be const
 	vtkImageReslice * reslicer() const; // check if that can be kept private somehow
@@ -95,8 +95,8 @@ private:
 	vtkSmartPointer<vtkImageReslice> m_reslicer;
 	vtkSmartPointer<vtkImageMapToColors> m_colormapper;
 	vtkSmartPointer<vtkLookupTable> m_lut;   //! used for combining given ctf and otf into a single transfer function for both color and opacity accepted by imageMapToColors
-	vtkScalarsToColors *            m_ctf;   //! the color transfer function - should be const (as soon as VTK supports it)
-	vtkPiecewiseFunction *          m_otf;   //! the opacity function - nullptr if not used - should be const (as soon as VTK supports it)
+	vtkScalarsToColors *            m_cTF;   //! the color transfer function - should be const (as soon as VTK supports it)
+	vtkPiecewiseFunction *          m_oTF;   //! the opacity function - nullptr if not used - should be const (as soon as VTK supports it)
 	QString                         m_name;  //! name of the channel
 	QColor                          m_color; //! color of this channel (TODO: used only for pie charts in XRF module -> move there?)
 

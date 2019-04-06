@@ -48,7 +48,7 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	setupUi(this);
 	m_isBlendingOn = blending->isChecked();
 	m_mdiChild = dynamic_cast<MdiChild*>(parent);
-	m_numberOfVolumes=m_volumeStack->getNumberOfVolumes();
+	m_numberOfVolumes=m_volumeStack->numberOfVolumes();
 	for (int i = 0; i < m_numberOfVolumes; i++)
 	{
 		showVolume(i);
@@ -102,10 +102,12 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 		connect(m_newWidget, SIGNAL(stateChanged(int)), this, SLOT(enableVolume(int)));
 		m_widgetList.insert(i, m_tempStr);
 		dataTable->setRowHeight(i, 17);
-		dataTable->setItem(i,m_dimColumn,new QTableWidgetItem(QString("%1").arg(volumeStack->getVolume(i)->GetDimensions()[0]).append(QString(", %1").arg(volumeStack->getVolume(i)->GetDimensions()[1]).append(QString(", %1").arg(volumeStack->getVolume(i)->GetDimensions()[2])))));
-		dataTable->setItem(i,m_spacColumn,new QTableWidgetItem(QString("%1").arg(volumeStack->getVolume(i)->GetSpacing()[0]).append(QString(", %1").arg(volumeStack->getVolume(i)->GetSpacing()[1]).append(QString(", %1").arg(volumeStack->getVolume(i)->GetSpacing()[2])))));
-		dataTable->setItem(i,m_fileColumn,new QTableWidgetItem(volumeStack->getFileName(i)));
-		dataTable->setItem(i,m_sortColumn,new QTableWidgetItem(QString("%1").arg(0)));
+		dataTable->setItem(i, m_dimColumn, new QTableWidgetItem(QString("%1, %2, %3")
+			.arg(volumeStack->volume(i)->GetDimensions()[0]).arg(volumeStack->volume(i)->GetDimensions()[1]).arg(volumeStack->volume(i)->GetDimensions()[2])));
+		dataTable->setItem(i, m_spacColumn,new QTableWidgetItem(QString("%1, %2, %3")
+			.arg(volumeStack->volume(i)->GetSpacing()[0])   .arg(volumeStack->volume(i)->GetSpacing()[1])   .arg(volumeStack->volume(i)->GetSpacing()[2])));
+		dataTable->setItem(i, m_fileColumn,new QTableWidgetItem(volumeStack->fileName(i)));
+		dataTable->setItem(i, m_sortColumn,new QTableWidgetItem(QString("%1").arg(0)));
 	}
 	m_old_r=1;
 
@@ -486,13 +488,13 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 	for(int i = 0; i < CHANNELS_COUNT; i++)
 	{
 		iAChannelData* chData = m_mdiChild->channelData(m_channelID[i]);
-		vtkImageData* imageData = m_volumeStack->getVolume(volumeIndex[i]);
-		vtkColorTransferFunction* ctf = m_volumeStack->getColorTransferFunction(volumeIndex[i]);
+		vtkImageData* imageData = m_volumeStack->volume(volumeIndex[i]);
+		vtkColorTransferFunction* ctf = m_volumeStack->colorTF(volumeIndex[i]);
 		if(!m_multiChannelIsInitialized)
 		{
 			m_otf[i] = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		}
-		m_otf[i]->ShallowCopy(m_volumeStack->getPiecewiseFunction(volumeIndex[i]));
+		m_otf[i]->ShallowCopy(m_volumeStack->opacityTF(volumeIndex[i]));
 
 		for(int j = 0; j < m_otf[i]->GetSize(); j++)
 		{

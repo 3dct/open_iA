@@ -47,7 +47,7 @@ public:
 	void setData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
 
 	void setOpacity(double opacity);
-	double getOpacity() const;
+	double opacity() const;
 
 	bool isEnabled() const;
 	void setEnabled(bool enabled);
@@ -60,7 +60,7 @@ public:
 	void setOpacityTF(vtkPiecewiseFunction* oTF);
 
 	void setName(QString name);
-	QString getName() const;
+	QString const & name() const;
 
 	// check if this can be somehow refactored (not needed for each kind of channel):
 	// begin
@@ -71,9 +71,9 @@ public:
 	void setSimilarityRenderingEnabled(bool enabled);
 	// end
 
-	vtkSmartPointer<vtkImageData> getImage() const;
-	vtkPiecewiseFunction * getOTF() const;
-	vtkScalarsToColors * getCTF() const;
+	vtkSmartPointer<vtkImageData> image() const;
+	vtkPiecewiseFunction * opacityTF() const;
+	vtkScalarsToColors * colorTF() const;
 private:
 	bool m_enabled;
 	double m_opacity;
@@ -81,7 +81,7 @@ private:
 	QColor m_color; // TODO: only used in XRF module, move there!
 	bool m_similarityRenderingEnabled;
 	vtkSmartPointer<vtkImageData>       m_image;
-	vtkPiecewiseFunction*               m_piecewiseFunction;
-	vtkScalarsToColors*                 m_colorTransferFunction;
+	vtkScalarsToColors*                 m_cTF;
+	vtkPiecewiseFunction*               m_oTF;
 	QString                             m_name;
 };

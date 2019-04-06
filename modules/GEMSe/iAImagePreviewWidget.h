@@ -57,7 +57,7 @@ public:
 	int GetSliceNumber() const;
 	double GetAspectRatio() const;
 	vtkSmartPointer<vtkColorTransferFunction> GetCTF();
-	iASlicer* GetSlicer();
+	iASlicer* slicer();
 	bool Empty() const;
 public slots:
 	void UpdateView();
