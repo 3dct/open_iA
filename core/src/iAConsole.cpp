@@ -61,7 +61,7 @@ void iAConsole::logSlot(QString const & text)
 	if (!m_closed)
 	{
 		m_console->show();
-		m_console->Log(text);
+		m_console->log(text);
 	}
 	if (m_logToFile)
 	{
@@ -76,7 +76,7 @@ void iAConsole::logSlot(QString const & text)
 		logfile.close();
 		if (logfile.bad())
 		{
-			m_console->Log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+			m_console->log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
 			m_fileLogError = true;
 			m_logToFile = false;
 		}
