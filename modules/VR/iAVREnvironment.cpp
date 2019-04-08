@@ -18,17 +18,57 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAVREnvironment.h"
 
-#include <iAModuleInterface.h>
+#include "iAVRInteractor.h"
 
-class iAXRFModuleInterface : public iAModuleInterface
+#include "iAConsole.h"
+
+#include <vtkOpenVRRenderer.h>
+#include <vtkOpenVRRenderWindow.h>
+#include <vtkOpenVRCamera.h>
+
+iAVREnvironment::iAVREnvironment():
+	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New())
 {
-	Q_OBJECT
-public:
-	void Initialize() override;
-private slots:
-	bool XRF_Visualization();
-private:
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
-};
+	m_renderer->SetBackground(50, 50, 50);
+}
+
+vtkRenderer* iAVREnvironment::renderer()
+{
+	return m_renderer;
+}
+
+void iAVREnvironment::start()
+{
+	static int runningInstances = 0;
+	// "poor man's" check for trying to run two VR sessions in parallel:
+	if (runningInstances >= 1)
+	{
+		DEBUG_LOG("Cannot start more than one VR session in parallel!");
+		emit finished();
+		return;
+	}
+	++runningInstances;
+	auto renderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
+	renderWindow->AddRenderer(m_renderer);
+	// MultiSamples needs to be set to 0 to make Volume Rendering work:
+	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
+	renderWindow->SetMultiSamples(0);
+	m_interactor = vtkSmartPointer<iAVRInteractor>::New();
+	m_interactor->SetRenderWindow(renderWindow);
+	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
+
+	m_renderer->SetActiveCamera(camera);
+	m_renderer->ResetCamera();
+	renderWindow->Render();
+	m_interactor->Start();
+	--runningInstances;
+	emit finished();
+}
+
+void iAVREnvironment::stop()
+{
+	if (m_interactor)
+		m_interactor->stop();
+}

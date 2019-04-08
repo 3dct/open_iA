@@ -20,15 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <vtkSmartPointer.h>
 
-class iAXRFModuleInterface : public iAModuleInterface
+#include <QObject>
+
+class vtkOpenVRRenderer;
+class iAVRInteractor;
+class vtkRenderer;
+
+class iAVREnvironment: public QObject
 {
 	Q_OBJECT
 public:
-	void Initialize() override;
-private slots:
-	bool XRF_Visualization();
+	iAVREnvironment();
+	vtkRenderer* renderer();
+	void start();
+	void stop();
 private:
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
+	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
+	vtkSmartPointer<iAVRInteractor> m_interactor;
+signals:
+	void finished();
 };

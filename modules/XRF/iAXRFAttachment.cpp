@@ -237,7 +237,6 @@ void iAXRFAttachment::xrfLoadingDone()
 	connect( dlgXRF->pb_compute, SIGNAL( clicked() ), this, SLOT( updateXRF() ) );
 	m_childData.child->tabifyDockWidget( dlgRefSpectra, dlgXRF );
 	dlgSimilarityMap->connectToXRF( dlgXRF );
-	emit xrfLoaded();
 	m_childData.child->updateLayout();
 }
 

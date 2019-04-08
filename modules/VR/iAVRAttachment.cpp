@@ -18,27 +18,61 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAVRAttachment.h"
 
-#include "iA3DObjectVis.h"
+#include "iAVREnvironment.h"
 
-class vtkPiecewiseFunction;
-class vtkColorTransferFunction;
+// FeatureScout - 3D cylinder visualization
+#include "dlg_CSVInput.h"
+#include "iA3DCylinderObjectVis.h"
+#include "iACsvConfig.h"
+#include "iACsvVtkTableCreator.h"
 
-class iA3DLabelledVolumeVis: public iA3DObjectVis
+#include <dlg_commoninput.h>
+#include <qthelper/iADockWidgetWrapper.h>
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iAVolumeRenderer.h>
+
+#include <vtkFloatArray.h>
+#include <vtkTable.h>
+
+// must be after vtk includes, otherwise -> #error:  gl.h included before glew.h
+#include <mdichild.h>
+#include <mainwindow.h>
+
+#include <QPushButton>
+
+iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, iAChildData childData )
+	: iAModuleAttachmentToChild( mainWnd, childData )
 {
-public:
-	iA3DLabelledVolumeVis(vtkRenderer* ren, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
-		vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, double const * bounds );
-	void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
-	void renderSingle( int labelID, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
-	void multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha ) override;
-	void renderOrientationDistribution( vtkImageData* oi ) override;
-	void renderLengthDistribution( vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) override;
-	double const * bounds() override;
-private:
-	vtkPiecewiseFunction     *oTF;
-	vtkColorTransferFunction *cTF;
-	double m_bounds[6];
-};
+	MdiChild * mdiChild = m_childData.child;
+	m_toggleVR = new QPushButton("Start VR");
+	iADockWidgetWrapper* vrDockWidget = new iADockWidgetWrapper(m_toggleVR, "VR", "vrDockWidget");
+	connect(m_toggleVR, &QPushButton::clicked, this, &iAVRAttachment::toggleVR);
+	mdiChild->splitDockWidget(mdiChild->logs, vrDockWidget, Qt::Horizontal);
+}
 
+void iAVRAttachment::toggleVR()
+{
+	if (m_vrEnv)
+	{
+		m_vrEnv->stop();
+		return;
+	}
+	m_toggleVR->setText("Stop VR");
+	MdiChild * mdiChild = m_childData.child;
+	m_vrEnv.reset(new iAVREnvironment);
+	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRAttachment::vrDone);
+	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(mdiChild->GetModality(0)->GetTransfer().get(), mdiChild->GetModality(0)->GetImage()));
+	m_volumeRenderer->ApplySettings(mdiChild->GetVolumeSettings());
+	m_volumeRenderer->AddTo(m_vrEnv->renderer());
+	m_volumeRenderer->AddBoundingBoxTo(m_vrEnv->renderer());
+	m_vrEnv->start();
+	m_vrEnv.reset(nullptr);
+}
+
+void iAVRAttachment::vrDone()
+{
+	m_toggleVR->setText("Start VR");
+}

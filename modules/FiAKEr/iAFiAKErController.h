@@ -203,6 +203,7 @@ private:
 	};
 	// Main Renderer:
 	iAVtkWidget* m_mainRenderer;
+	vtkSmartPointer<vtkRenderer> m_ren;
 	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel, *m_contextDiameterFactorLabel;
 	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
 	QCheckBox* m_chkboxShowReference;

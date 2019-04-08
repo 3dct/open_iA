@@ -2258,10 +2258,13 @@ QString MdiChild::userFriendlyCurrentFile()
 
 void MdiChild::closeEvent(QCloseEvent *event)
 {
-	if (ioThread) {
+	if (ioThread)
+	{
 		addStatusMsg("Cannot close window while I/O operation is in progress!");
 		event->ignore();
-	} else {
+	}
+	else
+	{
 		if (isWindowModified())
 		{
 			auto reply = QMessageBox::question(this, "Unsaved changes",

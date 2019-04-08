@@ -183,9 +183,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
 		return;
 	}
 	mdiArea->closeAllSubWindows();
-	if (activeMdiChild()) {
+	if (activeMdiChild())
+	{
 		event->ignore();
-	} else {
+	}
+	else
+	{
 		writeSettings();
 		iAConsole::Close();
 		event->accept();
