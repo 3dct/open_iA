@@ -22,6 +22,8 @@
 
 #include "iAVRInteractor.h"
 
+#include "iAConsole.h"
+
 #include <vtkOpenVRRenderer.h>
 #include <vtkOpenVRRenderWindow.h>
 #include <vtkOpenVRCamera.h>
@@ -39,6 +41,15 @@ vtkRenderer* iAVREnvironment::renderer()
 
 void iAVREnvironment::start()
 {
+	static int runningInstances = 0;
+	// "poor man's" check for trying to run two VR sessions in parallel:
+	if (runningInstances >= 1)
+	{
+		DEBUG_LOG("Cannot start more than one VR session in parallel!");
+		emit finished();
+		return;
+	}
+	++runningInstances;
 	auto renderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
 	renderWindow->AddRenderer(m_renderer);
 	// MultiSamples needs to be set to 0 to make Volume Rendering work:
@@ -52,6 +63,7 @@ void iAVREnvironment::start()
 	m_renderer->ResetCamera();
 	renderWindow->Render();
 	m_interactor->Start();
+	--runningInstances;
 	emit finished();
 }
 
