@@ -44,7 +44,8 @@
 #include <QPushButton>
 
 iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, MdiChild* child )
-	: iAModuleAttachmentToChild( mainWnd, child )
+	: iAModuleAttachmentToChild( mainWnd, child ),
+	m_vrEnv(new iAVREnvironment)
 {
 	m_toggleVR = new QPushButton("Start VR");
 	iADockWidgetWrapper* vrDockWidget = new iADockWidgetWrapper(m_toggleVR, "VR", "vrDockWidget");
@@ -54,20 +55,18 @@ iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, MdiChild* child )
 
 void iAVRAttachment::toggleVR()
 {
-	if (m_vrEnv)
+	if (m_vrEnv->isRunning())
 	{
 		m_vrEnv->stop();
 		return;
 	}
 	m_toggleVR->setText("Stop VR");
-	m_vrEnv.reset(new iAVREnvironment);
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRAttachment::vrDone);
 	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(m_child->modality(0)->transfer().data(), m_child->modality(0)->image()));
 	m_volumeRenderer->applySettings(m_child->volumeSettings());
 	m_volumeRenderer->addTo(m_vrEnv->renderer());
 	m_volumeRenderer->addBoundingBoxTo(m_vrEnv->renderer());
 	m_vrEnv->start();
-	m_vrEnv.reset(nullptr);
 }
 
 void iAVRAttachment::vrDone()

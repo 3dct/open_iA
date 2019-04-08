@@ -24,8 +24,9 @@
 
 #include <QObject>
 
+class iAVRMainThread;
+
 class vtkOpenVRRenderer;
-class iAVRInteractor;
 class vtkRenderer;
 
 class iAVREnvironment: public QObject
@@ -36,9 +37,12 @@ public:
 	vtkRenderer* renderer();
 	void start();
 	void stop();
+	bool isRunning() const;
+private slots:
+	void vrDone();
 private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
-	vtkSmartPointer<iAVRInteractor> m_interactor;
+	iAVRMainThread* m_vrMainThread;
 signals:
 	void finished();
 };

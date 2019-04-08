@@ -28,21 +28,6 @@
 
 vtkStandardNewMacro(iAVRInteractor);
 
-void  iAVRInteractor::StartEventLoop()
-{
-	this->StartedMessageLoop = 1;
-	this->Done = false;
-
-	auto renWin = vtkOpenVRRenderWindow::SafeDownCast(this->RenderWindow);
-	auto ren = static_cast<vtkRenderer *>(renWin->GetRenderers()->GetItemAsObject(0));
-
-	while (!this->Done)
-	{
-		DoOneEvent(renWin, ren);
-		QCoreApplication::processEvents();
-	}
-}
-
 iAVRInteractor::iAVRInteractor()
 {}
 

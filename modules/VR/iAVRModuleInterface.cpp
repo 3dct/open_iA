@@ -111,7 +111,10 @@ void iAVRModuleInterface::render()
 
 void iAVRModuleInterface::showFibers()
 {
-	if (m_vrEnv)
+	if (!m_vrEnv)
+		m_vrEnv.reset(new iAVREnvironment());
+
+	if (m_vrEnv->isRunning())
 	{
 		m_vrEnv->stop();
 		return;
@@ -133,20 +136,15 @@ void iAVRModuleInterface::showFibers()
 
 	if (!vrAvailable())
 		return;
-	if (m_vrEnv)
-		return;
-	m_vrEnv.reset(new iAVREnvironment());
+
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRModuleInterface::vrDone);
 	m_actionVRShowFibers->setText("Stop Show Fibers");
 
 	m_objectTable = creator.table();
-
 	m_cylinderVis.reset(new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, io.getOutputMapping(), QColor(255, 0, 0), std::map<size_t, std::vector<iAVec3f> >() ));
 	m_cylinderVis->show();
 
 	m_vrEnv->start();
-
-	m_vrEnv.reset(nullptr);
 }
 
 bool iAVRModuleInterface::vrAvailable()
