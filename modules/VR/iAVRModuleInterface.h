@@ -50,4 +50,5 @@ private slots:
 	void info();
 	void render();
 	void showFibers();
+	void vrDone();
 };

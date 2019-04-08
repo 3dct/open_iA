@@ -22,12 +22,15 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QObject>
+
 class vtkOpenVRRenderer;
 class iAVRInteractor;
 class vtkRenderer;
 
-class iAVREnvironment
+class iAVREnvironment: public QObject
 {
+	Q_OBJECT
 public:
 	iAVREnvironment();
 	vtkRenderer* renderer();
@@ -36,4 +39,6 @@ public:
 private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
 	vtkSmartPointer<iAVRInteractor> m_interactor;
+signals:
+	void finished();
 };

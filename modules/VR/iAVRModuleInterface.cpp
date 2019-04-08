@@ -106,8 +106,8 @@ void iAVRModuleInterface::showFibers()
 {
 	if (m_vrEnv)
 	{
-		m_actionVRShowFibers->setText("Show Fibers");
 		m_vrEnv->stop();
+		return;
 	}
 
 	if (!vrAvailable())
@@ -129,6 +129,7 @@ void iAVRModuleInterface::showFibers()
 	if (m_vrEnv)
 		return;
 	m_vrEnv.reset(new iAVREnvironment());
+	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRModuleInterface::vrDone);
 	m_actionVRShowFibers->setText("Stop Show Fibers");
 
 	m_objectTable = creator.getTable();
@@ -159,4 +160,9 @@ bool iAVRModuleInterface::vrAvailable()
 iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
 {
 	return new iAVRAttachment( mainWnd, childData );
+}
+
+void iAVRModuleInterface::vrDone()
+{
+	m_actionVRShowFibers->setText("Show Fibers");
 }

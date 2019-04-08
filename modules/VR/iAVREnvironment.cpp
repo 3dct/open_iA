@@ -52,6 +52,7 @@ void iAVREnvironment::start()
 	m_renderer->ResetCamera();
 	renderWindow->Render();
 	m_interactor->Start();
+	emit finished();
 }
 
 void iAVREnvironment::stop()

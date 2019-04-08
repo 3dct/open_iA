@@ -47,4 +47,5 @@ private:
 	QPushButton* m_toggleVR;
 private slots:
 	void toggleVR();
+	void vrDone();
 };
