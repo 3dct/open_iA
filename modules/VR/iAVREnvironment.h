@@ -22,9 +22,7 @@
 
 #include <vtkSmartPointer.h>
 
-class vtkOpenVRCamera;
 class vtkOpenVRRenderer;
-class vtkOpenVRRenderWindow;
 class iAVRInteractor;
 class vtkRenderer;
 
@@ -36,8 +34,6 @@ public:
 	void start();
 	void stop();
 private:
-	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
 	vtkSmartPointer<iAVRInteractor> m_interactor;
-	vtkSmartPointer<vtkOpenVRCamera> m_camera;
 };

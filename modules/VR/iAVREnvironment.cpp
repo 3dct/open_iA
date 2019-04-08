@@ -27,20 +27,9 @@
 #include <vtkOpenVRCamera.h>
 
 iAVREnvironment::iAVREnvironment():
-	m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()),
-	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()),
-	m_interactor(vtkSmartPointer<iAVRInteractor>::New()),
-	m_camera(vtkSmartPointer<vtkOpenVRCamera>::New())
+	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New())
 {
-	m_renderWindow->AddRenderer(m_renderer);
-	// MultiSamples needs to be set to 0 to make Volume Rendering work:
-	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-	m_renderWindow->SetMultiSamples(0);
-	m_interactor->SetRenderWindow(m_renderWindow);
-	m_renderer->SetActiveCamera(m_camera);
-	//auto colors = vtkSmartPointer<vtkNamedColors>::New();
-	//colors->GetColor3d("ForestGreen").GetData()
-	m_renderer->SetBackground(0, 0, 0);
+	m_renderer->SetBackground(50, 50, 50);
 }
 
 vtkRenderer* iAVREnvironment::renderer()
@@ -50,13 +39,23 @@ vtkRenderer* iAVREnvironment::renderer()
 
 void iAVREnvironment::start()
 {
+	auto renderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
+	renderWindow->AddRenderer(m_renderer);
+	// MultiSamples needs to be set to 0 to make Volume Rendering work:
+	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
+	renderWindow->SetMultiSamples(0);
+	m_interactor = vtkSmartPointer<iAVRInteractor>::New();
+	m_interactor->SetRenderWindow(renderWindow);
+	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
+
+	m_renderer->SetActiveCamera(camera);
 	m_renderer->ResetCamera();
-	//m_camera->SetPosition();
-	m_renderWindow->Render();
+	renderWindow->Render();
 	m_interactor->Start();
 }
 
 void iAVREnvironment::stop()
 {
-	m_interactor->stop();
+	if (m_interactor)
+		m_interactor->stop();
 }
