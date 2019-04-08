@@ -18,17 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include <iAVREnvironment.h>
+#include "iAVREnvironment.h"
+
+#include "iAVRInteractor.h"
 
 #include <vtkOpenVRRenderer.h>
 #include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRRenderWindowInteractor.h>
 #include <vtkOpenVRCamera.h>
 
 iAVREnvironment::iAVREnvironment():
 	m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()),
 	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()),
-	m_interactor(vtkSmartPointer<vtkOpenVRRenderWindowInteractor>::New()),
+	m_interactor(vtkSmartPointer<iAVRInteractor>::New()),
 	m_camera(vtkSmartPointer<vtkOpenVRCamera>::New())
 {
 	m_renderWindow->AddRenderer(m_renderer);

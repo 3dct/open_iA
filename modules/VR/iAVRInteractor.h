@@ -20,23 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
+#include <vtkOpenVRRenderWindowInteractor.h>
 
-class vtkOpenVRCamera;
-class vtkOpenVRRenderer;
-class vtkOpenVRRenderWindow;
-class iAVRInteractor;
-class vtkRenderer;
-
-class iAVREnvironment
+class iAVRInteractor : public vtkOpenVRRenderWindowInteractor
 {
 public:
-	iAVREnvironment();
-	vtkRenderer* renderer();
-	void start();
-private:
-	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
-	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
-	vtkSmartPointer<iAVRInteractor> m_interactor;
-	vtkSmartPointer<vtkOpenVRCamera> m_camera;
+	static iAVRInteractor *New();
+	vtkTypeMacro(iAVRInteractor, vtkOpenVRRenderWindowInteractor);
+	void StartEventLoop() override;
+protected:
+	iAVRInteractor();
 };

@@ -18,25 +18,30 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAVRInteractor.h"
 
-#include <vtkSmartPointer.h>
+#include <vtkObjectFactory.h>
+#include <vtkRendererCollection.h>
 
-class vtkOpenVRCamera;
-class vtkOpenVRRenderer;
-class vtkOpenVRRenderWindow;
-class iAVRInteractor;
-class vtkRenderer;
+#include <QCoreApplication>
 
-class iAVREnvironment
+
+vtkStandardNewMacro(iAVRInteractor);
+
+void  iAVRInteractor::StartEventLoop()
 {
-public:
-	iAVREnvironment();
-	vtkRenderer* renderer();
-	void start();
-private:
-	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
-	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
-	vtkSmartPointer<iAVRInteractor> m_interactor;
-	vtkSmartPointer<vtkOpenVRCamera> m_camera;
-};
+	this->StartedMessageLoop = 1;
+	this->Done = false;
+
+	auto renWin = vtkOpenVRRenderWindow::SafeDownCast(this->RenderWindow);
+	auto ren = static_cast<vtkRenderer *>(renWin->GetRenderers()->GetItemAsObject(0));
+
+	while (!this->Done)
+	{
+		DoOneEvent(renWin, ren);
+		QCoreApplication::processEvents();
+	}
+}
+
+iAVRInteractor::iAVRInteractor()
+{}
