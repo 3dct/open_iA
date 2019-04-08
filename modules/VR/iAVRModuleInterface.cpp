@@ -60,14 +60,9 @@ void iAVRModuleInterface::Initialize()
 	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRRender, true);
 	connect(actionVRRender, &QAction::triggered, this, &iAVRModuleInterface::render);
 
-	QAction * actionVRShowFibers = new QAction(tr("Show Fibers"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRShowFibers, false);
-	connect(actionVRShowFibers, &QAction::triggered, this, &iAVRModuleInterface::showFibers);
-
-	QAction * actionVRStop = new QAction(tr("Stop VR"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRStop, false);
-	//actionVRStop->setEnabled(false);
-	connect(actionVRStop, &QAction::triggered, this, &iAVRModuleInterface::stop);
+	m_actionVRShowFibers = new QAction(tr("Show Fibers"), nullptr);
+	AddActionToMenuAlphabeticallySorted(vrMenu, m_actionVRShowFibers, false);
+	connect(m_actionVRShowFibers, &QAction::triggered, this, &iAVRModuleInterface::showFibers);
 }
 
 void iAVRModuleInterface::info()
@@ -109,6 +104,12 @@ void iAVRModuleInterface::render()
 
 void iAVRModuleInterface::showFibers()
 {
+	if (m_vrEnv)
+	{
+		m_actionVRShowFibers->setText("Show Fibers");
+		m_vrEnv->stop();
+	}
+
 	if (!vrAvailable())
 		return;
 	dlg_CSVInput dlg(false);
@@ -128,7 +129,7 @@ void iAVRModuleInterface::showFibers()
 	if (m_vrEnv)
 		return;
 	m_vrEnv.reset(new iAVREnvironment());
-	//actionVRStop->setEnabled(true);
+	m_actionVRShowFibers->setText("Stop Show Fibers");
 
 	m_objectTable = creator.getTable();
 
@@ -153,11 +154,6 @@ bool iAVRModuleInterface::vrAvailable()
 		return false;
 	}
 	return true;
-}
-
-void iAVRModuleInterface::stop()
-{
-	m_vrEnv->stop();
 }
 
 iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )

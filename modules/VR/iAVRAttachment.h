@@ -34,6 +34,8 @@ class iAVREnvironment;
 
 class vtkTable;
 
+class QPushButton;
+
 class iAVRAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
@@ -42,4 +44,7 @@ public:
 private:
 	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
 	QSharedPointer<iAVREnvironment> m_vrEnv;
+	QPushButton* m_toggleVR;
+private slots:
+	void toggleVR();
 };

@@ -29,6 +29,7 @@
 #include "iACsvVtkTableCreator.h"
 
 #include <dlg_commoninput.h>
+#include <qthelper/iADockWidgetWrapper.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
 #include <iAVolumeRenderer.h>
@@ -40,17 +41,33 @@
 #include <mdichild.h>
 #include <mainwindow.h>
 
+#include <QPushButton>
+
 iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, iAChildData childData )
-	: iAModuleAttachmentToChild( mainWnd, childData ),
-	m_vrEnv(new iAVREnvironment)
+	: iAModuleAttachmentToChild( mainWnd, childData )
 {
 	MdiChild * mdiChild = m_childData.child;
-	// Volume rendering doesn't seem to work at the moment:
+	m_toggleVR = new QPushButton("Start VR");
+	iADockWidgetWrapper* vrDockWidget = new iADockWidgetWrapper(m_toggleVR, "VR", "vrDockWidget");
+	connect(m_toggleVR, &QPushButton::clicked, this, &iAVRAttachment::toggleVR);
+	mdiChild->splitDockWidget(mdiChild->logs, vrDockWidget, Qt::Horizontal);
+}
+
+void iAVRAttachment::toggleVR()
+{
+	if (m_vrEnv)
+	{
+		m_toggleVR->setText("Start VR");
+		m_vrEnv->stop();
+		return;
+	}
+	m_toggleVR->setText("Stop VR");
+	MdiChild * mdiChild = m_childData.child;
+	m_vrEnv.reset(new iAVREnvironment);
 	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(mdiChild->GetModality(0)->GetTransfer().get(), mdiChild->GetModality(0)->GetImage()));
 	m_volumeRenderer->ApplySettings(mdiChild->GetVolumeSettings());
-
 	m_volumeRenderer->AddTo(m_vrEnv->renderer());
 	m_volumeRenderer->AddBoundingBoxTo(m_vrEnv->renderer());
 	m_vrEnv->start();
+	m_vrEnv.reset(nullptr);
 }
-

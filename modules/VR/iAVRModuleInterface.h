@@ -31,6 +31,8 @@ class iAVREnvironment;
 
 class vtkTable;
 
+class QAction;
+
 class iAVRModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
@@ -43,9 +45,9 @@ private:
 	QSharedPointer<iA3DCylinderObjectVis> m_cylinderVis;
 	QSharedPointer<iAVREnvironment> m_vrEnv;
 	vtkSmartPointer<vtkTable> m_objectTable;
+	QAction* m_actionVRShowFibers;
 private slots:
 	void info();
 	void render();
 	void showFibers();
-	void stop();
 };
