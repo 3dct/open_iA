@@ -294,7 +294,7 @@ void dlg_bezier::moveSelectedPoint(int x, int y)
 	if (isFunctionPoint(selectedPoint))
 	{
 		x = clamp(0, chart->geometry().width() - 1, x);
-		y = clamp(0, static_cast<int>((chart->geometry().height() - chart->bottomMargin() - 1)*chart->YZoom()), y);
+		y = clamp(0, static_cast<int>((chart->geometry().height() - chart->bottomMargin() - 1)*chart->yZoom()), y);
 		if (isEndPoint(selectedPoint))
 			y = 0;
 	}
@@ -427,16 +427,16 @@ void dlg_bezier::insert(unsigned int index, unsigned int x, unsigned int y)
 	{
 		std::vector<QPointF>::iterator vit = viewPoints.begin();
 		std::vector<QPointF>::iterator rit = realPoints.begin();
-		viewPoints.insert(vit+index*3-1, QPointF(xf-controlDist/chart->XZoom(), yf));
-		realPoints.insert(rit+index*3-1, QPointF(xf-controlDist/chart->XZoom(), yf));
+		viewPoints.insert(vit+index*3-1, QPointF(xf-controlDist/chart->xZoom(), yf));
+		realPoints.insert(rit+index*3-1, QPointF(xf-controlDist/chart->xZoom(), yf));
 		vit = viewPoints.begin();
 		rit = realPoints.begin();
 		viewPoints.insert(vit+index*3, QPointF(xf, yf));
 		realPoints.insert(rit+index*3, QPointF(xf, yf));
 		vit = viewPoints.begin();
 		rit = realPoints.begin();
-		viewPoints.insert(vit+index*3+1, QPointF(xf+controlDist/chart->XZoom(), yf));
-		realPoints.insert(rit+index*3+1, QPointF(xf+controlDist/chart->XZoom(), yf));
+		viewPoints.insert(vit+index*3+1, QPointF(xf+controlDist/chart->xZoom(), yf));
+		realPoints.insert(rit+index*3+1, QPointF(xf+controlDist/chart->xZoom(), yf));
 	}
 }
 
@@ -455,13 +455,13 @@ void dlg_bezier::setViewPoint(int selectedPoint)
 		{
 			QPointF functionPoint = realPoints[functionPointIndex];
 
-			if (pointX < chart->xBounds()[0] || pointY < 0 || pointX > chart->xBounds()[1] || pointY > chart->yBounds()[1]/chart->YZoom())
+			if (pointX < chart->xBounds()[0] || pointY < 0 || pointX > chart->xBounds()[1] || pointY > chart->yBounds()[1]/chart->yZoom())
 			{
 				//calculate intersection with horizontal borders
 				double dx = realPoints[selectedPoint].x() -functionPoint.x();
 				double dy = realPoints[selectedPoint].y() -functionPoint.y();
 
-				double t = ((pointY < 0 ? 0.0 : chart->yBounds()[1]/chart->YZoom())-functionPoint.y())/dy;
+				double t = ((pointY < 0 ? 0.0 : chart->yBounds()[1]/chart->yZoom())-functionPoint.y())/dy;
 				double x = functionPoint.x() +t*dx;
 
 				//calculate intersection with vertical borders
@@ -470,7 +470,7 @@ void dlg_bezier::setViewPoint(int selectedPoint)
 				if (x >= chart->xBounds()[0] && x <= chart->xBounds()[1] && t > 0)
 				{
 					viewPoints[selectedPoint].setX(x);
-					viewPoints[selectedPoint].setY(pointY < 0 ? 0.0: chart->yBounds()[1]/ chart->YZoom());
+					viewPoints[selectedPoint].setY(pointY < 0 ? 0.0: chart->yBounds()[1]/ chart->yZoom());
 				}
 				else
 				{
@@ -537,22 +537,22 @@ double dlg_bezier::getLength(QPointF start, QPointF end)
 // TODO: unify somewhere!
 double dlg_bezier::v2dX(int x)
 {
-	return ((double)(x- chart->xShift()) / (double)chart->geometry().width() * chart->xRange()) / chart->XZoom() + chart->xBounds()[0];
+	return ((double)(x- chart->xShift()) / (double)chart->geometry().width() * chart->xRange()) / chart->xZoom() + chart->xBounds()[0];
 }
 
 double dlg_bezier::v2dY(int y)
 {
-	return chart->yMapper().srcToDst(y) *chart->yBounds()[1] / chart->YZoom();
+	return chart->yMapper().srcToDst(y) *chart->yBounds()[1] / chart->yZoom();
 }
 
 int dlg_bezier::d2vX(double x)
 {
-	return (int)((x - chart->xBounds()[0]) * (double)chart->geometry().width() / chart->xRange()*chart->XZoom()) + chart->xShift();
+	return (int)((x - chart->xBounds()[0]) * (double)chart->geometry().width() / chart->xRange()*chart->xZoom()) + chart->xShift();
 }
 
 int dlg_bezier::d2vY(double y)
 {
-	return (int)(y / chart->yBounds()[1] *(double)(chart->geometry().height() - chart->bottomMargin()-1) *chart->YZoom());
+	return (int)(y / chart->yBounds()[1] *(double)(chart->geometry().height() - chart->bottomMargin()-1) *chart->yZoom());
 }
 
 int dlg_bezier::d2iX(double x)

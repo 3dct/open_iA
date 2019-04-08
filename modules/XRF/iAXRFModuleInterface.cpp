@@ -29,7 +29,7 @@ void iAXRFModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionXRF = new QAction( m_mainWnd );
 	actionXRF->setText( QApplication::translate( "MainWindow", "InSpectr", 0 ) );
 	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionXRF );

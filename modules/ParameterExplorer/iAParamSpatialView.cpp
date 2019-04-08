@@ -86,7 +86,7 @@ iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & 
 	std::fill(m_sliceNr, m_sliceNr + 3, 0);
 }
 
-void iAParamSpatialView::SetImage(size_t id)
+void iAParamSpatialView::setImage(size_t id)
 {
 	if (!m_imageCache.contains(id))
 	{
@@ -103,9 +103,9 @@ void iAParamSpatialView::SetImage(size_t id)
 			auto itkImg = iAITKIO::readFile(fileName, pixelType, false);
 			m_loadedImgs.push_back(itkImg);
 			iAConnector con;
-			con.SetImage(itkImg);
-			con.Modified();
-			m_imageCache.insert(id, con.GetVTKImage());
+			con.setImage(itkImg);
+			con.modified();
+			m_imageCache.insert(id, con.vtkImage());
 		}
 		catch (std::exception & e)
 		{
@@ -129,7 +129,7 @@ void iAParamSpatialView::SetImage(size_t id)
 		m_imageWidget->SetSlice(m_sliceNr[m_curMode]);
 	}
 	else
-		m_imageWidget->SetImage(img);
+		m_imageWidget->setImage(img);
 	m_sliceControl->setMaximum(m_imageWidget->GetSliceCount() - 1);
 	if (!m_sliceNrInitialized)
 	{

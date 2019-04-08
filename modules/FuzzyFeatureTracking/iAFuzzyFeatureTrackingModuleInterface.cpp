@@ -31,7 +31,7 @@ void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionFuzzyFeatureTracking = new QAction( m_mainWnd );
 	actionFuzzyFeatureTracking->setText(QApplication::translate("MainWindow", "Fuzzy Feature Tracking (4DCT)", 0));
 	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionFuzzyFeatureTracking );

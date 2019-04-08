@@ -275,8 +275,8 @@ void dlg_Consensus::SelectionUncertaintyDice(
 
 	for (int i = 0; i < selection.size(); ++i)
 	{
-		int avgUncIdx = selection[i]->GetAttributes()->Find("Average Uncertainty");
-		int diceIdx = selection[i]->GetAttributes()->Find("Dice");
+		int avgUncIdx = selection[i]->GetAttributes()->find("Average Uncertainty");
+		int diceIdx = selection[i]->GetAttributes()->find("Dice");
 		double unc = selection[i]->GetAttribute(avgUncIdx);
 		double dice = selection[i]->GetAttribute(diceIdx);
 		table->SetValue(i, 0, unc);
@@ -310,7 +310,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 			std::vector<InputDice> memberDice;
 			for (int m = 0; m < selection.size(); ++m)
 			{
-				int attributeID = selection[m]->GetAttributes()->Find(QString("Dice %1").arg(l));
+				int attributeID = selection[m]->GetAttributes()->find(QString("Dice %1").arg(l));
 				if (attributeID == -1)
 				{
 					DEBUG_LOG(QString("Attribute 'Dice %1' not found, aborting!").arg(l));
@@ -339,7 +339,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 		{
 			for (int m = 0; m < selection.size(); ++m)
 			{
-				int attributeID = selection[m]->GetAttributes()->Find(QString("Dice %1").arg(l));
+				int attributeID = selection[m]->GetAttributes()->find(QString("Dice %1").arg(l));
 				if (attributeID == -1)
 				{
 					DEBUG_LOG(QString("Attribute 'Dice %1' not found, aborting!").arg(l));
@@ -469,7 +469,7 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 	auto undecidedPixelIndices = pvdicefilter->IgnoredIndices();
 
 	QString filename(cachePath + QString("/sample-method%1-sample%2-pv.mhd").arg(methodNr).arg(sampleNr));
-	StoreImage(labelResult.GetPointer(), filename, true);
+	storeImage(labelResult.GetPointer(), filename, true);
 	iAITKIO::ImagePointer result;
 	if (undecidedPixels)
 	{
@@ -754,7 +754,7 @@ void dlg_Consensus::StoreConfig()
 		for (int s = 0; s < sampling->size(); ++s)
 		{
 			auto r = sampling->Get(s);
-			int derivedOutID = r->GetAttributes()->Find(DerivedOutputName);
+			int derivedOutID = r->GetAttributes()->find(DerivedOutputName);
 			runs.push_back(std::make_tuple(r->GetDatasetID(), r->GetID(), r->GetAttribute(derivedOutID)));
 		}
 	}
@@ -797,7 +797,7 @@ void dlg_Consensus::StoreConfig()
 			for (int m = 0; m < selection.size(); ++m)
 			{
 				QString derivedOutName(QString("%1 %2").arg(DerivedOutputName).arg(l));
-				int attributeID = selection[m]->GetAttributes()->Find(derivedOutName);
+				int attributeID = selection[m]->GetAttributes()->find(derivedOutName);
 				if (attributeID == -1)
 				{
 					DEBUG_LOG(QString("Attribute '%1' not found!").arg(derivedOutName));
@@ -956,7 +956,7 @@ void dlg_Consensus::LoadConfig()
 				QVector<double> singleParameterSet;
 				for (int p = 0; p < samplingResults->GetAttributes()->size(); ++p)
 				{
-					if (samplingResults->GetAttributes()->at(p)->AttribType() == iAAttributeDescriptor::Parameter)
+					if (samplingResults->GetAttributes()->at(p)->attribType() == iAAttributeDescriptor::Parameter)
 					{
 						singleParameterSet.push_back(samplingResults->Get(i)->GetAttribute(p));
 					}
@@ -1075,8 +1075,8 @@ void dlg_Consensus::SamplerFinished()
 			"Undecided Pixels", iAAttributeDescriptor::DerivedOutput, Discrete)));
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
-			measure->ResetMinMax();
-			attributes->Add(measure);
+			measure->resetMinMax();
+			attributes->add(measure);
 		}
 		for (int m = 0; m < m_comparisonSamplingResults[s]->size(); ++m)
 		{
@@ -1106,7 +1106,7 @@ void dlg_Consensus::SamplerFinished()
 				.arg(measureValues[measureValues.size() - 1]); // undecided
 			for (int i = 0; i < m_comparisonSamplingResults[s]->Get(m)->GetAttributes()->size(); ++i)
 			{
-				if (m_comparisonSamplingResults[s]->Get(m)->GetAttributes()->at(i)->AttribType() == iAAttributeDescriptor::Parameter)
+				if (m_comparisonSamplingResults[s]->Get(m)->GetAttributes()->at(i)->attribType() == iAAttributeDescriptor::Parameter)
 				{
 					debugOut += QString("\t%1").arg(m_comparisonSamplingResults[s]->Get(m)->GetAttribute(i));
 				}
@@ -1115,9 +1115,9 @@ void dlg_Consensus::SamplerFinished()
 			// }
 			for (int i = 0; i<measures.size(); ++i)
 			{
-				int attributeID = attributes->Find(measures[i]->Name());
+				int attributeID = attributes->find(measures[i]->name());
 				m_comparisonSamplingResults[s]->Get(m)->SetAttribute(attributeID, measureValues[i]);
-				attributes->at(attributeID)->AdjustMinMax(measureValues[i]);
+				attributes->at(attributeID)->adjustMinMax(measureValues[i]);
 			}
 		}
 	}
@@ -1312,7 +1312,7 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 			{
 				LabelImageType* labelImg = dynamic_cast<LabelImageType*>(result[r].GetPointer());
 				QString filename(m_cachePath + QString("/sample-method%1-sample%2.mhd").arg(r).arg(i));
-				StoreImage(labelImg, filename, true);
+				storeImage(labelImg, filename, true);
 				auto statFilter = StatFilter::New();
 				statFilter->SetInput(labelImg);
 				statFilter->SetLabelInput(labelImg);

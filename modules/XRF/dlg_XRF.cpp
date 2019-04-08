@@ -184,7 +184,7 @@ void dlg_XRF::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
 	m_selectedBinXDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(150, 0, 0, 50)));
 	m_selectedBinYDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(0, 0, 150, 50)));
 
-	connect((dlg_transfer*)(m_spectrumDiagram->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(SpectrumTFChanged()));
+	connect((dlg_transfer*)(m_spectrumDiagram->functions()[0]), SIGNAL(Changed()), this, SLOT(SpectrumTFChanged()));
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
@@ -371,7 +371,7 @@ void dlg_XRF::SpectrumTFChanged()
 
 void dlg_XRF::updateAccumulate(int fctIdx)
 {
-	m_accumulatedXRF->SetFct(fctIdx);
+	m_accumulatedXRF->setFct(fctIdx);
 	m_spectrumDiagram->update();
 }
 
@@ -505,9 +505,9 @@ void dlg_XRF::updateFunctionalBoxplot(int show)
 {
 	if (show)
 	{
-		m_functionalBoxplotImage = drawFunctionalBoxplot(m_accumulatedXRF->GetFunctionalBoxPlot(),
+		m_functionalBoxplotImage = drawFunctionalBoxplot(m_accumulatedXRF->functionalBoxPlot(),
 			m_xrfData->size(),
-			m_accumulatedXRF->YBounds()[1]);
+			m_accumulatedXRF->yBounds()[1]);
 		m_spectrumDiagram->addImageOverlay(m_functionalBoxplotImage);
 	}
 	else
@@ -697,7 +697,7 @@ void dlg_XRF::loadDecomposition()
 	io.start();
 	io.wait();
 
-	QString elementNames = io.getAdditionalInfo();
+	QString elementNames = io.additionalInfo();
 	QStringList elements = elementNames.split(",");
 	
 	elements.replaceInStrings(QRegExp("^\\s+"), ""); // trim whitespaces
@@ -1129,9 +1129,9 @@ void dlg_XRF::computeSimilarityMap()
 	ImageType3D ** images = new ImageType3D*[numEBins];
 	for (int i=0; i<numEBins; ++i)
 	{
-		connectors[i].SetImage( ( *m_xrfData->GetDataPtr() )[i] ); 
-		connectors[i].Modified();
-		images[i] = dynamic_cast <ImageType3D*> ( connectors[i].GetITKImage() );
+		connectors[i].setImage( ( *m_xrfData->GetDataPtr() )[i] ); 
+		connectors[i].modified();
+		images[i] = dynamic_cast <ImageType3D*> ( connectors[i].itkImage() );
 	}
 	
 // 	//extract slice from 3D
@@ -1336,7 +1336,7 @@ void dlg_XRF::AddReferenceSpectrum(int modelIdx)
 		&m_refSpectraLib->spectra[modelIdx].GetCountsData()[0],
 		energies.size(), energies[0], energies[energies.size()-1],
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
-		m_accumulatedXRF->YBounds()[1]));
+		m_accumulatedXRF->yBounds()[1]));
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
 	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(data, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);

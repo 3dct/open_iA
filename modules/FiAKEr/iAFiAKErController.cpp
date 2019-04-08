@@ -1063,14 +1063,14 @@ void iAFiAKErController::changeDistributionSource(int index)
 		for (size_t fiberID = 0; fiberID<d.fiberCount; ++fiberID)
 			fiberData[fiberID] = matchQualityVisActive() ? m_data->avgRefFiberMatch[fiberID]
 					: d.table->GetValue(fiberID, index).ToDouble();
-		auto histogramData = iAHistogramData::Create(fiberData, HistogramBins, Continuous, range[0], range[1]);
+		auto histogramData = iAHistogramData::create(fiberData, HistogramBins, Continuous, range[0], range[1]);
 		QSharedPointer<iAPlot> histogramPlot =
 			(m_distributionChartType->currentIndex() == 0) ?
 			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, m_resultColorTheme->GetColor(resultID)))
 			: QSharedPointer<iAPlot>(new iALinePlot(histogramData, m_resultColorTheme->GetColor(resultID)));
 		chart->addPlot(histogramPlot);
-		if (histogramData->YBounds()[1] > yMax)
-			yMax = histogramData->YBounds()[1];
+		if (histogramData->yBounds()[1] > yMax)
+			yMax = histogramData->yBounds()[1];
 	}
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -2371,12 +2371,12 @@ void iAFiAKErController::loadVolume(QString const & fileName)
 	iAConnector con;
 	iAITKIO::ScalarPixelType pixelType;
 	iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-	con.SetImage(img);
+	con.setImage(img);
 	m_refImg = vtkSmartPointer<vtkImageData>::New();
-	m_refImg->DeepCopy(con.GetVTKImage());
+	m_refImg->DeepCopy(con.vtkImage());
 	double rng[2]; m_refImg->GetScalarRange(rng);
-	m_refCF = GetDefaultColorTransferFunction(rng);
-	m_refOF = GetDefaultPiecewiseFunction(rng, true);
+	m_refCF = defaultColorTF(rng);
+	m_refOF = defaultOpacityTF(rng, true);
 	iASimpleTransferFunction tf(
 		m_refCF.GetPointer(),
 		m_refOF.GetPointer()

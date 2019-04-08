@@ -42,7 +42,7 @@
 vtkStandardNewMacro(iAvtkImageData);
 
 
-vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents)
+vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents)
 {
 	vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
 	result->SetDimensions(dimensions);
@@ -54,35 +54,35 @@ vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3]
 }
 
 
-vtkSmartPointer<vtkImageData> AllocateImage(int vtkType, int const dimensions[3], double const spacing[3])
+vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const dimensions[3], double const spacing[3])
 {
-	return AllocateImage(vtkType, dimensions, spacing, 1);
+	return allocateImage(vtkType, dimensions, spacing, 1);
 }
 
-vtkSmartPointer<vtkImageData> AllocateImage(vtkSmartPointer<vtkImageData> img)
+vtkSmartPointer<vtkImageData> allocateImage(vtkSmartPointer<vtkImageData> img)
 {
-	return AllocateImage(img->GetScalarType(), img->GetDimensions(), img->GetSpacing());
+	return allocateImage(img->GetScalarType(), img->GetDimensions(), img->GetSpacing());
 }
 
 
-void StoreImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression)
+void storeImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression)
 {
 	iAConnector con;
-	con.SetImage(image);
-	iAITKIO::ScalarPixelType pixelType = con.GetITKScalarPixelType();
-	iAITKIO::writeFile(filename, con.GetITKImage(), pixelType, useCompression);
+	con.setImage(image);
+	iAITKIO::ScalarPixelType pixelType = con.itkScalarPixelType();
+	iAITKIO::writeFile(filename, con.itkImage(), pixelType, useCompression);
 }
 
-vtkSmartPointer<vtkImageData> ReadImage(QString const & filename, bool releaseFlag)
+vtkSmartPointer<vtkImageData> readImage(QString const & filename, bool releaseFlag)
 {
 	iAConnector con;
 	iAITKIO::ScalarPixelType pixelType;
 	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType, releaseFlag);
-	con.SetImage(img);
-	return con.GetVTKImage();
+	con.setImage(img);
+	return con.vtkImage();
 }
 
-vtkSmartPointer<vtkImageData> CastVTKImage(vtkSmartPointer<vtkImageData> img, int destType)
+vtkSmartPointer<vtkImageData> castVTKImage(vtkSmartPointer<vtkImageData> img, int destType)
 {
 	auto cast = vtkSmartPointer<vtkImageCast>::New();
 	cast->SetInputData(img);
@@ -90,7 +90,7 @@ vtkSmartPointer<vtkImageData> CastVTKImage(vtkSmartPointer<vtkImageData> img, in
 	return cast->GetOutput();
 }
 
-void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData)
+void writeSingleSliceImage(QString const & filename, vtkImageData* imageData)
 {
 	QFileInfo fi(filename);
 	vtkSmartPointer<vtkImageWriter> writer;
@@ -126,7 +126,7 @@ bool isVtkIntegerType(int type)
 		type == VTK_LONG_LONG || type == VTK_UNSIGNED_LONG_LONG;
 }
 
-int MapVTKTypeStringToInt(QString const & vtkTypeString)
+int mapVTKTypeStringToInt(QString const & vtkTypeString)
 {
 	if (vtkTypeString == "VTK_VOID")           return VTK_VOID;
 	if (vtkTypeString == "VTK_BIT")            return VTK_BIT;
@@ -145,7 +145,7 @@ int MapVTKTypeStringToInt(QString const & vtkTypeString)
 	return -1;
 }
 
-int MapVTKTypeStringToSize(QString const & vtkTypeString)
+int mapVTKTypeStringToSize(QString const & vtkTypeString)
 {
 	if (vtkTypeString == "VTK_UNSIGNED_CHAR")  return sizeof(unsigned char);
 	if (vtkTypeString == "VTK_UNSIGNED_SHORT") return sizeof(unsigned short);
@@ -159,7 +159,7 @@ int MapVTKTypeStringToSize(QString const & vtkTypeString)
 	return -1;
 }
 
-QStringList const & VTKDataTypeList()
+QStringList const & vtkDataTypeList()
 {
 	static QStringList datatypeList = (QStringList()
 		<< "VTK_UNSIGNED_CHAR"  << "VTK_CHAR"
@@ -182,7 +182,7 @@ QMap<int, QString> const & RenderModeMap()
 	return renderModeMap;
 }
 
-int MapRenderModeToEnum(QString const & modeName)
+int mapRenderModeToEnum(QString const & modeName)
 {
 	for (int key : RenderModeMap().keys())
 		if (RenderModeMap()[key] == modeName)

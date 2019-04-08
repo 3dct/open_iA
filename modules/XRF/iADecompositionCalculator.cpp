@@ -56,7 +56,7 @@ void iADecompositionCalculator::Stop()
 
 void iADecompositionCalculator::run()
 {
-	int threshold = m_accumulatedXRF->YBounds()[1]/20;
+	int threshold = m_accumulatedXRF->yBounds()[1]/20;
 
 	QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > >  adaptedElementSpectra =
 		m_data->GetAdaptedSpectra(m_xrfData, m_elements);

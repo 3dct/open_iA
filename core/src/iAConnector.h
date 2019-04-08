@@ -43,31 +43,32 @@ public:
 	typedef itk::ImageIOBase::IOPixelType		ITKPixelType;
 	typedef itk::ProcessObject::Pointer			ProcessObjectPointer;
 
-	// Methods
-	// -Constructor and Destructor
 	iAConnector();
-	~iAConnector();
 
-	/** This function is needed for setting the VTK image and converting it */
-	void SetImage(vtkSmartPointer<vtkImageData> image);
-	/** This function is needed for setting the ITK image and converting it */
-	void SetImage(ImageBaseType * image);
+	//! Set the VTK image and make it available as ITK image
+	void setImage(vtkSmartPointer<vtkImageData> image);
+	//! Sets the ITK image and make it available as VTK image
+	void setImage(ImageBaseType * image);
 
-	// -Getters
-	vtkSmartPointer<vtkImageData> GetVTKImage() const;
-	ImageBaseType* GetITKImage() const;
+	//! Get the VTK image
+	vtkSmartPointer<vtkImageData> vtkImage() const;
+	//! Get the ITK image
+	ImageBaseType* itkImage() const;
 
-	// -Helper methods
-	ITKScalarPixelType GetITKScalarPixelType() const;
-	ITKPixelType GetITKPixelType();
-	void Modified();
+	//! Get the data type of a single scalar (double, float, int, ...)
+	ITKScalarPixelType itkScalarPixelType() const;
+	//! Get the type of the pixel (SCALAR or RGBA)
+	ITKPixelType itkPixelType();
+	//! Set the linked ITK/VTK images as modified
+	void modified();
 
 protected:
-	// -Update one modality using another
-	void UpdateImageITK();
-	void UpdateImageVTK();
-	void UpdateScalarType() const;
-	void UpdatePixelType();
+	//! @{ Update one image using the respective other
+	void updateImageITK();
+	void updateImageVTK();
+	//! @}
+	void updateScalarType() const;
+	void updatePixelType();
 
 protected:
 	ImagePointer m_ITKImage; //The pointer for the ITK image

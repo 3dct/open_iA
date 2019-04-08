@@ -29,32 +29,32 @@ iAVectorPlotData::iAVectorPlotData(std::vector<double> const & data):
 	updateBounds();
 }
 
-iAVectorPlotData::DataType const * iAVectorPlotData::GetRawData() const
+iAVectorPlotData::DataType const * iAVectorPlotData::rawData() const
 {
 	return m_data.data();
 }
 
-size_t iAVectorPlotData::GetNumBin() const
+size_t iAVectorPlotData::numBin() const
 {
 	return m_data.size();
 }
 
-double iAVectorPlotData::GetSpacing() const
+double iAVectorPlotData::spacing() const
 {
 	return 1.0;
 }
 
-double const * iAVectorPlotData::XBounds() const
+double const * iAVectorPlotData::xBounds() const
 {
 	return m_xBounds;
 }
 
-iAVectorPlotData::DataType const * iAVectorPlotData::YBounds() const
+iAVectorPlotData::DataType const * iAVectorPlotData::yBounds() const
 {
 	return m_yBounds;
 }
 
-iAValueType iAVectorPlotData::GetRangeType() const
+iAValueType iAVectorPlotData::valueType() const
 {
 	return m_xDataType;
 }

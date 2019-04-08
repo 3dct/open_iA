@@ -41,8 +41,8 @@ iAClusterAttribChart::iAClusterAttribChart(
 	m_oldMin(-1),
 	m_oldMax(-1)
 {
-	double dr0= data->XBounds()[0];
-	double dr1= data->XBounds()[1];
+	double dr0= data->xBounds()[0];
+	double dr1= data->xBounds()[1];
 
 	QVBoxLayout* mainLayout = new QVBoxLayout();
 	mainLayout->setMargin(0);
@@ -183,13 +183,13 @@ void iAClusterAttribChart::SetMaxYAxisValue(double val)
 void iAClusterAttribChart::ResetSpan()
 {
 	double dr0= m_charts->mapBinToValue(0);
-	double dr1= m_charts->mapBinToValue(m_charts->plots()[0]->data()->GetNumBin());
+	double dr1= m_charts->mapBinToValue(m_charts->plots()[0]->data()->numBin());
 	SetSpanValues(dr0, dr1);
 }
 
 size_t iAClusterAttribChart::GetNumBin() const
 {
-	return m_charts->plots()[0]->data()->GetNumBin();
+	return m_charts->plots()[0]->data()->numBin();
 }
 
 double iAClusterAttribChart::mapValueToBin(double value) const

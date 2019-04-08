@@ -44,9 +44,9 @@ iAChannelSlicerData::iAChannelSlicerData(iAChannelData const & chData, int mode)
 	m_colormapper(vtkSmartPointer<vtkImageMapToColors>::New()),
 	m_imageActor(vtkSmartPointer<vtkImageActor>::New()),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
-	m_name(chData.getName()),
-	m_ctf(nullptr),
-	m_otf(nullptr),
+	m_name(chData.name()),
+	m_cTF(nullptr),
+	m_oTF(nullptr),
 	m_contourFilter(vtkSmartPointer<vtkMarchingContourFilter>::New()),
 	m_contourMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_contourActor(vtkSmartPointer<vtkActor>::New())
@@ -56,10 +56,10 @@ iAChannelSlicerData::iAChannelSlicerData(iAChannelData const & chData, int mode)
 	m_reslicer->InterpolateOn();
 	m_reslicer->AutoCropOutputOn();
 	m_reslicer->SetNumberOfThreads(QThread::idealThreadCount());
-	assign(chData.getImage(), chData.getColor());
+	assign(chData.image(), chData.getColor());
 	m_imageActor->GetMapper()->BorderOn();
 	updateResliceAxesDirectionCosines(mode);
-	setupOutput(chData.getCTF(), chData.getOTF());
+	setupOutput(chData.colorTF(), chData.opacityTF());
 	initContours();
 }
 
@@ -85,10 +85,10 @@ void iAChannelSlicerData::assign(vtkSmartPointer<vtkImageData> imageData, QColor
 
 void iAChannelSlicerData::setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf)
 {
-	m_ctf = ctf;
-	m_otf = otf;
+	m_cTF = ctf;
+	m_oTF = otf;
 	updateLUT();
-	m_colormapper->SetLookupTable( m_otf ? m_lut : m_ctf);
+	m_colormapper->SetLookupTable( m_oTF ? m_lut : m_cTF);
 	m_colormapper->PassAlphaToOutputOn();
 	m_colormapper->SetInputConnection(m_reslicer->GetOutputPort());
 	m_colormapper->Update();
@@ -97,7 +97,7 @@ void iAChannelSlicerData::setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunct
 
 void iAChannelSlicerData::updateLUT()
 {
-	if (!m_otf)
+	if (!m_oTF)
 		return;
 	double rgb[3];
 	double range[2];
@@ -109,8 +109,8 @@ void iAChannelSlicerData::updateLUT()
 	double scalValDelta = (range[1] - range[0]) / (numCols - 1);
 	for (int i = 0; i < numCols; ++i)
 	{
-		m_ctf->GetColor(scalVal, rgb);
-		double alpha = m_otf->GetValue(scalVal);
+		m_cTF->GetColor(scalVal, rgb);
+		double alpha = m_oTF->GetValue(scalVal);
 		m_lut->SetTableValue(i, rgb[0], rgb[1], rgb[2], alpha);
 		scalVal += scalValDelta;
 	}
@@ -119,12 +119,12 @@ void iAChannelSlicerData::updateLUT()
 
 void iAChannelSlicerData::update(iAChannelData const & chData)
 {
-	assign(chData.getImage(), chData.getColor());
-	m_name = chData.getName();
+	assign(chData.image(), chData.getColor());
+	m_name = chData.name();
 	m_reslicer->UpdateWholeExtent();
 	m_reslicer->Update();
 
-	setupOutput(chData.getCTF(), chData.getOTF());
+	setupOutput(chData.colorTF(), chData.opacityTF());
 }
 
 void iAChannelSlicerData::updateResliceAxesDirectionCosines(int mode)
@@ -152,9 +152,9 @@ bool iAChannelSlicerData::isInitialized() const
 }
 */
 
-vtkScalarsToColors* iAChannelSlicerData::getColorTransferFunction()
+vtkScalarsToColors* iAChannelSlicerData::cTF()
 {
-	return m_ctf;
+	return m_cTF;
 }
 
 void iAChannelSlicerData::updateMapper()
@@ -179,7 +179,7 @@ void iAChannelSlicerData::updateReslicer()
 	m_reslicer->Update();
 }
 
-QString iAChannelSlicerData::getName() const
+QString const & iAChannelSlicerData::name() const
 {
 	return m_name;
 }

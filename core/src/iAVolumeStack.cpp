@@ -24,23 +24,24 @@
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
-iAVolumeStack::iAVolumeStack()
+iAVolumeStack::iAVolumeStack():
+	m_id(0)
 {
-	id = 0;
 }
 
 iAVolumeStack::~iAVolumeStack()
 {
-	// clear vectors
-	while(!colorTransferVector.empty()) {
-		vtkColorTransferFunction* ctf = colorTransferVector.back();
+	while(!m_colorTFVector.empty())
+	{
+		vtkColorTransferFunction* ctf = m_colorTFVector.back();
 		ctf->Delete();
-		colorTransferVector.pop_back();
+		m_colorTFVector.pop_back();
 	}
-	while(!piecewiseVector.empty()) {
-		vtkPiecewiseFunction* pwf= piecewiseVector.back();
+	while(!m_opacityTFVector.empty())
+	{
+		vtkPiecewiseFunction* pwf= m_opacityTFVector.back();
 		pwf->Delete();
-		piecewiseVector.pop_back();
+		m_opacityTFVector.pop_back();
 	}
 }
 
@@ -48,38 +49,38 @@ void iAVolumeStack::addVolume(vtkImageData* volume)
 {
 	vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
 	image->DeepCopy(volume);
-	volumes.push_back(image);
+	m_volumes.push_back(image);
 }
 
-vtkImageData* iAVolumeStack::getVolume(int i)
+vtkImageData* iAVolumeStack::volume(int i)
 {
-	return volumes.at(i);
+	return m_volumes.at(i);
 }
 
-size_t iAVolumeStack::getNumberOfVolumes()
+size_t iAVolumeStack::numberOfVolumes()
 {
-	return volumes.size();
+	return m_volumes.size();
 }
 
 void iAVolumeStack::addVolumeAt(vtkImageData* volume, int i)
 {
 	vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
 	image->DeepCopy(volume);
-	volumes.at(i)=image;
+	m_volumes.at(i)=image;
 }
 
 void iAVolumeStack::addColorTransferFunction(vtkColorTransferFunction* instance)
 {
 	vtkColorTransferFunction* ctf = vtkColorTransferFunction::New();
 	ctf->DeepCopy((vtkScalarsToColors*)instance);
-	colorTransferVector.push_back(ctf);
+	m_colorTFVector.push_back(ctf);
 }
 
 void iAVolumeStack::addPiecewiseFunction(vtkPiecewiseFunction* instance)
 {
 	vtkPiecewiseFunction* pwf = vtkPiecewiseFunction::New();
 	pwf->DeepCopy((vtkDataObject*)instance);
-	piecewiseVector.push_back(pwf);
+	m_opacityTFVector.push_back(pwf);
 }
 
 /*void iAVolumeStack::addColorTransferFunctionAt(vtkColorTransferFunction* colorTransferFunction, int i)
@@ -94,30 +95,32 @@ void iAVolumeStack::addPiecewiseFunctionAt(vtkPiecewiseFunction* pieceWiseFuncti
 	pwf->DeepCopy(pieceWiseFunction);
 	piecewiseVector.at(i)=pwf;
 }*/
-vtkColorTransferFunction* iAVolumeStack::getColorTransferFunction(int i)
+vtkColorTransferFunction* iAVolumeStack::colorTF(int i)
 {
-	return colorTransferVector[i];
+	return m_colorTFVector[i];
 }
 
-vtkPiecewiseFunction* iAVolumeStack::getPiecewiseFunction(int i)
+vtkPiecewiseFunction* iAVolumeStack::opacityTF(int i)
 {
-	return piecewiseVector[i];
+	return m_opacityTFVector[i];
 }
 
-void iAVolumeStack::addFileName(QString fileName) {
-	fileNameArray.push_back(fileName);
-}
-
-QString iAVolumeStack::getFileName(int i) {
-	return fileNameArray.at(i);
-}
-
-std::vector<vtkSmartPointer<vtkImageData> > * iAVolumeStack::GetVolumes()
+void iAVolumeStack::addFileName(QString fileName)
 {
-	return &volumes;
+	m_fileNameArray.push_back(fileName);
 }
 
-std::vector<QString> * iAVolumeStack::GetFileNames()
+QString iAVolumeStack::fileName(int i)
 {
-	return &fileNameArray;
+	return m_fileNameArray.at(i);
+}
+
+std::vector<vtkSmartPointer<vtkImageData> > * iAVolumeStack::volumes()
+{
+	return &m_volumes;
+}
+
+std::vector<QString> * iAVolumeStack::fileNames()
+{
+	return &m_fileNameArray;
 }

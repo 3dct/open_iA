@@ -42,7 +42,7 @@ iAEntropy::iAEntropy() :
 		"\"http://ieeexplore.ieee.org/document/6415481/\">"
 		"Visualization of Uncertainty without a Mean</a> by Kristin Potter et al.")
 {
-	AddParameter("Normalize", Boolean, true);
+	addParameter("Normalize", Boolean, true);
 }
 
 IAFILTER_CREATE(iAEntropy)
@@ -54,17 +54,17 @@ void entropy(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	typedef itk::Image<PixelType, DIM> InputImageType;
 	typedef fhw::EntropyImageFilter<InputImageType, InputImageType> EntropyFilter;
 	auto entropyFilter = EntropyFilter::New();
-	for (int i = 0; i < filter->Input().size(); ++i)
+	for (int i = 0; i < filter->input().size(); ++i)
 	{
-		entropyFilter->SetInput(i, dynamic_cast<InputImageType*>(filter->Input()[i]->GetITKImage()));
+		entropyFilter->SetInput(i, dynamic_cast<InputImageType*>(filter->input()[i]->itkImage()));
 	}
 	entropyFilter->SetNormalize(parameters["Normalize"].toBool());
 	entropyFilter->Update();
-	filter->AddOutput(entropyFilter->GetOutput());
+	filter->addOutput(entropyFilter->GetOutput());
 }
 
 
-void iAEntropy::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAEntropy::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(entropy, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(entropy, inputPixelType(), this, parameters);
 }

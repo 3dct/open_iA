@@ -51,16 +51,16 @@ void iAProfileWidget::showDataTooltip(QMouseEvent *event)
 	if (!scalars)
 		return;
 	int xPos = clamp(0, activeWidth() - 1, event->x() - leftMargin());
-	int nthBin = (int)((((xPos-translationX) * numBin) / activeWidth()) / xZoom);
-	double len = (((xPos-translationX) * rayLen) / activeWidth()) / xZoom;
+	int nthBin = (int)((((xPos-m_translationX) * numBin) / activeWidth()) / m_xZoom);
+	double len = (((xPos-m_translationX) * rayLen) / activeWidth()) / m_xZoom;
 	if (nthBin >= numBin || xPos == activeWidth()-1)
 		nthBin = numBin-1;
 	if (isTooltipShown())
 	{
-		QString text = xCaption
+		QString text = m_xCaption
 			+ QString(": %1").arg(len)
 			+ "  "
-			+ yCaption
+			+ m_yCaption
 			+ QString(": %1").arg(scalars->GetTuple1(nthBin));
 		QToolTip::showText(event->globalPos(), text, this);
 	}
@@ -72,12 +72,12 @@ void iAProfileWidget::drawPlots(QPainter &painter)
 	if (!scalars)
 		return;
 
-	double binWidth = (double)(activeWidth()) / numBin *xZoom;
+	double binWidth = (double)(activeWidth()) / numBin * m_xZoom;
 	int intBinWidth = (int)binWidth;
 	if (intBinWidth < binWidth)
 		intBinWidth++;
 	painter.setPen(QWidget::palette().color(QPalette::Text));
-	double scalingCoef = (double)(activeHeight()-1) / yHeight *yZoom;
+	double scalingCoef = (double)(activeHeight()-1) / yHeight * m_yZoom;
 	for ( int j = 0; j < numBin-1; j++ )
 	{
 		double x1 = (int)(j * binWidth);

@@ -31,6 +31,7 @@
 #include <QPainter>
 #include <QLabel>
 #include <QSettings>
+#include <QTextDocument>
 
 const QStringList customMimeType = QStringList()\
 << "application/x-dnditemdatafilter"\
@@ -246,8 +247,8 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 		}
 
 		// Dialog Param Space Sampling preparations
-		QTextDocument * algoDoc = new QTextDocument();
-		algoDoc->setHtml( pieceDescription[found] );
+		QTextDocument algoDoc;
+		algoDoc.setHtml( pieceDescription[found] );
 
 		// Find datasetName in the pieceName list   
 		int datasetNameIdx = -1;
@@ -272,9 +273,9 @@ void iADropPipelineWidget::mousePressEvent( QMouseEvent *event )
 		QStringList datasetInfo = getDatasetInfo( m_datasetDir, datasetName );
 		QVector<double> bin, freq;
 		getDatasetHistogramValues( m_datasetDir, datasetName, bin, freq );
-		
-		dlg_ParamSpaceSampling dlg( this, dialogWindowName, inList.size(), inList, 
-									inPara, algoDoc, m_datasetDir, datasetName, 
+
+		dlg_ParamSpaceSampling dlg( this, dialogWindowName, inList.size(), inList,
+									inPara, &algoDoc, m_datasetDir, datasetName,
 									datasetInfo, bin, freq, filterName );
 
 		if ( dlg.exec() != QDialog::Accepted )

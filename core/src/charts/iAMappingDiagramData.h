@@ -25,21 +25,22 @@
 
 class open_iA_Core_API iAMappingDiagramData: public iAPlotData
 {
-private:
-	size_t m_numBin;
-	DataType * m_data;
-	double m_spacing;
-	double m_xBounds[2];
-	double m_yBounds[2];
 public:
 	iAMappingDiagramData(DataType const * data,
 		int srcNumBin, double srcMinX, double srcMaxX,
 		size_t targetNumBin, double targetMinX, double targetMaxX,
 		DataType const maxValue);
 	~iAMappingDiagramData();
-	size_t GetNumBin() const override;
-	DataType const * GetRawData() const override;
-	double GetSpacing() const override;
-	double const * XBounds() const override;
-	DataType const * YBounds() const override;
+	size_t numBin() const override;
+	DataType const * rawData() const override;
+	double spacing() const override;
+	double const * xBounds() const override;
+	DataType const * yBounds() const override;
+
+private:
+	size_t m_numBin;
+	DataType * m_data;
+	double m_spacing;
+	double m_xBounds[2];
+	double m_yBounds[2];
 };

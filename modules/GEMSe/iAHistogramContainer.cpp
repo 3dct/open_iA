@@ -96,7 +96,7 @@ void iAHistogramContainer::CreateCharts()
 	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
 		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
-		if (attrib->Min() == attrib->Max() || m_disabledCharts.contains(chartID))
+		if (attrib->min() == attrib->max() || m_disabledCharts.contains(chartID))
 		{
 			continue;
 		}
@@ -105,37 +105,37 @@ void iAHistogramContainer::CreateCharts()
 		//      - adapting to width of histogram?
 		//      - if discrete or categorical values: limit by range
 		size_t maxBin = std::min(static_cast<size_t>(std::sqrt(m_root->GetClusterSize())), HistogramBinCount);
-		int numBin = (attrib->Min() == attrib->Max()) ? 1 :
-			(attrib->ValueType() == iAValueType::Discrete || attrib->ValueType() == iAValueType::Categorical) ?
-			std::min(static_cast<size_t>(attrib->Max() - attrib->Min() + 1), maxBin) :
+		int numBin = (attrib->min() == attrib->max()) ? 1 :
+			(attrib->valueType() == iAValueType::Discrete || attrib->valueType() == iAValueType::Categorical) ?
+			std::min(static_cast<size_t>(attrib->max() - attrib->min() + 1), maxBin) :
 			maxBin;
-		QSharedPointer<iAParamHistogramData> data = iAParamHistogramData::Create(
+		QSharedPointer<iAParamHistogramData> data = iAParamHistogramData::create(
 			m_root,
 			chartID,
-			attrib->ValueType(),
-			attrib->Min(),
-			attrib->Max(),
-			attrib->IsLogScale(),
+			attrib->valueType(),
+			attrib->min(),
+			attrib->max(),
+			attrib->isLogScale(),
 			m_chartAttributeMapper,
 			numBin);
 		if (!data)
 		{
 			DEBUG_LOG(QString("ERROR: Creating chart #%1 data for attribute %2 failed!").arg(chartID)
-				.arg(attrib->Name()));
+				.arg(attrib->name()));
 			continue;
 		}
-		if (attrib->AttribType() == iAAttributeDescriptor::Parameter)
+		if (attrib->attribType() == iAAttributeDescriptor::Parameter)
 		{
-			maxValue = std::max(data->YBounds()[1], maxValue);
+			maxValue = std::max(data->yBounds()[1], maxValue);
 		}
-		m_charts.insert(chartID, new iAClusterAttribChart(attrib->Name(), chartID, data,
-			attrib->NameMapper()));
+		m_charts.insert(chartID, new iAClusterAttribChart(attrib->name(), chartID, data,
+			attrib->nameMapper()));
 
 		connect(m_charts[chartID], SIGNAL(Toggled(bool)), this, SLOT(ChartSelected(bool)));
 		connect(m_charts[chartID], SIGNAL(FilterChanged(double, double)), this, SLOT(FilterChanged(double, double)));
 		connect(m_charts[chartID], SIGNAL(ChartDblClicked()), this, SLOT(ChartDblClicked()));
 
-		if (attrib->AttribType() == iAAttributeDescriptor::Parameter)
+		if (attrib->attribType() == iAAttributeDescriptor::Parameter)
 		{
 			QList<int> datasetIDs = m_chartAttributeMapper.GetDatasetIDs(chartID);
 			if (!datasetIDs.contains(curMinDatasetID))
@@ -163,7 +163,7 @@ void iAHistogramContainer::CreateCharts()
 	for (int i = 0; i < m_chartAttributes->size(); ++i)
 	{
 		if (m_charts[i] &&
-			m_chartAttributes->at(i)->AttribType() == iAAttributeDescriptor::Parameter)
+			m_chartAttributes->at(i)->attribType() == iAAttributeDescriptor::Parameter)
 		{
 			m_charts[i]->SetMaxYAxisValue(maxValue);
 		}
@@ -185,12 +185,12 @@ void iAHistogramContainer::UpdateClusterChartData(QVector<QSharedPointer<iAImage
 		foreach(QSharedPointer<iAImageTreeNode> const node, selection)
 		{
 			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
-			m_charts[chartID]->AddClusterData(iAParamHistogramData::Create(
+			m_charts[chartID]->AddClusterData(iAParamHistogramData::create(
 				node.data(), chartID,
-				attrib->ValueType(),
-				attrib->Min(),
-				attrib->Max(),
-				attrib->IsLogScale(),
+				attrib->valueType(),
+				attrib->min(),
+				attrib->max(),
+				attrib->isLogScale(),
 				m_chartAttributeMapper,
 				m_charts[chartID]->GetNumBin()));
 		}
@@ -217,12 +217,12 @@ void iAHistogramContainer::UpdateClusterFilteredChartData(
 		else
 		{
 			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
-			m_charts[chartID]->SetFilteredClusterData(iAParamHistogramData::Create(
+			m_charts[chartID]->SetFilteredClusterData(iAParamHistogramData::create(
 				selectedNode, chartID,
-				attrib->ValueType(),
-				attrib->Min(),
-				attrib->Max(),
-				attrib->IsLogScale(),
+				attrib->valueType(),
+				attrib->min(),
+				attrib->max(),
+				attrib->isLogScale(),
 				m_chartAttributeMapper,
 				chartFilter,
 				m_charts[chartID]->GetNumBin()));
@@ -241,12 +241,12 @@ void iAHistogramContainer::UpdateFilteredChartData(iAChartFilter const & chartFi
 		}
 		assert(m_charts[chartID]);
 		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
-		m_charts[chartID]->SetFilteredData(iAParamHistogramData::Create(
+		m_charts[chartID]->SetFilteredData(iAParamHistogramData::create(
 			m_root, chartID,
-			attrib->ValueType(),
-			attrib->Min(),
-			attrib->Max(),
-			attrib->IsLogScale(),
+			attrib->valueType(),
+			attrib->min(),
+			attrib->max(),
+			attrib->isLogScale(),
 			m_chartAttributeMapper,
 			chartFilter,
 			m_charts[chartID]->GetNumBin()));
@@ -370,12 +370,12 @@ void iAHistogramContainer::ExportAttributeRangeRanking(QString const &fileName)
 	QTextStream t(&f);
 	for (int i = 0; i<m_attitudes.size(); ++i)
 	{
-		t << m_chartAttributes->at(i)->Name();
+		t << m_chartAttributes->at(i)->name();
 		if (!ChartExists(i))
 			continue;
 		size_t numBin = m_charts[i]->GetNumBin();
-		double min = m_chartAttributes->at(i)->Min();
-		double max = m_chartAttributes->at(i)->Max();
+		double min = m_chartAttributes->at(i)->min();
+		double max = m_chartAttributes->at(i)->max();
 		t << "," << min << "," << max << "," << numBin;
 		for (int b = 0; b < m_attitudes[i].size(); ++b)
 		{
@@ -488,12 +488,12 @@ void iAHistogramContainer::SelectHistograms()
 	layout->addWidget(inputParams);
 	for (int i = 0; i < m_chartAttributes->size(); ++i)
 	{
-		if (m_chartAttributes->at(i)->Min() == m_chartAttributes->at(i)->Max() ||
-			m_chartAttributes->at(i)->AttribType() != iAAttributeDescriptor::Parameter)
+		if (m_chartAttributes->at(i)->min() == m_chartAttributes->at(i)->max() ||
+			m_chartAttributes->at(i)->attribType() != iAAttributeDescriptor::Parameter)
 		{
 			continue;
 		}
-		auto box = new QCheckBox(m_chartAttributes->at(i)->Name());
+		auto box = new QCheckBox(m_chartAttributes->at(i)->name());
 		box->setChecked(!m_disabledCharts.contains(i));
 		boxes.insert(i, box);
 		layout->addWidget(box);
@@ -503,12 +503,12 @@ void iAHistogramContainer::SelectHistograms()
 	layout->addWidget(derivedOutput);
 	for (int i = 0; i < m_chartAttributes->size(); ++i)
 	{
-		if (m_chartAttributes->at(i)->Min() == m_chartAttributes->at(i)->Max() ||
-			m_chartAttributes->at(i)->AttribType() != iAAttributeDescriptor::DerivedOutput)
+		if (m_chartAttributes->at(i)->min() == m_chartAttributes->at(i)->max() ||
+			m_chartAttributes->at(i)->attribType() != iAAttributeDescriptor::DerivedOutput)
 		{
 			continue;
 		}
-		auto box = new QCheckBox(m_chartAttributes->at(i)->Name());
+		auto box = new QCheckBox(m_chartAttributes->at(i)->name());
 		box->setChecked(!m_disabledCharts.contains(i));
 		boxes.insert(i, box);
 		layout->addWidget(box);

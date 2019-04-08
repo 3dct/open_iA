@@ -75,41 +75,41 @@ iABatchFilter::iABatchFilter():
 {
 	QStringList filesFoldersBoth;
 	filesFoldersBoth << "Files" << "Folders" << "Both Files and Folders";
-	AddParameter("Image folder", Folder, "");
-	AddParameter("Recursive", Boolean, false);
-	AddParameter("File mask", String, "*.mhd");
-	AddParameter("Filter", FilterName, "Image Quality");
-	AddParameter("Parameters", FilterParameters, "");
-	AddParameter("Additional Input", FileNamesOpen, "");
-	AddParameter("Output directory", Folder, "");
-	AddParameter("Output suffix", String, "");
-	AddParameter("Overwrite output", Boolean, false);
-	AddParameter("Compress output", Boolean, true);
-	AddParameter("Output csv file", FileNameSave, "");
-	AddParameter("Append to output", Boolean, true);
-	AddParameter("Add filename", Boolean, true);
-	AddParameter("Continue on error", Boolean, true);
-	AddParameter("Work on", Categorical, filesFoldersBoth);
+	addParameter("Image folder", Folder, "");
+	addParameter("Recursive", Boolean, false);
+	addParameter("File mask", String, "*.mhd");
+	addParameter("Filter", FilterName, "Image Quality");
+	addParameter("Parameters", FilterParameters, "");
+	addParameter("Additional Input", FileNamesOpen, "");
+	addParameter("Output directory", Folder, "");
+	addParameter("Output suffix", String, "");
+	addParameter("Overwrite output", Boolean, false);
+	addParameter("Compress output", Boolean, true);
+	addParameter("Output csv file", FileNameSave, "");
+	addParameter("Append to output", Boolean, true);
+	addParameter("Add filename", Boolean, true);
+	addParameter("Continue on error", Boolean, true);
+	addParameter("Work on", Categorical, filesFoldersBoth);
 	QStringList outputFormat;
 	outputFormat << "Same as input"
 		<< "MetaImage (*.mhd)";
-	AddParameter("Output format", Categorical, outputFormat);
+	addParameter("Output format", Categorical, outputFormat);
 }
 
-void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
+void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	auto filter = iAFilterRegistry::Filter(parameters["Filter"].toString());
+	auto filter = iAFilterRegistry::filter(parameters["Filter"].toString());
 	if (!filter)
 	{
-		AddMsg(QString("Batch: Cannot run filter '%1', it does not exist!").arg(parameters["Filter"].toString()));
+		addMsg(QString("Batch: Cannot run filter '%1', it does not exist!").arg(parameters["Filter"].toString()));
 		return;
 	}
 	QMap<QString, QVariant> filterParams;
 	QStringList filterParamStrs = SplitPossiblyQuotedString(parameters["Parameters"].toString());
-	if (filter->Parameters().size() != filterParamStrs.size())
+	if (filter->parameters().size() != filterParamStrs.size())
 	{
-		AddMsg(QString("Batch: Invalid number of parameters: %1 expected, %2 given!")
-			.arg(filter->Parameters().size())
+		addMsg(QString("Batch: Invalid number of parameters: %1 expected, %2 given!")
+			.arg(filter->parameters().size())
 			.arg(filterParamStrs.size()));
 		return;
 	}
@@ -123,12 +123,12 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		auto newCon = new iAConnector();
 		iAITKIO::ScalarPixelType pixelType;
 		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-		newCon->SetImage(img);
+		newCon->setImage(img);
 		inputImages.push_back(newCon);
 	}
 
 	for (int i=0; i<filterParamStrs.size(); ++i)
-		filterParams.insert(filter->Parameters()[i]->Name(), filterParamStrs[i]);
+		filterParams.insert(filter->parameters()[i]->name(), filterParamStrs[i]);
 
 	QString outputFile = parameters["Output csv file"].toString();
 	QStringList outputBuffer;
@@ -144,14 +144,14 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		}
 	}
 	iAProgress p;	// dummy progress swallowing progress from filter which we don't want to propagate
-	filter->SetProgress(&p);
-	filter->SetLogger(Logger());
+	filter->setProgress(&p);
+	filter->setLogger(logger());
 
 	QStringList filters = parameters["File mask"].toString().split(";");
 	
 	if (!QFileInfo(batchDir).exists() || !QFileInfo(batchDir).isDir())
 	{
-		AddMsg("Path given as 'Image folder' either does not exist or is not a folder!");
+		addMsg("Path given as 'Image folder' either does not exist or is not a folder!");
 		return;
 	}
 	QStringList files;
@@ -167,14 +167,14 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 		QFileInfo fi(outDir);
 		if (fi.exists() && !fi.isDir())
 		{
-			AddMsg(QString("Path given as 'Output directory' (%1) does not denote a folder!").arg(outDir));
+			addMsg(QString("Path given as 'Output directory' (%1) does not denote a folder!").arg(outDir));
 			return;
 		}
 		else if (!fi.exists())
 		{
 			if (!QDir(fi.absoluteFilePath()).mkpath("."))
 			{
-				AddMsg(QString("Could not create output directory '%1'").arg(outDir));
+				addMsg(QString("Could not create output directory '%1'").arg(outDir));
 				return;
 			}
 		}
@@ -189,7 +189,7 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 	{
 		try
 		{
-			filter->ClearInput();
+			filter->clearInput();
 			iAConnector con;
 			if (QFileInfo(fileName).isDir())
 			{
@@ -197,27 +197,27 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 			}
 			else
 			{
-				if (filter->RequiredInputs() > 0)
+				if (filter->requiredInputs() > 0)
 				{
 					iAITKIO::ScalarPixelType pixelType;
 					iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-					con.SetImage(img);
-					filter->AddInput(&con);
+					con.setImage(img);
+					filter->addInput(&con);
 					for (int i = 0; i < inputImages.size(); ++i)
-						filter->AddInput(inputImages[i]);
+						filter->addInput(inputImages[i]);
 				}
 				else
 				{
 					filterParams["File name"] = fileName;
 				}
 			}
-			filter->Run(filterParams);
+			filter->run(filterParams);
 			if (curLine == 0)
 			{
 				QStringList captions;
 				if (parameters["Add filename"].toBool())
 					captions << "filename";
-				for (auto outValue : filter->OutputValues())
+				for (auto outValue : filter->outputValues())
 				{
 					QString curCap(outValue.first);
 					curCap.replace(",", "");
@@ -236,15 +236,15 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 			{
 				values << relFileName;
 			}
-			for (auto outValue : filter->OutputValues())
+			for (auto outValue : filter->outputValues())
 				values.append(outValue.second.toString());
 			QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
 			outputBuffer[curLine] += textToAdd;
 			++curLine;
-			for (int o = 0; o < filter->Output().size(); ++o)
+			for (int o = 0; o < filter->output().size(); ++o)
 			{
 				QFileInfo fi(outDir + "/" + relFileName);
-				QString multiFileSuffix = filter->Output().size() > 1 ? QString::number(o) : "";
+				QString multiFileSuffix = filter->output().size() > 1 ? QString::number(o) : "";
 				QString outName = QString("%1/%2%3%4.%5").arg(fi.absolutePath()).arg(
 					parameters["Output format"].toString().contains("MetaImage") ? fi.fileName() : fi.baseName())
 					.arg(outSuffix).arg(multiFileSuffix).arg(
@@ -259,11 +259,11 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 					++overwriteSuffix;
 				}
 				if (!QDir(fi.absolutePath()).exists() && !QDir(fi.absolutePath()).mkpath("."))
-					AddMsg(QString("Error creating output directory %1, skipping writing output file %2")
+					addMsg(QString("Error creating output directory %1, skipping writing output file %2")
 						.arg(fi.absolutePath()).arg(outName));
 				else
-					iAITKIO::writeFile(outName, filter->Output()[o]->GetITKImage(),
-						filter->Output()[o]->GetITKScalarPixelType(), useCompression);
+					iAITKIO::writeFile(outName, filter->output()[o]->itkImage(),
+						filter->output()[o]->itkScalarPixelType(), useCompression);
 			}
 		}
 		catch (std::exception & e)
@@ -272,7 +272,7 @@ void iABatchFilter::PerformWork(QMap<QString, QVariant> const & parameters)
 			if (!parameters["Continue on error"].toBool())
 				throw e;
 		}
-		Progress()->EmitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
+		progress()->EmitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
 	}
 
 	if (!outputFile.isEmpty())

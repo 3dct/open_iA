@@ -189,7 +189,7 @@ void dlg_gaussian::moveSelectedPoint(int x, int y)
 			}
 		}
 
-		double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->YZoom();
+		double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->yZoom();
 		multiplier  = (double)y /(chart->geometry().height() - chart->bottomMargin()-1)*chart->yBounds()[1] /meanValue;
 	}
 }
@@ -199,29 +199,29 @@ void dlg_gaussian::reset()
 
 void dlg_gaussian::setMultiplier(int multiplier)
 {
-	double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->YZoom();
+	double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->yZoom();
 	this->multiplier = v2dY(multiplier) /meanValue;
 }
 
 // TODO: unify somewhere!
 double dlg_gaussian::v2dX(int x)
 {
-	return ((double)(x-chart->xShift()) / (double)chart->geometry().width() * chart->xRange()) /chart->XZoom() + chart->xBounds()[0];
+	return ((double)(x-chart->xShift()) / (double)chart->geometry().width() * chart->xRange()) /chart->xZoom() + chart->xBounds()[0];
 }
 
 double dlg_gaussian::v2dY(int y)
 {
-	return chart->yMapper().srcToDst(y) *chart->yBounds()[1] /chart->YZoom();
+	return chart->yMapper().srcToDst(y) *chart->yBounds()[1] /chart->yZoom();
 }
 
 int dlg_gaussian::d2vX(double x)
 {
-	return (int)((x - chart->xBounds()[0]) * (double)chart->geometry().width() / chart->xRange()*chart->XZoom()) +chart->xShift();
+	return (int)((x - chart->xBounds()[0]) * (double)chart->geometry().width() / chart->xRange()*chart->xZoom()) +chart->xShift();
 }
 
 int dlg_gaussian::d2vY(double y)
 {
-	return (int)(y /chart->yBounds()[1] *(double)(chart->geometry().height() - chart->bottomMargin()-1) *chart->YZoom());
+	return (int)(y /chart->yBounds()[1] *(double)(chart->geometry().height() - chart->bottomMargin()-1) *chart->yZoom());
 }
 
 int dlg_gaussian::d2iX(double x)
@@ -236,5 +236,5 @@ int dlg_gaussian::d2iY(double y)
 
 double dlg_gaussian::i2dX(int x)
 {
-	return ((double)x / (double)chart->geometry().width() * chart->xRange()) /chart->XZoom() + chart->xBounds()[0];
+	return ((double)x / (double)chart->geometry().width() * chart->xRange()) /chart->xZoom() + chart->xBounds()[0];
 }

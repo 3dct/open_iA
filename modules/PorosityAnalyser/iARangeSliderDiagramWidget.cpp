@@ -47,18 +47,18 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChil
 	setTransferFunctions(cTF, oTF);
 	addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(m_data, QColor(70, 70, 70, 255))));
 	m_selectionRubberBand->hide();
-	( (dlg_transfer*) functions[0] )->enableRangeSliderHandles( true );
+	( (dlg_transfer*) m_functions[0] )->enableRangeSliderHandles( true );
 }
 
 void iARangeSliderDiagramWidget::drawFunctions( QPainter &painter )
 {
 	int counter = 0;
-	std::vector<dlg_function*>::iterator it = functions.begin();
-	while ( it != functions.end() )
+	std::vector<dlg_function*>::iterator it = m_functions.begin();
+	while ( it != m_functions.end() )
 	{
 		dlg_function *func = ( *it );
 
-		if ( counter == selectedFunction )
+		if ( counter == m_selectedFunction )
 			func->draw( painter, QColor( 255, 128, 0, 255 ), 2 );
 		else
 			func->draw( painter );
@@ -75,8 +75,8 @@ void iARangeSliderDiagramWidget::mouseDoubleClickEvent( QMouseEvent *event )
 
 void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 {
-	std::vector<dlg_function*>::iterator it = functions.begin();
-	dlg_function *func = *( it + selectedFunction );
+	std::vector<dlg_function*>::iterator it = m_functions.begin();
+	dlg_function *func = *( it + m_selectedFunction );
 	int x = event->x() - leftMargin();
 	int selectedPoint = func->selectPoint( event, &x );
 
@@ -116,12 +116,12 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 				m_addedHandles.clear();
 				func->removePoint( 1 );
 				func->removePoint( 1 );
-				selectedPoint = func->addPoint( dataBin2ScreenX( m_firstSelectedBin ) + translationX, 0 );
-				func->addColorPoint( dataBin2ScreenX( m_firstSelectedBin ) + translationX );
+				selectedPoint = func->addPoint( dataBin2ScreenX( m_firstSelectedBin ) + m_translationX, 0 );
+				func->addColorPoint( dataBin2ScreenX( m_firstSelectedBin ) + m_translationX );
 				m_addedHandles.append( m_firstSelectedBin );
 			}
 		}
-		else if ( event->y() > geometry().height() - bottomMargin() - translationY  &&
+		else if ( event->y() > geometry().height() - bottomMargin() - m_translationY  &&
 				  !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
 			if ( m_addedHandles.size() < 2 )
@@ -138,8 +138,8 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 		}
 		else if ( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier )
 		{
-			translationStartX = translationX;
-			translationStartY = translationY;
+			m_translationStartX = m_translationX;
+			m_translationStartY = m_translationY;
 			iAChartWidget::changeMode( MOVE_VIEW_MODE, event );
 		}
 	}
@@ -149,8 +149,8 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 {
 	if ( event->button() == Qt::RightButton )
 	{
-		std::vector<dlg_function*>::iterator it = functions.begin();
-		dlg_function *func = *( it + selectedFunction );
+		std::vector<dlg_function*>::iterator it = m_functions.begin();
+		dlg_function *func = *( it + m_selectedFunction );
 		func->selectPoint( event, 0 );	// to not allow last end point get selected
 		update();
 	}
@@ -163,8 +163,8 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 			m_selectionRubberBand->hide();
 			m_lastSelectedBin = getBin( event );
 
-			std::vector<dlg_function*>::iterator it = functions.begin();
-			dlg_function *func = *( it + selectedFunction );
+			std::vector<dlg_function*>::iterator it = m_functions.begin();
+			dlg_function *func = *( it + m_selectedFunction );
 			int x = event->x() - leftMargin();
 			int selectedPoint = func->selectPoint( event, &x );
 
@@ -178,8 +178,8 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 
 			if ( selectedPoint == -1 )
 			{
-				selectedPoint = func->addPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + translationX, 0 );
-				func->addColorPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + translationX );
+				selectedPoint = func->addPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + m_translationX, 0 );
+				func->addColorPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + m_translationX );
 				m_addedHandles.append( m_lastSelectedBin );
 
 				if ( m_firstSelectedBin > m_lastSelectedBin )
@@ -188,11 +188,11 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 				setupSelectionDrawer();
 
 				//Handle snap
-				func->moveSelectedPoint( dataBin2ScreenX( m_firstSelectedBin ) + translationX, 0 );
-				func->moveSelectedPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + translationX, 0 );
+				func->moveSelectedPoint( dataBin2ScreenX( m_firstSelectedBin ) + m_translationX, 0 );
+				func->moveSelectedPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + m_translationX, 0 );
 			}
 		}
-		else if ( event->y() > geometry().height() - bottomMargin() - translationY )	// mouse event below X-axis
+		else if ( event->y() > geometry().height() - bottomMargin() - m_translationY )	// mouse event below X-axis
 		{
 			if ( m_addedHandles.size() == 2 )	// there are two handles draw a selection
 			{
@@ -203,15 +203,15 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 				emit selected();
 			}
 
-			std::vector<dlg_function*>::iterator it = functions.begin();
-			dlg_function *func = *( it + selectedFunction );
+			std::vector<dlg_function*>::iterator it = m_functions.begin();
+			dlg_function *func = *( it + m_selectedFunction );
 
 			//Handle snap
 			if ( func->getSelectedPoint() == 1 )
-				func->moveSelectedPoint( dataBin2ScreenX( m_firstSelectedBin ) + translationX, 0 );
+				func->moveSelectedPoint( dataBin2ScreenX( m_firstSelectedBin ) + m_translationX, 0 );
 
 			if ( func->getSelectedPoint() == 2 )
-				func->moveSelectedPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + translationX, 0 );
+				func->moveSelectedPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + m_translationX, 0 );
 		}
 	}
 }
@@ -227,11 +227,11 @@ void iARangeSliderDiagramWidget::mouseMoveEvent( QMouseEvent *event )
 
 			m_selectionRubberBand->setGeometry( QRect( m_selectionOrigin, event->pos() ).normalized() );
 		}
-		else if ( event->y() > geometry().height() - bottomMargin() - translationY
+		else if ( event->y() > geometry().height() - bottomMargin() - m_translationY
 				  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
-			std::vector<dlg_function*>::iterator it = functions.begin();
-			dlg_function *func = *( it + selectedFunction );
+			std::vector<dlg_function*>::iterator it = m_functions.begin();
+			dlg_function *func = *( it + m_selectedFunction );
 			int x = event->x() - leftMargin();
 			int selectedPoint = func->getSelectedPoint();
 
@@ -275,14 +275,14 @@ void iARangeSliderDiagramWidget::contextMenuEvent( QContextMenuEvent *event )
 
 int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 {
-	iAPlotData::DataType const * rawData = m_data->GetRawData();
+	iAPlotData::DataType const * rawData = m_data->rawData();
 	if ( !rawData )	return -1;
 	int nthBin =  screenX2DataBin(event->x());
 	QString text( tr( "%1: %2 %\n%3: %4" )
 				  .arg( m_yLabel )
 				  .arg( rawData[nthBin] )
 				  .arg( m_xLabel )
-				  .arg( (m_data->GetSpacing() * nthBin + xBounds()[0] ) ) );
+				  .arg( (m_data->spacing() * nthBin + xBounds()[0] ) ) );
 	QToolTip::showText( event->globalPos(), text, this );
 	return nthBin;
 }
@@ -381,8 +381,8 @@ QList<int> iARangeSliderDiagramWidget::getSelectedRawTableRows()
 		}
 	}
 
-	double selMinValue = m_data->GetSpacing() * m_firstSelectedBin + xBounds()[0];
-	double selMaxValue = m_data->GetSpacing() * m_lastSelectedBin + xBounds()[0];
+	double selMinValue = m_data->spacing() * m_firstSelectedBin + xBounds()[0];
+	double selMaxValue = m_data->spacing() * m_lastSelectedBin + xBounds()[0];
 
 	for ( int i = 1; i < m_rawTable->rowCount(); ++i )
 	{

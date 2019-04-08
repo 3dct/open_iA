@@ -83,20 +83,20 @@ public:
 	//! Destructor
 	virtual ~iAFilter();
 	//! Retrieve the filter name
-	QString Name() const;
+	QString name() const;
 	//! Retrieve the filter category (if sub-categories were specified, this only
 	//! returns the first one)
-	QString Category() const;
+	QString category() const;
 	//! Retrieve the full category string (just as specified in the constructor)
-	QString FullCategory() const;
+	QString fullCategory() const;
 	//! Retrieve the filter description
-	QString Description() const;
+	QString description() const;
 	//! Retrieve a list of the filter parameters
-	QVector<pParameter> const & Parameters() const;
+	QVector<pParameter> const & parameters() const;
 	//! Set the logger to be used for status output / error messages
-	void SetLogger(iALogger* logger);
+	void setLogger(iALogger* logger);
 	//! Set the facility  for progress reporting
-	void SetProgress(iAProgress* progress);
+	void setProgress(iAProgress* progress);
 	//! Check whether the filter can be run with the given parameters. If
 	//! you need to perform special checks on your parameters, override this
 	//! method. The standard implementation here just checks parameters with
@@ -105,18 +105,18 @@ public:
 	//!     be called with
 	//! @return true if the given parameters are acceptable for the filter, false
 	//!     otherwise
-	virtual bool CheckParameters(QMap<QString, QVariant> & parameters);
+	virtual bool checkParameters(QMap<QString, QVariant> & parameters);
 	//! Clears the list of input images to this filter.
 	//! Call this in case you are re-using a filter already called before,
 	//! and you want to call it with new input images
-	void ClearInput();
+	void clearInput();
 	//! TODO: also allow to check input files here (e.g. for AddImage to check
 	//!     if input images are all of the same type!
 	//! Adds an image as input
-	void AddInput(iAConnector* con);
+	void addInput(iAConnector* con);
 	//! Initialize and run the filter
 	//! @param parameters the map of parameters to use in this specific filter run
-	bool Run(QMap<QString, QVariant> const & parameters);
+	bool run(QMap<QString, QVariant> const & parameters);
 	//! Adds the description of a parameter to the filter
 	//! @param name the parameter's name
 	//! @param valueType the type of value this parameter can have
@@ -124,7 +124,7 @@ public:
 	//!     valueTypes, this should be the list of possible values
 	//! @param min the minimum value this parameter can have (inclusive).
 	//! @param max the maximum value this parameter can have (inclusive)
-	void AddParameter(
+	void addParameter(
 		QString const & name, iAValueType valueType,
 		QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(),
@@ -132,42 +132,42 @@ public:
 	//! Returns the number of image inputs required by this filter.
 	//! for typical image filters, this returns 1.
 	//! @return the number of images required as input
-	unsigned int RequiredInputs() const;
+	unsigned int requiredInputs() const;
 	//! input/output connectors
-	QVector<iAConnector*> const & Input();
-	QVector<iAConnector*> const & Output();
+	QVector<iAConnector*> const & input();
+	QVector<iAConnector*> const & output();
 
-	itk::ImageIOBase::IOComponentType InputPixelType() const;
+	itk::ImageIOBase::IOComponentType inputPixelType() const;
 	//! returns the number of input channels from the first input image
-	unsigned int FirstInputChannels() const;
+	unsigned int firstInputChannels() const;
 	//! sets the first input channels
-	void SetFirstInputChannels(unsigned int c);
+	void setFirstInputChannels(unsigned int c);
 	//! adds an output value
-	void AddOutputValue(QString const & name, QVariant value);
+	void addOutputValue(QString const & name, QVariant value);
 	//! retrieve a list of output values
-	QVector<QPair<QString, QVariant> > const & OutputValues() const;
+	QVector<QPair<QString, QVariant> > const & outputValues() const;
 	//! retrieve a list of names of the output values that this filter can produce
-	QVector<QString> const & OutputValueNames() const;
+	QVector<QString> const & outputValueNames() const;
 	//! adds an output value name
-	void AddOutputValue(QString const & name);
+	void addOutputValue(QString const & name);
 	//! Adds an output image
-	void AddOutput(itk::ImageBase<3> * img);
-	void AddOutput(vtkSmartPointer<vtkImageData> img);
+	void addOutput(itk::ImageBase<3> * img);
+	void addOutput(vtkSmartPointer<vtkImageData> img);
 	//! The planned number of outputs the filter will produce
-	int OutputCount();
+	int outputCount();
 	//! Adds some message to the targeted output place for this filter
 	//! Typically this will go into the log window of the result MdiChild
 	//! @param msg the message to print
-	void AddMsg(QString msg);
+	void addMsg(QString msg);
 	//! Retrieve the progress reporting object for this filter
-	iAProgress* Progress();
-	iALogger* Logger();
+	iAProgress* progress();
+	iALogger* logger();
 private:
 	//! The actual implementation of the filter
 	//! @param parameters the map of parameters to use in this specific filter run
-	virtual void PerformWork(QMap<QString, QVariant> const & parameters) = 0;
+	virtual void performWork(QMap<QString, QVariant> const & parameters) = 0;
 	//! Clears the output values
-	void ClearOutput();
+	void clearOutput();
 
 	//! variables required to run the filter:
 	QVector<iAConnector*> m_input;
@@ -187,7 +187,7 @@ private:
 
 //! Convenience Macro for creating the static Create method for your filter
 #define IAFILTER_CREATE(FilterName) \
-QSharedPointer<FilterName> FilterName::Create() \
+QSharedPointer<FilterName> FilterName::create() \
 { \
 	return QSharedPointer<FilterName>(new FilterName()); \
 }
@@ -196,8 +196,8 @@ QSharedPointer<FilterName> FilterName::Create() \
 class FilterName : public iAFilter \
 { \
 public: \
-	static QSharedPointer<FilterName> Create(); \
+	static QSharedPointer<FilterName> create(); \
 private: \
-	void PerformWork(QMap<QString, QVariant> const & parameters) override; \
+	void performWork(QMap<QString, QVariant> const & parameters) override; \
 	FilterName(); \
 };

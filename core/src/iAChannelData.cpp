@@ -45,8 +45,8 @@
 
 
 iAChannelData::iAChannelData():
-	m_piecewiseFunction(nullptr),
-	m_colorTransferFunction(nullptr),
+	m_oTF(nullptr),
+	m_cTF(nullptr),
 	m_enabled(false),
 	m_opacity(1.0),
 	m_threeD(false),
@@ -54,7 +54,7 @@ iAChannelData::iAChannelData():
 {}
 
 iAChannelData::iAChannelData(QString const & name, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf):
-	m_image(image), m_colorTransferFunction(ctf), m_piecewiseFunction(otf),
+	m_image(image), m_cTF(ctf), m_oTF(otf),
 	m_name(name)
 {}
 
@@ -100,7 +100,7 @@ void iAChannelData::setOpacity(double opacity)
 	m_opacity = opacity;
 }
 
-double iAChannelData::getOpacity() const
+double iAChannelData::opacity() const
 {
 	return m_opacity;
 }
@@ -112,21 +112,20 @@ void iAChannelData::setImage( vtkSmartPointer<vtkImageData> img )
 
 void iAChannelData::setColorTF( vtkScalarsToColors* cTF )
 {
-	m_colorTransferFunction = cTF;
+	m_cTF = cTF;
 }
 
 void iAChannelData::setOpacityTF(vtkPiecewiseFunction* oTF)
 {
-	m_piecewiseFunction = oTF;
+	m_oTF = oTF;
 }
-
 
 void iAChannelData::setName(QString name)
 {
 	m_name = name;
 }
 
-QString iAChannelData::getName() const
+QString const & iAChannelData::name() const
 {
 	return m_name;
 }
@@ -141,17 +140,17 @@ QColor iAChannelData::getColor() const
 	return m_color;
 }
 
-vtkPiecewiseFunction * iAChannelData::getOTF() const
+vtkPiecewiseFunction * iAChannelData::opacityTF() const
 {
-	return m_piecewiseFunction;
+	return m_oTF;
 }
 
-vtkScalarsToColors * iAChannelData::getCTF() const
+vtkScalarsToColors * iAChannelData::colorTF() const
 {
-	return m_colorTransferFunction;
+	return m_cTF;
 }
 
-vtkSmartPointer<vtkImageData> iAChannelData::getImage() const
+vtkSmartPointer<vtkImageData> iAChannelData::image() const
 {
 	return m_image;
 }

@@ -106,7 +106,7 @@ private slots:
 	void TriggerResultFilterUpdate();
 	void ResetResultFilter();
 private:
-	void SetImage();
+	void setImage();
 	void AddResultFilterPixel(int x, int y, int z);
 	void AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, QString const & name);
 	void UpdateComparisonNumbers();

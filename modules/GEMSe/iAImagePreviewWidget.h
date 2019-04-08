@@ -44,8 +44,8 @@ public:
 	iAImagePreviewWidget(QString const & title, QWidget* parent, bool isLabel, vtkCamera* commonCamera, iASlicerMode,
 		int labelCount, bool magicLens=false);
 	~iAImagePreviewWidget();
-	void SetImage(iAITKIO::ImagePointer img, bool empty, bool isLabelImg);
-	void SetImage(vtkSmartPointer<vtkImageData> img, bool empty, bool isLabelImg);
+	void setImage(iAITKIO::ImagePointer img, bool empty, bool isLabelImg);
+	void setImage(vtkSmartPointer<vtkImageData> img, bool empty, bool isLabelImg);
 	void AddNoMapperChannel(vtkSmartPointer<vtkImageData> img);
 	void RemoveChannel();
 	iASlicerMode GetSlicerMode() const;
@@ -57,7 +57,7 @@ public:
 	int GetSliceNumber() const;
 	double GetAspectRatio() const;
 	vtkSmartPointer<vtkColorTransferFunction> GetCTF();
-	iASlicer* GetSlicer();
+	iASlicer* slicer();
 	bool Empty() const;
 public slots:
 	void UpdateView();

@@ -130,14 +130,14 @@ MODULE_HANDLE LoadModule(QFileInfo fileInfo, iALogger* logger)
 	SetErrorMode(prevErrorMode);
 	if (!hGetProcIDDLL)
 	{
-		logger->Log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(GetLastErrorAsString()));
+		logger->log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(GetLastErrorAsString()));
 	}
 	return hGetProcIDDLL;
 #else
 	auto handle = dlopen(fileInfo.absoluteFilePath().toStdString().c_str(), RTLD_NOW);
 	if (!handle)
 	{
-		logger->Log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(dlerror()));
+		logger->log(QString("Could not load plugin %1: %2").arg(fileInfo.fileName()).arg(dlerror()));
 	}
 	return handle;
 #endif
@@ -181,7 +181,7 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 	iAModuleInterface * m = LoadModuleInterface(handle);
 	if (!m)
 	{
-		logger->Log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
+		logger->log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
 		return nullptr;
 	}
 	InitializeModuleInterface(m);
@@ -208,28 +208,28 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	{
 		return;
 	}
-	auto filterFactories = iAFilterRegistry::FilterFactories();
+	auto filterFactories = iAFilterRegistry::filterFactories();
 	for (int i=0; i<filterFactories.size(); ++i)
 	{
 		auto filterFactory = filterFactories[i];
-		auto filter = filterFactory->Create();
-		QMenu * filterMenu = m_mainWnd->getFiltersMenu();
-		QStringList categories = filter->FullCategory().split("/");
+		auto filter = filterFactory->create();
+		QMenu * filterMenu = m_mainWnd->filtersMenu();
+		QStringList categories = filter->fullCategory().split("/");
 		for (auto cat : categories)
 			if (!cat.isEmpty())
 				filterMenu = getMenuWithTitle(filterMenu, cat);
-		QAction * filterAction = new QAction(QApplication::translate("MainWindow", filter->Name().toStdString().c_str(), 0), m_mainWnd);
+		QAction * filterAction = new QAction(QApplication::translate("MainWindow", filter->name().toStdString().c_str(), 0), m_mainWnd);
 		AddActionToMenuAlphabeticallySorted(filterMenu, filterAction);
 		filterAction->setData(i);
 		connect(filterAction, SIGNAL(triggered()), this, SLOT(ExecuteFilter()));
 	}
 	// enable Tools and Filters only if any modules were loaded that put something into them:
-	m_mainWnd->getToolsMenu()->menuAction()->setVisible(m_mainWnd->getToolsMenu()->actions().size() > 0);
-	m_mainWnd->getFiltersMenu()->menuAction()->setVisible(m_mainWnd->getFiltersMenu()->actions().size() > 0);
+	m_mainWnd->toolsMenu()->menuAction()->setVisible(m_mainWnd->toolsMenu()->actions().size() > 0);
+	m_mainWnd->filtersMenu()->menuAction()->setVisible(m_mainWnd->filtersMenu()->actions().size() > 0);
 
-	if (m_mainWnd->getFiltersMenu()->actions().size() > 0)
+	if (m_mainWnd->filtersMenu()->actions().size() > 0)
 	{
-		QMenu * filterMenu = m_mainWnd->getFiltersMenu();
+		QMenu * filterMenu = m_mainWnd->filtersMenu();
 		QAction * selectAndRunFilterAction = new QAction(QApplication::translate("MainWindow", "Select and Run Filter...", 0), m_mainWnd);
 		AddModuleAction(selectAndRunFilterAction, true);
 		filterMenu->insertAction(filterMenu->actions()[0], selectAndRunFilterAction);
@@ -247,17 +247,17 @@ void iAModuleDispatcher::SelectAndRunFilter()
 {
 	dlg_FilterSelection filterSelection(m_mainWnd);
 	if (filterSelection.exec() == QDialog::Accepted)
-		RunFilter(iAFilterRegistry::FilterID(filterSelection.SelectedFilterName()));
+		RunFilter(iAFilterRegistry::filterID(filterSelection.SelectedFilterName()));
 }
 
 void iAModuleDispatcher::RunFilter(int filterID)
 {
 	if (filterID == -1)
 		return;
-	auto runner = iAFilterRegistry::FilterRunner(filterID)->Create();
+	auto runner = iAFilterRegistry::filterRunner(filterID)->create();
 	m_runningFilters.push_back(runner);
 	connect(runner.data(), SIGNAL(finished()), this, SLOT(RemoveFilter()));
-	runner->Run(iAFilterRegistry::FilterFactories()[filterID]->Create(), m_mainWnd);
+	runner->run(iAFilterRegistry::filterFactories()[filterID]->create(), m_mainWnd);
 }
 
 void iAModuleDispatcher::RemoveFilter()

@@ -28,6 +28,6 @@ IAFILTER_DEFAULT_CLASS(iASimilarity);
 class iASimilarityFilterRunner : public iAFilterRunnerGUI
 {
 public:
-	static QSharedPointer<iAFilterRunnerGUI> Create();
-	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
+	static QSharedPointer<iAFilterRunnerGUI> create();
+	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi) override;
 };

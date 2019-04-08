@@ -61,11 +61,11 @@ void iAFoamCharacterizationDialogAnalysis::analyse()
 	qApp->processEvents();
 
 	QScopedPointer<iAConnector> pConnector(new iAConnector());
-	pConnector->SetImage(m_pImageData);
+	pConnector->setImage(m_pImageData);
 
 	typedef itk::LabelGeometryImageFilter<itk::Image<unsigned short, 3>> itkLabelGeometryImageFilterType;
 	itkLabelGeometryImageFilterType::Pointer pLabelGeometryImageFilter(itkLabelGeometryImageFilterType::New());
-	pLabelGeometryImageFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->GetITKImage()));
+	pLabelGeometryImageFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
 	pLabelGeometryImageFilter->Update();
 
 	const int iLabels(pLabelGeometryImageFilter->GetNumberOfLabels());

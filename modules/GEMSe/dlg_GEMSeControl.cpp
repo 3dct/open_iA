@@ -619,7 +619,7 @@ bool dlg_GEMSeControl::LoadRefImg(QString const & refImgName)
 		auto img = iAITKIO::readFile(refImgName, pixelType, false);
 		if (pixelType != itk::ImageIOBase::INT)
 		{
-			img = CastImageTo<int>(img);
+			img = castImageTo<int>(img);
 		}
 		m_refImg = dynamic_cast<LabelImageType*>(img.GetPointer());
 		m_dlgGEMSe->CalcRefImgComp(m_refImg);
@@ -671,7 +671,7 @@ void dlg_GEMSeControl::StoreDerivedOutput(
 		return;
 	}
 	QTextStream out(&paramRangeFile);
-	results->GetAttributes()->Store(out);
+	results->GetAttributes()->store(out);
 
 	// store derived output:
 	results->StoreAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);

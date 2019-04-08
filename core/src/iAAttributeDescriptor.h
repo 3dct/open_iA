@@ -42,27 +42,27 @@ public:
 		Parameter,
 		DerivedOutput
 	};
-	static QSharedPointer<iAAttributeDescriptor> Create(QString const & def);
-	static QSharedPointer<iAAttributeDescriptor> CreateParam(
+	static QSharedPointer<iAAttributeDescriptor> create(QString const & def);
+	static QSharedPointer<iAAttributeDescriptor> createParam(
 		QString const & name, iAValueType valueType,
 		QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(),
 		double max = std::numeric_limits<double>::max());
 	iAAttributeDescriptor(QString const & name, iAAttributeType attribType, iAValueType valueType);
-	iAAttributeType AttribType() const;
-	iAValueType ValueType() const;
-	QVariant DefaultValue() const;
-	virtual QSharedPointer<iANameMapper> NameMapper() const;
-	double Min() const;
-	double Max() const;
-	QString Name() const;
-	void SetLogScale(bool l);
-	bool IsLogScale() const;
-	void ResetMinMax();
-	void AdjustMinMax(double value);
-	bool CoversWholeRange(double min, double max) const;
-	QString ToString() const;
-	void SetNameMapper(QSharedPointer<iANameMapper> mapper);
+	iAAttributeType attribType() const;
+	iAValueType valueType() const;
+	QVariant defaultValue() const;
+	virtual QSharedPointer<iANameMapper> nameMapper() const;
+	double min() const;
+	double max() const;
+	QString const & name() const;
+	void setLogScale(bool l);
+	bool isLogScale() const;
+	void resetMinMax();
+	void adjustMinMax(double value);
+	bool coversWholeRange(double min, double max) const;
+	QString toString() const;
+	void setNameMapper(QSharedPointer<iANameMapper> mapper);
 private:
 	iAAttributeDescriptor(iAAttributeDescriptor const & other) = delete;
 	iAAttributeDescriptor& operator=(iAAttributeDescriptor const & other) = delete;

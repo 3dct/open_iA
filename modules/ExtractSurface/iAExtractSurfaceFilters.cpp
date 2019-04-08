@@ -36,15 +36,15 @@
 #include <vtkSTLWriter.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 
-void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAMarchingCubes::performWork(QMap<QString, QVariant> const & parameters)
 {
 	vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter;
 
 	if (parameters["Algorithm"].toString() == "Marching Cubes")
 	{
 		auto marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
-		Progress()->Observe(marchingCubes);
-		marchingCubes->SetInputData(Input()[0]->GetVTKImage().GetPointer());
+		progress()->Observe(marchingCubes);
+		marchingCubes->SetInputData(input()[0]->vtkImage().GetPointer());
 		marchingCubes->ComputeNormalsOn();
 		marchingCubes->ComputeGradientsOn();
 		marchingCubes->ComputeScalarsOn();
@@ -54,8 +54,8 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	else
 	{
 		auto flyingEdges = vtkSmartPointer<vtkFlyingEdges3D>::New();
-		Progress()->Observe(flyingEdges);
-		flyingEdges->SetInputData(Input()[0]->GetVTKImage().GetPointer());
+		progress()->Observe(flyingEdges);
+		flyingEdges->SetInputData(input()[0]->vtkImage().GetPointer());
 		flyingEdges->SetNumberOfContours(1);
 		flyingEdges->SetValue(0, parameters["Iso value"].toDouble());
 		flyingEdges->ComputeNormalsOn();
@@ -69,7 +69,7 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	if (parameters["Simplification Algorithm"].toString() == "Decimate Pro")
 	{
 		auto decimatePro = vtkSmartPointer<vtkDecimatePro>::New();
-		Progress()->Observe(decimatePro);
+		progress()->Observe(decimatePro);
 		decimatePro->SetTargetReduction(parameters["Decimation Target"].toDouble());
 		decimatePro->SetPreserveTopology(parameters["Preserve Topology"].toBool());
 		decimatePro->SetSplitting(parameters["Splitting"].toBool());
@@ -80,7 +80,7 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	else if (parameters["Simplification Algorithm"].toString() == "Quadric Clustering")
 	{
 		auto quadricClustering = vtkSmartPointer<vtkQuadricClustering>::New();
-		Progress()->Observe(quadricClustering);
+		progress()->Observe(quadricClustering);
 		quadricClustering->SetNumberOfXDivisions(parameters["Cluster divisions"].toUInt());
 		quadricClustering->SetNumberOfYDivisions(parameters["Cluster divisions"].toUInt());
 		quadricClustering->SetNumberOfZDivisions(parameters["Cluster divisions"].toUInt());
@@ -107,7 +107,7 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	}
 	*/
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	Progress()->Observe(stlWriter);
+	progress()->Observe(stlWriter);
 	stlWriter->SetFileName( getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{
@@ -140,19 +140,19 @@ iAMarchingCubes::iAMarchingCubes() :
 {
 	QStringList AlgorithmNames;
 	AlgorithmNames << "Marching Cubes" << "Flying Edges";
-	AddParameter("Extraction Algorithm", Categorical, AlgorithmNames);
-	AddParameter("Iso value", Continuous, 1);
-	AddParameter("STL output filename", String, "");
+	addParameter("Extraction Algorithm", Categorical, AlgorithmNames);
+	addParameter("Iso value", Continuous, 1);
+	addParameter("STL output filename", String, "");
 	QStringList SimplificationAlgorithms;
 	SimplificationAlgorithms << "Quadric Clustering" << "Decimate Pro" << "None";
-	AddParameter("Simplification Algorithm", Categorical, SimplificationAlgorithms);
-	AddParameter("Preserve Topology", Boolean, true);
-	AddParameter("Splitting", Boolean, true);
-	AddParameter("Boundary Vertex Deletion", Boolean, true);
-	AddParameter("Decimation Target", Continuous, 0.9);
-	AddParameter("Cluster divisions", Discrete, 128);
-	//AddParameter("Smooth windowed sync", Boolean, false);
-	//AddParameter("Sinc iterations", Discrete, 1);
-	//AddParameter("Smooth poly", Boolean, false);
-	//AddParameter("Poly iterations", Discrete, 1);
+	addParameter("Simplification Algorithm", Categorical, SimplificationAlgorithms);
+	addParameter("Preserve Topology", Boolean, true);
+	addParameter("Splitting", Boolean, true);
+	addParameter("Boundary Vertex Deletion", Boolean, true);
+	addParameter("Decimation Target", Continuous, 0.9);
+	addParameter("Cluster divisions", Discrete, 128);
+	//addParameter("Smooth windowed sync", Boolean, false);
+	//addParameter("Sinc iterations", Discrete, 1);
+	//addParameter("Smooth poly", Boolean, false);
+	//addParameter("Poly iterations", Discrete, 1);
 }

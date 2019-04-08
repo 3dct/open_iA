@@ -50,6 +50,7 @@
 
 #include <QFileDialog>
 #include <QSettings>
+#include <QTextDocument>
 
 #include <cassert>
 
@@ -124,11 +125,11 @@ void dlg_modalities::addClicked()
 		inList << tr("$Split Channels");
 		QList<QVariant> inPara;
 		inPara << tr("%1").arg(true);
-		QTextDocument * descr = new QTextDocument;
-		descr->setHtml("Input file potentially has multiple channels. "
+		QTextDocument descr;
+		descr.setHtml("Input file potentially has multiple channels. "
 			"Should they be split into separate datasets, "
 			"or kept as one dataset with multiple components ?");
-		dlg_commoninput splitInput(this, "Seed File Format", inList, inPara, descr);
+		dlg_commoninput splitInput(this, "Seed File Format", inList, inPara, &descr);
 		if (splitInput.exec() != QDialog::Accepted)
 		{
 			DEBUG_LOG("Aborted by user.");
@@ -305,7 +306,7 @@ void dlg_modalities::editClicked()
 	{
 		if (editModality->channelID() == NotExistingChannel)
 			editModality->setChannelID(m_mdiChild->createChannel());
-		m_mdiChild->updateChannel(editModality->channelID(), editModality->image(), editModality->transfer()->getColorFunction(), editModality->transfer()->getOpacityFunction(), true);
+		m_mdiChild->updateChannel(editModality->channelID(), editModality->image(), editModality->transfer()->colorTF(), editModality->transfer()->opacityTF(), true);
 		m_mdiChild->updateChannelOpacity(editModality->channelID(), 1);
 		m_mdiChild->updateViews();
 	}
@@ -381,7 +382,7 @@ void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editMo
 			props[i] = nullptr; 
 		}
 		else {
-			props[i] = m_mdiChild->slicer(i)->getChannel(chID);
+			props[i] = m_mdiChild->slicer(i)->channel(chID);
 		}
 	};
 
@@ -423,7 +424,7 @@ void dlg_modalities::setModalitySelectionMovable(int selectedRow)
 		{
 			if (mod->channelID() == NotExistingChannel)
 				continue;
-			m_mdiChild->slicer(sl)->getChannel(mod->channelID())->setMovable(currentData->channelID() == mod->channelID());
+			m_mdiChild->slicer(sl)->channel(mod->channelID())->setMovable(currentData->channelID() == mod->channelID());
 		}
 	}
 }
@@ -456,14 +457,14 @@ int dlg_modalities::selected() const
 	return lwModalities->currentRow();
 }
 
-vtkSmartPointer<vtkColorTransferFunction> dlg_modalities::cTF(int modality)
+vtkSmartPointer<vtkColorTransferFunction> dlg_modalities::colorTF(int modality)
 {
-	return m_modalities->get(modality)->transfer()->getColorFunction();
+	return m_modalities->get(modality)->transfer()->colorTF();
 }
 
-vtkSmartPointer<vtkPiecewiseFunction> dlg_modalities::oTF(int modality)
+vtkSmartPointer<vtkPiecewiseFunction> dlg_modalities::opacityTF(int modality)
 {
-	return m_modalities->get(modality)->transfer()->getOpacityFunction();
+	return m_modalities->get(modality)->transfer()->opacityTF();
 }
 
 void dlg_modalities::changeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings)

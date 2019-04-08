@@ -48,10 +48,10 @@ void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	auto wsFilter = WIFType::New();
 	wsFilter->SetLevel ( parameters["Level"].toDouble() );
 	wsFilter->SetThreshold ( parameters["Threshold"].toDouble() );
-	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
-	filter->Progress()->Observe( wsFilter );
+	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	filter->progress()->Observe( wsFilter );
 	wsFilter->Update();
-	filter->AddOutput( CastImageTo<unsigned long>(wsFilter->GetOutput()) );
+	filter->addOutput( castImageTo<unsigned long>(wsFilter->GetOutput()) );
 }
 
 IAFILTER_CREATE(iAWatershed)
@@ -67,13 +67,13 @@ iAWatershed::iAWatershed() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1WatershedImageFilter.html\">"
 		"Watershed filter</a> in the ITK documentation.")
 {
-	AddParameter("Level", Continuous, 0);
-	AddParameter("Threshold", Continuous, 0);
+	addParameter("Level", Continuous, 0);
+	addParameter("Threshold", Continuous, 0);
 }
 
-void iAWatershed::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAWatershed::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(watershed, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(watershed, inputPixelType(), this, parameters);
 }
 
 
@@ -89,10 +89,10 @@ void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameter
 	mWSFilter->SetMarkWatershedLine(parameters["Mark WS Lines"].toBool());
 	mWSFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
 	mWSFilter->SetLevel( parameters["Level"].toDouble() );
-	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
-	filter->Progress()->Observe( mWSFilter );
+	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	filter->progress()->Observe( mWSFilter );
 	mWSFilter->Update();
-	filter->AddOutput( CastImageTo<unsigned long>(mWSFilter->GetOutput()) );
+	filter->addOutput( castImageTo<unsigned long>(mWSFilter->GetOutput()) );
 }
 
 IAFILTER_CREATE(iAMorphologicalWatershed)
@@ -106,12 +106,12 @@ iAMorphologicalWatershed::iAMorphologicalWatershed() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MorphologicalWatershedImageFilter.html\">"
 		"Morphological Watershed filter</a> in the ITK documentation.</p>")
 {
-	AddParameter("Level", Continuous, 0);
-	AddParameter("Mark WS Lines", Boolean, false);
-	AddParameter("Fully Connected", Boolean, false);
+	addParameter("Level", Continuous, 0);
+	addParameter("Mark WS Lines", Boolean, false);
+	addParameter("Fully Connected", Boolean, false);
 }
 
-void iAMorphologicalWatershed::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAMorphologicalWatershed::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(morph_watershed, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(morph_watershed, inputPixelType(), this, parameters);
 }

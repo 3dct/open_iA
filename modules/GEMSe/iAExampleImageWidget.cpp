@@ -183,11 +183,11 @@ void iAExampleImageWidget::UpdateImages()
 			int idx = y*m_width+x;
 			if (idx < m_nodes.size())
 			{
-				m_gridWidget->m_previews[idx]->SetImage(m_nodes[idx]->GetLargeImage(), false, true);
+				m_gridWidget->m_previews[idx]->setImage(m_nodes[idx]->GetLargeImage(), false, true);
 			}
 			else
 			{
-				m_gridWidget->m_previews[idx]->SetImage(m_nullImage, true, true);
+				m_gridWidget->m_previews[idx]->setImage(m_nullImage, true, true);
 			}
 		}
 	}

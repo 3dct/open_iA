@@ -27,37 +27,37 @@
 iAIFilterFactory::~iAIFilterFactory() {}
 iAIFilterRunnerGUIFactory::~iAIFilterRunnerGUIFactory() {}
 
-void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory> factory)
+void iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory> factory)
 {
 	m_filters.push_back(factory);
 	m_runner.push_back(QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>()));
 }
 
-void iAFilterRegistry::AddFilterFactory(QSharedPointer<iAIFilterFactory> factory,
+void iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory> factory,
 	QSharedPointer<iAIFilterRunnerGUIFactory> runner)
 {
 	m_filters.push_back(factory);
 	m_runner.push_back(runner);
 }
 
-QVector<QSharedPointer<iAIFilterFactory>> const & iAFilterRegistry::FilterFactories()
+QVector<QSharedPointer<iAIFilterFactory>> const & iAFilterRegistry::filterFactories()
 {
 	return m_filters;
 }
 
-QSharedPointer<iAFilter> iAFilterRegistry::Filter(QString const & name)
+QSharedPointer<iAFilter> iAFilterRegistry::filter(QString const & name)
 {
-	int filterID = FilterID(name);
-	return filterID == -1 ? QSharedPointer<iAFilter>() : m_filters[filterID]->Create();
+	int id = filterID(name);
+	return id == -1 ? QSharedPointer<iAFilter>() : m_filters[id]->create();
 }
 
-int iAFilterRegistry::FilterID(QString const & name)
+int iAFilterRegistry::filterID(QString const & name)
 {
 	int cur = 0;
 	for (auto filterFactory : m_filters)
 	{
-		auto filter = filterFactory->Create();
-		if (filter->Name() == name)
+		auto filter = filterFactory->create();
+		if (filter->name() == name)
 			return cur;
 		++cur;
 	}
@@ -65,7 +65,7 @@ int iAFilterRegistry::FilterID(QString const & name)
 	return -1;
 }
 
-QSharedPointer<iAIFilterRunnerGUIFactory> iAFilterRegistry::FilterRunner(int filterID)
+QSharedPointer<iAIFilterRunnerGUIFactory> iAFilterRegistry::filterRunner(int filterID)
 {
 	return m_runner[filterID];
 }

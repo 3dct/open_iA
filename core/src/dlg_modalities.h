@@ -60,8 +60,8 @@ public:
 	QSharedPointer<iAModalityList const> modalities() const;
 	QSharedPointer<iAModalityList> modalities();
 	int selected() const;
-	vtkSmartPointer<vtkColorTransferFunction> cTF(int modality);
-	vtkSmartPointer<vtkPiecewiseFunction> oTF(int modality);
+	vtkSmartPointer<vtkColorTransferFunction> colorTF(int modality);
+	vtkSmartPointer<vtkPiecewiseFunction> opacityTF(int modality);
 	void changeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings);
 	void showSlicers(bool enabled);
 	void setSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);

@@ -27,9 +27,9 @@ typedef iAAttributeDescriptor ParamDesc;
 class iAFCMFilter : public iAFilter
 {
 public:
-	static QSharedPointer<iAFCMFilter> Create();
-	bool CheckParameters(QMap<QString, QVariant> & parameters) override;
-	void PerformWork(QMap<QString, QVariant> const & parameters) override;
+	static QSharedPointer<iAFCMFilter> create();
+	bool checkParameters(QMap<QString, QVariant> & parameters) override;
+	void performWork(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAFCMFilter();
 };
@@ -37,9 +37,9 @@ private:
 class iAKFCMFilter : public iAFilter
 {
 public:
-	static QSharedPointer<iAKFCMFilter> Create();
-	bool CheckParameters(QMap<QString, QVariant> & parameters) override;
-	void PerformWork(QMap<QString, QVariant> const & parameters) override;
+	static QSharedPointer<iAKFCMFilter> create();
+	bool checkParameters(QMap<QString, QVariant> & parameters) override;
+	void performWork(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAKFCMFilter();
 };
@@ -47,9 +47,9 @@ private:
 class iAMSKFCMFilter : public iAFilter
 {
 public:
-	static QSharedPointer<iAMSKFCMFilter> Create();
-	bool CheckParameters(QMap<QString, QVariant> & parameters) override;
-	void PerformWork(QMap<QString, QVariant> const & parameters) override;
+	static QSharedPointer<iAMSKFCMFilter> create();
+	bool checkParameters(QMap<QString, QVariant> & parameters) override;
+	void performWork(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAMSKFCMFilter();
 };
