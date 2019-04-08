@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAVRAttachment.h"
 
+#include "iAVREnvironment.h"
+
 // FeatureScout - 3D cylinder visualization
 #include "dlg_CSVInput.h"
 #include "iA3DCylinderObjectVis.h"
@@ -31,12 +33,6 @@
 #include <iAModalityTransfer.h>
 #include <iAVolumeRenderer.h>
 
-#include <vtkNamedColors.h>
-#include <vtkOpenVRRenderer.h>
-#include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRRenderWindowInteractor.h>
-#include <vtkOpenVRCamera.h>
-
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
 
@@ -45,49 +41,18 @@
 #include <mainwindow.h>
 
 iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, iAChildData childData )
-	: iAModuleAttachmentToChild( mainWnd, childData ), 
-	m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()),
-	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()),
-	m_interactor(vtkSmartPointer<vtkOpenVRRenderWindowInteractor>::New()),
-	m_camera(vtkSmartPointer<vtkOpenVRCamera>::New())
+	: iAModuleAttachmentToChild( mainWnd, childData ),
+	m_vrEnv(new iAVREnvironment)
 {
 	MdiChild * mdiChild = m_childData.child;
-	
-	m_renderWindow->AddRenderer(m_renderer);
-
-	m_interactor->SetRenderWindow(m_renderWindow);
-	m_renderer->SetActiveCamera(m_camera);
-	auto colors = vtkSmartPointer<vtkNamedColors>::New();
-	m_renderer->SetBackground(colors->GetColor3d("ForestGreen").GetData());
-
 	// Volume rendering doesn't seem to work at the moment:
-	//m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(mdiChild->GetModality(0)->GetTransfer().get(), mdiChild->GetModality(0)->GetImage()));
-	//iAVolumeSettings volSet;
-	//volSet.RenderMode = 2;
-	//m_volumeRenderer->ApplySettings(volSet);
+	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(mdiChild->GetModality(0)->GetTransfer().get(), mdiChild->GetModality(0)->GetImage()));
+	iAVolumeSettings volSet;
+	volSet.RenderMode = 2;
+	m_volumeRenderer->ApplySettings(volSet);
 
-	//m_volumeRenderer->AddTo(m_renderer);
-	//m_volumeRenderer->AddBoundingBoxTo(m_renderer);
-
-	//m_renderer->ResetCamera();
-
-	dlg_CSVInput dlg(false);
-	if (dlg.exec() != QDialog::Accepted)
-		return;
-	iACsvConfig csvConfig = dlg.getConfig();
-	if (csvConfig.visType == iACsvConfig::UseVolume)
-		return;
-
-	iACsvVtkTableCreator creator;
-	iACsvIO io;
-	if (!io.loadCSV(creator, csvConfig))
-		return;
-
-	m_objectTable = creator.getTable();
-	m_cylinderVis.reset(new iA3DCylinderObjectVis(m_renderer.Get(), m_objectTable, io.getOutputMapping(), QColor(255, 0, 0), 12));
-	m_cylinderVis->show();
-
-	m_renderWindow->Render();
-	m_interactor->Start();
+	m_volumeRenderer->AddTo(m_vrEnv->renderer());
+	m_volumeRenderer->AddBoundingBoxTo(m_vrEnv->renderer());
+	m_vrEnv->start();
 }
 

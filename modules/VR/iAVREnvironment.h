@@ -20,26 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleAttachmentToChild.h>
-
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
+class vtkOpenVRCamera;
+class vtkOpenVRRenderer;
+class vtkOpenVRRenderWindow;
+class vtkOpenVRRenderWindowInteractor;
+class vtkRenderer;
 
-class iAVolumeRenderer;
-class MainWindow;
-
-class iA3DCylinderObjectVis;
-class iAVREnvironment;
-
-class vtkTable;
-
-class iAVRAttachment : public iAModuleAttachmentToChild
+class iAVREnvironment
 {
-	Q_OBJECT
 public:
-	iAVRAttachment( MainWindow * mainWnd, iAChildData childData );
+	iAVREnvironment();
+	vtkRenderer* renderer();
+	void start();
 private:
-	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
-	QSharedPointer<iAVREnvironment> m_vrEnv;
+	vtkSmartPointer<vtkOpenVRRenderWindow>           m_renderWindow;
+	vtkSmartPointer<vtkOpenVRRenderer>               m_renderer;
+	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
+	vtkSmartPointer<vtkOpenVRCamera>                 m_camera;
 };

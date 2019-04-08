@@ -18,28 +18,35 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include <iAVREnvironment.h>
 
-#include <iAModuleAttachmentToChild.h>
+#include <vtkOpenVRRenderer.h>
+#include <vtkOpenVRRenderWindow.h>
+#include <vtkOpenVRRenderWindowInteractor.h>
+#include <vtkOpenVRCamera.h>
 
-#include <vtkSmartPointer.h>
-
-#include <QSharedPointer>
-
-class iAVolumeRenderer;
-class MainWindow;
-
-class iA3DCylinderObjectVis;
-class iAVREnvironment;
-
-class vtkTable;
-
-class iAVRAttachment : public iAModuleAttachmentToChild
+iAVREnvironment::iAVREnvironment():
+	m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()),
+	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()),
+	m_interactor(vtkSmartPointer<vtkOpenVRRenderWindowInteractor>::New()),
+	m_camera(vtkSmartPointer<vtkOpenVRCamera>::New())
 {
-	Q_OBJECT
-public:
-	iAVRAttachment( MainWindow * mainWnd, iAChildData childData );
-private:
-	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
-	QSharedPointer<iAVREnvironment> m_vrEnv;
-};
+	m_renderWindow->AddRenderer(m_renderer);
+	m_interactor->SetRenderWindow(m_renderWindow);
+	m_renderer->SetActiveCamera(m_camera);
+	//auto colors = vtkSmartPointer<vtkNamedColors>::New();
+	//colors->GetColor3d("ForestGreen").GetData()
+	m_renderer->SetBackground(0, 0, 50);
+}
+
+vtkRenderer* iAVREnvironment::renderer()
+{
+	return m_renderer;
+}
+
+void iAVREnvironment::start()
+{
+	m_renderer->ResetCamera();
+	m_renderWindow->Render();
+	m_interactor->Start();
+}

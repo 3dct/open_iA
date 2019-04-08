@@ -21,12 +21,26 @@
 #include "iAVRModuleInterface.h"
 
 #include "iAVRAttachment.h"
+#include "iAVREnvironment.h"
 
+// FeatureScout - 3D cylinder visualization
+#include "dlg_CSVInput.h"
+#include "iA3DCylinderObjectVis.h"
+#include "iACsvConfig.h"
+#include "iACsvVtkTableCreator.h"
+
+#include <dlg_commoninput.h>
 #include <iAConsole.h>
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iAVolumeRenderer.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
 #include <openvr.h>
+
+#include <vtkFloatArray.h>
+#include <vtkTable.h>
 
 #include <QMessageBox>
 
@@ -34,27 +48,21 @@ void iAVRModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
+
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
 	QMenu* vrMenu = getMenuWithTitle(toolsMenu, tr("VR"), false);
+
+	QAction * actionVRInfo = new QAction(tr("Info"), nullptr);
+	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRInfo, false);
+	connect(actionVRInfo, &QAction::triggered, this, &iAVRModuleInterface::info);
 
 	QAction * actionVRRender = new QAction(tr("Rendering"), nullptr);
 	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRRender, true);
 	connect(actionVRRender, &QAction::triggered, this, &iAVRModuleInterface::render);
 
-	QAction * actionVRInfo = new QAction(tr("Info"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRInfo, false);
-	connect(actionVRInfo, &QAction::triggered, this, &iAVRModuleInterface::info);
-}
-
-void iAVRModuleInterface::render()
-{
-	if (!vr::VR_IsHmdPresent())
-	{
-		QMessageBox::information(m_mainWnd, "VR", "No VR device found. Make sure you have installed Steam and SteamVR! You can use 'VR Info' option to get more information.");
-		return;
-	}
-	PrepareActiveChild();
-	AttachToMdiChild( m_mdiChild );
+	QAction * actionVRShowFibers = new QAction(tr("Show Fibers"), nullptr);
+	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRShowFibers, false);
+	connect(actionVRShowFibers, &QAction::triggered, this, &iAVRModuleInterface::showFibers);
 }
 
 void iAVRModuleInterface::info()
@@ -84,6 +92,50 @@ void iAVRModuleInterface::info()
 		}
 	}
 	vr::VR_Shutdown();
+}
+
+void iAVRModuleInterface::render()
+{
+	if (!vr::VR_IsRuntimeInstalled())
+	{
+		QMessageBox::warning(m_mainWnd, "VR", "VR runtime not found. Please install Steam and SteamVR!");
+		return;
+	}
+	if (!vr::VR_IsHmdPresent())
+	{
+		QMessageBox::warning(m_mainWnd, "VR", "No VR device found. Make sure your HMD device is plugged in and turned on!");
+		return;
+	}
+	PrepareActiveChild();
+	AttachToMdiChild( m_mdiChild );
+}
+
+void iAVRModuleInterface::showFibers()
+{
+	dlg_CSVInput dlg(false);
+	if (dlg.exec() != QDialog::Accepted)
+		return;
+	iACsvConfig csvConfig = dlg.getConfig();
+	if (csvConfig.visType == iACsvConfig::UseVolume)
+		return;
+
+	iACsvVtkTableCreator creator;
+	iACsvIO io;
+	if (!io.loadCSV(creator, csvConfig))
+		return;
+
+	if (m_vrEnv)
+		return;
+	m_vrEnv.reset(new iAVREnvironment());
+
+	m_objectTable = creator.getTable();
+
+	m_cylinderVis.reset(new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, io.getOutputMapping(), QColor(255, 0, 0), 12));
+	m_cylinderVis->show();
+
+	m_vrEnv->start();
+
+	m_vrEnv.reset(nullptr);
 }
 
 iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )

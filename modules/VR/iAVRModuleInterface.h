@@ -22,6 +22,15 @@
 
 #include <iAModuleInterface.h>
 
+#include <vtkSmartPointer.h>
+
+#include <QSharedPointer>
+
+class iA3DCylinderObjectVis;
+class iAVREnvironment;
+
+class vtkTable;
+
 class iAVRModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
@@ -29,7 +38,12 @@ public:
 	void Initialize() override;
 private:
 	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
+
+	QSharedPointer<iA3DCylinderObjectVis> m_cylinderVis;
+	QSharedPointer<iAVREnvironment> m_vrEnv;
+	vtkSmartPointer<vtkTable> m_objectTable;
 private slots:
-	void render();
 	void info();
+	void render();
+	void showFibers();
 };
