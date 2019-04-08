@@ -50,6 +50,9 @@ public:
 		int currentMode, MdiChild *mdiChild);
 	void updateInteractors(); 
 
+	void rotate2d();
+
+	void custom2DRotate(); 
 signals:
 	void actorsUpdated();
 
@@ -63,6 +66,8 @@ private:
 	iAChannelSlicerData* m_slicerChannel[3];
 	int m_currentSliceMode;
 	bool m_rightButtonDragZoomEnabled = false;
+	bool m_rotationEnabled; 
+
 
 	//! @{ disable copying
 	void operator=(const iAvtkInteractStyleActor&) = delete;
