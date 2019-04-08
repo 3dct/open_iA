@@ -33,11 +33,12 @@ iAVREnvironment::iAVREnvironment():
 	m_camera(vtkSmartPointer<vtkOpenVRCamera>::New())
 {
 	m_renderWindow->AddRenderer(m_renderer);
+	m_renderWindow->SetMultiSamples(0);
 	m_interactor->SetRenderWindow(m_renderWindow);
 	m_renderer->SetActiveCamera(m_camera);
 	//auto colors = vtkSmartPointer<vtkNamedColors>::New();
 	//colors->GetColor3d("ForestGreen").GetData()
-	m_renderer->SetBackground(0, 0, 50);
+	m_renderer->SetBackground(0, 0, 0);
 }
 
 vtkRenderer* iAVREnvironment::renderer()

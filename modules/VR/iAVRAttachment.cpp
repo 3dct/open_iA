@@ -47,9 +47,7 @@ iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, iAChildData childData )
 	MdiChild * mdiChild = m_childData.child;
 	// Volume rendering doesn't seem to work at the moment:
 	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(mdiChild->GetModality(0)->GetTransfer().get(), mdiChild->GetModality(0)->GetImage()));
-	iAVolumeSettings volSet;
-	volSet.RenderMode = 2;
-	m_volumeRenderer->ApplySettings(volSet);
+	m_volumeRenderer->ApplySettings(mdiChild->GetVolumeSettings());
 
 	m_volumeRenderer->AddTo(m_vrEnv->renderer());
 	m_volumeRenderer->AddBoundingBoxTo(m_vrEnv->renderer());
