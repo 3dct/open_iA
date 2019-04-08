@@ -63,6 +63,11 @@ void iAVRModuleInterface::Initialize()
 	QAction * actionVRShowFibers = new QAction(tr("Show Fibers"), nullptr);
 	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRShowFibers, false);
 	connect(actionVRShowFibers, &QAction::triggered, this, &iAVRModuleInterface::showFibers);
+
+	QAction * actionVRStop = new QAction(tr("Stop VR"), nullptr);
+	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRStop, false);
+	//actionVRStop->setEnabled(false);
+	connect(actionVRStop, &QAction::triggered, this, &iAVRModuleInterface::stop);
 }
 
 void iAVRModuleInterface::info()
@@ -96,22 +101,16 @@ void iAVRModuleInterface::info()
 
 void iAVRModuleInterface::render()
 {
-	if (!vr::VR_IsRuntimeInstalled())
-	{
-		QMessageBox::warning(m_mainWnd, "VR", "VR runtime not found. Please install Steam and SteamVR!");
+	if (!vrAvailable())
 		return;
-	}
-	if (!vr::VR_IsHmdPresent())
-	{
-		QMessageBox::warning(m_mainWnd, "VR", "No VR device found. Make sure your HMD device is plugged in and turned on!");
-		return;
-	}
 	PrepareActiveChild();
 	AttachToMdiChild( m_mdiChild );
 }
 
 void iAVRModuleInterface::showFibers()
 {
+	if (!vrAvailable())
+		return;
 	dlg_CSVInput dlg(false);
 	if (dlg.exec() != QDialog::Accepted)
 		return;
@@ -124,9 +123,12 @@ void iAVRModuleInterface::showFibers()
 	if (!io.loadCSV(creator, csvConfig))
 		return;
 
+	if (!vrAvailable())
+		return;
 	if (m_vrEnv)
 		return;
 	m_vrEnv.reset(new iAVREnvironment());
+	//actionVRStop->setEnabled(true);
 
 	m_objectTable = creator.getTable();
 
@@ -136,6 +138,26 @@ void iAVRModuleInterface::showFibers()
 	m_vrEnv->start();
 
 	m_vrEnv.reset(nullptr);
+}
+
+bool iAVRModuleInterface::vrAvailable()
+{
+	if (!vr::VR_IsRuntimeInstalled())
+	{
+		QMessageBox::warning(m_mainWnd, "VR", "VR runtime not found. Please install Steam and SteamVR!");
+		return false;
+	}
+	if (!vr::VR_IsHmdPresent())
+	{
+		QMessageBox::warning(m_mainWnd, "VR", "No VR device found. Make sure your HMD device is plugged in and turned on!");
+		return false;
+	}
+	return true;
+}
+
+void iAVRModuleInterface::stop()
+{
+	m_vrEnv->stop();
 }
 
 iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )

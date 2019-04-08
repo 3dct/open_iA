@@ -34,6 +34,7 @@ public:
 	iAVREnvironment();
 	vtkRenderer* renderer();
 	void start();
+	void stop();
 private:
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;

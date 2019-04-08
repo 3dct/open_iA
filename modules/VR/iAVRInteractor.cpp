@@ -45,3 +45,8 @@ void  iAVRInteractor::StartEventLoop()
 
 iAVRInteractor::iAVRInteractor()
 {}
+
+void iAVRInteractor::stop()
+{
+	this->Done = true;
+}

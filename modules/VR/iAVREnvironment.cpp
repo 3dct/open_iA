@@ -33,6 +33,8 @@ iAVREnvironment::iAVREnvironment():
 	m_camera(vtkSmartPointer<vtkOpenVRCamera>::New())
 {
 	m_renderWindow->AddRenderer(m_renderer);
+	// MultiSamples needs to be set to 0 to make Volume Rendering work:
+	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
 	m_renderWindow->SetMultiSamples(0);
 	m_interactor->SetRenderWindow(m_renderWindow);
 	m_renderer->SetActiveCamera(m_camera);
@@ -49,6 +51,12 @@ vtkRenderer* iAVREnvironment::renderer()
 void iAVREnvironment::start()
 {
 	m_renderer->ResetCamera();
+	//m_camera->SetPosition();
 	m_renderWindow->Render();
 	m_interactor->Start();
+}
+
+void iAVREnvironment::stop()
+{
+	m_interactor->stop();
 }

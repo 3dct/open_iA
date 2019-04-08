@@ -38,6 +38,7 @@ public:
 	void Initialize() override;
 private:
 	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
+	bool vrAvailable();
 
 	QSharedPointer<iA3DCylinderObjectVis> m_cylinderVis;
 	QSharedPointer<iAVREnvironment> m_vrEnv;
@@ -46,4 +47,5 @@ private slots:
 	void info();
 	void render();
 	void showFibers();
+	void stop();
 };
