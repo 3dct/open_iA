@@ -1338,7 +1338,7 @@ void iASlicer::getMouseCoord(double & xCoord, double & yCoord, double & zCoord, 
 
 namespace
 {
-	const int MaxNameLength = 20;
+	const int MaxNameLength = 15;
 
 	QString slicerCoordString(int coord1, int coord2, int coord3, int mode)
 	{
@@ -1363,10 +1363,10 @@ namespace
 			tmpPix = img->GetScalarComponentAsDouble(slicerX, slicerY, 0, 0);
 		}
 		QString file = tmpChild->fileInfo().fileName();
-		return QString("%1 [%2]: %3\n")
+		return QString("%1: %2 [%3]\n")
 			.arg(padOrTruncate(file, MaxNameLength))
-			.arg(slicerCoordString(slicerX, slicerY, thirdCoord, mode))
-			.arg(inRange ? QString::number(tmpPix) : "exceeds img. dim.");
+			.arg(inRange ? QString::number(tmpPix) : "exceeds img. dim.")
+			.arg(slicerCoordString(slicerX, slicerY, thirdCoord, mode));
 	}
 }
 
@@ -1424,10 +1424,11 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 				valueStr += " ";
 			valueStr += QString::number(value);
 		}
-		strDetails += QString("%1 [%2 %3 %4]: %5\n")
+		strDetails += QString("%1: %2 [%3 %4 %5]\n")
 			.arg(padOrTruncate(channel->name(), MaxNameLength))
+			.arg(valueStr)
 			.arg(static_cast<int>(xCoord)).arg(static_cast<int>(yCoord)).arg(static_cast<int>(zCoord))
-			.arg(valueStr);
+			;
 	}
 	if (m_linkedMdiChild)
 	{
@@ -1475,15 +1476,15 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 	}
 
 	// if requested calculate distance and show actor
-	if (m_lineActor->GetVisibility())
+	if (m_lineActor && m_lineActor->GetVisibility())
 	{
 		double distance = sqrt(pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) +
 			pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2));
 		m_lineSource->SetPoint2(m_ptMapped[0] - (0.5*slicerSpacing[0]), m_ptMapped[1] - (0.5*slicerSpacing[1]), 0.0);
 		m_diskSource->SetOuterRadius(distance);
 		m_diskSource->SetInnerRadius(distance);
-		strDetails += QString("distance [ %1 ]\n").arg(distance);
-
+		m_diskSource->Update();
+		strDetails += QString("%1: %2\n").arg(padOrTruncate("Distance", MaxNameLength)).arg(distance);
 	}
 
 	// Update the info text with pixel coordinates/value if requested.
@@ -1491,14 +1492,6 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 	m_textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
 	m_positionMarkerMapper->Update();
 }
-
-/*
-void iASlicer::setMeasurementStartPoint(int x, int y)
-{
-	m_measureStart[0] = x;
-	m_measureStart[1] = y;
-}
-*/
 
 void iASlicer::executeKeyPressEvent()
 {
@@ -1516,7 +1509,7 @@ void iASlicer::executeKeyPressEvent()
 			// TODO: check which channel makes sense here!
 			double * slicerSpacing = m_channels[0]->output()->GetSpacing();
 			m_lineSource->SetPoint1(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 0.0);
-			m_diskActor->SetPosition(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 1.0);
+			m_diskActor->SetPosition(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 0.0);
 			m_lineActor->SetVisibility(true);
 			m_diskActor->SetVisibility(true);
 			double result[4];
@@ -1526,9 +1519,14 @@ void iASlicer::executeKeyPressEvent()
 		}
 		break;
 	case 27: //ESCAPE
-		if (m_decorations && m_lineActor) {
+		if (m_decorations && m_lineActor)
+		{
 			m_lineActor->SetVisibility(false);
 			m_diskActor->SetVisibility(false);
+			double result[4];
+			double xCoord, yCoord, zCoord;
+			getMouseCoord(xCoord, yCoord, zCoord, result);
+			printVoxelInformation(xCoord, yCoord, zCoord);
 		}
 		break;
 	}
