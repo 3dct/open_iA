@@ -73,7 +73,7 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 	m_volumeRenderer(nullptr),
 	m_mdiChild(nullptr),
 	enable3D(false),
-	m_rotationEnabled(false)
+	m_rotationEnabled(true)
 {
 	std::fill(m_slicerChannel, m_slicerChannel + iASlicerMode::SlicerCount, nullptr);
 	InteractionPicker->SetTolerance(100.0);
@@ -85,9 +85,8 @@ void iAvtkInteractStyleActor::Rotate()
 	if (enable3D)
 		vtkInteractorStyleTrackballActor::Rotate();
 	else {
-
 		m_rotationEnabled = true; 
-		this->custom2DRotate(); 
+		/*this->custom2DRotate(); */
 		/*vtkInteractorStyleTrackballActor::Rotate();*/
 		/*v*/
 		//this->rotate2d(); 
@@ -96,7 +95,7 @@ void iAvtkInteractStyleActor::Rotate()
 
 void iAvtkInteractStyleActor::Spin()
 {
-	/*if (enable3D)*/
+	if (enable3D)
 		vtkInteractorStyleTrackballActor::Spin();
 }
 
@@ -105,7 +104,7 @@ void iAvtkInteractStyleActor::OnMouseMove()
 	vtkInteractorStyleTrackballActor::OnMouseMove();
 
 	if (m_rotationEnabled) {
-		//this->rotate2d();
+		this->custom2DRotate();		//this->rotate2d();
 		m_rotationEnabled = false; 
 	}else updateInteractors();
 }
@@ -278,14 +277,11 @@ void iAvtkInteractStyleActor::custom2DRotate()
 */
 	// Get the axis to rotate around = vector from eye to origin
 
-	double *obj_center = this->InteractionProp->GetOrigin();
+	double *obj_center = this->InteractionProp->GetCenter();
 
 	double motion_vector[3];
 	double view_point[3];
-
-	
-	   
-	
+		
 	double disp_obj_center[3];
 
 	this->ComputeWorldToDisplay(obj_center[0], obj_center[1], obj_center[2],
@@ -299,21 +295,27 @@ void iAvtkInteractStyleActor::custom2DRotate()
 		vtkMath::DegreesFromRadians(atan2(rwi->GetLastEventPosition()[1] - disp_obj_center[1],
 			rwi->GetLastEventPosition()[0] - disp_obj_center[0]));
 
+	//this->InteractionProp->SetOrientation(0, 0, newAngle);
+
 	double scale[3];
 	scale[0] = scale[1] = scale[2] = 1.0;
 
 	double **rotate = new double*[1];
 	rotate[0] = new double[4];
 
+	motion_vector[0] = 0;
+	motion_vector[1] = 0;
+	motion_vector[2] = 1;
+
+	DEBUG_LOG(QString("new Angle %1").arg(newAngle));
+	DEBUG_LOG(QString("old Angle %1").arg(oldAngle));
+
 	rotate[0][0] = newAngle - oldAngle;
 	rotate[0][1] = motion_vector[0];
 	rotate[0][2] = motion_vector[1];
 	rotate[0][3] = motion_vector[2];
-	
-	motion_vector[0] = 0; 
-	motion_vector[1] = 0; 
-	motion_vector[2] = 1; 
-	// vtkErrorMacro("ObjectCenter\t" << obj_center );
+
+
 	this->Prop3DTransform(this->InteractionProp,
 		obj_center,
 		1,
@@ -322,13 +324,49 @@ void iAvtkInteractStyleActor::custom2DRotate()
 
 	delete[] rotate[0];
 	delete[] rotate;
-	m_slicerChannel[m_currentSliceMode]->reslicer()->Modified();
-	m_slicerChannel[m_currentSliceMode]->reslicer()->Update();
 
+	/*vtkSmartPointer<vtkTransform> transform =
+		vtkSmartPointer<vtkTransform>::New();
+*/
+
+	// Rotate about the center
+	/*transform->Translate(disp_obj_center[0], disp_obj_center[1], disp_obj_center[2]);
+	transform->RotateZ(newAngle-oldAngle);*/
+	/*transform->Translate(disp_obj_center[0], disp_obj_center[1], disp_obj_center[2]);*/
+
+	double const * orientXYZ = this->InteractionProp->GetOrientation();
+	double const * oriWXYZ = this->InteractionProp->GetOrientationWXYZ();
+
+	DEBUG_LOG(QString("Orientation XYZ %1 %2 %3").arg(orientXYZ[0]).arg(orientXYZ[1]).arg(orientXYZ[2]));
+	DEBUG_LOG(QString("Orientation WXYZ %1 %2 %3 %4").arg(oriWXYZ[0]).arg(oriWXYZ[1]).arg(oriWXYZ[2]).arg(oriWXYZ[3])); 
+	
+	
+	m_slicerChannel[m_currentSliceMode]->reslicer()->SetResliceAxes(this->InteractionProp->GetMatrix()); 
+	
+	m_slicerChannel[m_currentSliceMode]->reslicer()->SetInterpolationModeToLinear();
+	
+	m_slicerChannel[m_currentSliceMode]->reslicer()->Modified();
+	m_slicerChannel[m_currentSliceMode]->reslicer()->UpdateWholeExtent();
+
+	//this->InteractionProp->getTr
+	//slice anpassen
+
+	//this->InteractionProp->getTra
+	
+		
+		//TBA
+	/*this->InteractionProp->GetUserTransform()->GetMatrix();
+	reslice->SetResliceTransform(transform);*/
+	//m_slicerChannel[m_currentSliceMode]->reslicer()->Modified();
+	//m_slicerChannel[m_currentSliceMode]->reslicer()->Update();
+	
+	//this->InteractionProp->Tr
 	//update slice planes
 	/*for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 		if (i != m_currentSliceMode && m_slicerChannel[i])
 			m_slicerChannel[i]->updateReslicer();*/
+
+	// da muss die Rotation weitergegeben werden
 
 	m_volumeRenderer->update();
 	emit actorsUpdated();
