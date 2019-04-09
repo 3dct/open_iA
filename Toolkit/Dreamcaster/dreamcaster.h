@@ -51,15 +51,15 @@ class ScreenBuffer;
 class StabilityWidget;
 
 //! DreamCaster - Application main window class. Contains GUI and some global classes instances.
-class DreamCaster : public QMainWindow
+class iADreamCaster : public QMainWindow
 {
 	Q_OBJECT
 public:
 	//! A DreamCaster consturctor.
 	//! @param parent parent widget pointer. Default is 0.
 	//! @param flags window flags
-	DreamCaster(QWidget *parent = 0, Qt::WindowFlags flags = 0);
-	~DreamCaster();
+	iADreamCaster(QWidget *parent = 0, Qt::WindowFlags flags = 0);
+	~iADreamCaster();
 	//! Loging function. Adds string to log window.
 	//! @param text string containing logging message.
 	//! @param appendToPrev Append message to previous string or add as new string.
@@ -69,7 +69,7 @@ public:
 	//! Setting default parameters to histograms plot.
 	void initHistograms();
 	//! Update 3D representation of cutting AABBs
-	int UpdateCutAABVtk();
+	int updateCutAABVtk();
 	//! Find triangles that are belong to selected features
 	int findSelectedTriangles();
 	//! Handler of child-widgets events
@@ -183,105 +183,105 @@ private:
 	//! opens the result set file with the given fileName
 	void OpenSetFile(QString const & fileName);
 protected:
-	virtual void closeEvent ( QCloseEvent * event );
+	void closeEvent ( QCloseEvent * event ) override;
 public slots:
 	//! Slot that updates histogram with parameters specified by user.
-	virtual void UpdateHistogramSlot();
+	void UpdateHistogramSlot();
 	//! Slot that renders single view with specified parameters.
-	virtual void RenderSingleViewSlot();
+	void RenderSingleViewSlot();
 	//! Slot that renders set of renderings with specified parameters.
-	virtual void RenderViewsSlot();
+	void RenderViewsSlot();
 	//! Slot that stopo rendering set of renderings with specified parameters.
-	virtual void StopRenderingSlot();
+	void StopRenderingSlot();
 	//! Slot that updates pixmap based widgets.
-	virtual void UpdateSlot();
+	void UpdateSlot();
 	//! Empty. Not used.
-	virtual void SaveSlot();
+	void SaveSlot();
 	//! Slot that reads object from stl-file and prepares renderer considering new data.
-	virtual void OpenModelSlot();
+	void OpenModelSlot();
 	//! Slot that specify new set of renderings filename.
-	virtual void NewSetSlot();
+	void NewSetSlot();
 	//! Slot opening new set of renderings file. Also updates 3d plot and colormap.
-	virtual void OpenSetSlot();
+	void OpenSetSlot();
 	//! Slot that shows rays/triangles with certain parameter range. Rendering indices and parameter range are specified by user.
-	virtual void ShowRangeRays();//TODO: rename(not only rays)
+	void ShowRangeRays();//TODO: rename(not only rays)
 	//! Slot that hiding rays/triangles picked by user before.
 	//! @see ShowRangeRays()
-	virtual void HideRays();
+	void HideRays();
 	//! Set single rendering's position sliders to same values as set's of renderings position sliders.
-	virtual void pbSetPositionSlot();
+	void pbSetPositionSlot();
 	//! Set single rendering's position sliders to values corresponding current object orientation on interactive 3D view.
-	virtual void pbGrab3DSlot();
+	void pbGrab3DSlot();
 	//! Updates 3d plot and colormap data with consideration of parameters specified by user.
-	virtual void UpdatePlotSlot();
+	void UpdatePlotSlot();
 	//! Save current KD tree in file named as .stl file with extension .kdtree
-	virtual void SaveTree();
+	void SaveTree();
 	//! When mouse released on ViewsFrame
-	virtual void RenderFrameMouseReleasedSlot();
+	void RenderFrameMouseReleasedSlot();
 	//! Show optimal positon
-	virtual void ShowResultsSlot();
+	void ShowResultsSlot();
 	//! Show logs window
-	virtual void ShowLogsSlot();
+	void ShowLogsSlot();
 	//! Save results to .result file in same directory as data stl file
-	virtual void SaveResultsSlot();
+	void SaveResultsSlot();
 	//! Slot that shows colors object, corresponding to angles btw tri's norm and ray to middle of tri
-	virtual void ShowDipAnglesSlot();
+	void ShowDipAnglesSlot();
 	//! Hide coloring of object corresponding to dip angles of triangles
-	virtual void HideDipAnglesSlot();
+	void HideDipAnglesSlot();
 	//! Read settings from config file and open settings dialog with that data
-	virtual void ConfigureSettingsSlot();
+	void ConfigureSettingsSlot();
 	//! Save settings to config file
-	virtual void SaveSettingsSlot();
+	void SaveSettingsSlot();
 	//! Read settings from config file
-	virtual void ResetSettingsSlot();
+	void ResetSettingsSlot();
 	//! Update stability sensitivity
-	virtual void SensitivityChangedSlot();
+	void SensitivityChangedSlot();
 	//! Update stability resoultion
-	virtual void StabilityResolutionChangedSlot();
+	void StabilityResolutionChangedSlot();
 	//! Update stability on mouse move mode
-	virtual void UpdateStabilityOnMouseMoveCheckedSlot();
+	void UpdateStabilityOnMouseMoveCheckedSlot();
 	//! When mouse moved on ViewsFrame
-	virtual void ViewsMouseMoveSlot();
+	void ViewsMouseMoveSlot();
 	//! When new current parameter picked from combobox
-	virtual void CurrentParameterChangedSlot();
+	void CurrentParameterChangedSlot();
 	//! When current projection selected using slider
-	virtual void ProjectionChangedSlot();
+	void ProjectionChangedSlot();
 	//! Top placements to be shown on heightmap is changed
-	virtual void TopPlacementsChangedSlot();
+	void TopPlacementsChangedSlot();
 	//! When some placement picked on one of the comparison tab's height maps
-	virtual void ComparisonTabPlacementPickedSlot(int, int);
+	void ComparisonTabPlacementPickedSlot(int, int);
 	//! Low cut of height map of param1 on weighting tab is changed
-	virtual void LowCutParam1Slot();
+	void LowCutParam1Slot();
 	//! Low cut of height map of param2 on weighting tab is changed
-	virtual void LowCutParam2Slot();
+	void LowCutParam2Slot();
 	//! Low cut of height map of param3 on weighting tab is changed
-	virtual void LowCutParam3Slot();
+	void LowCutParam3Slot();
 	//! Update results of weighted combination of parameters on weighting tab
-	virtual void UpdateWeightingResultsSlot();
+	void UpdateWeightingResultsSlot();
 	//! When some placement picked on one of the weighted results on weighting tab
-	virtual void WeightingResultsPlacementPickedSlot(int, int);
+	void WeightingResultsPlacementPickedSlot(int, int);
 	//! Low cut of height map of weighted results on weighting tab is changed
-	virtual void LowCutWeightingResSlot();
+	void LowCutWeightingResSlot();
 	//! New cut figure is added to the list
-	virtual void AddCutFigSlot();
+	void AddCutFigSlot();
 	//! Cut figure removed from the list
-	virtual void RemoveCutFigSlot();
+	void RemoveCutFigSlot();
 	//! Cut figure picked in the list
-	virtual void CutFigPicked();
+	void CutFigPicked();
 	//! Current cut figure's parameters are changed
-	virtual void CutFigParametersChanged();
+	void CutFigParametersChanged();
 	//! Color show triangles with bad dip angle
-	virtual void ColorBadAngles();
+	void ColorBadAngles();
 	//! Hide coloring of bad triangles
-	virtual void HideColoring();
+	void HideColoring();
 	//! Maximize one area/show all areas
-	virtual void maximize3DView();
+	void maximize3DView();
 	//! Maximize one area/show all areas
-	virtual void maximizeStability();
+	void maximizeStability();
 	//! Maximize one area/show all areas
-	virtual void maximizeRC();
+	void maximizeRC();
 	//! Maximize one area/show all areas
-	virtual void maximizePlacements();
+	void maximizePlacements();
 	//! Maximize one area/show all areas
-	virtual void maximizeBottom();
+	void maximizeBottom();
 };

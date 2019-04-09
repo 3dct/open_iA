@@ -31,6 +31,7 @@
 #include <vtkMath.h>
 
 #include <QAction>
+#include <QDateTime>
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
@@ -63,6 +64,8 @@ namespace
 	const int AxisTicksYMax = 5;
 	const int AxisTicksXDefault = 2;
 	const int TickWidth = 6;
+
+	const int MinToolTimeMSecDist = 40;
 
 	int requiredDigits(double value)
 	{
@@ -127,7 +130,8 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_yMaxTickLabelWidth(0),
 	m_selectionMode(SelectionDisabled),
 	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this)),
-	m_drawXAxisAtZero(false)
+	m_drawXAxisAtZero(false),
+	m_lastToolTipTime(0)
 {
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QSurfaceFormat fmt = format();
@@ -748,6 +752,15 @@ void iAChartWidget::showDataTooltip(QMouseEvent *event)
 {
 	if (m_plots.empty() || !m_showTooltip)
 		return;
+
+	/*
+	if (QDateTime::currentMSecsSinceEpoch() - m_lastToolTipTime < MinToolTimeMSecDist)
+	{
+		QToolTip::hideText();
+		return;
+	}
+	*/
+	m_lastToolTipTime = QDateTime::currentMSecsSinceEpoch();
 	int xPos = clamp(0, geometry().width() - 1, event->x());
 	size_t numBin = m_plots[0]->data()->numBin();
 	assert(numBin > 0);

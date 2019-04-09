@@ -29,7 +29,7 @@
 
 #include <fstream>
 
-extern DreamCaster * dcast;
+extern iADreamCaster * dcast;
 
 #define BINARY_FILE 0
 #define ASCII_FILE 1

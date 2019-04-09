@@ -82,7 +82,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	{
 		m_drawers.push_back(QSharedPointer<iAPlot>(
 			new iABarGraphPlot(m_labelDistributionChartData[label],
-				m_labelInfo->GetColor(label), BarMargin)));
+				m_labelInfo->color(label), BarMargin)));
 		m_charts[1]->addPlot(m_drawers[m_drawers.size()-1]);
 	}
 
@@ -94,7 +94,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 		m_charts.push_back(new iAChartWidget(this, QString("Probability Label %1").arg(l), "Frequency (Members)"));
 		auto plot = QSharedPointer<iAPlot>(
 			new iABarGraphPlot(m_probabilitiesChartData[l],
-				m_labelInfo->GetColor(l), BarMargin));
+				m_labelInfo->color(l), BarMargin));
 		m_charts[m_charts.size() - 1]->addPlot(plot);
 	}
 	for (int c = 0; c < m_charts.size(); ++c)
@@ -110,7 +110,7 @@ void iAProbingWidget::SetLabelInfo(iALabelInfo const * labelInfo)
 	m_labelInfo = labelInfo;
 	for (int l = 0; l < m_drawers.size(); ++l)
 	{
-		m_drawers[l]->setColor(m_labelInfo->GetColor(l));
+		m_drawers[l]->setColor(m_labelInfo->color(l));
 	}
 }
 
@@ -189,7 +189,7 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 			m_probabilitiesChartData[i]->addValue(probValue);
 		});
 		m_charts[m_probChartStart+i]->setXCaption(QString("Probability Distribution Label %1").arg(labelValue));
-		m_charts[m_probChartStart+i]->plots()[0]->setColor(m_labelInfo->GetColor(labelValue));
+		m_charts[m_probChartStart+i]->plots()[0]->setColor(m_labelInfo->color(labelValue));
 	}
 
 	// redraw all charts:

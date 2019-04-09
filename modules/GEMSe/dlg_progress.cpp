@@ -59,5 +59,5 @@ void dlg_progress::SetStatus(QString const & status)
 
 void dlg_progress::Abort()
 {
-	m_abortListener->Abort();
+	m_abortListener->abort();
 }

@@ -38,10 +38,10 @@ class iAvtkPixelVectorArray: public iAVectorArray
 public:
 	iAvtkPixelVectorArray(int const * dim);
 	iAvtkPixelVectorArray(size_t width, size_t height, size_t depth);
-	virtual size_t size() const;
-	virtual size_t channelCount() const;
-	virtual QSharedPointer<iAVectorType const> get(size_t voxelIdx) const;
-	virtual iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const;
+	size_t size() const override;
+	size_t channelCount() const override;
+	QSharedPointer<iAVectorType const> get(size_t voxelIdx) const override;
+	iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const override;
 	void AddImage(vtkSmartPointer<vtkImageData> img);
 private:
 	std::vector<vtkSmartPointer<vtkImageData> > m_images;
@@ -53,10 +53,10 @@ class iAitkPixelVectorArray : public iAVectorArray
 {
 public:
 	iAitkPixelVectorArray(size_t width, size_t height, size_t depth);
-	virtual size_t size() const;
-	virtual size_t channelCount() const;
-	virtual QSharedPointer<iAVectorType const> get(size_t voxelIdx) const;
-	virtual iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const;
+	size_t size() const override;
+	size_t channelCount() const override;
+	QSharedPointer<iAVectorType const> get(size_t voxelIdx) const override;
+	iAVectorDataType get(size_t voxelIdx, size_t channelIdx) const override;
 	void AddImage(itk::SmartPointer<ImageType> img);
 private:
 	std::vector<itk::SmartPointer<ImageType> > m_images;
@@ -69,7 +69,6 @@ iAitkPixelVectorArray<ImageType>::iAitkPixelVectorArray(size_t width, size_t hei
 	m_coordConv(width, height, depth)
 {
 }
-
 
 template <typename ImageType>
 void iAitkPixelVectorArray<ImageType>::AddImage(itk::SmartPointer<ImageType> img)

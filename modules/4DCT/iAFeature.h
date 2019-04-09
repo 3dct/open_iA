@@ -29,7 +29,6 @@ struct iAFeature
 {
 public:
 					iAFeature();
-	virtual			~iAFeature();
 	int				id;
 	int				parentId;
 	int				childId;

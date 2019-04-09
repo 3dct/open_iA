@@ -329,7 +329,7 @@ QSharedPointer<iASamplingResults> iAImageSampler::GetResults()
 	return m_results;
 }
 
-void iAImageSampler::Abort()
+void iAImageSampler::abort()
 {
 	DEBUG_LOG("Abort requested by User!");
 	m_aborted = true;

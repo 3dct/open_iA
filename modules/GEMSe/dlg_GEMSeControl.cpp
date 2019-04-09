@@ -67,11 +67,11 @@ public:
 	{}
 	virtual ~iASimpleLabelInfo()
 	{}
-	virtual int count() const
+	int count() const override
 	{
 		return m_labelCount;
 	}
-	virtual QString name(int idx) const
+	QString name(int idx) const override
 	{
 		assert(idx >= 0 && idx < m_labelCount);
 		if (idx < m_labelNames.size())
@@ -84,7 +84,7 @@ public:
 		}
 	}
 
-	virtual QColor GetColor(int idx) const
+	QColor color(int idx) const override
 	{
 		assert(m_theme);
 		if (!m_theme)
@@ -92,21 +92,21 @@ public:
 		return m_theme->GetColor(idx);
 	}
 
-	void SetLabelCount(int labelCount)
+	void setLabelCount(int labelCount)
 	{
 		m_labelCount = labelCount;
 	}
 
-	void SetColorTheme(iAColorTheme const * theme)
+	void setColorTheme(iAColorTheme const * theme)
 	{
 		m_theme = theme;
 	}
 
-	iAColorTheme const * GetColorTheme() const
+	iAColorTheme const * colorTheme() const
 	{
 		return m_theme;
 	}
-	void SetLabelNames(QStringList const & labelNames)
+	void setLabelNames(QStringList const & labelNames)
 	{
 		if (labelNames.size() > 1 || labelNames[0].length() > 0)
 		{
@@ -137,7 +137,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 {
 	connect(m_dlgSamplings, SIGNAL(AddSampling()), this, SLOT(LoadSampling()));
 	dlgLabels->hide();
-	m_simpleLabelInfo->SetColorTheme(colorTheme);
+	m_simpleLabelInfo->setColorTheme(colorTheme);
 	cbColorThemes->addItems(iAColorThemeManager::GetInstance().GetAvailableThemes());
 	cbColorThemes->setCurrentText(colorTheme->name());
 
@@ -196,7 +196,7 @@ void dlg_GEMSeControl::StartSampling()
 			QMessageBox::warning(this, "GEMSe", "Label Count must not be smaller than 2!");
 			return;
 		}
-		m_simpleLabelInfo->SetLabelCount(m_dlgSamplingSettings->GetLabelCount());
+		m_simpleLabelInfo->setLabelCount(m_dlgSamplingSettings->GetLabelCount());
 		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			m_dlgModalities->modalities(),
 			parameters,
@@ -261,7 +261,7 @@ void dlg_GEMSeControl::LoadSampling()
 
 bool dlg_GEMSeControl::LoadSampling(QString const & fileName, int labelCount, int datasetID)
 {
-	m_simpleLabelInfo->SetLabelCount(labelCount);
+	m_simpleLabelInfo->setLabelCount(labelCount);
 	if (fileName.isEmpty())
 	{
 		DEBUG_LOG("No filename given, not loading.");
@@ -502,7 +502,7 @@ void dlg_GEMSeControl::StoreGEMSeProject(QString const & fileName, QString const
 		mdiChild->layoutName(),
 		leRefImage->text(),
 		hiddenCharts,
-		m_simpleLabelInfo->GetColorTheme()->name(),
+		m_simpleLabelInfo->colorTheme()->name(),
 		m_dlgGEMSe->GetLabelNames()
 	);
 	metaFile.Store(fileName);
@@ -574,8 +574,8 @@ void dlg_GEMSeControl::SetIconSize(int newSize)
 void dlg_GEMSeControl::SetColorTheme(const QString &themeName)
 {
 	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme(themeName);
-	m_dlgLabels->SetColorTheme(theme);
-	m_simpleLabelInfo->SetColorTheme(theme);
+	m_dlgLabels->setColorTheme(theme);
+	m_simpleLabelInfo->setColorTheme(theme);
 	m_dlgGEMSe->SetColorTheme(theme, m_simpleLabelInfo.data());
 }
 
@@ -754,7 +754,7 @@ void dlg_GEMSeControl::DataTFChanged()
 
 void dlg_GEMSeControl::SetLabelInfo(QString const & colorTheme, QString const & labelNames)
 {
-	m_simpleLabelInfo->SetLabelNames(labelNames.split(","));
+	m_simpleLabelInfo->setLabelNames(labelNames.split(","));
 	int colorThemeIdx = cbColorThemes->findText(colorTheme);
 	if (colorTheme != "" && colorThemeIdx != -1)
 	{

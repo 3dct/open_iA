@@ -105,13 +105,16 @@ public:
 	void updateYBounds(size_t startPlot = 0);
 	QImage drawOffscreen();
 	void setBackgroundColor(QColor const & color);
+
 public slots:
 	void resetView();
 	void setDrawXAxisAtZero(bool enable);
+
 signals:
 	void xAxisChanged();
 	void plotsSelected(std::vector<size_t> const & plotIDs);
 	void dblClicked();
+
 protected:
 	QString m_xCaption, m_yCaption;
 	int m_zoomXPos, m_zoomYPos;
@@ -147,9 +150,11 @@ protected:
 	void paintGL() override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	void keyReleaseEvent(QKeyEvent *event) override;
+
 private slots:
 	void showTooltip(bool toggled);
 	void exportData();
+
 private:
 	virtual void addContextMenuEntries(QMenu* contextMenu);
 	void createMappers();
@@ -165,7 +170,6 @@ private:
 	QList< QSharedPointer< QImage > > m_overlays;
 	QMenu* m_contextMenu;
 	QPoint m_contextPos;
-	bool m_showTooltip;
 	bool m_showXAxisLabel;
 	int  m_fontHeight;
 	int  m_yMaxTickLabelWidth;
@@ -180,4 +184,9 @@ private:
 	size_t m_maxXAxisSteps;
 	bool m_drawXAxisAtZero;
 	QColor m_bgColor;
+	//! @{ tooltip-related
+	bool m_showTooltip;
+	int m_lastToolTipX, m_lastToolTipY;
+	qint64 m_lastToolTipTime;
+	//! @}
 };

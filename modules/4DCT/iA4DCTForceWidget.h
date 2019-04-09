@@ -36,7 +36,7 @@ signals:
 	void			valueChanged( int val );
 
 protected:
-	virtual void	mouseDoubleClickEvent( QMouseEvent * event );
+	void mouseDoubleClickEvent( QMouseEvent * event ) override;
 
 private:
 	int				m_value;

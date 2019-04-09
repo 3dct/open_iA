@@ -113,7 +113,6 @@ void iADerivedOutputCalculator::run()
 	*/
 }
 
-
 bool iADerivedOutputCalculator::success()
 {
 	return m_success;

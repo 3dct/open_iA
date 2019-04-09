@@ -39,9 +39,9 @@ void iAvtkPixelVectorArray::AddImage(vtkSmartPointer<vtkImageData> img)
 {
 	int extent[6];
 	img->GetExtent(extent);
-	assert((extent[1]-extent[0]+1) == m_coordConv.GetWidth() &&
-		(extent[3]-extent[2]+1) == m_coordConv.GetHeight() &&
-		(extent[5]-extent[4]+1) == m_coordConv.GetDepth());
+	assert((extent[1]-extent[0]+1) == m_coordConv.width() &&
+		(extent[3]-extent[2]+1) == m_coordConv.height() &&
+		(extent[5]-extent[4]+1) == m_coordConv.depth());
 	m_images.push_back(img);
 }
 
