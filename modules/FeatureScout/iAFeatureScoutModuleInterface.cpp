@@ -187,7 +187,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		m_mdiChild->addMsg( "Error while attaching FeatureScout to mdi child window!" );
 		return false;
 	}
-	attach->init(csvConfig.objectType, csvConfig.fileName, creator.getTable(), csvConfig.visType, io.getOutputMapping());
+	attach->init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping());
 	SetupToolbar();
 	m_mdiChild->addStatusMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	m_mdiChild->addMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));

@@ -59,7 +59,7 @@ void iACsvVtkTableCreator::addRow(size_t row, QStringList const & values)
 	m_table->SetValue(row, values.size() - 1, values[values.size() - 1].toFloat()); // class
 }
 
-vtkSmartPointer<vtkTable> iACsvVtkTableCreator::getTable()
+vtkSmartPointer<vtkTable> iACsvVtkTableCreator::table()
 {
 	return m_table;
 }

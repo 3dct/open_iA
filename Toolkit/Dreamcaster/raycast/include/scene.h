@@ -46,7 +46,7 @@ struct intersection
 //! @param box axis aligned bounding box structure.
 //! @param tmin parent AABB min t.
 //! @param tmax parent AABB max t.
-//! @return 
+//! @return
 //!    1 - if ray intersects AABB
 //!    0 - otherwise
 inline int IntersectAABB(const Ray &ray, const aabb& box, float &tmin, float&tmax)
@@ -102,7 +102,7 @@ inline int IntersectAABB(const Ray &ray, const aabb& box, float &tmin, float&tma
 //! @param ro ray's origin position.
 //! @param rd ray's distance.
 //! @param box axis aligned bounding box structure.
-//! @return 
+//! @return
 //!    1 - if ray intersects AABB
 //!    0 - otherwise
 inline int Intersect(iAVec3f & ro, iAVec3f rd, const aabb& box)
@@ -168,7 +168,7 @@ int IntersectCyl(const Ray & ray, const aabb& box, float &tmin, float&tmax, int 
 //! @param split split plane's coordinates
 //! @param splitIndex index of splitting axis
 //! @param t [out] split plane's t
-//! @return 
+//! @return
 //!    0 - left node intersected
 //!    1 - both nodes intersected
 //!    2 - right node intersected

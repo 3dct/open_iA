@@ -44,7 +44,7 @@ void iACsvQTableCreator::addRow(size_t row, QStringList const & values)
 	}
 }
 
-QTableWidget* iACsvQTableCreator::getTable()
+QTableWidget* iACsvQTableCreator::table()
 {
 	return m_table;
 }
