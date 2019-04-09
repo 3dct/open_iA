@@ -38,7 +38,7 @@ class QPainter;
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
-class dlg_function;
+class iAChartFunction;
 class dlg_TFTable;
 class MdiChild;
 
@@ -72,9 +72,9 @@ public:
 	//! Set the transfer functions to be displayed on top of the chart.
 	void setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 	//! Get the currently selected function.
-	dlg_function * selectedFunction();
+	iAChartFunction * selectedFunction();
 	//! Get all functions currently defined in this chart.
-	std::vector<dlg_function*> &functions();
+	std::vector<iAChartFunction*> &functions();
 	//! Set whether the user is allowed to reset the transfer function.
 	void setAllowTrfReset(bool allow);
 	//! Set whether the user can add additional functions (Bezier and Gaussian curves), in addition to the standard transfer function.
@@ -108,7 +108,7 @@ protected:
 	virtual void drawFunctions(QPainter &painter);
 
 	MdiChild* m_activeChild;
-	std::vector<dlg_function*> m_functions;
+	std::vector<iAChartFunction*> m_functions;
 	unsigned int m_selectedFunction;
 	bool m_showFunctions;
 

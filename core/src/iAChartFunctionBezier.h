@@ -20,48 +20,70 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAChartFunction.h"
 #include "open_iA_Core_export.h"
 
-#include <QObject>
+#include <QColor>
 
-#include "open_iA_Core_export.h"
+#include <vector>
 
-class QColor;
-class QMouseEvent;
-class QPainter;
-class iADiagramFctWidget;
+class QPointF;
 
-class open_iA_Core_API dlg_function: public QObject
+class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
 {
-	Q_OBJECT
+	QColor color;
+
+	unsigned int selectedPoint;
+	bool   active;
+	double controlDist;
+	double length;
+	double oppositeLength;
+	std::vector<QPointF> viewPoints;
+	std::vector<QPointF> realPoints;
+
 public:
-	static const int TRANSFER = 0;
-	static const int GAUSSIAN = 1;
-	static const int BEZIER   = 2;
+	iAChartFunctionBezier(iADiagramFctWidget *chart, QColor &color, bool reset = true);
 
-	dlg_function(iADiagramFctWidget* chart) : chart(chart) { }
+	int getType() override { return BEZIER; }
+	void draw(QPainter &painter) override;
+	void draw(QPainter &painter, QColor color, int lineWidth) override;
+	void drawOnTop(QPainter&) override {}
+	int selectPoint(QMouseEvent *event, int *x = NULL) override;
+	int getSelectedPoint() override { return selectedPoint; }
+	int addPoint(int x, int y) override;
+	void addColorPoint(int, double, double, double) override {}
+	void removePoint(int index) override;
+	void moveSelectedPoint(int x, int y) override;
+	void changeColor(QMouseEvent *) override{}
+	bool isColored() override { return false; }
+	bool isEndPoint(int index) override;
+	bool isDeletable(int index) override;
+	void reset() override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
 
-	virtual int getType() = 0;
+	void push_back(double x, double y);
+	std::vector<QPointF> &getPoints() { return realPoints; }
+private:
+	bool isFunctionPoint(int point);
+	bool isControlPoint(int point);
 
-	virtual void draw(QPainter &painter) = 0;
-	virtual void draw(QPainter &painter, QColor color, int lineWidth) = 0;
-	virtual void drawOnTop(QPainter &painter) = 0;
+	void insert(unsigned int index, unsigned int x, unsigned int y);
 
-	virtual int selectPoint(QMouseEvent *event, int *x = 0) = 0;
-	virtual int getSelectedPoint() = 0;
-	virtual int addPoint(int x, int y) = 0;
-	virtual void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) = 0;
-	virtual void removePoint(int index) = 0;
-	virtual void moveSelectedPoint(int x, int y) = 0;
-	virtual void changeColor(QMouseEvent *event) = 0;
+	void setViewPoint(int selectedPoint);
+	void setOppositeViewPoint(int selectedPoint);
 
-	virtual bool isColored() = 0;
-	virtual bool isEndPoint(int index) = 0;
-	virtual bool isDeletable(int index) = 0;
+	int getFunctionPointIndex(int index);
+	double getLength(QPointF start, QPointF end);
 
-	virtual void reset() = 0;
-	virtual void mouseReleaseEvent(QMouseEvent *event) {}
-	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) {}
+	// convert view to data
+	double v2dX(int x);
+	double v2dY(int y);
 
-	iADiagramFctWidget *chart;
+	// convert data to view
+	int d2vX(double x);
+	int d2vY(double y);
+
+	// convert data to image
+	int d2iX(double x);
+	int d2iY(double y);
 };

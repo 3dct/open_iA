@@ -55,7 +55,7 @@ class vtkPolyData;
 class vtkScalarsToColors;
 class vtkTransform;
 
-class dlg_function;
+class iAChartFunction;
 class dlg_imageproperty;
 class dlg_modalities;
 class dlg_periodicTable;
@@ -181,7 +181,7 @@ public:
 	bool resultInNewWindow() const;
 	bool linkedMDIs() const;
 	bool linkedViews() const;
-	std::vector<dlg_function*> &functions();
+	std::vector<iAChartFunction*> &functions();
 	void redrawHistogram();
 	iADiagramFctWidget* histogram();
 

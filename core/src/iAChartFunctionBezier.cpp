@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_bezier.h"
+#include "iAChartFunctionBezier.h"
 
 #include "charts/iADiagramFctWidget.h"
 #include "iAMapper.h"
@@ -30,8 +30,8 @@
 #include <QPainter>
 #include <QMouseEvent>
 
-dlg_bezier::dlg_bezier(iADiagramFctWidget *chart, QColor &color, bool res)
-	: dlg_function(chart)
+iAChartFunctionBezier::iAChartFunctionBezier(iADiagramFctWidget *chart, QColor &color, bool res)
+	: iAChartFunction(chart)
 {
 	this->color = color;
 	active = false;
@@ -41,12 +41,12 @@ dlg_bezier::dlg_bezier(iADiagramFctWidget *chart, QColor &color, bool res)
 	selectedPoint = -1;
 }
 
-void dlg_bezier::draw(QPainter &painter)
+void iAChartFunctionBezier::draw(QPainter &painter)
 {
 	draw(painter, color, 3);
 }
 
-void dlg_bezier::draw(QPainter &painter, QColor color, int lineWidth)
+void iAChartFunctionBezier::draw(QPainter &painter, QColor color, int lineWidth)
 {
 	bool active = (chart->selectedFunction() == this);
 
@@ -187,7 +187,7 @@ void dlg_bezier::draw(QPainter &painter, QColor color, int lineWidth)
 	}
 }
 
-int dlg_bezier::selectPoint(QMouseEvent *event, int *x)
+int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 {
 	int lx = event->x();
 	int ly = chart->geometry().height() - event->y() - chart->bottomMargin();
@@ -250,7 +250,7 @@ int dlg_bezier::selectPoint(QMouseEvent *event, int *x)
 	return index;
 }
 
-int dlg_bezier::addPoint(int x, int y)
+int iAChartFunctionBezier::addPoint(int x, int y)
 {
 	if (y < 0)
 		y = 0;
@@ -273,7 +273,7 @@ int dlg_bezier::addPoint(int x, int y)
 	return selectedPoint;
 }
 
-void dlg_bezier::removePoint(int index)
+void iAChartFunctionBezier::removePoint(int index)
 {
 	std::vector<QPointF>::iterator it;
 
@@ -289,7 +289,7 @@ void dlg_bezier::removePoint(int index)
 	}
 }
 
-void dlg_bezier::moveSelectedPoint(int x, int y)
+void iAChartFunctionBezier::moveSelectedPoint(int x, int y)
 {
 	if (isFunctionPoint(selectedPoint))
 	{
@@ -361,17 +361,17 @@ void dlg_bezier::moveSelectedPoint(int x, int y)
 	}
 }
 
-bool dlg_bezier::isEndPoint(int index)
+bool iAChartFunctionBezier::isEndPoint(int index)
 {
 	return (index == 0 || index == realPoints.size()-1);
 }
 
-bool dlg_bezier::isDeletable(int index)
+bool iAChartFunctionBezier::isDeletable(int index)
 {
 	return (index % 3 == 0 && !isEndPoint(index));
 }
 
-void dlg_bezier::reset()
+void iAChartFunctionBezier::reset()
 {
 	double start = chart->xBounds()[0];
 	double end = chart->xBounds()[1];
@@ -392,29 +392,29 @@ void dlg_bezier::reset()
 	selectedPoint = -1;
 }
 
-void dlg_bezier::mouseReleaseEvent(QMouseEvent*)
+void iAChartFunctionBezier::mouseReleaseEvent(QMouseEvent*)
 {
 	if (selectedPoint != -1)
 		setViewPoint(selectedPoint);
 }
 
-void dlg_bezier::push_back(double x, double y)
+void iAChartFunctionBezier::push_back(double x, double y)
 {
 	realPoints.push_back(QPointF(x, y));
 	viewPoints.push_back(QPointF(x, y));
 }
 
-bool dlg_bezier::isFunctionPoint(int point)
+bool iAChartFunctionBezier::isFunctionPoint(int point)
 {
 	return point % 3 == 0;
 }
 
-bool dlg_bezier::isControlPoint(int point)
+bool iAChartFunctionBezier::isControlPoint(int point)
 {
 	return !isFunctionPoint(point);
 }
 
-void dlg_bezier::insert(unsigned int index, unsigned int x, unsigned int y)
+void iAChartFunctionBezier::insert(unsigned int index, unsigned int x, unsigned int y)
 {
 	double xf = v2dX(x);
 	double yf = v2dY(y);
@@ -440,7 +440,7 @@ void dlg_bezier::insert(unsigned int index, unsigned int x, unsigned int y)
 	}
 }
 
-void dlg_bezier::setViewPoint(int selectedPoint)
+void iAChartFunctionBezier::setViewPoint(int selectedPoint)
 {
 	if (selectedPoint != -1)
 	{
@@ -484,7 +484,7 @@ void dlg_bezier::setViewPoint(int selectedPoint)
 	}
 }
 
-void dlg_bezier::setOppositeViewPoint(int selectedPoint)
+void iAChartFunctionBezier::setOppositeViewPoint(int selectedPoint)
 {
 	int functionPointIndex = getFunctionPointIndex(selectedPoint);
 	unsigned int oppositePointIndex;
@@ -516,7 +516,7 @@ void dlg_bezier::setOppositeViewPoint(int selectedPoint)
 	}
 }
 
-int dlg_bezier::getFunctionPointIndex(int index)
+int iAChartFunctionBezier::getFunctionPointIndex(int index)
 {
 	int mod = index %3;
 	switch(mod)
@@ -529,38 +529,38 @@ int dlg_bezier::getFunctionPointIndex(int index)
 	return -1;
 }
 
-double dlg_bezier::getLength(QPointF start, QPointF end)
+double iAChartFunctionBezier::getLength(QPointF start, QPointF end)
 {
 	return sqrt(pow((double)(d2vX(end.x())-d2vX(start.x())), 2)+pow((double)(d2vY(end.y())-d2vY(start.y())), 2));
 }
 
 // TODO: unify somewhere!
-double dlg_bezier::v2dX(int x)
+double iAChartFunctionBezier::v2dX(int x)
 {
 	return ((double)(x- chart->xShift()) / (double)chart->geometry().width() * chart->xRange()) / chart->xZoom() + chart->xBounds()[0];
 }
 
-double dlg_bezier::v2dY(int y)
+double iAChartFunctionBezier::v2dY(int y)
 {
 	return chart->yMapper().srcToDst(y) *chart->yBounds()[1] / chart->yZoom();
 }
 
-int dlg_bezier::d2vX(double x)
+int iAChartFunctionBezier::d2vX(double x)
 {
 	return (int)((x - chart->xBounds()[0]) * (double)chart->geometry().width() / chart->xRange()*chart->xZoom()) + chart->xShift();
 }
 
-int dlg_bezier::d2vY(double y)
+int iAChartFunctionBezier::d2vY(double y)
 {
 	return (int)(y / chart->yBounds()[1] *(double)(chart->geometry().height() - chart->bottomMargin()-1) *chart->yZoom());
 }
 
-int dlg_bezier::d2iX(double x)
+int iAChartFunctionBezier::d2iX(double x)
 {
 	return d2vX(x) - chart->xShift();
 }
 
-int dlg_bezier::d2iY(double y)
+int iAChartFunctionBezier::d2iY(double y)
 {
 	return d2vY(y);
 }

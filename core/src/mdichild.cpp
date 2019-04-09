@@ -29,11 +29,11 @@
 #include "dlg_modalities.h"
 #include "dlg_profile.h"
 #include "dlg_slicer.h"
-#include "dlg_transfer.h"
 #include "dlg_volumePlayer.h"
 #include "iAAlgorithm.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
+#include "iAChartFunctionTransfer.h"
 #include "iAConsole.h"
 #include "qthelper/iADockWidgetWrapper.h"
 #include "iALogger.h"
@@ -241,7 +241,7 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, SIGNAL(noPointSelected()), this, SIGNAL(noPointSelected()));
 	connect(m_histogram, SIGNAL(endPointSelected()), this, SIGNAL(endPointSelected()));
 	connect(m_histogram, SIGNAL(active()), this, SIGNAL(active()));
-	connect((dlg_transfer*)(m_histogram->functions()[0]), SIGNAL(Changed()), this, SLOT(modalityTFChanged()));
+	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), SIGNAL(Changed()), this, SLOT(modalityTFChanged()));
 
 	connect(m_dwModalities, SIGNAL(modalitiesChanged()), this, SLOT(updateImageProperties()));
 	connect(m_dwModalities, SIGNAL(modalitiesChanged()), this, SLOT(updateViews()));
@@ -1472,11 +1472,11 @@ void MdiChild::resetTrf()
 		.arg(m_histogram->xBounds()[1]));
 }
 
-std::vector<dlg_function*> & MdiChild::functions()
+std::vector<iAChartFunction*> & MdiChild::functions()
 {
 	if (!m_histogram)
 	{
-		static std::vector<dlg_function*> nullVec;
+		static std::vector<iAChartFunction*> nullVec;
 		return nullVec;
 	}
 	return m_histogram->functions();

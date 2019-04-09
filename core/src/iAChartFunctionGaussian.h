@@ -20,80 +20,67 @@
 * ************************************************************************************/
 #pragma once
 
-#include "dlg_function.h"
+#include "iAChartFunction.h"
 #include "open_iA_Core_export.h"
-#include "iATransferFunction.h"
 
-#include <QLinearGradient>
+#include <QColor>
 
-class QColorDialog;
-class QDomNode;
-
-class vtkPiecewiseFunction;
-class vtkColorTransferFunction;
-
-class open_iA_Core_API dlg_transfer : public dlg_function, public iATransferFunction
+class open_iA_Core_API iAChartFunctionGaussian : public iAChartFunction
 {
-Q_OBJECT
+	QColor color;
+
+	int    selectedPoint;
+	bool   active;
+	double mean;
+	double sigma;
+	double multiplier;
 
 public:
-	dlg_transfer(iADiagramFctWidget *histogram, QColor color);
-	~dlg_transfer();
+	iAChartFunctionGaussian(iADiagramFctWidget *chart, QColor &color, bool reset = true);
 
-	int getType() override { return TRANSFER; }
+	int getType() override { return GAUSSIAN; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
-	void drawOnTop(QPainter &painter) override;
+	void drawOnTop(QPainter&) override {}
 	int selectPoint(QMouseEvent *event, int *x = NULL) override;
-	int getSelectedPoint() override { return m_selectedPoint; }
-	int addPoint(int x, int y) override;
-	void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) override;
-	void removePoint(int index) override;
+	int getSelectedPoint() override { return 0; }
+	int addPoint(int, int) override { return 0; }
+	void addColorPoint(int, double, double, double) override {}
+	void removePoint(int) override {}
 	void moveSelectedPoint(int x, int y) override;
-	void changeColor(QMouseEvent *event) override;
-	void mouseReleaseEventAfterNewPoint(QMouseEvent *event) override;
-	bool isColored() override { return true; }
-	bool isEndPoint(int index) override;
-	bool isDeletable(int index) override;
+	void changeColor(QMouseEvent *) override {}
+	bool isColored() override { return false; }
+	bool isEndPoint(int) override { return true; }
+	bool isDeletable(int) override { return false; }
 	void reset() override;
 
-	vtkPiecewiseFunction* opacityTF() override { return m_opacityTF; }
-	vtkColorTransferFunction* colorTF() override { return m_colorTF; }
+	// additional public functions
+	void setMean(double mean) { this->mean = mean; }
+	void setSigma(double sigma) { this->sigma = sigma; }
+	void setMultiplier(double multiplier) { this->multiplier = multiplier; }
+	void setMean(int mean) { this->mean = v2dX(mean); }
+	void setSigma(int sigma) { this->sigma = i2dX(sigma)-i2dX(0); }
+	void setMultiplier(int multiplier);
 
-	void TranslateToNewRange(double const oldDataRange[2]);
-	void enableRangeSliderHandles( bool rangeSliderHandles );
-	void setOpacityFunction(vtkPiecewiseFunction *opacityTF) { m_opacityTF = opacityTF; }
-	void setColorFunction(vtkColorTransferFunction *colorTF) { m_colorTF = colorTF; }
-	void triggerOnChange();
-signals:
-	void Changed();
+	double getMean() { return this->mean; }
+	double getSigma() { return this->sigma; }
+	double getCovariance() { return this->sigma*this->sigma; }
+	double getMultiplier() { return this->multiplier; }
+
 private:
-	void setColorPoint(int selectedPoint, double x, double red, double green, double blue);
-	void setColorPoint(int selectedPoint, int x, double red, double green, double blue);
-	void setColorPoint(int selectedPoint, int x);
-	void setPoint(int selectedPoint, int x, int y);
-	void setPointX(int selectedPoint, int x);
-	void setPointY(int selectedPoint, int y);
 
 	// convert view to data
 	double v2dX(int x);
 	double v2dY(int y);
 
-	// conver data to view
-	int d2vX(double x, double oldDataRange0 = -1, double oldDataRange1 = -1);
+	// convert data to view
+	int d2vX(double x);
 	int d2vY(double y);
 
-	//convert data to image
+	// convert data to image
 	int d2iX(double x);
 	int d2iY(double y);
 
-	bool m_rangeSliderHandles;
-	int m_selectedPoint;
-
-	QColor          m_color;
-	QColorDialog    *m_colorDlg;
-	QLinearGradient m_gradient;
-
-	vtkPiecewiseFunction     *m_opacityTF;
-	vtkColorTransferFunction *m_colorTF;
+	// convert image to data
+	double i2dX(int x);
 };

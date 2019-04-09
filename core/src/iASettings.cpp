@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASettings.h"
 
-#include "dlg_transfer.h"
+#include "iAChartFunctionTransfer.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>

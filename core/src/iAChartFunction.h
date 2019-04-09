@@ -20,67 +20,48 @@
 * ************************************************************************************/
 #pragma once
 
-#include "dlg_function.h"
 #include "open_iA_Core_export.h"
 
-#include <QColor>
+#include <QObject>
 
-class open_iA_Core_API dlg_gaussian : public dlg_function
+#include "open_iA_Core_export.h"
+
+class QColor;
+class QMouseEvent;
+class QPainter;
+class iADiagramFctWidget;
+
+class open_iA_Core_API iAChartFunction: public QObject
 {
-	QColor color;
-
-	int    selectedPoint;
-	bool   active;
-	double mean;
-	double sigma;
-	double multiplier;
-
+	Q_OBJECT
 public:
-	dlg_gaussian(iADiagramFctWidget *chart, QColor &color, bool reset = true);
+	static const int TRANSFER = 0;
+	static const int GAUSSIAN = 1;
+	static const int BEZIER   = 2;
 
-	int getType() override { return GAUSSIAN; }
-	void draw(QPainter &painter) override;
-	void draw(QPainter &painter, QColor color, int lineWidth) override;
-	void drawOnTop(QPainter&) override {}
-	int selectPoint(QMouseEvent *event, int *x = NULL) override;
-	int getSelectedPoint() override { return 0; }
-	int addPoint(int, int) override { return 0; }
-	void addColorPoint(int, double, double, double) override {}
-	void removePoint(int) override {}
-	void moveSelectedPoint(int x, int y) override;
-	void changeColor(QMouseEvent *) override {}
-	bool isColored() override { return false; }
-	bool isEndPoint(int) override { return true; }
-	bool isDeletable(int) override { return false; }
-	void reset() override;
+	iAChartFunction(iADiagramFctWidget* chart) : chart(chart) { }
 
-	// additional public functions
-	void setMean(double mean) { this->mean = mean; }
-	void setSigma(double sigma) { this->sigma = sigma; }
-	void setMultiplier(double multiplier) { this->multiplier = multiplier; }
-	void setMean(int mean) { this->mean = v2dX(mean); }
-	void setSigma(int sigma) { this->sigma = i2dX(sigma)-i2dX(0); }
-	void setMultiplier(int multiplier);
+	virtual int getType() = 0;
 
-	double getMean() { return this->mean; }
-	double getSigma() { return this->sigma; }
-	double getCovariance() { return this->sigma*this->sigma; }
-	double getMultiplier() { return this->multiplier; }
+	virtual void draw(QPainter &painter) = 0;
+	virtual void draw(QPainter &painter, QColor color, int lineWidth) = 0;
+	virtual void drawOnTop(QPainter &painter) = 0;
 
-private:
+	virtual int selectPoint(QMouseEvent *event, int *x = 0) = 0;
+	virtual int getSelectedPoint() = 0;
+	virtual int addPoint(int x, int y) = 0;
+	virtual void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) = 0;
+	virtual void removePoint(int index) = 0;
+	virtual void moveSelectedPoint(int x, int y) = 0;
+	virtual void changeColor(QMouseEvent *event) = 0;
 
-	// convert view to data
-	double v2dX(int x);
-	double v2dY(int y);
+	virtual bool isColored() = 0;
+	virtual bool isEndPoint(int index) = 0;
+	virtual bool isDeletable(int index) = 0;
 
-	// convert data to view
-	int d2vX(double x);
-	int d2vY(double y);
+	virtual void reset() = 0;
+	virtual void mouseReleaseEvent(QMouseEvent *event) {}
+	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) {}
 
-	// convert data to image
-	int d2iX(double x);
-	int d2iY(double y);
-
-	// convert image to data
-	double i2dX(int x);
+	iADiagramFctWidget *chart;
 };

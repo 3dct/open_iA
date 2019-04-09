@@ -50,7 +50,7 @@ class vtkCamera;
 class vtkImageData;
 class vtkRenderer;
 
-class dlg_transfer;
+class iAChartTransferFunction;
 class iAModalityList;
 class iAModuleDispatcher;
 class MdiChild;
@@ -82,7 +82,7 @@ public:
 	void saveSliceViews(QDomDocument &doc);
 	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, QString const & elemStr);
 	void loadSliceViews(QDomNode &sliceViewsNode);
-	void saveTransferFunction(QDomDocument &doc, dlg_transfer* transferFunction);
+	void saveTransferFunction(QDomDocument &doc, iAChartTransferFunction* transferFunction);
 	void saveProbabilityFunctions(QDomDocument &doc);
 	void loadProbabilityFunctions(QDomNode &functionsNode);
 	void savePreferences(QDomDocument &doc);

@@ -24,7 +24,6 @@
 
 #include <QDomDocument>
 
-class dlg_transfer;
 class iATransferFunction;
 
 //! Class for loading and storing transfer functions to/from XML documents
