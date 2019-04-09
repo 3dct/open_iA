@@ -210,7 +210,6 @@ void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 				update();
 				emit updateTFTable();
 			}
-			showDataTooltip(event);
 		}
 		break;
 		default:

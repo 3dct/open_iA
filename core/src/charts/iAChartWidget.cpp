@@ -65,8 +65,6 @@ namespace
 	const int AxisTicksXDefault = 2;
 	const int TickWidth = 6;
 
-	const int MinToolTimeMSecDist = 40;
-
 	int requiredDigits(double value)
 	{
 		return (value >= -1.0 && value < 1.0) ?
@@ -130,8 +128,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_yMaxTickLabelWidth(0),
 	m_selectionMode(SelectionDisabled),
 	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this)),
-	m_drawXAxisAtZero(false),
-	m_lastToolTipTime(0)
+	m_drawXAxisAtZero(false)
 {
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	QSurfaceFormat fmt = format();
@@ -474,7 +471,7 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 		double pos = step * i;
 		int y = -static_cast<int>(pos * aheight * m_yZoom) - 1;
 		double yValue = m_yMapper->dstToSrc(-y-1);
-		QString text = DblToStringWithUnits(yValue);
+		QString text = dblToStringWithUnits(yValue);
 		painter.drawLine(static_cast<int>(-TickWidth), y, 0, y);	// indicator line
 		painter.drawText( - ( fm.width(text) + TickWidth),
 			(i == stepNumber) ? y + 0.75*m_fontHeight // write the text top aligned to the indicator line
@@ -748,19 +745,27 @@ void iAChartWidget::drawPlots(QPainter &painter)
 	}
 }
 
-void iAChartWidget::showDataTooltip(QMouseEvent *event)
+bool iAChartWidget::event(QEvent *event)
 {
-	if (m_plots.empty() || !m_showTooltip)
-		return;
+	if (event->type() != QEvent::ToolTip)
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+		return QOpenGLWidget::event(event);
+#else
+		return QGLWidget::event(event);
+#endif
 
-	/*
-	if (QDateTime::currentMSecsSinceEpoch() - m_lastToolTipTime < MinToolTimeMSecDist)
+	if (m_plots.empty() || !m_showTooltip)
 	{
 		QToolTip::hideText();
-		return;
+		event->ignore();
 	}
-	*/
-	m_lastToolTipTime = QDateTime::currentMSecsSinceEpoch();
+	QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
+	showDataTooltip(helpEvent);
+	return true;
+}
+
+void iAChartWidget::showDataTooltip(QHelpEvent *event)
+{
 	int xPos = clamp(0, geometry().width() - 1, event->x());
 	size_t numBin = m_plots[0]->data()->numBin();
 	assert(numBin > 0);
@@ -942,7 +947,6 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 		}
 		break;
 	}
-	showDataTooltip(event);
 }
 
 QImage iAChartWidget::drawOffscreen()

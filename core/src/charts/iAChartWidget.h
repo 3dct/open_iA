@@ -41,6 +41,7 @@
 class iAPlot;
 class iAMapper;
 
+class QHelpEvent;
 class QMenu;
 class QRubberBand;
 
@@ -138,7 +139,7 @@ protected:
 	void zoomAlongX(double value, int x, bool deltaMode);
 
 	virtual void changeMode(int newMode, QMouseEvent *event);
-	virtual void showDataTooltip(QMouseEvent *event);
+	virtual void showDataTooltip(QHelpEvent *event);
 	virtual void drawBackground(QPainter &painter);
 
 	void mouseMoveEvent(QMouseEvent *event) override;
@@ -150,6 +151,7 @@ protected:
 	void paintGL() override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	void keyReleaseEvent(QKeyEvent *event) override;
+	bool event(QEvent *event) override;
 
 private slots:
 	void showTooltip(bool toggled);
@@ -170,6 +172,7 @@ private:
 	QList< QSharedPointer< QImage > > m_overlays;
 	QMenu* m_contextMenu;
 	QPoint m_contextPos;
+	bool m_showTooltip;
 	bool m_showXAxisLabel;
 	int  m_fontHeight;
 	int  m_yMaxTickLabelWidth;
@@ -184,9 +187,4 @@ private:
 	size_t m_maxXAxisSteps;
 	bool m_drawXAxisAtZero;
 	QColor m_bgColor;
-	//! @{ tooltip-related
-	bool m_showTooltip;
-	int m_lastToolTipX, m_lastToolTipY;
-	qint64 m_lastToolTipTime;
-	//! @}
 };

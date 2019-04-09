@@ -2449,8 +2449,26 @@ void MainWindow::loadTLGICTData(QString const & baseDirectory)
 
 #include "iAConsole.h"
 #include "iASCIFIOCheck.h"
+
 #include <QApplication>
 #include <QDate>
+#include <QProxyStyle>
+
+class MyProxyStyle : public QProxyStyle
+{
+public:
+	using QProxyStyle::QProxyStyle;
+
+	int styleHint(StyleHint hint, const QStyleOption* option = nullptr, const QWidget* widget = nullptr, QStyleHintReturn* returnData = nullptr) const override
+	{
+		// disable tooltip delay for iAChartWidget and descendants:
+		if (hint == QStyle::SH_ToolTip_WakeUpDelay && widget && widget->inherits(iAChartWidget::staticMetaObject.className()))
+		{
+			return 0;
+		}
+		return QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+};
 
 void MainWindow::initResources()
 {
@@ -2470,6 +2488,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
+	qApp->setStyle(new MyProxyStyle(qApp->style()));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
 	if (QDate::currentDate().dayOfYear() >= 350)
 	{
