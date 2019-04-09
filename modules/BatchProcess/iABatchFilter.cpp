@@ -105,7 +105,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		return;
 	}
 	QMap<QString, QVariant> filterParams;
-	QStringList filterParamStrs = SplitPossiblyQuotedString(parameters["Parameters"].toString());
+	QStringList filterParamStrs = splitPossiblyQuotedString(parameters["Parameters"].toString());
 	if (filter->parameters().size() != filterParamStrs.size())
 	{
 		addMsg(QString("Batch: Invalid number of parameters: %1 expected, %2 given!")
@@ -116,7 +116,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 	QString batchDir = parameters["Image folder"].toString();
 	iAConnector* con = new iAConnector();
 	QVector<iAConnector*> inputImages;
-	QStringList additionalInput = SplitPossiblyQuotedString(parameters["Additional Input"].toString());
+	QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional Input"].toString());
 	for (QString fileName : additionalInput)
 	{
 		fileName = MakeAbsolute(batchDir, fileName);

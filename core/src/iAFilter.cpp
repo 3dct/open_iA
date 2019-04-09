@@ -238,7 +238,7 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 		}
 		case FileNamesOpen:
 		{
-			QStringList files = SplitPossiblyQuotedString(parameters[param->name()].toString());
+			QStringList files = splitPossiblyQuotedString(parameters[param->name()].toString());
 			for (auto fileName : files)
 			{
 				QFileInfo file(fileName);

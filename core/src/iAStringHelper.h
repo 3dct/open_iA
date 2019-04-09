@@ -34,15 +34,15 @@ class QStringList;
 //!     Note that only the double-quote character is considered as a quote by this function.
 //! @param str the string to split
 //! @return a list of strings split up at the whitespaces
-open_iA_Core_API QStringList SplitPossiblyQuotedString(QString const & str);
+open_iA_Core_API QStringList splitPossiblyQuotedString(QString const & str);
 
-open_iA_Core_API QString QuoteString(QString const & str);
+open_iA_Core_API QString quoteString(QString const & str);
 
 //! Convert a given string representation to a double vector with three elements
-open_iA_Core_API bool Str2Vec3D(QString const & str, double vec[3]);
+open_iA_Core_API bool str2Vec3D(QString const & str, double vec[3]);
 
 //! Convert a given double vector with three elements to a string representation
-open_iA_Core_API QString Vec3D2String(double const * vec);
+open_iA_Core_API QString vec3D2String(double const * vec);
 
 //! Pads or truncates the given string to the given size.
 //!
@@ -51,15 +51,15 @@ open_iA_Core_API QString Vec3D2String(double const * vec);
 //! @param str the string to be padded or truncated
 //! @param size the size that the return string should have
 //! @return a string of exactly the given size, padded or truncated from the given name
-open_iA_Core_API QString PadOrTruncate(QString const & str, int size);
+open_iA_Core_API QString padOrTruncate(QString const & str, int size);
 
 //! strip HTML tags from the given string
 //! @param html a string potentially containing HTML tags
 //! @return the input string with all HTML tags (\<xyz\>, \</xyz\>, \<xyz/\>) removed
-open_iA_Core_API QString StripHTML(QString const & html);
+open_iA_Core_API QString stripHTML(QString const & html);
 
 //! returns the value converted to string, with units (K, M, G, T, P) applied for every 10³ factor over 1000
-open_iA_Core_API QString DblToStringWithUnits(double value);
+open_iA_Core_API QString dblToStringWithUnits(double value);
 
 //! join an iterable collection of numeric elements to a string
 //!
@@ -69,7 +69,7 @@ open_iA_Core_API QString DblToStringWithUnits(double value);
 //! @param joinStr the string to be used in between the elements of the string
 //! @return a string joining all elements of the given collection together
 template <template <typename...> class Container, typename Element>
-QString Join(Container<Element> const & vec, QString const & joinStr)
+QString join(Container<Element> const & vec, QString const & joinStr)
 {
 	QString result;
 	bool first = true;
@@ -86,8 +86,8 @@ QString Join(Container<Element> const & vec, QString const & joinStr)
 
 //! Find the (length of the) greatest common prefix of the two given strings.
 //! example: str1 ="BaseMethod", str2="BaseMember" => result: "BaseMe"
-open_iA_Core_API int GreatestCommonPrefixLength(QString const & str1, QString const & str2);
-open_iA_Core_API QString GreatestCommonPrefix(QString const & str1, QString const & str2);
+open_iA_Core_API int greatestCommonPrefixLength(QString const & str1, QString const & str2);
+open_iA_Core_API QString greatestCommonPrefix(QString const & str1, QString const & str2);
 
-open_iA_Core_API int GreatestCommonSuffixLength(QString const & str1, QString const & str2);
-open_iA_Core_API QString GreatestCommonSuffix(QString const & str1, QString const & str2);
+open_iA_Core_API int greatestCommonSuffixLength(QString const & str1, QString const & str2);
+open_iA_Core_API QString greatestCommonSuffix(QString const & str1, QString const & str2);

@@ -1562,7 +1562,7 @@ bool iAIO::setupStackReader( QString f )
 		}
 		else
 		{
-			m_fileNamesBase = GreatestCommonPrefix(m_fileNamesBase, imgFileInfo.absoluteFilePath());
+			m_fileNamesBase = greatestCommonPrefix(m_fileNamesBase, imgFileInfo.absoluteFilePath());
 		}
 	}
 	int baseLength = m_fileNamesBase.length();

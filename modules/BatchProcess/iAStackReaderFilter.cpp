@@ -67,7 +67,7 @@ void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters
 		}
 		else
 		{
-			fileNamesBase = GreatestCommonPrefix(fileNamesBase, imgFileInfo.absoluteFilePath());
+			fileNamesBase = greatestCommonPrefix(fileNamesBase, imgFileInfo.absoluteFilePath());
 		}
 	}
 	int baseLength = fileNamesBase.length();

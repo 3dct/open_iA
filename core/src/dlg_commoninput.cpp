@@ -220,7 +220,7 @@ void dlg_commoninput::SelectFilter()
 				case Continuous:
 					paramStr += paramValues[param->name()].toString(); break;
 				default:
-					paramStr += QuoteString(paramValues[param->name()].toString()); break;
+					paramStr += quoteString(paramValues[param->name()].toString()); break;
 				}
 
 			}

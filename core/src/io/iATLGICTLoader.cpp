@@ -139,7 +139,7 @@ void iATLGICTLoader::run()
 			}
 			else
 			{
-				fileNameBase = GreatestCommonPrefix(fileNameBase, imgFileInfo.absoluteFilePath());
+				fileNameBase = greatestCommonPrefix(fileNameBase, imgFileInfo.absoluteFilePath());
 			}
 		}
 		int baseLength = fileNameBase.length();

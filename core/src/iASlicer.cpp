@@ -1340,7 +1340,7 @@ namespace
 {
 	const int MaxNameLength = 20;
 
-	QString GetSlicerCoordString(int coord1, int coord2, int coord3, int mode)
+	QString slicerCoordString(int coord1, int coord2, int coord3, int mode)
 	{
 		switch (mode) {
 		default:
@@ -1350,7 +1350,7 @@ namespace
 		}
 	}
 
-	QString GetFilePixel(MdiChild* tmpChild, iASlicer* slicer, double slicerX, double slicerY, int thirdCoord, int mode)
+	QString filePixel(MdiChild* tmpChild, iASlicer* slicer, double slicerX, double slicerY, int thirdCoord, int mode)
 	{
 		// TODO: find out what "mouseCoord" exactly means - pixel coordinates or image coordinates? differentiate scene coordinates / each images pixel coordinates
 		auto reslicer = slicer->channel(0)->reslicer();
@@ -1364,8 +1364,8 @@ namespace
 		}
 		QString file = tmpChild->fileInfo().fileName();
 		return QString("%1 [%2]: %3\n")
-			.arg(PadOrTruncate(file, MaxNameLength))
-			.arg(GetSlicerCoordString(slicerX, slicerY, thirdCoord, mode))
+			.arg(padOrTruncate(file, MaxNameLength))
+			.arg(slicerCoordString(slicerX, slicerY, thirdCoord, mode))
 			.arg(inRange ? QString::number(tmpPix) : "exceeds img. dim.");
 	}
 }
@@ -1425,7 +1425,7 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 			valueStr += QString::number(value);
 		}
 		strDetails += QString("%1 [%2 %3 %4]: %5\n")
-			.arg(PadOrTruncate(channel->name(), MaxNameLength))
+			.arg(padOrTruncate(channel->name(), MaxNameLength))
 			.arg(static_cast<int>(xCoord)).arg(static_cast<int>(yCoord)).arg(static_cast<int>(zCoord))
 			.arg(valueStr);
 	}
@@ -1451,21 +1451,21 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 				tmpChild->slicer(iASlicerMode::XY)->setIndex(tmpX, tmpY, tmpZ);
 				tmpChild->slicerDockWidget(iASlicerMode::XY)->sbSlice->setValue(tmpZ);
 				tmpChild->slicer(iASlicerMode::XY)->update();
-				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::XY), tmpX, tmpY, tmpZ, m_mode);
+				strDetails += filePixel(tmpChild, tmpChild->slicer(iASlicerMode::XY), tmpX, tmpY, tmpZ, m_mode);
 				break;
 			case iASlicerMode::YZ://YZ
 				tmpChild->slicer(iASlicerMode::YZ)->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
 				tmpChild->slicer(iASlicerMode::YZ)->setIndex(tmpX, tmpY, tmpZ);
 				tmpChild->slicerDockWidget(iASlicerMode::YZ)->sbSlice->setValue(tmpX);
 				tmpChild->slicer(iASlicerMode::YZ)->update();
-				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::YZ), tmpY, tmpZ, tmpX, m_mode);
+				strDetails += filePixel(tmpChild, tmpChild->slicer(iASlicerMode::YZ), tmpY, tmpZ, tmpX, m_mode);
 				break;
 			case iASlicerMode::XZ://XZ
 				tmpChild->slicer(iASlicerMode::XZ)->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
 				tmpChild->slicer(iASlicerMode::XZ)->setIndex(tmpX, tmpY, tmpZ);
 				tmpChild->slicerDockWidget(iASlicerMode::XZ)->sbSlice->setValue(tmpY);
 				tmpChild->slicer(iASlicerMode::XZ)->update();
-				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::XZ), tmpX, tmpZ, tmpY, m_mode);
+				strDetails += filePixel(tmpChild, tmpChild->slicer(iASlicerMode::XZ), tmpX, tmpZ, tmpY, m_mode);
 				break;
 			default://ERROR
 				break;

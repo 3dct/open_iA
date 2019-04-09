@@ -201,8 +201,8 @@ void iAModality::setRenderer(QSharedPointer<iAVolumeRenderer> renderer)
 	}
 	double position[3];
 	double orientation[3];
-	if (!Str2Vec3D(m_orientationSettings, orientation) ||
-		!Str2Vec3D(m_positionSettings, position))
+	if (!str2Vec3D(m_orientationSettings, orientation) ||
+		!str2Vec3D(m_positionSettings, position))
 	{
 		return;
 	}
@@ -249,12 +249,12 @@ void iAModality::setStringSettings(QString const & pos, QString const & ori, QSt
 
 QString iAModality::orientationString()
 {
-	return m_renderer ? Vec3D2String(m_renderer->orientation()) : QString();
+	return m_renderer ? vec3D2String(m_renderer->orientation()) : QString();
 }
 
 QString iAModality::positionString()
 {
-	return m_renderer ? Vec3D2String(m_renderer->position()) : QString();
+	return m_renderer ? vec3D2String(m_renderer->position()) : QString();
 }
 
 void iAModality::computeHistogramData(size_t numBin)

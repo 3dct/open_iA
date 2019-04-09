@@ -2178,10 +2178,10 @@ void MdiChild::addProfile()
 	}
 	m_renderer->setArbitraryProfile(0, start);
 	m_renderer->setArbitraryProfile(1, end);
-	m_profileProbe->UpdateProbe(0, start);
-	m_profileProbe->UpdateProbe(1, end);
-	m_profileProbe->UpdateData();
-	m_dwProfile = new dlg_profile(this, m_profileProbe->profileData, m_profileProbe->GetRayLength());
+	m_profileProbe->updateProbe(0, start);
+	m_profileProbe->updateProbe(1, end);
+	m_profileProbe->updateData();
+	m_dwProfile = new dlg_profile(this, m_profileProbe->m_profileData, m_profileProbe->rayLength());
 	tabifyDockWidget(m_dwLog, m_dwProfile);
 	connect(m_dwProfile->profileMode, SIGNAL(toggled(bool)), this, SLOT(toggleArbitraryProfile(bool)));
 }
@@ -2198,14 +2198,14 @@ void MdiChild::updateProbe( int ptIndex, double * newPos )
 {
 	if (m_imageData->GetNumberOfScalarComponents() != 1) //No profile for rgb, rgba or vector pixel type images
 		return;
-	m_profileProbe->UpdateProbe(ptIndex, newPos);
+	m_profileProbe->updateProbe(ptIndex, newPos);
 	updateProfile();
 }
 
 void MdiChild::updateProfile()
 {
-	m_profileProbe->UpdateData();
-	m_dwProfile->profileWidget->initialize(m_profileProbe->profileData, m_profileProbe->GetRayLength());
+	m_profileProbe->updateData();
+	m_dwProfile->profileWidget->initialize(m_profileProbe->m_profileData, m_profileProbe->rayLength());
 	m_dwProfile->profileWidget->update();
 }
 
