@@ -64,7 +64,7 @@ iADiagramFctWidget::~iADiagramFctWidget()
 		delete fct;
 }
 
-int iADiagramFctWidget::getSelectedFuncPoint() const
+int iADiagramFctWidget::selectedFuncPoint() const
 {
 	auto it = m_functions.begin();
 	if (it == m_functions.end())
@@ -393,14 +393,14 @@ void iADiagramFctWidget::loadTransferFunction()
 	if (!fileName.isEmpty())
 	{
 		iASettings s(fileName);
-		s.LoadTransferFunction((dlg_transfer*)m_functions[0]);
+		s.loadTransferFunction((dlg_transfer*)m_functions[0]);
 		newTransferFunction();
 	}
 }
 
 void iADiagramFctWidget::loadTransferFunction(QDomNode &functionsNode)
 {
-	iASettings::LoadTransferFunction(functionsNode, (dlg_transfer*)m_functions[0]);
+	iASettings::loadTransferFunction(functionsNode, (dlg_transfer*)m_functions[0]);
 	newTransferFunction();
 }
 
@@ -412,8 +412,8 @@ void iADiagramFctWidget::saveTransferFunction()
 	if (!fileName.isEmpty())
 	{
 		iASettings s;
-		s.StoreTransferFunction(transferFunction);
-		s.Save(fileName);
+		s.storeTransferFunction(transferFunction);
+		s.save(fileName);
 	}
 }
 
@@ -527,7 +527,7 @@ void iADiagramFctWidget::setTransferFunctions(vtkColorTransferFunction* ctf, vtk
 	newTransferFunction();
 }
 
-dlg_function *iADiagramFctWidget::getSelectedFunction()
+dlg_function *iADiagramFctWidget::selectedFunction()
 {
 	return m_functions[m_selectedFunction];
 }

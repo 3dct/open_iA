@@ -30,7 +30,7 @@ typedef int iAVoxelIndexType;
 struct open_iA_Core_API iAImageCoordinate
 {
 public:
-	enum IndexOrdering
+	enum iAIndexOrdering
 	{
 		RowColDepMajor, // x, y(, z)
 		ColRowDepMajor, // y, x(, z)
@@ -42,40 +42,36 @@ public:
 
 bool operator==(iAImageCoordinate const & a, iAImageCoordinate const & b);
 
-/**
- * \brief Conversion utilty class
- *
- * This class converts from a up to 3-dimensional image index (x, y, z) to a "flat" index
- */
+//! Utility class for converting (2D/)3D indices to a flat (1D) index 
 class open_iA_Core_API iAImageCoordConverter
 {
 public:
 	iAImageCoordConverter(iAVoxelIndexType width,
 		iAVoxelIndexType height,
 		iAVoxelIndexType depth=1,
-		iAImageCoordinate::IndexOrdering ordering=iAImageCoordinate::RowColDepMajor
+		iAImageCoordinate::iAIndexOrdering ordering=iAImageCoordinate::RowColDepMajor
 	);
-	iAImageCoordinate GetCoordinatesFromIndex(iAVoxelIndexType index) const;
-	iAVoxelIndexType GetIndexFromCoordinates(iAImageCoordinate coords) const;
-	iAVoxelIndexType GetVertexCount() const;
-	static iAImageCoordinate GetCoordinatesFromIndex(
+	iAImageCoordinate coordinatesFromIndex(iAVoxelIndexType index) const;
+	iAVoxelIndexType indexFromCoordinates(iAImageCoordinate coords) const;
+	iAVoxelIndexType vertexCount() const;
+	static iAImageCoordinate coordinatesFromIndex(
 		iAVoxelIndexType index,
 		iAVoxelIndexType width,
 		iAVoxelIndexType height,
 		iAVoxelIndexType depth,
-		iAImageCoordinate::IndexOrdering ordering);
-	static iAVoxelIndexType GetIndexFromCoordinates(
+		iAImageCoordinate::iAIndexOrdering ordering);
+	static iAVoxelIndexType indexFromCoordinates(
 		iAImageCoordinate coords,
 		iAVoxelIndexType width,
 		iAVoxelIndexType height,
 		iAVoxelIndexType depth,
-		iAImageCoordinate::IndexOrdering ordering);
-	iAVoxelIndexType GetWidth() const;
-	iAVoxelIndexType GetHeight() const;
-	iAVoxelIndexType GetDepth() const;
+		iAImageCoordinate::iAIndexOrdering ordering);
+	iAVoxelIndexType width() const;
+	iAVoxelIndexType height() const;
+	iAVoxelIndexType depth() const;
 private:
 	iAVoxelIndexType m_width;
 	iAVoxelIndexType m_height;
 	iAVoxelIndexType m_depth;
-	iAImageCoordinate::IndexOrdering m_ordering;
+	iAImageCoordinate::iAIndexOrdering m_ordering;
 };

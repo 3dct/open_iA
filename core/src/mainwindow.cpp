@@ -2029,11 +2029,22 @@ void MainWindow::setCurrentFile(const QString &fileName)
 
 	settings.setValue("recentFileList", files);
 
-	foreach (QWidget *widget, QApplication::topLevelWidgets()) {
-		MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
-		if (mainWin)
-			mainWin->updateRecentFileActions();
-	}
+	updateRecentFileActions();
+}
+
+QString const & MainWindow::currentFile()
+{
+	return m_curFile;
+}
+
+void MainWindow::setPath(QString p)
+{
+	m_path = p;
+}
+
+QString const & MainWindow::path()
+{
+	return m_path;
 }
 
 void MainWindow::updateRecentFileActions()
@@ -2422,7 +2433,7 @@ void MainWindow::openTLGICTData()
 	QString baseDirectory = QFileDialog::getExistingDirectory(
 		this,
 		tr("Open Talbot-Lau Grating Interferometer CT Dataset"),
-		getPath(),
+		path(),
 		QFileDialog::ShowDirsOnly);
 	loadTLGICTData(baseDirectory);
 }

@@ -40,7 +40,7 @@ void iAGPU_DreamcasterToolModuleInterface::Initialize()
 
 void iAGPU_DreamcasterToolModuleInterface::dreamcasterOpenFile()
 {
-	QString fileName = QFileDialog::getOpenFileName( m_mainWnd, tr( "Open File" ), m_mainWnd->getPath(), tr( "STL files (*.stl)" ) );
+	QString fileName = QFileDialog::getOpenFileName( m_mainWnd, tr( "Open File" ), m_mainWnd->path(), tr( "STL files (*.stl)" ) );
 	if( (QFileInfo( fileName ).suffix() == "stl") || (QFileInfo( fileName ).suffix() == "STL") )
 	{
 		DreamCaster *child = new DreamCaster( m_mainWnd );

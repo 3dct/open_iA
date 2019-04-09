@@ -298,7 +298,7 @@ void iAPorosityAnalyserModuleInterface::saveCSV()
 void iAPorosityAnalyserModuleInterface::browseCSV()
 {
 	QString csvFile = QFileDialog::getOpenFileName( m_mainWnd, tr( "Computation Parameters File (CSV)" ),
-		m_mainWnd->getPath(), tr( "CSV Files (*.csv *.CSV)" ) );
+		m_mainWnd->path(), tr( "CSV Files (*.csv *.CSV)" ) );
 	uiComputeSegm.csvFilename->setText( csvFile );
 	m_csvFile = csvFile;
 	loadCSV();

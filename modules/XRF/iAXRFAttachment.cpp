@@ -85,7 +85,7 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, MdiChild * child ) : iAM
 	if( extensionToIdStack.find( extension ) == extensionToIdStack.end() )
 		throw itk::ExceptionObject(__FILE__, __LINE__, "Unsupported extension");
 
-	IOType id = extensionToIdStack.find( extension ).value();
+	iAIOType id = extensionToIdStack.find( extension ).value();
 	if( !ioThread->setupIO( id, f ) )
 	{
 		xrfLoadingFailed();

@@ -30,7 +30,7 @@
 const QString organisationName = "FHW";
 const QString applicationName = "open_iA";
 
-enum IOType
+enum iAIOType
 {
 	UNKNOWN_READER,
 	MHD_READER,

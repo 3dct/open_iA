@@ -51,7 +51,7 @@ void dlg_gaussian::draw(QPainter &painter)
 
 void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 {
-	bool active = (chart->getSelectedFunction() == this);
+	bool active = (chart->selectedFunction() == this);
 	// draw line
 	QPen pen = painter.pen();
 	pen.setColor(color);

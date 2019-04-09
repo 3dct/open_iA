@@ -230,7 +230,7 @@ std::vector<iAFunction<size_t, unsigned int> *> const & iAAccumulatedXRFData::sp
 void iAAccumulatedXRFData::calculateFunctionBoxplots()
 {
 	assert(!m_functionalBoxplotData);
-	ModifiedDepthMeasure<size_t, unsigned int> measure;
+	iAModifiedDepthMeasure<size_t, unsigned int> measure;
 	std::vector<iAFunction<size_t, unsigned int> *> functions = spectrumFunctions();
 	m_functionalBoxplotData = new iAFunctionalBoxplot<size_t, unsigned int>(
 		functions, &measure, 2);

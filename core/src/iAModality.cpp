@@ -107,19 +107,19 @@ void iAModality::setRenderFlag(int renderFlags)
 int iAModality::width() const
 {
 	assert(m_converter);
-	return m_converter->GetWidth();
+	return m_converter->width();
 }
 
 int iAModality::height() const
 {
 	assert(m_converter);
-	return m_converter->GetHeight();
+	return m_converter->height();
 }
 
 int iAModality::depth() const
 {
 	assert(m_converter);
-	return m_converter->GetDepth();
+	return m_converter->depth();
 }
 
 double const * iAModality::spacing() const
@@ -183,7 +183,7 @@ int iAModality::renderFlags() const
 void iAModality::loadTransferFunction()
 {
 	iASettings s(m_tfFileName);
-	s.LoadTransferFunction(transfer().data());
+	s.loadTransferFunction(transfer().data());
 }
 
 QSharedPointer<iAModalityTransfer> iAModality::transfer()

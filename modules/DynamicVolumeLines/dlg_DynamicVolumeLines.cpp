@@ -405,7 +405,7 @@ void dlg_DynamicVolumeLines::visualize()
 			linearFCPFunctions.push_back(funct);
 			m_linearScaledPlot->graph()->setData(linearScaledPlotData);
 		}
-		ModifiedDepthMeasure<double, double> l_measure;
+		iAModifiedDepthMeasure<double, double> l_measure;
 		auto l_functionalBoxplotData = new iAFunctionalBoxplot<double, double>(linearFCPFunctions, &l_measure, 2);
 		setupFBPGraphs(m_linearScaledPlot, l_functionalBoxplotData);
 	}
@@ -465,7 +465,7 @@ void dlg_DynamicVolumeLines::visualize()
 		m_nonlinearScaledPlot->graph()->setData(nonlinearScaledPlotData);
 	}
 
-	ModifiedDepthMeasure<double, double> nl_measure;
+	iAModifiedDepthMeasure<double, double> nl_measure;
 	auto nonlinearFBPData = new iAFunctionalBoxplot<double, double>(nonlinearFCPFunctions, &nl_measure, 2);
 	setupFBPGraphs(m_nonlinearScaledPlot, nonlinearFBPData);
 	

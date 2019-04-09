@@ -475,7 +475,7 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 		DEBUG_LOG(QString("Could not find loader for extension '%1' of file '%2'!").arg(extension).arg(f));
 		return false;
 	}
-	IOType id = ext2id->find( extension ).value();
+	iAIOType id = ext2id->find( extension ).value();
 	return m_ioThread->setupIO(id, f);
 }
 
@@ -491,8 +491,7 @@ bool MdiChild::loadRaw(const QString &f)
 	connect(m_ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	m_polyData->ReleaseData();
 	m_imageData->ReleaseData();
-	IOType id = RAW_READER;
-	if (!m_ioThread->setupIO(id, f))
+	if (!m_ioThread->setupIO(RAW_READER, f))
 	{
 		ioFinished();
 		return false;
@@ -874,7 +873,7 @@ bool MdiChild::setupSaveIO(QString const & f)
 			}
 			else
 			{
-				QMap<IOType, QVector<int> > supportedPixelTypes;
+				QMap<iAIOType, QVector<int> > supportedPixelTypes;
 				QVector<int> tiffSupported;
 				tiffSupported.push_back(VTK_UNSIGNED_CHAR);
 				tiffSupported.push_back(VTK_UNSIGNED_SHORT);
@@ -891,7 +890,7 @@ bool MdiChild::setupSaveIO(QString const & f)
 				{
 					return false;
 				}
-				IOType ioID = extensionToSaveId[suffix];
+				iAIOType ioID = extensionToSaveId[suffix];
 				if (supportedPixelTypes.contains(ioID) &&
 					!supportedPixelTypes[ioID].contains(m_imageData->GetScalarType()))
 				{
@@ -1441,7 +1440,7 @@ void MdiChild::changeColor()
 int MdiChild::selectedFuncPoint()
 {
 	if (!m_histogram) return -1;
-	return m_histogram->getSelectedFuncPoint();
+	return m_histogram->selectedFuncPoint();
 }
 
 int MdiChild::isFuncEndPoint(int index)

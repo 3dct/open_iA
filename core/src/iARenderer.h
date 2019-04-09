@@ -147,6 +147,7 @@ public:
 	
 	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
 	void emitNoSelectedCells();
+
 private:
 	void initObserver();
 
@@ -215,8 +216,6 @@ private:
 	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
 	//! @}
 
-	 
-
 	vtkSmartPointer<vtkCubeSource> m_slicingCube;
 	vtkSmartPointer<vtkPolyDataMapper> m_sliceCubeMapper;
 	vtkSmartPointer<vtkActor> m_sliceCubeActor;
@@ -228,6 +227,7 @@ public slots:
 	void mouseLeftButtonReleasedSlot();
 	void setArbitraryProfile(int pointIndex, double * coords);
 	void setArbitraryProfileOn(bool isOn);
+
 Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);

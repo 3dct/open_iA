@@ -27,6 +27,7 @@
 class dlg_transfer;
 class iATransferFunction;
 
+//! Class for loading and storing transfer functions to/from XML documents
 class open_iA_Core_API iASettings
 {
 private:
@@ -34,10 +35,10 @@ private:
 public:
 	iASettings();
 	iASettings(QString const & filename);
-	void LoadTransferFunction(iATransferFunction* transferFunction);
-	void StoreTransferFunction(iATransferFunction* transferFunction);
-	static void LoadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction);
-	void Save(QString const & fileName);
+	void loadTransferFunction(iATransferFunction* transferFunction);
+	void storeTransferFunction(iATransferFunction* transferFunction);
+	static void loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction);
+	void save(QString const & fileName);
 private:
 	void removeNode(QString const & str);
 };

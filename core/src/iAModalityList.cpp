@@ -200,8 +200,8 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
 		settings.setValue(GetModalityKey(i, "TransferFunction"), tfFileName);
 		iASettings s;
-		s.StoreTransferFunction(m_modalitiesActive[i]->transfer().data());
-		s.Save(absoluteTFFileName);
+		s.storeTransferFunction(m_modalitiesActive[i]->transfer().data());
+		s.save(absoluteTFFileName);
 	}
 }
 
@@ -398,7 +398,7 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 			DEBUG_LOG("Unknown file type!");
 			return result;
 		}
-		IOType id = ext2id->find(extension).value();
+		iAIOType id = ext2id->find(extension).value();
 		if (!io.setupIO(id, filename, false, channel))
 		{
 			DEBUG_LOG("Error while setting up modality loading!");

@@ -123,7 +123,6 @@ void read_raw_image_template (unsigned long headerSize,
 	reader->ReleaseDataFlagOn();
 }
 
-
 template<class T>
 void read_image_template(QString const & fileName, iAProgress* progress, iAConnector* con  )
 {
@@ -137,7 +136,6 @@ void read_image_template(QString const & fileName, iAProgress* progress, iAConne
 	con->modified();
 	reader->ReleaseDataFlagOn();
 }
-
 
 template<class T>
 void write_image_template(bool compression, QString const & fileName,
@@ -154,7 +152,6 @@ void write_image_template(bool compression, QString const & fileName,
 	writer->ReleaseDataFlagOn();
 }
 
-
 iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *par,
 		std::vector<vtkSmartPointer<vtkImageData> > * volumes, std::vector<QString> * fileNames)
 	: iAAlgorithm( "IO", i, p, logger, par ),
@@ -163,7 +160,6 @@ iAIO::iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *par,
 {
 	init(par);
 }
-
 
 iAIO::iAIO( iALogger* logger, QWidget *par /*= 0*/, std::vector<vtkSmartPointer<vtkImageData> > * volumes /*= 0*/,
 		std::vector<QString> * fileNames /*= 0*/ )
@@ -174,7 +170,6 @@ iAIO::iAIO( iALogger* logger, QWidget *par /*= 0*/, std::vector<vtkSmartPointer<
 	init(par);
 }
 
-
 iAIO::iAIO(QSharedPointer<iAModalityList> modalities, vtkCamera* cam, iALogger* logger):
 	iAAlgorithm( "IO", nullptr, nullptr, logger, nullptr ),
 	m_modalities(modalities),
@@ -182,7 +177,6 @@ iAIO::iAIO(QSharedPointer<iAModalityList> modalities, vtkCamera* cam, iALogger* 
 {
 	init(nullptr);
 }
-
 
 void iAIO::init(QWidget *par)
 {
@@ -198,7 +192,6 @@ void iAIO::init(QWidget *par)
 	m_ioID = 0;
 	loadIOSettings();
 }
-
 
 iAIO::~iAIO()
 {
@@ -705,10 +698,7 @@ bool IsHDF5ITKImage(hid_t file_id)
 typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 #endif
 
-/**
- * \return	true if it succeeds, false if it fails.
- */
-bool iAIO::setupIO( IOType type, QString f, bool c, int channel)
+bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 {
 	m_ioID = type;
 	m_channel = channel;
@@ -875,10 +865,6 @@ void iAIO::readNRRD()
 }
 */
 
-
-/**
- * \brief	This function reads a series of DICOM images.
- */
 void iAIO::readDCM()
 {
 	typedef signed short PixelType;
@@ -918,7 +904,6 @@ void iAIO::readDCM()
 	storeIOSettings();
 }
 
-
 void iAIO::loadMetaImageFile(QString const & fileName)
 {
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
@@ -933,7 +918,6 @@ void iAIO::loadMetaImageFile(QString const & fileName)
 	ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType,
 		fileName, ProgressObserver(), getConnector());
 }
-
 
 void iAIO::readVTKFile()
 {
@@ -969,19 +953,11 @@ void iAIO::readVTKFile()
 		else {
 			addMsg("This type of vtk format is currently not supported"); 
 		}
-
-
 	/*	else {
 			vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New(); 
 			reader->getOut
 		}*/
-
-
-
 		addMsg(tr("File loaded."));
-
-		
-
 }
 
 void iAIO::readVolumeMHDStack()
@@ -1009,7 +985,6 @@ void iAIO::readVolumeMHDStack()
 	storeIOSettings();
 }
 
-
 void iAIO::readVolumeStack()
 {
 	for (int m=0; m<= m_fileNameArray->GetMaxId(); m++)
@@ -1028,7 +1003,6 @@ void iAIO::readVolumeStack()
 	addMsg(tr("Loading volume stack completed."));
 	storeIOSettings();
 }
-
 
 void iAIO::writeVolumeStack()
 {
@@ -1059,13 +1033,11 @@ void iAIO::writeVolumeStack()
 	}
 }
 
-
 void iAIO::readRawImage()
 {
 	VTK_TYPED_CALL(read_raw_image_template, m_scalarType, m_headersize, m_byteOrder,
 		m_extent, m_spacing, m_origin, m_fileName, ProgressObserver(), getConnector());
 }
-
 
 void iAIO::postImageReadActions()
 {
@@ -1076,7 +1048,6 @@ void iAIO::postImageReadActions()
 	addMsg(tr("File loaded."));
 }
 
-
 void iAIO::readImageData()
 {
 	readRawImage();
@@ -1084,13 +1055,11 @@ void iAIO::readImageData()
 	storeIOSettings();
 }
 
-
 void iAIO::readMetaImage( )
 {
 	loadMetaImageFile(m_fileName);
 	postImageReadActions();
 }
-
 
 void iAIO::readSTL( )
 {
@@ -1102,7 +1071,6 @@ void iAIO::readSTL( )
 	printSTLFileInfos();
 	addMsg(tr("File loaded."));
 }
-
 
 bool iAIO::setupVolumeStackMHDReader(QString f)
 {
@@ -1132,7 +1100,6 @@ bool iAIO::setupVolumeStackMHDReader(QString f)
 	fillFileNameArray(indexRange, digitsInIndex);
 	return true;
 }
-
 
 QString getParameterValues(QString fileName, QString parameter, int index, QString section = "", QString sep = ":")
 {
@@ -1186,7 +1153,6 @@ QString getParameterValues(QString fileName, QString parameter, int index, QStri
 	return values[index];
 }
 
-
 bool iAIO::setupVolumeStackVolstackReader( QString f )
 {
 	QFileInfo fi(f);
@@ -1206,7 +1172,6 @@ bool iAIO::setupVolumeStackVolstackReader( QString f )
 	return true;
 }
 
-
 bool iAIO::setupVolumeStackVolStackWriter(QString f)
 {
 	int numOfDigits = static_cast<int>(std::floor(std::log10(static_cast<double>(m_volumes->size()))) + 1);
@@ -1223,7 +1188,6 @@ bool iAIO::setupVolumeStackVolStackWriter(QString f)
 	fillFileNameArray(indexRange, numOfDigits);
 	return true;
 }
-
 
 void iAIO::fillFileNameArray(int * indexRange, int digitsInIndex, int stepSize)
 {
@@ -1259,7 +1223,6 @@ unsigned int mapVTKTypeToIdx(unsigned int vtkScalarType)
 		case VTK_DOUBLE: return 7;
 	}
 }
-
 
 bool iAIO::setupVolumeStackReader(QString f)
 {
@@ -1327,7 +1290,6 @@ bool iAIO::setupVolumeStackReader(QString f)
 	return true;
 }
 
-
 bool iAIO::setupRAWReader( QString f )
 {
 	QStringList datatype(vtkDataTypeList());
@@ -1379,7 +1341,6 @@ bool iAIO::setupRAWReader( QString f )
 	return true;
 }
 
-
 bool iAIO::setupPARSReader( QString f )
 {
 	m_extent[0] = 0; m_extent[1] = getParameterValues(f,"det_size:", 0).toInt()-1;
@@ -1417,7 +1378,6 @@ bool iAIO::setupPARSReader( QString f )
 
 	return true;
 }
-
 
 bool iAIO::setupVGIReader( QString f )
 {
@@ -1487,7 +1447,6 @@ bool iAIO::setupVGIReader( QString f )
 	return true;
 }
 
-
 void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fileName )
 {
 	iAConnector con; con.setImage(imgToWrite); con.modified();
@@ -1497,7 +1456,6 @@ void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fil
 		m_compression, fileName, ProgressObserver(), &con);
 	addMsg(tr("Saved as file '%1'.").arg(fileName));
 }
-
 
 void iAIO::writeSTL( )
 {
@@ -1510,7 +1468,6 @@ void iAIO::writeSTL( )
 	addMsg(tr("Saved as file '%1'.").arg(m_fileName));
 	stlWriter->ReleaseDataFlagOn();
 }
-
 
 template <typename T>
 void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnector* con, bool comp)
@@ -1558,7 +1515,6 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 	p->Observe(writer);
 	writer->Update();
 }
-
 
 void iAIO::writeImageStack( )
 {
@@ -1678,7 +1634,6 @@ bool iAIO::setupStackReader( QString f )
 	return true;
 }
 
-
 void iAIO::readImageStack()
 {
 	vtkSmartPointer<vtkImageReader2> imgReader;
@@ -1701,7 +1656,6 @@ void iAIO::readImageStack()
 	addMsg(tr("Loading image stack completed."));
 }
 
-
 void iAIO::storeIOSettings()
 {
 	QSettings settings;
@@ -1718,7 +1672,6 @@ void iAIO::storeIOSettings()
 	settings.setValue("IO/rawByte", m_rawByteOrder);
 	settings.setValue("IO/rawHeader", m_rawHeaderSize);
 }
-
 
 void iAIO::loadIOSettings()
 {
@@ -1737,7 +1690,6 @@ void iAIO::loadIOSettings()
 	m_rawHeaderSize = settings.value("IO/rawHeader").toInt();
 }
 
-
 void iAIO::printSTLFileInfos()
 {
 	// TODO: show this information in img properties instead of log
@@ -1749,20 +1701,17 @@ void iAIO::printSTLFileInfos()
 	addMsg(tr("  Pieces: %1").arg(getVtkPolyData()->GetNumberOfPieces()));
 }
 
-
-QString iAIO::additionalInfo()
+QString const & iAIO::additionalInfo()
 {
 	return m_additionalInfo;
 }
-
 
 void iAIO::setAdditionalInfo(QString const & additionalInfo)
 {
 	m_additionalInfo = additionalInfo;
 }
 
-
-QString iAIO::fileName()
+QString const & iAIO::fileName()
 {
 	return m_fileName;
 }

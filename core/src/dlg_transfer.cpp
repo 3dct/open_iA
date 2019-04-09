@@ -55,7 +55,7 @@ dlg_transfer::~dlg_transfer()
 
 void dlg_transfer::draw(QPainter &painter, QColor color, int lineWidth)
 {
-	bool active = (chart->getSelectedFunction() == this);
+	bool active = (chart->selectedFunction() == this);
 
 	QPen pen = painter.pen();
 	pen.setColor(color); pen.setWidth(lineWidth);

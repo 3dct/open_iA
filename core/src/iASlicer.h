@@ -86,7 +86,7 @@ static const int MODE_TO_X_IND[3]	= { 1, 0, 0 };
 static const int MODE_TO_Y_IND[3]	= { 2, 1, 2 };
 static const int MODE_TO_Z_IND[3]	= { 0, 2, 1 };
 
-//! vtk slicer widget
+//! vtk-based slicer widget. "Channels" (i.e. image layers) are inserted via the addChannel method
 class open_iA_Core_API iASlicer : public iAVtkWidget
 {
 	Q_OBJECT

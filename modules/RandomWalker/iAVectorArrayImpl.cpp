@@ -47,7 +47,7 @@ void iAvtkPixelVectorArray::AddImage(vtkSmartPointer<vtkImageData> img)
 
 size_t iAvtkPixelVectorArray::size() const
 {
-	return m_coordConv.GetVertexCount();
+	return m_coordConv.vertexCount();
 }
 
 size_t iAvtkPixelVectorArray::channelCount() const
@@ -62,7 +62,7 @@ QSharedPointer<iAVectorType const> iAvtkPixelVectorArray::get(size_t voxelIdx) c
 
 iAVectorDataType iAvtkPixelVectorArray::get(size_t voxelIdx, size_t channelIdx) const
 {
-	iAImageCoordinate coords = m_coordConv.GetCoordinatesFromIndex(voxelIdx);
+	iAImageCoordinate coords = m_coordConv.coordinatesFromIndex(voxelIdx);
 	iAVectorDataType value = m_images[channelIdx]->GetScalarComponentAsDouble(coords.x, coords.y, coords.z, 0);
 	return value;
 }

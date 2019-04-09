@@ -48,7 +48,7 @@ void dlg_bezier::draw(QPainter &painter)
 
 void dlg_bezier::draw(QPainter &painter, QColor color, int lineWidth)
 {
-	bool active = (chart->getSelectedFunction() == this);
+	bool active = (chart->selectedFunction() == this);
 
 	// draw line
 	QPen pen = painter.pen();

@@ -205,7 +205,7 @@ iADetailView::iADetailView(
 	connect(m_compareWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 	connect(m_previewWidget, SIGNAL(Updated()), this, SIGNAL(ViewUpdated()));
 
-	connect(m_previewWidget->slicer(), SIGNAL(dblClicked()), this, SLOT(DblClicked()));
+	connect(m_previewWidget->slicer(), SIGNAL(dblClicked()), this, SLOT(dblClicked()));
 	connect(m_previewWidget->slicer(), SIGNAL(shiftMouseWheel(int)), this, SLOT(changeModality(int)));
 	connect(m_previewWidget->slicer(), SIGNAL(altMouseWheel(int)), this, SLOT(changeMagicLensOpacity(int)));
 	connect(m_previewWidget->slicer(), SIGNAL(oslicerPos(int, int, int, int)), this, SIGNAL(SlicerHover(int, int, int, int)));
