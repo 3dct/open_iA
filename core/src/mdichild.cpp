@@ -2426,6 +2426,8 @@ bool MdiChild::isVolumeDataLoaded() const
 
 void MdiChild::changeMagicLensModality(int chg)
 {
+	if (!m_isMagicLensEnabled)
+		return;
 	m_currentComponent = (m_currentComponent + chg);
 	if (m_currentComponent < 0 || m_currentComponent >= modality(m_currentModality)->componentCount())
 	{

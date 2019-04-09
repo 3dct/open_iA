@@ -65,7 +65,6 @@ class vtkLogoRepresentation;
 class vtkMarchingContourFilter;
 class vtkObject;
 class vtkPlaneSource;
-class vtkPointPicker;
 class vtkPoints;
 class vtkQImageToImageSource;
 class vtkPolyDataMapper;
@@ -77,6 +76,7 @@ class vtkTextProperty;
 class vtkTextActor3D;
 class vtkThinPlateSplineTransform;
 class vtkTransform;
+class vtkWorldPointPicker;
 
 class QMenu;
 class QWidget;
@@ -309,7 +309,7 @@ protected:
 
 	void updateResliceAxesDirectionCosines();
 	void updateBackground();
-	void printVoxelInformation(double xCoord, double yCoord, double zCoord);
+	void printVoxelInformation();
 	void executeKeyPressEvent();
 	void defaultOutput();
 
@@ -374,7 +374,7 @@ private:
 	vtkCamera * m_camera; // TODO: smart pointer?
 	bool m_cameraOwner;
 	vtkAbstractTransform * m_transform; // TODO: smart pointer?
-	vtkSmartPointer<vtkPointPicker> m_pointPicker;
+	vtkSmartPointer<vtkWorldPointPicker> m_pointPicker;
 	QMap<uint, QSharedPointer<iAChannelSlicerData> > m_channels;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
 	vtkSmartPointer<vtkTextProperty> m_textProperty;
@@ -429,7 +429,11 @@ private:
 	MdiChild* m_linkedMdiChild;  //! main window access for linked mdi childs feature - get rid of this somehow!
 
 	QSharedPointer<iAChannelSlicerData> createChannel(uint id, iAChannelData const & chData);
-	void getMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
+	//! compute the voxel coordinates in the given channel for the current slicer coordinate point.
+	//! @param xCoord x coordinate (pixel index) in channel
+	//! @param yCoord y coordinate (pixel index) in channel
+	//! @param zCoord z coordinate (pixel index) in channel
+	void computeCoords(double & xCoord, double & yCoord, double & zCoord, double* result, uint channelID);
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 };

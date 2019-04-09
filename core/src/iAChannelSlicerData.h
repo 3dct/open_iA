@@ -60,7 +60,8 @@ public:
 	void setTransform(vtkAbstractTransform * transform);
 	void updateReslicer();
 	void updateLUT();
-	QString const & name() const;
+	bool isEnabled() const;        //!< whether this channel is currently shown
+	QString const & name() const;  //!< the name of the channel
 	vtkImageData * input() const;  // TODO: returned vtkImageData should be const
 	vtkImageData * output() const; // TODO: returned vtkImageData should be const
 	vtkImageReslice * reslicer() const; // check if that can be kept private somehow
@@ -99,6 +100,7 @@ private:
 	vtkPiecewiseFunction *          m_oTF;   //! the opacity function - nullptr if not used - should be const (as soon as VTK supports it)
 	QString                         m_name;  //! name of the channel
 	QColor                          m_color; //! color of this channel (TODO: used only for pie charts in XRF module -> move there?)
+	bool                            m_enabled;//! whether this channel is enabled
 
 	//! @{ for contours / iso lines
 	void initContours();    // TODO: contour functionality should be moved into separate class

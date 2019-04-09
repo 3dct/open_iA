@@ -49,7 +49,8 @@ iAChannelSlicerData::iAChannelSlicerData(iAChannelData const & chData, int mode)
 	m_oTF(nullptr),
 	m_contourFilter(vtkSmartPointer<vtkMarchingContourFilter>::New()),
 	m_contourMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_contourActor(vtkSmartPointer<vtkActor>::New())
+	m_contourActor(vtkSmartPointer<vtkActor>::New()),
+	m_enabled(false)
 {
 	m_reslicer->SetOutputDimensionality(2);
 	m_reslicer->SetInterpolationModeToCubic();
@@ -179,6 +180,11 @@ void iAChannelSlicerData::updateReslicer()
 	m_reslicer->Update();
 }
 
+bool iAChannelSlicerData::isEnabled() const
+{
+	return m_enabled;
+}
+
 QString const & iAChannelSlicerData::name() const
 {
 	return m_name;
@@ -227,6 +233,7 @@ void iAChannelSlicerData::setInterpolate(bool interpolate)
 
 void iAChannelSlicerData::setEnabled(vtkRenderer* ren, bool enable)
 {
+	m_enabled = enable;
 	if (enable)
 		ren->AddActor(m_imageActor);
 	else
