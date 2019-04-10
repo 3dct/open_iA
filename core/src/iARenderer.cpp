@@ -225,6 +225,7 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_interactor(nullptr),
 	m_renderObserver(nullptr),
+	m_imageData(nullptr),
 	m_renWin(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),		// TODO: move out of here?
 	m_cam(vtkSmartPointer<vtkCamera>::New()),
 	m_cSource(vtkSmartPointer<vtkCubeSource>::New()),
@@ -336,9 +337,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	m_interactor->Initialize();
 
 	// setup cube source
-	m_cSource->SetXLength(m_ext * spacing[0]);
-	m_cSource->SetYLength(m_ext * spacing[1]);
-	m_cSource->SetZLength(m_ext * spacing[2]);
+	updatePositionMarkerExtent();
 	m_cMapper->SetInputConnection(m_cSource->GetOutputPort());
 	m_cActor->SetMapper(m_cMapper);
 	m_cActor->GetProperty()->SetColor(1,0,0);
@@ -440,6 +439,7 @@ void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
 			m_cellLocator->BuildLocator();
 	}
 	m_ext = e;
+	updatePositionMarkerExtent();
 	m_polyMapper->SetInputData(m_polyData);
 
 	m_renderObserver->ReInitialize(m_ren, m_labelRen, m_interactor, m_pointPicker,
@@ -704,7 +704,21 @@ void iARenderer::setCamera(vtkCamera* c)
 }
 vtkCamera* iARenderer::camera() { return m_cam; }
 
-void iARenderer::setStatExt(int s) { m_ext = s; }
+void iARenderer::setStatExt(int s)
+{
+	m_ext = s;
+	updatePositionMarkerExtent();
+}
+
+void iARenderer::updatePositionMarkerExtent()
+{
+	if (!m_imageData)
+		return;
+	double const * spacing = m_imageData->GetSpacing();
+	m_cSource->SetXLength(m_ext * spacing[0]);
+	m_cSource->SetYLength(m_ext * spacing[1]);
+	m_cSource->SetZLength(m_ext * spacing[2]);
+}
 
 void iARenderer::setSlicePlaneOpacity(float opc)
 {
@@ -897,20 +911,15 @@ void iARenderer::setAxesTransform(vtkTransform *transform) { m_moveableAxesTrans
 vtkTransform * iARenderer::axesTransform(void) { return m_moveableAxesTransform; }
 iARenderObserver * iARenderer::getRenderObserver() { return m_renderObserver; }
 
-
-//spacing is an array of 3 
 void iARenderer::setSlicingBounds(const int roi[6], const double * spacing)
 {
-	double x_min, xMax, yMin, yMax, zMin, zMax; 
-	/* roi[6]:  xmin, xsize, ymin, ysize, zmin, zSize;
-	*	roi[0] : x; roi[1]: y, roi[2]-> z; roy[3] -> xzise, roi[4] ysize, roi[5] -> zSize
-	*/
-	
-	x_min = roi[0] *  spacing[0]; yMin = roi[1] * spacing[1]; zMin = roi[2] *spacing[2];
-	xMax = x_min + roi[3] * spacing[0]; 
-	yMax = yMin + roi[4] * spacing[1]; 
-	zMax = zMin + roi[5] * spacing[2];
-	m_slicingCube->SetBounds(x_min, xMax, yMin, yMax, zMin, zMax);
+	double xMin = roi[0] * spacing[0],
+	       yMin = roi[1] * spacing[1],
+	       zMin = roi[2] * spacing[2];
+	double xMax = xMin + roi[3] * spacing[0],
+	       yMax = yMin + roi[4] * spacing[1],
+	       zMax = zMin + roi[5] * spacing[2];
+	m_slicingCube->SetBounds(xMin, xMax, yMin, yMax, zMin, zMax);
 	update();
 }
 

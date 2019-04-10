@@ -53,6 +53,7 @@
 #include <vtkAxisActor2D.h>
 #include <vtkCamera.h>
 #include <vtkCommand.h>
+#include <vtkCubeSource.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDiskSource.h>
 #include <vtkGenericMovieWriter.h>
@@ -73,7 +74,6 @@
 #include <vtkMarchingContourFilter.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
-#include <vtkPlaneSource.h>
 #include <vtkPoints.h>
 #include <vtkProperty.h>
 #include <vtkPolyDataMapper.h>
@@ -288,7 +288,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_logoRep = vtkSmartPointer<vtkLogoRepresentation>::New();
 		m_logoImage = vtkSmartPointer<vtkQImageToImageSource>::New();
 
-		m_positionMarkerSrc = vtkSmartPointer<vtkPlaneSource>::New();
+		m_positionMarkerSrc = vtkSmartPointer<vtkCubeSource>::New();
 		m_positionMarkerMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		m_positionMarkerActor = vtkSmartPointer<vtkActor>::New();
 
@@ -299,7 +299,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_diskMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		m_diskActor = vtkSmartPointer<vtkActor>::New();
 
-		m_roiSource = vtkSmartPointer<vtkPlaneSource>::New();
+		m_roiSource = vtkSmartPointer<vtkCubeSource>::New();
 		m_roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		m_roiActor = vtkSmartPointer<vtkActor>::New();
 
@@ -315,10 +315,6 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_textInfo->SetText(" ");
 		m_textInfo->SetPosition(iAWrapperText::POS_LOWER_LEFT);
 		m_textInfo->Show(1);
-
-		m_roiSource->SetOrigin(0, 0, 0);
-		m_roiSource->SetPoint1(-3, 0, 0);
-		m_roiSource->SetPoint2(0, -3, 0);
 
 		QImage img;
 		img.load(":/images/fhlogo.png");
@@ -378,7 +374,6 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_roiActor->SetMapper(m_roiMapper);
 		m_roiActor->GetProperty()->SetColor(1, 0, 0);
 		m_roiActor->GetProperty()->SetOpacity(1);
-		m_roiSource->SetCenter(0, 0, 1);
 		m_roiMapper->Update();
 		m_roiActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
 
@@ -798,37 +793,21 @@ void iASlicer::setROIVisible(bool visible)
 
 void iASlicer::updateROI(int const roi[6])
 {
-	// TODO: ROI coordinates as scene coordinates?
 	if (!m_decorations || !m_roiActive || !hasChannel(0))
 		return;
 	double const * spacing = m_channels[0]->output()->GetSpacing();
-
+	int sliceXAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X);
+	int sliceYAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y);
+	int sliceZAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	m_roiSlice[0] = roi[sliceZAxis];
+	m_roiSlice[1] = roi[sliceZAxis] + roi[sliceZAxis + 3];
 	// apparently, image actor starts output at -0,5spacing, -0.5spacing (probably a side effect of BorderOn)
 	// That's why we have to subtract 0.5 from the coordinates!
-	if (m_mode == iASlicerMode::YZ)
-	{
-		m_roiSlice[0] = roi[0];
-		m_roiSlice[1] = roi[0] + roi[3];
-		m_roiSource->SetOrigin((roi[1] - 0.5)*spacing[1], (roi[2] - 0.5)*spacing[2], 0);
-		m_roiSource->SetPoint1((roi[1] - 0.5)*spacing[1] + roi[4] * spacing[0], (roi[2] - 0.5)*spacing[2], 0);
-		m_roiSource->SetPoint2((roi[1] - 0.5)*spacing[1], (roi[2] - 0.5)*spacing[2] + roi[5] * spacing[2], 0);
-	}
-	else if (m_mode == iASlicerMode::XY)
-	{
-		m_roiSlice[0] = roi[2];
-		m_roiSlice[1] = roi[2] + roi[5];
-		m_roiSource->SetOrigin((roi[0] - 0.5)*spacing[0], (roi[1] - 0.5)*spacing[1], 0);
-		m_roiSource->SetPoint1((roi[0] - 0.5)*spacing[0] + roi[3] * spacing[0], (roi[1] - 0.5)*spacing[1], 0);
-		m_roiSource->SetPoint2((roi[0] - 0.5)*spacing[0], (roi[1] - 0.5)*spacing[1] + roi[4] * spacing[1], 0);
-	}
-	else if (m_mode == iASlicerMode::XZ)
-	{
-		m_roiSlice[0] = roi[1];
-		m_roiSlice[1] = roi[1] + roi[4];
-		m_roiSource->SetOrigin((roi[0] - 0.5)*spacing[0], (roi[2] - 0.5)*spacing[2], 0);
-		m_roiSource->SetPoint1((roi[0] - 0.5)*spacing[0] + roi[3] * spacing[0], (roi[2] - 0.5)*spacing[2], 0);
-		m_roiSource->SetPoint2((roi[0] - 0.5)*spacing[0], (roi[2] - 0.5)*spacing[2] + roi[5] * spacing[2], 0);
-	}
+	double xMin = (roi[sliceXAxis] - 0.5)  * spacing[sliceXAxis],
+	       yMin = (roi[sliceYAxis] - 0.5)  * spacing[sliceYAxis];
+	double xMax = xMin + roi[sliceXAxis+3] * spacing[sliceXAxis],
+	       yMax = yMin + roi[sliceYAxis+3] * spacing[sliceYAxis];
+	m_roiSource->SetBounds(xMin, xMax, yMin, yMax, 0, 0);
 	m_roiActor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < m_roiSlice[1]);
 	m_roiMapper->Update();
 	m_interactor->Render();
@@ -1149,29 +1128,19 @@ void iASlicer::saveImageStack()
 
 void iASlicer::updatePositionMarkerExtent()
 {
-	// TODO: how to choose spacing? currently fixed from first image? export all channels?
 	if (m_channels.empty() || !m_positionMarkerSrc)
 		return;
+	// TODO: how to choose spacing? currently fixed from first image? export all channels?
 	auto imageData = m_channels[0]->input();
-	double spacing[2] = {
-		imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)],
-		imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]
-	};
-	m_positionMarkerSrc->SetOrigin(0, 0, 0);
-	m_positionMarkerSrc->SetPoint1((m_ext * spacing[0]), 0, 0);
-	m_positionMarkerSrc->SetPoint2(0, (m_ext * spacing[1]), 0);
+	m_positionMarkerSrc->SetXLength(m_ext * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
+	m_positionMarkerSrc->SetYLength(m_ext * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
+	m_positionMarkerSrc->SetZLength(0);
 }
 
 void iASlicer::setStatisticalExtent(int statExt)
 {
 	m_ext = statExt;
-	if (m_positionMarkerSrc)
-	{
-		double center[3];
-		m_positionMarkerSrc->GetCenter(center);
-		updatePositionMarkerExtent();
-		m_positionMarkerSrc->SetCenter(center);
-	}
+	updatePositionMarkerExtent();
 }
 
 void iASlicer::updateResliceAxesDirectionCosines()

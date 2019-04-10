@@ -64,7 +64,7 @@ class vtkLogoWidget;
 class vtkLogoRepresentation;
 class vtkMarchingContourFilter;
 class vtkObject;
-class vtkPlaneSource;
+class vtkCubeSource;
 class vtkPoints;
 class vtkQImageToImageSource;
 class vtkPolyDataMapper;
@@ -382,10 +382,11 @@ private:
 	vtkSmartPointer<iAWrapperText> m_textInfo;
 	vtkSmartPointer<iARulerWidget> m_rulerWidget;
 
-	// position marker / statistical extent
-	vtkSmartPointer<vtkPlaneSource> m_positionMarkerSrc;
+	//! @{ position marker / statistical extent
+	vtkSmartPointer<vtkCubeSource> m_positionMarkerSrc;
 	vtkSmartPointer<vtkPolyDataMapper> m_positionMarkerMapper;
 	vtkSmartPointer<vtkActor> m_positionMarkerActor;
+	//! @}
 
 	iASingleSlicerSettings m_settings;
 	int m_slabThickness;       //! current slab thickness (default = 1, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
@@ -400,7 +401,7 @@ private:
 	vtkSmartPointer<vtkActor> m_diskActor;
 	//! @}
 
-	vtkSmartPointer<vtkPlaneSource> m_roiSource;
+	vtkSmartPointer<vtkCubeSource> m_roiSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;
 	vtkSmartPointer<vtkActor> m_roiActor;
 	bool m_roiActive;
