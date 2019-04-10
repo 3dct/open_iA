@@ -1061,7 +1061,7 @@ void MdiChild::triggerInteractionRaycaster()
 
 void MdiChild::setSlice(int mode, int s)
 {
-	int sliceAxis = slicerDimension(mode);
+	int sliceAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Z);
 	if (m_snakeSlicer)
 	{
 		updateSnakeSlicer(m_dwSlicer[mode]->sbSlice, m_slicer[mode], sliceAxis, s);
