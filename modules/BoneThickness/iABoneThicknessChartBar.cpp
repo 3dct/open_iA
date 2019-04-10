@@ -281,25 +281,30 @@ void iABoneThicknessChartBar::set(iABoneThickness* _pBoneThickness, iABoneThickn
 
 void iABoneThicknessChartBar::setData(vtkDoubleArray* _daThickness)
 {
+	if (!_daThickness)
+		return;
+
 	m_daThickness = _daThickness;
 
 	const vtkIdType idThickness(m_daThickness->GetNumberOfTuples());
+
+	m_dThickness1 = m_daThickness->GetValue(0);
+	m_dThickness2 = m_daThickness->GetValue(0);
 
 	m_dThicknessMean = 0.0;
 
 	for (vtkIdType i (0) ; i < idThickness; ++i)
 	{
+		if (m_daThickness->GetValue(i) < m_dThickness1)
+			m_dThickness1 = m_daThickness->GetValue(i);
+		if (m_daThickness->GetValue(i) > m_dThickness2)
+			m_dThickness2 = m_daThickness->GetValue(i);
+
 		m_dThicknessMean += m_daThickness->GetValue(i);
 	}
 
 	const vtkIdType dIdThickness((double)idThickness);
 	m_dThicknessMean /= dIdThickness;
-
-	double pRange[2];
-	_daThickness->GetRange(pRange);
-
-	m_dThickness1 = pRange[0];
-	m_dThickness2 = pRange[1];
 
 	m_dAxisX2 = dIdThickness;
 	m_dAxisY2 = (m_dThickness2 < FloatTolerance) ? 1.0 : m_dThickness2;

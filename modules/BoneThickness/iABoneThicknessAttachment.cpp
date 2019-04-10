@@ -57,29 +57,19 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pPushButtonSave->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton));
 	connect(pPushButtonSave, SIGNAL(clicked()), this, SLOT(slotPushButtonSave()));
 
-	QGroupBox* pGroupBoxBound(new QGroupBox("Surface bounds", pWidget));
+	QGroupBox* pGroupBoxBound(new QGroupBox("Model Statistics", pWidget));
 	pGroupBoxBound->setFixedHeight(pGroupBoxBound->logicalDpiY() / 2);
 
-	QLabel* pLabelBoundXMin(new QLabel(QString("X min: %1").arg(m_pBoneThickness->axisXMin()), pGroupBoxBound));
-	QLabel* pLabelBoundXMax(new QLabel(QString("X max: %1").arg(m_pBoneThickness->axisXMax()), pGroupBoxBound));
-	QLabel* pLabelBoundXRng(new QLabel(QString("X range: %1").arg(m_pBoneThickness->rangeX()), pGroupBoxBound));
-	QLabel* pLabelBoundYMin(new QLabel(QString("Y min: %1").arg(m_pBoneThickness->axisYMin()), pGroupBoxBound));
-	QLabel* pLabelBoundYMax(new QLabel(QString("Y max: %1").arg(m_pBoneThickness->axisYMax()), pGroupBoxBound));
-	QLabel* pLabelBoundYRng(new QLabel(QString("Y range: %1").arg(m_pBoneThickness->rangeY()), pGroupBoxBound));
-	QLabel* pLabelBoundZMin(new QLabel(QString("Z min: %1").arg(m_pBoneThickness->axisZMin()), pGroupBoxBound));
-	QLabel* pLabelBoundZMax(new QLabel(QString("Z max: %1").arg(m_pBoneThickness->axisXMax()), pGroupBoxBound));
-	QLabel* pLabelBoundZRng(new QLabel(QString("Z range: %1").arg(m_pBoneThickness->rangeZ()), pGroupBoxBound));
+	pLabelMeanTh = new QLabel(QString("Thickness Mean: %1").arg(m_pBoneThickness->meanThickness()), pGroupBoxBound);
+	pLabelStdTh = new QLabel(QString("Thickness STD: %1").arg(m_pBoneThickness->stdThickness()), pGroupBoxBound);
+	pLabelMeanSDi = new QLabel(QString("Surface Distance Mean: %1").arg(m_pBoneThickness->meanSurfaceDistance()), pGroupBoxBound);
+	pLabelStdSDi = new QLabel(QString("Surface Distance STD: %1").arg(m_pBoneThickness->stdSurfaceDistance()), pGroupBoxBound);
 
 	QGridLayout* pGridLayoutBound(new QGridLayout(pGroupBoxBound));
-	pGridLayoutBound->addWidget(pLabelBoundXMin, 0, 0);
-	pGridLayoutBound->addWidget(pLabelBoundXMax, 0, 1);
-	pGridLayoutBound->addWidget(pLabelBoundXRng, 0, 2);
-	pGridLayoutBound->addWidget(pLabelBoundYMin, 0, 3);
-	pGridLayoutBound->addWidget(pLabelBoundYMax, 0, 4);
-	pGridLayoutBound->addWidget(pLabelBoundYRng, 0, 5);
-	pGridLayoutBound->addWidget(pLabelBoundZMin, 0, 6);
-	pGridLayoutBound->addWidget(pLabelBoundZMax, 0, 7);
-	pGridLayoutBound->addWidget(pLabelBoundZRng, 0, 8);
+	pGridLayoutBound->addWidget(pLabelMeanTh, 0, 0);
+	pGridLayoutBound->addWidget(pLabelStdTh, 0, 1);
+	pGridLayoutBound->addWidget(pLabelMeanSDi, 0, 2);
+	pGridLayoutBound->addWidget(pLabelStdSDi, 0, 3);
 
 	iABoneThicknessSplitter* pBoneThicknessSplitter(new iABoneThicknessSplitter(pWidget));
 	pBoneThicknessSplitter->addWidget(m_pBoneThicknessTable);
@@ -105,6 +95,15 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	m_pDoubleSpinBoxThicknessMaximum->setValue(m_pBoneThickness->thicknessMaximum());
 	connect(m_pDoubleSpinBoxThicknessMaximum, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxThicknessMaximum()));
 
+	QLabel* pLabelSurfaceDistanceMaximum(new QLabel("Maximum surface distance:", pGroupBoxSettings));
+	m_pDoubleSpinBoxSurfaceDistanceMaximum = new QDoubleSpinBox(pGroupBoxSettings);
+	m_pDoubleSpinBoxSurfaceDistanceMaximum->setAlignment(Qt::AlignRight);
+	m_pDoubleSpinBoxSurfaceDistanceMaximum->setMinimum(0.0);
+	m_pDoubleSpinBoxSurfaceDistanceMaximum->setSingleStep(1.0);
+	m_pDoubleSpinBoxSurfaceDistanceMaximum->setValue(m_pBoneThickness->surfaceDistanceMaximum());
+	connect(m_pDoubleSpinBoxSurfaceDistanceMaximum, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxSurfaceDistanceMaximum()));
+
+
 	QCheckBox* pCheckBoxTransparency(new QCheckBox("Use transparency", pGroupBoxSettings));
 	connect(pCheckBoxTransparency, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxTransparency(const bool&)));
 
@@ -117,8 +116,10 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 	pGridLayoutSettings->addWidget(m_pDoubleSpinBoxSphereRadius, 0, 1, Qt::AlignLeft);
 	pGridLayoutSettings->addWidget(pLabelThicknessMaximum, 0, 2, Qt::AlignRight);
 	pGridLayoutSettings->addWidget(m_pDoubleSpinBoxThicknessMaximum, 0, 3, Qt::AlignLeft);
-	pGridLayoutSettings->addWidget(pCheckBoxTransparency, 0, 4);
-	pGridLayoutSettings->addWidget(pCheckBoxShowThickness, 0, 5);
+	pGridLayoutSettings->addWidget(pLabelSurfaceDistanceMaximum, 0, 4, Qt::AlignRight);
+	pGridLayoutSettings->addWidget(m_pDoubleSpinBoxSurfaceDistanceMaximum, 0, 5, Qt::AlignLeft);
+	pGridLayoutSettings->addWidget(pCheckBoxTransparency, 0, 6);
+	pGridLayoutSettings->addWidget(pCheckBoxShowThickness, 0, 7);
 
 	QGridLayout* pGridLayout(new QGridLayout(pWidget));
 	pGridLayout->addWidget(pPushButtonOpen, 0, 0);
@@ -132,6 +133,13 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* _pMainWnd, iACh
 
 	pDockWidgetWrapper->adjustSize();
 	m_pBoneThicknessChartBar->resize(pBoneThicknessSplitter->width() / 2, pBoneThicknessSplitter->height());
+}
+
+void iABoneThicknessAttachment::setStatistics() {
+	iABoneThicknessAttachment::pLabelMeanTh->setText(QString("Thickness Mean: %1").arg(m_pBoneThickness->meanThickness()));
+	iABoneThicknessAttachment::pLabelStdTh->setText(QString("Thickness STD: %1").arg(m_pBoneThickness->stdThickness()));
+	iABoneThicknessAttachment::pLabelMeanSDi->setText(QString("Surface Distance Mean: %1").arg(m_pBoneThickness->meanSurfaceDistance()));
+	iABoneThicknessAttachment::pLabelStdSDi->setText(QString("Surface Distance STD: %1").arg(m_pBoneThickness->stdSurfaceDistance()));
 }
 
 void iABoneThicknessAttachment::slotCheckBoxShowThickness(const bool& _bChecked)
@@ -155,10 +163,28 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius()
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		m_pBoneThickness->setSphereRadius(dSphereRadius);
 		m_pBoneThickness->calculate();
+		setStatistics();
 		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindowSpheres();
 		m_childData.child->getRenderer()->update();
+		qApp->restoreOverrideCursor();
+	}
+}
+
+void iABoneThicknessAttachment::slotDoubleSpinBoxSurfaceDistanceMaximum() {
+
+	const double dSurfaceDistanceMaximum(m_pDoubleSpinBoxSurfaceDistanceMaximum->value());
+
+	if (m_pBoneThickness->surfaceDistanceMaximum() != dSurfaceDistanceMaximum)
+	{
+		qApp->setOverrideCursor(Qt::WaitCursor);
+		m_pBoneThickness->setSurfaceDistanceMaximum(dSurfaceDistanceMaximum);
+		m_pBoneThickness->calculate();
+		setStatistics();
+		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
+		m_pBoneThickness->setTable(m_pBoneThicknessTable);
+		m_pBoneThickness->setWindow();
 		qApp->restoreOverrideCursor();
 	}
 }
@@ -172,6 +198,7 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxThicknessMaximum()
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		m_pBoneThickness->setThicknessMaximum(dThicknessMaximum);
 		m_pBoneThickness->calculate();
+		setStatistics();
 		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindow();
@@ -196,6 +223,7 @@ void iABoneThicknessAttachment::slotPushButtonOpen()
 		qApp->processEvents();
 		m_pBoneThickness->open(pFileDialog->selectedFiles().first());
 		m_pBoneThickness->calculate();
+		setStatistics();
 		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindow();
