@@ -26,6 +26,7 @@
 
 #include <QDoubleSpinBox>
 #include <QScopedPointer>
+#include <QLabel>
 
 class iABoneThicknessChartBar;
 class iABoneThicknessTable;
@@ -36,6 +37,7 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 
 	public:
 		iABoneThicknessAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData);
+		void setStatistics();
 
 	private:
 		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
@@ -43,12 +45,19 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 
 		QDoubleSpinBox* m_pDoubleSpinBoxSphereRadius = nullptr;
 		QDoubleSpinBox* m_pDoubleSpinBoxThicknessMaximum = nullptr;
+		QDoubleSpinBox* m_pDoubleSpinBoxSurfaceDistanceMaximum = nullptr;
+
+		QLabel* pLabelMeanTh = nullptr;
+		QLabel* pLabelStdTh = nullptr;
+		QLabel* pLabelMeanSDi = nullptr;
+		QLabel* pLabelStdSDi = nullptr;
 
 		QScopedPointer<iABoneThickness> m_pBoneThickness;
 
 	private slots:
 	    void slotDoubleSpinBoxSphereRadius();
 		void slotDoubleSpinBoxThicknessMaximum();
+		void slotDoubleSpinBoxSurfaceDistanceMaximum();
 		void slotPushButtonOpen();
 		void slotPushButtonSave();
 		void slotCheckBoxShowThickness(const bool& _bChecked);

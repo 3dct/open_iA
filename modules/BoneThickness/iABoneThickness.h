@@ -50,6 +50,11 @@ public:
 	double axisZMax() const;
 	double axisZMin() const;
 
+	double meanThickness() const;
+	double stdThickness() const;
+	double meanSurfaceDistance() const;
+	double stdSurfaceDistance() const;
+
 	void calculate();
 
 	vtkDoubleArray* thickness();
@@ -74,6 +79,7 @@ public:
 	void setSphereRadius(const double& _dSphereRadius);
 	void setTable(iABoneThicknessTable* _pBoneThicknessTable);
 	void setThicknessMaximum(const double& _dThicknessMaximum);
+	void setSurfaceDistanceMaximum(const double& _dSurfaceDistanceMaximum);
 	void setTransparency(const bool& _bTransparency);
 	void setWindow();
 	void setWindowSpheres();
@@ -85,6 +91,7 @@ public:
 	double sphereRadius() const;
 	double surfaceOpacity() const;
 	double thicknessMaximum() const;
+	double surfaceDistanceMaximum() const;
 
 private:
 	double m_pColorNormal[3];
@@ -100,6 +107,11 @@ private:
 	double m_dSphereRadius = 0.5;
 	double m_dSurfaceOpacity = 1.0;
 	double m_dThicknessMaximum = 0.0;
+	double m_dSurfaceDistanceMaximum = 0.0;
+	double m_dThicknessMean = 0.0;
+	double m_dThicknessSTD = 0.0;
+	double m_dSurfaceDistanceMean = 0.0;
+	double m_dSurfaceDistanceSTD = 0.0;
 
 	double m_pBound[6];
 	double m_pRange[3];
@@ -112,10 +124,12 @@ private:
 	vtkSmartPointer<vtkDoubleArray> m_daThickness;
 
 	vtkSmartPointer<vtkPoints> m_pPoints;
-	QVector<vtkSmartPointer<vtkLineSource>> m_pLines;
+	QVector<vtkSmartPointer<vtkLineSource>> m_pThLines;
+	QVector<vtkSmartPointer<vtkLineSource>> m_pDaLines;
 
 	vtkSmartPointer<vtkActorCollection> m_pSpheres;
 	vtkSmartPointer<vtkActorCollection> m_pThicknessLines;
+	vtkSmartPointer<vtkActorCollection> m_pDistanceLines;
 
 	iARenderer* m_iARenderer = nullptr;
 
@@ -126,6 +140,6 @@ private:
 	void setSphereOpacity(const double& _dSphereOpacity);
 	void setSurfaceOpacity(const double& _dSurfaceOpacity);
 
-	void setThickness(const int& _iPoint, const double& _dThickness);
+	void setResults(const int& _iPoint, const double& _dThickness, const double& _dSurfaceDistance);
 	void setTranslucent();
 };
