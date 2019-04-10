@@ -35,18 +35,18 @@ class vtkDepthSortPolyData;
 class vtkPointPicker;
 class vtkCubeAxesActor2D;
 
-struct PICKDATA
+struct iAPICKDATA
 {
 	unsigned int xInd, zInd;
 	double pos[3];
 	long pntnum;
 };
 
-class Plot3DVtk
+class iAPlot3DVtk
 {
 public:
-	Plot3DVtk();
-	~Plot3DVtk();
+	iAPlot3DVtk();
+	~iAPlot3DVtk();
 	//TODO: some functions might be not used, throw out all the rubbish
 	void loadFromData(double * plotData, double * scalars, int cntX, int cntZ, float scale = 1.0);
 	void SetSolidColor(double r, double g, double b);
@@ -95,6 +95,6 @@ private:
 	double MinZ,MaxZ;
 	unsigned int m_sizeX, m_sizeZ;
 public:
-	PICKDATA pickData;
+	iAPICKDATA pickData;
 	unsigned int lastPickSuccessful;
 };

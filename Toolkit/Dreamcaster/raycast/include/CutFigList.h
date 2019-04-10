@@ -25,16 +25,16 @@
 #include <vector>
 
 //! Axis aligned box. Used for selecting some area on specimen in order to calculate only that area.
-class CutAAB
+class iACutAAB
 {
 public:
-	CutAAB(QString name) 
+	iACutAAB(QString name)
 	{
 		m_name = QString(name);
 		box.setData(0,0,0,0,0,0);
 		//m_sizeInFile = sizeof(aabb) + sizeof(slidersValues);
 	};
-	CutAAB()
+	iACutAAB()
 	{
 		m_name = "";
 		box.setData(0,0,0,0,0,0);
@@ -59,27 +59,27 @@ public:
 	//! Write aabb data in file
 	inline void Write2File(FILE *fptr)
 	{	
-		fwrite(&box, sizeof(aabb), 1, fptr);
+		fwrite(&box, sizeof(iAaabb), 1, fptr);
 		fwrite(slidersValues, sizeof(slidersValues), 1, fptr);
 	}
-	aabb box; //!< bounds of 3D box
+	iAaabb box; //!< bounds of 3D box
 	int slidersValues[6];//!< corresponding values of sliders
 	static const int getSkipedSizeInFile()
 	{
-		return (sizeof(aabb)+sizeof(int[6])); // box+slidersValues
+		return (sizeof(iAaabb)+sizeof(int[6])); // box+slidersValues
 	}
 private:
 	QString m_name; //! <name of box
 };
 
-class CutFigList
+class iACutFigList
 {
 public:
-	CutFigList() 
+	iACutFigList()
 	{
 		m_curIndex = 0;
 	}
-	~CutFigList() 
+	~iACutFigList()
 	{
 		size_t listSize = list.size();
 		for (size_t i=0; i<listSize; i++)
@@ -100,7 +100,7 @@ public:
 		aabbs.clear();
 		m_curIndex = 0;
 	}
-	inline int add(CutAAB* item)
+	inline int add(iACutAAB* item)
 	{
 		list.push_back(item); 
 		aabbs.push_back(&item->box);
@@ -121,9 +121,9 @@ public:
 			return 0;
 	}
 	inline int count(){return (int)list.size();}
-	inline CutAAB * item(int index) {return list[index];}
-	std::vector<CutAAB*>  list;
-	std::vector<aabb*>  aabbs;
+	inline iACutAAB * item(int index) {return list[index];}
+	std::vector<iACutAAB*>  list;
+	std::vector<iAaabb*>  aabbs;
 	inline int curIndex() {return m_curIndex;}
 	inline void SetCurIndex(int curInd) {m_curIndex = curInd;}
 private:

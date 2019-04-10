@@ -32,16 +32,16 @@
 extern iADreamCaster * dcast;
 
 //! Class representing a BSP-tree node. AABB specified BSP-tree node.
-class BSPNode
+class iABSPNode
 {
 public:
-	BSPNode()
+	iABSPNode()
 	{
 		internal1=0; 
 		internal2=0; 
 		masked_vars=0;
 	}
-	~BSPNode()
+	~iABSPNode()
 	{
 	}
 	//! Splits current node's AABB by maximum dimension. Creates two child-nodes with derived AABBs.
@@ -49,7 +49,7 @@ public:
 	//! @param[out] l_aabb left child's aabb
 	//! @param[out] r_aabb right child's aabb
 	//! @return 1 if successful, 0 otherwise
-	int Split(aabb const &p_aabb, aabb &l_aabb, aabb &r_aabb)
+	int Split(iAaabb const &p_aabb, iAaabb &l_aabb, iAaabb &r_aabb)
 	{
 		float bound;
 		int mainDim = p_aabb.mainDim();
@@ -90,9 +90,9 @@ public:
 	//! @param parent_tris
 	//! @param tri_start_ind
 	//! @return 1 if successful
-	int DistributePrims(int &level, int &max_level, aabb &m_aabb, std::vector<BSPNode*> &nodes,
+	int DistributePrims(int &level, int &max_level, iAaabb &m_aabb, std::vector<iABSPNode*> &nodes,
 						std::vector<unsigned int> &tri_ind,
-						std::vector<TriPrim*> &parent_tris, unsigned int tri_start_ind)
+						std::vector<iATriPrim*> &parent_tris, unsigned int tri_start_ind)
 	{
 		unsigned int trisSz = (unsigned int) parent_tris.size();
 		if (level == max_level)
@@ -114,17 +114,17 @@ public:
 				tri_ind.push_back(parent_tris[i]->GetIndex());
 			return 1;
 		}
-		aabb l_aabb, r_aabb;
+		iAaabb l_aabb, r_aabb;
 		Split(m_aabb, l_aabb, r_aabb);
 		set_offset( (unsigned int) nodes.size() );
-		nodes.push_back(new BSPNode());
+		nodes.push_back(new iABSPNode());
 		set_has_left(true);
-		nodes.push_back(new BSPNode());
+		nodes.push_back(new iABSPNode());
 		set_has_right(true);
 
 		iAVec3f center = m_aabb.center(), h_size = m_aabb.half_size();
 		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();
-		std::vector<TriPrim*> l_tris, r_tris;
+		std::vector<iATriPrim*> l_tris, r_tris;
 		for (unsigned int i=0; i<trisSz; i++)
 		{
 			if(parent_tris[i]->Intersect( l_aabb, center, h_size))
@@ -166,7 +166,7 @@ public:
 	}
 
 	//SAH_BEGIN////////////////////////////////////////////////////////////////////////
-	int SplitSAH(aabb &p_aabb, aabb &l_aabb, aabb &r_aabb, unsigned int axis_index, float bound)
+	int SplitSAH(iAaabb &p_aabb, iAaabb &l_aabb, iAaabb &r_aabb, unsigned int axis_index, float bound)
 	{
 		switch(axis_index)
 		{
@@ -190,9 +190,9 @@ public:
 		return 1;
 	}
 	
-	int DistributePrimsSAH(int &level, int &max_level, aabb &m_aabb, std::vector<BSPNode*> &nodes,
+	int DistributePrimsSAH(int &level, int &max_level, iAaabb &m_aabb, std::vector<iABSPNode*> &nodes,
 		std::vector<unsigned int> &tri_ind,
-		std::vector<TriPrim*> &parent_tris, unsigned int tri_start_ind)
+		std::vector<iATriPrim*> &parent_tris, unsigned int tri_start_ind)
 	{
 		unsigned int primSz = (unsigned int) parent_tris.size();
 		if (level == max_level)
@@ -220,7 +220,7 @@ public:
 		unsigned int l_counter, r_counter;
 		unsigned int l_count, r_count;
 		float bound, cur_bound;
-		aabb l_aabb, r_aabb;
+		iAaabb l_aabb, r_aabb;
 		for (unsigned int i=0; i<primSz; i++)
 		{
 			for (cur_axis_ind=0; cur_axis_ind<=2; cur_axis_ind++)
@@ -228,15 +228,15 @@ public:
 				for (is_maximum=0; is_maximum<=1; is_maximum++)
 				{
 					l_counter=0; r_counter=0;
-					cur_bound = ((TriPrim*)parent_tris[i])->getAxisBound(cur_axis_ind, is_maximum);
+					cur_bound = ((iATriPrim*)parent_tris[i])->getAxisBound(cur_axis_ind, is_maximum);
 					SplitSAH(m_aabb, l_aabb, r_aabb, cur_axis_ind, cur_bound );
 					iAVec3f l_center = l_aabb.center(), l_h_size = l_aabb.half_size();
 					iAVec3f r_center = r_aabb.center(), r_h_size = r_aabb.half_size();
 					for (unsigned int i2=0; i2<primSz; i2++)
 					{
-						if( ((TriPrim*)parent_tris[i2])->Intersect( l_aabb, l_center, l_h_size))
+						if( ((iATriPrim*)parent_tris[i2])->Intersect( l_aabb, l_center, l_h_size))
 							l_counter++;
-						if( ((TriPrim*)parent_tris[i2])->Intersect( r_aabb, r_center, r_h_size))
+						if( ((iATriPrim*)parent_tris[i2])->Intersect( r_aabb, r_center, r_h_size))
 							r_counter++;
 					}
 					cur_cost = 0.5f + l_aabb.surfaceArea()*l_counter + r_aabb.surfaceArea()*r_counter;
@@ -255,15 +255,15 @@ public:
 		this->set_splitCoord(bound);
 		SplitSAH(m_aabb, l_aabb, r_aabb, axis_ind, bound);
 		set_offset( (unsigned int) nodes.size() );
-		nodes.push_back(new BSPNode());
+		nodes.push_back(new iABSPNode());
 		set_has_left(true);
-		nodes.push_back(new BSPNode());
+		nodes.push_back(new iABSPNode());
 		set_has_right(true);
 
 		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();
 		unsigned int r_tri_start_ind = (unsigned int) tri_ind.size();
 		
-		std::vector<TriPrim*> l_tris, r_tris;
+		std::vector<iATriPrim*> l_tris, r_tris;
 		int cntr;
 		iAVec3f center = m_aabb.center(), h_size = m_aabb.half_size();
 		for (unsigned int i=0; i<primSz; i++)
@@ -350,28 +350,28 @@ public:
 	inline void set_tri_count(unsigned int val) { internal2=val; }
 	inline void set_offset(unsigned int val)    { internal1=val; }
 	inline void set_splitCoord(float val)       { internal2=*((unsigned int*)&val); }
-	inline BSPNode *get_left(std::vector<BSPNode*> &nodes)  { return nodes[offset()]; }
-	inline BSPNode *get_right(std::vector<BSPNode*> &nodes) { return nodes[offset()+1]; }
-	inline BSPNode *get_left(const std::vector<BSPNode*> &nodes)  { return nodes[offset()]; }
-	inline BSPNode *get_right(const std::vector<BSPNode*> &nodes) { return nodes[offset()+1]; }
+	inline iABSPNode *get_left(std::vector<iABSPNode*> &nodes)  { return nodes[offset()]; }
+	inline iABSPNode *get_right(std::vector<iABSPNode*> &nodes) { return nodes[offset()+1]; }
+	inline iABSPNode *get_left(const std::vector<iABSPNode*> &nodes)  { return nodes[offset()]; }
+	inline iABSPNode *get_right(const std::vector<iABSPNode*> &nodes) { return nodes[offset()+1]; }
 };
 
-struct traverse_stack
+struct iATraverseStack
 {
-	struct trace_t {
-		trace_t() {}
-		trace_t(unsigned int a_node, float a_tmin, float a_tmax): node(a_node), tmin(a_tmin), tmax(a_tmax) {}
+	struct iATrace {
+		iATrace() {}
+		iATrace(unsigned int a_node, float a_tmin, float a_tmax): node(a_node), tmin(a_tmin), tmax(a_tmax) {}
 		unsigned int node;
 		float tmin;
 		float tmax;
 	};
-	traverse_stack(int a_size)
+	iATraverseStack(int a_size)
 	{
 		size = a_size;
-		t = new trace_t[size];
+		t = new iATrace[size];
 		index=0;
 	}
-	~traverse_stack()
+	~iATraverseStack()
 	{
 		if(t)
 		{
@@ -379,19 +379,19 @@ struct traverse_stack
 			t=0;
 		}
 	}
-	void push(trace_t& node)
+	void push(iATrace& node)
 	{
 		assert(index<size);
 		t[index] = node;
 		index++;
 	}
-	trace_t& get() const
+	iATrace& get() const
 	{
 		assert((index-1)<size);
 		assert(index>0);
 		return t[index-1];
 	}
-	trace_t& pop()
+	iATrace& pop()
 	{
 		index--; 
 		assert(index<size);
@@ -405,18 +405,18 @@ struct traverse_stack
 protected:
 	int size;
 	int index;
-	trace_t * t;
+	iATrace * t;
 };
 
 //! Class representing a BSP-tree. Assigned with root node, level and AABB.
-class BSPTree
+class iABSPTree
 {
 public:
-	BSPTree()
+	iABSPTree()
 	{
 		root = 0;
 	}
-	~BSPTree()
+	~iABSPTree()
 	{
 		for (unsigned int i=0; i<nodes.size(); i++)
 		{
@@ -428,19 +428,19 @@ public:
 	//! @see FillTree()
 	//! @param a_splitLevel split level of tree.
 	//! @param a_aabb AABB of tree.
-	void BuildTree(int a_splitLevel, aabb& a_aabb)
+	void BuildTree(int a_splitLevel, iAaabb& a_aabb)
 	{
 		dcast->log("Building BSP-tree("+QString::number(a_splitLevel)+")................");
 		m_aabb.setData(a_aabb);
 		splitLevel=a_splitLevel;
-		root = new BSPNode();
+		root = new iABSPNode();
 		nodes.push_back(root);
 		dcast->log("done",true);
 
 	}
 	//! Fills empty tree with primitives. New nodes are created and divided here
 	//! @param triangles primitives.
-	void FillTree(std::vector<TriPrim*>& triangles)
+	void FillTree(std::vector<iATriPrim*>& triangles)
 	{
 		m_triangles = &triangles;
 		dcast->log("Fill BSP-tree with data..........");
@@ -453,7 +453,7 @@ public:
 	}
 	//! Fills already created tree with primitives.
 	//! @param triangles primitives.
-	void FillLoadedTree(std::vector<TriPrim*>& triangles)
+	void FillLoadedTree(std::vector<iATriPrim*>& triangles)
 	{
 		m_triangles = &triangles;
 		dcast->log("Fill BSP-tree with data..........");
@@ -467,15 +467,15 @@ public:
 	//! @param[out] intersections vector where obtained intersections are placed.
 	//! @param tr_stack
 	//! @return 1 if intersect tree AABB , 0 - otherwise
-	int GetIntersectionsNR(Ray & ray, std::vector<intersection*>& intersections, traverse_stack * tr_stack) const
+	int GetIntersectionsNR(iARay & ray, std::vector<iAintersection*>& intersections, iATraverseStack * tr_stack) const
 	{
 		iAVec3f ro, rd;
 		float tmin=0, tmax=100000.f, t=tmin;
 		if(!IntersectAABB(ray, m_aabb, tmin, tmax)) return 0;
-		traverse_stack::trace_t cur_t;
-		cur_t = traverse_stack::trace_t(0,tmin,tmax);
+		iATraverseStack::iATrace cur_t;
+		cur_t = iATraverseStack::iATrace(0,tmin,tmax);
 		tr_stack->push(cur_t);
-		BSPNode * cur_node;
+		iABSPNode * cur_node;
 		unsigned int sign = 0;
 		while (tr_stack->numElements()>0)
 		{
@@ -489,7 +489,7 @@ public:
 					float a_Dist = 1000000.0f;
 					if ((*m_triangles)[tri_ind[cur_node->tri_start()+i]]->Intersect( ray, a_Dist )) 
 					{
-						intersections.push_back(new intersection((*m_triangles)[tri_ind[cur_node->tri_start()+i]], a_Dist));
+						intersections.push_back(new iAintersection((*m_triangles)[tri_ind[cur_node->tri_start()+i]], a_Dist));
 					}
 				}
 			}
@@ -498,7 +498,7 @@ public:
 			case 1://right only
 				if(cur_node->has_right())
 				{
-					traverse_stack::trace_t newStackElem(cur_node->offset()+1, tmin,tmax);
+					iATraverseStack::iATrace newStackElem(cur_node->offset()+1, tmin,tmax);
 					tr_stack->push(newStackElem);
 				}
 				break;
@@ -508,12 +508,12 @@ public:
 				{
 					if(sign)
 					{
-						traverse_stack::trace_t newStackElem(cur_node->offset()+1, t, tmax);
+						iATraverseStack::iATrace newStackElem(cur_node->offset()+1, t, tmax);
 						tr_stack->push(newStackElem);
 					}
 					else
 					{
-						traverse_stack::trace_t newStackElem(cur_node->offset()+1, tmin, t);
+						iATraverseStack::iATrace newStackElem(cur_node->offset()+1, tmin, t);
 						tr_stack->push(newStackElem);
 					}
 				}
@@ -521,12 +521,12 @@ public:
 				{
 					if(sign)
 					{
-						traverse_stack::trace_t newStackElem(cur_node->offset(), tmin, t);
+						iATraverseStack::iATrace newStackElem(cur_node->offset(), tmin, t);
 						tr_stack->push(newStackElem);
 					}
 					else
 					{
-						traverse_stack::trace_t newStackElem(cur_node->offset(), t, tmax);
+						iATraverseStack::iATrace newStackElem(cur_node->offset(), t, tmax);
 						tr_stack->push(newStackElem);
 					}
 				}
@@ -534,7 +534,7 @@ public:
 			case 0://left only
 				if(cur_node->has_left())
 				{
-					traverse_stack::trace_t newStackElem(cur_node->offset(), tmin, tmax);
+					iATraverseStack::iATrace newStackElem(cur_node->offset(), tmin, tmax);
 					tr_stack->push(newStackElem);
 				}
 				break;
@@ -616,7 +616,7 @@ public:
 		}
 		for(unsigned int i=0; i<a_size; i++)
 		{
-			nodes.push_back(new BSPNode());
+			nodes.push_back(new iABSPNode());
 			if (fread(&nodes[i]->internal1, sizeof(unsigned int), 1, fptr) != 1 ||
 				fread(&nodes[i]->internal2, sizeof(unsigned int), 1, fptr) != 1 ||
 				fread(&nodes[i]->masked_vars, sizeof(unsigned int), 1, fptr) != 1)
@@ -647,11 +647,11 @@ public:
 		dcast->log("done\n",true);
 		return 1;
 	}
-	BSPNode *root;	//!< root node
+	iABSPNode *root;	//!< root node
 	int splitLevel;	//!< tree split level
-	aabb m_aabb;	//!< tree AABB
+	iAaabb m_aabb;	//!< tree AABB
 	std::vector<unsigned int> tri_ind;
-	std::vector<BSPNode*> nodes;
+	std::vector<iABSPNode*> nodes;
 protected:
-	std::vector<TriPrim*>* m_triangles;
+	std::vector<iATriPrim*>* m_triangles;
 };

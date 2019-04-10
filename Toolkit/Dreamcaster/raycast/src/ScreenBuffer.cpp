@@ -23,25 +23,25 @@
 
 //namespace Raytracer {
 
-ScreenBuffer::ScreenBuffer( int a_Width, int a_Height ) :
+iAScreenBuffer::iAScreenBuffer( int a_Width, int a_Height ) :
 	m_Width( a_Width ),
 	m_Height( a_Height )
 {
 	m_Buffer = new unsigned int[a_Width * a_Height];
-	buffSize = m_Width * m_Height * sizeof(m_Buffer[0]);
-	Clear();
+	m_buffSize = m_Width * m_Height * sizeof(m_Buffer[0]);
+	clear();
 	//memset(m_Buffer, 0, a_Width * a_Height);
 }
 
-ScreenBuffer::~ScreenBuffer()
+iAScreenBuffer::~iAScreenBuffer()
 {
 	if(m_Buffer)
 		delete [] m_Buffer;
 }
 
-void ScreenBuffer::Clear()
+void iAScreenBuffer::clear()
 {
-	memset(m_Buffer, 0, buffSize);
+	memset(m_Buffer, 0, m_buffSize);
 }
 
 //}; // namespace Raytracer

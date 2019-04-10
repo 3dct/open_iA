@@ -34,7 +34,7 @@ extern iADreamCaster * dcast;
 #define BINARY_FILE 0
 #define ASCII_FILE 1
 
-inline void computeBBox(std::vector<triangle*> & stlMesh, std::vector<iAVec3f*> & vertices, aabb & box, float & scale_coef, float * translate3f)
+inline void computeBBox(std::vector<iAtriangle*> & stlMesh, std::vector<iAVec3f*> & vertices, iAaabb & box, float & scale_coef, float * translate3f)
 {
 	float x1=vertices[0]->operator[](0), x2=vertices[0]->operator[](0),\
 		  y1=vertices[0]->operator[](1), y2=vertices[0]->operator[](1),\
@@ -101,7 +101,7 @@ inline void computeBBox(std::vector<triangle*> & stlMesh, std::vector<iAVec3f*> 
 }
 
 //! Structure representing triangle of stl file. Just a container. Nothing special. Contains data about triangle's normal and 3 vetrices.
-struct Tri
+struct iATri
 {
 	float normal1;
 	float normal2;
@@ -112,7 +112,7 @@ struct Tri
 	float vertex3X;        float vertex3Y;        float vertex3Z;
 };
 
-int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3f*> & vertices, aabb & box)
+int readSTLFile(QString const & filename, std::vector<iAtriangle*> & stlMesh, std::vector<iAVec3f*> & vertices, iAaabb & box)
 {
 	float scale_coef;///< loaded mesh's scale coefficient
 	float translate3f[3];///< loaded mesh's axes offsets
@@ -127,7 +127,7 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 	vertices.clear();
 	for (unsigned int i=0; i<stlMesh.size(); i++)
 	{
-		triangle* tri = stlMesh[i];
+		iAtriangle* tri = stlMesh[i];
 		if(tri) 
 			delete tri;
 	}
@@ -183,7 +183,7 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 	// and 1 for the normals.
 	// also have a string to indentify the keyword
 	std::string name;
-	triangle*	copy;
+	iAtriangle*	copy;
 
 	//Determine the type of the file
 	int type;
@@ -213,7 +213,7 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 			if(Word[i] == "facet" && Word[i+1] == "normal")
 			{
 				// create a fresh pointer to triangle
-				copy = new triangle;
+				copy = new iAtriangle;
 
 				copy->vertices[0] = new iAVec3f((float)atof(Word[i+8].c_str()),
 											(float)atof(Word[i+9].c_str()),
@@ -248,7 +248,7 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 	// HERE FOR THE BINARY VERSION 
 	else
 	{
-		struct Tri item;
+		iATri item;
 		FILE *fptr = fopen(getLocalEncodingFileName(filename).c_str(),"rb");
 		if(!fptr)	return 1;
 		unsigned char header[80];
@@ -276,7 +276,7 @@ int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std:
 				return 4;
 			}
 
-			copy = new triangle;
+			copy = new iAtriangle;
 
 			copy->N = iAVec3f(item.normal1, item.normal2, item.normal3 );
 

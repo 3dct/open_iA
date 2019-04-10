@@ -1934,13 +1934,16 @@ int iASlicer::sliceNumber() const
 
 #define EPSILON 0.0015
 
-struct PickedData
+namespace
 {
-	double pos[3];
-	double res[3];
-	int ind[3];
-};
-PickedData	pickedData;
+	struct PickedData
+	{
+		double pos[3];
+		double res[3];
+		int ind[3];
+	};
+	PickedData	pickedData;
+}
 
 void iASlicer::keyPressEvent(QKeyEvent *event)
 {
