@@ -68,17 +68,17 @@ class open_iA_Core_API iARenderer: public QObject
 {
 	Q_OBJECT
 public:
-	iARenderer( QObject *parent = 0 );
+	iARenderer( QObject *parent = nullptr );
 	virtual ~iARenderer( );
 
-	void initialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
-	void reInitialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
+	void initialize( vtkImageData* ds, vtkPolyData* pd );
+	void reInitialize( vtkImageData* ds, vtkPolyData* pd );
 	void setPolyData( vtkPolyData* pd );
 
 	void setDefaultInteractor();
 	void disableInteractor();
 	void enableInteractor();
-	void setAxesTransform(vtkTransform *transform);
+	void setAxesTransform( vtkTransform *transform );
 	vtkTransform * axesTransform(void);
 
 	void setPlaneNormals( vtkTransform *tr ) ;

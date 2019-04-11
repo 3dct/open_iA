@@ -298,7 +298,7 @@ iARenderer::~iARenderer(void)
 	if (m_renderObserver) m_renderObserver->Delete();
 }
 
-void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
+void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 {
 	m_imageData = ds;
 	m_polyData = pd;
@@ -306,7 +306,6 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	if(m_polyData)
 		if( m_polyData->GetNumberOfCells() )
 			m_cellLocator->BuildLocator();
-	m_ext = e;
 	double spacing[3];	ds->GetSpacing(spacing);
 	m_ren->SetLayer(0);
 	m_ren->UseDepthPeelingOn();
@@ -428,20 +427,18 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	}
 }
 
-void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
+void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd)
 {
 	m_imageData = ds;
 	m_polyData = pd;
+	updatePositionMarkerExtent();
 	if (m_polyData)
 	{
 		m_cellLocator->SetDataSet(m_polyData );
 		if (m_polyData->GetNumberOfCells())
 			m_cellLocator->BuildLocator();
 	}
-	m_ext = e;
-	updatePositionMarkerExtent();
 	m_polyMapper->SetInputData(m_polyData);
-
 	m_renderObserver->ReInitialize(m_ren, m_labelRen, m_interactor, m_pointPicker,
 		m_moveableAxesTransform, ds,
 		m_plane1, m_plane2, m_plane3, m_cellLocator );
@@ -598,7 +595,6 @@ void iARenderer::showHelpers(bool show)
 	m_axesActor->SetVisibility(show);
 	m_moveableAxesActor->SetVisibility(show);
 	m_logoWidget->SetEnabled(show);
-	m_cActor->SetVisibility(show);
 }
 
 void iARenderer::showRPosition(bool s)
@@ -702,7 +698,11 @@ void iARenderer::setCamera(vtkCamera* c)
 	m_ren->SetActiveCamera(m_cam);
 	emit onSetCamera();
 }
-vtkCamera* iARenderer::camera() { return m_cam; }
+
+vtkCamera* iARenderer::camera()
+{
+	return m_cam;
+}
 
 void iARenderer::setStatExt(int s)
 {

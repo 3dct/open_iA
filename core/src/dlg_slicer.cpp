@@ -40,7 +40,7 @@ dlg_slicer::dlg_slicer(iASlicer* slicer):
 {
 	setupUi(this);
 	QString slicePlaneName = slicerModeString(slicer->mode());
-	QString sliceAxisString = sliceAlongAxisName(slicer->mode());
+	QString sliceAxisString = axisName(mapSliceToGlobalAxis(slicer->mode(), iAAxisIndex::Z));
 	QColor color(slicerColor(slicer->mode()));
 	setObjectName(QString("slice%1").arg(slicePlaneName));
 	setWindowTitle(QString("Slice %1").arg(slicePlaneName));

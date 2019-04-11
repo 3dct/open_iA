@@ -42,11 +42,14 @@ enum iASlicerMode
 	SlicerCount
 };
 
+// Helper functions for axes and slicer modes - defined in iASlicer.cpp!
+
+//! Get the name of the given axis
+//! @param axis the index of the axis (see iAAxisIndex)
+open_iA_Core_API QString axisName(int axis);
+
 //! Get the "name" of the given slicer mode (i.e. the slicer plane, "XY" for iASlicerMode XY).
 open_iA_Core_API QString slicerModeString(int mode);
-
-//! Get the name of axis along which the given slicer mode cuts (i.e. "Z" for slice mode "XY").
-open_iA_Core_API QString sliceAlongAxisName(int mode);
 
 //! Map the index of an axis of the slicer to the index of the corresponding global axis.
 //! @param mode the slicer mode, @see iASlicerMode

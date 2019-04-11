@@ -377,8 +377,8 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_roiMapper->Update();
 		m_roiActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
 
-		m_axisTextActor[0]->SetInput((m_mode == XY || m_mode == XZ) ? "X" : "Y");
-		m_axisTextActor[1]->SetInput((m_mode == XZ || m_mode == YZ) ? "Z" : "Y");
+		m_axisTextActor[0]->SetInput(axisName(mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)).toStdString().c_str());
+		m_axisTextActor[1]->SetInput(axisName(mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)).toStdString().c_str());
 
 		for (int i = 0; i < 2; ++i)
 		{
@@ -875,7 +875,6 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 	if (rws[1] % 2 != 0) rws[1]++;
 	m_renWin->SetSize(rws);
 	m_renWin->Render();
-
 	w2if->SetInput(m_renWin);
 	w2if->ReadFrontBufferOff();
 
@@ -1158,14 +1157,10 @@ void iASlicer::updateBackground()
 	}
 	switch (m_mode)
 	{
-	case iASlicerMode::YZ:
-		m_ren->SetBackground(0.2, 0.2, 0.2); break;
-	case iASlicerMode::XY:
-		m_ren->SetBackground(0.3, 0.3, 0.3); break;
-	case iASlicerMode::XZ:
-		m_ren->SetBackground(0.6, 0.6, 0.6); break;
-	default:
-		break;
+		default:
+		case iASlicerMode::YZ: m_ren->SetBackground(0.2, 0.2, 0.2); break;
+		case iASlicerMode::XY: m_ren->SetBackground(0.3, 0.3, 0.3); break;
+		case iASlicerMode::XZ: m_ren->SetBackground(0.6, 0.6, 0.6); break;
 	}
 }
 
@@ -1272,12 +1267,12 @@ void iASlicer::computeCoords(double & xCoord, double & yCoord, double & zCoord, 
 	resliceAxes->Delete();
 
 	auto imageData = m_channels[channelID]->input();
-	double const * imageSpacing = imageData->GetSpacing();	// +/- 0.5 to correct for BorderOn
+	double const * imageSpacing = imageData->GetSpacing();
 	double const * origin = imageData->GetOrigin();
 	// xCoord, yCoord, zCoord will contain voxel coordinates for the given channel
-	xCoord = (result[0] - origin[0]) / imageSpacing[0] + 0.5;//	if (m_mode == YZ) xCoord -= 0.5;
-	yCoord = (result[1] - origin[1]) / imageSpacing[1] + 0.5;//	if (m_mode == XZ) yCoord += 0.5; // not sure yet why +0.5 required here...
-	zCoord = (result[2] - origin[2]) / imageSpacing[2] + 0.5;//	if (m_mode == XY) zCoord -= 0.5;
+	xCoord = (result[0] - origin[0]) / imageSpacing[0] + 0.5;	// + 0.5 to correct for BorderOn
+	yCoord = (result[1] - origin[1]) / imageSpacing[1] + 0.5;
+	zCoord = (result[2] - origin[2]) / imageSpacing[2] + 0.5;
 
 	// TODO: check for negative origin images!
 	int* extent = imageData->GetExtent();
@@ -2880,29 +2875,22 @@ void iASlicer::setPieGlyphParameters(double opacity, double spacing, double magF
 }
 
 
+// Declaration of following functions in iASlicerMode.h:
 
-
-// declaration in iASlicerMode.h
-QString slicerModeString(int mode)
+QString axisName(int axis)
 {
-	switch (mode)
+	switch (axis)
 	{
-	case YZ: return "YZ";
-	case XZ: return "XZ";
-	case XY: return "XY";
-	default: return "??";
+	case iAAxisIndex::X: return "X";
+	case iAAxisIndex::Y: return "Y";
+	case iAAxisIndex::Z: return "Z";
+	default: return "?";
 	}
 }
 
-QString sliceAlongAxisName(int mode)
+QString slicerModeString(int mode)
 {
-	switch (mode)
-	{
-	case YZ: return "X";
-	case XZ: return "Y";
-	case XY: return "Z";
-	default: return "?";
-	}
+	return axisName(mapSliceToGlobalAxis(mode, iAAxisIndex::X)) + axisName(mapSliceToGlobalAxis(mode, iAAxisIndex::Y));
 }
 
 namespace
