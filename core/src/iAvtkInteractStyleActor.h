@@ -53,6 +53,9 @@ public:
 
 
 	void custom2DRotate(); 
+
+	void Update3DTransform(double * imageCenter, const double * spacing, double relativeAngle);
+
 	void TransformReslicer(double * obj_center, double const * spacing, double newAngle, double oldAngle);
 signals:
 	void actorsUpdated();
