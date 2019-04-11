@@ -120,10 +120,6 @@ public:
 	static iAInteractorStyleImage *New();
 	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage);
 
-	//void OnMouseMove() override{
-	//	return; GetInteractor()-> 
-	//}
-
 	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
 	void OnLeftButtonDown() override
 	{
@@ -257,7 +253,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	if (magicLensAvailable)
 	{
 		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
-		m_magicLens->SetRenderWindow(m_renWin);
+		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
 		m_magicLensContextMenu = new QMenu(this);
 		QActionGroup * actionGr(new QActionGroup(this));
@@ -500,7 +496,7 @@ void iASlicer::update()
 	m_interactor->Render();
 	m_ren->Render();
 	if (m_magicLens)
-		m_magicLens->Render();
+		m_magicLens->render();
 	if (m_isSliceProfEnabled)
 		updateProfile();
 	iAVtkWidget::update();
@@ -553,7 +549,7 @@ void iASlicer::setup( iASingleSlicerSettings const & settings )
 		channel->setInterpolate(settings.LinearInterpolation);
 	}
 	if (m_magicLens)
-		m_magicLens->SetInterpolate(settings.LinearInterpolation);
+		m_magicLens->setInterpolate(settings.LinearInterpolation);
 	setMouseCursor(settings.CursorMode);
 	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
 	showIsolines(settings.ShowIsoLines);
@@ -577,7 +573,7 @@ void iASlicer::setMagicLensEnabled( bool isEnabled )
 		DEBUG_LOG("SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	m_magicLens->SetEnabled(isEnabled);
+	m_magicLens->setEnabled(isEnabled);
 	m_interactorStyle->SetRightButtonDragZoomEnabled(!isEnabled);
 	setShowText(!isEnabled);
 	updateMagicLens();
@@ -600,13 +596,13 @@ void iASlicer::setMagicLensSize(int newSize)
 		DEBUG_LOG("SetMagicLensSize called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	m_magicLens->SetSize(newSize);
+	m_magicLens->setSize(newSize);
 	updateMagicLens();
 }
 
 int iASlicer::magicLensSize() const
 {
-	return m_magicLens ? m_magicLens->GetSize() : 0;
+	return m_magicLens ? m_magicLens->size() : 0;
 }
 
 void iASlicer::setMagicLensFrameWidth(int newWidth)
@@ -616,7 +612,7 @@ void iASlicer::setMagicLensFrameWidth(int newWidth)
 		DEBUG_LOG("SetMagicLensFrameWidth called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	m_magicLens->SetFrameWidth(newWidth);
+	m_magicLens->setFrameWidth(newWidth);
 	updateMagicLens();
 }
 
@@ -627,7 +623,7 @@ void iASlicer::setMagicLensCount(int count)
 		DEBUG_LOG("SetMagicLensCount called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	m_magicLens->SetLensCount(count);
+	m_magicLens->setLensCount(count);
 	updateMagicLens();
 }
 
@@ -643,7 +639,7 @@ void iASlicer::setMagicLensInput(uint id)
 	if (!data)
 		return;
 	m_magicLensInput = id;
-	m_magicLens->AddInput(data->reslicer(), data->cTF(), data->name());
+	m_magicLens->addInput(data->reslicer(), data->cTF(), data->name());
 	update();
 }
 
@@ -659,13 +655,13 @@ void iASlicer::setMagicLensOpacity(double opacity)
 		DEBUG_LOG("SetMagicLensOpacity called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	m_magicLens->SetOpacity(opacity);
+	m_magicLens->setOpacity(opacity);
 	update();
 }
 
 double iASlicer::magicLensOpacity() const
 {
-	return (m_magicLens) ? m_magicLens->GetOpacity() : 0;
+	return (m_magicLens) ? m_magicLens->opacity() : 0;
 }
 
 vtkGenericOpenGLRenderWindow * iASlicer::renderWindow()
@@ -726,7 +722,7 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 void iASlicer::updateMagicLensColors()
 {
 	if (m_magicLens)
-		m_magicLens->UpdateColors();
+		m_magicLens->updateColors();
 }
 
 void iASlicer::setTransform(vtkAbstractTransform * tr)
@@ -2188,7 +2184,7 @@ void iASlicer::contextMenuEvent(QContextMenuEvent *event)
 	if (m_decorations && m_interactionMode == DEFINE_SPLINE)
 		m_contextMenu->exec(event->globalPos());
 
-	if (m_magicLens && m_magicLens->IsEnabled())
+	if (m_magicLens && m_magicLens->isEnabled())
 		m_magicLensContextMenu->exec(event->globalPos());
 }
 
@@ -2432,7 +2428,7 @@ void iASlicer::menuCenteredMagicLens()
 {
 	if (!m_magicLens)
 		return;
-	m_magicLens->SetViewMode(iAMagicLens::CENTERED);
+	m_magicLens->setViewMode(iAMagicLens::CENTERED);
 	updateMagicLens();
 }
 
@@ -2440,7 +2436,7 @@ void iASlicer::menuOffsetMagicLens()
 {
 	if (!m_magicLens)
 		return;
-	m_magicLens->SetViewMode(iAMagicLens::OFFSET);
+	m_magicLens->setViewMode(iAMagicLens::OFFSET);
 	updateMagicLens();
 }
 
@@ -2684,14 +2680,14 @@ void iASlicer::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslic
 
 void iASlicer::updateMagicLens()
 {
-	if (!m_magicLens || !m_magicLens->IsEnabled())
+	if (!m_magicLens || !m_magicLens->isEnabled())
 		return;
 	vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
-	ren->SetWorldPoint(pickedData.res[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], pickedData.res[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)], 0, 1);
+	ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 	ren->WorldToDisplay();
 	double dpos[3];
 	ren->GetDisplayPoint(dpos);
-	int lensSz = m_magicLens->GetSize();
+	int lensSz = m_magicLens->size();
 	lensSz = (std::min)(lensSz, (std::min)(geometry().width(), geometry().height())); // restrict size to size of smallest side
 	int lensSzHalf = 0.5*lensSz;
 	// clamp to image, round to int (=pixels)
@@ -2702,7 +2698,7 @@ void iASlicer::updateMagicLens()
 	ren->DisplayToWorld();
 	int const mousePos[2] = { static_cast<int>(dpos[0]), static_cast<int>(dpos[1]) };
 	double const * worldP = ren->GetWorldPoint();
-	m_magicLens->UpdatePosition(ren->GetActiveCamera(), worldP, mousePos);
+	m_magicLens->updatePosition(ren->GetActiveCamera(), worldP, mousePos);
 }
 
 void iASlicer::computeGlyphs()
