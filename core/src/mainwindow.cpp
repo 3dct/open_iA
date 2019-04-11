@@ -1147,8 +1147,11 @@ void MainWindow::prefs()
 		bool logToFile = dlg.getCheckValue(4) != 0;
 		QString logFileName = dlg.getText(5);
 		QString looksStr = dlg.getComboBoxValue(6);
-		m_qssName = styleNames[looksStr];
-		applyQSS();
+		if (m_qssName != styleNames[looksStr])
+		{
+			m_qssName = styleNames[looksStr];
+			applyQSS();
+		}
 
 		m_defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
 			static_cast<int>(dlg.getDblValue(7)));
