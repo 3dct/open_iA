@@ -188,9 +188,9 @@ void iAvtkInteractStyleActor::custom2DRotate()
 	double const *imageBounds = this->m_image->GetBounds();
 	DEBUG_LOG(QString("Image Center")); 
 	double imageCenter[3]; 
-	imageCenter[0] = (imageBounds[1] + imageBounds[0]) / 4.0f;
+	imageCenter[0] = (imageBounds[1] + imageBounds[0]) / 2.0f;
 	imageCenter[1] = (imageBounds[3] + imageBounds[2]) / 2.0;
-	imageCenter[2] = 0; /* (imageBounds[5] + imageBounds[4]) / 2.0;*/
+	imageCenter[2] = (imageBounds[5] + imageBounds[4]) / 2.0; 
 	
 	
 	double *obj_center = this->InteractionProp->GetCenter();
@@ -214,7 +214,7 @@ void iAvtkInteractStyleActor::custom2DRotate()
 			rwi->GetLastEventPosition()[0] - disp_obj_center[0]));
 
 	//this->InteractionProp->SetOrientation(0, 0, newAngle);
-
+	double relativeAngle = newAngle - oldAngle;
 	double scale[3];
 	scale[0] = scale[1] = scale[2] = 1.0;
 
@@ -225,14 +225,15 @@ void iAvtkInteractStyleActor::custom2DRotate()
 	motion_vector[1] = 0;
 	motion_vector[2] = 1;
 
-	DEBUG_LOG(QString("new Angle %1").arg(newAngle));
-	DEBUG_LOG(QString("old Angle %1").arg(oldAngle));
+	//DEBUG_LOG(QString("new Angle %1").arg(newAngle));
+	//DEBUG_LOG(QString("old Angle %1").arg(oldAngle));
 
 	rotate[0][0] = newAngle - oldAngle;
 	rotate[0][1] = motion_vector[0];
 	rotate[0][2] = motion_vector[1];
 	rotate[0][3] = motion_vector[2];
 
+	DEBUG_LOG(QString("relative angle %1").arg(rotate[0][0])); 
 
 	this->Prop3DTransform(this->InteractionProp,
 		obj_center/*obj_center*/,
@@ -258,12 +259,31 @@ void iAvtkInteractStyleActor::custom2DRotate()
 	DEBUG_LOG(QString("Orientation XYZ %1 %2 %3").arg(orientXYZ[0]).arg(orientXYZ[1]).arg(orientXYZ[2]));
 	DEBUG_LOG(QString("Orientation WXYZ %1 %2 %3 %4").arg(oriWXYZ[0]).arg(oriWXYZ[1]).arg(oriWXYZ[2]).arg(oriWXYZ[3])); 
 	
+
+	/*
+	*based on slicer mode 
+	*/
+
 	
-	//m_slicerChannel[m_currentSliceMode]->reslicer()->SetResliceAxes(this->InteractionProp->GetMatrix()); 
-	//
-	//m_slicerChannel[m_currentSliceMode]->reslicer()->SetInterpolationModeToLinear();
-	//
-	//m_slicerChannel[m_currentSliceMode]->reslicer()->Modified();
+	QString mode = slicerModeString(m_currentSliceMode);
+	DEBUG_LOG(QString("Mode %1 %2").arg(mode.toStdString().c_str()).arg(m_currentSliceMode)); 
+	double const * spacing = m_image->GetSpacing(); 
+	
+	Update3DTransform(imageCenter, spacing, relativeAngle);
+
+
+
+	
+
+	//m_slicerChannel[m_currentSliceMode]->reslicer()->SetOutputExtent(this->m_image->GetExtent());
+	//m_slicerChannel[m_currentSliceMode]->reslicer()->SetOutputSpacing(this->m_image->GetSpacing());
+	//m_slicerChannel[m_currentSliceMode]->reslicer()->SetOutputOrigin(this->m_image->GetOrigin()); 
+	m_slicerChannel[m_currentSliceMode]->reslicer()->Update(); 
+	m_slicerChannel[m_currentSliceMode]->reslicer()->SetResliceAxes(this->InteractionProp->GetMatrix());
+
+	m_slicerChannel[m_currentSliceMode]->reslicer()->SetInterpolationModeToLinear();
+
+	m_slicerChannel[m_currentSliceMode]->reslicer()->Modified();
 	//m_slicerChannel[m_currentSliceMode]->reslicer()->UpdateWholeExtent();
 
 	//this->InteractionProp->getTr
@@ -293,6 +313,29 @@ void iAvtkInteractStyleActor::custom2DRotate()
 	/*rwi->Render();*/
 }
 
+
+void iAvtkInteractStyleActor::Update3DTransform(double * imageCenter, const double * spacing, double relativeAngle)
+{
+	double volOrientation[3];
+	//m_volumeRenderer->volume()->GetOrientation(volOrientation);
+
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();;transform->PostMultiply(); 
+	//transform->SetMatrix(m_volumeRenderer->volume()->GetMatrix());
+	transform->Translate(-imageCenter[0]/**spacing[0]*/, -imageCenter[1]/**spacing[1]*/, -imageCenter[2]/**spacing[0]*/);
+	
+
+
+	switch (m_currentSliceMode) {
+	case YZ: transform->RotateX(relativeAngle); break;
+	case XZ: transform->RotateY(relativeAngle); break;
+	case XY: transform->RotateZ(relativeAngle);  break;
+	default: break;
+	}
+
+	transform->Translate(imageCenter[0]/**spacing[0]*/, imageCenter[1]/**spacing[1]*/, imageCenter[2]/**spacing[2]*/);
+	m_volumeRenderer->volume()->SetUserTransform(transform);
+	m_volumeRenderer->update(); 
+}
 
 void iAvtkInteractStyleActor::TransformReslicer(double * obj_center, double const * spacing, double newAngle, double oldAngle)
 {
