@@ -147,9 +147,9 @@ public:
 	//! @deprecated retrieve images via the modalities (modality(int) etc.) instead!
 	vtkSmartPointer<vtkImageData> imagePointer();
 	//! Set "main image" - does not update views (see displayResult for a method that does)!
-	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (addChannel/updateChannel)
+	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
 	void setImageData(vtkImageData * iData);
-	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (addChannel/updateChannel)
+	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
 	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
 	//! Access to "main" polydata object (if any)
 	// TODO: move out of mdi child, into something like an iAModality
@@ -179,8 +179,8 @@ public:
 	void setReInitializeRenderWindows(bool reInit);
 	vtkTransform* slicerTransform();
 	bool resultInNewWindow() const;
-	bool linkedMDIs() const;
-	bool linkedViews() const;
+	bool linkedMDIs() const;    //!< Whether this child has the linked MDIs feature enabled
+	bool linkedViews() const;   //!< Whether this child has the linked views feature enabled
 	std::vector<iAChartFunction*> &functions();
 	void redrawHistogram();
 	iADiagramFctWidget* histogram();

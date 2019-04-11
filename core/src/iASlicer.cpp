@@ -863,64 +863,64 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 		QMessageBox::information(this, "Movie Export", "This version of open_iA was built without movie export support!");
 		return;
 	}
-	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter(fileName, qual);
+	auto movieWriter = GetMovieWriter(fileName, qual);
 	if (movieWriter.GetPointer() == nullptr)
 		return;
 
 	m_interactor->Disable();
 
-	vtkSmartPointer<vtkWindowToImageFilter> w2if = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	int* rws = m_renWin->GetSize();
 	if (rws[0] % 2 != 0) rws[0]++;
 	if (rws[1] % 2 != 0) rws[1]++;
 	m_renWin->SetSize(rws);
 	m_renWin->Render();
-	w2if->SetInput(m_renWin);
-	w2if->ReadFrontBufferOff();
+	windowToImage->SetInput(m_renWin);
+	windowToImage->ReadFrontBufferOff();
 
-	movieWriter->SetInputConnection(w2if->GetOutputPort());
+	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
 
-	int const * extent = m_channels[0]->output()->GetExtent();
-	double const * origin = m_channels[0]->output()->GetOrigin();
-	double const * spacing = m_channels[0]->output()->GetSpacing();
+	int const * imgExtent = m_channels[0]->input()->GetExtent();
+	double const * imgOrigin = m_channels[0]->input()->GetOrigin();
+	double const * imgSpacing = m_channels[0]->input()->GetSpacing();
 
-	emit msg(tr("MOVIE export started. Output: %1").arg(fileName));
+	emit msg(tr("Movie export started, output file name: %1.").arg(fileName));
 
 	double oldResliceAxesOrigin[3];
 	m_channels[0]->resliceAxesOrigin(oldResliceAxesOrigin);
 
 	double movingOrigin[3];
 	for (int i = 0; i < 3; ++i)
-		movingOrigin[i] = origin[i];
-	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-	int extentMin = extent[sliceAxis * 2];
-	int extentMax = extent[sliceAxis * 2 + 1];
-	for (int i = extentMin; i < extentMax; i++)
+		movingOrigin[i] = imgOrigin[i];
+	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	int const sliceFrom = imgExtent[sliceZAxisIdx * 2];
+	int const sliceTo = imgExtent[sliceZAxisIdx * 2 + 1];
+	for (int slice = sliceFrom; slice <= sliceTo; slice++)
 	{
-		movingOrigin[sliceAxis] = origin[sliceAxis] + i * spacing[sliceAxis];
+		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
 		m_channels[0]->setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
-		update();
-		w2if->Modified();
+		m_channels[0]->updateReslicer();
+		m_renWin->Render();
+		windowToImage->Modified();
+		windowToImage->Update();
 		movieWriter->Write();
 		if (movieWriter->GetError())
 		{
 			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
-		emit progress(100 * (i + 1) / (extentMax - extentMin));
+		emit progress(100 * (slice - sliceFrom) / (sliceTo - sliceFrom));
 	}
 	m_channels[0]->setResliceAxesOrigin(oldResliceAxesOrigin[0], oldResliceAxesOrigin[1], oldResliceAxesOrigin[2]);
 	update();
 	movieWriter->End();
-	movieWriter->ReleaseDataFlagOn();
-	w2if->ReleaseDataFlagOn();
 	m_interactor->Enable();
 
 	if (movieWriter->GetError())
-		emit msg(tr("  MOVIE export failed."));
+		emit msg(tr("Movie export failed."));
 	else
-		emit msg(tr("MOVIE export completed."));
+		emit msg(tr("Movie export completed."));
 }
 
 void iASlicer::saveAsImage()
@@ -971,7 +971,7 @@ void iASlicer::saveAsImage()
 	}
 	iAConnector con;
 	vtkSmartPointer<vtkImageData> img;
-	auto wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	if (saveNative)
 	{
 		int selectedChannelID = 0;
@@ -1002,9 +1002,9 @@ void iASlicer::saveAsImage()
 	}
 	else
 	{
-		wtif->SetInput(m_renWin);
-		wtif->Update();
-		img = wtif->GetOutput();
+		windowToImage->SetInput(m_renWin);
+		windowToImage->Update();
+		img = windowToImage->GetOutput();
 	}
 	writeSingleSliceImage(fileName, img);
 }
@@ -1025,18 +1025,17 @@ void iASlicer::saveImageStack()
 	QFileInfo fileInfo(file);
 	QString baseName = fileInfo.absolutePath() + "/" + fileInfo.baseName();
 
-	int const * dim = imageData->GetDimensions();
-	double const * spacing = imageData->GetSpacing();
-	int maxSliceLast = dim[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z)] - 1;
-	int sliceFirst = 0,
-		sliceLast = maxSliceLast;
+	int const * imgExtent = imageData->GetExtent();
+	double const * imgSpacing = imageData->GetSpacing();
+	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	int const sliceMin = imgExtent[sliceZAxisIdx * 2];
+	int const sliceMax = imgExtent[sliceZAxisIdx * 2 + 1];
 	bool saveNative = true;
 	bool output16Bit = false;
 	QStringList inList = (QStringList() << tr("$Save native image (intensity rescaled to output format)")
-		<< tr("#From Slice Number:")
-		<< tr("#To Slice Number:"));
-	QList<QVariant> inPara = (QList<QVariant>() << (saveNative ? tr("true") : tr("false")) << tr("%1")
-		.arg(sliceFirst) << tr("%1").arg(sliceLast));
+		<< tr("*From Slice Number:")
+		<< tr("*To Slice Number:"));
+	QList<QVariant> inPara = (QList<QVariant>() << (saveNative ? tr("true") : tr("false")) << sliceMin << sliceMax);
 
 	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
 		(QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
@@ -1049,15 +1048,15 @@ void iASlicer::saveImageStack()
 		return;
 
 	saveNative = dlg.getCheckValue(0);
-	sliceFirst = dlg.getDblValue(1);
-	sliceLast = dlg.getDblValue(2);
+	int sliceFrom = dlg.getIntValue(1);
+	int sliceTo   = dlg.getIntValue(2);
 	if (inList.size() > 3)
 		output16Bit = dlg.getCheckValue(3);
 
-	if (sliceFirst < 0 || sliceFirst > sliceLast || sliceLast > maxSliceLast)
+	if (sliceFrom < sliceMin || sliceFrom > sliceTo || sliceTo > sliceMax)
 	{
 		QMessageBox::information(this, "Save Image Stack", QString("Invalid input: 'From Slice Number' is greater than 'To Slice Number',"
-			" or 'From Slice Number' or 'To Slice Number' are outside of valid region [0..%1]!").arg(maxSliceLast));
+			" or 'From Slice Number' or 'To Slice Number' are outside of valid region [0..%1]!").arg(sliceMax));
 		return;
 	}
 	m_interactor->Disable();
@@ -1065,14 +1064,13 @@ void iASlicer::saveImageStack()
 	imageData->GetOrigin(movingOrigin);
 	double const * imgOrigin = imageData->GetOrigin();
 	auto reslicer = m_channels[0]->reslicer();
-	size_t axis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-	for (int slice = sliceFirst; slice <= sliceLast; slice++)
+	for (int slice = sliceFrom; slice <= sliceTo; slice++)
 	{
-		movingOrigin[axis] = imgOrigin[axis] + slice * spacing[axis];
+		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
 		setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
-		update();
+		m_channels[0]->updateReslicer();
 
-		vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
+		auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 		iAConnector con;
 		vtkImageData* img;
 		if (saveNative)
@@ -1088,12 +1086,13 @@ void iASlicer::saveImageStack()
 		}
 		else
 		{
-			wtif->SetInput(m_renWin);
-			wtif->ReadFrontBufferOff();
-			wtif->Update();
-			img = wtif->GetOutput();
+			m_renWin->Render();
+			windowToImage->SetInput(m_renWin);
+			windowToImage->ReadFrontBufferOff();
+			windowToImage->Update();
+			img = windowToImage->GetOutput();
 		}
-		emit progress(100 * slice / sliceLast);
+		emit progress(100 * (slice-sliceFrom) / (sliceTo - sliceFrom) );
 
 		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
 		writeSingleSliceImage(newFileName, img);
