@@ -1283,7 +1283,7 @@ void iASlicer::printVoxelInformation()
 	if (m_cursorSet && cursor() != mouseCursor())
 		setCursor(mouseCursor());
 	QString strDetails(QString("%1: %2, %3, %4\n").arg(padOrTruncate("Position", MaxNameLength))
-		.arg(m_globalPt[0], ).arg(m_globalPt[1]).arg(m_globalPt[2]));
+		.arg(m_globalPt[0]).arg(m_globalPt[1]).arg(m_globalPt[2]));
 	for (auto channelID: m_channels.keys())
 	{
 		if (!m_channels[channelID]->isEnabled())
@@ -1292,8 +1292,8 @@ void iASlicer::printVoxelInformation()
 		double const * slicerSpacing = m_channels[channelID]->output()->GetSpacing();
 		int    const * slicerExtent  = m_channels[channelID]->output()->GetExtent();
 		double const * slicerBounds  = m_channels[channelID]->output()->GetBounds();
-		double dcX = (m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
-		double dcY = (m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
+		double dcX = (m_slicerPt[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
+		double dcY = (m_slicerPt[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
 		int cX = static_cast<int>(std::floor(dcX));
 		int cY = static_cast<int>(std::floor(dcY));
 
@@ -1317,8 +1317,7 @@ void iASlicer::printVoxelInformation()
 		strDetails += QString("%1: %2 [%3 %4 %5]\n")
 			.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
 			.arg(valueStr)
-			.arg(static_cast<int>(coords[0])).arg(static_cast<int>(coords[1])).arg(static_cast<int>(coords[2]))
-			;
+			.arg(static_cast<int>(coords[0])).arg(static_cast<int>(coords[1])).arg(static_cast<int>(coords[2]));
 	}
 	if (m_linkedMdiChild)
 	{
@@ -1329,25 +1328,14 @@ void iASlicer::printVoxelInformation()
 			if (m_linkedMdiChild == tmpChild)
 				continue;
 
-			// TODO: replace all references to explicit voxel coordinates with world positions here!
-			double result[4];
-			double xCoord, yCoord, zCoord;
-			computeCoords(xCoord, yCoord, zCoord, result, 0);
 			double * const tmpSpacing = tmpChild->imagePointer()->GetSpacing();
-			auto imageData = m_channels[0]->input();
-			double const * origImgSpacing = imageData->GetSpacing();
-			int tmpCoord[3] = {
-				static_cast<int>(xCoord * origImgSpacing[0] / tmpSpacing[0]),
-				static_cast<int>(yCoord * origImgSpacing[1] / tmpSpacing[1]),
-				static_cast<int>(zCoord * origImgSpacing[2] / tmpSpacing[2])
-			};
+			int tmpCoord[3];
+			for (int i = 0; i < 3; ++i)
+				tmpCoord[i] = static_cast<int>(m_globalPt[0] / tmpSpacing[0]);
 			int slicerXAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X),
 				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-			tmpChild->slicer(m_mode)->setPositionMarkerCenter(
-				tmpCoord[slicerXAxisIdx] * tmpSpacing[slicerXAxisIdx],
-				tmpCoord[slicerYAxisIdx] * tmpSpacing[slicerYAxisIdx]
-			);
+			tmpChild->slicer(m_mode)->setPositionMarkerCenter(m_globalPt[slicerXAxisIdx], m_globalPt[slicerYAxisIdx]);
 			tmpChild->slicer(m_mode)->setIndex(tmpCoord[0], tmpCoord[1], tmpCoord[2]);
 			tmpChild->slicerDockWidget(m_mode)->sbSlice->setValue(tmpCoord[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->update();
@@ -1359,9 +1347,9 @@ void iASlicer::printVoxelInformation()
 	// if requested calculate distance and show actor
 	if (m_lineActor && m_lineActor->GetVisibility())
 	{
-		double distance = sqrt(pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) +
-			pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2));
-		m_lineSource->SetPoint2(m_ptMapped[0], m_ptMapped[1], 0.0);
+		double distance = sqrt(pow((m_startMeasurePoint[0] - m_slicerPt[0]), 2) +
+			pow((m_startMeasurePoint[1] - m_slicerPt[1]), 2));
+		m_lineSource->SetPoint2(m_slicerPt[0], m_slicerPt[1], 0.0);
 		m_diskSource->SetOuterRadius(distance);
 		m_diskSource->SetInnerRadius(distance);
 		m_diskSource->Update();
@@ -1379,8 +1367,8 @@ void iASlicer::executeKeyPressEvent()
 	switch (m_interactor->GetKeyCode())
 	{
 	case 'm':
-		m_startMeasurePoint[0] = m_ptMapped[0];
-		m_startMeasurePoint[1] = m_ptMapped[1];
+		m_startMeasurePoint[0] = m_slicerPt[0];
+		m_startMeasurePoint[1] = m_slicerPt[1];
 		// does not work reliably (often snaps to positions not the highest gradient close to the current position)
 		// and causes access to pixels outside of the image:
 		//snapToHighGradient(m_startMeasurePoint[0], m_startMeasurePoint[1]);
@@ -1903,8 +1891,8 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 	}
 
 	// magnify and unmagnify fisheye lens and distortion radius
-	if (m_fisheyeLensActivated) {
-
+	if (m_fisheyeLensActivated)
+	{
 		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 		ren->SetWorldPoint(pickedData.res[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], pickedData.res[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)], 0, 1);
 		if (!hasChannel(0))

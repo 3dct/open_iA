@@ -423,7 +423,7 @@ private:
 
 	QFileInfo m_fileInfo;
 	QString m_curFile, m_path;
-	int m_position[3];
+	int m_position[3];            //!< current "position" in image (in voxel indices). TODO: use global coordinates instead of voxel indices
 
 	iARenderSettings m_renderSettings;
 	iAVolumeSettings m_volumeSettings;
@@ -432,7 +432,7 @@ private:
 
 	unsigned char m_visibility;
 
-	bool m_isSmthMaximized;     //!< whether a single dock widget is currently maximized
+	bool m_isSmthMaximized;       //!< whether a single dock widget is currently maximized
 	bool m_isUntitled;            //!< whether current content is saved as a file already
 	bool m_snakeSlicer;           //!< whether snake slicer is enabled
 	bool m_isSliceProfileEnabled; //!< whether slice profile, shown in slices, is enabled
