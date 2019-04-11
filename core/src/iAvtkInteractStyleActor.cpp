@@ -82,11 +82,13 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 void iAvtkInteractStyleActor::Rotate()
 { //todo disable translation
   //rotate about center
-	if (enable3D)
+	if (enable3D) {
+		DEBUG_LOG("Rotate 3d"); 
 		vtkInteractorStyleTrackballActor::Rotate();
+	}
 	else {
 		m_rotationEnabled = true; 
-		/*this->custom2DRotate(); */
+		this->custom2DRotate(); 
 		/*vtkInteractorStyleTrackballActor::Rotate();*/
 		/*v*/
 		//this->rotate2d(); 
@@ -95,8 +97,10 @@ void iAvtkInteractStyleActor::Rotate()
 
 void iAvtkInteractStyleActor::Spin()
 {
-	if (enable3D)
+	if (enable3D) {
+		DEBUG_LOG("spin")
 		vtkInteractorStyleTrackballActor::Spin();
+	}
 }
 
 void iAvtkInteractStyleActor::OnMouseMove()
@@ -167,106 +171,7 @@ void iAvtkInteractStyleActor::updateInteractors()
 	emit actorsUpdated();
 }
 
-void iAvtkInteractStyleActor::rotate2d()
-{
-	/*if (!m_slicerChannel[m_currentSliceMode])
-		return;*/
-	//if 
 
-	DEBUG_LOG("Iam rotating ")
-	
-	//double const *actorPos = m_slicerChannel[m_currentSliceMode]->actorPosition(); 
-	
-	vtkRenderWindowInteractor *rwi = this->Interactor;
-	/*if (rwi->GetControlKey())
-		DEBUG_LOG("Control key pressed")
-	else return; */
-	//double const *testPos = 
-	double displayOrig[3]; 
-	
-	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New(); 
-	transform = dynamic_cast<vtkTransform*>(m_slicerChannel[m_currentSliceMode]->reslicer()->GetResliceTransform());
-	
-	double const * testOrigin = m_slicerChannel[m_currentSliceMode]->reslicer()->GetResliceAxesOrigin(); 
-	//double const * testPos = transform->GetPosition(); 
-	double posCopy[3] = { testOrigin[0], testOrigin[1], testOrigin[2] };
-	
-	vtkMath::Normalize(posCopy);
-
-	
-	this->ComputeWorldToDisplay(posCopy[0], posCopy[1], posCopy[2], displayOrig);
-	double newAngle =
-		vtkMath::DegreesFromRadians(atan2(rwi->GetEventPosition()[1] - displayOrig[1],
-			rwi->GetEventPosition()[0] - displayOrig[0]));
-
-	double oldAngle =
-		vtkMath::DegreesFromRadians(atan2(rwi->GetLastEventPosition()[1] - displayOrig[1],
-			rwi->GetLastEventPosition()[0] - displayOrig[0]));
-	double angle2 = newAngle - oldAngle;
-	DEBUG_LOG(QString("old angle %1").arg(oldAngle));
-	DEBUG_LOG(QString("New angle %1").arg(newAngle));
-
-	const double angle = 30;  // in degree
-	//transform->Translate(-displayOrig[0], -displayOrig[1], -displayOrig[2]);
-	
-
-	transform->RotateZ(angle2/*, 0, 0, 1*/);
-	//transform->Translate(displayOrig[0], displayOrig[1], displayOrig[2]);
-	
-	double const *tPos = transform->GetPosition();
-	double const *t_Orient = transform->GetOrientation(); 
-	
-	DEBUG_LOG(QString("Position after %1 %2 %3").arg(tPos[0]).arg(tPos[1]).arg(tPos[2])); 
-	DEBUG_LOG(QString("Orientation after %1 %2 %3").arg(t_Orient[0]).arg(t_Orient[1]).arg(t_Orient[2]));
-
-	m_slicerChannel[m_currentSliceMode]->reslicer()->SetResliceTransform(transform); 
-
-	m_slicerChannel[m_currentSliceMode]->reslicer()->Modified(); 
-	m_slicerChannel[m_currentSliceMode]->reslicer()->Update();
-	
-	//update slice planes
-	/*for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-		if (i != m_currentSliceMode && m_slicerChannel[i])
-			m_slicerChannel[i]->updateReslicer();*/
-
-	m_volumeRenderer->update();
-	emit actorsUpdated();
-
-
-
-	//Winkel berechnen zu einer Achse
-	/*evtl zu display coordinaten convertieren 
-	*Normalisierung
-	*drehung um achse mit einem winkel
-	*und zurück verschieben bzw tramsform aktualisieren
-	*
-	*
-	*/
-
-	/*
-	  // Compute the center of the image
-  double center[3];
-  center[0] = (bounds[1] + bounds[0]) / 2.0;
-  center[1] = (bounds[3] + bounds[2]) / 2.0;
-  center[2] = (bounds[5] + bounds[4]) / 2.0;
-
-  // Rotate about the center
-  transform->Translate(center[0], center[1], center[2]);
-  transform->RotateWXYZ(angle, 0, 0, 1);
-  transform->Translate(-center[0], -center[1], -center[2]);
-
-  // Reslice does all of the work
-  vtkSmartPointer<vtkImageReslice> reslice =
-	vtkSmartPointer<vtkImageReslice>::New();
-  reslice->SetInputConnection(reader->GetOutputPort());
-  reslice->SetResliceTransform(transform);
-  reslice->SetInterpolationModeToCubic();
-  reslice->SetOutputSpacing(
-	
-	*/
-	//rotate resclicer;
-	//throw std::logic_error("The method or operation is not implemented.");
-}
 
 void iAvtkInteractStyleActor::custom2DRotate()
 {
@@ -283,12 +188,12 @@ void iAvtkInteractStyleActor::custom2DRotate()
 	double const *imageBounds = this->m_image->GetBounds();
 	DEBUG_LOG(QString("Image Center")); 
 	double imageCenter[3]; 
-	imageCenter[0] = (imageBounds[1] + imageBounds[0]) / 2.0f;
+	imageCenter[0] = (imageBounds[1] + imageBounds[0]) / 4.0f;
 	imageCenter[1] = (imageBounds[3] + imageBounds[2]) / 2.0;
 	imageCenter[2] = 0; /* (imageBounds[5] + imageBounds[4]) / 2.0;*/
 	
 	
-	double *obj_center = this->InteractionProp->GetOrigin();
+	double *obj_center = this->InteractionProp->GetCenter();
 	DEBUG_LOG(QString("Image Center %1 %2 %3").arg(imageCenter[0]).arg(imageCenter[1]).arg(imageCenter[2]));
 	DEBUG_LOG(QString("Prop Center %1 %2 %3").arg(obj_center[0]).arg(obj_center[1]).arg(obj_center[2]));
 
@@ -330,7 +235,7 @@ void iAvtkInteractStyleActor::custom2DRotate()
 
 
 	this->Prop3DTransform(this->InteractionProp,
-		imageCenter/*obj_center*/,
+		obj_center/*obj_center*/,
 		1,
 		rotate,
 		scale);
