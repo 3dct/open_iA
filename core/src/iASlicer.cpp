@@ -492,9 +492,10 @@ void iASlicer::update()
 	if (!isVisible())
 		return;
 	for (auto ch : m_channels)
+	{
 		ch->updateMapper();
-	for (auto ch : m_channels)
 		ch->reslicer()->UpdateWholeExtent();
+	}
 	m_interactor->ReInitialize();
 	m_interactor->Render();
 	m_ren->Render();
@@ -1152,6 +1153,9 @@ void iASlicer::setBackground(double r, double g, double b)
 
 void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callData)
 {
+	if (m_channels.empty())
+		return;
+
 	if (eventId == vtkCommand::LeftButtonPressEvent)
 	{
 		emit clicked();
