@@ -166,7 +166,7 @@ QString iAModality::imageName(int componentIdx)
 iAImageInfo const & iAModality::info() const
 {
 	assert(m_transfer);
-	return m_transfer->Info();
+	return m_transfer->info();
 }
 
 bool iAModality::hasRenderFlag(RenderFlag loc) const

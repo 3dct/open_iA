@@ -41,14 +41,8 @@ class QString;
 //! and GUI classes used for viewing a histogram of the data and for editing the transfer functions
 class open_iA_Core_API iAModalityTransfer : public iATransferFunction
 {
-private:
-	iAImageInfo m_imageInfo;
-	QSharedPointer<iAHistogramData> m_histogramData;
-	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
-	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
-	bool m_statisticsComputed;
 public:
-	iAImageInfo const & Info() const;
+	iAImageInfo const & info() const;
 	iAModalityTransfer(double range[2]);
 	QSharedPointer<iAHistogramData> const histogramData() const;
 	void computeStatistics(vtkSmartPointer<vtkImageData> img);
@@ -59,4 +53,11 @@ public:
 	// should return vtkSmartPointer, but can't at the moment because iAChartTransferFunction doesn't have smart pointers:
 	vtkPiecewiseFunction* opacityTF() override;
 	vtkColorTransferFunction* colorTF() override;
+
+private:
+	iAImageInfo m_imageInfo;
+	QSharedPointer<iAHistogramData> m_histogramData;
+	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
+	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
+	bool m_statisticsComputed;
 };

@@ -2529,9 +2529,11 @@ void MdiChild::setHistogramModality(int modalityIdx)
 		displayHistogram(modalityIdx);
 		return;
 	}
+	if (modality(modalityIdx)->info().isComputing()) // already computing currently...
+		return;
 	addMsg(QString("Computing statistics for modality %1...")
 		.arg(modality(modalityIdx)->name()));
-	modality(modalityIdx)->transfer()->Info().setComputing();
+	modality(modalityIdx)->transfer()->info().setComputing();
 	updateImageProperties();
 	auto workerThread = new iAStatisticsUpdater(modalityIdx, modality(modalityIdx));
 	connect(workerThread, &iAStatisticsUpdater::StatisticsReady, this, &MdiChild::statisticsAvailable);
