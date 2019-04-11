@@ -1372,13 +1372,10 @@ void iASlicer::executeKeyPressEvent()
 		// does not work reliably (often snaps to positions not the highest gradient close to the current position)
 		// and causes access to pixels outside of the image:
 		//snapToHighGradient(m_startMeasurePoint[0], m_startMeasurePoint[1]);
-
-		if (m_decorations && m_lineSource && hasChannel(0))
+		if (m_decorations && m_lineSource)
 		{
-			// TODO: check which channel makes sense here!
-			double * slicerSpacing = m_channels[0]->output()->GetSpacing();
-			m_lineSource->SetPoint1(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 0.0);
-			m_diskActor->SetPosition(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 0.0);
+			m_lineSource->SetPoint1(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
+			m_diskActor->SetPosition(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
 			m_lineActor->SetVisibility(true);
 			m_diskActor->SetVisibility(true);
 			printVoxelInformation();
