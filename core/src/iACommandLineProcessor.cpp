@@ -81,7 +81,7 @@ namespace
 		{
 			auto filter = factory->create();
 			std::cout << filter->name().toStdString() << std::endl
-				<< "        " << StripHTML(AbbreviateDesc(filter->description())).toStdString() << std::endl << std::endl;
+				<< "        " << stripHTML(AbbreviateDesc(filter->description())).toStdString() << std::endl << std::endl;
 		}
 	}
 
@@ -94,7 +94,7 @@ namespace
 			return;
 		}
 		std::cout << filter->name().toStdString() << ":" << std::endl
-			<< StripHTML(filter->description().replace("<br/>", "\n")).toStdString() << std::endl;
+			<< stripHTML(filter->description().replace("<br/>", "\n")).toStdString() << std::endl;
 		std::cout << "Parameters:" << std::endl;
 		for (auto p : filter->parameters())
 		{

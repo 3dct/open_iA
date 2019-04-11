@@ -52,14 +52,16 @@ class dlg_labels : public dlg_labelUI, public iALabelInfo
 	Q_OBJECT
 public:
 	dlg_labels(MdiChild* mdiChild, iAColorTheme const * theme);
-	int GetCurLabelRow() const;
-	int GetSeedCount(int labelIdx) const;
-	bool Load(QString const & filename);
-	bool Store(QString const & filename, bool extendedFormat);
-	void SetColorTheme(iAColorTheme const *);
-	virtual int count() const;
-	virtual QString name(int idx) const;
-	virtual QColor GetColor(int idx) const;
+	int curLabelRow() const;
+	int seedCount(int labelIdx) const;
+	bool load(QString const & filename);
+	bool store(QString const & filename, bool extendedFormat);
+	void setColorTheme(iAColorTheme const *);
+	//! @{ implementing iALabelInfo methods
+	int count() const override;
+	QString name(int idx) const override;
+	QColor color(int idx) const override;
+	//! @}
 public slots:
 	void RendererClicked(int, int, int);
 	void SlicerClicked(int, int, int);
@@ -71,14 +73,14 @@ public slots:
 	void storeImage();
 	void Sample();
 	void Clear();
-	QString const & GetFileName();
+	QString const & fileName();
 private:
-	void AddSeed(int, int, int);
-	void RemoveSeed(QStandardItem* item, int x, int y, int z);
-	void AddSeedItem(int label, int x, int y, int z);
-	int AddLabelItem(QString const & labelText);
-	void ReInitChannelTF();
-	void UpdateChannel();
+	void addSeed(int, int, int);
+	void removeSeed(QStandardItem* item, int x, int y, int z);
+	void addSeedItem(int label, int x, int y, int z);
+	int addLabelItem(QString const & labelText);
+	void reInitChannelTF();
+	void updateChannel();
 
 	QStandardItemModel* m_itemModel;
 	iAColorTheme const * m_colorTheme;

@@ -28,30 +28,30 @@
 struct iAProfileProbe
 {
 public:
-	iAProfileProbe(vtkImageData * imageData)
+	iAProfileProbe(vtkImageData * imageData) :
+		m_lineSrc(vtkSmartPointer<vtkLineSource>::New()),
+		m_probe(vtkSmartPointer<vtkProbeFilter>::New())
 	{
-		lineSrc = vtkSmartPointer<vtkLineSource>::New();
-		lineSrc->SetResolution(1500);
-		probe = vtkSmartPointer<vtkProbeFilter>::New();
-		probe->SetInputConnection(lineSrc->GetOutputPort());
-		probe->SetSourceData(imageData);
-		profileData = probe->GetPolyDataOutput();
+		m_lineSrc->SetResolution(1500);
+		m_probe->SetInputConnection(m_lineSrc->GetOutputPort());
+		m_probe->SetSourceData(imageData);
+		m_profileData = m_probe->GetPolyDataOutput();
 	}
-	void UpdateProbe(int ptIndex, double const * const newPos)
+	void updateProbe(int ptIndex, double const * const newPos)
 	{
 		for (int i=0; i<3; i++)
-			positions[ptIndex][i] = newPos[i];
-		lineSrc->SetPoint1(positions[0]);
-		lineSrc->SetPoint2(positions[1]);
+			m_positions[ptIndex][i] = newPos[i];
+		m_lineSrc->SetPoint1(m_positions[0]);
+		m_lineSrc->SetPoint2(m_positions[1]);
 	}
-	void UpdateData()
+	void updateData()
 	{
-		probe->Update();
-		profileData = probe->GetPolyDataOutput();
+		m_probe->Update();
+		m_profileData = m_probe->GetPolyDataOutput();
 	}
-	double GetRayLength()
+	double rayLength()
 	{
-		double comps[3] = {positions[1][0]-positions[0][0], positions[1][1]-positions[0][1], positions[1][2]-positions[0][2]};
+		double comps[3] = { m_positions[1][0] - m_positions[0][0], m_positions[1][1] - m_positions[0][1], m_positions[1][2] - m_positions[0][2]};
 		double sqrLen = 0;
 		for (int i=0; i<3; i++)
 			sqrLen += comps[i] * comps[i];
@@ -59,8 +59,8 @@ public:
 	}
 
 public:
-	vtkSmartPointer<vtkLineSource> lineSrc;
-	vtkSmartPointer<vtkProbeFilter> probe;
-	vtkPolyData *profileData;
-	double positions[2][3];
+	vtkSmartPointer<vtkLineSource> m_lineSrc;
+	vtkSmartPointer<vtkProbeFilter> m_probe;
+	vtkPolyData *m_profileData;
+	double m_positions[2][3];
 };

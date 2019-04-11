@@ -31,7 +31,7 @@
 #include <charts/iAProfileWidget.h>
 #include <dlg_modalities.h>
 #include <dlg_slicer.h>
-#include <dlg_transfer.h>
+#include <iAChartFunctionTransfer.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAModality.h>
@@ -343,15 +343,15 @@ void iATripleModalityWidget::updateModalities()
 	m_triangleWidget->setModalities(getModality(0)->image(), getModality(1)->image(), getModality(2)->image());
 	m_triangleWidget->update();
 
-	connect((dlg_transfer*)(m_histograms[0]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
-	connect((dlg_transfer*)(m_histograms[1]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction2()));
-	connect((dlg_transfer*)(m_histograms[2]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction3()));
+	connect((iAChartTransferFunction*)(m_histograms[0]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
+	connect((iAChartTransferFunction*)(m_histograms[1]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction2()));
+	connect((iAChartTransferFunction*)(m_histograms[2]->functions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction3()));
 
 	setSlicerModePrivate(getSlicerMode());
 	//setSliceNumber(getSliceNumber()); // Already called in setSlicerMode(iASlicerMode)
 	
 	applyWeights();
-	connect((dlg_transfer*)(m_mdiChild->histogram()->functions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
+	connect((iAChartTransferFunction*)(m_mdiChild->histogram()->functions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
 
 	// Pure virtual method
 	initialize();

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASettings.h"
 
-#include "dlg_transfer.h"
+#include "iAChartFunctionTransfer.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
@@ -61,17 +61,17 @@ iASettings::iASettings(QString const & filename)
 	file.close();
 }
 
-void iASettings::LoadTransferFunction(iATransferFunction* transferFunction)
+void iASettings::loadTransferFunction(iATransferFunction* transferFunction)
 {
 	QDomElement root = domDocument.documentElement();
 	QDomNode functionsNode = root.namedItem("functions");
 	if (!functionsNode.isElement())
 		return;
-	iASettings::LoadTransferFunction(functionsNode, transferFunction);
+	iASettings::loadTransferFunction(functionsNode, transferFunction);
 }
 
 
-void iASettings::LoadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction)
+void iASettings::loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction)
 {
 	QDomNode transferNode = functionsNode.namedItem("transfer");
 	if (!transferNode.isElement())
@@ -95,7 +95,7 @@ void iASettings::LoadTransferFunction(QDomNode const & functionsNode, iATransfer
 	transferFunction->colorTF()->Build();
 }
 
-void iASettings::StoreTransferFunction(iATransferFunction* transferFunction)
+void iASettings::storeTransferFunction(iATransferFunction* transferFunction)
 {
 	// does functions node exist
 	QDomNode functionsNode = domDocument.documentElement().namedItem("functions");
@@ -127,7 +127,7 @@ void iASettings::StoreTransferFunction(iATransferFunction* transferFunction)
 	functionsNode.appendChild(transferElement);
 }
 
-void iASettings::Save(QString const & filename)
+void iASettings::save(QString const & filename)
 {
 	QFile file(filename);
 	file.open(QIODevice::WriteOnly);

@@ -38,10 +38,11 @@ class QPainter;
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
-class dlg_function;
+class iAChartFunction;
 class dlg_TFTable;
 class MdiChild;
 
+//! A chart widget that can also show functions overlaid over the chart area (transfer function, Gaussian and Bezier curves)
 class open_iA_Core_API iADiagramFctWidget : public iAChartWidget
 {
 	Q_OBJECT
@@ -63,37 +64,54 @@ public:
 		QString const & label = "Greyvalue", QString const & yLabel = "");
 	virtual ~iADiagramFctWidget();
 
-	int getSelectedFuncPoint() const;
+	//! Get the index of the selected point in the selected function.
+	int selectedFuncPoint() const;
 	bool isFuncEndPoint(int index) const;
+	//! The height of the chart area itself (in pixels), without bottom margin (where the x axis, captions and labels are drawn).
 	int chartHeight() const;
-
+	//! Set the transfer functions to be displayed on top of the chart.
 	void setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
-
-	dlg_function *getSelectedFunction();
-	std::vector<dlg_function*> &functions();
-
+	//! Get the currently selected function.
+	iAChartFunction * selectedFunction();
+	//! Get all functions currently defined in this chart.
+	std::vector<iAChartFunction*> &functions();
+	//! Set whether the user is allowed to reset the transfer function.
 	void setAllowTrfReset(bool allow);
+	//! Set whether the user can add additional functions (Bezier and Gaussian curves), in addition to the standard transfer function.
 	void setEnableAdditionalFunctions(bool enable);
 
+	//! @{ Transfer Function Table dialog related.
 	bool isTFTableCreated() const;
 	void closeTFTable();
 	QPoint getTFTablePos() const;
 	void setTFTablePos(QPoint pos);
+	//! @}
+
+	//! Add a Gaussian function with the given parameters.
 	void addGaussianFunction(double mean, double sigma, double multiplier);
 
 protected:
+	//! @{ Events overrided from Qt.
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseReleaseEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
 	void enterEvent(QEvent *event) override;
 	void keyPressEvent(QKeyEvent *event) override;
+	//! @}
+
+	//! @{ Methods overrided from iAChartWidget
 	void addContextMenuEntries(QMenu* contextMenu) override;
 	void changeMode(int newMode, QMouseEvent *event) override;
+	//! @}
+
+	virtual void drawFunctions(QPainter &painter);
 
 	MdiChild* m_activeChild;
-	std::vector<dlg_function*> m_functions;
+	std::vector<iAChartFunction*> m_functions;
 	unsigned int m_selectedFunction;
+	bool m_showFunctions;
+
 signals:
 	void updateViews();
 	void pointSelected();
@@ -120,13 +138,11 @@ public slots:
 	void showTFTable();
 	void tfTableIsFinished();
 
-protected:
-	virtual void drawFunctions(QPainter &painter);
-	bool m_showFunctions;
 private:
 	bool m_allowTrfReset;
 	bool m_enableAdditionalFunctions;
 	dlg_TFTable* m_TFTable;
+
 	void newTransferFunction();
 	void drawAfterPlots(QPainter& painter) override;
 };

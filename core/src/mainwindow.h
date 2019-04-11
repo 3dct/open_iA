@@ -50,7 +50,7 @@ class vtkCamera;
 class vtkImageData;
 class vtkRenderer;
 
-class dlg_transfer;
+class iAChartTransferFunction;
 class iAModalityList;
 class iAModuleDispatcher;
 class MdiChild;
@@ -66,11 +66,10 @@ public:
 		QString const & splashPath, QString const & iconPath);
 	static void initResources();
 
+	void setPath(QString p);
+	QString const & path();
 	void setCurrentFile(const QString &fileName);
-	void updateRecentFileActions();
-	void setPath(QString p) { m_path = p; }
-	QString getPath() { return m_path; }
-	QString getCurFile() { return m_curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
+	QString const & currentFile();  //!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
 
 	void loadFile(QString const & fileName);
 	void loadFile(QString fileName, bool isStack);
@@ -83,7 +82,7 @@ public:
 	void saveSliceViews(QDomDocument &doc);
 	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, QString const & elemStr);
 	void loadSliceViews(QDomNode &sliceViewsNode);
-	void saveTransferFunction(QDomDocument &doc, dlg_transfer* transferFunction);
+	void saveTransferFunction(QDomDocument &doc, iAChartTransferFunction* transferFunction);
 	void saveProbabilityFunctions(QDomDocument &doc);
 	void loadProbabilityFunctions(QDomNode &functionsNode);
 	void savePreferences(QDomDocument &doc);
@@ -183,17 +182,20 @@ private slots:
 	void noPointSelected();
 	void endPointSelected();
 	void setHistogramFocus();
+
 public slots:
 	void loadLayout();
 
 signals:
 	void styleChanged();
 	void fullScreenToggled();
+
 private:
 	void connectSignalsToSlots();
 	void readSettings();
 	void writeSettings();
 	void createRecentFileActions();
+	void updateRecentFileActions();
 	void applyQSS();
 	void setModuleActionsEnabled( bool isEnabled );
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
@@ -203,9 +205,10 @@ private:
 	bool keepOpen();
 	MdiChild* findMdiChild(const QString &fileName);
 
+	static const int MaxRecentFiles = 8;
+
 	QSplashScreen *m_splashScreen;
 	QAction *m_separatorAct;
-	enum { MaxRecentFiles = 8 };
 	QAction *m_recentFileActs[MaxRecentFiles];
 	QActionGroup *m_slicerToolsGroup;
 	QSignalMapper *m_windowMapper;

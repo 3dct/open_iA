@@ -28,5 +28,5 @@ class iALabelInfo
 public:
 	virtual int count() const =0;
 	virtual QString name(int idx) const =0;
-	virtual QColor GetColor(int idx) const =0;
+	virtual QColor color(int idx) const =0;
 };

@@ -65,7 +65,6 @@ class vtkLogoRepresentation;
 class vtkMarchingContourFilter;
 class vtkObject;
 class vtkPlaneSource;
-class vtkPointPicker;
 class vtkPoints;
 class vtkQImageToImageSource;
 class vtkPolyDataMapper;
@@ -77,6 +76,7 @@ class vtkTextProperty;
 class vtkTextActor3D;
 class vtkThinPlateSplineTransform;
 class vtkTransform;
+class vtkWorldPointPicker;
 
 class QMenu;
 class QWidget;
@@ -86,7 +86,7 @@ static const int MODE_TO_X_IND[3]	= { 1, 0, 0 };
 static const int MODE_TO_Y_IND[3]	= { 2, 1, 2 };
 static const int MODE_TO_Z_IND[3]	= { 0, 2, 1 };
 
-//! vtk slicer widget
+//! vtk-based slicer widget. "Channels" (i.e. image layers) are inserted via the addChannel method
 class open_iA_Core_API iASlicer : public iAVtkWidget
 {
 	Q_OBJECT
@@ -174,7 +174,7 @@ public:
 	void setContours(int numberOfContours, double contourMin, double contourMax);
 	void setContours(int numberOfContours, double const * contourValues);
 	//! @}
-	//void setMeasurementStartPoint(int x, int y);
+
 	void setShowText(bool isVisible);
 	void setMouseCursor(QString const & s);
 
@@ -309,7 +309,7 @@ protected:
 
 	void updateResliceAxesDirectionCosines();
 	void updateBackground();
-	void printVoxelInformation(double xCoord, double yCoord, double zCoord);
+	void printVoxelInformation();
 	void executeKeyPressEvent();
 	void defaultOutput();
 
@@ -374,7 +374,7 @@ private:
 	vtkCamera * m_camera; // TODO: smart pointer?
 	bool m_cameraOwner;
 	vtkAbstractTransform * m_transform; // TODO: smart pointer?
-	vtkSmartPointer<vtkPointPicker> m_pointPicker;
+	vtkSmartPointer<vtkWorldPointPicker> m_pointPicker;
 	QMap<uint, QSharedPointer<iAChannelSlicerData> > m_channels;
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
 	vtkSmartPointer<vtkTextProperty> m_textProperty;
@@ -396,12 +396,14 @@ private:
 	int m_slabThickness;       //! current slab thickness (default = 1, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
 	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
 
+	//! @ for indicating current measurement ('m' key)
 	vtkSmartPointer<vtkLineSource> m_lineSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_lineMapper;
 	vtkSmartPointer<vtkActor> m_lineActor;
 	vtkSmartPointer<vtkDiskSource> m_diskSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_diskMapper;
 	vtkSmartPointer<vtkActor> m_diskActor;
+	//! @}
 
 	vtkSmartPointer<vtkPlaneSource> m_roiSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;
@@ -427,7 +429,11 @@ private:
 	MdiChild* m_linkedMdiChild;  //! main window access for linked mdi childs feature - get rid of this somehow!
 
 	QSharedPointer<iAChannelSlicerData> createChannel(uint id, iAChannelData const & chData);
-	void getMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result);
+	//! compute the voxel coordinates in the given channel for the current slicer coordinate point.
+	//! @param xCoord x coordinate (pixel index) in channel
+	//! @param yCoord y coordinate (pixel index) in channel
+	//! @param zCoord z coordinate (pixel index) in channel
+	void computeCoords(double & xCoord, double & yCoord, double & zCoord, double* result, uint channelID);
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 };

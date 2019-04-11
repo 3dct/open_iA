@@ -22,7 +22,7 @@
 
 #include "dlg_commoninput.h"
 #include "dlg_modalityProperties.h"
-#include "dlg_transfer.h"
+#include "iAChartFunctionTransfer.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iAConsole.h"

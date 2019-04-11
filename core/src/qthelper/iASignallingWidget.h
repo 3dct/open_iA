@@ -24,15 +24,20 @@
 
 #include <QWidget>
 
+//! Double-use widget: Allows setting background color, and will emit signal "dblClicked" when it is double clicked.
+//! TODO: replace by something more simple / not double-use
 class open_iA_Core_API iASignallingWidget: public QWidget
 {
 	Q_OBJECT
 public:
 	void setBackgroundColor(QColor const & color);
+
 signals:
 	void dblClicked();
+
 private:
 	void mouseDoubleClickEvent(QMouseEvent* ev) override;
 	void paintEvent(QPaintEvent* ev) override;
+
 	QColor m_bgColor;
 };

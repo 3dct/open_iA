@@ -29,7 +29,7 @@
 #include <cassert>
 #include <vector>
 
-extern DreamCaster * dcast;
+extern iADreamCaster * dcast;
 
 //! Class representing a BSP-tree node. AABB specified BSP-tree node.
 class BSPNode

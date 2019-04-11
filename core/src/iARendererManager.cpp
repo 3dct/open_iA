@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iARendererManager.h"
 
+#include "iAConsole.h"
+
 #include <vtkCamera.h>
 #include <vtkCommand.h>
 #include <vtkObject.h>
@@ -51,7 +53,7 @@ bool iARendererManager::removeFromBundle(vtkRenderer* renderer)
 	if(!m_renderers.contains(renderer))
 	{
 		assert(false);
-		// iARenderManager::removeFromBundle called with renderer which isn't part of the Bundle!
+		DEBUG_LOG("iARenderManager::removeFromBundle called with renderer which isn't part of the Bundle!");
 		return false;
 	}
 	vtkSmartPointer<vtkCamera> newCam = vtkSmartPointer<vtkCamera>::New();
@@ -64,17 +66,15 @@ bool iARendererManager::removeFromBundle(vtkRenderer* renderer)
 void iARendererManager::removeAll()
 {
 	m_commonCamera = NULL;
-	foreach( vtkRenderer * r, m_renderers)
+	for(vtkRenderer * r: m_renderers)
 	{
 		removeFromBundle( r );
 	}
 }
 
-void iARendererManager::redrawOtherRenderers(vtkObject* caller,
-											 long unsigned int eventId,
-											 void* callData)
+void iARendererManager::redrawOtherRenderers(vtkObject* caller, long unsigned int eventId, void* callData)
 {
-	if(!m_isRedrawn)
+	if (!m_isRedrawn)
 	{
 		m_isRedrawn = true;
 		for(int i = 0; i < m_renderers.count(); i++)

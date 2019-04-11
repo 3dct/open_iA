@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_transfer.h"
+#include "iAChartFunctionTransfer.h"
 
 #include "charts/iADiagramFctWidget.h"
 #include "iAConsole.h"
@@ -36,8 +36,8 @@
 #include <QPainter>
 #include <QPen>
 
-dlg_transfer::dlg_transfer(iADiagramFctWidget *chart, QColor color):
-	dlg_function(chart),
+iAChartTransferFunction::iAChartTransferFunction(iADiagramFctWidget *chart, QColor color):
+	iAChartFunction(chart),
 	m_rangeSliderHandles(false),
 	m_color(color),
 	m_colorDlg(new QColorDialog(chart)),
@@ -48,14 +48,14 @@ dlg_transfer::dlg_transfer(iADiagramFctWidget *chart, QColor color):
 	m_gradient.setSpread(QGradient::PadSpread);
 }
 
-dlg_transfer::~dlg_transfer()
+iAChartTransferFunction::~iAChartTransferFunction()
 {
 	delete m_colorDlg;
 }
 
-void dlg_transfer::draw(QPainter &painter, QColor color, int lineWidth)
+void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidth)
 {
-	bool active = (chart->getSelectedFunction() == this);
+	bool active = (chart->selectedFunction() == this);
 
 	QPen pen = painter.pen();
 	pen.setColor(color); pen.setWidth(lineWidth);
@@ -168,12 +168,12 @@ void dlg_transfer::draw(QPainter &painter, QColor color, int lineWidth)
 	}
 }
 
-void dlg_transfer::draw(QPainter &painter)
+void iAChartTransferFunction::draw(QPainter &painter)
 {
 	draw(painter, m_color, 1);
 }
 
-void dlg_transfer::drawOnTop(QPainter &painter)
+void iAChartTransferFunction::drawOnTop(QPainter &painter)
 {
 	if (m_opacityTF->GetSize() == m_colorTF->GetSize())
 	{
@@ -183,7 +183,7 @@ void dlg_transfer::drawOnTop(QPainter &painter)
 	}
 }
 
-int dlg_transfer::selectPoint(QMouseEvent *event, int *x)
+int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 {
 	int lx = event->x() - chart->leftMargin();
 	int ly = chart->geometry().height() - event->y() - chart->bottomMargin() - chart->yShift();
@@ -241,7 +241,7 @@ int dlg_transfer::selectPoint(QMouseEvent *event, int *x)
 	return index;
 }
 
-int dlg_transfer::addPoint(int x, int y)
+int iAChartTransferFunction::addPoint(int x, int y)
 {
 	if (y < 0)
 		y = 0;
@@ -252,7 +252,7 @@ int dlg_transfer::addPoint(int x, int y)
 	return m_selectedPoint;
 }
 
-void dlg_transfer::addColorPoint(int x, double red, double green, double blue)
+void iAChartTransferFunction::addColorPoint(int x, double red, double green, double blue)
 {
 	if (red < 0 || green < 0 || blue < 0)
 	{
@@ -298,7 +298,7 @@ void dlg_transfer::addColorPoint(int x, double red, double green, double blue)
 	triggerOnChange();
 }
 
-void dlg_transfer::removePoint(int index)
+void iAChartTransferFunction::removePoint(int index)
 {
 	if (m_opacityTF->GetSize()>2)
 	{
@@ -314,7 +314,7 @@ void dlg_transfer::removePoint(int index)
 	}
 }
 
-void dlg_transfer::moveSelectedPoint(int x, int y)
+void iAChartTransferFunction::moveSelectedPoint(int x, int y)
 {
 	if (x > chart->activeWidth()-1) x = chart->activeWidth() - 1;
 	y = clamp(0, chart->geometry().height() - chart->bottomMargin() - 1, y);
@@ -352,7 +352,7 @@ void dlg_transfer::moveSelectedPoint(int x, int y)
 	triggerOnChange();
 }
 
-void dlg_transfer::changeColor(QMouseEvent *event)
+void iAChartTransferFunction::changeColor(QMouseEvent *event)
 {
 	if (event != NULL)
 		m_selectedPoint = selectPoint(event);
@@ -379,17 +379,17 @@ void dlg_transfer::changeColor(QMouseEvent *event)
 	}
 }
 
-bool dlg_transfer::isEndPoint(int index)
+bool iAChartTransferFunction::isEndPoint(int index)
 {
 	return index == 0 || index == m_opacityTF->GetSize()-1;
 }
 
-bool dlg_transfer::isDeletable(int index)
+bool iAChartTransferFunction::isDeletable(int index)
 {
 	return !isEndPoint(index);
 }
 
-void dlg_transfer::reset()
+void iAChartTransferFunction::reset()
 {
 	if (m_opacityTF && m_colorTF)
 	{
@@ -404,7 +404,7 @@ void dlg_transfer::reset()
 	}
 }
 
-void dlg_transfer::TranslateToNewRange(double const oldDataRange[2])
+void iAChartTransferFunction::TranslateToNewRange(double const oldDataRange[2])
 {
 	double min, max;
 	m_opacityTF->GetRange(min, max);
@@ -430,7 +430,7 @@ void dlg_transfer::TranslateToNewRange(double const oldDataRange[2])
 	triggerOnChange();
 }
 
-void dlg_transfer::mouseReleaseEventAfterNewPoint(QMouseEvent *)
+void iAChartTransferFunction::mouseReleaseEventAfterNewPoint(QMouseEvent *)
 {
 	double colorTFValue[6];
 	m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
@@ -454,7 +454,7 @@ void dlg_transfer::mouseReleaseEventAfterNewPoint(QMouseEvent *)
 	}
 }
 
-void dlg_transfer::setColorPoint(int selectedPoint, double x, double red, double green, double blue)
+void iAChartTransferFunction::setColorPoint(int selectedPoint, double x, double red, double green, double blue)
 {
 	double colorVal[6] = { x, red, green, blue, 0.5, 0.0 };
 
@@ -464,7 +464,7 @@ void dlg_transfer::setColorPoint(int selectedPoint, double x, double red, double
 	triggerOnChange();
 }
 
-void dlg_transfer::setColorPoint(int selectedPoint, int x, double red, double green, double blue)
+void iAChartTransferFunction::setColorPoint(int selectedPoint, int x, double red, double green, double blue)
 {
 	double colorVal[6] = { v2dX(x), red, green, blue, 0.5, 0.0 };
 
@@ -474,21 +474,21 @@ void dlg_transfer::setColorPoint(int selectedPoint, int x, double red, double gr
 	triggerOnChange();
 }
 
-void dlg_transfer::setColorPoint(int selectedPoint, int x)
+void iAChartTransferFunction::setColorPoint(int selectedPoint, int x)
 {
 	double colorTFValue[6];
 	m_colorTF->GetNodeValue(selectedPoint, colorTFValue);
 	setColorPoint(selectedPoint, x, colorTFValue[1], colorTFValue[2], colorTFValue[3]);
 }
 
-void dlg_transfer::setPoint(int selectedPoint, int x, int y)
+void iAChartTransferFunction::setPoint(int selectedPoint, int x, int y)
 {
 	if (y < 0) y = 0;
 	double opacityVal[4] = { v2dX(x), v2dY(y), 0.0, 0.0 };
 	m_opacityTF->SetNodeValue(selectedPoint, opacityVal);
 }
 
-void dlg_transfer::setPointX(int selectedPoint, int x)
+void iAChartTransferFunction::setPointX(int selectedPoint, int x)
 {
 	double opacityTFValues[4];
 	m_opacityTF->GetNodeValue(selectedPoint, opacityTFValues);
@@ -496,7 +496,7 @@ void dlg_transfer::setPointX(int selectedPoint, int x)
 	m_opacityTF->SetNodeValue(selectedPoint, opacityTFValues);
 }
 
-void dlg_transfer::setPointY(int selectedPoint, int y)
+void iAChartTransferFunction::setPointY(int selectedPoint, int y)
 {
 	double opacityTFValues[4];
 	m_opacityTF->GetNodeValue(selectedPoint, opacityTFValues);
@@ -506,19 +506,19 @@ void dlg_transfer::setPointY(int selectedPoint, int y)
 }
 
 // TODO: unify somewhere!
-double dlg_transfer::v2dX(int x)
+double iAChartTransferFunction::v2dX(int x)
 {
 	double dX = ((double)(x-chart->xShift()) / (double)chart->activeWidth() * chart->xRange()) /chart->xZoom() + chart->xBounds()[0];
 	return clamp(chart->xBounds()[0], chart->xBounds()[1], dX);
 }
 
 // convert from [0..maxDiagPixelHeight] to [0..1]
-double dlg_transfer::v2dY(int y)
+double iAChartTransferFunction::v2dY(int y)
 {
 	return mapToNorm(0, chart->chartHeight(), y);
 }
 
-int dlg_transfer::d2vX(double x, double oldDataRange0, double oldDataRange1)
+int iAChartTransferFunction::d2vX(double x, double oldDataRange0, double oldDataRange1)
 {
 	if (oldDataRange0 == -1 && oldDataRange1 == -1)
 		return (int)((x - chart->xBounds()[0]) * (double)chart->activeWidth() / chart->xRange()*chart->xZoom()) +chart->xShift();
@@ -528,27 +528,27 @@ int dlg_transfer::d2vX(double x, double oldDataRange0, double oldDataRange1)
 }
 
 // convert from [0..1] to [0..maxDiagPixelHeight]
-int dlg_transfer::d2vY(double y)
+int iAChartTransferFunction::d2vY(double y)
 {
 	return mapNormTo(0, std::max(0, chart->chartHeight()), y);
 }
 
-int dlg_transfer::d2iX(double x)
+int iAChartTransferFunction::d2iX(double x)
 {
 	return d2vX(x) -chart->xShift();
 }
 
-int dlg_transfer::d2iY(double y)
+int iAChartTransferFunction::d2iY(double y)
 {
 	return d2vY(y);
 }
 
-void dlg_transfer::triggerOnChange()
+void iAChartTransferFunction::triggerOnChange()
 {
 	emit Changed();
 }
 
-void dlg_transfer::enableRangeSliderHandles( bool rangeSliderHandles )
+void iAChartTransferFunction::enableRangeSliderHandles( bool rangeSliderHandles )
 {
 	m_rangeSliderHandles = rangeSliderHandles;
 }

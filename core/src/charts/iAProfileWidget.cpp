@@ -46,7 +46,7 @@ void iAProfileWidget::initialize(vtkPolyData* profData, double rayLength)
 	setYBounds(yDataRange[0], yDataRange[1]);
 }
 
-void iAProfileWidget::showDataTooltip(QMouseEvent *event)
+void iAProfileWidget::showDataTooltip(QHelpEvent *event)
 {
 	if (!scalars)
 		return;

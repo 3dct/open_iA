@@ -665,8 +665,8 @@ QWidget* iAFiAKErController::setupResultListView()
 		QString baseName = QFileInfo(m_data->result[resultID].fileName).baseName();
 		if (resultID > 0)
 		{
-			commonPrefixLength = std::min(commonPrefixLength, static_cast<size_t>(GreatestCommonPrefixLength(baseName, baseName0)));
-			commonSuffixLength = std::min(commonSuffixLength, static_cast<size_t>(GreatestCommonSuffixLength(baseName, baseName0)));
+			commonPrefixLength = std::min(commonPrefixLength, static_cast<size_t>(greatestCommonPrefixLength(baseName, baseName0)));
+			commonSuffixLength = std::min(commonSuffixLength, static_cast<size_t>(greatestCommonSuffixLength(baseName, baseName0)));
 		}
 		else
 		{

@@ -74,7 +74,6 @@
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPlaneSource.h>
-#include <vtkPointPicker.h>
 #include <vtkPoints.h>
 #include <vtkProperty.h>
 #include <vtkPolyDataMapper.h>
@@ -93,6 +92,7 @@
 #include <vtkTransform.h>
 #include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
+#include <vtkWorldPointPicker.h>
 
 #include <QBitmap>
 #include <QFileDialog>
@@ -107,11 +107,12 @@
 
 #include <cassert>
 
-
+/*
 namespace
 {
 	const double PickTolerance = 100.0;
 }
+*/
 
 class iAInteractorStyleImage : public vtkInteractorStyleImage
 {
@@ -214,7 +215,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
 	m_interactorStyle(iAInteractorStyleImage::New()),
 	m_camera(vtkCamera::New()),
-	m_pointPicker(vtkSmartPointer<vtkPointPicker>::New()),
+	m_pointPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
 	m_transform(transform ? transform : vtkTransform::New()),
 	m_magicLensInput(NotExistingChannel),
 	m_mode(mode),
@@ -696,13 +697,10 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 	assert(!m_channels.contains(id));
 	bool updateSpacing = m_channels.empty();
 	auto chSlicerData = createChannel(id, chData);
-	double curTol = m_pointPicker->GetTolerance();
 	int axis = slicerDimension(m_mode);
 	auto image = chData.image();
 	double const * imgSpc = image->GetSpacing();
 	double newTol = imgSpc[axis] / 3;
-	if (newTol < curTol)
-		m_pointPicker->SetTolerance(newTol);
 	if (updateSpacing && m_decorations)
 	{
 		setScalarBarTF(chData.colorTF());
@@ -1225,23 +1223,9 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	{
 		emit userInteraction();
 	}
-	// Do the pick. It will return a non-zero value if we intersected the image.
-	int * epos = m_interactor->GetEventPosition();
-	if (!m_pointPicker->Pick(epos[0], epos[1], 0, m_ren)) // z is always zero.
-	{
-		defaultOutput();
-		return;
-	}
-
-	// Get the mapped position of the mouse using the picker.
-	m_pointPicker->GetPickedPositions()->GetPoint(0, m_ptMapped);
-
-	// TODO: how to choose spacing? currently fixed from first image!
-	auto imageData = m_channels[0]->input();
-	double* spacing = imageData->GetSpacing();
-	m_ptMapped[0] += 0.5*spacing[0];
-	m_ptMapped[1] += 0.5*spacing[1];
-	m_ptMapped[2] += 0.5*spacing[2];
+	int const * epos = m_interactor->GetEventPosition();
+	m_pointPicker->Pick(epos[0], epos[1], 0, m_ren); // z is always zero
+	m_pointPicker->GetPickPosition(m_ptMapped);      // get position in local slicer scene/world coordinates
 
 	switch (eventId)
 	{
@@ -1249,7 +1233,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	{
 		double result[4];
 		double x, y, z;
-		getMouseCoord(x, y, z, result);
+		computeCoords(x, y, z, result, 0);
 		emit clicked(x, y, z);
 		emit userInteraction();
 		break;
@@ -1258,7 +1242,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	{
 		double result[4];
 		double x, y, z;
-		getMouseCoord(x, y, z, result);
+		computeCoords(x, y, z, result, 0);
 		emit released(x, y, z);
 		emit userInteraction();
 		break;
@@ -1267,23 +1251,23 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	{
 		double result[4];
 		double x, y, z;
-		getMouseCoord(x, y, z, result);
+		computeCoords(x, y, z, result, 0);
 		emit rightClicked(x, y, z);
 		break;
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
-		double result[4];
-		double xCoord, yCoord, zCoord;
-		getMouseCoord(xCoord, yCoord, zCoord, result);
-		double mouseCoord[3] = { result[0], result[1], result[2] };
+		//double mouseCoord[3] = { result[0], result[1], result[2] };
 		//updateFisheyeTransform(mouseCoord, reslicer, 50.0);
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);
-			printVoxelInformation(xCoord, yCoord, zCoord);
+			printVoxelInformation();
 		}
-		emit oslicerPos(xCoord, yCoord, zCoord, m_mode);
+		double result[4];
+		double x, y, z;
+		computeCoords(x, y, z, result, 0);
+		emit oslicerPos(x, y, z, m_mode);
 		emit userInteraction();
 		break;
 	}
@@ -1306,41 +1290,47 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	m_interactor->Render();
 }
 
-void iASlicer::getMouseCoord(double & xCoord, double & yCoord, double & zCoord, double* result)
+void iASlicer::computeCoords(double & xCoord, double & yCoord, double & zCoord, double* result, uint channelID)
 {
-	if (!hasChannel(0))
+	if (!hasChannel(channelID))
 		return;
 	result[0] = result[1] = result[2] = result[3] = 0;
 	double point[4] = { m_ptMapped[0], m_ptMapped[1], m_ptMapped[2], 1 };
 
-	// TODO: find out what "mouseCoord" exactly means - pixel coordinates or image coordinates? differentiate scene coordinates / each images pixel coordinates
-	auto imageData = m_channels[0]->input();
-	auto reslicer = m_channels[0]->reslicer();
+	auto reslicer = m_channels[channelID]->reslicer();
 
-	// get a shortcut to the pixel data.
+	// get a shortcut to the pixel data. (BF: what does this mean? typically, result is the same as m_ptMapped...?)
 	vtkMatrix4x4 *resliceAxes = vtkMatrix4x4::New();
 	resliceAxes->DeepCopy(reslicer->GetResliceAxes());
 	resliceAxes->MultiplyPoint(point, result);
 	resliceAxes->Delete();
 
-	double * imageSpacing = imageData->GetSpacing();	// +/- 0.5 to correct for BorderOn
-	double * origin = imageData->GetOrigin();
-	xCoord = ((result[0] - origin[0]) / imageSpacing[0]);	if (m_mode == YZ) xCoord -= 0.5;
-	yCoord = ((result[1] - origin[1]) / imageSpacing[1]);	if (m_mode == XZ) yCoord += 0.5; // not sure yet why +0.5 required here...
-	zCoord = ((result[2] - origin[2]) / imageSpacing[2]);	if (m_mode == XY) zCoord -= 0.5;
+	auto imageData = m_channels[channelID]->input();
+	double const * imageSpacing = imageData->GetSpacing();	// +/- 0.5 to correct for BorderOn
+	double const * origin = imageData->GetOrigin();
+	// xCoord, yCoord, zCoord will contain voxel coordinates for the given channel
+	xCoord = (result[0] - origin[0]) / imageSpacing[0] + 0.5;//	if (m_mode == YZ) xCoord -= 0.5;
+	yCoord = (result[1] - origin[1]) / imageSpacing[1] + 0.5;//	if (m_mode == XZ) yCoord += 0.5; // not sure yet why +0.5 required here...
+	zCoord = (result[2] - origin[2]) / imageSpacing[2] + 0.5;//	if (m_mode == XY) zCoord -= 0.5;
 
 	// TODO: check for negative origin images!
 	int* extent = imageData->GetExtent();
 	xCoord = clamp(static_cast<double>(extent[0]), extent[1] + 1 - std::numeric_limits<double>::epsilon(), xCoord);
 	yCoord = clamp(static_cast<double>(extent[2]), extent[3] + 1 - std::numeric_limits<double>::epsilon(), yCoord);
 	zCoord = clamp(static_cast<double>(extent[4]), extent[5] + 1 - std::numeric_limits<double>::epsilon(), zCoord);
+
+	DEBUG_LOG(QString("Slicer point: %1, %2, %3; Coords: %4, %5, %6; Result: %7, %8, %9")
+		.arg(m_ptMapped[0]).arg(m_ptMapped[1]).arg(m_ptMapped[2])
+		.arg(xCoord).arg(yCoord).arg(zCoord)
+		.arg(result[0]).arg(result[1]).arg(result[2])
+	);
 }
 
 namespace
 {
-	const int MaxNameLength = 20;
+	const int MaxNameLength = 15;
 
-	QString GetSlicerCoordString(int coord1, int coord2, int coord3, int mode)
+	QString slicerCoordString(int coord1, int coord2, int coord3, int mode)
 	{
 		switch (mode) {
 		default:
@@ -1350,7 +1340,7 @@ namespace
 		}
 	}
 
-	QString GetFilePixel(MdiChild* tmpChild, iASlicer* slicer, double slicerX, double slicerY, int thirdCoord, int mode)
+	QString filePixel(MdiChild* tmpChild, iASlicer* slicer, double slicerX, double slicerY, int thirdCoord, int mode)
 	{
 		// TODO: find out what "mouseCoord" exactly means - pixel coordinates or image coordinates? differentiate scene coordinates / each images pixel coordinates
 		auto reslicer = slicer->channel(0)->reslicer();
@@ -1363,71 +1353,66 @@ namespace
 			tmpPix = img->GetScalarComponentAsDouble(slicerX, slicerY, 0, 0);
 		}
 		QString file = tmpChild->fileInfo().fileName();
-		return QString("%1 [%2]: %3\n")
-			.arg(PadOrTruncate(file, MaxNameLength))
-			.arg(GetSlicerCoordString(slicerX, slicerY, thirdCoord, mode))
-			.arg(inRange ? QString::number(tmpPix) : "exceeds img. dim.");
+		return QString("%1: %2 [%3]\n")
+			.arg(padOrTruncate(file, MaxNameLength))
+			.arg(inRange ? QString::number(tmpPix) : "exceeds img. dim.")
+			.arg(slicerCoordString(slicerX, slicerY, thirdCoord, mode));
 	}
 }
 
-void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord)
+void iASlicer::printVoxelInformation()
 {
 	if (!m_decorations)
 		return;
-	// TODO: differentiate scene coordinates / each images pixel coordinates
-	if (!hasChannel(0))
-		return;
-	double const * slicerSpacing = m_channels[0]->output()->GetSpacing();
-	int    const * slicerExtent = m_channels[0]->output()->GetExtent();
-	double const * slicerBounds = m_channels[0]->output()->GetBounds();
-
-	// We have to manually set the physical z-coordinate which requires us to get the volume spacing.
-	m_ptMapped[2] = 0;
-
-	int cX = static_cast<int>(floor((m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0]));
-	int cY = static_cast<int>(floor((m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1]));
-
-	// check image extent; if outside ==> default output
-	if (cX < slicerExtent[0] || cX > slicerExtent[1] || cY < slicerExtent[2] || cY > slicerExtent[3])
-	{
-		defaultOutput(); return;
-	}
 	if (m_cursorSet && cursor() != mouseCursor())
 		setCursor(mouseCursor());
 	// get index, coords and value to display
-	QString strDetails;
-	for (auto channel: m_channels)
+	QString strDetails(QString("%1: %2, %3, %4\n").arg(padOrTruncate("Position", MaxNameLength))
+		.arg(m_ptMapped[0]).arg(m_ptMapped[1]).arg(m_ptMapped[2]));
+	for (auto channelID: m_channels.keys())
 	{
+		if (!m_channels[channelID]->isEnabled())
+			continue;
+
+		double const * slicerSpacing = m_channels[channelID]->output()->GetSpacing();
+		int    const * slicerExtent  = m_channels[channelID]->output()->GetExtent();
+		double const * slicerBounds  = m_channels[channelID]->output()->GetBounds();
+
+		// We have to manually set the physical z-coordinate which requires us to get the volume spacing.
+		                                                                         // +0.5 is because of BorderOn
+		double dcX = (m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
+		double dcY = (m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
+		DEBUG_LOG(QString("    Slicer point: %1, %2, bounds: %3, %4, spacing: %5, %6, coordinates: %7, %8")
+			.arg(m_ptMapped[0]).arg(m_ptMapped[1])
+			.arg(slicerBounds[0]).arg(slicerBounds[2])
+			.arg(slicerSpacing[0]).arg(slicerSpacing[2])
+			.arg(dcX).arg(dcY));
+		int cX = static_cast<int>(std::floor(dcX));
+		int cY = static_cast<int>(std::floor(dcY));
+
+		// check image extent; if outside ==> default output
+		if (cX < slicerExtent[0] || cX > slicerExtent[1] || cY < slicerExtent[2] || cY > slicerExtent[3])
+		{
+			continue;
+		}
 		QString valueStr;
-		for (int i = 0; i < channel->input()->GetNumberOfScalarComponents(); i++)
+		for (int i = 0; i < m_channels[channelID]->input()->GetNumberOfScalarComponents(); i++)
 		{
 			// TODO:
-			//   - consider different spacings in channels!
 			//   - consider slab thickness / print slab projection result
-			double value = -1.0;
-			switch (m_mode)
-			{
-			case iASlicerMode::XY:
-				value = channel->output()->GetScalarComponentAsDouble(
-					static_cast<int>(xCoord), static_cast<int>(yCoord), 0, i);
-				break;
-			case iASlicerMode::YZ:
-				value = channel->output()->GetScalarComponentAsDouble(
-					static_cast<int>(yCoord), static_cast<int>(zCoord), 0, i);
-				break;
-			case iASlicerMode::XZ:
-				value = channel->output()->GetScalarComponentAsDouble(
-					static_cast<int>(xCoord), static_cast<int>(zCoord), 0, i);
-				break;
-			}
+			double value = m_channels[channelID]->output()->GetScalarComponentAsDouble(cX, cY, 0, i);
 			if (i > 0)
 				valueStr += " ";
 			valueStr += QString::number(value);
 		}
-		strDetails += QString("%1 [%2 %3 %4]: %5\n")
-			.arg(PadOrTruncate(channel->name(), MaxNameLength))
-			.arg(static_cast<int>(xCoord)).arg(static_cast<int>(yCoord)).arg(static_cast<int>(zCoord))
-			.arg(valueStr);
+		double result[4];
+		double coords[3];
+		computeCoords(coords[0], coords[1], coords[2], result, channelID);
+		strDetails += QString("%1: %2 [%3 %4 %5]\n")
+			.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
+			.arg(valueStr)
+			.arg(static_cast<int>(coords[0])).arg(static_cast<int>(coords[1])).arg(static_cast<int>(coords[2]))
+			;
 	}
 	if (m_linkedMdiChild)
 	{
@@ -1437,8 +1422,12 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 			MdiChild *tmpChild = mdiwindows.at(i);
 			if (m_linkedMdiChild == tmpChild)
 				continue;
+
+			// TODO: replace all references to explicit voxel coordinates with world positions here!
+			double result[4];
+			double xCoord, yCoord, zCoord;
+			computeCoords(xCoord, yCoord, zCoord, result, 0);
 			double * const tmpSpacing = tmpChild->imagePointer()->GetSpacing();
-			// TODO: check which spacing makes sense here!
 			auto imageData = m_channels[0]->input();
 			double const * origImgSpacing = imageData->GetSpacing();
 			int tmpX = xCoord * origImgSpacing[0] / tmpSpacing[0];
@@ -1451,21 +1440,21 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 				tmpChild->slicer(iASlicerMode::XY)->setIndex(tmpX, tmpY, tmpZ);
 				tmpChild->slicerDockWidget(iASlicerMode::XY)->sbSlice->setValue(tmpZ);
 				tmpChild->slicer(iASlicerMode::XY)->update();
-				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::XY), tmpX, tmpY, tmpZ, m_mode);
+				strDetails += filePixel(tmpChild, tmpChild->slicer(iASlicerMode::XY), tmpX, tmpY, tmpZ, m_mode);
 				break;
 			case iASlicerMode::YZ://YZ
 				tmpChild->slicer(iASlicerMode::YZ)->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
 				tmpChild->slicer(iASlicerMode::YZ)->setIndex(tmpX, tmpY, tmpZ);
 				tmpChild->slicerDockWidget(iASlicerMode::YZ)->sbSlice->setValue(tmpX);
 				tmpChild->slicer(iASlicerMode::YZ)->update();
-				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::YZ), tmpY, tmpZ, tmpX, m_mode);
+				strDetails += filePixel(tmpChild, tmpChild->slicer(iASlicerMode::YZ), tmpY, tmpZ, tmpX, m_mode);
 				break;
 			case iASlicerMode::XZ://XZ
 				tmpChild->slicer(iASlicerMode::XZ)->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
 				tmpChild->slicer(iASlicerMode::XZ)->setIndex(tmpX, tmpY, tmpZ);
 				tmpChild->slicerDockWidget(iASlicerMode::XZ)->sbSlice->setValue(tmpY);
 				tmpChild->slicer(iASlicerMode::XZ)->update();
-				strDetails += GetFilePixel(tmpChild, tmpChild->slicer(iASlicerMode::XZ), tmpX, tmpZ, tmpY, m_mode);
+				strDetails += filePixel(tmpChild, tmpChild->slicer(iASlicerMode::XZ), tmpX, tmpZ, tmpY, m_mode);
 				break;
 			default://ERROR
 				break;
@@ -1475,15 +1464,15 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 	}
 
 	// if requested calculate distance and show actor
-	if (m_lineActor->GetVisibility())
+	if (m_lineActor && m_lineActor->GetVisibility())
 	{
 		double distance = sqrt(pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) +
 			pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2));
-		m_lineSource->SetPoint2(m_ptMapped[0] - (0.5*slicerSpacing[0]), m_ptMapped[1] - (0.5*slicerSpacing[1]), 0.0);
+		m_lineSource->SetPoint2(m_ptMapped[0], m_ptMapped[1], 0.0);
 		m_diskSource->SetOuterRadius(distance);
 		m_diskSource->SetInnerRadius(distance);
-		strDetails += QString("distance [ %1 ]\n").arg(distance);
-
+		m_diskSource->Update();
+		strDetails += QString("%1: %2\n").arg(padOrTruncate("Distance", MaxNameLength)).arg(distance);
 	}
 
 	// Update the info text with pixel coordinates/value if requested.
@@ -1491,14 +1480,6 @@ void iASlicer::printVoxelInformation(double xCoord, double yCoord, double zCoord
 	m_textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
 	m_positionMarkerMapper->Update();
 }
-
-/*
-void iASlicer::setMeasurementStartPoint(int x, int y)
-{
-	m_measureStart[0] = x;
-	m_measureStart[1] = y;
-}
-*/
 
 void iASlicer::executeKeyPressEvent()
 {
@@ -1516,19 +1497,18 @@ void iASlicer::executeKeyPressEvent()
 			// TODO: check which channel makes sense here!
 			double * slicerSpacing = m_channels[0]->output()->GetSpacing();
 			m_lineSource->SetPoint1(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 0.0);
-			m_diskActor->SetPosition(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 1.0);
+			m_diskActor->SetPosition(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 0.0);
 			m_lineActor->SetVisibility(true);
 			m_diskActor->SetVisibility(true);
-			double result[4];
-			double xCoord, yCoord, zCoord;
-			getMouseCoord(xCoord, yCoord, zCoord, result);
-			printVoxelInformation(xCoord, yCoord, zCoord);
+			printVoxelInformation();
 		}
 		break;
 	case 27: //ESCAPE
-		if (m_decorations && m_lineActor) {
+		if (m_decorations && m_lineActor)
+		{
 			m_lineActor->SetVisibility(false);
 			m_diskActor->SetVisibility(false);
+			printVoxelInformation();
 		}
 		break;
 	}
@@ -2220,19 +2200,17 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 	if (m_decorations && m_interactionMode == DEFINE_SPLINE && m_snakeSpline->selectedPointIndex() != -1)
 	{
 		// Do a pick. It will return a non-zero value if we intersected the image.
-		if (!m_pointPicker->Pick(m_interactor->GetEventPosition()[0],
-			m_interactor->GetEventPosition()[1],
-			0,  // always zero.
-			m_renWin->GetRenderers()->GetFirstRenderer()))
+		int const * epos = m_interactor->GetEventPosition();
+		if (!m_pointPicker->Pick(epos[0], epos[1], 0, m_ren)) // z is always zero
 		{
 			return;
 		}
 
 		// Get the first point of found intersections
-		double *ptMapped = m_pointPicker->GetPickedPositions()->GetPoint(0);
+		double const * ptMapped = m_pointPicker->GetPickPosition();
 
 		// Move world and slice view points
-		double *point = m_worldSnakePoints->GetPoint(m_snakeSpline->selectedPointIndex());
+		double const * point = m_worldSnakePoints->GetPoint(m_snakeSpline->selectedPointIndex());
 
 		double pos[3];
 		int indxs[3] = { SlicerXInd(m_mode), SlicerYInd(m_mode), SlicerZInd(m_mode) };
@@ -2459,19 +2437,17 @@ int iASlicer::pickPoint(double &xPos_out, double &yPos_out, double &zPos_out,
 	double *result_out, int &xInd_out, int &yInd_out, int &zInd_out)
 {
 	// Do a pick. It will return a non-zero value if we intersected the image.
-	vtkPointPicker* pointPicker = (vtkPointPicker*)GetInteractor()->GetPicker();
-
-	int * eventPos = GetInteractor()->GetEventPosition();
-	if (!pointPicker->Pick(eventPos[0], eventPos[1], 0,  // Z is always zero.
-		GetRenderWindow()->GetRenderers()->GetFirstRenderer()))
+	int const * eventPos = GetInteractor()->GetEventPosition();
+	if (!m_pointPicker->Pick(eventPos[0], eventPos[1], 0, m_ren)) // z is always zero
 	{
 		return 0;
 	}
 
 	// get coordinates of the picked point
 	double ptMapped[3];
-	vtkIdType total_points = pointPicker->GetPickedPositions()->GetNumberOfPoints();
-	pointPicker->GetPickedPositions()->GetPoint(total_points - 1, ptMapped);
+	//vtkIdType total_points = pointPicker->GetPickedPositions()->GetNumberOfPoints();
+	//pointPicker->GetPickedPositions()->GetPoint(total_points - 1, ptMapped);
+	m_pointPicker->GetPickPosition(ptMapped);
 
 	if (!hasChannel(0))
 		return 0;

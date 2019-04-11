@@ -20,8 +20,7 @@
 * ************************************************************************************/
 #include "iARangeSliderDiagramWidget.h"
 
-#include <dlg_function.h>
-#include <dlg_transfer.h>
+#include <iAChartFunctionTransfer.h>
 #include <iACSVToQTableWidgetConverter.h>
 
 iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChild *mdiChild,
@@ -47,16 +46,16 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChil
 	setTransferFunctions(cTF, oTF);
 	addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(m_data, QColor(70, 70, 70, 255))));
 	m_selectionRubberBand->hide();
-	( (dlg_transfer*) m_functions[0] )->enableRangeSliderHandles( true );
+	( (iAChartTransferFunction*) m_functions[0] )->enableRangeSliderHandles( true );
 }
 
 void iARangeSliderDiagramWidget::drawFunctions( QPainter &painter )
 {
 	int counter = 0;
-	std::vector<dlg_function*>::iterator it = m_functions.begin();
+	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	while ( it != m_functions.end() )
 	{
-		dlg_function *func = ( *it );
+		iAChartFunction *func = ( *it );
 
 		if ( counter == m_selectedFunction )
 			func->draw( painter, QColor( 255, 128, 0, 255 ), 2 );
@@ -75,8 +74,8 @@ void iARangeSliderDiagramWidget::mouseDoubleClickEvent( QMouseEvent *event )
 
 void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 {
-	std::vector<dlg_function*>::iterator it = m_functions.begin();
-	dlg_function *func = *( it + m_selectedFunction );
+	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+	iAChartFunction *func = *( it + m_selectedFunction );
 	int x = event->x() - leftMargin();
 	int selectedPoint = func->selectPoint( event, &x );
 
@@ -149,8 +148,8 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 {
 	if ( event->button() == Qt::RightButton )
 	{
-		std::vector<dlg_function*>::iterator it = m_functions.begin();
-		dlg_function *func = *( it + m_selectedFunction );
+		std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+		iAChartFunction *func = *( it + m_selectedFunction );
 		func->selectPoint( event, 0 );	// to not allow last end point get selected
 		update();
 	}
@@ -163,8 +162,8 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 			m_selectionRubberBand->hide();
 			m_lastSelectedBin = getBin( event );
 
-			std::vector<dlg_function*>::iterator it = m_functions.begin();
-			dlg_function *func = *( it + m_selectedFunction );
+			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+			iAChartFunction *func = *( it + m_selectedFunction );
 			int x = event->x() - leftMargin();
 			int selectedPoint = func->selectPoint( event, &x );
 
@@ -203,8 +202,8 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 				emit selected();
 			}
 
-			std::vector<dlg_function*>::iterator it = m_functions.begin();
-			dlg_function *func = *( it + m_selectedFunction );
+			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+			iAChartFunction *func = *( it + m_selectedFunction );
 
 			//Handle snap
 			if ( func->getSelectedPoint() == 1 )
@@ -230,8 +229,8 @@ void iARangeSliderDiagramWidget::mouseMoveEvent( QMouseEvent *event )
 		else if ( event->y() > geometry().height() - bottomMargin() - m_translationY
 				  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
-			std::vector<dlg_function*>::iterator it = m_functions.begin();
-			dlg_function *func = *( it + m_selectedFunction );
+			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
+			iAChartFunction *func = *( it + m_selectedFunction );
 			int x = event->x() - leftMargin();
 			int selectedPoint = func->getSelectedPoint();
 

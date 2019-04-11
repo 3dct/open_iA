@@ -56,7 +56,7 @@ public:
 	void reset();
 	bool statisticsComputed() const;
 
-	// should return vtkSmartPointer, but can't at the moment because dlg_transfer doesn't have smart pointers:
+	// should return vtkSmartPointer, but can't at the moment because iAChartTransferFunction doesn't have smart pointers:
 	vtkPiecewiseFunction* opacityTF() override;
 	vtkColorTransferFunction* colorTF() override;
 };

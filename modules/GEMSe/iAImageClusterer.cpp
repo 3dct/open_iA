@@ -270,7 +270,6 @@ namespace {
 	}
 }
 
-
 bool IsEmpty(DiagonalMatrix<float> & distances, int idx, int cnt)
 {
 	bool result = true;
@@ -459,9 +458,7 @@ void iAImageClusterer::run()
 	}
 }
 
-
-
-void iAImageClusterer::Abort()
+void iAImageClusterer::abort()
 {
 	m_aborted = true;
 }
@@ -470,7 +467,6 @@ bool iAImageClusterer::IsAborted()
 {
 	return m_aborted;
 }
-
 
 double iAImageClusterer::elapsed() const
 {

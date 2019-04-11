@@ -143,9 +143,9 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 	settings.setValue(FileVersionKey, ModFileVersion);
 	if (camera)
 	{
-		settings.setValue(CameraPositionKey, Vec3D2String(camera->GetPosition()));
-		settings.setValue(CameraFocalPointKey, Vec3D2String(camera->GetFocalPoint()));
-		settings.setValue(CameraViewUpKey, Vec3D2String(camera->GetViewUp()));
+		settings.setValue(CameraPositionKey, vec3D2String(camera->GetPosition()));
+		settings.setValue(CameraFocalPointKey, vec3D2String(camera->GetFocalPoint()));
+		settings.setValue(CameraViewUpKey, vec3D2String(camera->GetViewUp()));
 	}
 	for (int i = 0; i<m_modalitiesActive.size(); ++i)
 	{
@@ -200,8 +200,8 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
 		settings.setValue(GetModalityKey(i, "TransferFunction"), tfFileName);
 		iASettings s;
-		s.StoreTransferFunction(m_modalitiesActive[i]->transfer().data());
-		s.Save(absoluteTFFileName);
+		s.storeTransferFunction(m_modalitiesActive[i]->transfer().data());
+		s.save(absoluteTFFileName);
 	}
 }
 
@@ -229,9 +229,9 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 			.arg(ModFileVersion));
 		return false;
 	}
-	if (!Str2Vec3D(settings.value(CameraPositionKey).toString(), m_camPosition) ||
-		!Str2Vec3D(settings.value(CameraFocalPointKey).toString(), m_camFocalPoint) ||
-		!Str2Vec3D(settings.value(CameraViewUpKey).toString(), m_camViewUp))
+	if (!str2Vec3D(settings.value(CameraPositionKey).toString(), m_camPosition) ||
+		!str2Vec3D(settings.value(CameraFocalPointKey).toString(), m_camFocalPoint) ||
+		!str2Vec3D(settings.value(CameraViewUpKey).toString(), m_camViewUp))
 	{
 		//DEBUG_LOG(QString("Invalid or missing camera information."));
 	}
@@ -398,7 +398,7 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 			DEBUG_LOG("Unknown file type!");
 			return result;
 		}
-		IOType id = ext2id->find(extension).value();
+		iAIOType id = ext2id->find(extension).value();
 		if (!io.setupIO(id, filename, false, channel))
 		{
 			DEBUG_LOG("Error while setting up modality loading!");

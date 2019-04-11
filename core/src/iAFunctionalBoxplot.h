@@ -61,7 +61,7 @@ private:
  * base for classes calculating the depth measure for a single function and band combination
  */
 template <typename ArgType, typename ValType>
-class DepthMeasure
+class iADepthMeasure
 {
 public:
 	virtual double calculate(iAFunction<ArgType, ValType> const & curFunc,
@@ -98,7 +98,7 @@ public:
 	 *    as a combination of all band sizes from 2 to maxBandSize
 	 */
 	iAFunctionalBoxplot(std::vector<iAFunction<ArgType, ValType> *> & functions,
-		DepthMeasure<ArgType, ValType>* measure,
+		iADepthMeasure<ArgType, ValType>* measure,
 		size_t maxBandSize = 2);
 	iAFunction<ArgType, ValType> const & getMedian() const;
 	iAFunctionBand<ArgType, ValType> const & getCentralRegion() const;
@@ -219,7 +219,7 @@ void createFunctionBands(
 	}
 }
 
-struct DepthComparator
+struct iADepthComparator
 {
 	bool operator()(std::pair<double, size_t> const & first, std::pair<double, size_t> const & second)
 	{
@@ -228,7 +228,7 @@ struct DepthComparator
 };
 
 template <typename ArgType, typename ValType>
-class SimpleDepthMeasure: public DepthMeasure<ArgType, ValType>
+class iASimpleDepthMeasure: public iADepthMeasure<ArgType, ValType>
 {
 public:
 	double calculate(iAFunction<ArgType, ValType> const & curFunc,
@@ -249,7 +249,7 @@ public:
 };
 
 template <typename ArgType, typename ValType>
-class ModifiedDepthMeasure: public DepthMeasure<ArgType, ValType>
+class iAModifiedDepthMeasure: public iADepthMeasure<ArgType, ValType>
 {
 public:
 	double calculate(iAFunction<ArgType, ValType> const & curFunc,
@@ -274,7 +274,7 @@ public:
 
 template <typename ArgType, typename ValType>
 iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunction<ArgType, ValType> *> & functions,
-	DepthMeasure<ArgType, ValType>* measure,
+	iADepthMeasure<ArgType, ValType>* measure,
 	size_t maxBandSize)
 {
 	assert(maxBandSize <= functions.size());
@@ -350,7 +350,7 @@ iAFunctionalBoxplot<ArgType, ValType>::iAFunctionalBoxplot(std::vector<iAFunctio
 	}
 
 	// order function by bd/mbd
-	std::sort(bandDepthList.begin(), bandDepthList.end(), DepthComparator());
+	std::sort(bandDepthList.begin(), bandDepthList.end(), iADepthComparator());
 
 	m_median = functions[bandDepthList[0].second];
 

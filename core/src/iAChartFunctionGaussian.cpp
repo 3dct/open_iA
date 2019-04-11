@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_gaussian.h"
+#include "iAChartFunctionGaussian.h"
 
 #include "charts/iADiagramFctWidget.h"
 #include "iAMapper.h"
@@ -30,7 +30,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 
-dlg_gaussian::dlg_gaussian(iADiagramFctWidget *chart, QColor &color, bool res): dlg_function(chart)
+iAChartFunctionGaussian::iAChartFunctionGaussian(iADiagramFctWidget *chart, QColor &color, bool res): iAChartFunction(chart)
 {
 	this->color = color;
 	active = false;
@@ -44,14 +44,14 @@ dlg_gaussian::dlg_gaussian(iADiagramFctWidget *chart, QColor &color, bool res): 
 		reset();
 }
 
-void dlg_gaussian::draw(QPainter &painter)
+void iAChartFunctionGaussian::draw(QPainter &painter)
 {
 	draw(painter, color, 3);
 }
 
-void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
+void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidth)
 {
-	bool active = (chart->getSelectedFunction() == this);
+	bool active = (chart->selectedFunction() == this);
 	// draw line
 	QPen pen = painter.pen();
 	pen.setColor(color);
@@ -139,7 +139,7 @@ void dlg_gaussian::draw(QPainter &painter, QColor color, int lineWidth)
 	}
 }
 
-int dlg_gaussian::selectPoint(QMouseEvent *event, int*)
+int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
 {
 	int lx = event->x();
 	int ly = chart->geometry().height() - event->y() - chart->bottomMargin();
@@ -168,7 +168,7 @@ int dlg_gaussian::selectPoint(QMouseEvent *event, int*)
 	return selectedPoint;
 }
 
-void dlg_gaussian::moveSelectedPoint(int x, int y)
+void iAChartFunctionGaussian::moveSelectedPoint(int x, int y)
 {
 	y = clamp(0, chart->geometry().height() - chart->bottomMargin() - 1, y);
 	if (selectedPoint != -1)
@@ -194,47 +194,47 @@ void dlg_gaussian::moveSelectedPoint(int x, int y)
 	}
 }
 
-void dlg_gaussian::reset()
+void iAChartFunctionGaussian::reset()
 {}
 
-void dlg_gaussian::setMultiplier(int multiplier)
+void iAChartFunctionGaussian::setMultiplier(int multiplier)
 {
 	double meanValue = 1.0/(sigma*sqrt(2*vtkMath::Pi()))*chart->yZoom();
 	this->multiplier = v2dY(multiplier) /meanValue;
 }
 
 // TODO: unify somewhere!
-double dlg_gaussian::v2dX(int x)
+double iAChartFunctionGaussian::v2dX(int x)
 {
 	return ((double)(x-chart->xShift()) / (double)chart->geometry().width() * chart->xRange()) /chart->xZoom() + chart->xBounds()[0];
 }
 
-double dlg_gaussian::v2dY(int y)
+double iAChartFunctionGaussian::v2dY(int y)
 {
 	return chart->yMapper().srcToDst(y) *chart->yBounds()[1] /chart->yZoom();
 }
 
-int dlg_gaussian::d2vX(double x)
+int iAChartFunctionGaussian::d2vX(double x)
 {
 	return (int)((x - chart->xBounds()[0]) * (double)chart->geometry().width() / chart->xRange()*chart->xZoom()) +chart->xShift();
 }
 
-int dlg_gaussian::d2vY(double y)
+int iAChartFunctionGaussian::d2vY(double y)
 {
 	return (int)(y /chart->yBounds()[1] *(double)(chart->geometry().height() - chart->bottomMargin()-1) *chart->yZoom());
 }
 
-int dlg_gaussian::d2iX(double x)
+int iAChartFunctionGaussian::d2iX(double x)
 {
 	return d2vX(x) -chart->xShift();
 }
 
-int dlg_gaussian::d2iY(double y)
+int iAChartFunctionGaussian::d2iY(double y)
 {
 	return d2vY(y);
 }
 
-double dlg_gaussian::i2dX(int x)
+double iAChartFunctionGaussian::i2dX(int x)
 {
 	return ((double)x / (double)chart->geometry().width() * chart->xRange()) /chart->xZoom() + chart->xBounds()[0];
 }

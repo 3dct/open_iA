@@ -27,12 +27,9 @@
 #define MISS	 0		// Ray missed primitive
 #define INPRIM	-1		// Ray started inside primitive
 
-/**	\struct intersection.
-	\brief Structure representing intersection data.
-
-	Contains data about primitive.	
-*/
 class TriPrim;
+
+//! Structure representing intersection data, contains data about primitives.	
 struct intersection
 {
 	TriPrim* tri;
@@ -44,16 +41,14 @@ struct intersection
 	}
 };
 
-/**
-* Ray-AABB intersection routine.
-* @param ray ray class.
-* @param box axis aligned bounding box structure.
-* @param tmin parent AABB min t.
-* @param tmax parent AABB max t.
-* @return 
-1 - if ray intersects AABB
-0 - otherwise
-*/
+//! Ray-AABB intersection routine.
+//! @param ray ray class.
+//! @param box axis aligned bounding box structure.
+//! @param tmin parent AABB min t.
+//! @param tmax parent AABB max t.
+//! @return
+//!    1 - if ray intersects AABB
+//!    0 - otherwise
 inline int IntersectAABB(const Ray &ray, const aabb& box, float &tmin, float&tmax)
 {
 	float txmin, txmax, tymin, tymax;
@@ -102,15 +97,14 @@ inline int IntersectAABB(const Ray &ray, const aabb& box, float &tmin, float&tma
 	tmax=txmax;
 	return 1;
 }
-/**
-* Ray-AABB intersection routine.
-* @param ro ray's origin position.
-* @param rd ray's distance.
-* @param box axis aligned bounding box structure.
-* @return 
-	1 - if ray intersects AABB
-	0 - otherwise
-*/
+
+//! Ray-AABB intersection routine.
+//! @param ro ray's origin position.
+//! @param rd ray's distance.
+//! @param box axis aligned bounding box structure.
+//! @return
+//!    1 - if ray intersects AABB
+//!    0 - otherwise
 inline int Intersect(iAVec3f & ro, iAVec3f rd, const aabb& box)
 {
 	float txmin, txmax, tymin, tymax;
@@ -155,32 +149,29 @@ inline int Intersect(iAVec3f & ro, iAVec3f rd, const aabb& box)
 	if( (txmin>tzmax) || (tzmin>txmax) ) return 0;
 	return 1;
  }
-/**
-* Ray-Axis-oriented-cylinder intersection routine.
-* @param ray ray class.
-* @param box axis aligned bounding box structure.
-* @param tmin parent AABB min t.
-* @param tmax parent AABB max t.
-* @param ind cylinder axis index.
-* @return 
-1 - if ray intersects AABB
-0 - otherwise
-*/
+
+//! Ray-Axis-oriented-cylinder intersection routine.
+//! @param ray ray class.
+//! @param box axis aligned bounding box structure.
+//! @param tmin parent AABB min t.
+//! @param tmax parent AABB max t.
+//! @param ind cylinder axis index.
+//! @return
+//!    1 - if ray intersects AABB
+//!    0 - otherwise
 int IntersectCyl(const Ray & ray, const aabb& box, float &tmin, float&tmax, int ind);
-/**
-* Ray-AABB intersection routine.
-* checks which subnodes' AABBs are intersected by ray
-* @param ray ray class.
-* @param tmin parent AABB min t.
-* @param tmax parent AABB max t.
-* @param split split plane's coordinates
-* @param splitIndex index of splitting axis
-* @param t [out] split plane's t
-* @return 
-0 - left node intersected
-1 - both nodes intersected
-2 - right node intersected
-*/
+
+//! Ray-AABB intersection routine, checks which subnodes' AABBs are intersected by ray
+//! @param ray ray class.
+//! @param tmin parent AABB min t.
+//! @param tmax parent AABB max t.
+//! @param split split plane's coordinates
+//! @param splitIndex index of splitting axis
+//! @param t [out] split plane's t
+//! @return
+//!    0 - left node intersected
+//!    1 - both nodes intersected
+//!    2 - right node intersected
 inline int GetIntersectionState(const Ray &ray, float &tmin, float &tmax, float &split, int splitIndex, float &t)
 {
 	float rd = ray.GetDirection()[splitIndex];
@@ -192,9 +183,8 @@ inline int GetIntersectionState(const Ray &ray, float &tmin, float &tmax, float 
 	if(t>tmax) return (int)(sign^1);
 	return 2;
 }
-/**	\class TriPrim.
-	\brief Triangle primitive class.
-*/
+
+//! Triangle primitive class.
 class TriPrim
 {
 public:
@@ -215,9 +205,7 @@ public:
 	int CenterInside(aabb &a_aabb) const;
 	inline float GetAngleCos(Ray& a_Ray){ return a_Ray.GetDirection()&m_Tri.N; }
 	wald_tri GetWaldTri() {return m_WaldTri;}
-	/**
-	* recalculate d coefficient when translation vector is given
-	*/
+	//! recalculate d coefficient when translation vector is given.
 	void recalculateD(iAVec3f *translate);
 	inline float getMinX() const
 	{
@@ -264,54 +252,37 @@ public:
 		return 0.f;
 	}
 private:
-	/**
-	* Precompute some triangle's parameters as barycentric coords.
-	*/
+	//! Precompute some triangle's parameters as barycentric coords.
 	void precompute();
 
 	triangle m_Tri;
-	float m_Surface;//area of triangle
-	float m_d;//distance from plane to origin
+	float m_Surface;      //!< surface area of triangle
+	float m_d;            //!< distance from plane to origin
 	wald_tri m_WaldTri;
-	unsigned int m_index; ///< triangle's index in mesh
+	unsigned int m_index; //!< triangle's index in mesh
 
 };
-// -----------------------------------------------------------
-// Scene class definition
-// -----------------------------------------------------------
-/**	\class Scene.
-	\brief Representing scene data.
 
-	Scene is organized as BSP tree.	
-	Also list of all primitives is available.
-*/
+
 class BSPTree;
+
+//! Class representing scene data, organized as BSP tree. Also list of all primitives is available.
 class Scene
 {
 public:
-	Scene(){};
+	Scene(){}
 	~Scene();
-	/**
-	* Inits scene. BSP tree is created and build on current loaded mesh's data.
-	*/
+	//! Inits scene. BSP tree is created and build on current loaded mesh's data.
 	int initScene(ModelData & mdata, SETTINGS * s, QString const & filename = QString());
-	/**
-	* Get number of primitives in scene.
-	*/
+	//! Get number of primitives in scene.
 	unsigned int getNrTriangles() { return (unsigned int)m_tris.size(); }
-	/**
-	* Get primitive by its index.
-	*/
+	//! Get primitive by its index.
 	inline TriPrim* getTriangle( int a_Idx ) { return m_tris[a_Idx]; }
-	/**
-	* Get scene's BSP tree.
-	*/
+	//! Get scene's BSP tree.
 	BSPTree* getBSPTree(void){return m_bsp;}
-	/**
-	* recalculate d coefficient when translation vector is given for every triangle
-	*/
+	//! recalculate d coefficient when translation vector is given for every triangle
 	void recalculateD( iAVec3f *translate );
 private:
-	std::vector<TriPrim*> m_tris;///< list of all scene's primitives
-	BSPTree *m_bsp;///< scene's BSP-tree
+	std::vector<TriPrim*> m_tris; //!< list of all scene's primitives
+	BSPTree *m_bsp;               //!< scene's BSP-tree
 };

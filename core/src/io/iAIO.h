@@ -39,6 +39,8 @@ class vtkStringArray;
 
 class iAModalityList;
 
+//! Class currently containing most IO operations (file reading and writing).
+//! Should be split up into readers for specific formats!
 class open_iA_Core_API iAIO : public iAAlgorithm
 {
 	Q_OBJECT
@@ -49,12 +51,24 @@ public:
 	iAIO(iALogger* logger, QWidget *parent, std::vector<vtkSmartPointer<vtkImageData> > * volumes, std::vector<QString> * fileNames = 0);//TODO: QNDH for XRF volume stack loading
 	iAIO(QSharedPointer<iAModalityList> modalities, vtkCamera* cam, iALogger* logger);
 	virtual ~iAIO();
+	//! initialize variables
 	void init(QWidget *par);
-	bool setupIO( IOType type, QString f, bool comp = false, int channel=-1);
+	//! Set up the file IO specified by the parameters.
+	//! @param type type of the file to read
+	//! @param fileName name of the file to read
+	//! @param compression whether to use compression (if file format supports it)
+	//! @param channel which channel to read/write (if file format supports more than one)
+	//! @return true if successful, false if not.
+	bool setupIO(iAIOType type, QString fileName, bool compression = false, int channel=-1);
+	//! Set additional information for the current file
 	void setAdditionalInfo(QString const & additionalInfo);
-	QString additionalInfo();
-	QString fileName();
+	//! Get additional information (if any, e.g. for a volume stack)
+	QString const & additionalInfo();
+	//! Get the name of the file that was read
+	QString const & fileName();
+	//! Get the list of modalities that were read
 	QSharedPointer<iAModalityList> modalities();
+	//! Get the type of file being read
 	int ioID() const;
 
 Q_SIGNALS:
@@ -85,8 +99,10 @@ private:
 	void readImageData( );
 	void readMetaImage( );
 	void readSTL( );
+	//! Reads a series of DICOM images.
 	void readDCM( );
-	//void readNRRD( );	 // see iAIOProvider.cpp why this is commented out
+	//! Reads an NRRD image. See iAIOProvider.cpp why this is commented out
+	//void readNRRD( );
 	void readHDF5File();
 	void readProject();
 

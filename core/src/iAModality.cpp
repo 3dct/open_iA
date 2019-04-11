@@ -107,19 +107,19 @@ void iAModality::setRenderFlag(int renderFlags)
 int iAModality::width() const
 {
 	assert(m_converter);
-	return m_converter->GetWidth();
+	return m_converter->width();
 }
 
 int iAModality::height() const
 {
 	assert(m_converter);
-	return m_converter->GetHeight();
+	return m_converter->height();
 }
 
 int iAModality::depth() const
 {
 	assert(m_converter);
-	return m_converter->GetDepth();
+	return m_converter->depth();
 }
 
 double const * iAModality::spacing() const
@@ -183,7 +183,7 @@ int iAModality::renderFlags() const
 void iAModality::loadTransferFunction()
 {
 	iASettings s(m_tfFileName);
-	s.LoadTransferFunction(transfer().data());
+	s.loadTransferFunction(transfer().data());
 }
 
 QSharedPointer<iAModalityTransfer> iAModality::transfer()
@@ -201,8 +201,8 @@ void iAModality::setRenderer(QSharedPointer<iAVolumeRenderer> renderer)
 	}
 	double position[3];
 	double orientation[3];
-	if (!Str2Vec3D(m_orientationSettings, orientation) ||
-		!Str2Vec3D(m_positionSettings, position))
+	if (!str2Vec3D(m_orientationSettings, orientation) ||
+		!str2Vec3D(m_positionSettings, position))
 	{
 		return;
 	}
@@ -249,12 +249,12 @@ void iAModality::setStringSettings(QString const & pos, QString const & ori, QSt
 
 QString iAModality::orientationString()
 {
-	return m_renderer ? Vec3D2String(m_renderer->orientation()) : QString();
+	return m_renderer ? vec3D2String(m_renderer->orientation()) : QString();
 }
 
 QString iAModality::positionString()
 {
-	return m_renderer ? Vec3D2String(m_renderer->position()) : QString();
+	return m_renderer ? vec3D2String(m_renderer->position()) : QString();
 }
 
 void iAModality::computeHistogramData(size_t numBin)

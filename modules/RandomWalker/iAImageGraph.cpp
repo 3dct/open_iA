@@ -40,7 +40,7 @@ namespace
 // iAImageGraph
 
 iAImageGraph::iAImageGraph(iAVoxelIndexType width, iAVoxelIndexType height, iAVoxelIndexType depth,
-		iAImageCoordinate::IndexOrdering indexOrdering,
+		iAImageCoordinate::iAIndexOrdering indexOrdering,
 		NeighbourhoodType neighbourhoodType
 	):
 		m_converter(width, height, depth, indexOrdering)
@@ -54,7 +54,7 @@ iAImageGraph::iAImageGraph(iAVoxelIndexType width, iAVoxelIndexType height, iAVo
 
 	for (iAVoxelIndexType i=0; i<N-1; ++i)
 	{
-		iAImageCoordinate coord1 = m_converter.GetCoordinatesFromIndex(i);
+		iAImageCoordinate coord1 = m_converter.coordinatesFromIndex(i);
 
 		// connect to right neighbour
 		if (coord1.x < width-1)
@@ -170,8 +170,8 @@ bool iAImageGraph::ContainsEdge(iAVoxelIndexType voxel1, iAVoxelIndexType voxel2
 
 bool iAImageGraph::ContainsEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2)
 {
-	iAVoxelIndexType idx1 = m_converter.GetIndexFromCoordinates(voxel1);
-	iAVoxelIndexType idx2 = m_converter.GetIndexFromCoordinates(voxel2);
+	iAVoxelIndexType idx1 = m_converter.indexFromCoordinates(voxel1);
+	iAVoxelIndexType idx2 = m_converter.indexFromCoordinates(voxel2);
 	return ContainsEdge(idx1, idx2);
 }
 
@@ -187,8 +187,8 @@ iAEdgeType const & iAImageGraph::GetEdge(iAEdgeIndexType idx) const
 
 void iAImageGraph::AddEdge(iAImageCoordinate voxel1, iAImageCoordinate voxel2)
 {
-	iAVoxelIndexType idx1 = m_converter.GetIndexFromCoordinates(voxel1);
-	iAVoxelIndexType idx2 = m_converter.GetIndexFromCoordinates(voxel2);
+	iAVoxelIndexType idx1 = m_converter.indexFromCoordinates(voxel1);
+	iAVoxelIndexType idx2 = m_converter.indexFromCoordinates(voxel2);
 	/*
 	assert (!ContainsEdge(idx1, idx2));
 	assert (!ContainsEdge(idx2, idx1));

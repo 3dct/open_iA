@@ -78,7 +78,7 @@ namespace
 		//DEBUG_LOG(QString("Size: (%1, %2, %3)").arg(size[0]).arg(size[1]).arg(size[2]));
 		auto inputSpacing = dynamic_cast<InputImageType*>(patchFilter->input()[0]->itkImage())->GetSpacing();
 	
-		QStringList filterParamStrs = SplitPossiblyQuotedString(parameters["Parameters"].toString());
+		QStringList filterParamStrs = splitPossiblyQuotedString(parameters["Parameters"].toString());
 		if (filter->parameters().size() != filterParamStrs.size())
 		{
 			DEBUG_LOG(QString("PatchFilter: Invalid number of parameters: %1 expected, %2 given!")
@@ -96,7 +96,7 @@ namespace
 		QVector<iAConnector*> smallImageInput;
 		smallImageInput.push_back(new iAConnector);
 		// TODO: read from con array?
-		QStringList additionalInput = SplitPossiblyQuotedString(parameters["Additional input"].toString());
+		QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional input"].toString());
 		for (QString fileName : additionalInput)
 		{
 			//fileName = MakeAbsolute(batchDir, fileName);

@@ -31,6 +31,7 @@
 #include <vtkMath.h>
 
 #include <QAction>
+#include <QDateTime>
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
@@ -470,7 +471,7 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 		double pos = step * i;
 		int y = -static_cast<int>(pos * aheight * m_yZoom) - 1;
 		double yValue = m_yMapper->dstToSrc(-y-1);
-		QString text = DblToStringWithUnits(yValue);
+		QString text = dblToStringWithUnits(yValue);
 		painter.drawLine(static_cast<int>(-TickWidth), y, 0, y);	// indicator line
 		painter.drawText( - ( fm.width(text) + TickWidth),
 			(i == stepNumber) ? y + 0.75*m_fontHeight // write the text top aligned to the indicator line
@@ -744,10 +745,27 @@ void iAChartWidget::drawPlots(QPainter &painter)
 	}
 }
 
-void iAChartWidget::showDataTooltip(QMouseEvent *event)
+bool iAChartWidget::event(QEvent *event)
 {
+	if (event->type() != QEvent::ToolTip)
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+		return QOpenGLWidget::event(event);
+#else
+		return QGLWidget::event(event);
+#endif
+
 	if (m_plots.empty() || !m_showTooltip)
-		return;
+	{
+		QToolTip::hideText();
+		event->ignore();
+	}
+	QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
+	showDataTooltip(helpEvent);
+	return true;
+}
+
+void iAChartWidget::showDataTooltip(QHelpEvent *event)
+{
 	int xPos = clamp(0, geometry().width() - 1, event->x());
 	size_t numBin = m_plots[0]->data()->numBin();
 	assert(numBin > 0);
@@ -929,7 +947,6 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 		}
 		break;
 	}
-	showDataTooltip(event);
 }
 
 QImage iAChartWidget::drawOffscreen()

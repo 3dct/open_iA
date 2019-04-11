@@ -29,11 +29,11 @@
 #include "dlg_modalities.h"
 #include "dlg_profile.h"
 #include "dlg_slicer.h"
-#include "dlg_transfer.h"
 #include "dlg_volumePlayer.h"
 #include "iAAlgorithm.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
+#include "iAChartFunctionTransfer.h"
 #include "iAConsole.h"
 #include "qthelper/iADockWidgetWrapper.h"
 #include "iALogger.h"
@@ -241,7 +241,7 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_histogram, SIGNAL(noPointSelected()), this, SIGNAL(noPointSelected()));
 	connect(m_histogram, SIGNAL(endPointSelected()), this, SIGNAL(endPointSelected()));
 	connect(m_histogram, SIGNAL(active()), this, SIGNAL(active()));
-	connect((dlg_transfer*)(m_histogram->functions()[0]), SIGNAL(Changed()), this, SLOT(modalityTFChanged()));
+	connect((iAChartTransferFunction*)(m_histogram->functions()[0]), SIGNAL(Changed()), this, SLOT(modalityTFChanged()));
 
 	connect(m_dwModalities, SIGNAL(modalitiesChanged()), this, SLOT(updateImageProperties()));
 	connect(m_dwModalities, SIGNAL(modalitiesChanged()), this, SLOT(updateViews()));
@@ -475,7 +475,7 @@ bool MdiChild::setupLoadIO(QString const & f, bool isStack)
 		DEBUG_LOG(QString("Could not find loader for extension '%1' of file '%2'!").arg(extension).arg(f));
 		return false;
 	}
-	IOType id = ext2id->find( extension ).value();
+	iAIOType id = ext2id->find( extension ).value();
 	return m_ioThread->setupIO(id, f);
 }
 
@@ -491,8 +491,7 @@ bool MdiChild::loadRaw(const QString &f)
 	connect(m_ioThread, SIGNAL(done()), this, SLOT(enableRenderWindows()));
 	m_polyData->ReleaseData();
 	m_imageData->ReleaseData();
-	IOType id = RAW_READER;
-	if (!m_ioThread->setupIO(id, f))
+	if (!m_ioThread->setupIO(RAW_READER, f))
 	{
 		ioFinished();
 		return false;
@@ -874,7 +873,7 @@ bool MdiChild::setupSaveIO(QString const & f)
 			}
 			else
 			{
-				QMap<IOType, QVector<int> > supportedPixelTypes;
+				QMap<iAIOType, QVector<int> > supportedPixelTypes;
 				QVector<int> tiffSupported;
 				tiffSupported.push_back(VTK_UNSIGNED_CHAR);
 				tiffSupported.push_back(VTK_UNSIGNED_SHORT);
@@ -891,7 +890,7 @@ bool MdiChild::setupSaveIO(QString const & f)
 				{
 					return false;
 				}
-				IOType ioID = extensionToSaveId[suffix];
+				iAIOType ioID = extensionToSaveId[suffix];
 				if (supportedPixelTypes.contains(ioID) &&
 					!supportedPixelTypes[ioID].contains(m_imageData->GetScalarType()))
 				{
@@ -1441,7 +1440,7 @@ void MdiChild::changeColor()
 int MdiChild::selectedFuncPoint()
 {
 	if (!m_histogram) return -1;
-	return m_histogram->getSelectedFuncPoint();
+	return m_histogram->selectedFuncPoint();
 }
 
 int MdiChild::isFuncEndPoint(int index)
@@ -1473,11 +1472,11 @@ void MdiChild::resetTrf()
 		.arg(m_histogram->xBounds()[1]));
 }
 
-std::vector<dlg_function*> & MdiChild::functions()
+std::vector<iAChartFunction*> & MdiChild::functions()
 {
 	if (!m_histogram)
 	{
-		static std::vector<dlg_function*> nullVec;
+		static std::vector<iAChartFunction*> nullVec;
 		return nullVec;
 	}
 	return m_histogram->functions();
@@ -2179,10 +2178,10 @@ void MdiChild::addProfile()
 	}
 	m_renderer->setArbitraryProfile(0, start);
 	m_renderer->setArbitraryProfile(1, end);
-	m_profileProbe->UpdateProbe(0, start);
-	m_profileProbe->UpdateProbe(1, end);
-	m_profileProbe->UpdateData();
-	m_dwProfile = new dlg_profile(this, m_profileProbe->profileData, m_profileProbe->GetRayLength());
+	m_profileProbe->updateProbe(0, start);
+	m_profileProbe->updateProbe(1, end);
+	m_profileProbe->updateData();
+	m_dwProfile = new dlg_profile(this, m_profileProbe->m_profileData, m_profileProbe->rayLength());
 	tabifyDockWidget(m_dwLog, m_dwProfile);
 	connect(m_dwProfile->profileMode, SIGNAL(toggled(bool)), this, SLOT(toggleArbitraryProfile(bool)));
 }
@@ -2199,14 +2198,14 @@ void MdiChild::updateProbe( int ptIndex, double * newPos )
 {
 	if (m_imageData->GetNumberOfScalarComponents() != 1) //No profile for rgb, rgba or vector pixel type images
 		return;
-	m_profileProbe->UpdateProbe(ptIndex, newPos);
+	m_profileProbe->updateProbe(ptIndex, newPos);
 	updateProfile();
 }
 
 void MdiChild::updateProfile()
 {
-	m_profileProbe->UpdateData();
-	m_dwProfile->profileWidget->initialize(m_profileProbe->profileData, m_profileProbe->GetRayLength());
+	m_profileProbe->updateData();
+	m_dwProfile->profileWidget->initialize(m_profileProbe->m_profileData, m_profileProbe->rayLength());
 	m_dwProfile->profileWidget->update();
 }
 
@@ -2427,6 +2426,8 @@ bool MdiChild::isVolumeDataLoaded() const
 
 void MdiChild::changeMagicLensModality(int chg)
 {
+	if (!m_isMagicLensEnabled)
+		return;
 	m_currentComponent = (m_currentComponent + chg);
 	if (m_currentComponent < 0 || m_currentComponent >= modality(m_currentModality)->componentCount())
 	{

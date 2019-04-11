@@ -120,7 +120,7 @@ namespace
 #else
 			double imgVal = values[it.value()];
 #endif
-			iAImageCoordinate coord = conv.GetCoordinatesFromIndex(it.key());
+			iAImageCoordinate coord = conv.coordinatesFromIndex(it.key());
 			ProbImageType::IndexType pixelIndex;
 			pixelIndex[0] = coord.x;
 			pixelIndex[1] = coord.y;
@@ -293,7 +293,7 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 	QSet<int> labelSet;
 	for (iAVertexIndexType seedIdx = 0; seedIdx < seeds->size(); ++seedIdx)
 	{
-		seedMap.insert(imageGraph.GetConverter().GetIndexFromCoordinates(seeds->at(seedIdx).first), seedIdx);
+		seedMap.insert(imageGraph.GetConverter().indexFromCoordinates(seeds->at(seedIdx).first), seedIdx);
 		labelSet.insert(seeds->at(seedIdx).second);
 	}
 	int labelCount = labelSet.size();
@@ -514,7 +514,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 		double sum = 0;
 
 		//PriorModelImageType::IndexType idx;
-		iAImageCoordinate coord = imageGraph.GetConverter().GetCoordinatesFromIndex(voxelIdx);
+		iAImageCoordinate coord = imageGraph.GetConverter().coordinatesFromIndex(voxelIdx);
 		/*
 		idx[0] = coord.x;
 		idx[1] = coord.y;
@@ -581,7 +581,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 		for (iAVoxelIndexType voxelIdx = 0; voxelIdx < vertexCount; ++ voxelIdx)
 		{
 			//PriorModelImageType::IndexType idx;
-			iAImageCoordinate coord = imageGraph.GetConverter().GetCoordinatesFromIndex(voxelIdx);
+			iAImageCoordinate coord = imageGraph.GetConverter().coordinatesFromIndex(voxelIdx);
 			/*
 			idx[0] = coord.x;
 			idx[1] = coord.y;

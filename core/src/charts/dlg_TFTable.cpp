@@ -21,7 +21,7 @@
 #include "dlg_TFTable.h"
 
 #include "charts/iADiagramFctWidget.h"
-#include "dlg_transfer.h"
+#include "iAChartFunctionTransfer.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkPiecewiseFunction.h>
@@ -43,10 +43,10 @@ public:
 	}
 };
 
-dlg_TFTable::dlg_TFTable( iADiagramFctWidget * parent, dlg_function* func ) : dlg_TFTableWidgetConnector( parent ),
+dlg_TFTable::dlg_TFTable( iADiagramFctWidget * parent, iAChartFunction* func ) : dlg_TFTableWidgetConnector( parent ),
 	m_parent(parent),
-	m_oTF( dynamic_cast<dlg_transfer*>( func )->opacityTF() ),
-	m_cTF( dynamic_cast<dlg_transfer*>( func )->colorTF() ),
+	m_oTF( dynamic_cast<iAChartTransferFunction*>( func )->opacityTF() ),
+	m_cTF( dynamic_cast<iAChartTransferFunction*>( func )->colorTF() ),
 	m_newPointColor( Qt::gray )
 {
 	Init();

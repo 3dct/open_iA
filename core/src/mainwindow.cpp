@@ -22,11 +22,11 @@
 
 #include "charts/iADiagramFctWidget.h"
 #include "defines.h"
-#include "dlg_bezier.h"
 #include "dlg_commoninput.h"
 #include "dlg_datatypeconversion.h"
-#include "dlg_gaussian.h"
-#include "dlg_transfer.h"
+#include "iAChartFunctionBezier.h"
+#include "iAChartFunctionGaussian.h"
+#include "iAChartFunctionTransfer.h"
 #include "iAConsole.h"
 #include "iALogger.h"
 #include "iAMathUtility.h"
@@ -453,7 +453,7 @@ bool MainWindow::saveSettings()
 
 			if (m_spCamera) saveCamera(doc);
 			if (m_spSliceViews) saveSliceViews(doc);
-			if (m_spTransferFunction) saveTransferFunction(doc, (dlg_transfer*)activeMdiChild()->functions()[0]);
+			if (m_spTransferFunction) saveTransferFunction(doc, (iAChartTransferFunction*)activeMdiChild()->functions()[0]);
 			if (m_spProbabilityFunctions) saveProbabilityFunctions(doc);
 			if (m_spPreferences) savePreferences(doc);
 			if (m_spRenderSettings) saveRenderSettings(doc);
@@ -533,7 +533,7 @@ bool MainWindow::loadSettings()
 
 			if (m_lpProbabilityFunctions)
 			{
-				std::vector<dlg_function*> &functions = activeMdiChild()->functions();
+				std::vector<iAChartFunction*> &functions = activeMdiChild()->functions();
 				for (unsigned int i = 1; i < functions.size(); i++)
 				{
 					delete functions.back();
@@ -713,7 +713,7 @@ void MainWindow::loadSliceViews(QDomNode &sliceViewsNode)
 	}
 }
 
-void MainWindow::saveTransferFunction(QDomDocument &doc, dlg_transfer* transferFunction)
+void MainWindow::saveTransferFunction(QDomDocument &doc, iAChartTransferFunction* transferFunction)
 {
 	// does functions node exist
 	QDomNode functionsNode = doc.documentElement().namedItem("functions");
@@ -770,17 +770,17 @@ void MainWindow::saveProbabilityFunctions(QDomDocument &doc)
 	}
 
 	// add new function nodes
-	std::vector<dlg_function*> const & functions = activeMdiChild()->functions();
+	std::vector<iAChartFunction*> const & functions = activeMdiChild()->functions();
 
 	for (unsigned int f = 1; f < functions.size(); f++)
 	{
 		switch(functions[f]->getType())
 		{
-		case dlg_function::BEZIER:
+		case iAChartFunction::BEZIER:
 			{
 				QDomElement bezierElement = doc.createElement("bezier");
 
-				std::vector<QPointF> points = ((dlg_bezier*)functions[f])->getPoints();
+				std::vector<QPointF> points = ((iAChartFunctionBezier*)functions[f])->getPoints();
 
 				std::vector<QPointF>::iterator it = points.begin();
 				while(it != points.end())
@@ -798,11 +798,11 @@ void MainWindow::saveProbabilityFunctions(QDomDocument &doc)
 				}
 			}
 			break;
-		case dlg_function::GAUSSIAN:
+		case iAChartFunction::GAUSSIAN:
 			{
 				QDomElement gaussianElement = doc.createElement("gaussian");
 
-				dlg_gaussian *gaussian = (dlg_gaussian*)functions[f];
+				iAChartFunctionGaussian *gaussian = (iAChartFunctionGaussian*)functions[f];
 
 				gaussianElement.setAttribute("mean", tr("%1").arg(gaussian->getMean()));
 				gaussianElement.setAttribute("sigma", tr("%1").arg(gaussian->getSigma()));
@@ -829,7 +829,7 @@ void MainWindow::loadProbabilityFunctions(QDomNode &functionsNode)
 		QDomNode functionNode = list.item(n);
 		if (functionNode.nodeName() == "bezier")
 		{
-			dlg_bezier *bezier = new dlg_bezier(activeMdiChild()->histogram(), PredefinedColors()[colorIndex % 7], false);
+			iAChartFunctionBezier *bezier = new iAChartFunctionBezier(activeMdiChild()->histogram(), PredefinedColors()[colorIndex % 7], false);
 			QDomNodeList innerList = functionNode.childNodes();
 			for (int in = 0; in < innerList.length(); in++)
 			{
@@ -846,7 +846,7 @@ void MainWindow::loadProbabilityFunctions(QDomNode &functionsNode)
 		}
 		else if (functionNode.nodeName() == "gaussian")
 		{
-			dlg_gaussian *gaussian = new dlg_gaussian(activeMdiChild()->histogram(), PredefinedColors()[colorIndex % 7], false);
+			iAChartFunctionGaussian *gaussian = new iAChartFunctionGaussian(activeMdiChild()->histogram(), PredefinedColors()[colorIndex % 7], false);
 
 			mean = functionNode.attributes().namedItem("mean").nodeValue().toDouble();
 			sigma = functionNode.attributes().namedItem("sigma").nodeValue().toDouble();
@@ -1531,26 +1531,26 @@ MdiChild * MainWindow::resultChild(int childInd, QString const & f)
 
 void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 {
-	std::vector<dlg_function*> const & oldChildFunctions = oldChild->functions();
+	std::vector<iAChartFunction*> const & oldChildFunctions = oldChild->functions();
 	for (unsigned int i = 1; i < oldChildFunctions.size(); ++i)
 	{
-		dlg_function *curFunc = oldChildFunctions[i];
+		iAChartFunction *curFunc = oldChildFunctions[i];
 		switch (curFunc->getType())
 		{
-		case dlg_function::GAUSSIAN:
+		case iAChartFunction::GAUSSIAN:
 		{
-			dlg_gaussian * oldGaussian = (dlg_gaussian*)curFunc;
-			dlg_gaussian * newGaussian = new dlg_gaussian(newChild->histogram(), PredefinedColors()[i % 7]);
+			iAChartFunctionGaussian * oldGaussian = (iAChartFunctionGaussian*)curFunc;
+			iAChartFunctionGaussian * newGaussian = new iAChartFunctionGaussian(newChild->histogram(), PredefinedColors()[i % 7]);
 			newGaussian->setMean(oldGaussian->getMean());
 			newGaussian->setMultiplier(oldGaussian->getMultiplier());
 			newGaussian->setSigma(oldGaussian->getSigma());
 			newChild->functions().push_back(newGaussian);
 		}
 		break;
-		case dlg_function::BEZIER:
+		case iAChartFunction::BEZIER:
 		{
-			dlg_bezier * oldBezier = (dlg_bezier*)curFunc;
-			dlg_bezier * newBezier = new dlg_bezier(newChild->histogram(), PredefinedColors()[i % 7]);
+			iAChartFunctionBezier * oldBezier = (iAChartFunctionBezier*)curFunc;
+			iAChartFunctionBezier * newBezier = new iAChartFunctionBezier(newChild->histogram(), PredefinedColors()[i % 7]);
 			for (unsigned int j = 0; j < oldBezier->getPoints().size(); ++j)
 				newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
 			newChild->functions().push_back(newBezier);
@@ -2029,11 +2029,22 @@ void MainWindow::setCurrentFile(const QString &fileName)
 
 	settings.setValue("recentFileList", files);
 
-	foreach (QWidget *widget, QApplication::topLevelWidgets()) {
-		MainWindow *mainWin = qobject_cast<MainWindow *>(widget);
-		if (mainWin)
-			mainWin->updateRecentFileActions();
-	}
+	updateRecentFileActions();
+}
+
+QString const & MainWindow::currentFile()
+{
+	return m_curFile;
+}
+
+void MainWindow::setPath(QString p)
+{
+	m_path = p;
+}
+
+QString const & MainWindow::path()
+{
+	return m_path;
 }
 
 void MainWindow::updateRecentFileActions()
@@ -2422,7 +2433,7 @@ void MainWindow::openTLGICTData()
 	QString baseDirectory = QFileDialog::getExistingDirectory(
 		this,
 		tr("Open Talbot-Lau Grating Interferometer CT Dataset"),
-		getPath(),
+		path(),
 		QFileDialog::ShowDirsOnly);
 	loadTLGICTData(baseDirectory);
 }
@@ -2438,8 +2449,26 @@ void MainWindow::loadTLGICTData(QString const & baseDirectory)
 
 #include "iAConsole.h"
 #include "iASCIFIOCheck.h"
+
 #include <QApplication>
 #include <QDate>
+#include <QProxyStyle>
+
+class MyProxyStyle : public QProxyStyle
+{
+public:
+	using QProxyStyle::QProxyStyle;
+
+	int styleHint(StyleHint hint, const QStyleOption* option = nullptr, const QWidget* widget = nullptr, QStyleHintReturn* returnData = nullptr) const override
+	{
+		// disable tooltip delay for iAChartWidget and descendants:
+		if (hint == QStyle::SH_ToolTip_WakeUpDelay && widget && widget->inherits(iAChartWidget::staticMetaObject.className()))
+		{
+			return 0;
+		}
+		return QProxyStyle::styleHint(hint, option, widget, returnData);
+	}
+};
 
 void MainWindow::initResources()
 {
@@ -2459,6 +2488,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
+	qApp->setStyle(new MyProxyStyle(qApp->style()));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
 	if (QDate::currentDate().dayOfYear() >= 350)
 	{
