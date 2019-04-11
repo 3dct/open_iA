@@ -1189,8 +1189,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
-		//double mouseCoord[3] = { result[0], result[1], result[2] };
-		//updateFisheyeTransform(mouseCoord, reslicer, 50.0);
+		//DEBUG_LOG("iASlicer::execute vtkCommand::MouseMoveEvent");
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);
@@ -1811,7 +1810,7 @@ int iASlicer::sliceNumber() const
 }
 
 #define EPSILON 0.0015
-
+/*
 namespace
 {
 	struct PickedData
@@ -1822,27 +1821,29 @@ namespace
 	};
 	PickedData	pickedData;
 }
+*/
 
 void iASlicer::keyPressEvent(QKeyEvent *event)
 {
-	vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
+	if (!hasChannel(0))
+		return;
 
+	vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
 	if (event->key() == Qt::Key_R)
 	{
 		ren->ResetCamera();
 	}
 	if (event->key() == Qt::Key_O)
 	{
-		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
+		//pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 		// TODO: fisheye lens on all channels???
-		if (!hasChannel(0))
-			return;
+
 		auto reslicer = channel(0)->reslicer();
 		if (!m_fisheyeLensActivated)
 		{
 			m_fisheyeLensActivated = true;
 			reslicer->SetAutoCropOutput(!reslicer->GetAutoCropOutput());
-			ren->SetWorldPoint(pickedData.res[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], pickedData.res[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)], 0, 1);
+			ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 
 			initializeFisheyeLens(reslicer);
 
@@ -1890,103 +1891,98 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 	// magnify and unmagnify fisheye lens and distortion radius
 	if (m_fisheyeLensActivated)
 	{
-		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
-		ren->SetWorldPoint(pickedData.res[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], pickedData.res[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)], 0, 1);
-		if (!hasChannel(0))
-			return;
+		//pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
+		ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
+
 		// TODO: fisheye lens on all channels???
 		auto reslicer = channel(0)->reslicer();
-		if (event->modifiers().testFlag(Qt::ControlModifier)) {
-			if (event->key() == Qt::Key_Minus) {
-
-				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius + 1.0 <= 20.0) {
+		if (event->modifiers().testFlag(Qt::ControlModifier))
+		{
+			if (event->key() == Qt::Key_Minus)
+			{
+				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius + 1.0 <= 20.0)
+				{
 					m_innerFisheyeRadius += 1.0;
 					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 				}
 
 				else {
-					if ((m_innerFisheyeRadius + 2.0) <= m_fisheyeRadius) {
+					if ((m_innerFisheyeRadius + 2.0) <= m_fisheyeRadius)
+					{
 						m_innerFisheyeRadius += 2.0;
 						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
 					}
 
 				}
 			}
-			if (event->key() == Qt::Key_Plus) {
-
-				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius - 1.0 >= 1.0) {
+			if (event->key() == Qt::Key_Plus)
+			{
+				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius - 1.0 >= 1.0)
+				{
 					m_innerFisheyeRadius -= 1.0;
 					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 				}
-				else {
-					if ((m_innerFisheyeRadius - 2.0) >= (m_innerFisheyeMinRadius)) {
+				else
+				{
+					if ((m_innerFisheyeRadius - 2.0) >= (m_innerFisheyeMinRadius))
+					{
 						m_innerFisheyeRadius -= 2.0;
 						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 					}
 				}
 			}
 		}
-		else if (!(event->modifiers().testFlag(Qt::ControlModifier))) {
-			if (event->key() == Qt::Key_Plus) {
-
-				if (m_fisheyeRadius + 1.0 <= 20.0) {
+		else if (!(event->modifiers().testFlag(Qt::ControlModifier)))
+		{
+			if (event->key() == Qt::Key_Plus)
+			{
+				if (m_fisheyeRadius + 1.0 <= 20.0)
+				{
 					m_fisheyeRadius += 1.0;
 					m_innerFisheyeRadius = m_innerFisheyeRadius + 1.0;
 					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 				}
-				else {
-					if (!(m_fisheyeRadius + 10.0 > m_maxFisheyeRadius)) {
+				else
+				{
+					if (!(m_fisheyeRadius + 10.0 > m_maxFisheyeRadius))
+					{
 						m_fisheyeRadius += 10.0;
 						m_innerFisheyeRadius += 10.0;
 						m_innerFisheyeMinRadius += 8;
 						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 					}
 				}
 			}
 			if (event->key() == Qt::Key_Minus) {
 
-				if (m_fisheyeRadius - 1.0 < 20.0 && m_fisheyeRadius - 1.0 >= m_minFisheyeRadius) {
+				if (m_fisheyeRadius - 1.0 < 20.0 && m_fisheyeRadius - 1.0 >= m_minFisheyeRadius)
+				{
 					m_fisheyeRadius -= 1.0;
 					m_innerFisheyeRadius -= 1.0;
 					if (m_innerFisheyeMinRadius > 1.0)
 						m_innerFisheyeMinRadius = 1.0;
-
 					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 				}
-				else {
-
-					if (!(m_fisheyeRadius - 10.0 < m_minFisheyeRadius)) {
+				else
+				{
+					if (!(m_fisheyeRadius - 10.0 < m_minFisheyeRadius))
+					{
 						m_fisheyeRadius -= 10.0;
 						m_innerFisheyeRadius -= 10.0;
 						m_innerFisheyeMinRadius -= - 8;
-
 						if (m_innerFisheyeRadius < m_innerFisheyeMinRadius)
 							m_innerFisheyeRadius = m_innerFisheyeMinRadius;
-
 						updateFisheyeTransform(ren->GetWorldPoint() /*pickedData.pos*/, reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
 					}
 				}
 			}
 		}
 	}
-
-	if (!m_fisheyeLensActivated)
-	{
-		iAVtkWidget::keyPressEvent(event);
-		return;
-	}
 	// if not in snake m_viewMode
 	if (m_interactionMode != SHOW)
 	{
 		if (event->key() == Qt::Key_Tab && m_interactionMode == NORMAL)
 			switchInteractionMode(DEFINE_SPLINE);
-
 		else
 			switchInteractionMode(NORMAL);
 
@@ -2056,19 +2052,19 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 void iASlicer::mouseMoveEvent(QMouseEvent *event)
 {
 	iAVtkWidget::mouseMoveEvent(event);
-	if (!m_fisheyeLensActivated)
+
+	if (!hasChannel(0)) // nothing to do if no data
 		return;
 
-	pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
+	//DEBUG_LOG("iASlicer::mouseMoveEvent");
+	//pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 
 	if (m_fisheyeLensActivated)
 	{
-		if (!hasChannel(0))
-			return;
 		// TODO: fisheye lens on all channels???
 		auto reslicer = channel(0)->reslicer();
 		vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
-		ren->SetWorldPoint(pickedData.res[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], pickedData.res[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)], 0, 1);
+		ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 		updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
 	}
 
@@ -2419,7 +2415,7 @@ void iASlicer::wheelEvent(QWheelEvent* event)
 	else
 	{
 		iAVtkWidget::wheelEvent(event);
-		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
+		//pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 	}
 	updateMagicLens();
 }
@@ -2523,9 +2519,6 @@ void iASlicer::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslic
 	m_pointsTarget->SetNumberOfPoints(32); // already set above!
 	m_pointsSource->SetNumberOfPoints(32);
 	int sn = sliceNumber();
-
-	std::cout << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5] << std::endl;
-	std::cout << focalPt[0] << " " << focalPt[1] << " " << focalPt[2] << std::endl;
 
 	switch (m_mode)
 	{
