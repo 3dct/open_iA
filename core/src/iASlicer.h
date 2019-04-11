@@ -415,8 +415,8 @@ private:
 	double m_backgroundRGB[3];  //!< manual background RGB
 	int m_sliceNumber;          //!< current slice
 
-	//mouse move
-	double m_ptMapped[3];
+	double m_slicerPt[3];       //!< point of last interaction in slicer coordinates
+	double m_globalPt[4];       //!< point of last interaction in global coordinates
 	double m_startMeasurePoint[2];
 
 	QCursor m_mouseCursor;
@@ -429,7 +429,8 @@ private:
 	//! @param xCoord x coordinate (pixel index) in channel
 	//! @param yCoord y coordinate (pixel index) in channel
 	//! @param zCoord z coordinate (pixel index) in channel
-	void computeCoords(double & xCoord, double & yCoord, double & zCoord, double* result, uint channelID);
+	void computeCoords(double * coords, uint channelID);
+	void computeGlobalPoint();
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 };

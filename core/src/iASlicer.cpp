@@ -1163,34 +1163,28 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	}
 	int const * epos = m_interactor->GetEventPosition();
 	m_pointPicker->Pick(epos[0], epos[1], 0, m_ren); // z is always zero
-	m_pointPicker->GetPickPosition(m_ptMapped);      // get position in local slicer scene/world coordinates
+	m_pointPicker->GetPickPosition(m_slicerPt);      // get position in local slicer scene/world coordinates
+	computeGlobalPoint();
 
+	double channel0Coords[3];
+	computeCoords(channel0Coords, 0);
 	switch (eventId)
 	{
 	case vtkCommand::LeftButtonPressEvent:
 	{
-		double result[4];
-		double x, y, z;
-		computeCoords(x, y, z, result, 0);
-		emit clicked(x, y, z);
+		emit clicked(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
 		emit userInteraction();
 		break;
 	}
 	case vtkCommand::LeftButtonReleaseEvent:
 	{
-		double result[4];
-		double x, y, z;
-		computeCoords(x, y, z, result, 0);
-		emit released(x, y, z);
+		emit released(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
 		emit userInteraction();
 		break;
 	}
 	case vtkCommand::RightButtonPressEvent:
 	{
-		double result[4];
-		double x, y, z;
-		computeCoords(x, y, z, result, 0);
-		emit rightClicked(x, y, z);
+		emit rightClicked(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
 		break;
 	}
 	case vtkCommand::MouseMoveEvent:
@@ -1202,10 +1196,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 			m_positionMarkerActor->SetVisibility(false);
 			printVoxelInformation();
 		}
-		double result[4];
-		double x, y, z;
-		computeCoords(x, y, z, result, 0);
-		emit oslicerPos(x, y, z, m_mode);
+		emit oslicerPos(channel0Coords[0], channel0Coords[1], channel0Coords[2], m_mode);
 		emit userInteraction();
 		break;
 	}
@@ -1228,40 +1219,40 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	m_interactor->Render();
 }
 
-void iASlicer::computeCoords(double & xCoord, double & yCoord, double & zCoord, double* result, uint channelID)
+
+void iASlicer::computeGlobalPoint()
+{
+	const int ChannelID = 0; //< TODO: avoid using specific channel here!
+	if (!hasChannel(ChannelID))
+	{
+		std::fill(m_globalPt, m_globalPt + sizeof(m_globalPt), 0);
+		return;
+	}
+	double point[4] = { m_slicerPt[0], m_slicerPt[1], m_slicerPt[2], 1 };
+	auto reslicer = m_channels[ChannelID]->reslicer();
+	vtkMatrix4x4 *resliceAxes = vtkMatrix4x4::New();
+	resliceAxes->DeepCopy(reslicer->GetResliceAxes());
+	resliceAxes->MultiplyPoint(point, m_globalPt);
+	resliceAxes->Delete();
+}
+
+void iASlicer::computeCoords(double * coord, uint channelID)
 {
 	if (!hasChannel(channelID))
 		return;
-	result[0] = result[1] = result[2] = result[3] = 0;
-	double point[4] = { m_ptMapped[0], m_ptMapped[1], m_ptMapped[2], 1 };
-
-	auto reslicer = m_channels[channelID]->reslicer();
-
-	// get a shortcut to the pixel data. (BF: what does this mean? typically, result is the same as m_ptMapped...?)
-	vtkMatrix4x4 *resliceAxes = vtkMatrix4x4::New();
-	resliceAxes->DeepCopy(reslicer->GetResliceAxes());
-	resliceAxes->MultiplyPoint(point, result);
-	resliceAxes->Delete();
 
 	auto imageData = m_channels[channelID]->input();
-	double const * imageSpacing = imageData->GetSpacing();
-	double const * origin = imageData->GetOrigin();
-	// xCoord, yCoord, zCoord will contain voxel coordinates for the given channel
-	xCoord = (result[0] - origin[0]) / imageSpacing[0] + 0.5;	// + 0.5 to correct for BorderOn
-	yCoord = (result[1] - origin[1]) / imageSpacing[1] + 0.5;
-	zCoord = (result[2] - origin[2]) / imageSpacing[2] + 0.5;
+	double const * imgSpacing = imageData->GetSpacing();
+	double const * imgOrigin  = imageData->GetOrigin();
+	int    const * imgExtent  = imageData->GetExtent();
+	// coords will contain voxel coordinates for the given channel
+	for (int i=0; i<3; ++i)
+		coord[i] = clamp(
+			static_cast<double>(imgExtent[i*2]),
+			imgExtent[i*2+1] + 1 - std::numeric_limits<double>::epsilon(),
+			(m_globalPt[i] - imgOrigin[i]) / imgSpacing[i] + 0.5);	// + 0.5 to correct for BorderOn
 
 	// TODO: check for negative origin images!
-	int* extent = imageData->GetExtent();
-	xCoord = clamp(static_cast<double>(extent[0]), extent[1] + 1 - std::numeric_limits<double>::epsilon(), xCoord);
-	yCoord = clamp(static_cast<double>(extent[2]), extent[3] + 1 - std::numeric_limits<double>::epsilon(), yCoord);
-	zCoord = clamp(static_cast<double>(extent[4]), extent[5] + 1 - std::numeric_limits<double>::epsilon(), zCoord);
-
-	DEBUG_LOG(QString("Slicer point: %1, %2, %3; Coords: %4, %5, %6; Result: %7, %8, %9")
-		.arg(m_ptMapped[0]).arg(m_ptMapped[1]).arg(m_ptMapped[2])
-		.arg(xCoord).arg(yCoord).arg(zCoord)
-		.arg(result[0]).arg(result[1]).arg(result[2])
-	);
 }
 
 namespace
@@ -1291,9 +1282,8 @@ void iASlicer::printVoxelInformation()
 		return;
 	if (m_cursorSet && cursor() != mouseCursor())
 		setCursor(mouseCursor());
-	// get index, coords and value to display
 	QString strDetails(QString("%1: %2, %3, %4\n").arg(padOrTruncate("Position", MaxNameLength))
-		.arg(m_ptMapped[0]).arg(m_ptMapped[1]).arg(m_ptMapped[2]));
+		.arg(m_globalPt[0], ).arg(m_globalPt[1]).arg(m_globalPt[2]));
 	for (auto channelID: m_channels.keys())
 	{
 		if (!m_channels[channelID]->isEnabled())
@@ -1302,16 +1292,8 @@ void iASlicer::printVoxelInformation()
 		double const * slicerSpacing = m_channels[channelID]->output()->GetSpacing();
 		int    const * slicerExtent  = m_channels[channelID]->output()->GetExtent();
 		double const * slicerBounds  = m_channels[channelID]->output()->GetBounds();
-
-		// We have to manually set the physical z-coordinate which requires us to get the volume spacing.
-		                                                                         // +0.5 is because of BorderOn
 		double dcX = (m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
 		double dcY = (m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
-		DEBUG_LOG(QString("    Slicer point: %1, %2, bounds: %3, %4, spacing: %5, %6, coordinates: %7, %8")
-			.arg(m_ptMapped[0]).arg(m_ptMapped[1])
-			.arg(slicerBounds[0]).arg(slicerBounds[2])
-			.arg(slicerSpacing[0]).arg(slicerSpacing[2])
-			.arg(dcX).arg(dcY));
 		int cX = static_cast<int>(std::floor(dcX));
 		int cY = static_cast<int>(std::floor(dcY));
 
@@ -1330,9 +1312,8 @@ void iASlicer::printVoxelInformation()
 				valueStr += " ";
 			valueStr += QString::number(value);
 		}
-		double result[4];
 		double coords[3];
-		computeCoords(coords[0], coords[1], coords[2], result, channelID);
+		computeCoords(coords, channelID);
 		strDetails += QString("%1: %2 [%3 %4 %5]\n")
 			.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
 			.arg(valueStr)
