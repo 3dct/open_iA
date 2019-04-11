@@ -50,9 +50,10 @@ public:
 		int currentMode, MdiChild *mdiChild);
 	void updateInteractors(); 
 
-	void rotate2d();
+
 
 	void custom2DRotate(); 
+	void TransformReslicer(double * obj_center, double const * spacing, double newAngle, double oldAngle);
 signals:
 	void actorsUpdated();
 
