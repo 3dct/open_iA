@@ -337,10 +337,11 @@ void iAvtkInteractStyleActor::Update3DTransform(const double * imageCenter, cons
 {
 	double volOrientation[3];
 	//m_volumeRenderer->volume()->GetOrientation(volOrientation);
-
 	double const *orientation = m_volumeRenderer->volume()->GetOrientation(); 
 	/*vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();*/
-	double angle = 0.0f; 
+	double angle = 0.0f;
+
+	m_transform3D->SetMatrix(m_volumeRenderer->volume()->GetMatrix()); 
 	m_transform3D->PostMultiply();
 	//transform->SetMatrix(m_volumeRenderer->volume()->GetMatrix());
 	m_transform3D->Translate(-imageCenter[0]/**spacing[0]*/, -imageCenter[1]/**spacing[1]*/, -imageCenter[2]/**spacing[0]*/);
