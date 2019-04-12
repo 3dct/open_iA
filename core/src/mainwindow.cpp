@@ -2109,10 +2109,15 @@ QString MainWindow::strippedName(const QString &fullFileName)
 
 QList<MdiChild*> MainWindow::mdiChildList(QMdiArea::WindowOrder order)
 {
-	QList<MdiChild*> res;
+	return childList<MdiChild>(order);
+}
+
+template <typename T> QList<T*> childList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder)
+{
+	QList<T*> res;
 	foreach(QMdiSubWindow *window, mdiArea->subWindowList(order))
 	{
-		MdiChild * child = qobject_cast<MdiChild*>(window->widget());
+		T * child = qobject_cast<T*>(window->widget());
 		if (child)
 			res.append(child);
 	}
