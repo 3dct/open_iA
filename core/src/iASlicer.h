@@ -225,7 +225,9 @@ public slots:
 	//! Switches between interaction modi (normal, snake slicer view or editing)
 	//! @param mode mode which should be switched to  (see InteractionMode enum)
 	void switchInteractionMode(int mode);
+	//! Toggle the "raw" profile mode, i.e. whether the profile is shown on top of the slicer image
 	void setSliceProfileOn(bool isOn);
+	//! Toggle the possibility to move start and end point of the profile
 	void setArbitraryProfileOn(bool isOn);
 
 	void setPieGlyphsOn(bool isOn);  // TODO: Move to XRF module!

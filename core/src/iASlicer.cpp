@@ -2080,18 +2080,10 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 		emit movedPoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
 	}
 
-	if (m_isSliceProfEnabled
-		&& (event->modifiers() == Qt::NoModifier))//if profile m_viewMode is enabled do all the necessary operations
+	if (m_isSliceProfEnabled && (event->modifiers() == Qt::NoModifier))
 	{
-		if (event->buttons()&Qt::LeftButton)
+		if (event->buttons() & Qt::LeftButton)
 		{
-			/*
-			double xPos, yPos, zPos;
-			double result[4];
-			int x, y, z;
-			if (!pickPoint(xPos, yPos, zPos, result, x, y, z))
-				return;
-			*/
 			setSliceProfile(m_globalPt);
 		}
 	}
@@ -2099,17 +2091,10 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 	if (m_isArbProfEnabled)
 	{
 		int arbProfPtInd = m_arbProfile->GetPntInd();
-		if (event->modifiers() == Qt::NoModifier && arbProfPtInd >= 0)//if profile m_viewMode is enabled do all the necessary operations
+		if (event->modifiers() == Qt::NoModifier && arbProfPtInd >= 0)
 		{
-			if (event->buttons()&Qt::LeftButton)
+			if (event->buttons() & Qt::LeftButton)
 			{
-				/*
-				double xPos, yPos, zPos;
-				double result[4];
-				int x, y, z;
-				if (!pickPoint(xPos, yPos, zPos, result, x, y, z))
-					return;
-				*/
 				double *ptPos = m_arbProfile->GetPosition(arbProfPtInd);
 				const int zind = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 				double globalPos[3];
@@ -2268,13 +2253,8 @@ void iASlicer::deleteSnakeLine()
 	if (!m_decorations)
 		return;
 
-	//delete all points from snake slicer spline
 	m_snakeSpline->deleteAllPoints();
-
-	// reset point lists
 	m_worldSnakePoints->Reset();
-
-	// render slice view
 	m_renWin->GetInteractor()->Render();
 }
 
