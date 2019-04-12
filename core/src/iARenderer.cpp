@@ -225,6 +225,7 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	m_interactor(nullptr),
 	m_renderObserver(nullptr),
+	m_imageData(nullptr),
 	m_renWin(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),		// TODO: move out of here?
 	m_cam(vtkSmartPointer<vtkCamera>::New()),
 	m_cSource(vtkSmartPointer<vtkCubeSource>::New()),
@@ -297,7 +298,7 @@ iARenderer::~iARenderer(void)
 	if (m_renderObserver) m_renderObserver->Delete();
 }
 
-void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
+void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd)
 {
 	m_imageData = ds;
 	m_polyData = pd;
@@ -305,7 +306,6 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	if(m_polyData)
 		if( m_polyData->GetNumberOfCells() )
 			m_cellLocator->BuildLocator();
-	m_ext = e;
 	double spacing[3];	ds->GetSpacing(spacing);
 	m_ren->SetLayer(0);
 	m_ren->UseDepthPeelingOn();
@@ -336,9 +336,7 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	m_interactor->Initialize();
 
 	// setup cube source
-	m_cSource->SetXLength(m_ext * spacing[0]);
-	m_cSource->SetYLength(m_ext * spacing[1]);
-	m_cSource->SetZLength(m_ext * spacing[2]);
+	updatePositionMarkerExtent();
 	m_cMapper->SetInputConnection(m_cSource->GetOutputPort());
 	m_cActor->SetMapper(m_cMapper);
 	m_cActor->GetProperty()->SetColor(1,0,0);
@@ -414,8 +412,10 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 			point1[j] = 0;
 			point2[j] = 0;
 		}
-		point1[sliceAxis(s, 0)] += 1.1 * dim[sliceAxis(s, 0)] * spc[sliceAxis(s, 0)];
-		point2[sliceAxis(s, 1)] += 1.1 * dim[sliceAxis(s, 1)] * spc[sliceAxis(s, 1)];
+		int slicerXAxisIdx = mapSliceToGlobalAxis(s, iAAxisIndex::X);
+		int slicerYAxisIdx = mapSliceToGlobalAxis(s, iAAxisIndex::Y);
+		point1[slicerXAxisIdx] += 1.1 * dim[slicerXAxisIdx] * spc[slicerXAxisIdx];
+		point2[slicerYAxisIdx] += 1.1 * dim[slicerYAxisIdx] * spc[slicerYAxisIdx];
 		m_slicePlaneSource[s]->SetPoint1(point1);
 		m_slicePlaneSource[s]->SetPoint2(point2);
 		m_slicePlaneSource[s]->SetCenter(center);
@@ -427,19 +427,18 @@ void iARenderer::initialize( vtkImageData* ds, vtkPolyData* pd, int e )
 	}
 }
 
-void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd, int e )
+void iARenderer::reInitialize( vtkImageData* ds, vtkPolyData* pd)
 {
 	m_imageData = ds;
 	m_polyData = pd;
+	updatePositionMarkerExtent();
 	if (m_polyData)
 	{
 		m_cellLocator->SetDataSet(m_polyData );
 		if (m_polyData->GetNumberOfCells())
 			m_cellLocator->BuildLocator();
 	}
-	m_ext = e;
 	m_polyMapper->SetInputData(m_polyData);
-
 	m_renderObserver->ReInitialize(m_ren, m_labelRen, m_interactor, m_pointPicker,
 		m_moveableAxesTransform, ds,
 		m_plane1, m_plane2, m_plane3, m_cellLocator );
@@ -596,7 +595,6 @@ void iARenderer::showHelpers(bool show)
 	m_axesActor->SetVisibility(show);
 	m_moveableAxesActor->SetVisibility(show);
 	m_logoWidget->SetEnabled(show);
-	m_cActor->SetVisibility(show);
 }
 
 void iARenderer::showRPosition(bool s)
@@ -700,9 +698,27 @@ void iARenderer::setCamera(vtkCamera* c)
 	m_ren->SetActiveCamera(m_cam);
 	emit onSetCamera();
 }
-vtkCamera* iARenderer::camera() { return m_cam; }
 
-void iARenderer::setStatExt(int s) { m_ext = s; }
+vtkCamera* iARenderer::camera()
+{
+	return m_cam;
+}
+
+void iARenderer::setStatExt(int s)
+{
+	m_ext = s;
+	updatePositionMarkerExtent();
+}
+
+void iARenderer::updatePositionMarkerExtent()
+{
+	if (!m_imageData)
+		return;
+	double const * spacing = m_imageData->GetSpacing();
+	m_cSource->SetXLength(m_ext * spacing[0]);
+	m_cSource->SetYLength(m_ext * spacing[1]);
+	m_cSource->SetZLength(m_ext * spacing[2]);
+}
 
 void iARenderer::setSlicePlaneOpacity(float opc)
 {
@@ -717,55 +733,59 @@ void iARenderer::setSlicePlaneOpacity(float opc)
 
 void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ )
 {
-	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter(fileName, qual);
+	auto movieWriter = GetMovieWriter(fileName, qual);
 
 	if (movieWriter.GetPointer() == nullptr)
 		return;
 
+	// save current state and disable interaction:
 	m_interactor->Disable();
-
-	vtkSmartPointer<vtkCamera> oldCam = vtkSmartPointer<vtkCamera>::New();
+	auto oldCam = vtkSmartPointer<vtkCamera>::New();
 	oldCam->DeepCopy(m_cam);
 
-	vtkSmartPointer<vtkWindowToImageFilter> w2if = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	// set up movie export pipeline:
+	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	int* rws = m_renWin->GetSize();
 	if (rws[0] % 2 != 0) rws[0]++;
 	if (rws[1] % 2 != 0) rws[1]++;
 	m_renWin->SetSize(rws);
 	m_renWin->Render();
-
-	w2if->SetInput(m_renWin);
-	w2if->ReadFrontBufferOff();
-
-	movieWriter->SetInputConnection(w2if->GetOutputPort());
+	windowToImage->SetInput(m_renWin);
+	windowToImage->ReadFrontBufferOff();
+	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
 
-	emit msg(tr("MOVIE export started. Output: %1").arg(fileName));
+	emit msg(tr("Movie export started, output file name: %1").arg(fileName));
 
 	int numRenderings = 360;//TODO
-	vtkSmartPointer<vtkTransform> rot = vtkSmartPointer<vtkTransform>::New();
+	auto rot = vtkSmartPointer<vtkTransform>::New();
 	m_cam->SetFocalPoint( 0,0,0 );
 	double view[3];
 	double point[3];
-	if (mode == 0) { // YZ
-		double _view[3]  = { 0 ,0, -1 };
-		double _point[3] = { 1, 0, 0 };
+	if (mode == 0)
+	{ // YZ
+		double _view[3]  = { 0, 0, -1 };
+		double _point[3] = { 1, 0,  0 };
 		for (int ind=0; ind<3; ind++)
 		{
 			view[ind] = _view[ind];
 			point[ind] = _point[ind];
 		}
 		rot->RotateZ(360/numRenderings);
-	} else if (mode == 1) { // XY
+	}
+	else if (mode == 1)
+	{ // XY
 		double _view[3]  = { 0, 0, -1 };
-		double _point[3] = { 0, 1, 0 };
+		double _point[3] = { 0, 1,  0 };
 		for (int ind=0; ind<3; ind++)
 		{
 			view[ind] = _view[ind];
 			point[ind] = _point[ind];
 		}
 		rot->RotateX(360/numRenderings);
-	} else if (mode == 2) { // XZ
+	}
+	else if (mode == 2)
+	{ // XZ
 		double _view[3]  = { 0, 1, 0 };
 		double _point[3] = { 0, 0, 1 };
 		for (int ind=0; ind<3; ind++)
@@ -777,13 +797,15 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	}
 	m_cam->SetViewUp ( view );
 	m_cam->SetPosition ( point );
-	for (int i =0; i < numRenderings; i++ ) {
+	for (int i =0; i < numRenderings; i++ )
+	{
 		m_ren->ResetCamera();
 		m_renWin->Render();
 
-		w2if->Modified();
+		windowToImage->Modified();
 		movieWriter->Write();
-		if (movieWriter->GetError()) {
+		if (movieWriter->GetError())
+		{
 			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
@@ -793,15 +815,12 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 
 	m_cam->DeepCopy(oldCam);
 	movieWriter->End();
-	movieWriter->ReleaseDataFlagOn();
-	w2if->ReleaseDataFlagOn();
-
 	m_interactor->Enable();
 
-	if (movieWriter->GetError()) emit msg(tr("  MOVIE export failed."));
-	else emit msg(tr("  MOVIE export completed."));
-
-	return;
+	if (movieWriter->GetError())
+		emit msg(tr("Movie export failed."));
+	else
+		emit msg(tr("Movie export completed."));
 }
 
 void iARenderer::mouseRightButtonReleasedSlot()
@@ -895,20 +914,15 @@ void iARenderer::setAxesTransform(vtkTransform *transform) { m_moveableAxesTrans
 vtkTransform * iARenderer::axesTransform(void) { return m_moveableAxesTransform; }
 iARenderObserver * iARenderer::getRenderObserver() { return m_renderObserver; }
 
-
-//spacing is an array of 3 
 void iARenderer::setSlicingBounds(const int roi[6], const double * spacing)
 {
-	double x_min, xMax, yMin, yMax, zMin, zMax; 
-	/* roi[6]:  xmin, xsize, ymin, ysize, zmin, zSize;
-	*	roi[0] : x; roi[1]: y, roi[2]-> z; roy[3] -> xzise, roi[4] ysize, roi[5] -> zSize
-	*/
-	
-	x_min = roi[0] *  spacing[0]; yMin = roi[1] * spacing[1]; zMin = roi[2] *spacing[2];
-	xMax = x_min + roi[3] * spacing[0]; 
-	yMax = yMin + roi[4] * spacing[1]; 
-	zMax = zMin + roi[5] * spacing[2];
-	m_slicingCube->SetBounds(x_min, xMax, yMin, yMax, zMin, zMax);
+	double xMin = roi[0] * spacing[0],
+	       yMin = roi[1] * spacing[1],
+	       zMin = roi[2] * spacing[2];
+	double xMax = xMin + roi[3] * spacing[0],
+	       yMax = yMin + roi[4] * spacing[1],
+	       zMax = zMin + roi[5] * spacing[2];
+	m_slicingCube->SetBounds(xMin, xMax, yMin, yMax, zMin, zMax);
 	update();
 }
 

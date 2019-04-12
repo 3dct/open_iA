@@ -75,7 +75,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	accumulate->GetComponentExtent(extent);
 	vtkSmartPointer<vtkImageCast> caster = vtkSmartPointer<vtkImageCast>::New();
 	caster->SetInputData(accumulate->GetOutput());
-	caster->SetOutputScalarType(VtkDataType<DataType>::value);
+	caster->SetOutputScalarType(iAVtkDataType<DataType>::value);
 	caster->Update();
 	auto rawImg = caster->GetOutput();
 

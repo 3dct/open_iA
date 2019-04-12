@@ -38,17 +38,17 @@ class vtkPolyDataMapper;
 class vtkRenderer;
 class vtkSTLReader;
 
-struct CombinedParametersView;
-class CutFigList;
+struct iACombinedParametersView;
+class iACutFigList;
 class dlg_histogram_simple;
-class Engine;
-class PaintWidget;
-struct ParamWidget;
-struct ParametersView;
-class Plot3DVtk;
-class RenderFromPosition;
-class ScreenBuffer;
-class StabilityWidget;
+class iAEngine;
+class iAPaintWidget;
+struct iAParamWidget;
+struct iAParametersView;
+class iAPlot3DVtk;
+class iARenderFromPosition;
+class iAScreenBuffer;
+class iAStabilityWidget;
 
 //! DreamCaster - Application main window class. Contains GUI and some global classes instances.
 class iADreamCaster : public QMainWindow
@@ -79,7 +79,7 @@ public:
 	//! Open .STL model by specified file name. Used to be called from outside.
 	void loadFile(const QString filename);
 public:
-	SETTINGS stngs;
+	iADreamCasterSettings stngs;
 private:
 	unsigned int indices[3];
 	int isOneWidgetMaximized;           //!< Flage, determining whether one of the widgets is maximized
@@ -96,11 +96,11 @@ private:
 	dlg_histogram_simple * hist;
 	QWidget settings;                   //!< Qt widget for settings window GUI
 	QDialog res;                        //!< Qt dialog for results dialog GUI
-	PaintWidget *RenderFrame;           //!< Widget for raycasted image  visualization
-	PaintWidget *ViewsFrame;            //!< Widget for colormap visualization
-	ParametersView *comparisonTab;      //!< Class containing widgets for all of parameters user for comparison
-	CombinedParametersView* weightingTab;//!< Class containing widgets for all of parameters user for weighting
-	StabilityWidget *stabilityView;     //!< Widget representing stability of current specimen orientation
+	iAPaintWidget *RenderFrame;           //!< Widget for raycasted image  visualization
+	iAPaintWidget *ViewsFrame;            //!< Widget for colormap visualization
+	iAParametersView *comparisonTab;      //!< Class containing widgets for all of parameters user for comparison
+	iACombinedParametersView* weightingTab;//!< Class containing widgets for all of parameters user for weighting
+	iAStabilityWidget *stabilityView;     //!< Widget representing stability of current specimen orientation
 	QString modelFileName;              //!< filename of .stl file containing object
 	QString setFileName;                //!< filename of file containing current set of renderings
 
@@ -110,11 +110,11 @@ private:
 	vtkDepthSortPolyData *depthSort;
 	vtkRenderer* ren;
 	vtkSTLReader* stlReader;
-	CutFigList * cutFigList;
+	iACutFigList * cutFigList;
 	float set_pos[3];
-	rotation_t ***rotations;
-	parameters_t *** rotationsParams;   //!< Data about av. parameter of every rendering
-	parameters_t ** placementsParams;   //!< Data about av. parameter of every object's placement(sum of all elements in column)
+	iArotation_t ***rotations;
+	iAparameters_t *** rotationsParams;   //!< Data about av. parameter of every rendering
+	iAparameters_t ** placementsParams;   //!< Data about av. parameter of every object's placement(sum of all elements in column)
 	double ** weightedParams;           //!< Data about weighted parameter of every object's placement(sum of all elements in column)
 	int cntX;                           //!< number of renderings by X axis
 	int cntY;                           //!< number of renderings by Y axis
@@ -129,14 +129,14 @@ private:
 	bool datasetOpened;                 //!< is dataset opened indicator
 	int curParamInd;                    //!< index of current parameter
 	std::vector<int> trisInsideAoI;     //!< indices of triangles that belong to selected features(ionside AABBs)
-	ScreenBuffer * scrBuffer;
+	iAScreenBuffer * scrBuffer;
 	float * cuda_avpl_buff;             //!< float buffer used by cuda to store the results
 	float * cuda_dipang_buff;           //!< float buffer used by cuda to store the results
-	Engine* tracer;                     //!< The device ptr of the nodes and triangles
+	iAEngine* tracer;                     //!< The device ptr of the nodes and triangles
 	bool CutFigParametersChangedOFF;
-	ModelData mdata;
-	Plot3DVtk * plot3d;
-	Plot3DVtk * plot3dWeighting;
+	iAModelData mdata;
+	iAPlot3DVtk * plot3d;
+	iAPlot3DVtk * plot3dWeighting;
 
 	iAVtkOldWidget *qvtkWidget, *qvtkPlot3d, *qvtkWeighing;
 	void  Pick(int pickPos[2]);
@@ -153,7 +153,7 @@ private:
 	//! @param y y-index of render
 	//! @param z z-index of render
 	//! @param[out] rend rendering pointer for data storing.
-	void readRenderFromBinaryFile(unsigned int x, unsigned int y, unsigned int z, RenderFromPosition * rend);
+	void readRenderFromBinaryFile(unsigned int x, unsigned int y, unsigned int z, iARenderFromPosition * rend);
 	//! Read object from stl file.
 	void loadModel();
 	//! Setup VTK params and fill vtk-objs with data

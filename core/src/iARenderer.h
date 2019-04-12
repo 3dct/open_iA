@@ -68,17 +68,17 @@ class open_iA_Core_API iARenderer: public QObject
 {
 	Q_OBJECT
 public:
-	iARenderer( QObject *parent = 0 );
+	iARenderer( QObject *parent = nullptr );
 	virtual ~iARenderer( );
 
-	void initialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
-	void reInitialize( vtkImageData* ds, vtkPolyData* pd, int e = 10 );
+	void initialize( vtkImageData* ds, vtkPolyData* pd );
+	void reInitialize( vtkImageData* ds, vtkPolyData* pd );
 	void setPolyData( vtkPolyData* pd );
 
 	void setDefaultInteractor();
 	void disableInteractor();
 	void enableInteractor();
-	void setAxesTransform(vtkTransform *transform);
+	void setAxesTransform( vtkTransform *transform );
 	vtkTransform * axesTransform(void);
 
 	void setPlaneNormals( vtkTransform *tr ) ;
@@ -148,8 +148,24 @@ public:
 	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
 	void emitNoSelectedCells();
 
+signals:
+	void msg(QString s);
+	void progress(int);
+	void cellsSelected(vtkPoints* selCellPoints);
+	void noCellsSelected();
+	void reInitialized();
+	void onSetupRenderer();
+	void onSetCamera();
+
+public slots:
+	void mouseRightButtonReleasedSlot();
+	void mouseLeftButtonReleasedSlot();
+	void setArbitraryProfile(int pointIndex, double * coords);
+	void setArbitraryProfileOn(bool isOn);
+
 private:
 	void initObserver();
+	void updatePositionMarkerExtent();
 
 	iARenderObserver *m_renderObserver;
 	//! @{ things that are set from the outside
@@ -184,6 +200,7 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper> m_cMapper;
 	vtkSmartPointer<vtkActor> m_cActor;
 	//! @}
+	int m_ext; //!< statistical extent size
 
 	vtkSmartPointer<vtkAnnotatedCubeActor> m_annotatedCubeActor;
 	vtkSmartPointer<vtkAxesActor> m_axesActor;
@@ -197,7 +214,6 @@ private:
 	vtkSmartPointer<vtkAxesActor> m_moveableAxesActor;
 	//! @}
 	
-	int m_ext; //!< statistical extent size
 	//! @{ Line profile
 	vtkSmartPointer<vtkLineSource>     m_profileLineSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_profileLineMapper;
@@ -210,30 +226,14 @@ private:
 	vtkSmartPointer<vtkActor>          m_profileLineEndPointActor;
 	//! @}
 
-	//! @{ Slice plane
+	//! @{ Slice planes
 	vtkSmartPointer<vtkPlaneSource>    m_slicePlaneSource[3];
 	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
 	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
+	float m_slicePlaneOpacity; //!< Slice Plane Opacity
 	//! @}
 
 	vtkSmartPointer<vtkCubeSource> m_slicingCube;
 	vtkSmartPointer<vtkPolyDataMapper> m_sliceCubeMapper;
 	vtkSmartPointer<vtkActor> m_sliceCubeActor;
-
-	float m_slicePlaneOpacity; //Slice Plane Opacity
-
-public slots:
-	void mouseRightButtonReleasedSlot();
-	void mouseLeftButtonReleasedSlot();
-	void setArbitraryProfile(int pointIndex, double * coords);
-	void setArbitraryProfileOn(bool isOn);
-
-Q_SIGNALS:
-	void msg(QString s);
-	void progress(int);
-	void cellsSelected(vtkPoints* selCellPoints);
-	void noCellsSelected();
-	void reInitialized();
-	void onSetupRenderer();
-	void onSetCamera();
 };

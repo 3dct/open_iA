@@ -369,35 +369,28 @@ void MdiChild::updateProgressBar(int i)
 
 void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
 {
+	if (!m_slicerSettings.LinkViews)
+		return;
+	m_position[0] = x; m_position[1] = y; m_position[2] = z;
 	double spacing[3];
 	m_imageData->GetSpacing(spacing);
-//TODO: improve using iASlicer stuff
-	if (m_slicerSettings.LinkViews)
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
-		m_position[0] = x; m_position[1] = y; m_position[2] = z;
-		if (mode != iASlicerMode::XZ)
+		if (mode == i)  // only update other slicers
+			continue;
+		if (m_slicerSettings.SingleSlicer.ShowPosition)
 		{
-			if (m_slicerSettings.SingleSlicer.ShowPosition)
-				m_slicer[iASlicerMode::XZ]->setPositionMarkerCenter(x*spacing[0], z*spacing[2]);
-			m_slicer[iASlicerMode::XZ]->setIndex(x, y, z);
-			m_dwSlicer[iASlicerMode::XZ]->sbSlice->setValue(y);
+			int slicerXAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::X);
+			int slicerYAxisIdx = mapSliceToGlobalAxis(i, iAAxisIndex::Y);
+			m_slicer[i]->setPositionMarkerCenter(
+				m_position[slicerXAxisIdx] * spacing[slicerXAxisIdx],
+				m_position[slicerYAxisIdx] * spacing[slicerYAxisIdx]);
 		}
-		if (mode != iASlicerMode::YZ)
-		{
-			if (m_slicerSettings.SingleSlicer.ShowPosition)
-				m_slicer[iASlicerMode::YZ]->setPositionMarkerCenter(y*spacing[1], z*spacing[2]);
-			m_slicer[iASlicerMode::YZ]->setIndex(x,y,z);
-			m_dwSlicer[iASlicerMode::YZ]->sbSlice->setValue(x);
-		}
-		if (mode != iASlicerMode::XY) {
-			if (m_slicerSettings.SingleSlicer.ShowPosition)
-				m_slicer[iASlicerMode::XY]->setPositionMarkerCenter(x*spacing[0], y*spacing[1]);
-			m_slicer[iASlicerMode::XY]->setIndex(x,y,z);
-			m_dwSlicer[iASlicerMode::XY]->sbSlice->setValue(z);
-		}
-		if (m_renderSettings.ShowRPosition)
-			m_renderer->setCubeCenter(x, y, z);
+		m_slicer[i]->setIndex(x, y, z);
+		m_dwSlicer[i]->sbSlice->setValue( m_position[mapSliceToGlobalAxis(i, iAAxisIndex::Z)] );
 	}
+	if (m_renderSettings.ShowRPosition)
+		m_renderer->setCubeCenter(x, y, z);
 }
 
 void MdiChild::showPoly()
@@ -1061,7 +1054,7 @@ void MdiChild::triggerInteractionRaycaster()
 
 void MdiChild::setSlice(int mode, int s)
 {
-	int sliceAxis = slicerDimension(mode);
+	int sliceAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Z);
 	if (m_snakeSlicer)
 	{
 		updateSnakeSlicer(m_dwSlicer[mode]->sbSlice, m_slicer[mode], sliceAxis, s);
@@ -2536,9 +2529,11 @@ void MdiChild::setHistogramModality(int modalityIdx)
 		displayHistogram(modalityIdx);
 		return;
 	}
+	if (modality(modalityIdx)->info().isComputing()) // already computing currently...
+		return;
 	addMsg(QString("Computing statistics for modality %1...")
 		.arg(modality(modalityIdx)->name()));
-	modality(modalityIdx)->transfer()->Info().setComputing();
+	modality(modalityIdx)->transfer()->info().setComputing();
 	updateImageProperties();
 	auto workerThread = new iAStatisticsUpdater(modalityIdx, modality(modalityIdx));
 	connect(workerThread, &iAStatisticsUpdater::StatisticsReady, this, &MdiChild::statisticsAvailable);

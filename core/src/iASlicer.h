@@ -64,7 +64,7 @@ class vtkLogoWidget;
 class vtkLogoRepresentation;
 class vtkMarchingContourFilter;
 class vtkObject;
-class vtkPlaneSource;
+class vtkCubeSource;
 class vtkPoints;
 class vtkQImageToImageSource;
 class vtkPolyDataMapper;
@@ -80,11 +80,6 @@ class vtkWorldPointPicker;
 
 class QMenu;
 class QWidget;
-
-
-static const int MODE_TO_X_IND[3]	= { 1, 0, 0 };
-static const int MODE_TO_Y_IND[3]	= { 2, 1, 2 };
-static const int MODE_TO_Z_IND[3]	= { 0, 2, 1 };
 
 //! vtk-based slicer widget. "Channels" (i.e. image layers) are inserted via the addChannel method
 class open_iA_Core_API iASlicer : public iAVtkWidget
@@ -230,7 +225,9 @@ public slots:
 	//! Switches between interaction modi (normal, snake slicer view or editing)
 	//! @param mode mode which should be switched to  (see InteractionMode enum)
 	void switchInteractionMode(int mode);
+	//! Toggle the "raw" profile mode, i.e. whether the profile is shown on top of the slicer image
 	void setSliceProfileOn(bool isOn);
+	//! Toggle the possibility to move start and end point of the profile
 	void setArbitraryProfileOn(bool isOn);
 
 	void setPieGlyphsOn(bool isOn);  // TODO: Move to XRF module!
@@ -295,9 +292,6 @@ protected:
 	// }
 
 	void updateProfile();
-	int pickPoint(double * pos_out, double * result_out, int * ind_out);
-	int pickPoint(double & xPos_out, double & yPos_out, double & zPos_out,
-			double * result_out, int & xInd_out, int &yInd_out, int &zInd_out);
 	void keyPressEvent(QKeyEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
 	void mouseMoveEvent(QMouseEvent * event) override;
@@ -387,10 +381,11 @@ private:
 	vtkSmartPointer<iAWrapperText> m_textInfo;
 	vtkSmartPointer<iARulerWidget> m_rulerWidget;
 
-	// position marker / statistical extent
-	vtkSmartPointer<vtkPlaneSource> m_positionMarkerSrc;
+	//! @{ position marker / statistical extent
+	vtkSmartPointer<vtkCubeSource> m_positionMarkerSrc;
 	vtkSmartPointer<vtkPolyDataMapper> m_positionMarkerMapper;
 	vtkSmartPointer<vtkActor> m_positionMarkerActor;
+	//! @}
 
 	iASingleSlicerSettings m_settings;
 	int m_slabThickness;       //! current slab thickness (default = 1, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
@@ -405,7 +400,7 @@ private:
 	vtkSmartPointer<vtkActor> m_diskActor;
 	//! @}
 
-	vtkSmartPointer<vtkPlaneSource> m_roiSource;
+	vtkSmartPointer<vtkCubeSource> m_roiSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;
 	vtkSmartPointer<vtkActor> m_roiActor;
 	bool m_roiActive;
@@ -419,8 +414,8 @@ private:
 	double m_backgroundRGB[3];  //!< manual background RGB
 	int m_sliceNumber;          //!< current slice
 
-	//mouse move
-	double m_ptMapped[3];
+	double m_slicerPt[3];       //!< point of last interaction in slicer coordinates
+	double m_globalPt[4];       //!< point of last interaction in global coordinates
 	double m_startMeasurePoint[2];
 
 	QCursor m_mouseCursor;
@@ -433,24 +428,9 @@ private:
 	//! @param xCoord x coordinate (pixel index) in channel
 	//! @param yCoord y coordinate (pixel index) in channel
 	//! @param zCoord z coordinate (pixel index) in channel
-	void computeCoords(double & xCoord, double & yCoord, double & zCoord, double* result, uint channelID);
+	void computeCoords(double * coords, uint channelID);
+	void computeGlobalPoint();
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
+	void updatePosition();
 };
-
-//Get index of slicer X screen coordinate in global 3D coordinate system
-inline const int SlicerXInd(const iASlicerMode & slicerMode)
-{
-	return MODE_TO_X_IND[slicerMode];
-}
-//Get index of slicer Y screen coordinate in global 3D coordinate system
-inline const int SlicerYInd(const iASlicerMode & slicerMode)
-{
-	return MODE_TO_Y_IND[slicerMode];
-}
-
-//Get index of slicer Z coordinate in global 3D coordinate system
-inline const int SlicerZInd(const iASlicerMode & slicerMode)
-{
-	return MODE_TO_Z_IND[slicerMode];
-}

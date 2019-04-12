@@ -27,7 +27,7 @@
 
 inline float Rand( float a_Range ) { return ((float)rand() / RAND_MAX) * a_Range; }
 
-int ParseConfigFile(SETTINGS * s)
+int ParseConfigFile(iADreamCasterSettings * s)
 {
 	QSettings settings;
 	s->THREAD_GRID_X   = settings.value("DreamCaster/THREAD_GRID_X", s->THREAD_GRID_X).toInt();
@@ -74,7 +74,7 @@ int ParseConfigFile(SETTINGS * s)
 	return 1;
 }
 
-iAMat4 ScaleAndCentreBBox(aabb &box, float *scale_coef_out, float* translate3f_out)
+iAMat4 ScaleAndCentreBBox(iAaabb &box, float *scale_coef_out, float* translate3f_out)
 {
 	float scale_coeff = 1.0f;
 	if(scale_coef_out!=0)
@@ -118,13 +118,13 @@ float distLineToLine( iAVec3f & o1, iAVec3f & d1, iAVec3f & o2, iAVec3f & d2 )
 	return fabs((o1-o2)&perpendicular);
 }
 
-//aabb impl
-aabb::aabb()
+//iAaabb impl
+iAaabb::iAaabb()
 {
 	x1=x2=y1=y2=z1=z2=0.f;
 }
 
-aabb::aabb(aabb& el)
+iAaabb::iAaabb(iAaabb& el)
 {
 	x1=el.x1;
 	x2=el.x2;
@@ -134,7 +134,7 @@ aabb::aabb(aabb& el)
 	z2=el.z2;
 }
 
-aabb::aabb(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2)
+iAaabb::iAaabb(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2)
 {
 	x1=a_x1;
 	x2=a_x2;
@@ -144,7 +144,7 @@ aabb::aabb(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z
 	z2=a_z2;
 }
 
-void aabb::setData(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2)
+void iAaabb::setData(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2)
 {
 	x1=a_x1;
 	x2=a_x2;
@@ -154,7 +154,7 @@ void aabb::setData(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, f
 	z2=a_z2;
 }
 
-void aabb::setData(const aabb & el)
+void iAaabb::setData(const iAaabb & el)
 {
 	x1=el.x1;
 	x2=el.x2;
@@ -164,12 +164,12 @@ void aabb::setData(const aabb & el)
 	z2=el.z2;
 }
 
-iAVec3f aabb::center() const
+iAVec3f iAaabb::center() const
 {
 	return iAVec3f((x2+x1)*0.5f, (y2+y1)*0.5f, (z2+z1)*0.5f );
 }
 
-iAVec3f aabb::half_size() const
+iAVec3f iAaabb::half_size() const
 {
 	#ifdef _DEBUG
 		assert( x2>=x1 && y2>=y1 && z2>=z1);
@@ -177,7 +177,7 @@ iAVec3f aabb::half_size() const
 	return iAVec3f( (x2-x1)*0.5f, (y2-y1)*0.5f, (z2-z1)*0.5f );
 }
 
-int aabb::mainDim() const
+int iAaabb::mainDim() const
 {
 	if(fabs(x2-x1)>=fabs(y2-y1))
 	{
@@ -195,7 +195,7 @@ int aabb::mainDim() const
 	}
 }
 
-float aabb::surfaceArea()
+float iAaabb::surfaceArea()
 {
 	float dims[3] = {x2-x1, y2-y1, z2-z1};
 	return 2.0f * ( dims[0]*dims[1] + dims[0]*dims[2] + dims[1]*dims[2] );

@@ -117,9 +117,8 @@ void iAParamSpatialView::setImage(size_t id)
 
 	if (!m_sliceNrInitialized)
 	{
-		const int sliceAxis[3] = { 0, 2, 1 };
 		for (int i = 0; i < 3; ++i)
-			m_sliceNr[i] = img->GetDimensions()[sliceAxis[i]] / 2;
+			m_sliceNr[i] = img->GetDimensions()[mapSliceToGlobalAxis(i, iAAxisIndex::Z)] / 2;
 	}
 	if (!m_imageWidget)
 	{

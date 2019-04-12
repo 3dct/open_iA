@@ -219,7 +219,7 @@ void iATripleModalityWidget::setSlicerModePrivate(iASlicerMode slicerMode)
 		m_slicerWidgets[1]->setSlicerMode(slicerMode);
 		m_slicerWidgets[2]->setSlicerMode(slicerMode);
 
-		int dimensionIndex = slicerDimension(slicerMode);
+		int dimensionIndex = mapSliceToGlobalAxis(slicerMode, iAAxisIndex::Z);
 		int sliceNumber    = m_mdiChild->slicer(slicerMode)->sliceNumber();
 		int dimensionLength = m_mdiChild->imageData()->GetDimensions()[dimensionIndex];
 		m_sliceSlider->setMaximum(dimensionLength - 1);

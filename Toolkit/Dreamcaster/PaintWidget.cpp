@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "PaintWidget.h"
 
-PaintWidget::PaintWidget(QPixmap *a_pxmp, QWidget *parent): QWidget(parent)
+iAPaintWidget::iAPaintWidget(QPixmap *a_pxmp, QWidget *parent): QWidget(parent)
 {
 	m_pxmp = a_pxmp;
 	m_scale = 1;
@@ -34,7 +34,7 @@ PaintWidget::PaintWidget(QPixmap *a_pxmp, QWidget *parent): QWidget(parent)
 	QPainter painter;
 }
 
-PaintWidget::~PaintWidget()
+iAPaintWidget::~iAPaintWidget()
 {
 	if(m_highlightX)
 		delete [] m_highlightX;
@@ -42,7 +42,7 @@ PaintWidget::~PaintWidget()
 		delete [] m_highlightY;
 }
 
-void PaintWidget::paintEvent(QPaintEvent *event)
+void iAPaintWidget::paintEvent(QPaintEvent *event)
 {
 	QPainter painter;
 	QPointF highlightPts[4];
@@ -70,7 +70,7 @@ void PaintWidget::paintEvent(QPaintEvent *event)
 	painter.end();
 }
 
-void PaintWidget::mouseReleaseEvent ( QMouseEvent * event )
+void iAPaintWidget::mouseReleaseEvent ( QMouseEvent * event )
 {
 	lastX = (int)(((double)event->x())/m_scale - m_offset[0]);
 	lastY = (int)(((double)event->y())/m_scale - m_offset[1]);
@@ -79,7 +79,7 @@ void PaintWidget::mouseReleaseEvent ( QMouseEvent * event )
 		mouseReleaseEventSignal(lastX, lastY);
 }
 
-void PaintWidget::mousePressEvent ( QMouseEvent * event )
+void iAPaintWidget::mousePressEvent ( QMouseEvent * event )
 {
 	m_lastMoveX = event->x();
 	m_lastMoveY = event->y();
@@ -88,7 +88,7 @@ void PaintWidget::mousePressEvent ( QMouseEvent * event )
 	mousePressEventSignal();
 }
 
-void PaintWidget::mouseMoveEvent ( QMouseEvent * event )
+void iAPaintWidget::mouseMoveEvent ( QMouseEvent * event )
 {
 	if(event->buttons()&Qt::RightButton && event->buttons()&Qt::LeftButton)//scaling
 	{
@@ -115,7 +115,7 @@ void PaintWidget::mouseMoveEvent ( QMouseEvent * event )
 	lastMoveY = (int)(((double)event->y())/m_scale - m_offset[1]);
 	mouseMoveEventSignal();
 }
-void PaintWidget::checkOffset()
+void iAPaintWidget::checkOffset()
 {
 	if(m_offset[0]>0) 
 		m_offset[0] = 0;
@@ -126,14 +126,14 @@ void PaintWidget::checkOffset()
 	if(m_offset[1]<-(double)geometry().height()+(double)geometry().height()/m_scale) 
 		m_offset[1] = -(double)geometry().height()+(double)geometry().height()/m_scale;
 }
-void PaintWidget::checkScale()
+void iAPaintWidget::checkScale()
 {
 	if(m_scale<1.f)
 		m_scale = 1.f;
 	if(m_scale>m_maxScale)
 		m_scale = m_maxScale;
 }
-void PaintWidget::SetHiglightedIndices(int *inds_x, int *inds_y, unsigned int count)
+void iAPaintWidget::SetHiglightedIndices(int *inds_x, int *inds_y, unsigned int count)
 {
 	RemoveHighlights();
 	highlightCount = count;
@@ -146,13 +146,13 @@ void PaintWidget::SetHiglightedIndices(int *inds_x, int *inds_y, unsigned int co
 	}
 }
 
-void PaintWidget::SetHighlightStyle(const QColor &color, float penWidth)
+void iAPaintWidget::SetHighlightStyle(const QColor &color, float penWidth)
 {
 	highlightColor = QColor(color);
 	highlightPenWidth = penWidth;
 }
 
-void PaintWidget::RemoveHighlights()
+void iAPaintWidget::RemoveHighlights()
 {
 	if(m_highlightX)
 	{
@@ -167,7 +167,7 @@ void PaintWidget::RemoveHighlights()
 	highlightCount = 0;
 }
 
-void PaintWidget::UpdateSlot(double & scale, double & offsetX, double & offsetY)
+void iAPaintWidget::UpdateSlot(double & scale, double & offsetX, double & offsetY)
 {
 	m_scale = scale;
 	m_offset[0] = offsetX;

@@ -766,9 +766,11 @@ bool iAChartWidget::event(QEvent *event)
 
 void iAChartWidget::showDataTooltip(QHelpEvent *event)
 {
-	int xPos = clamp(0, geometry().width() - 1, event->x());
+	if (m_plots.empty())
+		return;
 	size_t numBin = m_plots[0]->data()->numBin();
 	assert(numBin > 0);
+	int xPos = clamp(0, geometry().width() - 1, event->x());
 	int nthBin = static_cast<int>((((xPos - m_translationX - leftMargin()) * numBin) / (activeWidth())) / m_xZoom);
 	nthBin = clamp(0, static_cast<int>(numBin), nthBin);
 	if (xPos == geometry().width() - 1)

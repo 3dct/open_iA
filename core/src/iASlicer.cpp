@@ -53,6 +53,7 @@
 #include <vtkAxisActor2D.h>
 #include <vtkCamera.h>
 #include <vtkCommand.h>
+#include <vtkCubeSource.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDiskSource.h>
 #include <vtkGenericMovieWriter.h>
@@ -73,7 +74,6 @@
 #include <vtkMarchingContourFilter.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
-#include <vtkPlaneSource.h>
 #include <vtkPoints.h>
 #include <vtkProperty.h>
 #include <vtkPolyDataMapper.h>
@@ -119,10 +119,6 @@ class iAInteractorStyleImage : public vtkInteractorStyleImage
 public:
 	static iAInteractorStyleImage *New();
 	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage);
-
-	//void OnMouseMove() override{
-	//	return; GetInteractor()-> 
-	//}
 
 	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
 	void OnLeftButtonDown() override
@@ -257,7 +253,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	if (magicLensAvailable)
 	{
 		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
-		m_magicLens->SetRenderWindow(m_renWin);
+		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
 		m_magicLensContextMenu = new QMenu(this);
 		QActionGroup * actionGr(new QActionGroup(this));
@@ -288,7 +284,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_logoRep = vtkSmartPointer<vtkLogoRepresentation>::New();
 		m_logoImage = vtkSmartPointer<vtkQImageToImageSource>::New();
 
-		m_positionMarkerSrc = vtkSmartPointer<vtkPlaneSource>::New();
+		m_positionMarkerSrc = vtkSmartPointer<vtkCubeSource>::New();
 		m_positionMarkerMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		m_positionMarkerActor = vtkSmartPointer<vtkActor>::New();
 
@@ -299,7 +295,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_diskMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		m_diskActor = vtkSmartPointer<vtkActor>::New();
 
-		m_roiSource = vtkSmartPointer<vtkPlaneSource>::New();
+		m_roiSource = vtkSmartPointer<vtkCubeSource>::New();
 		m_roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		m_roiActor = vtkSmartPointer<vtkActor>::New();
 
@@ -315,10 +311,6 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_textInfo->SetText(" ");
 		m_textInfo->SetPosition(iAWrapperText::POS_LOWER_LEFT);
 		m_textInfo->Show(1);
-
-		m_roiSource->SetOrigin(0, 0, 0);
-		m_roiSource->SetPoint1(-3, 0, 0);
-		m_roiSource->SetPoint2(0, -3, 0);
 
 		QImage img;
 		img.load(":/images/fhlogo.png");
@@ -378,12 +370,11 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_roiActor->SetMapper(m_roiMapper);
 		m_roiActor->GetProperty()->SetColor(1, 0, 0);
 		m_roiActor->GetProperty()->SetOpacity(1);
-		m_roiSource->SetCenter(0, 0, 1);
 		m_roiMapper->Update();
 		m_roiActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
 
-		m_axisTextActor[0]->SetInput((m_mode == XY || m_mode == XZ) ? "X" : "Y");
-		m_axisTextActor[1]->SetInput((m_mode == XZ || m_mode == YZ) ? "Z" : "Y");
+		m_axisTextActor[0]->SetInput(axisName(mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)).toStdString().c_str());
+		m_axisTextActor[1]->SetInput(axisName(mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)).toStdString().c_str());
 
 		for (int i = 0; i < 2; ++i)
 		{
@@ -497,14 +488,15 @@ void iASlicer::update()
 	if (!isVisible())
 		return;
 	for (auto ch : m_channels)
+	{
 		ch->updateMapper();
-	for (auto ch : m_channels)
 		ch->reslicer()->UpdateWholeExtent();
+	}
 	m_interactor->ReInitialize();
 	m_interactor->Render();
 	m_ren->Render();
 	if (m_magicLens)
-		m_magicLens->Render();
+		m_magicLens->render();
 	if (m_isSliceProfEnabled)
 		updateProfile();
 	iAVtkWidget::update();
@@ -536,7 +528,7 @@ void iASlicer::setSliceNumber( int sliceNumber )
 		return;
 	m_sliceNumber = sliceNumber;
 	double xyz[3] = { 0.0, 0.0, 0.0 };
-	xyz[slicerDimension(m_mode)] = sliceNumber;
+	xyz[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z)] = sliceNumber;
 	if (m_roiActive)
 		m_roiActor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < (m_roiSlice[1]));
 	double const * spacing = m_channels[0]->input()->GetSpacing();
@@ -557,7 +549,7 @@ void iASlicer::setup( iASingleSlicerSettings const & settings )
 		channel->setInterpolate(settings.LinearInterpolation);
 	}
 	if (m_magicLens)
-		m_magicLens->SetInterpolate(settings.LinearInterpolation);
+		m_magicLens->setInterpolate(settings.LinearInterpolation);
 	setMouseCursor(settings.CursorMode);
 	setContours(settings.NumberOfIsoLines, settings.MinIsoValue, settings.MaxIsoValue);
 	showIsolines(settings.ShowIsoLines);
@@ -581,7 +573,7 @@ void iASlicer::setMagicLensEnabled( bool isEnabled )
 		DEBUG_LOG("SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	m_magicLens->SetEnabled(isEnabled);
+	m_magicLens->setEnabled(isEnabled);
 	m_interactorStyle->SetRightButtonDragZoomEnabled(!isEnabled);
 	setShowText(!isEnabled);
 	updateMagicLens();
@@ -604,13 +596,13 @@ void iASlicer::setMagicLensSize(int newSize)
 		DEBUG_LOG("SetMagicLensSize called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	m_magicLens->SetSize(newSize);
+	m_magicLens->setSize(newSize);
 	updateMagicLens();
 }
 
 int iASlicer::magicLensSize() const
 {
-	return m_magicLens ? m_magicLens->GetSize() : 0;
+	return m_magicLens ? m_magicLens->size() : 0;
 }
 
 void iASlicer::setMagicLensFrameWidth(int newWidth)
@@ -620,7 +612,7 @@ void iASlicer::setMagicLensFrameWidth(int newWidth)
 		DEBUG_LOG("SetMagicLensFrameWidth called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	m_magicLens->SetFrameWidth(newWidth);
+	m_magicLens->setFrameWidth(newWidth);
 	updateMagicLens();
 }
 
@@ -631,7 +623,7 @@ void iASlicer::setMagicLensCount(int count)
 		DEBUG_LOG("SetMagicLensCount called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	m_magicLens->SetLensCount(count);
+	m_magicLens->setLensCount(count);
 	updateMagicLens();
 }
 
@@ -647,7 +639,7 @@ void iASlicer::setMagicLensInput(uint id)
 	if (!data)
 		return;
 	m_magicLensInput = id;
-	m_magicLens->AddInput(data->reslicer(), data->cTF(), data->name());
+	m_magicLens->addInput(data->reslicer(), data->cTF(), data->name());
 	update();
 }
 
@@ -663,13 +655,13 @@ void iASlicer::setMagicLensOpacity(double opacity)
 		DEBUG_LOG("SetMagicLensOpacity called on slicer which doesn't have a magic lens!");
 		return;
 	}
-	m_magicLens->SetOpacity(opacity);
+	m_magicLens->setOpacity(opacity);
 	update();
 }
 
 double iASlicer::magicLensOpacity() const
 {
-	return (m_magicLens) ? m_magicLens->GetOpacity() : 0;
+	return (m_magicLens) ? m_magicLens->opacity() : 0;
 }
 
 vtkGenericOpenGLRenderWindow * iASlicer::renderWindow()
@@ -697,10 +689,9 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 	assert(!m_channels.contains(id));
 	bool updateSpacing = m_channels.empty();
 	auto chSlicerData = createChannel(id, chData);
-	int axis = slicerDimension(m_mode);
+	int axis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 	auto image = chData.image();
 	double const * imgSpc = image->GetSpacing();
-	double newTol = imgSpc[axis] / 3;
 	if (updateSpacing && m_decorations)
 	{
 		setScalarBarTF(chData.colorTF());
@@ -731,7 +722,7 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 void iASlicer::updateMagicLensColors()
 {
 	if (m_magicLens)
-		m_magicLens->UpdateColors();
+		m_magicLens->updateColors();
 }
 
 void iASlicer::setTransform(vtkAbstractTransform * tr)
@@ -799,37 +790,21 @@ void iASlicer::setROIVisible(bool visible)
 
 void iASlicer::updateROI(int const roi[6])
 {
-	// TODO: ROI coordinates as scene coordinates?
 	if (!m_decorations || !m_roiActive || !hasChannel(0))
 		return;
 	double const * spacing = m_channels[0]->output()->GetSpacing();
-
+	int sliceXAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X);
+	int sliceYAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y);
+	int sliceZAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	m_roiSlice[0] = roi[sliceZAxis];
+	m_roiSlice[1] = roi[sliceZAxis] + roi[sliceZAxis + 3];
 	// apparently, image actor starts output at -0,5spacing, -0.5spacing (probably a side effect of BorderOn)
 	// That's why we have to subtract 0.5 from the coordinates!
-	if (m_mode == iASlicerMode::YZ)
-	{
-		m_roiSlice[0] = roi[0];
-		m_roiSlice[1] = roi[0] + roi[3];
-		m_roiSource->SetOrigin((roi[1] - 0.5)*spacing[1], (roi[2] - 0.5)*spacing[2], 0);
-		m_roiSource->SetPoint1((roi[1] - 0.5)*spacing[1] + roi[4] * spacing[0], (roi[2] - 0.5)*spacing[2], 0);
-		m_roiSource->SetPoint2((roi[1] - 0.5)*spacing[1], (roi[2] - 0.5)*spacing[2] + roi[5] * spacing[2], 0);
-	}
-	else if (m_mode == iASlicerMode::XY)
-	{
-		m_roiSlice[0] = roi[2];
-		m_roiSlice[1] = roi[2] + roi[5];
-		m_roiSource->SetOrigin((roi[0] - 0.5)*spacing[0], (roi[1] - 0.5)*spacing[1], 0);
-		m_roiSource->SetPoint1((roi[0] - 0.5)*spacing[0] + roi[3] * spacing[0], (roi[1] - 0.5)*spacing[1], 0);
-		m_roiSource->SetPoint2((roi[0] - 0.5)*spacing[0], (roi[1] - 0.5)*spacing[1] + roi[4] * spacing[1], 0);
-	}
-	else if (m_mode == iASlicerMode::XZ)
-	{
-		m_roiSlice[0] = roi[1];
-		m_roiSlice[1] = roi[1] + roi[4];
-		m_roiSource->SetOrigin((roi[0] - 0.5)*spacing[0], (roi[2] - 0.5)*spacing[2], 0);
-		m_roiSource->SetPoint1((roi[0] - 0.5)*spacing[0] + roi[3] * spacing[0], (roi[2] - 0.5)*spacing[2], 0);
-		m_roiSource->SetPoint2((roi[0] - 0.5)*spacing[0], (roi[2] - 0.5)*spacing[2] + roi[5] * spacing[2], 0);
-	}
+	double xMin = (roi[sliceXAxis] - 0.5)  * spacing[sliceXAxis],
+	       yMin = (roi[sliceYAxis] - 0.5)  * spacing[sliceYAxis];
+	double xMax = xMin + roi[sliceXAxis+3] * spacing[sliceXAxis],
+	       yMax = yMin + roi[sliceYAxis+3] * spacing[sliceYAxis];
+	m_roiSource->SetBounds(xMin, xMax, yMin, yMax, 0, 0);
 	m_roiActor->SetVisibility(m_roiSlice[0] <= m_sliceNumber && m_sliceNumber < m_roiSlice[1]);
 	m_roiMapper->Update();
 	m_interactor->Render();
@@ -885,94 +860,64 @@ void iASlicer::saveSliceMovie(QString const & fileName, int qual /*= 2*/)
 		QMessageBox::information(this, "Movie Export", "This version of open_iA was built without movie export support!");
 		return;
 	}
-	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter(fileName, qual);
+	auto movieWriter = GetMovieWriter(fileName, qual);
 	if (movieWriter.GetPointer() == nullptr)
 		return;
 
 	m_interactor->Disable();
 
-	vtkSmartPointer<vtkWindowToImageFilter> w2if = vtkSmartPointer<vtkWindowToImageFilter>::New();
+	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	int* rws = m_renWin->GetSize();
 	if (rws[0] % 2 != 0) rws[0]++;
 	if (rws[1] % 2 != 0) rws[1]++;
 	m_renWin->SetSize(rws);
 	m_renWin->Render();
+	windowToImage->SetInput(m_renWin);
+	windowToImage->ReadFrontBufferOff();
 
-	w2if->SetInput(m_renWin);
-	w2if->ReadFrontBufferOff();
-
-	movieWriter->SetInputConnection(w2if->GetOutputPort());
+	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
 
-	int const * extent = m_channels[0]->output()->GetExtent();
-	double const * origin = m_channels[0]->output()->GetOrigin();
-	double const * spacing = m_channels[0]->output()->GetSpacing();
+	int const * imgExtent = m_channels[0]->input()->GetExtent();
+	double const * imgOrigin = m_channels[0]->input()->GetOrigin();
+	double const * imgSpacing = m_channels[0]->input()->GetSpacing();
 
-	emit msg(tr("MOVIE export started. Output: %1").arg(fileName));
+	emit msg(tr("Movie export started, output file name: %1.").arg(fileName));
 
 	double oldResliceAxesOrigin[3];
 	m_channels[0]->resliceAxesOrigin(oldResliceAxesOrigin);
 
-	if (m_mode == iASlicerMode::YZ)      // YZ
+	double movingOrigin[3];
+	for (int i = 0; i < 3; ++i)
+		movingOrigin[i] = imgOrigin[i];
+	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	int const sliceFrom = imgExtent[sliceZAxisIdx * 2];
+	int const sliceTo = imgExtent[sliceZAxisIdx * 2 + 1];
+	for (int slice = sliceFrom; slice <= sliceTo; slice++)
 	{
-		for (int i = extent[0]; i < extent[1]; i++)
+		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
+		m_channels[0]->setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
+		m_channels[0]->updateReslicer();
+		m_renWin->Render();
+		windowToImage->Modified();
+		windowToImage->Update();
+		movieWriter->Write();
+		if (movieWriter->GetError())
 		{
-			m_channels[0]->setResliceAxesOrigin(origin[0] + i * spacing[0], origin[1], origin[2]);
-			update();
-			w2if->Modified();
-			movieWriter->Write();
-			if (movieWriter->GetError()) {
-				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
-				break;
-			}
-			emit progress(100 * (i + 1) / (extent[1] - extent[0]));
+			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
+			break;
 		}
+		emit progress(100 * (slice - sliceFrom) / (sliceTo - sliceFrom));
 	}
-	else if (m_mode == iASlicerMode::XY)  // XY
-	{
-		for (int i = extent[4]; i < extent[5]; i++)
-		{
-			m_channels[0]->setResliceAxesOrigin(origin[0], origin[1], origin[2] + i * spacing[2]);
-			update();
-			w2if->Modified();
-			movieWriter->Write();
-			if (movieWriter->GetError()) {
-				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
-				break;
-			}
-			emit progress(100 * (i + 1) / (extent[5] - extent[4]));
-		}
-	}
-	else if (m_mode == iASlicerMode::XZ)  // XZ
-	{
-		for (int i = extent[2]; i < extent[3]; i++)
-		{
-			m_channels[0]->setResliceAxesOrigin(origin[0], origin[1] + i * spacing[1], origin[2]);
-			update();
-			w2if->Modified();
-			movieWriter->Write();
-			if (movieWriter->GetError()) {
-				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
-				break;
-			}
-			emit progress(100 * (i + 1) / (extent[3] - extent[2]));
-		}
-	}
-
 	m_channels[0]->setResliceAxesOrigin(oldResliceAxesOrigin[0], oldResliceAxesOrigin[1], oldResliceAxesOrigin[2]);
 	update();
 	movieWriter->End();
-	movieWriter->ReleaseDataFlagOn();
-	w2if->ReleaseDataFlagOn();
-
 	m_interactor->Enable();
 
 	if (movieWriter->GetError())
-		emit msg(tr("  MOVIE export failed."));
+		emit msg(tr("Movie export failed."));
 	else
-		emit msg(tr("MOVIE export completed."));
-
-	return;
+		emit msg(tr("Movie export completed."));
 }
 
 void iASlicer::saveAsImage()
@@ -987,24 +932,30 @@ void iASlicer::saveAsImage()
 	bool saveNative = true;
 	bool output16Bit = false;
 
-	QStringList currentChannels;
-	for (auto ch : m_channels)
-		currentChannels << ch->name();
-
 	QStringList inList = (QStringList()
-		<< tr("$Save native image (intensity rescaled to output format)"))
-		<< tr("+Channel (native only exports slice of what's selected here)");
+		<< tr("$Save native image (intensity rescaled to output format)"));
 	QList<QVariant> inPara = (QList<QVariant>()
-		<< (saveNative ? tr("true") : tr("false")))
-		<< currentChannels;
+		<< (saveNative ? tr("true") : tr("false")));
 
+	bool moreThanOneChannel = m_channels.size() > 1;
 	QFileInfo fi(fileName);
-	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
-		(QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
+	bool outputTif = (QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
+		(QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0);
+
+	if (moreThanOneChannel)
+	{
+		QStringList currentChannels;
+		for (auto ch : m_channels)
+			currentChannels << ch->name();
+		inList << tr("+Channel (native only exports slice of what's selected here)");
+		inPara << currentChannels;
+	}
+	if (outputTif)
 	{
 		inList << tr("$16 bit native output (if disabled, native output will be 8 bit)");
 		inPara << (output16Bit ? tr("true") : tr("false"));
 	}
+
 	dlg_commoninput dlg(this, "Save options", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -1017,14 +968,22 @@ void iASlicer::saveAsImage()
 	}
 	iAConnector con;
 	vtkSmartPointer<vtkImageData> img;
-
+	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	if (saveNative)
 	{
-		int selectedChannelID = -1;
-		QString selectedChannelName = dlg.getComboBoxValue(1);
-		for (auto key : m_channels.keys())
-			if (m_channels[key]->name() == selectedChannelName)
-				selectedChannelID = key;
+		int selectedChannelID = 0;
+		if (moreThanOneChannel)
+		{
+			QString selectedChannelName = dlg.getComboBoxValue(1);
+			for (auto key : m_channels.keys())
+			{
+				if (m_channels[key]->name() == selectedChannelName)
+				{
+					selectedChannelID = key;
+					break;
+				}
+			}
+		}
 		con.setImage(m_channels[selectedChannelID]->output());
 		iAITKIO::ImagePointer imgITK;
 		if (!output16Bit)
@@ -1040,10 +999,9 @@ void iASlicer::saveAsImage()
 	}
 	else
 	{
-		vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
-		wtif->SetInput(m_renWin);
-		wtif->Update();
-		img = wtif->GetOutput();
+		windowToImage->SetInput(m_renWin);
+		windowToImage->Update();
+		img = windowToImage->GetOutput();
 	}
 	writeSingleSliceImage(fileName, img);
 }
@@ -1064,22 +1022,17 @@ void iASlicer::saveImageStack()
 	QFileInfo fileInfo(file);
 	QString baseName = fileInfo.absolutePath() + "/" + fileInfo.baseName();
 
-	int const * arr = m_channels[0]->input()->GetDimensions();
-	double const * spacing = m_channels[0]->input()->GetSpacing();
-
-	//Determine index of number of slice in array
-	int nums[3] = { 0, 2, 1 };
-	int num = nums[m_mode];
-
-	//Set slice range
-	int sliceFirst = 0, sliceLast = arr[num] - 1;
+	int const * imgExtent = imageData->GetExtent();
+	double const * imgSpacing = imageData->GetSpacing();
+	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	int const sliceMin = imgExtent[sliceZAxisIdx * 2];
+	int const sliceMax = imgExtent[sliceZAxisIdx * 2 + 1];
 	bool saveNative = true;
 	bool output16Bit = false;
 	QStringList inList = (QStringList() << tr("$Save native image (intensity rescaled to output format)")
-		<< tr("#From Slice Number:")
-		<< tr("#To Slice Number:"));
-	QList<QVariant> inPara = (QList<QVariant>() << (saveNative ? tr("true") : tr("false")) << tr("%1")
-		.arg(sliceFirst) << tr("%1").arg(sliceLast));
+		<< tr("*From Slice Number:")
+		<< tr("*To Slice Number:"));
+	QList<QVariant> inPara = (QList<QVariant>() << (saveNative ? tr("true") : tr("false")) << sliceMin << sliceMax);
 
 	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
 		(QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
@@ -1092,35 +1045,31 @@ void iASlicer::saveImageStack()
 		return;
 
 	saveNative = dlg.getCheckValue(0);
-	sliceFirst = dlg.getDblValue(1);
-	sliceLast = dlg.getDblValue(2);
+	int sliceFrom = dlg.getIntValue(1);
+	int sliceTo   = dlg.getIntValue(2);
 	if (inList.size() > 3)
 		output16Bit = dlg.getCheckValue(3);
 
-	if (sliceFirst<0 || sliceFirst>sliceLast || sliceLast > arr[num])
+	if (sliceFrom < sliceMin || sliceFrom > sliceTo || sliceTo > sliceMax)
 	{
-		QMessageBox msgBox;
-		msgBox.setText("Invalid Input.");
-		msgBox.exec();
+		QMessageBox::information(this, "Save Image Stack", QString("Invalid input: 'From Slice Number' is greater than 'To Slice Number',"
+			" or 'From Slice Number' or 'To Slice Number' are outside of valid region [0..%1]!").arg(sliceMax));
 		return;
 	}
 	m_interactor->Disable();
-	vtkImageData* img;
-	double* origin = imageData->GetOrigin();
+	double movingOrigin[3];
+	imageData->GetOrigin(movingOrigin);
+	double const * imgOrigin = imageData->GetOrigin();
 	auto reslicer = m_channels[0]->reslicer();
-	for (int slice = sliceFirst; slice <= sliceLast; slice++)
+	for (int slice = sliceFrom; slice <= sliceTo; slice++)
 	{
-		//Determine which axis
-		if (m_mode == 0) //yz
-			setResliceAxesOrigin(origin[0] + slice * spacing[0], origin[1], origin[2]);
-		else if (m_mode == 1)  //xy
-			setResliceAxesOrigin(origin[0], origin[1], origin[2] + slice * spacing[2]);
-		else if (m_mode == 2)  //xz
-			setResliceAxesOrigin(origin[0], origin[1] + slice * spacing[1], origin[2]);
-		update();
+		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
+		setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
+		m_channels[0]->updateReslicer();
 
-		vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
+		auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 		iAConnector con;
+		vtkImageData* img;
 		if (saveNative)
 		{
 			con.setImage(reslicer->GetOutput());
@@ -1134,13 +1083,13 @@ void iASlicer::saveImageStack()
 		}
 		else
 		{
-			wtif->SetInput(m_renWin);
-			wtif->ReadFrontBufferOff();
-			wtif->Update();
-			img = wtif->GetOutput();
+			m_renWin->Render();
+			windowToImage->SetInput(m_renWin);
+			windowToImage->ReadFrontBufferOff();
+			windowToImage->Update();
+			img = windowToImage->GetOutput();
 		}
-
-		emit progress(100 * slice / sliceLast);
+		emit progress(100 * (slice-sliceFrom) / (sliceTo - sliceFrom) );
 
 		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
 		writeSingleSliceImage(newFileName, img);
@@ -1152,29 +1101,19 @@ void iASlicer::saveImageStack()
 
 void iASlicer::updatePositionMarkerExtent()
 {
-	// TODO: how to choose spacing? currently fixed from first image? export all channels?
 	if (m_channels.empty() || !m_positionMarkerSrc)
 		return;
+	// TODO: how to choose spacing? currently fixed from first image? export all channels?
 	auto imageData = m_channels[0]->input();
-	double spacing[2] = {
-		imageData->GetSpacing()[SlicerXInd(m_mode)],
-		imageData->GetSpacing()[SlicerYInd(m_mode)]
-	};
-	m_positionMarkerSrc->SetOrigin(0, 0, 0);
-	m_positionMarkerSrc->SetPoint1((m_ext * spacing[0]), 0, 0);
-	m_positionMarkerSrc->SetPoint2(0, (m_ext * spacing[1]), 0);
+	m_positionMarkerSrc->SetXLength(m_ext * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)]);
+	m_positionMarkerSrc->SetYLength(m_ext * imageData->GetSpacing()[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
+	m_positionMarkerSrc->SetZLength(0);
 }
 
 void iASlicer::setStatisticalExtent(int statExt)
 {
 	m_ext = statExt;
-	if (m_positionMarkerSrc)
-	{
-		double center[3];
-		m_positionMarkerSrc->GetCenter(center);
-		updatePositionMarkerExtent();
-		m_positionMarkerSrc->SetCenter(center);
-	}
+	updatePositionMarkerExtent();
 }
 
 void iASlicer::updateResliceAxesDirectionCosines()
@@ -1192,14 +1131,10 @@ void iASlicer::updateBackground()
 	}
 	switch (m_mode)
 	{
-	case iASlicerMode::YZ:
-		m_ren->SetBackground(0.2, 0.2, 0.2); break;
-	case iASlicerMode::XY:
-		m_ren->SetBackground(0.3, 0.3, 0.3); break;
-	case iASlicerMode::XZ:
-		m_ren->SetBackground(0.6, 0.6, 0.6); break;
-	default:
-		break;
+		default:
+		case iASlicerMode::YZ: m_ren->SetBackground(0.2, 0.2, 0.2); break;
+		case iASlicerMode::XY: m_ren->SetBackground(0.3, 0.3, 0.3); break;
+		case iASlicerMode::XZ: m_ren->SetBackground(0.6, 0.6, 0.6); break;
 	}
 }
 
@@ -1214,6 +1149,9 @@ void iASlicer::setBackground(double r, double g, double b)
 
 void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callData)
 {
+	if (m_channels.empty())
+		return;
+
 	if (eventId == vtkCommand::LeftButtonPressEvent)
 	{
 		emit clicked();
@@ -1223,51 +1161,38 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	{
 		emit userInteraction();
 	}
-	int const * epos = m_interactor->GetEventPosition();
-	m_pointPicker->Pick(epos[0], epos[1], 0, m_ren); // z is always zero
-	m_pointPicker->GetPickPosition(m_ptMapped);      // get position in local slicer scene/world coordinates
+	updatePosition();
 
+	double channel0Coords[3];
+	computeCoords(channel0Coords, 0);
 	switch (eventId)
 	{
 	case vtkCommand::LeftButtonPressEvent:
 	{
-		double result[4];
-		double x, y, z;
-		computeCoords(x, y, z, result, 0);
-		emit clicked(x, y, z);
+		emit clicked(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
 		emit userInteraction();
 		break;
 	}
 	case vtkCommand::LeftButtonReleaseEvent:
 	{
-		double result[4];
-		double x, y, z;
-		computeCoords(x, y, z, result, 0);
-		emit released(x, y, z);
+		emit released(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
 		emit userInteraction();
 		break;
 	}
 	case vtkCommand::RightButtonPressEvent:
 	{
-		double result[4];
-		double x, y, z;
-		computeCoords(x, y, z, result, 0);
-		emit rightClicked(x, y, z);
+		emit rightClicked(channel0Coords[0], channel0Coords[1], channel0Coords[2]);
 		break;
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
-		//double mouseCoord[3] = { result[0], result[1], result[2] };
-		//updateFisheyeTransform(mouseCoord, reslicer, 50.0);
+		//DEBUG_LOG("iASlicer::execute vtkCommand::MouseMoveEvent");
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);
 			printVoxelInformation();
 		}
-		double result[4];
-		double x, y, z;
-		computeCoords(x, y, z, result, 0);
-		emit oslicerPos(x, y, z, m_mode);
+		emit oslicerPos(channel0Coords[0], channel0Coords[1], channel0Coords[2], m_mode);
 		emit userInteraction();
 		break;
 	}
@@ -1290,73 +1215,65 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	m_interactor->Render();
 }
 
-void iASlicer::computeCoords(double & xCoord, double & yCoord, double & zCoord, double* result, uint channelID)
+void iASlicer::updatePosition()
+{
+	// get slicer event position:
+	int const * epos = m_interactor->GetEventPosition();
+	m_pointPicker->Pick(epos[0], epos[1], 0, m_ren); // z is always zero
+	m_pointPicker->GetPickPosition(m_slicerPt);      // get position in local slicer scene/world coordinates
+
+	// compute global point:
+	const int ChannelID = 0; //< TODO: avoid using specific channel here!
+	if (!hasChannel(ChannelID))
+	{
+		std::fill(m_globalPt, m_globalPt + sizeof(m_globalPt), 0);
+		return;
+	}
+	double point[4] = { m_slicerPt[0], m_slicerPt[1], m_slicerPt[2], 1 };
+	auto reslicer = m_channels[ChannelID]->reslicer();
+	vtkMatrix4x4 *resliceAxes = vtkMatrix4x4::New();
+	resliceAxes->DeepCopy(reslicer->GetResliceAxes());
+	resliceAxes->MultiplyPoint(point, m_globalPt);
+	resliceAxes->Delete();
+}
+
+void iASlicer::computeCoords(double * coord, uint channelID)
 {
 	if (!hasChannel(channelID))
 		return;
-	result[0] = result[1] = result[2] = result[3] = 0;
-	double point[4] = { m_ptMapped[0], m_ptMapped[1], m_ptMapped[2], 1 };
-
-	auto reslicer = m_channels[channelID]->reslicer();
-
-	// get a shortcut to the pixel data. (BF: what does this mean? typically, result is the same as m_ptMapped...?)
-	vtkMatrix4x4 *resliceAxes = vtkMatrix4x4::New();
-	resliceAxes->DeepCopy(reslicer->GetResliceAxes());
-	resliceAxes->MultiplyPoint(point, result);
-	resliceAxes->Delete();
 
 	auto imageData = m_channels[channelID]->input();
-	double const * imageSpacing = imageData->GetSpacing();	// +/- 0.5 to correct for BorderOn
-	double const * origin = imageData->GetOrigin();
-	// xCoord, yCoord, zCoord will contain voxel coordinates for the given channel
-	xCoord = (result[0] - origin[0]) / imageSpacing[0] + 0.5;//	if (m_mode == YZ) xCoord -= 0.5;
-	yCoord = (result[1] - origin[1]) / imageSpacing[1] + 0.5;//	if (m_mode == XZ) yCoord += 0.5; // not sure yet why +0.5 required here...
-	zCoord = (result[2] - origin[2]) / imageSpacing[2] + 0.5;//	if (m_mode == XY) zCoord -= 0.5;
+	double const * imgSpacing = imageData->GetSpacing();
+	double const * imgOrigin  = imageData->GetOrigin();
+	int    const * imgExtent  = imageData->GetExtent();
+	// coords will contain voxel coordinates for the given channel
+	for (int i=0; i<3; ++i)
+		coord[i] = clamp(
+			static_cast<double>(imgExtent[i*2]),
+			imgExtent[i*2+1] + 1 - std::numeric_limits<double>::epsilon(),
+			(m_globalPt[i] - imgOrigin[i]) / imgSpacing[i] + 0.5);	// + 0.5 to correct for BorderOn
 
 	// TODO: check for negative origin images!
-	int* extent = imageData->GetExtent();
-	xCoord = clamp(static_cast<double>(extent[0]), extent[1] + 1 - std::numeric_limits<double>::epsilon(), xCoord);
-	yCoord = clamp(static_cast<double>(extent[2]), extent[3] + 1 - std::numeric_limits<double>::epsilon(), yCoord);
-	zCoord = clamp(static_cast<double>(extent[4]), extent[5] + 1 - std::numeric_limits<double>::epsilon(), zCoord);
-
-	DEBUG_LOG(QString("Slicer point: %1, %2, %3; Coords: %4, %5, %6; Result: %7, %8, %9")
-		.arg(m_ptMapped[0]).arg(m_ptMapped[1]).arg(m_ptMapped[2])
-		.arg(xCoord).arg(yCoord).arg(zCoord)
-		.arg(result[0]).arg(result[1]).arg(result[2])
-	);
 }
 
 namespace
 {
 	const int MaxNameLength = 15;
 
-	QString slicerCoordString(int coord1, int coord2, int coord3, int mode)
+	QString filePixel(iASlicer* slicer, int const * coord, int slicerXAxisIdx, int slicerYAxisIdx)
 	{
-		switch (mode) {
-		default:
-		case XY: return QString("%1 %2 %3").arg(coord1).arg(coord2).arg(coord3);
-		case XZ: return QString("%1 %2 %3").arg(coord1).arg(coord3).arg(coord2);
-		case YZ: return QString("%1 %2 %3").arg(coord3).arg(coord1).arg(coord2);
-		}
-	}
-
-	QString filePixel(MdiChild* tmpChild, iASlicer* slicer, double slicerX, double slicerY, int thirdCoord, int mode)
-	{
-		// TODO: find out what "mouseCoord" exactly means - pixel coordinates or image coordinates? differentiate scene coordinates / each images pixel coordinates
-		auto reslicer = slicer->channel(0)->reslicer();
-		vtkImageData* img = reslicer->GetOutput();
-		int const * dim = img->GetDimensions();
-		bool inRange = slicerX < dim[0] && slicerY < dim[1];
-		double tmpPix = 0;
-		if (inRange)
-		{
-			tmpPix = img->GetScalarComponentAsDouble(slicerX, slicerY, 0, 0);
-		}
-		QString file = tmpChild->fileInfo().fileName();
-		return QString("%1: %2 [%3]\n")
+		vtkImageData* sliceImg = slicer->channel(0)->output();
+		int const * dim = sliceImg->GetDimensions();
+		bool inRange =
+			coord[slicerXAxisIdx] >= 0     && coord[slicerYAxisIdx] >= 0 &&
+			coord[slicerXAxisIdx] < dim[0] && coord[slicerYAxisIdx] < dim[1];
+		double tmpPix = (inRange) ?
+			sliceImg->GetScalarComponentAsDouble(coord[slicerXAxisIdx], coord[slicerYAxisIdx], 0, 0): 0;
+		QString file = slicer->channel(0)->name();
+		return QString("%1: %2 [%3 %4 %5]\n")
 			.arg(padOrTruncate(file, MaxNameLength))
 			.arg(inRange ? QString::number(tmpPix) : "exceeds img. dim.")
-			.arg(slicerCoordString(slicerX, slicerY, thirdCoord, mode));
+			.arg(coord[0]).arg(coord[1]).arg(coord[2]);
 	}
 }
 
@@ -1366,9 +1283,8 @@ void iASlicer::printVoxelInformation()
 		return;
 	if (m_cursorSet && cursor() != mouseCursor())
 		setCursor(mouseCursor());
-	// get index, coords and value to display
 	QString strDetails(QString("%1: %2, %3, %4\n").arg(padOrTruncate("Position", MaxNameLength))
-		.arg(m_ptMapped[0]).arg(m_ptMapped[1]).arg(m_ptMapped[2]));
+		.arg(m_globalPt[0]).arg(m_globalPt[1]).arg(m_globalPt[2]));
 	for (auto channelID: m_channels.keys())
 	{
 		if (!m_channels[channelID]->isEnabled())
@@ -1377,16 +1293,8 @@ void iASlicer::printVoxelInformation()
 		double const * slicerSpacing = m_channels[channelID]->output()->GetSpacing();
 		int    const * slicerExtent  = m_channels[channelID]->output()->GetExtent();
 		double const * slicerBounds  = m_channels[channelID]->output()->GetBounds();
-
-		// We have to manually set the physical z-coordinate which requires us to get the volume spacing.
-		                                                                         // +0.5 is because of BorderOn
-		double dcX = (m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
-		double dcY = (m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
-		DEBUG_LOG(QString("    Slicer point: %1, %2, bounds: %3, %4, spacing: %5, %6, coordinates: %7, %8")
-			.arg(m_ptMapped[0]).arg(m_ptMapped[1])
-			.arg(slicerBounds[0]).arg(slicerBounds[2])
-			.arg(slicerSpacing[0]).arg(slicerSpacing[2])
-			.arg(dcX).arg(dcY));
+		double dcX = (m_slicerPt[0] - slicerBounds[0]) / slicerSpacing[0] + 0.5;
+		double dcY = (m_slicerPt[1] - slicerBounds[2]) / slicerSpacing[1] + 0.5;
 		int cX = static_cast<int>(std::floor(dcX));
 		int cY = static_cast<int>(std::floor(dcY));
 
@@ -1405,14 +1313,12 @@ void iASlicer::printVoxelInformation()
 				valueStr += " ";
 			valueStr += QString::number(value);
 		}
-		double result[4];
 		double coords[3];
-		computeCoords(coords[0], coords[1], coords[2], result, channelID);
+		computeCoords(coords, channelID);
 		strDetails += QString("%1: %2 [%3 %4 %5]\n")
 			.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
 			.arg(valueStr)
-			.arg(static_cast<int>(coords[0])).arg(static_cast<int>(coords[1])).arg(static_cast<int>(coords[2]))
-			;
+			.arg(static_cast<int>(coords[0])).arg(static_cast<int>(coords[1])).arg(static_cast<int>(coords[2]));
 	}
 	if (m_linkedMdiChild)
 	{
@@ -1423,42 +1329,18 @@ void iASlicer::printVoxelInformation()
 			if (m_linkedMdiChild == tmpChild)
 				continue;
 
-			// TODO: replace all references to explicit voxel coordinates with world positions here!
-			double result[4];
-			double xCoord, yCoord, zCoord;
-			computeCoords(xCoord, yCoord, zCoord, result, 0);
 			double * const tmpSpacing = tmpChild->imagePointer()->GetSpacing();
-			auto imageData = m_channels[0]->input();
-			double const * origImgSpacing = imageData->GetSpacing();
-			int tmpX = xCoord * origImgSpacing[0] / tmpSpacing[0];
-			int tmpY = yCoord * origImgSpacing[1] / tmpSpacing[1];
-			int tmpZ = zCoord * origImgSpacing[2] / tmpSpacing[2];
-			switch (m_mode)
-			{
-			case iASlicerMode::XY://XY
-				tmpChild->slicer(iASlicerMode::XY)->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpY * tmpSpacing[1]);
-				tmpChild->slicer(iASlicerMode::XY)->setIndex(tmpX, tmpY, tmpZ);
-				tmpChild->slicerDockWidget(iASlicerMode::XY)->sbSlice->setValue(tmpZ);
-				tmpChild->slicer(iASlicerMode::XY)->update();
-				strDetails += filePixel(tmpChild, tmpChild->slicer(iASlicerMode::XY), tmpX, tmpY, tmpZ, m_mode);
-				break;
-			case iASlicerMode::YZ://YZ
-				tmpChild->slicer(iASlicerMode::YZ)->setPositionMarkerCenter(tmpY * tmpSpacing[1], tmpZ * tmpSpacing[2]);
-				tmpChild->slicer(iASlicerMode::YZ)->setIndex(tmpX, tmpY, tmpZ);
-				tmpChild->slicerDockWidget(iASlicerMode::YZ)->sbSlice->setValue(tmpX);
-				tmpChild->slicer(iASlicerMode::YZ)->update();
-				strDetails += filePixel(tmpChild, tmpChild->slicer(iASlicerMode::YZ), tmpY, tmpZ, tmpX, m_mode);
-				break;
-			case iASlicerMode::XZ://XZ
-				tmpChild->slicer(iASlicerMode::XZ)->setPositionMarkerCenter(tmpX * tmpSpacing[0], tmpZ * tmpSpacing[2]);
-				tmpChild->slicer(iASlicerMode::XZ)->setIndex(tmpX, tmpY, tmpZ);
-				tmpChild->slicerDockWidget(iASlicerMode::XZ)->sbSlice->setValue(tmpY);
-				tmpChild->slicer(iASlicerMode::XZ)->update();
-				strDetails += filePixel(tmpChild, tmpChild->slicer(iASlicerMode::XZ), tmpX, tmpZ, tmpY, m_mode);
-				break;
-			default://ERROR
-				break;
-			}
+			int tmpCoord[3];
+			for (int i = 0; i < 3; ++i)
+				tmpCoord[i] = static_cast<int>(m_globalPt[0] / tmpSpacing[0]);
+			int slicerXAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X),
+				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
+				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+			tmpChild->slicer(m_mode)->setPositionMarkerCenter(m_globalPt[slicerXAxisIdx], m_globalPt[slicerYAxisIdx]);
+			tmpChild->slicer(m_mode)->setIndex(tmpCoord[0], tmpCoord[1], tmpCoord[2]);
+			tmpChild->slicerDockWidget(m_mode)->sbSlice->setValue(tmpCoord[slicerZAxisIdx]);
+			tmpChild->slicer(m_mode)->update();
+			strDetails += filePixel(tmpChild->slicer(m_mode), tmpCoord, slicerXAxisIdx, slicerYAxisIdx);
 			tmpChild->update();
 		}
 	}
@@ -1466,9 +1348,9 @@ void iASlicer::printVoxelInformation()
 	// if requested calculate distance and show actor
 	if (m_lineActor && m_lineActor->GetVisibility())
 	{
-		double distance = sqrt(pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) +
-			pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2));
-		m_lineSource->SetPoint2(m_ptMapped[0], m_ptMapped[1], 0.0);
+		double distance = sqrt(pow((m_startMeasurePoint[0] - m_slicerPt[0]), 2) +
+			pow((m_startMeasurePoint[1] - m_slicerPt[1]), 2));
+		m_lineSource->SetPoint2(m_slicerPt[0], m_slicerPt[1], 0.0);
 		m_diskSource->SetOuterRadius(distance);
 		m_diskSource->SetInnerRadius(distance);
 		m_diskSource->Update();
@@ -1486,18 +1368,15 @@ void iASlicer::executeKeyPressEvent()
 	switch (m_interactor->GetKeyCode())
 	{
 	case 'm':
-		m_startMeasurePoint[0] = m_ptMapped[0];
-		m_startMeasurePoint[1] = m_ptMapped[1];
+		m_startMeasurePoint[0] = m_slicerPt[0];
+		m_startMeasurePoint[1] = m_slicerPt[1];
 		// does not work reliably (often snaps to positions not the highest gradient close to the current position)
 		// and causes access to pixels outside of the image:
 		//snapToHighGradient(m_startMeasurePoint[0], m_startMeasurePoint[1]);
-
-		if (m_decorations && m_lineSource && hasChannel(0))
+		if (m_decorations && m_lineSource)
 		{
-			// TODO: check which channel makes sense here!
-			double * slicerSpacing = m_channels[0]->output()->GetSpacing();
-			m_lineSource->SetPoint1(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 0.0);
-			m_diskActor->SetPosition(m_startMeasurePoint[0] - (0.5*slicerSpacing[0]), m_startMeasurePoint[1] - (0.5*slicerSpacing[1]), 0.0);
+			m_lineSource->SetPoint1(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
+			m_diskActor->SetPosition(m_startMeasurePoint[0], m_startMeasurePoint[1], 0.0);
 			m_lineActor->SetVisibility(true);
 			m_diskActor->SetVisibility(true);
 			printVoxelInformation();
@@ -1513,7 +1392,6 @@ void iASlicer::executeKeyPressEvent()
 		break;
 	}
 }
-
 
 void iASlicer::defaultOutput()
 {
@@ -1538,8 +1416,8 @@ void iASlicer::snapToHighGradient(double &x, double &y)
 	double * imageSpacing = imageData->GetSpacing();
 	double * imageBounds = imageData->GetBounds();
 
-	int xInd = SlicerXInd(m_mode);
-	int yInd = SlicerYInd(m_mode);
+	int xInd = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X);
+	int yInd = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y);
 	double coord1 = (int)(x/imageSpacing[xInd]);
 	double coord2 = (int)(y/imageSpacing[yInd]);
 	double dataCoord1 = (int)((x-imageBounds[xInd*2])/imageSpacing[xInd]);
@@ -1819,7 +1697,7 @@ void iASlicer::updateChannelMappers()
 
 void iASlicer::rotateSlice(double angle)
 {
-	m_angle[slicerDimension(m_mode)] = angle;
+	m_angle[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z)] = angle;
 
 	if (!hasChannel(0))
 		return;
@@ -1932,36 +1810,27 @@ int iASlicer::sliceNumber() const
 	return m_sliceNumber;
 }
 
-#define EPSILON 0.0015
-
-struct PickedData
-{
-	double pos[3];
-	double res[3];
-	int ind[3];
-};
-PickedData	pickedData;
-
 void iASlicer::keyPressEvent(QKeyEvent *event)
 {
-	vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
+	// TODO: merge with iASlicer::execute, switch branch vtkCommand::KeyPressEvent ?
+	if (!hasChannel(0))
+		return;
 
+	vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
 	if (event->key() == Qt::Key_R)
 	{
 		ren->ResetCamera();
 	}
 	if (event->key() == Qt::Key_O)
 	{
-		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 		// TODO: fisheye lens on all channels???
-		if (!hasChannel(0))
-			return;
+
 		auto reslicer = channel(0)->reslicer();
 		if (!m_fisheyeLensActivated)
 		{
 			m_fisheyeLensActivated = true;
 			reslicer->SetAutoCropOutput(!reslicer->GetAutoCropOutput());
-			ren->SetWorldPoint(pickedData.res[SlicerXInd(m_mode)], pickedData.res[SlicerYInd(m_mode)], 0, 1);
+			ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 
 			initializeFisheyeLens(reslicer);
 
@@ -2007,105 +1876,99 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 	}
 
 	// magnify and unmagnify fisheye lens and distortion radius
-	if (m_fisheyeLensActivated) {
+	if (m_fisheyeLensActivated)
+	{
+		ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 
-		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
-		ren->SetWorldPoint(pickedData.res[SlicerXInd(m_mode)], pickedData.res[SlicerYInd(m_mode)], 0, 1);
-		if (!hasChannel(0))
-			return;
 		// TODO: fisheye lens on all channels???
 		auto reslicer = channel(0)->reslicer();
-		if (event->modifiers().testFlag(Qt::ControlModifier)) {
-			if (event->key() == Qt::Key_Minus) {
-
-				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius + 1.0 <= 20.0) {
+		if (event->modifiers().testFlag(Qt::ControlModifier))
+		{
+			if (event->key() == Qt::Key_Minus)
+			{
+				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius + 1.0 <= 20.0)
+				{
 					m_innerFisheyeRadius += 1.0;
 					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 				}
 
 				else {
-					if ((m_innerFisheyeRadius + 2.0) <= m_fisheyeRadius) {
+					if ((m_innerFisheyeRadius + 2.0) <= m_fisheyeRadius)
+					{
 						m_innerFisheyeRadius += 2.0;
 						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
 					}
 
 				}
 			}
-			if (event->key() == Qt::Key_Plus) {
-
-				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius - 1.0 >= 1.0) {
+			if (event->key() == Qt::Key_Plus)
+			{
+				if (m_fisheyeRadius <= 20 && m_innerFisheyeRadius - 1.0 >= 1.0)
+				{
 					m_innerFisheyeRadius -= 1.0;
 					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 				}
-				else {
-					if ((m_innerFisheyeRadius - 2.0) >= (m_innerFisheyeMinRadius)) {
+				else
+				{
+					if ((m_innerFisheyeRadius - 2.0) >= (m_innerFisheyeMinRadius))
+					{
 						m_innerFisheyeRadius -= 2.0;
 						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 					}
 				}
 			}
 		}
-		else if (!(event->modifiers().testFlag(Qt::ControlModifier))) {
-			if (event->key() == Qt::Key_Plus) {
-
-				if (m_fisheyeRadius + 1.0 <= 20.0) {
+		else if (!(event->modifiers().testFlag(Qt::ControlModifier)))
+		{
+			if (event->key() == Qt::Key_Plus)
+			{
+				if (m_fisheyeRadius + 1.0 <= 20.0)
+				{
 					m_fisheyeRadius += 1.0;
 					m_innerFisheyeRadius = m_innerFisheyeRadius + 1.0;
 					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 				}
-				else {
-					if (!(m_fisheyeRadius + 10.0 > m_maxFisheyeRadius)) {
+				else
+				{
+					if (!(m_fisheyeRadius + 10.0 > m_maxFisheyeRadius))
+					{
 						m_fisheyeRadius += 10.0;
 						m_innerFisheyeRadius += 10.0;
 						m_innerFisheyeMinRadius += 8;
 						updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 					}
 				}
 			}
 			if (event->key() == Qt::Key_Minus) {
 
-				if (m_fisheyeRadius - 1.0 < 20.0 && m_fisheyeRadius - 1.0 >= m_minFisheyeRadius) {
+				if (m_fisheyeRadius - 1.0 < 20.0 && m_fisheyeRadius - 1.0 >= m_minFisheyeRadius)
+				{
 					m_fisheyeRadius -= 1.0;
 					m_innerFisheyeRadius -= 1.0;
 					if (m_innerFisheyeMinRadius > 1.0)
 						m_innerFisheyeMinRadius = 1.0;
-
 					updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
-
 				}
-				else {
-
-					if (!(m_fisheyeRadius - 10.0 < m_minFisheyeRadius)) {
+				else
+				{
+					if (!(m_fisheyeRadius - 10.0 < m_minFisheyeRadius))
+					{
 						m_fisheyeRadius -= 10.0;
 						m_innerFisheyeRadius -= 10.0;
 						m_innerFisheyeMinRadius -= - 8;
-
 						if (m_innerFisheyeRadius < m_innerFisheyeMinRadius)
 							m_innerFisheyeRadius = m_innerFisheyeMinRadius;
-
 						updateFisheyeTransform(ren->GetWorldPoint() /*pickedData.pos*/, reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
 					}
 				}
 			}
 		}
 	}
-
-	if (!m_fisheyeLensActivated)
-	{
-		iAVtkWidget::keyPressEvent(event);
-		return;
-	}
 	// if not in snake m_viewMode
 	if (m_interactionMode != SHOW)
 	{
 		if (event->key() == Qt::Key_Tab && m_interactionMode == NORMAL)
 			switchInteractionMode(DEFINE_SPLINE);
-
 		else
 			switchInteractionMode(NORMAL);
 
@@ -2117,41 +1980,32 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 
 void iASlicer::mousePressEvent(QMouseEvent *event)
 {
-	if (!m_fisheyeLensActivated)
+	// TODO: merge with iASlicer::execute, switch branch vtkCommand::LeftButtonPressEvent ?
+	if (m_channels.empty())
 	{
 		iAVtkWidget::mousePressEvent(event);
 		return;
 	}
-
-	double pos[3];
-	double result[4];
-	int indxs[3];
-	if (!pickPoint(pos, result, indxs))
-	{
-		iAVtkWidget::mousePressEvent(event);
-		return;
-	}
-
 	if (m_isSliceProfEnabled
 		&& (event->modifiers() == Qt::NoModifier)
 		&& event->button() == Qt::LeftButton)//if slice profile m_viewMode is enabled do all the necessary operations
 	{
-		setSliceProfile(result);
+		setSliceProfile(m_globalPt);
 	}
 
 	if (m_isArbProfEnabled
 		&& (event->modifiers() == Qt::NoModifier)
 		&& event->button() == Qt::LeftButton)//if arbitrary profile m_viewMode is enabled do all the necessary operations
 	{
-		m_arbProfile->FindSelectedPntInd(result[SlicerXInd(m_mode)], result[SlicerYInd(m_mode)]);
+		m_arbProfile->FindSelectedPntInd(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 	}
 
 	// only changed mouse press behaviour if m_viewMode is in drawing m_viewMode
 	// and left mouse button is pressed
 	if (m_decorations && m_interactionMode == DEFINE_SPLINE && event->button() == Qt::LeftButton)
 	{
-		const double x = result[SlicerXInd(m_mode)];
-		const double y = result[SlicerYInd(m_mode)];
+		const double x = m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
+		const double y = m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
 
 		// if no point is found at picked position add a new one
 		if (m_snakeSpline->CalculateSelectedPoint(x, y) == -1)
@@ -2159,10 +2013,10 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 			m_snakeSpline->addPoint(x, y);
 
 			// add the point to the world point list only once because it is a member of MdiChild
-			m_worldSnakePoints->InsertNextPoint(result[0], result[1], result[2]);
+			m_worldSnakePoints->InsertNextPoint(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
 
 			// let other slices views know that a new point was created
-			emit addedPoint(result[0], result[1], result[2]);
+			emit addedPoint(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
 		}
 	}
 	else
@@ -2174,20 +2028,18 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 
 void iASlicer::mouseMoveEvent(QMouseEvent *event)
 {
+	// TODO: merge with iASlicer::execute, switch branch vtkCommand::MouseMoveEvent ?
 	iAVtkWidget::mouseMoveEvent(event);
-	if (!m_fisheyeLensActivated)
-		return;
 
-	pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
+	if (!hasChannel(0)) // nothing to do if no data
+		return;
 
 	if (m_fisheyeLensActivated)
 	{
-		if (!hasChannel(0))
-			return;
 		// TODO: fisheye lens on all channels???
 		auto reslicer = channel(0)->reslicer();
 		vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
-		ren->SetWorldPoint(pickedData.res[SlicerXInd(m_mode)], pickedData.res[SlicerYInd(m_mode)], 0, 1);
+		ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 		updateFisheyeTransform(ren->GetWorldPoint(), reslicer, m_fisheyeRadius, m_innerFisheyeRadius);
 	}
 
@@ -2213,7 +2065,7 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 		double const * point = m_worldSnakePoints->GetPoint(m_snakeSpline->selectedPointIndex());
 
 		double pos[3];
-		int indxs[3] = { SlicerXInd(m_mode), SlicerYInd(m_mode), SlicerZInd(m_mode) };
+		int indxs[3] = { mapSliceToGlobalAxis(m_mode, iAAxisIndex::X), mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y), mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z) };
 
 		for (int i = 0; i < 2; ++i)				//2d: x, y
 			pos[indxs[i]] = ptMapped[i];
@@ -2228,39 +2080,29 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 		emit movedPoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
 	}
 
-	if (m_isSliceProfEnabled
-		&& (event->modifiers() == Qt::NoModifier))//if profile m_viewMode is enabled do all the necessary operations
+	if (m_isSliceProfEnabled && (event->modifiers() == Qt::NoModifier))
 	{
-		if (event->buttons()&Qt::LeftButton)
+		if (event->buttons() & Qt::LeftButton)
 		{
-			double xPos, yPos, zPos;
-			double result[4];
-			int x, y, z;
-			if (!pickPoint(xPos, yPos, zPos, result, x, y, z))
-				return;
-			setSliceProfile(result);
+			setSliceProfile(m_globalPt);
 		}
 	}
 
 	if (m_isArbProfEnabled)
 	{
 		int arbProfPtInd = m_arbProfile->GetPntInd();
-		if (event->modifiers() == Qt::NoModifier && arbProfPtInd >= 0)//if profile m_viewMode is enabled do all the necessary operations
+		if (event->modifiers() == Qt::NoModifier && arbProfPtInd >= 0)
 		{
-			if (event->buttons()&Qt::LeftButton)
+			if (event->buttons() & Qt::LeftButton)
 			{
-				double xPos, yPos, zPos;
-				double result[4];
-				int x, y, z;
-				if (!pickPoint(xPos, yPos, zPos, result, x, y, z))
-					return;
-
 				double *ptPos = m_arbProfile->GetPosition(arbProfPtInd);
-				const int zind = SlicerZInd(m_mode);
-				result[zind] = ptPos[zind];
+				const int zind = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+				double globalPos[3];
+				std::copy(m_globalPt, m_globalPt + 3, globalPos);
+				globalPos[zind] = ptPos[zind];
 
-				if (setArbitraryProfile(arbProfPtInd, result, true))
-					emit arbitraryProfileChanged(arbProfPtInd, result);
+				if (setArbitraryProfile(arbProfPtInd, globalPos, true))
+					emit arbitraryProfileChanged(arbProfPtInd, globalPos);
 			}
 		}
 	}
@@ -2303,7 +2145,7 @@ void iASlicer::contextMenuEvent(QContextMenuEvent *event)
 	if (m_decorations && m_interactionMode == DEFINE_SPLINE)
 		m_contextMenu->exec(event->globalPos());
 
-	if (m_magicLens && m_magicLens->IsEnabled())
+	if (m_magicLens && m_magicLens->isEnabled())
 		m_magicLensContextMenu->exec(event->globalPos());
 }
 
@@ -2333,8 +2175,8 @@ void iASlicer::addPoint(double xPos, double yPos, double zPos)
 	if (!m_decorations)
 		return;
 	double pos[3] = { xPos, yPos, zPos };
-	double x = pos[SlicerXInd(m_mode)];
-	double y = pos[SlicerYInd(m_mode)];
+	double x = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
+	double y = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
 
 	//add point to the snake slicer spline
 	m_snakeSpline->addPoint(x, y);
@@ -2349,7 +2191,7 @@ void iASlicer::setSliceProfile(double Pos[3])
 		return;
 	// TODO: slice profile on selected/current channel
 	vtkImageData * reslicedImgData = channel(0)->output();
-	double PosY = Pos[SlicerYInd(m_mode)];
+	double PosY = Pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
 	if (!m_sliceProfile->updatePosition(PosY, reslicedImgData))
 		return;
 	// render slice view
@@ -2372,7 +2214,7 @@ bool iASlicer::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
 			Pos[i] = clamp(origin[i], origin[i] + (dimensions[i] - 1) * spacing[i], Pos[i]);
 		}
 	}
-	double profileCoord2d[2] = { Pos[SlicerXInd(m_mode)], Pos[SlicerYInd(m_mode)] };
+	double profileCoord2d[2] = { Pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], Pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)] };
 	if (!m_arbProfile->setup(pointInd, Pos, profileCoord2d, channel(0)->output()))
 		return false;
 	GetRenderWindow()->GetInteractor()->Render();
@@ -2386,8 +2228,8 @@ void iASlicer::movePoint(size_t selectedPointIndex, double xPos, double yPos, do
 		return;
 	}
 	double pos[3] = { xPos, yPos, zPos };
-	double x = pos[SlicerXInd(m_mode)];
-	double y = pos[SlicerYInd(m_mode)];
+	double x = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
+	double y = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
 
 	// move only if a point is selected
 	if (selectedPointIndex != -1)
@@ -2411,13 +2253,8 @@ void iASlicer::deleteSnakeLine()
 	if (!m_decorations)
 		return;
 
-	//delete all points from snake slicer spline
 	m_snakeSpline->deleteAllPoints();
-
-	// reset point lists
 	m_worldSnakePoints->Reset();
-
-	// render slice view
 	m_renWin->GetInteractor()->Render();
 }
 
@@ -2426,67 +2263,6 @@ void iASlicer::setSliceProfileOn(bool isOn)
 	m_isSliceProfEnabled = isOn;
 	m_sliceProfile->SetVisibility(m_isSliceProfEnabled);
 	m_renWin->GetInteractor()->Render();
-}
-
-int iASlicer::pickPoint(double *pos_out, double *result_out, int * ind_out)
-{
-	return pickPoint(pos_out[0], pos_out[1], pos_out[2], result_out, ind_out[0], ind_out[1], ind_out[2]);
-}
-
-int iASlicer::pickPoint(double &xPos_out, double &yPos_out, double &zPos_out,
-	double *result_out, int &xInd_out, int &yInd_out, int &zInd_out)
-{
-	// Do a pick. It will return a non-zero value if we intersected the image.
-	int const * eventPos = GetInteractor()->GetEventPosition();
-	if (!m_pointPicker->Pick(eventPos[0], eventPos[1], 0, m_ren)) // z is always zero
-	{
-		return 0;
-	}
-
-	// get coordinates of the picked point
-	double ptMapped[3];
-	//vtkIdType total_points = pointPicker->GetPickedPositions()->GetNumberOfPoints();
-	//pointPicker->GetPickedPositions()->GetPoint(total_points - 1, ptMapped);
-	m_pointPicker->GetPickPosition(ptMapped);
-
-	if (!hasChannel(0))
-		return 0;
-	// TODO: slice profile on selected/current channel
-	auto reslicer  = channel(0)->reslicer();
-	auto imageData = channel(0)->input();
-
-	// get image spacing to be able to select a point independent of zoom level
-	double spacing[3];
-	imageData->GetSpacing(spacing);
-
-	vtkMatrix4x4 * resliceAxes = reslicer->GetResliceAxes();
-	double point[4] = { ptMapped[0], ptMapped[1], 0, 1 }; // We have to set the physical z-coordinate which requires us to get the volume spacing.
-	resliceAxes->MultiplyPoint(point, result_out);
-
-	xInd_out = (int)(result_out[0] / spacing[0] + 0.5);
-	yInd_out = (int)(result_out[1] / spacing[1] + 0.5);
-	zInd_out = (int)(result_out[2] / spacing[2] + 0.5);
-
-	// initialize positions depending on slice view
-	switch (m_mode)
-	{
-	default:
-	case iASlicerMode::YZ: { xPos_out = m_xInd * spacing[0]; yPos_out = ptMapped[0];         zPos_out = ptMapped[1];         } break;
-	case iASlicerMode::XZ: { xPos_out = ptMapped[0];         yPos_out = m_yInd * spacing[1]; zPos_out = ptMapped[1];         } break;
-	case iASlicerMode::XY: { xPos_out = ptMapped[0];         yPos_out = ptMapped[1];         zPos_out = m_zInd * spacing[2]; } break;
-	}
-
-	return 1;
-}
-
-void iASlicer::setIndex(int x, int y, int z)
-{
-	m_xInd = x; m_yInd = y; m_zInd = z;
-}
-
-void iASlicer::setLinkedMdiChild(MdiChild* mdiChild)
-{
-	m_linkedMdiChild = mdiChild;
 }
 
 void iASlicer::updateProfile()
@@ -2506,6 +2282,16 @@ void iASlicer::setArbitraryProfileOn(bool isOn)
 	m_isArbProfEnabled = isOn;
 	m_arbProfile->SetVisibility(m_isArbProfEnabled);
 	GetRenderWindow()->GetInteractor()->Render();
+}
+
+void iASlicer::setIndex(int x, int y, int z)
+{
+	m_xInd = x; m_yInd = y; m_zInd = z;
+}
+
+void iASlicer::setLinkedMdiChild(MdiChild* mdiChild)
+{
+	m_linkedMdiChild = mdiChild;
 }
 
 void iASlicer::setPieGlyphsOn(bool isOn)
@@ -2538,7 +2324,6 @@ void iASlicer::wheelEvent(QWheelEvent* event)
 	else
 	{
 		iAVtkWidget::wheelEvent(event);
-		pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 	}
 	updateMagicLens();
 }
@@ -2547,7 +2332,7 @@ void iASlicer::menuCenteredMagicLens()
 {
 	if (!m_magicLens)
 		return;
-	m_magicLens->SetViewMode(iAMagicLens::CENTERED);
+	m_magicLens->setViewMode(iAMagicLens::CENTERED);
 	updateMagicLens();
 }
 
@@ -2555,7 +2340,7 @@ void iASlicer::menuOffsetMagicLens()
 {
 	if (!m_magicLens)
 		return;
-	m_magicLens->SetViewMode(iAMagicLens::OFFSET);
+	m_magicLens->setViewMode(iAMagicLens::OFFSET);
 	updateMagicLens();
 }
 
@@ -2642,9 +2427,6 @@ void iASlicer::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslic
 	m_pointsTarget->SetNumberOfPoints(32); // already set above!
 	m_pointsSource->SetNumberOfPoints(32);
 	int sn = sliceNumber();
-
-	std::cout << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5] << std::endl;
-	std::cout << focalPt[0] << " " << focalPt[1] << " " << focalPt[2] << std::endl;
 
 	switch (m_mode)
 	{
@@ -2799,14 +2581,14 @@ void iASlicer::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslic
 
 void iASlicer::updateMagicLens()
 {
-	if (!m_magicLens || !m_magicLens->IsEnabled())
+	if (!m_magicLens || !m_magicLens->isEnabled())
 		return;
 	vtkRenderer * ren = m_renWin->GetRenderers()->GetFirstRenderer();
-	ren->SetWorldPoint(pickedData.res[SlicerXInd(m_mode)], pickedData.res[SlicerYInd(m_mode)], 0, 1);
+	ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 	ren->WorldToDisplay();
 	double dpos[3];
 	ren->GetDisplayPoint(dpos);
-	int lensSz = m_magicLens->GetSize();
+	int lensSz = m_magicLens->size();
 	lensSz = (std::min)(lensSz, (std::min)(geometry().width(), geometry().height())); // restrict size to size of smallest side
 	int lensSzHalf = 0.5*lensSz;
 	// clamp to image, round to int (=pixels)
@@ -2817,12 +2599,13 @@ void iASlicer::updateMagicLens()
 	ren->DisplayToWorld();
 	int const mousePos[2] = { static_cast<int>(dpos[0]), static_cast<int>(dpos[1]) };
 	double const * worldP = ren->GetWorldPoint();
-	m_magicLens->UpdatePosition(ren->GetActiveCamera(), worldP, mousePos);
+	m_magicLens->updatePosition(ren->GetActiveCamera(), worldP, mousePos);
 }
 
 void iASlicer::computeGlyphs()
 {
 	/*
+	const double EPSILON = 0.0015;
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 	bool hasPieGlyphs = (m_pieGlyphs.size() > 0);
 	if(hasPieGlyphs)
@@ -2911,49 +2694,52 @@ void iASlicer::setPieGlyphParameters(double opacity, double spacing, double magF
 }
 
 
+// Declaration of following functions in iASlicerMode.h:
 
-
-// declaration in iASlicerMode.h
-QString slicerModeString(int mode)
+QString axisName(int axis)
 {
-	switch (mode)
+	switch (axis)
 	{
-	case YZ: return "YZ";
-	case XZ: return "XZ";
-	case XY: return "XY";
-	default: return "??";
-	}
-}
-
-QString sliceAxis(int mode)
-{
-	switch (mode)
-	{
-	case YZ: return "X";
-	case XZ: return "Y";
-	case XY: return "Z";
+	case iAAxisIndex::X: return "X";
+	case iAAxisIndex::Y: return "Y";
+	case iAAxisIndex::Z: return "Z";
 	default: return "?";
 	}
 }
 
-int slicerDimension(int mode)
+QString slicerModeString(int mode)
 {
-	switch (mode)
-	{
-	case YZ: return 0;
-	case XZ: return 1;
-	case XY: return 2;
-	default: return -1;
-	}
+	return axisName(mapSliceToGlobalAxis(mode, iAAxisIndex::X)) + axisName(mapSliceToGlobalAxis(mode, iAAxisIndex::Y));
 }
 
-int sliceAxis(int axis, int index)
+namespace
 {
-	switch (axis)
+	static const int SliceToGlobalAxisMapping[3][3] =
 	{
-	default:
-	case iASlicerMode::YZ: return index == 0 ? 1 : 2;
-	case iASlicerMode::XZ: return index == 0 ? 0 : 2;
-	case iASlicerMode::XY: return index == 0 ? 0 : 1;
-	}
+		//            YZ              XZ              XY
+		{ iAAxisIndex::Y, iAAxisIndex::X, iAAxisIndex::X },  // x
+		{ iAAxisIndex::Z, iAAxisIndex::Z, iAAxisIndex::Y },  // y
+		{ iAAxisIndex::X, iAAxisIndex::Y, iAAxisIndex::Z }   // z
+	};
+	/*
+	static const int GlobalToSliceAxisMapping[3][3] =
+	{   //            YZ              XZ              XY
+		{ iAAxisIndex::Z, iAAxisIndex::X, iAAxisIndex::X }, // x
+		{ iAAxisIndex::X, iAAxisIndex::Z, iAAxisIndex::Y }, // y
+		{ iAAxisIndex::Y, iAAxisIndex::Y, iAAxisIndex::Z }  // z
+	};
+	*/
 }
+
+int mapSliceToGlobalAxis(int mode, int index)
+{
+	assert(0 <= mode  && mode  < iASlicerMode::SlicerCount);
+	assert(0 <= index && index < iAAxisIndex::AxisCount);
+	return SliceToGlobalAxisMapping[index][mode];
+}
+/*
+int mapGlobalToSliceAxis(int mode, int index)
+{
+	return GlobalToSliceAxisMapping[index][mode];
+}
+*/

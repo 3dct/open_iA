@@ -56,25 +56,26 @@ public:
 	static const int OffsetModeXOffset;
 
 	iAMagicLens();
-	void SetRenderWindow(vtkGenericOpenGLRenderWindow* renderWindow);
-	void UpdatePosition(vtkCamera * cam, double const lensPos[3], int const mousePos[2]);
-	void UpdateColors();
-	void AddInput(vtkImageReslice * reslicer, vtkScalarsToColors * cTF, QString const & name);
+	void setRenderWindow(vtkGenericOpenGLRenderWindow* renderWindow);
+	void updatePosition(vtkCamera * cam, double const lensPos[3], int const mousePos[2]);
+	void updateColors();
+	void addInput(vtkImageReslice * reslicer, vtkScalarsToColors * cTF, QString const & name);
 	//! shows or hides the magic lens
-	void SetEnabled( bool isEnabled );
-	bool IsEnabled();
-	void SetViewMode(ViewMode mode);
-	ViewMode GetViewMode() const;
-	void SetLensCount(int count);
-	void SetSize(int newSize);
-	int GetSize() const;
-	void SetInterpolate(bool on);
-	void SetFrameWidth(qreal frameWidth);
-	qreal GetFrameWidth() const;
-	void SetOpacity(double opacity);
-	double GetOpacity() const;
-	void SetSrcWindowEnabled(bool enabled);
-	void Render();
+	void setEnabled( bool isEnabled );
+	bool isEnabled();
+	void setViewMode(ViewMode mode);
+	ViewMode viewMode() const;
+	void setLensCount(int count);
+	void setSize(int newSize);
+	int size() const;
+	void setInterpolate(bool on);
+	void setFrameWidth(qreal frameWidth);
+	qreal frameWidth() const;
+	void setOpacity(double opacity);
+	double opacity() const;
+	void setSrcWindowEnabled(bool enabled);
+	void render();
+
 private:
 	QVector<QSharedPointer<iALensData>> m_lenses;
 	bool m_isEnabled;
@@ -90,5 +91,6 @@ private:
 	vtkSmartPointer<vtkPolyDataMapper2D> m_srcWindowMapper;
 	vtkSmartPointer<vtkActor2D> m_srcWindowActor;
 	vtkSmartPointer<vtkRenderer> m_srcWindowRenderer;
-	void UpdateOffset();
+
+	void updateOffset();
 };

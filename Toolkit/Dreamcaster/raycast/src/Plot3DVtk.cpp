@@ -48,7 +48,7 @@
 #include <vtkConeSource.h>
 #include <vtkVersion.h>
 
-Plot3DVtk::Plot3DVtk():
+iAPlot3DVtk::iAPlot3DVtk():
 					m_correctTransparency(0),
 					lastPickSuccessful(0)
 {
@@ -133,7 +133,7 @@ Plot3DVtk::Plot3DVtk():
 	m_renderer->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
 }
 
-Plot3DVtk::~Plot3DVtk()
+iAPlot3DVtk::~iAPlot3DVtk()
 {
 	if (m_points!=0) m_points->Delete();
 	if (m_grid!=0) m_grid->Delete();
@@ -154,12 +154,12 @@ Plot3DVtk::~Plot3DVtk()
 	if (m_pickedActor!=0) m_pickedActor->Delete();
 }
 
-void Plot3DVtk::SetSolidColor(double r, double g, double b)
+void iAPlot3DVtk::SetSolidColor(double r, double g, double b)
 {
 	m_actor->GetProperty()->SetColor(r, g, b);
 }
 
-void Plot3DVtk::SetBounds(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax)
+void iAPlot3DVtk::SetBounds(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax)
 {
 	MinX=xmin;
 	MaxX=xmax;
@@ -169,7 +169,7 @@ void Plot3DVtk::SetBounds(double xmin, double xmax, double ymin, double ymax, do
 	MaxZ=zmax;
 }
 
-void Plot3DVtk::Update()
+void iAPlot3DVtk::Update()
 {
 	m_mapper->ScalarVisibilityOn();
 	m_mapper->SetScalarModeToUsePointData();
@@ -188,7 +188,7 @@ void Plot3DVtk::Update()
 	m_scalarBarActor->SetLookupTable(m_lookupTable);
 }
 
-void Plot3DVtk::SetGridCellNumbers( long *data )
+void iAPlot3DVtk::SetGridCellNumbers( long *data )
 {
 	unsigned int i=0;
 	for( unsigned int x = 0; x < m_sizeX; x+=1)
@@ -201,7 +201,7 @@ void Plot3DVtk::SetGridCellNumbers( long *data )
 	m_grid->GetCellData()->AddArray(m_cellNumbers);
 }
 
-void Plot3DVtk::SetAutoScalarRange()
+void iAPlot3DVtk::SetAutoScalarRange()
 {
 	m_Smin = 0;
 	m_Smax = m_lookupTable->GetNumberOfTableValues();;
@@ -212,7 +212,7 @@ void Plot3DVtk::SetAutoScalarRange()
 	m_mapper->ScalarVisibilityOn();
 }
 
-void Plot3DVtk::SetUserScalarRange( double Smin, double Smax )
+void iAPlot3DVtk::SetUserScalarRange( double Smin, double Smax )
 {
 	/*double eps = Smin<0 ? -Smin*0.1 : Smin*0.1;////TODO: bad style
 	Smin-=eps; Smax+=eps;*/
@@ -225,14 +225,14 @@ void Plot3DVtk::SetUserScalarRange( double Smin, double Smax )
 	m_mapper->ScalarVisibilityOn();
 }
 
-void Plot3DVtk::ShowWireGrid( int show, float r, float g, float b )
+void iAPlot3DVtk::ShowWireGrid( int show, float r, float g, float b )
 {
 	m_showgrid = show;
 	m_wireActor->GetProperty()->SetColor(r, g, b);
 	m_wireActor->SetVisibility(m_showgrid);
 }
 
-void Plot3DVtk::SetOpacity( double opacity )
+void iAPlot3DVtk::SetOpacity( double opacity )
 {
 	if (opacity==m_actor->GetProperty()->GetOpacity())
 		return;
@@ -240,7 +240,7 @@ void Plot3DVtk::SetOpacity( double opacity )
 	m_wireActor->GetProperty()->SetOpacity(opacity);
 }
 
-void Plot3DVtk::RenderWthCorrectTransparency( int correctTransparency )
+void iAPlot3DVtk::RenderWthCorrectTransparency( int correctTransparency )
 {
 	/*if(m_correctTransparency==correctTransparency)
 		return;
@@ -262,7 +262,7 @@ void Plot3DVtk::RenderWthCorrectTransparency( int correctTransparency )
 	Update();*/
 }
 
-void  Plot3DVtk::Pick( double xpos, double ypos)
+void iAPlot3DVtk::Pick( double xpos, double ypos)
 {
 	//empty
 	m_picker->Pick(xpos, ypos, 0, m_renderer);
@@ -285,16 +285,16 @@ void  Plot3DVtk::Pick( double xpos, double ypos)
 	lastPickSuccessful = 0;
 }
 
-void Plot3DVtk::SetPalette( int count, double *colors )
-{//çàäàòü ïàëèòðó
+void iAPlot3DVtk::SetPalette( int count, double *colors )
+{
 	if (m_lookupTable!=0) 
 	{
 		m_lookupTable->Delete();
 		m_lookupTable=0;
 	}
 	if (m_lookupTable==0) m_lookupTable = vtkLookupTable::New();
-	m_lookupTable->SetNumberOfTableValues(count);//ñîçäàåì ïàëèòðó íà óêàçàííîå ÷èñëî öâåòîâ
-	for( int i = 0; i < count; i++)//êàæäîìó ýëåìåíòó ïàëèòðû çàäàòü ñâîé öâåò
+	m_lookupTable->SetNumberOfTableValues(count);
+	for( int i = 0; i < count; i++)
 	{
 		m_lookupTable->SetTableValue( i, colors[3*i], colors[3*i+1], colors[3*i+2] );
 	}
@@ -309,7 +309,7 @@ void Plot3DVtk::SetPalette( int count, double *colors )
 	m_mapper->ScalarVisibilityOn();
 }
 
-void Plot3DVtk::SetPalette( int count, unsigned int r1, unsigned int g1, unsigned int b1, unsigned int r2, unsigned int g2, unsigned int b2 )
+void iAPlot3DVtk::SetPalette( int count, unsigned int r1, unsigned int g1, unsigned int b1, unsigned int r2, unsigned int g2, unsigned int b2 )
 {
 	//m_lookupTable->SetRampToLinear();
 	if (m_lookupTable!=0) 
@@ -332,7 +332,7 @@ void Plot3DVtk::SetPalette( int count, unsigned int r1, unsigned int g1, unsigne
 	m_lookupTable->Build();
 }
 
-void Plot3DVtk::SetAxesParams( int showaxes, int showlabels, double color[3], long fontfactor )
+void iAPlot3DVtk::SetAxesParams( int showaxes, int showlabels, double color[3], long fontfactor )
 {
 	m_cubeAxes->SetVisibility(showaxes);
 	m_cubeAxes->GetXAxisActor2D()->SetLabelVisibility(showlabels);
@@ -343,7 +343,7 @@ void Plot3DVtk::SetAxesParams( int showaxes, int showlabels, double color[3], lo
 	m_wireActor->GetProperty()->SetColor(color[0], color[1], color[2]);
 }
 
-void Plot3DVtk::HighlightPickedPoint()
+void iAPlot3DVtk::HighlightPickedPoint()
 {
 	vtkConeSource * src = vtkConeSource::New();
 	src->SetRadius(0.025);
@@ -357,7 +357,7 @@ void Plot3DVtk::HighlightPickedPoint()
 	Update();
 }
 
-void Plot3DVtk::loadFromData( double * plotData, double * scalars, int cntX, int cntZ, float scale)
+void iAPlot3DVtk::loadFromData( double * plotData, double * scalars, int cntX, int cntZ, float scale)
 {
 	//êàæäàÿ ïëîñêîñòü çàäàåòñÿ 12 ÷èñëàìè èç ìàññèâà òî÷åê â ëåäóþùåì ïîðÿäêå
 	//x1y1z1 x2y2z2 x3y3z3 x4y4z4 è òä
@@ -419,12 +419,12 @@ void Plot3DVtk::loadFromData( double * plotData, double * scalars, int cntX, int
 	Update();
 }
 
-int Plot3DVtk::GetNumberOfLookupTableValues()
+int iAPlot3DVtk::GetNumberOfLookupTableValues()
 {
 	return m_lookupTable->GetNumberOfTableValues();
 }
 
-void Plot3DVtk::setPicked( int indX, int indZ )
+void iAPlot3DVtk::setPicked( int indX, int indZ )
 {
 	pickData.xInd = indX;
 	pickData.zInd = indZ;
