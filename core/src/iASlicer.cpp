@@ -273,10 +273,10 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_contextMenu = new QMenu(this);
 		m_contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, SLOT(menuDeleteSnakeLine()));
 		m_sliceProfile = new iASlicerProfile();
-		m_sliceProfile->SetVisibility(false);
+		m_sliceProfile->setVisibility(false);
 
 		m_arbProfile = new iAArbitraryProfileOnSlicer();
-		m_arbProfile->SetVisibility(false);
+		m_arbProfile->setVisibility(false);
 
 		m_scalarBarWidget = vtkSmartPointer<vtkScalarBarWidget>::New();
 		m_textProperty = vtkSmartPointer<vtkTextProperty>::New();
@@ -413,8 +413,8 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	{
 		// TODO: fix snake spline with non-fixed slicer images
 		//m_snakeSpline->initialize(ren, imageData->GetSpacing()[0]);
-		m_sliceProfile->initialize(m_ren);
-		m_arbProfile->initialize(m_ren);
+		m_sliceProfile->addToRenderer(m_ren);
+		m_arbProfile->addToRenderer(m_ren);
 	}
 	m_ren->ResetCamera();
 }
@@ -497,8 +497,6 @@ void iASlicer::update()
 	m_ren->Render();
 	if (m_magicLens)
 		m_magicLens->render();
-	if (m_isSliceProfEnabled)
-		updateProfile();
 	iAVtkWidget::update();
 
 	emit updateSignal();
@@ -1986,14 +1984,14 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 		&& (event->modifiers() == Qt::NoModifier)
 		&& event->button() == Qt::LeftButton)//if slice profile m_viewMode is enabled do all the necessary operations
 	{
-		setSliceProfile(m_globalPt);
+		updateRawProfile(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 	}
 
 	if (m_isArbProfEnabled
 		&& (event->modifiers() == Qt::NoModifier)
 		&& event->button() == Qt::LeftButton)//if arbitrary profile m_viewMode is enabled do all the necessary operations
 	{
-		m_arbProfile->FindSelectedPntInd(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
+		m_arbProfile->findSelectedPointIdx(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 	}
 
 	// only changed mouse press behaviour if m_viewMode is in drawing m_viewMode
@@ -2063,9 +2061,9 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 		double pos[3];
 		int indxs[3] = { mapSliceToGlobalAxis(m_mode, iAAxisIndex::X), mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y), mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z) };
 
-		for (int i = 0; i < 2; ++i)				//2d: x, y
-			pos[indxs[i]] = ptMapped[i];
-		pos[indxs[2]] = point[indxs[2]];	//z
+		for (int i = 0; i < 2; ++i)         // Update the two coordinates in the slice plane (slicer's x and y) from the current position in the slicer
+			pos[indxs[i]] = m_slicerPt[i];
+		pos[indxs[2]] = point[indxs[2]];	// Update the other coordinate (slicer's z) from the current global position of the point
 
 		movePoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
 
@@ -2076,29 +2074,24 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 		emit movedPoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
 	}
 
-	if (m_isSliceProfEnabled && (event->modifiers() == Qt::NoModifier))
-	{
-		if (event->buttons() & Qt::LeftButton)
-		{
-			setSliceProfile(m_globalPt);
-		}
-	}
+	if (m_isSliceProfEnabled && (event->modifiers() == Qt::NoModifier) && (event->buttons() & Qt::LeftButton))
+		updateRawProfile(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 
 	if (m_isArbProfEnabled)
 	{
-		int arbProfPtInd = m_arbProfile->GetPntInd();
-		if (event->modifiers() == Qt::NoModifier && arbProfPtInd >= 0)
+		int arbProfPointIdx = m_arbProfile->pointIdx();
+		if (event->modifiers() == Qt::NoModifier && arbProfPointIdx >= 0)
 		{
 			if (event->buttons() & Qt::LeftButton)
 			{
-				double *ptPos = m_arbProfile->GetPosition(arbProfPtInd);
+				double const * ptPos = m_arbProfile->position(arbProfPointIdx);
 				const int zind = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 				double globalPos[3];
 				std::copy(m_globalPt, m_globalPt + 3, globalPos);
 				globalPos[zind] = ptPos[zind];
 
-				if (setArbitraryProfile(arbProfPtInd, globalPos, true))
-					emit arbitraryProfileChanged(arbProfPtInd, globalPos);
+				if (setArbitraryProfile(arbProfPointIdx, globalPos, true))
+					emit arbitraryProfileChanged(arbProfPointIdx, globalPos);
 			}
 		}
 	}
@@ -2181,14 +2174,13 @@ void iASlicer::addPoint(double xPos, double yPos, double zPos)
 	GetRenderWindow()->GetInteractor()->Render();
 }
 
-void iASlicer::setSliceProfile(double Pos[3])
+void iASlicer::updateRawProfile(double posY)
 {
 	if (!hasChannel(0))
 		return;
-	// TODO: slice profile on selected/current channel
+	// TODO: slice "raw" profile on selected/current channel
 	vtkImageData * reslicedImgData = channel(0)->output();
-	double PosY = Pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
-	if (!m_sliceProfile->updatePosition(PosY, reslicedImgData))
+	if (!m_sliceProfile->updatePosition(posY, reslicedImgData))
 		return;
 	// render slice view
 	GetRenderWindow()->GetInteractor()->Render();
@@ -2256,16 +2248,8 @@ void iASlicer::deleteSnakeLine()
 void iASlicer::setSliceProfileOn(bool isOn)
 {
 	m_isSliceProfEnabled = isOn;
-	m_sliceProfile->SetVisibility(m_isSliceProfEnabled);
-	m_renWin->GetInteractor()->Render();
-}
-
-void iASlicer::updateProfile()
-{
-	double oldPos[3];
-	m_sliceProfile->GetPoint(0, oldPos);
-	double pos[3] = { oldPos[1], oldPos[1], oldPos[1] };
-	setSliceProfile(pos);
+	m_sliceProfile->setVisibility(m_isSliceProfEnabled);
+	updateRawProfile(channel(0)->output()->GetOrigin()[1]);
 }
 
 void iASlicer::setArbitraryProfileOn(bool isOn)
@@ -2275,7 +2259,7 @@ void iASlicer::setArbitraryProfileOn(bool isOn)
 		return;
 	}
 	m_isArbProfEnabled = isOn;
-	m_arbProfile->SetVisibility(m_isArbProfEnabled);
+	m_arbProfile->setVisibility(m_isArbProfEnabled);
 	GetRenderWindow()->GetInteractor()->Render();
 }
 

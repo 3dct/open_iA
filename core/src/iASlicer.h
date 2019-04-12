@@ -211,9 +211,6 @@ public slots:
 	void setSlabThickness(int thickness);
 	void setSlabCompositeMode(int compositeMode);
 
-	//! Sets a profile line.
-	void setSliceProfile(double Pos[3]);
-
 	//! Sets coordinates for line profile
 	bool setArbitraryProfile(int pointInd, double * Pos, bool doClamp = false);
 
@@ -281,8 +278,8 @@ protected:
 	int             m_xInd, m_yInd, m_zInd;     //!< current position
 	iASnakeSpline * m_snakeSpline;
 	vtkPoints *     m_worldSnakePoints;
-	iASlicerProfile	* m_sliceProfile;            //!< necessary vtk classes for the slice profile
-	iAArbitraryProfileOnSlicer * m_arbProfile;
+	iASlicerProfile	* m_sliceProfile;            //!< implements the raw slice profile
+	iAArbitraryProfileOnSlicer * m_arbProfile;   //!< implements drawing the start and end point of the "arbitrary" profile
 
 	// { TODO: move to XRF module
 	bool            m_pieGlyphsEnabled;         //!< if slice pie glyphs for xrf are enabled
@@ -292,7 +289,6 @@ protected:
 	double          m_pieGlyphOpacity;
 	// }
 
-	void updateProfile();
 	void keyPressEvent(QKeyEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
 	void mouseMoveEvent(QMouseEvent * event) override;
@@ -430,8 +426,10 @@ private:
 	//! @param yCoord y coordinate (pixel index) in channel
 	//! @param zCoord z coordinate (pixel index) in channel
 	void computeCoords(double * coords, uint channelID);
-	void computeGlobalPoint();
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 	void updatePosition();
+
+	//! Update the position of the raw profile line.
+	void updateRawProfile(double posY);
 };

@@ -25,15 +25,15 @@
 #include <vtkPoints.h>
 #include <vtkPolyDataMapper.h>
 
-iALineSegment::iALineSegment()
+iALineSegment::iALineSegment():
+	points(vtkSmartPointer<vtkPoints>::New()),
+	lineSource(vtkSmartPointer<vtkLineSource>::New()),
+	mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	actor(vtkSmartPointer<vtkActor>::New())
 {
-	points = vtkSmartPointer<vtkPoints>::New();
 	points->Allocate(2);
 	points->SetPoint(0, 0,0,0);
 	points->SetPoint(1, 1,1,1);
-	lineSource = vtkSmartPointer<vtkLineSource>::New();
-	mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	actor = vtkSmartPointer<vtkActor>::New();
 	lineSource->SetPoint1(points->GetPoint(0));
 	lineSource->SetPoint2(points->GetPoint(1));
 	lineSource->SetResolution(1);
