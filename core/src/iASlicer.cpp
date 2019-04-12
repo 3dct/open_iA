@@ -958,14 +958,10 @@ void iASlicer::saveAsImage()
 
 	dlg_commoninput dlg(this, "Save options", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
-	{
 		return;
-	}
 	saveNative = dlg.getCheckValue(0);
 	if (inList.size() > 2)
-	{
 		output16Bit = dlg.getCheckValue(2);
-	}
 	iAConnector con;
 	vtkSmartPointer<vtkImageData> img;
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -2224,9 +2220,8 @@ bool iASlicer::setArbitraryProfile(int pointInd, double * Pos, bool doClamp)
 void iASlicer::movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos)
 {
 	if (!m_decorations)
-	{
 		return;
-	}
+
 	double pos[3] = { xPos, yPos, zPos };
 	double x = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
 	double y = pos[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
