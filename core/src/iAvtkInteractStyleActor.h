@@ -21,6 +21,8 @@
 #pragma once
 
 #include <vtkInteractorStyleTrackballActor.h>
+#include <vtkSmartPointer.h>
+//#include <vtkTransform.h>
 
 #include <QObject>
 
@@ -29,6 +31,7 @@ class iAVolumeRenderer;
 class MdiChild;
 
 class vtkImageData;
+class vtkTransform; 
 
 class iAvtkInteractStyleActor : public QObject, public vtkInteractorStyleTrackballActor
 {
@@ -51,12 +54,16 @@ public:
 	void updateInteractors(); 
 
 
-
+	//rotates 2d slicer
 	void custom2DRotate(); 
 
-	void Update3DTransform(double * imageCenter, const double * spacing, double relativeAngle);
+	void SlicerUpdate();
+	
 
-	void TransformReslicer(double * obj_center, double const * spacing, double newAngle, double oldAngle);
+	//should update interactor for 3d volume according to angle and axis
+	void Update3DTransform(const double * imageCenter, const double * spacing, double relativeAngle);
+
+	void TransformReslicer(double * obj_center, double const * spacing, double rotationAngle);
 signals:
 	void actorsUpdated();
 
@@ -68,6 +75,8 @@ private:
 	bool enable3D;
 	vtkImageData *m_image;
 	iAChannelSlicerData* m_slicerChannel[3];
+	vtkSmartPointer<vtkTransform> m_transform;
+
 	int m_currentSliceMode;
 	bool m_rightButtonDragZoomEnabled = false;
 	bool m_rotationEnabled; 
