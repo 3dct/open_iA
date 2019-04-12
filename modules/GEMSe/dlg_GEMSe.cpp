@@ -109,7 +109,7 @@ void dlg_GEMSe::SetTree(
 	m_previewWidgetPool = new iAPreviewWidgetPool(
 		MaxPreviewWidgets, m_cameraWidget->GetCommonCamera(), iASlicerMode::XY, imageTree->GetLabelCount(), m_colorTheme);
 
-	m_nullImage = AllocateImage(imageTree->m_root->GetRepresentativeImage(iARepresentativeType::Difference,
+	m_nullImage = allocateImage(imageTree->m_root->GetRepresentativeImage(iARepresentativeType::Difference,
 		LabelImagePointer()));
 
 	m_treeView = new iAImageTreeView(wdTree, imageTree, m_previewWidgetPool, m_representativeType);
@@ -191,7 +191,7 @@ void dlg_GEMSe::CreateMapper()
 	for (int samplingIdx=0; samplingIdx<m_samplings->size(); ++samplingIdx)
 	{
 		QSharedPointer<iASamplingResults> sampling = m_samplings->at(samplingIdx);
-		m_pipelineNames.push_back(sampling->GetName());
+		m_pipelineNames.push_back(sampling->name());
 		int datasetID = sampling->GetID();
 		QSharedPointer<iAAttributes> attributes = sampling->GetAttributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)
@@ -201,21 +201,21 @@ void dlg_GEMSe::CreateMapper()
 			
 			// check if previous datasets have an attribute with the same name
 			if (samplingIdx > 0 &&
-				attribute->AttribType() ==
+				attribute->attribType() ==
 				iAAttributeDescriptor::DerivedOutput) // at the moment for derived output only
 			{
-				chartID = m_chartAttributes->Find(attribute->Name());
+				chartID = m_chartAttributes->find(attribute->name());
 			}
 			if (chartID != -1)
 			{	// reuse existing chart, only add mapping:
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 				// and update min/max:
-				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->Min());
-				m_chartAttributes->at(chartID)->AdjustMinMax(attribute->Max());
+				m_chartAttributes->at(chartID)->adjustMinMax(attribute->min());
+				m_chartAttributes->at(chartID)->adjustMinMax(attribute->max());
 			}
 			else
 			{	// add chart and mapping:
-				m_chartAttributes->Add(attribute);
+				m_chartAttributes->add(attribute);
 				chartID = nextChartID;
 				nextChartID++;
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
@@ -331,10 +331,10 @@ void dlg_GEMSe::HistogramSelectionUpdated()
 	m_scatterplot->SetDataSource(
 		m_histogramContainer->GetSelectedChartID(0),
 		m_histogramContainer->GetSelectedChartID(1),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->Name(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->Name(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->IsLogScale(),
-		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->IsLogScale(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->name(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->name(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(0))->isLogScale(),
+		m_chartAttributes->at(m_histogramContainer->GetSelectedChartID(1))->isLogScale(),
 		m_chartAttributeMapper,
 		m_chartFilter,
 		GetRoot().data(),
@@ -380,7 +380,7 @@ void dlg_GEMSe::UpdateFilteredData()
 
 void dlg_GEMSe::FilterChanged(int chartID, double min, double max)
 {
-	if (m_chartAttributes->at(chartID)->CoversWholeRange(min, max))
+	if (m_chartAttributes->at(chartID)->coversWholeRange(min, max))
 	{
 		m_chartFilter.RemoveFilter(chartID);
 	}
@@ -627,7 +627,7 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 			int chartID = m_MeasureChartIDStart + i;
 			int attributeID = m_chartAttributeMapper.GetAttributeID(chartID, leaf->GetDatasetID());
 			leaf->SetAttribute(attributeID, measures[i]);
-			m_chartAttributes->at(chartID)->AdjustMinMax(measures[i]);
+			m_chartAttributes->at(chartID)->adjustMinMax(measures[i]);
 		}
 	}
 	else
@@ -652,7 +652,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		return;
 	}
 	int labelCount = m_treeView->GetTree()->GetLabelCount();
-	m_MeasureChartIDStart = m_chartAttributes->Find("Dice");
+	m_MeasureChartIDStart = m_chartAttributes->find("Dice");
 	if (m_MeasureChartIDStart == -1)
 	{
 		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
@@ -675,21 +675,21 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
 			int chartID = m_chartAttributes->size();
-			m_chartAttributes->Add(measure);
+			m_chartAttributes->add(measure);
 			// add mappings:
 			for (int sampleIdx = 0; sampleIdx < m_samplings->size(); ++sampleIdx)
 			{
 				QSharedPointer<iAAttributes> attribs = m_samplings->at(sampleIdx)->GetAttributes();
 				int attributeID = attribs->size();
 				int datasetID = m_samplings->at(sampleIdx)->GetID();
-				attribs->Add(measure);
+				attribs->add(measure);
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 			}
 		}
 	}
 	for (int i= m_MeasureChartIDStart; i<m_MeasureChartIDStart + 5 +labelCount; ++i)
 	{
-		m_chartAttributes->at(i)->ResetMinMax();
+		m_chartAttributes->at(i)->resetMinMax();
 	}
 
 	//DEBUG_LOG("Measures for ENSEMBLE:");

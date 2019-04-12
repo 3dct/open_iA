@@ -30,6 +30,8 @@
 */
 
 // iASlicer-based solution:
+#include <iAChannelData.h>
+#include <iAChannelSlicerData.h>
 #include <iASlicerSettings.h>
 #include <iASlicer.h>
 
@@ -37,6 +39,8 @@
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
 #include <vtkTransform.h>
+
+#include <QHBoxLayout>
 
 iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkScalarsToColors> lut):
 	m_transform(vtkSmartPointer<vtkTransform>::New()),
@@ -69,10 +73,12 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 	renderWindow->AddRenderer(m_renderer);
 	SetRenderWindow(renderWindow);
 	*/
-	m_slicer = new iASlicer(this, iASlicerMode::XY, this, false, true);
+	m_slicer = new iASlicer(this, iASlicerMode::XY, false, true, m_transform);
+	setLayout(new QHBoxLayout);
+	layout()->setSpacing(0);
+	layout()->addWidget(m_slicer);
 	m_slicer->setup(iASingleSlicerSettings());
-	m_slicer->initializeData(img, m_transform, m_lut);
-	m_slicer->initializeWidget(img);
+	m_slicer->addChannel(0, iAChannelData("", img, m_lut), true);
 	StyleChanged();
 }
 
@@ -82,13 +88,13 @@ void iAImageWidget::StyleChanged()
 	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
 	
 	//m_renderer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
-	m_slicer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
+	m_slicer->setBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
 }
 
 
 void iAImageWidget::SetMode(int slicerMode)
 {
-	m_slicer->ChangeMode(static_cast<iASlicerMode>(slicerMode));
+	m_slicer->setMode(static_cast<iASlicerMode>(slicerMode));
 	m_slicer->update();
 }
 
@@ -100,8 +106,8 @@ void iAImageWidget::SetSlice(int sliceNumber)
 
 int iAImageWidget::GetSliceCount() const
 {
-	int * ext = m_slicer->GetImageData()->GetExtent();
-	switch (m_slicer->GetMode())
+	int const * ext = m_slicer->channel(0)->input()->GetExtent();
+	switch (m_slicer->mode())
 	{
 		case XZ: return ext[3] - ext[2] + 1;
 		case YZ: return ext[1] - ext[0] + 1;

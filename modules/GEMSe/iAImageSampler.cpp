@@ -114,10 +114,10 @@ void iAImageSampler::run()
 		DEBUG_LOG("No Parameters available!");
 		return;
 	}
-	m_parameterCount = m_parameters->Count(iAAttributeDescriptor::Parameter);
+	m_parameterCount = m_parameters->count(iAAttributeDescriptor::Parameter);
 
-	QStringList additionalArgumentList = SplitPossiblyQuotedString(m_additionalArguments);
-	if (m_parameters->Find("Object Count") == -1)
+	QStringList additionalArgumentList = splitPossiblyQuotedString(m_additionalArguments);
+	if (m_parameters->find("Object Count") == -1)
 	{
 		// add derived output to the attributes (which we want to set during sampling):
 		QSharedPointer<iAAttributeDescriptor> objectCountAttr(new iAAttributeDescriptor(
@@ -126,14 +126,14 @@ void iAImageSampler::run()
 			"Average Uncertainty", iAAttributeDescriptor::DerivedOutput, Continuous));
 		QSharedPointer<iAAttributeDescriptor> timeAttr(new iAAttributeDescriptor(
 			"Performance", iAAttributeDescriptor::DerivedOutput, Continuous));
-		m_parameters->Add(objectCountAttr);
-		m_parameters->Add(avgUncertaintyAttr);
-		m_parameters->Add(timeAttr);
+		m_parameters->add(objectCountAttr);
+		m_parameters->add(avgUncertaintyAttr);
+		m_parameters->add(timeAttr);
 	}
 
 	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(
 		m_parameters,
-		m_sampleGenerator->GetName(),
+		m_sampleGenerator->name(),
 		m_outputBaseDir,
 		m_executable,
 		m_additionalArguments,
@@ -171,13 +171,13 @@ void iAImageSampler::run()
 
 		for (int i = 0; i < m_modalities->size(); ++i)
 		{
-			argumentList << QString("%1").arg(m_modalities->Get(i)->GetFileName()) ;
+			argumentList << QString("%1").arg(m_modalities->get(i)->fileName()) ;
 		}
 
 		for (int i = 0; i < m_parameterCount; ++i)
 		{
 			QString value;
-			switch (m_parameters->at(i)->ValueType())
+			switch (m_parameters->at(i)->valueType())
 			{
 			case Continuous:
 				value = QString::number(paramSet.at(i), 'g', 12);
@@ -186,14 +186,14 @@ void iAImageSampler::run()
 				value = QString::number(static_cast<long>(paramSet.at(i)));
 				break;
 			case Categorical:
-				value = m_parameters->at(i)->NameMapper()->GetName(static_cast<long>(paramSet.at(i)));
+				value = m_parameters->at(i)->nameMapper()->name(static_cast<long>(paramSet.at(i)));
 				break;
 			}
 			argumentList << value;
 		}
 		iACommandRunner* cmd = new iACommandRunner(m_executable, argumentList);
 		
-		QSharedPointer<iAModality const> mod0 = m_modalities->Get(0);
+		QSharedPointer<iAModality const> mod0 = m_modalities->get(0);
 		
 		m_runningComputation.insert(cmd, m_curLoop);
 		connect(cmd, SIGNAL(finished()), this, SLOT(computationFinished()) );
@@ -245,7 +245,7 @@ void iAImageSampler::computationFinished()
 		m_outputBaseDir + "/sample" + QString::number(id) + +"/label.mhd");
 	
 	result->SetAttribute(m_parameterCount+2, computationTime);
-	m_results->GetAttributes()->at(m_parameterCount+2)->AdjustMinMax(computationTime);
+	m_results->GetAttributes()->at(m_parameterCount+2)->adjustMinMax(computationTime);
 
 	if (m_calculateCharacteristics)
 	{
@@ -291,8 +291,8 @@ void iAImageSampler::derivedOutputFinished()
 	}
 
 	QSharedPointer<iASingleResult> result = m_runningDerivedOutput[charactCalc];
-	m_results->GetAttributes()->at(m_parameterCount)->AdjustMinMax(result->GetAttribute(m_parameterCount));
-	m_results->GetAttributes()->at(m_parameterCount+1)->AdjustMinMax(result->GetAttribute(m_parameterCount+1));
+	m_results->GetAttributes()->at(m_parameterCount)->adjustMinMax(result->GetAttribute(m_parameterCount));
+	m_results->GetAttributes()->at(m_parameterCount+1)->adjustMinMax(result->GetAttribute(m_parameterCount+1));
 
 	// TODO: pass in from somewhere! Or don't store here at all? but what in case of a power outage/error?
 	QString sampleMetaFile      = m_outputBaseDir + "/" + m_parameterRangeFile;
@@ -329,7 +329,7 @@ QSharedPointer<iASamplingResults> iAImageSampler::GetResults()
 	return m_results;
 }
 
-void iAImageSampler::Abort()
+void iAImageSampler::abort()
 {
 	DEBUG_LOG("Abort requested by User!");
 	m_aborted = true;

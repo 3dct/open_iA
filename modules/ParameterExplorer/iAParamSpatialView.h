@@ -40,7 +40,7 @@ class iAParamSpatialView: public QWidget
 	Q_OBJECT
 public:
 	iAParamSpatialView(iAParamTableView* table, QString const & basePath);
-	void SetImage(size_t id);
+	void setImage(size_t id);
 private slots:
 	void SlicerModeButtonClicked(bool checked);
 	void SliceChanged(int slice);

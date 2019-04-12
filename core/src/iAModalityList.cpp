@@ -107,11 +107,11 @@ iAModalityList::iAModalityList() :
 {
 }
 
-bool iAModalityList::ModalityExists(QString const & filename, int channel) const
+bool iAModalityList::modalityExists(QString const & filename, int channel) const
 {
 	foreach(QSharedPointer<iAModality> mod, m_modalitiesActive)
 	{
-		if (mod->GetFileName() == filename && mod->GetChannel() == channel)
+		if (mod->fileName() == filename && mod->channel() == channel)
 		{
 			return true;
 		}
@@ -119,7 +119,7 @@ bool iAModalityList::ModalityExists(QString const & filename, int channel) const
 	return false;
 }
 
-QString const & iAModalityList::GetFileName() const
+QString const & iAModalityList::fileName() const
 {
 	return m_fileName;
 }
@@ -130,10 +130,12 @@ QString GetRenderFlagString(QSharedPointer<iAModality> mod)
 	if (mod->hasRenderFlag(iAModality::MagicLens)) result += "L";
 	if (mod->hasRenderFlag(iAModality::MainRenderer)) result += "R";
 	if (mod->hasRenderFlag(iAModality::BoundingBox)) result += "B";
+	if (mod->hasRenderFlag(iAModality::Slicer)) result += "S";
+
 	return result;
 }
 
-void iAModalityList::Store(QString const & filename, vtkCamera* camera)
+void iAModalityList::store(QString const & filename, vtkCamera* camera)
 {
 	m_fileName = filename;
 	QSettings settings(filename, QSettings::IniFormat);
@@ -141,17 +143,17 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 	settings.setValue(FileVersionKey, ModFileVersion);
 	if (camera)
 	{
-		settings.setValue(CameraPositionKey, Vec3D2String(camera->GetPosition()));
-		settings.setValue(CameraFocalPointKey, Vec3D2String(camera->GetFocalPoint()));
-		settings.setValue(CameraViewUpKey, Vec3D2String(camera->GetViewUp()));
+		settings.setValue(CameraPositionKey, vec3D2String(camera->GetPosition()));
+		settings.setValue(CameraFocalPointKey, vec3D2String(camera->GetFocalPoint()));
+		settings.setValue(CameraViewUpKey, vec3D2String(camera->GetViewUp()));
 	}
 	for (int i = 0; i<m_modalitiesActive.size(); ++i)
 	{
-		QFileInfo modalityFileInfo(m_modalitiesActive[i]->GetFileName());
+		QFileInfo modalityFileInfo(m_modalitiesActive[i]->fileName());
 		if (!modalityFileInfo.exists() || !modalityFileInfo.isFile())
 		{	// TODO: provide option to store as .mhd?
 			QMessageBox::warning(nullptr, "Save Project",
-				QString("Cannot reference %1 in project. Maybe this is an image stack? Please store modality first as file.").arg(m_modalitiesActive[i]->GetFileName()));
+				QString("Cannot reference %1 in project. Maybe this is an image stack? Please store modality first as file.").arg(m_modalitiesActive[i]->fileName()));
 			if (fi.exists())
 			{
 				// remove any half-written project file
@@ -159,18 +161,18 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 			}
 			return;
 		}
-		settings.setValue(GetModalityKey(i, "Name"), m_modalitiesActive[i]->GetName());
-		settings.setValue(GetModalityKey(i, "File"), MakeRelative(fi.absolutePath(), m_modalitiesActive[i]->GetFileName()));
-		if (m_modalitiesActive[i]->GetChannel() >= 0)
+		settings.setValue(GetModalityKey(i, "Name"), m_modalitiesActive[i]->name());
+		settings.setValue(GetModalityKey(i, "File"), MakeRelative(fi.absolutePath(), m_modalitiesActive[i]->fileName()));
+		if (m_modalitiesActive[i]->channel() >= 0)
 		{
-			settings.setValue(GetModalityKey(i, "Channel"), m_modalitiesActive[i]->GetChannel());
+			settings.setValue(GetModalityKey(i, "Channel"), m_modalitiesActive[i]->channel());
 		}
 		settings.setValue(GetModalityKey(i, "RenderFlags"), GetRenderFlagString(m_modalitiesActive[i]));
-		settings.setValue(GetModalityKey(i, "Orientation"), m_modalitiesActive[i]->GetOrientationString());
-		settings.setValue(GetModalityKey(i, "Position"), m_modalitiesActive[i]->GetPositionString());
+		settings.setValue(GetModalityKey(i, "Orientation"), m_modalitiesActive[i]->orientationString());
+		settings.setValue(GetModalityKey(i, "Position"), m_modalitiesActive[i]->positionString());
 
 		//save renderer volume settings for each modality
-		iAVolumeSettings const & volumeSettings = m_modalitiesActive[i]->GetRenderer()->getVolumeSettings();
+		iAVolumeSettings const & volumeSettings = m_modalitiesActive[i]->renderer()->volumeSettings();
 		settings.setValue(GetModalityKey(i, "Shading"), volumeSettings.Shading);
 		settings.setValue(GetModalityKey(i, "LinearInterpolation"), volumeSettings.LinearInterpolation);
 		settings.setValue(GetModalityKey(i, "SampleDistance"), volumeSettings.SampleDistance);
@@ -181,8 +183,8 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 		settings.setValue(GetModalityKey(i, "ScalarOpacityUnitDistance"), volumeSettings.ScalarOpacityUnitDistance);
 		settings.setValue(GetModalityKey(i, "RenderMode"), volumeSettings.RenderMode);
 
-		QFileInfo modFileInfo(m_modalitiesActive[i]->GetFileName());
-		QString absoluteTFFileName(m_modalitiesActive[i]->GetTransferFileName());
+		QFileInfo modFileInfo(m_modalitiesActive[i]->fileName());
+		QString absoluteTFFileName(m_modalitiesActive[i]->transferFileName());
 		if (absoluteTFFileName.isEmpty())
 		{
 			absoluteTFFileName = MakeAbsolute(fi.absolutePath(), modFileInfo.fileName() + "_tf.xml");
@@ -198,12 +200,12 @@ void iAModalityList::Store(QString const & filename, vtkCamera* camera)
 		QString tfFileName = MakeRelative(fi.absolutePath(), absoluteTFFileName);
 		settings.setValue(GetModalityKey(i, "TransferFunction"), tfFileName);
 		iASettings s;
-		s.StoreTransferFunction(m_modalitiesActive[i]->GetTransfer().data());
-		s.Save(absoluteTFFileName);
+		s.storeTransferFunction(m_modalitiesActive[i]->transfer().data());
+		s.save(absoluteTFFileName);
 	}
 }
 
-bool iAModalityList::Load(QString const & filename, iAProgress& progress)
+bool iAModalityList::load(QString const & filename, iAProgress& progress)
 {
 	if (filename.isEmpty())
 	{
@@ -227,9 +229,9 @@ bool iAModalityList::Load(QString const & filename, iAProgress& progress)
 			.arg(ModFileVersion));
 		return false;
 	}
-	if (!Str2Vec3D(settings.value(CameraPositionKey).toString(), camPosition) ||
-		!Str2Vec3D(settings.value(CameraFocalPointKey).toString(), camFocalPoint) ||
-		!Str2Vec3D(settings.value(CameraViewUpKey).toString(), camViewUp))
+	if (!str2Vec3D(settings.value(CameraPositionKey).toString(), m_camPosition) ||
+		!str2Vec3D(settings.value(CameraFocalPointKey).toString(), m_camFocalPoint) ||
+		!str2Vec3D(settings.value(CameraViewUpKey).toString(), m_camViewUp))
 	{
 		//DEBUG_LOG(QString("Invalid or missing camera information."));
 	}
@@ -266,7 +268,7 @@ bool iAModalityList::Load(QString const & filename, iAProgress& progress)
 		QString SpecularLighting = settings.value(GetModalityKey(currIdx, "SpecularLighting"), defaultSettings.SpecularLighting).toString();
 		QString SpecularPower = settings.value(GetModalityKey(currIdx, "SpecularPower"), defaultSettings.SpecularPower).toString();
 		QString ScalarOpacityUnitDistance = settings.value(GetModalityKey(currIdx, "ScalarOpacityUnitDistance"), defaultSettings.ScalarOpacityUnitDistance).toString();
-		volSettings.RenderMode = MapRenderModeToEnum(settings.value(GetModalityKey(currIdx, "RenderMode")).toString());
+		volSettings.RenderMode = mapRenderModeToEnum(settings.value(GetModalityKey(currIdx, "RenderMode")).toString());
 
 		//check if vol settings are ok / otherwise use default values
 		checkandSetVolumeSettings(volSettings, Shading, LinearInterpolation, SampleDistance, AmbientLighting,
@@ -276,7 +278,7 @@ bool iAModalityList::Load(QString const & filename, iAProgress& progress)
 		{
 			tfFileName = MakeAbsolute(fi.absolutePath(), tfFileName);
 		}
-		if (ModalityExists(modalityFile, channel))
+		if (modalityExists(modalityFile, channel))
 		{
 			DEBUG_LOG(QString("Modality (name=%1, filename=%2, channel=%3) already exists!").arg(modalityName).arg(modalityFile).arg(channel));
 		}
@@ -284,18 +286,19 @@ bool iAModalityList::Load(QString const & filename, iAProgress& progress)
 		{
 			int renderFlags = (modalityRenderFlags.contains("R") ? iAModality::MainRenderer : 0) |
 				(modalityRenderFlags.contains("L") ? iAModality::MagicLens : 0) |
-				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0);
+				(modalityRenderFlags.contains("B") ? iAModality::BoundingBox : 0) |
+				(modalityRenderFlags.contains("S") ? iAModality::Slicer : 0);
 
-			ModalityCollection mod = iAModalityList::Load(modalityFile, modalityName, channel, false, renderFlags);
+			ModalityCollection mod = iAModalityList::load(modalityFile, modalityName, channel, false, renderFlags);
 			if (mod.size() != 1) // we expect to load exactly one modality
 			{
 				DEBUG_LOG(QString("Invalid state: More or less than one modality loaded from file '%1'").arg(modalityFile));
 				return false;
 			}
-			mod[0]->SetStringSettings(positionSettings, orientationSettings, tfFileName);
+			mod[0]->setStringSettings(positionSettings, orientationSettings, tfFileName);
 			mod[0]->setVolSettings(volSettings);
 			m_modalitiesActive.push_back(mod[0]);
-			emit Added(mod[0]);
+			emit added(mod[0]);
 		}
 		++currIdx;
 		progress.EmitProgress((100 * currIdx) / maxIdx);
@@ -304,15 +307,15 @@ bool iAModalityList::Load(QString const & filename, iAProgress& progress)
 	return true;
 }
 
-void iAModalityList::ApplyCameraSettings(vtkCamera* camera)
+void iAModalityList::applyCameraSettings(vtkCamera* camera)
 {
 	if (!camera || !m_camSettingsAvailable)
 	{
 		return;
 	}
-	camera->SetPosition(camPosition);
-	camera->SetFocalPoint(camFocalPoint);
-	camera->SetViewUp(camViewUp);
+	camera->SetPosition(m_camPosition);
+	camera->SetFocalPoint(m_camFocalPoint);
+	camera->SetViewUp(m_camViewUp);
 	m_camSettingsAvailable = false;
 }
 
@@ -320,16 +323,16 @@ namespace
 {
 	QString GetMeasurementString(QSharedPointer<iAModality> mod)
 	{
-		return QString("") + QString::number(mod->GetWidth()) + "x" +
-			QString::number(mod->GetHeight()) + "x" +
-			QString::number(mod->GetDepth()) + " (" +
-			QString::number(mod->GetSpacing()[0]) + ", " +
-			QString::number(mod->GetSpacing()[1]) + ", " +
-			QString::number(mod->GetSpacing()[2]) + ")";
+		return QString("") + QString::number(mod->width()) + "x" +
+			QString::number(mod->height()) + "x" +
+			QString::number(mod->depth()) + " (" +
+			QString::number(mod->spacing()[0]) + ", " +
+			QString::number(mod->spacing()[1]) + ", " +
+			QString::number(mod->spacing()[2]) + ")";
 	}
 }
 
-void iAModalityList::Add(QSharedPointer<iAModality> mod)
+void iAModalityList::add(QSharedPointer<iAModality> mod)
 {
 	if (m_modalitiesActive.size() > 0)
 	{
@@ -350,20 +353,20 @@ void iAModalityList::Add(QSharedPointer<iAModality> mod)
 		*/
 	}
 	m_modalitiesActive.push_back(mod);
-	emit Added(mod);
+	emit added(mod);
 }
 
-void iAModalityList::Remove(int idx)
+void iAModalityList::remove(int idx)
 {
 	m_modalitiesActive.remove(idx);
 }
 
-QSharedPointer<iAModality> iAModalityList::Get(int idx)
+QSharedPointer<iAModality> iAModalityList::get(int idx)
 {
 	return m_modalitiesActive[idx];
 }
 
-QSharedPointer<iAModality const> iAModalityList::Get(int idx) const
+QSharedPointer<iAModality const> iAModalityList::get(int idx) const
 {
 	return m_modalitiesActive[idx];
 }
@@ -373,7 +376,7 @@ int iAModalityList::size() const
 	return m_modalitiesActive.size();
 }
 
-ModalityCollection iAModalityList::Load(QString const & filename, QString const & name, int channel, bool split, int renderFlags)
+ModalityCollection iAModalityList::load(QString const & filename, QString const & name, int channel, bool split, int renderFlags)
 {
 	// TODO: unify this with mdichild::loadFile
 	ModalityCollection result;
@@ -395,7 +398,7 @@ ModalityCollection iAModalityList::Load(QString const & filename, QString const 
 			DEBUG_LOG("Unknown file type!");
 			return result;
 		}
-		IOType id = ext2id->find(extension).value();
+		iAIOType id = ext2id->find(extension).value();
 		if (!io.setupIO(id, filename, false, channel))
 		{
 			DEBUG_LOG("Error while setting up modality loading!");
@@ -445,11 +448,11 @@ ModalityCollection iAModalityList::Load(QString const & filename, QString const 
 }
 
 
-bool iAModalityList::HasUnsavedModality() const
+bool iAModalityList::hasUnsavedModality() const
 {
 	for (int i = 0; i < m_modalitiesActive.size(); ++i)
 	{
-		if (m_modalitiesActive[i]->GetFileName().isEmpty() || !QFileInfo(m_modalitiesActive[i]->GetFileName()).exists())
+		if (m_modalitiesActive[i]->fileName().isEmpty() || !QFileInfo(m_modalitiesActive[i]->fileName()).exists())
 		{
 			return true;
 		}

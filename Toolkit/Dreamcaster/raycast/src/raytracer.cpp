@@ -22,13 +22,15 @@
 #include "../include/scene.h"
 #include "../include/common.h"
 #include "../include/BSPTree.h"
+
+#include <QFile>
+
 #include <algorithm>
 #include <vector>
-#include <QFile>
 
 #define MAX_CUT_AAB_COUNT 10
 
-///#include "../../enable_memleak.h"
+// #include "../../enable_memleak.h"
 static const char * clDreamcaster_Source[] = {
 #include "../../OpenCL/dreamcaster_embedded.txt"
 };
@@ -36,25 +38,25 @@ static const char * clDreamcaster_Source[] = {
 
 //namespace Raytracer {
 
-Ray::Ray( iAVec3f & a_Origin, iAVec3f & a_Dir ) :
+iARay::iARay( iAVec3f & a_Origin, iAVec3f & a_Dir ) :
 	m_Origin( a_Origin ), 
 	m_Direction( a_Dir )
 {}
 
-Ray::Ray(const iAVec3f * a_Origin, iAVec3f & a_Dir ) :
+iARay::iARay(const iAVec3f * a_Origin, iAVec3f & a_Dir ) :
 	m_Origin( *a_Origin ), 
 	m_Direction( a_Dir )
 {}
 
-Engine::Engine(SETTINGS * settings, float * dc_cuda_avpl_buff,	float * dc_cuda_dipang_buff  )
+iAEngine::iAEngine(iADreamCasterSettings * settings, float * dc_cuda_avpl_buff, float * dc_cuda_dipang_buff  )
 {
 	cuda_avpl_buff = dc_cuda_avpl_buff;
 	cuda_dipang_buff = dc_cuda_dipang_buff;
 	m_batchSize = settings->BATCH_SIZE;
-	m_Scene = new Scene();
+	m_Scene = new iAScene();
 	//renders = a_renders;
 	position[0] = position[1] = position[2] = 0.0f;
-	curBatchRenders = new RenderFromPosition[m_batchSize];
+	curBatchRenders = new iARenderFromPosition[m_batchSize];
 	m_cut_AABBs = 0;
 	m_cutAABBList = 0;
 	m_cutAABBListSize = 0;
@@ -62,7 +64,7 @@ Engine::Engine(SETTINGS * settings, float * dc_cuda_avpl_buff,	float * dc_cuda_d
 	InitOpenCL();
 }
 
-Engine::~Engine()
+iAEngine::~iAEngine()
 {
 	if(m_Scene)
 		delete m_Scene;
@@ -71,27 +73,21 @@ Engine::~Engine()
 	if(m_cut_AABBs)
 		delete [] m_cut_AABBs;
 }
-// -----------------------------------------------------------
-// Engine::SetTarget
-// Sets the render target canvas
-// -----------------------------------------------------------
-void Engine::setRotations(float a_X, float a_Y, float a_Z)
+
+void iAEngine::setRotations(float a_X, float a_Y, float a_Z)
 {
 	//inverted because we use origin and plane rotations instead of model rotation
 	rotX = a_X;
 	rotY = a_Y;
 	rotZ = a_Z;
 }
-void Engine::setPositon( float* pos )
+void iAEngine::setPositon( float* pos )
 {
 	for(unsigned int i=0; i<3; i++)
 		position[i] = pos[i];
 }
-// -----------------------------------------------------------
-// Engine::SetTarget
-// Sets the render target canvas
-// -----------------------------------------------------------
-void Engine::SetTarget( unsigned int* a_Dest)
+
+void iAEngine::SetTarget( unsigned int* a_Dest)
 {
 	// set pixel buffer address & size
 	m_Dest = a_Dest;
@@ -107,22 +103,22 @@ void Engine::SetTarget( unsigned int* a_Dest)
 }
 
 // -----------------------------------------------------------
-// Engine::Raytrace
+// iAEngine::Raytrace
 // Naive ray tracing: Intersects the ray with every primitive
 // in the scene to determine the closest intersection
 // -----------------------------------------------------------
-bool intersectionCompare( intersection *e1, intersection *e2 )
+bool intersectionCompare(iAintersection *e1, iAintersection *e2 )
 {
 	return e1->dist < e2->dist;
 }
 
-int Engine::DepthRaytrace( Ray& a_Ray, iAVec3f & a_Acc, int a_Depth, float a_RIndex, float& a_Dist, RayPenetration * ray_p, std::vector<Intersection*> &vecIntersections, traverse_stack * stack, bool dipAsColor )
+int iAEngine::DepthRaytrace(iARay& a_Ray, iAVec3f & a_Acc, int a_Depth, float a_RIndex, float& a_Dist, iARayPenetration * ray_p, std::vector<iAIntersection*> &vecIntersections, iATraverseStack * stack, bool dipAsColor )
 {
 	if (a_Depth > s->TRACEDEPTH) return 0;
 	// trace primary ray
 	a_Dist = 1000000.0f;
 	iAVec3f pi;
-	std::vector<intersection*> intersections;
+	std::vector<iAintersection*> intersections;
 	// find intersections
 	unsigned int cutAABBListSize;
 	if(m_cutAABBList)
@@ -188,8 +184,8 @@ int Engine::DepthRaytrace( Ray& a_Ray, iAVec3f & a_Acc, int a_Depth, float a_RIn
 			ray_p->totalPenetrLen += dist;
 		}
 		//add intersection in intersections vector
-		TriPrim* tri = intersections[i]->tri;
-		Intersection *isec = new Intersection(tri->GetIndex(), tri->GetAngleCos(a_Ray));
+		iATriPrim* tri = intersections[i]->tri;
+		iAIntersection *isec = new iAIntersection(tri->GetIndex(), tri->GetAngleCos(a_Ray));
 		vecIntersections.push_back(isec);
 		ray_p->avDipAng+=fabs(isec->dip_angle);
 	}
@@ -212,12 +208,8 @@ int Engine::DepthRaytrace( Ray& a_Ray, iAVec3f & a_Acc, int a_Depth, float a_RIn
 	// return pointer to primitive hit by primary ray
 	return 1;
 }
-// -----------------------------------------------------------
-// Engine::InitRender
-// Initializes the renderer, by resetting the line / tile
-// counters and precalculating some values
-// -----------------------------------------------------------
-void Engine::InitRender(iAVec3f * vp_corners, iAVec3f * vp_delta, iAVec3f * o)
+
+void iAEngine::InitRender(iAVec3f * vp_corners, iAVec3f * vp_delta, iAVec3f * o)
 {
 	//!@note rotations and translations are inversed, because we rotating plane and origin instead of object
 	float 
@@ -240,18 +232,15 @@ void Engine::InitRender(iAVec3f * vp_corners, iAVec3f * vp_delta, iAVec3f * o)
 	vp_delta[1] = rot_mat*iAVec3f(0, m_DY, 0);
 }
 
-bool Engine::Render(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o,  bool rememberData, bool dipAsColor, bool cuda_enabled, bool rasterization )
+bool iAEngine::Render(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o,  bool rememberData, bool dipAsColor, bool cuda_enabled, bool rasterization )
 {
 	if(cuda_enabled)
 		return RenderGPU(vp_corners, vp_delta, o, rememberData, dipAsColor, rasterization);
 	else
 		return RenderCPU(vp_corners, vp_delta, o, rememberData, dipAsColor);
 }
-// -----------------------------------------------------------
-// Engine::RenderCPU
-// Render scene
-// -----------------------------------------------------------
-bool Engine::RenderCPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool rememberData, bool dipAsColor )
+
+bool iAEngine::RenderCPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool rememberData, bool dipAsColor )
 {
 	curRender.clear();
 	curRender.rotX = rotX;
@@ -264,7 +253,7 @@ bool Engine::RenderCPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, con
 	curRender.avDipAngle = 0.f;
 
 	int threadCount = s->THREAD_GRID_X*s->THREAD_GRID_Y;
-	RaycastingThread * threads = new RaycastingThread[threadCount];
+	iARaycastingThread * threads = new iARaycastingThread[threadCount];
 	for (int x=0; x<s->THREAD_GRID_X; x++)
 		for (int y=0; y<s->THREAD_GRID_Y; y++)
 		{
@@ -338,11 +327,8 @@ bool Engine::RenderCPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, con
 	delete [] threads;
 	return true;
 }
-// -----------------------------------------------------------
-// Engine::RenderCPU
-// Render scene
-// -----------------------------------------------------------
-bool Engine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool rememberData, bool dipAsColor, bool rasteriztion )
+
+bool iAEngine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool rememberData, bool dipAsColor, bool rasteriztion )
 {
 	curRender.clear();
 	curRender.rotX = rotX;
@@ -376,12 +362,12 @@ bool Engine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, con
 		rot_mat.invert();
 		//TODO!!! add translation
 		iAVec3f origin = iAVec3f( 0, 0, ORIGIN_Z );
-		cuda_rasterize(&origin, &PLANE_Z, &PLANE_H_W, &rot_mat, &RFRAME_W, &RFRAME_H, (int)GetScene()->getNrTriangles(), cuda_avpl_buff);
+		cuda_rasterize(&origin, &PLANE_Z, &PLANE_H_W, &rot_mat, &RFRAME_W, &RFRAME_H, (int)scene()->getNrTriangles(), cuda_avpl_buff);
 */
 	}
 	else
 		raycast_single(
-				&(GetScene()->getBSPTree()->m_aabb), 
+				&(scene()->getBSPTree()->m_aabb), 
 				o, 
 				vp_corners, 
 				&vp_delta[0], 
@@ -429,7 +415,7 @@ bool Engine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, con
 	float s1_avDipAngle=0;
 	float s1_maxPenetrLen=0;
 	float raysCount=0;
-	RayPenetration * rays = new RayPenetration[s->RFRAME_W*s->RFRAME_H];
+	iARayPenetration * rays = new iARayPenetration[s->RFRAME_W*s->RFRAME_H];
 	if(rememberData)
 		curRender.rawPtrRaysVec.push_back(rays);
 	for (int i=0; i<s->RFRAME_W*s->RFRAME_H; i++)
@@ -476,7 +462,7 @@ bool Engine::RenderGPU(const iAVec3f * vp_corners, const iAVec3f * vp_delta, con
 	return true;
 }
 
-bool Engine::RenderBatchGPU( unsigned int batchSize, iAVec3f *os, iAVec3f * corns, iAVec3f * deltaxs, iAVec3f * deltays, float * rotsX, float * rotsY, float * rotsZ, bool rememberData /*= true*/, bool dipAsColor /*= false*/)
+bool iAEngine::RenderBatchGPU( unsigned int batchSize, iAVec3f *os, iAVec3f * corns, iAVec3f * deltaxs, iAVec3f * deltays, float * rotsX, float * rotsY, float * rotsZ, bool rememberData /*= true*/, bool dipAsColor /*= false*/)
 {
 	for (unsigned int batch=0; batch<batchSize; batch++)
 	{
@@ -492,7 +478,7 @@ bool Engine::RenderBatchGPU( unsigned int batchSize, iAVec3f *os, iAVec3f * corn
 	}
 
 	raycast_batch(
-		&(GetScene()->getBSPTree()->m_aabb), 
+		&(scene()->getBSPTree()->m_aabb), 
 		os, 
 		corns, 
 		deltaxs, deltays, 
@@ -545,7 +531,7 @@ bool Engine::RenderBatchGPU( unsigned int batchSize, iAVec3f *os, iAVec3f * corn
 		float s2_avDipAngle=0;
 		float s2_maxPenetrLen=0;
 		float raysCount=0;
-		RayPenetration * rays=new RayPenetration[s->RFRAME_W*s->RFRAME_H];
+		iARayPenetration * rays=new iARayPenetration[s->RFRAME_W*s->RFRAME_H];
 		if(rememberData)
 			curBatchRenders[batch].rawPtrRaysVec.push_back(rays);
 		for (int i=0, ioffset=offset; i<s->RFRAME_W*s->RFRAME_H; i++, ioffset++)
@@ -593,7 +579,7 @@ bool Engine::RenderBatchGPU( unsigned int batchSize, iAVec3f *os, iAVec3f * corn
 	return true;
 }
 
-void Engine::Transform( iAVec3f * vec )
+void iAEngine::Transform( iAVec3f * vec )
 {
 	//!@note rotations and translations are inversed, because we rotating plane and origin instead of object
 	float 
@@ -610,7 +596,7 @@ void Engine::Transform( iAVec3f * vec )
 	(*vec) = rot_mat*((*vec)+iposition);
 }
 
-void Engine::InitOpenCL()
+void iAEngine::InitOpenCL()
 {
 	cl_init(m_device, m_context, m_queue);
 	std::string				clDC(clDreamcaster_Source[0]);
@@ -634,7 +620,7 @@ void Engine::InitOpenCL()
 	itk_clSafeCall(error);
 }
 
-void Engine::AllocateOpenCLBuffers()
+void iAEngine::AllocateOpenCLBuffers()
 {
 	const size_t tri_count = m_Scene->getNrTriangles();
 	const size_t nodes_count = m_Scene->getBSPTree()->nodes.size();
@@ -644,9 +630,9 @@ void Engine::AllocateOpenCLBuffers()
 	const size_t out_size = s->RFRAME_W * s->RFRAME_H * s->BATCH_SIZE;
 	
 	cl_int error;
-	nodes = cl::Buffer( m_context, CL_MEM_READ_ONLY, nodes_count*sizeof(BSPNode), 0, &error );
+	nodes = cl::Buffer( m_context, CL_MEM_READ_ONLY, nodes_count*sizeof(iABSPNode), 0, &error );
 	itk_clSafeCall( error );
-	tris = cl::Buffer( m_context, CL_MEM_READ_ONLY, tri_count*sizeof(wald_tri), 0, &error );
+	tris = cl::Buffer( m_context, CL_MEM_READ_ONLY, tri_count*sizeof(iAwald_tri), 0, &error );
 	itk_clSafeCall( error );
 	ids = cl::Buffer( m_context, CL_MEM_READ_ONLY, id_count*sizeof(unsigned int), 0, &error );
 	itk_clSafeCall( error );
@@ -661,7 +647,7 @@ void Engine::AllocateOpenCLBuffers()
 	itk_clSafeCall( error );
 	dys = cl::Buffer( m_context, CL_MEM_READ_ONLY, batchSize * 3*sizeof(cl_float), 0, &error );
 	itk_clSafeCall( error );
-	cl_aabb = cl::Buffer(m_context, CL_MEM_READ_ONLY, sizeof(aabb), 0, &error );
+	cl_aabb = cl::Buffer(m_context, CL_MEM_READ_ONLY, sizeof(iAaabb), 0, &error );
 	itk_clSafeCall( error );
 
 	//out
@@ -673,25 +659,25 @@ void Engine::AllocateOpenCLBuffers()
 	itk_clSafeCall( error );
 }
 
-void Engine::setup_nodes( void * data )
+void iAEngine::setup_nodes( void * data )
 {
 	const size_t size = m_Scene->getBSPTree()->nodes.size();
 	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	nodes, cl_bool(true), 0, size * sizeof(BSPNode), data )  
+		m_queue.enqueueWriteBuffer(	nodes, cl_bool(true), 0, size * sizeof(iABSPNode), data )
 	);
 	itk_clSafeCall( m_queue.finish() );	
 }
 
-void Engine::setup_tris( void * data )
+void iAEngine::setup_tris( void * data )
 {
 	const size_t size = m_Scene->getNrTriangles();
 	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	tris, cl_bool(true), 0, size*sizeof(wald_tri),	data )  
+		m_queue.enqueueWriteBuffer(	tris, cl_bool(true), 0, size*sizeof(iAwald_tri),	data )
 	);
 	itk_clSafeCall( m_queue.finish() );	
 }
 
-void Engine::setup_ids( void * data )
+void iAEngine::setup_ids( void * data )
 {
 	const size_t size = m_Scene->getBSPTree()->tri_ind.size();
 	itk_clSafeCall(
@@ -700,7 +686,7 @@ void Engine::setup_ids( void * data )
 	itk_clSafeCall( m_queue.finish() );	
 }
 
-void Engine::raycast_batch(	
+void iAEngine::raycast_batch(
 	const void *a_aabb, 
 	const void * a_o, const void * a_c, 
 	const void * a_dx, const void * a_dy, 
@@ -727,14 +713,14 @@ void Engine::raycast_batch(
 		m_queue.enqueueWriteBuffer(	dys, cl_bool(true), 0, batchSize * 3*sizeof(cl_float), (void*)a_dy )  
 	);
 	itk_clSafeCall(
-		m_queue.enqueueWriteBuffer(	cl_aabb, cl_bool(true), 0, sizeof(aabb), (void*)a_aabb )  
+		m_queue.enqueueWriteBuffer(	cl_aabb, cl_bool(true), 0, sizeof(iAaabb), (void*)a_aabb )
 	);
 	if(a_cut_aabbs_count > 0)
 	{
-		cut_aabbs = cl::Buffer(m_context, CL_MEM_READ_ONLY, a_cut_aabbs_count*sizeof(aabb), 0, &error );
+		cut_aabbs = cl::Buffer(m_context, CL_MEM_READ_ONLY, a_cut_aabbs_count*sizeof(iAaabb), 0, &error );
 		itk_clSafeCall( error );
 		itk_clSafeCall(
-			m_queue.enqueueWriteBuffer(	cut_aabbs, cl_bool(true), 0, a_cut_aabbs_count*sizeof(aabb), (void*)a_cut_aabbs )  
+			m_queue.enqueueWriteBuffer(	cut_aabbs, cl_bool(true), 0, a_cut_aabbs_count*sizeof(iAaabb), (void*)a_cut_aabbs )
 			);
 	}
 	itk_clSafeCall( m_queue.finish() );	
@@ -784,7 +770,7 @@ void Engine::raycast_batch(
 	itk_clSafeCall( m_queue.finish() );
 }
 
-void Engine::raycast_single(
+void iAEngine::raycast_single(
 	const void *a_aabb, 
 	const void * a_o, const void * a_c, 
 	const void * a_dx, const void * a_dy, 
@@ -798,14 +784,14 @@ void Engine::raycast_single(
 }
 
 //////////////////////////////////////////////////////////////////////////
-//RaycastingThread implementation
+// iARaycastingThread implementation
 //////////////////////////////////////////////////////////////////////////
-void RaycastingThread::run()
+void iARaycastingThread::run()
 {
-	traverse_stack * tr_stack = new traverse_stack(e->GetScene()->getBSPTree()->splitLevel+1);
+	iATraverseStack * tr_stack = new iATraverseStack(e->scene()->getBSPTree()->splitLevel+1);
 	rayCount = (x2-x1)*(y2-y1);
 	delete [] rays;
-	rays = new RayPenetration[rayCount];
+	rays = new iARayPenetration[rayCount];
 	unsigned int rayInd=0;
 	for(int x=x1; x<x2; x++)
 		for(int y=y1; y<y2; y++)
@@ -817,7 +803,7 @@ void RaycastingThread::run()
 			iAVec3f acc( 0, 0, 0 );
 			iAVec3f dir = (m_vp_corners[0] + x*m_vp_delta[0] + y*m_vp_delta[1]) - (*m_o);
 			dir.normalize();
-			Ray r( m_o, dir );
+			iARay r( m_o, dir );
 			float dist;
 			e->DepthRaytrace( r, acc, 1, 1.0f, dist, &rays[rayInd], intersections, tr_stack, dipAsColor );
 			int red = (int)(acc[0] * 255);

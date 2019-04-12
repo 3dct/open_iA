@@ -23,7 +23,6 @@
 #include "iAParameterExplorerAttachment.h"
 
 #include <iAConsole.h>
-#include <iAChildData.h>
 #include <mainwindow.h>
 
 void iAParameterExplorerModuleInterface::Initialize()
@@ -31,7 +30,7 @@ void iAParameterExplorerModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
 	QAction * actionExplore = new QAction( m_mainWnd );
 	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));
@@ -61,8 +60,8 @@ bool iAParameterExplorerModuleInterface::StartParameterExplorer()
 	return result;
 }
 
-iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, iAChildData childData)
+iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
 {
-	iAParameterExplorerAttachment* result = iAParameterExplorerAttachment::create( mainWnd, childData);
+	iAParameterExplorerAttachment* result = iAParameterExplorerAttachment::create( mainWnd, child);
 	return result;
 }

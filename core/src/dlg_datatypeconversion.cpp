@@ -165,13 +165,13 @@ template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itk
 	rescalefilter->SetOutputMaximum(65535);
 	rescalefilter->Update();
 
-	image->SetImage(rescalefilter->GetOutput());
-	image->Modified();
+	image->setImage(rescalefilter->GetOutput());
+	image->modified();
 
 	// DEBUG:
 	//vtkSmartPointer<vtkMetaImageWriter> metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
 	//metaImageWriter->SetFileName("xyimage.mhd");
-	//metaImageWriter->SetInputData(xyconvertimage->GetVTKImage());
+	//metaImageWriter->SetInputData(xyconvertimage->vtkImage());
 	//metaImageWriter->SetCompression(0);
 	//metaImageWriter->Write();
 }
@@ -307,8 +307,8 @@ template<class T> void DataTypeConversionROI_template(QString const & filename, 
 	filter->SetExtractionRegion(region);
 	filter->Update();
 
-	roiimage->SetImage( SetIndexOffsetToZero<T>(filter->GetOutput()) );
-	roiimage->Modified();
+	roiimage->setImage( setIndexOffsetToZero<T>(filter->GetOutput()) );
+	roiimage->modified();
 }
 
 void dlg_datatypeconversion::DataTypeConversionROI(QString const & filename, double* b, double *roi)
@@ -329,9 +329,9 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 	boxlayout->addWidget(widget);
 
 	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
-	auto table = GetDefaultColorTransferFunction(image->GetVTKImage()->GetScalarRange());
+	auto table = defaultColorTF(image->vtkImage()->GetScalarRange());
 	color->SetLookupTable(table);
-	color->SetInputData(image->GetVTKImage());
+	color->SetInputData(image->vtkImage());
 	color->Update();
 
 	roiSource = vtkSmartPointer<vtkPlaneSource>::New();
@@ -572,7 +572,7 @@ void dlg_datatypeconversion::updatevalues(double* inPara)
 void dlg_datatypeconversion::createHistogram(iAPlotData::DataType* histbinlist, double minVal, double maxVal, int bins, double discretization )
 {
 	iAChartWidget* chart = new iAChartWidget(nullptr, "Histogram (Intensities)", "Frequency");
-	auto data = iAHistogramData::Create(histbinlist, bins, discretization, minVal, maxVal);
+	auto data = iAHistogramData::create(histbinlist, bins, discretization, minVal, maxVal);
 	chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(data, QColor(70, 70, 70, 255))));
 	chart->update();
 	chart->setMinimumHeight(80);
@@ -664,7 +664,7 @@ QString dlg_datatypeconversion::coreconversionfunctionforroi(QString filename, Q
 		{
 			for (int x=0; x<dims[0]; x++)
 			{
-				double buffer = m_roiimage->GetVTKImage()->GetScalarComponentAsDouble(x,y,z,0);
+				double buffer = m_roiimage->vtkImage()->GetScalarComponentAsDouble(x,y,z,0);
 				double value  =  buffer * scale + shift;
 				value = ( value > maxout ) ? maxout : value;
 				value = ( value < minout ) ? minout : value;

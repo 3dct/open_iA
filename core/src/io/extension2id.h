@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QMap>
 #include "defines.h"
 
-typedef QMap<QString, IOType> mapQString2int;
+#include <QMap>
+
+typedef QMap<QString, iAIOType> mapQString2int;
 
 static mapQString2int fill_extensionToId()
 {

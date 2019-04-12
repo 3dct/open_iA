@@ -20,18 +20,68 @@
 * ************************************************************************************/
 #pragma once
 
-class MdiChild;
+#include "open_iA_Core_export.h"
+
+#include <QColor>
+
+#include <vtkSmartPointer.h>
+
+
+class QString;
+
 class vtkImageData;
-class vtkPolyData;
-class QDockWidget;
+class vtkPiecewiseFunction;
+class vtkScalarsToColors;
 
-struct iAChildData
+
+class open_iA_Core_API iAChannelData
 {
-	iAChildData();
-	iAChildData( MdiChild * a_child );
+public:
+	static const size_t Maximum3DChannels = 3;
 
-	MdiChild * child;
-	vtkImageData * imgData;
-	vtkPolyData * polyData;
-	QDockWidget * logs;
+	iAChannelData();
+	iAChannelData(QString const & name, vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf=nullptr);
+	virtual ~iAChannelData();
+
+	virtual void reset();
+	void setData(vtkSmartPointer<vtkImageData> image, vtkScalarsToColors* ctf, vtkPiecewiseFunction* otf);
+
+	void setOpacity(double opacity);
+	double opacity() const;
+
+	bool isEnabled() const;
+	void setEnabled(bool enabled);
+
+	bool uses3D() const;
+	void set3D(bool enabled);
+
+	void setImage(vtkSmartPointer<vtkImageData> image);
+	void setColorTF(vtkScalarsToColors* cTF);
+	void setOpacityTF(vtkPiecewiseFunction* oTF);
+
+	void setName(QString name);
+	QString const & name() const;
+
+	// check if this can be somehow refactored (not needed for each kind of channel):
+	// begin
+	void setColor(QColor const & col);
+	QColor getColor() const;
+
+	bool isSimilarityRenderingEnabled() const;
+	void setSimilarityRenderingEnabled(bool enabled);
+	// end
+
+	vtkSmartPointer<vtkImageData> image() const;
+	vtkPiecewiseFunction * opacityTF() const;
+	vtkScalarsToColors * colorTF() const;
+private:
+	bool m_enabled;
+	double m_opacity;
+	bool m_threeD;
+	QColor m_color; // TODO: only used in XRF module, move there!
+	bool m_similarityRenderingEnabled;
+	vtkSmartPointer<vtkImageData>       m_image;
+	vtkScalarsToColors*                 m_cTF;
+	vtkPiecewiseFunction*               m_oTF;
+	QString                             m_name;
 };

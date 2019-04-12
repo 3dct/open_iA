@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASettings.h"
 
-#include "dlg_transfer.h"
+#include "iAChartFunctionTransfer.h"
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
@@ -61,23 +61,23 @@ iASettings::iASettings(QString const & filename)
 	file.close();
 }
 
-void iASettings::LoadTransferFunction(iATransferFunction* transferFunction)
+void iASettings::loadTransferFunction(iATransferFunction* transferFunction)
 {
 	QDomElement root = domDocument.documentElement();
 	QDomNode functionsNode = root.namedItem("functions");
 	if (!functionsNode.isElement())
 		return;
-	iASettings::LoadTransferFunction(functionsNode, transferFunction);
+	iASettings::loadTransferFunction(functionsNode, transferFunction);
 }
 
 
-void iASettings::LoadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction)
+void iASettings::loadTransferFunction(QDomNode const & functionsNode, iATransferFunction* transferFunction)
 {
 	QDomNode transferNode = functionsNode.namedItem("transfer");
 	if (!transferNode.isElement())
 		return;
-	transferFunction->getOpacityFunction()->RemoveAllPoints();
-	transferFunction->getColorFunction()->RemoveAllPoints();
+	transferFunction->opacityTF()->RemoveAllPoints();
+	transferFunction->colorTF()->RemoveAllPoints();
 	QDomNodeList list = transferNode.childNodes();
 	for (int n = 0; n < int(list.length()); n++)
 	{
@@ -89,13 +89,13 @@ void iASettings::LoadTransferFunction(QDomNode const & functionsNode, iATransfer
 		double green = attributes.namedItem("green").nodeValue().toDouble();
 		double blue = attributes.namedItem("blue").nodeValue().toDouble();
 		//value = clamp(range[0], range[1], value);
-		transferFunction->getOpacityFunction()->AddPoint(value, opacity);
-		transferFunction->getColorFunction()->AddRGBPoint(value, red, green, blue);
+		transferFunction->opacityTF()->AddPoint(value, opacity);
+		transferFunction->colorTF()->AddRGBPoint(value, red, green, blue);
 	}
-	transferFunction->getColorFunction()->Build();
+	transferFunction->colorTF()->Build();
 }
 
-void iASettings::StoreTransferFunction(iATransferFunction* transferFunction)
+void iASettings::storeTransferFunction(iATransferFunction* transferFunction)
 {
 	// does functions node exist
 	QDomNode functionsNode = domDocument.documentElement().namedItem("functions");
@@ -108,12 +108,12 @@ void iASettings::StoreTransferFunction(iATransferFunction* transferFunction)
 
 	QDomElement transferElement = domDocument.createElement("transfer");
 
-	for (int i = 0; i < transferFunction->getOpacityFunction()->GetSize(); i++)
+	for (int i = 0; i < transferFunction->opacityTF()->GetSize(); i++)
 	{
 		double opacityTFValue[4];
 		double colorTFValue[6];
-		transferFunction->getOpacityFunction()->GetNodeValue(i, opacityTFValue);
-		transferFunction->getColorFunction()->GetNodeValue(i, colorTFValue);
+		transferFunction->opacityTF()->GetNodeValue(i, opacityTFValue);
+		transferFunction->colorTF()->GetNodeValue(i, colorTFValue);
 
 		QDomElement nodeElement = domDocument.createElement("node");
 		nodeElement.setAttribute("value", QObject::tr("%1").arg(opacityTFValue[0]));
@@ -127,7 +127,7 @@ void iASettings::StoreTransferFunction(iATransferFunction* transferFunction)
 	functionsNode.appendChild(transferElement);
 }
 
-void iASettings::Save(QString const & filename)
+void iASettings::save(QString const & filename)
 {
 	QFile file(filename);
 	file.open(QIODevice::WriteOnly);

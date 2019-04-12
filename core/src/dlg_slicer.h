@@ -20,48 +20,29 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "iASlicerMode.h"
+#include "ui_slicer.h"
 
-#include <QObject>
+#include <QDockWidget>
 
-#include "open_iA_Core_export.h"
+class iASlicer;
 
-class QColor;
-class QMouseEvent;
-class QPainter;
-class iADiagramFctWidget;
-
-class open_iA_Core_API dlg_function: public QObject
+class dlg_slicer : public QDockWidget, public Ui_slicer
 {
-	Q_OBJECT
+Q_OBJECT
+
 public:
-	static const int TRANSFER = 0;
-	static const int GAUSSIAN = 1;
-	static const int BEZIER   = 2;
-
-	dlg_function(iADiagramFctWidget* chart) : chart(chart) { }
-
-	virtual int getType() = 0;
-
-	virtual void draw(QPainter &painter) = 0;
-	virtual void draw(QPainter &painter, QColor color, int lineWidth) = 0;
-	virtual void drawOnTop(QPainter &painter) = 0;
-
-	virtual int selectPoint(QMouseEvent *event, int *x = 0) = 0;
-	virtual int getSelectedPoint() = 0;
-	virtual int addPoint(int x, int y) = 0;
-	virtual void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) = 0;
-	virtual void removePoint(int index) = 0;
-	virtual void moveSelectedPoint(int x, int y) = 0;
-	virtual void changeColor(QMouseEvent *event) = 0;
-
-	virtual bool isColored() = 0;
-	virtual bool isEndPoint(int index) = 0;
-	virtual bool isDeletable(int index) = 0;
-
-	virtual void reset() = 0;
-	virtual void mouseReleaseEvent(QMouseEvent *event) {}
-	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) {}
-
-	iADiagramFctWidget *chart;
+	static const int BorderWidth;
+	static QColor slicerColor(iASlicerMode mode);
+	dlg_slicer(iASlicer* slicer);
+	void showBorder(bool show);
+private slots:
+	void setSliceSpinBox(int s);
+	void setSliceScrollBar(int s);
+	void setSlabMode(bool slabMode);
+	void updateSlabThickness(int thickness);
+	void updateSlabCompositeMode(int compositeMode);
+	void updateSliceControls(int minIdx, int maxIdx);
+private:
+	iASlicer* m_slicer;
 };

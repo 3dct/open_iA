@@ -51,7 +51,7 @@ public:
 	iAImageGraph(iAVoxelIndexType width,
 		iAVoxelIndexType height,
 		iAVoxelIndexType depth=1,
-		iAImageCoordinate::IndexOrdering indexOrdering = iAImageCoordinate::RowColDepMajor,
+		iAImageCoordinate::iAIndexOrdering indexOrdering = iAImageCoordinate::RowColDepMajor,
 		NeighbourhoodType neighbourhoodType = nbhVonNeumann
 	);
 

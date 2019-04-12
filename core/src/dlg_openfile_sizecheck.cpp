@@ -74,13 +74,13 @@ void dlg_openfile_sizecheck::CheckFileSize()
 
 	if (!isVolumeStack) {
 		extent[0] = getDblValue(0); extent[1]= getDblValue(1); extent[2] = getDblValue(2);
-		voxelSize = MapVTKTypeStringToSize(getComboBoxValue(10));
+		voxelSize = mapVTKTypeStringToSize(getComboBoxValue(10));
 		proposedSize = extent[0]*extent[1]*extent[2]*voxelSize;
 	}
 	else
 	{
 		extent[0] = getDblValue(5); extent[1]= getDblValue(6); extent[2] = getDblValue(7);
-		voxelSize = MapVTKTypeStringToSize(getComboBoxValue(14));
+		voxelSize = mapVTKTypeStringToSize(getComboBoxValue(14));
 		proposedSize = extent[0]*extent[1]*extent[2]*voxelSize;
 	}
 	proposedSizeLabel->setText("Predicted file size: " + QString::number(proposedSize) + " bytes");

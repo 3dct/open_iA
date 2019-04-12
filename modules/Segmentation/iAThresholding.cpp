@@ -63,17 +63,17 @@ void binary_threshold(iAFilter* filter, QMap<QString, QVariant> const & paramete
 	binThreshFilter->SetUpperThreshold(T(parameters["Upper threshold"].toDouble()));
 	binThreshFilter->SetOutsideValue(T(parameters["Outside value"].toDouble()));
 	binThreshFilter->SetInsideValue(T(parameters["Inside value"].toDouble()));
-	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
-	filter->Progress()->Observe(binThreshFilter);
+	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	filter->progress()->Observe(binThreshFilter);
 	binThreshFilter->Update();
-	filter->AddOutput(binThreshFilter->GetOutput());
+	filter->addOutput(binThreshFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iABinaryThreshold)
 
-void iABinaryThreshold::PerformWork(QMap<QString, QVariant> const & parameters)
+void iABinaryThreshold::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(binary_threshold, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(binary_threshold, inputPixelType(), this, parameters);
 }
 
 iABinaryThreshold::iABinaryThreshold() :
@@ -87,10 +87,10 @@ iABinaryThreshold::iABinaryThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html\">"
 		"Binary Threshold Filter</a> in the ITK documentation.")
 {
-	AddParameter("Lower threshold", Continuous, 0);
-	AddParameter("Upper threshold", Continuous, 32768);
-	AddParameter("Outside value", Continuous, 0);
-	AddParameter("Inside value", Continuous, 1);
+	addParameter("Lower threshold", Continuous, 0);
+	addParameter("Upper threshold", Continuous, 32768);
+	addParameter("Outside value", Continuous, 0);
+	addParameter("Inside value", Continuous, 1);
 }
 
 
@@ -104,27 +104,27 @@ void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	typedef typename itk::Image< float, 3 >   GradientImageType;
 	typedef itk::GradientMagnitudeImageFilter< InputImageType, GradientImageType > GMFType;
 	typename GMFType::Pointer gmfilter = GMFType::New();
-	gmfilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
-	filter->Progress()->Observe( gmfilter );
+	gmfilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	filter->progress()->Observe( gmfilter );
 	gmfilter->Update(); 
 	typedef typename itk::RobustAutomaticThresholdImageFilter < InputImageType, GradientImageType, OutputImageType > RATType;
 	auto ratsFilter = RATType::New();
-	ratsFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
+	ratsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	ratsFilter->SetGradientImage(gmfilter->GetOutput());
 	ratsFilter->SetOutsideValue( T(parameters["Outside value"].toDouble()) );
 	ratsFilter->SetInsideValue( T(parameters["Inside value"].toDouble()) );
 	ratsFilter->SetPow( parameters["Power"].toDouble() );
-	filter->Progress()->Observe( ratsFilter );
+	filter->progress()->Observe( ratsFilter );
 	ratsFilter->Update();
-	filter->AddOutputValue("Rats threshold", (double)ratsFilter->GetThreshold());
-	filter->AddOutput(ratsFilter->GetOutput());
+	filter->addOutputValue("Rats threshold", (double)ratsFilter->GetThreshold());
+	filter->addOutput(ratsFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iARatsThreshold)
 
-void iARatsThreshold::PerformWork(QMap<QString, QVariant> const & parameters)
+void iARatsThreshold::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(rats_threshold, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(rats_threshold, inputPixelType(), this, parameters);
 }
 
 iARatsThreshold::iARatsThreshold() :
@@ -137,9 +137,9 @@ iARatsThreshold::iARatsThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RobustAutomaticThresholdImageFilter.html\">"
 		"RATS Filter</a> in the ITK documentation.")
 {
-	AddParameter("Power", Continuous, 1);
-	AddParameter("Outside value", Continuous, 0);
-	AddParameter("Inside value", Continuous, 1);
+	addParameter("Power", Continuous, 1);
+	addParameter("Outside value", Continuous, 0);
+	addParameter("Inside value", Continuous, 1);
 }
 
 
@@ -159,11 +159,11 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 		otsuFilter->SetNumberOfHistogramBins( T (parameters["Number of histogram bins"].toDouble()) );
 		otsuFilter->SetOutsideValue( T(parameters["Outside value"].toDouble()) );
 		otsuFilter->SetInsideValue( T(parameters["Inside value"].toDouble()) );
-		otsuFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
-		filter->Progress()->Observe( otsuFilter );
+		otsuFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+		filter->progress()->Observe( otsuFilter );
 		otsuFilter->Update();
-		filter->AddOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
-		filter->AddOutput(otsuFilter->GetOutput());
+		filter->addOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
+		filter->addOutput(otsuFilter->GetOutput());
 	}
 	else
 	{
@@ -171,19 +171,19 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 		otsuFilter->SetNumberOfHistogramBins( T (parameters["Number of histogram bins"].toDouble()) );
 		otsuFilter->SetOutsideValue( T(parameters["Outside value"].toDouble()) );
 		otsuFilter->SetInsideValue( T(parameters["Inside value"].toDouble()) );
-		otsuFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
-		filter->Progress()->Observe( otsuFilter );
+		otsuFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+		filter->progress()->Observe( otsuFilter );
 		otsuFilter->Update();
-		filter->AddOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
-		filter->AddOutput(otsuFilter->GetOutput());
+		filter->addOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
+		filter->addOutput(otsuFilter->GetOutput());
 	}
 }
 
 IAFILTER_CREATE(iAOtsuThreshold)
 
-void iAOtsuThreshold::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAOtsuThreshold::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(otsu_threshold, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(otsu_threshold, inputPixelType(), this, parameters);
 }
 
 iAOtsuThreshold::iAOtsuThreshold() :
@@ -195,10 +195,10 @@ iAOtsuThreshold::iAOtsuThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuThresholdImageFilter.html\">"
 		"Otsu Threshold Filter</a> in the ITK documentation.")
 {
-	AddParameter("Number of histogram bins", Discrete, 128, 2);
-	AddParameter("Outside value", Continuous, 0);
-	AddParameter("Inside value", Continuous, 1);
-	AddParameter("Remove peaks", Boolean, false);
+	addParameter("Number of histogram bins", Discrete, 128, 2);
+	addParameter("Outside value", Continuous, 0);
+	addParameter("Inside value", Continuous, 1);
+	addParameter("Remove peaks", Boolean, false);
 }
 
 
@@ -213,7 +213,7 @@ void adaptive_otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 	radius.Fill(T(parameters["Radius"].toDouble()));
 	typedef itk::AdaptiveOtsuThresholdImageFilter< InputImageType, OutputImageType > AOTIFType;
 	typename AOTIFType::Pointer adotFilter = AOTIFType::New();
-	adotFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	adotFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	adotFilter->SetOutsideValue(T(parameters["Outside value"].toDouble()));
 	adotFilter->SetInsideValue(T(parameters["Inside value"].toDouble()));
 	adotFilter->SetNumberOfHistogramBins(parameters["Number of histogram bins"].toUInt());
@@ -223,16 +223,16 @@ void adaptive_otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 	adotFilter->SetRadius(radius);
 	adotFilter->SetSplineOrder(parameters["Spline order"].toUInt());
 	adotFilter->Update();
-	filter->Progress()->Observe(adotFilter);
+	filter->progress()->Observe(adotFilter);
 	adotFilter->Update();
-	filter->AddOutput(adotFilter->GetOutput());
+	filter->addOutput(adotFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iAAdaptiveOtsuThreshold)
 
-void iAAdaptiveOtsuThreshold::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAAdaptiveOtsuThreshold::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(adaptive_otsu_threshold, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(adaptive_otsu_threshold, inputPixelType(), this, parameters);
 }
 
 iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
@@ -242,14 +242,14 @@ iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
 		"<a href=\"https://github.com/ITKTools/ITKTools/blob/master/src/thresholdimage/itkAdaptiveOtsuThresholdImageFilter.h\">"
 		"Adaptive Otsu Threshold source code</a> in the ITKTools.")
 {
-	AddParameter("Number of histogram bins", Discrete, 256, 2);
-	AddParameter("Outside value", Continuous, 0);
-	AddParameter("Inside value", Continuous, 1);
-	AddParameter("Radius", Continuous, 8);
-	AddParameter("Samples", Discrete, 5000);
-	AddParameter("Levels", Discrete, 3);
-	AddParameter("Control points", Discrete, 50, 1);
-	AddParameter("Spline order", Discrete, 3, 2);
+	addParameter("Number of histogram bins", Discrete, 256, 2);
+	addParameter("Outside value", Continuous, 0);
+	addParameter("Inside value", Continuous, 1);
+	addParameter("Radius", Continuous, 8);
+	addParameter("Samples", Discrete, 5000);
+	addParameter("Levels", Discrete, 3);
+	addParameter("Control points", Discrete, 50, 1);
+	addParameter("Spline order", Discrete, 3, 2);
 }
 
 
@@ -264,20 +264,20 @@ void otsu_multiple_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 	auto otsumultiFilter = OMTIFType::New();
 	otsumultiFilter->SetNumberOfHistogramBins( T (parameters["Number of histogram bins"].toDouble()) );
 	otsumultiFilter->SetNumberOfThresholds( T (parameters["Number of thresholds"].toDouble()) );
-	otsumultiFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
+	otsumultiFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	otsumultiFilter->SetValleyEmphasis( parameters["Valley emphasis"].toBool() );
-	filter->Progress()->Observe( otsumultiFilter );
+	filter->progress()->Observe( otsumultiFilter );
 	otsumultiFilter->Update();
 	for (int i = 0; i< otsumultiFilter->GetThresholds().size(); i++)
-		filter->AddOutputValue(QString("Otsu multiple threshold %1").arg(i), otsumultiFilter->GetThresholds()[i]);
-	filter->AddOutput(otsumultiFilter->GetOutput());
+		filter->addOutputValue(QString("Otsu multiple threshold %1").arg(i), otsumultiFilter->GetThresholds()[i]);
+	filter->addOutput(otsumultiFilter->GetOutput());
 }
 
 IAFILTER_CREATE(iAOtsuMultipleThreshold)
 
-void iAOtsuMultipleThreshold::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAOtsuMultipleThreshold::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(otsu_multiple_threshold, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(otsu_multiple_threshold, inputPixelType(), this, parameters);
 }
 
 iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
@@ -287,9 +287,9 @@ iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuMultipleThresholdsImageFilter.html\">"
 		"Otsu Multiple Threshold Filter</a> in the ITK documentation.")
 {
-	AddParameter("Number of histogram bins", Discrete, 256, 2);
-	AddParameter("Number of thresholds", Discrete, 2, 1);
-	AddParameter("Valley emphasis", Boolean, 1);
+	addParameter("Number of histogram bins", Discrete, 256, 2);
+	addParameter("Number of thresholds", Discrete, 2, 1);
+	addParameter("Valley emphasis", Boolean, 1);
 }
 
 
@@ -302,23 +302,23 @@ void maximum_distance(iAFilter* filter, QMap<QString, QVariant> const & paramete
 	typedef itk::Image< T, 3 >   OutputImageType;
 	typedef itk::MaximumDistance< InputImageType > MaximumDistanceType;
 	auto maxFilter = MaximumDistanceType::New();
-	maxFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	maxFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	maxFilter->SetBins(parameters["Number of histogram bins"].toDouble());
 	if (parameters["Use low intensity"].toBool())
 		maxFilter->SetCentre(parameters["Low intensity"].toDouble());
 	else
 		maxFilter->SetCentre(32767);
-	filter->Progress()->Observe(maxFilter);
+	filter->progress()->Observe(maxFilter);
 	maxFilter->Update();
-	filter->AddOutput(maxFilter->GetOutput());
-	filter->AddOutputValue("Maximum distance threshold", static_cast<double>(maxFilter->GetThreshold()));
-	filter->AddOutputValue("Maximum distance low peak",  maxFilter->GetLowIntensity());
-	filter->AddOutputValue("Maximum distance high peak", maxFilter->GetHighIntensity());
+	filter->addOutput(maxFilter->GetOutput());
+	filter->addOutputValue("Maximum distance threshold", static_cast<double>(maxFilter->GetThreshold()));
+	filter->addOutputValue("Maximum distance low peak",  maxFilter->GetLowIntensity());
+	filter->addOutputValue("Maximum distance high peak", maxFilter->GetHighIntensity());
 }
 
-void iAMaximumDistance::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAMaximumDistance::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(maximum_distance, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(maximum_distance, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAMaximumDistance)
@@ -327,9 +327,9 @@ iAMaximumDistance::iAMaximumDistance() :
 	iAFilter("Maximum Distance", "Segmentation/Global Thresholding",
 		"A global threshold based on the maximum distance of peaks in the histogram, for voids segmentation.")
 {
-	AddParameter("Number of histogram bins", Discrete, 256, 2);
-	AddParameter("Low intensity", Continuous, 0);
-	AddParameter("Use low intensity", Boolean, false);
+	addParameter("Number of histogram bins", Discrete, 256, 2);
+	addParameter("Low intensity", Continuous, 0);
+	addParameter("Use low intensity", Boolean, false);
 }
 
 
@@ -389,10 +389,10 @@ iAParameterlessThresholding::iAParameterlessThresholding() :
 		"Several different <em>Method</em>s for determining the threshold are available, "
 		"you can also set the <em>Number of histogram")
 {
-	AddParameter("Method", Categorical, GetParameterlessThresholdingNames());
-	AddParameter("Number of histogram bins", Discrete, 128, 2);
-	AddParameter("Outside value", Continuous, 0);
-	AddParameter("Inside value", Continuous, 1);
+	addParameter("Method", Categorical, GetParameterlessThresholdingNames());
+	addParameter("Number of histogram bins", Discrete, 128, 2);
+	addParameter("Outside value", Continuous, 0);
+	addParameter("Inside value", Continuous, 1);
 }
 
 template <typename T>
@@ -449,17 +449,17 @@ void parameterless(iAFilter* filter, QMap<QString, QVariant> const & params)
 		break;
 	}
 	}
-	plFilter->SetInput(dynamic_cast<InputImageType*>(filter->Input()[0]->GetITKImage()));
+	plFilter->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
 	plFilter->SetNumberOfHistogramBins(params["Number of histogram bins"].toUInt());
 	plFilter->SetOutsideValue(params["Outside value"].toDouble());
 	plFilter->SetInsideValue(params["Inside value"].toDouble());
-	filter->Progress()->Observe(plFilter);
+	filter->progress()->Observe(plFilter);
 	plFilter->Update();
-	filter->AddOutput(plFilter->GetOutput());
-	filter->AddOutputValue("Threshold", static_cast<double>(plFilter->GetThreshold()));
+	filter->addOutput(plFilter->GetOutput());
+	filter->addOutputValue("Threshold", static_cast<double>(plFilter->GetThreshold()));
 }
 
-void iAParameterlessThresholding::PerformWork(QMap<QString, QVariant> const & params)
+void iAParameterlessThresholding::performWork(QMap<QString, QVariant> const & params)
 {
-	ITK_TYPED_CALL(parameterless, InputPixelType(), this, params);
+	ITK_TYPED_CALL(parameterless, inputPixelType(), this, params);
 }

@@ -162,7 +162,7 @@ char const * iASpectralAngularDistance::GetShortName() const
 	return MeasureShortNames[dmCosine];
 }
 
-char const * iASpectralAngularDistance::GetName() const
+char const * iASpectralAngularDistance::name() const
 {
 	return MeasureNames[dmCosine];
 }
@@ -193,7 +193,7 @@ char const * iAL1NormDistance::GetShortName() const
 	return MeasureShortNames[dmL1];
 }
 
-char const * iAL1NormDistance::GetName() const
+char const * iAL1NormDistance::name() const
 {
 	return MeasureNames[dmL1];
 }
@@ -214,7 +214,7 @@ char const * iAL2NormDistance::GetShortName() const
 	return MeasureShortNames[dmL2];
 }
 
-char const * iAL2NormDistance::GetName() const
+char const * iAL2NormDistance::name() const
 {
 	return MeasureNames[dmL2];
 }
@@ -236,7 +236,7 @@ char const * iALInfNormDistance::GetShortName() const
 	return MeasureShortNames[dmLinf];
 }
 
-char const * iALInfNormDistance::GetName() const
+char const * iALInfNormDistance::name() const
 {
 	return MeasureNames[dmLinf];
 }
@@ -261,7 +261,7 @@ char const * iAJensenShannonDistance::GetShortName() const
 	return MeasureShortNames[dmJensenShannon];
 }
 
-char const * iAJensenShannonDistance::GetName() const
+char const * iAJensenShannonDistance::name() const
 {
 	return MeasureNames[dmJensenShannon];
 }
@@ -277,7 +277,7 @@ char const * iAKullbackLeiblerDivergence::GetShortName() const
 	return MeasureShortNames[dmKullbackLeibler];
 }
 
-char const * iAKullbackLeiblerDivergence::GetName() const
+char const * iAKullbackLeiblerDivergence::name() const
 {
 	return MeasureNames[dmKullbackLeibler];
 }
@@ -309,7 +309,7 @@ char const * iAChiSquareDistance::GetShortName() const
 	return MeasureShortNames[dmChiSquare];
 }
 
-char const * iAChiSquareDistance::GetName() const
+char const * iAChiSquareDistance::name() const
 {
 	return MeasureNames[dmChiSquare];
 }
@@ -332,7 +332,7 @@ char const * iAEarthMoversDistance::GetShortName() const
 	return MeasureShortNames[dmEarthMovers];
 }
 
-char const * iAEarthMoversDistance::GetName() const
+char const * iAEarthMoversDistance::name() const
 {
 	return MeasureNames[dmEarthMovers];
 }
@@ -359,7 +359,7 @@ char const * iASquaredDistance::GetShortName() const
 	return MeasureShortNames[dmSquared];
 }
 
-char const * iASquaredDistance::GetName() const
+char const * iASquaredDistance::name() const
 {
 	return MeasureNames[dmSquared];
 }

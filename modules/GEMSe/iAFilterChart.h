@@ -56,7 +56,7 @@ protected:
 	void mouseReleaseEvent( QMouseEvent *event ) override;
 	void mouseMoveEvent( QMouseEvent *event ) override;
 private:
-	QString getXAxisTickMarkLabel(double value, double stepWidth) override;
+	QString xAxisTickMarkLabel(double value, double stepWidth) override;
 	void drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush);
 
 	QSharedPointer<iAParamHistogramData> m_data;

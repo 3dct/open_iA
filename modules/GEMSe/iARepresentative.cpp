@@ -33,7 +33,7 @@ void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, int differenceMar
 	{
 		imgs.push_back(dynamic_cast<ImgType*>(imgsBase[i].GetPointer()));
 	}
-	typename ImgType::Pointer out = CreateImage<ImgType>(imgs[0]);
+	typename ImgType::Pointer out = createImage<ImgType>(imgs[0]);
 	typename iAITKIO::ImageBaseType::RegionType reg = imgs[0]->GetLargestPossibleRegion();
 	typename iAITKIO::ImageBaseType::SizeType size = reg.GetSize();
 	typename iAITKIO::ImageBaseType::IndexType idx;
@@ -69,6 +69,6 @@ iAITKIO::ImagePointer CalculateDifferenceMarkers(QVector<iAITKIO::ImagePointer> 
 		return imgs[0];
 	}
 	iAITKIO::ImagePointer result;
-	ITK_TYPED_CALL(diff_marker_tmpl, GetITKScalarPixelType(imgs[0]), imgs, differenceMarkerValue, result);
+	ITK_TYPED_CALL(diff_marker_tmpl, itkScalarPixelType(imgs[0]), imgs, differenceMarkerValue, result);
 	return result;
 }

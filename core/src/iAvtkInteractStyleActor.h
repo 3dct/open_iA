@@ -20,55 +20,61 @@
 * ************************************************************************************/
 #pragma once
 
-// TODO: remove completely. instead, return ID when creating channel
-enum iAChannelID
+#include <vtkInteractorStyleTrackballActor.h>
+
+#include <QObject>
+
+class iAChannelSlicerData;
+class iAVolumeRenderer;
+class MdiChild;
+
+class vtkImageData;
+
+class iAvtkInteractStyleActor : public QObject, public vtkInteractorStyleTrackballActor
 {
-	ch_None = -1,
-	// don't change the order of the ch_MetaN elements!
-	ch_Meta0,
-	ch_Meta1,
-	ch_Meta2,
+	Q_OBJECT
+public:
 
-	ch_XRF,
-	ch_SpectrumSelection,
-	ch_DistVisLabels,
-	ch_DistVisSampledPoints,
-	ch_DistVisDistancePairs,
-	ch_DistVisEntropy,
+	static iAvtkInteractStyleActor *New();
+	vtkTypeMacro(iAvtkInteractStyleActor, vtkInteractorStyleTrackballActor);
 
-	ch_VolumePlayer0,
-	ch_VolumePlayer1,
+	// override the mouse move, we add some behavior here
+	void OnMouseMove() override;
 
-	ch_fixed,
-	ch_moving,
+	//! @{ Conditionally disable zooming via right button dragging
+	void Rotate() override;
+	void Spin() override;
+	//! @}
 
-	ch_Microscopy1,
-	ch_Microscopy2,
-	ch_Microscopy3,
-	ch_Microscopy4,
+	void initialize(vtkImageData *img, iAVolumeRenderer* volRend, iAChannelSlicerData *slicerChannel[4],
+		int currentMode, MdiChild *mdiChild);
+	void updateInteractors(); 
 
-	ch_ModSPLOMSelection,
 
-	ch_DefectView0,
-	ch_DefectView1,
-	ch_DefectView2,
-	ch_DefectView3,
 
-	ch_DensityMap,
+	void custom2DRotate(); 
 
-	ch_LabelOverlay,
+	void Update3DTransform(double * imageCenter, const double * spacing, double relativeAngle);
 
-	ch_SlicerMagicLens,
+	void TransformReslicer(double * obj_center, double const * spacing, double newAngle, double oldAngle);
+signals:
+	void actorsUpdated();
 
-	// needs to be the last one, as there can be an arbitrary number of such concentration layers:
-	ch_Concentration0,
-	ch_Concentration1,
-	ch_Concentration2,
-	ch_Concentration3,
-	ch_Concentration4,
-	ch_Concentration5,
-	ch_Concentration6,
-	ch_Concentration7,
-	ch_Concentration8,
-	ch_Concentration9,
+private:
+	iAvtkInteractStyleActor();
+
+	MdiChild *m_mdiChild; 
+	iAVolumeRenderer* m_volumeRenderer;
+	bool enable3D;
+	vtkImageData *m_image;
+	iAChannelSlicerData* m_slicerChannel[3];
+	int m_currentSliceMode;
+	bool m_rightButtonDragZoomEnabled = false;
+	bool m_rotationEnabled; 
+
+
+	//! @{ disable copying
+	void operator=(const iAvtkInteractStyleActor&) = delete;
+	iAvtkInteractStyleActor(const iAvtkInteractStyleActor &) = delete;
+	//! @}
 };

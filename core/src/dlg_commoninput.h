@@ -24,10 +24,7 @@
 #include "ui_CommonInput.h"
 
 #include <QDialog>
-#include <QString>
-#include <QStringList>
 #include <QVector>
-#include <QTextDocument>
 
 class MainWindow;
 class MdiChild;
@@ -35,12 +32,15 @@ class QWidget;
 class QErrorMessage;
 class QLabel;
 class QScrollArea;
+class QString;
+class QStringList;
+class QTextDocument;
 
 class open_iA_Core_API dlg_commoninput : public QDialog, public Ui_CommonInput
 {
 	Q_OBJECT
 public:
-	dlg_commoninput ( QWidget *parent, QString winTitel, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr = nullptr);
+	dlg_commoninput ( QWidget *parent, QString const & winTitel, QStringList const & inList, QList<QVariant> const & inPara, QTextDocument *fDescr = nullptr);
 	int getCheckValue(int index) const;
 	QString getComboBoxValue(int index) const;
 	int getComboBoxIndex(int index) const;

@@ -20,79 +20,70 @@
 * ************************************************************************************/
 #pragma once
 
-#include "dlg_function.h"
+#include "iAChartFunction.h"
 #include "open_iA_Core_export.h"
-#include "iATransferFunction.h"
 
-#include <QLinearGradient>
+#include <QColor>
 
-class QColorDialog;
-class QDomNode;
+#include <vector>
 
-class vtkPiecewiseFunction;
-class vtkColorTransferFunction;
+class QPointF;
 
-class open_iA_Core_API dlg_transfer : public dlg_function, public iATransferFunction
+class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
 {
-Q_OBJECT
-	int selectedPoint;
+	QColor color;
 
-	QColor          color;
-	QColorDialog    *dlg;
-	QLinearGradient gradient;
+	unsigned int selectedPoint;
+	bool   active;
+	double controlDist;
+	double length;
+	double oppositeLength;
+	std::vector<QPointF> viewPoints;
+	std::vector<QPointF> realPoints;
 
-	vtkPiecewiseFunction     *opacityTF;
-	vtkColorTransferFunction *colorTF;
 public:
-	dlg_transfer(iADiagramFctWidget *histogram, QColor color);
-	~dlg_transfer();
+	iAChartFunctionBezier(iADiagramFctWidget *chart, QColor &color, bool reset = true);
 
-	int getType() override { return TRANSFER; }
+	int getType() override { return BEZIER; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
-	void drawOnTop(QPainter &painter) override;
+	void drawOnTop(QPainter&) override {}
 	int selectPoint(QMouseEvent *event, int *x = NULL) override;
 	int getSelectedPoint() override { return selectedPoint; }
 	int addPoint(int x, int y) override;
-	void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) override;
+	void addColorPoint(int, double, double, double) override {}
 	void removePoint(int index) override;
 	void moveSelectedPoint(int x, int y) override;
-	void changeColor(QMouseEvent *event) override;
-	void mouseReleaseEventAfterNewPoint(QMouseEvent *event) override;
-	bool isColored() override { return true; }
+	void changeColor(QMouseEvent *) override{}
+	bool isColored() override { return false; }
 	bool isEndPoint(int index) override;
 	bool isDeletable(int index) override;
 	void reset() override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
 
-	vtkPiecewiseFunction* getOpacityFunction() override { return opacityTF; }
-	vtkColorTransferFunction* getColorFunction() override { return colorTF; }
-
-	void TranslateToNewRange(double const oldDataRange[2]);
-	void enableRangeSliderHandles( bool rangeSliderHandles );
-	void setOpacityFunction(vtkPiecewiseFunction *opacityTF) { this->opacityTF = opacityTF; }
-	void setColorFunction(vtkColorTransferFunction *colorTF) { this->colorTF = colorTF; }
-	void triggerOnChange();
-signals:
-	void Changed();
+	void push_back(double x, double y);
+	std::vector<QPointF> &getPoints() { return realPoints; }
 private:
-	void setColorPoint(int selectedPoint, double x, double red, double green, double blue);
-	void setColorPoint(int selectedPoint, int x, double red, double green, double blue);
-	void setColorPoint(int selectedPoint, int x);
-	void setPoint(int selectedPoint, int x, int y);
-	void setPointX(int selectedPoint, int x);
-	void setPointY(int selectedPoint, int y);
+	bool isFunctionPoint(int point);
+	bool isControlPoint(int point);
+
+	void insert(unsigned int index, unsigned int x, unsigned int y);
+
+	void setViewPoint(int selectedPoint);
+	void setOppositeViewPoint(int selectedPoint);
+
+	int getFunctionPointIndex(int index);
+	double getLength(QPointF start, QPointF end);
 
 	// convert view to data
 	double v2dX(int x);
 	double v2dY(int y);
 
-	// conver data to view
-	int d2vX(double x, double oldDataRange0 = -1, double oldDataRange1 = -1);
+	// convert data to view
+	int d2vX(double x);
 	int d2vY(double y);
 
-	//convert data to image
+	// convert data to image
 	int d2iX(double x);
 	int d2iY(double y);
-
-	bool m_rangeSliderHandles;
 };

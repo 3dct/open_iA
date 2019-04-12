@@ -37,14 +37,14 @@ class iAParamHistogramData: public iAPlotData
 {
 public:
 	// TODO: extract creation?
-	static QSharedPointer<iAParamHistogramData> Create(iAImageTreeNode const * ,
+	static QSharedPointer<iAParamHistogramData> create(iAImageTreeNode const * ,
 		int chartID,
 		iAValueType rangeType,
 		double min, double max,
 		bool log,
 		iAChartAttributeMapper const & chartAttrMap,
 		int numBin);
-	static QSharedPointer<iAParamHistogramData> Create(iAImageTreeNode const * ,
+	static QSharedPointer<iAParamHistogramData> create(iAImageTreeNode const * ,
 		int chartID,
 		iAValueType rangeType,
 		double min, double max,
@@ -55,37 +55,38 @@ public:
 	iAParamHistogramData(size_t numBin,
 		double min, double max, bool log,
 		iAValueType rangeType);
-	void Reset();
+	void reset();
 	virtual ~iAParamHistogramData();
-	DataType const * GetRawData() const override;
-	size_t GetNumBin() const override;
-	double GetSpacing() const override;
-	double const * XBounds() const override;
-	DataType const * YBounds() const override;
-	double GetBinStart(int binNr) const override;
-	double MapValueToBin(double value) const;
-	double MapBinToValue(double bin) const;
-	iAValueType GetRangeType() const;
-	bool IsLogarithmic() const;
-	double GetMinX() const override;
-	double GetMaxX() const override;
-	void SetMinX(double x);
-	void SetMaxX(double x);
-	void AddValue(double value);
+	DataType const * rawData() const override;
+	size_t numBin() const override;
+	double spacing() const override;
+	double const * xBounds() const override;
+	DataType const * yBounds() const override;
+	double binStart(int binNr) const override;
+	double mapValueToBin(double value) const;
+	double mapBinToValue(double bin) const;
+	iAValueType valueType() const override;
+	bool isLogarithmic() const;
+	double minX() const override;
+	double maxX() const override;
+	void setMinX(double x);
+	void setMaxX(double x);
+	void addValue(double value);
 private:
-	static void VisitNode(iAImageTreeNode const * node,
+	static void visitNode(iAImageTreeNode const * node,
 		QSharedPointer<iAParamHistogramData> data,
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap);
-	static void VisitNode(iAImageTreeNode const * node,
+	static void visitNode(iAImageTreeNode const * node,
 		QSharedPointer<iAParamHistogramData> data,
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap,
 		iAChartFilter const & attributeFilter);
-	static void CountNodeBin(iAImageTreeLeaf const * node,
+	static void countNodeBin(iAImageTreeLeaf const * node,
 		QSharedPointer<iAParamHistogramData> data,
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap);
+
 	DataType * m_data;
 	size_t m_numBin;
 	double m_xBounds[2];
@@ -93,6 +94,5 @@ private:
 	DataType m_spacing;
 	iAValueType m_rangeType;
 	bool m_log;
-
 	double m_minX, m_maxX;
 };

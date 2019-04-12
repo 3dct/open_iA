@@ -32,11 +32,11 @@
 
 const int FOURDCT_MIN_NUMBER_OF_VOLUMES = 1;
 
-iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, iAChildData childData ) : iAModuleAttachmentToChild( mainWnd, childData ), 
+iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ), 
 	trackingGraph( 0 ), m_dlgDataView4DCT( 0 ), m_dlgTrackingGraph( 0 ), m_dlgEventExplorer( 0 ), m_volumeStack( 0 )
 {
-	m_volumeStack = childData.child->getVolumeStack();
-	connect( childData.child, SIGNAL( updatedViews() ), this, SLOT( updateViews() ) );
+	m_volumeStack = child->volumeStack();
+	connect( child, SIGNAL( viewsUpdated() ), this, SLOT( updateViews() ) );
 
 	if( !create4DCTDataViewWidget() )
 	{
@@ -56,24 +56,24 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTDataViewWidget()
 {
 	if( m_dlgDataView4DCT )
 	{
-		m_childData.child->addMsg( tr( "The data view 4DCT dialog already exists!" ) );
+		m_child->addMsg( tr( "The data view 4DCT dialog already exists!" ) );
 		return false;
 	}
 
-	if( !m_volumeStack || m_volumeStack->getNumberOfVolumes() <= FOURDCT_MIN_NUMBER_OF_VOLUMES )
+	if( !m_volumeStack || m_volumeStack->numberOfVolumes() <= FOURDCT_MIN_NUMBER_OF_VOLUMES )
 	{
-		m_childData.child->addMsg( tr( "No volume stack loaded or it does not contain enough volumes (expected: %1, actual: %2)!" )
+		m_child->addMsg( tr( "No volume stack loaded or it does not contain enough volumes (expected: %1, actual: %2)!" )
 			.arg(FOURDCT_MIN_NUMBER_OF_VOLUMES)
-			.arg(m_volumeStack->getNumberOfVolumes()) );
+			.arg(m_volumeStack->numberOfVolumes()) );
 		return false;
 	}
 
 	// create new dialog
-	m_dlgDataView4DCT = new dlg_dataView4DCT( m_childData.child, m_volumeStack );
-	m_childData.child->tabifyDockWidget( m_childData.logs, m_dlgDataView4DCT );
-	// test Raycaster->reInitialize (m_volumeStack->getVolume(1), polyData, m_volumeStack->getPiecewiseFunction(1),m_volumeStack->getColorTransferFunction(1));
+	m_dlgDataView4DCT = new dlg_dataView4DCT( m_child, m_volumeStack );
+	m_child->tabifyDockWidget( m_child->logDockWidget(), m_dlgDataView4DCT );
+	// test m_renderer->reInitialize (m_volumeStack->volume(1), polyData, m_volumeStack->opacityTF(1),m_volumeStack->colorTF(1));
 
-	m_childData.child->addMsg( tr( "The 4DCT Data View widget was successfully created" ) );
+	m_child->addMsg( tr( "The 4DCT Data View widget was successfully created" ) );
 
 	return true;
 }
@@ -82,14 +82,14 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTTrackingGraphWidget()
 {
 	if( m_dlgTrackingGraph )
 	{
-		m_childData.child->addMsg( tr( "The Tracking Graph widget already exists!" ) );
+		m_child->addMsg( tr( "The Tracking Graph widget already exists!" ) );
 		return false;
 	}
 
-	m_dlgTrackingGraph = new dlg_trackingGraph( m_childData.child );
-	m_childData.child->tabifyDockWidget( m_childData.logs, m_dlgTrackingGraph );
+	m_dlgTrackingGraph = new dlg_trackingGraph( m_child );
+	m_child->tabifyDockWidget( m_child->logDockWidget(), m_dlgTrackingGraph );
 
-	m_childData.child->addMsg( tr( "The Tracking Graph widget was successfully created" ) );
+	m_child->addMsg( tr( "The Tracking Graph widget was successfully created" ) );
 
 	return true;
 }
@@ -98,20 +98,20 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 {
 	if( m_dlgEventExplorer )
 	{
-		m_childData.child->addMsg( tr( "The Event Explorer widget already exists!" ) );
+		m_child->addMsg( tr( "The Event Explorer widget already exists!" ) );
 		return false;
 	}
 
 	if( !m_dlgTrackingGraph )
 	{
-		m_childData.child->addMsg( tr( "The Tracking Graph widget is missing. It is required for creating the Event Explorer widget" ) );
+		m_child->addMsg( tr( "The Tracking Graph widget is missing. It is required for creating the Event Explorer widget" ) );
 		return false;
 	}
 
 	std::vector<iAFeatureTracking*> trackedFeaturesForwards;
 	std::vector<iAFeatureTracking*> trackedFeaturesBackwards;
 
-	for( int i = 0; i < m_volumeStack->GetFileNames()->size(); i++ )
+	for( int i = 0; i < m_volumeStack->fileNames()->size(); i++ )
 	{
 		QString file[2];
 
@@ -121,18 +121,18 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 			file[0] = QString();
 		}
 		else {
-			file[0] = m_volumeStack->getFileName( i - 1 ) + csvExt;
+			file[0] = m_volumeStack->fileName( i - 1 ) + csvExt;
 		}
-		file[1] = m_volumeStack->getFileName( i ) + csvExt;
+		file[1] = m_volumeStack->fileName( i ) + csvExt;
 
 		if( !file[0].isEmpty() && !QFile::exists( file[0] ) )
 		{
-			m_childData.child->addMsg( QString( "The file \"" ) + file[0] + QString( "\" is missing" ) );
+			m_child->addMsg( QString( "The file \"" ) + file[0] + QString( "\" is missing" ) );
 			return false;
 		}
 		if( !QFile::exists( file[1] ) )
 		{
-			m_childData.child->addMsg( QString( "The file \"" ) + file[1] + QString( "\" is missing" ) );
+			m_child->addMsg( QString( "The file \"" ) + file[1] + QString( "\" is missing" ) );
 			return false;
 		}
 
@@ -161,9 +161,9 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTEventExplorerWidget()
 		trackedFeaturesBackwards.at( i )->TrackFeatures();
 	}
 
-	m_dlgEventExplorer = new dlg_eventExplorer( m_childData.child, trackedFeaturesForwards.size(), 5, m_volumeStack, m_dlgTrackingGraph, trackedFeaturesForwards, trackedFeaturesBackwards );
-	m_childData.child->tabifyDockWidget( m_childData.logs, m_dlgEventExplorer );
-	m_childData.child->addMsg( tr( "The Event Explorer widget was successfully created" ) );
+	m_dlgEventExplorer = new dlg_eventExplorer( m_child, trackedFeaturesForwards.size(), 5, m_volumeStack, m_dlgTrackingGraph, trackedFeaturesForwards, trackedFeaturesBackwards );
+	m_child->tabifyDockWidget( m_child->logDockWidget(), m_dlgEventExplorer );
+	m_child->addMsg( tr( "The Event Explorer widget was successfully created" ) );
 
 	return true;
 }

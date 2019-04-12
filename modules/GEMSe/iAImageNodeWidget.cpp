@@ -293,7 +293,7 @@ bool iAImageNodeWidget::UpdateRepresentative(LabelImagePointer refImg)
 	{
 		return false;
 	}
-	m_imageView->SetImage(m_cluster->GetRepresentativeImage(m_representativeType, refImg), false,
+	m_imageView->setImage(m_cluster->GetRepresentativeImage(m_representativeType, refImg), false,
 		m_cluster->IsLeaf() || m_representativeType == Difference || m_representativeType == AverageLabel);
 	m_imageView->update();
 	return true;

@@ -33,7 +33,7 @@ class iAFuzzyFeatureTrackingAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 
 public:
-	iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, iAChildData childData );
+	iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, MdiChild * child );
 	~iAFuzzyFeatureTrackingAttachment();
 
 protected:

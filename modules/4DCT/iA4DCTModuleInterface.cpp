@@ -22,15 +22,12 @@
 
 #include "iA4DCTMainWin.h"
 #include "iA4DCTSettings.h"
-#include "iAConsole.h"
-#include "iASlicer.h"
-#include "iASlicerWidget.h"
-#include "mainwindow.h"
-#include "mdichild.h"
 #include "iAFeatureExtraction.h"
 #include "iAFeatureExtractionDialog.h"
 #include "iADefectClassifier.h"
 #include "iAClassifyDefectsDialog.h"
+
+#include <mainwindow.h>
 
 #include <vtkMath.h>
 
@@ -68,7 +65,7 @@ void iA4DCTModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)
 		return;
-	QMenu* toolsMenu = m_mainWnd->getToolsMenu( );
+	QMenu* toolsMenu = m_mainWnd->toolsMenu( );
 	QMenu* menu4DCT = getMenuWithTitle(toolsMenu, tr("4DCT"), false);
 
 	QAction * newProj = new QAction(tr("New 4DCT project"), nullptr );

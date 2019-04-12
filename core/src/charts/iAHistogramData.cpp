@@ -31,33 +31,33 @@
 
 
 iAHistogramData::iAHistogramData()
-	: m_binCount(0), rawData(nullptr), accSpacing(0), m_type(Continuous)
+	: m_binCount(0), m_rawData(nullptr), m_accSpacing(0), m_type(Continuous)
 {
-	xBounds[0] = xBounds[1] = 0;
-	yBounds[0] = yBounds[1] = 0;
+	m_xBounds[0] = m_xBounds[1] = 0;
+	m_yBounds[0] = m_yBounds[1] = 0;
 }
 
 iAHistogramData::~iAHistogramData()
 {
-	delete[] rawData;
+	delete[] m_rawData;
 }
 
-double iAHistogramData::GetSpacing() const
+double iAHistogramData::spacing() const
 {
-	return accSpacing;
+	return m_accSpacing;
 }
 
-double const * iAHistogramData::XBounds() const
+double const * iAHistogramData::xBounds() const
 {
-	return xBounds;
+	return m_xBounds;
 }
 
-iAHistogramData::DataType const * iAHistogramData::GetRawData() const
+iAHistogramData::DataType const * iAHistogramData::rawData() const
 {
-	return rawData;
+	return m_rawData;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, size_t binCount,
+QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_t binCount,
 	iAImageInfo* info)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
@@ -75,26 +75,26 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, size_
 	accumulate->GetComponentExtent(extent);
 	vtkSmartPointer<vtkImageCast> caster = vtkSmartPointer<vtkImageCast>::New();
 	caster->SetInputData(accumulate->GetOutput());
-	caster->SetOutputScalarType(VtkDataType<DataType>::value);
+	caster->SetOutputScalarType(iAVtkDataType<DataType>::value);
 	caster->Update();
 	auto rawImg = caster->GetOutput();
 
 	result->m_binCount = extent[1] + 1;
-	result->xBounds[0] = accumulate->GetMin()[0];
-	result->xBounds[1] = accumulate->GetMax()[0];
-	result->rawData = new double[result->m_binCount];
+	result->m_xBounds[0] = accumulate->GetMin()[0];
+	result->m_xBounds[1] = accumulate->GetMax()[0];
+	result->m_rawData = new double[result->m_binCount];
 	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
-	std::copy(vtkRawData, vtkRawData + result->m_binCount, result->rawData);
+	std::copy(vtkRawData, vtkRawData + result->m_binCount, result->m_rawData);
 	double null1, null2;
 	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
 	{	// for int types, the last value is inclusive:
-		result->accSpacing = (result->xBounds[1] - result->xBounds[0] + 1) / result->m_binCount;
+		result->m_accSpacing = (result->m_xBounds[1] - result->m_xBounds[0] + 1) / result->m_binCount;
 	}
 	else
 	{
-		accumulate->GetComponentSpacing(result->accSpacing, null1, null2);
+		accumulate->GetComponentSpacing(result->m_accSpacing, null1, null2);
 	}
-	result->SetMaxFreq();
+	result->setMaxFreq();
 	result->m_type = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
 		? Discrete
 		: Continuous;
@@ -106,21 +106,21 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, size_
 	return result;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::Create(
+QSharedPointer<iAHistogramData> iAHistogramData::create(
 	iAPlotData::DataType* data, size_t bins, double space,
 	iAPlotData::DataType min, iAPlotData::DataType max)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
-	result->rawData = data;
+	result->m_rawData = data;
 	result->m_binCount = bins;
-	result->accSpacing = space;
-	result->xBounds[0] = min;
-	result->xBounds[1] = max;
-	result->SetMaxFreq();
+	result->m_accSpacing = space;
+	result->m_xBounds[0] = min;
+	result->m_xBounds[1] = max;
+	result->setMaxFreq();
 	return result;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataType>& histData, size_t binCount, iAValueType type,
+QSharedPointer<iAHistogramData> iAHistogramData::create(const std::vector<DataType>& histData, size_t binCount, iAValueType type,
 	DataType minValue, DataType maxValue)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
@@ -138,52 +138,52 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataTy
 			if (d > maxValue)
 				maxValue = d;
 	}
-	result->xBounds[0] = minValue;
-	result->xBounds[1] = maxValue;
+	result->m_xBounds[0] = minValue;
+	result->m_xBounds[1] = maxValue;
 	result->m_type = type;
 	if (dblApproxEqual(minValue, maxValue))
 	{   // if min == max, there is only one bin - one in which all values are contained!
 		result->m_binCount = 1;
-		result->rawData = new DataType[result->m_binCount];
-		result->rawData[0] = histData.size();
+		result->m_rawData = new DataType[result->m_binCount];
+		result->m_rawData[0] = histData.size();
 	}
 	else
 	{
 		result->m_binCount = binCount;
-		result->rawData = new DataType[binCount];
-		result->accSpacing = (maxValue - minValue) / binCount;
-		std::fill(result->rawData, result->rawData + binCount, 0.0);
+		result->m_rawData = new DataType[binCount];
+		result->m_accSpacing = (maxValue - minValue) / binCount;
+		std::fill(result->m_rawData, result->m_rawData + binCount, 0.0);
 		for (DataType d : histData)
 		{
 			int bin = clamp(static_cast<size_t>(0), binCount - 1, mapValue(minValue, maxValue, static_cast<size_t>(0), binCount, d));
-			++result->rawData[bin];
+			++result->m_rawData[bin];
 		}
 	}
-	result->SetMaxFreq();
+	result->setMaxFreq();
 	return result;
 }
 
-void iAHistogramData::SetMaxFreq()
+void iAHistogramData::setMaxFreq()
 {
-	if (!rawData)
+	if (!m_rawData)
 		return;
-	yBounds[1] = 1;
-	for ( int i = 0; i < GetNumBin(); i++ )
-		if (rawData[i] > yBounds[1])
-			yBounds[1] = rawData[i];
+	m_yBounds[1] = 1;
+	for ( int i = 0; i < numBin(); i++ )
+		if (m_rawData[i] > m_yBounds[1])
+			m_yBounds[1] = m_rawData[i];
 }
 
-size_t iAHistogramData::GetNumBin() const
+size_t iAHistogramData::numBin() const
 {
 	return m_binCount;
 }
 
-iAPlotData::DataType const * iAHistogramData::YBounds() const
+iAPlotData::DataType const * iAHistogramData::yBounds() const
 {
-	return yBounds;
+	return m_yBounds;
 }
 
-iAValueType iAHistogramData::GetRangeType() const
+iAValueType iAHistogramData::valueType() const
 {
 	return m_type;
 }

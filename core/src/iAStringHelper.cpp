@@ -24,7 +24,7 @@
 #include <QStringList>
 
 
-QStringList SplitPossiblyQuotedString(QString const & str)
+QStringList splitPossiblyQuotedString(QString const & str)
 {
 	// TODO : rewrite so that it can cope with multiply quoted strings
 	//     (where quotes are escaped by \" )
@@ -46,14 +46,14 @@ QStringList SplitPossiblyQuotedString(QString const & str)
 	return result;
 }
 
-QString QuoteString(QString const & str)
+QString quoteString(QString const & str)
 {
 	QString result = str;
 	result.replace("\"", "\\\"");
 	return "\"" + result + "\"";
 }
 
-bool Str2Vec3D(QString const & str, double vec[3])
+bool str2Vec3D(QString const & str, double vec[3])
 {
 	QStringList list = str.split(" ");
 	if (list.size() != 3)
@@ -70,12 +70,12 @@ bool Str2Vec3D(QString const & str, double vec[3])
 	return true;
 }
 
-QString Vec3D2String(double* vec)
+QString vec3D2String(double const * vec)
 {
 	return QString("%1 %2 %3").arg(vec[0]).arg(vec[1]).arg(vec[2]);
 }
 
-QString PadOrTruncate(QString const & str, int size)
+QString padOrTruncate(QString const & str, int size)
 {
 	if (str.length() > size)
 		return str.left(size - 2) + "..";
@@ -83,13 +83,13 @@ QString PadOrTruncate(QString const & str, int size)
 		return str.leftJustified(size, ' ');
 }
 
-QString StripHTML(QString const & html)
+QString stripHTML(QString const & html)
 {
 	QString result(html);
 	return result.remove(QRegExp("<[^>]*>"));
 }
 
-QString DblToStringWithUnits(double value)
+QString dblToStringWithUnits(double value)
 {
 	if (value < 1.0)
 		return QString::number(value, 'g', 3);
@@ -109,7 +109,7 @@ QString DblToStringWithUnits(double value)
 			return QString::number(value, 'g', 3);
 }
 
-int GreatestCommonPrefixLength(QString const & str1, QString const & str2)
+int greatestCommonPrefixLength(QString const & str1, QString const & str2)
 {
 	int pos = 0;
 	while (pos < str1.size() && pos < str2.size() && str1.at(pos) == str2.at(pos))
@@ -119,7 +119,7 @@ int GreatestCommonPrefixLength(QString const & str1, QString const & str2)
 	return pos;
 }
 
-int GreatestCommonSuffixLength(QString const & str1, QString const & str2)
+int greatestCommonSuffixLength(QString const & str1, QString const & str2)
 {
 	int pos = 0;
 	while (pos < str1.size() && pos < str2.size()
@@ -130,12 +130,12 @@ int GreatestCommonSuffixLength(QString const & str1, QString const & str2)
 	return pos;
 }
 
-QString GreatestCommonPrefix(QString const & str1, QString const & str2)
+QString greatestCommonPrefix(QString const & str1, QString const & str2)
 {
-	return str1.left(GreatestCommonPrefixLength(str1, str2));
+	return str1.left(greatestCommonPrefixLength(str1, str2));
 }
 
-QString GreatestCommonSuffix(QString const & str1, QString const & str2)
+QString greatestCommonSuffix(QString const & str1, QString const & str2)
 {
-	return str1.right(GreatestCommonSuffixLength(str1, str2));
+	return str1.right(greatestCommonSuffixLength(str1, str2));
 }

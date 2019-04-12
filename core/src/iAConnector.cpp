@@ -127,37 +127,34 @@ iAConnector::iAConnector() :
 	m_vtkExporter(vtkSmartPointer<vtkImageExport>::New())
 {}
 
-iAConnector::~iAConnector()
-{}
 
-
-void iAConnector::SetImage( ImageBaseType * image )
+void iAConnector::setImage( ImageBaseType * image )
 {
 	m_isTypeInitialized = false;
 	if( this->m_ITKImage.GetPointer() == image )
 		return;
 	m_ITKImage = image;
-	UpdateImageVTK();
+	updateImageVTK();
 }
 
-void iAConnector::UpdateImageVTK()
+void iAConnector::updateImageVTK()
 {
-	iAConnector::ITKScalarPixelType componentType = GetITKScalarPixelType();
-	iAConnector::ITKPixelType pixelType = GetITKPixelType();
+	iAConnector::ITKScalarPixelType componentType = itkScalarPixelType();
+	iAConnector::ITKPixelType pixelType = itkPixelType();
 	m_VTKImage = 0;
 	ITK_EXTENDED_TYPED_CALL(SetupPipelineITKtoVTK, componentType, pixelType, m_ITKImage, m_itkExporter, m_vtkImporter);
 	m_VTKImage = m_vtkImporter->GetOutput();
 }
 
-void iAConnector::SetImage(vtkSmartPointer<vtkImageData> imageData)
+void iAConnector::setImage(vtkSmartPointer<vtkImageData> imageData)
 {
 	if (m_VTKImage == imageData)
 		return;
 	m_VTKImage = imageData;
-	UpdateImageITK();
+	updateImageITK();
 }
 
-void iAConnector::UpdateImageITK()
+void iAConnector::updateImageITK()
 {
 	m_isTypeInitialized = false;
 	int scalarType = m_VTKImage->GetScalarType();
@@ -167,45 +164,45 @@ void iAConnector::UpdateImageITK()
 	m_ITKImage = dynamic_cast<ImageBaseType*>(m_itkImporter->GetOutputs()[0].GetPointer());
 }
 
-vtkSmartPointer<vtkImageData> iAConnector::GetVTKImage() const
+vtkSmartPointer<vtkImageData> iAConnector::vtkImage() const
 {
 	return m_VTKImage;
 }
 
-iAConnector::ImageBaseType* iAConnector::GetITKImage() const
+iAConnector::ImageBaseType* iAConnector::itkImage() const
 {
 	return m_ITKImage;
 }
 
-void iAConnector::UpdateScalarType() const
+void iAConnector::updateScalarType() const
 {
 	m_isTypeInitialized = true;
-	m_itkScalarType = ::GetITKScalarPixelType(m_ITKImage);
+	m_itkScalarType = ::itkScalarPixelType(m_ITKImage);
 }
 
-iAConnector::ITKScalarPixelType iAConnector::GetITKScalarPixelType() const
+iAConnector::ITKScalarPixelType iAConnector::itkScalarPixelType() const
 {
 	if (!m_isTypeInitialized)
-		UpdateScalarType();
+		updateScalarType();
 	return m_itkScalarType;
 }
 
-void iAConnector::UpdatePixelType()
+void iAConnector::updatePixelType()
 {
 	m_isPixelTypeInitialized = true;
-	m_itkPixelType = ::GetITKPixelType( m_ITKImage );
+	m_itkPixelType = ::itkPixelType( m_ITKImage );
 }
 
-iAConnector::ITKPixelType iAConnector::GetITKPixelType()
+iAConnector::ITKPixelType iAConnector::itkPixelType()
 {
 	if ( !m_isPixelTypeInitialized )
-		UpdatePixelType();
+		updatePixelType();
 	return m_itkPixelType;
 }
 
-void iAConnector::Modified()
+void iAConnector::modified()
 {
 	m_ITKImage->Modified();
 	m_VTKImage->Modified();
-	UpdateScalarType();
+	updateScalarType();
 }

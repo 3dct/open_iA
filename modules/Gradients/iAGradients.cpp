@@ -41,16 +41,16 @@ template<class T> void gradient_magnitude(iAFilter* filter, QMap<QString, QVaria
 	typedef itk::GradientMagnitudeImageFilter< InputImageType, InputImageType > GMFType;
 
 	auto gmFilter = GMFType::New();
-	gmFilter->SetInput(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
+	gmFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
 	gmFilter->SetUseImageSpacing(params["Use Image Spacing"].toBool());
-	filter->Progress()->Observe(gmFilter);
+	filter->progress()->Observe(gmFilter);
 	gmFilter->Update();
-	filter->AddOutput(gmFilter->GetOutput());
+	filter->addOutput(gmFilter->GetOutput());
 }
 
-void iAGradientMagnitude::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAGradientMagnitude::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(gradient_magnitude, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(gradient_magnitude, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAGradientMagnitude)
@@ -64,7 +64,7 @@ iAGradientMagnitude::iAGradientMagnitude() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GradientMagnitudeImageFilter.html\">"
 		"Gradient Magnitude Filter</a> in the ITK documentation.")
 {
-	AddParameter("Use Image Spacing", Boolean, true);
+	addParameter("Use Image Spacing", Boolean, true);
 }
 
 // iADerivative:
@@ -78,19 +78,19 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 	typedef itk::DerivativeImageFilter< InputImageType, RealImageType > DIFType;
 
 	//auto toReal = CastToRealFilterType::New();
-	//toReal->SetInput( dynamic_cast< InputImageType * >( image->GetITKImage() ) );
+	//toReal->SetInput( dynamic_cast< InputImageType * >( image->itkImage() ) );
 	auto derFilter = DIFType::New();
 	derFilter->SetOrder(params["Order"].toUInt());
 	derFilter->SetDirection(params["Direction"].toUInt());
-	derFilter->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()) );
-	filter->Progress()->Observe( derFilter );
+	derFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
+	filter->progress()->Observe( derFilter );
 	derFilter->Update();
-	filter->AddOutput(derFilter->GetOutput());
+	filter->addOutput(derFilter->GetOutput());
 }
 
-void iADerivative::PerformWork(QMap<QString, QVariant> const & parameters)
+void iADerivative::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(derivative, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(derivative, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iADerivative)
@@ -103,8 +103,8 @@ iADerivative::iADerivative() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1DerivativeImageFilter.html\">"
 		"Derivative Filter</a> in the ITK documentation.")
 {
-	AddParameter("Order", Discrete, 1, 1);
-	AddParameter("Direction", Discrete, 0, 0, DIM-1);
+	addParameter("Order", Discrete, 1, 1);
+	addParameter("Direction", Discrete, 0, 0, DIM-1);
 }
 
 
@@ -121,15 +121,15 @@ void hoa_derivative(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	hoaFilter->SetOrder(parameters["Order"].toUInt());
 	hoaFilter->SetDirection(parameters["Direction"].toUInt());
 	hoaFilter->SetOrderOfAccuracy(parameters["Order of Accuracy"].toUInt());
-	hoaFilter->SetInput(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
-	filter->Progress()->Observe(hoaFilter);
+	hoaFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	filter->progress()->Observe(hoaFilter);
 	hoaFilter->Update();
-	filter->AddOutput(hoaFilter->GetOutput());
+	filter->addOutput(hoaFilter->GetOutput());
 }
 		
-void iAHigherOrderAccurateDerivative::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAHigherOrderAccurateDerivative::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(hoa_derivative, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(hoa_derivative, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAHigherOrderAccurateDerivative)
@@ -143,7 +143,7 @@ iAHigherOrderAccurateDerivative::iAHigherOrderAccurateDerivative() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1HigherOrderAccurateDerivativeImageFilter.html\">"
 		"Higher Order Accurate Derivative Filter</a> in the ITK documentation.")
 {
-	AddParameter("Order", Discrete, 1, 1);
-	AddParameter("Direction", Discrete, 0, 0, DIM-1);
-	AddParameter("Order of Accuracy", Discrete, 2, 1);
+	addParameter("Order", Discrete, 1, 1);
+	addParameter("Direction", Discrete, 0, 0, DIM-1);
+	addParameter("Order of Accuracy", Discrete, 2, 1);
 }

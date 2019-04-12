@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include "dlg_function.h"
+#include "iAChartFunction.h"
 #include "open_iA_Core_export.h"
 
 #include <QColor>
 
-class open_iA_Core_API dlg_gaussian : public dlg_function
+class open_iA_Core_API iAChartFunctionGaussian : public iAChartFunction
 {
 	QColor color;
 
@@ -36,7 +36,7 @@ class open_iA_Core_API dlg_gaussian : public dlg_function
 	double multiplier;
 
 public:
-	dlg_gaussian(iADiagramFctWidget *chart, QColor &color, bool reset = true);
+	iAChartFunctionGaussian(iADiagramFctWidget *chart, QColor &color, bool reset = true);
 
 	int getType() override { return GAUSSIAN; }
 	void draw(QPainter &painter) override;

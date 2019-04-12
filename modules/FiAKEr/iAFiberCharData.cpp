@@ -170,7 +170,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, QString const & co
 		}
 
 		iAFiberCharData curData;
-		curData.table = tableCreator.getTable();
+		curData.table = tableCreator.table();
 		curData.fiberCount = curData.table->GetNumberOfRows();
 		curData.mapping = io.getOutputMapping();
 		curData.fileName = csvFile;

@@ -28,7 +28,7 @@ class open_iA_Core_API iANameMapper
 {
 public:
 	virtual ~iANameMapper() {}
-	virtual QString GetName(int idx) const = 0;
+	virtual QString name(int idx) const = 0;
 	virtual int GetIdx(QString const & name, bool & ok) const = 0;
 	virtual int size() const =0;
 };

@@ -25,14 +25,14 @@
 #include "iASSViewSetings.h"
 #include "PorosityAnalyserHelpers.h"
 
-#include <iAChannelVisualizationData.h>
-#include <iAConsole.h>
 #include <defines.h>
-#include <iACSVToQTableWidgetConverter.h>
 #include <iABoxPlotData.h>
-#include <iASlicer.h>
 #include <iAChanData.h>
+#include <iAChannelData.h>
+#include <iAConsole.h>
+#include <iACSVToQTableWidgetConverter.h>
 #include <iARenderer.h>
+#include <iASlicer.h>
 #include <iAVTKRendererManager.h>
 #include <io/iAFileUtils.h>
 
@@ -47,12 +47,6 @@
 
 const iASlicerMode mode[3] = { XY, YZ, XZ };
 const int extentIndices[3][2] = { { 4, 5 }, { 0, 1 }, { 2, 3 } };
-
-extern const iAChannelID MasksChanID;
-extern const iAChannelID GTChanID;
-extern const iAChannelID minChanID;
-extern const iAChannelID medChanID;
-extern const iAChannelID maxChanID;
 
 inline double NormalizedSliderValue(QSlider * slider)
 {
@@ -172,7 +166,7 @@ void iASSView::LoadDataToSlicer( iASSSlicer * slicer, const QTableWidget * data 
 	m_datasetFile = m_datasetFolder + "/" + data->item( 0, datasetColInd )->text();
 	loadImageData( m_datasetFile, m_imgData );
 	BuildDefaultTF( m_imgData, m_slicerTF );
-	slicer->initialize( m_imgData, m_slicerTransform, m_slicerTF );
+	slicer->initialize( m_imgData, m_slicerTF );
 
 	//masks channel
 	QStringList masks;
@@ -228,7 +222,7 @@ void iASSView::SetData( const QTableWidget * data, QString selText )
 	}
 	m_slicerViews.clear();
 
-	iASSSlicer * view = new iASSSlicer( selText );
+	iASSSlicer * view = new iASSSlicer( selText, m_slicerTransform);
 	m_slicerViewsLayout->addWidget( view->container );
 	connect( sbRot, SIGNAL( valueChanged( double ) ), view->slicer, SLOT( rotateSlice( double ) ) );
 	connect( pushSave, SIGNAL( clicked() ), view->slicer, SLOT( saveAsImage() ) );
@@ -251,7 +245,7 @@ void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * d
 
 	for ( int i = 0; i < dataList->size(); ++i )
 	{
-		iASSSlicer * view = new iASSSlicer( (*dataList)[i].second ) ;
+		iASSSlicer * view = new iASSSlicer( (*dataList)[i].second, m_slicerTransform ) ;
 		m_slicerViewsLayout->addWidget( view->container );
 		connect( sbRot, SIGNAL( valueChanged( double ) ), view->slicer, SLOT( rotateSlice( double ) ) );
 		connect( pushSave, SIGNAL( clicked() ), view->slicer, SLOT( saveAsImage() ) );
@@ -263,7 +257,7 @@ void iASSView::SetCompareData( const QList< QPair<QTableWidget *, QString> > * d
 	SetDataTo3D();
 	
 	foreach( iASSSlicer *sv, m_slicerViews )
-		m_sliceMgr->addToBundle( sv->slicer->GetRenderer() );
+		m_sliceMgr->addToBundle( sv->slicer->renderer() );
 }
 
 void iASSView::setSlicerDirection( int cbIndex )

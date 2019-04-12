@@ -123,7 +123,7 @@ vtkSmartPointer<vtkImageData> iAImageTreeNode::GetCorrectnessEntropyImage(LabelI
 	spacing[0] = entropyImg->GetSpacing()[0];
 	spacing[1] = entropyImg->GetSpacing()[1];
 	spacing[2] = entropyImg->GetSpacing()[2];
-	vtkSmartPointer<vtkImageData> correctnessEntropyImg = AllocateImage(VTK_UNSIGNED_CHAR, dim, spacing, 4);
+	vtkSmartPointer<vtkImageData> correctnessEntropyImg = allocateImage(VTK_UNSIGNED_CHAR, dim, spacing, 4);
 
 	itk::Index<3> idx;
 	for (idx[0] = 0; idx[0] <dim[0]; ++idx[0])

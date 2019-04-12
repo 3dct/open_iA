@@ -47,70 +47,75 @@ public:
 		NoRenderer = 0x0,
 		MainRenderer = 0x01,
 		MagicLens = 0x02,
-		BoundingBox = 0x04 // TODO: check if that is a good idea or whether that should go somewhere else (VolumeRenderer)?
+		BoundingBox = 0x04,	// TODO: check if that is a good idea or whether that should go somewhere else (VolumeRenderer)?
+		Slicer = 0x08
 	};
 	//! create modality from name, file and image data
 	iAModality(QString const & name, QString const & filename, int channelNo, vtkSmartPointer<vtkImageData> imgData, int renderFlags);
 	//! create modality from name, file and image data
 	iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags);
 	//! returns name of the modality
-	QString GetName() const;
+	QString name() const;
 	//! returns file holding the modality data
-	QString GetFileName() const;
-	//! return the channel in the specified file that the data in this class comes from
-	int GetChannel() const;
+	QString fileName() const;
+	//! return the channel in the specified file that the data in this class comes from (don't confuse with channelID!)
+	int channel() const;
 	//! return the number of components in this modality
-	int ComponentCount() const;
+	int componentCount() const;
 	//! return a specific component of this modality
-	vtkSmartPointer<vtkImageData> GetComponent(int idx) const;
+	vtkSmartPointer<vtkImageData> component(int idx) const;
 	//! get the name of the transfer function file
-	QString GetTransferFileName() const;
+	QString transferFileName() const;
 	//! set name of the modality
-	void SetName(QString const & name);
+	void setName(QString const & name);
 	//! set the filename (to be used if it has changed externally; does not save the file!)
-	void SetFileName(QString const & fileName);
+	void setFileName(QString const & fileName);
 	//! set flag indicating location where to render
-	void SetRenderFlag(int renderFlag);
+	void setRenderFlag(int renderFlag);
 	//! get the main image of this modality (typically only the one is available,
 	//! unless there are multiple components, see ComponentCount() and GetComponent()
-	vtkSmartPointer<vtkImageData> GetImage() const;
+	vtkSmartPointer<vtkImageData> image() const;
 	//! return the name of the given component
-	QString GetImageName(int componentIdx);
+	QString imageName(int componentIdx);
 	//! return statistical information about the image
-	iAImageInfo const & Info() const;
+	iAImageInfo const & info() const;
+	//! return ID of channel used in mdichild to represent this modality in slicer (don't confuse with channelID!)
+	uint channelID() const;
+	//! set ID of channel used in mdichild to represent this modality in slicer
+	void setChannelID(uint id);
 
-	QString GetOrientationString();
-	QString GetPositionString();
+	QString orientationString();
+	QString positionString();
 
-	int GetWidth() const;
-	int GetHeight() const;
-	int GetDepth() const;
-	double const * GetSpacing() const;
-	double const * GetOrigin() const;
-	void SetSpacing(double spacing[3]);
-	void SetOrigin(double origin[3]);
-	iAImageCoordConverter const & GetConverter() const;
+	int width() const;
+	int height() const;
+	int depth() const;
+	double const * spacing() const;
+	double const * origin() const;
+	void setSpacing(double spacing[3]);
+	void setOrigin(double origin[3]);
+	iAImageCoordConverter const & converter() const;
 
 	bool hasRenderFlag(RenderFlag flag) const;
-	int RenderFlags() const;
+	int renderFlags() const;
 
-	void LoadTransferFunction();
-	QSharedPointer<iAModalityTransfer> GetTransfer();
-	void SetRenderer(QSharedPointer<iAVolumeRenderer> renderer);
-	QSharedPointer<iAVolumeRenderer> GetRenderer();
-	void UpdateRenderer();
+	void loadTransferFunction();
+	QSharedPointer<iAModalityTransfer> transfer();
+	void setRenderer(QSharedPointer<iAVolumeRenderer> renderer);
+	QSharedPointer<iAVolumeRenderer> renderer();
+	void updateRenderer();
 
-	void SetStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
-	void SetData(vtkSmartPointer<vtkImageData> imgData);
-	void ComputeImageStatistics();
-	void ComputeHistogramData(size_t numBin);
-	QSharedPointer<iAHistogramData> const GetHistogramData() const;
+	void setStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
+	void setData(vtkSmartPointer<vtkImageData> imgData);
+	void computeImageStatistics();
+	void computeHistogramData(size_t numBin);
+	QSharedPointer<iAHistogramData> const histogramData() const;
 
 	void setVolSettings(const iAVolumeSettings &volSettings);
 
-	const iAVolumeSettings &getVolumeSettings() const;
+	const iAVolumeSettings &volumeSettings() const;
 
-	inline bool getVolSettingsSavedStatus() {
+	inline bool volSettingsSavedStatus() {
 		return this->m_VolSettingsSavedStatus;
 	}
 
@@ -127,7 +132,8 @@ private:
 	QString m_name;
 	QString m_filename;
 	int     m_channel;     //!< in case the file contains multiple channels, the channel no. for this modality
-	int     renderFlags;
+	int     m_renderFlags;
+	uint    m_channelID;
 	QSharedPointer<iAImageCoordConverter> m_converter;
 	QSharedPointer<iAModalityTransfer> m_transfer;
 	QSharedPointer<iAVolumeRenderer> m_renderer;
@@ -135,10 +141,9 @@ private:
 	vtkSmartPointer<vtkImageData> m_imgData;
 
 	// TODO: Refactor
-	QString positionSettings;
-	QString orientationSettings;
-	QString tfFileName;
-
+	QString m_positionSettings;
+	QString m_orientationSettings;
+	QString m_tfFileName;
 };
 
 

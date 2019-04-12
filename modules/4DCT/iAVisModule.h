@@ -25,20 +25,20 @@ class vtkRenderer;
 class iAVisModule
 {
 public:
-						iAVisModule( );
-	void				attachTo( vtkRenderer* renderer );
-	void				detach( );
-	bool				isAttached( );
-	bool				isEnabled( );
-	virtual void		reset( );
-	virtual void		enable( );
-	virtual void		disable( );
+					iAVisModule( );
+	void			attachTo( vtkRenderer* renderer );
+	void			detach( );
+	bool			isAttached( );
+	bool			isEnabled( );
+	virtual void	reset( );
+	virtual void	enable( );
+	virtual void	disable( );
 
 protected:
-	vtkRenderer *		m_renderer;
+	vtkRenderer *	m_renderer;
 
 private:
-	virtual void		show( ) = 0;
-	virtual void		hide( ) = 0;
-	bool				m_enabled;
+	virtual void	show( ) = 0;
+	virtual void	hide( ) = 0;
+	bool			m_enabled;
 };

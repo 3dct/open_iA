@@ -39,7 +39,7 @@ iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASl
 		newW->hide();
 		m_pool.push_back(newW);
 	}
-	std::fill(m_sliceNumber, m_sliceNumber+SlicerModeCount, iAImagePreviewWidget::SliceNumberNotSet);
+	std::fill(m_sliceNumber, m_sliceNumber+SlicerCount, iAImagePreviewWidget::SliceNumberNotSet);
 }
 
 

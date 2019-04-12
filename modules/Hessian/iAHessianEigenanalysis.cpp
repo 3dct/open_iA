@@ -53,9 +53,9 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 
 	// Compute Hessian
 	auto hessianFilter = HessianFilterType::New();
-	hessianFilter->SetInput( dynamic_cast< InputImageType * >( filter->Input()[0]->GetITKImage() ) );
+	hessianFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	hessianFilter->SetSigma(parameters["Sigma"].toDouble());
-	filter->Progress()->Observe(hessianFilter);
+	filter->progress()->Observe(hessianFilter);
 	hessianFilter->Update();
 
 	// Compute eigen values, order them in ascending order
@@ -95,17 +95,17 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 	auto eigenCastfilter1 = CastImageFilterType::New();
 	eigenCastfilter1->SetInput( eigenAdaptor3 );
 	eigenCastfilter1->Update();
-	filter->AddOutput(eigenCastfilter1->GetOutput());
+	filter->addOutput(eigenCastfilter1->GetOutput());
 
 	auto eigenCastfilter2 = CastImageFilterType::New();
 	eigenCastfilter2->SetInput( eigenAdaptor2 );
 	eigenCastfilter2->Update();
-	filter->AddOutput(eigenCastfilter2->GetOutput());
+	filter->addOutput(eigenCastfilter2->GetOutput());
 	
 	auto eigenCastfilter3 = CastImageFilterType::New();
 	eigenCastfilter3->SetInput( eigenAdaptor1 );
 	eigenCastfilter3->Update();
-	filter->AddOutput(eigenCastfilter3->GetOutput());
+	filter->addOutput(eigenCastfilter3->GetOutput());
 
 /*
 	// TODO: check if the following code in its current form does anything useful
@@ -135,9 +135,9 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 */
 }
 
-void iAHessianEigenanalysis::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAHessianEigenanalysis::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(hessianEigenAnalysis, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(hessianEigenAnalysis, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAHessianEigenanalysis)
@@ -154,7 +154,7 @@ iAHessianEigenanalysis::iAHessianEigenanalysis() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SymmetricEigenAnalysisImageFilter.html\">"
 		"Symmetric Eigen Analysis Filter</a> in the ITK documentation.", 1, 3)
 {
-	AddParameter("Sigma", Continuous, 1.0);
+	addParameter("Sigma", Continuous, 1.0);
 }
 
 
@@ -166,15 +166,15 @@ template<class T> void Laplacian(iAFilter* filter, QMap<QString, QVariant> const
 	typedef itk::LaplacianRecursiveGaussianImageFilter<ImageType, OutputImageType> LoGFilterType;
 
 	auto logFilter = LoGFilterType::New();
-	logFilter->SetInput(dynamic_cast< ImageType * >(filter->Input()[0]->GetITKImage()));
+	logFilter->SetInput(dynamic_cast< ImageType * >(filter->input()[0]->itkImage()));
 	logFilter->SetSigma(params["Sigma"].toDouble());
 	logFilter->Update();
-	filter->AddOutput(logFilter->GetOutput());
+	filter->addOutput(logFilter->GetOutput());
 }
 
-void iALaplacian::PerformWork(QMap<QString, QVariant> const & parameters)
+void iALaplacian::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(Laplacian, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(Laplacian, inputPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iALaplacian)
@@ -190,5 +190,5 @@ iALaplacian::iALaplacian() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1LaplacianRecursiveGaussianImageFilter.html\">"
 		"Laplacian Recursive Gaussian Filter</a> in the ITK documentation.")
 {
-	AddParameter("Sigma", Continuous, 1.0);
+	addParameter("Sigma", Continuous, 1.0);
 }

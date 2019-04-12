@@ -83,6 +83,7 @@ private:
 	MdiChild*			m_mdiChild;
 	vtkSmartPointer<vtkPiecewiseFunction>	m_otf[CHANNELS_COUNT];
 	bool				m_multiChannelIsInitialized;
+	std::vector<uint>   m_channelID;
 
 Q_SIGNALS:
 	void update(int index, bool isApplyForAll=false);

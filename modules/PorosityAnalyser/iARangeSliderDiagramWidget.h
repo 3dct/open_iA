@@ -38,36 +38,36 @@ class iAFilteringDiagramData : public iAPlotData
 {
 public:
 	iAFilteringDiagramData( QSharedPointer<iAPlotData> other, int min, int max )
-		: m_data( new double[other->GetNumBin()] ),
-		m_size( other->GetNumBin() ),
+		: m_data( new double[other->numBin()] ),
+		m_size( other->numBin() ),
 		m_other(other)
 	{
-		for ( int i = 0; i < other->GetNumBin(); ++i )
+		for ( int i = 0; i < other->numBin(); ++i )
 		{
-			m_data[i] = ( i >= min && i <= max ) ? other->GetRawData()[i] : 0;
+			m_data[i] = ( i >= min && i <= max ) ? other->rawData()[i] : 0;
 		}
 	}
 
-	DataType const * GetRawData() const override
+	DataType const * rawData() const override
 	{
 		return m_data;
 	}
 
-	size_t GetNumBin() const override
+	size_t numBin() const override
 	{
 		return m_size;
 	}
-	double GetSpacing() const override
+	double spacing() const override
 	{
-		return m_other->GetSpacing();
+		return m_other->spacing();
 	}
-	double const * XBounds() const override
+	double const * xBounds() const override
 	{
-		return m_other->XBounds();
+		return m_other->xBounds();
 	}
-	DataType const * YBounds() const override
+	DataType const * yBounds() const override
 	{
-		return m_other->YBounds();
+		return m_other->yBounds();
 	}
 private:
 	DataType* m_data;

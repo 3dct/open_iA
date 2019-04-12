@@ -38,7 +38,7 @@ void iANoNormalizer::SetMaxValue(iADistanceType )
 {
 }
 
-char const * const iANoNormalizer::GetName() const
+char const * const iANoNormalizer::name() const
 {
 	return TransformNames[nmNone];
 }
@@ -62,7 +62,7 @@ iADistanceType iALinearNormalizer::Normalize(iADistanceType d) const
 	return d * m_normalizeFactor;
 }
 
-char const * const iALinearNormalizer::GetName() const
+char const * const iALinearNormalizer::name() const
 {
 	return TransformNames[nmLinear];
 }
@@ -95,7 +95,7 @@ void iAGaussianNormalizer::SetMaxValue(iADistanceType maxValue)
 	UpdateValueFactor();
 }
 
-char const * const iAGaussianNormalizer::GetName() const
+char const * const iAGaussianNormalizer::name() const
 {
 	return TransformNames[nmGaussian];
 }

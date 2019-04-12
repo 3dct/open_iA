@@ -37,17 +37,18 @@
 #include <QErrorMessage>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPlainTextEdit>
 #include <QSpinBox>
 #include <QScrollArea>
 #include <QTextBrowser>
-#include <QPlainTextEdit>
+#include <QTextDocument>
 
 enum ContainerSize {
 	WIDTH=530, HEIGHT=600
 };
 
 
-dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *fDescr)
+dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & winTitle, QStringList const & inList, QList<QVariant> const & inPara, QTextDocument *fDescr)
 	: QDialog(parent),
 	m_sourceMdiChild(nullptr),
 	m_sourceMdiChildClosed(false),
@@ -201,25 +202,25 @@ void dlg_commoninput::SelectFilter()
 		if (idx < widgetList.size() - 1 && m_filterWithParameters.indexOf(idx) != -1 &&
 			m_sourceMdiChild)	// TODO: if possible, get rid of sourceMdi?
 		{
-			auto filter = iAFilterRegistry::Filter(filterName);
-			int filterID = iAFilterRegistry::FilterID(filterName);
-			auto runner = iAFilterRegistry::FilterRunner(filterID)->Create();
-			QMap<QString, QVariant> paramValues = runner->LoadParameters(filter, m_sourceMdiChild);
-			if (!runner->AskForParameters(filter, paramValues, m_sourceMdiChild, m_mainWnd, false))
+			auto filter = iAFilterRegistry::filter(filterName);
+			int filterID = iAFilterRegistry::filterID(filterName);
+			auto runner = iAFilterRegistry::filterRunner(filterID)->create();
+			QMap<QString, QVariant> paramValues = runner->loadParameters(filter, m_sourceMdiChild);
+			if (!runner->askForParameters(filter, paramValues, m_sourceMdiChild, m_mainWnd, false))
 				return;
 			QString paramStr;
-			for (auto param: filter->Parameters())
+			for (auto param: filter->parameters())
 			{
 				paramStr += (paramStr.isEmpty() ? "" : " ");
-				switch (param->ValueType())
+				switch (param->valueType())
 				{
 				case Boolean:
-					paramStr += paramValues[param->Name()].toBool() ? "true" : "false"; break;
+					paramStr += paramValues[param->name()].toBool() ? "true" : "false"; break;
 				case Discrete:
 				case Continuous:
-					paramStr += paramValues[param->Name()].toString(); break;
+					paramStr += paramValues[param->name()].toString(); break;
 				default:
-					paramStr += QuoteString(paramValues[param->Name()].toString()); break;
+					paramStr += quoteString(paramValues[param->name()].toString()); break;
 				}
 
 			}
@@ -311,7 +312,7 @@ void dlg_commoninput::showROI()
 	for (int i = 0; i < 3; ++i)
 	{
 		m_roi[i] = 0;
-		m_roi[i + 3] = m_sourceMdiChild->getImagePointer()->GetDimensions()[i];
+		m_roi[i + 3] = m_sourceMdiChild->imagePointer()->GetDimensions()[i];
 	}
 	for (int i = 0; i < children.size(); ++i)
 	{
@@ -322,8 +323,8 @@ void dlg_commoninput::showROI()
 			UpdateROIPart(input->objectName(), input->text());
 		}
 	}
-	m_sourceMdiChild->SetROIVisible(true);
-	m_sourceMdiChild->UpdateROI(m_roi);
+	m_sourceMdiChild->setROIVisible(true);
+	m_sourceMdiChild->updateROI(m_roi);
 }
 
 
@@ -337,7 +338,7 @@ void dlg_commoninput::ROIUpdated(QString text)
 	if (m_roi[3] <= 0) m_roi[3] = 1;
 	if (m_roi[4] <= 0) m_roi[4] = 1;
 	if (m_roi[5] <= 0) m_roi[5] = 1;
-	m_sourceMdiChild->UpdateROI(m_roi);
+	m_sourceMdiChild->updateROI(m_roi);
 }
 
 
@@ -477,7 +478,7 @@ int dlg_commoninput::exec()
 	if (m_sourceMdiChild)
 	{
 		disconnect(m_sourceMdiChild, SIGNAL(closed()), this, SLOT(SourceChildClosed()));
-		m_sourceMdiChild->SetROIVisible(false);
+		m_sourceMdiChild->setROIVisible(false);
 	}
 	return result;
 }

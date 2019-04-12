@@ -43,3 +43,5 @@ open_iA_Core_API void FindFiles(QString const & directory, QStringList const & f
 	QStringList & filesOut, QFlags<FilesFolders> filesFolders);
 
 open_iA_Core_API std::string getLocalEncodingFileName(QString const & fileName);
+
+open_iA_Core_API QString fileNameOnly(QString const & fileName);

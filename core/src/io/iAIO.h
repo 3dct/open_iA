@@ -39,6 +39,8 @@ class vtkStringArray;
 
 class iAModalityList;
 
+//! Class currently containing most IO operations (file reading and writing).
+//! Should be split up into readers for specific formats!
 class open_iA_Core_API iAIO : public iAAlgorithm
 {
 	Q_OBJECT
@@ -49,13 +51,25 @@ public:
 	iAIO(iALogger* logger, QWidget *parent, std::vector<vtkSmartPointer<vtkImageData> > * volumes, std::vector<QString> * fileNames = 0);//TODO: QNDH for XRF volume stack loading
 	iAIO(QSharedPointer<iAModalityList> modalities, vtkCamera* cam, iALogger* logger);
 	virtual ~iAIO();
+	//! initialize variables
 	void init(QWidget *par);
-	bool setupIO( IOType type, QString f, bool comp = false, int channel=-1);
+	//! Set up the file IO specified by the parameters.
+	//! @param type type of the file to read
+	//! @param fileName name of the file to read
+	//! @param compression whether to use compression (if file format supports it)
+	//! @param channel which channel to read/write (if file format supports more than one)
+	//! @return true if successful, false if not.
+	bool setupIO(iAIOType type, QString fileName, bool compression = false, int channel=-1);
+	//! Set additional information for the current file
 	void setAdditionalInfo(QString const & additionalInfo);
-	QString getAdditionalInfo();
-	QString getFileName();
-	QSharedPointer<iAModalityList> GetModalities();
-	int getIOID() const;
+	//! Get additional information (if any, e.g. for a volume stack)
+	QString const & additionalInfo();
+	//! Get the name of the file that was read
+	QString const & fileName();
+	//! Get the list of modalities that were read
+	QSharedPointer<iAModalityList> modalities();
+	//! Get the type of file being read
+	int ioID() const;
 
 Q_SIGNALS:
 	void done(bool active = false);
@@ -73,7 +87,7 @@ private:
 	bool setupVolumeStackMHDReader(QString f);
 	bool setupVolumeStackVolstackReader(QString f);
 	bool setupVolumeStackVolStackWriter(QString f);
-	void FillFileNameArray(int * indexRange, int digitsInIndex, int stepSize = 1);
+	void fillFileNameArray(int * indexRange, int digitsInIndex, int stepSize = 1);
 
 	void readImageStack();
 	void readRawImage();
@@ -85,8 +99,10 @@ private:
 	void readImageData( );
 	void readMetaImage( );
 	void readSTL( );
+	//! Reads a series of DICOM images.
 	void readDCM( );
-	//void readNRRD( );	 // see iAIOProvider.cpp why this is commented out
+	//! Reads an NRRD image. See iAIOProvider.cpp why this is commented out
+	//void readNRRD( );
 	void readHDF5File();
 	void readProject();
 
@@ -98,31 +114,31 @@ private:
 
 	void postImageReadActions();
 	void printSTLFileInfos();
-	void StoreIOSettings();
-	void LoadIOSettings();
+	void storeIOSettings();
+	void loadIOSettings();
 
-	QWidget *parent;
-	QString fileName;
-	QDir f_dir;
+	QWidget *m_parent;
+	QString m_fileName;
+	QDir m_fileDir;
 
-	QString extension;
-	QString prefix;
-	QString fileNamesBase;
-	vtkStringArray* fileNameArray;
-	unsigned long headersize;
-	int scalarType;
-	int byteOrder;
-	int extent[6];
-	double spacing[3];
-	double origin[3];
-	bool compression;
+	QString m_extension;
+	QString m_prefix;
+	QString m_fileNamesBase;
+	vtkStringArray* m_fileNameArray;
+	unsigned long m_headersize;
+	int m_scalarType;
+	int m_byteOrder;
+	int m_extent[6];
+	double m_spacing[3];
+	double m_origin[3];
+	bool m_compression;
 
-	int rawSizeX,rawSizeY, rawSizeZ;
-	double rawSpaceX, rawSpaceY, rawSpaceZ;
-	double rawOriginX,rawOriginY, rawOriginZ;
-	unsigned int rawHeaderSize, rawByteOrder, rawScalarType;
+	int m_rawSizeX, m_rawSizeY, m_rawSizeZ;
+	double m_rawSpaceX, m_rawSpaceY, m_rawSpaceZ;
+	double m_rawOriginX, m_rawOriginY, m_rawOriginZ;
+	unsigned int m_rawHeaderSize, m_rawByteOrder, m_rawScalarType;
 
-	int ioID;
+	int m_ioID;
 	std::vector<vtkSmartPointer<vtkImageData> > * m_volumes;
 	std::vector<QString> * m_fileNames_volstack;
 

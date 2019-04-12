@@ -75,10 +75,10 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 
 	for (int i=0; i<SLICE_VIEW_COUNT; ++i)
 	{
-		char const * caption = GetSlicerModeString(i);
+		QString caption(slicerModeString(i));
 		m_sliceViews[i] = new iAImagePreviewWidget(QString("CameraView")+caption,
 			0, false, 0, static_cast<iASlicerMode>(i), labelCount);
-		m_sliceViews[i]->SetImage(originalData, false, false);
+		m_sliceViews[i]->setImage(originalData, false, false);
 		m_sliceViews[i]->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		/*
 		// why should that be necessary?
@@ -111,7 +111,7 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 void iACameraWidget::UpdateScrollBar(int sliceNumber)
 {
 	int extent[6];
-	m_sliceViews[static_cast<int>(InitialSlicerMode)]->GetImage()->GetExtent(extent);
+	m_sliceViews[static_cast<int>(InitialSlicerMode)]->image()->GetExtent(extent);
 	int minIdx = (m_slicerMode == iASlicerMode::XY) ? 4 : (
 		(m_slicerMode == iASlicerMode::YZ) ? 0 : 2
 	);
@@ -151,7 +151,7 @@ void iACameraWidget::ScrollBarChanged(int value)
 void iACameraWidget::UpdateSliceLabel(int sliceNumber)
 {
 	m_sliceLabel->setText(QString("Selected Axis: %1\nSlice: %2")
-		.arg(GetSlicerModeString(m_slicerMode))
+		.arg(slicerModeString(m_slicerMode))
 		.arg(sliceNumber));
 }
 
@@ -187,6 +187,6 @@ void iACameraWidget::ShowImage(vtkSmartPointer<vtkImageData> imgData)
 	
 	for (int i=0; i<SLICE_VIEW_COUNT; ++i)
 	{
-		m_sliceViews[i]->SetImage(imgData, false, false);
+		m_sliceViews[i]->setImage(imgData, false, false);
 	}
 }

@@ -24,14 +24,13 @@
 
 #include "iAPlotData.h"
 
-#define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
-#define NOMINMAX
-
 #include <QtGlobal>
 #include <vtkVersion.h>
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 #include <QOpenGLWidget>
 #else
+#define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
+#define NOMINMAX
 #include <QGLWidget>
 #endif
 
@@ -42,9 +41,11 @@
 class iAPlot;
 class iAMapper;
 
+class QHelpEvent;
 class QMenu;
 class QRubberBand;
 
+//! A chart widget which can show an arbitrary number of plots.
 #if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 class open_iA_Core_API iAChartWidget : public QOpenGLWidget
 #else
@@ -59,10 +60,10 @@ public:
 	enum AxisMappingType { Linear, Logarithmic };
 	iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel);
 	virtual ~iAChartWidget();
-	double XZoom()  const { return xZoom;        }
-	double YZoom()  const { return yZoom;        }
-	int    xShift() const { return translationX; }
-	int    yShift() const { return translationY; }
+	double xZoom()  const { return m_xZoom;        }
+	double yZoom()  const { return m_yZoom;        }
+	int    xShift() const { return m_translationX; }
+	int    yShift() const { return m_translationY; }
 	virtual int bottomMargin() const;
 	virtual int leftMargin() const;
 	virtual int activeWidth()  const;
@@ -105,29 +106,26 @@ public:
 	void updateYBounds(size_t startPlot = 0);
 	QImage drawOffscreen();
 	void setBackgroundColor(QColor const & color);
+
 public slots:
 	void resetView();
 	void setDrawXAxisAtZero(bool enable);
+
 signals:
 	void xAxisChanged();
 	void plotsSelected(std::vector<size_t> const & plotIDs);
 	void dblClicked();
-protected:
-	QString xCaption, yCaption;
-	int zoomX;
-	int zoomY;
-	double yZoom;
-	double yZoomStart;
-	double xZoom;
-	double xZoomStart;
 
-	int translationX;
-	int translationY;
-	int translationStartX;
-	int translationStartY;
-	int dragStartPosX;
-	int dragStartPosY;
-	int mode;
+protected:
+	QString m_xCaption, m_yCaption;
+	int m_zoomXPos, m_zoomYPos;
+	double m_xZoom, m_yZoom;
+	double m_xZoomStart, m_yZoomStart;
+
+	int m_translationX, m_translationY;
+	int m_translationStartX, m_translationStartY;
+	int m_dragStartPosX, m_dragStartPosY;
+	int m_mode;
 	//! Main mappers from diagram coordinates to pixel coordinates, for each axis:
 	QSharedPointer<iAMapper> m_xMapper, m_yMapper;
 	AxisMappingType m_yMappingMode;
@@ -135,13 +133,13 @@ protected:
 
 	virtual void drawPlots(QPainter& painter);
 	virtual void drawAxes(QPainter& painter);
-	virtual QString getXAxisTickMarkLabel(double value, double stepWidth);
+	virtual QString xAxisTickMarkLabel(double value, double stepWidth);
 
 	void zoomAlongY(double value, bool deltaMode);
 	void zoomAlongX(double value, int x, bool deltaMode);
 
 	virtual void changeMode(int newMode, QMouseEvent *event);
-	virtual void showDataTooltip(QMouseEvent *event);
+	virtual void showDataTooltip(QHelpEvent *event);
 	virtual void drawBackground(QPainter &painter);
 
 	void mouseMoveEvent(QMouseEvent *event) override;
@@ -153,9 +151,12 @@ protected:
 	void paintGL() override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	void keyReleaseEvent(QKeyEvent *event) override;
+	bool event(QEvent *event) override;
+
 private slots:
 	void showTooltip(bool toggled);
 	void exportData();
+
 private:
 	virtual void addContextMenuEntries(QMenu* contextMenu);
 	void createMappers();

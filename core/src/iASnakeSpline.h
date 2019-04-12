@@ -141,7 +141,6 @@ public:
 		m_selectedPntInd = -1;
 	}
 
-public:
 	static const int RADIUS = 5;
 
 protected:

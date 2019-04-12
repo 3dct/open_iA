@@ -30,12 +30,12 @@ class iAVectorPlotData : public iAPlotData
 {
 public:
 	iAVectorPlotData(std::vector<double> const & data);
-	DataType const * GetRawData() const override;
-	size_t GetNumBin() const override;
-	double GetSpacing() const override;
-	double const * XBounds() const override;
-	DataType const * YBounds() const override;
-	iAValueType GetRangeType() const override;
+	DataType const * rawData() const override;
+	size_t numBin() const override;
+	double spacing() const override;
+	double const * xBounds() const override;
+	DataType const * yBounds() const override;
+	iAValueType valueType() const override;
 	void setXDataType(iAValueType);
 	std::vector<double> & data();
 	void updateBounds();

@@ -29,7 +29,7 @@ void iAXRFModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 		return;
-	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
+	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QAction * actionXRF = new QAction( m_mainWnd );
 	actionXRF->setText( QApplication::translate( "MainWindow", "InSpectr", 0 ) );
 	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionXRF );
@@ -42,7 +42,7 @@ bool iAXRFModuleInterface::XRF_Visualization()
 	return AttachToMdiChild( m_mdiChild );
 }
 
-iAModuleAttachmentToChild * iAXRFModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
+iAModuleAttachmentToChild * iAXRFModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
 {
-	return new iAXRFAttachment( mainWnd, childData );
+	return new iAXRFAttachment( mainWnd, child );
 }

@@ -47,21 +47,21 @@ void Reader::read(QString const & filename, iAConnector* con, int channel,
 	reader->Load();
 	if (volumes)
 	{
-		con->SetImage(reader->GetResult(0));
-		con->Modified();
+		con->setImage(reader->GetResult(0));
+		con->modified();
 		for (int i = 0; i < reader->GetChanNum(); ++i)
 		{
 			vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
 			iAConnector con;
-			con.SetImage(reader->GetResult(i));
-			image->DeepCopy(con.GetVTKImage());
+			con.setImage(reader->GetResult(i));
+			image->DeepCopy(con.vtkImage());
 			volumes->push_back(image);
 		}
 	}
 	else if (channel >= 0 && channel < reader->GetChanNum())
 	{
-		con->SetImage(reader->GetResult(channel));
-		con->Modified();
+		con->setImage(reader->GetResult(channel));
+		con->modified();
 	}
 	else
 	{

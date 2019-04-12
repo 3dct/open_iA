@@ -45,9 +45,9 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	dlg_samplingSettingsUI(parentWidget)
 {
 	assert(modalities->size() > 0);
-	QSharedPointer<iAModality const> mod0 = modalities->Get(0);
+	QSharedPointer<iAModality const> mod0 = modalities->get(0);
 	m_modalityCount = modalities->size();
-	m_imagePixelCount = mod0->GetHeight() * mod0->GetWidth() * mod0->GetDepth();
+	m_imagePixelCount = mod0->height() * mod0->width() * mod0->depth();
 
 	// assemble modality parameter input on the fly:
 
@@ -60,11 +60,11 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 	auto & paramGens = GetParameterGenerators();
 	for (QSharedPointer<iAParameterGenerator> paramGen : paramGens)
 	{
-		cbSamplingMethod->addItem(paramGen->GetName());
+		cbSamplingMethod->addItem(paramGen->name());
 	}
 	cbSamplingMethod->setCurrentIndex(1);
 
-	SetInputsFromMap(values);
+	setInputsFromMap(values);
 
 	connect(leParamDescriptor, SIGNAL(editingFinished()), this, SLOT(ParameterDescriptorChanged()));
 	connect(pbChooseOutputFolder, SIGNAL(clicked()), this, SLOT(ChooseOutputFolder()));
@@ -81,7 +81,7 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWidget,
 // methods for storing and loading all settings values:
 // {
 
-bool SetTextValue(QMap<QString, QString> values, QString name, QLineEdit* edit)
+bool setTextValue(QMap<QString, QString> values, QString name, QLineEdit* edit)
 {
 	if (values.contains(name))
 	{
@@ -91,7 +91,7 @@ bool SetTextValue(QMap<QString, QString> values, QString name, QLineEdit* edit)
 	return false;
 }
 
-void SetSpinBoxValue(QMap<QString, QString> values, QString name, QSpinBox* edit)
+void setSpinBoxValue(QMap<QString, QString> values, QString name, QSpinBox* edit)
 {
 	if (values.contains(name))
 	{
@@ -106,7 +106,7 @@ void SetSpinBoxValue(QMap<QString, QString> values, QString name, QSpinBox* edit
 	}
 }
 
-void SetCheckValue(QMap<QString, QString> values, QString name, QCheckBox* checkBox)
+void setCheckValue(QMap<QString, QString> values, QString name, QCheckBox* checkBox)
 {
 	if (values.contains(name))
 	{
@@ -114,7 +114,7 @@ void SetCheckValue(QMap<QString, QString> values, QString name, QCheckBox* check
 	}
 }
 
-void SetComboBoxValue(QMap<QString, QString> values, QString name, QComboBox* comboBox)
+void setComboBoxValue(QMap<QString, QString> values, QString name, QComboBox* comboBox)
 {
 	if (values.contains(name))
 	{
@@ -129,13 +129,13 @@ void SetComboBoxValue(QMap<QString, QString> values, QString name, QComboBox* co
 	}
 }
 
-void ParameterInputs::DeleteGUI()
+void iAParameterInputs::deleteGUI()
 {
 	delete label;
-	DeleteGUIComponents();
+	deleteGUIComponents();
 }
 
-void NumberParameterInputs::RetrieveInputValues(QMap<QString, QString> & values)
+void iANumberParameterInputs::retrieveInputValues(QMap<QString, QString> & values)
 {
 	QString name(label->text());
 	values.insert(QString("%1 From").arg(name), from->text());
@@ -146,60 +146,60 @@ void NumberParameterInputs::RetrieveInputValues(QMap<QString, QString> & values)
 	}
 }
 
-void NumberParameterInputs::ChangeInputValues(QMap<QString, QString> const & values)
+void iANumberParameterInputs::changeInputValues(QMap<QString, QString> const & values)
 {
 	QString name(label->text());
-	SetTextValue(values, QString("%1 From").arg(name), from);
-	SetTextValue(values, QString("%1 To").arg(name), to);
+	setTextValue(values, QString("%1 From").arg(name), from);
+	setTextValue(values, QString("%1 To").arg(name), to);
 	if (logScale)
 	{
-		SetCheckValue(values, QString("%1 Log").arg(name), logScale);
+		setCheckValue(values, QString("%1 Log").arg(name), logScale);
 	}
 }
 
-void NumberParameterInputs::DeleteGUIComponents()
+void iANumberParameterInputs::deleteGUIComponents()
 {
 	delete from;
 	delete to;
 	delete logScale;
 }
 
-void AdjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
+void adjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
 {
 	bool ok;
 	double value = valueText.toDouble(&ok);
-	if (desc->ValueType() == Categorical ||
-		desc->ValueType() == Discrete)
+	if (desc->valueType() == Categorical ||
+		desc->valueType() == Discrete)
 	{
 		int value = valueText.toInt(&ok);
 	}
 	if (!ok)
 	{
-		DEBUG_LOG(QString("Value '%1' for parameter %2 is not valid!").arg(valueText).arg(desc->Name()));
+		DEBUG_LOG(QString("Value '%1' for parameter %2 is not valid!").arg(valueText).arg(desc->name()));
 		return;
 	}
-	desc->AdjustMinMax(value);
+	desc->adjustMinMax(value);
 }
 
-QSharedPointer<iAAttributeDescriptor> NumberParameterInputs::GetCurrentDescriptor()
+QSharedPointer<iAAttributeDescriptor> iANumberParameterInputs::currentDescriptor()
 {
-	assert(descriptor->ValueType() == Discrete || descriptor->ValueType() == Continuous);
+	assert(descriptor->valueType() == Discrete || descriptor->valueType() == Continuous);
 	QString pName(label->text());
 	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
 		iAAttributeDescriptor::Parameter,
-		descriptor->ValueType()));
-	desc->SetNameMapper(descriptor->NameMapper());	// might not be needed, namemapper should only be necessary for categorical attributes
-	AdjustMinMax(desc, from->text());
-	AdjustMinMax(desc, to->text());
+		descriptor->valueType()));
+	desc->setNameMapper(descriptor->nameMapper());	// might not be needed, namemapper should only be necessary for categorical attributes
+	adjustMinMax(desc, from->text());
+	adjustMinMax(desc, to->text());
 	if (logScale)
 	{
-		desc->SetLogScale(logScale->isChecked());
+		desc->setLogScale(logScale->isChecked());
 	}
 	return desc;
 }
 
-QString CategoryParameterInputs::GetFeatureString()
+QString iACategoryParameterInputs::featureString()
 {
 	QString result;
 	for (int i = 0; i < m_features.size(); ++i)
@@ -212,20 +212,19 @@ QString CategoryParameterInputs::GetFeatureString()
 			}
 			result += m_features[i]->text();
 			// distinguish between short name for storing and long name for display?
-			// descriptor->NameMapper()->GetShortName(i + descriptor->Min());
+			// descriptor->nameMapper()->GetShortName(i + descriptor->Min());
 		}
 	}
 	return result;
 }
 
-void CategoryParameterInputs::RetrieveInputValues(QMap<QString, QString> & values)
+void iACategoryParameterInputs::retrieveInputValues(QMap<QString, QString> & values)
 {
 	QString name(label->text());
-	QString featureString = GetFeatureString();
-	values.insert(name, featureString);
+	values.insert(name, featureString());
 }
 
-void CategoryParameterInputs::ChangeInputValues(QMap<QString, QString> const & values)
+void iACategoryParameterInputs::changeInputValues(QMap<QString, QString> const & values)
 {
 	QString name(label->text());
 	if (!values.contains(name))
@@ -233,7 +232,7 @@ void CategoryParameterInputs::ChangeInputValues(QMap<QString, QString> const & v
 	QStringList enabledOptions = values[name].split(",");
 	int curOption = 0;
 	for (int i = 0; i < m_features.size() && curOption < enabledOptions.size(); ++i)
-	{	// short names? descriptor->NameMapper()->GetShortName(i + descriptor->Min())
+	{	// short names? descriptor->nameMapper()->GetShortName(i + descriptor->Min())
 		if (m_features[i]->text() == enabledOptions[curOption])
 		{
 			m_features[i]->setChecked(true);
@@ -246,7 +245,7 @@ void CategoryParameterInputs::ChangeInputValues(QMap<QString, QString> const & v
 	}
 }
 
-void CategoryParameterInputs::DeleteGUIComponents()
+void iACategoryParameterInputs::deleteGUIComponents()
 {
 	for (int i = 0; i < m_features.size(); ++i)
 	{
@@ -254,14 +253,14 @@ void CategoryParameterInputs::DeleteGUIComponents()
 	}
 }
 
-QSharedPointer<iAAttributeDescriptor> CategoryParameterInputs::GetCurrentDescriptor()
+QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescriptor()
 {
 	QString pName(label->text());
-	assert(descriptor->ValueType() == Categorical);
+	assert(descriptor->valueType() == Categorical);
 	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
 		iAAttributeDescriptor::Parameter,
-		descriptor->ValueType()));
+		descriptor->valueType()));
 	QStringList names;
 	for (int i = 0; i < m_features.size(); ++i)
 	{
@@ -271,32 +270,32 @@ QSharedPointer<iAAttributeDescriptor> CategoryParameterInputs::GetCurrentDescrip
 		}
 	}
 	QSharedPointer<iAListNameMapper> nameMapper(new iAListNameMapper(names));
-	desc->SetNameMapper(nameMapper);
-	desc->AdjustMinMax(0);
-	desc->AdjustMinMax(names.size()-1);
+	desc->setNameMapper(nameMapper);
+	desc->adjustMinMax(0);
+	desc->adjustMinMax(names.size()-1);
 	return desc;
 	
 }
 
-void dlg_samplingSettings::SetInputsFromMap(QMap<QString, QString> const & values)
+void dlg_samplingSettings::setInputsFromMap(QMap<QString, QString> const & values)
 {
-	SetTextValue(values, "Executable", leExecutable);
-	SetTextValue(values, "AdditionalArguments", leAdditionalArguments);
-	SetTextValue(values, "OutputFolder", leOutputFolder);
-	SetTextValue(values, "PipelineName", lePipelineName);
-	SetSpinBoxValue(values, "LabelCount", sbLabelCount);
-	SetSpinBoxValue(values, "NumberOfSamples", sbNumberOfSamples);
-	SetComboBoxValue(values, "SamplingMethod", cbSamplingMethod);
-	SetCheckValue(values, "SubfolderPerSample", cbSeparateFolder);
-	SetCheckValue(values, "CalculateCharacteristics", cbCalcChar);
-	SetTextValue(values, "ImageBaseName", leImageBaseName);
+	setTextValue(values, "Executable", leExecutable);
+	setTextValue(values, "AdditionalArguments", leAdditionalArguments);
+	setTextValue(values, "OutputFolder", leOutputFolder);
+	setTextValue(values, "PipelineName", lePipelineName);
+	setSpinBoxValue(values, "LabelCount", sbLabelCount);
+	setSpinBoxValue(values, "NumberOfSamples", sbNumberOfSamples);
+	setComboBoxValue(values, "SamplingMethod", cbSamplingMethod);
+	setCheckValue(values, "SubfolderPerSample", cbSeparateFolder);
+	setCheckValue(values, "CalculateCharacteristics", cbCalcChar);
+	setTextValue(values, "ImageBaseName", leImageBaseName);
 
-	if (SetTextValue(values, "ParameterDescriptor", leParamDescriptor))
+	if (setTextValue(values, "ParameterDescriptor", leParamDescriptor))
 	{
 		ParameterDescriptorChanged();
 		for (int i = 0; i < m_paramInputs.size(); ++i)
 		{
-			m_paramInputs[i]->ChangeInputValues(values);
+			m_paramInputs[i]->changeInputValues(values);
 		}
 	}
 }
@@ -319,7 +318,7 @@ void dlg_samplingSettings::GetValues(QMap<QString, QString> & values) const
 
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
-		m_paramInputs[i]->RetrieveInputValues(values);
+		m_paramInputs[i]->retrieveInputValues(values);
 	}
 }
 
@@ -385,7 +384,7 @@ void dlg_samplingSettings::LoadSettings()
 		QString value = line.right(line.length() - (sepPos + KeyValueSeparator.length()));
 		settings.insert(key, value);
 	}
-	SetInputsFromMap(settings);
+	setInputsFromMap(settings);
 }
 
 
@@ -406,7 +405,7 @@ void dlg_samplingSettings::ChooseParameterDescriptor()
 	{
 		leParamDescriptor->setText(fileName);
 	}
-	LoadDescriptor(leParamDescriptor->text());
+	loadDescriptor(leParamDescriptor->text());
 }
 
 
@@ -424,47 +423,47 @@ void dlg_samplingSettings::ChooseExecutable()
 void dlg_samplingSettings::ParameterDescriptorChanged()
 {
 	// load parameter descriptor from file
-	LoadDescriptor(leParamDescriptor->text());
+	loadDescriptor(leParamDescriptor->text());
 }
 
-QSharedPointer<ParameterInputs> CreateParameterLine(
+QSharedPointer<iAParameterInputs> CreateParameterLine(
 	QString const & pName,
 	QSharedPointer<iAAttributeDescriptor> descriptor,
 	QGridLayout* gridLay,
 	int curGridLine)
 {
-	QSharedPointer<ParameterInputs> result;
+	QSharedPointer<iAParameterInputs> result;
 
-	if (descriptor->ValueType() == Categorical)
+	if (descriptor->valueType() == Categorical)
 	{
-		auto categoryInputs = new CategoryParameterInputs();
+		auto categoryInputs = new iACategoryParameterInputs();
 		QWidget* w = new QWidget();
 		QGridLayout* checkGridLay = new QGridLayout();
-		for (int categoryIdx = descriptor->Min(); categoryIdx <= descriptor->Max(); ++categoryIdx)
+		for (int categoryIdx = descriptor->min(); categoryIdx <= descriptor->max(); ++categoryIdx)
 		{
-			QCheckBox* checkBox = new QCheckBox(descriptor->NameMapper()->GetName(categoryIdx));
+			QCheckBox* checkBox = new QCheckBox(descriptor->nameMapper()->name(categoryIdx));
 			categoryInputs->m_features.push_back(checkBox);
-			checkGridLay->addWidget(checkBox, (categoryIdx - descriptor->Min()) / 3, static_cast<int>(categoryIdx - descriptor->Min()) % 3);
+			checkGridLay->addWidget(checkBox, (categoryIdx - descriptor->min()) / 3, static_cast<int>(categoryIdx - descriptor->min()) % 3);
 		}
 		w->setLayout(checkGridLay);
 		gridLay->addWidget(w, curGridLine, 1, 1, 3);
-		result = QSharedPointer<ParameterInputs>(categoryInputs);
+		result = QSharedPointer<iAParameterInputs>(categoryInputs);
 	}
 	else
 	{
-		auto numberInputs = new NumberParameterInputs();
-		numberInputs->from = new QLineEdit(QString::number(descriptor->Min(),
-			descriptor->ValueType() != Continuous? 'd' : 'g',
-			descriptor->ValueType() != Continuous ? 0 : 6));
-		numberInputs->to = new QLineEdit(QString::number(descriptor->Max(),
-			descriptor->ValueType() != Continuous ? 'd' : 'g',
-			descriptor->ValueType() != Continuous ? 0 : 6));
+		auto numberInputs = new iANumberParameterInputs();
+		numberInputs->from = new QLineEdit(QString::number(descriptor->min(),
+			descriptor->valueType() != Continuous? 'd' : 'g',
+			descriptor->valueType() != Continuous ? 0 : 6));
+		numberInputs->to = new QLineEdit(QString::number(descriptor->max(),
+			descriptor->valueType() != Continuous ? 'd' : 'g',
+			descriptor->valueType() != Continuous ? 0 : 6));
 		gridLay->addWidget(numberInputs->from, curGridLine, 1);
 		gridLay->addWidget(numberInputs->to, curGridLine, 2);
 		numberInputs->logScale = new QCheckBox("Log Scale");
-		numberInputs->logScale->setChecked(descriptor->IsLogScale());
+		numberInputs->logScale->setChecked(descriptor->isLogScale());
 		gridLay->addWidget(numberInputs->logScale, curGridLine, 3);
-		result = QSharedPointer<ParameterInputs>(numberInputs);
+		result = QSharedPointer<iAParameterInputs>(numberInputs);
 	}
 	result->label = new QLabel(pName);
 	gridLay->addWidget(result->label, curGridLine, 0);
@@ -472,7 +471,7 @@ QSharedPointer<ParameterInputs> CreateParameterLine(
 	return result;
 }
 
-void dlg_samplingSettings::LoadDescriptor(QString const & fileName)
+void dlg_samplingSettings::loadDescriptor(QString const & fileName)
 {
 	if (fileName == m_descriptorFileName)
 	{
@@ -486,12 +485,12 @@ void dlg_samplingSettings::LoadDescriptor(QString const & fileName)
 		return;
 	}
 	QTextStream in(&file);
-	m_descriptor = iAAttributes::Create(in);
+	m_descriptor = iAAttributes::create(in);
 
 	// TODO: store values from previous descriptor?
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
-		m_paramInputs[i]->DeleteGUI();
+		m_paramInputs[i]->deleteGUI();
 	}
 	if (m_descriptor->size() == 0)
 	{
@@ -503,12 +502,12 @@ void dlg_samplingSettings::LoadDescriptor(QString const & fileName)
 	QGridLayout* gridLay = dynamic_cast<QGridLayout*>(layout());
 	for (int i = 0; i < m_descriptor->size(); ++i)
 	{
-		QString pName(m_descriptor->at(i)->Name());
+		QString pName(m_descriptor->at(i)->name());
 		if (pName.startsWith("Mod "))
 		{
 			for (int m = 0; m < m_modalityCount; ++m)
 			{
-				QSharedPointer<ParameterInputs> pInput = CreateParameterLine(QString("Mod %1 ").arg(m) +
+				QSharedPointer<iAParameterInputs> pInput = CreateParameterLine(QString("Mod %1 ").arg(m) +
 					pName.right(pName.length() - 4),
 					m_descriptor->at(i),
 					gridLay,
@@ -519,7 +518,7 @@ void dlg_samplingSettings::LoadDescriptor(QString const & fileName)
 		}
 		else
 		{
-			QSharedPointer<ParameterInputs> pInput = CreateParameterLine(
+			QSharedPointer<iAParameterInputs> pInput = CreateParameterLine(
 				pName,
 				m_descriptor->at(i),
 				gridLay,
@@ -538,7 +537,7 @@ QSharedPointer<iAAttributes> dlg_samplingSettings::GetAttributes()
 	QSharedPointer<iAAttributes> result(new iAAttributes);
 	for (int l = 0; l < m_paramInputs.size(); ++l)
 	{
-		result->Add(m_paramInputs[l]->GetCurrentDescriptor());
+		result->add(m_paramInputs[l]->currentDescriptor());
 	}
 	return result;
 }

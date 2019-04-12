@@ -31,7 +31,7 @@ class vtkColorTransferFunction;
 class vtkLookupTable;
 class vtkPiecewiseFunction;
 
-class iAChannelVisualizationData;
+class iAChannelData;
 class iAImageWidget;
 
 class QToolBar;
@@ -87,7 +87,7 @@ private:
 	QVector<QToolButton*> slicerModeButton;
 	vtkSmartPointer<vtkLookupTable> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
-	QSharedPointer<iAChannelVisualizationData> m_selectionData;
+	QSharedPointer<iAChannelData> m_selectionData;
 	int m_curMode;
 	QVector<QToolButton*> m_memberButtons;
 	QWidget* m_settings;

@@ -50,7 +50,7 @@ class vtkCamera;
 class vtkImageData;
 class vtkRenderer;
 
-class dlg_transfer;
+class iAChartTransferFunction;
 class iAModalityList;
 class iAModuleDispatcher;
 class MdiChild;
@@ -62,14 +62,14 @@ class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
 public:
 	MainWindow(QString const & appName, QString const & version, QString const & splashImage);
 	~MainWindow();
-	static int RunGUI(int argc, char * argv[], QString const & appName, QString const & version,
+	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version,
 		QString const & splashPath, QString const & iconPath);
-	static void InitResources();
+	static void initResources();
 
+	void setPath(QString p);
+	QString const & path();
 	void setCurrentFile(const QString &fileName);
-	void updateRecentFileActions();
-	void setPath(QString p) { path = p; };
-	QString getPath() { return path; };
+	QString const & currentFile();  //!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
 
 	void loadFile(QString const & fileName);
 	void loadFile(QString fileName, bool isStack);
@@ -80,9 +80,9 @@ public:
 	void saveCamera(QDomDocument &doc);
 	void loadCamera(QDomNode &cameraNode);
 	void saveSliceViews(QDomDocument &doc);
-	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, char const *elemStr);
+	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, QString const & elemStr);
 	void loadSliceViews(QDomNode &sliceViewsNode);
-	void saveTransferFunction(QDomDocument &doc, dlg_transfer* transferFunction);
+	void saveTransferFunction(QDomDocument &doc, iAChartTransferFunction* transferFunction);
 	void saveProbabilityFunctions(QDomDocument &doc);
 	void loadProbabilityFunctions(QDomNode &functionsNode);
 	void savePreferences(QDomDocument &doc);
@@ -92,22 +92,21 @@ public:
 	void saveSlicerSettings(QDomDocument &doc);
 	void loadSlicerSettings(QDomNode &slicerSettingsNode);
 	//! get the File menu (can be used by modules to append entries to it)
-	QMenu * getFileMenu();
+	QMenu * fileMenu();
 	//! get the Filters menu (can be used by modules to append entries to it)
-	QMenu * getFiltersMenu();
+	QMenu * filtersMenu();
 	//! get the Tools menu (can be used by modules to append entries to it)
-	QMenu * getToolsMenu();
+	QMenu * toolsMenu();
 	//! get the Help menu (can be used by modules to append entries to it)
-	QMenu * getHelpMenu();
-	MdiChild *getResultChild( QString const & title );
-	MdiChild *getResultChild( int childInd, QString const & title );
-	MdiChild *getResultChild( MdiChild* oldChild, QString const & title );
+	QMenu * helpMenu();
+	MdiChild *resultChild( QString const & title );
+	MdiChild *resultChild( int childInd, QString const & title );
+	MdiChild *resultChild( MdiChild* oldChild, QString const & title );
 	MdiChild *activeMdiChild();
 	QList<QString> mdiWindowTitles();
 	QList<MdiChild*> mdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
 	template <typename T> QList<T*> childList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
 	QMdiSubWindow* addSubWindow(QWidget * child);
-	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
 	void loadArguments(int argc, char** argv);
 	iAPreferences const & getDefaultPreferences() const;
 	iAModuleDispatcher& getModuleDispatcher() const; 
@@ -184,17 +183,20 @@ private slots:
 	void noPointSelected();
 	void endPointSelected();
 	void setHistogramFocus();
+
 public slots:
 	void loadLayout();
 
 signals:
 	void styleChanged();
 	void fullScreenToggled();
+
 private:
 	void connectSignalsToSlots();
 	void readSettings();
 	void writeSettings();
 	void createRecentFileActions();
+	void updateRecentFileActions();
 	void applyQSS();
 	void setModuleActionsEnabled( bool isEnabled );
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
@@ -203,39 +205,39 @@ private:
 	void loadTLGICTData(QString const & baseDirectory);
 	bool keepOpen();
 	MdiChild* findMdiChild(const QString &fileName);
-	QString strippedName(const QString &fullFileName);
 
-	QSplashScreen *splashScreen;
-	QAction *separatorAct;
-	enum { MaxRecentFiles = 8 };
-	QAction *recentFileActs[MaxRecentFiles];
-	QActionGroup *slicerToolsGroup;
-	QSignalMapper *windowMapper;
-	QString qssName;
-	iAVolumeSettings defaultVolumeSettings;
-	iARenderSettings defaultRenderSettings;
-	iASlicerSettings defaultSlicerSettings;
-	iAPreferences defaultPreferences;
+	static const int MaxRecentFiles = 8;
+
+	QSplashScreen *m_splashScreen;
+	QAction *m_separatorAct;
+	QAction *m_recentFileActs[MaxRecentFiles];
+	QActionGroup *m_slicerToolsGroup;
+	QSignalMapper *m_windowMapper;
+	QString m_qssName;
+	iAVolumeSettings m_defaultVolumeSettings;
+	iARenderSettings m_defaultRenderSettings;
+	iASlicerSettings m_defaultSlicerSettings;
+	iAPreferences m_defaultPreferences;
 
 	//! @{ Open with DataType Conversion settings
-	int owdtcs,
-		owdtcx, owdtcy, owdtcz,
-		owdtcxori, owdtcyori, owdtczori,
-		owdtcxsize, owdtcysize, owdtczsize,
-		owdtcdov;
-	double owdtcsx, owdtcsy, owdtcsz,
-		owdtcoutmin, owdtcoutmax;
-	float owdtcmin, owdtcmax;
+	int m_owdtcs,
+		m_owdtcx, m_owdtcy, m_owdtcz,
+		m_owdtcxori, m_owdtcyori, m_owdtczori,
+		m_owdtcxsize, m_owdtcysize, m_owdtczsize,
+		m_owdtcdov;
+	double m_owdtcsx, m_owdtcsy, m_owdtcsz,
+		m_owdtcoutmin, m_owdtcoutmax;
+	float m_owdtcmin, m_owdtcmax;
 	//! @}
 
-	bool lpCamera, lpSliceViews, lpTransferFunction, lpProbabilityFunctions, lpPreferences, lpRenderSettings, lpSlicerSettings;
-	bool spCamera, spSliceViews, spTransferFunction, spProbabilityFunctions, spPreferences, spRenderSettings, spSlicerSettings;
+	bool m_lpCamera, m_lpSliceViews, m_lpTransferFunction, m_lpProbabilityFunctions, m_lpPreferences, m_lpRenderSettings, m_lpSlicerSettings;
+	bool m_spCamera, m_spSliceViews, m_spTransferFunction, m_spProbabilityFunctions, m_spPreferences, m_spRenderSettings, m_spSlicerSettings;
 
-	QString defaultLayout;
-	QString curFile, path;
-	QTimer *timer;
-	QComboBox * layout;
+	QString m_defaultLayout;
+	QString m_curFile, m_path;
+	QTimer *m_timer;
+	QComboBox * m_layout;
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
-	QStringList layoutNames;
+	QStringList m_layoutNames;
 	QString m_gitVersion;
 };

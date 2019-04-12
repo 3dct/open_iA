@@ -38,7 +38,7 @@ public:
 	iAGEMSeModuleInterface();
 	void Initialize() override;
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, iAChildData childData) override;
+	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
 private slots:
 	//! @{ Menu entries:
 	void StartGEMSe();

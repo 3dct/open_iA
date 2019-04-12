@@ -32,10 +32,11 @@
 
 #include <charts/iASimpleHistogramData.h>
 #include <dlg_imageproperty.h>
-#include <iAChildData.h>
+#include <dlg_slicer.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iALookupTable.h>
+#include <iASlicerMode.h>
 #include <iAStringHelper.h>
 #include <mdichild.h>
 #include <mainwindow.h>
@@ -47,8 +48,8 @@
 
 const int EntropyBinCount = 100;
 
-iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildData childData):
-	iAModuleAttachmentToChild(mainWnd, childData),
+iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild * child):
+	iAModuleAttachmentToChild(mainWnd, child),
 	m_newSubEnsembleID(1),
 	m_labelLut(vtkSmartPointer<vtkLookupTable>::New())
 {
@@ -73,9 +74,9 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildDa
 }
 
 
-iAUncertaintyAttachment* iAUncertaintyAttachment::Create(MainWindow * mainWnd, iAChildData childData)
+iAUncertaintyAttachment* iAUncertaintyAttachment::Create(MainWindow * mainWnd, MdiChild * child)
 {
-	iAUncertaintyAttachment * newAttachment = new iAUncertaintyAttachment(mainWnd, childData);
+	iAUncertaintyAttachment * newAttachment = new iAUncertaintyAttachment(mainWnd, child);
 	return newAttachment;
 }
 
@@ -104,8 +105,8 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 		DEBUG_LOG("Ensemble: Given data file could not be read.");
 		return false;
 	}
-	connect(GetMdiChild(), SIGNAL(fileLoaded()), this, SLOT(ContinueEnsembleLoading()));
-	if (!GetMdiChild()->loadFile(m_ensembleFile->ModalityFileName(), false))
+	connect(m_child, SIGNAL(fileLoaded()), this, SLOT(ContinueEnsembleLoading()));
+	if (!m_child->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
 		DEBUG_LOG(QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
 		return false;
@@ -129,25 +130,25 @@ void iAUncertaintyAttachment::ContinueEnsembleLoading()
 		m_spatialView->SetupSelection(m_scatterplotView->GetSelectionImage());
 	}
 	m_mainWnd->showMaximized();
-	m_childData.child->showMaximized();
-	m_childData.child->splitDockWidget(m_childData.child->getSlicerDlgXY(), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
-	m_childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Horizontal);	// ScatterPlot View
-	m_childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[5], Qt::Vertical);	// Ensemble View
-	m_childData.child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);	// Label Distribution View
-	m_childData.child->splitDockWidget(m_dockWidgets[3], m_dockWidgets[4], Qt::Vertical);	// Uncertainty Distribution View
-	m_childData.child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
-	m_childData.child->getSlicerDlgXY()->hide();
-	m_childData.child->getImagePropertyDlg()->hide();
+	m_child->showMaximized();
+	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), m_dockWidgets[0], Qt::Horizontal);	// Spatial View
+	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Horizontal);	// ScatterPlot View
+	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[5], Qt::Vertical);	// Ensemble View
+	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);	// Label Distribution View
+	m_child->splitDockWidget(m_dockWidgets[3], m_dockWidgets[4], Qt::Vertical);	// Uncertainty Distribution View
+	m_child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
+	m_child->slicerDockWidget(iASlicerMode::XY)->hide();
+	m_child->imagePropertyDockWidget()->hide();
 	if (!m_ensembleFile->LayoutName().isEmpty())
 	{
-		m_childData.child->LoadLayout(m_ensembleFile->LayoutName());
+		m_child->loadLayout(m_ensembleFile->LayoutName());
 	}
 }
 
 
 void iAUncertaintyAttachment::WriteFullDataFile(QString const & fileName, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties)
 {
-	m_currentEnsemble->WriteFullDataFile(fileName, writeIntensities, writeMemberLabels, writeMemberProbabilities, writeEnsembleUncertainties, m_childData.child->GetModalities());
+	m_currentEnsemble->WriteFullDataFile(fileName, writeIntensities, writeMemberLabels, writeMemberProbabilities, writeEnsembleUncertainties, m_child->modalities());
 }
 
 
@@ -170,7 +171,7 @@ void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 	} while (QDir(cachePath).exists());
 	QSharedPointer<iAEnsemble> newEnsemble = mainEnsemble->AddSubEnsemble(memberIDs, subEnsembleID);
 	mainEnsemble->EnsembleFile()->AddSubEnsemble(subEnsembleID, memberIDs);
-	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(Join(memberIDs, ",")), newEnsemble);
+	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(join(memberIDs, ",")), newEnsemble);
 	mainEnsemble->Store();
 }
 
@@ -179,9 +180,9 @@ void iAUncertaintyAttachment::MemberSelected(int memberIdx)
 {
 	iAITKIO::ImagePointer itkImg = m_currentEnsemble->Member(memberIdx)->LabelImage();
 	iAConnector con;
-	con.SetImage(itkImg);
+	con.setImage(itkImg);
 	bool keep = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
-	m_spatialView->AddMemberImage(QString("Member #%1").arg(memberIdx), con.GetVTKImage(), keep);
+	m_spatialView->AddMemberImage(QString("Member #%1").arg(memberIdx), con.vtkImage(), keep);
 	if (!keep)
 	{
 		m_shownMembers.clear();
@@ -196,7 +197,7 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	m_scatterplotView->SetDatasets(ensemble);
 	m_memberView->SetEnsemble(ensemble);
 	m_labelDistributionView->Clear();
-	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount()-1, Discrete);
+	auto labelDistributionHistogram = createHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount()-1, Discrete);
 	double lutRange[2];
 	lutRange[0] = 0;
 	lutRange[1] = m_currentEnsemble->LabelCount();
@@ -219,7 +220,7 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	QSharedPointer<iALookupTable> labelLookup(new iALookupTable(m_labelLut));
 	m_labelDistributionView->AddChart("Label", labelDistributionHistogram, iAUncertaintyColors::LabelDistributionBase, labelLookup);
 	m_uncertaintyDistributionView->Clear();
-	auto entropyHistogram = iASimpleHistogramData::Create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
+	auto entropyHistogram = iASimpleHistogramData::create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
 	m_uncertaintyDistributionView->AddChart("Algorithm Uncertainty", entropyHistogram, iAUncertaintyColors::UncertaintyDistribution);
 	m_spatialView->SetDatasets(ensemble, m_labelLut);
 }

@@ -32,19 +32,19 @@ class open_iA_Core_API iASimpleHistogramData : public iAPlotData
 {
 public:
 	virtual ~iASimpleHistogramData();
-	static QSharedPointer<iASimpleHistogramData> Create(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType);
-	static QSharedPointer<iASimpleHistogramData> Create(DataType minX, DataType maxX, size_t numBin, double * data, iAValueType xValueType);
-	static QSharedPointer<iASimpleHistogramData> Create(DataType minX, DataType maxX, std::vector<double> const & data, iAValueType xValueType);
+	static QSharedPointer<iASimpleHistogramData> create(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType);
+	static QSharedPointer<iASimpleHistogramData> create(DataType minX, DataType maxX, size_t numBin, double * data, iAValueType xValueType);
+	static QSharedPointer<iASimpleHistogramData> create(DataType minX, DataType maxX, std::vector<double> const & data, iAValueType xValueType);
 
 	// Inherited via iAAbstractDiagramRangedData
-	DataType const * GetRawData() const override;
-	size_t GetNumBin() const override;
-	double GetSpacing() const override;
-	double const * XBounds() const override;
-	DataType const * YBounds() const override;
-	iAValueType GetRangeType() const override;
+	DataType const * rawData() const override;
+	size_t numBin() const override;
+	double spacing() const override;
+	double const * xBounds() const override;
+	DataType const * yBounds() const override;
+	iAValueType valueType() const override;
 
-	void SetBin(size_t binIdx, DataType value);
+	void setBin(size_t binIdx, DataType value);
 	//void AddValue(DataType value);
 	//void AdjustYBounds()
 private:
@@ -54,13 +54,13 @@ private:
 	double m_xBounds[2];
 	double m_yBounds[2];
 	size_t m_numBin;
-	iAValueType m_xValueType;
+	iAValueType m_valueType;
 	bool m_dataOwner;
 };
 
 
 template <typename PixelT>
-QSharedPointer<iASimpleHistogramData> CreateHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> const & imgs, size_t numBin, PixelT min, PixelT max, iAValueType xValueType)
+QSharedPointer<iASimpleHistogramData> createHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> const & imgs, size_t numBin, PixelT min, PixelT max, iAValueType xValueType)
 {
 	/*
 	img->ReleaseDataFlagOff();
@@ -69,7 +69,7 @@ QSharedPointer<iASimpleHistogramData> CreateHistogram(QVector<typename itk::Imag
 	minMaxCalc->Compute();
 	auto result = iASimpleHistogramData::Create(minMaxCalc->GetMinimum(), minMaxCalc->GetMaximum(), numBin);
 	*/
-	auto result = iASimpleHistogramData::Create(min, max, numBin, xValueType);
+	auto result = iASimpleHistogramData::create(min, max, numBin, xValueType);
 	for (int i = 0; i < imgs.size(); ++i)
 	{
 		double sum = 0;
@@ -80,7 +80,7 @@ QSharedPointer<iASimpleHistogramData> CreateHistogram(QVector<typename itk::Imag
 			sum += it.Get();
 			++it;
 		}
-		result->SetBin(i, sum);
+		result->setBin(i, sum);
 	}
 	return result;
 }

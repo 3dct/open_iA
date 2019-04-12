@@ -29,16 +29,16 @@
 
 #include <QFileDialog>
 
-iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow * mainWnd, iAChildData childData)
+iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow * mainWnd, MdiChild * child)
 {
-	return new iAParameterExplorerAttachment(mainWnd, childData);
+	return new iAParameterExplorerAttachment(mainWnd, child);
 }
 
-iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData)
-	:iAModuleAttachmentToChild(mainWnd, childData)
+iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWnd, MdiChild * child)
+	:iAModuleAttachmentToChild(mainWnd, child)
 {
-	QString csvFileName = QFileDialog::getOpenFileName(childData.child,
-			tr( "Select CSV File" ), childData.child->getFilePath(), tr( "CSV Files (*.csv);;" ) );
+	QString csvFileName = QFileDialog::getOpenFileName(child,
+			tr( "Select CSV File" ), child->filePath(), tr( "CSV Files (*.csv);;" ) );
 	if (csvFileName.isEmpty())
 		return;
 	m_tableView = new iAParamTableView(csvFileName);
@@ -47,9 +47,9 @@ iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWn
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial View", "ParamSpatialView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix View", "ParamSPLOMView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_tableView, "Table View", "ParamTableView"));
-	childData.child->splitDockWidget(childData.child->logs, m_dockWidgets[0], Qt::Horizontal);
-	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
-	childData.child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
+	child->splitDockWidget(child->logDockWidget(), m_dockWidgets[0], Qt::Horizontal);
+	child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
+	child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
 }
 
 void iAParameterExplorerAttachment::ToggleDockWidgetTitleBars()

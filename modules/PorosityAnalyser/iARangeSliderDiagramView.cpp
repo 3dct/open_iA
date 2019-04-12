@@ -289,10 +289,10 @@ void iARangeSliderDiagramView::setupHistogram()
 	vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 	// Adds two end points to set up a propper transfer function
-	oTF->AddPoint( m_rangeSliderData->XBounds()[0], 0 );
-	oTF->AddPoint( m_rangeSliderData->XBounds()[1], 0 );
-	cTF->AddRGBPoint( m_rangeSliderData->XBounds()[0], 0, 0, 0 );
-	cTF->AddRGBPoint( m_rangeSliderData->XBounds()[1], 0, 0, 0 );
+	oTF->AddPoint( m_rangeSliderData->xBounds()[0], 0 );
+	oTF->AddPoint( m_rangeSliderData->xBounds()[1], 0 );
+	cTF->AddRGBPoint( m_rangeSliderData->xBounds()[0], 0, 0, 0 );
+	cTF->AddRGBPoint( m_rangeSliderData->xBounds()[1], 0, 0, 0 );
 	m_oTFList.append( oTF );
 	m_cTFList.append( cTF );
 
@@ -333,10 +333,10 @@ void iARangeSliderDiagramView::setupDiagrams()
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();;
 		// Adds two end points to set up a propper transfer function
-		oTF->AddPoint( m_rangeSliderData->XBounds()[0], 0 );
-		oTF->AddPoint( m_rangeSliderData->XBounds()[1], 0 );
-		cTF->AddRGBPoint( m_rangeSliderData->XBounds()[0], 0, 0, 0 );
-		cTF->AddRGBPoint( m_rangeSliderData->XBounds()[1], 0, 0, 0 );
+		oTF->AddPoint( m_rangeSliderData->xBounds()[0], 0 );
+		oTF->AddPoint( m_rangeSliderData->xBounds()[1], 0 );
+		cTF->AddRGBPoint( m_rangeSliderData->xBounds()[0], 0, 0, 0 );
+		cTF->AddRGBPoint( m_rangeSliderData->xBounds()[1], 0, 0, 0 );
 		m_oTFList.append( oTF );
 		m_cTFList.append( cTF );
 

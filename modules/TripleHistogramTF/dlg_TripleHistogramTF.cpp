@@ -29,7 +29,6 @@
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iARenderer.h>
-#include <iASlicerData.h>
 #include <iAVolumeRenderer.h>
 #include <mdichild.h>
 
@@ -94,27 +93,27 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	//Connect
 	connect(m_histogramStack, SIGNAL(transferFunctionChanged()), this, SLOT(updateTransferFunction()));
-	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(updateModalities()));
+	connect(mdiChild->modalitiesDockWidget(), SIGNAL(modalitiesChanged()), this, SLOT(updateModalities()));
 	// }
 
 	updateDisabledLabel();
 	updateModalities();
 
 	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
-	appendFilter->SetInputData(m_histogramStack->getModality(0)->GetImage());
-	appendFilter->AddInputData(m_histogramStack->getModality(1)->GetImage());
-	appendFilter->AddInputData(m_histogramStack->getModality(2)->GetImage());
+	appendFilter->SetInputData(m_histogramStack->getModality(0)->image());
+	appendFilter->AddInputData(m_histogramStack->getModality(1)->image());
+	appendFilter->AddInputData(m_histogramStack->getModality(2)->image());
 	appendFilter->Update();
 
 	combinedVol = vtkSmartPointer<vtkVolume>::New();
 	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
 	combinedVolProp->SetInterpolationTypeToLinear();
-	combinedVolProp->SetColor(0, m_histogramStack->getModality(0)->GetTransfer()->getColorFunction());
-	combinedVolProp->SetScalarOpacity(0, m_histogramStack->getModality(0)->GetTransfer()->getOpacityFunction());
-	combinedVolProp->SetColor(1, m_histogramStack->getModality(1)->GetTransfer()->getColorFunction());
-	combinedVolProp->SetScalarOpacity(1, m_histogramStack->getModality(1)->GetTransfer()->getOpacityFunction());
-	combinedVolProp->SetColor(2, m_histogramStack->getModality(2)->GetTransfer()->getColorFunction());
-	combinedVolProp->SetScalarOpacity(2, m_histogramStack->getModality(2)->GetTransfer()->getOpacityFunction());
+	combinedVolProp->SetColor(0, m_histogramStack->getModality(0)->transfer()->colorTF());
+	combinedVolProp->SetScalarOpacity(0, m_histogramStack->getModality(0)->transfer()->opacityTF());
+	combinedVolProp->SetColor(1, m_histogramStack->getModality(1)->transfer()->colorTF());
+	combinedVolProp->SetScalarOpacity(1, m_histogramStack->getModality(1)->transfer()->opacityTF());
+	combinedVolProp->SetColor(2, m_histogramStack->getModality(2)->transfer()->colorTF());
+	combinedVolProp->SetScalarOpacity(2, m_histogramStack->getModality(2)->transfer()->opacityTF());
 	combinedVol->SetProperty(combinedVolProp);
 
 	combinedVolMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
@@ -132,10 +131,10 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 
 	for (int i = 0; i < 3; ++i)
 	{
-		QSharedPointer<iAVolumeRenderer> renderer = m_histogramStack->getModality(i)->GetRenderer();
-		renderer->Remove();
+		QSharedPointer<iAVolumeRenderer> renderer = m_histogramStack->getModality(i)->renderer();
+		renderer->remove();
 	}
-	mdiChild->getRenderer()->AddRenderer(combinedVolRenderer);
+	mdiChild->renderer()->addRenderer(combinedVolRenderer);
 }
 
 dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
@@ -146,7 +145,7 @@ dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
 void dlg_TripleHistogramTF::updateTransferFunction()
 {
 	m_mdiChild->redrawHistogram();
-	m_mdiChild->getRenderer()->update();
+	m_mdiChild->renderer()->update();
 }
 void dlg_TripleHistogramTF::updateModalities()
 {
@@ -164,9 +163,9 @@ void dlg_TripleHistogramTF::updateDisabledLabel()
 {
 	int count = m_histogramStack->getModalitiesCount();
 	QString modalit_y_ies_is_are = count == 2 ? "modality is" : "modalities are";
-	//QString nameA = count >= 1 ? m_modalitiesActive[0]->GetName() : "missing";
-	//QString nameB = count >= 2 ? m_modalitiesActive[1]->GetName() : "missing";
-	//QString nameC = modalitiesCount >= 3 ? m_modalitiesAvailable[2]->GetName() : "missing";
+	//QString nameA = count >= 1 ? m_modalitiesActive[0]->name() : "missing";
+	//QString nameB = count >= 2 ? m_modalitiesActive[1]->name() : "missing";
+	//QString nameC = modalitiesCount >= 3 ? m_modalitiesAvailable[2]->name() : "missing";
 	m_disabledLabel->setText(
 		"Unable to set up this widget.\n" +
 		QString::number(3 - count) + " " + modalit_y_ies_is_are + " missing.\n"/* +
