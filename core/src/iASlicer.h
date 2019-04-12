@@ -290,9 +290,6 @@ protected:
 	// }
 
 	void updateProfile();
-	int pickPoint(double * pos_out, double * result_out, int * ind_out);
-	int pickPoint(double & xPos_out, double & yPos_out, double & zPos_out,
-			double * result_out, int & xInd_out, int &yInd_out, int &zInd_out);
 	void keyPressEvent(QKeyEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
 	void mouseMoveEvent(QMouseEvent * event) override;
@@ -433,4 +430,5 @@ private:
 	void computeGlobalPoint();
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
+	void updatePosition();
 };

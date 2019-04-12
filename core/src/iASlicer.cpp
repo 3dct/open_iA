@@ -1161,10 +1161,7 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	{
 		emit userInteraction();
 	}
-	int const * epos = m_interactor->GetEventPosition();
-	m_pointPicker->Pick(epos[0], epos[1], 0, m_ren); // z is always zero
-	m_pointPicker->GetPickPosition(m_slicerPt);      // get position in local slicer scene/world coordinates
-	computeGlobalPoint();
+	updatePosition();
 
 	double channel0Coords[3];
 	computeCoords(channel0Coords, 0);
@@ -1218,9 +1215,14 @@ void iASlicer::execute(vtkObject * caller, unsigned long eventId, void * callDat
 	m_interactor->Render();
 }
 
-
-void iASlicer::computeGlobalPoint()
+void iASlicer::updatePosition()
 {
+	// get slicer event position:
+	int const * epos = m_interactor->GetEventPosition();
+	m_pointPicker->Pick(epos[0], epos[1], 0, m_ren); // z is always zero
+	m_pointPicker->GetPickPosition(m_slicerPt);      // get position in local slicer scene/world coordinates
+
+	// compute global point:
 	const int ChannelID = 0; //< TODO: avoid using specific channel here!
 	if (!hasChannel(ChannelID))
 	{
@@ -1390,7 +1392,6 @@ void iASlicer::executeKeyPressEvent()
 		break;
 	}
 }
-
 
 void iASlicer::defaultOutput()
 {
@@ -1809,22 +1810,9 @@ int iASlicer::sliceNumber() const
 	return m_sliceNumber;
 }
 
-#define EPSILON 0.0015
-/*
-namespace
-{
-	struct PickedData
-	{
-		double pos[3];
-		double res[3];
-		int ind[3];
-	};
-	PickedData	pickedData;
-}
-*/
-
 void iASlicer::keyPressEvent(QKeyEvent *event)
 {
+	// TODO: merge with iASlicer::execute, switch branch vtkCommand::KeyPressEvent ?
 	if (!hasChannel(0))
 		return;
 
@@ -1835,7 +1823,6 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 	}
 	if (event->key() == Qt::Key_O)
 	{
-		//pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 		// TODO: fisheye lens on all channels???
 
 		auto reslicer = channel(0)->reslicer();
@@ -1891,7 +1878,6 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 	// magnify and unmagnify fisheye lens and distortion radius
 	if (m_fisheyeLensActivated)
 	{
-		//pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 		ren->SetWorldPoint(m_slicerPt[0], m_slicerPt[1], 0, 1);
 
 		// TODO: fisheye lens on all channels???
@@ -1994,41 +1980,32 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 
 void iASlicer::mousePressEvent(QMouseEvent *event)
 {
-	if (!m_fisheyeLensActivated)
+	// TODO: merge with iASlicer::execute, switch branch vtkCommand::LeftButtonPressEvent ?
+	if (m_channels.empty())
 	{
 		iAVtkWidget::mousePressEvent(event);
 		return;
 	}
-
-	double pos[3];
-	double result[4];
-	int indxs[3];
-	if (!pickPoint(pos, result, indxs))
-	{
-		iAVtkWidget::mousePressEvent(event);
-		return;
-	}
-
 	if (m_isSliceProfEnabled
 		&& (event->modifiers() == Qt::NoModifier)
 		&& event->button() == Qt::LeftButton)//if slice profile m_viewMode is enabled do all the necessary operations
 	{
-		setSliceProfile(result);
+		setSliceProfile(m_globalPt);
 	}
 
 	if (m_isArbProfEnabled
 		&& (event->modifiers() == Qt::NoModifier)
 		&& event->button() == Qt::LeftButton)//if arbitrary profile m_viewMode is enabled do all the necessary operations
 	{
-		m_arbProfile->FindSelectedPntInd(result[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], result[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
+		m_arbProfile->FindSelectedPntInd(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 	}
 
 	// only changed mouse press behaviour if m_viewMode is in drawing m_viewMode
 	// and left mouse button is pressed
 	if (m_decorations && m_interactionMode == DEFINE_SPLINE && event->button() == Qt::LeftButton)
 	{
-		const double x = result[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
-		const double y = result[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
+		const double x = m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
+		const double y = m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
 
 		// if no point is found at picked position add a new one
 		if (m_snakeSpline->CalculateSelectedPoint(x, y) == -1)
@@ -2036,10 +2013,10 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 			m_snakeSpline->addPoint(x, y);
 
 			// add the point to the world point list only once because it is a member of MdiChild
-			m_worldSnakePoints->InsertNextPoint(result[0], result[1], result[2]);
+			m_worldSnakePoints->InsertNextPoint(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
 
 			// let other slices views know that a new point was created
-			emit addedPoint(result[0], result[1], result[2]);
+			emit addedPoint(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
 		}
 	}
 	else
@@ -2051,13 +2028,11 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 
 void iASlicer::mouseMoveEvent(QMouseEvent *event)
 {
+	// TODO: merge with iASlicer::execute, switch branch vtkCommand::MouseMoveEvent ?
 	iAVtkWidget::mouseMoveEvent(event);
 
 	if (!hasChannel(0)) // nothing to do if no data
 		return;
-
-	//DEBUG_LOG("iASlicer::mouseMoveEvent");
-	//pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 
 	if (m_fisheyeLensActivated)
 	{
@@ -2110,12 +2085,14 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 	{
 		if (event->buttons()&Qt::LeftButton)
 		{
+			/*
 			double xPos, yPos, zPos;
 			double result[4];
 			int x, y, z;
 			if (!pickPoint(xPos, yPos, zPos, result, x, y, z))
 				return;
-			setSliceProfile(result);
+			*/
+			setSliceProfile(m_globalPt);
 		}
 	}
 
@@ -2126,18 +2103,21 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 		{
 			if (event->buttons()&Qt::LeftButton)
 			{
+				/*
 				double xPos, yPos, zPos;
 				double result[4];
 				int x, y, z;
 				if (!pickPoint(xPos, yPos, zPos, result, x, y, z))
 					return;
-
+				*/
 				double *ptPos = m_arbProfile->GetPosition(arbProfPtInd);
 				const int zind = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-				result[zind] = ptPos[zind];
+				double globalPos[3];
+				std::copy(m_globalPt, m_globalPt + 3, globalPos);
+				globalPos[zind] = ptPos[zind];
 
-				if (setArbitraryProfile(arbProfPtInd, result, true))
-					emit arbitraryProfileChanged(arbProfPtInd, result);
+				if (setArbitraryProfile(arbProfPtInd, globalPos, true))
+					emit arbitraryProfileChanged(arbProfPtInd, globalPos);
 			}
 		}
 	}
@@ -2305,67 +2285,6 @@ void iASlicer::setSliceProfileOn(bool isOn)
 	m_renWin->GetInteractor()->Render();
 }
 
-int iASlicer::pickPoint(double *pos_out, double *result_out, int * ind_out)
-{
-	return pickPoint(pos_out[0], pos_out[1], pos_out[2], result_out, ind_out[0], ind_out[1], ind_out[2]);
-}
-
-int iASlicer::pickPoint(double &xPos_out, double &yPos_out, double &zPos_out,
-	double *result_out, int &xInd_out, int &yInd_out, int &zInd_out)
-{
-	// Do a pick. It will return a non-zero value if we intersected the image.
-	int const * eventPos = GetInteractor()->GetEventPosition();
-	if (!m_pointPicker->Pick(eventPos[0], eventPos[1], 0, m_ren)) // z is always zero
-	{
-		return 0;
-	}
-
-	// get coordinates of the picked point
-	double ptMapped[3];
-	//vtkIdType total_points = pointPicker->GetPickedPositions()->GetNumberOfPoints();
-	//pointPicker->GetPickedPositions()->GetPoint(total_points - 1, ptMapped);
-	m_pointPicker->GetPickPosition(ptMapped);
-
-	if (!hasChannel(0))
-		return 0;
-	// TODO: slice profile on selected/current channel
-	auto reslicer  = channel(0)->reslicer();
-	auto imageData = channel(0)->input();
-
-	// get image spacing to be able to select a point independent of zoom level
-	double spacing[3];
-	imageData->GetSpacing(spacing);
-
-	vtkMatrix4x4 * resliceAxes = reslicer->GetResliceAxes();
-	double point[4] = { ptMapped[0], ptMapped[1], 0, 1 }; // We have to set the physical z-coordinate which requires us to get the volume spacing.
-	resliceAxes->MultiplyPoint(point, result_out);
-
-	xInd_out = (int)(result_out[0] / spacing[0] + 0.5);
-	yInd_out = (int)(result_out[1] / spacing[1] + 0.5);
-	zInd_out = (int)(result_out[2] / spacing[2] + 0.5);
-
-	// initialize positions depending on slice view
-	switch (m_mode)
-	{
-	default:
-	case iASlicerMode::YZ: { xPos_out = m_xInd * spacing[0]; yPos_out = ptMapped[0];         zPos_out = ptMapped[1];         } break;
-	case iASlicerMode::XZ: { xPos_out = ptMapped[0];         yPos_out = m_yInd * spacing[1]; zPos_out = ptMapped[1];         } break;
-	case iASlicerMode::XY: { xPos_out = ptMapped[0];         yPos_out = ptMapped[1];         zPos_out = m_zInd * spacing[2]; } break;
-	}
-
-	return 1;
-}
-
-void iASlicer::setIndex(int x, int y, int z)
-{
-	m_xInd = x; m_yInd = y; m_zInd = z;
-}
-
-void iASlicer::setLinkedMdiChild(MdiChild* mdiChild)
-{
-	m_linkedMdiChild = mdiChild;
-}
-
 void iASlicer::updateProfile()
 {
 	double oldPos[3];
@@ -2383,6 +2302,16 @@ void iASlicer::setArbitraryProfileOn(bool isOn)
 	m_isArbProfEnabled = isOn;
 	m_arbProfile->SetVisibility(m_isArbProfEnabled);
 	GetRenderWindow()->GetInteractor()->Render();
+}
+
+void iASlicer::setIndex(int x, int y, int z)
+{
+	m_xInd = x; m_yInd = y; m_zInd = z;
+}
+
+void iASlicer::setLinkedMdiChild(MdiChild* mdiChild)
+{
+	m_linkedMdiChild = mdiChild;
 }
 
 void iASlicer::setPieGlyphsOn(bool isOn)
@@ -2415,7 +2344,6 @@ void iASlicer::wheelEvent(QWheelEvent* event)
 	else
 	{
 		iAVtkWidget::wheelEvent(event);
-		//pickPoint(pickedData.pos, pickedData.res, pickedData.ind);
 	}
 	updateMagicLens();
 }
@@ -2697,6 +2625,7 @@ void iASlicer::updateMagicLens()
 void iASlicer::computeGlyphs()
 {
 	/*
+	const double EPSILON = 0.0015;
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 	bool hasPieGlyphs = (m_pieGlyphs.size() > 0);
 	if(hasPieGlyphs)
