@@ -276,6 +276,9 @@ QWidget * iAFiAKErController::setupMain3DView()
 	m_mainRenderer = new iAVtkWidget();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 	m_ren = vtkSmartPointer<vtkRenderer>::New();
+#if (VTK_MAJOR_VERSION > 7 || (VTK_MAJOR_VERSION == 7 && VTK_MINOR_VERSION > 0))
+	m_ren->SetUseFXAA(true);
+#endif
 	m_ren->SetBackground(1.0, 1.0, 1.0);
 	renWin->SetAlphaBitPlanes(1);
 	m_ren->SetUseDepthPeeling(true);
