@@ -67,8 +67,11 @@ iAChannelSlicerData::iAChannelSlicerData(iAChannelData const & chData, int mode)
 void iAChannelSlicerData::setResliceAxesOrigin(double x, double y, double z)
 {
 	m_reslicer->SetResliceAxesOrigin(x, y, z);
-	m_reslicer->Update();
-	m_colormapper->Update();
+	if (m_enabled)
+	{
+		m_reslicer->Update();
+		m_colormapper->Update();
+	}
 	m_imageActor->SetInputData(m_colormapper->GetOutput());
 }
 
@@ -171,8 +174,8 @@ QColor iAChannelSlicerData::getColor() const
 void iAChannelSlicerData::setTransform(vtkAbstractTransform * transform)
 {
 	m_reslicer->SetResliceTransform(transform);
-	if (input())
-		m_reslicer->UpdateWholeExtent(); // TODO: check if we need this here
+	//if (input())
+	//	m_reslicer->UpdateWholeExtent(); // TODO: check if we need this here
 }
 
 void iAChannelSlicerData::updateReslicer()

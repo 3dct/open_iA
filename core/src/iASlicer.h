@@ -196,6 +196,7 @@ public:
 	// }
 
 	void setLinkedMdiChild(MdiChild* mdiChild);
+
 public slots:
 	//! Save an image of the image viewer native resolution or the current view.
 	void saveAsImage();

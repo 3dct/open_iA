@@ -28,27 +28,23 @@ class dlg_openfile_sizecheck : public dlg_commoninput
 
 public:
 	//! constructor
-	//! @param isVolumeStack   whether we are opening a volume stack (true) or a single file (false)
-	//! @param [in,out]	parent If non-null, the parent.
-	//! @param winTitle        The window title.
-	//! @param inList          List of input parameter names.
-	//! @param inPara          List of input parameter values.
-	//! @param text            The description text shown in the top of the dialog.
+	//! @param isVolumeStack   whether we are opening a volume stack (true) or a single file (false).
 	//! @param fileName        File name of the RAW file.
-	//! @param extentIndex1    Index of the line edit with X extent.
-	//! @param extentIndex2    Index of the line edit with Y extent.
-	//! @param extentIndex3    Index of the line edit with Z extent.
-	//! @param datatypeIndex   Index of the check box with datatype stored in file.
-	dlg_openfile_sizecheck (bool isVolumeStack, QWidget *parent, QString winTitle, QStringList inList, QList<QVariant> inPara, QTextDocument *text, QString fileName,
-		int extentIndex1 = 0, int extentIndex2 = 1, int extentIndex3 = 2, int datatypeIndex = 10);
+	//! @param [in,out]	parent The parent widget.
+	//! @param title           The window title.
+	//! @param labels          List of input parameter labels (@see dlg_commoninput).
+	//! @param values          List of input parameter values (@see dlg_commoninput).
+	//! @param text            The description text shown in the top of the dialog (@see dlg_commoninput).
+	dlg_openfile_sizecheck (bool isVolumeStack, QString const & fileName, QWidget *parent, QString const & title,
+		QStringList const & labels,	QList<QVariant> const & values, QTextDocument *text = nullptr);
+
 private:
-	qint64 fileSize;
-	QLabel *actualSizeLabel;
-	QLabel *proposedSizeLabel;
-	QString tStr;
-	bool isVolumeStack;
+	qint64 m_fileSize;
+	QLabel * m_actualSizeLabel;
+	QLabel * m_proposedSizeLabel;
+	int m_extentXIdx, m_extentYIdx, m_extentZIdx, m_voxelSizeIdx;
 
 private slots:
-	//! Check if current parameters fit the actual file size
-	void CheckFileSize();
+	//! update labels indicating whether current parameters fit the actual file size
+	void checkFileSize();
 };
