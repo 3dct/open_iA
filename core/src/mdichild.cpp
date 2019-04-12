@@ -1174,7 +1174,8 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		final_transform->Update();
 	}
 
-	slicer->setTransform(final_transform);
+	slicer->channel(0)->setTransform(final_transform);
+	QSignalBlocker block(slicer);
 	slicer->setSliceNumber(point1[ptIndex]);
 }
 
@@ -1249,7 +1250,7 @@ void MdiChild::applyVolumeSettings(const bool loadSavedVolumeSettings)
 {
 	for (int i = 0; i < 3; ++i)
 		m_dwSlicer[i]->showBorder(m_renderSettings.ShowSlicePlanes);
-	m_dwModalities->showSlicers(m_renderSettings.ShowSlicers);
+	m_dwModalities->showSlicers(m_renderSettings.ShowSlicers && !m_snakeSlicer);
 	m_dwModalities->changeRenderSettings(m_volumeSettings, loadSavedVolumeSettings);
 }
 
@@ -1497,63 +1498,48 @@ void MdiChild::saveMovie(iARenderer& raycaster)
 
 void MdiChild::toggleSnakeSlicer(bool isChecked)
 {
-	/*
-	TODO: slicer remove first image - check snake slicer!
-	snakeSlicer = isChecked;
+	m_snakeSlicer = isChecked;
 
-	if (snakeSlicer)
+	if (m_snakeSlicer)
 	{
-		//save the slicer transforms
-		SlicerYZ_Transform = m_slicer[iASlicerMode::YZ]->GetReslicer()->GetResliceTransform();
-		SlicerXY_Transform = m_slicer[iASlicerMode::XY]->GetReslicer()->GetResliceTransform();
-		SlicerXZ_Transform = m_slicer[iASlicerMode::XZ]->GetReslicer()->GetResliceTransform();
+		if (m_renderSettings.ShowSlicers)
+			m_dwModalities->showSlicers(false);
 
-		parametricSpline->Modified();
+		// save the slicer transforms
+		for (int s = 0; s < 3; ++s)
+			m_savedSlicerTransform[s] = m_slicer[s]->channel(0)->reslicer()->GetResliceTransform();
+
+		m_parametricSpline->Modified();
 		double emptyper[3]; emptyper[0] = 0; emptyper[1] = 0; emptyper[2] = 0;
 		double emptyp[3]; emptyp[0] = 0; emptyp[1] = 0; emptyp[2] = 0;
-		parametricSpline->Evaluate(emptyper, emptyp, nullptr);
-
-		m_dwSlicer[iASlicerMode::XY]->spinBoxXY->setValue(0);//set initial value
-		m_dwSlicer[iASlicerMode::XZ]->spinBoxXZ->setValue(0);//set initial value
-		m_dwSlicer[iASlicerMode::YZ]->spinBoxYZ->setValue(0);//set initial value
-
-		for (int s = 0; s<3; ++s)
-			m_slicer[s]->switchInteractionMode(iASlicer::NORMAL);
+		m_parametricSpline->Evaluate(emptyper, emptyp, nullptr);
+		
+		// save the slicer transforms
+		for (int s = 0; s < 3; ++s)
+		{
+			m_savedSlicerTransform[s] = m_slicer[s]->channel(0)->reslicer()->GetResliceTransform();
+			m_slicer[s]->switchInteractionMode(iASlicer::SnakeShow);
+			m_dwSlicer[s]->sbSlice->setValue(0);
+		}
 	}
 	else
-	{
-		renderSettings.ShowSlicers = false;
+	{	// restore the slicer transforms
+		m_slicer[iASlicerMode::YZ]->channel(0)->reslicer()->SetResliceAxesDirectionCosines( 0, 1, 0,  0, 0, 1,  1, 0, 0);
+		m_slicer[iASlicerMode::XZ]->channel(0)->reslicer()->SetResliceAxesDirectionCosines( 1, 0, 0,  0, 0, 1,  0,-1, 0);
+		m_slicer[iASlicerMode::XY]->channel(0)->reslicer()->SetResliceAxesDirectionCosines( 1, 0, 0,  0, 1, 0,  0, 0, 1);
 
-		m_dwSlicer[iASlicerMode::XY]->spinBoxXY->setValue(m_imageData->GetDimensions()[2]>>1);
-		m_slicer[iASlicerMode::XY]->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);
-		m_slicer[iASlicerMode::XY]->GetReslicer()->SetResliceTransform(SlicerXY_Transform);
-		m_slicer[iASlicerMode::XY]->GetReslicer()->SetOutputExtentToDefault();
-		m_slicer[iASlicerMode::XY]->getRenderer()->ResetCamera();
-		m_slicer[iASlicerMode::XY]->getRenderer()->Render();
-
-		m_dwSlicer[iASlicerMode::XZ]->spinBoxXZ->setValue(m_imageData->GetDimensions()[1]>>1);
-		m_slicer[iASlicerMode::XZ]->GetReslicer()->SetResliceAxesDirectionCosines(1,0,0,  0,0,1,  0,-1,0);
-		m_slicer[iASlicerMode::XZ]->GetReslicer()->SetResliceTransform(SlicerXZ_Transform);
-		m_slicer[iASlicerMode::XZ]->GetReslicer()->SetOutputExtentToDefault();
-		m_slicer[iASlicerMode::XZ]->getRenderer()->ResetCamera();
-		m_slicer[iASlicerMode::XZ]->getRenderer()->Render();
-
-		m_dwSlicer[iASlicerMode::YZ]->spinBoxYZ->setValue(m_imageData->GetDimensions()[0]>>1);
-		m_slicer[iASlicerMode::YZ]->GetReslicer()->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);
-		m_slicer[iASlicerMode::YZ]->GetReslicer()->SetResliceTransform(SlicerYZ_Transform);
-		m_slicer[iASlicerMode::YZ]->GetReslicer()->SetOutputExtentToDefault();
-		m_slicer[iASlicerMode::YZ]->getRenderer()->ResetCamera();
-		m_slicer[iASlicerMode::YZ]->getRenderer()->Render();
-
-		/*
-		// TODO: VOLUME: VolumeManager
-		if (renderSettings.ShowSlicers)
-			m_renderer->showSlicers(true);
-		* /
-		for (int s = 0; s<3; ++s)
-			m_slicer[s]->switchInteractionMode(iASlicer::DEFINE_SPLINE);
+		for (int s = 0; s < 3; ++s)
+		{
+			m_dwSlicer[s]->sbSlice->setValue(m_imageData->GetDimensions()[mapSliceToGlobalAxis(s, iAAxisIndex::Z)] >> 1);
+			m_slicer[s]->channel(0)->reslicer()->SetResliceTransform(m_savedSlicerTransform[s]);
+			m_slicer[s]->channel(0)->reslicer()->SetOutputExtentToDefault();
+			m_slicer[s]->renderer()->ResetCamera();
+			m_slicer[s]->renderer()->Render();
+			m_slicer[s]->switchInteractionMode(iASlicer::Normal);
+		}
+		if (m_renderSettings.ShowSlicers)
+			m_dwModalities->showSlicers(true);
 	}
-	*/
 }
 
 /*

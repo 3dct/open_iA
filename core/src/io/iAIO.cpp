@@ -1238,7 +1238,7 @@ bool iAIO::setupVolumeStackReader(QString f)
 	datatype[mapVTKTypeToIdx(m_rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(m_rawScalarType)];
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(m_rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(m_rawByteOrder)];
-	QStringList inList		= (QStringList()
+	QStringList labels = (QStringList()
 		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
 		<< tr("#Minimum Index")  << tr("#Maximum Index")
@@ -1248,7 +1248,7 @@ bool iAIO::setupVolumeStackReader(QString f)
 		<< tr("#Headersize")
 		<< tr("+Data Type")
 		<< tr("+Byte Order") );
-	QList<QVariant> inPara	= (QList<QVariant>()
+	QList<QVariant> values = (QList<QVariant>()
 		<< m_fileNamesBase << m_extension
 		<< tr("%1").arg(digitsInIndex)
 		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
@@ -1259,7 +1259,7 @@ bool iAIO::setupVolumeStackReader(QString f)
 		<< datatype
 		<< byteOrderStr);
 
-	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (true, m_parent, "RAW file specs", inList, inPara, NULL, f);
+	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (true, f, m_parent, "RAW file specs", labels, values);
 	if (dlg->exec() != QDialog::Accepted)
 		return false;
 
@@ -1296,7 +1296,7 @@ bool iAIO::setupRAWReader( QString f )
 	datatype[mapVTKTypeToIdx(m_rawScalarType)] = "!" + datatype[mapVTKTypeToIdx(m_rawScalarType)];
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(m_rawByteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(m_rawByteOrder)];
-	QStringList inList		= (QStringList()
+	QStringList labels = (QStringList()
 		<< tr("#Size X") << tr("#Size Y") << tr("#Size Z")
 		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
 		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z")
@@ -1304,7 +1304,7 @@ bool iAIO::setupRAWReader( QString f )
 		<< tr("+Data Type")
 		<< tr("+Byte Order") );
 
-	QList<QVariant> inPara	= (QList<QVariant>()
+	QList<QVariant> values = (QList<QVariant>()
 		<< tr("%1").arg(m_rawSizeX) << tr("%1").arg(m_rawSizeY) << tr("%1").arg(m_rawSizeZ)
 		<< tr("%1").arg(m_rawSpaceX) << tr("%1").arg(m_rawSpaceY) << tr("%1").arg(m_rawSpaceZ)
 		<< tr("%1").arg(m_rawOriginX) << tr("%1").arg(m_rawOriginY) << tr("%1").arg(m_rawOriginZ)
@@ -1312,7 +1312,7 @@ bool iAIO::setupRAWReader( QString f )
 		<< datatype
 		<< byteOrderStr);
 
-	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (false, m_parent, "RAW file specs", inList, inPara, NULL, f);
+	dlg_openfile_sizecheck *dlg = new dlg_openfile_sizecheck (false, f, m_parent, "RAW file specs", labels, values);
 	if (dlg->exec() != QDialog::Accepted)
 		return false;
 

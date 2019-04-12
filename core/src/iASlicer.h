@@ -87,9 +87,9 @@ class open_iA_Core_API iASlicer : public iAVtkWidget
 	Q_OBJECT
 public:
 	enum InteractionMode {
-		NORMAL = 0,
-		DEFINE_SPLINE = 1,
-		SHOW = 2
+		Normal,
+		SnakeEdit,
+		SnakeShow
 	};
 	iASlicer(QWidget * parent, const iASlicerMode mode, bool decorations = true, bool magicLensAvailable = true,
 		vtkAbstractTransform *transform = nullptr, vtkPoints* snakeSlicerPoints = nullptr);
@@ -196,6 +196,7 @@ public:
 	// }
 
 	void setLinkedMdiChild(MdiChild* mdiChild);
+
 public slots:
 	//! Save an image of the image viewer native resolution or the current view.
 	void saveAsImage();
@@ -209,9 +210,6 @@ public slots:
 	void rotateSlice( double angle );
 	void setSlabThickness(int thickness);
 	void setSlabCompositeMode(int compositeMode);
-
-	//! Sets a profile line.
-	void setSliceProfile(double Pos[3]);
 
 	//! Sets coordinates for line profile
 	bool setArbitraryProfile(int pointInd, double * Pos, bool doClamp = false);
@@ -272,16 +270,16 @@ signals:
 	void firstChannelAdded(int minIdx, int maxIdx);
 
 protected:
-	QMenu *         m_magicLensContextMenu;
-	QMenu *         m_contextMenu;
-	InteractionMode m_interactionMode;          //!< current edit mode
-	bool            m_isSliceProfEnabled;       //!< if slice profile mode is enabled
-	bool            m_isArbProfEnabled;         //!< if arbitrary profile mode is enabled
-	int             m_xInd, m_yInd, m_zInd;     //!< current position
-	iASnakeSpline * m_snakeSpline;
-	vtkPoints *     m_worldSnakePoints;
-	iASlicerProfile	* m_sliceProfile;            //!< necessary vtk classes for the slice profile
-	iAArbitraryProfileOnSlicer * m_arbProfile;
+	QMenu *         m_contextMenuMagicLens;      //!< context menu for when magic lens is shown
+	QMenu *         m_contextMenuSnakeSlicer;    //!< context menu for when in snake slice edit mode
+	InteractionMode m_interactionMode;           //!< current edit mode
+	bool            m_isSliceProfEnabled;        //!< if slice profile mode is enabled
+	bool            m_isArbProfEnabled;          //!< if arbitrary profile mode is enabled
+	int             m_xInd, m_yInd, m_zInd;      //!< current position
+	iASnakeSpline * m_snakeSpline;				 //!< holds the visualization data for the points of the snake splicer
+	vtkPoints *     m_worldSnakePoints;          //!< points of the snake slicer (owned by mdichild, not by this slicer)
+	iASlicerProfile	* m_sliceProfile;            //!< implements the raw slice profile
+	iAArbitraryProfileOnSlicer * m_arbProfile;   //!< implements drawing the start and end point of the "arbitrary" profile
 
 	// { TODO: move to XRF module
 	bool            m_pieGlyphsEnabled;         //!< if slice pie glyphs for xrf are enabled
@@ -291,7 +289,6 @@ protected:
 	double          m_pieGlyphOpacity;
 	// }
 
-	void updateProfile();
 	void keyPressEvent(QKeyEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
 	void mouseMoveEvent(QMouseEvent * event) override;
@@ -429,8 +426,10 @@ private:
 	//! @param yCoord y coordinate (pixel index) in channel
 	//! @param zCoord z coordinate (pixel index) in channel
 	void computeCoords(double * coords, uint channelID);
-	void computeGlobalPoint();
 	void updatePositionMarkerExtent();
 	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
 	void updatePosition();
+
+	//! Update the position of the raw profile line.
+	void updateRawProfile(double posY);
 };
