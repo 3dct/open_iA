@@ -39,7 +39,6 @@ public:
 
 private:
 	vtkSmartPointer<vtkPoints> points;
-	// TODO: check whether these are deleted! use std::array instead?:
 	vtkSmartPointer<vtkActor> actors[2];
 	vtkSmartPointer<vtkPolyDataMapper> mappers[2];
 	vtkSmartPointer<vtkConeSource> pointers[2];

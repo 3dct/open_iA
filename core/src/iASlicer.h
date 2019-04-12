@@ -87,9 +87,9 @@ class open_iA_Core_API iASlicer : public iAVtkWidget
 	Q_OBJECT
 public:
 	enum InteractionMode {
-		NORMAL = 0,
-		DEFINE_SPLINE = 1,
-		SHOW = 2
+		Normal,
+		SnakeEdit,
+		SnakeShow
 	};
 	iASlicer(QWidget * parent, const iASlicerMode mode, bool decorations = true, bool magicLensAvailable = true,
 		vtkAbstractTransform *transform = nullptr, vtkPoints* snakeSlicerPoints = nullptr);
@@ -270,14 +270,14 @@ signals:
 	void firstChannelAdded(int minIdx, int maxIdx);
 
 protected:
-	QMenu *         m_magicLensContextMenu;
-	QMenu *         m_contextMenu;
-	InteractionMode m_interactionMode;          //!< current edit mode
-	bool            m_isSliceProfEnabled;       //!< if slice profile mode is enabled
-	bool            m_isArbProfEnabled;         //!< if arbitrary profile mode is enabled
-	int             m_xInd, m_yInd, m_zInd;     //!< current position
-	iASnakeSpline * m_snakeSpline;
-	vtkPoints *     m_worldSnakePoints;
+	QMenu *         m_contextMenuMagicLens;      //!< context menu for when magic lens is shown
+	QMenu *         m_contextMenuSnakeSlicer;    //!< context menu for when in snake slice edit mode
+	InteractionMode m_interactionMode;           //!< current edit mode
+	bool            m_isSliceProfEnabled;        //!< if slice profile mode is enabled
+	bool            m_isArbProfEnabled;          //!< if arbitrary profile mode is enabled
+	int             m_xInd, m_yInd, m_zInd;      //!< current position
+	iASnakeSpline * m_snakeSpline;				 //!< holds the visualization data for the points of the snake splicer
+	vtkPoints *     m_worldSnakePoints;          //!< points of the snake slicer (owned by mdichild, not by this slicer)
 	iASlicerProfile	* m_sliceProfile;            //!< implements the raw slice profile
 	iAArbitraryProfileOnSlicer * m_arbProfile;   //!< implements drawing the start and end point of the "arbitrary" profile
 

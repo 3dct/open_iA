@@ -107,12 +107,6 @@
 
 #include <cassert>
 
-/*
-namespace
-{
-	const double PickTolerance = 100.0;
-}
-*/
 
 class iAInteractorStyleImage : public vtkInteractorStyleImage
 {
@@ -205,7 +199,8 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_userSetBackground(false),
 	m_cameraOwner(true),
 	m_cursorSet(false),
-	m_magicLensContextMenu(nullptr),
+	m_contextMenuMagicLens(nullptr),
+	m_contextMenuSnakeSlicer(nullptr),
 	m_interactor(nullptr),
 	m_renWin(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New()),
 	m_ren(vtkSmartPointer<vtkRenderer>::New()),
@@ -215,7 +210,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_transform(transform ? transform : vtkTransform::New()),
 	m_magicLensInput(NotExistingChannel),
 	m_mode(mode),
-	m_interactionMode(NORMAL), // standard m_viewMode
+	m_interactionMode(Normal),
 	m_xInd(0), m_yInd(0), m_zInd(0),
 	m_sliceNumber(0)
 {
@@ -255,13 +250,13 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
 		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
-		m_magicLensContextMenu = new QMenu(this);
+		m_contextMenuMagicLens = new QMenu(this);
 		QActionGroup * actionGr(new QActionGroup(this));
-		auto centeredLens = m_magicLensContextMenu->addAction(tr("Centered Magic Lens"), this, SLOT(menuCenteredMagicLens()));
+		auto centeredLens = m_contextMenuMagicLens->addAction(tr("Centered Magic Lens"), this, SLOT(menuCenteredMagicLens()));
 		centeredLens->setCheckable(true);
 		centeredLens->setChecked(true);
 		actionGr->addAction(centeredLens);
-		auto offsetLens = m_magicLensContextMenu->addAction(tr("Offseted Magic Lens"), this, SLOT(menuOffsetMagicLens()));
+		auto offsetLens = m_contextMenuMagicLens->addAction(tr("Offseted Magic Lens"), this, SLOT(menuOffsetMagicLens()));
 		offsetLens->setCheckable(true);
 		actionGr->addAction(offsetLens);
 	}
@@ -270,8 +265,8 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	{
 		m_snakeSpline = new iASnakeSpline;
 
-		m_contextMenu = new QMenu(this);
-		m_contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, SLOT(menuDeleteSnakeLine()));
+		m_contextMenuSnakeSlicer = new QMenu(this);
+		m_contextMenuSnakeSlicer->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, SLOT(menuDeleteSnakeLine()));
 		m_sliceProfile = new iASlicerProfile();
 		m_sliceProfile->setVisibility(false);
 
@@ -411,8 +406,6 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 
 	if (m_decorations)
 	{
-		// TODO: fix snake spline with non-fixed slicer images
-		//m_snakeSpline->initialize(ren, imageData->GetSpacing()[0]);
 		m_sliceProfile->addToRenderer(m_ren);
 		m_arbProfile->addToRenderer(m_ren);
 	}
@@ -431,7 +424,8 @@ iASlicer::~iASlicer()
 	if (m_decorations)
 	{
 		delete m_snakeSpline;
-		delete m_contextMenu;
+		delete m_contextMenuSnakeSlicer;
+		delete m_contextMenuMagicLens;
 		delete m_sliceProfile;
 		delete m_arbProfile;
 	}
@@ -473,15 +467,6 @@ void iASlicer::enableInteractor()
 	m_interactor->ReInitialize();
 	update();
 }
-
-/*
-void iASlicer::setResliceChannelAxesOrigin(uint id, double x, double y, double z )
-{
-	m_data->setResliceChannelAxesOrigin(id, x, y, z);
-	if (m_magicLens)
-		m_magicLens->UpdateColors();
-}
-*/
 
 void iASlicer::update()
 {
@@ -707,6 +692,9 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 		// "* 10 / unitSpacing" adjusts for scaling (see above)
 		m_axisTextActor[0]->SetPosition(xHalf * 10 / unitSpacing, -20.0, 0);
 		m_axisTextActor[1]->SetPosition(-20.0, yHalf * 10 / unitSpacing, 0);
+		// TODO: fix snake spline with non-fixed slicer images
+		m_snakeSpline->initialize(m_ren, image->GetSpacing()[0]);
+		// TODO: firstChannelAdded is not the ideal solution, we should do some updates on other occasions too...
 		emit firstChannelAdded(imgExt[axis*2], imgExt[axis*2+1]);
 	}
 	double origin[3];
@@ -1958,15 +1946,15 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 			}
 		}
 	}
-	// if not in snake m_viewMode
-	if (m_interactionMode != SHOW)
+	if (event->key() == Qt::Key_S)
 	{
-		if (event->key() == Qt::Key_Tab && m_interactionMode == NORMAL)
-			switchInteractionMode(DEFINE_SPLINE);
-		else
-			switchInteractionMode(NORMAL);
-
-		// let other slice views know that slice view m_viewMode changed
+		switch (m_interactionMode)
+		{   // toggle between interaction modes:
+			case Normal   : switchInteractionMode(SnakeEdit); break;
+			case SnakeEdit: switchInteractionMode(/*SnakeShow*/Normal); break;
+//			case SnakeShow: switchInteractionMode(Normal);    break;
+		}
+		// let other slice views know that interaction mode changed
 		emit switchedMode(m_interactionMode);
 	}
 	iAVtkWidget::keyPressEvent(event);
@@ -1994,10 +1982,9 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 		m_arbProfile->findSelectedPointIdx(m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)], m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)]);
 	}
 
-	// only changed mouse press behaviour if m_viewMode is in drawing m_viewMode
-	// and left mouse button is pressed
-	if (m_decorations && m_interactionMode == DEFINE_SPLINE && event->button() == Qt::LeftButton)
+	if (m_decorations && m_interactionMode == SnakeEdit && event->button() == Qt::LeftButton)
 	{
+		// define a new snake slicer point:
 		const double x = m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::X)];
 		const double y = m_globalPt[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y)];
 
@@ -2005,17 +1992,11 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 		if (m_snakeSpline->CalculateSelectedPoint(x, y) == -1)
 		{
 			m_snakeSpline->addPoint(x, y);
-
 			// add the point to the world point list only once because it is a member of MdiChild
 			m_worldSnakePoints->InsertNextPoint(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
-
 			// let other slices views know that a new point was created
 			emit addedPoint(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
 		}
-	}
-	else
-	{
-		emit clicked();
 	}
 	iAVtkWidget::mousePressEvent(event);
 }
@@ -2043,18 +2024,8 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	// only do something in spline drawing mode and if a point is selected
-	if (m_decorations && m_interactionMode == DEFINE_SPLINE && m_snakeSpline->selectedPointIndex() != -1)
+	if (m_decorations && m_interactionMode == SnakeEdit && m_snakeSpline->selectedPointIndex() != -1)
 	{
-		// Do a pick. It will return a non-zero value if we intersected the image.
-		int const * epos = m_interactor->GetEventPosition();
-		if (!m_pointPicker->Pick(epos[0], epos[1], 0, m_ren)) // z is always zero
-		{
-			return;
-		}
-
-		// Get the first point of found intersections
-		double const * ptMapped = m_pointPicker->GetPickPosition();
-
 		// Move world and slice view points
 		double const * point = m_worldSnakePoints->GetPoint(m_snakeSpline->selectedPointIndex());
 
@@ -2106,18 +2077,12 @@ void iASlicer::deselectPoint()
 
 void iASlicer::mouseReleaseEvent(QMouseEvent *event)
 {
-	if (!m_fisheyeLensActivated)
-	{
-		iAVtkWidget::mouseReleaseEvent(event);
-		return;
-	}
-
+	iAVtkWidget::mouseReleaseEvent(event);
 	if (m_decorations)
 	{
 		m_snakeSpline->deselectPoint();
+		emit deselectedPoint();  // let other slice views know that the point was deselected
 	}
-	emit deselectedPoint();  // let other slice views know that the point was deselected
-	iAVtkWidget::mouseReleaseEvent(event);
 }
 
 void iASlicer::mouseDoubleClickEvent(QMouseEvent* event)
@@ -2130,12 +2095,10 @@ void iASlicer::mouseDoubleClickEvent(QMouseEvent* event)
 
 void iASlicer::contextMenuEvent(QContextMenuEvent *event)
 {
-	// is m_viewMode spline drawing m_viewMode?
-	if (m_decorations && m_interactionMode == DEFINE_SPLINE)
-		m_contextMenu->exec(event->globalPos());
-
 	if (m_magicLens && m_magicLens->isEnabled())
-		m_magicLensContextMenu->exec(event->globalPos());
+		m_contextMenuMagicLens->exec(event->globalPos());
+	else if (m_decorations && m_interactionMode == SnakeEdit)
+		m_contextMenuSnakeSlicer->exec(event->globalPos());
 }
 
 void iASlicer::switchInteractionMode(int mode)
@@ -2144,18 +2107,7 @@ void iASlicer::switchInteractionMode(int mode)
 		return;
 
 	m_interactionMode = static_cast<InteractionMode>(mode);
-	switch (mode)
-	{
-	case NORMAL: // normal
-		m_snakeSpline->SetVisibility(false);
-		break;
-	case DEFINE_SPLINE: // define spline
-		m_snakeSpline->SetVisibility(true);
-		break;
-	case SHOW: // show
-		m_snakeSpline->SetVisibility(false);
-		break;
-	}
+	m_snakeSpline->SetVisibility(m_interactionMode == SnakeEdit);
 	m_renWin->GetInteractor()->Render();
 }
 
