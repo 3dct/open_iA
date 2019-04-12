@@ -63,7 +63,7 @@ public:
 	//should update interactor for 3d volume according to angle and axis
 	void Update3DTransform(const double * imageCenter, const double * spacing, double relativeAngle);
 
-	void TransformReslicer(double * obj_center, double const * spacing, double rotationAngle);
+	void TransformReslicer(double * obj_center, double rotationAngle);
 signals:
 	void actorsUpdated();
 
@@ -75,7 +75,8 @@ private:
 	bool enable3D;
 	vtkImageData *m_image;
 	iAChannelSlicerData* m_slicerChannel[3];
-	vtkSmartPointer<vtkTransform> m_transform;
+	vtkSmartPointer<vtkTransform> m_transform3D;
+	vtkSmartPointer<vtkTransform> m_SliceTransform;
 
 	int m_currentSliceMode;
 	bool m_rightButtonDragZoomEnabled = false;
