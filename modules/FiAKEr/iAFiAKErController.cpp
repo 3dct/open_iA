@@ -50,6 +50,7 @@
 #include "iAModuleDispatcher.h"
 #include "iARendererManager.h"
 #include "iAStringHelper.h"
+#include "iAToolsVTK.h"    // for setCamPos
 #include "iATransferFunction.h"
 #include "iAVolumeRenderer.h"
 #include "iAVtkWidget.h"
@@ -1392,6 +1393,13 @@ void iAFiAKErController::getResultFiberIDFromSpmID(size_t spmID, size_t & result
 std::vector<std::vector<size_t> > & iAFiAKErController::selection()
 {
 	return m_selection;
+}
+
+void iAFiAKErController::setCamPosition(int pos)
+{
+	::setCamPosition(m_ren->GetActiveCamera(), static_cast<iACameraPosition>(pos));
+	m_ren->ResetCamera();
+	m_mainRenderer->GetRenderWindow()->GetInteractor()->Render();
 }
 
 void iAFiAKErController::clearSelection()

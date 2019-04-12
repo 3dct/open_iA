@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAChangeableRendererCamera.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "iAVtkWidgetFwd.h"
 
@@ -70,7 +71,7 @@ class QTreeView;
 class QVBoxLayout;
 //class QWebEngineView;
 
-class iAFiAKErController : public QMainWindow, public iASelectionProvider
+class iAFiAKErController : public QMainWindow, public iASelectionProvider, public iAChangeableRendererCamera
 {
 	Q_OBJECT
 public:
@@ -79,6 +80,7 @@ public:
 	void start(QString const & path, QString const & configName, double stepShift);
 	~iAFiAKErController();
 	std::vector<std::vector<size_t> > & selection() override;
+	void setCamPosition(int pos) override;
 	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();

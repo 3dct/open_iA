@@ -82,7 +82,7 @@ protected:
 	//! @param isDisablable whether the action should be disabled when no child is currently open
 	void AddActionToMenuAlphabeticallySorted( QMenu * menu, QAction * action, bool isDisablable = true );
 	//! Create a new attachment for the given child.
-	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * childData );
+	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child );
 	//! Get an attachment of the current mdi child.
 	//! @note current mdi child is determined through m_mdiChild member
 	//!       which is _not_ automatically updated to the active mdi child, see m_mdiChild member!
