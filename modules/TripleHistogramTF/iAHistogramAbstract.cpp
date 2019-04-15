@@ -22,7 +22,7 @@
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 
-iAHistogramAbstract* iAHistogramAbstract::buildHistogram(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f) {
+iAHistogramAbstract* iAHistogramAbstract::buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f) {
 	switch (type) {
 	case STACK:
 		return new iAHistogramStack(tmw, tmw, mdiChild, f);

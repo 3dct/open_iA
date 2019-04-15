@@ -35,5 +35,5 @@ public:
 	virtual void initialize() = 0;
 	virtual bool isSlicerInteractionEnabled() = 0;
 
-	static iAHistogramAbstract* buildHistogram(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	static iAHistogramAbstract* buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 };

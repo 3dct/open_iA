@@ -429,23 +429,23 @@ void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1
 	m_triangleRenderer->setModalities(d1, d2, d3, m_triangle);
 }
 
-// ----------------------------------------------------------------------------------------------
-// PAINT METHODS
-// ----------------------------------------------------------------------------------------------
-
 void iABarycentricTriangleWidget::resizeEvent(QResizeEvent* event)
 {
 	recalculatePositions(event->size().width(), event->size().height());
 }
 
+// ----------------------------------------------------------------------------------------------
+// PAINT METHODS
+// ----------------------------------------------------------------------------------------------
+
 void iABarycentricTriangleWidget::paintEvent(QPaintEvent* event)
 {
 	QPainter p(this);
+	paintTriangleBorder(p);
 	paintContext(p);
 	paintControlPoint(p);
 	paintModalityLabels(p);
 }
-
 
 void iABarycentricTriangleWidget::paintTriangleFill(QPainter &p)
 {

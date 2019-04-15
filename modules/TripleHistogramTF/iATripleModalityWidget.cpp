@@ -74,8 +74,6 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
 	mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
 
-	//setStyleSheet("background-color:red"); // test spacing/padding/margin
-
 	m_triangleRenderer = new iABarycentricContextRenderer();
 	m_triangleWidget = new iABarycentricTriangleWidget();
 	m_triangleWidget->setTriangleRenderer(m_triangleRenderer);
@@ -383,10 +381,7 @@ void iATripleModalityWidget::updateModalities()
 	applyWeights();
 	connect((dlg_transfer*)(m_mdiChild->getHistogram()->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
 
-	// Pure virtual method
 	m_histogramAbstract->initialize();
-
-	emit modalitiesChanged();
 }
 
 bool iATripleModalityWidget::isReady()
@@ -399,7 +394,7 @@ void iATripleModalityWidget::setHistogramAbstractType(iAHistogramAbstractType ty
 		return;
 	}
 
-	iAHistogramAbstract *histogramAbstract_new = iAHistogramAbstract::buildHistogram(type, this, m_mdiChild);
+	iAHistogramAbstract *histogramAbstract_new = iAHistogramAbstract::buildHistogramAbstract(type, this, m_mdiChild);
 
 	if (m_histogramAbstract) {
 		//delete m_histogramAbstract;
@@ -522,8 +517,7 @@ void iATripleModalityWidget::updateOriginalTransferFunction(int index)
 void iATripleModalityWidget::applyWeights()
 {
 	if (isReady()) {
-		for (int i = 0; i < 3; ++i)
-		{
+		for (int i = 0; i < 3; ++i) {
 			vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction();
 			vtkPiecewiseFunction *copy = m_copyTFs[i]->GetOpacityFunction();
 
@@ -537,11 +531,12 @@ void iATripleModalityWidget::applyWeights()
 			m_histograms[i]->redraw();
 
 			iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
-			//m_mdiChild->UpdateChannelSlicerOpacity(id, m_weightCur[i]);
-			m_mdiChild->getSlicerDataXY()->updateChannelMappers();
-			m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
-			m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
-			m_mdiChild->updateSlicers();
+			m_mdiChild->UpdateChannelSlicerOpacity(id, m_weightCur[i]);
 		}
+
+		m_mdiChild->getSlicerDataXY()->updateChannelMappers();
+		m_mdiChild->getSlicerDataXZ()->updateChannelMappers();
+		m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
+		m_mdiChild->updateSlicers();
 	}
 }

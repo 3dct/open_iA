@@ -86,7 +86,6 @@ private slots:
 
 signals:
 	void transferFunctionChanged();
-	void modalitiesChanged();
 
 	void weightChanged(BCoord bCoord);
 	void slicerModeChanged(iASlicerMode slicerMode);
