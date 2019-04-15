@@ -59,7 +59,7 @@
 #include <vtkGenericMovieWriter.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageActor.h>
-//#include <vtkImageBlend.h>
+#include <vtkImageBlend.h>
 #include <vtkImageCast.h>
 #include <vtkImageChangeInformation.h>
 #include <vtkImageData.h>
@@ -71,6 +71,7 @@
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
+#include <vtkLookupTable.h>
 #include <vtkMarchingContourFilter.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
@@ -734,10 +735,12 @@ void iASlicer::removeImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 	m_ren->RemoveActor(imgActor);
 }
 
-/*
 void iASlicer::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	double opacity, double * range)
 {
+	if (!hasChannel(0))
+		return;
+	// ToDo: check what it does, implement using new slicer channel feature!
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
 	lut->SetRange( range );
 	lut->SetHueRange(0, 1);
@@ -753,18 +756,11 @@ void iASlicer::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
 	imgBlender->UpdateInformation();
 	imgBlender->Update();
 
-	reslicer->SetInputConnection(imgBlender->GetOutputPort());
-	pointPicker->SetTolerance(PickTolerance);
-
-	this->imageData = imgBlender->GetOutput();
-	this->imageData->Modified();
-
-	imgBlender->ReleaseDataFlagOn();
-
-	InitReslicerWithImageData();
+	channel(0)->update(iAChannelData(QString(""), imgBlender->GetOutput(), lut));
+	channel(0)->reslicer()->SetInputConnection(imgBlender->GetOutputPort());
+	channel(0)->updateReslicer();
 	update();
 }
-*/
 
 void iASlicer::setROIVisible(bool visible)
 {
