@@ -20,13 +20,15 @@
 * ************************************************************************************/
 
 #include "iATripleModalityWidget.h"
+
 #include "RightBorderLayout.h"
 #include "dlg_modalities.h"
 #include "iAChannelVisualizationData.h"
-#include "mdiChild.h"
 #include "iAModalityTransfer.h"
 #include "iAModalityList.h"
 #include "iABarycentricContextRenderer.h"
+#include "iAVolumeRenderer.h"
+#include "iARenderer.h"
 
 #include "vtkImageData.h"
 #include "vtkColorTransferFunction.h"
@@ -50,10 +52,10 @@
 #include "dlg_transfer.h"
 
 // Required to create slicer
-#include "vtkColorTransferFunction.h"
-#include "vtkCamera.h"
-#include "vtkImageActor.h"
-#include "iASlicerData.h"
+#include <vtkColorTransferFunction.h>
+#include <vtkCamera.h>
+#include <vtkImageActor.h>
+#include <iASlicerData.h>
 
 //static const char *WEIGHT_FORMAT = "%.10f";
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
@@ -76,9 +78,6 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 
 	m_triangleRenderer = new iABarycentricContextRenderer();
 	m_triangleWidget = new iABarycentricTriangleWidget();
-	m_triangleWidget->setModality1label(DEFAULT_MODALITY_LABELS[0]);
-	m_triangleWidget->setModality2label(DEFAULT_MODALITY_LABELS[1]);
-	m_triangleWidget->setModality3label(DEFAULT_MODALITY_LABELS[2]);
 	m_triangleWidget->setTriangleRenderer(m_triangleRenderer);
 
 	m_slicerModeComboBox = new QComboBox();
@@ -88,6 +87,13 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 
 	m_sliceSlider = new QSlider(Qt::Horizontal);
 	m_sliceSlider->setMinimum(0);
+
+	// Initialize the inner widget {
+	m_mainLayout = new QHBoxLayout(this);
+	setHistogramAbstractType(iAHistogramAbstractType::STACK);
+	// }
+
+	updateModalities();
 
 	connect(m_triangleWidget, SIGNAL(weightChanged(BCoord)), this, SLOT(triangleWeightChanged(BCoord)));
 	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxIndexChanged(int)));
@@ -285,12 +291,6 @@ void iATripleModalityWidget::updateTransferFunction(int index)
 	emit transferFunctionChanged();
 }
 
-void iATripleModalityWidget::setModalityLabel(QString label, int index)
-{
-	// TODO change triangle's labels
-}
-
-
 QSharedPointer<iAModality> iATripleModalityWidget::getModality(int index)
 {
 	return m_modalitiesActive[index];
@@ -342,8 +342,8 @@ void iATripleModalityWidget::updateModalities()
 			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->GetPreferences().HistogramBins);
 		}
 
-		vtkColorTransferFunction *colorFuncCopy = vtkColorTransferFunction::New(); // TODO delete?
-		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New(); // TODO delete?
+		vtkColorTransferFunction *colorFuncCopy = vtkColorTransferFunction::New();
+		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New();
 		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy); //new iASimpleTransferFunction(colorFuncCopy, opFuncCopy);
 
 		m_histograms[i] = new iADiagramFctWidget(nullptr, m_mdiChild);
@@ -355,7 +355,7 @@ void iATripleModalityWidget::updateModalities()
 		// }
 
 		// Slicer {
-		m_slicerWidgets[i] = new iASimpleSlicerWidget(nullptr, isSlicerInteractionEnabled());
+		m_slicerWidgets[i] = new iASimpleSlicerWidget(nullptr, m_histogramAbstract->isSlicerInteractionEnabled());
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
 		m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 		// }
@@ -384,7 +384,9 @@ void iATripleModalityWidget::updateModalities()
 	connect((dlg_transfer*)(m_mdiChild->getHistogram()->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
 
 	// Pure virtual method
-	initialize();
+	m_histogramAbstract->initialize();
+
+	emit modalitiesChanged();
 }
 
 bool iATripleModalityWidget::isReady()
@@ -392,6 +394,21 @@ bool iATripleModalityWidget::isReady()
 	return m_modalitiesActive[2];
 }
 
+void iATripleModalityWidget::setHistogramAbstractType(iAHistogramAbstractType type) {
+	if (m_histogramAbstract && type == m_histogramAbstractType) {
+		return;
+	}
+
+	iAHistogramAbstract *histogramAbstract_new = iAHistogramAbstract::buildHistogram(type, this, m_mdiChild);
+
+	if (m_histogramAbstract) {
+		//delete m_histogramAbstract;
+		m_mainLayout->replaceWidget(m_histogramAbstract, histogramAbstract_new, Qt::FindDirectChildrenOnly);
+	} else {
+		m_mainLayout->addWidget(histogramAbstract_new);
+	}
+	m_histogramAbstract = histogramAbstract_new;
+}
 
 bool iATripleModalityWidget::containsModality(QSharedPointer<iAModality> modality)
 {
@@ -468,7 +485,7 @@ void iATripleModalityWidget::updateCopyTransferFunction(int index)
 
 /** Called when the copy transfer function changes
   * ADD NODES TO THE EFFECTIVE ONLY (clear and repopulate with adjusted effective values)
-  * => copy * weight = effective
+  * => copy * weight ~= effective
   */
 void iATripleModalityWidget::updateOriginalTransferFunction(int index)
 {

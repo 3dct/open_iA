@@ -21,6 +21,7 @@
 #pragma once
 
 #include <QWidget>
+#include <QLayout>
 #include <QStackedLayout>
 #include <QComboBox>
 
@@ -29,6 +30,7 @@
 #include "iATransferFunction.h"
 #include "iABarycentricTriangleWidget.h"
 #include "iATriangleRenderer.h"
+#include "iAHistogramAbstract.h"
 
 // Slicer
 #include "iASimpleSlicerWidget.h"
@@ -56,10 +58,14 @@ public:
 
 	bool isReady();
 
-	// VIRTUAL METHODS
-	virtual void initialize() = 0;
-	virtual bool isSlicerInteractionEnabled() = 0;
-	virtual void setModalityLabel(QString label, int index);
+	void setHistogramAbstractType(iAHistogramAbstractType type);
+
+	// PUBLIC MEMBERS
+	iADiagramFctWidget* m_histograms[3] = { nullptr, nullptr, nullptr };
+	iASimpleSlicerWidget *m_slicerWidgets[3] = { nullptr, nullptr, nullptr };
+	QComboBox *m_slicerModeComboBox;
+	QSlider *m_sliceSlider;
+	iABarycentricTriangleWidget *m_triangleWidget;
 
 private slots:
 	void updateTransferFunction1() { updateTransferFunction(0); }
@@ -80,17 +86,11 @@ private slots:
 
 signals:
 	void transferFunctionChanged();
+	void modalitiesChanged();
 
 	void weightChanged(BCoord bCoord);
 	void slicerModeChanged(iASlicerMode slicerMode);
 	void sliceNumberChanged(int sliceNumber);
-
-protected:
-	iADiagramFctWidget* m_histograms[3] = { nullptr, nullptr, nullptr };
-	iASimpleSlicerWidget *m_slicerWidgets[3] = { nullptr, nullptr, nullptr };
-	QComboBox *m_slicerModeComboBox;
-	QSlider *m_sliceSlider;
-	iABarycentricTriangleWidget *m_triangleWidget;
 
 private:
 	BCoord m_weightCur;
@@ -122,5 +122,8 @@ private:
 
 	// TODO: another pointer to MdiChild... is this really optimal?
 	MdiChild *m_mdiChild;
-	
+
+	QLayout *m_mainLayout;
+	iAHistogramAbstract *m_histogramAbstract = nullptr;
+	iAHistogramAbstractType m_histogramAbstractType;
 };

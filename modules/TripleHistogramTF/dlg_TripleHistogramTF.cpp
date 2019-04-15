@@ -48,8 +48,6 @@
 // Debug
 #include "qdebug.h"
 
-const static QString DEFAULT_LABELS[3] = { "A", "B", "C" };
-
 dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	//TripleHistogramTFConnector(mdiChild, f), m_mdiChild(mdiChild)
 	QDockWidget("Triple Histogram Transfer Function", mdiChild, f),
@@ -59,20 +57,12 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	// Initialize dock widget
 	setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetVerticalTitleBar);
 
-	// Set up connects
-	// ...
-
-	//-----------------------------------------------
-	// Test vvv // TODO: remove comments
 	resize(779, 501);
 
 	//QWidget *dockWidgetContents = new QWidget();
 	QSplitter *dockWidgetContents = new QSplitter(Qt::Horizontal);
 	setWidget(dockWidgetContents);
 	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
-	// Test ^^^
-	//-----------------------------------------------
-	
 
 	QWidget *histogramsWidget = new QWidget(dockWidgetContents);
 	m_stackedLayout = new QStackedLayout(histogramsWidget);
@@ -81,64 +71,19 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 	m_disabledLabel = new QLabel();
 	m_disabledLabel->setAlignment(Qt::AlignCenter);
 
-	m_histogramStack = new iAHistogramTriangle(dockWidgetContents, mdiChild);
-	m_histogramStack->setModalityLabel(DEFAULT_LABELS[0], 0);
-	m_histogramStack->setModalityLabel(DEFAULT_LABELS[1], 1);
-	m_histogramStack->setModalityLabel(DEFAULT_LABELS[2], 2);
-	m_histogramStack->updateModalities();
+	m_tripleModalityWidget = new iATripleModalityWidget(dockWidgetContents, mdiChild);
 
-	m_stackedLayout->addWidget(m_histogramStack);
+	m_stackedLayout->addWidget(m_tripleModalityWidget);
 	m_stackedLayout->addWidget(m_disabledLabel);
 	m_stackedLayout->setCurrentIndex(1);
 
 	//Connect
-	connect(m_histogramStack, SIGNAL(transferFunctionChanged()), this, SLOT(updateTransferFunction()));
+	connect(m_tripleModalityWidget, SIGNAL(transferFunctionChanged()), this, SLOT(updateTransferFunction()));
+	connect(m_tripleModalityWidget, SIGNAL(modalitiesChanged()), this, SLOT(updateModalities()));
 	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(updateModalities()));
 	// }
 
 	updateDisabledLabel();
-	updateModalities();
-
-	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
-	appendFilter->SetInputData(m_histogramStack->getModality(0)->GetImage());
-	appendFilter->AddInputData(m_histogramStack->getModality(1)->GetImage());
-	appendFilter->AddInputData(m_histogramStack->getModality(2)->GetImage());
-	appendFilter->Update();
-
-	combinedVol = vtkSmartPointer<vtkVolume>::New();
-	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
-	combinedVolProp->SetInterpolationTypeToLinear();
-	combinedVolProp->SetColor(0, m_histogramStack->getModality(0)->GetTransfer()->GetColorFunction());
-	combinedVolProp->SetScalarOpacity(0, m_histogramStack->getModality(0)->GetTransfer()->GetOpacityFunction());
-	combinedVolProp->SetColor(1, m_histogramStack->getModality(1)->GetTransfer()->GetColorFunction());
-	combinedVolProp->SetScalarOpacity(1, m_histogramStack->getModality(1)->GetTransfer()->GetOpacityFunction());
-	combinedVolProp->SetColor(2, m_histogramStack->getModality(2)->GetTransfer()->GetColorFunction());
-	combinedVolProp->SetScalarOpacity(2, m_histogramStack->getModality(2)->GetTransfer()->GetOpacityFunction());
-	combinedVol->SetProperty(combinedVolProp);
-
-	combinedVolMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
-	combinedVolMapper->SetBlendModeToComposite();
-	combinedVolMapper->SetInputData(appendFilter->GetOutput());
-	combinedVolMapper->Update();
-	combinedVol->SetMapper(combinedVolMapper);
-	combinedVol->Update();
-
-	combinedVolRenderer = vtkSmartPointer<vtkRenderer>::New();
-	combinedVolRenderer->GetActiveCamera()->ParallelProjectionOn();
-	combinedVolRenderer->SetLayer(1);
-	combinedVolRenderer->AddVolume(combinedVol);
-	combinedVolRenderer->ResetCamera();
-
-	for (int i = 0; i < 3; ++i)
-	{
-		QSharedPointer<iAVolumeRenderer> renderer = m_histogramStack->getModality(i)->GetRenderer();
-		renderer->Remove();
-	}
-	mdiChild->getRenderer()->AddRenderer(combinedVolRenderer);
-}
-
-dlg_TripleHistogramTF::~dlg_TripleHistogramTF()
-{
 }
 
 // SLOTS {
@@ -149,19 +94,61 @@ void dlg_TripleHistogramTF::updateTransferFunction()
 }
 void dlg_TripleHistogramTF::updateModalities()
 {
-	m_histogramStack->updateModalities();
-	if (m_histogramStack->getModalitiesCount() >= 3) {
-		m_stackedLayout->setCurrentIndex(0);
-	} else {
+	m_tripleModalityWidget->updateModalities();
+	if (m_tripleModalityWidget->getModalitiesCount() < 3) {
 		updateDisabledLabel();
 		m_stackedLayout->setCurrentIndex(1);
+		return;
 	}
+
+	m_stackedLayout->setCurrentIndex(0);
+
+	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
+	appendFilter->SetInputData(m_tripleModalityWidget->getModality(0)->GetImage());
+	appendFilter->AddInputData(m_tripleModalityWidget->getModality(1)->GetImage());
+	appendFilter->AddInputData(m_tripleModalityWidget->getModality(2)->GetImage());
+	appendFilter->Update();
+
+	m_combinedVol = vtkSmartPointer<vtkVolume>::New();
+	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
+	combinedVolProp->SetInterpolationTypeToLinear();
+
+	combinedVolProp->SetColor(0, m_tripleModalityWidget->getModality(0)->GetTransfer()->GetColorFunction());
+	combinedVolProp->SetScalarOpacity(0, m_tripleModalityWidget->getModality(0)->GetTransfer()->GetOpacityFunction());
+
+	combinedVolProp->SetColor(1, m_tripleModalityWidget->getModality(1)->GetTransfer()->GetColorFunction());
+	combinedVolProp->SetScalarOpacity(1, m_tripleModalityWidget->getModality(1)->GetTransfer()->GetOpacityFunction());
+
+	combinedVolProp->SetColor(2, m_tripleModalityWidget->getModality(2)->GetTransfer()->GetColorFunction());
+	combinedVolProp->SetScalarOpacity(2, m_tripleModalityWidget->getModality(2)->GetTransfer()->GetOpacityFunction());
+
+	m_combinedVol->SetProperty(combinedVolProp);
+
+	m_combinedVolMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
+	m_combinedVolMapper->SetBlendModeToComposite();
+	m_combinedVolMapper->SetInputData(appendFilter->GetOutput());
+	m_combinedVolMapper->Update();
+	m_combinedVol->SetMapper(m_combinedVolMapper);
+	m_combinedVol->Update();
+
+	m_combinedVolRenderer = vtkSmartPointer<vtkRenderer>::New();
+	m_combinedVolRenderer->GetActiveCamera()->ParallelProjectionOn();
+	m_combinedVolRenderer->SetLayer(1);
+	m_combinedVolRenderer->AddVolume(m_combinedVol);
+	m_combinedVolRenderer->ResetCamera();
+
+	for (int i = 0; i < 3; ++i)
+	{
+		QSharedPointer<iAVolumeRenderer> renderer = m_tripleModalityWidget->getModality(i)->GetRenderer();
+		renderer->Remove();
+	}
+	m_mdiChild->getRenderer()->AddRenderer(m_combinedVolRenderer);
 }
 // }
 
 void dlg_TripleHistogramTF::updateDisabledLabel()
 {
-	int count = m_histogramStack->getModalitiesCount();
+	int count = m_tripleModalityWidget->getModalitiesCount();
 	QString modalit_y_ies_is_are = count == 2 ? "modality is" : "modalities are";
 	//QString nameA = count >= 1 ? m_modalitiesActive[0]->GetName() : "missing";
 	//QString nameB = count >= 2 ? m_modalitiesActive[1]->GetName() : "missing";

@@ -20,20 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAHistogramAbstract.h"
 #include "iATripleModalityWidget.h"
 
 // TODO: should be removed in the future
 #include <QMouseEvent>
 #include <QWheelEvent>
 
-class iAHistogramTriangle : public iATripleModalityWidget
+class iAHistogramTriangle : public iAHistogramAbstract
 {
 public:
-	iAHistogramTriangle(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	iAHistogramTriangle(QWidget* parent, iATripleModalityWidget* tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 
 	void initialize() override;
 	bool isSlicerInteractionEnabled() override { return true; }
-	void setModalityLabel(QString label, int index) override;
 
 	void paintHistograms(QPainter &p);
 	void paintSlicers(QPainter& p);
@@ -59,6 +59,8 @@ private:
 	iADiagramFctWidget* onHistogram(QPoint p, QPoint &transformed, int &index);
 	bool onTriangle(QPoint p);
 	iASlicerWidget* onSlicer(QPoint p, QPoint &transformed, int &index);
+
+	iATripleModalityWidget* m_tmw;
 
 	QPainterPath m_clipPath;
 	QPen m_clipPathPen;

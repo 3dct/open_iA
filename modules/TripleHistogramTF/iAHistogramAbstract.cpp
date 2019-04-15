@@ -19,15 +19,17 @@
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include "iATripleBarycentricTransfer.h"
+#include "iAHistogramStack.h"
+#include "iAHistogramTriangle.h"
 
-iATripleBarycentricTransfer::iATripleBarycentricTransfer()
-{
+iAHistogramAbstract* iAHistogramAbstract::buildHistogram(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f) {
+	switch (type) {
+	case STACK:
+		return new iAHistogramStack(tmw, tmw, mdiChild, f);
 
-}
+	case TRIANGLE:
+		return new iAHistogramTriangle(tmw, tmw, mdiChild, f);
+	}
 
-
-iATripleBarycentricTransfer::~iATripleBarycentricTransfer()
-{
-
+	throw "Unexpected type";
 }

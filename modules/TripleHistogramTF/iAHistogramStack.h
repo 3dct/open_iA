@@ -20,11 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
-
 #include "iATripleModalityWidget.h"
-//#include "mdichild.h"
-class MdiChild;
+#include "iAHistogramAbstract.h"
+
+class QSplitter;
 class iADiagramFctWidget;
 class iASimpleSlicerWidget;
 
@@ -40,19 +39,19 @@ private:
 	QGridLayout *m_gridLayout;
 };
 
-class iAHistogramStack : public iATripleModalityWidget
+class iAHistogramStack : public iAHistogramAbstract
 {
 public:
-	iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	iAHistogramStack(QWidget* parent, iATripleModalityWidget *tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 
 	// OVERRIDES
 	void initialize() override;
 	bool isSlicerInteractionEnabled() override { return false; }
-	void setModalityLabel(QString label, int index) override;
 
 private:
 	QSplitter *m_splitter;
 	iAHistogramStackGrid *m_grid;
 	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };
 
+	iATripleModalityWidget* m_tmw;
 };

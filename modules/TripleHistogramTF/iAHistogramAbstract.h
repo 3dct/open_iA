@@ -18,15 +18,22 @@
 * Contact: FH O÷ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #pragma once
 
-class iATripleBarycentricTransfer
+#include <QWidget>
+
+class MdiChild;
+class iATripleModalityWidget;
+
+enum iAHistogramAbstractType {
+	STACK, TRIANGLE
+};
+
+class iAHistogramAbstract : public QWidget
 {
 public:
-	iATripleBarycentricTransfer();
-	~iATripleBarycentricTransfer();
+	virtual void initialize() = 0;
+	virtual bool isSlicerInteractionEnabled() = 0;
 
-private:
-
+	static iAHistogramAbstract* buildHistogram(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 };

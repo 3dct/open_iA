@@ -63,9 +63,6 @@ public:
 	void recalculatePositions() { recalculatePositions(width(), height()); }
 	void recalculatePositions(int width, int height, BarycentricTriangle triange);
 	void setFont(QFont font);
-	void setModality1label(QString label);
-	void setModality2label(QString label);
-	void setModality3label(QString label);
 	void setModalityLabelPosition(QPoint position, int modalityIndex);
 	void setModalityWeightPosition(QPoint position, int modalityIndex);
 	QRect getModalityLabelRect(int modalityIndex);
@@ -76,6 +73,9 @@ public:
 
 	void setTriangleRenderer(iATriangleRenderer *triangleRenderer);
 	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
+	void setModality1label(QString label);
+	void setModality2label(QString label);
+	void setModality3label(QString label);
 
 	BarycentricTriangle getTriangle() { return m_triangle; }
 

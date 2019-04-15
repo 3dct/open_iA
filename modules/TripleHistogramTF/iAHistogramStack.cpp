@@ -26,15 +26,17 @@
 #include "iATransferFunction.h"
 #include "charts/iADiagramFctWidget.h"
 
-iAHistogramStack::iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f)
-	: iATripleModalityWidget(parent, mdiChild, f)
+iAHistogramStack::iAHistogramStack(QWidget* parent, iATripleModalityWidget *tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f)
+	: m_tmw(tripleModalityWidget)
 {
 }
 
 void iAHistogramStack::initialize()
 {
+	const QString modalityLabels[3] = { QString("A"), QString("B"), QString("C") };
 	for (int i = 0; i < 3; i++) {
-		m_modalityLabels[i] = new QLabel(DEFAULT_MODALITY_LABELS[i]);
+		//m_modalityLabels[i] = new QLabel(DEFAULT_MODALITY_LABELS[i]);
+		m_modalityLabels[i] = new QLabel(modalityLabels[i]);
 		m_modalityLabels[i]->setStyleSheet("font-weight: bold");
 		m_modalityLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	}
@@ -43,10 +45,10 @@ void iAHistogramStack::initialize()
 	//optionsContainer->setStyleSheet("background-color:blue"); // test spacing/padding/margin
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	QHBoxLayout *optionsContainerLayout = new QHBoxLayout(optionsContainer);
-	optionsContainerLayout->addWidget(m_slicerModeComboBox);
-	optionsContainerLayout->addWidget(m_sliceSlider);
+	optionsContainerLayout->addWidget(m_tmw->m_slicerModeComboBox);
+	optionsContainerLayout->addWidget(m_tmw->m_sliceSlider);
 
-	m_grid = new iAHistogramStackGrid(this, m_histograms, m_slicerWidgets, m_modalityLabels);
+	m_grid = new iAHistogramStackGrid(this, m_tmw->m_histograms, m_tmw->m_slicerWidgets, m_modalityLabels);
 
 	QWidget *leftWidget = new QWidget();
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
@@ -57,7 +59,7 @@ void iAHistogramStack::initialize()
 
 	m_splitter = new QSplitter(Qt::Horizontal);
 	m_splitter->addWidget(leftWidget);
-	m_splitter->addWidget(m_triangleWidget);
+	m_splitter->addWidget(m_tmw->m_triangleWidget);
 	m_splitter->setStretchFactor(0, 1);
 	m_splitter->setStretchFactor(1, 0);
 
@@ -65,14 +67,6 @@ void iAHistogramStack::initialize()
 	parentLayout->addWidget(m_splitter);
 
 	m_grid->adjustStretch();
-}
-
-void iAHistogramStack::setModalityLabel(QString label, int index)
-{
-	if (isReady()) {
-		m_modalityLabels[index]->setText(label);
-		iATripleModalityWidget::setModalityLabel(label, index);
-	}
 }
 
 // GRID -------------------------------------------------------------------------------

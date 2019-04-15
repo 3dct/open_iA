@@ -30,7 +30,6 @@ class QStackedLayout;
 class QLabel;
 
 class MdiChild;
-class iABarycentricTriangleWidget;
 class iATripleModalityWidget;
 class BCoord;
 
@@ -46,7 +45,6 @@ class dlg_TripleHistogramTF : public QDockWidget//public TripleHistogramTFConnec
 
 public:
 	dlg_TripleHistogramTF(MdiChild* parent, Qt::WindowFlags f = 0);
-	~dlg_TripleHistogramTF();
 
 public slots:
 	void updateTransferFunction();
@@ -63,9 +61,9 @@ private:
 	// Widgets and stuff
 	QStackedLayout *m_stackedLayout;
 	QLabel *m_disabledLabel;
-	iATripleModalityWidget *m_histogramStack;
-	
-	vtkSmartPointer<vtkSmartVolumeMapper> combinedVolMapper;
-	vtkSmartPointer<vtkRenderer> combinedVolRenderer;
-	vtkSmartPointer<vtkVolume> combinedVol;
+	iATripleModalityWidget *m_tripleModalityWidget;
+
+	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
+	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
+	vtkSmartPointer<vtkVolume> m_combinedVol;
 };
