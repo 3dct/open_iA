@@ -62,6 +62,7 @@ public:
 	void updateLUT();
 	bool isEnabled() const;        //!< whether this channel is currently shown
 	QString const & name() const;  //!< the name of the channel
+	vtkImageActor * imageActor();  //! TODO: should be removed
 	vtkImageData * input() const;  // TODO: returned vtkImageData should be const
 	vtkImageData * output() const; // TODO: returned vtkImageData should be const
 	vtkImageReslice * reslicer() const; // check if that can be kept private somehow

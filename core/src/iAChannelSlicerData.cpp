@@ -193,6 +193,11 @@ QString const & iAChannelSlicerData::name() const
 	return m_name;
 }
 
+vtkImageActor * iAChannelSlicerData::imageActor()
+{
+	return m_imageActor;
+}
+
 vtkImageData * iAChannelSlicerData::input() const
 {
 	return dynamic_cast<vtkImageData*>(m_reslicer->GetInput());
