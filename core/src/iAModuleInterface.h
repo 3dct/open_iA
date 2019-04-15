@@ -58,12 +58,13 @@ public:
 	virtual void SaveSettings() const;
 	//! Called whenever an MdiChild object is created. Override to react on this.
 	virtual void ChildCreated(MdiChild* child);
+
 protected:
 	//! Create a new result child, with a title made from the given title + the previous title of the active child.
 	void PrepareResultChild( QString const & title);
 	//! Create a new result child at the given index in the MdiChild list with the given title.
 	void PrepareResultChild( int childInd, QString const & title );
-	//! Set the currently active child as "current" and update references to it in m_childData.
+	//! Set the currently active child as "current".
 	void PrepareActiveChild();
 	//! Provides access to a second loaded mdi child, if such is available.
 	//! Will throw an error if none is available or more than two are loaded
@@ -82,7 +83,7 @@ protected:
 	//! @param isDisablable whether the action should be disabled when no child is currently open
 	void AddActionToMenuAlphabeticallySorted( QMenu * menu, QAction * action, bool isDisablable = true );
 	//! Create a new attachment for the given child.
-	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * childData );
+	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child );
 	//! Get an attachment of the current mdi child.
 	//! @note current mdi child is determined through m_mdiChild member
 	//!       which is _not_ automatically updated to the active mdi child, see m_mdiChild member!
@@ -90,7 +91,6 @@ protected:
 	//! Sets up a new attachment for the given MdiChild via CreateAttachment and links the two.
 	bool AttachToMdiChild( MdiChild * child );
 
-protected:
 	MainWindow * m_mainWnd;            //!< access to the main window
 	iAModuleDispatcher * m_dispatcher; //!< access to the module dispatcher
 	//! "current" mdi child
@@ -98,9 +98,11 @@ protected:
 	MdiChild * m_mdiChild;
 	//! attachments of this module
 	QVector<iAModuleAttachmentToChild*> m_attachments;
+
 private:
 	//! called when an MdiChild is closing
 	void detachChild(MdiChild* child);
+
 protected slots:
 	void attachedChildClosed();
 	void detach();

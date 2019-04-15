@@ -24,11 +24,11 @@
 #include <vtkDiskSource.h>
 #include <vtkPolyDataMapper.h>
 
-iADiskData::iADiskData()
+iADiskData::iADiskData():
+	source(vtkSmartPointer<vtkDiskSource>::New()),
+	mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	actor(vtkSmartPointer<vtkActor>::New())
 {
-	source = vtkSmartPointer<vtkDiskSource>::New();
-	mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	actor = vtkSmartPointer<vtkActor>::New();
 	source->SetInnerRadius(0.0);
 	source->SetCircumferentialResolution(20);
 	mapper->SetInputConnection(source->GetOutputPort());

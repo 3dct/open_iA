@@ -184,9 +184,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
 		return;
 	}
 	mdiArea->closeAllSubWindows();
-	if (activeMdiChild()) {
+	if (activeMdiChild())
+	{
 		event->ignore();
-	} else {
+	}
+	else
+	{
 		writeSettings();
 		iAConsole::closeInstance();
 		event->accept();
@@ -2144,9 +2147,11 @@ void MainWindow::childActivatedSlot(QMdiSubWindow *wnd)
 	MdiChild * activeChild = activeMdiChild();
 	if (activeChild && wnd)
 	{
+		QSignalBlocker blockSliceProfile(actionRawProfile);
 		actionRawProfile->setChecked(activeChild->isSliceProfileToggled());
-		//actionSnake_Slicer->setChecked(activeChild->isSnakeSlicerToggled());
-		QSignalBlocker blockMagicLensSignal(actionMagicLens);
+		QSignalBlocker blockSnakeSlicer(actionSnakeSlicer);
+		actionSnakeSlicer->setChecked(activeChild->isSnakeSlicerToggled());
+		QSignalBlocker blockMagicLens(actionMagicLens);
 		actionMagicLens->setChecked(activeChild->isMagicLensToggled());
 	}
 }

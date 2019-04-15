@@ -510,14 +510,14 @@ void dlg_volumePlayer::setMultiChannelVisualization(int volumeIndex1, int volume
 		{
 			m_mdiChild->initChannelRenderer(m_channelID[i], true);
 			// TODO: VOLUME: rewrite!
-			// m_mdiChild->getRenderer()->showMainVolumeWithChannels(false);
+			// m_mdiChild->renderer()->showMainVolumeWithChannels(false);
 		}
 		m_mdiChild->updateChannelOpacity(m_channelID[i], opacity[i]);
 	}
 
 	if(!m_multiChannelIsInitialized) m_multiChannelIsInitialized = true;
 
-//	m_mdiChild->getRenderer()->updateChannelImages();
+//	m_mdiChild->renderer()->updateChannelImages();
 	for (int i=0; i<iASlicerMode::SlicerCount; ++i)
 		m_mdiChild->slicer(i)->updateChannelMappers();
 	m_mdiChild->updateViews();

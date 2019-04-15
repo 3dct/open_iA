@@ -157,9 +157,9 @@ void iAModuleInterface::AddActionToMenuAlphabeticallySorted( QMenu * menu, QActi
 	m_dispatcher->AddActionToMenuAlphabeticallySorted(menu, action, isDisablable);
 }
 
-iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * childData )
+iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
 {
-	return 0;
+	return nullptr;
 }
 
 bool iAModuleInterface::AttachToMdiChild( MdiChild * child )

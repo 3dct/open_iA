@@ -18,30 +18,35 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAVRInteractor.h"
 
-#include <vtkSmartPointer.h>
+#include <vtkObjectFactory.h>
+#include <vtkRendererCollection.h>
 
-class vtkActor;
-class vtkConeSource;
-class vtkPoints;
-class vtkPolyDataMapper;
-class vtkRenderer;
+#include <QCoreApplication>
 
-//! A horizontal line that can be added to a vtkRenderer, with two cones marking start and end of the line
-class iALinePointers
+
+vtkStandardNewMacro(iAVRInteractor);
+
+void  iAVRInteractor::StartEventLoop()
 {
-public:
-	iALinePointers();
-	void updatePosition(double posY, double zeroLevelPosY, double startX, double endX, double const * spacing);
-	void setVisible(bool visible);
-	void addToRenderer(vtkRenderer * renderer);
+	this->StartedMessageLoop = 1;
+	this->Done = false;
 
-private:
-	vtkSmartPointer<vtkPoints> points;
-	vtkSmartPointer<vtkActor> actors[2];
-	vtkSmartPointer<vtkPolyDataMapper> mappers[2];
-	vtkSmartPointer<vtkConeSource> pointers[2];
-	static const int ConeHeight = 10;
-	static const int ZCoord = 0;
-};
+	auto renWin = vtkOpenVRRenderWindow::SafeDownCast(this->RenderWindow);
+	auto ren = static_cast<vtkRenderer *>(renWin->GetRenderers()->GetItemAsObject(0));
+
+	while (!this->Done)
+	{
+		DoOneEvent(renWin, ren);
+		QCoreApplication::processEvents();
+	}
+}
+
+iAVRInteractor::iAVRInteractor()
+{}
+
+void iAVRInteractor::stop()
+{
+	this->Done = true;
+}

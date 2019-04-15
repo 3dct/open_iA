@@ -22,26 +22,23 @@
 
 #include <vtkSmartPointer.h>
 
-class vtkActor;
-class vtkConeSource;
-class vtkPoints;
-class vtkPolyDataMapper;
+#include <QObject>
+
+class vtkOpenVRRenderer;
+class iAVRInteractor;
 class vtkRenderer;
 
-//! A horizontal line that can be added to a vtkRenderer, with two cones marking start and end of the line
-class iALinePointers
+class iAVREnvironment: public QObject
 {
+	Q_OBJECT
 public:
-	iALinePointers();
-	void updatePosition(double posY, double zeroLevelPosY, double startX, double endX, double const * spacing);
-	void setVisible(bool visible);
-	void addToRenderer(vtkRenderer * renderer);
-
+	iAVREnvironment();
+	vtkRenderer* renderer();
+	void start();
+	void stop();
 private:
-	vtkSmartPointer<vtkPoints> points;
-	vtkSmartPointer<vtkActor> actors[2];
-	vtkSmartPointer<vtkPolyDataMapper> mappers[2];
-	vtkSmartPointer<vtkConeSource> pointers[2];
-	static const int ConeHeight = 10;
-	static const int ZCoord = 0;
+	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
+	vtkSmartPointer<iAVRInteractor> m_interactor;
+signals:
+	void finished();
 };

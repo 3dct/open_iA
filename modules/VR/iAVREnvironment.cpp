@@ -18,30 +18,57 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAVREnvironment.h"
 
-#include <vtkSmartPointer.h>
+#include "iAVRInteractor.h"
 
-class vtkActor;
-class vtkConeSource;
-class vtkPoints;
-class vtkPolyDataMapper;
-class vtkRenderer;
+#include "iAConsole.h"
 
-//! A horizontal line that can be added to a vtkRenderer, with two cones marking start and end of the line
-class iALinePointers
+#include <vtkOpenVRRenderer.h>
+#include <vtkOpenVRRenderWindow.h>
+#include <vtkOpenVRCamera.h>
+
+iAVREnvironment::iAVREnvironment():
+	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New())
 {
-public:
-	iALinePointers();
-	void updatePosition(double posY, double zeroLevelPosY, double startX, double endX, double const * spacing);
-	void setVisible(bool visible);
-	void addToRenderer(vtkRenderer * renderer);
+	m_renderer->SetBackground(50, 50, 50);
+}
 
-private:
-	vtkSmartPointer<vtkPoints> points;
-	vtkSmartPointer<vtkActor> actors[2];
-	vtkSmartPointer<vtkPolyDataMapper> mappers[2];
-	vtkSmartPointer<vtkConeSource> pointers[2];
-	static const int ConeHeight = 10;
-	static const int ZCoord = 0;
-};
+vtkRenderer* iAVREnvironment::renderer()
+{
+	return m_renderer;
+}
+
+void iAVREnvironment::start()
+{
+	static int runningInstances = 0;
+	// "poor man's" check for trying to run two VR sessions in parallel:
+	if (runningInstances >= 1)
+	{
+		DEBUG_LOG("Cannot start more than one VR session in parallel!");
+		emit finished();
+		return;
+	}
+	++runningInstances;
+	auto renderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
+	renderWindow->AddRenderer(m_renderer);
+	// MultiSamples needs to be set to 0 to make Volume Rendering work:
+	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
+	renderWindow->SetMultiSamples(0);
+	m_interactor = vtkSmartPointer<iAVRInteractor>::New();
+	m_interactor->SetRenderWindow(renderWindow);
+	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
+
+	m_renderer->SetActiveCamera(camera);
+	m_renderer->ResetCamera();
+	renderWindow->Render();
+	m_interactor->Start();
+	--runningInstances;
+	emit finished();
+}
+
+void iAVREnvironment::stop()
+{
+	if (m_interactor)
+		m_interactor->stop();
+}

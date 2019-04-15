@@ -405,15 +405,6 @@ private:
 	void initModalities();
 	void initVolumeRenderers();
 
-	QByteArray m_beforeMaximizeState;
-	QDockWidget * m_whatMaximized;
-	int m_pbarMaxVal;
-
-	vtkPoints *m_worldProfilePoints;
-	vtkPoints *m_worldSnakePoints;
-	iAParametricSpline *m_parametricSpline;
-	MainWindow * m_mainWnd;
-
 	static const unsigned char RC = 0x01;
 	static const unsigned char XY = 0x02;
 	static const unsigned char YZ = 0x04;
@@ -421,9 +412,14 @@ private:
 	static const unsigned char TAB = 0x10;
 	static const unsigned char MULTI = 0x1F;
 
+	MainWindow * m_mainWnd;
 	QFileInfo m_fileInfo;
 	QString m_curFile, m_path;
 	int m_position[3];            //!< current "position" in image (in voxel indices). TODO: use global coordinates instead of voxel indices
+
+	QByteArray m_beforeMaximizeState;
+	QDockWidget * m_whatMaximized;
+	int m_pbarMaxVal;
 
 	iARenderSettings m_renderSettings;
 	iAVolumeSettings m_volumeSettings;
@@ -434,18 +430,24 @@ private:
 
 	bool m_isSmthMaximized;       //!< whether a single dock widget is currently maximized
 	bool m_isUntitled;            //!< whether current content is saved as a file already
-	bool m_snakeSlicer;           //!< whether snake slicer is enabled
 	bool m_isSliceProfileEnabled; //!< whether slice profile, shown in slices, is enabled
 	bool m_isArbProfileEnabled;   //!< whether arbitrary profile, shown in profile widget
 	bool m_isMagicLensEnabled;    //!< whether magic lens in slicers is enabled
 	bool m_reInitializeRenderWindows; //! whether render windows need to be reinitialized
 	bool m_raycasterInitialized;  //!< whether renderer is already initialized
 
+	//! @{ snake slicer related:
+	bool m_snakeSlicer;           //!< whether snake slicer is enabled
+	vtkAbstractTransform *m_savedSlicerTransform[3];
+	vtkPoints *m_worldProfilePoints;
+	vtkPoints *m_worldSnakePoints;
+	iAParametricSpline *m_parametricSpline;
+	//! @}
+
 	vtkSmartPointer<vtkImageData> m_imageData;		// TODO: remove - use modality data instead!
 	vtkPolyData * m_polyData;
 	vtkTransform * m_axesTransform;
 	vtkTransform * m_slicerTransform;
-	vtkAbstractTransform *m_SlicerYZ_Transform, *m_SlicerXY_Transform, *m_SlicerXZ_Transform;
 	iARenderer * m_renderer;
 	iASlicer * m_slicer[3];
 	QSharedPointer<iAProfileProbe> m_profileProbe;

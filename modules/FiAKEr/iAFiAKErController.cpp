@@ -274,18 +274,18 @@ QWidget * iAFiAKErController::setupMain3DView()
 {
 	m_mainRenderer = new iAVtkWidget();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	auto ren = vtkSmartPointer<vtkRenderer>::New();
-	ren->SetBackground(1.0, 1.0, 1.0);
+	m_ren = vtkSmartPointer<vtkRenderer>::New();
+	m_ren->SetBackground(1.0, 1.0, 1.0);
 	renWin->SetAlphaBitPlanes(1);
-	ren->SetUseDepthPeeling(true);
-	ren->SetMaximumNumberOfPeels(1000);
-	renWin->AddRenderer(ren);
+	m_ren->SetUseDepthPeeling(true);
+	m_ren->SetMaximumNumberOfPeels(1000);
+	renWin->AddRenderer(m_ren);
 	m_mainRenderer->SetRenderWindow(renWin);
-	m_renderManager->addToBundle(ren);
+	m_renderManager->addToBundle(m_ren);
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->setSelectionProvider(this);
 	m_style->assignToRenderWindow(renWin);
-	m_style->setRenderer(ren);
+	m_style->setRenderer(m_ren);
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiAKErController::selection3DChanged);
 
 	m_showReferenceWidget = new QWidget();
@@ -644,14 +644,14 @@ QWidget* iAFiAKErController::setupOptimStepView()
 
 namespace
 {
-	QSharedPointer<iA3DColoredPolyObjectVis> create3DVis(iAVtkWidget* vtkWidget,
+	QSharedPointer<iA3DColoredPolyObjectVis> create3DVis(vtkRenderer* renderer,
 		vtkSmartPointer<vtkTable> table, QSharedPointer<QMap<uint, uint> > mapping, QColor const & color, int objectType)
 	{
 		switch (objectType)
 		{
-		case iACsvConfig::Ellipses:  return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DEllipseObjectVis(vtkWidget, table, mapping, color));
+		case iACsvConfig::Ellipses:  return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DEllipseObjectVis(renderer, table, mapping, color));
 		default:
-		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(vtkWidget, table, mapping, color));
+		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(renderer, table, mapping, color));
 		}
 	}
 }
@@ -789,8 +789,8 @@ QWidget* iAFiAKErController::setupResultListView()
 		m_resultsListLayout->addWidget(uiData.stackedBars, resultID + 1, StackedBarColumn);
 		m_resultsListLayout->addWidget(uiData.histoChart, resultID + 1, HistogramColumn);
 
-		uiData.mini3DVis = create3DVis(uiData.vtkWidget, d.table, d.mapping, getResultColor(resultID), m_data->objectType);
-		uiData.main3DVis = create3DVis(m_mainRenderer, d.table, d.mapping, getResultColor(resultID), m_data->objectType);
+		uiData.mini3DVis = create3DVis(ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType);
+		uiData.main3DVis = create3DVis(m_ren, d.table, d.mapping, getResultColor(resultID), m_data->objectType);
 		uiData.mini3DVis->setColor(getResultColor(resultID));
 		uiData.mini3DVis->show();
 		ren->ResetCamera();
@@ -2024,7 +2024,7 @@ void iAFiAKErController::changeReferenceDisplay()
 		m_refVisTable->SetValue(fiberIdx, refTable->GetNumberOfColumns()-2, similarity);
 	}
 
-	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_mainRenderer, m_refVisTable,
+	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_ren, m_refVisTable,
 		m_data->result[m_referenceID].mapping, QColor(0,0,0) ) );
 	/*
 	QSharedPointer<iALookupTable> lut(new iALookupTable);

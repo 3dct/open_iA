@@ -43,9 +43,6 @@ public:
 	iAXRFAttachment( MainWindow * mainWnd, MdiChild * child );
 	~iAXRFAttachment();
 
-Q_SIGNALS:
-	void xrfLoaded();
-
 private slots:
 	void visualizeXRF( int isOn );
 	void updateXRFOpacity( int value );

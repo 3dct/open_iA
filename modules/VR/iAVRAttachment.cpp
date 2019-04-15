@@ -18,59 +18,61 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iALinePointers.h"
+#include "iAVRAttachment.h"
 
-#include <vtkActor.h>
-#include <vtkConeSource.h>
-#include <vtkPoints.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
+#include "iAVREnvironment.h"
 
-iALinePointers::iALinePointers():
-	points(vtkSmartPointer<vtkPoints>::New())
+// FeatureScout - 3D cylinder visualization
+#include "dlg_CSVInput.h"
+#include "iA3DCylinderObjectVis.h"
+#include "iACsvConfig.h"
+#include "iACsvVtkTableCreator.h"
+
+#include <dlg_commoninput.h>
+#include <qthelper/iADockWidgetWrapper.h>
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iAVolumeRenderer.h>
+
+#include <vtkFloatArray.h>
+#include <vtkTable.h>
+
+// must be after vtk includes, otherwise -> #error:  gl.h included before glew.h
+#include <mdichild.h>
+#include <mainwindow.h>
+
+#include <QPushButton>
+
+iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, iAChildData childData )
+	: iAModuleAttachmentToChild( mainWnd, childData )
 {
-	double height = ConeHeight;
-	points->Allocate(2);
-	for (vtkIdType i = 0; i < 2; i++)
+	MdiChild * mdiChild = m_childData.child;
+	m_toggleVR = new QPushButton("Start VR");
+	iADockWidgetWrapper* vrDockWidget = new iADockWidgetWrapper(m_toggleVR, "VR", "vrDockWidget");
+	connect(m_toggleVR, &QPushButton::clicked, this, &iAVRAttachment::toggleVR);
+	mdiChild->splitDockWidget(mdiChild->logs, vrDockWidget, Qt::Horizontal);
+}
+
+void iAVRAttachment::toggleVR()
+{
+	if (m_vrEnv)
 	{
-		pointers[i] = vtkSmartPointer<vtkConeSource>::New();
-		mappers[i] = vtkSmartPointer<vtkPolyDataMapper>::New();
-		actors[i] = vtkSmartPointer<vtkActor>::New();
-		pointers[i]->SetResolution(4);
-		mappers[i]->SetInputConnection(pointers[i]->GetOutputPort());
-		actors[i]->SetMapper(mappers[i]);
-		actors[i]->GetProperty()->SetAmbientColor(1.0, 1.0, 1.0);
-		actors[i]->GetProperty()->SetAmbient(1.0);
-		//actors[i]->GetProperty()->SetLineWidth(1);
+		m_vrEnv->stop();
+		return;
 	}
-	pointers[1]->SetDirection(-1, 0, 0);
+	m_toggleVR->setText("Stop VR");
+	MdiChild * mdiChild = m_childData.child;
+	m_vrEnv.reset(new iAVREnvironment);
+	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRAttachment::vrDone);
+	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(mdiChild->GetModality(0)->GetTransfer().data(), mdiChild->GetModality(0)->GetImage()));
+	m_volumeRenderer->ApplySettings(mdiChild->GetVolumeSettings());
+	m_volumeRenderer->AddTo(m_vrEnv->renderer());
+	m_volumeRenderer->AddBoundingBoxTo(m_vrEnv->renderer());
+	m_vrEnv->start();
+	m_vrEnv.reset(nullptr);
 }
 
-void iALinePointers::setVisible(bool visible)
+void iAVRAttachment::vrDone()
 {
-	for (vtkIdType i = 0; i < 2; i++)
-		actors[i]->SetVisibility(visible);
-}
-
-void iALinePointers::addToRenderer(vtkRenderer * ren)
-{
-	for (vtkIdType i = 0; i < 2; i++)
-		ren->AddActor(actors[i]);
-}
-
-void iALinePointers::updatePosition(double posY, double zeroLevelPosY, double startX, double endX, double const * spacing)
-{
-	points->SetPoint(0, startX, zeroLevelPosY, ZCoord);
-	points->SetPoint(1, endX, zeroLevelPosY, ZCoord);
-	double scaling = spacing[0] > spacing[1] ? spacing[0] : spacing[1];
-	double height = ConeHeight * scaling;
-	for (int i = 0; i < 2; ++i)
-	{
-		pointers[i]->SetHeight(height);
-		pointers[i]->SetRadius(height / 4.0);
-		pointers[i]->SetCenter(points->GetPoint(i));
-	}
-	actors[0]->SetPosition(-height / 2, posY, 0);
-	actors[1]->SetPosition( height / 2, posY, 0);
+	m_toggleVR->setText("Start VR");
 }

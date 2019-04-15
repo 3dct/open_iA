@@ -20,28 +20,32 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iAModuleAttachmentToChild.h>
+
 #include <vtkSmartPointer.h>
 
-class vtkActor;
-class vtkConeSource;
-class vtkPoints;
-class vtkPolyDataMapper;
-class vtkRenderer;
+#include <QSharedPointer>
 
-//! A horizontal line that can be added to a vtkRenderer, with two cones marking start and end of the line
-class iALinePointers
+class iAVolumeRenderer;
+class MainWindow;
+
+class iA3DCylinderObjectVis;
+class iAVREnvironment;
+
+class vtkTable;
+
+class QPushButton;
+
+class iAVRAttachment : public iAModuleAttachmentToChild
 {
+	Q_OBJECT
 public:
-	iALinePointers();
-	void updatePosition(double posY, double zeroLevelPosY, double startX, double endX, double const * spacing);
-	void setVisible(bool visible);
-	void addToRenderer(vtkRenderer * renderer);
-
+	iAVRAttachment( MainWindow * mainWnd, iAChildData childData );
 private:
-	vtkSmartPointer<vtkPoints> points;
-	vtkSmartPointer<vtkActor> actors[2];
-	vtkSmartPointer<vtkPolyDataMapper> mappers[2];
-	vtkSmartPointer<vtkConeSource> pointers[2];
-	static const int ConeHeight = 10;
-	static const int ZCoord = 0;
+	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
+	QSharedPointer<iAVREnvironment> m_vrEnv;
+	QPushButton* m_toggleVR;
+private slots:
+	void toggleVR();
+	void vrDone();
 };

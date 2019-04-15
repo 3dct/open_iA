@@ -27,9 +27,8 @@ class iAXRFModuleInterface : public iAModuleInterface
 	Q_OBJECT
 public:
 	void Initialize() override;
-Q_SIGNALS:
-	void xrfLoaded();
 private slots:
 	bool XRF_Visualization();
+private:
 	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child ) override;
 };

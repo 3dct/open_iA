@@ -67,7 +67,7 @@ namespace
 	}
 }
 
-vtkStandardNewMacro(iAvtkInteractStyleActor);
+	vtkStandardNewMacro(iAvtkInteractStyleActor);
 
 iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 	m_volumeRenderer(nullptr),
