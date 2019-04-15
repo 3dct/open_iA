@@ -158,14 +158,17 @@ public:
 
 	void setDefaultInteractor();
 
-	//void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
+	//! Blend two images. Should probably be implemented in terms of two channels?
+	void blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range);
+
+	//! Get current slice number
 	int sliceNumber() const;
-	//! set the position of the position marker (in slicer coordinates)
+	//! Set the position of the position marker (in slicer coordinates).
 	void setPositionMarkerCenter(double x, double y);
 
-	//! enable/disable contour lines
+	//! Enable/disable contour lines.
 	void showIsolines(bool s);
-	//! @{ set contour line parameters
+	//! @{ set contour line parameters.
 	void setContours(int numberOfContours, double contourMin, double contourMax);
 	void setContours(int numberOfContours, double const * contourValues);
 	//! @}

@@ -39,7 +39,7 @@ class iAVRModuleInterface : public iAModuleInterface
 public:
 	void Initialize() override;
 private:
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
+	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild* child ) override;
 	bool vrAvailable();
 
 	QSharedPointer<iA3DCylinderObjectVis> m_cylinderVis;
