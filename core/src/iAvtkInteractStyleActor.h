@@ -51,16 +51,17 @@ public:
 
 	void initialize(vtkImageData *img, iAVolumeRenderer* volRend, iAChannelSlicerData *slicerChannel[4],
 		int currentMode, MdiChild *mdiChild);
+	
+	//update interactors of slicers, for translation
 	void updateInteractors(); 
-
-
+	
 	//rotates 2d slicer
 	void custom2DRotate(); 
 
-	void SlicerUpdate();
-	
+	//probably take a transform set to origin, then translate based on slice mode
+	void translateSlicerActor(const double *pos, const int sliceMode);
 
-	//should update interactor for 3d volume according to angle and axis
+	//updates interactor for 3d volume according to angle and axis
 	void Update3DTransform(const double * imageCenter, const double * spacing, double relativeAngle);
 
 	void TransformReslicer(double * obj_center, double rotationAngle);
@@ -76,6 +77,10 @@ private:
 	vtkImageData *m_image;
 	iAChannelSlicerData* m_slicerChannel[3];
 	vtkSmartPointer<vtkTransform> m_transform3D;
+	
+	vtkSmartPointer<vtkTransform> m_sliceTranslation; 
+
+	//probably used to update the slicer
 	vtkSmartPointer<vtkTransform> m_SliceTransform;
 
 	int m_currentSliceMode;
