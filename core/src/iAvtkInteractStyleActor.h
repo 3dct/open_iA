@@ -59,8 +59,9 @@ public:
 	void custom2DRotate(); 
 
 	//probably take a transform set to origin, then translate based on slice mode
-	void translateSlicerActor(const double *pos, const int sliceMode);
-
+	
+	//void translateSlicerActor(const double *pos, const int sliceMode);
+	void translateSlicerActor(const double *origin, const double *pos, double *posOut, const int sliceMode);
 	//updates interactor for 3d volume according to angle and axis
 	void Update3DTransform(const double * imageCenter, const double * spacing, double relativeAngle);
 
@@ -78,7 +79,7 @@ private:
 	iAChannelSlicerData* m_slicerChannel[3];
 	vtkSmartPointer<vtkTransform> m_transform3D;
 	
-	vtkSmartPointer<vtkTransform> m_sliceTranslation; 
+	vtkSmartPointer<vtkTransform> m_sliceTranslationTransform; 
 
 	//probably used to update the slicer
 	vtkSmartPointer<vtkTransform> m_SliceTransform;

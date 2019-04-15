@@ -36,6 +36,7 @@
 #include <vtkTransform.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkCamera.h>
+#include <vtkProp3D.h>
 
 namespace
 {
@@ -63,8 +64,9 @@ namespace
 			origin[2] += pos[2];
 			break;
 		}
-		//DEBUG_LOG(QString("  New origin: %1, %2, %3").arg(origin[0]).arg(origin[1]).arg(origin[2]));
 	}
+				
+	
 }
 
 	vtkStandardNewMacro(iAvtkInteractStyleActor);
@@ -78,7 +80,7 @@ iAvtkInteractStyleActor::iAvtkInteractStyleActor():
 	m_transform3D = vtkSmartPointer<vtkTransform>::New();
 	m_SliceTransform = vtkSmartPointer<vtkTransform>::New(); 
 
-	m_sliceTranslation = vtkSmartPointer < vtkTransform>::New(); 
+	m_sliceTranslationTransform = vtkSmartPointer < vtkTransform>::New(); 
 	std::fill(m_slicerChannel, m_slicerChannel + iASlicerMode::SlicerCount, nullptr);
 	InteractionPicker->SetTolerance(100.0);
 }
@@ -142,25 +144,46 @@ void iAvtkInteractStyleActor::updateInteractors()
 	
 	// relative movement of object - we take the position the object was moved to
 	// add that to the origin of the image, and reset the position
+	//for 3d
+
+	double transformposOut[3];
 	if (enable3D)
 	{
 		double const * pos = m_volumeRenderer->position();
 		if (pos[0] == 0 && pos[1] == 0 && pos[2] == 0)
 			return;
+
+		//new coords based on current volume renderer position
 		updateCoords(origin, pos, m_currentSliceMode);
 		m_volumeRenderer->volume()->SetPosition(0, 0, 0);
 	}
-	else
+	else //update 2d Slicer
 	{
 		if (!m_slicerChannel[m_currentSliceMode])
 			return;
 		double const * pos = m_slicerChannel[m_currentSliceMode]->actorPosition();
 		if (pos[0] == 0 && pos[1] == 0 && pos[2] == 0)
 			return;
+
+		//probably take translation of reslicer, and initial coordinates put to transform
+		//eg. take matrix of slicer, put it into transform, and shift
+		//coordinates come from image origin
+		
+		//translateSlicerActor( origin, pos, transformposOut, m_currentSliceMode);
+		//
+
+		//////translateSlicerActor(pos, m_currentSliceMode);
+		//////hier wird der image origin upgedated
+		////
+		//m_slicerChannel[m_currentSliceMode]->setActorPosition(transformposOut[0], transformposOut[1], transformposOut[2]); 
+		//originally doing the two things below
+		
 		updateCoords(origin, pos, m_currentSliceMode);
+
 		m_slicerChannel[m_currentSliceMode]->setActorPosition(0, 0, 0);
+		//and use origin to update it
 	}
-	m_image->SetOrigin(origin);  //< update image origin
+	m_image->SetOrigin(/*transformposOut*/origin);  //< update image origin
 	
 	//update reslicer
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
@@ -297,9 +320,44 @@ void iAvtkInteractStyleActor::custom2DRotate()
 	emit actorsUpdated();
 
 
-	/*rwi->Render();*/
+	
 }
 
+
+void iAvtkInteractStyleActor::translateSlicerActor(const double *origin, const double *pos, double *posOut,  const int sliceMode)
+{
+	double test[3] = { 1,1,1 }; 
+	//if (!(pos /*&& posOut*/)) return; 
+	//m_sliceTranslationTransform->GetMatrix(this->m_volumeRenderer->volume()->GetMatrix()/*this->m_slicerChannel[m_currentSliceMode]->getImageActor()->GetMatrix()*/);
+	m_sliceTranslationTransform->PostMultiply();
+	//m_sliceTranslationTransform->Translate(origin);
+	switch (sliceMode) {
+	case iASlicerMode::XY:
+		m_SliceTransform->Translate(origin[0]+pos[0], origin[1]+pos[1], 0);
+		break;
+		/*	origin[0] += pos[0];
+			origin[1] += pos[1];*/
+
+	case iASlicerMode::XZ:
+		m_SliceTransform->Translate(origin[0]+pos[0], 0, origin[2]+pos[1]);
+		/*origin[0] += pos[0];
+		origin[2] += pos[1];*/
+		break;
+	case iASlicerMode::YZ:
+		m_SliceTransform->Translate(0, origin[1]+ pos[0], origin[2]+ pos[1]);
+		break;
+	}	/*origin[1] += pos[0];
+		origin[2] += pos[1];*/
+	//m_sliceTranslationTransform->Translate(pos[0], pos[1], 0); 
+	m_sliceTranslationTransform->MultiplyPoint(pos, posOut); 
+	DEBUG_LOG(QString("Interactor pos %1 %2 %3").arg(pos[0]).arg(pos[1]).arg(pos[2]));
+	DEBUG_LOG(QString("output pos %1 %2 %3").arg(posOut[0], posOut[1], posOut[2])); 
+	
+	//this->m_slicerChannel[m_currentSliceMode]->reslicer()/*getImageActor()*/->SetResliceTransform(m_sliceTranslationTransform);
+	///m_SliceTransform->Translate()
+	
+
+}
 
 //void iAvtkInteractStyleActor::SlicerUpdate()
 //{
@@ -320,9 +378,9 @@ void iAvtkInteractStyleActor::Update3DTransform(const double * imageCenter, cons
 {
 	double volOrientation[3];
 	//m_volumeRenderer->volume()->GetOrientation(volOrientation);
-	double const *orientation = m_volumeRenderer->volume()->GetOrientation(); 
+	//double const *orientation = m_volumeRenderer->volume()->GetOrientation(); 
 
-	double angle = 0.0f;
+	//double angle = 0.0f;
 	
 	//use angle from previous volume
 
