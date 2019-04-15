@@ -70,9 +70,9 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	m_disabledLabel->setStyleSheet("background-color: " + DISABLED_BACKGROUND_COLOR + "; color: " + DISABLED_TEXT_COLOR);
 
 	/*
-	mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(0.0);
-	mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
-	mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
+	mdiChild->slicer(iASlicerMode::XY)->GetImageActor()->SetOpacity(0.0);
+	mdiChild->slicer(iASlicerMode::XZ)->GetImageActor()->SetOpacity(0.0);
+	mdiChild->slicer(iASlicerMode::YZ)->GetImageActor()->SetOpacity(0.0);
 	*/
 	for (int i=0; i<3; ++i)
 		mdiChild->slicer(i)->channel(0)->setActorOpacity(0.0);
