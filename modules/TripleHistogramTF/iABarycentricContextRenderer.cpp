@@ -204,7 +204,8 @@ void iABarycentricContextRenderer::drawImage(BarycentricTriangle triangle, int w
 	}
 
 	// Go through every pixel and set the pixel color based on the counts 2D-vector
-	double unit = (double) GRAY_VALUE_INTERVAL / (double) max;
+	//double c = (double) GRAY_VALUE_INTERVAL / (double) max;
+	double k = (double)GRAY_VALUE_INTERVAL / (double)log(max);
 	int grayValue, count;
 	QPoint p;
 	for (int y = 0; y < height; y++) {
@@ -214,8 +215,8 @@ void iABarycentricContextRenderer::drawImage(BarycentricTriangle triangle, int w
 				count = counts[y][x];
 				if (count > 0) {
 
-					// TODO fix gray scale (really linear? or logarithmic?)
-					grayValue = 255 - ((count * unit) + GRAY_VALUE_MIN); // TODO round with ceil?
+					//grayValue = 255 - ((count * c) + GRAY_VALUE_MIN);
+					grayValue = 255 - (k * log(count) + GRAY_VALUE_MIN);
 					m_image.setPixelColor(p, QColor(grayValue, grayValue, grayValue));
 
 				}
