@@ -785,7 +785,7 @@ void iABoneThickness::setWindowThicknessLines()
 
 		for (int i(0); i < idThicknessLinesSize; ++i)
 		{
-			m_iARenderer->GetRenderer()->RemoveActor(m_pDistanceLines->GetNextActor());
+			m_iARenderer->renderer()->RemoveActor(m_pDistanceLines->GetNextActor());
 		}
 
 		while (m_pDistanceLines->GetNumberOfItems())
@@ -835,7 +835,7 @@ void iABoneThickness::setWindowThicknessLines()
 				pTubeActor->SetMapper(pTubeMapper);
 
 				m_pDistanceLines->AddItem(pTubeActor);
-				m_iARenderer->GetRenderer()->AddActor(pTubeActor);
+				m_iARenderer->renderer()->AddActor(pTubeActor);
 			}
 		}
 	}
