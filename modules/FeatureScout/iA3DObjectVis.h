@@ -22,8 +22,6 @@
 
 #include "FeatureScout_export.h"
 
-#include "iAVtkWidgetFwd.h"
-
 #include <QList>
 #include <QMap>
 #include <QSharedPointer>
@@ -33,6 +31,7 @@
 class vtkColorTransferFunction;
 class vtkFloatArray;
 class vtkImageData;
+class vtkRenderer;
 class vtkTable;
 
 class QColor;
@@ -44,7 +43,7 @@ class FeatureScout_API iA3DObjectVis
 {
 public:
 	static const QColor SelectedColor;
-	iA3DObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping );
+	iA3DObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping );
 	virtual ~iA3DObjectVis();
 	virtual void show();
 	virtual void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) =0;
@@ -57,7 +56,7 @@ protected:
 	QColor getOrientationColor( vtkImageData* oi, size_t objID ) const;
 	QColor getLengthColor( vtkColorTransferFunction* ctFun, size_t objID ) const;
 	void updateRenderer();
-	iAVtkWidget* m_widget;
+	vtkRenderer* m_ren;
 	vtkTable* m_objectTable;
 	QSharedPointer<QMap<uint, uint> > m_columnMapping;
 };

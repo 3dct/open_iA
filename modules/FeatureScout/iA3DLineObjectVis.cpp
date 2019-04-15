@@ -33,8 +33,8 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkTable.h>
 
-iA3DLineObjectVis::iA3DLineObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color ):
-	iA3DColoredPolyObjectVis(widget, objectTable, columnMapping, color, 2)
+iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color ):
+	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color, 2)
 {
 	m_points = vtkSmartPointer<vtkPoints>::New();
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();

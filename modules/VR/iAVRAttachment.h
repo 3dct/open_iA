@@ -20,15 +20,32 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAModuleAttachmentToChild.h>
 
-class iAXRFModuleInterface : public iAModuleInterface
+#include <vtkSmartPointer.h>
+
+#include <QSharedPointer>
+
+class iAVolumeRenderer;
+class MainWindow;
+
+class iA3DCylinderObjectVis;
+class iAVREnvironment;
+
+class vtkTable;
+
+class QPushButton;
+
+class iAVRAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	void Initialize() override;
-private slots:
-	bool XRF_Visualization();
+	iAVRAttachment( MainWindow * mainWnd, iAChildData childData );
 private:
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child ) override;
+	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
+	QSharedPointer<iAVREnvironment> m_vrEnv;
+	QPushButton* m_toggleVR;
+private slots:
+	void toggleVR();
+	void vrDone();
 };

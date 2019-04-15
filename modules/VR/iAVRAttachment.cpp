@@ -18,56 +18,61 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAVRAttachment.h"
 
-#include <iAModuleInterface.h>
-#include <iAModuleAttachmentToChild.h>
+#include "iAVREnvironment.h"
 
-#include <vtkSmartPointer.h>
+// FeatureScout - 3D cylinder visualization
+#include "dlg_CSVInput.h"
+#include "iA3DCylinderObjectVis.h"
+#include "iACsvConfig.h"
+#include "iACsvVtkTableCreator.h"
 
-class MainWindow;
-class dlg_periodicTable;
-class dlg_RefSpectra;
-class dlg_SimilarityMap;
-class dlg_XRF;
-class iASlicer;
-class iAIO;
+#include <dlg_commoninput.h>
+#include <qthelper/iADockWidgetWrapper.h>
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iAVolumeRenderer.h>
 
-class vtkPiecewiseFunction;
+#include <vtkFloatArray.h>
+#include <vtkTable.h>
 
-class iAXRFAttachment : public iAModuleAttachmentToChild
+// must be after vtk includes, otherwise -> #error:  gl.h included before glew.h
+#include <mdichild.h>
+#include <mainwindow.h>
+
+#include <QPushButton>
+
+iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, iAChildData childData )
+	: iAModuleAttachmentToChild( mainWnd, childData )
 {
-	Q_OBJECT
+	MdiChild * mdiChild = m_childData.child;
+	m_toggleVR = new QPushButton("Start VR");
+	iADockWidgetWrapper* vrDockWidget = new iADockWidgetWrapper(m_toggleVR, "VR", "vrDockWidget");
+	connect(m_toggleVR, &QPushButton::clicked, this, &iAVRAttachment::toggleVR);
+	mdiChild->splitDockWidget(mdiChild->logs, vrDockWidget, Qt::Horizontal);
+}
 
-public:
-	iAXRFAttachment( MainWindow * mainWnd, MdiChild * child );
-	~iAXRFAttachment();
+void iAVRAttachment::toggleVR()
+{
+	if (m_vrEnv)
+	{
+		m_vrEnv->stop();
+		return;
+	}
+	m_toggleVR->setText("Stop VR");
+	MdiChild * mdiChild = m_childData.child;
+	m_vrEnv.reset(new iAVREnvironment);
+	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRAttachment::vrDone);
+	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(mdiChild->GetModality(0)->GetTransfer().data(), mdiChild->GetModality(0)->GetImage()));
+	m_volumeRenderer->ApplySettings(mdiChild->GetVolumeSettings());
+	m_volumeRenderer->AddTo(m_vrEnv->renderer());
+	m_volumeRenderer->AddBoundingBoxTo(m_vrEnv->renderer());
+	m_vrEnv->start();
+	m_vrEnv.reset(nullptr);
+}
 
-private slots:
-	void visualizeXRF( int isOn );
-	void updateXRFOpacity( int value );
-	void updateXRF();
-	void updateXRFVoxelEnergy( int x, int y, int z, int mode );
-	void xrfLoadingDone();
-	void xrfLoadingFailed();
-	void reInitXRF();
-	void initXRF();
-	void deinitXRF();
-	void initXRF( bool enableChannel );
-	bool filter_SimilarityMap();
-	void magicLensToggled( bool isOn );
-	void ioFinished();
-
-protected:
-	void updateSlicerXRFOpacity();
-	QObject* recalculateXRF();
-	void initSlicerXRF( bool enableChannel );
-
-protected:
-	dlg_periodicTable * dlgPeriodicTable;
-	dlg_RefSpectra* dlgRefSpectra;
-	dlg_SimilarityMap * dlgSimilarityMap;
-	dlg_XRF * dlgXRF;
-	iAIO * ioThread;
-	uint m_xrfChannelID;
-};
+void iAVRAttachment::vrDone()
+{
+	m_toggleVR->setText("Start VR");
+}

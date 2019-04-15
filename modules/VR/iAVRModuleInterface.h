@@ -22,13 +22,33 @@
 
 #include <iAModuleInterface.h>
 
-class iAXRFModuleInterface : public iAModuleInterface
+#include <vtkSmartPointer.h>
+
+#include <QSharedPointer>
+
+class iA3DCylinderObjectVis;
+class iAVREnvironment;
+
+class vtkTable;
+
+class QAction;
+
+class iAVRModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize() override;
-private slots:
-	bool XRF_Visualization();
 private:
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child ) override;
+	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, iAChildData childData ) override;
+	bool vrAvailable();
+
+	QSharedPointer<iA3DCylinderObjectVis> m_cylinderVis;
+	QSharedPointer<iAVREnvironment> m_vrEnv;
+	vtkSmartPointer<vtkTable> m_objectTable;
+	QAction* m_actionVRShowFibers;
+private slots:
+	void info();
+	void render();
+	void showFibers();
+	void vrDone();
 };

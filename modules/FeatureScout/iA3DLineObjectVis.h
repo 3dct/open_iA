@@ -29,7 +29,7 @@ class vtkPoints;
 class FeatureScout_API iA3DLineObjectVis: public iA3DColoredPolyObjectVis
 {
 public:
-	iA3DLineObjectVis( iAVtkWidget* widget, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color );
+	iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color );
 	void updateValues( std::vector<std::vector<double> > const & values );
 	vtkPolyData* getPolyData() override;
 protected:

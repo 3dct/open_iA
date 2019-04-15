@@ -20,15 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <vtkOpenVRRenderWindowInteractor.h>
 
-class iAXRFModuleInterface : public iAModuleInterface
+class iAVRInteractor : public vtkOpenVRRenderWindowInteractor
 {
-	Q_OBJECT
 public:
-	void Initialize() override;
-private slots:
-	bool XRF_Visualization();
-private:
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child ) override;
+	static iAVRInteractor *New();
+	vtkTypeMacro(iAVRInteractor, vtkOpenVRRenderWindowInteractor);
+	void StartEventLoop() override;
+	void stop();
+protected:
+	iAVRInteractor();
 };

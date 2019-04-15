@@ -18,17 +18,35 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAVRInteractor.h"
 
-#include <iAModuleInterface.h>
+#include <vtkObjectFactory.h>
+#include <vtkRendererCollection.h>
 
-class iAXRFModuleInterface : public iAModuleInterface
+#include <QCoreApplication>
+
+
+vtkStandardNewMacro(iAVRInteractor);
+
+void  iAVRInteractor::StartEventLoop()
 {
-	Q_OBJECT
-public:
-	void Initialize() override;
-private slots:
-	bool XRF_Visualization();
-private:
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child ) override;
-};
+	this->StartedMessageLoop = 1;
+	this->Done = false;
+
+	auto renWin = vtkOpenVRRenderWindow::SafeDownCast(this->RenderWindow);
+	auto ren = static_cast<vtkRenderer *>(renWin->GetRenderers()->GetItemAsObject(0));
+
+	while (!this->Done)
+	{
+		DoOneEvent(renWin, ren);
+		QCoreApplication::processEvents();
+	}
+}
+
+iAVRInteractor::iAVRInteractor()
+{}
+
+void iAVRInteractor::stop()
+{
+	this->Done = true;
+}
