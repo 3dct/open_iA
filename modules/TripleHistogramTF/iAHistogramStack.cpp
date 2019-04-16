@@ -41,6 +41,8 @@ void iAHistogramStack::initialize()
 		m_modalityLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	}
 
+	m_tmw->m_triangleWidget->recalculatePositions();
+
 	m_tmw->m_sliceSlider->setOrientation(Qt::Horizontal);
 	m_tmw->m_sliceSlider->setInvertedAppearance(false);
 

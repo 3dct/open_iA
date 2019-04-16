@@ -283,8 +283,7 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) 
 	if (m_histogramAbstract) {
 		//delete m_histogramAbstract;
 		m_mainLayout->replaceWidget(m_histogramAbstract, histogramAbstract_new, Qt::FindDirectChildrenOnly);
-	}
-	else {
+	} else {
 		m_mainLayout->addWidget(histogramAbstract_new);
 	}
 	m_histogramAbstract = histogramAbstract_new;
@@ -433,8 +432,8 @@ void iATripleModalityWidget::resetSlicer(int i)
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
 	}
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-	m_slicerWidgets[i]->setSliceNumber(getSliceNumber());
-	m_slicerWidgets[i]->setSlicerMode(getSlicerMode());
+	int sliceNumber = getSliceNumber();
+	setSlicerModePrivate(getSlicerMode());
 	m_slicerWidgets[i]->update();
 }
 
