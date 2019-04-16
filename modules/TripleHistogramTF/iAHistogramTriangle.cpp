@@ -70,9 +70,11 @@ void iAHistogramTriangle::initialize()
 
 	m_tmw->m_sliceSlider->setOrientation(Qt::Vertical);
 	m_tmw->m_sliceSlider->setInvertedAppearance(true); // top to bottom, consistent with the main sliders's scroll bars
-	//m_sliceSlider->setParent(this);
+	m_tmw->m_sliceSlider->setParent(this);
 
-	//m_slicerModeComboBox->setParent(this);
+	m_tmw->m_slicerModeComboBox->setParent(this);
+
+	m_tmw->m_layoutComboBox->setParent(this);
 
 	calculatePositions();
 }
@@ -196,7 +198,8 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 	int left, top, right, bottom, centerX, width, height; // Big triangle's positions
 	int w, h, l, t, r; // Small triangle's positions
 
-	{ // Triangle positions
+	// Triangle positions
+	{
 		int aw  = totalWidth - TRIANGLE_LEFT - TRIANGLE_RIGHT; // Available width for the triangle
 		int ah = totalHeight - TRIANGLE_TOP - TRIANGLE_BOTTOM;
 
@@ -240,7 +243,8 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_triangleBigWidth = width;
 	}
 
-	{ // Set up the histograms' transforms and resize them
+	// Set up the histograms' transforms and resize them
+	{
 		m_transformHistograms[0].reset(); // left
 		m_transformHistograms[0].translate(left - TRIANGLE_LEFT, bottom - TRIANGLE_TOP);
 		m_transformHistograms[0].rotate(-60.0);
@@ -259,7 +263,8 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_tmw->m_histograms[2]->resize(size);
 	}
 
-	{ // Set up the slicers's transforms and resize them
+	// Set up the slicers's transforms and resize them
+	{
 		m_transformSlicers[0].reset(); // right
 		m_transformSlicers[0].translate(centerX, t);
 		m_slicerTriangles[0].set(centerX, bottom, r, t, right, bottom);
@@ -301,7 +306,8 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 	int histoTop1X = centerX - TRIANGLE_LEFT;
 	int histoTop2X = centerX + TRIANGLE_LEFT;
 
-	{ // Set up the clip path covering all widgets
+	// Set up the clip path covering all widgets
+	{
 		m_clipPath = QPainterPath();
 		m_clipPath.moveTo(left, bottom);
 		m_clipPath.lineTo(boxLeft, histoLateral1_2Y);
@@ -315,19 +321,34 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_clipPath.lineTo(left, bottom);
 	}
 
-	{ // Combo box and slider
-		int controlsWidth = qMax(m_tmw->m_slicerModeComboBox->sizeHint().width(), m_tmw->m_sliceSlider->sizeHint().width());
-		int controlsBottom = controlsWidth * (-histoLateral1_2Y / histoTop1X) + histoLateral1_2Y;
-		int comboBoxHeight = m_tmw->m_slicerModeComboBox->sizeHint().height();
-		int sliderHeight = controlsBottom - comboBoxHeight;
+	// Combo box and slider
+	{
+		int slicerModeComboBoxWidth = m_tmw->m_slicerModeComboBox->sizeHint().width();
+		int layoutTypeComboBoxWidth = m_tmw->m_layoutComboBox->sizeHint().width();
+		int sliceSliderWidth = m_tmw->m_sliceSlider->sizeHint().width();
 
-		m_tmw->m_slicerModeComboBox->setGeometry(QRect(0, 0, controlsWidth, comboBoxHeight));
-		m_tmw->m_sliceSlider->setGeometry(QRect(0, m_tmw->m_slicerModeComboBox->sizeHint().height(), controlsWidth, sliderHeight));
+		int controlsWidth = qMax(qMax(slicerModeComboBoxWidth, layoutTypeComboBoxWidth), sliceSliderWidth);
+		int controlsBottom = controlsWidth * (-histoLateral1_2Y / histoTop1X) + histoLateral1_2Y;
+
+		int slicerModeComboBoxHeight = m_tmw->m_slicerModeComboBox->sizeHint().height();
+		int layoutTypeComboBoxHeight = m_tmw->m_layoutComboBox->sizeHint().height();
+		int sliderHeight = controlsBottom - slicerModeComboBoxHeight - layoutTypeComboBoxHeight;
+
+		int bottom = 0;
+
+		m_tmw->m_layoutComboBox->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
+		bottom += layoutTypeComboBoxHeight;
+
+		m_tmw->m_slicerModeComboBox->setGeometry(QRect(0, bottom, controlsWidth, layoutTypeComboBoxHeight));
+		bottom += slicerModeComboBoxHeight;
+
+		m_tmw->m_sliceSlider->setGeometry(QRect(0, bottom, controlsWidth, sliderHeight));
 
 		m_rControls = QRect(0, 0, controlsWidth, controlsBottom);
 	}
 
-	{ // Triangle's labels and weights
+	// Triangle's labels and weights
+	{
 		int tangent1_2Y = (boxTop + histoLateral1_2Y) / 2;
 		QPoint textPoint1 = QPoint((boxLeft + histoTop1X) / 2, tangent1_2Y);
 		QPoint textPoint2 = QPoint((histoTop2X + boxRight) / 2, tangent1_2Y);

@@ -66,6 +66,7 @@ public:
 	QComboBox *m_slicerModeComboBox;
 	QSlider *m_sliceSlider;
 	iABarycentricTriangleWidget *m_triangleWidget;
+	QComboBox *m_layoutComboBox;
 
 private slots:
 	void updateTransferFunction1() { updateTransferFunction(0); }
@@ -74,7 +75,8 @@ private slots:
 	void originalHistogramChanged();
 
 	void triangleWeightChanged(BCoord newWeight);
-	void comboBoxIndexChanged(int newIndex);
+	void slicerModeComboBoxIndexChanged(int newIndex);
+	void layoutComboBoxIndexChanged(int newIndex);
 	void sliderValueChanged(int newValue);
 
 	void setSliceXYScrollBar();
@@ -101,7 +103,11 @@ private:
 
 	void setWeightPrivate(BCoord weights);
 	void setSlicerModePrivate(iASlicerMode slicerMode);
+	void setLayoutTypePrivate(iAHistogramAbstractType type);
 	void setSliceNumberPrivate(int sliceNumber);
+
+	void resetSlicers();
+	void resetSlicer(int i);
 
 	QSharedPointer<iAModality> m_modalitiesActive[3];
 
@@ -110,6 +116,7 @@ private:
 	BCoord getWeight();
 	iASlicerMode getSlicerMode();
 	iASlicerMode getSlicerModeAt(int comboBoxIndex);
+	iAHistogramAbstractType getLayoutTypeAt(int comboBoxIndex);
 	int getSliceNumber();
 
 	// Background stuff

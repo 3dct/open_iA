@@ -44,6 +44,7 @@
 #include <vtkVolumeProperty.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
+#include <vtkImageActor.h>
 
 // Debug
 #include "qdebug.h"
@@ -143,6 +144,14 @@ void dlg_TripleHistogramTF::updateModalities()
 		renderer->Remove();
 	}
 	m_mdiChild->getRenderer()->AddRenderer(m_combinedVolRenderer);
+
+	m_mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(0.0);
+	m_mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
+	m_mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
+
+	m_mdiChild->getSlicerDataXY()->SetManualBackground(1.0, 1.0, 1.0);
+	m_mdiChild->getSlicerDataXZ()->SetManualBackground(1.0, 1.0, 1.0);
+	m_mdiChild->getSlicerDataYZ()->SetManualBackground(1.0, 1.0, 1.0);
 }
 // }
 

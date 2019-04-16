@@ -70,10 +70,6 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	m_disabledLabel->setAlignment(Qt::AlignCenter);
 	m_disabledLabel->setStyleSheet("background-color: " + DISABLED_BACKGROUND_COLOR + "; color: " + DISABLED_TEXT_COLOR);
 
-	mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(0.0);
-	mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
-	mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
-
 	m_triangleRenderer = new iABarycentricContextRenderer();
 	m_triangleWidget = new iABarycentricTriangleWidget();
 	m_triangleWidget->setTriangleRenderer(m_triangleRenderer);
@@ -82,6 +78,10 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	m_slicerModeComboBox->addItem("YZ", iASlicerMode::YZ);
 	m_slicerModeComboBox->addItem("XY", iASlicerMode::XY);
 	m_slicerModeComboBox->addItem("XZ", iASlicerMode::XZ);
+
+	m_layoutComboBox = new QComboBox();
+	m_layoutComboBox->addItem("Stack", iAHistogramAbstractType::STACK);
+	m_layoutComboBox->addItem("Triangle", iAHistogramAbstractType::TRIANGLE);
 
 	m_sliceSlider = new QSlider(Qt::Horizontal);
 	m_sliceSlider->setMinimum(0);
@@ -94,7 +94,8 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	updateModalities();
 
 	connect(m_triangleWidget, SIGNAL(weightChanged(BCoord)), this, SLOT(triangleWeightChanged(BCoord)));
-	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxIndexChanged(int)));
+	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slicerModeComboBoxIndexChanged(int)));
+	connect(m_layoutComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(layoutComboBoxIndexChanged(int)));
 	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 
 	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
@@ -124,6 +125,10 @@ iASlicerMode iATripleModalityWidget::getSlicerModeAt(int comboBoxIndex)
 	return (iASlicerMode)m_slicerModeComboBox->itemData(comboBoxIndex).toInt();
 }
 
+iAHistogramAbstractType iATripleModalityWidget::getLayoutTypeAt(int comboBoxIndex) {
+	return (iAHistogramAbstractType)m_layoutComboBox->itemData(comboBoxIndex).toInt();
+}
+
 int iATripleModalityWidget::getSliceNumber()
 {
 	return m_sliceSlider->value();
@@ -134,9 +139,14 @@ void iATripleModalityWidget::triangleWeightChanged(BCoord newWeight)
 	setWeightPrivate(newWeight);
 }
 
-void iATripleModalityWidget::comboBoxIndexChanged(int newIndex)
+void iATripleModalityWidget::slicerModeComboBoxIndexChanged(int newIndex)
 {
 	setSlicerModePrivate(getSlicerModeAt(newIndex));
+}
+
+void iATripleModalityWidget::layoutComboBoxIndexChanged(int newIndex)
+{
+	setLayoutTypePrivate(getLayoutTypeAt(newIndex));
 }
 
 void iATripleModalityWidget::sliderValueChanged(int newValue)
@@ -197,6 +207,10 @@ bool iATripleModalityWidget::setSliceNumber(int sliceNumber)
 	}
 	return false;
 }
+void iATripleModalityWidget::setHistogramAbstractType(iAHistogramAbstractType type) {
+	setLayoutTypePrivate(type);
+	m_layoutComboBox->setCurrentIndex(m_layoutComboBox->findData(type));
+}
 // } ----------------------------------------------------------------------------------------
 
 // PRIVATE SETTERS { ------------------------------------------------------------------------
@@ -255,6 +269,27 @@ void iATripleModalityWidget::setSliceNumberPrivate(int sliceNumber)
 		m_slicerWidgets[1]->setSliceNumber(sliceNumber);
 		m_slicerWidgets[2]->setSliceNumber(sliceNumber);
 		emit sliceNumberChanged(sliceNumber);
+	}
+}
+void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) {
+	if (m_histogramAbstract && type == m_histogramAbstractType) {
+		return;
+	}
+
+	iAHistogramAbstract *histogramAbstract_new = iAHistogramAbstract::buildHistogramAbstract(type, this, m_mdiChild);
+
+	if (m_histogramAbstract) {
+		//delete m_histogramAbstract;
+		m_mainLayout->replaceWidget(m_histogramAbstract, histogramAbstract_new, Qt::FindDirectChildrenOnly);
+	}
+	else {
+		m_mainLayout->addWidget(histogramAbstract_new);
+	}
+	m_histogramAbstract = histogramAbstract_new;
+	resetSlicers();
+
+	if (isReady()) {
+		m_histogramAbstract->initialize();
 	}
 }
 // } ----------------------------------------------------------------------------------------
@@ -353,9 +388,7 @@ void iATripleModalityWidget::updateModalities()
 		// }
 
 		// Slicer {
-		m_slicerWidgets[i] = new iASimpleSlicerWidget(nullptr, m_histogramAbstract->isSlicerInteractionEnabled());
-		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
-		m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+		resetSlicer(i);
 		// }
 
 		iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
@@ -384,25 +417,28 @@ void iATripleModalityWidget::updateModalities()
 	m_histogramAbstract->initialize();
 }
 
+void iATripleModalityWidget::resetSlicers()
+{
+	for (int i = 0; i < 3; i++) {
+		resetSlicer(i);
+	}
+}
+
+void iATripleModalityWidget::resetSlicer(int i)
+{
+	m_slicerWidgets[i] = new iASimpleSlicerWidget(nullptr, m_histogramAbstract->isSlicerInteractionEnabled());
+	if (m_modalitiesActive[i]) {
+		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
+	}
+	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+	m_slicerWidgets[i]->setSliceNumber(getSliceNumber());
+	m_slicerWidgets[i]->setSlicerMode(getSlicerMode());
+	m_slicerWidgets[i]->update();
+}
+
 bool iATripleModalityWidget::isReady()
 {
 	return m_modalitiesActive[2];
-}
-
-void iATripleModalityWidget::setHistogramAbstractType(iAHistogramAbstractType type) {
-	if (m_histogramAbstract && type == m_histogramAbstractType) {
-		return;
-	}
-
-	iAHistogramAbstract *histogramAbstract_new = iAHistogramAbstract::buildHistogramAbstract(type, this, m_mdiChild);
-
-	if (m_histogramAbstract) {
-		//delete m_histogramAbstract;
-		m_mainLayout->replaceWidget(m_histogramAbstract, histogramAbstract_new, Qt::FindDirectChildrenOnly);
-	} else {
-		m_mainLayout->addWidget(histogramAbstract_new);
-	}
-	m_histogramAbstract = histogramAbstract_new;
 }
 
 bool iATripleModalityWidget::containsModality(QSharedPointer<iAModality> modality)

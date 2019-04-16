@@ -37,6 +37,7 @@ protected:
 private:
 	void adjustStretch(int w);
 	QGridLayout *m_gridLayout;
+	int m_spacing = 1;
 };
 
 class iAHistogramStack : public iAHistogramAbstract

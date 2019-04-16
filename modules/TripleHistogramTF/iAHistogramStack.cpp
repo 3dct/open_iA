@@ -41,10 +41,14 @@ void iAHistogramStack::initialize()
 		m_modalityLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	}
 
+	m_tmw->m_sliceSlider->setOrientation(Qt::Horizontal);
+	m_tmw->m_sliceSlider->setInvertedAppearance(false);
+
 	QWidget *optionsContainer = new QWidget();
 	//optionsContainer->setStyleSheet("background-color:blue"); // test spacing/padding/margin
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	QHBoxLayout *optionsContainerLayout = new QHBoxLayout(optionsContainer);
+	optionsContainerLayout->addWidget(m_tmw->m_layoutComboBox);
 	optionsContainerLayout->addWidget(m_tmw->m_slicerModeComboBox);
 	optionsContainerLayout->addWidget(m_tmw->m_sliceSlider);
 
@@ -80,7 +84,7 @@ iAHistogramStackGrid::iAHistogramStackGrid(QWidget *parent, iADiagramFctWidget *
 		m_gridLayout->addWidget(slicers[i], i, 1);
 		m_gridLayout->addWidget(labels[i], i, 2);
 	}
-	m_gridLayout->setSpacing(1);
+	m_gridLayout->setSpacing(m_spacing);
 	m_gridLayout->setMargin(0);
 }
 
@@ -91,7 +95,9 @@ void iAHistogramStackGrid::resizeEvent(QResizeEvent* event)
 
 void iAHistogramStackGrid::adjustStretch(int totalWidth)
 {
-	int histogramHeight = m_gridLayout->itemAtPosition(0, 0)->widget()->size().height();
+	//QLayoutItem *item00 = m_gridLayout->itemAtPosition(0, 0);
+	//int histogramHeight = item00->widget()->size().height();
+	int histogramHeight = size().height() / 3 - 4*m_spacing;
 	m_gridLayout->setColumnStretch(0, totalWidth - histogramHeight);
 	m_gridLayout->setColumnStretch(1, histogramHeight);
 }

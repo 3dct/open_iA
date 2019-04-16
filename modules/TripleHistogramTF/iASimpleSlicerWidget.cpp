@@ -42,7 +42,6 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enable
 
 iASimpleSlicerWidget::~iASimpleSlicerWidget()
 {
-	//delete m_slicer; // TODO uncomment?
 }
 
 void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
