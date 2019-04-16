@@ -93,6 +93,9 @@ signals:
 	void slicerModeChanged(iASlicerMode slicerMode);
 	void sliceNumberChanged(int sliceNumber);
 
+	void slicerModeChangedExternally(iASlicerMode slicerMode);
+	void sliceNumberChangedExternally(int sliceNumber);
+
 private:
 	BCoord m_weightCur;
 	void updateScrollBars(int newValue);

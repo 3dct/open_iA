@@ -195,6 +195,7 @@ bool iATripleModalityWidget::setSlicerMode(iASlicerMode slicerMode)
 {
 	if (slicerMode != getSlicerMode()) {
 		m_slicerModeComboBox->setCurrentIndex(m_slicerModeComboBox->findData(slicerMode));
+		emit slicerModeChangedExternally(slicerMode);
 		return true;
 	}
 	return false;
@@ -203,6 +204,7 @@ bool iATripleModalityWidget::setSliceNumber(int sliceNumber)
 {
 	if (sliceNumber != getSliceNumber()) {
 		m_sliceSlider->setValue(sliceNumber);
+		emit sliceNumberChangedExternally(sliceNumber);
 		return true;
 	}
 	return false;

@@ -77,11 +77,39 @@ void iAHistogramTriangle::initialize()
 	m_tmw->m_layoutComboBox->setParent(this);
 
 	calculatePositions();
+
+	m_fClear = true;
+	update();
+
+	// CONNECTIONS
+	connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(slicerModeChanged(iASlicerMode)), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(sliceNumberChanged(int)), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(slicerModeChangedExternally(iASlicerMode)), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(sliceNumberChangedExternally(int)), this, SLOT(updateSlicers()));
+
+	connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateHistograms()));
 }
 
 void iAHistogramTriangle::resizeEvent(QResizeEvent* event)
 {
 	calculatePositions(event->size().width(), event->size().height());
+}
+
+void iAHistogramTriangle::updateSlicers()
+{
+	for (int i = 0; i < 3; i++) {
+		m_fRenderSlicer[i] = true;
+	}
+	update();
+}
+
+void iAHistogramTriangle::updateHistograms()
+{
+	for (int i = 0; i < 3; i++) {
+		m_fRenderHistogram[i] = true;
+	}
+	update();
 }
 
 // EVENTS ----------------------------------------------------------------------------------------------------------

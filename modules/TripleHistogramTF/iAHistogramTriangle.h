@@ -29,6 +29,8 @@
 
 class iAHistogramTriangle : public iAHistogramAbstract
 {
+	Q_OBJECT
+
 public:
 	iAHistogramTriangle(QWidget* parent, iATripleModalityWidget* tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 
@@ -48,6 +50,10 @@ protected:
 	void mouseReleaseEvent(QMouseEvent *event) { forwardMouseEvent(event); }
 	void wheelEvent(QWheelEvent *event) { forwardWheelEvent(event); }
 	void contextMenuEvent(QContextMenuEvent *event) { forwardContextMenuEvent(event); }
+
+private slots:
+	void updateSlicers();
+	void updateHistograms();
 
 private:
 	void calculatePositions() { calculatePositions(size().width(), size().height()); }
