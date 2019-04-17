@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FeatureScoutToolBar</class>
+ <widget class="QToolBar" name="FeatureScoutToolBar">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>199</width>
+    <height>42</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>8</pointsize>
+    <kerning>true</kerning>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>IFV_ToolBar</string>
+  </property>
+  <property name="toolTip">
+   <string/>
+  </property>
+  <property name="layoutDirection">
+   <enum>Qt::LeftToRight</enum>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>32</width>
+    <height>32</height>
+   </size>
+  </property>
+  <action name="actionMultiRendering">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/MultiRendering.png</normaloff>:/images/MultiRendering.png</iconset>
+   </property>
+   <property name="text">
+    <string>Multi Rendering</string>
+   </property>
+   <property name="toolTip">
+    <string>Multi Class Rendering</string>
+   </property>
+  </action>
+  <action name="actionLength_Distribution">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/FeatureScout_csvDV.png</normaloff>:/images/FeatureScout_csvDV.png</iconset>
+   </property>
+   <property name="text">
+    <string>Length Distribution</string>
+   </property>
+   <property name="toolTip">
+    <string>Length Distribution Rendering</string>
+   </property>
+  </action>
+  <action name="actionMeanObject">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/FeatureScout_meanObject.png</normaloff>:/images/FeatureScout_meanObject.png</iconset>
+   </property>
+   <property name="text">
+    <string>Mean Object</string>
+   </property>
+   <property name="toolTip">
+    <string>Mean Object Rendering</string>
+   </property>
+  </action>
+  <action name="actionOrientation_Rendering">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/OrientationRendering.png</normaloff>:/images/OrientationRendering.png</iconset>
+   </property>
+   <property name="text">
+    <string>Orientation Rendering</string>
+   </property>
+   <property name="toolTip">
+    <string>Orientation Distribution Rendering</string>
+   </property>
+  </action>
+  <action name="actionActivate_SPM">
+   <property name="icon">
+    <iconset resource="../../core/open_iA.qrc">
+     <normaloff>:/images/activateSPM.png</normaloff>:/images/activateSPM.png</iconset>
+   </property>
+   <property name="text">
+    <string>Activate SPM</string>
+   </property>
+   <property name="toolTip">
+    <string>Activate Scatterplot Matrix</string>
+   </property>
+  </action>
+  <addaction name="actionLength_Distribution"/>
+  <addaction name="actionOrientation_Rendering"/>
+  <addaction name="actionMultiRendering"/>
+  <addaction name="actionMeanObject"/>
+  <addaction name="actionActivate_SPM"/>
+ </widget>
+ <resources>
+  <include location="../../core/open_iA.qrc"/>
+ </resources>
+ <connections/>
+</ui>

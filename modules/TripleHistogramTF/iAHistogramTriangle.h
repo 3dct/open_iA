@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,22 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAHistogramAbstract.h"
 #include "iATripleModalityWidget.h"
 
-// TODO: should be removed in the future
-#include <QMouseEvent>
-#include <QWheelEvent>
+#include "BarycentricTriangle.h"
 
-class iAHistogramTriangle : public iAHistogramAbstract
+#include <QPen>
+#include <QRect>
+
+class iASlicerWidget;
+
+class QMouseEvent;
+class QWheelEvent;
+
+class iAHistogramTriangle : public iATripleModalityWidget
 {
-	Q_OBJECT
-
 public:
-	iAHistogramTriangle(QWidget* parent, iATripleModalityWidget* tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	iAHistogramTriangle(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 
 	void initialize() override;
 	bool isSlicerInteractionEnabled() override { return true; }
+	void setModalityLabel(QString label, int index) override;
 
 	void paintHistograms(QPainter &p);
 	void paintSlicers(QPainter& p);

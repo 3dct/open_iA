@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -36,15 +36,14 @@ class vtkImageData;
 
 
 
-struct iASlicerProfile 
+struct iASlicerProfile
 {
 	iASlicerProfile();
+	void SetVisibility ( bool isVisible );
+	void GetPoint ( vtkIdType id, double pos_out[3] );
+	void initialize (vtkRenderer * ren);
+	int updatePosition( double posY, vtkImageData * imgData );
 
-	void	SetVisibility ( bool isVisible );
-	void	GetPoint ( vtkIdType id, double pos_out[3] );
-	void	initialize (vtkRenderer * ren);
-	int		setup ( double posY, vtkImageData * imgData );
-	
 public:
 	static const int Z_COORD = 0;
 
@@ -60,7 +59,7 @@ protected:
 	vtkSmartPointer<vtkPolyData>		m_plotPolyData;
 	vtkSmartPointer<vtkPoints>			m_plotPoints;
 	vtkSmartPointer<vtkActor>			m_plotActor;
-	vtkSmartPointer<vtkActor>			m_plotActorHalo;  
+	vtkSmartPointer<vtkActor>			m_plotActorHalo;
 	vtkSmartPointer<vtkPolyDataMapper>	m_plotMapper;
 	float								m_plotScaleFactor;
 };

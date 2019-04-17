@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,54 +21,35 @@
 #pragma once
 
 #include "scene.h"
-
 #include "../../dreamcaster.h"
+
+#include <io/iAFileUtils.h>
 
 #include <algorithm>
 #include <cassert>
 #include <vector>
 
 extern DreamCaster * dcast;
-//namespace Raytracer{
 
-/**	\class BSPNode.
-	\brief Class representing a BSP-tree node.
-
-	AABB specified BSP-tree node.	
-*/
+//! Class representing a BSP-tree node. AABB specified BSP-tree node.
 class BSPNode
 {
 public:
-	/**
-	* BSPNode constructor.
-	* @param a_aabb axis-aligned bounding box of node.
-	* @see BSPNode()
-	*/
 	BSPNode()
 	{
 		internal1=0; 
 		internal2=0; 
 		masked_vars=0;
 	}
-	/**
-	* BSPNode constructor.
-	* @see BSPNode(aabb& a_aabb)
-	*/
 	~BSPNode()
 	{
 	}
-	/**
-	* Splits current node's AABB by maximum dimension.
-	* Creates two child-nodes with derived AABBs.
-	* Stops if maximum level is reached.
-	* @param level level of current node.
-	* @param max_level nodes with max_level are leafs and therefore not divided.
-	* @param l_aabb [out]left child's aabb
-	* @param r_aabb [out]right child's aabb
-	* @param nodes vector of tree nodes
-	* @return 1 if successful
-	*/
-	int Split(aabb &p_aabb, aabb &l_aabb, aabb &r_aabb)
+	//! Splits current node's AABB by maximum dimension. Creates two child-nodes with derived AABBs.
+	//! @param[in]  p_aabb parent's aabb
+	//! @param[out] l_aabb left child's aabb
+	//! @param[out] r_aabb right child's aabb
+	//! @return 1 if successful, 0 otherwise
+	int Split(aabb const &p_aabb, aabb &l_aabb, aabb &r_aabb)
 	{
 		float bound;
 		int mainDim = p_aabb.mainDim();
@@ -76,17 +57,17 @@ public:
 		switch(mainDim)
 		{
 		case 0://X
-			bound = p_aabb.center().x;
+			bound = p_aabb.center().x();
 			l_aabb.setData(p_aabb.x1, bound, p_aabb.y1, p_aabb.y2, p_aabb.z1, p_aabb.z2);
 			r_aabb.setData(bound, p_aabb.x2, p_aabb.y1, p_aabb.y2, p_aabb.z1, p_aabb.z2);
 			break;
 		case 1://Y
-			bound = p_aabb.center().y;
+			bound = p_aabb.center().y();
 			l_aabb.setData(p_aabb.x1, p_aabb.x2, p_aabb.y1, bound, p_aabb.z1, p_aabb.z2);
 			r_aabb.setData(p_aabb.x1, p_aabb.x2, bound, p_aabb.y2, p_aabb.z1, p_aabb.z2);
 			break;
 		case 2://Z
-			bound = p_aabb.center().z;
+			bound = p_aabb.center().z();
 			l_aabb.setData(p_aabb.x1, p_aabb.x2, p_aabb.y1, p_aabb.y2, p_aabb.z1, bound);
 			r_aabb.setData(p_aabb.x1, p_aabb.x2, p_aabb.y1, p_aabb.y2, bound, p_aabb.z2);
 			break;
@@ -98,22 +79,19 @@ public:
 		set_splitCoord(bound);
 		return 1;
 	}
-	/**
-	* Splits current node's AABB. Creates two child-nodes with derived AABBs and distributes primitives from 
-	* current node primitives vector among two child-nodes.
-	* Recursively called for child-nodes. 
-	* Stops if maximum level is reached.
-	* @note If current node does not have any primitives recursion is stopped.
-	* @param level level of current node.
-	* @param max_level nodes with max_level are leafs.
-	* @param m_aabb node's aabb
-	* @param nodes vector of all tree nodes
-	* @param tri_ind vector of index-triangle mapping array
-	* @param prims vector of all tree primitives
-	* @return 1 if successful
-	*/
+	//! Splits current node's AABB. Creates two child-nodes with derived AABBs and distributes primitives from 
+	//! current node primitives vector among two child-nodes. Recursively called for child-nodes. Stops if
+	//! maximum level is reached. If current node does not have any primitives, recursion is stopped.
+	//! @param level level of current node.
+	//! @param max_level nodes with max_level are leafs.
+	//! @param m_aabb node's aabb
+	//! @param nodes vector of all tree nodes
+	//! @param tri_ind vector of index-triangle mapping array
+	//! @param parent_tris
+	//! @param tri_start_ind
+	//! @return 1 if successful
 	int DistributePrims(int &level, int &max_level, aabb &m_aabb, std::vector<BSPNode*> &nodes,
-						std::vector<unsigned int> &tri_ind, /*std::vector<Primitive*> &prims,*/ 
+						std::vector<unsigned int> &tri_ind,
 						std::vector<TriPrim*> &parent_tris, unsigned int tri_start_ind)
 	{
 		unsigned int trisSz = (unsigned int) parent_tris.size();
@@ -144,45 +122,34 @@ public:
 		nodes.push_back(new BSPNode());
 		set_has_right(true);
 
-		iAVec3 center = m_aabb.center(), h_size = m_aabb.half_size();
-		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();//get_left(nodes)->set_tri_start(tri_ind.size());//left node
-		//unsigned int counter=0;
+		iAVec3f center = m_aabb.center(), h_size = m_aabb.half_size();
+		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();
 		std::vector<TriPrim*> l_tris, r_tris;
 		for (unsigned int i=0; i<trisSz; i++)
 		{
 			if(parent_tris[i]->Intersect( l_aabb, center, h_size))
 			{
-				//tri_ind.push_back(parent_prims[i]->GetIndex());
 				l_tris.push_back(parent_tris[i]);
-				//counter++;
 			}
 		}
-		//get_left(nodes)->set_tri_count(counter);
-
-		unsigned int r_tri_start_ind = (unsigned int) tri_ind.size();//get_right(nodes)->set_tri_start(tri_ind.size());
-		//counter=0;
-		//center = r_aabb.center(); h_size = r_aabb.half_size();
-		//center = r_aabb.center(); h_size = r_aabb.half_size();
+		unsigned int r_tri_start_ind = (unsigned int) tri_ind.size();
 		for (unsigned int i=0; i<trisSz; i++)
 		{
 			if(parent_tris[i]->Intersect( r_aabb, center, h_size))
 			{
-				//tri_ind.push_back(parent_prims[i]->GetIndex());
 				r_tris.push_back(parent_tris[i]);
-				//counter++;
 			}	
 		}
-		//get_right(nodes)->set_tri_count(counter);//left node
 		int nxtLvl = level+1;
 
-		///order matters, else if left before right will try to access empty element 
-		if(r_tris.size()==0)//if(get_right(nodes)->tri_count()==0)
+		// order matters, else if left before right will try to access empty element
+		if(r_tris.size()==0)
 		{
 			delete get_right(nodes);
 			nodes.erase(nodes.begin()+offset()+1);
 			set_has_right(false);
 		}
-		if(l_tris.size()==0)//if(get_left(nodes)->tri_count()==0)
+		if(l_tris.size()==0)
 		{
 			delete get_left(nodes);
 			nodes.erase(nodes.begin()+offset());
@@ -224,7 +191,7 @@ public:
 	}
 	
 	int DistributePrimsSAH(int &level, int &max_level, aabb &m_aabb, std::vector<BSPNode*> &nodes,
-		std::vector<unsigned int> &tri_ind, /*std::vector<Primitive*> &prims,*/ 
+		std::vector<unsigned int> &tri_ind,
 		std::vector<TriPrim*> &parent_tris, unsigned int tri_start_ind)
 	{
 		unsigned int primSz = (unsigned int) parent_tris.size();
@@ -263,14 +230,12 @@ public:
 					l_counter=0; r_counter=0;
 					cur_bound = ((TriPrim*)parent_tris[i])->getAxisBound(cur_axis_ind, is_maximum);
 					SplitSAH(m_aabb, l_aabb, r_aabb, cur_axis_ind, cur_bound );
-					iAVec3 l_center = l_aabb.center(), l_h_size = l_aabb.half_size();
-					iAVec3 r_center = r_aabb.center(), r_h_size = r_aabb.half_size();
+					iAVec3f l_center = l_aabb.center(), l_h_size = l_aabb.half_size();
+					iAVec3f r_center = r_aabb.center(), r_h_size = r_aabb.half_size();
 					for (unsigned int i2=0; i2<primSz; i2++)
 					{
-						//if( ((TriPrim*)parent_tris[i])->CenterInside( l_aabb) )
 						if( ((TriPrim*)parent_tris[i2])->Intersect( l_aabb, l_center, l_h_size))
 							l_counter++;
-						//if( ((TriPrim*)parent_tris[i])->CenterInside( r_aabb) )
 						if( ((TriPrim*)parent_tris[i2])->Intersect( r_aabb, r_center, r_h_size))
 							r_counter++;
 					}
@@ -286,24 +251,8 @@ public:
 				}
 			}
 		}
-		/*switch(axis_ind)
-		{
-		case 0:
-			if(bound<m_aabb.x1) bound = m_aabb.x1;
-			if(bound>m_aabb.x2) bound = m_aabb.x2;
-			break;
-		case 1:
-			if(bound<m_aabb.y1) bound = m_aabb.y1;
-			if(bound>m_aabb.y2) bound = m_aabb.y2;
-		    break;
-		case 2:
-			if(bound<m_aabb.z1) bound = m_aabb.z1;
-			if(bound>m_aabb.z2) bound = m_aabb.z2;
-		    break;
-		}*/
 		this->setAxisInd(axis_ind);
 		this->set_splitCoord(bound);
-		//Split(m_aabb, l_aabb, r_aabb);
 		SplitSAH(m_aabb, l_aabb, r_aabb, axis_ind, bound);
 		set_offset( (unsigned int) nodes.size() );
 		nodes.push_back(new BSPNode());
@@ -311,12 +260,12 @@ public:
 		nodes.push_back(new BSPNode());
 		set_has_right(true);
 
-		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();//get_left(nodes)->set_tri_start(tri_ind.size());//left node
-		unsigned int r_tri_start_ind = (unsigned int) tri_ind.size();//get_right(nodes)->set_tri_start(tri_ind.size());
+		unsigned int l_tri_start_ind = (unsigned int) tri_ind.size();
+		unsigned int r_tri_start_ind = (unsigned int) tri_ind.size();
 		
 		std::vector<TriPrim*> l_tris, r_tris;
 		int cntr;
-		iAVec3 center = m_aabb.center(), h_size = m_aabb.half_size();
+		iAVec3f center = m_aabb.center(), h_size = m_aabb.half_size();
 		for (unsigned int i=0; i<primSz; i++)
 		{
 			cntr=0;
@@ -330,18 +279,17 @@ public:
 				r_tris.push_back(parent_tris[i]);
 				cntr++;
 			}
-		}				
-		//get_right(nodes)->set_tri_count(counter);//left node
+		}
 		int nxtLvl = level+1;
 
-		///order matters, else if left before right will try to access empty element 
-		if(r_tris.size()==0)//if(get_right(nodes)->tri_count()==0)
+		// order matters, else if left before right will try to access empty element
+		if(r_tris.size()==0)
 		{
 			delete get_right(nodes);
 			nodes.erase(nodes.begin()+offset()+1);
 			set_has_right(false);
 		}
-		if(l_tris.size()==0)//if(get_left(nodes)->tri_count()==0)
+		if(l_tris.size()==0)
 		{
 			delete get_left(nodes);
 			nodes.erase(nodes.begin()+offset());
@@ -391,9 +339,9 @@ public:
 		masked_vars&=0xdf;//off
 		if(has) masked_vars|=0x20;//on
 	}
-	//
-	unsigned int internal1, internal2;///< shared data, depends if node is leaf or not
-	unsigned int masked_vars; ///< Is this node a leaf-node first bit -- is leaf, has left, has right, else -- axis index
+
+	unsigned int internal1, internal2; //!< shared data, depends if node is leaf or not
+	unsigned int masked_vars;          //!< Is this node a leaf-node first bit -- is leaf, has left, has right, else -- axis index
 	inline unsigned int tri_start() {return internal1;}
 	inline unsigned int tri_count() {return internal2;}
 	inline unsigned int offset()    {return internal1;}
@@ -459,11 +407,8 @@ protected:
 	int index;
 	trace_t * t;
 };
-/**	\class BSPTree.
-\brief Class representing a BSP-tree
 
-Assigned with root node, level and AABB.	
-*/
+//! Class representing a BSP-tree. Assigned with root node, level and AABB.
 class BSPTree
 {
 public:
@@ -473,84 +418,64 @@ public:
 	}
 	~BSPTree()
 	{
-		//if(root)
-		//	delete root;
 		for (unsigned int i=0; i<nodes.size(); i++)
 		{
 			delete nodes[i];
 		}
 	}
-	/**
-	* Assigning split level and AABB to tree.
-	* @note only root node is created here, child nodes are not defined yet. Nodes are splited in FillTree function
-	* @see FillTree()
-	* @param a_splitLevel split level of tree.
-	* @param a_aabb AABB of tree.
-	* @return 1
-	*/
-	int BuildTree(int a_splitLevel, aabb& a_aabb)
+	//! Assigning split level and AABB to tree.
+	//! @note only root node is created here, child nodes are not defined yet. Nodes are splited in FillTree function
+	//! @see FillTree()
+	//! @param a_splitLevel split level of tree.
+	//! @param a_aabb AABB of tree.
+	void BuildTree(int a_splitLevel, aabb& a_aabb)
 	{
 		dcast->log("Building BSP-tree("+QString::number(a_splitLevel)+")................");
 		m_aabb.setData(a_aabb);
 		splitLevel=a_splitLevel;
 		root = new BSPNode();
 		nodes.push_back(root);
-		//root->Split(0, splitLevel-1);
 		dcast->log("done",true);
-		printf("done\n");
-		return 1;
+
 	}
-	/**
-	* Fills empty tree with primitives.
-	* @note new nodes are created and divided here
-	* @param prims primitives.
-	* @return 1
-	*/
-	int FillTree(std::vector<TriPrim*>& triangles)
+	//! Fills empty tree with primitives. New nodes are created and divided here
+	//! @param triangles primitives.
+	void FillTree(std::vector<TriPrim*>& triangles)
 	{
 		m_triangles = &triangles;
-		printf("Fill BSP-tree with data..........");
 		dcast->log("Fill BSP-tree with data..........");
 		int int_null = 0;
 		if(dcast->stngs.USE_SAH != 0)
-			root->DistributePrimsSAH(int_null, splitLevel, m_aabb, nodes, tri_ind, /*prims,*/ triangles,0);
+			root->DistributePrimsSAH(int_null, splitLevel, m_aabb, nodes, tri_ind, triangles,0);
 		else
-			root->DistributePrims(int_null, splitLevel, m_aabb, nodes, tri_ind, /*prims,*/ triangles,0);
-		printf("done\n");
+			root->DistributePrims(int_null, splitLevel, m_aabb, nodes, tri_ind, triangles,0);
 		dcast->log("done",true);
-		return 1;
 	}
-	/**
-	* Fills already created tree with primitives.
-	* @param a descr.
-	* @param prims primitives.
-	* @return 1
-	*/
-	int FillLoadedTree(std::vector<TriPrim*>& triangles)
+	//! Fills already created tree with primitives.
+	//! @param triangles primitives.
+	void FillLoadedTree(std::vector<TriPrim*>& triangles)
 	{
 		m_triangles = &triangles;
 		dcast->log("Fill BSP-tree with data..........");
 		dcast->log("done\n",true);
-		return 1;
 	}
-	/**
-	* Finds all intersections between ray and primitives of tree.
-	* @note non recursive (stack based) tree traversal version
-	* @note rd = 100000.f*ray.GetDirection()+ro;
-	* @param ray ray instance.
-	* @param[out] intersections vector where obtained intersections are placed.
-	* @return 1 if intersect tree AABB , 0 - otherwise
-	*/
+
+	//! Finds all intersections between ray and primitives of tree.
+	//! @note non recursive (stack based) tree traversal version
+	//! @note rd = 100000.f*ray.GetDirection()+ro;
+	//! @param ray ray instance.
+	//! @param[out] intersections vector where obtained intersections are placed.
+	//! @param tr_stack
+	//! @return 1 if intersect tree AABB , 0 - otherwise
 	int GetIntersectionsNR(Ray & ray, std::vector<intersection*>& intersections, traverse_stack * tr_stack) const
 	{
-		iAVec3 ro, rd;
+		iAVec3f ro, rd;
 		float tmin=0, tmax=100000.f, t=tmin;
 		if(!IntersectAABB(ray, m_aabb, tmin, tmax)) return 0;
 		traverse_stack::trace_t cur_t;
 		cur_t = traverse_stack::trace_t(0,tmin,tmax);
 		tr_stack->push(cur_t);
 		BSPNode * cur_node;
-		//int intersects;
 		unsigned int sign = 0;
 		while (tr_stack->numElements()>0)
 		{
@@ -561,16 +486,13 @@ public:
 			{
 				for (unsigned int i=0; i<cur_node->tri_count(); i++)
 				{
-					//int res;
 					float a_Dist = 1000000.0f;
 					if ((*m_triangles)[tri_ind[cur_node->tri_start()+i]]->Intersect( ray, a_Dist )) 
 					{
-						//iAVec3 isec = ray.GetOrigin()+ray.GetDirection()*a_Dist;			
-						intersections.push_back(new intersection((*m_triangles)[tri_ind[cur_node->tri_start()+i]], a_Dist));//checked
+						intersections.push_back(new intersection((*m_triangles)[tri_ind[cur_node->tri_start()+i]], a_Dist));
 					}
 				}
 			}
-			//cur_node->GetIntersectionsNR(ray, ro, rd, intersections);
 			else switch(GetIntersectionState(ray, tmin, tmax, cur_node->splitCoord(), cur_node->axisInd(),t))
 			{
 			case 1://right only
@@ -623,17 +545,14 @@ public:
 		}
 		return 1;
 	}
-	/**
-	* Saves tree in file specified by filename.
-	* @note tree in file [splitLevel][aabb][num nodes][n0...nN][num tri inds][ti1...tiN]
-	* @param filename filename of ouput file
-	* @return 1 if succed , 0 - otherwise
-	*/
-	int SaveTree(const char * filename)
+	//! Saves tree in file specified by filename.
+	//! @note tree in file [splitLevel][aabb][num nodes][n0...nN][num tri inds][ti1...tiN]
+	//! @param filename filename of ouput file
+	//! @return 1 if succed , 0 - otherwise
+	int SaveTree(QString const & filename)
 	{
 		FILE *fptr;
-		//fopen_s( &fptr, filename, "wb" );
-		fptr = fopen(filename, "wb" );
+		fptr = fopen( getLocalEncodingFileName(filename).c_str(), "wb" );
 		if(!fptr)
 		{
 			dcast->log("failed(cannot open file)\n",true);
@@ -664,15 +583,13 @@ public:
 		dcast->log("Tree saved under filename:"+QString(filename));
 		return 1;
 	}
-	/**
-	* Loads tree from file specified by filename.
-	* @note tree in file [splitLevel][aabb][num nodes][n0...nN][num tri inds][ti1...tiN]
-	* @param filename filename of input file
-	* @return 1 if succed , 0 - otherwise
-	*/
-	int LoadTree(const char * filename)
+	//! Loads tree from file specified by filename.
+	//! @note tree in file [splitLevel][aabb][num nodes][n0...nN][num tri inds][ti1...tiN]
+	//! @param filename filename of input file
+	//! @return 1 if succed , 0 - otherwise
+	int LoadTree(QString const & filename)
 	{
-		FILE *fptr = fopen(filename,"rb");
+		FILE *fptr = fopen( getLocalEncodingFileName(filename).c_str(),"rb");
 		if(!fptr)
 		{
 			dcast->log("failed to open file",true);
@@ -730,12 +647,11 @@ public:
 		dcast->log("done\n",true);
 		return 1;
 	}
-	BSPNode *root;	///< root node
-	int splitLevel;	///< tree split level
-	aabb m_aabb;	///< tree AABB
+	BSPNode *root;	//!< root node
+	int splitLevel;	//!< tree split level
+	aabb m_aabb;	//!< tree AABB
 	std::vector<unsigned int> tri_ind;
 	std::vector<BSPNode*> nodes;
 protected:
 	std::vector<TriPrim*>* m_triangles;
 };
-//};//raytracer

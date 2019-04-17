@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,25 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-// Qt
-#include <QDockWidget>
-#include <QWidget>
-// iA
 #include "ui_TrackingGraph.h"
 #include "iATrackingGraphItem.h"
-// VTK
-#include <QVTKWidget.h>
+
+#include <iAVtkWidgetFwd.h>
+
 #include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkContextInteractorStyle.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkContextTransform.h>
-#include <vtkContextActor.h>
-#include <vtkMutableDirectedGraph.h>
-#include <vtkContextScene.h>
-// std
+
+#include <QDockWidget>
+#include <QWidget>
+
 #include <map>
+
+class vtkRenderer;
+class vtkContextInteractorStyle;
+class vtkRenderWindowInteractor;
+class vtkContextTransform;
+class vtkContextActor;
+class vtkMutableDirectedGraph;
+class vtkContextScene;
+
 
 class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
 {
@@ -49,8 +50,8 @@ public:
 
 	void updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
 
-private: 
-	QVTKWidget*		graphWidget;
+private:
+	iAVtkOldWidget* graphWidget;
 
 	vtkSmartPointer<vtkMutableDirectedGraph>	m_graph;
 	vtkSmartPointer<iATrackingGraphItem>		m_graphItem;
@@ -58,7 +59,6 @@ private:
 	vtkSmartPointer<vtkContextTransform>		m_trans;
 	vtkSmartPointer<vtkRenderer>				m_renderer;
 	vtkSmartPointer<vtkContextScene>			m_contextScene;
-	vtkSmartPointer<vtkRenderWindow>			m_renderWindow;
 	vtkSmartPointer<vtkContextInteractorStyle>	m_interactorStyle;
 	vtkSmartPointer<vtkRenderWindowInteractor>	m_interactor;
 

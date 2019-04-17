@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,6 +23,8 @@
 #include "open_iA_Core_export.h"
 
 #include <vtkSmartPointer.h>
+
+#include <QMap>
 
 class vtkImageData;
 
@@ -49,6 +51,10 @@ open_iA_Core_API vtkSmartPointer<vtkImageData> CastVTKImage(vtkSmartPointer<vtkI
 open_iA_Core_API bool isVtkIntegerType(int type);
 
 open_iA_Core_API QStringList const & VTKDataTypeList();
+
+open_iA_Core_API QMap<int, QString> const & RenderModeMap();
+
+open_iA_Core_API int MapRenderModeToEnum(QString const &);
 
 #define FOR_VTKIMG_PIXELS(img, x, y, z) \
 for (int z = 0; z < img->GetDimensions()[2]; ++z) \

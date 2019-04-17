@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,14 +27,14 @@
 #include "iAElementConcentrations.h"
 #include "iAXRFData.h"
 
-#include "iAChannelVisualizationData.h"
-#include "iASlicer.h"
-#include "iASlicerData.h"
-#include "iAWidgetAddHelper.h"
-#include "io/extension2id.h"
-#include "io/iAIO.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <iAChannelVisualizationData.h>
+#include <iASlicer.h>
+#include <iASlicerData.h>
+#include <io/extension2id.h>
+#include <io/iAIO.h>
+#include <mainwindow.h>
+#include <mdichild.h>
+#include <qthelper/iAWidgetAddHelper.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -44,13 +44,10 @@
 #include <qmath.h>
 
 iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, iAChildData childData ) : iAModuleAttachmentToChild( mainWnd, childData ), 
-	dlgPeriodicTable(0), dlgXRF(0), dlgSimilarityMap(0), ioThread(0), slicerXZ(0), slicerXY(0),	slicerYZ(0)
+	dlgPeriodicTable(0), dlgXRF(0), dlgSimilarityMap(0), ioThread(0)
 {
 	MdiChild * mdiChild = m_childData.child;
 	connect( mdiChild, SIGNAL( magicLensToggled( bool ) ), this, SLOT( magicLensToggled( bool ) ) );
-	slicerXZ = mdiChild->getSlicerXZ();
-	slicerXY = mdiChild->getSlicerXY();
-	slicerYZ = mdiChild->getSlicerYZ();
 	connect( mdiChild->getSlicerDataXY(), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
 	connect( mdiChild->getSlicerDataXZ(), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
 	connect( mdiChild->getSlicerDataYZ(), SIGNAL( oslicerPos( int, int, int, int ) ), this, SLOT( updateXRFVoxelEnergy( int, int, int, int ) ) );
@@ -68,8 +65,7 @@ iAXRFAttachment::iAXRFAttachment( MainWindow * mainWnd, iAChildData childData ) 
 	if( !QFile::exists( f ) )
 		throw itk::ExceptionObject(__FILE__, __LINE__, "File does not exist");
 
-	mdiChild->addMsg(tr("%1  Loading file '%2', please wait...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(f));
+	mdiChild->addMsg(tr("Loading file '%1', please wait...").arg(f));
 
 	dlgPeriodicTable = new dlg_periodicTable( mdiChild );
 	mdiChild->splitDockWidget( mdiChild->sXZ, dlgPeriodicTable, Qt::Horizontal );
@@ -152,7 +148,7 @@ void iAXRFAttachment::initXRF( bool enableChannel )
 			!m_childData.child->GetChannelData(ch_XRF)->IsEnabled());
 	}
 	m_childData.child->updateSlicers();
-	m_childData.child->addMsg( tr( "%1  Spectral color image initialized." ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
+	m_childData.child->addMsg(tr("Spectral color image initialized."));
 }
 
 QObject* iAXRFAttachment::recalculateXRF()
@@ -241,13 +237,12 @@ void iAXRFAttachment::xrfLoadingDone()
 	connect( dlgXRF->pb_compute, SIGNAL( clicked() ), this, SLOT( updateXRF() ) );
 	m_childData.child->tabifyDockWidget( dlgRefSpectra, dlgXRF );
 	dlgSimilarityMap->connectToXRF( dlgXRF );
-	emit xrfLoaded();
 	m_childData.child->updateLayout();
 }
 
 void iAXRFAttachment::xrfLoadingFailed()
 {
-	m_childData.child->addMsg( tr( "%1  XRF data loading has failed!" ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
+	m_childData.child->addMsg( tr("XRF data loading has failed!"));
 	delete dlgXRF;
 	delete dlgPeriodicTable;
 	delete dlgRefSpectra;
@@ -286,7 +281,7 @@ bool iAXRFAttachment::filter_SimilarityMap()
 void iAXRFAttachment::initSlicerXRF( bool enableChannel )
 {
 	assert( !m_childData.child->GetChannelData( ch_XRF ) );
-	m_childData.child->addMsg( tr( "%1  Initializing Spectral Color Image. This may take a while..." ).arg( QLocale().toString( QDateTime::currentDateTime(), QLocale::ShortFormat ) ) );
+	m_childData.child->addMsg(tr("Initializing Spectral Color Image. This may take a while..."));
 	QObject* calcThread = recalculateXRF();
 	if( enableChannel )
 	{

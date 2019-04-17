@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -48,6 +48,8 @@ struct intersection
 * Ray-AABB intersection routine.
 * @param ray ray class.
 * @param box axis aligned bounding box structure.
+* @param tmin parent AABB min t.
+* @param tmax parent AABB max t.
 * @return 
 1 - if ray intersects AABB
 0 - otherwise
@@ -55,43 +57,43 @@ struct intersection
 inline int IntersectAABB(const Ray &ray, const aabb& box, float &tmin, float&tmax)
 {
 	float txmin, txmax, tymin, tymax;
-	float ddx = 1.0f/ray.GetDirection().x;
-	float ddy = 1.0f/ray.GetDirection().y;
+	float ddx = 1.0f/ray.GetDirection().x();
+	float ddy = 1.0f/ray.GetDirection().y();
 	if(ddx>=0)
 	{
-		txmin = (box.x1 - ray.GetOrigin().x) * ddx;
-		txmax = (box.x2 - ray.GetOrigin().x) * ddx;
+		txmin = (box.x1 - ray.GetOrigin().x()) * ddx;
+		txmax = (box.x2 - ray.GetOrigin().x()) * ddx;
 	}
 	else
 	{
-		txmin = (box.x2 - ray.GetOrigin().x) * ddx;
-		txmax = (box.x1 - ray.GetOrigin().x) * ddx;
+		txmin = (box.x2 - ray.GetOrigin().x()) * ddx;
+		txmax = (box.x1 - ray.GetOrigin().x()) * ddx;
 	}
 	if(ddy>=0)
 	{
-		tymin = (box.y1 - ray.GetOrigin().y) * ddy;
-		tymax = (box.y2 - ray.GetOrigin().y) * ddy;
+		tymin = (box.y1 - ray.GetOrigin().y()) * ddy;
+		tymax = (box.y2 - ray.GetOrigin().y()) * ddy;
 	}
 	else
 	{
-		tymin = (box.y2 - ray.GetOrigin().y) * ddy;
-		tymax = (box.y1 - ray.GetOrigin().y) * ddy;
+		tymin = (box.y2 - ray.GetOrigin().y()) * ddy;
+		tymax = (box.y1 - ray.GetOrigin().y()) * ddy;
 	}
 	if( (txmin>tymax) || (tymin>txmax) ) return 0;
 	if( tymin>txmin ) txmin=tymin;
 	if( tymax<txmax ) txmax=tymax;
 
 	float tzmin, tzmax;
-	float ddz = 1.0f/ray.GetDirection().z;
+	float ddz = 1.0f/ray.GetDirection().z();
 	if(ddz>=0)
 	{
-		tzmin = (box.z1 - ray.GetOrigin().z) * ddz;
-		tzmax = (box.z2 - ray.GetOrigin().z) * ddz;
+		tzmin = (box.z1 - ray.GetOrigin().z()) * ddz;
+		tzmax = (box.z2 - ray.GetOrigin().z()) * ddz;
 	}
 	else
 	{
-		tzmin = (box.z2 - ray.GetOrigin().z) * ddz;
-		tzmax = (box.z1 - ray.GetOrigin().z) * ddz;
+		tzmin = (box.z2 - ray.GetOrigin().z()) * ddz;
+		tzmax = (box.z1 - ray.GetOrigin().z()) * ddz;
 	}
 	if( (txmin>tzmax) || (tzmin>txmax) ) return 0;
 	if( tzmin>txmin ) txmin=tzmin;
@@ -109,46 +111,46 @@ inline int IntersectAABB(const Ray &ray, const aabb& box, float &tmin, float&tma
 	1 - if ray intersects AABB
 	0 - otherwise
 */
-inline int Intersect(iAVec3& ro, iAVec3 rd, const aabb& box)
+inline int Intersect(iAVec3f & ro, iAVec3f rd, const aabb& box)
 {
 	float txmin, txmax, tymin, tymax;
-	float ddx = 1.0f/(ro.x-rd.x);
-	float ddy = 1.0f/(ro.y-rd.y);
+	float ddx = 1.0f/(ro.x()-rd.x());
+	float ddy = 1.0f/(ro.y()-rd.y());
 	if(ddx>=0)
 	{
-		txmin = (box.x1 - ro.x) * ddx;
-		txmax = (box.x2 - ro.x) * ddx;
+		txmin = (box.x1 - ro.x()) * ddx;
+		txmax = (box.x2 - ro.x()) * ddx;
 	}
 	else
 	{
-		txmin = (box.x2 - ro.x) * ddx;
-		txmax = (box.x1 - ro.x) * ddx;
+		txmin = (box.x2 - ro.x()) * ddx;
+		txmax = (box.x1 - ro.x()) * ddx;
 	}
 	if(ddy>=0)
 	{
-		tymin = (box.y1 - ro.y) * ddy;
-		tymax = (box.y2 - ro.y) * ddy;
+		tymin = (box.y1 - ro.y()) * ddy;
+		tymax = (box.y2 - ro.y()) * ddy;
 	}
 	else
 	{
-		tymin = (box.y2 - ro.y) * ddy;
-		tymax = (box.y1 - ro.y) * ddy;
+		tymin = (box.y2 - ro.y()) * ddy;
+		tymax = (box.y1 - ro.y()) * ddy;
 	}
 	if( (txmin>tymax) || (tymin>txmax) ) return 0;
 	if( tymin>txmin ) txmin=tymin;
 	if( tymax<txmax ) txmax=tymax;
 
 	float tzmin, tzmax;
-	float ddz = 1.0f/(ro.z-rd.z);
+	float ddz = 1.0f/(ro.z()-rd.z());
 	if(ddz>=0)
 	{
-		tzmin = (box.z1 - ro.z) * ddz;
-		tzmax = (box.z2 - ro.z) * ddz;
+		tzmin = (box.z1 - ro.z()) * ddz;
+		tzmax = (box.z2 - ro.z()) * ddz;
 	}
 	else
 	{
-		tzmin = (box.z2 - ro.z) * ddz;
-		tzmax = (box.z1 - ro.z) * ddz;
+		tzmin = (box.z2 - ro.z()) * ddz;
+		tzmax = (box.z1 - ro.z()) * ddz;
 	}
 	if( (txmin>tzmax) || (tzmin>txmax) ) return 0;
 	return 1;
@@ -157,6 +159,8 @@ inline int Intersect(iAVec3& ro, iAVec3 rd, const aabb& box)
 * Ray-Axis-oriented-cylinder intersection routine.
 * @param ray ray class.
 * @param box axis aligned bounding box structure.
+* @param tmin parent AABB min t.
+* @param tmax parent AABB max t.
 * @param ind cylinder axis index.
 * @return 
 1 - if ray intersects AABB
@@ -168,7 +172,7 @@ int IntersectCyl(const Ray & ray, const aabb& box, float &tmin, float&tmax, int 
 * checks which subnodes' AABBs are intersected by ray
 * @param ray ray class.
 * @param tmin parent AABB min t.
-* @param tmin parent AABB max t.
+* @param tmax parent AABB max t.
 * @param split split plane's coordinates
 * @param splitIndex index of splitting axis
 * @param t [out] split plane's t
@@ -195,11 +199,11 @@ class TriPrim
 {
 public:
 	inline unsigned int GetIndex() {return m_index;}
-	TriPrim( iAVec3* a_V1, iAVec3* a_V2, iAVec3* a_V3, unsigned int index=0 );
+	TriPrim( iAVec3f* a_V1, iAVec3f* a_V2, iAVec3f* a_V3, unsigned int index=0 );
 	TriPrim( triangle *a_Tri, unsigned int index=0);
-	iAVec3& normal() { return m_Tri.N; }
+	iAVec3f& normal() { return m_Tri.N; }
 	float &surface() {return m_Surface;}
-	inline iAVec3 * getVertex(int i)
+	inline iAVec3f * getVertex(int i)
 	{
 		if(i>=0 && i<3)
 			return m_Tri.vertices[i];
@@ -207,37 +211,37 @@ public:
 	}
 	float &d() {return m_d;}
 	virtual int Intersect( Ray& a_Ray, float& a_Dist ) const;
-	virtual int Intersect(aabb &a_aabb, iAVec3 & a_BoxCentre, iAVec3 & a_BoxHalfsize) const;
+	virtual int Intersect(aabb &a_aabb, iAVec3f & a_BoxCentre, iAVec3f & a_BoxHalfsize) const;
 	int CenterInside(aabb &a_aabb) const;
 	inline float GetAngleCos(Ray& a_Ray){ return a_Ray.GetDirection()&m_Tri.N; }
 	wald_tri GetWaldTri() {return m_WaldTri;}
 	/**
 	* recalculate d coefficient when translation vector is given
 	*/
-	void recalculateD(iAVec3 *translate);
+	void recalculateD(iAVec3f *translate);
 	inline float getMinX() const
 	{
-		return min_macro( m_Tri.vertices[0]->x, min_macro(m_Tri.vertices[1]->x, m_Tri.vertices[2]->x) );
+		return min_macro( m_Tri.vertices[0]->x(), min_macro(m_Tri.vertices[1]->x(), m_Tri.vertices[2]->x()) );
 	}
 	inline float getMinY() const
 	{
-		return min_macro( m_Tri.vertices[0]->y, min_macro(m_Tri.vertices[1]->y, m_Tri.vertices[2]->y) );
+		return min_macro( m_Tri.vertices[0]->y(), min_macro(m_Tri.vertices[1]->y(), m_Tri.vertices[2]->y()) );
 	}
 	inline float getMinZ() const
 	{
-		return min_macro( m_Tri.vertices[0]->z, min_macro(m_Tri.vertices[1]->z, m_Tri.vertices[2]->z) );
+		return min_macro( m_Tri.vertices[0]->z(), min_macro(m_Tri.vertices[1]->z(), m_Tri.vertices[2]->z()) );
 	}
 	inline float getMaxX() const
 	{
-		return max_macro( m_Tri.vertices[0]->x, max_macro(m_Tri.vertices[1]->x, m_Tri.vertices[2]->x) );
+		return max_macro( m_Tri.vertices[0]->x(), max_macro(m_Tri.vertices[1]->x(), m_Tri.vertices[2]->x()) );
 	}
 	inline float getMaxY() const
 	{
-		return max_macro( m_Tri.vertices[0]->y, max_macro(m_Tri.vertices[1]->y, m_Tri.vertices[2]->y) );
+		return max_macro( m_Tri.vertices[0]->y(), max_macro(m_Tri.vertices[1]->y(), m_Tri.vertices[2]->y()) );
 	}
 	inline float getMaxZ() const
 	{
-		return max_macro( m_Tri.vertices[0]->z, max_macro(m_Tri.vertices[1]->z, m_Tri.vertices[2]->z) );
+		return max_macro( m_Tri.vertices[0]->z(), max_macro(m_Tri.vertices[1]->z(), m_Tri.vertices[2]->z()) );
 	}
 	inline const triangle * getTri() const
 	{
@@ -290,7 +294,7 @@ public:
 	/**
 	* Inits scene. BSP tree is created and build on current loaded mesh's data.
 	*/
-	int initScene(ModelData & mdata, SETTINGS * s, const char * filename = 0);
+	int initScene(ModelData & mdata, SETTINGS * s, QString const & filename = QString());
 	/**
 	* Get number of primitives in scene.
 	*/
@@ -306,7 +310,7 @@ public:
 	/**
 	* recalculate d coefficient when translation vector is given for every triangle
 	*/
-	void recalculateD( iAVec3 *translate );
+	void recalculateD( iAVec3f *translate );
 private:
 	std::vector<TriPrim*> m_tris;///< list of all scene's primitives
 	BSPTree *m_bsp;///< scene's BSP-tree

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #include "iAConnectedComponentFilters.h"
 
-#include "iAConnector.h"
-#include "defines.h" // for DIM
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h> // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
+#include <io/iAFileUtils.h>
 
 #include <itkConnectedComponentImageFilter.h>
 #include <itkScalarConnectedComponentImageFilter.h>
@@ -33,7 +34,7 @@
 #include <QMessageBox>
 
 template<class T> 
-void SimpleConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void connectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
@@ -47,15 +48,15 @@ void SimpleConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> co
 	filter->AddOutput(ccFilter->GetOutput());
 }
 
-void iASimpleConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
+void iAConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(SimpleConnectedComponentFilter, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(connectedComponentFilter, InputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iASimpleConnectedComponents)
+IAFILTER_CREATE(iAConnectedComponents)
 
-iASimpleConnectedComponents::iASimpleConnectedComponents() :
-	iAFilter("Connected Component Filter", "Connected Component Filters",
+iAConnectedComponents::iAConnectedComponents() :
+	iAFilter("Connected Component Filter", "Connected Components",
 		"Assigns each distinct object in a binary image a unique label.<br/>"
 		"Non-zero pixels are considered to be objects, zero-valued pixels are "
 		"considered to be background).<br/>"
@@ -68,7 +69,7 @@ iASimpleConnectedComponents::iASimpleConnectedComponents() :
 
 
 template<class T> 
-void ScalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void scalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
@@ -85,11 +86,11 @@ IAFILTER_CREATE(iAScalarConnectedComponents)
 
 void iAScalarConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(ScalarConnectedComponentFilter, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(scalarConnectedComponentFilter, InputPixelType(), this, parameters);
 }
 
 iAScalarConnectedComponents::iAScalarConnectedComponents() :
-	iAFilter("Scalar Connected Component Filter", "Connected Component Filters",
+	iAFilter("Scalar Connected Component Filter", "Connected Components",
 		"Labels the objects in an arbitrary image.<br/>"
 		"Two pixels are similar if they are within <em>Distance Threshold</em> of each other.<br/>"
 		"For more information, see the "
@@ -101,7 +102,7 @@ iAScalarConnectedComponents::iAScalarConnectedComponents() :
 
 
 template<class T> 
-void SimpleRelabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<long, DIM>   OutputImageType;
@@ -109,14 +110,13 @@ void SimpleRelabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant>
 	typename RCIFType::Pointer rccFilter = RCIFType::New();
 	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()) );
 	rccFilter->SetMinimumObjectSize(parameters["Minimum object size"].toInt());
-	rccFilter->SetInPlace(true);
 	filter->Progress()->Observe(rccFilter);
 	rccFilter->Update();
 	if (parameters["Write labels to file"].toBool())
 	{
 		long int no_of_Objects = rccFilter->GetNumberOfObjects();
 		ofstream myfile;
-		myfile.open(parameters["Label file"].toString().toStdString());
+		myfile.open(getLocalEncodingFileName(parameters["Label file"].toString()));
 		myfile << " Total Objects " << "," << no_of_Objects << endl;
 		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)" << endl;
 		for ( int i = 0; i < no_of_Objects; i++ )
@@ -126,18 +126,18 @@ void SimpleRelabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant>
 	filter->AddOutput(rccFilter->GetOutput());
 }
 
-IAFILTER_CREATE(iASimpleRelabelConnectedComponents)
+IAFILTER_CREATE(iARelabelComponents)
 
-void iASimpleRelabelConnectedComponents::PerformWork(QMap<QString, QVariant> const & parameters)
+void iARelabelComponents::PerformWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(SimpleRelabelComponentImageFilter, InputPixelType(), this, parameters);
+	ITK_TYPED_CALL(relabelComponentImageFilter, InputPixelType(), this, parameters);
 }
 
-iASimpleRelabelConnectedComponents::iASimpleRelabelConnectedComponents() :
-	iAFilter("Relabel Components", "Connected Component Filters",
+iARelabelComponents::iARelabelComponents() :
+	iAFilter("Relabel Components", "Connected Components",
 		"Remaps the labels associated with the objects in an image such that the "
 		"label numbers are consecutive with no gaps.<br/>"
-		"The input could for example be the output of the Simple Connected "
+		"The input could for example be the output of the Connected "
 		"Component Filter. By default, the relabeling will also sort the labels "
 		"based on the size of the object: the largest object will have label #1, "
 		"the second largest will have label #2, etc. If two labels have the same "
@@ -145,13 +145,13 @@ iASimpleRelabelConnectedComponents::iASimpleRelabelConnectedComponents() :
 		"background and is left unaltered by the relabeling.<br/>"
 		"If the user sets a <em>Minimum object size</em>, all objects with fewer pixels than "
 		"the minimum will be discarded, so that the number of objects reported "
-		"will be only those remaining. Enabling the option <em>Write labels to file</em>"
-		"will save details of each object to the file specified under <em>Label file.<br/>"
+		"will be only those remaining. Enabling the option <em>Write labels to file</em> "
+		"will save details of each object to the file specified under <em>Label file</em>.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RelabelComponentImageFilter.html\">"
 		"Relabel Component Filter</a> in the ITK documentation.")
 {
 	AddParameter("Minimum object size", Discrete, 1, 1);
 	AddParameter("Write labels to file", Boolean, false);
-	AddParameter("Label file", String /* should be FileName choice! */, "");
+	AddParameter("Label file", FileNameSave, "");
 }

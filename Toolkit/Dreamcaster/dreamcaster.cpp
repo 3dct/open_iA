@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -32,47 +32,49 @@
 #include "StabilityWidget.h"
 #include "dlg_histogram_simple.h"
 
-//#include <QtGui>
-#include <QTime>
-#include <QFileDialog>
-//VTK
-#include <vtkMath.h>
+#include <iAVtkWidget.h>
+#include <io/iAFileUtils.h>
+
+#include <itkMacro.h>
+
 #include <vtkActor.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkSTLReader.h>
-#include <vtkTransform.h> 
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkSphereSource.h>
-#include <vtkCylinderSource.h>
-#include <vtkProperty.h>
+#include <vtkAppendPolyData.h>
+#include <vtkCallbackCommand.h>
+#include <vtkCamera.h>
+#include <vtkCameraPass.h>
 #include <vtkCellArray.h>
+#include <vtkCellData.h>
+#include <vtkDataArray.h>
+#include <vtkDepthPeelingPass.h>
+#include <vtkDepthSortPolyData.h>
+#include <vtkDoubleArray.h>
+#include <vtkCylinderSource.h>
 #include <vtkFloatArray.h>
+#include <vtkInteractorStyleSwitch.h>
+#include <vtkLightsPass.h>
+#include <vtkLookupTable.h>
+#include <vtkMath.h>
+#include <vtkMatrix4x4.h>
+#include <vtkOpaquePass.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
-#include <vtkMatrix4x4.h>
-#include <vtkCamera.h>
-#include <vtkLookupTable.h>
-#include <vtkCellData.h>
-#include <vtkDataArray.h>
-#include <vtkDoubleArray.h>
-#include <vtkInteractorStyleSwitch.h>
-#include <vtkCallbackCommand.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkQuad.h>
-#include <vtkDepthSortPolyData.h>
-#include <vtkAppendPolyData.h>
-#include <vtkVersion.h>
-
-#include <vtkCameraPass.h>
-#include <vtkSequencePass.h>
-#include <vtkOpaquePass.h>
-#include <vtkDepthPeelingPass.h>
-#include <vtkTranslucentPass.h>
-#include <vtkLightsPass.h>
+#include <vtkRenderer.h>
 #include <vtkRenderPassCollection.h>
-#include <itkMacro.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkSequencePass.h>
+#include <vtkSphereSource.h>
+#include <vtkSTLReader.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkTranslucentPass.h>
+
+#include <QTime>
+#include <QFileDialog>
 
 #define DEG_IN_PI  180
 #define DEG2RAD M_PI/DEG_IN_PI
@@ -92,14 +94,14 @@ namespace
 	const QString SettingsWindowStateKey = "DreamCaster/windowState";
 }
 
-///#include "enable_memleak.h"
+//#include "enable_memleak.h"
 const int CutAABSkipedSize = CutAAB::getSkipedSizeInFile();
 const int RenderFromPositionSkipedSize = RenderFromPosition::getSkipedSizeInFile();
 
 #define PLATE_HEIGHT 20./stngs.SCALE_COEF
 extern QApplication * app;
 
-DreamCaster* dcast;///< used just for logging, to call log() method
+DreamCaster* dcast;//!< used just for logging, to call log() method
 
 const QColor qcolBlack = QColor(0, 0, 0);
 const QColor qcolYellow = QColor(255, 255, 0);
@@ -187,41 +189,22 @@ DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	//
 	hist = new dlg_histogram_simple(ui.histWidget);
 	hist->setGeometry(0, 0, ui.histWidget->geometry().width(), ui.histWidget->geometry().height());
-	//ViewsFrame->reparent()
-	///
-	/*plot = new Plot(ui.PlotWidget->parentWidget());
-	//plot->resize(800,600);
-	plot->setGeometry(ui.PlotWidget->geometry());
-	Qwt3D::ColorVector cv;
-	int colorcnt = 100;
-	for (int i=0; i<colorcnt; i++)
-	{
-		float coef = (float)i/colorcnt;
-		cv.push_back(Qwt3D::RGBA((double)(COL_RANGE_MIN_R+COL_RANGE_DR*coef)/255.0,
-			(double)(COL_RANGE_MIN_G+COL_RANGE_DG*coef)/255.0,
-			(double)(COL_RANGE_MIN_B+COL_RANGE_DB*coef)/255.0, 1));
-	}
-	Qwt3D::StandardColor  * color = new Qwt3D::StandardColor(plot,cv.size());
-	color->setColorVector(cv);
-	plot->setTitleFont("Arial",14);
-	plot->setDataColor(color);
-	plot->showColorLegend(1);
-	plot->show();
-	QObject * pparent = plot->parent();*/
-	//connect(this, SIGNAL(hide()), &hist, SLOT(close()));
-	//QT/VTK stuff
-
-	/*vtkRenderWindow* renWin = vtkRenderWindow::New();
-	renWin->StereoCapableWindowOn();
-	renWin->SetStereoTypeToCrystalEyes();
-	renWin->StereoRenderOn(); //On();
-	renWin->StereoUpdate();
-	ui.qvtkWidget->SetRenderWindow(renWin);
-	renWin->AddRenderer(ren);
-	renWin->Delete(); */
 
 	ren = vtkRenderer::New();
-	ui.qvtkWidget->GetRenderWindow()->AddRenderer(ren);
+
+	CREATE_OLDVTKWIDGET(qvtkWidget);
+	CREATE_OLDVTKWIDGET(qvtkPlot3d);
+	CREATE_OLDVTKWIDGET(qvtkWeighing);
+
+	qvtkWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	qvtkWidget->setMinimumSize(100, 250);
+	qvtkWidget->setAutoFillBackground(true);
+	qvtkWeighing->setAutoFillBackground(true);
+	ui.verticalLayout_63->addWidget(qvtkWidget);
+	ui.gridLayout_4->addWidget(qvtkPlot3d);
+	ui.gridLayout_1->addWidget(qvtkWeighing);
+
+	qvtkWidget->GetRenderWindow()->AddRenderer(ren);
 	stlReader = vtkSTLReader::New();
 	mapper = vtkPolyDataMapper::New();
 	actor = vtkActor::New();
@@ -240,7 +223,7 @@ DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	depthSort = 0;
 	vtkInteractorStyleSwitch *style = vtkInteractorStyleSwitch::New();
 	style->SetCurrentStyleToTrackballCamera();
-	ui.qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+	qvtkWidget->GetInteractor()->SetInteractorStyle(style);
 	style->Delete();
 
 	rotations=0;
@@ -359,33 +342,33 @@ DreamCaster::DreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	//plot3d->GetRenderer()->GetActiveCamera()->SetParallelProjection(1);
 	plot3d->GetRenderer()->SetBackground(stngs.BG_COL_R/255.0, stngs.BG_COL_G/255.0, stngs.BG_COL_B/255.0);//(0,0,0);//
 	plot3d->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
-	ui.qvtkPlot3d->GetRenderWindow()->AddRenderer(plot3d->GetRenderer());
+	qvtkPlot3d->GetRenderWindow()->AddRenderer(plot3d->GetRenderer());
 	vtkInteractorStyleSwitch *cube_style = vtkInteractorStyleSwitch::New();
 	cube_style->SetCurrentStyleToTrackballCamera();
-	ui.qvtkPlot3d->GetInteractor()->SetInteractorStyle(cube_style);
+	qvtkPlot3d->GetInteractor()->SetInteractorStyle(cube_style);
 	cube_style->Delete();
 	plot3d->SetPalette(100, stngs.COL_RANGE_MIN_R, stngs.COL_RANGE_MIN_G, stngs.COL_RANGE_MIN_B, stngs.COL_RANGE_MAX_R, stngs.COL_RANGE_MAX_G, stngs.COL_RANGE_MAX_B);
 	plot3d->Update();
 	//TODO: callback not used?
 	vtkCallbackCommand* callback = vtkCallbackCommand::New();
 	//callback->SetCallback(&(plot3d->Pick));
-	ui.qvtkPlot3d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
+	qvtkPlot3d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
 	callback->Delete();
 	//plot3dWeighting stuff
 	plot3dWeighting = new Plot3DVtk;
 	plot3dWeighting->GetRenderer()->SetBackground(stngs.BG_COL_R/255.0, stngs.BG_COL_G/255.0, stngs.BG_COL_B/255.0);//(0,0,0);//
 	plot3dWeighting->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
-	ui.qvtkWeighing->GetRenderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
+	qvtkWeighing->GetRenderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
 	vtkInteractorStyleSwitch *cube_style2 = vtkInteractorStyleSwitch::New();
 	cube_style2->SetCurrentStyleToTrackballCamera();
-	ui.qvtkWeighing->GetInteractor()->SetInteractorStyle(cube_style2);
+	qvtkWeighing->GetInteractor()->SetInteractorStyle(cube_style2);
 	cube_style2->Delete();
 	plot3dWeighting->SetPalette(100, stngs.COL_RANGE_MIN_R, stngs.COL_RANGE_MIN_G, stngs.COL_RANGE_MIN_B, stngs.COL_RANGE_MAX_R, stngs.COL_RANGE_MAX_G, stngs.COL_RANGE_MAX_B);
 	plot3dWeighting->Update();
 
-	ui.qvtkPlot3d->GetRenderWindow()->Render();
+	qvtkPlot3d->GetRenderWindow()->Render();
 	//
-	ui.qvtkPlot3d->installEventFilter(this);
+	qvtkPlot3d->installEventFilter(this);
 	ui.RenderViewWidget->installEventFilter(this);
 	ui.HeightWidget->installEventFilter(this);
 	ui.w_stabilityWidget->installEventFilter(this);
@@ -465,7 +448,7 @@ void DreamCaster::initRaycast()
 	else
 	{
 		QString treefilename=modelFileName+".kdtree";
-		if(!tracer->GetScene()->initScene(mdata, &stngs, treefilename.toLatin1().constData()))
+		if(!tracer->GetScene()->initScene(mdata, &stngs, treefilename))
 			return;
 	}
 	PositionSpecimen();
@@ -583,7 +566,7 @@ void DreamCaster::OpenModelSlot()
 		return;
 	modelFileName = res;
 	log("Opening new model:");
-	log(modelFileName.toLatin1().constData(),true);
+	log(modelFileName, true);
 	initRaycast();
 	log("Opened model size (triangles):");
 	log(QString::number(mdata.stlMesh.size()),true);
@@ -614,7 +597,7 @@ void DreamCaster::NewSetSlot()
 	setFileName = res;
 	ui.l_setName->setText(setFileName);
 	log("Created new set:");
-	log(setFileName.toLatin1().constData(),true);
+	log(setFileName, true);
 }
 
 void DreamCaster::OpenSetSlot()
@@ -629,7 +612,7 @@ void DreamCaster::OpenSetFile(QString const & fileName)
 	setFileName = fileName;
 	ui.l_setName->setText(setFileName);
 	log("Opening new set:");
-	log(setFileName.toLatin1().constData(), true);
+	log(setFileName, true);
 	UpdatePlotSlot();
 	datasetOpened = true;
 }
@@ -637,7 +620,6 @@ void DreamCaster::OpenSetFile(QString const & fileName)
 void DreamCaster::RenderViewsSlot()
 {
 	ui.simulationProgress->setValue(0);
-	qWarning( "DCForm::RenderViewSlot()" );
 	isStopped = false;
 	if(!modelOpened) return;
 	
@@ -673,8 +655,7 @@ void DreamCaster::RenderViewsSlot()
 	float deltaY = 2*M_PI/cntY;
 	float deltaZ = (maxValZ-minValZ)/cntZ;
 	//open file for writing in binary mode and write header
-	FILE *fptr = 0;
-	fptr = fopen(setFileName.toLatin1().constData(),"wb");
+	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str(),"wb");
 	if(!fptr)
 	{
 		log("Error! Cannot open set file for writing.");
@@ -711,7 +692,7 @@ void DreamCaster::RenderViewsSlot()
 	set_pos[1] = ui.sb_posy->value()/stngs.SCALE_COEF;
 	set_pos[2] = ui.sb_posz->value()/stngs.SCALE_COEF;
 	tracer->setPositon(set_pos);
-	iAVec3 transl = -iAVec3(set_pos);
+	iAVec3f transl = -iAVec3f(set_pos);
 	tracer->GetScene()->recalculateD(&transl);
 	int paramIndex = ui.cb_rangeParameter->currentIndex();
 	tracer->SetCutAABBList(&cutFigList->aabbs);
@@ -719,9 +700,9 @@ void DreamCaster::RenderViewsSlot()
 	int totalRends = cntX*cntY*cntZ;
 	if(ui.cb_RadonSA->currentIndex() == 2)//do only Radon space analysis
 	{
-		iAVec3 l_o; // rays' origin point
-		iAVec3 l_vp_corners[2];// plane's corners in 3d
-		iAVec3 l_vp_delta[2];// plane's x and y axes' directions in 3D
+		iAVec3f l_o; // rays' origin point
+		iAVec3f l_vp_corners[2];// plane's corners in 3d
+		iAVec3f l_vp_delta[2];// plane's x and y axes' directions in 3D
 		int counter = 0;
 		for (int x=0; x<cntX; x++)
 		{
@@ -786,18 +767,18 @@ void DreamCaster::RenderViewsSlot()
 		int counter = 0;
 		unsigned int batch_counter=0;
 		//batch parameters for every render
-		iAVec3 * s1_o = new iAVec3[stngs.BATCH_SIZE]; 
-		iAVec3 * corners = new iAVec3[stngs.BATCH_SIZE];
-		iAVec3 * dxs = new iAVec3[stngs.BATCH_SIZE];
-		iAVec3 * dys = new iAVec3[stngs.BATCH_SIZE];
+		iAVec3f * s1_o = new iAVec3f[stngs.BATCH_SIZE]; 
+		iAVec3f * corners = new iAVec3f[stngs.BATCH_SIZE];
+		iAVec3f * dxs = new iAVec3f[stngs.BATCH_SIZE];
+		iAVec3f * dys = new iAVec3f[stngs.BATCH_SIZE];
 		unsigned int * xs = new unsigned int[stngs.BATCH_SIZE];//prev skipped positions when batching
 		unsigned int * ys = new unsigned int[stngs.BATCH_SIZE];//prev skipped positions when batching
 		unsigned int * zs = new unsigned int[stngs.BATCH_SIZE];//prev skipped positions when batching
 		float * rotsX = new float[stngs.BATCH_SIZE];
 		float * rotsY = new float[stngs.BATCH_SIZE]; 
 		float * rotsZ = new float[stngs.BATCH_SIZE]; 
-		iAVec3 s1_vp_corners[2];
-		iAVec3 s1_vp_delta[2];
+		iAVec3f s1_vp_corners[2];
+		iAVec3f s1_vp_delta[2];
 		unsigned int s1_x = 0;
 		unsigned int s1_y = 0;
 		unsigned int s1_z = 0;
@@ -828,14 +809,14 @@ void DreamCaster::RenderViewsSlot()
 				placementsParams[s1_x][s1_z] = parameters_t();
 			}
 			actor->SetOrientation(0,0,0);
-			actor->RotateWXYZ( rad2deg(minValX) + rad2deg(deltaX)*s1_x	,1,0,0 );//degrees
-			actor->RotateWXYZ( rad2deg(deltaY)*s1_y						,0,1,0 );
-			actor->RotateZ(    rad2deg(minValZ) + rad2deg(deltaZ)*s1_z);
+			actor->RotateWXYZ( vtkMath::DegreesFromRadians(minValX) + vtkMath::DegreesFromRadians(deltaX)*s1_x	,1,0,0 );//degrees
+			actor->RotateWXYZ( vtkMath::DegreesFromRadians(deltaY)*s1_y						,0,1,0 );
+			actor->RotateZ(    vtkMath::DegreesFromRadians(minValZ) + vtkMath::DegreesFromRadians(deltaZ)*s1_z);
 			actor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 			cutAABActor->SetOrientation(0,0,0);
-			cutAABActor->RotateWXYZ( rad2deg(minValX) + rad2deg(deltaX)*s1_x	,1,0,0 );//degrees
-			cutAABActor->RotateWXYZ( rad2deg(deltaY)*s1_y						,0,1,0 );
-			cutAABActor->RotateZ(    rad2deg(minValZ) + rad2deg(deltaZ)*s1_z);
+			cutAABActor->RotateWXYZ( vtkMath::DegreesFromRadians(minValX) + vtkMath::DegreesFromRadians(deltaX)*s1_x	,1,0,0 );//degrees
+			cutAABActor->RotateWXYZ( vtkMath::DegreesFromRadians(deltaY)*s1_y						,0,1,0 );
+			cutAABActor->RotateZ(    vtkMath::DegreesFromRadians(minValZ) + vtkMath::DegreesFromRadians(deltaZ)*s1_z);
 			cutAABActor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 			double bottom = actor->GetBounds()[2];
 			plateActor->SetPosition(0.0, bottom-0.5*PLATE_HEIGHT, 0.0);
@@ -968,9 +949,9 @@ void DreamCaster::RenderViewsSlot()
 	}//GPU
 	else//using CPU
 	{
-		iAVec3 o; // rays' origin point
-		iAVec3 vp_corners[2];// plane's corners in 3d
-		iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+		iAVec3f o; // rays' origin point
+		iAVec3f vp_corners[2];// plane's corners in 3d
+		iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 		int counter = 0;
 		for (int x=0; x<cntX; x++)
 		{
@@ -982,14 +963,14 @@ void DreamCaster::RenderViewsSlot()
 					if(isStopped)
 						return;
 					actor->SetOrientation(0,0,0);
-					actor->RotateWXYZ( rad2deg(minValX) + rad2deg(deltaX)*x	,1,0,0 );//degrees
-					actor->RotateWXYZ(                    rad2deg(deltaY)*y	,0,1,0 );
-					actor->RotateZ   ( rad2deg(minValZ) + rad2deg(deltaZ)*z);
+					actor->RotateWXYZ( vtkMath::DegreesFromRadians(minValX) + vtkMath::DegreesFromRadians(deltaX)*x	,1,0,0 );//degrees
+					actor->RotateWXYZ(                    vtkMath::DegreesFromRadians(deltaY)*y	,0,1,0 );
+					actor->RotateZ   ( vtkMath::DegreesFromRadians(minValZ) + vtkMath::DegreesFromRadians(deltaZ)*z);
 					actor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 					cutAABActor->SetOrientation(0,0,0);
-					cutAABActor->RotateWXYZ( rad2deg(minValX) + rad2deg(deltaX)*x	,1,0,0 );//degrees
-					cutAABActor->RotateWXYZ(                    rad2deg(deltaY)*y	,0,1,0 );
-					cutAABActor->RotateZ   ( rad2deg(minValZ) + rad2deg(deltaZ)*z);
+					cutAABActor->RotateWXYZ( vtkMath::DegreesFromRadians(minValX) + vtkMath::DegreesFromRadians(deltaX)*x	,1,0,0 );//degrees
+					cutAABActor->RotateWXYZ(                    vtkMath::DegreesFromRadians(deltaY)*y	,0,1,0 );
+					cutAABActor->RotateZ   ( vtkMath::DegreesFromRadians(minValZ) + vtkMath::DegreesFromRadians(deltaZ)*z);
 					cutAABActor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 					float rx = minValX + deltaX*x;
 					float ry =         + deltaY*y;
@@ -1236,14 +1217,14 @@ void DreamCaster::UpdateHistogramSlot()
 		// obtain rays data for current rendering
 		float pos[3] ={readRender->pos[0], readRender->pos[1], readRender->pos[2]};
 		tracer->setPositon(pos);
-		iAVec3 transl = -iAVec3(pos);
+		iAVec3f transl = -iAVec3f(pos);
 		tracer->GetScene()->recalculateD(&transl);
 		tracer->setRotations(readRender->rotX, readRender->rotY, readRender->rotZ);
 		//tracer->setRotations(((2*M_PI)/ui.sb_countX->value())*ui.sb_curX->value(), 
 		//	((2*M_PI)/ui.sb_countY->value())*ui.sb_curY->value());
-		iAVec3 o; // rays' origin point
-		iAVec3 vp_corners[2];// plane's corners in 3d
-		iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+		iAVec3f o; // rays' origin point
+		iAVec3f vp_corners[2];// plane's corners in 3d
+		iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 		InitRender(vp_corners, vp_delta, &o);
 
 		if(ui.cudaEnabled->isChecked())
@@ -1274,8 +1255,8 @@ void DreamCaster::UpdateHistogramSlot()
 
 void DreamCaster::RenderSingleViewSlot()
 {
-	qWarning( "DCForm::StartSlot()" );
-	if(!modelOpened) return;
+	if (!modelOpened)
+		return;
 	// go
 	float pos[3] ={
 		static_cast<float>(ui.sb_posx_2->value()/stngs.SCALE_COEF),
@@ -1283,14 +1264,14 @@ void DreamCaster::RenderSingleViewSlot()
 		static_cast<float>(ui.sb_posz_2->value()/stngs.SCALE_COEF)
 	};
 	tracer->setPositon(pos);
-	iAVec3 transl = -iAVec3(pos);
+	iAVec3f transl = -iAVec3f(pos);
 	tracer->GetScene()->recalculateD(&transl);
 	tracer->setRotations(DEG2RAD*ui.sb_curX->value(), DEG2RAD*ui.sb_curY->value(), DEG2RAD*ui.sb_curZ->value());
 	//tracer->setRotations(((2*M_PI)/ui.sb_countX->value())*ui.sb_curX->value(), 
 	//	((2*M_PI)/ui.sb_countY->value())*ui.sb_curY->value());
-	iAVec3 o; // rays' origin point
-	iAVec3 vp_corners[2];// plane's corners in 3d
-	iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+	iAVec3f o; // rays' origin point
+	iAVec3f vp_corners[2];// plane's corners in 3d
+	iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 	InitRender(vp_corners, vp_delta, &o);
 	/*ct_state state;
 	state.o = tracer->o;
@@ -1320,14 +1301,14 @@ void DreamCaster::RenderSingleViewSlot()
 	ui.TimeLabel->setText(t);
 
 	actor->SetOrientation(0,0,0);
-	actor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
-	actor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f );
-	actor->RotateZ(rad2deg(DEG2RAD*ui.sb_curZ->value()));
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f );
+	actor->RotateZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curZ->value()));
 	actor->SetPosition(pos[0], pos[1], pos[2]);
 	cutAABActor->SetOrientation(0,0,0);
-	cutAABActor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
-	cutAABActor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f );
-	cutAABActor->RotateZ(rad2deg(DEG2RAD*ui.sb_curZ->value()));
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f );
+	cutAABActor->RotateZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curZ->value()));
 	cutAABActor->SetPosition(pos[0], pos[1], pos[2]);
 	UpdateSlot();
 	//UpdateHistogramSlot();
@@ -1335,7 +1316,6 @@ void DreamCaster::RenderSingleViewSlot()
 
 void DreamCaster::UpdateSlot()
 {
-	qWarning( "DCForm::Start UpdateSlot()" );
 	QImage img((uchar*)scrBuffer->GetBuffer(), stngs.RFRAME_W, stngs.RFRAME_H, QImage::Format_RGB32); 
 	formPainter->begin(renderPxmp);
 		formPainter->drawImage(QRect(0,0,img.width(),img.height()), img);
@@ -1352,12 +1332,11 @@ void DreamCaster::UpdateSlot()
 }
 void DreamCaster::SaveSlot()
 {
-	qWarning( "DCForm::SaveSlot()" );
 }
 
 void DreamCaster::readRenderFromBinaryFile(unsigned int x, unsigned int y, unsigned int z, RenderFromPosition *rend)
 {
-	FILE *fptr = fopen(setFileName.toLatin1().constData(),"rb");
+	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str() ,"rb");
 	if(!fptr)
 	{
 		log("Error! Cannot open set file for reading.");
@@ -1476,7 +1455,7 @@ void DreamCaster::closeEvent ( QCloseEvent * event )
 void DreamCaster::loadModel()
 {
 	dcast = this;//for correct logging when there are several DC childs open
-	readSTLFile(std::string(modelFileName.toLatin1().constData()), mdata.stlMesh, mdata.vertices, mdata.box);
+	readSTLFile(modelFileName, mdata.stlMesh, mdata.vertices, mdata.box);
 }
 void DreamCaster::setup3DView()
 {
@@ -1490,9 +1469,9 @@ void DreamCaster::setup3DView()
 	scalars->SetNumberOfValues(mdata.stlMesh.size());
 	for (unsigned int i=0; i<mdata.stlMesh.size(); i++)
 	{
-		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[0]->x, mdata.stlMesh[i]->vertices[0]->y, mdata.stlMesh[i]->vertices[0]->z);
-		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[1]->x, mdata.stlMesh[i]->vertices[1]->y, mdata.stlMesh[i]->vertices[1]->z);
-		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[2]->x, mdata.stlMesh[i]->vertices[2]->y, mdata.stlMesh[i]->vertices[2]->z);
+		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[0]->data());
+		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[1]->data());
+		modelPoints->InsertNextPoint(mdata.stlMesh[i]->vertices[2]->data());
 		modelPolys->InsertNextCell(3, tids);
 		tids[0]+=3;
 		tids[1]+=3;
@@ -1630,27 +1609,27 @@ void DreamCaster::ShowRangeRays()
 	readRenderFromBinaryFile(curIndX, curIndY, curIndZ,curRender);//ui.sb_xind->value(), ui.sb_yind->value(), curRender);
 	//orient model, so it correspond to analyzed rendering 
 	actor->SetOrientation(0,0,0);
-	actor->RotateWXYZ(rad2deg(curRender->rotX), 1.0f, 0.0f, 0.0f );//degrees
-	actor->RotateWXYZ(rad2deg(curRender->rotY), 0.0f, 1.0f, 0.0f);
-	actor->RotateZ(rad2deg(curRender->rotZ));
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->rotX), 1.0f, 0.0f, 0.0f );//degrees
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->rotY), 0.0f, 1.0f, 0.0f);
+	actor->RotateZ(vtkMath::DegreesFromRadians(curRender->rotZ));
 	actor->SetPosition(curRender->pos[0], curRender->pos[1], curRender->pos[2]);
 	cutAABActor->SetOrientation(0,0,0);
-	cutAABActor->RotateWXYZ(rad2deg(curRender->rotX), 1.0f, 0.0f, 0.0f );//degrees
-	cutAABActor->RotateWXYZ(rad2deg(curRender->rotY), 0.0f, 1.0f, 0.0f);
-	cutAABActor->RotateZ(rad2deg(curRender->rotZ));
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->rotX), 1.0f, 0.0f, 0.0f );//degrees
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->rotY), 0.0f, 1.0f, 0.0f);
+	cutAABActor->RotateZ(vtkMath::DegreesFromRadians(curRender->rotZ));
 	cutAABActor->SetPosition(curRender->pos[0], curRender->pos[1], curRender->pos[2]);
 	//////////////////////////////////////////////////////////////////////////
 	// obtain rays data for current rendering
 	float pos[3] ={curRender->pos[0], curRender->pos[1], curRender->pos[2]};
 	tracer->setPositon(pos);
-	iAVec3 transl = -iAVec3(pos);
+	iAVec3f transl = -iAVec3f(pos);
 	tracer->GetScene()->recalculateD(&transl);
 	tracer->setRotations(curRender->rotX, curRender->rotY, curRender->rotZ);
 	//tracer->setRotations(((2*M_PI)/ui.sb_countX->value())*ui.sb_curX->value(), 
 	//	((2*M_PI)/ui.sb_countY->value())*ui.sb_curY->value());
-	iAVec3 o; // rays' origin point
-	iAVec3 vp_corners[2];// plane's corners in 3d
-	iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+	iAVec3f o; // rays' origin point
+	iAVec3f vp_corners[2];// plane's corners in 3d
+	iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 	InitRender(vp_corners, vp_delta, &o);
 	
 	if(ui.cudaEnabled->isChecked())
@@ -1864,18 +1843,18 @@ void DreamCaster::pbGrab3DSlot()
 	ui.sb_curX->setValue(rot[0]*DEG_IN_PI);
 	ui.sb_curY->setValue(rot[1]*DEG_IN_PI);
 	actor->SetOrientation(0, 0, 0);
-	actor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
-	actor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f);
-	actor->RotateZ(rad2deg(DEG2RAD*ui.sb_curZ->value()));
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f);
+	actor->RotateZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curZ->value()));
 	cutAABActor->SetOrientation(0, 0, 0);
-	cutAABActor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
-	cutAABActor->RotateWXYZ(rad2deg(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f);
-	cutAABActor->RotateZ(rad2deg(DEG2RAD*ui.sb_curZ->value()));
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curX->value()), 1.0f, 0.0f, 0.0f );//degrees
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curY->value()), 0.0f, 1.0f, 0.0f);
+	cutAABActor->RotateZ(vtkMath::DegreesFromRadians(DEG2RAD*ui.sb_curZ->value()));
 }
 
 void DreamCaster::UpdatePlotSlot()
 {
-	FILE *fptr = fopen(setFileName.toLatin1().constData(),"rb");
+	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str(),"rb");
 	if(!fptr)
 	{
 		log("Error! Cannot open set file for reading.");
@@ -2184,7 +2163,7 @@ void DreamCaster::SaveTree()
 {
 	log("Saving current KD-tree...............");
 	QString treefilename=modelFileName+".kdtree";
-	tracer->GetScene()->getBSPTree()->SaveTree(treefilename.toLatin1().constData());
+	tracer->GetScene()->getBSPTree()->SaveTree(treefilename);
 }
 void DreamCaster::RenderFrameMouseReleasedSlot()
 {
@@ -2284,7 +2263,7 @@ void DreamCaster::ShowResultsSlot()
 
 void DreamCaster::SaveResultsSlot()
 {
-	QFile file("results.txt");
+	QFile file(modelFileName+".result");
 	if (!file.open(QIODevice::WriteOnly)) 
 	{
 		log("Error: Cannot open file results.txt for writing!");
@@ -2306,8 +2285,8 @@ void DreamCaster::ShowDipAnglesSlot()
 	readRenderFromBinaryFile(ui.sb_xind->value(), ui.sb_yind->value(), curRender);
 	//orient model, so it correspond to analyzed rendering 
 	actor->SetOrientation(0,0,0);
-	actor->RotateWXYZ(rad2deg(curRender->m_rotX), 1.0f, 0.0f, 0.0f );//degrees
-	actor->RotateWXYZ(rad2deg(curRender->m_rotY), 0.0f, 1.0f, 0.0f);
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->m_rotX), 1.0f, 0.0f, 0.0f );//degrees
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(curRender->m_rotY), 0.0f, 1.0f, 0.0f);
 	actor->SetPosition(curRender->m_pos[0], curRender->m_pos[1], curRender->m_pos[2]);
 	
 	//clear prev scalars
@@ -2331,16 +2310,16 @@ void DreamCaster::ShowDipAnglesSlot()
 	float abscos;
 	unsigned int tri_ind;
 	//
-	iAVec3 pos =iAVec3(curRender->m_pos[0],curRender->m_pos[1],curRender->m_pos[2]);
+	iAVec3f pos =iAVec3f(curRender->m_pos[0],curRender->m_pos[1],curRender->m_pos[2]);
 	Mat4 mat = rotationX(curRender->m_rotX)*rotationY(curRender->m_rotY);
 	mat = mat*translate(pos);
 	//
 	for (unsigned int i = 0; i < numTris; i++ )
 	{
-		iAVec3 tri_center = mat*((*triangles[i]->m_Vertex[0]+*triangles[i]->m_Vertex[1]+*triangles[i]->m_Vertex[2])/3);
-		iAVec3 tri_norm = mat*triangles[i]->m_N;
-		iAVec3 ray = tri_center - tracer->o;
-		normalize(ray);
+		iAVec3f tri_center = mat*((*triangles[i]->m_Vertex[0]+*triangles[i]->m_Vertex[1]+*triangles[i]->m_Vertex[2])/3);
+		iAVec3f tri_norm = mat*triangles[i]->m_N;
+		iAVec3f ray = tri_center - tracer->o;
+		ray.normalize();
 		abscos = abs(ray&tri_norm);
 		if(abscos>=rmin && abscos<=rmax)
 		{
@@ -2708,9 +2687,9 @@ void DreamCaster::UpdateView()
 	// go
 	tracer->setPositon(set_pos);
 	tracer->setRotations(M_PI*rotations[curIndX][curIndY][curIndZ].rotX, M_PI*rotations[curIndX][curIndY][curIndZ].rotY, M_PI*rotations[curIndX][curIndY][curIndZ].rotZ);
-	iAVec3 o; // rays' origin point
-	iAVec3 vp_corners[2];// plane's corners in 3d
-	iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+	iAVec3f o; // rays' origin point
+	iAVec3f vp_corners[2];// plane's corners in 3d
+	iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 	InitRender(vp_corners, vp_delta, &o);
 	//unsigned int tri_cnt = tracer->GetScene()->GetNrPrimitives();
 	long ftime;//fstart,
@@ -2733,14 +2712,14 @@ void DreamCaster::UpdateView()
 	ui.TimeLabel->setText(t);
 
 	actor->SetOrientation(0,0,0);
-	actor->RotateWXYZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotX), 1.0f, 0.0f, 0.0f );//degrees
-	actor->RotateWXYZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotY), 0.0f, 1.0f, 0.0f);
-	actor->RotateZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotZ));
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotX), 1.0f, 0.0f, 0.0f );//degrees
+	actor->RotateWXYZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotY), 0.0f, 1.0f, 0.0f);
+	actor->RotateZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotZ));
 	actor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 	cutAABActor->SetOrientation(0,0,0);
-	cutAABActor->RotateWXYZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotX), 1.0f, 0.0f, 0.0f );//degrees
-	cutAABActor->RotateWXYZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotY), 0.0f, 1.0f, 0.0f);
-	cutAABActor->RotateZ(rad2deg(M_PI*rotations[curIndX][curIndY][curIndZ].rotZ));
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotX), 1.0f, 0.0f, 0.0f );//degrees
+	cutAABActor->RotateWXYZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotY), 0.0f, 1.0f, 0.0f);
+	cutAABActor->RotateZ(vtkMath::DegreesFromRadians(M_PI*rotations[curIndX][curIndY][curIndZ].rotZ));
 	cutAABActor->SetPosition(set_pos[0], set_pos[1], set_pos[2]);
 	UpdateSlot();
 }
@@ -2752,9 +2731,9 @@ void DreamCaster::UpdateInfoLabels()
 	ui.lb_rendX->setText(QString::number(curIndX));
 	ui.lb_rendY->setText(QString::number(curIndY));
 	ui.lb_rendZ->setText(QString::number(curIndZ));
-	ui.lb_rotX->setText(QString::number(rad2deg(rotations[curIndX][curIndY][curIndZ].rotX)*M_PI));
-	ui.lb_rotY->setText(QString::number(rad2deg(rotations[curIndX][curIndY][curIndZ].rotY)*M_PI));
-	ui.lb_rotZ->setText(QString::number(rad2deg(rotations[curIndX][curIndY][curIndZ].rotZ)*M_PI));
+	ui.lb_rotX->setText(QString::number(vtkMath::DegreesFromRadians(rotations[curIndX][curIndY][curIndZ].rotX)*M_PI));
+	ui.lb_rotY->setText(QString::number(vtkMath::DegreesFromRadians(rotations[curIndX][curIndY][curIndZ].rotY)*M_PI));
+	ui.lb_rotZ->setText(QString::number(vtkMath::DegreesFromRadians(rotations[curIndX][curIndY][curIndZ].rotZ)*M_PI));
 	ui.lb_posx->setText(QString::number(set_pos[0]));
 	ui.lb_posy->setText(QString::number(set_pos[1]));
 	ui.lb_posz->setText(QString::number(set_pos[2]));
@@ -3397,20 +3376,20 @@ void DreamCaster::ColorBadAngles()
 	}
 	//
 	const unsigned int numTriangles = tracer->GetScene()->getNrTriangles();//curRender->intersections.size();
-	iAVec3 o; // rays' origin point
-	iAVec3 vp_corners[2];// plane's corners in 3d
-	iAVec3 vp_delta[2];// plane's x and y axes' directions in 3D
+	iAVec3f o; // rays' origin point
+	iAVec3f vp_corners[2];// plane's corners in 3d
+	iAVec3f vp_delta[2];// plane's x and y axes' directions in 3D
 	tracer->InitRender(vp_corners, vp_delta, &o);
-	iAVec3 rotAxis = iAVec3(0.f, 1.f, 0.f);
+	iAVec3f rotAxis(0.f, 1.f, 0.f);
 	tracer->Transform(&rotAxis);
-	normalize(rotAxis);
+	rotAxis.normalize();
 
 	float abscos;
 	//unsigned int tri_ind;
 	float bad_area=0; float good_area=0;
 
 	TriPrim* tri; 
-	iAVec3 triNorm;
+	iAVec3f triNorm;
 	float d;
 	float torusRadius = fabs(0.5f*stngs.ORIGIN_Z);
 	for (unsigned int i = 0; i < numTriangles; i++ )
@@ -3439,8 +3418,8 @@ void DreamCaster::ColorBadAngles()
 	{
 		const triangle* tri = tracer->GetScene()->getTriangle((int)i)->getTri();
 		cur_area = 0.5f*((*tri->vertices[1]-*tri->vertices[0])^(*tri->vertices[2]-*tri->vertices[0])).length();
-		iAVec3 tri_center = (*tri->vertices[0]+*tri->vertices[1]+*tri->vertices[2])/3.0f;
-		iAVec3 o2tri_center = tri_center-o; normalize(o2tri_center);
+		iAVec3f tri_center = (*tri->vertices[0]+*tri->vertices[1]+*tri->vertices[2])/3.0f;
+		iAVec3f o2tri_center = tri_center-o; o2tri_center.normalize();
 		abscos = abs( tri->N & o2tri_center);
 		if(abscos<badCos)
 		{
@@ -3476,11 +3455,11 @@ double DreamCaster::RandonSpaceAnalysis()
 	const int numTriangles = (int)trisInsideAoI.size();
 	float abscos;
 	//unsigned int tri_ind;
-	iAVec3 rotAxis = iAVec3(0.f, 1.f, 0.f);
+	iAVec3f rotAxis(0.f, 1.f, 0.f);
 	tracer->Transform(&rotAxis);
-	normalize(rotAxis);
+	rotAxis.normalize();
 	TriPrim* tri; 
-	iAVec3 triNorm;
+	iAVec3f triNorm;
 	float d;
 	float torusRadius = fabs(0.5f*stngs.ORIGIN_Z);
 	float bad_area = 0.f; 
@@ -3587,12 +3566,12 @@ void DreamCaster::Pick(int pickPos[2] )
 
 bool DreamCaster::eventFilter(QObject *obj, QEvent *event)
 {
-	if (obj == ui.qvtkPlot3d) 
+	if (obj == qvtkPlot3d)
 	{
 		if (event->type() == QEvent::MouseButtonDblClick) 
 		{
 			QMouseEvent * mevent = static_cast<QMouseEvent*>(event);
-			int pcoords[2] = {mevent->x(), ui.qvtkPlot3d->height() - mevent->y()};
+			int pcoords[2] = {mevent->x(), qvtkPlot3d->height() - mevent->y()};
 			Pick(pcoords);
 		} 
 	}
@@ -3743,10 +3722,10 @@ void DreamCaster::loadFile(const QString filename)
 {
 	modelFileName = filename;
 	log("Opening new model:");
-	log(modelFileName.toLatin1().constData(),true);
+	log(modelFileName, true);
 	initRaycast();
 	log("Opened model size (triangles):");
-	log(QString::number(mdata.stlMesh.size()),true);
+	log(QString::number(mdata.stlMesh.size()), true);
 	///ui.l_modelName->setText(modelFileName);
 	modelOpened = true;
 	for (int i=0; i<cutFigList->count(); i++)
@@ -3775,7 +3754,7 @@ void DreamCaster::loadFile(const QString filename)
 	}
 }
 
-void DreamCaster::InitRender( iAVec3 * vp_corners, iAVec3 * vp_delta, iAVec3 * o )
+void DreamCaster::InitRender( iAVec3f * vp_corners, iAVec3f * vp_delta, iAVec3f * o )
 {
 	scrBuffer->Clear();
 	tracer->InitRender(vp_corners, vp_delta, o);
@@ -3793,7 +3772,7 @@ void DreamCaster::PositionSpecimen()
 	ui.detectorZ->setText(QString::number(stngs.PLANE_Z));
 }
 
-void DreamCaster::Render(const iAVec3 * vp_corners, const iAVec3 * vp_delta, const iAVec3 * o, bool rememberData)
+void DreamCaster::Render(const iAVec3f * vp_corners, const iAVec3f * vp_delta, const iAVec3f * o, bool rememberData)
 {
 	try
 	{

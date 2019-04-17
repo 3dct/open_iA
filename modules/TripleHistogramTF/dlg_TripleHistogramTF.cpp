@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,22 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "dlg_TripleHistogramTF.h"
 
-#include <qsplitter.h>
-
-#include "dlg_modalities.h"
-#include "iAModalityList.h"
-#include "iARenderer.h"
-#include "iASlicerData.h"
 #include "iABarycentricContextRenderer.h"
-
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 
-#include "iAVolumeRenderer.h"
-#include "iAModalityTransfer.h"
+#include <dlg_modalities.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAModalityTransfer.h>
+#include <iARenderer.h>
+#include <iASlicerData.h>
+#include <iAVolumeRenderer.h>
+#include <mdichild.h>
 
 #include <vtkCamera.h>
 #include <vtkImageAppendComponents.h>
@@ -44,10 +42,14 @@
 #include <vtkVolumeProperty.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkImageActor.h>
 
+#include <QLabel>
+#include <QSplitter>
+#include <QStackedLayout>
 // Debug
-#include "qdebug.h"
+#include <QDebug>
+
+const static QString DEFAULT_LABELS[3] = { "A", "B", "C" };
 
 dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	//TripleHistogramTFConnector(mdiChild, f), m_mdiChild(mdiChild)

@@ -113,7 +113,7 @@ public:
   unsigned int GetOrderOfAccuracy() const { return m_OrderOfAccuracy; }
 
   /** Prints some debugging information */
-  virtual void PrintSelf(std::ostream & os, Indent i) const
+  void PrintSelf(std::ostream & os, Indent i) const override
   {
     os << i << "HigherOrderAccurateDerivativeOperator { this=" << this
        << ", m_Order = " << m_Order
@@ -127,10 +127,10 @@ protected:
   typedef typename Superclass::CoefficientVector CoefficientVector;
 
   /** Calculates operator coefficients. */
-  CoefficientVector GenerateCoefficients();
+  CoefficientVector GenerateCoefficients() override;
 
   /** Arranges coefficients spatially in the memory buffer. */
-  void Fill(const CoefficientVector & coeff)
+  void Fill(const CoefficientVector & coeff) override
   {   Superclass::FillCenteredDirectional(coeff);  }
 private:
   CoefficientVector GenerateFirstOrderCoefficients();

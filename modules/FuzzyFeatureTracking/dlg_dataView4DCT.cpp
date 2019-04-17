@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,20 +22,17 @@
 
 #include "ui_DataView4DCT.h"
 
-#include "iAQTtoUIConnector.h"
-#include "iAModalityTransfer.h"
-#include "iARenderer.h"
-#include "iATransferFunction.h"
-#include "iAVolumeRenderer.h"
-#include "iAVolumeStack.h"
-#include "mdichild.h"
-#include "QVTKWidgetMouseReleaseWorkaround.h"
+#include <iAModalityTransfer.h>
+#include <iARenderer.h>
+#include <iATransferFunction.h>
+#include <iAVolumeRenderer.h>
+#include <iAVolumeStack.h>
+#include <mdichild.h>
+#include <qthelper/iAQTtoUIConnector.h>
+#include <QVTKWidgetMouseReleaseWorkaround.h>
 
-#include <vtkCamera.h>
 #include <vtkImageData.h>
-#include <vtkPolyData.h>
 #include <vtkOpenGLRenderer.h>
-#include <vtkRendererCollection.h>
 #include <vtkTransform.h>
 
 const double	FOURDCT_BACGROUND[3]	= {1, 1, 1};
@@ -49,7 +46,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 	m_mdiChild = dynamic_cast<MdiChild*>(parent);
 	m_volumeStack = volumeStack;
 
-	m_rendererManager.addToBundle(m_mdiChild->getRenderer());
+	m_rendererManager.addToBundle(m_mdiChild->getRenderer()->GetRenderer());
 
 	// add widgets to window
 	int numOfVolumes = m_volumeStack->getNumberOfVolumes();
@@ -78,7 +75,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 		m_renderers[i]->GetRenderer()->SetBackground(FOURDCT_BACGROUND[0], FOURDCT_BACGROUND[1], FOURDCT_BACGROUND[2]);
 		m_renderers[i]->GetRenderer()->SetBackground2(FOURDCT_BACGROUND2[0], FOURDCT_BACGROUND2[1], FOURDCT_BACGROUND2[2]);
 
-		m_rendererManager.addToBundle(m_renderers[i]);
+		m_rendererManager.addToBundle(m_renderers[i]->GetRenderer());
 		
 		this->dockWidgetContents->layout()->addWidget(m_vtkWidgets[i]);
 	}

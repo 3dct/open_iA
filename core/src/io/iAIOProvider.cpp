@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,6 +25,8 @@
 const QString iAIOProvider::ProjectFileExtension(".mod");
 const QString iAIOProvider::ProjectFileTypeFilter("open_iA project file (*"+ProjectFileExtension+");;All files (*.*)");
 const QString iAIOProvider::MetaImages("Meta Images (*.mhd *.mha);;");
+const QString iAIOProvider::VTKFiles("VTK Files (*.vtk);;");
+
 namespace
 {
 	const QString ImageFormatExtensions("*.bmp *.jpg *.jpeg *.png *.tif *.tiff");
@@ -33,18 +35,18 @@ namespace
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
-		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.nrrd *.oif *.am "
+		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pars *.dcm *.oif *.am *.vtk "
 #ifdef USE_HDF5
 		"*.hdf5 *.h5 *.he5 *.mat "
 #endif
 		"*.vti "+ImageFormatExtensions+");;"
-		+ MetaImages +
+		+ MetaImages + VTKFiles +
 		"STL files (*.stl);;"
 		"VG Studio Scenes (*.vgi);;"
 		"RAW files (*.raw *.rec *.vol *.pro);;"
 		"PARS files (*.pars);;"
 		"Dicom Series (*.dcm);;"
-		"NRRD files (*.nrrd);;"
+//		"NRRD files (*.nrrd *.nhdr);;"	// currently not supported as it reads as a itk::VectorImage, which we cannot convert to vtkImageData at the moment
 		"Olympus FluoView (*.oif);;"
 		"AmiraMesh (*.am);;"
 #ifdef USE_HDF5

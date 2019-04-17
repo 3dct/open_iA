@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -146,7 +146,7 @@ int iARulerActor::RenderOverlay(vtkViewport *viewport)
 void iARulerActor::BuildRepresentation(vtkViewport *viewport)
 {
 	if ( 1 ) //it's probably best just to rerender every time
-		//   if ( this->GetMTime() > this->BuildTime || 
+		//   if ( this->GetMTime() > this->BuildTime ||
 		//        (this->Renderer && this->Renderer->GetVTKWindow() &&
 		//         this->Renderer->GetVTKWindow()->GetMTime() > this->BuildTime) )
 	{
@@ -279,9 +279,9 @@ void iARulerActor::PrintSelf(ostream& os, vtkIndent indent)
 		os << "XY_Coordinates\n";
 	}
 
-	os << indent << "Left Axis Visibility: " 
+	os << indent << "Left Axis Visibility: "
 		<< (this->LeftAxisVisibility ? "On\n" : "Off\n");
-	os << indent << "Bottom Axis Visibility: " 
+	os << indent << "Bottom Axis Visibility: "
 		<< (this->BottomAxisVisibility ? "On\n" : "Off\n");
 	os << indent << "Corner Offset Factor: " << this->CornerOffsetFactor << "\n";
 

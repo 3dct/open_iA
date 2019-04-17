@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -68,8 +68,8 @@ class iAWrapperText;
 
 /**
  * \brief	implements a slicer widget
- * 
- * This class implements a slicer widget to evaluate 3D datasets. 
+ *
+ * This class implements a slicer widget to evaluate 3D datasets.
  */
 class open_iA_Core_API iASlicerData :  public QObject
 {
@@ -82,7 +82,7 @@ public:
 	void reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf, bool showisolines = false, bool showpolygon = false);
 	void changeImageData(vtkImageData *idata);
 	void setup(iASingleSlicerSettings const & settings);
-	
+
 	void initializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
 	void removeChannel(iAChannelID id);
 	void reInitializeChannel(iAChannelID id, iAChannelVisualizationData * chData);
@@ -110,7 +110,7 @@ public:
 	void disableInteractor();
 	void enableInteractor();
 	void showIsolines(bool s);
-	void showPosition(bool s);	
+	void showPosition(bool s);
 	void saveMovie(QString& fileName, int qual = 2);
 	void update();
 
@@ -147,14 +147,15 @@ public:
 
 	void SetManualBackground(double r, double g, double b);
 
-	vtkScalarBarWidget * GetScalarWidget();
+	vtkScalarBarWidget * GetScalarBarWidget();
 	vtkImageActor* GetImageActor();
 	QCursor getMouseCursor();
 
 	vtkScalarsToColors * GetColorTransferFunction();
 
-	int getSliceNumber(); // for fisheye transformation
-
+	void SetRightButtonDragZoomEnabled(bool enabled);
+	void setSlabThickness(int thickness);
+	void setSlabCompositeMode(int compositeMode);
 protected:
 	void UpdateResliceAxesDirectionCosines();
 	void UpdateBackground();
@@ -163,23 +164,21 @@ protected:
 	void executeKeyPressEvent();
 	void defaultOutput();
 
-	/**
-	* \brief	This function is used to check whether any agreeable maximum gradient is near the given point.
-	*	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.
-	*
-	* \detail	Input is the cursor point. Calculate the gradient magnitude for varying "x" value with "y" constant.
-	*	The maximum gradient value is taken as H_maxCoord. If there are two same gradient magnitude values, the point
-	*	closer to the cursor point is taken as H_maxCoord. Apply the above procedure for constant "x" and varying "y"
-	*	to calculate V_maxCoord. Check whether H_maxCoord gradient magnitude and V_maxCoord gradient magnitude are
-	*	higher than an gradient threshold value (5% of max intensity in the image). If H_maxCoord gradient magnitude
-	*	is higher and V_maxCoord gradient magnitude is lesser than the threshold, take H_maxCoord as the closet
-	*	gradient to cursor point. And if it is vice versa take V_maxCoord take as closest gradient to the cursor point.
-	*	If point are higher than threshold, the point closest to the cursor point is take as the next point.
-	*
-	* \param [in,out]	x	The x coordinate.
-	* \param [in,out]	y	The y coordinate.
-	*/
+	//!	This function is used to check whether any agreeable maximum gradient is near the given point.
+	//!	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.
+	//!
+	//! Input is the cursor point. Calculate the gradient magnitude for varying "x" value with "y" constant.
+	//! The maximum gradient value is taken as H_maxCoord. If there are two same gradient magnitude values, the point
+	//! closer to the cursor point is taken as H_maxCoord. Apply the above procedure for constant "x" and varying "y"
+	//! to calculate V_maxCoord. Check whether H_maxCoord gradient magnitude and V_maxCoord gradient magnitude are
+	//! higher than an gradient threshold value (5% of max intensity in the image). If H_maxCoord gradient magnitude
+	//! is higher and V_maxCoord gradient magnitude is lesser than the threshold, take H_maxCoord as the closet
+	//! gradient to cursor point. And if it is vice versa take V_maxCoord take as closest gradient to the cursor point.
+	//! If point are higher than threshold, the point closest to the cursor point is take as the next point.
+	//! @param [in,out]	x	The x coordinate.
+	//! @param [in,out]	y	The y coordinate.
 	void snapToHighGradient(double &x, double &y);
+
 	void InitReslicerWithImageData();
 	void UpdateReslicer();
 Q_SIGNALS:
@@ -214,8 +213,8 @@ private:
 
 	QMap<iAChannelID, QSharedPointer<iAChannelSlicerData> > m_channels;
 
-	vtkScalarBarWidget *scalarWidget;
-	vtkTextProperty *textProperty;
+	vtkSmartPointer<vtkScalarBarWidget> scalarBarWidget;
+	vtkSmartPointer<vtkTextProperty> textProperty;
 
 	// TODO: extract/ unify with iARenderer
 	vtkSmartPointer<vtkLogoWidget> logoWidget;
@@ -262,7 +261,7 @@ private:
 	bool disabled;
 	int no;
 	double contourMin, contourMax;
-	
+
 	int measureStart[2];
 	double angleX, angleY, angleZ;
 
@@ -281,4 +280,6 @@ private:
 	void UpdatePositionMarkerExtent();
 
 	QCursor m_mouseCursor;
+
+	void setupColorMapper();
 };

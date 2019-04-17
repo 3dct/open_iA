@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -31,7 +31,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkCellArray.h>
 
-class iAPieSource : public vtkPolyDataAlgorithm 
+class iAPieSource : public vtkPolyDataAlgorithm
 {
 public:
 	static iAPieSource * New()
@@ -43,7 +43,7 @@ public:
 	}
 	vtkTypeMacro(iAPieSource, vtkPolyDataAlgorithm);
 
-	void PrintSelf(ostream& os, vtkIndent indent)
+	void PrintSelf(ostream& os, vtkIndent indent) override
 	{
 		this->Superclass::PrintSelf(os, indent);
 
@@ -53,10 +53,10 @@ public:
 		os << indent << "StartAngle: " << this->m_startAngle << "\n";
 		os << indent << "EndAngle: " << this->m_endAngle << "\n";
 	}
-   
+
 	void	SetRadius(double radius)			{ m_radius = radius; }
 	double	GetRadius()							{ return m_radius; }
-  
+
 	void	SetZ(double z)						{ m_z = z; }
 	double	GetZ()								{ return m_z; }
 
@@ -68,7 +68,7 @@ public:
 
 	void	SetEndAngle(double endAngle)		{ m_endAngle = endAngle; }
 	double	GetEndAngle()						{ return m_endAngle; }
-  
+
 protected:
 	iAPieSource()
 	{
@@ -81,10 +81,10 @@ protected:
 	}
 
 	~iAPieSource() {};
-  
+
 	int RequestData(vtkInformation *vtkNotUsed(request),
 					vtkInformationVector **vtkNotUsed(inputVector),
-					vtkInformationVector *outputVector)
+					vtkInformationVector *outputVector) override
 	{
 		//Get the info object
 		vtkInformation *outInfo = outputVector->GetInformationObject(0);
@@ -97,7 +97,7 @@ protected:
 		//Set things up; allocate memory
 		vtkIdType numPts = numberOfSegments + 1;
 		vtkIdType numPolys = numberOfSegments;
-		vtkSmartPointer<vtkPoints> newPoints = vtkSmartPointer<vtkPoints>::New(); 
+		vtkSmartPointer<vtkPoints> newPoints = vtkSmartPointer<vtkPoints>::New();
 		newPoints->Allocate(numPts);
 		vtkSmartPointer<vtkCellArray> newPolys = vtkSmartPointer<vtkCellArray>::New();
 		newPolys->Allocate(newPolys->EstimateSize(numPolys, 3));
@@ -108,7 +108,7 @@ protected:
 		double theta = (endAngleRad - startAngleRad) / (numberOfSegments - 1);
 		double x[3] = { 0.0, 0.0, 0.0 };
 		newPoints->InsertNextPoint(x);
-		for (int i=0; i < numberOfSegments; i++) 
+		for (int i=0; i < numberOfSegments; i++)
 		{
 			double currentAngle = startAngleRad + i*theta;
 
@@ -121,7 +121,7 @@ protected:
 		//Connectivity
 		vtkIdType pts[3];
 		pts[0] = 0;
-		for (int i=1; i < numberOfSegments; i++) 
+		for (int i=1; i < numberOfSegments; i++)
 		{
 			pts[1] = i;
 			pts[2] = i + 1;
@@ -140,7 +140,7 @@ protected:
 	int m_resolution;
 	double m_startAngle;
 	double m_endAngle;
-  
+
 private:
 	iAPieSource(const iAPieSource&);  // Not implemented.
 	void operator=(const iAPieSource&);  // Not implemented.

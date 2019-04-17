@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,19 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
+#include "ui_planeSlicer.h"
+
+#include <iAVtkWidgetFwd.h>
+#include <qthelper/iAQTtoUIConnector.h>
+
 #include <vtkSmartPointer.h>
 
-#include "ui_planeSlicer.h"
-#include "iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_PlaneSlicer> dlg_planeSlicerUI;
-
-class QVTKWidget2;
 class vtkCamera;
 class vtkColorTransferFunction;
 class vtkImageData;
 class vtkImageSlice;
 class vtkPlane;
 class vtkOpenGLRenderer;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_PlaneSlicer> dlg_planeSlicerUI;
 
 class dlg_planeSlicer : public dlg_planeSlicerUI
 {
@@ -43,7 +45,7 @@ public:
 	void SetCuttingPlane(double pos[3], double n[3]);
 	void SetOpacity(int imageIdx, double opacity);
 private:
-	QVTKWidget2* m_vtkWidget;
+	iAVtkWidget* m_vtkWidget;
 	vtkSmartPointer<vtkOpenGLRenderer> m_renderer;
 	vtkCamera* m_camera_ext;
 

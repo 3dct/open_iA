@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,10 +22,11 @@
 
 #include "iAChartFilter.h"
 #include "iAChartAttributeMapper.h"
-#include "iAConsole.h"
 #include "iAImageTreeLeaf.h"
-#include "iAMapperImpl.h"    // for LogFunc -> TODO: use iAMapper-derived classes here!
-#include "iAMathUtility.h"
+
+#include <iAConsole.h>
+#include <iAMapperImpl.h>    // for LogFunc -> TODO: use iAMapper-derived classes here!
+#include <iAMathUtility.h>
 
 #include <algorithm> // for std::fill
 
@@ -119,10 +120,6 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNod
 	iAChartAttributeMapper const & chartAttrMap,
 	int numBin)
 {
-	if (rangeType == iAValueType::Discrete || rangeType == iAValueType::Categorical)
-	{
-		max = max+1;
-	}
 	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(numBin, min, max, log, rangeType));
 	VisitNode(tree, result, chartID, chartAttrMap);
 	return result;
@@ -136,10 +133,6 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::Create(iAImageTreeNod
 	iAChartFilter const & attributeFilter,
 	int numBin)
 {
-	if (rangeType == iAValueType::Discrete || rangeType == iAValueType::Categorical)
-	{
-		max = max+1;
-	}
 	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(numBin, min, max, log, rangeType));
 	VisitNode(tree, result, chartID, chartAttrMap, attributeFilter);
 	if (attributeFilter.HasFilter(chartID))

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -255,8 +255,9 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 		}
 		case Folder:
 		{
+			// TODO: allow to specify whether the folder can be empty or not!
 			QFileInfo file(parameters[param->Name()].toString());
-			if (!file.isDir())
+			if (!parameters[param->Name()].toString().isEmpty() && !file.isDir())
 			{
 				AddMsg(QString("Parameter '%1': Given value '%2' doesn't reference a folder!")
 					.arg(param->Name()).arg(parameters[param->Name()].toString()));
@@ -264,6 +265,11 @@ bool iAFilter::CheckParameters(QMap<QString, QVariant> & parameters)
 			}
 			break;
 		}
+		case Invalid:
+			AddMsg(QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->Name()));
+			return false;
+		default:  // no checks
+			break;
 		}
 	}
 	return true;

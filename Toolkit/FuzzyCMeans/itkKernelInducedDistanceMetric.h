@@ -91,16 +91,15 @@ public:
   itkTypeMacro(KernelInducedDistanceMetric, DistanceMetric);
 
   /** Gets the distance between the origin and x */
-  virtual double Evaluate(const MeasurementVectorType &x) const = 0;
+  double Evaluate(const MeasurementVectorType &x) const override = 0;
 
   /** Gets the distance between x1 and x2 */
   virtual double Evaluate( const MeasurementVectorType &x1,
-                           const MeasurementVectorType &x2 ) const = 0;
+                           const MeasurementVectorType &x2 ) const override = 0;
 
   /** Gets the coordinate distance between a and b. NOTE: a and b should be
    * type of component. */
   virtual double Evaluate(const ValueType &a, const ValueType &b) const = 0;
-
 
 protected:
 
@@ -112,7 +111,7 @@ protected:
 
   /** Write the name-value pairs of the class data members to the supplied
    * output stream. */
-  void PrintSelf(std::ostream &os, itk::Indent indent) const;
+  void PrintSelf(std::ostream &os, itk::Indent indent) const  override;
 
 }; // end of class
 

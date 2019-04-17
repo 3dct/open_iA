@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,38 +22,35 @@
 
 #include "iAMapper.h"
 
+#include "open_iA_Core_export.h"
+
 #include <cmath>
 
-class iALinearMapper : public iAMapper
+class open_iA_Core_API iALinearMapper : public iAMapper
 {
 public:
-	iALinearMapper(double yZoom, double yMin, double yMax, int height);
-	double SrcToDest(double y) const override;
-	double DestToSrc(double y) const override;
-	bool equals(QSharedPointer<iAMapper> other) const override;
-	QSharedPointer<iAMapper> clone() override;
-	void update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height) override;
+	iALinearMapper();
+	iALinearMapper(double srcMin, double srcMax, double dstMin, double dstMax);
+	double srcToDst(double srcVal) const override;
+	double dstToSrc(double dstVal) const override;
+	bool equals(iAMapper const & other) const override;
+	void update(double srcMin, double srcMax, double dstMin, double dstMax) override;
 private:
-	iALinearMapper(iALinearMapper const & other);
-	double yScaleFactor;
-	double yMin;
+	double m_srcMin, m_dstMin, m_scaleFactor;
 };
 
 
-class iALogarithmicMapper : public iAMapper
+class open_iA_Core_API iALogarithmicMapper : public iAMapper
 {
 public:
-	iALogarithmicMapper(double yZoom, double yMax, double yMinValueBiggerThanZero, int height);
-	double SrcToDest(double y) const override;
-	double DestToSrc(double y) const override;
-	bool equals(QSharedPointer<iAMapper> other) const override;
-	QSharedPointer<iAMapper> clone() override;
-	void update(double yZoom, double yMax, double yMinValueBiggerThanZero, int height) override;
+	iALogarithmicMapper(double srcMin, double srcMax, double dstMin, double dstMax);
+	double srcToDst(double srcVal) const override;
+	double dstToSrc(double dstVal) const override;
+	bool equals(iAMapper const & other) const override;
+	void update(double srcMin, double srcMax, double dstMin, double dstMax) override;
 private:
-	iALogarithmicMapper(iALogarithmicMapper const & other);
-	double yZoom;
-	double yMaxLog, yMinLog;
-	int height;
+	double m_srcMinLog, m_srcMaxLog;
+	iALinearMapper m_internalMapper;
 };
 
 namespace

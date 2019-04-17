@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -70,7 +70,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	setupUi(this);
 	this->setWindowTitle(winTitle);
 
-	if(fDescr)
+	if (fDescr)
 	{
 		auto info = new QTextBrowser();
 		QPalette p = info->palette();
@@ -89,8 +89,8 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 	container->setObjectName("container");
 	auto containerLayout = new QGridLayout(container);
 	containerLayout->setObjectName("containerLayout");
-	
-	for ( int i = 0; i < inList.size(); i++)
+
+	for ( int i = 0; i < inList.size(); ++i)
 	{
 		QString tStr = inList[i];
 		tStr.remove(0, 1);
@@ -143,15 +143,6 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 			case ';':
 				newWidget = new iAFileChooserWidget(container, iAFileChooserWidget::Folder);
 				break;
-			case '?':
-			{
-				label->setStyleSheet("background-color : lightGray");
-				QFont font = label->font();
-				font.setBold(true);
-				font.setPointSize(11);
-				label->setFont(font);
-				continue;
-			}
 			default:
 				eMessage->showMessage(QString("Unknown widget prefix '%1' for label \"%2\"").arg(inList[i][0]).arg(tStr));
 				continue;
@@ -159,7 +150,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString winTitle, QStringList 
 		widgetList[i] = newWidget;
 		containerLayout->addWidget(newWidget, i, 1);
 	}
-		
+
 	//Controls the containers width and sets the correct width for the widgets
 	containerLayout->setColumnMinimumWidth(0, WIDTH/3);
 	containerLayout->setColumnMinimumWidth(1, WIDTH/3);
@@ -230,7 +221,7 @@ void dlg_commoninput::SelectFilter()
 				default:
 					paramStr += QuoteString(paramValues[param->Name()].toString()); break;
 				}
-				
+
 			}
 			QLineEdit* e = qobject_cast<QLineEdit*>(widgetList[idx + 1]);
 			if (e)
@@ -248,7 +239,7 @@ void dlg_commoninput::updateValues(QList<QVariant> inPara)
 	QObjectList children = container->children();
 
 	int paramIdx = 0;
-	for ( int i = 0; i < children.size(); i++)
+	for ( int i = 0; i < children.size(); ++i)
 	{
 		QLineEdit *lineEdit = qobject_cast<QLineEdit*>(children.at(i));
 		if (lineEdit)
@@ -322,7 +313,7 @@ void dlg_commoninput::showROI()
 		m_roi[i] = 0;
 		m_roi[i + 3] = m_sourceMdiChild->getImagePointer()->GetDimensions()[i];
 	}
-	for (int i = 0; i < children.size(); i++)
+	for (int i = 0; i < children.size(); ++i)
 	{
 		QSpinBox *input = dynamic_cast<QSpinBox*>(children.at(i));
 		if (input && (input->objectName().contains("Index") || input->objectName().contains("Size")))
@@ -375,47 +366,87 @@ void dlg_commoninput::SourceChildClosed()
 
 int dlg_commoninput::getIntValue(int index) const
 {
+	if (index < 0 || index >= widgetList.size())
+	{
+		DEBUG_LOG(QString("dlg_commoninput::getIntValue: index=%1 out of bounds(0..%2").arg(index).arg(widgetList.size() - 1));
+		return 0;
+	}
 	QSpinBox *t = qobject_cast<QSpinBox*>(widgetList[index]);
 	if (t)
 		return t->value();
 	QLineEdit *t2 = qobject_cast<QLineEdit*>(widgetList[index]);
-	return t2 ? t2->text().toInt() : 0;
+	if (t2)
+		return t2->text().toInt();
+	DEBUG_LOG(QString("dlg_commoninput::getIntValue(%1) Not a SpinBox/ LineEdit!").arg(index));
+	return 0;
 }
 
 
 double dlg_commoninput::getDblValue(int index) const
 {
+	if (index < 0 || index >= widgetList.size())
+	{
+		DEBUG_LOG(QString("dlg_commoninput::getDblValue: index=%1 out of bounds(0..%2").arg(index).arg(widgetList.size() - 1));
+		return 0.0;
+	}
 	QDoubleSpinBox *t = qobject_cast<QDoubleSpinBox*>(widgetList[index]);
 	if (t)
 		return t->value();
 	QLineEdit *t2 = qobject_cast<QLineEdit*>(widgetList[index]);
-	return t2 ? t2->text().toDouble() : 0.0;
+	if (t2)
+		return t2->text().toDouble();
+	DEBUG_LOG(QString("dlg_commoninput::getDblValue(%1) Not a Double SpinBox / LineEdit!").arg(index));
+	return 0.0;
 }
 
 
 int dlg_commoninput::getCheckValue(int index) const
 {
+	if (index < 0 || index >= widgetList.size())
+	{
+		DEBUG_LOG(QString("dlg_commoninput::getCheckValue: index=%1 out of bounds(0..%2").arg(index).arg(widgetList.size() - 1));
+		return false;
+	}
 	QCheckBox *t = qobject_cast<QCheckBox*>(widgetList[index]);
-	return t? t->checkState(): 0;
+	if (t)
+		return t->checkState();
+	DEBUG_LOG(QString("dlg_commoninput::getCheckValue(%1) Not a CheckBox!").arg(index));
+	return false;
 }
 
 
 QString dlg_commoninput::getComboBoxValue(int index) const
 {
+	if (index < 0 || index >= widgetList.size())
+	{
+		DEBUG_LOG(QString("dlg_commoninput::getComboBoxValue: index=%1 out of bounds(0..%2").arg(index).arg(widgetList.size() - 1));
+		return QString();
+	}
 	QComboBox *t = qobject_cast<QComboBox*>(widgetList[index]);
-	return t? t->currentText(): QString();
+	if (t)
+		return t->currentText();
+	DEBUG_LOG(QString("dlg_commoninput::getComboBoxValue(%1) Not a ComboBox!").arg(index));
+	return QString();
 }
 
 
 int dlg_commoninput::getComboBoxIndex(int index) const
 {
 	QComboBox *t = qobject_cast<QComboBox*>(widgetList[index]);
-	return t ? t->currentIndex() : -1;
+	if (t)
+		return t->currentIndex();
+	DEBUG_LOG(QString("dlg_commoninput::getComboBoxIndex(%1) Not a ComboBox!").arg(index));
+	return -1;
 }
 
 
 QString dlg_commoninput::getText(int index) const
 {
+	if (index < 0 || index >= widgetList.size())
+	{
+		DEBUG_LOG(QString("dlg_commoninput::getText: index=%1 out of bounds(0..%2").arg(index).arg(widgetList.size() - 1));
+		return QString();
+	}
 	QLineEdit *t = qobject_cast<QLineEdit*>(widgetList[index]);
 	if (t)
 		return t->text();
@@ -426,7 +457,15 @@ QString dlg_commoninput::getText(int index) const
 	if (t3)
 		return t3->text();
 	iAFileChooserWidget* t4 = qobject_cast<iAFileChooserWidget*>(widgetList[index]);
-	return (t4)? t4->text() : "";
+	if (t4)
+		return t4->text();
+
+	QComboBox *t5 = qobject_cast<QComboBox*>(widgetList[index]);
+	if (t5)
+		return t5->currentText();
+
+	DEBUG_LOG(QString("dlg_commoninput::getText(%1) called on value which is no text!").arg(index));
+	return QString();
 }
 
 

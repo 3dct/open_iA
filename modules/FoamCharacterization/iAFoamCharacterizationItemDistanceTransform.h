@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -28,26 +28,26 @@ class iAFoamCharacterizationItemBinarization;
 
 class iAFoamCharacterizationItemDistanceTransform : public iAFoamCharacterizationItem
 {
-		Q_OBJECT
+	Q_OBJECT
 
-	public:
-		explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
-		explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationItemDistanceTransform* _pDistanceTransform);
+public:
+	explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationTable* _pTable, vtkImageData* _pImageData);
+	explicit iAFoamCharacterizationItemDistanceTransform(iAFoamCharacterizationItemDistanceTransform* _pDistanceTransform);
 
-		int itemMask() const;
+	int itemMask() const;
 
-		void setItemMask(const int& _iItemMask);
-		void setUseImageSpacing(const bool& _bImageSpacing);
+	void setItemMask(const int& _iItemMask);
+	void setUseImageSpacing(const bool& _bImageSpacing);
 
-		bool useImageSpacing() const;
+	bool useImageSpacing() const;
 
-		virtual void dialog() override;
-		virtual void execute() override;
-		virtual void open(QFile* _pFileOpen) override;
-		virtual void save(QFile* _pFileSave) override;
+	virtual void dialog() override;
+	virtual void execute() override;
+	virtual void open(QFile* _pFileOpen) override;
+	virtual void save(QFile* _pFileSave) override;
 
-	private:
-		bool m_bImageSpacing = true;
+private:
+	bool m_bImageSpacing = true;
 
-		int m_iItemMask = -1;
+	int m_iItemMask = -1;
 };

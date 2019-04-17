@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -53,7 +53,7 @@ public:
 	void addPoint(double * pos)
 	{
 		// add point to the spline points
-		m_points->InsertNextPoint(pos); 
+		m_points->InsertNextPoint(pos);
 
 		// if number of point is at least 2 create, initialize and show the spline curve
 		if (m_points->GetNumberOfPoints() == 2)
@@ -110,8 +110,8 @@ public:
 
 protected:
 	vtkSmartPointer<vtkPoints>						m_points;			// container for all spline points
-	vtkSmartPointer<vtkActor>						m_splineActor;               
-	vtkSmartPointer<vtkPolyDataMapper>				m_splineMapper;              
+	vtkSmartPointer<vtkActor>						m_splineActor;
+	vtkSmartPointer<vtkPolyDataMapper>				m_splineMapper;
 	vtkSmartPointer<vtkParametricSpline>			m_spline;			// actual spline
 	vtkSmartPointer<vtkParametricFunctionSource>	m_parametricFuncSrc;// source for spline function
 };

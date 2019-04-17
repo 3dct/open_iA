@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,17 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
-#include <QSharedPointer>
+#include "ui_RangeSliderDiagramView.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
-#include "ui_RangeSliderDiagramView.h"
-#include "iAQTtoUIConnector.h"
+#include <QDockWidget>
+#include <QSharedPointer>
 
 
 class iARangeSliderDiagramData;
-class iABarGraphDrawer;
+class iABarGraphPlot;
 class iARangeSliderDiagramWidget;
 
 class QTableWidget;
@@ -66,7 +67,7 @@ signals:
 
 private:
 	QSharedPointer<iARangeSliderDiagramData>			m_rangeSliderData;
-	QSharedPointer<iABarGraphDrawer>					m_rangeSliderDiagramDrawer;
+	QSharedPointer<iABarGraphPlot>					m_rangeSliderDiagramDrawer;
 	QList<double>										m_data;
 	QList<vtkSmartPointer<vtkPiecewiseFunction> >		m_oTFList;
 	QList<vtkSmartPointer<vtkColorTransferFunction> >	m_cTFList;

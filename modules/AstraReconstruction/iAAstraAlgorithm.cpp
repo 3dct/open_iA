@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -66,6 +66,7 @@ namespace
 	QString DstOrigSrc = "Distance Origin-Source";
 	QString CenterOfRotCorr = "Center of Rotation Correction";
 	QString CenterOfRotOfs = "Center of Rotation Offset";
+	QString InitWithFDK = "Initialize with FDK";
 	QString VolDimX = "Volume Dimension X";
 	QString VolDimY = "Volume Dimension Y";
 	QString VolDimZ = "Volume Dimension Z";
@@ -113,29 +114,29 @@ namespace
 				i*(qDegreesToRadians(parameters[ProjAngleEnd].toDouble())
 					- qDegreesToRadians(parameters[ProjAngleStart].toDouble())) /
 				(projAngleCnt - 1);
-			iAVec3 sourcePos(
+			iAVec3f sourcePos(
 				sin(curAngle) * parameters[DstOrigSrc].toDouble(),
 				-cos(curAngle) * parameters[DstOrigSrc].toDouble(),
 				0);
-			iAVec3 detectorCenter(
+			iAVec3f detectorCenter(
 				-sin(curAngle) * parameters[DstOrigDet].toDouble(),
 				cos(curAngle) * parameters[DstOrigDet].toDouble(),
 				0);
-			iAVec3 detectorPixelHorizVec(				// vector from detector pixel(0, 0) to(0, 1)
+			iAVec3f detectorPixelHorizVec(				// vector from detector pixel(0, 0) to(0, 1)
 				cos(curAngle) * parameters[DetSpcX].toDouble(),
 				sin(curAngle) * parameters[DetSpcX].toDouble(),
 				0);
-			iAVec3 detectorPixelVertVec(0, 0, parameters[DetSpcY].toDouble()); // vector from detector pixel(0, 0) to(1, 0)
-			iAVec3 shiftVec = detectorPixelHorizVec.normalize() * parameters[CenterOfRotOfs].toDouble();
+			iAVec3f detectorPixelVertVec(0, 0, parameters[DetSpcY].toDouble()); // vector from detector pixel(0, 0) to(1, 0)
+			iAVec3f shiftVec = detectorPixelHorizVec.normalized() * parameters[CenterOfRotOfs].toDouble();
 			sourcePos += shiftVec;
 			detectorCenter += shiftVec;
 
 			if (!vectors.isEmpty()) vectors += ",";
 			vectors += QString("%1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12")
-				.arg(sourcePos.x).arg(sourcePos.y).arg(sourcePos.z)
-				.arg(detectorCenter.x).arg(detectorCenter.y).arg(detectorCenter.z)
-				.arg(detectorPixelHorizVec.x).arg(detectorPixelHorizVec.y).arg(detectorPixelHorizVec.z)
-				.arg(detectorPixelVertVec.x).arg(detectorPixelVertVec.y).arg(detectorPixelVertVec.z);
+				.arg(sourcePos.x()).arg(sourcePos.y()).arg(sourcePos.z())
+				.arg(detectorCenter.x()).arg(detectorCenter.y()).arg(detectorCenter.z())
+				.arg(detectorPixelHorizVec.x()).arg(detectorPixelHorizVec.y()).arg(detectorPixelHorizVec.z())
+				.arg(detectorPixelVertVec.x()).arg(detectorPixelVertVec.y()).arg(detectorPixelVertVec.z());
 		}
 		astra::XMLNode projGeomNode = projectorConfig.self.addChildNode("ProjectionGeometry");
 		projGeomNode.addAttribute("type", "cone_vec");
@@ -296,7 +297,7 @@ public:
 	{
 		m_fPtr = new astra::float32[size];
 	}
-	virtual ~CPPAstraCustomMemory() override
+	~CPPAstraCustomMemory()
 	{
 		delete [] m_fPtr;
 	}
@@ -397,6 +398,7 @@ iAASTRAReconstruct::iAASTRAReconstruct() :
 	AddParameter(NumberOfIterations, Discrete, 100, 0);
 	AddParameter(CenterOfRotCorr, Boolean, false);
 	AddParameter(CenterOfRotOfs, Continuous, 0.0);
+	AddParameter(InitWithFDK, Boolean, true);
 }
 
 
@@ -489,7 +491,15 @@ void iAASTRAReconstruct::PerformWork(QMap<QString, QVariant> const & parameters)
 	projector->initialize(projectorConfig);
 	astra::CFloat32ProjectionData3DMemory * projectionData = new astra::CFloat32ProjectionData3DMemory(projector->getProjectionGeometry(), projBuf);
 	astra::CFloat32VolumeData3DMemory * volumeData = new astra::CFloat32VolumeData3DMemory(projector->getVolumeGeometry(), 0.0f);
-	switch (MapAlgoStringToIndex(parameters[AlgoType].toString()))
+	int algo = MapAlgoStringToIndex(parameters[AlgoType].toString());
+	if ((algo == SIRT3D || SIRT3D == CGLS3D) && parameters[InitWithFDK].toBool())
+	{
+		astra::CCudaFDKAlgorithm3D* fdkalgo = new astra::CCudaFDKAlgorithm3D();
+		fdkalgo->initialize(projector, projectionData, volumeData);
+		fdkalgo->run();
+		delete fdkalgo;
+	}
+	switch (algo)
 	{
 		case BP3D: {
 			astra::CCudaBackProjectionAlgorithm3D* bp3dalgo = new astra::CCudaBackProjectionAlgorithm3D();
@@ -628,7 +638,8 @@ bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap
 		if (parameters[AlgoType].toString().isEmpty())
 			parameters[AlgoType] = AlgorithmStrings()[1];
 		dlg.fillAlgorithmValues(MapAlgoStringToIndex(parameters[AlgoType].toString()),
-			parameters[NumberOfIterations].toUInt());
+			parameters[NumberOfIterations].toUInt(),
+			parameters[InitWithFDK].toBool());
 		dlg.fillCorrectionValues(parameters[CenterOfRotCorr].toBool(),
 			parameters[CenterOfRotOfs].toDouble());
 	}
@@ -661,6 +672,7 @@ bool iAASTRAFilterRunner::AskForParameters(QSharedPointer<iAFilter> filter, QMap
 		parameters[VolSpcZ] = dlg.VolGeomSpacingZ->value();
 		parameters[AlgoType] = MapAlgoIndexToString(dlg.AlgorithmType->currentIndex());
 		parameters[NumberOfIterations] = dlg.AlgorithmIterations->value();
+		parameters[InitWithFDK] = dlg.InitWithFDK->isChecked();
 		parameters[CenterOfRotCorr] = dlg.CorrectionCenterOfRotation->isChecked();
 		parameters[CenterOfRotOfs] = dlg.CorrectionCenterOfRotationOffset->value();
 		if ((detColDim % 3) == (detRowDim % 3) || (detColDim % 3) == (projAngleDim % 3) || (detRowDim % 3) == (projAngleDim % 3))

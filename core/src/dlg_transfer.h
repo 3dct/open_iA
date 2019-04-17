@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -40,47 +40,37 @@ Q_OBJECT
 	QColor          color;
 	QColorDialog    *dlg;
 	QLinearGradient gradient;
-		
+
 	vtkPiecewiseFunction     *opacityTF;
 	vtkColorTransferFunction *colorTF;
 public:
 	dlg_transfer(iADiagramFctWidget *histogram, QColor color);
 	~dlg_transfer();
 
-	int getType() { return TRANSFER; }
-	
-	// abstract functions
-	void draw(QPainter &painter);
-	void draw(QPainter &painter, QColor color, int lineWidth);
-	void drawOnTop(QPainter &painter);
+	int getType() override { return TRANSFER; }
+	void draw(QPainter &painter) override;
+	void draw(QPainter &painter, QColor color, int lineWidth) override;
+	void drawOnTop(QPainter &painter) override;
+	int selectPoint(QMouseEvent *event, int *x = NULL) override;
+	int getSelectedPoint() override { return selectedPoint; }
+	int addPoint(int x, int y) override;
+	void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) override;
+	void removePoint(int index) override;
+	void moveSelectedPoint(int x, int y) override;
+	void changeColor(QMouseEvent *event) override;
+	void mouseReleaseEventAfterNewPoint(QMouseEvent *event) override;
+	bool isColored() override { return true; }
+	bool isEndPoint(int index) override;
+	bool isDeletable(int index) override;
+	void reset() override;
 
-	int selectPoint(QMouseEvent *event, int *x = NULL);
-	int getSelectedPoint() { return selectedPoint; }
-	int addPoint(int x, int y);
-	void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0);
-	void removePoint(int index);
-	void moveSelectedPoint(int x, int y);
-	void changeColor(QMouseEvent *event);
-	void enableRangeSliderHandles( bool rangeSliderHandles );
+	vtkPiecewiseFunction* getOpacityFunction() override { return opacityTF; }
+	vtkColorTransferFunction* getColorFunction() override { return colorTF; }
 
-	bool isColored() { return true; }
-	bool isEndPoint(int index);
-	bool isDeletable(int index);
-
-	void reset();
 	void TranslateToNewRange(double const oldDataRange[2]);
-	
-	void mousePressEvent(QMouseEvent*)   {}
-	void mouseMoveEvent(QMouseEvent*)    {}
-	void mouseReleaseEvent(QMouseEvent*) {}
-	void mouseReleaseEventAfterNewPoint(QMouseEvent *event);
-	
-	// additional public functions
+	void enableRangeSliderHandles( bool rangeSliderHandles );
 	void setOpacityFunction(vtkPiecewiseFunction *opacityTF) { this->opacityTF = opacityTF; }
 	void setColorFunction(vtkColorTransferFunction *colorTF) { this->colorTF = colorTF; }
-
-	vtkPiecewiseFunction* GetOpacityFunction() { return opacityTF; }
-	vtkColorTransferFunction* GetColorFunction() { return colorTF; }
 	void triggerOnChange();
 signals:
 	void Changed();
@@ -91,7 +81,7 @@ private:
 	void setPoint(int selectedPoint, int x, int y);
 	void setPointX(int selectedPoint, int x);
 	void setPointY(int selectedPoint, int y);
-	
+
 	// convert view to data
 	double v2dX(int x);
 	double v2dY(int y);

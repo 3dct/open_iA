@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,6 +25,7 @@
 #include "open_iA_Core_export.h"
 
 #include <itkCastImageFilter.h>
+#include <itkChangeInformationImageFilter.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkImageRegionConstIterator.h>
@@ -87,10 +88,10 @@ void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output)
 	output->SetRegions(input->GetLargestPossibleRegion());
 	output->SetSpacing(input->GetSpacing());
 	output->Allocate();
- 
+
 	itk::ImageRegionConstIterator<TImage> inputIterator(input, input->GetLargestPossibleRegion());
 	itk::ImageRegionIterator<TImage> outputIterator(output, output->GetLargestPossibleRegion());
- 
+
 	while(!inputIterator.IsAtEnd())
 	{
 		outputIterator.Set(inputIterator.Get());
@@ -134,7 +135,7 @@ void StoreImage(TImage * image, QString const & filename, bool useCompression = 
 	typename itk::ImageFileWriter<TImage>::Pointer writer = itk::ImageFileWriter<TImage>::New();
 	try
 	{
-		writer->SetFileName(filename.toStdString());
+		writer->SetFileName(getLocalEncodingFileName(filename).c_str());
 		writer->SetUseCompression(useCompression);
 		writer->SetInput(image);
 		writer->Update();
@@ -228,3 +229,5 @@ iAITKIO::ImagePointer RescaleImageTo(iAITKIO::ImagePointer img, double min, doub
 		return InternalRescaleImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	}
 }
+
+open_iA_Core_API void getStatistics(iAITKIO::ImagePointer img, double* min, double* max = nullptr, double* mean = nullptr, double* stddev = nullptr, double* variance = nullptr, double * sum = nullptr);

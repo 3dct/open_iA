@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,11 +23,10 @@
 #include "ui_Consensus.h"
 
 #include "iAImageTreeNode.h"    // for LabelImagePointer
-#include "iAQTtoUIConnector.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_Consensus>   dlg_ConsensusUI;
 
 struct ChartWidgetData;
 class dlg_GEMSe;
@@ -44,6 +43,8 @@ class vtkPlot;
 class vtkTable;
 
 class QCheckBox;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_Consensus>   dlg_ConsensusUI;
 
 class dlg_Consensus : public dlg_ConsensusUI
 {

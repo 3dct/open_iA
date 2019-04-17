@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,12 +20,13 @@
 * ************************************************************************************/
 #include "iARunBatchThread.h"
 
-#include "CPUID.h"
-#include "defines.h"
 #include "iACSVToQTableWidgetConverter.h"
 #include "iAPorosityAnalyserModuleInterface.h"
-#include "iATypedCallHelper.h"
-#include "io/iAITKIO.h"
+
+#include <CPUID.h>
+#include <defines.h>
+#include <iATypedCallHelper.h>
+#include <io/iAITKIO.h>
 
 // from Maximum Distance Toolkit
 #include <itkMaximumDistance.h>
@@ -36,6 +37,7 @@
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkCastImageFilter.h>
 #include <itkConfidenceConnectedImageFilter.h>
+#include <itkConnectedComponentImageFilter.h>
 #include <itkConnectedThresholdImageFilter.h>
 #include <itkCurvatureAnisotropicDiffusionImageFilter.h>
 #include <itkCurvatureFlowImageFilter.h>
@@ -51,6 +53,8 @@
 #include <itkInvertIntensityImageFilter.h>
 #include <itkIsoDataThresholdImageFilter.h>
 #include <itkKittlerIllingworthThresholdImageFilter.h>
+#include <itkLabelGeometryImageFilter.h>
+#include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkLiThresholdImageFilter.h>
 #include <itkMaximumEntropyThresholdImageFilter.h>
 #include <itkMedianImageFilter.h>
@@ -90,12 +94,18 @@ struct RunInfo
 		elapsedTime( 0 ), 
 		maskImage(), 
 		surroundingMaskImage(),
-		porosity( -1 ), 
+		porosity( -1.0 ), 
 		threshold( -1 ), 
 		surroundingVoxels( 0 ), 
-		falseNegativeError( -1 ), 
-		falsePositiveError(-1),
-		dice(-1)
+		falseNegativeRate( -1.0 ), 
+		falsePositiveRate( -1.0 ),
+		dice(-1.0),
+		featureCnt(-1),
+		avgFeatureVol(-1.0),
+		avgFeaturePhi(-1.0),
+		avgFeatureTheta(-1.0),
+		avgFeatureRoundness(-1.0),
+		avgFeatureLength(-1.0)
 	{}
 
 	QString startTime;
@@ -105,11 +115,17 @@ struct RunInfo
 	float porosity;
 	int threshold;
 	long surroundingVoxels;
-	float falseNegativeError;
-	float falsePositiveError;
+	float falseNegativeRate;
+	float falsePositiveRate;
 	float dice;
 	QStringList parameterNames;
 	QStringList parameters;
+	long featureCnt;
+	double avgFeatureVol;
+	double avgFeaturePhi;
+	double avgFeatureTheta;
+	double avgFeatureRoundness;
+	double avgFeatureLength;
 };
 
 static float calcPorosity( const MaskImageType::Pointer image, int surroundingVoxels )
@@ -167,6 +183,33 @@ void computeBinaryThreshold( ImagePointer & image, RunInfo & results, float upTh
 	results.maskImage = binaryThresholdFilter->GetOutput();
 	results.maskImage->Modified();
 	if( releaseData )
+		binaryThresholdFilter->ReleaseDataFlagOn();
+}
+
+template<class T>
+void computeGeneralThreshold(ImagePointer & image, RunInfo & results, float lwThr, float upThr, bool releaseData = false)
+{
+	typedef itk::Image< T, DIM >   InputImageType;
+	typedef itk::BinaryThresholdImageFilter <InputImageType, MaskImageType> BinaryThresholdImageFilterType;
+	typename BinaryThresholdImageFilterType::Pointer binaryThresholdFilter = BinaryThresholdImageFilterType::New();
+	InputImageType * input = dynamic_cast<InputImageType*>(image.GetPointer());
+
+	//Use duplicator filter because thresholding is in-place
+	typedef itk::ImageDuplicator< InputImageType > DuplicatorType;
+	typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+	duplicator->SetInputImage(input);
+	duplicator->Update();
+
+	binaryThresholdFilter->SetLowerThreshold(lwThr);
+	binaryThresholdFilter->SetUpperThreshold(upThr);
+	binaryThresholdFilter->SetInsideValue(1);
+	binaryThresholdFilter->SetOutsideValue(0);
+	binaryThresholdFilter->SetInput(duplicator->GetOutput());
+
+	binaryThresholdFilter->Update();
+	results.maskImage = binaryThresholdFilter->GetOutput();
+	results.maskImage->Modified();
+	if (releaseData)
 		binaryThresholdFilter->ReleaseDataFlagOn();
 }
 
@@ -605,7 +648,6 @@ void computeCreateSurrounding( ImagePointer & image, PorosityFilterID filterId, 
 	}
 
 	results.surroundingMaskImage = connThrfilter->GetOutput();
-	//iAITKIO::writeFile( "C:/Users/p41036/Desktop/mask.mhd", connThrfilter->GetOutput(), itk::ImageIOBase::CHAR, true );
 	results.surroundingMaskImage->Modified();
 	results.maskImage = image;
 	results.maskImage->Modified();
@@ -672,8 +714,6 @@ void computeGradAnisoDiffSmooth( ImagePointer & image, PorosityFilterID filterId
 	typename CastFilterType::Pointer caster = CastFilterType::New();
 	caster->SetInput( gadsfilter->GetOutput() );
 	caster->Update();
-
-	// iAITKIO::writeFile( "C:/Users/p41036/Desktop/smooth_cast.mhd", caster->GetOutput(), itk::ImageIOBase::USHORT, true );
 
 	results.maskImage = caster->GetOutput();
 	results.maskImage->Modified();
@@ -986,6 +1026,9 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 			case P_BINARY_THRESHOLD:
 				computeBinaryThreshold<T>( curImage, results, params[pind]->asFloat(), releaseData );
 				break;
+			case P_GENERAL_THRESHOLD:
+				computeGeneralThreshold<T>(curImage, results, params[pind]->asFloat(), params[pind + 1]->asFloat(), releaseData);
+				break;
 			case P_RATS_THRESHOLD:
 				computeRatsThreshold<T>( curImage, results, params[pind]->asFloat(), releaseData );
 				break;
@@ -1059,15 +1102,13 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 	}
 }
 
-void iARunBatchThread::Init( iAPorosityAnalyserModuleInterface * pmi, QString datasetFolder, bool rbNewPipelineDataNoPores, 
-							 bool rbNewPipelineData, bool rbExistingPipelineData, iACalculatePoreProperties* poreProps )
+void iARunBatchThread::Init(iAPorosityAnalyserModuleInterface * pmi, QString datasetFolder, 
+	bool rbNewPipelineDataNoPores, bool rbNewPipelineData)
 {
 	m_pmi = pmi;
 	m_datasetsDescrFile = datasetFolder + "/" + "DatasetDescription.csv";
-	m_poreProps = poreProps;
 	m_rbNewPipelineDataNoPores = rbNewPipelineDataNoPores;
 	m_rbNewPipelineData = rbNewPipelineData;
-	m_rbExistingPipelineData = rbExistingPipelineData;
 
 	m_dsDescr.clear();
 	m_dsDescr.setRowCount( 0 ); m_dsDescr.setColumnCount( 0 );
@@ -1109,52 +1150,8 @@ void iARunBatchThread::executeNewBatches( QTableWidget & settingsCSV, QMap<int, 
 				//compute batch, mask.csv file, mask.mhd.csv (pore chars)
 				executeBatch( filterIds, datasetName, batchDir, &settingsCSV, row );
 				generateMasksCSVFile( batchDir, batchesDir );
-				if ( m_rbNewPipelineData )
-					calculatePoreChars( batchDir + "/" + "masks.csv" );
 			}
 			emit totalProgress( row * 100.0 / batchesToCompute );
-		}
-	}
-	else if ( m_rbExistingPipelineData )
-	{
-		//Calculats pore characteristics for old data structure (no masks.csv, no *.mhd.csv) 
-		QString datasetPath = m_pmi->DatasetFolder();
-		QString dataRoot = m_pmi->ResultsFolder();
-		QDir datasetsDir( datasetPath );
-		datasetsDir.setNameFilters( QStringList( "*.mhd" ) );
-		QDir pipeDirs( dataRoot );
-		pipeDirs.setFilter( QDir::Dirs | QDir::NoDotAndDotDot );
-		for ( int pos = 0; pos < pipeDirs.entryList().size(); ++pos )
-		{
-			QString curPipeDir = dataRoot + "/" + pipeDirs.entryList()[pos];
-			QString curPipeName = pipeDirs.entryList()[pos];
-			QString datasetName;
-
-			//Extract dataset name
-			int uscount = curPipeName.count();
-			for ( int i = 0; i < uscount; ++i )
-			{
-				datasetName = curPipeName.section( '_', -1 - i, -1 ) + ".mhd";
-				bool found = false;
-				for ( int j = 0; j < datasetsDir.entryList().size(); ++j)
-				{
-					if ( datasetName.compare( datasetsDir.entryList()[j] ) == 0 )
-					{
-						found = true;
-						break;
-					}
-				}
-				if ( found )
-					break;
-			}
-			QDir batchDirs( curPipeDir );
-			batchDirs.setFilter( QDir::Dirs | QDir::NoDotAndDotDot );
-			for ( int pos = 0; pos < batchDirs.entryList().size(); ++pos )
-			{
-				QString currentBatchDir = curPipeDir + "/" + batchDirs.entryList()[pos];
-				generateMasksCSVFile( currentBatchDir, curPipeDir );
-				calculatePoreChars( currentBatchDir + "/" + "masks.csv" );
-			}
 		}
 	}
 }
@@ -1162,10 +1159,11 @@ void iARunBatchThread::executeNewBatches( QTableWidget & settingsCSV, QMap<int, 
 void iARunBatchThread::initRunsCSVFile( QTableWidget & runsCSV, QString batchDir, const QList<ParamNameType> & paramNames )
 {
 	int col = 0;
-
 	QFile runsCSVFile( batchDir + "/runs.csv" );
-	if( runsCSVFile.exists() )
-		iACSVToQTableWidgetConverter::loadCSVFile( runsCSVFile.fileName(), &runsCSV );
+	if (runsCSVFile.exists())
+	{
+		iACSVToQTableWidgetConverter::loadCSVFile(runsCSVFile.fileName(), &runsCSV);
+	}
 	else
 	{
 		//Insert a header
@@ -1193,9 +1191,17 @@ void iARunBatchThread::saveResultsToRunsCSV( RunInfo & results, QString masksDir
 		maskFilename = masksDir + "/" + maskName;
 	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( maskName ) );
 	//dice metric
-	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.falsePositiveError ) ) );
-	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.falseNegativeError ) ) );
+	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.falsePositiveRate ) ) );
+	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.falseNegativeRate ) ) );
 	runsCSV.setItem( lastRow, col++, new QTableWidgetItem( QString::number( results.dice ) ) );
+	//avg feature chars
+	runsCSV.setItem(lastRow, col++, new QTableWidgetItem(QString::number(results.featureCnt)));
+	runsCSV.setItem(lastRow, col++, new QTableWidgetItem(QString::number(results.avgFeatureVol)));
+	runsCSV.setItem(lastRow, col++, new QTableWidgetItem(QString::number(results.avgFeaturePhi)));
+	runsCSV.setItem(lastRow, col++, new QTableWidgetItem(QString::number(results.avgFeatureTheta)));
+	runsCSV.setItem(lastRow, col++, new QTableWidgetItem(QString::number(results.avgFeatureRoundness)));
+	runsCSV.setItem(lastRow, col++, new QTableWidgetItem(QString::number(results.avgFeatureLength)));
+	//input params
 	for ( int i = 0; i < results.parameters.size(); ++i )
 		runsCSV.setItem( lastRow, col++, new QTableWidgetItem( results.parameters[i] ) );
 
@@ -1241,7 +1247,6 @@ void iARunBatchThread::saveResultsToRunsCSV( RunInfo & results, QString masksDir
 	{
 		m_pmi->log( e.what() );
 	}
-
 }
 
 void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, QString datasetName, QString batchDir, QTableWidget * settingsCSV, int row )
@@ -1290,7 +1295,6 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 		QString gtMaskFile = dsPath + "/" + m_datasetGTs[dsFN];
 		gtMask = iAITKIO::readFile( gtMaskFile, maskPixType, true);
 	}
-
 	emit batchProgress( 0 );
 
 	for( int sampleNo = 0; sampleNo < totalNumSamples; ++sampleNo ) //iterate over parameters
@@ -1305,41 +1309,46 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 			results.parameters.push_back( params[i]->asString() );
 			results.parameterNames << params[i]->name;
 		}
+
 		bool success = true;
 		results.elapsedTime = 0;	// reset elapsed time 
+
 		try
 		{
-			ITK_TYPED_CALL(runBatch, pixelType,
-				filterIds, image, results, params);
+			ITK_TYPED_CALL(runBatch, pixelType, filterIds, image, results, params);
 			//calculate porosity
 			MaskImageType * mask = dynamic_cast<MaskImageType*>(results.maskImage.GetPointer());
 			MaskImageType * gtImage = dynamic_cast<MaskImageType*>(gtMask.GetPointer());
 			results.porosity = calcPorosity( mask, results.surroundingVoxels );
+			
+			if (m_rbNewPipelineData)
+			{
+				QString currMaskFilePath = masksDir + "/mask" + QString::number(sampleNo + 1) + ".mhd";
+				calcFeatureCharsForMask(results, currMaskFilePath);
+			}
+			
 			//Dice metric, false positve error, false negative error
 			if ( m_datasetGTs[dsFN] != "" )
 			{
 				MaskImageType::RegionType reg = mask->GetLargestPossibleRegion();
-				int size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
-				float fpe = 0.0f, fne = 0.0f, totalGT = 0.0f, its = 0.0f, dice = 0.0f;
-#pragma omp parallel for reduction(+:fpe,fne,totalGT, its)
-				for ( int i = 0; i < size; ++i )
+				size_t size = static_cast<size_t>(reg.GetSize()[0]) * reg.GetSize()[1] * reg.GetSize()[2];
+				size_t tp = 0, fn = 0, fp = 0, tn = 0;
+				MaskImageType::PixelType gt, m;
+
+#pragma omp parallel for reduction(+:tp,fn,fp,tn)
+				for ( size_t i = 0; i < size; ++i )
 				{
-					if ( gtImage->GetBufferPointer()[i] )
-						++totalGT;
-					if ( !gtImage->GetBufferPointer()[i] && mask->GetBufferPointer()[i] )
-						++fpe;
-					if ( gtImage->GetBufferPointer()[i] && !mask->GetBufferPointer()[i] )
-						++fne;
-					if ( ( gtImage->GetBufferPointer()[i] && mask->GetBufferPointer()[i] ) ||
-						 ( !gtImage->GetBufferPointer()[i] && !mask->GetBufferPointer()[i] ) )
-						 ++its;
+					gt = gtImage->GetBufferPointer()[i];
+					m = mask->GetBufferPointer()[i];
+					if (gt == 1 && m == 1) tp = tp + 1;
+					if (gt == 1 && m == 0) fn = fn + 1;
+					if (gt == 0 && m == 1) fp = fp + 1;
+					if (gt == 0 && m == 0) tn = tn + 1;
 				}
-				fpe /= totalGT;
-				fne /= totalGT;
-				dice = 2 * its / ( size + size );
-				results.falseNegativeError = fne;
-				results.falsePositiveError = fpe;
-				results.dice = dice;
+
+				results.falseNegativeRate = static_cast<float>(fn) / (tp + fn);
+				results.falsePositiveRate = static_cast<float>(fp) / (tn + fp);
+				results.dice = 2 * static_cast<float>(tp) / (2 * tp + fp + fn);
 				emit batchProgress( ( sampleNo + 1 ) * 100 / totalNumSamples );
 			}
 		}
@@ -1368,10 +1377,15 @@ void iARunBatchThread::executeBatch( const QList<PorosityFilterID> & filterIds, 
 				.arg( excep.GetFile() )
 				.arg( excep.GetLine() ) );
 		}
-		if( randSampling )
-			randomlySampleParameters( params );
+
+		if (randSampling)
+		{
+			randomlySampleParameters(params);
+		}
 		else
-			incrementParameterSet( params );
+		{
+			incrementParameterSet(params);
+		}
 	}
 	iACSVToQTableWidgetConverter::saveToCSVFile( m_runsCSV, batchDir + "/runs.csv" );
 }
@@ -1380,10 +1394,11 @@ void iARunBatchThread::updateComputerCSVFile( QTableWidget & settingsCSV )
 {
 	m_computerCSVData.clear();
 	int col = 0, row = 0;
-
 	QFile computerCSVFile( m_pmi->ResultsFolder() + "/" + m_pmi->ComputerName() + ".csv" );
-	if( computerCSVFile.exists() )
-		iACSVToQTableWidgetConverter::loadCSVFile( computerCSVFile.fileName(), &m_computerCSVData );
+	if (computerCSVFile.exists())
+	{
+		iACSVToQTableWidgetConverter::loadCSVFile(computerCSVFile.fileName(), &m_computerCSVData);
+	}
 	else
 	{
 		m_pmi->log( "\tCreating new computer CSV file" );
@@ -1393,6 +1408,7 @@ void iARunBatchThread::updateComputerCSVFile( QTableWidget & settingsCSV )
 		foreach( const QString l, computerCSVHeader )
 			m_computerCSVData.setItem( 0, col++, new QTableWidgetItem( l ) );
 	}
+
 	//Update computer CSV with new entries
 	for( row = 1; row < settingsCSV.rowCount(); ++row ) // 1 because we skip header
 	{
@@ -1404,6 +1420,7 @@ void iARunBatchThread::updateComputerCSVFile( QTableWidget & settingsCSV )
 
 		if( existsBatchesRecord( &m_computerCSVData, algName, datasetName ) )
 			continue;
+
 		m_pmi->log( "\tAdding batches for " + dirName );
 		QDir( m_pmi->ResultsFolder() ).mkdir( dirName );
 		int lastRow = m_computerCSVData.rowCount();
@@ -1414,7 +1431,6 @@ void iARunBatchThread::updateComputerCSVFile( QTableWidget & settingsCSV )
 		m_computerCSVData.setItem( lastRow, col++, new QTableWidgetItem( datasetName ) ); //dataset name
 		m_computerCSVData.setItem( lastRow, col++, new QTableWidgetItem( dirName ) );
 	}
-
 	iACSVToQTableWidgetConverter::saveToCSVFile( m_computerCSVData, computerCSVFile.fileName() );
 }
 
@@ -1497,13 +1513,6 @@ void iARunBatchThread::generateMasksCSVFile( QString batchDir, QString batchesDi
 	m_pmi->log( tr( "File masks.csv created in %1" ).arg(batchDir) );
 }
 
-void iARunBatchThread::calculatePoreChars(QString masksCSVPath)
-{
-	m_poreProps->SetMasksCSVPath( masksCSVPath );
-	m_poreProps->CalculatePoreProperties();
-	m_pmi->log( tr( "Pore characteristics calculated for %1" ).arg( masksCSVPath.section( '/', -3, -3 ) ) );
-}
-
 void iARunBatchThread::run()
 {
 	qsrand( QTime::currentTime().msec() );
@@ -1523,3 +1532,230 @@ void iARunBatchThread::run()
 	executeNewBatches( m_settingsCSV, isBatchNew );
 }
 
+void iARunBatchThread::calcFeatureCharsForMask(RunInfo &results, QString currMaskFilePath)
+{
+	MaskImageType * mask = dynamic_cast<MaskImageType*>(results.maskImage.GetPointer());
+	
+	// Label image
+	typedef itk::Image<long, DIM>  LabeledImageType;
+	typedef itk::ConnectedComponentImageFilter<MaskImageType, LabeledImageType> ConnectedComponentImageFilterType;
+	ConnectedComponentImageFilterType::Pointer connectedComponents = ConnectedComponentImageFilterType::New();
+	connectedComponents->SetInput(mask);
+	connectedComponents->FullyConnectedOn();
+	connectedComponents->Update();
+
+	// Save labeled image
+	QString labeledMaskName = currMaskFilePath;
+	labeledMaskName.insert(currMaskFilePath.lastIndexOf("."), "_labeled");
+	iAITKIO::writeFile(labeledMaskName, connectedComponents->GetOutput(), itk::ImageIOBase::LONG, true);
+
+	// Save features characteristics in csv file 
+	double spacing = mask->GetSpacing()[0];
+	double totalFeatureVol = 0, totalPhi = 0, totalTheta = 0, totalRoundness = 0, totalLength = 0;
+	ofstream fout( getLocalEncodingFileName(currMaskFilePath.append(".csv")).c_str(), std::ofstream::out);
+
+	// Header of pore csv file
+	fout << "Spacing" << ',' << spacing << '\n'
+		<< "Voids\n"
+		<< '\n'
+		<< '\n'
+		<< "Label Id" << ','
+		<< "X1" << ','
+		<< "Y1" << ','
+		<< "Z1" << ','
+		<< "X2" << ','
+		<< "Y2" << ','
+		<< "Z2" << ','
+		<< "a11" << ','
+		<< "a22" << ','
+		<< "a33" << ','
+		<< "a12" << ','
+		<< "a13" << ','
+		<< "a23" << ','
+		<< "DimX" << ','
+		<< "DimY" << ','
+		<< "DimZ" << ','
+		<< "phi" << ','
+		<< "theta" << ','
+		<< "Xm" << ','
+		<< "Ym" << ','
+		<< "Zm" << ','
+		<< "Volume" << ','
+		<< "Roundness" << ','
+		<< "FeretDiam" << ','
+		<< "Flatness" << ','
+		<< "VoxDimX" << ','
+		<< "VoxDimY" << ','
+		<< "VoxDimZ" << ','
+		<< "MajorLength" << ','
+		<< "MinorLength" << ','
+		<< '\n';
+
+	// Initalisation of itk::LabelGeometryImageFilter for calculating pore parameters
+	typedef itk::LabelGeometryImageFilter< LabeledImageType > LabelGeometryImageFilterType;
+	LabelGeometryImageFilterType::Pointer labelGeometryImageFilter = LabelGeometryImageFilterType::New();
+	labelGeometryImageFilter->SetInput(connectedComponents->GetOutput());
+	labelGeometryImageFilter->Update();
+
+	// Initalisation of itk::LabelImageToShapeLabelMapFilter for calculating other pore parameters
+	typedef unsigned long LabelType;
+	typedef itk::ShapeLabelObject<LabelType, DIM>	ShapeLabelObjectType;
+	typedef itk::LabelMap<ShapeLabelObjectType>	LabelMapType;
+	typedef itk::LabelImageToShapeLabelMapFilter<LabeledImageType, LabelMapType> I2LType;
+	I2LType::Pointer i2l = I2LType::New();
+	i2l->SetInput(connectedComponents->GetOutput());
+	i2l->SetComputePerimeter(false);
+	i2l->SetComputeFeretDiameter(false);
+	i2l->Update();
+
+	LabelMapType *labelMap = i2l->GetOutput();
+	LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
+	LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
+
+	// Pore Characteristics calculation 
+	for (allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++)
+	{
+		LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
+		if (labelValue == 0)	// label 0 = backround
+			continue;
+
+		std::vector<double> eigenvalue(3);
+		std::vector<double> eigenvector(3);
+		std::vector<double> centroid(3);
+		int dimX, dimY, dimZ;
+		double x1, x2, y1, y2, z1, z2, xm, ym, zm, phi, theta, a11, a22, a33, a12, a13, a23,
+			majorlength, minorlength, half_length, dx, dy, dz;
+
+		// Calculating start and and point of the pores's major principal axis
+		eigenvalue = labelGeometryImageFilter->GetEigenvalues(labelValue);
+		auto maxEigenvalue = std::max_element(std::begin(eigenvalue), std::end(eigenvalue));
+		int maxEigenvaluePos = std::distance(std::begin(eigenvalue), maxEigenvalue);
+
+		eigenvector[0] = labelGeometryImageFilter->GetEigenvectors(labelValue)[0][maxEigenvaluePos];
+		eigenvector[1] = labelGeometryImageFilter->GetEigenvectors(labelValue)[1][maxEigenvaluePos];
+		eigenvector[2] = labelGeometryImageFilter->GetEigenvectors(labelValue)[2][maxEigenvaluePos];
+		centroid[0] = labelGeometryImageFilter->GetCentroid(labelValue)[0];
+		centroid[1] = labelGeometryImageFilter->GetCentroid(labelValue)[1];
+		centroid[2] = labelGeometryImageFilter->GetCentroid(labelValue)[2];
+		half_length = labelGeometryImageFilter->GetMajorAxisLength(labelValue) / 2.0;
+		x1 = centroid[0] + half_length * eigenvector[0];
+		y1 = centroid[1] + half_length * eigenvector[1];
+		z1 = centroid[2] + half_length * eigenvector[2];
+		x2 = centroid[0] - half_length * eigenvector[0];
+		y2 = centroid[1] - half_length * eigenvector[1];
+		z2 = centroid[2] - half_length * eigenvector[2];
+
+		// Preparing orientation and tensor calculation
+		dx = x1 - x2;
+		dy = y1 - y2;
+		dz = z1 - z2;
+		xm = (x1 + x2) / 2.0f;
+		ym = (y1 + y2) / 2.0f;
+		zm = (z1 + z2) / 2.0f;
+
+		if (dz < 0)
+		{
+			dx = x2 - x1;
+			dy = y2 - y1;
+			dz = z2 - z1;
+		}
+
+		phi = asin(dy / sqrt(dx*dx + dy*dy));
+		theta = acos(dz / sqrt(dx*dx + dy*dy + dz*dz));
+		a11 = cos(phi)*cos(phi)*sin(theta)*sin(theta);
+		a22 = sin(phi)*sin(phi)*sin(theta)*sin(theta);
+		a33 = cos(theta)*cos(theta);
+		a12 = cos(phi)*sin(theta)*sin(theta)*sin(phi);
+		a13 = cos(phi)*sin(theta)*cos(theta);
+		a23 = sin(phi)*sin(theta)*cos(theta);
+
+		phi = (phi*180.0f) / vtkMath::Pi();
+		theta = (theta*180.0f) / vtkMath::Pi();
+
+		// Locating the phi value to quadrant
+		if (dx < 0)
+			phi = 180.0 - phi;
+
+		if (phi < 0.0)
+			phi = phi + 360.0;
+
+		if (dx == 0 && dy == 0)
+		{
+			phi = 0.0;
+			theta = 0.0;
+			a11 = 0.0;
+			a22 = 0.0;
+			a12 = 0.0;
+			a13 = 0.0;
+			a23 = 0.0;
+		}
+
+		majorlength = labelGeometryImageFilter->GetMajorAxisLength(labelValue);
+		minorlength = labelGeometryImageFilter->GetMinorAxisLength(labelValue);
+		dimX = abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[0] - labelGeometryImageFilter->GetBoundingBox(labelValue)[1]) + 1;
+		dimY = abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[2] - labelGeometryImageFilter->GetBoundingBox(labelValue)[3]) + 1;
+		dimZ = abs(labelGeometryImageFilter->GetBoundingBox(labelValue)[4] - labelGeometryImageFilter->GetBoundingBox(labelValue)[5]) + 1;
+
+		// Calculation of other pore characteristics and writing the csv file 
+		ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject(labelValue - 1); // debug -1 delated	// labelMap index contaions first pore at 0 
+
+		/* The equivalent radius is a radius of a circle with the same area as the object.
+		The feret diameter is the diameter of circumscribing circle. So this measure has a maximum of 1.0 when the object is a perfect circle.
+		http://public.kitware.com/pipermail/insight-developers/2011-April/018466.html */
+		if (labelObject->GetFeretDiameter() == 0)
+		{
+			labelObject->SetRoundness(0.0);
+		}
+		else
+		{
+			labelObject->SetRoundness(labelObject->GetEquivalentSphericalRadius()
+				/ (labelObject->GetFeretDiameter() / 2.0));
+		}
+
+		totalFeatureVol += labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0);
+		totalPhi += phi;
+		totalTheta += theta;
+		totalRoundness += labelObject->GetRoundness();
+		totalLength += majorlength * spacing;
+
+		fout << labelValue << ','
+			<< x1 * spacing << ',' 	// unit = microns
+			<< y1 * spacing << ',' 	// unit = microns
+			<< z1 * spacing << ',' 	// unit = microns
+			<< x2 * spacing << ','		// unit = microns
+			<< y2 * spacing << ','		// unit = microns
+			<< z2 * spacing << ','		// unit = microns
+			<< a11 << ','
+			<< a22 << ','
+			<< a33 << ','
+			<< a12 << ','
+			<< a13 << ','
+			<< a23 << ','
+			<< dimX * spacing << ','	// unit = microns
+			<< dimY * spacing << ','	// unit = microns
+			<< dimZ * spacing << ','	// unit = microns
+			<< phi << ','				// unit = °
+			<< theta << ','			// unit = °
+			<< xm * spacing << ',' 	// unit = microns
+			<< ym * spacing << ',' 	// unit = microns
+			<< zm * spacing << ',' 	// unit = microns
+			<< labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0) << ','	// unit = microns^3
+			<< labelObject->GetRoundness() << ','
+			<< labelObject->GetFeretDiameter() << ','	// unit = microns
+			<< labelObject->GetFlatness() << ','
+			<< dimX << ','		// unit = voxels
+			<< dimY << ','		// unit = voxels
+			<< dimZ << ','		// unit = voxels
+			<< majorlength * spacing << ',' 	// unit = microns
+			<< minorlength * spacing << ',' 	// unit = microns
+			<< '\n';
+	}
+	fout.close();
+
+	results.featureCnt = allLabels.size();
+	results.avgFeatureVol = totalFeatureVol / results.featureCnt;
+	results.avgFeaturePhi = totalPhi / results.featureCnt;
+	results.avgFeatureTheta = totalTheta / results.featureCnt;
+	results.avgFeatureRoundness = totalRoundness / results.featureCnt;
+	results.avgFeatureLength = totalLength / results.featureCnt;
+}

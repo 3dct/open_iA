@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,10 +22,8 @@
 
 #include "iAAttributes.h"
 #include "iAAttitudes.h"
-#include "iAAttributeDescriptor.h"
 #include "iACameraWidget.h"
 #include "iAClusterAttribChart.h"
-#include "iAConsole.h"
 #include "iADetailView.h"
 #include "iAExampleImageWidget.h"
 #include "iAFakeTreeNode.h"
@@ -36,8 +34,6 @@
 #include "iAImagePreviewWidget.h"
 #include "iAImageTreeLeaf.h"
 #include "iAImageTreeView.h"
-#include "iALogger.h"
-#include "iAMathUtility.h"
 #include "iAMeasures.h"
 #include "iAParamHistogramData.h"
 #include "iAPreviewWidgetPool.h"
@@ -45,15 +41,16 @@
 #include "iAQtCaptionWidget.h"
 #include "iASamplingResults.h"
 #include "iASingleResult.h"
-#include "iAToolsITK.h"
 
-#include <QVTKWidget2.h>
+#include <iAAttributeDescriptor.h>
+#include <iAConsole.h>
+#include <iALogger.h>
+#include <iAMathUtility.h>
+#include <iAToolsITK.h>
+
 #include <vtkImageData.h>
 
 #include <QApplication>
-#include <QFile>
-#include <QMessageBox>
-#include <QTextStream>
 
 dlg_GEMSe::dlg_GEMSe(
 	QWidget *parent,
@@ -299,11 +296,6 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 		}
 		int attributeID = m_chartAttributeMapper.GetAttributeID(chartID, node->GetDatasetID());
 		double value = node->GetAttribute(attributeID);
-		if (m_chartAttributes->at(chartID)->ValueType() == Discrete ||
-			m_chartAttributes->at(chartID)->ValueType() == Categorical)
-		{
-			value += 0.5;
-		}
 		m_histogramContainer->SetMarker(chartID, value);
 		m_probingWidget->SetSelectedNode(node);
 	}

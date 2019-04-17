@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,15 +24,13 @@
 
 #include <vector>
 
-/**	\class Intersection.
-	\brief Class representing intersection between triangle and ray.	
-*/
+//! Class representing intersection between triangle and ray.
 class Intersection
 {
 public:
-	unsigned int tri_index; ///< index of intersected triangle in object
-	float dip_angle;		///< cos of dip angle btw intersected triangle and ray
-	//
+	unsigned int tri_index; //!< index of intersected triangle in object
+	float dip_angle;        //!< cos of dip angle btw intersected triangle and ray
+
 	Intersection():tri_index(0), dip_angle(0.0f)
 	{
 		m_write2FileSize = sizeof(tri_index)+sizeof(dip_angle);
@@ -46,10 +44,9 @@ public:
 		tri_index = a_tri_index;
 		dip_angle = a_dip_angle;
 	}
-	/**
-	* Writes intersection data into binary file by file descriptor.
-	* @param fptr output file descriptor.
-	*/
+
+	//! Writes intersection data into binary file by file descriptor.
+	//! @param fptr output file descriptor.
 	inline void write2BinaryFile(FILE *fptr)
 	{
 		/*fwrite(&tri_index, sizeof(tri_index), 1, fptr);
@@ -61,21 +58,15 @@ protected:
 	unsigned int m_write2FileSize;
 };
 
-/**	\class RayPenetration.
-	\brief Class representing total penetration of single ray into object.
-
-	Detailed description.	
-*/
+//! Class representing total penetration of single ray into object.
 class RayPenetration
 {
 public:
-	int m_X;				///< ray X coordinate on plate
-	int m_Y;				///< ray Y coordinate on plate
-	float totalPenetrLen;	///< total length of all ray penetrations
-	float avDipAng;			///< average dip angle cos of ray
-	///float penetrations[MAX_PENETRATIONS_COUNT];
-	unsigned int penetrationsSize;///< number of all ray penetrations 
-	//
+	int m_X, m_Y;           //!< ray X, Y coordinates on plate
+	float totalPenetrLen;   //!< total length of all ray penetrations
+	float avDipAng;         //!< average dip angle cos of ray
+	unsigned int penetrationsSize; //!< number of all ray penetrations
+
 	RayPenetration(){
 		penetrationsSize=0;
 		m_write2FileSize = sizeof(m_X)+sizeof(m_Y)+sizeof(totalPenetrLen)+sizeof(avDipAng)+sizeof(penetrationsSize);
@@ -86,10 +77,8 @@ public:
 		totalPenetrLen(a_totalPenetrLen),
 		avDipAng(a_avDip)
 	{}
-	/**
-	* Writes ray penetrations data into binary file by file descriptor.
-	* @param fptr output file descriptor.
-	*/
+	//! Writes ray penetrations data into binary file by file descriptor.
+	//! @param fptr output file descriptor.
 	inline void write2BinaryFile(FILE *fptr)
 	{
 		fwrite(this, m_write2FileSize, 1, fptr);
@@ -99,14 +88,12 @@ protected:
 	unsigned int m_write2FileSize;
 };
 
-/**	\class RenderFromPosition.
-	\brief Class representing single object render.
-
-	Contains all data of single object render with some set of parameters.
-	Parameters are: rotations about X and Y axes, object's position, average penetration length of render,
-	average dip angle cos of render.
-	Also contains all statistical data as: all intersections data, all rays' penetrations data.
-*/
+//! Class representing single object render.
+//!
+//! Contains all data of single object render with some set of parameters.
+//! Parameters are: rotations about X and Y axes, object's position, average penetration length of render,
+//! average dip angle cos of render.
+//! Also contains all statistical data as: all intersections data, all rays' penetrations data.
 class RenderFromPosition
 {
 public:
@@ -119,23 +106,20 @@ public:
 	{
 		clear();
 	}
-	//order of declarations is important when writhing to file
-	float rotX;		///< rotation about X axis
-	float rotY;		///< rotation about Y axis
-	float rotZ;		///< rotation about Z axis
-	float pos[3];		///< object's position
-	float avPenetrLen;///< average penetration length
-	float avDipAngle;	///< average dip angle cos
-	float maxPenetrLen;///< maximum penetration length in rendering
-	float badAreaPercentage;///< percentage of bad surface area corresponding to radon space analysis
-	unsigned int raysSize;///< number of rays
-	std::vector<RayPenetration*> rays; ///<rays' penetrations data
+	//order of declarations is important when writing to file
+	float rotX, rotY, rotZ;  //!< rotation about X, Y and Z axis
+	float pos[3];            //!< object's position
+	float avPenetrLen;       //!< average penetration length
+	float avDipAngle;        //!< average dip angle cos
+	float maxPenetrLen;      //!< maximum penetration length in rendering
+	float badAreaPercentage; //!< percentage of bad surface area corresponding to radon space analysis
+	unsigned int raysSize;   //!< number of rays
+	std::vector<RayPenetration*> rays; //!<rays' penetrations data
 	std::vector<RayPenetration*> rawPtrRaysVec;
-	std::vector<Intersection*> intersections;///< intersections data
-	unsigned int intersectionsSize;///< number of intersections
-	/**
-	* Clears all statistical data (penetrations and intersectoins data).
-	*/
+	std::vector<Intersection*> intersections; //!< intersections data
+	unsigned int intersectionsSize; //!< number of intersections
+
+	//! Clears all statistical data (penetrations and intersectoins data).
 	void clear()
 	{
 		for (unsigned int i=0; i<rawPtrRaysVec.size(); i++)
@@ -152,10 +136,9 @@ public:
 		intersectionsSize=0;
 		raysSize=0;
 	}
-	/**
-	* Writes all rendering data into binary file by file descriptor.
-	* @param fptr output file descriptor.
-	*/
+	//! Writes all rendering data into binary file by file descriptor.
+	//! @param fptr output file descriptor.
+	//! @param saveAdditionalData if true, write also rays and intersections to file
 	inline void write2BinaryFile(FILE *fptr, bool saveAdditionalData = true)
 	{
 		if(!saveAdditionalData)
@@ -184,5 +167,5 @@ public:
 		return sizeof(float)*10;//skip rotx, roty, rotz, avpenlen, avdipangle, maxpenlen, badAreaPercentage, position//20+4*3
 	}
 protected:
-	unsigned int m_headerSize;//< used when writing to binary file
+	unsigned int m_headerSize; //!< used when writing to binary file
 };

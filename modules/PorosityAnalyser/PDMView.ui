@@ -230,7 +230,6 @@
  </widget>
  <resources>
   <include location="../../core/open_iA.qrc"/>
-  <include location="../../core/open_iA.qrc"/>
  </resources>
  <connections/>
 </ui>

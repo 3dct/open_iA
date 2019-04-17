@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,18 +27,17 @@
 #include "iAFoamCharacterizationItemWatershed.h"
 #include "iAFoamCharacterizationTable.h"
 
-#include "iADockWidgetWrapper.h"
-#include "mdichild.h"
-#include "mainwindow.h"
+#include <mdichild.h>
+#include <mainwindow.h>
+#include <qthelper/iADockWidgetWrapper.h>
 
 #include <vtkImageData.h>
 
-#include <QApplication>
 #include <QFileDialog>
+#include <QGridLayout>
+#include <QGroupBox>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QGroupBox>
-#include <QGridLayout>
 
 iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* _pMainWnd, iAChildData _iaChildData)
 																			  : iAModuleAttachmentToChild(_pMainWnd, _iaChildData)

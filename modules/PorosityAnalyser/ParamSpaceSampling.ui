@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>DialogBox</string>
   </property>
-  <property name="windowIcon">
-   <iconset>
-    <normaloff>../../../../../Users/p41036/.designer/backup/images/ia.png</normaloff>../../../../../Users/p41036/.designer/backup/images/ia.png</iconset>
-  </property>
   <property name="styleSheet">
    <string notr="true"/>
   </property>

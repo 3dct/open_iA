@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -28,7 +28,7 @@ class iARulerRepresentation : public vtkBorderRepresentation
 {
 public:
   vtkTypeMacro(iARulerRepresentation, vtkBorderRepresentation);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
   static iARulerRepresentation *New();
 
   // Description:
@@ -38,19 +38,19 @@ public:
 
   // Description:
   // Satisfy the superclass' API.
-  virtual void BuildRepresentation();
-  virtual void GetSize(double size[2])
+  void BuildRepresentation() override;
+  void GetSize(double size[2]) override
     {size[0]=2.0; size[1]=2.0;}
 
   // Description:
   // These methods are necessary to make this representation behave as
   // a vtkProp.
-  virtual void GetActors2D(vtkPropCollection *collection);
-  virtual void ReleaseGraphicsResources(vtkWindow *window);
-  virtual int RenderOverlay(vtkViewport*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport*);
-  virtual int HasTranslucentPolygonalGeometry();
+  void GetActors2D(vtkPropCollection *collection) override;
+  void ReleaseGraphicsResources(vtkWindow *window) override;
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+  int HasTranslucentPolygonalGeometry() override;
 
 protected:
   iARulerRepresentation();

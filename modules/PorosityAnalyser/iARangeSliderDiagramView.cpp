@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,10 +26,10 @@
 
 #include <vtkIdTypeArray.h>
 
-#include <QTableWidget>
 #include <QComboBox>
-#include <QLabel>
 #include <QFrame>
+#include <QLabel>
+#include <QTableWidget>
 
 iARangeSliderDiagramView::iARangeSliderDiagramView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: RangeSliderDiagramViewConnector( parent, f ), 
@@ -285,7 +285,7 @@ void iARangeSliderDiagramView::setupHistogram()
 	m_rangeSliderData = QSharedPointer<iARangeSliderDiagramData>( new iARangeSliderDiagramData( binList, 0.0, 99.9 ) );
 	m_rangeSliderData->updateRangeSliderFunction();
 
-	m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphDrawer>( new iABarGraphDrawer( m_rangeSliderData, QColor(70, 70, 70, 255)) );
+	m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>( new iABarGraphPlot( m_rangeSliderData, QColor(70, 70, 70, 255)) );
 	vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 	// Adds two end points to set up a propper transfer function
@@ -299,7 +299,7 @@ void iARangeSliderDiagramView::setupHistogram()
 	iARangeSliderDiagramWidget *rangeSliderDiagramWidget = new iARangeSliderDiagramWidget( dynamic_cast<QWidget*> ( parent() ), NULL, m_oTFList.at( 0 ),
 													 m_cTFList.at( 0 ), m_rangeSliderData, &m_histogramMap, m_rawTable,"Porosity", "Frequency" );
 
-	rangeSliderDiagramWidget->AddPlot( m_rangeSliderDiagramDrawer );
+	rangeSliderDiagramWidget->addPlot( m_rangeSliderDiagramDrawer );
 	m_widgetList.append( rangeSliderDiagramWidget );
 	m_layoutVBMainContainer->addWidget( rangeSliderDiagramWidget );
 }
@@ -329,7 +329,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 
 		m_rangeSliderData->updateRangeSliderFunction();
 
-		m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphDrawer>( new iABarGraphDrawer( m_rangeSliderData, QColor(70, 70, 70, 255)) );
+		m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>( new iABarGraphPlot( m_rangeSliderData, QColor(70, 70, 70, 255)) );
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();;
 		// Adds two end points to set up a propper transfer function
@@ -348,7 +348,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 		connect( m_widgetList[0], SIGNAL( deselected() ), rangeSliderDiagramWidget, SLOT( deleteSlot() ) );
 		connect( rangeSliderDiagramWidget, SIGNAL( selectionRelesedSignal() ), this, SLOT( loadSelectionToSPMView() ) );
 
-		rangeSliderDiagramWidget->AddPlot( m_rangeSliderDiagramDrawer );
+		rangeSliderDiagramWidget->addPlot( m_rangeSliderDiagramDrawer );
 		m_widgetList.append( rangeSliderDiagramWidget );
 		m_layoutVBMainContainer->addWidget( rangeSliderDiagramWidget );
 	}

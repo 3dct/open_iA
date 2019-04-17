@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,30 +20,21 @@
 * ************************************************************************************/
 #include "../include/STLLoader.h"
 #include "../../dreamcaster.h"
-#include <fstream>
+
+#include <io/iAFileUtils.h>
+
 #include <vtksys/SystemTools.hxx>
 
+#include <QString>
+
+#include <fstream>
+
 extern DreamCaster * dcast;
-
-/*std::vector<triangle*>		stlMesh; ///< loaded mesh's triangles vector
-std::vector<iAVec3*>		vertices;///< loaded mesh's vertices vector
-float scale_coef;///< loaded mesh's scale coefficient
-float translate3f[3];///< loaded mesh's axes offsets
-aabb box;///< loaded mesh's AABB*/
-
-/*std::vector<triangle*>& getLoadedMesh(){return stlMesh;}
-std::vector<iAVec3*>& getLoadedVertices(){return vertices;}
-aabb& getBBox()
-{
-	return box;
-}
-float getScaleCoef(void) {return scale_coef;}
-float* getTranslate(void) {return translate3f;}*/
 
 #define BINARY_FILE 0
 #define ASCII_FILE 1
 
-inline void computeBBox(std::vector<triangle*> & stlMesh, std::vector<iAVec3*> & vertices, aabb & box, float & scale_coef, float * translate3f)
+inline void computeBBox(std::vector<triangle*> & stlMesh, std::vector<iAVec3f*> & vertices, aabb & box, float & scale_coef, float * translate3f)
 {
 	float x1=vertices[0]->operator[](0), x2=vertices[0]->operator[](0),\
 		  y1=vertices[0]->operator[](1), y2=vertices[0]->operator[](1),\
@@ -108,11 +99,8 @@ inline void computeBBox(std::vector<triangle*> & stlMesh, std::vector<iAVec3*> &
 	eps = 0.15f/dcast->stngs.SCALE_COEF;
 	box.setData(x1-eps,x2+eps,y1-eps,y2+eps,z1-eps,z2+eps);
 }
-/**	\class Tri.
-	\brief Structure representing triangle of stl file.
 
-	Just a container. Nothing special. Contains data about triangle's normal and 3 vetrices.	
-*/
+//! Structure representing triangle of stl file. Just a container. Nothing special. Contains data about triangle's normal and 3 vetrices.
 struct Tri
 {
 	float normal1;
@@ -124,7 +112,7 @@ struct Tri
 	float vertex3X;        float vertex3Y;        float vertex3Z;
 };
 
-int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3*> & vertices, aabb & box)
+int readSTLFile(QString const & filename, std::vector<triangle*> & stlMesh, std::vector<iAVec3f*> & vertices, aabb & box)
 {
 	float scale_coef;///< loaded mesh's scale coefficient
 	float translate3f[3];///< loaded mesh's axes offsets
@@ -132,7 +120,7 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 	//clear prev model data
 	for (unsigned int i=0; i<vertices.size(); i++)
 	{
-		iAVec3* vert = vertices[i];
+		iAVec3f* vert = vertices[i];
 		if(vert) 
 			delete vert;
 	}
@@ -145,20 +133,18 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 	}
 	stlMesh.clear();
 	//
-	if( !filename.empty() )
-		reader.open( filename.c_str() );
+	if( !filename.isEmpty() )
+		reader.open( getLocalEncodingFileName(filename).c_str() );
 	else
 	{
-		printf("Error! Cannot open an .STL file.\n");
-		dcast->log("Error! Cannot open an .STL file.");
+		dcast->log("Error! Cannot open .STL file, no file name given.");
 		return 1;
 	}
 		
 	// safety check to ensure that the file pointer opened is valid
 	if (!reader.is_open())
 	{
-		printf("Error! Cannot open an .STL file.\n");
-		dcast->log("Error! Cannot open an .STL file.");
+		dcast->log(QString("Error! Opening .STL file %1 failed.").arg(filename));
 		return 2; 
 	}
 
@@ -197,15 +183,12 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 	// and 1 for the normals.
 	// also have a string to indentify the keyword
 	std::string name;
-	//cVector dummy1, dummy2, dummy3;
-	//vector3 v1, v2;
-	// THE CODE IN THIS IF READS THE ASCII FILE
 	triangle*	copy;
 
 	//Determine the type of the file
 	int type;
 	vtksys::SystemTools::FileTypeEnum ft =
-		vtksys::SystemTools::DetectFileType(filename.c_str());
+		vtksys::SystemTools::DetectFileType(getLocalEncodingFileName(filename).c_str());
 	switch(ft)
 	{
 	case vtksys::SystemTools::FileTypeBinary:
@@ -220,7 +203,7 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 	// text file
 	if (type == ASCII_FILE)
 	{	
-		iAVec3 helper_vec3;
+		iAVec3f helper_vec3;
 		for(unsigned int i = 0; i < Word.size(); i++)
 		{
 			if(Word[i] == "solid")
@@ -232,20 +215,17 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 				// create a fresh pointer to triangle
 				copy = new triangle;
 
-				//copy->m_N = iAVec3( (float)atof(Word[i+2].c_str()),					// THIS NORMAL CAN BE WRONG :)
-				//				  (float)atof(Word[i+3].c_str()),
-				//				  (float)atof(Word[i+4].c_str()) );
-				copy->vertices[0] = new iAVec3((float)atof(Word[i+8].c_str()),
+				copy->vertices[0] = new iAVec3f((float)atof(Word[i+8].c_str()),
 											(float)atof(Word[i+9].c_str()),
 											(float)atof(Word[i+10].c_str())	);
 				vertices.push_back(copy->vertices[0]);
 
-				copy->vertices[1] = new iAVec3((float)atof(Word[i+12].c_str()),
+				copy->vertices[1] = new iAVec3f((float)atof(Word[i+12].c_str()),
 											(float)atof(Word[i+13].c_str()),
 											(float)atof(Word[i+14].c_str())	);
 				vertices.push_back(copy->vertices[1]);
 
-				copy->vertices[2] = new iAVec3((float)atof(Word[i+16].c_str()),
+				copy->vertices[2] = new iAVec3f((float)atof(Word[i+16].c_str()),
 											(float)atof(Word[i+17].c_str()),
 											(float)atof(Word[i+18].c_str())	);
 				vertices.push_back(copy->vertices[2]);
@@ -253,9 +233,8 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 				// IN THE FOLLOWINGF LINES OF CODE WE REEVALUATE THE NORMAL AS THE ABOVE NORMAL IS PROBLEM SOME
 				copy->N =  (*copy->vertices[2]-*copy->vertices[1])
 					        ^(*copy->vertices[0]-*copy->vertices[2]);
-				normalize(copy->N);// RESETTING THE NORMAL HERE
-	
-				//counter++;
+				copy->N.normalize();// RESETTING THE NORMAL HERE
+
 				stlMesh.push_back( copy );
 			}
 		}
@@ -270,20 +249,18 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 	else
 	{
 		struct Tri item;
-		FILE *fptr = fopen(filename.c_str(),"rb");
+		FILE *fptr = fopen(getLocalEncodingFileName(filename).c_str(),"rb");
 		if(!fptr)	return 1;
 		unsigned char header[80];
 		if (fread(&header, sizeof(char), 80, fptr) != 80)
 		{
-			printf("Error! Cannot read .STL file header.\n");
-			dcast->log("Error! Cannot read .STL file header.\n");
+			dcast->log(QString("Error! Cannot read .STL file header of %1.\n").arg(filename));
 			return 4;
 		}
 		unsigned long noOfFacets;
 		if (fread(&noOfFacets, sizeof(unsigned long), 1, fptr) != 1)
 		{
-			printf("Error! Cannot read .STL file header.\n");
-			dcast->log("Error! Cannot read .STL file header.\n");
+			dcast->log(QString("Error! Cannot read .STL file header of %1.\n").arg(filename));
 			return 4;
 		}
 
@@ -295,32 +272,30 @@ int readSTLFile(std::string filename, std::vector<triangle*> & stlMesh, std::vec
 			if ((fread(&item,sizeof(item),1,fptr) != 1) ||				// reads triangle
 				(fread(&zero,sizeof(unsigned short),1,fptr) != 1))		// reads an unsigned short present after every triangle
 			{
-				printf("Error! Problem reading .STL file content.\n");
-				dcast->log("Error! Cannot read .STL file content.\n");
+				dcast->log(QString("Error! Cannot read .STL file content of %1.\n").arg(filename));
 				return 4;
 			}
 
 			copy = new triangle;
 
-			copy->N = iAVec3(item.normal1, item.normal2, item.normal3 );
+			copy->N = iAVec3f(item.normal1, item.normal2, item.normal3 );
 
-			iAVec3 helper_vec3;
-			helper_vec3 = iAVec3(item.vertex1X, item.vertex1Y, item.vertex1Z );
-			copy->vertices[0] = new iAVec3(helper_vec3);
+			iAVec3f helper_vec3(item.vertex1X, item.vertex1Y, item.vertex1Z );
+			copy->vertices[0] = new iAVec3f(helper_vec3);
 			vertices.push_back(copy->vertices[0]);
 			
-			helper_vec3 = iAVec3(item.vertex2X, item.vertex2Y, item.vertex2Z );
-			copy->vertices[1] = new iAVec3(helper_vec3);
+			helper_vec3 = iAVec3f(item.vertex2X, item.vertex2Y, item.vertex2Z );
+			copy->vertices[1] = new iAVec3f(helper_vec3);
 			vertices.push_back(copy->vertices[1]);
 
-			helper_vec3 = iAVec3(item.vertex3X, item.vertex3Y, item.vertex3Z );
-			copy->vertices[2] = new iAVec3(helper_vec3);
+			helper_vec3 = iAVec3f(item.vertex3X, item.vertex3Y, item.vertex3Z );
+			copy->vertices[2] = new iAVec3f(helper_vec3);
 			vertices.push_back(copy->vertices[2]);
 			
 			// RESETTING THE NORMAL HERE
 			copy->N =  (*copy->vertices[2]-*copy->vertices[1])
 						^(*copy->vertices[0]-*copy->vertices[2]);
-			normalize(copy->N);
+			copy->N.normalize();
 
 			count++;
 

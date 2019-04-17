@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,24 +20,25 @@
 * ************************************************************************************/
 #include "iAPCView.h"
 
-#include "iAQtVTKBindings.h"
+#include <iAQtVTKBindings.h>
+#include <iAVtkWidget.h>
 
-#include <QTableWidget>
-
-#include <QVTKWidget.h>
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkChartParallelCoordinates.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkPlot.h>
 #include <vtkRenderWindow.h>
 #include <vtkTable.h>
-#include <vtkPlot.h>
+
+#include <QTableWidget>
 
 iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: PCViewConnector( parent, f ),
 	m_view( vtkSmartPointer<vtkContextView>::New() ),
-	m_chart( vtkSmartPointer<vtkChartParallelCoordinates>::New() ),
-	m_widget( new QVTKWidget( this ) )
+	m_chart( vtkSmartPointer<vtkChartParallelCoordinates>::New() )
 {
+	CREATE_OLDVTKWIDGET(m_widget);
 	QHBoxLayout *layoutHB = new QHBoxLayout( this );
 	layoutHB->setMargin( 0 );
 	layoutHB->addWidget( m_widget );

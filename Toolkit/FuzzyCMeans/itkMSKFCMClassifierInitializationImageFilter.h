@@ -172,7 +172,7 @@ public:
    * used for centroids calculations. This method also sets the size of the
    * vector of old centroids and the length of the vector of the temporary
    * membership matrix.*/
-  void SetNumberOfClasses(const unsigned int &numOfClasses);
+  void SetNumberOfClasses(const unsigned int &numOfClasses) override;
 
   /** Get the exponent p that controls the relevance of the memberships
    * in the second step of the algorithm (when the spatial information is
@@ -207,7 +207,7 @@ public:
 
   /** Set the input image of this process object. This method calls
    * Superclass::SetInput() and allocates the temporary membership image. */
-  virtual void SetInput(const InputImageType *input);
+  void SetInput(const InputImageType *input) override;
 
 
   /** Set the structuring element to be used in the shaped neighborhood iterator. */
@@ -224,12 +224,12 @@ protected:
 
   /** Write the name-value pairs of the class data members to the supplied
    * output stream. */
-  void PrintSelf(std::ostream &os, Indent indent) const;
+  void PrintSelf(std::ostream &os, Indent indent) const override;
 
 
   /** Initialize the barrier used for synchronizing the execution of
    * threads. */
-  virtual void Initialize();
+  void Initialize() override;
 
   /** MSKFCMClassifierInitializationImageFilter is implemented as a
    * multithreaded filter and needs to perform processing after the output
@@ -238,7 +238,7 @@ protected:
    * method is executed once per iteration of the MSKFCM algorithm and will
    * store the old values of the centroids and initialize some variables used
    * internally. */
-  void BeforeThreadedGenerateData();
+  void BeforeThreadedGenerateData() override;
 
   /** MSKFCMClassifierInitializationImageFilter is implemented as a
    * multithreaded filter. Therefore, this implementation provides a
@@ -255,7 +255,7 @@ protected:
   typedef int ThreadIdType;
 #endif
   void ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
-                             ThreadIdType threadId );
+                             ThreadIdType threadId ) override;
 
   /** MSKFCMClassifierInitializationImageFilter is implemented as a
    * multithreaded filter and needs to perform processing after all processing
@@ -263,7 +263,7 @@ protected:
    * AfterThreadedGenerateData() method. This method is executed once per
    * iteration of the MSKFCM algorithm and will update the centroids and
    * calculate the error. */
-  void AfterThreadedGenerateData();
+  void AfterThreadedGenerateData() override;
 
 
   /** Exponent that controls the relevance of the memberships in the second

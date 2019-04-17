@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,17 +20,21 @@
 * ************************************************************************************/
 #include "QVTKWidgetMouseReleaseWorkaround.h"
 
+QVTKWidgetMouseReleaseWorkaround::QVTKWidgetMouseReleaseWorkaround(QWidget* parent, Qt::WindowFlags f)
+	: iAVtkOldWidget(parent, f)
+{}
+
 void QVTKWidgetMouseReleaseWorkaround::mouseReleaseEvent( QMouseEvent * event )
 {
 	if ( Qt::RightButton == event->button() )
 		emit rightButtonReleasedSignal();
 	else if ( Qt::LeftButton == event->button() )
 		emit leftButtonReleasedSignal();
-	QVTKWidget::mouseReleaseEvent(event);
+	iAVtkOldWidget::mouseReleaseEvent(event);
 }
 
 void QVTKWidgetMouseReleaseWorkaround::resizeEvent( QResizeEvent * event )
 {
 	repaint();//less flickering, but resize is less responsive
-	QVTKWidget::resizeEvent(event);
+	iAVtkOldWidget::resizeEvent(event);
 }

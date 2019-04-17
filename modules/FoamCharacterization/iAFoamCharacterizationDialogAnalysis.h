@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -30,22 +30,20 @@ class iAFoamCharacterizationTableAnalysis;
 
 class iAFoamCharacterizationDialogAnalysis : public QDialog
 {
-		Q_OBJECT
-	public:
-		explicit iAFoamCharacterizationDialogAnalysis(vtkImageData* _pImageData, QWidget* _pParent = nullptr);
+	Q_OBJECT
 
-	private:
-		vtkImageData* m_pImageData = nullptr;
+public:
+	explicit iAFoamCharacterizationDialogAnalysis(vtkImageData* _pImageData, QWidget* _pParent = nullptr);
 
-		QLabel* m_pLabel12 = nullptr;
+private:
+	vtkImageData* m_pImageData = nullptr;
+	QLabel* m_pLabel12 = nullptr;
+	iAFoamCharacterizationTableAnalysis* m_pTable = nullptr;
+	void analyse();
 
-		iAFoamCharacterizationTableAnalysis* m_pTable = nullptr;
+private slots:
+	void slotPushButtonOk();
 
-		void analyse();
-
-	private slots:
-		void slotPushButtonOk();
-
-	protected:
-		virtual QSize sizeHint() const override;
+protected:
+	virtual QSize sizeHint() const override;
 };

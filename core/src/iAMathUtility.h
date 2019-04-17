@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,19 +25,8 @@
 #include <cassert>
 #include <cmath>   // for ceil/floor
 #include <cstddef> // for size_t
+#include <limits>  // for std::numeric_limits
 #include <vector>
-
-// consistently define isNaN/isInf:
-#if (defined(_MSC_VER) && _MSC_VER <= 1600)
-	#define isNaN(x) _isnan(x)
-	#define isInf(x) (!_finite(x))
-#elif (defined(__GNUG__))
-	#define isNaN(x) std::isnan(x)
-	#define isInf(x) std::isinf(x)
-#else
-	#define isNaN(x) isnan(x)
-	#define isInf(x) isinf(x)
-#endif
 
 /**
  * make sure the given value is inside the given interval
@@ -73,7 +62,7 @@ double mapToNorm(SrcType const minSrcVal, SrcType const maxSrcVal, SrcType const
 		return 0;
 	}
 	double returnVal = static_cast<double>(value - minSrcVal) / range;
-	assert(returnVal >= 0 && returnVal <= 1);
+	//assert(returnVal >= 0 && returnVal <= 1);
 	return clamp(0.0, 1.0, returnVal);
 }
 
@@ -174,14 +163,46 @@ inline T linterp(const T a, const T b, const T t)
 	return a + (b - a)*t;
 }
 
+typedef std::vector<double> FuncType;
 
+//! compute Gaussian function for the given value x and parameter sigma (mean = 0)
 open_iA_Core_API double gaussian(double x, double sigma);
 
-open_iA_Core_API std::vector<double> gaussianKernel(double kernelSigma, size_t kernelSteps);
+//! compute a gaussian kernel with the given sigma (mean = 0)
+open_iA_Core_API FuncType gaussianKernel(double kernelSigma, size_t kernelSteps);
 
 //! convolutes the given function with a Gaussian kernel with the given sigma and steps
-//! TODO: steps could be  calculated from sigma (cut off kernel when factor gets very small
-open_iA_Core_API std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSigma, int kernelSteps);
+//! TODO: number of steps could be calculated from sigma (cut off kernel when factor gets very small)
+open_iA_Core_API FuncType gaussianSmoothing(FuncType const & data, double kernelSigma, int kernelSteps);
 
+//! calculate first derivative of a given function
+open_iA_Core_API FuncType derivative(FuncType const & func);
 
-open_iA_Core_API std::vector<double> derivative(std::vector<double> func);
+//! compute the mean of a function
+open_iA_Core_API double mean(FuncType const & func);
+
+//! compute the variation of a function. mean can be given (to improve speed)
+open_iA_Core_API double variance(FuncType const & func, double meanVal = std::numeric_limits<double>::infinity(), bool correctDF = true);
+
+//! compute the standard deviation of a function. mean can be given (to improve speed)
+open_iA_Core_API double standardDeviation(FuncType const & func, double meanVal = std::numeric_limits<double>::infinity(), bool correctDF = true);
+
+//! compute covariance between two functions
+open_iA_Core_API double covariance(FuncType const & func1, FuncType const & func2,
+	double mean1 = std::numeric_limits<double>::infinity(), double mean2 = std::numeric_limits<double>::infinity(), bool correctDF = true);
+
+//! calculate the Pearson's correlation coefficient between two functions
+open_iA_Core_API double pearsonsCorrelationCoefficient(FuncType const & func1, FuncType const & func2);
+
+//! checks whether two boolean values are equal, given a certain tolerance:
+//! inspired by https://stackoverflow.com/a/41405501/671366
+template <typename RealType>
+bool dblApproxEqual(RealType a, RealType b, RealType tolerance = std::numeric_limits<RealType>::epsilon())
+{
+	RealType diff = std::abs(a-b);
+	return diff < tolerance;
+	//if (diff < tolerance)
+	// return true;
+	// TODO: Test!
+	//return ((a>1 || b>1) && (diff < std::max(std::fabs(a), std::abs(b)) * tolerance));
+}

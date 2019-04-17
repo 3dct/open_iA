@@ -11,13 +11,21 @@ QT5_ADD_RESOURCES( open_iA_core_SRCS ${open_iA_core_QRC} )
 
 SET (LIB_TYPE SHARED)
 
+#get_cmake_property(_variableNames VARIABLES)
+#foreach (_variableName ${_variableNames})
+#    message(STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
+
 # Generate core dll file / shared object:
 add_library(${CORE_LIBRARY_NAME} ${LIB_TYPE} ${open_iA_core_SRCS} ${open_iA_core_QRC} )
 TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${QT_LIBRARIES} ${VTK_LIBRARIES} ${ITK_LIBRARIES})
 IF (HDF5_FOUND)
-	MESSAGE(STATUS "HDF5 found, enabling HDF5 support in open_iA core!")
+	# as HDF5 is required only in core, we could link privately, but under Linux this leads
+	# to gui and cmd also requiring linking to it separately, it's easier to link PUBLIC here:
 	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${HDF5_LIBRARY})
-	ADD_DEFINITIONS(-DH5_BUILT_AS_DYNAMIC_LIB -DUSE_HDF5)
+	# make sure HDF5 is included before itk (which brings its own hdf5 libraries in a different version):
+	TARGET_INCLUDE_DIRECTORIES(${CORE_LIBRARY_NAME} BEFORE PRIVATE ${HDF5_INCLUDE_DIR})
+	ADD_DEFINITIONS(-DUSE_HDF5)
 ENDIF()
 IF (WIN32)
 	# apparently required for VS 2015, and doesn't hurt for VS2013:
@@ -42,7 +50,7 @@ MODULE_GENERATE_EXPORT_HEADER ( ${CORE_LIBRARY_NAME} )
 
 TARGET_INCLUDE_DIRECTORIES(${CORE_LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
-IF (USE_COTIRE)
+IF (openiA_USE_COTIRE)
 	cotire(${CORE_LIBRARY_NAME})
 ENDIF()
 
@@ -52,18 +60,21 @@ IF (BUILD_TESTING)
 	TARGET_LINK_LIBRARIES(StringHelperTest PRIVATE ${QT_LIBRARIES})
 	target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME StringHelperTest COMMAND StringHelperTest)
-	SET_PROPERTY(TARGET StringHelperTest PROPERTY FOLDER "Tests")
+	
+	IF (openiA_USE_IDE_FOLDERS)
+		SET_PROPERTY(TARGET StringHelperTest PROPERTY FOLDER "Tests")
+	ENDIF()
 
-	IF (USE_COTIRE)
+	IF (openiA_USE_COTIRE)
 		cotire(StringHelperTest)
 	ENDIF()
-ENDIF (BUILD_TESTING)
+ENDIF()
 
 # Compiler Flags
 IF (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 ENDIF ()
-IF (CMAKE_COMPILER_IS_GNUCXX)
+IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	# see Ulrich Drepper - How to write Shared Libraries
 	#   - fPIC vs. fpic
 	#   - why fvisibility=hidden
@@ -77,6 +88,8 @@ ENDIF()
 # Installation
 IF (WIN32)
 	INSTALL (TARGETS ${CORE_LIBRARY_NAME} RUNTIME DESTINATION .)
+ELSEIF (FLATPAK_BUILD)
+	INSTALL (TARGETS ${CORE_LIBRARY_NAME} LIBRARY DESTINATION lib)
 ELSE ()
 	INSTALL (TARGETS ${CORE_LIBRARY_NAME} LIBRARY DESTINATION .)
 ENDIF(WIN32)

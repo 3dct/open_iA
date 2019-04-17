@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -31,85 +31,85 @@ class iAFoamCharacterizationTable;
 
 class iAFoamCharacterizationItem : public QObject, public QTableWidgetItem
 {
-		Q_OBJECT
+	Q_OBJECT
 
-	public:
-		enum EItemType { itBinarization, itDistanceTransform, itFilter, itWatershed};
+public:
+	enum EItemType { itBinarization, itDistanceTransform, itFilter, itWatershed};
 
-	public:
-		explicit iAFoamCharacterizationItem ( iAFoamCharacterizationTable* _pTable
-										    , vtkImageData* _pImageData, const EItemType& _eItemType
-											);
+public:
+	explicit iAFoamCharacterizationItem ( iAFoamCharacterizationTable* _pTable
+										, vtkImageData* _pImageData, const EItemType& _eItemType
+										);
 
-		explicit iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem);
-		virtual ~iAFoamCharacterizationItem();
+	explicit iAFoamCharacterizationItem(iAFoamCharacterizationItem* _pItem);
+	virtual ~iAFoamCharacterizationItem();
 
-		double executeTime() const;
-		bool executing() const;
+	double executeTime() const;
+	bool executing() const;
 
-		QString executeTimeString() const;
+	QString executeTimeString() const;
 
-		vtkImageData* imageData() const;
+	vtkImageData* imageData() const;
 
-		QIcon itemButtonIcon() const;
+	QIcon itemButtonIcon() const;
 
-		bool itemEnabled() const;
+	bool itemEnabled() const;
 
-		QColor itemIconColor() const;
+	QColor itemIconColor() const;
 
-		EItemType itemType() const;
-		QString itemTypeStr() const;
+	EItemType itemType() const;
+	QString itemTypeStr() const;
 
-		bool modified() const;
+	bool modified() const;
 
-		QString name() const;
+	QString name() const;
 
-		int progress() const;
+	int progress() const;
 
-		void reset();
-		void setItemEnabled(const bool& _bEnabled);
-		void setModified(const bool& _bModified);
-		void setName(const QString& _sName);
+	void reset();
+	void setItemEnabled(const bool& _bEnabled);
+	void setModified(const bool& _bModified);
+	void setName(const QString& _sName);
 
-		iAFoamCharacterizationTable* table();
+	iAFoamCharacterizationTable* table();
 
-		virtual void dialog() = 0;
-		virtual void execute() = 0;
-		virtual void open(QFile* _pFileOpen) = 0;
-		virtual void save(QFile* _pFileSave) = 0;
+	virtual void dialog() = 0;
+	virtual void execute() = 0;
+	virtual void open(QFile* _pFileOpen) = 0;
+	virtual void save(QFile* _pFileSave) = 0;
 
-	private:
-		bool m_bExecuting = false;
+private:
+	bool m_bExecuting = false;
 
-		QColor m_cItemIcon = Qt::black;
+	QColor m_cItemIcon = Qt::black;
 
-		int m_iProgress = 0;
+	int m_iProgress = 0;
 
-		void setItemIcon();
-		void setItemIconColor();
+	void setItemIcon();
+	void setItemIconColor();
 
-	protected:
-		bool m_bItemEnabled = true;
-		bool m_bModified = false;
+protected:
+	bool m_bItemEnabled = true;
+	bool m_bModified = false;
 
-		double m_dExecuteTime = 0.0;
+	double m_dExecuteTime = 0.0;
 
-		iAFoamCharacterizationTable* m_pTable = nullptr;
+	iAFoamCharacterizationTable* m_pTable = nullptr;
 
-		EItemType m_eItemType = itFilter;
+	EItemType m_eItemType = itFilter;
 
-		QString m_sName;
+	QString m_sName;
 
-		vtkImageData* m_pImageData = nullptr;
+	vtkImageData* m_pImageData = nullptr;
 
-		QString fileRead(QFile* _pFileOpen);
-		void fileWrite(QFile* _pFileSave, const QString& _sText);
+	QString fileRead(QFile* _pFileOpen);
+	void fileWrite(QFile* _pFileSave, const QString& _sText);
 
-		void setExecuting(const bool& _bExecuting);
-		void setProgress(const unsigned int& _uiProgress);
+	void setExecuting(const bool& _bExecuting);
+	void setProgress(const unsigned int& _uiProgress);
 
-		virtual void setItemText();
+	virtual void setItemText();
 
-	protected slots:
-		void slotObserver(const int&);
+protected slots:
+	void slotObserver(const int&);
 };

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,9 @@
 #pragma once
 
 #include "ui_PDMView.h"
-#include "iAQTtoUIConnector.h"
+
+#include <iAVtkWidgetFwd.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
@@ -29,23 +31,21 @@
 #include <QList>
 #include <QMap>
 
-
 struct iABPMData;
 struct iAHMData;
 
-class QModelIndex;
-class QVTKWidget;
 class QCustomPlot;
-class vtkRenderer;
+class QModelIndex;
+
 class vtkChartBox;
 class vtkContextView;
 class vtkLookupTable;
-class vtkScalarBarActor;
 class vtkRenderer;
+class vtkScalarBarActor;
+
 struct iABoxPlotData;
 struct iAHistogramPlotData;
 class iAPDMSettings;
-class QVTKWidget;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_PDMView>  PorosityAnalyzerPDMConnector;
 
@@ -56,6 +56,7 @@ class iAPDMView : public PorosityAnalyzerPDMConnector
 public:
 	iAPDMView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iAPDMView();
+
 	QModelIndexList SelectedIndices() const { return m_selectedIndices; }
 
 public slots:
@@ -89,8 +90,7 @@ protected:
 	const QMap<QString, double> * m_gtPorosityMap;
 	QMap<QObject*, QModelIndex> m_indices;
 	QModelIndexList m_selectedIndices;
-
-	QVTKWidget * m_sbWiget;
+	iAVtkOldWidget * m_sbWidget;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;

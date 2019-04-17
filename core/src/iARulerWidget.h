@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -30,7 +30,7 @@ class iARulerWidget : public vtkBorderWidget
 public:
   static iARulerWidget *New();
   vtkTypeMacro(iARulerWidget, vtkBorderWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   // Description:
   // Specify an instance of vtkWidgetRepresentation used to represent this
@@ -56,8 +56,8 @@ public:
   vtkBooleanMacro(Repositionable, int);
 
   // Description:
-  // Create the default widget representation if one is not set. 
-  virtual void CreateDefaultRepresentation();
+  // Create the default widget representation if one is not set.
+  void CreateDefaultRepresentation() override;
 
 protected:
   iARulerWidget();
@@ -69,7 +69,7 @@ protected:
   static void MoveAction(vtkAbstractWidget*);
 
   // set the cursor to the correct shape based on State argument
-  virtual void SetCursor(int State);
+  void SetCursor(int State) override;
 
 private:
   iARulerWidget(const iARulerWidget&);  //Not implemented

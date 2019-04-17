@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -30,7 +30,6 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRendererCollection.h>
-#include <vtkRenderWindow.h>
 #include <vtkSmartVolumeMapper.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
@@ -85,9 +84,13 @@ void iAVolumeRenderer::SetImage(iATransferFunction * transfer, vtkSmartPointer<v
 	}
 	else
 	{
-		volProp->SetScalarOpacityUnitDistance(imgData->GetSpacing()[0]);
-		volProp->SetColor(0, transfer->GetColorFunction());
-		volProp->SetScalarOpacity(0, transfer->GetOpacityFunction());
+		if (m_VolSettings.ScalarOpacityUnitDistance < 0)
+		{
+			m_VolSettings.ScalarOpacityUnitDistance = imgData->GetSpacing()[0];
+			volProp->SetScalarOpacityUnitDistance(imgData->GetSpacing()[0]);
+		}
+		volProp->SetColor(0, transfer->getColorFunction());
+		volProp->SetScalarOpacity(0, transfer->getOpacityFunction());
 	}
 	volProp->Modified();
 	outlineFilter->SetInputData(imgData);
@@ -109,14 +112,18 @@ void iAVolumeRenderer::ApplySettings(iAVolumeSettings const & vs)
 {
 	if (m_isFlat)
 		return;
-	m_VolSettings = vs; 
+	m_VolSettings = vs;
 	volProp->SetAmbient(vs.AmbientLighting);
 	volProp->SetDiffuse(vs.DiffuseLighting);
 	volProp->SetSpecular(vs.SpecularLighting);
 	volProp->SetSpecularPower(vs.SpecularPower);
 	volProp->SetInterpolationType(vs.LinearInterpolation);
 	volProp->SetShade(vs.Shading);
-	volMapper->SetRequestedRenderMode(vs.Mode);
+	if (vs.ScalarOpacityUnitDistance > 0)
+		volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
+	else
+		m_VolSettings.ScalarOpacityUnitDistance = volProp->GetScalarOpacityUnitDistance();
+	volMapper->SetRequestedRenderMode(vs.RenderMode);
 #ifdef VTK_OPENGL2_BACKEND
 	volMapper->SetSampleDistance(vs.SampleDistance);
 	volMapper->InteractiveAdjustSampleDistancesOff();
@@ -145,11 +152,11 @@ void iAVolumeRenderer::SetPosition(double* position)
 	outlineActor->SetPosition(position);
 }
 
-void iAVolumeRenderer::AddTo(vtkRenderer* w)
+void iAVolumeRenderer::AddTo(vtkRenderer* r)
 {
 	if (currentRenderer)
 	{
-		if (currentRenderer != w)
+		if (currentRenderer != r)
 		{
 			Remove();
 		}
@@ -160,8 +167,8 @@ void iAVolumeRenderer::AddTo(vtkRenderer* w)
 	}
 	if (m_isFlat)
 		return;
-	w->AddVolume(volume);
-	currentRenderer = w;
+	r->AddVolume(volume);
+	currentRenderer = r;
 }
 
 void iAVolumeRenderer::Remove()

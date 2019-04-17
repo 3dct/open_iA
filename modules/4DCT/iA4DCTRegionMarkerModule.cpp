@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -42,7 +42,7 @@ public:
 	static MouseInteractorStylePP* New( );
 	vtkTypeMacro( MouseInteractorStylePP, vtkInteractorStyleTrackballCamera );
 
-	virtual void OnLeftButtonDown( )
+	void OnLeftButtonDown( ) override
 	{
 		if( m_lCntrlIsPressed && m_rm )
 		{
@@ -59,7 +59,7 @@ public:
 		vtkInteractorStyleTrackballCamera::OnLeftButtonDown( );
 	}
 
-	virtual void OnKeyDown( )
+	void OnKeyDown( ) override
 	{
 		vtkRenderWindowInteractor *rwi = this->Interactor;
 		std::string key = rwi->GetKeySym( );
@@ -71,7 +71,7 @@ public:
 		vtkInteractorStyleTrackballCamera::OnKeyDown( );
 	}
 
-	virtual void OnKeyUp( )
+	void OnKeyUp( ) override
 	{
 		vtkRenderWindowInteractor *rwi = this->Interactor;
 		std::string key = rwi->GetKeySym( );

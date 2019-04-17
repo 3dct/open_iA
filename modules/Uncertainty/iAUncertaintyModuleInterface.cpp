@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,10 +24,10 @@
 #include "iACSVtoMHD.h"
 #include "iAUncertaintyAttachment.h"
 
-#include "iAConsole.h"
-#include "iAFilterRegistry.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include <iAConsole.h>
+#include <iAFilterRegistry.h>
+#include <mainwindow.h>
+#include <mdichild.h>
 
 #include <QFileDialog>
 
@@ -59,7 +59,7 @@ void iAUncertaintyModuleInterface::UncertaintyExploration()
 		tr("Load Ensemble"),
 		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->getFilePath(): QString(),
 		tr("Image Analysis Ensemble (*.iae );;") );
-	if (fileName != "")
+	if (!fileName.isEmpty())
 	{
 		LoadEnsemble(fileName);
 	}
@@ -80,7 +80,6 @@ void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 	m_mdiChild->show();
 	if (!attach->LoadEnsemble(fileName))
 	{
-		delete m_mdiChild;
 		return;
 	}
 }

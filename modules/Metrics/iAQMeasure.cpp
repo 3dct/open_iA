@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,20 +20,20 @@
 * ************************************************************************************/
 #include "iAQMeasure.h"
 
-#include "charts/iAChartWidget.h"
-#include "charts/iADiagramFctWidget.h"
-#include "charts/iASimpleHistogramData.h"
-#include "charts/iAPlotTypes.h"
-#include "iADockWidgetWrapper.h"
-#include "defines.h"    // for DIM
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAMathUtility.h"
-#include "iAProgress.h"
-#include "iAToolsITK.h"
-#include "iAToolsVTK.h"
-#include "iATypedCallHelper.h"
-#include "mdichild.h"
+#include <charts/iAChartWidget.h>
+#include <charts/iADiagramFctWidget.h>
+#include <charts/iASimpleHistogramData.h>
+#include <charts/iAPlotTypes.h>
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAMathUtility.h>
+#include <iAProgress.h>
+#include <iAToolsITK.h>
+#include <iAToolsVTK.h>
+#include <iATypedCallHelper.h>
+#include <mdichild.h>
+#include <qthelper/iADockWidgetWrapper.h>
 
 #include <itkImage.h>
 #include <itkImageToHistogramFilter.h>
@@ -116,7 +116,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	if (filter->m_chart)
 	{
 		auto histoPlotData = iASimpleHistogramData::Create(minVal, maxVal, vecHist, Continuous);
-		filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(histoPlotData, QColor(180, 90, 90, 127))));
+		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(histoPlotData, QColor(180, 90, 90, 127))));
 	}
 
 	double derivSigma = static_cast<double>(binCount) / Kderiv;
@@ -126,7 +126,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	if (filter->m_chart)
 	{
 		auto smoothedHistoPlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHist, Continuous);
-		filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(smoothedHistoPlotData, QColor(90, 180, 90, 127))));
+		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(smoothedHistoPlotData, QColor(90, 180, 90, 127))));
 	}
 
 	// 3. find peaks: (derivative = 0, 2nd deriv. negative)
@@ -135,7 +135,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	if (filter->m_chart)
 	{
 		auto firstDerivPlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedDeriv, Continuous);
-		filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(firstDerivPlotData, QColor(90, 90, 180, 127))));
+		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(firstDerivPlotData, QColor(90, 90, 180, 127))));
 	}
 
 	// peak is at every 0-crossing, so where:
@@ -160,6 +160,9 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		if (peaks.size() < 2)
 		{
 			//DEBUG_LOG(QString("Cannot continue with less than 2 peaks!"));
+			if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
+				filter->AddOutputValue("Histogram-based SNR (highest non-air-peak)", 0);
+			filter->AddOutputValue("Q", 0);
 			return;
 		}
 		numberOfPeaks = peaks.size();
@@ -171,7 +174,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	peaks.resize(numberOfPeaks);		// only consider numberOfPeaks peaks
 	if (filter->m_chart)
 		for (size_t p = 0; p < numberOfPeaks; ++p)
-			filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(peaks[p].first, QColor(90, 180, 90, 182))));
+			filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iASelectedBinPlot(filter->m_chart->plots()[0]->data(), peaks[p].first, QColor(90, 180, 90, 182))));
 
 										// order peaks by index
 	std::sort(peaks.begin(), peaks.end(), [](std::pair<size_t, double> const & a, std::pair<size_t, double> const & b) {
@@ -194,7 +197,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		if (filter->m_chart)
 		{
 			//auto smoothedHisto2PlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHistoMin, Continuous);
-			//filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphDrawer(smoothedHisto2PlotData, QColor(90, 180, 180, 127))));
+			//filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(smoothedHisto2PlotData, QColor(90, 180, 180, 127))));
 		}
 		int minIdx = peaks[m].first;
 		double curMinFreq = peaks[m].second;
@@ -211,7 +214,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		// calculate mean/stddev:
 		getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[m], thresholdIndices[m + 1], mean[m], variance[m]);
 		if (filter->m_chart)
-			filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iASelectedBinDrawer(minIdx, QColor(180, 90, 90, 182))));
+			filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iASelectedBinPlot(filter->m_chart->plots()[0]->data(), minIdx, QColor(180, 90, 90, 182))));
 	}
 	// for last peak we still have to calculate mean and stddev
 	getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[numberOfPeaks - 1], thresholdIndices[numberOfPeaks], mean[numberOfPeaks - 1], variance[numberOfPeaks - 1]);
@@ -247,13 +250,9 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 			highestNonAirPeakIdx = p;
 		}
 	}
-	if (parameters["Signal-to-noise ratio"].toBool())
+	if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
 	{
-		filter->AddOutputValue("Signal-to-noise ratio", mean[highestNonAirPeakIdx] / std::sqrt(variance[highestNonAirPeakIdx]));
-	}
-	if (parameters["Contrast-to-noise ratio"].toBool())
-	{
-		filter->AddOutputValue("Contrast-to-noise ratio", (mean[highestNonAirPeakIdx]- mean[minDistToZeroIdx]) / std::sqrt(variance[highestNonAirPeakIdx]));
+		filter->AddOutputValue("Histogram-based SNR (highest non-air-peak)", mean[highestNonAirPeakIdx] / std::sqrt(variance[highestNonAirPeakIdx]));
 	}
 	if (parameters["Q metric"].toBool())
 	{
@@ -275,6 +274,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 			}
 		}
 		*/
+		/*
 		for (int i = 0; i < mean.size(); ++i)
 		{
 			QString peakName(i == minDistToZeroIdx ? "air" : "highest non-air");
@@ -286,6 +286,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 				filter->AddOutputValue(QString("Max (%1)").arg(peakName), mapValue(static_cast<size_t>(0), binCount, minVal, maxVal, thresholdIndices[i+1]));
 			}
 		}
+		*/
 		double Q = calculateQ(mean[highestNonAirPeakIdx], mean[minDistToZeroIdx], variance[highestNonAirPeakIdx], variance[minDistToZeroIdx]);
 		filter->AddOutputValue("Q", Q);
 	}
@@ -309,6 +310,12 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 
 	int const * dim = floatImage->GetDimensions();
 	double const * range = floatImage->GetScalarRange();
+	if (range[0] == range[1])
+	{
+		filter->AddOutputValue("Q (orig, equ 0)", 0);
+		filter->AddOutputValue("Q (orig, equ 1)", 0);
+		return;
+	}
 	float* fImage = static_cast<float*>(floatImage->GetScalarPointer());
 	cImageHistogram curHist;
 	curHist.CreateHist(fImage, dim[0], dim[1], dim[2],
@@ -325,6 +332,7 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 	filter->AddOutputValue("Q (orig, equ 0)", Q0);
 	filter->AddOutputValue("Q (orig, equ 1)", Q1);
 
+	/*
 	int classNr = 0;
 	for (auto c: classMeasures)
 	{
@@ -339,6 +347,7 @@ void computeOrigQ(iAFilter* filter, vtkSmartPointer<vtkImageData> img, QMap<QStr
 		}
 		++classNr;
 	}
+	*/
 }
 
 
@@ -358,7 +367,7 @@ IAFILTER_CREATE(iAQMeasure)
 
 iAQMeasure::iAQMeasure() :
 	iAFilter("Image Quality", "Metrics",
-		"Computes the Signal-to-noise and Contrast-to-noise ratio as well as the Q metric.<br/>"
+		"Computes the Q metric, as well as optionally a histogram-based Signal-to-noise ratio.<br/>"
 		"For more information on the Q metric, see "
 		"<a href=\"http://www.ndt.net/article/ctc2014/papers/273.pdf\">M. Reiter, D. Weiss, C. Gusenbauer, "
 		"J. Kastner, M. Erler, S. Kasperl: Evaluation of a histogram based image quality measure for X-ray "
@@ -373,8 +382,7 @@ iAQMeasure::iAQMeasure() :
 	AddParameter("Size X", Discrete, 1);
 	AddParameter("Size Y", Discrete, 1);
 	AddParameter("Size Z", Discrete, 1);
-	AddParameter("Signal-to-noise ratio", Boolean, true);
-	AddParameter("Contrast-to-noise ratio", Boolean, true);
+	AddParameter("Histogram-based SNR (highest non-air-peak)", Boolean, true);
 	AddParameter("Q metric", Boolean, true);
 	AddParameter("Number of peaks", Discrete, 2, 2);
 	AddParameter("Histogram bin factor"       , Continuous, 0.125, 0.0000001);
@@ -383,9 +391,10 @@ iAQMeasure::iAQMeasure() :
 
 	AddParameter("OrigQ Histogram bins", Discrete, 512, 2);
 
-	AddOutputValue("Signal-to-noise ratio");
-	AddOutputValue("Contrast-to-noise ratio");
+	AddOutputValue("Histogram-based SNR (highest non-air-peak)");
 	AddOutputValue("Q");
+	AddOutputValue("Q (orig, equ 0)");
+	AddOutputValue("Q (orig, equ 1)");
 }
 
 void iAQMeasure::SetupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
@@ -404,4 +413,68 @@ void iAQMeasureRunner::FilterGUIPreparations(QSharedPointer<iAFilter> filter, Md
 	mdiChild->SplitDockWidget(mdiChild->logs, wrapper, Qt::Horizontal);
 	iAQMeasure* qfilter = dynamic_cast<iAQMeasure*>(filter.data());
 	qfilter->SetupDebugGUI(chart, mdiChild);
+}
+
+IAFILTER_CREATE(iASNR)
+
+iASNR::iASNR() :
+	iAFilter("Signal-to-Noise Ratio", "Metrics",
+		"Computes the Signal-to-noise ratio as (mean / stddev) of the given image region.<br/>", 1, 0)
+{
+	AddParameter("Index X", Discrete, 0);
+	AddParameter("Index Y", Discrete, 0);
+	AddParameter("Index Z", Discrete, 0);
+	AddParameter("Size X", Discrete, 1);
+	AddParameter("Size Y", Discrete, 1);
+	AddParameter("Size Z", Discrete, 1);
+	AddOutputValue("Signal-to-Noise Ratio");
+}
+
+void iASNR::PerformWork(QMap<QString, QVariant> const & parameters)
+{
+	size_t size[3], index[3];
+	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
+	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
+	auto extractImg = ExtractImage(Input()[0]->GetITKImage(), index, size);
+	double mean, stddev;
+	getStatistics(extractImg, nullptr, nullptr, &mean, &stddev);
+	AddOutputValue("Signal-to-Noise Ratio", mean / stddev);
+}
+
+IAFILTER_CREATE(iACNR)
+
+iACNR::iACNR() :
+	iAFilter("Contrast-to-Noise Ratio", "Metrics",
+		"Computes the Contrast-to-noise ratio as (mean(region2) - mean(region1)) / stddev(region2).<br/>"
+		"Region 1 should typically contain a homogeneous area of surroundings (air), "
+		"while region 2 should typically contain a homogeneous region of material", 1, 0)
+{
+	AddParameter("Region 1 Index X", Discrete, 0);
+	AddParameter("Region 1 Index Y", Discrete, 0);
+	AddParameter("Region 1 Index Z", Discrete, 0);
+	AddParameter("Region 1 Size X" , Discrete, 1);
+	AddParameter("Region 1 Size Y" , Discrete, 1);
+	AddParameter("Region 1 Size Z" , Discrete, 1);
+	AddParameter("Region 2 Index X", Discrete, 0);
+	AddParameter("Region 2 Index Y", Discrete, 0);
+	AddParameter("Region 2 Index Z", Discrete, 0);
+	AddParameter("Region 2 Size X" , Discrete, 1);
+	AddParameter("Region 2 Size Y" , Discrete, 1);
+	AddParameter("Region 2 Size Z" , Discrete, 1);
+	AddOutputValue("Contrast-to-Noise Ratio");
+}
+
+void iACNR::PerformWork(QMap<QString, QVariant> const & parameters)
+{
+	size_t size[3], index[3];
+	size[0] = parameters["Region 1 Size X"].toUInt(); size[1] = parameters["Region 1 Size Y"].toUInt(); size[2] = parameters["Region 1 Size Z"].toUInt();
+	index[0] = parameters["Region 1 Index X"].toUInt(); index[1] = parameters["Region 1 Index Y"].toUInt(); index[2] = parameters["Region 1 Index Z"].toUInt();
+	auto extractImg1 = ExtractImage(Input()[0]->GetITKImage(), index, size);
+	size[0] = parameters["Region 2 Size X"].toUInt(); size[1] = parameters["Region 2 Size Y"].toUInt(); size[2] = parameters["Region 2 Size Z"].toUInt();
+	index[0] = parameters["Region 2 Index X"].toUInt(); index[1] = parameters["Region 2 Index Y"].toUInt(); index[2] = parameters["Region 2 Index Z"].toUInt();
+	auto extractImg2 = ExtractImage(Input()[0]->GetITKImage(), index, size);
+	double mean1, mean2, stddev2;
+	getStatistics(extractImg1, nullptr, nullptr, &mean1, nullptr);
+	getStatistics(extractImg2, nullptr, nullptr, &mean2, &stddev2);
+	AddOutputValue("Contrast-to-Noise Ratio", (mean2 - mean1) / stddev2);
 }

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -58,9 +58,10 @@ enum IOType
 	VOLUME_STACK_MHD_READER,
 	VOLUME_STACK_VOLSTACK_READER,
 	VOLUME_STACK_VOLSTACK_WRITER,
+	VTK_READER,  //new for VTK Input
 	DCM_READER,
-	DCM_WRITER, 
-	NRRD_READER,
+	DCM_WRITER,
+//	NRRD_READER,     // see iAIOProvider.cpp why this is commented out
 	OIF_READER,
 	AM_READER,
 	AM_WRITER,
@@ -69,11 +70,13 @@ enum IOType
 #ifdef USE_HDF5
 	HDF5_READER,
 #endif
-	HDF5_WRITER
+	HDF5_WRITER,
+	PROJECT_READER,
+	PROJECT_WRITER
 };
 
 const int DefaultMagicLensSize = 120;
-const int MinimumMagicLensSize = 20;
+const int MinimumMagicLensSize = 40;
 const int MaximumMagicLensSize = 8192;
 const int DefaultHistogramBins = 2048;
 

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,45 +20,30 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFramedQVTKWidget2.h"
 #include "open_iA_Core_export.h"
+
+#include <vtkSmartPointer.h>
 
 #include <QContiguousCache>
 #include <QImage>
 
 class QWidget;
-class QVTKWidget2;
 
+class vtkActor2D;
 class vtkCamera;
 class vtkGenericOpenGLRenderWindow;
 class vtkImageActor;
 class vtkImageMapToColors;
 class vtkImageReslice;
+class vtkPolyData;
+class vtkPolyDataMapper2D;
 class vtkProp;
 class vtkRenderer;
 class vtkScalarsToColors;
 class vtkTextActor;
 class vtkWindowToImageFilter;
 
-
-class LensData
-{
-public:
-	LensData();
-	LensData(QWidget * parent, const QGLWidget * shareWidget, Qt::WindowFlags f, bool interpolate, bool enabled);
-
-	iAFramedQVTKWidget2* m_qvtkWidget;
-	vtkSmartPointer<vtkImageMapToColors> m_imageToColors;
-	vtkSmartPointer<vtkImageActor> m_imageActor;
-	vtkSmartPointer<vtkImageMapToColors> m_bgImageToColors;
-	vtkSmartPointer<vtkImageActor> m_bgImageActor;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWnd;
-	vtkSmartPointer<vtkRenderer> m_ren;
-	vtkSmartPointer<vtkCamera> m_cam;
-	vtkSmartPointer<vtkTextActor> m_textActor;
-	int m_offset[2];
-	QRect m_viewedRect;	//rect of the area of data actually displayed using m-lens
-};
+class iALensData;
 
 class open_iA_Core_API iAMagicLens
 {
@@ -66,60 +51,44 @@ public:
 	enum ViewMode{
 		CENTERED,
 		OFFSET,
-		SIDE_BY_SIDE,
 	};
-	static const int OFFSET_MODE_X_OFFSET;
+	static const double DefaultFrameWidth;
+	static const int OffsetModeXOffset;
 
 	iAMagicLens();
-	~iAMagicLens();
-
-	void InitWidget(QWidget * parent = NULL, const QGLWidget * shareWidget=0, Qt::WindowFlags f = 0);
-	void SetGeometry(QRect & rect);
+	void SetRenderWindow(vtkGenericOpenGLRenderWindow* renderWindow);
+	void UpdatePosition(vtkCamera * cam, double const lensPos[3], int const mousePos[2]);
+	void UpdateColors();
+	void AddInput(vtkImageReslice * reslicer, vtkScalarsToColors * cTF, QString const & name);
+	//! shows or hides the magic lens
 	void SetEnabled( bool isEnabled );
-	bool Enabled();
-	void Render();
-	void Frame();
-	void SetScaleCoefficient(double scaleCoefficient);
-	void UpdateCamera(double * focalPt, vtkCamera * cam);
-	void Repaint();
+	bool IsEnabled();
 	void SetViewMode(ViewMode mode);
 	ViewMode GetViewMode() const;
-	QRect GetViewRect() const;
-	int GetCenterSplitOffset() const;
-	int GetSplitOffset() const;
 	void SetLensCount(int count);
-	void AddInput(vtkImageReslice * reslicer, vtkScalarsToColors * cTF,
-		vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF,
-		QString const & name);
-	int GetSize() const;
-	int GetOffset() const;
 	void SetSize(int newSize);
-	void UpdateColors();
+	int GetSize() const;
 	void SetInterpolate(bool on);
 	void SetFrameWidth(qreal frameWidth);
 	qreal GetFrameWidth() const;
 	void SetOpacity(double opacity);
-	double GetOpacity();
-protected:
-	QVector<LensData> m_lenses;
-	double m_scaleCoefficient;
+	double GetOpacity() const;
+	void SetSrcWindowEnabled(bool enabled);
+	void Render();
+private:
+	QVector<QSharedPointer<iALensData>> m_lenses;
 	bool m_isEnabled;
-	ViewMode m_viewMode;
-	QRect m_viewedRect;	//rect of the area of data actually displayed using m-lens
-	float m_splitPosition; //position of the split line in the SIDE_BY_SIDE mode, [0,1]
 	bool m_isInitialized;
 	int m_maxLensCount;
-protected:
-	void SetShowFrame( iAFramedQVTKWidget2::FrameStyle frameStyle );
-private:
 	int m_size;
-	static const int DEFAULT_SIZE;
+	qreal m_frameWidth;
 	bool m_interpolate;
-	QWidget * m_parent;
-	const QGLWidget * m_shareWidget;
-	Qt::WindowFlags m_flags;
+	ViewMode m_viewMode;
+	double m_opacity;
+	vtkGenericOpenGLRenderWindow* m_renderWindow;
+	vtkSmartPointer<vtkPolyData> m_srcWindowData;
+	vtkSmartPointer<vtkPolyDataMapper2D> m_srcWindowMapper;
+	vtkSmartPointer<vtkActor2D> m_srcWindowActor;
+	vtkSmartPointer<vtkRenderer> m_srcWindowRenderer;
 	void UpdateOffset();
-	void UpdateShowFrame();
-	void UpdateLensInput(LensData & l, vtkImageReslice * reslicer, vtkScalarsToColors* cTF,
-		vtkImageReslice * bgReslice, vtkScalarsToColors* bgCTF, QString const & name);
 };

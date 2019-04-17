@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,8 +21,9 @@
 #pragma once
 
 #include "open_iA_Core_export.h"
-// vtk
-#include <QVTKWidget2.h>
+
+#include "iAVtkWidget.h"
+
 #include <vtkSmartPointer.h>
 
 class vtkActor2D;
@@ -30,7 +31,7 @@ class vtkCamera;
 class vtkInteractorStyle;
 class vtkRenderer;
 
-class open_iA_Core_API iAAbstractMagicLensWidget : public QVTKWidget2
+class open_iA_Core_API iAAbstractMagicLensWidget : public iAVtkWidget
 {
 	Q_OBJECT
 public:
@@ -38,35 +39,32 @@ public:
 		CENTERED,
 		OFFSET
 	};
-						iAAbstractMagicLensWidget( QWidget * parent = 0 );
-	virtual				~iAAbstractMagicLensWidget( );
-	void				magicLensOn( );
-	void				magicLensOff( );
-	void				setLensSize( int sizeX, int sizeY );
-	vtkRenderer*		getLensRenderer( );
-	void				setViewMode( ViewMode mode );
-
+	iAAbstractMagicLensWidget( QWidget * parent = 0 );
+	virtual ~iAAbstractMagicLensWidget( );
+	void magicLensOn( );
+	void magicLensOff( );
+	void setLensSize( int sizeX, int sizeY );
+	vtkRenderer* getLensRenderer( );
+	void setViewMode( ViewMode mode );
 	void SetMainRenderWindow(vtkGenericOpenGLRenderWindow* renWin);
-
 
 signals:
 	void MouseMoved( );
 
-
 protected:
-	virtual void		mouseMoveEvent( QMouseEvent * event );
-	virtual void		updateLens( );
-	virtual void		updateGUI( );
-	void				getViewportPoints( double points[4] );
+	void mouseMoveEvent( QMouseEvent * event ) override;
+	virtual void updateLens( );
+	virtual void updateGUI( );
+	void getViewportPoints( double points[4] );
 
-	vtkSmartPointer<vtkRenderer>	m_lensRen;
-	vtkSmartPointer<vtkRenderer>	m_GUIRen;
-	vtkSmartPointer<vtkActor2D>		m_GUIActor;
-	int								m_pos[2];
-	int								m_size[2];
-	double							m_halfSize[2];
-	ViewMode						m_viewMode;
+	vtkSmartPointer<vtkRenderer> m_lensRen;
+	vtkSmartPointer<vtkRenderer> m_GUIRen;
+	vtkSmartPointer<vtkActor2D>  m_GUIActor;
+	int                          m_pos[2];
+	int                          m_size[2];
+	double                       m_halfSize[2];
+	ViewMode                     m_viewMode;
 
 private:
-	static const double				OFFSET_VAL;
+	static const double          OFFSET_VAL;
 };

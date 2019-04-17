@@ -1,0 +1,928 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CsvInput</class>
+ <widget class="QDialog" name="CsvInput">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>901</width>
+    <height>634</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>FeatureScout CSV Data Selection</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
+    <number>4</number>
+   </property>
+   <item>
+    <widget class="QGroupBox" name="grpbox_File">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>CSV File</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="QLineEdit" name="ed_FileName"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_SelectFile">
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="wd_formatSelectionAdvanced" native="true">
+     <layout class="QHBoxLayout" name="layout_FormatSelectionAdvanced">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lbl_FormatSelector">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Format</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cmbbox_Format">
+        <property name="editable">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="cb_AdvancedMode">
+        <property name="text">
+         <string>Advanced Mode (Customize Format)</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="grpbox_Format">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>Format</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <item>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <property name="spacing">
+         <number>4</number>
+        </property>
+        <item row="3" column="1">
+         <widget class="QLabel" name="lbl_SeparatorColumn">
+          <property name="text">
+           <string>Column:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="4">
+         <widget class="QComboBox" name="cmbbox_DecimalSeparator">
+          <property name="editable">
+           <bool>true</bool>
+          </property>
+          <item>
+           <property name="text">
+            <string>.</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>,</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="lbl_Separators">
+          <property name="text">
+           <string>Separators</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3">
+         <widget class="QLabel" name="lbl_SeparatorDecimal">
+          <property name="text">
+           <string>Decimal:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="lbl_VisualizeAs">
+          <property name="text">
+           <string>Visualization:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QLabel" name="lbl_FormatName">
+          <property name="text">
+           <string>Format Name</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2" colspan="3">
+         <widget class="QComboBox" name="cmbbox_Encoding">
+          <item>
+           <property name="text">
+            <string>System</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>UTF-8</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>ISO-8859-1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Windows-1252</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QComboBox" name="cmbbox_ColSeparator">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+          <item>
+           <property name="text">
+            <string>Comma (,)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Semicolon (;)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Tabulator</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="6" column="3" colspan="2">
+         <widget class="QCheckBox" name="cb_ContainsHeader">
+          <property name="text">
+           <string>Contains header</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0" colspan="2">
+         <widget class="QCheckBox" name="cb_AddAutoID">
+          <property name="text">
+           <string>Create ID</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QComboBox" name="cmbbox_ObjectType">
+          <item>
+           <property name="text">
+            <string>Fibers</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Voids</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Other</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="6" column="2">
+         <widget class="QLineEdit" name="ed_col_ID">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="4">
+         <widget class="QLineEdit" name="ed_Spacing">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="2">
+         <widget class="QLabel" name="lbl_Encoding">
+          <property name="text">
+           <string>Encoding</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="4">
+         <widget class="QSpinBox" name="ed_SkipLinesEnd">
+          <property name="maximum">
+           <number>9999999</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QLabel" name="lbl_ObjectType">
+          <property name="text">
+           <string>Object Type</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="2">
+         <widget class="QComboBox" name="cmbbox_Unit">
+          <item>
+           <property name="text">
+            <string>microns</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="4" column="2">
+         <widget class="QSpinBox" name="ed_SkipLinesStart">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>9999999</number>
+          </property>
+          <property name="value">
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2" colspan="3">
+         <widget class="QLineEdit" name="ed_FormatName"/>
+        </item>
+        <item row="4" column="3">
+         <widget class="QLabel" name="lbl_SkipLinesEnd">
+          <property name="text">
+           <string>End:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="2">
+         <widget class="QLabel" name="lbl_Unit">
+          <property name="text">
+           <string>Unit:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="3">
+         <widget class="QLabel" name="lbl_Spacing">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Spacing:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLabel" name="lbl_SkipLinesStart">
+          <property name="text">
+           <string>Start:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="4">
+         <widget class="QComboBox" name="cmbbox_VisualizeAs"/>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="lbl_SkipLines">
+          <property name="text">
+           <string>Skip Lines</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0" colspan="5">
+         <widget class="QWidget" name="widget" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QPushButton" name="btn_SaveFormat">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Save</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_DeleteFormat">
+             <property name="text">
+              <string>Delete</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_ExportFormat">
+             <property name="text">
+              <string>Export</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_ImportFormat">
+             <property name="text">
+              <string>Import</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="grpbox_ColMapping">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="title">
+         <string>Column Mapping</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout">
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
+          <number>4</number>
+         </property>
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <item row="8" column="4">
+          <widget class="QLabel" name="lb_ofsZ">
+           <property name="text">
+            <string>Offset Z:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="3">
+          <widget class="QComboBox" name="cmbbox_col_Length">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="5">
+          <widget class="QComboBox" name="cmbbox_col_Phi">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeLength">
+           <property name="text">
+            <string>Compute Length</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="5">
+          <widget class="QDoubleSpinBox" name="sb_OfsZ"/>
+         </item>
+         <item row="6" column="2">
+          <widget class="QLabel" name="lbl_col_length">
+           <property name="text">
+            <string>Length</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosStartX"/>
+         </item>
+         <item row="2" column="4">
+          <widget class="QLabel" name="lbl_col_theta">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Theta Angle</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="lbl_col_posEndX">
+           <property name="text">
+            <string>End Pos. X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosStartZ"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="lbl_col_posStartY">
+           <property name="text">
+            <string>Start Pos. Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="lbl_col_posStartZ">
+           <property name="text">
+            <string>Start Pos. Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QComboBox" name="cmbbox_col_PosCenterX">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosStartY"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="lbl_col_posStartX">
+           <property name="text">
+            <string>Start Pos. X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLabel" name="lbl_col_posCenterY">
+           <property name="text">
+            <string>Center Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QComboBox" name="cmbbox_col_PosCenterZ">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="lbl_col_posCenterX">
+           <property name="text">
+            <string>Center X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="lbl_col_posEndY">
+           <property name="text">
+            <string>End Pos. Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QLabel" name="lbl_col_posCenterZ">
+           <property name="text">
+            <string>Center Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="5">
+          <widget class="QComboBox" name="cmbbox_col_Theta">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QComboBox" name="cmbbox_col_PosCenterY">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="2">
+          <widget class="QLabel" name="lb_ofsY">
+           <property name="text">
+            <string>Offset Y:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="0">
+          <widget class="QLabel" name="lb_ofsX">
+           <property name="text">
+            <string>Offset X:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4">
+          <widget class="QLabel" name="lbl_col_phi">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Phi Angle</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="3">
+          <widget class="QDoubleSpinBox" name="sb_OfsY"/>
+         </item>
+         <item row="6" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosEndY"/>
+         </item>
+         <item row="4" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosEndX"/>
+         </item>
+         <item row="8" column="1">
+          <widget class="QDoubleSpinBox" name="sb_OfsX"/>
+         </item>
+         <item row="0" column="4" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeAngles">
+           <property name="text">
+            <string>Compute Angles</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1">
+          <widget class="QComboBox" name="cmbbox_col_PosEndZ"/>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeStartEnd">
+           <property name="text">
+            <string>Compute Start/End</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="lbl_col_posEndZ">
+           <property name="text">
+            <string>End Pos. Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeCenter">
+           <property name="text">
+            <string>Compute Center</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="2" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeTensors">
+           <property name="text">
+            <string>Compute Tensors</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="0">
+          <widget class="QLabel" name="lbl_col_dimensionX">
+           <property name="text">
+            <string>Dimension X</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="1">
+          <widget class="QComboBox" name="cmbbox_col_DimensionX"/>
+         </item>
+         <item row="9" column="2">
+          <widget class="QLabel" name="lbl_col_dimensionY">
+           <property name="text">
+            <string>Dimension Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="5">
+          <widget class="QComboBox" name="cmbbox_col_DimensionZ"/>
+         </item>
+         <item row="9" column="3">
+          <widget class="QComboBox" name="cmbbox_col_DimensionY"/>
+         </item>
+         <item row="9" column="4">
+          <widget class="QLabel" name="lbl_col_dimensionZ">
+           <property name="text">
+            <string>Dimension Z</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="4" colspan="2">
+          <widget class="QCheckBox" name="cb_FixedDiameter">
+           <property name="text">
+            <string>Add fixed diameter:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="5">
+          <widget class="QComboBox" name="cmbbox_col_Diameter"/>
+         </item>
+         <item row="6" column="4">
+          <widget class="QLabel" name="lbl_col_diameter">
+           <property name="text">
+            <string>Diameter</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="4" colspan="2">
+          <widget class="QDoubleSpinBox" name="sb_FixedDiameter">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="grpbox_ColSelection">
+        <property name="title">
+         <string> Column selection</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <property name="leftMargin">
+          <number>4</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
+          <number>4</number>
+         </property>
+         <item>
+          <widget class="QListWidget" name="list_ColumnSelection">
+           <property name="selectionMode">
+            <enum>QAbstractItemView::ExtendedSelection</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_ApplyFormatColumnSelection">
+           <property name="text">
+            <string>Apply Format Selection</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="grpbox_Preview">
+     <property name="title">
+      <string>Preview</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="wd_previewControls" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <layout class="QHBoxLayout" name="layout_previewControls">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="lbl_PreviewLines">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Lines:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="sb_PreviewLines">
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>99999</number>
+           </property>
+           <property name="value">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_UpdatePreview">
+           <property name="text">
+            <string>Update Preview</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_ExportTable">
+           <property name="text">
+            <string>Export Table</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="tbl_preview">
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>CsvInput</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1035</x>
+     <y>876</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>269</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

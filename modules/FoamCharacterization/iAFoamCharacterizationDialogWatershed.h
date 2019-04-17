@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -28,17 +28,17 @@ class iAFoamCharacterizationItemWatershed;
 
 class iAFoamCharacterizationDialogWatershed : public iAFoamCharacterizationDialog
 {
-		Q_OBJECT
+	Q_OBJECT
 
-	public:
-		explicit iAFoamCharacterizationDialogWatershed(iAFoamCharacterizationItemWatershed* _pItem, QWidget* _pParent = nullptr);
+public:
+	explicit iAFoamCharacterizationDialogWatershed(iAFoamCharacterizationItemWatershed* _pItem, QWidget* _pParent = nullptr);
 
-	private:
-		iAFoamCharacterizationItemWatershed* m_pItemWatershed = nullptr;
+private:
+	iAFoamCharacterizationItemWatershed* m_pItemWatershed = nullptr;
 
-		QDoubleSpinBox* m_pDoubleSpinBoxLevel = nullptr;
-		QDoubleSpinBox* m_pDoubleSpinBoxTreshold = nullptr;
+	QDoubleSpinBox* m_pDoubleSpinBoxLevel = nullptr;
+	QDoubleSpinBox* m_pDoubleSpinBoxTreshold = nullptr;
 
-	protected slots:
-		virtual void slotPushButtonOk() override;
+protected slots:
+	virtual void slotPushButtonOk() override;
 };

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #include "iAIntensity.h"
 
-#include "defines.h"          // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>          // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iAToolsITK.h>
+#include <iATypedCallHelper.h>
 
 #include <itkAdaptiveHistogramEqualizationImageFilter.h>
 #include <itkAddImageFilter.h>
@@ -339,10 +340,9 @@ template<class T> void addImages(iAFilter* filter)
 
 	auto fusion = AddImageFilter::New();
 	fusion->InPlaceOff();
-	auto img1 = dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage());
-	auto img2 = dynamic_cast<InputImageType *>(filter->Input()[1]->GetITKImage());
-	fusion->SetInput1(img1);
-	fusion->SetInput2(img2);
+	fusion->SetInput1(dynamic_cast<InputImageType *>(filter->Input()[0]->GetITKImage()));
+	auto img2 = CastImageTo<T>(filter->Input()[1]->GetITKImage());
+	fusion->SetInput2(dynamic_cast<InputImageType *>(img2.GetPointer()));
 	filter->Progress()->Observe(fusion);
 	fusion->Update();
 	filter->AddOutput(fusion->GetOutput());
@@ -358,7 +358,7 @@ IAFILTER_CREATE(iAAddFilter)
 iAAddFilter::iAAddFilter() :
 	iAFilter("Add Images", "Intensity",
 		"Adds the intensities at each element of the two given images.<br/>"
-		"Note: The two images must have the same type!<br/>"
+		"Note: The second image will be converted to the pixel type of the first.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AddImageFilter.html\">"
 		"Add Image Filter</a> in the ITK documentation.", 2)
@@ -376,7 +376,8 @@ template<class T> void subtractImages(iAFilter* filter)
 
 	auto subFilter = SubractFilterType::New();
 	subFilter->SetInput1(dynamic_cast< InputImageType * >(filter->Input()[0]->GetITKImage()));
-	subFilter->SetInput2(dynamic_cast< InputImageType * >(filter->Input()[1]->GetITKImage()));
+	auto img2 = CastImageTo<T>(filter->Input()[1]->GetITKImage());
+	subFilter->SetInput2(dynamic_cast<InputImageType *>(img2.GetPointer()));
 	filter->Progress()->Observe(subFilter);
 	subFilter->Update();
 	filter->AddOutput(subFilter->GetOutput());
@@ -392,6 +393,7 @@ IAFILTER_CREATE(iASubtractFilter)
 iASubtractFilter::iASubtractFilter() :
 	iAFilter("Subtract Images", "Intensity",
 		"Subtracts the intensities of the selected <em>Additional Image</em> from the intensities of the active window.<br/>"
+		"Note: The second image will be converted to the pixel type of the first.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SubtractImageFilter.html\">"
 		"Subtract Image Filter</a> in the ITK documentation.", 2)
@@ -410,7 +412,8 @@ template<class T> void difference(iAFilter* filter, QMap<QString, QVariant> cons
 	diffFilter->SetDifferenceThreshold(parameters["Difference threshold"].toDouble());
 	diffFilter->SetToleranceRadius(parameters["Tolerance radius"].toDouble());
 	diffFilter->SetInput(dynamic_cast< ImageType * >(filter->Input()[0]->GetITKImage()));
-	diffFilter->SetInput(1, dynamic_cast< ImageType * >(filter->Input()[1]->GetITKImage()));
+	auto img2 = CastImageTo<T>(filter->Input()[1]->GetITKImage());
+	diffFilter->SetInput(1, dynamic_cast<ImageType *>(img2.GetPointer()));
 	filter->Progress()->Observe(diffFilter);
 	diffFilter->Update();
 	filter->AddOutput(diffFilter->GetOutput());
@@ -429,6 +432,7 @@ iADifferenceFilter::iADifferenceFilter() :
 		"What is considered a difference can be influenced by the <em>Difference threshold</em> "
 		"(the minimum threshold for pixels to be different) "
 		"and the <em>Tolerance radius</em> (the maximum distance to look for matching pixel) Parameters.<br/>"
+		"Note: The second image will be converted to the pixel type of the first.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1Testing_1_1ComparisonImageFilter.html\">"
 		"Testing Comparison Filter</a> in the ITK documentation.", 2)
@@ -466,6 +470,7 @@ iAMaskIntensityFilter::iAMaskIntensityFilter() :
 		"The output image will contain the values of the first input image, "
 		"but only in those places where the mask images has a value other "
 		"than 0.<br/>"
+		"Note: This filter expects both input images to have the same type!<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MaskImageFilter.html\">"
 		"Mask Image Filter</a> in the ITK documentation.", 2)

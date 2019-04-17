@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,14 +20,15 @@
 * ************************************************************************************/
 #include "iAImagePreviewWidget.h"
 
-#include "iAColorTheme.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
 #include "iAGEMSeConstants.h"
 #include "iASlicerSettings.h"
-#include "iASlicer.h"
-#include "iASlicerData.h"
-#include "iASlicerWidget.h"
+
+#include <iAColorTheme.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iASlicer.h>
+#include <iASlicerData.h>
+#include <iASlicerWidget.h>
 
 #include <vtkDiscretizableColorTransferFunction.h>
 #include <vtkImageActor.h>
@@ -69,7 +70,7 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_aspectRatio(1.0),
 	m_colorTheme(nullptr)
 {
-	m_slicer = new iASlicer(this, mode, this, 0, 0, false, magicLens);
+	m_slicer = new iASlicer(this, mode, this, false, magicLens);
 }
 
 iAImagePreviewWidget::~iAImagePreviewWidget()

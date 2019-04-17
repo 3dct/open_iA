@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,15 +20,29 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QtGlobal>
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+#include <QOpenGLWidget>
+#else
 #include <QGLWidget>
+#endif
 #include <QPixmap>
 
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+class iAPreviewSPLOM : public QOpenGLWidget
+#else
 class iAPreviewSPLOM : public QGLWidget
+#endif
 {
 	Q_OBJECT
 
 public:
-	iAPreviewSPLOM( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+	iAPreviewSPLOM(QWidget * parent = 0, Qt::WindowFlags f = 0);
+#else
+	iAPreviewSPLOM(QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
+#endif
 	~iAPreviewSPLOM();
 	void SetPixmap( QPixmap * pxmp );
 	void SetMask( const QPixmap * mask );
@@ -37,20 +51,21 @@ public:
 	QRectF GetROI() const;
 
 protected:
-	virtual void paintEvent( QPaintEvent * event );				//!< Draws SPLOM. Re-implements QGLWidget.
-	void resizeEvent( QResizeEvent * event );
+	void paintGL( ) override;				//!< Draws SPLOM.
+	void resizeEvent( QResizeEvent * event ) override;
+	void mousePressEvent(QMouseEvent * event) override;
+	void mouseMoveEvent(QMouseEvent * event) override;
+	void mouseReleaseEvent( QMouseEvent * event ) override;
 
 	void roiFromLocal();
 
-	void mousePressEvent( QMouseEvent * event );
+
 	void CropPosByRect( QPoint & pos );
 	void UpdateROI();
-	void mouseReleaseEvent( QMouseEvent * event );
 	void emitLocalROI();
 
 	void updateLocRoi();
 
-	void mouseMoveEvent( QMouseEvent * event );
 	void Scale();
 	void updateOrigin();
 	void ScalePixmap();

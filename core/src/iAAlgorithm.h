@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -63,17 +63,24 @@ public:
 	QString getFilterName() const;
 	vtkImageData* getVtkImageData();
 	vtkPolyData* getVtkPolyData();
+
+	//! return first element of the connectors
 	iAConnector* getConnector() const;
 	void AddImage(vtkImageData* i);
+
+	//! get all connectors
 	QVector<iAConnector*> const & Connectors() const;
 	bool deleteConnector(iAConnector* c);
 	void allocConnectors(int size);
 
 	iAProgress* ProgressObserver();
+
+	// TODO: Find out if used somewhere / move somewhere else:
+	// {
 	void vtkPolydata_itkMesh ( vtkPolyData* polyData, MeshType::Pointer mesh );
 	void itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* polyData );
+	// }
 	virtual void SafeTerminate();
-
 
 public slots:
 	void updateVtkImageData(int ch);

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,20 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include <itkImageIOBase.h>
-#include <QWidget>
-#include "iAModuleInterface.h"
-#include "defines.h"
 #include "ui_ComputeSegmentations.h"
-#include "PorosityAnalyserHelpers.h"
-#include "iADragFilterWidget.h"
-#include "iADropPipelineWidget.h"
 
-#include <QPushButton>
-#include <QGroupBox>
-#include <QTextEdit>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
+#include <defines.h>
+#include <iAModuleInterface.h>
 
 class iAPorosityAnalyser;
 
@@ -42,8 +32,8 @@ class iAPorosityAnalyserModuleInterface : public iAModuleInterface
 	Q_OBJECT
 
 public:
-	void Initialize();
-	void SaveSettings() const;
+	void Initialize() override;
+	void SaveSettings() const override;
 	Ui::ComputeSegmentations * ui();
 	void log( QString text, bool appendToPrev = false );
 	QString DatasetFolder() const;

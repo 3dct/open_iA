@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,15 +21,15 @@
 #pragma once
 
 // Eigenvalue pixel accessor to access vector of eigen value pixels
-// as individual images 
+// as individual images
 template< class TPixel >
 class EigenValueAccessor
 {
 public:
   typedef TPixel                     InternalType;
   typedef float                      ExternalType;
-  
-  inline ExternalType Get( const InternalType & input ) const 
+
+  inline ExternalType Get( const InternalType & input ) const
 	{
 	  return static_cast<ExternalType>( input[m_EigenIdx] );
 	}
@@ -38,15 +38,15 @@ public:
 	{
 	this->m_EigenIdx = i;
 	}
-  
+
 private:
   unsigned int m_EigenIdx;
 };
 
 
 // Functor to get trace of the hessian matrix (laplacian of the image )
-namespace Functor {  
- 
+namespace Functor {
+
 	template< typename TInput, typename TOutput >
 	class HessianToLaplacianFunction
 	{
@@ -54,7 +54,7 @@ namespace Functor {
 	  typedef typename TInput::RealValueType  RealValueType;
 	  HessianToLaplacianFunction() {}
 	  ~HessianToLaplacianFunction() {}
-  
+
 	  inline TOutput operator()( const TInput & x ) const
 		{
 		return static_cast< TOutput >( x(0,0) + x(1,1) + x(2,2) );

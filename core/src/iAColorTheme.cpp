@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,6 +24,9 @@
 
 iAColorTheme::iAColorTheme(QString const & name):
 	m_name(name)
+{}
+
+iAColorTheme::~iAColorTheme()
 {}
 
 QString const & iAColorTheme::GetName() const
@@ -118,7 +121,7 @@ iAColorThemeManager::iAColorThemeManager()
 	dark2->AddColor(QColor(166,118, 29));
 	dark2->AddColor(QColor(102,102,102));
 	m_themes.insert(dark2->GetName(), dark2);
-	
+
 	iAVectorColorTheme* paired = new iAVectorColorTheme("Brewer Paired (max. 12)");
 	paired->AddColor(QColor(166, 206, 227));
 	paired->AddColor(QColor( 31, 120, 180));
@@ -171,7 +174,7 @@ iAColorThemeManager::iAColorThemeManager()
 	set3->AddColor(QColor(204, 235, 197));
 	set3->AddColor(QColor(255, 237, 111));
 	m_themes.insert(set3->GetName(), set3);
-	
+
 	// source: http://www.mulinblog.com/a-color-palette-optimized-for-data-visualization/
 	iAVectorColorTheme* few = new iAVectorColorTheme("Few (max. 9)");
 	few->AddColor(QColor( 77, 77, 77));
@@ -185,8 +188,8 @@ iAColorThemeManager::iAColorThemeManager()
 	few->AddColor(QColor(241, 88, 84));
 	m_themes.insert(few->GetName(), few);
 
- 
-	iAVectorColorTheme* grayScale17 = new iAVectorColorTheme("Grayscale (best for 1,2,3,5,9,17 labels; max 17)");
+
+	iAVectorColorTheme* grayScale17 = new iAVectorColorTheme("Grayscale (max. 17)");
 	grayScale17->AddColor(QColor(  0,  0,  0));
 	grayScale17->AddColor(QColor(255,255,255));
 	grayScale17->AddColor(QColor(128,128,128));
@@ -223,7 +226,7 @@ iAColorThemeManager::iAColorThemeManager()
 	m_themes.insert(grayScale6->GetName(), grayScale6);
 
 	// themes from https://www.materialui.co/colors
-	iAVectorColorTheme* materialRed = new iAVectorColorTheme("Material red (max 10)");
+	iAVectorColorTheme* materialRed = new iAVectorColorTheme("Material red (max. 10)");
 	materialRed->AddColor(QColor(255, 235, 238));
 	materialRed->AddColor(QColor(255, 205, 210));
 	materialRed->AddColor(QColor(239,154,154));
@@ -236,7 +239,7 @@ iAColorThemeManager::iAColorThemeManager()
 	materialRed->AddColor(QColor(183, 28, 28));
 	m_themes.insert(materialRed->GetName(), materialRed);
 
-	iAVectorColorTheme* materialBlue = new iAVectorColorTheme("Material blue (max 10)");
+	iAVectorColorTheme* materialBlue = new iAVectorColorTheme("Material blue (max. 10)");
 	materialBlue->AddColor(QColor(227, 242, 253));
 	materialBlue->AddColor(QColor(187, 222, 251));
 	materialBlue->AddColor(QColor(144, 202, 249));
@@ -249,7 +252,7 @@ iAColorThemeManager::iAColorThemeManager()
 	materialBlue->AddColor(QColor(13, 71, 161));
 	m_themes.insert(materialBlue->GetName(), materialBlue);
 
-	iAVectorColorTheme* flatUI = new iAVectorColorTheme("Flat UI (max 20)");
+	iAVectorColorTheme* flatUI = new iAVectorColorTheme("Flat UI (max. 20)");
 	flatUI->AddColor(QColor(26, 188, 156));
 	flatUI->AddColor(QColor(46, 204, 113));
 	flatUI->AddColor(QColor(52, 152, 219));
@@ -272,7 +275,7 @@ iAColorThemeManager::iAColorThemeManager()
 	flatUI->AddColor(QColor(127, 140, 141));
 	m_themes.insert(flatUI->GetName(), flatUI);
 
-	iAVectorColorTheme* metroColors = new iAVectorColorTheme("Metro Colors (max 20)");
+	iAVectorColorTheme* metroColors = new iAVectorColorTheme("Metro Colors (max. 20)");
 	metroColors->AddColor(QColor(164, 196, 0));
 	metroColors->AddColor(QColor(96, 169, 23));
 	metroColors->AddColor(QColor(0, 138, 0));
@@ -295,7 +298,7 @@ iAColorThemeManager::iAColorThemeManager()
 	metroColors->AddColor(QColor(160, 82, 45));
 	m_themes.insert(metroColors->GetName(), metroColors);
 
-	iAVectorColorTheme* sevenShadesOfBlue = new iAVectorColorTheme("Seven Shades of blue (max 7)");
+	iAVectorColorTheme* sevenShadesOfBlue = new iAVectorColorTheme("Seven Shades of blue (max. 7)");
 	sevenShadesOfBlue->AddColor(QColor(193, 217, 252));
 	sevenShadesOfBlue->AddColor(QColor(132, 179, 250));
 	sevenShadesOfBlue->AddColor(QColor(70, 142, 247));
@@ -304,6 +307,37 @@ iAColorThemeManager::iAColorThemeManager()
 	sevenShadesOfBlue->AddColor(QColor(4, 52, 122));
 	sevenShadesOfBlue->AddColor(QColor(2, 26, 61));
 	m_themes.insert(sevenShadesOfBlue->GetName(), sevenShadesOfBlue);
+
+	iAVectorColorTheme* DVLColors = new iAVectorColorTheme("DVL-Metro Colors (max. 17)");
+	DVLColors->AddColor(QColor(164, 196, 0));
+	DVLColors->AddColor(QColor(96, 169, 23));
+	DVLColors->AddColor(QColor(0, 138, 0));
+	DVLColors->AddColor(QColor(0, 171, 169));
+	DVLColors->AddColor(QColor(27, 161, 226));
+	DVLColors->AddColor(QColor(0, 80, 239));
+	DVLColors->AddColor(QColor(106, 0, 255));
+	DVLColors->AddColor(QColor(170, 0, 255));
+	DVLColors->AddColor(QColor(244, 114, 208));
+	DVLColors->AddColor(QColor(162, 0, 37));
+	DVLColors->AddColor(QColor(240, 163, 10));
+	DVLColors->AddColor(QColor(227, 200, 0));
+	DVLColors->AddColor(QColor(130, 90, 44));
+	DVLColors->AddColor(QColor(109, 135, 100));
+	DVLColors->AddColor(QColor(100, 118, 135));
+	DVLColors->AddColor(QColor(118, 96, 138));
+	DVLColors->AddColor(QColor(160, 82, 45));
+	m_themes.insert(DVLColors->GetName(), DVLColors);
+
+	iAVectorColorTheme* brewerQual1 = new iAVectorColorTheme("Brewer Qualitaive 1 (max. 8)");
+	brewerQual1->AddColor(QColor(27, 158, 119));
+	brewerQual1->AddColor(QColor(217, 95, 2));
+	brewerQual1->AddColor(QColor(117, 112, 179));
+	brewerQual1->AddColor(QColor(231, 41, 138));
+	brewerQual1->AddColor(QColor(102, 166, 30));
+	brewerQual1->AddColor(QColor(230, 171, 2));
+	brewerQual1->AddColor(QColor(166, 118, 29));
+	brewerQual1->AddColor(QColor(102, 102, 102));
+	m_themes.insert(brewerQual1->GetName(), brewerQual1);
 }
 
 iAColorThemeManager::~iAColorThemeManager()
@@ -324,7 +358,7 @@ iAColorTheme const * iAColorThemeManager::GetTheme(QString const & name) const
 	return *it;
 }
 
-QList<QString> iAColorThemeManager::GetAvailableThemes() const
+QStringList iAColorThemeManager::GetAvailableThemes() const
 {
-	return m_themes.keys();
+	return QStringList(m_themes.keys());
 }

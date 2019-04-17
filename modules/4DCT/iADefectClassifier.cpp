@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,10 @@
 #include "iADefectClassifier.h"
 
 #include "iAFeature.h"
+#include "iAFiberCharacteristics.h"
 #include "iA4DCTDefects.h"
+
+#include <io/iAFileUtils.h>
 
 #include <vtkMath.h>
 
@@ -61,11 +64,11 @@ void iADefectClassifier::run( Parameters params )
 	std::cout << "Defect classification finished" << std::endl;
 }
 
-iADefectClassifier::FeatureList iADefectClassifier::readDefects( std::string defectFile ) const
+iADefectClassifier::FeatureList iADefectClassifier::readDefects( QString const & defectFile ) const
 {
 	FeatureList result;
 	std::ifstream file;
-	file.open( defectFile );
+	file.open( getLocalEncodingFileName(defectFile) );
 	iAFeature f;
 	while( file >> f ) result.push_back( f );
 	return result;
@@ -141,10 +144,10 @@ void iADefectClassifier::classify( FibersData* fibers, FeatureList* defects )
 					min[1] = std::min( neighborFibersFF[j].startPoint[2], neighborFibersFF[j].endPoint[2] );
 					if( min[0] < max[1] && min[1] < max[0] ) continue;	// fibers are overlapped
 
-					Vec3d dir[2];
-					dir[0] = Vec3d( neighborFibersFF[i].endPoint ) - Vec3d( neighborFibersFF[i].startPoint );
-					dir[1] = Vec3d( neighborFibersFF[j].endPoint ) - Vec3d( neighborFibersFF[j].startPoint );
-					double angle = Vec3d::angle( dir[0], dir[1] );
+					iAVec3d dir[2];
+					dir[0] = iAVec3d( neighborFibersFF[i].endPoint ) - iAVec3d( neighborFibersFF[i].startPoint );
+					dir[1] = iAVec3d( neighborFibersFF[j].endPoint ) - iAVec3d( neighborFibersFF[j].startPoint );
+					double angle = angleBetween( dir[0], dir[1] );
 					angle = angle > (vtkMath::Pi()/2) ? vtkMath::Pi() - angle : angle;
 					if( minAngle > angle ) minAngle = angle;
 				}
@@ -196,7 +199,7 @@ iADefectClassifier::ExtendedDefectInfo iADefectClassifier::calcExtendedDefectInf
 {
 	ExtendedDefectInfo defInfo;
 	defInfo.Direction = def.eigenvectors[2].normalized( );
-	double angle = Vec3d::angle( defInfo.Direction, Vec3d( 0, 0, 1 ) );
+	double angle = angleBetween( defInfo.Direction, iAVec3d( 0, 0, 1 ) );
 	if( angle > vtkMath::Pi()/2) angle = vtkMath::Pi() - angle;
 	defInfo.Angle = angle;
 	defInfo.Elongation = def.obbSize[0] / def.obbSize[1];
@@ -210,9 +213,9 @@ FibersData iADefectClassifier::findNeighboringFibers( FibersData& fibers, Extend
 	FibersData neighborFibers;
 	for( auto fib : fibers )
 	{
-		Vec3d fibEndpoints[2];
-		fibEndpoints[0] = Vec3d( fib.startPoint );
-		fibEndpoints[1] = Vec3d( fib.endPoint );
+		iAVec3d fibEndpoints[2];
+		fibEndpoints[0] = iAVec3d( fib.startPoint );
+		fibEndpoints[1] = iAVec3d( fib.endPoint );
 		bool isNeighbor = false;
 		for( int i = 0; i < 2; i++ )
 		{
@@ -235,14 +238,14 @@ void iADefectClassifier::save( ) const
 {
 	std::cout << "Saving results......\n";
 
-	QString qOutputDir = QString::fromStdString( m_param.OutputDir ) + '\\';
+	QString qOutputDir(m_param.OutputDir + '\\');
 	iA4DCTDefects::save( m_classification.Fractures, qOutputDir + "ids_matrix_fractures.txt" );
 	iA4DCTDefects::save( m_classification.Pullouts, qOutputDir + "ids_fiber_pull_outs.txt" );
 	iA4DCTDefects::save( m_classification.Debondings, qOutputDir + "ids_fiber_matrix_debondings.txt" );
 	iA4DCTDefects::save( m_classification.Breakages, qOutputDir + "ids_fiber_fractures.txt" );
 
 	std::ofstream ofs;
-	ofs.open( ( qOutputDir + "statistics.txt" ).toStdString( ) );
+	ofs.open( getLocalEncodingFileName( qOutputDir + "statistics.txt" ).c_str() );
 	ofs << "Parameters:\n";
 	ofs << "Spacing = " << m_param.Spacing << std::endl;
 	ofs << "Fiber fracture angle = " << m_param.AngleB << std::endl;

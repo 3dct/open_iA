@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,21 +21,23 @@
 #pragma once
 
 #include "ui_PorosityAnalyser.h"
-#include "iAQTtoUIConnector.h"
+
+#include <qthelper/iAQTtoUIConnector.h>
+
+#include <vtkSmartPointer.h>
 
 #include <QTableWidget>
 #include <QFileInfo>
 #include <QMap>
 #include <QList>
 
-#include <vtkSmartPointer.h>
 
 typedef iAQTtoUIConnector<QMainWindow, Ui_PorosityAnalyser> PorosityAnalyserConnector;
 
 class iASPMView;
 class iATreeView;
 class iAPDMView;
-class iAPCView;
+//class iAPCView;
 class iASSView;
 class iARangeSliderDiagramView;
 class iASelectionsView;
@@ -47,13 +49,14 @@ struct iASelection;
 class iASegm3DView;
 class iAPreviewSPLOMView;
 class QButtonGroup;
+class MainWindow; 
 
 class iAPorosityAnalyser : public PorosityAnalyserConnector
 {
 	Q_OBJECT
 
 public:
-	iAPorosityAnalyser( const QString & resDir, const QString & datasetsDir, QWidget * parent = 0, Qt::WindowFlags f = 0 );
+	iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iAPorosityAnalyser();
 	void LoadStateAndShow();
 
@@ -85,7 +88,7 @@ protected:
 	iASPMView * m_spmView;
 	iATreeView * m_treeView;
 	iAPDMView * m_pdmView;
-	iAPCView * m_pcView;
+	//iAPCView * m_pcView;
 	iASSView * m_ssView;
 	iARangeSliderDiagramView * m_rangeSliderDiagramView;
 	iASelectionsView * m_selView;

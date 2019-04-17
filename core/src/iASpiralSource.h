@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,7 +27,7 @@ enum CylindricityType
 	Helix,
 	Circles,
 };
-class iACylindricitySource : public iARegularPolygonSourceEx 
+class iACylindricitySource : public iARegularPolygonSourceEx
 {
 public:
 	// Standard methods for instantiation, obtaining type and printing instance values.
@@ -72,7 +72,7 @@ protected:
 
 		double x[3];
 		int i, j;
-		vtkPoints *newPoints; 
+		vtkPoints *newPoints;
 
 		// Prepare to produce the output; create the connectivity array(s)
 		newPoints = vtkPoints::New();

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -45,10 +45,12 @@ void CheckSCIFIO(QString const & applicationPath)
 			"You might not be able to load files!").arg(scifioPath));
 		return;
 	}
+#ifdef WIN32
 	scifioPath.replace("/", "\\");
+#endif
 	QString scifioPathAssign(QString(SCIFIO_PATH) + "=" + scifioPath);
 #ifdef _MSC_VER
-	_putenv(scifioPathAssign.toStdString().c_str());
+	_putenv(scifioPathAssign.toStdString().c_str()); // TODO: use _wputenv?
 #else
 	static char * scifioPathBuffer = new char[scifioPathAssign.length() + 1];
 	strcpy(scifioPathBuffer, scifioPathAssign.toStdString().c_str());

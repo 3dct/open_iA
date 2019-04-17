@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,26 +20,26 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QSharedPointer>
-#include <QStandardItemModel>
-
-#include "ui_XRF.h"
-
 #include "dlg_elementRenderer.h"
-#include "iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
-
-#include <vtkSmartPointer.h>
 
 #include "iASpectrumFilter.h"
 #include "iASpectrumFunction.h"
-#include "iARendererManager.h"
+#include "ui_XRF.h"
+
+#include <iARendererManager.h>
+#include <iAVtkWidgetFwd.h>
+#include <qthelper/iAQTtoUIConnector.h>
+
+#include <vtkSmartPointer.h>
+
+#include <QSharedPointer>
+#include <QStandardItemModel>
 
 #include <vector>
 
-class QVTKWidget;
-class QDockWidget;
+typedef iAQTtoUIConnector<QDockWidget, Ui_XRF>   dlg_xrfContainer;
 
+class QDockWidget;
 class vtkColorTransferFunction;
 class vtkImageData;
 class vtkLookupTable;
@@ -47,10 +47,6 @@ class vtkPiecewiseFunction;
 class vtkScalarBarActor;
 
 class iAEnergySpectrumWidget;
-class iAMultipleFunctionDrawer;
-class iAPlot;
-class iAPlotData;
-class iAStepFunctionDrawer;
 class iAWidgetAddHelper;
 
 class dlg_periodicTable;
@@ -62,9 +58,13 @@ class iAElementConcentrations;
 class iAEnergySpectrumDiagramData;
 class iAPieChartWidget;
 class iAReferenceSpectraLibrary;
-class iASelectedBinDrawer;
 class iAPeriodicTableListener;
 class iAXRFData;
+
+class iAPlot;
+class iAPlotCollection;
+class iASelectedBinPlot;
+class iAStepFunctionPlot;
 
 class dlg_XRF : public dlg_xrfContainer, public iASpectrumFilterListener
 {
@@ -170,17 +170,17 @@ private:
 	QSharedPointer<iAEnergySpectrumDiagramData>				m_voxelEnergy;
 	QSharedPointer<iAAccumulatedXRFData>					m_accumulatedXRF;
 
-	QMap<int, QSharedPointer<iAStepFunctionDrawer> >		m_refSpectraDrawers;
+	QMap<int, QSharedPointer<iAStepFunctionPlot> >		m_refSpectraDrawers;
 	QSharedPointer<iAReferenceSpectraLibrary>				m_refSpectraLib;
 	
-	QSharedPointer<iAMultipleFunctionDrawer>				m_spectraLinesDrawer;
+	QSharedPointer<iAPlotCollection>						m_spectraLinesDrawer;
 	QSharedPointer<iAPlot>									m_voxelSpectrumDrawer;
 
 	QSharedPointer<iAElementConcentrations>					m_elementConcentrations;
 	QSharedPointer<iADecompositionCalculator>				m_decompositionCalculator;
 
-	QSharedPointer<iASelectedBinDrawer>						m_selectedBinXDrawer;
-	QSharedPointer<iASelectedBinDrawer>						m_selectedBinYDrawer;
+	QSharedPointer<iASelectedBinPlot>						m_selectedBinXDrawer;
+	QSharedPointer<iASelectedBinPlot>						m_selectedBinYDrawer;
 
 
 	QVector<int>											m_decomposeSelectedElements;
@@ -206,4 +206,5 @@ private:
 	QVector<iACharacteristicEnergy>							m_characteristicEnergies;
 	QDockWidget*											m_pieChartContainer;
 	QSharedPointer<iAPeriodicTableListener>					m_periodicTableListener;
+	iAVtkOldWidget* colormapWidget;
 };

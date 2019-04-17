@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,10 +20,7 @@
 * ************************************************************************************/
 #include "iAPorosityAnalyser.h"
 
-#include "defines.h"
-#include "iACSVToQTableWidgetConverter.h"
-#include "io/iAITKIO.h"
-#include "iAPCView.h"
+//#include "iAPCView.h"
 #include "iAPDMView.h"
 #include "iAPreviewSPLOMView.h"
 #include "iARangeSliderDiagramView.h"
@@ -34,30 +31,32 @@
 #include "iATreeView.h"
 #include "PorosityAnalyserHelpers.h"
 
+#include <iACSVToQTableWidgetConverter.h>
+#include <io/iAITKIO.h>
+
 #include <vtkIdTypeArray.h>
 #include <vtkSelection.h>
 
-#include <QDir>
 #include <QCheckBox>
+#include <QDir>
+#include <QDirIterator>
+#include <QDockWidget>
 #include <QGroupBox>
 #include <QMenu>
-#include <QDockWidget>
-#include <QDirIterator>
 #include <QSettings>
-#include <QTreeWidget>
 #include <QStatusBar>
+#include <QTreeWidget>
 
 const int treeViewIndex = 0;
 const int overviewIndex = 1;
 
-iAPorosityAnalyser::iAPorosityAnalyser( const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0 */, Qt::WindowFlags f /*= 0*/ )
-	: PorosityAnalyserConnector( parent, f ),
+iAPorosityAnalyser::iAPorosityAnalyser(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : PorosityAnalyserConnector( parent, f ),
 	m_dataDir( resDir ),
 	m_datasetsDir( datasetsDir ),
-	m_spmView( new iASPMView( parent, f ) ),
+	m_spmView( new iASPMView(mWnd, parent, f ) ),
 	m_treeView( new iATreeView( 0, f ) ),
 	m_pdmView( new iAPDMView( parent, f ) ),
-	m_pcView( new iAPCView( parent, f ) ),
+	//m_pcView( new iAPCView( parent, f ) ),
 	m_ssView( new iASSView( parent, f ) ),
 	m_rangeSliderDiagramView( new iARangeSliderDiagramView( parent, f ) ),
 	m_selView( new iASelectionsView( 0, f ) ),
@@ -84,11 +83,11 @@ iAPorosityAnalyser::iAPorosityAnalyser( const QString & resDir, const QString & 
 	m_prvSplomView->sliderPreviewSize->setValue( defaultPopupSizePercentage );
 	m_spmView->setSPLOMPreviewSize( defaultPopupSizePercentage );
 
-	connect( m_treeView, SIGNAL( loadSelectionToSPMSignal( const QTableWidget* ) ), m_spmView, SLOT( SetData( const QTableWidget* ) ) );
+	connect( m_treeView, SIGNAL( loadSelectionToSPMSignal( const QTableWidget* ) ), m_spmView, SLOT( setData( const QTableWidget* ) ) );
 	connect( m_treeView, SIGNAL( loadSelectionToSSSignal( const QTableWidget*, QString ) ), m_ssView, SLOT( SetData( const QTableWidget*, QString ) ) );
 	connect( m_treeView, SIGNAL( loadSelectionsToSSSignal( const QList< QPair<QTableWidget *, QString> > * ) ), m_ssView, SLOT( SetCompareData( const QList< QPair<QTableWidget *, QString> > * ) ) );
 	connect( m_treeView, SIGNAL( loadSelectionToPDMSignal( const iABPMData*, const iAHMData* ) ), m_pdmView, SLOT( SetData( const iABPMData*, const iAHMData* ) ) );
-	connect( m_treeView, SIGNAL( loadSelectionToPCSignal( const QTableWidget* ) ), m_pcView, SLOT( SetData( const QTableWidget* ) ) );
+	//connect( m_treeView, SIGNAL( loadSelectionToPCSignal( const QTableWidget* ) ), m_pcView, SLOT( SetData( const QTableWidget* ) ) );
 	connect( m_treeView, SIGNAL( loadSelectionToRSDSignal( const QTableWidget* ) ), m_rangeSliderDiagramView, SLOT( setData( const QTableWidget* ) ) );
 	connect( tbSelections, SIGNAL( clicked( bool ) ), this, SLOT( ShowSelections( bool ) ) );
 	connect( tbTreeView, SIGNAL( clicked( bool ) ), this, SLOT( ShowTreeView( bool ) ) );
@@ -139,7 +138,7 @@ iAPorosityAnalyser::iAPorosityAnalyser( const QString & resDir, const QString & 
 iAPorosityAnalyser::~iAPorosityAnalyser()
 {
 	QByteArray state = saveState( 0 );
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	settings.setValue( "PorosityAnalyser/UI_State", state );
 }
 
@@ -310,7 +309,7 @@ void iAPorosityAnalyser::ParseComputerCSV( const QFileInfo & fi )
 
 void iAPorosityAnalyser::LoadStateAndShow()
 {
-	QSettings settings( organisationName, applicationName );
+	QSettings settings;
 	QByteArray state = settings.value( "PorosityAnalyser/UI_State" ).value<QByteArray>();
 	showMaximized();
 	restoreState( state, 0 );
@@ -402,5 +401,4 @@ void iAPorosityAnalyser::message( QString text )
 //				masksData.setItem( lastRow, 0, new QTableWidgetItem( fi.absoluteFilePath() ) );
 //			}
 //	}
-//	iACSVToQTableWidgetConverter::saveToCSVFile( masksData, "C:/Users/p41036/Desktop/masks.csv" );
 //}

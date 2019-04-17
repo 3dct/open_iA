@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
  * * **********   A tool for visual analysis and processing of 3D CT images   ********** *
  * * *********************************************************************************** *
- * * Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
- * *                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+ * * Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+ * *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
  * * *********************************************************************************** *
  * * This program is free software: you can redistribute it and/or modify it under the   *
  * * terms of the GNU General Public License as published by the Free Software           *
@@ -22,15 +22,15 @@
 
 #include "svm.h"
 
-#include "defines.h"    // for DIM
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAImageCoordinate.h"
-#include "iAProgress.h"
-#include "iASeedType.h"
-#include "iAVtkDraw.h"
-#include "iAToolsVTK.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAImageCoordinate.h>
+#include <iAProgress.h>
+#include <iASeedType.h>
+#include <iAVtkDraw.h>
+#include <iAToolsVTK.h>
+#include <iATypedCallHelper.h>
 
 #include <itkScalarImageKmeansImageFilter.h>
 
@@ -261,7 +261,7 @@ IAFILTER_CREATE(iAKMeans)
 
 iAKMeans::iAKMeans() :
 	iAFilter("K-Means", "Segmentation/Pixelwise Classification",
-		"Classifies the intensity values of a scalar image using the K-Means algorithm..<br/>"
+		"Classifies the intensity values of a scalar image using the K-Means algorithm.<br/>"
 		"Given an input image with scalar values, it uses the K-Means statistical classifier "
 		"in order to define labels for every pixel in the image. Under <em>initial means</em>, specify "
 		"your estimate for the mean intensity value for each cluster you suspect in the image,"
@@ -269,7 +269,7 @@ iAKMeans::iAKMeans() :
 		"are selected in order to span the dynamic range of the output image.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ScalarImageKmeansImageFilter.html\">"
-		"Scalar Image K-Means Filter</a> in the ITK documentation.", 2)
+		"Scalar Image K-Means Filter</a> in the ITK documentation.", 1)
 {
 	AddParameter("Initial means", Text, "");
 	AddParameter("Non-contiguous labels", Boolean, false);

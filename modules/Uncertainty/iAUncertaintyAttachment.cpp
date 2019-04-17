@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -30,16 +30,18 @@
 #include "iASpatialView.h"
 #include "iAUncertaintyColors.h"
 
-#include "charts/iASimpleHistogramData.h"
-#include "dlg_imageproperty.h"
-#include "iAChildData.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iADockWidgetWrapper.h"
-#include "iALookupTable.h"
-#include "iAStringHelper.h"
-#include "mdichild.h"
-#include "mainwindow.h"
+#include <charts/iASimpleHistogramData.h>
+#include <dlg_imageproperty.h>
+#include <iAChildData.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iALookupTable.h>
+#include <iAStringHelper.h>
+#include <mdichild.h>
+#include <mainwindow.h>
+#include <qthelper/iADockWidgetWrapper.h>
+
+#include <vtkLookupTable.h>
 
 #include <QDir>
 
@@ -62,9 +64,9 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, iAChildDa
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_labelDistributionView, "Label Distribution", "UncLabelDistrView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_uncertaintyDistributionView, "Uncertainty Distribution", "UncUncertaintyDistrView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_ensembleView, "Ensemble View", "UncEnsembleView"));
-	connect(mainWnd, SIGNAL(StyleChanged()), m_spatialView, SLOT(StyleChanged()));
-	connect(mainWnd, SIGNAL(StyleChanged()), m_memberView, SLOT(StyleChanged()));
-	connect(mainWnd, SIGNAL(StyleChanged()), m_scatterplotView, SLOT(StyleChanged()));
+	connect(mainWnd, SIGNAL(styleChanged()), m_spatialView, SLOT(StyleChanged()));
+	connect(mainWnd, SIGNAL(styleChanged()), m_memberView, SLOT(StyleChanged()));
+	connect(mainWnd, SIGNAL(styleChanged()), m_scatterplotView, SLOT(StyleChanged()));
 	connect(m_scatterplotView, SIGNAL(SelectionChanged()), m_spatialView, SLOT(UpdateSelection()));
 	connect(m_memberView, SIGNAL(MemberSelected(int)), this, SLOT(MemberSelected(int)));
 	connect(m_ensembleView, SIGNAL(EnsembleSelected(QSharedPointer<iAEnsemble>)), this, SLOT(EnsembleSelected(QSharedPointer<iAEnsemble>)));
@@ -96,18 +98,24 @@ void iAUncertaintyAttachment::ToggleSettings()
 
 bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 {
-	QSharedPointer<iAEnsembleDescriptorFile> ensembleFile(new iAEnsembleDescriptorFile(fileName));
-	if (!ensembleFile->good())
+	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>(new iAEnsembleDescriptorFile(fileName));
+	if (!m_ensembleFile->good())
 	{
 		DEBUG_LOG("Ensemble: Given data file could not be read.");
 		return false;
 	}
-	if (!GetMdiChild()->LoadProject(ensembleFile->ModalityFileName()))
+	connect(GetMdiChild(), SIGNAL(fileLoaded()), this, SLOT(ContinueEnsembleLoading()));
+	if (!GetMdiChild()->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
-		DEBUG_LOG(QString("Ensemble: Failed loading project '%1'").arg(ensembleFile->ModalityFileName()));
+		DEBUG_LOG(QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
 		return false;
 	}
-	auto ensemble = iAEnsemble::Create(EntropyBinCount, ensembleFile);
+	return true;
+}
+
+void iAUncertaintyAttachment::ContinueEnsembleLoading()
+{
+	auto ensemble = iAEnsemble::Create(EntropyBinCount, m_ensembleFile);
 	if (ensemble)
 	{
 		m_ensembleView->AddEnsemble("Full Ensemble", ensemble);
@@ -130,11 +138,10 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 	m_childData.child->splitDockWidget(m_dockWidgets[5], m_dockWidgets[1], Qt::Horizontal);	// Member View
 	m_childData.child->getSlicerDlgXY()->hide();
 	m_childData.child->getImagePropertyDlg()->hide();
-	if (!ensembleFile->LayoutName().isEmpty())
+	if (!m_ensembleFile->LayoutName().isEmpty())
 	{
-		m_childData.child->LoadLayout(ensembleFile->LayoutName());
+		m_childData.child->LoadLayout(m_ensembleFile->LayoutName());
 	}
-	return ensemble;
 }
 
 
@@ -189,7 +196,7 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	m_scatterplotView->SetDatasets(ensemble);
 	m_memberView->SetEnsemble(ensemble);
 	m_labelDistributionView->Clear();
-	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount(), Discrete);
+	auto labelDistributionHistogram = CreateHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount()-1, Discrete);
 	double lutRange[2];
 	lutRange[0] = 0;
 	lutRange[1] = m_currentEnsemble->LabelCount();

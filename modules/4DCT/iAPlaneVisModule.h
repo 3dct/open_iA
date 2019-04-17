@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,6 +25,8 @@
 #include "iA4DCTDefects.h"
 #include "iA4DCTFileData.h"
 #include "iA4DCTFileManager.h"
+
+// #include <iAFileUtils.h>
 // vtk
 #include <vtkImageData.h>
 #include <vtkImageMapToColors.h>
@@ -115,7 +117,7 @@ void iAPlaneVisModule::highlightDefects( QVector<QString> defects, QVector<QColo
 
 	// read the labeled image
 	/*vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
-	reader->SetFileName( labeledImgPath.toStdString( ).c_str( ) );
+	reader->SetFileName( getLocalEncodingFileName(labeledImgPath).c_str( ) );
 	reader->Update( );
 	vtkImageData * labeledImg = reader->GetOutput( );*/
 	vtkImageData * labeledImg = iA4DCTFileManager::getInstance( ).getImage( labeledImgFile );
@@ -174,7 +176,7 @@ void iAPlaneVisModule::densityMap( QString defect, QColor color, iA4DCTFileData 
 {
 	// read the labeled image
 	/*vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
-	reader->SetFileName( labeledImgPath.toStdString( ).c_str( ) );
+	reader->SetFileName( getLocalEncodingFileName(labeledImgPath).c_str( ) );
 	reader->Update( );
 	vtkImageData * labeledImg = reader->GetOutput( );*/
 	vtkImageData * labeledImg = iA4DCTFileManager::getInstance( ).getImage( labeledImgFile );

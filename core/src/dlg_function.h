@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,14 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <QObject>
+
+#include "open_iA_Core_export.h"
 
 class QColor;
 class QMouseEvent;
 class QPainter;
 class iADiagramFctWidget;
 
-class dlg_function: public QObject
+class open_iA_Core_API dlg_function: public QObject
 {
 	Q_OBJECT
 public:
@@ -50,17 +54,14 @@ public:
 	virtual void removePoint(int index) = 0;
 	virtual void moveSelectedPoint(int x, int y) = 0;
 	virtual void changeColor(QMouseEvent *event) = 0;
-	
+
 	virtual bool isColored() = 0;
 	virtual bool isEndPoint(int index) = 0;
 	virtual bool isDeletable(int index) = 0;
 
 	virtual void reset() = 0;
-	
-	virtual void mousePressEvent(QMouseEvent *event) = 0;
-	virtual void mouseMoveEvent(QMouseEvent *event) = 0;
-	virtual void mouseReleaseEvent(QMouseEvent *event) = 0;
-	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) = 0;
-	
+	virtual void mouseReleaseEvent(QMouseEvent *event) {}
+	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent *event) {}
+
 	iADiagramFctWidget *chart;
 };

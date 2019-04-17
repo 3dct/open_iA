@@ -105,24 +105,6 @@ private:
  *
  * All computations are performed in the precison of the input pixel's
  * RealType. Before assigning the computed value to the output pixel.
- *
- * NOTE: In this filter the minimum and maximum values of the input image are
- * computed internally using the MinimumMaximumImageCalculator. Users are not
- * supposed to set those values in this filter. If you need a filter where you
- * can set the minimum and maximum values of the input, please use the
- * IntensityWindowingImageFilter. If you want a filter that can use a
- * user-defined linear transformation for the intensity, then please use the
- * ShiftScaleImageFilter.
- *
- * \sa IntensityWindowingImageFilter
- *
- * \ingroup IntensityImageFilters  Multithreaded
- *
- * \ingroup ITK-ImageIntensity
- *
- * \wiki
- * \wikiexample{ImageProcessing/FHWRescaleIntensityImageFilter,Rescale the intensity values of an image to a specified range}
- * \endwiki
  */
 template< typename  TInputImage, typename  TOutputImage = TInputImage >
 class ITK_EXPORT FHWRescaleIntensityImageFilter:
@@ -172,10 +154,10 @@ public:
   //itkGetConstReferenceMacro(InputMaximum, InputPixelType);
 
   /** Process to execute before entering the multithreaded section */
-  void BeforeThreadedGenerateData(void);
+  void BeforeThreadedGenerateData(void) override;
 
   /** Print internal ivars */
-  void PrintSelf(std::ostream & os, Indent indent) const;
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
   itkSetMacro(InputMinimum, float);
   itkSetMacro(InputMaximum, float);

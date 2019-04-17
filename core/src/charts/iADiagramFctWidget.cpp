@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -52,8 +52,7 @@ iADiagramFctWidget::iADiagramFctWidget(QWidget *parent, MdiChild *mdiChild,
 	m_enableAdditionalFunctions(true),
 	m_showFunctions(false),
 	selectedFunction(0),
-	activeChild(mdiChild),
-	updateAutomatically(true)
+	activeChild(mdiChild)
 {
 	dlg_transfer *transferFunction = new dlg_transfer(this, QColor(0, 0, 0, 255));
 	functions.push_back(transferFunction);
@@ -83,12 +82,7 @@ bool iADiagramFctWidget::isFuncEndPoint(int index) const
 	return func->isEndPoint(index);
 }
 
-bool iADiagramFctWidget::isUpdateAutomatically() const
-{
-	return updateAutomatically;
-}
-
-void iADiagramFctWidget::DrawAfterPlots(QPainter & painter)
+void iADiagramFctWidget::drawAfterPlots(QPainter & painter)
 {
 	if (m_showFunctions)
 		drawFunctions(painter);
@@ -101,7 +95,7 @@ void iADiagramFctWidget::drawFunctions(QPainter &painter)
 	while (it != functions.end())
 	{
 		dlg_function *func = (*it);
-		
+
 		if (counter == selectedFunction)
 		{
 			func->draw(painter, QColor(255,128,0,255), 2);
@@ -123,7 +117,7 @@ void iADiagramFctWidget::drawFunctions(QPainter &painter)
 	}
 }
 
-void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)  
+void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 {
 	switch(event->button())
 	{
@@ -148,7 +142,7 @@ void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 				translationStartX = translationX;
 				changeMode(MOVE_VIEW_MODE, event);
 			}
-			else if (!IsContextMenuVisible())
+			else if (!isContextMenuVisible())
 				changeMode(MOVE_POINT_MODE, event);
 			break;
 		case Qt::RightButton:
@@ -160,7 +154,7 @@ void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 			int selectedPoint = func->selectPoint(event);
 			if (selectedPoint == -1)
 				emit noPointSelected();
-			redraw();
+			update();
 			break;
 		}
 		default:
@@ -169,7 +163,7 @@ void iADiagramFctWidget::mousePressEvent(QMouseEvent *event)
 	}
 }
 
-void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)  
+void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (!m_showFunctions)
 	{
@@ -182,24 +176,22 @@ void iADiagramFctWidget::mouseReleaseEvent(QMouseEvent *event)
 	{
 		if (mode == MOVE_NEW_POINT_MODE)
 			func->mouseReleaseEventAfterNewPoint(event);
-		redraw();
+		update();
 		emit updateTFTable();
-
-		if (isUpdateAutomatically())
-			emit updateViews();
+		emit updateViews();
 	}
 	mode = NO_MODE;
 	m_contextMenuVisible = false;
 	func->mouseReleaseEvent(event);
 }
 
-void iADiagramFctWidget::mouseDoubleClickEvent(QMouseEvent *event)  
+void iADiagramFctWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton)
 	{
 		changeColor(event);
 	}
-	emit DblClicked();
+	iAChartWidget::mouseDoubleClickEvent(event);
 }
 
 void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
@@ -209,14 +201,14 @@ void iADiagramFctWidget::mouseMoveEvent(QMouseEvent *event)
 		case MOVE_POINT_MODE:
 		case MOVE_NEW_POINT_MODE:
 		{
-			int viewX = event->x() - LeftMargin();
-			int viewY = geometry().height() -event->y() -BottomMargin();
+			int viewX = event->x() - leftMargin();
+			int viewY = geometry().height() -event->y() -bottomMargin();
 			if (m_showFunctions)
 			{
 				std::vector<dlg_function*>::iterator it = functions.begin();
 				dlg_function *func = *(it + selectedFunction);
 				func->moveSelectedPoint(viewX, viewY);
-				redraw();
+				update();
 				emit updateTFTable();
 			}
 			showDataTooltip(event);
@@ -240,7 +232,7 @@ void iADiagramFctWidget::keyPressEvent(QKeyEvent *event)
 		if (selectedFunction >= functions.size())
 			selectedFunction = 0;
 
-		redraw();
+		update();
 	}
 	else if (event->key() == Qt::Key_Up)
 	{
@@ -249,11 +241,11 @@ void iADiagramFctWidget::keyPressEvent(QKeyEvent *event)
 		else
 			selectedFunction = (int)(functions.size()-1);
 
-		redraw();
+		update();
 	}
 }
 
-void iADiagramFctWidget::AddContextMenuEntries(QMenu* contextMenu)
+void iADiagramFctWidget::addContextMenuEntries(QMenu* contextMenu)
 {
 	if (m_showFunctions)
 	{
@@ -280,13 +272,6 @@ void iADiagramFctWidget::AddContextMenuEntries(QMenu* contextMenu)
 		contextMenu->addAction(QIcon(":/images/savetrf.png"), tr("Apply transfer function for all"), this, SLOT(applyTransferFunctionForAll()));
 		if (m_allowTrfReset)
 			contextMenu->addAction(QIcon(":/images/resetTrf.png"), tr("Reset transfer function"), this, SLOT(resetTrf()));
-
-		QAction *autoUpdateAction = new QAction(tr("Update automatically"), this);
-		autoUpdateAction->setCheckable(true);
-		autoUpdateAction->setChecked(updateAutomatically);
-		connect(autoUpdateAction, SIGNAL(toggled(bool)), this, SLOT(autoUpdate(bool)));
-		contextMenu->addAction(autoUpdateAction);
-		contextMenu->addAction(QIcon(":/images/update.png"), tr("Update views"), this, SIGNAL(updateViews()));
 		contextMenu->addSeparator();
 	}
 	if (m_enableAdditionalFunctions)
@@ -311,8 +296,8 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 				return;
 			std::vector<dlg_function*>::iterator it = functions.begin();
 			dlg_function *func = *(it + selectedFunction);
-			int x = event->x() - LeftMargin();
-			int y = geometry().height() - event->y() -BottomMargin();
+			int x = event->x() - leftMargin();
+			int y = geometry().height() - event->y() -bottomMargin();
 			int selectedPoint = func->selectPoint(event, &x);
 
 			// don't do anything if outside of diagram region:
@@ -326,13 +311,13 @@ void iADiagramFctWidget::changeMode(int newMode, QMouseEvent *event)
 				if (y < 0) y = 0;
 				selectedPoint = func->addPoint(x, y);
 				func->addColorPoint(x);
-				
+
 				mode = MOVE_NEW_POINT_MODE;
 			}
 			else
 				mode = MOVE_POINT_MODE;
 
-			redraw();
+			update();
 
 			bool endPoint = func->isEndPoint(selectedPoint);//selectedPoint == 0 || selectedPoint == opacityTF->GetSize()-1;
 			if (endPoint)
@@ -354,10 +339,9 @@ int iADiagramFctWidget::deletePoint()
 
 	int selectedPoint = func->getSelectedPoint();
 	func->removePoint(selectedPoint);
-	redraw();
+	update();
 	emit updateTFTable();
-	if (isUpdateAutomatically())
-		emit updateViews();
+	emit updateViews();
 
 	return selectedPoint;
 }
@@ -371,16 +355,9 @@ void iADiagramFctWidget::changeColor(QMouseEvent *event)
 
 	func->changeColor(event);
 
-	redraw();
+	update();
 	emit updateTFTable();
-	if (isUpdateAutomatically())
-		emit updateViews();
-}
-
-void iADiagramFctWidget::autoUpdate(bool toggled)
-{
-	updateAutomatically = toggled;
-	emit autoUpdateChanged(toggled);
+	emit updateViews();
 }
 
 void iADiagramFctWidget::resetTrf()
@@ -389,20 +366,20 @@ void iADiagramFctWidget::resetTrf()
 	dlg_function *func = *(it + selectedFunction);
 
 	func->reset();
-	redraw();
+	update();
 	emit updateTFTable();
 	emit updateViews();
 }
 
 void iADiagramFctWidget::updateTrf()
 {
-	((dlg_transfer*)functions[0])->TranslateToNewRange(XBounds());
-	redraw();
+	((dlg_transfer*)functions[0])->TranslateToNewRange(xBounds());
+	update();
 }
 
-void iADiagramFctWidget::NewTransferFunction()
+void iADiagramFctWidget::newTransferFunction()
 {
-	redraw();
+	update();
 	emit noPointSelected();
 	emit updateTFTable();
 	dynamic_cast<dlg_transfer*>(functions[0])->triggerOnChange();
@@ -417,14 +394,14 @@ void iADiagramFctWidget::loadTransferFunction()
 	{
 		iASettings s(fileName);
 		s.LoadTransferFunction((dlg_transfer*)functions[0]);
-		NewTransferFunction();
+		newTransferFunction();
 	}
 }
 
 void iADiagramFctWidget::loadTransferFunction(QDomNode &functionsNode)
 {
 	iASettings::LoadTransferFunction(functionsNode, (dlg_transfer*)functions[0]);
-	NewTransferFunction();
+	newTransferFunction();
 }
 
 void iADiagramFctWidget::saveTransferFunction()
@@ -448,18 +425,18 @@ void iADiagramFctWidget::applyTransferFunctionForAll()
 void iADiagramFctWidget::addBezierFunction()
 {
 	dlg_bezier *bezier = new dlg_bezier(this, PredefinedColors()[functions.size() % 7]);
-	bezier->addPoint(ContextMenuPos().x(), ActiveHeight()- ContextMenuPos().y());
+	bezier->addPoint(contextMenuPos().x(), activeHeight()- contextMenuPos().y());
 	selectedFunction = (unsigned int)functions.size();
 	functions.push_back(bezier);
 
-	redraw();
+	update();
 	emit updateTFTable();
 	emit updateViews();
 }
 
 void iADiagramFctWidget::addGaussianFunction()
 {
-	addGaussianFunction(ContextMenuPos().x(), width / 6, (int)((ActiveHeight() - ContextMenuPos().y())*YZoom()));
+	addGaussianFunction(contextMenuPos().x(), geometry().width() / 6, (int)((activeHeight() - contextMenuPos().y())*YZoom()));
 }
 
 void iADiagramFctWidget::addGaussianFunction(double mean, double sigma, double multiplier)
@@ -471,7 +448,7 @@ void iADiagramFctWidget::addGaussianFunction(double mean, double sigma, double m
 	selectedFunction = (unsigned int)functions.size();
 	functions.push_back(gaussian);
 
-	redraw();
+	update();
 	emit updateTFTable();
 	emit updateViews();
 }
@@ -500,10 +477,10 @@ bool iADiagramFctWidget::loadFunctions()
 		QDomNode functionsNode = root.namedItem("functions");
 		if (functionsNode.isElement())
 				mw->loadProbabilityFunctions(functionsNode);
-		
+
 		emit noPointSelected();
 		emit updateViews();
-		redraw();
+		update();
 	}
 
 	return true;
@@ -536,18 +513,18 @@ void iADiagramFctWidget::removeFunction()
 	functions.erase(it);
 	delete function;
 	selectedFunction--;
-	redraw();
+	update();
 	emit updateViews();
 }
 
-void iADiagramFctWidget::SetTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf)
+void iADiagramFctWidget::setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf)
 {
 	m_showFunctions = ctf && pwf;
 	if (!m_showFunctions)
 		return;
 	((dlg_transfer*)functions[0])->setColorFunction(ctf);
 	((dlg_transfer*)functions[0])->setOpacityFunction(pwf);
-	NewTransferFunction();
+	newTransferFunction();
 }
 
 dlg_function *iADiagramFctWidget::getSelectedFunction()
@@ -555,9 +532,9 @@ dlg_function *iADiagramFctWidget::getSelectedFunction()
 	return functions[selectedFunction];
 }
 
-int iADiagramFctWidget::ChartHeight() const
+int iADiagramFctWidget::chartHeight() const
 {
-	return height - BottomMargin();
+	return geometry().height() - bottomMargin();
 }
 
 std::vector<dlg_function*> &iADiagramFctWidget::getFunctions()
@@ -565,12 +542,12 @@ std::vector<dlg_function*> &iADiagramFctWidget::getFunctions()
 	return functions;
 }
 
-void iADiagramFctWidget::SetAllowTrfReset(bool allow)
+void iADiagramFctWidget::setAllowTrfReset(bool allow)
 {
 	m_allowTrfReset = allow;
 }
 
-void iADiagramFctWidget::SetEnableAdditionalFunctions(bool enable)
+void iADiagramFctWidget::setEnableAdditionalFunctions(bool enable)
 {
 	m_enableAdditionalFunctions = enable;
 }
@@ -588,7 +565,7 @@ void iADiagramFctWidget::showTFTable()
 		TFTable->setAttribute( Qt::WA_DeleteOnClose, true);
 		TFTable->show();
 
-		connect( TFTable, SIGNAL( destroyed( QObject* ) ), this, SLOT( TFTableIsFinished() ) );
+		connect( TFTable, SIGNAL( destroyed( QObject* ) ), this, SLOT( tfTableIsFinished() ) );
 		connect( this, SIGNAL( updateTFTable() ), TFTable, SLOT( updateTable() ) );
 	}
 }
@@ -615,7 +592,7 @@ void iADiagramFctWidget::closeTFTable()
 	TFTable->close();
 }
 
-void iADiagramFctWidget::TFTableIsFinished()
+void iADiagramFctWidget::tfTableIsFinished()
 {
 	TFTable = NULL;
 }

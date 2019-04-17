@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,9 +22,9 @@
 
 #include "iAEnsemble.h"
 
-#include "charts/iAChartWidget.h"
-#include "charts/iAPlotTypes.h"
-#include "charts/iASimpleHistogramData.h"
+#include <charts/iAChartWidget.h>
+#include <charts/iAPlotTypes.h>
+#include <charts/iASimpleHistogramData.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
@@ -42,9 +42,9 @@ void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleH
 {
 	m_chart = new iAChartWidget(this, caption, "Frequency (Pixels)");
 	m_chart->setMinimumHeight(120);
-	QSharedPointer<iABarGraphDrawer> barGraph(new iABarGraphDrawer(data, color, 2));
+	QSharedPointer<iABarGraphPlot> barGraph(new iABarGraphPlot(data, color, 2));
 	barGraph->setLookupTable(lut);
-	m_chart->AddPlot(barGraph);
+	m_chart->addPlot(barGraph);
 	layout()->setSpacing(0);
 	layout()->setContentsMargins(4, 4, 4, 4);
 	layout()->addWidget(m_chart);

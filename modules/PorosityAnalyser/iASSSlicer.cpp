@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,13 +20,15 @@
 * ************************************************************************************/
 #include "iASSSlicer.h"
 
-#include "iAChanData.h"
-#include "iAChannelVisualizationData.h"
-#include "iAConnector.h"
-#include "iASlicer.h"
-#include "iASlicerSettings.h"
 #include "PorosityAnalyserHelpers.h"
-#include "io/iAITKIO.h"
+
+#include <iAChanData.h>
+#include <iAChannelVisualizationData.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iASlicer.h>
+#include <iASlicerSettings.h>
+#include <io/iAITKIO.h>
 
 #include <itkAddImageFilter.h>
 #include <itkCastImageFilter.h>
@@ -92,12 +94,14 @@ const QList<QColor> brewer_RdPu = QList<QColor>() \
 << QColor( "#7a0177" ) \
 << QColor( "#49006a" );
 
-extern void loadImageData( const char * fileName, vtkSmartPointer<vtkImageData> & imgData )
+void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & imgData )
 {
 	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New();
-	reader->SetFileName( fileName );
+	reader->SetFileName( getLocalEncodingFileName(fileName).c_str() );
 	reader->Update();
 	imgData = reader->GetOutput();
+	if (!imgData)
+		DEBUG_LOG("Image data is NULL!");
 }
 
 iASSSlicer::iASSSlicer( const QString slicerName ) :
@@ -196,7 +200,7 @@ void iASSSlicer::initializeChannel( iAChanData * chData )
 	slicer->initializeChannel( chData->id, chData->visData.data() );
 }
 
-void iASSSlicer::initBPDChans( const char * minFile, const char * medFile, const char * maxFile )
+void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile, QString const & maxFile )
 {
 	loadImageData( minFile, minChan->imgData );
 	loadImageData( medFile, medChan->imgData );
@@ -291,7 +295,7 @@ void iASSSlicer::initializeMasks( QStringList & masks )
 	masksChan->scalarBarWgt->SetEnabled( true );
 }
 
-void iASSSlicer::initializeGT( const char * fileName )
+void iASSSlicer::initializeGT( QString const & fileName )
 {
 	loadImageData( fileName, gtChan->imgData );
 	initializeChannel( gtChan.data() );

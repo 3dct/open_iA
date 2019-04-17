@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,11 +20,15 @@
 * ************************************************************************************/
 #include "iADerivedOutputCalculator.h"
 
-#include "EntropyImageFilter.h"
 #include "iAAttributes.h"
-#include "iAConsole.h"
 #include "iAImageTreeNode.h"
 #include "iASingleResult.h"
+
+// Toolkit/Entropy
+#include <EntropyImageFilter.h>
+
+#include <iAConsole.h>
+#include <iAToolsITK.h>
 
 #include <itkImageFileWriter.h>
 #include <itkRelabelComponentImageFilter.h>
@@ -75,11 +79,8 @@ void iADerivedOutputCalculator::run()
 
 		if (m_result->ProbabilityAvailable())
 		{
-
 			typedef itk::ImageRegionConstIterator<ProbabilityImageType> ConstDblIt;
-
 			typedef fhw::EntropyImageFilter<ProbabilityImageType, ProbabilityImageType> EntropyFilter;
-			typedef itk::StatisticsImageFilter<ProbabilityImageType> MeanFilter;
 			auto entropyFilter = EntropyFilter::New();
 			for (int i = 0; i < m_labelCount; ++i)
 			{
@@ -88,10 +89,13 @@ void iADerivedOutputCalculator::run()
 			}
 			entropyFilter->SetNormalize(true);
 			entropyFilter->Update();
-			auto meanFilter = MeanFilter::New();
-			meanFilter->SetInput(entropyFilter->GetOutput());
-			meanFilter->Update();
-			double avgEntropy = meanFilter->GetMean();
+			double avgEntropy;
+			getStatistics(entropyFilter->GetOutput(), nullptr, nullptr, &avgEntropy);
+			if (qIsInf(avgEntropy))
+			{
+				DEBUG_LOG("AverageEntropy was infinity! Setting to -1")
+				avgEntropy = -1;
+			}
 			m_result->SetAttribute(m_avgUncIdx, avgEntropy);
 			m_result->DiscardProbability();
 		}
@@ -102,7 +106,7 @@ void iADerivedOutputCalculator::run()
 	}
 	/*
 	itk::ImageFileWriter<OutputImageType>::Pointer writer = itk::ImageFileWriter<OutputImageType>::New();
-	writer->SetFileName(debugCount.toStdString() );
+	writer->SetFileName( getLocalEncodingFileName(labelOutputFileName) );
 	writer->SetUseCompression(true);
 	writer->SetInput(relabel->GetOutput() );
 	writer->Update();

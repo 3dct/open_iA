@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,6 +21,8 @@
 #include "iADefectVisModule.h"
 
 #include "iA4DCTVisWin.h"
+
+#include <io/iAFileUtils.h>
 
 #include <vtkActor.h>
 #include <vtkOBJReader.h>
@@ -60,7 +62,7 @@ void iADefectVisModule::hide( )
 
 void iADefectVisModule::setInputFile( QString path )
 {
-	m_reader->SetFileName( path.toStdString( ).c_str( ) );
+	m_reader->SetFileName( getLocalEncodingFileName(path).c_str( ) );
 	m_reader->Update( );
 }
 

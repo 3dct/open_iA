@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,6 +21,7 @@
 #include "iAHistogramData.h"
 
 #include "iAImageInfo.h"
+#include "iAMathUtility.h"
 #include "iAVtkDataTypeMapper.h"
 #include "iAToolsVTK.h"
 
@@ -30,7 +31,7 @@
 
 
 iAHistogramData::iAHistogramData()
-	: m_binCount(0), rawData(nullptr), accSpacing(0)
+	: m_binCount(0), rawData(nullptr), accSpacing(0), m_type(Continuous)
 {
 	xBounds[0] = xBounds[1] = 0;
 	yBounds[0] = yBounds[1] = 0;
@@ -56,7 +57,6 @@ iAHistogramData::DataType const * iAHistogramData::GetRawData() const
 	return rawData;
 }
 
-
 QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, size_t binCount,
 	iAImageInfo* info)
 {
@@ -66,9 +66,6 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(vtkImageData* img, size_
 	accumulate->SetInputData(img);
 	accumulate->SetComponentOrigin(img->GetScalarRange()[0], 0.0, 0.0);
 	double * const scalarRange = img->GetScalarRange();
-	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
-		binCount = std::min(binCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
-
 	accumulate->SetComponentExtent(0, binCount - 1, 0, 0, 0, 0);
 	const double RangeEnlargeFactor = 1 + 1e-10;  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
 	accumulate->SetComponentSpacing(((scalarRange[1] - scalarRange[0]) * RangeEnlargeFactor) / binCount, 0.0, 0.0);
@@ -119,6 +116,49 @@ QSharedPointer<iAHistogramData> iAHistogramData::Create(
 	result->accSpacing = space;
 	result->xBounds[0] = min;
 	result->xBounds[1] = max;
+	result->SetMaxFreq();
+	return result;
+}
+
+QSharedPointer<iAHistogramData> iAHistogramData::Create(const std::vector<DataType>& histData, size_t binCount, iAValueType type,
+	DataType minValue, DataType maxValue)
+{
+	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
+	if (std::isinf(minValue))
+	{
+		minValue = std::numeric_limits<DataType>::max();
+		for (DataType d : histData)
+			if (d < minValue)
+				minValue = d;
+	}
+	if (std::isinf(maxValue))
+	{
+		maxValue = std::numeric_limits<DataType>::lowest();
+		for (DataType d : histData)
+			if (d > maxValue)
+				maxValue = d;
+	}
+	result->xBounds[0] = minValue;
+	result->xBounds[1] = maxValue;
+	result->m_type = type;
+	if (dblApproxEqual(minValue, maxValue))
+	{   // if min == max, there is only one bin - one in which all values are contained!
+		result->m_binCount = 1;
+		result->rawData = new DataType[result->m_binCount];
+		result->rawData[0] = histData.size();
+	}
+	else
+	{
+		result->m_binCount = binCount;
+		result->rawData = new DataType[binCount];
+		result->accSpacing = (maxValue - minValue) / binCount;
+		std::fill(result->rawData, result->rawData + binCount, 0.0);
+		for (DataType d : histData)
+		{
+			int bin = clamp(static_cast<size_t>(0), binCount - 1, mapValue(minValue, maxValue, static_cast<size_t>(0), binCount, d));
+			++result->rawData[bin];
+		}
+	}
 	result->SetMaxFreq();
 	return result;
 }

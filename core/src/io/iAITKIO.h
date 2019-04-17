@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,6 +22,8 @@
 
 #include "iATypedCallHelper.h"
 
+#include "io/iAFileUtils.h"
+
 #include <itkImageBase.h>
 #include <itkImageIOBase.h>
 #include <itkImageIOFactory.h>
@@ -36,7 +38,7 @@ namespace iAITKIO
 	typedef itk::ImageBase< m_DIM > ImageBaseType;
 	typedef ImageBaseType::Pointer ImagePointer;
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
-	
+
 	template<class T>
 	inline void read_image_template( QString const & f, ImagePointer & image, bool releaseFlag )
 	{
@@ -48,7 +50,7 @@ namespace iAITKIO
 		{
 			reader->ReleaseDataFlagOn();
 		}
-		reader->SetFileName( f.toLatin1().data() );
+		reader->SetFileName( getLocalEncodingFileName(f) );
 		reader->Update();
 		image = reader->GetOutput();
 		image->Modified();
@@ -62,7 +64,10 @@ namespace iAITKIO
 		typename WriterType::Pointer writer = WriterType::New();
 
 		writer->ReleaseDataFlagOn();
-		writer->SetFileName( fileName.toLatin1().data() );
+		std::string encodedFileName = getLocalEncodingFileName(fileName);
+		if (encodedFileName.empty())
+			return;
+		writer->SetFileName( encodedFileName.c_str() );
 		writer->SetInput( dynamic_cast<InputImageType *> (image.GetPointer()) );
 		writer->SetUseCompression( comp );
 		writer->Update();
@@ -72,15 +77,15 @@ namespace iAITKIO
 	inline ImagePointer readFile (QString const & fileName, ScalarPixelType & pixelType, bool releaseFlag)
 	{
 		itk::ImageIOBase::Pointer imageIO =
-		itk::ImageIOFactory::CreateImageIO( fileName.toLatin1(), itk::ImageIOFactory::ReadMode );
-		
+		itk::ImageIOFactory::CreateImageIO( getLocalEncodingFileName(fileName).c_str(), itk::ImageIOFactory::ReadMode );
+
 		if (!imageIO)
 		{
-			throw itk::ExceptionObject( __FILE__, __LINE__, QString("iAITKIO: Could not open file %1, aborting loading.").arg(fileName).toLatin1().data() );
-			return 0;
+			throw itk::ExceptionObject( __FILE__, __LINE__, QString("iAITKIO: Could not open file %1, aborting loading.").arg(fileName).toStdString().c_str() );
+			return ImagePointer();
 		}
-		
-		imageIO->SetFileName(fileName.toLatin1());
+
+		imageIO->SetFileName( getLocalEncodingFileName(fileName) );
 		imageIO->ReadImageInformation();
 		pixelType = imageIO->GetComponentType();
 		ImagePointer image;
@@ -88,7 +93,7 @@ namespace iAITKIO
 
 		return image;
 	}
-	
+
 	inline void writeFile (QString const & fileName, ImagePointer image, ScalarPixelType pixelType, bool useCompression = false )
 	{
 		ITK_TYPED_CALL(write_image_template, pixelType, useCompression, fileName, image);

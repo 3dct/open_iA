@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,127 +20,42 @@
 * ************************************************************************************/
 #pragma once
 
-//#define iALookupTable_USE_VTK //!! uncomment if you want to allow VTK lookup table input
+#include "open_iA_Core_export.h"
 
-#include <QColor>
-#include <QList>
-#include <vtkLookupTable.h>
+#include <cstddef>    // for size_t
+#include <vector>
 
-#include "iAMathUtility.h"
+class QColor;
+class vtkLookupTable;
 
 //! Class representing lookup table for color coding used in scatter plot matrix (SPLOM).
 /*!
-	Has methods for importing existing VTK lookup table (!if VTK is enabled via a preprocessor flag!) 
+	Has methods for importing existing VTK lookup table
 	and mapping scalar values to a corresponding QColor.
 */
-class iALookupTable
+class open_iA_Core_API iALookupTable
 {
 public:
-	iALookupTable() 
-		: m_isInitialized( false ),
-		m_rangeLen( 1.0 ),
-		m_numColors( 0 )
-	{
-		m_range[0] = m_range[1] = 0.0;
-	}
-
-	explicit iALookupTable( vtkLookupTable * vtk_lut ) : m_isInitialized( false )
-	{
-		copyFromVTK( vtk_lut );
-	}
-
-	//!  Copies data from the existing VTK lookup table (vtkLookupTable)
-	void copyFromVTK( vtkLookupTable * vtk_lut )
-	{
-		m_numColors = vtk_lut->GetNumberOfTableValues();
-		allocate( m_numColors );
-		setRange( vtk_lut->GetRange() );
-		for( unsigned long i = 0; i < m_numColors; ++i )
-		{
-			double rgba[4];
-			vtk_lut->GetTableValue( i, rgba );
-			setColor( i, rgba );
-		}
-		m_isInitialized = true;
-	}
-
-	//!  Map a scalar value into an RGBA color.
-	void getColor( double val, double * rgba_out )
-	{
-		double t = ( val - m_range[0] ) / m_rangeLen;
-		int index = clamp(0ul, m_numColors-1, static_cast<unsigned long>(t * m_numColors));
-		index *= 4;
-		for( unsigned long i = 0; i < 4; ++i )
-			rgba_out[i] = m_data[index++];
-	}
-
-	//!  Allocate place for a given number of colors and fill with zeros.
-	void allocate( unsigned long numberOfColors )
-	{
-		m_numColors = numberOfColors;
-		m_data.clear();
-		unsigned long size = m_numColors * 4;
-		for( unsigned long i = 0; i < size; ++i )
-			m_data.push_back( 0.0 );
-		m_isInitialized = true;
-	}
-
-	//!  Assign an RGBA color to a given index in the table.
-	void setColor( unsigned long colInd, double * rgba )
-	{
-		int maxInd = ( colInd + 1 ) * 4;
-		if( m_data.size() < maxInd )
-			return;
-		unsigned long offset = colInd * 4;
-		for( unsigned long i = 0; i < 4; ++i )
-			m_data[offset++] = rgba[i];
-	}
-
-	//!  Assign an QColor color to a given index in the table.
-	void setColor( unsigned long colInd, QColor & col )
-	{
-		double rgba[4] = { col.redF(), col.greenF(), col.blueF(), col.alphaF(), };
-		setColor(colInd, rgba);
-	}
-	
-	//! Fill the lookup table using provided raw RBGA data for a given number of colors.
-	void setData( unsigned long numberOfColors, double * rgba_data )
-	{
-		m_numColors = numberOfColors;
-		allocate( m_numColors );
-		unsigned long offset = 0;
-		for( unsigned long i = 0; i < m_numColors; ++i )
-		{
-			setColor( i, &rgba_data[offset] );
-			offset += 4;
-		}
-	}
-
-	//! Set a given alpha value for every color in the table
-	void setOpacity( double alpha )
-	{
-		unsigned long offset = 0;
-		for( unsigned long i = 0; i < m_numColors; ++i )
-		{
-			m_data[offset + 3] = alpha;
-			offset += 4;
-		}
-	}
-
-	/* Setters/Getters */
-	const double * getRange() const { return m_range; }						//!< Get the mapped scalar range.
-	void setRange( double from_val, double to_val )							//!< Set the mapped scalar range.
-	{ 
-		m_range[0] = from_val; m_range[1] = to_val; 
-		m_rangeLen = m_range[1] - m_range[0]; 
-	}
-	void setRange( double * range ) { setRange( range[0], range[1] ); }		//!< Set the mapped scalar range.
-	bool initialized() const { return m_isInitialized; }					//!< Check if the table has data (initialized).
-
+	iALookupTable();                                           //!< Set up an empty (uninitialized) iALookupTable.
+	explicit iALookupTable(vtkLookupTable * vtk_lut);          //!< Initialize an iALookupTable from the given vtkLookupTable.
+	void copyFromVTK(vtkLookupTable * vtk_lut);                //!< Copies data from the existing VTK lookup table (vtkLookupTable).
+	void allocate(size_t numberOfColors);                      //!< Allocate place for a given number of colors and fill with zeros.
+	size_t numberOfValues() const;                             //!< Get the number of values in the table.
+	void getColor(double val, double * rgba_out) const;        //!< Map a scalar value into an RGBA color.
+	QColor getQColor(double val) const;                        //!< Map a scalar value into an QColor object.
+	void getTableValue(size_t index, double * rgba_out) const; //!< Get the RGBA color value for a given index in the table.
+	void setColor(size_t colInd, double * rgba);               //!< Assign an RGBA color (every component 0..1) to a given index in the table.
+	void setColor(size_t colInd, QColor const & col);          //!< Assign a color specified by a QColor to a given index in the table.
+	void setData(size_t numberOfColors, double * rgba_data);   //!< Fill the lookup table using provided raw RBGA data for a given number of colors.
+	void setOpacity(double alpha);                             //!< Set a given alpha value for every color in the table.
+	const double * getRange() const;                           //!< Get the mapped scalar range.
+	void setRange(double from_val, double to_val);             //!< Set the mapped scalar range.
+	void setRange(double const * range);                       //!< Set the mapped scalar range.
+	bool initialized() const;                                  //!< Check if the table has data (initialized).
 protected:
-	bool m_isInitialized;					///< flag which is on if lookup table data is set
-	QList<double> m_data;					///< lookup table raw color data, each color is 4 doubles (RGBA)
-	double m_range[2];						///< scalar range mapped by the lookup table 
-	double m_rangeLen;						///< length of the total scalar range that is mapped by the lookup table
-	unsigned long m_numColors;				///< number of colors stored in the lookup table
+	bool m_isInitialized;                                      //!< flag which is on if lookup table data is set
+	std::vector<double> m_data;                                //!< lookup table raw color data, each color is 4 doubles (RGBA)
+	double m_range[2];                                         //!< scalar range mapped by the lookup table
+	double m_rangeLen;                                         //!< length of the total scalar range that is mapped by the lookup table
+	size_t m_numColors;                                        //!< number of colors stored in the lookup table
 };

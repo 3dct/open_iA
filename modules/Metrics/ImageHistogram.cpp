@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,15 +20,19 @@
 * ************************************************************************************/
 #include "ImageHistogram.h"
 
-#include <vtkMath.h>
+#include <vtkMath.h> // for vtkMath::Pi()
 
 #include <algorithm>
-
-#define DBL_EPSILON		2.2204460492503131e-016 /* smallest such that 1.0+DBL_EPSILON != 1.0 */
-#define DBL_EQ(x,v) (((v - DBL_EPSILON) < x) && (x <( v + DBL_EPSILON)))
+#include <cmath>
 
 namespace
 {
+	const double DoubleEpsilon = 2.2204460492503131e-016; /* smallest such that 1.0+DoubleEpsilon != 1.0 */
+	bool DoubleEquals(double x, double v)
+	{
+		return ((v - DoubleEpsilon) < x) && (x < (v + DoubleEpsilon));
+	}
+
 	const double LOG2M1 = 1.4426950408889634073599246810018921374266459541529860;
 	// Calculates log2=log(n)/log(2)
 	double dlog2(double n)
@@ -184,7 +188,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 	double sum=0.0, value;
 	for(int i=-dknl_sz; i<=dknl_sz; i++)
 	{
-		double value=1/(sqrt(2*vtkMath::Pi())*gauss_sigma)*exp(-0.5*i*i/(gauss_sigma*gauss_sigma));
+		double value=1/(std::sqrt(2*vtkMath::Pi())*gauss_sigma)*std::exp(-0.5*i*i/(gauss_sigma*gauss_sigma));
 		gauss_knl.push_back(value);
 		sum+=value;
 	}
@@ -284,7 +288,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 					tmp_idx[0] = i;
 					tmp_idx[1] = i;
 				}
-				if( DBL_EQ(ghist_y[i],minval) )		// if maximum is equal, the mean between the idx is taken
+				if(DoubleEquals(ghist_y[i],minval) )		// if maximum is equal, the mean between the idx is taken
 					tmp_idx[1] = i;
 			}
 
@@ -377,9 +381,9 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 
 	// Total quality measure between the lowest absorbing (air) and the peak with highest probability
 	if(Q_equation==0)
-		return abs(result[maxprobabilityClassIDX].mean-result[0].mean)/sqrt(result[maxprobabilityClassIDX].sigma*result[0].sigma);
+		return abs(result[maxprobabilityClassIDX].mean-result[0].mean)/std::sqrt(result[maxprobabilityClassIDX].sigma*result[0].sigma);
 	else
-		return abs(result[maxprobabilityClassIDX].mean-result[0].mean)/sqrt(result[maxprobabilityClassIDX].sigma*result[maxprobabilityClassIDX].sigma+result[0].sigma*result[0].sigma);
+		return abs(result[maxprobabilityClassIDX].mean-result[0].mean)/std::sqrt(result[maxprobabilityClassIDX].sigma*result[maxprobabilityClassIDX].sigma+result[0].sigma*result[0].sigma);
 }
 
  /** \fn float cImageHistogram::CalcEntropy(std::vector<int> , std::vector<ClassMeasure> &result, int Q_equation)
@@ -419,7 +423,7 @@ float cImageHistogram::CalcEntropy()
 	for(dHistPosList::iterator iter = p.begin(); iter < p.end(); iter++)
 	{
 		double mx = (iter->y*dlog2(iter->y));
-		if(iter->y>=DBL_EPSILON)
+		if(iter->y>=DoubleEpsilon)
 			H+=(iter->y*dlog2(iter->y));
 	}
 	H/=-Hmax;

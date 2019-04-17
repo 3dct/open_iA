@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -50,7 +50,6 @@ iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALog
 	connect(m_progressObserver, SIGNAL( progress(int) ), this, SIGNAL( aprogress(int) ));
 }
 
-
 iAAlgorithm::~iAAlgorithm()
 {
 	foreach(iAConnector* c, m_connectors)
@@ -59,22 +58,20 @@ iAAlgorithm::~iAAlgorithm()
 	delete m_progressObserver;
 }
 
-
 void iAAlgorithm::run()
 {
 	addMsg(tr("%1  %2 started.")
 		.arg(QLocale().toString(Start(), QLocale::ShortFormat))
 		.arg(getFilterName()));
-	getConnector()->SetImage(getVtkImageData());
-	getConnector()->Modified();
 	try
 	{
+		getConnector()->SetImage(getVtkImageData());
+		getConnector()->Modified();
 		performWork();
 	}
 	catch (itk::ExceptionObject &excep)
 	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Error: %3; in File %4, Line %5. Elapsed time: %6 ms.")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		addMsg(tr("%1 terminated unexpectedly. Error: %2; in File %3, Line %4. Elapsed time: %5 ms.")
 			.arg(getFilterName())
 			.arg(excep.GetDescription())
 			.arg(excep.GetFile())
@@ -84,26 +81,22 @@ void iAAlgorithm::run()
 	}
 	catch (const std::exception& e)
 	{
-		addMsg(tr("%1  %2 terminated unexpectedly. Error: %3. Elapsed time: %4 ms.")
-			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		addMsg(tr("%1 terminated unexpectedly. Error: %2. Elapsed time: %3 ms.")
 			.arg(getFilterName())
 			.arg(e.what())
 			.arg(Stop()));
 		return;
 	}
-	addMsg(tr("%1  %2 finished. Elapsed time: %3 ms.")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+	addMsg(tr("%1 finished. Elapsed time: %2 ms.")
 		.arg(getFilterName())
 		.arg(Stop()));
 	emit startUpdate();
 }
 
-
 void iAAlgorithm::performWork()
 {
-	addMsg(tr("  unknown filter type"));
+	addMsg(tr("Unknown filter type"));
 }
-
 
 void iAAlgorithm::setImageData(vtkImageData* imgData)
 {
@@ -112,23 +105,21 @@ void iAAlgorithm::setImageData(vtkImageData* imgData)
 
 QDateTime iAAlgorithm::Start()
 {
-	m_elapsed = 0; 
+	m_elapsed = 0;
 	m_time.start();
 	m_isRunning = true;
 	return QDateTime::currentDateTime();
 }
 
-
 int iAAlgorithm::Stop()
 {
-	if (m_isRunning) 
-	{	
+	if (m_isRunning)
+	{
 		m_isRunning = false;
 		m_elapsed = m_time.elapsed();
 	}
 	return m_elapsed;
 }
-
 
 void iAAlgorithm::setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l)
 {
@@ -188,7 +179,7 @@ bool iAAlgorithm::deleteConnector(iAConnector* c)
 {
 	bool isDeleted = false;
 	int ind = m_connectors.indexOf(c);
-	if (ind >= 0)		
+	if (ind >= 0)
 	{
 		m_connectors.remove(ind);
 		isDeleted = true;
@@ -202,7 +193,6 @@ void iAAlgorithm::allocConnectors(int size)
 	while (m_connectors.size() < size)
 		m_connectors.push_back(new iAConnector());
 }
-
 
 iAProgress* iAAlgorithm::ProgressObserver()
 {
@@ -221,14 +211,13 @@ void iAAlgorithm::updateVtkImageData(int ch)
 	m_image->Modified();
 }
 
-
 void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* polyData )
 {
 	int numPoints =  mesh->GetNumberOfPoints();
 
 	typedef MeshType::CellsContainerPointer	CellsContainerPointer;
 	typedef MeshType::CellsContainerIterator CellsContainerIterator;
-	typedef MeshType::CellType CellType; 
+	typedef MeshType::CellType CellType;
 	typedef MeshType::PointsContainer MeshPointsContainer;
 	typedef MeshType::PointType MeshPointType;
 	typedef MeshPointsContainer::Pointer InputPointsContainerPointer;
@@ -241,14 +230,14 @@ void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* poly
 	vtkCellArray * pvtkPolys = vtkCellArray::New();
 
 	if (numPoints == 0)
-		return; 
+		return;
 
 	pvtkPoints->SetNumberOfPoints(numPoints);
 
 	int idx=0;
 	double vpoint[3];
-	while( points != myPoints->End() ) 	
-	{   
+	while( points != myPoints->End() )
+	{
 		point = points.Value();
 		vpoint[0]= point[0];
 		vpoint[1]= point[1];
@@ -271,16 +260,16 @@ void iAAlgorithm::itkMesh_vtkPolydata( MeshType::Pointer mesh, vtkPolyData* poly
 		MeshPointType  p;
 		int i;
 
-		switch (nextCell->GetType()) 
+		switch (nextCell->GetType())
 		{
 		case CellType::VERTEX_CELL:
 		case CellType::LINE_CELL:
 		case CellType::POLYGON_CELL:
-			break;        
+			break;
 		case CellType::TRIANGLE_CELL:
 			i=0;
 			while (pointIt != nextCell->PointIdsEnd() ) {
-				pts[i++] = *pointIt++;  
+				pts[i++] = *pointIt++;
 			}
 			pvtkPolys->InsertNextCell(3,pts);
 			break;

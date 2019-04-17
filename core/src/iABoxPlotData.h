@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,15 +24,13 @@
 
 #include <QList>
 
-#include <cstddef> // for size_t
-
 struct open_iA_Core_API iABoxPlotData
 {
 public:
 	iABoxPlotData() : q25(0), med(0), q75(0), min(0), max(0) {};
-	iABoxPlotData(double q25_v, double med_v, double q75_v, double min_v, double max_v);	
+	iABoxPlotData(double q25_v, double med_v, double q75_v, double min_v, double max_v);
 	static int cmp(const void *px, const void *py);
-	
+
 	/**
 	* \fn void iABoxPlotData::CalculateBoxPlot ( double * data, int dataSize, bool removeOutliers = false, double k = 1.5)
 	* \param data

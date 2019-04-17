@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,8 +20,10 @@
 * ************************************************************************************/
 #include "iAExtractSurfaceFilters.h"
 
-#include "iAConnector.h"
-#include "iAProgress.h"
+#include "io/iAFileUtils.h"
+
+#include <iAConnector.h>
+#include <iAProgress.h>
 
 #include <vtkDecimatePro.h>
 #include <vtkFlyingEdges3D.h>
@@ -106,7 +108,7 @@ void iAMarchingCubes::PerformWork(QMap<QString, QVariant> const & parameters)
 	*/
 	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 	Progress()->Observe(stlWriter);
-	stlWriter->SetFileName(parameters["STL output filename"].toString().toStdString().c_str());
+	stlWriter->SetFileName( getLocalEncodingFileName(parameters["STL output filename"].toString()).c_str());
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{
 		stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());

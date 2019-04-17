@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,12 +20,10 @@
 * ************************************************************************************/
 #include "iARendererManager.h"
 
-#include "iARenderer.h"
-
 #include <vtkCamera.h>
 #include <vtkCommand.h>
 #include <vtkObject.h>
-#include <vtkOpenGLRenderer.h>
+#include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
 
@@ -37,18 +35,18 @@ iARendererManager::iARendererManager()
 	m_commonCamera = NULL;
 }
 
-void iARendererManager::addToBundle(iARenderer* renderer)
+void iARendererManager::addToBundle(vtkRenderer* renderer)
 {
 	if(!m_commonCamera)
-		m_commonCamera = renderer->GetRenderer()->GetActiveCamera();
+		m_commonCamera = renderer->GetActiveCamera();
 	else
-		renderer->setCamera(m_commonCamera);
-	
+		renderer->SetActiveCamera(m_commonCamera);
+
 	m_renderers.append(renderer);
-	renderer->GetRenderer()->AddObserver(vtkCommand::EndEvent, this, &iARendererManager::redrawOtherRenderers);
+	renderer->AddObserver(vtkCommand::EndEvent, this, &iARendererManager::redrawOtherRenderers);
 }
 
-bool iARendererManager::removeFromBundle(iARenderer* renderer)
+bool iARendererManager::removeFromBundle(vtkRenderer* renderer)
 {
 	if(!m_renderers.contains(renderer))
 	{
@@ -57,8 +55,8 @@ bool iARendererManager::removeFromBundle(iARenderer* renderer)
 		return false;
 	}
 	vtkSmartPointer<vtkCamera> newCam = vtkSmartPointer<vtkCamera>::New();
-	newCam->DeepCopy(renderer->GetRenderer()->GetActiveCamera());
-	renderer->setCamera(newCam);
+	newCam->DeepCopy(renderer->GetActiveCamera());
+	renderer->SetActiveCamera(newCam);
 	m_renderers.remove(m_renderers.indexOf(renderer));
 	return true;
 }
@@ -66,7 +64,7 @@ bool iARendererManager::removeFromBundle(iARenderer* renderer)
 void iARendererManager::removeAll()
 {
 	m_commonCamera = NULL;
-	foreach( iARenderer * r, m_renderers)
+	foreach( vtkRenderer * r, m_renderers)
 	{
 		removeFromBundle( r );
 	}
@@ -81,7 +79,8 @@ void iARendererManager::redrawOtherRenderers(vtkObject* caller,
 		m_isRedrawn = true;
 		for(int i = 0; i < m_renderers.count(); i++)
 		{
-			if(m_renderers[i]->GetRenderer() != callData) {
+			if(m_renderers[i] != callData)
+			{
 				m_renderers[i]->GetRenderWindow()->Render();
 			}
 		}

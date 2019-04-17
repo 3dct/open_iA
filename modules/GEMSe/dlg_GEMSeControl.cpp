@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,38 +20,38 @@
 * ************************************************************************************/
 #include "dlg_GEMSeControl.h"
 
-#include "dlg_commoninput.h"
 #include "dlg_GEMSe.h"
 #include "dlg_labels.h"
 #include "dlg_Consensus.h"
-#include "dlg_modalities.h"
 #include "dlg_progress.h"
 #include "dlg_samplings.h"
 #include "dlg_samplingSettings.h"
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
-#include "iAColorTheme.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
 #include "iAImageTreeLeaf.h" // for VisitLeafs
 #include "iAImageSampler.h"
-#include "iAToolsITK.h"
 #include "iALabelInfo.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
 #include "iAImageClusterer.h"
 #include "iASamplingResults.h"
 #include "iASEAFile.h"
-#include "io/iAIOProvider.h"
-#include "mdichild.h"
+
+#include <dlg_commoninput.h>
+#include <dlg_modalities.h>
+#include <iAAttributeDescriptor.h>
+#include <iAColorTheme.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAToolsITK.h>
+#include <io/iAIOProvider.h>
+#include <mdichild.h>
 
 #include <vtkImageData.h>
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QSettings>
 #include <QTextStream>
 
 class iASimpleLabelInfo : public iALabelInfo
@@ -138,14 +138,8 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(m_dlgSamplings, SIGNAL(AddSampling()), this, SLOT(LoadSampling()));
 	dlgLabels->hide();
 	m_simpleLabelInfo->SetColorTheme(colorTheme);
-	for (QString themeName : iAColorThemeManager::GetInstance().GetAvailableThemes())
-	{
-		cbColorThemes->addItem(themeName);
-		if (themeName == colorTheme->GetName())
-		{
-			cbColorThemes->setCurrentText(themeName);
-		}
-	}
+	cbColorThemes->addItems(iAColorThemeManager::GetInstance().GetAvailableThemes());
+	cbColorThemes->setCurrentText(colorTheme->GetName());
 
 	connect(pbSample,           SIGNAL(clicked()), this, SLOT(StartSampling()));
 	connect(pbSamplingLoad,     SIGNAL(clicked()), this, SLOT(LoadSampling()));
@@ -444,7 +438,7 @@ void dlg_GEMSeControl::ClusteringFinished()
 
 		if (m_dlgModalities->GetModalities()->GetFileName().isEmpty())
 		{
-			m_dlgModalities->Store(m_outputFolder + "/" + iASEAFile::DefaultModalityFileName);
+			mdiChild->saveProject(m_outputFolder + "/" + iASEAFile::DefaultModalityFileName);
 		}
 		StoreGEMSeProject(m_outputFolder + "/sampling.sea", "");
 	}
@@ -566,7 +560,7 @@ void dlg_GEMSeControl::ExportIDs()
 		return;
 	}
 	QSharedPointer<iAImageTreeNode> cluster = m_dlgGEMSe->GetCurrentCluster();
-	std::ofstream out(fileName.toStdString());
+	std::ofstream out( getLocalEncodingFileName(fileName) );
 	ExportClusterIDs(cluster, out);
 }
 

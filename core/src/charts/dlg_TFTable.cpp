@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -45,8 +45,8 @@ public:
 
 dlg_TFTable::dlg_TFTable( iADiagramFctWidget * parent, dlg_function* func ) : dlg_TFTableWidgetConnector( parent ),
 	m_parent(parent),
-	m_oTF( dynamic_cast<dlg_transfer*>( func )->GetOpacityFunction() ),
-	m_cTF( dynamic_cast<dlg_transfer*>( func )->GetColorFunction() ),
+	m_oTF( dynamic_cast<dlg_transfer*>( func )->getOpacityFunction() ),
+	m_cTF( dynamic_cast<dlg_transfer*>( func )->getColorFunction() ),
 	m_newPointColor( Qt::gray )
 {
 	Init();
@@ -58,7 +58,7 @@ void dlg_TFTable::Init()
 {
 	m_oTF->GetRange( m_xRange );
 	dsbNewPointX->setRange( m_xRange[0], m_xRange[1] );
-	
+
 	QPixmap pxMap( 23, 23 );
 	pxMap.fill( m_newPointColor );
 	tbChangeColor->setIcon( pxMap );
@@ -77,7 +77,7 @@ void dlg_TFTable::Init()
 	table->horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch );
 	table->verticalHeader()->setDefaultSectionSize( 25 );
 	table->setSelectionBehavior( QAbstractItemView::SelectRows );
-	
+
 	connect( tbChangeColor, SIGNAL( clicked() ), this, SLOT( changeColor() ) );
 	connect( tbAddPoint, SIGNAL( clicked() ), this, SLOT( addPoint() ) );
 	connect( addPnt, SIGNAL( triggered() ), this, SLOT( addPoint() ) );
@@ -153,7 +153,7 @@ void dlg_TFTable::removeSelectedPoint()
 	QList<QTableWidgetSelectionRange> selRangeList =  table->selectedRanges();
 	QList<int> rowsToRemove;
 	// Bug fix: first/last row selection (despite: ~Qt::ItemIsSelectable)
-	for ( int i = 0; i < selRangeList.size(); ++i )	
+	for ( int i = 0; i < selRangeList.size(); ++i )
 	{
 		for ( int j = selRangeList[i].topRow(); j <= selRangeList[i].bottomRow(); ++j )
 		{
@@ -179,7 +179,7 @@ void dlg_TFTable::updateHistogram()
 		m_oTF->AddPoint( x, y );
 		m_cTF->AddRGBPoint( x, c.redF(), c.greenF(), c.blueF() );
 	}
-	m_parent->SetTransferFunctions( m_cTF, m_oTF );
+	m_parent->setTransferFunctions( m_cTF, m_oTF );
 }
 
 void dlg_TFTable::itemClicked( QTableWidgetItem * item )

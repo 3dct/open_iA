@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -29,7 +29,7 @@ QStringList SplitPossiblyQuotedString(QString const & str)
 	// TODO : rewrite so that it can cope with multiply quoted strings
 	//     (where quotes are escaped by \" )
 	QStringList result;
-	QRegularExpression exp("\\s*([^\"]\\S*|\".+?\")\\s*");
+	QRegularExpression exp("\\s*([^\"]\\S*|\".*?\")\\s*");
 	int offset = 0;
 	QRegularExpressionMatch match = exp.match(str, offset);
 	while (match.hasMatch())
@@ -106,15 +106,36 @@ QString DblToStringWithUnits(double value)
 		else if (value > 1000)
 			return QString::number(value / 1000, 'f', (value < 10000) ? 2 : ((value < 100000) ? 1 : 0)) + "K";
 		else
-			return QString::number((int)value, 10);
+			return QString::number(value, 'g', 3);
 }
 
-QString GreatestCommonPrefix(QString const & str1, QString const & str2)
+int GreatestCommonPrefixLength(QString const & str1, QString const & str2)
 {
 	int pos = 0;
 	while (pos < str1.size() && pos < str2.size() && str1.at(pos) == str2.at(pos))
 	{
 		++pos;
 	}
-	return str1.left(pos);
+	return pos;
+}
+
+int GreatestCommonSuffixLength(QString const & str1, QString const & str2)
+{
+	int pos = 0;
+	while (pos < str1.size() && pos < str2.size()
+		   && str1.at(str1.size()-1-pos) == str2.at(str2.size()-1-pos))
+	{
+		++pos;
+	}
+	return pos;
+}
+
+QString GreatestCommonPrefix(QString const & str1, QString const & str2)
+{
+	return str1.left(GreatestCommonPrefixLength(str1, str2));
+}
+
+QString GreatestCommonSuffix(QString const & str1, QString const & str2)
+{
+	return str1.right(GreatestCommonSuffixLength(str1, str2));
 }

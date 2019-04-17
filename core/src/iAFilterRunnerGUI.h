@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -88,20 +88,27 @@ public:
 	//! @param paramValues the parameter values as loaded from the platform-specific settings store
 	//! @param sourceMdi the mdi child that is the main image source for this filter
 	//! @param mainWnd access to the main window (as parent for GUI windows)
+	//! @param askForAdditionalInput whether the parameter dialog should also ask for additional
+	//!     inputs if the filter requires more than 1
 	virtual bool AskForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
 		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput);
 
 	//! Loads parameters from the platform-specific store.
 	//! @param filter the filter for which to load the parameters
+	//! @param sourceMdi the mdi child which was active when the filter was started.
+	//!     Not used in the standard implementation, but may be used by overriding classes to access
+	//!     properties of the input file, e.g. in the extract image filter it is used to get the size
+	//!     of the input image.
 	//! @return a map containing for each parameter name the stored value
 	virtual QMap<QString, QVariant> LoadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
 
 	//! Store parameters in the platform-specific store.
 	//! @param filter the filter for which to store the parameters
+	//! @param paramValues the parameters and their values
 	//! @return a map containing for each parameter name the stored value, as set
 	//!     by the user
 	virtual void StoreParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues);
-	
+
 	//! Connect the filter thread to the appropriate signals. If you override this,
 	//! you probably will want to still make sure to call this method to make sure
 	//! the result gets updated in the mdi child

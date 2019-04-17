@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,15 +20,19 @@
 * ************************************************************************************/
 #include "iAPorosityAnalyserModuleInterface.h"
 
-#include "CPUID.h"
-#include "defines.h"
-#include "iACSVToQTableWidgetConverter.h"
 #include "iACalculatePoreProperties.h"
 #include "iADataFolderDialog.h"
 #include "iADatasetInfo.h"
+#include "iADragFilterWidget.h"
+#include "iADropPipelineWidget.h"
+//#include "PorosityAnalyserHelpers.h"
 #include "iAPorosityAnalyser.h"
 #include "iARunBatchThread.h"
-#include "mainwindow.h"
+
+#include <CPUID.h>
+#include <defines.h>
+#include <iACSVToQTableWidgetConverter.h>
+#include <mainwindow.h>
 
 #include <QDebug>
 #include <QFileDialog>
@@ -36,6 +40,7 @@
 #include <QScopedPointer>
 #include <QScrollArea>
 #include <QSettings>
+#include <QTextEdit>
 #include <QTime>
 
 
@@ -48,9 +53,9 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	if (!m_mainWnd)
 		return;
 	qsrand(QTime::currentTime().msec());
-	//Add the module to iAnalyse Tools' menu
+
 	QMenu * toolsMenu = m_mainWnd->getToolsMenu();
-	QMenu * menuPorosityAnalyser = getMenuWithTitle( toolsMenu, QString( "Porosity Analyser" ), false );
+	QMenu * menuPorosityAnalyser = getMenuWithTitle( toolsMenu, QString( "FeatureAnalyzer" ), false );
 
 	QAction * actionComputeSegmentations = new QAction( m_mainWnd );
 	actionComputeSegmentations->setText( QApplication::translate( "MainWindow", "Compute Segmentations", 0 ) );
@@ -59,7 +64,7 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 	//actionCalcPoreProps->setText( QApplication::translate( "MainWindow", "Compute Pore Properties", 0 ) );
 
 	QAction * actionRunPA = new QAction( m_mainWnd );
-	actionRunPA->setText( QApplication::translate( "MainWindow", "Launch PorosityAnalyser", 0 ) );
+	actionRunPA->setText( QApplication::translate( "MainWindow", "Analyze Segmentations", 0 ) );
 
 	menuPorosityAnalyser->addAction( actionComputeSegmentations );
 	//menuPorosityAnalyser->addAction( actionCalcPoreProps );
@@ -72,10 +77,10 @@ void iAPorosityAnalyserModuleInterface::Initialize()
 
 	//Read settings
 	QSettings settings( organisationName, applicationName );
-	m_computerName = settings.value( "PorosityAnalyser/Computation/computerName", "" ).toString();
-	m_resultsFolder = settings.value( "PorosityAnalyser/Computation/resultsFolder", "" ).toString();
-	m_datasetsFolder = settings.value( "PorosityAnalyser/Computation/datasetsFolder", "" ).toString();
-	m_csvFile = settings.value( "PorosityAnalyser/Computation/csvFile", "" ).toString();
+	m_computerName = settings.value( "FeatureAnalyzer/Computation/computerName", "" ).toString();
+	m_resultsFolder = settings.value( "FeatureAnalyzer/Computation/resultsFolder", "" ).toString();
+	m_datasetsFolder = settings.value( "FeatureAnalyzer/Computation/datasetsFolder", "" ).toString();
+	m_csvFile = settings.value( "FeatureAnalyzer/Computation/csvFile", "" ).toString();
 
 	//Initialize compute segmentation window
 	m_compSegmWidget = new QDialog(m_mainWnd);
@@ -324,10 +329,10 @@ void iAPorosityAnalyserModuleInterface::SaveSettings() const
 {
 	updateFromGUI();
 	QSettings settings( organisationName, applicationName );
-	settings.setValue( "PorosityAnalyser/Computation/computerName", m_computerName );
-	settings.setValue( "PorosityAnalyser/Computation/resultsFolder", m_resultsFolder );
-	settings.setValue( "PorosityAnalyser/Computation/datasetsFolder", m_datasetsFolder );
-	settings.setValue( "PorosityAnalyser/Computation/csvFile", m_csvFile );
+	settings.setValue( "FeatureAnalyzer/Computation/computerName", m_computerName );
+	settings.setValue( "FeatureAnalyzer/Computation/resultsFolder", m_resultsFolder );
+	settings.setValue( "FeatureAnalyzer/Computation/datasetsFolder", m_datasetsFolder );
+	settings.setValue( "FeatureAnalyzer/Computation/csvFile", m_csvFile );
 }
 
 void iAPorosityAnalyserModuleInterface::updateFromGUI() const
@@ -355,16 +360,14 @@ void iAPorosityAnalyserModuleInterface::browserDatasetsFolder()
 
 void iAPorosityAnalyserModuleInterface::runCalculations()
 {
-	iACalculatePoreProperties * calcPoreProps = new iACalculatePoreProperties( m_mainWnd );
 	iARunBatchThread * rbt = new iARunBatchThread( this );
 	connect( rbt, SIGNAL( batchProgress( int ) ), this, SLOT( batchProgress( int ) ) );
 	connect( rbt, SIGNAL( totalProgress( int ) ), this, SLOT( totalProgress( int ) ) );
 	connect( rbt, SIGNAL( currentBatch( QString ) ), this, SLOT( currentBatch( QString ) ) );
-	rbt->Init( this, m_datasetsFolder,
-			   uiComputeSegm.rbNewPipelineDataNoPores->isChecked(), 
-			   uiComputeSegm.rbNewPipelineData->isChecked(), 
-			   uiComputeSegm.rbExistingPipelineData->isChecked(), 
-			   calcPoreProps );
+	rbt->Init(this,
+		m_datasetsFolder,
+		uiComputeSegm.rbNewPipelineDataNoPores->isChecked(),
+		uiComputeSegm.rbNewPipelineData->isChecked());
 	rbt->start();
 }
 
@@ -441,8 +444,8 @@ void iAPorosityAnalyserModuleInterface::launchPorosityAnalyser()
 	iADataFolderDialog * dlg = new iADataFolderDialog( m_mainWnd );
 	if( !dlg->exec() == QDialog::Accepted )
 		return;
-	
-	m_porosityAnalyser = new iAPorosityAnalyser( dlg->ResultsFolderName(), dlg->DatasetsFolderName(), m_mainWnd );
+
+	m_porosityAnalyser = new iAPorosityAnalyser(m_mainWnd, dlg->ResultsFolderName(), dlg->DatasetsFolderName(), m_mainWnd );
 	m_mainWnd->addSubWindow( m_porosityAnalyser );
 	m_porosityAnalyser->LoadStateAndShow(); //show();
 }
@@ -486,7 +489,7 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 		{
 			QMessageBox msgBox;
 			msgBox.setText( "The pipeline is not connected. Please close the gap by rearranging the filters.  " );
-			msgBox.setWindowTitle( "iAnalyse -- PorosityAnalyzer" );
+			msgBox.setWindowTitle( "FeatureAnalyzer" );
 			msgBox.exec();
 			return;
 		}
@@ -507,7 +510,7 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "No dataset. First pipeline position must be a dataset." );
-		msgBox.setWindowTitle( "iAnalyse -- PorosityAnalyzer" );
+		msgBox.setWindowTitle( "FeatureAnalyzer" );
 		msgBox.exec();
 		return;
 	}
@@ -530,7 +533,7 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 		{
 			QMessageBox msgBox;
 			msgBox.setText( "Some parameters are missing. Modify parameters by double clicking on a pipeline icon " );
-			msgBox.setWindowTitle( "iAnalyse -- PorosityAnalyzer" );
+			msgBox.setWindowTitle( "FeatureAnalyzer" );
 			msgBox.exec();
 			return;
 		}
@@ -544,7 +547,7 @@ void iAPorosityAnalyserModuleInterface::addPipeline()
 	{
 		QMessageBox msgBox;
 		msgBox.setText( "Pipeline is not complete. There is only a dataset." );
-		msgBox.setWindowTitle( "iAnalyse -- PorosityAnalyzer" );
+		msgBox.setWindowTitle( "FeatureAnalyzer" );
 		msgBox.exec();
 		return;
 	}
@@ -606,7 +609,7 @@ void iAPorosityAnalyserModuleInterface::resizePipeline()
 		{
 			QMessageBox msgBox;
 			msgBox.setText( "Slot cannot be removed. There is still a filter in the last slot." );
-			msgBox.setWindowTitle( "iAnalyse -- PorosityAnalyzer" );
+			msgBox.setWindowTitle( "FeatureAnalyzer" );
 			msgBox.exec();
 			return;
 		}
@@ -620,7 +623,7 @@ void iAPorosityAnalyserModuleInterface::resizePipeline()
 		{
 			QMessageBox msgBox;
 			msgBox.setText( "Cannot decrease pipeline size." );
-			msgBox.setWindowTitle( "iAnalyse -- PorosityAnalyzer" );
+			msgBox.setWindowTitle( "FeatureAnalyzer" );
 			msgBox.exec();
 			return;
 		}

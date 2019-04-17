@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,15 +20,16 @@
 * ************************************************************************************/
 #include "iASegm3DView.h"
 
-#include "defines.h"
-#include "iAFast3DMagicLensWidget.h"
-#include "iARenderer.h"
-#include "iARendererManager.h"
-#include "iAPerceptuallyUniformLUT.h"
-#include "iARenderSettings.h"
-#include "iATransferFunction.h"
-#include "iAVolumeRenderer.h"
-#include "iAVolumeSettings.h"
+#include <defines.h>
+#include <iAConsole.h>
+#include <iAFast3DMagicLensWidget.h>
+#include <iARenderer.h>
+#include <iARendererManager.h>
+#include <iALUT.h>
+#include <iARenderSettings.h>
+#include <iATransferFunction.h>
+#include <iAVolumeRenderer.h>
+#include <iAVolumeSettings.h>
 
 #include <vtkActor.h>
 #include <vtkCamera.h>
@@ -61,6 +62,9 @@ iASegm3DView::iASegm3DView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */
 
 void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPolyData*> polyData, QList<vtkPiecewiseFunction*> otf, QList<vtkColorTransferFunction*> ctf, QStringList slicerNames )
 {
+	for (auto i: imgData)
+		if (!i)
+			DEBUG_LOG("Image data is NULL!");
 	m_range = 0.0;
 	m_renMgr->removeAll();
 	foreach( iASegm3DViewData* sd, m_data )
@@ -96,7 +100,7 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 		sd->GetWidget()->setParent( container );
 		sd->SetDataToVisualize( imgData[i], polyData[i], otf[i], ctf[i] );
 		m_data.push_back( sd );
-		m_renMgr->addToBundle( sd->GetRenderer() );
+		m_renMgr->addToBundle( sd->GetRenderer()->GetRenderer() );
 
 		m_layout->addWidget( container );
 	}
@@ -176,7 +180,7 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 	scalarBarActor->SetNumberOfLabels( 4 );
 	vtkPolyDataMapper * mapper = m_renderer->GetPolyMapper();
 	double sr[2];  mapper->GetScalarRange(sr);
-	iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT( m_lut, sr, 256 );
+	iALUT::BuildLUT( m_lut, sr, "Diverging blue-gray-red" );
 	m_lut->SetRange( sr ); m_lut->SetTableRange( sr );
 	mapper->SetLookupTable( m_lut );
 	scalarBarActor->SetLookupTable( m_lut );
@@ -222,6 +226,8 @@ void iASegm3DViewData::removeObserver()
 
 void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
 {
+	if (!imgData)
+		DEBUG_LOG("Image data is NULL!");
 	iASimpleTransferFunction tf(ctf, otf);
 	if( !m_rendInitialized )
 	{
@@ -291,7 +297,7 @@ void iASegm3DViewData::LoadAndApplySettings()
 	volumeSettings.DiffuseLighting = settings.value("Renderer/rsDiffuseLighting", 0.5).toDouble();
 	volumeSettings.SpecularLighting = settings.value("Renderer/rsSpecularLighting", 0.7).toDouble();
 	volumeSettings.SpecularPower = settings.value("Renderer/rsSpecularPower", 1).toDouble();
-	volumeSettings.Mode = settings.value("Renderer/rsRenderMode", 0).toInt();
+	volumeSettings.RenderMode = settings.value("Renderer/rsRenderMode", 0).toInt();
 
 	m_renderer->ApplySettings(renderSettings);
 	m_volumeRenderer->ApplySettings(volumeSettings);

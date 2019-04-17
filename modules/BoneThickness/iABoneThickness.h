@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,19 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #pragma once
-// iA
+
+#include <vtkSmartPointer.h>
 
 #include <QVector>
 
-#include <vtkActorCollection.h>
-#include <vtkPoints.h>
-#include <vtkSmartPointer.h>
-
+class vtkActorCollection;
 class vtkDoubleArray;
+class vtkIdList;
 class vtkLineSource;
 class vtkPointLocator;
+class vtkPoints;
 class vtkPolyData;
 
 class iARenderer;
@@ -40,92 +39,107 @@ class iABoneThicknessTable;
 
 class iABoneThickness
 {
-		#define FloatTolerance 0.00001
+	#define FloatTolerance 0.00001
 
-	public:
-		double axisXMax() const;
-		double axisXMin() const;
-		double axisYMax() const;
-		double axisYMin() const;
-		double axisZMax() const;
-		double axisZMin() const;
+public:
+	iABoneThickness();
+	double axisXMax() const;
+	double axisXMin() const;
+	double axisYMax() const;
+	double axisYMin() const;
+	double axisZMax() const;
+	double axisZMin() const;
 
-		void calculate();
+	double meanThickness() const;
+	double stdThickness() const;
+	double meanSurfaceDistance() const;
+	double stdSurfaceDistance() const;
 
-		vtkDoubleArray* thickness();
+	void calculate();
 
-		void open(const QString& _sFilename);
+	vtkDoubleArray* thickness();
 
-		double rangeMax() const;
-		double rangeMin() const;
-		double rangeX() const;
-		double rangeY() const;
-		double rangeZ() const;
+	void open(const QString& _sFilename);
 
-		void save(const QString& _sFilename) const;
+	double rangeMax() const;
+	double rangeMin() const;
+	double rangeX() const;
+	double rangeY() const;
+	double rangeZ() const;
 
-		vtkIdType selected() const;
+	void save(const QString& _sFilename) const;
 
-		void set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessChartBar* _pBoneThicknessChartBar, iABoneThicknessTable* _pBoneThicknessTable);
-		void setChart(iABoneThicknessChartBar* _pBoneThicknessChartBar);
-		void setShowThickness(const bool& _bShowThickness);
-		void setShowThicknessLines(const bool& _bShowThicknessLines);
-		void setSelected(const vtkIdType& _idSelected);
-		void setSphereRadius(const double& _dSphereRadius);
-		void setTable(iABoneThicknessTable* _pBoneThicknessTable);
-		void setThicknessMaximum(const double& _dThicknessMaximum);
-		void setTransparency(const bool& _bTransparency);
-		void setWindow();
-		void setWindowSpheres();
-		void setWindowThicknessLines();
+	vtkIdType selected() const;
 
-		bool showThickness() const;
+	void set(iARenderer* _iARenderer, vtkPolyData* _pPolyData, iABoneThicknessChartBar* _pBoneThicknessChartBar, iABoneThicknessTable* _pBoneThicknessTable);
+	void setChart(iABoneThicknessChartBar* _pBoneThicknessChartBar);
+	void setShowThickness(const bool& _bShowThickness);
+	void setShowThicknessLines(const bool& _bShowThicknessLines);
+	void setSelected(const vtkIdType& _idSelected);
+	void setSphereRadius(const double& _dSphereRadius);
+	void setTable(iABoneThicknessTable* _pBoneThicknessTable);
+	void setThicknessMaximum(const double& _dThicknessMaximum);
+	void setSurfaceDistanceMaximum(const double& _dSurfaceDistanceMaximum);
+	void setTransparency(const bool& _bTransparency);
+	void setWindow();
+	void setWindowSpheres();
+	void setWindowThicknessLines();
 
-		double sphereOpacity() const;
-		double sphereRadius() const;
-		double surfaceOpacity() const;
-		double thicknessMaximum() const;
+	bool showThickness() const;
 
-	private:
-		double m_pColorNormal[3] = { 1.0 , 0.0 , 0.0 };
-		double m_pColorSelected[3] = { 0.0 , 1.0 , 0.0 };
-		double m_pColorMark[3] = { 0.0 , 0.0 , 1.0 };
+	double sphereOpacity() const;
+	double sphereRadius() const;
+	double surfaceOpacity() const;
+	double thicknessMaximum() const;
+	double surfaceDistanceMaximum() const;
 
-		bool m_bShowThickness = true;
-		bool m_bShowThicknessLines = true;
+private:
+	double m_pColorNormal[3];
+	double m_pColorSelected[3];
+	double m_pColorMark[3];
 
-		double m_dRangeMax = 1.0;
-		double m_dRangeMin = 0.0;
-		double m_dSphereOpacity = 1.0;
-		double m_dSphereRadius = 0.5;
-		double m_dSurfaceOpacity = 1.0;
-		double m_dThicknessMaximum = 0.0;
+	bool m_bShowThickness = true;
+	bool m_bShowThicknessLines = true;
 
-		double m_pBound[6] = { 0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 };
-		double m_pRange[3] = { 0.0 , 0.0 , 0.0 };
+	double m_dRangeMax = 1.0;
+	double m_dRangeMin = 0.0;
+	double m_dSphereOpacity = 1.0;
+	double m_dSphereRadius = 0.5;
+	double m_dSurfaceOpacity = 1.0;
+	double m_dThicknessMaximum = 0.0;
+	double m_dSurfaceDistanceMaximum = 0.0;
+	double m_dThicknessMean = 0.0;
+	double m_dThicknessSTD = 0.0;
+	double m_dSurfaceDistanceMean = 0.0;
+	double m_dSurfaceDistanceSTD = 0.0;
 
-		vtkIdType m_idSelected = -1;
+	double m_pBound[6];
+	double m_pRange[3];
 
-		vtkPolyData* m_pPolyData = nullptr;
+	vtkIdType m_idSelected = -1;
 
-		vtkSmartPointer<vtkDoubleArray> m_daDistance;
-		vtkSmartPointer<vtkDoubleArray> m_daThickness;
+	vtkPolyData* m_pPolyData = nullptr;
 
-		vtkSmartPointer<vtkPoints> m_pPoints = nullptr;
-		QVector<vtkSmartPointer<vtkLineSource>> m_pLines;
+	vtkSmartPointer<vtkDoubleArray> m_daDistance;
+	vtkSmartPointer<vtkDoubleArray> m_daThickness;
 
-		vtkSmartPointer<vtkActorCollection> m_pSpheres = nullptr;
-		vtkSmartPointer<vtkActorCollection> m_pThicknessLines = nullptr;
+	vtkSmartPointer<vtkPoints> m_pPoints;
+	QVector<vtkSmartPointer<vtkLineSource>> m_pThLines;
+	QVector<vtkSmartPointer<vtkLineSource>> m_pDaLines;
 
-		iARenderer* m_iARenderer = nullptr;
+	vtkSmartPointer<vtkActorCollection> m_pSpheres;
+	vtkSmartPointer<vtkActorCollection> m_pThicknessLines;
+	vtkSmartPointer<vtkActorCollection> m_pDistanceLines;
 
-		bool getNormalFromPCA(vtkIdList* _pIdList, double* _pNormal);
-		void getNormalInPoint(vtkPointLocator* _pPointLocator, double* _pPoint, double* _pNormal);
-		void getSphereColor(const vtkIdType& _id, const double& _dRadius, double* pColor);
+	iARenderer* m_iARenderer = nullptr;
 
-		void setSphereOpacity(const double& _dSphereOpacity);
-		void setSurfaceOpacity(const double& _dSurfaceOpacity);
+	bool getNormalFromPCA(vtkIdList* _pIdList, double* _pNormal);
+	void getNormalInPoint(vtkPointLocator* _pPointLocator, double* _pPoint, double* _pNormal);
+	void getSphereColor(const vtkIdType& _id, const double& _dRadius, double* pColor);
 
-		void setThickness(const int& _iPoint, const double& _dThickness);
-		void setTranslucent();
+	void setSphereOpacity(const double& _dSphereOpacity);
+	void setSurfaceOpacity(const double& _dSurfaceOpacity);
+
+	void setResults(const int& _iPoint, const double& _dThickness, const double& _dSurfaceDistance);
+	void setTranslucent();
 };

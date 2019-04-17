@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -31,8 +31,7 @@ dlg_imageproperty::dlg_imageproperty(QWidget *parent) : QDockWidget(parent)
 
 void dlg_imageproperty::EnterMsg(QString txt)
 {
-	lWidget->addItem(txt); 
-	lWidget->scrollToBottom();
+	lWidget->addItem(txt);
 }
 
 void dlg_imageproperty::Clear()
@@ -67,7 +66,7 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QSt
 	EnterMsg( QString("    %1: %2")
 		.arg(tr("Datatype"))
 		.arg(src->GetScalarTypeAsString()) );
-	
+
 	QString componentStr;
 	if (src->GetNumberOfScalarComponents() > 1 && channelCount > 1)
 	{
@@ -86,16 +85,19 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QSt
 	EnterMsg( QString( "    %1: %2" )
 		.arg(tr("Components"))
 		.arg(componentStr) );
-	
+
 	if ( src->GetNumberOfScalarComponents() == 1 ) //No histogram statistics for rgb, rgba or vector pixel type images
 	{
-		if (info.VoxelCount() == 0)
+		if (info.computing())
+			EnterMsg("    Statistics are currently computing...");
+		else if (info.voxelCount() == 0)
 			EnterMsg("    Statistics not computed yet. Activate modality (by clicking on it) to do so.");
 		else
 			EnterMsg(tr("    VoxelCount: %1;  Min: %2;  Max: %3;  Mean: %4;  StdDev: %5;")
-				.arg(info.VoxelCount())
-				.arg(info.Min()).arg(info.Max())
-				.arg(info.Mean()).arg(info.StandardDeviation()));
+				.arg(info.voxelCount())
+				.arg(info.min()).arg(info.max())
+				.arg(info.mean()).arg(info.standardDeviation()));
 	}
+	lWidget->scrollToBottom();
 	this->show();
 }

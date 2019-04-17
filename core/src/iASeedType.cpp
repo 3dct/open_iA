@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,9 +20,8 @@
 * ************************************************************************************/
 #include "iASeedType.h"
 
+#include "iAConsole.h"
 #include "iAImageCoordinate.h"
-
-#include <QMessageBox>
 
 #include <utility>     // for std::make_pair
 
@@ -83,7 +82,7 @@ QSharedPointer<iASeedVector> ExtractSeedVector(QString const & seedString, int w
 	}
 	if (parseErrors.size() > 0)
 	{
-		QMessageBox::warning(0, "Random Walker", "Error(s) in seed file: \n"+parseErrors);
+		DEBUG_LOG(QString("Error(s) in seed file: %1").arg(parseErrors));
 	}
 	return result;
 }

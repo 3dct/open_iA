@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -29,37 +29,46 @@
 #include <vtkSmartPointer.h>
 
 #include <QMouseEvent>
+#include <QPainter>
 
 class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
 {
 public:
-	virtual QVector<unsigned int> & getSelection()
+	SelectionType & getSelection() override
 	{
 		return m_selection;
 	}
-	void setSelection(QVector<unsigned int> const & selection)
+	SelectionType const & getSelection() const override
+	{
+		return m_selection;
+	}
+	SelectionType const & getFilteredSelection() const override
+	{
+		return m_selection;
+	}
+	void setSelection(SelectionType const & selection)
 	{
 		m_selection = selection;
 	}
-	virtual const QList<int> & getHighlightedPoints() const
+	SelectionType const & getHighlightedPoints() const override
 	{
 		return m_highlight;
 	}
-	virtual int getVisibleParametersCount() const
+	int getVisibleParametersCount() const override
 	{
 		return 2;
 	}
-	virtual double getAnimIn() const
+	double getAnimIn() const override
 	{
 		return 1.0;
 	}
-	virtual double getAnimOut() const
+	double getAnimOut() const override
 	{
 		return 0.0;
 	}
 private:
-	QList<int> m_highlight;
-	QVector<unsigned int> m_selection;
+	SelectionType m_highlight;
+	SelectionType m_selection;
 };
 
 namespace
@@ -81,28 +90,20 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
 	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), this);
+	m_scatterplot->settings.selectionEnabled = true;
+	data->updateRanges();
 	m_scatterplot->setData(0, 1, data);
 }
 
 void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double rangeMax)
 {
-	auto lut = vtkSmartPointer<vtkLookupTable>::New();
+	QSharedPointer<iALookupTable> lut(new iALookupTable());
 	double lutRange[2] = { rangeMin, rangeMax };
-	lut->SetRange(lutRange);
-	lut->Build();
-	vtkIdType lutColCnt = lut->GetNumberOfTableValues();
-	for (vtkIdType i = 0; i < lutColCnt; i++)
-	{
-		double rgba[4]; lut->GetTableValue(i, rgba);
-		rgba[0] = c.red() / 255.0;
-		rgba[1] = c.green() / 255.0;
-		rgba[2] = c.blue() / 255.0;
-		rgba[3] = c.alpha() / 255.0;
-		lut->SetTableValue(i, rgba);
-	}
-	lut->Build();
-	QSharedPointer<iALookupTable> lookupTable(new iALookupTable(lut.GetPointer()));
-	m_scatterplot->setLookupTable(lookupTable, m_data->parameterName(0));
+	lut->setRange(lutRange);
+	lut->allocate(2);
+	for (int i = 0; i < 2; ++i)
+		lut->setColor(i, c);
+	m_scatterplot->setLookupTable(lut, 0);
 }
 
 void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
@@ -113,8 +114,6 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
 	{
 		m_fontHeight = fm.height();
 		m_maxTickLabelWidth = fm.width("0.99");
-		QResizeEvent *ev(nullptr);
-		resizeEvent(ev);
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
 	painter.setRenderHint(QPainter::HighQualityAntialiasing);
@@ -158,7 +157,7 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * event)
 	painter.restore();
 }
 
-void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
+void iAScatterPlotWidget::adjustScatterPlotSize()
 {
 	QRect size(geometry());
 	size.moveTop(0);
@@ -168,6 +167,16 @@ void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
 	{
 		m_scatterplot->setRect(size);
 	}
+}
+
+void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
+{
+	adjustScatterPlotSize();
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+	QOpenGLWidget::resizeEvent( event );
+#else
+	QGLWidget::resizeEvent( event );
+#endif
 }
 
 int iAScatterPlotWidget::PaddingLeft()
@@ -228,12 +237,12 @@ void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
 	}
 }
 
-QVector<unsigned int> iAScatterPlotWidget::GetSelection()
+std::vector<size_t> & iAScatterPlotWidget::GetSelection()
 {
 	return m_scatterPlotHandler->getSelection();
 }
 
-void iAScatterPlotWidget::SetSelection(QVector<unsigned int> const & selection)
+void iAScatterPlotWidget::SetSelection(std::vector<size_t> const & selection)
 {
 	m_scatterPlotHandler->setSelection(selection);
 }

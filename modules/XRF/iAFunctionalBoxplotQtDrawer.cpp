@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAFunctionalBoxplotQtDrawer.h"
 
-#include "iAFunctionalBoxplot.h"
+#include <iAFunctionalBoxplot.h>
 
 #include <QColor>
 #include <QImage>
@@ -67,7 +67,7 @@ QSharedPointer<QImage> drawFunctionalBoxplot(FunctionalBoxPlot const * fbp, int 
 	{
 		centralRegion.append(img(a, fbp->getCentralRegion().getMin(a) ) );
 		envelope.append(img(a, fbp->getEnvelope().getMin(a)));
-		median.append(img(a + ((a<width-1)? 0.5 : 0), fbp->getMedian().get(a)));
+		median.append(img(a + ((a<width-1)? 0.5 : 0), fbp->getMedian().at(a)));
 		if (a<width-1)
 		{
 			centralRegion.append(img(a+1, fbp->getCentralRegion().getMin(a) ) );

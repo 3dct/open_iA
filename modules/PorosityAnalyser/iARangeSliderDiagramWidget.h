@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -19,10 +19,11 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
+
 #include "iARangeSliderDiagramData.h"
 
-#include "charts/iADiagramFctWidget.h"
-#include "charts/iAPlotTypes.h"
+#include <charts/iADiagramFctWidget.h>
+#include <charts/iAPlotTypes.h>
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
@@ -110,8 +111,8 @@ public slots:
 private:
 	QSharedPointer<iARangeSliderDiagramData>			m_data;
 	QSharedPointer<iAPlotData>							m_selectedData;
-	QSharedPointer<iAStepFunctionDrawer>				m_selectionDrawer;
-	QList<QSharedPointer<iAStepFunctionDrawer> >		m_histogramDrawerList;
+	QSharedPointer<iAStepFunctionPlot>				m_selectionDrawer;
+	QList<QSharedPointer<iAStepFunctionPlot> >		m_histogramDrawerList;
 	QPoint												m_selectionOrigin;
 	QRubberBand*										m_selectionRubberBand;
 	QString												m_xLabel;

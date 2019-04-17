@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,12 +18,21 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAHistogramTriangle.h"
-#include "charts/iADiagramFctWidget.h"
 
+#include "iABarycentricTriangleWidget.h"
+#include "iASimpleSlicerWidget.h"
+
+#include <charts/iADiagramFctWidget.h>
+#include <iASlicerData.h>
+#include <iASlicerWidget.h>
+
+#include <QApplication>
+#include <QComboBox>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QResizeEvent>
+#include <QSlider>
 #include <QtMath>
 
 // Debug
@@ -502,21 +511,24 @@ void iAHistogramTriangle::paintHistograms(QPainter &p)
 	// LEFT
 	if (m_fRenderHistogram[0]) {
 		p.setTransform(m_transformHistograms[0]);
-		m_tmw->m_histograms[0]->render(&p);
+		auto img = m_tmw->m_histograms[0]->drawOffscreen();
+		p.drawImage(0, 0, img);
 		//p.drawRect(m_histogramsRect);
 	}
 
 	// RIGHT
 	if (m_fRenderHistogram[1]) {
 		p.setTransform(m_transformHistograms[1]);
-		m_tmw->m_histograms[1]->render(&p);
+		auto img = m_tmw->m_histograms[1]->drawOffscreen();
+		p.drawImage(0, 0, img);
 		//p.drawRect(m_histogramsRect);
 	}
 
 	// BOTTOM
 	if (m_fRenderHistogram[2]) {
 		p.setTransform(m_transformHistograms[2]);
-		m_tmw->m_histograms[2]->render(&p);
+		auto img = m_tmw->m_histograms[2]->drawOffscreen();
+		p.drawImage(0, 0, img);
 		//p.drawRect(m_histogramsRect);
 	}
 

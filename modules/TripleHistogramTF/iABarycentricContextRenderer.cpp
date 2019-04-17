@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,18 +15,17 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iABarycentricContextRenderer.h"
+
 #include "BarycentricTriangle.h"
 
-#include <math.h>
+#include <vtkVersion.h>
+
 #include <QPainter>
 #include <QImage>
-
-#include <vtkVersion.h>
 
 static const QImage::Format IMAGE_FORMAT = QImage::Format::Format_ARGB32;
 static const int ONE_DIV_THREE = 1.0 / 3.0;
@@ -109,9 +108,9 @@ void iABarycentricContextRenderer::calculateCoordinates(vtkSmartPointer<vtkImage
 				b = d2->GetScalarComponentAsDouble(x, y, z, 0);
 				c = d3->GetScalarComponentAsDouble(x, y, z, 0);
 
-				if (isnan(a)) a = 0; else a = (a - rangea[0]) / rangea[1];
-				if (isnan(b)) b = 0; else b = (b - rangeb[0]) / rangeb[1];
-				if (isnan(c)) c = 0; else c = (c - rangec[0]) / rangec[1];
+				if (qIsNaN(a)) a = 0; else a = (a - rangea[0]) / rangea[1];
+				if (qIsNaN(b)) b = 0; else b = (b - rangeb[0]) / rangeb[1];
+				if (qIsNaN(c)) c = 0; else c = (c - rangec[0]) / rangec[1];
 
 				sum = a + b + c;
 

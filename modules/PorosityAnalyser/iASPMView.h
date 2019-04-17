@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,36 +20,38 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
+#include "ui_SPMView.h"
+
+#include <iAVtkWidgetFwd.h>
+#include <qthelper/iAQTtoUIConnector.h>
+
 #include <vtkSmartPointer.h>
 #include <vtkVector.h>
 
-#include "ui_SPMView.h"
-#include "iAQTtoUIConnector.h"
+#include <QDockWidget>
 
-class QVBoxLayout;
-class QCheckBox;
-class QListWidgetItem;
+
 class QAction;
+class QCheckBox;
 class QTableWidget;
+class QVBoxLayout;
 
-class QVTKWidget;
-class vtkScatterPlotMatrix;
-class vtkObject;
-class vtkCommand;
-class vtkTable;
-class vtkIdTypeArray;
-class vtkScatterPlotMatrix;
-class vtkContextView;
-class vtkLookupTable;
 class vtkColorTransferFunction;
+class vtkCommand;
+class vtkContextView;
+class vtkIdTypeArray;
+class vtkLookupTable;
+class vtkRenderer;
 class vtkScalarsToColors;
 class vtkScalarBarActor;
-class vtkRenderer;
+class vtkScatterPlotMatrix;
 class vtkSelection;
+class vtkTable;
+
+class iAPAQSplom;
 struct iASelection;
 class iASPMSettings;
-class iAPAQSplom;
+class MainWindow; 
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView>  PorosityAnalyzerSPMConnector;
 
@@ -58,14 +60,13 @@ class iASPMView : public PorosityAnalyzerSPMConnector
 	Q_OBJECT
 
 public:
-	iASPMView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+	iASPMView(MainWindow *mWnd, QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iASPMView();
 	void setSelection( iASelection * sel );
 	void setDatasetsDir( QString datasetsDir );
 
 public slots:
-	void SetData( const QTableWidget * data );
-	void showSettings();
+	void setData( const QTableWidget * data );
 	void setRSDSelection( vtkIdTypeArray * );
 	void setSPLOMPreviewSliceNumbers( QList<int> sliceNumberLst );
 	void setSPLOMPreviewSize( int percent );
@@ -75,35 +76,24 @@ public slots:
 	void reemitFixedPixmap();
 
 protected:
-	void UpdateLUTOpacity();
+	void updateLUT();
 
 	/** Set selection to SPLOM from VTK array of id-s */
 	void setSPLOMSelection( vtkIdTypeArray * ids );
 
-	/** Initialize Lookup Table */
-	void InitLUT();
-
 	/** Initialize scalar bar widget which shows color coding */
-	void InitScalarBar();
+	void initScalarBar();
 
 	/** Active plot indices */
 	vtkVector2i getActivePlotIndices();
 
 protected slots:
-	/** Show/hide a parameter in SPLOM when list widget item is clicked */
-	void changeColumnVisibility( QListWidgetItem * item );
 	
 	/** Apply lookup table to all the plots in the SPM */
-	void ApplyLookupTable();
-
-	/** Apply color coding based on the parameter name */
-	void SetParameterToColorcode( const QString & paramName);
-
-	/** Update lookup table sensitivity */
-	void UpdateLookupTable();
+	void applyLookupTable();
 
 	/** When selection of the SPLOM is modified */
-	void selectionUpdated( QVector<unsigned int>* selInds );
+	void selectionUpdated( std::vector<size_t> const & selInds );
 
 signals:
 	void selectionModified( vtkVector2i, vtkIdTypeArray* );
@@ -112,13 +102,10 @@ signals:
 	void maskHovered( const QPixmap * mask, int datasetIndex = -1 );
 
 protected:
-	iASPMSettings * m_SPMSettings;
 	iAPAQSplom * m_splom;
 	vtkSmartPointer<vtkIdTypeArray> m_SPLOMSelection;
 	vtkSmartPointer<vtkLookupTable> m_lut;
-	QVTKWidget * m_SBQVTKWidget;
+	iAVtkOldWidget * m_SBQVTKWidget;
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;
-	QString m_colorArrayName;
-	bool m_updateColumnVisibility;
 };

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -30,8 +30,8 @@
 */
 
 // iASlicer-based solution:
-#include "iASlicerSettings.h"
-#include "iASlicer.h"
+#include <iASlicerSettings.h>
+#include <iASlicer.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -69,7 +69,7 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 	renderWindow->AddRenderer(m_renderer);
 	SetRenderWindow(renderWindow);
 	*/
-	m_slicer = new iASlicer(this, iASlicerMode::XY, this, 0, 0, false, true);
+	m_slicer = new iASlicer(this, iASlicerMode::XY, this, false, true);
 	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->initializeData(img, m_transform, m_lut);
 	m_slicer->initializeWidget(img);

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,6 +22,68 @@
 
 #include <QHeaderView>
 #include <QStandardItemModel>
+
+iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::CTableAnalysisRow()
+{
+	std::fill(m_pBoundingBox, m_pBoundingBox + 6, 0.0);
+}
+
+void iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::set(const long& _lLabel
+	, const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
+	, const double& _dVolume, const double& _dDiameter
+	, const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox)
+{
+	m_lLabel = _lLabel;
+
+	m_dCenterX = _dCenterX;
+	m_dCenterY = _dCenterY;
+	m_dCenterZ = _dCenterZ;
+
+	m_dVolume = _dVolume;
+	m_dDiameter = _dDiameter;
+
+	for (int i(0); i < 6; ++i)
+	{
+		m_pBoundingBox[i] = _faBoundingBox[i];
+	}
+}
+
+long iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::label() const
+{
+	return m_lLabel;
+}
+
+double iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::centerX() const
+{
+	return m_dCenterX;
+}
+
+double iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::centerY() const
+{
+	return m_dCenterY;
+}
+
+double iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::centerZ() const
+{
+	return m_dCenterZ;
+}
+
+double iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::volume() const
+{
+	return m_dVolume;
+}
+
+double iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::diameter() const
+{
+	return m_dDiameter;
+}
+
+double* iAFoamCharacterizationTableAnalysis::CTableAnalysisRow::boundingBox()
+{
+	return m_pBoundingBox;
+}
+
+
 
 iAFoamCharacterizationTableAnalysis::iAFoamCharacterizationTableAnalysis(QWidget* _pParent) : QTableView (_pParent)
 {

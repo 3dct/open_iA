@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,10 +21,6 @@
 #include "iADetailView.h"
 
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
-#include "iAChannelVisualizationData.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
 #include "iAFakeTreeNode.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageCoordinate.h"
@@ -33,15 +29,20 @@
 #include "iAImagePreviewWidget.h"
 #include "iALabelInfo.h"
 #include "iALabelOverlayThread.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iAModalityTransfer.h"
-#include "iANameMapper.h"
-#include "iASlicerData.h"
-#include "iASlicerWidget.h"
-#include "iAVtkDraw.h"
-#include "iAToolsITK.h"
-#include "iAToolsVTK.h"
+
+#include <iAAttributeDescriptor.h>
+#include <iAChannelVisualizationData.h>
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAModalityTransfer.h>
+#include <iANameMapper.h>
+#include <iASlicerData.h>
+#include <iASlicerWidget.h>
+#include <iAVtkDraw.h>
+#include <iAToolsITK.h>
+#include <iAToolsVTK.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -262,10 +263,10 @@ void iADetailView::ChangeModality(int offset)
 	vtkSmartPointer<vtkImageData> imageData = mod->GetComponent(m_magicLensCurrentComponent);
 	vtkColorTransferFunction* ctf = (mod->GetName() == "Ground Truth") ?
 		m_previewWidget->GetCTF().GetPointer() :
-		mod->GetTransfer()->GetColorFunction();
+		mod->GetTransfer()->getColorFunction();
 	vtkPiecewiseFunction* otf = (mod->GetName() == "Ground Truth") ?
 		GetDefaultOTF(imageData).GetPointer() :
-		mod->GetTransfer()->GetOpacityFunction();
+		mod->GetTransfer()->getOpacityFunction();
 	QString name(mod->GetImageName(m_magicLensCurrentComponent));
 	AddMagicLensInput(imageData, ctf, otf, name);
 }
@@ -284,11 +285,13 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 	slicer->removeChannel(removedID);
 	slicer->initializeChannel(id, &magicLensData);
 	int sliceNr = m_previewWidget->GetSliceNumber();
+	double * spc = img->GetSpacing();
+	double * origin = img->GetOrigin();
 	switch (slicer->GetMode())
 	{
-	case YZ: slicer->setResliceChannelAxesOrigin(id, static_cast<double>(sliceNr) * img->GetSpacing()[0], 0, 0); break;
-	case XY: slicer->setResliceChannelAxesOrigin(id, 0, 0, static_cast<double>(sliceNr) * img->GetSpacing()[2]); break;
-	case XZ: slicer->setResliceChannelAxesOrigin(id, 0, static_cast<double>(sliceNr) * img->GetSpacing()[1], 0); break;
+	case YZ: slicer->setResliceChannelAxesOrigin(id, origin[0] + static_cast<double>(sliceNr) * spc[0], origin[1], origin[2]); break;
+	case XY: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1], origin[2] + static_cast<double>(sliceNr) * spc[2]); break;
+	case XZ: slicer->setResliceChannelAxesOrigin(id, origin[0], origin[1] + static_cast<double>(sliceNr) * spc[1], origin[2]); break;
 	}
 	slicer->SetMagicLensInput(id);
 	slicer->update();
@@ -297,13 +300,7 @@ void iADetailView::AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColor
 
 void iADetailView::ChangeMagicLensOpacity(int chg)
 {
-	iASlicerWidget * sliceWidget = dynamic_cast<iASlicerWidget *>(sender());
-	if (!sliceWidget)
-	{
-		DEBUG_LOG("Invalid slice widget sender!");
-		return;
-	}
-	sliceWidget->SetMagicLensOpacity(sliceWidget->GetMagicLensOpacity() + (chg*0.05));
+	m_previewWidget->GetSlicer()->SetMagicLensOpacity(m_previewWidget->GetSlicer()->GetMagicLensOpacity() + (chg*0.05));
 }
 
 

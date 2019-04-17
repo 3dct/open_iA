@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -95,13 +95,13 @@ void iAArbitraryProfileOnSlicer::FindSelectedPntInd( double x, double y )
 
 		if (m_arbProfPntInd != -1)
 			break;
-	}	
+	}
 }
 
 void iAArbitraryProfileOnSlicer::initialize( vtkRenderer * ren )
 {
 	m_ren = ren;
-	
+
 	ren->AddActor(m_profLine.actor);
 	for (vtkIdType i=0; i<2; i++)
 	{
@@ -118,31 +118,31 @@ int iAArbitraryProfileOnSlicer::setup( int pointInd, double * pos3d, double * po
 		return 0;
 	for (int i=0; i<3; i++)
 		m_positions[pointInd][i] = pos3d[i];
-	
+
 	// get spacing for point creation whose size depends on
 	double * spacing	= imgData->GetSpacing();
-	double * origin		= imgData->GetOrigin();	
+	double * origin		= imgData->GetOrigin();
 	int * dimensions	= imgData->GetDimensions();
 
-	m_profLine.points->SetPoint(pointInd, pos2d[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD); 
+	m_profLine.points->SetPoint(pointInd, pos2d[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD);
 
-	m_hLine[pointInd].points->SetPoint(0, origin[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD); 
+	m_hLine[pointInd].points->SetPoint(0, origin[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD);
 	m_hLine[pointInd].points->SetPoint(1, origin[0] + dimensions[0]*spacing[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD);
 	m_hLine[pointInd].lineSource->SetPoint1(m_hLine[pointInd].points->GetPoint(0));
 	m_hLine[pointInd].lineSource->SetPoint2(m_hLine[pointInd].points->GetPoint(1));
 
 	m_vLine[pointInd].points->SetPoint(0, pos2d[0], origin[1], iAArbitraryProfileOnSlicer::Z_COORD);
-	m_vLine[pointInd].points->SetPoint(1, pos2d[0], origin[1] + dimensions[1]*spacing[1], iAArbitraryProfileOnSlicer::Z_COORD); 
+	m_vLine[pointInd].points->SetPoint(1, pos2d[0], origin[1] + dimensions[1]*spacing[1], iAArbitraryProfileOnSlicer::Z_COORD);
 	m_vLine[pointInd].lineSource->SetPoint1(m_vLine[pointInd].points->GetPoint(0));
-	m_vLine[pointInd].lineSource->SetPoint2(m_vLine[pointInd].points->GetPoint(1));	
+	m_vLine[pointInd].lineSource->SetPoint2(m_vLine[pointInd].points->GetPoint(1));
 
 	if(pointInd == 0)
 		m_profLine.lineSource->SetPoint1(m_profLine.points->GetPoint(0));
 	else
-		m_profLine.lineSource->SetPoint2(m_profLine.points->GetPoint(1));	
+		m_profLine.lineSource->SetPoint2(m_profLine.points->GetPoint(1));
 
 	double currentPos[3]; m_points[pointInd].actor->GetPosition(currentPos);
-	m_points[pointInd].actor->SetPosition(pos2d[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD); 
+	m_points[pointInd].actor->SetPosition(pos2d[0], pos2d[1], iAArbitraryProfileOnSlicer::Z_COORD);
 
 	setPointScaling(spacing[0] > spacing[1] ? spacing[0] : spacing[1]);
 	return 1;

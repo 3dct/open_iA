@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,9 +20,11 @@
 * ************************************************************************************/
 #include "iADatasetInfo.h"
 
+#include "iAPorosityAnalyserModuleInterface.h"
 #include "PorosityAnalyserHelpers.h"
 
-#include "io/iAITKIO.h"
+#include <iAToolsITK.h>
+#include <io/iAITKIO.h>
 
 #include <itkExtractImageFilter.h>
 #include <itkImageDuplicator.h>
@@ -49,12 +51,8 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	duplicator->Update();
 	
 	//intensity statistics 
-	typedef itk::StatisticsImageFilter<InputImageType> StatisticsImageFilterType;
-	typename StatisticsImageFilterType::Pointer statisticsImageFilter = StatisticsImageFilterType::New();
-	statisticsImageFilter->SetInput( duplicator->GetOutput() );
-	statisticsImageFilter->Update();
-	int minIntensity = statisticsImageFilter->GetMinimum();
-	int maxIntensity = statisticsImageFilter->GetMaximum();
+	double minIntensity, maxIntensity, mean, sigma, variance;
+	getStatistics(duplicator->GetOutput(), &minIntensity, &maxIntensity, &mean, &sigma, &variance);
 
 	//intensity histogram
 	const unsigned int MeasurementVectorSize = 1; // Grayscale
@@ -75,13 +73,13 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 	typename ImageToHistogramFilterType::HistogramType* histogram = imageToHistogramFilter->GetOutput();
 	
 	//Write info to dataset info file
-	ofstream fout( QString( datasetPath + "/" + datasetName + ".info" ).toStdString().c_str(), std::ofstream::out );
+	ofstream fout( getLocalEncodingFileName( datasetPath + "/" + datasetName + ".info" ).c_str(), std::ofstream::out );
 	fout << "Datasetname:" << QString( datasetName ).toStdString() << '\n'
 		<< "Min:" << minIntensity << '\n'
 		<< "Max:" << maxIntensity << '\n'
-		<< "Std:" << statisticsImageFilter->GetSigma() << '\n'
-		<< "Mean:" << statisticsImageFilter->GetMean() << '\n'
-		<< "Variance:" << statisticsImageFilter->GetVariance() << '\n';
+		<< "Std:" << sigma << '\n'
+		<< "Mean:" << mean << '\n'
+		<< "Variance:" << variance << '\n';
 	// Walking through all of the histogram bins and getting the corresponding frequencies
 	typedef typename ImageToHistogramFilterType::HistogramType HistogramType;
 	typename HistogramType::ConstIterator itr = histogram->Begin();
@@ -155,7 +153,7 @@ template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString
 // 	extracter->SetInput( rescaler->GetOutput() );
 // 	typedef itk::ImageFileWriter< OutputImageType > WriterType;
 // 	WriterType::Pointer writer = WriterType::New();
-// 	writer->SetFileName( fileName.toStdString() );
+// 	writer->SetFileName( getLocalEncodingFileName(fileName) );
 // 	writer->SetInput( extracter->GetOutput() );
 // 	writer->Update();
 }

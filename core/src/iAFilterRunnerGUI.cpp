@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -154,7 +154,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	QStringList dlgParamNames;
 	QList<QVariant> dlgParamValues;
 	QVector<MdiChild*> otherMdis;
-	for (auto mdi : mainWnd->MdiChildList())
+	for (auto mdi : mainWnd->mdiChildList())
 	{
 		if (mdi != sourceMdi)
 			otherMdis.push_back(mdi);
@@ -209,7 +209,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		dlg.showROI();
 	if (dlg.exec() != QDialog::Accepted)
 		return false;
-	
+
 	int idx = 0;
 	for (auto param : params)
 	{
@@ -218,6 +218,7 @@ bool iAFilterRunnerGUI::AskForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 		case Continuous:  value = dlg.getDblValue(idx);      break;
 		case Discrete:    value = dlg.getIntValue(idx);      break;
+		default:
 		case FilterName:
 		case FilterParameters:
 		case Text:
@@ -267,7 +268,7 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	if (!AskForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 		return;
 	StoreParameters(filter, paramValues);
-	
+
 	//! TODO: find way to check parameters already in dlg_commoninput (before closing)
 	if (!filter->CheckParameters(paramValues))
 		return;
@@ -275,7 +276,7 @@ void iAFilterRunnerGUI::Run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	QString oldTitle(sourceMdi->windowTitle());
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	auto mdiChild = filter->OutputCount() > 0 ?
-		mainWnd->GetResultChild(sourceMdi, filter->Name() + " " + oldTitle) :
+		mainWnd->getResultChild(sourceMdi, filter->Name() + " " + oldTitle) :
 		sourceMdi;
 	if (!mdiChild)
 	{

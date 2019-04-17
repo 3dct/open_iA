@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,6 +24,7 @@
 #include "iATypedCallHelper.h"
 
 #include <itkExtractImageFilter.h>
+#include <itkStatisticsImageFilter.h>
 
 itk::ImageIOBase::IOComponentType GetITKScalarPixelType(iAITKIO::ImagePointer image)
 {
@@ -287,11 +288,10 @@ void InternalExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAI
 	typename ExtractType::InputImageRegionType region;
 	region.SetIndex(index);
 	region.SetSize(size);
-	extractor->InPlaceOn();
 	extractor->SetInput(typedImg);
 	extractor->SetExtractionRegion(region);
 	extractor->Update();
-	outImg = extractor->GetOutput();
+	outImg = SetIndexOffsetToZero<T>(extractor->GetOutput());
 }
 
 iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const indexArr[iAITKIO::m_DIM], size_t const sizeArr[iAITKIO::m_DIM])
@@ -299,4 +299,24 @@ iAITKIO::ImagePointer ExtractImage(iAITKIO::ImagePointer inImg, size_t const ind
 	iAITKIO::ImagePointer outImg;
 	ITK_TYPED_CALL(InternalExtractImage, GetITKScalarPixelType(inImg), inImg, indexArr, sizeArr, outImg);
 	return outImg;
+}
+
+template <typename T>
+void internalGetStatistics(iAITKIO::ImagePointer img, double* min, double* max, double* mean, double* stddev, double* vari, double* sum)
+{
+	typedef itk::Image< T, iAITKIO::m_DIM > ImageType;
+	auto statisticsImageFilter = itk::StatisticsImageFilter<ImageType>::New();
+	statisticsImageFilter->SetInput(dynamic_cast<ImageType*>(img.GetPointer()));
+	statisticsImageFilter->Update();
+	if (min)    *min = statisticsImageFilter->GetMinimum();
+	if (max)    *max = statisticsImageFilter->GetMaximum();
+	if (mean)   *mean = statisticsImageFilter->GetMean();
+	if (stddev) *stddev = statisticsImageFilter->GetSigma();
+	if (vari)   *vari = statisticsImageFilter->GetVariance();
+	if (sum)    *sum = statisticsImageFilter->GetVariance();
+}
+
+void getStatistics(iAITKIO::ImagePointer img, double* min, double* max, double* mean, double* stddev, double* variance, double * sum)
+{
+	ITK_TYPED_CALL(internalGetStatistics, GetITKScalarPixelType(img), img, min, max, mean, stddev, variance, sum);
 }

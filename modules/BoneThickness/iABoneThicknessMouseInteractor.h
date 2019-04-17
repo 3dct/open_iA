@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,66 +18,35 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #pragma once
-// iA
 
 #include <vtkInteractorStyleTrackballCamera.h>
-#include <vtkPropPicker.h>
-#include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
+#include <vtkSetGet.h>
 
-#include "iABoneThickness.h"
-#include "iABoneThicknessChartBar.h"
-#include "iABoneThicknessTable.h"
+class iABoneThickness;
+class iABoneThicknessChartBar;
+class iABoneThicknessTable;
+
+class vtkActorCollection;
+class vtkPropPicker;
 
 class iABoneThicknessMouseInteractor : public vtkInteractorStyleTrackballCamera
 {
 public:
 	static iABoneThicknessMouseInteractor* New();
 	vtkTypeMacro(iABoneThicknessMouseInteractor, vtkInteractorStyleTrackballCamera);
-
 	void set ( iABoneThickness* _pBoneThickness
 			 , iABoneThicknessChartBar* _pBoneThicknessChartBar, iABoneThicknessTable* _pBoneThicknessTable
-			 , vtkActorCollection* _pSpheres
-			 )
-	{
-		m_pBoneThickness = _pBoneThickness;
-		m_pBoneThicknessChartBar = _pBoneThicknessChartBar;
-		m_pBoneThicknessTable = _pBoneThicknessTable;
+			 , vtkActorCollection* _pSpheres );
+	void OnLeftButtonDown() override;
 
-		m_pPicker = vtkSmartPointer<vtkPropPicker>::New();
-		m_pRenderer = GetDefaultRenderer();
-		m_pSpheres = _pSpheres;
-	}
+private:
+	iABoneThickness* m_pBoneThickness = nullptr;
+	iABoneThicknessChartBar* m_pBoneThicknessChartBar = nullptr;
+	iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
 
-	virtual void OnLeftButtonDown() override
-	{
-		const int* pClickPos(GetInteractor()->GetEventPosition());
-
-		m_pPicker->Pick(pClickPos[0], pClickPos[1], 0.0, m_pRenderer);
-
-		const vtkIdType idPickedActor(m_pSpheres->IsItemPresent((vtkActor*)m_pPicker->GetActor()) - 1);
-
-		if ((idPickedActor == m_pBoneThicknessTable->selected()) || (idPickedActor < 0))
-		{
-			m_pBoneThickness->setSelected(idPickedActor);
-			m_pBoneThicknessChartBar->setSelected(idPickedActor);
-		}
-		else
-		{
-			m_pBoneThicknessTable->setSelected(idPickedActor);
-		}
-
-		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
-	}
-
-	private:
-		iABoneThickness* m_pBoneThickness = nullptr;
-		iABoneThicknessChartBar* m_pBoneThicknessChartBar = nullptr;
-		iABoneThicknessTable* m_pBoneThicknessTable = nullptr;
-
-		vtkSmartPointer<vtkPropPicker> m_pPicker = nullptr;
-		vtkRenderer* m_pRenderer = nullptr;
-		vtkActorCollection* m_pSpheres = nullptr;
+	vtkSmartPointer<vtkPropPicker> m_pPicker;
+	vtkRenderer* m_pRenderer = nullptr;
+	vtkActorCollection* m_pSpheres = nullptr;
 };

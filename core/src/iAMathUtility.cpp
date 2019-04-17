@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,9 +20,12 @@
 * ************************************************************************************/
 #include "iAMathUtility.h"
 
+#include "iAConsole.h"
+
 #include <vtkMath.h>
 
 #include <algorithm>
+#include <numeric>    // for std::accumulate
 
 double gaussian(double x, double sigma)
 {
@@ -40,7 +43,7 @@ std::vector<double> gaussianKernel(double kernelSigma, size_t kernelSteps)
 	return kernel;
 }
 
-std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSigma, int kernelSteps)
+std::vector<double> gaussianSmoothing(std::vector<double> const & data, double kernelSigma, int kernelSteps)
 {
 	std::vector<double> smoothed;
 	auto kernel = gaussianKernel(kernelSigma, kernelSteps);
@@ -60,7 +63,7 @@ std::vector<double> gaussianSmoothing(std::vector<double> data, double kernelSig
 	return smoothed;
 }
 
-open_iA_Core_API std::vector<double> derivative(std::vector<double> func)
+open_iA_Core_API std::vector<double> derivative(std::vector<double> const & func)
 {
 	if (func.size() <= 1)
 		return func;
@@ -74,4 +77,45 @@ open_iA_Core_API std::vector<double> derivative(std::vector<double> func)
 		deriv.push_back(derivValue);
 	}
 	return deriv;
+}
+
+open_iA_Core_API double mean(FuncType const & func)
+{
+	double sum = std::accumulate(func.begin(), func.end(), 0.0);
+	return sum / func.size();
+}
+
+open_iA_Core_API double variance(FuncType const & func, double meanVal, bool correctDF)
+{
+	if (std::isinf(meanVal))
+		meanVal = mean(func);
+	double sq_sum = std::inner_product(func.begin(), func.end(), func.begin(), 0.0,
+		[](double const & x, double const & y) { return x + y; },
+		[meanVal](double const & x, double const & y) { return (x - meanVal)*(y - meanVal); });
+	return sq_sum / (func.size() - (correctDF? 1 : 0) );
+}
+
+open_iA_Core_API double standardDeviation(FuncType const & func, double meanVal, bool correctDF)
+{
+	return std::sqrt(variance(func, meanVal, correctDF));
+}
+
+open_iA_Core_API double covariance(FuncType const & func1, FuncType const & func2, double mean1, double mean2, bool correctDF)
+{
+	if (std::isinf(mean1))
+		mean1 = mean(func1);
+	if (std::isinf(mean2))
+		mean2 = mean(func2);
+	double sq_sum = std::inner_product(func1.begin(), func1.end(), func2.begin(), 0.0,
+		[](double const & x, double const & y) { return x + y; },
+		[mean1, mean2](double const & x, double const & y) { return (x - mean1)*(y - mean2); });
+	return sq_sum / (func1.size() - (correctDF ? 1 : 0) );
+}
+
+open_iA_Core_API double pearsonsCorrelationCoefficient(FuncType const & func1, FuncType const & func2)
+{
+	double mean1 = mean(func1), mean2 = mean(func2);
+	double stddev1 = standardDeviation(func1, mean1), stddev2 = standardDeviation(func2, mean2);
+	double cov = covariance(func1, func2, mean1, mean2);
+	return cov / (stddev1 * stddev2);
 }

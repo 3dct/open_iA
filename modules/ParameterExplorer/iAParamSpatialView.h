@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,13 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#include <QMap>
-#include <QWidget>
+#include <io/iAITKIO.h>
 
 #include <vtkSmartPointer.h>
 
-#include "io/iAITKIO.h"
+#include <QMap>
+#include <QWidget>
 
 class iAParamTableView;
 class iAImageWidget;
@@ -39,14 +40,14 @@ class iAParamSpatialView: public QWidget
 	Q_OBJECT
 public:
 	iAParamSpatialView(iAParamTableView* table, QString const & basePath);
-	void SetImage(int id);
+	void SetImage(size_t id);
 private slots:
 	void SlicerModeButtonClicked(bool checked);
 	void SliceChanged(int slice);
 private:
 	iAParamTableView* m_table;
 	QString m_basePath;
-	QMap<int, vtkSmartPointer<vtkImageData>> m_imageCache;
+	QMap<size_t, vtkSmartPointer<vtkImageData>> m_imageCache;
 	QVector<iAITKIO::ImagePointer> m_loadedImgs; // to stop itk from unloading
 	int m_curMode;
 	int m_sliceNr[3];

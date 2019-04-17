@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -41,9 +41,9 @@ dlg_transfer::dlg_transfer(iADiagramFctWidget *chart, QColor color):
 	m_rangeSliderHandles(false)
 {
 	this->color = color;
-	
+
 	dlg = new QColorDialog(chart);
-	
+
 	gradient.setSpread(QGradient::PadSpread);
 
 	opacityTF = NULL;
@@ -72,12 +72,12 @@ void dlg_transfer::draw(QPainter &painter, QColor color, int lineWidth)
 	painter.setBrush(QColor(128, 128, 128, 255));
 
 	QColor c;
-	double gradientWidth = chart->ActiveWidth()*chart->XZoom();
+	double gradientWidth = chart->activeWidth()*chart->XZoom();
 
 	gradient = QLinearGradient();
 	gradient.setStart(0, 0);
 	gradient.setFinalStop(gradientWidth, 0);
-	
+
 	// draw opacity and color tf
 	if (opacityTF->GetSize() != colorTF->GetSize())
 	{
@@ -91,14 +91,14 @@ void dlg_transfer::draw(QPainter &painter, QColor color, int lineWidth)
 
 	opacityTF->GetNodeValue(0, opacityTFValue);
 	colorTF->GetNodeValue(0, colorTFValue);
-		
+
 	int x1, y1;
 	x1 = d2iX(opacityTFValue[0]);
 	y1 = d2iY(opacityTFValue[1]);
-		
-	c = QColor(colorTFValue[1]*255.0, colorTFValue[2]*255.0, colorTFValue[3]*255.0, 150); 
+
+	c = QColor(colorTFValue[1]*255.0, colorTFValue[2]*255.0, colorTFValue[3]*255.0, 150);
 	gradient.setColorAt((double)x1/gradientWidth, c );
-		
+
 	for ( int i = 1; i < opacityTF->GetSize(); i++)
 	{
 		opacityTF->GetNodeValue(i, opacityTFValue);
@@ -181,27 +181,27 @@ void dlg_transfer::drawOnTop(QPainter &painter)
 {
 	if ( opacityTF->GetSize() == colorTF->GetSize())
 	{
-		double gradientWidth = chart->ActiveWidth()*chart->XZoom();
+		double gradientWidth = chart->activeWidth()*chart->XZoom();
 
-		painter.fillRect( 0, 0, gradientWidth, -chart->BottomMargin(), gradient );
+		painter.fillRect( 0, 0, gradientWidth, -chart->bottomMargin(), gradient );
 	}
 }
 
 int dlg_transfer::selectPoint(QMouseEvent *event, int *x)
-{ 
-	int lx = event->x() - chart->LeftMargin();
-	int ly = chart->geometry().height() - event->y() - chart->BottomMargin() - chart->YShift();
+{
+	int lx = event->x() - chart->leftMargin();
+	int ly = chart->geometry().height() - event->y() - chart->bottomMargin() - chart->yShift();
 	int index = -1;
-	
+
 	double pointValue[4];
 	for (int pointIndex = 0; pointIndex < opacityTF->GetSize(); pointIndex++)
 	{
 		opacityTF->GetNodeValue(pointIndex, pointValue);
 		int viewX, viewY;
-		
+
 		viewX = d2vX(pointValue[0]);
 		viewY = d2vY(pointValue[1]);
-		
+
 		if ( !m_rangeSliderHandles )
 		{
 			if ( ( pointIndex == selectedPoint &&
@@ -217,15 +217,15 @@ int dlg_transfer::selectPoint(QMouseEvent *event, int *x)
 		}
 		else
 		{
-			if ( ( lx >= viewX - iADiagramFctWidget::SELECTED_PIE_RADIUS && lx <= viewX + iADiagramFctWidget::SELECTED_PIE_RADIUS 
+			if ( ( lx >= viewX - iADiagramFctWidget::SELECTED_PIE_RADIUS && lx <= viewX + iADiagramFctWidget::SELECTED_PIE_RADIUS
 				&& ly >= viewY - iADiagramFctWidget::SELECTED_PIE_RADIUS && ly <= viewY )
 				|| ( lx >= viewX - iADiagramFctWidget::PIE_RADIUS && lx <= viewX + iADiagramFctWidget::PIE_RADIUS
 				&& ly >= viewY - iADiagramFctWidget::PIE_RADIUS && ly <= viewY ) )
 			{
-				// PorosityAnalyser: range slider widget; only handles can get selected (no end points) 
+				// PorosityAnalyser: range slider widget; only handles can get selected (no end points)
 				if ( this->isEndPoint( pointIndex ) )
 					continue;
-				
+
 				index = pointIndex;
 				break;
 			}
@@ -261,7 +261,7 @@ void dlg_transfer::addColorPoint(int x, double red, double green, double blue)
 	if (red < 0 || green < 0 || blue < 0)
 	{
 		QGradientStops stops = gradient.stops();
-		double gradientWidth = chart->ActiveWidth()*chart->XZoom();
+		double gradientWidth = chart->activeWidth()*chart->XZoom();
 		double pos = x /gradientWidth;
 
 		// find stops before and after pos
@@ -291,12 +291,12 @@ void dlg_transfer::addColorPoint(int x, double red, double green, double blue)
 
 		double secondWeight = (secondPos == firstPos) ? 1.0 : (pos-firstPos)/(secondPos-firstPos);
 		double firstWeight = 1.0-secondWeight;
-	 
+
 		red = (firstColor.red()*firstWeight +secondColor.red()*secondWeight)/255.0;
 		green = (firstColor.green()*firstWeight +secondColor.green()*secondWeight)/255.0;
 		blue = (firstColor.blue()*firstWeight +secondColor.blue()*secondWeight)/255.0;
 	}
-	
+
 	colorTF->AddRGBPoint(v2dX(x), red, green, blue);
 	colorTF->Build();
 	triggerOnChange();
@@ -320,18 +320,18 @@ void dlg_transfer::removePoint(int index)
 
 void dlg_transfer::moveSelectedPoint(int x, int y)
 {
-	if (x > chart->ActiveWidth()-1) x = chart->ActiveWidth() - 1;
-	y = clamp(0, chart->geometry().height() - chart->BottomMargin() - 1, y);
+	if (x > chart->activeWidth()-1) x = chart->activeWidth() - 1;
+	y = clamp(0, chart->geometry().height() - chart->bottomMargin() - 1, y);
 
 	double dataX = v2dX(x);
 	if (selectedPoint != 0 && selectedPoint != opacityTF->GetSize()-1)
 	{
 		double nextOpacityTFValue[4];
 		double prevOpacityTFValue[4];
-		
+
 		opacityTF->GetNodeValue(selectedPoint+1, nextOpacityTFValue);
 		opacityTF->GetNodeValue(selectedPoint-1, prevOpacityTFValue);
-		
+
 		if (dataX >= nextOpacityTFValue[0])
 		{
 			int newX = d2vX(nextOpacityTFValue[0]) - 1;
@@ -360,7 +360,7 @@ void dlg_transfer::changeColor(QMouseEvent *event)
 {
 	if (event != NULL)
 		selectedPoint = selectPoint(event);
-	
+
 	if (selectedPoint != -1)
 	{
 		double colorTFValue[6];
@@ -398,11 +398,11 @@ void dlg_transfer::reset()
 	if (opacityTF != NULL && colorTF != NULL)
 	{
 		opacityTF->RemoveAllPoints();
-		opacityTF->AddPoint(chart->XBounds()[0], 0.0 );
-		opacityTF->AddPoint(chart->XBounds()[1], 1.0 );
+		opacityTF->AddPoint(chart->xBounds()[0], 0.0 );
+		opacityTF->AddPoint(chart->xBounds()[1], 1.0 );
 		colorTF->RemoveAllPoints();
-		colorTF->AddRGBPoint(chart->XBounds()[0], 0.0, 0.0, 0.0 );
-		colorTF->AddRGBPoint(chart->XBounds()[1], 1.0, 1.0, 1.0 );
+		colorTF->AddRGBPoint(chart->xBounds()[0], 0.0, 0.0, 0.0 );
+		colorTF->AddRGBPoint(chart->xBounds()[1], 1.0, 1.0, 1.0 );
 		colorTF->Build();
 		triggerOnChange();
 	}
@@ -446,7 +446,7 @@ void dlg_transfer::mouseReleaseEventAfterNewPoint(QMouseEvent *)
 		dlg->width(),
 		dlg->height());
 	bool accepted = dlg->exec() == QDialog::Accepted;
-	
+
 	if (accepted)
 	{
 		QColor col = dlg->selectedColor();
@@ -504,7 +504,7 @@ void dlg_transfer::setPointY(int selectedPoint, int y)
 {
 	double opacityTFValues[4];
 	opacityTF->GetNodeValue(selectedPoint, opacityTFValues);
-	
+
 	opacityTFValues[1] = v2dY(y);
 	opacityTF->SetNodeValue(selectedPoint, opacityTFValues);
 }
@@ -512,34 +512,34 @@ void dlg_transfer::setPointY(int selectedPoint, int y)
 // TODO: unify somewhere!
 double dlg_transfer::v2dX(int x)
 {
-	double dX = ((double)(x-chart->XShift()) / (double)chart->ActiveWidth() * chart->XRange()) /chart->XZoom() + chart->XBounds()[0];
-	return clamp(chart->XBounds()[0], chart->XBounds()[1], dX);
+	double dX = ((double)(x-chart->xShift()) / (double)chart->activeWidth() * chart->xRange()) /chart->XZoom() + chart->xBounds()[0];
+	return clamp(chart->xBounds()[0], chart->xBounds()[1], dX);
 }
 
 // convert from [0..maxDiagPixelHeight] to [0..1]
 double dlg_transfer::v2dY(int y)
 {
-	return mapToNorm(0, chart->ChartHeight(), y);
+	return mapToNorm(0, chart->chartHeight(), y);
 }
 
 int dlg_transfer::d2vX(double x, double oldDataRange0, double oldDataRange1)
 {
 	if (oldDataRange0 == -1 && oldDataRange1 == -1)
-		return (int)((x - chart->XBounds()[0]) * (double)chart->ActiveWidth() / chart->XRange()*chart->XZoom()) +chart->XShift();
+		return (int)((x - chart->xBounds()[0]) * (double)chart->activeWidth() / chart->xRange()*chart->XZoom()) +chart->xShift();
 	else
-		return (int)((x -oldDataRange0) * (double)chart->ActiveWidth() / (oldDataRange1 - oldDataRange0)*chart->XZoom()) +chart->XShift();
-		
+		return (int)((x -oldDataRange0) * (double)chart->activeWidth() / (oldDataRange1 - oldDataRange0)*chart->XZoom()) +chart->xShift();
+
 }
 
 // convert from [0..1] to [0..maxDiagPixelHeight]
 int dlg_transfer::d2vY(double y)
 {
-	return mapNormTo(0, std::max(0, chart->ChartHeight()), y);
+	return mapNormTo(0, std::max(0, chart->chartHeight()), y);
 }
 
 int dlg_transfer::d2iX(double x)
 {
-	return d2vX(x) -chart->XShift();
+	return d2vX(x) -chart->xShift();
 }
 
 int dlg_transfer::d2iY(double y)

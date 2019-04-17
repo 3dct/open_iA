@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -28,7 +28,7 @@
 #include <QVector>
 
 #include "ui_modalities.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_modalities> dlg_modalitiesUI;
 
 class dlg_planeSlicer;
@@ -60,9 +60,7 @@ public:
 	vtkSmartPointer<vtkColorTransferFunction> GetCTF(int modality);
 	vtkSmartPointer<vtkPiecewiseFunction> GetOTF(int modality);
 	void ChangeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings);
-	void Store(QString const & filename);
-	bool Load(QString const & filename);
-	void ShowSlicePlanes(bool enabled);
+	void ShowSlicers(bool enabled);
 	void SetSlicePlanes(vtkPlane* plane1, vtkPlane* plane2, vtkPlane* plane3);
 	void AddListItem(QSharedPointer<iAModality> mod);
 	//! initialize a modality's display in renderers
@@ -94,10 +92,11 @@ private slots:
 	void ShowChecked(QListWidgetItem* item);
 
 private:
+	// TODO: move modalities out of here (mdichild? common data repository?)
 	QSharedPointer<iAModalityList> modalities;
 	QString m_FileName;
 	iAFast3DMagicLensWidget* m_magicLensWidget;
-	bool m_showSlicePlanes;
+	bool m_showSlicers;
 	vtkPlane *m_plane1, *m_plane2, *m_plane3;
 	vtkRenderer* m_mainRenderer;
 

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -29,23 +29,23 @@ class iAFoamCharacterizationItemBinarization;
 
 class iAFoamCharacterizationDialogBinarization : public iAFoamCharacterizationDialog
 {
-		Q_OBJECT
+	Q_OBJECT
 
-	public:
-		explicit iAFoamCharacterizationDialogBinarization
-		                                (iAFoamCharacterizationItemBinarization* _pItemBinarization, QWidget* _pParent = nullptr);
+public:
+	explicit iAFoamCharacterizationDialogBinarization
+		                            (iAFoamCharacterizationItemBinarization* _pItemBinarization, QWidget* _pParent = nullptr);
 
-	private:
-		iAFoamCharacterizationItemBinarization* m_pItemBinarization = nullptr;
+private:
+	iAFoamCharacterizationItemBinarization* m_pItemBinarization = nullptr;
 
-		QCheckBox* m_pCheckBoxMask = nullptr;
-		QCheckBox* m_pCheckBoxOtzu = nullptr;
+	QCheckBox* m_pCheckBoxMask = nullptr;
+	QCheckBox* m_pCheckBoxOtzu = nullptr;
 
-		QSpinBox* m_pSpinBoxBinarizationLower = nullptr;
-		QSpinBox* m_pSpinBoxBinarizationUpper = nullptr;
+	QSpinBox* m_pSpinBoxBinarizationLower = nullptr;
+	QSpinBox* m_pSpinBoxBinarizationUpper = nullptr;
 
-		QSpinBox* m_pSpinBoxOtzuHistogramBins = nullptr;
+	QSpinBox* m_pSpinBoxOtzuHistogramBins = nullptr;
 
-	protected slots:
-		virtual void slotPushButtonOk() override;
+protected slots:
+	virtual void slotPushButtonOk() override;
 };

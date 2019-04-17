@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,19 +20,20 @@
 * ************************************************************************************/
 #include "dlg_labels.h"
 
-#include "dlg_commoninput.h"
-#include "iAColorTheme.h"
-#include "iAConsole.h"
 #include "iAImageCoordinate.h"
-#include "iAChannelID.h"
-#include "iAChannelVisualizationData.h"
 #include "iALabelOverlayThread.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iAToolsVTK.h"
-#include "iAVtkDraw.h"
-#include "io/iAFileUtils.h"
-#include "mdichild.h"
+
+#include <dlg_commoninput.h>
+#include <iAChannelID.h>
+#include <iAChannelVisualizationData.h>
+#include <iAColorTheme.h>
+#include <iAConsole.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAToolsVTK.h>
+#include <iAVtkDraw.h>
+#include <io/iAFileUtils.h>
+#include <mdichild.h>
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
@@ -515,7 +516,7 @@ void dlg_labels::StoreImage()
 		return;
 	}
 	vtkMetaImageWriter *metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName(fileName.toStdString().c_str());
+	metaImageWriter->SetFileName( getLocalEncodingFileName(fileName).c_str() );
 	metaImageWriter->SetInputData(m_labelOverlayImg);
 	metaImageWriter->SetCompression( false );
 	metaImageWriter->Write();

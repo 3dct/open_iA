@@ -1,5 +1,5 @@
 IF(Module_GPU_DreamcasterTool)
-	IF (CMAKE_COMPILER_IS_GNUCXX)
+	IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
 	ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -8,10 +8,6 @@ IF(Module_GPU_DreamcasterTool)
 	IF (NOT OPENCL_FOUND)
 		MESSAGE(SEND_ERROR "Dreamcaster requires OpenCL_FOUND to be true!")
 	ENDIF()
-
-	IF(open_iA_GPU_USING_CUDA)
-		INCLUDE(${CMAKE_ROOT}/Modules/FindCUDA.cmake)
-	ENDIF(open_iA_GPU_USING_CUDA)
 
 	#.cpp sources
 	SET( DREAMCASTER_SRCS
@@ -66,9 +62,12 @@ IF(Module_GPU_DreamcasterTool)
 	target_compile_definitions(Dreamcaster PRIVATE NO_DLL_LINKAGE)
 	TARGET_INCLUDE_DIRECTORIES(Dreamcaster PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Dreamcaster)
 	TARGET_INCLUDE_DIRECTORIES(Dreamcaster PRIVATE ${CoreSrcDir}/src ${OPENCL_INCLUDE_DIRS} ${CoreBinDir} ${CMAKE_CURRENT_SOURCE_DIR}/OpenCL)
-	SET_PROPERTY(TARGET Dreamcaster PROPERTY FOLDER "Libraries")
+	
+	IF (openiA_USE_IDE_FOLDERS)
+		SET_PROPERTY(TARGET Dreamcaster PROPERTY FOLDER "Libraries")
+	ENDIF()
 
-	IF (USE_COTIRE)
+	IF (openiA_USE_COTIRE)
 		cotire(Dreamcaster)
 	ENDIF()
 

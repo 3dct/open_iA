@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,11 +21,12 @@
 #include "iAGEMSeScatterplot.h"
 
 #include "iAAttributes.h"
-#include "iAAttributeDescriptor.h"
 #include "iAChartAttributeMapper.h"
 #include "iAChartFilter.h"
 #include "iAImageTreeLeaf.h"
 #include "iAImageTreeNode.h"
+
+#include <iAAttributeDescriptor.h>
 
 #include <vtkAxis.h>
 #include <vtkFloatArray.h>
@@ -46,6 +47,7 @@ iAGEMSeScatterplot::iAGEMSeScatterplot(QWidget* parent):
 	m_chart1ID(-1),
 	m_chart2ID(-1)
 {
+	SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	vtkSmartPointer<vtkContextView> contextView(vtkSmartPointer<vtkContextView>::New());
 	contextView->SetRenderWindow(GetRenderWindow());
 	m_chart = vtkSmartPointer<vtkChartXY>::New();

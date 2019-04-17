@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -29,18 +29,18 @@ class iAFoamCharacterizationItemDistanceTransform;
 
 class iAFoamCharacterizationDialogDistanceTransform : public iAFoamCharacterizationDialog
 {
-		Q_OBJECT
+	Q_OBJECT
 
-	public:
-		explicit iAFoamCharacterizationDialogDistanceTransform
-		                                       (iAFoamCharacterizationItemDistanceTransform* _pItem, QWidget* _pParent = nullptr);
+public:
+	explicit iAFoamCharacterizationDialogDistanceTransform
+		                                    (iAFoamCharacterizationItemDistanceTransform* _pItem, QWidget* _pParent = nullptr);
 
-	private:
-		iAFoamCharacterizationItemDistanceTransform* m_pItemDistanceTransform = nullptr;
+private:
+	iAFoamCharacterizationItemDistanceTransform* m_pItemDistanceTransform = nullptr;
 
-		QCheckBox* m_pCheckBoxImageSpacing = nullptr;
-		iAFoamCharacterizationComboBoxMask* m_pComboBoxMask = nullptr;
+	QCheckBox* m_pCheckBoxImageSpacing = nullptr;
+	iAFoamCharacterizationComboBoxMask* m_pComboBoxMask = nullptr;
 
-	protected slots:
-		virtual void slotPushButtonOk() override;
+protected slots:
+	virtual void slotPushButtonOk() override;
 };

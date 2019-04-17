@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,10 +20,13 @@
 * ************************************************************************************/
 #include "iAChartWidget.h"
 
+#include "iAConsole.h"
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
 #include "iAPlot.h"
+#include "iAPlotData.h"
 #include "iAStringHelper.h"
+#include "io/iAFileUtils.h"
 
 #include <vtkMath.h>
 
@@ -31,31 +34,75 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLPaintDevice>
 #include <QPainter>
+#include <QRubberBand>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+#include <QSurfaceFormat>
+#endif
 #include <QToolTip>
 #include <QWheelEvent>
+#include <QWindow>
 
 #include <fstream>
 
 namespace
 {
-	const double MIN_X_ZOOM = 1.0;
-	const double MAX_X_ZOOM = 2048;
-	const double MIN_Y_ZOOM = 1.0;		// the y-axis is not adapted (yet) to work with zoom < 1.0
-	const double MAX_Y_ZOOM = 32768;
-	const double X_ZOOM_STEP = 1.5;
-	const double Y_ZOOM_STEP = 1.5;
-	const int CATEGORICAL_TEXT_ROTATION = 15;
-	const int CATEGORICAL_FONT_SIZE = 7;
-	const int LEFT_MARGIN = 5;
-	const int BOTTOM_MARGIN = 5;
-	const int Y_AXIS_STEPS = 5;
+	const double ZoomXMin = 1.0;
+	const double ZoomXMax = 2048;
+	const double ZoomXMaxEmpty = 1.0;
+	const double ZoomYMin = 1.0;		// the y-axis is not adapted (yet) to work with zoom < 1.0
+	const double ZoomYMax = 32768;
+	const double ZoomXStep = 1.5;
+	const double ZoomYStep = 1.5;
+	const int CategoricalTextRotation = 15;
+	const int CategoricalFontSize = 7;
+	const int MarginLeft = 5;
+	const int MarginBottom = 5;
+	const int AxisTicksYMax = 5;
+	const int AxisTicksXDefault = 2;
 	const int TickWidth = 6;
-	const size_t MAX_X_AXIS_STEPS = 32 * static_cast<size_t>(MAX_X_ZOOM);
+
+	int requiredDigits(double value)
+	{
+		return (value >= -1.0 && value < 1.0) ?
+			1 : std::floor(std::log10(std::abs(value))) + 1;
+	}
+
+	int markerPos(int x, int step, int stepCount)
+	{
+		if (step == stepCount) --x;
+		return x;
+	}
+
+	int textPos(int markerX, int step, int stepNr, int textWidth)
+	{
+		return (step == 0)
+			? markerX					// right aligned to indicator line
+			: (step < stepNr)
+			? markerX - textWidth / 2	// centered to the indicator line
+			: markerX - textWidth;	// left aligned to the indicator line
+	}
+
+	void ensureNonZeroRange(double* bounds, bool warn = false, double offset = 0.1)
+	{
+		if (dblApproxEqual(bounds[0], bounds[1]))
+		{
+			if (warn)
+				DEBUG_LOG(QString("range [%1..%2] invalid (min~=max), enlarging it by %3").arg(bounds[0]).arg(bounds[1]).arg(offset));
+			bounds[0] -= offset;
+			bounds[1] += offset;
+		}
+	}
 }
 
 iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel):
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+	QOpenGLWidget(parent),
+#else
 	QGLWidget(parent),
+#endif
 	xCaption(xLabel),
 	yCaption(yLabel),
 	yZoom(1.0),
@@ -70,21 +117,28 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_contextMenuVisible(false),
 	m_customXBounds(false),
 	m_customYBounds(false),
+	m_maxXAxisSteps(AxisTicksXDefault),
 	m_yMappingMode(Linear),
 	m_contextMenu(new QMenu(this)),
 	m_showTooltip(true),
 	m_showXAxisLabel(true),
 	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
-	m_draw(true),
 	m_fontHeight(0),
-	m_yMaxTickLabelWidth(0)
+	m_yMaxTickLabelWidth(0),
+	m_selectionMode(SelectionDisabled),
+	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this)),
+	m_drawXAxisAtZero(false)
 {
-	UpdateBounds();
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+	QSurfaceFormat fmt = format();
+	fmt.setSamples(8);
+	setFormat(fmt);
+#endif
+	updateBounds();
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
-	setNewSize();
-	m_drawBuffer = QImage(width, height, QImage::Format_ARGB32);
 	setAutoFillBackground(false);
+	m_selectionBand->hide();
 }
 
 iAChartWidget::~iAChartWidget()
@@ -103,33 +157,13 @@ void iAChartWidget::wheelEvent(QWheelEvent *event)
 	{
 		zoomAlongX(event->delta(), event->x(), true);
 	}
-	redraw();
 	event->accept();
-}
-
-void iAChartWidget::resizeEvent(QResizeEvent *event)
-{
-	if ( (this->geometry().width() != width) || (this->geometry().height() != height) )
-	{
-		setNewSize();
-		//create a QImage newImage with the new window size and load to the QImage image
-		QImage newImage(width, height, QImage::Format_ARGB32);
-		m_drawBuffer = newImage;
-		m_draw = true;
-		repaint();
-	}
-	QWidget::resizeEvent(event);
+	update();
 }
 
 void iAChartWidget::leaveEvent(QEvent*)
 {
 	this->clearFocus();
-}
-
-void iAChartWidget::setNewSize()
-{
-	width = this->geometry().width();
-	height = this->geometry().height();
 }
 
 void iAChartWidget::zoomAlongY(double value, bool deltaMode)
@@ -138,18 +172,18 @@ void iAChartWidget::zoomAlongY(double value, bool deltaMode)
 	{
 		if (value /* = delta */ > 0)
 		{
-			yZoom *= Y_ZOOM_STEP;
+			yZoom *= ZoomYStep;
 		}
 		else
 		{
-			yZoom /= Y_ZOOM_STEP;
+			yZoom /= ZoomYStep;
 		}
 	}
 	else
 	{
 		yZoom = value;
 	}
-	yZoom = clamp(MIN_Y_ZOOM, MAX_Y_ZOOM, yZoom);
+	yZoom = clamp(ZoomYMin, ZoomYMax, yZoom);
 }
 
 void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
@@ -157,133 +191,125 @@ void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 	int xZoomBefore = xZoom;
 	int translationXBefore = translationX;
 	// don't do anything if we're already at the limit
-	if ( (deltaMode &&  (value < 0    && xZoom == 1.0) || (value > 0           && xZoom == MaxXZoom())) ||
-		 (!deltaMode && (value <= 1.0 && xZoom == 1.0) || (value >= MaxXZoom() && xZoom == MaxXZoom())) )
+	if ( (deltaMode &&  ((value < 0    && xZoom == 1.0) || (value > 0           && xZoom == maxXZoom()))) ||
+		 (!deltaMode && ((value <= 1.0 && xZoom == 1.0) || (value >= maxXZoom() && xZoom == maxXZoom()))) )
 	{
 		return;
 	}
-	int absoluteX = x-translationX-LeftMargin();
-	double absoluteXRatio = (double)absoluteX/((ActiveWidth()-1)*xZoom);
+	int absoluteX = x-translationX-leftMargin();
+	double absoluteXRatio = (double)absoluteX/((activeWidth()-1)*xZoom);
 	if (deltaMode)
 		if (value /* = delta */ > 0)
-			xZoom *= X_ZOOM_STEP;
+			xZoom *= ZoomXStep;
 		else
-			xZoom /= X_ZOOM_STEP;
+			xZoom /= ZoomXStep;
 	else
 		xZoom = value;
 
-	xZoom = clamp(MIN_X_ZOOM, MaxXZoom(), xZoom);
+	xZoom = clamp(ZoomXMin, maxXZoom(), xZoom);
 
-	int absXAfterZoom = (int)(ActiveWidth()*xZoom*absoluteXRatio);
+	int absXAfterZoom = (int)(activeWidth()*xZoom*absoluteXRatio);
 
-	translationX = clamp(-static_cast<int>(ActiveWidth() * (xZoom-1)), 0,
-		-absXAfterZoom +x -LeftMargin());
+	translationX = clamp(-static_cast<int>(activeWidth() * (xZoom-1)), 0,
+		-absXAfterZoom +x -leftMargin());
 
 	if (xZoomBefore != xZoom || translationXBefore != translationX)
-		emit XAxisChanged();
+		emit xAxisChanged();
 }
 
-int iAChartWidget::ActiveWidth() const
+int iAChartWidget::activeWidth() const
 {
-	return width - LeftMargin();
+	return geometry().width() - leftMargin();
 }
 
-int iAChartWidget::ActiveHeight() const
+int iAChartWidget::activeHeight() const
 {
-	return height - BottomMargin();
+	return geometry().height() - bottomMargin();
 }
 
-int iAChartWidget::Height() const
-{
-	return height;
-}
-
-void iAChartWidget::SetXCaption(QString const & caption)
+void iAChartWidget::setXCaption(QString const & caption)
 {
 	xCaption = caption;
 }
 
-double const * iAChartWidget::XBounds() const
+void iAChartWidget::setYCaption(QString const & caption)
+{
+	yCaption = caption;
+}
+
+double const * iAChartWidget::xBounds() const
 {
 	return m_xBounds;
 }
 
-double iAChartWidget::XRange() const
+double iAChartWidget::xRange() const
 {
 	return m_xBounds[1] - m_xBounds[0];
 }
 
-int iAChartWidget::BottomMargin() const
+int iAChartWidget::bottomMargin() const
 {
-	return BOTTOM_MARGIN + static_cast<int>((m_showXAxisLabel ? 2 : 1) * m_fontHeight);
+	return MarginBottom + static_cast<int>((m_showXAxisLabel ? 2 : 1) * m_fontHeight);
 }
 
-int iAChartWidget::LeftMargin() const
+int iAChartWidget::leftMargin() const
 {
 	return (yCaption == "") ? 0 :
-		LEFT_MARGIN + m_fontHeight + m_yMaxTickLabelWidth + TickWidth;
+		MarginLeft + m_fontHeight + m_yMaxTickLabelWidth + TickWidth;
 }
 
-iAPlotData::DataType iAChartWidget::GetMaxYDataValue() const
+iAPlotData::DataType iAChartWidget::minYDataValue(size_t startPlot) const
+{
+	iAPlotData::DataType minVal = std::numeric_limits<iAPlotData::DataType>::max();
+	for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
+		minVal = std::min(m_plots[curPlot]->data()->YBounds()[0], minVal);
+	return minVal;
+}
+
+iAPlotData::DataType iAChartWidget::maxYDataValue(size_t startPlot) const
 {
 	iAPlotData::DataType maxVal = std::numeric_limits<iAPlotData::DataType>::lowest();
-	for (auto plot : m_plots)
-		maxVal = std::max(plot->GetData()->YBounds()[1], maxVal);
+	for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
+		maxVal = std::max(m_plots[curPlot]->data()->YBounds()[1], maxVal);
 	return maxVal;
 }
 
-iAPlotData::DataType const * iAChartWidget::YBounds() const
+iAPlotData::DataType const * iAChartWidget::yBounds() const
 {
 	return m_yBounds;
 }
 
-QSharedPointer<iAMapper> const iAChartWidget::YMapper() const
+iAMapper const & iAChartWidget::xMapper() const
 {
-	return m_yConverter;
+	return *m_xMapper.data();
 }
 
-void iAChartWidget::CreateYConverter()
+iAMapper const & iAChartWidget::yMapper() const
 {
+	return *m_yMapper.data();
+}
+
+void iAChartWidget::createMappers()
+{
+	m_xMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_xBounds[0], m_xBounds[1], 0, (activeWidth() - 1)*xZoom));
 	if (m_yMappingMode == Linear)
-		m_yConverter = QSharedPointer<iAMapper>(new iALinearMapper(yZoom, m_yBounds[0], m_yBounds[1], ActiveHeight() - 1));
+		m_yMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_yBounds[0], m_yBounds[1], 0, (activeHeight()-1)*yZoom));
 	else
-		// 1 - smallest value larger than 0. TODO: find that from data!
-		m_yConverter = QSharedPointer<iAMapper>(new iALogarithmicMapper(yZoom, m_yBounds[1], 1, ActiveHeight() - 1));
+	{
+		m_yMapper = QSharedPointer<iAMapper>(new iALogarithmicMapper(m_yBounds[0] > 0 ? m_yBounds[0] : 1, m_yBounds[1], 0, (activeHeight() - 1)*yZoom));
+		if (m_yBounds[0] <= 0)
+		{
+			DEBUG_LOG(QString("Invalid y bounds in chart for logarithmic mapping: minimum=%1 is <= 0, using 1 instead.").arg(m_yBounds[0]));
+		}
+	}
 }
 
-void iAChartWidget::DrawEverything()
-{
-	if (!m_yConverter)
-		CreateYConverter();
-	m_yConverter->update(yZoom, m_yBounds[1], m_yMappingMode == Linear? m_yBounds[0] : 1, ActiveHeight());
-	QPainter painter(&m_drawBuffer);
-	QFontMetrics fm = painter.fontMetrics();
-	m_fontHeight = fm.height();
-	m_yMaxTickLabelWidth = fm.width("4.44M");
-	painter.setRenderHint(QPainter::Antialiasing);
-	DrawBackground(painter);
-	painter.translate(translationX + LeftMargin(), -BottomMargin());
-	DrawImageOverlays(painter);
-	//change the origin of the window to left bottom
-	painter.translate(0, height);
-	painter.scale(1, -1);
-
-	DrawPlots(painter);
-	DrawAfterPlots(painter);
-
-	painter.scale(1, -1);
-	painter.setRenderHint(QPainter::Antialiasing, false);
-	DrawAxes(painter);
-
-	m_draw = false;
-}
-
-void iAChartWidget::DrawImageOverlays(QPainter& painter)
+void iAChartWidget::drawImageOverlays(QPainter& painter)
 {
 	QRect targetRect = geometry();
 	int yTranslate = -(yZoom - 1) * (targetRect.height());
 	targetRect.setHeight(targetRect.height() - targetRect.top() - 1);
-	targetRect.setWidth((targetRect.width() - LeftMargin()) * xZoom);
+	targetRect.setWidth((targetRect.width() - leftMargin()) * xZoom);
 	targetRect.setTop(targetRect.top() + yTranslate);
 	targetRect.setLeft(0);
 	for (int i = 0; i < m_overlays.size(); ++i)
@@ -292,108 +318,82 @@ void iAChartWidget::DrawImageOverlays(QPainter& painter)
 	}
 }
 
-void iAChartWidget::DrawAfterPlots(QPainter& painter)
+void iAChartWidget::drawAfterPlots(QPainter& painter)
 {}
 
-namespace
+QString iAChartWidget::getXAxisTickMarkLabel(double value, double stepWidth)
 {
-	int requiredDigits(double value)
+	int placesBeforeComma = requiredDigits(value);
+	int placesAfterComma = (stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
+	if ((!m_plots.empty() && m_plots[0]->data()->GetRangeType() == Continuous) || placesAfterComma > 1)
 	{
-		return (value >= -1.0 && value < 1.0) ?
-			1 : std::floor(std::log10(std::abs(value))) + 1;
-	}
-
-	double deg2rad(double const & number)
-	{
-		return number * vtkMath::Pi() / 180;
-	}
-
-	int markerPos(int step, int stepCount, int width, int offset)
-	{
-		int x = static_cast<int>(static_cast<double>(step) / stepCount * width) + offset;
-		if (step == stepCount) x--;
-		return x;
-	}
-
-	int textPos(int markerX, int step, int stepNr, int textWidth)
-	{
-		return (step == 0)
-			? markerX					// right aligned to indicator line
-			: (step < stepNr)
-			? markerX - textWidth / 2	// centered to the indicator line
-			: markerX - textWidth;	// left aligned to the indicator line
-	}
-}
-
-QString iAChartWidget::GetXAxisTickMarkLabel(double value, int placesBeforeComma, int requiredPlacesAfterComma)
-{
-	if ((!m_plots.empty() && m_plots[0]->GetData()->GetRangeType() == Continuous) || requiredPlacesAfterComma > 1)
-	{
-		QString result = QString::number(value, 'g', ((value > 0) ? placesBeforeComma + requiredPlacesAfterComma : requiredPlacesAfterComma));
-		if (result.contains("e")) // only 2 digits for scientific notation:
-			result = QString::number(value, 'g', 2);
+		QString result = QString::number(value, 'g', ((value > 0) ? placesBeforeComma + placesAfterComma : placesAfterComma));
+		if (result.contains("e")) // only 4 digits for scientific notation:
+			result = QString::number(value, 'g', 4);
 		return result;
 	}
 	else
-		return QString::number(static_cast<long long>(value), 10);
+		return QString::number(static_cast<long long>(value), 'g', 15);
 }
 
-void iAChartWidget::DrawAxes(QPainter& painter)
+void iAChartWidget::drawAxes(QPainter& painter)
 {
-	DrawXAxis(painter);
-	DrawYAxis(painter);
+	drawXAxis(painter);
+	drawYAxis(painter);
 }
 
-size_t iAChartWidget::MaxXAxisSteps() const
-{
-	if (!m_plots.empty())
-		return m_plots[0]->GetData()->GetNumBin();
-	else
-		return MAX_X_AXIS_STEPS;
-}
-
-bool iAChartWidget::CategoricalAxis() const
+bool iAChartWidget::categoricalAxis() const
 {
 	if (!m_plots.empty())
-		return (m_plots[0]->GetData()->GetRangeType() == Categorical);
+		return (m_plots[0]->data()->GetRangeType() == Categorical);
 	else
 		return false;
 }
 
-void iAChartWidget::DrawXAxis(QPainter &painter)
+double iAChartWidget::visibleXStart() const
+{
+	return xBounds()[0] + (((static_cast<double>(-translationX)) / (activeWidth()*xZoom)) * xRange());
+}
+
+double iAChartWidget::visibleXEnd() const
+{
+	double visibleRange = xRange() / xZoom;
+	return visibleXStart() + visibleRange;
+}
+
+void iAChartWidget::drawXAxis(QPainter &painter)
 {
 	painter.setPen(QWidget::palette().color(QPalette::Text));
-
 	const int MINIMUM_MARGIN = 8;
 	const int TextAxisDistance = 2;
 	QFontMetrics fm = painter.fontMetrics();
-	size_t stepCount = MaxXAxisSteps();
+	size_t stepCount = m_maxXAxisSteps;
 	double stepWidth;
-	// for discrete x axis variables, marker&caption should be in middle of value; MaxXAxisSteps() = numBin of plot[0]
-	int markerOffset = IsDrawnDiscrete() ? static_cast<int>(0.5 * width / stepCount) : 0;
-	double xRange = XRange();
-	if (!m_plots.empty() && m_plots[0]->GetData()->GetRangeType() == Discrete)
-		xRange += 1;
-	if (!CategoricalAxis())
+	double startXVal = clamp(m_xTickBounds[0], m_xTickBounds[1], visibleXStart());
+	double endXVal = clamp(m_xTickBounds[0], m_xTickBounds[1], visibleXEnd());
+	if (!categoricalAxis())
 	{
 		// check for overlap:
 		bool overlap;
 		do
 		{
-			stepWidth = xRange / stepCount;
+			stepWidth = xRange() / stepCount;
 			overlap = false;
 			for (size_t i = 0; i<stepCount && !overlap; ++i)
 			{
-				double value = XBounds()[0] + static_cast<double>(i) * stepWidth;
-				int placesBeforeComma = requiredDigits(value);
-				int placesAfterComma = (stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
-				QString text = GetXAxisTickMarkLabel(value, placesBeforeComma, placesAfterComma);
-				int markerX = markerPos(i, stepCount, ActiveWidth()*xZoom, markerOffset);
+				double value = m_xTickBounds[0] + static_cast<double>(i) * stepWidth;
+				double nextValue = m_xTickBounds[0] + static_cast<double>(i+1) * stepWidth;
+				if (value < startXVal)
+					continue;
+				else if (value > endXVal)
+					break;
+				QString text = getXAxisTickMarkLabel(value, stepWidth);
+				int markerX = markerPos(m_xMapper->srcToDst(value), i, stepCount);
 				int textX = textPos(markerX, i, stepCount, fm.width(text));
-				int next_markerX = markerPos(i + 1, stepCount, ActiveWidth()*xZoom, markerOffset);
-				int next_textX = textPos(next_markerX, i + 1, stepCount, fm.width(text));
+				int nextMarkerX = markerPos(m_xMapper->srcToDst(nextValue), i + 1, stepCount);
+				int nextTextX = textPos(nextMarkerX, i + 1, stepCount, fm.width(text));
 				int textWidth = fm.width(text) + fm.width("M");
-				overlap = (textX + textWidth) >= next_textX;
+				overlap = (textX + textWidth) >= nextTextX;
 			}
 			if (overlap)
 				stepCount /= 2;
@@ -402,23 +402,22 @@ void iAChartWidget::DrawXAxis(QPainter &painter)
 	else
 	{
 		QFont font = painter.font();
-		font.setPointSize(CATEGORICAL_FONT_SIZE);
+		font.setPointSize(CategoricalFontSize);
 		painter.setFont(font);
 		fm = painter.fontMetrics();
-		stepWidth = xRange / stepCount;
+		stepWidth = xRange() / stepCount;
 	}
 
 	stepCount = std::max(static_cast<size_t>(1), stepCount); // at least one step
 	for (int i = 0; i <= stepCount; ++i)
 	{
-		double value = XBounds()[0] + static_cast<double>(i) * stepWidth;
-		int placesBeforeComma = requiredDigits(value);
-		int placesAfterComma = (stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
-		QString text = GetXAxisTickMarkLabel(value, placesBeforeComma, placesAfterComma);
-		if (IsDrawnDiscrete() && i == stepCount && text.length() < 3)
-			break;	// avoid last tick for discrete ranges
-
-		int markerX = markerPos(i, stepCount, ActiveWidth()*xZoom, markerOffset);
+		double value = m_xTickBounds[0] + static_cast<double>(i) * stepWidth;
+		if (value < startXVal)
+			continue;
+		else if (value > endXVal)
+			break;
+		QString text = getXAxisTickMarkLabel(value, stepWidth);
+		int markerX = markerPos(m_xMapper->srcToDst(value), i, stepCount);
 		painter.drawLine(markerX, TickWidth, markerX, -1);
 		int textX = textPos(markerX, i, stepCount, fm.width(text));
 		int textY = fm.height() + TextAxisDistance;
@@ -429,40 +428,39 @@ void iAChartWidget::DrawXAxis(QPainter &painter)
 
 	//draw the x axis
 	painter.setPen(QWidget::palette().color(QPalette::Text));
-	painter.drawLine(0, -1, (int)((ActiveWidth())*xZoom), -1);
+	painter.drawLine(-translationX, -1, -translationX + activeWidth(), -1);
+	if (m_drawXAxisAtZero && std::abs(-1.0-m_yMapper->srcToDst(0)) > 5) // if axis at bottom is at least 5 pixels away from zero point, draw additional line
+		painter.drawLine(-translationX, -m_yMapper->srcToDst(0), -translationX + activeWidth(), -m_yMapper->srcToDst(0));
 
 	if (m_showXAxisLabel)
 	{
 		//write the x axis label
 		QPointF textPos(
 			m_captionPosition.testFlag(Qt::AlignCenter) ?
-				/* Center */ (int)(ActiveWidth() * 0.5 - translationX - (0.5*fm.width(xCaption)))
+				/* Center */ (int)(activeWidth() * 0.5 - translationX - (0.5*fm.width(xCaption)))
 				/* Left   */ : 0 ,
 			m_captionPosition.testFlag(Qt::AlignBottom) ?
-				/* Bottom */ BottomMargin() - fm.descent() - 1 :
-				/* Top (of chart) */ -Height() + BottomMargin() + m_fontHeight
+				/* Bottom */ bottomMargin() - fm.descent() - 1 :
+				/* Top (of chart) */ -geometry().height() + bottomMargin() + m_fontHeight
 		);
 		painter.drawText(textPos, xCaption);
 	}
 }
 
-void iAChartWidget::DrawYAxis(QPainter &painter)
+void iAChartWidget::drawYAxis(QPainter &painter)
 {
-	if (LeftMargin() <= 0)
+	if (leftMargin() <= 0)
 	{
 		return;
 	}
 	painter.save();
 	painter.translate(-translationX, 0);
 	QFontMetrics fm = painter.fontMetrics();
-
-	int activeHeight = ActiveHeight() - 1;
-	painter.fillRect(QRect(0, BottomMargin(), -LeftMargin(), -(activeHeight + BottomMargin() + 1)),
-		QBrush(QWidget::palette().color(QWidget::backgroundRole())));
+	int aheight = activeHeight() - 1;
 	painter.setPen(QWidget::palette().color(QPalette::Text));
 
 	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
-	int stepNumber = std::min(Y_AXIS_STEPS, static_cast<int>(activeHeight / (m_fontHeight*1.1)));
+	int stepNumber = std::min(AxisTicksYMax, static_cast<int>(aheight / (m_fontHeight*1.1)));
 	stepNumber = std::max(1, stepNumber);	// make sure there's at least 2 steps
 	const double step = 1.0 / (stepNumber * yZoom);
 	double logMax = LogFunc(static_cast<double>(m_yBounds[1]));
@@ -470,71 +468,67 @@ void iAChartWidget::DrawYAxis(QPainter &painter)
 	for (int i = 0; i <= stepNumber; ++i)
 	{
 		double pos = step * i;
-		double yValue = (m_yMappingMode == Linear) ? pos * m_yBounds[1] :
-			/* Log: */ std::pow(LogBase, logMax / yZoom - (Y_AXIS_STEPS - i));
+		int y = -static_cast<int>(pos * aheight * yZoom) - 1;
+		double yValue = m_yMapper->dstToSrc(-y-1);
 		QString text = DblToStringWithUnits(yValue);
-		int y = -static_cast<int>(pos * activeHeight * yZoom) - 1;
 		painter.drawLine(static_cast<int>(-TickWidth), y, 0, y);	// indicator line
 		painter.drawText( - ( fm.width(text) + TickWidth),
 			(i == stepNumber) ? y + 0.75*m_fontHeight // write the text top aligned to the indicator line
 			: y + 0.25*m_fontHeight                   // write the text centered to the indicator line
 			, text);
 	}
-	painter.drawLine(0, -1, 0, -(int)(activeHeight*yZoom));
+	painter.drawLine(0, -1, 0, -(int)(aheight*yZoom));
 	//write the y axis label
 	painter.save();
 	painter.rotate(-90);
 	QPointF textPos(
-		activeHeight*0.5 - 0.5*fm.width(yCaption),
-		-LeftMargin() + m_fontHeight - 5);
+		aheight*0.5 - 0.5*fm.width(yCaption),
+		-leftMargin() + m_fontHeight - 5);
 	painter.drawText(textPos, yCaption);
 	painter.restore();
 	painter.restore();
 }
 
-void iAChartWidget::redraw()
-{
-	m_draw = true;
-	update();
-}
-
-void iAChartWidget::SetXBounds(double valMin, double valMax)
+void iAChartWidget::setXBounds(double valMin, double valMax)
 {
 	m_customXBounds = true;
 	m_xBounds[0] = valMin;
 	m_xBounds[1] = valMax;
-	for (auto it = m_plots.constBegin(); it != m_plots.constEnd(); ++it)
-		(*it)->update();
+	m_xTickBounds[0] = valMin;
+	m_xTickBounds[1] = valMax;
+	ensureNonZeroRange(m_xBounds, true);
 }
 
-void iAChartWidget::SetYBounds(iAPlotData::DataType valMin, iAPlotData::DataType valMax)
+void iAChartWidget::setYBounds(iAPlotData::DataType valMin, iAPlotData::DataType valMax)
 {
 	m_customYBounds = true;
 	m_yBounds[0] = valMin;
 	m_yBounds[1] = valMax;
-	for (auto it = m_plots.constBegin(); it != m_plots.constEnd(); ++it)
-		(*it)->update();
+	ensureNonZeroRange(m_yBounds, true);
 }
 
-void iAChartWidget::ResetYBounds()
+void iAChartWidget::resetYBounds()
 {
 	m_customYBounds = false;
-	m_yBounds[0] = 0;
-	m_yBounds[1] = GetMaxYDataValue();
+	updateYBounds();
 }
 
-void iAChartWidget::UpdateYBounds()
+void iAChartWidget::updateYBounds(size_t startPlot)
 {
 	if (m_customYBounds)
 		return;
-	m_yBounds[0] = 0;
-	if (m_plots.empty())
-		m_yBounds[1] = 1;
-	else
-		m_yBounds[1] = GetMaxYDataValue();
+	m_yBounds[0] = (m_plots.empty()) ? 0 :
+		((startPlot != 0)
+			? std::min(m_yBounds[0], minYDataValue(startPlot)) // partial update
+			: minYDataValue(startPlot) );                      // full update
+	m_yBounds[1] = (m_plots.empty()) ? 1 :
+		((startPlot != 0)
+			? std::max(m_yBounds[1], maxYDataValue(startPlot)) // partial update
+			: maxYDataValue(startPlot) );                      // full update
+	ensureNonZeroRange(m_yBounds);
 }
 
-void iAChartWidget::UpdateXBounds()
+void iAChartWidget::updateXBounds(size_t startPlot)
 {
 	if (m_customXBounds)
 		return;
@@ -542,28 +536,40 @@ void iAChartWidget::UpdateXBounds()
 	{
 		m_xBounds[0] = 0;
 		m_xBounds[1] = 1;
+		m_maxXAxisSteps = AxisTicksXDefault;
 	}
 	else
-	{
-		m_xBounds[0] = std::numeric_limits<double>::max();
-		m_xBounds[1] = std::numeric_limits<double>::lowest();
-		for (auto plot : m_plots)
+	{                             // update   partial            full
+		m_xBounds[0]     = (startPlot != 0) ? m_xBounds[0]     : std::numeric_limits<double>::max();
+		m_xBounds[1]     = (startPlot != 0) ? m_xBounds[1]     : std::numeric_limits<double>::lowest();
+		m_xTickBounds[0] = (startPlot != 0) ? m_xTickBounds[0] : std::numeric_limits<double>::max();
+		m_xTickBounds[1] = (startPlot != 0) ? m_xTickBounds[1] : std::numeric_limits<double>::lowest();
+		m_maxXAxisSteps = 0;
+		for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
 		{
-			m_xBounds[0] = std::min(m_xBounds[0], plot->GetData()->XBounds()[0]);
-			m_xBounds[1] = std::max(m_xBounds[1], plot->GetData()->XBounds()[1]);
+			auto d = m_plots[curPlot]->data();
+			m_xBounds[0] = std::min(m_xBounds[0], d->XBounds()[0] - ((d->GetRangeType() == Discrete) ? 0.5 : 0) );
+			m_xBounds[1] = std::max(m_xBounds[1], d->XBounds()[1] + ((d->GetRangeType() == Discrete) ? 0.5 : 0) );
+			m_xTickBounds[0] = std::min(m_xTickBounds[0], d->XBounds()[0]);
+			m_xTickBounds[1] = std::max(m_xTickBounds[1], d->XBounds()[1]);
+			m_maxXAxisSteps = std::max(m_maxXAxisSteps, d->GetNumBin() );
 		}
+		ensureNonZeroRange(m_xBounds);
+		ensureNonZeroRange(m_xTickBounds);
 	}
 }
 
-void iAChartWidget::UpdateBounds()
+void iAChartWidget::updateBounds(size_t startPlot)
 {
-	UpdateXBounds();
-	UpdateYBounds();
+	updateXBounds(startPlot);
+	updateYBounds(startPlot);
 }
 
-void iAChartWidget::DrawBackground(QPainter &painter)
+void iAChartWidget::drawBackground(QPainter &painter)
 {
-	painter.fillRect( rect(), QWidget::palette().color(QWidget::backgroundRole()));
+	if (!m_bgColor.isValid())
+		m_bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	painter.fillRect( rect(), m_bgColor );
 }
 
 void iAChartWidget::resetView()
@@ -571,25 +577,18 @@ void iAChartWidget::resetView()
 	translationX = 0;
 	xZoom = 1.0;
 	yZoom = 1.0;
-	emit XAxisChanged();
-	redraw();
+	emit xAxisChanged();
+	update();
 }
 
-int iAChartWidget::diagram2PaintX(double x) const
-{
-	if (m_plots.empty())
-		return x;
-	double screenX = (x - XBounds()[0]) * ActiveWidth() * xZoom / XRange();
-	screenX = clamp(0.0, ActiveWidth()*xZoom, screenX);
-	return static_cast<int>(round(screenX));
-}
 
+// @{ TODO: these two methods need to be made plot-specific!
 long iAChartWidget::screenX2DataBin(int x) const
 {
 	if (m_plots.empty())
 		return x;
-	double numBin = m_plots[0]->GetData()->GetNumBin();
-	double diagX = static_cast<double>(x - translationX - LeftMargin()) * numBin / (ActiveWidth() * xZoom);
+	double numBin = m_plots[0]->data()->GetNumBin();
+	double diagX = static_cast<double>(x - translationX - leftMargin()) * numBin / (activeWidth() * xZoom);
 	diagX = clamp(0.0, numBin, diagX);
 	return static_cast<long>(round(diagX));
 }
@@ -598,92 +597,100 @@ int iAChartWidget::dataBin2ScreenX(long x) const
 {
 	if (m_plots.empty())
 		return x;
-	double numBin = m_plots[0]->GetData()->GetNumBin();
-	double screenX = static_cast<double>(x) * ActiveWidth() * xZoom / (numBin);
-	screenX = clamp(0.0, ActiveWidth()*xZoom, screenX);
+	double numBin = m_plots[0]->data()->GetNumBin();
+	double screenX = static_cast<double>(x) * activeWidth() * xZoom / (numBin);
+	screenX = clamp(0.0, activeWidth()*xZoom, screenX);
 	return static_cast<int>(round(screenX));
 }
+//! @}
 
-bool iAChartWidget::IsContextMenuVisible() const
+bool iAChartWidget::isContextMenuVisible() const
 {
 	return m_contextMenuVisible;
 }
 
-bool iAChartWidget::IsTooltipShown() const
+bool iAChartWidget::isTooltipShown() const
 {
 	return m_showTooltip;
 }
 
-QPoint iAChartWidget::ContextMenuPos() const
+QPoint iAChartWidget::contextMenuPos() const
 {
 	return m_contextPos;
 }
 
-double iAChartWidget::MaxXZoom() const
+double iAChartWidget::maxXZoom() const
 {
 	if (m_plots.empty())
-		return MAX_X_ZOOM;
-	double numBin = m_plots[0]->GetData()->GetNumBin();
-	return std::max(std::min(MAX_X_ZOOM, numBin), 1.0);
+		return ZoomXMaxEmpty;
+	double numBin = m_plots[0]->data()->GetNumBin();
+	return std::max(std::min(ZoomXMax, numBin), 1.0);
 }
 
-void iAChartWidget::SetYMappingMode(AxisMappingType drawMode)
+void iAChartWidget::setYMappingMode(AxisMappingType drawMode)
 {
 	if (m_yMappingMode == drawMode)
 		return;
 	m_yMappingMode = drawMode;
-	CreateYConverter();
+	createMappers();
 }
 
-void iAChartWidget::SetCaptionPosition(QFlags<Qt::AlignmentFlag> captionPosition)
+void iAChartWidget::setCaptionPosition(QFlags<Qt::AlignmentFlag> captionPosition)
 {
 	m_captionPosition = captionPosition;
 }
 
-void iAChartWidget::SetShowXAxisLabel(bool show)
+void iAChartWidget::setShowXAxisLabel(bool show)
 {
 	m_showXAxisLabel = show;
 }
 
-void iAChartWidget::AddPlot(QSharedPointer<iAPlot> plot)
+void iAChartWidget::addPlot(QSharedPointer<iAPlot> plot)
 {
 	assert(plot);
 	if (!plot)
 		return;
 	m_plots.push_back(plot);
-	UpdateBounds();
+	updateBounds(m_plots.size()-1);
 }
 
-void iAChartWidget::RemovePlot(QSharedPointer<iAPlot> plot)
+void iAChartWidget::removePlot(QSharedPointer<iAPlot> plot)
 {
 	if (!plot)
 		return;
-	int idx = m_plots.indexOf(plot);
-	if (idx != -1)
-		m_plots.remove(idx);
-	UpdateBounds();
+	auto it = std::find(m_plots.begin(), m_plots.end(), plot);
+	if (it != m_plots.end())
+	{
+		m_plots.erase(it);
+		updateBounds();
+	}
 }
 
-QVector<QSharedPointer<iAPlot> > const & iAChartWidget::Plots()
+void iAChartWidget::clearPlots()
+{
+	m_plots.clear();
+}
+
+std::vector<QSharedPointer<iAPlot> > const & iAChartWidget::plots()
 {
 	return m_plots;
 }
 
-bool iAChartWidget::IsDrawnDiscrete() const
+bool iAChartWidget::isDrawnDiscrete() const
 {
 	for (auto plot : m_plots)
-		if (!((plot->GetData()->GetRangeType() == Discrete && (XRange() <= plot->GetData()->GetNumBin()))
-			  || plot->GetData()->GetRangeType() == Categorical))
+		if (!((plot->data()->GetRangeType() == Discrete && (xRange() <= plot->data()->GetNumBin()))
+			  || plot->data()->GetRangeType() == Categorical))
 			return false;
 	return !m_plots.empty();
 }
 
-void iAChartWidget::AddImageOverlay(QSharedPointer<QImage> imgOverlay)
+void iAChartWidget::addImageOverlay(QSharedPointer<QImage> imgOverlay)
 {
 	m_overlays.push_back(imgOverlay);
 }
 
-void iAChartWidget::RemoveImageOverlay(QImage * imgOverlay)
+void iAChartWidget::removeImageOverlay(QImage * imgOverlay)
 {
 	for (int i = 0; i < m_overlays.size(); ++i)
 	{
@@ -695,51 +702,87 @@ void iAChartWidget::RemoveImageOverlay(QImage * imgOverlay)
 	}
 }
 
-void iAChartWidget::DrawPlots(QPainter &painter)
+void iAChartWidget::setSelectionMode(SelectionMode mode)
+{
+	m_selectionMode = mode;
+}
+
+void iAChartWidget::drawPlots(QPainter &painter)
 {
 	if (m_plots.empty())
 	{
 		painter.scale(1, -1);
-		painter.drawText(QRect(0, 0, ActiveWidth(), -ActiveHeight()), Qt::AlignCenter, "Chart not (yet) available.");
+		painter.drawText(QRect(-translationX, -translationY, activeWidth(), -activeHeight()), Qt::AlignCenter, "Chart not (yet) available.");
 		painter.scale(1, -1);
 		return;
 	}
-	double binWidth = ActiveWidth() * xZoom / m_plots[0]->GetData()->GetNumBin();
-	for (auto it = m_plots.constBegin(); it != m_plots.constEnd(); ++it)
-		if ((*it)->Visible())
-			(*it)->draw(painter, binWidth, m_yConverter);
+	double xStart = visibleXStart(), xEnd = visibleXEnd();
+	for (auto it = m_plots.begin(); it != m_plots.end(); ++it)
+	{
+		if ((*it)->visible())
+		{
+			size_t plotNumBin = (*it)->data()->GetNumBin();
+			double plotXBounds[2] = {(*it)->data()->XBounds()[0], (*it)->data()->XBounds()[1]};
+			ensureNonZeroRange(plotXBounds);
+			double plotVisXBounds[2] = {
+				clamp((*it)->data()->XBounds()[0], (*it)->data()->XBounds()[1], xStart),
+				clamp((*it)->data()->XBounds()[0], (*it)->data()->XBounds()[1], xEnd)
+			};
+			ensureNonZeroRange(plotVisXBounds);
+			double plotStepWidth = (plotXBounds[1] - plotXBounds[0]
+				+ (((*it)->data()->GetRangeType() == Discrete)?1:0) ) / m_plots[0]->data()->GetNumBin();
+			size_t plotStartBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[0] - (*it)->data()->XBounds()[0]) / plotStepWidth - 1));
+			size_t plotEndBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[1] - (*it)->data()->XBounds()[0]) / plotStepWidth + 1));
+			double plotPixelBinWidth = m_xMapper->srcToDst(xBounds()[0] + plotStepWidth);
+			iALinearMapper plotXMapper;
+			if ((*it)->data()->GetRangeType() == Continuous)
+				plotXMapper.update(-1, plotNumBin + 1, m_xMapper->srcToDst((*it)->data()->XBounds()[0] - plotStepWidth), m_xMapper->srcToDst((*it)->data()->XBounds()[1] + plotStepWidth));
+			else
+				plotXMapper.update(-1, plotNumBin, m_xMapper->srcToDst((*it)->data()->XBounds()[0] - plotStepWidth), m_xMapper->srcToDst((*it)->data()->XBounds()[1] + plotStepWidth));
+			(*it)->draw(painter, plotPixelBinWidth, plotStartBin, plotEndBin, plotXMapper, *m_yMapper.data());
+		}
+	}
 }
 
 void iAChartWidget::showDataTooltip(QMouseEvent *event)
 {
 	if (m_plots.empty() || !m_showTooltip)
 		return;
-	int xPos = clamp(0, width - 1, event->x());
-	size_t numBin = m_plots[0]->GetData()->GetNumBin();
+	int xPos = clamp(0, geometry().width() - 1, event->x());
+	size_t numBin = m_plots[0]->data()->GetNumBin();
 	assert(numBin > 0);
-	int nthBin = static_cast<int>((((xPos - translationX - LeftMargin()) * numBin) / (ActiveWidth())) / xZoom);
+	int nthBin = static_cast<int>((((xPos - translationX - leftMargin()) * numBin) / (activeWidth())) / xZoom);
 	nthBin = clamp(0, static_cast<int>(numBin), nthBin);
-	if (xPos == width - 1)
+	if (xPos == geometry().width() - 1)
 		nthBin = static_cast<int>(numBin) - 1;
 	QString toolTip;
-	double binStart = m_plots[0]->GetData()->GetBinStart(nthBin);
-	if (IsDrawnDiscrete())
+	double stepWidth = numBin >= 1 ? m_plots[0]->data()->GetBinStart(1) - m_plots[0]->data()->GetBinStart(0) : 0;
+	double binStart = m_plots[0]->data()->GetBinStart(nthBin);
+	if (isDrawnDiscrete())
 		binStart = static_cast<int>(binStart);
 	if (yCaption.isEmpty())
-		toolTip = QString("%1: ").arg(binStart);
+		toolTip = QString("%1: ").arg(getXAxisTickMarkLabel(binStart, stepWidth));
 	else
-		toolTip = QString("%1: %2\n%3: ").arg(xCaption).arg(binStart).arg(yCaption);
+		toolTip = QString("%1: %2\n%3: ").arg(xCaption).arg(getXAxisTickMarkLabel(binStart, stepWidth)).arg(yCaption);
 	bool more = false;
+	const int MaxToolTipDataCount = 5;
+	int curTooltipDataCount = 1;
 	for (auto plot : m_plots)
 	{
-		auto data = plot->GetData();
+		auto data = plot->data();
 		if (!data || !data->GetRawData())
 			continue;
 		if (more)
 			toolTip += ", ";
 		else
 			more = true;
-		toolTip += QString::number(data->GetRawData()[nthBin]);
+		toolTip += QString::number(data->GetRawData()[nthBin], 'g', 15);
+		++curTooltipDataCount;
+		if (curTooltipDataCount > MaxToolTipDataCount)
+		{
+			toolTip += "...";
+			break;
+		}
 	}
 	QToolTip::showText(event->globalPos(), toolTip, this);
 }
@@ -762,8 +805,47 @@ void iAChartWidget::changeMode(int newMode, QMouseEvent *event)
 void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton)
-		redraw();
+	{
+		if (m_selectionBand->isVisible())
+		{
+			m_selectionBand->hide();
+			QRectF diagramRect;
+			QRectF selectionRect(m_selectionBand->geometry());     // height-y because we are drawing reversed from actual y direction
+			diagramRect.setTop(    yMapper().dstToSrc(activeHeight() - selectionRect.bottom()) );
+			diagramRect.setBottom( yMapper().dstToSrc(activeHeight() - selectionRect.top()   ) );
+			diagramRect.setLeft(   screenX2DataBin(selectionRect.left()  ) );
+			diagramRect.setRight(  screenX2DataBin(selectionRect.right() ) );
+			diagramRect = diagramRect.normalized();
+			if (diagramRect.top() < yBounds()[0])
+				diagramRect.setTop(yBounds()[0]);
+			if (diagramRect.bottom() > yBounds()[1])
+				diagramRect.setBottom(yBounds()[1]);
+			m_selectedPlots.clear();
+			double yMin = diagramRect.top(), yMax = diagramRect.bottom();
+			for (int plotIdx=0; plotIdx<m_plots.size(); ++plotIdx)
+			{
+				if (!m_plots[plotIdx]->visible())
+					continue;
+				for (int bin=diagramRect.left(); bin <= diagramRect.right(); ++bin)
+				{
+					double binYValue = m_plots[plotIdx]->data()->GetRawData()[bin];
+					if (yMin < binYValue && binYValue < yMax)
+					{
+						m_selectedPlots.push_back(plotIdx);
+						break;
+					}
+				}
+			}
+			emit plotsSelected(m_selectedPlots);
+		}
+		update();
+	}
 	this->mode = NO_MODE;
+}
+
+void iAChartWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+	emit dblClicked();
 }
 
 void iAChartWidget::mousePressEvent(QMouseEvent *event)
@@ -793,9 +875,15 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 			translationStartY = translationY;
 			changeMode(MOVE_VIEW_MODE, event);
 		}
+		else if (m_selectionMode == SelectPlot)
+		{
+			m_selectionOrigin = event->pos();
+			m_selectionBand->setGeometry(QRect(m_selectionOrigin, QSize()));
+			m_selectionBand->show();
+		}
 		break;
 	case Qt::RightButton:
-		redraw();
+		update();
 		break;
 	case Qt::MidButton:
 		translationStartX = translationX;
@@ -811,39 +899,134 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	switch(mode)
 	{
-	case NO_MODE: /* do nothing */ break;
+	case NO_MODE:
+		if (m_selectionBand->isVisible())
+		{
+			m_selectionBand->setGeometry(QRect(m_selectionOrigin, event->pos()).normalized());
+		}
+		/* do nothing */ break;
 	case MOVE_VIEW_MODE:
-		translationX = clamp(-static_cast<int>(ActiveWidth() * (xZoom-1)), 0,
+		translationX = clamp(-static_cast<int>(activeWidth() * (xZoom-1)), 0,
 			translationStartX + event->x() - dragStartPosX);
-		emit XAxisChanged();
+		emit xAxisChanged();
 		translationY = translationStartY + event->y() - dragStartPosY;
-		translationY = clamp(static_cast<int>(-(height * yZoom - height)), static_cast<int>(height * yZoom - height), translationY);
-		redraw();
+		translationY = clamp(static_cast<int>(-(geometry().height() * yZoom - geometry().height())),
+				static_cast<int>(geometry().height() * yZoom - geometry().height()), translationY);
+		update();
 		break;
 	case X_ZOOM_MODE:
 		zoomAlongX(((zoomY-event->y())/2.0)+xZoomStart, zoomX, false);
-		redraw();
+		update();
 		break;
 	case Y_ZOOM_MODE:
 		{
 			int diff = (zoomY-event->y())/2.0;
 			if (diff < 0)
-				zoomAlongY(-pow(Y_ZOOM_STEP,-diff)+yZoomStart, false);
+				zoomAlongY(-pow(ZoomYStep,-diff)+yZoomStart, false);
 			else
-				zoomAlongY(pow(Y_ZOOM_STEP,diff)+yZoomStart, false);
-			redraw();
+				zoomAlongY(pow(ZoomYStep,diff)+yZoomStart, false);
+			update();
 		}
 		break;
 	}
 	showDataTooltip(event);
 }
 
-void iAChartWidget::paintEvent(QPaintEvent * e)
+QImage iAChartWidget::drawOffscreen()
 {
-	if (m_draw)
-		DrawEverything();
-	QPainter painter(this);
-	painter.drawImage(QRectF(0, 0, geometry().width(), geometry().height()), m_drawBuffer);
+	QSurfaceFormat format;
+	format.setMajorVersion(3);
+	format.setMinorVersion(3);
+	QWindow window;
+	window.setSurfaceType(QWindow::OpenGLSurface);
+	window.setFormat(format);
+	window.create();
+	QOpenGLContext context;
+	context.setFormat(format);
+	if (!context.create())
+		qFatal("Cannot create the requested OpenGL context!");
+	context.makeCurrent(&window);
+	const QSize drawRectSize(width(), height());
+	QOpenGLFramebufferObjectFormat fboFormat;
+	fboFormat.setSamples(4);
+	fboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+	QOpenGLFramebufferObject fbo(drawRectSize, fboFormat);
+	fbo.bind();
+	QOpenGLPaintDevice device(drawRectSize);
+	QPainter p;
+	p.begin(&device);
+	drawAll(p);
+	p.end();
+	fbo.release();
+	QImage image = fbo.toImage();
+	context.doneCurrent();
+	return image;
+}
+
+void iAChartWidget::setBackgroundColor(QColor const & color)
+{
+	m_bgColor = color;
+	update();
+}
+
+void iAChartWidget::paintGL()
+{
+	QPainter p(this);
+	drawAll(p);
+}
+
+void iAChartWidget::drawAll(QPainter & painter)
+{
+	painter.setRenderHint(QPainter::Antialiasing);
+	drawBackground(painter);
+	if (activeWidth() <= 1 || activeHeight() <= 1)
+		return;
+	if (!m_xMapper || !m_yMapper)
+		createMappers();
+	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, xZoom*(activeWidth()-1));
+	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? 1 : m_yBounds[0], m_yBounds[1], 0, yZoom*(activeHeight()-1));
+	QFontMetrics fm = painter.fontMetrics();
+	m_fontHeight = fm.height();
+	m_yMaxTickLabelWidth = fm.width("4.44M");
+	painter.translate(translationX + leftMargin(), -bottomMargin());
+	drawImageOverlays(painter);
+	//change the origin of the window to left bottom
+	painter.translate(0, geometry().height());
+	painter.scale(1, -1);
+
+	drawPlots(painter);
+	for (double x : m_xMarker.keys())
+	{
+		QColor color = m_xMarker[x];
+		painter.setPen(color);
+		QLine line;
+		QRect diagram = geometry();
+		double pos = m_xMapper->srcToDst(x);
+		line.setP1(QPoint(pos, 0));
+		line.setP2(QPoint(pos, diagram.height() - bottomMargin()));
+		painter.drawLine(line);
+	}
+
+	drawAfterPlots(painter);
+
+	painter.scale(1, -1);
+	painter.setRenderHint(QPainter::Antialiasing, false);
+	drawAxes(painter);
+}
+
+void iAChartWidget::addXMarker(double xPos, QColor const & color)
+{
+	m_xMarker.insert(xPos, color);
+}
+
+void iAChartWidget::removeXMarker(double xPos)
+{
+	m_xMarker.remove(xPos);
+}
+
+void iAChartWidget::clearMarkers()
+{
+	m_xMarker.clear();
 }
 
 void iAChartWidget::keyReleaseEvent(QKeyEvent *event)
@@ -854,28 +1037,29 @@ void iAChartWidget::keyReleaseEvent(QKeyEvent *event)
 		m_contextMenuVisible = false;
 }
 
-void iAChartWidget::AddContextMenuEntries(QMenu* contextMenu)
+void iAChartWidget::addContextMenuEntries(QMenu* contextMenu)
 {}
 
 void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 {
 	m_contextPos = event->pos();
 	m_contextMenu->clear();
-	m_contextMenu->addAction(QIcon(":/images/resetView.png"), tr("Reset view"), this, SLOT(resetView()));
-	QAction *showTooltipAction = new QAction(tr("Show tooltip"), this);
+	m_contextMenu->addAction(QIcon(":/images/resetView.png"), tr("Reset histogram view"), this, SLOT(resetView()));
+	QAction *showTooltipAction = new QAction(tr("Show histogram coordinates"), this);
 	showTooltipAction->setCheckable(true);
 	showTooltipAction->setChecked(m_showTooltip);
 	connect(showTooltipAction, SIGNAL(toggled(bool)), this, SLOT(showTooltip(bool)));
 	m_contextMenu->addAction(showTooltipAction);
-	m_contextMenu->addAction(QIcon(":/images/save.png"), tr("Export data"), this, SLOT(ExportData()));
+	m_contextMenu->addAction(QIcon(":/images/save.png"), tr("Export histogram data"), this, SLOT(exportData()));
 	m_contextMenu->addSeparator();
-	AddContextMenuEntries(m_contextMenu);
+	addContextMenuEntries(m_contextMenu);
 	m_contextMenuVisible = true;
 	m_contextMenu->exec(event->globalPos());
 }
 
-void iAChartWidget::ExportData()
+void iAChartWidget::exportData()
 {
+	// TODO: Allow choosing which plot to export!
 	if (m_plots.empty())
 		return;
 	QString filePath = ""; //(activeChild) ? activeChild->getFilePath() : "";
@@ -888,19 +1072,19 @@ void iAChartWidget::ExportData()
 	{
 		return;
 	}
-	std::ofstream out(fileName.toStdString());
+	std::ofstream out( getLocalEncodingFileName(fileName));
 	out << tr("Start of Bin").toStdString();
 	for (int p = 0; p < m_plots.size(); ++p)
 	{
 		out << "," << QString("%1%2").arg(yCaption).arg(p).toStdString();
 	}
 	out << std::endl;
-	for (int b = 0; b < m_plots[0]->GetData()->GetNumBin(); ++b)
+	for (int b = 0; b < m_plots[0]->data()->GetNumBin(); ++b)
 	{
-		out << m_plots[0]->GetData()->GetBinStart(b);
+		out << QString::number(m_plots[0]->data()->GetBinStart(b), 'g', 15).toStdString();
 		for (int p = 0; p < m_plots.size(); ++p)
 		{
-			out << "," << m_plots[p]->GetData()->GetRawData()[b];
+			out << "," << QString::number(m_plots[p]->data()->GetRawData()[b], 'g', 15).toStdString();
 		}
 		out << std::endl;
 	}
@@ -910,4 +1094,9 @@ void iAChartWidget::ExportData()
 void iAChartWidget::showTooltip(bool toggled)
 {
 	m_showTooltip = toggled;
+}
+
+void iAChartWidget::setDrawXAxisAtZero(bool enable)
+{
+	m_drawXAxisAtZero = enable;
 }

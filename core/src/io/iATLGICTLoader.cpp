@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,6 +26,7 @@
 #include "iAModalityList.h"
 #include "iAMultiStepProgressObserver.h"
 #include "iAStringHelper.h"
+#include "io/iAFileUtils.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -100,8 +101,7 @@ void iATLGICTLoader::start(MdiChild* child)
 	m_multiStepObserver = new iAMultiStepProgressObserver(m_subDirs.size());
 	m_child = child;
 	m_child->show();
-	m_child->addMsg(tr("%1  Loading TLGI-CT data, please wait...")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
+	m_child->addMsg(tr("Loading TLGI-CT data, please wait..."));
 
 	connect(m_multiStepObserver, SIGNAL(progress(int)), m_child, SLOT(updateProgressBar(int)));
 	connect(this, SIGNAL(started()), m_child, SLOT(initProgressBar()));
@@ -206,7 +206,7 @@ void iATLGICTLoader::run()
 		{
 			QString temp = fileNameBase + QString("%1").arg(i, digits, 10, QChar('0')) + "." + ext;
 			temp = temp.replace("/", "\\");
-			fileNames->InsertNextValue(temp.toLatin1());
+			fileNames->InsertNextValue(getLocalEncodingFileName(temp));
 		}
 
 		// load image stack // TODO: put to common location and use from iAIO!
@@ -259,7 +259,6 @@ void iATLGICTLoader::finishUp()
 {
 	m_child->setCurrentFile(m_baseDirectory);
 	m_child->SetModalities(m_modList);
-	m_child->addMsg(tr("%1  Loading sequence completed.").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)));
-	m_child->addMsg("  Directory: " + m_baseDirectory);
+	m_child->addMsg(tr("Loading sequence completed; directory: %1.").arg(m_baseDirectory));
 	delete this;
 }

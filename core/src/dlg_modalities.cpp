@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -43,7 +43,6 @@
 #include <vtkInteractorStyleSwitch.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
 
 #include <QFileDialog>
@@ -57,7 +56,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),
 	m_mainRenderer(mainRenderer),
-	m_showSlicePlanes(false),
+	m_showSlicers(false),
 	m_plane1(nullptr),
 	m_plane2(nullptr),
 	m_plane3(nullptr)
@@ -67,7 +66,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	connect(pbEdit,   SIGNAL(clicked()), this, SLOT(EditClicked()));
 	connect(cbManualRegistration, SIGNAL(clicked()), this, SLOT(ManualRegistration()));
 	connect(cbShowMagicLens, SIGNAL(clicked()), this, SLOT(MagicLens()));
-	
+
 	connect(lwModalities, SIGNAL(itemClicked(QListWidgetItem*)),
 		this, SLOT(ListClicked(QListWidgetItem*)));
 
@@ -83,28 +82,9 @@ void dlg_modalities::SetModalities(QSharedPointer<iAModalityList> modList)
 	lwModalities->clear();
 }
 
-
-void dlg_modalities::Store(QString const & filename)
-{								// TODO: VOLUME: not the ideal solution for getting the proper "first" camera
-	vtkCamera* cam = m_mainRenderer->GetActiveCamera();
-	modalities->Store(filename, cam);
-}
-
 void dlg_modalities::SelectRow(int idx)
 {
 	lwModalities->setCurrentRow(idx);
-}
-
-bool dlg_modalities::Load(QString const & filename)
-{
-	bool result = modalities->Load(filename);
-	if (result)
-	{
-		SelectRow(0);
-		EnableButtons();
-		emit ModalityAvailable(0);
-	}
-	return result;
 }
 
 QString GetCaption(iAModality const & mod)
@@ -259,7 +239,7 @@ void dlg_modalities::EditClicked()
 		DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
 		return;
 	}
-	dlg_modalityProperties prop(this, editModality, m_mainRenderer);
+	dlg_modalityProperties prop(this, editModality);
 	if (prop.exec() == QDialog::Rejected)
 	{
 		return;
@@ -339,6 +319,11 @@ void dlg_modalities::ListClicked(QListWidgetItem* item)
 	for (int i = 0; i<modalities->size(); ++i)
 	{
 		QSharedPointer<iAModality> mod = modalities->Get(i);
+		if (!mod->GetRenderer())
+		{
+			DEBUG_LOG(QString("Renderer for modality %1 not yet created. Please try again later!").arg(i));
+			continue;
+		}
 		mod->GetRenderer()->SetMovable(mod == currentData);
 	}
 	emit ModalitySelected(selectedRow);
@@ -374,12 +359,12 @@ int dlg_modalities::GetSelected() const
 
 vtkSmartPointer<vtkColorTransferFunction> dlg_modalities::GetCTF(int modality)
 {
-	return modalities->Get(modality)->GetTransfer()->GetColorFunction();
+	return modalities->Get(modality)->GetTransfer()->getColorFunction();
 }
 
 vtkSmartPointer<vtkPiecewiseFunction> dlg_modalities::GetOTF(int modality)
 {
-	return modalities->Get(modality)->GetTransfer()->GetOpacityFunction();
+	return modalities->Get(modality)->GetTransfer()->getOpacityFunction();
 }
 
 void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs, const bool loadSavedVolumeSettings)
@@ -392,20 +377,18 @@ void dlg_modalities::ChangeRenderSettings(iAVolumeSettings const & rs, const boo
 			DEBUG_LOG("ChangeRenderSettings: No Renderer set!");
 			return;
 		}
-
 		//load volume settings from file otherwise use default rs
 		//check if a volume setting is saved for a modality
 		//set saved status to false after loading
-		if (loadSavedVolumeSettings) {
-			
-			
-				if (modalities->Get(i)->getVolSettingsSavedStatus()) {
-					renderer->ApplySettings(modalities->Get(i)->getVolumeSettings());
-					modalities->Get(i)->setVolSettingsSavedStatusFalse();
-				}
-
+		if (loadSavedVolumeSettings  &&
+			modalities->Get(i)->getVolSettingsSavedStatus())
+		{
+			renderer->ApplySettings(modalities->Get(i)->getVolumeSettings());
+			modalities->Get(i)->setVolSettingsSavedStatusFalse();
+		}
 		//use default settings
-		}else {
+		else
+		{
 			renderer->ApplySettings(rs);
 		}
 	}
@@ -423,9 +406,9 @@ void dlg_modalities::RendererMouseMoved()
 	}
 }
 
-void dlg_modalities::ShowSlicePlanes(bool enabled)
+void dlg_modalities::ShowSlicers(bool enabled)
 {
-	m_showSlicePlanes = enabled;
+	m_showSlicers = enabled;
 	for (int i = 0; i < modalities->size(); ++i)
 	{
 		QSharedPointer<iAVolumeRenderer> renderer = modalities->Get(i)->GetRenderer();
@@ -457,7 +440,6 @@ void dlg_modalities::AddModality(vtkSmartPointer<vtkImageData> img, QString cons
 	QSharedPointer<iAModality> newModality(new iAModality(name, "", -1, img, iAModality::MainRenderer));
 	modalities->Add(newModality);
 }
-
 
 void dlg_modalities::SetFileName(int modality, QString const & fileName)
 {

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -44,7 +44,7 @@
 #include <vtkAlgorithmOutput.h>
 #include <vtkAxisActor2D.h>
 #include <vtkCamera.h>
-#include <vtkScalarsToColors.h>
+#include <vtkCommand.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDiskSource.h>
 #include <vtkGenericMovieWriter.h>
@@ -53,11 +53,10 @@
 #include <vtkImageBlend.h>
 #include <vtkImageCast.h>
 #include <vtkImageChangeInformation.h>
+#include <vtkImageData.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageMapToColors.h>
-#include <vtkImageMapToWindowLevelColors.h>
 #include <vtkImageReslice.h>
-#include <vtkImageData.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
@@ -65,8 +64,8 @@
 #include <vtkLookupTable.h>
 #include <vtkMarchingContourFilter.h>
 #include <vtkPlaneSource.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkPointPicker.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
 #include <vtkRenderer.h>
@@ -74,6 +73,7 @@
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarBarWidget.h>
+#include <vtkScalarsToColors.h>
 #include <vtkSmartPointer.h>
 #include <vtkTextActor3D.h>
 #include <vtkTextMapper.h>
@@ -81,7 +81,6 @@
 #include <vtkTransform.h>
 #include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
-#include <vtkCommand.h>
 
 #include <QBitmap>
 #include <QDate>
@@ -101,15 +100,39 @@ public:
 	static iAInteractorStyleImage *New();
 	vtkTypeMacro(iAInteractorStyleImage, vtkInteractorStyleImage);
 
-	virtual void OnLeftButtonDown()
+	//! Disable "window-level" and rotation interaction (anything but shift-dragging)
+	void OnLeftButtonDown() override
 	{
-		// disable "window-level" and rotation interaction
 		if (!this->Interactor->GetShiftKey())
-		{
 			return;
-		}
 		vtkInteractorStyleImage::OnLeftButtonDown();
 	}
+	//! @{ shift and control + mousewheel are used differently - don't use them for zooming!
+	void OnMouseWheelForward() override
+	{
+		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+			return;
+		vtkInteractorStyleImage::OnMouseWheelForward();
+	}
+	void OnMouseWheelBackward() override
+	{
+		if (this->Interactor->GetControlKey() || this->Interactor->GetShiftKey())
+			return;
+		vtkInteractorStyleImage::OnMouseWheelBackward();
+	}
+	//! @}
+	//! @{ Conditionally disable zooming via right button dragging
+	void OnRightButtonDown() override
+	{
+		if (!m_rightButtonDragZoomEnabled)
+			return;
+		vtkInteractorStyleImage::OnRightButtonDown();
+	}
+	void SetRightButtonDragZoomEnabled(bool enabled)
+	{
+		m_rightButtonDragZoomEnabled = enabled;
+	}
+	//! @}
 	/*
 	virtual void OnChar()
 	{
@@ -124,6 +147,8 @@ public:
 		}
 	}
 	*/
+private:
+	bool m_rightButtonDragZoomEnabled = true;
 };
 
 vtkStandardNewMacro(iAInteractorStyleImage);
@@ -140,8 +165,6 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	m_userSetBackground(false),
 	m_decorations(decorations),
 	m_cameraOwner(true),
-	scalarWidget(0),
-	textProperty(0),
 	cFilter(0),
 	cMapper(0),
 	cActor(0),
@@ -158,10 +181,11 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 	renWin->AlphaBitPlanesOn();
 	renWin->LineSmoothingOn();
 	renWin->PointSmoothingOn();
-	renWin->PolygonSmoothingOff();	// Turned off, because of gray strokes e.g., on scalarBarActors. Only on NVIDIA graphic cards
+	// Turned off, because of gray strokes e.g., on scalarBarActors. Only on NVIDIA graphic cards
+	renWin->PolygonSmoothingOff();
 	interactorStyle = iAInteractorStyleImage::New();
 	m_camera = vtkCamera::New();
-
+	
 	reslicer = vtkImageReslice::New();
 	colormapper = vtkImageMapToColors::New();
 	imageActor = vtkImageActor::New();
@@ -170,8 +194,8 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 
 	if (decorations)
 	{
-		scalarWidget = vtkScalarBarWidget::New();
-		textProperty = vtkTextProperty::New();
+		scalarBarWidget = vtkSmartPointer<vtkScalarBarWidget>::New();
+		textProperty = vtkSmartPointer<vtkTextProperty>::New();
 		logoWidget = vtkSmartPointer<vtkLogoWidget>::New();
 		logoRep = vtkSmartPointer<vtkLogoRepresentation>::New();
 		logoImage = vtkSmartPointer<vtkQImageToImageSource>::New();
@@ -190,7 +214,7 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 		pDiskSource = vtkSmartPointer<vtkDiskSource>::New();
 		pDiskMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		pDiskActor = vtkSmartPointer<vtkActor>::New();
-		
+
 		roiSource = vtkSmartPointer<vtkPlaneSource>::New();
 		roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		roiActor = vtkSmartPointer<vtkActor>::New();
@@ -200,14 +224,13 @@ iASlicerData::iASlicerData( iASlicer const * slicerMaster, QObject * parent /*= 
 			axisTransform[i] = vtkSmartPointer<vtkTransform>::New();
 			axisTextActor[i] = vtkSmartPointer<vtkTextActor3D>::New();
 		}
-		
+
 		textInfo = iAWrapperText::New();
-		
+
 		rulerWidget = iARulerWidget::New();
 	}
 	transform = vtkTransform::New();
 }
-
 
 iASlicerData::~iASlicerData(void)
 {
@@ -219,16 +242,13 @@ iASlicerData::~iASlicerData(void)
 	reslicer->ReleaseDataFlagOn();
 	reslicer->Delete();
 	interactorStyle->Delete();
-	
+
 	pointPicker->Delete();
 
 	//scaleActor->Delete();
 	if (m_decorations)
 	{
-		scalarWidget->Delete();
-		textInfo->Delete();	
-
-		textProperty->Delete();
+		textInfo->Delete();
 
 		cFilter->Delete();
 		cMapper->Delete();
@@ -272,6 +292,7 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 	interactor->SetInteractorStyle(interactorStyle);
 	interactor->SetPicker(pointPicker);
 	interactor->Initialize( );
+	interactorStyle->SetDefaultRenderer(ren);
 
 	iAObserverRedirect* redirect(new iAObserverRedirect(this));
 	interactor->AddObserver(vtkCommand::LeftButtonPressEvent, redirect);
@@ -284,7 +305,7 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 	interactor->AddObserver(vtkCommand::MouseWheelForwardEvent, redirect);
 
 	InitReslicerWithImageData();
-	
+
 	UpdateResliceAxesDirectionCosines();
 	UpdateBackground();
 	pointPicker->SetTolerance(imageData->GetSpacing()[0]/3);
@@ -301,8 +322,7 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		roiSource->SetPoint2(0, -3, 0);
 
 		QImage img;
-		if( QDate::currentDate().dayOfYear() >= 340 )img.load(":/images/Xmas.png");
-		else img.load(":/images/fhlogo.png");
+		img.load(":/images/fhlogo.png");
 		logoImage->SetQImage(&img);
 		logoImage->Update();
 		logoRep->SetImage(logoImage->GetOutput( ));
@@ -318,18 +338,18 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		textProperty->SetJustification(VTK_TEXT_CENTERED);
 		textProperty->SetVerticalJustification(VTK_TEXT_CENTERED);
 		textProperty->SetOrientation(1);
-		scalarWidget->SetInteractor(interactor);
-		scalarWidget->GetScalarBarActor()->SetLookupTable( colorTransferFunction );
-		scalarWidget->GetScalarBarActor()->SetLabelFormat("%.2f");
-		scalarWidget->GetScalarBarActor()->SetTitleTextProperty(textProperty);
-		scalarWidget->GetScalarBarActor()->SetLabelTextProperty(textProperty);
-		scalarWidget->SetEnabled( true );
-		scalarWidget->SetRepositionable( true );
-		scalarWidget->SetResizable( true );
-		scalarWidget->GetScalarBarRepresentation()->SetOrientation(1);
-		scalarWidget->GetScalarBarRepresentation()->GetPositionCoordinate()->SetValue(0.92,0.2);
-		scalarWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.06, 0.75);
-		scalarWidget->GetScalarBarActor()->SetTitle("Range");
+		scalarBarWidget->SetInteractor(interactor);
+		scalarBarWidget->GetScalarBarActor()->SetLookupTable( colorTransferFunction );
+		scalarBarWidget->GetScalarBarActor()->SetLabelFormat("%.2f");
+		scalarBarWidget->GetScalarBarActor()->SetTitleTextProperty(textProperty);
+		scalarBarWidget->GetScalarBarActor()->SetLabelTextProperty(textProperty);
+		scalarBarWidget->SetEnabled( true );
+		scalarBarWidget->SetRepositionable( true );
+		scalarBarWidget->SetResizable( true );
+		scalarBarWidget->GetScalarBarRepresentation()->SetOrientation(1);
+		scalarBarWidget->GetScalarBarRepresentation()->GetPositionCoordinate()->SetValue(0.92,0.2);
+		scalarBarWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.06, 0.75);
+		scalarBarWidget->GetScalarBarActor()->SetTitle("Range");
 
 		UpdatePositionMarkerExtent();
 		m_positionMarkerMapper->SetInputConnection( m_positionMarkerSrc->GetOutputPort() );
@@ -376,7 +396,7 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		roiSource->SetCenter( 0, 0, 1 );
 		roiMapper->Update( );
 		roiActor->GetProperty()->SetRepresentation( VTK_WIREFRAME );
-		
+
 		reslicer->Update();
 		double const * const imgSpc = imageData->GetSpacing();
 		double unitSpacing = std::max(std::max(imgSpc[0], imgSpc[1]), imgSpc[2]);
@@ -408,14 +428,14 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		axisTextActor[1]->SetPosition(-20.0, yHalf * 10 / unitSpacing, 0);
 		axisTextActor[1]->GetTextProperty()->SetVerticalJustificationToCentered();
 		axisTextActor[1]->GetTextProperty()->SetJustificationToRight();
-		
+
 		rulerWidget->SetInteractor(interactor);
 		rulerWidget->SetEnabled( true );
 		rulerWidget->SetRepositionable( true );
 		rulerWidget->SetResizable( true );
 		rulerWidget->GetScalarBarRepresentation()->GetPositionCoordinate()->SetValue(0.333,0.05);
 		rulerWidget->GetScalarBarRepresentation()->GetPosition2Coordinate()->SetValue(0.333,0.051);
-		
+
 		ren->AddActor(m_positionMarkerActor);
 		ren->AddActor(cActor);
 		ren->AddActor(pLineActor);
@@ -423,35 +443,12 @@ void iASlicerData::initialize(vtkImageData *ds, vtkTransform *tr, vtkScalarsToCo
 		ren->AddActor(roiActor);
 	}
 
-	if (imageData->GetNumberOfScalarComponents() == 1)
-	{
-		colormapper->SetLookupTable(colorTransferFunction);
-	}
-	else
-	{
-		colormapper->SetLookupTable( 0 );
-		if (imageData->GetNumberOfScalarComponents() == 3)
-		{
-			colormapper->SetOutputFormatToRGB();		// default is RGBA
-		}
-	}
-
 	colormapper->SetInputConnection(reslicer->GetOutputPort());
-	colormapper->Update();
+	setupColorMapper();
 	imageActor->SetInputData(colormapper->GetOutput());
 	imageActor->GetMapper()->BorderOn();
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	double orientation[3] = {
-		180,
-		0,
-		0
-	};
-	imageActor->SetOrientation(orientation);
-*/
-	ren->AddActor(imageActor);
 
+	ren->AddActor(imageActor);
 	ren->SetActiveCamera(m_camera);
 	ren->ResetCamera();
 }
@@ -466,15 +463,16 @@ void iASlicerData::RemoveImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 	ren->RemoveActor(imgActor);
 }
 
-void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, double opacity, double * range)
-{ 
-	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New(); 
-	lut->SetRange( range ); 
+void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2,
+	double opacity, double * range)
+{
+	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+	lut->SetRange( range );
 	lut->SetHueRange(0, 1);
 	lut->SetSaturationRange(0, 1);
 	lut->SetValueRange( 0, 1 );
 	lut->Build();
-	
+
 	vtkSmartPointer<vtkImageBlend> imgBlender = vtkSmartPointer<vtkImageBlend>::New();
 	imgBlender->SetOpacity( 0, opacity );
 	imgBlender->SetOpacity( 1, 1.0-opacity );
@@ -483,18 +481,17 @@ void iASlicerData::blend(vtkAlgorithmOutput *data, vtkAlgorithmOutput *data2, do
 	imgBlender->UpdateInformation();
 	imgBlender->Update();
 
-	reslicer->SetInputConnection(imgBlender->GetOutputPort());	
+	reslicer->SetInputConnection(imgBlender->GetOutputPort());
 	pointPicker->SetTolerance(PickTolerance);
 
 	this->imageData = imgBlender->GetOutput();
 	this->imageData->Modified();
 
-	imgBlender->ReleaseDataFlagOn(); 
+	imgBlender->ReleaseDataFlagOn();
 
 	InitReslicerWithImageData();
 	update();
 }
-
 
 void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsToColors* ctf,
 	bool showIsoLines, bool showPolygon)
@@ -513,19 +510,30 @@ void iASlicerData::reInitialize( vtkImageData *ds, vtkTransform *tr, vtkScalarsT
 
 	if (m_decorations)
 	{
-		scalarWidget->GetScalarBarActor()->SetLookupTable( colorTransferFunction );
+		scalarBarWidget->GetScalarBarActor()->SetLookupTable( colorTransferFunction );
 	}
 
-	colormapper->SetLookupTable(colorTransferFunction);
-
-	if ( imageData->GetNumberOfScalarComponents() > 1 )
-	{
-		colormapper->SetLookupTable( 0 );
-	}
-
-	colormapper->Update();
+	setupColorMapper();
 }
 
+void iASlicerData::setupColorMapper()
+{
+	if (imageData->GetNumberOfScalarComponents() == 1)
+	{
+		colormapper->SetLookupTable(colorTransferFunction);
+	}
+	else
+	{
+		colormapper->SetLookupTable(0);
+		if (imageData->GetNumberOfScalarComponents() == 3)
+		{
+			colormapper->SetOutputFormatToRGB();		// default is RGBA
+		}
+	}
+	if (m_decorations)
+		scalarBarWidget->GetRepresentation()->SetVisibility(imageData->GetNumberOfScalarComponents() == 1);
+	colormapper->Update();
+}
 
 void iASlicerData::SetROIVisible(bool visible)
 {
@@ -534,7 +542,6 @@ void iASlicerData::SetROIVisible(bool visible)
 	roiActive = visible;
 	roiActor->SetVisibility(visible);
 }
-
 
 void iASlicerData::UpdateROI(int const roi[6])
 {
@@ -571,7 +578,6 @@ void iASlicerData::UpdateROI(int const roi[6])
 	interactor->Render();
 }
 
-
 void iASlicerData::setup(iASingleSlicerSettings const & settings)
 {
 	imageActor->SetInterpolate(settings.LinearInterpolation);
@@ -597,23 +603,21 @@ void iASlicerData::setup(iASingleSlicerSettings const & settings)
 	}
 }
 
-
 void iASlicerData::setResliceAxesOrigin( double x, double y, double z )
 {
 	if (interactor->GetEnabled())
 	{
 		reslicer->SetResliceAxesOrigin( x, y, z );
 		UpdateReslicer();
-		interactor->Render(); 
+		interactor->Render();
 	}
 }
-
 
 void iASlicerData::update()
 {
 	if( !imageData )
 		return;
-	
+
 	colormapper->Update();
 	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
 		ch->updateMapper();
@@ -623,10 +627,8 @@ void iASlicerData::update()
 	interactor->Render();
 	ren->Render();
 
-
 	emit updateSignal();
 }
-
 
 void iASlicerData::setPositionMarkerCenter(double x, double y)
 {
@@ -643,30 +645,26 @@ void iASlicerData::setPositionMarkerCenter(double x, double y)
 	}
 }
 
-
 void iASlicerData::disableInteractor()
 {
 	interactor->Disable(); disabled = true;
 }
-
 
 void iASlicerData::enableInteractor()
 {
 	interactor->ReInitialize(); disabled = false;
 }
 
-
-void iASlicerData::showIsolines(bool s) 
+void iASlicerData::showIsolines(bool s)
 {
 	if (!m_decorations)
 	{
 		return;
 	}
-	cActor->SetVisibility(s); 
+	cActor->SetVisibility(s);
 }
 
-
-void iASlicerData::showPosition(bool s) 
+void iASlicerData::showPosition(bool s)
 {
 	if (!m_decorations)
 	{
@@ -675,9 +673,8 @@ void iASlicerData::showPosition(bool s)
 	m_showPositionMarker = s;
 }
 
-
 void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
-{ 
+{
 	QString movie_file_types = GetAvailableMovieFormats();
 
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
@@ -692,7 +689,7 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 
 	vtkSmartPointer<vtkGenericMovieWriter> movieWriter = GetMovieWriter(fileName, qual);
 
-	if (movieWriter.GetPointer() == NULL)
+	if (movieWriter.GetPointer() == nullptr)
 		return;
 
 	interactor->Disable();
@@ -708,26 +705,29 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	w2if->ReadFrontBufferOff();
 
 	movieWriter->SetInputConnection(w2if->GetOutputPort());
-	movieWriter->SetFileName(fileName.toLatin1().data());
 	movieWriter->Start();
 
 	int i;
 	int* extent = imageData->GetExtent();
+	double* origin = imageData->GetOrigin();
 	double* spacing = imageData->GetSpacing();
 
-	emit msg(tr("%1  MOVIE export started. Output: %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat), fileName));
+	emit msg(tr("MOVIE export started. Output: %1").arg(fileName));
+
+	double oldResliceAxesOrigin[3];
+	reslicer->GetResliceAxesOrigin(oldResliceAxesOrigin);
 
 	if (m_mode == iASlicerMode::YZ)      // YZ
-	{					
+	{
 		for ( i = extent[0]; i < extent[1]; i++ )
 		{
-			reslicer->SetResliceAxesOrigin( i * spacing[0], 0, 0 ); 
+			reslicer->SetResliceAxesOrigin( origin[0] + i * spacing[0], origin[1], origin[2] );
 			update();
 			w2if->Modified();
 
 			movieWriter->Write();
-			if (movieWriter->GetError()) { 
-				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode())); 
+			if (movieWriter->GetError()) {
+				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 				break;
 			}
 			emit progress( 100 * (i+1) / (extent[1]-extent[0]));
@@ -737,45 +737,46 @@ void iASlicerData::saveMovie( QString& fileName, int qual /*= 2*/ )
 	{
 		for ( i = extent[4]; i < extent[5]; i++ )
 		{
-			reslicer->SetResliceAxesOrigin( 0, 0, i * spacing[2] ); 
+			reslicer->SetResliceAxesOrigin( origin[0], origin[1], origin[2] + i * spacing[2] );
 			update();
 			w2if->Modified();
 			movieWriter->Write();
-			if (movieWriter->GetError()) { 
-				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode())); 
+			if (movieWriter->GetError()) {
+				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 				break;
 			}
 			emit progress( 100 * (i+1) / (extent[5]-extent[4]));
 		}
 	}
 	else if (m_mode == iASlicerMode::XZ)  // XZ
-	{			
+	{
 		for ( i = extent[2]; i < extent[3]; i++ )
 		{
-			reslicer->SetResliceAxesOrigin( 0, i * spacing[1], 0 ); 
+			reslicer->SetResliceAxesOrigin( origin[0], origin[1] + i * spacing[1], origin[2]);
 			update();
 			w2if->Modified();
 			movieWriter->Write();
-			if (movieWriter->GetError()) { 
-				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode())); 
+			if (movieWriter->GetError()) {
+				emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 				break;
 			}
 			emit progress( 100 * (i+1) / (extent[3]-extent[2]));
 		}
 	}
 
-	movieWriter->End(); 
+	reslicer->SetResliceAxesOrigin(oldResliceAxesOrigin);
+	update();
+	movieWriter->End();
 	movieWriter->ReleaseDataFlagOn();
 	w2if->ReleaseDataFlagOn();
 
 	interactor->Enable();
 
 	if (movieWriter->GetError()) emit msg(tr("  MOVIE export failed."));
-	else emit msg(tr("  MOVIE export completed."));
+	else emit msg(tr("MOVIE export completed."));
 
 	return;
 }
-
 
 void iASlicerData::changeImageData( vtkImageData *idata )
 {
@@ -795,7 +796,6 @@ void iASlicerData::changeImageData( vtkImageData *idata )
 
 	interactor->Initialize( );
 }
-
 
 void iASlicerData::saveAsImage() const
 {
@@ -854,25 +854,18 @@ void iASlicerData::saveAsImage() const
 	WriteSingleSliceImage(fileName, img);
 }
 
-
 void iASlicerData::saveImageStack()
 {
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if(!mdi_parent)
 		return;
 	QString file = QFileDialog::getSaveFileName(mdi_parent, tr("Save Image Stack"),
-		"", iAIOProvider::GetSupportedImageFormats() );
+		mdi_parent->getFilePath(), iAIOProvider::GetSupportedImageFormats() );
 	if (file.isEmpty())
 		return;
-
-	std::string current_file = file.toLocal8Bit().constData();
-	size_t dotpos = current_file.find_last_of(".");
-	assert( dotpos != std::string::npos );
-	if ( dotpos == std::string::npos )
-	{
-		return;
-	}
-	current_file.erase(dotpos,4);
+	
+	QFileInfo fileInfo(file);
+	QString baseName = fileInfo.absolutePath() + "/" + fileInfo.baseName();
 
 	int const * arr = imageData->GetDimensions();
 	double const * spacing = imageData->GetSpacing();
@@ -883,14 +876,14 @@ void iASlicerData::saveImageStack()
 
 	//Set slice range
 	int sliceFirst = 0, sliceLast = arr[num]-1;
-
 	bool saveNative = true;
 	bool output16Bit = false;
 	QStringList inList = ( QStringList() << tr("$Save native image (intensity rescaled to output format)")
 		<< tr("#From Slice Number:")
 		<<  tr("#To Slice Number:") );
-	QList<QVariant> inPara = ( QList<QVariant>() << (saveNative ? tr("true") : tr("false"))<<tr("%1").arg(sliceFirst) <<tr("%1").arg(sliceLast)  );
-	QFileInfo fileInfo(file);
+	QList<QVariant> inPara = ( QList<QVariant>() << (saveNative ? tr("true") : tr("false"))<<tr("%1")
+		.arg(sliceFirst) <<tr("%1").arg(sliceLast) );
+
 	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
 		(QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
 	{
@@ -899,18 +892,16 @@ void iASlicerData::saveImageStack()
 	}
 	dlg_commoninput dlg(mdi_parent, "Save options", inList, inPara, NULL);
 	if (dlg.exec() != QDialog::Accepted)
-	{
 		return;
-	}
+
 	saveNative = dlg.getCheckValue(0);
 	sliceFirst = dlg.getDblValue(1);
 	sliceLast  = dlg.getDblValue(2);
 	if (inList.size() > 3)
-	{
 		output16Bit = dlg.getCheckValue(3);
-	}
 
-	if(sliceFirst<0 || sliceFirst>sliceLast || sliceLast>arr[num]){
+	if(sliceFirst<0 || sliceFirst>sliceLast || sliceLast>arr[num])
+	{
 		QMessageBox msgBox;
 		msgBox.setText("Invalid Input.");
 		msgBox.exec();
@@ -918,16 +909,16 @@ void iASlicerData::saveImageStack()
 	}
 	interactor->Disable();
 	vtkImageData* img;
+	double* origin = imageData->GetOrigin();
 	for(int slice=sliceFirst; slice<=sliceLast; slice++)
 	{
 		//Determine which axis
-		if(m_mode==0){ //yz
-			setResliceAxesOrigin(slice * spacing[0], 0, 0);
-		} else if(m_mode==1){  //xy
-			setResliceAxesOrigin(0, 0, slice * spacing[2]);
-		} else if(m_mode==2){  //xz
-			setResliceAxesOrigin(0, slice * spacing[1], 0);
-		}
+		if (m_mode == 0) //yz
+			setResliceAxesOrigin(origin[0] + slice * spacing[0], origin[1], origin[2]);
+		else if (m_mode == 1)  //xy
+			setResliceAxesOrigin(origin[0], origin[1], origin[2] + slice * spacing[2]);
+		else if (m_mode == 2)  //xz
+			setResliceAxesOrigin(origin[0], origin[1] + slice * spacing[1], origin[2]);
 		update();
 
 		vtkSmartPointer<vtkWindowToImageFilter> wtif = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -937,13 +928,9 @@ void iASlicerData::saveImageStack()
 			con.SetImage(reslicer->GetOutput());
 			iAITKIO::ImagePointer imgITK;
 			if (!output16Bit)
-			{
 				imgITK = RescaleImageTo<unsigned char>(con.GetITKImage(), 0, 255);
-			}
 			else
-			{
 				imgITK = RescaleImageTo<unsigned short>(con.GetITKImage(), 0, 65535);
-			}
 			con.SetImage(imgITK);
 			img = con.GetVTKImage();
 		}
@@ -955,20 +942,14 @@ void iASlicerData::saveImageStack()
 			img = wtif->GetOutput();
 		}
 
-		//append slice number to filename
-		std::stringstream ss;
-		ss << slice;
-		std::string appendFile(ss.str());
-		std::string newFileName(current_file);
-		newFileName.append(appendFile);
-		newFileName.append(".");
-		newFileName.append(fileInfo.suffix().toStdString());
-		WriteSingleSliceImage(newFileName.c_str(), img);
+		emit progress(100 * slice / sliceLast);
+
+		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
+		WriteSingleSliceImage(newFileName, img);
 	}
 	interactor->Enable();
-	QMessageBox msgBox;
-	msgBox.setText("Saving image stack completed.");
-	msgBox.exec();
+	emit msg(tr("Image stack saved in folder: %1")
+		.arg(fileInfo.absoluteDir().absolutePath()));
 }
 
 void iASlicerData::UpdatePositionMarkerExtent()
@@ -994,7 +975,6 @@ void iASlicerData::setStatisticalExtent( int statExt )
 	}
 }
 
-
 void iASlicerData::setMode( const iASlicerMode mode )
 {
 	m_mode = mode;
@@ -1004,7 +984,6 @@ void iASlicerData::setMode( const iASlicerMode mode )
 	UpdateBackground();
 }
 
-
 void iASlicerData::UpdateResliceAxesDirectionCosines()
 {
 	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
@@ -1012,7 +991,7 @@ void iASlicerData::UpdateResliceAxesDirectionCosines()
 	switch(m_mode)
 	{
 	case iASlicerMode::YZ:
-		reslicer->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);  //yz 
+		reslicer->SetResliceAxesDirectionCosines(0,1,0,  0,0,1,  1,0,0);  //yz
 		break;
 	case iASlicerMode::XY:
 		reslicer->SetResliceAxesDirectionCosines(1,0,0,  0,1,0,  0,0,1);  //xy
@@ -1024,7 +1003,6 @@ void iASlicerData::UpdateResliceAxesDirectionCosines()
 		break;
 	}
 }
-
 
 void iASlicerData::UpdateBackground()
 {
@@ -1081,11 +1059,6 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 	m_ptMapped[1] += 0.5*spacing[1];
 	m_ptMapped[2] += 0.5*spacing[2];
 
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	m_ptMapped[1] = -m_ptMapped[1];
-*/
 	switch(eventId)
 	{
 	case vtkCommand::LeftButtonPressEvent:
@@ -1116,16 +1089,11 @@ void iASlicerData::Execute( vtkObject * caller, unsigned long eventId, void * ca
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
-
 		double result[4];
 		double xCoord, yCoord, zCoord;
 		GetMouseCoord(xCoord, yCoord, zCoord, result);
-
 		double mouseCoord[3] = { result[0], result[1], result[2] };
-
 		//updateFisheyeTransform(mouseCoord, reslicer, 50.0);
-
-
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);
@@ -1166,9 +1134,10 @@ void iASlicerData::GetMouseCoord(double & xCoord, double & yCoord, double & zCoo
 	resliceAxes->Delete();
 
 	double * imageSpacing = imageData->GetSpacing();	// +/- 0.5 to correct for BorderOn
-	xCoord = (result[0] / imageSpacing[0]);	if (m_mode == YZ) xCoord -= 0.5;
-	yCoord = (result[1] / imageSpacing[1]);	if (m_mode == XZ) yCoord += 0.5; // not sure yet why +0.5 required here...
-	zCoord = (result[2] / imageSpacing[2]);	if (m_mode == XY) zCoord -= 0.5;
+	double * origin = imageData->GetOrigin();
+	xCoord = ((result[0] - origin[0]) / imageSpacing[0]);	if (m_mode == YZ) xCoord -= 0.5;
+	yCoord = ((result[1] - origin[1]) / imageSpacing[1]);	if (m_mode == XZ) yCoord += 0.5; // not sure yet why +0.5 required here...
+	zCoord = ((result[2] - origin[2]) / imageSpacing[2]);	if (m_mode == XY) zCoord -= 0.5;
 
 	// TODO: check for negative origin images!
 	int* extent = imageData->GetExtent();
@@ -1209,23 +1178,23 @@ namespace
 
 void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zCoord)
 {
-	if (!m_decorations || 0 == m_ptMapped) return;
+	if (!m_decorations)
+		return;
 
 	vtkImageData * reslicerOutput = reslicer->GetOutput();
 	double const * const slicerSpacing = reslicerOutput->GetSpacing();
-	double const * const slicerOrigin = reslicerOutput->GetOrigin();
 	int const * const slicerExtent = reslicerOutput->GetExtent();
-	int const * const slicerDims = reslicerOutput->GetDimensions();
 	double const * const slicerBounds = reslicerOutput->GetBounds();
 
 	// We have to manually set the physical z-coordinate which requires us to get the volume spacing.
-	m_ptMapped[2] = 0; 
+	m_ptMapped[2] = 0;
 
 	int cX = static_cast<int>(floor((m_ptMapped[0] - slicerBounds[0]) / slicerSpacing[0]));
 	int cY = static_cast<int>(floor((m_ptMapped[1] - slicerBounds[2]) / slicerSpacing[1]));
 
 	// check image extent; if outside ==> default output
-	if ( cX < slicerExtent[0] || cX > slicerExtent[1]    ||    cY < slicerExtent[2] || cY > slicerExtent[3] ) {
+	if ( cX < slicerExtent[0] || cX > slicerExtent[1] || cY < slicerExtent[2] || cY > slicerExtent[3] ) 
+	{
 		defaultOutput(); return;
 	}
 
@@ -1236,17 +1205,34 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(this->parent());
 	if (mdi_parent)
 	{
-		for (int m=0; m<mdi_parent->GetModalities()->size(); ++m)
+		for (int m=0; m < mdi_parent->GetModalities()->size(); ++m)
 		{
 			auto mod = mdi_parent->GetModality(m);
 			strDetails += PadOrTruncate(mod->GetName(), 12)+" ";
-			for (int c = 0; c<mod->ComponentCount(); ++c)
+			for (int c = 0; c < mod->ComponentCount(); ++c)
 			{
 				strDetails += "[ ";
 				auto img = mod->GetComponent(c);
 				for (int i = 0; i < img->GetNumberOfScalarComponents(); i++)
 				{
-					double value = img->GetScalarComponentAsDouble(xCoord, yCoord, zCoord, i);
+					// TODO: check muliple componets + MDIChild Linked Views
+					// TODO: limit slab thickness
+					double value = -1.0;
+					switch (m_mode)
+					{
+					case iASlicerMode::XY:	
+						value = reslicerOutput->GetScalarComponentAsDouble(
+							static_cast<int>(xCoord), static_cast<int>(yCoord), 0, i);
+						break;
+					case iASlicerMode::YZ:
+						value = reslicerOutput->GetScalarComponentAsDouble(
+							static_cast<int>(yCoord), static_cast<int>(zCoord), 0, i);
+						break;
+					case iASlicerMode::XZ:
+						value = reslicerOutput->GetScalarComponentAsDouble(
+							static_cast<int>(xCoord), static_cast<int>(zCoord), 0, i);
+						break;
+					}
 					if (i > 0)
 						strDetails += " ";
 					strDetails += QString::number(value);
@@ -1257,8 +1243,9 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 		}
 		if (mdi_parent->getLinkedMDIs())
 		{
-			QList<MdiChild*> mdiwindows = mdi_parent->getMainWnd()->MdiChildList();
-			for (int i = 0; i < mdiwindows.size(); i++) {
+			QList<MdiChild*> mdiwindows = mdi_parent->getMainWnd()->mdiChildList();
+			for (int i = 0; i < mdiwindows.size(); i++)
+			{
 				MdiChild *tmpChild = mdiwindows.at(i);
 				if (tmpChild != mdi_parent) {
 					double * const tmpSpacing = tmpChild->getImagePointer()->GetSpacing();
@@ -1311,12 +1298,11 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	}
 
 	// if requested calculate distance and show actor
-	if (pLineActor->GetVisibility()) {
-		double distance = sqrt(
-						pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) 
-					  + pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2)
-					);
-		pLineSource->SetPoint2(m_ptMapped[0]-(0.5*slicerSpacing[0]), m_ptMapped[1] - (0.5*slicerSpacing[1]), 0.0);	// ORIENTATION / ROTATION FIX: pLineSource->SetPoint2(m_ptMapped[0], -m_ptMapped[1]);
+	if (pLineActor->GetVisibility())
+	{
+		double distance = sqrt(	pow((m_startMeasurePoint[0] - m_ptMapped[0]), 2) +
+			pow((m_startMeasurePoint[1] - m_ptMapped[1]), 2) );
+		pLineSource->SetPoint2(m_ptMapped[0]-(0.5*slicerSpacing[0]), m_ptMapped[1] - (0.5*slicerSpacing[1]), 0.0);
 		pDiskSource->SetOuterRadius(distance);
 		pDiskSource->SetInnerRadius(distance);
 		strDetails += QString("distance [ %1 ]\n").arg(distance);
@@ -1326,12 +1312,6 @@ void iASlicerData::printVoxelInformation(double xCoord, double yCoord, double zC
 	// Update the info text with pixel coordinates/value if requested.
 	textInfo->GetActor()->SetPosition(interactor->GetEventPosition()[0]+10, interactor->GetEventPosition()[1]+10);
 	textInfo->GetTextMapper()->SetInput(strDetails.toStdString().c_str());
-
-/*
-	// ORIENTATION / ROTATION FIX:
-	// make orientation the same as in other image viewers:
-	setPositionMarkerCenter(m_ptMapped[0], -m_ptMapped[1], 1);//m_planeSrc->SetCenter(m_ptMapped[0], m_ptMapped[1]);
-*/
 	m_positionMarkerMapper->Update();
 }
 
@@ -1363,7 +1343,7 @@ void iASlicerData::executeKeyPressEvent()
 		if (m_decorations && pLineActor != NULL){
 			pLineActor->SetVisibility(false);
 			pDiskActor->SetVisibility(false);
-		}		
+		}
 		break;
 	}
 }
@@ -1382,7 +1362,6 @@ void iASlicerData::defaultOutput()
 	interactor->ReInitialize();
 	interactor->Render();
 }
-
 
 void iASlicerData::snapToHighGradient(double &x, double &y)
 {
@@ -1406,7 +1385,7 @@ void iASlicerData::snapToHighGradient(double &x, double &y)
 
 	double H_maxGradMag = 0;
 	double H_maxcoord[2];H_maxcoord[0] = 0; H_maxcoord[1] = 0;
-	double cursorposition[2]; cursorposition[0] = coord1; cursorposition[1] = coord2; 
+	double cursorposition[2]; cursorposition[0] = coord1; cursorposition[1] = coord2;
 	//move horizontally
 	for (int i = -2; i <= 2; i++)
 	{
@@ -1443,7 +1422,7 @@ void iASlicerData::snapToHighGradient(double &x, double &y)
 				//if NO take the current center position as the HMaxCoord
 				if ( gradmag == H_maxGradMag )
 				{
-					//calculate the distance 
+					//calculate the distance
 					double newdist = sqrt (pow( (cursorposition[0]-center[0]),2) + pow( (cursorposition[1]-center[1]),2));
 					double maxdist = sqrt (pow( (cursorposition[0]-H_maxcoord[0]),2) + pow( (cursorposition[1]-H_maxcoord[1]),2));
 					//if newdist is < than the maxdist (meaning the current center position is closer to the cursor position
@@ -1507,7 +1486,7 @@ void iASlicerData::snapToHighGradient(double &x, double &y)
 				//if NO take the current center position as the HMaxCoord
 				if ( gradmag == V_maxGradMag )
 				{
-					//calculate the distance 
+					//calculate the distance
 					double newdist = sqrt (pow( (cursorposition[0]-center[0]),2) + pow( (cursorposition[1]-center[1]),2));
 					double maxdist = sqrt (pow( (cursorposition[0]-V_maxcoord[0]),2) + pow( (cursorposition[1]-V_maxcoord[1]),2));
 					//if newdist is < than the maxdist (meaning the current center position is closer to the cursor position
@@ -1543,7 +1522,7 @@ void iASlicerData::snapToHighGradient(double &x, double &y)
 		pointselectionkey = 2; //new point is in horizontal direction V_maxcoord
 	else if ( v_bool == true && h_bool == true )
 	{
-		//pointselectionkey = 3; //new point is shortest distance between V_maxcoord,currentposition and H_maxcoord ,currentposition	
+		//pointselectionkey = 3; //new point is shortest distance between V_maxcoord,currentposition and H_maxcoord ,currentposition
 		double Hdist = sqrt (pow( (cursorposition[0]-H_maxcoord[0]),2) + pow( (cursorposition[1]-H_maxcoord[1]),2));
 		double Vdist = sqrt (pow( (cursorposition[0]-V_maxcoord[0]),2) + pow( (cursorposition[1]-V_maxcoord[1]),2));
 		if ( Hdist < Vdist )
@@ -1576,13 +1555,11 @@ void iASlicerData::InitReslicerWithImageData()
 	reslicer->SetInputData( imageData );
 	reslicer->SetInformationInput( imageData );
 	reslicer->SetResliceTransform( transform );
-
 	reslicer->SetOutputDimensionality( 2 );
 	reslicer->SetInterpolationModeToCubic();
 	reslicer->InterpolateOn();
 	reslicer->AutoCropOutputOn();
 	reslicer->SetNumberOfThreads(QThread::idealThreadCount());
-
 	reslicer->UpdateWholeExtent();
 	UpdateReslicer();
 }
@@ -1636,18 +1613,15 @@ void iASlicerData::reInitializeChannel( iAChannelID id, iAChannelVisualizationDa
 	GetOrCreateChannel(id).ReInit(chData);
 }
 
-
 void iASlicerData::initializeChannel( iAChannelID id, iAChannelVisualizationData * chData )
 {
 	GetOrCreateChannel(id).Init(chData, m_mode);
 }
 
-
 void iASlicerData::removeChannel(iAChannelID id)
 {
 	m_channels.remove(id);
 }
-
 
 void iASlicerData::setResliceChannelAxesOrigin( iAChannelID id, double x, double y, double z )
 {
@@ -1688,23 +1662,23 @@ void iASlicerData::setSliceNumber( int sliceNumber )
 	if (roiActive)
 		roiActor->SetVisibility(roiSlice[0] <= m_sliceNumber && m_sliceNumber < (roiSlice[1]));
 	double * spacing = imageData->GetSpacing();
+	double * origin = imageData->GetOrigin();
 	//also apply to enabled channels
 	foreach( QSharedPointer<iAChannelSlicerData> ch, m_channels )
-		ch->SetResliceAxesOrigin( xyz[0] * spacing[0], xyz[1] * spacing[1], xyz[2] * spacing[2] );
-	setResliceAxesOrigin( xyz[0] * spacing[0], xyz[1] * spacing[1], xyz[2] * spacing[2] );
+		ch->SetResliceAxesOrigin( origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2] );
+	setResliceAxesOrigin(origin[0] + xyz[0] * spacing[0], origin[1] + xyz[1] * spacing[1], origin[2] + xyz[2] * spacing[2] );
 }
 
-int iASlicerData::getSliceNumber() const
+void iASlicerData::setSlabThickness(int thickness)
 {
-	double * xyz = reslicer->GetResliceAxesOrigin();
-	double * spacing = imageData->GetSpacing();
-	switch (m_mode)
-	{
-	case iASlicerMode::XY: return xyz[2] / spacing[2];
-	case iASlicerMode::YZ: return xyz[0] / spacing[0];
-	case iASlicerMode::XZ: return xyz[1] / spacing[1];
-	default: return -1;//ERROR
-	}
+	reslicer->SetSlabNumberOfSlices(thickness);
+	update();
+}
+
+void iASlicerData::setSlabCompositeMode(int compositeMode)
+{
+	reslicer->SetSlabMode(compositeMode);
+	update();
 }
 
 iAChannelSlicerData & iASlicerData::GetOrCreateChannel(iAChannelID id)
@@ -1743,11 +1717,9 @@ void iASlicerData::setMagicLensInput(iAChannelID id)
 	}
 	if (m_magicLensExternal)
 	{
-		m_magicLensExternal->AddInput(data->reslicer, data->GetLookupTable(),
-			reslicer, colorTransferFunction, data->GetName());
+		m_magicLensExternal->AddInput(data->reslicer, data->GetLookupTable(), data->GetName());
 	}
 }
-
 
 vtkGenericOpenGLRenderWindow* iASlicerData::GetRenderWindow()
 {
@@ -1837,7 +1809,7 @@ void iASlicerData::rotateSlice( double angle )
 	transform->Concatenate(t1);
 	transform->Concatenate(t2);
 	transform->Concatenate(t3);
-	
+
 	update();
 }
 
@@ -1893,9 +1865,9 @@ void iASlicerData::setMouseCursor( QString s )
 	emit updateSignal();
 }
 
-vtkScalarBarWidget * iASlicerData::GetScalarWidget()
+vtkScalarBarWidget * iASlicerData::GetScalarBarWidget()
 {
-	return scalarWidget;
+	return scalarBarWidget;
 }
 
 vtkImageActor* iASlicerData::GetImageActor()
@@ -1908,7 +1880,12 @@ QCursor iASlicerData::getMouseCursor()
 	return m_mouseCursor;
 }
 
-int iASlicerData::getSliceNumber()
+int iASlicerData::getSliceNumber() const
 {
 	return m_sliceNumber;
+}
+
+void iASlicerData::SetRightButtonDragZoomEnabled(bool enabled)
+{
+	interactorStyle->SetRightButtonDragZoomEnabled(enabled);
 }

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,6 +22,7 @@
 
 #include "oifb_compatibility.h"
 #include "iAConsole.h"
+#include "io/iAFileUtils.h"
 
 #include <itkImage.h>
 #include <itkImageFileReader.h>
@@ -558,7 +559,7 @@ void OIFReader::ReadOifLine(std::wstring oneline)
 			   WavelengthInfo info;
 			   info.chan_num = cur_chan;
 			   info.wavelength = WSTOD(str2);
-				if (light_type == L"Transmitted Light") 
+				if (light_type == L"Transmitted Light")
 					info.wavelength = -1;
 			   m_excitation_wavelength_list.push_back(info);
 			}
@@ -619,22 +620,22 @@ std::wstring OIFReader::GetCurName(int t, int c)
 }
 
 template<typename T>
-typename OIFReader::TiffImgPtr read_image_template(std::string f, T)
+typename OIFReader::TiffImgPtr read_image_template(QString const & f, T)
 {
 	typedef itk::ImageFileReader<OIFReader::TiffImgType> ReaderType;
 	typename ReaderType::Pointer reader = ReaderType::New();
-	reader->SetFileName(f);
+	reader->SetFileName( getLocalEncodingFileName(f) );
 	reader->Update();
 	return reader->GetOutput();
 }
 
-OIFReader::TiffImgPtr OIFReader::ReadTiffImage(std::string file_name)
+OIFReader::TiffImgPtr OIFReader::ReadTiffImage(QString const & file_name)
 {
 	itk::ImageIOBase::Pointer imageIO;
 	QString errorMsg;
 	try
 	{
-		imageIO = itk::ImageIOFactory::CreateImageIO(file_name.c_str(), itk::ImageIOFactory::ReadMode);
+		imageIO = itk::ImageIOFactory::CreateImageIO(getLocalEncodingFileName(file_name).c_str(), itk::ImageIOFactory::ReadMode);
 	}
 	catch (itk::ExceptionObject& e)
 	{
@@ -645,14 +646,14 @@ OIFReader::TiffImgPtr OIFReader::ReadTiffImage(std::string file_name)
 	if (!imageIO)
 	{
 		DEBUG_LOG(QString("OIF Reader: Could not open file %1, aborting loading (error message: %2).")
-			.arg(file_name.c_str())
+			.arg(file_name)
 			.arg(errorMsg));
 		return OIFReader::TiffImgPtr();
 	}
 
 	try
 	{
-		imageIO->SetFileName(file_name.c_str());
+		imageIO->SetFileName( getLocalEncodingFileName(file_name).c_str());
 		imageIO->ReadImageInformation();
 		auto pixelType = imageIO->GetComponentType();
 		switch (pixelType) // This filter handles all types
@@ -709,7 +710,7 @@ void OIFReader::Read(int t, int c, bool get_max)
 		for (int i = 0; i<int(cinfo->size()); i++)
 		{
 			std::wstring file_name = (*cinfo)[i];
-			TiffImgPtr tiff = ReadTiffImage(QString::fromStdWString(file_name).toStdString());
+			TiffImgPtr tiff = ReadTiffImage( QString::fromStdWString(file_name) );
 
 			for (int x = 0; x < m_x_size; ++x)
 			{

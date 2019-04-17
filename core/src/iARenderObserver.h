@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -43,9 +43,9 @@ class vtkPlane;
 
 /**
  * \brief	observes the mouse moving
- * 
+ *
  * This class servers the iARenderer class to observe mouse movement and to extract coordinates
- * and the corresponding data "below" the mouse pointer. 
+ * and the corresponding data "below" the mouse pointer.
  */
 class open_iA_Core_API iARenderObserver : public QObject, public vtkCommand
 {
@@ -87,7 +87,7 @@ public:
 		vtkPlane* plane2,
 		vtkPlane* plane3,
 		vtkCellLocator *cellLocator );
-	
+
 	void AddListener(vtkCommand* listener);
 
 	int GetMode();
@@ -105,7 +105,7 @@ protected:
 	vtkWorldPointPicker *m_pWorldPicker;
 	vtkTransform* m_pTrans;
 	vtkImageData* m_pImageData;
-	
+
 	vtkLineSource* m_pLine;
 	vtkProbeFilter* m_pProbe;
 
@@ -114,7 +114,7 @@ protected:
 	vtkPlane* m_pPlane3;
 
 	vtkCellLocator * m_pcellLocator;
-	
+
 private:
 	bool rotate;
 	int mode, pos[3];

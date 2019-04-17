@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,10 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
 #include "iASimpleSlicerWidget.h"
-#include "iAModalityTransfer.h"
-#include "iASlicerData.h"
+
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iASlicer.h>
+#include <iASlicerData.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -35,7 +37,6 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enable
 {
 	m_slicer = new iASlicer(this, iASlicerMode::XY, this,
 		// TODO: do this in a better way?
-		/*QGLWidget * shareWidget = */0,
 		/*Qt::WindowFlags f = */f,
 		/*bool decorations = */false); // Hide everything except the slice itself
 }

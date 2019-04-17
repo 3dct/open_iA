@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -29,9 +29,9 @@
 
 #include <QMessageBox>
 
-void iAModuleInterface::PrepareResultChild( QString const & wndTitle )
+void iAModuleInterface::PrepareResultChild( QString const & title )
 {
-	m_mdiChild = m_mainWnd->GetResultChild( wndTitle + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
+	m_mdiChild = m_mainWnd->getResultChild( title + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
 	if( !m_mdiChild )
 	{
 		m_mainWnd->statusBar()->showMessage( "Cannot get result child from main window!", 5000 );
@@ -42,7 +42,7 @@ void iAModuleInterface::PrepareResultChild( QString const & wndTitle )
 
 void iAModuleInterface::PrepareResultChild( int childInd, QString const & title )
 {
-	m_mdiChild = m_mainWnd->GetResultChild( childInd, title );
+	m_mdiChild = m_mainWnd->getResultChild( childInd, title );
 	if( !m_mdiChild )
 	{
 		m_mainWnd->statusBar()->showMessage( "Cannot get result child from main window!", 5000 );
@@ -80,7 +80,7 @@ void iAModuleInterface::PrepareActiveChild()
 
 MdiChild * iAModuleInterface::GetSecondNonActiveChild() const
 {
-	QList<MdiChild *> mdiwindows = m_mainWnd->MdiChildList();
+	QList<MdiChild *> mdiwindows = m_mainWnd->mdiChildList();
 	if( mdiwindows.size() > 2 )
 	{
 		QMessageBox::warning( m_mainWnd, tr( "Warning" ),
@@ -172,7 +172,7 @@ void iAModuleInterface::AddActionToMenuAlphabeticallySorted( QMenu * menu, QActi
 
 iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow* mainWnd, iAChildData childData )
 {
-	return 0;
+	return nullptr;
 }
 
 bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
@@ -194,7 +194,7 @@ bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
 	}
 	catch( itk::ExceptionObject &excep )
 	{
-		child->addMsg( tr( "  %1 in File %2, Line %3" ).arg( excep.GetDescription() )
+		child->addMsg( tr("%1 in File %2, Line %3").arg( excep.GetDescription() )
 			.arg( excep.GetFile() )
 			.arg( excep.GetLine() ) );
 		return false;

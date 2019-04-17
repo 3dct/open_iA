@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,9 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iAChartWidget.h"
-
-#include "iAValueType.h"
+#include <charts/iAChartWidget.h>
+#include <iAValueType.h>
 
 class iAParamHistogramData;
 class iANameMapper;
@@ -49,17 +48,15 @@ public:
 	double GetMaxSliderPos();
 	void SetMinMaxSlider(double min, double max);
 signals:
-	void SelectionChanged();
+	void selectionChanged();
 protected:
-	void DrawAxes(QPainter& painter) override;
+	void drawAxes(QPainter& painter) override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	void mousePressEvent( QMouseEvent *event ) override;
 	void mouseReleaseEvent( QMouseEvent *event ) override;
 	void mouseMoveEvent( QMouseEvent *event ) override;
 private:
-	QString GetXAxisTickMarkLabel(double value, int placesBeforeComma, int requiredPlacesAfterComma) override;
-	int value2X(double value) const;
-	double x2value(int x) const;
+	QString getXAxisTickMarkLabel(double value, double stepWidth) override;
 	void drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush);
 
 	QSharedPointer<iAParamHistogramData> m_data;

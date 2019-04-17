@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAVec3.h"
+#include "iAvec3.h"
 // std
 #include <ostream>
 #include <istream>
@@ -34,16 +34,16 @@ public:
 	int				parentId;
 	int				childId;
 	double			volume;
-	Vec3d			centroid;
-	Vec3d			eigenvalues;
-	Vec3d			eigenvectors[3];
-	Vec3d			axesLength;
+	iAVec3d			centroid;
+	iAVec3d			eigenvalues;
+	iAVec3d			eigenvectors[3];
+	iAVec3d			axesLength;
 	double			bb[6];			// bounding box
 	double			bbVolume;
-	Vec3d			bbSize;
-	Vec3d			obbVertices[8];	// oriented bounding box
+	iAVec3d			bbSize;
+	iAVec3d			obbVertices[8];	// oriented bounding box
 	double			obbVolume;
-	Vec3d			obbSize;
+	iAVec3d			obbSize;
 };
 
 std::ostream& operator<<(std::ostream& os, const iAFeature& obj);

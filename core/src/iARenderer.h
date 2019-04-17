@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -29,6 +29,7 @@
 
 #include <set>
 #include <vector>
+#include "iAConsole.h"
 
 class iAChannelVisualizationData;
 class iAChannelRenderData;
@@ -42,20 +43,27 @@ class vtkCamera;
 class vtkCellLocator;
 class vtkCornerAnnotation;
 class vtkCubeSource;
+class vtkDataSetMapper;
 class vtkImageData;
 class vtkInteractorStyleSwitch;
+class vtkLineSource;
 class vtkLogoRepresentation;
 class vtkLogoWidget;
 class vtkOpenGLRenderer;
 class vtkOrientationMarkerWidget;
 class vtkPicker;
 class vtkPlane;
+class vtkPlaneSource;
+class vtkPoints;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkQImageToImageSource;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
+class vtkSphereSource;
+class vtkTextActor;
 class vtkTransform;
+class vtkUnstructuredGrid;
 
 
 class open_iA_Core_API iARenderer: public QObject
@@ -72,8 +80,8 @@ public:
 
 	void disableInteractor();
 	void enableInteractor();
-	void setAxesTransform(vtkTransform *transform) { axesTransform = transform; }
-	vtkTransform * getAxesTransform(void) { return axesTransform; }
+	void setAxesTransform(vtkTransform *transform) { moveableAxesTransform = transform; }
+	vtkTransform * getAxesTransform(void) { return moveableAxesTransform; }
 
 	void setPlaneNormals( vtkTransform *tr ) ;
 	void setCubeCenter( int x, int y, int z );
@@ -99,6 +107,20 @@ public:
 	void getCamPosition ( double * camOptions );
 	void setStatExt( int s ) { ext = s; };
 
+	/*sets opacity of the slicing planes*/
+	void setSlicePlaneOpacity(float opc) {
+		if ((opc > 1.0) || (opc < 0.0f))
+		{
+			DEBUG_LOG(QString("Invalid slice plane opacity %1").arg(opc));
+			return; 
+		}
+
+		m_SlicePlaneOpacity = opc;
+	}
+
+	void setAreaPicker();
+	void setPointPicker();
+
 	void setupCutter();
 	void setupCube();
 	void setupAxes(double spacing[3]);
@@ -107,23 +129,36 @@ public:
 	void update();
 	void showHelpers(bool show);
 	void showRPosition(bool show);
+	void showSlicePlanes(bool show);
 
 	vtkPlane* getPlane1();
 	vtkPlane* getPlane2();
 	vtkPlane* getPlane3();
+	void setSlicePlane(int planeID, double originX, double originY, double originZ);
 	vtkRenderWindowInteractor* GetInteractor() { return interactor; }
 	vtkRenderWindow* GetRenderWindow() { return renWin;  }
 	vtkOpenGLRenderer * GetRenderer();
 	vtkActor* GetPolyActor();
 	vtkTransform* getCoordinateSystemTransform();
-	void GetImageDataBounds(double bounds[6]); //!< remove
 	vtkOpenGLRenderer * GetLabelRenderer ();
 	vtkPolyDataMapper* GetPolyMapper() const;
+	vtkTextActor* GetTxtActor();
 
+	//sets bounds of the slicing volume, using the spacing of image
+	void setSlicingBounds(const int roi[6], const double *spacing);
+	
+	void setCubeVisible(bool visible); //Visibility of the slice cube
+	
 	void saveMovie(const QString& fileName, int mode, int qual = 2);	//!< move out of here
 	iARenderObserver * getRenderObserver(){ return renderObserver; }
 	void AddRenderer(vtkRenderer* renderer);
 	void ApplySettings(iARenderSettings & settings);
+	
+	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
+	void emitNoSelectedCells();
+	vtkSmartPointer<vtkDataSetMapper> selectedMapper;
+	vtkSmartPointer<vtkActor> selectedActor;
+	vtkSmartPointer<vtkUnstructuredGrid> finalSelection;
 protected:
 	void InitObserver();
 	iARenderObserver *renderObserver;
@@ -149,12 +184,16 @@ private:
 	vtkSmartPointer<vtkQImageToImageSource> logoImage;
 	//! @}
 
+	//! @{ Text actor, e.g., to show the selection mode
+	vtkSmartPointer<vtkTextActor> txtActor;
+	//! @}
+
 	//! @{ position marker cube
 	vtkSmartPointer<vtkCubeSource> cSource;
 	vtkSmartPointer<vtkPolyDataMapper> cMapper;
 	vtkSmartPointer<vtkActor> cActor;
 	//! @}
-	
+
 	vtkSmartPointer<vtkAnnotatedCubeActor> annotatedCubeActor;
 	vtkSmartPointer<vtkAxesActor> axesActor;
 	vtkSmartPointer<vtkOrientationMarkerWidget> orientationMarkerWidget;
@@ -163,20 +202,48 @@ private:
 
 	//! @{ movable axes
 	// TODO: check what the movable axes are useful for!
-	vtkTransform* axesTransform;
+	vtkTransform* moveableAxesTransform;
 	vtkSmartPointer<vtkAxesActor> moveableAxesActor;
 	//! @}
-
+	
 	int ext; //!< statistical extent size
+	//! @{ Line profile
+	vtkSmartPointer<vtkLineSource>     m_profileLineSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_profileLineMapper;
+	vtkSmartPointer<vtkActor>          m_profileLineActor;
+	vtkSmartPointer<vtkSphereSource>   m_profileLineStartPointSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_profileLineStartPointMapper;
+	vtkSmartPointer<vtkActor>          m_profileLineStartPointActor;
+	vtkSmartPointer<vtkSphereSource>   m_profileLineEndPointSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_profileLineEndPointMapper;
+	vtkSmartPointer<vtkActor>          m_profileLineEndPointActor;
+	//! @}
+
+	//! @{ Slice plane
+	vtkSmartPointer<vtkPlaneSource>    m_slicePlaneSource[3];
+	vtkSmartPointer<vtkPolyDataMapper> m_slicePlaneMapper[3];
+	vtkSmartPointer<vtkActor>          m_slicePlaneActor[3];
+	//! @}
+
+	 
+
+	vtkSmartPointer<vtkCubeSource> m_slicingCube;
+	vtkSmartPointer<vtkPolyDataMapper> m_sliceCubeMapper;
+	vtkSmartPointer<vtkActor> m_sliceCubeActor;
+
+	float m_SlicePlaneOpacity; //Slice Plane Opacity
 
 public slots:
 	void mouseRightButtonReleasedSlot();
 	void mouseLeftButtonReleasedSlot();
+	void setArbitraryProfile(int pointIndex, double * coords);
+	void setArbitraryProfileOn(bool isOn);
 Q_SIGNALS:
 	void msg(QString s);
 	void progress(int);
 	void Clicked(int, int, int);
-
+	void cellsSelected(vtkPoints* selCellPoints);
+	void noCellsSelected();
 	void reInitialized();
 	void onSetupRenderer();
 	void onSetCamera();

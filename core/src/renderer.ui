@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>240</width>
+    <width>845</width>
     <height>240</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>0</width>
-    <height>40</height>
+    <width>243</width>
+    <height>80</height>
    </size>
   </property>
   <property name="features">
@@ -418,6 +418,9 @@
              <height>0</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>Create a movie by rotating the volume</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -440,6 +443,9 @@
              <width>10</width>
              <height>0</height>
             </size>
+           </property>
+           <property name="toolTip">
+            <string>Save current scene as image</string>
            </property>
            <property name="text">
             <string/>
@@ -471,6 +477,9 @@
              <bold>true</bold>
             </font>
            </property>
+           <property name="toolTip">
+            <string>Stop interaction</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -500,6 +509,9 @@
              <italic>false</italic>
              <bold>true</bold>
             </font>
+           </property>
+           <property name="toolTip">
+            <string>Maximize view</string>
            </property>
            <property name="text">
             <string/>

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,8 @@
 * ************************************************************************************/
 #include "dlg_planeSlicer.h"
 
-#include <QVTKWidget2.h>
+#include <iAVtkWidget.h>
+
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkGenericOpenGLRenderWindow.h>
@@ -32,9 +33,10 @@
 #include <vtkOpenGLRenderer.h>
 
 dlg_planeSlicer::dlg_planeSlicer() :
-	m_vtkWidget(new QVTKWidget2(this))
+	m_vtkWidget(new iAVtkWidget(this))
 {
 	m_renderer = vtkSmartPointer<vtkOpenGLRenderer>::New();
+	m_vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	m_vtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
 	slicer->layout()->addWidget(m_vtkWidget);
 	m_renderer->SetBackground(1, 1, 1);

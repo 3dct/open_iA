@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,15 +26,18 @@ class iAImageInfo
 {
 public:
 	iAImageInfo():
-		m_voxelCount(0), m_min(0), m_max(0), m_mean(0), m_stdDev(0) {}
+		m_voxelCount(0), m_min(0), m_max(0), m_mean(0), m_stdDev(0), m_computing(false) {}
 	iAImageInfo(size_t voxelCount, double min, double max, double mean, double stdDev) :
-		m_voxelCount(voxelCount), m_min(min), m_max(max), m_mean(mean), m_stdDev(stdDev) {}
-	size_t VoxelCount() const { return m_voxelCount; }
-	double Min() const { return m_min; }
-	double Max() const { return m_max; }
-	double Mean() const { return m_mean; }
-	double StandardDeviation() const { return m_stdDev; }
+		m_voxelCount(voxelCount), m_min(min), m_max(max), m_mean(mean), m_stdDev(stdDev), m_computing(false) {}
+	size_t voxelCount() const { return m_voxelCount; }
+	double min() const  { return m_min; }
+	double max() const  { return m_max; }
+	double mean() const { return m_mean; }
+	double standardDeviation() const { return m_stdDev; }
+	bool computing() const { return m_computing; }
+	void setComputing() const { m_computing = true; }
 private:
 	size_t m_voxelCount;
 	double m_min, m_max, m_mean, m_stdDev;
+	mutable bool m_computing; // TODO: think of way around mutable!
 };

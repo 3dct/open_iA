@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -42,7 +42,7 @@ public:
   // Description:
   // Standard methods for the class.
   vtkTypeMacro(iARulerActor,vtkProp);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   void SetPosition(double *coord);
   void SetSize(double *coord);
 
@@ -117,7 +117,7 @@ public:
   // axes at the corners. Default value is 2.0.
   vtkSetClampMacro(CornerOffsetFactor, double, 1.0, 10.0);
   vtkGetMacro(CornerOffsetFactor, double);
-      
+
   // Description:
   // These are methods to retrieve the vtkAxisActors used to represent
   // the four axes that form this representation. Users may retrieve and
@@ -125,13 +125,13 @@ public:
   vtkGetObjectMacro(LeftAxis,vtkAxisActor2D);
   vtkGetObjectMacro(BottomAxis,vtkAxisActor2D);
 
-  // Decsription:
+  // Description:
   // Standard methods supporting the rendering process.
   virtual void BuildRepresentation(vtkViewport *viewport);
-  virtual void GetActors2D(vtkPropCollection*);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOverlay(vtkViewport*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
+  void GetActors2D(vtkPropCollection*) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
 
 protected:
   iARulerActor();
@@ -144,15 +144,15 @@ protected:
   int    LeftBorderOffset;
   int    BottomBorderOffset;
   double CornerOffsetFactor;
-  
+
   // The axes around the borders of the renderer
   vtkAxisActor2D *LeftAxis;
   vtkAxisActor2D *BottomAxis;
-  
+
   // Control the display of the axes
   int LeftAxisVisibility;
   int BottomAxisVisibility;
-    
+
   vtkTimeStamp         BuildTime;
 
   vtkCoordinate * ReferenceCoordinate;

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,11 +24,11 @@
 #include "iALabelInfo.h"
 #include "iAParamHistogramData.h"
 
-#include "charts/iAChartWidget.h"
-#include "charts/iAPlotTypes.h"
-#include "iAConsole.h"
-#include "iAMathUtility.h"
-#include "iASlicerMode.h"
+#include <charts/iAChartWidget.h>
+#include <charts/iAPlotTypes.h>
+#include <iAConsole.h>
+#include <iAMathUtility.h>
+#include <iASlicerMode.h>
 
 #include <QLabel>
 #include <QVBoxLayout>
@@ -68,9 +68,9 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	m_entropyChartData = CreateEmptyProbData(Continuous, 0, 1);
 	m_charts.push_back(new iAChartWidget(this, "Algorithmic Uncertainty", "Frequency (Members)"));
 	auto plot = QSharedPointer<iAPlot>(
-		new iABarGraphDrawer(m_entropyChartData,
+		new iABarGraphPlot(m_entropyChartData,
 			QColor(117, 112, 179), BarMargin));
-	m_charts[0]->AddPlot(plot);
+	m_charts[0]->addPlot(plot);
 
 	// label distribution chart:
 	for (int label = 0; label < m_labelInfo->count(); ++label)
@@ -81,9 +81,9 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	for (int label = 0; label < m_labelInfo->count(); ++label)
 	{
 		m_drawers.push_back(QSharedPointer<iAPlot>(
-			new iABarGraphDrawer(m_labelDistributionChartData[label],
+			new iABarGraphPlot(m_labelDistributionChartData[label],
 				m_labelInfo->GetColor(label), BarMargin)));
-		m_charts[1]->AddPlot(m_drawers[m_drawers.size()-1]);
+		m_charts[1]->addPlot(m_drawers[m_drawers.size()-1]);
 	}
 
 	// highest probability distribution charts:
@@ -93,9 +93,9 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 		m_probabilitiesChartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
 		m_charts.push_back(new iAChartWidget(this, QString("Probability Label %1").arg(l), "Frequency (Members)"));
 		auto plot = QSharedPointer<iAPlot>(
-			new iABarGraphDrawer(m_probabilitiesChartData[l],
+			new iABarGraphPlot(m_probabilitiesChartData[l],
 				m_labelInfo->GetColor(l), BarMargin));
-		m_charts[m_charts.size() - 1]->AddPlot(plot);
+		m_charts[m_charts.size() - 1]->addPlot(plot);
 	}
 	for (int c = 0; c < m_charts.size(); ++c)
 	{
@@ -154,7 +154,7 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 		m_labelDistributionChartData[label]->AddValue(label);
 		valueCount++;
 	});
-	m_charts[1]->SetYBounds(0, valueCount);
+	m_charts[1]->setYBounds(0, valueCount);
 
 	// find the NumOfChartsShown highest probabilities
 	for (int i = 0; i < m_probabilitiesChartData.size(); ++i)
@@ -188,15 +188,15 @@ void iAProbingWidget::ProbeUpdate(int x, int y, int z, int mode)
 			double probValue = leaf->GetProbabilityValue(labelValue, x, y, z);
 			m_probabilitiesChartData[i]->AddValue(probValue);
 		});
-		m_charts[m_probChartStart+i]->SetXCaption(QString("Probability Distribution Label %1").arg(labelValue));
-		m_charts[m_probChartStart+i]->Plots()[0]->setColor(m_labelInfo->GetColor(labelValue));
+		m_charts[m_probChartStart+i]->setXCaption(QString("Probability Distribution Label %1").arg(labelValue));
+		m_charts[m_probChartStart+i]->plots()[0]->setColor(m_labelInfo->GetColor(labelValue));
 	}
 
 	// redraw all charts:
 	for (int i = 0; i < m_charts.size(); ++i)
 	{
 		if (i != 1)	// not for label distribution!
-			m_charts[i]->ResetYBounds();
-		m_charts[i]->redraw();
+			m_charts[i]->resetYBounds();
+		m_charts[i]->update();
 	}
 }

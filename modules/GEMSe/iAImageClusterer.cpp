@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,16 +20,15 @@
 * ************************************************************************************/
 #include "iAImageClusterer.h"
 
-#include "iAConsole.h"
 #include "iAGEMSeConstants.h" // for iARepresentativeType
 #include "iAImageTree.h"
 #include "iAImageTreeLeaf.h"
 #include "iAImageTreeInternalNode.h"
-#include "iAMathUtility.h"
 #include "iARepresentative.h"
 #include "iASingleResult.h"
 
-#include "iAImageComparisonMetrics.h"
+#include <iAConsole.h>
+#include <iAImageComparisonMetrics.h>
 
 #include <itkLabelOverlapMeasuresImageFilter.h>
 
@@ -86,7 +85,7 @@ double CalcDistance(ClusterImageType img1, ClusterImageType img2)
 		DEBUG_LOG(QString("itk Exception: %1\n").arg(e.GetDescription()));
 		return 0.0;
 	}
-	if (isNaN(meanOverlap))
+	if (qIsNaN(meanOverlap))
 	{
 		DEBUG_LOG("ERROR: CalcDistance -> NAN!");
 		return 1.0;
@@ -329,7 +328,7 @@ void iAImageClusterer::run()
 			{
 				distance = CalcDistance(img1, img2);
 			}
-			if (isNaN(distance))
+			if (qIsNaN(distance))
 			{
 				DEBUG_LOG(QString("ERROR: %1, %2 -> NAN!")
 					.arg(m_currImage)

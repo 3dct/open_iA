@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,10 +23,10 @@
 #include "iAParamTableView.h"
 #include "iAParamSpatialView.h"
 
-#include "charts/iAQSplom.h"
-#include "iAConsole.h"
-#include "iAPerceptuallyUniformLUT.h"
-#include "iAQFlowLayout.h"
+#include <charts/iAQSplom.h>
+#include <iAConsole.h>
+#include <iALUT.h>
+#include <qthelper/iAQFlowLayout.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
@@ -62,8 +62,8 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	m_selection_ctf->AddRGBPoint(1, 1.0, 0.0, 0.0);
 	m_selection_otf->AddPoint(0, 0);
 	m_selection_otf->AddPoint(1, 1);
-	connect(m_splom, SIGNAL(selectionModified(QVector<unsigned int> *)), this, SLOT(SplomSelection(QVector<unsigned int> *)));
-	connect(m_splom, SIGNAL(currentPointModified(int)), this, SLOT(PointHovered(int)));
+	connect(m_splom, &iAQSplom::selectionModified, this, &iAParamSPLOMView::SplomSelection);
+	connect(m_splom, &iAQSplom::currentPointModified, this, &iAParamSPLOMView::PointHovered);
 	m_splom->setData(m_tableView->Table());
 	SetLUTColumn("None");
 	m_splom->setParameterVisibility("filename", false);
@@ -107,10 +107,10 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	layout()->addWidget(m_settings);
 }
 
-void iAParamSPLOMView::SplomSelection(QVector<unsigned int> * selInds)
+void iAParamSPLOMView::SplomSelection(std::vector<size_t> const & selInds)
 {
 	// set 1 for selection:
-	for (int i = 0; i<selInds->size(); ++i)
+	for (int i = 0; i<selInds.size(); ++i)
 	{
 		// show in spatial view?
 	}
@@ -148,15 +148,15 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 		double rgba[4];
 		for (vtkIdType i = 0; i < 2; i++)
 		{
-			for (int i = 0; i < 4; ++i)
-				rgba[i] = DefaultColor[i];
+			for (int j = 0; j < 4; ++j)
+				rgba[j] = DefaultColor[j];
 			m_lut->SetTableValue(i, rgba);
 		}
 		m_lut->Build();
 	}
 	else
 	{
-		iAPerceptuallyUniformLUT::BuildPerceptuallyUniformLUT(m_lut, lutRange, FullTableValues);
+		iALUT::BuildLUT(m_lut, lutRange, "Diverging blue-gray-red", FullTableValues);
 	}
 	m_splom->setLookupTable(m_lut, (colName == "None") ? m_tableView->Table()->item(0, 1)->text() : colName );
 }
@@ -164,12 +164,12 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 
 void iAParamSPLOMView::UpdateFeatVisibilty(int)
 {
-	for (int i = 0; i < m_featCB.size(); ++i)
+	for (size_t i = 0; i < m_featCB.size(); ++i)
 		m_splom->setParameterVisibility(m_tableView->Table()->item(0, i+1)->text(), m_featCB[i]->isChecked());
 }
 
 
-void iAParamSPLOMView::PointHovered(int id)
+void iAParamSPLOMView::PointHovered(size_t id)
 {
 	m_spatialView->SetImage(id+1);
 }

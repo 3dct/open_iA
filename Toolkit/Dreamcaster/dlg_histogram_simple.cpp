@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -42,11 +42,6 @@ dlg_histogram_simple::dlg_histogram_simple(QWidget *parent) : QWidget (parent)
 	accSpacing = 1.0;
 }
 
-dlg_histogram_simple::~dlg_histogram_simple()
-{
-
-}
-
 void dlg_histogram_simple::initialize(unsigned int* histData, int numberOfBeans, double _dataRange[2] )
 {
 	//set attribut, so that the objects are deleted while
@@ -84,30 +79,11 @@ void dlg_histogram_simple::initialize(unsigned int* histData, int numberOfBeans,
 	}
 }
 
-/**
-* \brief  isUpdateAutomatically
-*
-*  Returns if volume is updated automatically after changing the transfer function
-*
-* \param 
-* \return	
-*
-*/
 bool dlg_histogram_simple::isUpdateAutomatically()
 {
 	return updateAutomatically;
 }
 
-
-/**
-* \brief  resizeEvent
-*
-*       
-*
-* \param QResizeEvent *event
-* \return	
-*
-*/
 void dlg_histogram_simple::resizeEvent(QResizeEvent *event)
 {
 	if ( ((this->geometry().width()) != width) || ((this->geometry().height()) != height) )
@@ -121,15 +97,6 @@ void dlg_histogram_simple::resizeEvent(QResizeEvent *event)
 	QWidget::resizeEvent(event);
 }
 
-/**
-* \brief  paintEvent
-*
-*       
-*
-* \param QPaintEvent * 
-* \return	
-*
-*/
 void dlg_histogram_simple::paintEvent(QPaintEvent * )
  {
 	 if (draw) this->drawHistogram();
@@ -139,15 +106,6 @@ void dlg_histogram_simple::paintEvent(QPaintEvent * )
 	painter.drawImage(QRectF(0, 0, width, height), image);
 }
 
-/**
-* \brief  drawHistogram
-*
-*   This function is used to draw the histogram    
-*
-* \param 
-* \return	
-*
-*/
 void dlg_histogram_simple::drawHistogram()
 {	
 	//initialise a painter
@@ -172,113 +130,59 @@ void dlg_histogram_simple::drawHistogram()
 	draw = false;
 }
 
-/**
-* \brief  redraw
-*
-*   This function is used to redraw the histogram    
-*
-* \param 
-* \return	
-*
-*/
 void dlg_histogram_simple::redraw()
 {
 	draw = true;
 	update();
 }
 
-
-/**
-* \brief  mousePressEvent
-*
-*   
-*
-* \param QMouseEvent * event
-* \return	
-*
-*/
 void dlg_histogram_simple::mousePressEvent(QMouseEvent *event)  
 {
-	switch(event->button())
+	if (event->button() == Qt::LeftButton)
 	{
-		case Qt::LeftButton:
-			if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
-				((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) &&
-				((event->modifiers() & Qt::AltModifier) == Qt::AltModifier))
-			{
-				zoomY = event->y();
-				changeMode(HIST_ZOOM_MODE, event);
-			}
-			else if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
-				((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier))
-			{
-				zoomX = event->x();
-				zoomY = event->y();
-				tmpZoom = zoom;
-				changeMode(ZOOM_MODE, event);
-			}
-		break;
-		case Qt::MidButton:
-			changeMode(MOVE_VIEW_MODE, event);
-		break;
+		if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
+			((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) &&
+			((event->modifiers() & Qt::AltModifier) == Qt::AltModifier))
+		{
+			zoomY = event->y();
+			changeMode(HIST_ZOOM_MODE, event);
+		}
+		else if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
+			((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier))
+		{
+			zoomX = event->x();
+			zoomY = event->y();
+			tmpZoom = zoom;
+			changeMode(ZOOM_MODE, event);
+		}
+	}
+	else if (event->button() == Qt::MidButton)
+	{
+		changeMode(MOVE_VIEW_MODE, event);
 	}
 }
 
-/**
-* \brief  mouseReleaseEvent
-*
-*   
-*
-* \param QMouseEvent * event
-* \return	
-*
-*/
 void dlg_histogram_simple::mouseReleaseEvent(QMouseEvent *event)  
 {
-	switch(event->button())
+	if (event->button() == Qt::LeftButton)
 	{
-		case Qt::LeftButton:
-			if (mode == HIST_ZOOM_MODE)
-				histZoom = tmpHistZoom;
-			else if (mode == ZOOM_MODE)
-				zoom = tmpZoom;
-			else if (mode == MOVE_VIEW_MODE)
-				translation = tmpTranslation;
-			this->mode = NO_MODE;
-
-			redraw();
-		break;
-		case Qt::MidButton:
-			if (mode == MOVE_VIEW_MODE)
-				translation = tmpTranslation;
-			this->mode = NO_MODE;
-		break;
+		if (mode == HIST_ZOOM_MODE)
+			histZoom = tmpHistZoom;
+		else if (mode == ZOOM_MODE)
+			zoom = tmpZoom;
+		else if (mode == MOVE_VIEW_MODE)
+			translation = tmpTranslation;
+		this->mode = NO_MODE;
+		redraw();
+	}
+	else if (event->button() == Qt::MidButton)
+	{
+		if (mode == MOVE_VIEW_MODE)
+			translation = tmpTranslation;
+		this->mode = NO_MODE;
 	}
 }
 
-/**
-* \brief  mouseDoubleClickEvent
-*
-*     
-*
-* \param QMouseEvent * event
-* \return	
-*
-*/
-void dlg_histogram_simple::mouseDoubleClickEvent(QMouseEvent *event)  
-{
-	//void
-}
-
-/**
-* \brief  mouseMoveEvent
-*
-*     
-*
-* \param QMouseEvent * event
-* \return	
-*
-*/
 void dlg_histogram_simple::mouseMoveEvent(QMouseEvent *event)
 {
 	switch(this->mode)
@@ -307,6 +211,8 @@ void dlg_histogram_simple::mouseMoveEvent(QMouseEvent *event)
 			redraw();
 		}
 		break;
+		case NO_MODE:
+		break;
 	}
 	
 	if (histoPtr.size() > 0)
@@ -326,42 +232,11 @@ void dlg_histogram_simple::mouseMoveEvent(QMouseEvent *event)
 	}
 }
 
-/**
-* \brief  enterEvent
-*
-*   
-*
-* \param QEvent * event
-* \return	
-*
-*/
-void dlg_histogram_simple::enterEvent(QEvent*)
-{
-}
-
-/**
-* \brief  leaveEvent
-*
-*   
-*
-* \param QEvent * event
-* \return	
-*
-*/
 void dlg_histogram_simple::leaveEvent(QEvent*)
 {
 	this->clearFocus();
 }
 
-/**
-* \brief  wheelEvent
-*
-*   
-*
-* \param QWheelEvent * event
-* \return	
-*
-*/
 void dlg_histogram_simple::wheelEvent(QWheelEvent *event)
 {
 	if (wheelMode == HIST_ZOOM_WHEEL_MODE)
@@ -372,15 +247,6 @@ void dlg_histogram_simple::wheelEvent(QWheelEvent *event)
 	redraw();
 }
 
-/**
-* \brief  keyPressEvent
-*
-*   
-*
-* \param QKeyEvent * event
-* \return	
-*
-*/
 void dlg_histogram_simple::keyPressEvent(QKeyEvent *event)
 {
 	if (event->key() == Qt::Key_Alt || event->key() == Qt::Key_AltGr)
@@ -392,64 +258,22 @@ void dlg_histogram_simple::keyReleaseEvent(QKeyEvent *event)
 	changeWheelMode(ZOOM_WHEEL_MODE);
 }
 
-/**
-* \brief  view2dataX
-*
-*   Converts the x value of the histogram view to transfer function data
-*
-* \param dataX double pointer to save data
-* \param viewX X value of the histogram view
-*
-* \return
-*/
 void dlg_histogram_simple::view2dataX(double *dataX, int viewX)
 {
 	*dataX = ((double)(viewX-tmpTranslation) / (double)this->geometry().width() * (dataRange[1] - dataRange[0]) ) /tmpZoom + dataRange[0];
 }
 
-/**
-* \brief  view2dataY
-*
-*   Converts the y value of the histogram view to transfer function data
-*
-* \param dataY double pointer to save data
-* \param viewY Y value of the histogram view
-*
-* \return
-*/
 void dlg_histogram_simple::view2dataY(double *dataY, int viewY)
 {
 	*dataY = ((double)this->geometry().height() - bottomMargin - viewY ) / (double)(this->geometry().height() - bottomMargin);
 }
 
-/**
-* \brief  view2data
-*
-*   Converts the x and y value of the histogram view to transfer function data
-*
-* \param dataX double pointer to save data
-* \param dataY double pointer to save data
-* \param viewX X value of the histogram view
-* \param viewY Y value of the histogram view
-*
-* \return
-*/
 void dlg_histogram_simple::view2data(double *dataX, double *dataY, int viewX, int viewY)
 {
 	view2dataX(dataX, viewX);
 	view2dataY(dataY, viewY);
 }
 
-/**
-* \brief  data2viewX
-*
-*   Converts x value of transfer function data to histogram view
-*
-* \param viewX int pointer to save view data
-* \param dataX X value of the transfer function data
-*
-* \return
-*/
 void dlg_histogram_simple::data2viewX(int *viewX, double dataX, double oldDataRange0, double oldDataRange1)
 {
 	if (oldDataRange0 == -1 && oldDataRange1 == -1)
@@ -462,47 +286,17 @@ void dlg_histogram_simple::data2viewX(int *viewX, double dataX, double oldDataRa
 	}
 }
 
-/**
-* \brief  data2viewY
-*
-*   Converts y value of transfer function data to histogram view
-*
-* \param viewY int pointer to save view data
-* \param dataY Y value of the transfer function data
-*
-* \return
-*/
 void dlg_histogram_simple::data2viewY(int *viewY, double dataY)
 {
 	*viewY = (int)((this->geometry().height() - bottomMargin) - dataY *(double)(this->geometry().height() - bottomMargin));
 }
 
-/**
-* \brief  data2view
-*
-*   Converts x and y value of transfer function data to histogram view
-*
-* \param viewX int pointer to save view data
-* \param viewY int pointer to save view data
-* \param dataX X value of the transfer function data
-* \param dataY Y value of the transfer function data
-*
-* \return
-*/
 void dlg_histogram_simple::data2view(int *viewX, int *viewY, double dataX, double dataY)
 {
 	data2viewX(viewX, dataX);
 	data2viewY(viewY, dataY);
 }
 
-
-/**
-* \brief  getSelectedPoint
-*
-*   Draws the background of the histogram view.
-*
-* \return
-*/
 void dlg_histogram_simple::drawBackground(QPainter &painter)
 {
 	//create linear gradient
@@ -515,13 +309,6 @@ void dlg_histogram_simple::drawBackground(QPainter &painter)
 	painter.fillRect( image.rect(), bg );
 }
 
-/**
-* \brief  getSelectedPoint
-*
-*   Draws the histogram of the histogram view.
-*
-* \return
-*/
 void dlg_histogram_simple::drawHistogram(QPainter &painter)
 {
 	double binWidth = (double)width / numBin *tmpZoom;
@@ -550,13 +337,6 @@ void dlg_histogram_simple::drawHistogram(QPainter &painter)
 	}
 }
 
-/**
-* \brief  getSelectedPoint
-*
-*   Draws the axes of the histogram view.
-*
-* \return
-*/
 void dlg_histogram_simple::drawAxes(QPainter &painter)
 {
 	//change pen color to black
@@ -602,13 +382,6 @@ void dlg_histogram_simple::drawAxes(QPainter &painter)
 	painter.drawText( QPointF((int)(width * 0.45 ), bottomMargin-2), "Penetration length");
 }
 
-/**
-* \brief  changeMode
-*
-*   Changes the mode of interaction. Possible modes are NO_MODE, MOVE_VIEW_MODE
-*
-* \return
-*/
 void dlg_histogram_simple::changeMode(Mode mode, QMouseEvent *event)
 {
 	if(mode == MOVE_VIEW_MODE)
@@ -616,28 +389,11 @@ void dlg_histogram_simple::changeMode(Mode mode, QMouseEvent *event)
 	this->mode = mode;
 }
 
-/**
-* \brief  changeWheelMode
-*
-*   Changes the mode of interaction with the mouse wheel. Possible modes are ZOOM_WHEEL_MODE, HIST_ZOOM_WHEEL_MODE
-*
-* \return
-*/
 void dlg_histogram_simple::changeWheelMode(WheelMode mode)
 {
 	this->wheelMode = mode;
 }
 
-/**
-* \brief  zoomHistogramView
-*
-*   Zooms the histogram view.
-*
-* \param value Indicates how big the zoom steps are
-* \param x position where to zoom in and out
-* \param deltaMode Indicates if the value is used as delta or absolute value
-* \return
-*/
 void dlg_histogram_simple::zoomHistogramView(double value, int x, bool deltaMode)
 {
 	int absXAfterZoom;
@@ -695,15 +451,6 @@ void dlg_histogram_simple::zoomHistogramView(double value, int x, bool deltaMode
 	translation = tmpTranslation;
 }
 
-/**
-* \brief  zoomHistogram
-*
-*   Zooms the histogram.
-*
-* \param value Indicates how big the zoom steps are
-* \param deltaMode Indicates if the value is used as delta or absolute value
-* \return
-*/
 void dlg_histogram_simple::zoomHistogram(double value, bool deltaMode)
 {
 	if (deltaMode)
@@ -727,26 +474,10 @@ void dlg_histogram_simple::zoomHistogram(double value, bool deltaMode)
 	}
 }
 
-/**
-* \brief  autoUpdate
-*
-*   If set to true rendering view updates are done automatically after changes in the transfer function.
-*
-* \return
-*/
-
 void dlg_histogram_simple::autoUpdate(bool toggled)
 {
 	updateAutomatically = toggled;
 }
-
-/**
-* \brief  resetView
-*
-*   Reset the histogram view and redraw it.
-*
-* \return
-*/
 
 void dlg_histogram_simple::resetView()
 {

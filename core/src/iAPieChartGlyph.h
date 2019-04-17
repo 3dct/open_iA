@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -29,7 +29,7 @@
 class iAPieChartGlyph
 {
 public:
-	iAPieChartGlyph(double portion) 
+	iAPieChartGlyph(double portion)
 		:
 		sectorSrc(vtkSmartPointer<iAPieSource>::New()),
 		mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
@@ -40,7 +40,7 @@ public:
 		Init();
 	}
 
-	iAPieChartGlyph(double startAngle, double endAngle) 
+	iAPieChartGlyph(double startAngle, double endAngle)
 		:
 		sectorSrc(vtkSmartPointer<iAPieSource>::New()),
 		mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
@@ -52,14 +52,14 @@ public:
 	}
 
 	iAPieChartGlyph( const iAPieChartGlyph& other ) :
-		sectorSrc( other.sectorSrc ), 
-		mapper( other.mapper ), 
+		sectorSrc( other.sectorSrc ),
+		mapper( other.mapper ),
 		actor( other.actor )
 	{}
 
 	vtkSmartPointer<iAPieSource>		sectorSrc;
 	vtkSmartPointer<vtkPolyDataMapper>	mapper;
-	vtkSmartPointer<vtkActor>			actor;  
+	vtkSmartPointer<vtkActor>			actor;
 private:
 	void Init()
 	{

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,9 +26,10 @@ class iAMapper
 {
 public:
 	virtual ~iAMapper();
-	virtual double SrcToDest(double y) const = 0;
-	virtual double DestToSrc(double y) const = 0;
-	virtual void update(double yZoom, double yDataMax, double yDataMin, int height) = 0;
-	virtual bool equals(QSharedPointer<iAMapper> other) const;
-	virtual QSharedPointer<iAMapper> clone() = 0;
+	virtual double srcToDst(double srcVal) const = 0;
+	virtual double dstToSrc(double dstVal) const = 0;
+	virtual void update(double srcMin, double srcMax, double dstMin, double dstMax) = 0;
+protected:
+	virtual bool equals(iAMapper const & other) const;
+	friend bool operator==(iAMapper const & a, iAMapper const & b);
 };

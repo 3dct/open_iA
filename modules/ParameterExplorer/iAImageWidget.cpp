@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iAImageWidget.h"
 
-#include "iASlicerSettings.h"
-#include "iASlicer.h"
-#include "iATransferFunction.h"
+#include <iASlicerSettings.h>
+#include <iASlicer.h>
+#include <iATransferFunction.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -30,7 +30,7 @@
 
 iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img)
 {
-	m_slicer = new iASlicer(this, iASlicerMode::XY, this, 0, 0, false, true);
+	m_slicer = new iASlicer(this, iASlicerMode::XY, this, false, true);
 	m_transform = vtkSmartPointer<vtkTransform>::New();
 	m_slicer->setup(iASingleSlicerSettings());
 	m_ctf = GetDefaultColorTransferFunction(img->GetScalarRange());

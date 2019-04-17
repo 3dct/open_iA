@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #include "iASimilarity.h"
 
-#include "defines.h"          // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iAToolsITK.h"
-#include "iATypedCallHelper.h"
-#include "mdichild.h"
+#include <defines.h>          // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iAToolsITK.h>
+#include <iATypedCallHelper.h>
+#include <mdichild.h>
 
 #include <itkCastImageFilter.h>
 #include <itkExtractImageFilter.h>
@@ -65,21 +65,9 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 		parameters["Structural Similarity Index"].toBool() ||
 		parameters["Normalized RMSE"].toBool())
 	{
-		typedef itk::StatisticsImageFilter<ImageType> StatisticsImageFilterType;
-		auto imgStatFilter = StatisticsImageFilterType::New();
-		imgStatFilter->SetInput(img);
-		imgStatFilter->Update();
-		imgMean = imgStatFilter->GetMean();
-		imgVar = imgStatFilter->GetSigma();
-		double imgMin = imgStatFilter->GetMinimum();
-		double imgMax = imgStatFilter->GetMaximum();
-		auto refStatFilter = StatisticsImageFilterType::New();
-		refStatFilter->SetInput(ref);
-		refStatFilter->Update();
-		refMean = refStatFilter->GetMean();
-		refVar = refStatFilter->GetSigma();
-		double refMin = refStatFilter->GetMaximum();
-		double refMax = refStatFilter->GetMinimum();
+		double imgMin, imgMax, refMin, refMax;
+		getStatistics(img, &imgMin, &imgMax, &imgMean, nullptr, &imgVar);
+		getStatistics(ref, &refMin, &refMax, &refMean, nullptr, &refVar);
 		range = std::max(refMax, imgMax) - std::min(refMin, imgMin);
 	}
 	if (parameters["Mean Squared Error"].toBool() ||

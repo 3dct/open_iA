@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,17 +20,16 @@
 * ************************************************************************************/
 #include "iAScatterPlotView.h"
 
-#include "charts/iAScatterPlot.h"
-#include "charts/iAScatterPlotWidget.h"
-#include "charts/iASPLOMData.h"
-#include "iAConsole.h"
-#include "iAPerformanceHelper.h"
-#include "iAQFlowLayout.h"
-#include "iAToolsVTK.h"
 #include "iAUncertaintyColors.h"
-#include "iAVtkDraw.h"
 
-#include <QVTKWidget.h>
+#include <charts/iAScatterPlot.h>
+#include <charts/iAScatterPlotWidget.h>
+#include <charts/iASPLOMData.h>
+#include <iAConsole.h>
+#include <iAToolsVTK.h>
+#include <iAVtkDraw.h>
+#include <qthelper/iAQFlowLayout.h>
+
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
 #include <vtkContextScene.h>
@@ -92,7 +91,7 @@ iAScatterPlotView::iAScatterPlotView():
 
 void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QString const & captionX, QString const & captionY)
 {
-	QVector<unsigned int> selection;
+	std::vector<size_t> selection;
 	if (m_scatterPlotWidget)
 	{
 		selection = m_scatterPlotWidget->GetSelection();
@@ -106,9 +105,9 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	auto splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
 	splomData->paramNames().push_back(captionX);
 	splomData->paramNames().push_back(captionY);
-	QList<double> values0;
+	std::vector<double> values0;
 	splomData->data().push_back(values0);
-	QList<double> values1;
+	std::vector<double> values1;
 	splomData->data().push_back(values1);
 	for (size_t i = 0; i < m_voxelCount; ++i)
 	{
@@ -212,8 +211,8 @@ void iAScatterPlotView::YAxisChoice()
 
 void iAScatterPlotView::SelectionUpdated()
 {
-	QVector<unsigned int> selectedPoints = m_scatterPlotWidget->GetSelection();
-	std::set<unsigned int> selectedSet(selectedPoints.begin(), selectedPoints.end());
+	auto selectedPoints = m_scatterPlotWidget->GetSelection();
+	std::set<size_t> selectedSet(selectedPoints.begin(), selectedPoints.end());
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
 	for (unsigned int v = 0; v<m_voxelCount; ++v)
 	{

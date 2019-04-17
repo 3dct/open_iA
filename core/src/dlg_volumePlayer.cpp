@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -206,7 +206,7 @@ void dlg_volumePlayer::editMaxSpeed() {
 	QList<QVariant> inPara	= (QList<QVariant>() << tr("%1").arg(getCurrentSpeed()));
 
 	dlg_commoninput dlg(m_mdiChild, "Set speed", inList, inPara, NULL);
-	
+
 	if (dlg.exec() == QDialog::Accepted){
 		float speed = (float)dlg.getDblValue(0);
 		m_timer.setInterval((int)((1/speed) * SECONDS_TO_MILISECONDS));
@@ -241,7 +241,7 @@ QList<int> dlg_volumePlayer::getCheckedList() {
 			m_outCheckList.insert(i, 0);
 	}
 	return (m_outCheckList);
-} 
+}
 
 
 
@@ -310,7 +310,7 @@ void dlg_volumePlayer::blendingStateChanged(int state)
 {
 	m_isBlendingOn = state;
 
-	
+
 	int oldVal = volumeSlider->value();
 	if (m_isBlendingOn) {
 		// set slider parameters

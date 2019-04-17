@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QTableView>
+#include <itkFixedArray.h>
+#include <itkIndex.h>
 
-#include "itkFixedArray.h"
-#include "itkIndex.h"
+#include <QTableView>
 
 class iAFoamCharacterizationTableAnalysis : public QTableView
 {
@@ -31,91 +31,49 @@ class iAFoamCharacterizationTableAnalysis : public QTableView
 
 	class CTableAnalysisRow
 	{
-		public:
-			CTableAnalysisRow()
-			{
-			
-			}
-
-			void set(const long& _lLabel
-				, const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
-				, const double& _dVolume, const double& _dDiameter
-				, const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox)
-			{
-				m_lLabel = _lLabel;
-
-				m_dCenterX = _dCenterX;
-				m_dCenterY = _dCenterY;
-				m_dCenterZ = _dCenterZ;
-
-				m_dVolume = _dVolume;
-				m_dDiameter = _dDiameter;
-					
-				for (int i(0); i < 6; ++i)
-				{
-					m_pBoundingBox[i] = _faBoundingBox[i];
-				}
-			}
-
-			long label() const
-			{
-				return m_lLabel;
-			}
-
-			double centerX() const
-			{
-				return m_dCenterX;
-			}
-
-			double centerY() const
-			{
-				return m_dCenterY;
-			}
-
-			double centerZ() const
-			{
-				return m_dCenterZ;
-			}
-
-			double volume() const
-			{
-				return m_dVolume;
-			}
-
-			double diameter() const
-			{
-				return m_dDiameter;
-			}
-
-			double* boundingBox()
-			{
-				return m_pBoundingBox;
-			}
-
-		private:
-			long m_lLabel = 0;
-
-			double m_dCenterX = 0.0;
-			double m_dCenterY = 0.0;
-			double m_dCenterZ = 0.0;
-
-			double m_dVolume = 0.0;
-			double m_dDiameter = 0.0;
-
-			double m_pBoundingBox[6] = { 0.0 };
-	};
-
 	public:
-		explicit iAFoamCharacterizationTableAnalysis(QWidget* _pParent = nullptr);
+		CTableAnalysisRow();
 
-		void setRowCount(const int& _iRowCount);
-		
-		void setRow ( const int& _iRow, const long& _lLabel
-				    , const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
-					, const double& _dVolume, const double& _dDiameter
-					, const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox
-					);
+		void set(const long& _lLabel
+			, const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
+			, const double& _dVolume, const double& _dDiameter
+			, const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox);
+
+		long label() const;
+
+		double centerX() const;
+		double centerY() const;
+		double centerZ() const;
+
+		double volume() const;
+		double diameter() const;
+
+		double* boundingBox();
 
 	private:
-		QVector<CTableAnalysisRow> m_vData;
+		long m_lLabel = 0;
+
+		double m_dCenterX = 0.0;
+		double m_dCenterY = 0.0;
+		double m_dCenterZ = 0.0;
+
+		double m_dVolume = 0.0;
+		double m_dDiameter = 0.0;
+
+		double m_pBoundingBox[6];
+	};
+
+public:
+	explicit iAFoamCharacterizationTableAnalysis(QWidget* _pParent = nullptr);
+
+	void setRowCount(const int& _iRowCount);
+		
+	void setRow ( const int& _iRow, const long& _lLabel
+				, const double& _dCenterX, const double& _dCenterY, const double& _dCenterZ
+				, const double& _dVolume, const double& _dDiameter
+				, const itk::FixedArray<itk::Index<3>::IndexValueType, 6> _faBoundingBox
+				);
+
+private:
+	QVector<CTableAnalysisRow> m_vData;
 };

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,11 +24,8 @@
 
 #include <QVTKInteractor.h>
 #include <vtkActor2D.h>
-#include <vtkActor2DCollection.h>
-#include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkInteractorStyle.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper2D.h>
@@ -40,7 +37,7 @@
 const double iAAbstractMagicLensWidget::OFFSET_VAL = 20.;
 
 iAAbstractMagicLensWidget::iAAbstractMagicLensWidget( QWidget * parent /*= 0 */ )
-	: QVTKWidget2( parent )
+	: iAVtkWidget( parent )
 	, m_lensRen{ vtkSmartPointer<vtkRenderer>::New( ) }
 	, m_GUIRen{ vtkSmartPointer<vtkRenderer>::New( ) }
 	, m_GUIActor { vtkSmartPointer<vtkActor2D>::New() }
@@ -84,7 +81,7 @@ void iAAbstractMagicLensWidget::setViewMode( ViewMode mode )
 
 void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 {
-	QVTKWidget2::mouseMoveEvent( event );
+	iAVtkWidget::mouseMoveEvent( event );
 	int * pos = GetInteractor( )->GetEventPosition( );
 	m_pos[0] = pos[0]; m_pos[1] = pos[1];
 	updateLens( );

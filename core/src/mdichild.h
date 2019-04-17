@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include "defines.h"
 #include "iAChannelID.h"
-#include "iAQTtoUIConnector.h"
+#include "qthelper/iAQTtoUIConnector.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
@@ -56,7 +56,6 @@ class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkPoints;
 class vtkPolyData;
-class vtkRenderWindow;
 class vtkScalarsToColors;
 class vtkTransform;
 
@@ -86,7 +85,7 @@ class MainWindow;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXY>   dlg_sliceXY;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceXZ>   dlg_sliceXZ;
 typedef iAQTtoUIConnector<QDockWidget, Ui_sliceYZ>   dlg_sliceYZ;
-typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>   dlg_renderer;
+typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
 class open_iA_Core_API MdiChild : public QMainWindow, public Ui_Mdichild
@@ -116,13 +115,7 @@ public:
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
 	void updateLayout();
 
-	bool multiview() { changeVisibility(MULTI); return true; };
-	bool xyview() { maximizeXY(); return true; };
-	bool xzview() { maximizeXZ(); return true; };
-	bool yzview() { maximizeYZ(); return true; };
-	bool rcview() { maximizeRC(); return true; };
-	bool linkViews( bool l ) { link(l); return true; }
-	bool linkMDIs( bool l ) { linkM(l); return true; }
+	void multiview() { changeVisibility(MULTI);};
 	bool editPrefs(iAPreferences const & p);
 	void ApplyViewerPreferences();
 	bool editRendererSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
@@ -130,22 +123,15 @@ public:
 	bool loadTransferFunction();
 	bool saveTransferFunction();
 
-	/**
-	* Provides the possibility to save a slice movie of the given slice view.
-	*
-	* \param [in]	slicer	the VTK slicer the moview shall be exported from.
-	*/
+	//! Provides the possibility to save a slice movie of the given slice view.
+	//! @param [in] slicer the VTK slicer the movie shall be exported from.
 	void saveMovie(iASlicer * slicer);
 
-	/**
-	* Provides the possibility to save a raycaster movie of the given raycaster view.
-	*
-	* \param [in]	raycaster the VTK raycaster, the movie shall be exported from.
-	*/
+	//! Provides the possibility to save a raycaster movie of the given raycaster view.
+	//! @param [in] raycaster the VTK raycaster the movie shall be exported from.
 	void saveMovie(iARenderer& raycaster);
 	int deletePoint();
 	void changeColor();
-	void autoUpdate(bool toggled);
 	void resetView();
 	void resetTrf();
 	void toggleSnakeSlicer(bool isEnabled);
@@ -201,7 +187,6 @@ public:
 
 	int getSelectedFuncPoint();
 	int isFuncEndPoint(int index);
-	bool isUpdateAutomatically();
 	void setHistogramFocus();
 	bool isMaximized();
 
@@ -263,10 +248,10 @@ public:
 	QString GetLayoutName() const;
 	void LoadLayout(QString const & layout);
 
-	//! if more than one modality loaded, ask user to choose one of them
+	//! If more than one modality loaded, ask user to choose one of them.
 	//! (currently used for determining which modality to save)
 	int chooseModalityNr(QString const & caption = "Choose Channel");
-	//! if given modality has more than one component, ask user to choose one of them
+	//! If given modality has more than one component, ask user to choose one of them.
 	//! (currently used for determining which modality to save)
 	int chooseComponentNr(int modalityNr);
 
@@ -274,8 +259,20 @@ public:
 	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
 	void SplitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
 
-	//! checks whether the main image data in this child is fully loaded
+	//! Checks whether the main image data in this child is fully loaded.
 	bool IsFullyLoaded() const;
+
+	//! Save all currently loaded files into a project with the given file name.
+	void saveProject(QString const & fileName);
+
+	//! Whether volume data is loaded (only checks filename and volume dimensions).
+	bool IsVolumeDataLoaded() const;
+
+	//! Enable or disable linked views (slicers/3D renderer) for this MDI child.
+	void linkViews(bool l);
+	
+	//! Enable or disable linked MDI windows for this MDI child.
+	void linkMDIs(bool lm);
 
 Q_SIGNALS:
 	void rendererDeactivated(int c);
@@ -283,7 +280,6 @@ Q_SIGNALS:
 	void noPointSelected();
 	void endPointSelected();
 	void active();
-	void autoUpdateChanged(bool toogled);
 	void magicLensToggled( bool isToggled );
 	void closed();
 	void updatedViews();
@@ -291,12 +287,14 @@ Q_SIGNALS:
 	void preferencesChanged();
 	void viewInitialized();
 	void TransferFunctionChanged();
-
-private slots:
+	void fileLoaded();
+	void histogramAvailable();
+public slots:
 	void maximizeRC();
 	void maximizeXY();
 	void maximizeXZ();
 	void maximizeYZ();
+private slots:
 	void saveRC();
 	void saveXY();
 	void saveXZ();
@@ -312,8 +310,6 @@ private slots:
 	void triggerInteractionXZ();
 	void triggerInteractionYZ();
 	void triggerInteractionRaycaster();
-	void link( bool l );
-	void linkM( bool lm );
 	void setSliceXY(int s);
 	void setSliceYZ(int s);
 	void setSliceXZ(int s);
@@ -327,6 +323,15 @@ private slots:
 	void setRotationXY(double a);
 	void setRotationYZ(double a);
 	void setRotationXZ(double a);
+	void setSlabModeXY(bool slabMode);
+	void setSlabModeYZ(bool slabMode);
+	void setSlabModeXZ(bool slabMode);
+	void updateSlabThicknessXY(int thickness);
+	void updateSlabThicknessYZ(int thickness);
+	void updateSlabThicknessXZ(int thickness);
+	void updateSlabCompositeModeXY(int compositeMode);
+	void updateSlabCompositeModeXZ(int compositeMode);
+	void updateSlabCompositeModeYZ(int compositeMode);
 	void updateRenderWindows(int channels);
 	void updateRenderers(int x, int y, int z, int mode);
 	void toggleArbitraryProfile(bool isChecked);
@@ -348,8 +353,9 @@ public slots:
 	void updateViews();
 	void addMsg(QString txt);
 	void addStatusMsg(QString txt);
-	bool setupView(bool active = false);
-	bool setupStackView(bool active = false);
+	void setupView(bool active = false);
+	void setupStackView(bool active = false);
+	void setupProject(bool active = false);
 	bool updateVolumePlayerView(int updateIndex, bool isApplyForAll);
 	void removeFinishedAlgorithms();
 	void camPX();
@@ -383,8 +389,7 @@ private:
 	int EvaluatePosition(int pos, int i, bool invert = false);
 
 	//! Changes the display of views from full to multi screen or multi screen to fullscreen.
-	//!
-	//! \param mode	how the views should be arranged.
+	//! @param mode how the views should be arranged.
 	void changeVisibility(unsigned char mode);
 	int getVisibility() const;
 	void hideVolumeWidgets();
@@ -405,10 +410,10 @@ private:
 	void updateReslicer(double point[3], double normal[3], int mode);
 	void updateSliceIndicators();
 	QString strippedName(const QString &f);
-	
+
 	//! sets up the IO thread for saving the correct file type for the given filename.
 	//! \return	true if it succeeds, false if it fails.
-	bool setupSaveIO(QString const & f, vtkSmartPointer<vtkImageData> img);
+	bool setupSaveIO(QString const & f);
 
 	//! sets up the IO thread for loading the correct file type according to the given filename.
 	//! \return	true if it succeeds, false if it fails.
@@ -447,10 +452,9 @@ private:
 	bool isSliceProfileEnabled; //!< slice profile, shown in slices
 	bool isArbProfileEnabled;   //!< arbitrary profile, shown in profile widget
 	bool isMagicLensEnabled;    //!< magic lens exploration
-	
+
 	void updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptIndex, int s);
 	void setupViewInternal(bool active);
-	bool IsVolumeDataLoaded() const;
 
 	vtkSmartPointer<vtkImageData> imageData;		// TODO: remove - use modality data instead!
 	vtkPolyData* polyData;
@@ -458,7 +462,7 @@ private:
 	vtkTransform* slicerTransform;
 	vtkAbstractTransform *SlicerYZ_Transform, *SlicerXY_Transform, *SlicerXZ_Transform;
 	iARenderer* Raycaster;
-	iASlicer * slicerYZ, * slicerXY, * slicerXZ;
+	iASlicer * slicer[3];
 	QSharedPointer<iAProfileProbe> profileProbe;
 	QScopedPointer<iAVolumeStack> volumeStack;
 	iAIO* ioThread;
@@ -498,10 +502,13 @@ private:
 private slots:
 	void ChangeMagicLensModality(int chg);
 	void ChangeMagicLensOpacity(int chg);
+	void ChangeMagicLensSize(int chg);
 	void ShowModality(int modIdx);
 	void SaveFinished();
-	void SetHistogramModality(int modalityIdx);
+	void ModalityAdded(int modalityIdx);
 private:
+	void SetHistogramModality(int modalityIdx);
+	void displayHistogram(int modalityIdx);
 	int GetCurrentModality() const;
 	void InitModalities();
 	void InitVolumeRenderers();
@@ -510,7 +517,6 @@ public:
 	QSharedPointer<iAModalityList> GetModalities();
 	QSharedPointer<iAModality> GetModality(int idx);
 	dlg_modalities* GetModalitiesDlg();
-	bool LoadProject(QString const & fileName);
 	void StoreProject();
 	//! @}
 };

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,12 +24,11 @@
 
 #include "iAImageTreeNode.h"    // for LabelImagePointer
 
+#include <qthelper/iAQTtoUIConnector.h>
+
 #include <vtkSmartPointer.h>
 
 #include <QMap>
-
-#include "iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 
 class iAImageClusterer;
 class iAImageSampler;
@@ -46,6 +45,8 @@ class iASimpleLabelInfo;
 class iASamplingResults;
 
 class vtkImageData;
+
+typedef iAQTtoUIConnector<QDockWidget, Ui_GEMSeControl>   dlg_GEMSeControlUI;
 
 class dlg_GEMSeControl: public dlg_GEMSeControlUI
 {

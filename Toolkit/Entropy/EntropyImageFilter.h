@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
-* **********  A tool for scientific visualisation and 3D image processing  ********** *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, J. Weissenböck, *
-*                     Artem & Alexander Amirkhanov, B. Fröhler                        *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -111,16 +111,15 @@ protected:
 
 	/** Determine maximum label value in all input images and initialize
 	 * global data. */
-	void BeforeThreadedGenerateData() ITK_OVERRIDE;
+	void BeforeThreadedGenerateData() override;
 
 	void ThreadedGenerateData
-	(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId) ITK_OVERRIDE;
+	(const OutputImageRegionType & outputRegionForThread, itk::ThreadIdType threadId) override;
 
-	void PrintSelf(std::ostream &, itk::Indent) const ITK_OVERRIDE;
-
+	void PrintSelf(std::ostream &, itk::Indent) const override;
 private:
-	EntropyImageFilter(const Self &) ITK_DELETE_FUNCTION;
-	void operator=(const Self &) ITK_DELETE_FUNCTION;
+	EntropyImageFilter(const Self &) =delete;
+	void operator=(const Self &) =delete;
 
 	bool m_normalize;
 };

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -19,6 +19,7 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iAFast3DMagicLensWidget.h"
+
 #include "iAConsole.h"
 
 #include <QVTKInteractor.h>
@@ -35,6 +36,7 @@
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkVersion.h>
 
 #include <QMouseEvent>
 
@@ -56,7 +58,7 @@ void iAFast3DMagicLensWidget::updateLens()
 
 	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
 		return;
-	
+
 	vtkCamera * mainCam = GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	vtkCamera * magicLensCam = m_lensRen->GetActiveCamera();
 
@@ -88,7 +90,7 @@ void iAFast3DMagicLensWidget::updateLens()
 
 void iAFast3DMagicLensWidget::resizeEvent( QResizeEvent * event )
 {
-	QVTKWidget2::resizeEvent( event );
+	iAVtkWidget::resizeEvent( event );
 
 	if (GetRenderWindow()->GetRenderers()->GetNumberOfItems() <= 0)
 		return;
@@ -112,5 +114,5 @@ void iAFast3DMagicLensWidget::mouseReleaseEvent( QMouseEvent * event )
 		emit rightButtonReleasedSignal( );
 	else if( Qt::LeftButton == event->button( ) )
 		emit leftButtonReleasedSignal( );
-	QVTKWidget2::mouseReleaseEvent( event );
+	iAVtkWidget::mouseReleaseEvent( event );
 }

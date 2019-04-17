@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -122,7 +122,7 @@ void iARenderObserver::Execute(vtkObject * caller,
 				double spacing[3];
 				m_pImageData->GetDimensions(dims);
 				m_pImageData->GetSpacing(spacing);
-				
+
 				if (!keySym || strlen(keySym) == 0)
 					return;
 				keyCode = keySym[0];
@@ -281,7 +281,7 @@ void iARenderObserver::PickVolume(double point[3])
 
 	// Do the volume pick.
 
-	// Get camera focal point and position. Convert to display (screen) 
+	// Get camera focal point and position. Convert to display (screen)
 	// coordinates. We need a depth value for z-buffer.
 	camera->GetPosition(cameraPos);
 	cameraPos[3] = 1.0;
@@ -303,7 +303,7 @@ void iARenderObserver::PickVolume(double point[3])
 	if ( worldCoords[3] == 0.0 )
 		return;
 
-	for (i=0; i < 3; i++) 
+	for (i=0; i < 3; i++)
 		pickPosition[i] = worldCoords[i] / worldCoords[3];
 
 
@@ -319,7 +319,7 @@ void iARenderObserver::PickVolume(double point[3])
 
 	vtkMath::Normalize(cameraDOP);
 
-	if (( rayLength = vtkMath::Dot(cameraDOP,ray)) == 0.0 ) 
+	if (( rayLength = vtkMath::Dot(cameraDOP,ray)) == 0.0 )
 		return;
 
 	clipRange = camera->GetClippingRange();
@@ -328,7 +328,7 @@ void iARenderObserver::PickVolume(double point[3])
 	{
 		tF = clipRange[0] - rayLength;
 		tB = clipRange[1] - rayLength;
-		for (i=0; i<3; i++) 
+		for (i=0; i<3; i++)
 		{
 			p1World[i] = pickPosition[i] + tF*cameraDOP[i];
 			p2World[i] = pickPosition[i] + tB*cameraDOP[i];
@@ -338,7 +338,7 @@ void iARenderObserver::PickVolume(double point[3])
 	{
 		tF = clipRange[0] / rayLength;
 		tB = clipRange[1] / rayLength;
-		for (i=0; i<3; i++) 
+		for (i=0; i<3; i++)
 		{
 			p1World[i] = cameraPos[i] + tF*ray[i];
 			p2World[i] = cameraPos[i] + tB*ray[i];
@@ -355,7 +355,7 @@ void iARenderObserver::PickVolume(double point[3])
 	m_pProbe->SetInputConnection(m_pLine->GetOutputPort());
 	m_pProbe->Update();
 
-	double max = 0, derivative = 0; 
+	double max = 0, derivative = 0;
 	int maxindex = -1;
 
 	for (i = 1; i < m_pProbe->GetOutput()->GetNumberOfPoints(); i++)
@@ -364,20 +364,18 @@ void iARenderObserver::PickVolume(double point[3])
 		if (derivative > max)
 		{
 			if (maxindex != -1)
-				max = derivative; 
+				max = derivative;
 			if (derivative < -1000)
 				break;
 			maxindex = i;
 		}
-	}  
+	}
 
 	if (maxindex != -1)
 	{
 		point[0] = m_pProbe->GetOutput()->GetPoint(maxindex)[0];
 		point[1] = m_pProbe->GetOutput()->GetPoint(maxindex)[1];
 		point[2] = m_pProbe->GetOutput()->GetPoint(maxindex)[2];
-
-
 	}
 }
 
@@ -394,7 +392,7 @@ void iARenderObserver::SetAxis(Axis axis, double pickedAxis[3])
 	pickedAxis[1] -= trans[1];
 	pickedAxis[2] -= trans[2];
 
-	double secondAxis[3] = { 
+	double secondAxis[3] = {
 		m_pTrans->GetMatrix()->GetElement(0, (axis+1)%3),
 		m_pTrans->GetMatrix()->GetElement(1, (axis+1)%3),
 		m_pTrans->GetMatrix()->GetElement(2, (axis+1)%3)

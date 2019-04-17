@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,6 +21,7 @@
 #include "iAPreviewSPLOM.h"
 
 #include <QMouseEvent>
+#include <QPainter>
 
 #include <cmath>
 
@@ -28,8 +29,13 @@ const double penWidth = 2.0;
 const QColor bgrCol( 50, 50, 50 );
 const QColor roiCol( 255, 0, 0, 240 );
 
-iAPreviewSPLOM::iAPreviewSPLOM( QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */ ) :
-	QGLWidget( parent, shareWidget, f ),
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+iAPreviewSPLOM::iAPreviewSPLOM(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
+	QOpenGLWidget(parent, f),
+#else
+iAPreviewSPLOM::iAPreviewSPLOM(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */) :
+	QGLWidget(parent, shareWidget, f),
+#endif
 	m_pxmp( 0 ),
 	m_mousePressed( false ),
 	m_maskPtrExt( 0 )
@@ -71,7 +77,7 @@ QRectF iAPreviewSPLOM::GetROI() const
 	return m_locRoi;
 }
 
-void iAPreviewSPLOM::paintEvent( QPaintEvent * event )
+void iAPreviewSPLOM::paintGL( )
 {
 	QPainter painter( this );
 	painter.setRenderHint( QPainter::Antialiasing );
@@ -82,7 +88,7 @@ void iAPreviewSPLOM::paintEvent( QPaintEvent * event )
 
 	painter.drawPixmap( m_origin, m_scaledPxmp );
 	if( m_maskPtrExt )
-		painter.drawPixmap( m_origin, m_scaledMask );;
+		painter.drawPixmap( m_origin, m_scaledMask );
 	QPen p( roiCol ); p.setWidthF( penWidth ); p.setJoinStyle( Qt::MiterJoin );
 	painter.setPen( p );
 	QRectF rect;
@@ -95,6 +101,7 @@ void iAPreviewSPLOM::paintEvent( QPaintEvent * event )
 
 void iAPreviewSPLOM::resizeEvent( QResizeEvent * event )
 {
+	QOpenGLWidget::resizeEvent(event);
 	if( !m_pxmp )
 		return;
 	Scale();

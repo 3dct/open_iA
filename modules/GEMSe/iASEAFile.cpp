@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iASEAFile.h"
 
-#include "iAConsole.h"
-#include "io/iAFileUtils.h"
+#include <iAConsole.h>
+#include <io/iAFileUtils.h>
 
 #include <QFile>
 #include <QFileInfo>
@@ -83,18 +83,20 @@ iASEAFile::iASEAFile(QString const & fileName):
 {
 	QFile file(fileName);
 	if (!file.exists()) {
-		DEBUG_LOG(QString("Load Precalculated Data: File '%1' doesn't exist!").arg(fileName));
+		DEBUG_LOG(QString("Load precalculated GEMSe data: File '%1' doesn't exist!").arg(fileName));
 		return;
 	}
 	QSettings metaFile(fileName, QSettings::IniFormat );
+	metaFile.setIniCodec("UTF-8");
 	if (metaFile.status() != QSettings::NoError)
 	{
-		DEBUG_LOG(QString("Load Precalculated Data: Reading file '%1' failed!").arg(fileName));
+		DEBUG_LOG(QString("Load precalculated GEMSe data: Reading file '%1' failed!").arg(fileName));
 		return;
 	}
 	if (!metaFile.contains(FileVersionKey) || metaFile.value(FileVersionKey).toString() != FileVersionValue)
 	{
-		DEBUG_LOG(QString("Load Precalculated Data: Precalculated data file: Invalid or missing version descriptor ('%1' expected, '%2' found)!")
+		DEBUG_LOG(QString("Load precalculated GEMSe data: Precalculated data file (%1): Invalid or missing version descriptor ('%2' expected, '%3' found)!")
+			.arg(fileName)
 			.arg(FileVersionValue)
 			.arg((metaFile.contains(FileVersionKey) ? "'"+metaFile.value(FileVersionKey).toString()+"'" : "none")) );
 		return;
@@ -107,7 +109,7 @@ iASEAFile::iASEAFile(QString const & fileName):
 		AddIfMissing(metaFile, missingKeys, LayoutKey) ||
 		AddIfEmpty(datasetKeys, missingKeys, SamplingDataKey))
 	{
-		DEBUG_LOG(QString("Load Precalculated Data: Required setting(s) %1 missing in analysis description file.").arg(missingKeys));
+		DEBUG_LOG(QString("Load precalculated GEMSe data: Required setting(s) %1 missing in file %2.").arg(missingKeys).arg(fileName));
 		return;
 	}
 	m_SEAFileName = fileName;
@@ -117,7 +119,7 @@ iASEAFile::iASEAFile(QString const & fileName):
 	m_LabelCount		 = metaFile.value(LabelCountKey).toString().toInt(&labelCountOK);
 	if (!labelCountOK)
 	{
-		DEBUG_LOG("Load Precalculated Data: Label Count invalid!");
+		DEBUG_LOG(QString("Load precalculated GEMSe data: Label Count invalid in file %1!").arg(fileName));
 		return;
 	}
 	for (QString keyStr : datasetKeys)
@@ -130,7 +132,8 @@ iASEAFile::iASEAFile(QString const & fileName):
 		}
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Load Precalculated Data: Invalid Dataset identifier: %1 (maybe missing number, ID part: %2?)").arg(keyStr).arg(key));
+			DEBUG_LOG(QString("Load precalculated GEMSe data: Invalid Dataset identifier: %1 (maybe missing number, ID part: %2?) in file %3.")
+				.arg(keyStr).arg(key).arg(fileName));
 			return;
 		}
 		m_Samplings.insert(key, MakeAbsolute(fi.absolutePath(), metaFile.value(keyStr).toString()));
@@ -139,7 +142,8 @@ iASEAFile::iASEAFile(QString const & fileName):
 	qSort(keys.begin(), keys.end());
 	if (keys[0] != 0 || keys[keys.size() - 1] != keys.size() - 1)
 	{
-		DEBUG_LOG(QString("Incoherent sampling indices, or not starting at 0: [%1..%2]").arg(keys[0]).arg(keys[keys.size() - 1]));
+		DEBUG_LOG(QString("Load precalculated GEMSe data: Incoherent sampling indices, or not starting at 0: [%1..%2] in file %3.")
+			.arg(keys[0]).arg(keys[keys.size() - 1]).arg(fileName));
 		return;
 	}
 	m_ClusteringFileName = MakeAbsolute(fi.absolutePath(), metaFile.value(ClusteringDataKey).toString());
@@ -190,6 +194,7 @@ iASEAFile::iASEAFile(
 void iASEAFile::Store(QString const & fileName)
 {
 	QSettings metaFile(fileName, QSettings::IniFormat);
+	metaFile.setIniCodec("UTF-8");
 	metaFile.setValue(FileVersionKey, FileVersionValue);
 	
 	m_SEAFileName = fileName;
@@ -217,7 +222,7 @@ void iASEAFile::Store(QString const & fileName)
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
 	{
-		DEBUG_LOG(QString("Storing precalculated data: File '%1' couldn't be written.").arg(fileName));
+		DEBUG_LOG(QString("Storing precalculated GEMSe data: File '%1' couldn't be written.").arg(fileName));
 	}
 }
 
@@ -270,4 +275,9 @@ QString const & iASEAFile::GetLabelNames() const
 QString const & iASEAFile::GetColorTheme() const
 {
 	return m_ColorTheme;
+}
+
+QString const & iASEAFile::GetSEAFileName() const
+{
+	return m_SEAFileName;
 }

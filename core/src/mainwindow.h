@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -65,15 +65,15 @@ public:
 	static int RunGUI(int argc, char * argv[], QString const & appName, QString const & version,
 		QString const & splashPath, QString const & iconPath);
 	static void InitResources();
+
 	void setCurrentFile(const QString &fileName);
 	void updateRecentFileActions();
-
 	void setPath(QString p) { path = p; };
 	QString getPath() { return path; };
 
-	void LoadFile(QString const & fileName);
-	void LoadFile(QString fileName, bool isStack);
-	void LoadFiles(QStringList fileNames);
+	void loadFile(QString const & fileName);
+	void loadFile(QString fileName, bool isStack);
+	void loadFiles(QStringList fileNames);
 
 	QDomDocument loadSettingsFile(QString filename);
 	void saveSettingsFile(QDomDocument &doc, QString filename);
@@ -91,40 +91,48 @@ public:
 	void loadRenderSettings(QDomNode &renderSettingsNode);
 	void saveSlicerSettings(QDomDocument &doc);
 	void loadSlicerSettings(QDomNode &slicerSettingsNode);
-
-	void removeNode(QDomNode &node, char const *str);
-
-	QList<QString> mdiWindowTitles();
-
-	QMenu * getToolsMenu();
-	QMenu * getFiltersMenu();
-	QMenu * getHelpMenu();
+	//! get the File menu (can be used by modules to append entries to it)
 	QMenu * getFileMenu();
-	MdiChild *GetResultChild( QString const & title );
-	MdiChild *GetResultChild( int childInd, QString const & title );
-	MdiChild *GetResultChild( MdiChild* oldChild, QString const & title );
+	//! get the Filters menu (can be used by modules to append entries to it)
+	QMenu * getFiltersMenu();
+	//! get the Tools menu (can be used by modules to append entries to it)
+	QMenu * getToolsMenu();
+	//! get the Help menu (can be used by modules to append entries to it)
+	QMenu * getHelpMenu();
+	MdiChild *getResultChild( QString const & title );
+	MdiChild *getResultChild( int childInd, QString const & title );
+	MdiChild *getResultChild( MdiChild* oldChild, QString const & title );
 	MdiChild *activeMdiChild();
-	QList<MdiChild*> MdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
+	QList<QString> mdiWindowTitles();
+	QList<MdiChild*> mdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
 	QMdiSubWindow* addSubWindow(QWidget * child);
 	QString getCurFile() { return curFile; }	//!< deprecated. Use a specific mdichilds or even an mdichilds dlg_modalities methods instead!
-	void LoadArguments(int argc, char** argv);
-	iAPreferences const & GetDefaultPreferences() const;
+	void loadArguments(int argc, char** argv);
+	iAPreferences const & getDefaultPreferences() const;
+	iAModuleDispatcher& getModuleDispatcher() const; 
+	MdiChild *createMdiChild(bool unsavedChanges);
+	void closeMdiChild(MdiChild* child);
+	void closeAllSubWindows();
+
 protected:
-	void closeEvent(QCloseEvent *event);
+	void closeEvent(QCloseEvent *event) override;
+	void dragEnterEvent(QDragEnterEvent *e) override;
+	void dropEvent(QDropEvent *e) override;
 
 private slots:
 	void timeout();
-	void Open();
-	void OpenRaw();
-	void OpenImageStack();
-	void OpenVolumeStack();
-	void OpenTLGICTData();
+	void open();
+	void openRaw();
+	void openImageStack();
+	void openVolumeStack();
+	void openWithDataTypeConversion();
+	void openTLGICTData();
 	void save();
 	void saveAs();
 	bool loadSettings();
 	bool saveSettings();
-	void LoadProject();
-	void SaveProject();
+	void loadProject();
+	void saveProject();
 	void maxXY();
 	void maxXZ();
 	void maxYZ();
@@ -134,14 +142,14 @@ private slots:
 	void linkViews();
 	void linkMDIs();
 	void enableInteraction();
+	void toggleFullScreen();
+	void toggleMenu();
 	void renderSettings();
 	void slicerSettings();
 	void loadTransferFunction();
-	void saveTransferFunction();
+	void saveTransferFunctionSlot();
 	void deletePoint();
 	void changeColor();
-	void autoUpdate(bool toggled);
-	void updateViews();
 	void resetView();
 	void resetTrf();
 	void toggleSnakeSlicer(bool isChecked);
@@ -156,45 +164,43 @@ private slots:
 	void raycasterAssignIso();
 	void raycasterSaveCameraSettings();
 	void raycasterLoadCameraSettings();
-	void OpenRecentFile();
+	void openRecentFile();
 	void childClosed();
-	void ToggleMainWindowStatusBar();
-	void ToggleChildStatusBar();
-	void ToggleToolbar();
-public slots:
+	void toggleMainWindowStatusBar();
+	void toggleChildStatusBar();
+	void toggleToolbar();
+	void about();
+	void wiki();
 	void saveLayout();
-	void loadLayout();
 	void resetLayout();
 	void deleteLayout();
 	void toggleSliceProfile(bool isChecked);
 	void childActivatedSlot(QMdiSubWindow *wnd);
-	void OpenWithDataTypeConversion();
-	void about();
 	void updateMenus();
 	void updateWindowMenu();
-	MdiChild *createMdiChild(bool unsavedChanges);
 	void setActiveSubWindow(QWidget *window);
 	void pointSelected();
 	void noPointSelected();
 	void endPointSelected();
 	void setHistogramFocus();
-	void CloseAllSubWindows();
+public slots:
+	void loadLayout();
 
 signals:
-	void StyleChanged();
+	void styleChanged();
+	void fullScreenToggled();
 private:
 	void connectSignalsToSlots();
 	void readSettings();
 	void writeSettings();
 	void createRecentFileActions();
 	void applyQSS();
-	void SetModuleActionsEnabled( bool isEnabled );
+	void setModuleActionsEnabled( bool isEnabled );
 	void loadCamera(QDomNode const & node, vtkCamera* camera);
 	void saveCamera(QDomElement &cameraElement, vtkCamera* camera);
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
-	void LoadProject(QString const & fileName);
-	void LoadTLGICTData(QString const & baseDirectory);
-	bool KeepOpen();
+	void loadTLGICTData(QString const & baseDirectory);
+	bool keepOpen();
 	MdiChild* findMdiChild(const QString &fileName);
 	QString strippedName(const QString &fullFileName);
 
@@ -205,7 +211,7 @@ private:
 	QActionGroup *slicerToolsGroup;
 	QSignalMapper *windowMapper;
 	QString qssName;
-	iAVolumeSettings defaultVolumeSettings;	
+	iAVolumeSettings defaultVolumeSettings;
 	iARenderSettings defaultRenderSettings;
 	iASlicerSettings defaultSlicerSettings;
 	iAPreferences defaultPreferences;

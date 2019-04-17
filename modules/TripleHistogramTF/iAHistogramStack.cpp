@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,16 +18,24 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+#include "iAHistogramStack.h"
+
+#include "iABarycentricTriangleWidget.h"
+#include "iASimpleSlicerWidget.h"
+
+#include <iATransferFunction.h>
+#include <charts/iADiagramFctWidget.h>
+
+#include <QComboBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QSlider>
 #include <QSplitter>
 #include <QResizeEvent>
+#include <QVBoxLayout>
 
-#include "iAHistogramStack.h"
-#include "iATransferFunction.h"
-#include "charts/iADiagramFctWidget.h"
-
-iAHistogramStack::iAHistogramStack(QWidget* parent, iATripleModalityWidget *tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f)
-	: m_tmw(tripleModalityWidget)
+iAHistogramStack::iAHistogramStack(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f)
+	: iATripleModalityWidget(parent, mdiChild, f)
 {
 }
 

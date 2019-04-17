@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,11 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include <utility> // for std::pair
+#include <iAImageCoordinate.h>	// for iAVoxelIndexType
 
 #include <QVector>
 
-#include "iAImageCoordinate.h"	// for iAVoxelIndexType
+#include <utility> // for std::pair
+
+
 
 typedef unsigned int iAEdgeIndexType;
 typedef unsigned int iAVertexIndexType;

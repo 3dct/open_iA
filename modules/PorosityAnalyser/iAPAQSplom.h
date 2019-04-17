@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,19 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iAQSplom.h"
+#include <charts/iAQSplom.h>
+#include <mainwindow.h>
+#include <mdichild.h>
+
 #include <QStringList>
 
 class QMenu;
 class QAction;
+class Mainwindow;
 
 class iAPAQSplom : public iAQSplom
 {
 	Q_OBJECT
 public:
-	iAPAQSplom( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+	iAPAQSplom(MainWindow *mainWind,  QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
+	iAPAQSplom(MainWindow *mainWind,  QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
+#endif
 public:
-	virtual void setData( const QTableWidget * data );
+	void setData( const QTableWidget * data ) override;
 	void setPreviewSliceNumbers( QList<int> sliceNumber );
 	void setROIList( QList<QRectF> roi );
 	void setSliceCounts( QList<int> sliceCnts );
@@ -40,13 +48,11 @@ public:
 	void setDatasetsByIndices ( QStringList selDatasets, QList<int> indices );
 	void reemitFixedPixmap();
 
-	int getDatasetIndexFromPointIndex(int pointIndex);
+	int getDatasetIndexFromPointIndex(size_t pointIndex);
 
 protected:
-	virtual bool drawPopup( QPainter& painter );	//!< Draws popup on the splom with mask preview
-	virtual void keyPressEvent( QKeyEvent * event );
-	virtual void mouseReleaseEvent( QMouseEvent * event );
-	virtual void mousePressEvent( QMouseEvent * event );
+	bool drawPopup( QPainter& painter ) override;	//!< Draws popup on the splom with mask preview
+	void keyPressEvent( QKeyEvent * event ) override;
 	void updatePreviewPixmap();
 
 signals:
@@ -56,10 +62,16 @@ signals:
 
 public slots:
 	void removeFixedPoint();
+	void StartFeatureScout();
 
-protected slots:
-	virtual void currentPointUpdated( int index );
+private slots:
+	void currentPointUpdated( size_t index ) override;
 	void fixPoint();
+
+	//send labeled image and csv from PA to FeatureScout
+	void sendToFeatureScout();
+	void getFilesLabeledFromPoint(QString & fileName, QString & mhdName);
+
 
 protected:
 	QStringList m_maskNames;
@@ -72,10 +84,19 @@ protected:
 	QStringList m_datasets;
 	QList<int> m_dsIndices;
 	QList<int> m_datasetIndices;
-	QMenu * m_contextMenu;
-	QAction * m_fixAction, *m_removeFixedAction;
-	int m_fixedPointInd;
+	QAction * m_fixAction, * m_removeFixedAction;
+	size_t m_fixedPointInd;
+
+	//connecting to feature scout
+	QAction * m_detailsToFeatureScoutAction;
+
 	QPoint m_rightPressPos;
 	QString m_currPrevDatasetName;
 	QString m_currPrevPipelineName;
+
+private: 
+	MainWindow * m_mainWnd;
+	MdiChild * m_mdiChild;
+	QString m_csvName; 
+
 };

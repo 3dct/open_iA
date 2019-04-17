@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,20 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QtGui>
-#include <QObject>
-#include <QList>
 #include "ui_EventExplorer.h"
-#include "QVTKWidget.h"
 
-#include <vtkChartXY.h>
-#include <vtkContextView.h>
-#include <vtkIdTypeArray.h>
-#include <vtkIntArray.h>
-#include <vtkPlot.h>
+#include <iAVtkWidgetFwd.h>
+
 #include <vtkSmartPointer.h>
-#include <vtkTable.h>
-#include <vtkMutableDirectedGraph.h>
+
+#include <QDockWidget>
 
 #include <vector>
 
@@ -42,6 +35,14 @@ class iAFeatureTracking;
 class iAVolumeStack;
 
 class vtkEventQtSlotConnect;
+class vtkChartXY;
+class vtkContextView;
+class vtkDoubleArray;
+class vtkIntArray;
+class vtkMutableDirectedGraph;
+class vtkPlot;
+class vtkStringArray;
+class vtkTable;
 
 class dlg_eventExplorer : public QDockWidget, private Ui_EventExplorer
 {
@@ -78,11 +79,7 @@ private:
 	void buildGraph(int id, int layer, int eventType, double uncertainty);
 	void buildSubGraph(int id, int layer);
 
-	QWidget* m_activeChild;
-	QVTKWidget* m_chartWidget1;
-
 	iAVolumeStack* m_volumeStack;
-
 	int m_numberOfCharts;
 	int m_numberOfEventTypes;
 	int m_plotPositionInVector[5];
@@ -91,7 +88,7 @@ private:
 	int m_propertyYId;
 	int m_rgb[5][3];
 
-	std::vector<QVTKWidget*> m_widgets;
+	std::vector<iAVtkOldWidget*> m_widgets;
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY>> m_charts;
 	std::vector<vtkSmartPointer<vtkPlot>> m_plots;

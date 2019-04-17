@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,8 +22,8 @@
 
 #include "iACSVToQTableWidgetConverter.h"
 
-#include "defines.h"
-#include "io/iAITKIO.h"
+#include <defines.h>
+#include <io/iAITKIO.h>
 
 #include <itkConnectedComponentImageFilter.h>
 #include <itkImageBase.h>
@@ -95,7 +95,7 @@ void iACalculatePoreProperties::CalculatePoreProperties()
 		//(connect( m_calcThread[i], SIGNAL( totalProgress( int ) ), this, SLOT( totalProgressSlot( int ) ) );
 		m_calcThread[i]->start();
 	}
-	delete rowRange;
+	delete [] rowRange;
 }
 
 void iACalculatePoreProperties::totalProgressSlot( int progress )
@@ -150,10 +150,15 @@ void iACalculatePorePropertiesThread::run()
 			connectedComponents->SetInput( input );
 			connectedComponents->FullyConnectedOn();
 			connectedComponents->Update();
+			
+			//Save labeled image
+			QString labeledMaskName = masksName;
+			labeledMaskName.insert(masksName.lastIndexOf("."), "_labeled");
+			iAITKIO::writeFile(labeledMaskName, connectedComponents->GetOutput(), itk::ImageIOBase::LONG, true);
 
 			// Writing pore csv file 
 			double spacing = image->GetSpacing()[0];
-			ofstream fout( masksName.append( ".csv" ).toStdString().c_str(), std::ofstream::out );
+			ofstream fout( getLocalEncodingFileName(masksName.append( ".csv" )).c_str(), std::ofstream::out );
 
 			// Header of pore csv file
 			fout << "Spacing" << ',' << spacing << '\n'
@@ -308,10 +313,15 @@ void iACalculatePorePropertiesThread::run()
 				The feret diameter is the diameter of circumscribing circle. So this measure has a maximum of 1.0 when the object is a perfect circle.
 				http://public.kitware.com/pipermail/insight-developers/2011-April/018466.html */
 
-				if ( labelObject->GetFeretDiameter() == 0 )
-					labelObject->SetRoundness( 0.0 );
+				if (labelObject->GetFeretDiameter() == 0)
+				{
+					labelObject->SetRoundness(0.0);
+				}
 				else
-					labelObject->SetRoundness( labelObject->GetEquivalentSphericalRadius() / ( labelObject->GetFeretDiameter() / 2.0 ) );
+				{
+					labelObject->SetRoundness(labelObject->GetEquivalentSphericalRadius() 
+						/ (labelObject->GetFeretDiameter() / 2.0));
+				}
 
 				fout << labelValue << ','
 					 << x1 * spacing << ',' 	// unit = microns
@@ -347,89 +357,6 @@ void iACalculatePorePropertiesThread::run()
 			}
 			fout.close();
 		}
-	
-		////double progIncr = 100.0 / m_masks->rowCount();
-		////double val = 0;
-		//for( int i = 0; i < m_masks->rowCount(); ++i )
-		//{
-		//	QString masksName = m_masks->item( i, 0 )->text();
-		//	QFile f( m_masks->item( i, 0 )->text().append( ".csv" ) );
-		//	if( f.exists() )
-		//	{
-		//		//val += progIncr;
-		//		//emit totalProgress( (int)val );
-		//		continue;
-		//	}
-		//	ScalarPixelType pixelType;
-		//	qDebug() << masksName;
-		//	ImagePointer image = iAITKIO::readFile( masksName, pixelType, true );
-		//	ImageType * input = dynamic_cast<ImageType*>(image.GetPointer());
-
-		//	//label image
-		//	ConnectedComponentImageFilter::Pointer connectedComponents = ConnectedComponentImageFilter::New();
-		//	connectedComponents->SetInput( input );
-		//	connectedComponents->Update();
-
-		//	//compute properties
-		//	LabelGeometryImageFilterType::Pointer labelGeometryImageFilter = LabelGeometryImageFilterType::New();
-		//	labelGeometryImageFilter->SetInput( connectedComponents->GetOutput() );
-		//	labelGeometryImageFilter->Update();
-
-		//	//output to csv
-		//	LabelGeometryImageFilterType::LabelsType allLabels = labelGeometryImageFilter->GetLabels();
-		//	LabelGeometryImageFilterType::LabelsType::iterator allLabelsIt;
-		//	qDebug() << "Number of labels: " << labelGeometryImageFilter->GetNumberOfLabels();
-		//	ofstream fout( masksName.append( ".csv" ).toStdString().c_str() );
-
-		//	fout << "Label" << ","
-		//		 << "Volume" << ","
-		//		 << "Integrated Intensity" << ","
-		//		 << "Centroid" << ","
-		//		 << "Weighted Centroid" << ","
-		//		 << "Axes Length" << ","
-		//		 << "MajorAxisLength" << ","
-		//		 << "MinorAxisLength" << ","
-		//		 << "Eccentricity" << ","
-		//		 << "Elongation" << ","
-		//		 << "Orientation" << ","
-		//		 << "Bounding box" << ","
-		//		 << '\n';
-
-		//	for( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
-		//	{
-		//		LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
-		//		QTextStream sttream( stdout );
-		//		sttream << labelGeometryImageFilter->GetVolume( labelValue );
-		//		fout << (int)labelValue << ",";
-		//		fout << labelGeometryImageFilter->GetVolume( labelValue ) << ",";
-		//		fout << labelGeometryImageFilter->GetIntegratedIntensity( labelValue ) << ",";
-		//		fout << labelGeometryImageFilter->GetCentroid( labelValue )[0] << " "\
-		//			 << labelGeometryImageFilter->GetCentroid( labelValue )[1] << " "\
-		//			 << labelGeometryImageFilter->GetCentroid( labelValue )[2] << ",";
-		//		fout << labelGeometryImageFilter->GetWeightedCentroid( labelValue )[0] << " "\
-		//			 << labelGeometryImageFilter->GetWeightedCentroid( labelValue )[1] << " "\
-		//			 << labelGeometryImageFilter->GetWeightedCentroid( labelValue )[2] << ",";
-		//		fout << labelGeometryImageFilter->GetAxesLength( labelValue )[0] << " "\
-		//			 << labelGeometryImageFilter->GetAxesLength( labelValue )[1] << " "\
-		//			 << labelGeometryImageFilter->GetAxesLength( labelValue )[2] << ",";
-		//		fout << labelGeometryImageFilter->GetMajorAxisLength( labelValue ) << ",";
-		//		fout << labelGeometryImageFilter->GetMinorAxisLength( labelValue ) << ",";
-		//		fout << labelGeometryImageFilter->GetEccentricity( labelValue ) << ",";
-		//		fout << labelGeometryImageFilter->GetElongation( labelValue ) << ",";
-		//		fout << labelGeometryImageFilter->GetOrientation( labelValue ) << ",";
-		//		fout << labelGeometryImageFilter->GetBoundingBox( labelValue )[0] << " "\
-		//			 << labelGeometryImageFilter->GetBoundingBox( labelValue )[1] << " "\
-		//			 << labelGeometryImageFilter->GetBoundingBox( labelValue )[2] << " "\
-		//			 << labelGeometryImageFilter->GetBoundingBox( labelValue )[3] << " "\
-		//			 << labelGeometryImageFilter->GetBoundingBox( labelValue )[4] << " "\
-		//			 << labelGeometryImageFilter->GetBoundingBox( labelValue )[5] << ",";
-		//		fout << '\n';
-		//	}
-		//	fout.close();
-
-		//	//val += progIncr;
-		//	//emit totalProgress( (int)val );
-		//}
 	}
 	catch( itk::ExceptionObject &excep )
 	{

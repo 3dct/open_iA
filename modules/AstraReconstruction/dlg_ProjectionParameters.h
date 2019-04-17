@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -35,9 +35,9 @@ public:
 		double projAngleStart, double projAngleEnd, double distOrigDet, double distOrigSource);
 	void fillVolumeGeometryValues(int dim[3], double spacing[3]);
 	void fillProjInputMapping(int detRowDim, int detColDim, int projAngleDim, const int dim[3]);
-	void fillAlgorithmValues(int algorithmType, int numberOfIterations);
+	void fillAlgorithmValues(int algorithmType, int numberOfIterations, bool initWithFDK);
 	void fillCorrectionValues(bool correctCenterOfRotation, double correctCenterOfRotationOffset);
-	virtual int exec();
+	int exec() override;
 private slots:
 	void algorithmChanged(int idx);
 	void centerOfRotationEnabled(int);

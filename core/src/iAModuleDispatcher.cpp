@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -112,7 +112,7 @@ QFileInfoList GetLibraryList(QString const & rootPath)
 #else
 	nameFilter << "*.so";
 #endif
-	
+
 	QFileInfoList list = root.entryInfoList(nameFilter, QDir::Files);
 	return root.entryInfoList(nameFilter, QDir::Files);
 }
@@ -176,13 +176,13 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 	MODULE_HANDLE handle = LoadModule(fi, logger);
 	if (!handle)
 	{
-		return NULL;
+		return nullptr;
 	}
 	iAModuleInterface * m = LoadModuleInterface(handle);
 	if (!m)
 	{
 		logger->Log(QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath()));
-		return NULL;
+		return nullptr;
 	}
 	InitializeModuleInterface(m);
 	m_loadedModules.push_back(iALoadedModule(fi.completeBaseName(), handle, m));
@@ -192,10 +192,18 @@ iAModuleInterface* iAModuleDispatcher::LoadModuleAndInterface(QFileInfo fi, iALo
 void iAModuleDispatcher::InitializeModules(iALogger* logger)
 {
 	QFileInfoList fList = GetLibraryList(m_rootPath);
-	for (QFileInfo fi : fList)
+	QFileInfoList failed;
+	bool someNewLoaded = true;
+	do
 	{
-		LoadModuleAndInterface(fi, logger);
-	}
+		for (QFileInfo fi : fList)
+		{
+			if (!LoadModuleAndInterface(fi, logger))
+				failed.push_back(fi);
+		}
+		someNewLoaded = failed.size() < fList.size();
+		fList = failed;
+	} while (fList.size() != 0 && someNewLoaded);
 	if (!m_mainWnd)	// all non-GUI related stuff already done
 	{
 		return;
@@ -312,7 +320,7 @@ QMenu * iAModuleDispatcher::getMenuWithTitle(QMenu * parentMenu, QString const &
 	for (int i = 0; i < submenus.size(); ++i)
 	{
 		if (submenus.at(i)->title() == title)
-			return  submenus.at(i);
+			return submenus.at(i);
 	}
 	QMenu * result = new QMenu(parentMenu);
 	result->setTitle(title);

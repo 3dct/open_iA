@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -160,7 +160,8 @@ void StabilityWidget::paintEvent(QPaintEvent *event)
 	painter.drawConvexPolygon(tri, 3);
 	painter.drawText((int)(centerX+stepPixSize+5),(int)(centerY + halfStep - stepPixSize*(m_countY+2)), "rotZ");
 	//draw Z axis
-	/*brush.setStyle(Qt::NoBrush);
+/*
+	brush.setStyle(Qt::NoBrush);
 	painter.setBrush(brush);
 	QPointF cellrect[4];
 	float startAngle = -spanAngleZ/2;
@@ -187,7 +188,8 @@ void StabilityWidget::paintEvent(QPaintEvent *event)
 	tri[2] = QPointF(centerX + (outerRad+halfStep)*sinf(radAng), centerY + (outerRad+halfStep)*cosf(radAng));
 	brush.setColor(colArrowZ);
 	painter.setBrush(brush);
-	painter.drawConvexPolygon(tri, 3);/**/
+	painter.drawConvexPolygon(tri, 3);
+*/
 
 	//QRectF innerRect(shiftedCenterX-stepPixSize*(m_countX+1), centerY - halfStep - stepPixSize*(m_countY+1), 2*(m_countX+1.5)*stepPixSize, 2*(m_countX+1.5)*stepPixSize);
 	//QRectF outerRect(shiftedCenterX-stepPixSize*(m_countX+2), centerY - 3*halfStep - stepPixSize*(m_countY+1), 2*(m_countX+2.5)*stepPixSize, 2*(m_countX+2.5)*stepPixSize);

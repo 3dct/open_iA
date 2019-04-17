@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -48,12 +48,12 @@ class open_iA_Core_API iADiagramFctWidget : public iAChartWidget
 
 public:
 	enum AdditionalMode { MOVE_NEW_POINT_MODE=Y_ZOOM_MODE+1, MOVE_POINT_MODE};
-	
+
 	static const int SELECTED_POINT_RADIUS = 10;
 	static const int SELECTED_POINT_SIZE = 2*SELECTED_POINT_RADIUS;
 	static const int POINT_RADIUS = 4;
 	static const int POINT_SIZE = 2*POINT_RADIUS;
-	
+
 	static const int SELECTED_PIE_RADIUS = 16;
 	static const int SELECTED_PIE_SIZE = 2 * SELECTED_PIE_RADIUS;
 	static const int PIE_RADIUS = 16;
@@ -65,16 +65,15 @@ public:
 
 	int getSelectedFuncPoint() const;
 	bool isFuncEndPoint(int index) const;
-	bool isUpdateAutomatically() const;
-	int ChartHeight() const;
+	int chartHeight() const;
 
-	void SetTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
+	void setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
 
 	dlg_function *getSelectedFunction();
 	std::vector<dlg_function*> &getFunctions();
 
-	void SetAllowTrfReset(bool allow);
-	void SetEnableAdditionalFunctions(bool enable);
+	void setAllowTrfReset(bool allow);
+	void setEnableAdditionalFunctions(bool enable);
 
 	bool isTFTableCreated() const;
 	void closeTFTable();
@@ -83,18 +82,17 @@ public:
 	void addGaussianFunction(double mean, double sigma, double multiplier);
 
 protected:
-	void mousePressEvent(QMouseEvent *event);
-	void mouseReleaseEvent(QMouseEvent *event); 
-	void mouseMoveEvent(QMouseEvent *event);
-	void mouseDoubleClickEvent(QMouseEvent *event);
-	void enterEvent(QEvent *event);
-	void keyPressEvent(QKeyEvent *event);
-	void AddContextMenuEntries(QMenu* contextMenu) override;
-	virtual void changeMode(int newMode, QMouseEvent *event) override;
+	void mousePressEvent(QMouseEvent *event) override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
+	void mouseMoveEvent(QMouseEvent *event) override;
+	void mouseDoubleClickEvent(QMouseEvent *event) override;
+	void enterEvent(QEvent *event) override;
+	void keyPressEvent(QKeyEvent *event) override;
+	void addContextMenuEntries(QMenu* contextMenu) override;
+	void changeMode(int newMode, QMouseEvent *event) override;
 
 	MdiChild*      activeChild;
 	std::vector<dlg_function*> functions;
-	bool updateAutomatically;
 	unsigned int selectedFunction;
 signals:
 	void updateViews();
@@ -102,15 +100,12 @@ signals:
 	void noPointSelected();
 	void endPointSelected();
 	void active();
-	void autoUpdateChanged(bool toggled);
 	void applyTFForAll();
-	void DblClicked();
 	void updateTFTable();
 
 public slots:
 	int deletePoint();
 	void changeColor(QMouseEvent *event = NULL);
-	void autoUpdate(bool toggled);
 	void resetTrf();
 	void updateTrf();
 	void loadTransferFunction();
@@ -123,7 +118,7 @@ public slots:
 	bool saveFunctions();
 	void removeFunction();
 	void showTFTable();
-	void TFTableIsFinished();
+	void tfTableIsFinished();
 
 protected:
 	virtual void drawFunctions(QPainter &painter);
@@ -132,6 +127,6 @@ private:
 	bool m_allowTrfReset;
 	bool m_enableAdditionalFunctions;
 	dlg_TFTable* TFTable;
-	void NewTransferFunction();
-	void DrawAfterPlots(QPainter& painter) override;
+	void newTransferFunction();
+	void drawAfterPlots(QPainter& painter) override;
 };

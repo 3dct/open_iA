@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -28,6 +28,7 @@
 #include "mdichild.h"
 
 #include <vtkActor.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 
 #include <QFileDialog>
@@ -35,8 +36,7 @@
 
 #include <cassert>
 
-iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0*/,
-	bool decorations /*= true*/, bool magicLensAvailable /*= true*/) :
+iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_container, bool decorations /*= true*/, bool magicLensAvailable /*= true*/) :
 
 		QObject(parent),
 		m_mode(mode),
@@ -47,7 +47,7 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
 	}
 	m_data		= new iASlicerData(this, parent, decorations);
-	m_widget	= new iASlicerWidget(this, widget_container, shareWidget, f, decorations);
+	m_widget	= new iASlicerWidget(this, widget_container, decorations);
 
 	assert(m_widget);
 	if (!m_widget)
@@ -60,8 +60,7 @@ iASlicer::iASlicer( QWidget * parent, const iASlicerMode mode, QWidget * widget_
 
 	if (m_magicLens)
 	{
-		m_magicLens->InitWidget(m_widget, shareWidget, f);
-		m_magicLens->SetScaleCoefficient(static_cast<double>(m_magicLens->GetSize()) / m_widget->height());
+		m_magicLens->SetRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_widget->GetRenderWindow()));
 	}
 }
 
@@ -84,7 +83,7 @@ void iASlicer::ConnectToMdiChildSlots()
 		return;//TODO: exceptions?
 	// enable linked view (similarity rendering for metadata visualization
 	connect( m_data, SIGNAL( oslicerPos(int, int, int, int) ),	mdi_parent,	SLOT( updateRenderers(int, int, int, int) ) );
-	
+
 	connect( m_data, SIGNAL(msg(QString)),  mdi_parent, SLOT(addMsg(QString)));
 	connect( m_data, SIGNAL(progress(int)), mdi_parent, SLOT(updateProgressBar(int))) ;
 }
@@ -142,9 +141,7 @@ void iASlicer::setResliceChannelAxesOrigin(iAChannelID id, double x, double y, d
 {
 	m_data->setResliceChannelAxesOrigin(id, x, y, z);
 	if (m_magicLens)
-	{
 		m_magicLens->UpdateColors();
-	}
 }
 
 void iASlicer::setPositionMarkerCenter(double x, double y)
@@ -154,12 +151,12 @@ void iASlicer::setPositionMarkerCenter(double x, double y)
 
 void iASlicer::update()
 {
-	m_data->update();
-	if (m_magicLens)
+	if (m_widget->isVisible())
 	{
-		m_magicLens->Render();
-	}
-}
+		m_data->update();
+		if (m_magicLens)
+			m_magicLens->Render();
+	}}
 
 void iASlicer::saveAsImage() const
 {
@@ -226,6 +223,16 @@ void iASlicer::setSliceNumber( int sliceNumber )
 	update();
 }
 
+void iASlicer::setSlabThickness(int thickness)
+{
+	m_data->setSlabThickness(thickness);
+}
+
+void iASlicer::setSlabCompositeMode(int compositeMode)
+{
+	m_data->setSlabCompositeMode(compositeMode);
+}
+
 vtkRenderer * iASlicer::GetRenderer() const
 {
 	return m_data->GetRenderer();
@@ -265,6 +272,7 @@ void iASlicer::setup( iASingleSlicerSettings const & settings )
 	{
 		m_widget->updateMagicLens();
 	}
+	m_widget->GetRenderWindow()->Render();
 }
 
 void iASlicer::initializeWidget( vtkImageData *imageData, vtkPoints *points /*= 0*/ )
@@ -275,16 +283,6 @@ void iASlicer::initializeWidget( vtkImageData *imageData, vtkPoints *points /*= 
 void iASlicer::show()
 {
 	m_widget->show();
-}
-
-void iASlicer::setSliceProfileOn( bool isOn )
-{
-	m_widget->setSliceProfileOn(isOn);
-}
-
-void iASlicer::setArbitraryProfileOn( bool isOn )
-{
-	m_widget->setArbitraryProfileOn(isOn);
 }
 
 void iASlicer::setStatisticalExtent( int statExt )
@@ -300,6 +298,7 @@ void iASlicer::SetMagicLensEnabled( bool isEnabled )
 		return;
 	}
 	m_magicLens->SetEnabled(isEnabled);
+	m_data->SetRightButtonDragZoomEnabled(!isEnabled);
 	m_data->setShowText(!isEnabled);
 	widget()->updateMagicLens();
 }
@@ -312,8 +311,12 @@ void iASlicer::SetMagicLensSize(int newSize)
 		return;
 	}
 	m_magicLens->SetSize(newSize);
-	m_magicLens->SetScaleCoefficient(static_cast<double>(m_magicLens->GetSize()) / widget()->height());
 	widget()->updateMagicLens();
+}
+
+int iASlicer::GetMagicLensSize() const
+{
+	return m_magicLens ? m_magicLens->GetSize() : 0;
 }
 
 void iASlicer::SetMagicLensFrameWidth(int newWidth)
@@ -340,13 +343,30 @@ void iASlicer::SetMagicLensCount(int count)
 
 void iASlicer::SetMagicLensInput(iAChannelID id)
 {
+	if (!m_magicLens)
+	{
+		DEBUG_LOG("SetMagicLensInput called on slicer which doesn't have a magic lens!");
+		return;
+	}
 	m_data->setMagicLensInput(id);
 	m_magicLensInput = id;
+	update();
 }
 
 void iASlicer::SetMagicLensOpacity(double opacity)
 {
+	if (!m_magicLens)
+	{
+		DEBUG_LOG("SetMagicLensOpacity called on slicer which doesn't have a magic lens!");
+		return;
+	}
 	m_magicLens->SetOpacity(opacity);
+	update();
+}
+
+double iASlicer::GetMagicLensOpacity() const
+{
+	return (m_magicLens) ? m_magicLens->GetOpacity() : 0;
 }
 
 vtkGenericOpenGLRenderWindow * iASlicer::GetRenderWindow() const

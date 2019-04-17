@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -19,6 +19,8 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
+
+#include "open_iA_Core_export.h"
 
 #include <QObject>
 #include <QString>
@@ -56,7 +58,7 @@ class iAModuleInterface;
 	#define MODULE_HANDLE void*
 #endif
 
-struct iALoadedModule
+struct open_iA_Core_API iALoadedModule
 {
 	iALoadedModule();
 	iALoadedModule(QString const & n, MODULE_HANDLE h, iAModuleInterface* i);
@@ -77,7 +79,7 @@ public:
 	MainWindow * GetMainWnd() const;
 	void AddModuleAction(QAction * action, bool isDisablable);
 	void SetModuleActionsEnabled( bool isEnabled );
-	template <typename T> T* GetModule(T* type);
+	template <typename T> T* GetModule();
 	void ChildCreated(MdiChild* child);
 	QMenu * getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable = true);
 	void AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable = true);
@@ -96,7 +98,7 @@ private:
 	void RunFilter(int filterID);
 };
 
-template <typename T> T* iAModuleDispatcher::GetModule(T* type)
+template <typename T> T* iAModuleDispatcher::GetModule()
 {
 	for (iALoadedModule m: m_loadedModules)
 	{

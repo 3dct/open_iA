@@ -416,6 +416,7 @@ QProgressBar
 		border-top-right-radius:  0px;
 		border-bottom-left-radius:  0px;
 		border-top-left-radius:  0px;
+		text-align: center;
 	}
 	QProgressBar::chunk
 	{
@@ -763,4 +764,25 @@ QSizeGrip
 		image: url(:/images/sizeGrip.png);
 		width: 16px;
 		height: 16px;
+	}
+/****************************************************************************
+Disabled Inputs
+****************************************************************************/
+	QLabel:disabled,
+	QCheckBox:disabled,
+	QLineEdit:disabled,
+	QComboBox:disabled,
+	QSpinBox:disabled,
+	QDoubleSpinBox:disabled,
+	QPushButton:disabled
+	{
+		color: rgba(75, 75, 75, 75);
+	}
+	QLineEdit:disabled,
+	QComboBox:disabled,
+	QSpinBox:disabled,
+	QDoubleSpinBox:disabled
+	{
+		border: 1px solid rgba(205, 205, 205, 255);
+		background-color: rgba(235, 235, 235, 255);
 	}

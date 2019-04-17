@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -38,8 +38,8 @@ void Reader::read(QString const & filename, iAConnector* con, int channel,
 	std::vector<vtkSmartPointer<vtkImageData> > * volumes)
 {
 	OIFReader* reader = new OIFReader();
-	std::string fnStr(filename.toStdString());
-	reader->SetFile(fnStr);
+	auto wfn = filename.toStdWString();
+	reader->SetFile(wfn);
 	reader->SetSliceSeq(false);
 	std::wstring timeId(L"_T");
 	reader->SetTimeId(timeId);

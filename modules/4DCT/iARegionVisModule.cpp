@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,6 +23,14 @@
 #include "iACalculateDensityMap.h"
 #include "iA4DCTVisWin.h"	// ToDo: Scale!
 
+#include <io/iAFileUtils.h>
+
+#include <itkBinaryThresholdImageFilter.h>
+#include <itkResampleImageFilter.h>
+#include <itkImageToVTKImageFilter.h>
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
+
 #include <vtkActor.h>
 #include <vtkDepthSortPolyData.h>
 #include <vtkImageData.h>
@@ -33,12 +41,6 @@
 #include <vtkPolyDataSilhouette.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
-
-#include <itkBinaryThresholdImageFilter.h>
-#include <itkResampleImageFilter.h>
-#include <itkImageToVTKImageFilter.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 
 iARegionVisModule::iARegionVisModule( )
 	: iAVisModule( )
@@ -155,7 +157,7 @@ void iARegionVisModule::setImage( QString fileName )
 	{
 		typedef itk::ImageFileReader<DensityMapImageType> ReaderType;
 		ReaderType::Pointer reader = ReaderType::New( );
-		reader->SetFileName( fileName.toStdString( ) );
+		reader->SetFileName( getLocalEncodingFileName(fileName) );
 		reader->Update( );
 
 		DensityMapImageType::IndexType index; index.Fill( 0 );
@@ -259,7 +261,7 @@ void iARegionVisModule::calculateDensityMap( QString fileName, iARegionVisModule
 	typedef itk::Image<double, 3> DoubleImageType;
 	// read image
 	vtkSmartPointer<vtkMetaImageReader> reader = vtkSmartPointer<vtkMetaImageReader>::New( );
-	reader->SetFileName( fileName.toStdString( ).c_str( ) );
+	reader->SetFileName( getLocalEncodingFileName(fileName).c_str( ) );
 	reader->Update( );
 
 	// calculate density map

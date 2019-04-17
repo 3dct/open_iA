@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -40,7 +40,8 @@ static mapQString2int fill_extensionToId()
 	m["PARS"] = PARS_READER;
 	m["VGI"] = VGI_READER;
 	m["DCM"] = DCM_READER;
-	m["NRRD"] = NRRD_READER;
+//	m["NRRD"] = NRRD_READER; see iAIOProvider.cpp why this is commented out
+//	m["NHDR"] = NRRD_READER;
 	m["TIF"] = MHD_READER;
 	m["TIFF"] = MHD_READER;
 	m["JPG"] = MHD_READER;
@@ -51,6 +52,8 @@ static mapQString2int fill_extensionToId()
 	m["OIF"] = OIF_READER;
 	m["AM"] = AM_READER;
 	m["VTI"] = VTI_READER;
+	m["VTK"] = VTK_READER;
+	m["MOD"] = PROJECT_READER;
 #ifdef USE_HDF5
 	m["HDF5"] = HDF5_READER;
 	m["H5"] = HDF5_READER;

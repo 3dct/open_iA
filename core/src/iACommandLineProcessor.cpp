@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -109,13 +109,38 @@ namespace
 				}
 				if (p->Max() != std::numeric_limits<double>::max())
 				{
-					std::cout << " max=" << p->Min();
+					std::cout << " max=" << p->Max();
 				}
 			case Boolean:		// intentional fall-through!
 				std::cout << " default=" << p->DefaultValue().toString().toStdString();
 				break;
 			case Categorical:
 				std::cout << " possible values=(" << p->DefaultValue().toStringList().join(",").toStdString() << ")";
+				break;
+			case FileNameOpen:
+				std::cout << " specify an existing file.";
+				break;
+			case FileNamesOpen:
+				std::cout << " specify a list of existing filenames.";
+				break;
+			case FileNameSave:
+				std::cout << " specify an output filename.";
+				break;
+			case Folder:
+				std::cout << " specify a folder.";
+				break;
+			case String: // intentional fall-through!
+			case Text:
+				std::cout << " text, see filter description for details.";
+				break;
+			case FilterName:
+				std::cout << " name of another filter.";
+				break;
+			case FilterParameters:
+				std::cout << " parameters of a filter.";
+				break;
+			default: // no more help text available
+				break;
 			}
 			std::cout << std::endl;
 		}
@@ -142,24 +167,29 @@ namespace
 		}
 	}
 
-	void PrintUsage()
+	void PrintUsage(const char * version)
 	{
-		std::cout << "open_iA command line tool. Usage:" << std::endl
-			<< "  open_iA_cmd [-l] [-h ...] [-r ...]" << std::endl
+		std::cout << "open_iA command line tool, version " << version << "." << std::endl
+			<< "Usage:" << std::endl
+			<< "  > open_iA_cmd (-l|-h ...|-r ...|-p ...)" << std::endl
+			<< "Options:" << std::endl
 			<< "     -l" << std::endl
 			<< "         List available filters" << std::endl
 			<< "     -h FilterName" << std::endl
 			<< "         Print help on a specific filter" << std::endl
-			<< "     -r FilterName -i Input -o Output -p Parameters [-q] [-c]" << std::endl
+			<< "     -r FilterName -i Input -o Output -p Parameters [-q] [-c] [-f] [-s n]" << std::endl
 			<< "         Run the filter given by FilterName with Parameters on given Input, write to Output" << std::endl
 			<< "           -q   quiet - no output except for error messages" << std::endl
 			<< "           -c   compress output" << std::endl
 			<< "           -f   overwrite output if it exists" << std::endl
+			<< "           -s n separate input starts at nth filename given under -i" << std::endl // (required for some filters, e.g. Extended Random Walker)
+			<< "         Note: Only image output is written to the filename(s) specified after -o," << std::endl
+			<< "           filters returning one or more output values write those values to the command line." << std::endl
 			<< "     -p FilterName" << std::endl
 			<< "         Output the Parameter Descriptor for the given filter (required for sampling)." << std::endl;
 	}
 
-	enum ParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite};
+	enum ParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite, InputSeparation};
 
 	ParseMode GetMode(QString arg)
 	{
@@ -169,6 +199,7 @@ namespace
 		else if (arg == "-q") return Quiet;
 		else if (arg == "-c") return Compress;
 		else if (arg == "-f") return Overwrite;
+		else if (arg == "-s") return InputSeparation;
 		else return InvalidParameter;
 	}
 
@@ -199,6 +230,19 @@ namespace
 			case Overwrite:
 				mode = GetMode(args[a]);
 				break;
+			case InputSeparation: {
+				bool ok;
+				int inputSeparation = args[a].toInt(&ok);
+				if (!ok)
+				{
+					std::cout << "Invalid value '" << args[a].toStdString()
+						<< "' for input separation, expected a int!" << std::endl;
+					return 1;
+				}
+				filter->SetFirstInputChannels(inputSeparation);
+				mode = None;
+				break;
+			}
 			case Input:
 			case Output:
 			case Parameter:
@@ -362,7 +406,7 @@ namespace
 	}
 }
 
-int ProcessCommandLine(int argc, char const * const * argv)
+int ProcessCommandLine(int argc, char const * const * argv, const char * version)
 {
 	auto dispatcher = new iAModuleDispatcher(QFileInfo(argv[0]).absolutePath());
 	dispatcher->InitializeModules(iAStdOutLogger::Get());
@@ -389,7 +433,7 @@ int ProcessCommandLine(int argc, char const * const * argv)
 	}
 	else
 	{
-		PrintUsage();
+		PrintUsage(version);
 	}
 	return 0;
 }

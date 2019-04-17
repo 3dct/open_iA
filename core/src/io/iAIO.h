@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -28,18 +28,16 @@
 
 #include <QDir>
 #include <QString>
+#include <QSharedPointer>
 
 #include <vector>
 
+class vtkCamera;
 class vtkImageData;
-class vtkMetaImageWriter;
 class vtkPolyData;
-class vtkSTLWriter;
 class vtkStringArray;
-class vtkTable;
 
-class iASimReader;
-
+class iAModalityList;
 
 class open_iA_Core_API iAIO : public iAAlgorithm
 {
@@ -49,17 +47,15 @@ public:
 
 	iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *parent = 0, std::vector<vtkSmartPointer<vtkImageData> > * volumes = 0, std::vector<QString> * fileNames = 0);
 	iAIO(iALogger* logger, QWidget *parent, std::vector<vtkSmartPointer<vtkImageData> > * volumes, std::vector<QString> * fileNames = 0);//TODO: QNDH for XRF volume stack loading
+	iAIO(QSharedPointer<iAModalityList> modalities, vtkCamera* cam, iALogger* logger);
 	virtual ~iAIO();
 	void init(QWidget *par);
-
 	bool setupIO( IOType type, QString f, bool comp = false, int channel=-1);
-	void iosettingswriter();
-	void iosettingsreader();
-
 	void setAdditionalInfo(QString const & additionalInfo);
 	QString getAdditionalInfo();
-
 	QString getFileName();
+	QSharedPointer<iAModalityList> GetModalities();
+	int getIOID() const;
 
 Q_SIGNALS:
 	void done(bool active = false);
@@ -67,7 +63,7 @@ Q_SIGNALS:
 
 protected:
 	void run() override;
-	
+
 private:
 	bool setupRAWReader( QString f );
 	bool setupPARSReader( QString f );
@@ -77,32 +73,37 @@ private:
 	bool setupVolumeStackMHDReader(QString f);
 	bool setupVolumeStackVolstackReader(QString f);
 	bool setupVolumeStackVolStackWriter(QString f);
-	void FillFileNameArray(int * indexRange, int digitsInIndex);
+	void FillFileNameArray(int * indexRange, int digitsInIndex, int stepSize = 1);
 
 	void readImageStack();
-	void postImageReadActions();
 	void readRawImage();
 	void loadMetaImageFile(QString const & fileName);
+	void readVTKFile(); 
+
 	void readVolumeStack( );
 	void readVolumeMHDStack( );
 	void readImageData( );
 	void readMetaImage( );
 	void readSTL( );
 	void readDCM( );
-	void readNRRD( );
+	//void readNRRD( );	 // see iAIOProvider.cpp why this is commented out
+	void readHDF5File();
+	void readProject();
 
 	void writeMetaImage(vtkSmartPointer<vtkImageData> imgToWrite, QString fileName);
 	void writeVolumeStack();
 	void writeSTL( );
 	void writeImageStack( );
+	void writeProject();
 
+	void postImageReadActions();
 	void printSTLFileInfos();
-
-	vtkMetaImageWriter *metaImageWriter;
+	void StoreIOSettings();
+	void LoadIOSettings();
 
 	QWidget *parent;
 	QString fileName;
-	QDir f_dir; 
+	QDir f_dir;
 
 	QString extension;
 	QString prefix;
@@ -115,7 +116,7 @@ private:
 	double spacing[3];
 	double origin[3];
 	bool compression;
-	
+
 	int rawSizeX,rawSizeY, rawSizeZ;
 	double rawSpaceX, rawSpaceY, rawSpaceZ;
 	double rawOriginX,rawOriginY, rawOriginZ;
@@ -129,7 +130,9 @@ private:
 	int m_channel;
 
 	QVector<QString> m_hdf5Path;
+	QSharedPointer<iAModalityList> m_modalities;
 	bool m_isITKHDF5;
 	double m_hdf5Spacing[3];
-	void loadHDF5File();
+
+	vtkCamera* m_camera;
 };

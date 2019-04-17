@@ -301,7 +301,7 @@ protected:
 
   /** Write the name-value pairs of the filter data members to the
    * supplied output stream. */
-  void PrintSelf(std::ostream &os, Indent indent) const;
+  void PrintSelf(std::ostream &os, Indent indent) const override;
 
 
   /** Generate the information describing the output data. The default
@@ -309,7 +309,7 @@ protected:
    * output. The filter calls that superclass' implementation of this method
    * and then it sets the length of the output image pixel (i.e., the array of
    * memberships) to the number of classes. */
-  virtual void GenerateOutputInformation();
+  void GenerateOutputInformation() override;
 
   /** Transforms a given pixel of the input image to the equivalent
    * pixel of centroid type. */
@@ -345,7 +345,7 @@ protected:
    * provide a ThreadedGenerateData() instead.
    *
    * \sa ThreadedGenerateData() */
-  virtual void GenerateData();
+  void GenerateData() override;
 
 
   /** Internal structure used for passing image data into the threading

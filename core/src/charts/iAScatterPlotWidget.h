@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,14 +24,23 @@
 
 #include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
 
+#include <QtGlobal>
+#include <vtkVersion.h>
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+#include <QOpenGLWidget>
+#else
 #include <QGLWidget>
+#endif
 
 class iASPLOMData;
 class iAScatterPlotStandaloneHandler;
 
-/** Widget for using a single scatter plot (outside of a SPLOM)
-*/
+//! Widget for using a single scatter plot (outside of a SPLOM)
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
+class open_iA_Core_API iAScatterPlotWidget : public QOpenGLWidget
+#else
 class open_iA_Core_API iAScatterPlotWidget : public QGLWidget
+#endif
 {
 public:
 	static const int PaddingTop;
@@ -40,22 +49,23 @@ public:
 	int PaddingLeft();
 	static const int TextPadding;
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
-	QVector<unsigned int> GetSelection();
-	void SetSelection(QVector<unsigned int> const & selection);
+	std::vector<size_t> & GetSelection();
+	void SetSelection(std::vector<size_t> const & selection);
 	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void SetSelectionColor(QColor const & c);
 	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
 protected:
-	virtual void paintEvent(QPaintEvent * event);
-	virtual void resizeEvent(QResizeEvent* event);
-	virtual void wheelEvent(QWheelEvent * event);
-	virtual void mousePressEvent(QMouseEvent * event);
-	virtual void mouseReleaseEvent(QMouseEvent * event);
-	virtual void mouseMoveEvent(QMouseEvent * event);
-	virtual void keyPressEvent(QKeyEvent * event);
+	void paintEvent(QPaintEvent * event) override;
+	void resizeEvent(QResizeEvent* event) override;
+	void wheelEvent(QWheelEvent * event) override;
+	void mousePressEvent(QMouseEvent * event) override;
+	void mouseReleaseEvent(QMouseEvent * event) override;
+	void mouseMoveEvent(QMouseEvent * event) override;
+	void keyPressEvent(QKeyEvent * event) override;
 public:
 	iAScatterPlot* m_scatterplot;
 private:
+	void adjustScatterPlotSize();
 	QSharedPointer<iASPLOMData> m_data;
 	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
 	int m_fontHeight, m_maxTickLabelWidth;

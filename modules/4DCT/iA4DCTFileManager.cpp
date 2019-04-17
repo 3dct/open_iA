@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -19,6 +19,8 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iA4DCTFileManager.h"
+
+#include "io/iAFileUtils.h"
 
 #include <vtkMetaImageReader.h>
 #include <vtkImageData.h>
@@ -45,7 +47,7 @@ iA4DCTFileManager::ReaderType iA4DCTFileManager::findOrCreateImage( iA4DCTFileDa
 	if( m_map.find( key ) == m_map.end( ) )
 	{	// the key does not exist
 		ReaderType reader = ReaderType::New( );
-		reader->SetFileName( file.Path.toStdString( ).c_str( ) );
+		reader->SetFileName( getLocalEncodingFileName(file.Path).c_str( ) );
 		reader->Update( );
 		m_map[ key ] = reader;
 	}

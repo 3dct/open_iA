@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -135,29 +135,10 @@ inline float Rand( float a_Range );
 		unsigned int USE_SAH;
 		//#define SQRDISTANCE(A,B) ((A.x-B.x)*(A.x-B.x)+(A.y-B.y)*(A.y-B.y)+(A.z-B.z)*(A.z-B.z))
 	};
-	/**
-	* Parses config (from local config store). Initializes some variables.
-	* @param a cfg_filename filename of config file.
-	*/
+	//! Parses config (from local config store). Initializes some variables.
+	//! @param settings struct where the options will be stored
 	int ParseConfigFile(SETTINGS * settings);
-	/**
-	* Converts radians in degrees.
-	* @param rad radians value.
-	* @return degrees value
-	*/
-	inline double rad2deg(float rad)
-	{
-		return rad*180/M_PI;
-	}
-	/**
-	* Converts degrees in radians .
-	* @param degrees value.
-	* @return rads value
-	*/
-	inline double deg2rad(float deg)
-	{
-		return (deg/180.0f)*M_PI;
-	}
+
 	inline void Time2Char(int ftime, char *t)
 	{
 		t[6] = (ftime / 100) % 10 + '0';
@@ -170,13 +151,11 @@ inline float Rand( float a_Range );
 		t[1] = (mins % 10) + '0';
 		t[0] = ((mins / 10) % 10) + '0';
 	}
-	void normalize(iAVec3& u);
-	iAVec3 projectPtOnLine(iAVec3 &o, iAVec3 &dir, iAVec3& pt);
-	float distPointToLine(iAVec3 &o, iAVec3 &dir, iAVec3& pt);
-	float distLineToLine( iAVec3 & o1, iAVec3 & d1, iAVec3 & o2, iAVec3 & d2 );
-	/**	\struct arotation_tabb.
-	\brief Structure representing combination of parameters in single placement.
-	*/
+	iAVec3f projectPtOnLine(iAVec3f & o, iAVec3f & dir, iAVec3f & pt);
+	float distPointToLine(iAVec3f & o, iAVec3f & dir, iAVec3f & pt);
+	float distLineToLine( iAVec3f & o1, iAVec3f & d1, iAVec3f & o2, iAVec3f & d2 );
+	
+	//! Structure representing combination of parameters in single placement.
 	struct parameters_t
 	{
 		parameters_t(double a_av_pen_len, double a_av_dip_ang, double a_max_pen_len, double a_badSurfPrcnt) :
@@ -221,55 +200,40 @@ inline float Rand( float a_Range );
 		double badAreaPercentage;
 	};
 
-	/**	\struct rotation_t.
-	\brief Structure representing rotations of rendering about x, y, z axes in radians.
-	*/
+	//! Structure representing rotations of rendering about x, y, z axes in radians.
 	struct rotation_t
 	{
 		rotation_t() :rotX(0), rotY(0), rotZ(0) {}
 		rotation_t(float a_rotX, float a_rotY, float a_rotZ) :rotX(a_rotX), rotY(a_rotY), rotZ(a_rotZ) {}
 		float rotX, rotY, rotZ;
 	};
-	/**	\struct aabb.
-		\brief Structure representing axis aligned bounding box.
 
-		Has ranges of each of 3 axes values, center coordinates, half-dimensions, index of maximum dimension.	
-	*/
+	//! Structure representing axis aligned bounding box.
+	//! Has ranges of each of 3 axes values, center coordinates, half-dimensions, index of maximum dimension.	
 	struct aabb
 	{
 		aabb();
 		aabb(aabb& el);
 		aabb(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2);
-		/**
-		* Determines if v is inside AABB.
-		* @note if point is on bound it considered to be inside AABB
-		* @return 1 if inside, 0 otherwise
-		*/
-		inline int isInside(iAVec3& v) const
+		//! Determines if v is inside AABB.
+		//! @note if point is on bound it considered to be inside AABB
+		//! @return 1 if inside, 0 otherwise
+		inline int isInside(iAVec3f& v) const
 		{
-			if(v.x<=x2)
-				if(v.x>=x1) 
-					if(v.y<=y2)
-						if(v.y>=y1) 
-							if(v.z<=z2)
-								if(v.z>=z1)
-									return 1;
+			if (v.x()<=x2 && v.x()>=x1 &&
+			    v.y()<=y2 && v.y()>=y1 &&
+				v.z()<=z2 && v.z()>=z1)
+				return 1;
 			return 0;
 		}
 		void setData(float a_x1, float a_x2, float a_y1, float a_y2, float a_z1, float a_z2);
 		void setData(const aabb & el);
-		/**
-		* Calculate center vector of bb.
-		*/
-		iAVec3 center() const;
-		/**
-		* Calculate half size vector of bb.
-		*/
-		iAVec3 half_size() const;
-		/**
-		* Calculates mainDim member (index of maximum dimension).
-		*/
-		int mainDim();
+		//! Calculate center vector of bb.
+		iAVec3f center() const;
+		//! Calculate half size vector of bb.
+		iAVec3f half_size() const;
+		//! Calculates index of maximum dimension.
+		int mainDim() const;
 		float surfaceArea();
 
 		float x1,x2,y1,y2,z1,z2;
@@ -280,26 +244,22 @@ inline float Rand( float a_Range );
 	{
 	public:
 		Vertex() {};
-		Vertex( iAVec3 a_Pos ) : m_Pos( a_Pos ) {};
+		Vertex( iAVec3f a_Pos ) : m_Pos( a_Pos ) {};
 		//float GetU() { return m_U; }
 		//float GetV() { return m_V; }
-		iAVec3& GetNormal() { return m_Normal; }
-		iAVec3& GetPos() { return m_Pos; }
+		iAVec3f & GetNormal() { return m_Normal; }
+		iAVec3f & GetPos() { return m_Pos; }
 		//void SetUV( float a_U, float a_V ) { m_U = a_U; m_V = a_V; }
-		void SetPos( iAVec3& a_Pos ) { m_Pos = a_Pos; }
-		void SetNormal( iAVec3& a_N ) { m_Normal = a_N; }
+		void SetPos( iAVec3f& a_Pos ) { m_Pos = a_Pos; }
+		void SetNormal( iAVec3f& a_N ) { m_Normal = a_N; }
 	private:
-		iAVec3 m_Pos;
-		iAVec3 m_Normal;
+		iAVec3f m_Pos;
+		iAVec3f m_Normal;
 	};
-	/**	\struct triangle.
-		\brief Class representing triangle in 3d space.
-
-		Containing all parameters needed for triangle description.	
-	*/
+	//! Class representing triangle in 3d space, containing all parameters needed for triangle description.
 	struct triangle
 	{
-		triangle( iAVec3* a_V1, iAVec3* a_V2, iAVec3* a_V3)
+		triangle( iAVec3f* a_V1, iAVec3f* a_V2, iAVec3f* a_V3)
 		{
 			vertices[0] = a_V1;
 			vertices[1] = a_V2;
@@ -311,42 +271,38 @@ inline float Rand( float a_Range );
 			vertices[1] = 0;
 			vertices[2] = 0;
 		};
-		iAVec3 N;
-		iAVec3 *vertices[3];// 12
+		iAVec3f N;
+		iAVec3f *vertices[3];// 12
 	};
 
 	struct wald_tri
 	{
-		iAVec3 m_N;
-		iAVec3 m_A;
+		iAVec3f m_N;
+		iAVec3f m_A;
 		float nu, nv, nd;
 		unsigned int k;	
 		float bnu, bnv;
 		float cnu, cnv;	
 	};
 	struct ct_state{
-		iAVec3 o;///< rays origin
-		iAVec3 c;///< corner of plate
-		iAVec3 dx;///< dx of plane in 3d
-		iAVec3 dy;///< dy of plane in 3d
+		iAVec3f o;///< rays origin
+		iAVec3f c;///< corner of plate
+		iAVec3f dx;///< dx of plane in 3d
+		iAVec3f dy;///< dy of plane in 3d
 	};
-	/**	\struct plane.
-	\brief Class representing plane in 3d space.
-
-	Containing all parameters needed for plane description.	
-	*/
+	//! Class representing plane in 3d space, containing all parameters needed for plane description.
 	class plane
 	{
 	public:
 		plane() : N( 0, 0, 0 ), D( 0 ) {};
-		plane( iAVec3 a_Normal, float a_D ) : N( a_Normal ), D( a_D ) {};
-		iAVec3 N;
+		plane( iAVec3f a_Normal, float a_D ) : N( a_Normal ), D( a_D ) {};
+		iAVec3f N;
 		float D;
 	};
 
 	struct ModelData 
 	{
-		std::vector<triangle*>		stlMesh; ///< loaded mesh's triangles vector
-		std::vector<iAVec3*>		vertices;///< loaded mesh's vertices vector
-		aabb box;///< loaded mesh's aabb
+		std::vector<triangle*> stlMesh; //!< loaded mesh's triangles vector
+		std::vector<iAVec3f*> vertices; //!< loaded mesh's vertices vector
+		aabb box;                       //!< loaded mesh's aabb
 	};

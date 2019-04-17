@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,22 +18,33 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iATripleModalityWidget.h"
 
-#include "RightBorderLayout.h"
-#include "dlg_modalities.h"
-#include "iAChannelVisualizationData.h"
-#include "iAModalityTransfer.h"
-#include "iAModalityList.h"
 #include "iABarycentricContextRenderer.h"
-#include "iAVolumeRenderer.h"
-#include "iARenderer.h"
+#include "iABarycentricTriangleWidget.h"
+#include "iASimpleSlicerWidget.h"
+#include "RightBorderLayout.h"
 
-#include "vtkImageData.h"
-#include "vtkColorTransferFunction.h"
-#include "vtkPiecewiseFunction.h"
-#include "vtkSmartPointer.h"
+#include <charts/iADiagramFctWidget.h>
+#include <charts/iAHistogramData.h>
+#include <charts/iAPlotTypes.h>
+#include <charts/iAProfileWidget.h>
+#include <dlg_modalities.h>
+#include <dlg_transfer.h>
+#include <iAChannelVisualizationData.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAModalityTransfer.h>
+#include <iAPreferences.h>
+#include <iASlicerData.h>
+#include <mdichild.h>
+
+#include <vtkCamera.h>
+#include <vtkImageActor.h>
+#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkSmartPointer.h>
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -41,21 +52,6 @@
 
 // Debug
 #include <QDebug>
-
-// Required for the histogram
-#include "iAModality.h"
-#include "charts/iAHistogramData.h"
-#include "charts/iADiagramFctWidget.h"
-#include "charts/iAPlotTypes.h"
-#include "charts/iAProfileWidget.h"
-#include "iAPreferences.h"
-#include "dlg_transfer.h"
-
-// Required to create slicer
-#include <vtkColorTransferFunction.h>
-#include <vtkCamera.h>
-#include <vtkImageActor.h>
-#include <iASlicerData.h>
 
 //static const char *WEIGHT_FORMAT = "%.10f";
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
@@ -321,7 +317,7 @@ void iATripleModalityWidget::updateTransferFunction(int index)
 {
 	updateOriginalTransferFunction(index);
 	m_slicerWidgets[index]->update();
-	m_histograms[index]->redraw();
+	m_histograms[index]->update();
 	emit transferFunctionChanged();
 }
 
@@ -494,23 +490,23 @@ void iATripleModalityWidget::updateCopyTransferFunction(int index)
 		iATransferFunction *copy = m_copyTFs[index];
 
 		double valCol[6], valOp[4];
-		copy->GetColorFunction()->RemoveAllPoints();
-		copy->GetOpacityFunction()->RemoveAllPoints();
+		copy->getColorFunction()->RemoveAllPoints();
+		copy->getOpacityFunction()->RemoveAllPoints();
 
 		for (int j = 0; j < effective->GetColorFunction()->GetSize(); ++j)
 		{
-			effective->GetColorFunction()->GetNodeValue(j, valCol);
-			effective->GetOpacityFunction()->GetNodeValue(j, valOp);
+			effective->getColorFunction()->GetNodeValue(j, valCol);
+			effective->getOpacityFunction()->GetNodeValue(j, valOp);
 
 			if (valOp[1] > weight) {
 				valOp[1] = weight;
 			}
 			double copyOp = valOp[1] / weight;
 
-			effective->GetOpacityFunction()->SetNodeValue(j, valOp);
+			effective->getOpacityFunction()->SetNodeValue(j, valOp);
 
-			copy->GetColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
-			copy->GetOpacityFunction()->AddPoint(valOp[0], copyOp, valOp[2], valOp[3]);
+			copy->getColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
+			copy->getOpacityFunction()->AddPoint(valOp[0], copyOp, valOp[2], valOp[3]);
 		}
 	}
 }
@@ -531,18 +527,18 @@ void iATripleModalityWidget::updateOriginalTransferFunction(int index)
 		iATransferFunction *copy = m_copyTFs[index];
 
 		double valCol[6], valOp[4];
-		effective->GetColorFunction()->RemoveAllPoints();
-		effective->GetOpacityFunction()->RemoveAllPoints();
+		effective->getColorFunction()->RemoveAllPoints();
+		effective->getOpacityFunction()->RemoveAllPoints();
 
-		for (int j = 0; j < copy->GetColorFunction()->GetSize(); ++j)
+		for (int j = 0; j < copy->getColorFunction()->GetSize(); ++j)
 		{
-			copy->GetColorFunction()->GetNodeValue(j, valCol);
-			copy->GetOpacityFunction()->GetNodeValue(j, valOp);
+			copy->getColorFunction()->GetNodeValue(j, valCol);
+			copy->getOpacityFunction()->GetNodeValue(j, valOp);
 
 			valOp[1] = valOp[1] * weight; // index 1 means opacity
 
-			effective->GetColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
-			effective->GetOpacityFunction()->AddPoint(valOp[0], valOp[1], valOp[2], valOp[3]);
+			effective->getColorFunction()->AddRGBPoint(valCol[0], valCol[1], valCol[2], valCol[3], valCol[4], valCol[5]);
+			effective->getOpacityFunction()->AddPoint(valOp[0], valOp[1], valOp[2], valOp[3]);
 		}
 	}
 }
@@ -555,8 +551,8 @@ void iATripleModalityWidget::applyWeights()
 {
 	if (isReady()) {
 		for (int i = 0; i < 3; ++i) {
-			vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction();
-			vtkPiecewiseFunction *copy = m_copyTFs[i]->GetOpacityFunction();
+			vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
+			vtkPiecewiseFunction *copy = m_copyTFs[i]->getOpacityFunction();
 
 			double pntVal[4];
 			for (int j = 0; j < copy->GetSize(); ++j)

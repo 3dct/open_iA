@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,29 +15,26 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
 #include "iABarycentricTriangleWidget.h"
+
 #include "iATriangleRenderer.h"
 
+#include <vtkMath.h>
+
+#include <QApplication>    // TODO: really necessary? (just to get the font()!)
+#include <QDebug>    // Debug
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
 #include <QMouseEvent>
 #include <QString>
-#define _USE_MATH_DEFINES // necessary to use M_PI (with math.height)
-#include <math.h>
-
-// TODO: really necessary? (just to get the font()!)
-#include <QApplication>
-
-// Debug
-#include <QDebug>
 
 // Constants (more in the header file!)
-static const qreal RAD60 = M_PI / 3.0;
+static const qreal RAD60 = vtkMath::Pi() / 3.0;
 static const qreal SIN60 = sin(RAD60);
 static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
 static const qreal COS60 = 0.5;
@@ -155,8 +152,7 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 	int aw = width - triangleSpacingLeft - triangleSpacingRight; // available width (for the triangle)
 	int ah = height - triangleSpacingTop - triangleSpacingBottom; // available height (for the triangle)
 	int tw, th; // triangle's width and height
-	if (isTooWide(aw, ah))
-	{
+	if (isTooWide(aw, ah)) {
 		tw = aw;
 		th = getHeightForWidth(aw);
 	} else {
@@ -222,7 +218,7 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 		m_modalityWeightRect[0] = QRect(m_modalityWeightPos[0].x(), m_modalityWeightPos[0].y() - modalityWeightHeight, modalityWeight1width, modalityWeightHeight);
 		m_modalityWeightRect[1] = QRect(m_modalityWeightPos[1].x(), m_modalityWeightPos[1].y() - modalityWeightHeight, modalityWeight2width, modalityWeightHeight);
 		m_modalityWeightRect[2] = QRect(m_modalityWeightPos[2].x(), m_modalityWeightPos[2].y() - modalityWeightHeight, modalityWeight3width, modalityWeightHeight);
-		
+
 	} else {
 		m_modalityLabelPos[0] = QPoint(0, 0); // bottom left
 		m_modalityLabelPos[1] = QPoint(0, 0); // top centerX

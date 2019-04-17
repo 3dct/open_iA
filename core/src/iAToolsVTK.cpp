@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -33,6 +33,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkPNGWriter.h>
 #include <vtkTIFFWriter.h>
+#include <vtkSmartVolumeMapper.h>
 
 #include <QFileInfo>
 #include <QStringList>
@@ -110,7 +111,7 @@ void WriteSingleSliceImage(QString const & filename, vtkImageData* imageData)
 		DEBUG_LOG("Could not write image: Filename has an unknown extension!");
 		return;
 	}
-	writer->SetFileName(filename.toLatin1());
+	writer->SetFileName( getLocalEncodingFileName(filename).c_str() );
 	writer->SetInputData(imageData);
 	writer->Write();
 }
@@ -164,6 +165,28 @@ QStringList const & VTKDataTypeList()
 		<< "VTK_UNSIGNED_CHAR"  << "VTK_CHAR"
 		<< "VTK_UNSIGNED_SHORT" << "VTK_SHORT"
 		<< "VTK_UNSIGNED_INT"   << "VTK_INT"
+		<< "VTK_UNSIGNED_LONG"  << "VTK_LONG"
 		<< "VTK_FLOAT" << "VTK_DOUBLE");
 	return datatypeList;
+}
+
+QMap<int, QString> const & RenderModeMap()
+{
+	static QMap<int, QString> renderModeMap;
+	if (renderModeMap.isEmpty())
+	{
+		renderModeMap.insert(vtkSmartVolumeMapper::DefaultRenderMode, "DefaultRenderMode");
+		renderModeMap.insert(vtkSmartVolumeMapper::RayCastRenderMode, "RayCastRenderMode");
+		renderModeMap.insert(vtkSmartVolumeMapper::GPURenderMode, "GPURenderMode");
+	}
+	return renderModeMap;
+}
+
+int MapRenderModeToEnum(QString const & modeName)
+{
+	for (int key : RenderModeMap().keys())
+		if (RenderModeMap()[key] == modeName)
+			return key;
+
+	return vtkSmartVolumeMapper::DefaultRenderMode;
 }
