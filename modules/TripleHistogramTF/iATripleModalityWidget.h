@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAHistogramAbstract.h"
 #include "BCoord.h"
 
 #include <iASlicerMode.h>

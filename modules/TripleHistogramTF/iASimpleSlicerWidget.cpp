@@ -74,7 +74,7 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 {
 	vtkImageData *imageData = modality->GetImage().GetPointer();
 
-	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->GetColorFunction();
+	vtkColorTransferFunction* colorFunction = modality->GetTransfer()->getColorFunction();
 	m_slicerTransform = vtkTransform::New();
 	m_slicer->initializeData(imageData, m_slicerTransform, colorFunction);
 	m_slicer->initializeWidget(imageData);

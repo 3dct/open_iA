@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iATripleModalityWidget.h"
 
+#include "iAHistogramAbstract.h"
 #include "iABarycentricContextRenderer.h"
 #include "iABarycentricTriangleWidget.h"
 #include "iASimpleSlicerWidget.h"
@@ -378,9 +379,9 @@ void iATripleModalityWidget::updateModalities()
 
 		m_histograms[i] = new iADiagramFctWidget(nullptr, m_mdiChild);
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
-			new	iABarGraphDrawer(m_modalitiesActive[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
-		m_histograms[i]->AddPlot(histogramPlot);
-		m_histograms[i]->SetTransferFunctions(m_copyTFs[i]->GetColorFunction(), m_copyTFs[i]->GetOpacityFunction());
+			new	iABarGraphPlot(m_modalitiesActive[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
+		m_histograms[i]->addPlot(histogramPlot);
+		m_histograms[i]->setTransferFunctions(m_copyTFs[i]->getColorFunction(), m_copyTFs[i]->getOpacityFunction());
 		m_histograms[i]->updateTrf();
 		// }
 
@@ -392,8 +393,8 @@ void iATripleModalityWidget::updateModalities()
 		iAChannelVisualizationData* chData = new iAChannelVisualizationData();
 		m_mdiChild->InsertChannelData(id, chData);
 		vtkImageData* imageData = m_modalitiesActive[i]->GetImage();
-		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->GetTransfer()->GetColorFunction();
-		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->GetTransfer()->GetOpacityFunction();
+		vtkColorTransferFunction* ctf = m_modalitiesActive[i]->GetTransfer()->getColorFunction();
+		vtkPiecewiseFunction* otf = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
 		ResetChannel(chData, imageData, ctf, otf);
 		m_mdiChild->InitChannelRenderer(id, false, true);
 	}
@@ -450,8 +451,8 @@ int iATripleModalityWidget::getModalitiesCount()
 
 iATransferFunction* iATripleModalityWidget::createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacityFunction)
 {
-	colorTf->DeepCopy(m_modalitiesActive[index]->GetTransfer()->GetColorFunction());
-	opacityFunction->DeepCopy(m_modalitiesActive[index]->GetTransfer()->GetOpacityFunction());
+	colorTf->DeepCopy(m_modalitiesActive[index]->GetTransfer()->getColorFunction());
+	opacityFunction->DeepCopy(m_modalitiesActive[index]->GetTransfer()->getOpacityFunction());
 	return new iASimpleTransferFunction(colorTf, opacityFunction);
 }
 
@@ -493,7 +494,7 @@ void iATripleModalityWidget::updateCopyTransferFunction(int index)
 		copy->getColorFunction()->RemoveAllPoints();
 		copy->getOpacityFunction()->RemoveAllPoints();
 
-		for (int j = 0; j < effective->GetColorFunction()->GetSize(); ++j)
+		for (int j = 0; j < effective->getColorFunction()->GetSize(); ++j)
 		{
 			effective->getColorFunction()->GetNodeValue(j, valCol);
 			effective->getOpacityFunction()->GetNodeValue(j, valOp);
@@ -561,7 +562,7 @@ void iATripleModalityWidget::applyWeights()
 				pntVal[1] = pntVal[1] * m_weightCur[i]; // index 1 in pntVal means opacity
 				effective->SetNodeValue(j, pntVal);
 			}
-			m_histograms[i]->redraw();
+			m_histograms[i]->update();
 
 			iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
 			m_mdiChild->UpdateChannelSlicerOpacity(id, m_weightCur[i]);

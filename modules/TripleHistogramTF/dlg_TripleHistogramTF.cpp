@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "dlg_TripleHistogramTF.h"
 
+#include "iATripleModalityWidget.h"
 #include "iABarycentricContextRenderer.h"
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
@@ -42,6 +43,7 @@
 #include <vtkVolumeProperty.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
+#include <vtkImageActor.h>
 
 #include <QLabel>
 #include <QSplitter>
@@ -116,14 +118,14 @@ void dlg_TripleHistogramTF::updateModalities()
 	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
 	combinedVolProp->SetInterpolationTypeToLinear();
 
-	combinedVolProp->SetColor(0, m_tripleModalityWidget->getModality(0)->GetTransfer()->GetColorFunction());
-	combinedVolProp->SetScalarOpacity(0, m_tripleModalityWidget->getModality(0)->GetTransfer()->GetOpacityFunction());
+	combinedVolProp->SetColor(0, m_tripleModalityWidget->getModality(0)->GetTransfer()->getColorFunction());
+	combinedVolProp->SetScalarOpacity(0, m_tripleModalityWidget->getModality(0)->GetTransfer()->getOpacityFunction());
 
-	combinedVolProp->SetColor(1, m_tripleModalityWidget->getModality(1)->GetTransfer()->GetColorFunction());
-	combinedVolProp->SetScalarOpacity(1, m_tripleModalityWidget->getModality(1)->GetTransfer()->GetOpacityFunction());
+	combinedVolProp->SetColor(1, m_tripleModalityWidget->getModality(1)->GetTransfer()->getColorFunction());
+	combinedVolProp->SetScalarOpacity(1, m_tripleModalityWidget->getModality(1)->GetTransfer()->getOpacityFunction());
 
-	combinedVolProp->SetColor(2, m_tripleModalityWidget->getModality(2)->GetTransfer()->GetColorFunction());
-	combinedVolProp->SetScalarOpacity(2, m_tripleModalityWidget->getModality(2)->GetTransfer()->GetOpacityFunction());
+	combinedVolProp->SetColor(2, m_tripleModalityWidget->getModality(2)->GetTransfer()->getColorFunction());
+	combinedVolProp->SetScalarOpacity(2, m_tripleModalityWidget->getModality(2)->GetTransfer()->getOpacityFunction());
 
 	m_combinedVol->SetProperty(combinedVolProp);
 

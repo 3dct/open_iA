@@ -18,15 +18,18 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+
 #include "iAHistogramTriangle.h"
 
 #include "iABarycentricTriangleWidget.h"
+#include "iATripleModalityWidget.h"
 #include "iASimpleSlicerWidget.h"
 
 #include <charts/iADiagramFctWidget.h>
 #include <iASlicerData.h>
 #include <iASlicerWidget.h>
 
+#include <QPoint>
 #include <QApplication>
 #include <QComboBox>
 #include <QMouseEvent>
@@ -489,7 +492,7 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 
 			p.setClipPath(m_slicerClipPaths[i]);
 			p.setTransform(m_transformSlicers[i]);
-			img = m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->grabFrameBuffer();
+			img = m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->grabFramebuffer();
 			p.drawImage(0, 0, img);
 
 			p.resetTransform(); // otherwise, clip path in setClipPath will be transformed as well

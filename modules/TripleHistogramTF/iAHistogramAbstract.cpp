@@ -19,6 +19,7 @@
 *          Stelzhamerstraﬂe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
+#include "iATripleModalityWidget.h"
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 

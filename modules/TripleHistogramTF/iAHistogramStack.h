@@ -20,16 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iATripleModalityWidget.h"
+#include "iAHistogramAbstract.h"
 
 #include <QWidget>
 
+class iATripleModalityWidget;
 class iADiagramFctWidget;
 class iASimpleSlicerWidget;
 class MdiChild;
 
 class QGridLayout;
 class QSplitter;
+class QLabel;
 
 class iAHistogramStackGrid : public QWidget
 {
