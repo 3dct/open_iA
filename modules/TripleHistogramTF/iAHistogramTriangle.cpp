@@ -126,60 +126,75 @@ void iAHistogramTriangle::updateHistograms()
 
 // EVENTS ----------------------------------------------------------------------------------------------------------
 
-void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event)
+void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType eventType)
 {
-	if (onTriangle(event->pos())) {
-		QApplication::sendEvent(m_tmw->m_triangleWidget, event);
+	WidgetType widgetType = NONE;
+	QPoint transformed = QPoint();
+	QWidget *target = nullptr;
+	if (m_draggedType == HISTOGRAM) {
+		transformed = m_transformHistograms[m_lastIndex].inverted().map(event->pos());
+	} else if (m_draggedType == SLICER) {
+		transformed = m_transformSlicers[m_lastIndex].inverted().map(event->pos());
+	}
+
+	if (m_draggedType == TRIANGLE || (m_draggedType == NONE && onTriangle(event->pos()))) {
 		m_fRenderTriangle = true;
-		update();
-		return;
+
+		widgetType = TRIANGLE;
+		target = m_tmw->m_triangleWidget;
 	}
 
-	QPoint transformed;
-	int index;
-	QWidget *target;
-
-	if (target = onHistogram(event->pos(), transformed, index)) {
+	else if (m_draggedType == HISTOGRAM || (m_draggedType == NONE && (target = onHistogram(event->pos(), transformed)))) {
 		event->setLocalPos(transformed);
-		QApplication::sendEvent(target, event);
-		m_fRenderHistogram[index] = true;
-		m_fRenderSlicer[index] = true;
-		update();
-		return;
+		m_fRenderHistogram[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
+		m_fRenderSlicer[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
+
+		widgetType = HISTOGRAM;
+		target = target ? target : m_draggedWidget;
 	}
 
-	if (target = onSlicer(event->pos(), transformed, index)) {
+	else if (m_draggedType == SLICER || (m_draggedType == NONE && (target = onSlicer(event->pos(), transformed)))) {
 		event->setLocalPos(transformed);
-		QApplication::sendEvent(target, event);
-		update();
-		m_fRenderSlicer[index] = true;
-		return;
+		m_fRenderSlicer[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
+
+		widgetType = SLICER;
+		target = target ? target : m_draggedWidget;
 	}
 
-	// the triangle widget actually occupies the whole screen, despite the triangle
-	//     itself being smaller
-	// the modality labels, for example, are part of the triangle widget
-	// to keep the interaction, forward the event to the triangle widget here
-	QApplication::sendEvent(m_tmw->m_triangleWidget, event);
+	else {
+		// the triangle widget actually occupies the whole screen, despite the triangle
+		//     itself being smaller
+		// the modality labels, for example, are part of the triangle widget
+		// to keep the interaction, forward the event to the triangle widget here
+		target = m_tmw->m_triangleWidget;
 
-	// BUT DON'T RENDER THE TRIANGLE!
-	// The modality labels are rendered anyway, there's no need for this flag to be set
-	//m_fRenderTriangle = true;
+		// BUT DON'T RENDER THE TRIANGLE!
+		// The modality labels are rendered anyway, there's no need for this flag to be set
+		//m_fRenderTriangle = true;
+	}
 
+	if (eventType == PRESS) {
+		m_draggedType = widgetType;
+		m_draggedWidget = target;
+	} else if (eventType == RELEASE) {
+		m_draggedType = NONE;
+		m_draggedWidget = nullptr;
+	}
+
+	QApplication::sendEvent(target, event);
 	update();
 }
 
 void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 {
 	QPoint transformed;
-	int index;
 	iASlicerWidget *target;
-	if ((target = onSlicer(e->pos(), transformed, index))) {
+	if (target = onSlicer(e->pos(), transformed)) {
 		QWheelEvent *newE = new QWheelEvent(transformed, e->globalPosF(), e->pixelDelta(), e->angleDelta(),
 			e->delta(), e->orientation(), e->buttons(),
 			e->modifiers(), e->phase(), e->source(), e->inverted());
 		QApplication::sendEvent(target, newE);
-		m_fRenderSlicer[index] = true;
+		m_fRenderSlicer[m_lastIndex] = true;
 		update();
 		return;
 	}
@@ -188,8 +203,7 @@ void iAHistogramTriangle::forwardWheelEvent(QWheelEvent *e)
 void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 {
 	QPoint transformed;
-	int index;
-	iADiagramFctWidget* target = onHistogram(e->pos(), transformed, index);
+	iADiagramFctWidget* target = onHistogram(e->pos(), transformed);
 	if (target) {
 		QContextMenuEvent *newE = new QContextMenuEvent(e->reason(), transformed, e->globalPos());
 		QApplication::sendEvent(target, newE);
@@ -199,16 +213,16 @@ void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 	}
 }
 
-iADiagramFctWidget* iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed, int &index)
+iADiagramFctWidget* iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed)
 {
 	for (int i = 0; i < 3; i++) {
 		transformed = m_transformHistograms[i].inverted().map(p);
 		if (m_histogramsRect.contains(transformed)) {
-			index = i;
+			m_lastIndex = i;
 			return m_tmw->m_histograms[i];
 		}
 	}
-	index = -1;
+	m_lastIndex = -1;
 	return nullptr;
 }
 
@@ -217,16 +231,16 @@ bool iAHistogramTriangle::onTriangle(QPoint p)
 	return m_tmw->m_triangleWidget->getTriangle().contains(p.x(), p.y());
 }
 
-iASlicerWidget* iAHistogramTriangle::onSlicer(QPoint p, QPoint &transformed, int &index)
+iASlicerWidget* iAHistogramTriangle::onSlicer(QPoint p, QPoint &transformed)
 {
 	for (int i = 0; i < 3; i++) {
 		if (m_slicerTriangles[i].contains(p.x(), p.y())) {
 			transformed = m_transformSlicers[i].inverted().map(p);
-			index = i;
+			m_lastIndex = i;
 			return m_tmw->m_slicerWidgets[i]->getSlicer()->widget();
 		}
 	}
-	index = -1;
+	m_lastIndex = -1;
 	return nullptr;
 }
 
