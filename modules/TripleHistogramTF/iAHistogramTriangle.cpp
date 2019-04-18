@@ -94,13 +94,14 @@ void iAHistogramTriangle::initialize()
 	update();
 
 	// CONNECTIONS
-	connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateSlicers()));
-	connect(m_tmw, SIGNAL(slicerModeChanged(iASlicerMode)), this, SLOT(updateSlicers()));
-	connect(m_tmw, SIGNAL(sliceNumberChanged(int)), this, SLOT(updateSlicers()));
-	connect(m_tmw, SIGNAL(slicerModeChangedExternally(iASlicerMode)), this, SLOT(updateSlicers()));
-	connect(m_tmw, SIGNAL(sliceNumberChangedExternally(int)), this, SLOT(updateSlicers()));
+	bool a;
+	a = connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateSlicers()));
+	a = connect(m_tmw, SIGNAL(slicerModeChanged(iASlicerMode)), this, SLOT(updateSlicers()));
+	a = connect(m_tmw, SIGNAL(sliceNumberChanged(int)), this, SLOT(updateSlicers()));
+	a = connect(m_tmw, SIGNAL(slicerModeChangedExternally(iASlicerMode)), this, SLOT(updateSlicers()));
+	a = connect(m_tmw, SIGNAL(sliceNumberChangedExternally(int)), this, SLOT(updateSlicers()));
 
-	connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateHistograms()));
+	a = connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateHistograms()));
 }
 
 void iAHistogramTriangle::resizeEvent(QResizeEvent* event)

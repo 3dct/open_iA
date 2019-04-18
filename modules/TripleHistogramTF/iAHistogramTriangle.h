@@ -38,6 +38,8 @@ class QWheelEvent;
 
 class iAHistogramTriangle : public iAHistogramAbstract
 {
+	Q_OBJECT
+
 private:
 	enum MouseEventType {
 		PRESS, MOVE, RELEASE
