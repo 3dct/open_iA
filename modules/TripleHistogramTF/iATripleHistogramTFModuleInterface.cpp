@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iATripleHistogramTFModuleInterface.h"
 
-#include <dlg_TripleHistogramTF.h>
+#include <TripleHistogramTF/dlg_TripleHistogramTF.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
