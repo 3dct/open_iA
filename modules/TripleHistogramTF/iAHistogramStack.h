@@ -53,7 +53,7 @@ public:
 
 	// OVERRIDES
 	void initialize() override;
-	bool isSlicerInteractionEnabled() override { return false; }
+	bool isSlicerInteractionEnabled() override { return true; }
 
 private:
 	QSplitter *m_splitter;

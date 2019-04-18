@@ -42,6 +42,7 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enable
 
 iASimpleSlicerWidget::~iASimpleSlicerWidget()
 {
+	delete m_slicer;
 }
 
 void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)

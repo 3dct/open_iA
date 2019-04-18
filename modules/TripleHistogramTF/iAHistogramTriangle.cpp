@@ -25,6 +25,9 @@
 #include "iATripleModalityWidget.h"
 #include "iASimpleSlicerWidget.h"
 
+#include "iASlicerData.h"
+#include "iASlicerWidget.h"
+
 #include <charts/iADiagramFctWidget.h>
 #include <iASlicerData.h>
 #include <iASlicerWidget.h>
@@ -40,8 +43,6 @@
 
 // Debug
 #include <QDebug>
-#include "iASlicerData.h"
-#include "iASlicerWidget.h"
 
 const static qreal RAD60 = qDegreesToRadians(60.0);
 const static qreal SIN60 = qSin(RAD60);
@@ -316,6 +317,7 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_tmw->m_histograms[0]->resize(size);
 		m_tmw->m_histograms[1]->resize(size);
 		m_tmw->m_histograms[2]->resize(size);
+		qDebug() << "Histograms resized to" << size.width() << "x" << size.height();
 	}
 
 	// Set up the slicers's transforms and resize them
@@ -444,6 +446,10 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 
 void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 {
+	// Unfortunatelly, enabling this mechanism of not rendering everything leads to
+	// many updates not occurring. Probably a consequence of the Qt hacks this class
+	// does... No idea how to fix that, so disable this system for now (=> m_fClear = true).
+	m_fClear = true;
 	if (m_fClear) {
 		m_fRenderHistogram[0] = true;
 		m_fRenderHistogram[1] = true;
@@ -525,6 +531,8 @@ void iAHistogramTriangle::paintHistograms(QPainter &p)
 {
 	//QPen oldPen = p.pen();
 	//p.setPen(m_histogramsBorderPen);
+
+	qDebug() << "Drawing histograms with size" << m_tmw->m_histograms[0]->size().width() << "x" << m_tmw->m_histograms[0]->size().height();
 
 	// LEFT
 	if (m_fRenderHistogram[0]) {

@@ -26,6 +26,9 @@
 #include "iASimpleSlicerWidget.h"
 #include "RightBorderLayout.h"
 
+#include <iASlicer.h>
+#include <iASlicerWidget.h>
+
 #include <charts/iADiagramFctWidget.h>
 #include <charts/iAHistogramData.h>
 #include <charts/iAPlotTypes.h>
@@ -202,6 +205,7 @@ bool iATripleModalityWidget::setSliceNumber(int sliceNumber)
 	if (sliceNumber != getSliceNumber()) {
 		m_sliceSlider->setValue(sliceNumber);
 		emit sliceNumberChangedExternally(sliceNumber);
+		qDebug() << "setSliceNumber" << sliceNumber;
 		return true;
 	}
 	return false;
@@ -268,6 +272,7 @@ void iATripleModalityWidget::setSliceNumberPrivate(int sliceNumber)
 		m_slicerWidgets[1]->setSliceNumber(sliceNumber);
 		m_slicerWidgets[2]->setSliceNumber(sliceNumber);
 		emit sliceNumberChanged(sliceNumber);
+		qDebug() << "setSliceNumberPrivate" << sliceNumber;
 	}
 }
 void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) {
@@ -278,13 +283,23 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) 
 	iAHistogramAbstract *histogramAbstract_new = iAHistogramAbstract::buildHistogramAbstract(type, this, m_mdiChild);
 
 	if (m_histogramAbstract) {
+		for (int i = 0; i < 3; i++) {
+			m_histograms[i]->setParent(NULL);
+			resetSlicer(i);
+		}
+		m_triangleWidget->setParent(NULL);
+		m_layoutComboBox->setParent(NULL);
+		m_slicerModeComboBox->setParent(NULL);
+		m_sliceSlider->setParent(NULL);
+
 		//delete m_histogramAbstract;
 		m_mainLayout->replaceWidget(m_histogramAbstract, histogramAbstract_new, Qt::FindDirectChildrenOnly);
+
+		delete m_histogramAbstract;
 	} else {
 		m_mainLayout->addWidget(histogramAbstract_new);
 	}
 	m_histogramAbstract = histogramAbstract_new;
-	resetSlicers();
 
 	if (isReady()) {
 		m_histogramAbstract->initialize();
@@ -405,33 +420,33 @@ void iATripleModalityWidget::updateModalities()
 	connect((dlg_transfer*)(m_histograms[0]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
 	connect((dlg_transfer*)(m_histograms[1]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction2()));
 	connect((dlg_transfer*)(m_histograms[2]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction3()));
-
-	setSlicerModePrivate(getSlicerMode());
-	//setSliceNumber(getSliceNumber()); // Already called in setSlicerMode(iASlicerMode)
 	
 	applyWeights();
 	connect((dlg_transfer*)(m_mdiChild->getHistogram()->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
 
 	m_histogramAbstract->initialize();
+
+	setSlicerModePrivate(getSlicerMode());
+	//setSliceNumber(getSliceNumber()); // Already called in setSlicerMode(iASlicerMode)
 }
 
-void iATripleModalityWidget::resetSlicers()
-{
+void iATripleModalityWidget::resetSlicers() {
 	for (int i = 0; i < 3; i++) {
 		resetSlicer(i);
 	}
+	int sliceNumber = getSliceNumber();
+	setSlicerModePrivate(getSlicerMode());
+	update();
 }
 
 void iATripleModalityWidget::resetSlicer(int i)
 {
+	delete m_slicerWidgets[i];
 	m_slicerWidgets[i] = new iASimpleSlicerWidget(nullptr, m_histogramAbstract->isSlicerInteractionEnabled());
+	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	if (m_modalitiesActive[i]) {
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
 	}
-	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-	int sliceNumber = getSliceNumber();
-	setSlicerModePrivate(getSlicerMode());
-	m_slicerWidgets[i]->update();
 }
 
 bool iATripleModalityWidget::isReady()
