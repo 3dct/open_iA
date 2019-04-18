@@ -285,6 +285,7 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) 
 	if (m_histogramAbstract) {
 		for (int i = 0; i < 3; i++) {
 			m_histograms[i]->setParent(NULL);
+			m_slicerWidgets[i]->setParent(NULL);
 			resetSlicer(i);
 		}
 		m_triangleWidget->setParent(NULL);

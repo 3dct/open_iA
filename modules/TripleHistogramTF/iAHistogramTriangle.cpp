@@ -95,14 +95,13 @@ void iAHistogramTriangle::initialize()
 	update();
 
 	// CONNECTIONS
-	bool a;
-	a = connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateSlicers()));
-	a = connect(m_tmw, SIGNAL(slicerModeChanged(iASlicerMode)), this, SLOT(updateSlicers()));
-	a = connect(m_tmw, SIGNAL(sliceNumberChanged(int)), this, SLOT(updateSlicers()));
-	a = connect(m_tmw, SIGNAL(slicerModeChangedExternally(iASlicerMode)), this, SLOT(updateSlicers()));
-	a = connect(m_tmw, SIGNAL(sliceNumberChangedExternally(int)), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(slicerModeChanged(iASlicerMode)), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(sliceNumberChanged(int)), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(slicerModeChangedExternally(iASlicerMode)), this, SLOT(updateSlicers()));
+	connect(m_tmw, SIGNAL(sliceNumberChangedExternally(int)), this, SLOT(updateSlicers()));
 
-	a = connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateHistograms()));
+	connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateHistograms()));
 }
 
 void iAHistogramTriangle::resizeEvent(QResizeEvent* event)
@@ -317,7 +316,6 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_tmw->m_histograms[0]->resize(size);
 		m_tmw->m_histograms[1]->resize(size);
 		m_tmw->m_histograms[2]->resize(size);
-		qDebug() << "Histograms resized to" << size.width() << "x" << size.height();
 	}
 
 	// Set up the slicers's transforms and resize them
@@ -349,14 +347,12 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_slicerClipPaths[0] = m_slicerClipPaths[1]; // right
 		m_slicerClipPaths[0].translate(w, 0);
 
-		QRect rect = QRect(0, 0, w, h);
-		m_tmw->m_slicerWidgets[0]->setGeometry(rect);
-		m_tmw->m_slicerWidgets[1]->setGeometry(rect);
-		m_tmw->m_slicerWidgets[2]->setGeometry(rect);
 		QSize size = QSize(w, h);
 		m_tmw->m_slicerWidgets[0]->getSlicer()->widget()->resize(size);
 		m_tmw->m_slicerWidgets[1]->getSlicer()->widget()->resize(size);
 		m_tmw->m_slicerWidgets[2]->getSlicer()->widget()->resize(size);
+
+		qDebug() << "Slicers resized to" << size.width() << "x" << size.height();
 	}
 
 	int histoLateral1_2Y = bottom - TRIANGLE_TOP;
@@ -516,6 +512,8 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 			img = m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->grabFramebuffer();
 			p.drawImage(0, 0, img);
 
+			qDebug() << "Slicer image size" << img.size().width() << "x" << img.size().height();
+
 			p.resetTransform(); // otherwise, clip path in setClipPath will be transformed as well
 		}
 	}
@@ -531,8 +529,6 @@ void iAHistogramTriangle::paintHistograms(QPainter &p)
 {
 	//QPen oldPen = p.pen();
 	//p.setPen(m_histogramsBorderPen);
-
-	qDebug() << "Drawing histograms with size" << m_tmw->m_histograms[0]->size().width() << "x" << m_tmw->m_histograms[0]->size().height();
 
 	// LEFT
 	if (m_fRenderHistogram[0]) {
