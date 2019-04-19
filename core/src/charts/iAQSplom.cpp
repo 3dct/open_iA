@@ -37,6 +37,7 @@
 #include <QAbstractTextDocumentLayout>
 #include <QColorDialog>
 #include <QListWidgetItem>
+#include <QPainter>
 #include <QPropertyAnimation>
 #include <QTableWidget>
 #include <QWheelEvent>
@@ -195,11 +196,9 @@ iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
 	setFocusPolicy( Qt::StrongFocus );
 	setBackgroundRole(QPalette::Base);
 	setAutoFillBackground(true);
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	QSurfaceFormat format = QSurfaceFormat();
+	iAQGLFormat format;
 	format.setSamples(4);
 	setFormat(format);
-#endif
 	m_animationIn->setDuration( settings.animDuration );
 	m_animationOut->setDuration( settings.animDuration );
 

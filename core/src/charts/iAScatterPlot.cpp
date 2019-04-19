@@ -25,12 +25,8 @@
 #include "iAMathUtility.h"
 #include "iAScatterPlotSelectionHandler.h"
 #include "iASPLOMData.h"
-
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-#include <QOpenGLBuffer>
-#else
-#include <QGLBuffer>
-#endif
+#include "qthelper/iAQGLWidget.h"
+#include "qthelper/iAQGLBuffer.h"
 
 #include <QAbstractTextDocumentLayout>
 #include <QColor>
@@ -77,8 +73,8 @@ iAScatterPlot::Settings::Settings() :
 
 size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
 
-iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget * parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
-	:QObject(parent),
+iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget * parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */):
+	QObject(parent),
 	settings(),
 	m_parentWidget(parent),
 	m_splom( splom ),
@@ -938,11 +934,7 @@ void iAScatterPlot::createVBO()
 	if (!m_splomData)
 		return;
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	m_pointsBuffer = new QOpenGLBuffer( QOpenGLBuffer::VertexBuffer );
-#else
-	m_pointsBuffer = new QGLBuffer( QGLBuffer::VertexBuffer );
-#endif
+	m_pointsBuffer = new iAQGLBuffer( iAQGLBuffer::VertexBuffer );
 	if (!m_pointsBuffer->create())
 	{
 		m_pointsBuffer = nullptr;
@@ -950,11 +942,7 @@ void iAScatterPlot::createVBO()
 	}
 	bool res = m_pointsBuffer->bind();
 	assert(res);
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	m_pointsBuffer->setUsagePattern(QOpenGLBuffer::DynamicDraw);
-#else
-	m_pointsBuffer->setUsagePattern(QGLBuffer::DynamicDraw);
-#endif
+	m_pointsBuffer->setUsagePattern(iAQGLBuffer::DynamicDraw);
 	m_pointsBuffer->allocate((CordDim + ColChan) * m_splomData->numPoints() * sizeof(GLfloat));
 	m_pointsBuffer->release();
 }
@@ -969,11 +957,7 @@ void iAScatterPlot::fillVBO()
 	bool res = m_pointsBuffer->bind();
 	assert(res);
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(QOpenGLBuffer::ReadWrite));
-#else
-	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(QGLBuffer::ReadWrite));
-#endif
+	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(iAQGLBuffer::ReadWrite));
 
 	assert(buffer);
 
