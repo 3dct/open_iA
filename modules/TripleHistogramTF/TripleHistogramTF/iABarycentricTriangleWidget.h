@@ -111,7 +111,7 @@ private:
 	QRect m_modalityLabelRect[3];
 	QPen m_modalityLabelHighlightPen;
 	int m_modalityHighlightedIndex = -1; // -1 for none (or any value < 0)
-	bool interactWithModalityLabel(QPoint p, bool press);
+	bool interactWithModalityLabel(QPoint p, bool press, bool rightButton);
 
 	QFont m_modalityWeightFont;
 	QString m_modalityWeight1;
@@ -135,10 +135,20 @@ private:
 	bool m_dragging = false;
 
 	void initializeControlPointPaths();
-	void updateControlPointCoordinates(BCoord bCoord);
-	void updateControlPointPosition(QPoint newPos);
-	void updateControlPointPosition();
+	void updateControlPoint(BCoord bCoord, QPoint newPos);
 	void moveControlPointTo(QPoint newPos);
+
+	void updateControlPointCoordinates(BCoord bCoord) {
+		updateControlPoint(bCoord, m_triangle.getCartesianCoordinates(bCoord));
+	}
+
+	void updateControlPointPosition(QPoint newPos) {
+		updateControlPoint(m_triangle.getBarycentricCoordinates(newPos.x(), newPos.y()), newPos);
+	}
+
+	void updateControlPointPosition() {
+		updateControlPointCoordinates(m_controlPointBCoord);
+	}
 
 	void recalculatePositions(int w, int h);
 	void recalculatePositions(int w, int h, bool changeTriangle);

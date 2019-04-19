@@ -108,7 +108,7 @@ iABarycentricTriangleWidget::~iABarycentricTriangleWidget()
 
 void iABarycentricTriangleWidget::mousePressEvent(QMouseEvent *event)
 {
-	if (!interactWithModalityLabel(event->pos(), true)) {
+	if (!interactWithModalityLabel(event->pos(), true, event->button() == Qt::RightButton)) {
 		updateControlPointPosition(event->pos());
 		m_dragging = true;
 	}
@@ -119,7 +119,7 @@ void iABarycentricTriangleWidget::mouseMoveEvent(QMouseEvent *event)
 	if (m_dragging) {
 		updateControlPointPosition(event->pos());
 	} else {
-		interactWithModalityLabel(event->pos(), false);
+		interactWithModalityLabel(event->pos(), false, false);
 	}
 }
 
@@ -236,29 +236,17 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 	}
 }
 
-void iABarycentricTriangleWidget::updateControlPointCoordinates(BCoord bCoord)
+void iABarycentricTriangleWidget::updateControlPoint(BCoord bCoord, QPoint newPos)
 {
-	updateControlPointPosition(m_triangle.getCartesianCoordinates(bCoord));
-}
-
-void iABarycentricTriangleWidget::updateControlPointPosition()
-{
-	updateControlPointPosition(m_triangle.getCartesianCoordinates(m_controlPointBCoord));
-}
-
-void iABarycentricTriangleWidget::updateControlPointPosition(QPoint newPos)
-{
-	BCoord bCoord = m_triangle.getBarycentricCoordinates(newPos.x(), newPos.y());
-
-	if (bCoord.isInside())
-	{
+	//updateControlPointPosition(m_triangle.getCartesianCoordinates(bCoord));
+	if (bCoord.isInside()) {
 		m_controlPointBCoord = bCoord;
 		moveControlPointTo(newPos);
 		updateModalityWeightLabels(bCoord);
 		update();
 		emit weightChanged(bCoord);
-	}
-	else {
+
+	} else {
 		// Do nothing for now
 		// TODO: Set point to closest positiont inside the triangle
 	}
@@ -309,11 +297,40 @@ void iABarycentricTriangleWidget::moveControlPointTo(QPoint newPos)
 	m_controlPointCrossPainterPath.translate(movx, movy);
 }
 
-bool iABarycentricTriangleWidget::interactWithModalityLabel(QPoint p, bool press)
+bool iABarycentricTriangleWidget::interactWithModalityLabel(QPoint p, bool press, bool rightButton)
 {
 	if (press) {
-		if (m_modalityHighlightedIndex >= 0) {
-			updateControlPointCoordinates(BCoord(m_modalityHighlightedIndex == 0 ? 1 : 0, m_modalityHighlightedIndex == 1 ? 1 : 0));
+		if (rightButton && m_modalityHighlightedIndex >= 0) {
+			setWeight(BCoord(ONE_DIV_THREE, ONE_DIV_THREE));
+			return true;
+		}
+
+		BCoord bc;
+		switch (m_modalityHighlightedIndex) {
+		case 0:
+			if (getWeight() == BCoord(1, 0)) {
+				setWeight(BCoord(0, 0.5));
+			} else { 
+				setWeight(BCoord(1, 0));
+			}
+			return true;
+
+		case 1:
+			if (getWeight() == BCoord(0, 1)) {
+				setWeight(BCoord(0.5, 0));
+			} else {
+				setWeight(BCoord(0, 1));
+			}
+			return true;
+
+		case 2:
+			if (getWeight() == BCoord(0, 0)) {
+				setWeight(BCoord(0.5, 0.5));
+			} else {
+				setWeight(BCoord(0, 0));
+			}
+			return true;
+
 		}
 
 	} else {
@@ -329,6 +346,7 @@ bool iABarycentricTriangleWidget::interactWithModalityLabel(QPoint p, bool press
 			update();
 		}
 	}
+
 	return false;
 }
 
