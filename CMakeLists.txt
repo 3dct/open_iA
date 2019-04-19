@@ -19,6 +19,10 @@ ENDIF()
 
 SET (Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
 
+# Prepare empty BUNDLE vars:
+SET (BUNDLE_DIRS "")
+SET (BUNDLE_LIBS "")
+
 INCLUDE(Common)
 
 IF (CMAKE_COMPILER_IS_GNUCXX)
@@ -153,6 +157,9 @@ ADD_SUBDIRECTORY(modules) # needs to know which modules are enabled; with openiA
 ADD_SUBDIRECTORY(Toolkit)
 ADD_SUBDIRECTORY(gui)
 ADD_SUBDIRECTORY(cmd)
+
+ADD_SUBDIRECTORY(xinst)
+
 
 #-------------------------
 # Testing
