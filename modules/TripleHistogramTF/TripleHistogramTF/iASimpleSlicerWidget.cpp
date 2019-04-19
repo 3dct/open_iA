@@ -50,9 +50,19 @@ void iASimpleSlicerWidget::setSlicerMode(iASlicerMode slicerMode)
 	m_slicer->ChangeMode(slicerMode);
 }
 
+iASlicerMode iASimpleSlicerWidget::getSlicerMode()
+{
+	return m_slicer->GetSlicerData()->getMode();
+}
+
 void iASimpleSlicerWidget::setSliceNumber(int sliceNumber)
 {
 	m_slicer->setSliceNumber(sliceNumber);
+}
+
+int iASimpleSlicerWidget::getSliceNumber()
+{
+	return m_slicer->GetSlicerData()->getSliceNumber();
 }
 
 bool iASimpleSlicerWidget::hasHeightForWidth()

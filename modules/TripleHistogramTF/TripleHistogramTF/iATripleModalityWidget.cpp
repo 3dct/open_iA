@@ -109,9 +109,6 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 
 iATripleModalityWidget::~iATripleModalityWidget()
 {
-	if (m_copyTFs[0]) delete m_copyTFs[0];
-	if (m_copyTFs[1]) delete m_copyTFs[1];
-	if (m_copyTFs[2]) delete m_copyTFs[2];
 	delete m_triangleRenderer;
 }
 
@@ -429,15 +426,14 @@ void iATripleModalityWidget::updateModalities()
 
 	setSlicerModePrivate(getSlicerMode());
 	//setSliceNumber(getSliceNumber()); // Already called in setSlicerMode(iASlicerMode)
+
+	update();
 }
 
 void iATripleModalityWidget::resetSlicers() {
 	for (int i = 0; i < 3; i++) {
 		resetSlicer(i);
 	}
-	int sliceNumber = getSliceNumber();
-	setSlicerModePrivate(getSlicerMode());
-	update();
 }
 
 void iATripleModalityWidget::resetSlicer(int i)
@@ -447,6 +443,8 @@ void iATripleModalityWidget::resetSlicer(int i)
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	if (m_modalitiesActive[i]) {
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
+		m_slicerWidgets[i]->setSlicerMode(getSlicerMode());
+		m_slicerWidgets[i]->setSliceNumber(getSliceNumber());
 	}
 }
 
@@ -465,11 +463,12 @@ int iATripleModalityWidget::getModalitiesCount()
 	return m_modalitiesActive[2] ? 3 : (m_modalitiesActive[1] ? 2 : (m_modalitiesActive[0] ? 1 : 0));
 }
 
-iATransferFunction* iATripleModalityWidget::createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacityFunction)
+QSharedPointer<iATransferFunction> iATripleModalityWidget::createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacityFunction)
 {
 	colorTf->DeepCopy(m_modalitiesActive[index]->GetTransfer()->getColorFunction());
 	opacityFunction->DeepCopy(m_modalitiesActive[index]->GetTransfer()->getOpacityFunction());
-	return new iASimpleTransferFunction(colorTf, opacityFunction);
+	return QSharedPointer<iATransferFunction>(
+		new iASimpleTransferFunction(colorTf, opacityFunction));
 }
 
 void iATripleModalityWidget::originalHistogramChanged()
@@ -504,7 +503,7 @@ void iATripleModalityWidget::updateCopyTransferFunction(int index)
 		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
 
 		// copy of previous transfer function, to be updated in this method
-		iATransferFunction *copy = m_copyTFs[index];
+		QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
 
 		double valCol[6], valOp[4];
 		copy->getColorFunction()->RemoveAllPoints();
@@ -541,7 +540,7 @@ void iATripleModalityWidget::updateOriginalTransferFunction(int index)
 		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
 
 		// copy of previous transfer function, to be updated in this method
-		iATransferFunction *copy = m_copyTFs[index];
+		QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
 
 		double valCol[6], valOp[4];
 		effective->getColorFunction()->RemoveAllPoints();

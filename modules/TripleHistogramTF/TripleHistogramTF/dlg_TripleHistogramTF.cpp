@@ -141,7 +141,7 @@ void dlg_TripleHistogramTF::updateModalities()
 	m_combinedVolRenderer->GetActiveCamera()->ParallelProjectionOn();
 	m_combinedVolRenderer->SetLayer(1);
 	m_combinedVolRenderer->AddVolume(m_combinedVol);
-	m_combinedVolRenderer->ResetCamera();
+	//m_combinedVolRenderer->ResetCamera();
 
 	for (int i = 0; i < 3; ++i)
 	{
@@ -150,9 +150,9 @@ void dlg_TripleHistogramTF::updateModalities()
 	}
 	m_mdiChild->getRenderer()->AddRenderer(m_combinedVolRenderer);
 
-	m_mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(1.0);
-	m_mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(1.0);
-	m_mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(1.0);
+	m_mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(0.0);
+	m_mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
+	m_mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
 
 	m_mdiChild->getSlicerDataXY()->SetManualBackground(1.0, 1.0, 1.0);
 	m_mdiChild->getSlicerDataXZ()->SetManualBackground(1.0, 1.0, 1.0);

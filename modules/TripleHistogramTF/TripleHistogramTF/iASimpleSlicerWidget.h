@@ -39,7 +39,10 @@ public:
 	~iASimpleSlicerWidget();
 
 	void setSlicerMode(iASlicerMode slicerMode);
+	iASlicerMode getSlicerMode();
+
 	void setSliceNumber(int sliceNumber);
+	int getSliceNumber();
 
 	bool hasHeightForWidth();
 	int heightForWidth(int width);

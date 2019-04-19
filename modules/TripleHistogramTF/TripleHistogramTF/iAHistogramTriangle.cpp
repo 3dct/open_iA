@@ -60,6 +60,10 @@ iAHistogramTriangle::iAHistogramTriangle(QWidget* parent, iATripleModalityWidget
 {
 }
 
+void iAHistogramTriangle::glresized() {
+	qDebug() << "GL RESIZED!";
+}
+
 void iAHistogramTriangle::initialize()
 {
 	m_clipPathPen.setWidth(1);
@@ -70,13 +74,16 @@ void iAHistogramTriangle::initialize()
 	setMouseTracking(true);
 
 	QWidget *widget = new QWidget(this);
-	//temp->setVisible(false);
 	QLayout *layout = new QHBoxLayout(widget);
-	layout->addWidget(m_tmw->m_slicerWidgets[0]->getSlicer()->widget());
-	layout->addWidget(m_tmw->m_slicerWidgets[1]->getSlicer()->widget());
-	layout->addWidget(m_tmw->m_slicerWidgets[2]->getSlicer()->widget());
-	//layout->setGeometry(QRect(0, 0, 300, 300));
-	//layout->setMargin(300);
+	for (int i = 0; i < 3; i++) {
+		layout->addWidget(m_tmw->m_slicerWidgets[i]->getSlicer()->widget());
+
+		// The following call will make sure that
+		// m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->isValid()
+		// returns true (see isValid() definition 19/04/2019)
+		// That prevents a "Framebuffer incomplete attachment" warning
+		m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->grabFramebuffer();
+	}
 
 	//QLayout *thisLayout = new QHBoxLayout(this);
 	//thisLayout->addWidget(temp);
@@ -90,9 +97,13 @@ void iAHistogramTriangle::initialize()
 	m_tmw->m_layoutComboBox->setParent(this);
 
 	calculatePositions();
-
 	m_fClear = true;
 	update();
+
+	// Debug
+	for (int i = 0; i < 3; i++) {
+		connect(m_tmw->m_slicerWidgets[i]->getSlicer()->widget(), SIGNAL(resized()), this, SLOT(glresized()));
+	}
 
 	// CONNECTIONS
 	connect(m_tmw, SIGNAL(transferFunctionChanged()), this, SLOT(updateSlicers()));
@@ -332,7 +343,6 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_transformSlicers[2].translate(l, top);
 		m_slicerTriangles[2].set(l, t, centerX, top, r, t);
 
-
 		// Path encloses the left small triangle. When drawing, the path can be translated
 		// to the other triangle's positions, then translated back to the initial position
 		m_slicerClipPaths[1] = QPainterPath(); // left
@@ -353,6 +363,7 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		m_tmw->m_slicerWidgets[2]->getSlicer()->widget()->resize(size);
 
 		qDebug() << "Slicers resized to" << size.width() << "x" << size.height();
+		
 	}
 
 	int histoLateral1_2Y = bottom - TRIANGLE_TOP;
@@ -464,6 +475,7 @@ void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 	p.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 	//p.setClipPath(m_clipPath);
 
+	qDebug() << "Slice numbers (A B C):" << m_tmw->m_slicerWidgets[0]->getSliceNumber() << m_tmw->m_slicerWidgets[1]->getSliceNumber() << m_tmw->m_slicerWidgets[2]->getSliceNumber();
 	paintSlicers(p);
 
 	if (m_fRenderTriangle) {
@@ -509,10 +521,15 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 
 			p.setClipPath(m_slicerClipPaths[i]);
 			p.setTransform(m_transformSlicers[i]);
-			img = m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->grabFramebuffer();
-			p.drawImage(0, 0, img);
 
-			qDebug() << "Slicer image size" << img.size().width() << "x" << img.size().height();
+			img = m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->grabFramebuffer();
+
+			QSize size = m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->size();
+			//qDebug() << "Slicer framebuffer valid?" << m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->isValid();
+			qDebug() << "Slicer size:" << size.width() << "x" << size.height();
+			qDebug() << "Image size:" << img.size().width() << "x" << img.size().height();
+
+			p.drawImage(0, 0, img);
 
 			p.resetTransform(); // otherwise, clip path in setClipPath will be transformed as well
 		}

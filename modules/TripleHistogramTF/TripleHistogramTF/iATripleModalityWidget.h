@@ -121,6 +121,7 @@ private:
 
 	void resetSlicers();
 	void resetSlicer(int i);
+	QWidget* m_slicerWidgetParent = NULL;
 
 	QSharedPointer<iAModality> m_modalitiesActive[3];
 
@@ -133,8 +134,8 @@ private:
 	int getSliceNumber();
 
 	// Background stuff
-	iATransferFunction *m_copyTFs[3] = { nullptr, nullptr, nullptr };
-	iATransferFunction* createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacity);
+	QSharedPointer<iATransferFunction> m_copyTFs[3] = { nullptr, nullptr, nullptr };
+	QSharedPointer<iATransferFunction> createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacity);
 
 	// Widgets and stuff
 	QLabel *m_disabledLabel;
