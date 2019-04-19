@@ -77,11 +77,7 @@ iAScatterPlot::Settings::Settings() :
 
 size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QOpenGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
-#else
-iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, QGLWidget* parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
-#endif
+iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget * parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */)
 	:QObject(parent),
 	settings(),
 	m_parentWidget(parent),

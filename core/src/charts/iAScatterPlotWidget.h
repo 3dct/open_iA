@@ -22,25 +22,15 @@
 
 #include "open_iA_Core_export.h"
 
-#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
+#include "qthelper/iAQGLWidget.h"
 
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-#include <QOpenGLWidget>
-#else
-#include <QGLWidget>
-#endif
+#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
 
 class iASPLOMData;
 class iAScatterPlotStandaloneHandler;
 
 //! Widget for using a single scatter plot (outside of a SPLOM)
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-class open_iA_Core_API iAScatterPlotWidget : public QOpenGLWidget
-#else
-class open_iA_Core_API iAScatterPlotWidget : public QGLWidget
-#endif
+class open_iA_Core_API iAScatterPlotWidget : public iAQGLWidget
 {
 public:
 	static const int PaddingTop;

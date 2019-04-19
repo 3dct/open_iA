@@ -36,7 +36,7 @@ const int widgetHeight = nonlinearBarStartPosY + nonlinearBarHeight +
 const QColor linearBarColor(212, 212, 212);
 
 iAScalingWidget::iAScalingWidget(QWidget* parent) :
-	QOpenGLWidget(parent),
+	iAQGLWidget(parent),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
 	m_linearBarCursorPos(0),
 	m_nonlinearBarCursorPos(0)
@@ -44,7 +44,7 @@ iAScalingWidget::iAScalingWidget(QWidget* parent) :
 	setFixedHeight(widgetHeight);
 	setBackgroundRole(QPalette::Base);
 	setAutoFillBackground(true);
-	QSurfaceFormat format = QSurfaceFormat();
+	iAQGLFormat format;
 	format.setSamples(4);
 	this->setFormat(format);
 }

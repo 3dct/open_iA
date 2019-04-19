@@ -98,11 +98,7 @@ namespace
 }
 
 iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel):
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	QOpenGLWidget(parent),
-#else
-	QGLWidget(parent),
-#endif
+	iAQGLWidget(parent),
 	xCaption(xLabel),
 	yCaption(yLabel),
 	yZoom(1.0),
