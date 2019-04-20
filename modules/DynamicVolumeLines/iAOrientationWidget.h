@@ -21,12 +21,11 @@
 #pragma once
 
 #include <charts/qcustomplot.h>
+#include <qthelper/iAQGLWidget.h>
 
 #include <vtkSmartPointer.h>
 
-#include <QOpenGLWidget>
-
-class iAOrientationWidget : public QOpenGLWidget
+class iAOrientationWidget : public iAQGLWidget
 {
 	Q_OBJECT
 
