@@ -81,9 +81,7 @@ void iATripleModalityWidget::weightsChangedSlot(BCoord bCoord)
 {
 	if (bCoord != getWeights()) {
 		m_triangleWidget->setWeight(bCoord);
-		//return true;
 	}
-	//return false;
 }
 
 // SLOT

@@ -195,25 +195,17 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 
 	// LABELS PLACEMENT {
 	if (!changeTriangle) {
-		int modalityLabel1Left = m_triangle.getXa() + MODALITY_LABEL_MARGIN;
-		int modalityLabel2Left = m_triangle.getXb() - (modalityLabel2width / 2);
-		int modalityLabel3Left = m_triangle.getXc() - modalityLabel3width - MODALITY_LABEL_MARGIN;
+		m_modalityLabelPos[0] = QPoint(m_triangle.getXa() - modalityLabel1width - MODALITY_LABEL_MARGIN, m_triangle.getYa());
+		m_modalityLabelPos[1] = QPoint(m_triangle.getXb() + MODALITY_LABEL_MARGIN, m_triangle.getYb());
+		m_modalityLabelPos[2] = QPoint(m_triangle.getXc() - (modalityLabel3width / 2), m_triangle.getYc() + modalityLabelHeight + MODALITY_LABEL_MARGIN);
 
-		int modalityLabel1_3Top = m_triangle.getYa() + MODALITY_LABEL_MARGIN;
-		int modalityLabel1_3Bottom = modalityLabel1_3Top + modalityLabelHeight;
-		int modalityLabel2Bottom = m_triangle.getYb() - MODALITY_LABEL_MARGIN;
-
-		m_modalityLabelPos[0] = QPoint(modalityLabel1Left, modalityLabel1_3Bottom); // bottom left
-		m_modalityLabelPos[1] = QPoint(modalityLabel2Left, modalityLabel2Bottom); // top centerX
-		m_modalityLabelPos[2] = QPoint(modalityLabel3Left, modalityLabel1_3Bottom); // bottom right
-
-		m_modalityWeightPos[0] = QPoint(modalityLabel1Left + modalityLabel1width + MODALITY_LABEL_MARGIN, modalityLabel1_3Bottom);
-		m_modalityWeightPos[1] = QPoint(modalityLabel2Left + modalityLabel2width + MODALITY_LABEL_MARGIN, modalityLabel2Bottom);
-		m_modalityWeightPos[2] = QPoint(modalityLabel3Left - MODALITY_LABEL_MARGIN - modalityWeight3width, modalityLabel1_3Bottom);
+		m_modalityWeightPos[0] = m_modalityLabelPos[0] + QPoint(-modalityWeight1width - MODALITY_LABEL_MARGIN, 0);
+		m_modalityWeightPos[1] = m_modalityLabelPos[1] + QPoint(modalityLabel2width + MODALITY_LABEL_MARGIN, 0);
+		m_modalityWeightPos[2] = m_modalityLabelPos[2] + QPoint(modalityLabel3width + MODALITY_LABEL_MARGIN, 0);
 
 	} else {
 		m_modalityLabelPos[0] = QPoint(left, bottom + modalityLabelHeight + MODALITY_LABEL_MARGIN); // bottom left
-		m_modalityLabelPos[1] = QPoint(centerX - (modalityWeight2width / 2), top - MODALITY_LABEL_MARGIN); // top centerX
+		m_modalityLabelPos[1] = QPoint(centerX - (modalityLabel2width / 2), top - MODALITY_LABEL_MARGIN); // top centerX
 		m_modalityLabelPos[2] = QPoint(right - modalityLabel3width, m_modalityLabelPos[0].y()); // bottom right
 
 		m_modalityWeightPos[0] = m_modalityLabelPos[0] + QPoint(modalityLabel1width + MODALITY_LABEL_MARGIN, 0);
@@ -498,8 +490,7 @@ void iABarycentricTriangleWidget::paintModalityLabels(QPainter &p)
 void iABarycentricTriangleWidget::paintContext(QPainter &p) {
 	if (m_triangleRenderer && m_triangleRenderer->canPaint()) {
 		m_triangleRenderer->paintContext(p);
-	}
-	else {
+	} else {
 		paintTriangleBorder(p);
 		paintTriangleFill(p);
 	}
@@ -511,17 +502,17 @@ void iABarycentricTriangleWidget::setModalityLabelPosition(QPoint position, int 
 	case 0:
 		m_modalityLabelPos[0] = position;
 		m_modalityLabelRect[0].moveLeft(position.x());
-		m_modalityLabelRect[0].moveTop(position.y() - m_modalityLabelRect[0].height());
+		m_modalityLabelRect[0].moveTop(position.y());// -m_modalityLabelRect[0].height());
 		break;
 	case 1:
 		m_modalityLabelPos[1] = position;
 		m_modalityLabelRect[1].moveLeft(position.x());
-		m_modalityLabelRect[1].moveTop(position.y() - m_modalityLabelRect[1].height());
+		m_modalityLabelRect[1].moveTop(position.y());// - m_modalityLabelRect[1].height());
 		break;
 	case 2:
 		m_modalityLabelPos[2] = position;
 		m_modalityLabelRect[2].moveLeft(position.x());
-		m_modalityLabelRect[2].moveTop(position.y() - m_modalityLabelRect[2].height());
+		m_modalityLabelRect[2].moveTop(position.y());// - m_modalityLabelRect[2].height());
 		break;
 	}
 }
@@ -532,17 +523,17 @@ void iABarycentricTriangleWidget::setModalityWeightPosition(QPoint position, int
 	case 0:
 		m_modalityWeightPos[0] = position;
 		m_modalityWeightRect[0].moveLeft(position.x());
-		m_modalityWeightRect[0].moveTop(position.y() - m_modalityWeightRect[0].height());
+		m_modalityWeightRect[0].moveTop(position.y());// - m_modalityWeightRect[0].height());
 		break;
 	case 1:
 		m_modalityWeightPos[1] = position;
 		m_modalityWeightRect[0].moveLeft(position.x());
-		m_modalityWeightRect[0].moveTop(position.y() - m_modalityWeightRect[0].height());
+		m_modalityWeightRect[0].moveTop(position.y());// - m_modalityWeightRect[0].height());
 		break;
 	case 2:
 		m_modalityWeightPos[2] = position;
 		m_modalityWeightRect[0].moveLeft(position.x());
-		m_modalityWeightRect[0].moveTop(position.y() - m_modalityWeightRect[0].height());
+		m_modalityWeightRect[0].moveTop(position.y());// - m_modalityWeightRect[0].height());
 		break;
 	}
 }

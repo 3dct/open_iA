@@ -54,6 +54,7 @@ const static int TRIANGLE_RIGHT = TRIANGLE_LEFT;
 const static int TRIANGLE_BOTTOM = HISTOGRAM_HEIGHT;
 const static double TRIANGLE_HEIGHT_RATIO = SIN60;
 const static double TRIANGLE_WIDTH_RATIO = 1.0 / TRIANGLE_HEIGHT_RATIO;
+const static int MODALITY_LABEL_MARGIN = 10;
 
 iAHistogramTriangle::iAHistogramTriangle(QWidget* parent, iATripleModalityWidget* tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f)
 	: m_tmw(tripleModalityWidget)
@@ -428,7 +429,7 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 			m_tmw->w_triangle()->getModalityLabelRect(2)
 		};
 		
-		QPoint weightPoints[3] = {
+		/*QPoint weightPoints[3] = {
 			QPoint(textPoint1.x() - weightRects[0].width(), textPoint1.y()),
 			textPoint2,
 			QPoint(right, ((bottom + boxBottom) / 2) + ((labelRects[2].height() + weightRects[2].height()) / 2))
@@ -437,6 +438,17 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 			QPoint(textPoint1.x() - labelRects[0].width(), textPoint1.y() - weightRects[0].height()),
 			QPoint(textPoint2.x(), textPoint2.y() - weightRects[1].height()),
 			QPoint(weightPoints[2].x(), weightPoints[2].y() - weightRects[2].height())
+		};*/
+
+		QPoint labelPoints[3] = {
+			textPoint1 + QPoint(-labelRects[0].width() - MODALITY_LABEL_MARGIN, 0),
+			textPoint2 + QPoint(MODALITY_LABEL_MARGIN, 0),
+			QPoint(right + MODALITY_LABEL_MARGIN, ((bottom + boxBottom) / 2) - (labelRects[2].height() / 2))
+		};
+		QPoint weightPoints[3] = {
+			labelPoints[0] + QPoint(-MODALITY_LABEL_MARGIN - weightRects[0].width(), 0),
+			labelPoints[1] + QPoint( MODALITY_LABEL_MARGIN + labelRects[1].width(), 0),
+			labelPoints[2] + QPoint( MODALITY_LABEL_MARGIN + labelRects[2].width(), 0)
 		};
 
 		m_tmw->w_triangle()->setModalityWeightPosition(weightPoints[0], 0);
@@ -494,7 +506,7 @@ void iAHistogramTriangle::paintEvent(QPaintEvent* event)
 
 	p.begin(this);
 	p.drawImage(0, 0, m_buffer);
-	m_tmw->w_triangle()->paintModalityLabels(p); // gets repainted everytime!
+	m_tmw->w_triangle()->paintModalityLabels(p); // Is repainted everytime!
 	m_tmw->w_triangle()->paintControlPoint(p);
 	p.end();
 
