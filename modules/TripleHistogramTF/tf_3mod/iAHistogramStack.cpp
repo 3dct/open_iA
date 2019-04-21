@@ -51,20 +51,22 @@ void iAHistogramStack::initialize()
 		m_modalityLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	}
 
-	m_tmw->m_triangleWidget->recalculatePositions();
+	m_tmw->w_triangle()->recalculatePositions();
 
-	m_tmw->m_sliceSlider->setOrientation(Qt::Horizontal);
-	m_tmw->m_sliceSlider->setInvertedAppearance(false);
+	m_tmw->w_sliceNumberSlider()->setOrientation(Qt::Horizontal);
+	m_tmw->w_sliceNumberSlider()->setInvertedAppearance(false);
 
 	QWidget *optionsContainer = new QWidget();
 	//optionsContainer->setStyleSheet("background-color:blue"); // test spacing/padding/margin
 	optionsContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	QHBoxLayout *optionsContainerLayout = new QHBoxLayout(optionsContainer);
-	optionsContainerLayout->addWidget(m_tmw->m_layoutComboBox);
-	optionsContainerLayout->addWidget(m_tmw->m_slicerModeComboBox);
-	optionsContainerLayout->addWidget(m_tmw->m_sliceSlider);
+	optionsContainerLayout->addWidget(m_tmw->w_layoutComboBox());
+	optionsContainerLayout->addWidget(m_tmw->w_slicerModeComboBox());
+	optionsContainerLayout->addWidget(m_tmw->w_sliceNumberSlider());
 
-	m_grid = new iAHistogramStackGrid(this, m_tmw->m_histograms, m_tmw->m_slicerWidgets, m_modalityLabels);
+	iADiagramFctWidget* histograms[3] = { m_tmw->w_histogram(0).data(), m_tmw->w_histogram(1).data(), m_tmw->w_histogram(2).data() };
+	iASimpleSlicerWidget* slicers[3] = { m_tmw->w_slicer(0).data(), m_tmw->w_slicer(1).data(), m_tmw->w_slicer(2).data() };
+	m_grid = new iAHistogramStackGrid(this, histograms, slicers, m_modalityLabels);
 
 	QWidget *leftWidget = new QWidget();
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
@@ -75,7 +77,7 @@ void iAHistogramStack::initialize()
 
 	m_splitter = new QSplitter(Qt::Horizontal);
 	m_splitter->addWidget(leftWidget);
-	m_splitter->addWidget(m_tmw->m_triangleWidget);
+	m_splitter->addWidget(m_tmw->w_triangle());
 	m_splitter->setStretchFactor(0, 1);
 	m_splitter->setStretchFactor(1, 0);
 

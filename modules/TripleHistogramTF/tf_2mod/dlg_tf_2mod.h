@@ -20,6 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QDockWidget>
+
+class MdiChild;
+
+class dlg_tf_2mod : public QDockWidget {
+	Q_OBJECT
+
+public:
+	dlg_tf_2mod(MdiChild *parent, Qt::WindowFlags f = 0);
+
+private:
+	MdiChild *m_mdiChild;
+};
+
+
+/*#pragma once
+
 #include <vtkSmartPointer.h>
 
 #include <QDockWidget>
@@ -65,3 +82,4 @@ private:
 	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
 	vtkSmartPointer<vtkVolume> m_combinedVol;
 };
+*/

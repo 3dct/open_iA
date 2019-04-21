@@ -244,7 +244,7 @@ void iABarycentricTriangleWidget::updateControlPoint(BCoord bCoord, QPoint newPo
 		moveControlPointTo(newPos);
 		updateModalityWeightLabels(bCoord);
 		update();
-		emit weightChanged(bCoord);
+		emit weightsChanged(bCoord);
 
 	} else {
 		// Do nothing for now

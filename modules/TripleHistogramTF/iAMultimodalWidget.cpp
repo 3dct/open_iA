@@ -18,29 +18,27 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iATripleModalityWidget.h"
 
-#include "iAHistogramAbstract.h"
-#include "iABarycentricContextRenderer.h"
-#include "iABarycentricTriangleWidget.h"
+#include "iAMultimodalWidget.h"
+
 #include "iASimpleSlicerWidget.h"
-#include "RightBorderLayout.h"
-
-#include <iASlicer.h>
-#include <iASlicerWidget.h>
 
 #include <charts/iADiagramFctWidget.h>
 #include <charts/iAHistogramData.h>
 #include <charts/iAPlotTypes.h>
 #include <charts/iAProfileWidget.h>
-#include <dlg_modalities.h>
-#include <dlg_transfer.h>
+#include <iASlicer.h>
+#include <iASlicerWidget.h>
 #include <iAChannelVisualizationData.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iAPreferences.h>
 #include <iASlicerData.h>
+#include <iASlicerMode.h>
+#include <iATransferFunction.h>
+#include <dlg_modalities.h>
+#include <dlg_transfer.h>
 #include <mdichild.h>
 
 #include <vtkCamera.h>
@@ -53,16 +51,19 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QString>
+#include <QSharedPointer>
 
 // Debug
 #include <QDebug>
+static const QString DEFAULT_MODALITY_LABELS[3] = { "A", "B", "C" };
 
 //static const char *WEIGHT_FORMAT = "%.10f";
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
 static const QString DISABLED_BACKGROUND_COLOR = "rgba(255,255,255)"; // white
 
-iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiChild, Qt::WindowFlags f /*= 0 */) :
-	QWidget(parent, f)
+iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumberOfModalities num)
+	:
+	m_numOfMod(num)
 {
 	m_mdiChild = mdiChild;
 
@@ -70,32 +71,24 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	m_disabledLabel->setAlignment(Qt::AlignCenter);
 	m_disabledLabel->setStyleSheet("background-color: " + DISABLED_BACKGROUND_COLOR + "; color: " + DISABLED_TEXT_COLOR);
 
-	m_triangleRenderer = new iABarycentricContextRenderer();
-	m_triangleWidget = new iABarycentricTriangleWidget();
-	m_triangleWidget->setTriangleRenderer(m_triangleRenderer);
-
 	m_slicerModeComboBox = new QComboBox();
 	m_slicerModeComboBox->addItem("YZ", iASlicerMode::YZ);
 	m_slicerModeComboBox->addItem("XY", iASlicerMode::XY);
 	m_slicerModeComboBox->addItem("XZ", iASlicerMode::XZ);
 
-	m_layoutComboBox = new QComboBox();
-	m_layoutComboBox->addItem("Stack", iAHistogramAbstractType::STACK);
-	m_layoutComboBox->addItem("Triangle", iAHistogramAbstractType::TRIANGLE);
-
 	m_sliceSlider = new QSlider(Qt::Horizontal);
 	m_sliceSlider->setMinimum(0);
 
-	// Initialize the inner widget {
-	m_mainLayout = new QHBoxLayout(this);
-	setHistogramAbstractType(iAHistogramAbstractType::STACK);
-	// }
+	for (int i = 0; i < m_numOfMod; i++) {
+		m_histograms.push_back(NULL);
+		m_slicerWidgets.push_back(NULL);
+		m_modalitiesActive.push_back(NULL);
+		m_copyTFs.push_back(NULL);
+	}
 
 	updateModalities();
 
-	connect(m_triangleWidget, SIGNAL(weightChanged(BCoord)), this, SLOT(triangleWeightChanged(BCoord)));
 	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slicerModeComboBoxIndexChanged(int)));
-	connect(m_layoutComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(layoutComboBoxIndexChanged(int)));
 	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 
 	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(valueChanged(int)), this, SLOT(setSliceXYScrollBar(int)));
@@ -107,89 +100,13 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
 }
 
-iATripleModalityWidget::~iATripleModalityWidget()
-{
-	delete m_triangleRenderer;
-}
 
-iASlicerMode iATripleModalityWidget::getSlicerMode()
-{
-	return (iASlicerMode) m_slicerModeComboBox->currentData().toInt();
-}
 
-iASlicerMode iATripleModalityWidget::getSlicerModeAt(int comboBoxIndex)
-{
-	return (iASlicerMode)m_slicerModeComboBox->itemData(comboBoxIndex).toInt();
-}
+// ----------------------------------------------------------------------------------
+// 
+// ----------------------------------------------------------------------------------
 
-iAHistogramAbstractType iATripleModalityWidget::getLayoutTypeAt(int comboBoxIndex) {
-	return (iAHistogramAbstractType)m_layoutComboBox->itemData(comboBoxIndex).toInt();
-}
-
-int iATripleModalityWidget::getSliceNumber()
-{
-	return m_sliceSlider->value();
-}
-
-void iATripleModalityWidget::triangleWeightChanged(BCoord newWeight)
-{
-	setWeightPrivate(newWeight);
-}
-
-void iATripleModalityWidget::slicerModeComboBoxIndexChanged(int newIndex)
-{
-	setSlicerModePrivate(getSlicerModeAt(newIndex));
-}
-
-void iATripleModalityWidget::layoutComboBoxIndexChanged(int newIndex)
-{
-	setLayoutTypePrivate(getLayoutTypeAt(newIndex));
-}
-
-void iATripleModalityWidget::sliderValueChanged(int newValue)
-{
-	setSliceNumberPrivate(newValue);
-	updateScrollBars(newValue);
-}
-
-// SCROLLBARS (private SLOTS) {
-void iATripleModalityWidget::setSliceXYScrollBar()
-{
-	setSlicerMode(iASlicerMode::XY);
-}
-void iATripleModalityWidget::setSliceXZScrollBar()
-{
-	setSlicerMode(iASlicerMode::XZ);
-}
-void iATripleModalityWidget::setSliceYZScrollBar()
-{
-	setSlicerMode(iASlicerMode::YZ);
-}
-void iATripleModalityWidget::setSliceXYScrollBar(int sliceNumberXY)
-{
-	setSliceNumber(sliceNumberXY);
-}
-void iATripleModalityWidget::setSliceXZScrollBar(int sliceNumberXZ)
-{
-	setSliceNumber(sliceNumberXZ);
-}
-void iATripleModalityWidget::setSliceYZScrollBar(int sliceNumberYZ)
-{
-	setSliceNumber(sliceNumberYZ);
-}
-// }
-
-// PUBLIC SETTERS { -------------------------------------------------------------------------
-bool iATripleModalityWidget::setWeight(BCoord bCoord)
-{
-	if (bCoord != getWeight()) {
-		m_triangleWidget->setWeight(bCoord);
-		return true;
-	}
-	return false;
-}
-bool iATripleModalityWidget::setSlicerMode(iASlicerMode slicerMode)
-{
+bool iAMultimodalWidget::setSlicerMode(iASlicerMode slicerMode) {
 	if (slicerMode != getSlicerMode()) {
 		m_slicerModeComboBox->setCurrentIndex(m_slicerModeComboBox->findData(slicerMode));
 		emit slicerModeChangedExternally(slicerMode);
@@ -197,8 +114,8 @@ bool iATripleModalityWidget::setSlicerMode(iASlicerMode slicerMode)
 	}
 	return false;
 }
-bool iATripleModalityWidget::setSliceNumber(int sliceNumber)
-{
+
+bool iAMultimodalWidget::setSliceNumber(int sliceNumber) {
 	if (sliceNumber != getSliceNumber()) {
 		m_sliceSlider->setValue(sliceNumber);
 		emit sliceNumberChangedExternally(sliceNumber);
@@ -207,30 +124,25 @@ bool iATripleModalityWidget::setSliceNumber(int sliceNumber)
 	}
 	return false;
 }
-void iATripleModalityWidget::setHistogramAbstractType(iAHistogramAbstractType type) {
-	setLayoutTypePrivate(type);
-	m_layoutComboBox->setCurrentIndex(m_layoutComboBox->findData(type));
-}
-// } ----------------------------------------------------------------------------------------
 
-// PRIVATE SETTERS { ------------------------------------------------------------------------
-void iATripleModalityWidget::setWeightPrivate(BCoord bCoord)
+void iAMultimodalWidget::setWeightsProtected(BCoord bCoord, double t)
 {
-	if (bCoord == m_weightCur) {
+	if (bCoord == m_weights) {
 		return;
 	}
 
-	m_weightCur = bCoord;
+	m_weights = bCoord;
 	applyWeights();
-	emit weightChanged(bCoord);
+	emit weightsChanged2(t);
+	emit weightsChanged3(bCoord);
 	emit transferFunctionChanged();
 }
-void iATripleModalityWidget::setSlicerModePrivate(iASlicerMode slicerMode)
-{
+
+void iAMultimodalWidget::setSlicerModeProtected(iASlicerMode slicerMode) {
 	if (isReady()) {
-		m_slicerWidgets[0]->setSlicerMode(slicerMode);
-		m_slicerWidgets[1]->setSlicerMode(slicerMode);
-		m_slicerWidgets[2]->setSlicerMode(slicerMode);
+		for (QSharedPointer<iASimpleSlicerWidget> slicer : m_slicerWidgets) {
+			slicer->setSlicerMode(slicerMode);
+		}
 
 		int dimensionIndex;
 		int sliceNumber;
@@ -262,50 +174,19 @@ void iATripleModalityWidget::setSlicerModePrivate(iASlicerMode slicerMode)
 		emit slicerModeChanged(slicerMode);
 	}
 }
-void iATripleModalityWidget::setSliceNumberPrivate(int sliceNumber)
+
+void iAMultimodalWidget::setSliceNumberProtected(int sliceNumber)
 {
 	if (isReady()) {
-		m_slicerWidgets[0]->setSliceNumber(sliceNumber);
-		m_slicerWidgets[1]->setSliceNumber(sliceNumber);
-		m_slicerWidgets[2]->setSliceNumber(sliceNumber);
+		for (QSharedPointer<iASimpleSlicerWidget> slicer : m_slicerWidgets) {
+			slicer->setSliceNumber(sliceNumber);
+		}
 		emit sliceNumberChanged(sliceNumber);
 		qDebug() << "setSliceNumberPrivate" << sliceNumber;
 	}
 }
-void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) {
-	if (m_histogramAbstract && type == m_histogramAbstractType) {
-		return;
-	}
 
-	iAHistogramAbstract *histogramAbstract_new = iAHistogramAbstract::buildHistogramAbstract(type, this, m_mdiChild);
-
-	if (m_histogramAbstract) {
-		for (int i = 0; i < 3; i++) {
-			m_histograms[i]->setParent(NULL);
-			m_slicerWidgets[i]->setParent(NULL);
-			resetSlicer(i);
-		}
-		m_triangleWidget->setParent(NULL);
-		m_layoutComboBox->setParent(NULL);
-		m_slicerModeComboBox->setParent(NULL);
-		m_sliceSlider->setParent(NULL);
-
-		//delete m_histogramAbstract;
-		m_mainLayout->replaceWidget(m_histogramAbstract, histogramAbstract_new, Qt::FindDirectChildrenOnly);
-
-		delete m_histogramAbstract;
-	} else {
-		m_mainLayout->addWidget(histogramAbstract_new);
-	}
-	m_histogramAbstract = histogramAbstract_new;
-
-	if (isReady()) {
-		m_histogramAbstract->initialize();
-	}
-}
-// } ----------------------------------------------------------------------------------------
-
-void iATripleModalityWidget::updateScrollBars(int newValue)
+void iAMultimodalWidget::updateScrollBars(int newValue)
 {
 	switch (getSlicerMode())
 	{
@@ -327,56 +208,42 @@ void iATripleModalityWidget::updateScrollBars(int newValue)
 	}
 }
 
-void iATripleModalityWidget::updateTransferFunction(int index)
+void iAMultimodalWidget::updateTransferFunction(int index)
 {
 	updateOriginalTransferFunction(index);
-	m_slicerWidgets[index]->update();
-	m_histograms[index]->update();
+	w_slicer(index)->update();
+	w_histogram(index)->update();
 	emit transferFunctionChanged();
 }
 
-QSharedPointer<iAModality> iATripleModalityWidget::getModality(int index)
-{
-	return m_modalitiesActive[index];
-}
-
-BCoord iATripleModalityWidget::getWeight()
-{
-	return m_triangleWidget->getWeight();
-}
-
-double iATripleModalityWidget::getWeight(int index)
-{
-	return m_weightCur[index];
-}
-
 // When new modalities are added/removed
-void iATripleModalityWidget::updateModalities()
+void iAMultimodalWidget::updateModalities()
 {
-	if (m_mdiChild->GetModalities()->size() >= 3) {
-		if (containsModality(m_mdiChild->GetModality(0)) &&
-			containsModality(m_mdiChild->GetModality(1)) &&
-			containsModality(m_mdiChild->GetModality(2))) {
-
-			return;
+	if (m_mdiChild->GetModalities()->size() >= m_numOfMod) {
+		bool allModalitiesAreHere = true;
+		for (int i = 0; i < m_numOfMod; i++) {
+			if (/*NOT*/ ! containsModality(m_mdiChild->GetModality(i))) {
+				allModalitiesAreHere = false;
+				break;
+			}
 		}
+		if (allModalitiesAreHere) {
+			return; // No need to update modalities if all of them are already here!
+		}
+
 	} else {
 		int i = 0;
-		for (; i < 3 && i < m_mdiChild->GetModalities()->size(); ++i) {
+		for (; i < m_numOfMod && i < m_mdiChild->GetModalities()->size(); ++i) {
 			m_modalitiesActive[i] = m_mdiChild->GetModality(i);
 		}
-		for (; i < 3; i++) {
-			m_modalitiesActive[i] = nullptr;
-			//if (m_weightLabels[i]) delete m_weightLabels[i];
-			//if (m_modalityLabels[i]) delete m_modalityLabels[i];
-			//if (m_slicerWidgets[i]) delete m_slicerWidgets[i];
-			//if (m_histograms[i]) delete m_histograms[i];
+		for (; i < m_numOfMod; i++) {
+			m_modalitiesActive[i] = NULL;
 		}
 		return;
 	}
 
 	// Initialize modalities being added
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < m_numOfMod; ++i) {
 		m_modalitiesActive[i] = m_mdiChild->GetModality(i);
 
 		// Histogram {
@@ -388,9 +255,9 @@ void iATripleModalityWidget::updateModalities()
 
 		vtkColorTransferFunction *colorFuncCopy = vtkColorTransferFunction::New();
 		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New();
-		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy); //new iASimpleTransferFunction(colorFuncCopy, opFuncCopy);
+		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy);
 
-		m_histograms[i] = new iADiagramFctWidget(nullptr, m_mdiChild);
+		m_histograms[i] = QSharedPointer<iADiagramFctWidget>(new iADiagramFctWidget(nullptr, m_mdiChild));
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
 			new	iABarGraphPlot(m_modalitiesActive[i]->GetHistogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->addPlot(histogramPlot);
@@ -412,34 +279,33 @@ void iATripleModalityWidget::updateModalities()
 		m_mdiChild->InitChannelRenderer(id, false, true);
 	}
 
-	m_triangleWidget->setModalities(getModality(0)->GetImage(), getModality(1)->GetImage(), getModality(2)->GetImage());
-	m_triangleWidget->update();
-
 	connect((dlg_transfer*)(m_histograms[0]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
 	connect((dlg_transfer*)(m_histograms[1]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction2()));
 	connect((dlg_transfer*)(m_histograms[2]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction3()));
-	
+
 	applyWeights();
 	connect((dlg_transfer*)(m_mdiChild->getHistogram()->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
 
-	m_histogramAbstract->initialize();
+	emit(modalitiesLoaded_beforeUpdate());
 
-	setSlicerModePrivate(getSlicerMode());
+	setSlicerModeProtected(getSlicerMode());
 	//setSliceNumber(getSliceNumber()); // Already called in setSlicerMode(iASlicerMode)
 
 	update();
 }
 
-void iATripleModalityWidget::resetSlicers() {
+void iAMultimodalWidget::resetSlicers() {
 	for (int i = 0; i < 3; i++) {
 		resetSlicer(i);
 	}
 }
 
-void iATripleModalityWidget::resetSlicer(int i)
+void iAMultimodalWidget::resetSlicer(int i)
 {
-	delete m_slicerWidgets[i];
-	m_slicerWidgets[i] = new iASimpleSlicerWidget(nullptr, m_histogramAbstract->isSlicerInteractionEnabled());
+	// Slicer is replaced here.
+	// Make sure there are no other references to the old iASimpleSlicerWidget
+	// referenced by the QSharedPointer!
+	m_slicerWidgets[i] = QSharedPointer<iASimpleSlicerWidget>(new iASimpleSlicerWidget(nullptr, true));
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	if (m_modalitiesActive[i]) {
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
@@ -448,22 +314,7 @@ void iATripleModalityWidget::resetSlicer(int i)
 	}
 }
 
-bool iATripleModalityWidget::isReady()
-{
-	return m_modalitiesActive[2];
-}
-
-bool iATripleModalityWidget::containsModality(QSharedPointer<iAModality> modality)
-{
-	return m_modalitiesActive[0] == modality || m_modalitiesActive[1] == modality || m_modalitiesActive[2] == modality;
-}
-
-int iATripleModalityWidget::getModalitiesCount()
-{
-	return m_modalitiesActive[2] ? 3 : (m_modalitiesActive[1] ? 2 : (m_modalitiesActive[0] ? 1 : 0));
-}
-
-QSharedPointer<iATransferFunction> iATripleModalityWidget::createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacityFunction)
+QSharedPointer<iATransferFunction> iAMultimodalWidget::createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacityFunction)
 {
 	colorTf->DeepCopy(m_modalitiesActive[index]->GetTransfer()->getColorFunction());
 	opacityFunction->DeepCopy(m_modalitiesActive[index]->GetTransfer()->getOpacityFunction());
@@ -471,7 +322,7 @@ QSharedPointer<iATransferFunction> iATripleModalityWidget::createCopyTf(int inde
 		new iASimpleTransferFunction(colorTf, opacityFunction));
 }
 
-void iATripleModalityWidget::originalHistogramChanged()
+void iAMultimodalWidget::originalHistogramChanged()
 {
 	QSharedPointer<iAModality> selected = m_mdiChild->GetModalitiesDlg()->GetModalities()->Get(m_mdiChild->GetModalitiesDlg()->GetSelected());
 	int index;
@@ -483,7 +334,8 @@ void iATripleModalityWidget::originalHistogramChanged()
 	}
 	else if (selected == m_modalitiesActive[2]) {
 		index = 2;
-	} else {
+	}
+	else {
 		return;
 	}
 	updateCopyTransferFunction(index);
@@ -491,13 +343,13 @@ void iATripleModalityWidget::originalHistogramChanged()
 }
 
 /** Called when the original transfer function changes
-  * RESETS THE COPY (admit numerical imprecision when setting the copy values)
-  * => effective / weight = copy
-  */
-void iATripleModalityWidget::updateCopyTransferFunction(int index)
+* RESETS THE COPY (admit numerical imprecision when setting the copy values)
+* => effective / weight = copy
+*/
+void iAMultimodalWidget::updateCopyTransferFunction(int index)
 {
 	if (isReady()) {
-		double weight = m_weightCur[index];
+		double weight = getWeight(index);
 
 		// newly set transfer function (set via the histogram)
 		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
@@ -528,13 +380,13 @@ void iATripleModalityWidget::updateCopyTransferFunction(int index)
 }
 
 /** Called when the copy transfer function changes
-  * ADD NODES TO THE EFFECTIVE ONLY (clear and repopulate with adjusted effective values)
-  * => copy * weight ~= effective
-  */
-void iATripleModalityWidget::updateOriginalTransferFunction(int index)
+* ADD NODES TO THE EFFECTIVE ONLY (clear and repopulate with adjusted effective values)
+* => copy * weight ~= effective
+*/
+void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 {
 	if (isReady()) {
-		double weight = m_weightCur[index];
+		double weight = getWeight(index);
 
 		// newly set transfer function (set via the histogram)
 		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
@@ -560,10 +412,10 @@ void iATripleModalityWidget::updateOriginalTransferFunction(int index)
 }
 
 /** Resets the values of all nodes in the effective transfer function using the values present in the
-  *     copy of the transfer function, using m_weightCur for the adjustment
-  * CHANGES THE NODES OF THE EFFECTIVE ONLY (based on the copy)
-  */
-void iATripleModalityWidget::applyWeights()
+*     copy of the transfer function, using m_weightCur for the adjustment
+* CHANGES THE NODES OF THE EFFECTIVE ONLY (based on the copy)
+*/
+void iAMultimodalWidget::applyWeights()
 {
 	if (isReady()) {
 		for (int i = 0; i < 3; ++i) {
@@ -574,13 +426,13 @@ void iATripleModalityWidget::applyWeights()
 			for (int j = 0; j < copy->GetSize(); ++j)
 			{
 				copy->GetNodeValue(j, pntVal);
-				pntVal[1] = pntVal[1] * m_weightCur[i]; // index 1 in pntVal means opacity
+				pntVal[1] = pntVal[1] * getWeight(i); // index 1 in pntVal means opacity
 				effective->SetNodeValue(j, pntVal);
 			}
 			m_histograms[i]->update();
 
 			iAChannelID id = static_cast<iAChannelID>(ch_Meta0 + i);
-			m_mdiChild->UpdateChannelSlicerOpacity(id, m_weightCur[i]);
+			m_mdiChild->UpdateChannelSlicerOpacity(id, getWeight(i));
 		}
 
 		m_mdiChild->getSlicerDataXY()->updateChannelMappers();
@@ -588,4 +440,92 @@ void iATripleModalityWidget::applyWeights()
 		m_mdiChild->getSlicerDataYZ()->updateChannelMappers();
 		m_mdiChild->updateSlicers();
 	}
+}
+
+
+
+// ----------------------------------------------------------------------------------
+// Short methods
+// ----------------------------------------------------------------------------------
+
+iASlicerMode iAMultimodalWidget::getSlicerMode()
+{
+	return (iASlicerMode)m_slicerModeComboBox->currentData().toInt();
+}
+
+iASlicerMode iAMultimodalWidget::getSlicerModeAt(int comboBoxIndex)
+{
+	return (iASlicerMode)m_slicerModeComboBox->itemData(comboBoxIndex).toInt();
+}
+
+int iAMultimodalWidget::getSliceNumber()
+{
+	return m_sliceSlider->value();
+}
+
+void iAMultimodalWidget::slicerModeComboBoxIndexChanged(int newIndex)
+{
+	setSlicerModeProtected(getSlicerModeAt(newIndex));
+}
+
+void iAMultimodalWidget::sliderValueChanged(int newValue)
+{
+	setSliceNumberProtected(newValue);
+	updateScrollBars(newValue);
+}
+
+// SCROLLBARS (private SLOTS)
+void iAMultimodalWidget::setSliceXYScrollBar()
+{
+	setSlicerMode(iASlicerMode::XY);
+}
+void iAMultimodalWidget::setSliceXZScrollBar()
+{
+	setSlicerMode(iASlicerMode::XZ);
+}
+void iAMultimodalWidget::setSliceYZScrollBar()
+{
+	setSlicerMode(iASlicerMode::YZ);
+}
+void iAMultimodalWidget::setSliceXYScrollBar(int sliceNumberXY)
+{
+	setSliceNumber(sliceNumberXY);
+}
+void iAMultimodalWidget::setSliceXZScrollBar(int sliceNumberXZ)
+{
+	setSliceNumber(sliceNumberXZ);
+}
+void iAMultimodalWidget::setSliceYZScrollBar(int sliceNumberYZ)
+{
+	setSliceNumber(sliceNumberYZ);
+}
+
+QSharedPointer<iAModality> iAMultimodalWidget::getModality(int index)
+{
+	return m_modalitiesActive[index];
+}
+
+BCoord iAMultimodalWidget::getWeights()
+{
+	return m_weights;
+}
+
+double iAMultimodalWidget::getWeight(int i)
+{
+	return m_weights[i];
+}
+
+bool iAMultimodalWidget::isReady()
+{
+	return m_modalitiesActive[2];
+}
+
+bool iAMultimodalWidget::containsModality(QSharedPointer<iAModality> modality)
+{
+	return m_modalitiesActive[0] == modality || m_modalitiesActive[1] == modality || m_modalitiesActive[2] == modality;
+}
+
+int iAMultimodalWidget::getModalitiesCount()
+{
+	return m_modalitiesActive[2] ? 3 : (m_modalitiesActive[1] ? 2 : (m_modalitiesActive[0] ? 1 : 0));
 }

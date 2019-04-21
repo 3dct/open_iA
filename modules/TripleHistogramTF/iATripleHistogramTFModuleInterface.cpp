@@ -18,9 +18,12 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iATripleHistogramTFModuleInterface.h"
 
-#include <TripleHistogramTF/dlg_TripleHistogramTF.h>
+#include <iATripleHistogramTFModuleInterface.h>
+
+#include "tf_2mod/dlg_tf_2mod.h"
+#include "tf_3mod/dlg_tf_3mod.h"
+
 #include <mainwindow.h>
 #include <mdichild.h>
 
@@ -30,21 +33,38 @@ void iATripleHistogramTFModuleInterface::Initialize()
 {
 	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
 	    return;        // in that case, we do not do anything as we can not add a menu entry there
-	QMenu * filtersMenu = m_mainWnd->getToolsMenu();  // alternatively, you can use getToolsMenu() here if you want to add a tool
-	QAction * actionTest = new QAction( m_mainWnd );
-	actionTest->setText( QApplication::translate( "MainWindow", "Triple Histogram Transfer Function", 0 ) );
-	AddActionToMenuAlphabeticallySorted(filtersMenu,  actionTest, true ); // "By specifying false in the third parameter to AddActionToMenuAlphabeticallySorted we say that the menu entry should not depend on the availability of an open file (if you say true here, the menu entry will only be enabled if a file is open)"
-	connect( actionTest, SIGNAL( triggered() ), this, SLOT(MenuItemSelected() ) ); // "The added menu entry is linked to the method TestAction via the call to the connect method (inherited from QObject). In the TestAction we just open a simple information message box"
+	QMenu *filtersMenu = m_mainWnd->getToolsMenu();  // alternatively, you can use getToolsMenu() here if you want to add a tool
+
+	QAction *action_2mod = new QAction(m_mainWnd);
+	action_2mod->setText(QApplication::translate("MainWindow", "Double Histogram Transfer Function", 0));
+	AddActionToMenuAlphabeticallySorted(filtersMenu, action_2mod, true); // "By specifying false in the third parameter to AddActionToMenuAlphabeticallySorted we say that the menu entry should not depend on the availability of an open file (if you say true here, the menu entry will only be enabled if a file is open)"
+	connect(action_2mod, SIGNAL(triggered()), this, SLOT(menuItemSelected_2mod())); // "The added menu entry is linked to the method TestAction via the call to the connect method (inherited from QObject). In the TestAction we just open a simple information message box"
+
+	QAction *action_3mod = new QAction(m_mainWnd);
+	action_3mod->setText(QApplication::translate("MainWindow", "Triple Histogram Transfer Function", 0));
+	AddActionToMenuAlphabeticallySorted(filtersMenu, action_3mod, true);
+	connect(action_3mod, SIGNAL(triggered()), this, SLOT(menuItemSelected_3mod()));
 }
 
-void iATripleHistogramTFModuleInterface::MenuItemSelected()
+void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()
 {
 	PrepareActiveChild();
-	thtf = new dlg_TripleHistogramTF(m_mdiChild);
+	m_tf_2mod = new dlg_tf_2mod(m_mdiChild);
+
+	m_mdiChild->tabifyDockWidget(m_mdiChild->logs, m_tf_2mod);
+
+	m_tf_2mod->show();
+	m_tf_2mod->raise();
+}
+
+void iATripleHistogramTFModuleInterface::menuItemSelected_3mod()
+{
+	PrepareActiveChild();
+	m_tf_3mod = new dlg_tf_3mod(m_mdiChild);
 
 	//m_mdiChild->addDockWidget(Qt::BottomDockWidgetArea, thtf);
-	m_mdiChild->tabifyDockWidget(m_mdiChild->logs, thtf);
+	m_mdiChild->tabifyDockWidget(m_mdiChild->logs, m_tf_3mod);
 
-	thtf->show();
-	thtf->raise();
+	m_tf_3mod->show();
+	m_tf_3mod->raise();
 }

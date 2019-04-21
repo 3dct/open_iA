@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth       *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,25 +15,25 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <QWidget>
 
-class dlg_tf_2mod;
-class dlg_tf_3mod;
+class MdiChild;
+class iATripleModalityWidget;
 
-class iATripleHistogramTFModuleInterface : public iAModuleInterface
+enum iAHistogramAbstractType {
+	STACK, TRIANGLE
+};
+
+class iAHistogramAbstract : public QWidget
 {
-	Q_OBJECT
 public:
-	void Initialize() override;
-private slots:
-	void menuItemSelected_2mod();
-	void menuItemSelected_3mod();
-private:
-	dlg_tf_2mod *m_tf_2mod;
-	dlg_tf_3mod *m_tf_3mod;
+	virtual void initialize() = 0;
+	virtual bool isSlicerInteractionEnabled() = 0;
+
+	static iAHistogramAbstract* buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 };

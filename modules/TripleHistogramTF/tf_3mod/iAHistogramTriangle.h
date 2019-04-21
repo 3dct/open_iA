@@ -82,7 +82,7 @@ private:
 	void forwardMouseEvent(QMouseEvent *event, MouseEventType type);
 	void forwardWheelEvent(QWheelEvent *event);
 	void forwardContextMenuEvent(QContextMenuEvent *event);
-	iADiagramFctWidget* onHistogram(QPoint p, QPoint &transformed);
+	QSharedPointer<iADiagramFctWidget> onHistogram(QPoint p, QPoint &transformed);
 	bool onTriangle(QPoint p);
 	iASlicerWidget* onSlicer(QPoint p, QPoint &transformed);
 

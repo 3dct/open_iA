@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2018  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan,            *
-*                          J. Weissenböck, Artem & Alexander Amirkhanov, B. Fröhler   *
+* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                          Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,25 +15,53 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
+#include <vtkSmartPointer.h>
+
+#include <QDockWidget>
+
+class QStackedLayout;
+class QLabel;
 
 class MdiChild;
 class iATripleModalityWidget;
+class BCoord;
 
-enum iAHistogramAbstractType {
-	STACK, TRIANGLE
-};
+class vtkSmartVolumeMapper;
+class vtkVolume;
+class vtkRenderer;
 
-class iAHistogramAbstract : public QWidget
+//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
+
+class dlg_tf_3mod : public QDockWidget//public TripleHistogramTFConnector
 {
-public:
-	virtual void initialize() = 0;
-	virtual bool isSlicerInteractionEnabled() = 0;
+	Q_OBJECT
 
-	static iAHistogramAbstract* buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+public:
+	dlg_tf_3mod(MdiChild* parent, Qt::WindowFlags f = 0);
+
+public slots:
+	void updateTransferFunction();
+	void updateModalities();
+
+private slots:
+
+private:
+	void updateDisabledLabel();
+
+	// TODO: is it really good to keep the mdiChild as a member variable?
+	MdiChild *m_mdiChild;
+
+	// Widgets and stuff
+	QStackedLayout *m_stackedLayout;
+	QLabel *m_disabledLabel;
+	iATripleModalityWidget *m_tripleModalityWidget;
+
+	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
+	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
+	vtkSmartPointer<vtkVolume> m_combinedVol;
 };

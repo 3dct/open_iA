@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAMultimodalWidget.h"
+
 #include "iAHistogramAbstract.h"
 #include "BCoord.h"
 
 #include <iASlicerMode.h>
 
 #include <vtkSmartPointer.h>
-
-#include <QWidget>
 
 class iABarycentricTriangleWidget;
 class iASimpleSlicerWidget;
@@ -45,9 +45,7 @@ class QComboBox;
 class QLabel;
 class QSlider;
 
-static const QString DEFAULT_MODALITY_LABELS[3] = { "A", "B", "C" };
-
-class iATripleModalityWidget : public QWidget
+class iATripleModalityWidget : public iAMultimodalWidget
 {
 	Q_OBJECT
 
@@ -55,93 +53,33 @@ public:
 	iATripleModalityWidget(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
 	~iATripleModalityWidget();
 
-	bool setWeight(BCoord bCoord);
-	bool setSlicerMode(iASlicerMode slicerMode);
-	bool setSliceNumber(int sliceNumber);
-	bool containsModality(QSharedPointer<iAModality> modality);
-	int getModalitiesCount();
-
-	QSharedPointer<iAModality> getModality(int index);
-	double getWeight(int index);
-
-	void updateModalities();
-
-	bool isReady();
-
+	iAHistogramAbstractType getLayoutTypeAt(int comboBoxIndex);
 	void setHistogramAbstractType(iAHistogramAbstractType type);
 
-	// PUBLIC MEMBERS
-	iADiagramFctWidget* m_histograms[3] = { nullptr, nullptr, nullptr };
-	iASimpleSlicerWidget *m_slicerWidgets[3] = { nullptr, nullptr, nullptr };
-	QComboBox *m_slicerModeComboBox;
-	QSlider *m_sliceSlider;
-	iABarycentricTriangleWidget *m_triangleWidget;
-	QComboBox *m_layoutComboBox;
+	iABarycentricTriangleWidget* w_triangle() {
+		return m_triangleWidget;
+	}
+
+	QComboBox* w_layoutComboBox() {
+		return m_layoutComboBox;
+	}
 
 private slots:
 	void updateTransferFunction1() { updateTransferFunction(0); }
 	void updateTransferFunction2() { updateTransferFunction(1); }
 	void updateTransferFunction3() { updateTransferFunction(2); }
-	void originalHistogramChanged();
 
-	void triangleWeightChanged(BCoord newWeight);
-	void slicerModeComboBoxIndexChanged(int newIndex);
 	void layoutComboBoxIndexChanged(int newIndex);
-	void sliderValueChanged(int newValue);
-
-	void setSliceXYScrollBar();
-	void setSliceXZScrollBar();
-	void setSliceYZScrollBar();
-	void setSliceXYScrollBar(int sliceNumberXY);
-	void setSliceXZScrollBar(int sliceNumberXZ);
-	void setSliceYZScrollBar(int sliceNumberYZ);
-
-signals:
-	void transferFunctionChanged();
-
-	void weightChanged(BCoord bCoord);
-	void slicerModeChanged(iASlicerMode slicerMode);
-	void sliceNumberChanged(int sliceNumber);
-
-	void slicerModeChangedExternally(iASlicerMode slicerMode);
-	void sliceNumberChangedExternally(int sliceNumber);
+	void triangleWeightChanged(BCoord newWeights);
+	void weightsChangedSlot(BCoord newWeights);
+	void modalitiesLoaded_beforeUpdateSlot();
 
 private:
-	BCoord m_weightCur;
-	void updateScrollBars(int newValue);
-	void updateTransferFunction(int index);
-	void updateCopyTransferFunction(int index);
-	void updateOriginalTransferFunction(int index);
-	void applyWeights();
-
-	void setWeightPrivate(BCoord weights);
-	void setSlicerModePrivate(iASlicerMode slicerMode);
+	QComboBox *m_layoutComboBox;
 	void setLayoutTypePrivate(iAHistogramAbstractType type);
-	void setSliceNumberPrivate(int sliceNumber);
 
-	void resetSlicers();
-	void resetSlicer(int i);
-	QWidget* m_slicerWidgetParent = NULL;
-
-	QSharedPointer<iAModality> m_modalitiesActive[3];
-
+	iABarycentricTriangleWidget *m_triangleWidget;
 	iATriangleRenderer *m_triangleRenderer;
-
-	BCoord getWeight();
-	iASlicerMode getSlicerMode();
-	iASlicerMode getSlicerModeAt(int comboBoxIndex);
-	iAHistogramAbstractType getLayoutTypeAt(int comboBoxIndex);
-	int getSliceNumber();
-
-	// Background stuff
-	QSharedPointer<iATransferFunction> m_copyTFs[3] = { nullptr, nullptr, nullptr };
-	QSharedPointer<iATransferFunction> createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacity);
-
-	// Widgets and stuff
-	QLabel *m_disabledLabel;
-
-	// TODO: another pointer to MdiChild... is this really optimal?
-	MdiChild *m_mdiChild;
 
 	QLayout *m_mainLayout;
 	iAHistogramAbstract *m_histogramAbstract = nullptr;

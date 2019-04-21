@@ -85,10 +85,8 @@ public:
 	void paintControlPoint(QPainter &p);
 	void paintModalityLabels(QPainter &p);
 
-public slots:
-
 signals:
-	void weightChanged(BCoord bCoord);
+	void weightsChanged(BCoord bCoord);
 
 protected:
 	void paintEvent(QPaintEvent* event);

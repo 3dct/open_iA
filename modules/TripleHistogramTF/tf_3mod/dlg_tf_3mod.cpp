@@ -18,7 +18,8 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_TripleHistogramTF.h"
+
+#include "dlg_tf_3mod.h"
 
 #include "iATripleModalityWidget.h"
 #include "iABarycentricContextRenderer.h"
@@ -53,7 +54,8 @@
 
 const static QString DEFAULT_LABELS[3] = { "A", "B", "C" };
 
-dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */) :
+dlg_tf_3mod::dlg_tf_3mod(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */)
+	:
 	//TripleHistogramTFConnector(mdiChild, f), m_mdiChild(mdiChild)
 	QDockWidget("Triple Histogram Transfer Function", mdiChild, f),
 	m_mdiChild(mdiChild)
@@ -92,12 +94,12 @@ dlg_TripleHistogramTF::dlg_TripleHistogramTF(MdiChild * mdiChild /*= 0*/, Qt::Wi
 }
 
 // SLOTS {
-void dlg_TripleHistogramTF::updateTransferFunction()
+void dlg_tf_3mod::updateTransferFunction()
 {
 	m_mdiChild->redrawHistogram();
 	m_mdiChild->getRenderer()->update();
 }
-void dlg_TripleHistogramTF::updateModalities()
+void dlg_tf_3mod::updateModalities()
 {
 	m_tripleModalityWidget->updateModalities();
 	if (m_tripleModalityWidget->getModalitiesCount() < 3) {
@@ -160,7 +162,7 @@ void dlg_TripleHistogramTF::updateModalities()
 }
 // }
 
-void dlg_TripleHistogramTF::updateDisabledLabel()
+void dlg_tf_3mod::updateDisabledLabel()
 {
 	int count = m_tripleModalityWidget->getModalitiesCount();
 	QString modalit_y_ies_is_are = count == 2 ? "modality is" : "modalities are";
