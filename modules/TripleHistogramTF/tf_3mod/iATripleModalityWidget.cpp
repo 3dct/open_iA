@@ -45,7 +45,6 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	m_layoutComboBox->addItem("Triangle", iAHistogramAbstractType::TRIANGLE);
 
 	// Initialize the inner widget {
-	m_mainLayout = new QHBoxLayout(this);
 	setHistogramAbstractType(iAHistogramAbstractType::STACK);
 	// }
 
@@ -118,11 +117,11 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) 
 		w_sliceNumberSlider()->setParent(NULL);
 
 		//delete m_histogramAbstract;
-		m_mainLayout->replaceWidget(m_histogramAbstract, histogramAbstract_new, Qt::FindDirectChildrenOnly);
+		m_innerLayout->replaceWidget(m_histogramAbstract, histogramAbstract_new, Qt::FindDirectChildrenOnly);
 
 		delete m_histogramAbstract;
 	} else {
-		m_mainLayout->addWidget(histogramAbstract_new);
+		m_innerLayout->addWidget(histogramAbstract_new);
 	}
 	m_histogramAbstract = histogramAbstract_new;
 

@@ -81,7 +81,6 @@ private:
 	iABarycentricTriangleWidget *m_triangleWidget;
 	iATriangleRenderer *m_triangleRenderer;
 
-	QLayout *m_mainLayout;
 	iAHistogramAbstract *m_histogramAbstract = nullptr;
 	iAHistogramAbstractType m_histogramAbstractType;
 };

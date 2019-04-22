@@ -37,6 +37,8 @@
 #include <iASlicerData.h>
 #include <iASlicerMode.h>
 #include <iATransferFunction.h>
+#include <iARenderer.h>
+#include <iAVolumeRenderer.h>
 #include <dlg_modalities.h>
 #include <dlg_transfer.h>
 #include <mdichild.h>
@@ -47,29 +49,44 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkSmartPointer.h>
+#include <vtkImageAppendComponents.h>
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
+#include <vtkSmartVolumeMapper.h>
+#include <vtkRenderer.h>
 
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QString>
 #include <QSharedPointer>
+#include <QStackedLayout>
 
 // Debug
 #include <QDebug>
-static const QString DEFAULT_MODALITY_LABELS[3] = { "A", "B", "C" };
 
 //static const char *WEIGHT_FORMAT = "%.10f";
 static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
 static const QString DISABLED_BACKGROUND_COLOR = "rgba(255,255,255)"; // white
 
-iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumberOfModalities num)
+iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumOfMod num)
 	:
-	m_numOfMod(num)
+	m_numOfMod(num),
+	m_mdiChild(mdiChild)
 {
-	m_mdiChild = mdiChild;
+	m_stackedLayout = new QStackedLayout(this);
+	m_stackedLayout->setStackingMode(QStackedLayout::StackOne);
 
-	m_disabledLabel = new QLabel();
+	m_disabledLabel = new QLabel(this);
 	m_disabledLabel->setAlignment(Qt::AlignCenter);
-	m_disabledLabel->setStyleSheet("background-color: " + DISABLED_BACKGROUND_COLOR + "; color: " + DISABLED_TEXT_COLOR);
+	//m_disabledLabel->setStyleSheet("background-color: " + DISABLED_BACKGROUND_COLOR + "; color: " + DISABLED_TEXT_COLOR);
+
+	QWidget *innerWidget = new QWidget(this);
+	m_innerLayout = new QHBoxLayout(innerWidget);
+	m_innerLayout->setMargin(0);
+
+	m_stackedLayout->addWidget(innerWidget);
+	m_stackedLayout->addWidget(m_disabledLabel);
+	m_stackedLayout->setCurrentIndex(1);
 
 	m_slicerModeComboBox = new QComboBox();
 	m_slicerModeComboBox->addItem("YZ", iASlicerMode::YZ);
@@ -80,10 +97,10 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, Numb
 	m_sliceSlider->setMinimum(0);
 
 	for (int i = 0; i < m_numOfMod; i++) {
-		m_histograms.push_back(NULL);
-		m_slicerWidgets.push_back(NULL);
-		m_modalitiesActive.push_back(NULL);
-		m_copyTFs.push_back(NULL);
+		m_histograms.push_back(Q_NULLPTR);
+		m_slicerWidgets.push_back(Q_NULLPTR);
+		m_modalitiesActive.push_back(Q_NULLPTR);
+		m_copyTFs.push_back(Q_NULLPTR);
 	}
 
 	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slicerModeComboBoxIndexChanged(int)));
@@ -97,7 +114,9 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, Numb
 	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
 	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
 
-	updateModalities();
+	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
+
+	modalitiesChanged();
 }
 
 
@@ -133,9 +152,9 @@ void iAMultimodalWidget::setWeightsProtected(BCoord bCoord, double t)
 
 	m_weights = bCoord;
 	applyWeights();
+	updateHistogram();
 	emit weightsChanged2(t);
 	emit weightsChanged3(bCoord);
-	emit transferFunctionChanged();
 }
 
 void iAMultimodalWidget::setSlicerModeProtected(iASlicerMode slicerMode) {
@@ -186,6 +205,12 @@ void iAMultimodalWidget::setSliceNumberProtected(int sliceNumber)
 	}
 }
 
+void iAMultimodalWidget::updateHistogram()
+{
+	m_mdiChild->redrawHistogram();
+	m_mdiChild->getRenderer()->update();
+}
+
 void iAMultimodalWidget::updateScrollBars(int newValue)
 {
 	switch (getSlicerMode())
@@ -213,7 +238,93 @@ void iAMultimodalWidget::updateTransferFunction(int index)
 	updateOriginalTransferFunction(index);
 	w_slicer(index)->update();
 	w_histogram(index)->update();
-	emit transferFunctionChanged();
+	updateHistogram();
+}
+
+void iAMultimodalWidget::updateDisabledLabel()
+{
+	int count = getModalitiesCount();
+	int missing = m_numOfMod - count;
+	QString modalit_y_ies_is_are = missing == 1 ? "modality is" : "modalities are";
+	//QString nameA = count >= 1 ? m_modalitiesActive[0]->GetName() : "missing";
+	//QString nameB = count >= 2 ? m_modalitiesActive[1]->GetName() : "missing";
+	//QString nameC = modalitiesCount >= 3 ? m_modalitiesAvailable[2]->GetName() : "missing";
+	m_disabledLabel->setText(
+		"Unable to set up this widget.\n" +
+		QString::number(missing) + " " + modalit_y_ies_is_are + " missing.\n"/* +
+		"\n" +
+		"Modality " + DEFAULT_MODALITY_LABELS[0] + ": " + nameA + "\n" +
+		"Modality " + DEFAULT_MODALITY_LABELS[1] + ": " + nameB + "\n" +
+		"Modality " + DEFAULT_MODALITY_LABELS[2] + ": missing"*/
+	);
+}
+
+
+
+// ----------------------------------------------------------------------------------
+// Modalities management
+// ----------------------------------------------------------------------------------
+
+void iAMultimodalWidget::modalitiesChanged() {
+	updateModalities();
+
+	if (getModalitiesCount() < 3) {
+		updateDisabledLabel();
+		m_stackedLayout->setCurrentIndex(1);
+		return;
+	}
+
+	m_stackedLayout->setCurrentIndex(0);
+
+	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
+	appendFilter->SetInputData(getModality(0)->GetImage());
+	appendFilter->AddInputData(getModality(1)->GetImage());
+	appendFilter->AddInputData(getModality(2)->GetImage());
+	appendFilter->Update();
+
+	m_combinedVol = vtkSmartPointer<vtkVolume>::New();
+	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
+	combinedVolProp->SetInterpolationTypeToLinear();
+
+	combinedVolProp->SetColor(0, getModality(0)->GetTransfer()->getColorFunction());
+	combinedVolProp->SetScalarOpacity(0, getModality(0)->GetTransfer()->getOpacityFunction());
+
+	combinedVolProp->SetColor(1, getModality(1)->GetTransfer()->getColorFunction());
+	combinedVolProp->SetScalarOpacity(1, getModality(1)->GetTransfer()->getOpacityFunction());
+
+	combinedVolProp->SetColor(2, getModality(2)->GetTransfer()->getColorFunction());
+	combinedVolProp->SetScalarOpacity(2, getModality(2)->GetTransfer()->getOpacityFunction());
+
+	m_combinedVol->SetProperty(combinedVolProp);
+
+	m_combinedVolMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
+	m_combinedVolMapper->SetBlendModeToComposite();
+	m_combinedVolMapper->SetInputData(appendFilter->GetOutput());
+	m_combinedVolMapper->Update();
+	m_combinedVol->SetMapper(m_combinedVolMapper);
+	m_combinedVol->Update();
+
+	m_combinedVolRenderer = vtkSmartPointer<vtkRenderer>::New();
+	m_combinedVolRenderer->SetActiveCamera(m_mdiChild->getRenderer()->getCamera());
+	m_combinedVolRenderer->GetActiveCamera()->ParallelProjectionOn();
+	m_combinedVolRenderer->SetLayer(1);
+	m_combinedVolRenderer->AddVolume(m_combinedVol);
+	//m_combinedVolRenderer->ResetCamera();
+
+	for (int i = 0; i < 3; ++i)
+	{
+		QSharedPointer<iAVolumeRenderer> renderer = getModality(i)->GetRenderer();
+		renderer->Remove();
+	}
+	m_mdiChild->getRenderer()->AddRenderer(m_combinedVolRenderer);
+
+	m_mdiChild->getSlicerDataXY()->GetImageActor()->SetOpacity(0.0);
+	m_mdiChild->getSlicerDataXZ()->GetImageActor()->SetOpacity(0.0);
+	m_mdiChild->getSlicerDataYZ()->GetImageActor()->SetOpacity(0.0);
+
+	m_mdiChild->getSlicerDataXY()->SetManualBackground(1.0, 1.0, 1.0);
+	m_mdiChild->getSlicerDataXZ()->SetManualBackground(1.0, 1.0, 1.0);
+	m_mdiChild->getSlicerDataYZ()->SetManualBackground(1.0, 1.0, 1.0);
 }
 
 // When new modalities are added/removed

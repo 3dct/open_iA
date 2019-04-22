@@ -39,8 +39,18 @@ class MdiChild;
 
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
+class vtkSmartVolumeMapper;
+class vtkRenderer;
+class vtkVolume;
 
 class QLabel;
+class QStackedLayout;
+
+enum NumOfMod {
+	UNDEFINED = -1,
+	TWO = 2,
+	THREE = 3
+};
 
 class iAMultimodalWidget : public QWidget {
 	Q_OBJECT
@@ -52,13 +62,7 @@ private:
 	void setWeights(BCoord bCoord, double t);
 
 public:
-	enum NumberOfModalities {
-		UNDEFINED = -1,
-		TWO = 2,
-		THREE = 3
-	};
-
-	iAMultimodalWidget(QWidget *parent, MdiChild* mdiChild, NumberOfModalities num);
+	iAMultimodalWidget(QWidget *parent, MdiChild* mdiChild, NumOfMod num);
 
 	QSharedPointer<iADiagramFctWidget> w_histogram(int i) {
 		return m_histograms[i];
@@ -117,36 +121,40 @@ protected:
 		setWeightsProtected(bCoord, bCoord_to_t(bCoord));
 	}
 
-	// TODO: another pointer to MdiChild... is this really optimal?
 	MdiChild *m_mdiChild;
+	QLayout *m_innerLayout;
 
 private:
 	// User interface {
+	void updateDisabledLabel();
 	QVector<QSharedPointer<iADiagramFctWidget>> m_histograms;
 	QVector<QSharedPointer<iASimpleSlicerWidget>> m_slicerWidgets;
 	QComboBox *m_slicerModeComboBox;
 	QSlider *m_sliceSlider;
-
+	QStackedLayout *m_stackedLayout;
 	QLabel *m_disabledLabel;
 	// }
 
 	void updateScrollBars(int newValue);
+	void updateHistogram();
 	void updateCopyTransferFunction(int index);
 	void updateOriginalTransferFunction(int index);
 	void applyWeights();
 
 	BCoord m_weights;
 
-	NumberOfModalities m_numOfMod = UNDEFINED;
+	NumOfMod m_numOfMod = UNDEFINED;
 	QVector<QSharedPointer<iAModality>> m_modalitiesActive;
+
+	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
+	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
+	vtkSmartPointer<vtkVolume> m_combinedVol;
 
 	// Background stuff
 	QVector<QSharedPointer<iATransferFunction>> m_copyTFs;
 	QSharedPointer<iATransferFunction> createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacity);
 
 signals:
-	void transferFunctionChanged();
-
 	void weightsChanged3(BCoord weights);
 	void weightsChanged2(double t);
 	void slicerModeChanged(iASlicerMode slicerMode);
@@ -169,5 +177,7 @@ private slots:
 	void setSliceXYScrollBar(int sliceNumberXY);
 	void setSliceXZScrollBar(int sliceNumberXZ);
 	void setSliceYZScrollBar(int sliceNumberYZ);
+
+	void modalitiesChanged();
 
 };

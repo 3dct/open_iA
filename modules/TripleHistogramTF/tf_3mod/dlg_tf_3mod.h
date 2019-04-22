@@ -44,24 +44,6 @@ class dlg_tf_3mod : public QDockWidget//public TripleHistogramTFConnector
 public:
 	dlg_tf_3mod(MdiChild* parent, Qt::WindowFlags f = 0);
 
-public slots:
-	void updateTransferFunction();
-	void updateModalities();
-
-private slots:
-
 private:
-	void updateDisabledLabel();
-
-	// TODO: is it really good to keep the mdiChild as a member variable?
-	MdiChild *m_mdiChild;
-
-	// Widgets and stuff
-	QStackedLayout *m_stackedLayout;
-	QLabel *m_disabledLabel;
 	iATripleModalityWidget *m_tripleModalityWidget;
-
-	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
-	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
-	vtkSmartPointer<vtkVolume> m_combinedVol;
 };
