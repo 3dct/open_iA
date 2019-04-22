@@ -24,27 +24,16 @@
 
 #include <QWidget>
 
+class iAHistogramStackGrid;
 class iATripleModalityWidget;
 class iADiagramFctWidget;
 class iASimpleSlicerWidget;
+
 class MdiChild;
 
 class QGridLayout;
 class QSplitter;
 class QLabel;
-
-class iAHistogramStackGrid : public QWidget
-{
-public:
-	iAHistogramStackGrid(QWidget *parent, iADiagramFctWidget *histograms[3], iASimpleSlicerWidget *slicers[3], QLabel *labels[3], Qt::WindowFlags f = 0);
-	void adjustStretch() { adjustStretch(size().width()); }
-protected:
-	void resizeEvent(QResizeEvent* event);
-private:
-	void adjustStretch(int w);
-	QGridLayout *m_gridLayout;
-	int m_spacing = 1;
-};
 
 class iAHistogramStack : public iAHistogramAbstract
 {
@@ -58,7 +47,6 @@ public:
 private:
 	QSplitter *m_splitter;
 	iAHistogramStackGrid *m_grid;
-	QLabel *m_modalityLabels[3] = { nullptr, nullptr, nullptr };
 
 	iATripleModalityWidget* m_tmw;
 };

@@ -24,6 +24,7 @@
 #include "iATripleModalityWidget.h"
 #include "iABarycentricTriangleWidget.h"
 #include "iASimpleSlicerWidget.h"
+#include "iAHistogramStackGrid.h"
 
 #include <iATransferFunction.h>
 #include <charts/iADiagramFctWidget.h>
@@ -35,6 +36,7 @@
 #include <QSplitter>
 #include <QResizeEvent>
 #include <QVBoxLayout>
+#include <QVector>
 
 iAHistogramStack::iAHistogramStack(QWidget* parent, iATripleModalityWidget *tripleModalityWidget, MdiChild *mdiChild, Qt::WindowFlags f)
 	: m_tmw(tripleModalityWidget)
@@ -43,13 +45,24 @@ iAHistogramStack::iAHistogramStack(QWidget* parent, iATripleModalityWidget *trip
 
 void iAHistogramStack::initialize()
 {
-	const QString modalityLabels[3] = { QString("A"), QString("B"), QString("C") };
+	const QString modalityLabels[3] = { "A", "B", "C" };
+	QVector<QLabel*> labels;
 	for (int i = 0; i < 3; i++) {
-		//m_modalityLabels[i] = new QLabel(DEFAULT_MODALITY_LABELS[i]);
-		m_modalityLabels[i] = new QLabel(modalityLabels[i]);
-		m_modalityLabels[i]->setStyleSheet("font-weight: bold");
-		m_modalityLabels[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+		auto l = new QLabel(modalityLabels[i]);
+		l->setStyleSheet("font-weight: bold");
+		l->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+		labels.push_back(l);
 	}
+
+	QVector<iADiagramFctWidget*> histograms;
+	histograms.push_back(m_tmw->w_histogram(0).data());
+	histograms.push_back(m_tmw->w_histogram(1).data());
+	histograms.push_back(m_tmw->w_histogram(2).data());
+
+	QVector<iASimpleSlicerWidget*> slicers;
+	slicers.push_back(m_tmw->w_slicer(0).data());
+	slicers.push_back(m_tmw->w_slicer(1).data());
+	slicers.push_back(m_tmw->w_slicer(2).data());
 
 	m_tmw->w_triangle()->recalculatePositions();
 
@@ -63,10 +76,8 @@ void iAHistogramStack::initialize()
 	optionsContainerLayout->addWidget(m_tmw->w_layoutComboBox());
 	optionsContainerLayout->addWidget(m_tmw->w_slicerModeComboBox());
 	optionsContainerLayout->addWidget(m_tmw->w_sliceNumberSlider());
-
-	iADiagramFctWidget* histograms[3] = { m_tmw->w_histogram(0).data(), m_tmw->w_histogram(1).data(), m_tmw->w_histogram(2).data() };
-	iASimpleSlicerWidget* slicers[3] = { m_tmw->w_slicer(0).data(), m_tmw->w_slicer(1).data(), m_tmw->w_slicer(2).data() };
-	m_grid = new iAHistogramStackGrid(this, histograms, slicers, m_modalityLabels);
+	
+	m_grid = new iAHistogramStackGrid(this, histograms, slicers, labels);
 
 	QWidget *leftWidget = new QWidget();
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
@@ -85,33 +96,4 @@ void iAHistogramStack::initialize()
 	parentLayout->addWidget(m_splitter);
 
 	m_grid->adjustStretch();
-}
-
-// GRID -------------------------------------------------------------------------------
-
-iAHistogramStackGrid::iAHistogramStackGrid(QWidget *parent, iADiagramFctWidget *histograms[3], iASimpleSlicerWidget *slicers[3], QLabel *labels[3], Qt::WindowFlags f)
-	: QWidget(parent, f)
-{
-	m_gridLayout = new QGridLayout(this);
-	for (int i = 0; i < 3; i++) {
-		m_gridLayout->addWidget(histograms[i], i, 0);
-		m_gridLayout->addWidget(slicers[i], i, 1);
-		m_gridLayout->addWidget(labels[i], i, 2);
-	}
-	m_gridLayout->setSpacing(m_spacing);
-	m_gridLayout->setMargin(0);
-}
-
-void iAHistogramStackGrid::resizeEvent(QResizeEvent* event)
-{
-	adjustStretch(event->size().width());
-}
-
-void iAHistogramStackGrid::adjustStretch(int totalWidth)
-{
-	//QLayoutItem *item00 = m_gridLayout->itemAtPosition(0, 0);
-	//int histogramHeight = item00->widget()->size().height();
-	int histogramHeight = size().height() / 3 - 4*m_spacing;
-	m_gridLayout->setColumnStretch(0, totalWidth - histogramHeight);
-	m_gridLayout->setColumnStretch(1, histogramHeight);
 }

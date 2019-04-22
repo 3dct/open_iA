@@ -18,24 +18,61 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include <QDockWidget>
+#include "iAInterpolationSlider.h"
 
-class MdiChild;
-class iATripleModalityWidget;
-class iABimodalWidget;
+#include <QResizeEvent>
+#include <QLabel>
+#include <QVBoxLayout>
 
-//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
-
-class dlg_tf_2mod : public QDockWidget//public TripleHistogramTFConnector
+//iAInterpolationSlider::iAInterpolationSlider(Qt::Orientation orientation, QWidget* parent)
+iAInterpolationSlider::iAInterpolationSlider(QWidget* parent)
 {
-	Q_OBJECT
+	m_labelA = new QLabel("100%");
+	m_labelB = new QLabel("100%");
 
-public:
-	dlg_tf_2mod(MdiChild* parent, Qt::WindowFlags f = 0);
+	m_labelA->setMinimumWidth(50);
+	m_labelB->setMinimumWidth(50);
 
-private:
-	MdiChild *m_mdiChild;
-	iABimodalWidget *m_bimodalWidget;
-};
+	m_slider = new QSlider(Qt::Vertical, parent);
+
+	QVBoxLayout *layout = new QVBoxLayout(this);
+	layout->addWidget(m_labelA, 0);
+	layout->addWidget(m_slider, 1);
+	layout->addWidget(m_labelB, 0);
+
+	setT(0.5);
+
+	connect(m_slider, SIGNAL(valueChanged(int)), this, SLOT(slider_valueChanged(int)));
+}
+
+void iAInterpolationSlider::setT(double t)
+{
+	int range = m_slider->maximum() - m_slider->minimum();
+	m_slider->setValue(t * range + m_slider->minimum());
+}
+
+void iAInterpolationSlider::setTPrivate(double t)
+{
+	m_t = t;
+
+	int a = t * 100;
+	int b = 100 - a;
+
+	m_labelA->setText(QString::number(a) + "%");
+	m_labelB->setText(QString::number(b) + "%");
+
+	emit tChanged(t);
+}
+
+void iAInterpolationSlider::setValuePrivate(int v)
+{
+	// m_t is always in the range [0, 1]
+	double t = (double)v / (double)m_slider->maximum();
+	setTPrivate(t);
+}
+
+void iAInterpolationSlider::slider_valueChanged(int v)
+{
+	setValuePrivate(v);
+}

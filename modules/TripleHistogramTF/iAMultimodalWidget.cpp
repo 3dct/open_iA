@@ -86,8 +86,6 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, Numb
 		m_copyTFs.push_back(NULL);
 	}
 
-	updateModalities();
-
 	connect(m_slicerModeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slicerModeComboBoxIndexChanged(int)));
 	connect(m_sliceSlider, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 
@@ -98,6 +96,8 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, Numb
 	connect(mdiChild->getSlicerDlgXY()->verticalScrollBarXY, SIGNAL(sliderPressed()), this, SLOT(setSliceXYScrollBar()));
 	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
 	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
+
+	updateModalities();
 }
 
 

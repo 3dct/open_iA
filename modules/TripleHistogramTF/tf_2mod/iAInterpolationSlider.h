@@ -20,22 +20,37 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
+#include <QSlider>
 
-class MdiChild;
-class iATripleModalityWidget;
-class iABimodalWidget;
+class QResizeEvent;
+class QLabel;
 
-//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
-
-class dlg_tf_2mod : public QDockWidget//public TripleHistogramTFConnector
+class iAInterpolationSlider : public QWidget
 {
 	Q_OBJECT
 
 public:
-	dlg_tf_2mod(MdiChild* parent, Qt::WindowFlags f = 0);
+	//iAInterpolationSlider(Qt::Orientation orientation, QWidget* parent = Q_NULLPTR);
+	iAInterpolationSlider(QWidget* parent = Q_NULLPTR);
+
+	double t() { return m_t; }
+	void setT(double t);
 
 private:
-	MdiChild *m_mdiChild;
-	iABimodalWidget *m_bimodalWidget;
+	void setTPrivate(double t);
+	void setValuePrivate(int v);
+	void updateValue() { setValuePrivate(m_slider->value()); }
+
+	QSlider *m_slider;
+	QLabel *m_labelA;
+	QLabel *m_labelB;
+
+	double m_t;
+
+signals:
+	void tChanged(double t);
+
+private slots:
+	void slider_valueChanged(int v);
+
 };

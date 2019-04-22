@@ -20,22 +20,24 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
+#include "iAMultimodalWidget.h"
 
+class iAInterpolationSlider;
 class MdiChild;
-class iATripleModalityWidget;
-class iABimodalWidget;
 
-//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
-
-class dlg_tf_2mod : public QDockWidget//public TripleHistogramTFConnector
+class iABimodalWidget : public iAMultimodalWidget
 {
 	Q_OBJECT
 
 public:
-	dlg_tf_2mod(MdiChild* parent, Qt::WindowFlags f = 0);
+	iABimodalWidget(QWidget *parent, MdiChild *mdiChild);
+	void initialize();
 
 private:
-	MdiChild *m_mdiChild;
-	iABimodalWidget *m_bimodalWidget;
+	iAInterpolationSlider *m_slider;
+
+private slots:
+	void modalitiesLoaded_beforeUpdateSlot();
+	void tChanged(double t);
+
 };

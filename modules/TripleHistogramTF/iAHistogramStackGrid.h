@@ -20,22 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
+#include <QWidget>
 
-class MdiChild;
-class iATripleModalityWidget;
-class iABimodalWidget;
+#include <QVector>
+#include <QSharedPointer>
 
-//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
+class iADiagramFctWidget;
+class iASimpleSlicerWidget;
 
-class dlg_tf_2mod : public QDockWidget//public TripleHistogramTFConnector
+class QLabel;
+class QGridLayout;
+class QResizeEvent;
+
+class iAHistogramStackGrid : public QWidget
 {
-	Q_OBJECT
-
 public:
-	dlg_tf_2mod(MdiChild* parent, Qt::WindowFlags f = 0);
+	iAHistogramStackGrid(
+		QWidget *parent,
+		QVector<iADiagramFctWidget*> histograms,
+		QVector<iASimpleSlicerWidget*> slicers,
+		QVector<QLabel*> labels,
+		Qt::WindowFlags f = 0);
 
+	void adjustStretch() { adjustStretch(size().width()); }
+protected:
+	void resizeEvent(QResizeEvent* event);
 private:
-	MdiChild *m_mdiChild;
-	iABimodalWidget *m_bimodalWidget;
+	void adjustStretch(int w);
+	QGridLayout *m_gridLayout;
+	int m_spacing = 1;
 };

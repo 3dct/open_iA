@@ -18,24 +18,45 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
 
-#include <QDockWidget>
+#include "iAHistogramStackGrid.h"
 
-class MdiChild;
-class iATripleModalityWidget;
-class iABimodalWidget;
+#include "charts/iADiagramFctWidget.h"
+#include "iASimpleSlicerWidget.h"
 
-//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
+#include <QGridLayout>
+#include <QResizeEvent>
+#include <QLabel>
 
-class dlg_tf_2mod : public QDockWidget//public TripleHistogramTFConnector
+iAHistogramStackGrid::iAHistogramStackGrid(
+	QWidget *parent,
+	QVector<iADiagramFctWidget*> histograms,
+	QVector<iASimpleSlicerWidget*> slicers,
+	QVector<QLabel*> labels,
+	Qt::WindowFlags f)
+
+	: QWidget(parent, f)
 {
-	Q_OBJECT
+	m_gridLayout = new QGridLayout(this);
+	for (int i = 0; i < histograms.size(); i++) {
+		m_gridLayout->addWidget(histograms[i], i, 0);
+		m_gridLayout->addWidget(slicers[i], i, 1);
+		m_gridLayout->addWidget(labels[i], i, 2);
+	}
+	m_gridLayout->setSpacing(m_spacing);
+	m_gridLayout->setMargin(0);
+}
 
-public:
-	dlg_tf_2mod(MdiChild* parent, Qt::WindowFlags f = 0);
+void iAHistogramStackGrid::resizeEvent(QResizeEvent* event)
+{
+	adjustStretch(event->size().width());
+}
 
-private:
-	MdiChild *m_mdiChild;
-	iABimodalWidget *m_bimodalWidget;
-};
+void iAHistogramStackGrid::adjustStretch(int totalWidth)
+{
+	//QLayoutItem *item00 = m_gridLayout->itemAtPosition(0, 0);
+	//int histogramHeight = item00->widget()->size().height();
+	int histogramHeight = size().height() / 3 - 4 * m_spacing;
+	m_gridLayout->setColumnStretch(0, totalWidth - histogramHeight);
+	m_gridLayout->setColumnStretch(1, histogramHeight);
+}
