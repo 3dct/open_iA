@@ -268,7 +268,7 @@ void iAMultimodalWidget::updateDisabledLabel()
 void iAMultimodalWidget::modalitiesChanged() {
 	updateModalities();
 
-	if (getModalitiesCount() < 3) {
+	if (getModalitiesCount() < m_numOfMod) {
 		updateDisabledLabel();
 		m_stackedLayout->setCurrentIndex(1);
 		return;
@@ -278,22 +278,20 @@ void iAMultimodalWidget::modalitiesChanged() {
 
 	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
 	appendFilter->SetInputData(getModality(0)->GetImage());
-	appendFilter->AddInputData(getModality(1)->GetImage());
-	appendFilter->AddInputData(getModality(2)->GetImage());
+	for (int i = 1; i < m_numOfMod; i++) {
+		appendFilter->AddInputData(getModality(i)->GetImage());
+	}
 	appendFilter->Update();
 
 	m_combinedVol = vtkSmartPointer<vtkVolume>::New();
 	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
 	combinedVolProp->SetInterpolationTypeToLinear();
 
-	combinedVolProp->SetColor(0, getModality(0)->GetTransfer()->getColorFunction());
-	combinedVolProp->SetScalarOpacity(0, getModality(0)->GetTransfer()->getOpacityFunction());
-
-	combinedVolProp->SetColor(1, getModality(1)->GetTransfer()->getColorFunction());
-	combinedVolProp->SetScalarOpacity(1, getModality(1)->GetTransfer()->getOpacityFunction());
-
-	combinedVolProp->SetColor(2, getModality(2)->GetTransfer()->getColorFunction());
-	combinedVolProp->SetScalarOpacity(2, getModality(2)->GetTransfer()->getOpacityFunction());
+	for (int i = 0; i < m_numOfMod; i++) {
+		auto transfer = getModality(i)->GetTransfer();
+		combinedVolProp->SetColor(i, transfer->getColorFunction());
+		combinedVolProp->SetScalarOpacity(i, transfer->getOpacityFunction());
+	}
 
 	m_combinedVol->SetProperty(combinedVolProp);
 
@@ -311,7 +309,7 @@ void iAMultimodalWidget::modalitiesChanged() {
 	m_combinedVolRenderer->AddVolume(m_combinedVol);
 	//m_combinedVolRenderer->ResetCamera();
 
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < m_numOfMod; ++i)
 	{
 		QSharedPointer<iAVolumeRenderer> renderer = getModality(i)->GetRenderer();
 		renderer->Remove();
@@ -348,7 +346,7 @@ void iAMultimodalWidget::updateModalities()
 			m_modalitiesActive[i] = m_mdiChild->GetModality(i);
 		}
 		for (; i < m_numOfMod; i++) {
-			m_modalitiesActive[i] = NULL;
+			m_modalitiesActive[i] = Q_NULLPTR;
 		}
 		return;
 	}
@@ -392,7 +390,9 @@ void iAMultimodalWidget::updateModalities()
 
 	connect((dlg_transfer*)(m_histograms[0]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction1()));
 	connect((dlg_transfer*)(m_histograms[1]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction2()));
-	connect((dlg_transfer*)(m_histograms[2]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction3()));
+	if (m_numOfMod >= THREE) {
+		connect((dlg_transfer*)(m_histograms[2]->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(updateTransferFunction3()));
+	}
 
 	applyWeights();
 	connect((dlg_transfer*)(m_mdiChild->getHistogram()->getFunctions()[0]), SIGNAL(Changed()), this, SLOT(originalHistogramChanged()));
@@ -406,7 +406,7 @@ void iAMultimodalWidget::updateModalities()
 }
 
 void iAMultimodalWidget::resetSlicers() {
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < m_numOfMod; i++) {
 		resetSlicer(i);
 	}
 }
@@ -436,21 +436,13 @@ QSharedPointer<iATransferFunction> iAMultimodalWidget::createCopyTf(int index, v
 void iAMultimodalWidget::originalHistogramChanged()
 {
 	QSharedPointer<iAModality> selected = m_mdiChild->GetModalitiesDlg()->GetModalities()->Get(m_mdiChild->GetModalitiesDlg()->GetSelected());
-	int index;
-	if (selected == m_modalitiesActive[0]) {
-		index = 0;
+	for (int i = 0; i < m_numOfMod; i++) {
+		if (selected == getModality(i)) {
+			updateCopyTransferFunction(i);
+			updateTransferFunction(i);
+			return;
+		}
 	}
-	else if (selected == m_modalitiesActive[1]) {
-		index = 1;
-	}
-	else if (selected == m_modalitiesActive[2]) {
-		index = 2;
-	}
-	else {
-		return;
-	}
-	updateCopyTransferFunction(index);
-	updateTransferFunction(index);
 }
 
 /** Called when the original transfer function changes
@@ -529,7 +521,7 @@ void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 void iAMultimodalWidget::applyWeights()
 {
 	if (isReady()) {
-		for (int i = 0; i < 3; ++i) {
+		for (int i = 0; i < m_numOfMod; i++) {
 			vtkPiecewiseFunction *effective = m_modalitiesActive[i]->GetTransfer()->getOpacityFunction();
 			vtkPiecewiseFunction *copy = m_copyTFs[i]->getOpacityFunction();
 
@@ -628,15 +620,25 @@ double iAMultimodalWidget::getWeight(int i)
 
 bool iAMultimodalWidget::isReady()
 {
-	return m_modalitiesActive[2];
+	return m_modalitiesActive[m_numOfMod - 1];
 }
 
 bool iAMultimodalWidget::containsModality(QSharedPointer<iAModality> modality)
 {
-	return m_modalitiesActive[0] == modality || m_modalitiesActive[1] == modality || m_modalitiesActive[2] == modality;
+	for (auto mod : m_modalitiesActive) {
+		if (mod == modality) {
+			return true;
+		}
+	}
+	return false;
 }
 
 int iAMultimodalWidget::getModalitiesCount()
 {
-	return m_modalitiesActive[2] ? 3 : (m_modalitiesActive[1] ? 2 : (m_modalitiesActive[0] ? 1 : 0));
+	for (int i = m_numOfMod - 1; i >= 0; i--) {
+		if (m_modalitiesActive[i]) {
+			return i + 1;
+		}
+	}
+	return 0;
 }

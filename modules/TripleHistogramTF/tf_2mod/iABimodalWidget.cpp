@@ -82,9 +82,10 @@ void iABimodalWidget::initialize()
 	wmainl->addWidget(wleft, 1);
 	wmainl->addWidget(m_slider, 0);
 
-	//m_innerLayout->addWidget(wmain);
+	m_innerLayout->addWidget(wmain);
 
 	grid->adjustStretch();
+	m_slider->setT(0.5);
 
 	connect(m_slider, SIGNAL(tChanged(double)), this, SLOT(tChanged(double)));
 	tChanged(m_slider->t());

@@ -64,11 +64,7 @@ public:
 		return m_layoutComboBox;
 	}
 
-private slots:
-	void updateTransferFunction1() { updateTransferFunction(0); }
-	void updateTransferFunction2() { updateTransferFunction(1); }
-	void updateTransferFunction3() { updateTransferFunction(2); }
-
+	private slots:
 	void layoutComboBoxIndexChanged(int newIndex);
 	void triangleWeightChanged(BCoord newWeights);
 	void weightsChangedSlot(BCoord newWeights);
