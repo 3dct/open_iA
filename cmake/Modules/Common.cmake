@@ -607,7 +607,15 @@ ENDIF()
 
 # open_iA Version number
 include(GetGitRevisionDescription)
-git_describe(VERSION --tags)
+git_describe(openiA_VERSION --tags)
+MESSAGE(STATUS "VERSION: ${openiA_VERSION}")
+IF (WIN32)
+	STRING(SUBSTRING "${CMAKE_SYSTEM_VERSION}" 0 3 WIN_VER)
+	MESSAGE(STATUS "Windows version: '${WIN_VER}'")
+	IF ("${WIN_VER}" STREQUAL "6.1")
+		SET (openiA_VERSION "${openiA_VERSION}-w7")
+	ENDIF()
+ENDIF ()
 configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY)
 
 ADD_DEFINITIONS(-DUNICODE -D_UNICODE)    # Enable Unicode
