@@ -29,17 +29,13 @@ const double penWidth = 2.0;
 const QColor bgrCol( 50, 50, 50 );
 const QColor roiCol( 255, 0, 0, 240 );
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 iAPreviewSPLOM::iAPreviewSPLOM(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
-	QOpenGLWidget(parent, f),
-#else
-iAPreviewSPLOM::iAPreviewSPLOM(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */) :
-	QGLWidget(parent, shareWidget, f),
-#endif
+	iAQGLWidget(parent),
 	m_pxmp( 0 ),
 	m_mousePressed( false ),
 	m_maskPtrExt( 0 )
 {
+	setWindowFlags(f);
 }
 
 iAPreviewSPLOM::~iAPreviewSPLOM()
@@ -101,7 +97,7 @@ void iAPreviewSPLOM::paintGL( )
 
 void iAPreviewSPLOM::resizeEvent( QResizeEvent * event )
 {
-	QOpenGLWidget::resizeEvent(event);
+	iAQGLWidget::resizeEvent(event);
 	if( !m_pxmp )
 		return;
 	Scale();

@@ -442,7 +442,8 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 
 			p.setClipPath(m_slicerClipPaths[i]);
 			p.setTransform(m_transformSlicers[i]);
-			img = m_slicerWidgets[i]->getSlicer()->grabFramebuffer();
+
+			img = m_slicerWidgets[i]->getSlicer()->GRAB_FRAMEBUFFER();
 			p.drawImage(0, 0, img);
 
 			p.resetTransform(); // otherwise, clip path in setClipPath will be transformed as well

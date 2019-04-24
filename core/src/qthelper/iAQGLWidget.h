@@ -20,28 +20,28 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/qcustomplot.h>
-#include <qthelper/iAQGLWidget.h>
+#include <vtkVersion.h>
 
-#include <vtkSmartPointer.h>
+#include <QtGlobal>
 
-class iAOrientationWidget : public iAQGLWidget
-{
-	Q_OBJECT
+#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 
-public:
-	iAOrientationWidget(QWidget* parent = 0);
+#include <QOpenGLWidget>
 
-	void update(QCustomPlot* plot, double lowerX, double upperX, double lowerY, double upperY);
+typedef QOpenGLWidget iAQGLWidget;
+typedef QSurfaceFormat iAQGLFormat;
 
-	QSize minimumSizeHint() const override;
-	QSize sizeHint() const override;
+#define GRAB_FRAMEBUFFER grabFramebuffer
 
-protected:
-	void initializeGL() override;
-	void paintGL() override;
+#else
 
-private:
-	QCustomPlot *m_plot;
-	double m_lowerLimitX, m_upperLimitX, m_lowerLimitY, m_upperLimitY;
-};
+#define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
+#define NOMINMAX
+#include <QGLWidget>
+
+typedef QGLWidget iAQGLWidget;
+typedef QGLFormat iAQGLFormat;
+
+#define GRAB_FRAMEBUFFER grabFrameBuffer
+
+#endif

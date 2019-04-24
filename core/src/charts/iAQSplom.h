@@ -22,17 +22,9 @@
 
 #include "open_iA_Core_export.h"
 
+#include "qthelper/iAQGLWidget.h"
 #include "iAScatterPlotSelectionHandler.h"
 
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-#include <QOpenGLWidget>
-#else
-#define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
-#define NOMINMAX
-#include <QGLWidget>
-#endif
 #include <QList>
 
 #include <vector>
@@ -63,7 +55,7 @@ class QTableWidget;
 	Any parameter of the data can be color-coded using a lookup table.
 	Any scatter plot from an upper matrix triangle can be maximized by clicking a button in the upper-right corner.
 	The maximized plot can be minimized by using a button in upper-right corner.
-	Inherits QGLWidget,manages scatter plots internally.
+	Inherits Q[Open]GLWidget,manages scatter plots internally.
 	Some customization options are available via the public settings member.
 
 	Usage:
@@ -92,11 +84,7 @@ class QTableWidget;
 		splom->setLookupTable( lut, 0 );
 */
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-class open_iA_Core_API iAQSplom : public QOpenGLWidget, public iAScatterPlotSelectionHandler
-#else
-class open_iA_Core_API iAQSplom : public QGLWidget, public iAScatterPlotSelectionHandler
-#endif
+class open_iA_Core_API iAQSplom : public iAQGLWidget, public iAScatterPlotSelectionHandler
 {
 	Q_OBJECT
 	Q_PROPERTY( double m_animIn READ getAnimIn WRITE setAnimIn )
@@ -115,11 +103,7 @@ public:
 		Custom         //!< points are colored
 	};
 // Methods
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	iAQSplom( QWidget * parent = 0, Qt::WindowFlags f = 0 );
-#else
-	iAQSplom( QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0 );
-#endif
 	~iAQSplom();
 
 	virtual void setData( const QTableWidget * data );               //! import data from QTableWidget, first row should contain parameter names, each column corresponds to one parameter.
