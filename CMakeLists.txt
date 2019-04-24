@@ -168,9 +168,9 @@ ADD_SUBDIRECTORY(xinst)
 set(TESTING_DATA_OUTPUT ${PROJECT_SOURCE_DIR}/Test_files/TestITK/Output)
 #ITK testing
 option (openiA_TEST_ITK "When enabled, creates a special ITK test project. Default: disabled." OFF)
-if(openiA_TEST_ITK)
+IF (openiA_TEST_ITK)
 	add_subdirectory("${PROJECT_SOURCE_DIR}/Test_files/TestITK")
-endif()
+ENDIF ()
 
 #-------------------------
 # Installation
@@ -178,7 +178,4 @@ endif()
 # Text files:
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION .)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/README.md DESTINATION .)
-if (UNIX)
-	install(CODE "include(\"${CMAKE_SOURCE_DIR}/cmake/ChangeRPath.cmake\")")
-endif()
 include (CMakeCPack.cmake)
