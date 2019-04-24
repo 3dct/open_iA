@@ -32,6 +32,9 @@ iABimodalWidget::iABimodalWidget(QWidget *parent, MdiChild *mdiChild)
 	iAMultimodalWidget(parent, mdiChild, TWO)
 {
 	connect(this, SIGNAL(modalitiesLoaded_beforeUpdate()), this, SLOT(modalitiesLoaded_beforeUpdateSlot()));
+	if (isReady()) {
+		initialize();
+	}
 }
 
 void iABimodalWidget::modalitiesLoaded_beforeUpdateSlot()

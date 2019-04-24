@@ -145,6 +145,7 @@ private:
 
 	NumOfMod m_numOfMod = UNDEFINED;
 	QVector<QSharedPointer<iAModality>> m_modalitiesActive;
+	QVector<bool> m_modalitiesHistogramAvailable;
 
 	vtkSmartPointer<vtkSmartVolumeMapper> m_combinedVolMapper;
 	vtkSmartPointer<vtkRenderer> m_combinedVolRenderer;
@@ -182,6 +183,7 @@ private slots:
 	void setSliceXZScrollBar(int sliceNumberXZ);
 	void setSliceYZScrollBar(int sliceNumberYZ);
 
-	void modalitiesChanged();
+	//void modalitiesChanged();
+	void histogramAvailable();
 
 };

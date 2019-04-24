@@ -53,6 +53,10 @@ iATripleModalityWidget::iATripleModalityWidget(QWidget * parent, MdiChild *mdiCh
 	connect(m_triangleWidget, SIGNAL(weightsChanged(BCoord)), this, SLOT(weightsChangedSlot(BCoord)));
 
 	connect(this, SIGNAL(modalitiesLoaded_beforeUpdate()), this, SLOT(modalitiesLoaded_beforeUpdateSlot()));
+
+	if (isReady()) {
+		updateModalities();
+	}
 }
 
 iATripleModalityWidget::~iATripleModalityWidget()
@@ -67,6 +71,12 @@ void iATripleModalityWidget::layoutComboBoxIndexChanged(int newIndex)
 
 iAHistogramAbstractType iATripleModalityWidget::getLayoutTypeAt(int comboBoxIndex) {
 	return (iAHistogramAbstractType)m_layoutComboBox->itemData(comboBoxIndex).toInt();
+}
+
+void iATripleModalityWidget::updateModalities()
+{
+	m_triangleWidget->setModalities(getModality(0)->GetImage(), getModality(1)->GetImage(), getModality(2)->GetImage());
+	m_triangleWidget->update();
 }
 
 // SLOT
@@ -85,8 +95,7 @@ void iATripleModalityWidget::weightsChangedSlot(BCoord bCoord)
 
 // SLOT
 void iATripleModalityWidget::modalitiesLoaded_beforeUpdateSlot() {
-	m_triangleWidget->setModalities(getModality(0)->GetImage(), getModality(1)->GetImage(), getModality(2)->GetImage());
-	m_triangleWidget->update();
+	updateModalities();
 	m_histogramAbstract->initialize();
 }
 

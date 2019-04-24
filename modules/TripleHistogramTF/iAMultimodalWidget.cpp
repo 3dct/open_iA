@@ -100,6 +100,7 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 		m_histograms.push_back(Q_NULLPTR);
 		m_slicerWidgets.push_back(Q_NULLPTR);
 		m_modalitiesActive.push_back(Q_NULLPTR);
+		m_modalitiesHistogramAvailable.push_back(false);
 		m_copyTFs.push_back(Q_NULLPTR);
 	}
 
@@ -114,9 +115,10 @@ iAMultimodalWidget::iAMultimodalWidget(QWidget* parent, MdiChild* mdiChild, NumO
 	connect(mdiChild->getSlicerDlgXZ()->verticalScrollBarXZ, SIGNAL(sliderPressed()), this, SLOT(setSliceXZScrollBar()));
 	connect(mdiChild->getSlicerDlgYZ()->verticalScrollBarYZ, SIGNAL(sliderPressed()), this, SLOT(setSliceYZScrollBar()));
 
-	connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
+	//connect(mdiChild->GetModalitiesDlg(), SIGNAL(ModalitiesChanged()), this, SLOT(modalitiesChanged()));
+	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(histogramAvailable()));
 
-	modalitiesChanged();
+	histogramAvailable();
 }
 
 
@@ -246,16 +248,9 @@ void iAMultimodalWidget::updateDisabledLabel()
 	int count = getModalitiesCount();
 	int missing = m_numOfMod - count;
 	QString modalit_y_ies_is_are = missing == 1 ? "modality is" : "modalities are";
-	//QString nameA = count >= 1 ? m_modalitiesActive[0]->GetName() : "missing";
-	//QString nameB = count >= 2 ? m_modalitiesActive[1]->GetName() : "missing";
-	//QString nameC = modalitiesCount >= 3 ? m_modalitiesAvailable[2]->GetName() : "missing";
 	m_disabledLabel->setText(
 		"Unable to set up this widget.\n" +
-		QString::number(missing) + " " + modalit_y_ies_is_are + " missing.\n"/* +
-		"\n" +
-		"Modality " + DEFAULT_MODALITY_LABELS[0] + ": " + nameA + "\n" +
-		"Modality " + DEFAULT_MODALITY_LABELS[1] + ": " + nameB + "\n" +
-		"Modality " + DEFAULT_MODALITY_LABELS[2] + ": missing"*/
+		QString::number(missing) + " " + modalit_y_ies_is_are + " missing.\n"
 	);
 }
 
@@ -265,7 +260,7 @@ void iAMultimodalWidget::updateDisabledLabel()
 // Modalities management
 // ----------------------------------------------------------------------------------
 
-void iAMultimodalWidget::modalitiesChanged() {
+void iAMultimodalWidget::histogramAvailable() {
 	updateModalities();
 
 	if (getModalitiesCount() < m_numOfMod) {
@@ -361,6 +356,7 @@ void iAMultimodalWidget::updateModalities()
 			m_modalitiesActive[i]->ComputeImageStatistics();
 			m_modalitiesActive[i]->ComputeHistogramData(m_mdiChild->GetPreferences().HistogramBins);
 		}
+		m_modalitiesHistogramAvailable[i] = true;
 
 		vtkColorTransferFunction *colorFuncCopy = vtkColorTransferFunction::New();
 		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New();
@@ -620,7 +616,15 @@ double iAMultimodalWidget::getWeight(int i)
 
 bool iAMultimodalWidget::isReady()
 {
-	return m_modalitiesActive[m_numOfMod - 1];
+	if (m_modalitiesActive[m_numOfMod - 1]) {
+		for (int i = 0; i < m_numOfMod; i++) {
+			if (!m_modalitiesHistogramAvailable[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
 }
 
 bool iAMultimodalWidget::containsModality(QSharedPointer<iAModality> modality)

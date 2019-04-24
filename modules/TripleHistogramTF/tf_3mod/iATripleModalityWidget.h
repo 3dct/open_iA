@@ -64,7 +64,7 @@ public:
 		return m_layoutComboBox;
 	}
 
-	private slots:
+private slots:
 	void layoutComboBoxIndexChanged(int newIndex);
 	void triangleWeightChanged(BCoord newWeights);
 	void weightsChangedSlot(BCoord newWeights);
@@ -79,4 +79,6 @@ private:
 
 	iAHistogramAbstract *m_histogramAbstract = nullptr;
 	iAHistogramAbstractType m_histogramAbstractType;
+
+	void updateModalities();
 };

@@ -35,6 +35,7 @@ iAInterpolationSlider::iAInterpolationSlider(QWidget* parent)
 	m_labelB->setMinimumWidth(50);
 
 	m_slider = new QSlider(Qt::Vertical, parent);
+	m_slider->setInvertedAppearance(true);
 	m_slider->setMinimum(0);
 	m_slider->setMaximum(100 * pow(10, 3)); // 3 decimal precision
 
