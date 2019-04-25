@@ -28,12 +28,15 @@ class QTableWidget;
 
 class iAParamTableView: public QWidget
 {
+	Q_OBJECT
 public:
 	iAParamTableView(QString const & csvFileName);
 	QTableWidget* Table();
 	void LoadCSVData(QString const & csvFileName);
 	double ColumnMin(int col) const;
 	double ColumnMax(int col) const;
+public slots:
+	void ShowFeature(int, bool);
 private:
 	QTableWidget* m_table;
 	QVector<QPair<double, double> > m_columnBounds;

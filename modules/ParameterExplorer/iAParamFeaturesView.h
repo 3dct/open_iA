@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth       *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,40 +15,31 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include <iAModuleAttachmentToChild.h>
+#pragma once
 
-#include <QVector>
+#include <QWidget>
 
-class iAChildData;
-class iADockWidgetWrapper;
-
-class iAParamFeaturesView;
-class iAParamSPLOMView;
-class iAParamSpatialView;
 class iAParamTableView;
 
 class QSettings;
+class QTableWidget;
 
-class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
+class iAParamFeaturesView : public QWidget
 {
+	Q_OBJECT
 public:
-	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, iAChildData childData);
-	void LoadCSV(QString const & fileName);
-	void ToggleDockWidgetTitleBars();
-	void ToggleSettings(bool visible);
-	void SaveAll(QString const & fileName);
+	iAParamFeaturesView(QTableWidget* dataTable);
 	void SaveSettings(QSettings & settings);
 	void LoadSettings(QSettings const & settings);
-	QString const & CSVFileName() const;
+signals:
+	void ShowFeature(int id, bool invert);
+	void InvertFeature(int id, bool invert);
 private:
-	iAParameterExplorerAttachment(MainWindow * mainWnd, iAChildData childData);
-	iAParamSPLOMView* m_SPLOMView;
-	iAParamSpatialView* m_spatialView;
-	iAParamTableView* m_tableView;
-	iAParamFeaturesView* m_featuresView;
-	QVector<iADockWidgetWrapper*> m_dockWidgets;
-	QString m_csvFileName;
+	QTableWidget* m_featureTable;
+private slots:
+	void InvertCheckChanged(int);
+	void VisibleCheckChanged(int);
 };
