@@ -82,7 +82,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	for (QString themeName : iAColorThemeManager::GetInstance().GetAvailableThemes())
 	{
 		m_separationColors->addItem(themeName);
-		if (themeName == m_splom->getBackgroundColorTheme()->GetName())
+		if (themeName == m_splom->getBackgroundColorTheme()->name())
 		{
 			m_separationColors->setCurrentText(themeName);
 		}
@@ -170,7 +170,7 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 
 void iAParamSPLOMView::PointHovered(size_t id)
 {
-	m_spatialView->SetImage(id+1);
+	m_spatialView->setImage(id+1);
 }
 
 void iAParamSPLOMView::SeparationChanged(int idx)

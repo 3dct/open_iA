@@ -93,7 +93,7 @@ void iAParameterExplorerModuleInterface::StartParameterExplorer()
 	if (!m_mdiChild)
 		return;
 	QString csvFileName = QFileDialog::getOpenFileName(m_mainWnd,
-		tr("Select CSV File"), m_mdiChild->getFilePath(), tr("CSV Files (*.csv);;"));
+		tr("Select CSV File"), m_mdiChild->filePath(), tr("CSV Files (*.csv);;"));
 	if (csvFileName.isEmpty())
 		return;
 	CreateAttachment(csvFileName, m_mdiChild);
@@ -109,14 +109,14 @@ void iAParameterExplorerModuleInterface::SaveState()
 		return;
 	}
 	QString stateFileName = QFileDialog::getSaveFileName(m_mainWnd, "Save Parameter Explorer State",
-		m_mdiChild->getFilePath(), "Parameter Explorer State (*.pes);;");
+		m_mdiChild->filePath(), "Parameter Explorer State (*.pes);;");
 	if (stateFileName.isEmpty())
 		return;
 	QSettings stateFileSettings(stateFileName, QSettings::IniFormat);
 	QFileInfo stateFileInfo(stateFileName);
 	stateFileSettings.setValue("Reference", MakeRelative(stateFileInfo.absolutePath(), m_mdiChild->currentFile()));
 	stateFileSettings.setValue("CSVFile", MakeRelative(stateFileInfo.absolutePath(), attach->CSVFileName()));
-	stateFileSettings.setValue("Layout", m_mdiChild->GetLayoutName());
+	stateFileSettings.setValue("Layout", m_mdiChild->layoutName());
 	attach->SaveSettings(stateFileSettings);
 }
 
@@ -163,7 +163,7 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 	}
 	attach->LoadSettings(stateFileSettings);
 	child->showMaximized();
-	child->LoadLayout(stateFileSettings.value("Layout").toString());
+	child->loadLayout(stateFileSettings.value("Layout").toString());
 	m_stateFiles.remove(child);
 }
 
