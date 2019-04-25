@@ -20,29 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QtGlobal>
-#include <vtkVersion.h>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-#include <QOpenGLWidget>
-#else
-#include <QGLWidget>
-#endif
+#include <qthelper/iAQGLWidget.h>
+
 #include <QPixmap>
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-class iAPreviewSPLOM : public QOpenGLWidget
-#else
-class iAPreviewSPLOM : public QGLWidget
-#endif
+class iAPreviewSPLOM : public iAQGLWidget
 {
 	Q_OBJECT
 
 public:
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
 	iAPreviewSPLOM(QWidget * parent = 0, Qt::WindowFlags f = 0);
-#else
-	iAPreviewSPLOM(QWidget * parent = 0, const QGLWidget * shareWidget = 0, Qt::WindowFlags f = 0);
-#endif
 	~iAPreviewSPLOM();
 	void SetPixmap( QPixmap * pxmp );
 	void SetMask( const QPixmap * mask );

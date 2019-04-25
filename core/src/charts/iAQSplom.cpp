@@ -37,16 +37,13 @@
 #include <QAbstractTextDocumentLayout>
 #include <QColorDialog>
 #include <QListWidgetItem>
+#include <QPainter>
 #include <QPropertyAnimation>
 #include <QTableWidget>
 #include <QWheelEvent>
 #include <QtMath>
 #include <QMenu>
 #include <QMessageBox>
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-#include <QSurfaceFormat>
-#include <QPainter>
-#endif
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -174,13 +171,8 @@ void iAQSplom::selectionModeRectangle()
 	setSelectionMode(iAScatterPlot::Rectangle);
 }
 
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f)
-	:QOpenGLWidget(parent, f),
-#else
-iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0*/, Qt::WindowFlags f /*= 0 */)
-	:QGLWidget(parent, shareWidget, f),
-#endif
+iAQSplom::iAQSplom(QWidget * parent , Qt::WindowFlags f):
+	iAQGLWidget(parent),
 	settings(),
 	m_lut(new iALookupTable()),
 	m_colorLookupParam(0),
@@ -199,15 +191,14 @@ iAQSplom::iAQSplom(QWidget * parent /*= 0*/, const QGLWidget * shareWidget /*= 0
 	m_bgColorTheme(iAColorThemeManager::GetInstance().GetTheme("White")),
 	m_settingsDlg(new iASPMSettings(this, f))
 {
+	setWindowFlags(f);
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
 	setBackgroundRole(QPalette::Base);
 	setAutoFillBackground(true);
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	QSurfaceFormat format = QSurfaceFormat();
+	iAQGLFormat format;
 	format.setSamples(4);
 	setFormat(format);
-#endif
 	m_animationIn->setDuration( settings.animDuration );
 	m_animationOut->setDuration( settings.animDuration );
 
@@ -1049,11 +1040,7 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 void iAQSplom::resizeEvent( QResizeEvent * event )
 {
 	updateSPLOMLayout();
-#if (VTK_MAJOR_VERSION >= 8 && defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= 0x050400 )
-	QOpenGLWidget::resizeEvent( event );
-#else
-	QGLWidget::resizeEvent( event );
-#endif
+	iAQGLWidget::resizeEvent( event );
 }
 
 void iAQSplom::updatePlotGridParams()
