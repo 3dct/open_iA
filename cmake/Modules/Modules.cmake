@@ -29,7 +29,7 @@ MACRO( LOAD_MODULES curdir names_out descriptions_out def_vals_out )
 ENDMACRO()
 
 # Module stores its dependencies in Dependencies.txt file. Check if all the dependencies are enabled
-MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path )
+FUNCTION( MODULE_CHECK_DEPENDENCIES option_name module_full_path )
 	# reset entries:
 	SET (DEPENDENCIES_MODULES_NEW)
 	SET (DEPENDENCIES_CMAKE)
@@ -95,7 +95,7 @@ MACRO( MODULE_CHECK_DEPENDENCIES option_name module_full_path )
 			ENDIF()
 		ENDFOREACH()
 	ENDIF()
-ENDMACRO()
+ENDFUNCTION()
 
 MACRO( MODULE_GENERATE_EXPORT_HEADER module_name)
 	SET(export_h_file ${CMAKE_CURRENT_BINARY_DIR}/${module_name}_export.h)
