@@ -22,7 +22,7 @@
 
 #include "iAParameterExplorerAttachment.h"
 
-#include <iAConsole.h
+#include <iAConsole.h>
 #include <iAChildData.h>
 #include <io/iAFileUtils.h>
 #include <mainwindow.h>
