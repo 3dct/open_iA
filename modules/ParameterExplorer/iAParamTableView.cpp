@@ -24,6 +24,7 @@
 
 #include <QFile>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QTableWidget>
 #include <QTextStream>
 
@@ -52,6 +53,9 @@ void iAParamTableView::LoadCSVData(QString const & csvFileName)
 
 	m_table->clear();
 	m_table->setRowCount(csvLines.size());
+	m_table->verticalHeader()->setVisible(false);
+	m_table->horizontalHeader()->setVisible(false);
+	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 	QStringList headers = csvLines[0].split(",");
 	m_table->setColumnCount(headers.size());
@@ -63,6 +67,10 @@ void iAParamTableView::LoadCSVData(QString const & csvFileName)
 	for (int row=0; row<csvLines.size(); ++row)
 	{
 		QStringList items = csvLines[row].split(",");	// TODO: consider quoted strings?
+		if (items.size() <= 1)
+		{
+			items = csvLines[row].split(";");
+		}
 		//if (items.size() > m_table->columnCount())
 		//	m_table->setColumnCount(items.size());
 		for (int col = 0; col < items.size(); ++col)
@@ -76,6 +84,14 @@ void iAParamTableView::LoadCSVData(QString const & csvFileName)
 					m_columnBounds[col].first = val;
 				if (val > m_columnBounds[col].second)
 					m_columnBounds[col].second = val;
+			}
+		}
+		if (items.size() < headers.size())
+		{
+			DEBUG_LOG(QString("Line %1 has less columns(%2) than expected(%3)").arg(row).arg(items.size()).arg(headers.size()));
+			for (int col = items.size(); col < headers.size(); ++col)
+			{
+				m_table->setItem(row, col, new QTableWidgetItem("0"));
 			}
 		}
 	}
@@ -94,4 +110,11 @@ double iAParamTableView::ColumnMax(int col) const
 QTableWidget* iAParamTableView::Table()
 {
 	return m_table;
+}
+
+void iAParamTableView::ShowFeature(int index, bool show)
+{
+	if (index == 0)
+		return;
+	m_table->setColumnHidden(index, !show);
 }

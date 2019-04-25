@@ -20,24 +20,38 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QPair>
-#include <QVector>
-#include <QWidget>
+#include "charts/iAHistogramData.h"
 
-class QTableWidget;
+#include <vtkImageData.h>
+#include <vtkSmartPointer.h>
 
-class iAParamTableView: public QWidget
+#include <QSharedPointer>
+#include <QThread>
+
+class iAHistogramCreator : public QThread
 {
 	Q_OBJECT
 public:
-	iAParamTableView(QString const & csvFileName);
-	QTableWidget* Table();
-	void LoadCSVData(QString const & csvFileName);
-	double ColumnMin(int col) const;
-	double ColumnMax(int col) const;
-public slots:
-	void ShowFeature(int, bool);
+	iAHistogramCreator(vtkSmartPointer<vtkImageData> img, int binCount, int id) :
+		m_img(img),
+		m_binCount(binCount),
+		m_id(id)
+	{}
+	virtual void run()
+	{
+		m_histogramData = iAHistogramData::Create(m_img, m_binCount, nullptr);
+	}
+	QSharedPointer<iAHistogramData> GetData()
+	{
+		return m_histogramData;
+	}
+	int GetID() const
+	{
+		return m_id;
+	}
 private:
-	QTableWidget* m_table;
-	QVector<QPair<double, double> > m_columnBounds;
+	vtkSmartPointer<vtkImageData> m_img;
+	int m_binCount;
+	QSharedPointer<iAHistogramData> m_histogramData;
+	int m_id;
 };

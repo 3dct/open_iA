@@ -20,9 +20,13 @@
 * ************************************************************************************/
 #include "iAParamSpatialView.h"
 
+#include "iAParamColors.h"
 #include "iAParamTableView.h"
+#include "iAHistogramCreator.h"
 #include "iAImageWidget.h"
 
+#include <charts/iADiagramFctWidget.h>
+#include <charts/iAPlotTypes.h>
 #include <iAConnector.h>
 #include <iAConsole.h>
 #include <iASlicerMode.h>
@@ -37,7 +41,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & basePath) :
+iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & basePath, iADiagramFctWidget* chartWidget, int binCount) :
 	m_table(table),
 	m_basePath(basePath),
 	m_imageWidget(nullptr),
@@ -45,7 +49,9 @@ iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & 
 	m_settings(new QWidget),
 	m_imageContainer(new QWidget),
 	m_sliceControl(new QSpinBox()),
-	m_sliceNrInitialized(false)
+	m_sliceNrInitialized(false),
+	m_chartWidget(chartWidget),
+	m_binCount(binCount)
 {
 	m_sliceControl->setMaximum(0);
 	connect(m_sliceControl, SIGNAL(valueChanged(int)), this, SLOT(SliceChanged(int)));
@@ -114,6 +120,17 @@ void iAParamSpatialView::setImage(size_t id)
 		}
 	}
 	auto img = m_imageCache[id];
+	if (m_histogramCache.contains(id))
+	{
+		SwitchToHistogram(id);
+	}
+	else
+	{
+		auto creator = QSharedPointer<iAHistogramCreator>(new iAHistogramCreator(img, m_binCount, id));
+		connect(creator.data(), SIGNAL(finished()), this, SLOT(HistogramReady()));
+		m_histogramCreaters.push_back(creator);
+		creator->start();
+	}
 
 	if (!m_sliceNrInitialized)
 	{
@@ -152,4 +169,27 @@ void iAParamSpatialView::SliceChanged(int slice)
 {
 	m_sliceNr[m_curMode] = slice;
 	m_imageWidget->SetSlice(slice);
+}
+
+void iAParamSpatialView::HistogramReady()
+{
+	auto creator = qobject_cast<iAHistogramCreator*>(QObject::sender());
+	int id = creator->GetID();
+	m_histogramCache[id] = creator->GetData();
+	SwitchToHistogram(id);
+}
+
+void iAParamSpatialView::SwitchToHistogram(int id)
+{
+	m_chartWidget->RemovePlot(m_curHistogramPlot);
+	QColor histoChartColor(SPLOMDotQColor);
+	histoChartColor.setAlpha(96);
+	m_curHistogramPlot = QSharedPointer<iAPlot>(new iABarGraphDrawer(m_histogramCache[id], histoChartColor, 2));
+	m_chartWidget->AddPlot(m_curHistogramPlot);
+	m_chartWidget->redraw();
+}
+
+void iAParamSpatialView::ToggleSettings(bool visible)
+{
+	m_settings->setVisible(visible);
 }

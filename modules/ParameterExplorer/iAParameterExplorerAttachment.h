@@ -18,24 +18,36 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAModuleAttachmentToChild.h"
+#include <iAModuleAttachmentToChild.h>
 
 #include <QVector>
 
 class iADockWidgetWrapper;
+
+class iAParamFeaturesView;
 class iAParamSPLOMView;
 class iAParamSpatialView;
 class iAParamTableView;
+
+class QSettings;
 
 class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
 {
 public:
 	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, MdiChild * child);
+	void LoadCSV(QString const & fileName);
 	void ToggleDockWidgetTitleBars();
+	void ToggleSettings(bool visible);
+	void SaveAll(QString const & fileName);
+	void SaveSettings(QSettings & settings);
+	void LoadSettings(QSettings const & settings);
+	QString const & CSVFileName() const;
 private:
 	iAParameterExplorerAttachment(MainWindow * mainWnd, MdiChild * child);
 	iAParamSPLOMView* m_SPLOMView;
 	iAParamSpatialView* m_spatialView;
 	iAParamTableView* m_tableView;
+	iAParamFeaturesView* m_featuresView;
 	QVector<iADockWidgetWrapper*> m_dockWidgets;
+	QString m_csvFileName;
 };
