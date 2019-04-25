@@ -82,7 +82,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	for (QString themeName : iAColorThemeManager::GetInstance().GetAvailableThemes())
 	{
 		m_separationColors->addItem(themeName);
-		if (themeName == m_splom->GetBackgroundColorTheme()->GetName())
+		if (themeName == m_splom->getBackgroundColorTheme()->GetName())
 		{
 			m_separationColors->setCurrentText(themeName);
 		}
@@ -168,19 +168,19 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 	m_splom->setLookupTable(m_lut, (colName == "None") ? m_tableView->Table()->item(0, 1)->text() : colName );
 }
 
-void iAParamSPLOMView::PointHovered(int id)
+void iAParamSPLOMView::PointHovered(size_t id)
 {
 	m_spatialView->SetImage(id+1);
 }
 
 void iAParamSPLOMView::SeparationChanged(int idx)
 {
-	m_splom->SetSeparation(idx-1);
+	m_splom->setSeparation(idx-1);
 }
 
 void iAParamSPLOMView::SetColorTheme(const QString &name)
 {
-	m_splom->SetBackgroundColorTheme(iAColorThemeManager::GetInstance().GetTheme(name));
+	m_splom->setBackgroundColorTheme(iAColorThemeManager::GetInstance().GetTheme(name));
 }
 
 void iAParamSPLOMView::ToggleSettings(bool visible)
