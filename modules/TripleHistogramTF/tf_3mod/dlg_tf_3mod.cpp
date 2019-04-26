@@ -36,7 +36,6 @@
 #include <mdichild.h>
 
 #include <vtkCamera.h>
-#include <vtkImageAppendComponents.h>
 #include <vtkImageData.h>
 #include <vtkRenderer.h>
 #include <vtkSmartVolumeMapper.h>

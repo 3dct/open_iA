@@ -307,7 +307,8 @@ void iAMultimodalWidget::histogramAvailable() {
 	for (int i = 0; i < m_numOfMod; ++i)
 	{
 		QSharedPointer<iAVolumeRenderer> renderer = getModality(i)->GetRenderer();
-		renderer->Remove();
+		if (renderer->isRendered())
+			renderer->Remove();
 	}
 	m_mdiChild->getRenderer()->AddRenderer(m_combinedVolRenderer);
 
