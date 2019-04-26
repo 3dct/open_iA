@@ -469,7 +469,7 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 			if (valOp[1] > weight) {
 				valOp[1] = weight;
 			}
-			double copyOp = valOp[1] / weight;
+			double copyOp = (weight == 0) ? 0 : (valOp[1] / weight);
 
 			effective->getOpacityFunction()->SetNodeValue(j, valOp);
 
