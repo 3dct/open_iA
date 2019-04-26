@@ -58,7 +58,7 @@ class iAMultimodalWidget : public QWidget {
 // Private methods used by public/protected
 private:
 	double bCoord_to_t(BCoord bCoord) { return bCoord[1]; }
-	BCoord t_to_bCoord(double t) { return BCoord(0, t); }
+	BCoord t_to_bCoord(double t) { return BCoord(1-t, t); }
 	void setWeights(BCoord bCoord, double t);
 
 public:
@@ -152,6 +152,7 @@ private:
 	vtkSmartPointer<vtkVolume> m_combinedVol;
 
 	// Background stuff
+	void alertWeightIsZero(QSharedPointer<iAModality> modality);
 	QVector<QSharedPointer<iATransferFunction>> m_copyTFs;
 	QSharedPointer<iATransferFunction> createCopyTf(int index, vtkSmartPointer<vtkColorTransferFunction> colorTf, vtkSmartPointer<vtkPiecewiseFunction> opacity);
 

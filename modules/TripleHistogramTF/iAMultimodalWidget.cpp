@@ -60,6 +60,7 @@
 #include <QString>
 #include <QSharedPointer>
 #include <QStackedLayout>
+#include <QMessageBox>
 
 // Debug
 #include <QDebug>
@@ -430,6 +431,22 @@ QSharedPointer<iATransferFunction> iAMultimodalWidget::createCopyTf(int index, v
 		new iASimpleTransferFunction(colorTf, opacityFunction));
 }
 
+void iAMultimodalWidget::alertWeightIsZero(QSharedPointer<iAModality> modality)
+{
+	QString name = modality->GetFileName();
+	QString text =
+		"The main transfer function of a modality cannot be changed "
+		"while the weight of that modality is zero.\n"
+		"Modality:\n" + name +
+		"\n\n"
+		"To change the transfer function, use an n-modal widget instead "
+		"(Double/Triple Histogram Transfer Function).";
+
+	QMessageBox msg;
+	msg.setText(text);
+	msg.exec();
+}
+
 void iAMultimodalWidget::originalHistogramChanged()
 {
 	QSharedPointer<iAModality> selected = m_mdiChild->GetModalitiesDlg()->GetModalities()->Get(m_mdiChild->GetModalitiesDlg()->GetSelected());
@@ -450,9 +467,14 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 {
 	if (isReady()) {
 		double weight = getWeight(index);
+		if (weight == 0) {
+			updateOriginalTransferFunction(index);
+			alertWeightIsZero(getModality(index));
+			return;
+		}
 
 		// newly set transfer function (set via the histogram)
-		QSharedPointer<iAModalityTransfer> effective = m_modalitiesActive[index]->GetTransfer();
+		QSharedPointer<iAModalityTransfer> effective = getModality(index)->GetTransfer();
 
 		// copy of previous transfer function, to be updated in this method
 		QSharedPointer<iATransferFunction> copy = m_copyTFs[index];
@@ -469,7 +491,7 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 			if (valOp[1] > weight) {
 				valOp[1] = weight;
 			}
-			double copyOp = (weight == 0) ? 0 : (valOp[1] / weight);
+			double copyOp = valOp[1] / weight;
 
 			effective->getOpacityFunction()->SetNodeValue(j, valOp);
 
