@@ -1255,7 +1255,7 @@ void dlg_XRF::updateDecompositionGUI( QStringList elementsNames )
 	QVector<iAElementSpectralInfo*> elementSpectra;
 
 	int colorIdx = 0;
-	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme( "Brewer Set1 (max. 9)" );
+	iAColorTheme const * theme = iAColorThemeManager::instance().theme( "Brewer Set1 (max. 9)" );
 	for ( size_t i = 0; i < m_refSpectraLib->spectra.size(); ++i )
 	{
 		int pos = elementsNames.indexOf( m_refSpectraLib->spectra[i].name() );
@@ -1266,7 +1266,7 @@ void dlg_XRF::updateDecompositionGUI( QStringList elementsNames )
 			m_refSpectraLib->getItemModel()->item( i )->setCheckState( Qt::Checked );
 			if ( colorIdx < theme->size() )
 			{
-				m_refSpectraLib->getItemModel()->item( i )->setData( theme->GetColor( colorIdx ), Qt::DecorationRole );
+				m_refSpectraLib->getItemModel()->item( i )->setData( theme->color( colorIdx ), Qt::DecorationRole );
 			}
 			colorIdx++;
 		}

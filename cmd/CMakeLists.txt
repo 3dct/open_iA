@@ -27,7 +27,7 @@ IF (MSVC)
 		execute_process(COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/open_iA_cmd.vcxproj)
 		SET (CACHED_OPENIA_CMD_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
 
-		SET (ExeName "open_iA_cmd.exe")
+		SET (EXE_NAME "${EXECUTABLE_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
 		foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
 			set (ADDITIONAL_PATH ${${CONFIG}LibraryPaths})
 			file(REMOVE ${CMAKE_BINARY_DIR}/x64/open_iA_cmd_${CONFIG}.bat )

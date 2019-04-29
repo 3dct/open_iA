@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth       *
+*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,29 +15,31 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
 
-#include <QPair>
-#include <QVector>
 #include <QWidget>
 
+class iAParamTableView;
+
+class QSettings;
 class QTableWidget;
 
-class iAParamTableView: public QWidget
+class iAParamFeaturesView : public QWidget
 {
 	Q_OBJECT
 public:
-	iAParamTableView(QString const & csvFileName);
-	QTableWidget* Table();
-	void LoadCSVData(QString const & csvFileName);
-	double ColumnMin(int col) const;
-	double ColumnMax(int col) const;
-public slots:
-	void ShowFeature(int, bool);
+	iAParamFeaturesView(QTableWidget* dataTable);
+	void SaveSettings(QSettings & settings);
+	void LoadSettings(QSettings const & settings);
+signals:
+	void ShowFeature(int id, bool invert);
+	void InvertFeature(int id, bool invert);
 private:
-	QTableWidget* m_table;
-	QVector<QPair<double, double> > m_columnBounds;
+	QTableWidget* m_featureTable;
+private slots:
+	void InvertCheckChanged(int);
+	void VisibleCheckChanged(int);
 };

@@ -20,24 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QPair>
-#include <QVector>
-#include <QWidget>
-
-class QTableWidget;
-
-class iAParamTableView: public QWidget
-{
-	Q_OBJECT
-public:
-	iAParamTableView(QString const & csvFileName);
-	QTableWidget* Table();
-	void LoadCSVData(QString const & csvFileName);
-	double ColumnMin(int col) const;
-	double ColumnMax(int col) const;
-public slots:
-	void ShowFeature(int, bool);
-private:
-	QTableWidget* m_table;
-	QVector<QPair<double, double> > m_columnBounds;
-};
+const double DotAlpha = 0.5;
+const double SPLOMDotColor[4] = { 0.0, 0.0, 1.0, DotAlpha };
+const QColor SPLOMDotQColor = QColor(SPLOMDotColor[0] * 255, SPLOMDotColor[1] * 255, SPLOMDotColor[2] * 255);

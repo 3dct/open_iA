@@ -21,6 +21,13 @@
 #pragma once
 
 #include <iAModuleInterface.h>
+#include <qthelper/iAQTtoUIConnector.h>
+
+#include "ui_ParamToolBar.h"
+
+#include <QToolBar>
+
+typedef iAQTtoUIConnector<QToolBar, Ui_ParamToolBar> iAParamToolBar;
 
 class iAParameterExplorerModuleInterface : public iAModuleInterface
 {
@@ -30,6 +37,15 @@ public:
 protected:
 	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
 private slots:
-	bool StartParameterExplorer();
+	void StartParameterExplorer();
 	void ToggleDockWidgetTitleBars();
+	void ToggleSettings();
+	void SaveState();
+	void LoadState();
+	void ContinueStateLoading();
+private:
+	bool CreateAttachment(QString const & csvFileName, MdiChild* child);
+	void SetupToolBar();
+	iAParamToolBar * m_toolBar;
+	QMap<MdiChild*, QString> m_stateFiles;
 };

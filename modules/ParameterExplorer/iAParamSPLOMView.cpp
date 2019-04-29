@@ -20,10 +20,12 @@
 * ************************************************************************************/
 #include "iAParamSPLOMView.h"
 
-#include "iAParamTableView.h"
+#include "iAParamColors.h"
 #include "iAParamSpatialView.h"
+#include "iAParamTableView.h"
 
 #include <charts/iAQSplom.h>
+#include <iAColorTheme.h>
 #include <iAConsole.h>
 #include <iALUT.h>
 #include <qthelper/iAQFlowLayout.h>
@@ -36,13 +38,13 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QSettings>
+#include <QSpinBox>
 #include <QVBoxLayout>
 #include <QTableWidget>
 
 namespace
 {
-	const double DotAlpha = 0.5;
-	const double DefaultColor[4] = {0.0, 0.0, 1.0, DotAlpha};
 	const int EmptyTableValues = 2;
 	const int FullTableValues = 256;
 	const int DefaultColorColumn = 1;
@@ -71,6 +73,21 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 
 	// set up settings:
 	m_settings->setLayout(new QVBoxLayout());
+	m_separationSpinBox = new QSpinBox();
+	m_separationSpinBox->setMinimum(0);
+	m_separationSpinBox->setMaximum(m_tableView->Table()->columnCount()-1);
+	m_separationSpinBox->setValue(0);
+	connect(m_separationSpinBox, SIGNAL(valueChanged(int)), this, SLOT(SeparationChanged(int)));
+	m_separationColors = new QComboBox();
+	for (QString themeName : iAColorThemeManager::instance().availableThemes())
+	{
+		m_separationColors->addItem(themeName);
+		if (themeName == m_splom->getBackgroundColorTheme()->name())
+		{
+			m_separationColors->setCurrentText(themeName);
+		}
+	}
+	connect(m_separationColors, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(SetColorTheme(const QString &)));
 	QComboBox* lutSourceChoice = new QComboBox();
 	lutSourceChoice->addItem("None");
 	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
@@ -78,29 +95,19 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	connect(lutSourceChoice, SIGNAL(currentTextChanged(const QString &)), this, SLOT(SetLUTColumn(const QString &)));
 	QWidget* lutSourceLine = new QWidget();
 	lutSourceLine->setLayout(new QHBoxLayout());
+	lutSourceLine->layout()->addWidget(new QLabel("Input Parameter #: "));
+	lutSourceLine->layout()->addWidget(m_separationSpinBox);
+	lutSourceLine->layout()->addWidget(new QLabel("Separation color scheme: "));
+	lutSourceLine->layout()->addWidget(m_separationColors);
 	lutSourceLine->layout()->addWidget(new QLabel("LUT Source:"));
 	lutSourceLine->layout()->addWidget(lutSourceChoice);
 	lutSourceLine->setFixedHeight(24);
 	lutSourceLine->layout()->setMargin(0);
 	lutSourceLine->layout()->setSpacing(2);
 
-	QWidget* featSelectLine = new QWidget();
-	featSelectLine->setLayout(new iAQFlowLayout());
-	for (int c = 1; c < m_tableView->Table()->columnCount(); ++c) // first col is assumed to be ID/filename
-	{
-		QCheckBox* cb = new QCheckBox(m_tableView->Table()->item(0, c)->text());
-		cb->setChecked(true);
-		featSelectLine->layout()->addWidget(cb);
-		m_featCB.push_back(cb);
-		connect(cb, SIGNAL(stateChanged(int)), this, SLOT(UpdateFeatVisibilty(int)));
-	}
-	featSelectLine->layout()->setMargin(0);
-	featSelectLine->layout()->setSpacing(2);
-	featSelectLine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 	m_settings->layout()->setMargin(0);
 	m_settings->layout()->setSpacing(0);
 	m_settings->layout()->addWidget(lutSourceLine);
-	m_settings->layout()->addWidget(featSelectLine);
 
 	setLayout(new QVBoxLayout());
 	layout()->addWidget(m_splom);
@@ -149,7 +156,7 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 		for (vtkIdType i = 0; i < 2; i++)
 		{
 			for (int j = 0; j < 4; ++j)
-				rgba[j] = DefaultColor[j];
+				rgba[j] = SPLOMDotColor[j];
 			m_lut->SetTableValue(i, rgba);
 		}
 		m_lut->Build();
@@ -161,15 +168,46 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 	m_splom->setLookupTable(m_lut, (colName == "None") ? m_tableView->Table()->item(0, 1)->text() : colName );
 }
 
-
-void iAParamSPLOMView::UpdateFeatVisibilty(int)
-{
-	for (size_t i = 0; i < m_featCB.size(); ++i)
-		m_splom->setParameterVisibility(m_tableView->Table()->item(0, i+1)->text(), m_featCB[i]->isChecked());
-}
-
-
 void iAParamSPLOMView::PointHovered(size_t id)
 {
 	m_spatialView->setImage(id+1);
+}
+
+void iAParamSPLOMView::SeparationChanged(int idx)
+{
+	m_splom->setSeparation(idx-1);
+}
+
+void iAParamSPLOMView::SetColorTheme(const QString &name)
+{
+	m_splom->setBackgroundColorTheme(iAColorThemeManager::instance().theme(name));
+}
+
+void iAParamSPLOMView::ToggleSettings(bool visible)
+{
+	m_settings->setVisible(visible);
+}
+
+void iAParamSPLOMView::ShowFeature(int featureID, bool show)
+{
+	m_splom->setParameterVisibility(featureID, show);
+}
+
+void iAParamSPLOMView::InvertFeature(int featureID, bool show)
+{
+	m_splom->setParameterInverted(featureID, show);
+}
+
+void iAParamSPLOMView::SaveSettings(QSettings & settings)
+{
+	settings.setValue("SPLOMBackgroundColorTheme", m_separationColors->currentText());
+	settings.setValue("SPLOMSeparationIndex", m_separationSpinBox->value());
+}
+
+void iAParamSPLOMView::LoadSettings(QSettings const & settings)
+{
+	m_separationColors->setCurrentText(settings.value("SPLOMBackgroundColorTheme", "White").toString());
+	m_separationSpinBox->setValue(settings.value("SPLOMSeparationIndex", 0).toInt());
+	//m_splom->SetBackgroundColorTheme(iAColorThemeManager::GetInstance().GetTheme(settings.value("SPLOMBackgroundColorTheme", "White").toString()));
+	//m_splom->SetSeparation(settings.value("SPLOMSeparationIndex", -1).toInt());
 }
