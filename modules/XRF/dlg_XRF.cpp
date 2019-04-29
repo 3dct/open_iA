@@ -779,9 +779,9 @@ void dlg_XRF::combinedElementMaps(int show)
 			m_refSpectraLib->setElementChannel(i, -1);
 			continue;
 		}
-		if (m_channelIDs.size() <= i)
+		if (m_channelIDs.size() <= m_enabledChannels)
 			m_channelIDs.push_back(mdiChild->createChannel());
-		auto chData = mdiChild->channelData(m_channelIDs[i]);
+		auto chData = mdiChild->channelData(m_channelIDs[m_enabledChannels]);
 		vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(i));
 		QColor color = m_refSpectraLib->getElementColor(i);
 		float h, s, v;
@@ -801,10 +801,9 @@ void dlg_XRF::combinedElementMaps(int show)
 		m_otf[m_enabledChannels]->AddPoint(1, 0.1);
 
 		chData->setColor(color);
-		chData->setData(chImgData, m_ctf[m_enabledChannels], m_otf[m_enabledChannels]);
-		// TODO: initialize channel?
-		mdiChild->initChannelRenderer(m_channelIDs[i], false);
-		mdiChild->updateChannelOpacity(m_channelIDs[i], 1);
+		
+		mdiChild->updateChannel(m_channelIDs[m_enabledChannels], chImgData, m_ctf[m_enabledChannels], m_otf[m_enabledChannels], true);
+		mdiChild->updateChannelOpacity(m_channelIDs[m_enabledChannels], 1);
 
 		// set channel index in model data for reference:
 		m_refSpectraLib->setElementOpacity(i, 10);
