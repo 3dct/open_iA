@@ -33,6 +33,8 @@ class MdiChild;
 class vtkImageData;
 class vtkTransform; 
 
+class vtkTransformFilter;
+
 class iAvtkInteractStyleActor : public QObject, public vtkInteractorStyleTrackballActor
 {
 	Q_OBJECT
@@ -69,6 +71,12 @@ public:
 	void Update3DTransform(const double * imageCenter, const double * spacing, double relativeAngle);
 
 	void TransformReslicerExperimental(double * obj_center, double rotationAngle);
+
+
+	// transformation of the reslicer rotation based on a slice mode
+	void updateReslicerRotationTransformation(const int sliceMode, double * ofs, const int sliceNumber);
+	
+
 signals:
 	void actorsUpdated();
 
@@ -83,7 +91,7 @@ private:
 	vtkSmartPointer<vtkTransform> m_transform3D;
 	vtkSmartPointer<vtkTransform> m_sliceTranslationTransform[3]; 
 
-
+	vtkSmartPointer<vtkTransformFilter> m_transformFilter;
 
 	//probably used to update the slicer
 	vtkSmartPointer<vtkTransform> m_SliceRotateTransform;
