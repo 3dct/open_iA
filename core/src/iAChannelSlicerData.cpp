@@ -57,7 +57,7 @@ iAChannelSlicerData::iAChannelSlicerData(iAChannelData const & chData, int mode)
 	m_reslicer->InterpolateOn();
 	m_reslicer->AutoCropOutputOn();
 	m_reslicer->SetNumberOfThreads(QThread::idealThreadCount());
-	assign(chData.image(), chData.getColor());
+	assign(chData.image());
 	m_imageActor->GetMapper()->BorderOn();
 	updateResliceAxesDirectionCosines(mode);
 	setupOutput(chData.colorTF(), chData.opacityTF());
@@ -80,9 +80,8 @@ void iAChannelSlicerData::resliceAxesOrigin(double * origin)
 	m_reslicer->GetResliceAxesOrigin(origin);
 }
 
-void iAChannelSlicerData::assign(vtkSmartPointer<vtkImageData> imageData, QColor const &col)
+void iAChannelSlicerData::assign(vtkSmartPointer<vtkImageData> imageData)
 {
-	m_color = col;
 	m_reslicer->SetInputData(imageData);
 	m_reslicer->SetInformationInput(imageData);
 }
@@ -123,7 +122,7 @@ void iAChannelSlicerData::updateLUT()
 
 void iAChannelSlicerData::update(iAChannelData const & chData)
 {
-	assign(chData.image(), chData.getColor());
+	assign(chData.image());
 	m_name = chData.name();
 	m_reslicer->Update();
 
@@ -163,11 +162,6 @@ vtkScalarsToColors* iAChannelSlicerData::cTF()
 void iAChannelSlicerData::updateMapper()
 {
 	m_colormapper->Update();
-}
-
-QColor iAChannelSlicerData::getColor() const
-{
-	return m_color;
 }
 
 void iAChannelSlicerData::setTransform(vtkAbstractTransform * transform)

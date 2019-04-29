@@ -2024,18 +2024,6 @@ void MdiChild::initChannelRenderer(uint id, bool use3D, bool enableChannel)
 	setChannelRenderingEnabled(id, enableChannel);
 }
 
-void MdiChild::setSlicerPieGlyphsEnabled( bool isOn )
-{
-	for (int s = 0; s<3; ++s)
-		m_slicer[s]->setPieGlyphsOn(isOn);
-}
-
-void MdiChild::setPieGlyphParameters( double opacity, double spacing, double magFactor )
-{
-	for (int s = 0; s<3; ++s)
-		m_slicer[s]->setPieGlyphParameters(opacity, spacing, magFactor);
-}
-
 iAChannelData * MdiChild::channelData(uint id)
 {
 	auto it = m_channels.find(id);
