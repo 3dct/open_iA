@@ -125,7 +125,6 @@ void iAChannelSlicerData::update(iAChannelData const & chData)
 {
 	assign(chData.image(), chData.getColor());
 	m_name = chData.name();
-	m_reslicer->UpdateWholeExtent();
 	m_reslicer->Update();
 
 	setupOutput(chData.colorTF(), chData.opacityTF());
