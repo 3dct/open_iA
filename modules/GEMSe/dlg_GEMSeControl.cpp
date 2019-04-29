@@ -89,7 +89,7 @@ public:
 		assert(m_theme);
 		if (!m_theme)
 			return QColor(0, 0, 0);
-		return m_theme->GetColor(idx);
+		return m_theme->color(idx);
 	}
 
 	void setLabelCount(int labelCount)
@@ -138,7 +138,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(m_dlgSamplings, SIGNAL(AddSampling()), this, SLOT(LoadSampling()));
 	dlgLabels->hide();
 	m_simpleLabelInfo->setColorTheme(colorTheme);
-	cbColorThemes->addItems(iAColorThemeManager::GetInstance().GetAvailableThemes());
+	cbColorThemes->addItems(iAColorThemeManager::instance().availableThemes());
 	cbColorThemes->setCurrentText(colorTheme->name());
 
 	connect(pbSample,           SIGNAL(clicked()), this, SLOT(StartSampling()));
@@ -573,7 +573,7 @@ void dlg_GEMSeControl::SetIconSize(int newSize)
 
 void dlg_GEMSeControl::SetColorTheme(const QString &themeName)
 {
-	iAColorTheme const * theme = iAColorThemeManager::GetInstance().GetTheme(themeName);
+	iAColorTheme const * theme = iAColorThemeManager::instance().theme(themeName);
 	m_dlgLabels->setColorTheme(theme);
 	m_simpleLabelInfo->setColorTheme(theme);
 	m_dlgGEMSe->SetColorTheme(theme, m_simpleLabelInfo.data());

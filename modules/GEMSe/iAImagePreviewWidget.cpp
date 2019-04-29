@@ -275,7 +275,7 @@ void iAImagePreviewWidget::RemoveChannel()
 		ctf->SetNumberOfValues(m_labelCount+1);
 		for (int i=0; i<m_labelCount; ++i)
 		{
-			QColor c(m_colorTheme->GetColor(i));
+			QColor c(m_colorTheme->color(i));
 			ctf->AddRGBPoint(i,
 				c.red()   / 255.0,
 				c.green() / 255.0,

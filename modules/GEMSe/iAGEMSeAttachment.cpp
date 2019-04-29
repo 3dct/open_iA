@@ -49,7 +49,7 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * ch
 	newAttachment->m_widgetAddHelper = QSharedPointer<iAWidgetAddHelper>(new iAWidgetAddHelper(child, child->logDockWidget()));
 	
 	QString defaultThemeName("Brewer Set3 (max. 12)");
-	iAColorTheme const * colorTheme = iAColorThemeManager::GetInstance().GetTheme(defaultThemeName);
+	iAColorTheme const * colorTheme = iAColorThemeManager::instance().theme(defaultThemeName);
 	
 	newAttachment->m_dlgGEMSe = new dlg_GEMSe(child, child->logger(), colorTheme);
 	

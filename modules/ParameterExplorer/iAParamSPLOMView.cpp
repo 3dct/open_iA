@@ -79,7 +79,7 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	m_separationSpinBox->setValue(0);
 	connect(m_separationSpinBox, SIGNAL(valueChanged(int)), this, SLOT(SeparationChanged(int)));
 	m_separationColors = new QComboBox();
-	for (QString themeName : iAColorThemeManager::GetInstance().GetAvailableThemes())
+	for (QString themeName : iAColorThemeManager::instance().availableThemes())
 	{
 		m_separationColors->addItem(themeName);
 		if (themeName == m_splom->getBackgroundColorTheme()->name())
@@ -180,7 +180,7 @@ void iAParamSPLOMView::SeparationChanged(int idx)
 
 void iAParamSPLOMView::SetColorTheme(const QString &name)
 {
-	m_splom->setBackgroundColorTheme(iAColorThemeManager::GetInstance().GetTheme(name));
+	m_splom->setBackgroundColorTheme(iAColorThemeManager::instance().theme(name));
 }
 
 void iAParamSPLOMView::ToggleSettings(bool visible)
