@@ -71,12 +71,13 @@ private:
 };
 
 //! Manager for color themes. Internally creates the qualitative color themes from
-//! Color Brewer (http://mkweb.bcgsc.ca/brewer/swatches/brewer.txt) and provides
-//! access to their names as well as the single themes.
+//! Color Brewer (http://mkweb.bcgsc.ca/brewer/swatches/brewer.txt) as well as from
+//! a few other sources and provides access to their names as well as the single
+//! themes.
 class open_iA_Core_API iAColorThemeManager
 {
 public:
-	//! only every need one of those
+	//! only ever need one of those (Singleton)
 	static iAColorThemeManager const & instance();
 	//! Get the list of all available themes
 	QStringList availableThemes() const;
