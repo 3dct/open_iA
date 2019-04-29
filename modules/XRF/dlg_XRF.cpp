@@ -298,14 +298,14 @@ vtkSmartPointer<vtkColorTransferFunction> dlg_XRF::GetColorTransferFunction()
 	return m_xrfData->GetColorTransferFunction();
 }
 
-QObject* dlg_XRF::UpdateForVisualization()
+QThread* dlg_XRF::UpdateForVisualization()
 {
 	if (m_ctfChanged)
 	{
 		m_ctfChanged = false;
 		return m_xrfData->UpdateCombinedVolume(m_cTF);
 	}
-	return 0;
+	return nullptr;
 }
 
 QSharedPointer<iAXRFData> dlg_XRF::GetXRFData()

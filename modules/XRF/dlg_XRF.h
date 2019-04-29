@@ -77,7 +77,7 @@ public:
 
 	vtkSmartPointer<vtkImageData> GetCombinedVolume();
 	vtkSmartPointer<vtkColorTransferFunction> GetColorTransferFunction();
-	QObject* UpdateForVisualization();
+	QThread* UpdateForVisualization();
 	QSharedPointer<iAXRFData> GetXRFData();
 	QSharedPointer<iAElementConcentrations> GetElementConcentrations();
 
