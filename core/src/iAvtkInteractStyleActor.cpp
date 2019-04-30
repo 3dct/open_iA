@@ -349,7 +349,7 @@ void iAvtkInteractStyleActor::rotate2D()
 }
 
 
-void iAvtkInteractStyleActor::UpdateReslicerTransform2D(double *const Rendposition, const double *orientation, const double *imageCenter, int sliceMode)
+void iAvtkInteractStyleActor::UpdateReslicerTranslateTransform2D(double *const Rendposition, const double *orientation, const double *imageCenter, int sliceMode)
 {
 	m_SliceRotateTransform[sliceMode]->SetInput(m_transform3D);	
 	m_SliceRotateTransform[sliceMode]->PostMultiply();
@@ -566,7 +566,7 @@ void iAvtkInteractStyleActor::updateReslicerRotationTransformation2d(const int s
 		m_slicerChannel[sliceMode]->reslicer()->SetInputData(m_image);
 		double const * spacing = m_image->GetSpacing();
 		double const * origin = m_image->GetOrigin(); //origin bei null
-		int slicerZAxisIdx = mapSliceToGlobalAxis(sliceMode, iAAxisIndex::X/*iAAxisIndex::Z*/);
+		int slicerZAxisIdx = mapSliceToGlobalAxis(sliceMode, iAAxisIndex::Z/*iAAxisIndex::Z*/);
 
 		//ist das immer die Z-Achse? 
 		ofs[slicerZAxisIdx] = sliceNumber * spacing[slicerZAxisIdx];
