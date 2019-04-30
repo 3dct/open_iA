@@ -1556,7 +1556,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 			m_dwSlicer[s]->sbSlice->setValue(m_imageData->GetDimensions()[mapSliceToGlobalAxis(s, iAAxisIndex::Z)] >> 1);
 			m_slicer[s]->channel(0)->reslicer()->SetResliceTransform(m_savedSlicerTransform[s]);
 			m_slicer[s]->channel(0)->reslicer()->SetOutputExtentToDefault();
-			m_slicer[s]->renderer()->ResetCamera();
+			m_slicer[s]->resetCamera();
 			m_slicer[s]->renderer()->Render();
 			m_slicer[s]->switchInteractionMode(iASlicer::Normal);
 		}

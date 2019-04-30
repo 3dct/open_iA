@@ -48,7 +48,6 @@ QT_END_NAMESPACE
 
 class vtkCamera;
 class vtkImageData;
-class vtkRenderer;
 
 class iAChartTransferFunction;
 class iAModalityList;
@@ -80,7 +79,7 @@ public:
 	void saveCamera(QDomDocument &doc);
 	void loadCamera(QDomNode &cameraNode);
 	void saveSliceViews(QDomDocument &doc);
-	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkRenderer *ren, QString const & elemStr);
+	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *ren, QString const & elemStr);
 	void loadSliceViews(QDomNode &sliceViewsNode);
 	void saveTransferFunction(QDomDocument &doc, iAChartTransferFunction* transferFunction);
 	void saveProbabilityFunctions(QDomDocument &doc);

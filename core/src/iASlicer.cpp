@@ -1759,14 +1759,6 @@ void iASlicer::setMouseCursor(QString const & s)
 	m_cursorSet = true;
 }
 
-/*
-vtkScalarBarWidget * iASlicer::getScalarBarWidget()
-{
-	assert(m_decorations);
-	return m_scalarBarWidget;
-}
-*/
-
 void iASlicer::setScalarBarTF(vtkScalarsToColors* ctf)
 {
 	if (!m_scalarBarWidget)
