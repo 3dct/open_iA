@@ -296,7 +296,10 @@ void iAImagePreviewWidget::UpdateImage()
 {
 	if (!BuildCTF())
 		return;
-	m_slicer->updateChannel(0, iAChannelData("", m_imageData, m_ctf));
+	if (m_slicer->hasChannel(0))
+		m_slicer->updateChannel(0, iAChannelData("", m_imageData, m_ctf));
+	else
+		m_slicer->addChannel(0, iAChannelData("", m_imageData, m_ctf), true);
 	UpdateView();
 }
 
